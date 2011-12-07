@@ -14,7 +14,7 @@
  * mixed up.
  *
  * The basic units in the QwAnalysis framework are:
- * \li Length: <b>mm</b>
+ * \li Length: <b>cm</b>
  * \li Time: <b>ms</b>
  * \li Energy: <b>MeV</b>
  * \li Angles: <b>rad</b>
@@ -57,12 +57,12 @@ namespace Qw {
 
   /// Length units: base unit is mm
   // metric
-  static const double mm = 1.0;
-  static const double cm = 10.0;
-  static const double m = 1.0e3;
+  static const double cm = 1.0;
+  static const double mm = 0.1 * cm;
+  static const double m = 1.0e2 * cm;
   // imperial
-  static const double in = 25.4;
-  static const double mil = 0.0254;
+  static const double in = 2.54 * cm;
+  static const double mil = 0.001 * in;
 
   /// Time units: base unit is ms
   static const double ns = 1.0e-6;

@@ -1,87 +1,96 @@
-/*------------------------------------------------------------------------*//*!
-
- \defgroup QwAnalysis_BL QwAnalysis_BeamLine
-
- \section myoverview Overview of the Qweak parity data analysis (beamline)
-
-    Put something here
-
- \section MS1 More Stuff
-
-    Put something here
-
-    \subsection MS2 More Substuff
-
-    Put some more stuff here
-
-    \subsection MS3 Even More Substuff
-
-    More stuff
-
-
-*//*-------------------------------------------------------------------------*/
-
 
 /*------------------------------------------------------------------------*//*!
 
- \file QwAnalysis_BeamLine.cc
+ \file QwFeedback.cc
 
- \brief main(...) function for the qwanalysis_beamline executable
+ \brief main(...) function for the qwanalysis feedback executable to set IA and/or PITA slopes
 
 *//*-------------------------------------------------------------------------*/
 
-#include "QwAnalysis_BeamLine.h"
-#include "TApplication.h"
+// System headers
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <new>
+
+// Boost headers
 #include <boost/shared_ptr.hpp>
 
-#include "QwEPICSControl.h"
-#include "GreenMonster.h"
+// Qweak headers
+#include "QwLog.h"
+#include "QwRootFile.h"
+#include "QwOptionsParity.h"
+#include "QwEventBuffer.h"
+#include "QwHistogramHelper.h"
+#include "QwSubsystemArrayParity.h"
+#include "QwHelicityCorrelatedFeedback.h"
+#include "QwEventRing.h"
+#include "QwEPICSEvent.h"
+//#include "QwEPICSControl.h"
+//#include "GreenMonster.h"
+
+// Qweak subsystems
+// (for correct dependency generation)
+#include "QwHelicity.h"
+#include "QwFakeHelicity.h"
+#include "QwBeamLine.h"
+#include "QwMainCerenkovDetector.h"
+#include "QwScanner.h"
+#include "QwLumi.h"
+#include "QwBeamMod.h"
+#include "QwVQWK_Channel.h"
 
 
-Bool_t kInQwBatchMode = kFALSE;
-Bool_t bRING_READY;
 
-///
-/// \ingroup QwAnalysis_BL
+
 Int_t main(Int_t argc, Char_t* argv[])
 {
-  // First, we set the command line arguments and the configuration filename,
-  // and we define the options that can be used in them (using QwOptions).
-  gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qwanalysis_beamline.conf");
-  // Define the command line options
-  DefineOptionsParity(gQwOptions);
-
-  // modified value for maximum size of tree
-  Long64_t kMAXTREESIZE = 10000000000LL;
-  // standard value for maximum size of tree in root source
-  //  Long64_t kMAXTREESIZE = 1900000000LL;
-
-  Bool_t bDebug=kFALSE;
-  Bool_t bHelicity=kTRUE;
-  Bool_t bTree=kTRUE;
-  Bool_t bHisto=kFALSE;//kTRUE;
-
-  //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
-  if (getenv("DISPLAY")==NULL
-      ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
-  gROOT->SetBatch(kTRUE);
-
-  ///  Fill the search paths for the parameter files; this sets a static
-  ///  variable within the QwParameterFile class which will be used by
+  ///  First, fill the search paths for the parameter files; this sets a
+  ///  static variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Extensions/QwFeedback/prminput");
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
-  ///
+
+  // Then set the command line arguments and the configuration filename, 
+  // and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.AddConfigFile("qwfeedback.conf");
+  //gQwOptions.ListConfigFiles();
+  //gQwOptions.AddConfigFile("qweak_mysql.conf");
+    // Define the command line options
+  DefineOptionsParity(gQwOptions);
+  QwHelicityCorrelatedFeedback::DefineOptions(gQwOptions);
+  //Load command line options for the histogram/tree helper class
+  gQwHists.ProcessOptions(gQwOptions);
+   /// Setup screen and file logging
+  gQwLog.ProcessOptions(&gQwOptions);
+
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
-  ///
-  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+  //gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+  //gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
-  TStopwatch timer;
 
+  ///  Create the event buffer
+  QwEventBuffer eventbuffer;
+  eventbuffer.ProcessOptions(gQwOptions);
+
+
+
+  ///  Create the database connection
+  //  QwDatabase database(gQwOptions);
+
+
+  ///  Start loop over all runs
+  //  QwRootFile* rootfile = 0;
+
+  
+  /*
+  ///  Create an EPICS control event
   QwEPICSControl fEPICSCtrl;
   GreenMonster   fScanCtrl;
   //  Let's clear the values for the scan data & set "not clean".
@@ -92,328 +101,174 @@ Int_t main(Int_t argc, Char_t* argv[])
   fScanCtrl.CheckScan();
   fScanCtrl.PrintScanInfo();
   fScanCtrl.Close();
-
-  QwEventBuffer QwEvt;
-  QwEvt.ProcessOptions(gQwOptions);
-
-
-  QwSubsystemArrayParity QwDetectors;
-  VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
-  subsystem_tmp = 0;
-
-  QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
-  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
-  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
-  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
-  QwDetectors.push_back(new QwHelicity("Helicity info"));
-  QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
-  QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
-
-  ((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
-
-
-
-  QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
-
-  //Reads Event Ring parameters from cmd
-  Int_t r_size=32,r_BT=4,r_HLD=16;
-  if (gQwOptions.HasValue("ring.size"))
-    r_size=gQwOptions.GetValue<int>("ring.size");
-  if (gQwOptions.HasValue("ring.bt"))
-    r_BT=gQwOptions.GetValue<int>("ring.bt");
-  if (gQwOptions.HasValue("ring.hld"))
-    r_HLD=gQwOptions.GetValue<int>("ring.hld");
-
-  std::cout<<" Ring "<<r_size<<" , "<<r_BT<<" , "<<r_HLD<<std::endl;
-  QwEventRing fEventRing(QwDetectors,r_size,r_HLD,r_BT);
-  Double_t evnum=0.0;
-
+  
   fEPICSCtrl.Print_Qasym_Ctrls();
-
+  */
+    
   // Loop over all runs
-  while (QwEvt.OpenNextStream() == CODA_OK){
-      //  Begin processing for the first run.
-      //  Start the timer.
-      timer.Start();
+  while (eventbuffer.OpenNextStream() == CODA_OK){
+    //  Begin processing for the first run.
+ 
+    ///  Set the current event number for parameter file lookup
+    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
 
-      QwEvt.ResetControlParameters();
-      //  Open the data files and root file
-      //    OpenAllFiles(io, run);
 
-      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_Feedback_%s.root",
-									QwEvt.GetRunLabel().Data());
-      std::cout<<" rootfilename="<<rootfilename<<"\n";
-      TFile rootfile(rootfilename,
-		     "RECREATE","QWeak ROOT file");
+    ///  Create an EPICS event
+    QwEPICSEvent epicsevent;
+    epicsevent.LoadChannelMap("EpicsTable.map");
 
-      if(bHisto){
-	rootfile.cd();
-	QwDetectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
-	if(bHelicity)
-	  {
-	    rootfile.cd();
-	    QwHelPat.ConstructHistograms(rootfile.mkdir("hel_histo"));
-	  }
+    ///  Load the detectors from file
+    QwSubsystemArrayParity detectors(gQwOptions);
+    detectors.ProcessOptions(gQwOptions);
+
+    ///  Create the helicity pattern
+    QwHelicityCorrelatedFeedback helicitypattern(detectors);
+    helicitypattern.ProcessOptions(gQwOptions);
+    helicitypattern.LoadParameterFile("qweak_fb_prm.in");
+    /*
+      helicitypattern.UpdateGMClean(0);
+      helicitypattern.FeedIASetPoint(0);
+      helicitypattern.UpdateGMClean(1);
+    */
+
+    ///  Create the event ring with the subsysten array
+    QwEventRing eventring(gQwOptions,detectors);
+
+    ///  Create the running sum
+    QwSubsystemArrayParity runningsum(detectors);
+
+
+    Int_t failed_events_counts = 0; // count failed total events
+
+
+    //  Clear the single-event running sum at the beginning of the runlet
+    runningsum.ClearEventData();
+    helicitypattern.ClearRunningSum();
+    //  Clear the running sum of the burst values at the beginning of the runlet
+    helicitypattern.ClearBurstSum();
+
+
+    
+
+    // Loop over events in this CODA file
+    while (eventbuffer.GetNextEvent() == CODA_OK) {
+
+      if (eventbuffer.GetEventNumber()%1000)
+	std::cout<<std::flush;
+
+      //  First, do processing of non-physics events...
+      if (eventbuffer.IsROCConfigurationEvent()){
+	//  Send ROC configuration event data to the subsystem objects.
+	eventbuffer.FillSubsystemConfigurationData(detectors);
       }
 
-
-      TTree *mpstree =0;
-      TTree *heltree =0;
-
-      std::vector <Double_t> mpsvector;
-      std::vector <Double_t> helvector;
-
-      if(bTree)
-	{
-	  rootfile.cd();
-	  mpstree=new TTree("MPS_Tree","MPS event data tree");
-	  mpstree->SetMaxTreeSize(kMAXTREESIZE);
-	  mpsvector.reserve(6000);
-	  // if one defines more than 600 words in the full ntuple
-	  // results are going to get very very crazy.
-	  mpstree->Branch("evnum",&evnum,"evnum/D");
-	  TString dummystr="";
-	  QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-
-	  rootfile.cd();
-	  if(bHelicity)
-	    {
-	      rootfile.cd();
-	      heltree = new TTree("HEL_Tree","Helicity event data tree");
-	      heltree->SetMaxTreeSize(kMAXTREESIZE);
-	      helvector.reserve(6000);
-	      TString dummystr="";
-	      QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
-	    }
+      //  Dump out of the loop when we see the end event.
+      if (eventbuffer.GetEndEventCount()>0){
+	QwMessage << "Number of events processed at end of run: " << eventbuffer.GetEventNumber() << std::endl;
+	break;
+      }
+      
+      //  Now, if this is not a physics event, go back and get a new event.
+      if (!eventbuffer.IsPhysicsEvent()) continue;
 
 
-	}
+      //  Fill the subsystem objects with their respective data for this event.
+      eventbuffer.FillSubsystemData(detectors);
+
+      //  Process the subsystem data
+      detectors.ProcessEvent();
+
+       // The event pass the event cut constraints
+      if (detectors.ApplySingleEventCuts()) {
+
+        // Accumulate the running sum to calculate the event based running average
+        runningsum.AccumulateRunningSum(detectors);
+
+//         // Fill the histograms
+//         rootfile->FillHistograms(detectors);
+
+//         // Fill the tree branches
+//         rootfile->FillTreeBranches(detectors);
+//         rootfile->FillTree("Mps_Tree");
+
+        // Add event to the ring
+        eventring.push(detectors);
+
+        // Check to see ring is ready
+        if (eventring.IsReady()) {
+
+          // Load the event into the helicity pattern
+          helicitypattern.LoadEventData(eventring.pop());
+
+          // Calculate helicity pattern asymmetry
+          if (helicitypattern.IsCompletePattern()) { 
+
+            // Update the blinder if conditions have changed
+            helicitypattern.UpdateBlinder(detectors);
+
+            // Calculate the asymmetry
+            helicitypattern.CalculateAsymmetry();
+            if (helicitypattern.IsGoodAsymmetry()) {
+	      helicitypattern.ApplyFeedbackCorrections();//apply IA feedback
+              // Clear the data
+              helicitypattern.ClearEventData();	      
+            }
+
+          } // helicitypattern.IsCompletePattern()
+
+        } // eventring.IsReady()
 
 
-      int numevents = 1000*3;
-      int stepnum = 0;
-      int setval;
-      std::vector<Double_t> values;
-//       values.push_back(5.0);
-//       values.push_back(3.0);
-//       values.push_back(1.0);
-//       values.push_back(3.0);
-//       values.push_back(5.0);
-//       values.push_back(7.0);
-//       values.push_back(9.0);
-//       values.push_back(7.0);
-
-//      Double_t pc_plus  = 7.420;
-//      Double_t pc_minus = 7.310;
-      Double_t pc_plus  = 5.0;
-      Double_t pc_minus = 5.0;
-      Double_t tmpval;
-
-      values.push_back(0.0);
-      //      values.push_back(1.0);
-      values.push_back(4.0);
-      //      values.push_back(1.0);
-      //      values.push_back(-1.0);
-      values.push_back(-4.0);
-      //      values.push_back(-1.0);
-
-
-      setval = TMath::Nint(values[stepnum]*1000);
-      fScanCtrl.SCNSetValue(1,0);
-      fScanCtrl.SCNSetValue(2,setval);
-
-      //      fEPICSCtrl.Set_HallAIA(values[stepnum]);
-
-      tmpval = pc_plus + values[stepnum];
-      fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
-      tmpval = pc_minus - values[stepnum];
-      fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
-      fEPICSCtrl.Print_Qasym_Ctrls();
-
-
-      Int_t falied_events_counts=0;//count falied total events
-
-
-      // Loop over events in this CODA file
-      while (QwEvt.GetNextEvent() == CODA_OK) {
-	//  First, do processing of non-physics events...
-	if (QwEvt.IsROCConfigurationEvent()){
-	  //  Send ROC configuration event data to the subsystem objects.
-	  QwEvt.FillSubsystemConfigurationData(QwDetectors);
-	}
-
-	//  Dump out of the loop when we see the end event.
-	if (QwEvt.GetEndEventCount()>0) break;
-
-	//  Now, if this is not a physics event, go back and get a new event.
-	if (! QwEvt.IsPhysicsEvent()) continue;
-
-
-	//  Some reslly simple tests of the scan control and EPICS
-	//  control systems as used for June 2009 tests.
-	if(QwEvt.GetEventNumber()%(numevents*5)==0) {
-	  fScanCtrl.Open();
-	  fScanCtrl.SCNSetStatus(SCN_INT_NOT);
-	  fScanCtrl.SCNSetValue(1,QwEvt.GetEventNumber());
-
-	  stepnum++;
-	  if (stepnum>=values.size())
-	    stepnum=0;
-	  //	    fEPICSCtrl.Set_HallAIA(values[stepnum]);
-	  tmpval = pc_plus + values[stepnum];
-	  fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
-	  tmpval = pc_minus - values[stepnum];
-	  fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
-	  fEPICSCtrl.Print_Qasym_Ctrls();
-
-	  setval = TMath::Nint(values[stepnum]*1000);
-	  fScanCtrl.SCNSetValue(2,setval);
-
-	  fScanCtrl.SCNSetStatus(SCN_INT_CLN);
-	  fScanCtrl.Close();
-
-	} else if(QwEvt.GetEventNumber()%(numevents)==0) {
-	  fScanCtrl.Open();
-	  fScanCtrl.SCNSetStatus(SCN_INT_NOT);
-	  fScanCtrl.SCNSetValue(1,QwEvt.GetEventNumber());
-	  fScanCtrl.SCNSetValue(2,setval);
-	  fScanCtrl.SCNSetStatus(SCN_INT_CLN);
-	  fScanCtrl.Close();
-	}
-
-
-
-	if(bDebug){
-	  std::cout<<"==================================================== \n";
-	  std::cout<<" new event:: number ="<<QwEvt.GetEventNumber()<<"\n";
-	  std::cout<<"==================================================== \n";
-	}
-	//std::cout<<"*********** event num "<<QwEvt.GetEventNumber()<<"*************************"<<std::endl;
-	//  Fill the subsystem objects with their respective data for this event.
-	QwEvt.FillSubsystemData(QwDetectors);
-
-
-	QwDetectors.ProcessEvent();
-
-
-
-
-	//currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
-	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints
-
-
-
-	  if(bHelicity){
-
-	    fEventRing.push(QwDetectors);//add event to the ring
-	    //std::cerr << "After QwEventRing::push()" <<std::endl;
-	    bRING_READY=fEventRing.IsReady();
-
-	    if (bRING_READY){//check to see ring is ready
-	      //fEventRing.pop();
-	      QwHelPat.LoadEventData(fEventRing.pop());
-	    }
-
-	    //QwHelPat.LoadEventData(QwDetectors);
-	  }
-
-
-	  QwDetectors.AccumulateRunningSum();//accimulate the running sum to calculate the event base running AVG
-
-
-	  if(bHisto) QwDetectors.FillHistograms();
-
-
-	  if(bTree){
-	    evnum=QwEvt.GetEventNumber();
-	    QwDetectors.FillTreeVector(mpsvector);
-	    mpstree->Fill();
-	  }
-
-	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
-	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
-	    QwHelPat.CalculateAsymmetry();
-	    //QwHelPat.Print();
-	    if (QwHelPat.IsGoodAsymmetry()){
-	      if(bHisto) QwHelPat.FillHistograms();
-
-	      if(bTree){
-		QwHelPat.FillTreeVector(helvector);
-		heltree->Fill();
-	      }
-	      QwHelPat.ClearEventData();
-	    }
-	  }
-	}else{
-	  //std::cout<<" Failed event "<<QwEvt.GetEventNumber()<<std::endl;
-	  fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
-	  falied_events_counts++;
-	}
-
-	if(QwEvt.GetEventNumber()%1000==0){
-	  std::cerr << "Number of events processed so far: "
-		    << QwEvt.GetEventNumber() << "\r";
-	}
+      // Failed single event cuts
+      } else {
+	failed_events_counts++;
       }
 
+      // Burst mode
+      if (eventbuffer.IsEndOfBurst()) {
+        helicitypattern.AccumulateRunningBurstSum();
+        helicitypattern.CalculateBurstAverage();
+        helicitypattern.ClearBurstSum();
+      } 
 
+      
 
-      std::cout << "Number of events processed so far: "
-		<< QwEvt.GetEventNumber() << std::endl;
+    }   // end of loop over events  
 
-      //This will print running averages
-      QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
-      std::cout<<"Event Based Running average"<<std::endl;
-      std::cout<<"==========================="<<std::endl;
-      QwDetectors.CalculateRunningAverage();//this will calculate running averages for Yields per event basis
-      timer.Stop();
-
-      /*  Write to the root file, being sure to delete the old cycles  *
-       *  which were written by Autosave.                              *
-       *  Doing this will remove the multiple copies of the ntuples    *
-       *  from the root file.                                          *
-       *                                                               *
-       *  Then, we need to delete the histograms here.                 *
-       *  If we wait until the subsystem destructors, we get a         *
-       *  segfault; but in additiona to that we should delete them     *
-       *  here, in case we run over multiple runs at a time.           */
-      if(bHisto||bTree)rootfile.Write(0,TObject::kOverwrite);
-      if(bHisto){
-	std::cout<<"QwDetectors.DeleteHistograms\n";
-	QwDetectors.DeleteHistograms();
-	std::cout<<"QwHelPat.DeleteHistograms\n";
-	QwHelPat.DeleteHistograms();
-      }
-
-      QwEvt.CloseStream();
-      QwEvt.ReportRunSummary();
+    QwMessage << "Number of events processed at end of run: "
+              << eventbuffer.GetEventNumber() << std::endl;
 
 
 
+    //  Close event buffer stream
+    eventbuffer.CloseStream();
 
 
-      //QwHelPat.Print();
+
+    //  Print the event cut error summery for each subsystem
+    detectors.GetEventcutErrorCounters();
 
 
-      QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
-      std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
+    //  Read from the datebase
+    //    database.SetupOneRun(eventbuffer);
 
-      PrintInfo(timer);
+    // Each sussystem has its own Connect() and Disconnect() functions.
+    //    if (database.AllowsWriteAccess()) {
+    //      helicitypattern.FillDB(&database);
+    //      epicsevent.FillDB(&database);
+    //    }
 
-    } //end of run loop
 
-  std::cerr << "I have done everything I can do..." << std::endl;
+    QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
 
+    //  Report run summary
+    eventbuffer.ReportRunSummary();
+    eventbuffer.PrintRunTimes();
+
+  } //end of run loop
+
+
+  QwMessage << "I have done everything I can do..." << QwLog::endl; 
+ 
   return 0;
-}
-
-
-
-void PrintInfo(TStopwatch& timer)
-{
-  std::cout << "CPU time used:  "  << timer.CpuTime() << " s"
-	    << std::endl
-	    << "Real time used: " << timer.RealTime() << " s"
-	    << std::endl << std::endl;
-  return;
 }

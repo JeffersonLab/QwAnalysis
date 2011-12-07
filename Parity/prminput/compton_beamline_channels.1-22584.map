@@ -1,0 +1,68 @@
+!**************************************************************************
+!  COMPTON  BEAMLINE (ALL SCALERS)
+!**************************************************************************
+!
+!
+ROC=31
+Bank = 0x1f02
+
+!!! BPM channels confirmed on 07/28/2011 (jc2)
+!!! NOTE: (jc2) Do not add an _ before xm, xp, xy.  It will produce wrongly named
+!!! Beam Position Monitors in the Compton Chicane
+!! scaler.type, scaler.num  chan.num, det.type, det.name
+SCALER, 0, 0x0f, bpmstripline, sca_bpm_3p02axp
+SCALER, 0, 0x0e, bpmstripline, sca_bpm_3p02axm
+SCALER, 0, 0x0d, bpmstripline, sca_bpm_3p02ayp
+SCALER, 0, 0x0c, bpmstripline, sca_bpm_3p02aym
+SCALER, 0, 0x0b, bpmstripline, sca_bpm_3p02bxp
+SCALER, 0, 0x0a, bpmstripline, sca_bpm_3p02bxm
+SCALER, 0, 0x09, bpmstripline, sca_bpm_3p02byp
+SCALER, 0, 0x08, bpmstripline, sca_bpm_3p02bym
+SCALER, 0, 0x07, bpmstripline, sca_bpm_3p03axp
+SCALER, 0, 0x06, bpmstripline, sca_bpm_3p03axm
+SCALER, 0, 0x05, bpmstripline, sca_bpm_3p03ayp
+SCALER, 0, 0x04, bpmstripline, sca_bpm_3p03aym
+SCALER, 0, 0x03, bpmstripline, sca_bpm_3c20xp
+SCALER, 0, 0x02, bpmstripline, sca_bpm_3c20xm
+SCALER, 0, 0x01, bpmstripline, sca_bpm_3c20yp
+SCALER, 0, 0x00, bpmstripline, sca_bpm_3c20ym
+
+!! Beam Charge Monitors of the QWeak Beam Line (read
+!! the above warning )
+!! scaler.type,  scaler.num, chan.num, det.type, det.name
+SCALER,   0, 0x1b, bcm, sca_bcm1
+SCALER,   0, 0x1c, bcm, sca_bcm2
+SCALER,   0, 0x1d, bcm, sca_bcm6
+SCALER,   0, 0x1e, bcm, sca_unser
+
+!! Clocks in the QWeak Beam Line (read the above warning)
+!! scaler.type, scaler.num, chan.num, det.type, det.name
+SCALER,   0, 0x1f, clock, sca_4MHz
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Combined BCM's
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+begin=combinedbcm
+name=compton_charge
+ sca_bcm1, bcm, 1.0
+ sca_bcm2, bcm, 1.0
+end=combinedbcm
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Combined BPM's
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!begin=combinedbpm
+!name=compton_bpm
+!! Note (7/28/2011) : Disabled BPM 3P02A's use for the
+!! compton position since channel YM may not be being read
+!! correctly (see hclog)
+! sca_bpm_3p02a, bpmstripline, 1.0, 1.0, 1.0
+!! Note (7/30/2011) : Also disabled 3p02a, because
+!! combined BPMs don't work with only one channel...
+! sca_bpm_3p02b, bpmstripline, 1.0, 1.0, 1.0
+!end=combinedbpm
+
+![PUBLISH]
+! compton_charge, combinedbcm, compton_charge, c
+

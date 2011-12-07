@@ -8,10 +8,6 @@
 #include "TROOT.h"
 #include "TH1F.h"
 
-// Qweak support headers
-#include "Det.h"
-#include "Qset.h"
-
 // Qweak headers
 #include "QwEventBuffer.h"
 #include "QwTrackingWorker.h"
@@ -24,7 +20,7 @@ class QwTrackingDataserver : public VQwDataserver {
 
   public:
     QwTrackingDataserver (const char*);
-    ~QwTrackingDataserver();
+    virtual ~QwTrackingDataserver();
 
     void NextEvent();
     QwHitContainer* GetHitList();

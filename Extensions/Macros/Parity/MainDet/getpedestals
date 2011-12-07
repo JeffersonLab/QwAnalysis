@@ -1,0 +1,170 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Copy;
+
+# getpedestals :: smacewan (March, 2011)
+# 
+# getpedestals streamlines the pedestal determination process for the main detectors,
+# background detectors, and both sets of lumi detectors. It still calls the ROOT script
+# written by J. Leacock, but includes a front end that analyzes the data file, displays
+# reference plots, asks users whether or not pedestal files need to be written to prminput,
+# emails subsystem pedestal experts, and posts new pedestal file plots to the hclog.
+# The script also closes the previously most current open-ended-run-range pedestal file.
+#
+# Call by executing 'getpedestals RUNNUM'
+#
+# Example:
+# getpedestals 9771
+#
+
+#variable declarations:
+my $QWANALYSIS = $ENV{QWANALYSIS};
+my $QWSCRATCH = $ENV{QWSCRATCH};
+my $PRMINPUT = "$QWANALYSIS/Parity/prminput";
+my $updated = 0;
+my $runNum = $ARGV[0];
+my $saveMDPed = "n";
+my $saveLumiPed = "n";
+my $refDirectory = "/net/cdaqfs/home/cdaq/Desktop/reference_plots/";
+
+my $eSubject = "Run $runNum Pedestal Data";
+my $calib = "$QWSCRATCH/calib";
+my @pedplots = map { "$calib/pedPlots/$runNum\_$_.png" } qw[lumi md];
+my @mapfiles = map { "$calib/qweak_$_\_pedestal.$runNum-.map" } qw[lumi maindet];
+
+#set up scratch directory for pedestal data if it doesn't exist
+if (-d "$QWSCRATCH/calib/pedPlots"){
+	print "Found scratch directory $QWSCRATCH/calib/pedPlots.\n";
+}
+else{
+	print "Creating scratch directory $QWSCRATCH/calib/pedPlots...\n";
+	mkdir ("$QWSCRATCH/calib/pedPlots",0777) or die $!;
+}
+
+#perform qwick analysis
+#print "Running qwick_pedestals...\n";
+# !system ("/home/cdaq/bin/qwick_pedestals") or die $!;
+
+#run pedestal ROOT script
+print "Running ROOT script mdlumi_ped.C ...\n";
+!system ("root -n -l -b -q '$QWANALYSIS/Extensions/Macros/Parity/MainDet/mdlumi_ped.C($runNum)'") or die("Can't execute ROOT script: $!\n");
+
+
+######################
+####Main Detectors####
+######################
+
+#display reference plots
+print "Displaying main detector and bg reference plots ...\n";
+#!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_md.png&") or warn ("Cannot display plots: $!\n");
+!system ("/usr/bin/eog $QWSCRATCH/calib/pedPlots/$runNum\_md.png&") or warn ("Cannot display plots: $!\n");
+#!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_bg.png&") or warn ("Cannot display plots: $!\n");
+!system ("/usr/bin/eog $QWSCRATCH/calib/pedPlots/$runNum\_bg.png&") or warn ("Cannot display plots: $!\n");
+#!system ("/usr/bin/display $refDirectory/ped_md.gif&") or warn ("Cannot display reference plots: $!\n");
+!system ("/usr/bin/eog $refDirectory/ped_md.gif&") or warn ("Cannot display reference plots: $!\n");
+#!system ("/usr/bin/display $refDirectory/ped_bg.gif&") or warn ("Cannot display reference plots: $!\n");
+!system ("/usr/bin/eog $refDirectory/ped_bg.gif&") or warn ("Cannot display reference plots: $!\n");
+sleep 2;
+
+#ask user if they want to update the pedestals
+print "Update main detector pedestals to run $runNum? This includes background detectors. (y/N)\n";
+chomp($saveMDPed = <STDIN>); 
+print "\n";
+	
+#if so, move files to prminput
+if (lc $saveMDPed eq 'y'){
+	copy ("$QWSCRATCH/calib/qweak_maindet_pedestal.$runNum-.map","$PRMINPUT/qweak_maindet_pedestal.$runNum-.map");
+	!system ("/usr/bin/svn add $PRMINPUT/qweak_maindet_pedestal.$runNum-.map") or warn ("Cannot add file to svn: $!\n");
+	print "Moved main detector pedestal file to prminput and performed an svn add. \n";
+	closeRange("maindet");
+	$updated = 1;
+}
+else{
+	print "Will not update main or background detector pedestals.\n";
+}
+
+######################
+####Lumi Detectors####
+######################
+
+#display reference plots
+print "Displaying lumi reference plots...\n";
+#!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_lumi.png&") or warn ("Cannot display plots: $!\n");
+!system ("/usr/bin/eog $QWSCRATCH/calib/pedPlots/$runNum\_lumi.png&") or warn ("Cannot display plots: $!\n");
+#!system ("/usr/bin/display $refDirectory/ped_lumi.gif&") or warn ("Cannot display reference plots: $!\n");
+!system ("/usr/bin/eog $refDirectory/ped_lumi.gif&") or warn ("Cannot display reference plots: $!\n");
+sleep 2;
+
+#ask user if need to update
+print "Update lumi detector pedestals to run $runNum? (y/N)\n";
+chomp($saveLumiPed = <STDIN>); 
+print "\n";
+	
+#if so, move files to prminput
+if (lc $saveLumiPed eq 'y'){
+	copy ("$QWSCRATCH/calib/qweak_lumi_pedestal.$runNum-.map","$PRMINPUT/qweak_lumi_pedestal.$runNum-.map");
+	!system ("/usr/bin/svn add $PRMINPUT/qweak_lumi_pedestal.$runNum-.map") or warn ("Cannot add file to svn: $!\n");
+	print "Moved lumi detector pedestal file to prminput and performed an svn add. \n";
+	closeRange("lumi");
+	$updated = 1;
+}
+else{
+	print "Will not update lumi detector pedestals.\n";
+}
+
+#send email to experts
+sendEmail();
+
+#post to hclog if pedestals were updated
+if ($updated == 1){ 
+	hclog();
+}
+
+#############
+####Subs#####
+#############
+
+sub sendEmail{
+
+    my @attach = map { "-a$_" } @pedplots, @mapfiles;
+
+print "Emailing results to subsystem pedestal experts (J. Leacock and S. MacEwan)...\n";
+open MUTT, "|-", "/usr/bin/mutt", "-s$eSubject", @attach, map { $_.'@jlab.org' } qw[smacewan leacock]; 
+close MUTT;
+}
+
+sub hclog{
+print "Posting plots to HCLog...\n";
+
+my @attachments = map {"--attachment=$_"} @pedplots;
+my $body = "Main detector and lumi pedestals.";
+my $hclog = "/home/cdaq/bin/Linux/hclog_post";
+
+##!system ("/home/cdaq/bin/Linux/hclog_post $subject $attachments --body=$body") or warn ("Cannot post to HCLog: $!\n");
+##!print ("/home/cdaq/bin/Linux/hclog_post --subject $subject $attachments --body=$body") or warn ("Cannot post to HCLog: $!\n");
+
+open HCLOG, "|-", $hclog, "--subject=$eSubject", @attachments, "--body=$body";
+close HCLOG;
+}
+
+sub closeRange{
+my @openRanges;
+my $detType = $_[0];
+opendir (DIR, "$PRMINPUT") or die $!;
+while (my $file = readdir(DIR)){
+    if ($file =~ $runNum) {
+	warn "replacing file $file.\n";
+	unlink $file;
+	next;
+    }
+    if($file =~ /$detType\_pedestal\.(\d+)-.map$/){
+	push (@openRanges, $1);
+    }
+}
+foreach my $open (@openRanges) {
+    my $old = $PRMINPUT."/qweak_$detType\_pedestal.$open-.map";
+    my $new = substr($old,0,-4).($runNum-1).".map";
+    !system ("/usr/bin/svn",  "move", $old, $new) or warn ("Cannot update names on svn: $!\n");
+}
+}

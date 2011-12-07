@@ -8,13 +8,15 @@
 
 #include "uv2xy.h"
 
+// System headers
 #include <cstdio>
 #include <cmath>
+
+// ROOT headers
 #include "TMath.h"
 
-//#define PI 3.141592653589793
-//#define DEG2RAD PI/180.0
-//#define RAD2DEG 180.0/PI
+// Qweak headers
+#include "QwLog.h"
 
 /* For Region 2, the x wires actually measure a coordinate in the lab y direction.
    So for the reconstruction of tracks in R2, I will use a coordinate system
@@ -29,9 +31,9 @@
 /**
  * Create a coordinate transformation helper object based on a single angle
  *
- * @param angleUdeg Angle (in degrees) of the U axis
+ * @param angleU Angle (in radians) of the U axis
  */
-Uv2xy::Uv2xy(const double angleUdeg)
+Uv2xy::Uv2xy(const double angleU)
 {
   // Reset wire spacing
   SetWireSpacing(0.0);
@@ -41,8 +43,11 @@ Uv2xy::Uv2xy(const double angleUdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * TMath::DegToRad();
-  fAngleVrad = TMath::Pi() - fAngleUrad;
+  double angleV = Qw::pi - angleU;
+  // Ensure correct handedness
+  if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
+  // Set the angles
+  SetAngleUVinXY(angleU, angleV);
   InitializeRotationMatrices();
 }
 
@@ -50,10 +55,10 @@ Uv2xy::Uv2xy(const double angleUdeg)
 /**
  * Create a coordinate transformation helper object based on two angles.
  *
- * @param angleUdeg Angle (in degrees) of the U axis
- * @param angleVdeg Angle (in degrees) of the V axis
+ * @param angleUdeg Angle (in radians) of the U axis
+ * @param angleVdeg Angle (in radians) of the V axis
  */
-Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
+Uv2xy::Uv2xy(const double angleUrad, const double angleVrad)
 {
   // Reset wire spacing
   SetWireSpacing(0.0);
@@ -63,9 +68,26 @@ Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * TMath::DegToRad();
-  fAngleVrad = angleVdeg * TMath::DegToRad();
+  SetAngleUVinXY(angleUrad, angleVrad);
   InitializeRotationMatrices();
+}
+
+
+
+void Uv2xy::SetAngleUVinXY(const double angleUrad, const double angleVrad)
+{
+  // Check whether U and V angle are sufficiently different
+  if (fabs(angleUrad - angleVrad) < 1.0 * Qw::deg) {
+    QwWarning << "uv2xy transformation cannot be created with angles "
+              << angleUrad/Qw::deg << " deg and "
+              << angleVrad/Qw::deg << " deg." << QwLog::endl;
+    QwWarning << "uv2xy transformation will not transform anything." << QwLog::endl;
+    fAngleUrad = 0.0;
+    fAngleVrad = Qw::pi/2;
+  } else {
+    fAngleUrad = angleUrad;
+    fAngleVrad = angleVrad;
+  }
 }
 
 
@@ -84,19 +106,22 @@ void Uv2xy::InitializeRotationMatrices()
   double sv = sin(fAngleVrad);
 
   // [x,y] to [u,v] transformation
-  
-  fXY[0][0] =  sv;
-  fXY[0][1] = -cv;
-  fXY[1][0] = -su;
-  fXY[1][1] =  cu;
+  fXY[0][0] = cu;
+  fXY[0][1] = su;
+  fXY[1][0] = cv;
+  fXY[1][1] = sv;
 
   // [u,v] to [x,y] transformation (inverse)
-  double det = (cu * sv - su * cv);
-  if (det) {
-    fUV[0][0] = cu / det;
-    fUV[0][1] = cv / det;
-    fUV[1][0] = su / det;
-    fUV[1][1] = sv / det;
+  double det = (fXY[0][0] * fXY[1][1] - fXY[0][1] * fXY[1][0]);
+  if (fabs(det) > 0.0) {
+    fUV[0][0] =  fXY[1][1] / det;
+    fUV[0][1] = -fXY[0][1] / det;
+    fUV[1][0] = -fXY[1][0] / det;
+    fUV[1][1] =  fXY[0][0] / det;
+  }
+  // Note: det should be +1 or -1
+  if (det < 0.0) {
+    QwWarning << "uv2xy transformation from right- to left-handed system." << QwLog::endl;
   }
 }
 

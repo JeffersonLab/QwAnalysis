@@ -1,0 +1,22 @@
+#!/bin/bash
+
+login=login.jlab.org
+
+# Usage instructions
+if [ $# -lt 1 ] ; then
+	echo "Usage: `basename $0` [user@]host"
+	exit 0
+fi
+userhost=$1
+
+# Set up username
+if [ ! "${userhost/*@*/}" ] ; then
+	user=${userhost/@*/}
+	host=${userhost/*@/}
+else
+	user=`whoami`
+	host=${userhost}
+fi
+
+# Connect
+ssh -t ${user}@${login} ssh ${userhost}

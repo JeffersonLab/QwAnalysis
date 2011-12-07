@@ -13,10 +13,8 @@
 #include <iostream>
 
 // Qweak headers
+#include "QwLog.h"
 #include "QwTypes.h"
-
-
-class QwHit;
 
 /**
  *
@@ -35,20 +33,20 @@ class QwHit;
  *   y = u \cdot \sin \theta_u + v \cdot \sin \theta_v,
  * \f]
  * \f[
- *   u = x \cdot \sin \theta_v - y \cdot \cos \theta_v, \qquad
- *   v = - x \cdot \sin \theta_u + y \cdot \cos \theta_u,
+ *   u = x \cdot \cos \theta_u + y \cdot \sin \theta_u, \qquad
+ *   v = x \cdot \cos \theta_v + y \cdot \sin \theta_v,
  * \f]
  * with \f$ \theta_u \f$ the angle of the u wires and \f$ \theta_v \f$
  * the angle of the v wires with respect to the x axis.
  * When \f$ \theta_u \f$ and \f$ \theta_v \f$ are not orthogonal, the
  * transformation matrices are not normalized.
  *
- * It is important to realize that the angle of the U wires is not necessarily
- * equal to the angle of the U axis!  If U wires are strung at constant values
+ * It is important to realize that the angle of the U wires is not equal
+ * to the angle of the U axis!  If U wires are strung at constant values
  * of the U coordinate (i.e. with u = 1 wire, u = 2 wire, u = 3 wire, etc),
- * the angle of the U wires is 90 deg minus the angle of the U axis.
+ * the U wires are orthogonal to the U axis.
  *
- * The origins are not identical and an offset has to be included.
+ * The origins are not identical and an offset can be included.
  *
  */
 class Uv2xy {
@@ -62,15 +60,22 @@ class Uv2xy {
     /// \brief Create a transformation helper from two angles
     Uv2xy(const double angleUdeg, const double angleVdeg);
 
+
     /// \brief Set the wire spacing (perpendicular distance between wires)
-    void SetWireSpacing (const double spacing) {
+    void SetWireSpacing(const double spacing) {
+      QwVerbose << "SetWireSpacing is deprecated in uv2xy." << QwLog::endl;
       fWireSpacing = spacing;
     };
     /// \brief Set the offset (origin of UV frame in XY coordinates)
     void SetOffset(const double offsetX, const double offsetY) {
+      QwVerbose << "SetOffset is deprecated in uv2xy." << QwLog::endl;
       fOffset[0] = offsetX;
       fOffset[1] = offsetY;
     };
+
+
+    /// \brief Set the angles of the U and V axis in the X and Y frame
+    void SetAngleUVinXY(const double angleUrad, const double angleVrad);
 
     /// \brief Set the origin of the UV frame in the XY frame
     void SetOriginUVinXY(const double originX, const double originY) {

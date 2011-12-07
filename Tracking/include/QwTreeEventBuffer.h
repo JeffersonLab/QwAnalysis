@@ -25,6 +25,7 @@ using std::vector;
 // Qweak headers
 #include "QwTypes.h"
 #include "QwOptions.h"
+#include "QwGeometry.h"
 
 // Definition of the reference detectors (## is concatenation)
 #define REGION1_DETECTOR(var) fRegion1_ChamberFront_WirePlane_ ## var
@@ -56,7 +57,7 @@ class QwTreeEventBuffer
   public:
 
     /// \brief Constructor with file name and spectrometer geometry
-    QwTreeEventBuffer(vector <vector <QwDetectorInfo> > & detector_info);
+    QwTreeEventBuffer(const QwGeometry& detector_info);
     /// \brief Destructor
     virtual ~QwTreeEventBuffer();
 
@@ -69,14 +70,14 @@ class QwTreeEventBuffer
       fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
     };
     /// Get the number of entries per event
-    unsigned int GetEntriesPerEvent() const { return fEntriesPerEvent; };
+    int GetEntriesPerEvent() const { return fEntriesPerEvent; };
     /// Get the number of events in the run
-    unsigned int GetNumberOfEvents() const { return fNumberOfEvents; };
+    int GetNumberOfEvents() const { return fNumberOfEvents; };
 
     /// Get the current run number
-    unsigned int GetRunNumber() const { return fCurrentRun; };
+    int GetRunNumber() const { return fCurrentRun; };
     /// Get the current event number
-    unsigned int GetEventNumber() const { return fCurrentEvent; };
+    int GetEventNumber() const { return fCurrentEvent; };
 
 
     /// \brief Open the next event file
@@ -105,12 +106,6 @@ class QwTreeEventBuffer
     std::vector<QwPartialTrack*> GetPartialTracks(EQwRegionID region) const;
 
 
-
-    /// Set the spectrometer geometry
-    void SetDetectorInfo (vector <vector <QwDetectorInfo> > & detector_info) {
-      fDetectorInfo = detector_info;
-    };
-
   private:
 
     // Randomness provider and distribution for resolution effects
@@ -137,7 +132,7 @@ class QwTreeEventBuffer
       fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
     };
     /// Get the number of entries in the loaded run
-    const unsigned int GetNumberOfEntries() const { return fNumberOfEntries; };
+    int GetNumberOfEntries() const { return fNumberOfEntries; };
 
     /// \brief Read the specified entry from the tree
     void GetEntry(const unsigned int entry);
@@ -148,7 +143,7 @@ class QwTreeEventBuffer
 
 
     /// List of detector info objects (geometry information)
-    vector <vector <QwDetectorInfo> > fDetectorInfo;
+    const QwGeometry fDetectorInfo;
 
 
     /// \name Branch management functions

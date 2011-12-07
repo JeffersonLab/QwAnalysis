@@ -10,19 +10,22 @@
 
 #include <vector>
 #include <map>
-#include <Rtypes.h>
-#include <TString.h>
-#include <TDirectory.h>
-#include <TTree.h>
+#include "Rtypes.h"
+#include "TString.h"
+#include "TDirectory.h"
+#include "TTree.h"
+
 
 #include <boost/shared_ptr.hpp>
 #include <boost/mem_fn.hpp>
 
 // Qweak headers
 #include "VQwSubsystem.h"
-#include "QwParameterFile.h"
-#include "QwLog.h"
 #include "QwOptions.h"
+
+// Forward declarations
+class VQwDataElement;
+class QwParameterFile;
 
 ///
 /// \ingroup QwAnalysis
@@ -42,22 +45,59 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  public:
   /// \brief Default constructor
   QwSubsystemArray(CanContainFn myCanContain = CanContain)
-  : fnCanContain(myCanContain) { };
+  : fEventTypeMask(0x0),fnCanContain(myCanContain) { };
   /// \brief Constructor with options
   QwSubsystemArray(QwOptions& options, CanContainFn myCanContain);
   /// \brief Constructor with filename
   QwSubsystemArray(const char* filename, CanContainFn myCanContain);
+  /// \brief Copy constructor by reference
+  QwSubsystemArray(const QwSubsystemArray& source);
   /// \brief Virtual destructor
   virtual ~QwSubsystemArray() { };
 
+  /// \brief Set the internal record of the CODA run number
+  void SetCodaRunNumber(UInt_t runnum) { fCodaRunNumber = runnum; };
+  /// \brief Set the internal record of the CODA segment number
+  void SetCodaSegmentNumber(UInt_t segnum) { fCodaSegmentNumber = segnum; };
   /// \brief Set the internal record of the CODA event number
-  void SetCodaEventNumber(UInt_t evtnum){fCodaEventNumber=evtnum;};
+  void SetCodaEventNumber(UInt_t evtnum) { fCodaEventNumber = evtnum; };
   /// \brief Set the internal record of the CODA event type
-  void SetCodaEventType(UInt_t evttype){fCodaEventType=evttype;};
+  void SetCodaEventType(UInt_t evttype) { fCodaEventType = evttype; };
+  /// \brief Get the internal record of the CODA run number
+  UInt_t GetCodaRunNumber() const { return fCodaRunNumber; };
+  /// \brief Get the internal record of the CODA segment number
+  UInt_t GetCodaSegmentNumber() const { return fCodaSegmentNumber; };
   /// \brief Get the internal record of the CODA event number
-  UInt_t GetCodaEventNumber(){return fCodaEventNumber;};
+  UInt_t GetCodaEventNumber() const { return fCodaEventNumber; };
   /// \brief Get the internal record of the CODA event type
-  UInt_t GetCodaEventType(){return fCodaEventType;};
+  UInt_t GetCodaEventType() const { return fCodaEventType; };
+
+  /// \brief Set the internal record of the CODA event number
+  void SetCleanParameters(Double_t cleanparameter[]) 
+  { 
+    fCleanParameter[0] = cleanparameter[0];
+    fCleanParameter[1] = cleanparameter[1];
+    fCleanParameter[2] = cleanparameter[2];
+  };
+
+  /// \brief Set event type mask
+  void   SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
+  /// \brief Get event type mask
+  UInt_t GetEventTypeMask() const { return fEventTypeMask; };
+ /// \brief Update the event type mask from the subsystems
+  UInt_t UpdateEventTypeMask() {
+    for (iterator subsys_iter = begin(); subsys_iter != end(); ++subsys_iter) {
+      VQwSubsystem* subsys = dynamic_cast<VQwSubsystem*>(subsys_iter->get());
+      fEventTypeMask |= subsys->GetEventTypeMask();
+    }
+    return fEventTypeMask; 
+  };
+
+
+  /// \brief Set data loaded flag
+  void   SetDataLoaded(const Bool_t flag) { fHasDataLoaded = flag; };
+  /// \brief Get data loaded flag
+  Bool_t HasDataLoaded() const { return fHasDataLoaded; };
 
   /// \brief Define configuration options for global array
   static void DefineOptions(QwOptions &options);
@@ -83,12 +123,13 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ClearEventData();
 
   /// \brief Process the event buffer for configuration events
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-                                   buffer, UInt_t num_words);
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
+				   UInt_t *buffer, UInt_t num_words);
 
   /// \brief Process the event buffer for events
-  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-                        buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id,
+			const UInt_t bank_id, UInt_t *buffer,
+			UInt_t num_words);
 
   /// \brief Randomize the data in this event
   void  RandomizeEventData(int helicity = 0, double time = 0.0);
@@ -99,69 +140,46 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Process the decoded data in this event
   void  ProcessEvent();
 
-  /**
-   * Retrieve the variable name from other subsystem arrays
-   * @param name Variable name to be retrieved
-   * @param value (return) Data element with the variable name
-   * @return True if the variable is found, false if not found
-   */
-  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const {
-    //  If this has a parent, we should escalate the call to that object,
-    //  but so far we don't have that capability.
-    return ReturnInternalValue(name, value);
-  };
 
-  /**
-   * Retrieve the variable name from subsystems in this subsystem array
-   * @param name Variable name to be retrieved
-   * @param value (return) Data element with the variable name
-   * @return True if the variable was found, false if not found
-   */
-  const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const {
-    Bool_t foundit = kFALSE;
-    //  First try to find the value in the list of published values.
-    //  So far this list is not filled though.
-    std::map<TString, VQwSubsystem*>::const_iterator iter = fPublishedValuesSubsystem.find(name);
-    if (iter != fPublishedValuesSubsystem.end()) {
-      foundit = (iter->second)->ReturnInternalValue(name, value);
-    }
-    //  If the value is not yet published, try asking the subsystems for it.
-    for (const_iterator subsys = begin(); (!foundit)&&(subsys != end()); ++subsys){
-      foundit = (*subsys)->ReturnInternalValue(name, value);
-    }
-    return foundit;
-  };
+ public:
 
-  /**
-   * Publish the value name with description from a subsystem in this array
-   * @param name Name of the variable
-   * @param desc Description of the variable
-   * @param subsys Subsystem that contains the variable
-   * @return True if the variable could be published, false if not published
-   */
-  const Bool_t PublishInternalValue(const TString name, const TString desc, const VQwSubsystem* subsys) {
-    if (fPublishedValuesSubsystem.count(name) > 0) {
-      QwError << "Attempting to publish existing variable key!" << QwLog::endl;
-      ListPublishedValues();
-      return kFALSE;
-    }
-    fPublishedValuesSubsystem[name] = const_cast<VQwSubsystem*>(subsys);
-    fPublishedValuesDescription[name] = desc;
-    return kTRUE;
-  };
+  /// \brief Retrieve the variable name from other subsystem arrays
+  Bool_t RequestExternalValue(const TString& name, VQwDataElement* value) const;
 
-  /**
-   * List the published values and description in this subsystem array
-   */
-  void ListPublishedValues() const {
-    QwOut << "List of published values:" << QwLog::endl;
-    std::map<TString,TString>::const_iterator iter;
-    for (iter  = fPublishedValuesDescription.begin();
-         iter != fPublishedValuesDescription.end(); iter++) {
-      QwOut << iter->first << ": " << iter->second << QwLog::endl;
-    }
-  };
+  /// \brief Retrieve the variable name from subsystems in this subsystem array
+  const VQwDataElement* ReturnInternalValue(const TString& name) const;
 
+  /// \brief Retrieve the variable name from subsystems in this subsystem array
+  Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
+
+  /// \brief Publish the value name with description from a subsystem in this array
+  Bool_t PublishInternalValue(
+      const TString name,
+      const TString desc,
+      const VQwSubsystem* subsys,
+      const VQwDataElement* element);
+
+  /// \brief List the published values and description in this subsystem array
+  void ListPublishedValues() const;
+
+  /// \brief Print list of parameter files
+  void PrintParamFileList() const;
+
+  /// \brief Get list of parameter files
+  TList* GetParamFileNameList(TString name) const;
+
+ private:
+
+  /// \brief Retrieve the variable name from subsystems in this subsystem array
+  VQwDataElement* ReturnInternalValueForFriends(const TString& name) const;
+
+  /// Published values
+  std::map<TString, const VQwDataElement*> fPublishedValuesDataElement;
+  std::map<TString, const VQwSubsystem*>   fPublishedValuesSubsystem;
+  std::map<TString, TString>               fPublishedValuesDescription;
+
+
+ public:
 
   /// \name Histogram construction and maintenance
   // @{
@@ -178,19 +196,25 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   /// \brief Fill the histograms for this subsystem
   void  FillHistograms();
-  /// \brief Delete the histograms for this subsystem
-  void  DeleteHistograms();
   // @}
 
-  void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
+
+  /// \name Tree and vector construction and maintenance
+  // @{
+  /// Construct the tree and vector for this subsystem
   void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
     TString tmpstr("");
     ConstructBranchAndVector(tree,tmpstr,values);
   };
-  void ConstructBranch(TTree *tree, TString & prefix);
-  /// \brief Construct trimmed leaves.
-  void ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  /// \brief Construct a branch and vector for this subsystem with a prefix
+  void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
+  /// \brief Construct a branch for this subsystem with a prefix
+  void ConstructBranch(TTree *tree, TString& prefix);
+  /// \brief Construct a branch for this subsystem with a prefix after tree leave trimming
+  void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file);
+  /// \brief Fill the vector for this subsystem
+  void  FillTreeVector(std::vector<Double_t> &values) const;
+  // @}
 
 
   /// \name Tree construction and maintenance
@@ -209,7 +233,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   };
   /// \brief Construct the tree for this subsystem in a folder with a prefix
   void  ConstructTree(TDirectory *folder, TString &prefix);
-  
+
   /// \brief Fill the tree for this subsystem
   void  FillTree();
   /// \brief Delete the tree for this subsystem
@@ -224,14 +248,17 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void LoadSubsystemsFromParameterFile(QwParameterFile& detectors);
 
  protected:
-  std::map<TString, VQwSubsystem*> fPublishedValuesSubsystem;
-  std::map<TString, TString>       fPublishedValuesDescription;
-
   size_t fTreeArrayIndex;  //! Index of this data element in root tree
 
  protected:
-  UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
-  UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
+  UInt_t fCodaRunNumber;     ///< CODA run number as provided by QwEventBuffer
+  UInt_t fCodaSegmentNumber; ///< CODA segment number as provided by QwEventBuffer
+  UInt_t fCodaEventNumber;   ///< CODA event number as provided by QwEventBuffer
+  UInt_t fCodaEventType;     ///< CODA event type as provided by QwEventBuffer
+
+  Double_t fCleanParameter[3];
+  UInt_t fEventTypeMask;   ///< Mask of event types
+  Bool_t fHasDataLoaded;   ///< Has this array gotten data to be processed?
 
  protected:
   /// Function to determine which subsystems we can accept
@@ -239,7 +266,11 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   /// Test whether this subsystem array can contain a particular subsystem
   static Bool_t CanContain(VQwSubsystem* subsys) {
-    return kFALSE; // should never occur
+    if (subsys == 0) {
+      QwError << "Zero pointer passed!" << QwLog::endl;
+    }
+    // should never occur
+    return kFALSE;
   };
 
  private:

@@ -9,9 +9,6 @@
 #ifndef QWTRACK_H
 #define QWTRACK_H
 
-// ROOT headers
-#include <TObject.h>
-
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "QwPartialTrack.h"
@@ -31,20 +28,30 @@
  * allows for combining different QwPartialTracks with each other, and selecting
  * the optimal fit.
  */
-class QwTrack: public VQwTrackingElement {
+class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
   public:
 
+    /// Default constructor
     QwTrack();
+    /// Constructor with front and back partial track
+    QwTrack(const QwPartialTrack* front, const QwPartialTrack* back);
+    /// Copy constructor by reference
+    QwTrack(const QwTrack& that);
+    /// Copy constructor from pointer
+    QwTrack(const QwTrack* that);
+    /// Virtual destructor
     virtual ~QwTrack();
 
-    bool IsUsed() { return isused; };
+    /// Assignment operator
+    QwTrack& operator=(const QwTrack& that);
 
-    void Print() {
+    /// Initialization
+    void Initialize();
+
+    void Print(const Option_t* option = 0) const {
       if (!this) return;
-      std::cout << "Track: " << ZVx << ", " << TVx;
       std::cout << std::endl;
-      next->Print();
     };
 
     void SortBridgedTracks() { };
@@ -53,33 +60,27 @@ class QwTrack: public VQwTrackingElement {
 
   public:
 
-    double ZVx, TVx;		/// Vertex position in Z and transverse
-    double The, Phi;		/// theta and phi of track
-    int    AngleCorr;		/// are theta and phi are corrected for the holding field
-    double rDXSl;		/// bending in the magnet (x direction)
-    double fChi;		/// combined chi square
+    double fVertexZ, fVertexR;	/// Vertex position in longitudinal and transverse
+    double fTheta, fPhi;	/// theta and phi of track
 
+    double fChi;		/// combined chi square
     double fMomentum;		/// spectrometer and calorimeter Energy
+    double fTotalEnergy;
+    double fScatteringAngle;
+
+    double fPositionRoff,fPositionPhioff;    
+    double fDirectionThetaoff,fDirectionPhioff;
 
     double fXBj, fY, fQ2, fW2, fNu;	/// kinematics
 
     QwBridge *fBridge;	//!	/// magnet matching information
-    int    iMagnetMatched;	/// number of magnet hits along track
-    int    yTracks;		/// number of y tracks
 
-    QwTrack *next;		//! next track (do not store in ROOT files)
-    QwTrack *ynext;		//! link for y tracks (do not store)
-    QwTrack *usednext;		//! link of used tracks (do not store)
-
-    QwPartialTrack *front;	//! front partial track (do not store)
-    QwPartialTrack *back;	//! back partial track (do not store)
+    QwPartialTrack *fFront;	//! front partial track (do not store)
+    QwPartialTrack *fBack;	//! back partial track (do not store)
 
     QwVertex *beamvertex;	//! beam vertex (do not store)
 
-    bool   isused;		/// used (part of usedTrack list)
-    bool   inBounds;		/// lookup table was usable
-
-    int    iCharge;		/// charge of particle
+    QwTrack* next; //!
 
   ClassDef(QwTrack,1);
 

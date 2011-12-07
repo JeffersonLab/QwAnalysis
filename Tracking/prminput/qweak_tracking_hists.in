@@ -8,6 +8,7 @@
 
 ###  Scanner histograms
 
+scanner_vqwk_power              TH1F    4096    0.5             4096.5                  front_adc       Events
 scanner_front_adc		TH1F	4096	0.5		4096.5			front_adc	Events
 scanner_back__adc		TH1F	4096	0.5		4096.5			back__adc	Events
 scanner_power_adc		TH1F	4096	0.5		4096.5			power_adc	Events
@@ -34,8 +35,16 @@ scanner_ref_posi_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
 scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 
 ###  raster histograms
-raster_position_x		TH1F	4000	-2.0		2.0			X[mm]		Events
-raster_position_y		TH1F	4000	-2.0		2.0			Y[mm]		Events
+raster_position_x		TH1F	1000	 0.0		0.0			X[mm]		Events
+raster_position_y		TH1F	1000	 0.0		0.0			Y[mm]		Events
+
+
+
+###  bpm tracking-mode histograms
+bpm_3h07a_pos_x			TH1F	200	-0.4		0.4			X[mm]		Events
+bpm_3h07a_pos_y			TH1F	200	-0.4		0.4			X[mm]		Events
+bpm_3h09b_pos_x			TH1F	200	-0.4		0.4			X[mm]		Events
+bpm_3h09b_pos_y			TH1F	200	-0.4		0.4			X[mm]		Events
 
 ###  Single event histograms
 
@@ -48,7 +57,7 @@ raster_position_y		TH1F	4000	-2.0		2.0			Y[mm]		Events
 ###
 ###  Fully wildcarded histograms.  Any channel ending in adc or tdc will
 ###  use these definitions if not matching something earlier in this file.
-.+adc			TH1F	4097	-0.5	4096.5				ADC Events
-.+tdc			TH1F	4097	-0.5	4096.5				TDC Events
-.+sca			TH1F	4097	-0.5	4096.5				SCA Events
-.+f1			TH1F	65536	-0.5	65535.5				F1TDC Events
+.+adc			TH1F	4097	-0.5		4096.5		ADC Events
+.+tdc			TH1F	4097	-0.5		4096.5		TDC Events
+.+sca			TH1F	4097	-0.5		4096.5		SCA Events
+.+f1			TH1F	65342	-17194.5	48147.5		F1TDC Events

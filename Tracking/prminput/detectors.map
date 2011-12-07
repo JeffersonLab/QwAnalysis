@@ -1,30 +1,42 @@
 # Definition of the tracking detectors
 # this is the preamble
 
-[QwGasElectronMultiplier]
- name = R1
- map = qweak_R1.map
- geom = qweak_new.geo
+[QwFakeHelicity]
+ name = Helicity Info
+ map = qweak_helicity.map
+
+#[QwGasElectronMultiplier]
+# name = R1
+# map = qweak_R1.map
+# geom = qweak_new.geo
 
 [QwDriftChamberHDC]
  name = R2
- map = qweak_cosmics_hits.map
+ map = qweak_R2.map
  geom = qweak_new.geo
 
 [QwDriftChamberVDC]
  name = R3
- map = TDCtoDL.map
+ map = qweak_R3.map
  geom = qweak_new.geo
 
 [QwTriggerScintillator]
  name = TS
  map = qweak_trigscint_channel.map
  geom = qweak_new.geo
+ mask = 0xffff
 
 [QwMainDetector]
  name = MD
  map = qweak_maindet_channel.map
  geom = qweak_new.geo
+ mask = 0xffff
+
+[QwLumi]
+ name = LUMI
+ map = qweak_lumi.map
+ geom = qweak_new.geo
+ mask = 0x1
 
 [QwScanner]
  name = FPS
@@ -35,3 +47,8 @@
  name = FR
  map = qweak_raster_channel.map
  param = qweak_raster_parameter.map
+ mask = 0xffff
+
+[QwScaler]
+ name = Scaler
+ map = qweak_scaler.map

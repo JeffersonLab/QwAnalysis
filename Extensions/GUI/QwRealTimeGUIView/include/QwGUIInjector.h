@@ -7,7 +7,7 @@
  
    \file QwGUIInjector.h
    \author Michael Gericke
-   \author Buddhini Waidyawansa
+   \author Rakitha Beminiwattha
      
 */
 //=============================================================================
@@ -32,8 +32,7 @@ Added by Buddhini to display the injector beamline data.
  */
 //=============================================================================
 
-#define INJECTOR_DEV_NUM          22        
-#define INJECTOR_DET_TRE_NUM      2
+#define INJECTOR_DET_TYPES        5
 #define NUM_POS 2
 ///
 /// \ingroup QwGUIInjector
@@ -42,25 +41,11 @@ Added by Buddhini to display the injector beamline data.
 #define QWGUIINJECTOR_H
 
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <string>
-
-#include <TMapFile.h>
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
-#include "RSDataWindow.h"
 
 
 #ifndef __CINT__
-#include "QwLog.h"
+
 #include "QwOptions.h"
 #include "QwParameterFile.h"
 
@@ -74,16 +59,16 @@ class QwGUIInjector : public QwGUISubSystem {
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
   TRootEmbeddedCanvas *dCanvas;  
-  TGLayoutHints       *dTabLayout; 
-  TGLayoutHints       *dCnvLayout; 
-  TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dButtonPos;
-  TGTextButton        *dButtonCharge;
-  TGTextButton        *dButtonPosVariation;
-
-  //memory mapped ROOT file
-  TMapFile            *fMapFile; 
+  TGTextButton        *dButtonMeanPos;
+  TGTextButton        *dButtonPosDiffMean;
+  TGTextButton        *dButtonEffCharge;
+  TGComboBox          *dComboBoxChargeMonitors;
+  TGComboBox          *dComboBoxPosMonitors;
+  TGComboBox          *dComboBoxScalers;
+  TGLabel             *dPositionMon;
+  TGLabel             *dChargeMon;
+  TGLabel             *dScaler;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -91,13 +76,11 @@ class QwGUIInjector : public QwGUISubSystem {
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
 
+  // Lable to display the status of the histogram
+  TText              *not_found;
 
   TH1F *PosVariation[2] ;
-/*   TGraphErrors *gx; */
-/*   TGraphErrors *gy; */
-
-  TString mapfile;
-
+  TH1F *PosVariationRms[2];
   
 
   //!This function Draws a sample  histograms/plots from the Memory map file. 
@@ -107,6 +90,14 @@ class QwGUIInjector : public QwGUISubSystem {
   //!
   //!Return value: none 
   void PositionDifferences();
+
+  //!This function Draws the variation of the bpm effective charge along the injector beam line.. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void BPM_EffectiveCharge();
 
   //!This function Draws a sample  histograms/plots from the Memory map file. 
   //!
@@ -122,32 +113,55 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none 
-  void PlotChargeAsym();
-  
+  void PlotChargeMonitors();
 
-  //!This function clear the histograms/plots in the plot container. This is done everytime a new 
-  //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
-  //!on the plots are lost.
+  //!This function Draws a sample  histograms/plots from the Memory map file. 
   //!
   //!Parameters:
   //! - none
   //!
-  //!Return value: none  
-  void                 ClearData();
+  //!Return value: none 
+  void   PlotPositionMonitors();
 
-  
-  //!This function  loads the histogram names from a definition file
-  //!Parameters:
-  //! - Histogram names map file name
+  //!This function Draws scaler yield/asym  histograms/plots from the Memory map file. 
   //!
-  //!Return value: none  
-  void                 LoadHistoMapFile(TString mapfile);
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotSCALER();
 
-  //!An array that stores the ROOT names of the histograms that I chose to display for now.
-  //!These are the names by which the histograms are identified within the root file.
+  //!This function Sets the combo index/combo element index
+  //!
+  //!Parameters:
+  //! - combo box id 
+  //! - combo box element id
+  //!Return value: none 
+  void SetComboIndex(Int_t cmb_id, Int_t id);
 
-  static const char   *InjectorDevices[INJECTOR_DEV_NUM];
-  static const char   *InjectorTrees[INJECTOR_DET_TRE_NUM];
+  //!This function loads list of devices available in the injector. 
+  //!based on the map file read by LoadChannelMap routine
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void FillComboBoxes();
+
+
+   //!This function plots the mean BPM X/Y positions 
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotBPMPositions();
+
+
+  std::vector<std::vector<TString> > fInjectorDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
+  std::vector<TString> fInjectorPositionType; //Vector to store the device types
+
+  Int_t fCurrentChargeMonitorIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Int_t fCurrentPositionMonitorIndex; 
+  Int_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
 
@@ -161,14 +175,18 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none  
   virtual void         MakeLayout();
 
-  void                 SummaryHist(TH1*in);
-
  public:
   
   QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUIInjector();
 
+  //!This function  loads the histogram names from a definition file
+  //!Parameters:
+  //! - Histogram names map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
   //!four histograms from the ROOT file that is contained within the data container makes copies of
@@ -178,15 +196,15 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
-  virtual void        OnObjClose(char *);
+  //virtual void        OnNewDataContainer();
+  /* virtual void        OnObjClose(char *); */
   virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
+  /* virtual void        OnRemoveThisTab(); */
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  //  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUIInjector,0);
+  ClassDef(QwGUIInjector,1);
 };
 
 #endif

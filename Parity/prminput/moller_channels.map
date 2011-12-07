@@ -1,0 +1,107 @@
+ROC=8
+
+! module.type,  module.num  chan.num,  det.type,  det.name
+SIS3801, 	 0  !  skip header 								 (byte 0)
+SIS3801, 	 0, 	 01, 	 scaler, 	 H+_Microsecond_Clk1 	!(byte 1)
+SIS3801, 	 0, 	 02, 	 scaler, 	 H+_Unser_Monitor
+SIS3801, 	 0, 	 03, 	 scaler, 	 H+_BCM1
+SIS3801, 	 0, 	 04, 	 scaler, 	 H+_EMPTY0
+SIS3801, 	 0, 	 05, 	 scaler, 	 H+_PHT_Timing_Err
+SIS3801, 	 0, 	 06, 	 scaler, 	 H+_Left_Singles
+SIS3801, 	 0, 	 07, 	 scaler, 	 H+_Right_Singles
+SIS3801, 	 0, 	 08, 	 scaler, 	 H+_Coincidences
+SIS3801, 	 0, 	 09, 	 scaler, 	 H+_Prescaled_Coin
+SIS3801, 	 0, 	 10, 	 scaler, 	 H+_Retimed_Coinc
+SIS3801, 	 0, 	 11, 	 scaler, 	 H+_Accidentals
+SIS3801, 	 0, 	 10, 	 scaler, 	 H+_Coinc_Live
+SIS3801, 	 0, 	 13, 	 scaler, 	 H+_BCM3
+SIS3801, 	 0, 	 14, 	 scaler, 	 H+_EMPTY1
+SIS3801, 	 0, 	 15, 	 scaler, 	 H+_DAQ_PHT_clashesx
+SIS3801, 	 0, 	 16, 	 scaler, 	 H+_MPS
+SIS3801, 	 0, 	 17, 	 scaler, 	 H+_EMPTY2
+SIS3801, 	 0, 	 18, 	 scaler, 	 H+_BCM2
+SIS3801, 	 0, 	 19, 	 scaler, 	 H+_coin_5_ns
+SIS3801, 	 0, 	 20, 	 scaler, 	 H+_coin_10_ns
+SIS3801, 	 0, 	 21, 	 scaler, 	 H+_coin_15_ns
+SIS3801, 	 0, 	 22, 	 scaler, 	 H+_acc_5_ns
+SIS3801, 	 0, 	 23, 	 scaler, 	 H+_acc_10_ns
+SIS3801, 	 0, 	 24, 	 scaler, 	 H+_acc_15_ns
+SIS3801, 	 0, 	 25, 	 scaler, 	 H+_coin_7.5_ns
+SIS3801, 	 0, 	 26, 	 scaler, 	 H+_acc_7.5_ns
+SIS3801, 	 0, 	 27, 	 scaler, 	 H+_Kicker-Coin
+SIS3801, 	 0, 	 28, 	 scaler, 	 H+_Kicker-Accid
+SIS3801, 	 0, 	 29, 	 scaler, 	 H+_Kicker-Left
+SIS3801, 	 0, 	 30, 	 scaler, 	 H+_Kicker-Right
+SIS3801, 	 0, 	 31, 	 scaler, 	 H+_Microsecond_Clock
+SIS3801, 	 0, 	 32, 	 scaler, 	 H+_Helicity_Quartet 	!(byte 32)
+
+! module.type,  module.num  chan.num,  det.type,  det.name
+SIS3801, 	 1  !  skip header
+SIS3801, 	 1, 	 01, 	 scaler, 	 H-_Microsecond_Clk1 	!(byte 34)
+SIS3801, 	 1, 	 02, 	 scaler, 	 H-_Unser_Monitor
+SIS3801, 	 1, 	 03, 	 scaler, 	 H-_BCM1
+SIS3801, 	 1, 	 04, 	 scaler, 	 H-_BCM2
+SIS3801, 	 1, 	 05, 	 scaler, 	 H-_PHT_Timing_Err
+SIS3801, 	 1, 	 06, 	 scaler, 	 H-_Left_Singles
+SIS3801, 	 1, 	 07, 	 scaler, 	 H-_Right_Singles
+SIS3801, 	 1, 	 08, 	 scaler, 	 H-_Coincidences
+SIS3801, 	 1, 	 09, 	 scaler, 	 H-_Prescaled_Coin
+SIS3801, 	 1, 	 10, 	 scaler, 	 H-_Retimed_Coinc
+SIS3801, 	 1, 	 11, 	 scaler, 	 H-_Accidentals
+SIS3801, 	 1, 	 10, 	 scaler, 	 H-_Coinc_Live
+SIS3801, 	 1, 	 13, 	 scaler, 	 H-_BCM3
+SIS3801, 	 1, 	 14, 	 scaler, 	 H-_EMPTY0
+SIS3801, 	 1, 	 15, 	 scaler, 	 H-_DAQ_PHT_clashesx
+SIS3801, 	 1, 	 16, 	 scaler, 	 H-_MPS
+SIS3801, 	 1, 	 17, 	 scaler, 	 H-_EMPTY1
+SIS3801, 	 1, 	 18, 	 scaler, 	 H-_BCM2_BACKUP
+SIS3801, 	 1, 	 19, 	 scaler, 	 H-_coin_5_ns
+SIS3801, 	 1, 	 20, 	 scaler, 	 H-_coin_10_ns
+SIS3801, 	 1, 	 21, 	 scaler, 	 H-_coin_15_ns
+SIS3801, 	 1, 	 22, 	 scaler, 	 H-_acc_5_ns
+SIS3801, 	 1, 	 23, 	 scaler, 	 H-_acc_10_ns
+SIS3801, 	 1, 	 24, 	 scaler, 	 H-_acc_15_ns
+SIS3801, 	 1, 	 25, 	 scaler, 	 H-_coin_7.5_ns
+SIS3801, 	 1, 	 26, 	 scaler, 	 H-_acc_7.5_ns
+SIS3801, 	 1, 	 27, 	 scaler, 	 H-_Kicker-Coin
+SIS3801, 	 1, 	 28, 	 scaler, 	 H-_Kicker-Accid
+SIS3801, 	 1, 	 29, 	 scaler, 	 H-_Kicker-Left
+SIS3801, 	 1, 	 30, 	 scaler, 	 H-_Kicker-Right
+SIS3801, 	 1, 	 31, 	 scaler, 	 H-_Microsecond_Clock
+SIS3801, 	 1, 	 32, 	 scaler, 	 H-_Helicity_Quartet	!(byte 65)
+
+
+! module.type,  module.num  chan.num,  det.type,  det.name
+SIS3801, 	 2  !  skip header								 (byte 66)
+SIS3801, 	 2, 	 01, 	 scaler, 	 Microsecond_Clk1	!(byte 67)
+SIS3801, 	 2, 	 02, 	 scaler, 	 Unser_Monitor
+SIS3801, 	 2, 	 03, 	 scaler, 	 BCM1
+SIS3801, 	 2, 	 04, 	 scaler, 	 BCM2
+SIS3801, 	 2, 	 05, 	 scaler, 	 PHT_Timing_Err
+SIS3801, 	 2, 	 06, 	 scaler, 	 Left_Singles
+SIS3801, 	 2, 	 07, 	 scaler, 	 Right_Singles
+SIS3801, 	 2, 	 08, 	 scaler, 	 Coincidences
+SIS3801, 	 2, 	 09, 	 scaler, 	 Prescaled_Coin
+SIS3801, 	 2, 	 10, 	 scaler, 	 Retimed_Coinc
+SIS3801, 	 2, 	 11, 	 scaler, 	 Accidentals
+SIS3801, 	 2, 	 10, 	 scaler, 	 Coinc_Live
+SIS3801, 	 2, 	 13, 	 scaler, 	 BCM3
+SIS3801, 	 2, 	 14, 	 scaler, 	 EMPTY0
+SIS3801, 	 2, 	 15, 	 scaler, 	 DAQ_PHT_clashesx
+SIS3801, 	 2, 	 16, 	 scaler, 	 MPS
+SIS3801, 	 2, 	 17, 	 scaler, 	 EMPTY1
+SIS3801, 	 2, 	 18, 	 scaler, 	 BCM2_BACKUP
+SIS3801, 	 2, 	 19, 	 scaler, 	 coin_5_ns
+SIS3801, 	 2, 	 20, 	 scaler, 	 coin_10_ns
+SIS3801, 	 2, 	 21, 	 scaler, 	 coin_15_ns
+SIS3801, 	 2, 	 22, 	 scaler, 	 acc_5_ns
+SIS3801, 	 2, 	 23, 	 scaler, 	 acc_10_ns
+SIS3801, 	 2, 	 24, 	 scaler, 	 acc_15_ns
+SIS3801, 	 2, 	 25, 	 scaler, 	 coin_7.5_ns
+SIS3801, 	 2, 	 26, 	 scaler, 	 acc_7.5_ns
+SIS3801, 	 2, 	 27, 	 scaler, 	 Kicker-Coin
+SIS3801, 	 2, 	 28, 	 scaler, 	 Kicker-Accid
+SIS3801, 	 2, 	 29, 	 scaler, 	 Kicker-Left
+SIS3801, 	 2, 	 30, 	 scaler, 	 Kicker-Right
+SIS3801, 	 2, 	 31, 	 scaler, 	 Microsecond_Clock
+SIS3801, 	 2, 	 32, 	 scaler, 	 Helicity_Quartet	!(byte 98)

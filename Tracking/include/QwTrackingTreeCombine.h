@@ -7,9 +7,12 @@
 
 // Standard C and C++ headers
 #include <iostream>
+#include <utility>
 using std::cout; using std::cerr; using std::endl;
 
 #include "QwTypes.h"
+#include "QwDetectorInfo.h"
+#include "QwGeometry.h"
 
 #include "globals.h"
 #include "matrix.h"
@@ -40,7 +43,7 @@ class chi_hash {
     chi_hash() {
       hits = 0;
     };
-    ~chi_hash() {};
+    virtual ~chi_hash() {};
 
     double cx, mx, cov[3], chi;
     double hit[DLAYERS];
@@ -72,7 +75,7 @@ class QwTrackingTreeCombine {
   public:
 
     QwTrackingTreeCombine();
-    ~QwTrackingTreeCombine();
+    virtual ~QwTrackingTreeCombine();
 
     /// Set the debug level
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
@@ -81,9 +84,14 @@ class QwTrackingTreeCombine {
     /// Set the maximum X road width (?)
     void SetMaxXRoad (const double maxxroad) { fMaxXRoad = maxxroad; };
 
+    /// Set the geometry
+    void SetGeometry(const QwGeometry& geometry) { fGeometry = geometry; };
+
     /// \brief Select the left or right hit assignment for HDC hits
     int SelectLeftRightHit (double *xresult, double dist_cut,
 		QwHitContainer *hitlist, QwHit **ha, double Dx = 0);
+
+    int SelectLeftRightHit (QwHitContainer *hitlist, QwHit **ha, int bin, double width,double Dx = 0);
     /// \brief Select the left or right hit assignment for VDC hits
     QwHit* SelectLeftRightHit (double track_position, QwHit* hit);
 
@@ -125,19 +133,19 @@ class QwTrackingTreeCombine {
 		int tlayer);
     QwPartialTrack* TcTreeLineCombine2 (
 		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv,
-		int tlayer);
+		QwTrackingTreeLine *wv);
 
     QwPartialTrack* TlTreeCombine (
 		QwTrackingTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
-		EQwRegionID region, int tlayer, int dlayer,
-		QwTrackingTreeRegion **myTreeRegion);
+		EQwRegionID region, int tlayer, int dlayer);
 
     void ResidualWrite (QwEvent *event);
 
-    int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi);
-    int r3_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
-    int r3_TrackFit2 (int Num, QwHit **Hit, double *fit, double *cov, double *chi);
+    int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual);
+    int r2_TrackFit2  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double* parameter );
+    int r3_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
+    int r3_TrackFit2 (const int num, QwHit **hits, double *fit, double *cov, double &chi);
+    int r3_TrackFit3 (const int num, QwHit **hhits,double *fit,double *cov,double&chi,double *parameter);
 
   private:
 
@@ -146,8 +154,12 @@ class QwTrackingTreeCombine {
     double fMaxRoad;
     double fMaxXRoad;
 
+    QwGeometry fGeometry;
+
     /// Maximum number of missed planes in region 2
     int fMaxMissedPlanes;
+    /// Maximum number of missed wires in region 3
+    int fMaxMissedWires;
 
     // The following is largely useless (or at least the use is not understood).
     // Only chi_hashinsert is ever called, but never anything is searched in the

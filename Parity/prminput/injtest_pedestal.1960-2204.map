@@ -1,0 +1,136 @@
+! Pedestal file of run  1960
+! adc sample size  468
+! curent range in calibration  140 to 170
+! fit is linear 
+! date of analysis =Sat Jan 29 10:05:16 2011
+! The pedestal run was taken with F2 cup inserted.
+! Therefore only bpms up to 0i05 have the correct pedestals
+! for this high current calibration.
+C20AXM    ,   0 ,  1
+C20AXP    ,   0 ,  1
+C20AYP    ,   0 ,  1
+C20AYM    ,   0 ,  1
+H00_XP    ,   0 ,  1
+H00_XM    ,   0 ,  1
+H00_YP    ,   0 ,  1
+H00_YM    ,   0 ,  1
+BattDn    ,   0 ,  1
+TermUp    ,   0 ,  1
+SpareA    ,   0 ,  1 
+SpareB	  ,   0 ,  1
+AmpCh1	  ,   0 ,  1
+AmpCh2	  ,   0 ,  1
+SpareE	  ,   0 ,  1
+TermDn	  ,   0 ,  1
+SEBattDn  ,   0 ,  1
+SETermUp  ,   0 ,  1
+SESpareA  ,   0 ,  1
+SESpareB  ,   0 ,  1
+SEAmpCh1  ,   0 ,  1
+SEAmpCh2  ,   0 ,  1
+SESpareE  ,   0 ,  1
+SETermDn  ,   0 ,  1
+QWK_1i02XP ,      -336.0 ,0.8552
+QWK_1i02XM ,      -350.4 , 0.8596
+QWK_1i02YP ,      -470.6 , 1.0541
+QWK_1i02YM ,      -367.8 , 0.8550
+QWK_1i04XP ,       972.6 , 0.8617
+QWK_1i04XM ,       143.4  , 1.1368
+QWK_1i04YP ,       188.4 , 0.9406
+QWK_1i04YM ,       570.5 , 0.8677
+QWK_1i06XP ,      1776.4 , 0.8751
+QWK_1i06XM ,       328.4 , 1.2805
+QWK_1i06YP ,       699.8 , 0.8611
+QWK_1i06YM ,       567.0 , 0.8865
+QWK_0i02XP ,       376.2  , 0.8722
+QWK_0i02XM ,      -623.9 , 1.1176
+QWK_0i02YP ,       676.2 , 1.0615
+QWK_0i02YM ,      1231.3 , 0.8555
+QWK_0i02aXP ,     3197.2 , 0.9138
+QWK_0i02aXM ,     1606.7 , 1.1538
+QWK_0i02aYP ,     1459.9 , 1.1332
+QWK_0i02aYM ,     2234.7 , 0.89097
+QWK_0i05XP ,      7017.9 , 0.9683
+QWK_0i05XM ,      5260.6 , 1.1431
+QWK_0i05YP ,      6264.6 , 0.9455
+QWK_0i05YM ,      5338.6 , 0.9487
+QWK_0i07XP ,      4919.3  , 1.2563
+QWK_0i07XM ,      6674.3  , 0.96766
+QWK_0i07YP ,      3601.4 , 1.1345
+QWK_0i07YM ,      5079.4 , 0.9503
+QWK_0l01XP ,      4567.2 , 1.2782
+QWK_0l01XM ,      5305.7 , 0.9576
+QWK_0l01YP ,      3408.3 , 1.3656
+QWK_0l01YM ,      6051.1 , 0.96244
+QWK_0l02XP ,      2850.8 , 1.50609
+QWK_0l02XM ,      3544.9 , 0.90194
+QWK_0l02YP ,      1853.4 , 1. 34823
+QWK_0l02YM ,      4420.0 , 0.94586
+QWK_0l03XP ,      3830.2 , 1.21461
+QWK_0l03XM ,      4274.3 , 0.96211
+QWK_0l03YP ,      3809.1 , 0.94025
+QWK_0l03YM ,      4986.7 , 0.92263 
+QWK_0l04XP ,       17636 , 1.0 
+QWK_0l04XM ,       20613 , 1.0 
+QWK_0l04YP ,       18292 , 1.0 
+QWK_0l04YM ,       19662 , 1.0 
+QWK_0l05XP ,     19105 , 1.0 
+QWK_0l05XM ,     20035 , 1.0 
+QWK_0l05YP ,     17818 , 1.0 
+QWK_0l05YM ,     28017 , 1.0 
+QWK_0l06XP ,     23412 , 1.0 
+QWK_0l06XM ,     25118 , 1.0 
+QWK_0l06YP ,     17262 , 1.0 
+QWK_0l06YM ,     20199 , 1.0 
+QWK_0l07XP ,     12966.2 , 1.0 
+QWK_0l07XM ,     13139 , 1.0 
+QWK_0l07YP ,     12879 , 1.0 
+QWK_0l07YM ,     13065 , 1.0 
+QWK_0l08XP ,     8413 , 1.0 
+QWK_0l08XM ,     8659 , 1.0 
+QWK_0l08YP ,     9329 , 1.0 
+QWK_0l08YM ,     9900 , 1.0 
+QWK_0l09XP ,     11667 , 1.0 
+QWK_0l09XM ,     11874 , 1.0 
+QWK_0l09YP ,     11800 , 1.0 
+QWK_0l09YM ,     11777 , 1.0 
+QWK_0l10XP ,     7670 , 1.0 
+QWK_0l10XM ,     7716 , 1.0 
+QWK_0l10YP ,     5538 , 1.0 
+QWK_0l10YM ,     5592 , 1.0
+QWK_0r01XP ,      -67.9 , 1.0 
+QWK_0r01XM ,      -1201.6 , 1.0 
+QWK_0r01YP ,      266.4 , 1.0 
+QWK_0r01YM ,      205.7 , 1.0 
+QWK_0r01aXP ,     -1 , 1.0 
+QWK_0r01aXM ,     -1 , 1.0 
+QWK_0r01aYP ,     -1 , 1.0 
+QWK_0r01aYM ,     -1 , 1.0 
+QWK_0r03XP ,      2902 , 1.0 
+QWK_0r03XM ,      2766 , 1.0 
+QWK_0r03YP ,      3426 , 1.0 
+QWK_0r03YM ,      3534 , 1.0 
+QWK_0r04XP ,      7899 , 1.0 
+QWK_0r04XM ,      7834 , 1.0 
+QWK_0r04YP ,      7735 , 1.0 
+QWK_0r04YM ,      7835 , 1.0 
+QWK_0r05XP ,      12173 , 1.0 
+QWK_0r05XM ,      12226 , 1.0 
+QWK_0r05YP ,      11577 , 1.0 
+QWK_0r05YM ,      11850 , 1.0 
+QWK_0r06XP ,       6281 , 1.0 
+QWK_0r06XM ,       6611 , 1.0 
+QWK_0r06YP ,       8297 , 1.0 
+QWK_0r06YM ,       8062 , 1.0 
+QWK_0l10XP ,      23.71 , 1.0 
+QWK_0l10XM ,      80.63 , 1.0 
+QWK_0l10YP ,     -156.9 , 1.0 
+QWK_0l10YM ,     -84.82 , 1.0 
+QWK_BCM0l02,     3093.78, 0.00768197 
+QWK_Batery6 ,	 -2.496e+06     ,  1.0
+QWK_Batery7 ,	 -5.735e+06     ,  1.0
+QWK_Batext1 ,	 -7.740e+06     ,  1.0
+QWK_Batext2 ,	 -3.733e+06     ,  1.0
+QWK_PhaseMo ,	  0.0 1         ,
+!END	    		        
+	    

@@ -1,0 +1,12 @@
+# This is an example of a detector definition file.
+
+[QwHelicity]
+ name = Helicity
+ map  = compton_electron_helicity.map
+
+[QwComptonElectronDetector]
+ name = ElectronDetector
+ mask = 0xffff
+ map  = compton_electron_channels.map
+ param = compton_electron_pedestal.map
+

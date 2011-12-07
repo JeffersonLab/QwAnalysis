@@ -38,8 +38,69 @@ hel_scalercounter   TH1F  189   -2.5  186.5         ScalerCounter Counts
 hel_userbit     TH1F  5   -2.5  2.5         Userbit   Counts
 hel_input_register    TH1F    12      -1.5  10.5        inputregister Events  
 hel_output_register   TH1F    12      -1.5  10.5        inputregister Events  
+ 
+###  Compton Electron histograms
+
+.*Compton_eDet_Accum_Raw_Plane1	TH1F	96   0.5	96.5	Strips	Hits
+.*Compton_eDet_Accum_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Accum_Raw_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Accum_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Accum_Raw_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Accum_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Accum_Raw_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Accum_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
+.*Compton_eDet_Evt_Best_Plane1  TH1F    96   0.5	96.5	Strips  Hits
+.*Compton_eDet_Evt_Best_Plane2  TH1F    96   0.5	96.5	Strips  Hits
+.*Compton_eDet_Evt_Best_Plane3  TH1F    96   0.5	96.5	Strips  Hits
+.*Compton_eDet_Evt_Best_x2      TH1F    20     0	50	x2      Tracks
+.*Compton_eDet_Evt_NTracks      TH1F    20     0	25	Tracks  NTracks
+.*Compton_eDet_Evt_Track_Angle  TH1F    12  -5.5	5.5	Tracks  Angle
+ 
+.*sca_edet.*			TH1F	100	0	4e3	Counts	Events
 
 
+###  Compton Photon accumulator histograms
+.*fadc_compton_accum.*_nevents		TH1F	100	0	5e7	AccumulatedEvents	Events
+.*fadc_compton_accum.*_sum		TH1F	100	-5e7	5e7	AccumulatedChannel	Events
+.*fadc_compton_accum.*_avg		TH1F	1024	-4096	4096	AverageChannel		Events
+
+###  Compton Photon QDC and TDC histograms
+.*qdc.*				TH1F	4096	0	4096	Channel	Events
+.*tdc.*				TH1F	4096	0	4096	Channel	Events
+
+###  Compton BPM and BCM channels
+.*compton_charge*		TH1F	100	0	4e3	Counts	Events
+.*compton_bpm.*			TH1F	100	0	4e3	Counts	Events
+.*sca_bpm_3p0.*			TH1F	100	0	4e3	Counts	Events
+.*sca_bpm_3c20.*			TH1F	100	0	4e3	Counts	Events
+.*sca_bcm.*			TH1F	100	0	4e3	Counts	Events
+.*unser.*			TH1F	100	0	4e3	Counts	Events
+.*rate.*			TH1F	100	0	4e3	Counts	Events
+.*sca_fadc_clock.*		TH1F	100	0	2e6	Counts	Events
+.*sca_ref_.MHz.*		TH1F	100	0	1e6	Counts	Events
+.*sca_.mhz.*			TH1F	100	0	1e6	Counts	Events
+.*sca_bmod_.*			TH1F	100	0	1e6	Counts	Events
+
+.*sca_evnum.*			TH1F	100	0	1e9	Counts	Events
+.*time.*			TH1F	100	0	1e9	Counts	Events
+.*dac.*				TH1F	100	0	4096	DAC	Events
+
+###  Compton fast laser channels
+.*laser.*			TH1F	100	0	4e3	Counts	Events
+
+###  Catch-alls
 .*_sum    TH1F  1000  -5.0e9  5.0e9       Counts  Events
 .*_raw    TH1F  1000  -5.0e9  5.0e9       Counts  Events
 .*_ped    TH1F  1000  -5.0e9  5.0e9       Counts  Events

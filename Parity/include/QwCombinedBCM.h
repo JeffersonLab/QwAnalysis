@@ -1,123 +1,133 @@
 /**********************************************************\
-* File: QwBCM.h                                  *
+<<<<<<< .working
+* File: QwCombinedBCM.h                                  *
+=======
+* File: QwBCM.h                                           *
+>>>>>>> .merge-right.r3406
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
 \**********************************************************/
 
-#ifndef __QwVQWK_COMBINEDBCM__
-#define __QwVQWK_COMBINEDBCM__
+#ifndef __Qw_COMBINEDBCM__
+#define __Qw_COMBINEDBCM__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
-#include "QwVQWK_Channel.h"
+// Qweak headers
+#include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 #include "QwBCM.h"
+
+// Forward declarations
+class QwDBInterface;
 
 /*****************************************************************
 *  Class:
 ******************************************************************/
 
-class QwCombinedBCM : public VQwDataElement{
+template<typename T>
+class QwCombinedBCM : public QwBCM<T> {
 /////
  public:
   QwCombinedBCM() { };
   QwCombinedBCM(TString name){
     InitializeChannel(name, "derived");
   };
-  ~QwCombinedBCM() {
-    DeleteHistograms();
+  QwCombinedBCM(TString subsystem, TString name){
+    InitializeChannel(subsystem, name, "derived");
   };
+  QwCombinedBCM(TString subsystemname, TString name, TString type){
+    this->SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name,type,"raw");
+  };
+  virtual ~QwCombinedBCM() { };
 
+  // This is to setup one of the used BCM's in this combo
+  void SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw );
 
-
-
-  void Set(QwBCM* bcm, Double_t weight, Double_t sumqw ); ///added by me
-
-  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
-  void  ClearEventData();
+  // No processing of event buffer
+  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement = 0) { return 0; };
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave);
+  void  InitializeChannel(TString subsystem, TString name, TString type,
+      TString datatosave);
 
-  void ReportErrorCounters();
-
-
-  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
-  void  SetEventData(Double_t* block, UInt_t sequencenumber);
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
+  // No reporting of error counters
+  void ReportErrorCounters() { };
 
   void  ProcessEvent();
-  Bool_t ApplyHWChecks();//Check for harware errors in the devices
+
+  Bool_t ApplyHWChecks(){
+    return kTRUE;
+  };
+
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  /*
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
+  UInt_t GetEventcutErrorFlag(){//return the error flag
+    return fCombined_bcm.GetEventcutErrorFlag();
   }
+
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fCombined_bcm.UpdateEventcutErrorFlag(errorflag);
+  };
+
+  void UpdateEventcutErrorFlag(VQwBCM *ev_error);
+
+  UInt_t GetErrorCode() const {return (fBeamCurrent.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fBeamCurrent.UpdateErrorCode(error);};
+
+
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  */
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  /*
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
-    fCombined_bcm.SetEventCutMode(bcuts);
+    fBeamCurrent.SetEventCutMode(bcuts);
+  }
+  */
+  // Implementation of Parent class's virtual operators
+  VQwBCM& operator=  (const VQwBCM &value);
+  QwCombinedBCM& operator=  (const QwCombinedBCM &value);
+
+  /*
+  void AccumulateRunningSum(const VQwBCM &value);
+  void DeaccumulateRunningSum(VQwBCM &value);
+  void CalculateRunningAverage();
+  */
+  void SetPedestal(Double_t ped) {
+    QwBCM<T>::SetPedestal(0.0);
+  }
+  void SetCalibrationFactor(Double_t calib) {
+    QwBCM<T>::SetCalibrationFactor(1.0);
   }
 
-  void PrintValue() const;
-  void PrintInfo() const;
+  void Copy(const VQwDataElement *source); 
 
+  VQwHardwareChannel* GetCharge(){
+    return &(this->fBeamCurrent);
+  };
 
+  const VQwHardwareChannel* GetCharge() const {
+    return const_cast<QwCombinedBCM*>(this)->GetCharge();
+  };
 
-
-  QwCombinedBCM& operator=  (const QwCombinedBCM &value);
-  QwCombinedBCM& operator+= (const QwCombinedBCM &value);
-  QwCombinedBCM& operator-= (const QwCombinedBCM &value);
-  void Sum(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Difference(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom);
-  void Scale(Double_t factor);
-
-  void AccumulateRunningSum(const QwCombinedBCM& value);
-  void CalculateRunningAverage();
-
-  void SetPedestal(Double_t ped);
-  void SetCalibrationFactor(Double_t calib);
-
-  void  ConstructHistograms(TDirectory *folder, TString &prefix);
-  void  FillHistograms();
-
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  ConstructBranch(TTree *tree, TString &prefix);
-  void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
-  void  DeleteHistograms();
-
-  void Copy(VQwDataElement *source);
-
-
-/////
- protected:
-
-  QwVQWK_Channel fCombined_bcm;
 /////
  private:
 
-  Double_t fCalibration;
-  Double_t fULimit, fLLimit;
-  Double_t fSequenceNo_Prev;
-
-  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent() */
-
-  std::vector <QwBCM*> fElement;
-  std::vector <Double_t> fWeights;
+  std::vector <QwBCM<T>*> fElement;
+  std::vector <Double_t>  fWeights;
   Double_t fSumQweights;
-
-
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check  */
-  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
-
-  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes */
-  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
 
 };
 

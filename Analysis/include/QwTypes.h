@@ -3,6 +3,7 @@
 
 // C and C++ headers
 #include <map>
+#include <iostream>
 
 // ROOT basic types
 #include <Rtypes.h>
@@ -12,63 +13,118 @@ class TString;
 #include "QwUnits.h"
 
 // Enumerator types for regions and directions
-static const Int_t kNumRegions = 7;
 enum EQwRegionID {
-  kRegionIDNull,
+  kRegionIDNull = 0,
   kRegionID1,    kRegionID2,   kRegionID3,
-  kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
+  kRegionIDTrig, kRegionIDCer, kRegionIDScanner,
+  kNumRegions
+};
+inline std::ostream& operator<< (std::ostream& stream, const EQwRegionID& i) {
+  stream << "?123TCS#"[i]; return stream;
+}
 
-static const Int_t kNumDirections = 9;
 enum EQwDirectionID {
-  kDirectionNull,
+  kDirectionNull = 0,
   kDirectionX, kDirectionY,
   kDirectionU, kDirectionV,
   kDirectionR, kDirectionPhi,
-  kDirectionLeft, kDirectionRight
+  kDirectionLeft, kDirectionRight,
+  kNumDirections
 };
+inline std::ostream& operator<< (std::ostream& stream, const EQwDirectionID& i) {
+  stream << "?xyuvrfLR#"[i]; return stream;
+}
 
 // Currently up and down are considered two packages.
-static const Int_t kNumPackages = 3;
 enum EQwDetectorPackage {
-  kPackageNull,
+  kPackageNull = 0,
   kPackageUp,
-  kPackageDown
+  kPackageDown,
+  kNumPackages
 };
 // NOTE: Packages will be defined with respect to the *fixed magnet octants*.
 // This means that after a rotation of 45 deg from the vertical position,
 // one package will be identified as kPackageUpLeft (name?), and the other
 // package as kPackageDownRight. (wdc, based on discussion with pking)
+inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorPackage& i) {
+  stream << "?ud#"[i]; return stream;
+}
 
-static const Int_t kNumTypes = 6;
 enum EQwDetectorType {
-  kTypeNull,
+  kTypeNull = 0,
+  kTypeGem,	        // GEM detector
   kTypeDriftHDC,	// HDC Drift chamber
   kTypeDriftVDC,	// VDC Drift chamber
-  kTypeGem,	        // GEM detector
   kTypeTrigscint,	// Trigger scintillator
   kTypeCerenkov,	// Cerenkov detector
-  kTypeScanner		// Focal plane scanner
+  kTypeScanner,		// Focal plane scanner
+  kNumTypes
 };
+inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorType& i) {
+  stream << "?ghvtcs#"[i]; return stream;
+}
 
 // Enumerator type for the instrument type, used in subsystems that have to
 // distinguish between various detector types.
 enum EQwPMTInstrumentType {
-  kQwUnknownPMT,	// Unknown PMT type
+  kQwUnknownPMT = 0,	// Unknown PMT type
   kQwIntegrationPMT,	// Integration PMT
   kQwScalerPMT,	        // Scaler PMT
-  kQwCombinedPMT	// Combined PMT
+  kQwCombinedPMT,	// Combined PMT
+  kNumInstrumentTypes   // This should be the last enum; it provides the number of know types.
 };
 
-static const Int_t kBeamDevTypes = 7;
-enum EQwBeamInstrumentType{
-  kQwUnknownDeviceType,
+enum EQwBeamInstrumentType {
+  kQwUnknownDeviceType = 0,
   kQwBPMStripline,
+  kQwQPD,
+  kQwLinearArray,
   kQwBCM,
   kQwCombinedBCM,
   kQwCombinedBPM,
   kQwEnergyCalculator,
-  kQwHaloMonitor
+  kQwHaloMonitor,
+  kQwBPMCavity,
+  kQwClock,
+  kBeamDevTypes  // This should be the last enum; it provides the number of know types.
 };
+
+// Enumerator type for the electronics module type
+enum EQwModuleType {
+  kUnknownModuleType = 0,
+  kV775_TDC,
+  kV792_ADC,
+  kF1TDC,
+  kSIS3801,
+  kNumModuleTypes
+};
+
+//Beamline device errorflags
+static const UInt_t kErrorFlag_VQWK_Sat   = 0x01; // in Decimal 1 to identify a VQWK is saturating
+static const UInt_t kErrorFlag_sample     = 0x2;  // in Decimal 2   for sample size check
+static const UInt_t kErrorFlag_SW_HW      = 0x4;  // in Decimal 4   HW_sum==SW_sum check
+static const UInt_t kErrorFlag_Sequence   = 0x8;  // in Decimal 8   sequence number check
+static const UInt_t kErrorFlag_SameHW     = 0x10; // in Decimal 16  check to see ADC returning same HW value
+static const UInt_t kErrorFlag_ZeroHW     = 0x20; // in Decimal 32  check to see ADC returning zero
+static const UInt_t kErrorFlag_EventCut_L = 0x40; // in Decimal 64  check to see ADC failed lower limit of the event cut
+static const UInt_t kErrorFlag_EventCut_U = 0x80; // in Decimal 128 check to see ADC failed upper limit of the event cut
+
+static const UInt_t kBCMErrorFlag = 0x100; // in Decimal 256 to identify the single event cut is failed for a BCM (regular or combo)
+static const UInt_t kErrorFlag_BlinderFail = 0x200;// in Decimal 512 to identify the blinder flag
+static const UInt_t kBPMErrorFlag = 0x400; // in Decimal 1024 to identify the single event cut is failed for a BPM (Stripline or cavity or comboBPM)
+static const UInt_t kPMTErrorFlag = 0x800; // in Decimal 2048 to identify the single event cut is failed for a PMT (Combined or regular)
+static const UInt_t kBModErrorFlag = 0x8000; // in Decimal 32768 (2^15) to identify the single event cut is failed for a BMod channel
+static const UInt_t kEventCutMode3 = 0x10000;  // in Decimal 65536 to identify the mode 3 where we only flag event cut failed events 
+static const UInt_t kBeamStabilityError= 0x10000000;//in Decimal 2^28(268435456) to identify the a stability cut
+static const UInt_t kBeamTripError= 0x8000000;// in Decimal 2^27(134217728) to identify the an event within a beam trip range set by ring parameters
+static const UInt_t kGlobalCut    = 0x4000000;// in Decimal 2^26 to identify the single event cut is a global cut
+static const UInt_t kLocalCut     = 0x2000000;// in Decimal 2^25 to identify the single event cut is a local cut
+static const UInt_t kStabilityCut = 0x1000000;// in Decimal 2^24 (16777216) to identify the single event cut is a stability cut. NOT IN USE CURRENTLY
+static const UInt_t kPreserveError = 0x2FF;//when AND-ed with this it will only keep HW errors and blinder
+
+//To generate the error code based on global/local and stability cut value
+UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut);
+
 
 EQwPMTInstrumentType GetQwPMTInstrumentType(TString name);
 TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type);
@@ -76,6 +132,7 @@ TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type);
 EQwBeamInstrumentType GetQwBeamInstrumentType(TString name);
 TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type);
 
+static const UInt_t kInvalidSubelementIndex = 999999;
 
 //=======
 // Enumerator increments
@@ -118,17 +175,21 @@ static const QwHelicityMap kMapHelicity = CreateHelicityMap();
 class QwDetectorID
 {
  public:
-  QwDetectorID():fRegion(kRegionIDNull),fPackage(-1),fPlane(-1),fDirection(-1),fElement(-1){};
+  QwDetectorID():fRegion(kRegionIDNull),fPackage(kPackageNull),fPlane(-1),fDirection(kDirectionNull),fElement(-1){};
 
-  QwDetectorID(const EQwRegionID region, const Int_t package, const Int_t plane,const Int_t direction, const
-  Int_t wire):fRegion(region),fPackage(package),fPlane(plane),fDirection(direction),fElement(wire){};
+  QwDetectorID(const EQwRegionID region, 
+	       const EQwDetectorPackage package, 
+	       const Int_t plane,
+	       const EQwDirectionID direction, 
+	       const Int_t wire):
+  fRegion(region),fPackage(package),fPlane(plane),fDirection(direction),fElement(wire){};
 
  public:
-  EQwRegionID fRegion;  // region 1, 2, 3, triggg. scint or cerenkov
-  int fPackage; // which arm of the rotator or octant number
-  int fPlane;   // R or theta index for R1; plane index for R2 & R3
-  int fDirection; //direction of the wire plane X,Y,U,V etc - Rakitha (10/23/2008)
-  int fElement; // trace number for R1; wire number for R2 & R3; PMT number for others
+  EQwRegionID        fRegion;  // region 1, 2, 3, triggg. scint or cerenkov
+  EQwDetectorPackage fPackage; // which arm of the rotator or octant number
+  Int_t              fPlane;   // R or theta index for R1; plane index for R2 & R3
+  EQwDirectionID     fDirection; //direction of the wire plane X,Y,U,V etc - Rakitha (10/23/2008)
+  Int_t              fElement; // trace number for R1; wire number for R2 & R3; PMT number for others
 };
 
 
@@ -146,6 +207,7 @@ class QwElectronicsID
   int fChannel;      //channel number
 };
 
+
 ///
 /// \ingroup QwAnalysis
 class QwDelayLineID{
@@ -157,6 +219,17 @@ class QwDelayLineID{
  Int_t fLineNumber;
  Int_t fSide;
 };
+
+///  Double Wien configuration
+enum EQwWienMode {
+  kWienIndeterminate = 0,
+  kWienForward,
+  kWienBackward, 
+  kWienVertTrans,
+  kWienHorizTrans
+};
+std::string WienModeName(EQwWienMode type);
+EQwWienMode WienModeIndex(TString name);
 
 ///  Definitions for beam parameter quantities; use these types rather than
 ///  the raw "QwVQWK_Channel" to allow for future specification.

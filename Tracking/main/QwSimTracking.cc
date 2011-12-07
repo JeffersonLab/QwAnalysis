@@ -23,10 +23,7 @@
 // Qweak headers
 #include "QwOptionsTracking.h"
 #include "QwLog.h"
-
-// Deprecated Qweak headers
-#include "Det.h"
-#include "Qset.h"
+#include "QwParameterFile.h"
 
 // Qweak event buffer and tracking worker
 #include "QwTreeEventBuffer.h"
@@ -42,9 +39,6 @@
 #include "QwDriftChamberVDC.h"
 #include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
-
-// Qweak subsystem factory
-#include "QwSubsystemFactory.h"
 
 
 #include <TStopwatch.h>
@@ -80,30 +74,12 @@ int main (int argc, char* argv[])
   ///  Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
-  /// For the tracking analysis we create the QwSubsystemArrayTracking list
-  /// which contains the VQwSubsystemTracking objects.
+  ///  Load the tracking detectors from file
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking(gQwOptions);
+  detectors->ProcessOptions(gQwOptions);
 
-  // Get vector with detector info (by region, plane number)
-  std::vector< std::vector< QwDetectorInfo > > detector_info;
-  detectors->GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("TS")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("MD")->GetDetectorInfo(detector_info);
-  // TODO This is handled incorrectly, it just adds the three package after the
-  // existing three packages from region 2...  GetDetectorInfo should descend
-  // into the packages and add only the detectors in those packages.
-  // Alternatively, we could implement this with a singly indexed vector (with
-  // only an id as primary index) and write a couple of helper functions to
-  // select the right subvectors of detectors.
-
-  // Load the geometry
-  Qset qset;
-  qset.FillDetectors((getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/qweak.geo").c_str());
-  qset.LinkDetectors();
-  qset.DeterminePlanes();
-  std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
+  // Get detector geometry
+  QwGeometry geometry = detectors->GetGeometry();
 
   /// Create a timer
   TStopwatch timer;
@@ -113,7 +89,7 @@ int main (int argc, char* argv[])
   timer.Start();
 
   /// Next, we create the tracking worker that will pull coordinate the tracking.
-  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
+  QwTrackingWorker *trackingworker = new QwTrackingWorker(geometry);
   if (kDebug) trackingworker->SetDebugLevel(1);
 
   /// Stop timer
@@ -122,31 +98,36 @@ int main (int argc, char* argv[])
   PrintInfo(timer);
 
   /// Create the event buffer
-  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(detector_info);
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);
   treebuffer->ProcessOptions(gQwOptions);
   treebuffer->SetEntriesPerEvent(1);
 
   ///  Start loop over all runs
   while (treebuffer->OpenNextFile() == 0) {
 
+    // Create dummy event for branch creation (memory leak when using null)
+    QwEvent* event = new QwEvent();
+
     // Open ROOT file
     TFile* file = 0;
-    TTree* tree_hits = 0;
-    TTree* tree_events = 0;
-    QwEvent* event = new QwEvent();
+    TTree* hit_tree = 0;
+    TTree* event_tree = 0;
     QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
-      file = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSim_%d.root", treebuffer->GetRunNumber()),
-                       "RECREATE",
+      file = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/QwSim_%d.root",
+                       treebuffer->GetRunNumber()), "RECREATE",
                        "QWeak ROOT file with simulated event");
       file->cd();
     }
     if (kTree) {
-      tree_hits = new TTree("hit_tree", "QwTracking Hit-based Tree");
-      tree_hits->Branch("hits", "QwHitRootContainer", &roothitlist);
-      tree_events = new TTree("event_tree", "QwTracking Event-based Tree");
-      tree_events->Branch("events", "QwEvent", &event);
+      hit_tree = new TTree("hit_tree", "QwTracking Hit-based Tree");
+      hit_tree->Branch("hits", "QwHitRootContainer", &roothitlist);
+      event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
+      event_tree->Branch("events", "QwEvent", &event);
     }
+
+    // Delete dummy event again
+    delete event; event = 0;
 
     /// Start timer
     timer.Reset();
@@ -156,31 +137,34 @@ int main (int argc, char* argv[])
     Int_t nevents = 0;
     while (treebuffer->GetNextEvent() == 0) {
 
+      /// Create a new event structure
+      event = new QwEvent();
+
+      // Create the event header with the run and event number
+      QwEventHeader* header =
+          new QwEventHeader(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
+
+      // Assign the event header
+      event->SetEventHeader(header);
+
+
       /// Read the hit list from the event buffer
       QwHitContainer* hitlist = treebuffer->GetHitContainer();
       roothitlist->Convert(hitlist);
 
-      // Print hit list
-      if (kDebug) {
-        std::cout << "Printing hitlist..." << std::endl;
-        hitlist->Print();
-      }
+      // and fill into the event
+      event->AddHitContainer(hitlist);
+
 
       /// We process the hit list through the tracking worker and get a new
       /// QwEvent object back.
-      event = trackingworker->ProcessHits(detectors, hitlist);
-
-
-      // Do something with this event
-      event->GetEventHeader()->SetRunNumber(treebuffer->GetRunNumber());
-      event->GetEventHeader()->SetEventNumber(treebuffer->GetEventNumber());
-      if (kDebug) event->Print();
+      trackingworker->ProcessEvent(detectors, event);
 
 
       // Fill the tree
       if (kTree) {
-        tree_hits->Fill();
-        tree_events->Fill();
+        hit_tree->Fill();
+        event_tree->Fill();
       }
 
 

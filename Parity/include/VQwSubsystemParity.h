@@ -14,10 +14,10 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
-#include "QwDatabase.h"
 
 // Forward declarations
 class QwBlinder;
+class QwParityDB;
 
 
 /**
@@ -34,46 +34,41 @@ class QwBlinder;
  */
 class VQwSubsystemParity: virtual public VQwSubsystem {
 
-  public:
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemParity();
 
+  public:
     /// Constructor with name
-    VQwSubsystemParity(TString name): VQwSubsystem(name) { };
+    VQwSubsystemParity(const TString& name): VQwSubsystem(name) {
+      SetEventTypeMask(0x1); // only accept 0x1
+    };
+    /// Copy constructor
+    VQwSubsystemParity(const VQwSubsystemParity& source)
+    : VQwSubsystem(source)
+    { }
     /// Default destructor
     virtual ~VQwSubsystemParity() { };
 
-    /// \brief Construct the branch and tree vector
-    virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) = 0;
-    /// \brief Construct the branch and tree vector
-    virtual void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
-      TString tmpstr("");
-      ConstructBranchAndVector(tree,tmpstr,values);
-    };
-
-    /// \brief Construct the branch and tree vector
-    virtual void ConstructBranch(TTree *tree, TString & prefix){};
-    /// \brief Construct the branch and tree vector based on the trim file
-    virtual void ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file ){};
-    
-    /// \brief Fill the tree vector
-    virtual void FillTreeVector(std::vector<Double_t> &values) = 0;
 
     /// \brief Fill the database
-    virtual void FillDB(QwDatabase *db, TString type) { };
-
+    virtual void FillDB(QwParityDB *db, TString type) { };
+    virtual void FillErrDB(QwParityDB *db, TString type) { };
 
     // VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
     virtual VQwSubsystem& operator=  (VQwSubsystem *value) = 0;
     virtual VQwSubsystem& operator+= (VQwSubsystem *value) = 0;
     virtual VQwSubsystem& operator-= (VQwSubsystem *value) = 0;
-    virtual VQwSubsystem* Copy() = 0;
     virtual void Sum(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
     virtual void Difference(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
     virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) = 0;
     virtual void Scale(Double_t factor) = 0;
 
-
     /// \brief Update the running sums for devices
     virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;
+    /// \brief remove one entry from the running sums for devices
+    virtual void DeaccumulateRunningSum(VQwSubsystem* value) = 0;
+
     /// \brief Calculate the average for all good events
     virtual void CalculateRunningAverage() = 0;
 
@@ -83,8 +78,13 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual Bool_t ApplySingleEventCuts() = 0;
     /// \brief Report the number of events failed due to HW and event cut failures
     virtual Int_t GetEventcutErrorCounters() = 0;
-    /// \brief Return the error flag to the main routine
-    virtual Int_t GetEventcutErrorFlag() = 0;
+    /// \brief Return the error flag to the top level routines related to stability checks and ErrorFlag updates
+    virtual UInt_t GetEventcutErrorFlag() = 0;
+    /// \brief update the error flag in the subsystem level from the top level routines related to stability checks. This will set the same errorflag to all the channels
+    virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
+    /// \brief update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    virtual void UpdateEventcutErrorFlag(VQwSubsystem *ev_error) = 0;
+
 
     /// \brief Blind the asymmetry of this subsystem
     virtual void Blind(const QwBlinder *blinder) { return; };
@@ -94,11 +94,11 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Print values of all channels
     virtual void PrintValue() const { };
 
-  private:
+    virtual void WritePromptSummary() const {};
 
-    /// Private default constructor
-    VQwSubsystemParity() { };
 
+    virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};
+	
 }; // class VQwSubsystemParity
 
 #endif // __VQWSUBSYSTEMPARITY__

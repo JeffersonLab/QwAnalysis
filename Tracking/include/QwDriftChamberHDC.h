@@ -9,23 +9,10 @@
 #ifndef __QWDRIFTCHAMBERHDC__
 #define __QWDRIFTCHAMBERHDC__
 
-
-
-
-
-
 #include "QwDriftChamber.h"
-
-
-
-
-
-
-
-
 ///
-/// \ingroup QwTracking
-class QwDriftChamberHDC: public QwDriftChamber {
+/// \ingroup QwTrackingg
+class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberHDC> {
   /******************************************************************
    *  Class: QwDriftChamberHDC
    *
@@ -33,49 +20,45 @@ class QwDriftChamberHDC: public QwDriftChamber {
    ******************************************************************/
  public:
   QwDriftChamberHDC(TString region_tmp);
-  ~QwDriftChamberHDC()
-    {
-      DeleteHistograms();
-    };
+  virtual ~QwDriftChamberHDC() { };
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
 
   /* Unique virtual member functions from QwDrifChamber base class */
 
- public:
 
- void  ReportConfiguration();
-
- void  SubtractReferenceTimes();
-
- 
-
- Int_t LoadGeometryDefinition(TString mapfile );
- void  ProcessEvent();
-
-
-
- Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+  //  void  ReportConfiguration();
+  void  SubtractReferenceTimes();
+  void  ProcessEvent();
+  Int_t LoadGeometryDefinition(TString mapfile );
+  //  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  //  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
+  Int_t LoadChannelMap ( TString mapfile ) ;
+  void  ClearEventData();
+  
 
  protected:
- void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
+  // VDC and HDC
+  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
+  Int_t AddChannelDefinition();
+  Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire);
+  Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
+  using VQwSubsystem::ConstructHistograms;
+  void  ConstructHistograms(TDirectory *folder, TString &prefix) ;
+  void  FillHistograms();
 
+  Int_t LoadTimeWireOffset(TString t0_map) {return 0;}; 
+  void LoadTtoDParameters(TString ttod_map);
+  void SubtractWireTimeOffset();
+  void ApplyTimeCalibration();
 
-
- protected:
-
-  Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
-  Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
-
+  // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
- 
-
-
-
- 
- 
-
-
-
+  std::vector< Double_t> fTtoDNumbers;
   //  ClassDef(QwDriftChamber,2);
 
 

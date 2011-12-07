@@ -1,0 +1,91 @@
+// bplot macro package:: bg_rawsignal.macro
+// Purpose:  Plots of Diagnostics from parity analyzer tree
+
+{
+
+//   gROOT->Reset();
+//   G__loadfile("./bg_tree_define.macro");
+   TString mycut;
+
+   bar = new TControlBar("vertical", "Beam Current");
+
+// Remember, this is already pedestal subtracted
+   mycut = "bcm1>500";
+
+   btree ct1("R","BCM1 and 2","bcm1a2",2,2,
+          "bcm1","","","",
+          "bcm1:ev_num","","","",
+          "bcm1:bcm2","","","",
+          "bcm1:bcm2",mycut.Data(),"","");
+
+   btree ct2("R","Bcm1 vs bpm8x","bcm1v8",2,2,
+            "bcm1:bpm8xp+bpm8xm",mycut.Data(),"","",
+            "bcm1:bpm8yp+bpm8ym",mycut.Data(),"","",
+            "bcm1:bpm8xp+bpm8xm",mycut.Data(),"","",
+            "bcm1:bpm8yp+bpm8ym",mycut.Data(),"","");
+   ct2.forcehisto(2,"bcm1v8x","BCM1 versus 8x",
+         100,30000,50000,100,250,2000);
+   ct2.forcehisto(3,"bcm1v8y","BCM1 versus 8y",
+         100,30000,50000,100,250,2000);
+
+
+   btree ct3("R","Bcm1 vs bpm10x","bcm1v10",2,2,
+            "bcm1:bpm10xp+bpm10xm",mycut.Data(),"","",
+            "bcm1:bpm10yp+bpm10ym",mycut.Data(),"","",
+            "bcm1:bpm10xp+bpm10xm",mycut.Data(),"","",
+            "bcm1:bpm10yp+bpm10ym",mycut.Data(),"","");
+   ct3.forcehisto(2,"bcm1v10x","BCM1 versus 10x",
+         100,30000,40000,100,250,2000);
+   ct3.forcehisto(3,"bcm1v10x","BCM1 versus 10x",
+         100,30000,40000,100,250,2000);
+
+   btree ct4("R","Bcm1 vs bpm12x","bcm1v12",2,2,
+            "bcm1:bpm12xp+bpm12xm",mycut.Data(),"","",
+            "bcm1:bpm12yp+bpm12ym",mycut.Data(),"","",
+            "bcm1:bpm12xp+bpm12xm",mycut.Data(),"","",
+            "bcm1:bpm12yp+bpm12ym",mycut.Data(),"","");
+   ct4.forcehisto(2,"bcm1v12x","BCM1 versus 12x",
+         100,30000,40000,100,250,2000);
+   ct4.forcehisto(3,"bcm1v12y","BCM1 versus 12y",
+         100,30000,40000,100,250,2000);
+
+
+   btree ct5("R","Bcm1 vs bpm4ax","bcm1v4a",2,2,
+            "bcm1:bpm4axp+bpm4axm",mycut.Data(),"","",
+            "bcm1:bpm4ayp+bpm4aym",mycut.Data(),"","",
+            "bcm1:bpm4axp+bpm4axm",mycut.Data(),"","",
+            "bcm1:bpm4ayp+bpm4aym",mycut.Data(),"","");
+   ct5.forcehisto(2,"bcm1v4ax","BCM1 versus 4ax",
+         100,30000,40000,100,250,2000);
+   ct5.forcehisto(3,"bcm1v4ay","BCM1 versus 4ay",
+         100,30000,40000,100,250,2000);
+
+
+   btree ct6("R","Bcm1 vs bpm4bx","bcm1v4b",2,2,
+            "bcm1:bpm4bxp+bpm4bxm",mycut.Data(),"","",
+            "bcm1:bpm4byp+bpm4bym",mycut.Data(),"","",
+            "bcm1:bpm4bxp+bpm4bxm",mycut.Data(),"","",
+            "bcm1:bpm4byp+bpm4bym",mycut.Data(),"","");
+   ct6.forcehisto(2,"bcm1v4bx","BCM1 versus 4bx",
+         100,30000,40000,100,250,2000);
+   ct6.forcehisto(3,"bcm1v4by","BCM1 versus 4by",
+         100,40000,40000,100,250,2000);
+
+
+   bar->AddButton("            BCM1 and BCM2               ",   "ct1.plot()");
+   bar->AddButton("            BCM1 vs BPM8-Current        ",   "ct2.plot()");
+   bar->AddButton("            BCM1 vs BPM10-Current       ",   "ct3.plot()");
+   bar->AddButton("            BCM1 vs BPM12-Current       ",   "ct4.plot()");
+   bar->AddButton("            BCM1 vs BPM4A-Current       ",   "ct5.plot()");
+   bar->AddButton("            BCM1 vs BPM4B-Current       ",   "ct6.plot()");
+
+
+   bar->Show();
+   gROOT->SaveContext();
+}
+
+
+
+
+
+

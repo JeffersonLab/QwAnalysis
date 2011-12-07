@@ -7,6 +7,7 @@
  
    \file QwGUIMainDetector.h
    \author Michael Gericke
+   \author Rakitha Beminiwattha
      
 */
 //=============================================================================
@@ -32,98 +33,61 @@
 /// \ingroup QwGUIMain
 
 #define MAIN_DET_INDEX      16           
+#define MD_DET_TYPES        3
 
-enum ENDataPlotType {
-  PLOT_TYPE_HISTO,           
-  PLOT_TYPE_GRAPH,           
-  PLOT_TYPE_DFT,           
-};
-
-enum MDMenuIdentifiers {
-  M_DATA_HISTO,
-  M_DATA_GRAPH,
-  M_DFT_HISTO,
-};
 
 #ifndef QWGUIMAINDETECTOR_H
 #define QWGUIMAINDETECTOR_H
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <vector>
-using std::vector;
 
-#include <TG3DLine.h>
-#include <TRootEmbeddedCanvas.h>
-#include <TRootCanvas.h>
-#include <TMath.h>
 #include "QwGUISubSystem.h"
-#include "QwGUIDataWindow.h"
-#include "RNumberEntryDialog.h"
+
+
+#ifndef __CINT__
+
+#include "QwOptions.h"
+#include "QwParameterFile.h"
+
+#endif /* __CINT__ */
 
 class QwGUIMainDetector : public QwGUISubSystem {
 
   
-  TGVerticalFrame   *dTabFrame;
-  TRootEmbeddedCanvas *dCanvas;  
-  TGLayoutHints       *dTabLayout; 
-  TGLayoutHints       *dCnvLayout; 
+  TGHorizontalFrame      *dTabFrame;
+  TGVerticalFrame        *dControlsFrame;
+  TGVerticalFrame        *dMDPMTFrame;
+  TGVerticalFrame        *dMDVPMTFrame;
+  TRootEmbeddedCanvas    *dCanvas;  
+  TGLayoutHints          *dTabLayout; 
+  TGLayoutHints          *dCnvLayout; 
 
-  TGComboBox             *dTBinEntry;
-  TGLayoutHints          *dTBinEntryLayout;
-  TGNumberEntry          *dRunEntry;
-  TGLayoutHints          *dRunEntryLayout;
-  TGLabel                *dRunEntryLabel;
-  TGHorizontal3DLine     *dHorizontal3DLine;
-  TGHorizontalFrame      *dUtilityFrame;  
-  TGLayoutHints          *dUtilityLayout;
+  TGTextButton           *dButtonMD16;  
+  TGTextButton           *dButtonMDBkg;
+  TGTextButton           *dButtonMDCmb; 
+  TGTextButton           *dButtonMDPMT; 
+  TGTextButton           *dButtonMDVPMT; 
+  TGTextButton           *dButtonMDCommonNoise;
 
-  TGMenuBar              *dMenuBar;
-  TGPopupMenu            *dMenuData;
-  TGLayoutHints          *dMenuBarLayout; 
-  TGLayoutHints          *dMenuBarItemLayout;
+  TGComboBox             *dComboBoxMDPMT;
+  TGComboBox             *dComboBoxMDVPMT;
 
-  //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
 
-  //!An object array to store graph pointers.
-  TObjArray            GraphArray;
+  /* TGLayoutHints          *dTBinEntryLayout; */
+  /* TGNumberEntry          *dRunEntry; */
+  /* TGLayoutHints          *dRunEntryLayout; */
+  /* TGLabel                *dRunEntryLabel; */
+  /* //  TGHorizontal3DLine     *dHorizontal3DLine; */
+  /* TGHorizontalFrame      *dUtilityFrame;   */
+  /* TGLayoutHints          *dUtilityLayout; */
 
-  //!An object array to store histogram pointers for the DFT.
-  TObjArray            DFTArray;
-  
-  //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
-
+    
   //!A dioalog for number entry ...  
-  RNumberEntryDialog   *dNumberEntryDlg;
-
-  //!This function plots histograms of the data in the current file, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotHistograms();
-
-  //!This function plots time graphs of the data in the current file, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotGraphs();
-
-  //!This function plots histograms of the data discrete fourier transform, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotDFT();
-
+  //  RNumberEntryDialog   *dNumberEntryDlg;
+  
+  //!Draw Means and widths for MD/MD bkg yields/asym
+  TH1F *MDPlots[2] ;
+ 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
   //!on the plots are lost.
@@ -132,28 +96,100 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  //  void                 ClearData();
 
-  Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_INDEX ? dCurrentData[det].size() : -1;};
+  //!Draws MD yield/Asym histograms selected by dComboBoxMDPMT
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 DrawMDPMTPlots();
 
-  void                 SetPlotDataType(ENDataPlotType type) {dDataPlotType = type;};
-  ENDataPlotType       GetPlotDataType() {return dDataPlotType;};
 
-  //!An array that stores the ROOT names of the histograms that I chose to display for now.
-  //!These are the names by which the histograms are identified within the root file.
-  static const char   *MainDetectorDataNames[MAIN_DET_INDEX];
-  static const int    *MainDetectorDataIndex[MAIN_DET_INDEX];
+  //!Draws MD yield/Asym histograms selected by dComboBoxMDVPMT
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 DrawMDVPMTPlots();
 
-  //!Stores the data items (events) from the tree for all detectors
-  vector <Double_t>    dCurrentData[MAIN_DET_INDEX];
-  vector <Double_t>    dCurrentDataDFT[MAIN_DET_INDEX];
+    //!Plot MD yield/Asym means+/- widths for 16 PMTs 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 DrawMD16Plots();
 
-  ENDataPlotType       dDataPlotType;
-  Bool_t               dDFTCalculated;
-  void                 SetDFTCalculated(Bool_t flag) {dDFTCalculated = flag;};
-  Bool_t               IsDFTCalculated() {return dDFTCalculated;};
-  void                 CalculateDFT();
+  //!Plot MD yield/Asym means+/- widths for aux MD PMTs 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 DrawMDBkgPlots();
+
+  //!Plot Combined MD yield/Asym means+/- widths  
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 DrawMDCmbPlots();
+
+  //!Plot pairs of MD bar Asym to obtain widths  
+  //!Calculate the common mode noise based on Mark Pitt's suggestion
+  //!"Suggestion for quick estimate of the common mode noise" HCLOG entry 201563
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 CalculateCommNoise();
+
+  //!This function Sets the combo index/combo element index
+  //!
+  //!Parameters:
+  //! - combo box id 
+  //! - combo box element id
+  //!Return value: none 
+  void SetComboIndex(Int_t cmb_id, Int_t id);
+
+
+   //!Access the tree leaves to return a histogram
+  //!
+  //!Parameters:
+  //! - pointer to tree
+  //! - leaf name
+  //! - Cut expression
+  //! - Draw options
+  //!Return value: TH1F pointer  
+  TH1F*   GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "");
+
+
   
+  
+  //!This function loads list of PMT  . 
+  //!based on the map file read by LoadChannelMap routine
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void LoadMDPMTCombo();
+
+  //!This function loads list of Combined PMT  . 
+  //!based on the map file read by LoadChannelMap routine
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void LoadMDVPMTCombo();
+
+
+  std::vector<std::vector<TString> > fMDDevices; //2D vector since we have seral types of device - VQWK and VPMT
+  Int_t fCurrentPMTIndex; //Keep the PMT index corresponding to fMDDevices read from dCombo_MDPMT
+  Int_t fCurrentVPMTIndex; //Keep the VPMT index corresponding to fMDDevices read from dCombo_MDPMT
  protected:
 
   //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an
@@ -165,13 +201,20 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!
   //!Return value: none  
   virtual void         MakeLayout();
-
+ private:
+  static const Int_t fSleepTimeMS;
  public:
   
   QwGUIMainDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUIMainDetector();
 
+  //!This function  loads the histogram names from a definition file (main detector channel map file)
+  //!Parameters:
+  //! - Main detector channel map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
   //!four histograms from the ROOT file that is contained within the data container makes copies of
@@ -181,16 +224,16 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
-  virtual void        OnObjClose(char *);
+  //  virtual void        OnNewDataContainer();
+  /* virtual void        OnObjClose(char *); */
   virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
+  /* virtual void        OnRemoveThisTab(); */
           void        OnUpdatePlot(char *);
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  //  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUIMainDetector,0);
+  ClassDef(QwGUIMainDetector,1);
 };
 
 #endif

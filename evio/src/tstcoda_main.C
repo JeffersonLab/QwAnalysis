@@ -2,7 +2,7 @@
 // THaCodaFile and THaEtClient both inherit from THaCodaData.
 // R. Michaels, March 2001.
 
-#include <iostream.h>
+#include <iostream>
 #include "THaCodaFile.h"
 #include "THaEtClient.h"
 #include "TString.h"
@@ -111,9 +111,12 @@ void usage() {
 };
 
 void do_something (int* data) {
-  int len = data[0] + 1;
-  int evtype = data[1]>>16;
-  int evnum = data[4];
+  int len = 0;
+  len = data[0] + 1;
+  int evtype = 0;
+  evtype = data[1]>>16;
+  int evnum = 0;
+  evnum = data[4];
 #ifdef DUMPIT
  // Crude event dump
   cout << "\n\n Event number " << dec << evnum;

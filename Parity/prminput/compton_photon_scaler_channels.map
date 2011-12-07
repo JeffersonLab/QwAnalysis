@@ -1,0 +1,39 @@
+roc = 31
+bank = 0x1f02
+
+!! module.type, module.num  chan.num, det.type, det.name
+norm = sca_ref_4MHz / 4000000
+SIS3801D24, 0, 0x10, laser, sca_laser_PowM6
+SIS3801D24, 0, 0x11, laser, sca_laser_PowAtt
+SIS3801D24, 0, 0x12, laser, sca_laser_PowT
+SIS3801D24, 0, 0x13, laser, sca_laser_Scint2
+SIS3801D24, 0, 0x14, laser, sca_laser_C13
+SIS3801D24, 0, 0x15, laser, sca_laser_photon
+SIS3801D24, 0, 0x18, scaler, sca_bmod_ramp
+SIS3801D24, 0, 0x1a, scaler, sca_ref_1MHz
+SIS3801D24, 0, 0x1f, scaler, sca_ref_4MHz
+
+bank = 0x1f03
+! module.type, module.num  chan.num, det.type, det.name
+norm = 1
+SIS3801D32, 0, 0x01, scaler, time_unix
+SIS3801D32, 0, 0x02, scaler, time_nano
+
+bank = 0x1f04
+! module.type, module.num  chan.num, det.type, det.name
+norm = 1
+SIS3801D32, 0, 0x01, scaler, sca_haptb_time_ramp
+SIS3801D32, 0, 0x02, scaler, sca_haptb_time_int
+SIS3801D32, 0, 0x03, scaler, sca_haptb_dac
+
+
+roc = 1
+bank = 0x0100
+! module.type, module.num  chan.num, det.type, det.name
+norm = sca_ref_4MHz / 4000000
+SIS3801D24, 0, 0x00, scaler, sca_photon_rate_gen
+SIS3801D24, 0, 0x01, scaler, sca_photon_rate_acc
+SIS3801D24, 0, 0x02, scaler, sca_photon_rate_foo1
+SIS3801D24, 0, 0x03, scaler, sca_photon_rate_foo2
+SIS3801D24, 0, 0x0e, scaler, sca_fadc_clock1
+SIS3801D24, 0, 0x0f, scaler, sca_fadc_clock2

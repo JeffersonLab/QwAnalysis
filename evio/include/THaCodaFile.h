@@ -27,7 +27,7 @@
 
 using namespace std;
 
-class THaCodaFile : public THaCodaData 
+class THaCodaFile : public THaCodaData
 {
 
 public:
@@ -36,12 +36,13 @@ public:
   THaCodaFile(TString filename);
   THaCodaFile(TString filename, TString rw);
   ~THaCodaFile();
+  using THaCodaData::codaOpen;
   int codaOpen(TString filename);
   int codaOpen(TString filename, TString rw);
   int codaClose();
-  int codaRead(); 
+  int codaRead();
   int codaWrite(int* evbuffer);
-  int *getEvBuffer();     
+  int *getEvBuffer();
   int filterToFile(TString output_file);     // filter to an output file
   void addEvTypeFilt(int evtype_to_filt);    // add an event type to list
   void addEvListFilt(int event_to_filt);     // add an event num to list

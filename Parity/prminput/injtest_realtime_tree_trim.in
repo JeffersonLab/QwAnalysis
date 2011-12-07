@@ -1,0 +1,113 @@
+
+[Injector]
+  <QwBCM>
+	hw_sum
+
+  <QwBPMStripline>
+	hw_sum
+
+  <QwQPD>
+	hw_sum
+
+  <QwBPMCavity>
+	hw_sum
+
+
+  <QwCombinedBPM>
+	hw_sum
+
+
+  <QwCombinedBCM>
+	hw_sum
+
+
+   <QwEnergyCalculator>
+	hw_sum
+
+#[BeamMod]
+#   <QwBeamMod>
+#	hw_sum
+
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+##########################
+## Mps_Tree
+##########################
+
+CodaEventNumber
+
+#########
+## BPMS
+qwk_0i02X
+qwk_0i02Y
+qwk_qpdX
+qwk_qpdY
+qwk_qpdRelX
+qwk_qpdRelY
+qwk_qpdBL
+qwk_qpdTL
+qwk_qpdBR
+qwk_qpdTR
+
+
+#########
+## BCMS
+qwk_bcm0l02
+qwk_linar1
+qwk_linar2
+qwk_linar3
+qwk_linar4
+qwk_linar5
+qwk_linar6
+qwk_linar7
+qwk_linar8
+
+##########
+## Scalers
+pattern_number
+mps_counter
+pat_counter
+#pat_phase
+
+##########################
+## Hel Tree  
+##########################
+mps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+
+#########
+## bpms
+yield_qwk_0i02X
+yield_qwk_0i02Y
+diff_qwk_0i02X
+diff_qwk_0i02Y
+asym_qwk_0i02_EffectiveCharge
+asym_qwk_0i02_EffectiveCharge
+
+yield_qwk_qpdX
+yield_qwk_qpdY
+diff_qwk_qpdX
+diff_qwk_qpdY
+diff_qwk_linap1
+diff_qwk_linap2
+diff_qwk_linap3
+diff_qwk_linap4
+diff_qwk_linap5
+diff_qwk_linap6
+diff_qwk_linap7
+diff_qwk_linap8
+
+
+#########
+##bcms
+yield_qwk_bcm0l02
+
+asym_qwk_bcm0l02
+

@@ -1,0 +1,36 @@
+
+ROC=31
+Bank=0x3102
+!same sample size for ADCs in a given bank
+!for 30Hz (33.3ms) uncomment the next line
+!sample_size=16644
+!for 30Hz (33.2ms) uncomment the next line
+!sample_size=16520
+!for 120Hz uncomment the next line
+!sample_size=4000
+!for 240Hz uncomment the next line
+!sample_size=1940
+!for 960Hz uncomment the next line
+sample_size=464
+
+
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+
+!ADC0
+    VQWK, 0, 0,  bcm,  QWK_LINAR1
+    VQWK, 0, 1,  bcm,  QWK_LINAR2
+    VQWK, 0, 2,  bcm,  QWK_LINAR3
+    VQWK, 0, 3,  bcm,  QWK_LINAR4
+    VQWK, 0, 4,  bcm,  QWK_LINAR5
+    VQWK, 0, 5,  bcm,  QWK_LINAR6
+    VQWK, 0, 6,  bcm,  QWK_LINAR7
+    VQWK, 0, 7,  bcm,  QWK_LINAR8
+
+    VQWK, 11, 4,  bcm,  QWK_BCM0L02
+    VQWK, 11, 7,   bcm,  PhaseMonitor
+
+
+
+[PUBLISH]
+ q_targ, bcm, qwk_bcm0l02, c

@@ -1,0 +1,383 @@
+{
+// 
+//  Pan macro to visualize all types of charge asymetry plots from a 
+//  typical beam test run . 
+//  
+//  *** to use this macro, run Pan in interactive mode : ./pan  
+//  in the ROOT environment tape : .x pan_asym.macro  and follow instructions. 
+//  
+
+
+ gROOT->Reset();
+Int_t run;
+Int_t ntot,Npair;
+float Mean,Sigave,Rms;
+char  Npairstg[50],Meanstg[50],Sigavestg[50],Rmstg[50];
+char *Npairp = Npairstg;
+char *Meanp = Meanstg;
+char *Rmsp = Rmstg;
+
+// open the file and access trees
+gROOT->LoadMacro("macro/open.macro");
+open(0,"beam");
+TTree *r = (TTree*)gROOT.FindObject("R");                                      TTree *p = (TTree*)gROOT.FindObject("P");                       
+
+// stats calculus from tree data
+Double_t asymbcm1cp,asymbcm1sum, asymbcm1mean, asymbcm2cp, asymbcm2sum, asymbcm2mean; 
+Double_t asy1max, asy1min, asy2max, asy1err,asy2err, asy2min,asymbcm1sumsqr, asymbcm2sumsqr ; 
+Double_t rho, rhomean, rhomeanerr, asymbcm2reg;
+Double_t  delta, deltamean;
+Int_t i, j, np, maxev, it, npoint, pairokcp;
+
+TH1F *bcmres    = new TH1F("bcmres","",100, -200,200);
+TH1F *beamnoise = new TH1F("beamnoise","",100,-5000,5000);
+
+TBranch* b_bcm1 = p->GetBranch("asym_bcm1");b_bcm1->SetAddress(&asymbcm1cp);
+TBranch* b_bcm2 = p->GetBranch("asym_bcm2");b_bcm2->SetAddress(&asymbcm2cp);
+TBranch* p_ok = p->GetBranch("ok_cut");p_ok->SetAddress(&pairokcp);
+
+maxev = b_bcm1->GetEntries();
+
+npoint = Int_t(maxev/500);
+cout<<"maxev, npoint :"<<maxev<<", "<<npoint <<endl;
+cout<<b_bcm1->GetEntries()<<endl;
+
+if (maxev > 500){
+Double_t* bcm1m = new Double_t[npoint]; Double_t* bcm2m = new Double_t[npoint];
+Double_t* bcm1err = new Double_t[npoint]; Double_t* bcm2err = new Double_t[npoint];
+Double_t* ev = new Double_t[npoint]; Double_t* everr = new Double_t[npoint]; 
+}
+else cout<<" CANNOT RUN MACRO, NOT ENOUGH EVENTS (need 100 at least) "<<endl;
+
+np=0;
+it=0;
+for ( i = 0 ; i < b_bcm1->GetEntries() ; i++)
+{
+  b_bcm1->GetEvent(i); b_bcm2->GetEvent(i); p_ok->GetEvent(i); 
+
+  //compute sum and sumsquare
+  if ( pairokcp == 1){
+  asymbcm1sum+=asymbcm1cp;
+  asymbcm2sum+=asymbcm2cp;
+  asymbcm1sumsqr+=asymbcm1cp*asymbcm1cp;
+  asymbcm2sumsqr+=asymbcm2cp*asymbcm2cp;
+  }
+  // cout<<" asymbcmsum "<<asymbcm1sum<<" "<<asymbcm2sum<<" asymcp"<<asymbcm1cp<<" "<<asymbcm2cp<<endl;  
+
+  // compute correlation slope for bcmasym
+  if (asymbcm1cp !=0 && pairokcp == 1 )  rho = asymbcm2cp/asymbcm1cp;
+  
+  
+  if ( np != 0 && np % 500  == 0){
+//      cout<<"asymbcm1sum "<<asymbcm1sum<<"np"<<np<<" mean "<<asymbcm1sum/np<<"it"<<it<<endl;
+      if (maxev > 500){
+          bcm1m[it]=(asymbcm1sum/np);
+          bcm2m[it]=(asymbcm2sum/np);
+          bcm1err[it] = sqrt(asymbcm1sumsqr/np - bcm1m[it]*bcm1m[it])/sqrt(np);
+          bcm2err[it] = sqrt(asymbcm2sumsqr/np - bcm2m[it]*bcm2m[it])/sqrt(np);
+	  
+          if (  bcm1m[it]  > asy1max && bcm1err > asy1err) {
+	    asy1max = bcm1m[it] + bcm1err[it];
+	    asy1err = bcm1err[it];
+	  }
+          if (  bcm1m[it]  < asy1min  && bcm1err > asy1err ) {
+	    asy1min = bcm1m[it] - bcm1err[it];
+	    asy1err = bcm1err[it];
+	  }
+	  if (  bcm2m[it]  > asy2max  && bcm2err > asy2err ) {
+	    asy2max = bcm2m[it] + bcm2err[it];
+	    asy2err = bcm2err[it];
+	  }	    
+          if (  bcm2m[it]  < asy2min  && bcm2err > asy2err ) {
+	    asy2min = bcm2m[it] - bcm2err[it];
+	    asy2err = bcm2err[it];
+	    }
+	     
+          cout<<" asybcm "<< bcm1m[it]<<"  "<<bcm2m[it]<<" asyerr "<< bcm1err[it]<<"  "<<bcm2err[it]<<endl;
+          ev[it] = i;
+          everr[it] = 0;
+       }   
+      //     cout<<"asymbcm1sum "<<asymbcm1sum<<"np"<<np<<" mean rms"<<asymbcm1sum/np<<" "<<bcm1rms[it]<< endl;
+     it++;
+    } 
+  np++;
+  rhomean+=rho;  
+}
+ rhomean =rhomean/np;
+//cout<<"rhomean"<<rhomean<<endl;
+np=0;
+for ( i = 0 ; i < b_bcm1->GetEntries() ; i++)
+{
+  np++;
+  b_bcm1->GetEvent(i); b_bcm2->GetEvent(i);p_ok->GetEvent(i); 
+  if ( pairokcp == 1){
+    asymbcm2reg = rhomean*asymbcm1cp;
+    delta = - asymbcm2reg + asymbcm2cp;
+    bcmres->Fill(delta);
+    beamnoise->Fill(asymbcm2reg);
+  } 
+}
+
+if (asy2min < asy1min ) asy1min = asy2min;
+if (asy2max > asy1max ) asy1max= asy2max;
+
+TH2F *i1 = new TH2F("asybcm1 integ","",100,0,maxev,100,asy1min-25,asy1max+25);
+TH2F *i2 = new TH2F("asybcm2 integ","",100,0,maxev,100,asy2min-25,asy2max+25);
+if (maxev > 500){
+bcm1gh = new TGraphErrors(npoint, ev, bcm1m, everr, bcm1err);
+bcm1gh->SetMarkerColor(12);
+bcm1gh->SetMarkerSize(0.5);
+bcm1gh->SetMarkerStyle(22);
+bcm2gh = new TGraphErrors(npoint, ev, bcm2m, everr, bcm2err);
+bcm2gh->SetMarkerColor(12);
+bcm2gh->SetMarkerSize(0.5);
+bcm2gh->SetMarkerStyle(22);
+}
+
+// deltamean = deltamean/np;
+// cout<<"deltamean "<<deltamean<<endl;
+//inter->Draw();
+//bcmres->Draw();
+//beamnoise->Draw();
+
+
+// define style here 
+// general parameters
+gStyle->SetOptDate(1);     gStyle->SetOptTitle(0);
+gStyle->SetStatColor(10);  gStyle->SetStatH(0.2);
+gStyle->SetStatW(0.3);     gStyle->SetOptStat(0); 
+
+// canvas parameters
+gStyle->SetFrameBorderMode(0);
+gStyle->SetFrameBorderSize(0);
+gStyle->SetFrameFillColor(10);
+// pads parameters
+gStyle->SetPadColor(39); 
+gStyle->SetPadBorderMode(0);
+gStyle->SetPadBorderSize(0);
+gROOT->ForceStyle();
+
+//Draw canvas and pads
+
+//first pag canvas with asymmetry behaviour during the run
+TCanvas *a1 = new TCanvas("a1", "Charge asymetry info page 1",0,0,720,990);
+
+a1_1 = new TPad("a1_1", "a1_1",0,0.6667,0.5,1); 
+a1_2 = new TPad("a1_2", "a1_2",0.5,0.6667,1,1);
+a1_3 = new TPad("a1_3", "a1_3",0,0.333333,0.5,0.666667);    
+a1_4 = new TPad("a1_4", "a1_4",0.5,0.333333,1,0.666667); 
+a1_5 = new TPad("a1_5", "a1_5",0,0,0.5,0.3338); 
+a1_6 = new TPad("a1_6", "a1_6",0.5,0,1,0.3338);
+
+//second page canvas ith asymmetry mean value and error
+TCanvas *a2 = new TCanvas("a2", "Charge asymetry info page 2",0,0,720,990);
+
+a2_1 = new TPad("a2_1", "a2_1",0,0.6667,0.5,1); 
+a2_2 = new TPad("a2_2", "a2_2",0.5,0.6667,1,1);
+a2_3 = new TPad("a2_3", "a2_3",0,0.333333,0.5,0.666667);    
+a2_4 = new TPad("a2_4", "a2_4",0.5,0.333333,1,0.666667); 
+a2_5 = new TPad("a2_5", "a2_5",0,0,0.5,0.3338); 
+a2_6 = new TPad("a2_6", "a2_6",0.5,0,1,0.3338);
+
+// details of bcms resolution and beam noise
+TCanvas *a3 = new TCanvas("a3", "Charge asymetry info page 3",0,0,700,500);
+a3_1 =  new TPad("a3_1", "a3_1",0.,0.,0.5,1);
+a3_2 =  new TPad("a3_2", "a3_2",0.5,0,1,1); 
+a3_2_1 = new TPad("a3_2_1", "a3_2_1",0.0,0.5,1,1); 
+a3_2_2 = new TPad("a3_2_2", "a3_2_2",0.0,0.0,1,0.5);
+                            
+// display plots 
+
+a1->cd();
+a1_1->Draw(); a1_2->Draw(); a1_3->Draw(); 
+a1_4->Draw(); a1_5->Draw(); a1_6->Draw();
+
+
+a1_1->cd(); r->Draw("bcm1:ev_num","bcm1>2000");    
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM1 (adc bins) vs number of events");
+
+
+a1_2->cd(); r->Draw("bcm2:ev_num","bcm1>2000");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM2 (adc bins) vs number of events");
+
+// no cuts !! 
+a1_3->cd(); //p->Draw("asym_bcm1:m_ev_num","","");
+p->Draw("asym_bcm1:m_ev_num","ok_cut == 1","");
+TObject *hchk = 0;
+hchk = gROOT->FindObject("htemp");
+if (hchk == 0) {
+  cout << "ERROR: no htemp histogram made.  Probably cuts failed." << endl;
+  cout << "Exiting ... "<<endl;
+  delete a1;  delete a2;  delete a3;  exit(0);
+}
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM1 Charge asymmetry (ppm) vs number of events");
+
+a1_4->cd(); //p->Draw("asym_bcm2:m_ev_num","","");
+p->Draw("asym_bcm2:m_ev_num","ok_cut == 1","");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM2 Charge asymmetry (ppm) vs number of events");
+
+a1_5->cd(); //p->Draw("asym_bcm1:m_ev_num>>+pf1","","prof");
+p->Draw("asym_bcm1:m_ev_num>>+pf1","ok_cut == 1","prof");
+TF1 zline1("fline","0*x",0.,200000.); 
+zline1.SetLineColor(2);zline1.SetLineWidth(1);
+zline1.Draw("same"); a1_5->Modified();
+pf1->GetXaxis()->CenterTitle();
+pf1->GetXaxis()->SetTitleOffset(1.2);
+pf1->GetXaxis()->SetTitle("BCM1 Charge asymmetry profile ");
+pf1->SetMarkerStyle(4); pf1->SetMarkerSize(0.3);
+
+a1_6->cd(); //p->Draw("asym_bcm2:m_ev_num>>+pf2","","prof");
+p->Draw("asym_bcm2:m_ev_num>>+pf2","ok_cut == 1","prof");
+TF1 zline2("fline","0*x",0.,200000.); 
+zline2.SetLineColor(2);zline2.SetLineWidth(1);
+zline2.Draw("same"); a1_5->Modified();
+pf2->GetXaxis()->CenterTitle();
+pf2->GetXaxis()->SetTitleOffset(1.2);
+pf2->GetXaxis()->SetTitle("BCM2 Charge asymmetry profile ");
+pf2->SetMarkerStyle(4); pf2->SetMarkerSize(0.3);
+a1->Modified();
+
+a2->cd();
+a2_1->Draw(); a2_2->Draw(); a2_3->Draw(); 
+a2_4->Draw(); a2_5->Draw(); a2_6->Draw();
+
+a2_1->cd(); 
+//p->Draw("asym_bcm1");    
+p->Draw("asym_bcm1","ok_cut == 1");    
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM1 Charge asymmetry (ppm)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+
+
+a2_2->cd(); 
+p->Draw("asym_bcm2");
+p->Draw("asym_bcm2","ok_cut == 1");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM2 Charge asymmetry (ppm)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+a2_3->cd(); p->Draw("asym_bcm1","ok_cut == 1",""); a2_3->SetLogy(1); 
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM1 Charge asymmetry log (ppm)");
+
+a2_4->cd(); p->Draw("asym_bcm2","ok_cut == 1",""); a2_4->SetLogy(1); 
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM1 Charge asymmetry log (ppm)");
+
+a2_5->cd();i1->Draw(); if (maxev >500 ) bcm1gh->Draw("P");
+i1->GetXaxis()->CenterTitle();
+i1->GetXaxis()->SetTitleOffset(1.2);
+i1->GetXaxis()->SetTitle("BCM1 Integrated Charge asymmetry");
+
+
+a2_6->cd(); i2->Draw("");if (maxev >500 ) bcm2gh->Draw("P");
+i2->GetXaxis()->CenterTitle();
+i2->GetXaxis()->SetTitleOffset(1.2);
+i2->GetXaxis()->SetTitle("BCM2 Integrated Charge asymmetry");
+
+a2->Modified();
+
+a3->cd(); a3_1->Draw(); a3_2->Draw();
+a3_2->cd(); a3_2_1->Draw(); a3_2_2->Draw();
+ 
+a3_1->cd(); p->Draw("asym_bcm1:asym_bcm2","ok_cut == 1","");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BCM1 vs BCM2 Charge asymmetry (ppm)");
+a3->Modified();
+
+a3_2_1->cd(); bcmres->Draw();
+bcmres->GetXaxis()->CenterTitle();
+bcmres->GetXaxis()->SetTitle("BCM resolution (double difference) in ppm");
+Npair = bcmres->GetEntries();
+Mean  = bcmres->GetMean();
+Rms   = bcmres->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.06148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+a3_2_2->cd(); beamnoise->Draw();
+beamnoise->GetXaxis()->CenterTitle();
+beamnoise->GetXaxis()->SetTitle("Charge asymmetry jitter in ppm");
+Npair = beamnoise->GetEntries();
+Mean  = beamnoise->GetMean();
+Rms   = beamnoise->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.06148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+}
+
+
+

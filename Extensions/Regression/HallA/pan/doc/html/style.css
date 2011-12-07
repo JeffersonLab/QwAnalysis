@@ -1,0 +1,23 @@
+ a.classname {color: Magenta; font-family: fixed;}
+ a.methname {color: Green; font-family: fixed;}
+ a.shoutcolor {color: red}
+ address.smaller {font-size: 80%}
+ body {
+  background-image: url(panbg.jpg);
+  background-color: #FFFFFF;
+  margin-left: 10%; margin-right: 10%;
+ }
+ code {color: Green;}
+ div.center {text-align: center}
+ div.shoutcolor {text-align: center}
+ div.fineprint {font-size: 80%; text-align: right;}
+ h1 {color: Black; text-align: center}
+ li.spaced {margin-top: 10pt;}
+ pre.code {color: Green;}
+ span.authors {color: Blue}
+ span.bigger {font-size: 144%}
+ span.biggerer {font-size: 172%; font-weight: bold;}
+ span.classname {color: Magenta; font-family: fixed;}
+ span.methname {color: Green; font-family: fixed;}
+ span.shoutcolor {color: red}
+ span.smaller {font-size: 80%}

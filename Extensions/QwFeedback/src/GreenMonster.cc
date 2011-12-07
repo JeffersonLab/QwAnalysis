@@ -3,12 +3,11 @@
 
 //ClassImp(GreenMonster)
 
-GreenMonster::GreenMonster():fVerbose(kFALSE)
+GreenMonster::GreenMonster():fVerbose(kTRUE)
 {
-  fUseCrate[0]= kTRUE;
-  fCrateNames[0] = new TString("Counting House");
-  //  fCrateNames[0] = new TString("Laser Room");
-  fCrateNumbers[0] = Crate_CountingHouse;
+  fUseCrate[0]= kFALSE;
+  fCrateNames[0] = new TString("Qweak Injector");
+  fCrateNumbers[0] = Crate_CountingHouse;//injector crate
 
   fUseCrate[1]= kFALSE;
   fCrateNames[1] = new TString("Injector");
@@ -21,6 +20,12 @@ GreenMonster::GreenMonster():fVerbose(kFALSE)
   fUseCrate[3]= kFALSE;
   fCrateNames[3] = new TString("Right Spect");
   fCrateNumbers[3] = Crate_RightSpect;
+
+  
+  fUseCrate[4]= kTRUE;
+  fCrateNames[4] = new TString("Qw VME TS");
+  fCrateNumbers[4] = Crate_Qwvmets;
+
 
 }
 
@@ -61,7 +66,7 @@ void GreenMonster::SCNUpdateStatus(Int_t id) {
 	break;
       }
     default:
-      cout << "ERROR: Unrecognized SCAN status flag" << endl;
+      std::cout << "ERROR: Unrecognized SCAN status flag" << std::endl;
     }
   return;
 }
@@ -80,7 +85,7 @@ Bool_t GreenMonster::SCNCheckStatus() {
   par1 = 0;                      gRequest.par1 = par1;
   par2 = 0;                      gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;
@@ -111,9 +116,10 @@ void GreenMonster::SCNSetStatus(Int_t status) {
   par1 = status;                gRequest.par1 = par1;
   par2 = 0;                     gRequest.par2 = par2;
 
-  if (fVerbose) cout << "Setting SCN status: " << par1 << endl;
+  if (fVerbose) std::cout << "Setting SCN status: " << par1 << std::endl;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     if (fVerbose) printf("SCAN status change call is complete\n");
   } else {
     printf("ERROR accessing socket!");
@@ -134,8 +140,8 @@ void GreenMonster::SCNSetValue(Int_t which, Int_t value) {
   if (which==1)      setpoint1SCN=value;
   else if (which==2) setpoint2SCN=value;
 
-  if (fVerbose) cout << " writing new SCAN set point " << value 
-		     << " to data" << which <<endl;
+  if (fVerbose) std::cout << " writing new SCAN set point " << value 
+			  << " to data" << which <<std::endl;
   //
   // send set message for obj, value
   //
@@ -144,8 +150,7 @@ void GreenMonster::SCNSetValue(Int_t which, Int_t value) {
   par1 = which;                  gRequest.par1 = par1;
   par2 = value;                  gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;
@@ -170,8 +175,7 @@ void GreenMonster::SCNCheckValues() {
   par1 = 1;                      gRequest.par1 = par1;
   par2 = 0;                      gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;
@@ -193,8 +197,7 @@ void GreenMonster::SCNCheckValues() {
   par1 = 2;                      gRequest.par1 = par1;
   par2 = 0;                      gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;

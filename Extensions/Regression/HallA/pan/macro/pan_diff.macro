@@ -1,0 +1,430 @@
+{
+//  Pan macro to visualize all types of bpm diffs plots from a 
+//  typical beam test run . 
+//  
+//  *** to use this macro, run Pan in interactive mode : ./pan  
+//  in the ROOT environment tape : .x pan_asym.macro  and follow instructions. 
+//
+
+
+ gROOT->Reset();
+Int_t run;
+Int_t ntot,Npair;
+float Mean,Sigave,Rms;
+char  Npairstg[50],Meanstg[50],Sigavestg[50],Rmstg[50];
+char *Npairp = Npairstg;
+char *Meanp = Meanstg;
+char *Rmsp = Rmstg;
+
+// open the file and access trees
+
+gROOT->LoadMacro("macro/open.macro");
+open(0,"beam");
+  
+
+TTree *r = (TTree*)gROOT.FindObject("R");
+//r->Print();
+
+TTree *p = (TTree*)gROOT.FindObject("P");
+//p->Print();
+
+//TTree *fdbk = (TTree*)gROOT.FindObject("F");
+//fdbk->Print();
+
+// define style here 
+// general parameters
+gStyle->SetOptDate(1);     gStyle->SetOptTitle(0);
+gStyle->SetStatColor(10);  gStyle->SetStatH(0.2);
+gStyle->SetStatW(0.3);     gStyle->SetOptStat(0); 
+
+// canvas parameters
+gStyle->SetFrameBorderMode(0);
+gStyle->SetFrameBorderSize(0);
+gStyle->SetFrameFillColor(10);
+// pads parameters
+gStyle->SetPadColor(33); 
+gStyle->SetPadBorderMode(0);
+gStyle->SetPadBorderSize(0);
+gROOT->ForceStyle();
+
+//Draw canvas and pads
+
+//first pag canvas with differences behaviour during the run
+TCanvas *b1 = new TCanvas("b1", "  BPM4B DIFFERENCES  ",0,0,720,676);
+   b1_1 = new TPad("b1_1", "b1_1",0,0.5,0.5,1);
+   b1_2 = new TPad("b1_2", "b1_2",0.5,0.5,1,1);
+   b1_3 = new TPad("b1_3", "b1_3",0,0,0.5,0.5);
+   b1_4 = new TPad("b1_4", "b1_4",0.5,0,1,0.5);                                     
+b1->cd();b1_1->Draw(); b1_2->Draw(); b1_3->Draw(); b1_4->Draw();
+
+TCanvas *b2 = new TCanvas("b2", "  BPM4A DIFFERENCES ",0,0,720,676);
+   b2_1 = new TPad("b2_1", "b2_1",0,0.5,0.5,1);
+   b2_2 = new TPad("b2_2", "b2_2",0.5,0.5,1,1);
+   b2_3 = new TPad("b2_3", "b2_3",0,0,0.5,0.5);
+   b2_4 = new TPad("b2_4", "b2_4",0.5,0,1,0.5);                                                     
+b2->cd();b2_1->Draw(); b2_2->Draw(); b2_3->Draw(); b2_4->Draw();
+TCanvas *b3 = new TCanvas("b3", "  BPM10 DIFFERENCES ",0,0,720,676);
+   b3_1 = new TPad("b3_1", "b3_1",0,0.5,0.5,1);
+   b3_2 = new TPad("b3_2", "b3_2",0.5,0.5,1,1);
+   b3_3 = new TPad("b3_3", "b3_3",0,0,0.5,0.5);
+   b3_4 = new TPad("b3_4", "b3_4",0.5,0,1,0.5);
+b3->cd();b3_1->Draw(); b3_2->Draw(); b3_3->Draw(); b3_4->Draw();
+TCanvas *b4 = new TCanvas("b4", "  BPM12 DIFFERENCES ",0,0,720,676);
+   b4_1 = new TPad("b4_1", "b4_1",0,0.5,0.5,1);
+   b4_2 = new TPad("b4_2", "b4_2",0.5,0.5,1,1);
+   b4_3 = new TPad("b4_3", "b4_3",0,0,0.5,0.5);
+   b4_4 = new TPad("b4_4", "b4_4",0.5,0,1,0.5);                                                
+b4->cd();b4_1->Draw(); b4_2->Draw(); b4_3->Draw(); b4_4->Draw();
+
+TCanvas *b5 = new TCanvas("b5", "  BPM8 DIFFERENCES ",0,0,720,676);
+   b5_1 = new TPad("b5_1", "b5_1",0,0.5,0.5,1);
+   b5_2 = new TPad("b5_2", "b5_2",0.5,0.5,1,1);
+   b5_3 = new TPad("b5_3", "b5_3",0,0,0.5,0.5);
+   b5_4 = new TPad("b5_4", "b5_4",0.5,0,1,0.5);
+b5->cd();b5_1->Draw(); b5_2->Draw(); b5_3->Draw(); b5_4->Draw();
+
+
+b1_1->cd(); p->Draw("diff_bpm4bx"," ok_cut ==1");    
+TObject *hchk = 0;
+hchk = gROOT->FindObject("htemp");
+if (hchk == 0) {
+  cout << "ERROR: no htemp histogram made.  Probably cuts failed." << endl;
+  cout << "Exiting ... "<<endl;
+  delete b1;  delete b2;  delete b3;  delete b4;  delete b5;  exit(0);
+}
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM4B Xpos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b1_2->cd(); p->Draw("diff_bpm4by"," ok_cut ==1");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM4B Ypos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b1_3->cd(); p->Draw("diff_bpm4bx:m_ev_num>>pf11","ok_cut ==1","prof");
+TF1 zline11("fline","0*x",0.,200000.); 
+zline11.SetLineColor(2);zline11.SetLineWidth(1);
+zline11.Draw("same"); b1_3->Modified();
+pf11->GetXaxis()->CenterTitle();
+pf11->GetXaxis()->SetTitleOffset(1.2);
+pf11->GetXaxis()->SetTitle(" BPM4B Xpos difference profile ");
+pf11->SetMarkerStyle(4); pf11->SetMarkerSize(0.3);
+ b1_3->Modified();
+b1_4->cd(); p->Draw("diff_bpm4by:m_ev_num>>pf12","ok_cut ==1","prof");
+TF1 zline12("fline","0*x",0.,200000.); 
+zline12.SetLineColor(2);zline12.SetLineWidth(1);
+zline12.Draw("same"); b1_4->Modified();
+pf12->GetXaxis()->CenterTitle();
+pf12->GetXaxis()->SetTitleOffset(1.2);
+pf12->GetXaxis()->SetTitle("BPM4B Ypos difference profile ");
+pf12->SetMarkerStyle(4); pf12->SetMarkerSize(0.3);
+b1_4->Modified();b1->Modified();
+
+//  *********************** BPM4A  **************************************
+
+b2_1->cd(); p->Draw("diff_bpm4ax","ok_cut ==1");    
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM4A Xpos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b2_2->cd(); p->Draw("diff_bpm4ay","ok_cut ==1");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM4A Ypos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b2_3->cd(); p->Draw("diff_bpm4ax:m_ev_num>>pf21","ok_cut ==1","prof");
+TF1 zline21("fline","0*x",0.,200000.); 
+zline21.SetLineColor(2);zline21.SetLineWidth(1);
+zline21.Draw("same"); b2_3->Modified();
+pf21->GetXaxis()->CenterTitle();
+pf21->GetXaxis()->SetTitleOffset(1.2);
+pf21->GetXaxis()->SetTitle(" BPM4A Xpos difference profile ");
+pf21->SetMarkerStyle(4); pf21->SetMarkerSize(0.3);
+b2_3->Modified();
+
+b2_4->cd(); p->Draw("diff_bpm4ay:m_ev_num>>pf22","ok_cut ==1","prof");
+TF1 zline22("fline","0*x",0.,200000.); 
+zline22.SetLineColor(2);zline22.SetLineWidth(1);
+zline22.Draw("same"); b2_4->Modified();
+pf22->GetXaxis()->CenterTitle();
+pf22->GetXaxis()->SetTitleOffset(1.2);
+pf22->GetXaxis()->SetTitle("BPM4A Ypos difference profile ");
+pf22->SetMarkerStyle(4); pf22->SetMarkerSize(0.3);
+b2_4->Modified();b2->Modified();
+
+
+//  *********************** BPM10  **************************************
+
+b3_1->cd(); p->Draw("diff_bpm10x","ok_cut ==1");    
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM10 Xpos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b3_2->cd(); p->Draw("diff_bpm10y","ok_cut ==1");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM10 Ypos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b3_3->cd(); p->Draw("diff_bpm10x:m_ev_num>>pf31","ok_cut ==1","prof");
+TF1 zline1("fline","0*x",0.,200000.); 
+zline1.SetLineColor(2);zline1.SetLineWidth(1);
+zline1.Draw("same"); b3_3->Modified();
+pf31->GetXaxis()->CenterTitle();
+pf31->GetXaxis()->SetTitleOffset(1.2);
+pf31->GetXaxis()->SetTitle(" BPM10 Xpos difference profile ");
+pf31->SetMarkerStyle(4); pf31->SetMarkerSize(0.3);
+b3_3->Modified();
+b3_4->cd(); p->Draw("diff_bpm10y:m_ev_num>>pf32","ok_cut ==1","prof");
+TF1 zline2("fline","0*x",0.,200000.); 
+zline2.SetLineColor(2);zline2.SetLineWidth(1);
+zline2.Draw("same"); b3_4->Modified();
+pf32->GetXaxis()->CenterTitle();
+pf32->GetXaxis()->SetTitleOffset(1.2);
+pf32->GetXaxis()->SetTitle("BPM10 Ypos difference profile ");
+pf32->SetMarkerStyle(4); pf32->SetMarkerSize(0.3);
+b3_4->Modified();b3->Modified();
+
+//  *********************** BPM12  **************************************
+
+b4_1->cd(); p->Draw("diff_bpm12x","ok_cut ==1");    
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM12 Xpos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b4_2->cd(); p->Draw("diff_bpm12y","ok_cut ==1");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM12 Ypos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b4_3->cd(); p->Draw("diff_bpm12x:m_ev_num>>pf41","ok_cut ==1","prof");
+TF1 zline1("fline","0*x",0.,200000.); 
+zline1.SetLineColor(2);zline1.SetLineWidth(1);
+zline1.Draw("same"); b4_3->Modified();
+pf41->GetXaxis()->CenterTitle();
+pf41->GetXaxis()->SetTitleOffset(1.2);
+pf41->GetXaxis()->SetTitle(" BPM12 Xpos difference profile ");
+pf41->SetMarkerStyle(4); pf41->SetMarkerSize(0.3);
+b4_3->Modified();
+b4_4->cd(); p->Draw("diff_bpm12y:m_ev_num>>pf42","ok_cut ==1","prof");
+TF1 zline2("fline","0*x",0.,200000.); 
+zline2.SetLineColor(2);zline2.SetLineWidth(1);
+zline2.Draw("same"); b4_4->Modified();
+pf42->GetXaxis()->CenterTitle();
+pf42->GetXaxis()->SetTitleOffset(1.2);
+pf42->GetXaxis()->SetTitle("BPM12 Ypos difference profile ");
+pf42->SetMarkerStyle(4); pf42->SetMarkerSize(0.3);
+b4_4->Modified();b4->Modified();
+
+//  *********************** BPM8  **************************************
+
+b5_1->cd(); p->Draw("diff_bpm8x","ok_cut ==1");    
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM8 Xpos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b5_2->cd(); p->Draw("diff_bpm8y","ok_cut ==1");
+htemp->GetXaxis()->CenterTitle();
+htemp->GetXaxis()->SetTitleOffset(1.2);
+htemp->GetXaxis()->SetTitle("BPM8 Ypos difference (um)");
+Npair = htemp->GetEntries();
+Mean  = htemp->GetMean();
+Rms   = htemp->GetRMS();
+Sigave= Rms/sqrt(Npair);
+// display parameters
+sprintf(Npairstg," Nevents = %8d",Npair);
+sprintf(Meanstg," Mean = %2.2f",Mean);
+sprintf(Sigavestg," +- %2.2f",Sigave);
+strcat(Meanstg,Sigavestg);
+sprintf(Rmstg," RMS = %2.2f",Rms);
+pt = new TPaveText(0.59,0.81,0.99,0.99,"brNDC");
+pt->SetBorderSize(1);pt->SetFillColor(10);
+pt->SetTextAlign(12);pt->SetTextFont(22);
+pt->SetTextSize(0.04148);
+text = pt->AddText(Npairp);
+text = pt->AddText(Meanp);
+text = pt->AddText(Rmsp);
+pt->Draw();
+
+b5_3->cd(); p->Draw("diff_bpm8x:m_ev_num>>pf51","ok_cut ==1","prof");
+TF1 zline1("fline","0*x",0.,200000.); 
+zline1.SetLineColor(2);zline1.SetLineWidth(1);
+zline1.Draw("same"); b5_3->Modified();
+pf51->GetXaxis()->CenterTitle();
+pf51->GetXaxis()->SetTitleOffset(1.2);
+pf51->GetXaxis()->SetTitle(" BPM8 Xpos difference profile ");
+pf51->SetMarkerStyle(4); pf51->SetMarkerSize(0.3);
+b5_3->Modified();
+b5_4->cd(); p->Draw("diff_bpm8y:m_ev_num>>pf52","ok_cut ==1","prof");
+TF1 zline2("fline","0*x",0.,200000.); 
+zline2.SetLineColor(2);zline2.SetLineWidth(1);
+zline2.Draw("same"); b5_4->Modified();
+pf52->GetXaxis()->CenterTitle();
+pf52->GetXaxis()->SetTitleOffset(1.2);
+pf52->GetXaxis()->SetTitle("BPM8 Ypos difference profile ");
+pf52->SetMarkerStyle(4); pf52->SetMarkerSize(0.3);
+b5_4->Modified();b5->Modified();
+
+
+}

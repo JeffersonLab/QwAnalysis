@@ -1,0 +1,66 @@
+!
+!
+!
+ROC=2
+Bank=0x0202
+!
+! same sample size for ADCs in a given bank
+!
+sample_size=4000
+!
+!
+!
+! physical module/channel
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 2, 0,  IntegrationPMT,  QWK_MD1Neg
+  VQWK, 2, 1,  IntegrationPMT,  QWK_MD2Neg
+  VQWK, 2, 2,  IntegrationPMT,  QWK_MD3Neg
+  VQWK, 2, 3,  IntegrationPMT,  QWK_MD4Neg
+  VQWK, 2, 4,  IntegrationPMT,  QWK_MD5Neg
+  VQWK, 2, 5,  IntegrationPMT,  QWK_MD6Neg
+  VQWK, 2, 6,  IntegrationPMT,  QWK_MD7Neg
+  VQWK, 2, 7,  IntegrationPMT,  QWK_MD8Neg
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 3, 0,  IntegrationPMT,  QWK_MD1Pos
+  VQWK, 3, 1,  IntegrationPMT,  QWK_MD2Pos
+  VQWK, 3, 2,  IntegrationPMT,  QWK_MD3Pos
+  VQWK, 3, 3,  IntegrationPMT,  QWK_MD4Pos
+  VQWK, 3, 4,  IntegrationPMT,  QWK_MD5Pos
+  VQWK, 3, 5,  IntegrationPMT,  QWK_MD6Pos
+  VQWK, 3, 6,  IntegrationPMT,  QWK_MD7Pos
+  VQWK, 3, 7,  IntegrationPMT,  QWK_MD8Pos
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 4, 0,  IntegrationPMT,  QWK_PMTLED,		NOT_BLINDABLE
+  VQWK, 4, 1,  IntegrationPMT,  QWK_PMTONL,		NOT_BLINDABLE
+  VQWK, 4, 2,  IntegrationPMT,  QWK_PMTLTG,		NOT_BLINDABLE
+  VQWK, 4, 3,  IntegrationPMT,  QWK_MD9Neg,		NOT_BLINDABLE
+  VQWK, 4, 4,  IntegrationPMT,  QWK_MD9Pos,		NOT_BLINDABLE
+  VQWK, 4, 5,  IntegrationPMT,  QWK_ISourc,		NOT_BLINDABLE
+  VQWK, 4, 6,  IntegrationPMT,  QWK_Preamp,		NOT_BLINDABLE
+  VQWK, 4, 7,  IntegrationPMT,  QWK_CageSr,		NOT_BLINDABLE
+!
+!
+! "virtual" channels for PMT combination, it supports any combination of physical channels
+! when naming the DetName, do not use arithmetic and logic operators, such as +,-, &, and so on
+!
+! ModuleType, Chan#, NumberOfCombinedChan's, DetType, DetName, PhysicalChanNames, WeightNumbers,
+  VPMT,  1,  2, CombinationPMT,  QWK_MD1BarSum,  	  QWK_MD1Pos,  QWK_MD1Neg, 1.641E-05,  1.363E-05
+  VPMT,  2,  2, CombinationPMT,  QWK_MD2BarSum,  	  QWK_MD2Pos,  QWK_MD2Neg, 9.640E-06,  8.775E-06
+  VPMT,  3,  2, CombinationPMT,  QWK_MD3BarSum,  	  QWK_MD3Pos,  QWK_MD3Neg, 2.130E-05,  1.145E-05
+  VPMT,  4,  2, CombinationPMT,  QWK_MD4BarSum,  	  QWK_MD4Pos,  QWK_MD4Neg, 9.305E-06,  9.295E-06
+  VPMT,  5,  2, CombinationPMT,  QWK_MD5BarSum,  	  QWK_MD5Pos,  QWK_MD5Neg, 1.002E-05,  1.456E-05
+  VPMT,  6,  2, CombinationPMT,  QWK_MD6BarSum,  	  QWK_MD6Pos,  QWK_MD6Neg, 7.275E-06,  6.244E-06
+  VPMT,  7,  2, CombinationPMT,  QWK_MD7BarSum,  	  QWK_MD7Pos,  QWK_MD7Neg, 1.401E-05,  1.567E-05
+  VPMT,  8,  2, CombinationPMT,  QWK_MD8BarSum,  	  QWK_MD8Pos,  QWK_MD8Neg, 4.734E-06,  8.370E-06
+  VPMT,  9,  4, CombinationPMT,  QWK_MD1_QWK_MD5,	 	  QWK_MD1Pos,  QWK_MD1Neg,  QWK_MD5Pos,  QWK_MD5Neg, 1.641E-05,  1.363E-05, 1.002E-05,  1.456E-05   
+  VPMT, 10,  4, CombinationPMT,  QWK_MD2_QWK_MD6,		  QWK_MD2Pos,  QWK_MD2Neg,  QWK_MD6Pos,  QWK_MD6Neg, 9.640E-06,  8.775E-06, 7.275E-06,  6.244E-06   
+  VPMT, 11,  4, CombinationPMT,  QWK_MD3_QWK_MD7, 		  QWK_MD3Pos,  QWK_MD3Neg,  QWK_MD7Pos,  QWK_MD7Neg, 2.130E-05,  1.145E-05, 1.401E-05,  1.567E-05   
+  VPMT, 12,  4, CombinationPMT,  QWK_MD4_QWK_MD8, 		  QWK_MD4Pos,  QWK_MD4Neg,  QWK_MD8Pos,  QWK_MD8Neg, 9.305E-06,  9.295E-06, 4.734E-06,  8.370E-06   
+  VPMT, 13,  8, CombinationPMT,  QWK_MDOddBars,		  QWK_MD1Neg, QWK_MD1Pos, QWK_MD3Neg, QWK_MD3Pos, QWK_MD5Neg, QWK_MD5Pos, QWK_MD7Neg, QWK_MD7Pos, 1.363E-05, 1.641E-05, 1.145E-05, 2.130E-05, 1.456E-05, 1.002E-05, 1.567E-05, 1.401E-05
+  VPMT, 14,  8, CombinationPMT,  QWK_MDEvenBars, 	  QWK_MD2Neg, QWK_MD2Pos, QWK_MD4Neg, QWK_MD4Pos, QWK_MD6Neg, QWK_MD6Pos, QWK_MD8Neg, QWK_MD8Pos, 8.775E-06, 9.640E-06, 9.295E-06, 9.305E-06, 6.244E-06, 7.275E-06, 8.370E-06, 4.734E-06
+  VPMT, 15, 16, CombinationPMT,  QWK_MDAllBars,QWK_MD1Neg, QWK_MD1Pos, QWK_MD2Neg, QWK_MD2Pos, QWK_MD3Neg, QWK_MD3Pos, QWK_MD4Neg, QWK_MD4Pos, QWK_MD5Neg, QWK_MD5Pos, QWK_MD6Neg, QWK_MD6Pos, QWK_MD7Neg, QWK_MD7Pos, QWK_MD8Neg, QWK_MD8Pos, 1.363E-05, 1.641E-05, 8.775E-06, 9.640E-06, 1.145E-05, 2.130E-05, 9.295E-06, 9.305E-06, 1.456E-05, 1.002E-05, 6.244E-06, 7.275E-06, 1.567E-05, 1.401E-05, 8.370E-06, 4.734E-06
+!
+!END

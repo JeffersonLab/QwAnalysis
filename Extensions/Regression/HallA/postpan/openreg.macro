@@ -1,0 +1,24 @@
+
+openreg(Int_t rnum, TString prefix = "Qweak") {
+
+reg->AddFriend("Hel_Tree","$QW_ROOTFILES/"+prefix+Form("_%4d.000.root",rnum));
+
+reg->SetAlias("amd1","1e6*0.5*(asym_md1pos+asym_md1neg)");
+reg->SetAlias("amd2","1e6*0.5*(asym_md2pos+asym_md2neg)");
+reg->SetAlias("amd3","1e6*0.5*(asym_md3pos+asym_md1neg)");
+reg->SetAlias("amd4","1e6*0.5*(asym_md4pos+asym_md4neg)");
+reg->SetAlias("amd5","1e6*0.5*(asym_md5pos+asym_md5neg)");
+reg->SetAlias("amd6","1e6*0.5*(asym_md6pos+asym_md6neg)");
+reg->SetAlias("amd7","1e6*0.5*(asym_md7pos+asym_md7neg)");
+reg->SetAlias("amd8","1e6*0.5*(asym_md8pos+asym_md8neg)");
+
+reg->SetAlias("regmd1","1e6*0.5*(reg_asym_md1pos.hw_sum+reg_asym_md1neg.hw_sum)");
+reg->SetAlias("regmd2","1e6*0.5*(reg_asym_md2pos.hw_sum+reg_asym_md2neg.hw_sum)");
+reg->SetAlias("regmd3","1e6*0.5*(reg_asym_md3pos.hw_sum+reg_asym_md1neg.hw_sum)");
+reg->SetAlias("regmd4","1e6*0.5*(reg_asym_md4pos.hw_sum+reg_asym_md4neg.hw_sum)");
+reg->SetAlias("regmd5","1e6*0.5*(reg_asym_md5pos.hw_sum+reg_asym_md5neg.hw_sum)");
+reg->SetAlias("regmd6","1e6*0.5*(reg_asym_md6pos.hw_sum+reg_asym_md6neg.hw_sum)");
+reg->SetAlias("regmd7","1e6*0.5*(reg_asym_md7pos.hw_sum+reg_asym_md7neg.hw_sum)");
+reg->SetAlias("regmd8","1e6*0.5*(reg_asym_md8pos.hw_sum+reg_asym_md8neg.hw_sum)");
+
+}

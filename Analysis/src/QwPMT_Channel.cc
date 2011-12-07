@@ -16,15 +16,16 @@ const Bool_t QwPMT_Channel::kDEBUG = kFALSE;
 
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
- *   The base factor is 0.07929 mV per count, and zero counts corresponds
+ *   The base factor is roughly 76 uV per count, and zero counts corresponds
  *   to zero voltage.
+ *   Store as the exact value for 20 V range, 18 bit ADC.
  */
-const Double_t QwPMT_Channel::kPMT_VoltsPerBit = 76.29e-6;
+const Double_t QwPMT_Channel::kPMT_VoltsPerBit = (20./(1<<18));
 
 
 void QwPMT_Channel::ClearEventData(){
   fValue   = 0;
-};
+}
 
 void QwPMT_Channel::RandomizeEventData(int helicity, int SlotNum, int ChanNum){
 
@@ -39,7 +40,7 @@ void QwPMT_Channel::RandomizeEventData(int helicity, int SlotNum, int ChanNum){
   UInt_t word = fV775Dataword | (fV775SlotNumber<<27);
   word = word | (fV775ChannelNumber<<16) | fV775DataValidBit;
   fValue = word;
-};
+}
 
 void  QwPMT_Channel::EncodeEventData(std::vector<UInt_t> &TrigBuffer)
 {
@@ -55,19 +56,20 @@ void  QwPMT_Channel::EncodeEventData(std::vector<UInt_t> &TrigBuffer)
     TrigBuffer.push_back(localbuf);
   }
 
-};
+}
 
 void  QwPMT_Channel::ProcessEvent()
 {
 
-};
+}
 
 
-void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
+void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
+{
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
-  if (GetElementName()==""){
+  if (GetElementName() == "") {
     //  This channel is not used, so skip filling the histograms.
   } else {
     //  Now create the histograms.
@@ -77,38 +79,39 @@ void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
     fHistograms.resize(1, NULL);
     size_t index = 0;
     fHistograms[index] = gQwHists.Construct1DHist(basename);
-    index += 1;
+    index++;
   }
-};
+}
 
-void  QwPMT_Channel::FillHistograms(){
-  size_t index=0;
-  if (GetElementName()==""){
+void  QwPMT_Channel::FillHistograms()
+{
+  size_t index = 0;
+  if (GetElementName() == "") {
     //  This channel is not used, so skip creating the histograms.
   } else {
     if (fHistograms[index] != NULL)
-      fHistograms[index]->Fill(this->fValue);
-    index += 1;
+      fHistograms[index]->Fill(fValue);
+    index++;
   }
-};
+}
 
 void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-  if (GetElementName()==""){
+  if (GetElementName() == "") {
     //  This channel is not used, so skip setting up the tree.
   } else {
     TString basename = prefix + GetElementName();
     fTreeArrayIndex  = values.size();
 
     values.push_back(0.0);
-    TString list = "/D";
+    TString list = basename + "/D";
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);
   }
-};
+}
 
-void  QwPMT_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  QwPMT_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree vector.
@@ -125,7 +128,7 @@ void  QwPMT_Channel::FillTreeVector(std::vector<Double_t> &values)
     size_t index=fTreeArrayIndex;
     values[index++] = this->fValue;
   }
-};
+}
 
 
 
@@ -134,7 +137,7 @@ QwPMT_Channel& QwPMT_Channel::operator= (const QwPMT_Channel &value){
     this->fValue  = value.fValue;
   }
   return *this;
-};
+}
 
 void QwPMT_Channel::PrintValue() const
 {

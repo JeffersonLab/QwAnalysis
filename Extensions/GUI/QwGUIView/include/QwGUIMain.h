@@ -60,7 +60,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-
 #include <TGTab.h>
 
 #include <TROOT.h>
@@ -68,7 +67,8 @@
 #include <TApplication.h>
 #include <TGClient.h>
 #include <TRandom.h>
-#include <TGComboBox.h>
+//#include <TGComboBox.h>
+#include "QwGUIComboBox.h"
 #include <TGNumberEntry.h>
 #include <TString.h>
 #include <TGSplitter.h>
@@ -84,6 +84,7 @@
 #include <TPave.h>
 #include "KeySymbols.h"
 #include "QwGUIMainDetector.h"
+#include "QwGUIHistories.h"
 #include "QwGUIScanner.h"
 #include "QwGUIBeamModulation.h"
 #include "QwGUILumiDetector.h" 
@@ -92,8 +93,8 @@
 #include "QwGUITrackFinding.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
-#include "QwGUIDatabaseContainer.h"
-#include "QwGUIDatabase.h"
+/* #include "QwGUIDatabaseContainer.h" */
+/* #include "QwGUIDatabase.h" */
 #ifndef __CINT__
 
 #include "QwOptions.h"
@@ -104,24 +105,28 @@
 
 class QwGUIMain : public TGMainFrame {
 
-  RQ_OBJECT("QwGUIMain");
+  /* RQ_OBJECT("QwGUIMain"); */
 
  private:
 
   //!Database object (there should be only one for all subsystems)
-  QwGUIDatabaseContainer *dDatabase;
+  /* QwGUIDatabaseContainer *dDatabase; */
 
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
 
+  //!Array to store and keep track of separate data plot windows for cleanup and communiation 
+  TObjArray               DataWindowArray;
+
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUIScanner           *ScannerSubSystem;
+  QwGUIHistories         *HistoriesSubSystem;
   QwGUIBeamModulation    *BeamModulationSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
-  QwGUIDatabase          *DatabaseSubSystem;
+  /* QwGUIDatabase          *DatabaseSubSystem; */
   QwGUITrackFinding      *TrackFindingSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
@@ -136,8 +141,31 @@ class QwGUIMain : public TGMainFrame {
   //!Current run number
   Int_t                   dCurRun;
 
+  //!Current run type
+  RUNTYPE                 dCurRunType;
+
   //!Menu ID counter
   Int_t                   MCnt;
+
+  Int_t                   dCurrentSegment;
+
+  Double_t                dRasterSize[2];
+  void                    SetRasterSize(Double_t rasterX, Double_t rasterY){dRasterSize[0] = rasterX; dRasterSize[1] = rasterY;}
+  Double_t               *GetRasterSize(){return dRasterSize;}
+  Double_t                dEnergy;
+  void                    SetEnergy(Double_t energy) {dEnergy = energy;}
+  Double_t                GetEnergy() {return dEnergy;}
+  Double_t                dCurrent;
+  void                    SetCurrent(Double_t current) {dCurrent = current;}
+  Double_t                GetCurrent() {return dCurrent;}
+
+  //!Index (in DataWindowArray) of the currently slected data window
+  Int_t                dSelectedDataWindow;
+
+  //!This should be used for proper clean up when a particular data window is closed by the
+  //!user.
+  UInt_t               dWinCnt;
+
 
   //!The following two flags are used in process increment dialog boxes
   Bool_t                  dProcessing;
@@ -148,6 +176,10 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                  dDatabaseOpen;
   Bool_t                  dLogFileOpen;
   Bool_t                  dRunOpen;
+/*   Bool_t                  dAllSegments; */
+  Bool_t                  dAddSegments;
+  Bool_t                  dEventMode;
+  Bool_t                  dMainPlots;
 
   Char_t                  dLogfilename[NAME_STR_MAX];//Name for Current log file
   Char_t                  dRootfilename[NAME_STR_MAX];//Name for Current root file
@@ -166,13 +198,23 @@ class QwGUIMain : public TGMainFrame {
   RDataContainer         *dROOTFile;
 
   //!Standard GUI widgets and layouts for the main window
-  TGComboBox             *dTBinEntry;
-  TGLayoutHints          *dTBinEntryLayout;
+  QwGUIComboBox          *dSegmentEntry;
+  QwGUIComboBox          *dPrefixEntry;
+  TGCheckButton          *dAddSegmentCheckButton;
+  TGCheckButton          *dEventModeCheckButton;
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
+  TGLayoutHints          *dSegmentEntryLayout;
+  TGLayoutHints          *dPrefixEntryLayout;
+  TGLayoutHints          *dAddSegmentLayout;
   TGLabel                *dRunEntryLabel;
+  TGLabel                *dAddSegmentLabel;  
+  TGLabel                *dPrefixEntryLabel;
+  TGLabel                *dRunInfoLabel;
+  
   TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;
+  TGHorizontalFrame      *dRunInfoFrame;
   TGLayoutHints          *dUtilityLayout;
 
   //!Main window tab environment
@@ -202,6 +244,10 @@ class QwGUIMain : public TGMainFrame {
   TGTextBuffer           *dDBQueryBuffer;
   TGLabel                *dDBQueryLabel;
   TGLayoutHints          *dDBQueryLabelLayout;
+  TGTextButton           *dHCEntryButton;
+  QwGUIHCLogEntryDialog  *dHCLogEntryDlg;
+  HCLogEntry              dHCLogEntries;
+  TGLabel                *dHCLogEntryLabel;
 
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
@@ -211,6 +257,19 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
   TGLayoutHints          *dMenuBarHelpLayout;
+
+  TString                 fPrefix;
+  TString                 fDirectory;
+
+  vector <int>            dRunSegments;
+  vector <TString>        dFilePrefix;
+  vector <TH1F*>          dMainHistos;
+  vector <TGraph*>        dMainGraphs;
+  vector <TObject*>       dMainPlotsArray;
+  vector <TH1F*>          dHistoryPlotsArray;
+  vector <TBox*>          dErrorBoxArray;
+
+  EventOptions            dCurrentRunEventOptions;
 
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the
@@ -305,13 +364,29 @@ class QwGUIMain : public TGMainFrame {
   //!entry for this function.
   //!
   //!Parameters:
-  //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
+  //! - 1) Event Mode: If this is set to kTrue, then the individual tree events are read, from the  
+  //!                  outset. Otherwise only histograms are read. 
+  //! - 2) File status: Only used if parameter 3 is NULL. In that case the file status is passed on
   //!                   to the function GetFilenameFromDialog(...).
-  //! - 2) Filename container: If this is NULL, then the filename is obtained from a dialog box
+  //! - 3) Filename container: If this is NULL, then the filename is obtained from a dialog box
   //!                          entry by calling the function GetFilenameFromDialog(...).
   //!
   //!Return value: Error value;
-  Int_t                   OpenRootFile(ERFileStatus status = FS_OLD, const char* file = NULL);
+  Int_t                   OpenRootFile(Bool_t EventMode = kFalse, ERFileStatus status = FS_OLD, const char* file = NULL);
+
+  //!This function is called when a run number is entered in the menu, for fast run access.
+  //!It opens the root file that has the name with the entered run number, if it can be found. 
+  //!The function only opens the ROOT file in histogram mode. The function instantiates
+  //!a new generic data container from the class RDataContainer. This container is passed to all
+  //!instantiated susbsystems and allows each of them to read the data specific to the subsystem.
+  //!Currently only one root file can be open at a time, and the function also disables the menu
+  //!entry for this function.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: Error value;
+  Int_t                   OpenRun();
 
   //!This function establishes a single connection to the database.
   //!
@@ -387,6 +462,40 @@ class QwGUIMain : public TGMainFrame {
   void                    SleepWithEvents(int seconds);
   TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
 
+  void                    SetSubSystemSegmentAdd(Bool_t add);
+/*   void                    SetReadAllRunSegments(Bool_t all) {dAllSegments = all;}; */
+/*   Bool_t                  ReadAllRunSegments(){return dAllSegments;}; */
+
+  void                    SetAddSegments(Bool_t add) {dAddSegments = add;};
+  Bool_t                  AddSegments() {return dAddSegments;};
+
+  void                    SetCurrentRunSegment(Int_t seg){dCurrentSegment = seg;};
+  Int_t                   GetCurrentRunSegment() {return dCurrentSegment;};
+  Int_t                   GetRunSegment(UInt_t n) {if(n >= 0 && n < dRunSegments.size()) return dRunSegments[n]; 
+                                                   return -1;};
+
+  void                    SetCurrentRunNumber(Int_t run) {dCurRun = run;};
+  const char             *GetCurrentFilePrefix(){return fPrefix.Data();};
+  const char             *GetCurrentFileDirectory(){return fDirectory.Data();};
+
+  void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
+  void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
+  void                    StoreFileInfo(const char* filename);
+  void                    GetFileInfo(const char *filename, int &run, int &segment);
+
+  UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
+  UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
+  UInt_t                  GetCurrentRunEventStop(){return dCurrentRunEventOptions.Start+dCurrentRunEventOptions.Length-1;};
+
+  void                    SetEventMode(Bool_t evM){dEventMode = evM;};
+  Bool_t                  EventMode() {return dEventMode;};
+
+  Int_t                   FindFileAndSegments();
+  void                    LoopOverRunSegments();
+
+  void                    PlotMainData();
+  void                    SubmitToHCLog();
+  
 
   //!This function checks to see if a tab with a certain name is already active.
   //!
@@ -417,6 +526,24 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not yet implemented.
   Int_t                   WriteRootData();
+
+  TString     WrapParameter(TString param, TString value){
+    TString tmp("--");
+    tmp += param + "=\"" + value + "\" ";
+    return tmp;
+  }
+  TString     WrapAttachment(TString filename){
+    TString tmp("--attachment=\"");
+    tmp += filename + "\" ";
+    return tmp;
+  }
+
+  TString     MakeSubject(TString subject){
+    TString tmp("Analysis: ");
+    tmp += Form("Run %6d - ",GetCurrentRunNumber()) + subject;
+    return tmp;
+  } 
+
 
  public:
   QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h);
@@ -566,6 +693,11 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   void                   OnReceiveMessage(const char *);
 
+  void                   OnUpdatePlot(const char*);
+
+  void                   OnNewRunSignal(int sig);
+  void                   OnRunWarningSignal(int sig);
+
   //!Receiver function, called when a connected canvas pad is mouse selected.
   //!
   //!Parameters:
@@ -590,6 +722,13 @@ class QwGUIMain : public TGMainFrame {
 
   virtual Bool_t         HandleKey(Event_t *event);
 
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow(); 
+  void                 CleanUpDataWindows();
+  UInt_t               GetNewWindowCount(){ return ++dWinCnt;};
+
+
   ///This function is called to remove a tab.
   ///Each subsystem class must call this function on desstruction, to remove its tab.
   ///What actually happens is that the QwGUISubSystem parent class has a function
@@ -609,6 +748,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not currently used!
   void                   WritePid();
+  void                   CheckForNewRun();
 
   ClassDef(QwGUIMain,0);
 };

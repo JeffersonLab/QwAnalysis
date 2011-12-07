@@ -75,8 +75,8 @@ QwGUIBeamModulation::QwGUIBeamModulation(const TGWindow *p, const TGWindow *main
 
 QwGUIBeamModulation::~QwGUIBeamModulation()
 {
-  if(dTabFrame)               delete dTabFrame;
-  if(dControlsFrame)          delete dControlsFrame;
+  // if(dTabFrame)               delete dTabFrame;
+  // if(dControlsFrame)          delete dControlsFrame;
   if(dCanvas)                 delete dCanvas;  
   if(dTabLayout)              delete dTabLayout;
   if(dCnvLayout)              delete dCnvLayout;
@@ -1336,8 +1336,6 @@ Bool_t QwGUIBeamModulation::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm
 	  case kCM_COMBOBOX:
 	    {
 	      switch (parm1) {
-	      case M_TBIN_SELECT:
-	      break;
 	      }
 	    }
 	    break;

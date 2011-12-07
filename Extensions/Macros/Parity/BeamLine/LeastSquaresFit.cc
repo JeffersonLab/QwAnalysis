@@ -9,12 +9,12 @@
 void  DoLinearLeastSquareFit( Int_t points, double X[], double Y[], Double_t W[],Double_t fitresults[] )
 {
   // Y = aX + b
-
+  Double_t ldebug = kFALSE;
   double A = 0.0, B = 0.0, C = 0.0, D = 0.0, E = 0.0, F = 0.0;
-  for(size_t k=0;k<4;k++)
+  for(Int_t k=0;k<4;k++)
     fitresults[k]=0.0;
 
-  for(size_t i = 0; i< points; i++)
+  for(Int_t i = 0; i< points; i++)
     {
       A += X[i]*W[i];
       B += W[i];
@@ -23,6 +23,7 @@ void  DoLinearLeastSquareFit( Int_t points, double X[], double Y[], Double_t W[]
       E += Y[i]*X[i]*W[i];
       F += Y[i]*Y[i]*W[i];
     } 
+  if(ldebug)
   std::cout<<" A = "<<A
 	   <<" B = "<<B
 	   <<" C = "<<C
@@ -35,9 +36,12 @@ void  DoLinearLeastSquareFit( Int_t points, double X[], double Y[], Double_t W[]
   fitresults[2] = B/(D*B - A*A);           // erra
   fitresults[3] = D/(D*B - A*A);           // errb
   
-  
-  for(size_t i=0; i<4; i++){
-    std::cout<<fitresults[i]<<std::endl;
-  } 
+  if(ldebug)
+    {
+      std::cout<<"slope = "<<fitresults[0]<<std::endl;
+      std::cout<<"offset = "<<fitresults[1]<<std::endl;
+      std::cout<<"slope error = "<<fitresults[2]<<std::endl;
+      std::cout<<"offset error = "<<fitresults[3]<<std::endl;
+    } 
 }
 

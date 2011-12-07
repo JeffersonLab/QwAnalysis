@@ -20,7 +20,6 @@
 
 namespace QwTracking {
 
-int nodenode::fCount = 0;
 int nodenode::fDebug = 0;
 
 
@@ -34,9 +33,6 @@ nodenode::nodenode(nodenode* next, treenode* tree)
   // Initialize pointers
   fNext = next;
   fTree = tree;
-
-  // Count objects
-  fCount++;
 }
 
 
@@ -45,15 +41,8 @@ nodenode::nodenode(nodenode* next, treenode* tree)
  */
 nodenode::~nodenode()
 {
-  QwDebug << "Deleting nodenode: " << this << QwLog::endl;
-
   // Delete the pointer to the next node
   if (fNext) delete fNext;
-
-  QwDebug << "Done deleting nodenode: " << this << QwLog::endl;
-
-  // Count objects
-  fCount--;
 }
 
 } // namespace QwTracking

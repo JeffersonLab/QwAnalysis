@@ -13,14 +13,14 @@ EVENTLIB      = $(EVENTO)
 OutPutOpt     = -o  
 
 ROOTCFLAGS    = $(shell root-config --cflags)
-ROOTLIBS      = $(shell root-config --libs)   -lNew  -lMinuit
+ROOTLIBS      = $(shell root-config --libs)   -lNew  -lMinuit -lSpectrum
 ROOTGLIBS     = $(shell root-config --glibs)
 
 
 MYOS := $(subst -,,$(shell uname))
 
 
-EXE := pedestal_extractor position_differnces hallc_beam_motion correlation_plots
+EXE := injector_pedestals position_differnces hallc_beam_motion hallc_bcm_calib hallc_bpm_calib get_bpm_weights project_to_Wplug 
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -28,7 +28,7 @@ EXE := pedestal_extractor position_differnces hallc_beam_motion correlation_plot
 	CXXFLAGS      = -O2 -Wall -fPIC 
 #-I$(G0ANALYSIS)/Analysis/include
 	LD            = g++
-	LDFLAGS       = -g
+	LDFLAGS       = -O
 	SOFLAGS       = -shared
 
 	CXXFLAGS     += $(ROOTCFLAGS)
@@ -40,7 +40,7 @@ EXE := pedestal_extractor position_differnces hallc_beam_motion correlation_plot
 all:  $(EXE)
 	@echo "---------------------> $(EXE) done <---------------------- "
 
-pedestal_extractor : bpm_bcm_calibration.o 
+injector_pedestals : injector_beamline_calibration.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 position_differnces : PositionDifferences.o 
@@ -52,6 +52,20 @@ hallc_beam_motion : hallc_beam_motion.o
 IA_Scan : ia_scan.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
+hallc_bcm_calib : hallc_bcm_calib.o 
+	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
+
+hallc_bpm_calib : hallc_bpm_calib.o 
+	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
+
+get_bpm_weights : GetBPMWeights.o
+	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
+
+project_to_Wplug : w_plug_projection.o
+	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
+
+%: %.C
+	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
 
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
@@ -62,7 +76,9 @@ IA_Scan : ia_scan.o
 #	$(CXX) $(CXXFLAGS) -M $(MAIN)  >./.depend
 
 clean:
-	@rm -f $(OBJS) *~  core
+	@rm -rf *.o
+	@rm -rf *~
+	@rm -rf  core
 
 cleanall:
 	@rm -f $(OBJS) $(EXE) *~  core

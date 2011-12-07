@@ -1,0 +1,54 @@
+{
+gROOT->Reset();
+
+
+
+
+TCanvas *b1 = new TCanvas("b1", "BPMs Dx for 2 slugs",0,0,600,1000);
+   
+
+// b1_1 = new TPad("b1_1", "b1_1",0,0.6667,0.5,1);
+// b1_2 = new TPad("b1_2", "b1_2",0.5,0.6667,1.0,1);
+// b1_3 = new TPad("b1_3", "b1_3",0.0,0.333,0.5,0.6667);
+// b1_4 = new TPad("b1_4", "b1_4",0.5,0.333,1.0,0.6667);
+// b1_5 = new TPad("b1_5", "b1_5",0.0, 0.0, 0.5, 0.3333);
+// b1_6 = new TPad("b1_6", "b1_6",0.5, 0, 1.0, 0.3333);                                  
+
+//create coordinate arrays
+
+
+Int_t n = 2;
+Float_t x[n] = {1, 2};
+Float_t y[n] = {-0.0628, -0.4434};
+Float_t y1[n] = {0.2993, 0.0584};
+Float_t y2[n] = {1.116, -0.6878};
+Float_t y3[n] = {1.029, -0.81164};
+Float_t y4[n] = {0.01158,0.06545};
+Float_t y5[n] = {0.2424, -0.09183};
+
+
+//create error arrays
+
+Float_t ex[n] = {0.0334, 0.03347};
+Float_t ex1[n] = {0.017466, 0.01395};
+Float_t ex2[n] = {0.03499, 0.03405};
+Float_t ex3[n] = {0.027816, 0.027488};
+Float_t ex4[n] = {0.0454, 0.0438};
+Float_t ex5[n] = {0.052568, 0.03727};
+
+//create TGraphErrors
+
+//b1_1 ->cd();
+
+gr = new TGraphErrors(n, x, y, ex, 0);
+gr->SetTitle("1I02 Dx (um vs. slugs)");
+gr->SetMarkerStyle(21);
+gr->Draw("ALP");
+
+b1->Update();
+ 
+
+
+}
+
+ 

@@ -1,0 +1,23 @@
+! this file contains the pedestals for the ADCS
+! respect the format of the file
+! name of channel, pedestal, gain
+! if this is a Triumf ADC enter the hardware sum pedestal
+! the pedestal will be subtracted to the data
+
+qwk_dslumi1 , 0.0 , 1.0
+qwk_dslumi2 , 0.0 , 1.0
+qwk_dslumi3 , 0.0 , 1.0
+qwk_dslumi4 , 0.0 , 1.0
+qwk_dslumi5 , 0.0 , 1.0
+qwk_dslumi6 , 0.0 , 1.0
+qwk_dslumi7 , 0.0 , 1.0
+qwk_dslumi8 , 0.0 , 1.0
+
+qwk_uslumi1neg , 0.0 , 1.0
+qwk_uslumi1pos , 0.0 , 1.0
+qwk_uslumi3neg , 0.0 , 1.0
+qwk_uslumi3pos , 0.0 , 1.0
+qwk_uslumi5neg , 0.0 , 1.0
+qwk_uslumi5pos , 0.0 , 1.0
+qwk_uslumi7neg , 0.0 , 1.0
+qwk_uslumi7pos , 0.0 , 1.0

@@ -1,0 +1,22 @@
+
+
+Paul has made a tool to create the runlet lists from the DB for a given 
+slug.  The slug numbers have to be put into the database first.
+
+get_runlet_lists.pl
+
+usage:  make_runlists.pl [-h] [-n <server] [-u <user>] [-d <database>]
+                         [-t <target>] [-s <slug #>]
+
+  -h : Print this help message.
+
+  -n <server>   : Select database server (default:  cdaql6.jlab.org)
+  -u <server>   : Select database user   (default:  qweak)
+  -d <database> : Select database        (default:  qw_fall2010_20101204)
+
+  -t <target>   : Name of target position (default: HYDROGEN-CELL)
+                  Use 'all' to print run lists for all target positions
+                  Use 'list' to list the available target names
+                  Use 'notest' to disable sorting based on slow controls
+  -s <slug #>   : Desired slug number (default:  0)
+                  Use 'list' to print available slug numbers

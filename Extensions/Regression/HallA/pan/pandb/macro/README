@@ -1,0 +1,27 @@
+
+if:
+
+
+root [0]  gSystem->Load("libMySQL");
+dlopen error: libMySQL.so: undefined symbol: uncompress
+Load Error: Failed to load Dynamic link library libMySQL.so
+*** Interpreter error recovered ***
+
+
+then:
+
+root [0] gSystem->Load("/apps/lib/libz");
+root [1] gSystem->Load("libMySQL");
+root [2] .x connect.c
+
+-----
+
+ Mysql can be downloaded from http://www.mysql.com 
+ It is also found at CUE in /apps/mysql/
+ Use Mysql version: mysql-3.23.xx 
+ 
+ libMySQL.so is root library found under $(ROOTSYS)/lib
+
+ libz.so is a compression library used by libMySQL.so
+ and can be found at CUE in /apps/lib/
+

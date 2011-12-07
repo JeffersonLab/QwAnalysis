@@ -6,14 +6,21 @@
  * \date   2009-12-01
  */
 
+#if __STDC_VERSION__ < 199901L
+# if __GNUC__ >= 2
+#  define __func__ __FUNCTION__
+# else
+#  define __func__ "<unknown>"
+# endif
+#endif
+
+
 #include "QwOptions.h"
-#include "QwParameterFile.h"
 
 // System headers
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <climits>
 
 // Statically defined option descriptions grouped by parser
 po::options_description QwOptions::fCommandLineOptions("Command line options");
@@ -25,9 +32,16 @@ QwOptions gQwOptions;
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwParameterFile.h"
+#include "QwSVNVersion.h"
+
+// Qweak objects with default options
 #include "QwSubsystemArray.h"
 #include "QwEventBuffer.h"
+#include "QwEPICSEvent.h"
 #include "QwDatabase.h"
+#include "QwRootFile.h"
+#include "QwHistogramHelper.h"
 
 // Initialize the static command line arguments to zero
 int QwOptions::fArgc = 0;
@@ -45,9 +59,11 @@ QwOptions::QwOptions()
   fConfigFiles.clear();
 
   // Declare the default options
-  AddDefaultOptions()("usage",  "print this help message");
+  AddDefaultOptions()("usage", "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
-  AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
+  AddDefaultOptions()("version,V", "print the version string");
+  AddDefaultOptions()("config,c", po::value<std::string>(), "read ONLY this config file\n(will override default config files)");
+  AddDefaultOptions()("add-config,a", po::value<std::string>(), "read ALSO this config file\n(will keep the default config files)");
 }
 
 /**
@@ -63,8 +79,14 @@ void QwOptions::DefineOptions(QwOptions& options)
   QwEventBuffer::DefineOptions(options);
   // Define database options
   QwDatabase::DefineOptions(options);
+  // Define ROOT file options
+  QwRootFile::DefineOptions(options);
+  // Define EPICS event options
+  QwEPICSEvent::DefineOptions(options);
   // Define subsystem array options
   QwSubsystemArray::DefineOptions(options);
+  // Define histogram helper options
+  QwHistogramHelper::DefineOptions(options);
 }
 
 /**
@@ -96,10 +118,27 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
   fArgc = argc;
   if (fArgv) delete[] fArgv;
   fArgv = new char*[fArgc];
+  QwDebug << "Arguments:";
   for (int i = 0; i < argc; i++) {
     fArgv[i] = argv[i];
+    QwDebug << " " << fArgv[i];
   }
+  QwDebug << QwLog::endl;
   fParsed = false;
+
+  // Add default config file based on file name
+  if (fArgc > 0) {
+    std::string path = fArgv[0];
+    QwDebug << "Invocation name: " << path << QwLog::endl;
+    // Find file name from full path
+    size_t pos = path.find_last_of('/');
+    if (pos != std::string::npos)
+      // Called with path
+      AddConfigFile(path.substr(pos+1) + ".conf");
+    else
+      // Called without path
+      AddConfigFile(path + ".conf");
+  }
 }
 
 
@@ -111,17 +150,16 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
  */
 void QwOptions::CombineOptions()
 {
-  // TODO The options could be grouped in a smarter way by subsystem or
-  // class, by defining a vector fOptions of options_description objects.
-  // Each entry could have a name and would show up as a separate section
-  // in the usage information.
+  // The options can be grouped by defining a vector fOptions of
+  // options_description objects. Each entry can have a name and
+  // will show up as a separate section in the usage information.
   for (size_t i = 0; i < fOptionBlockName.size(); i++) {
     // Right now every parser gets access to all options
     fCommandLineOptions.add(*fOptionBlock.at(i));
     fEnvironmentOptions.add(*fOptionBlock.at(i));
     fConfigFileOptions.add(*fOptionBlock.at(i));
   }
-};
+}
 
 /**
  * Parse the command line arguments for options and warn when encountering
@@ -137,6 +175,7 @@ void QwOptions::ParseCommandLine()
     po::store(po::command_line_parser(fArgc, fArgv).options(fCommandLineOptions).allow_unregistered().run(), fVariablesMap);
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
+    exit(10);
   }
 #endif
 
@@ -149,23 +188,37 @@ void QwOptions::ParseCommandLine()
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
     QwWarning << "All command line arguments may have been ignored!" << QwLog::endl;
+    exit(10);
   }
 #endif
 
   // Notify of new options
   po::notify(fVariablesMap);
 
-  // If option help/usage, print help text.
+  // If option help/usage, print help text
   if (fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
     exit(0);
   }
 
+  // If option version, print version string
+  if (fVariablesMap.count("version")) {
+    Version();
+    exit(0);
+  }
+
   // If a configuration file is specified, load it.
   if (fVariablesMap.count("config") > 0) {
-    QwWarning << "Using configuration file "
+    QwWarning << "Overriding the default configuration files with "
+	      << "user-defined configuration file "
               << fVariablesMap["config"].as<std::string>() << QwLog::endl;
     SetConfigFile(fVariablesMap["config"].as<std::string>());
+  }
+  // If a configuration file is specified, load it.
+  if (fVariablesMap.count("add-config") > 0) {
+    QwWarning << "Adding user-defined configuration file "
+              << fVariablesMap["add-config"].as<std::string>() << QwLog::endl;
+    AddConfigFile(fVariablesMap["add-config"].as<std::string>());
   }
 }
 
@@ -178,6 +231,7 @@ void QwOptions::ParseEnvironment()
     po::store(po::parse_environment(fEnvironmentOptions, "Qw"), fVariablesMap);
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing environment variables" << QwLog::endl;
+    exit(10);
   }
   po::notify(fVariablesMap);
 }
@@ -211,6 +265,7 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION < 103500
       QwWarning << "The entire configuration file was ignored!" << QwLog::endl;
 #endif
+      exit(10);
     }
     po::notify(fVariablesMap);
   }
@@ -232,11 +287,22 @@ void QwOptions::Usage()
 
 
 /**
+ * Print version string
+ */
+void QwOptions::Version()
+{
+  QwMessage << "QwAnalysis revision " << QWANA_SVN_REVISION << QwLog::endl;
+  QwMessage << QWANA_SVN_URL << QwLog::endl;
+}
+
+
+/**
  * Get a pair of integers specified as a colon-separated range
+ * This function uses the utility function QwParameterFile::ParseIntRange.
  * @param key Option key
  * @return Pair of integers
  */
-std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
+std::pair<int,int> QwOptions::GetIntValuePair(const std::string& key)
 {
   std::pair<int, int> mypair;
   mypair.first = 0;
@@ -245,63 +311,8 @@ std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
   if (fParsed == false) Parse();
   if (fVariablesMap.count(key)) {
     std::string range = fVariablesMap[key].as<std::string>();
-    mypair = ParseIntRange(range);
+    mypair = QwParameterFile::ParseIntRange(":",range);
   }
 
   return mypair;
 }
-
-std::pair<int, int> QwOptions::ParseIntRange(std::string range)
-{
-  /** @brief Separates a colon separated range of integers into a pair of values
-   *
-   *  @param range String containing two integers separated by a colon,
-   *               or a single value.
-   *               If the string begins with a colon, the first value is taken
-   *               as zero.  If the string ends with a colon, the second value
-   *               is taken as kMaxInt.
-   *
-   *  @return  Pair of integers of the first and last values of the range.
-   *           If the range contains a single value, the two integers will
-   *           be identical.
-   */
-  std::pair<int, int> mypair;
-  size_t pos = range.find(":");
-  if (pos == std::string::npos) {
-    //  Separator not found.
-    mypair.first  = atoi(range.substr(0,range.length()).c_str());
-    mypair.second = mypair.first;
-  } else {
-    size_t end = range.length() - pos - 1;
-    if (pos == 0) {
-      // Separator is the first character
-      mypair.first  = 0;
-      mypair.second = atoi(range.substr(pos+1, end).c_str());
-    } else if (pos == range.length()-1) {
-      // Separator is the last character
-      mypair.first  = atoi(range.substr(0,pos).c_str());
-      mypair.second = INT_MAX;
-    } else {
-      mypair.first  = atoi(range.substr(0,pos).c_str());
-      mypair.second = atoi(range.substr(pos+1, end).c_str());
-    }
-  }
-
-  //  Check the values for common errors.
-  if (mypair.first < 0){
-    QwError << "The first value must not be negative!"
-            << QwLog::endl;
-    exit(1);
-  } else if (mypair.first > mypair.second){
-    QwError << "The first value must not be larger than the second value"
-            << QwLog::endl;
-    exit(1);
-  }
-
-  //  Print the contents of the pair for debugging.
-  QwVerbose << "The range goes from " << mypair.first
-            << " to " << mypair.second
-            << QwLog::endl;
-
-  return mypair;
-};

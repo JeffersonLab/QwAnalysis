@@ -12,18 +12,18 @@
 #include "QwParameterFile.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwGasElectronMultiplier>
-  theGasElectronMultiplierFactory("QwGasElectronMultiplier");
+RegisterSubsystemFactory(QwGasElectronMultiplier);
 
 
-QwGasElectronMultiplier::QwGasElectronMultiplier(TString region_tmp):VQwSubsystem(region_tmp),
-								     VQwSubsystemTracking(region_tmp){
+QwGasElectronMultiplier::QwGasElectronMultiplier(const TString& name)
+: VQwSubsystem(name),VQwSubsystemTracking(name)
+{
   ClearAllBankRegistrations();
-};
+}
 
 QwGasElectronMultiplier::~QwGasElectronMultiplier()
 {
-  DeleteHistograms();
+  //DeleteHistograms();
 }
 
 /*  Member functions derived from VQwSubsystemTracking. */
@@ -34,6 +34,8 @@ Int_t QwGasElectronMultiplier::LoadChannelMap(TString mapfile ){
   Int_t roc=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -56,12 +58,12 @@ Int_t QwGasElectronMultiplier::LoadChannelMap(TString mapfile ){
   std::cout<<"Region 1 GEM Map loaded "<<std::endl;
   return 0;
 
-};
+}
 
 Int_t QwGasElectronMultiplier::LoadInputParameters(TString mapfile)
 {
   return 0;
-};
+}
 
 Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
 {
@@ -72,18 +74,18 @@ Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
   //  Int_t  chan;
   Int_t  plane, TotalWires,detectorId,region, DIRMODE;
   Double_t Zpos,rot,sp_res, track_res,slope_match, Det_originX,Det_originY;
-  Double_t ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
+  Double_t ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
   QwDetectorInfo temp_Detector;
 
   fDetectorInfo.clear();
-  fDetectorInfo.resize(kNumPackages);
 
   DIRMODE = 0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -99,62 +101,71 @@ Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
       }
     } else if (DIRMODE==1){
       //  Break this line into tokens to process it.
-      varvalue     = (mapstr.GetNextToken(", ").c_str());//this is the sType
-      Zpos         = (atof(mapstr.GetNextToken(", ").c_str()));
-      rot          = (atof(mapstr.GetNextToken(", ").c_str()));
-      sp_res       = (atof(mapstr.GetNextToken(", ").c_str()));
-      track_res    = (atof(mapstr.GetNextToken(", ").c_str()));
-      slope_match  = (atof(mapstr.GetNextToken(", ").c_str()));
-      package      = mapstr.GetNextToken(", ").c_str();
-      region       = (atoi(mapstr.GetNextToken(", ").c_str()));
-      dType        = mapstr.GetNextToken(", ").c_str();
-      direction    = mapstr.GetNextToken(", ").c_str();
-      Det_originX  = (atof(mapstr.GetNextToken(", ").c_str()));
-      Det_originY  = (atof(mapstr.GetNextToken(", ").c_str()));
-      ActiveWidthX = (atof(mapstr.GetNextToken(", ").c_str()));
-      ActiveWidthY = (atof(mapstr.GetNextToken(", ").c_str()));
-      ActiveWidthZ = (atof(mapstr.GetNextToken(", ").c_str()));
-      WireSpace    = (atof(mapstr.GetNextToken(", ").c_str()));
-      FirstWire    = (atof(mapstr.GetNextToken(", ").c_str()));
-      W_rcos       = (atof(mapstr.GetNextToken(", ").c_str()));
-      W_rsin       = (atof(mapstr.GetNextToken(", ").c_str()));
-      TotalWires   = (atoi(mapstr.GetNextToken(", ").c_str()));
-      detectorId   = (atoi(mapstr.GetNextToken(", ").c_str()));
+      varvalue     = (mapstr.GetTypedNextToken<TString>());//this is the sType
+      Zpos         = mapstr.GetTypedNextToken<Double_t>();
+      rot          = (atof(mapstr.GetTypedNextToken<TString>()) * Qw::deg);
+      sp_res       = mapstr.GetTypedNextToken<Double_t>();
+      track_res    = mapstr.GetTypedNextToken<Double_t>();
+      slope_match  = mapstr.GetTypedNextToken<Double_t>();
+      package      = mapstr.GetTypedNextToken<TString>();
+      region       = mapstr.GetTypedNextToken<Int_t>();
+      dType        = mapstr.GetTypedNextToken<TString>();
+      direction    = mapstr.GetTypedNextToken<TString>();
+      Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+      Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
+      WireSpace    = mapstr.GetTypedNextToken<Double_t>();
+      FirstWire    = mapstr.GetTypedNextToken<Double_t>();
+      W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+      W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+      tilt       = mapstr.GetTypedNextToken<Double_t>();
+      TotalWires   = mapstr.GetTypedNextToken<Int_t>();
+      detectorId   = mapstr.GetTypedNextToken<Int_t>();
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
 
       if (region==1){
-	temp_Detector.SetDetectorInfo(dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId);
-	if (package == "u")       fDetectorInfo.at(kPackageUp).push_back(temp_Detector);
-	else if (package == "d")  fDetectorInfo.at(kPackageDown).push_back(temp_Detector);
+        QwDetectorInfo* detector = new QwDetectorInfo();
+        detector->SetDetectorInfo(dType, Zpos,
+            rot, sp_res, track_res, slope_match,
+            package, region, direction,
+            Det_originX, Det_originY,
+            ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+            WireSpace, FirstWire,
+            W_rcos, W_rsin, tilt,
+            TotalWires,
+            detectorId);
+        fDetectorInfo.push_back(detector);
       }
     }
   }
 
-  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_u 1 "<<fDetectorInfo.at(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.at(kPackageDown).size()<<std::endl;
+  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_u 1 "<<fDetectorInfo.in(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.in(kPackageDown).size()<<std::endl;
 
   std::cout << "Sorting detector info..." << std::endl;
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
   plane = 1;
-  std::sort(fDetectorInfo.at(kPackageUp).begin(),
-            fDetectorInfo.at(kPackageUp).end());//sort by Z position
-  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
-    fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at(kPackageUp).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(kPackageUp).at(i).fDetectorID << std::endl;
+  for (size_t i = 0; i < detector_info_up.size(); i++) {
+    detector_info_up.at(i)->fPlane = plane++;
+    std::cout <<" Region "<< detector_info_up.at(i)->fRegion
+        <<" Detector ID "<< detector_info_up.at(i)->fDetectorID
+        << std::endl;
   }
 
   plane = 1;
-  std::sort(fDetectorInfo.at(kPackageDown).begin(),
-            fDetectorInfo.at(kPackageDown).end());
-  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
-    fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
-    std::cout<<" Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion
-	     <<" Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID
-	     << std::endl;
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  for (size_t i = 0; i < detector_info_down.size(); i++) {
+    detector_info_down.at(i)->fPlane = plane++;
+    std::cout <<" Region " << detector_info_down.at(i)->fRegion
+        <<" Detector ID " << detector_info_down.at(i)->fDetectorID
+        << std::endl;
   }
 
   std::cout<<"Qweak Region 1 GEM Geometry Loaded "<<std::endl;
 
   return 0;
-};
+}
 
 void  QwGasElectronMultiplier::ClearEventData()
 {
@@ -165,13 +176,13 @@ void  QwGasElectronMultiplier::ClearEventData()
   */
   fGEMHits.clear();
   return;
-};
+}
 
 Int_t QwGasElectronMultiplier::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
 
   return 0;
-};
+}
 
 Int_t QwGasElectronMultiplier::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
@@ -210,7 +221,7 @@ Int_t QwGasElectronMultiplier::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
   }
 
   return 0;
-};
+}
 
 void QwGasElectronMultiplier::FillVFATWord(Int_t VFAT_index)
 {
@@ -292,7 +303,7 @@ void QwGasElectronMultiplier::FillVFATWord(Int_t VFAT_index)
   }
 
   return;
-};
+}
 
 void QwGasElectronMultiplier::GetBC(Int_t bean_count[], Int_t VFAT_index)
 {//return the VFAT Bean Count
@@ -300,14 +311,14 @@ void QwGasElectronMultiplier::GetBC(Int_t bean_count[], Int_t VFAT_index)
   for(Short_t i=4;i<16;i++)  bean_count[i-4]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 void QwGasElectronMultiplier::GetEC(Int_t error_check[], Int_t VFAT_index)
 {//return the VFAT Event Count
 
   for(Short_t i=20;i<28;i++) error_check[i-20]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 
 void QwGasElectronMultiplier::GetFlags(Int_t flags[], Int_t VFAT_index)
 {//return the VFAT Flags
@@ -315,7 +326,7 @@ void QwGasElectronMultiplier::GetFlags(Int_t flags[], Int_t VFAT_index)
   for(Short_t i=28;i<32;i++) flags[i-28]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 
 void QwGasElectronMultiplier::GetChipId(Int_t chip_id[], Int_t VFAT_index)
 {//return the VFAT ID
@@ -323,7 +334,7 @@ void QwGasElectronMultiplier::GetChipId(Int_t chip_id[], Int_t VFAT_index)
   for(Short_t i=36;i<48;i++) chip_id[i-36]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 void QwGasElectronMultiplier::GetChannelData(Int_t channel_data[], Int_t VFAT_index)
 {//return the VFAT Channel Data
 
@@ -337,7 +348,7 @@ void QwGasElectronMultiplier::GetChannelData(Int_t channel_data[], Int_t VFAT_in
     }
   }
   return;
-};
+}
 
 void QwGasElectronMultiplier::AddHit(Int_t VFAT_index, Int_t channel)
 {//Add a new hit to the fGEMHits
@@ -400,7 +411,7 @@ void QwGasElectronMultiplier::AddHit(Int_t VFAT_index, Int_t channel)
 
   return;
 
-};
+}
 
 
 void  QwGasElectronMultiplier::ProcessEvent()
@@ -410,12 +421,12 @@ void  QwGasElectronMultiplier::ProcessEvent()
   for(std::vector<QwHit>::iterator hit1=fGEMHits.begin(); hit1!=fGEMHits.end(); hit1++) {
 
     QwDetectorID local_id = hit1->GetDetectorID();
-    int package = local_id.fPackage;
+    EQwDetectorPackage package = local_id.fPackage;
     int plane = local_id.fPlane;
 
     //Detectors are ordered in Up, radial(R), up  transverse(Y), down radial(R) , down transverse(Y)
-    QwDetectorInfo* local_info0 = & fDetectorInfo.at(package).at(0);//each package has two planes (R and Y)
-    QwDetectorInfo* local_info1 = & fDetectorInfo.at(package).at(1);
+    QwDetectorInfo* local_info0 = fDetectorInfo.in(package).in(kDirectionR).at(0);//each package has two planes (R and Y)
+    QwDetectorInfo* local_info1 = fDetectorInfo.in(package).in(kDirectionY).at(0);
     if (local_info0->GetElementDirection()==local_id.fPlane){
       hit1->SetDetectorInfo(local_info0);
       if (bDEBUG_Hitlist) std::cout<<"Package "<<package<<" Det Plane "<<plane<<" Module  "<<hit1->fModule<<" Channel  "<<hit1->fChannel<<" Direction "<<hit1->GetDirection()<<" Strip "<<hit1->GetElement() <<std::endl;
@@ -426,11 +437,11 @@ void  QwGasElectronMultiplier::ProcessEvent()
     }
   }
   return;
-};
+}
 
 void  QwGasElectronMultiplier::FillListOfHits(QwHitContainer& hitlist)
 {
-};
+}
 
 void  QwGasElectronMultiplier::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -469,7 +480,7 @@ void  QwGasElectronMultiplier::ConstructHistograms(TDirectory *folder, TString &
 		      GEM_TRANSVERSESTRIPS, 0, GEM_TRANSVERSESTRIPS,
 		      GEM_RADIALSTRIPS,     0, GEM_RADIALSTRIPS);//2D plot with x is transverse; y is radial
   }
-};
+}
 
 
 
@@ -523,7 +534,7 @@ void  QwGasElectronMultiplier::FillHistograms()
     }
   */
 
-};
+}
 
 
 void  QwGasElectronMultiplier::DeleteHistograms()
@@ -580,7 +591,7 @@ void  QwGasElectronMultiplier::DeleteHistograms()
   }
   */
 
-};
+}
 
 
 /*

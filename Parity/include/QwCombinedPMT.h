@@ -12,31 +12,37 @@
 #include "QwVQWK_Channel.h"
 #include "QwIntegrationPMT.h"
 
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
-
 // Forward declarations
 class QwBlinder;
+class QwDBInterface;
 
 class QwCombinedPMT : public VQwDataElement {
 /////
  public:
   QwCombinedPMT(){
-    QwCombinedPMT("");
+    InitializeChannel("", "derived");
   };
 
   QwCombinedPMT(TString name){
     InitializeChannel(name, "derived");
   };
 
-  ~QwCombinedPMT() {
-    DeleteHistograms();
+  QwCombinedPMT(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name, "derived");
   };
 
+  virtual ~QwCombinedPMT() { };
+
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave); 
   void  LinkChannel(TString name);
+
+  const QwVQWK_Channel* GetChannel(const TString name) const {
+    if (fSumADC.GetElementName() == name) return fSumADC.GetChannel(name);
+    else return 0;
+  };
 
   void Add(QwIntegrationPMT* pmt, Double_t weight);
 
@@ -58,12 +64,28 @@ class QwCombinedPMT : public VQwDataElement {
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag, Double_t LL, Double_t UL, Double_t stability);
+
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
-    //fCombinedPMT.SetEventCutMode(bcuts);
+    fSumADC.SetEventCutMode(bcuts);
   }
+  UInt_t GetEventcutErrorFlag(){//return the error flag
+    return fSumADC.GetEventcutErrorFlag();
+  }
+
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fSumADC.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(QwCombinedPMT *ev_error);
+
+  UInt_t GetErrorCode() const {return (fSumADC.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fSumADC.UpdateErrorCode(error);};
+ 
 
   void PrintInfo() const;
   void PrintValue() const;
@@ -75,9 +97,13 @@ class QwCombinedPMT : public VQwDataElement {
   void Difference(QwCombinedPMT &value1, QwCombinedPMT &value2);
   void Ratio(QwCombinedPMT &numer, QwCombinedPMT &denom);
   void Scale(Double_t factor);
-
+  void Normalize(VQwDataElement* denom);
   void AccumulateRunningSum(const QwCombinedPMT& value);
+  void DeaccumulateRunningSum(QwCombinedPMT& value);
   void CalculateRunningAverage();
+
+  void SetBlindability(Bool_t isblindable){fSumADC.SetBlindability(isblindable);};
+  void SetNormalizability(Bool_t isnormalizable){fSumADC.SetNormalizability(isnormalizable);}; 
 
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
@@ -93,17 +119,16 @@ class QwCombinedPMT : public VQwDataElement {
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
-  void  DeleteHistograms();
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
   Double_t GetAverage()        {return fSumADC.GetAverage();};
   Double_t GetAverageError()   {return fSumADC.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fSumADC.GetGoodEventCount();};
 
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
-  std::vector<QwDBInterface>  GetDBEntry() {return fSumADC.GetDBEntry();};
+  std::vector<QwDBInterface>  GetDBEntry();
 
  protected:
 

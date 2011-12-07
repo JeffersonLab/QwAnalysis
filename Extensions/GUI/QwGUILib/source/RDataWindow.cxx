@@ -854,11 +854,19 @@ void RDataWindow::ViewMiscData()
   Double_t *ye = NULL;
   if(dMiscCont->ReadData(x,y,1,1,2,dMiscCont->GetNumOfRows()) != FILE_PROCESS_OK)
     {dMiscCont->Close(); return;}
-  if(cols > 2){
+  if(cols == 2){
     ye= new Double_t[range];
     if(dMiscCont->ReadData(x,ye,1,1,3,dMiscCont->GetNumOfRows()) != FILE_PROCESS_OK)
       {dMiscCont->Close(); return;}
   }
+  if(cols > 2){
+    ye= new Double_t[range];
+    if(dMiscCont->ReadData(x,ye,1,1,4,dMiscCont->GetNumOfRows()) != FILE_PROCESS_OK)
+      {dMiscCont->Close(); return;}
+  }
+
+  for(int i = 0; i < range; i++)
+    printf("%1.4e %1.4e %1.4e\n",x[i],y[i],ye[i]);
 
   dMiscCont->Close();
   dMiscCont = NULL;

@@ -1,5 +1,5 @@
 #include "QwQuartzBarLight.h"
-ClassImp(QwQuartzBarLight);
+ClassImp(QwQuartzBarLight)
 
 
 // Qweak headers

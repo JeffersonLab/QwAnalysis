@@ -24,7 +24,7 @@ class QwTrackingTreeSort {
   public:
 
     QwTrackingTreeSort();
-    ~QwTrackingTreeSort();
+    virtual ~QwTrackingTreeSort();
 
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
 

@@ -1,5 +1,6 @@
 ! The exclamation mark (!) is for comment in this file.
 !
+! 06-17-2011: added Qtor related 4 variables:  qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
 ! 07-08-2010: added "String" in more variables by identifying them using
 ! caget epicsVarName (e.g. caget QW_T_miA) in a machine where caget command can be issued.
 !
@@ -12,38 +13,48 @@
 ! is IGL1I00DI24_24M and has either IN or OUT value).
 !
 !
-QW_T_miA		slow_controls_data    	   	!Temp A at manifold inlet K Cernox		
-QW_T_moA		slow_controls_data    	   	!Temp A at manifold outlet K Cernox		
-QW_T_hxiA		slow_controls_data    	   	!Temp A at heat exchanger inlet K Cernox Phytron brake
-QW_T_hxoA		slow_controls_data    	   	!Temp A at heat exchanger outlet	K Cernox Phytron home switch
-QW_T_piA		slow_controls_data    	   	!Temp A at pump inlet K Cernox	GV open switch
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!  Special keywords
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+NominalWienAngle = 30.0   ! This is the "nominal" Wien launch angle in degrees needed to have the spin pointing FORWARD for H+ when IHWP OUT & the Wien is Flip-Right (or Horizontal-Only)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! NAME          DB_TABLE                TYPE    COMMENT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+QWTGTPOS	slow_controls_data    	   	!Vertical position of the target
+QWtgt_name	slow_controls_data	String	! Name of the target position
+QWT_miA		slow_controls_data    	   	!Temp A at manifold inlet K Cernox		
+QWT_moA		slow_controls_data    	   	!Temp A at manifold outlet K Cernox		
+QWT_hxiA		slow_controls_data    	   	!Temp A at heat exchanger inlet K Cernox Phytron brake
+QWT_hxoA		slow_controls_data    	   	!Temp A at heat exchanger outlet	K Cernox Phytron home switch
+QWT_piA		slow_controls_data    	   	!Temp A at pump inlet K Cernox	GV open switch
 !			slow_controls_data    	   	!GV closed switch   [something to be added here]
-QW_T_miB		slow_controls_data    	   	!Temp B at manifold inlet K Cernox Turbo status *5?
-QW_T_moB	  	slow_controls_data    	   	!Temp B at manifold outlet K Cernox CCG *5?
-QW_T_hxiB		slow_controls_data    	   	!Temp B at heat exchanger inlet K Cernox Ballast vacuum
-QW_T_hxoB		slow_controls_data    	   	!Temp B at heat exchanger outlet	K Cernox
-QW_T_piB		slow_controls_data    	   	!Temp B at pump inlet K Cernox
-QW_T_ladderA		slow_controls_data    	   	!Temp A on dummy tgt ladder K			
-QW_T_USdmA		slow_controls_data    	   	!Temp A on upstream dummy frame K			
-QW_T_DSdmA		slow_controls_data    	   	!Temp A on downstream dummy frame K			
-QW_T_phytronA		slow_controls_data    	   	!Temp A on Phytron motor	K			
-QW_T_tableA		slow_controls_data    	   	!Temp A on Horizontal Motion table K
-QW_T_ladderB		slow_controls_data    	   	!Temp B on dummy tgt ladder K			
-QW_T_USdmB		slow_controls_data    	   	!Temp B on upstream dummy frame K			
-QW_T_DSdmB		slow_controls_data    	   	!Temp B on downstream dummy frame K			
-QW_T_phytronB		slow_controls_data    	   	!Temp B on Phytron motor	K			
-QW_T_tableB		slow_controls_data    	   	!Temp B on Horizontal Motion table K
-QW_T_solidA		slow_controls_data    	   	!Temp A on solid target frame K			
-QW_T_solidB		slow_controls_data    	   	!Temp B on solid target frame K			
-QW_T_spareA		slow_controls_data    	   	!K			
-QW_T_spareB		slow_controls_data    	   	!K			
-QW_T_pumpA		slow_controls_data    	   	!Temp A on pump motor house K			
-QW_T_pumpB		slow_controls_data    	   	!Temp B on pump motor house K			
+QWT_miB		slow_controls_data    	   	!Temp B at manifold inlet K Cernox Turbo status *5?
+QWT_moB	  	slow_controls_data    	   	!Temp B at manifold outlet K Cernox CCG *5?
+QWT_hxiB		slow_controls_data    	   	!Temp B at heat exchanger inlet K Cernox Ballast vacuum
+QWT_hxoB		slow_controls_data    	   	!Temp B at heat exchanger outlet	K Cernox
+QWT_piB		slow_controls_data    	   	!Temp B at pump inlet K Cernox
+QWT_ladderA		slow_controls_data    	   	!Temp A on dummy tgt ladder K			
+QWT_USdmA		slow_controls_data    	   	!Temp A on upstream dummy frame K			
+QWT_DSdmA		slow_controls_data    	   	!Temp A on downstream dummy frame K			
+QWT_phytronA		slow_controls_data    	   	!Temp A on Phytron motor	K			
+QWT_tableA		slow_controls_data    	   	!Temp A on Horizontal Motion table K
+QWT_ladderB		slow_controls_data    	   	!Temp B on dummy tgt ladder K			
+QWT_USdmB		slow_controls_data    	   	!Temp B on upstream dummy frame K			
+QWT_DSdmB		slow_controls_data    	   	!Temp B on downstream dummy frame K			
+QWT_phytronB		slow_controls_data    	   	!Temp B on Phytron motor	K			
+QWT_tableB		slow_controls_data    	   	!Temp B on Horizontal Motion table K
+QWT_solidA		slow_controls_data    	   	!Temp A on solid target frame K			
+QWT_solidB		slow_controls_data    	   	!Temp B on solid target frame K			
+QWT_spareA		slow_controls_data    	   	!K			
+QWT_spareB		slow_controls_data    	   	!K			
+QWT_pumpA		slow_controls_data    	   	!Temp A on pump motor house K			
+QWT_pumpB		slow_controls_data    	   	!Temp B on pump motor house K			
 !			slow_controls_data    	   	!K [something to be added here]
-QW_T_4kjt		slow_controls_data    	   	!Coolant Temp at outlet of 4K JT valve K	Cernox		
-QW_T_4ko		slow_controls_data    	   	!Temp of returning 4K coolant K Cernox
-QW_T_15kjt		slow_controls_data    	   	!Coolant Temp at outlet of 15K JT valve K Cernox		
-QW_T_15ko		slow_controls_data    	   	!Temp of returning 15K coolant K	Cernox
+QWT_4kjt		slow_controls_data    	   	!Coolant Temp at outlet of 4K JT valve K	Cernox		
+QWT_4ko		slow_controls_data    	   	!Temp of returning 4K coolant K Cernox
+QWT_15kjt		slow_controls_data    	   	!Coolant Temp at outlet of 15K JT valve K Cernox		
+QWT_15ko		slow_controls_data    	   	!Temp of returning 15K coolant K	Cernox
 QW_Pmp_TachSet		slow_controls_data    	   	!Set value for pump tach	Hz			
 QW_Pmp_VSet		slow_controls_data    	   	!Set value for pump voltage Volts			
 QW_Pmp_I1Set		slow_controls_data    	   	!Set value for pump current phase 1 Amps			
@@ -121,6 +132,7 @@ QW_EC5_AxisStatus	slow_controls_data    	   	!
 QW_EC5_DriveStatus	slow_controls_data    	   	!			
 QW_EC5_SystemStatus	slow_controls_data    	   	!			
 QW_EC5_ResPos		slow_controls_data    	   	!Lifter EC5 resistive position readout
+QW_PT3			slow_controls_data    	   	!Gas panel pressure transducer PT3 psia			
 QW_PT4			slow_controls_data    	   	!Gas panel pressure transducer PT4 psia			
 QW_PT9			slow_controls_data    	   	!Gas panel pressure transducer PT9 psia			
 QW_PT7			slow_controls_data    	   	!Gas panel pressure transducer PT7 psia			
@@ -393,7 +405,7 @@ HC:1I04_DWSUM		slow_controls_data    	   	!Error on 1I04 Charge Asymmetry 4 Wire
 WienAngle		slow_controls_data    	   	!Wien Filter Angle Setting  degrees
 itov2out 		slow_controls_data    	   	!A2 Slit Setting  
 HC:QPD_XDIF 		slow_controls_data    	   	!QPD X Difference 
-EHCFR_LIPRC		polarized_source    	   	String		!Master Focus Location:  1=G0, 0=Pivot
+EHCFR_LIPRC		polarized_source    	   	!String		!Master Focus Location:  1=G0, 0=Pivot
 HC:0L02_WSUM 		slow_controls_data    	   	!0L02 Charge Asymmetry 4 Wire Sum
 HC:1I04_DYDIF		slow_controls_data    	   	!Error on 1I04 Y Difference
 hel_mag_status.D	slow_controls_data    	   	!Integrated helicity bit difference 
@@ -433,7 +445,7 @@ HC:0I05_DYDIF		slow_controls_data    	   	!Error on 0I05 Y Difference
 hallc_photocurrent	slow_controls_data    	   	!Hall C photocurrent  uA
 HC:0L02_DYDIF		slow_controls_data    	   	!Error on 0L02 Y Difference 
 hac_bcm_average		slow_controls_data    	   	!Hall A (?) BCM Current	uA
-ISL0I04DT		slow_controls_data    	   	!Master Slit Setting
+ISL0I04DT		polarized_source    	   	!Master Slit Setting (string value: IN)
 IPM2C24A.IENG		slow_controls_data    	   	!Hall B Beam Current (2C24A)
 IBCxxxxCRCUR2		slow_controls_data    	   	!Hall A MPS BCM Current uA
 HC:0I05_XDIF		slow_controls_data    	   	!0I05 X Difference 
@@ -492,7 +504,7 @@ HC:0I05_WSUM 		slow_controls_data    	   	!0I05 Charge Asymmetry 4 Wire Sum
 HC:bcm_threshold	slow_controls_data    	   	!BCM threshold cut for charge feedback uA
 ibcm1			slow_controls_data    	   	!Hall C Beam Current (monitor 1): careful, this is also in target epics	
 ibcm2			slow_controls_data    	   	!Hall C Beam Current (monitor 2): careful, this is also in target epics
-HC:bcm_select		polarized_source    	   	String		! (result: BCM2)
+HC:bcm_select		polarized_source    	   	!String		! (result: BCM2)
 !		
 !IGL1I00DI24_24M	slow_controls_data    	   	![already in Riad's list above]		
 !
@@ -632,16 +644,17 @@ IPM3H09B.XSOF		slow_controls_data    	   	!
 IPM3H09B.YSOF		slow_controls_data    	   	!	
 !
 ! Miscellaneous epics variables:
-HC:Q_ONOFF		polarized_source    	   	String		!Charge feedback
+HC:Q_ONOFF		polarized_source    	   	!String		!Charge feedback (ON/OFF)
 ! Epics variables for Compton missing.
 !
 ! Fast Feedback (copied from G0 epics.dictionary)
 !
-FB_A:FB_On        	polarized_source    	   	String	!fast feedback Hall A status (result: OFF)
-FB_C:FB_On        	polarized_source    	   	String	!fast feedback Hall C status (result: OFF)
-FB_C:status:mbbi2.B7 	polarized_source    	   		!fast feedback Hall C status flag
-FB_C:use_RF         	polarized_source    	   	String	!fast energy lock Hall C status (result: RF OFF)
-FB_A:use_RF         	polarized_source    	   	String	!fast energy lock Hall A status (result: RF ON)
+FB_A:FB_On        	polarized_source    	   	!String	!fast feedback Hall A status (result: OFF)
+FB_C:FB_On        	polarized_source    	   	!String	!fast feedback Hall C status (result: OFF)
+FB_C:status:mbbi2.B7 	slow_controls_data     	   	!1 or 0	!fast feedback Hall C status flag
+FB_C:use_RF         	polarized_source    	   	!String	!fast energy lock Hall C status (result: RF OFF)
+FB_A:use_RF         	polarized_source    	   	!String	!fast energy lock Hall A status (result: RF ON)
+FB_A:status:mbbi2.B7    slow_controls_data 		!1 or 0	!fast feedback Hall A status flag
 !
 ! Hall C Moller information (copied from G0 epics.dictionary)
 !
@@ -659,3 +672,49 @@ COLPOS7			slow_controls_data    	   	!Collimator Block 7
 !MHCMQ2IRBCK		slow_controls_data    	   	!Current ReadBack (A)
 !MQE3M02.S		slow_controls_data    	   	!Current Set (A)
 !The "result" indicates the result obtained from caget command.
+
+! Added Qtor related 4 variables: qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
+
+qw:qt_mps_i_target      slow_controls_data              ! Qtor target curret
+qw:qt_mps_i_set		slow_controls_data              ! Qtor set current
+qw:qt_mps_i_dcct	slow_controls_data              ! Qtor DCCT
+Q1HallP			slow_controls_data              ! Qtor magnetic field read by Hall Probe 1
+!
+!
+!  
+!
+FB_C:CORR:C1_value.B    slow_controls_data              ! FFB corrector magnet 1 value
+FB_C:CORR:C2_value.B    slow_controls_data              ! FFB corrector magnet 2 value
+FB_C:CORR:C3_value.B    slow_controls_data              ! FFB corrector magnet 3 value
+FB_C:CORR:C4_value.B    slow_controls_data              ! FFB corrector magnet 4 value
+IBC1H04CRCUR2           slow_controls_data                 ! Hall A MPS BCM Current uA
+IBC3H00CRCUR4           slow_controls_data                 ! Hall C MPS BCM Current uA
+IFY0I06I                slow_controls_data                 ! PolCup position: FC1 (is/is not) inserted
+IFY0I06R                slow_controls_data                 ! PolCup position: FC1 (is/is not) retracted
+IFY0L03I                slow_controls_data                 ! PolCup position: FC2 (is/is not) inserted
+IFY0L03R                slow_controls_data                 ! PolCup position: FC2 (is/is not) retracted
+IFY1I07I                slow_controls_data                 ! PolCup position: PolCup (is/is not) inserted
+IFY1I07R                slow_controls_data                 ! PolCup position: PolCup (is/is not) retracted
+IOCSE14:PassSel;r       slow_controls_data               !String ! IOCSE14 Auto Select  
+IOCSE14:SEEGainMod;r    slow_controls_data               !String ! IOCSE14 Auto Gain 
+IOCSE14:SEEProcMod;r    slow_controls_data               !String ! IOCSE14 SEE Norm Ops
+IOCSE17:PassSel;r       slow_controls_data               !String ! IOCSE17 Auto Select  
+IOCSE17:SEEGainMod;r    slow_controls_data               !String ! IOCSE17 Auto Gain  
+IOCSE17:SEEProcMod;r    slow_controls_data               !String ! IOCSE17 SEE Norm Ops  
+IOCSE18:PassSel;r       slow_controls_data               !String ! IOCSE18 Auto Select 
+IOCSE18:SEEGainMod;r    slow_controls_data               !String ! IOCSE18 Auto Gain 
+IOCSE18:SEEProcMod;r    slow_controls_data               !String ! IOCSE18 SEE Norm Ops 
+IOCSE20:PassSel;r       slow_controls_data               !String ! IOCSE20 Auto Select
+IOCSE20:SEEGainMod;r    slow_controls_data               !String ! IOCSE20 Auto Gain  
+IOCSE20:SEEProcMod;r    slow_controls_data               !String ! IOCSE20 SEE Norm Ops 
+VCG3H09BTr              slow_controls_data               ! Scattering Chamber Vacuum psia
+qw:exitwindow           slow_controls_data               ! Exit window temp (C)
+rad45_p1                slow_controls_data               ! Gamma radiation monitor in Qweak detector shieldhouse
+rad45_p2                slow_controls_data               ! Neutron radiation monitor in Qweak detector shieldhouse
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!  Composite slow control variables
+!    These are variables for which there is not an actual EPICS variable,
+!    but a value is generated internally by the QwEPICSEvent class.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+WienMode        	slow_controls_data	String	 !  This will indicate the spin direction in the hall as defined by the Wien setting + precession
+

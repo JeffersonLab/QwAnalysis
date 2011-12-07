@@ -11,8 +11,6 @@
 #include "TH1D.h"
 #include "TH2D.h"
 
-#include "QwDetectorInfo.h"
-
 #include "QwHit.h"
 #include "QwHitContainer.h"
 
@@ -30,27 +28,31 @@ class QwHitContainer;
 
 ///
 /// \ingroup QwTracking
-class QwGasElectronMultiplier: public VQwSubsystemTracking{
+class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwGasElectronMultiplier> {
   /******************************************************************
    *  Class: QwGasElectronMultiplier
    *
    *
    ******************************************************************/
- public:
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwGasElectronMultiplier();
 
-  QwGasElectronMultiplier(TString region_tmp);
-  ~QwGasElectronMultiplier();
+ public:
+  /// Constructor with name
+  QwGasElectronMultiplier(const TString& name);
+  /// Virtual destructor
+  virtual ~QwGasElectronMultiplier();
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
 
   /*  Member functions derived from VQwSubsystemTracking. */
   Int_t LoadChannelMap(TString mapfile );
   Int_t LoadInputParameters(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
-
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info)
-  {//will update the detector_info from the fDetectorInfo data.
-    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
-    return 1;
-  };
 
   void  ClearEventData();
 
@@ -62,6 +64,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
 
   void  FillListOfHits(QwHitContainer& hitlist);
 
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
@@ -101,8 +104,6 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   Int_t  fCurrentSlot;
 
   std::vector< QwHit > fHits;
-
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
 
   Int_t fVFATChannel[N_VFAT][12];//stores VFAT data words during an event
   Int_t fBuffer_VFAT[N_VFAT][192];//Set VFAT channels to 1 or 0 based on VFAT data in the fVFATChannel[][] array

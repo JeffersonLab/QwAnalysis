@@ -155,7 +155,8 @@ extern  void swapped_memcpy(char *buffer,char *source,int size);
 
 inline  int  checked_fread(void *buffer, size_t size, size_t num, FILE* stream) {
   unsigned int retval = fread(buffer, size, num, stream);
-  if (retval != num)
+  /*  Only print the error if we haven't reached EOF. */
+  if (retval != num && !feof(stream))
     fprintf(stderr, "evio: fread error\n");
   return retval;
 }

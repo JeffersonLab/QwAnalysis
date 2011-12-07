@@ -8,18 +8,12 @@
 #include "TROOT.h"
 #include "TH1F.h"
 
-// Qweak support headers
-#include "Det.h"
-#include "Qset.h"
-
 // Qweak tracking worker
 #include "QwTrackingWorker.h"
 
 class QwTrackingAnalyzer : public VQwAnalyzer {
 
   private:
-    Qset fGeometry;
-
     QwHitContainer* fHitList;
     QwTrackingWorker* fTrackingWorker;
 
@@ -28,7 +22,7 @@ class QwTrackingAnalyzer : public VQwAnalyzer {
     TH1F* fHisto2;
 
     QwTrackingAnalyzer (const char*);
-    ~QwTrackingAnalyzer();
+    virtual ~QwTrackingAnalyzer();
 
     void SetHitList(QwHitContainer* hitlist) { fHitList = hitlist; };
 

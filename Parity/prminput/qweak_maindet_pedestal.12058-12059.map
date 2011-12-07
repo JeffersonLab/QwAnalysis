@@ -1,0 +1,27 @@
+
+!The following pedestals were recorded from RUN 12058
+!channel name , Mps channelname.hw_sum_raw/num_samples , gain
+qwk_md1neg  ,  886.875  ,  0.00007629
+qwk_md2neg  ,  1203.72  ,  0.00007629
+qwk_md3neg  ,  989.245  ,  0.00007629
+qwk_md4neg  ,  1423.55  ,  0.00007629
+qwk_md5neg  ,  831.032  ,  0.00007629
+qwk_md6neg  ,  1123.11  ,  0.00007629
+qwk_md7neg  ,  1120.06  ,  0.00007629
+qwk_md8neg  ,  1051.37  ,  0.00007629
+qwk_md1pos  ,  788.374  ,  0.00007629
+qwk_md2pos  ,  726.716  ,  0.00007629
+qwk_md3pos  ,  944.913  ,  0.00007629
+qwk_md4pos  ,  986.942  ,  0.00007629
+qwk_md5pos  ,  1189.16  ,  0.00007629
+qwk_md6pos  ,  1406.94  ,  0.00007629
+qwk_md7pos  ,  1240.19  ,  0.00007629
+qwk_md8pos  ,  1145.3  ,  0.00007629
+qwk_pmtonl  ,  949.286  ,  0.00007629
+qwk_pmtltg  ,  1245.62  ,  0.00007629
+qwk_md9neg  ,  504.167  ,  0.00007629
+qwk_md9pos  ,  411.123  ,  0.00007629
+qwk_isourc  ,  0  ,  0.00007629
+qwk_preamp  ,  0  ,  0.00007629
+qwk_cagesr  ,  0  ,  0.00007629
+qwk_pmtled  ,  0  ,  0.00007629

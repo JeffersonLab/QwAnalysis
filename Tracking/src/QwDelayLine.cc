@@ -18,9 +18,10 @@ const Double_t QwDelayLine::kTimeStep=2.6;
 const Int_t    QwDelayLine::kWireStep=8;
 
 void QwDelayLine::Wirenumber(Double_t& time){
+  Double_t f1tdc_resolution_ns = 0.116312881651642913;
   Int_t temp = 0;
   vector<Int_t> tempwire;
-  Int_t Guess = (Int_t) (0.1132*(time-(Windows.at( 0 ).first+Windows.at( 0 ).second) /2)/kTimeStep);
+  Int_t Guess = (Int_t) (f1tdc_resolution_ns*(time-(Windows.at( 0 ).first+Windows.at( 0 ).second) /2)/kTimeStep);
   // there's two conditions:
   // first, that the value of time-average value of the first window can not be smaller than -2.6;
   // second, the right bound of the last window minus the left bound of the first window should be

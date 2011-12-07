@@ -26,9 +26,6 @@
 #include "QwPartialTrack.h"
 #include "QwEvent.h"
 
-// Qweak headers (deprecated)
-#include "Det.h"
-
 // Helper headers
 #include "uv2xy.h"
 
@@ -41,8 +38,8 @@
  * Constructor with file name and spectrometer geometry
  * @param detector_info Detector geometry information vector
  */
-QwTreeEventBuffer::QwTreeEventBuffer (
-	vector <vector <QwDetectorInfo> > & detector_info)
+QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
+: fDetectorInfo(detector_info)
 {
   // Initialize
   fCurrentRun = -1;
@@ -56,9 +53,6 @@ QwTreeEventBuffer::QwTreeEventBuffer (
   fNumberOfEvents = 0;
   fNumberOfEntries = 0;
   SetEntriesPerEvent(1);
-
-  // Set the detector info
-  SetDetectorInfo(detector_info);
 
   // Allocate memory for the tree vectors
   ReserveVectors();
@@ -168,8 +162,9 @@ unsigned int QwTreeEventBuffer::CloseFile()
  */
 unsigned int QwTreeEventBuffer::GetNextEvent()
 {
-  // Find next event number
+  // Find next event number in requested range
   do fCurrentEvent++; while (fCurrentEvent < fEventRange.first);
+  // But make sure it is not past the end of the range
   if (fCurrentEvent > fEventRange.second) return 1;
 
   //  Progress meter (this should probably produce less output in production)
@@ -196,13 +191,18 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     fEvent = 0;
   }
 
-  // Check the event number
-  if ((eventnumber < fEventRange.first)
-   || (eventnumber > fEventRange.second))
-    return 1;
   // Assign the current event and entry number
   fCurrentEvent = eventnumber;
   fCurrentEntry = eventnumber * fEntriesPerEvent;
+
+  // Check the event number
+  if ((fCurrentEvent < fEventRange.first)
+   || (fCurrentEvent > fEventRange.second))
+    return 1;
+  if (fCurrentEvent >= GetNumberOfEvents())
+    return 1;
+  if (fCurrentEntry >= GetNumberOfEntries())
+    return 1;
 
   // Create a new event
   fEvent = new QwEvent();
@@ -259,26 +259,27 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
 {
   // Read event
   QwVerbose << "Reading entry " << entry << QwLog::endl;
+  fTree->GetEntry(entry);
 
   // Region 1
-  fTree->GetBranch("Region1.ChamberFront.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region1.ChamberBack.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region1.ChamberFront.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region1.ChamberBack.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
   fRegion1_HasBeenHit = fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit == 5 &&
                         fRegion1_ChamberBack_WirePlane_PlaneHasBeenHit  == 5;
 
   // Region 2
-  fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
   fRegion2_HasBeenHit = fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
                         fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit == 5 &&
                         fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit == 5 &&
@@ -293,10 +294,10 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
                         fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit  == 5;
 
   // Region 3
-  fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(entry);
   fRegion3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
                         fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
                         fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
@@ -479,43 +480,58 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   QwDebug << "Processing Region1_ChamberFront_WirePlane: "
           << fRegion1_ChamberFront_WirePlane_NbOfHits << " hit(s)." << QwLog::endl;
 
-  detectorinfo = & fDetectorInfo.at(1).at(0);
-  // jpan: the indexing here make me confused.
-  // wdc: me too.  fDetectorInfo gets filled wrongly.
-
-  for (int hit = 0; hit < fRegion1_ChamberFront_WirePlane_NbOfHits && hit < VECTOR_SIZE; hit++) {
-    double x = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX.at(hit);
-    double y = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.at(hit);
-    std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
-    // Set the hit numbers
-    for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
-    // Add the hit to the hit list (it is copied)
-    hitlist->Append(hits);
+  try {
+    detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(0);
+    for (int i1 = 0; i1 < fRegion1_ChamberFront_WirePlane_NbOfHits && i1 < VECTOR_SIZE; i1++) {
+      double xLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX.at(i1);
+      double yLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.at(i1);
+      // Position in the Qweak frame
+      double x =  yLocalMC;
+      double y = -xLocalMC;
+      std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
+      // Set the hit numbers
+      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      // Add the hit to the hit list (it is copied)
+      hitlist->Append(hits);
+    }
+  } catch (std::exception&) {
+    QwDebug << "No detector in region 1, package up." << QwLog::endl;
   }
 
   // Region 1 back chamber
   QwDebug << "No code for processing Region1_ChamberBack_WirePlane: "
           << fRegion1_ChamberBack_WirePlane_NbOfHits << " hit(s)." << QwLog::endl;
 
-  detectorinfo = & fDetectorInfo.at(1).at(1);
-  for (int i1 = 0; i1 < fRegion1_ChamberBack_WirePlane_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX.at(i1);
-    double y = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.at(i1);
-    std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
-    // Set the hit numbers
-    for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
-    // Add the hit to the hit list (it is copied)
-    hitlist->Append(hits);
+  try {
+    detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(1);
+    for (int i2 = 0; i2 < fRegion1_ChamberBack_WirePlane_NbOfHits && i2 < VECTOR_SIZE; i2++) {
+      double xLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX.at(i2);
+      double yLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.at(i2);
+      // Position in the Qweak frame
+      double x =  yLocalMC;
+      double y = -xLocalMC;
+      std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
+      // Set the hit numbers
+      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      // Add the hit to the hit list (it is copied)
+      hitlist->Append(hits);
+    }
+  } catch (std::exception&) {
+    QwDebug << "No detector in region 1, package up." << QwLog::endl;
   }
 
 
   // Region 2 front chambers (x,u,v,x',u',v')
   QwDebug << "Processing Region2_ChamberFront_WirePlane1: "
           << fRegion2_ChamberFront_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(0);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       // Set the hit number
@@ -527,10 +543,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane2: "
           << fRegion2_ChamberFront_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(1);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(1);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -540,10 +560,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane3: "
           << fRegion2_ChamberFront_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(2);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(2);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -553,10 +577,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane4: "
           << fRegion2_ChamberFront_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(3);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(3);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -566,10 +594,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane5: "
           << fRegion2_ChamberFront_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(4);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(4);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -579,10 +611,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane6: "
           << fRegion2_ChamberFront_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(5);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(5);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -595,10 +631,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // Region 2 back chambers (x,u,v,x',u',v')
   QwDebug << "Processing Region2_ChamberBack_WirePlane1: "
           << fRegion2_ChamberBack_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(6);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(6);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -608,10 +648,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberBack_WirePlane2: "
           << fRegion2_ChamberBack_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(7);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(7);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -622,10 +666,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane3: "
           << fRegion2_ChamberBack_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(8);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(8);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -636,10 +684,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane4: "
           << fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(9);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(9);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -650,10 +702,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane5: "
           << fRegion2_ChamberBack_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(10);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(10);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -664,10 +720,14 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane6: "
           << fRegion2_ChamberBack_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(11);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(11);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double x = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
-    double y = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
+    double xLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
+    double yLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Create the hit
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
     if (hit) {
       hit->SetHitNumber(hitcounter++);
@@ -708,42 +768,38 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // rotated around the lab x axis.  We need to correct the slopes for this
   // rotation to obtain the slope with respect to the wire plane.  This means
   // a rotation over -theta around x for z,y.
-  //
-  // Sign observations (because the z axis is pointing towards the incoming
-  // tracks):
-  // - negative slope means that the track is going 'in the direction of' that
-  //   coordinate axis (i.e. negative mx means that the track is going roughly
-  //   in the direction of the x axis),
-  // - positive slope means that the track is going 'against the direction of'
-  //   that coordinate axis.
 
   // Region 3 front planes (u,v)
   QwDebug << "Processing Region3_ChamberFront_WirePlaneU: "
           << fRegion3_ChamberFront_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(0);
   for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
     // We don't care about gamma particles now
     if (fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1) == 2) continue;
 
-    // Get the position and momentum (for slope calculation)
-    double x = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
-    double y = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
-    double xMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
-    double yMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
-    double zMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
+    // Get the position and momentum in the MC frame (local and global)
+    double xLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
+    double yLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
+    double pxGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
+    double pyGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
+    double pzGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
 
-    // Detector rotation around the x axis
-    double cos_theta =   detectorinfo->GetDetectorRotationCos();
-    double sin_theta = - detectorinfo->GetDetectorRotationSin();
-    // Rotation over -theta around x for z,y
-    double xMomentum2 = xMomentum; // no change in x
-    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
-    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
-    // Slopes
-    double mx = xMomentum2 / zMomentum2;
-    double my = yMomentum2 / zMomentum2;
+    // Detector rotation over theta around the x axis in the MC frame
+    double cos_theta = detectorinfo->GetDetectorRotationCos();
+    double sin_theta = detectorinfo->GetDetectorRotationSin();
+    // Rotation over theta around x of z,y in the MC frame
+    double pxLocalMC = pxGlobalMC; // no change in x
+    double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
+    double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
+
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Slopes in the Qweak frame
+    double mx =  pyLocalMC / pzLocalMC;
+    double my = -pxLocalMC / pzLocalMC;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
@@ -757,30 +813,34 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region3_ChamberFront_WirePlaneV: "
           << fRegion3_ChamberFront_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(1);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(1);
   for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VECTOR_SIZE; i2++) {
     QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
     // We don't care about gamma particles
     if (fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2) == 2) continue;
 
-    // Get the position and momentum (for slope calculation)
-    double x = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
-    double y = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
-    double xMomentum = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
-    double yMomentum = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
-    double zMomentum = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
+    // Get the position and momentum in the MC frame (local and global)
+    double xLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
+    double yLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
+    double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
+    double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
+    double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
 
-    // Detector rotation around the x axis
-    double cos_theta =   detectorinfo->GetDetectorRotationCos();
-    double sin_theta = - detectorinfo->GetDetectorRotationSin();
-    // Rotation over -theta around x for z,y
-    double xMomentum2 = xMomentum; // no change in x
-    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
-    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
-    // Slopes
-    double mx = xMomentum2 / zMomentum2;
-    double my = yMomentum2 / zMomentum2;
+    // Detector rotation over theta around the x axis in the MC frame
+    double cos_theta = detectorinfo->GetDetectorRotationCos();
+    double sin_theta = detectorinfo->GetDetectorRotationSin();
+    // Rotation over theta around x of z,y in the MC frame
+    double pxLocalMC = pxGlobalMC; // no change in x
+    double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
+    double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
+
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Slopes in the Qweak frame
+    double mx =  pyLocalMC / pzLocalMC;
+    double my = -pxLocalMC / pzLocalMC;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
@@ -795,30 +855,34 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // Region 3 back planes (u',v')
   QwDebug << "Processing Region3_ChamberBack_WirePlaneU: "
           << fRegion3_ChamberBack_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(2);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(2);
   for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VECTOR_SIZE; i3++) {
     QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
     // We don't care about gamma particles
     if (fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3) == 2) continue;
 
-    // Get the position and momentum (for slope calculation)
-    double x = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
-    double y = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
-    double xMomentum = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
-    double yMomentum = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
-    double zMomentum = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
+    // Get the position and momentum in the MC frame (local and global)
+    double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
+    double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
+    double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
+    double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
+    double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
 
-    // Detector rotation around the x axis
-    double cos_theta =   detectorinfo->GetDetectorRotationCos();
-    double sin_theta = - detectorinfo->GetDetectorRotationSin();
-    // Rotation over -theta around x for z,y
-    double xMomentum2 = xMomentum; // no change in x
-    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
-    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
-    // Slopes
-    double mx = xMomentum2 / zMomentum2;
-    double my = yMomentum2 / zMomentum2;
+    // Detector rotation over theta around the x axis in the MC frame
+    double cos_theta = detectorinfo->GetDetectorRotationCos();
+    double sin_theta = detectorinfo->GetDetectorRotationSin();
+    // Rotation over theta around x of z,y in the MC frame
+    double pxLocalMC = pxGlobalMC; // no change in x
+    double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
+    double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
+
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Slopes in the Qweak frame
+    double mx =  pyLocalMC / pzLocalMC;
+    double my = -pxLocalMC / pzLocalMC;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
@@ -832,30 +896,34 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region3_ChamberBack_WirePlaneV: "
           << fRegion3_ChamberBack_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(3);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(3);
   for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VECTOR_SIZE; i4++) {
     QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
     // We don't care about gamma particles
     if (fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4) == 2) continue;
 
-    // Get the position and momentum (for slope calculation)
-    double x = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
-    double y = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
-    double xMomentum = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
-    double yMomentum = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
-    double zMomentum = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
+    // Get the position and momentum in the MC frame (local and global)
+    double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
+    double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
+    double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
+    double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
+    double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
 
-    // Detector rotation around the x axis
-    double cos_theta =   detectorinfo->GetDetectorRotationCos();
-    double sin_theta = - detectorinfo->GetDetectorRotationSin();
-    // Rotation over -theta around x for z,y
-    double xMomentum2 = xMomentum; // no change in x
-    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
-    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
-    // Slopes
-    double mx = xMomentum2 / zMomentum2;
-    double my = yMomentum2 / zMomentum2;
+    // Detector rotation over theta around the x axis in the MC frame
+    double cos_theta = detectorinfo->GetDetectorRotationCos();
+    double sin_theta = detectorinfo->GetDetectorRotationSin();
+    // Rotation over theta around x of z,y in the MC frame
+    double pxLocalMC = pxGlobalMC; // no change in x
+    double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
+    double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
+
+    // Position in the Qweak frame
+    double x =  yLocalMC;
+    double y = -xLocalMC;
+    // Slopes in the Qweak frame
+    double mx =  pyLocalMC / pzLocalMC;
+    double my = -pxLocalMC / pzLocalMC;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
@@ -870,7 +938,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Trigger Scintillator: "
           << fTriggerScintillator_Detector_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(10).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionIDTrig).in(kPackageUp).at(0);
   for (int i = 0; i < fTriggerScintillator_Detector_NbOfHits && i < 1; i++) {
     QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
@@ -891,7 +959,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Cerenkov: "
           << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(13).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionIDCer).in(kPackageUp).at(0);
   for (int i = 0; i < fCerenkov_Detector_NbOfHits && i < 1; i++) {
     QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
@@ -1025,21 +1093,23 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   int plane = detectorinfo->fPlane;
 
   // Detector geometry
-  // TODO Do we need to worry about u and v differences in offset here?
   double angle = detectorinfo->GetElementAngle();
   double offset = detectorinfo->GetElementOffset();
   double spacing = detectorinfo->GetElementSpacing();
-  int central_wire = (detectorinfo->GetNumberOfElements() + 1) / 2;
 
-  // Make the necessary transformations for the wires
-  // (we are assuming identical offset for u and v)
-  // This transformation object is not used for x (naturally)
-  if (angle < 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
-  Uv2xy uv2xy (90.0 + angle, 90.0 + 180.0 - angle);
-  uv2xy.SetOffset(offset, offset);
-  uv2xy.SetWireSpacing(spacing);
+  // Determine angles for U and V, but we are really only interested in the
+  // current direction, so the other one is arbitrarily set to angleU = -angleV,
+  // which happens to be correct for region 2 and 3 drift chambers.
+  double angleU = 0.0, angleV = Qw::pi/2.0; // default: UV == XY
+  if (direction == kDirectionU) { angleU = angle; angleV = - angle; }
+  if (direction == kDirectionV) { angleU = - angle; angleV = angle; }
+  // Ensure correct handedness
+  if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
+  Uv2xy uv2xy (angleU, angleV);
+
+  // Make the necessary transformations for the wires.
   // The wire coordinate is symbolized as w.
-  double w = 0;
+  double w = 0.0;
   switch (direction) {
     case kDirectionX:
       // Nothing needs to be done for direction X
@@ -1056,14 +1126,13 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
       return 0;
   }
 
-  // Because there is no real HDC central wire, the "central" wire corresponds
-  // to x from -dx to 0.  For region 2 it is equal to 4, i.e. (nwires + 1) / 2.
-  int wire = (int) floor (w / spacing) + central_wire;
+  // The wire number 1 corresponds to w from -0.5*dx to +0.5*dx around offset.
+  int wire = (int) floor ((w - offset) / spacing + 0.5) + 1;
   // Check whether this wire is physical, return null if not possible
   if ((wire < 1) || (wire > detectorinfo->GetNumberOfElements())) return 0;
 
   // Calculate the actual position of this wire
-  double w_wire = (wire - central_wire) * spacing;
+  double w_wire = offset + (wire - 1) * spacing;
 
   // Calculate the drift distance
   double mean_distance = fabs(w - w_wire);
@@ -1099,7 +1168,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
       track enters the VDC and the position where it exits the VDC.  For each
       position we determine the wire that was hit.  The drift distance goes
       linearly from abs(+D/2) to abs(-D/2).  If the drift distance is above
-      a fraction 1/3 of the thickness the hit is discared, otherwise we have
+      a fraction 1/3 of the thickness the hit is discarded, otherwise we have
       too many hits compared with the data...
 
  @param detectorinfo Detector information
@@ -1125,18 +1194,25 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 
   // Detector geometry: wirespacing, width, central wire
   double angle   = detectorinfo->GetElementAngle();
+  double offset  = detectorinfo->GetElementOffset();
   double spacing = detectorinfo->GetElementSpacing();
   double dz = detectorinfo->GetActiveWidthZ();
-  int central_wire = (detectorinfo->GetNumberOfElements() + 1) / 2;
 
   // Create a list for the hits (will be returned)
   std::vector<QwHit> hits;
 
+  // Determine angles for U and V, but we are really only interested in the
+  // current direction, so the other one is arbitrarily set to angleU = -angleV,
+  // which happens to be correct for region 2 and 3 drift chambers.
+  double angleU = 0.0, angleV = Qw::pi/2.0; // default: UV == XY
+  if (direction == kDirectionU) { angleU = angle; angleV = - angle; }
+  if (direction == kDirectionV) { angleU = - angle; angleV = angle; }
+  // Ensure correct handedness
+  if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
+  Uv2xy uv2xy (angleU, angleV);
+
   // Make the necessary transformations for the wires
-  if (angle > 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
-  Uv2xy uv2xy (angle, 180.0 - angle); // angles for U and V
-  double x1, x2;
-  x1 = x2 = 0.0;
+  double x1 = 0.0, x2 = 0.0;
   switch (direction) {
     case kDirectionU:
       x1 = uv2xy.xy2u (x - mx * dz/2, y - my * dz/2);
@@ -1150,6 +1226,8 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
       QwError << "Direction " << direction << " not handled in CreateHitRegion3!" << QwLog::endl;
       return hits;
   }
+  // Ensure correct ordering
+  if (x1 > x2) { double _x1 = x1; x1 = x2; x2 = _x1; }
   // From here we only work with the coordinate x, it is understood that for
   // the u and v planes this is equivalent (by virtue of the previous switch
   // statement) to the u and v coordinates.
@@ -1158,11 +1236,9 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   // for the calculation of the drift distances.
   double x0 = (x1 + x2) / 2.0;
 
-  // The central wire corresponds to x from -0.5*dx to +0.5*dx and should be
-  // equal to 141 for region 3, i.e. (nwires + 1) / 2 for odd nwires.  That is
-  // the reason for the +0.5 in the argument of floor.
-  int wire1 = (int) floor (x1 / spacing + 0.5) + central_wire;
-  int wire2 = (int) floor (x2 / spacing + 0.5) + central_wire;
+  // The wire number 1 corresponds to x from -0.5*dx to +0.5*dx around offset.
+  int wire1 = (int) floor ((x1 - offset) / spacing + 0.5) + 1;
+  int wire2 = (int) floor ((x2 - offset) / spacing + 0.5) + 1;
 
   // Find all wire hits for this detector plane
   for (int wire = wire1; wire <= wire2; wire++) {
@@ -1171,7 +1247,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
     if ((wire < 1) || (wire > detectorinfo->GetNumberOfElements())) continue;
 
     // Calculate the actual position of this wire
-    double x_wire = (wire - central_wire) * spacing;
+    double x_wire = offset + (wire - 1) * spacing;
 
     // The drift distance is just the transverse (with respect to wire plane)
     // distance from the wire to the track, i.e. no angular dependence is
@@ -1246,7 +1322,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
   QwHit* hit = 0;
 
   // Calculate light yield of left hit (element 1)
-  yield = (y_max - y_min) * (x - x_min) / (x_max - x_min) * (x - x_min) / (x_max - x_min) + y_min;
+  yield = static_cast<int>((y_max - y_min) * (x - x_min) / (x_max - x_min) * (x - x_min) / (x_max - x_min) + y_min);
 
   // Create a new hit
   hit = new QwHit(0,0,0,0, region, package, plane, direction, 1, 0);
@@ -1259,9 +1335,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
 
 
   // Calculate light yield of right hit (element 2)
-  yield = (-x - x_min) / (x_max - x_min);
-  yield *= (y_max - y_min) * yield; // squared and scaled
-  yield += y_min; // offset
+  yield = static_cast<int>((y_max - y_min) * (-x - x_min) / (x_max - x_min) * (-x - x_min) / (x_max - x_min) + y_min);
 
   // Create a new hit
   hit = new QwHit(0,0,0,0, region, package, plane, direction, 2, 0);

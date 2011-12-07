@@ -105,7 +105,7 @@ public:
   Int_t                GetFuncCount();
   TObject             *GetGraph(Int_t index, Char_t *type, Char_t *name = NULL);
   Int_t                GetGraphCount();
-  TObject             *GetHistogram(Int_t index, Char_t *type, Char_t *name = NULL);
+  TObject             *GetHistogram(Int_t index, const Char_t *type, const Char_t *name = NULL);
   TObject             *GetProfile(Int_t index, Char_t *type, Char_t *name = NULL);
   Char_t              *GetMessage();
   TH1D                *GetNew1DHistogram(Char_t*,Char_t*,Int_t,Double_t,Double_t);
@@ -124,9 +124,10 @@ public:
   TGraph              *GetNewGraph(const TGraph& gr);
   TProfile            *GetNew1DProfile(const TProfile& prof);
 
-  Int_t                GetNewLineColor(Color_t col);
-  Int_t                GetNewMarkerColor(Color_t col);
-  TObject             *GetObject(Int_t index, Char_t *name = NULL);  
+  Int_t                GetNewLineColor(Color_t col = 0);
+  Int_t                GetNewMarkerColor(Color_t col = 0);
+  TObject             *GetObject(Int_t index, Char_t *name = NULL);
+  TObject             *GetPlot(Int_t index);
   Int_t                GetPlotCount();
   PlotOptions         *GetPlotOptions(){return dPlotOptions;};
 

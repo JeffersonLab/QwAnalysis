@@ -122,7 +122,7 @@ ifeq ($(OSNAME),Linux)
 
    INCLUDES      = -I$(shell root-config --incdir)
    CXX           = g++
-   CXXFLAGS      = -O -Wall -fno-rtti -fno-exceptions -fPIC $(INCLUDES)
+   CXXFLAGS      = -O2 -Wall -fno-rtti -fno-exceptions -fPIC $(INCLUDES)
    LD            = g++
    LDFLAGS       = 
    SOFLAGS       = -shared

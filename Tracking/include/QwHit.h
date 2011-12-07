@@ -12,11 +12,10 @@
 // System headers
 #include <iostream>
 
-// ROOT headers
-#include "TObject.h"
-
 // Qweak headers
 #include "QwTypes.h"
+#include "QwObjectCounter.h"
+#include "VQwTrackingElement.h"
 
 // Forward declarations
 class QwDetectorInfo;
@@ -41,7 +40,7 @@ class QwDetectorInfo;
  *  QwDriftChamber class (although the decoding uses a previous algorithm
  *  and is in the process of being rewritten to support this form).
  */
-class QwHit : public TObject {
+class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
 
  public:
 
@@ -49,8 +48,8 @@ class QwHit : public TObject {
   // (documented in QwHit.cc)
   // @{
   QwHit();
-  QwHit(const QwHit& hit);
-  QwHit(const QwHit* hit);
+  QwHit(const QwHit& that);
+  QwHit(const QwHit* that);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	EQwRegionID region, EQwDetectorPackage package, Int_t plane,
 	EQwDirectionID direction, Int_t wire, UInt_t rawdata = 0);
@@ -59,47 +58,54 @@ class QwHit : public TObject {
   //! \brief Destructor
   virtual ~QwHit();
 
+ private:
+  //! \brief Initialize the hit
+  void Initialize();
+
+ public:
   //! \brief Assignment operator
   QwHit& operator= (const QwHit& hit);
   //! \brief Ordering operator
-  Bool_t operator< (QwHit& hit);
+  Bool_t operator< (const QwHit& hit);
   //! \brief Output stream operator
   friend ostream& operator<< (ostream& stream, const QwHit& hit);
 
   //! \brief Print debugging information
-  void Print();
+  void Print(const Option_t* options = 0) const;
 
   //! \name Getter functions
   // @{
-  const Int_t           GetSubbankID()    const { return fCrate; };
-  const Int_t           GetModule()       const { return fModule; };
-  const Int_t           GetChannel()      const { return fChannel; };
-  const Int_t           GetHitNumber()    const { return fHitNumber; };
-  const Int_t           GetHitNumberR()   const { return fHitNumber_R; };
-  const EQwRegionID     GetRegion()       const { return fRegion; };
-  const EQwDetectorPackage GetPackage()   const { return fPackage; };
-  const EQwDirectionID  GetDirection()    const { return fDirection; };
-  const Int_t           GetPlane()        const { return fPlane; };
-  const Int_t           GetElement()      const { return fElement; };
+  const Int_t&          GetSubbankID()     const { return fCrate; };
+  const Int_t&          GetModule()        const { return fModule; };
+  const Int_t&          GetChannel()       const { return fChannel; };
+  const Int_t&          GetHitNumber()     const { return fHitNumber; };
+  const Int_t&          GetHitNumberR()    const { return fHitNumber_R; };
+  const EQwRegionID&    GetRegion()        const { return fRegion; };
+  const EQwDetectorPackage& GetPackage()   const { return fPackage; };
+  const EQwDirectionID& GetDirection()     const { return fDirection; };
+  const Int_t&          GetPlane()         const { return fPlane; };
+  const Int_t&          GetElement()       const { return fElement; };
 
-  QwDetectorInfo*       GetDetectorInfo() const { return pDetectorInfo; };
+  QwDetectorInfo*       GetDetectorInfo()  const { return pDetectorInfo; };
 
-  const Bool_t          AmbiguousElement()const { return fAmbiguousElement; };
-  const Bool_t          LRAmbiguity()     const { return fLRAmbiguity; };
+  const Bool_t&         AmbiguousElement() const { return fAmbiguousElement; };
+  const Bool_t&         LRAmbiguity()      const { return fLRAmbiguity; };
 
-  const UInt_t&         GetRawTime()      const { return fRawTime; };
-  const Double_t&       GetTime()         const { return fTime; };
-  const Double_t        GetTimeRes()      const { return fTimeRes; };
-  const Double_t&       GetDriftDistance()const { return fDistance; };
-  const Double_t        GetPosition()     const { return fPosition; };
-  const Double_t        GetResidual()     const { return fResidual; };
-  const Double_t        GetZPos()         const { return fZPosition; };
-  const Double_t        GetZPosition()    const { return fZPosition; };
+  const UInt_t&         GetRawTime()       const { return fRawTime; };
+  const Double_t&       GetTime()          const { return fTime; };
+  const Double_t&       GetTimeRes()       const { return fTimeRes; };
+  const Double_t&       GetDriftDistance() const { return fDistance; };
+  const Double_t&       GetDriftPosition() const { return fDriftPosition; };
+  const Double_t&       GetWirePosition()  const { return fWirePosition; };
+  const Double_t&       GetTrackPosition() const { return fTrackPosition; };
+  const Double_t&       GetResidual()      const { return fResidual; };
+  const Double_t&       GetZPos()          const { return fZPosition; };
+  const Double_t&       GetZPosition()     const { return fZPosition; };
 
-  const Bool_t          IsUsed()          const { return fIsUsed; };
+  const Bool_t&         IsUsed()           const { return fIsUsed; };
 
-  const QwDetectorID    GetDetectorID()   const;      // QwHit.cc
-  const QwElectronicsID GetElectronicsID()const;      // QwHit.cc
+  const QwDetectorID    GetDetectorID()    const;      // QwHit.cc
+  const QwElectronicsID GetElectronicsID() const;      // QwHit.cc
   // @}
 
 
@@ -126,7 +132,9 @@ class QwHit : public TObject {
   void SetTime(const Double_t time)                 { fTime = time; };
   void SetTimeRes(const Double_t timeres)           { fTimeRes = timeres; };
   void SetDriftDistance(const Double_t distance)    { fDistance = distance; };
-  void SetPosition(const Double_t position)         { fPosition = position; };
+  void SetDriftPosition(const Double_t position)    { fDriftPosition = position; };
+  void SetWirePosition(const Double_t position)     { fWirePosition = position; };
+  void SetTrackPosition(const Double_t position)    { fTrackPosition = position; };
   void SetResidual(const Double_t residual)         { fResidual = residual; };
   void SetZPos(const Double_t zposition)            { fZPosition = zposition; };
   void SetZPosition(const Double_t zposition)       { fZPosition = zposition; };
@@ -142,9 +150,11 @@ class QwHit : public TObject {
   void SubtractTimeOffset(Double_t timeoffset) { fTime = fTime - timeoffset; };
 
   // three functions and their comments can be found in QwHit.cc,
-  const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
-  const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
-  const Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire);
+  Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
+  Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
+  Bool_t WireMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane, Int_t wire);
+
+  void CalculateResidual() { fResidual = fabs(fDriftPosition - fTrackPosition); };
 
  public:
 
@@ -175,8 +185,11 @@ class QwHit : public TObject {
   Double_t fTimeRes;                 ///< Resolution of time (if appropriate)
   Double_t fDistance;                ///< Perpendicular distance from the wire to the track,
                                      ///  as reconstructed from the drift time
-  Double_t fPosition;                ///< Reconstructed position of the hit in real x, u, v
-                                     ///  coordinates perpendicular to the wires
+  Double_t fDriftPosition;           ///< Position of the decoded hit in the drift cell
+  Double_t fTrackPosition;           ///< Position of the fitted track through the drift cell
+  Double_t fWirePosition;            ///< Lontigudinal position of the hit (this is mainly
+                                     ///  used in region 3 where the z coordinate is taken
+                                     ///  in the wire plane instead of perpendicular to it)
   Double_t fResidual;                ///< Residual of this hit (difference between the drift
                                      ///  distance and the distance to the fitted track)
   Double_t fZPosition;               ///< Lontigudinal position of the hit (this is mainly
@@ -200,7 +213,6 @@ class QwHit : public TObject {
 
   QwHit *next;	        //!	///< next hit
   QwHit *nextdet;	//!	///< next hit in same detector
-  Double_t rResultPos;  	///< Resulting hit position
   Double_t rPos;		///< Position from level I track finding
   Double_t rPos2;		///< Position from level II decoding
 

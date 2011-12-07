@@ -19,13 +19,13 @@ RPlotContainer::RPlotContainer(const TGWindow *p, const TGWindow *main,
   fGraphList = new TList();
   fGraphErList = new TList();
   fGraphAsymErList = new TList();
-  fMultiGraph = new TMultiGraph();
+  // fMultiGraph = new TMultiGraph();
   fD1HistoList = new TList();
   fD1ProfileList = new TList();
   fD2HistoList = new TList();
   fD3HistoList = new TList();
   fFuncList    = new TList();
-  fPlotList->Add(fMultiGraph);
+  // fPlotList->Add(fMultiGraph);
 
   dPlotOptions = new PlotOptions;
   SetDefaultPlotOptions();
@@ -152,84 +152,129 @@ Int_t RPlotContainer::Get2DHistoCount()
 
 Int_t RPlotContainer::GetNewLineColor(Color_t col)
 {
-  Color_t colors[10] = {0,1,2,3,4,5,6,7,8,9};
   Color_t objcol = 0;
-  Int_t   flag = 1;
   TObject *obj = NULL;
+  Color_t colors[50] = {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
   for(int i = 0; i < GetPlotCount(); i++){
     obj = fPlotList->At(i);
     if(obj){
       if(obj->InheritsFrom("TH1")) objcol = ((TH1*)obj)->GetLineColor();
       else if(obj->InheritsFrom("TGraph")) objcol = ((TGraph*)obj)->GetLineColor();
     }
-    if(objcol == col) flag = 0;
-    if(objcol < 10)
-      colors[objcol] = 0;
+    // if(objcol == col) flag = 0;
+    if(objcol < 50)
+      colors[objcol] = 1;
   }
 
-  if(flag) return col;
+  if(col < 50 && colors[col] == 0) return col; 
 
-  for(int j = 0; j < 10; j++){
-    if(colors[j]) return j;
+  for(int j = 0; j < 50; j++){
+    if(!colors[j]) return j;
   }
+  
 
-  return 11; //all basic colors are used, make it gray
+  // Color_t colors[10] = {0,1,2,3,4,5,6,7,8,9};
+  // Color_t objcol = 0;
+  // Int_t   flag = 1;
+  // TObject *obj = NULL;
+  // for(int i = 0; i < GetPlotCount(); i++){
+  //   obj = fPlotList->At(i);
+  //   if(obj){
+  //     if(obj->InheritsFrom("TH1")) objcol = ((TH1*)obj)->GetLineColor();
+  //     else if(obj->InheritsFrom("TGraph")) objcol = ((TGraph*)obj)->GetMarkerColor();
+  //   }
+  //   if(objcol == col) flag = 0;
+  //   if(objcol < 10)
+  //     colors[objcol] = 0;
+  // }
+
+  // if(flag) return col;
+
+  // for(int j = 0; j < 10; j++){
+  //   if(colors[j]) return j;
+  // }
+
+  return 1; //all basic colors are used, make it black
 }
 
 Int_t RPlotContainer::GetNewMarkerColor(Color_t col)
 {
-  Color_t colors[10] = {0,1,2,3,4,5,6,7,8,9};
   Color_t objcol = 0;
-  Int_t   flag = 1;
-
   TObject *obj = NULL;
-//   printf("Plot Count = %d\n",GetPlotCount());
+  Color_t colors[50] = {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   for(int i = 0; i < GetPlotCount(); i++){
     obj = fPlotList->At(i);
     if(obj){
       if(obj->InheritsFrom("TH1")) objcol = ((TH1*)obj)->GetMarkerColor();
       else if(obj->InheritsFrom("TGraph")) objcol = ((TGraph*)obj)->GetMarkerColor();
     }
-    if(objcol == col) flag = 0;
-    if(objcol < 10)
-      colors[objcol] = 0;
+    // if(objcol == col) flag = 0;
+    if(objcol < 50)
+      colors[objcol] = 1;
   }
 
-  if(flag) return col;
+  if(col < 50 && colors[col] == 0) return col; 
 
-  for(int j = 0; j < 10; j++){
-    if(colors[j]) return j;
+  for(int j = 0; j < 50; j++){
+    if(!colors[j]) return j;
   }
 
-  return 11; //all basic colors are used, make it gray
+//   Color_t colors[10] = {0,1,2,3,4,5,6,7,8,9};
+//   Color_t objcol = 0;
+//   Int_t   flag = 1;
+
+//   TObject *obj = NULL;
+// //   printf("Plot Count = %d\n",GetPlotCount());
+//   for(int i = 0; i < GetPlotCount(); i++){
+//     obj = fPlotList->At(i);
+//     if(obj){
+//       if(obj->InheritsFrom("TH1")) objcol = ((TH1*)obj)->GetMarkerColor();
+//       else if(obj->InheritsFrom("TGraph")) objcol = ((TGraph*)obj)->GetMarkerColor();
+//     }
+//     if(objcol == col) flag = 0;
+//     if(objcol < 10)
+//       colors[objcol] = 0;
+//   }
+
+//   if(flag) return col;
+
+//   for(int j = 0; j < 10; j++){
+//     if(colors[j]) return j;
+//   }
+
+  return 1; //all basic colors are used, make it black
 }
 
 void RPlotContainer::SetNewLineColor()
 {
-  for(Int_t i = 0; i < 10; i++){
-    if(GetNewLineColor(i) == i){
-      SetLineColor(i);
-      return;
-    }
-    if(GetNewLineColor(i) == 11){
-      SetLineColor(11);
-      return;
-    }
-  }
+  SetLineColor(GetNewLineColor());
+
+  // for(Int_t i = 0; i < 10; i++){
+  //   if(GetNewLineColor(i) == i){
+  //     SetLineColor(i);
+  //     return;
+  //   }
+  //   if(GetNewLineColor(i) == 11){
+  //     SetLineColor(11);
+  //     return;
+  //   }
+  // }
 }
 
 void RPlotContainer::SetNewMarkerColor()
 {
-  for(Int_t i = 0; i < 10; i++){
-    if(GetNewMarkerColor(i) == i){
-      SetMarkerColor(i);
-      return;
-    }
-    if(GetNewMarkerColor(i) == 11){
-      SetMarkerColor(11);
-      return;
-    }
-  }
+  SetMarkerColor(GetNewMarkerColor());
+  // for(Int_t i = 0; i < 10; i++){
+  //   if(GetNewMarkerColor(i) == i){
+  //     SetMarkerColor(i);
+  //     return;
+  //   }
+  //   if(GetNewMarkerColor(i) == 11){
+  //     SetMarkerColor(11);
+  //     return;
+  //   }
+  // }
 }
 
 void RPlotContainer::RemovePlot(TObject *obj)
@@ -286,8 +331,6 @@ void RPlotContainer::ClearPlots()
     fPlotList->Delete("slow");
   }
   if(fMultiGraph) delete fMultiGraph; 
-  fMultiGraph = new TMultiGraph();
-  fPlotList->Add(fMultiGraph);
 
   dPlotCount = 0;
 }
@@ -471,10 +514,15 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(TObject *obj, const char *title
 {
   char temp[NAME_STR_MAX];
 
-  if(!fMultiGraph) return NULL;
   if(!obj) return NULL;
   if(!obj->InheritsFrom("TGraph")) return NULL;
   if(!type) return NULL;
+
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) return NULL;
+    fPlotList->Add(fMultiGraph);
+  }
 
   if(!strcmp(type,"TGraph")){
     TGraph *gr = new TGraph(*(TGraph*)obj->Clone());
@@ -482,7 +530,7 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(TObject *obj, const char *title
       sprintf(temp,"%s_cp",gr->GetName());
       gr->SetName(temp);
       fGraphList->Add(gr);
-      fPlotList->Add(gr);
+      // fPlotList->Add(gr);
       fMultiGraph->Add(gr,opts);
       return fMultiGraph;
     }
@@ -493,7 +541,7 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(TObject *obj, const char *title
       sprintf(temp,"%s_cp",gr->GetName());
       gr->SetName(temp);
       fGraphErList->Add(gr);
-      fPlotList->Add(gr);
+      // fPlotList->Add(gr);
       fMultiGraph->Add(gr,opts);
       return fMultiGraph;
     }
@@ -504,7 +552,7 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(TObject *obj, const char *title
       sprintf(temp,"%s_cp",gr->GetName());
       gr->SetName(temp);
       fGraphAsymErList->Add(gr);
-      fPlotList->Add(gr);
+      // fPlotList->Add(gr);
       fMultiGraph->Add(gr,opts);
       return fMultiGraph;
     }
@@ -521,6 +569,12 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(const char* name, const char *t
   if(!x || !y) return NULL;
   if(!type) return NULL;
 
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) return NULL;
+    fPlotList->Add(fMultiGraph);
+  }
+
   if(!strcmp(type,"TGraph")){
     TGraph *gr = new TGraph(n,x,y);
     if(gr){
@@ -533,7 +587,7 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(const char* name, const char *t
       gr->SetMarkerStyle(dPlotOptions->markerStyle);
       gr->SetMarkerColor(dPlotOptions->markerColor);    
       fGraphList->Add(gr);
-      fPlotList->Add(gr);
+      // fPlotList->Add(gr);
       fMultiGraph->Add(gr,opts);
       return fMultiGraph;
     }
@@ -550,7 +604,7 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(const char* name, const char *t
       gr->SetMarkerStyle(dPlotOptions->markerStyle);
       gr->SetMarkerColor(dPlotOptions->markerColor);    
       fGraphErList->Add(gr);
-      fPlotList->Add(gr);
+      // fPlotList->Add(gr);
       fMultiGraph->Add(gr,opts);
       return fMultiGraph;
     }
@@ -567,7 +621,7 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(const char* name, const char *t
       gr->SetMarkerStyle(dPlotOptions->markerStyle);
       gr->SetMarkerColor(dPlotOptions->markerColor);    
       fGraphAsymErList->Add(gr);
-      fPlotList->Add(gr);
+      // fPlotList->Add(gr);
       fMultiGraph->Add(gr,opts);
       return fMultiGraph;
     }
@@ -579,21 +633,27 @@ TGraphAsymmErrors *RPlotContainer::GetNewAsymErrorGraph(const TGraphAsymmErrors&
 {
   char temp[NAME_STR_MAX];
   TGraphAsymmErrors *gr = new TGraphAsymmErrors(*(TGraphAsymmErrors*)grph.Clone());
-  if(gr){
-    sprintf(temp,"%s_cp",gr->GetName());
-    gr->SetName(temp);
-    gr->SetLineWidth(dPlotOptions->lineWidth);
-    gr->SetLineStyle(dPlotOptions->lineStyle);
-    gr->SetLineColor(dPlotOptions->lineColor);
-    gr->SetMarkerSize(dPlotOptions->markerSize);
-    gr->SetMarkerStyle(dPlotOptions->markerStyle);
-    gr->SetMarkerColor(dPlotOptions->markerColor);
-    fGraphAsymErList->Add(gr);
-    fMultiGraph->Add(gr,"p");
-    fPlotList->Add(gr);
-    return gr;
+
+  if(!gr) return NULL;  
+
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) {delete gr; return NULL;}
+    fPlotList->Add(fMultiGraph);
   }
-  return NULL;  
+
+  sprintf(temp,"%s_cp",gr->GetName());
+  gr->SetName(temp);
+  gr->SetLineWidth(dPlotOptions->lineWidth);
+  gr->SetLineStyle(dPlotOptions->lineStyle);
+  gr->SetLineColor(dPlotOptions->lineColor);
+  gr->SetMarkerSize(dPlotOptions->markerSize);
+  gr->SetMarkerStyle(dPlotOptions->markerStyle);
+  gr->SetMarkerColor(dPlotOptions->markerColor);
+  fGraphAsymErList->Add(gr);
+  fMultiGraph->Add(gr,"p");
+  // fPlotList->Add(gr);
+  return gr;
 }
 
 
@@ -604,41 +664,51 @@ TGraphAsymmErrors *RPlotContainer::GetNewAsymErrorGraph(Char_t* name, Char_t* ti
 							Double_t *eyh)
 {
   TGraphAsymmErrors *gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);
-  if(gr){
-    gr->SetName(name);
-    gr->SetLineWidth(dPlotOptions->lineWidth);
-    gr->SetLineStyle(dPlotOptions->lineStyle);
-    gr->SetLineColor(dPlotOptions->lineColor);
-    gr->SetMarkerSize(dPlotOptions->markerSize);
-    gr->SetMarkerStyle(dPlotOptions->markerStyle);
-    gr->SetMarkerColor(dPlotOptions->markerColor);
-    fGraphAsymErList->Add(gr);
-    fPlotList->Add(gr);
-    fMultiGraph->Add(gr,"p");
-    return gr;
+
+  if(!gr) return NULL;  
+
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) {delete gr; return NULL;}
+    fPlotList->Add(fMultiGraph);
   }
-  return NULL;
+
+  gr->SetName(name);
+  gr->SetLineWidth(dPlotOptions->lineWidth);
+  gr->SetLineStyle(dPlotOptions->lineStyle);
+  gr->SetLineColor(dPlotOptions->lineColor);
+  gr->SetMarkerSize(dPlotOptions->markerSize);
+  gr->SetMarkerStyle(dPlotOptions->markerStyle);
+  gr->SetMarkerColor(dPlotOptions->markerColor);
+  fGraphAsymErList->Add(gr);
+  // fPlotList->Add(gr);
+  fMultiGraph->Add(gr,"p");
+  return gr;
 }
 
 TGraphErrors *RPlotContainer::GetNewErrorGraph(const TGraphErrors& grph)
 {
   char temp[NAME_STR_MAX];
   TGraphErrors *gr = new TGraphErrors(*(TGraphErrors*)grph.Clone());
-  if(gr){
-    sprintf(temp,"%s_cp",gr->GetName());
-    gr->SetName(temp);
-    gr->SetLineWidth(dPlotOptions->lineWidth);
-    gr->SetLineStyle(dPlotOptions->lineStyle);
-    gr->SetLineColor(dPlotOptions->lineColor);
-    gr->SetMarkerSize(dPlotOptions->markerSize);
-    gr->SetMarkerStyle(dPlotOptions->markerStyle);
-    gr->SetMarkerColor(dPlotOptions->markerColor);
-    fGraphErList->Add(gr);
-    fPlotList->Add(gr);
-    fMultiGraph->Add(gr,"p");
-    return gr;
+  if(!gr) return NULL;  
+
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) {delete gr; return NULL;}
+    fPlotList->Add(fMultiGraph);
   }
-  return NULL;
+  sprintf(temp,"%s_cp",gr->GetName());
+  gr->SetName(temp);
+  gr->SetLineWidth(dPlotOptions->lineWidth);
+  gr->SetLineStyle(dPlotOptions->lineStyle);
+  gr->SetLineColor(dPlotOptions->lineColor);
+  gr->SetMarkerSize(dPlotOptions->markerSize);
+  gr->SetMarkerStyle(dPlotOptions->markerStyle);
+  gr->SetMarkerColor(dPlotOptions->markerColor);
+  fGraphErList->Add(gr);
+  // fPlotList->Add(gr);
+  fMultiGraph->Add(gr,"p");
+  return gr;
 }
 
 TGraphErrors *RPlotContainer::GetNewErrorGraph(Char_t* name, Char_t* title, 
@@ -647,63 +717,80 @@ TGraphErrors *RPlotContainer::GetNewErrorGraph(Char_t* name, Char_t* title,
 					       Double_t *ey)
 {
   TGraphErrors *gr = new TGraphErrors(n,x,y,ex,ey);
-  if(gr){
-    gr->SetName(name);
-    gr->SetTitle(title);
-    gr->SetLineWidth(dPlotOptions->lineWidth);
-    gr->SetLineStyle(dPlotOptions->lineStyle);
-    gr->SetLineColor(dPlotOptions->lineColor);
-    gr->SetMarkerSize(dPlotOptions->markerSize);
-    gr->SetMarkerStyle(dPlotOptions->markerStyle);
-    gr->SetMarkerColor(dPlotOptions->markerColor);
-    fGraphErList->Add(gr);
-    fPlotList->Add(gr);
-    fMultiGraph->Add(gr,"p");
-    return gr;
+  if(!gr) return NULL;  
+
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) {delete gr; return NULL;}
+    fPlotList->Add(fMultiGraph);
   }
-  return NULL;
+  gr->SetName(name);
+  gr->SetTitle(title);
+  gr->SetLineWidth(dPlotOptions->lineWidth);
+  gr->SetLineStyle(dPlotOptions->lineStyle);
+  gr->SetLineColor(dPlotOptions->lineColor);
+  gr->SetMarkerSize(dPlotOptions->markerSize);
+  gr->SetMarkerStyle(dPlotOptions->markerStyle);
+  gr->SetMarkerColor(dPlotOptions->markerColor);
+  fGraphErList->Add(gr);
+  // fPlotList->Add(gr);
+  fMultiGraph->Add(gr,"p");
+  return gr;
 }
 
 TGraph *RPlotContainer::GetNewGraph(const TGraph& grph)
 {
   char temp[NAME_STR_MAX];
   TGraph *gr = new TGraph(*(TGraph*)grph.Clone());
-  if(gr){
-    sprintf(temp,"%s_cp",gr->GetName());
-    gr->SetName(temp);
-    gr->SetMarkerColor(dPlotOptions->markerColor);
-    gr->SetMarkerStyle(dPlotOptions->markerStyle);
-    gr->SetMarkerSize(dPlotOptions->markerSize);
-    gr->SetLineWidth(dPlotOptions->lineWidth);
-    gr->SetLineStyle(dPlotOptions->lineStyle);	
-    gr->SetLineColor(dPlotOptions->lineColor);
-    fGraphList->Add(gr);
-    fPlotList->Add(gr);
-    fMultiGraph->Add(gr,"p");
-    return gr;
+  if(!gr) return NULL;  
+
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) {delete gr; return NULL;}
+    fPlotList->Add(fMultiGraph);
   }
-  return NULL;
+  sprintf(temp,"%s_cp",gr->GetName());
+  gr->SetName(temp);
+  gr->SetMarkerColor(dPlotOptions->markerColor);
+  gr->SetMarkerStyle(dPlotOptions->markerStyle);
+  gr->SetMarkerSize(dPlotOptions->markerSize);
+  gr->SetLineWidth(dPlotOptions->lineWidth);
+  gr->SetLineStyle(dPlotOptions->lineStyle);	
+  gr->SetLineColor(dPlotOptions->lineColor);
+  fGraphList->Add(gr);
+  // fPlotList->Add(gr);
+  fMultiGraph->Add(gr,"p");
+  return gr;
 }
 
 TGraph *RPlotContainer::GetNewGraph(Char_t *name, Char_t *title, Int_t n, 
 				    Double_t *x, Double_t *y)
 {
   TGraph *gr = new TGraph(n,x,y);
-  if(gr){
-    gr->SetName(name);
-    gr->SetTitle(title);
-    gr->SetLineWidth(dPlotOptions->lineWidth);
-    gr->SetLineStyle(dPlotOptions->lineStyle);
-    gr->SetLineColor(dPlotOptions->lineColor);
-    gr->SetMarkerSize(dPlotOptions->markerSize);
-    gr->SetMarkerStyle(dPlotOptions->markerStyle);
-    gr->SetMarkerColor(dPlotOptions->markerColor);
-    fGraphList->Add(gr);
-    fPlotList->Add(gr);
-    fMultiGraph->Add(gr,"p");
-    return gr;
+  if(!gr) return NULL;  
+
+  if(!fMultiGraph){
+    fMultiGraph = new TMultiGraph();
+    if(!fMultiGraph) {delete gr; return NULL;}
+    fPlotList->Add(fMultiGraph);
   }
-  return NULL;
+  gr->SetName(name);
+  gr->SetTitle(title);
+  gr->SetLineWidth(dPlotOptions->lineWidth);
+  gr->SetLineStyle(dPlotOptions->lineStyle);
+  gr->SetLineColor(dPlotOptions->lineColor);
+  gr->SetMarkerSize(dPlotOptions->markerSize);
+  gr->SetMarkerStyle(dPlotOptions->markerStyle);
+  gr->SetMarkerColor(dPlotOptions->markerColor);
+  fGraphList->Add(gr);
+  // fPlotList->Add(gr);
+  fMultiGraph->Add(gr,"p");
+  return gr;
+}
+
+TObject *RPlotContainer::GetPlot(Int_t index)
+{
+  return GetObject(index, NULL);
 }
 
 TObject *RPlotContainer::GetObject(Int_t index, Char_t *name)
@@ -730,8 +817,8 @@ TObject *RPlotContainer::GetObject(Int_t index, Char_t *name)
   return NULL;
 }
 
-TObject *RPlotContainer::GetHistogram(Int_t index, Char_t *type, 
-				      Char_t *name)
+TObject *RPlotContainer::GetHistogram(Int_t index, const Char_t *type, 
+				      const Char_t *name)
 {
   if(!type) return NULL;
 

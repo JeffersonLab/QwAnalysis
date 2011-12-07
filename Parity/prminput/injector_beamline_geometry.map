@@ -1,0 +1,67 @@
+!**************************************************************************
+! Geometry information for the BPMs in Injector beamline.
+!**************************************************************************
+! [Last updated by buddhini(buddhini@jlab.org) on 12-07-2010]
+!
+! 12-07-2010  B.Waidyawansa  Created from qweak_beamline_geometry.map
+!
+!
+! 02-28-2011  B.Waidyawansa  Added rotation status. There are three options:
+!			   	'rotation=xx' where xx is some angle in degrees (no spaces).
+!				'unrotated' this will se the rotation angle to zero.
+!				 no keyword in the column indicates using the default rotation angle of 45 degrees.
+!			     By default, all the bpms are assumed to be rotated clockwise around Z+ (beam direction) by 45 degrees w.r.t. X axis.
+!  			     Added the AlphaX, AlphaY and BSEN factors obtained from EPICS.
+!
+! Description of variables:
+!-----------------------------
+! X/Yoffset - The difference in the ideal position and the surveyed position of a BPM in X/Y axis.
+!
+! Z offset  - The location of the BPM in the injector beamline. Need to fill this.
+!             to the center of the device/ origin of device coordinate system.
+
+! BSEN scaling factor - Bpm SENsitivity scaling factor is the ratio of general BSEN = 18.81 adc counts/mm 
+!                       seen in most of the BPMs in the hall and the actual BSEN of a BPM. 
+!                       The first set of bpms in the injector beamline have a BSEN = 13.7. So their BSE factor = 13.7/18.81 ~ 0.7283
+!                       So we use this factor to apply such changes.
+!
+! AlphaX/Y  - Relative gains of the individual XM,YM pairs compared to XP,YP pairs for the BPMs
+!            - X and Y ADC counts to mm conversion factors for the QPD (counts/mm).
+! 
+! The units of the offsets are in millemeters to be comparable with the units of the analysis results.
+!
+!
+! For BPMs that don't have factors or offsets given in the list below, default values will
+! be assigned. 
+!   default  offset (X/Y/Z) = 0.0
+!   default BSEN scaling factor = 18.81
+!   default AlphaX/AlphaY = 1.0
+!
+! device type, device_name,   Xoffset, Yoffset,  Zoffset, BSEN factor,  AlpaX,    AlpaY,         rotation
+!	
+ bpmstripline,   QWK_1I02,      0.0,    0.0          0.0,       0.7283,	1.08093,   0.981316,     unrotated
+ bpmstripline,   QWK_1I04,      0.0,    0.0          0.0,       0.7283,	0.943577,  0.997052,     unrotated
+ bpmstripline,   QWK_1I06,      0.0,    0.0          0.0,       0.7283,	1.03493,   1.02038,      unrotated
+ bpmstripline,   QWK_0I01,      0.0,    0.0          0.0,       0.734,  1.053700,  1.032170,     unrotated
+ bpmstripline,   QWK_0I01A,     0.0,    0.0          0.0,       0.734,  1.006630,  0.923753,     unrotated
+ bpmstripline,   QWK_0I02,      0.0,    0.0          0.0,       0.7283,	1.00137,   0.888284,     unrotated
+ bpmstripline,   QWK_0I02A,     0.0,    0.0          0.0,       0.7283,	1.01343,   1.05308,      unrotated
+ bpmstripline,   QWK_0I05,      0.0,    0.0          0.0,       0.7283,	1.33584,   0.981869,     unrotated
+ bpmstripline,   QWK_0I07,      0.0,    0.0          0.0,       0.7283,	0.988324,  1.08059,      unrotated
+ bpmstripline,   QWK_0L01,      0.0,    0.0          0.0,       1.0,  	0.992225,  0.9624,     
+ bpmstripline,   QWK_0L02,      0.0,    0.0          0.0,       1.0,  	0.995954,  1.00242,     
+ bpmstripline,   QWK_0L03,      0.0,    0.0          0.0,       1.0,  	0.922674,  0.938655,     
+ bpmstripline,   QWK_0L04,      0.0,    0.0          0.0,       1.0,  	1.00971,   0.951593,    
+ bpmstripline,   QWK_0L05,      0.0,    0.0          0.0,       1.0,  	1.08104,   1.08872,     
+ bpmstripline,   QWK_0L06,      0.0,    0.0          0.0,       1.0,  	1.00268,   1.08067,     
+ bpmstripline,   QWK_0L07,      0.0,    0.0          0.0,       1.0,  	1.05915,   0.981831,     
+ bpmstripline,   QWK_0L08,      0.0,    0.0          0.0,       1.0,  	0.947238,  1.03771,     
+ bpmstripline,   QWK_0L09,      0.0,    0.0          0.0,       1.0,  	0.993246,  1.00114,     
+ bpmstripline,   QWK_0L10,      0.0,    0.0          0.0,       1.0,  	0.982111,  1.00883,     
+ bpmstripline,   QWK_0R03       0.0,    0.0          0.0,       1.0,  	0.961462,  0.98283,     
+ bpmstripline,   QWK_0R04,      0.0,    0.0          0.0,       1.0,  	1.0651,    1.07899,     
+ bpmstripline,   QWK_0R05,      0.0,    0.0          0.0,       1.0,  	0.949823,  0.995016,     
+ bpmstripline,   QWK_0R06,      0.0,    0.0          0.0,       1.0,  	0.988932,  1.00676,     
+ qpd,            QWK_QPD,       0.0,    0.0,         0.0,  	0.0,   -0.1098,    0.5744,  
+  
+!END

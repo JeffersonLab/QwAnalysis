@@ -1,6 +1,5 @@
 #include "QwHitRootContainer.h"
-
-ClassImp(QwHitRootContainer);
+ClassImp(QwHitRootContainer)
 
 // Initialize the static list of QwHits
 TClonesArray *QwHitRootContainer::gQwHits = 0;
@@ -13,7 +12,7 @@ QwHitRootContainer::QwHitRootContainer()
   // Set local TClonesArray to static TClonesArray and zero hits
   fQwHits = gQwHits;
   fQwHits->Clear();
-};
+}
 
 // Destructor
 QwHitRootContainer::~QwHitRootContainer()
@@ -22,27 +21,27 @@ QwHitRootContainer::~QwHitRootContainer()
   Reset();
   // Set local TClonesArray to null
   fQwHits = 0;
-};
+}
 
 // Clear the local TClonesArray
 void QwHitRootContainer::Clear(Option_t *option)
 {
   fQwHits->Clear(option);
   fNQwHits = 0;
-};
+}
 
 void QwHitRootContainer::Delete(Option_t *option)
 {
   fQwHits->Delete(option);
   fNQwHits = 0;
-};
+}
 
 // Delete the static TClonesArray
 void QwHitRootContainer::Reset(Option_t *option)
 {
   delete gQwHits;
   gQwHits = 0;
-};
+}
 
 // Add an existing QwHit
 void QwHitRootContainer::AddHit(QwHit *hit)
@@ -50,14 +49,14 @@ void QwHitRootContainer::AddHit(QwHit *hit)
   TClonesArray &hits = *fQwHits;
   QwHit *newhit = new (hits[fNQwHits++]) QwHit();
   *newhit = *hit;
-};
+}
 
 void QwHitRootContainer::AddQwHit(QwHit &in)
 {
   TClonesArray &hits = *fQwHits;
   new (hits[fNQwHits++]) QwHit(in);
   return;
-};
+}
 
 // Convert from a QwHitContainer hitlist to the TOrdCollection
 void QwHitRootContainer::Convert(QwHitContainer *hitlist)
@@ -85,27 +84,26 @@ void QwHitRootContainer::Build(QwHitContainer &hitcontainer)
 }
 
 // Convert from this TOrdCollection to a QwHitContainer hitlist
-QwHitContainer* QwHitRootContainer::Convert()
+QwHitContainer* QwHitRootContainer::Convert() const
 {
   QwHitContainer* hitlist = new QwHitContainer();
   TIterator* iterator = fQwHits->MakeIterator();
   QwHit* hit = 0;
-  while ((hit = (QwHit*) iterator->Next())) {
+  while ((hit = dynamic_cast<QwHit*>(iterator->Next())))
     hitlist->push_back(*hit);
-  }
   return hitlist;
 }
 
 // Print the TOrdCollection hitlist
-void QwHitRootContainer::Print()
+void QwHitRootContainer::Print(Option_t* option) const
 {
   TIterator* iterator = fQwHits->MakeIterator();
   QwHit* hit = 0;
-  while ((hit = (QwHit*) iterator->Next()))
+  while ((hit = dynamic_cast<QwHit*>(iterator->Next())))
     std::cout << *hit << std::endl;
 }
 
-QwHit *QwHitRootContainer::GetHit (Int_t hitID) const
+QwHit* QwHitRootContainer::GetHit (Int_t hit) const
 {
-  return (QwHit*) fQwHits->At(hitID);
+  return dynamic_cast<QwHit*>(fQwHits->At(hit));
 }

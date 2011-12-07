@@ -22,6 +22,7 @@
 #include "QwBeamLine.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
+#include "QwParityDB.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
@@ -85,8 +86,7 @@ int main(int argc, char* argv[])
   QwHelicityPattern helicitypattern(detectors);
 
   // Running sum
-  QwSubsystemArrayParity runningsum;
-  runningsum.Copy(&detectors);
+  QwSubsystemArrayParity runningsum(detectors);
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
               run++) {
 
     // Data file (input)
-    TString datafilename = TString("QwMock_") + Form("%ld.log",run);
+    TString datafilename = TString("QwMock_") + Form("%d.log",run);
     if (eventbuffer.OpenDataFile(datafilename,"R") != CODA_OK) {
       std::cout << "Error: could not open file!" << std::endl;
       return 0;
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 
 
     // ROOT file output (histograms)
-    TString rootfilename = getenv_safe_TString("QW_ROOTFILES") + TString("/QwMock_") + Form("%ld.root",run);
+    TString rootfilename = getenv_safe_TString("QW_ROOTFILES") + TString("/QwMock_") + Form("%d.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();
@@ -242,11 +242,6 @@ int main(int argc, char* argv[])
 
     // Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
-    // Delete histograms
-    if (bHisto) {
-      detectors.DeleteHistograms();
-      if (bHelicity) helicitypattern.DeleteHistograms();
-    }
 
     // Close data file and print run summary
     eventbuffer.CloseDataFile();
@@ -254,7 +249,7 @@ int main(int argc, char* argv[])
 
     // Write to database
     if (bDatabase) {
-      QwDatabase* qweak_database  = new QwDatabase();
+      QwParityDB* qweak_database  = new QwParityDB();
       QwMessage << "GetMonitorID(qwk_batext2) = " << qweak_database->GetMonitorID("qwk_batext2") << QwLog::endl;
       QwMessage << "GetMonitorID(phasemonitor) = " << qweak_database->GetMonitorID("phasemonitor") << QwLog::endl;
       QwMessage << "GetMonitorID(qwk_junk) = " << qweak_database->GetMonitorID("qwk_junk") << QwLog::endl;

@@ -1,0 +1,23 @@
+<Request>
+  <Email email="%USER%@jlab.org" request="false" job="true"/>
+  <Project name="qweak"/>
+  <Track name="one_pass"/>
+  <Name name="QwTracking_%run%"/>
+  <Command><![CDATA[
+date
+whoami
+hostname
+setenv QWSCRATCH %QWSCRATCH%
+setenv QWANALYSIS %QWANALYSIS%
+source $QWANALYSIS/SetupFiles/SET_ME_UP.csh
+$QWANALYSIS/bin/qwtracking -r %run% --QwTracking.disable-momentum
+jobstat | grep %USER%
+  ]]></Command>
+
+  <Job>
+    <Stdout dest="%QWSCRATCH%/jobs/QwTracking_%run%.out"/>
+    <Stderr dest="%QWSCRATCH%/jobs/QwTracking_%run%.err"/>
+  </Job>
+
+</Request>
+

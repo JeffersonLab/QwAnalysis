@@ -6,7 +6,7 @@
 \**********************************************************/
 
 #ifndef __QwHALO_MONITOR__
-#define __QwHALO_MONITOR_
+#define __QwHALO_MONITOR__
 
 // System headers
 #include <vector>
@@ -17,11 +17,10 @@
 // Qweak headers
 #include "QwParameterFile.h"
 #include "QwScaler_Channel.h"
+#include "VQwHardwareChannel.h"
 
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
+// Forward declarations
+class QwDBInterface;
 
 /*****************************************************************
 *  Class: QwHaloMonitor handles the halo counters. This use
@@ -37,13 +36,31 @@ class  QwHaloMonitor : public VQwDataElement{
   QwHaloMonitor(TString name){
     InitializeChannel(name);
   };
-  ~QwHaloMonitor() {DeleteHistograms();};
+
+  QwHaloMonitor(TString subsystemname, TString name){
+    InitializeChannel(subsystemname, name);
+  };
+  virtual ~QwHaloMonitor() { };
 
   void  InitializeChannel(TString name);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name);
   void  ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    fHalo_Counter.LoadChannelParameters(paramfile);
+  }
+  std::string GetExternalClockName() { return fHalo_Counter.GetExternalClockName(); };
+  Bool_t NeedsExternalClock() { return fHalo_Counter.NeedsExternalClock(); };
+  void SetExternalClockPtr( const VQwHardwareChannel* clock) {fHalo_Counter.SetExternalClockPtr(clock);};
+  void SetExternalClockName( const std::string name) { fHalo_Counter.SetExternalClockName(name);};
+  Double_t GetNormClockValue() { return fHalo_Counter.GetNormClockValue();}
+
+
+
   void  ReportErrorCounters();//This will display the error summary for each device
   void  UpdateHWErrorCount();//Update error counter for HW faliure
-  
+
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
 
@@ -55,23 +72,55 @@ class  QwHaloMonitor : public VQwDataElement{
   void Ratio(QwHaloMonitor &numer, QwHaloMonitor &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
+  void ScaleRawRate(Double_t Offset){
+    fHalo_Counter.ScaleRawRate(Offset);
+  };
 
+  void     SetPedestal(Double_t ped) { fHalo_Counter.SetPedestal(ped); };
+  void     SetCalibrationFactor(Double_t factor) { fHalo_Counter.SetCalibrationFactor(factor); };
   void AccumulateRunningSum(const QwHaloMonitor& value);
+  void DeaccumulateRunningSum(QwHaloMonitor& value);
   void CalculateRunningAverage();
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
+  UInt_t GetEventcutErrorFlag(){return fHalo_Counter.GetEventcutErrorFlag();};
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fHalo_Counter.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(QwHaloMonitor *ev_error);
+
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t ApplyHWChecks();
-  void   ConstructHistograms(TDirectory *folder, TString &prefix);
-  void   FillHistograms();
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
+    fHalo_Counter.SetSingleEventCuts(errorflag,min,max,stability);
+  };
+  void SetEventCutMode(Int_t bcuts){
+    fHalo_Counter.SetEventCutMode(bcuts);
+  }
+
+
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
+  void  FillHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
-  void  DeleteHistograms();
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  void  Copy(VQwDataElement *source);
+  VQwHardwareChannel* GetScaler(){
+    return &fHalo_Counter;
+  };
+
+  const VQwHardwareChannel* GetScaler() const{
+    return const_cast<QwHaloMonitor*>(this)->GetScaler();
+  };
+
+  Double_t GetValue() {
+    return fHalo_Counter.GetValue();
+  }
+  void  Copy(const VQwDataElement *source);
 
   void  PrintValue() const;
   void  PrintInfo() const;
@@ -87,7 +136,7 @@ class  QwHaloMonitor : public VQwDataElement{
 
   Int_t  fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
-  Bool_t fEventIsGood;
+
 };
 
 

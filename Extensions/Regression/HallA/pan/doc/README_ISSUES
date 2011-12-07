@@ -1,0 +1,188 @@
+
+Comments by R. Michaels, 1 June 2009
+------------------------------------
+
+When we added PVDIS variables we realized the PVDIS
+scalers are behind the rest of the DAQ by 1 event.
+The reason: When a trigger supervisor (TS) trigger
+comes, it is slightly before a LNE (load next event)
+used to load the scaler data for PVDIS.  Hence when
+the readout code is executed and flushes the FIFO
+of the scaler, it reads the previous event data.
+I claim the gating for PVDIS scalers is precise
+but was not precise for the rest of HAPPEX DAQ.
+I'll post an explanation with graphs in the HAPLOG
+at some point.  The synch of the two datastreams
+is controlled with a variable
+VaEvent::fPvdisPhaseShift 
+which is set =0 by default.
+We need to make this variable controlled by the
+database file ... to be done.
+
+
+Comments by R. Holmes, 16 Jun 2004
+----------------------------------
+
+On the application of corrections: lots of things to improve, but at
+the most basic level: (1) Needs to be made to work with dithering.
+But I'd like to see the dither and regression results files made more
+compatible first.  (2) It's hard to read all the needed coefficients
+in a single pass through the results file; it's easier to reopen it
+for each coefficient needed.  This produces multiple messages on
+screen which are not very helpful.  I tried using seekg to eliminate
+the need to close and reopen the file but could not get it to work the
+way I thought it would.  (3) Right now only det1 and det3 are
+corrected; need to do others too, once things are working well
+enough.  (4) Last but not least, a quick look at results for one run
+seems to indicate no narrowing of the detector widths after
+correction, so I suspect corrections are being either computed wrong
+or applied wrong.  Probably the latter.
+
+
+Comments by R. Michaels, 14 May 2004
+------------------------------------
+
+Why don't we fEvtree->Write() in TaRun::Finish() ?
+I don't get it.  It was absolutely necessary for
+fEpicsTree; perhaps fEvtree is only partially written.
+I leave it a question for now.
+
+Do we need TaPanamLinkDef.hh now ?
+
+
+Comments by R. Holmes, 14 Jan 2003
+----------------------------------
+
+Some leftover issues relating to the results database files,
+specifically relating to the CRC checksum for the analysis control
+database : 
+
+First, I'd like to write the checksum to the ROOT file, but I'm not
+sure how best to do it.  So it's not done yet.
+
+Second, the checksum (arguably, anyway) should reflect the database
+actually used, i.e. with the command line overrides applied; it
+doesn't.  And the checksum is not computed if the database comes from
+a ROOT file.  (Once I figure out how to write the checksum to the ROOT
+file, it'll be straightforward to fix this latter issue by just
+reading it back and using that.)
+
+All the above may be a lot of hooha over nothing, if the checksum is
+never actually found to be useful.  The idea is that we can avoid
+having to wonder what database was used to produce a particular set of
+results. 
+
+
+Comments by R. Michaels, Oct 21, 2002
+-------------------------------------
+
+The Mysql Perl script must still be developed.  The deadline
+is Christmas 2002.  We will make the start-of-run write automatic
+database files, as well as automatically update the Mysql database.
+Some of the variables must be retrieved from the "Green Monstor"
+(our control software for setting up VME parameters).
+
+We probably should delete the entire ./pandb directory tree,
+or substantially reduce it.  I think the only useful thing 
+there now is the perl script. (?)
+
+When you "Put()" data to database, the output file is in a funny
+order because STL map reshuffles things.  Not a big deal.
+
+
+Comments by R. Holmes, 20 Aug 2002
+----------------------------------
+
+(1) In places we have various devices hard-coded into Pan.  For
+instance, BCM1 is used for beam cuts and for feedback (and I'm working
+on a mod to VaAnalysis that provides for normalized asymmetries, again
+using BCM1), BPM4B is used for position feedback.  I'd like to be able
+to select these in the database instead.  Probably it's best to be
+able to select the feedback BCM separately from the beam cuts and
+normalization BCM (or even all three separately, though that might be
+over the top).  Comments?  Bob, could you put this into the database
+class?
+  
+(2) In TaAsciiDB there's a Bool_t data member called didinit which
+seemingly is being used by different methods to mean different things.
+Load(runnumber) sets didinit just before returning, and routines like
+GetDacNoise(...), GetAdcPed(...), and GetScalPed(...) check it,
+apparently to find out if the database has been loaded or not.  But
+InitDB() also sets it, and LoadTable(...) and InitDataMap() apparently
+check it to find out if the database has been initialized or not.
+(These are called by Load(), so they certainly can't be checking to
+see if it's loaded or not.)  As far as I know this doesn't cause any
+actual misbehavior, but I see it as a source of potential confusion.
+
+In particular, any routine that needs the database initialized doesn't
+need to complain and return an error if didinit is false; it could just
+call InitDB().  But if it needs the database loaded, it can't call
+Load(runnumber) because it doesn't know the run number.  I think I know
+which methods need which prerequisite, but due to this "overload" of
+didinit I'm not 100 percent certain. (Actually
+TaAsciiDB::Load(runnumber) doesn't need the run number any more, because
+all it used it for was to construct the database file name, and that's
+now handled by the TaFileName methods; but TaMysql::Load(runnumber)
+presumably does need the run number.)
+
+(3) Bug in TaAsciiDB (and in TaMysql): The following statement is
+needed in DataMapReStart:
+
+    firstiter = kTRUE;
+
+Otherwise when one tries to cycle through the datamap a second or later
+time, one does not get the first datamap entry, which happens to be the
+first ADC defined.
+
+I won't bother committing this since I know Bob is working on these
+classes, probably putting DataMapReStart into VaDatabase, and it might
+as well be committed with the rest of his changes.  You can patch your
+copy for now and get it working.
+
+
+Comments by R. Michaels, 23 July 2002
+-------------------------------------
+
+After the round of changes to incorporate scalers as alternatives
+to ADCs (see the ChangeLog for details), we have the following issues
+to fix:
+
+1. TaMysql is broken.  To the extent possible, both it and TaAsciiDB
+   classes should use inheritance to minimize the pain of changing the code.
+   (That's what C++ is supposed to do !!)
+
+2. scaler calibration needs to be done correctly in TaEvent::Decode
+
+3. Perl script to generate DevTypes.hh is desirable.
+
+
+Comments by R. Holmes, 16 Apr 2002
+----------------------------------
+
+I tried to put in deletes for everything we new in TaRun.cc.  But
+there's some weirdness if I try to delete fEvtree.  If I have this
+code in Uncreate():
+
+  delete fEvtree;
+  delete fCoda;
+  delete fEvent;
+  delete fDataBase;
+  delete fDevices;
+  delete fCutList;
+  delete fESliceStats;
+  delete fERunStats;
+  delete fPSliceStats;
+  delete fPRunStats;
+
+then it hangs in delete fEvent.  If I comment out delete fEvent then
+it hangs in delete fDataBase (I think, or perhaps one of the later
+deletes).  But if I comment out delete fEvtree there's no hang.  I
+have the feeling I've seen behavior like this before -- thought maybe
+it was because I was trying to delete the same allocation twice, but
+I've looked into it and I don't think I am.  Strange.
+
+For now, I comment out delete fEvtree.
+
+TaAsciiDB needs fixes to delete its allocations.
+
+

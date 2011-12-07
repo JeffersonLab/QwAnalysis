@@ -24,15 +24,11 @@ class QwFakeHelicity: public QwHelicity {
       // using the constructor of the base class
     };
 
-    ~QwFakeHelicity(){
-      //      DeleteHistograms();
-    };
+    virtual ~QwFakeHelicity() { };
 
     void    ClearEventData();
     Bool_t  IsGoodHelicity();
     void    ProcessEvent();
-
-    virtual VQwSubsystem*  Copy();
 
  protected:
     Int_t fMinPatternPhase;

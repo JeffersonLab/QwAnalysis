@@ -14,7 +14,7 @@
 #include <boost/version.hpp>
 #endif
 #if BOOST_VERSION <= 103200
-//    Boost 1.32.00 needs explicit includes of "functional.hpp" 
+//    Boost 1.32.00 needs explicit includes of "functional.hpp"
 //    and "operation.hpp".
 //    They are not needed  for Boost 1.34.01, but don't really hurt
 //    if we wanted to just include them unconditionally.
@@ -32,21 +32,21 @@
 
 
 // Matrix inversion routines optimized for 4 x 4 matrices
-double UNorm( double *A, int n, int m);
-double *M_Cholesky (double  *B, double *q, int n);
-double *M_InvertPos (double *B, int n);
-double *M_Invert (double *Ap, double *Bp, int n);
-void RowMult (double a, double *A, double b, double *B, int n);
-double *M_A_times_b (double *y,double *A, int n, int m, double *b);
-double *M_Zero (double *A, int n);
-double *M_Unit (double *A, int n);
-void M_Print (double *A, int n);
-void M_Print (double *A, double *B, int n);
+double UNorm (const double *A, int n, const int m);
+double* M_Cholesky (double *B, double *q, const int n);
+double* M_InvertPos (double *B, const int n);
+double* M_Invert (double *Ap, double *Bp, const int n);
+void RowMult (const double a, double *A, const double b, const double *B, const int n);
+double* M_A_times_b (double *y, const double *A, const int n, const int m, const double *b);
+double* M_Zero (double *A, const int n);
+double* M_Unit (double *A, const int n);
+void M_Print (const double *A, const int n);
+void M_Print (const double *A, const double *B, const int n);
 
-double *V_Zero (double *v, int n);
-double *V_Unit (double *v, int n, int k);
-void V_Print (double *v, int n);
-void V_Print (double *v, double *w, int n);
+double *V_Zero (double *v, const int n);
+double *V_Unit (double *v, const int n, int k);
+void V_Print (const double *v, const int n);
+void V_Print (const double *v, const double *w, const int n);
 
 
 /*------------------------------------------------------------------------*//*!

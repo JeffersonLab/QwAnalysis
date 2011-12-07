@@ -1,0 +1,13 @@
+sca_4mhz
+sca_unser
+sca_bcm1
+sca_bcm2
+sca_bcm17
+qwk_bcm1
+qwk_bcm2
+qwk_bcm5
+qwk_bcm6
+qwk_bcm7
+qwk_bcm8
+CodaEventNumber
+

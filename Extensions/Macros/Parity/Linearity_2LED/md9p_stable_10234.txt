@@ -1,0 +1,20 @@
+first/D:last/D
+# Periods during run 10234 when the DC voltage on md9pos was stable.
+# 0	90e3
+# 140e3	270e3 # not a clean start, these two.
+370e3	640e3
+695e3	870e3
+970e3	1150e3
+1230e3	1390e3
+1460e3	1540e3
+1595e3	1700e3
+1792e3	1854e3
+1910e3	1990e3
+2045e3	2180e3
+2370e3	2436e3
+2450e3	2590e3
+2610e3	2700e3
+2810e3	2860e3
+# 2870e3	2980e3
+# 3e6	3075e3 # other channel HV off this segment.
+3350e3	4700e3

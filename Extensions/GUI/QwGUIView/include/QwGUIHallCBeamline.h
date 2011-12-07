@@ -32,8 +32,9 @@ Added by Buddhini to display the hall c Beamline data.
  */
 //=============================================================================
 
-#define HCLINE_DEV_NUM          6        
-#define TRE_NUM                 2
+#define HCLINE_BPMS   24 // There are 23 BPMs in the hallC beamline+the virtual target bpm
+#define HCLINE_BCMS   4     
+#define NUM_TREE      3
 ///
 /// \ingroup QwGUIHallCBeamline
 
@@ -48,10 +49,12 @@ Added by Buddhini to display the hall c Beamline data.
 #include <iomanip>
 #include <string>
 #include <TPaveText.h>
+#include <TGButtonGroup.h>
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
 #include "TVirtualPad.h"
+#include "TPaletteAxis.h"
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
 #include "RSDataWindow.h"
@@ -62,6 +65,7 @@ Added by Buddhini to display the hall c Beamline data.
   
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
+  TGButtonGroup       *correlations;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -69,6 +73,12 @@ Added by Buddhini to display the hall c Beamline data.
   TGLayoutHints       *dBtnLayout;
   TGTextButton        *dBtnPosDiff;
   TGTextButton        *dBtnTgtParam;
+  TGTextButton        *dBtnCorrelations;
+  TGTextButton        *dBtnPlotHistos;
+  TGTextButton        *dBtnRaster;
+  TGTextButton        *dBtnAqDiff;
+  TGComboBox          *dCmbHistos;
+  TGLayoutHints       *dCmbLayout;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -80,6 +90,7 @@ Added by Buddhini to display the hall c Beamline data.
   //!A histogram array to plot the X and Y position difference variation.
   TH1D *PosDiffVar[2] ;
   TPaveText * errlabel;
+  TH2D* fRateMap;
 
   //!This function just plots some histograms in the main canvas, just for illustrative purposes
   //!for now.
@@ -98,7 +109,10 @@ Added by Buddhini to display the hall c Beamline data.
 
   void PositionDifferences(); 
   void DisplayTargetParameters();
-
+  void PlotHistograms();
+  void FastRaster();
+  void Correlations(TString axis1, TString axis2);
+  void BCMDoubleDifference();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -113,9 +127,17 @@ Added by Buddhini to display the hall c Beamline data.
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
 
-  static const char   *HallCBeamlineDevices[HCLINE_DEV_NUM];
-  static const char   *RootTrees[TRE_NUM];
+  static const char   *HallC_BPMS[HCLINE_BPMS];
+  static const char   *HallC_BCMS[HCLINE_BCMS]; //The Devices with only charge may later have to be distinguished from those with other data
+  static const char   *RootTrees[NUM_TREE];
+  
+ private:
 
+  char histo[128];
+  TString select;
+  Bool_t parity_off;
+  Bool_t  ReadyHistArray;
+  void EnableButtons(Bool_t flag);
 
  protected:
 

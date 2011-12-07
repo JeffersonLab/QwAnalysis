@@ -15,6 +15,7 @@ PRG_SOURCE    = ./src
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
 OBJECTS       += QwGUIHelpBrowser.o
+OBJECTS       += QwGUIComboBox.o
 OBJECTS       += QwGUIProgressDialog.o
 OBJECTS       += QwGUIPlotOptionsDialog.o
 OBJECTS       += QwGUIDataWindow.o
@@ -25,13 +26,15 @@ OBJECTS       += QwGUIBeamModulation.o			 #Nuruzzaman
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS	      += QwGUIHallCBeamline.o
-OBJECTS       += QwGUITrackFinding.o
-OBJECTS       += QwGUIEventDisplay.o
+# OBJECTS       += QwGUITrackFinding.o
+# OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
-OBJECTS       += QwGUIDatabaseContainer.o
-OBJECTS       += QwGUIDatabaseSelectionDialog.o
-OBJECTS       += QwGUIFFTWindowSelectionDialog.o
-OBJECTS       += QwGUIDatabase.o
+#OBJECTS       += QwGUIDatabaseContainer.o
+#OBJECTS       += QwGUIDatabaseSelectionDialog.o
+OBJECTS       += QwGUIEventWindowSelectionDialog.o
+# OBJECTS       += QwGUIDatabase.o
+OBJECTS       += QwGUIHistories.o
+OBJECTS       += QwGUIHCLogEntryDialog.o
 
 
 # Now append the object files that Don't require a CINT dictionary.
@@ -74,7 +77,7 @@ MFILE         = Makefile
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
-CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
+CXXFLAGS      = -O2 -Wall -fPIC -DVERS="\"$(VERS)\"" #-g #-O2
 LD            = g++
 LDFLAGS       = #-O
 SOFLAGS       = -shared

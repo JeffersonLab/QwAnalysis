@@ -4,117 +4,96 @@
 ** Author: Derek Jones              **
 ** The George Washington University **
 ** Contact: dwjones8@gwu.edu        **
+** Last updated: 7-26-2010          **
 \************************************/
 
 
-////BRIEF////
+////BRIEF----------------------------------------------------------------------------------------------------////
 
 // GUI macro that displays wire hit, timing, and other information [as requested] for Regions 1-3 of Qweak experiment
-// Includes trigger scintillator information (position and timing)
+// Includes octant position for each event
 // Provides 2D output of orthographic planes in each region for track reconstruction analysis
 // May also be useful for diagnostics of tracking hardware
 
 
-////HEADERS////
+////HEADERS----------------------------------------------------------------------------------------------------////
 
 //Qweak Event Display Header
-#include "QwEventDisplay.h"  // includes ROOT headers and common classes and variables for the event display
-ClassImp(QwEventDisplay);  // imports the new class from the header to this code
+#include "QwEventDisplay.h"  // Includes ROOT headers and common classes and variables for the event display
+ClassImp(QwEventDisplay)     // Imports the new class object from the header
 
 //Qweak Header Files
-#include "QwTreeEventBuffer.h"  // create hit list from G4 Monte Carlo
-#include "QwSubsystemArrayTracking.h"  // update hit list for each subsystem
-#include "QwDetectorInfo.h"  // establishes detector information
-#include "QwHitContainer.h"  // creates augmented vector of QwHits for special functionality
+#include "QwTreeEventBuffer.h"        // Create hit list from G4 Monte Carlo
+#include "QwSubsystemArrayTracking.h" // Update hit list for each subsystem
+#include "QwDetectorInfo.h"           // Establishes detector information
+#include "QwHitContainer.h"           // Creates augmented vector of QwHits for special functionality
 
 
-////GRAPHICAL COMPONENTS////
+////GRAPHICAL COMPONENTS----------------------------------------------------------------------------------------------------////
 
-QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates main graphical components
+QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates main graphical components
 
    // Formatting variables
-   ULong_t ucolor;        // will reflect user color changes
-   TGFont *ufont;         // will reflect user font changes
-   TGGC   *uGC;           // will reflect user GC changes
+   ULong_t ucolor; // Will reflect user color changes
+   TGFont *ufont;  // Will reflect user font changes
+   TGGC   *uGC;    // Will reflect user GC changes
 
-   // initialize variables to 0 (no draw)
-   fEventNumber = 0;
-   fSubsystemArray = 0;
-   fEventBuffer = 0;
-   fHitList = 0;
+   // Initialize variables to 0
+   fEventNumber = 0;    // Current event number
+   fTreeEntries = 0;    // Number of entries in tree
+   fSubsystemArray = 0; // Organizes subsystems
+   fEventBuffer = 0;    // Houses event information
+   fHitList = 0;        // Houses hit information
 
-   // create new pop up window on screen; main frame
+   // Create new pop up window on screen; main frame
    fMain = new TGMainFrame(gClient->GetRoot(),10,10,kMainFrame | kVerticalFrame);
    fMain->SetLayoutBroken(kTRUE);
    fMain->SetWindowName("Qweak 2D Single Event Display");
-   //   fMain->Connect("CloseWindow()", "QwEventDisplay", this, "CloseWindow()");  // CAUSES SEG FAULT
 
 
+   ////MENU BAR----------------------------------------------------------------------------------------------------////
 
+   // Create menu bar for file and help functions 
+   fMenuBarLayout = new TGLayoutHints(kLHintsTop, kLHintsExpandX);                    // Layout for the menu bar
+   fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kRaisedFrame);   // Layout for popup menus
+   fMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight | kRaisedFrame);  // Layout for Help popup menu
 
-
-
-
-
-
-   ////MENU BAR////
-
-   // create menu bar for file functions 
-
-   fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
-   fMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
-
-   fMenuFile = new TGPopupMenu(gClient->GetDefaultRoot());
-   fMenuFile->AddEntry("Open &Run Data (.dat)", M_FILE_OPENRUN);
-   fMenuFile->AddEntry("Open &Simulation Data (.root)", M_FILE_OPENSIM);
+   fMenuFile = new TGPopupMenu(gClient->GetRoot());        // Add a popup menu for file options
+   fMenuFile->AddEntry("&Open ROOT File", M_FILE_OPEN);    // Add option to open a ROOT file
    fMenuFile->AddSeparator();
-   fMenuFile->AddEntry("Prin&t Screen", M_FILE_PRINTSCREEN);
-   fMenuFile->AddSeparator();
-   fMenuFile->AddEntry("E&xit", M_FILE_EXIT);
+   fMenuFile->AddEntry("&Close ROOT File", M_FILE_CLOSE);  // Add option to close a ROOT file
 
-   fMenuHelp = new TGPopupMenu(gClient->GetDefaultRoot());
-   fMenuHelp->AddEntry("&Tutorial", M_HELP_TUTORIAL);
+   fMenuHelp = new TGPopupMenu(gClient->GetRoot());    // Add a popup menu for help options
+   fMenuHelp->AddEntry("&Tutorial", M_HELP_TUTORIAL);  // Add option to connect to the event display tutorial documentation
    fMenuHelp->AddSeparator();
-   fMenuHelp->AddEntry("&About", M_HELP_ABOUT);
+   fMenuHelp->AddEntry("&About", M_HELP_ABOUT);        // Add option to print information about the event display
 
-   fMenuFile->Connect("Activated(Int_t)", "QwEventDisplay", this, "HandleMenu(Int_t)");
+   fMenuFile->Connect("Activated(Int_t)", "QwEventDisplay", this, "HandleMenu(Int_t)");  // Connect popup menus to a menu control function
    fMenuHelp->Connect("Activated(Int_t)", "QwEventDisplay", this, "HandleMenu(Int_t)");
 
+   fMenuBar = new TGMenuBar(fMain, kLHintsTop | kLHintsExpandX);  // Create a menu bar
+   fMenuBar->AddPopup("&File", fMenuFile, fMenuBarItemLayout);    // Add a file popup menu
+   fMenuBar->AddPopup("&Help", fMenuHelp, fMenuBarHelpLayout);    // Add a help popup menu
+   gClient->GetColorByName("#deba87", ucolor);                    // Set ucolor to mute orange
+   fMenuBar->SetBackgroundColor(ucolor);
 
-   fMenuBar = new TGMenuBar(fMain);
-   //   fMenuBar = new TGMenuBar(fMain, 1, 1, kLHintsTop | kLHintsExpandX));
-   fMenuBar->AddPopup("&File", fMenuFile, fMenuBarItemLayout);
-   fMenuBar->AddPopup("&Help", fMenuHelp, fMenuBarHelpLayout);
-
-   fMain->AddFrame(fMenuBar, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
-
-
-
+   fMain->AddFrame(fMenuBar, fMenuBarLayout);  // Add menu bar to the main frame
+   fMenuBar->MoveResize(0,0,900,20);
 
 
+   ////TITLE AND LOGOS----------------------------------------------------------------------------------------------------////
 
-
-   /*
-
-   ////TITLE AND LOGOS////
-
-   // create horizontal frame for logo and title placement: includes Qweak, JLab, and GWU logos
-   gClient->GetColorByName("#ffffff",ucolor);  // set ucolor to white
+   // Create horizontal frame for logo and title placement: includes Qweak and GWU logos
+   gClient->GetColorByName("#ffffff",ucolor);  // Set ucolor to white
    TGHorizontalFrame *fLogos = new TGHorizontalFrame(fMain,900,80,kHorizontalFrame | kRaisedFrame,ucolor);
    fLogos->SetLayoutBroken(kTRUE);
-
-   // insert JLab logo
-   TGIcon *JLabLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/JLab_logo_white1.jpg");
-   fLogos->AddFrame(JLabLogo, new TGLayoutHints(kLHintsNormal));
-   JLabLogo->MoveResize(144,0,250,75);
-
-   // insert Qweak logo
-   TGIcon *QweakLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/qweak.jpg");
+   // Insert Qweak logo
+   TGIcon *QweakLogo = new TGIcon(fLogos, getenv_safe_TString("QWANALYSIS") + "/Extensions/Logos/qweak.jpg");
    fLogos->AddFrame(QweakLogo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   QweakLogo->MoveResize(0,0,155,75);
+   QweakLogo->MoveResize(0,1,140,77);
 
-   // graphics context changes for "Qweak 2D Single Event Display" title label
-   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-25-*-*-*-*-*-*-*"); // set ufont to bold helvetica 25
+   // Graphics context changes for "Qweak 2D Single Event Display" title label
+   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-34-*-*-*-*-*-*-*"); // Set ufont to bold helvetica 25
    GCValues_t valBox;
    valBox.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valBox.fForeground);
@@ -124,48 +103,42 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valBox.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valBox, kTRUE);
 
-   // create title box for event display
-   gClient->GetColorByName("#d45954",ucolor);  // set ucolor to soft red
-   //   gClient->GetColorByName("#fff897",ucolor); // set ucolor to mute yellow
-   //   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   // Create title box for event display
+   gClient->GetColorByName("#d45954",ucolor);  // Set ucolor to soft red
    TGLabel *TitleBox = new TGLabel(fLogos,"Qweak 2D Single Event Display",uGC->GetGC(),ufont->GetFontStruct(),kRaisedFrame,ucolor);
    TitleBox->SetTextJustify(36);
    TitleBox->SetMargins(0,0,0,0);
    TitleBox->SetWrapLength(-1);
    fLogos->AddFrame(TitleBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   TitleBox->MoveResize(385,0,384,75);
+   TitleBox->MoveResize(143,1,627,77);
 
-   // insert GWU logo
-   TGIcon *GWULogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/gwu_logo_main.gif"); ////Logos from dwjones@jlab.org; taken from public domain
+   // Insert GWU logo
+   TGIcon *GWULogo = new TGIcon(fLogos, getenv_safe_TString("QWANALYSIS") + "/Extensions/Logos/gwu_logo_main.gif");
    fLogos->AddFrame(GWULogo, new TGLayoutHints(kLHintsNormal));
-   GWULogo->MoveResize(772,0,135,75);
+   GWULogo->MoveResize(772,1,135,77);
 
-   // add fLogos frame to fMain and set color
+   // Add logos frame to main frame
    fMain->AddFrame(fLogos, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fLogos->MoveResize(0,0,900,80);
-
-   */
+   fLogos->MoveResize(0,20,900,100);
 
 
+   ////EVENT BOXES----------------------------------------------------------------------------------------------------////
 
-   ////EVENT BOXES////
-
-   // create horizontal frame for event boxes including event number, goto event function, wire hits, timing, and other information
-   gClient->GetColorByName("#0047ab",ucolor);  // set ucolor to blue
+   // Create horizontal frame for event boxes including current event number, goto event function, wire hits information, and octant identification
+   gClient->GetColorByName("#0047ab",ucolor);  // Set ucolor to blue
    fEventBoxes = new TGHorizontalFrame(fMain,900,240,kHorizontalFrame,ucolor);
    fEventBoxes->SetLayoutBroken(kTRUE);
 
+   //EVENT BOX 1--Current Event Number and Goto Event--------------------------------------------------//
 
-   //EVENT BOX 1--Event Number and Goto Event//
-
-   // create vertical frame for event box 1
-   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
+   // Create vertical frame for event box 1
+   gClient->GetColorByName("#d4cf87",ucolor); // Set ucolor to buff
    fEventBox1 = new TGVerticalFrame(fEventBoxes,220,226,kVerticalFrame | kRaisedFrame,ucolor);
    fEventBox1->SetLayoutBroken(kTRUE);
 
-   // graphics context changes for "Event Counter" label
-   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // set ufont to bold charter 15
+   // Graphics context changes for "Event Counter" label
+   gClient->GetColorByName("#deba87", ucolor);                         // Set ucolor to mute orange
+   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // Set ufont to bold charter 15
    GCValues_t valunterLabel;
    valunterLabel.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valunterLabel.fForeground);
@@ -175,7 +148,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valunterLabel.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valunterLabel, kTRUE);
 
-   // create label for the event counter
+   // Create label for the event counter
    TGLabel *EventCounterLabel = new TGLabel(fEventBox1,"Event Counter",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
    EventCounterLabel->SetTextJustify(36);
    EventCounterLabel->SetMargins(0,0,0,0);
@@ -184,13 +157,13 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    EventCounterLabel->MoveResize(45,6,125,20);
    EventCounterLabel->SetBackgroundColor(ucolor);
 
-   // create vertical frame for event counter information: current event number, goto event entry, and goto event button
-   gClient->GetColorByName("#507ba7", ucolor); // set ucolor to navy blue
-   fEventCounter = new TGVerticalFrame(fEventBox1,144,176,kVerticalFrame | kSunkenFrame,ucolor);
+   // Create vertical frame for event counter information: current event number, goto event number entry, and goto event button
+   gClient->GetColorByName("#507ba7", ucolor); // Set ucolor to navy blue
+   fEventCounter = new TGVerticalFrame(fEventBox1,144,176,kVerticalFrame | kSunkenFrame, ucolor);
    fEventCounter->SetLayoutBroken(kTRUE);
 
-   // graphics context changes for "Current Event" group frame
-   ufont = gClient->GetFont("-*-courier-bold-r-*-*-12-*-*-*-*-*-*-*"); // set ufont to bold charter 10
+   // Graphics context changes for "Current Event" group frame
+   ufont = gClient->GetFont("-*-courier-bold-r-*-*-12-*-*-*-*-*-*-*"); // Set ufont to bold charter 10
    GCValues_t valentHit;
    valentHit.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valentHit.fForeground);
@@ -200,12 +173,12 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valentHit.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valentHit, kTRUE);
 
-   // create "Current Event" group frame
+   // Create "Current Event" group frame
    fCurrentEvent = new TGGroupFrame(fEventCounter,"Current Event",kVerticalFrame,uGC->GetGC(),ufont->GetFontStruct(),ucolor);
    fCurrentEvent->SetLayoutBroken(kTRUE);
 
-   // graphics context changes for "Current Event" label
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-33-*-*-*-*-*-*-*"); // set ufont to bold charter 33
+   // Graphics context changes for "Current Event" label
+   ufont = gClient->GetFont("-*-charter-bold-r-*-*-33-*-*-*-*-*-*-*"); // Set ufont to bold charter 33
    GCValues_t valntHitLabel;
    valntHitLabel.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valntHitLabel.fForeground);
@@ -214,26 +187,26 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valntHitLabel.fFont = ufont->GetFontHandle();
    valntHitLabel.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valntHitLabel, kTRUE);
-   gClient->GetColorByName("#fff897",ucolor); // set ucolor to mute yellow
+   gClient->GetColorByName("#fff897",ucolor); // Set ucolor to mute yellow
 
-   // create label for current event: variable changes based on fEventNumber
-   CurrentEventLabel = new TGLabel(fCurrentEvent, Form("%u", (Int_t) fEventNumber), uGC->GetGC(),ufont->GetFontStruct(),ucolor);
-   CurrentEventLabel->SetTextJustify(36);
-   CurrentEventLabel->SetMargins(0,0,0,0);
-   CurrentEventLabel->SetWrapLength(-1);
-   CurrentEventLabel->MoveResize(11,18,104,32);
-   CurrentEventLabel->SetBackgroundColor(ucolor);
+   // Create label for current event: variable changes based on fEventNumber
+   fCurrentEventLabel = new TGLabel(fCurrentEvent, Form("%u", (Int_t) fEventNumber), uGC->GetGC(),ufont->GetFontStruct(),ucolor);
+   fCurrentEventLabel->SetTextJustify(36);
+   fCurrentEventLabel->SetMargins(0,0,0,0);
+   fCurrentEventLabel->SetWrapLength(-1);
+   fCurrentEventLabel->MoveResize(11,18,104,32);
+   fCurrentEventLabel->SetBackgroundColor(ucolor);
 
-   // add current event label to "Current Event" group frame and customize
-   fCurrentEvent->AddFrame(CurrentEventLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   // Add current event label to "Current Event" group frame
+   fCurrentEvent->AddFrame(fCurrentEventLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fCurrentEvent->SetLayoutManager(new TGVerticalLayout(fCurrentEvent));
 
-   // add "Current Event" group frame to event counter frame
+   // Add "Current Event" group frame to event counter frame
    fEventCounter->AddFrame(fCurrentEvent, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fCurrentEvent->MoveResize(8,8,126,64);
 
-   // graphics context changes for "Goto Event" button
-   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-11-*-*-*-*-*-*-*"); // set ufont to bold helvetica 11
+   // Graphics context changes for "Goto Event" button
+   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-11-*-*-*-*-*-*-*"); // Set ufont to bold helvetica 11
    GCValues_t valitButton;
    valitButton.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valitButton.fForeground);
@@ -243,8 +216,8 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valitButton.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valitButton, kTRUE);
 
-   // create goto event button
-   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
+   // Create goto event button
+   gClient->GetColorByName("#d4cf87",ucolor); // Set ucolor to buff
    TGTextButton *GotoEventButton = new TGTextButton(fEventCounter,"&Goto Event",-1,uGC->GetGC(),ufont->GetFontStruct());
    GotoEventButton->Connect("Clicked()", "QwEventDisplay", this, "GotoEvent()");
    GotoEventButton->SetTextJustify(36);
@@ -253,42 +226,38 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    GotoEventButton->Resize(67,24);
    GotoEventButton->ChangeBackground(ucolor);
 
-   // add goto event button to event counter frame
+   // Add goto event button to event counter frame
    fEventCounter->AddFrame(GotoEventButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    GotoEventButton->MoveResize(64,133,67,24);
 
-   // create number entry for current events
-   CurrentEventEntry = new TGNumberEntry(fEventCounter, (Double_t) 0,11,-1,(TGNumberFormat::EStyle) 0,(TGNumberFormat::EAttribute) 1);
-   fEventCounter->AddFrame(CurrentEventEntry, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   CurrentEventEntry->MoveResize(24,94,96,22);
-   //CurrentEventEntry->Connect("ValueSet(Long_t)", "QwEventDisplay()", this, "GotoEvent()");  // COMMENTED BECAUSE NOT USING THIS--POSSIBLE IN FUTURE
-   //(CurrentEventEntry->GetNumberEntry())->Connect("ReturnPressed()", "QwEventDisplay()", this, "GotoEvent()");
+   // Create number entry for goto event function
+   fCurrentEventEntry = new TGNumberEntry(fEventCounter, (Double_t) 0,11,-1,(TGNumberFormat::EStyle) 0,(TGNumberFormat::EAttribute) 1);
+   fEventCounter->AddFrame(fCurrentEventEntry, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fCurrentEventEntry->MoveResize(24,94,96,22);
 
-   // add event counter frame to event box 1
+   // Add event counter frame to event box 1
    fEventBox1->AddFrame(fEventCounter, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fEventCounter->MoveResize(35,32,144,180);
 
-   // add event box 1 to event box frame
+   // Add event box 1 to event box frame
    fEventBoxes->AddFrame(fEventBox1, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fEventBox1->MoveResize(3,6,220,226);
 
+   //EVENT BOX 2--Wire Hit Information--------------------------------------------------//
 
-   //EVENT BOX 2--Wire Hits//
-
-   // create vertical frame for event box 2
-   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
+   // Create vertical frame for event box 2
+   gClient->GetColorByName("#d4cf87",ucolor); // Set ucolor to buff
    fEventBox2 = new TGVerticalFrame(fEventBoxes,220,226,kVerticalFrame | kRaisedFrame,ucolor);
    fEventBox2->SetLayoutBroken(kTRUE);
 
-   // create list box for wire hit data
-   WireHitListBox = new TGListBox(fEventBox2);
-   //   WireHitListBox->Connect("PositionChanged()", "QwEventDisplay", this, "TimingListBox->fVScrollbar");  LINK SCROLLBARS TO BE IN SYNC
-   WireHitListBox->Resize(200,180);
-   fEventBox2->AddFrame(WireHitListBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   WireHitListBox->MoveResize(8,32,200,180);
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*");
+   // Create list box for wire hit information
+   fWireInfoListBox = new TGListBox(fEventBox2);
+   fWireInfoListBox->Resize(200,180);
+   fEventBox2->AddFrame(fWireInfoListBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fWireInfoListBox->MoveResize(8,32,428,180);
+   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // Set font to bold charter 15
 
-   // graphics context changes for "Wire Hits" label
+   // Graphics context changes for "Wire Hit Information" label
    GCValues_t valitsLabel;
    valitsLabel.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valitsLabel.fForeground);
@@ -297,74 +266,30 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valitsLabel.fFont = ufont->GetFontHandle();
    valitsLabel.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valitsLabel, kTRUE);
-   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   gClient->GetColorByName("#deba87", ucolor); // Set ucolor to mute orange
 
-   // create label for wire hits list box
-   TGLabel *WireHitsLabel = new TGLabel(fEventBox2,"Wire Hits",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
-   WireHitsLabel->SetTextJustify(36);
-   WireHitsLabel->SetMargins(0,0,0,0);
-   WireHitsLabel->SetWrapLength(-1);
-   WireHitsLabel->MoveResize(59,6,96,20);
-   WireHitsLabel->SetBackgroundColor(ucolor);
-   fEventBox2->AddFrame(WireHitsLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   // Create label for event box 2
+   TGLabel *fWireInfoLabel = new TGLabel(fEventBox2,"Wire Hit Information",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
+   fWireInfoLabel->SetTextJustify(36);
+   fWireInfoLabel->SetMargins(0,0,0,0);
+   fWireInfoLabel->SetWrapLength(-1);
+   fWireInfoLabel->MoveResize(129,6,196,20);
+   fWireInfoLabel->SetBackgroundColor(ucolor);
+   fEventBox2->AddFrame(fWireInfoLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
 
-   // add event box 2 to event boxes frame
+   // Add event box 2 to event box frame
    fEventBoxes->AddFrame(fEventBox2, new TGLayoutHints(kLHintsNormal));
-   fEventBox2->MoveResize(227,6,220,226);
+   fEventBox2->MoveResize(227,6,444,226);
 
-   // add event boxes frame to main frame
-   fMain->AddFrame(fEventBoxes, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fEventBoxes->MoveResize(0,80,900,240);
+   //EVENT BOX 3--Octant Identification--------------------------------------------------//
 
-
-   //EVENT BOX 3--Timing//
-
-   // create vertical frame for event box 3
-   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
-   TGVerticalFrame *fEventBox3 = new TGVerticalFrame(fEventBoxes,220,226,kVerticalFrame | kRaisedFrame,ucolor);
+   // Create vertical frame for event box 3
+   gClient->GetColorByName("#d4cf87",ucolor); // Set ucolor to buff
+   fEventBox3 = new TGVerticalFrame(fEventBoxes,220,226,kVerticalFrame | kRaisedFrame,ucolor);
    fEventBox3->SetLayoutBroken(kTRUE);
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // set ufont to bold charter 15
 
-   // graphics context changes for "Timing" label
-   GCValues_t valgLabel;
-   valgLabel.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
-   gClient->GetColorByName("#000000",valgLabel.fForeground);
-   gClient->GetColorByName("#c0c0c0",valgLabel.fBackground);
-   valgLabel.fFillStyle = kFillSolid;
-   valgLabel.fFont = ufont->GetFontHandle();
-   valgLabel.fGraphicsExposures = kFALSE;
-   uGC = gClient->GetGC(&valgLabel, kTRUE);
-
-   // create label for timing list box
-   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
-   TGLabel *TimingLabel = new TGLabel(fEventBox3,"Timing",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
-   TimingLabel->SetTextJustify(36);
-   TimingLabel->SetMargins(0,0,0,0);
-   TimingLabel->SetWrapLength(-1);
-   TimingLabel->MoveResize(58,6,88,20);
-   TimingLabel->SetBackgroundColor(ucolor);
-   fEventBox3->AddFrame(TimingLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-
-   // create list box to display timing information
-   TimingListBox = new TGListBox(fEventBox3);
-   TimingListBox->Resize(200,180);
-   fEventBox3->AddFrame(TimingListBox, new TGLayoutHints(kLHintsNormal));
-   TimingListBox->MoveResize(8,32,200,180);
-
-   // add event box 3 to event boxes frame
-   fEventBoxes->AddFrame(fEventBox3, new TGLayoutHints(kLHintsNormal));
-   fEventBox3->MoveResize(451,6,220,226);
-
-
-   //EVENT BOX 4--Drift Distance
-
-   // create vertical frame for event box 4
-   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
-   TGVerticalFrame *fEventBox4 = new TGVerticalFrame(fEventBoxes,220,226,kVerticalFrame | kRaisedFrame,ucolor);
-   fEventBox4->SetLayoutBroken(kTRUE);
-
-   // graphics context changes for "Drift Distance" label
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // set ufont to bold charter 15
+   // Graphics context changes for "Octant Identification" label
+   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // Set ufont to bold charter 15
    GCValues_t valInfoLabel;
    valInfoLabel.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valInfoLabel.fForeground);
@@ -373,30 +298,72 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valInfoLabel.fFont = ufont->GetFontHandle();
    valInfoLabel.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valInfoLabel, kTRUE);
-   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   gClient->GetColorByName("#deba87", ucolor); // Set ucolor to mute orange
 
-   // create label for other information list box
-   TGLabel *DriftDistanceLabel = new TGLabel(fEventBox4,"Drift Distance",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
-   DriftDistanceLabel->SetTextJustify(36);
-   DriftDistanceLabel->SetMargins(0,0,0,0);
-   DriftDistanceLabel->SetWrapLength(-1);
-   DriftDistanceLabel->MoveResize(45,6,125,20);
-   DriftDistanceLabel->SetBackgroundColor(ucolor);
-   fEventBox4->AddFrame(DriftDistanceLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   // Create label for event box 3
+   TGLabel *fOctantLabel = new TGLabel(fEventBox3,"Octant Identification",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
+   fOctantLabel->SetTextJustify(36);
+   fOctantLabel->SetMargins(0,0,0,0);
+   fOctantLabel->SetWrapLength(-1);
+   fOctantLabel->MoveResize(25,6,175,20);
+   fOctantLabel->SetBackgroundColor(ucolor);
+   fEventBox3->AddFrame(fOctantLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
 
-   // create list box to display other information
-   DriftDistanceListBox = new TGListBox(fEventBox4);  // RENAME VARIABLE ONCE I KNOW WHAT IT DOES
-   DriftDistanceListBox->Resize(200,180);
-   fEventBox4->AddFrame(DriftDistanceListBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   DriftDistanceListBox->MoveResize(8,32,200,180);
-   fEventBoxes->AddFrame(fEventBox4, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fEventBox4->MoveResize(675,6,220,226);
+   // Create canvas for octant identification
+   fOctantID = new TRootEmbeddedCanvas(0, fEventBox3, 200, 180);
+   Int_t wOctantID = fOctantID->GetCanvasWindowId();
+   cOctantID = new TCanvas("cOctantID", 10, 10, wOctantID);
+   fOctantID->AdoptCanvas(cOctantID);
+   fEventBox3->AddFrame(fOctantID, new TGLayoutHints(kVerticalFrame | kSunkenFrame));
+   fOctantID->MoveResize(22,32,180,180);
+   fOctantID->GetCanvas()->SetFillColor(kAzure-7);
+   Octant_1 = new TPaveLabel(.4,.75,.6,.95, "3");        // Create labels for each octant
+   Octant_1->SetLineColor(1);
+   Octant_1->SetFillColor(0);
+   Octant_1->Draw();
+   Octant_2 = new TPaveLabel(.675,.675,.875,.875, "4");
+   Octant_2->SetLineColor(1);
+   Octant_2->SetFillColor(0);
+   Octant_2->Draw();
+   Octant_3 = new TPaveLabel(.75,.4,.95,.6, "5");
+   Octant_3->SetLineColor(1);
+   Octant_3->SetFillColor(0);
+   Octant_3->Draw();
+   Octant_4 = new TPaveLabel(.675,.125,.875,.325, "6");
+   Octant_4->SetLineColor(1);
+   Octant_4->SetFillColor(0);
+   Octant_4->Draw();
+   Octant_5 = new TPaveLabel(.4,.05,.6,.25, "7");
+   Octant_5->SetLineColor(1);
+   Octant_5->SetFillColor(0);
+   Octant_5->Draw();
+   Octant_6 = new TPaveLabel(.125,.125,.325,.325, "8");
+   Octant_6->SetLineColor(1);
+   Octant_6->SetFillColor(0);
+   Octant_6->Draw();
+   Octant_7 = new TPaveLabel(.05,.4,.25,.6, "1");
+   Octant_7->SetLineColor(1);
+   Octant_7->SetFillColor(0);
+   Octant_7->Draw();
+   Octant_8 = new TPaveLabel(.125,.675,.325,.875, "2");
+   Octant_8->SetLineColor(1);
+   Octant_8->SetFillColor(0);
+   Octant_8->Draw();
+   fOctantID->GetCanvas()->SetEditable(kFALSE);
+
+   // Add event box 3 to event box frame
+   fEventBoxes->AddFrame(fEventBox3, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fEventBox3->MoveResize(675,6,222,226);
+
+   // Add event box frame to main frame
+   fMain->AddFrame(fEventBoxes, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fEventBoxes->MoveResize(0,100,900,260);
 
 
-  ////REGION BOXES////
+   ////REGION BOXES----------------------------------------------------------------------------------------------------////
 
-   // graphics context changes for fRegions tabs
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // set ufont to bold charter 10
+   // Graphics context changes for region tabs
+   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // Set ufont to bold charter 10
    GCValues_t valTabs;
    valTabs.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valTabs.fForeground);
@@ -405,38 +372,37 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valTabs.fFont = ufont->GetFontHandle();
    valTabs.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valTabs, kTRUE);
-   gClient->GetColorByName("#0047ab",ucolor); // set ucolor to blue
+   gClient->GetColorByName("#0047ab",ucolor); // Set ucolor to blue
 
-   // create region boxes tab frame
+   // Create region boxes tab frame
    fRegions = new TGTab(fMain,900,312,uGC->GetGC(),ufont->GetFontStruct(),kChildFrame,ucolor);
-   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
+   gClient->GetColorByName("#d4cf87",ucolor); // Set ucolor to buff
 
-   //REGION 1--Gas Electron Multiplier//
+   //REGION 1--Gas Electron Multiplier--------------------------------------------------//
 
-   // create tab and container of "Region 1" data
+   // Create tab and container of "Region 1" data
    fRegion1 = fRegions->AddTab("Region 1--GEM");
    fRegion1->SetLayoutManager(new TGMatrixLayout(fRegion1,0,1,0,0));
    fRegion1->SetLayoutBroken(kTRUE);
    fRegion1->SetBackgroundColor(ucolor);
 
-
-   // create embedded canvas for Region 1 XY view
+   // Create embedded canvas for Region 1 XY view
    fRegion1XY = new TRootEmbeddedCanvas(0,fRegion1,280,280);
    Int_t wRegion1XY = fRegion1XY->GetCanvasWindowId();
-   cR1XY= new TCanvas("cR1XY", 10, 10, wRegion1XY);
+   cR1XY = new TCanvas("cR1XY", 10, 10, wRegion1XY);
    fRegion1XY->AdoptCanvas(cR1XY);
    fRegion1->AddFrame(fRegion1XY, new TGLayoutHints(kLHintsNormal));
    fRegion1XY->MoveResize(12,4,280,280);
    fRegion1XY->GetCanvas()->SetFillColor(0);
-   Label_R1XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // create canvas label
+   Label_R1XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // Create canvas label
    Label_R1XY->Draw();
-   Box_R1XY = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // create/center box to frame wire lines
+   Box_R1XY = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // Create and center box to frame wire lines
    Box_R1XY->SetLineColor(1);
    Box_R1XY->SetFillStyle(0);
    Box_R1XY->Draw();
    fRegion1XY->GetCanvas()->SetEditable(kFALSE);
 
-   // create embedded canvas for Region 1 YZ view
+   // Create embedded canvas for Region 1 YZ view
    fRegion1YZ = new TRootEmbeddedCanvas(0,fRegion1,280,280);
    Int_t wRegion1YZ = fRegion1YZ->GetCanvasWindowId();
    cR1YZ = new TCanvas("cR1YZ", 10, 10, wRegion1YZ);
@@ -444,39 +410,39 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion1->AddFrame(fRegion1YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion1YZ->MoveResize(306,4,280,280);
    fRegion1YZ->GetCanvas()->SetFillColor(0);
-   Label_R1YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // create canvas label
+   Label_R1YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // Create canvas label
    Label_R1YZ->Draw();
-   Box_R1YZ = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_DEPTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5)); // create/center box to frame wire lines
+   Box_R1YZ = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_DEPTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5)); // Create and center box to frame wire lines
    Box_R1YZ->SetLineColor(1);
    Box_R1YZ->SetFillStyle(0);
    Box_R1YZ->Draw();
    fRegion1YZ->GetCanvas()->SetEditable(kFALSE);
 
-   // create embedded canvas for Region 1 XZ view
+   // Create embedded canvas for Region 1 XZ view
    fRegion1XZ = new TRootEmbeddedCanvas(0,fRegion1,280,280);
    Int_t wRegion1XZ = fRegion1XZ->GetCanvasWindowId();
-   cR1XZ  = new TCanvas("cR1XZ", 10, 10, wRegion1XZ);
+   cR1XZ = new TCanvas("cR1XZ", 10, 10, wRegion1XZ);
    fRegion1XZ->AdoptCanvas(cR1XZ);
    fRegion1->AddFrame(fRegion1XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion1XZ->MoveResize(603,4,280,280);
    fRegion1XZ->GetCanvas()->SetFillColor(0);
-   Label_R1XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // create canvas label
+   Label_R1XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // Create canvas label
    Label_R1XZ->Draw();
-   Box_R1XZ = new TBox(.5-(R1_DEPTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // create/center box to frame wire lines
+   Box_R1XZ = new TBox(.5-(R1_DEPTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // Create and center box to frame wire lines
    Box_R1XZ->SetLineColor(1);
    Box_R1XZ->SetFillStyle(0);
    Box_R1XZ->Draw();
    fRegion1XZ->GetCanvas()->SetEditable(kFALSE);
 
-   //REGION 2--Horizontal Drift Chamber//
+   //REGION 2--Horizontal Drift Chamber--------------------------------------------------//
 
-   // create tab and container of "Region 2" data
-   fRegion2 = fRegions->AddTab("Region 2--HDC");
+   // Create tab and container of "Region 2" data in chambers 1 through 4
+   fRegion2 = fRegions->AddTab("Region 2--HDC (1-4)");
    fRegion2->SetLayoutManager(new TGVerticalLayout(fRegion2));
    fRegion2->SetLayoutBroken(kTRUE);
    fRegion2->SetBackgroundColor(ucolor);
 
-   // create embedded canvas for Region 2 XY view
+   // Create embedded canvas for Region 2 XY view
    fRegion2XY = new TRootEmbeddedCanvas(0,fRegion2,280,280);
    Int_t wRegion2XY = fRegion2XY->GetCanvasWindowId();
    cR2XY = new TCanvas("cR2XY", 10, 10, wRegion2XY);
@@ -484,15 +450,15 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2->AddFrame(fRegion2XY, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion2XY->MoveResize(12,4,280,280);
    fRegion2XY->GetCanvas()->SetFillColor(0);
-   Label_R2XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // create canvas label
+   Label_R2XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // Create canvas label
    Label_R2XY->Draw();
-   Box_R2XY = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // create/center box to frame wire lines
+   Box_R2XY = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // Create and center box to frame wire lines
    Box_R2XY->SetLineColor(1);
    Box_R2XY->SetFillStyle(0);
    Box_R2XY->Draw();
    fRegion2XY->GetCanvas()->SetEditable(kFALSE);
 
-   // create embedded canvas for Region 2 YZ view
+   // Create embedded canvas for Region 2 YZ view
    fRegion2YZ = new TRootEmbeddedCanvas(0,fRegion2,280,280);
    Int_t wRegion2YZ = fRegion2YZ->GetCanvasWindowId();
    cR2YZ = new TCanvas("cR2YZ", 10, 10, wRegion2YZ);
@@ -500,25 +466,25 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2->AddFrame(fRegion2YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion2YZ->MoveResize(306,4,280,280);
    fRegion2YZ->GetCanvas()->SetFillColor(0);
-   Label_R2YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // create canvas label
+   Label_R2YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // Create canvas label
    Label_R2YZ->Draw();
-   Box_R2YZ1 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5),.5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM)); // create box for chamber 1
+   Box_R2YZ1 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5),.5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM)); // Create and place box for chamber 1
    Box_R2YZ1->SetLineColor(1);
    Box_R2YZ1->SetFillStyle(0);
    Box_R2YZ1->Draw();
-   Box_R2YZ2 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM)); // create box for chamber 2
+   Box_R2YZ2 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM)); // Create and place box for chamber 2
    Box_R2YZ2->SetLineColor(7);
    Box_R2YZ2->SetFillStyle(0);
    Box_R2YZ2->Draw();
-   Box_R2YZ3 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM)); // create box for chamber 3
+   Box_R2YZ3 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM)); // Create and place box for chamber 3
    Box_R2YZ3->SetLineColor(6);
    Box_R2YZ3->SetFillStyle(0);
    Box_R2YZ3->Draw();
-   Box_R2YZ4 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM)); // create box for chamber 4
+   Box_R2YZ4 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM)); // Create and place box for chamber 4
    Box_R2YZ4->SetLineColor(8);
    Box_R2YZ4->SetFillStyle(0);
    Box_R2YZ4->Draw();
-   tR2XY1 = new TText(.03, .03, "Cham. 1"); // color-coded text for HDC chamber labels
+   tR2XY1 = new TText(.03, .03, "Cham. 1"); // Color-coded text for HDC chamber labels
    tR2XY1->SetTextColor(1);
    tR2XY1->Draw();
    tR2XY2 = new TText(.29, .03, "Cham. 2");
@@ -532,7 +498,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    tR2XY4->Draw();
    fRegion2YZ->GetCanvas()->SetEditable(kFALSE);
 
-   // create embedded canvas for Region 2 XZ view
+   // Create embedded canvas for Region 2 XZ view
    fRegion2XZ = new TRootEmbeddedCanvas(0,fRegion2,280,280);
    Int_t wRegion2XZ = fRegion2XZ->GetCanvasWindowId();
    cR2XZ = new TCanvas("cR2XZ",10, 10, wRegion2XZ);
@@ -540,25 +506,25 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2->AddFrame(fRegion2XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion2XZ->MoveResize(603,4,280,280);
    fRegion2XZ->GetCanvas()->SetFillColor(0);
-   Label_R2XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // create canvas label
+   Label_R2XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // Create canvas label
    Label_R2XZ->Draw();
-   Box_R2XZ1 = new TBox(.5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 1 // incorporate X and Y shift (ROOT coord)
+   Box_R2XZ1 = new TBox(.5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 1
    Box_R2XZ1->SetLineColor(8);
    Box_R2XZ1->SetFillStyle(0);
    Box_R2XZ1->Draw();
-   Box_R2XZ2 = new TBox(.5 + (.5*R2_DIST*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 2
+   Box_R2XZ2 = new TBox(.5 + (.5*R2_DIST*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 2
    Box_R2XZ2->SetLineColor(6);
    Box_R2XZ2->SetFillStyle(0);
    Box_R2XZ2->Draw();
-   Box_R2XZ3 = new TBox(.5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 3
+   Box_R2XZ3 = new TBox(.5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 3
    Box_R2XZ3->SetLineColor(7);
    Box_R2XZ3->SetFillStyle(0);
    Box_R2XZ3->Draw();
-   Box_R2XZ4 = new TBox(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 4
+   Box_R2XZ4 = new TBox(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 4
    Box_R2XZ4->SetLineColor(1);
    Box_R2XZ4->SetFillStyle(0);
    Box_R2XZ4->Draw();
-   tR2XZ1 = new TText(.03, .03, "Cham. 1"); // color-coded text for HDC chamber labels
+   tR2XZ1 = new TText(.03, .03, "Cham. 1"); // Color-coded text for HDC chamber labels
    tR2XZ1->SetTextColor(1);
    tR2XZ1->Draw();
    tR2XZ2 = new TText(.29, .03, "Cham. 2");
@@ -572,15 +538,119 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    tR2XZ4->Draw();
    fRegion2XZ->GetCanvas()->SetEditable(kFALSE);
 
-   //REGION 3--Vertical Drift Chamber//
+   //REGION 2b--Horizontal Drift Chamber (2nd Arm)--------------------------------------------------//
 
-   // create tab and container of "Region 3" VDC data
+   // Create tab and container of "Region 2" data in chambers 5 through 8
+   fRegion2b = fRegions->AddTab("Region 2--HDC (5-8)");
+   fRegion2b->SetLayoutManager(new TGVerticalLayout(fRegion2));
+   fRegion2b->SetLayoutBroken(kTRUE);
+   fRegion2b->SetBackgroundColor(ucolor);
+
+   // Create embedded canvas for Region 2b XY view
+   fRegion2bXY = new TRootEmbeddedCanvas(0,fRegion2b,280,280);
+   Int_t wRegion2bXY = fRegion2bXY->GetCanvasWindowId();
+   cR2bXY = new TCanvas("cR2bXY", 10, 10, wRegion2bXY);
+   fRegion2bXY->AdoptCanvas(cR2bXY);
+   fRegion2b->AddFrame(fRegion2bXY, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fRegion2bXY->MoveResize(12,4,280,280);
+   fRegion2bXY->GetCanvas()->SetFillColor(0);
+   Label_R2bXY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // Create canvas label
+   Label_R2bXY->Draw();
+   Box_R2bXY = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // Create and center box to frame wire lines
+   Box_R2bXY->SetLineColor(1);
+   Box_R2bXY->SetFillStyle(0);
+   Box_R2bXY->Draw();
+   fRegion2bXY->GetCanvas()->SetEditable(kFALSE);
+
+   // Create embedded canvas for Region 2b YZ view
+   fRegion2bYZ = new TRootEmbeddedCanvas(0,fRegion2b,280,280);
+   Int_t wRegion2bYZ = fRegion2bYZ->GetCanvasWindowId();
+   cR2bYZ = new TCanvas("cR2bYZ", 10, 10, wRegion2bYZ);
+   fRegion2bYZ->AdoptCanvas(cR2bYZ);
+   fRegion2b->AddFrame(fRegion2bYZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fRegion2bYZ->MoveResize(306,4,280,280);
+   fRegion2bYZ->GetCanvas()->SetFillColor(0);
+   Label_R2bYZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // Create canvas label
+   Label_R2bYZ->Draw();
+   Box_R2bYZ1 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5),.5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM)); // Create and place box for chamber 5
+   Box_R2bYZ1->SetLineColor(1);
+   Box_R2bYZ1->SetFillStyle(0);
+   Box_R2bYZ1->Draw();
+   Box_R2bYZ2 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM)); // Create and place box for chamber 6
+   Box_R2bYZ2->SetLineColor(7);
+   Box_R2bYZ2->SetFillStyle(0);
+   Box_R2bYZ2->Draw();
+   Box_R2bYZ3 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM)); // Create and place box for chamber 7
+   Box_R2bYZ3->SetLineColor(6);
+   Box_R2bYZ3->SetFillStyle(0);
+   Box_R2bYZ3->Draw();
+   Box_R2bYZ4 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM)); // Create and place box for chamber 8
+   Box_R2bYZ4->SetLineColor(8);
+   Box_R2bYZ4->SetFillStyle(0);
+   Box_R2bYZ4->Draw();
+   tR2bXY1 = new TText(.03, .03, "Cham. 5"); // color-coded text for HDC chamber labels
+   tR2bXY1->SetTextColor(1);
+   tR2bXY1->Draw();
+   tR2bXY2 = new TText(.29, .03, "Cham. 6");
+   tR2bXY2->SetTextColor(7);
+   tR2bXY2->Draw();
+   tR2bXY3 = new TText(.55, .03, "Cham. 7");
+   tR2bXY3->SetTextColor(6);
+   tR2bXY3->Draw();
+   tR2bXY4 = new TText(.81, .03, "Cham. 8");
+   tR2bXY4->SetTextColor(8);
+   tR2bXY4->Draw();
+   fRegion2bYZ->GetCanvas()->SetEditable(kFALSE);
+
+   // Create embedded canvas for Region 2b XZ view
+   fRegion2bXZ = new TRootEmbeddedCanvas(0,fRegion2b,280,280);
+   Int_t wRegion2bXZ = fRegion2bXZ->GetCanvasWindowId();
+   cR2bXZ = new TCanvas("cR2bXZ",10, 10, wRegion2bXZ);
+   fRegion2bXZ->AdoptCanvas(cR2bXZ);
+   fRegion2b->AddFrame(fRegion2bXZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fRegion2bXZ->MoveResize(603,4,280,280);
+   fRegion2bXZ->GetCanvas()->SetFillColor(0);
+   Label_R2bXZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // Create canvas label
+   Label_R2bXZ->Draw();
+   Box_R2bXZ1 = new TBox(.5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 5
+   Box_R2bXZ1->SetLineColor(8);
+   Box_R2bXZ1->SetFillStyle(0);
+   Box_R2bXZ1->Draw();
+   Box_R2bXZ2 = new TBox(.5 + (.5*R2_DIST*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 6
+   Box_R2bXZ2->SetLineColor(6);
+   Box_R2bXZ2->SetFillStyle(0);
+   Box_R2bXZ2->Draw();
+   Box_R2bXZ3 = new TBox(.5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 7
+   Box_R2bXZ3->SetLineColor(7);
+   Box_R2bXZ3->SetFillStyle(0);
+   Box_R2bXZ3->Draw();
+   Box_R2bXZ4 = new TBox(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // Create and place box for chamber 8
+   Box_R2bXZ4->SetLineColor(1);
+   Box_R2bXZ4->SetFillStyle(0);
+   Box_R2bXZ4->Draw();
+   tR2bXZ1 = new TText(.03, .03, "Cham. 5"); // Color-coded text for HDC chamber labels
+   tR2bXZ1->SetTextColor(1);
+   tR2bXZ1->Draw();
+   tR2bXZ2 = new TText(.29, .03, "Cham. 6");
+   tR2bXZ2->SetTextColor(7);
+   tR2bXZ2->Draw();
+   tR2bXZ3 = new TText(.55, .03, "Cham. 7");
+   tR2bXZ3->SetTextColor(6);
+   tR2bXZ3->Draw();
+   tR2bXZ4 = new TText(.81, .03, "Cham. 8");
+   tR2bXZ4->SetTextColor(8);
+   tR2bXZ4->Draw();
+   fRegion2bXZ->GetCanvas()->SetEditable(kFALSE);
+
+   //REGION 3--Vertical Drift Chambers--------------------------------------------------//
+
+   // Create tab and container of "Region 3" VDC data
    fRegion3 = fRegions->AddTab("Region 3--VDC");
    fRegion3->SetLayoutManager(new TGVerticalLayout(fRegion3));
    fRegion3->SetLayoutBroken(kTRUE);
    fRegion3->SetBackgroundColor(ucolor);
 
-   // create embedded canvas for Region 3 XY view                       /////////REMOVE HARD-CODED NUMBERS!!!
+   // Create embedded canvas for Region 3 XY view
    fRegion3XY = new TRootEmbeddedCanvas(0,fRegion3,280,280);
    Int_t wRegion3XY = fRegion3XY->GetCanvasWindowId();
    cR3XY = new TCanvas("cR3XY", 10, 10, wRegion3XY);
@@ -588,25 +658,25 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3->AddFrame(fRegion3XY, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3XY->MoveResize(12,4,280,280);
    fRegion3XY->GetCanvas()->SetFillColor(0);
-   Label_R3XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // create canvas label
+   Label_R3XY = new TPaveLabel(.03,.94,.97,.99,"Front View (Normal to Tilt Angle)"); // Create canvas label
    Label_R3XY->Draw();
-   Box_R3XY1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for chamber 1
+   Box_R3XY1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 1
    Box_R3XY1->SetLineColor(1);
    Box_R3XY1->SetFillStyle(0);
-   Box_R3XY2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // create box for chamber 2
+   Box_R3XY2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 2
    Box_R3XY2->SetLineColor(7);
    Box_R3XY2->SetFillStyle(0);
    Box_R3XY2->Draw();
-   Box_R3XY1->Draw(); // put 1 on top
-   Box_R3XY3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // create box for chamber 3
+   Box_R3XY1->Draw(); // Draw 1 on top of 2
+   Box_R3XY3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 3
    Box_R3XY3->SetLineColor(6);
    Box_R3XY3->SetFillStyle(0);
-   Box_R3XY4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // create box for chamber 4
+   Box_R3XY4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 4
    Box_R3XY4->SetLineColor(8);
    Box_R3XY4->SetFillStyle(0);
    Box_R3XY4->Draw();
-   Box_R3XY3->Draw(); // put 3 on top
-   tR3XY1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC chamber labels
+   Box_R3XY3->Draw(); // Draw 3 on top of 4
+   tR3XY1 = new TText(.03, .03, "Leia (1)"); // Color-coded text for VDC chamber labels
    tR3XY1->SetTextColor(1);
    tR3XY1->Draw();
    tR3XY2 = new TText(.28, .03, "Vader (2)");
@@ -623,7 +693,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    Div_R3XY->Draw();
    fRegion3XY->GetCanvas()->SetEditable(kFALSE);
 
-   // create embedded canvas for Region 3 YZ view
+   // Create embedded canvas for Region 3 YZ view
    fRegion3YZ = new TRootEmbeddedCanvas(0,fRegion3,280,280);
    Int_t wRegion3YZ = fRegion3YZ->GetCanvasWindowId();
    cR3YZ = new TCanvas("cR3YZ", 10, 10, wRegion3YZ);
@@ -631,25 +701,25 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3->AddFrame(fRegion3YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3YZ->MoveResize(306,4,280,280);
    fRegion3YZ->GetCanvas()->SetFillColor(0);
-   Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // create canvas label
+   Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Oriented to Tilt Angle)"); // Create canvas label
    Label_R3YZ->Draw();
-   Box_R3YZ1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_DEPTH*R3_CM*.5)); // create box for chamber 1
+   Box_R3YZ1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_DEPTH*R3_CM*.5)); // Create and place box for chamber 1
    Box_R3YZ1->SetLineColor(1);
    Box_R3YZ1->SetFillStyle(0);
-   Box_R3YZ2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_DEPTH*R3_CM*.5)); // create box for chamber 2
+   Box_R3YZ2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_DEPTH*R3_CM*.5)); // Create and place box for chamber 2
    Box_R3YZ2->SetLineColor(7);
    Box_R3YZ2->SetFillStyle(0);
    Box_R3YZ2->Draw();
-   Box_R3YZ1->Draw(); // put 1 on top
-   Box_R3YZ3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_DEPTH*R3_CM*.5)); // create box for chamber 3
+   Box_R3YZ1->Draw(); // Draw 1 on top of 2
+   Box_R3YZ3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_DEPTH*R3_CM*.5)); // Create and place box for chamber 3
    Box_R3YZ3->SetLineColor(6);
    Box_R3YZ3->SetFillStyle(0);
-   Box_R3YZ4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_DEPTH*R3_CM*.5)); // create box for chamber 4
+   Box_R3YZ4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_DEPTH*R3_CM*.5)); // Create and place box for chamber 4
    Box_R3YZ4->SetLineColor(8);
    Box_R3YZ4->SetFillStyle(0);
    Box_R3YZ4->Draw();
-   Box_R3YZ3->Draw(); // put 3 on top
-   tR3YZ1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC chamber labels
+   Box_R3YZ3->Draw(); // Draw 3 on top of 4
+   tR3YZ1 = new TText(.03, .03, "Leia (1)"); // Color-coded text for VDC chamber labels
    tR3YZ1->SetTextColor(1);
    tR3YZ1->Draw();
    tR3YZ2 = new TText(.28, .03, "Vader (2)");
@@ -666,7 +736,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    Div_R3YZ->Draw();
    fRegion3YZ->GetCanvas()->SetEditable(kFALSE);
 
-   // create embedded canvas for Region 3 XZ view
+   // Create embedded canvas for Region 3 XZ view
    fRegion3XZ = new TRootEmbeddedCanvas(0,fRegion3,280,280);
    Int_t wRegion3XZ = fRegion3XZ->GetCanvasWindowId();
    cR3XZ = new TCanvas("cR3XZ", 10, 10, wRegion3XZ);
@@ -674,25 +744,25 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3->AddFrame(fRegion3XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3XZ->MoveResize(603,4,280,280);
    fRegion3XZ->GetCanvas()->SetFillColor(0);
-   Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // create canvas label
+   Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (Rotated to Tilt Angle)"); // Create canvas label
    Label_R3XZ->Draw();
-   Box_R3XZ1 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for chamber 1 // incorporate X and Y shift (ROOT coord)
+   Box_R3XZ1 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 1
    Box_R3XZ1->SetLineColor(1);
    Box_R3XZ1->SetFillStyle(0);
-   Box_R3XZ2 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // create box for chamber 2
+   Box_R3XZ2 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 2
    Box_R3XZ2->SetLineColor(7);
    Box_R3XZ2->SetFillStyle(0);
    Box_R3XZ2->Draw();
-   Box_R3XZ1->Draw(); // put 1 on top
-   Box_R3XZ3 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // create box for chamber 3
+   Box_R3XZ1->Draw();
+   Box_R3XZ3 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 3
    Box_R3XZ3->SetLineColor(6);
    Box_R3XZ3->SetFillStyle(0);
-   Box_R3XZ4 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // create box for chamber 4
+   Box_R3XZ4 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // Create and place box for chamber 4
    Box_R3XZ4->SetLineColor(8);
    Box_R3XZ4->SetFillStyle(0);
    Box_R3XZ4->Draw();
-   Box_R3XZ3->Draw(); // put 3 on top
-   tR3XZ1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC chamber labels
+   Box_R3XZ3->Draw();
+   tR3XZ1 = new TText(.03, .03, "Leia (1)"); // Color-coded text for VDC chamber labels
    tR3XZ1->SetTextColor(1);
    tR3XZ1->Draw();
    tR3XZ2 = new TText(.28, .03, "Vader (2)");
@@ -709,7 +779,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    Div_R3XZ->Draw();
    fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
 
-   //REGION 3--Trigger Scintillator//
+   //REGION 3--Trigger Scintillator--------------------------------------------------//  NOT USED CURRENTLY
 
    // create tab and container of "Region 3" TS data
    fRegion3TS = fRegions->AddTab("Region 3--TS");
@@ -717,52 +787,29 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3TS->SetLayoutBroken(kTRUE);
    fRegion3TS->SetBackgroundColor(ucolor);
 
-   // set tab attributes
+   // Set region tab attributes
    fRegions->SetTab(0);
    fRegions->Resize(fRegions->GetDefaultSize());
    fMain->AddFrame(fRegions, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fRegions->MoveResize(0,320,900,312);
-   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   fRegions->MoveResize(0,340,900,332);
+   gClient->GetColorByName("#deba87", ucolor); // Set ucolor to mute orange
    fRegions->GetTabTab("Region 1--GEM")->SetBackgroundColor(ucolor);
-   fRegions->GetTabTab("Region 2--HDC")->SetBackgroundColor(ucolor);
+   fRegions->GetTabTab("Region 2--HDC (1-4)")->SetBackgroundColor(ucolor);
+   fRegions->GetTabTab("Region 2--HDC (5-8)")->SetBackgroundColor(ucolor);
    fRegions->GetTabTab("Region 3--VDC")->SetBackgroundColor(ucolor);
    fRegions->GetTabTab("Region 3--TS")->SetBackgroundColor(ucolor);
 
 
-   ////BUTTONS////
+   ////BUTTONS----------------------------------------------------------------------------------------------------////
 
-   // create horizontal frame for buttons
+   // Create horizontal frame for buttons
    gClient->GetColorByName("#0047ab",ucolor);
    TGHorizontalFrame *fButtons = new TGHorizontalFrame(fMain,900,60,kHorizontalFrame,ucolor);
    fButtons->SetLayoutBroken(kTRUE);
-   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*"); // set ufont to bold helvetica 12
-   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
+   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*"); // Set ufont to bold helvetica 12
+   gClient->GetColorByName("#d4cf87",ucolor);                            // Set ucolor to buff
 
-   /* CLEAR BUTTON REDUNDANT?
-   // graphics context changes for "Clear Data" button
-   GCValues_t valButton;
-   valButton.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
-   gClient->GetColorByName("#000000",valButton.fForeground);
-   gClient->GetColorByName("#c0c0c0",valButton.fBackground);
-   valButton.fFillStyle = kFillSolid;
-   valButton.fFont = ufont->GetFontHandle();
-   valButton.fGraphicsExposures = kFALSE;
-   uGC = gClient->GetGC(&valButton, kTRUE);
-   // create clear button: CLEARS ALL DATA
-   TGTextButton *ClearButton = new TGTextButton(fButtons,"&Clear Data",-1,uGC->GetGC(),ufont->GetFontStruct());
-   ClearButton->Connect("Clicked()", "QwEventDisplay", this, "GoClear()"); // connect button to GoClear() function
-   ClearButton->SetTextJustify(36);
-   ClearButton->SetMargins(0,0,0,0);
-   ClearButton->SetWrapLength(-1);
-   ClearButton->Resize(100,50);
-   ClearButton->ChangeBackground(ucolor);
-   // add clear button to frame
-   fButtons->AddFrame(ClearButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   ClearButton->MoveResize(545,6,100,50);
-   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*"); // set ufont to bold helvetica 12
-   */
-
-   // graphics context changes for "Exit" button
+   // Graphics context changes for "Exit" button
    GCValues_t valutton;
    valutton.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valutton.fForeground);
@@ -771,20 +818,19 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valutton.fFont = ufont->GetFontHandle();
    valutton.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valutton, kTRUE);
-   // create exit button: CLOSES PROGRAM
-   ExitButton = new TGTextButton(fButtons,"E&xit","gApplication->Terminate(0)");
-   ExitButton->SetFont(ufont->GetFontStruct()); //set ufont
+   // Create exit button
+   ExitButton = new TGTextButton(fButtons,"E&xit","gApplication->Terminate(0)"); // Connect button to application termination
+   ExitButton->SetFont(ufont->GetFontStruct());
    ExitButton->SetTextJustify(36);
    ExitButton->SetMargins(0,0,0,0);
    ExitButton->SetWrapLength(-1);
    ExitButton->Resize(100,50);
    ExitButton->ChangeBackground(ucolor);
-   // add exit button to frame
+   // Add exit button to buttons frame
    fButtons->AddFrame(ExitButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    ExitButton->MoveResize(784,6,100,50);
 
-
-   // graphics context changes for "Previous Event" button
+   // Graphics context changes for "Previous Event" button
    GCValues_t valousButton;
    valousButton.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valousButton.fForeground);
@@ -793,20 +839,20 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valousButton.fFont = ufont->GetFontHandle();
    valousButton.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valousButton, kTRUE);
-   // create previous button: MAKES EVENT COUNTER MINUS ONE
+   // Create previous button
    TGTextButton *PreviousButton = new TGTextButton(fButtons,"&Previous Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   PreviousButton->Connect("Clicked()", "QwEventDisplay", this, "GoPrevious()"); // connect button to GoPrevious() function
+   PreviousButton->Connect("Clicked()", "QwEventDisplay", this, "GoPrevious()"); // Connect button to GoPrevious() function
    PreviousButton->SetTextJustify(36);
    PreviousButton->SetMargins(0,0,0,0);
    PreviousButton->SetWrapLength(-1);
    PreviousButton->Resize(100,50);
    PreviousButton->ChangeBackground(ucolor);
-   // add previous button to frame
+   // Add previous button to buttons frame
    fButtons->AddFrame(PreviousButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    PreviousButton->MoveResize(12,6,100,50);
 
 
-   // graphics context changes for "Next Event" button
+   // Graphics context changes for "Next Event" button
    valutton.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valutton.fForeground);
    gClient->GetColorByName("#c0c0c0",valutton.fBackground);
@@ -814,66 +860,62 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valutton.fFont = ufont->GetFontHandle();
    valutton.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valutton, kTRUE);
-   // create next button: MAKES EVENT COUNTER PLUS ONE
+   // Create next button
    TGTextButton *NextButton = new TGTextButton(fButtons,"&Next Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   NextButton->Connect("Clicked()", "QwEventDisplay", this, "GoNext()"); // connect button to GoNext() function
+   NextButton->Connect("Clicked()", "QwEventDisplay", this, "GoNext()"); // Connect button to GoNext() function
    NextButton->SetTextJustify(36);
    NextButton->SetMargins(0,0,0,0);
    NextButton->SetWrapLength(-1);
    NextButton->Resize(100,50);
    NextButton->ChangeBackground(ucolor);
-   // add next button to frame
+   // Add next button to buttons frame
    fButtons->AddFrame(NextButton, new TGLayoutHints(kLHintsNormal));
    NextButton->MoveResize(125,6,100,50);
 
-   // add buttons frame to main frame
+   // Add buttons frame to main frame
    fMain->AddFrame(fButtons, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fButtons->MoveResize(0,632,900,60);
+   fButtons->MoveResize(0,652,900,80);
 
 
-   //FINAL TOUCHES//
+   //LOCAL COORDINATE KEY----------------------------------------------------------------------------------------------------//
 
-   // create embedded canvas to display key for region data
+   // Create embedded canvas to display key for local coordinates
    TRootEmbeddedCanvas *fKey = new TRootEmbeddedCanvas(0,fButtons,280,280);
    Int_t wKey = fKey->GetCanvasWindowId();
    TCanvas *cKey = new TCanvas("cKey", 10, 10, wKey);
    fKey->AdoptCanvas(cKey);
    fButtons->AddFrame(fKey, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fKey->MoveResize(245,6,515,50);
-   // fill in details
+   // Fill in key details
    fKey->GetCanvas()->cd();
    fKey->GetCanvas()->SetFillColor(0);
-   TPaveLabel *Label_KeyX = new TPaveLabel(.01,.05,.24,.95," X"); // create key label for X info
+   TPaveLabel *Label_KeyX = new TPaveLabel(.01,.05,.24,.95," X"); // Create key label for X direction
    Label_KeyX->SetTextAlign(12);
    Label_KeyX->SetTextColor(kRed);
-   //   Label_KeyX->SetFillColor(0);
    Label_KeyX->SetShadowColor(0);
    Label_KeyX->Draw();
    TLine *Line_KeyX = new TLine(.1,.5,.2,.5);
    Line_KeyX->SetLineColor(kRed);
    Line_KeyX->Draw();
-   TPaveLabel *Label_KeyY = new TPaveLabel(.25,.05,.49,.95," Y"); // create key label for Y info
+   TPaveLabel *Label_KeyY = new TPaveLabel(.25,.05,.49,.95," Y"); // Create key label for Y direction
    Label_KeyY->SetTextAlign(12);
    Label_KeyY->SetTextColor(kViolet);
-   //   Label_KeyY->SetFillColor(0);
    Label_KeyY->SetShadowColor(0);
    Label_KeyY->Draw();
    TLine *Line_KeyY = new TLine(.4,.1,.4,.9);
    Line_KeyY->SetLineColor(kViolet);
    Line_KeyY->Draw();
-   TPaveLabel *Label_KeyU = new TPaveLabel(.5,.05,.74,.95," U"); // create key label for U info
+   TPaveLabel *Label_KeyU = new TPaveLabel(.5,.05,.74,.95," U");  // Create key label for U direction
    Label_KeyU->SetTextAlign(12);
    Label_KeyU->SetTextColor(kGreen);
-   //   Label_KeyU->SetFillColor(0);
    Label_KeyU->SetShadowColor(0);
    Label_KeyU->Draw();
    TLine *Line_KeyU = new TLine(.59,.1,.7,.9);
    Line_KeyU->SetLineColor(kGreen);
    Line_KeyU->Draw();
-   TPaveLabel *Label_KeyV = new TPaveLabel(.75,.05,.99,.95," V"); // create key label for V info
+   TPaveLabel *Label_KeyV = new TPaveLabel(.75,.05,.99,.95," V"); // Create key label for V direction
    Label_KeyV->SetTextAlign(12);
    Label_KeyV->SetTextColor(kBlue);
-   //   Label_KeyV->SetFillColor(0);
    Label_KeyV->SetShadowColor(0);
    Label_KeyV->Draw();
    TLine *Line_KeyV = new TLine(.84,.9,.95,.1);
@@ -882,196 +924,203 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fKey->GetCanvas()->SetEditable(kFALSE);
    fKey->GetCanvas()->Update();
 
-   // add main frame to the pop up window and customize
+   // Add main frame to the client window and customize
    fMain->SetMWMHints(kMWMDecorAll,kMWMFuncAll,kMWMInputModeless);
    fMain->MapSubwindows();
    fMain->Resize(fMain->GetDefaultSize());
    fMain->MapWindow();
-   fMain->Resize(900,692);
-} // end QwEventDisplay()
+   fMain->Resize(900,712);
+} // End QwEventDisplay()
 
 
-////FUNCTIONAL COMPONENTS////
+////FUNCTIONAL COMPONENTS----------------------------------------------------------------------------------------------------////
 
-void QwEventDisplay::HandleMenu(Int_t id){  // controls the menu bar functions
-                                              // called my menu entry click
+void QwEventDisplay::HandleMenu(Int_t id){  // Controls the menu bar functions
+                                            // Called my menu entry click
 
   switch (id){
-    case M_FILE_OPENRUN:
-      break;
-    case M_FILE_OPENSIM:
-      break;
-    case M_FILE_PRINTSCREEN:
-      break;
-    case M_FILE_EXIT:
-      break;
-    case M_HELP_TUTORIAL:
-      break;
-    case M_HELP_ABOUT:
-      printf("**************************************\n** Qweak 2D Event Display           **\n** Jefferson Lab -- Hall C          **\n** Author: Derek Jones              **\n** The George Washington University **\n** Contact: dwjones8@gwu.edu        **\n**************************************\n");
-      break;
+  case M_FILE_OPEN:      // Open ROOT file
+    printf("\nCannot open file.  This feature is currently non-functional.  Use the Q-weak Data Analysis GUI to control files or re-open the display with a different run file.\n");
+    fMenuFile->DisableEntry(M_FILE_OPEN);
+    fMenuFile->EnableEntry(M_FILE_CLOSE);
+    break;
+  case M_FILE_CLOSE:     // Close ROOT file 
+    printf("\nCannot close file.  This feature is currently non-functional.  Use the Q-weak Data Analysis GUI to control files or re-open the display with a different run file.\n");
+    fMenuFile->EnableEntry(M_FILE_OPEN);
+    fMenuFile->DisableEntry(M_FILE_CLOSE);
+    break;
+  case M_HELP_TUTORIAL:  // Print a link to the event display tutorial
+    printf("\nTutorial documentation is located at https://qweak.jlab.org/wiki/index.php/Track_Reconstruction.\n");
+    break;
+  case M_HELP_ABOUT:     // Print information about the event display
+    printf("\n**************************************\n** Qweak 2D Event Display           **\n** Jefferson Lab -- Hall C          **\n** Author: Derek Jones              **\n** The George Washington University **\n** Contact: dwjones8@gwu.edu        **\n** Last updated: 7-26-2010          **\n**************************************\n");
+    break;
   }
-}
+} // End HandleMenu(Int_t)
 
-void QwEventDisplay::GoPrevious(){  // makes event counter minus one
-                                      // called by PreviousButton click
-
+void QwEventDisplay::GoPrevious(){  // Subtracts one from current event counter
+                                    // Called by PreviousButton click
+  
   if (fEventNumber > 1){
-    fEventNumber--;  // go to previous event
-    DrawEvent();  // update display information
+    fEventNumber--;  // Go to previous event
+    DrawEvent();     // Update display information
   }
-
   else{
-    fEventNumber = 0;  // go to null event
-    GoClear(); // event 0 is null event
+    fEventNumber = 0;  // Go to null event
+    GoClear();         // Keep from drawing non-existent negative events
   }
+} // End GoPrevious()
 
-} // end GoPrevious()
+void QwEventDisplay::GoNext(){  // Adds one to current event counter
+                                // Called by NextButton click
+  
+  fEventNumber++;  // Go to next event
+  DrawEvent();     // Update display information
+} // End GoNext()
 
-
-void QwEventDisplay::GoNext(){  // makes event counter plus one
-                                  // called by NextButton click
-
-  fEventNumber++;  // go to next event
-  DrawEvent();  // update display information
-} // end GoNext()
-
-
-void QwEventDisplay::GoClear(){  // clears all displayed data
-
-  CurrentEventLabel->SetText(Form("%d", fEventNumber)); // updates layout to show current event number
-
-  WireHitListBox->RemoveAll(); // clear event box 2
-  TimingListBox->RemoveAll(); // clear event box 3
-  DriftDistanceListBox->RemoveAll(); // clear event box 4
-
-  Line_R1r.clear(); // clear existing Region 1 vectors
+void QwEventDisplay::GoClear(){  // Clears all displayed data
+  
+  fCurrentEventLabel->SetText(Form("%d", fEventNumber)); // Updates layout to show current event number
+  
+  fWireInfoListBox->RemoveAll(); // Clear wire hit information listbox
+  
+  Line_R1r.clear(); // Clear existing Region 1 vectors
   Line_R1y.clear();
-  R1_XYfit.clear();
-  R1_XZfit.clear();
-  Line_R2x.clear(); // clear existing Region 2 vectors
+  Line_R2x.clear(); // Clear existing Region 2 vectors
   Line_R2u.clear();
   Line_R2v.clear();
-  Line_R3u.clear(); // clear existing Region 3 vectors
+  Line_R3u.clear(); // Clear existing Region 3 vectors
   Line_R3v.clear();
 
-  fRegion1XY->GetCanvas()->Update(); // clear existing information and add new event information
+  Octant_1->SetFillColor(0); // Clear octant identification fills
+  Octant_2->SetFillColor(0);
+  Octant_3->SetFillColor(0);
+  Octant_4->SetFillColor(0);
+  Octant_5->SetFillColor(0);
+  Octant_6->SetFillColor(0);
+  Octant_7->SetFillColor(0);
+  Octant_8->SetFillColor(0);
+
+  fOctantID->GetCanvas()->Update();  // Update canvases to null state
+  fRegion1XY->GetCanvas()->Update();
   fRegion1XZ->GetCanvas()->Update();
   fRegion1YZ->GetCanvas()->Update();
   fRegion2XY->GetCanvas()->Update();
   fRegion2XZ->GetCanvas()->Update();
   fRegion2YZ->GetCanvas()->Update();
+  fRegion2bXY->GetCanvas()->Update();
+  fRegion2bXZ->GetCanvas()->Update();
+  fRegion2bYZ->GetCanvas()->Update();
   fRegion3XY->GetCanvas()->Update();
   fRegion3XZ->GetCanvas()->Update();
   fRegion3YZ->GetCanvas()->Update();
+} // End GoClear()
 
-} // end GoClear()
-
-
-void QwEventDisplay::GotoEvent(){  // goes to desired event number written in "goto event" text entry box
-                                     // called by GotoEventButton click
-
-  fEventNumber = CurrentEventEntry->GetNumberEntry()->GetIntNumber(); // fEventNumber takes value from number entry
-
+void QwEventDisplay::GotoEvent(){  // Goes to desired event number written in "goto event" number entry
+                                   // Called by GotoEventButton click
+  
+  fEventNumber = fCurrentEventEntry->GetNumberEntry()->GetIntNumber(); // fEventNumber takes value from number entry
+  
   if (fEventNumber > 0){
-    CurrentEventLabel->SetText(Form("%d",CurrentEventEntry->GetNumberEntry()->GetIntNumber())); // set current event label
-    DrawEvent();  // update display information
+    fCurrentEventLabel->SetText(Form("%ld",fCurrentEventEntry->GetNumberEntry()->GetIntNumber())); // Set current event label to value from number entry
+    DrawEvent();                                                                                  // Update display information
   }
-
+  
   else{
-    fEventNumber = 0; // go to null event
-    GoClear(); // event 0 is null event
+    fEventNumber = 0; // Go to null event
+    GoClear();        // Keep from drawing non-existent negative events
   }
+} // End GotoEvent()
 
-} // end GotoEvent()
+void QwEventDisplay::DrawEvent(){  // Draws event data into display
+                                   // Lists wire hit information in the listbox
+                                   // Fills in the current octants in the octant ID
+                                   // Displays orthographic views of triggered wires for each region
+                                   // Called by Previous, Next, or GotoEvent buttons
+  
+  //SETUP FOR FUNCTION--------------------------------------------------//
+  
+  printf("Drawing event %d...\n", fEventNumber); // Print the call to DrawEvent() of a current event number
+  
+  /* NOT WORKING :(
+  // Catch to keep from attempting to draw events outside the number of entries
+  if (fEventNumber > fTree->GetEntries()){   //<--THIS LINE NEEDS TO BE EDITED
+    printf("Draw error: There are only %d entries.\n", (int) fTree->GetEntries()); // DEFINE fTree
+    fEventNumber = 0;
+    GoClear();
+    printf("Returned to zero.\n");
+    return 0;  //<--DrawEvent() needs to be type int
+  }
+  */
 
-
-void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire hits, timing, and other information in event boxes
-                                     // displays orthographic views triggered wires for each region
-                                     // called by Previous, Next, or GotoEvent buttons  // NOT COMPLETE
-
-  fRegion1XY->GetCanvas()->SetEditable(kTRUE);  // restore editing capability
+  fOctantID->GetCanvas()->SetEditable(kTRUE);  // Restore editing capability of canvases
+  fRegion1XY->GetCanvas()->SetEditable(kTRUE);  
   fRegion1XZ->GetCanvas()->SetEditable(kTRUE);
   fRegion1YZ->GetCanvas()->SetEditable(kTRUE);
   fRegion2XY->GetCanvas()->SetEditable(kTRUE);
   fRegion2XZ->GetCanvas()->SetEditable(kTRUE);
   fRegion2YZ->GetCanvas()->SetEditable(kTRUE);
+  fRegion2bXY->GetCanvas()->SetEditable(kTRUE);
+  fRegion2bXZ->GetCanvas()->SetEditable(kTRUE);
+  fRegion2bYZ->GetCanvas()->SetEditable(kTRUE);
   fRegion3XY->GetCanvas()->SetEditable(kTRUE);
   fRegion3XZ->GetCanvas()->SetEditable(kTRUE);
   fRegion3YZ->GetCanvas()->SetEditable(kTRUE);
 
-  GoClear(); // clear existing data
+  GoClear(); // Clear existing data
 
+  //HIGHLIGHT OCTANT POSITION--------------------------------------------------// ##############GET THIS INFORMATION FROM WHEREEVER IT BECOMES AVAILABLE!!!
 
-  //LIST WIRE HITS//
-  // extract wire hit information
-  fEventBuffer->GetSpecificEvent(fEventNumber);   // place the current event number into the event buffer
-  fHitList = fEventBuffer->GetHitContainer();  // add the hit list from the current event buffer
-  fHitList->Print();  // outputs the new wire hit information from the hit list
-
-  // create a char string buffer to hold hit information
-  char HitBuffer[30];
-
-  // list wire hits in wire list hit box
-  for(QwHitContainer::iterator fHit = fHitList->begin(); fHit != fHitList->end(); fHit++){ // loop while hits exist in the hit container
+  // Dark orange is left (lower # chambers)
+  // Light orange is right (higher # chambers)
+  fOctantID->GetCanvas()->cd();
+  int fTest = 1; // USED ONLY FOR DISPLAY PURPOSES
+  switch(fTest){
+  case 1:
+    Octant_2->SetFillColor(kOrange-3);
+    Octant_6->SetFillColor(kOrange-2);
+    Octant_2->Draw();
+    Octant_6->Draw(); 
+    break;
+    //  etc.........
+  }
+  fOctantID->GetCanvas()->SetEditable(kFALSE);
+  fOctantID->GetCanvas()->Update();
+  
+  //LIST WIRE HITS--------------------------------------------------//
+  
+  // Extract wire hit information
+  fEventBuffer->GetSpecificEvent(fEventNumber); // Place the current event number into the event buffer
+  fHitList = fEventBuffer->GetHitContainer();   // Add the hit list from the current event buffer
+  printf("Printing hit list...");               // Let user know hit list is printing
+  fHitList->Print();                            // Prints the new wire hit information from the hit list
+  
+  // Create a string buffer to hold hit information
+  char fHitBuffer[30];
+  
+  // List wire hit information in list box
+  for(QwHitContainer::iterator fHit = fHitList->begin(); fHit != fHitList->end(); fHit++){ // Loop while hits exist in the hit container
     if(fHit->GetElement() > 0){
       if (fHit->GetRegion() == 1){
-	sprintf(HitBuffer, "Region %i:  Trace %i, Plane %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // print single hit for Region 1
+	sprintf(fHitBuffer, "Region %i:  Trace %i, Plane %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // Print single hit for Region 1
       }
       else if (fHit->GetRegion() == 2){
-	sprintf(HitBuffer, "Region %i:  Wire %i, Plane %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // print single hit for Region 2
+	sprintf(fHitBuffer, "Region %i:  Wire %i, Plane %i      Drift Distance: %f", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane(), fHit->GetDriftDistance()); // Print single hit for Region 2
       }
       else if (fHit->GetRegion() == 3){
-	sprintf(HitBuffer, "Region %i:  Wire %i, Plane %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // print single hit for Region 3
+	sprintf(fHitBuffer, "Region %i:  Wire %i, Plane %i      Drift Distance: %f", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane(), fHit->GetDriftDistance()); // Print single hit for Region 3
       }
       else{}
-      WireHitListBox->AddEntry(HitBuffer, fEventNumber); // add to list box
-      WireHitListBox->MapSubwindows(); // re-map window
-      WireHitListBox->Layout();
-    } // end if
-  } //end for
+      fWireInfoListBox->AddEntry(fHitBuffer, fEventNumber); // Add entry to list box
+      fWireInfoListBox->MapSubwindows();
+      fWireInfoListBox->Layout();
+    }
+  }
+  
+  //GATHER WIRE HIT DATA--------------------------------------------------//
 
-  //LIST TIMING DATA//
-  for(QwHitContainer::iterator fHit = fHitList->begin(); fHit != fHitList->end(); fHit++){ // loop while hits exist in the hit container
-    if(fHit->GetElement() > 0){
-      if (fHit->GetRegion() == 1){
-	sprintf(HitBuffer, "Time:  %lf", fHit->GetTime()); // print timing info for Region 1
-      }
-      else if (fHit->GetRegion() == 2){
-	sprintf(HitBuffer, "Time:  %lf", fHit->GetTime()); // print timing info for Region 2
-      }
-      else if (fHit->GetRegion() == 3){
-	sprintf(HitBuffer, "Time:  %lf", fHit->GetTime()); // print timing info for Region 3
-      }
-      else{}
-      TimingListBox->AddEntry(HitBuffer, fEventNumber); // add to list box
-      TimingListBox->MapSubwindows(); // re-map window
-      TimingListBox->Layout();
-    } // end if
-  } //end for
-
-  //LIST DRIFT DISTANCE DATA//
-  for(QwHitContainer::iterator fHit = fHitList->begin(); fHit != fHitList->end(); fHit++){ // loop while hits exist in the hit container
-    if(fHit->GetElement() > 0){
-      if (fHit->GetRegion() == 1){
-	sprintf(HitBuffer, "n/a"); // no drift distance
-      }
-      else if (fHit->GetRegion() == 2){
-	sprintf(HitBuffer, "Wire %i:  %lf cm", fHit->GetElement(), fHit->GetDriftDistance()); // print single wire number and drift distance for Region 2
-      }
-      else if (fHit->GetRegion() == 3){
-	sprintf(HitBuffer, "Wire %i:  %lf cm", fHit->GetElement(), fHit->GetDriftDistance()); // print single wire number and drift distance for Region 3
-      }
-      else{}
-      DriftDistanceListBox->AddEntry(HitBuffer, fEventNumber); // add to list box
-      DriftDistanceListBox->MapSubwindows(); // re-map window
-      DriftDistanceListBox->Layout();
-    } // end if
-  } //end for
-
-  //GATHER WIRE HIT DATA//
   // Region 1 hits
-  QwHitContainer* Hits_R1r = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionR);  // Hits_R[Region #][Plane]
+  QwHitContainer* Hits_R1r = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionR);
   QwHitContainer* Hits_R1y = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionY);
   // Region 2 hits
   QwHitContainer* Hits_R2x = fHitList->GetSubList_Dir(kRegionID2, kPackageUp, kDirectionX);
@@ -1080,50 +1129,53 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   // Region 3 hits
   QwHitContainer* Hits_R3u = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionU);
   QwHitContainer* Hits_R3v = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionV);
+  
+  // DRAWING WIRE HITS--------------------------------------------------//
+  // Three types of wires to draw--full length, left of full length, and right of full length
+  // Separating them depends on the first and last full length wire (saved as constants in the header)
+  // Wires are drawn and centered with respect to the chamber frame in ROOT coordinates
+  // Wire numbers go from right to left; plane numbers go from front to back
+  // Hit wire information is stored to the end of a vector and drawn in the appropriate canvas
+  // Editing of canvases is removed after drawing
 
-  //DRAW REGION 1 TRACE HITS//
-
-  //FRONT VIEW (X-Y)
+  // DRAW REGION 1 TRACE HITS--------------------------------------------------//
+  
+  // FRONT VIEW (X-Y)
   fRegion1XY->GetCanvas()->cd();
-  //Region 1 X traces (??? total)
-  for(QwHitContainer::iterator fHit = Hits_R1r->begin(); fHit != Hits_R1r->end(); fHit++){
-    //G4 DOES NOT GET ANY HITS FROM THESE
-  }
-  //Region 1 Y traces (??? total)
-  //  sum = 0; // back to 0 for fitting
-  //  num = 0;
-  for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
-    int fTrace = fHit->GetElement();
-    //    double fDist = fHit->GetDriftDistance();
+  // Region 1 X traces (??? total)
+  for(QwHitContainer::iterator fHit = Hits_R1r->begin(); fHit != Hits_R1r->end(); fHit++){  // G4 DOES NOT GET ANY HITS FROM THESE
     TLine Line;
+    int fTrace = fHit->GetElement();
+    Line.SetY1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
+    Line.SetX1(.5 - (R1_LENGTH*R1_CM*.5));
+    Line.SetY2(.5 + (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
+    Line.SetX2(.5 - (R1_LENGTH*R1_CM*.5));
+    Line.SetLineColor(kViolet);
+    Line_R1y.push_back(Line);
+    Line_R1y.back().Draw();
+  }
+  // Region 1 Y traces (??? total)
+  for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
+    TLine Line;
+    int fTrace = fHit->GetElement();
     Line.SetY1(.5 - (R1_WIDTH*R1_CM*.5));
     Line.SetX1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
     Line.SetY2(.5 + (R1_WIDTH*R1_CM*.5));
     Line.SetX2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
     Line.SetLineColor(kViolet);
-    Line_R1y.push_back(Line); // add Line to end of vector R2x
-    Line_R1y.back().Draw(); // draw line;
-    //    sum = sum + wire;
-    //    num++;
+    Line_R1y.push_back(Line);
+    Line_R1y.back().Draw();
   }
-/*fit = sum/num;
-  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
-  Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetX2(.5 + (R1_WIDTH*R1_CM*.5));
-  Line.SetY2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetLineColor(kBlack);
-  R1_XYfit.push_back(Line);
-  R1_XYfit.back().Draw();*/
   fRegion1XY->GetCanvas()->SetEditable(kFALSE);
   fRegion1XY->GetCanvas()->Update();
 
-  //TOP VIEW (Y-Z)
+  // TOP VIEW (Y-Z)
   fRegion1YZ->GetCanvas()->cd();
-  //Region 1 Y wires
+  // Region 1 X traces (??? total)
+  // Region 1 Y wires (??? total)
   for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
-    int fTrace = fHit->GetElement();
-    //    double fDist = fHit->GetDriftDistance();
     TLine Line;
+    int fTrace = fHit->GetElement();
     Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5));
     Line.SetX1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
     Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5));
@@ -1134,12 +1186,11 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   }
   fRegion1YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion1YZ->GetCanvas()->Update();
-
-  //SIDE VIEW (X-Z)
-  //  sum = 0; // back to 0 for fitting
-  //  num = 0;
+  
+  // SIDE VIEW (X-Z)
   fRegion1XZ->GetCanvas()->cd();
-  //Region 1 Y wires
+  // Region 1 X traces (??? total)
+  // Region 1 Y wires (??? total)
   for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
     TLine Line;
     Line.SetX1(.5);
@@ -1147,250 +1198,265 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     Line.SetX2(.5);
     Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
     Line.SetLineColor(kViolet);
-    Line.SetLineWidth(22); // to fill whole plane; 22 is similar to R1_DEPTH
-    Line_R1y.push_back(Line); // add Line to end of vector R2x
-    Line_R1y.back().Draw(); // draw line;
-    //    sum = sum + wire;
-    //    num++;
+    Line.SetLineWidth(22); // To fill whole plane; 22 is similar to R1_DEPTH   <--NOT OK!
+    Line_R1y.push_back(Line);
+    Line_R1y.back().Draw();
   }
-/*fit = sum/num;
-  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
-  Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5));
-  Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetLineColor(kBlack);
-  R1_XZfit.push_back(Line);
-  R1_XZfit.back().Draw();*/
   fRegion1XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion1XZ->GetCanvas()->Update();
 
-  //DRAW REGION 2 WIRE HITS//
+  //DRAW REGION 2 WIRE HITS--------------------------------------------------//
 
-  //FRONT VIEW (X-Y)
+  // FRONT VIEW (X-Y)
   fRegion2XY->GetCanvas()->cd();
-  //Region 2 X wires (32 total)
+  // Region 2 X wires (32 total)
   for(QwHitContainer::iterator fHit = Hits_R2x->begin(); fHit != Hits_R2x->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane(); // wire plane
-    //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0.0; // used to shift the wires on the prime planes (ROOT coordinates)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Wire plane
+    double fPShift = 0;             // Used to shift the wires on the prime planes (ROOT coordinates)
     switch (fPlane){
-    case 1:
-    case 2:
-    case 3:
-      break;
     case 4:
     case 5:
     case 6:
-      //      fYShift = .5*R2_XDIST*R2_CM; // half drift cell size
-      break;
-    case 7:
-    case 8:
-    case 9:
-      break;
     case 10:
     case 11:
     case 12:
-      //      fYShift = .5*R2_XDIST*R2_CM;
+    case 16:
+    case 17:
+    case 18:
+    case 22:
+    case 23:
+    case 24:
+      fPShift = .5*R2_XDIST*R2_CM; // Half drift cell distance
       break;
     }
-    TLine Line;
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bXY->GetCanvas()->cd();
     Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
-    Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
+    Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fPShift);
     Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
-    Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
+    Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fPShift);
     Line.SetLineColor(kRed);
-    Line_R2x.push_back(Line); // add Line to end of vector R2x
-    Line_R2x.back().Draw(); // draw line;
+    Line_R2x.push_back(Line);
+    Line_R2x.back().Draw();
   }
-  //Region 2 U wires (29 total)
+  // Region 2 U wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2u->begin(); fHit != Hits_R2u->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane(); // wire plane
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the wires on the prime planes (ROOT coordinates)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Wire plane
+    int fShiftTrim = 0;             // Used to correct shifted prime wires from going outside the frame
+    double fPShift = 0;             // Used to shift the wires on the prime planes (ROOT coordinates)
     switch (fPlane){
-    case 1:
-    case 2:
-    case 3:
-      break;
     case 4:
     case 5:
     case 6:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
-      break;
-    case 7:
-    case 8:
-    case 9:
-      break;
     case 10:
     case 11:
     case 12:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+    case 16:
+    case 17:
+    case 18:
+    case 22:
+    case 23:
+    case 24:
+      fPShift = .5*R2_UVDIST*R2_CM; // Half drift cell distance
+      if (fWire == R2_FULLWIRE1 || fWire == R2_FULLWIRE2)
+	fShiftTrim = 1;
       break;
     }
-    TLine Line;
-    if (fWire < 12){  //12th wire ends at corner (X2, Y2)   // ISSUES HERE
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bXY->GetCanvas()->cd();
+    if (fWire < R2_FULLWIRE1){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
-      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fXShift)*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*(fWire - fShiftTrim)) + fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 18){  //18th wire begins at (X1, Y1)   // ISSUES HERE
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    else if (fWire < R2_FULLWIRE2){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - ((R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
     }
     else{
-      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) + fXShift);
-      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_UVDIST*R2_CM*(fWire-17.4)));
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6) - fXShift) - fXShift); // ISSUES HERE
+      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5) - (((R2_WIDTH*R2_CM) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
     }
     Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 2 V wires (29 total)
+  // Region 2 V wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2v->begin(); fHit != Hits_R2v->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane(); // wire plane
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the wires in the prime chamber planes (ROOT coordinates)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Wire plane
+    int fShiftTrim = 0;             // Used to correct shifted prime wires from going outside the frame
+    double fPShift = 0;             // Used to shift the wires in the prime chamber planes (ROOT coordinates)
     switch (fPlane){
-    case 1:
-    case 2:
-    case 3:
-      break;
     case 4:
     case 5:
     case 6:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
-      break;
-    case 7:
-    case 8:
-    case 9:
-      break;
     case 10:
     case 11:
     case 12:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+    case 16:
+    case 17:
+    case 18:
+    case 22:
+    case 23:
+    case 24:
+      fPShift = .5*R2_UVDIST*R2_CM; // Half drift cell distance
+      if (fWire == R2_FULLWIRE1 || fWire == R2_FULLWIRE2)
+	fShiftTrim = 1;
       break;
     }
-    TLine Line;
-    if (fWire < 12){  //96th wire ends at corner (X2, Y1)
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bXY->GetCanvas()->cd();
+    if (fWire < R2_FULLWIRE1){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
-      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (((R2_UVDIST*R2_CM*(fWire - fShiftTrim)) + fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 18){  //184th wire begins at corner (X1, Y2)
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    else if (fWire < R2_FULLWIRE2){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5));
     }
     else{
-      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) + fXShift);
-      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-17.4)));
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift); // ISSUES HERE!  FIXXX!!
+      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_WIDTH*R2_CM) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5));
-    }
+      }
     Line.SetLineColor(kBlue);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
   }
   fRegion2XY->GetCanvas()->SetEditable(kFALSE);
   fRegion2XY->GetCanvas()->Update();
+  fRegion2bXY->GetCanvas()->SetEditable(kFALSE);
+  fRegion2bXY->GetCanvas()->Update();
 
-  //TOP VIEW (Y-Z)
+  // TOP VIEW (Y-Z)
   fRegion2YZ->GetCanvas()->cd();
-  //Region 2 X wires (32 total)
+  // Region 2 X wires (32 total)
   for(QwHitContainer::iterator fHit = Hits_R2x->begin(); fHit != Hits_R2x->end(); fHit++){
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0; // used to shift the wires in the prime planes and to the correct chamber planes (ROOT coordinates)
+    TLine Line;
+    int fPlane = fHit->GetPlane(); // Wire plane
+    double fYShift = 0;            // Used to shift the wires in the prime planes and to the correct chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fYShift = (R2_DEPTH*R2_CM)/4;
+    case 13:
+    case 14:
+    case 15:
+      fYShift = (R2_DEPTH*R2_CM)/4; // Three evenly spaced wires (3+1)
       break;
     case 4:
     case 5:
     case 6:
-      fYShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4; // three evenly spaced wires
+    case 16:
+    case 17:
+    case 18:
+      fYShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
       break;
     case 7:
     case 8:
     case 9:
+    case 19:
+    case 20:
+    case 21:
       fYShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
       break;
     case 10:
     case 11:
     case 12:
+    case 22:
+    case 23:
+    case 24:
       fYShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
       break;
     }
-    TLine Line;
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bYZ->GetCanvas()->cd();
     Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
     Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
     Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     Line.SetLineColor(kRed);
     Line.SetLineWidth(2);
-    Line_R2x.push_back(Line); // add Line to end of vector R2x
-    Line_R2x.back().Draw(); // draw line;
+    Line_R2x.push_back(Line);
+    Line_R2x.back().Draw();
   }
- //Region 2 U wires (29 total)
+ // Region 2 U wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2u->begin(); fHit != Hits_R2u->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
-    double fYShift = 0; // used to shift the wires in the prime planes and to the correct chamber planes (ROOT coordinates)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fPShift = 0;             // Used to shift the wires in the prime planes
+    double fYShift = 0;             // Used to shift the wires to the correct chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
+    case 13:
+    case 14:
+    case 15:
       fYShift = 2*((R2_DEPTH*R2_CM)/4);
       break;
     case 4:
     case 5:
     case 6:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+    case 16:
+    case 17:
+    case 18:
+      fPShift = .5*R2_UVDIST*R2_CM;
       fYShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (2*((R2_DEPTH*R2_CM)/4));
       break;
     case 7:
     case 8:
     case 9:
+    case 19:
+    case 20:
+    case 21:
       fYShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (2*((R2_DEPTH*R2_CM)/4));
       break;
     case 10:
     case 11:
     case 12:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+    case 22:
+    case 23:
+    case 24:
+      fPShift = .5*R2_UVDIST*R2_CM;
       fYShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (2*((R2_DEPTH*R2_CM)/4));
       break;
     }
-    TLine Line;
-    if (fWire < 12){
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bYZ->GetCanvas()->cd();
+    if (fWire < R2_FULLWIRE1){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
       Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
-    else if (fWire < 18){
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    else if (fWire < R2_FULLWIRE2){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - ((R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     else{
-      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) + fXShift);
+      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
       Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6) - fXShift) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     Line.SetLineColor(kGreen);
@@ -1398,142 +1464,186 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 2 V wires (29 total)
+  // Region 2 V wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2v->begin(); fHit != Hits_R2v->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = hit->GetDriftDistance();
-    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
-    double fYShift = 0; // used to shift the wires in the prime planes and to the correct chamber planes (ROOT coordinates)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fPShift = 0;             // Used to shift the wires in the prime planes
+    double fYShift = 0;             // Used to shift the wires to the correct chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
+    case 13:
+    case 14:
+    case 15:
       fYShift = 3*((R2_DEPTH*R2_CM)/4);
       break;
     case 4:
     case 5:
     case 6:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+    case 16:
+    case 17:
+    case 18:
+      fPShift = .5*R2_UVDIST*R2_CM;
       fYShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (3*((R2_DEPTH*R2_CM)/4));
       break;
     case 7:
     case 8:
     case 9:
+    case 19:
+    case 20:
+    case 21:
       fYShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (3*((R2_DEPTH*R2_CM)/4));
       break;
     case 10:
     case 11:
     case 12:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+    case 22:
+    case 23:
+    case 24:
+      fPShift = .5*R2_UVDIST*R2_CM;
       fYShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (3*((R2_DEPTH*R2_CM)/4));
       break;
     }
-    TLine Line;
-    if (fWire < 12){
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bYZ->GetCanvas()->cd();
+    if (fWire < R2_FULLWIRE1){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
       Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
-    else if (fWire < 18){
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
+    else if (fWire < R2_FULLWIRE2){
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fPShift);
       Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     else{
-      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) + fXShift);
+      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
       Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift);
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift);
       Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       }
     Line.SetLineColor(kBlue);
     Line.SetLineWidth(2);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-      }
+  }
   fRegion2YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion2YZ->GetCanvas()->Update();
+  fRegion2bYZ->GetCanvas()->SetEditable(kFALSE);
+  fRegion2bYZ->GetCanvas()->Update();
 
-  //SIDE VIEW (X-Z)
+  // SIDE VIEW (X-Z)
   fRegion2XZ->GetCanvas()->cd();
-  //Region 2 X wires (32 total)
+  // Region 2 X wires (32 total)
   for(QwHitContainer::iterator fHit = Hits_R2x->begin(); fHit != Hits_R2x->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
-    double fYShift = 0; // used to shift the wires on the prime planes (ROOT coordinates)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fXShift = 0;             // Used to shift the lines to the correct chamber planes (ROOT coordinates)
+    double fPShift = 0;             // Used to shift the wires in the prime planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = (R2_DEPTH*R2_CM)/4;
+    case 13:
+    case 14:
+    case 15:
+      fXShift = (R2_DEPTH*R2_CM)/4; // Three evenly spaced wires (3+1)
       break;
     case 4:
     case 5:
     case 6:
-      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4; // three evenly spaced wires
-      fYShift = .5*R2_XDIST*R2_CM; // half drift cell size
+    case 16:
+    case 17:
+    case 18:
+      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
+      fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     case 7:
     case 8:
     case 9:
+    case 19:
+    case 20:
+    case 21:
       fXShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
       break;
     case 10:
     case 11:
     case 12:
+    case 22:
+    case 23:
+    case 24:
       fXShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
-      fYShift = .5*R2_XDIST*R2_CM; // half drift cell size
+      fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     }
-    TLine Line;
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bXZ->GetCanvas()->cd();
     Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift); 
-    Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
+    Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fPShift);
     Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift); 
-    Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
+    Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fPShift);
     Line.SetLineColor(kRed);
     Line_R2x.push_back(Line);
     Line_R2x.back().Draw();
-    }
-  //Region 2 U wires (29 total)
+  }
+  // Region 2 U wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2u->begin(); fHit != Hits_R2u->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fXShift = 0;             // Used to shift the lines to the correct chamber planes (ROOT coordinates)
+    double fPShift = 0;             // Used to shift the wires in the prime planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 2*((R2_DEPTH*R2_CM)/4);
+    case 13:
+    case 14:
+    case 15:
+      fXShift = 2*((R2_DEPTH*R2_CM)/4); // Three evenly spaced wires
       break;
     case 4:
     case 5:
     case 6:
-      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (2*(R2_DEPTH*R2_CM)/4); // three evenly spaced wires
+    case 16:
+    case 17:
+    case 18:
+      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (2*(R2_DEPTH*R2_CM)/4);
+      fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     case 7:
     case 8:
     case 9:
+    case 19:
+    case 20:
+    case 21:
       fXShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (2*(R2_DEPTH*R2_CM)/4);
       break;
     case 10:
     case 11:
     case 12:
+    case 22:
+    case 23:
+    case 24:
       fXShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (2*(R2_DEPTH*R2_CM)/4);
+      fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     }
-    TLine Line;
-    if (fWire < 12){
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
+      fRegion2bXZ->GetCanvas()->cd();
+    if (fWire < R2_FULLWIRE1){
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
-      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fXShift)*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 18){
+    else if (fWire < R2_FULLWIRE2){
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
@@ -1541,59 +1651,75 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     }
     else{
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
-      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_UVDIST*R2_CM*(fWire-17.4)));
+      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5) - (((R2_WIDTH*R2_CM) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
       Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
-      }
+    }
     Line.SetLineColor(kGreen);
     Line.SetLineWidth(2);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-    }
-  //Region 2 V wires (29 total)
+  }
+  // Region 2 V wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2v->begin(); fHit != Hits_R2v->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fXShift = 0;             // Used to shift the lines to the correct chamber planes (ROOT coordinates)
+    double fPShift = 0;             // Used to shift the wires on the prime planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 3*((R2_DEPTH*R2_CM)/4);
+    case 13:
+    case 14:
+    case 15:
+      fXShift = 3*((R2_DEPTH*R2_CM)/4); // Three evenly spaced wires
       break;
     case 4:
     case 5:
     case 6:
-      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (3*(R2_DEPTH*R2_CM)/4); // three evenly spaced wires
+    case 16:
+    case 17:
+    case 18:
+      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (3*(R2_DEPTH*R2_CM)/4);
+      fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     case 7:
     case 8:
     case 9:
+    case 19:
+    case 20:
+    case 21:
       fXShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (3*(R2_DEPTH*R2_CM)/4);
       break;
     case 10:
     case 11:
     case 12:
+    case 22:
+    case 23:
+    case 24:
       fXShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (3*(R2_DEPTH*R2_CM)/4);
+      fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     }
-    TLine Line;
-    if (fWire < 12){
+    if (fPlane > 12) // If on second arm, draw in appropriate tab)
+      fRegion2bXZ->GetCanvas()->cd();
+    if (fWire < R2_FULLWIRE1){
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
       Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
-      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (((R2_UVDIST*R2_CM*fWire) + fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 18){
+    else if (fWire < R2_FULLWIRE2){
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
-      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
+      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
-      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5));
     }
     else{
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
-      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-17.4)));
+      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_WIDTH*R2_CM) - (R2_UVDIST*R2_CM*(fWire - R2_FULLWIRE1)) - fPShift)*tan(R2_ANGLE*TMath::DegToRad())));
       Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
       Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5));
     }
@@ -1601,210 +1727,248 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     Line.SetLineWidth(2);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
-    }
+  }
   fRegion2XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion2XZ->GetCanvas()->Update();
+  fRegion2bXZ->GetCanvas()->SetEditable(kFALSE);
+  fRegion2bXZ->GetCanvas()->Update();
 
+  //DRAW REGION 3 WIRE HITS--------------------------------------------------//
 
-  //DRAW REGION 3 WIRE HITS//
-
-  //FRONT VIEW (X-Y)
-  //Region 3 U wires (279 total)
+  // FRONT VIEW (X-Y)
   fRegion3XY->GetCanvas()->cd();
+  // Region 3 U wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3u->begin(); fHit != Hits_R3u->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane(); // chamber number
-    //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fYShift = 0;             // Used to shift the lines to the correct chamber (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
-      fYShift = .75;
+      fYShift = .65;
       break;
     case 3:
     case 4:
-      fYShift = .65;
+      fYShift = .75;
+      break;
+    case 5:
+    case 6:
+      fYShift = .25;
+      break;
+    case 7: 
+    case 8:
+      fYShift = .35;
       break;
     }
-    TLine Line;
-    if (fWire < 96){  //96th wire ends at corner (X2, Y2)
+    if (fWire < R3_FULLWIRE1){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 184){  //184th wire begins at (X1, Y1)
+    else if (fWire < R3_FULLWIRE2){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5));
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*(fWire-184)));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96))); // ISSUES HERE!  FIXXX!!
+      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))))*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5));
     }
     Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-    }
-  //Region 3 V wires (279 total)
+  }
+  // Region 3 V wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3v->begin(); fHit != Hits_R3v->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fYShift = 0;             // Used to shift the lines to the correct chamber (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
-      fYShift = .75;
+      fYShift = .65;
       break;
     case 3:
     case 4:
-      fYShift = .65;
+      fYShift = .75;
+      break;
+    case 5:
+    case 6:
+      fYShift = .25;
+      break;
+    case 7: 
+    case 8:
+      fYShift = .35;
       break;
     }
-    TLine Line;
-    if (fWire < 96){  //96th wire ends at corner (X2, Y1)
+    if (fWire < R3_FULLWIRE1){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 184){  //184th wire begins at corner (X1, Y2)
+    else if (fWire < R3_FULLWIRE2){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5));
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-184)));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96))); // ISSUES HERE!  FIXXX!!
+      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))))*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5));
-    }
+      }
     Line.SetLineColor(kBlue);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
-    }
+  }
   fRegion3XY->GetCanvas()->SetEditable(kFALSE);
   fRegion3XY->GetCanvas()->Update();
 
-  //TOP VIEW (Y-Z)
-  fRegion3YZ->GetCanvas()->cd(); // wires not centered so easy to see crossover
- //Region 3 U wires (279 total)
+  // TOP VIEW (Y-Z)
+  fRegion3YZ->GetCanvas()->cd();
+  // Region 3 U wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3u->begin(); fHit != Hits_R3u->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fYShift = 0;             // Used to shift the lines to the correct plane (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
-      fYShift = .755; // wires not centered so its easier to see crossover
+      fYShift = .655; // Wires not centered so its easier to see crossover
       break;
     case 3:
     case 4:
-      fYShift = .655; // wires not centered so its easier to see crossover
+      fYShift = .755;
+      break;
+    case 5:
+    case 6:
+      fYShift = .255;
+      break;
+    case 7: 
+    case 8:
+      fYShift = .355;
       break;
     }
-    TLine Line;
-    if (fWire < 96){
+    if (fWire < R3_FULLWIRE1){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
       Line.SetY2(fYShift);
     }
-    else if (fWire < 184){
+    else if (fWire < R3_FULLWIRE2){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift);
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96))); // ISSUES HERE!  FIXXX!!
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift);
     }
     Line.SetLineColor(kGreen);
-    Line.SetLineWidth(3); // pixel depth of frame
+    Line.SetLineWidth(3); // Pixel depth of frame; easier to see
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-    }
-  //Region 3 V wires (279 total)
+  }
+  // Region 3 V wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3v->begin(); fHit != Hits_R3v->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0; // used to shift the lines to match correct plane
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fYShift = 0;             // Used to shift the lines to the correct plane (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
-      fYShift = .745; // wires not centered so its easier to see crossover
+      fYShift = .645; // Wires not centered so its easier to see crossover
       break;
     case 3:
     case 4:
-      fYShift = .645; // wires not centered so its easier to see crossover
+      fYShift = .745;
+      break;
+    case 5:
+    case 6:
+      fYShift = .245;
+      break;
+    case 7: 
+    case 8:
+      fYShift = .345;
       break;
     }
-    TLine Line;
-    if (fWire < 96){
+    if (fWire < R3_FULLWIRE1){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
       Line.SetY2(fYShift);
     }
-    else if (fWire < 184){
+    else if (fWire < R3_FULLWIRE2){
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift);
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96))); // ISSUES HERE!  FIXXX!!
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))));
       Line.SetY2(fYShift);
     }
     Line.SetLineColor(kBlue);
-    Line.SetLineWidth(3); // pixel depth of frame
+    Line.SetLineWidth(3); // Pixel depth of frame; easier to see
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-    }
+  }
   fRegion3YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3YZ->GetCanvas()->Update();
 
-  //SIDE VIEW (X-Z)
+  // SIDE VIEW (X-Z)
   fRegion3XZ->GetCanvas()->cd();
-  //Region 3 U wires (279 total)
+  // Region 3 U wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3u->begin(); fHit != Hits_R3u->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
-    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fXShift = 0;             // Used to shift the lines to the correct plane (ROOT coordinates)
+    double fYShift = 0;             // Used to shift the lines to the correct plane (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
-      fXShift = .5 + (R3_DIST*R3_CM*.5) + .005; // wires not centered so its easier to see crossover
-      fYShift = .75;
+      fXShift = .5 - (R3_DIST*R3_CM*.5) + .005; // Wires not centered so its easier to see crossover
+      fYShift = .65;
       break;
     case 3:
     case 4:
+      fXShift = .5 + (R3_DIST*R3_CM*.5) + .005;
+      fYShift = .75;
+      break;
+    case 5:
+    case 6:
       fXShift = .5 - (R3_DIST*R3_CM*.5) + .005;
-      fYShift = .65;
+      fYShift = .25;
+      break;
+    case 7: 
+    case 8:
+      fXShift = .5 + (R3_DIST*R3_CM*.5) + .005;
+      fYShift = .35;
       break;
     }
-    TLine Line;
-    if (fWire < 96){
+    if (fWire < R3_FULLWIRE1){
       Line.SetX1(fXShift);
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
-      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 184){
+    else if (fWire < R3_FULLWIRE2){
       Line.SetX1(fXShift);
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
@@ -1812,42 +1976,51 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     }
     else{
       Line.SetX1(fXShift);
-      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*(fWire-184)));
+      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))))*tan(R3_ANGLE*TMath::DegToRad())));
       Line.SetX2(fXShift);
       Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5));
     }
     Line.SetLineColor(kGreen);
-    Line.SetLineWidth(3); // pixel depth of frame
+    Line.SetLineWidth(3); // Pixel depth of frame; easier to see
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-    }
-  //Region 3 V wires (279 total)
+  }
+  // Region 3 V wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3v->begin(); fHit != Hits_R3v->end(); fHit++){
-    int fWire = fHit->GetElement();
-    int fPlane = fHit->GetPlane();
-    //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
-    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    TLine Line;
+    int fWire = fHit->GetElement(); // Wire number
+    int fPlane = fHit->GetPlane();  // Plane number
+    double fXShift = 0;             // Used to shift the lines to the correct plane (ROOT coordinates)
+    double fYShift = 0;             // Used to shift the lines to the correct plane (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
-      fXShift = .5 + (R3_DIST*R3_CM*.5) - .005; // wires not centered so its easier to see crossover
-      fYShift = .75;
+      fXShift = .5 - (R3_DIST*R3_CM*.5) - .005; // Wires not centered so its easier to see crossover
+      fYShift = .65;
       break;
     case 3:
     case 4:
+      fXShift = .5 + (R3_DIST*R3_CM*.5) - .005;
+      fYShift = .75;
+      break;
+    case 5:
+    case 6:
       fXShift = .5 - (R3_DIST*R3_CM*.5) - .005;
-      fYShift = .65;
+      fYShift = .35;
+      break;
+    case 7: 
+    case 8:
+      fXShift = .5 + (R3_DIST*R3_CM*.5) - .005;
+      fYShift = .25;
       break;
     }
-    TLine Line;
-    if (fWire < 96){
+    if (fWire < R3_FULLWIRE1){
       Line.SetX1(fXShift);
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
-      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 184){
+    else if (fWire < R3_FULLWIRE2){
       Line.SetX1(fXShift);
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
@@ -1855,26 +2028,29 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     }
     else{
       Line.SetX1(fXShift);
-      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-184)));
+      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - (R3_FULLWIRE1 - 1))))*tan(R3_ANGLE*TMath::DegToRad())));
       Line.SetX2(fXShift);
       Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5));
     }
     Line.SetLineColor(kBlue);
-    Line.SetLineWidth(3); // pixel depth of frame
+    Line.SetLineWidth(3); // Pixel depth of frame; easier to see
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-    }
+  }
   fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3XZ->GetCanvas()->Update();
-} // end DrawEvent()
 
+  // Delete hit list (because it is regenerated every time)
+  delete fHitList; fHitList = 0;
 
-QwEventDisplay::~QwEventDisplay(){  // cleans up memory used by class; default destructor
+} // End DrawEvent()
+
+QwEventDisplay::~QwEventDisplay(){  // Default destructor in class
 
   fMain->Cleanup();
   delete fMain;
 
-} // end ~QwEventDisplay()
+} // End ~QwEventDisplay()
 
 
 /************************************\
@@ -1883,4 +2059,5 @@ QwEventDisplay::~QwEventDisplay(){  // cleans up memory used by class; default d
 ** Author: Derek Jones              **
 ** The George Washington University **
 ** Contact: dwjones8@gwu.edu        **
+** Last updated: 7-26-2010          **
 \************************************/

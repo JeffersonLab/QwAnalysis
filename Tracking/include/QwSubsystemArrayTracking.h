@@ -32,13 +32,12 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
     /// \brief Get the subsystem with the specified name
     VQwSubsystemTracking* GetSubsystemByName(const TString& name);
 
+    /// \brief Get the detector info for all detectors
+    const QwGeometry GetGeometry();
+
     // Update the wire-based hit list from each subsystem
     void GetHitList(QwHitContainer& hitlist);
     void GetHitList(QwHitContainer* hitlist) { GetHitList(*hitlist); };
-
-    // Update the TDC-based hit list from each subsystem
-    void GetTDCHitList(QwHitContainer& tdchitlist);
-    void GetTDCHitList(QwHitContainer* tdchitlist) { GetTDCHitList(*tdchitlist); };
 
   protected:
 

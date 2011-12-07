@@ -99,6 +99,7 @@ class RDataContainer : public TQObject {
   Int_t         OpenMapFile(const char* file = NULL);
   TObject      *ReadData(const char *);
   TObject      *ReadTree(const char *);
+  int           ReadRow(const char *, int);
   int           ReadData(Double_t*,int);
   int           ReadData(Double_t*,int,int);
   int           ReadData(Double_t*,int,int,int);
@@ -108,10 +109,10 @@ class RDataContainer : public TQObject {
   int           ReadData(const char*,int,int);
   int           ReadData(const char*,int);
   int           WriteData(TObject*);
-  int           WriteData(Double_t *,int,int);
-  int           WriteData(Double_t *,Double_t *, int);
-  int           WriteData(Double_t *,Double_t *, Double_t *,int);
-  int           WriteData(Double_t *,Double_t *, Double_t *,Double_t *,int);
+  int           WriteData(Double_t *,int,int, const char *label = NULL);
+  int           WriteData(Double_t *,Double_t *, int,  const  char *label = NULL);
+  int           WriteData(Double_t *,Double_t *, Double_t *,int, const char *label = NULL);
+  int           WriteData(Double_t *,Double_t *, Double_t *,Double_t *,int, const char *label = NULL);
   int           WriteData(const char*,int);
   char         *GetDataName()      {return dDataname;};
   char         *GetFileName()      {return dFilename;};
@@ -119,6 +120,7 @@ class RDataContainer : public TQObject {
   void          SetDataSize(long int sz){dDatasize=sz;};
   long int      GetCurrentPos();
   long int      GetFileSize();
+  int           GetRowLength(int row);
   int           GetNumOfColumns();
   int           GetNumOfRows();
   ERFileTypes   GetFileType()      {return dType;};
@@ -147,8 +149,9 @@ class RDataContainer : public TQObject {
   Bool_t        cd();
   Bool_t        cd(char *dir);  
   Bool_t        mkdir(char *dir);
+  TObject* GetObjFromFile(const Char_t* name);//return an object from the root file
   TObject* GetObjFromMapFile(const Char_t* name);//return an object from the map file
-
+  TObject* GetFromMapFile(const Char_t* name, TObject* retObj = 0) {return fMapFile->Get(name, retObj);};
   ClassDef(RDataContainer,0);
 };
 

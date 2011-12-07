@@ -28,16 +28,29 @@
    basic diagnostic quantities.
 
    This is Gericke's original code for the main detector. 
-Added by Buddhini to display the hall c Beamline data.
+   Added by Damon to display data from the data base.
+   Modified by Buddhini.
 
  */
 //=============================================================================
 
-#define N_DETECTORS     33
-#define N_LUMIS 16
-#define N_BEAM_MONITORS 6
-#define N_SUBBLOCKS     5
-#define N_DET_MEAS_TYPES 2
+#define N_DETECTORS     39
+#define N_LUMIS         36
+#define N_BPMS          22
+#define N_BCMS           6
+#define N_CMB_BPMS       1
+#define N_CMB_BCMS       1
+#define N_ENERGY         1
+#define N_SUBBLOCKS      5
+#define N_DET_MEAS_TYPES 5
+#define N_MEAS_TYPES     4
+#define N_Q_MEAS_TYPES   5
+#define N_POS_MEAS_TYPES 5
+#define N_BPM_READ       5
+#define N_CMB_READ       7
+#define N_TGTS          15
+
+
 
 ///
 /// \ingroup QwGUIDatabase
@@ -62,11 +75,37 @@ using std::vector;
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
 #include "RSDataWindow.h"
-#ifndef ROOTCINTMODE
-#include "QwSSQLS_summary.h"
-#endif
 #include <TVectorT.h>
 #include <TGraphErrors.h>
+
+
+class QwGUIGoodForSettings {
+public:
+  QwGUIGoodForSettings();
+  ~QwGUIGoodForSettings(){
+    fGoodForLabels.clear();
+    fGoodForIDs.clear();
+    fGoodForReject.clear();
+    fQualityLabels.clear();
+    fQualityIDs.clear();
+    fQualityReject.clear();
+  }
+
+  std::string GetSelectionString(std::string table = "");
+
+private:
+  std::vector<std::string> fGoodForLabels;
+  std::vector<std::string> fQualityLabels;
+  std::vector<Int_t>  fGoodForIDs;
+  std::vector<Int_t>  fQualityIDs;
+
+  Bool_t fGoodForRejectNULLs;
+  std::vector<Bool_t>  fGoodForReject;
+  Bool_t fQualityRejectNULLs;
+  std::vector<Bool_t>  fQualityReject;
+
+};
+
 
 
  class QwGUIDatabase : public QwGUISubSystem {
@@ -87,12 +126,19 @@ using std::vector;
   TGComboBox          *dCmbXAxis;
   TGComboBox          *dCmbInstrument;
   TGComboBox          *dCmbDetector;
+  TGComboBox          *dCmbProperty;
   TGComboBox          *dCmbSubblock;
   TGComboBox          *dCmbMeasurementType;
+  TGComboBox          *dCmbTargetType;
+  TGComboBox          *dCmbRegressionType;
+  TGComboBox          *dCmbPlotType;
   TGTextButton        *dBtnSubmit;
   TGLabel             *dLabStartRun;
   TGLabel             *dLabStopRun;
-  
+  TGLabel             *dLabTarget;
+  TGLabel             *dLabRegression;
+  TGLabel             *dLabPlot;
+
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            GraphArray;
@@ -103,6 +149,7 @@ using std::vector;
 
   //!A histogram array to plot the X and Y position difference variation.
   TPaveText * errlabel;
+
 
   //!This function just plots some histograms in the main canvas, just for illustrative purposes
   //!for now.
@@ -119,9 +166,14 @@ using std::vector;
 /*   void PlotChargeData(); */
 
   void DetectorPlot();
-  void BeamMonitorPlot();
+#ifndef  ROOTCINTMODE
+  mysqlpp::StoreQueryResult QueryDetector(TString detector, TString measured_property, Int_t det_id);
+#endif
+  void HistogramDetector(TString detector, TString measured_property, Int_t det_id);
+  void PlotDetector(TString detector, TString measured_property, Int_t det_id);
   void DetectorVsMonitorPlot();
-
+  TString GetYTitle(TString measurement_type, Int_t detector);
+  TString GetTitle(TString measurement_type, TString device);
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -133,15 +185,41 @@ using std::vector;
   //!Return value: none  
   void  ClearData();
 
-  //!An array that stores the ROOT names of the histograms that I chose to display for now.
-  //!These are the names by which the histograms are identified within the root file.
-
+  /**
+     Arrays to store the detector names, measurement types and properties as they appear in the
+     data base.
+   */
+  // detectors
   static const char   *DetectorCombos[N_DETECTORS];
-  static const char   *BeamMonitors[N_BEAM_MONITORS];
+  static const char   *BeamPositionMonitors[N_BPMS];
+  static const char   *BeamCurrentMonitors[N_BCMS];
   static const char   *LumiCombos[N_LUMIS];
-  static const char   *DetectorMeasurementTypes[N_DET_MEAS_TYPES];
-  static const char   *Subblocks[N_SUBBLOCKS];
+  static const char   *CombinedBPMS[N_CMB_BPMS];
+  static const char   *CombinedBCMS[N_CMB_BCMS];
+  static const char   *EnergyCalculators[N_ENERGY];
 
+  // measurement types
+  static const char   *OtherMeasurementTypes[N_MEAS_TYPES];
+  static const char   *ChargeMeasurementTypes[N_Q_MEAS_TYPES];
+  static const char   *PositionMeasurementTypes[N_POS_MEAS_TYPES];
+  static const char   *DetectorMeasurementTypes[N_DET_MEAS_TYPES];
+
+  // properties
+  static const char   *Subblocks[N_SUBBLOCKS];
+  static const char   *BPMReadings[N_BPM_READ];
+  static const char   *ComboBPMReadings[N_CMB_READ];
+
+  // target types
+  static const char   *Targets[N_TGTS];
+  static const char   *Plots[2];
+
+  // static array for temporary measurement type storing. This makes things easier when trying to
+  // retrieave data.
+  std::vector<TString> measurements;
+
+ private:
+
+  QwGUIGoodForSettings fGoodForSelection;
 
  protected:
 
@@ -181,13 +259,14 @@ using std::vector;
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
-
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
-  void                 PopulateDetectorComboBox();
+  void                PopulateDetectorComboBox();
+  void                PopulateMeasurementComboBox();
+  void                PopulateXDetComboBox();
   
   ClassDef(QwGUIDatabase,0); 
 
-};
+ };
 
 #endif

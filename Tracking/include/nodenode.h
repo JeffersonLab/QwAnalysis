@@ -19,6 +19,7 @@
 // Qweak headers
 #include "QwLog.h"
 #include "treenode.h"
+#include "QwObjectCounter.h"
 
 namespace QwTracking {
 
@@ -38,7 +39,7 @@ class treenode;
  * to identify matching patterns.
  *
  */
-class nodenode {
+class nodenode: public QwObjectCounter<nodenode> {
 
   public:
 
@@ -78,13 +79,7 @@ class nodenode {
 
   private:
 
-    static int fCount; /// Object counter
     static int fDebug; /// Debug level
-
-  public:
-
-    /// Get number of objects
-    static const int GetCount() { return fCount; };
 
 }; // class nodenode
 

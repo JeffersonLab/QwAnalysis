@@ -1,0 +1,190 @@
+# please do not change the format of this file,
+# specially 
+# comments line should be preceeded by "#"
+# current file is generated from the run 11346.000
+# contact rakithab (rakithab@jlab.org) for any information/updates
+# ##################################################################################################
+# quantity				nominal		tolerance (width)	unit   
+# ##################################################################################################
+# x_beam_position		0.0	0.2	(mm)
+# x_position_difference	0	50	(nm)    
+yield_qwk_bpm3c12X			1.21314 	0.023691	(mm)
+yield_qwk_bpm3c12Y			0.83325 	0.00754651	(mm)
+yield_qwk_bpm3c12_EffectiveCharge 	138700 		500		(std)
+
+yield_qwk_target_EffectiveCharge	122148		274.578		(std)	
+yield_qwk_targetXSlope 			-2.98362e-04 	1.2145e-06	(rad)
+# yield_qwk_targetXIntercept 
+yield_qwk_targetX			1.02894 	0.037868	(mm) 
+yield_qwk_targetYSlope 			-4.10811e-04	8.18011e-07	(rad)
+# yield_qwk_targetYIntercept 
+yield_qwk_targetY 			-1.39153 	0.0236847	(mm)
+
+yield_qwk_energy			-6.59507e-04 	4.70498e-06	(std)
+
+yield_qwk_charge			160		40		(uA) 
+yield_qwk_bcm2				160		40		(uA) 	 
+yield_qwk_bcm1				160		40		(uA)  
+yield_qwk_bcm6				160		40		(uA)  
+yield_qwk_bcm5				160		40		(uA)  
+
+
+yield_qwk_md1neg			0.0349623 	3.6024e-05	(V/uA) 
+yield_qwk_md2neg			0.0268869 	2.65633e-05	(V/uA) 
+yield_qwk_md3neg			0.044053 	4.57481e-05	(V/uA) 
+yield_qwk_md4neg			0.0255158 	2.69636e-05	(V/uA) 
+yield_qwk_md5neg			0.0369628 	3.76582e-05	(V/uA) 
+yield_qwk_md6neg			0.0392595 	3.9009e-05	(V/uA)	 
+yield_qwk_md7neg			0.0326838 	3.45287e-05	(V/uA) 
+yield_qwk_md8neg			0.0400271 	4.22613e-05 	(V/uA)
+yield_qwk_md1pos			0.0390276 	4.37906e-05 	(V/uA) 
+yield_qwk_md2pos			0.0445725 	4.60955e-05 	(V/uA) 
+yield_qwk_md3pos			0.0233758 	2.39178e-05 	(V/uA) 
+yield_qwk_md4pos			0.0387782 	3.90393e-05 	(V/uA) 
+yield_qwk_md5pos			0.0459106 	4.80161e-05 	(V/uA) 
+yield_qwk_md6pos			0.0334358 	3.46706e-05  	(V/uA)
+yield_qwk_md7pos			0.0383766 	3.90012e-05  	(V/uA)
+yield_qwk_md8pos			0.0446357 	4.52765e-05  	(V/uA) 
+yield_qwk_pmtled			5.2204 		0.00557031  	(V/uA)
+yield_qwk_pmtonl 			0.00433326 	1.92174e-05 	(V/uA)
+yield_qwk_pmtltg 			0.0316349 	0.000108487 	(V/uA)
+yield_qwk_md9neg			0.00392718 	2.281e-05  	(V/uA)
+yield_qwk_md9pos			0.00166813 	1.04209e-05  	(V/uA)
+yield_qwk_isourc			8.45615 	7.0775e-05  	(V/uA)
+yield_qwk_preamp			5.95155 	8.02785e-05  	(V/uA)
+yield_qwk_cagesr			5.78331 	4.88372e-05  	(V/uA)
+
+
+yield_qwk_md1barsum			0.0369384 	3.68507e-05  	(V/uA) 
+yield_qwk_md2barsum			0.033556 	3.22551e-05  	(V/uA) 
+yield_qwk_md3barsum 			0.0305462 	2.96973e-05  	(V/uA)
+yield_qwk_md4barsum 			0.0307507 	3.00092e-05  	(V/uA)
+yield_qwk_md5barsum 			0.0409736 	4.00458e-05  	(V/uA)
+yield_qwk_md6barsum 			0.0361165 	3.48773e-05  	(V/uA)
+yield_qwk_md7barsum 			0.0353052 	3.45698e-05   	(V/uA)
+yield_qwk_md8barsum 			0.0421955 	4.19011e-05  	(V/uA)
+yield_qwk_md9barsum 			0.00235932 	1.08384e-05  	(V/uA)
+
+yield_qwk_mdoddbars 			0.0355358 	2.7308e-05  	(V/uA)
+yield_qwk_mdevenbars 			0.0351842 	2.6951e-05  	(V/uA)
+yield_qwk_mdallbars 			0.0353594 	2.58748e-05  	(V/uA)
+
+yield_qwk_uslumi1pos			0.0238162 	7.37997e-05  	(V/uA)
+yield_qwk_uslumi1neg			0.0213461 	6.58206e-05  	(V/uA) 
+yield_qwk_uslumi3neg 			0.0225423 	4.45156e-05  	(V/uA)			
+yield_qwk_uslumi3pos			0.0208662 	6.19427e-05  	(V/uA) 
+yield_qwk_uslumi5neg			0.024447 	5.16361e-05  	(V/uA)			 
+yield_qwk_uslumi5pos			0.0125299 	7.25915e-05  	(V/uA)			 
+yield_qwk_uslumi7neg			0.0184681 	3.57294e-05  	(V/uA) 
+yield_qwk_uslumi7pos 			0.016326 	5.36612e-05  	(V/uA)
+
+yield_uslumi1_sum			0.0225812 	6.90094e-05  	(V/uA) 
+yield_uslumi3_sum 			0.0217042 	4.80191e-05  	(V/uA)
+yield_uslumi5_sum 			0.0184884 	5.43918e-05  	(V/uA)
+yield_uslumi7_sum 			0.017397 	3.73709e-05  	(V/uA)
+
+yield_uslumi_sum			0.0209246 	3.78437e-05  	(V/uA)
+
+yield_qwk_dslumi1 			0.0311236 	0.000307851  	(V/uA)
+yield_qwk_dslumi2 			0.0197661 	0.000158454  	(V/uA)
+yield_qwk_dslumi3 			0.0360331 	0.00018316  	(V/uA)
+yield_qwk_dslumi4 			0.00512503 	3.32922e-05  	(V/uA)
+yield_qwk_dslumi5 			0.0385761 	0.000348382  	(V/uA)
+yield_qwk_dslumi6 			0.00796647 	8.02797e-05  	(V/uA)
+yield_qwk_dslumi7 			0.00926769 	8.76787e-05  	(V/uA)
+yield_qwk_dslumi8 			0.00942954 	9.15098e-05  	(V/uA)
+
+yield_dslumi_odd 			0.0287501 	5.33313e-05  	(V/uA)
+yield_dslumi_even 			0.0105718 	4.14153e-05  	(V/uA)
+yield_dslumi_sum 			0.019661 	3.95107e-05  	(V/uA)		
+
+asym_qwk_bpm3c12_EffectiveCharge 	0	 	432.545		(ppm)
+diff_qwk_bpm3c12X			0		0.00729455	(mm)	 			
+diff_qwk_bpm3c12Y			0		0.0049242	(mm)	
+
+asym_qwk_bcm2				0		384.299		(ppm)
+asym_qwk_bcm1				0		381.4		(ppm) 
+asym_qwk_bcm5 				0		394.6		(ppm)
+asym_qwk_bcm6 				0		394.6		(ppm) 
+asym_qwk_charge 			0		377.7		(ppm) 
+
+asym_qwk_target_EffectiveCharge		0		377.725		(ppm) 
+diff_qwk_targetXSlope			0	 	3.88632e-07	(rad) 
+diff_qwk_targetXIntercept		0	 	0.0265437 	(mm)
+diff_qwk_targetX 			0		0.0131876	(mm)
+diff_qwk_targetYSlope			0	 	5.81245e-07 	(rad)
+diff_qwk_targetYIntercept 		0		0.0265637	(mm)		
+diff_qwk_targetY 			0		0.0112028	(mm)
+diff_qwk_energy 			0		1.95461e-06	(std)
+
+# Note: The tolarences/widths are current dependant and needs to be corrected by the beam current to compare. Std. values were obtained at 165 uA
+asym_qwk_md1neg				0		747.702		(ppm)  
+asym_qwk_md2neg				0		701.344		(ppm) 			 
+asym_qwk_md3neg				0		726.005		(ppm) 
+asym_qwk_md4neg				0 		741.982		(ppm)
+asym_qwk_md5neg				0 		711.63		(ppm)
+asym_qwk_md6neg				0 		702.168		(ppm)
+asym_qwk_md7neg				0 		705.613		(ppm)
+asym_qwk_md8neg				0 		706.967		(ppm)
+asym_qwk_md1pos				0 		747.542		(ppm)
+asym_qwk_md2pos				0		695.474 	(ppm)
+asym_qwk_md3pos				0		697.572 	(ppm) 
+asym_qwk_md4pos				0 		724.174 	(ppm)
+asym_qwk_md5pos				0 		715.023 	(ppm)
+asym_qwk_md6pos				0 		700.358 	(ppm)
+asym_qwk_md7pos				0 		704.425 	(ppm)
+asym_qwk_md8pos				0 		701.605 	(ppm)
+asym_qwk_pmtled				0 		247.292 	(ppm)
+asym_qwk_pmtonl				0 		4057.8 		(ppm)	
+asym_qwk_pmtltg				0 		3007.95	 	(ppm)
+asym_qwk_md9neg				0 		4699.66 	(ppm)
+asym_qwk_md9pos				0 		4833.09 	(ppm)
+asym_qwk_isourc				0 		3.5 		(ppm)
+asym_qwk_preamp				0 		6.2 		(ppm)
+asym_qwk_cagesr				0 		3.4 		(ppm)
+
+asym_qwk_md1barsum			0 		653.44 		(ppm)
+asym_qwk_md2barsum			0 		643.634 	(ppm)
+asym_qwk_md3barsum			0 		654.426 	(ppm)
+asym_qwk_md4barsum			0 		666.742 	(ppm)
+asym_qwk_md5barsum			0 		652.457 	(ppm)
+asym_qwk_md6barsum			0 		649.579 	(ppm)
+asym_qwk_md7barsum			0 		648.114 	(ppm)
+asym_qwk_md8barsum			0 		651.118 	(ppm)
+asym_qwk_md9barsum			0 		4108.55 	(ppm)
+
+asym_qwk_mdoddbars 			0		331.257 	(ppm)
+asym_qwk_mdevenbars			0 		331.884 	(ppm)
+asym_qwk_mdallbars 			0		240.984 	(ppm)
+
+
+asym_qwk_uslumi1pos			0		833.458 	(ppm)
+asym_qwk_uslumi1neg			0		856.078 	(ppm) 
+asym_qwk_uslumi3neg			0		1078.8  	(ppm)
+asym_qwk_uslumi3pos			0		643.199  	(ppm)
+asym_qwk_uslumi5neg			0		542.23  	(ppm)
+asym_qwk_uslumi5pos 			0		882.09 		(ppm)
+asym_qwk_uslumi7neg 			0		445.287  	(ppm)
+asym_qwk_uslumi7pos 			0		603.481  	(ppm)
+
+asym_uslumi1_sum 			0		833.836  	(ppm)
+asym_uslumi3_sum 			0		742.708  	(ppm)
+asym_uslumi5_sum 			0		633.014  	(ppm)
+asym_uslumi7_sum 			0		494.939  	(ppm)
+
+asym_uslumi_sum				0		418.672  	(ppm)
+
+asym_qwk_dslumi1			0		2900.09	  	(ppm)	 
+asym_qwk_dslumi2 			0		894.064  	(ppm)
+asym_qwk_dslumi3			0		1763.27	  	(ppm)	 
+asym_qwk_dslumi4 			0		1101.06  	(ppm)
+asym_qwk_dslumi5 			0		2409.44  	(ppm)
+asym_qwk_dslumi6			0		2562.54   	(ppm)
+asym_qwk_dslumi7 			0		3678.41  	(ppm)
+asym_qwk_dslumi8 			0		2799.13  	(ppm)
+
+asym_dslumi_odd 			0		263.28  	(ppm)
+asym_dslumi_even 			0		646.458  	(ppm)
+asym_dslumi_sum 			0		233.662  	(ppm)
+
+##########################################################################################################

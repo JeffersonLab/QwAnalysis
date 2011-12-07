@@ -32,10 +32,15 @@ else
 endif
 
 # Searching paths for linker :
-if ($?LD_LIBRARY_PATH) then
-   setenv LD_LIBRARY_PATH  ${QW_LIB}:${ROOTSYS}/lib:${MYSQLPP_LIB_DIR}:${LD_LIBRARY_PATH}
+if (-x ${ROOTSYS}/bin/root-config) then
+    set myrootlib=`root-config --libdir`
 else
-   setenv LD_LIBRARY_PATH  ${QW_LIB}:${ROOTSYS}/lib:${MYSQLPP_LIB_DIR}
+    set myrootlib=${ROOTSYS}/lib
+endif
+if ($?LD_LIBRARY_PATH) then
+   setenv LD_LIBRARY_PATH  ${QW_LIB}:${myrootlib}:${MYSQLPP_LIB_DIR}:${LD_LIBRARY_PATH}
+else
+   setenv LD_LIBRARY_PATH  ${QW_LIB}:${myrootlib}:${MYSQLPP_LIB_DIR}
 endif
 
 # Create alias for make when gmake is not found; the standard

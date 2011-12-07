@@ -1,0 +1,35 @@
+The files in this directory define which macros are run during the 
+post-processing stages of the analysis.  The files are 
+prioritized configuration files that point to the macros to execute.
+
+Active files in this directory should have the format NNname.conf, where 
+NN is a number that determines which macro is run first, name indicates 
+what the macros is, and .conf is the mandatory extension.
+
+To temporarily disable a macro, simply create an empty file with identical
+name as the configuration file, but with extension .conf.disable. For
+example: NNname.conf.disable
+
+The content of the file configuration files looks like this:
+
+  name=Asymmetries of Accumulator 0
+  macro=accum0/accum0.C
+  function=accum0
+  directory=ComptonPhotonAccum0
+  includesdir=accum0
+  compile=kTRUE
+
+- The name field provides more information on the macro.
+- The macro field gives the location of the macro to load, located under 
+$QWANALYSIS/Extensions/Macros/Compton.
+- The function field specifies the name of the function to call in the 
+loaded macro.
+- The directory field is unused.
+- The includesdir field specifies which other directories in 
+$QWANALYSIS/Extensions/Macros/Compton should be crawled for include 
+files (e.g. if you have #include "cutOnLaser.C", and that file is 
+located in the 'foobar' directory, then you should add that here).  
+The directory 'shared' is automatically added.
+- The compile field specifies whether the macro should be compiled.  
+Support for interpreted macros will be removed, so this should always be 
+kTRUE.

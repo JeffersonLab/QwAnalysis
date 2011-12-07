@@ -14,8 +14,8 @@
 !
 ROC=4
 !
+!
 ! QADC/TDC bank
-! QDC_Bank=0x7501
 QDC_Bank=0x0402
 !
 !slot=0
@@ -38,31 +38,49 @@ slot=6
   F1TDC, 6, 17, scanner_tdc, front_f1
   F1TDC, 6, 19, scanner_tdc, back__f1
   F1TDC, 6, 21, scanner_tdc, coinc_f1
-!
+  F1TDC, 6, 23, scanner_tdc, ref_t_f1
 !
 ! module.num counting from 0
-!SCA_Bank=0x6103
 SCA_Bank=0x0403
 !
 ! module.type  module.num  chan.num, det.type, det.name
   SIS3801, 1, 24, scanner_sca, front_sca
   SIS3801, 1, 25, scanner_sca, back__sca
   SIS3801, 1, 26, scanner_sca, coinc_sca
+  SIS3801, 1, 29, scanner_sca, randm_sca
+  SIS3801, 1, 30, scanner_sca, bg_chrlt_sca
+  SIS3801, 1, 31, scanner_sca, bg_wilbr_sca
 !
 !
 !
-!The following map is defined for measuring scanner position using VQWK
+!The following channel map is defined for using current mode electronics
 !
-ROC=1
+ROC=0
 !
-VQWK_Bank=0x102
+!SCA_Bank=0x6103
 !
-! module.num counting from 0, scanner using the 10th TRIUMF ADC board on ROC1
+! module.type  module.num  chan.num, det.type, det.name
+!  SIS3801, 1, 17, scanner_sca, coinc_sca
+!  SIS3801, 1, 18, scanner_sca, back__sca
+!  SIS3801, 1, 19, scanner_sca, front_sca
+!  SIS3801, 1, 20, scanner_sca, randm_sca
+!  SIS3801, 1, 23, scanner_sca, bg_wilbr_sca
+!  SIS3801, 1, 24, scanner_sca, bg_chrlt_sca
+!
+VQWK_Bank=0x6110
+!
+! module.num counting from 0, scanner using the 1st TRIUMF ADC board on ROC0
 !
 ! module.type  module.num  chan.num, det.type, det.name
 !
-  VQWK, 9, 0, scanner_motion, power_vqwk
-  VQWK, 9, 1, scanner_motion, pos_x_vqwk
-  VQWK, 9, 2, scanner_motion, pos_y_vqwk
+!  VQWK, 0, 0, scanner_motion, phase_monitor
+!  VQWK, 0, 5, scanner_motion, pos_x_vqwk
+!  VQWK, 0, 6, scanner_motion, pos_y_vqwk
+!  VQWK, 0, 7, scanner_motion, power_vqwk
+!
+  VQWK, 0, 0, scanner_motion, phase_monitor
+  VQWK, 0, 4, scanner_motion, power_vqwk
+  VQWK, 0, 6, scanner_motion, pos_y_vqwk
+  VQWK, 0, 7, scanner_motion, pos_x_vqwk
 !
 !END

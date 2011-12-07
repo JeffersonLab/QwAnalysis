@@ -3,63 +3,38 @@
 # It is derived form the file in $ROOTSYS/test/Makefile, which
 # was written by the "root" people....
 
--include ../VERSION
+#-include ../VERSION
 
-LIBDIR        = ../QwGUILib
+LIBDIR        = 
+#../QwGUILib
 
 
-LIBINCLUDE    = $(LIBDIR)/include
-RDATALIB      = $(LIBDIR)/QwGUIRootLib-$(VERS).a
+LIBINCLUDE    = 
+#$(LIBDIR)/include
+RDATALIB      = 
+#$(LIBDIR)/QwGUIRootLib-$(VERS).a
 PRG_INCLUDE   = ./include
 PRG_SOURCE    = ./src
- 
+
 # Here we list the object files that require a CINT dictionary.
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
-OBJECTS       += QwGUIHelpBrowser.o
-OBJECTS       += QwGUIProgressDialog.o
-OBJECTS       += QwGUIPlotOptionsDialog.o
-OBJECTS       += QwGUIDataWindow.o
 OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS       += QwGUICorrelationPlots.o
-OBJECTS       += QwGUIEventDisplay.o
-OBJECTS       += QwGUISuperCanvas.o
-
-# Now append the object files that Don't require a CINT dictionary.
-#NODICTOBJECTS   = QwHit.o
-#NODICTOBJECTS  += QwHitRootContainer.o
-#NODICTOBJECTS  += QwHitContainer.o
-#NODICTOBJECTS  += QwParameterFile.o
-
-#QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitDict.o
-#QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitContainerDict.o
-#QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitRootContainerDict.o
+OBJECTS       += QwGUIHallCBeamline.o
+OBJECTS       += QwGUISummary.o
 
 QWTRSOURCE = $(QWANALYSIS)/Tracking/src
 QWANSOURCE = $(QWANALYSIS)/Analysis/src
-
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwEvent.o
-##QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwEventHeader.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwTrackingTreeLine.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/VQwTrackingElement.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwPartialTrack.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/Det.o  # for QwPartialTrack
-
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwEventDict.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwEventHeaderDict.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwTrackingTreeLineDict.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/VQwTrackingElementDict.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwPartialTrackDict.o
-
 
 # Have this after all the object files are listed so that dictionaries
 # will be made automatically.
 DICTS		= $(OBJECTS:.o=Dict.o)
 
-APPLIC        = QwRealTimeGUI-$(VERS)
+APPLIC        = QwRealTimeGUI
 MFILE         = Makefile
 
 # For Linux with egcs, gcc 2.9x, gcc 3.x (>= RedHat 5.2)
@@ -67,7 +42,7 @@ MFILE         = Makefile
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
-CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
+CXXFLAGS      = -Wall -fPIC  -O2 #-g -O2
 LD            = g++
 LDFLAGS       = #-O2
 SOFLAGS       = -shared
@@ -92,12 +67,8 @@ QWPRINCLUDE    = -I$(QWANALYSIS)/Parity/include
 QwLIBS =
 
 CXXFLAGS     += $(DEBUGFLAGS) $(QWEAKCPPFLAGS) -Wno-deprecated
-LIBS          = $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS) -lNew
-GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
-
-#CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
-#LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS) -lNew 
-#GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
+LIBS          = -lNew $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS)
+GLIBS         = -lNew $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) 
 
 ENSCRIPT      = @enscript -2Gjr -o
 
@@ -130,4 +101,4 @@ clean:
 	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
 	include/*~
 
-QwGUIMain.o : ../VERSION
+QwGUIMain.o :

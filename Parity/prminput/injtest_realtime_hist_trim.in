@@ -1,0 +1,86 @@
+#Beamline
+#   This is the histogram parameter input file for the QwHistogramHelper class
+#   "." is the wildcard here!!!! Please use "." only (no "*") since we 
+#   require the exact same length for two strings to match!!!!
+#   The values after the axis titles, if exist, are the min and max of
+#   the histogram filled weight.
+
+####To-do
+# Add injector BPMS
+# Add  Hall C and Injector BCMs
+# Add misc scalers separately
+# Change limits accordingly to values
+#
+#   Last Updated by B.Waidyawansa 7-7-2011 
+
+
+#### DefaultBufferSize=1000
+#name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
+##############################################################################################
+###  Single event histograms
+
+
+######The min and max are set to 0, this will enable auto limits set by the root
+
+###########################################
+#  VQWK wildcard names for Injector beamline
+###########################################
+###########
+# Position
+###########
+qwk_...._hw			TH1F	1001	0	0	pos(mm) mps 		
+qwk_....._hw			TH1F	1001	0	0	pos(mm) mps 		
+qwk_......_hw			TH1F	1001	0	0	pos(mm) mps	
+qwk_......._hw			TH1F	1001	0	0	pos(mm) mps
+qwk_........_hw			TH1F	1001	0	0	pos(mm) mps 		
+qwk_.....P_hw			TH1F	1001	0	0	counts  mps 		
+qwk_.....M_hw			TH1F	1001	0	0	counts  mps 		
+qwk_......P_hw			TH1F	1001	0	0	counts  mps 		
+qwk_......M_hw			TH1F	1001	0	0	counts  mps 		
+
+qwk_..._EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
+qwk_...._EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
+qwk_....._EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
+qwk_......_EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
+
+qwk_.......Mean_hw		TH1F	1001	0	0	pos(mm) mps
+qwk_.......Variance_hw		TH1F	1001	0	0	pos(mm) mps
+
+yield_qwk_...._hw		TH1F	1001	0	0	yield(mm) quartet 
+yield_qwk_....._hw		TH1F	1001	0	0	yield(mm) quartet
+yield_qwk_......._hw		TH1F	1001	0	0	yield(mm) quartet
+yield_qwk_.......Mean_hw	TH1F	1001	0	0	mean(mm) mquartet
+yield_qwk_.......Variance_hw	TH1F	1001	0	0	variance(mm)  quartet
+
+diff_qwk_...._hw		TH1F	1001	0	0	diff(mm) quartet 
+diff_qwk_....._hw		TH1F	1001	0	0	diff(mm) quartet
+diff_qwk_......_hw		TH1F	1001	0	0	diff(mm) quartet
+diff_qwk_.......Mean_hw		TH1F	1001	0	0	diff(mm) quartet
+diff_qwk_.......Variance_hw	TH1F	1001	0	0	diff(mm) quartet
+
+asym_qwk_..._EffectiveCharge_hw	TH1F	1001	0	0	0       asym quartet 
+asym_qwk_...._EffectiveCharge_hw	TH1F	1001	0	0	asym quartet
+asym_qwk_....._EffectiveCharge_hw	TH1F	1001	0	0	asym quartet
+
+yield_qwk_..._EffectiveCharge_hw	TH1F	1001	0	0	yield quartet
+yield_qwk_...._EffectiveCharge_hw	TH1F	1001	0	0	yield quartet
+yield_qwk_....._EffectiveCharge_hw	TH1F	1001	0	0	yield quartet
+
+
+########
+# Charge 
+########
+
+qwk_b...._hw			TH1F	1001	0	0	current  mps 		
+qwk_b....._hw			TH1F	1001	0	0	current  mps 		
+qwk_b......_hw			TH1F	1001	0	0	current  mps	
+qwk_b......._hw			TH1F	1001	0	0	current  mps
+
+asym_qwk_b....._hw		TH1F	1001	0	0	asym quartet
+asym_qwk_b......_hw		TH1F	1001	0	0	asym quartet
+asym_qwk_b......._hw		TH1F	1001	0	0	asym quartet
+
+yield_qwk_b..._hw		TH1F	1001	0	0	yield  quartet 
+yield_qwk_b...._hw		TH1F	1001	0	0	yield  quartet
+yield_qwk_b....._hw		TH1F	1001	0	0	yield  quartet
+yield_qwk_b......_hw		TH1F	1001	0	0	yield quartet

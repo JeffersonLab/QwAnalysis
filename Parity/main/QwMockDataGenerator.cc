@@ -12,7 +12,6 @@
 // Boost math library for random number generation
 #include <boost/random.hpp>
 
-
 // Qweak headers
 #include "QwLog.h"
 #include "QwBeamLine.h"
@@ -24,7 +23,6 @@
 #include "QwLumi.h"
 #include "QwScanner.h"
 #include "QwSubsystemArrayParity.h"
-#include "QwVQWK_Channel.h"
 
 
 // Number of variables to correlate
@@ -103,7 +101,7 @@ int main(int argc, char* argv[])
   bcm_name.push_back("qwk_bcm0l06"); bcm_asym.push_back(6.0e-6);
   bcm_name.push_back("qwk_bcm0l07"); bcm_asym.push_back(7.0e-7);
   for (unsigned int i = 0; i < bcm_name.size(); i++) {
-    QwBCM* bcm = beamline->GetBCM(bcm_name[i]);
+    VQwBCM* bcm = beamline->GetBCM(bcm_name[i]);
     if (! bcm) continue;
     // Set the mean, sigma, and asymmetry
     bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
@@ -126,7 +124,7 @@ int main(int argc, char* argv[])
   bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
   bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
   for (unsigned int i = 0; i < 2; i++) {
-    QwBPMStripline* bpm = beamline->GetBPMStripline(bpm_name[i]);;
+    VQwBPM* bpm = beamline->GetBPMStripline(bpm_name[i]);;
     if (! bpm) continue;
     // Set the mean and sigma
     bpm->SetRandomEventParameters(bpm_meanX[i], bpm_sigmaX[i], bpm_meanY[i], bpm_sigmaY[i]);
@@ -142,29 +140,31 @@ int main(int argc, char* argv[])
   maindetector->SetRandomEventParameters(bar_mean, bar_sigma);
   maindetector->SetRandomEventAsymmetry(bar_asym);
   // Specific values
-  maindetector->GetChannel("MD2Neg")->SetRandomEventAsymmetry(2.0e-2);
-  maindetector->GetChannel("MD2Pos")->SetRandomEventAsymmetry(2.0e-2);
-  maindetector->GetChannel("MD3Neg")->SetRandomEventAsymmetry(3.0e-3);
-  maindetector->GetChannel("MD3Pos")->SetRandomEventAsymmetry(3.0e-3);
-  maindetector->GetChannel("MD4Neg")->SetRandomEventAsymmetry(4.0e-4);
-  maindetector->GetChannel("MD4Pos")->SetRandomEventAsymmetry(4.0e-4);
-  maindetector->GetChannel("MD5Neg")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("MD5Pos")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("MD6Neg")->SetRandomEventAsymmetry(6.0e-6);
-  maindetector->GetChannel("MD6Pos")->SetRandomEventAsymmetry(6.0e-6);
-  maindetector->GetChannel("MD7Neg")->SetRandomEventAsymmetry(7.0e-7);
-  maindetector->GetChannel("MD7Pos")->SetRandomEventAsymmetry(7.0e-7);
-  maindetector->GetChannel("MD8Neg")->SetRandomEventAsymmetry(8.0e-8);
-  maindetector->GetChannel("MD8Pos")->SetRandomEventAsymmetry(8.0e-8);
+  /* disabled, wdc, 2010-07-23
+  maindetector->GetIntegrationPMT("MD2Neg")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetIntegrationPMT("MD2Pos")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetIntegrationPMT("MD3Neg")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetIntegrationPMT("MD3Pos")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetIntegrationPMT("MD4Neg")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetIntegrationPMT("MD4Pos")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetIntegrationPMT("MD5Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetIntegrationPMT("MD5Pos")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetIntegrationPMT("MD6Neg")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetIntegrationPMT("MD6Pos")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetIntegrationPMT("MD7Neg")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetIntegrationPMT("MD7Pos")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetIntegrationPMT("MD8Neg")->SetRandomEventAsymmetry(8.0e-8);
+  maindetector->GetIntegrationPMT("MD8Pos")->SetRandomEventAsymmetry(8.0e-8);
 
   // Set a asymmetric helicity asymmetry on one of the bars
-  maindetector->GetChannel("MD1Neg")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("MD1Pos")->SetRandomEventAsymmetry(-5.0e-5);
+  maindetector->GetIntegrationPMT("MD1Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetIntegrationPMT("MD1Pos")->SetRandomEventAsymmetry(-5.0e-5);
 
   // Set a drift component (amplitude, phase, frequency)
-  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(3.0e6, 0, 60*Qw::Hz);
-  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(6.0e5, 0, 120*Qw::Hz);
-  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(4.5e5, 0, 240*Qw::Hz);
+  maindetector->GetIntegrationPMT("MD3Neg")->AddRandomEventDriftParameters(3.0e6, 0, 60*Qw::Hz);
+  maindetector->GetIntegrationPMT("MD3Neg")->AddRandomEventDriftParameters(6.0e5, 0, 120*Qw::Hz);
+  maindetector->GetIntegrationPMT("MD3Neg")->AddRandomEventDriftParameters(4.5e5, 0, 240*Qw::Hz);
+  */
 
 
 
@@ -177,10 +177,11 @@ int main(int argc, char* argv[])
   lumidetector->SetRandomEventParameters(lumi_mean, lumi_sigma);
   lumidetector->SetRandomEventAsymmetry(lumi_asym);
   // Specific values
-  lumidetector->GetChannel("dlumi3")->SetRandomEventAsymmetry(1.0e-3);
-  lumidetector->GetChannel("dlumi4")->SetRandomEventAsymmetry(1.0e-4);
-  lumidetector->GetChannel("dlumi5")->SetRandomEventAsymmetry(1.0e-5);
-
+  /* disabled, wdc, 2010-07-23
+  lumidetector->GetIntegrationPMT("dlumi3")->SetRandomEventAsymmetry(1.0e-3);
+  lumidetector->GetIntegrationPMT("dlumi4")->SetRandomEventAsymmetry(1.0e-4);
+  lumidetector->GetIntegrationPMT("dlumi5")->SetRandomEventAsymmetry(1.0e-5);
+  */
 
 
   // Initialize randomness provider and distribution
@@ -205,7 +206,7 @@ int main(int argc, char* argv[])
 
     // Open new output file
     // (giving run number as argument to OpenDataFile confuses the segment search)
-    TString filename = Form("QwMock_%ld.log", run);
+    TString filename = Form("QwMock_%u.log", run);
     if (eventbuffer.OpenDataFile(filename,"W") != CODA_OK) {
       std::cout << "Error: could not open file!" << std::endl;
       return 0;
@@ -285,14 +286,14 @@ int main(int argc, char* argv[])
         // Periodicity
         if (fmod(time, period) >= period - length) {
           // Do the ramp down
-          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          VQwBCM* bcm = beamline->GetBCM(bcm_name[2]);
           double scale = double(period - fmod(time, period)) / double(length);
           bcm->SetRandomEventParameters(bcm_mean * scale, bcm_sigma);
         }
 
         // Set the scale back to what it was after a trip
         if (fmod(time, period) < helicity_window) {
-          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          VQwBCM* bcm = beamline->GetBCM(bcm_name[2]);
           bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
         }
       } // end of beam trips

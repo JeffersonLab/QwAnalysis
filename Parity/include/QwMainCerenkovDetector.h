@@ -11,34 +11,37 @@
 #ifndef __QWMAINCERENKOVDETECTOR__
 #define __QWMAINCERENKOVDETECTOR__
 
+// System headers
 #include <vector>
-#include <TTree.h>
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
-#include "QwVQWK_Module.h"
-
 #include "QwIntegrationPMT.h"
 #include "QwCombinedPMT.h"
-
-#include "QwTypes.h"
-
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
 
 // Forward declarations
 class QwBlinder;
 class QwMainCerenkovDetectorID;
 
-class QwMainCerenkovDetector: public VQwSubsystemParity {
 
+class QwMainCerenkovDetector:
+    public VQwSubsystemParity,
+    public MQwSubsystemCloneable<QwMainCerenkovDetector>
+{
   friend class QwCombinedPMT;
   /******************************************************************
    *  Class: QwMainCerenkovDetector
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwMainCerenkovDetector();
+
  public:
- QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
+  /// Constructor with name
+  QwMainCerenkovDetector(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name),bNormalization(kFALSE)
   {
     fTargetCharge.InitializeChannel("q_targ","derived");
     fTargetX.InitializeChannel("x_targ","derived");
@@ -47,10 +50,12 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
     fTargetYprime.InitializeChannel("yp_targ","derived");
     fTargetEnergy.InitializeChannel("e_targ","derived");
   };
-
-  ~QwMainCerenkovDetector() {
-    DeleteHistograms();
-  };
+  /// Copy constructor
+  QwMainCerenkovDetector(const QwMainCerenkovDetector& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
+  virtual ~QwMainCerenkovDetector() { };
 
   /*  Member functions derived from VQwSubsystemParity. */
 
@@ -61,10 +66,16 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
-  Int_t LoadEventCuts(TString  filename);
+  Int_t LoadEventCuts(TString filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag();//return the error flag
+  UInt_t GetEventcutErrorFlag();//return the error flag
+  //update the same error flag in the classes belong to the subsystem.
+  void UpdateEventcutErrorFlag(UInt_t errorflag);
+
+  //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error);
+
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -77,6 +88,8 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void  ProcessEvent_2();
 
 
+  Bool_t PublishInternalValues() const;
+
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity = 0, Double_t time = 0.0);
@@ -87,21 +100,22 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
     ConstructHistograms(folder,tmpstr);
   };
 
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
+  using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
 
-  void  FillTreeVector(std::vector<Double_t> &values);
-  void  FillDB(QwDatabase *db, TString datatype);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
+  void  FillDB(QwParityDB *db, TString datatype);
+  void  FillErrDB(QwParityDB *db, TString datatype);
 
-  QwIntegrationPMT* GetChannel(const TString name);
+  const QwIntegrationPMT* GetChannel(const TString name) const;
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem* source);
 
 
@@ -120,11 +134,15 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void Difference(VQwSubsystem* value1, VQwSubsystem* value2);
   void Ratio(VQwSubsystem* numer, VQwSubsystem* denom);
   void Scale(Double_t factor);
+  void Normalize(VQwDataElement* denom);
 
   void AccumulateRunningSum(VQwSubsystem* value);
+  //remove one entry from the running sums for devices
+  void DeaccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();
 
-  QwIntegrationPMT* GetIntegrationPMT(const TString name);
+  const QwIntegrationPMT* GetIntegrationPMT(const TString name) const;
+  const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
   void DoNormalization(Double_t factor=1.0);
 
@@ -137,6 +155,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   };
 
   void  PrintValue() const;
+  void  WritePromptSummary() const;
   void  PrintInfo() const;
   void  PrintDetectorID() const;
 
@@ -150,8 +169,6 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
  // will be returned. For example if TypeID is IntegrationPMT  then the index of
  // the detector from fIntegrationPMT vector for given name will be returnd.
  Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);
-
-  //std::vector<QwVQWK_Module> fADC_Data;
 
   std::vector <QwIntegrationPMT> fIntegrationPMT;
   std::vector <QwCombinedPMT> fCombinedPMT;
@@ -182,7 +199,7 @@ class QwMainCerenkovDetectorID
  public:
   QwMainCerenkovDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),
     fTypeID(kQwUnknownPMT),fIndex(-1),
-    fSubelement(999999),fmoduletype(""),fdetectorname("")
+    fSubelement(kInvalidSubelementIndex),fmoduletype(""),fdetectorname("")
     {};
 
   int fSubbankIndex;

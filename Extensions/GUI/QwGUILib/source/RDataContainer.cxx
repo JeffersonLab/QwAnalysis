@@ -124,6 +124,8 @@ void RDataContainer::CloseFile(Bool_t kWrite)
       {
 	if(kWrite) fRfile->Write();
 	fRfile->Close();
+	delete fRfile;
+	fRfile = NULL;
 	dOpen = kFalse;
 	if(fRootBrowser != NULL){
 	  delete fRootBrowser;
@@ -325,6 +327,32 @@ int RDataContainer::GetNumOfRows()
     return -1;
 }
 
+int RDataContainer::GetRowLength(int row)
+{
+  if(row > GetNumOfRows()) return -1;
+
+  char l;
+  int flag = 0;
+  int dLength = 0;
+  int pos = 0;
+
+  if(dFp)
+    {
+      pos = ftell(dFp);
+      SetRowColumn(row,1);
+      while (1) {
+	flag = fscanf(dFp,"%c",&l);
+	if(l == '\n') break;
+	dLength++;
+      }     
+      fseek(dFp,pos,SEEK_SET);
+      return dLength;
+    }
+  else
+    return -1;
+
+}
+
 long int RDataContainer::GetFileSize()
 {
   if(dType == FT_ROOT && fRfile != NULL)
@@ -367,6 +395,16 @@ TObject* RDataContainer::GetObjFromMapFile(const Char_t* name){
   return obj; 
 };
 
+TObject* RDataContainer::GetObjFromFile(const Char_t* name){
+  //Get a TObject from the map file
+  if(fRfile->IsOpen()){
+    TObject* obj = NULL;
+    obj = fRfile->FindObjectAny(name);
+    if(obj) return obj;
+    return NULL; 
+  }
+  return NULL;
+};
 
 int RDataContainer::OpenFile(const char *filename)
 {
@@ -802,7 +840,9 @@ TObject *RDataContainer::ReadData(const char *objname)
 	  }
 	  else{
 	    FlushMessages();
-	    SetMessage(ROOT_OBJCRT_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+	    sprintf(dMiscbuffer,"%s for %s",ROOT_OBJCRT_ERROR,objname);
+	    SetMessage(dMiscbuffer,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+	    // SetMessage(ROOT_OBJCRT_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
 	    return NULL;	
 	  }
 	}
@@ -1395,6 +1435,19 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
     
 // }
 
+int RDataContainer::ReadRow(const char *buffer, int row)
+{
+  if(!dFp || !buffer) return FILE_READ_ERROR;
+  if(row < 1 || row > GetNumOfRows()) return FILE_READ_ERROR;
+  SetRowColumn(row,1);
+  if(!fread((char*)buffer,GetRowLength(row),1,dFp)) {
+    FlushMessages();
+    SetMessage(READ_PNTR_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+    return(FILE_READ_ERROR);
+  }
+  return FILE_PROCESS_OK;
+}
+
 int RDataContainer::ReadData(const char *buffer, int size)
 {
   if(!fread((char*)buffer,size,1,dFp)) {
@@ -1468,7 +1521,7 @@ int RDataContainer::ReadData(const char *buffer, int size, int start)
 		return FILE_PROCESS_OK;
 	      }
 	      else if(dType == FT_TEXT){
-		if(!fread((char*)buffer,sizeof(char),size-1,dFp)){
+		if(!fread((char*)buffer,sizeof(char),size,dFp)){
 		  FlushMessages();
 		  SetMessage(READ_PNTR_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
 		  return(FILE_READ_ERROR);
@@ -1508,7 +1561,7 @@ int RDataContainer::ReadData(const char *buffer, int size, int start)
   return FILE_READ_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
+int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows, const char *label)
 {
   int nbytes = 0;
 
@@ -1517,6 +1570,10 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
 
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"%+2.8e %+2.8e %+2.8e\n",x[i],y[i],ye[i]);
@@ -1546,6 +1603,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
       else if(dType == FT_MATHCAD){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 	    nbytes += fprintf(dFp,"{");
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"{%lf,%lf,%lf}",x[i],y[i],ye[i]);
@@ -1593,7 +1655,7 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
   return FILE_WRITE_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *ye, int rows)
+int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *ye, int rows, const char *label)
 {
   int nbytes = 0;
 
@@ -1602,6 +1664,10 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
 
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"%+2.8e %+2.8e %+2.8e %+2.8e\n",x[i],y[i],xe[i],ye[i]);
@@ -1631,6 +1697,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *
       else if(dType == FT_MATHCAD){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 	    nbytes += fprintf(dFp,"{");
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"{%lf,%lf,%lf,%lf}",x[i],y[i],xe[i],ye[i]);
@@ -1678,7 +1749,7 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *
   return FILE_WRITE_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
+int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows, const char * label)
 {
   int nbytes = 0;
 
@@ -1687,6 +1758,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"%+2.8e %+2.8e\n",x[i],y[i]);
@@ -1716,6 +1792,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
       else if(dType == FT_MATHCAD){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 	    nbytes += fprintf(dFp,"{");
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"{%lf,%lf}",x[i],y[i]);
@@ -1763,7 +1844,7 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
   return FILE_WRITE_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *data, int rows, int cols)
+int RDataContainer::WriteData(Double_t *data, int rows, int cols, const char * label)
 {
   int nbytes = 0;
 
@@ -1772,6 +1853,10 @@ int RDataContainer::WriteData(Double_t *data, int rows, int cols)
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
 
 	    for(int r = 0; r < rows; r++){
 	      for(int c = 0; c < cols; c++){
@@ -1849,8 +1934,8 @@ int RDataContainer::WriteData(const char* buffer ,int size)
 		}
 	      }
 	      else if(dType == FT_TEXT){
-		if(fwrite(buffer,sizeof(char),size-1,dFp) != 
-		   (unsigned int)(size-1)){
+		if(fwrite(buffer,sizeof(char),size,dFp) != 
+		   (unsigned int)(size)){
 		  FlushMessages();
 		  SetMessage(WRITE_PNTR_ERROR,"WriteData",(int)dType,
 			     M_CONT_ERROR_MSG);
@@ -1858,7 +1943,7 @@ int RDataContainer::WriteData(const char* buffer ,int size)
 		}
 		memset(dMiscbuffer2,'\0',sizeof(dMiscbuffer2));
 		memset(dMiscbuffer,'\0',sizeof(dMiscbuffer));
-		sprintf(dMiscbuffer2,"Wrote : %d bytes to file %s\n",size-1,
+		sprintf(dMiscbuffer2,"Wrote : %d bytes to file %s\n",size,
 			strrchr(GetFileName(),'/') ? strrchr(GetFileName(),'/') : 
 			GetFileName());
 		sprintf(dMiscbuffer,"File size is now: %ld\n",GetFileSize());

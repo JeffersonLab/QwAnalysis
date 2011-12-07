@@ -3,94 +3,83 @@
 
 
 
-QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t event_holdoff, Int_t min_BT_count){
-  
+QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size)
+: fRollingAvg(event)
+{
   fRING_SIZE=ring_size;
-  fEVENT_HOLDOFF=event_holdoff;
-  fMIN_BT_COUNT=min_BT_count;
-  fEvent_Ring.resize(fRING_SIZE);
+  fEvent_Ring.resize(fRING_SIZE,event);
 
   bRING_READY=kFALSE;
-  bGoodEvent=kTRUE;
   bEVENT_READY=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
-  fEventsSinceLastTrip=1;
-  fFailedEventCount=0;
-  for(int i=0;i<fRING_SIZE;i++){
-    fEvent_Ring[i].Copy(&event); //populate the event ring
-  }
-
+  
   //open the log file
   if (bDEBUG_Write)
     out_file = fopen("Ring_log.txt", "wt");
-  
-};
-
-
-
-
-void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
-  /*
-  fRING_SIZE=ring_size;
-  fEVENT_HOLDOFF=event_holdoff;
-  fMIN_BT_COUNT=min_BT_count;
-  */
-  std::cout<<" Ring "<<fRING_SIZE<<" , "<<fMIN_BT_COUNT<<" , "<<fEVENT_HOLDOFF<<std::endl;
-  fEvent_Ring.resize(fRING_SIZE);
-
-  bRING_READY=kFALSE;
-  bGoodEvent=kTRUE;
-  bEVENT_READY=kTRUE;
-  fNextToBeFilled=0;
-  fNextToBeRead=0;
-  fEventsSinceLastTrip=1;
-  fFailedEventCount=0;
-  for(int i=0;i<fRING_SIZE;i++){
-    fEvent_Ring[i].Copy(&event); //populate the event ring
-  }
-
-  //open the log file
-  if (bDEBUG_Write)
-    out_file = fopen("Ring_log.txt", "wt");
-  
 }
 
-void QwEventRing::DefineOptions(QwOptions &options){
+
+QwEventRing::QwEventRing(QwOptions &options, QwSubsystemArrayParity &event)
+: fRollingAvg(event)
+{
+  ProcessOptions(options);
+
+  fEvent_Ring.resize(fRING_SIZE,event);
+
+  bRING_READY=kFALSE;
+  bEVENT_READY=kTRUE;
+  fNextToBeFilled=0;
+  fNextToBeRead=0;
+
+  //open the log file
+  if (bDEBUG_Write)
+    out_file = fopen("Ring_log.txt", "wt");
+}
+
+
+void QwEventRing::DefineOptions(QwOptions &options)
+{
   // Define the execution options
   options.AddDefaultOptions();
-  options.AddOptions()("ring.size", po::value<int>()->default_value(32),"QwEventRing: ring/buffer size");
-  options.AddOptions()("ring.bt", po::value<int>()->default_value(4),"QwEventRing: minimum beam trip count");
-  options.AddOptions()("ring.hld", po::value<int>()->default_value(16),"QwEventRing: ring hold off");
-
+  options.AddOptions()("ring.size",
+      po::value<int>()->default_value(4800),
+      "QwEventRing: ring/buffer size");
+  options.AddOptions()("ring.stability_cut",
+      po::value<double>()->default_value(1),
+      "QwEventRing: Stability ON/OFF");
 }
 
-void QwEventRing::ProcessOptions(QwOptions &options){
-  //Reads Event Ring parameters from cmd  
+void QwEventRing::ProcessOptions(QwOptions &options)
+{
+  // Reads Event Ring parameters from cmd
+  Double_t fStability;
   if (gQwOptions.HasValue("ring.size"))
     fRING_SIZE=gQwOptions.GetValue<int>("ring.size");
-  if (gQwOptions.HasValue("ring.bt"))
-    fMIN_BT_COUNT=gQwOptions.GetValue<int>("ring.bt"); 
-  if (gQwOptions.HasValue("ring.hld"))
-    fEVENT_HOLDOFF=gQwOptions.GetValue<int>("ring.hld");
-};
-void QwEventRing::push(QwSubsystemArrayParity &event){
-  if (bDEBUG) std::cerr << "QwEventRing::push:  BEGIN" <<std::endl;
 
-  if (!bGoodEvent){//this means we are coming from a beam trip
-    bGoodEvent=kTRUE;//set it to true again
-    bEVENT_READY=kFALSE;//set this flag to flase till we pass no.of good events
-    //we want to let go some good events-> LEAVE_COUNT
-    fEventsSinceLastTrip=1;
-  }
+  if (gQwOptions.HasValue("ring.stability_cut"))
+    fStability=gQwOptions.GetValue<double>("ring.stability_cut");
+
+  if (fStability>0.0)
+    bStability=kTRUE;
+  else
+    bStability=kFALSE;
+ 
+}
+void QwEventRing::push(QwSubsystemArrayParity &event)
+{
+  if (bDEBUG) QwMessage << "QwEventRing::push:  BEGIN" <<QwLog::endl;
+
   
-  fFailedEventCount=0;//reset the failed event counter 
 
   if (bEVENT_READY){
-    fEvent_Ring[fNextToBeFilled]=event;//copy the current good event to the ring   
+    fEvent_Ring[fNextToBeFilled]=event;//copy the current good event to the ring 
+    if (bStability){
+      fRollingAvg.AccumulateAllRunningSum(event);
+    }
 
 
-    if (bDEBUG) std::cout<<" Filled at "<<fNextToBeFilled;//<<"Ring count "<<fRing_Count<<std::endl; 
+    if (bDEBUG) QwMessage<<" Filled at "<<fNextToBeFilled;//<<"Ring count "<<fRing_Count<<QwLog::endl; 
     if (bDEBUG_Write) fprintf(out_file," Filled at %d ",fNextToBeFilled);
 
 
@@ -98,62 +87,55 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
     
     if(fNextToBeFilled == 0){
       //then we have RING_SIZE events to process
-      if (bDEBUG) std::cout<<" RING FILLED "<<fNextToBeFilled+1; //<<std::endl; 
+      if (bDEBUG) QwMessage<<" RING FILLED "<<fNextToBeFilled+1; //<<QwLog::endl; 
       if (bDEBUG_Write) fprintf(out_file," RING FILLED ");
       bRING_READY=kTRUE;//ring is filled with good multiplets
       fNextToBeFilled=0;//next event to be filled
-      fNextToBeRead=0;//first element in the ring      
+      fNextToBeRead=0;//first element in the ring  
+      //check for current ramps
+      if (bStability){
+	fRollingAvg.CalculateRunningAverage();
+	/*
+	//The fRollingAvg dose not contain any regular errorcodes since it only accumulate rolling sum for errorflag==0 event.
+	//The only errorflag it generates is the stability cut faliure error when the rolling avg is computed. 
+	//Therefore when fRollingAvg.GetEventcutErrorFlag() is called it will return non-zero error code only if a global stability cut has failed
+	//When fRollingAvg.GetEventcutErrorFlag() is called the fErrorFlag of the subsystemarrayparity object will be updated with any global
+	//stability cut faliures
+	*/
+	fRollingAvg.UpdateEventcutErrorFlag(); //to update the global error code in the fRollingAvg
+	for(Int_t i=0;i<fRING_SIZE;i++){
+	  fEvent_Ring[i].UpdateEventcutErrorFlag(fRollingAvg);
+	  fEvent_Ring[i].UpdateEventcutErrorFlag();
+	}
+	
+      }
     }
     //ring processing is done at a separate location
   }else{
-    //still we are counting good events after a beam trip that leave alone
-    if (bDEBUG) std::cout<<" Event since last trip \n"<<fEventsSinceLastTrip;//<<std::endl; 
-    if (bDEBUG_Write)  fprintf(out_file," After Trip  %d \n",fEventsSinceLastTrip);
-    fEventsSinceLastTrip++;//increment event counter
-    if (fEventsSinceLastTrip >= fEVENT_HOLDOFF)//after we have left LEAVE_COUNT no.of events
-      bEVENT_READY=kTRUE;//now from next event onward add them to the ring     
   }
   
   
-};
+}
 
-void QwEventRing::FailedEvent(Int_t error_flag){
-    fFailedEventCount++;
-    
-    if (bGoodEvent){//a first faliure after set of good event bGoodEvent is TRUE. This is TRUE untill there is a beam trip
-      if (fFailedEventCount >= fMIN_BT_COUNT){//if events failed equal to minimum beam trip count
-	if (bGoodEvent) std::cout<<" Beam Trip "<<std::endl;
-	bGoodEvent=kFALSE;// a beam trip occured, set this to false
 
-	if (bDEBUG)
-	  std::cout<<" Beam Trip "<<fFailedEventCount;
-	
-	if (bDEBUG_Write) fprintf(out_file," Beam Trip %d \n ",fFailedEventCount);
-	fNextToBeFilled=0;//fill at the top ring is useless after the beam trip
-	fNextToBeRead=0;//first element in the ring	
-	bRING_READY=kFALSE;      
-      }
-    }
-    
-      if (bDEBUG) std::cout<<" Failed count \n"<<fFailedEventCount;
-      if (bDEBUG_Write) fprintf(out_file," Failed count %d error_flag %x\n",fFailedEventCount,error_flag);
-};
-
-QwSubsystemArrayParity& QwEventRing::pop(){   
+QwSubsystemArrayParity& QwEventRing::pop(){
   Int_t tempIndex;
   tempIndex=fNextToBeRead;  
-  if (bDEBUG) std::cout<<" Read at "<<fNextToBeRead<<std::endl; 
+  if (bDEBUG) QwMessage<<" Read at "<<fNextToBeRead<<QwLog::endl; 
   if (bDEBUG_Write) fprintf(out_file," Read at %d \n",fNextToBeRead);
   
   if (fNextToBeRead==(fRING_SIZE-1)){
-    bRING_READY=kFALSE;
+    bRING_READY=kFALSE;//setting to false is an extra measure of security to prevent reading a NULL value. 
+  }
+  if (bStability){
+     fRollingAvg.DeaccumulateRunningSum(fEvent_Ring[tempIndex]);
   }
   fNextToBeRead=(fNextToBeRead+1)%fRING_SIZE;  
   return fEvent_Ring[tempIndex];  
-};
+}
 
 
 Bool_t QwEventRing::IsReady(){ //Check for readyness to read data from the ring using the pop() routine   
   return bRING_READY;
-};
+}
 

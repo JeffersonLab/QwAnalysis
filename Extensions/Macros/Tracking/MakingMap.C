@@ -23,35 +23,12 @@ gROOT->Reset();
 
 const Int_t kNumberOfChannels=64;
 const Int_t kNumberOfSlots=4;
-const Short_t LIBNUM=3;
-const Char_t* LIBNAME[LIBNUM]=
+
+void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=5148 )
 {
-    "QwHit","QwHitContainer","QwHitRootContainer"
-};
-
-void
-check_libraries()
-{
-    for ( Short_t i=0;i<3;i++ )
-    {
-        if ( !TClassTable::GetDict ( Form ( "%s",LIBNAME[i] ) ) )
-        {
-            gSystem -> Exec ( Form ( "gcc -shared -Wl,-soname,./lib%s.so -o lib%s.so %s/Tracking/src/%s.o %s/Tracking/dictionary/%sDict.o",  LIBNAME[i], LIBNAME[i], gSystem->Getenv ( "QWANALYSIS" ), LIBNAME[i],  gSystem->Getenv ( "QWANALYSIS" ), LIBNAME[i] ) );
-            gSystem -> Load ( Form ( "%s/Extensions/Macros/Tracking/lib%s.so",  gSystem->Getenv ( "QWANALYSIS" ), LIBNAME[i] ) );
-        }
-
-    }
-}
-
-void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 )
-{
-
-    check_libraries();
-        TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d.root",getenv ( "QWSCRATCH" ),run_number ) );
-        TFile* f_tdc=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ),"RECREATE" );
-    //TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d.000.root",run_number ) );
-    //TFile* f_tdc=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ),"RECREATE" );
-    TTree *R=new TTree ( "tree","Hit event data tree" );
+        TFile* f=new TFile ( Form ( "%s/Qweak_%d.root",getenv ( "QWSCRATCH" ),run_number ) );
+        TFile* f_tdc=new TFile ( Form ( "%s/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ),"RECREATE" );
+    TTree *R=new TTree ( "event_tree","Hit event data tree" );
     TString prebase="";
     std::vector<Int_t> tdc_dt;
 
@@ -61,10 +38,11 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
 
     ConstructTDCStructure ( R,prebase,tdc_dt );
 
-    TTree* tree= ( TTree* ) f->Get ( "tree" );
-    QwHitRootContainer* hitContainer=NULL;
+    TTree* tree= ( TTree* ) f->Get ( "event_tree" );
 
-    tree->SetBranchAddress ( "hits",&hitContainer );
+    QwEvent* fEvent=0;
+    QwHit* hit=0;
+    tree->SetBranchAddress("events",&fEvent);
     Int_t nevent=tree->GetEntries();
     if ( ev_start==-1 && ev_end==-1 )
     {
@@ -77,8 +55,7 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
     {
         if ( ev_id % 1000 ==0 ) std::cout << "events processed so far: " << ev_id << std::endl;
         tree->GetEntry ( ev_id );
-        Int_t nhit=hitContainer->GetSize();
-        QwHit* hit=NULL;
+        Int_t nhit=fEvent->GetNumberOfHits();
         for ( Int_t index=0;index<2*kNumberOfChannels*kNumberOfSlots;index++ )
             tdc_dt.at ( index ) =0;
 
@@ -86,26 +63,23 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
         for ( Int_t hit_id=nhit-1;hit_id>=0;hit_id-- )
 
         {
-            hit=hitContainer->GetHit ( hit_id );
+            hit=fEvent->GetHit ( hit_id );
             Int_t slot=0;
             if ( hit->GetSubbankID() ==1 )
             {
-                if ( hit->GetModule() ==6 ) slot=0;
+                if ( hit->GetModule() ==4 ) slot=0;
                 else slot=1;
             }
             else if ( hit->GetSubbankID() ==3 )
             {
-                if ( hit->GetModule() ==6 ) slot=2;
+                if ( hit->GetModule() ==4 ) slot=2;
                 else slot=3;
             }
             else continue;
-	    
-	    //tdc_dt.at(kNumberOfChannels*kNumberOfSlots+slot*kNumberOfChannels+hit->GetChannel())=tdc_dt.at(kNumberOfChannels*kNumberOfSlots+slot*kNumberOfChannels+hit->GetChannel())+1;
-            tdc_dt.at(kNumberOfChannels*kNumberOfSlots+slot*kNumberOfChannels+hit->GetChannel())++;
-            // tdc_dt.at(hit->GetChannel()) = hit->GetTime();
-            tdc_dt.at ( slot*kNumberOfChannels+hit->GetChannel() ) = hit->GetTime();
-	    
 
+            tdc_dt.at(kNumberOfChannels*kNumberOfSlots+slot*kNumberOfChannels+hit->GetChannel())++;
+
+            tdc_dt.at ( slot*kNumberOfChannels+hit->GetChannel() ) = hit->GetTime();
         }
 
         R->Fill();
@@ -154,15 +128,15 @@ void ConstructTDCStructure ( TTree* tree,TString& prefix,std::vector<Int_t>& val
 
 
 
-void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672,Int_t bins=500 )
+void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672,Int_t bins=600 )
 {
 
     check_libraries();
         TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ) );
 
-    TH1F* h1=new TH1F("h1","h1",bins,-250,250);
+    TH1F* h1=new TH1F("h1","h1",bins,-300,300);
 
-    TTree* tree=(TTree*)f->Get("tree");
+    TTree* tree=(TTree*)f->Get("event_tree");
     char firstchan[100]="slot";
     char secondchan[100]="slot";
     string middle="_tdc";

@@ -11,14 +11,15 @@
 
 #include "QwDriftChamber.h"
 #include "QwDelayLine.h"
+#include "QwOptions.h"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <utility>
 
 ///
 /// \ingroup QwTracking
-class QwDriftChamberVDC: public QwDriftChamber {
+class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberVDC> {
   /******************************************************************
    *  Class: QwDriftChamberVDC
    *
@@ -26,50 +27,76 @@ class QwDriftChamberVDC: public QwDriftChamber {
    ******************************************************************/
  public:
   QwDriftChamberVDC(TString region_tmp);
-  ~QwDriftChamberVDC()
-    {
-      DeleteHistograms();
-    };
+  virtual ~QwDriftChamberVDC() { };
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
+
   /* Unique virtual member functions from QwDrifChamber base class */
 
-  using QwDriftChamber::CalculateDriftDistance;
-
-  void  ReportConfiguration();
+  
+  //  void  ReportConfiguration();
   void  SubtractReferenceTimes();
+  void  ProcessEvent();
+  Int_t LoadGeometryDefinition(TString mapfile );
+  //  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  //  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
   Int_t LoadChannelMap(TString mapfile);
+
+
+  // VDC
+  //  using QwDriftChamber::CalculateDriftDistance;
+  static void DefineOptions(QwOptions& options);
+  void ProcessOptions(QwOptions& options);
+ 
   //Int_t LoadMap ( TString& );        //read the TDC convert QwDelayLine map
   void  ReadEvent ( TString& );     //read the events file
 
-
-  void  ProcessEvent();
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
- 
   void ClearEventData();
-   
-  Int_t LoadGeometryDefinition(TString mapfile );
-
-  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
-    Double_t angle_degree = 45.0; 
-    return CalculateDriftDistance(drifttime,detector,angle_degree);
-  }
-
- protected:
   
-  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
+  
 
-  void  FillHistograms();
+ 
+  
+ protected:
+
+  // VDC and HDC
   void  FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
-  Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
-  Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
+  Int_t AddChannelDefinition();
+  Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire);
+  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
+  using VQwSubsystem::ConstructHistograms;
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
+  void  FillHistograms();
+
+  Int_t LoadTimeWireOffset(TString t0_map); 
+  void LoadTtoDParameters(TString ttod_map); 
+  void SubtractWireTimeOffset();
+  void ApplyTimeCalibration();
+  
+  // VDC
+  void GetHitList(QwHitContainer & grandHitContainer)
+  {
+    if(fUseTDCHits) grandHitContainer.Append(fTDCHits);
+    else            grandHitContainer.Append(fWireHits);
+  };
+
+ 
+  
+  Bool_t fUseTDCHits;
+  Bool_t fDisableWireTimeOffset;
+  Int_t fR3Octant;
   static const UInt_t kBackPlaneNum;
   static const UInt_t kLineNum;
-  std::vector<std::vector<QwDelayLine> > fDelayLineArray;      //indexed by backplane and line number
-  std::vector<std::vector<QwDelayLineID> > fDelayLinePtrs;  //indexed by slot and channel number
+  std::vector< std::vector<QwDelayLine> > fDelayLineArray;   //indexed by backplane and line number
+  std::vector< std::vector<QwDelayLineID> > fDelayLinePtrs;  //indexed by slot and channel number
   std::vector< QwHit > fWireHitsVDC;
-
-
+  std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
+  std::vector< Double_t> fTtoDNumbers;
+  
 };
 
 #endif

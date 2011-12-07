@@ -14,20 +14,22 @@
 #include <vector>
 
 // ROOT headers
-#include <Rtypes.h>
-#include <TString.h>
-#include <TDirectory.h>
+#include "Rtypes.h"
+#include "TString.h"
+#include "TDirectory.h"
+#include "TTree.h"
 
 // Qweak headers
-// Note: the subsystem factory header is included here because every subsystem
+#include "MQwHistograms.h"
+// Note: the factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
-#include "QwSubsystemFactory.h"
-// Note: the parameter file is included for
-#include "QwParameterFile.h"
+#include "QwFactory.h"
 
 // Forward declarations
-class QwSubsystemArray;
 class VQwDataElement;
+class QwSubsystemArray;
+class QwParameterFile;
+
 
 /**
  *  \class   VQwSubsystem
@@ -54,18 +56,31 @@ class VQwDataElement;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem {
+class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
 
  public:
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) { 
+  : MQwHistograms(),
+    fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
+    fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
-  };
+  }
+  /// Copy constructor by object
+  VQwSubsystem(const VQwSubsystem& orig)
+  : MQwHistograms(orig) {
+    *this = orig;
+  }
+  /// Copy constructor by pointer
+  VQwSubsystem(const VQwSubsystem* orig)
+  : MQwHistograms(*orig) {
+    *this = *orig;
+  }
 
   /// Default destructor
-  virtual ~VQwSubsystem() { };
+  virtual ~VQwSubsystem() { }
+
 
   /// \brief Define options function (note: no virtual static functions in C++)
   static void DefineOptions() { /* No default options defined */ };
@@ -83,38 +98,79 @@ class VQwSubsystem {
   /// \brief Get the sibling with specified name
   VQwSubsystem* GetSibling(const std::string& name) const;
 
+
+ public:
+
   /// \brief Publish a variable name to the parent subsystem array
-  const Bool_t PublishInternalValue(const TString name, const TString desc) const;
+  Bool_t PublishInternalValue(const TString& name, const TString& desc, const VQwDataElement* value) const;
   /// \brief Publish all variables of the subsystem
-  virtual const Bool_t PublishInternalValues() const {
+  virtual Bool_t PublishInternalValues() const {
     return kTRUE; // when not implemented, this returns success
   };
 
   /// \brief Request a named value which is owned by an external subsystem;
   ///        the request will be handled by the parent subsystem array
-  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const;
+  Bool_t RequestExternalValue(const TString& name, VQwDataElement* value) const;
+
+  /// \brief Return a pointer to a varialbe to the parent subsystem array to be
+  ///        delivered to a different subsystem.
+  
+  virtual const VQwDataElement* ReturnInternalValue(const TString& name) const{
+    std::cout << " VQwDataElement::ReturnInternalValue for value name, " << name.Data()
+              << " define the routine in the respective subsystem to process this!  " <<std::endl;
+    return 0;
+  };
 
   /// \brief Return a named value to the parent subsystem array to be
   ///        delivered to a different subsystem.
-  virtual const Bool_t ReturnInternalValue(TString name,
-				      VQwDataElement* value) const {
+  virtual Bool_t ReturnInternalValue(const TString& name,
+                                      VQwDataElement* value) const {
     return kFALSE;
   };
+  
+  virtual std::vector<TString> GetParamFileNameList();
+  virtual std::map<TString, TString> GetDetectorMaps();
 
-  // Parse parameter file to find the map files
+ protected:
+  /// Map of published internal values
+  std::map<TString, VQwDataElement*> fPublishedInternalValues;
+  /// List of parameters to be published (loaded at the channel map)
+  std::vector<std::vector<TString> > fPublishList;
+
+  void UpdatePublishedValue(const TString& name, VQwDataElement* data_channel) {
+    fPublishedInternalValues[name] = data_channel;
+  };
+
+ public:
+
+  /// \brief Parse parameter file to find the map files
   virtual Int_t LoadDetectorMaps(QwParameterFile& file);
-  // Mandatory map and parameter files
+  /// Mandatory map file definition
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
+  /// Mandatory parameter file definition
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
-  // Optional geometry definition
+  /// Optional geometry definition
   virtual Int_t LoadGeometryDefinition(TString mapfile) { return 0; };
-  // Optional event cut file
+  /// Optional event cut file
   virtual Int_t LoadEventCuts(TString mapfile) { return 0; };
+
+  /// Set event type mask
+  void SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
+  /// Get event type mask
+  UInt_t GetEventTypeMask() const { return fEventTypeMask; };
+
 
   virtual void  ClearEventData() = 0;
 
   virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
 
+  virtual Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
+    /// TODO:  Subsystems should be changing their ProcessEvBuffer routines to take the event_type as the first
+    ///  argument.  But in the meantime, default to just calling the non-event-type-aware ProcessEvBuffer routine.
+    if (((0x1 << (event_type - 1)) & this->GetEventTypeMask()) == 0) return 0;
+    else return this->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
+  };
+  /// TODO:  The non-event-type-aware ProcessEvBuffer routine should be replaced with the event-type-aware version.
   virtual Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
 
   virtual void  ProcessEvent() = 0;
@@ -133,6 +189,7 @@ class VQwSubsystem {
   // Not all derived classes will have the following functions
   virtual void  RandomizeEventData(int helicity = 0, double time = 0.0) { };
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };
+
 
   /// \name Histogram construction and maintenance
   // @{
@@ -154,11 +211,32 @@ class VQwSubsystem {
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   /// \brief Fill the histograms for this subsystem
   virtual void  FillHistograms() = 0;
-  /// \brief Delete the histograms for this subsystem
-  virtual void  DeleteHistograms() = 0;
   // @}
 
-  /// \name Tree construction and maintenance
+
+  /// \name Tree and branch construction and maintenance
+  /// The methods should exist for all subsystems and are therefore defined
+  /// as pure virtual.
+  // @{
+  /// \brief Construct the branch and tree vector
+  virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) = 0;
+  /// \brief Construct the branch and tree vector
+  virtual void ConstructBranchAndVector(TTree *tree, std::vector<Double_t>& values) {
+    TString tmpstr("");
+    ConstructBranchAndVector(tree,tmpstr,values);
+  };
+  /// \brief Construct the branch and tree vector
+  virtual void ConstructBranch(TTree *tree, TString& prefix) = 0;
+  /// \brief Construct the branch and tree vector based on the trim file
+  virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) = 0;
+  /// \brief Fill the tree vector
+  virtual void FillTreeVector(std::vector<Double_t>& values) const = 0;
+  // @}
+
+
+ 
+
+  /// \name Expert tree construction and maintenance
   /// These functions are not purely virtual, since not every subsystem is
   /// expected to implement them.  They are intended for expert output to
   /// trees.
@@ -188,9 +266,19 @@ class VQwSubsystem {
   /// \brief Print some information about the subsystem
   virtual void  PrintInfo() const;
 
-  virtual void Copy(VQwSubsystem *source);//Must call at the beginning of all subsystems rotuine call to Copy(VQwSubsystem *source)  by  using VQwSubsystem::Copy(source)
-  virtual VQwSubsystem&  operator=  (VQwSubsystem *value);//Must call at the beginning of all subsystems rotuine call to operator=  (VQwSubsystem *value)  by VQwSubsystem::operator=(value)
+  /// Inherit Copy methods from VQwSubsystemCloneable
+  using VQwSubsystemCloneable::Copy;
+  /// \brief Copy method
+  /// Note: Must be called at the beginning of all subsystems routine
+  /// call to Copy(const VQwSubsystem *source) by using VQwSubsystem::Copy(source)
+  virtual void Copy(const VQwSubsystem *source);
+  /// \brief Assignment
+  /// Note: Must be called at the beginning of all subsystems routine
+  /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)
+  virtual VQwSubsystem& operator=(VQwSubsystem *value);
 
+
+  virtual void PrintDetectorMaps(Bool_t status) const;
 
  protected:
 
@@ -200,12 +288,13 @@ class VQwSubsystem {
 
   /*! \brief Tell the object that it will decode data from this ROC and sub-bank
    */
-  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
+  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0);
 
   /*! \brief Tell the object that it will decode data from this sub-bank in the ROC currently open for registration
    */
   Int_t RegisterSubbank(const UInt_t bank_id);
 
+  Int_t GetSubbankIndex() const { return GetSubbankIndex(fCurrentROC_ID, fCurrentBank_ID); }
   Int_t GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const;
   void  SetDataLoaded(Bool_t flag){fIsDataLoaded = flag;};
 
@@ -219,8 +308,12 @@ class VQwSubsystem {
 
   TString  fSystemName; ///< Name of this subsystem
 
+  UInt_t   fEventTypeMask; ///< Mask of event types
+
   Bool_t   fIsDataLoaded; ///< Has this subsystem gotten data to be processed?
 
+  std::vector<TString> fDetectorMapsNames;
+  std::map<TString, TString> fDetectorMaps;
  protected:
 
   Int_t fCurrentROC_ID; ///< ROC ID that is currently being processed
@@ -236,12 +329,18 @@ class VQwSubsystem {
 
 
  protected:
-  VQwSubsystem(){};  //  Private constructor.
-  VQwSubsystem&  operator=  (const VQwSubsystem &value){
-    return *this;
-  };
 
+  // Comparison of type
+  Bool_t Compare(VQwSubsystem* source) {
+    return (typeid(*this) == typeid(*source));
+  }
+
+ private:
+
+  // Private constructor (not implemented, will throw linker error on use)
+  VQwSubsystem();
 
 }; // class VQwSubsystem
+
 
 #endif // __VQWSUBSYSTEM__

@@ -18,35 +18,41 @@
 #include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
-#include "QwDetectorInfo.h"
 #include "QwColor.h"
 
 #include "MQwV775TDC.h"
-#include "MQwF1TDC.h"
+//#include "MQwF1TDC.h"
 #include "QwPMT_Channel.h"
 #include "QwSIS3801_Module.h"
 #include "QwScaler_Channel.h"
+#include "QwF1TDContainer.h"
 
 ///
 /// \ingroup QwTracking
-class QwMainDetector: public VQwSubsystemTracking {
+class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwMainDetector> {
   /******************************************************************
    *  Class: QwMainDetector
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwMainDetector();
+
  public:
-  QwMainDetector(TString region_tmp);
-  ~QwMainDetector();
+  /// Constructor with name
+  QwMainDetector(const TString& name);
+  /// Virtual destructor
+  virtual ~QwMainDetector();
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info)
-  {
-    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
-    return 1;
-  };
   Int_t LoadInputParameters(TString mapfile){return 0;};
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -56,26 +62,26 @@ class QwMainDetector: public VQwSubsystemTracking {
 
   void  ProcessEvent();
 
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values);
-  void  ConstructBranchAndVector(TTree *tree, TString prefix);
-  void  FillTreeVector(std::vector<Double_t> &values);
-  void  FillTreeVector(Int_t nevent = -1);
+  using VQwSubsystem::ConstructBranchAndVector;
+  void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  QwMainDetector& operator=  (const QwMainDetector &value);
+  QwMainDetector& operator=(const QwMainDetector &value);
 
   void ReportConfiguration();
 
  protected:
-  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC} fCurrentType;
+  EQwModuleType fCurrentType;
 
   Bool_t fDEBUG;
 
   MQwV775TDC fQDCTDC;
-  MQwF1TDC fF1TDC;
+  MQwF1TDC fF1TDCDecoder;
+  QwF1TDContainer *fF1TDContainer;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -85,7 +91,7 @@ class QwMainDetector: public VQwSubsystemTracking {
   Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
-  const QwMainDetector::EModuleType RegisterModuleType(TString moduletype);
+  EQwModuleType RegisterModuleType(TString moduletype);
 
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
 
@@ -94,7 +100,7 @@ class QwMainDetector: public VQwSubsystemTracking {
   };
 
   Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
-  Int_t FindSignalIndex(const QwMainDetector::EModuleType modtype, const TString &name) const;
+  Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
 
   void GetHitList(QwHitContainer & grandHitContainer){
 
@@ -119,21 +125,32 @@ class QwMainDetector: public VQwSubsystemTracking {
 
  protected:
   static const UInt_t kMaxNumberOfModulesPerROC;
-  static const UInt_t kMaxNumberOfChannelsPerModule;
-
+  UInt_t kMaxNumberOfChannelsPerF1TDC;
   Int_t fNumberOfModules;
 
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
-  std::vector< enum EModuleType > fModuleTypes;
-  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
+  std::vector< EQwModuleType > fModuleTypes;
+  std::vector< std::vector< std::pair< EQwModuleType, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
   std::vector<QwSIS3801_Module*> fSCAs;
 
-  std::vector <Double_t> fMainDetVector;
+  // For reference time substraction
+  Int_t reftime_slotnum;
+  Int_t reftime_channum;
+  Double_t reftime;
 
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
+  Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
+    return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
+  };
+
+  Int_t tdc_slot_number;
+  Int_t tdc_chan_number;
+  Int_t tmp_last_chan;
+
+  
+
 };
 
 #endif

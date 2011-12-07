@@ -17,6 +17,7 @@ using std::string;
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwColor.h"
 
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
@@ -156,7 +157,7 @@ class QwLog : public std::ostream {
 
     /*! \brief Flush the streams
      */
-    QwLog&                      flush();
+    static std::ostream&        flush(std::ostream&);
 
   private:
 
@@ -179,8 +180,13 @@ class QwLog : public std::ostream {
     //! Flag to print function signature on warning or error
     bool fPrintFunctionSignature;
 
-    //! Flag to disable color (static)
-    static bool fUseColor;
+    //! Flag to disable color
+    bool fUseColor;
+
+    //! Flags only relevant for current line, but static for use in static function
+    static bool fFileAtNewLine;
+    static bool fScreenInColor;
+    static bool fScreenAtNewLine;
 
 };
 

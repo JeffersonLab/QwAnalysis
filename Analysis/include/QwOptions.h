@@ -41,6 +41,17 @@ inline const TString getenv_safe_TString (const char* name) {
  return TString(getenv_safe(name));
 }
 
+
+// Starting with boost::program_options 1.35.0 there is support for the semantic
+// implicit_value.  An explicit option value is optional, but if given, must be
+// strictly adjacent to the option.
+#if BOOST_VERSION >= 103500
+#define default_bool_value(b) default_value(b)->implicit_value(true)
+#else
+#define default_bool_value(b) default_value(b)
+#endif
+
+
 /**
  *  \class QwOptions
  *  \ingroup QwAnalysis
@@ -80,6 +91,13 @@ inline const TString getenv_safe_TString (const char* name) {
  * \code
  * gQwOptions.AddOptions()("bool,b", po::value<bool>()->zero_tokens(), "boolean-valued option");
  * \endcode
+ * Keep in mind, though, that this then ignores the value after the option completely,
+ * and it will not allow you to unset settings in the default configuration file.
+ * A better approach is to use the implicit_value(b) semantic that will still accept
+ * the value after the option.  However, this was only introduced in boost 1.35.0.
+ * To avoid the need to test for this, use the syntac default_bool_value(b), with b
+ * the default value.  If the flag is specified, the option will be set to true
+ * regardless of the specified default value.
  *
  * It is easiest if you define your options in a static function DefineOptions()
  * and then call that function in the QwOptionsTracking.h or QwOptionsParity.h
@@ -124,11 +142,11 @@ class QwOptions {
       SetCommandLine(argc, argv);
     };
     /// \brief Constructor with configuration file
-    QwOptions(std::string configfile) {
+    QwOptions(const std::string& configfile) {
       SetConfigFile(configfile);
     };
     /// \brief Constructor with command line arguments and configuration file
-    QwOptions(int argc, char* argv[], std::string configfile) {
+    QwOptions(int argc, char* argv[], const std::string& configfile) {
       SetCommandLine(argc, argv);
       SetConfigFile(configfile);
     };
@@ -160,6 +178,9 @@ class QwOptions {
     /// \brief Print usage information
     void Usage();
 
+    /// \brief Print version string
+    void Version();
+
     /// \brief Define the options
     static void DefineOptions(QwOptions& options);
 
@@ -167,14 +188,14 @@ class QwOptions {
     void SetCommandLine(int argc, char* argv[]);
 
     /// \brief Set a configuration file
-    void SetConfigFile(std::string configfile) {
+    void SetConfigFile(const std::string& configfile) {
       fConfigFiles.clear();
       fConfigFiles.push_back(configfile);
       fParsed = false;
     };
 
     /// \brief Add a configuration file
-    void AddConfigFile(std::string configfile) {
+    void AddConfigFile(const std::string& configfile) {
       fConfigFiles.push_back(configfile);
       fParsed = false;
     };
@@ -204,14 +225,14 @@ class QwOptions {
 
 
     /// \brief Has this key been defined
-    bool HasValue(std::string key) {
+    bool HasValue(const std::string& key) {
       if (fParsed == false) Parse();
       return (fVariablesMap.count(key) > 0);
     };
 
     /// \brief Get a templated value
     template < class T >
-    T GetValue(const std::string key) {
+    T GetValue(const std::string& key) {
       if (fParsed == false) Parse();
       if (fVariablesMap.count(key)) {
         QwVerbose << "Option " << key << ": "
@@ -224,7 +245,7 @@ class QwOptions {
     }
     /// \brief Get a list of templated values
     template < class T >
-    std::vector < T > GetValueVector(const std::string key) {
+    std::vector < T > GetValueVector(const std::string& key) {
       std::vector<T> list;
       if (fParsed == false) Parse();
       if (fVariablesMap.count(key)) {
@@ -234,17 +255,20 @@ class QwOptions {
     }
 
     /// \brief Get a pair of integer values
-    std::pair<int,int> GetIntValuePair(string key);
+    std::pair<int,int> GetIntValuePair(const std::string& key);
 
     /// \brief Get the first of a pair of integer values
-    int GetIntValuePairFirst(string key) {
+    int GetIntValuePairFirst(const std::string& key) {
       return GetIntValuePair(key).first;
     };
 
     /// \brief Get the last of a pair of integer values
-    int GetIntValuePairLast(string key) {
+    int GetIntValuePairLast(const std::string& key) {
       return GetIntValuePair(key).second;
     };
+
+    int GetArgc()    {return (int) fArgc;};
+    char** GetArgv() {return (char**) fArgv;};
 
   private:
 
@@ -259,9 +283,6 @@ class QwOptions {
 
     /// \brief Parse the environment variables
     void ParseEnvironment();
-
-    /// \brief Parse a range of integers as #:# where either can be missing
-    std::pair<int, int> ParseIntRange(string range);
 
     /// \brief Configuration file
     std::vector<std::string> fConfigFiles;

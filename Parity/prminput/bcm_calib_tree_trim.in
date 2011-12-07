@@ -1,0 +1,46 @@
+# Tree trim file for Hall C BCM Calibration
+# Tuesday, October 19 15:14:31 EDT 2010, jhlee
+#
+# hw_sum      : activated for hw_sum_raw, if not noname_0.. one can see
+# hw_sum_raw  :
+# num_samples :
+# Device_Error_code
+
+[HallCBeamLine]
+  <QwBCM>
+	hw_sum
+	hw_sum_raw
+#	block
+#	block_raw
+	num_samples
+	Device_Error_Code
+#	sequence_number
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+# Mps Tree  
+# No. of branches  289
+sca_unser
+sca_4mhz
+sca_bcm1
+sca_bcm2
+sca_bcm5
+sca_bcm6
+sca_bcm17
+qwk_bcm1
+qwk_bcm2
+qwk_bcm5
+qwk_bcm6
+qwk_bcm7
+qwk_bcm8
+mps_counter
+pattern_number
+pat_counter
+pat_phase
+pattern_phase
+#event_number
+
+## Hel Tree  
+## No. of branches  383

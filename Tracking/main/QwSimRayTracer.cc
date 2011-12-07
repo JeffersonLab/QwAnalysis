@@ -16,9 +16,6 @@
 // Qweak event
 #include "QwEvent.h"
 
-// Deprecated
-#include "Det.h"
-
 
 /**
  * Method to print vectors conveniently
@@ -54,30 +51,12 @@ int main (int argc, char* argv[])
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH") + "/setupfiles");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
 
-  /// For the tracking analysis we create the QwSubsystemArrayTracking list
-  /// which contains the VQwSubsystemTracking objects.
-  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
+  ///  Load the tracking detectors from file
+  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking(gQwOptions);
+  detectors->ProcessOptions(gQwOptions);
 
-  // Region 1 GEM
-  detectors->push_back(new QwGasElectronMultiplier("R1"));
-  detectors->GetSubsystemByName("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R1"))->LoadGeometryDefinition("qweak_new.geo");
-
-  // Region 2 HDC
-  detectors->push_back(new QwDriftChamberHDC("R2"));
-  detectors->GetSubsystemByName("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R2"))->LoadGeometryDefinition("qweak_new.geo");
-
-  // Region 3 VDC
-  detectors->push_back(new QwDriftChamberVDC("R3"));
-  detectors->GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R3"))->LoadGeometryDefinition("qweak_new.geo");
-
-  // Get vector with detector info (by region, plane number)
-  std::vector< std::vector< QwDetectorInfo > > detector_info;
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R2"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R3"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R1"))->GetDetectorInfo(detector_info);
+  // Get detector geometry
+  QwGeometry geometry = detectors->GetGeometry();
 
   /// Create a track filter
   QwBridgingTrackFilter* trackfilter = new QwBridgingTrackFilter();
@@ -96,19 +75,9 @@ int main (int argc, char* argv[])
 
   /// Create a ray tracer bridging method
   QwRayTracer* raytracer = new QwRayTracer();
-  // Determine magnetic field file from environment variables
-  std::string fieldmap = "";
-  if (getenv("QW_FIELDMAP"))
-    fieldmap = std::string(getenv("QW_FIELDMAP")) + "/peiqing_2007.dat";
-  else
-    QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
-  // Load magnetic field map
-  if (! QwRayTracer::LoadMagneticFieldMap(fieldmap))
-    QwError << "Could not load magnetic field map!" << QwLog::endl;
-
 
   /// Load the simulated event file
-  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(detector_info);
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);
   treebuffer->ProcessOptions(gQwOptions);
 
   ///  Start loop over all runs
@@ -130,8 +99,8 @@ int main (int argc, char* argv[])
 
       /// Get the generated event
       event = treebuffer->GetEvent();
-      event->GetEventHeader()->SetRunNumber(treebuffer->GetRunNumber());
-      event->GetEventHeader()->SetEventNumber(treebuffer->GetEventNumber());
+      QwEventHeader header(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
+      event->SetEventHeader(header);
 
       /// Get the partial tracks in the front and back region
       std::vector<QwPartialTrack*> tracks_r2 = treebuffer->GetPartialTracks(kRegionID2);

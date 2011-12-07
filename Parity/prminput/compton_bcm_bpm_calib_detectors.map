@@ -1,0 +1,16 @@
+###########################################################
+## Compton BCM and BPM Calibration Detectors
+###########################################################
+
+[QwBeamLine]
+ name = ComptonBeamLine
+ map = compton_beamline_channels.map
+ geom = compton_beamline_geometry.map
+ param = compton_bcm_bpm_calib_pedestal.map
+ eventcut = compton_beamline_eventcuts.in
+
+[QwHelicity]
+ name = Helicity
+ mask = 0x0001
+ map  = compton_helicity.map
+

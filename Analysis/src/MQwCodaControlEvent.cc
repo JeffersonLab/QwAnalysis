@@ -1,11 +1,12 @@
 #include "MQwCodaControlEvent.h"
 
+#include "QwLog.h"
 
 MQwCodaControlEvent::MQwCodaControlEvent(){
   ResetControlParameters();
-};
+}
 
-MQwCodaControlEvent::~MQwCodaControlEvent() { };
+MQwCodaControlEvent::~MQwCodaControlEvent() { }
 
 void MQwCodaControlEvent::ResetControlParameters()
 {
@@ -25,7 +26,7 @@ void MQwCodaControlEvent::ResetControlParameters()
   fPrestartDatime.Set(UInt_t(0));
   fStartDatime.Set(UInt_t(0));
   fEndDatime.Set(UInt_t(0));
-};
+}
 
 void MQwCodaControlEvent::ProcessControlEvent(UInt_t evtype, UInt_t* buffer){
   UInt_t local_time;
@@ -50,14 +51,14 @@ void MQwCodaControlEvent::ProcessControlEvent(UInt_t evtype, UInt_t* buffer){
     //  This isn't a control event.
     //  Do nothing.
   }
-};
+}
 
 
 void MQwCodaControlEvent::ProcessSync(UInt_t local_time, UInt_t statuscode)
 {
   fFoundControlEvents = kTRUE;
   // To be implemented...
-};
+}
 
 
 void MQwCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnumber,
@@ -71,7 +72,7 @@ void MQwCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnum
   fPrestartRunNumber    = local_runnumber;
   fRunType      = local_runtype;
   fPrestartDatime.Set(fPrestartTime);
-};
+}
 
 void MQwCodaControlEvent::ProcessPause(UInt_t local_time, UInt_t evt_count)
 {
@@ -80,7 +81,7 @@ void MQwCodaControlEvent::ProcessPause(UInt_t local_time, UInt_t evt_count)
   fNumberPause++;
   fPauseEventCount.push_back(evt_count);
   fPauseTime.push_back(local_time);
-};
+}
 
 void MQwCodaControlEvent::ProcessGo(UInt_t local_time, UInt_t evt_count)
 {
@@ -93,7 +94,7 @@ void MQwCodaControlEvent::ProcessGo(UInt_t local_time, UInt_t evt_count)
     fStartTime = fGoTime[0];
     fStartDatime.Set(fStartTime);
   }
-};
+}
 
 void MQwCodaControlEvent::ProcessEnd(UInt_t local_time, UInt_t evt_count)
 {
@@ -102,43 +103,43 @@ void MQwCodaControlEvent::ProcessEnd(UInt_t local_time, UInt_t evt_count)
   fEndTime       = local_time;
   fEndEventCount = evt_count;
   fEndDatime.Set(fEndTime);
-};
+}
 
 
 UInt_t MQwCodaControlEvent::GetGoTime(int index)
 {
   if (index>=0 && index<(Int_t)fNumberGo) return fGoTime[index];
   return 0;
-};
+}
 
 UInt_t MQwCodaControlEvent::GetGoEventCount(int index)
 {
   if (index>=0 && index<(Int_t)fNumberGo) return fGoEventCount[index];
   return 0;
-};
+}
 
 UInt_t MQwCodaControlEvent::GetPauseTime(int index)
 {
   if (index>=0 && index<(Int_t)fNumberPause) return fPauseTime[index];
   return 0;
-};
+}
 
 UInt_t MQwCodaControlEvent::GetPauseEventCount(int index)
 {
   if (index>=0 && index<(Int_t)fNumberPause) return fPauseEventCount[index];
   return 0;
-};
+}
 
 
 TString MQwCodaControlEvent::GetStartSQLTime()
 {
   return fStartDatime.AsSQLString();
-};
+}
 
 TString MQwCodaControlEvent::GetEndSQLTime()
 {
   return fEndDatime.AsSQLString();
-};
+}
 
 
 void MQwCodaControlEvent::ReportRunSummary()
@@ -147,33 +148,33 @@ void MQwCodaControlEvent::ReportRunSummary()
     //  At least one control event has been found.
     //  Report the control event data we did find.
     Int_t i;
-    std::cout << "Run Number:         " << fPrestartRunNumber << std::endl;
-    std::cout << "Run Type:           " << fRunType << std::endl;
-    std::cout << "PreStart Time:      " << fPrestartTime << std::endl;
-    std::cout << "Start Time:         " << fStartTime << std::endl;
-    std::cout << "End Time:           " << fEndTime << std::endl;
-    std::cout << "End Event Counter:  " << fEndEventCount << std::endl;
+    QwMessage << "Run Number:         " << fPrestartRunNumber << QwLog::endl;
+    QwMessage << "Run Type:           " << fRunType << QwLog::endl;
+    QwMessage << "PreStart Time:      " << fPrestartTime << QwLog::endl;
+    QwMessage << "Start Time:         " << fStartTime << QwLog::endl;
+    QwMessage << "End Time:           " << fEndTime << QwLog::endl;
+    QwMessage << "End Event Counter:  " << fEndEventCount << QwLog::endl;
     if (fEndTime>0 && fStartTime>0)
-      std::cout << "Run Duration (sec): " << fEndTime-fStartTime << std::endl;
+      QwMessage << "Run Duration (sec): " << fEndTime-fStartTime << QwLog::endl;
     else
-      std::cout << "Run Duration (sec): " << "n/a" << std::endl;
-    std::cout << "SQL-Formatted Start Time: " << GetStartSQLTime()
-	      << std::endl; 
-    std::cout << "SQL-Formatted End Time:   " << GetEndSQLTime()
-	      << std::endl; 
-    std::cout << "Number of Pauses during this run: " << fNumberPause 
-	      << std::endl;
+      QwMessage << "Run Duration (sec): " << "n/a" << QwLog::endl;
+    QwMessage << "SQL-Formatted Start Time: " << GetStartSQLTime()
+	      << QwLog::endl; 
+    QwMessage << "SQL-Formatted End Time:   " << GetEndSQLTime()
+	      << QwLog::endl; 
+    QwMessage << "Number of Pauses during this run: " << fNumberPause 
+	      << QwLog::endl;
     for (i=0; i<(Int_t)fNumberPause; i++) {
-      std::cout << "Pause Number: " << i
+      QwMessage << "Pause Number: " << i
 		<<"; Events so far: " << fPauseEventCount[i] 
 		<< "; Runtime since start (sec): " 
 		<< fPauseTime[i]-fStartTime;
       if ((Int_t)fNumberGo > i+1){
-	std::cout << "; Duration of Pause (sec): " 
+	QwMessage << "; Duration of Pause (sec): " 
 		  << fGoTime[i+1]-fPauseTime[i]
-		  << std::endl;
+		  << QwLog::endl;
       }else {
-	std::cout << std::endl;
+	QwMessage << QwLog::endl;
       }
     }
   }

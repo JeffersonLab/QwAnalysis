@@ -1,0 +1,147 @@
+# Tree trim file of run  596
+
+#[HallCBeamLine]
+#  <QwBCM>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+#  <QwBPMStripline>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+#  <QwBPMCavity>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+#  <QwCombinedBPM>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+#  <QwCombinedBCM>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+#   <QwEnergyCalculator>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+[Main Detector]
+   <QwIntegrationPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+ #  <QwCombinedPMT>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+[Lumi Detector]
+  <QwIntegrationPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+#[BeamMod]
+#   <QwBeamMod>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+
+# Mps Tree  
+# No. of branches  289
+
+md1neg
+md2neg
+md3neg
+md4neg
+md5neg
+md6neg
+md7neg
+md8neg
+md1pos
+md2pos
+md3pos
+md4pos
+md5pos
+md6pos
+md7pos
+md8pos
+pmtled
+pmtonl
+pmtltg
+md9neg
+md9pos
+isourc
+preamp
+cagesr
+
+qwk_uslumi1neg
+qwk_uslumi1pos
+qwk_uslumi3neg
+qwk_uslumi3pos
+qwk_uslumi5neg
+qwk_uslumi5pos
+qwk_uslumi7neg
+qwk_uslumi7pos
+qwk_dslumi1
+qwk_dslumi2
+qwk_dslumi3
+qwk_dslumi4
+qwk_dslumi5
+qwk_dslumi6
+qwk_dslumi7
+qwk_dslumi8
+mps_counter

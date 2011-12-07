@@ -175,6 +175,11 @@ enum CommandIdentifiers {
 
   M_FILE_OPEN,
   M_ROOT_FILE_OPEN,
+  M_ROOT_FILE_EVENT_OPEN,
+  M_RUN_FILE_OPEN,
+  M_RUN_FILE_EVENT_OPEN,
+  M_EVENT_MODE,
+
   M_DBASE_OPEN,
   M_FILE_SAVE,
   M_FILE_SAVEAS,
@@ -190,13 +195,17 @@ enum CommandIdentifiers {
   M_FILE_ASYMSTAT,
   M_DRAW_ARRAY,
   M_OPEN_DATAWINDOW,
+  M_TABS_SHOWALL,
 
   M_VIEW_LOG,
   M_VIEW_BROWSER,
-  M_TBIN_SELECT,
+  M_SEGMENT_SELECT,
+  M_ADD_SEGMENT,
+  M_PREFIX_SELECT,
   M_TARGET_SELECT,
   M_RUN_SELECT,
   M_LOG_ENTRY,
+  M_HC_ENTRY_SET,
   
   M_HELP_USER,
   M_HELP_CODE,
@@ -217,6 +226,7 @@ enum ENDataType {
   DDT_BCM,
   DDT_BPM,
   DDT_HEL,
+  DDT_MAIN,
 };
 
 
@@ -229,6 +239,7 @@ struct ClineArgs {
 
   int            bckgr;
   int            mute;
+  int            autoupdate;
   int            realtime;
   int            checkmode;
   char           file[1000];

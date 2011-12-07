@@ -57,7 +57,7 @@ class QwTrackingTreeMatch {
     /// \brief Default constructor
     QwTrackingTreeMatch(): fDebug(0) { };
     /// \brief Destructor
-    ~QwTrackingTreeMatch() { };
+    virtual ~QwTrackingTreeMatch() { };
 
     /// Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
@@ -69,12 +69,6 @@ class QwTrackingTreeMatch {
 	double *phi,
 	double *bending,
 	double *ZVertex );
-
-    QwTrack* TgPartMatch (
-	QwPartialTrack* front,
-	QwPartialTrack* back,
-	QwTrack* tracklist,
-	EQwDetectorPackage package);
 
     //! Match the tree lines in two planes in region 3
     QwTrackingTreeLine* MatchRegion3 (

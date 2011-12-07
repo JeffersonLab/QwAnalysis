@@ -1,21 +1,28 @@
 #ifndef QWDETECTORINFO_H
 #define QWDETECTORINFO_H
 
+// System headers
 #include <cmath>
-#include <iostream>
 #include <vector>
+#include <iostream>
+#include <algorithm>
 
-#include <TString.h>
-#include <TObject.h>
+// ROOT headers
+#include "TString.h"
+#include "TObject.h"
 #include "TMath.h"
+#include "TVector3.h"
 
+// Qweak headers
 #include "QwTypes.h"
+#include "QwLog.h"
 
-//#define PI 3.141592653589793
+// Forward declarations
+class QwTrackingTreeRegion;
 
 ///
 /// \ingroup QwTracking
-class QwDetectorInfo {
+class QwDetectorInfo: public TObject {
   ///
   ///  Tracking detector information class.  This will be used in an array
   ///  indexed by the package, plane, and wire,
@@ -23,155 +30,202 @@ class QwDetectorInfo {
 
   public:
 
-    void SetDetectorInfo(TString sdType, Double_t Zpos1, Double_t rot, Double_t  sp_res, Double_t  track_res, Double_t slope_match, TString spackage, Int_t region, TString planeDir, Double_t Det_originX, Double_t Det_originY, Double_t ActivewidthX, Double_t ActivewidthY, Double_t ActivewidthZ, Double_t WireSpace, Double_t FirstWire, Double_t W_rcos, Double_t W_rsin, Int_t totalwires, Int_t detId);
+    /// Default constructor
+    QwDetectorInfo(): fIsActive(true),fTree(0) { };
+
+  void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
 
     // Get/set spatial resolution
-    const double GetSpatialResolution() const { return fSpatialResolution; };
+    double GetSpatialResolution() const { return fSpatialResolution; };
     void SetSpatialResolution(const double res) { fSpatialResolution = res; };
 
     // Get/set track resolution
-    const double GetTrackResolution() const { return fTrackResolution; };
+    double GetTrackResolution() const { return fTrackResolution; };
     void SetTrackResolution(const double res) { fTrackResolution = res; };
 
     // Get/set slope matching
-    const double GetSlopeMatching() const { return fSlopeMatching; };
+    double GetSlopeMatching() const { return fSlopeMatching; };
     void SetSlopeMatching(const double slope) { fSlopeMatching = slope; };
 
     // Get/set x and y position
-    const double GetXPosition() const { return fDetectorOriginX; };
-    const double GetYPosition() const { return fDetectorOriginY; };
+    const TVector3 GetPosition() const;
+    double GetXPosition() const { return fDetectorOriginX; };
+    double GetYPosition() const { return fDetectorOriginY; };
+    double GetZPosition() const { return fDetectorOriginZ; };
+    void SetPosition(const TVector3& position);
+    void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYPosition(const double x, const double y) {
       fDetectorOriginX = x;
       fDetectorOriginY = y;
     };
-    // Get/set z position
-    const double GetZPosition() const { return fDetectorOriginZ; };
-    void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYZPosition(const double x, const double y, const double z) {
       SetXYPosition(x,y);
       SetZPosition(z);
     };
 
+    double GetPlaneOffset(){
+      return fPlaneOffset;
+    }
+    
+    void SetPlaneOffset (double x){
+      fPlaneOffset=x;
+    }
+
     // Get/set active flag
-    const bool IsActive() const { return fIsActive; };
+    bool IsActive() const { return fIsActive; };
+    bool IsInactive() const { return !IsActive(); };
     void SetActive(const bool active = true) { fIsActive = active; };
-    void SetNotActive(const bool active = false) { fIsActive = active; };
 
     // Get/set x and y active width
-    const double GetActiveWidthX() const { return fActiveWidthX; };
-    const double GetActiveWidthY() const { return fActiveWidthY; };
+    double GetActiveWidthX() const { return fActiveWidthX; };
+    double GetActiveWidthY() const { return fActiveWidthY; };
     void SetActiveWidthXY(const double x, const double y) {
       fActiveWidthX = x;
       fActiveWidthY = y;
     };
     // Get/set z active width
-    const double GetActiveWidthZ() const { return fActiveWidthZ; };
+    double GetActiveWidthZ() const { return fActiveWidthZ; };
     void SetActiveWidthZ(const double z) { fActiveWidthZ = z; };
 
+    bool InAcceptance(const double x, const double y) const {
+      if (fabs(x - fDetectorOriginX) < fActiveWidthX / 2.0 &&
+          fabs(y - fDetectorOriginY) < fActiveWidthY / 2.0)
+        return true;
+      else return false;
+    };
+
     // Get/set element direction
-    const EQwDirectionID GetElementDirection() const { return fDirection; };
-    void SetElementSpacing(const EQwDirectionID dir) { fDirection = dir; };
+    EQwDirectionID GetElementDirection() const { return fDirection; };
+    void SetElementDirection(const EQwDirectionID dir) { fDirection = dir; };
 
     // Get/set element spacing
-    const double GetElementSpacing() const { return fElementSpacing; };
+    double GetElementSpacing() const { return fElementSpacing; };
     void SetElementSpacing(const double spacing) { fElementSpacing = spacing; };
 
     // Get/set element offset
-    const double GetElementOffset() const { return fElementOffset; };
+    double GetElementOffset() const { return fElementOffset; };
     void SetElementOffset(const double offset) { fElementOffset = offset; };
 
+    // Get element coordinate
+    double GetElementCoordinate(const int element) const;
+
     // Get/set element orientation
-    const double GetElementAngle() const { return fElementAngle; };
-    const double GetElementAngleCos() const { return fElementAngleCos; };
-    const double GetElementAngleSin() const { return fElementAngleSin; };
-    void SetElementAngle(const double angle_degree) {
-      fElementAngle = angle_degree; // in degrees
-      fElementAngleCos = std::cos(angle_degree * TMath::DegToRad());
-      fElementAngleSin = std::sin(angle_degree * TMath::DegToRad());
+    double GetElementAngle() const { return fElementAngle; };
+    double GetElementAngleInRad() const { return fElementAngle; };
+    double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
+    double GetElementAngleCos() const { return fElementAngleCos; };
+    double GetElementAngleSin() const { return fElementAngleSin; };
+
+    void SetElementAngle(const double angle) {
+      fElementAngle = angle;
+      fElementAngleCos = std::cos(fElementAngle);
+      fElementAngleSin = std::sin(fElementAngle);
     };
     void SetElementAngle(const double cosangle, const double sinangle) {
       fElementAngleCos = cosangle;
       fElementAngleSin = sinangle;
-      fElementAngle = std::atan2 (sinangle, cosangle) * TMath::RadToDeg();
+      fElementAngle = std::atan2 (sinangle, cosangle);
     };
 
     // Get/set number of elements
-    const int GetNumberOfElements() const { return fNumberOfElements; };
+    int GetNumberOfElements() const { return fNumberOfElements; };
     void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
 
     // Get/set detector rotation (in degrees)
-    const double GetDetectorRotation() const { return fDetectorRotation; };
-    const double GetDetectorRotationInDeg() const { return fDetectorRotation; };
-    const double GetDetectorRotationInRad() const { return fDetectorRotation * TMath::DegToRad();};
-    const double GetDetectorRotationCos() const { return fDetectorRotationCos; };
-    const double GetDetectorRotationSin() const { return fDetectorRotationSin; };
-    const double GetCosDetectorRotation() const { return fDetectorRotationCos; }; // deprecated
-    const double GetSinDetectorRotation() const { return fDetectorRotationSin; }; // deprecated
-    void SetDetectorRotation(const double rotation_degree) {
-      fDetectorRotation = rotation_degree; // in degrees
-      fDetectorRotationCos = std::cos(rotation_degree * TMath::DegToRad());
-      fDetectorRotationSin = std::sin(rotation_degree * TMath::DegToRad());
+    double GetDetectorRotation() const { return fDetectorRotation; };
+    double GetDetectorRotationInRad() const { return fDetectorRotation; };
+    double GetDetectorRotationInDeg() const { return fDetectorRotation * TMath::RadToDeg(); };
+    double GetDetectorRotationCos() const { return fDetectorRotationCos; };
+    double GetDetectorRotationSin() const { return fDetectorRotationSin; };
+    void SetDetectorRotation(const double rotation) {
+      fDetectorRotation = rotation; // in degrees
+      fDetectorRotationCos = std::cos(fDetectorRotation);
+      fDetectorRotationSin = std::sin(fDetectorRotation);
+    };
+    // Get/set detector tilt (in degrees)
+    double GetDetectorTilt() const { return fDetectorTilt; };
+    double GetDetectorTiltInRad() const { return fDetectorTilt; };
+    double GetDetectorTiltInDeg() const { return fDetectorTilt * TMath::RadToDeg(); };
+    double GetDetectorTiltCos() const { return fDetectorTiltCos; };
+    double GetDetectorTiltSin() const { return fDetectorTiltSin; };
+    void SetDetectorTilt(const double tilting) {
+      fDetectorTilt = tilting; // in degrees
+      fDetectorTiltCos = std::cos(fDetectorTilt);
+      fDetectorTiltSin = std::sin(fDetectorTilt);
     };
 
+    // Get/set tracking search tree
+    QwTrackingTreeRegion* GetTrackingSearchTree() { return fTree; };
+    const QwTrackingTreeRegion* GetTrackingSearchTree() const { return fTree; };
+    void SetTrackingSearchTree(QwTrackingTreeRegion* tree) { fTree = tree; };
+
     // Get unique detector ID
-    const int GetID() const { return fDetectorID; };
+    int GetID() const { return fDetectorID; };
 
     // Output stream operator
-    friend ostream& operator<< (ostream& stream, const QwDetectorInfo& det);
+    friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);
 
     // Detector information
     EQwDetectorType fType;
     EQwDetectorPackage fPackage;
     EQwRegionID fRegion;
     EQwDirectionID fDirection;
-    Int_t fPlane;
+    int fPlane;
 
   private:
 
     // Identification info for readout channels. Filled at load time.
-    Int_t fCrate; //ROC number
-    Int_t fModule; //F1TDC slot number or module index
-    Int_t fChannel; //channel number
+    int fCrate; //ROC number
+    int fModule; //F1TDC slot number or module index
+    int fChannel; //channel number
 
     // Geometry information
-    Double_t fDetectorOriginX;	///< Detector position in x
-    Double_t fDetectorOriginY;	///< Detector position in y
-    Double_t fDetectorOriginZ;	///< Detector position in z
-    Double_t fDetectorRotation;	///< Orientation of the detector around the
+    double fDetectorOriginX;	///< Detector position in x
+    double fDetectorOriginY;	///< Detector position in y
+    double fDetectorOriginZ;	///< Detector position in z
+    double fDetectorRotation;	///< Orientation of the detector around the
       /// Y axis with respect to the X axis.  Region 2 has zero degrees here.
       /// Region 3 is rotated around the Y axis over approximately 65 degrees.
       /// \todo This is an inconsistent definition of coordinate frames.
-    Double_t fDetectorRotationCos;	///< Cos of detector orientation
-    Double_t fDetectorRotationSin;	///< Sin of detector orientation
+    double fDetectorRotationCos;	///< Cos of detector orientation
+    double fDetectorRotationSin;	///< Sin of detector orientation
+    double fDetectorTilt;               ///Tilt in XY of Detector
+    double fDetectorTiltCos;    	///< Cos of detector tilt
+    double fDetectorTiltSin;	        ///< Sin of detector tilt
 
-    Bool_t fIsActive;		///< Is this detector activated in tracking
 
-    Double_t fSpatialResolution;///< Spatial resolution (how accurate is the timing info)
-    Double_t fTrackResolution;	///< Track resolution (how accurate are the tracks through the hits)
-    Double_t fSlopeMatching;	///< Slope matching resolution (how accurate do the tracks line up)
+    bool   fIsActive;		///< Is this detector activated in tracking
 
-    Double_t fActiveWidthX;	///< Active volume in x
-    Double_t fActiveWidthY;	///< Active volume in y
-    Double_t fActiveWidthZ;	///< Active volume in z
+    double fSpatialResolution;  ///< Spatial resolution (how accurate is the timing info)
+    double fTrackResolution;	///< Track resolution (how accurate are the tracks through the hits)
+    double fSlopeMatching;	///< Slope matching resolution (how accurate do the tracks line up)
 
-    Double_t fElementSpacing;	///< Perpendicular distance between the elements
-    Double_t fElementAngle;	///< Element orientation with respect to the X axis
-    Double_t fElementAngleCos;	///< Cos of the element orientation
-    Double_t fElementAngleSin;	///< Sin of the element orientation
-    Double_t fElementOffset;	///< Position of the first element (it is not
+    double fActiveWidthX;	///< Active volume in x
+    double fActiveWidthY;	///< Active volume in y
+    double fActiveWidthZ;	///< Active volume in z
+
+    double fElementSpacing;	///< Perpendicular distance between the elements
+    double fElementAngle;	///< Element orientation with respect to the X axis
+    double fElementAngleCos;	///< Cos of the element orientation
+    double fElementAngleSin;	///< Sin of the element orientation
+    double fElementOffset;	///< Position of the first element (it is not
                                 ///  exactly clear to me what that exactly means)
-    Int_t fNumberOfElements;	///< Total number of elements in this detector
+    double fPlaneOffset;        /// perpendicular distance from the first plane in the same direction
+    int fNumberOfElements;	///< Total number of elements in this detector
+    
+
+    QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 
   public:
     // Unique detector identifier
-    Int_t fDetectorID;
+    int fDetectorID;
 
     // Reference channel index in list of reference channels (most prob. filled at load time)
-    Int_t fReferenceChannelIndex;
+    int fReferenceChannelIndex;
 
 
     // List of active hits by absolute hit number from QwHit array. filled for each event; cleared after each event.
-    std::vector<Int_t> fHitID;
+    std::vector<int> fHitID;
 
 
     void SetElectronics(int crt,int mdl,int chn) {
@@ -181,9 +235,9 @@ class QwDetectorInfo {
       fReferenceChannelIndex = 1;
     }
 
-    Bool_t IsHit() { return (!fHitID.empty()); };
+    bool IsHit() { return (!fHitID.empty()); };
 
-    Int_t GetNumHits() { return fHitID.size(); };
+    int GetNumHits() { return fHitID.size(); };
 
     void ClearHits() {
       if (!fHitID.empty())
@@ -194,14 +248,22 @@ class QwDetectorInfo {
       fHitID.push_back(time);
     }
 
-
-  private:
+  ClassDef(QwDetectorInfo,0);
 
 };
 
-// Detectors could be sorted by region, package, z position
+// Detectors could be sorted by package, region, z position
 inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
-  return (lhs.GetZPosition() < rhs.GetZPosition());
-};
+  if (lhs.fPackage < rhs.fPackage) return true;
+  else if (lhs.fPackage == rhs.fPackage) {
+    if (lhs.fRegion < rhs.fRegion) return true;
+    else if (lhs.fRegion == rhs.fRegion) {
+      if (lhs.GetZPosition() < rhs.GetZPosition()) return true;
+      else if (lhs.GetZPosition() == rhs.GetZPosition()) {
+        return false;
+      } else return false;
+    } else return false;
+  } else return false;
+}
 
 #endif

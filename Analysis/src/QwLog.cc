@@ -18,12 +18,10 @@
 // Create the static logger object (with streams to screen and file)
 QwLog gQwLog;
 
-// Reset the end-of-line flags
-static Bool_t QwLogScreenAtNewLine = kTRUE;
-static Bool_t QwLogFileAtNewLine = kTRUE;
-
-// Reset the color flag
-bool QwLog::fUseColor = true;
+// Set the static flags
+bool QwLog::fScreenAtNewLine = true;
+bool QwLog::fScreenInColor = false;
+bool QwLog::fFileAtNewLine = true;
 
 // Log file open modes
 const std::ios_base::openmode QwLog::kTruncate = std::ios::trunc;
@@ -42,13 +40,11 @@ QwLog::QwLog()
 
   fLogLevel = kMessage;
 
+  fUseColor = true;
+
   fPrintFunctionName = false;
   fPrintFunctionSignature = false;
-
-  QwLogScreenAtNewLine = kTRUE;
-  QwLogFileAtNewLine = kTRUE;
 }
-
 
 /*! The destructor destroys the log file, if it was present
  */
@@ -88,10 +84,10 @@ void QwLog::DefineOptions(QwOptions* options)
                 po::value<int>()->default_value(kMessage),
                 "log level for screen output");
   options->AddOptions("Logging options")("QwLog.print-function",
-                po::value<bool>()->default_value(false)->zero_tokens(),
+                po::value<bool>()->default_bool_value(false),
                 "print function on error or warning");
   options->AddOptions("Logging options")("QwLog.print-signature",
-                po::value<bool>()->default_value(false)->zero_tokens(),
+                po::value<bool>()->default_bool_value(false),
                 "print signature on error or warning");
 }
 
@@ -171,12 +167,14 @@ QwLog& QwLog::operator()(
   fLogLevel = level;
 
   if (fScreen && fLogLevel <= fScreenThreshold) {
-    if (QwLogScreenAtNewLine) {
+    if (fScreenAtNewLine) {
       // Put something at the beginning of a new line
       switch (level) {
       case kError:
-        if (fUseColor)
+        if (fUseColor) {
           *(fScreen) << QwColor(Qw::kRed);
+          fScreenInColor = true;
+        }
         if (fPrintFunctionSignature)
           *(fScreen) << "Error (in " << func_sig << "): ";
         else if (fPrintFunctionName)
@@ -185,26 +183,31 @@ QwLog& QwLog::operator()(
           *(fScreen) << "Error: ";
         break;
       case kWarning:
-        if (fUseColor)
+        if (fUseColor) {
           *(fScreen) << QwColor(Qw::kRed);
+          fScreenInColor = true;
+        }
         if (fPrintFunctionSignature)
           *(fScreen) << "Warning (in " << func_sig << "): ";
         else if (fPrintFunctionName)
           *(fScreen) << "Warning (in " << func_name << "): ";
         else
           *(fScreen) << "Warning: ";
-        if (fUseColor)
+        if (fUseColor) {
           *(fScreen) << QwColor(Qw::kNormal);
+          fScreenInColor = false;
+        }
         break;
       default:
+        fScreenInColor = false;
         break;
       }
     }
-    QwLogScreenAtNewLine = kFALSE;
+    fScreenAtNewLine = false;
   }
 
   if (fFile && fLogLevel <= fFileThreshold) {
-    if (QwLogFileAtNewLine) {
+    if (fFileAtNewLine) {
       *(fFile) << GetTime();
       switch (level) {
       case kError:   *(fFile) << " EE"; break;
@@ -215,7 +218,7 @@ QwLog& QwLog::operator()(
       default: *(fFile) << "   "; break;
       }
       *(fFile) << " - ";
-      QwLogFileAtNewLine = kFALSE;
+      fFileAtNewLine = false;
     }
   }
 
@@ -267,15 +270,16 @@ QwLog& QwLog::operator<<(std::ostream& (*manip) (std::ostream&))
 std::ostream& QwLog::endl(std::ostream& strm)
 {
   if (gQwLog.fScreen && gQwLog.fLogLevel <= gQwLog.fScreenThreshold) {
-    if (fUseColor)
+    if (fScreenInColor)
       *(gQwLog.fScreen) << QwColor(Qw::kNormal) << std::endl;
     else
       *(gQwLog.fScreen) << std::endl;
-    QwLogScreenAtNewLine = kTRUE;
+    fScreenAtNewLine = true;
+    fScreenInColor = false;
   }
   if (gQwLog.fFile && gQwLog.fLogLevel <= gQwLog.fFileThreshold) {
     *(gQwLog.fFile) << std::endl;
-    QwLogFileAtNewLine = kTRUE;
+    fFileAtNewLine = true;
   }
 
   return strm;
@@ -283,15 +287,15 @@ std::ostream& QwLog::endl(std::ostream& strm)
 
 /*! Flush the streams
  */
-QwLog& QwLog::flush()
+std::ostream& QwLog::flush(std::ostream& strm)
 {
-  if (fScreen) {
-    *(fScreen) << std::flush;
+  if (gQwLog.fScreen) {
+    *(gQwLog.fScreen) << std::flush;
   }
-  if (fFile) {
-    *(fFile) << std::flush;
+  if (gQwLog.fFile) {
+    *(gQwLog.fFile) << std::flush;
   }
-  return *this;
+  return strm;
 }
 
 /*! Get the local time

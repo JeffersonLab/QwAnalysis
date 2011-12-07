@@ -31,7 +31,7 @@
    This is Gericke's original code for the main detector.
    Modified by Buddhini Waidyawansa to display the hall c Beamline data.
    Modified by Wouter Deconinck to display track finding quality
-   Modified by David Zou to display additional track finding quality
+   Modified by David Zou to display additional track finding qualities
  */
 //=============================================================================
 
@@ -80,6 +80,17 @@
   TGTextButton        *dBtnpResidual;
   TGTextButton        *dBtnpOffset;
   TGTextButton        *dBtnpSlope;
+  TGTextButton        *dBtnPackage;
+// objects needed for drop down menu
+  TGVerticalFrame        *dBigFrame;
+  TGVerticalFrame        *dTabFrameVert;
+  TGMenuBar              *dMenuBar;
+  TGPopupMenu            *dMenuData;
+  TGPopupMenu            *dMenuPlot1;
+  TGPopupMenu            *dMenuPlot2;
+  TGLayoutHints          *dMenuBarLayout; 
+  TGLayoutHints          *dMenuBarItemLayout;
+  TRootEmbeddedCanvas    *dCanvasVert;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -110,6 +121,21 @@
   void PlotpResidual();
   void PlotpOffset();
   void PlotpSlope();
+  void PlotLinear();
+  void PlotLog();
+  void PlotTLSlopeX();
+  void PlotTLSlopeU();
+  void PlotTLSlopeV();
+  void PlotTLChi2X();
+  void PlotTLChi2U();
+  void PlotTLChi2V();
+  void PlotTLOffsetX();
+  void PlotTLOffsetU();
+  void PlotTLOffsetV();
+  void PlotTLResidualX();
+  void PlotTLResidualU();
+  void PlotTLResidualV();
+  void PlotPTPackage();
 
   //!This function plots histograms of the data in the current file, in the main canvas.
   //!

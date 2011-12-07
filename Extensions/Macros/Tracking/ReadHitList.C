@@ -1,7 +1,7 @@
 {
   // Load the tree
   TFile file("hitlist.root");
-  TTree* tree = (TTree*) file.Get("tree");
+  TTree* tree = (TTree*) file.Get("event_tree");
   QwHitRootContainer* rootlist = 0;
   tree->SetBranchAddress("hits",&rootlist);
 

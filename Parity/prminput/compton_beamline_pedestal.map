@@ -1,0 +1,45 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Compton Scaler BeamLine                     !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This file contains the pedestals for the scalers.
+! Respect the format of the file!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Scaler BCM pedestals
+!! Pedestal should be zero! Change only if you
+!! know what you are doing!!!
+! channel name, pedestal=0, frequency
+sca_4mhz, 0, 4e6
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Scaler BCM pedestals
+! channel name, pedestal,gain
+sca_bcm1,       +254839.349670,            +0.000533
+sca_bcm2,       +256100.881965,            +0.000577
+sca_bcm6,       +253376.982010,            +0.000994
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Scaler BPM pedestals
+! channel name, pedestal,gain
+
+// not determined yet
+sca_bpm_3p01aXP,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+sca_bpm_3p01aXM,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+sca_bpm_3p01aYP,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+sca_bpm_3p01aYM,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+sca_bpm_3p03aXP,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+sca_bpm_3p03aXM,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+sca_bpm_3p03aYP,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+sca_bpm_3p03aYM,     1.0e+03,     1.5e-02,     1.0e+00,     0.0e+00
+
+// should be ok
+sca_bpm_3p02aXP,     1.1894313664e+03,     1.4456640730e-02,     1.0000000000e+00,     0.0000000000e+00
+sca_bpm_3p02aXM,     1.1775964031e+03,     1.3354788459e-02,     1.0000000000e+00,     0.0000000000e+00
+sca_bpm_3p02aYP,     1.1991895709e+03,     1.3992669765e-02,     1.0000000000e+00,     0.0000000000e+00
+sca_bpm_3p02aYM,     1.1903442496e+03,     1.2337399894e-02,     1.0000000000e+00,     0.0000000000e+00
+sca_bpm_3p02bXP,     1.2031257071e+03,     1.4276528069e-02,     1.0000000000e+00,     0.0000000000e+00
+sca_bpm_3p02bXM,     1.2150070399e+03,     1.2785295954e-02,     1.0000000000e+00,     0.0000000000e+00
+sca_bpm_3p02bYP,     1.2064459832e+03,     1.3160607005e-02,     1.0000000000e+00,     0.0000000000e+00
+sca_bpm_3p02bYM,     1.2019155584e+03,     1.4650229793e-02,     1.0000000000e+00,     0.0000000000e+00
+
+!END

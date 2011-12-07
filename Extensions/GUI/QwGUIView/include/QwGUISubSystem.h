@@ -31,8 +31,17 @@
 ///
 /// \ingroup QwGUIMain
 
+
 #ifndef QWGUISUBSYSTEM_H
 #define QWGUISUBSYSTEM_H
+
+
+#define SAMPLING_RATE  960
+
+enum RUNTYPE  {
+  Parity,
+  Tracking,
+};
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,6 +56,8 @@
 #include "QwGUIMainDef.h"
 #include "QwGUIProgressDialog.h"
 #include "QwGUIDatabaseContainer.h"
+#include "QwGUIDataWindow.h"
+#include "QwGUIHCLogEntryDialog.h"
 
 #ifndef ROOTCINTMODE
 #include "QwParameterFile.h"
@@ -78,6 +89,10 @@ class QwGUISubSystem : public TGCompositeFrame {
 
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
+
+  //!Flag indicates if there will be multiple files opened, for which the histograms
+  //!are supposed to be added. THIS IS ONLY IMPLEMENTED IN HISTOGRAM MODE, NOT TREE EVENT MODE!!!!
+  Bool_t           dMultipleFiles;
   
   //!Flag indicates whether the menu item belonging to this subsystem is checked/active.
   //!In other words, is this tab currently visible or not?
@@ -86,13 +101,43 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Flag indicates whether a log message should be displayed with the current time and date.  
   Bool_t           dLogTStampFlag;
 
+  //!Flag indicates whether individual tree events should be read, or only histograms.
+  Bool_t           dEventMode;
+
+  //!Indicates the run type (parity or tracking)
+  RUNTYPE          dRunType;
+
+  //!Indicates the run number 
+  Int_t            dRunNumber;
+
+  UInt_t           dStartEvent; 
+  UInt_t           dNumEvents;
+
   //!Main window object reference
   TGWindow        *dMain;
   //!Parent window object reference (usually gRoot->Client ...)
   TGWindow        *dParent;
 
- protected:
+  TString     WrapParameter(TString param, TString value){
+    TString tmp("--");
+    tmp += param + "=\"" + value + "\" ";
+    return tmp;
+  }
+  TString     WrapAttachment(TString filename){
+    TString tmp("--attachment=\"");
+    tmp += filename + "\" ";
+    return tmp;
+  }
 
+  TString     MakeSubject(TString subject){
+    TString tmp("Analysis: ");
+    tmp += Form("Run %6d - ",GetRunNumber()) + subject;
+    return tmp;
+  } 
+
+
+ protected:
+  
   //!Buffer, mainly used in message passing and for other temporary storage.
   char             dMiscbuffer[MSG_SIZE_MAX];
   //!Buffer, mainly used in message passing and for other temporary storage.
@@ -109,6 +154,10 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!file is opened, by calling the member function SetDataContainer(RDataContainer *cont) in this class.   
   //!There is no direct instance of this container kept within the class. 
   QwGUIDatabaseContainer *dDatabaseCont;
+
+  QwGUIHCLogEntryDialog  *dHCLogEntryDlg;
+  HCLogEntry              dHCLogEntries;
+
 
   //!This is a database interface reference, it provides all necessary access to the qweak database.
   //!The pointer is set by the QwGUIMain class, when the database is opened via the GUI menu. The pointer is
@@ -157,7 +206,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!identify what type of file was opened.
   //!
   //!Parameters:
-  //! - none
+  //! - 1) RDataContainer containing the file pointer
   //!
   //!Return value: none
   virtual void     OnNewDataContainer(RDataContainer *cont){};
@@ -188,6 +237,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   virtual Int_t    LoadChannelMap(TString mapfile) {return 0;};
 
   Bool_t               dProcessHalt;
+
+  void SubmitToHCLog(TCanvas*);
 
   QwGUIProgressDialog *dProgrDlg;
 
@@ -297,6 +348,16 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: boolean menu item flag
   Bool_t           IsTabMenuEntryChecked() {return dTabMenuItemChecked;};
 
+
+  //!This function returns a flag indicating whether tree events should be read from the file. If return
+  //!is kFalse, then only histograms should be read.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: boolean menu item flag
+  Bool_t           ReadTreeEvents() {return dEventMode;};
+
   //!Sender function which connects to QwGUIMain::OnObjClose(const char*), to perform cleanup tasks
   //!when this subsystem object is destroyed. 
   //!
@@ -391,6 +452,37 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   void             SetTabMenuID(Long_t mID){dTabMenuID = mID;};
 
+  //!Setter function for the runtype (parity or tracking). Called once from QwGUIMain::OpenRootFile, when a new file
+  //!is opened.
+  //!
+  //!Parameters:
+  //! - 1) The run type.
+  //!
+  //!Return value: none
+  void             SetRunType(RUNTYPE type){dRunType = type;};
+
+  //!Setter function for the event mode flag. Called once from QwGUIMain::OpenRootFile, when a new file
+  //!is opened. If the flag is set to true, then tree events will be read from the ROOT file. Otherwise only
+  //!histograms will be read.
+  //!
+  //!Parameters:
+  //! - 1) The run type.
+  //! - 2) The starting event number.
+  //! - 3) The number of events to process.
+  //!
+  //!Return value: none
+  void             SetEventMode(Bool_t evMode, UInt_t levt, UInt_t evts){dEventMode = evMode; 
+    dStartEvent = levt; dNumEvents = evts;};
+
+  //!Setter function for the current run number. Called once from QwGUIMain::OpenRootFile, when a new file
+  //!is opened.
+  //!
+  //!Parameters:
+  //! - 1) current run number
+  //!
+  //!Return value: none
+  void            SetRunNumber(Int_t run){dRunNumber = run;};
+
   //!Sender function, which connects to QwGUIMain::OnReceiveMessage(const char*) to let the main class know that
   //!this subsystem wants to add a message to the log.
   //!
@@ -411,6 +503,33 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none 
   void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set; 
     dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();};
+
+  //!Getter function for the runtype (parity or tracking). Called from anywhere in the subsystem, but
+  //!primarily used in ::OnNewDataContainer .
+  //!
+  //!Parameters:
+  //! - None.
+  //!
+  //!Return value: RUNTYPE
+  RUNTYPE          GetRunType(){return dRunType;};
+
+  //!Getter function for the current run number. Called from anywhere in the subsystem.
+  //!
+  //!Parameters:
+  //! - None.
+  //!
+  //!Return value: Run number
+  Int_t          GetRunNumber(){return dRunNumber;};
+
+  UInt_t         GetStartEvent(){return dStartEvent;}; 
+  UInt_t         GetNumEvents() {return dNumEvents;};
+  void           SetMultipleFiles(Bool_t mf) {dMultipleFiles = mf;}; 
+  Bool_t         AddMultipleFiles() { return dMultipleFiles;};
+
+  char          *GetRootFileName(){ if(!dROOTCont) return NULL; return dROOTCont->GetFileName();};
+
+  virtual void   MakeHCLogEntry() {}; 
+
   
   ClassDef(QwGUISubSystem,0);
 };

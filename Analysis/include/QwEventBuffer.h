@@ -9,13 +9,16 @@
 #define __QWEVENTBUFFER__
 
 
+#include <string>
 #include <vector>
 #include "Rtypes.h"
 #include "TString.h"
+#include "TStopwatch.h"
 
 #include "THaCodaData.h"
 
 #include "MQwCodaControlEvent.h"
+#include "QwParameterFile.h"
 
 class QwOptions;
 class QwEPICSEvent;
@@ -30,6 +33,12 @@ class QwSubsystemArray;
 class QwEventBuffer: public MQwCodaControlEvent{
  public:
   static void DefineOptions(QwOptions &options);
+  static void SetDefaultDataFileStem(const std::string& stem) {
+	fDefaultDataFileStem = stem;
+  }
+  static void SetDefaultDataFileExtension(const std::string& extension) {
+	fDefaultDataFileExtension = extension;
+  }
 
  public:
   static const Int_t kRunNotSegmented;
@@ -38,17 +47,27 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   static const UInt_t kNullDataWord;
 
+
+
  public:
   QwEventBuffer();
   virtual ~QwEventBuffer() {
-    if (fEvStream!=NULL){
+    // Delete event stream
+    if (fEvStream != NULL) {
       delete fEvStream;
       fEvStream = NULL;
+    }
+    // Delete run list file
+    if (fRunListFile != NULL) {
+      delete fRunListFile;
+      fRunListFile = NULL;
     }
   };
 
   /// \brief Sets internal flags based on the QwOptions
   void ProcessOptions(QwOptions &options);
+
+  void PrintRunTimes();
 
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
@@ -60,7 +79,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
   /// \brief Return CODA file run number
   Int_t GetRunNumber() const {return fCurrentRun;};
   /// \brief Return CODA file segment number
-  Int_t GetSegmentNumber() const {return *this_runsegment;};
+  Int_t GetSegmentNumber() const {
+    return fRunSegments.size() ? *fRunSegmentIterator : 0;
+  };
 
   std::pair<UInt_t, UInt_t> GetEventRange() const {
     return fEventRange;
@@ -82,13 +103,19 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t OpenDataFile(const TString filename, const TString rw = "R");
   Int_t CloseDataFile();
 
-  Int_t OpenETStream(TString computer, TString session, int mode);
+  Int_t OpenETStream(TString computer, TString session, int mode, const TString stationname="");
   Int_t CloseETStream();
 
-  Bool_t IsPhysicsEvent(){
-    return ((fIDBankNum == 0xCC)&&(fEvtType>=0 && fEvtType<=15));
+  Bool_t IsPhysicsEvent() {
+    // fEvtType is an unsigned integer, hence always positive
+    return ((fIDBankNum == 0xCC) && ( /* fEvtType >= 0 && */ fEvtType <= 15));
   };
-  Int_t GetEventNumber(){return fEvtNumber;};
+
+  Int_t GetEventNumber() { return fEvtNumber; };
+
+  Bool_t GetNextEventRange();
+  Bool_t GetNextRunRange();
+  Bool_t GetNextRunNumber();
 
   Int_t GetNextEvent();
 
@@ -101,7 +128,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   Bool_t IsEPICSEvent(){
     //  What are the correct codes for our EPICS events?
-    return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
+    //return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
+    return (fEvtType>=160 && fEvtType<=190);// epics event type is only with tag="180" from July 2010 running
   };
 
   Bool_t IsEndOfBurst(){
@@ -132,23 +160,37 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
   Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
 
-
  protected:
   ///
   Bool_t fOnline;
   TString fETHostname;
   TString fETSession;
-  std::pair<Int_t, Int_t> fRunRange;
+  TString fETStationName;
+
   Bool_t fChainDataFiles;
+  std::pair<Int_t, Int_t> fRunRange;
+  std::string fRunListFileName;
+  QwParameterFile* fRunListFile;
+  std::vector<Int_t> fRunRangeMinList, fRunRangeMaxList;
+
   std::pair<UInt_t, UInt_t> fEventRange;
+  std::string fEventListFileName;
+  QwParameterFile* fEventListFile;
+  std::vector<UInt_t> fEventList;
+
+  std::pair<Int_t, Int_t> fSegmentRange;
+
   Int_t fBurstLength;
 
  protected:
+
+  static std::string fDefaultDataFileStem;
+  static std::string fDefaultDataFileExtension;
+
   TString fDataFileStem;
   TString fDataFileExtension;
 
   TString fDataDirectory;
-
   TString fDataFile;
 
   // UInt_t fRunNumber;
@@ -186,7 +228,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 
   std::vector<Int_t>           fRunSegments;
-  std::vector<Int_t>::iterator this_runsegment;
+  std::vector<Int_t>::iterator fRunSegmentIterator;
 
 
  protected:
@@ -205,11 +247,16 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fEvtClass;
   UInt_t fStatSum;
 
+  Double_t fCleanParameter[3];///Scan data/clean data  from the green monster
+
   UInt_t fFragLength;
   UInt_t fSubbankTag;
   UInt_t fSubbankType;
   UInt_t fSubbankNum;
   UInt_t fROC;
+
+  TStopwatch fRunTimer;      ///<  Timer used for runlet processing loop
+  TStopwatch fStopwatch;     ///<  Timer used for internal timing
 
  protected:
   UInt_t     fNumPhysicsEvents;
@@ -225,8 +272,8 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
   ///  Bool_t <class T>::CanUseThisEventType(const UInt_t event_type);
   ///  Bool_t <class T>::ClearEventData(const UInt_t event_type);
   ///  Int_t  <class T>::ProcessBuffer(const UInt_t event_type,
-  ///       const UInt_t roc_id, const UInt_t bank_id,
-  ///       UInt_t* buffer, UInt_t num_words);
+  ///       const UInt_t roc_id, const UInt_t bank_id, 
+  ///       const UInt_t banktype, UInt_t* buffer, UInt_t num_words);
   ///
   Bool_t okay = kFALSE;
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
@@ -248,7 +295,7 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
 	  fWordsSoFar += fFragLength;
 	  continue;
 	}
-	object.ProcessBuffer(fEvtType, fSubbankTag, fSubbankType,
+	object.ProcessBuffer(fEvtType, fROC, fSubbankTag, fSubbankType,
 			     &localbuff[fWordsSoFar],
 			     fFragLength);
 	fWordsSoFar += fFragLength;
@@ -261,7 +308,7 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
     }
   }
   return okay;
-};
+}
 
 
 

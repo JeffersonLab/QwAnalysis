@@ -52,8 +52,8 @@ class QwBridgingTrackFilter {
     };
 
     /// \brief Filter front and back track combinations
-    const EStatus Filter(const QwPartialTrack* front,
-                         const QwPartialTrack* back) const;
+    EStatus Filter(const QwPartialTrack* front,
+                   const QwPartialTrack* back) const;
 
     /// \todo Setters for the filter angle boundaries (wdc)
 

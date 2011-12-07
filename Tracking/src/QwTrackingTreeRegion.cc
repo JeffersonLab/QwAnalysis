@@ -49,10 +49,10 @@ QwTrackingTreeRegion::~QwTrackingTreeRegion()
   delete[] fNode.GetTree();
 
   // Report memory statistics
-  if (shortnode::GetCount() > 0 || shorttree::GetCount() > 0) {
-    QwMessage << "Memory occupied by tree objects (should be a single shortnode when all trees cleared):" << QwLog::endl;
-    QwMessage << "- allocated shortnode objects: " << shortnode::GetCount() << QwLog::endl;
-    QwMessage << "- allocated shorttree objects: " << shorttree::GetCount() << QwLog::endl;
+  if (shortnode::GetObjectsAlive() > 0 || shorttree::GetObjectsAlive() > 0) {
+    QwVerbose << "Memory occupied by tree objects (should be a single shortnode when all trees cleared):" << QwLog::endl;
+    QwVerbose << "- allocated shortnode objects: " << shortnode::GetObjectsAlive() << QwLog::endl;
+    QwVerbose << "- allocated shorttree objects: " << shorttree::GetObjectsAlive() << QwLog::endl;
   }
 }
 
@@ -63,9 +63,9 @@ QwTrackingTreeRegion::~QwTrackingTreeRegion()
 void QwTrackingTreeRegion::PrintTrees() const
 {
   QwOut << "Trees:" << QwLog::endl;
-  for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
+  for (int i = 0; i < 1 /* fNode.GetNumberOfTrees() */; i++) {
     QwOut << "tree " << i << ": ";
-    fNode.GetTree(i)->Print(1);
+    fNode.GetTree(i)->Print(true,1);
   }
 }
 
@@ -78,11 +78,13 @@ void QwTrackingTreeRegion::PrintNodes() const
   QwOut << "Nodes:" << QwLog::endl;
   for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
     QwOut << "tree " << i << ":" << QwLog::endl;
+    fNode.GetTree(i)->Print(false,1);
     for (int j = 0; j < 4; j++) {
       shortnode* node = fNode.GetTree(i)->son[j];
       if (node) QwOut << " son " << j << ":" << QwLog::endl;
       while (node) {
-        QwOut << "  " << node << ": " << *node << QwLog::endl;
+        QwOut << "  tree ";
+        node->GetTree(0)->Print(false,2);
         node = node->GetNext();
       } // loop over linked list of nodes
     } // loop over the four sons

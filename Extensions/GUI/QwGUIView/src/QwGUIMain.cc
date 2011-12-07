@@ -43,29 +43,45 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   std::set_new_handler(0);
 
   MainDetSubSystem        = NULL;
-  ScannerSubSystem        = NULL;
+  //ScannerSubSystem        = NULL;
   BeamModulationSubSystem = NULL;
   LumiDetSubSystem        = NULL;
   InjectorSubSystem       = NULL;
   HallCBeamlineSubSystem  = NULL;
-  DatabaseSubSystem       = NULL;
+  // DatabaseSubSystem       = NULL;
   TrackFindingSubSystem   = NULL;
   EventDisplaySubSystem   = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
-  dCurRun               = 0;
+  SetCurrentRunNumber(0);
+  SetCurrentFilePrefix("Qweak_");
+  SetCurrentFileDirectory("./");
+  SetAddSegments(kFalse);
+  SetEventMode(kFalse);
+  dCurRunType           = Parity;
+  dMainPlots            = kFalse;
 
   dROOTFile             = NULL;
-  dDatabase             = NULL;
+  // dDatabase             = NULL;
 
-  dTBinEntry            = NULL;
-  dTBinEntryLayout      = NULL;
+  dSegmentEntry         = NULL;
+  dSegmentEntryLayout   = NULL;
+  dPrefixEntry          = NULL;
+  dPrefixEntryLayout    = NULL;
   dRunEntry             = NULL;
   dRunEntryLayout       = NULL;
   dHorizontal3DLine     = NULL;
   dUtilityFrame         = NULL;
   dUtilityLayout        = NULL;
+  dAddSegmentCheckButton= NULL;
+
+  dSegmentEntryLayout   = NULL;
+  dPrefixEntryLayout    = NULL;
+  dAddSegmentLayout     = NULL;
+  dRunEntryLabel        = NULL;
+  dAddSegmentLabel      = NULL;  
+  dPrefixEntryLabel     = NULL;  
 
   dTab                  = NULL;
   dTabLayout            = NULL;
@@ -102,70 +118,98 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   SetLogFileOpen(kFalse);
   SetLogFileName("None");
 
+  SetCurrentRunSegment(0);
+  RemoveSelectedDataWindow();
+
+  SetRasterSize(0,0);
+  SetEnergy(0);
+  SetCurrent(0);
+
   MakeMenuLayout();
   MakeUtilityLayout();
   MakeMainTab();
-  MakeLogTab();
 
-  SetWindowName("Qweak Data Analysis GUI");
+  if(dClArgs.autoupdate == kTrue)
+    SetWindowName("Qweak Data Auto GUI (QwAGUI)");
+  else
+    SetWindowName("Qweak Data GUI (QwGUI)");
 
   MapSubwindows();
   Resize(GetDefaultSize());
   MapWindow();
 
 
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
+  if(!GetSubSystemPtr("Histories"))
+    HistoriesSubSystem = new QwGUIHistories(fClient->GetRoot(), this, dTab,"Histories",
+					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-//   if(MainDetSubSystem) 
-//     MainDetSubSystem->LoadChannelMap(Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH")));
+  					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Scanner"))
-    ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-  if(!GetSubSystemPtr("Beam Modulation"))
-    BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
-					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
-  if(!GetSubSystemPtr("Lumi Detectors"))
-    LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-  if(!GetSubSystemPtr("Injector"))
-    InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
-					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  // if(!GetSubSystemPtr("Lumi Detectors"))
+  //   LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
+  // 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("HallC Beamline"))
-    HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
-						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  // if(!GetSubSystemPtr("HallC Beamline"))
+  //   HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
+  // 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Qweak Database"))
-    DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
-						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  // if(!GetSubSystemPtr("Injector"))
+  //   InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
+  // 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Track Finding"))
-    TrackFindingSubSystem = new QwGUITrackFinding(fClient->GetRoot(), this, dTab, "Track Finding",
-					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+  // if(!GetSubSystemPtr("Beam Modulation"))
+  //   BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
+  // 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Event Display"))
-    EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
-					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+  // if(!GetSubSystemPtr("Qweak Database"))
+  //   DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
+  // 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
+  // if(!GetSubSystemPtr("Track Finding"))
+  //   TrackFindingSubSystem = new QwGUITrackFinding(fClient->GetRoot(), this, dTab, "Track Finding",
+  // 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+
+  // if(!GetSubSystemPtr("Event Display"))
+  //   EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
+  // 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+
+  //  if(!GetSubSystemPtr("Scanner"))
+  //    ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
+  //					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  MakeLogTab();
+
+  SetSubSystemSegmentAdd(kFalse);
+
+  // if(dClArgs.autoupdate == kTrue) {
+  //   RemoveTab(MainDetSubSystem);
+  //   RemoveTab(BeamModulationSubSystem);
+  //   RemoveTab(LumiDetSubSystem);
+  //   RemoveTab(InjectorSubSystem);
+  //   RemoveTab(HallCBeamlineSubSystem);
+  // }
+  
+  dTab->SetTab("Main",kTrue);
 }
 
 QwGUIMain::~QwGUIMain()
 {
-  delete MainDetSubSystem        ;
-  delete ScannerSubSystem        ;
-  delete BeamModulationSubSystem ;
-  delete LumiDetSubSystem        ;
-  delete InjectorSubSystem       ;
-  delete DatabaseSubSystem       ;
-  delete TrackFindingSubSystem   ;
-  delete EventDisplaySubSystem   ;
+  CleanUpDataWindows();
+
 
   delete dROOTFile             ;
 
-  delete dTBinEntry            ;
-  delete dTBinEntryLayout      ;
+  delete dSegmentEntry         ;
+  delete dSegmentEntryLayout   ;
+  delete dPrefixEntry          ;
+  delete dPrefixEntryLayout    ;
   delete dRunEntry             ;
   delete dRunEntryLayout       ;
   delete dHorizontal3DLine     ;
@@ -195,7 +239,6 @@ QwGUIMain::~QwGUIMain()
   delete dMenuBarLayout        ;
   delete dMenuBarItemLayout    ;
   delete dMenuBarHelpLayout    ;
-
 }
 
 void QwGUIMain::MakeMenuLayout()
@@ -206,11 +249,13 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
   dMenuFile = new TGPopupMenu(fClient->GetRoot());
-  dMenuFile->AddEntry("O&pen (ROOT file)...", M_ROOT_FILE_OPEN);
-  dMenuFile->AddEntry("C&lose (ROOT file)", M_ROOT_FILE_CLOSE);
-  dMenuFile->AddSeparator();
-  dMenuFile->AddEntry("Open (Database)...", M_DBASE_OPEN);
-  dMenuFile->AddEntry("Close (Database)", M_DBASE_CLOSE);
+  dMenuFile->AddEntry("O&pen ROOT file (Histo)...", M_ROOT_FILE_OPEN);
+  dMenuFile->AddEntry("O&pen ROOT file (Event)...", M_ROOT_FILE_EVENT_OPEN);
+  dMenuFile->AddEntry("C&lose ROOT file", M_ROOT_FILE_CLOSE);
+  // dMenuFile->AddSeparator();
+  // dMenuFile->AddEntry("Show subsystem tabs", M_TABS_SHOWALL);
+  // dMenuFile->AddEntry("Open (Database)...", M_DBASE_OPEN);
+  // dMenuFile->AddEntry("Close (Database)", M_DBASE_CLOSE);
   dMenuFile->AddSeparator();
   //dMenuFile->AddEntry("Root File Browser", M_VIEW_BROWSER);
   //dMenuFile->AddSeparator();
@@ -242,40 +287,94 @@ void QwGUIMain::MakeMenuLayout()
 
 void QwGUIMain::MakeUtilityLayout()
 {
+  dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
+  dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2);
 
-//   dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
-//   dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-//   dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2);
+  dHorizontal3DLine = new TGHorizontal3DLine(this);
+  AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
 
-//   dHorizontal3DLine = new TGHorizontal3DLine(this);
-//   AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
+  dRunInfoFrame = new TGHorizontalFrame(this,60,10);
+  dRunInfoLabel = new TGLabel(dRunInfoFrame,"Run :");
+  TColor *color = gROOT->GetColor(2);  
+  dRunInfoLabel->SetTextColor(color);
+  dRunInfoLabel->SetTextFont("-adobe-courier-bold-r-*-*-18-*-*-*-*-*-iso8859-1");
+  dRunInfoLabel->SetTextJustify(kTextCenterX | kTextCenterY);
+  dRunInfoFrame->AddFrame(dRunInfoLabel, new TGLayoutHints(kLHintsCenterY | kLHintsCenterX | kLHintsExpandX,2,2,2,2));
 
-//   dUtilityFrame = new TGHorizontalFrame(this,60,10);
-//   dTBinEntry = new TGComboBox(dUtilityFrame,M_TBIN_SELECT);
-//   dTBinEntry->Associate(this);
-//   dUtilityFrame->AddFrame(dTBinEntry,dTBinEntryLayout);
-// //   for (int i = 0; i < VME2_MP_SIZE; i++){
-// //     tof = GetTBinWidth()*(i+0.5)+GetMPOffset();
-// //     eng = pow((21030.0/438/tof),2);
-// //     sprintf(dTOFBINStrings[i],"Bin %03d: tof %6.2f ms; Eng %9.2f meV", i, tof, eng);
-// //     dTBinEntry->AddEntry(dTOFBINStrings[i], i+1);
-// //   }
-//   dTBinEntry->Resize(280, 20);
+  AddFrame(dRunInfoFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX ,2,2,2,2));
+  dHorizontal3DLine = new TGHorizontal3DLine(this);
+  AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
 
-//   if(!dClArgs.realtime){
-//     dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
-// 				  TGNumberFormat::kNESInteger,
-// 				  TGNumberFormat::kNEANonNegative,
-// 				  TGNumberFormat::kNELLimitMinMax,1,999999);
-//     if(dRunEntry){
-//       dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:");
-//       if(dRunEntryLabel){
-// 	dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
-//       }
-//       dRunEntry->Associate(this);
-//       dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
-//     }
-//   }
+  dHorizontal3DLine = new TGHorizontal3DLine(this);
+  AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
+
+  dUtilityFrame = new TGHorizontalFrame(this,60,10);
+
+  
+  dEventModeCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Event (Tree) Mode"),M_EVENT_MODE);
+  dUtilityFrame->AddFrame(dEventModeCheckButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+  dEventModeCheckButton->Associate(this);
+  dEventModeCheckButton->SetState(kButtonUp);
+  if(dClArgs.autoupdate == kTrue) dEventModeCheckButton->SetEnabled(kFalse);
+
+  dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
+				TGNumberFormat::kNESInteger,
+				TGNumberFormat::kNEANonNegative,
+				TGNumberFormat::kNELLimitMinMax,1,999999);
+  if(dRunEntry){
+    dRunEntryLabel = new TGLabel(dUtilityFrame,"Run:");
+    if(dRunEntryLabel){
+      dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
+    }
+    dRunEntry->Associate(this);
+    dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
+  }
+  if(dClArgs.autoupdate == kTrue) dRunEntry->SetState(kFalse);
+
+
+  TGLabel *dSegmentEntryLabel = new TGLabel(dUtilityFrame,"Segment:");  
+  dSegmentEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+  dUtilityFrame->AddFrame(dSegmentEntryLabel,dSegmentEntryLayout);
+  dSegmentEntry = new QwGUIComboBox(dUtilityFrame,"",M_SEGMENT_SELECT);
+  dSegmentEntry->EnableTextInput(kFalse);
+  dSegmentEntry->Associate(this);
+  dUtilityFrame->AddFrame(dSegmentEntry,dSegmentEntryLayout);
+  dSegmentEntry->Resize(100,20);
+  if(dClArgs.autoupdate == kTrue) dSegmentEntry->SetEnabled(kFalse);
+
+//   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
+   dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+//   dUtilityFrame->AddFrame(dAddSegmentLabel,dAddSegmentLayout);
+  dAddSegmentCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Add Segments"),M_ADD_SEGMENT);
+  dUtilityFrame->AddFrame(dAddSegmentCheckButton, dAddSegmentLayout);
+  dAddSegmentCheckButton->Associate(this);
+  dAddSegmentCheckButton->SetState(kButtonUp);
+  if(dClArgs.autoupdate == kTrue) dAddSegmentCheckButton->SetState(kButtonDisabled);
+
+  dPrefixEntryLabel = new TGLabel(dUtilityFrame,"Prefix:");  
+  dPrefixEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+  dUtilityFrame->AddFrame(dPrefixEntryLabel,dPrefixEntryLayout);
+  dPrefixEntry = new QwGUIComboBox(dUtilityFrame,"",M_PREFIX_SELECT);
+  dPrefixEntry->EnableTextInput(kFalse);
+  dPrefixEntry->AddEntry("Qweak",101);
+  dFilePrefix.push_back("Qweak_");
+  dPrefixEntry->AddEntry("first100k",102);
+  dFilePrefix.push_back("first100k_");
+  dPrefixEntry->AddEntry("QwPass1",103);
+  dFilePrefix.push_back("QwPass1_");
+  dPrefixEntry->AddEntry("QwPass2",104);
+  dFilePrefix.push_back("QwPass2_");
+  dPrefixEntry->AddEntry("QwPass3",105);
+  dFilePrefix.push_back("QwPass3_");
+  dPrefixEntry->Select(101);
+  dPrefixEntry->Associate(this);
+  dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
+  dPrefixEntry->Resize(100,20);
+  if(dClArgs.autoupdate == kTrue) dPrefixEntry->SetEnabled(kFalse);
+
+  
+
+  //}
 
 //   if(dClArgs.realtime){
 //     const TGPicture *ipic =(TGPicture *)gClient->GetPicture("realtime.xpm");
@@ -283,7 +382,15 @@ void QwGUIMain::MakeUtilityLayout()
 //     dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
 //   }
 
-//   AddFrame(dUtilityFrame,dUtilityLayout);
+  dHCLogEntryLabel = new TGLabel(dUtilityFrame,"Send this canvas to the hclog: ");  
+  dUtilityFrame->AddFrame(dHCLogEntryLabel,new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+  dHCEntryButton = new TGTextButton(dUtilityFrame, " Send ", M_HC_ENTRY_SET);
+  dHCEntryButton->Associate(this);
+  dUtilityFrame->AddFrame(dHCEntryButton,new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+  
+
+  AddFrame(dUtilityFrame,dUtilityLayout);
+
 }
 
 void QwGUIMain::MakeMainTab()
@@ -309,12 +416,16 @@ void QwGUIMain::MakeMainTab()
   tf->AddFrame(dMainTabFrame,dMainTabLayout);
   AddFrame(dTab, dTabLayout);
 
+
   dMainCanvas->GetCanvas()->SetBorderMode(0);
   dMainCanvas->GetCanvas()->Connect("Picked(TPad*, TObject*, Int_t)","QwGUIMain",
   				    this,"PadIsPicked(TPad*, TObject*, Int_t)");
   dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				    "QwGUIMain",
 				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
+
+  SplitCanvas(dMainCanvas,3,3,0);
+
 }
 
 void QwGUIMain::MakeLogTab()
@@ -349,14 +460,14 @@ void QwGUIMain::MakeLogTab()
   dLogEditFrame->AddFrame(dLogEdit,dLogEditLayout);
   dLogTabFrame->AddFrame(dLogEditFrame, dLogEditFrameLayout);
 
-  dDBQueryFrame = new TGHorizontalFrame(dLogTabFrame,500, 30);
-  dDBQueryLabel = new TGLabel(dDBQueryFrame, "DB Query");
-  dDBQueryFrame->AddFrame(dDBQueryLabel,dDBQueryLabelLayout);
-  dDBQueryEntry = new TGTextEntry(dDBQueryFrame, dDBQueryBuffer = new TGTextBuffer(80),M_DBASE_QUERY);
-  dDBQueryEntry->Associate(this);
-  dDBQueryFrame->AddFrame(dDBQueryEntry,dDBQueryEntryLayout);
-  dDBQueryEntry->SetState(1);
-  dLogTabFrame->AddFrame(dDBQueryFrame, dDBQueryFrameLayout);
+  // dDBQueryFrame = new TGHorizontalFrame(dLogTabFrame,500, 30);
+  // dDBQueryLabel = new TGLabel(dDBQueryFrame, "DB Query");
+  // dDBQueryFrame->AddFrame(dDBQueryLabel,dDBQueryLabelLayout);
+  // dDBQueryEntry = new TGTextEntry(dDBQueryFrame, dDBQueryBuffer = new TGTextBuffer(80),M_DBASE_QUERY);
+  // dDBQueryEntry->Associate(this);
+  // dDBQueryFrame->AddFrame(dDBQueryEntry,dDBQueryEntryLayout);
+  // dDBQueryEntry->SetState(1);
+  // dLogTabFrame->AddFrame(dDBQueryFrame, dDBQueryFrameLayout);
 
 
   dLogTabFrame->Resize(dMWWidth-15,dMWHeight-80);
@@ -427,10 +538,25 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
 
   if(TabActive(s.Data())) return;
 
+  // if(dClArgs.autoupdate == kTrue) {
+  //   RemoveTab(BeamModulationSubSystem);
+  //   RemoveTab(LumiDetSubSystem);
+  //   RemoveTab(InjectorSubSystem);
+  //   RemoveTab(HallCBeamlineSubSystem);
+  // }
+
   dTab->AddTab(s.Data(),sbSystem);
   dMenuTabs->CheckEntry(GetTabMenuID(s.Data()));
   sbSystem->TabMenuEntryChecked(kTrue);
   MapLayout();
+
+  if(IsRootFileOpen()){
+    if(!sbSystem->GetRootFileName() || strcmp(sbSystem->GetRootFileName(),dROOTFile->GetFileName())){
+      sbSystem->SetRunNumber(dCurRun);
+      sbSystem->SetRunType(dCurRunType);
+      sbSystem->SetDataContainer(dROOTFile);
+    }
+  }
 }
 
 Int_t QwGUIMain::GetTabMenuID(const char* TabName)
@@ -638,11 +764,172 @@ void QwGUIMain::PadIsPicked(TPad* selpad, TObject* selected, Int_t event)
 
 void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
-//   if(event == kButton1Double){
-//     Int_t pad = dMainCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
-//   }
+  if(event == kButton1Double){
+    QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
+    Bool_t add = kFalse;
+    TObject *plot = NULL;
+    
+    TCanvas *mc = dMainCanvas->GetCanvas();
+    if(!mc) return;
+
+    UInt_t pad = mc->GetSelectedPad()->GetNumber();
+    UInt_t ind = pad-1;
+    
+    if(ind < 0 || ind >= dMainPlotsArray.size())
+      return;
+    
+    plot = dMainPlotsArray[ind];
+
+    if(plot->InheritsFrom("TProfile")){
+
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TProfile*)plot)->GetTitle(), PT_PROFILE,
+					  DDT_MAIN,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+
+      DataWindowArray.Add(dDataWindow);
+      dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
+      dDataWindow->DrawData(*((TProfile*)plot));
+      Append(Form("Looking at DFT profile %s\n",(char*)((TProfile*)plot)->GetTitle()),kTrue);
+
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      return;
+    }
+    
+    if(plot->InheritsFrom("TH1")){
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TH1D*)plot)->GetTitle(), PT_HISTO_1D,
+					  DDT_MAIN,600,400);
+	
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+      
+      dDataWindow->SetStaticData(plot,DataWindowArray.GetLast());
+      dDataWindow->SetPlotTitle((char*)((TH1D*)plot)->GetTitle());
+      dDataWindow->DrawData(*((TH1D*)plot),add);
+      if(ind < dErrorBoxArray.size() && dErrorBoxArray[ind])
+	dDataWindow->DrawBox(*((TBox*)dErrorBoxArray[ind]));
+      
+      Append(Form("Looking at histogram %s\n",(char*)((TH1D*)plot)->GetTitle()),kTrue);
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetCurrentRunNumber());
+      return;
+    }
+
+    if(plot->InheritsFrom("TGraphErrors")){
+     
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
+					  DDT_MAIN,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+      
+      dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
+      dDataWindow->SetPlotTitleX((char*)((TGraphErrors*)plot)->GetXaxis()->GetTitle());
+      //   dDataWindow->SetPlotTitleX("Time [sec]");
+      //   dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
+      dDataWindow->SetPlotTitleOffset(1.25,1.8);
+      // dDataWindow->SetAxisMin(((TGraphErrors*)plot)->GetXaxis()->GetXmin(),
+      // 			      detStr->GetTreeLeafMin(leafInd));
+      // dDataWindow->SetAxisMax(((TGraphErrors*)plot)->GetXaxis()->GetXmax(),
+      // 			      detStr->GetTreeLeafMax(leafInd));
+      // dDataWindow->SetLimitsFlag(kTrue);
+      dDataWindow->DrawData(*((TGraphErrors*)plot),add);
+      
+      
+      Append(Form("Looking at graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),kTrue);
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetCurrentRunNumber());
+      
+      return;
+    }
+    
+    if(plot->InheritsFrom("TGraph")){
+
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TGraph*)plot)->GetTitle(), PT_GRAPH,
+					  DDT_MAIN,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+      
+      dDataWindow->SetPlotTitle((char*)((TGraph*)plot)->GetTitle());
+// 	dDataWindow->SetPlotTitleX("Time [sec]");
+// 	dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
+       dDataWindow->SetPlotTitleOffset(1.25,1.8);
+      // dDataWindow->SetAxisMin(((TGraph*)plot)->GetXaxis()->GetXmin(),
+      // 			      detStr->GetTreeLeafMin(leafInd));
+      // dDataWindow->SetAxisMax(((TGraph*)plot)->GetXaxis()->GetXmax(),
+      // 			      detStr->GetTreeLeafMax(leafInd));
+      // dDataWindow->SetLimitsFlag(kTrue);
+      dDataWindow->DrawData(*((TGraph*)plot),add);
+
+      Append(Form("Looking at graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),kTrue);
+      
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetCurrentRunNumber());
+      return;
+    }
+  }
 }
 
+QwGUIDataWindow *QwGUIMain::GetSelectedDataWindow()
+{
+  if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
+
+  return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
+}
+
+void QwGUIMain::CleanUpDataWindows()
+{
+  TObject* obj;
+  vector <TObject*> obja;
+  TIter *next = new TIter(DataWindowArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    obja.push_back(obj);
+//     delete obj;
+    obj = next->Next();
+  }
+  delete next;
+
+  for(uint l = 0; l < obja.size(); l++)
+    delete obja[l];
+
+  DataWindowArray.Clear();
+}
 
 // Wait, but continue to process events.
 void QwGUIMain::SleepWithEvents(int seconds)
@@ -673,9 +960,828 @@ QwGUISubSystem *QwGUIMain::GetSubSystemPtr(const char *name)
 
 }
 
-// void QwGUIMain::PlotMainData(ERPlotTypes ptype)
-// {
-// }
+void QwGUIMain::PlotMainData()
+{
+  TGraphErrors *grp = NULL;
+  TH1F *hst = NULL;
+  TBox *abox = NULL;
+  TCanvas *mc = NULL;
+  TPaveText *ref[9] = { NULL};
+  Int_t n = 0;
+  TString modname;
+  Double_t mean = 0;
+  Double_t rms = 0;
+
+  if(!TabActive("Main")) return;
+  if(!IsRootFileOpen()) return;
+
+  Float_t TitleW = gStyle->GetTitleW();
+  Float_t TitleH = gStyle->GetTitleH();
+  gStyle->SetTitleW(0.6);
+  gStyle->SetTitleH(0.12);             
+  Float_t StatW = gStyle->GetStatW();
+  Float_t StatH = gStyle->GetStatH();
+  gStyle->SetStatW(0.3);
+  gStyle->SetStatH(0.3);             
+
+  TString file(Form("%s/Extensions/Macros/Parity/golden_values_run_summary",gSystem->Getenv("QWANALYSIS")));
+  // RDataContainer *GoldenData = new RDataContainer(fClient->GetRoot(), this,
+  // 						  "GoldenData","QwGUIMain",
+  // 						  "TEXT",FM_READ,FT_TEXT);
+  // if(HistoryData)
+  //   if(HistoryData->OpenFile(file) == FILE_PROCESS_OK)
+  //     GoldenFlag = kTrue;
+
+  QwParameterFile goldenvals(file.Data());  //Open the file
+
+  
+  if(!AddSegments()){
+
+    if(dMainPlots){
+      
+      for(uint i = 0; i < dMainHistos.size(); i++){
+	delete dMainHistos[i];
+      }
+      dMainHistos.clear();
+      
+      for(uint i = 0; i < dMainGraphs.size(); i++){
+	delete dMainGraphs[i];
+      }
+      dMainGraphs.clear();
+      
+      dHistoryPlotsArray.clear();
+      dMainPlotsArray.clear();
+
+      for(uint i = 0; i < dErrorBoxArray.size(); i++){
+	delete dErrorBoxArray[i];
+      }
+      dErrorBoxArray.clear();
+
+    }
+  }
+
+  mc = dMainCanvas->GetCanvas();
+  if(!mc) return;
+
+  TTree *SlowTree = (TTree*)dROOTFile->ReadData("Slow_Tree");
+  if(SlowTree){
+    TH1D *rasterX = new TH1D("rasterX","",100,-10,10);
+    TH1D *rasterY = new TH1D("rasterY","",100,-10,10);
+    TH1D *energy = new TH1D("energy","",6000,0,6);
+    SlowTree->Draw("EHCFR_LIXWidth >> rasterX","","goff");
+    SlowTree->Draw("EHCFR_LIYWidth >> rasterY","","goff");
+    SlowTree->Draw("EHCFR_ENERGY >> energy","","goff");
+    SetRasterSize(rasterX->GetMean(),rasterY->GetMean());
+    SetEnergy(energy->GetMean());
+    rasterX->SetDirectory(0);
+    rasterY->SetDirectory(0);
+    energy->SetDirectory(0);
+    delete rasterX;
+    delete rasterY;
+    delete energy;
+  }
+  hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
+  if(hst) SetCurrent(hst->GetMean());
+  hst = NULL;
+
+  sprintf(dMiscbuffer,"Run %d.%03d: Energy=%1.3f GeV  Current=%d uA, Raster=%1.1fx%1.1f\n",
+	  GetCurrentRunNumber(),GetCurrentRunSegment(),
+	  GetEnergy(),(Int_t)(GetCurrent()),GetRasterSize()[0], 
+	  GetRasterSize()[1]);
+  dRunInfoLabel->SetText(dMiscbuffer);
+  // MapSubwindows();
+  Layout();
+
+  gSystem->ProcessEvents();
+
+  abox = NULL;
+  hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
+  mc->cd(1);
+
+  if(hst){
+    hst->GetXaxis()->SetTitle("Charge Asymmetry");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    // hst->GetYaxis()->SetRangeUser(hst->GetMinimum(), hst->GetMaximum()+50);
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+
+    dMainHistos.push_back((TH1F*)(hst->Clone()));
+    dMainHistos.back()->SetDirectory(0);
+    dMainHistos.back()->Draw("");
+
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->Modified();
+    gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+    dMainPlotsArray.push_back(dMainHistos.back());
+    dHistoryPlotsArray.push_back(dMainHistos.back());
+    
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+      
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+      
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "asym_qwk_charge"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+
+    }
+
+    // if(GoldenFlag){
+      
+    //   for(int nr = 1; nr <= GoldenData->GetNumOfRows(); nr++){
+    // 	memset(buffer,'\0',sizeof(buffer));
+    // 	if(GoldenData->ReadRow(buffer,nr) == FILE_PROCESS_OK){
+    // 	  RowData = buffer;
+    // 	  if(RowData.Contains("asym_qwk_charge_hw")){
+
+    // 	    RowParts = RowData.Tokenize(",");
+
+      
+    // }
+
+  }
+  else{
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for asym_qwk_charge_hw");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+  }
+  hst = NULL;
+  abox = NULL;
+
+  hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_targetX_hw");
+  mc->cd(2);
+  if(hst){
+    hst->GetXaxis()->SetTitle("Target X Pos. Diff. [mm]");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    dMainHistos.push_back((TH1F*)(hst->Clone()));
+    dMainHistos.back()->SetDirectory(0);
+    dMainHistos.back()->Draw("");
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->Modified();
+    gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+    dMainPlotsArray.push_back(dMainHistos.back());
+    dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "diff_qwk_targetX"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    }
+    // abox = new TBox(-2e-2,dMainHistos.back()->GetMinimum(), 2e-2, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
+
+  }
+  else{
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for diff_qwk_targetX_hw");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+  }
+
+    
+  hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_targetY_hw");
+  mc->cd(3);
+  if(hst){
+
+    hst->GetXaxis()->SetTitle("Target Y Pos. Diff. [mm]");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    dMainHistos.push_back((TH1F*)(hst->Clone()));
+    dMainHistos.back()->SetDirectory(0);
+    dMainHistos.back()->Draw("");
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->Modified();
+    gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+    dMainPlotsArray.push_back(dMainHistos.back());      
+    dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "diff_qwk_targetY"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    } 
+    // abox = new TBox(-1e-2,dMainHistos.back()->GetMinimum(), 1e-2, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
+  }
+  else{
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for diff_qwk_targetY_hw");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+  }
+
+  hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3c12X_hw");
+  mc->cd(4);
+  if(hst){
+    hst->GetXaxis()->SetTitle("bpm3c12X Pos. Diff. [mm]");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    dMainHistos.push_back((TH1F*)(hst->Clone()));
+    dMainHistos.back()->SetDirectory(0);
+    dMainHistos.back()->Draw("");
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->Modified();
+    gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save", 250);    
+    dMainPlotsArray.push_back(dMainHistos.back());      
+    dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "diff_qwk_bpm3c12X"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    }
+    // abox = new TBox(-5e-3,dMainHistos.back()->GetMinimum(), 5e-3, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
+  }
+  else{
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for diff_qwk_bpm3c12X_hw");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+  }
+
+
+  TTree *HelTree = (TTree*)dROOTFile->ReadData("Hel_Tree");
+  if(HelTree){
+
+    const char *general_cut = "ErrorFlag==0 && mps_counter<99000 && yield_ramp<0";
+    const char *det_cut = "Device_Error_Code==0";
+
+    mc->cd(5);
+    TH1F *DDiff12 = new TH1F("DDiff12","bcm 1 and 2 Double Difference",1001,-500,500);
+    if(DDiff12){
+      DDiff12->SetBit(TH1::kCanRebin);
+      HelTree->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6 >> DDiff12",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",general_cut,det_cut,det_cut),"goff");
+      DDiff12->SetDirectory(0);
+      DDiff12->GetXaxis()->SetTitle("bcm 1-2 DDiff [ppm]");
+      DDiff12->GetXaxis()->SetRangeUser(DDiff12->GetMean()-5*DDiff12->GetRMS(), DDiff12->GetMean()+5*DDiff12->GetRMS());
+      DDiff12->GetXaxis()->CenterTitle();
+      DDiff12->GetXaxis()->SetTitleSize(0.06);
+      DDiff12->GetXaxis()->SetLabelSize(0.06);
+      DDiff12->GetXaxis()->SetTitleOffset(1.25);
+      DDiff12->GetXaxis()->SetTitleColor(1);
+      DDiff12->SetNdivisions(506,"X");
+      DDiff12->GetYaxis()->SetLabelSize(0.06);
+
+      dMainHistos.push_back(DDiff12);
+      dMainHistos.back()->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+      dMainPlotsArray.push_back(dMainHistos.back());      
+      dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      // goldenvals.RewindToFileStart();
+      // while(goldenvals.ReadNextLine()){
+	
+      // 	goldenvals.TrimComment('#'); 
+      // 	goldenvals.TrimWhitespace(); 
+      // 	if (goldenvals.LineIsEmpty())  continue;
+	
+      // 	modname = goldenvals.GetTypedNextToken<TString>();
+      // 	if(modname == "DDiff12"){
+      // 	  mean = goldenvals.GetTypedNextToken<Double_t>();
+      // 	  rms = goldenvals.GetTypedNextToken<Double_t>();
+	  
+      // 	  abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
+      // 	  abox->SetFillColor(2);
+      // 	  abox->SetFillStyle(3002);
+      // 	  abox->Draw("");
+      // 	  dErrorBoxArray.push_back(abox);
+      // 	  gPad->Modified();
+      // 	  gPad->Update();
+	  
+      // 	  continue;
+      // 	}
+      // }
+
+      abox = new TBox(-100,dMainHistos.back()->GetMinimum(), 100, dMainHistos.back()->GetMaximum());
+      abox->SetFillColor(2);
+      abox->SetFillStyle(3002);
+      abox->Draw("");
+      gPad->Modified();
+      gPad->Update();
+      dErrorBoxArray.push_back(abox);
+      
+    }
+    else{
+      ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+      ref[n]->AddText("No data for bcm1-bcm2 double difference");
+      ref[n]->SetBorderSize(0);
+      ref[n]->SetFillColor(0);
+      ref[n]->SetFillColor(0);
+      ref[n]->SetTextSize(0.08);
+      ref[n]->Draw();
+      n++;
+    }
+
+    mc->cd(6);
+    TH1F *DDiff56 = new TH1F("DDiff56","bcm 5 and 6 Double Difference",1001,-500,500);
+    if(DDiff56){
+      DDiff56->SetBit(TH1::kCanRebin);
+      HelTree->Draw("(asym_qwk_bcm5-asym_qwk_bcm6)*1e6 >> DDiff56",Form("%s && asym_qwk_bcm5.%s && asym_qwk_bcm6.%s",general_cut,det_cut,det_cut),"goff");
+      DDiff56->SetDirectory(0);
+      DDiff56->GetXaxis()->SetTitle("bcm 5-6 DDiff [ppm]");
+      DDiff56->GetXaxis()->SetRangeUser(DDiff56->GetMean()-5*DDiff56->GetRMS(), DDiff56->GetMean()+5*DDiff56->GetRMS());
+      DDiff56->GetXaxis()->CenterTitle();
+      DDiff56->GetXaxis()->SetTitleSize(0.06);
+      DDiff56->GetXaxis()->SetLabelSize(0.06);
+      DDiff56->GetXaxis()->SetTitleOffset(1.25);
+      DDiff56->GetXaxis()->SetTitleColor(1);
+      DDiff56->SetNdivisions(506,"X");
+      DDiff56->GetYaxis()->SetLabelSize(0.06);
+
+      dMainHistos.push_back(DDiff56);
+      dMainHistos.back()->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+      dMainPlotsArray.push_back(dMainHistos.back());      
+      dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      // goldenvals.RewindToFileStart();
+      // while(goldenvals.ReadNextLine()){
+	
+      // 	goldenvals.TrimComment('#'); 
+      // 	goldenvals.TrimWhitespace(); 
+      // 	if (goldenvals.LineIsEmpty())  continue;
+	
+      // 	modname = goldenvals.GetTypedNextToken<TString>();
+      // 	if(modname == "DDiff56"){
+      // 	  mean = goldenvals.GetTypedNextToken<Double_t>();
+      // 	  rms = goldenvals.GetTypedNextToken<Double_t>();
+	  
+      // 	  abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
+      // 	  abox->SetFillColor(2);
+      // 	  abox->SetFillStyle(3002);
+      // 	  abox->Draw("");
+      // 	  dErrorBoxArray.push_back(abox);
+      // 	  gPad->Modified();
+      // 	  gPad->Update();
+	  
+      // 	  continue;
+      // 	}
+      // }
+
+      abox = new TBox(-100,dMainHistos.back()->GetMinimum(), 100, dMainHistos.back()->GetMaximum());
+      abox->SetFillColor(2);
+      abox->SetFillStyle(3002);
+      abox->Draw("");
+      gPad->Modified();
+      gPad->Update();
+      dErrorBoxArray.push_back(abox);
+      
+    }
+    else{
+      ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+      ref[n]->AddText("No data for bcm5-bcm6 double difference");
+      ref[n]->SetBorderSize(0);
+      ref[n]->SetFillColor(0);
+      ref[n]->SetFillColor(0);
+      ref[n]->SetTextSize(0.08);
+      ref[n]->Draw();
+      n++;
+    }
+
+  }
+  else{
+
+    mc->cd(5);
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for bcm1-bcm2 double difference");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+
+    mc->cd(6);
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for bcm5-bcm6 double difference");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+  }
+
+
+  if(MainDetSubSystem){
+        
+    hst = (TH1F*)MainDetSubSystem->GetMDAllAsymmetryHisto();	
+    mc->cd(7);
+    if(hst){
+      dMainHistos.push_back((TH1F*)(hst->Clone()));
+      (dMainHistos.back())->GetXaxis()->SetTitle("MD All Asym.");
+      dMainHistos.back()->SetDirectory(0);
+      (dMainHistos.back())->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();  
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+      dMainPlotsArray.push_back(dMainHistos.back());      
+      dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      goldenvals.RewindToFileStart();
+      while(goldenvals.ReadNextLine()){
+	
+	goldenvals.TrimComment('#'); 
+	goldenvals.TrimWhitespace(); 
+	if (goldenvals.LineIsEmpty())  continue;
+	
+	modname = goldenvals.GetTypedNextToken<TString>();
+	if(modname == "asym_qwk_mdallbars"){
+	  mean = goldenvals.GetTypedNextToken<Double_t>();
+	  rms = goldenvals.GetTypedNextToken<Double_t>();
+	  
+	  abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
+	  abox->SetFillColor(2);
+	  abox->SetFillStyle(3002);
+	  abox->Draw("");
+	  dErrorBoxArray.push_back(abox);
+	  gPad->Modified();
+	  gPad->Update();
+	  
+	  continue;
+	}
+      }
+
+      // abox = new TBox(-0.25e-3,dMainHistos.back()->GetMinimum(), 0.25e-3, dMainHistos.back()->GetMaximum());
+      // abox->SetFillColor(2);
+      // abox->SetFillStyle(3002);
+      // abox->Draw("");
+      // gPad->Modified();
+      // gPad->Update();
+      // dErrorBoxArray.push_back(abox);
+
+    }
+    else{
+      ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+      ref[n]->AddText("No data for MD all bar asymmetry");
+      ref[n]->SetBorderSize(0);
+      ref[n]->SetFillColor(0);
+      ref[n]->SetFillColor(0);
+      ref[n]->SetTextSize(0.08);
+      ref[n]->Draw();
+      n++;
+    }
+
+//     grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
+//     mc->cd(8);
+//     if(grp){
+//       dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
+//       (dMainGraphs.back())->SetTitle(Form("MD %s",grp->GetTitle()));
+//       (dMainGraphs.back())->GetXaxis()->SetTitle("MD Combinations");
+//       (dMainGraphs.back())->Draw("ap");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();      
+//       gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+//       dMainPlotsArray.push_back(dMainGraphs.back());      
+//     }    
+//     else{
+//       ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+//       ref[n]->AddText("No data for MD asymmetries");
+//       ref[n]->SetBorderSize(0);
+//       ref[n]->SetFillColor(0);
+//       ref[n]->SetFillColor(0);
+//       ref[n]->SetTextSize(0.08);
+//       ref[n]->Draw();
+//       n++;
+//     }
+  }
+  else{
+    mc->cd(7);
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for MD all bar asymmetry");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+//     mc->cd(8);
+//     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+//     ref[n]->AddText("No data for MD asymmetries");
+//     ref[n]->SetBorderSize(0);
+//     ref[n]->SetFillColor(0);
+//     ref[n]->SetFillColor(0);
+//     ref[n]->SetTextSize(0.08);
+//     ref[n]->Draw();
+//     n++;
+  }
+
+  hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_bpm3c12_EffectiveCharge_hw");
+  mc->cd(8);
+  if(hst){
+    hst->GetXaxis()->SetTitle("bpm3c12 Effective Charge");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    dMainHistos.push_back((TH1F*)(hst->Clone()));
+    dMainHistos.back()->SetDirectory(0);
+    dMainHistos.back()->Draw("");
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->Modified();
+    gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save", 250);    
+    dMainPlotsArray.push_back(dMainHistos.back());      
+    dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "yield_qwk_bpm3c12_EffectiveCharge"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    }
+    // abox = new TBox(-5e-3,dMainHistos.back()->GetMinimum(), 5e-3, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
+  }
+  else{
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for yield_qwk_bpm3c12_EffectiveCharge_hw");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+  }
+
+
+  const char *deverr[7] = {
+    "asym_qwk_charge_dev_err", "diff_qwk_targetX_dev_err", "diff_qwk_targetY_dev_err",
+    "diff_qwk_targetXSlope_dev_err", "diff_qwk_targetYSlope_dev_err","diff_qwk_bpm3c12X_dev_err", 
+    "asym_qwk_mdallbars_dev_err"
+  };
+  TString temp;
+
+  TH1F *error_summary = new TH1F("error_summary","",3,0,3);
+  mc->cd(9);
+  Int_t flag = 0;
+  if(error_summary){
+
+    for(int i = 0 ; i < 7; i ++){
+      sprintf(dMiscbuffer,"hel_histo/%s",deverr[i]);
+      hst = (TH1F*)dROOTFile->ReadData(dMiscbuffer);
+      if(hst){ 
+	temp = deverr[i];
+	temp.ReplaceAll("_dev_err", "");
+	temp.ReplaceAll("_qwk", "");
+	error_summary->Fill(temp,hst->GetEntries());
+      }
+      else 
+	{ flag = 1; continue;}
+    }
+
+    if(!flag){
+      error_summary->SetStats(0);
+      error_summary->SetFillColor(46);
+      error_summary->SetBarWidth(0.5);
+      error_summary->SetBarOffset(0.06);
+      error_summary->SetBit(TH1::kCanRebin);
+      error_summary->LabelsDeflate();
+      error_summary->SetTitle("Error Summary");
+      error_summary->GetXaxis()->SetLabelSize(0.08);
+      error_summary->GetXaxis()->SetLabelOffset(0.01);
+      error_summary->GetYaxis()->SetLabelSize(0.05);
+      error_summary->GetYaxis()->SetTitleOffset(1.0);
+      error_summary->GetYaxis()->SetTitleSize(0.05);
+      error_summary->GetYaxis()->SetTitle("Bad Events");
+      error_summary->SetMarkerSize(3.0);
+      // dMainHistos.push_back(error_summary);
+      
+      error_summary->Draw("bar2 TEXT0");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();  
+      dMainHistos.push_back(error_summary);
+      gPad->GetFrame()->SetToolTipText("Double-click plot to edit, post, and save.", 250);    
+      dMainPlotsArray.push_back(dMainHistos.back());      
+    }
+    else{
+      delete error_summary;
+    }
+  }
+  if(flag){
+    ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+    ref[n]->AddText("No data for one or more device error codes");
+    ref[n]->SetBorderSize(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetFillColor(0);
+    ref[n]->SetTextSize(0.08);
+    ref[n]->Draw();
+    n++;
+  }
+
+  for(int j = 0; j < n; j++)
+    delete ref[j];
+
+  dMainPlots = kTrue;
+
+  HistoriesSubSystem->PlotData(dHistoryPlotsArray,dErrorBoxArray,GetCurrentRunNumber());
+
+  TString PWD = gSystem->pwd();
+  
+  if(PWD.Contains("cdaq") && dClArgs.autoupdate == kTrue){
+    gSystem->CopyFile(Form("%s/Extensions/GUI/QwAutoGUIHistories.dat",gSystem->Getenv("QWANALYSIS")),
+		      Form("/u/home/mgericke/public_html/QwAutoGUIHistories-backup.dat"),kTrue);
+  }
+
+  gStyle->SetTitleW(TitleW);
+  gStyle->SetTitleH(TitleH);
+  gStyle->SetStatW(StatW);             
+  gStyle->SetStatH(StatH);             
+  
+}
 
 void QwGUIMain::OnLogMessage(const char *msg)
 {
@@ -685,55 +1791,78 @@ void QwGUIMain::OnLogMessage(const char *msg)
 void QwGUIMain::OnObjClose(const char *objname)
 {
   if(!objname) return;
-
   TString name = objname;
+
+  if(name.Contains("dDataWindow")){
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(objname));
+    if(window){
+      if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
+    }
+  }
 
   if(name.Contains("dROOTFile")){
     dROOTFile = NULL;
 #ifdef QWGUI_DEBUG
     printf("Received dROOTFile IsClosing signal\n");
 #endif
+    CleanUpDataWindows();
   }
 
-  if(name.Contains("dDatabase")){
-    dDatabase = NULL;
-#ifdef QWGUI_DEBUG
-    printf("Received dDatabase IsClosing signal\n");
-#endif
-  }
-
-
-//   TObject *obj;
-//   TIter next(SubSystemArray.MakeIterator());
-//   obj = next();
-//   while(obj){
-//     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-//     if(!strcmp(objname,entry->GetName())){
-//       SubSystemArray.Remove(entry);
-//     }
-//     obj = next();
+//   if(name.Contains("dDatabase")){
+//     dDatabase = NULL;
+// #ifdef QWGUI_DEBUG
+//     printf("Received dDatabase IsClosing signal\n");
+// #endif
 //   }
 }
 
-void QwGUIMain::OnReceiveMessage(const char *obj)
+void QwGUIMain::OnReceiveMessage(const char *msg)
 {
-  TString name = obj;
+  TString message = msg;
   const char *ptr = NULL;
+  TObject *obj = NULL;
+  Int_t ind = 0;
 
-  QwGUISubSystem* sbSystem = GetSubSystemPtr(obj);
+  QwGUISubSystem* sbSystem = GetSubSystemPtr(msg);
   if(sbSystem){
-
     ptr = sbSystem->GetMessage();
     if(ptr)
       Append(ptr,sbSystem->IfTimeStamp());
   }
-  if(name.Contains("dROOTFile")){
+  if(message.Contains("dROOTFile")){
 
     ptr = dROOTFile->GetMessage();
     if(ptr)
       Append(ptr,kTrue);
-
   }
+
+  if(message.Contains("dDataWindow")){
+    
+    if(message.Contains("Add to")){
+      message.ReplaceAll("Add to dDataWindow_",7,"",0);
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	ind = DataWindowArray.IndexOf(obj);
+	SetSelectedDataWindow(ind);
+      }
+    }
+    else if(message.Contains("Don't add to")){
+      message.ReplaceAll("Don't add to dDataWindow_",13,"",0);
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	RemoveSelectedDataWindow();
+      }
+    }
+  }
+}
+
+void QwGUIMain::OnUpdatePlot(const char *obj)
+{
+  if(!obj) return;
+  TString str = obj;
+  if(!str.Contains("dDataWindow")) return;
+
+  printf("Received Message From: %s\n",obj);
 }
 
 // void QwGUIMain::PlotCurrentTab()
@@ -796,7 +1925,12 @@ Int_t QwGUIMain::GetFilenameFromDialog(char *file, const char *ext,
   filetypes[index] = 0; index++;
   filetypes[index] = 0; index++;
 
-  sprintf(dMiscbuffer2,"/home/%s/scratch",gSystem->Getenv("USER"));
+  if (gSystem->Getenv("QW_ROOTFILES"))
+    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QW_ROOTFILES"));
+  else if (gSystem->Getenv("QWSCRATCH"))
+    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QWSCRATCH"));
+  else
+    sprintf(dMiscbuffer2,"/home/%s/scratch",gSystem->Getenv("USER"));
   static TString dir(dMiscbuffer2);
   TGFileInfo fi;
 
@@ -867,58 +2001,63 @@ Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
 
 Int_t QwGUIMain::OpenDatabase()
 {
-  if(IsDatabaseOpen()) CloseDatabase();
+//   if(IsDatabaseOpen()) CloseDatabase();
 
-  dDatabase = new QwGUIDatabaseContainer(fClient->GetRoot(), this,
-					 "dDatabase","QwGUIMain",
-					 "DBASE",FM_READ,FT_DBASE);
+//   dDatabase = new QwGUIDatabaseContainer(fClient->GetRoot(), this,
+// 					 "dDatabase","QwGUIMain",
+// 					 "DBASE",FM_READ,FT_DBASE);
 
-  if(!dDatabase){SetDatabaseOpen(kFalse); return PROCESS_FAILED;}
+//   if(!dDatabase){SetDatabaseOpen(kFalse); return PROCESS_FAILED;}
 
-  if(dDatabase->OpenDatabase() != FILE_PROCESS_OK) {
-    SetDatabaseOpen(kFalse);
-    dDatabase->CloseDatabase();
-    dDatabase = NULL;
-    return PROCESS_FAILED;
-  }
+//   if(dDatabase->OpenDatabase() != FILE_PROCESS_OK) {
+//     SetDatabaseOpen(kFalse);
+//     dDatabase->CloseDatabase();
+//     dDatabase = NULL;
+//     return PROCESS_FAILED;
+//   }
 
-  dMenuFile->DisableEntry(M_DBASE_OPEN);
-  TObject *obj;
-  TIter next(SubSystemArray.MakeIterator());
-  obj = next();
-  while(obj){
-    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    entry->SetDataContainer((RDataContainer*)dDatabase);
-    obj = next();
-  }
+//   dMenuFile->DisableEntry(M_DBASE_OPEN);
+//   TObject *obj;
+//   TIter next(SubSystemArray.MakeIterator());
+//   obj = next();
+//   while(obj){
+//     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+//     entry->SetDataContainer((RDataContainer*)dDatabase);
+//     obj = next();
+//   }
 
-  SetDatabaseOpen(kTrue);
-//   SetRootFileName(filename);
-  return PROCESS_OK;
+//   SetDatabaseOpen(kTrue);
+// //   SetRootFileName(filename);
+  return PROCESS_FAILED;
 }
 
 void QwGUIMain::CloseDatabase()
 {
 
-  if(dDatabase != NULL){
+  // if(dDatabase != NULL){
 
-    // Properly disconnect from and close the database here......
+  //   // Properly disconnect from and close the database here......
 
-    dDatabase = NULL;
-  }
-  SetDatabaseOpen(kFalse);
-  dMenuFile->EnableEntry(M_DBASE_OPEN);
+  //   dDatabase = NULL;
+  // }
+  // SetDatabaseOpen(kFalse);
+  // dMenuFile->EnableEntry(M_DBASE_OPEN);
 }
 
 
-Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
+Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* file)
 {
+  Int_t flag = 0;
+  if(!IsRootFileOpen() && AddSegments()){
+    SetSubSystemSegmentAdd(kFalse);
+    flag = 1;
+  }
 
   if(IsRootFileOpen()) CloseRootFile();
   char filename[NAME_STR_MAX];
   if(!file){
     if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED)
-      return PROCESS_FAILED;
+      return PROCESS_FAILED;  
   }
   else
     strcpy(filename,file);
@@ -927,7 +2066,7 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
 
   dROOTFile = new RDataContainer(fClient->GetRoot(), this,
 				 "dROOTFile","QwGUIMain",
-				 "ROOT",FM_UPDATE,FT_ROOT);
+				 "ROOT",FM_READ,FT_ROOT);
 
   if(!dROOTFile){SetRootFileOpen(kFalse); return PROCESS_FAILED;}
 
@@ -937,28 +2076,285 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
     dROOTFile = NULL;
     return PROCESS_FAILED;
   }
+  
+  UInt_t levt = 0;
+  UInt_t evts = 0;
+  if(EventMode){
 
-  dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
+    TObject *obj = dROOTFile->ReadData("Mps_Tree");
+    if(!obj) {return PROCESS_FAILED;}
+    if(!obj->InheritsFrom("TTree")) {return PROCESS_FAILED;}
+
+       dCurrentRunEventOptions.Start = 0;
+       dCurrentRunEventOptions.Length = 0;
+       dCurrentRunEventOptions.TotalLength = ((TTree*)obj)->GetEntries();
+
+    new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",&dCurrentRunEventOptions);
+
+    if(dCurrentRunEventOptions.cancelFlag) {return PROCESS_FAILED;}
+
+     levt = dCurrentRunEventOptions.Start;
+     evts = dCurrentRunEventOptions.Length;
+
+  }
+
+  Int_t n = dROOTFile->GetNumOfRootObjects();
+  TString *names = new TString[n];
+  TString conds;
+  dROOTFile->GetListOfRootObjects(names);
+  TList *conditions;
+  for(int l = 0; l < n; l++){
+    if(names[l].Contains("condition")){
+      conditions = (TList*)dROOTFile->GetObjFromFile(names[l].Data());
+      if(conditions){
+	for(int i = 0; i < conditions->GetSize(); i++){
+	  conds = ((TObjString*)(conditions->At(i)))->GetString();
+	    
+	  Append(conds.Data(),kTrue);
+	  
+	  // if(conds && conds.Contains("QwAnalyzer Options")){
+	  //   Int_t loc = conds.Index("-r",2,0,TString::kExact)+2;
+	  //   dCurRun = atoi(&conds[loc]);
+	  //   //printf("Run %d\n",atoi(&conds[loc])); 
+	  // }
+	  if(conds && conds.Contains("QwAnalyzer Name") && 
+	     conds.Contains("parity")){
+	    //This is a parity run
+	    dCurRunType = Parity;
+	  }
+	  if(conds && conds.Contains("QwAnalyzer Name") && 
+	     conds.Contains("tracking")){
+	    //This is a tracking run
+	    dCurRunType = Tracking;
+	  }
+	}	 
+      }
+    }
+  }
+  delete[] names;
+
+//   dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
+
+  SetRootFileOpen(kTrue);
+  SetRootFileName(filename);
+  StoreFileInfo(filename);
+
   TObject *obj;
   TIter next(SubSystemArray.MakeIterator());
   obj = next();
   while(obj){
     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    entry->SetDataContainer(dROOTFile);
+    if(entry->IsTabMenuEntryChecked()){
+      entry->SetRunNumber(dCurRun);
+      entry->SetRunType(dCurRunType);
+      entry->SetEventMode(EventMode,levt,evts);
+      entry->SetDataContainer(dROOTFile);
+    };
     obj = next();
   }
 
-  SetRootFileOpen(kTrue);
-  SetRootFileName(filename);
+  if(flag) SetSubSystemSegmentAdd(kTrue);  
+
+  PlotMainData();
+
+  printf("Done processing %s\n",dROOTFile->GetFileName());
+
+  dTab->SetTab("Main",kTrue);
   return PROCESS_OK;
 }
 
+void QwGUIMain::StoreFileInfo(const char *filename)
+{
+  TString tmpfile = filename;
 
-// Int_t QwGUIMain::OpenRun(Bool_t kCalculate, Bool_t kSilent)
-// {
-//   return PROCESS_FAILED;
-// }
+  TObjArray *substrings = tmpfile.Tokenize("_.");
+  TIter next(substrings->MakeIterator());
+  TObject *obj = next();
+  Int_t flag = 0;
+  while(obj){
+    TObjString *substr = (TObjString*)obj;
+    if(!flag && (substr->GetString()).IsDigit()){
+      SetCurrentRunNumber((substr->GetString()).Atoi());
+      flag = 1;
+      // printf("Run %d\n",GetCurrentRunNumber());
+    }
+    else if(flag && (substr->GetString()).IsDigit()){
+      SetCurrentRunSegment((substr->GetString()).Atoi());	
+      // printf("Segment %d\n",GetCurrentRunSegment());
+    }
+    obj = next();
+    delete substr;
+  }
+}
 
+void QwGUIMain::GetFileInfo(const char *filename, int &run, int &segment)
+{
+  run = -1;
+  segment = -1;
+  TString tmpfile = filename;
+
+  TObjArray *substrings = tmpfile.Tokenize("_.");
+  TIter next(substrings->MakeIterator());
+  TObject *obj = next();
+  Int_t flag = 0;
+  while(obj){
+    TObjString *substr = (TObjString*)obj;
+    if(!flag && (substr->GetString()).IsDigit()){
+      run = (substr->GetString()).Atoi();
+      flag = 1;
+      // printf("Run %d\n",GetCurrentRunNumber());
+    }
+    else if(flag && (substr->GetString()).IsDigit()){
+      segment = (substr->GetString()).Atoi();	
+      // printf("Segment %d\n",GetCurrentRunSegment());
+    }
+    obj = next();
+    delete substr;
+  }
+}
+
+void QwGUIMain::SetSubSystemSegmentAdd(Bool_t add)
+{
+  if(!IsRootFileOpen()) return;
+
+  TObject *obj;
+  TIter next(SubSystemArray.MakeIterator());
+  obj = next();
+  while(obj){
+    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+    if(entry->IsTabMenuEntryChecked()){
+      entry->SetMultipleFiles(add);
+    };
+    obj = next();
+  }
+}
+
+void QwGUIMain::LoopOverRunSegments()
+{
+//   SetSubSystemSegmentAdd(kFalse);
+
+//   SetCurrentRunSegment(GetRunSegment(0));
+//   OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+// 				  GetCurrentFilePrefix(),GetCurrentRunNumber(),
+// 				  GetCurrentRunSegment()));    
+
+//   SetSubSystemSegmentAdd(kTrue);
+
+  for(uint i = 0; i < dRunSegments.size(); i++){
+
+    SetCurrentRunSegment(GetRunSegment(i));
+    OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+				    GetCurrentFilePrefix(),GetCurrentRunNumber(),
+				    GetCurrentRunSegment()));    
+  }
+}
+
+Int_t QwGUIMain::FindFileAndSegments()
+{
+  dRunSegments.clear();
+  dSegmentEntry->RemoveAll();
+  
+  TString tmpfile;  
+  TString prefix = GetCurrentFilePrefix();
+
+  if(prefix.Contains("first100k")){
+    tmpfile = Form("%s%d.root",GetCurrentFilePrefix(),GetCurrentRunNumber());
+    if(gSystem->FindFile(GetCurrentFileDirectory(),tmpfile))
+      return 1;
+  }
+
+  Int_t etr = 0;
+  for (int i = 0; i < 1000; i++){    
+    tmpfile = Form("%s%d.%03d.root",GetCurrentFilePrefix(),GetCurrentRunNumber(),i);
+    if(gSystem->FindFile(GetCurrentFileDirectory(),tmpfile)){
+      etr++;
+      dSegmentEntry->AddEntry(Form("Segment %d",i), etr);
+      dRunSegments.push_back(i);
+    }
+  }
+  return etr;
+}
+
+Int_t QwGUIMain::OpenRun()
+{
+  SetCurrentRunNumber((Int_t)dRunEntry->GetNumber());
+  Int_t etr = 0;
+
+  if (gSystem->Getenv("QW_ROOTFILES")){
+    SetCurrentFileDirectory(Form("%s",gSystem->Getenv("QW_ROOTFILES")));
+      etr = FindFileAndSegments();
+  }
+  if(!etr){
+    if (gSystem->Getenv("QWSCRATCH")){
+      SetCurrentFileDirectory(Form("%s",gSystem->Getenv("QWSCRATCH")));
+      etr = FindFileAndSegments();
+    }
+  }
+  if(!etr){
+      SetCurrentFileDirectory(Form("/home/%s/scratch",gSystem->Getenv("USER")));
+      etr = FindFileAndSegments();    
+  }
+
+  if(!etr){
+
+    Int_t retval;
+    TString buffer(Form("Can't find any segment of file %s%d.XXX.root",
+			GetCurrentFilePrefix(),GetCurrentRunNumber()));  
+    new TGMsgBox(fClient->GetRoot(), this,"File Open Operation",
+		 buffer.Data(),kMBIconQuestion, kMBOk, &retval);
+
+  }
+  else if(etr == 1){
+    
+    //There is only one run segment, so just open it:
+    SetCurrentRunSegment(0);
+//     TString file();
+    TString prefix = GetCurrentFilePrefix();
+
+    if(prefix.Contains("first100k")){
+      return OpenRootFile(EventMode(),FS_OLD,Form("%s/%s%d.root",GetCurrentFileDirectory(),
+					     GetCurrentFilePrefix(),GetCurrentRunNumber()));
+
+    }
+    else
+      return OpenRootFile(EventMode(),FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+					     GetCurrentFilePrefix(),GetCurrentRunNumber(),
+					     GetCurrentRunSegment()));
+
+  }
+  else{
+    
+    //There are multiple run segments, so popup a selection dialog and do any further processing
+    //from the ::ProcessMessage(...) function below ...
+
+    dSegmentEntry->AddEntry("All Segments", etr+1);
+    dSegmentEntry->PopThisUp();
+
+    return PROCESS_OK;
+
+  }
+  return PROCESS_FAILED;
+}
+
+void QwGUIMain::OnNewRunSignal(int sig)
+{
+  FILE *fp = NULL;
+
+  fp=fopen("QwAGUIRun.DAT","r");
+  if(fp){
+    memset(dMiscbuffer,'\0', sizeof(dMiscbuffer));
+    fscanf(fp,"%s",dMiscbuffer);
+    fclose(fp);
+
+    OpenRootFile(kFalse,FS_OLD,dMiscbuffer);    
+  }
+
+}
+
+void QwGUIMain::OnRunWarningSignal(int sig)
+{
+  CloseWindow();
+}
 
 // void QwGUIMain::CloseRun()
 // {
@@ -967,13 +2363,33 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
 
 void QwGUIMain::CloseRootFile()
 {
+  if(IsRootFileOpen() && !AddSegments()){ 
+    SetSubSystemSegmentAdd(kFalse);
+
+    for(uint i = 0; i < dMainHistos.size(); i++)
+      delete dMainHistos[i];
+    for(uint i = 0; i < dMainGraphs.size(); i++)
+      delete dMainGraphs[i];
+    dMainGraphs.clear();
+    dMainHistos.clear();
+    dMainPlotsArray.clear();
+    dHistoryPlotsArray.clear();
+
+    for(uint i = 0; i < dErrorBoxArray.size(); i++)
+      delete dErrorBoxArray[i];
+    dErrorBoxArray.clear();
+
+    dMainPlots = kFalse;
+  }
 
   if(dROOTFile != NULL){
     dROOTFile->Close(kFalse);
+    delete dROOTFile;
     dROOTFile = NULL;
   }
+
   SetRootFileOpen(kFalse);
-  dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
+//   dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
 
 }
 
@@ -1084,6 +2500,50 @@ Int_t QwGUIMain::WriteLogData(const char *filename)
   return PROCESS_OK;
 }
 
+void QwGUIMain::SubmitToHCLog()
+{
+
+  dHCLogEntryDlg = new QwGUIHCLogEntryDialog(fClient->GetRoot(),0,
+					     "dHCLogEntryDlg","QwGUIDataWindow",
+					     &dHCLogEntries,400, 200);
+  if(dHCLogEntries.setFlag){
+
+    TString hcpost;
+    TString contentfile = Form("%s/Extensions/GUI/hcpostcomments.txt",gSystem->Getenv("QWANALYSIS"));
+    TString attachment = Form("%s/Extensions/GUI/TempHClogAttachment.png",gSystem->Getenv("QWANALYSIS"));
+    RDataContainer *tempfile = new RDataContainer(fClient->GetRoot(),this,"tempfile",
+						  "QwGUIMain","",FM_WRITE,FT_TEXT);
+
+    hcpost = "hclog_post ";
+    if(dHCLogEntries.name.Length())
+      hcpost += WrapParameter("author", dHCLogEntries.name);
+    if(dHCLogEntries.emaillist.Length())
+      hcpost += WrapParameter("emailto",dHCLogEntries.emaillist);
+    hcpost += "--tag=\"This is logged using hclog_post by QwGUI\" ";
+    hcpost += "  --cleanup ";
+    
+    if(dHCLogEntries.subject.Length())
+      hcpost += WrapParameter("subject",MakeSubject(dHCLogEntries.subject));
+    
+    tempfile->OpenFile(contentfile);
+    tempfile->WriteData(dHCLogEntries.comments.Data(),strlen(dHCLogEntries.comments.Data()));
+    tempfile->Close();
+    tempfile = NULL;
+
+    if(contentfile.Length())
+      hcpost += WrapParameter("textfile", contentfile);
+
+    TCanvas *mc = dMainCanvas->GetCanvas();
+    mc->SaveAs(attachment.Data());
+    hcpost += WrapAttachment(attachment.Data());
+
+    gSystem->Exec(hcpost.Data());
+
+  }
+  dHCLogEntryDlg = NULL;
+}
+
+
 Int_t QwGUIMain::WriteRootData()
 {
 //   Int_t retval = 0;
@@ -1181,22 +2641,40 @@ void QwGUIMain::CloseWindow()
   // or returns from the TApplication event loop (depending on the
   // argument specified in TApplication::Run()).
 
-  // Don't remove the PID file if it's not ours.
-//   if(FILE *fp=fopen("QwGUID_PID.DAT","r")) {
-//     int pid=int(getpid()), infile=0;
-//     fscanf(fp,"%d", &infile);   // don't care if we're successful or not
-//     fclose(fp);
-//     if (pid==infile) {
-//       sprintf(dMiscbuffer,"rm %s","QwGUID_PID.DAT");
-//       system(dMiscbuffer);
-//     } else
-//       printf("%s:%d: Not removing %d's PID file.\n",__FILE__,__LINE__,infile);
-//   } else
-//     printf ("%s:%d: No PID file to remove.\n",__FILE__,__LINE__);
+  //Don't remove the PID file if it's not ours.
+  if(FILE *fp=fopen("QwGUID_PID.DAT","r")) {
+    int pid=int(getpid()), infile=0;
+    fscanf(fp,"%d", &infile);   // don't care if we're successful or not
+    fclose(fp);
+    if (pid==infile) {
+      sprintf(dMiscbuffer,"rm %s","QwGUID_PID.DAT");
+      system(dMiscbuffer);
+    } else
+      printf("%s:%d: Not removing %d's PID file.\n",__FILE__,__LINE__,infile);
+  } else
+    printf ("%s:%d: No PID file to remove.\n",__FILE__,__LINE__);
 
-//   CloseRun();
+  TString process;
+
+  process = gSystem->GetFromPipe("ps -e | grep -r \"QwAutoGUI\" | awk \'{print $1}\'");
+
+  system(Form("kill %s\n",process.Data()));
+  
+  // printf("processes = %s\n",process.Data());
+
+  RemoveTab(MainDetSubSystem);
+  delete MainDetSubSystem;
+  MainDetSubSystem = NULL;
+  RemoveTab(LumiDetSubSystem);
+  delete LumiDetSubSystem;
+  LumiDetSubSystem = NULL;
+  // delete HallCBeamlineSubSystem;
+  RemoveTab(HistoriesSubSystem);
+  delete HistoriesSubSystem;
+  HistoriesSubSystem = NULL;
+
+  //   CloseRun();
   gApplication->Terminate(0);
-
 }
 
 Bool_t QwGUIMain::HandleKey(Event_t *event)
@@ -1206,9 +2684,9 @@ Bool_t QwGUIMain::HandleKey(Event_t *event)
   UInt_t keysym;
 
   printf("Line 1116\n");
-  printf("Window id = %d dLogEdit id = %d\n",event->fWindow, dLogEdit->GetId());
+  printf("Window id = %d dLogEdit id = %d\n", (Int_t) event->fWindow, (Int_t) dLogEdit->GetId());
 
-  printf("event type = %d\n",event->fType);
+  printf("event type = %d\n",(Int_t) event->fType);
 
   if (event->fType == kGKeyPress) {
     gVirtualX->LookupString(event, input, sizeof(input), keysym);
@@ -1227,6 +2705,7 @@ Bool_t QwGUIMain::HandleKey(Event_t *event)
 
 Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
+
   // Handle messages send to the MainFrame object. E.g. all menu button
   // messages.
 
@@ -1245,10 +2724,22 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 	case M_DBASE_QUERY:
 
-	  printf("Typing %s\n",dDBQueryBuffer->GetString());
- 	  dDBQueryEntry->Clear();
+// 	  printf("Typing %s\n",dDBQueryBuffer->GetString());
+//  	  dDBQueryEntry->Clear();
 	  break;
 
+	case M_RUN_SELECT:
+
+	  if(dEventModeCheckButton->IsOn())
+	    SetEventMode(kTrue);
+	  else
+	    SetEventMode(kFalse);
+	  
+	  OpenRun();
+
+	  break;
+	  
+	  
 	default:
 	  break;
 	}
@@ -1263,11 +2754,71 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   case kC_COMMAND:
 
     switch (GET_SUBMSG(msg)) {
+            
+    case kCM_CHECKBUTTON:
+      {
+	switch(parm1) {
+	case M_ADD_SEGMENT:
+	  {
+	    if (dAddSegmentCheckButton->GetState() == kButtonDown){
+	      SetAddSegments(kTrue);
+	      SetSubSystemSegmentAdd(kTrue);
+	    }
+	    else{
+	      SetAddSegments(kFalse);
+	      SetSubSystemSegmentAdd(kFalse);
+	    }
+	  }
+	  break;
+	}
+      }
+      break;
+     
+    case kCM_BUTTON:
+      {
+	switch (parm1) {
+	case M_HC_ENTRY_SET:
+	  {
+	    TString name = dTab->GetCurrentTab()->GetText()->GetString();
+	    if(!name.CompareTo("Main"))
+	      SubmitToHCLog();
+	    else if(!name.CompareTo("Log Book"))
+	      {//do nothing
+	      }
+	    else{
+	      QwGUISubSystem* sbSystem = (QwGUISubSystem*)dTab->GetCurrentContainer();
+	      if(sbSystem) sbSystem->MakeHCLogEntry();
+	    }
+	    break;
+	  }
+	  break;
+	}
+      }
+      break;
 
     case kCM_COMBOBOX:
       {
 	switch (parm1) {
-	case M_TBIN_SELECT:
+	case M_SEGMENT_SELECT:
+
+
+	  if(dSegmentEntry->GetSelected() == dSegmentEntry->GetNumberOfEntries()){
+	    SetAddSegments(kTrue);
+	    LoopOverRunSegments();
+	  }
+	  else{
+	    SetCurrentRunSegment(dRunSegments[dSegmentEntry->GetSelected()-1]);
+	    OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),GetCurrentFilePrefix(),
+					    GetCurrentRunNumber(),GetCurrentRunSegment()));  
+	  }
+	  
+	  break;
+
+	case M_PREFIX_SELECT:
+
+// 	  printf("Entry = %d\n",dPrefixEntry->GetSelected());
+	  SetCurrentFilePrefix(dFilePrefix[dPrefixEntry->GetSelected()-101].Data());
+
 	  break;
 	}
       }
@@ -1295,8 +2846,21 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
       switch (parm1) {
 
-      case M_ROOT_FILE_OPEN:
-	OpenRootFile();
+      case M_ROOT_FILE_OPEN:	
+	SetEventMode(kFalse);
+	OpenRootFile(kFalse);
+	break;
+
+      case M_ROOT_FILE_EVENT_OPEN:
+	SetEventMode(kTrue);
+	SetAddSegments(kFalse);
+	SetSubSystemSegmentAdd(kFalse);
+	// dAddSegmentCheckButton->SetState(kButtonUp);
+	OpenRootFile(kTrue);
+	break;
+
+      case M_TABS_SHOWALL:
+	dMenuFile->CheckEntry(M_TABS_SHOWALL);
 	break;
 
       case M_DBASE_OPEN:
@@ -1315,6 +2879,8 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_ROOT_FILE_CLOSE:
+	SetAddSegments(kFalse);
+  	SetSubSystemSegmentAdd(kFalse);
 	if(IsRootFileOpen()) CloseRootFile();
 	break;
 
@@ -1407,15 +2973,15 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 QwGUIMain *gViewMain;
 
-// void RunSignal(int sig)
-// {
-//   gViewMain->OnNewRunSignal(sig);
-// }
+void RunSignal(int sig)
+{
+  gViewMain->OnNewRunSignal(sig);
+}
 
-// void RunWarning(int sig)
-// {
-//   gViewMain->OnRunWarningSignal(sig);
-// }
+void RunWarning(int sig)
+{
+  gViewMain->OnRunWarningSignal(sig);
+}
 
 Int_t main(Int_t argc, Char_t **argv)
 {
@@ -1424,7 +2990,7 @@ Int_t main(Int_t argc, Char_t **argv)
 //  Int_t help = 0;
   dClArgs.realtime = kFalse;
   dClArgs.checkmode = kFalse;
-
+  dClArgs.autoupdate = kFalse;
 //   int ax,ay;
 //   unsigned int aw, ah;
 
@@ -1438,6 +3004,7 @@ Int_t main(Int_t argc, Char_t **argv)
 
   // Add QwGUI specific options
   gQwOptions.AddOptions()("realtime", po::value<bool>()->zero_tokens(), "enable realtime mode (currently non-functional)");
+  gQwOptions.AddOptions()("autoupdate,u", po::value<bool>(), "enable autupdate mode for cdaq cluster only");
   gQwOptions.AddOptions()("checkmode", po::value<bool>()->zero_tokens(), "enable check mode (currently non-functional)");
   gQwOptions.AddOptions()("binary,b", po::value<bool>()->zero_tokens(), "read binary format file (not currently supported)");
   gQwOptions.AddOptions()("text,t", po::value<bool>()->zero_tokens(), "read ASCII text file (row and column format)");
@@ -1445,6 +3012,9 @@ Int_t main(Int_t argc, Char_t **argv)
   gQwOptions.AddOptions()("columns,c", po::value<string>(), "range of columns from file (first:last) (currently non-functional");
 
   // Parse QwGUI options
+  if (gQwOptions.HasValue("autoupdate"))
+    if (gQwOptions.GetValue<bool>("autoupdate") == true)
+      dClArgs.autoupdate = kTrue;
   if (gQwOptions.HasValue("realtime"))
     if (gQwOptions.GetValue<bool>("realtime") == true)
       dClArgs.realtime = kTrue;
@@ -1480,9 +3050,22 @@ Int_t main(Int_t argc, Char_t **argv)
       return 1;
     }
 
-    QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
+    QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, gClient->GetDisplayWidth()-100, gClient->GetDisplayHeight()-100);
 
     gViewMain = &mainWindow;
+
+    if(dClArgs.autoupdate) {
+
+      if (!gSystem->Getenv("QW_ROOTFILES")) {
+	fprintf(stderr, " %s: Environment variable QW_ROOTFILES is not defined.\n Cannot run in auto update mode without it!\n",argv[0]);
+	return 1;
+      }
+
+      mainWindow.WritePid();
+    }
+
+    (void) signal(SIGUSR1,RunSignal);
+    (void) signal(SIGUSR2,RunWarning);
 
     theApp.Run();
 
@@ -1492,7 +3075,7 @@ Int_t main(Int_t argc, Char_t **argv)
 
 void QwGUIMain::WritePid()
 {
-  printf("%s:%d\n",__FILE__, __LINE__ );
+  // printf("%s:%d\n",__FILE__, __LINE__ );
 
   // First, make sure the PID file doesn't exist.  If it does, die
   // noisily rather than hijack another realtime process.
@@ -1501,8 +3084,8 @@ void QwGUIMain::WritePid()
   fp=fopen("QwGUID_PID.DAT","r");
   if(fp) {
     fclose(fp);
-    printf("Dying noisily, please run QwGUIProcWarn\n");
-    system("xterm -title 'a noisy death' -e 'echo Another process has abandoned a PID file.  Run QwGUIProcWarn. | less' &");
+    printf("Dying noisily, please run QwAutoGUI\n");
+    system("xterm -title 'a noisy death' -e 'echo Another process has abandoned a PID file.  Run QwAutoGUI. | less' &");
     exit(1);
   }
 
@@ -1515,6 +3098,42 @@ void QwGUIMain::WritePid()
     fclose(fp);
   } else {
     perror("couldn't write QwGUID_PID.DAT");
+  }
+}
+
+void QwGUIMain::CheckForNewRun()
+{
+  SetCurrentFileDirectory(Form("%s",gSystem->Getenv("QW_ROOTFILES")));
+  TString NewRun;
+
+  SleepWithEvents(2);
+
+  while(1){
+
+    if(!GetCurrentRunNumber()){
+      //this is the first run we open, so we must find the highest run number in the directory
+      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_* -1 | tail -1",GetCurrentFileDirectory()));
+      if(NewRun.Length()>0){
+	OpenRootFile(kFalse,FS_OLD,NewRun.Data());
+      }  
+    }
+    else{
+      //need to find the next higher run number (and maybe segment number depending on what you
+      //are opening)
+      Int_t run = 0;
+      Int_t seg = 0;
+      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_* -1 | tail -1",GetCurrentFileDirectory()));
+      if(NewRun.Length()>0){
+	GetFileInfo(NewRun.Data(),run,seg);
+	if(run > 0 && run > GetCurrentRunNumber()){
+	  OpenRootFile(kFalse,FS_OLD,NewRun.Data());  	
+	}
+	else if(run > 0 && seg >= 0 && seg > GetCurrentRunSegment()){
+	  OpenRootFile(kFalse,FS_OLD,NewRun.Data());
+	}
+      }
+    }
+    gSystem->Sleep(30000);
   }
 }
 

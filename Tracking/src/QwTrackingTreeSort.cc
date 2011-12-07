@@ -221,9 +221,9 @@ int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack 
 {
   int common = 0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    if (! track1->tline[dir]) continue;
-    if (! track2->tline[dir]) continue;
-    common += rcCommonWires (track1->tline[dir], track2->tline[dir]);
+    if (! track1->fTreeLine[dir]) continue;
+    if (! track2->fTreeLine[dir]) continue;
+    common += rcCommonWires (track1->fTreeLine[dir], track2->fTreeLine[dir]);
   }
   common /= 3;
   return common;
@@ -247,8 +247,8 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
   //DEFINE VARIABLES #
   //##################
   common = total1 = total2 = total = 0;
-  hits1  = line1->hits;
-  hits2  = line2->hits;
+  hits1  = line1->fHits;
+  hits2  = line2->fHits;
 
   //##############################################
   //Count the wires shared between the treelines #
@@ -341,8 +341,8 @@ int QwTrackingTreeSort::rcCommonWires (
 	QwTrackingTreeLine *treeline2) ///< second tree line
 {
   // Get the lists of hits associated with the two tree lines
-  QwHit **hits1  = treeline1->hits;
-  QwHit **hits2  = treeline2->hits;
+  QwHit **hits1  = treeline1->fHits;
+  QwHit **hits2  = treeline2->fHits;
 
   // A two-bit pattern indicates on which treeline we should advance in the
   // next iteration of the search.  This assumes that the detectors are ordered.
@@ -441,7 +441,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
     double local_minchi = maxchi;
 
     // Keep track of the number of iterations
-    iteration++;
+    ++iteration;
 
     index = 0;
     // Loop over the list of treelines
@@ -503,7 +503,6 @@ int QwTrackingTreeSort::rcTreeConnSort (
   if (fDebug) cout << "Number of treelines with good chi: " << nTreeLines << endl;
 
 
-
   /* Now add the valid treelines to new lists */
 
   // Reserve memory for the lists of treelines
@@ -550,7 +549,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
       array[i * nTreeLines + i] = false;
       for (int j = i+1; j < nTreeLines; j++) {
         int common = rcCommonWires (tlarr[i], tlarr[j]);
-        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 25);
+        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 100);
       }
     }
   }
@@ -614,7 +613,9 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
    * find the number of used QwPartialTracks
    * ------------------------------------------------------------------ */
 
+  int rep = 0;
   do {        /* filter out high chi2 if needed */
+    rep++;
     nmaxch = 0.0;
     nminch = maxch;
     for (idx = 0, parttrack = parttracklist;
@@ -639,7 +640,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
       }
     }
     maxch = nminch + (nmaxch - nminch) * 0.66;
-  } while( idx > 30 );
+  } while( idx > 30 && rep < 10);
 
 
   num = idx;

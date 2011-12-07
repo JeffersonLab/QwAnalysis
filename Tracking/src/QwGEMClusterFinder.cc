@@ -55,5 +55,5 @@ std::vector<QwGEMCluster> QwGEMClusterFinder::FindClusters(const QwHitContainer*
   list.push_back(cluster);
 
   return list;
-};
+}
 

@@ -1,0 +1,20 @@
+NOTICE: This file is constantly evolving. Please don't take these isntructions to heart!
+
+This directory contains all the scripts necessary to mainting the Compton Detector's Site
+
+To recreate the entire website, please run the following scripts in order
+
+create_database.sh  -- 	Creates the SQLite3 database and populates it with
+			information from the end of runs.  Pass the parameter
+			--dontpopulate to start with a clean database only.
+			Use the parameter --repopulate-only to only repopulate
+			the database of an exsisting database.
+
+create_website.sh   --	Builds the foundations of the website, and parses the
+			database for any runs to populate the website with.
+
+process_run.sh	    --  This gets run at the end of the first100k and the pass1 root file
+			production. 
+
+photon_summary.sh   --	Creates the summary of a Photon Detector run and pushes
+			it to the website.

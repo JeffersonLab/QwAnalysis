@@ -34,7 +34,7 @@ class QwPMT_Channel: public VQwDataElement {
   QwPMT_Channel(TString name){
     InitializeChannel(name);
   };
-  virtual ~QwPMT_Channel() { DeleteHistograms(); };
+  virtual ~QwPMT_Channel() { };
 
   void  InitializeChannel(TString name){
     SetElementName(name);
@@ -48,6 +48,10 @@ class QwPMT_Channel: public VQwDataElement {
 
   void     SetValue(Double_t data) { fValue = data; };
   Double_t GetValue() const        { return fValue; };
+  void SetSubbankID(const Int_t bank_index)         { fCrate = bank_index; };
+  void SetModule(const Int_t slot_num)              { fModule = slot_num; };
+  Int_t           GetSubbankID()     const { return fCrate; };
+  Int_t           GetModule()        const { return fModule; };
 
   void  ProcessEvent();
 
@@ -57,7 +61,7 @@ class QwPMT_Channel: public VQwDataElement {
   void  FillHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
   void PrintValue() const;
   void PrintInfo() const;
@@ -81,6 +85,8 @@ class QwPMT_Channel: public VQwDataElement {
   /*  Event data members */
   Double_t fValue;
 
+  Int_t fCrate;                      ///< ROC number
+  Int_t fModule;                     ///< slot number
 };
 
 

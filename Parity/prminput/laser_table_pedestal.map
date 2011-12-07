@@ -1,0 +1,23 @@
+! this file contains the pedestals for detectors used during
+! source work at the laser table
+! respect the format of the file
+! name of chanel, pedestal, gain
+! if this is a Triumf ADC enter the hardware sum pedestal
+! the pedestal will be subtracted to the data
+! Created 30th June 2011 by B. Waidaywansa.
+!
+!QWK_QPDTL ,      962.8 , 1.0 
+!QWK_QPDTR ,      812.4 , 1.0 
+!QWK_QPDBL ,      967.1 , 1.0 
+!QWK_QPDBR ,      821.6 , 1.0 
+! trying new pedestals
+! Manolis Kargaintoulakis
+! 08/23/11
+
+QWK_QPDTL ,      -100, 1.0 
+QWK_QPDTR ,      -290 , 1.0 
+QWK_QPDBL ,      -239 , 1.0 
+QWK_QPDBR ,      -196 , 1.0 
+
+!END	    		        
+	    

@@ -1,33 +1,33 @@
 ! Created by J. Pan, for the fast raster
 !
-! In tracking mode, the fast raster needs 2 channels of V792 QADCs to record the magnet drive signals, which directly      ! reflect its instant X, Y position.
+! In tracking mode, the fast raster needs 2 channels of V792 QADCs to record the magnet
+! drive signals, which directly reflect its instant X, Y position.
 !
 ! jpan@jlab.org, Tue Jun 29 11:20:05 CDT 2010
 !
 !
 ROC=4
 !
-! QADC/TDC bank
-Bank=0x0402
-!
-!
+qdc_bank=0x0402
 slot=2
+module=V792
 ! module.type  module.num  chan.num, det.type, det.name
-  V792, 1, 0, raster_qadc, posx_adc
-  V792, 1, 1, raster_qadc, posy_adc
+  V792, 1, 0, raster, raster_posx_adc
+  V792, 1, 1, raster, raster_posy_adc
+  V792, 1, 2, beamline, bpm_3h07a_xp_adc
+  V792, 1, 3, beamline, bpm_3h07a_xm_adc
+  V792, 1, 4, beamline, bpm_3h07a_yp_adc
+  V792, 1, 5, beamline, bpm_3h07a_ym_adc
+  V792, 1, 6, beamline, bpm_3h09b_xp_adc
+  V792, 1, 7, beamline, bpm_3h09b_xm_adc
+  V792, 1, 8, beamline, bpm_3h09b_yp_adc
+  V792, 1, 9, beamline, bpm_3h09b_ym_adc
 !
-!
-!The following map is defined for measuring raster position using VQWK in parity mode
-!
-!ROC=1
-!
-!VQWK_Bank=0x102
-!
-! module.num counting from 0, raster using the 9th TRIUMF ADC board on ROC1
-!
-! module.type  module.num  chan.num, det.type, det.name
-!
-! VQWK, 9, 3, raster_position, posx_vqwk
-! VQWK, 9, 4, raster_position, posy_vqwk
-!
-!END
+ROC=0
+sca_bank=0x6103
+! SIS3801.type, SIS3801.num  word.num, det.type, det.name
+   SIS3801, 0, 16, beamline, sca_bcm1
+   SIS3801, 0, 17, beamline, sca_bcm2
+   SIS3801, 0, 18, beamline, sca_bcm17
+   SIS3801, 0, 30, beamline, sca_4MHz
+

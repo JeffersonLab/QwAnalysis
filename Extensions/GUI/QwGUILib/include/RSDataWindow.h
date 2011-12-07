@@ -15,6 +15,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <vector>
+using std::vector;
+
 #include <TVirtualX.h>
 #include <TGClient.h>
 #include <TGFrame.h>
@@ -100,6 +103,10 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   TObject             *fCurrPlot;
 
   TH1D                *fFitHisto[10];
+  TH1D                *dDummyPlot;
+  vector <TBox*>       dErrorBoxArray;
+
+  void                 SleepWithEvents(int sec);
 
  protected:
 
@@ -115,8 +122,8 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
 				    Double_t *xe, Double_t *ye);
   void                 GetGraphMinMax(TGraph *,Double_t *xmin,Double_t *xmax,
 				      Double_t *ymin,Double_t *ymax);
-  Int_t                GetNewLineColor(Color_t);
-  Int_t                GetNewMarkerColor(Color_t);
+  Int_t                GetNewLineColor(Color_t col = 0);
+  Int_t                GetNewMarkerColor(Color_t col = 0);
   TCanvas             *GetPlotCanvas() {return fPlotCanvas;};
 
   Bool_t               IsRootContInternal(){return dIntRootCont;};
@@ -130,7 +137,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
 
   void                 PrintCanvas();
 
-  void                 SaveCanvas();
+  void                 SaveCanvas(const char* file = NULL);
   void                 SavePlotObjects();
   void                 ScaleWindowData();
   Bool_t               SetMessage(const char *msg, const char *func,Int_t TS,Int_t MESSAGETYPE);
@@ -156,14 +163,15 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   Int_t                DrawData(const TProfile&);
   Int_t                DrawData(const TF1&, Bool_t add = kFalse);
   Int_t                DrawData(const TH1D&, Bool_t add = kFalse);
-  Int_t                DrawData(const TGraph&, Bool_t add = kFalse);
-  Int_t                DrawData(const TGraphErrors&, Bool_t add = kFalse);
-  Int_t                DrawData(const TGraphAsymmErrors&, Bool_t add = kFalse);
-  Int_t                DrawData(const TMultiGraph&, Bool_t add = kFalse);
-  Int_t                DrawData(Double_t*,Int_t, Bool_t add = kFalse);
-  Int_t                DrawData(Double_t*,Double_t*,Int_t, Bool_t add = kFalse);
-  Int_t                DrawData(Double_t*,Double_t*,Double_t*,Int_t, Bool_t add = kFalse);
-  Int_t                DrawLegend();
+  Int_t                DrawData(const TGraph&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(const TGraphErrors&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(const TGraphAsymmErrors&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(const TMultiGraph&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(Double_t*,Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(Double_t*,Double_t*,Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawLegend(TLegend *leg = NULL);
+  Int_t                DrawBox(const TBox&);
   Bool_t               DrawOptionsSet(){return dDrawOptsSet;};
 
   Double_t             GetAxisMax(Int_t a = 0);
@@ -182,7 +190,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   char                *GetPlotTitleX() {return dPlottitleX;};
   char                *GetPlotTitleY() {return dPlottitleY;};
   char                *GetPlotTitleZ() {return dPlottitleZ;};
-  Int_t                GetPlotType(){return dPtype;};
+  Int_t                GetPlotType() {return dPtype;};
   void                 GetRootObjectList(RDataContainer*);
 
   void                 IntegrateWindowData();

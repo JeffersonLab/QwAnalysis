@@ -1,0 +1,597 @@
+// -*- c++ -*-
+
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <TH1.h>
+#include <TObject.h>
+#include <TROOT.h>
+#include <TString.h>
+#include <TTree.h>
+#include "src/TaFileName.hh"
+#include "RedCoefs.macro"
+
+// Uncomment to load fake correction coefficients
+// #define FAKETYFAKE 0
+// Uncomment to use regressed quantities from regress rootfile, otherwise
+//   correct quantities using regression slopes from results file
+#define USEREGROOTFILE
+
+class ParamSave
+{
+  // Class to save parameters of distributions and print them
+  
+public:
+  
+  ParamSave (UInt_t run): fRun(run), fComment("macro") {};
+  ParamSave (UInt_t run, string comment): fRun(run),fComment(comment) {};
+  ParamSave() {};
+  virtual ~ParamSave() {};
+  
+  void LoadCorrs (const char *ditresfile=""); // load correction coefficients and correction monitor tags
+  void PutMonDiff (const string mt, TTree& t, const string sel); // Monitor diffs from plot
+  void PutMonAsym (const string mt, TTree& t, const string sel); // Monitor asyms from plot
+  void PutMon (const string mt, const string dora, TTree& t, const string sel); // Monitor diffs/asyms from plot
+  void PutMon (const string mt, const Double_t m, const Double_t me, const Double_t w); // Monitor diffs/asyms specified
+
+  void PutAvg (const string mt, const string dora, TTree& t, const string sel); // pair averages from plot
+  void PutAvg (const string mt, const Double_t m, const Double_t me, const Double_t w); // pair averages specified
+  
+  void PutMonDDDiff (const string mt1, const string mt2, TTree& t, const string sel); // Monitor ddiffs from plot
+  void PutMonDDAsym (const string mt1, const string mt2, TTree& t, const string sel); // Monitor dasyms from plot
+  void PutMonDD (const string mt1, const string mt2, const string dora, TTree& t, const string sel); // Monitor ddiffs/dasyms from plot
+  void PutMonDD (const string mt1, const string mt2, const Double_t m, const Double_t me, const Double_t w);         // Monitor ddiffs
+  
+  void PutDetAsymn (const string dt, TTree& t, const string sel); // Detector norm asyms from plot
+  void PutDetAsym (const string dt, TTree& t, const string sel); // Detector asyms from plot
+  void PutDet (const string dt, const string naora, TTree& t, const string sel); // Detector norm asyms/asyms from plot
+  void PutDet (const string dt, const Double_t m, const Double_t me, const Double_t w); // Detector asyms
+  
+  void PutCut(const string sel, TTree& t); // Pair tallies for a given cut (selection)
+
+  void PutComment(const string comment);
+
+  void Print();  // Print to file
+  string AsyCorr (string det, Bool_t modulation);
+  
+private:
+  
+  UInt_t fRun;            // run number or numerical ID
+  string fComment;        // TaFileName comment
+  
+  // Correction quantities
+  vector<string> fCorrMonTag[2];         // Monitors used [regress, modulation]
+  map<string,vector<Double_t> > fCorrCoef[2];  // Correction coefficients [regress, modulation]
+  
+  // Pair averaged quantities
+  vector<string> fAvgTag;
+  vector<Double_t> fAvgM;
+  vector<Double_t> fAvgME;
+  vector<Double_t> fAvgW;
+
+  // Monitor quantities
+  vector<string> fMonTag;
+  vector<Double_t> fDifM;  // means
+  vector<Double_t> fDifME; // errors on means
+  vector<Double_t> fDifW;  // widths
+  vector<string> fMonTag1;   // first tags for double differences
+  vector<string> fMonTag2;   // first tags for double differences
+  vector<Double_t> fDDifM;   // means 
+  vector<Double_t> fDDifME;  // errors on means
+  vector<Double_t> fDDifW;   // widths
+  
+  // Detector quantities
+  vector<string> fDetTag;
+  vector<Double_t> fAsyM;  // means
+  vector<Double_t> fAsyME; // errors on means
+  vector<Double_t> fAsyW;  // widths
+
+  // CUT entry tallies
+  vector<string> fCutTag;
+  vector<Stat_t> fCutM;
+
+  // Comments to include in the textoutput
+  vector<string> fTextComments;
+
+};
+
+void 
+ParamSave::LoadCorrs (const char *ditresfile)
+{
+  // Detectors for which to look for coefficients
+  vector<string> corrDetTag;
+  corrDetTag.clear();
+  corrDetTag.push_back ("det1");
+  corrDetTag.push_back ("det2");
+  corrDetTag.push_back ("det3");
+  corrDetTag.push_back ("det4");
+  corrDetTag.push_back ("flumi1");
+  corrDetTag.push_back ("flumi2");
+  corrDetTag.push_back ("blumi1");
+  corrDetTag.push_back ("blumi2");
+  corrDetTag.push_back ("blumi3");
+  corrDetTag.push_back ("blumi4");
+  corrDetTag.push_back ("blumi5");
+  corrDetTag.push_back ("blumi6");
+  corrDetTag.push_back ("blumi7");
+  corrDetTag.push_back ("blumi8");
+  
+  vector<Double_t> v;
+#ifndef FAKETYFAKE
+  gROOT->LoadMacro("RedCoefs.macro+");
+#ifndef USEREGROOTFILE
+  RedCoefs* rcr = new RedCoefs (fRun, "regress");
+  fCorrMonTag[0] = rcr->Monitors();
+#endif
+  RedCoefs* rcm = new RedCoefs (fRun, "dither",ditresfile);
+  fCorrMonTag[1] = rcm->Monitors();
+  for (vector<string>::const_iterator idt = corrDetTag.begin();
+       idt != corrDetTag.end();
+       ++idt)
+    {
+#ifndef USEREGROOTFILE
+      // Regression
+      v.clear();
+      for (vector<string>::const_iterator imt = fCorrMonTag[0].begin();
+	   imt != fCorrMonTag[0].end();
+	   ++imt)
+	{
+	  rcr->Compute (string("asym_n_")+(*idt), string("diff_") + (*imt));
+	  if (rcr->GetMeanErr() > 0)
+	    v.push_back (rcr->GetMean());
+	}
+      fCorrCoef[0][*idt] = v;
+#endif
+      // Modulation
+      v.clear();
+      for (vector<string>::const_iterator imt = fCorrMonTag[1].begin();
+	   imt != fCorrMonTag[1].end();
+	   ++imt)
+	{
+	  rcm->Compute (*idt, *imt);
+	  if (rcm->GetMeanErr() > 0)
+	    v.push_back (rcm->GetMean());
+	}
+      fCorrCoef[1][*idt] = v;
+    }
+  delete rcm;
+#ifndef USEREGROOTFILE
+  delete rcr;
+#endif
+#else
+  cerr << "=====================================" << endl;
+  cerr << "WARNING!" << endl;
+  cerr << "FAKE CORRECTION COEFFICIENTS LOADED!" << endl;
+  cerr << "=====================================" << endl;
+  
+  fCorrMonTag[0].clear();
+  fCorrMonTag[0].push_back ("bpm4ax");
+  fCorrMonTag[0].push_back ("bpm4bx");
+  fCorrMonTag[0].push_back ("bpm4ay");
+  fCorrMonTag[0].push_back ("bpm4by");
+  fCorrMonTag[0].push_back ("bpm1x");
+  fCorrMonTag[0].push_back ("bpm1y");
+  fCorrMonTag[0].push_back ("bpm12x");
+  fCorrMonTag[0].push_back ("bpm12y");
+  fCorrMonTag[0].push_back ("bpm14x");
+  fCorrMonTag[0].push_back ("bpm14y");
+  fCorrMonTag[0].push_back ("bpm8x");
+  fCorrMonTag[0].push_back ("bpm8y");
+
+  fCorrMonTag[1].clear();
+  fCorrMonTag[1].push_back ("bpm4ax");
+  fCorrMonTag[1].push_back ("bpm4bx");
+  fCorrMonTag[1].push_back ("bpm4ay");
+  fCorrMonTag[1].push_back ("bpm4by");
+  fCorrMonTag[1].push_back ("bpm1x");
+  fCorrMonTag[1].push_back ("bpm1y");
+  fCorrMonTag[1].push_back ("bpm12x");
+  fCorrMonTag[1].push_back ("bpm12y");
+  fCorrMonTag[1].push_back ("bpm14x");
+  fCorrMonTag[1].push_back ("bpm14y");
+  fCorrMonTag[1].push_back ("bpm8x");
+  fCorrMonTag[1].push_back ("bpm8y");
+
+  v.clear();
+  v.push_back (0.1);
+  v.push_back (0.2);
+  v.push_back (0.3);
+  v.push_back (0.4);
+  v.push_back (0.5);
+  fCorrCoef[0]["blumi1"] = v;
+  
+  v.clear();
+  v.push_back (0.5);
+  v.push_back (0.4);
+  v.push_back (0.3);
+  v.push_back (0.2);
+  v.push_back (0.1);
+  fCorrCoef[1]["blumi1"] = v;
+#endif
+}
+
+
+void 
+ParamSave::PutMonDiff (const string mt, TTree& t, const string sel)
+{
+  PutMon (mt, "diff", t, sel);
+}
+
+
+void 
+ParamSave::PutMonAsym (const string mt, TTree& t, const string sel)
+{
+  PutMon (mt, "asym", t, sel);
+}
+
+
+void 
+ParamSave::PutMon (const string mt, const string dora, TTree& t, const string sel)
+{
+  // Story diffs or asyms (dora = "diff" or "asym") for monitor named mt
+  // from tree t with selection sel
+  
+  // NOTE: Provided we're not using an axis sub-range, ROOT's mean
+  // and RMS for a histogram created by TTree::Draw come from the
+  // *data*, not the histogram (but using only data within
+  // histogram limits) -- so should be accurate (provided there
+  // are no underflows/overflows).  For our "width" we want the
+  // estimated variance, i.e. with sqrt (n-1) in the denominator,
+  // rather than RMS with sqrt (n).
+  
+  Double_t m = 1e99;
+  Double_t me = 1e99;
+  Double_t w = 1e99;
+  Double_t n;
+  
+  t.Draw ((dora + "_" + mt).c_str(), sel.c_str(),"goff");
+  TH1* htemp = (TH1*)gROOT->FindObject ("htemp");
+  if (htemp)
+    {
+      n = htemp->GetEntries();
+      if (n > 1)
+	{
+	  m = htemp->GetMean(); 
+	  me = htemp->GetRMS() / sqrt (n-1);
+	  w = me * sqrt (n);
+	}
+    }
+  else
+    cerr << "htemp not found" << endl;
+  PutMon (mt, m, me, w); 
+}
+
+
+void 
+ParamSave::PutMon (const string mt, const Double_t m, const Double_t me, const Double_t w)
+{
+  fMonTag.push_back (mt);
+  fDifM.push_back (m);
+  fDifME.push_back (me);
+  fDifW.push_back (w);
+}
+
+void 
+ParamSave::PutAvg (const string mt, const string dora, TTree& t, const string sel)
+{
+  // Store pair averages (dora = "avg" or "avg_n") for monitor named mt
+  // from tree t with selection sel
+  
+  Double_t m = 1e99;
+  Double_t me = 1e99;
+  Double_t w = 1e99;
+  Double_t n;
+  
+  t.Draw ((dora + "_" + mt).c_str(), sel.c_str(),"goff");
+  TH1* htemp = (TH1*)gROOT->FindObject ("htemp");
+  if (htemp)
+    {
+      n = htemp->GetEntries();
+      if (n > 1)
+	{
+	  m = htemp->GetMean(); 
+	  me = htemp->GetRMS() / sqrt (n-1);
+	  w = me * sqrt (n);
+	}
+    }
+  else
+    cerr << "htemp not found" << endl;
+  PutAvg (mt, m, me, w); 
+}
+
+void 
+ParamSave::PutAvg (const string mt, const Double_t m, const Double_t me, const Double_t w)
+{
+  fAvgTag.push_back (mt);
+  fAvgM.push_back (m);
+  fAvgME.push_back (me);
+  fAvgW.push_back (w);
+}
+
+void 
+ParamSave::PutMonDDDiff (const string mt1, const string mt2, TTree& t, const string sel)
+{
+  PutMonDD (mt1, mt2, "diff", t, sel);
+}
+
+
+void 
+ParamSave::PutMonDDAsym (const string mt1, const string mt2, TTree& t, const string sel)
+{
+  PutMonDD (mt1, mt2, "asym", t, sel);
+}
+
+
+void 
+ParamSave::PutMonDD (const string mt1, const string mt2, const string dora, TTree& t, const string sel)
+{
+  // Store ddiffs or dasyms (dora = "diff" or "asym") for monitors
+  // named mt1, mt2 from tree t with selection sel
+  
+  Double_t m = 1e99;
+  Double_t me = 1e99;
+  Double_t w = 1e99;
+  Double_t n;
+  
+  t.Draw ((dora + "_" + mt1 + "-" + dora + "_" + mt2).c_str(), sel.c_str(),"goff");
+  TH1* htemp = (TH1*)gROOT->FindObject ("htemp");
+  if (htemp)
+    {
+      n = htemp->GetEntries();
+      if (n > 1) {
+	m = htemp->GetMean();
+	me = htemp->GetRMS() / sqrt (n-1);
+	w = me * sqrt (n);
+      }
+    }
+  else
+    cerr << "htemp not found" << endl;
+  PutMonDD (mt1, mt2, m, me, w); 
+}
+
+
+void 
+ParamSave::PutMonDD (const string mt1, const string mt2, const Double_t m, const Double_t me, const Double_t w)
+{
+  fMonTag1.push_back (mt1);
+  fMonTag2.push_back (mt2);
+  fDDifM.push_back (m);
+  fDDifME.push_back (me);
+  fDDifW.push_back (w);
+}
+
+void 
+ParamSave::PutDetAsymn (const string dt, TTree& t, const string sel)
+{
+  PutDet (dt, "asym_n", t, sel);
+}
+
+
+void 
+ParamSave::PutDetAsym (const string dt, TTree& t, const string sel)
+{
+  PutDet (dt, "asym", t, sel);
+}
+
+
+void 
+ParamSave::PutDet (const string dt, const string naora, TTree& t, const string sel)
+{
+  // Store norm asyms or asyms (naora = "asym_n" or "asym") for
+  // detector named dt from tree t with selection sel
+  // If correction coefficients exist, do corrected asyms too.
+  
+  Double_t m = 1e99;
+  Double_t me = 1e99;
+ Double_t w = 1e99;
+  Double_t n;
+  string adetstring = (naora + "_" + dt);
+  
+  for (UInt_t i = 0; i < 3; ++i)
+    {
+      // Do raw, regression, modulation
+      string drawstring = 
+	i == 0 ? adetstring :
+#ifdef USEREGROOTFILE
+        i == 1 ? "reg_"+adetstring :
+#else
+	i == 1 ? AsyCorr (dt, 0) :
+#endif
+	AsyCorr (dt, 1);
+//       cerr << i << " '" << drawstring << "'" << endl; 
+      if (drawstring != "")
+	{
+	  cerr << "Drawing " << drawstring << endl;
+	  t.Draw (drawstring.c_str(), sel.c_str(),"goff");
+	  TH1* htemp = (TH1*)gROOT->FindObject ("htemp");
+	  if (htemp)
+	    {
+	      n = htemp->GetEntries();
+	      if (n > 1)
+		{
+		  m = htemp->GetMean(); 
+		  me = htemp->GetRMS() / sqrt (n-1);
+		  w = me * sqrt (n);
+		}
+	    }
+	  else
+	    cerr << "htemp not found" << endl;
+	  string tag = dt + 
+	    (i == 0 ? " raw" :
+	     i == 1 ? " reg" :
+	     " mod");
+	  PutDet (tag, m, me, w); 
+	}
+    }
+}  
+  
+void 
+ParamSave::PutDet (const string dt, const Double_t m, const Double_t me, const Double_t w)
+{
+  fDetTag.push_back (dt);
+  fAsyM.push_back (m);
+  fAsyME.push_back (me);
+  fAsyW.push_back (w);
+}
+
+void 
+ParamSave::PutCut(const string sel, TTree& t)
+{
+  Stat_t n = 0;
+  //  printf("%s %s \n",sel.c_str(),sel.c_str());
+  if(sel != "") 
+    {
+      t.Draw(sel.c_str(),sel.c_str(),"goff");
+      TH1* htemp = (TH1*)gROOT->FindObject("htemp");
+      if (htemp) 
+	{
+	  n = htemp->GetEntries();
+	}
+      fCutTag.push_back (sel);
+      fCutM.push_back (n);
+    } 
+  // This is to show the number of pairs before any cuts are made - Dalton 
+  else 
+    {
+      t.Draw("ok_cut","","goff");
+      TH1* htemp = (TH1*)gROOT->FindObject("htemp");
+      if (htemp) 
+	{
+	  n = htemp->GetEntries();
+	}
+      fCutTag.push_back ("no cuts");
+      fCutM.push_back (n);
+    }
+  // End mod
+}
+
+void
+ParamSave::PutComment(const string comment)
+{
+  if(comment != "") {
+    fTextComments.push_back(comment);
+  }
+}
+
+void
+ParamSave::Print()
+{
+  // Print distribution parameters
+  
+  TaFileName fn (fRun, "standard", "output", fComment, "txt");
+  ofstream ofile(fn.String().c_str());
+  if (!ofile)
+    {
+      cerr << "ParamSave::Print ERROR: Cannot open output file " << fn.String() << endl;
+      exit (1);
+    }
+  else
+    clog << "Output file is " << fn.String() << endl;
+  
+  ofile << "Distribution parameters for run " << fRun << endl;
+  ofile << "======================================" << endl;
+  
+  UInt_t icom;
+  for (icom=0; icom < fTextComments.size(); ++icom)
+    {
+      ofile << fTextComments[icom] << endl;
+    }
+
+  
+  ofile.setf(ios::left,ios::adjustfield);
+  
+  ofile << "\nNumber of pairs satisfying specific cuts:" << endl;
+  UInt_t icut;
+  for (icut = 0; icut < fCutTag.size(); ++icut)
+    {
+      ofile << setw(8) << fCutTag[icut]
+	    << "     "
+	    << setw(8) << fCutM[icut]
+	    << " pairs"
+	    << endl;
+    }
+
+  ofile << "\nPair Averages (Monitors and Normalized Detectors):" << endl;
+  UInt_t iavg;
+  for (iavg = 0; iavg < fAvgTag.size(); ++iavg)
+    {
+      ofile << setw(8) << fAvgTag[iavg]
+	    << " Mean " 
+	    << setw(8) << fAvgM[iavg]
+	    << " +- " << setw(8) << fAvgME[iavg]
+	    << "  Width " 
+	    << setw(8) << fAvgW[iavg]
+	    << endl;
+    }
+
+  ofile << "\nMonitor differences / asymmetries:" << endl;
+  UInt_t idif;
+  for (idif = 0; idif < fMonTag.size(); ++idif)
+    {
+      ofile << setw(8) << fMonTag[idif]
+	    << " Mean " 
+	    << setw(8) << fDifM[idif]
+	    << " +- " << setw(8) << fDifME[idif]
+	    << "  Width " 
+	    << setw(8) << fDifW[idif]
+	    << endl;
+    }
+  
+  ofile << "\nMonitor double differences:" << endl;
+  for (UInt_t iddif = 0; iddif < fMonTag1.size(); ++iddif)
+    {
+      ofile << setw(8) << fMonTag1[iddif]
+	    << " - " << setw(8) << fMonTag2[iddif]
+	    << "  Mean " 
+	    << setw(8) << fDDifM[iddif]
+	    << "  +- " 
+	    << setw(8) << fDDifME[iddif]
+	    << "  Width " 
+	    << setw(8) << fDDifW[iddif]
+	    << endl;
+    }
+  
+  
+  ofile << "\nDetector Asymmetries:" << endl;
+  for (UInt_t iasy = 0; iasy < fDetTag.size(); ++iasy)
+    {
+      ofile << setw(8) << fDetTag[iasy]
+	    << " Mean " 
+	    << setw(8) << fAsyM[iasy]
+	    << " +- " << setw(8) << fAsyME[iasy]
+	    << "  Width " 
+	    << "   " << setw(8) << fAsyW[iasy] << endl;
+    }
+  
+  ofile.close();
+  // This horrible kludge added by dalton 2009-09-05 to copy the output to the web.
+  char systemcom[256];
+  sprintf(systemcom,"cp %s /u/home/adaq/public_html/prex/prompt_output\n",fn.String().c_str());
+  printf("ParamSave::Print()   %s\n",systemcom);
+  system(systemcom);
+  // enf of kludge
+}
+
+string ParamSave::AsyCorr (string det, Bool_t modulation)
+{
+  TString ret("");
+  UInt_t imr = modulation ? 1 : 0;
+
+  vector<Double_t> corrcoef = fCorrCoef[imr][det];
+  if (corrcoef.size())
+    {
+      ret = TString("asym_n_");
+      ret += det.c_str();
+      for (UInt_t i = 0; i < fCorrMonTag[imr].size(); ++i)
+	{
+	  ret += "-(";
+	  ret += corrcoef[i];
+	  ret += ")*diff_";
+	  ret += fCorrMonTag[imr][i].c_str();
+	}
+    }
+  return string(ret.Data());
+}

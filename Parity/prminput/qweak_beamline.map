@@ -1,350 +1,160 @@
 
-!**************************************************************************
-! INJECTOR BEAMLINE
-!**************************************************************************
-!
-
 ROC=31
 Bank=0x3102
-
 !same sample size for ADCs in a given bank
-sample_size=400
+!samples ver integration window
+sample_size=480
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+
 !ADC0
-    VQWK, 0, 0,  bpmstripline,  QWK_QPDXP
-    VQWK, 0, 1,  bpmstripline,  QWK_QPDYP
-    VQWK, 0, 2,  bpmstripline,  QWK_QPDYM
-    VQWK, 0, 3,  bpmstripline,  QWK_QPDXM
-    VQWK, 0, 4,  bcm,  empty1
-    VQWK, 0, 5,  bcm,  empty2
-    VQWK, 0, 6,  bcm,  QWK_Batext1
-    VQWK, 0, 7,  bcm,  QWK_Batext2
+  VQWK, 0, 0,  bpmstripline,  QWK_QPDXP
+  VQWK, 0, 1,  bpmstripline,  QWK_QPDYP
+  VQWK, 0, 2,  bpmstripline,  QWK_QPDYM
+  VQWK, 0, 3,  bpmstripline,  QWK_QPDXM
+  VQWK, 0, 4,  bcm,  empty1
+  VQWK, 0, 5,  bcm,  empty2
+  VQWK, 0, 6,  bcm,  QWK_Batext1
+  VQWK, 0, 7,  bcm,  QWK_Batext2
 
 !ADC1
-    VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED
-    VQWK, 1, 1,  bpmstripline,  QWK_1I02XM,   UNROTATED
-    VQWK, 1, 2,  bpmstripline,  QWK_1I02YP,   UNROTATED
-    VQWK, 1, 3,  bpmstripline,  QWK_1I02YM,   UNROTATED
-    VQWK, 1, 4,  bpmstripline,  QWK_1I04XP,   UNROTATED
-    VQWK, 1, 5,  bpmstripline,  QWK_1I04XM,   UNROTATED
-    VQWK, 1, 6,  bpmstripline,  QWK_1I04YP,   UNROTATED
-    VQWK, 1, 7,  bpmstripline,  QWK_1I04YM,   UNROTATED
+  VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED
+  VQWK, 1, 1,  bpmstripline,  QWK_1I02XM,   UNROTATED
+  VQWK, 1, 2,  bpmstripline,  QWK_1I02YP,   UNROTATED
+  VQWK, 1, 3,  bpmstripline,  QWK_1I02YM,   UNROTATED
+  VQWK, 1, 4,  bpmstripline,  QWK_1I04XP,   UNROTATED
+  VQWK, 1, 5,  bpmstripline,  QWK_1I04XM,   UNROTATED
+  VQWK, 1, 6,  bpmstripline,  QWK_1I04YP,   UNROTATED
+  VQWK, 1, 7,  bpmstripline,  QWK_1I04YM,   UNROTATED
 
 
 !ADC2
-    VQWK, 2, 0,  bpmstripline,  QWK_1I06XP,   UNROTATED
-    VQWK, 2, 1,  bpmstripline,  QWK_1I06XM,   UNROTATED
-    VQWK, 2, 2,  bpmstripline,  QWK_1I06YP,   UNROTATED
-    VQWK, 2, 3,  bpmstripline,  QWK_1I06YM,   UNROTATED
-    VQWK, 2, 4,  bpmstripline,  QWK_0I02XP,   UNROTATED
-    VQWK, 2, 5,  bpmstripline,  QWK_0I02XM,   UNROTATED
-    VQWK, 2, 6,  bpmstripline,  QWK_0I02YP,   UNROTATED
-    VQWK, 2, 7,  bpmstripline,  QWK_0I02YM,   UNROTATED
+  VQWK, 2, 0,  bpmstripline,  QWK_1I06XP,   UNROTATED
+  VQWK, 2, 1,  bpmstripline,  QWK_1I06XM,   UNROTATED
+  VQWK, 2, 2,  bpmstripline,  QWK_1I06YP,   UNROTATED
+  VQWK, 2, 3,  bpmstripline,  QWK_1I06YM,   UNROTATED
+  VQWK, 2, 4,  bpmstripline,  QWK_0I02XP,   UNROTATED
+  VQWK, 2, 5,  bpmstripline,  QWK_0I02XM,   UNROTATED
+  VQWK, 2, 6,  bpmstripline,  QWK_0I02YP,   UNROTATED
+  VQWK, 2, 7,  bpmstripline,  QWK_0I02YM,   UNROTATED
 
 !ADC3
-    VQWK, 3, 0,  bpmstripline,  QWK_0I02AXP,   UNROTATED
-    VQWK, 3, 1,  bpmstripline,  QWK_0I02AXM,   UNROTATED
-    VQWK, 3, 2,  bpmstripline,  QWK_0I02AYP,   UNROTATED
-    VQWK, 3, 3,  bpmstripline,  QWK_0I02AYM,   UNROTATED
-    VQWK, 3, 4,  bpmstripline,  QWK_0I05XP,   UNROTATED
-    VQWK, 3, 5,  bpmstripline,  QWK_0I05XM,   UNROTATED
-    VQWK, 3, 6,  bpmstripline,  QWK_0I05YP,   UNROTATED
-    VQWK, 3, 7,  bpmstripline,  QWK_0I05YM,   UNROTATED
+  VQWK, 3, 0,  bpmstripline,  QWK_0I02AXP,   UNROTATED
+  VQWK, 3, 1,  bpmstripline,  QWK_0I02AXM,   UNROTATED
+  VQWK, 3, 2,  bpmstripline,  QWK_0I02AYP,   UNROTATED
+  VQWK, 3, 3,  bpmstripline,  QWK_0I02AYM,   UNROTATED
+  VQWK, 3, 4,  bpmstripline,  QWK_0I05XP,   UNROTATED
+  VQWK, 3, 5,  bpmstripline,  QWK_0I05XM,   UNROTATED
+  VQWK, 3, 6,  bpmstripline,  QWK_0I05YP,   UNROTATED
+  VQWK, 3, 7,  bpmstripline,  QWK_0I05YM,   UNROTATED
 
 !ADC4
-    VQWK, 4, 0,  bpmstripline,  QWK_0I07XP,   UNROTATED
-    VQWK, 4, 1,  bpmstripline,  QWK_0I07XM,   UNROTATED
-    VQWK, 4, 2,  bpmstripline,  QWK_0I07YP,   UNROTATED
-    VQWK, 4, 3,  bpmstripline,  QWK_0I07YM,   UNROTATED
-    VQWK, 4, 4,  bpmstripline,  QWK_0L01XP
-    VQWK, 4, 5,  bpmstripline,  QWK_0L01XM
-    VQWK, 4, 6,  bpmstripline,  QWK_0L01YP
-    VQWK, 4, 7,  bpmstripline,  QWK_0L01YM
+  VQWK, 4, 0,  bpmstripline,  QWK_0I07XP,   UNROTATED
+  VQWK, 4, 1,  bpmstripline,  QWK_0I07XM,   UNROTATED
+  VQWK, 4, 2,  bpmstripline,  QWK_0I07YP,   UNROTATED
+  VQWK, 4, 3,  bpmstripline,  QWK_0I07YM,   UNROTATED
+  VQWK, 4, 4,  bpmstripline,  QWK_0L01XP
+  VQWK, 4, 5,  bpmstripline,  QWK_0L01XM
+  VQWK, 4, 6,  bpmstripline,  QWK_0L01YP
+  VQWK, 4, 7,  bpmstripline,  QWK_0L01YM
 
 
 !ADC5
-    VQWK, 5, 0,  bpmstripline,  QWK_0L02XP
-    VQWK, 5, 1,  bpmstripline,  QWK_0L02XM
-    VQWK, 5, 2,  bpmstripline,  QWK_0L02YP
-    VQWK, 5, 3,  bpmstripline,  QWK_0L02YM
-    VQWK, 5, 4,  bpmstripline,  QWK_0L03XP
-    VQWK, 5, 5,  bpmstripline,  QWK_0L03XM
-    VQWK, 5, 6,  bpmstripline,  QWK_0L03YP
-    VQWK, 5, 7,  bpmstripline,  QWK_0L03YM
+  VQWK, 5, 0,  bpmstripline,  QWK_0L02XP
+  VQWK, 5, 1,  bpmstripline,  QWK_0L02XM
+  VQWK, 5, 2,  bpmstripline,  QWK_0L02YP
+  VQWK, 5, 3,  bpmstripline,  QWK_0L02YM
+  VQWK, 5, 4,  bpmstripline,  QWK_0L03XP
+  VQWK, 5, 5,  bpmstripline,  QWK_0L03XM
+  VQWK, 5, 6,  bpmstripline,  QWK_0L03YP
+  VQWK, 5, 7,  bpmstripline,  QWK_0L03YM
 
 !ADC6
-    VQWK, 6, 0,  bpmstripline,  QWK_0L04XP
-    VQWK, 6, 1,  bpmstripline,  QWK_0L04XM
-    VQWK, 6, 2,  bpmstripline,  QWK_0L04YP
-    VQWK, 6, 3,  bpmstripline,  QWK_0L04YM
-    VQWK, 6, 4,  bpmstripline,  QWK_0L05XP
-    VQWK, 6, 5,  bpmstripline,  QWK_0L05XM
-    VQWK, 6, 6,  bpmstripline,  QWK_0L05YP
-    VQWK, 6, 7,  bpmstripline,  QWK_0L05YM
+  VQWK, 6, 0,  bpmstripline,  QWK_0L04XP
+  VQWK, 6, 1,  bpmstripline,  QWK_0L04XM
+  VQWK, 6, 2,  bpmstripline,  QWK_0L04YP
+  VQWK, 6, 3,  bpmstripline,  QWK_0L04YM
+  VQWK, 6, 4,  bpmstripline,  QWK_0L05XP
+  VQWK, 6, 5,  bpmstripline,  QWK_0L05XM
+  VQWK, 6, 6,  bpmstripline,  QWK_0L05YP
+  VQWK, 6, 7,  bpmstripline,  QWK_0L05YM
 
 !ADC7
-    VQWK, 7, 0,  bpmstripline,  QWK_0L06XP
-    VQWK, 7, 1,  bpmstripline,  QWK_0L06XM
-    VQWK, 7, 2,  bpmstripline,  QWK_0L06YP
-    VQWK, 7, 3,  bpmstripline,  QWK_0L06YM
-    VQWK, 7, 4,  bpmstripline,  QWK_0L07XP
-    VQWK, 7, 5,  bpmstripline,  QWK_0L07XM
-    VQWK, 7, 6,  bpmstripline,  QWK_0L07YP
-    VQWK, 7, 7,  bpmstripline,  QWK_0L07YM
+  VQWK, 7, 0,  bpmstripline,  QWK_0L06XP
+  VQWK, 7, 1,  bpmstripline,  QWK_0L06XM
+  VQWK, 7, 2,  bpmstripline,  QWK_0L06YP
+  VQWK, 7, 3,  bpmstripline,  QWK_0L06YM
+  VQWK, 7, 4,  bpmstripline,  QWK_0L07XP
+  VQWK, 7, 5,  bpmstripline,  QWK_0L07XM
+  VQWK, 7, 6,  bpmstripline,  QWK_0L07YP
+  VQWK, 7, 7,  bpmstripline,  QWK_0L07YM
 
 !ADC8
-    VQWK, 8, 0,  bpmstripline,  QWK_0L08XP
-    VQWK, 8, 1,  bpmstripline,  QWK_0L08XM
-    VQWK, 8, 2,  bpmstripline,  QWK_0L08YP
-    VQWK, 8, 3,  bpmstripline,  QWK_0L08YM
-    VQWK, 8, 4,  bpmstripline,  QWK_0L09XP
-    VQWK, 8, 5,  bpmstripline,  QWK_0L09XM
-    VQWK, 8, 6,  bpmstripline,  QWK_0L09YP
-    VQWK, 8, 7,  bpmstripline,  QWK_0L09YM
+  VQWK, 8, 0,  bpmstripline,  QWK_0L08XP
+  VQWK, 8, 1,  bpmstripline,  QWK_0L08XM
+  VQWK, 8, 2,  bpmstripline,  QWK_0L08YP
+  VQWK, 8, 3,  bpmstripline,  QWK_0L08YM
+  VQWK, 8, 4,  bpmstripline,  QWK_0L09XP
+  VQWK, 8, 5,  bpmstripline,  QWK_0L09XM
+  VQWK, 8, 6,  bpmstripline,  QWK_0L09YP
+  VQWK, 8, 7,  bpmstripline,  QWK_0L09YM
 
 !ADC9
-    VQWK, 9, 0,  bpmstripline,  QWK_0L10XP
-    VQWK, 9, 1,  bpmstripline,  QWK_0L10XM
-    VQWK, 9, 2,  bpmstripline,  QWK_0L10YP
-    VQWK, 9, 3,  bpmstripline,  QWK_0L10YM
-    VQWK, 9, 4,  bpmstripline,  QWK_0R01XP
-    VQWK, 9, 5,  bpmstripline,  QWK_0R01XM
-    VQWK, 9, 6,  bpmstripline,  QWK_0R01YP
-    VQWK, 9, 7,  bpmstripline,  QWK_0R01YM
+  VQWK, 9, 0,  bpmstripline,  QWK_0L10XP
+  VQWK, 9, 1,  bpmstripline,  QWK_0L10XM
+  VQWK, 9, 2,  bpmstripline,  QWK_0L10YP
+  VQWK, 9, 3,  bpmstripline,  QWK_0L10YM
+  VQWK, 9, 4,  bpmstripline,  QWK_0R01XP
+  VQWK, 9, 5,  bpmstripline,  QWK_0R01XM
+  VQWK, 9, 6,  bpmstripline,  QWK_0R01YP
+  VQWK, 9, 7,  bpmstripline,  QWK_0R01YM
 
 !ADC10
-    VQWK, 10, 0,  bpmstripline,  QWK_0R02XP
-    VQWK, 10, 1,  bpmstripline,  QWK_0R02XM
-    VQWK, 10, 2,  bpmstripline,  QWK_0R02YP
-    VQWK, 10, 3,  bpmstripline,  QWK_0R02YM
-    VQWK, 10, 4,  bpmstripline,  QWK_0R05XP
-    VQWK, 10, 5,  bpmstripline,  QWK_0R05XM
-    VQWK, 10, 6,  bpmstripline,  QWK_0R05YP
-    VQWK, 10, 7,  bpmstripline,  QWK_0R05YM
+  VQWK, 10, 0,  bpmstripline,  QWK_0R02XP
+  VQWK, 10, 1,  bpmstripline,  QWK_0R02XM
+  VQWK, 10, 2,  bpmstripline,  QWK_0R02YP
+  VQWK, 10, 3,  bpmstripline,  QWK_0R02YM
+  VQWK, 10, 4,  bpmstripline,  QWK_0R05XP
+  VQWK, 10, 5,  bpmstripline,  QWK_0R05XM
+  VQWK, 10, 6,  bpmstripline,  QWK_0R05YP
+  VQWK, 10, 7,  bpmstripline,  QWK_0R05YM
 
 !ADC11
-    VQWK, 11, 0,  bpmstripline,  QWK_0R06XP
-    VQWK, 11, 1,  bpmstripline,  QWK_0R06XM
-    VQWK, 11, 2,  bpmstripline,  QWK_0R06YP
-    VQWK, 11, 3,  bpmstripline,  QWK_0R06YM
-    VQWK, 11, 4,  bcm,  QWK_BCM0L02
-    VQWK, 11, 5,  bcm,  QWK_Batery6
-    VQWK, 11, 6,  bcm,  QWK_Batery7
-    VQWK, 11, 7,   bcm,  PhaseMonitor
+  VQWK, 11, 0,  bpmstripline,  QWK_0R06XP
+  VQWK, 11, 1,  bpmstripline,  QWK_0R06XM
+  VQWK, 11, 2,  bpmstripline,  QWK_0R06YP
+  VQWK, 11, 3,  bpmstripline,  QWK_0R06YM
+  VQWK, 11, 4,  bcm,  QWK_BCM0L02
+  VQWK, 11, 5,  bcm,  QWK_Batery6
+  VQWK, 11, 6,  bcm,  QWK_Batery7
+  VQWK, 11, 7,   bcm,  PhaseMonitor
 
+beginCOMBO=combinedbcm
+name = qwk_average_charge
+!name		wieght
+ QWK_BCM0L02,  1.0
+ empty1,  0.8
+ QWK_Batery7, 0.9
+endCOMBO=combinedbcm
 
+beginCOMBO=combinedbcm
+name = qwk_region1_charge
+!name		wieght
 
-!**************************************************************************
-! HALL C  BEAMLINE
-!**************************************************************************
-!
-!
-!ROC=1
-!Bank=0x102
-!same sample size for ADCs in a given bank
-!sample_size==4000
-!
-!
-! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+ QWK_Batery6, 0.1
+ QWK_Batery7, 0.9
+endCOMBO=combinedbcm
 
-!ADC1
-   VQWK, 0, 0,  bcm,  qwk_pmt
-   VQWK, 0, 1,  bcm,  qwk_current
-   VQWK, 0, 2,  bcm,  qwk_pmt_plus
-   VQWK, 0, 3,  bcm,  qwk_pmt_minus
-   VQWK, 0, 4,  bcm,  qwk_empty
-   VQWK, 0, 5,  bcm,  qwk_empty
-   VQWK, 0, 6,  bcm,  qwk_empty
-   VQWK, 0, 7,  bcm,  qwk_empty
-
-
-!ADC0
-   VQWK, 1, 0,  bpmstripline,  QWK_3C07XP
-   VQWK, 1, 1,  bpmstripline,  QWK_3C07XM
-   VQWK, 1, 2,  bpmstripline,  QWK_3C07YP
-   VQWK, 1, 3,  bpmstripline,  QWK_3C07YM
-   VQWK, 1, 4,  bpmstripline,  QWK_3C08XP
-   VQWK, 1, 5,  bpmstripline,  QWK_3C08XM
-   VQWK, 1, 6,  bpmstripline,  QWK_3C08YP
-   VQWK, 1, 7,  bpmstripline,  QWK_3C08YM
-
-
-!ADC2
-   VQWK, 2, 0,  bpmstripline,  QWK_3C11XP
-   VQWK, 2, 1,  bpmstripline,  QWK_3C11XM
-   VQWK, 2, 2,  bpmstripline,  QWK_3C11YP
-   VQWK, 2, 3,  bpmstripline,  QWK_3C11YM
-   VQWK, 2, 4,  bpmstripline,  QWK_3C12XP
-   VQWK, 2, 5,  bpmstripline,  QWK_3C12XM
-   VQWK, 2, 6,  bpmstripline,  QWK_3C12YP
-   VQWK, 2, 7,  bpmstripline,  QWK_3C12YM
-
-!ADC4
-   VQWK, 3, 0,  bpmstripline,  QWK_3C14XP
-   VQWK, 3, 1,  bpmstripline,  QWK_3C14XM
-   VQWK, 3, 2,  bpmstripline,  QWK_3C14YP
-   VQWK, 3, 3,  bpmstripline,  QWK_3C14YM
-   VQWK, 3, 4,  bpmstripline,  QWK_3C16XP
-   VQWK, 3, 5,  bpmstripline,  QWK_3C16XM
-   VQWK, 3, 6,  bpmstripline,  QWK_3C16YP
-   VQWK, 3, 7,  bpmstripline,  QWK_3C16YM
-
-
-ROC=0
-Bank=0x6103
-
-SCALER,0,0,halomonitor,qwk_head0
-SCALER,0,1,halomonitor,qwk_hm000
-SCALER,0,2,halomonitor,qwk_hm001
-SCALER,0,3,halomonitor,qwk_hm002
-SCALER,0,4,halomonitor,qwk_hm003
-SCALER,0,5,halomonitor,qwk_hm004
-SCALER,0,6,halomonitor,qwk_hm005
-SCALER,0,7,halomonitor,qwk_hm006
-SCALER,0,8,halomonitor,qwk_hm007
-SCALER,0,9,halomonitor,qwk_hm008
-SCALER,0,10,halomonitor,qwk_hm009
-SCALER,0,11,halomonitor,qwk_hm00a
-SCALER,0,12,halomonitor,qwk_hm00b
-SCALER,0,13,halomonitor,qwk_hm00c
-SCALER,0,14,halomonitor,qwk_hm00d
-SCALER,0,15,halomonitor,qwk_hm00e
-SCALER,0,16,halomonitor,qwk_hm00f
-SCALER,0,17,halomonitor,qwk_hm010
-SCALER,0,18,halomonitor,qwk_hm011
-SCALER,0,19,halomonitor,qwk_hm012
-SCALER,0,20,halomonitor,qwk_hm013
-SCALER,0,21,halomonitor,qwk_hm014
-SCALER,0,22,halomonitor,qwk_hm015
-SCALER,0,23,halomonitor,qwk_hm016
-SCALER,0,24,halomonitor,qwk_hm017
-SCALER,0,25,halomonitor,qwk_hm018
-SCALER,0,26,halomonitor,qwk_hm019
-SCALER,0,27,halomonitor,qwk_hm01a
-SCALER,0,28,halomonitor,qwk_hm01b
-SCALER,0,29,halomonitor,qwk_hm01c
-SCALER,0,30,halomonitor,qwk_hm01d
-SCALER,0,31,halomonitor,qwk_hm01e
-SCALER,0,32,halomonitor,qwk_hm01f
-
-SCALER,1,0,halomonitor,qwk_head1
-SCALER,1,1,halomonitor,qwk_hm100
-SCALER,1,2,halomonitor,qwk_hm101
-SCALER,1,3,halomonitor,qwk_hm102
-SCALER,1,4,halomonitor,qwk_hm103
-SCALER,1,5,halomonitor,qwk_hm104
-SCALER,1,6,halomonitor,qwk_hm105
-SCALER,1,7,halomonitor,qwk_hm106
-SCALER,1,8,halomonitor,qwk_hm107
-SCALER,1,9,halomonitor,qwk_hm108
-SCALER,1,10,halomonitor,qwk_hm109
-SCALER,1,11,halomonitor,qwk_hm10a
-SCALER,1,12,halomonitor,qwk_hm10b
-SCALER,1,13,halomonitor,qwk_hm10c
-SCALER,1,14,halomonitor,qwk_hm10d
-SCALER,1,15,halomonitor,qwk_hm10e
-SCALER,1,16,halomonitor,qwk_hm10f
-SCALER,1,17,halomonitor,qwk_hm110
-SCALER,1,18,halomonitor,qwk_hm111
-SCALER,1,19,halomonitor,qwk_hm112
-SCALER,1,20,halomonitor,qwk_hm113
-SCALER,1,21,halomonitor,qwk_hm114
-SCALER,1,22,halomonitor,qwk_hm115
-SCALER,1,23,halomonitor,qwk_hm116
-SCALER,1,24,halomonitor,qwk_hm117
-SCALER,1,25,halomonitor,qwk_hm118
-SCALER,1,26,halomonitor,qwk_hm119
-SCALER,1,27,halomonitor,qwk_hm11a
-SCALER,1,28,halomonitor,qwk_hm11b
-SCALER,1,29,halomonitor,qwk_hm11c
-SCALER,1,30,halomonitor,qwk_hm11d
-SCALER,1,31,halomonitor,qwk_hm11e
-SCALER,1,32,halomonitor,qwk_hm11f
-
-SCALER,2,0,halomonitor,qwk_head2
-SCALER,2,1,halomonitor,qwk_hm200
-SCALER,2,2,halomonitor,qwk_hm201
-SCALER,2,3,halomonitor,qwk_hm202
-SCALER,2,4,halomonitor,qwk_hm203
-SCALER,2,5,halomonitor,qwk_hm204
-SCALER,2,6,halomonitor,qwk_hm205
-SCALER,2,7,halomonitor,qwk_hm206
-SCALER,2,8,halomonitor,qwk_hm207
-SCALER,2,9,halomonitor,qwk_hm208
-SCALER,2,10,halomonitor,qwk_hm209
-SCALER,2,11,halomonitor,qwk_hm20a
-SCALER,2,12,halomonitor,qwk_hm20b
-SCALER,2,13,halomonitor,qwk_hm20c
-SCALER,2,14,halomonitor,qwk_hm20d
-SCALER,2,15,halomonitor,qwk_hm20e
-SCALER,2,16,halomonitor,qwk_hm20f
-SCALER,2,17,halomonitor,qwk_hm210
-SCALER,2,18,halomonitor,qwk_hm211
-SCALER,2,19,halomonitor,qwk_hm212
-SCALER,2,20,halomonitor,qwk_hm213
-SCALER,2,21,halomonitor,qwk_hm214
-SCALER,2,22,halomonitor,qwk_hm215
-SCALER,2,23,halomonitor,qwk_hm216
-SCALER,2,24,halomonitor,qwk_hm217
-SCALER,2,25,halomonitor,qwk_hm218
-SCALER,2,26,halomonitor,qwk_hm219
-SCALER,2,27,halomonitor,qwk_hm21a
-SCALER,2,28,halomonitor,qwk_hm21b
-SCALER,2,29,halomonitor,qwk_hm21c
-SCALER,2,30,halomonitor,qwk_hm21d
-SCALER,2,32,halomonitor,qwk_hm21e
-SCALER,2,32,halomonitor,qwk_hm21f
-
-!**************************************************************************
-! COMBINATIONS OF BEAM LINE DEVICES USED FOR BEAM ON TARGET 
-!**************************************************************************
-
-
-begin=combinedbcm
-name=qwk_average_charge
-!name	type	wieght
- empty2,  bcm, 1.0
- empty1,  bcm, 0.8
-end=combinedbcm
-
-
-begin=combinedbpm
-name=qwk_target
-!name	    type 	  q      x     y    
- QWK_1I02,  bpmstripline, 0.9,  0.5,  0.1
- QWK_1I04,  bpmstripline, 1.0,  0.1,  0.5
- QWK_0I02,  bpmstripline, 1.0,  0.1,  0.5
- QWK_0I02,  bpmstripline, 1.0,  0.1,  0.5
-end=combinedbpm
-
-
-!**************************************************************************
-! DEVICES USED TO OBTAIN THE BEAM ENERGY
-!**************************************************************************
-! For the energy calculation we need the following inforamtion.
-! 	Beam position at the highest dispersive region (beamposition)
-!	Beam angle on target (targetbeamangle)
-!	Beam position on target (targetbeamposition)
-! 	The ratios of the TMatrix elements (with the appropriate signs).
-! These are used in the equation
-!	(dP/P) = (1/M15)*X_3c12 + (-M11/M15)*X_T + (-M12/M15)*X_T`
-! To get (dP/P).
-
-begin=energycalculator
-name=qwk_energy
-! name      type 	ratios property  
-  QWK_1I02, bpmstripline, 1.5,	beamposition   
-  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
-  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
-end=energycalculator
-
-! CHECK THE SIGNS OF THE MATRIX ELEMTN RATIOS!.
-
-
+beginCOMBO=combinedbpm
+name = qwk_target
+!name	    q      x     y    
+ QWK_1I02,  0.9,  0.5,  0.1
+ QWK_1I04,  1.0,  0.1,  0.5
+ QWK_0I02,  1.0,  0.1,  0.5
+ !QWK_0I02,  1.0,  0.1,  0.5
+ !QWK_0I05,  1.0,  0.1,  0.5
+endCOMBO=combinedbpm
 
 !END
-
-
-

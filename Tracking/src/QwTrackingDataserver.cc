@@ -2,12 +2,10 @@
 
 // Qweak Tracking headers
 #include "QwTypes.h"
-#include "Det.h"
 #include "QwTrackingTreeRegion.h"
 
 // Qweak hit container
 #include "QwHitContainer.h"
-#include "QwASCIIEventBuffer.h"
 
 //ClassImp(QwTrackingDataserver)
 
@@ -32,12 +30,13 @@ void QwTrackingDataserver::NextEvent()
 
   // this will load the QwHitContainer from set of hits read from ASCII file qweak.event
   fHitList->clear();
-  fEventBuffer.GetHitList (*fHitList);
+
+  //fEventBuffer.GetHitList (*fHitList);
   // sort the array
   fHitList->sort();
   // now we decode our QwHitContainer list and piece together with the
   // rcTreeRegion multi-dimension array.
-  fEventBuffer.ProcessHitContainer(*fHitList);
+  //fEventBuffer.ProcessHitContainer(*fHitList);
 }
 
 QwHitContainer* QwTrackingDataserver::GetHitList()

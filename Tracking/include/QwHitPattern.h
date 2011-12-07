@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "VQwTrackingElement.h"
+#include "QwObjectCounter.h"
 
 // Forward declarations
 class QwHit;
@@ -40,7 +41,7 @@ class QwHitContainer;
  *   Number of bins at bottom = (1UL << (levels - 1)) == 2^(levels-1)
  * For e.g. 4 levels we need 1 + 2 + 4 + 8 = 15 = (2^4 - 1) bits.
  */
-class QwHitPattern: public VQwTrackingElement {
+class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPattern> {
 
   public:
 
@@ -52,12 +53,13 @@ class QwHitPattern: public VQwTrackingElement {
       Reset();
     };
     /// \brief Copy constructor
-    QwHitPattern(const QwHitPattern& pattern) {
+    QwHitPattern(const QwHitPattern& pattern)
+    : VQwTrackingElement(pattern),QwObjectCounter<QwHitPattern>(pattern) {
       *this = pattern;
     };
 
     /// \brief Delete the hit pattern
-    ~QwHitPattern() {
+    virtual ~QwHitPattern() {
       if (fLevels == 0) return;
       if (fPatternHash) delete[] fPatternHash;
       if (fPattern)     delete[] fPattern;
@@ -73,11 +75,11 @@ class QwHitPattern: public VQwTrackingElement {
       fPatternHash =  new unsigned int[fBinWidth];
     };
     /// \brief Get the hit pattern depth
-    const unsigned int GetNumberOfLevels() const { return fLevels; };
+    unsigned int GetNumberOfLevels() const { return fLevels; };
     /// \brief Get the number of bins
-    const unsigned int GetNumberOfBins() const { return fBins; };
+    unsigned int GetNumberOfBins() const { return fBins; };
     /// \brief Get the finest bin width
-    const unsigned int GetFinestBinWidth() const { return fBinWidth; };
+    unsigned int GetFinestBinWidth() const { return fBinWidth; };
 
     /// \brief Reset the contents of the hit pattern
     void Reset() {
@@ -97,7 +99,7 @@ class QwHitPattern: public VQwTrackingElement {
     void SetVDCHitList(double detectorwidth, QwHitContainer* hitlist);
 
     /// \brief Has this pattern any hit?
-    const bool HasHits() const {
+    bool HasHits() const {
       if (fPattern == 0) return false;
       else return fPattern[fBins-2] == 1;
     };
