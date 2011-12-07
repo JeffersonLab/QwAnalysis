@@ -30,6 +30,7 @@ SCALER, 0, 0x00, bpmstripline, sca_bpm_3p02aym
 !! Beam Charge Monitors of the QWeak Beam Line (read
 !! the above warning )
 !! scaler.type,  scaler.num, chan.num, det.type, det.name
+normclock=sca_1MHz
 SCALER,   0, 0x1b, bcm, sca_bcm1
 SCALER,   0, 0x1c, bcm, sca_bcm2
 SCALER,   0, 0x1d, bcm, sca_bcm6
@@ -38,6 +39,7 @@ SCALER,   0, 0x1e, bcm, sca_unser
 !! Clocks in the QWeak Beam Line (read the above warning)
 !! scaler.type, scaler.num, chan.num, det.type, det.name
 SCALER,   0, 0x1f, clock, sca_4MHz
+SCALER,   0, 0x1a, clock, sca_1MHz
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Combined BCM's
