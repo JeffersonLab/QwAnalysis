@@ -539,6 +539,7 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
   TBox *abox = NULL;
   Double_t ymin;
   Double_t ymax;
+  TString name;
 
   for(uint n = 0; n < PlotArray.size(); n++){
 
@@ -581,11 +582,23 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
 	ymax = boxes[n]->GetX2();
       else
 	ymax = PlotArray[n]->GetYaxis()->GetXmax();
-            
-      
-      PlotArray[n]->SetMinimum(ymin-fabs(ymin));
-      PlotArray[n]->SetMaximum(ymax+fabs(ymax));
-      
+                        
+      name = PlotArray[n]->GetName();
+      if(name.Contains("EffectiveCharge")){
+
+	ymin = boxes[n]->GetX1();//PlotArray[n]->GetYaxis()->GetXmin();
+	ymax = boxes[n]->GetX2();//PlotArray[n]->GetYaxis()->GetXmax();
+      }
+
+//       if(ymin < 0) PlotArray[n]->SetMinimum(2*ymin);
+//       if(ymin >= 0) PlotArray[n]->SetMinimum(ymin - );
+
+//       PlotArray[n]->SetMinimum(ymin-fabs(ymin));
+//       PlotArray[n]->SetMaximum(ymax+fabs(ymax));
+      PlotArray[n]->SetMinimum(ymin-fabs(ymax-ymin)/2);
+      PlotArray[n]->SetMaximum(ymax+fabs(ymax-ymin)/2);
+
+
       abox = new TBox(PlotArray[n]->GetXaxis()->GetXmin(),boxes[n]->GetX1(),PlotArray[n]->GetXaxis()->GetXmax(),boxes[n]->GetX2());
       // abox->SetFillColor(2);
       abox->SetLineColor(2);

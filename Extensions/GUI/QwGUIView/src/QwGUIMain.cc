@@ -1044,6 +1044,16 @@ void QwGUIMain::PlotMainData()
   if(hst) SetCurrent(hst->GetMean());
   hst = NULL;
 
+  sprintf(dMiscbuffer,"Run %d.%03d: Energy=%1.3f GeV  Current=%d uA, Raster=%1.1fx%1.1f\n",
+	  GetCurrentRunNumber(),GetCurrentRunSegment(),
+	  GetEnergy(),(Int_t)(GetCurrent()),GetRasterSize()[0], 
+	  GetRasterSize()[1]);
+  dRunInfoLabel->SetText(dMiscbuffer);
+  // MapSubwindows();
+  Layout();
+
+  gSystem->ProcessEvents();
+
   abox = NULL;
   hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
   mc->cd(1);
@@ -1569,34 +1579,34 @@ void QwGUIMain::PlotMainData()
       n++;
     }
 
-    grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
-    mc->cd(8);
-    if(grp){
-      dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
-      (dMainGraphs.back())->SetTitle(Form("MD %s",grp->GetTitle()));
-      (dMainGraphs.back())->GetXaxis()->SetTitle("MD Combinations");
-      (dMainGraphs.back())->Draw("ap");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();      
-      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
-      dMainPlotsArray.push_back(dMainGraphs.back());      
-    }    
-    else{
-      ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
-      ref[n]->AddText("No data for MD asymmetries");
-      ref[n]->SetBorderSize(0);
-      ref[n]->SetFillColor(0);
-      ref[n]->SetFillColor(0);
-      ref[n]->SetTextSize(0.08);
-      ref[n]->Draw();
-      n++;
-    }
+//     grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
+//     mc->cd(8);
+//     if(grp){
+//       dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
+//       (dMainGraphs.back())->SetTitle(Form("MD %s",grp->GetTitle()));
+//       (dMainGraphs.back())->GetXaxis()->SetTitle("MD Combinations");
+//       (dMainGraphs.back())->Draw("ap");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();      
+//       gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
+//       dMainPlotsArray.push_back(dMainGraphs.back());      
+//     }    
+//     else{
+//       ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+//       ref[n]->AddText("No data for MD asymmetries");
+//       ref[n]->SetBorderSize(0);
+//       ref[n]->SetFillColor(0);
+//       ref[n]->SetFillColor(0);
+//       ref[n]->SetTextSize(0.08);
+//       ref[n]->Draw();
+//       n++;
+//     }
   }
   else{
-    mc->cd(6);
+    mc->cd(7);
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
     ref[n]->AddText("No data for MD all bar asymmetry");
     ref[n]->SetBorderSize(0);
@@ -1605,9 +1615,77 @@ void QwGUIMain::PlotMainData()
     ref[n]->SetTextSize(0.08);
     ref[n]->Draw();
     n++;
-    mc->cd(7);
+//     mc->cd(8);
+//     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
+//     ref[n]->AddText("No data for MD asymmetries");
+//     ref[n]->SetBorderSize(0);
+//     ref[n]->SetFillColor(0);
+//     ref[n]->SetFillColor(0);
+//     ref[n]->SetTextSize(0.08);
+//     ref[n]->Draw();
+//     n++;
+  }
+
+  hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_bpm3c12_EffectiveCharge_hw");
+  mc->cd(8);
+  if(hst){
+    hst->GetXaxis()->SetTitle("bpm3c12 Effective Charge");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    dMainHistos.push_back((TH1F*)(hst->Clone()));
+    dMainHistos.back()->SetDirectory(0);
+    dMainHistos.back()->Draw("");
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->Modified();
+    gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save", 250);    
+    dMainPlotsArray.push_back(dMainHistos.back());      
+    dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "yield_qwk_bpm3c12_EffectiveCharge"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    }
+    // abox = new TBox(-5e-3,dMainHistos.back()->GetMinimum(), 5e-3, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
+  }
+  else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
-    ref[n]->AddText("No data for MD asymmetries");
+    ref[n]->AddText("No data for yield_qwk_bpm3c12_EffectiveCharge_hw");
     ref[n]->SetBorderSize(0);
     ref[n]->SetFillColor(0);
     ref[n]->SetFillColor(0);
@@ -1615,6 +1693,7 @@ void QwGUIMain::PlotMainData()
     ref[n]->Draw();
     n++;
   }
+
 
   const char *deverr[7] = {
     "asym_qwk_charge_dev_err", "diff_qwk_targetX_dev_err", "diff_qwk_targetY_dev_err",
@@ -1696,14 +1775,6 @@ void QwGUIMain::PlotMainData()
     gSystem->CopyFile(Form("%s/Extensions/GUI/QwAutoGUIHistories.dat",gSystem->Getenv("QWANALYSIS")),
 		      Form("/u/home/mgericke/public_html/QwAutoGUIHistories-backup.dat"),kTrue);
   }
-
-  sprintf(dMiscbuffer,"Run %d.%03d: Energy=%1.3f GeV  Current=%d uA, Raster=%1.1fx%1.1f\n",
-	  GetCurrentRunNumber(),GetCurrentRunSegment(),
-	  GetEnergy(),(Int_t)(GetCurrent()),GetRasterSize()[0], 
-	  GetRasterSize()[1]);
-  dRunInfoLabel->SetText(dMiscbuffer);
-  // MapSubwindows();
-  Layout();
 
   gStyle->SetTitleW(TitleW);
   gStyle->SetTitleH(TitleH);
