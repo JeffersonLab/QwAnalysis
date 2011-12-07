@@ -606,8 +606,7 @@ void QwModulation::PilferData()
   std::cout << "Number of entries: " << nentries << std::endl;
 
 
-//   for(Long64_t i = 0; i < nentries; i++){
-  for(Long64_t i = 0; i < 400000; i++){
+  for(Long64_t i = 0; i < nentries; i++){
     LoadTree(i);
     if(i < 0) break;
     fChain->GetEntry(i);
@@ -617,12 +616,6 @@ void QwModulation::PilferData()
 	std::cout << "X Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
-// 	  if((UInt_t)ErrorFlag != 0x4018080){
-// 	    ++i;
-// 	    error[0]++;
-// 	    continue;
-// 	  }
-// 	  if( (ErrorCodeCheck("mps_tree") != 0) || (qwk_charge_hw_sum < fCurrentMin) ){
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[0]++;
@@ -652,12 +645,6 @@ void QwModulation::PilferData()
 	do{
 	  fChain->GetEntry(i);
 	  
-// 	  if((UInt_t)ErrorFlag != 0x4018080){
-// 	    ++i;
-// 	    error[1]++;
-// 	    continue;
-// 	  }
-// 	  if( (ErrorCodeCheck("mps_tree") != 0) || (qwk_charge_hw_sum < fCurrentMin) ){
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[1]++;
@@ -685,12 +672,6 @@ void QwModulation::PilferData()
 	do{
 	  fChain->GetEntry(i);
 	  
-// 	  if((UInt_t)ErrorFlag != 0x4018080){
-// 	    ++i;
-// 	    error[2]++;
-// 	    continue;
-// 	  }
-// 	  if( (ErrorCodeCheck("mps_tree") != 0) || (qwk_charge_hw_sum < fCurrentMin) ){
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[2]++;
@@ -720,12 +701,6 @@ void QwModulation::PilferData()
 	do{
 	  fChain->GetEntry(i);
 	  
-// 	  if((UInt_t)ErrorFlag != 0x4018080){
-// 	    ++i;
-// 	    error[3]++;
-// 	    continue;
-// 	  }
-// 	  if( (ErrorCodeCheck("mps_tree") != 0) || (qwk_charge_hw_sum < fCurrentMin) ){
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[3]++;
@@ -755,12 +730,6 @@ void QwModulation::PilferData()
 	  do{
 	  fChain->GetEntry(i);
 	  
-// 	  if((UInt_t)ErrorFlag != 0x4018080){
-// 	    ++i;
-// 	    error[4]++;
-// 	    continue;
-// 	  }
-// 	  if( (ErrorCodeCheck("mps_tree") != 0) || (qwk_charge_hw_sum < fCurrentMin) ){
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[4]++;
