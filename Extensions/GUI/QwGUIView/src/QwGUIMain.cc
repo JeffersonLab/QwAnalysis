@@ -1630,7 +1630,7 @@ void QwGUIMain::PlotMainData()
   mc->cd(8);
   if(hst){
     hst->GetXaxis()->SetTitle("bpm3c12 Effective Charge");
-    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+//     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
     hst->GetXaxis()->CenterTitle();
     hst->GetXaxis()->SetTitleSize(0.06);
     hst->GetXaxis()->SetLabelSize(0.06);
@@ -1770,10 +1770,15 @@ void QwGUIMain::PlotMainData()
   HistoriesSubSystem->PlotData(dHistoryPlotsArray,dErrorBoxArray,GetCurrentRunNumber());
 
   TString PWD = gSystem->pwd();
+
+  TString rightnow = gSystem->GetFromPipe("date");
+//   std::cout << rightnow << std::endl;
+  TString tempo = rightnow.ReplaceAll(" ","-");
+//   std::cout << tempo << std::endl;  
   
   if(PWD.Contains("cdaq") && dClArgs.autoupdate == kTrue){
     gSystem->CopyFile(Form("%s/Extensions/GUI/QwAutoGUIHistories.dat",gSystem->Getenv("QWANALYSIS")),
-		      Form("/u/home/mgericke/public_html/QwAutoGUIHistories-backup.dat"),kTrue);
+		      Form("/u/home/mgericke/public_html/QwAutoGUIHistories-%s-backup.dat",tempo.Data()),kTrue);
   }
 
   gStyle->SetTitleW(TitleW);
