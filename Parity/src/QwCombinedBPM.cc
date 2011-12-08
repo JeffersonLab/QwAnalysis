@@ -1091,6 +1091,22 @@ std::vector<QwDBInterface> QwCombinedBPM<T>::GetDBEntry()
   return row_list;
 }
 
+
+
+template<typename T>
+std::vector<QwErrDBInterface> QwCombinedBPM<T>::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+  for(size_t axis=kXAxis;axis<kNumAxes;axis++) {
+    fAbsPos[axis].AddErrEntriesToList(row_list);
+    fSlope[axis].AddErrEntriesToList(row_list);
+    fIntercept[axis].AddErrEntriesToList(row_list);
+  }
+  //  fEffectiveCharge.AddErrEntriesToList(row_list);
+  return row_list;
+}
+
 template class QwCombinedBPM<QwVQWK_Channel>; 
 template class QwCombinedBPM<QwSIS3801_Channel>; 
 template class QwCombinedBPM<QwSIS3801D24_Channel>;

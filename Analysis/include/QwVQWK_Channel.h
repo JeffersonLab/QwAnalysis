@@ -214,6 +214,8 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /// \brief Blind this channel as a difference
   void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
 
+  // Error Counters exist in QwVQWK_Channel, not in VQwHardwareChannel
+  //
   void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list);
 
  protected:

@@ -850,7 +850,8 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 	  varname.Remove(TString::kBoth,' ');
 	  Double_t varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
 	  Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
-	  Double_t varweight = mapstr.GetTypedNextToken<Double_t>(); // value of the statistical weight
+	  Double_t varweight = 0.0;
+	  varweight=mapstr.GetTypedNextToken<Double_t>(); // value of the statistical weight
 
 	  //if(ldebug) std::cout<<"inputs for channel "<<varname
 	  //	      <<": ped="<<varped<<": cal="<<varcal<<": weight="<<varweight<<"\n";
@@ -2803,14 +2804,32 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
   i = j = 0;
   
   if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Beam Current Monitors" <<QwLog::endl;
-
   for(i=0; i< fBCM.size(); i++) {
     interface.clear();
     interface = fBCM[i].get()->GetErrDBEntry();
     for (j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id );
       interface.at(j).SetMonitorID( db );
-    //   interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  ///   try to access BPM mean and its error
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Beam Position Monitors" <<QwLog::endl;
+  for(i=0; i< fStripline.size(); i++) {
+    interface.clear();
+    interface = fStripline[i].get()->GetErrDBEntry();
+    for (j=0; j<interface.size()-5; j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    // effective charge (last 4 elements)  need to be saved as measurement_type_bcm
+    for (j=interface.size()-5; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
       interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
     }
@@ -2820,7 +2839,7 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
 
   if(local_print_flag){
     QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : "
-	      << QwColor(Qw::kBoldRed) << entrylist.size()
+  	      << QwColor(Qw::kBoldRed) << entrylist.size()
               << QwColor(Qw::kNormal)  << QwLog::endl;
   }
 

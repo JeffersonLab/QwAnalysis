@@ -21,6 +21,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 /*****************************************************************
 *  Class:
@@ -127,6 +128,7 @@ class QwQPD : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
   void    MakeQPDList();
 
 

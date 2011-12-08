@@ -1536,12 +1536,12 @@ void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list
 
   TString message;
   message  = Form("%-20s\t",GetElementName().Data());
+  message += Form(" %8d", fErrorCount_HWSat);
   message += Form(" %8d", fErrorCount_sample);
   message += Form(" %8d", fErrorCount_SW_HW);
   message += Form(" %8d", fErrorCount_Sequence);
   message += Form(" %8d", fErrorCount_SameHW);
   message += Form(" %8d", fErrorCount_ZeroHW);
-  message += Form(" %8d", fErrorCount_HWSat);
   message += Form(" %8d", fNumEvtsWithEventCutsRejected);
   QwMessage << message << QwLog::endl;
 
@@ -1563,6 +1563,23 @@ void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list
   // kErrorFlag_BlinderFail = 0x0200;// in Decimal  512 to identify the blinder fail flag
   // kStabilityCutError     = 0x10000000;// in Decimal 2^28 to identify the stability cut failure
   
+  // This is my modified mysql DB, Thursday, December  8 16:40:36 EST 2011, jhlee
+  // Error code must be matched to MySQL DB
+  // 
+  //   mysql> select * from error_code;
+  // +---------------+-----------------------+
+  // | error_code_id | quantity              |
+  // +---------------+-----------------------+
+  // |             1 | kErrorFlag_VQWK_Sat   | 
+  // |             2 | kErrorFlag_sample     | 
+  // |             3 | kErrorFlag_SW_HW      | 
+  // |             4 | kErrorFlag_Sequence   | 
+  // |             5 | kErrorFlag_SameHW     | 
+  // |             6 | kErrorFlag_ZeroHW     | 
+  // |             7 | kErrorFlag_EventCutLU | 
+  // +---------------+-----------------------+
+  // 7 rows in set (0.00 sec)
+
   QwErrDBInterface row;
   TString name    = GetElementName();
   
@@ -1580,34 +1597,34 @@ void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list
   
   row.Reset();
   row.SetDeviceName(name);
-  row.SetErrorCodeId(4);
+  row.SetErrorCodeId(3);
   row.SetN(fErrorCount_SW_HW);
   row_list.push_back(row);
   
   
   row.Reset();
   row.SetDeviceName(name);
-  row.SetErrorCodeId(8);
+  row.SetErrorCodeId(4);
   row.SetN(fErrorCount_Sequence);
   row_list.push_back(row);
   
   
   row.Reset();
   row.SetDeviceName(name);
-  row.SetErrorCodeId(16); // 0x10 = 16 dec
+  row.SetErrorCodeId(5); 
   row.SetN(fErrorCount_SameHW);
   row_list.push_back(row);
   
   row.Reset();
   row.SetDeviceName(name);
-  row.SetErrorCodeId(32); // 0x20 = 32 dec
+  row.SetErrorCodeId(6); 
   row.SetN(fErrorCount_ZeroHW);
   row_list.push_back(row);
 
 
   row.Reset();
   row.SetDeviceName(name);
-  row.SetErrorCodeId(192); // 0x40 + 0x80 = 0xCB  = 192 dec
+  row.SetErrorCodeId(7); 
   row.SetN(fNumEvtsWithEventCutsRejected);
   row_list.push_back(row);
   return;

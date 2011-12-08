@@ -21,6 +21,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 /*****************************************************************
 *  Class:
@@ -125,6 +126,8 @@ class QwLinearDiodeArray : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
+
   void    MakeLinearArrayList();
 
   protected:

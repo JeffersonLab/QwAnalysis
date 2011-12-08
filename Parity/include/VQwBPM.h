@@ -24,6 +24,9 @@ class QwParameterFile;
 template<typename T> class QwCombinedBPM;
 template<typename T> class QwBPMStripline;
 
+class QwDBInterface;
+class QwErrDBInterface;
+
 ///
 /// \ingroup QwAnalysis_BeamLine
 ///
@@ -152,7 +155,9 @@ class VQwBPM : public VQwDataElement {
   virtual void ConstructBranch(TTree *tree, TString &prefix,
       QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
+
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
+  virtual std::vector<QwErrDBInterface> GetErrDBEntry() = 0;
 
   virtual void Ratio(VQwBPM &numer, VQwBPM &denom) {
     std::cerr << "Ratio() is not defined for BPM named="<<GetElementName()<<"\n";

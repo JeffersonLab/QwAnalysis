@@ -809,8 +809,8 @@ void QwHelicityPattern::FillErrDB(QwParityDB *db)
 {
   // fBlinder.FillDB(db,"");
 
-  fRunningYield.FillErrDB(db, "");
-  //  fRunningAsymmetry.FillErrDB(db, "asymmetry");
+  //fRunningYield.FillErrDB(db, "");
+  fRunningAsymmetry.FillErrDB(db, "asymmetry");
   // if (fEnableDifference) {
   //   fRunningDifference.FillErrDB(db, "difference");
   // }

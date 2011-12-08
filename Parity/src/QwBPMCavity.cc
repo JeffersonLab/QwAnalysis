@@ -808,6 +808,20 @@ std::vector<QwDBInterface> QwBPMCavity::GetDBEntry()
   return row_list;
 }
 
+
+std::vector<QwErrDBInterface> QwBPMCavity::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+  for(size_t i=0;i<2;i++) {
+    fRelPos[i].AddErrEntriesToList(row_list);
+    fAbsPos[i].AddErrEntriesToList(row_list);
+  }
+  fEffectiveCharge.AddErrEntriesToList(row_list);
+  return row_list;
+}
+
+
 /**********************************
  * Mock data generation routines
  **********************************/
