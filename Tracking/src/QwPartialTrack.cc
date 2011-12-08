@@ -237,16 +237,16 @@ QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
 }
 
 // Add an existing QwTreeLine
-void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
+void QwPartialTrack::AddTreeLine(const QwTrackingTreeLine* treeline)
 {
   fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
   ++fNQwTreeLines;
 }
 
 // Add a linked list of QwTreeLine's
-void QwPartialTrack::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+void QwPartialTrack::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
 {
-  for (QwTrackingTreeLine *treeline = treelinelist;
+  for (const QwTrackingTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next){
     if (treeline->IsValid()){
        AddTreeLine(treeline);
