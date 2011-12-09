@@ -94,7 +94,12 @@ void QwDetectorInfo::SetDetectorInfo (
 
   // plane offset(only used in r2)
   if(region==2){
-      SetPlaneOffset(det_originY*w_rcos+det_originX*w_rsin);
+    // double rotate_cos=0.99998629;
+    //double rotate_sin=0.00523596;
+    //double new_originX=rotate_cos*det_originX+rotate_sin*det_originY;
+    //double new_originY=-rotate_sin*det_originX+rotate_cos*det_originY;
+    //SetPlaneOffset(new_originY*w_rcos+new_originX*w_rsin);
+    SetPlaneOffset(det_originY*w_rcos+det_originX*w_rsin);
   }
   // Direction
   if (planeDir == "x")

@@ -230,9 +230,10 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 		breakcut = wirespacing + resolution; // wirespacing + bin resolution
 
 	
-	// Loop over the hit list       
+	// Loop over the hit list
+	QwHitContainer::iterator end=hitlist->end();
 	for ( QwHitContainer::iterator hit = hitlist->begin();
-	        hit != hitlist->end(); ++hit )
+	        hit != end; ++hit )
 	{
 	  if(hit->GetHitNumber()!=0 || hit->GetDriftDistance()<0) continue;
 		// Consider the two options due to the left/right ambiguity
@@ -245,10 +246,10 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 			double signed_distance = track_position - hit_position;
 			double distance = fabs ( signed_distance );
         
-		        //if(hitlist->begin()->GetDirection()==1)
-			//  cout << "hit_pos: " << hit_position << " track pos: " << track_position << " resolution: " << resolution << endl;
 			// Only consider this hit if it is not too far away from the track position,
 			// i.e. within the drift distance resolution
+			//if(hit->GetPlane()==12)
+			//  cout << "resolution: " << resolution << " " << hit_position << " " << distance << endl;
 			if ( distance < resolution )
 			{
 				// Save only a maximum number of hits per track crossing through the plane
@@ -994,7 +995,6 @@ bool QwTrackingTreeCombine::TlCheckForX (
               && tlayer == dlayer)
             resnow -= resolution * (fMaxRoad - 1.0);
 
-	  //resnow=1.1684;
           // SelectLeftRightHit finds the hits which occur closest to the path
           // through the first and last detectors:
           // nHitsInPlane is the number of good hits at each detector layer
@@ -1055,6 +1055,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 
 	// check the validity of goodhits
 	  
+
 	if ( nPlanesWithHits >= dlayer - fMaxMissedPlanes )
 	{
 
@@ -1754,7 +1755,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
 		double wire_off=-0.5*spacing+hits[i]->GetDetectorInfo()->GetElementOffset();
 		double hit_pos=hits[i]->GetDriftPosition()+wire_off-dx;
-
 		double residual=y*rCos[dir]+x*rSin[dir]-hit_pos;
 		signedresidual[hits[i]->GetPlane()-1]=residual;
 		residual=fabs(residual);
@@ -1766,7 +1766,8 @@ int QwTrackingTreeCombine::r2_TrackFit (
 		chi += norm*residual*residual;		
 	}
 	chi /= ( num - 4 );
-
+	//cout << "chi: " << chi << endl;
+	//cout << endl;
 	// Translate to the lab frame
 	//fit[0] += hits[0]->GetDetectorInfo()->GetYPosition();
 
@@ -2477,9 +2478,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
 	QwPartialTrack* pt = new QwPartialTrack();
 
 	// NOTE Why here x and y are swapped because of different coordinate systems
-	pt->fOffsetX = fit[2];
+	pt->fOffsetX = -fit[2];
 	pt->fOffsetY = fit[0];
-	pt->fSlopeX  = fit[3];
+	pt->fSlopeX  = -fit[3];
 	pt->fSlopeY  = fit[1];
 	pt->fIsVoid  = false;
 
@@ -2716,9 +2717,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	QwPartialTrack* pt = new QwPartialTrack();
 
 
-	pt->fOffsetX = fit[0];
+	pt->fOffsetX = -fit[0];
 	pt->fOffsetY = fit[2];
-	pt->fSlopeX  = fit[1];
+	pt->fSlopeX  = -fit[1];
 	pt->fSlopeY  = fit[3];
 	pt->fIsVoid  = false;
 	pt->fChi = sqrt ( chi );     
@@ -2935,7 +2936,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	while(wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS){
 	  
 	  // Skip this treeline if it was no good
-	  if(wu->IsVoid() || wu->fSlope<=0){
+	  if(wu->IsVoid()){
 	    wu=wu->next;
 	    continue;
 	  }
@@ -2943,7 +2944,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	  QwTrackingTreeLine* wv=uvl[kDirectionV];
 	  while(wv){
 
-	    if(wv->IsVoid() || wv->fSlope<=0){
+	    if(wv->IsVoid()){
 	      wv=wv->next;
 	      continue;
 	    }
