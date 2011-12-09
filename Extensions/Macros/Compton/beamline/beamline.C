@@ -315,6 +315,14 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
 
 void ExpandBPMRange( Double_t *min, Double_t *max, Bool_t isX )
 {
+  Int_t exp;
+  Double_t maxScale, minScale;
+  frexp(*max,&exp);
+  maxScale = pow(10.,exp+1);
+  maxScale = maxScale>1?1:maxScale;
+  frexp(*min,&exp);
+  minScale = pow(10.,exp+1);
+  minScale = minScale>1?1:minScale;
   Double_t maxRange[4] = {0.10,0.20,0.20,0.30};
   Double_t minRange[4] = {0.20,0.10,0.30,0.20};
   Int_t index = 0;
@@ -324,11 +332,11 @@ void ExpandBPMRange( Double_t *min, Double_t *max, Bool_t isX )
   TTime t;
   Double_t rmin, rmax;
   r.SetSeed((ULong_t)t+gRandomSeed);
-  rmax = r.Uniform(maxRange[index],maxRange[index+2]);
+  rmax = r.Uniform(maxScale*maxRange[index],maxScale*maxRange[index+2]);
   gRandomSeed += TMath::Abs(rmax);
   *max += rmax;
   r.SetSeed((ULong_t)t+gRandomSeed);
-  rmin = -r.Uniform(minRange[index],minRange[index+2]);
+  rmin = -r.Uniform(minScale*minRange[index],minScale*minRange[index+2]);
   gRandomSeed += TMath::Abs(rmin);
   *min += rmin;
 }
