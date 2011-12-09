@@ -105,7 +105,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
             << "\t" << hTemp->GetMean() << std::endl;
   delete hTemp;
 
-  Double_t maxCur = helChain->GetMaximum("yield_sca_bcm6");
+  Double_t maxCur = helChain->GetMaximum("yield_sca_bcm6/value");
   Double_t cutCur = maxCur * 0.8;
   Bool_t useBCMCut;
   if ( cutCur > 0 ) {
@@ -117,8 +117,8 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   }
   useBCMCut = kTRUE;
 
-  TCut bcmCut = Form("yield_sca_bcm6>%f",cutCur);
-  TCut beamOffCut = Form("yield_sca_bcm6<=%f", MINCUR);
+  TCut bcmCut = Form("yield_sca_bcm6.value>%f",cutCur);
+  TCut beamOffCut = Form("yield_sca_bcm6.value<=%f", MINCUR);
 
   TCut scalerCut = "yield_sca_laser_photon>2";//PMT On and beam hitting laser
   TCut powCut;
