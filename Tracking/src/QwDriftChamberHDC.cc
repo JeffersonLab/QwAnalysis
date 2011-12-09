@@ -297,7 +297,7 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   //Double_t dt_ = 0.12 * (drifttime);
  
   Double_t dt_= drifttime;
-  Double_t dd_ = 0.0,t0=15.0;
+  Double_t dd_ = 0.0,t0=0.0;
   Double_t resolution=1.0;
   dt_-=t0;
   if(dt_>=0 && dt_<130){
