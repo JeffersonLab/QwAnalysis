@@ -18,15 +18,15 @@
 // Random number generator seed
 ULong_t gRandomSeed = 55.;
 // Prototype functions
-void ExpandBPMRange(Double_t *min, Double_t *max);
+void ExpandBPMRange(Double_t *min, Double_t *max, Bool_t isX = kFALSE);
 
 Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kFALSE)
 {
   gROOT->Reset();
 
   // Get the chain
-  TChain *mpsChain = getMpsChain(runnum,isFirst100k);
-  if (!mpsChain) {
+  TChain *helChain = getHelChain(runnum,isFirst100k);
+  if (!helChain) {
     std::cout << "What a scam!! We didn't even get data!" << std::endl;
     return -1;
   }
@@ -47,34 +47,34 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   Double_t maxMps, minMps;
   Double_t maxBPMX, minBPMX, minBPMY, maxBPMY;
   Double_t dx, dy;
-  maxMps = mpsChain->GetMaximum("mps_counter");
-  minMps = mpsChain->GetMinimum("mps_counter");
+  maxMps = helChain->GetMaximum("mps_counter");
+  minMps = helChain->GetMinimum("mps_counter");
 
-  // Plot BPM 3P02A
+  // Plot BPM Diffs 3P02A
   TPad *p02AX = new TPad("p02AX","",0,0,1,1);
   TPad *p02AY = new TPad("p02AY","",0,0,1,1);
   p02AY->SetFillStyle(4000);
   TGaxis *a02A;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02aX/value");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02aX/value");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02aY/value");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02aY/value");
+  minBPMX = helChain->GetMinimum("diff_sca_bpm_3p02aX/value");
+  maxBPMX = helChain->GetMaximum("diff_sca_bpm_3p02aX/value");
+  minBPMY = helChain->GetMinimum("diff_sca_bpm_3p02aY/value");
+  maxBPMY = helChain->GetMaximum("diff_sca_bpm_3p02aY/value");
 
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
+  ExpandBPMRange(&minBPMX,&maxBPMX,kTRUE);
+  ExpandBPMRange(&minBPMY,&maxBPMY,kFALSE);
 
   TH2F *h02AX = new TH2F("h02AX",
-      "BPM 3P02AX vs Mps Counter;Mps Counter;BPM 3P02AX (mm)",
+      "BPM Differences 3P02AX vs Mps Counter;Mps Counter;BPM Differences 3P02AX (mm)",
       500,minMps,maxMps,500,minBPMX,maxBPMX);
   TH2F *h02AY = new TH2F("h02AY",
-      "BPM 3P02AY vs Mps Counter;Mps Counter;BPM 3P02AY (mm)",
+      "BPM Diffs 3P02AY vs Mps Counter;Mps Counter;BPM Diffs 3P02AY (mm)",
       500,minMps,maxMps,500,minBPMY,maxBPMY);
 
   // Now plot all the stuff out
   tmpCanvas->cd(1);
   p02AX->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3p02aX:mps_counter>>h02AX","compton_charge>25");
+  helChain->Draw("diff_sca_bpm_3p02aX:mps_counter>>h02AX","yield_compton_charge>25");
   canvas->cd(1);
   h02AX = (TH2F*)gDirectory->Get("h02AX");
   p02AX->Draw();
@@ -83,7 +83,7 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   h02AX->SetStats(kFALSE);
   h02AX->Draw();
   tmpCanvas->cd(1);
-  mpsChain->Draw("sca_bpm_3p02aY:mps_counter>>h02AY","compton_charge>25","][sames");
+  helChain->Draw("diff_sca_bpm_3p02aY:mps_counter>>h02AY","yield_compton_charge>25","][sames");
   h02AY = (TH2F*)gDirectory->Get("h02AY");
   h02AY->SetMarkerColor(kRed);
   h02AY->SetStats(kFALSE);
@@ -99,34 +99,34 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   a02A = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
   a02A->SetLabelColor(kRed);
   a02A->SetTitleColor(kRed);
-  a02A->SetTitle("BPM 3P02AY (mm)");
+  a02A->SetTitle("BPM Diffs 3P02AY (mm)");
   a02A->Draw();
 
-  // Plot BPM 3P02B
+  // Plot BPM Diffs 3P02B
   TPad *p02BX = new TPad("p02AX","",0,0,1,1);
   TPad *p02BY = new TPad("p02AY","",0,0,1,1);
   p02BY->SetFillStyle(4000);
   TGaxis *a02b;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02bX/value");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02bX/value");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02bY/value");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02bY/value");
+  minBPMX = helChain->GetMinimum("diff_sca_bpm_3p02bX/value");
+  maxBPMX = helChain->GetMaximum("diff_sca_bpm_3p02bX/value");
+  minBPMY = helChain->GetMinimum("diff_sca_bpm_3p02bY/value");
+  maxBPMY = helChain->GetMaximum("diff_sca_bpm_3p02bY/value");
 
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
+  ExpandBPMRange(&minBPMX,&maxBPMX,kTRUE);
+  ExpandBPMRange(&minBPMY,&maxBPMY,kFALSE);
 
   TH2F *h02BX = new TH2F("h02BX",
-      "BPM 3P02BX vs Mps Counter;Mps Counter;BPM 3P02BX (mm)",
+      "BPM Diffs 3P02BX vs Mps Counter;Mps Counter;BPM Diffs 3P02BX (mm)",
       500,minMps,maxMps,500,minBPMX,maxBPMX);
   TH2F *h02BY = new TH2F("h02BY",
-      "BPM 3P02BY vs Mps Counter;Mps Counter;BPM 3P02BY (mm)",
+      "BPM Diffs 3P02BY vs Mps Counter;Mps Counter;BPM Diffs 3P02BY (mm)",
       500,minMps,maxMps,500,minBPMY,maxBPMY);
 
   // Now plot all the stuff out
   tmpCanvas->cd(2);
   p02BX->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3p02bX:mps_counter>>h02BX","compton_charge>25");
+  helChain->Draw("diff_sca_bpm_3p02bX:mps_counter>>h02BX","yield_compton_charge>25");
   h02BX = (TH2F*)gDirectory->Get("h02BX");
   canvas->cd(2);
   p02BX->Draw();
@@ -135,7 +135,7 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   h02BX->SetStats(kFALSE);
   h02BX->Draw();
   tmpCanvas->cd(2);
-  mpsChain->Draw("sca_bpm_3p02bY:mps_counter>>h02BY","compton_charge>25","][sames");
+  helChain->Draw("diff_sca_bpm_3p02bY:mps_counter>>h02BY","yield_compton_charge>25","][sames");
   canvas->cd(2);
   h02BY = (TH2F*)gDirectory->Get("h02BY");
   h02BY->SetMarkerColor(kRed);
@@ -151,36 +151,36 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   a02b = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
   a02b->SetLabelColor(kRed);
   a02b->SetTitleColor(kRed);
-  a02b->SetTitle("BPM 3P02BY (mm)");
+  a02b->SetTitle("BPM Diffs 3P02BY (mm)");
   a02b->Draw();
 
 
 
-  // Plot BPM 3P03A
+  // Plot BPM Diffs 3P03A
   TPad *p03AX = new TPad("p02AX","",0,0,1,1);
   TPad *p03AY = new TPad("p02AY","",0,0,1,1);
   p03AY->SetFillStyle(4000);
   TGaxis *a03a;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p03aX/value");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p03aX/value");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p03aY/value");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p03aY/value");
+  minBPMX = helChain->GetMinimum("diff_sca_bpm_3p03aX/value");
+  maxBPMX = helChain->GetMaximum("diff_sca_bpm_3p03aX/value");
+  minBPMY = helChain->GetMinimum("diff_sca_bpm_3p03aY/value");
+  maxBPMY = helChain->GetMaximum("diff_sca_bpm_3p03aY/value");
 
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
+  ExpandBPMRange(&minBPMX,&maxBPMX,kTRUE);
+  ExpandBPMRange(&minBPMY,&maxBPMY,kFALSE);
 
   TH2F *h03AX = new TH2F("h03AX",
-      "BPM 3P03AX vs Mps Counter;Mps Counter;BPM 3P03AX (mm)",
+      "BPM Diffs 3P03AX vs Mps Counter;Mps Counter;BPM Diffs 3P03AX (mm)",
       500,minMps,maxMps,500,minBPMX,maxBPMX);
   TH2F *h03AY = new TH2F("h03AY",
-      "BPM 3P03AY vs Mps Counter;Mps Counter;BPM 3P03AY (mm)",
+      "BPM Diffs 3P03AY vs Mps Counter;Mps Counter;BPM Diffs 3P03AY (mm)",
       500,minMps,maxMps,500,minBPMY,maxBPMY);
 
   // Now plot all the stuff out
   tmpCanvas->cd(3);
   p03AX->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3p03aX:mps_counter>>h03AX","compton_charge>25");
+  helChain->Draw("diff_sca_bpm_3p03aX:mps_counter>>h03AX","yield_compton_charge>25");
   h03AX = (TH2F*)gDirectory->Get("h03AX");
   canvas->cd(3);
   p03AX->Draw();
@@ -189,7 +189,7 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   h03AX->SetStats(kFALSE);
   h03AX->Draw();
   tmpCanvas->cd(3);
-  mpsChain->Draw("sca_bpm_3p03aY:mps_counter>>h03AY","compton_charge>25","][sames");
+  helChain->Draw("diff_sca_bpm_3p03aY:mps_counter>>h03AY","yield_compton_charge>25","][sames");
   canvas->cd(3);
   h03AY = (TH2F*)gDirectory->Get("h03AY");
   h03AY->SetMarkerColor(kRed);
@@ -205,36 +205,36 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   a03a = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
   a03a->SetLabelColor(kRed);
   a03a->SetTitleColor(kRed);
-  a03a->SetTitle("BPM 3P03AY (mm)");
+  a03a->SetTitle("BPM Diffs 3P03AY (mm)");
   a03a->Draw();
 
 
 
-  // Plot BPM 3C020
+  // Plot BPM Diffs 3C020
   TPad *p020X = new TPad("p02AX","",0,0,1,1);
   TPad *p020Y = new TPad("p02AY","",0,0,1,1);
   p020Y->SetFillStyle(4000);
   TGaxis *a020;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3c20X/value");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3c20X/value");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3c20Y/value");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3c20Y/value");
+  minBPMX = helChain->GetMinimum("diff_sca_bpm_3c20X/value");
+  maxBPMX = helChain->GetMaximum("diff_sca_bpm_3c20X/value");
+  minBPMY = helChain->GetMinimum("diff_sca_bpm_3c20Y/value");
+  maxBPMY = helChain->GetMaximum("diff_sca_bpm_3c20Y/value");
 
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
+  ExpandBPMRange(&minBPMX,&maxBPMX,kTRUE);
+  ExpandBPMRange(&minBPMY,&maxBPMY,kFALSE);
 
   TH2F *h020X = new TH2F("h020X",
-      "BPM 3C020X vs Mps Counter;Mps Counter;BPM 3C020X (mm)",
+      "BPM Diffs 3C020X vs Mps Counter;Mps Counter;BPM Diffs 3C020X (mm)",
       500,minMps,maxMps,500,minBPMX,maxBPMX);
   TH2F *h020Y = new TH2F("h020Y",
-      "BPM 3C020Y vs Mps Counter;Mps Counter;BPM 3C020Y (mm)",
+      "BPM Diffs 3C020Y vs Mps Counter;Mps Counter;BPM Diffs 3C020Y (mm)",
       500,minMps,maxMps,500,minBPMY,maxBPMY);
 
   // Now plot all the stuff out
   tmpCanvas->cd(4);
   p020X->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3c20X:mps_counter>>h020X","compton_charge>25");
+  helChain->Draw("diff_sca_bpm_3c20X:mps_counter>>h020X","yield_compton_charge>25");
   h020X = (TH2F*)gDirectory->Get("h020X");
   canvas->cd(4);
   p020X->Draw();
@@ -243,7 +243,7 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   h020X->SetStats(kFALSE);
   h020X->Draw();
   tmpCanvas->cd(4);
-  mpsChain->Draw("sca_bpm_3c20Y:mps_counter>>h020Y","compton_charge>25","][sames");
+  helChain->Draw("diff_sca_bpm_3c20Y:mps_counter>>h020Y","yield_compton_charge>25","][sames");
   canvas->cd(4);
   h020Y = (TH2F*)gDirectory->Get("h020Y");
   h020Y->SetMarkerColor(kRed);
@@ -259,7 +259,7 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   a020 = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
   a020->SetLabelColor(kRed);
   a020->SetTitleColor(kRed);
-  a020->SetTitle("BPM 3C020Y (mm)");
+  a020->SetTitle("BPM Diffs 3C020Y (mm)");
   a020->Draw();
 
   // Plot the BCM's
@@ -278,16 +278,16 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
 
   // Now plot all the stuff out
   canvas->cd(5);
-  mpsChain->Draw("sca_bcm1:mps_counter>>hBCM1");
+  helChain->Draw("yield_sca_bcm1:mps_counter>>hBCM1");
   hBCM1->SetMarkerColor(kBlue);
   hBCM1->SetStats(kFALSE);
-  mpsChain->Draw("sca_bcm2:mps_counter>>hBCM2");
+  helChain->Draw("yield_sca_bcm2:mps_counter>>hBCM2");
   hBCM2->SetMarkerColor(kRed);
   hBCM2->SetStats(kFALSE);
-  mpsChain->Draw("sca_bcm6:mps_counter>>hBCM6");
+  helChain->Draw("yield_sca_bcm6:mps_counter>>hBCM6");
   hBCM6->SetMarkerColor(kGreen);
   hBCM6->SetStats(kFALSE);
-  mpsChain->Draw("compton_charge:mps_counter>>hComptonCharge");
+  helChain->Draw("yield_compton_charge:mps_counter>>hComptonCharge");
   hComptonCharge->SetMarkerColor(kBlack);
   hComptonCharge->SetStats(kFALSE);
 
@@ -305,7 +305,7 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   canvas->SaveAs(canvas1);
 
   if ( deleteOnExit == kTRUE ) {
-    delete mpsChain;
+    delete helChain;
     delete canvas;
   }
 
@@ -313,17 +313,22 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
 
 }
 
-void ExpandBPMRange( Double_t *min, Double_t *max )
+void ExpandBPMRange( Double_t *min, Double_t *max, Bool_t isX )
 {
+  Double_t maxRange[4] = {0.10,0.20,0.20,0.30};
+  Double_t minRange[4] = {0.20,0.10,0.30,0.20};
+  Int_t index = 0;
+  if( !isX )
+    index = 1;
   TRandom r;
   TTime t;
   Double_t rmin, rmax;
   r.SetSeed((ULong_t)t+gRandomSeed);
-  rmax = r.Uniform(1.0,1.5);
+  rmax = r.Uniform(maxRange[index],maxRange[index+2]);
   gRandomSeed += TMath::Abs(rmax);
   *max += rmax;
   r.SetSeed((ULong_t)t+gRandomSeed);
-  rmin = -r.Uniform(.25,1.5);
+  rmin = -r.Uniform(minRange[index],minRange[index+2]);
   gRandomSeed += TMath::Abs(rmin);
   *min += rmin;
 }
