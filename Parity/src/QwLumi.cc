@@ -1379,7 +1379,7 @@ void QwLumi::FillErrDB(QwParityDB *db, TString datatype)
     query.execute();
   }
   else {
-    QwMessage << "QwLumi::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+    QwMessage << "QwLumi::FillErrDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
   }
 
   db->Disconnect();

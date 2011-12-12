@@ -111,7 +111,8 @@ class QwIntegratedRasterChannel : public VQwDataElement{
 
   void Copy(const VQwDataElement *source);
 
-  std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwDBInterface>    GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
 
   const VQwDataElement* GetElement() const {
     return const_cast<QwIntegratedRasterChannel*>(this)->GetElement();
