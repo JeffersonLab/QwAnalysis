@@ -1443,9 +1443,9 @@ void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
     interface.clear();
     interface = fIntegrationPMT[i].GetErrDBEntry();
     for(j=0; j<interface.size(); j++) {
-      interface.at(j).SetAnalysisID( analysis_id );
-      interface.at(j).SetMainDetectorID( db );
-      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).SetAnalysisID     ( analysis_id );
+      interface.at(j).SetMainDetectorID ( db );
+      interface.at(j).PrintStatus       ( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
     }
   }
@@ -1457,9 +1457,9 @@ void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
       interface.clear();
       interface = fCombinedPMT[i].GetErrDBEntry();
       for(j=0; j<interface.size(); j++) {
-	interface.at(j).SetAnalysisID( analysis_id );
-	interface.at(j).SetMainDetectorID( db );
-	interface.at(j).PrintStatus( local_print_flag );
+	interface.at(j).SetAnalysisID     ( analysis_id );
+	interface.at(j).SetMainDetectorID ( db );
+	interface.at(j).PrintStatus       ( local_print_flag );
 	interface.at(j).AddThisEntryToList( entrylist );
       }
     }
