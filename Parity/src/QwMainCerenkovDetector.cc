@@ -1429,6 +1429,58 @@ void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
 
+
+  std::vector<QwErrDBInterface> interface;
+  std::vector<QwParitySSQLS::md_errors> entrylist;
+
+  UInt_t analysis_id = db->GetAnalysisID();
+
+  UInt_t i,j;
+  i = j = 0;
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
+
+  for(i=0; i<fIntegrationPMT.size(); i++) {
+    interface.clear();
+    interface = fIntegrationPMT[i].GetErrDBEntry();
+    for(j=0; j<interface.size(); j++) {
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMainDetectorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined PMT" <<QwLog::endl;
+
+  for(i=0; i< fCombinedPMT.size(); i++)
+    {
+      interface.clear();
+      interface = fCombinedPMT[i].GetErrDBEntry();
+      for(j=0; j<interface.size(); j++) {
+	interface.at(j).SetAnalysisID( analysis_id );
+	interface.at(j).SetMainDetectorID( db );
+	interface.at(j).PrintStatus( local_print_flag );
+	interface.at(j).AddThisEntryToList( entrylist );
+      }
+    }
+  if(local_print_flag) {
+    QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size()
+              << QwColor(Qw::kNormal) << QwLog::endl;
+  }
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwMainCerenkovDetector::FillErrDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
+  db->Disconnect();
+
   return;
 };
 

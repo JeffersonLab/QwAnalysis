@@ -491,3 +491,8 @@ std::vector<QwDBInterface>  QwCombinedPMT::GetDBEntry()
 {
   return fSumADC.GetDBEntry();
 }
+
+std::vector<QwErrDBInterface>  QwCombinedPMT::GetErrDBEntry()
+{
+  return fSumADC.GetErrDBEntry();
+}
