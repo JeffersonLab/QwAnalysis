@@ -163,13 +163,17 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
         }
       else
         {
-          Bool_t lineok=kTRUE;
-	  TString keyword = "";
+          Bool_t  lineok   = kTRUE;
+	  TString keyword  = "";
 	  TString keyword2 = "";
-          //  Break this line into tokens to process it.
-          TString modtype   = mapstr.GetTypedNextToken<TString>();	// module type
-          TString dettype, namech;
-          Int_t modnum, channum;
+          TString modtype  = "";
+          TString dettype  = "";
+	  TString namech   = "";
+          Int_t modnum     = 0;
+	  Int_t channum    = 0;
+
+	  modtype = mapstr.GetTypedNextToken<TString>();	// module type
+
           if (modtype == "VQWK")
             {
               modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number

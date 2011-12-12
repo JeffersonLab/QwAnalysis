@@ -327,8 +327,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  Print the event cut error summary for each subsystem
     if (gQwOptions.GetValue<bool>("print-errorcounters")) {
-      QwMessage << " Event cut error counters" << QwLog::endl;
-      QwMessage << " ========================" << QwLog::endl;
+      QwMessage << " ------------ error counters ------------------ " << QwLog::endl;
       detectors.GetEventcutErrorCounters();
     }
 
@@ -338,8 +337,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Each subsystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
       helicitypattern.FillDB(&database);
-      //      detectors.FillErrDB(&database, "");
-      //   helicitypattern.FillErrDB(&database);
+      //helicitypattern.FillErrDB(&database);
       epicsevent.FillDB(&database);
 
     }

@@ -858,8 +858,10 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     } else {
       //  Break this line into tokens to process it.
       TString modtype = mapstr.GetTypedNextToken<TString>();	// module type
-      Int_t modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
-      Int_t channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+      Int_t modnum    = 0;
+      modnum = mapstr.GetTypedNextToken<Int_t>();	//slot number
+      Int_t channum   = 0;
+      channum = mapstr.GetTypedNextToken<Int_t>();	//channel number
       TString dettype = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
       dettype.ToLower();
       TString namech  = mapstr.GetTypedNextToken<TString>();  //name of the detector

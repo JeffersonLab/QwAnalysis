@@ -106,7 +106,7 @@ class QwDBInterface {
       if(print_flag) {
         QwMessage << std::setw(12)
                   << " AnalysisID " << fAnalysisId
-                  << " Device :"    << std::setw(18) << fDeviceName
+                  << " Device :"    << std::setw(30) << fDeviceName
                   << ":" << std::setw(4) << fDeviceId
                   << " Subblock "   << fSubblock
                   << " n "          << fN
@@ -211,7 +211,7 @@ class QwErrDBInterface {
       if(print_flag) {
         QwMessage << std::setw(12)
                   << " AnalysisID " << fAnalysisId
-                  << " Device :"    << std::setw(18) << fDeviceName
+                  << " Device :"    << std::setw(30) << fDeviceName
                   << ":" << std::setw(4) << fDeviceId
                   << " ErrorCode "   << fErrorCodeId
                   << " n "          << fN

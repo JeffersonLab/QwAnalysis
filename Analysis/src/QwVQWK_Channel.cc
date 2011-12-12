@@ -1487,41 +1487,44 @@ void QwVQWK_Channel::Copy(const VQwDataElement *source)
   }
 }
 
-void  QwVQWK_Channel::PrintErrorCounterHead(){
+void  QwVQWK_Channel::PrintErrorCounterHead()
+{
   TString message;
-  message  = Form("%-20s\t","Device name");
-  message += "   Sample";
-  message += "    SW_HW";
-  message += " Sequence";
-  message += "   SameHW";
-  message += "   ZeroHW";
-  message += "   HW Sat";
-  message += " EventCut";
+  message  = Form("%30s","Device name");
+  message += Form("%9s", "HW Sat");
+  message += Form("%9s", "Sample");
+  message += Form("%9s", "SW_HW");
+  message += Form("%9s", "Sequence");
+  message += Form("%9s", "SameHW");
+  message += Form("%9s", "ZeroHW");
+  message += Form("%9s", "EventCut");
+  QwMessage << "---------------------------------------------------------------------------------------------" << QwLog::endl;
   QwMessage << message << QwLog::endl; 
+  QwMessage << "---------------------------------------------------------------------------------------------" << QwLog::endl;
+  return;
 }
 
-void  QwVQWK_Channel::PrintErrorCounterTail(){
-  QwMessage << "---------------------------------------------------"
-	    << QwLog::endl;
+void  QwVQWK_Channel::PrintErrorCounterTail()
+{
+  QwMessage << "---------------------------------------------------------------------------------------------" << QwLog::endl;
+  return;
 }
 
 void  QwVQWK_Channel::ReportErrorCounters()
 {
   TString message;
-  if (fErrorCount_sample || fErrorCount_SW_HW 
-      || fErrorCount_Sequence || fErrorCount_SameHW 
-      || fErrorCount_ZeroHW || fErrorCount_HWSat || fNumEvtsWithEventCutsRejected){
-    message  = Form("%-20s\t",GetElementName().Data());
-    message += Form(" %8d", fErrorCount_sample);
-    message += Form(" %8d", fErrorCount_SW_HW);
-    message += Form(" %8d", fErrorCount_Sequence);
-    message += Form(" %8d", fErrorCount_SameHW);
-    message += Form(" %8d", fErrorCount_ZeroHW);
-    message += Form(" %8d", fErrorCount_HWSat);
-    message += Form(" %8d", fNumEvtsWithEventCutsRejected);
+  if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fErrorCount_ZeroHW || fErrorCount_HWSat || fNumEvtsWithEventCutsRejected) {
+    message  = Form("%30s", GetElementName().Data());
+    message += Form("%9d", fErrorCount_HWSat);
+    message += Form("%9d", fErrorCount_sample);
+    message += Form("%9d", fErrorCount_SW_HW);
+    message += Form("%9d", fErrorCount_Sequence);
+    message += Form("%9d", fErrorCount_SameHW);
+    message += Form("%9d", fErrorCount_ZeroHW);
+    message += Form("%9d", fNumEvtsWithEventCutsRejected);
     
     if((fDataToSave == kRaw) && (!kFoundPedestal||!kFoundGain)){
-      message += " ~Warning~ No Pedestal or Gain entered in map file for this channel";
+      message += " >>>>> No Pedestal or Gain in map file";
     }
 
     QwMessage << message << QwLog::endl;
@@ -1534,16 +1537,16 @@ void  QwVQWK_Channel::ReportErrorCounters()
 void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list)
 {
 
-  TString message;
-  message  = Form("%-20s\t",GetElementName().Data());
-  message += Form(" %8d", fErrorCount_HWSat);
-  message += Form(" %8d", fErrorCount_sample);
-  message += Form(" %8d", fErrorCount_SW_HW);
-  message += Form(" %8d", fErrorCount_Sequence);
-  message += Form(" %8d", fErrorCount_SameHW);
-  message += Form(" %8d", fErrorCount_ZeroHW);
-  message += Form(" %8d", fNumEvtsWithEventCutsRejected);
-  QwMessage << message << QwLog::endl;
+  // TString message;
+  // message  = Form("%30s",GetElementName().Data());
+  // message += Form("%9d", fErrorCount_HWSat);
+  // message += Form("%9d", fErrorCount_sample);
+  // message += Form("%9d", fErrorCount_SW_HW);
+  // message += Form("%9d", fErrorCount_Sequence);
+  // message += Form("%9d", fErrorCount_SameHW);
+  // message += Form("%9d", fErrorCount_ZeroHW);
+  // message += Form("%9d", fNumEvtsWithEventCutsRejected);
+  // QwMessage << message << QwLog::endl;
 
   // kErrorFlag_VQWK_Sat   =0x1;    //VQWK Saturation Cut. Currently saturation limit is set to +/-8.5V
   // kErrorFlag_sample     =0x2;    //If sample size mis-matches with the default value in the map file.
@@ -1566,19 +1569,24 @@ void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list
   // This is my modified mysql DB, Thursday, December  8 16:40:36 EST 2011, jhlee
   // Error code must be matched to MySQL DB
   // 
-  //   mysql> select * from error_code;
-  // +---------------+-----------------------+
-  // | error_code_id | quantity              |
-  // +---------------+-----------------------+
-  // |             1 | kErrorFlag_VQWK_Sat   | 
-  // |             2 | kErrorFlag_sample     | 
-  // |             3 | kErrorFlag_SW_HW      | 
-  // |             4 | kErrorFlag_Sequence   | 
-  // |             5 | kErrorFlag_SameHW     | 
-  // |             6 | kErrorFlag_ZeroHW     | 
-  // |             7 | kErrorFlag_EventCutLU | 
-  // +---------------+-----------------------+
-  // 7 rows in set (0.00 sec)
+  // mysql> select * from error_code;
+  // +---------------+------------------------------+
+  // | error_code_id | quantity                     |
+  // +---------------+------------------------------+
+  // |             1 | kErrorFlag_VQWK_Sat          | 
+  // |             2 | kErrorFlag_sample            | 
+  // |             3 | kErrorFlag_SW_HW             | 
+  // |             4 | kErrorFlag_Sequence          | 
+  // |             5 | kErrorFlag_SameHW            | 
+  // |             6 | kErrorFlag_ZeroHW            | 
+  // |             7 | kErrorFlag_EventCut_Rejected | 
+  // |             8 | kErrorFlag_EventCut_L        | 
+  // |             9 | kErrorFlag_EventCut_U        | 
+  // |            10 | kErrorFlag_BlinderFail       | 
+  // |            11 | kStabilityCutError           | 
+  // +---------------+------------------------------+
+  // 11 rows in set (0.00 sec)
+
 
   QwErrDBInterface row;
   TString name    = GetElementName();

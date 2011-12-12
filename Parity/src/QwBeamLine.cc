@@ -120,7 +120,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
   while (mapstr.ReadNextLine()
 	 && mapstr.SkipSection("PUBLISH") ){
-    UInt_t value;
+    UInt_t value = 0;
     if (mapstr.PopValue("roc",value)){
       //      currentrocread=value;
       RegisterROCNumber(value,0);
@@ -1261,39 +1261,39 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
   for(size_t i=0;i<fClock.size();i++){
     fClock[i].get()->GetEventcutErrorCounters();
   }
-
+  printf("\n");
   for(size_t i=0;i<fBCM.size();i++){
     fBCM[i].get()->GetEventcutErrorCounters();
   }
-
+  printf("\n");
   for(size_t i=0;i<fHaloMonitor.size();i++){
     fHaloMonitor[i].GetEventcutErrorCounters();
   }
-
+  printf("\n");
   for(size_t i=0;i<fStripline.size();i++){
     fStripline[i].get()->GetEventcutErrorCounters();
+    printf("\n");
   }
-
- for(size_t i=0;i<fQPD.size();i++){
+  for(size_t i=0;i<fQPD.size();i++){
     fQPD[i].GetEventcutErrorCounters();
   }
-
- for(size_t i=0;i<fLinearArray.size();i++){
+  printf("\n");
+  for(size_t i=0;i<fLinearArray.size();i++){
     fLinearArray[i].GetEventcutErrorCounters();
   }
-
- for(size_t i=0;i<fCavity.size();i++){
+  printf("\n");
+  for(size_t i=0;i<fCavity.size();i++){
     fCavity[i].GetEventcutErrorCounters();
   }
-
+  printf("\n");
   for(size_t i=0;i<fBCMCombo.size();i++){
     fBCMCombo[i].get()->GetEventcutErrorCounters();
   }
-
+  printf("\n");
   for(size_t i=0;i<fBPMCombo.size();i++){
     fBPMCombo[i].get()->GetEventcutErrorCounters();
   }
-
+  printf("\n");
   for(size_t i=0;i<fECalculator.size();i++){
     fECalculator[i].GetEventcutErrorCounters();
   }
@@ -2813,6 +2813,7 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
       interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
     }
+    if(local_print_flag) printf("\n");
   }
 
   ///   try to access BPM mean and its error
@@ -2833,6 +2834,7 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
       interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
     }
+    if(local_print_flag) printf("\n");
   }
 
 
