@@ -6,10 +6,11 @@
 #include "TStopwatch.h"
 #include "TLatex.h"
 #include "TDatime.h"
+#include <vector.h>
 
 ClassImp(QwGUIDatabase);
 
-
+using namespace std;
 
 // Parameters to plot in X axis
 enum EQwGUIDatabaseXAxisIDs {
@@ -314,10 +315,39 @@ const char *QwGUIDatabase::Plots[N_Plots] =
     "Mean", "RMS", "Both"
   }; 
 
+/** good_for_types in the DB as of 12/13/2011
+ +-------------+-----------------------+
+ | good_for_id | type                  |
+ +-------------+-----------------------+
+ |           1 | production            |
+ |           2 | commissioning         |
+ |           3 | parity                |
+ |           4 | tracking              |
+ |           5 | centering_target      |
+ |           6 | centering_plug        |
+ |           7 | pedestals             |
+ |           8 | transverse            |
+ |           9 | transverse_horizontal |
+ |          10 | daq_test              |
+ |          11 | bcm_scan              |
+ |          12 | bpm_scan              |
+ |          13 | ia_scan               |
+ |          14 | pita_scan             |
+ |          15 | rhwp_scan             |
+ |          16 | background_studies    |
+ |          17 | pockels_cell_off      |
+ |          18 | n_to_delta            |
+ |          19 | junk                  |
+ +-------------+-----------------------+
+*/
+
 const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
 {
   "production","commissioning","parity","tracking",
-  "centering_target","centering_plug","pedestals","transverse"
+  "centering_target","centering_plug","pedestals","transverse",
+  "transverse_horizontal","daq_test","bcm_scan","bpm_scan",
+  "ia_scan","pita_scan","rhwp_scan","background_studies",
+  "pockels_cell_off","n_to_delta","junk"
 };
 
 const char *QwGUIDatabase::X_axis[N_X_AXIS] =
@@ -1110,24 +1140,34 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
 
   /*Get good_for cut information*/
   Bool_t good_for[N_GOODFOR_TYPES];
+  std::vector<Int_t> good_for_id;
+
   TList *selected_types = new TList;
   dBoxGoodFor->GetSelectedEntries(selected_types);
   TGTextLBEntry *entry;
   TIter next(selected_types);
-  TString good_for_check = " AND data.good_for_id is not NULL";
+  TString good_for_check = " AND data.good_for_id is not NULL AND data.good_for_id='";
+  Int_t good_for_n = 0;
 
   for(size_t i=0; i<N_GOODFOR_TYPES;i++){ //initialize them as false
 	  good_for[i] = kFALSE;
   }
+
+  // validate the entries that are selected.
   while( (entry = (TGTextLBEntry *)next()) ) {
-	  good_for[dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId()-1] = kTRUE;
+	  good_for_id.push_back(dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId());
   }
 
-  for(size_t i=0; i<N_GOODFOR_TYPES;i++){
-	  if(!good_for[i]){
-		  good_for_check = good_for_check + Form(" AND data.good_for_id NOT LIKE \"%%%d%%\"",i+1);
-	  }
+  if(good_for_id.size()>0){
+    good_for_check = good_for_check + Form("%d",good_for_id[0]);
+    if(good_for_id.size()>1){
+      for(size_t i=1; i<good_for_id.size() ;i++){
+	good_for_check = good_for_check + Form(",%d",good_for_id[i]);
+      }
+    }
   }
+  good_for_check = good_for_check + "' ";
+
 
   /*Slope corrections ON/OFF?*/
   if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="off" || det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
