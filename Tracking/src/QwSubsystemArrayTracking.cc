@@ -62,3 +62,18 @@ void QwSubsystemArrayTracking::GetHitList(QwHitContainer& hitlist)
     }
   }
 }
+
+
+
+void  QwSubsystemArrayTracking::FillHardwareErrorSummary()
+{
+
+  // Just try to use a default copy constructor... first
+  // 
+  //  for (const_iterator subsys = dummy_source->begin(); subsys != dummy_source->end(); ++subsys) {
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemTracking* subsys_tracking = dynamic_cast<VQwSubsystemTracking*>(subsys->get());
+    subsys_tracking->FillHardwareErrorSummary();
+  }
+  return;
+}

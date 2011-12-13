@@ -54,11 +54,6 @@ QwScanner::~QwScanner()
     }
   fADC_Data.clear();
 
-  // FIXME Temporarily disabled because it prints this too
-  // often after DeleteHistograms was removed.  Should go into
-  // a function ReportErrors or so...
-  //fF1TDContainer->PrintErrorSummary();
-  //fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -349,7 +344,7 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
     UInt_t slot_id      = 0;
     UInt_t vme_slot_num = 0;
 
-    Bool_t local_debug  = false;
+    Bool_t local_debug  = true;
 
     QwF1TDC *local_f1tdc = NULL;
    
@@ -1793,3 +1788,13 @@ void QwScanner::PrintInfo() const
 //   return h->GetBinContent( h->GetBin( xbin, ybin ));
 // }
 
+
+
+
+void QwScanner::FillHardwareErrorSummary()
+{
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+  //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
+  return;
+};

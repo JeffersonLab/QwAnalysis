@@ -897,7 +897,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	if ( DLAYERS < 4 ) cerr << "Error: DLAYERS must be >= 4 for region 2!" << endl;
 
 
-	double minweight = 1e10;
+	//	double minweight = 1e10;
 	bool ret   = false;		/* return value (pessimistic)             */
 
 
@@ -1444,7 +1444,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	    //double rcos = back->GetElementAngleCos();
 	    
 	    // We are looping over detectors with the same direction
-	    double Dr = (r2 - r1);           // difference in r position
+	    //	    double Dr = (r2 - r1);           // difference in r position
 	    double Dz = (z2 - z1);           // difference in z position
 	    //double Dx = Dr * fabs (rcos);    // difference in x position
 	    double Dx=back->GetPlaneOffset()-front->GetPlaneOffset();
@@ -1578,7 +1578,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	// Declarations #
 	//###############
 	double r[4];		//factors of elements of the metric matrix A
-	double uvx;		//u,v,or x coordinate of the track at a location in z
+	//	double uvx;		//u,v,or x coordinate of the track at a location in z
 	double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
 	double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
 	double offset[kNumDirections],slope[kNumDirections];	//track fit parameters
@@ -1616,7 +1616,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	double angle = hits[hitu]->GetDetectorInfo()->GetElementAngle();
 	double offsetu = hits[hitu]->GetDetectorInfo()->GetElementOffset();
 	double offsetv = hits[hitv]->GetDetectorInfo()->GetElementOffset();
-        double offsetx = hits[0]->GetDetectorInfo()->GetElementOffset();       
+	//        double offsetx = hits[0]->GetDetectorInfo()->GetElementOffset();       
 	double spacing = hits[hitu]->GetDetectorInfo()->GetElementSpacing();
 
 	
@@ -1895,7 +1895,7 @@ int QwTrackingTreeCombine::r2_TrackFit2(
 {
     double xtrans = hits[0]->GetDetectorInfo()->GetXPosition();
     double ytrans = hits[0]->GetDetectorInfo()->GetYPosition();
-    double ztrans = hits[0]->GetDetectorInfo()->GetZPosition();
+    //    double ztrans = hits[0]->GetDetectorInfo()->GetZPosition();
     //exchange x,y? 
     fit[0]=ytrans+parameter[0];
     fit[1]=parameter[1];
@@ -2067,7 +2067,7 @@ int QwTrackingTreeCombine::r3_TrackFit2 (
 	// Declarations #
 	//###############
 	double r[4];
-	double uvx;
+	//	double uvx;
 	double offset[kNumDirections],slope[kNumDirections];
 
 	// Create the transformation helper object
@@ -2788,7 +2788,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	// calling this is not ready for it yet.
 	std::vector<QwPartialTrack*> parttracklist;
 
-	int in_acceptance = 0;
+	//	int in_acceptance = 0;
 
 	chi_hashclear();
 
@@ -2910,8 +2910,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         QwGeometry hdc(fGeometry.in(package).in(region).in(kDirectionX));
         QwDetectorInfo* front = hdc.front();
         QwDetectorInfo* back = hdc.back();
-        double zx1 = front->GetZPosition();
-        double zx2 = back->GetZPosition();
+	//        double zx1 = front->GetZPosition();
+        //double zx2 = back->GetZPosition();
 
         //############################
         // Get the u, v and x tracks #

@@ -32,9 +32,6 @@ QwTriggerScintillator::~QwTriggerScintillator()
   for (size_t i = 0; i < fSCAs.size(); i++)
     delete fSCAs.at(i);
   fSCAs.clear();
-
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -925,3 +922,12 @@ Int_t QwTriggerScintillator::FindSignalIndex(const EQwModuleType modtype, const 
   }
   return chanindex;
 }
+
+
+void QwTriggerScintillator::FillHardwareErrorSummary()
+{
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+  //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
+  return;
+};

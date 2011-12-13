@@ -61,7 +61,10 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
+
   gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.ListConfigFiles();
+
   ///  TODO:  I have disabled the AddConfigFile("qweak_mysql.conf")
   ///         line below, because the standard version contains
   ///         options which are not defined in the basic QwDatabase
@@ -228,7 +231,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     } // end of loop over events
 
+    // Write F1TDC errors histograms into rootfile
+    // Print F1TDC errors summary into screen
+    // Must be executed before delete a rootfile.
 
+    tracking_detectors.FillHardwareErrorSummary();
 
     // Print summary information
     QwMessage << "Total number of events processed: " << nevents << QwLog::endl;

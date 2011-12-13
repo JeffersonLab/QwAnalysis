@@ -584,7 +584,9 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                     if (buffer[0]/32!=1)
                       {
                         issingleevent=kFALSE;
-                        std::cout<<"QwLumi::ProcessEvBuffer: More than one event was found in the buffer.  Setting these events to zero."<<std::endl;
+			if(lkDEBUG) {
+			  std::cout<<"QwLumi::ProcessEvBuffer: More than one event was found in the buffer.  Setting these events to zero."<<std::endl;
+			}
                       }
                   }
                 if (issingleevent==kFALSE) continue;

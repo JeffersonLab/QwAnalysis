@@ -5,6 +5,7 @@
 #include "QwLog.h"
 
 #include "TROOT.h"
+#include "TFile.h"
 
 
 /**
@@ -1743,6 +1744,28 @@ QwF1TDContainer::WriteErrorSummary(Bool_t hist_flag)
   }
   return;
 }
+
+
+
+// void 
+// QwF1TDContainer::WriteErrorSummaryToDedicatedRootFile(QwRootFile* rootfile, Bool_t hist_flag)
+// {
+//   if (fError2DHist->GetEntries() not_eq 0) {
+
+//     TString error_summary_name = this-> GetSystemName();
+//     error_summary_name += "_F1TDCs_Status";
+
+//     if(hist_flag) {
+//       TString hist_name = fError2DHist->GetName();
+//       this->SetErrorHistOptions();
+//       rootfile->WriteObject(fError2DHist, hist_name);
+//     }
+//     else {
+//       rootfile->WriteObject(this->GetErrorSummary(), error_summary_name);
+//     }
+//   }
+//   return;
+// }
 
 
 Bool_t 

@@ -70,8 +70,6 @@ QwDriftChamber::QwDriftChamber(const TString& name)
 
 QwDriftChamber::~QwDriftChamber()
 {
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -198,121 +196,6 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
   // fF1TDContainer-> PrintErrorSummary();
   return OK;
 }
-
-
-// Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, 
-// 				      const UInt_t bank_id, 
-// 				      UInt_t* buffer, 
-// 				      UInt_t num_words)
-// {
-
-//   Int_t  bank_index      = 0;
-//   Int_t  tdc_slot_number = 0;
-//   Int_t  tdc_chan_number = 0;
-//   UInt_t tdc_data        = 0;
-
-//   Bool_t data_integrity_flag = false;
-//   Bool_t temp_print_flag     = false;
-//   Int_t tdcindex = 0;
-//   bank_index = GetSubbankIndex(roc_id, bank_id);
-
- 
-
-  
-//   if (bank_index>=0 && num_words>0) {
-//     //  We want to process this ROC.  Begin looping through the data.
-//     SetDataLoaded(kTRUE);
-
-
-//     if (temp_print_flag ) {
-//       std::cout << "QwDriftChamber::ProcessEvBuffer:  "
-// 		<< "Begin processing ROC" 
-// 		<< std::setw(2)
-// 		<< roc_id 
-// 		<< " bank id " 
-// 		<< bank_id 
-// 		<< " Subbbank Index "
-// 		<< bank_index
-// 		<< " Region "
-// 		<< GetSubsystemName()
-// 		<< std::endl;
-//     }
-  
-
-//     data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
-    
-//     if (data_integrity_flag) {
-      
-//       for (UInt_t i=0; i<num_words ; i++) {
-	
-// 	//  Decode this word as a F1TDC word.
-// 	fF1TDC.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
-
-// 	// For MQwF1TDC,   roc_id is needed to print out some warning messages.
-// 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
-// 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
-
-// 	tdc_slot_number = fF1TDC.GetTDCSlotNumber();
-// 	tdc_chan_number = fF1TDC.GetTDCChannelNumber();
-// 	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
-	
-// 	if ( tdc_slot_number == 31) {
-// 	  //  This is a custom word which is not defined in
-// 	  //  the F1TDC, so we can use it as a marker for
-// 	  //  other data; it may be useful for something.
-// 	}
-	
-// 	// Each subsystem has its own interesting slot(s), thus
-// 	// here, if this slot isn't in its slot(s) (subsystem map file)
-// 	// we skip this buffer to do the further process
-
-// 	if (not IsSlotRegistered(bank_index, tdc_slot_number) ) continue;
-
-// 	if(temp_print_flag) std::cout << fF1TDC << std::endl;
-
-// 	if ( fF1TDC.IsValidDataword() ) {//;;
-// 	  // if F1TDC has a valid slot, resolution locked, and data word
-// 	  try {
-// 	    tdc_data = fF1TDC.GetTDCData();
-// 	    if (tdc_data) {
-// 	      // Only care when data is and not zero.
-// 	      FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
-// 	    }
-// 	    else {
-// 	      // I saw TDC raw time = 0, when SEU exists.
-// 	      // Thus, I skip such a case. And this is a temp solution.
-// 	    }
-// 	  }
-// 	  catch (std::exception& e) {
-// 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
-// 		      << e.what() << std::endl;
-// 	    std::cerr << "   Parameters:  index=="<<bank_index
-// 		      << "; GetF1SlotNumber()=="<< tdc_slot_number
-// 		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
-// 		      << "; GetF1Data()=="<<tdc_data
-// 		      << std::endl;
-// 	    // Int_t tdcindex = GetTDCIndex(bank_index, tdc_slot_number);
-// 	    std::cerr << "   GetTDCIndex()=="<<tdcindex
-// 		      << "; fTDCPtrs.at(tdcindex).size()=="
-// 		      << fTDCPtrs.at(tdcindex).size()
-// 		      << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
-// 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fPlane
-// 		      << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
-// 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fElement
-// 		      << std::endl;
-// 	  }
-// 	}//;;
-//       } // for (UInt_t i=0; i<num_words ; i++) {
-//     }
-//     else {
-//       // TODO...
-//       // must have some functions to access this error counter 
-//       //
-//     }
-//   }
-
-//   return OK;
-// }
 
 
 
@@ -651,3 +534,14 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     return -1;
   }
 }
+
+
+void
+QwDriftChamber::FillHardwareErrorSummary()
+{
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+  //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
+
+  return;
+};
