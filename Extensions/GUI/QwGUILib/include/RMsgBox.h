@@ -55,6 +55,7 @@ class RMsgBox : public TGTransientFrame {
   virtual void   CloseWindow();
   virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
   void           IsClosing(char *objname);
+  void           UpdateText(const char *text);
 
   ClassDef(RMsgBox,0);
 };

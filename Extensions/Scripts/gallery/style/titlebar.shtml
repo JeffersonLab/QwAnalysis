@@ -1,0 +1,33 @@
+  </title>
+  <!-- Page title end -->
+</head>
+
+
+<body>
+
+<!-- Everything in a big table -->
+<table class="main" width="760" align="center" cellpadding="1" cellspacing="1">
+<tr>
+  <td>
+
+    <!-- Sidebar and content in table -->
+    <table width="100%" border="0" cellpadding="2" cellspacing="2">
+      <tr>
+        <td>
+        </td>
+        <td>
+          <table width="100%">
+            <tr>
+              <td id="footer" align="left">
+<!--#if expr="${QUERY_STRING} == /print/" -->
+  <!--#if expr="${DOCUMENT_URI} == /\/en\//" -->
+                <a href="<!--#echo var="DOCUMENT_URI" -->">back</a>
+  <!--#elif expr="${DOCUMENT_URI} == /\/nl\//" -->
+                <a href="<!--#echo var="DOCUMENT_URI" -->">terug</a>
+  <!--#elif expr="${DOCUMENT_URI} == /\/de\//" -->
+                <a href="<!--#echo var="DOCUMENT_URI" -->">zur&uuml;ck</a>
+  <!--#endif -->
+<!--#endif -->
+              </td>
+              <td>
+                <div class="pagehead">

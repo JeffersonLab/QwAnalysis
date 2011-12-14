@@ -34,22 +34,22 @@ class QwBCM : public VQwBCM {
 /////
   friend class QwCombinedBCM<T>;
  public:
-  QwBCM() { };
-  QwBCM(TString name){
+  QwBCM(): VQwBCM(fBeamCurrent) { };
+  QwBCM(TString name): VQwBCM(fBeamCurrent,name) {
     InitializeChannel(name,"raw");
   };
-  QwBCM(TString subsystemname, TString name){
+  QwBCM(TString subsystemname, TString name)
+  : VQwBCM(fBeamCurrent,name) {
     SetSubsystemName(subsystemname);
-    InitializeChannel(subsystemname, name,"raw");
+    InitializeChannel(subsystemname,name,"raw");
   };
-  QwBCM(TString subsystemname, TString name, TString type, TString clock = ""){
+  QwBCM(TString subsystemname, TString name, TString type, TString clock = "")
+  : VQwBCM(fBeamCurrent,name) {
     fBeamCurrent.SetExternalClockName(clock.Data());
     SetSubsystemName(subsystemname);
-    InitializeChannel(subsystemname, name,type,"raw");
+    InitializeChannel(subsystemname,name,type,"raw");
   };
-  ~QwBCM() {
-    DeleteHistograms();
-  };
+  virtual ~QwBCM() { };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -60,6 +60,9 @@ class QwBCM : public VQwBCM {
       TString datatosave);
   void  ClearEventData();
 
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    fBeamCurrent.LoadChannelParameters(paramfile);
+  };
 
   void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
@@ -78,14 +81,24 @@ class QwBCM : public VQwBCM {
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fBeamCurrent.GetEventcutErrorFlag();
   }
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fBeamCurrent.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(VQwBCM *ev_error);
+
+  UInt_t GetErrorCode() const {return (fBeamCurrent.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fBeamCurrent.UpdateErrorCode(error);};
+
+
 
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   
   void SetDefaultSampleSize(Int_t sample_size);
-  void SetEventCutMode(Int_t bcuts){
-    bEVENTCUTMODE=bcuts;
+  void SetEventCutMode(Int_t bcuts) {
     fBeamCurrent.SetEventCutMode(bcuts);
   }
 
@@ -100,7 +113,7 @@ class QwBCM : public VQwBCM {
   // These are for the clocks
   std::string GetExternalClockName() { return fBeamCurrent.GetExternalClockName(); };
   Bool_t NeedsExternalClock() { return fBeamCurrent.NeedsExternalClock(); };
-  void SetExternalClockPtr( const VQwDataElement* clock) {fBeamCurrent.SetExternalClockPtr(clock);};
+  void SetExternalClockPtr( const VQwHardwareChannel* clock) {fBeamCurrent.SetExternalClockPtr(clock);};
   void SetExternalClockName( const std::string name) { fBeamCurrent.SetExternalClockName(name);};
   Double_t GetNormClockValue() { return fBeamCurrent.GetNormClockValue();}
 
@@ -127,6 +140,7 @@ class QwBCM : public VQwBCM {
   void Scale(Double_t factor);
 
   void AccumulateRunningSum(const VQwBCM& value);
+  void DeaccumulateRunningSum(VQwBCM& value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
@@ -139,11 +153,10 @@ class QwBCM : public VQwBCM {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 
@@ -151,30 +164,11 @@ class QwBCM : public VQwBCM {
 /////
  protected:
 
-/////
- private:
-  Double_t fPedestal;
-  Double_t fCalibration;
-  Double_t fULimit, fLLimit;
-  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
-
-
-
-
   T fBeamCurrent;
 
-  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
-
-  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
-  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
-
+/////
  private:
-  //  Functions to be removed
   
-  //  void  SetEventData(Double_t* block, UInt_t sequencenumber);
-  /*   void  SetEventNumber(int event); */
-
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   Double_t GetAverage()        {return fBeamCurrent.GetValue();};
   Double_t GetAverageError()   {return fBeamCurrent.GetValueError();};
 

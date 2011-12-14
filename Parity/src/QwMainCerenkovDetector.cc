@@ -13,7 +13,9 @@
 // Qweak headers
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwMainCerenkovDetector);
@@ -124,6 +126,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
   TString keyword;
+  TString keyword2;
   Int_t modnum, channum, combinedchans;
   std::vector<TString> combinedchannelnames;
   std::vector<Double_t> weight;
@@ -172,43 +175,48 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
         {
           Bool_t lineok=kTRUE;
 	  keyword = "";
+	  keyword2 = "";
           //  Break this line into tokens to process it.
-          modtype   = mapstr.GetNextToken(", \t").c_str();	// module type
+          modtype   = mapstr.GetTypedNextToken<TString>();	// module type
           if (modtype == "VQWK")
             {
-              modnum    = (atol(mapstr.GetNextToken(", \t").c_str()));	//slot number
-              channum   = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
-              dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
+              modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+              channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+              dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
               dettype.ToLower();
-              namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
+              namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
               namech.ToLower();
 
-	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword   = mapstr.GetTypedNextToken<TString>();
+	      keyword2  = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
+	      keyword2.ToLower();
             }
           else if (modtype == "VPMT")
             {
-              channum       = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
-              combinedchans = (atol(mapstr.GetNextToken(", \t").c_str()));	//number of combined channels
-              dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
+              channum       = mapstr.GetTypedNextToken<Int_t>();	//channel number
+              combinedchans = mapstr.GetTypedNextToken<Int_t>();	//number of combined channels
+              dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
               dettype.ToLower();
-              namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
+              namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
               namech.ToLower();
               //TString nameofchannel;
               combinedchannelnames.clear();
               for (int i=0; i<combinedchans; i++)
                 {
-                  nameofcombinedchan = mapstr.GetNextToken(", \t").c_str();
+                  nameofcombinedchan = mapstr.GetTypedNextToken<TString>();
                   nameofcombinedchan.ToLower();
                   combinedchannelnames.push_back(nameofcombinedchan);
                 }
               weight.clear();
               for (int i=0; i<combinedchans; i++)
                 {
-                  weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
+                  weight.push_back( mapstr.GetTypedNextToken<Double_t>());
                 }
-	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword   = mapstr.GetTypedNextToken<TString>();
+	      keyword2  = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
+	      keyword2.ToLower();
             }
 
 
@@ -263,10 +271,16 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
                   QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-		  if (keyword=="not_blindable") 
+		  if (keyword=="not_blindable"
+		      || keyword2=="not_blindable")
 		    localIntegrationPMT.SetBlindability(kFALSE);
 		  else 
 		    localIntegrationPMT.SetBlindability(kTRUE);
+		  if (keyword=="not_normalizable"
+		      || keyword2=="not_normalizable")
+		  	localIntegrationPMT.SetNormalizability(kFALSE);
+		  else
+		  	localIntegrationPMT.SetNormalizability(kTRUE);
 		  fIntegrationPMT.push_back(localIntegrationPMT);
                   fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
@@ -275,7 +289,13 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               else if (localMainDetID.fTypeID==kQwCombinedPMT)
                 {
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-		  if (keyword=="not_blindable") 
+		  if (keyword=="not_normalizable" 
+		      || keyword2=="not_normalizable")
+		    localcombinedPMT.SetNormalizability(kFALSE);
+		  else
+		    localcombinedPMT.SetNormalizability(kTRUE);
+		  if (keyword=="not_blindable" 
+		      || keyword2 =="not_blindable") 
 		    localcombinedPMT.SetBlindability(kFALSE);
 		  else 
 		    localcombinedPMT.SetBlindability(kTRUE);
@@ -436,9 +456,9 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
         }
       else
         {
-          device_type= mapstr.GetNextToken(", ").c_str();
+          device_type= mapstr.GetTypedNextToken<TString>();
           device_type.ToLower();
-          device_name= mapstr.GetNextToken(", ").c_str();
+          device_name= mapstr.GetTypedNextToken<TString>();
           device_name.ToLower();
 	  det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
 	  if (det_index==-1){
@@ -452,10 +472,10 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
           LLY=0;
 
 	  if (device_type == GetQwPMTInstrumentTypeName(kQwIntegrationPMT)){
-	    LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-	    ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
-	    varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	    stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	    LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+	    ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	    varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+	    stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	    varvalue.ToLower();
 	    QwMessage<<"QwMainCerenkovDetector Error Code passing to QwIntegrationPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
@@ -466,10 +486,10 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
 	    //std::cout<<"*****************************"<<std::endl;
 
 	  } else if (device_type == GetQwPMTInstrumentTypeName(kQwCombinedPMT)){
-	    LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-	    ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
-	    varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	    stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	    LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+	    ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	    varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+	    stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	    varvalue.ToLower();
 	    QwMessage<<"QwMainCerenkovDetector Error Code passing to QwCombinedPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
@@ -518,11 +538,11 @@ Int_t QwMainCerenkovDetector::LoadInputParameters(TString pedestalfile)
       if (mapstr.LineIsEmpty())  continue;
       else
         {
-          varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+          varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
           varname.ToLower();
           varname.Remove(TString::kBoth,' ');
-          varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-          varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+          varped= mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+          varcal= mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
           if (ldebug) std::cout<<"inputs for channel "<<varname
             <<": ped="<<varped<<": cal="<<varcal<<"\n";
           Bool_t notfound=kTRUE;
@@ -746,12 +766,33 @@ Int_t QwMainCerenkovDetector::GetEventcutErrorCounters()
   return 1;
 }
 
+void QwMainCerenkovDetector::UpdateEventcutErrorFlag(UInt_t error) //return the error flag
+{
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
+    fIntegrationPMT[i].UpdateEventcutErrorFlag(error);
+  }
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    fCombinedPMT[i].UpdateEventcutErrorFlag(error);
+  }
+}
+
+void QwMainCerenkovDetector::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  if (Compare(ev_error)){
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (ev_error);
+
+      for (size_t i=0;i<input->fIntegrationPMT.size();i++)
+        (this->fIntegrationPMT[i]).UpdateEventcutErrorFlag(&(input->fIntegrationPMT[i]));
+
+      for (size_t i=0;i<input->fCombinedPMT.size();i++)
+        (this->fCombinedPMT[i]).UpdateEventcutErrorFlag(&(input->fCombinedPMT[i]));
+    }  
+};
+
 
 void  QwMainCerenkovDetector::ProcessEvent()
 {
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].ProcessEvent();
-  //   fIntegrationPMT[0].Print();
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
     {
@@ -816,12 +857,13 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 	//QwWarning <<"****QwMainCerenkovDetector****"<< QwLog::endl;
 	(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->PrintInfo();
       }
-    }else{
+    }
+    else{
       bIsExchangedDataValid = kFALSE;
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetCharge.GetElementName() << QwLog::endl;
     }
-
+    /*
     if(RequestExternalValue("x_targ", &fTargetX)){
       if (bDEBUG){
 	dynamic_cast<QwVQWK_Channel*>(&fTargetX)->PrintInfo();
@@ -876,6 +918,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetEnergy.GetElementName() << QwLog::endl;
     }
+    */
 
     
   }
@@ -925,18 +968,6 @@ void  QwMainCerenkovDetector::FillHistograms()
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].FillHistograms();
-
-  return;
-}
-
-
-void  QwMainCerenkovDetector::DeleteHistograms()
-{
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();
-
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].DeleteHistograms();
 
   return;
 }
@@ -1007,7 +1038,7 @@ const QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name) c
 }
 
 
-void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
+void  QwMainCerenkovDetector::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1015,7 +1046,7 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
       if (typeid(*source)==typeid(*this))
         {
           VQwSubsystem::Copy(source);
-          QwMainCerenkovDetector* input= dynamic_cast<QwMainCerenkovDetector*>(source);
+          const QwMainCerenkovDetector* input= dynamic_cast<const QwMainCerenkovDetector*>(source);
 
           this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
           for (size_t i=0;i<this->fIntegrationPMT.size();i++)
@@ -1040,14 +1071,6 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
   // this->Print();
 
   return;
-}
-
-
-VQwSubsystem*  QwMainCerenkovDetector::Copy()
-{
-  QwMainCerenkovDetector* TheCopy = new QwMainCerenkovDetector("MainDetector Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 
@@ -1211,6 +1234,17 @@ void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
   }
 }
 
+void QwMainCerenkovDetector::DeaccumulateRunningSum(VQwSubsystem* value1){
+  if (Compare(value1)) {
+    QwMainCerenkovDetector* value = dynamic_cast<QwMainCerenkovDetector*>(value1);
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].DeaccumulateRunningSum(value->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].DeaccumulateRunningSum(value->fCombinedPMT[i]);
+  }  
+};
+
 
 /**
  * Blind the asymmetry
@@ -1331,7 +1365,7 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
     }
 }
 
-void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
+void  QwMainCerenkovDetector::FillDB(QwParityDB *db, TString datatype)
 {
   Bool_t local_print_flag = false;
 
@@ -1342,7 +1376,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::md_data> entrylist;
+  std::vector<QwParitySSQLS::md_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

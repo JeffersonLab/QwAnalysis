@@ -18,6 +18,9 @@
 #include "VQwHardwareChannel.h"
 #include "MQwMockable.h"
 
+// Forward declarations
+class QwParameterFile;
+
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -35,19 +38,21 @@ public:
   using VQwHardwareChannel::GetValueError;
   using VQwHardwareChannel::GetValueWidth;
 
+  using VQwHardwareChannel::AccumulateRunningSum;
+  using VQwHardwareChannel::DeaccumulateRunningSum;
+
 public:
   VQwScaler_Channel(): MQwMockable() {
     InitializeChannel("","");
   }
     
-  VQwScaler_Channel(TString name): MQwMockable() {
-    InitializeChannel(name,"");
+  VQwScaler_Channel(TString name, TString datatosave = "raw"): MQwMockable() {
+    InitializeChannel(name,datatosave);
   };
-  virtual ~VQwScaler_Channel() { DeleteHistograms(); };
+  virtual ~VQwScaler_Channel() { };
 
   /// \brief Initialize the fields in this object
-  void  InitializeChannel(TString name){InitializeChannel(name, "raw");};
-  void  InitializeChannel(TString name, TString datatosave);
+  void  InitializeChannel(TString name, TString datatosave = "raw");
 
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
@@ -56,6 +61,8 @@ public:
     //std::cerr << "QwScaler_Channel SetDefaultSampleSize does nothing!"
 	  //    << std::endl;
   }
+
+  void LoadChannelParameters(QwParameterFile &paramfile);
 
   void  ClearEventData();
 
@@ -83,10 +90,18 @@ public:
   UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
+  void AssignScaledValue(const VQwScaler_Channel &value, Double_t scale);
   void AssignValueFrom(const VQwDataElement* valueptr);
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
+  VQwScaler_Channel& operator*= (const VQwScaler_Channel &value);
+
+  VQwHardwareChannel& operator+=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator-=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator*=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator/=(const VQwHardwareChannel* input);
+
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Ratio(const VQwScaler_Channel &numer, const VQwScaler_Channel &denom);
@@ -114,20 +129,26 @@ public:
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
 
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  void AccumulateRunningSum(const VQwScaler_Channel &value);
-  void AccumulateRunningSum(const VQwHardwareChannel *value){
+  inline void AccumulateRunningSum(const VQwScaler_Channel& value){
+    AccumulateRunningSum(value, value.fGoodEventCount);
+  }
+  void AccumulateRunningSum(const VQwScaler_Channel &value, Int_t count);
+  void AccumulateRunningSum(const VQwHardwareChannel *value, Int_t count){
     const VQwScaler_Channel *tmp_ptr = dynamic_cast<const VQwScaler_Channel*>(value);
-    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
+    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr, count);
   };
+  inline void DeaccumulateRunningSum(const VQwScaler_Channel& value){
+    AccumulateRunningSum(value, -1);
+  };
+  
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   void PrintValue() const;
   void PrintInfo() const;
@@ -138,7 +159,7 @@ public:
   virtual Bool_t NeedsExternalClock() { return fNeedsExternalClock; };
   virtual void SetNeedsExternalClock(Bool_t needed) { fNeedsExternalClock = needed; };
   virtual std::string GetExternalClockName() {  return fNormChannelName; };
-  virtual void SetExternalClockPtr( const VQwDataElement* clock) { fNormChannelPtr = clock; };
+  virtual void SetExternalClockPtr( const VQwHardwareChannel* clock) { fNormChannelPtr = clock; };
   virtual void SetExternalClockName( const std::string name) { fNormChannelName = name; };
 
   void ScaledAdd(Double_t scale, const VQwHardwareChannel *value);
@@ -153,14 +174,11 @@ protected:
   Double_t fValue;
   Double_t fValueM2;
   Double_t fValueError;
-  const VQwDataElement *fNormChannelPtr;
+  const VQwHardwareChannel *fNormChannelPtr;
   Double_t fClockNormalization;
   std::string fNormChannelName;
   Bool_t fNeedsExternalClock;
 
-  /*  Ntuple array indices */
-  size_t fTreeArrayIndex;
-  size_t fTreeArrayNumEntries;
 
   Int_t fNumEvtsWithHWErrors;//counts the HW falied events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
@@ -175,7 +193,7 @@ class QwScaler_Channel: public VQwScaler_Channel
 
     // Define the constructors (cascade)
     QwScaler_Channel(): VQwScaler_Channel() { };
-    QwScaler_Channel(TString name): VQwScaler_Channel(name) { };
+    QwScaler_Channel(TString name, TString datatosave = "raw"): VQwScaler_Channel(name,datatosave) { };
 
   public:
 

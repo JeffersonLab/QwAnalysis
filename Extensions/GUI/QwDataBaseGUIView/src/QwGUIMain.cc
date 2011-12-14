@@ -121,14 +121,15 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   MakeMenuLayout();
 //   MakeUtilityLayout();
-  MakeMainTab();
+//  MakeMainTab();
+  dTab = new TGTab(this,  dMWWidth, dMWHeight);
   MakeLogTab();
 
-  SetWindowName("Qweak Analysis Database GUI");
+  // SetWindowName("Qweak Analysis Database GUI");
 
-  MapSubwindows();
-  Resize(GetDefaultSize());
-  MapWindow();
+  // MapSubwindows();
+  // Resize(GetDefaultSize());
+  // MapWindow();
 
 //   if(!GetSubSystemPtr("Main Detectors"))
 //     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
@@ -154,7 +155,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 //   if(!GetSubSystemPtr("HallC Beamline"))
 //     HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
 // 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
-
+ 
+  
   if(!GetSubSystemPtr("Qweak Database"))
     DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
@@ -168,6 +170,13 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 // 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
 
   SetSubSystemSegmentAdd(kFalse);
+  AddFrame(dTab,  new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 2, 2, 2, 2));
+  MapSubwindows();
+  Resize(GetDefaultSize()); 
+  Layout();
+  SetWindowName("Qweak Analysis Database GUI");
+  MapWindow();
+
 }
 
 QwGUIMain::~QwGUIMain()
@@ -336,35 +345,35 @@ void QwGUIMain::MakeUtilityLayout()
 void QwGUIMain::MakeMainTab()
 {
 
-  dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
-				 2, 2, 5, 1);
-  dTab = new TGTab(this,dMWWidth-15,dMWHeight-80);
+  // dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
+  // 				 2, 2, 5, 1);
+  // dTab = new TGTab(this,dMWWidth-15,dMWHeight-80);
 
-  if(TabActive("Main")) return;
+  // if(TabActive("Main")) return;
 
-  dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
-				     kLHintsExpandX | kLHintsExpandY);
-  dMainCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
-				     0, 0, 1, 2);
+  // dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
+  // 				     kLHintsExpandX | kLHintsExpandY);
+  // dMainCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
+  // 				     0, 0, 1, 2);
 
-  TGCompositeFrame *tf = dTab->AddTab("Main");
+  // TGCompositeFrame *tf = dTab->AddTab("Main");
 
-  dMainTabFrame = new TGHorizontalFrame(tf,10,10);
-  dMainCanvas   = new TRootEmbeddedCanvas("pC", dMainTabFrame,10, 10);
-  dMainTabFrame->AddFrame(dMainCanvas,dMainCnvLayout);
-  dMainTabFrame->Resize(dMWWidth-15,dMWHeight-110);
-  tf->AddFrame(dMainTabFrame,dMainTabLayout);
-  AddFrame(dTab, dTabLayout);
+  // dMainTabFrame = new TGHorizontalFrame(tf,10,10);
+  // dMainCanvas   = new TRootEmbeddedCanvas("pC", dMainTabFrame,10, 10);
+  // dMainTabFrame->AddFrame(dMainCanvas,dMainCnvLayout);
+  // dMainTabFrame->Resize(dMWWidth-15,dMWHeight-110);
+  // tf->AddFrame(dMainTabFrame,dMainTabLayout);
+  // AddFrame(dTab, dTabLayout);
 
 
-  dMainCanvas->GetCanvas()->SetBorderMode(0);
-  dMainCanvas->GetCanvas()->Connect("Picked(TPad*, TObject*, Int_t)","QwGUIMain",
-  				    this,"PadIsPicked(TPad*, TObject*, Int_t)");
-  dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				    "QwGUIMain",
-				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dMainCanvas->GetCanvas()->SetBorderMode(0);
+  // dMainCanvas->GetCanvas()->Connect("Picked(TPad*, TObject*, Int_t)","QwGUIMain",
+  // 				    this,"PadIsPicked(TPad*, TObject*, Int_t)");
+  // dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				    "QwGUIMain",
+  // 				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-  SplitCanvas(dMainCanvas,3,2,"Main");
+  // SplitCanvas(dMainCanvas,3,2,"Main");
 
 }
 
@@ -594,23 +603,24 @@ void QwGUIMain::RemoveLogTab()
   UnMapLayout(tab);
 
 
-  if(dLogEdit->GetText()->GetLongestLine() > 0)
-    dLogText = new TGText(dLogEdit->GetText());
-  else
-    dLogText = NULL;
-  delete dLogEdit; dLogEdit = NULL;
-  delete dLogEditFrame; dLogEditFrame   = NULL;
-  delete dLogTabFrame; dLogTabFrame = NULL;
-  delete dDBQueryFrame; dDBQueryFrame = NULL;
-  delete dDBQueryEntry; dDBQueryEntry = NULL;
-  delete dLogTabLayout; dLogTabLayout   = NULL;
-  delete dLogEditLayout; dLogEditLayout = NULL;
-  delete dLogEditFrameLayout; dLogEditFrameLayout = NULL;
-  delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
-  delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
-  delete dDBQueryBuffer; dDBQueryBuffer = NULL;
-  delete dDBQueryLabel; dDBQueryLabel = NULL;
-  delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
+  // if(dLogEdit->GetText()->GetLongestLine() > 0)
+  //   dLogText = new TGText(dLogEdit->GetText());
+  // else
+  //   dLogText = NULL;
+
+  // delete dLogEdit; dLogEdit = NULL;
+  // delete dLogEditFrame; dLogEditFrame   = NULL;
+  // delete dLogTabFrame; dLogTabFrame = NULL;
+  // delete dDBQueryFrame; dDBQueryFrame = NULL;
+  // delete dDBQueryEntry; dDBQueryEntry = NULL;
+  // delete dLogTabLayout; dLogTabLayout   = NULL;
+  // delete dLogEditLayout; dLogEditLayout = NULL;
+  // delete dLogEditFrameLayout; dLogEditFrameLayout = NULL;
+  // delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
+  // delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
+  // delete dDBQueryBuffer; dDBQueryBuffer = NULL;
+  // delete dDBQueryLabel; dDBQueryLabel = NULL;
+  // delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
 
   dMenuTabs->UnCheckEntry(M_VIEW_LOG);
 }
@@ -1867,13 +1877,13 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_VIEW_LOG:
-	if(dMenuTabs->IsEntryChecked(M_VIEW_LOG)){
-	  RemoveLogTab();
-	}
-	else{
-	  MakeLogTab();
-	}
-	break;
+      	if(dMenuTabs->IsEntryChecked(M_VIEW_LOG)){
+      	  RemoveLogTab();
+      	}
+      	else{
+      	  MakeLogTab();
+      	}
+      	break;
 
       case M_VIEW_BROWSER:
 // 	OpenRootBrowser();
@@ -2019,7 +2029,7 @@ Int_t main(Int_t argc, Char_t **argv)
       return 1;
     }
 
-    QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
+    QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,750);
 
     gViewMain = &mainWindow;
 

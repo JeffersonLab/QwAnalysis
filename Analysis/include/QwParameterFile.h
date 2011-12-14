@@ -46,7 +46,6 @@ class QwParameterFile {
 
     static UInt_t GetUInt(const TString &varvalue);
 
-
   public:
 
     QwParameterFile(const std::string& filename);
@@ -75,6 +74,13 @@ class QwParameterFile {
       return ReadNextLine(tmp);
     };
     Bool_t ReadNextLine(std::string &varvalue) {
+      Bool_t status = kFALSE;
+      if (fBeGreedy) status = ReadNextLine_Greedy(varvalue);
+      else           status = ReadNextLine_Single(varvalue);
+      return status;
+    }
+    Bool_t ReadNextLine_Greedy(std::string &varvalue);  
+    Bool_t ReadNextLine_Single(std::string &varvalue) {
       fCurrentPos = 0;
       if (! getline(fStream, fLine))
         // No next line
@@ -154,6 +160,10 @@ class QwParameterFile {
     Bool_t FileHasModuleHeader(const std::string& secname);
     Bool_t FileHasModuleHeader(const TString& secname);
 
+    ///  \brief Skips from the beginning of the section
+    ///  'secname' until the first section that does not
+    ///  have that name.
+    Bool_t SkipSection(std::string secname);
 
     /// \brief Rewinds to the start and read until it finds next section header
     QwParameterFile* ReadPreamble();
@@ -184,6 +194,36 @@ class QwParameterFile {
 
     void SetParamFilename();
 
+    void EnableGreediness() {fBeGreedy=kTRUE;};
+    void DisableGreediness(){fBeGreedy=kFALSE;};
+
+    void AddBreakpointKeyword(std::string keyname);
+
+    Bool_t HasNewPairs(){
+      Bool_t status = fHasNewPairs;
+      if (fHasNewPairs) fHasNewPairs=kFALSE;
+      return status;
+    };
+
+    template <typename T> 
+      Bool_t ReturnValue(const std::string keyname, T &retvalue){
+      std::string value;
+      Bool_t status = GetKeyValue(keyname, value);
+      if (status){
+	retvalue = ConvertValue<T>(value);
+      }
+      return status;
+    }
+    template <typename T> 
+      Bool_t PopValue(const std::string keyname, T &retvalue){
+      std::string value;
+      Bool_t status = GetKeyValue(keyname, value, kTRUE);
+      if (status){
+	retvalue = ConvertValue<T>(value);
+      }
+      return status;
+    };
+
   protected:
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
     void TrimWhitespace(std::string &token, TString::EStripType head_tail);
@@ -192,9 +232,13 @@ class QwParameterFile {
     template <typename T>
     T ConvertValue(const std::string& value) {
       T retvalue;
-      std::istringstream stream1;
-      stream1.str(value);
-      stream1 >> retvalue;
+      if (value.size() == 0) {
+        retvalue = 0; // and pray
+      } else {
+        std::istringstream stream1;
+        stream1.str(value);
+        stream1 >> retvalue;
+      }
       return retvalue;
     }
 
@@ -253,6 +297,28 @@ class QwParameterFile {
 
     TMacro *fParameterFile;
 
+ protected:
+
+    Bool_t GetKeyValue(const std::string keyname, std::string &retvalue,
+		       Bool_t should_erase = kFALSE){
+      Bool_t status = kFALSE;
+      std::map<std::string,std::string>::iterator it;
+      it = fKeyValuePair.find(keyname);
+      if (it != fKeyValuePair.end()) {
+	status = kTRUE;
+	retvalue = (*it).second;
+	if (should_erase){
+	  fKeyValuePair.erase(it);
+	}
+      }
+      return status;
+    }
+
+
+    Bool_t fBeGreedy;
+    std::set<std::string> fBreakpointWords;
+    std::map<std::string, std::string> fKeyValuePair;
+    Bool_t fHasNewPairs;
 
   private:
 

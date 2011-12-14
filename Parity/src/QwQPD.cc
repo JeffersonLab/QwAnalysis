@@ -22,8 +22,9 @@ void  QwQPD::InitializeChannel(TString name)
   Short_t i=0;
   Bool_t localdebug = kFALSE;
 
+  VQwBPM::InitializeChannel(name);
 
-  //  fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
+  fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
 
   for(i=0;i<4;i++) {
     fPhotodiode[i].InitializeChannel(name+subelement[i],"raw");
@@ -32,10 +33,10 @@ void  QwQPD::InitializeChannel(TString name)
       std::cout<<" photodiode ["<<i<<"]="<<fPhotodiode[i].GetElementName()<<"\n";
   }
   
-  for(i=kXAxis;i<kNumAxes;i++) 
+  for(i=kXAxis;i<kNumAxes;i++) {
     fRelPos[i].InitializeChannel(name+"Rel"+kAxisLabel[i],"derived");
-
-  VQwBPM::InitializeChannel(name);
+    fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
+  }
   
   bFullSave=kTRUE;
 
@@ -89,11 +90,14 @@ void QwQPD::ClearEventData()
 {
   Short_t i=0;
 
-  VQwBPM::ClearEventData();
-
   for(i=0;i<4;i++) fPhotodiode[i].ClearEventData();
 
-  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].ClearEventData();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].ClearEventData();
+    fAbsPos[i].ClearEventData();
+  }
+  
+  fEffectiveCharge.ClearEventData();
 
  return;
 }
@@ -124,11 +128,30 @@ Int_t QwQPD::GetEventcutErrorCounters()
   for(i=0;i<4;i++) 
     fPhotodiode[i].GetEventcutErrorCounters();
 
-  VQwBPM::GetEventcutErrorCounters();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].GetEventcutErrorCounters();
+    fAbsPos[i].GetEventcutErrorCounters();
+  }
 
+  fEffectiveCharge.GetEventcutErrorCounters();
   return 1;
 }
 
+UInt_t QwQPD::GetEventcutErrorFlag()
+{
+  Short_t i=0;
+  UInt_t error=0;
+  for(i=0;i<4;i++) 
+    error|=fPhotodiode[i].GetEventcutErrorFlag();
+
+  for(i=kXAxis;i<kNumAxes;i++) {
+    error|=fRelPos[i].GetEventcutErrorFlag();
+    error|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
+  return error;
+}
 
 Bool_t QwQPD::ApplySingleEventCuts()
 {
@@ -149,12 +172,15 @@ Bool_t QwQPD::ApplySingleEventCuts()
   }
 
   for(i=0;i<2;i++){
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fRelPos[i].ApplySingleEventCuts();
     fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
 
+    fAbsPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fAbsPos[i].ApplySingleEventCuts();
     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);// To update the eff-charge error code from the channels/wires event cut error codes
   status &= fEffectiveCharge.ApplySingleEventCuts();
   fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
   
@@ -193,7 +219,7 @@ VQwHardwareChannel* QwQPD::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
-
+/*
 void QwQPD::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
 
@@ -269,6 +295,54 @@ void QwQPD::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, 
   }
 
 }
+
+*/
+
+void QwQPD::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+
+  for(i=0;i<4;i++) fPhotodiode[i].UpdateEventcutErrorFlag(error);
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateEventcutErrorFlag(error);
+    fAbsPos[i].UpdateEventcutErrorFlag(error);
+  }
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+  
+};
+
+void QwQPD::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwQPD::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwQPD* value_bpm = dynamic_cast<QwQPD* >(ev_error);
+	for(i=0;i<4;i++){
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fPhotodiode[i]));
+	  fPhotodiode[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
+	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
+	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwQPD::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+  
+};
+
 
 
 void  QwQPD::ProcessEvent()
@@ -397,7 +471,7 @@ TString QwQPD::GetSubElementName(Int_t subindex)
 UInt_t QwQPD::GetSubElementIndex(TString subname)
 {
   subname.ToUpper();
-  UInt_t localindex=999999;
+  UInt_t localindex=kInvalidSubelementIndex;
   for(Short_t i=0;i<4;i++) if(subname==subelement[i])localindex=i;
 
   if(localindex>3)
@@ -415,13 +489,14 @@ VQwBPM& QwQPD::operator= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator= (const QwQPD &value)
 {
-  VQwBPM::operator=(value);
   if (GetElementName()!=""){
     Short_t i = 0;
-    // this->fEffectiveCharge=value.fEffectiveCharge;
+    this->fEffectiveCharge=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]=value.fRelPos[i];
-    
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]=value.fRelPos[i];
+      this->fAbsPos[i]=value.fAbsPos[i];
+    }
   }
   return *this;
 }
@@ -434,12 +509,15 @@ VQwBPM& QwQPD::operator+= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator+= (const QwQPD &value)
 {
-//  VQwBPM::operator+= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
+    this->fEffectiveCharge+=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]+=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]+=value.fRelPos[i];
 
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]+=value.fRelPos[i];
+      this->fAbsPos[i]+=value.fAbsPos[i];
+    }
   }
   return *this;
 }
@@ -452,12 +530,15 @@ VQwBPM& QwQPD::operator-= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator-= (const QwQPD &value)
 {
-//  VQwBPM::operator-= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
+    this->fEffectiveCharge-=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]-=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]-=value.fRelPos[i];
 
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]-=value.fRelPos[i];
+      this->fAbsPos[i]-=value.fAbsPos[i];
+    }
   }
   return *this;
 }
@@ -465,7 +546,7 @@ QwQPD& QwQPD::operator-= (const QwQPD &value)
 
 void QwQPD::Ratio(QwQPD &numer, QwQPD &denom)
 {
-  // this function is called when forming asymmetries. In this case waht we actually want for the
+  // this function is called when forming asymmetries. In this case what we actually want for the
   // QPD is the difference only not the asymmetries
 
   *this=numer;
@@ -488,15 +569,35 @@ void QwQPD::Scale(Double_t factor)
   return;
 }
 
-void QwQPD::Copy(QwQPD *source)
+void QwQPD::Copy(const VQwDataElement *source)
 {
-  VQwBPM::Copy(source);
-  return;
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwQPD* input = dynamic_cast<const QwQPD*>(source);
+      for (size_t i = 0; i < 4; i++)
+        fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
+      for (size_t i = kXAxis; i < kNumAxes; i++) {
+        fRelPos[i].Copy(&(input->fRelPos[i]));
+        fAbsPos[i].Copy(&(input->fAbsPos[i]));
+      }
+      fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+
+    } else {
+      TString loc="Standard exception from QwQPD::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 void QwQPD::CalculateRunningAverage()
 {
   Short_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].CalculateRunningAverage();
   for (i = 0; i < 2; i++){
     fRelPos[i].CalculateRunningAverage();
     fAbsPos[i].CalculateRunningAverage();
@@ -505,17 +606,45 @@ void QwQPD::CalculateRunningAverage()
   return;
 }
 
+void QwQPD::AccumulateRunningSum(const VQwBPM& value)
+{
+  AccumulateRunningSum(*dynamic_cast<const QwQPD* >(&value));
+}
+
 void QwQPD::AccumulateRunningSum(const QwQPD& value)
 {
-  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   Short_t i = 0;
-  for (i = 0; i < 2; i++){
+  for(i=0;i<4;i++) fPhotodiode[i].AccumulateRunningSum(value.fPhotodiode[i]);
+  for (i = 0; i < 2; i++){    
     fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
     fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   }
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   return;
+
+
 }
+
+void QwQPD::DeaccumulateRunningSum(VQwBPM& value)
+{
+  DeaccumulateRunningSum(*dynamic_cast<QwQPD* >(&value));
+}
+
+void QwQPD::DeaccumulateRunningSum(QwQPD& value)
+{
+
+  Short_t i = 0;
+  for(i=0;i<4;i++) fPhotodiode[i].DeaccumulateRunningSum(value.fPhotodiode[i]);
+  for (i = 0; i < 2; i++){    
+    fRelPos[i].DeaccumulateRunningSum(value.fRelPos[i]);
+    fAbsPos[i].DeaccumulateRunningSum(value.fAbsPos[i]);
+  }
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
+  return;
+
+
+}
+
 
 
 void  QwQPD::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -560,25 +689,6 @@ void  QwQPD::FillHistograms()
   }
   return;
 }
-
-void  QwQPD::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    Short_t i = 0;
-    if(bFullSave) {
-      for(i=0;i<4;i++) fPhotodiode[i].DeleteHistograms();
-    }
-    for(i=kXAxis;i<kNumAxes;i++) {
-      fAbsPos[i].DeleteHistograms();
-      fRelPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
 
 void  QwQPD::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {

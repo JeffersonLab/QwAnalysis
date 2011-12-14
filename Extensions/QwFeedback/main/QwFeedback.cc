@@ -104,8 +104,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   
   fEPICSCtrl.Print_Qasym_Ctrls();
   */
-
-  
+    
   // Loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK){
     //  Begin processing for the first run.
@@ -132,38 +131,14 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.UpdateGMClean(1);
     */
 
-    ///  Create the event ring
-    QwEventRing eventring;
-    eventring.ProcessOptions(gQwOptions);
-
-    ///  Set up the ring with the subsysten array
-    eventring.SetupRing(detectors);
+    ///  Create the event ring with the subsysten array
+    QwEventRing eventring(gQwOptions,detectors);
 
     ///  Create the running sum
     QwSubsystemArrayParity runningsum(detectors);
 
 
-    //  Initialize the database connection.
-    //    database.SetupOneRun(eventbuffer);
-    
-//     //  Open the ROOT file
-//     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
-//     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
-
-//     //  Construct histograms
-//     rootfile->ConstructHistograms("mps_histo", detectors);
-//     rootfile->ConstructHistograms("hel_histo", helicitypattern);
-
-//     //  Construct tree branches
-//     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
-//     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
-
-//     // Summarize the ROOT file structure
-//     rootfile->PrintTrees();
-//     rootfile->PrintDirs();
-
     Int_t failed_events_counts = 0; // count failed total events
-    // TODO (wdc) failed event counter in QwEventRing?
 
 
     //  Clear the single-event running sum at the beginning of the runlet
@@ -173,30 +148,26 @@ Int_t main(Int_t argc, Char_t* argv[])
     helicitypattern.ClearBurstSum();
 
 
-
-   
+    
 
     // Loop over events in this CODA file
     while (eventbuffer.GetNextEvent() == CODA_OK) {
+
+      if (eventbuffer.GetEventNumber()%1000)
+	std::cout<<std::flush;
+
       //  First, do processing of non-physics events...
       if (eventbuffer.IsROCConfigurationEvent()){
 	//  Send ROC configuration event data to the subsystem objects.
 	eventbuffer.FillSubsystemConfigurationData(detectors);
       }
 
-       //  Secondly, process EPICS events
-//       if (eventbuffer.IsEPICSEvent()) {
-//         eventbuffer.FillEPICSData(epicsevent);
-//         epicsevent.CalculateRunningValues();
-//         helicitypattern.UpdateBlinder(epicsevent);
-//       }
-
       //  Dump out of the loop when we see the end event.
       if (eventbuffer.GetEndEventCount()>0){
 	QwMessage << "Number of events processed at end of run: " << eventbuffer.GetEventNumber() << std::endl;
 	break;
       }
-
+      
       //  Now, if this is not a physics event, go back and get a new event.
       if (!eventbuffer.IsPhysicsEvent()) continue;
 
@@ -239,11 +210,6 @@ Int_t main(Int_t argc, Char_t* argv[])
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
 	      helicitypattern.ApplyFeedbackCorrections();//apply IA feedback
-//               // Fill histograms
-//               rootfile->FillHistograms(helicitypattern);
-//               // Fill tree branches
-//               rootfile->FillTreeBranches(helicitypattern);
-//               rootfile->FillTree("Hel_Tree");
               // Clear the data
               helicitypattern.ClearEventData();	      
             }
@@ -255,10 +221,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Failed single event cuts
       } else {
-        eventring.FailedEvent(detectors.GetEventcutErrorFlag()); //event cut failed update the ring status
-	//	QwMessage << "FailedEven: "<< eventbuffer.GetEventNumber() << std::endl;
-
-        failed_events_counts++;
+	failed_events_counts++;
       }
 
       // Burst mode
@@ -276,37 +239,6 @@ Int_t main(Int_t argc, Char_t* argv[])
               << eventbuffer.GetEventNumber() << std::endl;
 
 
-    // Calculate running averages over helicity patterns
-    /*
-    if (helicitypattern.IsRunningSumEnabled()) {
-      helicitypattern.CalculateRunningAverage();
-      helicitypattern.PrintRunningAverage();
-      if (helicitypattern.IsBurstSumEnabled()) {
-        helicitypattern.CalculateRunningBurstAverage();
-        helicitypattern.PrintRunningBurstAverage();
-      }
-    }
-
-    // This will calculate running averages over single helicity events
-    runningsum.CalculateRunningAverage();
-    QwMessage << " Running average of events" << QwLog::endl;
-    QwMessage << " =========================" << QwLog::endl;
-    runningsum.PrintValue();
-    */
-    /*  Write to the root file, being sure to delete the old cycles  *
-     *  which were written by Autosave.                              *
-     *  Doing this will remove the multiple copies of the ntuples    *
-     *  from the root file.                                          *
-     *                                                               *
-     *  Then, we need to delete the histograms here.                 *
-     *  If we wait until the subsystem destructors, we get a         *
-     *  segfault; but in additiona to that we should delete them     *
-     *  here, in case we run over multiple runs at a time.           */
-//     rootfile->Write(0,TObject::kOverwrite);
-
-//     //  Delete histograms
-//     rootfile->DeleteHistograms(detectors);
-//     rootfile->DeleteHistograms(helicitypattern);
 
     //  Close event buffer stream
     eventbuffer.CloseStream();

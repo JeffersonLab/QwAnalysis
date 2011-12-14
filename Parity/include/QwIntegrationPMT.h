@@ -41,9 +41,9 @@ class QwIntegrationPMT : public VQwDataElement{
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,"raw");
   };
-  ~QwIntegrationPMT() {
-    DeleteHistograms();
-  };
+  virtual ~QwIntegrationPMT() { };
+
+  void    LoadChannelParameters(QwParameterFile &paramfile){};
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -59,8 +59,6 @@ class QwIntegrationPMT : public VQwDataElement{
     else return 0;
   };
 
-  UInt_t GetErrorCode() const {return fTriumf_ADC.GetErrorCode();};
-  void UpdateErrorCode(const UInt_t& errorcode){fTriumf_ADC.UpdateErrorCode(errorcode);};
 
 
   void  ClearEventData();
@@ -93,7 +91,17 @@ class QwIntegrationPMT : public VQwDataElement{
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fTriumf_ADC.GetEventcutErrorFlag();
   }
-  
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fTriumf_ADC.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(QwIntegrationPMT *ev_error);
+
+  UInt_t GetErrorCode() const {return (fTriumf_ADC.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fTriumf_ADC.UpdateErrorCode(error);};
+
+ 
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
@@ -101,6 +109,7 @@ class QwIntegrationPMT : public VQwDataElement{
   }
 
   void SetBlindability(Bool_t isblindable){fIsBlindable=isblindable;};
+  void SetNormalizability(Bool_t isnormalizable){fIsNormalizable = isnormalizable;};
 
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
@@ -124,6 +133,7 @@ class QwIntegrationPMT : public VQwDataElement{
   void Scale(Double_t factor);
   void Normalize(VQwDataElement* denom);
   void AccumulateRunningSum(const QwIntegrationPMT& value);
+  void DeaccumulateRunningSum(QwIntegrationPMT& value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
@@ -131,7 +141,6 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
@@ -142,7 +151,7 @@ class QwIntegrationPMT : public VQwDataElement{
   Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 
@@ -160,6 +169,7 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   Bool_t fIsBlindable; //
+  Bool_t fIsNormalizable;
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF

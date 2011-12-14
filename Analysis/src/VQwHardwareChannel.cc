@@ -6,21 +6,69 @@
 
 VQwHardwareChannel::VQwHardwareChannel():
   fNumberOfDataWords(0),
-  fNumberOfSubElements(0), fDataToSave(kRaw),
-  fErrorFlag(0), fDefErrorFlag(0)
+  fNumberOfSubElements(0), fDataToSave(kRaw)
+{
+  fULimit = 0.0;
+  fLLimit = 0.0;
+  fErrorFlag = 0;
+  fErrorConfigFlag = 0;
+}
+
+VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value)
+  :VQwDataElement(value),
+   fNumberOfDataWords(value.fNumberOfDataWords),
+   fNumberOfSubElements(value.fNumberOfSubElements),
+   fDataToSave(value.fDataToSave),
+   fTreeArrayIndex(value.fTreeArrayIndex),
+   fTreeArrayNumEntries(value.fTreeArrayNumEntries),
+   fPedestal(value.fPedestal),
+   fCalibrationFactor(value.fCalibrationFactor),
+   kFoundPedestal(value.kFoundPedestal),
+   kFoundGain(value.kFoundGain),
+   bEVENTCUTMODE(value.bEVENTCUTMODE),
+   fULimit(value.fULimit),
+   fLLimit(value.fLLimit),
+   fStability(value.fStability)
 {
 }
 
-VQwHardwareChannel::~VQwHardwareChannel()
+void VQwHardwareChannel::Copy(const VQwDataElement *source)
 {
+  if (typeid(*source) == typeid(*this)) {
+    VQwDataElement::Copy(source);
+    const VQwHardwareChannel* input =
+        dynamic_cast<const VQwHardwareChannel*>(source);
+
+    fNumberOfDataWords   = input->fNumberOfDataWords;
+    fNumberOfSubElements = input->fNumberOfSubElements;
+    fDataToSave          = input->fDataToSave;
+    fTreeArrayIndex      = input->fTreeArrayIndex;
+    fTreeArrayNumEntries = input->fTreeArrayNumEntries;
+    fPedestal            = input->fPedestal;
+    fCalibrationFactor   = input->fCalibrationFactor;
+    kFoundPedestal       = input->kFoundPedestal;
+    kFoundGain           = input->kFoundGain;
+    bEVENTCUTMODE        = input->bEVENTCUTMODE;
+    fULimit              = input->fULimit;
+    fLLimit              = input->fLLimit;
+    fStability           = input->fStability;
+
+  } else {
+    TString loc="VQwHardwareChannel::Copy for "
+      +this->GetElementName()+" failed with input "
+      +source->GetElementName();
+    throw(std::invalid_argument(loc.Data()));
+  }
 }
 
 UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
 {
   // return the error flag
-  if (((fErrorFlag & kGlobalCut) == kGlobalCut) && fDeviceErrorCode>0){
+  //first condition check for global/local status and second condition check to see non-zero HW error codes
+  if (((fErrorConfigFlag & kGlobalCut) == kGlobalCut) && (fErrorFlag)>0){
     // we care only about global cuts
-    return fErrorFlag;
+    //std::cout<<"fErrorFlag "<<(fErrorFlag & kGlobalCut)<<std::endl;
+    return fErrorFlag+fErrorConfigFlag;//pass the error codes and configuration codes
   }
   return 0;
 };
@@ -33,13 +81,12 @@ void VQwHardwareChannel::SetSingleEventCuts(Double_t min, Double_t max)
 
 void VQwHardwareChannel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability)
 {
-  fErrorFlag=errorflag;
-  fDefErrorFlag=errorflag;
+  fErrorConfigFlag=errorflag;
   fStability=stability;
   SetSingleEventCuts(min,max);
-  QwDebug << "Set single event cuts for " << GetElementName() << ": "
-	  << "errorflag == 0x" << std::hex << errorflag << std::dec
-	  << ", global? " << (fErrorFlag & kGlobalCut) << QwLog::endl;
+  QwWarning << "Set single event cuts for " << GetElementName() << ": "
+	    << "Config-error-flag == 0x" << std::hex << errorflag << std::dec
+	    << ", global? " << ((fErrorConfigFlag & kGlobalCut)==kGlobalCut) << ", stability? " << ((fErrorConfigFlag & kStabilityCut)==kStabilityCut) << QwLog::endl;
 }
 
 

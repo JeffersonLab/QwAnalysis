@@ -106,6 +106,23 @@ public:
     status = ca_pend_io(10);
     return value;  
   }
+  Double_t Get_1I02_Current() { 
+    int status;
+    Double_t value;
+    status = ca_get(DBR_DOUBLE, f_IPM1I02, &value);
+    status = ca_pend_io(10);
+    return value;  
+
+  }
+  Double_t Get_0L02_Current() { 
+    int status;
+    Double_t value;
+    status = ca_get(DBR_DOUBLE, f_IBC0L02Current, &value);
+    status = ca_pend_io(10);
+    return value;  
+  }
+
+
 /*   Double_t Get_HallAIA(){ */
 /*     int status; */
 /*     Double_t value; */
@@ -249,6 +266,37 @@ public:
     status = ca_pend_io(10);
     std::cout << "Setting Pockels Cell minus HV value: " << value << std::endl;
   };
+
+
+  void Set_Pockels_X_Steps(Double_t value){
+    int status;
+    if (value<0 || value>25000) {
+      std::cout << "Set_Pockels_X_Steps::Error " << value << " not between 0 and 25000" << std::endl;
+      return;
+    }
+    status = ca_put(DBR_DOUBLE, fIDPCXSteps, &value);
+    status = ca_pend_io(10);
+    std::cout << "Setting Pockels X steps: " << value << std::endl;
+  };
+  void Set_Pockels_Move_Right(){
+    int status;
+    Int_t value = 1;
+    status = ca_put(DBR_DOUBLE, f_PCXMoveRight, &value);
+    std::cout << "Moving PC to the Right, status = " << status << std::endl;
+    status = ca_pend_io(10);
+  };
+  void Set_Pockels_Move_Left(){
+    int status;
+    Int_t value = 1;
+    status = ca_put(DBR_DOUBLE, f_PCXMoveLeft, &value);
+    std::cout << "Moving PC to the Left, status = " << status;
+    //    std::cout << "Moving PC to the Left." << std::endl;
+    status = ca_pend_io(10);
+    std::cout << ", status = " << status << std::endl;
+  };
+
+
+
 /*   void Set_Pockels_Cell_plus(Double_t value){ */
 /*     int status; */
 /*     if (value<0 || value>10) { */
@@ -328,6 +376,12 @@ public:
   chid fIDPCXPos;
   chid fIDPCYPos;
   chid fIDPCMoving;
+  chid fIDPCXSteps;
+  chid f_PCXMoveRight;
+  chid f_PCXMoveLeft;
+  chid f_IPM1I02;
+  chid f_IBC0L02Current
+
 ;
 
 

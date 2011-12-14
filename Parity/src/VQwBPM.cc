@@ -139,6 +139,7 @@ void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 	    << " LL " <<  minX <<" UL " << maxX <<QwLog::endl;
   tmpptr->SetSingleEventCuts(minX,maxX);
 }
+
 void VQwBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability)
 {
   VQwHardwareChannel* tmpptr = GetSubelementByName(ch_name);
@@ -258,34 +259,27 @@ void VQwBPM::SetRootSaveStatus(TString &prefix)
 
 
 /********************************************************/
-void  VQwBPM::Copy(VQwBPM *source)
+void  VQwBPM::Copy(const VQwDataElement *source)
 {
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  VQwBPM* input=((VQwBPM*)source);
-	  this->fElementName = input->fElementName;
-	  this->bFullSave = input->bFullSave;
-	  // 	  this->fEffectiveCharge_base->Copy(input->fEffectiveCharge_base);
-	  // 	  for(size_t i =0;i<2;i++)
-	  // 	    this->fAbsPos_base[i]->Copy(input->fAbsPos_base[i]);
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwDataElement::Copy(source);
+      const VQwBPM* input= dynamic_cast<const VQwBPM*>(source);
+      this->bFullSave = input->bFullSave;
+      // 	  this->fEffectiveCharge_base->Copy(input->fEffectiveCharge_base);
+      // 	  for(size_t i =0;i<2;i++)
+      // 	    this->fAbsPos_base[i]->Copy(input->fAbsPos_base[i]);
 
-	}
-      else
-	{
-	  TString loc="Standard exception from VQwBPM::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
+    } else {
+      TString loc="Standard exception from VQwBPM::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
 
-  return;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 /**

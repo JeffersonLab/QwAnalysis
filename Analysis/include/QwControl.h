@@ -22,7 +22,7 @@ class QwControl : public VQwSystem {
 
   public:
     QwControl (const char* name, bool = false): VQwSystem(name) { };
-    ~QwControl() { };
+    virtual ~QwControl() { };
 
     void Run();
     void Start();

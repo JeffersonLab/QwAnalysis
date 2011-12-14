@@ -140,12 +140,6 @@ void  QwSIS3801_Module::FillHistograms()
   }
 }
 
-void  QwSIS3801_Module::DeleteHistograms()
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).DeleteHistograms();
-  }}
-
 void  QwSIS3801_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){
@@ -233,11 +227,11 @@ void QwSIS3801_Module::InitializeChannel(TString name)
   }
 }
 
-void QwSIS3801_Module::Copy(QwSIS3801_Module *source)
+void QwSIS3801_Module::Copy(const QwSIS3801_Module *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
-      QwSIS3801_Module* input = ((QwSIS3801_Module*) source);
+      const QwSIS3801_Module* input = dynamic_cast<const QwSIS3801_Module*>(source);
       for (size_t i = 0; i < this->fChannels.size(); i++)
         this->fChannels[i].Copy(&(input->fChannels[i]));
     } else {

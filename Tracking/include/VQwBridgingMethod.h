@@ -128,10 +128,13 @@ inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double a
 
   double Mp = 938.272013;    // Mass of the Proton in MeV
 
-  double PP = momentum + momentum_correction_MeV;
-  double P0 = Mp*PP/(Mp-PP*(1-cos_theta)); //pre-scattering energy
-  double Q2 = 2.0*Mp*(P0-PP);
+  //double PP = momentum + momentum_correction_MeV;
+  //double P0 = Mp*PP/(Mp-PP*(1-cos_theta)); //pre-scattering energy
+  //double Q2 = 2.0*Mp*(P0-PP);
 
+  double P0=1165;
+  double PP=Mp*P0/(Mp+P0*(1-cos_theta));
+  double Q2=2.0*P0*PP*(1-cos_theta);
   results[0]=PP;
   results[1]=P0;
   results[2]=Q2;

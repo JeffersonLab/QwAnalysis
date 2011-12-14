@@ -4,7 +4,7 @@
 //*****************************************************************************************************//
 //
 //
-//  This macro will connect to the qw_linreg_20110125 data base and get the slug averages from the 
+//  This macro will connect to the qw_run1_pass3 data base and get the slug averages from the 
 //  regressed data and plot 
 //  them in to three plots for pmt+, pmt- and bar sum, us lumi and ds lumi asymmetries. 
 //   e.g. use
@@ -56,8 +56,7 @@ using namespace std;
 #include <TText.h>
 
 
-//  For now instead of the main detector PMTs I will use 8 bpm wires.
-//  Later these should be replaced by the actual ones.
+
 
 // Left PMTs
 TString quartz_bar_POS[8]=
@@ -210,10 +209,10 @@ int main(Int_t argc,Char_t* argv[])
   gDirectory->Delete("*");
 
 //connect to the data bases
-  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_linreg_20110125","qweak", "QweakQweak");
+  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
 
   if(db){
-    printf("Unregreesed database server info: %s\n", db->ServerInfo());
+    printf("Run1 pass3 database server info: %s\n", db->ServerInfo());
   }
   else
     exit(1);
@@ -243,7 +242,7 @@ int main(Int_t argc,Char_t* argv[])
 
   // Open a txt file to store data
   Char_t  textfile[400];
-  sprintf(textfile,"%s_%s_in_out_values1.txt",targ.Data(),polar.Data()); 
+  sprintf(textfile,"%s_%s_in_out_values.txt",targ.Data(),polar.Data()); 
   Myfile.open(textfile);
 
   //plot MD asymmetries
@@ -277,7 +276,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
   Canvas1->Update();
-  Canvas1->Print(polar+"_"+target+"_md_regressed_slug_summary_plots1.png");
+  Canvas1->Print(polar+"_"+target+"_md_regressed_slug_summary_plots.png");
 
   // Calculate sum of opposite octants
   get_opposite_octant_average(8,"MD", value11,err11,value1,err1);
@@ -312,7 +311,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->Update();
 
   Canvas2-> Update();
-  Canvas2->Print(polar+"_"+target+"_uslumi_regressed_slug_summary_plots1.png");
+  Canvas2->Print(polar+"_"+target+"_uslumi_regressed_slug_summary_plots.png");
 
   // plot DS LUMI asymmetries
   TString title3 = targ+"("+polar+"): Regressed slug averages of DS LUMI asymmetries. FIT = p0*cos(phi + p1) + p2";
@@ -344,7 +343,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->Update();
 
   Canvas3-> Update();
-  Canvas3->Print(polar+"_"+target+"_dslumi_regressed_slug_summary_plots1.png");
+  Canvas3->Print(polar+"_"+target+"_dslumi_regressed_slug_summary_plots.png");
 
   Myfile.close();
 
@@ -366,12 +365,9 @@ TString get_query(TString detector, TString measurement, TString target, TString
 		  TString detector_type, TString goodfor, TString polar){
 
 
-
-  Bool_t ldebug = true;
+  Bool_t ldebug = false;
   TString datatable;
-  TString plate_cut;
-  TString good_for_cut;
- 
+
   if(detector_type == "MD")
     datatable = "md_data_view";
   if(detector_type == "LUMI")
@@ -379,46 +375,33 @@ TString get_query(TString detector, TString measurement, TString target, TString
   if(detector_type == "BEAM")
     datatable = "beam_view";
 
-  TString output = " sum( distinct (linreg.value/(POWER(linreg.error,2))))/sum( distinct (1/(POWER(linreg.error,2)))), SQRT(1/SUM( distinct (1/(POWER(linreg.error,2)))))";
-  TString run_quality_cut = "(fall2010.run_quality_id = '1') "; // good/suspect
+  std::cout<<"Getting regressed data for "<<detector<<std::endl;
 
-
-  TString join = Form(" qw_fall2010_20101204.%s as fall2010 JOIN qw_linreg_20110125.%s AS linreg ON fall2010.run_number = linreg.run_number JOIN qw_fall2010_20101204.slow_controls_settings AS fall_slow ON fall2010.runlet_id = fall_slow.runlet_id ",datatable.Data(),datatable.Data());
-
-  TString tgt_cut = Form(" fall_slow.target_position = '%s' ",target.Data());
-  TString ihwp_cut = Form(" fall_slow.slow_helicity_plate = '%s' ",ihwp.Data());
-
-  // To get rid of runs that have large charge asymmetries
-  TString run_cut = "linreg.run_number != 9831 AND linreg.run_number != 9834  AND linreg.run_number !=9837 AND linreg.run_number != 9836 AND linreg.run_number != 9842  AND linreg.run_number != 9863 AND linreg.run_number != 9866 AND linreg.run_number != 9867  AND linreg.run_number != 9875 AND linreg.run_number != 9878 and linreg.run_number != 9877  ";
+  TString output = " sum( distinct("+datatable+".value/(POWER("
+    +datatable+".error,2))))/sum( distinct(1/(POWER("
+    +datatable+".error,2)))), SQRT(1/SUM(distinct(1/(POWER("
+    +datatable+".error,2)))))";
   
+  TString run_quality =  Form("(%s.run_quality_id = '1') ",
+			   datatable.Data());
 
-  /*************************
-  longitudinal
+  TString good_for =  Form("(%s.good_for_id = '%s' or %s.good_for_id = '1,%s')",
+			   datatable.Data(),goodfor.Data(),datatable.Data(),goodfor.Data());
 
-  **************************/
-  if(polar == "longitudinal"){
-    //    run_cut = " (linreg.run_number<9824  or linreg.run_number>9886)";
-    run_cut = " (linreg.run_number>9886)";
-    good_for_cut = " (fall2010.good_for_id = '1,3' or fall2010.good_for_id='3') ";
+  TString regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = 'on' ",
+			    datatable.Data(),datatable.Data()); 
 
-  }
-  
+  /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
+  TString query =" SELECT " +output+ " FROM "+datatable+", slow_controls_settings WHERE "
+    +datatable+".runlet_id =  slow_controls_settings.runlet_id AND "
+    +datatable+".detector = '"+detector+"' AND "+datatable+".subblock = 0 AND "
+    +datatable+".measurement_type = 'a' AND target_position = '"+target+"' AND "
+    +regression+" AND "+run_quality+" AND "
+    +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "
+    +datatable+".error != 0; ";
 
-  /*************************
-   Transverse
+  if(ldebug) std::cout<<query<<std::endl;
 
-  **************************/
-
-  if(polar == "transverse"){
-//     run_cut = " (linreg.run_number>=9824 and linreg.run_number<=9881 and linreg.run_number != 9842 and linreg.run_number !=9878 and linreg.run_number != 9884 and linreg.run_number !=9883 and linreg.run_number != 9882 ) ";
-    good_for_cut = " (fall2010.good_for_id = '1,8' or fall2010.good_for_id='8') ";
-  }
-
-  TString query =" SELECT " + output
-    + " FROM "+join+"WHERE linreg.detector='"+detector+"' AND linreg.subblock = 0 AND "+tgt_cut+" AND "+run_quality_cut+" AND "
-    +ihwp_cut+" AND "+run_cut+" AND "+good_for_cut+" AND linreg.measurement_type = '"+measurement+"' AND linreg.slope_correction = 'on' AND linreg.slope_calculation = 'off' AND linreg.error !=0 and linreg.value != 0;";
- 			 
-  if(ldebug)  std::cout<<query<<std::endl;
 
   return query;
 }
@@ -430,7 +413,8 @@ TString get_query(TString detector, TString measurement, TString target, TString
 //***************************************************
 //***************************************************
 
-void get_octant_data(Int_t size, TString devicelist[], TString detector_type,TString goodfor, TString target, TString ihwp, Double_t value[], Double_t error[])
+void get_octant_data(Int_t size, TString devicelist[], TString detector_type,TString goodfor,
+		     TString target, TString ihwp, Double_t value[], Double_t error[])
 {
   Bool_t ldebug = false;
 
@@ -491,12 +475,13 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
 
   TPad* pad = (TPad*)(gPad->GetMother());
  
-  // cos fit 
-  TF1 *cosfit = new TF1("cosfit","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
-  cosfit->SetParameter(0,0);
-  cosfit->SetParameter(1,0);
-  cosfit->SetParameter(2,0);
-  cosfit->SetParLimits(1, -180, 180);
+  // cos fit in
+  TF1 *cosfit_in = new TF1("cosfit_in","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+  cosfit_in->SetParameter(0,0);
+  cosfit_in->SetParLimits(0,-99999,0);
+  cosfit_in->SetParameter(1,0);
+  cosfit_in->SetParLimits(1, -1, 180);
+  cosfit_in->SetParameter(2,0);
 
   //Take the average over the in and out half wave plate values. 
   // Here we take just the average and not the weighted average because we are testing a hypothesis
@@ -505,11 +490,11 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   Myfile<<"######################"<<std::endl;
   Myfile<<"IN+OUT "<<std::endl;
   for(Int_t i =0;i<size;i++){
-    valuesum[i]=valuesin[i]+valuesout[i];
-    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
+    valuesum[i]=(valuesin[i]+valuesout[i])/2.0;
+    valueerror[i]= (sqrt(pow(errorsin[i],2)+pow(errorsout[i],2)))/2.0;
     Myfile<<"Valuein = "<<valuesin[i]<<" Errorin = "<< errorsin[i]<<std::endl;
     Myfile<<"Valueout = "<<valuesout[i]<<" Errorout = "<< errorsout[i]<<std::endl;
-    Myfile<<"Value IN+OUT= "<<valuesum[i]<<" Error IN+OUT= "<< valueerror[i]<<std::endl;
+    Myfile<<"Value (IN+OUT)/2= "<<valuesum[i]<<" Error (IN+OUT)/2= "<< valueerror[i]<<std::endl;
   }
   std::cout<<"######################\n"<<std::endl;
 
@@ -535,8 +520,8 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp_in ->SetMarkerSize(0.6);
   grp_in ->SetMarkerStyle(21);
   grp_in ->SetMarkerColor(kBlue);
-  grp_in->Fit("cosfit","B");
-  TF1* fit1 = grp_in->GetFunction("cosfit");
+  grp_in->Fit("cosfit_in","B");
+  TF1* fit1 = grp_in->GetFunction("cosfit_in");
   fit1->DrawCopy("same");
   fit1->SetLineColor(kBlue);
 
@@ -545,8 +530,17 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp_out ->SetMarkerSize(0.6);
   grp_out ->SetMarkerStyle(21);
   grp_out ->SetMarkerColor(kRed);
-  grp_out->Fit("cosfit","B");
-  TF1* fit2 = grp_out->GetFunction("cosfit");
+
+  TF1 *cosfit_out = new TF1("cosfit_out","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+  /*Initialize this fit with the results from the previous fit*/
+  cosfit_out->SetParameter(0,-1*(fit1->GetParameter(0)));
+  cosfit_out->SetParLimits(0,0,99999);
+  cosfit_out->SetParLimits(1,-1,180);
+  cosfit_out->SetParameter(1, fit1->GetParameter(2));
+  cosfit_out->SetParameter(2, -(fit1->GetParameter(2)));
+
+  grp_out->Fit("cosfit_out","B");
+  TF1* fit2 = grp_out->GetFunction("cosfit_out");
   fit2->DrawCopy("same");
   fit2->SetLineColor(kRed);
 
@@ -555,8 +549,8 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp_sum ->SetMarkerSize(0.6);
   grp_sum ->SetMarkerStyle(21);
   grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("cosfit","B");
-  TF1* fit3 = grp_sum->GetFunction("cosfit");
+  grp_sum->Fit("pol0","B");
+  TF1* fit3 = grp_sum->GetFunction("pol0");
   fit3->DrawCopy("same");
   fit3->SetLineColor(kGreen-2);
 
@@ -577,7 +571,7 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
   legend->AddEntry(grp_in, "IHWP-IN", "p");
   legend->AddEntry(grp_out, "IHWP-OUT", "p");
-  legend->AddEntry(grp_sum, "IN+OUT", "p");
+  legend->AddEntry(grp_sum, "(IN+OUT)/2", "p");
   legend->SetFillColor(0);
   legend->Draw("");
 
@@ -628,9 +622,9 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp_diff ->SetMarkerSize(0.6);
   grp_diff ->SetMarkerStyle(21);
   grp_diff ->SetMarkerColor(kBlack-2);
-  grp_diff->Fit("cosfit","B");
+  grp_diff->Fit("cosfit_in","B");
  
-  TF1* fit4 = grp_diff->GetFunction("cosfit");
+  TF1* fit4 = grp_diff->GetFunction("cosfit_in");
   fit4->DrawCopy("same");
   fit4->SetLineColor(kMagenta+1);
 
@@ -655,7 +649,7 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
 
   Canvas11-> Update();
-  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_in_out_plots1.png");
+  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_in_out_plots.png");
 
 }
 

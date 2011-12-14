@@ -10,99 +10,141 @@
 #include "QwRegression.h"
 #include "QwSubsystemArrayParity.h"
 
-//RegisterSubsystemFactory(QwRegressionSubsystem);
+RegisterSubsystemFactory(QwRegressionSubsystem);
 
 
 QwRegressionSubsystem::~QwRegressionSubsystem()
 {
 }
 
-void QwRegressionSubsystem::Copy (const QwRegressionSubsystem &source)
+void QwRegressionSubsystem::Copy (const VQwSubsystem *source)
 {
-    VQwSubsystem::Copy(const_cast<QwRegressionSubsystem*>(&source));
-    QwRegression::Copy(&source);
-
-    return;
-}
-
- QwRegressionSubsystem* QwRegressionSubsystem:: operator= (const QwRegressionSubsystem *value)
- {
-     for (size_t i = 0; i < value->fDependentVar.size(); i++)
-     {
-         this->fDependentVar.at(i).second = value->fDependentVar.at(i).second;
-     }
-
-     return this;
-}
-
-
-QwRegressionSubsystem& QwRegressionSubsystem::operator+= (QwRegressionSubsystem *value)
-{  
-     for(size_t i = 0; i < value->fDependentVar.size(); i++)
-     {
-         *(this->fDependentVar.at(i).second) += *(value->fDependentVar.at(i).second);
-     }
-
-     return *this;
-}
-
-
-QwRegressionSubsystem& ::QwRegressionSubsystem::operator-= (const QwRegressionSubsystem *value)
-{   
-    for(size_t i = 0; i < value->fDependentVar.size();i++)
-    {
-        *(this->fDependentVar.at(i).second) -= *(value->fDependentVar.at(i).second);
+  try {
+    const QwRegressionSubsystem* input = dynamic_cast<const QwRegressionSubsystem*>(source);
+    if (input != NULL){
+      VQwSubsystem::Copy(input);
+      QwRegression::Copy(input);
+    } else {
+      TString loc="Standard exception from QwRegressionSubsystem::Copy = "
+	+source->GetSubsystemName()+" "
+	+this->GetSubsystemName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-
-    return *this;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+  // this->Print();
+  return;
 }
 
 
-QwRegressionSubsystem& QwRegressionSubsystem:: operator*= (const QwRegressionSubsystem *value)
+
+VQwSubsystem& QwRegressionSubsystem::operator=(VQwSubsystem* value)
 {
+  QwRegressionSubsystem* input= dynamic_cast<QwRegressionSubsystem*>(value);
+  if (input!=NULL) {
+    for(size_t i = 0; i < input->fDependentVar.size(); i++) {
+      this->fDependentVar.at(i).second->AssignValueFrom(input->fDependentVar.at(i).second);
+    }
+  }
+  return *this;
+}
+
+
+
+VQwSubsystem& QwRegressionSubsystem::operator+=(VQwSubsystem* value)
+{
+  QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
+  if (input!=NULL) {
+    for(size_t i = 0; i < input->fDependentVar.size(); i++) {
+      *(this->fDependentVar.at(i).second) += input->fDependentVar.at(i).second;
+    }
+  }
+  return *this;
+}
+
+VQwSubsystem& QwRegressionSubsystem:: operator-=(VQwSubsystem* value)
+{
+  QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
+  if (input!=NULL) {
+    for(size_t i = 0; i<input->fDependentVar.size(); i++) {
+      *(this->fDependentVar.at(i).second) -= input->fDependentVar.at(i).second;
+    }
+  }
+  return *this;
+}
+
+VQwSubsystem& QwRegressionSubsystem:: operator*=(VQwSubsystem* value)
+{
+  QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
+  if (input!=NULL) {
+    for(size_t i = 0; i<input->fDependentVar.size(); i++) {
+      *(this->fDependentVar.at(i).second) *= input->fDependentVar.at(i).second;
+    }
+  }
+  return *this;
+}
+
+VQwSubsystem& QwRegressionSubsystem:: operator/=(VQwSubsystem* value)
+{
+  QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
+  if (input!=NULL) {
+    for(size_t i = 0; i<input->fDependentVar.size(); i++) {
+      *(this->fDependentVar.at(i).second) /= input->fDependentVar.at(i).second;
+    }
+  }
+  return *this;
+}
+
+
+void QwRegressionSubsystem::Sum(VQwSubsystem* value1, VQwSubsystem* value2)
+{
+  *this = value1;
+  *this += value2;
+}
+
+
+void QwRegressionSubsystem::Difference(VQwSubsystem* value1, VQwSubsystem* value2)
+{
+  *this = value1;
+  *this -= value2;
+}
+
+
+void QwRegressionSubsystem::Ratio(VQwSubsystem* value1, VQwSubsystem* value2)
+{
+  *this = value1;
+  *this /= value2;
+}
+
+
+void QwRegressionSubsystem::Scale(Double_t value)
+{ 
+  for(size_t i = 0; i < this->fDependentVar.size(); i++)
+  {
+    this->fDependentVar.at(i).second->Scale(value);
+  }
   
-    for(size_t i = 0; i < value-> fDependentVar.size(); i++)
-    {
-        *(this->fDependentVar.at(i).second) *= *(value->fDependentVar.at(i).second);
-    }
-  
-    return *this; 
-}
+};
 
-
-
-QwRegressionSubsystem& QwRegressionSubsystem:: operator/= (const QwRegressionSubsystem *value)
+void QwRegressionSubsystem::AccumulateRunningSum(VQwSubsystem* input)
 {
-    for(size_t i = 0; i < value->fDependentVar.size(); i++)
-    {
-        *(this->fDependentVar.at(i).second) /= *(value->fDependentVar.at(i).second);
+  QwRegressionSubsystem* value = dynamic_cast<QwRegressionSubsystem*> (input);
+  if (value!=NULL) {
+    for (size_t i = 0; i < value-> fDependentVar.size(); i++) {
+      fDependentVar.at(i).second->AccumulateRunningSum(value->fDependentVar.at(i).second);
     }
-    
-    return *this;
+  }
 }
 
-
-void QwRegressionSubsystem:: Sum(QwRegressionSubsystem *value1, QwRegressionSubsystem *value2){
-
-    *this = value1;
-    *this += value2;
-
-}
-
-void QwRegressionSubsystem::Difference(QwRegressionSubsystem *value1,QwRegressionSubsystem *value2)
+void QwRegressionSubsystem::DeaccumulateRunningSum(VQwSubsystem* input)
 {
-    *this = value1;
-    *this -= value2;
-  
-}
-
-
-void QwRegressionSubsystem:: AccumulateRunningSum(QwRegressionSubsystem* value)
-{
-    for (size_t i = 0; i < value-> fDependentVar.size(); i++)
-    {
-        fDependentVar.at(i).second->AccumulateRunningSum(value->fDependentVar.at(i).second);
+  QwRegressionSubsystem* value = dynamic_cast<QwRegressionSubsystem*> (input);
+  if (value!=NULL) {
+    for (size_t i = 0; i < value-> fDependentVar.size(); i++) {
+      fDependentVar.at(i).second->DeaccumulateRunningSum(value->fDependentVar.at(i).second);
     }
+  }
 }
 
 void QwRegressionSubsystem::CalculateRunningAverage()
@@ -124,6 +166,17 @@ void QwRegressionSubsystem:: PrintValue() const{
 
 
 
+void QwRegressionSubsystem::UpdateEventcutErrorFlag(UInt_t error) //return the error flag
+{
+  /// TODO:  Write QwRegressionSubsystem::UpdateEventcutErrorFlag
+}
+
+void QwRegressionSubsystem::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  /// TODO:  Write QwRegressionSubsystem::UpdateEventcutErrorFlag
+  if (Compare(ev_error)){
+    QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*> (ev_error);
+  }  
+};
 
 
 
@@ -171,102 +224,6 @@ Int_t QwRegressionSubsystem::ProcessEvBuffer(UInt_t, UInt_t, UInt_t*, UInt_t)
 }
 
 
-VQwSubsystem& QwRegressionSubsystem::operator=(VQwSubsystem* value)
-{
-    
-    QwRegressionSubsystem* input= dynamic_cast<QwRegressionSubsystem*>(value);
-    
-    for(size_t i = 0; i < input->fDependentVar.size(); i++)
-    {
-      *(this->fDependentVar.at(i).second) = *(input->fDependentVar.at(i).second);
-    }
-    return *this;
-}
-
-
-
-VQwSubsystem& QwRegressionSubsystem::operator+=(VQwSubsystem* value)
-{
-  QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
-  
-  for(size_t i = 0; i < input->fDependentVar.size(); i++)
-  {
-    *(this->fDependentVar.at(i).second) += *(input->fDependentVar.at(i).second);
-  }
-  
-  return *this;
-  
-}
-
-VQwSubsystem& QwRegressionSubsystem:: operator-=(VQwSubsystem* value)
-{
-  QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
-  
-  for(size_t i = 0; i<input->fDependentVar.size(); i++)
-  {
-    *(this->fDependentVar.at(i).second) += *(input->fDependentVar.at(i).second);
-  } 
-  
-  return *this;
-}
-
-void QwRegressionSubsystem::Sum(VQwSubsystem* value1, VQwSubsystem* value2)
-{
-  QwRegressionSubsystem* input1 = dynamic_cast<QwRegressionSubsystem*>(value1);
-  
-  QwRegressionSubsystem* input2 = dynamic_cast<QwRegressionSubsystem*>(value2);
-  
-  *this = input1;
-  *this += input2;
-  
-}
-
-
-void QwRegressionSubsystem::Difference(VQwSubsystem* value1, VQwSubsystem* value2)
-{
-  QwRegressionSubsystem* input1 = dynamic_cast<QwRegressionSubsystem*>(value1);
-  
-  QwRegressionSubsystem* input2 = dynamic_cast<QwRegressionSubsystem*>(value2);
-  
-  *this = input1;
-  *this -= input2;
-  
-}
-
-
-void QwRegressionSubsystem::Ratio(VQwSubsystem* value1, VQwSubsystem* value2)
-{
-  QwRegressionSubsystem* input1 = dynamic_cast<QwRegressionSubsystem*>(value1);
-  
-  QwRegressionSubsystem* input2 = dynamic_cast<QwRegressionSubsystem*>(value2);
-  
-  *this = input1;
-  *this /= input2;
-}
-
-
-void QwRegressionSubsystem::Scale(Double_t value)
-{ 
-  for(size_t i = 0; i < this->fDependentVar.size(); i++)
-  {
-    this->fDependentVar.at(i).second->Scale(value);
-  }
-  
-};
-
-VQwSubsystem* QwRegressionSubsystem::Copy()
-{
-  return (new QwRegressionSubsystem(*this));
-    
-}
-  
-
-void AccumulateRunningSum(VQwSubsystem* input)
-{
-  QwRegressionSubsystem* value = dynamic_cast<QwRegressionSubsystem*> (input);
-  
-  AccumulateRunningSum(value);
-}
 
 
 Bool_t QwRegressionSubsystem::ApplySingleEventCuts()
@@ -287,29 +244,5 @@ UInt_t QwRegressionSubsystem::GetEventcutErrorFlag()
 }
 
 
-
-void QwRegressionSubsystem::Copy(VQwSubsystem* source)
-{
-    try
-    {
-      QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(source);
-      if (input != NULL){
-          VQwSubsystem::Copy(input);
-          QwRegression::Copy(input);
-      } else {
-        TString loc="Standard exception from QwRegressionSubsystem::Copy = "
-          +source->GetSubsystemName()+" "
-          +this->GetSubsystemName()+" are not of the same type";
-          throw std::invalid_argument(loc.Data());
-        }
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-  // this->Print();
-
-  return;
-}
 
 

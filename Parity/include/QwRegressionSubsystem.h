@@ -23,14 +23,17 @@
  *
  */
 
-class QwRegressionSubsystem:
-    public VQwSubsystemParity, 
- //   public MQwCloneable<QwRegressionSubsystem>, // causes undefined reference error 
-    public QwRegression {
-
+class QwRegressionSubsystem: public VQwSubsystemParity, 
+  public MQwSubsystemCloneable<QwRegressionSubsystem>,
+  public QwRegression
+{
+  
   
   public:
       // Constructors
+      /// \brief Constructor with just name.
+      /// (use gQwOptions to initialize the QwRegression baseclass)
+      QwRegressionSubsystem(TString name): VQwSubsystem(name), VQwSubsystemParity(name), QwRegression(gQwOptions) {};
       /// \brief Constructor with only options
       QwRegressionSubsystem(QwOptions &options, TString name): VQwSubsystem(name), VQwSubsystemParity(name), QwRegression(options) {};
       /// \brief Constructor with single event
@@ -42,28 +45,46 @@ class QwRegressionSubsystem:
 	VQwSubsystemParity(name), QwRegression(options, event, helicitypattern) {};
      
       // Copy Constructor
-      QwRegressionSubsystem(const QwRegressionSubsystem &source): VQwSubsystem(source), VQwSubsystemParity(source), QwRegression(source) {};
-      void Copy (const QwRegressionSubsystem &source);
-      
+      QwRegressionSubsystem(const QwRegressionSubsystem &source)
+	: VQwSubsystem(source), VQwSubsystemParity(source),
+	QwRegression(source) {
+	this->Copy(&source);
+      }
+	
       // Destructor 
       ~QwRegressionSubsystem();
 
+      void Copy(const VQwSubsystem* source);
+
+
       /// \brief Update the running sums
-      void AccumulateRunningSum(QwRegressionSubsystem *value);
+      void AccumulateRunningSum(VQwSubsystem* input);
+      void DeaccumulateRunningSum(VQwSubsystem* value);
       /// \brief Calculate the average for all good events
       void CalculateRunningAverage();
       /// \brief Print values for all channels
       void PrintValue() const;
 
 
+
       /// \brief Overloaded Operators
-      QwRegressionSubsystem* operator= (const QwRegressionSubsystem *value);
-      QwRegressionSubsystem& operator+= (QwRegressionSubsystem *value);
-      QwRegressionSubsystem& operator-= (const QwRegressionSubsystem *value);
-      QwRegressionSubsystem& operator*= (const QwRegressionSubsystem *value);
-      QwRegressionSubsystem& operator/= (const QwRegressionSubsystem *value);
-      void Sum(QwRegressionSubsystem *value1, QwRegressionSubsystem *value2);
-      void Difference(QwRegressionSubsystem *value1, QwRegressionSubsystem *value2);
+      VQwSubsystem& operator=  (VQwSubsystem *value);
+      VQwSubsystem& operator+= (VQwSubsystem *value);
+      VQwSubsystem& operator-= (VQwSubsystem *value);
+      VQwSubsystem& operator*= (VQwSubsystem *value);
+      VQwSubsystem& operator/= (VQwSubsystem *value);
+      void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
+      void Difference(VQwSubsystem *value1, VQwSubsystem *value2);
+      void Ratio(VQwSubsystem* value1, VQwSubsystem* value2);
+      void Scale(Double_t value);
+
+
+      //update the same error flag in the classes belong to the subsystem.
+      void UpdateEventcutErrorFlag(UInt_t errorflag);
+
+      //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+      void UpdateEventcutErrorFlag(VQwSubsystem *ev_error);
+
 
       /// \brief Derived functions
 	// not sure if there should be empty definition, no definition or defined 
@@ -81,21 +102,12 @@ class QwRegressionSubsystem:
       void ConstructBranch(TTree*, TString&){};
       void ConstructBranch(TTree*, TString&, QwParameterFile&){};
       void FillTreeVector(std::vector<Double_t, std::allocator<Double_t> >&) const{};
-      VQwSubsystem& operator=(VQwSubsystem* value);
-      VQwSubsystem& operator+=(VQwSubsystem* value);
-      VQwSubsystem& operator-=(VQwSubsystem* value);
-      void Sum(VQwSubsystem*value1, VQwSubsystem* value2);
-      void Difference(VQwSubsystem* value1, VQwSubsystem* value2);
-      void Ratio(VQwSubsystem* value1, VQwSubsystem* value2);
-      void Scale(Double_t value);
-      VQwSubsystem* Copy();
-      void AccumulateRunningSum(VQwSubsystem* input){};
+      
       Bool_t ApplySingleEventCuts();
       Int_t GetEventcutErrorCounters();
       UInt_t GetEventcutErrorFlag();
-      
-      void Copy(VQwSubsystem* source);
-      
+
+
   private: 
        
      /**

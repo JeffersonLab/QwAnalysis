@@ -78,35 +78,23 @@
 #include <TRootEmbeddedCanvas.h>
 #include <TGTextEntry.h>
 #include <TGTextEdit.h>
-/* #include <TGHorizontal3DLine.h> */
 #include <TGFileDialog.h>
 #include <RQ_OBJECT.h>
 #include <TMath.h>
 #include <TPave.h>
 #include "KeySymbols.h"
-#include <TG3DLine.h>
-#include <TRootCanvas.h>
-/* #include <TProfile.h> */
-/* #include <TVirtualFFT.h> */
-/* #include "QwGUISubSystem.h" */
-/* #include "QwGUIDataWindow.h" */
-/* #include "RNumberEntryDialog.h" */
-/* #include "RMsgBox.h" */
-/* #include "QwGUIEventWindowSelectionDialog.h" */
-/* #include "TFrame.h" */
-/* #include "TPaveText.h" */
-/* #include "TLeaf.h" */
-/* #include "QwGUIMainDetector.h" */
-/* #include "QwGUIScanner.h" */
-/* #include "QwGUIBeamModulation.h" */
-/* #include "QwGUILumiDetector.h"  */
-/* #include "QwGUIInjector.h" */
-/* #include "QwGUIHallCBeamline.h" */
-/* #include "QwGUITrackFinding.h" */
-/* #include "QwGUIEventDisplay.h" */
+#include "QwGUIMainDetector.h"
+#include "QwGUIHistories.h"
+#include "QwGUIScanner.h"
+#include "QwGUIBeamModulation.h"
+#include "QwGUILumiDetector.h" 
+#include "QwGUIInjector.h"
+#include "QwGUIHallCBeamline.h"
+#include "QwGUITrackFinding.h"
+#include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
-#include "QwGUIDatabaseContainer.h"
-#include "QwGUIDatabase.h"
+/* #include "QwGUIDatabaseContainer.h" */
+/* #include "QwGUIDatabase.h" */
 #ifndef __CINT__
 
 #include "QwOptions.h"
@@ -117,26 +105,30 @@
 
 class QwGUIMain : public TGMainFrame {
 
-  RQ_OBJECT("QwGUIMain");
+  /* RQ_OBJECT("QwGUIMain"); */
 
  private:
 
   //!Database object (there should be only one for all subsystems)
-  QwGUIDatabaseContainer *dDatabase;
+  /* QwGUIDatabaseContainer *dDatabase; */
 
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
 
+  //!Array to store and keep track of separate data plot windows for cleanup and communiation 
+  TObjArray               DataWindowArray;
+
   //!Main detector sub system class
-/*   QwGUIMainDetector      *MainDetSubSystem; */
-/*   QwGUIScanner           *ScannerSubSystem; */
-/*   QwGUIBeamModulation    *BeamModulationSubSystem; */
-/*   QwGUILumiDetector      *LumiDetSubSystem; */
-/*   QwGUIInjector          *InjectorSubSystem; */
-/*   QwGUIHallCBeamline     *HallCBeamlineSubSystem; */
-  QwGUIDatabase          *DatabaseSubSystem;
-/*   QwGUITrackFinding      *TrackFindingSubSystem; */
-/*   QwGUIEventDisplay      *EventDisplaySubSystem; */
+  QwGUIMainDetector      *MainDetSubSystem;
+  QwGUIScanner           *ScannerSubSystem;
+  QwGUIHistories         *HistoriesSubSystem;
+  QwGUIBeamModulation    *BeamModulationSubSystem;
+  QwGUILumiDetector      *LumiDetSubSystem;
+  QwGUIInjector          *InjectorSubSystem;
+  QwGUIHallCBeamline     *HallCBeamlineSubSystem;
+  /* QwGUIDatabase          *DatabaseSubSystem; */
+  QwGUITrackFinding      *TrackFindingSubSystem;
+  QwGUIEventDisplay      *EventDisplaySubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
 
@@ -156,6 +148,24 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   MCnt;
 
   Int_t                   dCurrentSegment;
+
+  Double_t                dRasterSize[2];
+  void                    SetRasterSize(Double_t rasterX, Double_t rasterY){dRasterSize[0] = rasterX; dRasterSize[1] = rasterY;}
+  Double_t               *GetRasterSize(){return dRasterSize;}
+  Double_t                dEnergy;
+  void                    SetEnergy(Double_t energy) {dEnergy = energy;}
+  Double_t                GetEnergy() {return dEnergy;}
+  Double_t                dCurrent;
+  void                    SetCurrent(Double_t current) {dCurrent = current;}
+  Double_t                GetCurrent() {return dCurrent;}
+
+  //!Index (in DataWindowArray) of the currently slected data window
+  Int_t                dSelectedDataWindow;
+
+  //!This should be used for proper clean up when a particular data window is closed by the
+  //!user.
+  UInt_t               dWinCnt;
+
 
   //!The following two flags are used in process increment dialog boxes
   Bool_t                  dProcessing;
@@ -198,9 +208,12 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dAddSegmentLayout;
   TGLabel                *dRunEntryLabel;
   TGLabel                *dAddSegmentLabel;  
-  TGLabel                *dPrefixEntryLabel;  
+  TGLabel                *dPrefixEntryLabel;
+  TGLabel                *dRunInfoLabel;
+  
   TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;
+  TGHorizontalFrame      *dRunInfoFrame;
   TGLayoutHints          *dUtilityLayout;
 
   //!Main window tab environment
@@ -247,8 +260,11 @@ class QwGUIMain : public TGMainFrame {
   vector <TString>        dFilePrefix;
   vector <TH1F*>          dMainHistos;
   vector <TGraph*>        dMainGraphs;
+  vector <TObject*>       dMainPlotsArray;
+  vector <TH1F*>          dHistoryPlotsArray;
+  vector <TBox*>          dErrorBoxArray;
 
-/*   EventOptions            dCurrentRunEventOptions; */
+  EventOptions            dCurrentRunEventOptions;
 
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the
@@ -459,10 +475,12 @@ class QwGUIMain : public TGMainFrame {
 
   void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
   void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
+  void                    StoreFileInfo(const char* filename);
+  void                    GetFileInfo(const char *filename, int &run, int &segment);
 
-/*   UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;}; */
-/*   UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;}; */
-/*   UInt_t                  GetCurrentRunEventStop(){return dCurrentRunEventOptions.Start+dCurrentRunEventOptions.Length-1;}; */
+  UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
+  UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
+  UInt_t                  GetCurrentRunEventStop(){return dCurrentRunEventOptions.Start+dCurrentRunEventOptions.Length-1;};
 
   void                    SetEventMode(Bool_t evM){dEventMode = evM;};
   Bool_t                  EventMode() {return dEventMode;};
@@ -651,6 +669,11 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   void                   OnReceiveMessage(const char *);
 
+  void                   OnUpdatePlot(const char*);
+
+  void                   OnNewRunSignal(int sig);
+  void                   OnRunWarningSignal(int sig);
+
   //!Receiver function, called when a connected canvas pad is mouse selected.
   //!
   //!Parameters:
@@ -675,6 +698,13 @@ class QwGUIMain : public TGMainFrame {
 
   virtual Bool_t         HandleKey(Event_t *event);
 
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow(); 
+  void                 CleanUpDataWindows();
+  UInt_t               GetNewWindowCount(){ return ++dWinCnt;};
+
+
   ///This function is called to remove a tab.
   ///Each subsystem class must call this function on desstruction, to remove its tab.
   ///What actually happens is that the QwGUISubSystem parent class has a function
@@ -694,6 +724,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not currently used!
   void                   WritePid();
+  void                   CheckForNewRun();
 
   ClassDef(QwGUIMain,0);
 };

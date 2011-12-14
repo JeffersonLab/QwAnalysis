@@ -28,16 +28,26 @@ class QwHitContainer;
 
 ///
 /// \ingroup QwTracking
-class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwCloneable<QwGasElectronMultiplier> {
+class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwGasElectronMultiplier> {
   /******************************************************************
    *  Class: QwGasElectronMultiplier
    *
    *
    ******************************************************************/
- public:
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwGasElectronMultiplier();
 
-  QwGasElectronMultiplier(TString region_tmp);
-  ~QwGasElectronMultiplier();
+ public:
+  /// Constructor with name
+  QwGasElectronMultiplier(const TString& name);
+  /// Virtual destructor
+  virtual ~QwGasElectronMultiplier();
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
 
   /*  Member functions derived from VQwSubsystemTracking. */
   Int_t LoadChannelMap(TString mapfile );

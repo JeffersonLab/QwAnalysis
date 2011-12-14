@@ -354,7 +354,8 @@ CXX            := $(GCC)
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := $(OPTIM)
 LD             = $(GCC)
-LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
+LDFLAGS	       = -Wl,-rpath,$(QW_LIB) -Wl,--no-as-needed
+        # -Wl,--no-as-needed: incorrect ordering in root-config --libs
 LDLIBS         =
 SOFLAGS        = -shared
 
@@ -363,7 +364,7 @@ ROOTCFLAGS   := $(ROOTCFLAGS) -D_REENTRANT
         #                on some environment
 
 ROOTLIBS     := $(ROOTLIBS) -lpthread  -lThread
-        # -lpthread : because '$(ROOTCONFIG) --libs' gives incomplete result
+        # -lpthread:  because '$(ROOTCONFIG) --libs' gives incomplete result
         #             on gzero and libet.so requires it
         # -lThread:   Required for compilation on Linux systems with
         #             ROOT 4.04/02 or 5.08/00 (first noted by J-S Real
@@ -667,7 +668,7 @@ myevio_lib:
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
 	do \
 	$(ECHO) $(QW_BIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles` $(QW_LIB)/libmyevio$(DllSuf)  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
-	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LDFLAGS) $(LIBS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
 	done

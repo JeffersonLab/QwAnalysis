@@ -15,10 +15,17 @@
 template<class VQwSubsystem_t>
 class QwOmnivore: public VQwSubsystem_t {
 
-  public:
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwOmnivore();
 
-    /// Default constructor
+  public:
+    /// Constructor with name
     QwOmnivore(const TString& name): VQwSubsystem(name),VQwSubsystem_t(name) { };
+    /// Copy constructor
+    QwOmnivore(const QwOmnivore& source)
+    : VQwSubsystem(source),VQwSubsystem_t(source)
+    { this->Copy(&source); }
     /// Virtual destructor
     virtual ~QwOmnivore() { };
 
@@ -86,12 +93,7 @@ class QwOmnivore: public VQwSubsystem_t {
     void Scale(Double_t factor) { };
 
     /// Copy operation
-    VQwSubsystem* Copy() {
-      QwOmnivore<VQwSubsystem_t>* theCopy = new QwOmnivore<VQwSubsystem_t>("copy");
-      theCopy->Copy(this);
-      return theCopy;
-    };
-    void Copy(VQwSubsystem *source) {
+    void Copy(const VQwSubsystem *source) {
       VQwSubsystem::Copy(source);
     };
 
@@ -100,8 +102,6 @@ class QwOmnivore: public VQwSubsystem_t {
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
     /// Fill the histograms for this subsystem
     void  FillHistograms() { };
-    /// Delete the histograms for this subsystem
-    void  DeleteHistograms() { };
 
     /// Construct the branch and tree vector
     void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) { };

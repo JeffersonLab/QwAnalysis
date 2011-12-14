@@ -11,8 +11,8 @@
 
 #include "QwDriftChamber.h"
 ///
-/// \ingroup QwTracking
-class QwDriftChamberHDC: public QwDriftChamber, public MQwCloneable<QwDriftChamberHDC> {
+/// \ingroup QwTrackingg
+class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberHDC> {
   /******************************************************************
    *  Class: QwDriftChamberHDC
    *
@@ -20,8 +20,13 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwCloneable<QwDriftChamb
    ******************************************************************/
  public:
   QwDriftChamberHDC(TString region_tmp);
-  ~QwDriftChamberHDC() { };
-  
+  virtual ~QwDriftChamberHDC() { };
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
+
   /* Unique virtual member functions from QwDrifChamber base class */
 
 
@@ -47,12 +52,13 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwCloneable<QwDriftChamb
   void  FillHistograms();
 
   Int_t LoadTimeWireOffset(TString t0_map) {return 0;}; 
+  void LoadTtoDParameters(TString ttod_map);
   void SubtractWireTimeOffset();
   void ApplyTimeCalibration();
 
   // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
-  
+  std::vector< Double_t> fTtoDNumbers;
   //  ClassDef(QwDriftChamber,2);
 
 

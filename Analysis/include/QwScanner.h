@@ -34,13 +34,23 @@
 #include "QwPMT_Channel.h"
 #include "QwF1TDContainer.h"
 
-class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
-    public MQwCloneable<QwScanner>
-  {
+class QwScanner:
+  public VQwSubsystemParity,
+  public VQwSubsystemTracking,
+  public MQwSubsystemCloneable<QwScanner> {
+
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwScanner();
 
   public:
-
-    QwScanner(TString region_tmp);
+    /// Constructor with name
+    QwScanner(const TString& name);
+    /// Copy constructor
+    QwScanner(const QwScanner& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source),VQwSubsystemTracking(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwScanner();
 
     // VQwSubsystem methods
@@ -78,6 +88,10 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     {
       return;
     };
+    //remove one entry from the running sums for devices
+    void DeaccumulateRunningSum(VQwSubsystem* value){
+    };
+
     void CalculateRunningAverage()
     {
       return;
@@ -100,16 +114,10 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
       return kTRUE;
     };
 
-    void Copy(VQwSubsystem *source)
+    void Copy(const VQwSubsystem *source)
     {
       VQwSubsystem::Copy(source);
       return;
-    };
-    VQwSubsystem* Copy()
-    {
-      QwScanner* copy = new QwScanner("copy");
-      copy->Copy(this);
-      return copy;
     };
     Bool_t Compare(VQwSubsystem *source)
     {
@@ -139,13 +147,12 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
-    void  FillDB(QwDatabase *db, TString type)
+    void  FillDB(QwParityDB *db, TString type)
     {
       return;
     };
@@ -221,9 +228,15 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
       return 0;
     };//return the error flag to the main routine
 
+    //update the same error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
+    //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+    };
+
+
     // scanner specified histograms
-    std::vector<TH1*> fHistograms1D;
-    std::vector<TH2*> fHistograms2D;
     TProfile2D* fRateMapCM;
     TProfile2D* fRateMapEM;
 

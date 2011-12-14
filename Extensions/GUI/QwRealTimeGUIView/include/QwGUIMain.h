@@ -81,7 +81,6 @@
 #include "TRootEmbeddedCanvas.h"
 #include "TGTextEntry.h"
 #include "TGTextEdit.h"
-//#include "TGFileDialog.h"
 #include "RQ_OBJECT.h"
 #include "TMath.h"
 #include "TGIcon.h"
@@ -93,6 +92,7 @@
 #include "QwGUIInjector.h"
 #include "QwGUICorrelationPlots.h"
 #include "QwGUIHallCBeamline.h"
+#include "QwGUISummary.h"
 
 
 #ifndef __CINT__
@@ -232,6 +232,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIInjector          *InjectorSubSystem;
   QwGUICorrelationPlots  *CorrelationSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
+  QwGUISummary           *SummaryTab;
 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;
@@ -284,6 +285,12 @@ class QwGUIMain : public TGMainFrame {
   Pixel_t                        red;
   TGTextButton           *dMainButton[4];
   TGHorizontalFrame      *dMainButtonsFrame;
+
+  TGHorizontalFrame   *dTabFrame;
+  TRootEmbeddedCanvas *dCanvas;  
+  TGLayoutHints       *dTabLayout; 
+  TGLayoutHints       *dCnvLayout; 
+
 
   Bool_t                  dRunStopFlag;
 

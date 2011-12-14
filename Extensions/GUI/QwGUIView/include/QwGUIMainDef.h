@@ -194,6 +194,7 @@ enum CommandIdentifiers {
   M_FILE_ASYMSTAT,
   M_DRAW_ARRAY,
   M_OPEN_DATAWINDOW,
+  M_TABS_SHOWALL,
 
   M_VIEW_LOG,
   M_VIEW_BROWSER,
@@ -223,6 +224,7 @@ enum ENDataType {
   DDT_BCM,
   DDT_BPM,
   DDT_HEL,
+  DDT_MAIN,
 };
 
 
@@ -235,6 +237,7 @@ struct ClineArgs {
 
   int            bckgr;
   int            mute;
+  int            autoupdate;
   int            realtime;
   int            checkmode;
   char           file[1000];

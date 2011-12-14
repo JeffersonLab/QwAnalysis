@@ -111,13 +111,13 @@ void QwGUIInjector::LoadHistoMapFile(TString mapfile){
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
     else{
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
       if (modtype=="VQWK" || modtype=="SCALER"){
-	mapstr.GetNextToken(", ");	//slot number
-	mapstr.GetNextToken(", ");	//channel number
-	dettype=mapstr.GetNextToken(", ");	//type-purpose of the detector
+	mapstr.GetTypedNextToken<TString>();	//slot number
+	mapstr.GetTypedNextToken<TString>();	//channel number
+	dettype=mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	namech.ToLower();
 
 	// Now sort out detectors to the two categories of charge monitors and position monitors.
@@ -131,14 +131,21 @@ void QwGUIInjector::LoadHistoMapFile(TString mapfile){
 	    if(dettype=="qpd"){
 	      count_qpds=count(fInjectorDevices.at(VQWK_QPD).begin(),fInjectorDevices.at(VQWK_QPD).end(),namech);
 	      if(!count_qpds) fInjectorDevices.at(VQWK_QPD).push_back(namech);
+	      dButtonMeanPos->SetEnabled(kFALSE);
+	      dButtonEffCharge->SetEnabled(kFALSE);
+	      dButtonPosDiffMean->SetEnabled(kFALSE);    
 	    }
 	    if (dettype=="lineararray"){
 	      count_lina=count(fInjectorDevices.at(VQWK_LINA).begin(),fInjectorDevices.at(VQWK_LINA).end(),namech);	
-	      if(!count_lina) fInjectorDevices.at(VQWK_LINA).push_back(namech);	      
+	      if(!count_lina) fInjectorDevices.at(VQWK_LINA).push_back(namech);	  
+	      dButtonMeanPos->SetEnabled(kFALSE);
+	      dButtonEffCharge->SetEnabled(kFALSE);    
+	      dButtonPosDiffMean->SetEnabled(kFALSE);    
 	    }
 	  }
 	  else if (dettype=="bcm"){
 	    fInjectorDevices.at(VQWK_BCM).push_back(namech);
+	    dComboBoxChargeMonitors->SetEnabled(kTRUE); 
 	  }
 	}
       }      
@@ -191,6 +198,7 @@ void QwGUIInjector::MakeLayout()
   // combo box for charge monitors
   dComboBoxChargeMonitors=new TGComboBox(dControlsFrame,CMB_INJECTORCHARGE);
   dComboBoxChargeMonitors->Resize(50,20);//To make it better looking
+  dComboBoxChargeMonitors->SetEnabled(kFALSE); 
 
   // combo box for position monitors
   dComboBoxPosMonitors=new TGComboBox(dControlsFrame,CMB_INJECTORPOS);
@@ -503,15 +511,15 @@ void QwGUIInjector::PlotPositionMonitors(){
 
   Bool_t ldebug = false;
 
-  TH1F *histo[10];
-  TH1F *histo_buff[10]; 
+  TH1F *histo[11];
+  TH1F *histo_buff[11]; 
 
   Double_t mean[8];
   Double_t error[8];
   Double_t points[8];
   Double_t fakeerror[8];
 
-  TString hist;
+  TString hist[11];
 
 
   TCanvas *mc = NULL;
@@ -519,6 +527,7 @@ void QwGUIInjector::PlotPositionMonitors(){
   TPad*pad2;
   TGraphErrors * value;
 
+  not_found ->SetTextSize(0.06);
 
   TString name;
   Int_t loc;
@@ -565,76 +574,76 @@ void QwGUIInjector::PlotPositionMonitors(){
     if (GetHistoPause()==0){
       if (fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_BPM"){
 	name = fInjectorDevices.at(VQWK_BPM).at(fCurrentPositionMonitorIndex).Data();
-	hist=Form("%sXP_hw",name.Data());
-	histo[0]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sXM_hw",name.Data());
-	histo[1]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sYP_hw",name.Data());
-	histo[2]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sYM_hw",name.Data());
-	histo[3]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sX_hw",name.Data());
-	histo[4]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sY_hw",name.Data());
-	histo[5]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%s_EffectiveCharge_hw",name.Data());
-	histo[6]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("diff_%sX_hw",name.Data());
-	histo[7]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("diff_%sY_hw",name.Data());
-	histo[8]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("asym_%s_EffectiveCharge_hw",name.Data());
-	histo[9]= (TH1F *)dMapFile->Get(hist);
+	hist[0]=Form("%sXP_hw",name.Data());
+	histo[0]= (TH1F *)dMapFile->Get(hist[0]);
+	hist[1]=Form("%sXM_hw",name.Data());
+	histo[1]= (TH1F *)dMapFile->Get(hist[1]);
+	hist[2]=Form("%sYP_hw",name.Data());
+	histo[2]= (TH1F *)dMapFile->Get(hist[2]);
+	hist[3]=Form("%sYM_hw",name.Data());
+	histo[3]= (TH1F *)dMapFile->Get(hist[3]);
+	hist[4]=Form("%sX_hw",name.Data());
+	histo[4]= (TH1F *)dMapFile->Get(hist[4]);
+	hist[5]=Form("%sY_hw",name.Data());
+	histo[5]= (TH1F *)dMapFile->Get(hist[5]);
+	hist[6]=Form("%s_EffectiveCharge_hw",name.Data());
+	histo[6]= (TH1F *)dMapFile->Get(hist[6]);
+	hist[7]=Form("diff_%sX_hw",name.Data());
+	histo[7]= (TH1F *)dMapFile->Get(hist[7]);
+	hist[8]=Form("diff_%sY_hw",name.Data());
+	histo[8]= (TH1F *)dMapFile->Get(hist[8]);
+	hist[9]=Form("asym_%s_EffectiveCharge_hw",name.Data());
+	histo[9]= (TH1F *)dMapFile->Get(hist[9]);
       }
       else if(fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_QPD"){
 	loc = fCurrentPositionMonitorIndex-fInjectorDevices.at(VQWK_BPM).size();
 	name = fInjectorDevices.at(VQWK_QPD).at(loc).Data();
-	hist=Form("%sTL_hw",name.Data());
-	histo[0]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sTR_hw",name.Data());
-	histo[1]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sBL_hw",name.Data());
-	histo[2]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sBR_hw",name.Data());
-	histo[3]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sX_hw",name.Data());
-	histo[4]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sY_hw",name.Data());
-	histo[5]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%s_EffectiveCharge_hw",name.Data());
-	histo[6]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("diff_%sX_hw",name.Data());
-	histo[7]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("diff_%sY_hw",name.Data());
-	histo[8]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("asym_%s_EffectiveCharge_hw",name.Data());
-	histo[9]= (TH1F *)dMapFile->Get(hist);
+	hist[0]=Form("%sTL_hw",name.Data());
+	histo[0]= (TH1F *)dMapFile->Get(hist[0]);
+	hist[1]=Form("%sTR_hw",name.Data());
+	histo[1]= (TH1F *)dMapFile->Get(hist[1]);
+	hist[2]=Form("%sBL_hw",name.Data());
+	histo[2]= (TH1F *)dMapFile->Get(hist[2]);
+	hist[3]=Form("%sBR_hw",name.Data());
+	histo[3]= (TH1F *)dMapFile->Get(hist[3]);
+	hist[4]=Form("%sX_hw",name.Data());
+	histo[4]= (TH1F *)dMapFile->Get(hist[4]);
+	hist[5]=Form("%sY_hw",name.Data());
+	histo[5]= (TH1F *)dMapFile->Get(hist[5]);
+	hist[6]=Form("%s_EffectiveCharge_hw",name.Data());
+	histo[6]= (TH1F *)dMapFile->Get(hist[6]);
+	hist[7]=Form("diff_%sX_hw",name.Data());
+	histo[7]= (TH1F *)dMapFile->Get(hist[7]);
+	hist[8]=Form("diff_%sY_hw",name.Data());
+	histo[8]= (TH1F *)dMapFile->Get(hist[8]);
+	hist[9]=Form("asym_%s_EffectiveCharge_hw",name.Data());
+	histo[9]= (TH1F *)dMapFile->Get(hist[9]);
       } 
       else if(fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_LINA"){
 	loc = fCurrentPositionMonitorIndex-fInjectorDevices.at(VQWK_BPM).size()-fInjectorDevices.at(VQWK_QPD).size();
 	name = fInjectorDevices.at(VQWK_LINA).at(loc).Data();
-	hist=Form("%sp1_hw",name.Data());
-	histo[0]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sp2_hw",name.Data());
-	histo[1]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sp3_hw",name.Data());
-	histo[2]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sp4_hw",name.Data());
-	histo[3]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sp5_hw",name.Data());
-	histo[4]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sp6_hw",name.Data());
-	histo[5]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sp7_hw",name.Data());
-	histo[6]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sp8_hw",name.Data());
-	histo[7]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sRelMean_hw",name.Data());
-	histo[8]= (TH1F *)dMapFile->Get(hist);
-	hist=Form("%sRelVariance_hw",name.Data());
-	histo[9]= (TH1F *)dMapFile->Get(hist);    
- 	hist=Form("diff_%sRelMean_hw",name.Data());
- 	histo[10]= (TH1F *)dMapFile->Get(hist); 
+	hist[0]=Form("%sp1_hw",name.Data());
+	histo[0]= (TH1F *)dMapFile->Get(hist[0]);
+	hist[1]=Form("%sp2_hw",name.Data());
+	histo[1]= (TH1F *)dMapFile->Get(hist[1]);
+	hist[2]=Form("%sp3_hw",name.Data());
+	histo[2]= (TH1F *)dMapFile->Get(hist[2]);
+	hist[3]=Form("%sp4_hw",name.Data());
+	histo[3]= (TH1F *)dMapFile->Get(hist[3]);
+	hist[4]=Form("%sp5_hw",name.Data());
+	histo[4]= (TH1F *)dMapFile->Get(hist[4]);
+	hist[5]=Form("%sp6_hw",name.Data());
+	histo[5]= (TH1F *)dMapFile->Get(hist[5]);
+	hist[6]=Form("%sp7_hw",name.Data());
+	histo[6]= (TH1F *)dMapFile->Get(hist[6]);
+	hist[7]=Form("%sp8_hw",name.Data());
+	histo[7]= (TH1F *)dMapFile->Get(hist[7]);
+	hist[8]=Form("%sRelMean_hw",name.Data());
+	histo[8]= (TH1F *)dMapFile->Get(hist[8]);
+	hist[9]=Form("%sRelVariance_hw",name.Data());
+	histo[9]= (TH1F *)dMapFile->Get(hist[9]);    
+ 	hist[10]=Form("diff_%sRelMean_hw",name.Data());
+ 	histo[10]= (TH1F *)dMapFile->Get(hist[10]); 
 	
       }
       else 
@@ -662,7 +671,7 @@ void QwGUIInjector::PlotPositionMonitors(){
     }
 
     // Now draw the histograms
-    //For different detectirs the number of histograms are different
+    //For different detectors the number of histograms are different
     if(fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_LINA"){  
       
       pad1->cd();
@@ -715,7 +724,7 @@ void QwGUIInjector::PlotPositionMonitors(){
 	} 
 	else{
 	  gPad->Clear();
-	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->DrawText(0.005,0.3,Form("%s Empty!",hist[i].Data()));
 	  not_found ->Draw();
 	}
       }     
@@ -735,7 +744,7 @@ void QwGUIInjector::PlotPositionMonitors(){
 	} 
 	else{
 	  gPad->Clear();
-	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->DrawText(0.005,0.3,Form("%s Empty",hist[i].Data()));
 	  not_found ->Draw();
 	}
       }
@@ -753,7 +762,7 @@ void QwGUIInjector::PlotPositionMonitors(){
 	} 
 	else{
 	  gPad->Clear();
-	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->DrawText(0.005,0.3,Form("%s Empty",hist[i].Data()));
 	  not_found ->Draw();
 	}
       }
@@ -769,7 +778,7 @@ void QwGUIInjector::PlotPositionMonitors(){
 	} 
 	else{
 	  gPad->Clear();
-	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->DrawText(0.005,0.3,Form("%s Empty",hist[i].Data()));
 	  not_found ->Draw();
 	}
       }

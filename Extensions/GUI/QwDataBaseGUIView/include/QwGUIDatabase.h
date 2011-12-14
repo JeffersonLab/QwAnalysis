@@ -9,6 +9,7 @@
    \author Michael Gericke
    \author Buddhini Waidyawansa
    \author Damon Spayde
+   \author Scott MacEwan
      
 */
 //=============================================================================
@@ -29,26 +30,31 @@
 
    This is Gericke's original code for the main detector. 
    Added by Damon to display data from the data base.
-   Modified by Buddhini.
+   Modified by Buddhini and Scott.
 
  */
 //=============================================================================
 
-#define N_DETECTORS     39
-#define N_LUMIS         36
-#define N_BPMS          22
-#define N_BCMS           6
-#define N_CMB_BPMS       1
-#define N_CMB_BCMS       1
-#define N_ENERGY         1
-#define N_SUBBLOCKS      5
-#define N_DET_MEAS_TYPES 5
-#define N_MEAS_TYPES     4
-#define N_Q_MEAS_TYPES   5
-#define N_POS_MEAS_TYPES 5
-#define N_BPM_READ       5
-#define N_CMB_READ       7
-#define N_TGTS          15
+#define N_DETECTORS      43
+#define N_LUMIS          36
+#define N_BPMS           22
+#define N_BCMS           10
+#define N_CMB_BPMS        1
+#define N_CMB_BCMS        1
+#define N_ENERGY          1
+#define N_SUBBLOCKS       5
+#define N_DET_MEAS_TYPES  5
+#define N_MEAS_TYPES      4
+#define N_Q_MEAS_TYPES    6
+#define N_POS_MEAS_TYPES  5
+#define N_SENS_TYPES	  1
+#define N_BPM_READ        5
+#define N_CMB_READ        7
+#define N_TGTS           15
+#define N_GOODFOR_TYPES   8
+#define N_REGRESSION_VARS 5
+#define N_X_AXIS          5
+#define N_Plots          3
 
 
 
@@ -74,40 +80,11 @@ using std::vector;
 #include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
-#include "RSDataWindow.h"
-#ifndef  ROOTCINTMODE
-#include "QwSSQLS_summary.h"
-#endif
+#include "QwGUIDataWindow.h"
+/* #include "RSDataWindow.h" */
 #include <TVectorT.h>
 #include <TGraphErrors.h>
-
-
-class QwGUIGoodForSettings {
-public:
-  QwGUIGoodForSettings();
-  ~QwGUIGoodForSettings(){
-    fGoodForLabels.clear();
-    fGoodForIDs.clear();
-    fGoodForReject.clear();
-    fQualityLabels.clear();
-    fQualityIDs.clear();
-    fQualityReject.clear();
-  }
-
-  std::string GetSelectionString(std::string table = "");
-
-private:
-  std::vector<std::string> fGoodForLabels;
-  std::vector<std::string> fQualityLabels;
-  std::vector<Int_t>  fGoodForIDs;
-  std::vector<Int_t>  fQualityIDs;
-
-  Bool_t fGoodForRejectNULLs;
-  std::vector<Bool_t>  fGoodForReject;
-  Bool_t fQualityRejectNULLs;
-  std::vector<Bool_t>  fQualityReject;
-
-};
+#include <THStack.h>
 
 
 
@@ -116,6 +93,8 @@ private:
   
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
+  TGHorizontalFrame	  *dRunFrame;
+  TGHorizontalFrame   *dQualityFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -124,8 +103,15 @@ private:
   TGLayoutHints       *dNumLayout;
   TGLayoutHints       *dBtnLayout;
   TGLayoutHints       *dLabLayout;
+  TGLayoutHints		  *dChkLayout;
+  TGLayoutHints		  *dFrmLayout;
+  TGLayoutHints		  *dBoxLayout;
   TGNumberEntry       *dNumStartRun;
   TGNumberEntry       *dNumStopRun;
+  TGCheckButton		  *dChkQualityGood;
+  TGCheckButton		  *dChkQualitySuspect;
+  TGCheckButton		  *dChkQualityBad;
+  TGListBox			  *dBoxGoodFor;
   TGComboBox          *dCmbXAxis;
   TGComboBox          *dCmbInstrument;
   TGComboBox          *dCmbDetector;
@@ -136,15 +122,24 @@ private:
   TGComboBox          *dCmbRegressionType;
   TGComboBox          *dCmbPlotType;
   TGTextButton        *dBtnSubmit;
-  TGLabel             *dLabStartRun;
-  TGLabel             *dLabStopRun;
+  TGLabel			  *dLabInstrument;
+  TGLabel			  *dLabDetector;
+  TGLabel			  *dLabProperty;
+  TGLabel			  *dLabXAxis;
+  TGLabel			  *dLabMeasurement;
+  TGLabel			  *dLabSubblock;
+  TGLabel			  *dLabQuality;
+  TGLabel             *dLabRunRange;
   TGLabel             *dLabTarget;
   TGLabel             *dLabRegression;
   TGLabel             *dLabPlot;
+  TGLabel			  *dLabGoodFor;
 
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            GraphArray;
+  TObjArray            LegendArray;
+  
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
@@ -153,27 +148,35 @@ private:
   //!A histogram array to plot the X and Y position difference variation.
   TPaveText * errlabel;
 
+  //!Variables to assign selections from comboboxes.
+  Int_t   index_first;
+  Int_t   index_last;
+  Int_t   det_id;
+  Int_t   x_axis;
+  Int_t   subblock;
+  TString measurement_type;
+  TString device;
+  TString target;
+  TString plot;
+  TString detector;
+  TString property;
+  const char **measurements;
 
-  //!This function just plots some histograms in the main canvas, just for illustrative purposes
-  //!for now.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  // void                 PlotData();
+  //!A function to get data selections from the combo boxes.
+  void GetDataSelections();
 
-  //  void PlotPosData();
-
-
-/*   void PlotChargeData(); */
-
+  //!A function to plot the detector data in a Y vs X format
   void DetectorPlot();
+
+  //!A function to create specific queries.
+  TString MakeQuery(TString outputs, TString tables_used, TString table_links,TString special_cuts);
+
 #ifndef  ROOTCINTMODE
-  mysqlpp::StoreQueryResult QueryDetector(TString detector, TString measured_property, Int_t det_id);
+  mysqlpp::StoreQueryResult QueryDetector();
 #endif
-  void HistogramDetector(TString detector, TString measured_property, Int_t det_id);
-  void PlotDetector(TString detector, TString measured_property, Int_t det_id);
+
+  void HistogramDetector();
+  void PlotDetector();
   void DetectorVsMonitorPlot();
   TString GetYTitle(TString measurement_type, Int_t detector);
   TString GetTitle(TString measurement_type, TString device);
@@ -188,6 +191,10 @@ private:
   //!Return value: none  
   void  ClearData();
 
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow();  
+
   /**
      Arrays to store the detector names, measurement types and properties as they appear in the
      data base.
@@ -200,30 +207,41 @@ private:
   static const char   *CombinedBPMS[N_CMB_BPMS];
   static const char   *CombinedBCMS[N_CMB_BCMS];
   static const char   *EnergyCalculators[N_ENERGY];
+  static const char   *X_axis[N_X_AXIS];
 
   // measurement types
   static const char   *OtherMeasurementTypes[N_MEAS_TYPES];
   static const char   *ChargeMeasurementTypes[N_Q_MEAS_TYPES];
   static const char   *PositionMeasurementTypes[N_POS_MEAS_TYPES];
   static const char   *DetectorMeasurementTypes[N_DET_MEAS_TYPES];
+  static const char   *SensitivityTypes[N_SENS_TYPES];
 
   // properties
   static const char   *Subblocks[N_SUBBLOCKS];
   static const char   *BPMReadings[N_BPM_READ];
   static const char   *ComboBPMReadings[N_CMB_READ];
+  static const char	  *RegressionVars[N_REGRESSION_VARS];
 
   // target types
   static const char   *Targets[N_TGTS];
-  static const char   *Plots[2];
+  static const char   *Plots[3];
+
+
+  Int_t                dSelectedDataWindow;
+
+
+  // good for types
+  static const char	  *GoodForTypes[N_GOODFOR_TYPES];
+
 
   // static array for temporary measurement type storing. This makes things easier when trying to
   // retrieave data.
-  std::vector<TString> measurements;
 
- private:
+
+ /*private:
 
   QwGUIGoodForSettings fGoodForSelection;
-
+*/
  protected:
 
   //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an
@@ -237,10 +255,11 @@ private:
   virtual void         MakeLayout();
 
   void                 SummaryHist(TH1*in);
+  void                 AddNewGraph(TObject* grp, TObject* leg);
+  /*TObject*             GetGraph(Int_t ind); */
+/*   TObject*             GetLegend(Int_t ind); */
   void                 PlotGraphs();
   void                 OnSubmitPushed();
-
-
 
  public:
   
@@ -259,15 +278,17 @@ private:
   //!
   //!Return value: none 
   virtual void        OnNewDataContainer(RDataContainer *cont);
+
   virtual void        OnObjClose(char *);
+  void                OnUpdatePlot(char *obj);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
   void                PopulateDetectorComboBox();
   void                PopulateMeasurementComboBox();
-  void                PopulateXDetComboBox();
-  
+  void                PopulatePlotComboBox();
+
   ClassDef(QwGUIDatabase,0); 
 
  };

@@ -700,17 +700,6 @@ void QwSIS3320_Channel::FillHistograms()
   }
 }
 
-void  QwSIS3320_Channel::DeleteHistograms()
-{
-  for (UInt_t i = 0; i < fHistograms.size(); i++) {
-    if (fHistograms[i] != NULL)
-      fHistograms[i]->Delete();
-    fHistograms[i] = NULL;
-  }
-  fHistograms.clear();
-}
-
-
 void  QwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   // Accumulators
@@ -794,56 +783,58 @@ void QwSIS3320_Channel::PrintInfo() const
 /*
  * Copy
  */
-void QwSIS3320_Channel::Copy(QwSIS3320_Channel *source)
+void QwSIS3320_Channel::Copy(const VQwDataElement* source)
 {
-   try {
-      if (typeid(*source) == typeid(*this)) {
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwDataElement::Copy(source);
+      const QwSIS3320_Channel* input = dynamic_cast<const QwSIS3320_Channel*>(source);
 
-         // Now copy all the data
-         this->fChannel                = source->fChannel;
-         this->fHasSamplingData        = source->fHasSamplingData;
-         this->fHasAccumulatorData     = source->fHasAccumulatorData;
-         this->fPedestal               = source->fPedestal;
-         this->fCalibrationFactor      = source->fCalibrationFactor;
-         this->fCurrentEvent           = source->fCurrentEvent;
-         this->fNumberOfEvents         = source->fNumberOfEvents;
-         this->fSampleFormat           = source->fSampleFormat;
-         this->fSamplePointer          = source->fSamplePointer;
-         this->fSamples                = source->fSamples;
-         this->fSamplesRaw             = source->fSamplesRaw;
-         this->fAverageSamples         = source->fAverageSamples;
-         this->fTimeWindowAverages     = source->fTimeWindowAverages;
-         this->fTimeWindows            = source->fTimeWindows;
-         this->fSampleWindowAverages   = source->fTimeWindowAverages;
-         this->fSampleWindows          = source->fSampleWindows;
-         this->fTreeArrayIndex         = source->fTreeArrayIndex;
-         this->fTreeArrayNumEntries    = source->fTreeArrayNumEntries;
-         this->fAccumulatorDAC         = source->fAccumulatorDAC;
-         this->fAccumulatorThreshold1  = source->fAccumulatorThreshold1;
-         this->fAccumulatorThreshold2  = source->fAccumulatorThreshold2;
-         this->fAccumulatorTimingBefore5 = source->fAccumulatorTimingBefore5;
-         this->fAccumulatorTimingBefore6 = source->fAccumulatorTimingBefore6;
-         this->fAccumulatorTimingAfter5 = source->fAccumulatorTimingAfter5;
-         this->fAccumulatorTimingAfter6 = source->fAccumulatorTimingAfter6;
-         this->fAccumulators           = source->fAccumulators;
-         this->fAccumulatorsRaw        = source->fAccumulatorsRaw;
-         this->fLogicalAccumulators    = source->fLogicalAccumulators;
-         this->fSequenceNumber         = source->fSequenceNumber;
-         this->fMockAsymmetry          = source->fMockAsymmetry;
-         this->fMockGaussianMean       = source->fMockGaussianMean;
-         this->fMockGaussianSigma      = source->fMockGaussianSigma;
+      // Now copy all the data
+      this->fChannel                = input->fChannel;
+      this->fHasSamplingData        = input->fHasSamplingData;
+      this->fHasAccumulatorData     = input->fHasAccumulatorData;
+      this->fPedestal               = input->fPedestal;
+      this->fCalibrationFactor      = input->fCalibrationFactor;
+      this->fCurrentEvent           = input->fCurrentEvent;
+      this->fNumberOfEvents         = input->fNumberOfEvents;
+      this->fSampleFormat           = input->fSampleFormat;
+      this->fSamplePointer          = input->fSamplePointer;
+      this->fSamples                = input->fSamples;
+      this->fSamplesRaw             = input->fSamplesRaw;
+      this->fAverageSamples         = input->fAverageSamples;
+      this->fTimeWindowAverages     = input->fTimeWindowAverages;
+      this->fTimeWindows            = input->fTimeWindows;
+      this->fSampleWindowAverages   = input->fTimeWindowAverages;
+      this->fSampleWindows          = input->fSampleWindows;
+      this->fTreeArrayIndex         = input->fTreeArrayIndex;
+      this->fTreeArrayNumEntries    = input->fTreeArrayNumEntries;
+      this->fAccumulatorDAC         = input->fAccumulatorDAC;
+      this->fAccumulatorThreshold1  = input->fAccumulatorThreshold1;
+      this->fAccumulatorThreshold2  = input->fAccumulatorThreshold2;
+      this->fAccumulatorTimingBefore5 = input->fAccumulatorTimingBefore5;
+      this->fAccumulatorTimingBefore6 = input->fAccumulatorTimingBefore6;
+      this->fAccumulatorTimingAfter5 = input->fAccumulatorTimingAfter5;
+      this->fAccumulatorTimingAfter6 = input->fAccumulatorTimingAfter6;
+      this->fAccumulators           = input->fAccumulators;
+      this->fAccumulatorsRaw        = input->fAccumulatorsRaw;
+      this->fLogicalAccumulators    = input->fLogicalAccumulators;
+      this->fSequenceNumber         = input->fSequenceNumber;
+      this->fMockAsymmetry          = input->fMockAsymmetry;
+      this->fMockGaussianMean       = input->fMockGaussianMean;
+      this->fMockGaussianSigma      = input->fMockGaussianSigma;
 
-      } else {
-         TString message = "Standard exception from QwSIS3320_Channel::Copy = "
-            + source->GetElementName() + " "
-            + this->GetElementName() + " are not of the same type";
-         throw std::invalid_argument(message.Data());
-      }
-   } catch (std::exception& e) {
-      std::cerr << e.what() << "\n";
-   }
+    } else {
+      TString message = "Standard exception from QwSIS3320_Channel::Copy = "
+          + source->GetElementName() + " "
+          + this->GetElementName() + " are not of the same type";
+      throw std::invalid_argument(message.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr << e.what() << "\n";
+  }
 
-   return;
+  return;
 }
 
 void QwSIS3320_Channel::CreateLogicalAccumulator( LogicalType_e type )

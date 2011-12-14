@@ -54,18 +54,27 @@ class QwLumiDetectorID{
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
+class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   /////  
   friend class QwCombinedPMT;
- public:
-  QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
-   {
-    fTargetCharge.InitializeChannel("q_targ","derived");
-   };
 
-  ~QwLumi() {
-    DeleteHistograms();
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwLumi();
+
+ public:
+  /// Constructor with name
+  QwLumi(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name),bNormalization(kFALSE)
+  {
+    fTargetCharge.InitializeChannel("q_targ","derived");
   };
+  /// Copy constructor
+  QwLumi(const QwLumi& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
+  virtual ~QwLumi() { };
 
 
   /* derived from VQwSubsystem */
@@ -81,8 +90,14 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
+  //update the same error flag in the classes belong to the subsystem.
+  void UpdateEventcutErrorFlag(UInt_t errorflag);
+  //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error);
 
   void AccumulateRunningSum(VQwSubsystem* value);
+  //remove one entry from the running sums for devices
+  void DeaccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -114,20 +129,18 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  FillDB(QwDatabase *db, TString datatype);
+  void  FillDB(QwParityDB *db, TString datatype);
 
   QwIntegrationPMT* GetChannel(const TString name);
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
   const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

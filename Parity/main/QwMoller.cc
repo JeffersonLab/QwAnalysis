@@ -279,16 +279,11 @@ int main(int argc, char* argv[])
     std::cout << "Last event processed: " << eventbuffer.GetEventNumber() << std::endl;
     /// Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
-    /// Delete histograms
-    if (bHisto) {
-      detectors.DeleteHistograms();
-      if (bHelicity) helicitypattern.DeleteHistograms();
-    }
 
     // Close data file and print run summary
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
-        
+
   } // end of loop over runs
 
       if (eventbuffer.IsEndOfBurst()) {

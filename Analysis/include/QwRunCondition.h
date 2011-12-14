@@ -45,6 +45,13 @@ class QwRunCondition
  
   TString fROCFlagFileName;
   static const Int_t fCharLength;
+  
+  // Do not let compiler generate these automatically
+  QwRunCondition(const QwRunCondition& rhs); // copy constructor
+  QwRunCondition& operator = (const QwRunCondition& rhs); // assignment operator
+  QwRunCondition* operator&(); // address-of operator
+  const QwRunCondition* operator&() const; // address-of operator
+
 
   //  ClassDef(QwRunCondition,1);
 };

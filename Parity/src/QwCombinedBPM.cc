@@ -159,6 +159,22 @@ Int_t QwCombinedBPM<T>::GetEventcutErrorCounters()
   return 1;
 }
 
+template<typename T>
+UInt_t QwCombinedBPM<T>::GetEventcutErrorFlag()
+{
+  UInt_t error=0;
+  for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
+    error|=fAbsPos[axis].GetEventcutErrorFlag();
+    error|=fSlope[axis].GetEventcutErrorFlag();
+    error|=fIntercept[axis].GetEventcutErrorFlag();
+  }
+
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
+
+  return error;
+}
+
+
 
 template<typename T>
 Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
@@ -171,11 +187,14 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
   charge_error = 0;
   pos_error[kXAxis]=0;
   pos_error[kYAxis]=0;
+
   for(size_t i=0;i<fElement.size();i++){
     ///  TODO:  The returned base class should be changed so
     ///         these casts aren't needed, but "GetErrorCode"
     ///         is not meaningful for every VQwDataElement.
     ///         Maybe the return should be a VQwHardwareChannel?
+
+    //To update the event cut faliures in individual BPM devices
     charge_error      |= fElement[i]->GetEffectiveCharge()->GetErrorCode();
     pos_error[kXAxis] |= fElement[i]->GetPosition(kXAxis)->GetErrorCode();
     pos_error[kYAxis] |= fElement[i]->GetPosition(kYAxis)->GetErrorCode();
@@ -267,7 +286,7 @@ VQwHardwareChannel* QwCombinedBPM<T>::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
-
+/*
 template<typename T>
 void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
@@ -338,6 +357,52 @@ void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Doub
     fEffectiveCharge.SetSingleEventCuts(errorflag, minX,maxX, stability);
   }
 }
+
+*/
+
+template<typename T>
+void QwCombinedBPM<T>::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fAbsPos[i].UpdateEventcutErrorFlag(error);
+    fSlope[i].UpdateEventcutErrorFlag(error);
+    fIntercept[i].UpdateEventcutErrorFlag(error);
+  }
+  
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+  
+};
+template<typename T>
+void QwCombinedBPM<T>::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwBPMStripline::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwCombinedBPM<T>* value_bpm = dynamic_cast<QwCombinedBPM<T>* >(ev_error);
+      for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
+	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fSlope[i]));
+	  fSlope[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fIntercept[i]));
+	  fIntercept[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwCombinedBPM::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 
 
@@ -508,28 +573,27 @@ template<typename T>
 
    Bool_t ldebug = kFALSE;
    static Double_t zpos = 0;
-   static T tmp1;
-   static T tmp2;
+   static T tmp1("tmp1","derived");
+   static T tmp2("tmp2","derived");
    static T C[kNumAxes];
    static T E[kNumAxes];
 
    // initialize the VQWK_Channel arrays
-   tmp1.InitializeChannel("tmp1","derived");
-   tmp2.InitializeChannel("tmp2","derived");
    C[kXAxis].InitializeChannel("cx","derived");
    C[kYAxis].InitializeChannel("cy","derived");
    E[kXAxis].InitializeChannel("ex","derived");
    E[kYAxis].InitializeChannel("ey","derived");
 
+   C[axis].ClearEventData();
+   E[axis].ClearEventData();
    for(size_t i=0;i<fElement.size();i++){
-     tmp1.ClearEventData();
-     tmp2.ClearEventData();
-     tmp1.AssignValueFrom(fElement[i]->GetPosition(axis));
      zpos = fElement[i]->GetPositionInZ();
+     tmp1.ClearEventData();
+     tmp1.AssignValueFrom(fElement[i]->GetPosition(axis));
      tmp1.Scale(fWeights[i]);
-     C[axis]+= tmp1; //xw or yw
+     C[axis] += tmp1; //xw or yw
      tmp1.Scale(zpos);//xzw or yzw
-     E[axis]+= tmp1;
+     E[axis] += tmp1;
    }
 
    if(ldebug) std::cout<<"\n A ="<<A[axis]
@@ -539,24 +603,14 @@ template<typename T>
 		       <<" --E ="<<E[axis].GetValue()<<"\n";
 
    // calculate the slope  a = E*erra + C*covab
-   tmp1.ClearEventData();
-   tmp1 = E[axis];
-   tmp1.Scale(erra[axis]);
-   tmp2.ClearEventData();
-   tmp2 = C[axis];
-   tmp2.Scale(covab[axis]);
-   fSlope[axis]+= tmp1;
-   fSlope[axis]+= tmp2;
+   fSlope[axis].AssignScaledValue(E[axis], erra[axis]);
+   tmp2.AssignScaledValue(C[axis], covab[axis]);
+   fSlope[axis] += tmp2;
 
    // calculate the intercept  b = C*errb + E*covab
-   tmp1.ClearEventData();
-   tmp1 = C[axis];
-   tmp1.Scale(errb[axis]);
-   tmp2.ClearEventData();
-   tmp2 = E[axis];
-   tmp2.Scale(covab[axis]);
-   fIntercept[axis]+= tmp1;
-   fIntercept[axis]+= tmp2;
+   fIntercept[axis].AssignScaledValue(C[axis], errb[axis]);
+   tmp2.AssignScaledValue(E[axis], covab[axis]);
+   fIntercept[axis] += tmp2;
 
    if(ldebug)    std::cout<<" Least Squares Fit Parameters for "<< axis
 			  <<" are: \n slope = "<< fSlope[axis].GetValue()
@@ -570,11 +624,10 @@ template<typename T>
 
    zpos = this->GetPositionInZ();
    //UInt_t err_flag=fAbsPos[axis].GetEventcutErrorFlag();   
-   fAbsPos[axis]= fIntercept[axis]; // X =  b
+   fAbsPos[axis] = fIntercept[axis]; // X =  b
    //fAbsPos[axis].ResetErrorFlag(err_flag);
-   tmp1 = fSlope[axis];
-   tmp1.Scale(zpos); //az
-   fAbsPos[axis]+=tmp1;  //X = az+b
+   tmp1.AssignScaledValue(fSlope[axis],zpos); //az
+   fAbsPos[axis] += tmp1;  //X = az+b
 
    // to perform the minimul chi-square test
    tmp2.ClearEventData();
@@ -662,6 +715,7 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator= (const QwCombinedBPM<T> &value)
   }
   return *this;
 }
+
 
 template<typename T>
 VQwBPM& QwCombinedBPM<T>::operator+= (const VQwBPM &value)
@@ -775,15 +829,35 @@ void QwCombinedBPM<T>::AccumulateRunningSum(const VQwBPM& value)
 template<typename T>
 void QwCombinedBPM<T>::AccumulateRunningSum(const QwCombinedBPM<T>& value)
 {
-  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
-
-  // TODO This is unsafe (see QwBeamline::AccumulateRunningSum)
   for (Short_t axis = kXAxis; axis < kNumAxes; axis++){
     fSlope[axis].AccumulateRunningSum(value.fSlope[axis]);
     fIntercept[axis].AccumulateRunningSum(value.fIntercept[axis]);
     fAbsPos[axis].AccumulateRunningSum(value.fAbsPos[axis]);
   }
+  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
 }
+
+template<typename T>
+void QwCombinedBPM<T>::DeaccumulateRunningSum(VQwBPM& value)
+{
+  DeaccumulateRunningSum(*dynamic_cast<QwCombinedBPM<T>* >(&value));
+}
+
+template<typename T>
+void QwCombinedBPM<T>::DeaccumulateRunningSum(QwCombinedBPM<T>& value)
+{
+
+  for (Short_t axis = kXAxis; axis < kNumAxes; axis++){
+    fSlope[axis].DeaccumulateRunningSum(value.fSlope[axis]);
+    fIntercept[axis].DeaccumulateRunningSum(value.fIntercept[axis]);
+    fAbsPos[axis].DeaccumulateRunningSum(value.fAbsPos[axis]);
+  }
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
+
+}
+
+
+
 
 
 template<typename T>
@@ -827,25 +901,6 @@ void  QwCombinedBPM<T>::FillHistograms()
   }
   return;
 }
-
-template<typename T>
-void  QwCombinedBPM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()=="") {
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else{
-    fEffectiveCharge.DeleteHistograms();
-    for(Short_t axis=kXAxis;axis<kNumAxes;axis++) {
-      fSlope[axis].DeleteHistograms();
-      fIntercept[axis].DeleteHistograms();
-      fAbsPos[axis].DeleteHistograms();
-    }
-
-  }
-  return;
-}
-
 
 template<typename T>
 void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -948,45 +1003,33 @@ void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 template<typename T>
-void QwCombinedBPM<T>::Copy(VQwDataElement *source)
+void QwCombinedBPM<T>::Copy(const VQwDataElement *source)
 {
-  Copy(dynamic_cast<VQwBPM*>(source));
-}
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwCombinedBPM<T>* input = dynamic_cast<const QwCombinedBPM<T>*>(source);
+      this->fElementName = input->fElementName;
+      this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+      this->bFullSave = input->bFullSave;
+      for(Short_t axis = kXAxis; axis < 3; axis++){
+        this->fPositionCenter[axis] = input->fPositionCenter[axis];
+      }
+      for(Short_t axis = kXAxis; axis < kNumAxes; axis++){
+        this->fSlope[axis].Copy(&(input->fSlope[axis]));
+        this->fIntercept[axis].Copy(&(input->fIntercept[axis]));
+        this->fAbsPos[axis].Copy(&(input->fAbsPos[axis]));
+      }
 
-template<typename T>
-void QwCombinedBPM<T>::Copy(VQwBPM *source)
-{
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  QwCombinedBPM<T>* input = ((QwCombinedBPM<T>*)source);
-	  this->fElementName = input->fElementName;
-	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-	  this->bFullSave = input->bFullSave;
-	  for(Short_t axis = kXAxis; axis < 3; axis++){
-	    this->fPositionCenter[axis] = input->fPositionCenter[axis];
-	  }
-	  for(Short_t axis = kXAxis; axis < kNumAxes; axis++){
-	    this->fSlope[axis].Copy(&(input->fSlope[axis]));
-	    this->fIntercept[axis].Copy(&(input->fIntercept[axis]));
-	    this->fAbsPos[axis].Copy(&(input->fAbsPos[axis]));
-	  }
-	}
-      else
-	{
-	  TString loc="Standard exception from QwCombinedBPM::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
+    } else {
+      TString loc="Standard exception from QwCombinedBPM::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-
-  catch (std::exception& e){
+  } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-
-  return;
 }
 
 template<typename T>

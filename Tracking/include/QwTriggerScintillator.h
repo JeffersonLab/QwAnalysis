@@ -24,15 +24,26 @@
 
 ///
 /// \ingroup QwTracking
-class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<QwTriggerScintillator> {
+class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwTriggerScintillator> {
   /******************************************************************
    *  Class: QwTriggerScintillator
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwTriggerScintillator();
+
  public:
-  QwTriggerScintillator(TString region_tmp);
-  ~QwTriggerScintillator();
+  /// Constructor with name
+  QwTriggerScintillator(const TString& name);
+  /// Virtual destructor
+  virtual ~QwTriggerScintillator();
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
@@ -49,7 +60,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);

@@ -3,6 +3,7 @@
 // System headers
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 // ROOT headers
 #include "TObject.h"
@@ -11,11 +12,17 @@
 #include "TObjString.h"
 #include "TFile.h"
 #include "TROOT.h"
+#include "TMath.h"
 
 // Qweak headers
 #include "QwLog.h"
 #include "QwParameterFile.h"
-#include "QwDatabase.h"
+#include "QwTypes.h"
+
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
+
 
 
 /*************************************
@@ -37,7 +44,7 @@ std::vector<std::string> QwEPICSEvent::fDefaultAutogainList;
 /*************************************
  *  Constructors/Destructors.
  *************************************/
-QwEPICSEvent::QwEPICSEvent()
+QwEPICSEvent::QwEPICSEvent():fNominalWienAngle(30.0)
 {
   SetDataLoaded(kFALSE);
   QwEPICSEvent::InitDefaultAutogainList();
@@ -96,9 +103,17 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
-    string varname = mapstr.GetNextToken(" \t");
-    string dbtable = mapstr.GetNextToken(" \t");
-    TString datatype    = mapstr.GetNextToken(" \t").c_str();
+    std::string varname, varvalue;
+    if (mapstr.HasVariablePair("=",varname,varvalue)){
+      if (varname == "NominalWienAngle"){
+	fNominalWienAngle = atof(varvalue.c_str());
+      }
+      continue;
+    }
+
+    varname = mapstr.GetTypedNextToken<std::string>();
+    std::string dbtable = mapstr.GetTypedNextToken<std::string>();
+    TString datatype    = mapstr.GetTypedNextToken<TString>();
     datatype.ToLower();
 
     if (datatype == "") {
@@ -165,14 +180,12 @@ void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
         treeindex++;
         break;
       }
-
       case kEPICSString: {
         // Add value to vector
         values[treeindex] = static_cast<Double_t>(fEPICSDataEvent[tagindex].StringValue.Hash());
         treeindex++;
         break;
       }
-
       default: {
         TString name = fEPICSVariableList[tagindex];
         QwError << "Unrecognized type for EPICS variable " << name << QwLog::endl;
@@ -302,6 +315,10 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       }
     }
   }
+  if (fIsDataLoaded) {
+    //  Determine the WienMode and save it.
+    SetDataValue("WienMode",WienModeName(DetermineWienMode()),event);
+  }
 }
 
 
@@ -423,6 +440,9 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, const Double_t value, int event)
 
 int QwEPICSEvent::SetDataValue(Int_t tagindex, const string& value, int event)
 {
+  if (tagindex == kEPICS_Error) return kEPICS_Error;
+  if (tagindex < 0)             return kEPICS_Error;
+
   Double_t tmpvalue = kInvalidEPICSData;
   switch (fEPICSVariableType[tagindex]) {
   case kEPICSString:
@@ -632,6 +652,7 @@ void QwEPICSEvent::ReportEPICSData() const
 
 void  QwEPICSEvent::ResetCounters()
 {
+  fIsDataLoaded = kFALSE;
   /*  Verify that the variable list and variable type vectors
       are the same size, and agree with fNumberEPICSVariables.  */
   Int_t listlength = fEPICSVariableList.size();
@@ -661,39 +682,73 @@ void  QwEPICSEvent::ResetCounters()
 }
 
 
-void QwEPICSEvent::FillDB(QwDatabase *db)
+void QwEPICSEvent::FillDB(QwParityDB *db)
 {
   // Sunday, January 16 22:09:16 EST 2011, jhlee
   // don't change disbale database flag
   // just disable FillSlowControlsSettings(db) when fDisableDatabase is off
-  
+
+  bool hold_fDisableDatabase = fDisableDatabase;
+
+   try {
+    db->Connect();
+    mysqlpp::Query query= db->Query();
+    query << "SELECT slow_controls_settings_id FROM slow_controls_settings WHERE";
+    query << " runlet_id = " << mysqlpp::quote << db->GetRunletID(); 
+
+    mysqlpp::StoreQueryResult res = query.store();
+
+    if (res.num_rows() != 0) {
+      QwError << "This runlet already has slow controls entries in the database!" << QwLog::endl;
+      QwError << "The following slow_controls_settings_id values already exist in the database:  ";
+      for (size_t i=0; i<res.num_rows(); i++) {
+        QwError << res[i][0] << " ";
+      }
+      QwError << QwLog::endl;
+      QwError << "Slow controls values from this replay will NOT be stored in the database."  << QwLog::endl;
+
+      fDisableDatabase=true;
+    }
+
+    db->Disconnect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    QwError << "Unable to determine if there are other slow controls entries in the database for this run.  THERE MAY BE DUPLICATES." << QwLog::endl;
+    db->Disconnect();
+  }
+
+ 
   if (! fDisableDatabase) {
     FillSlowControlsData(db);
     FillSlowControlsStrigs(db);
     FillSlowControlsSettings(db);
   }
+  fDisableDatabase=hold_fDisableDatabase;
 }
 
 
-void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
+void QwEPICSEvent::FillSlowControlsData(QwParityDB *db)
 {
 
   QwDebug << " -------------------------------------------------------------------------- " << QwLog::endl;
-  QwDebug << "                         QwEPICSEvent::FillSlowControlsData(QwDatabase *db) " << QwLog::endl;
+  QwDebug << "                         QwEPICSEvent::FillSlowControlsData(QwParityDB *db) " << QwLog::endl;
   QwDebug << " -------------------------------------------------------------------------- " << QwLog::endl;
 
   Double_t mean, average_of_squares, variance, sigma;
+  Int_t n_records;
 
   mean     = 0.0;
   average_of_squares = 0.0;
   variance = 0.0;
   sigma    = 0.0;
+  n_records = 0;
   //  Figure out if the target table has this runlet_id in it already,
   //  if not, create a new entry with the current runlet_id.
 
   UInt_t runlet_id = db->GetRunletID();
 
-  std::vector<QwParityDB::slow_controls_data> entrylist;
+  std::vector<QwParitySSQLS::slow_controls_data> entrylist;
 
   UInt_t sc_detector_id;
 
@@ -705,7 +760,7 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 
     // Look for variables to write into this table
     if (fEPICSTableList[tagindex] == table) {
-      QwParityDB::slow_controls_data tmp_row(0);
+      QwParitySSQLS::slow_controls_data tmp_row(0);
 
       //  Now get the current sc_detector_id for the above runlet_id.
       sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex]);
@@ -731,8 +786,10 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
           } else {
             sigma    = sqrt(variance);
           }
+          n_records = fEPICSCumulativeData[tagindex].NumberRecords;
 
 	  //  Build the row and submit it to the list
+	  tmp_row.n             = n_records;
 	  tmp_row.value         = mean;
 	  tmp_row.error         = sigma;
 	  tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
@@ -775,9 +832,9 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 }
 
 
-void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
+void QwEPICSEvent::FillSlowControlsStrigs(QwParityDB *db)
 {
-  std::vector<QwParityDB::slow_controls_strings> entrylist;
+  std::vector<QwParitySSQLS::slow_controls_strings> entrylist;
   UInt_t sc_detector_id;
   UInt_t runlet_id = db->GetRunletID();
   string table = "polarized_source";
@@ -788,7 +845,7 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
     // Look for variables to write into this table
 
     if (fEPICSTableList[tagindex] == table) {
-      QwParityDB::slow_controls_strings tmp_row(0);
+      QwParitySSQLS::slow_controls_strings tmp_row(0);
 
       //  Now get the current sc_detector_id for the above runlet_id.
       sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex]);
@@ -847,10 +904,10 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
 }
 
 
-void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
+void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 {
-  QwParityDB::slow_controls_settings  tmp_row(0);
-  std::vector<QwParityDB::slow_controls_settings> entrylist;
+  QwParitySSQLS::slow_controls_settings  tmp_row(0);
+  std::vector<QwParitySSQLS::slow_controls_settings> entrylist;
 
   tmp_row.slow_helicity_plate = mysqlpp::null;
   tmp_row.wien_reversal = mysqlpp::null;
@@ -865,6 +922,36 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   Int_t tagindex;
 
   // Add as many blocks as needed in the following for all slow_controls_settings.
+
+  ////////////////////////////////////////////////////////////
+
+  // For QTOR current
+  tagindex = FindIndex("qw:qt_mps_i_dcct");
+  if (tagindex != kEPICS_Error) {
+    QwDebug << "tagindex for  = qw:qt_mps_i_dcct" << tagindex << QwLog::endl;
+    if (! fEPICSCumulativeData[tagindex].Filled) {
+      //  No data for this run.
+      tmp_row.qtor_current = mysqlpp::null;
+    } else if (fEPICSCumulativeData[tagindex].NumberRecords <= 0) {
+      // No events in this variable
+      QwWarning << "The value of "
+		<< fEPICSVariableList[tagindex]
+		<< " had no events during this run.  "
+		<< "Send NULL word to the database."
+		<< QwLog::endl;
+      tmp_row.qtor_current = mysqlpp::null;
+    } else {
+      Double_t qtorcurrent = (fEPICSCumulativeData[tagindex].Sum)/
+	((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
+      QwDebug << "Send the value of "
+	      << fEPICSVariableList[tagindex]
+	      << ", "
+	      << qtorcurrent
+	      << ", to the database."
+	      << QwLog::endl;
+      tmp_row.qtor_current = qtorcurrent;
+    }
+  }
 
   ////////////////////////////////////////////////////////////
 
@@ -946,13 +1033,53 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   }
   }
 
+ // For Wien Setting
+  tagindex = FindIndex("WienMode");
+  if (tagindex != kEPICS_Error) {
+    QwDebug << "tagindex for WienMode = " << tagindex << QwLog::endl;
 
+    if (! fEPICSCumulativeData[tagindex].Filled) {
+      //  No data for this run.
+      tmp_row.wien_reversal = mysqlpp::null;
+    } else if (fEPICSCumulativeData[tagindex].NumberRecords
+	       != fNumberEPICSEvents) {
+      // WienMode changed
+      QwWarning << "The value of "
+		<< fEPICSVariableList[tagindex]
+		<< " changed during the run."
+		<< "Send NULL word to the database."
+		<< QwLog::endl;
+      tmp_row.wien_reversal = mysqlpp::null;
+    }
+    if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
+      QwWarning << "The value of "
+		<< fEPICSVariableList[tagindex]
+		<< " is not defined."
+		<< "Send NULL word to the database."
+		<< QwLog::endl;
+      tmp_row.wien_reversal =mysqlpp::null;
+    } else {
+      // WienMode is stored as an enum of the following labels:
+      TString wien_enum[5] = {"indeterminate",
+			      "normal","reverse",
+			      "transverse_horizontal",
+			      "transverse_vertical"};
+      QwDebug << "Send the value of "
+	      << fEPICSVariableList[tagindex]
+	      << ", "
+	      << fEPICSDataEvent[tagindex].StringValue.Data()
+	      << ", to the database."
+	      << QwLog::endl;
+      tmp_row.wien_reversal = wien_enum[WienModeIndex(fEPICSDataEvent[tagindex].StringValue)].Data();
+    }
+  }
+  
 
   // For charge feedback
 
-  tagindex = FindIndex("HC:Q_ONOFF");
+  tagindex = FindIndex("qw:ChargeFeedback");
   if (tagindex != kEPICS_Error) {
-  //std::cout << "tagindex for HC:Q_ONOFF = " << tagindex << std::endl;
+  //std::cout << "tagindex for qw:ChargeFeedback = " << tagindex << std::endl;
 
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
@@ -988,7 +1115,9 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 	    << fEPICSDataEvent[tagindex].StringValue.Data()
 	    << ", to the database."
 	    << QwLog::endl;
-    tmp_row.charge_feedback = fEPICSDataEvent[tagindex].StringValue.Data();
+    TString tmpval = fEPICSDataEvent[tagindex].StringValue;
+    tmpval.ToLower();
+    tmp_row.charge_feedback = tmpval.Data();
   }
   }
 
@@ -1123,4 +1252,54 @@ void QwEPICSEvent::WriteEPICSStringValues()
 
   return;
   
+}
+
+
+Int_t QwEPICSEvent::DetermineIHWPPolarity() const{
+  Int_t ihwppolarity = 0;
+  if (GetDataString("IGL1I00DI24_24M")=="OUT"){
+    ihwppolarity = 1;
+  } else if (GetDataString("IGL1I00DI24_24M")=="IN"){
+    ihwppolarity = -1;
+  } else {
+    QwWarning << "IHWP state is not well defined: "
+	      << GetDataString("IGL1I00DI24_24M")
+	      << QwLog::endl;
+  }
+  return ihwppolarity;
+}
+
+EQwWienMode QwEPICSEvent::DetermineWienMode() const{
+  EQwWienMode wienmode = kWienIndeterminate;
+  
+  Double_t launchangle = 0.0;
+
+  Double_t vwienangle = GetDataValue("VWienAngle");
+  Double_t phiangle   = GetDataValue("Phi_FG");
+  Double_t hwienangle = GetDataValue("HWienAngle"); 
+  Double_t hoffset = 0.0;
+  if (fabs(vwienangle)<10.0 && fabs(phiangle)<10.0){
+    hoffset = 0.0;
+  } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
+	     && fabs(vwienangle+phiangle)<10. ){
+    hoffset = -90.0;
+  } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
+	     && fabs(vwienangle+phiangle)>170. ){
+    hoffset = +90.0;
+  } else if (fabs(vwienangle)>80.0 && fabs(phiangle)<10.0) {
+    wienmode = kWienVertTrans;
+  } 
+  if (wienmode == kWienIndeterminate){
+    launchangle = hoffset+hwienangle;
+    Double_t long_proj = 
+      cos((launchangle-fNominalWienAngle)*TMath::DegToRad());
+    if (long_proj > 0.5){
+      wienmode = kWienForward;
+    } else if (long_proj < -0.5){
+      wienmode = kWienBackward;
+    } else if (fabs(long_proj)<0.25){
+      wienmode = kWienHorizTrans;
+    }
+  }
+  return wienmode;
 }

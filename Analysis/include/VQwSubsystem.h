@@ -20,9 +20,10 @@
 #include "TTree.h"
 
 // Qweak headers
-// Note: the subsystem factory header is included here because every subsystem
+#include "MQwHistograms.h"
+// Note: the factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
-#include "QwSubsystemFactory.h"
+#include "QwFactory.h"
 
 // Forward declarations
 class VQwHardwareChannel;
@@ -55,22 +56,25 @@ class QwParameterFile;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem: virtual public VQwCloneable {
+class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
 
  public:
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
-      fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
+  : MQwHistograms(),
+    fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
+    fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
   }
   /// Copy constructor by object
-  VQwSubsystem(const VQwSubsystem& orig) {
+  VQwSubsystem(const VQwSubsystem& orig)
+  : MQwHistograms(orig) {
     *this = orig;
   }
   /// Copy constructor by pointer
-  VQwSubsystem(const VQwSubsystem* orig) {
+  VQwSubsystem(const VQwSubsystem* orig)
+  : MQwHistograms(*orig) {
     *this = *orig;
   }
 
@@ -207,8 +211,6 @@ class VQwSubsystem: virtual public VQwCloneable {
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   /// \brief Fill the histograms for this subsystem
   virtual void  FillHistograms() = 0;
-  /// \brief Delete the histograms for this subsystem
-  virtual void  DeleteHistograms() = 0;
   // @}
 
 
@@ -264,10 +266,12 @@ class VQwSubsystem: virtual public VQwCloneable {
   /// \brief Print some information about the subsystem
   virtual void  PrintInfo() const;
 
+  /// Inherit Copy methods from VQwSubsystemCloneable
+  using VQwSubsystemCloneable::Copy;
   /// \brief Copy method
   /// Note: Must be called at the beginning of all subsystems routine
-  /// call to Copy(VQwSubsystem *source) by using VQwSubsystem::Copy(source)
-  virtual void Copy(VQwSubsystem *source);
+  /// call to Copy(const VQwSubsystem *source) by using VQwSubsystem::Copy(source)
+  virtual void Copy(const VQwSubsystem *source);
   /// \brief Assignment
   /// Note: Must be called at the beginning of all subsystems routine
   /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)

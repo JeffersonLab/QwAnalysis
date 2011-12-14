@@ -75,9 +75,6 @@ using std::vector;
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
 #include "RSDataWindow.h"
-#ifndef  ROOTCINTMODE
-#include "QwSSQLS_summary.h"
-#endif
 #include <TVectorT.h>
 #include <TGraphErrors.h>
 

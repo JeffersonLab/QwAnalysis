@@ -18,7 +18,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := md_correlation_plots TransverseFit slug_average_fits plot_regressed_lumi slug_summary slug_average_fits_regressed unregressed_slug_plots slug_average_fits_regressed_run_range compare_regressed_unregressed fits_unregressed_run_range slug_average_fits_unregressed draw_correlations_runlets pass3_regressed
+EXE := md_correlation_plots TransverseFit slug_average_fits plot_regressed_lumi slug_summary slug_average_fits_regressed unregressed_slug_plots slug_average_fits_regressed_run_range compare_regressed_unregressed fits_unregressed_run_range slug_average_fits_unregressed draw_correlations_runlets pass3_regressed sim_15_effect
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -48,7 +48,7 @@ slug_average_fits : slug_average_fits.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 slug_average_fits_regressed :slug_avrage_fits_regressed.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<	
 
 slug_average_fits_regressed_run_range :slug_average_fits_regressed_run_range.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
@@ -72,6 +72,9 @@ slug_average_fits_unregressed :slug_average_fits_unregressed.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 slug_average_fits_regressed :slug_avrage_fits_regressed.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+sim_15_effect :sim_15_effect.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 draw_correlations_runlets : draw_correlations_runlets.o

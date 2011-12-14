@@ -8,7 +8,9 @@ QwGUIDataWindow::QwGUIDataWindow(const TGWindow *p, const TGWindow *main,
 			 ENDataType dtype, UInt_t w, UInt_t h)
   : RSDataWindow(p, main, objName, mainname, datatitle, type, w, h)
 { 
+  dMain = main;
   dOptionsDlg = NULL;
+  dHCLogEntryDlg = NULL;
 
   memset(dMiscbuffer,'\0',sizeof(dMiscbuffer));
   memset(dMiscbuffer2,'\0',sizeof(dMiscbuffer2));
@@ -22,8 +24,10 @@ QwGUIDataWindow::QwGUIDataWindow(const TGWindow *p, const TGWindow *main,
   dOptions.mpIntegrate    = kFalse;
   dOptions.mpPedSubtract  = kFalse;
   dOptions.mpBgrdSubtract = kFalse;
+  dRunNumber = 0;
 
   AddPopupEntry("Set &Attributes...", M_PLOT_ATTR);
+  AddPopupEntry("Submit To &HClog...", M_HCLOG_SUBM);
 }
 
 QwGUIDataWindow::~QwGUIDataWindow()
@@ -101,6 +105,47 @@ void QwGUIDataWindow::UpdatePlot(char *obj)
   Emit("UpdatePlot(char *)",(long)obj);
 }
 
+void QwGUIDataWindow::SubmitToHCLog()
+{
+  TString hcpost;
+  TString contentfile = Form("%s/Extensions/GUI/hcpostcomments.txt",gSystem->Getenv("QWANALYSIS"));
+  TString attachment = Form("%s/Extensions/GUI/TempHClogAttachment.png",gSystem->Getenv("QWANALYSIS"));
+  RDataContainer *tempfile = new RDataContainer(fClient->GetRoot(),this,"tempfile",
+						"QwGUIDataWindow","",FM_WRITE,FT_TEXT);
+
+  dHCLogEntryDlg = new QwGUIHCLogEntryDialog(fClient->GetRoot(),0,
+					     "dHCLogEntryDlg","QwGUIDataWindow",
+					     &dHCLogEntries,400, 200);
+  if(dHCLogEntries.setFlag){
+
+    hcpost = "hclog_post ";
+    hcpost += WrapParameter("author", dHCLogEntries.name);
+    hcpost += WrapParameter("emailto",dHCLogEntries.emaillist);
+    hcpost += "--tag=\"This is logged using hclog_post by QwGUI\" ";
+    hcpost += "  --cleanup ";
+    
+    hcpost += WrapParameter("subject",MakeSubject(dHCLogEntries.subject));
+    
+    tempfile->OpenFile(contentfile);
+    tempfile->WriteData(dHCLogEntries.comments.Data(),strlen(dHCLogEntries.comments.Data()));
+    tempfile->Close();
+    tempfile = NULL;
+
+    hcpost += WrapParameter("textfile", contentfile);
+    SaveCanvas(attachment.Data());
+    hcpost += WrapAttachment(attachment.Data());
+
+    // std::cout << hcpost << std::endl;
+    gSystem->Exec(hcpost.Data());
+
+    // std::cout << dHCLogEntries.name << std::endl;
+    // std::cout << dHCLogEntries.subject << std::endl;
+    // std::cout << dHCLogEntries.comments << std::endl;
+    // std::cout << dHCLogEntries.emaillist << std::endl;
+  }
+  dHCLogEntryDlg = NULL;
+}
+
 Bool_t QwGUIDataWindow::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   RSDataWindow::ProcessMessage(msg,parm1,parm2);
@@ -114,10 +159,14 @@ Bool_t QwGUIDataWindow::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       switch (parm1) {
       
       case M_PLOT_ATTR:
-	dOptionsDlg = new QwGUIPlotOptionsDialog(fClient->GetRoot(), this,
+	dOptionsDlg = new QwGUIPlotOptionsDialog(fClient->GetRoot(), 0,
 						 "dOptionsDlg","QwGUIDataWindow",
 						 &dOptions,400, 200);
 	if(dOptions.limitsFlag) UpdatePlot(GetObjectName());
+	break;
+
+      case M_HCLOG_SUBM:
+	SubmitToHCLog();
 	break;
 	
       default:

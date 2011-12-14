@@ -41,7 +41,7 @@ class QwSIS3320_Accumulator: public VQwDataElement {
       fMinValue = 0; fMaxValue = 0;
       fMinTime = 0; fMaxTime = 0;
     };
-    ~QwSIS3320_Accumulator() { };
+    virtual ~QwSIS3320_Accumulator() { };
 
     Int_t GetMinValue() const { return fMinValue; };
     Int_t GetMaxValue() const { return fMaxValue; };
@@ -78,7 +78,6 @@ class QwSIS3320_Accumulator: public VQwDataElement {
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;

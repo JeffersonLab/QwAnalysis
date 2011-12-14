@@ -79,11 +79,14 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("online", po::value<bool>()->default_bool_value(false),
      "use online data stream");
   options.AddDefaultOptions()
+    ("online.RunNumber", po::value<int>()->default_bool_value(0),
+     "Effective run number to be used by online system to find the parameter files");
+  options.AddDefaultOptions()
     ("run,r", po::value<string>()->default_value("0:0"),
      "run range in format #[:#]");
   options.AddDefaultOptions()
     ("runlist", po::value<string>()->default_value(""),
-     "run list (one entry per line)");
+     "run list file example \n[5253]\n 234\n 246\n 256\n 345:456\n 567:789\n [5259]\n [5260]\n 0:10000\n [5261:5270]\n 9000:10000\n- for run 5253 it will analyze three individual events, and two event ranges \n- for run 5259 it will analyze the entire run (all segments) \n- for run 5260 it will analyze the first 10000 events \n- for runs 5261 through 5270 it will analyze the events 9000 through 10000)");
   options.AddDefaultOptions()
     ("event,e", po::value<string>()->default_value("0:"),
      "event range in format #[:#]");
@@ -104,6 +107,12 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
      "extension of the input CODA filename");
   //  Options specific to the ET clients
   options.AddOptions("ET system options")
+    ("ET.hostname", po::value<string>(),
+     "Name of the ET session's host machine --- Only used in online mode\nDefaults to the environment variable $HOSTNAME"); 
+  options.AddOptions("ET system options")
+    ("ET.session", po::value<string>(),
+     "ET session name --- Only used in online mode\nDefaults to the environment variable $SESSION"); 
+  options.AddOptions("ET system options")
     ("ET.station", po::value<string>(),
      "ET station name --- Only used in online mode"); 
 }
@@ -117,13 +126,24 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
 	    << QwLog::endl;
     exit(EXIT_FAILURE);
 #else
+    if (options.HasValue("online.RunNumber")) {
+      fCurrentRun = options.GetValue<int>("online.RunNumber");
+    }
     if (options.HasValue("ET.station")) {
       fETStationName = options.GetValue<string>("ET.station");
     } else {
       fETStationName = "";
     }
-    fETHostname = getenv("HOSTNAME");
-    fETSession  = getenv("SESSION");
+    if (options.HasValue("ET.hostname")) {
+      fETHostname = options.GetValue<string>("ET.hostname");
+    } else {
+      fETHostname = getenv("HOSTNAME");
+    }
+    if (options.HasValue("ET.session")) {
+      fETSession = options.GetValue<string>("ET.session");
+    } else {
+      fETSession = getenv("SESSION");
+    }
     if (fETHostname.Length() == 0 || fETSession.Length() == 0) {
       TString tmp = "";
       if (fETHostname == NULL)

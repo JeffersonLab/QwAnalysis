@@ -144,6 +144,7 @@ int main(int argc, char* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
+    epicsevent.ProcessOptions(gQwOptions);
     epicsevent.LoadChannelMap("compton_epics_table.map");
 
 
@@ -194,10 +195,12 @@ int main(int argc, char* argv[])
       //  Secondly, process EPICS events
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
-        epicsevent.CalculateRunningValues();
+        if (epicsevent.HasDataLoaded()) {
+          epicsevent.CalculateRunningValues();
 
-        rootfile->FillTreeBranches(epicsevent);
-        rootfile->FillTree("Slow_Tree");
+          rootfile->FillTreeBranches(epicsevent);
+          rootfile->FillTree("Slow_Tree");
+        }
       }
 
       // Now, if this is not a physics event, go back and get a new event.
@@ -302,10 +305,6 @@ int main(int argc, char* argv[])
      *  segfault; but in additional to that we should delete them     *
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
-
-    //  Delete histograms
-    rootfile->DeleteHistograms(detectors);
-    rootfile->DeleteHistograms(helicitypattern);
 
     // Close ROOT file
     rootfile->Close();

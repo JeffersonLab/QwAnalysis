@@ -40,7 +40,7 @@ public:
   QwSIS3320_LogicalAccumulator(TString name = "") {
     SetElementName(name);
   };
-  ~QwSIS3320_LogicalAccumulator() { };
+  virtual ~QwSIS3320_LogicalAccumulator() { };
 
   Double_t GetNumberOfSamples() const { return fNumberOfSamples; };
   Double_t GetAccumulatorSum() const { return fAccumulatorSum; };
@@ -74,7 +74,6 @@ public:
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values) const;

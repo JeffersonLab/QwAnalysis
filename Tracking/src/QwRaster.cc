@@ -21,11 +21,10 @@ RegisterSubsystemFactory(QwRaster);
 const UInt_t QwRaster::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwRaster::kMaxNumberOfChannelsPerModule = 32;
 
-QwRaster::QwRaster(TString region_tmp)
-        :VQwSubsystem(region_tmp),
-        VQwSubsystemTracking(region_tmp)
+QwRaster::QwRaster(const TString& name)
+: VQwSubsystem(name),
+  VQwSubsystemTracking(name)
 {
-
     ClearAllBankRegistrations();
 }
 
@@ -36,7 +35,6 @@ QwRaster::~QwRaster()
   for (size_t i = 0; i < fSCAs.size(); i++)
     delete fSCAs.at(i);
   fSCAs.clear();
-  //DeleteHistograms();
 }
 
 
@@ -79,11 +77,11 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
           }
         } else {
             //  Break this line into tokens to process it.
-            modtype   = mapstr.GetNextToken(", ").c_str();
-            modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-            channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-            dettype   = mapstr.GetNextToken(", ").c_str();
-            name      = mapstr.GetNextToken(", ").c_str();
+            modtype   = mapstr.GetTypedNextToken<TString>();
+            modnum    = mapstr.GetTypedNextToken<Int_t>();
+            channum   = mapstr.GetTypedNextToken<Int_t>();
+            dettype   = mapstr.GetTypedNextToken<TString>();
+            name      = mapstr.GetTypedNextToken<TString>();
 
             //  Push a new record into the element array
             if (modtype=="SIS3801") {
@@ -182,11 +180,11 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
 
         else
         {
-            varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+            varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
             varname.ToLower();
             varname.Remove(TString::kBoth,' ');
-            varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-            varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+            varped= mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+            varcal= mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
             if (ldebug) std::cout<<"inputs for channel "<<varname
                 <<": ped="<<varped<<", cal="<<varcal<<"\n";
         }
@@ -438,8 +436,8 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
       }
     }
 
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
   
     fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",125,0,0,125,0,0);
     
@@ -449,10 +447,10 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
     gStyle     -> SetPalette(1);
     fRateMap->SetOption("colz");
 
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_y")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_x")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_y")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_y")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_x")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_y")));
 
 }
 
@@ -489,31 +487,31 @@ void  QwRaster::FillHistograms()
     raster_x_mm = - fudge_factor*fPositionX_ADC;
     raster_y_mm =   fudge_factor*fPositionY_ADC;
 
-    for (size_t j=0; j<fHistograms1D.size();j++)
+    for (size_t j=0; j<fHistograms.size();j++)
     {
-      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("raster_position_x"))
         {
-	  fHistograms1D.at(j)->Fill(raster_x_mm);
+	  fHistograms.at(j)->Fill(raster_x_mm);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("raster_position_y"))
         {
-	  fHistograms1D.at(j)->Fill(raster_y_mm);
+	  fHistograms.at(j)->Fill(raster_y_mm);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h07a_pos_x"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_x);
+	  fHistograms.at(j)->Fill(fbpm_3h07a_pos_x);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h07a_pos_y"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_y);
+	  fHistograms.at(j)->Fill(fbpm_3h07a_pos_y);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h09b_pos_x"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_x);
+	  fHistograms.at(j)->Fill(fbpm_3h09b_pos_x);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h09b_pos_y"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_y);
+	  fHistograms.at(j)->Fill(fbpm_3h09b_pos_y);
         }
     }
     
@@ -614,46 +612,6 @@ void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
     return;
 }
 
-
-void  QwRaster::DeleteHistograms()
-{
-
-    for (size_t i=0; i<fPMTs.size(); i++)
-    {
-       for (size_t j=0; j<fPMTs.at(i).size(); j++)
-       {
-         if (fPMTs.at(i).at(j).GetElementName()=="") {}
-         else  fPMTs.at(i).at(j).DeleteHistograms();
-       }
-    }
-
-    for (size_t i=0; i<fSCAs.size(); i++){
-      if (fSCAs.at(i) != NULL){
-        fSCAs.at(i)->DeleteHistograms();
-      }
-    }
-
-    // Delete all histograms in the list
-    for (size_t i = 0; i < fHistograms1D.size(); i++) {
-        if (fHistograms1D.at(i) != NULL) {
-            delete fHistograms1D.at(i);
-            fHistograms1D.at(i) = NULL;
-        }
-    }
-    // Then clear the list
-    fHistograms1D.clear();
-
-    // Delete all histograms in the list
-    for (size_t i = 0; i < fHistograms2D.size(); i++) {
-        if (fHistograms2D.at(i) != NULL) {
-            delete fHistograms2D.at(i);
-            fHistograms2D.at(i) = NULL;
-        }
-    }
-    // Then clear the list
-    fHistograms2D.clear();
-
-}
 
 void  QwRaster::ReportConfiguration()
 {

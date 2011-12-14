@@ -100,20 +100,20 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
   fChi = that.fChi;
   fAverageResidual=that.fAverageResidual;
 
-  for (size_t i = 0; i < 4; i++)
-    for (size_t j = 0; j < 4; j++)
+  for (size_t i = 0; i < 4; ++i)
+    for (size_t j = 0; j < 4; ++j)
       fCov[i][j] = that.fCov[i][j];
 
   // this is a pointer
-  for (size_t i = 0; i < kNumDirections; i++){
+  for (size_t i = 0; i < kNumDirections; ++i){
     TSlope[i]=that.TSlope[i];
     TOffset[i]=that.TOffset[i];
-    if(that.fTreeLine[i])
-      fTreeLine[i] = that.fTreeLine[i];
-      // fTreeLine[i] = new QwTrackingTreeLine(that.fTreeLine[i]);
+    TResidual[i]=that.TResidual[i];
   }
-    // fTreeLine[i] = that.fTreeLine[i];
     
+  for (size_t i=0;i< 12;++i)
+    fSignedResidual[i]=that.fSignedResidual[i];
+  
   fIsUsed = that.fIsUsed;
   fIsVoid = that.fIsVoid;
   fIsGood = that.fIsGood;
@@ -122,18 +122,19 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
   fNumHits = that.fNumHits;
 
   triggerhit = that.triggerhit;
-  for (size_t i = 0; i < 3; i++)
+  for (size_t i = 0; i < 3; ++i)
     trig[i] = that.trig[i];
 
   cerenkovhit = that.cerenkovhit;
-  for (size_t i = 0; i < 3; i++)
+  for (size_t i = 0; i < 3; ++i)
     cerenkov[i] = that.cerenkov[i];
 
-  for (size_t i = 0; i < 3; i++) {
+  for (size_t i = 0; i < 3; ++i) {
     pR2hit[i] = that.pR2hit[i];
     uvR2hit[i] = that.uvR2hit[i];
     pR3hit[i] = that.pR3hit[i];
-    uvR3hit[i] = that.uvR3hit[i];
+  
+  uvR3hit[i] = that.uvR3hit[i];
   }
 
   // Copy tree lines
@@ -156,11 +157,15 @@ void QwPartialTrack::Initialize()
 
   // Initialize pointers
   next = 0;
-  for (int i = 0; i < kNumDirections; i++){
+  for (int i = 0; i < kNumDirections; ++i){
     TSlope[i]=0.0;
     TOffset[i]=0.0;
+    TResidual[i]=0.0;
     fTreeLine[i] = 0;
   }
+
+  for(int i=0; i< 12;++i)
+    fSignedResidual[i]=-10;
 
   //Only 2 Plane 0 treelines
   fAlone=0;
@@ -235,7 +240,7 @@ QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
 void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
 {
   fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
-  fNQwTreeLines++;
+  ++fNQwTreeLines;
 }
 
 // Add a linked list of QwTreeLine's

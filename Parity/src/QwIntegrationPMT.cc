@@ -35,6 +35,7 @@ void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
   fTriumf_ADC.InitializeChannel(name,datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -45,6 +46,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString name, TStri
   fTriumf_ADC.InitializeChannel(subsystem,"QwIntegrationPMT", name, datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -55,6 +57,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString module, TSt
   fTriumf_ADC.InitializeChannel(subsystem,module, name, datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -205,6 +208,24 @@ Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events fa
   return 1;
 }
 
+/********************************************************/
+void QwIntegrationPMT::UpdateEventcutErrorFlag(QwIntegrationPMT*ev_error){
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwIntegrationPMT::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+	fTriumf_ADC.UpdateEventcutErrorFlag(ev_error->GetErrorCode());//the routine GetErrorCode() return the error flag unconditionally
+      }
+    } else {
+      TString loc="Standard exception from QwIntegrationPMT::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 /********************************************************/
 
@@ -288,9 +309,11 @@ void QwIntegrationPMT::Scale(Double_t factor)
 
 void QwIntegrationPMT::Normalize(VQwDataElement* denom)
 {
-  QwVQWK_Channel vqwk_denom;
-  vqwk_denom.Copy(denom);
-  fTriumf_ADC.DivideBy(vqwk_denom);
+	if (fIsNormalizable) {
+  	QwVQWK_Channel vqwk_denom;
+  	vqwk_denom.Copy(denom);
+  	fTriumf_ADC.DivideBy(vqwk_denom);
+  }
   return;
 }
 
@@ -305,6 +328,10 @@ void QwIntegrationPMT::PrintInfo() const
   //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<IntegrationPMT_Running_AVG<<std::endl;
   std::cout<<"QwVQWK_Channel Info " <<std::endl;
   fTriumf_ADC.PrintInfo();
+  std::cout<< "Blindability is "    << (fIsBlindable?"TRUE":"FALSE") 
+	   <<std::endl;
+  std::cout<< "Normalizability is " << (fIsNormalizable?"TRUE":"FALSE")
+	   <<std::endl;
   return;
 }
 
@@ -386,18 +413,8 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-void  QwIntegrationPMT::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fTriumf_ADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
-void  QwIntegrationPMT::Copy(VQwDataElement *source)
+void  QwIntegrationPMT::Copy(const VQwDataElement *source)
 {
   try
     {
@@ -408,6 +425,7 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;
 	  this->fIsBlindable=input->fIsBlindable;
+	  this->fIsNormalizable=input->fIsNormalizable;
 	  this->fTriumf_ADC.Copy(&(input->fTriumf_ADC));
 	}
       else
@@ -436,6 +454,12 @@ void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value)
 {
   fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 }
+
+void QwIntegrationPMT::DeaccumulateRunningSum(QwIntegrationPMT& value)
+{
+  fTriumf_ADC.DeaccumulateRunningSum(value.fTriumf_ADC);
+}
+
 
 void QwIntegrationPMT::Blind(const QwBlinder *blinder)
 {

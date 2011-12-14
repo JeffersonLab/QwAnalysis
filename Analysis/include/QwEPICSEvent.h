@@ -20,7 +20,7 @@ using std::string;
 #include "QwOptions.h"
 
 // Forward declarations
-class QwDatabase;
+class QwParityDB;
 
 
 class QwEPICSEvent
@@ -67,6 +67,9 @@ class QwEPICSEvent
 
   Bool_t HasDataLoaded() const { return fIsDataLoaded; };
 
+  Int_t DetermineIHWPPolarity() const;
+  EQwWienMode DetermineWienMode() const;
+
   void  CalculateRunningValues();
 
   void  PrintAverages() const;
@@ -76,10 +79,10 @@ class QwEPICSEvent
 
   void  ResetCounters();
 
-  void FillDB(QwDatabase *db);
-  void FillSlowControlsData(QwDatabase *db);
-  void FillSlowControlsStrigs(QwDatabase *db);
-  void FillSlowControlsSettings(QwDatabase *db);
+  void FillDB(QwParityDB *db);
+  void FillSlowControlsData(QwParityDB *db);
+  void FillSlowControlsStrigs(QwParityDB *db);
+  void FillSlowControlsSettings(QwParityDB *db);
 
 
  private:
@@ -167,6 +170,8 @@ class QwEPICSEvent
 
   TList *GetEPICSStringValues();
 
+  Double_t fNominalWienAngle;
+  
 }; // class QwEPICSEvent
 
 #endif // __QWEPICSEVENT__

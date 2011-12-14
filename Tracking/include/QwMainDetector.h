@@ -29,15 +29,26 @@
 
 ///
 /// \ingroup QwTracking
-class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDetector> {
+class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwMainDetector> {
   /******************************************************************
    *  Class: QwMainDetector
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwMainDetector();
+
  public:
-  QwMainDetector(TString region_tmp);
-  ~QwMainDetector();
+  /// Constructor with name
+  QwMainDetector(const TString& name);
+  /// Virtual destructor
+  virtual ~QwMainDetector();
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
@@ -54,7 +65,6 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);

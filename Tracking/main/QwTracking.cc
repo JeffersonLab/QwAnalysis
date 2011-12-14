@@ -15,7 +15,6 @@
 #include "QwRootFile.h"
 #include "QwOptionsTracking.h"
 #include "QwEventBuffer.h"
-#include "QwDatabase.h"
 #include "QwHistogramHelper.h"
 #include "QwEPICSEvent.h"
 #include "QwTrackingWorker.h"
@@ -63,7 +62,12 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.AddConfigFile("qweak_mysql.conf");
+  ///  TODO:  I have disabled the AddConfigFile("qweak_mysql.conf")
+  ///         line below, because the standard version contains
+  ///         options which are not defined in the basic QwDatabase
+  ///         DefineOptions function.  We should figure out something
+  ///         better...
+  ///  gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsTracking(gQwOptions);
   /// Load command line options for the histogram/tree helper class
@@ -75,9 +79,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
-
-  ///  Set up the database connection
-  QwDatabase database(gQwOptions);
 
 
 
@@ -116,9 +117,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     ///  Create the tracking worker
     QwTrackingWorker *trackingworker = new QwTrackingWorker(geometry);
 
-
-    //  Initialize the database connection.
-    database.SetupOneRun(eventbuffer);
 
 
     // Open the ROOT file
@@ -248,10 +246,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Close CODA file
     eventbuffer.CloseStream();
-
-    // Delete histograms in the subsystems
-    tracking_detectors.DeleteHistograms();
-    parity_detectors.DeleteHistograms();
 
     // Close ROOT file
     rootfile->Close();

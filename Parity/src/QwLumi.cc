@@ -13,7 +13,9 @@
 
 // Qweak headers
 #include "QwSubsystemArray.h"
-#include "QwDatabase.h"
+//#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwLumi);
@@ -44,7 +46,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
   Bool_t ldebug=kFALSE;
 
   TString varname, varvalue;
-  TString modtype, dettype, namech, nameofcombinedchan, keyword;
+  TString modtype, dettype, namech, nameofcombinedchan, keyword, keyword2;
   Int_t modnum = 0;
   Int_t channum = 0;
   Int_t combinedchans = 0;  
@@ -88,43 +90,48 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
       else
 	{
 	  Bool_t lineok=kTRUE;
+	  keyword = "";
+	  keyword2 = "";
 	  //  Break this line into tokens to process it.
-	  modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+	  modtype   = mapstr.GetTypedNextToken<TString>();	// module type
 	  if (modtype == "VQWK" || modtype == "SCALER")
 	    {
-	      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-	      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	      modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+	      channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	      dettype.ToLower();
-	      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	      namech.ToLower();
-	      keyword = mapstr.GetNextToken(", ").c_str();
+	      keyword = mapstr.GetTypedNextToken<TString>();
+	      keyword2 = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
+	      keyword2.ToLower();
 	    }
 	  else if (modtype == "VPMT")
 	    {
-	      channum       = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
-	      combinedchans = (atol(mapstr.GetNextToken(", \t").c_str()));	//number of combined channels
-	      dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
+	      channum       = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	      combinedchans = mapstr.GetTypedNextToken<Int_t>();	//number of combined channels
+	      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	      dettype.ToLower();
-	      namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
+	      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	      namech.ToLower();
 	      //TString nameofchannel;
 	      combinedchannelnames.clear();
 	      for (int i=0; i<combinedchans; i++)
 		{
-		  nameofcombinedchan = mapstr.GetNextToken(", \t").c_str();
+		  nameofcombinedchan = mapstr.GetTypedNextToken<TString>();
 		  nameofcombinedchan.ToLower();
 		  combinedchannelnames.push_back(nameofcombinedchan);
 		}
 	      weight.clear();
 	      for (int i=0; i<combinedchans; i++)
 		{
-		  weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
+		  weight.push_back( mapstr.GetTypedNextToken<Double_t>());
 		}
-	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword   = mapstr.GetTypedNextToken<TString>();
+	      keyword2   = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
-      
+      	      keyword2.ToLower();
       
       
       
@@ -195,6 +202,18 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      if(localLumiDetectorID.fTypeID==kQwIntegrationPMT)
 		{
 		  QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
+
+		  //  Force all Lumi PMTs to be not_blindable.
+		  //  This isn't really needed, since the subsystem
+		  //  doesn't call QwIntegrationPMT::Blind, but let's
+		  //  do it anyway.
+		  localIntegrationPMT.SetBlindability(kFALSE);
+		  if (keyword=="not_normalizable"
+		      || keyword2=="not_normalizable")
+		    localIntegrationPMT.SetNormalizability(kFALSE);
+		  else
+		    localIntegrationPMT.SetNormalizability(kTRUE);
+
 		  fIntegrationPMT.push_back(localIntegrationPMT);
 		  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localLumiDetectorID.fIndex=fIntegrationPMT.size()-1;
@@ -202,6 +221,17 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      else if (localLumiDetectorID.fTypeID==kQwCombinedPMT)
 		{
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
+		  //  Force all Lumi PMTs to be not_blindable.
+		  //  This isn't really needed, since the subsystem
+		  //  doesn't call QwCombinedPMT::Blind, but let's
+		  //  do it anyway.
+		  localcombinedPMT.SetBlindability(kFALSE);
+		  if (keyword=="not_normalizable" 
+		      || keyword2=="not_normalizable")
+		    localcombinedPMT.SetNormalizability(kFALSE);
+		  else
+		    localcombinedPMT.SetNormalizability(kTRUE);
+
 		  fCombinedPMT.push_back(localcombinedPMT);
 		  fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localLumiDetectorID.fIndex=fCombinedPMT.size()-1;
@@ -217,6 +247,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      if(localLumiDetectorID.fTypeID==kQwScalerPMT)
 		{
 		  QwSIS3801D24_Channel localcounter(localLumiDetectorID.fdetectorname);
+		  ///  TODO:  Instead of just forcing the external clock to not be used, we should
+		  ///         figure out how to use the clock from teh beamline subsystem.
+		  localcounter.SetNeedsExternalClock(kFALSE);
 		  fScalerPMT.push_back(localcounter);
 		  localLumiDetectorID.fIndex=fScalerPMT.size()-1;
 		}
@@ -345,9 +378,9 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       }
     }
     else{
-      device_type= mapstr.GetNextToken(", ").c_str();
+      device_type= mapstr.GetTypedNextToken<TString>();
       device_type.ToLower();
-      device_name= mapstr.GetNextToken(", ").c_str();
+      device_name= mapstr.GetTypedNextToken<TString>();
       device_name.ToLower();
 
       det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
@@ -362,10 +395,10 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       LLY=0;
 
       if (device_type == GetQwPMTInstrumentTypeName(kQwIntegrationPMT)){
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
-	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+	ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+	stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	varvalue.ToLower();
 	QwMessage<<"QwLumi Error Code passing to QwIntegrationPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
@@ -376,10 +409,10 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
 	//std::cout<<"*****************************"<<std::endl;
 
       } else if (device_type == GetQwPMTInstrumentTypeName(kQwCombinedPMT)){
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
-	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+	ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+	stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	varvalue.ToLower();
 	QwMessage<<"QwLumi Error Code passing to QwCombinedPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
@@ -429,11 +462,11 @@ Int_t QwLumi::LoadInputParameters(TString pedestalfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+	  varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
 	  varname.ToLower();
 	  varname.Remove(TString::kBoth,' ');
-	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+	  varped= mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+	  varcal= mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
 	  if(ldebug) std::cout<<"inputs for channel "<<varname
 			      <<": ped="<<varped<<": cal="<<varcal<<"\n";
 	  Bool_t notfound=kTRUE;
@@ -639,6 +672,29 @@ UInt_t QwLumi::GetEventcutErrorFlag(){//return the error flag
   }
   return ErrorFlag;
 }
+
+void QwLumi::UpdateEventcutErrorFlag(UInt_t error) //return the error flag
+{
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
+    fIntegrationPMT[i].UpdateEventcutErrorFlag(error);
+  }
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    fCombinedPMT[i].UpdateEventcutErrorFlag(error);
+  }
+}
+
+void QwLumi::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  if (Compare(ev_error)){
+    QwLumi * input = dynamic_cast<QwLumi *> (ev_error);
+
+    for (size_t i=0;i<input->fIntegrationPMT.size();i++)
+      (this->fIntegrationPMT[i]).UpdateEventcutErrorFlag(&(input->fIntegrationPMT[i]));
+    
+    for (size_t i=0;i<input->fCombinedPMT.size();i++)
+      (this->fCombinedPMT[i]).UpdateEventcutErrorFlag(&(input->fCombinedPMT[i]));
+  }  
+};
+
 
 //*****************************************************************
 void  QwLumi::ProcessEvent()
@@ -963,17 +1019,6 @@ void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
 
 
 //*****************************************************************
-void  QwLumi::DeleteHistograms()
-{
-  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fCombinedPMT.size(); i++)
-    fCombinedPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fScalerPMT.size(); i++)
-    fScalerPMT[i].DeleteHistograms();
-}
-
-//*****************************************************************
 void  QwLumi::FillHistograms()
 {
   if (! HasDataLoaded()) return;
@@ -1107,7 +1152,7 @@ void  QwLumiDetectorID::Print() const
 }
 
 //*****************************************************************
-void  QwLumi::Copy(VQwSubsystem *source)
+void  QwLumi::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1115,7 +1160,7 @@ void  QwLumi::Copy(VQwSubsystem *source)
       if(typeid(*source)==typeid(*this))
 	{
 	  VQwSubsystem::Copy(source);
-	  QwLumi* input= dynamic_cast<QwLumi*>(source);
+	  const QwLumi* input= dynamic_cast<const QwLumi*>(source);
 
 	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
 	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)
@@ -1146,15 +1191,6 @@ void  QwLumi::Copy(VQwSubsystem *source)
 }
 
 //*****************************************************************
-VQwSubsystem*  QwLumi::Copy()
-{
-
-  QwLumi* TheCopy=new QwLumi("Injector Lumi Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
-}
-
-//*****************************************************************
 void QwLumi::CalculateRunningAverage()
 {
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
@@ -1177,6 +1213,18 @@ void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
       fCombinedPMT[i].AccumulateRunningSum(value->fCombinedPMT[i]);
   }
 }
+
+void QwLumi::DeaccumulateRunningSum(VQwSubsystem* value1){
+  if (Compare(value1)) {
+    QwLumi* value = dynamic_cast<QwLumi *>(value1);
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].DeaccumulateRunningSum(value->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].DeaccumulateRunningSum(value->fCombinedPMT[i]);
+  }  
+};
+
 
 
 void QwLumi::DoNormalization(Double_t factor)
@@ -1209,7 +1257,7 @@ void QwLumi::DoNormalization(Double_t factor)
 
 
 //*****************************************************************
-void QwLumi::FillDB(QwDatabase *db, TString datatype)
+void QwLumi::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = false;
@@ -1220,7 +1268,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::lumi_data> entrylist;
+  std::vector<QwParitySSQLS::lumi_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

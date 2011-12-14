@@ -22,7 +22,7 @@ for (int i=0;i<num_dets;i++)
 	h[i] = new TH1F(Form("h_%i",i),"",100,0,0);
 	h[i]->SetDirectory(0);
 	gPad->SetLogy(1);
-	event_tree->Draw(Form("%s>>h_%i",md_dets[i].Data(),i),Form("%s!=0",md_dets[i].Data()));
+	event_tree->Draw(Form("%s>>h_%i",md_dets[i].Data(),i),Form("%s!=0 && CodaEventType==1 ",md_dets[i].Data()));
 	TH1F *h_temp = (TH1F*)gPad->GetPrimitive(Form("h_%i",i));
 	c1->Update();
 }
@@ -37,7 +37,7 @@ for (int i=0;i<num_dets;i++)
 	h2[i] = new TH1F(Form("h2_%i",i),"Zero Suppressed MD Scalars vs CodaEventNumber",100,0,0);
 	h2[i]->SetDirectory(0);
 	gPad->SetLogy(1);
-	event_tree->Draw(Form("%s:CodaEventNumber>>h2_%i",md_dets[i].Data(),i),Form("%s!=0",md_dets[i].Data()));
+	event_tree->Draw(Form("%s:CodaEventNumber>>h2_%i",md_dets[i].Data(),i),Form("%s!=0  && CodaEventType==1 ",md_dets[i].Data()));
 //	event_tree->Draw(Form("%s>>h_%i",md_dets[i],i));
 	TH1F *h_temp = (TH1F*)gPad->GetPrimitive(Form("h2_%i",i));
 	c2->Update();

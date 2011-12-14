@@ -33,7 +33,7 @@ class QwSIS3801_Module {
       fNumberOfDataWords = fChannels.at(i).GetNumberOfDataWords();
     }
   };
-  ~QwSIS3801_Module() {};
+  virtual ~QwSIS3801_Module() {};
 
   void SetChannel(size_t channel, TString &name);
 
@@ -57,7 +57,6 @@ class QwSIS3801_Module {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values) const;
@@ -72,7 +71,7 @@ class QwSIS3801_Module {
   void SetCalibrationFactor(Double_t factor);
   void InitializeChannel(TString name);
 
-  void Copy(QwSIS3801_Module *source);
+  void Copy(const QwSIS3801_Module *source);
 
   void PrintValue() const { };
   void PrintInfo() const;

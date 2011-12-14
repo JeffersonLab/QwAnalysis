@@ -79,24 +79,44 @@ public:
   void SCNSetStatus(Int_t);
   void SCNSetValue(Int_t,Int_t);
 
-  void PrintScanInfo(){
+  Bool_t SCNStatusIsClean() {
     switch (statusSCN)
       {
       case SCN_INT_CLN:
 	{
-	  std::cout << "Scan Status is CLEAN" << std::endl;
+	  return 1;
 	  break;
 	}
       case SCN_INT_NOT:
 	{
-	  std::cout << "Scan Status is NOT_CLEAN" << std::endl;
+	  return 0;
 	  break;
 	}
       default:
 	std::cout << "ERROR: Unrecognized SCAN status flag" << std::endl;
       }
-    std::cout << "Scan data 1: " << setpoint1SCN << std::endl;
-    std::cout << "Scan data 2: " << setpoint2SCN << std::endl;
+    return 0;
+  }
+
+  void PrintScanInfo(){
+    std::cout << "Scandata 1: " << Form("%7i,",setpoint1SCN );
+    std::cout << "  Scandata 2: " << Form("%7i,",setpoint2SCN );
+    switch (statusSCN)
+      {
+      case SCN_INT_CLN:
+	{
+	  std::cout << "  CLEAN" << std::endl;
+	  break;
+	}
+      case SCN_INT_NOT:
+	{
+	  std::cout << "  NOT_CLEAN" << std::endl;
+	  break;
+	}
+      default:
+	std::cout << "ERROR: Unrecognized SCAN status flag" << std::endl;
+      }
+
   }
 
 private:

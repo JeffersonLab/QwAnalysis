@@ -66,7 +66,7 @@ void QwEnergyCalculator::ClearEventData(){
 
 void  QwEnergyCalculator::ProcessEvent(){
 
-  //  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = kFALSE;
   Double_t targetbeamangle = 0;
 
   static QwVQWK_Channel tmp;
@@ -77,15 +77,19 @@ void  QwEnergyCalculator::ProcessEvent(){
     if(fProperty[i].Contains("targetbeamangle")){
       targetbeamangle = atan((((QwCombinedBPM<QwVQWK_Channel>*)fDevice[i])->fSlope[VQwBPM::kXAxis]).GetValue());
       targetbeamangle *= fTMatrixRatio[i];
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: Beam angle in X at target = "<<targetbeamangle<<std::endl;
       fEnergyChange.AddChannelOffset(targetbeamangle);
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: dp/p += (M12/M16)*X angle = "<<fEnergyChange.GetValue()<<std::endl;
     }
     else {
       tmp.AssignValueFrom(fDevice[i]->GetPosition(VQwBPM::kXAxis));
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: X position from "<<fDevice[i]->GetElementName()<<" = "<<tmp.GetValue()<<std::endl;
       tmp.Scale(fTMatrixRatio[i]);
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: (M11/M16)*X position = "<<tmp.GetValue()<<std::endl;
       fEnergyChange += tmp;
     }
   }
-
+  if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: dp/p = "<<fEnergyChange.GetValue()<<std::endl;
   return;
 }
 
@@ -101,7 +105,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
       error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
     }
   }
-  fEnergyChange.UpdateErrorCode(error_code);
+  //fEnergyChange.UpdateErrorCode(error_code);//No need to do this. error codes are ORed when energy is calculated
 
   if (fEnergyChange.ApplySingleEventCuts()){
     status=kTRUE;
@@ -119,9 +123,12 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 Int_t QwEnergyCalculator::GetEventcutErrorCounters(){
   // report number of events falied due to HW and event cut faliure
   fEnergyChange.GetEventcutErrorCounters();
-
   return 1;
 }
+
+void QwEnergyCalculator::UpdateEventcutErrorFlag(QwEnergyCalculator *ev_error){
+  fEnergyChange.UpdateEventcutErrorFlag(ev_error->GetErrorCode());
+};
 
 
 void QwEnergyCalculator::CalculateRunningAverage(){
@@ -132,6 +139,10 @@ void QwEnergyCalculator::CalculateRunningAverage(){
 
 void QwEnergyCalculator::AccumulateRunningSum(const QwEnergyCalculator& value){
   fEnergyChange.AccumulateRunningSum(value.fEnergyChange);
+}
+
+void QwEnergyCalculator::DeaccumulateRunningSum(QwEnergyCalculator& value){
+  fEnergyChange.DeaccumulateRunningSum(value.fEnergyChange);
 }
 
 
@@ -149,8 +160,10 @@ QwEnergyCalculator& QwEnergyCalculator::operator= (const QwEnergyCalculator &val
 }
 
 QwEnergyCalculator& QwEnergyCalculator::operator+= (const QwEnergyCalculator &value){
+
   if (GetElementName()!="")
     this->fEnergyChange+=value.fEnergyChange;
+
   return *this;
 }
 
@@ -163,9 +176,10 @@ QwEnergyCalculator& QwEnergyCalculator::operator-= (const QwEnergyCalculator &va
 
 
 void QwEnergyCalculator::Ratio(QwEnergyCalculator &numer, QwEnergyCalculator &denom){
-  if (GetElementName()!="")
-    this->fEnergyChange.Ratio(numer.fEnergyChange,denom.fEnergyChange);
+  // this function is called when forming asymmetries. In this case waht we actually want for the
+  // qwk_energy/(dp/p) is the difference only not the asymmetries
 
+  *this=numer;
   return;
 }
 
@@ -234,16 +248,6 @@ void  QwEnergyCalculator::FillHistograms(){
   return;
 }
 
-void  QwEnergyCalculator::DeleteHistograms(){
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else
-    fEnergyChange.DeleteHistograms();
-  return;
-}
-
-
 void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix,
 						   std::vector<Double_t> &values){
   if (GetElementName()==""){
@@ -309,7 +313,7 @@ void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void  QwEnergyCalculator::Copy(VQwDataElement *source){
+void  QwEnergyCalculator::Copy(const VQwDataElement *source){
   try{
     if(typeid(*source)==typeid(*this)){
       QwEnergyCalculator* input=((QwEnergyCalculator*)source);

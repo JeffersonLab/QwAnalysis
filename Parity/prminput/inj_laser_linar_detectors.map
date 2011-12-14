@@ -1,0 +1,12 @@
+# This is an example of a detector definition file.
+
+[QwBeamLine]
+ name = Injector
+ map = inj_laser_linar_beamline.map
+ geom = inj_laser_qpd_beamline_geometry.map
+ eventcut = injtest_beamline_eventcuts.in
+ param = inj_laser_linar_pedestal.map
+
+[QwHelicity]
+ name = Helicity info
+ map = injtest_helicity.map

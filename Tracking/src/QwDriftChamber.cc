@@ -33,9 +33,9 @@ const Int_t  QwDriftChamber::kCodaMasterPlaneNumber = 98;
 
 
 // OK, fDEBUG, fNumberOfTDCs
-QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP)
-  :VQwSubsystem(region_tmp),
-   VQwSubsystemTracking(region_tmp),
+QwDriftChamber::QwDriftChamber(const TString& name, std::vector< QwHit > &fWireHits_TEMP)
+  :VQwSubsystem(name),
+   VQwSubsystemTracking(name),
    fWireHits(fWireHits_TEMP)
 {
   OK            = 0;
@@ -50,9 +50,9 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
 
 }
 
-QwDriftChamber::QwDriftChamber(TString region_tmp)
-  :VQwSubsystem(region_tmp),
-   VQwSubsystemTracking(region_tmp),
+QwDriftChamber::QwDriftChamber(const TString& name)
+  :VQwSubsystem(name),
+   VQwSubsystemTracking(name),
    fWireHits(fTDCHits)
 {
   OK            = 0;
@@ -70,6 +70,8 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
 
 QwDriftChamber::~QwDriftChamber()
 {
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -649,14 +651,3 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     return -1;
   }
 }
-
-
-
-void QwDriftChamber::DeleteHistograms()
-{
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
-  return;
-}
-
-

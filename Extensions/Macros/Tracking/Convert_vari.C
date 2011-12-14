@@ -21,8 +21,8 @@ const Double_t resolution=0.5;
 const Double_t width=15.5;
 // set time window
 const Double_t tmin=0;
-const Double_t tmax=400;
-static const Int_t binnumber=(tmax-tmin)/resolution;
+const Double_t tmax=310;
+const Int_t binnumber=(tmax-tmin)/resolution;
 
 // kCompare: compare with garfield data
 // kFit: fit the data
@@ -38,7 +38,7 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
     timer.Start();
 
 //     compare with garfield data
-    string file_name= Form ( "%s/Qweak_%d_convert.root",gSystem->Getenv ( "QWSCRATCH" ),run_number );
+    string file_name= Form ( "%s/Qweak_%d_convert.root",gSystem->Getenv ( "QW_ROOTFILES" ),run_number );
     TFile *file = new TFile ( file_name.c_str() );
 
 
@@ -59,7 +59,7 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
     vector<Int_t> wirehit;
     vector<Double_t> drifttime;
     vector<Int_t> cluster_index;
-    QwHit* hit=NULL;
+    QwHit* hit=0;
     nevent= event_tree -> GetEntries();
     cout << "number of events: " << nevent << endl;
 
@@ -76,7 +76,7 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
     }
 
 
-    for ( int ev_i=ev_start;ev_i<ev_end;ev_i++ )
+    for ( int ev_i=ev_start;ev_i<ev_end;++ev_i )
     {
         event_tree->GetEntry ( ev_i );
         if ( ev_i % 10000==0 ) cout << "events processed so far: " << ev_i << endl;
@@ -107,10 +107,9 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
 // 	    }
 // 	} 
   	
-	 for (Int_t hit_i=0;hit_i<nhit;hit_i++)
+	 for (Int_t hit_i=0;hit_i<nhit;++hit_i)
        {
            hit = ( QwHit* ) fEvent->GetHit ( hit_i );
-//             if ( hit->GetRegion()==3 && hit->GetPackage()==package && hit->GetPlane()==plane)
 	         if ( hit->GetRegion()==3)
             {
                 Double_t dt=hit->GetTime();
@@ -119,7 +118,9 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
                 {
 		         wirehit.push_back(wire);
 	                 if(dt> tmin && dt <= tmax){
-                         drifttime.push_back(dt);time_histo->Fill(dt);}
+                         drifttime.push_back(dt);
+			 time_histo->Fill(dt);
+			 }
                 }
             }
 	}
@@ -146,9 +147,11 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
     Int_t integral=0;
     Double_t time_temp=0;
     // the array size has been hard coded
-    Double_t time[800]={0},distance[800]={0};
+    //Double_t time[binnumber]={0},distance[binnumber]={0};
+    Double_t time[620]=={0};
+    Double_t distance[620]={0};
     cout << "K: " << K << endl;
-    for (Int_t bin=1;bin<=binnumber;bin++)
+    for (Int_t bin=1;bin<=binnumber;++bin)
     {
         time_temp=tmin+(bin-1)*resolution;        //start from lower bound
         if (time_temp<0) continue;
@@ -204,11 +207,18 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
         TF1* f2=new TF1("m3","pol3",cut[1]+1,cut[2]);
         TF1* f3=new TF1("m4","pol1",cut[2]+1,tmax);
     }
+    
+    
     TMultiGraph* mg=new TMultiGraph();
     mg->Add(t);
     if(kCompare)
     mg->Add(t1);
     TCanvas* c=new TCanvas("time to distance conversion","time vs distance",800,600);
+    mg->Draw("a*");
+    mg->GetXaxis()->SetTitle("drift time:ns");
+    mg->GetYaxis()->SetTitle("drift distance:mm");
+    mg->SetTitle("drift-time vs drift-distance");
+    /*
     c->Divide(2,2);
     c->cd(1);
     time_histo->Draw();
@@ -238,7 +248,7 @@ void convert ( Int_t event_start=-1,Int_t event_end=-1,Int_t package=-1,Int_t pl
     mg->GetYaxis()->SetTitle("drift distance:mm");
     mg->SetTitle("garfield vs real beam");
 
-
+    */
     timer.Stop();
     printf ( "Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime() );
 

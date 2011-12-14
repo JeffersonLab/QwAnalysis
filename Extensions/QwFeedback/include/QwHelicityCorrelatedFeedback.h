@@ -29,8 +29,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
  public:
   QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){ 
-
-    //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
+     //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
     for (Int_t i=0;i<kHelModes;i++){
       fFBRunningAsymmetry[i].Copy(&event);
       fHelModeGoodPatternCounter[i]=0;
@@ -72,22 +71,19 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fScalerChargeRunningSum.InitializeChannel("sca_bcm");
     fScalerCharge.InitializeChannel("sca_bcm");
-
-
+  
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-
-    IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "r");//Open in read mode
-
     out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
     //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
+    
     fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_IA,"Pat num. \t  A_q[mode]\t  IA Setpoint \t  IA Previous Setpoint \n");
     fclose(out_file_IA);
     //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
+ 
     out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
     out_file_HA_IA = fopen("/local/scratch/qweak/Feedback_HA_IA_log.txt", "a"); 
-
     fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_PITA,
 	    "%10s %22s +- %16s %16s %26s %26s %26s %26s\n",
@@ -102,6 +98,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 	    "Pat num.", "Charge Asym(ppm)", "Asym Error", "Correction",
 	    "New IA Setpoint", "Old IA Setpoint");
     fclose(out_file_HA_IA);
+
+    
   
   };
     
@@ -344,6 +342,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Bool_t fAutoIHWP;
 
     TString fHalfWavePlateStatus;
+    UInt_t fDefaultHalfWavePlateStatus;
+    UInt_t fPreviousHalfWavePlateStatus;
 
     Bool_t fPITAFB;
     Bool_t fHAIAFB;

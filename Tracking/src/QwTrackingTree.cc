@@ -275,16 +275,18 @@ int QwTrackingTree::consistent(
           exit(1);
         }
         // the offset distance between the first and last planes of this wire direction
-        if (layer == templayers-1) dy = off = fabs((det->GetYPosition() - y0) * det->GetElementAngleCos());
-
+	if(layer == templayers-1)
+	  dy = off = fabs (det->GetPlaneOffset()-y0);
       } else {
 
         z[0] = zv;
         // the binwidth at this level
         binwidth = det->GetNumberOfElements() * det->GetElementSpacing() / (1 << level);
-        y0 = fabs(det->GetYPosition()); // the first plane's radial distance
+	y0=fabs(det->GetPlaneOffset()); // the first plane's radial distance
       }
     }
+
+    
     // Set the first plane's z position to zero
     z[0] = 0.0;
 

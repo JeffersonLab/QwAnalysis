@@ -15,7 +15,9 @@
 
 // Qweak headers
 #include "QwHistogramHelper.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 #include "QwLog.h"
 
 extern QwHistogramHelper gQwHists;
@@ -38,7 +40,7 @@ void QwHelicity::DefineOptions(QwOptions &options)
           "Number of bits in random seed");
   options.AddOptions("Helicity options")
       ("helicity.bitpattern", po::value<std::string>(),
-          "Helicity bit pattern");
+          "Helicity bit pattern: 0x1 (pair), 0x9 (quartet), 0x69 (octet), 0x666999 (hexo-quad), 0x66669999 (octo-quad)");
   options.AddOptions("Helicity options")
       ("helicity.patternoffset", po::value<int>(),
           "Set 1 when pattern starts with 1 or 0 when starts with 0");
@@ -48,6 +50,9 @@ void QwHelicity::DefineOptions(QwOptions &options)
   options.AddOptions("Helicity options")
       ("helicity.delay", po::value<int>(),
           "Default delay is 2 patterns, set at the helicity map file.");
+  options.AddOptions("Helicity options")
+      ("helicity.toggle-mode", po::value<bool>()->default_bool_value(false),
+          "Activates helicity toggle-mode, overriding the 'delay', 'patternphase', 'bitpattern', and 'seed' options.");
 }
 
 //**************************************************//
@@ -95,11 +100,27 @@ void QwHelicity::ProcessOptions(QwOptions &options)
     BuildHelicityBitPattern(fMaxPatternPhase);
   }
 
+  if (options.GetValue<bool>("helicity.toggle-mode")) {
+    fHelicityDelay   = 0;
+    fUsePredictor    = kFALSE;
+    fMaxPatternPhase = 2;
+    fHelicityBitPattern = kDefaultHelicityBitPattern;
+  }
+
   //  If we have the default Helicity Bit Pattern & a large fMaxPatternPhase,
   //  try to recompute the Helicity Bit Pattern.
   if (fMaxPatternPhase > 8 && fHelicityBitPattern == kDefaultHelicityBitPattern) {
     BuildHelicityBitPattern(fMaxPatternPhase);
   }
+
+  //  Here we're going to try to get the "online" option which
+  //  is defined by QwEventBuffer.
+  if (options.HasValue("online")){
+    fSuppressMPSErrorMsgs = options.GetValue<bool>("online");
+  } else {
+    fSuppressMPSErrorMsgs = kFALSE;
+  }
+
 }
 
 
@@ -431,9 +452,11 @@ void QwHelicity::ProcessEventInputRegisterMode()
 
   if(fEventNumber!=(fEventNumberOld+1)){
     Int_t nummissed(fEventNumber - (fEventNumberOld+1));
-    QwError << "QwHelicity::ProcessEvent read event# ("
-	    << fEventNumber << ") is not  old_event#+1; missed "
-	    << nummissed << " gates" << QwLog::endl;
+    if (!fSuppressMPSErrorMsgs){
+      QwError << "QwHelicity::ProcessEvent read event# ("
+	      << fEventNumber << ") is not  old_event#+1; missed "
+	      << nummissed << " gates" << QwLog::endl;
+    }
     fNumMissedGates += nummissed;
     fNumMissedEventBlocks++;
   }
@@ -765,14 +788,14 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     } else {
       Bool_t lineok=kTRUE;
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
+      modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+      channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
       dettype.ToLower();
-      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
       namech.ToLower();
-      keyword = mapstr.GetNextToken(", ").c_str();
+      keyword = mapstr.GetTypedNextToken<TString>();
       keyword.ToLower();
       // Notice that "namech" and "keyword" are now forced to lower-case.
 
@@ -1027,22 +1050,6 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 
   return;
 }
-
-void  QwHelicity::DeleteHistograms()
-{
-  if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
-    {
-      for (size_t i=0; i<fHistograms.size(); i++){
-	if (fHistograms.at(i) != NULL){
-	  fHistograms.at(i)->Delete();
-	  fHistograms.at(i) =  NULL;
-	}
-      }
-      fHistograms.clear();
-    }
-  return;
-}
-
 
 void  QwHelicity::FillHistograms()
 {
@@ -1327,7 +1334,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void  QwHelicity::FillDB(QwDatabase *db, TString type)
+void  QwHelicity::FillDB(QwParityDB *db, TString type)
 {
   if (type=="yield" || type=="asymmetry")
     return;
@@ -1791,7 +1798,7 @@ void QwHelicity::ResetPredictor()
 
 
 
-void QwHelicity::Copy(VQwSubsystem *source)
+void QwHelicity::Copy(const VQwSubsystem *source)
 {
  try
     {
@@ -1800,7 +1807,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
 	  //VQwSubsystem::Copy(source);
 	  //QwHelicity* input=((QwHelicity*)source);
 	  VQwSubsystem::Copy(source);
-          QwHelicity* input = dynamic_cast<QwHelicity*>(source);
+          const QwHelicity* input = dynamic_cast<const QwHelicity*>(source);
 	  this->fWord.resize(input->fWord.size());
 	  for(size_t i=0;i<this->fWord.size();i++)
 	    {
@@ -1825,13 +1832,6 @@ void QwHelicity::Copy(VQwSubsystem *source)
     }
 
   return;
-}
-
-VQwSubsystem*  QwHelicity::Copy()
-{
-  QwHelicity* TheCopy=new QwHelicity("Helicity Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)

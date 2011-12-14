@@ -107,7 +107,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     try {
       subsys =
         VQwSubsystemFactory::Create(subsys_type, subsys_name);
-    } catch (QwException_SubsystemUnknown) {
+    } catch (QwException_TypeUnknown) {
       QwError << "No support for subsystems of type " << subsys_type << "." << QwLog::endl;
       // Fall-through to next error for more the psychological effect of many warnings
     }
@@ -380,12 +380,6 @@ void  QwSubsystemArray::FillHistograms()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillHistograms));
-}
-
-void  QwSubsystemArray::DeleteHistograms()
-{
-  if (!empty())
-    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteHistograms));
 }
 
 //*****************************************************************

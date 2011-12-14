@@ -47,8 +47,10 @@ class QwClock : public VQwClock {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
-  ~QwClock() {
-    DeleteHistograms();
+  virtual ~QwClock() { };
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    fClock.LoadChannelParameters(paramfile);
   };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
@@ -111,9 +113,8 @@ class QwClock : public VQwClock {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 

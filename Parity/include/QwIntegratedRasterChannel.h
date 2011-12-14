@@ -39,9 +39,7 @@ class QwIntegratedRasterChannel : public VQwDataElement{
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,"raw");
   };
-  ~QwIntegratedRasterChannel() {
-    DeleteHistograms();
-  };
+  virtual ~QwIntegratedRasterChannel() { };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -106,13 +104,12 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
   Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 

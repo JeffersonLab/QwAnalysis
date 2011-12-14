@@ -54,7 +54,7 @@
 !   default BSEN scaling factor = 18.81
 !   default AlphaX/AlphaY = 1.0
 !
-! device type, device_name,    Xoffset,  Yoffset, Zoffset, BSEN factor, AlpaX, 	   AlpaY,   rotation
+! device type, device_name,    Xoffset(mm),  Yoffset(mm), Zoffset(mm), BSEN factor, AlpaX, 	   AlpaY,   rotation
 !	
  bpmstripline,   QWK_BPM3C07,   0.127,   -1.160,  49025.3,     1.0,    1.033450,  0.901159,  
  bpmstripline,   QWK_BPM3C07A, -0.030,   -0.795,  53031.9,     1.0,    1.032580,  0.969186,  

@@ -16,14 +16,14 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 #include "QwVQWK_Channel.h"
 
 //  String names of the blinding and Wien status values
 const TString QwBlinder::fStatusName[4] = {"Indeterminate", "NotBlindable",
 					   "Blindable", "BlindableFail"};
-const TString QwBlinder::fWienName[5] = {"Indeterminate", "Forward", "Backward",
-					 "Vertical", "Horizontal"};
 
 // Maximum blinding asymmetry for additive blinding
 const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.06; // ppm
@@ -117,7 +117,7 @@ void QwBlinder::ProcessOptions(QwOptions& options)
  *
  * @param db Database connection
  */
-void QwBlinder::Update(QwDatabase* db)
+void QwBlinder::Update(QwParityDB* db)
 {
   //  Update the seed ID then tell us if it has changed.
   UInt_t old_seed_id = fSeedID;
@@ -146,7 +146,8 @@ void QwBlinder::Update(const QwSubsystemArrayParity& detectors)
 
     // Check that the current on target is above acceptable limit
     Bool_t tmp_beam = kFALSE;
-    if (detectors.ReturnInternalValue(q_targ.GetElementName(), &q_targ)) {
+    //    if (detectors.ReturnInternalValue(q_targ.GetElementName(), &q_targ)) {
+    if (detectors.ReturnInternalValue("q_targ", &q_targ)) {
       if (q_targ.GetValue() > fBeamCurrentThreshold){
 	// 	std::cerr << "q_targ.GetValue()==" 
 	// 		  << q_targ.GetValue() << std::endl;
@@ -208,56 +209,17 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
   //
   if (fBlindingStrategy != kDisabled &&
       (fTargetBlindability == QwBlinder::kBlindable) ) {
-    Int_t ihwppolarity;
-    if (epics.GetDataString("IGL1I00DI24_24M")=="OUT"){
-      ihwppolarity = 1;
-    } else if (epics.GetDataString("IGL1I00DI24_24M")=="IN"){
-      ihwppolarity = -1;
-    } else {
-      ihwppolarity = 0;
-    }
-    //  Check for Wien polarity should go here.
-    Double_t vwienangle = epics.GetDataValue("VWienAngle");
-    Double_t phiangle   = epics.GetDataValue("Phi_FG");
-    Double_t hwienangle = epics.GetDataValue("HWienAngle");
-
-    const Double_t nominal_launch = 30.0;
-
-    Double_t launchangle = 0.0;
-    EQwBlinderWienMode wienmode = kWienIndeterminate;
-
-    Double_t hoffset = 0.0;
-    if (fabs(vwienangle)<10.0 && fabs(phiangle)<10.0){
-      hoffset = 0.0;
-    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
-	       && fabs(vwienangle+phiangle)<10. ){
-      hoffset = -90.0;
-    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
-	       && fabs(vwienangle+phiangle)>170. ){
-      hoffset = +90.0;
-    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)<10.0) {
-      wienmode = kWienVertTrans;
-    } 
-    if (wienmode == kWienIndeterminate){
-      launchangle = hoffset+hwienangle;
-      Double_t long_proj = 
-	cos((launchangle-nominal_launch)*TMath::DegToRad());
-      if (long_proj > 0.5){
-	wienmode = kWienForward;
-      } else if (long_proj < -0.5){
-	wienmode = kWienBackward;
-      } else if (fabs(long_proj)<0.25){
-	wienmode = kWienHorizTrans;
-      }
-    }
-
-    SetWienState(wienmode);
-    SetIHWPPolarity(ihwppolarity);
+    //  Use the EPICS class functions to determine the
+    //  Wien mode and IHWP polarity.
+    SetWienState(epics.DetermineWienMode());
+    SetIHWPPolarity(epics.DetermineIHWPPolarity());
     
     if (fWienMode == kWienForward){
       fBlindingOffset = fBlindingOffset_Base * fIHWPPolarity;
     } else if (fWienMode == kWienBackward){
       fBlindingOffset = -1 * fBlindingOffset_Base * fIHWPPolarity;
+    } else {
+      fBlindingOffset = 0.0;
     }
   }
 }
@@ -272,7 +234,7 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
  *
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-Int_t QwBlinder::ReadSeed(QwDatabase* db)
+Int_t QwBlinder::ReadSeed(QwParityDB* db)
 {
   // Return unchanged if no database specified
   if (! db) {
@@ -359,7 +321,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db)
  *
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
+Int_t QwBlinder::ReadSeed(QwParityDB* db, const UInt_t seed_id)
 {
   // Return unchanged if no database specified
   if (! db) {
@@ -388,7 +350,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
     // Send query
     mysqlpp::Query query = db->Query();
     query << s_sql;
-    std::vector<QwParityDB::seeds> res;
+    std::vector<QwParitySSQLS::seeds> res;
     query.storein(res);
 
     // Store seed_id and seed value in fSeedID and fSeed (want to store actual seed_id in those
@@ -507,7 +469,7 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
 }
 
 
-void  QwBlinder::WriteFinalValuesToDB(QwDatabase* db)
+void  QwBlinder::WriteFinalValuesToDB(QwParityDB* db)
 {
   WriteChecksum(db);
   if (! CheckTestValues()) {
@@ -724,7 +686,7 @@ Int_t QwBlinder::UseMD5(const TString& barestring)
  *        been filled for the run.
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-void QwBlinder::WriteChecksum(QwDatabase* db)
+void QwBlinder::WriteChecksum(QwParityDB* db)
 {
   //----------------------------------------------------------
   // Construct SQL
@@ -758,7 +720,7 @@ void QwBlinder::WriteChecksum(QwDatabase* db)
  * Return: void
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-void QwBlinder::WriteTestValues(QwDatabase* db)
+void QwBlinder::WriteTestValues(QwParityDB* db)
 {
   //----------------------------------------------------------
   // Construct Initial SQL
@@ -936,7 +898,7 @@ void QwBlinder::PrintFinalValues()
  * For each analyzed run the database contains a digest of the blinding parameters
  * and a number of blinded test entries.
  */
-void QwBlinder::FillDB(QwDatabase *db, TString datatype)
+void QwBlinder::FillDB(QwParityDB *db, TString datatype)
 {
   QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
   QwDebug << "                         QwBlinder::FillDB                       " << QwLog::endl;
@@ -945,7 +907,7 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
   // Get the analysis ID
   UInt_t analysis_id = db->GetAnalysisID();
 
-  // Fill the rows of the QwParityDB::bf_test table
+  // Fill the rows of the QwParitySSQLS::bf_test table
   if (! CheckTestValues()) {
     QwError << "QwBlinder::FillDB():  "
             << "Blinded test values have changed; "
@@ -953,8 +915,8 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
             << QwLog::endl;
   }
 
-  QwParityDB::bf_test bf_test_row(0);
-  std::vector<QwParityDB::bf_test> bf_test_list;
+  QwParitySSQLS::bf_test bf_test_row(0);
+  std::vector<QwParitySSQLS::bf_test> bf_test_list;
   for (size_t i = 0; i < fTestValues.size(); i++) {
     bf_test_row.bf_test_id = 0;
     bf_test_row.analysis_id = analysis_id;
@@ -969,15 +931,15 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
 
   // Modify the seed_id and bf_checksum in the analysis table
   try {
-    // Get the rows of the QwParityDB::analysis table
+    // Get the rows of the QwParitySSQLS::analysis table
     mysqlpp::Query query = db->Query();
     query << "select * from analysis where analysis_id = " 
 	  << analysis_id;
-    std::vector<QwParityDB::analysis> analysis_res;
+    std::vector<QwParitySSQLS::analysis> analysis_res;
     QwDebug << "Query: " << query.str() << QwLog::endl;
     query.storein(analysis_res);
     if (analysis_res.size() == 1) {
-      QwParityDB::analysis analysis_row_new  = analysis_res[0];
+      QwParitySSQLS::analysis analysis_row_new  = analysis_res[0];
       // Modify the seed_id and bf_checksum
       analysis_row_new.seed_id = fSeedID;
       analysis_row_new.bf_checksum = fChecksum;
@@ -1024,14 +986,14 @@ void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status)
   }
 }
 
-void QwBlinder::SetWienState(QwBlinder::EQwBlinderWienMode wienmode)
+void QwBlinder::SetWienState(EQwWienMode wienmode)
 {
   fWienMode = wienmode;
-  if (fWienMode_firstread == QwBlinder::kWienIndeterminate
-      && fWienMode != QwBlinder::kWienIndeterminate){
+  if (fWienMode_firstread == kWienIndeterminate
+      && fWienMode != kWienIndeterminate){
     fWienMode_firstread = fWienMode;
     QwMessage << "QwBlinder:  First set Wien state to " 
-	      << fWienName[fWienMode] << QwLog::endl;
+	      << WienModeName(fWienMode) << QwLog::endl;
   }
 }
 

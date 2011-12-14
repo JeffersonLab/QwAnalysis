@@ -13,7 +13,9 @@
 
 // Qweak headers
 #include "QwSubsystemArray.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 #include "QwVQWK_Channel.h"
 
 // Register this subsystem with the factory
@@ -77,16 +79,16 @@ Int_t QwIntegratedRaster::LoadChannelMap(TString mapfile)
 	{
 	  Bool_t lineok=kTRUE;
 	  //  Break this line into tokens to process it.
-	  modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+	  modtype   = mapstr.GetTypedNextToken<TString>();	// module type
 	  if (modtype == "VQWK")
 	    {
-	      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-	      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	      modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+	      channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	      dettype.ToLower();
-	      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	      namech.ToLower();
-	      keyword = mapstr.GetNextToken(", ").c_str();
+	      keyword = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
 	    }
 
@@ -198,9 +200,9 @@ Int_t QwIntegratedRaster::LoadEventCuts(TString  filename){
       }
     }
     else{
-      device_type= mapstr.GetNextToken(", ").c_str();
+      device_type= mapstr.GetTypedNextToken<TString>();
       device_type.ToLower();
-      device_name= mapstr.GetNextToken(", ").c_str();
+      device_name= mapstr.GetTypedNextToken<TString>();
       device_name.ToLower();
 
       if (device_type!="raster") {
@@ -221,10 +223,10 @@ Int_t QwIntegratedRaster::LoadEventCuts(TString  filename){
       ULY=0;
       LLY=0;
 
-      LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegratedRasterChannel value
-      ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegratedRasterChannel value
-      varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-      stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+      LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegratedRasterChannel value
+      ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegratedRasterChannel value
+      varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+      stabilitycut=mapstr.GetTypedNextToken<Double_t>();
       varvalue.ToLower();
       QwMessage<<"QwIntegratedRaster Error Code passing to QwIntegratedRasterChannel "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
@@ -269,11 +271,11 @@ Int_t QwIntegratedRaster::LoadInputParameters(TString pedestalfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+	  varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
 	  varname.ToLower();
 	  varname.Remove(TString::kBoth,' ');
-	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+	  varped= mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+	  varcal= mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
 	  if(ldebug) std::cout<<"inputs for channel "<<varname
 			      <<": ped="<<varped<<": cal="<<varcal<<"\n";
 	  Bool_t notfound=kTRUE;
@@ -624,13 +626,6 @@ void  QwIntegratedRaster::ConstructHistograms(TDirectory *folder, TString &prefi
 
 
 //*****************************************************************
-void  QwIntegratedRaster::DeleteHistograms()
-{
-  for (size_t i = 0; i < fIntegratedRasterChannel.size(); i++)
-    fIntegratedRasterChannel[i].DeleteHistograms();
-}
-
-//*****************************************************************
 void  QwIntegratedRaster::FillHistograms()
 {
   if (! HasDataLoaded()) return;
@@ -727,7 +722,7 @@ void  QwIntegratedRasterDetectorID::Print() const
 }
 
 //*****************************************************************
-void  QwIntegratedRaster::Copy(VQwSubsystem *source)
+void  QwIntegratedRaster::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -735,7 +730,7 @@ void  QwIntegratedRaster::Copy(VQwSubsystem *source)
       if(typeid(*source)==typeid(*this))
 	{
 	  VQwSubsystem::Copy(source);
-	  QwIntegratedRaster* input= dynamic_cast<QwIntegratedRaster*>(source);
+	  const QwIntegratedRaster* input= dynamic_cast<const QwIntegratedRaster*>(source);
 
 	  this->fIntegratedRasterChannel.resize(input->fIntegratedRasterChannel.size());
 	  for(size_t i=0;i<this->fIntegratedRasterChannel.size();i++)
@@ -758,15 +753,6 @@ void  QwIntegratedRaster::Copy(VQwSubsystem *source)
 }
 
 //*****************************************************************
-VQwSubsystem*  QwIntegratedRaster::Copy()
-{
-
-  QwIntegratedRaster* TheCopy=new QwIntegratedRaster("TheCopy");
-  TheCopy->Copy(this);
-  return TheCopy;
-}
-
-//*****************************************************************
 void QwIntegratedRaster::CalculateRunningAverage()
 {
   for (size_t i = 0; i < fIntegratedRasterChannel.size(); i++)
@@ -786,7 +772,7 @@ void QwIntegratedRaster::AccumulateRunningSum(VQwSubsystem* value1)
 
 
 //*****************************************************************
-void QwIntegratedRaster::FillDB(QwDatabase *db, TString datatype)
+void QwIntegratedRaster::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = false;
@@ -797,7 +783,7 @@ void QwIntegratedRaster::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::beam> entrylist;
+  std::vector<QwParitySSQLS::beam> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

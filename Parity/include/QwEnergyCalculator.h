@@ -44,11 +44,14 @@ class QwEnergyCalculator : public VQwDataElement{
     InitializeChannel(subsystem, name,"derived");
   };
 
-    ~QwEnergyCalculator() {DeleteHistograms();};
+    virtual ~QwEnergyCalculator() { };
 
     void    InitializeChannel(TString name,TString datatosave);
     // new routine added to update necessary information for tree trimming
     void  InitializeChannel(TString subsystem, TString name, TString datatosave);
+
+    void    LoadChannelParameters(QwParameterFile &paramfile){};
+    
     void    ClearEventData();
     Int_t   ProcessEvBuffer(UInt_t* buffer,
 			    UInt_t word_position_in_buffer,UInt_t indexnumber);
@@ -70,8 +73,15 @@ class QwEnergyCalculator : public VQwDataElement{
     UInt_t   GetEventcutErrorFlag(){//return the error flag
       return fEnergyChange.GetEventcutErrorFlag();
     }
+
+    void UpdateEventcutErrorFlag(const UInt_t error){
+      fEnergyChange.UpdateEventcutErrorFlag(error);
+    };
+    void UpdateEventcutErrorFlag(QwEnergyCalculator *ev_error);
+  
+
     void    Set(const VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
-    void    Copy(VQwDataElement *source);
+    void    Copy(const VQwDataElement *source);
     void    Ratio(QwEnergyCalculator &numer,QwEnergyCalculator &denom);
     void    Scale(Double_t factor);
 
@@ -80,11 +90,11 @@ class QwEnergyCalculator : public VQwDataElement{
     virtual QwEnergyCalculator& operator-= (const QwEnergyCalculator &value);
 
     void    AccumulateRunningSum(const QwEnergyCalculator& value);
+    void    DeaccumulateRunningSum(QwEnergyCalculator& value);
     void    CalculateRunningAverage();
 
     void    ConstructHistograms(TDirectory *folder, TString &prefix);
     void    FillHistograms();
-    void    DeleteHistograms();
 
     void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void    ConstructBranch(TTree *tree, TString &prefix);

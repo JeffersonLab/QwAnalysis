@@ -67,33 +67,33 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
       else if ( DIRMODE==1 )
 	{
 	  //  Break this line Int_to tokens to process it.
-	  varvalue     = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
+	  varvalue     = mapstr.GetTypedNextToken<TString>();//this is the sType
 	  for (Int_t i=0;i<5;i++)
-	    ZPOS[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );			
+	    ZPOS[i]      = mapstr.GetTypedNextToken<Double_t>();			
 	  for (Int_t i=0;i<5;i++)
-	    ROT[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
-	  sp_res       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  track_res    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  slope_match  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  package      = mapstr.GetNextToken ( ", " ).c_str();
-	  region       = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  dType        = mapstr.GetNextToken ( ", " ).c_str();
-	  direction    = mapstr.GetNextToken ( ", " ).c_str();
+	    ROT[i]      = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+	  sp_res       = mapstr.GetTypedNextToken<Double_t>();
+	  track_res    = mapstr.GetTypedNextToken<Double_t>();
+	  slope_match  = mapstr.GetTypedNextToken<Double_t>();
+	  package      = mapstr.GetTypedNextToken<TString>();
+	  region       = mapstr.GetTypedNextToken<Int_t>();
+	  dType        = mapstr.GetTypedNextToken<TString>();
+	  direction    = mapstr.GetTypedNextToken<TString>();
 	  for (Int_t i=0;i<5;i++)
-	    XPOS[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+	    XPOS[i]      = mapstr.GetTypedNextToken<Double_t>();
 	  for (Int_t i=0;i<5;i++)
-	    YPOS[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  ActiveWidthX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  ActiveWidthY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  ActiveWidthZ = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  WireSpace    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  FirstWire    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  W_rcos       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  W_rsin       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+	    YPOS[i]      = mapstr.GetTypedNextToken<Double_t>();
+	  ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
+	  ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
+	  ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
+	  WireSpace    = mapstr.GetTypedNextToken<Double_t>();
+	  FirstWire    = mapstr.GetTypedNextToken<Double_t>();
+	  W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+	  W_rsin       = mapstr.GetTypedNextToken<Double_t>();
 	  for (Int_t i=0;i<5;i++)
-	    TILT[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
-	  TotalWires   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  detectorId   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+	    TILT[i]      = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+	  TotalWires   = mapstr.GetTypedNextToken<Int_t>();
+	  detectorId   = mapstr.GetTypedNextToken<Int_t>();
 
 
 			
@@ -210,8 +210,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
       if(fReferenceMaster.size()==0) continue;
 
       ref_data_size = fReferenceData.at(bank).size();
-      // 		std::cout << "size: " << fReferenceMaster.at(bank).size() << std::endl;
-      for ( i=0; i<ref_data_size; i++ )
+      for ( i=0; i<ref_data_size; ++i )
 	{
 	  if(fReferenceMaster.at(bank).size()==0) continue;
 	  
@@ -339,12 +338,12 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 
   Int_t index = (Int_t) (dt/resolution);
 
-  // 	if ( index>=800 || index < 0 ) {
-  // 	  distance_mm = -50.0;
-  // 	}
-  // 	else {
-  if(dt>310) std::cout << "error!" << dt << std::endl;
-  distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );
+ 
+  if(dt>=0 && dt<310){
+    distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );}
+  else{
+    distance_mm=-50;
+  }
   // 	}
   //     if ( dt < cut0 )
   //       {
@@ -629,8 +628,8 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
 Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 {
   //some type(like string,Int_t)need to be changed to root type
-  LoadTimeWireOffset ( "R3_timeoffset.txt" );
-  LoadTtoDParameters ( "TtoDTable.txt" );
+  LoadTimeWireOffset ( "R3_timeoffset.map" );
+  LoadTtoDParameters ( "R3_TtoDTable.map" );
   TString varname,varvalue;
   UInt_t value   = 0;
   UInt_t channum = 0;            //store temporary channel number
@@ -680,9 +679,9 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 	  continue;        //go to the next line
 	}
 
-      channum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      bpnum   = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      lnnum   = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      channum = mapstr.GetTypedNextToken<Int_t>();
+      bpnum   = mapstr.GetTypedNextToken<Int_t>();
+      lnnum   = mapstr.GetTypedNextToken<Int_t>();
 
       if ( channum ==0 and bpnum ==0 )
 	{
@@ -696,14 +695,14 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 	  continue;
 	}
 
-      LR= ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      LR= mapstr.GetTypedNextToken<Int_t>();
       fDelayLinePtrs.at ( value ).push_back ( QwDelayLineID ( bpnum,lnnum,LR ) );    //the slot and channel number must be in order
-      //pknum=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
-      pknum=mapstr.GetNextToken ( ", \t()" ).c_str();
-      plnum= ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      //dir=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
-      dir= mapstr.GetNextToken ( ", \t()" ).c_str();
-      firstwire= ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      //pknum=(atol(mapstr.GetTypedNextToken<TString>()));
+      pknum = mapstr.GetTypedNextToken<TString>();
+      plnum = mapstr.GetTypedNextToken<Int_t>();
+      //dir=(atol(mapstr.GetTypedNextToken<TString>()));
+      dir= mapstr.GetTypedNextToken<TString>();
+      firstwire= mapstr.GetTypedNextToken<Int_t>();
 
 
       if ( pknum=="u" )
@@ -719,11 +718,11 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 
       if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == kFALSE )   //if this delay line has not been Filled in the data
 	{
-	  string_a = mapstr.GetNextToken ( ", \t()" ) ;
+	  string_a = mapstr.GetTypedNextToken<std::string>();
 	  while ( string_a.size() !=0 )
 	    {
 	      tmpWindows.push_back ( atof ( string_a.c_str() ) );
-	      string_a = mapstr.GetNextToken ( ", \t()" );
+	      string_a = mapstr.GetTypedNextToken<std::string>();
 	    }
 
 	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage=  package;
@@ -783,9 +782,9 @@ void QwDriftChamberVDC::ReadEvent ( TString& eventfile )
 	  continue;
 	}
       
-      slotnum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      channum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      signal  = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      slotnum = mapstr.GetTypedNextToken<Int_t>();
+      channum = mapstr.GetTypedNextToken<Int_t>();
+      signal  = mapstr.GetTypedNextToken<Double_t>();
       //std::cout << "signal is: " << signal << endl;
       fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,direction,0, ( UInt_t ) signal ) );
     }        //only know TDC information and time value
@@ -880,7 +879,7 @@ void QwDriftChamberVDC::ProcessEvent()
 	      left_time=fDelayLineArray.at ( tmpbp ).at ( tmpln ).LeftHits.at ( order_L );
 	      right_time=fDelayLineArray.at ( tmpbp ).at ( tmpln ).RightHits.at ( order_R );
 
-	      for ( Int_t j=0;j<Ambiguitycount;j++ )
+	      for ( Int_t j=0;j<Ambiguitycount;++j )
 		{
 		  real_time= ( left_time+right_time ) /2.0;
 		  wire_hit=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).at ( j );
@@ -917,13 +916,14 @@ void QwDriftChamberVDC::ProcessEvent()
 	
   ApplyTimeCalibration();
 
-  if ( fDisableWireTimeOffset==false )
+  if ( fDisableWireTimeOffset==false ){
     SubtractWireTimeOffset();
-  else {}
+    FillDriftDistanceToHits();
+  }
         
         
   //    std::cout << "leaving.." << std::endl;
-  FillDriftDistanceToHits();
+  //FillDriftDistanceToHits();
 }
 
 
@@ -1255,13 +1255,6 @@ void  QwDriftChamberVDC::FillHistograms()
 
 
 
-// void  QwDriftChamberVDC::DeleteHistograms()
-// {
-//   return;
-// }
-
-
-
 Int_t QwDriftChamberVDC::LoadTimeWireOffset ( TString t0_map )
 {
   //std::cout << "beginning to load t0 file... " << std::endl;
@@ -1302,8 +1295,8 @@ Int_t QwDriftChamberVDC::LoadTimeWireOffset ( TString t0_map )
 	  continue;
 	}
 
-      wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      t0   = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      wire = mapstr.GetTypedNextToken<Int_t>();
+      t0   = mapstr.GetTypedNextToken<Int_t>();
 
       if ( wire > ( Int_t ) fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).size() )
 	{
@@ -1335,20 +1328,23 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
       wire    = fWireHits.at(i).GetElement();
       t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
                               
-      if(package==1)
-	real_time=fWireHits.at(i).GetTime()-t0-91;
-      else if(package==2)
-	real_time=fWireHits.at(i).GetTime()-t0-91;
+      //if(package==1)
+      //        real_time=fWireHits.at(i).GetTime()-t0-91;
+      //else if(package==2)
+      //	real_time=fWireHits.at(i).GetTime()-t0-91;
                                       
-      if(real_time<0 || real_time>310){
-	fWireHits.erase(fWireHits.begin()+i);
-	--nhits;
-	--i;
-	continue;
-      }
-      else{
-	fWireHits.at(i).SetTime(real_time);
-      }
+      real_time=fWireHits.at(i).GetTime()-t0-91;
+      //if(real_time<0 || real_time>310){
+	//fWireHits.erase(fWireHits.begin()+i);
+	//--nhits;
+	//--i;
+	//continue;
+	//fWireHis.at(i).SetTime(real_time);
+      //}
+      //else{
+      //	fWireHits.at(i).SetTime(real_time);
+      //}
+      fWireHits.at(i).SetTime(real_time);
     }
   return;
 }
@@ -1364,7 +1360,7 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
     printf("WARNING : QwDriftChamberVDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
-  for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); iter++)
+  for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); ++iter)
     {
       iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
     }
@@ -1389,8 +1385,8 @@ void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )
       mapstr.TrimWhitespace();
       if ( mapstr.LineIsEmpty() ) continue;
       
-      t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      t= mapstr.GetTypedNextToken<Double_t>();
+      d = mapstr.GetTypedNextToken<Double_t>();
       fTtoDNumbers.push_back ( d );
     }
   return;

@@ -20,19 +20,21 @@ OBJECTS       += QwGUIProgressDialog.o
 OBJECTS       += QwGUIPlotOptionsDialog.o
 OBJECTS       += QwGUIDataWindow.o
 OBJECTS       += QwGUISubSystem.o
-# OBJECTS       += QwGUIMainDetector.o
-# OBJECTS       += QwGUIScanner.o
-# OBJECTS       += QwGUIBeamModulation.o			 #Nuruzzaman
-# OBJECTS       += QwGUILumiDetector.o
-# OBJECTS       += QwGUIInjector.o
-# OBJECTS	+= QwGUIHallCBeamline.o
+OBJECTS       += QwGUIMainDetector.o
+OBJECTS       += QwGUIScanner.o
+OBJECTS       += QwGUIBeamModulation.o			 #Nuruzzaman
+OBJECTS       += QwGUILumiDetector.o
+OBJECTS       += QwGUIInjector.o
+OBJECTS	      += QwGUIHallCBeamline.o
 # OBJECTS       += QwGUITrackFinding.o
 # OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
-OBJECTS       += QwGUIDatabaseContainer.o
-OBJECTS       += QwGUIDatabaseSelectionDialog.o
-# OBJECTS       += QwGUIEventWindowSelectionDialog.o
-OBJECTS       += QwGUIDatabase.o
+#OBJECTS       += QwGUIDatabaseContainer.o
+#OBJECTS       += QwGUIDatabaseSelectionDialog.o
+OBJECTS       += QwGUIEventWindowSelectionDialog.o
+# OBJECTS       += QwGUIDatabase.o
+OBJECTS       += QwGUIHistories.o
+OBJECTS       += QwGUIHCLogEntryDialog.o
 
 
 # Now append the object files that Don't require a CINT dictionary.
@@ -67,7 +69,7 @@ QWANSOURCE = $(QWANALYSIS)/Analysis/src
 # will be made automatically.
 DICTS		= $(OBJECTS:.o=Dict.o)
 
-APPLIC        = QwDataBaseGUI-$(VERS)
+APPLIC        = QwGUI-$(VERS)
 MFILE         = Makefile
 
 # For Linux with egcs, gcc 2.9x, gcc 3.x (>= RedHat 5.2)
@@ -112,7 +114,7 @@ all: $(APPLIC)
 $(QWOBJECT)
 $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
 	$(CXX) -o $@ $(LDFLAGS) $(QWEAKLDFLAGS) $(LIBS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
-	ln -sf QwDataBaseGUIView/$@ ../QwDBGUI
+	ln -sf QwGUIView/$@ ../QwGUI
 	@echo "$@ done"
 
 %.o : $(PRG_SOURCE)/%.cc

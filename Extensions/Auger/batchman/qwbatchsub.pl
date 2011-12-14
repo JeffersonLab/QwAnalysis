@@ -44,6 +44,8 @@ use Cwd 'abs_path';
 use File::Find ();
 use File::Basename;
 
+use DBI;
+
 use Getopt::Long;
 
 use strict 'vars';
@@ -112,7 +114,7 @@ my $ret = GetOptions("help|usage|h"       => \$opt_h,
 		     "executable|E=s"     => \$opt_E,
 		     "mss-base-dir|M=s"   => \$BaseMSSDir,
 		     "options|O=s"        => \$AnalysisOptionList,
-		     "goodrunlist|F=s"    => \$opt_F,
+		     "goodrundb|F=s"      => \$opt_F,
 		     "batchqueue|Q=s"     => \$BatchQueue,
 		     "cacheoptions|C=s"   => \$CacheOptionList,
 		     "rootfile-stem|R=s"  => \$RootfileStem,
@@ -293,25 +295,16 @@ if ($InputfilesPerJob<=0) {
 ###  Check the run list against the "good runs" list.
 @good_runs = ();
 if (defined($opt_F) && $opt_F ne ""){
-    if ($opt_F =~ /^\//){
 	$goodrunfile = $opt_F;
-    } else {
-	$goodrunfile = "$script_dir/$opt_F";
-    }
-    if (-f $goodrunfile){
-	print STDOUT "Using the \"good runs\" file, $goodrunfile.\n";
 	@good_runs = get_the_good_runs($goodrunfile,@run_list);
-    } else {
-	print STDERR "Cannot find the good runs file, $goodrunfile.  Exiting.\n";
-	exit;
-    }
 } else {
     print STDOUT "No \"good run\" file was specified; trying to get all runs.\n";
     @good_runs = @run_list;
 }
-
-
-
+if ($#good_runs < 0){
+    print STDOUT "There are no good runs to be analyzed.\n";
+    exit;
+}
 
 print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
     "Base MSS directory:  \t$BaseMSSDir\n",
@@ -541,32 +534,34 @@ sub get_files_for_one_run_from_mss ($$) {
 sub get_the_good_runs ($@) {
     my ($goodfile, @runlist) = @_;
 
-    my (%good_run, @goodrunlist, $runnumber, $ihwp, $current,
-	$fr_good, $na_good, $comment);
+    my (@goodrunlist);
     @goodrunlist = ();
 
-    open GOODRUNS, $goodfile;
-    %good_run = ();
-    while (<GOODRUNS>){
-	next if /^#/;
-	next if /^$/;
-	chomp;
-	#  For each non-empty line, split it at whitespace
-	($runnumber, $ihwp, $current, 
-	 $fr_good, $na_good, $comment) = split /\s+/, $_, 6;
-	if ($fr_good==1 || $na_good==1){
-	    # The run is good.
-	    $good_run{$runnumber} = 2*$fr_good + $na_good;
-	}
+    # Database host, user, and password are all hard-wired in
+    my $dsn = "dbi:mysql:database=$goodfile;host=qweakdb";
+    my $dbuser = "qwreplay";
+    my $dbpasswd = "replay";
 
+    # This query should return 1 if the specified run number is in the database and not 'bad' (which is choice '2' in run_quality_id SET).  It should return 0 if either condition fails.  The hard-wired '2' is not the best solution but is the simplest as long as 'bad' is not assigned differently.
+    my $sql = "SELECT COUNT(*) FROM run WHERE run_number = ? AND !FIND_IN_SET(run_quality_id, 2)";
+
+    my $dbh = DBI->connect($dsn, $dbuser, $dbpasswd) or die("Unable to open connection to database $dsn \n");
+
+    my $sth = $dbh->prepare($sql);
+
+    foreach my $run (@runlist) {
+      $sth->execute($run);
+      my ($row_count) = $sth->fetchrow_array;
+
+      if ($row_count > 0) {
+        push(@goodrunlist, $run);
+      } else {
+	      print "Run $run is not a good run.\n";
+      }
     }
-    foreach $runnumber (@runlist){
-	if (exists $good_run{$runnumber}){
-	    push @goodrunlist, $runnumber;
-	} else {
-	    print "Run $runnumber is not a good run.\n";
-	}
-    }
+    $sth->finish();
+    $dbh->disconnect;
+
     return @goodrunlist;
 }
 
@@ -578,7 +573,7 @@ sub create_old_jobfile($$$@) {
     my $optionlist = $AnalysisOptionList;
     my $suffix;
     if (defined($segmentlist) && $segmentlist ne ""){
-	$optionlist = "--segments $segmentlist $AnalysisOptionList";
+	$optionlist = "--segment $segmentlist $AnalysisOptionList";
 	$suffix = "_$segmentlist";
     }
 
@@ -636,7 +631,7 @@ sub create_xml_jobfile($$$@) {
     my $optionlist = $AnalysisOptionList;
     my $suffix = "";
     if (defined($segmentlist) && $segmentlist ne ""){
-	$optionlist = "--segments $segmentlist $AnalysisOptionList";
+	$optionlist = "--segment $segmentlist $AnalysisOptionList";
 	$suffix = "_$segmentlist";
     }
     
@@ -663,6 +658,7 @@ sub create_xml_jobfile($$$@) {
 	" <Command><![CDATA[\n",
 	"  set nonomatch\n",
 	"  umask 002\n",
+	"  echo $timestamp > \$WORKDIR/timeStamp\n",
 	"  echo \"User:         \" `whoami`\n",
 	"  echo \"Groups:       \" `groups`\n",
 	"  echo \"WORKDIR:      \" \$WORKDIR\n",
@@ -815,13 +811,9 @@ sub displayusage {
 	"\t\tThis flag specifies  the update_cache_links options\n",
 	"\t\tto pass to the analysis jobs.   The list of options\n",
 	"\t\tmust be enclosed in double quotes.\n",
-	"\t--goodrunlist | -F <goodruns file>\n",
-	"\t\tThis specifies the name of  the file containing the\n",
-	"\t\tlist of \'good\' runs.  If the full path is not given\n",
-	"\t\tthe file will be searched for in the same directory\n",
-	"\t\tthat contains  the executable.   An example of this\n",
-	"\t\tis located at:\n",
-	"\t\t  /group/qweak/QwAnalysis/common/bin/good_runs.dat.\n",
+	"\t--goodrundb | -F <database>\n",
+	"\t\tThis specifies the name of the database containing the\n",
+	"\t\tlist of \'good\' runs.  \n",
 	"\t\tBy default, all runs within the run range are used.\n",
 	"\t--options | -O <analysis option>\n",
 	"\t\tThis flag specifies the  qwanalysis options to pass\n",

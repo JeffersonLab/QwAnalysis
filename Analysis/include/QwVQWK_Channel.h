@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwBlinder;
+class QwParameterFile;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -45,6 +46,9 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   using VQwHardwareChannel::GetValueError;
   using VQwHardwareChannel::GetValueWidth;
 
+  using VQwHardwareChannel::AccumulateRunningSum;
+  using VQwHardwareChannel::DeaccumulateRunningSum;
+
  public:
   QwVQWK_Channel(): MQwMockable() {
     InitializeChannel("","");
@@ -55,9 +59,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     InitializeChannel(name, datatosave);
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
-  virtual ~QwVQWK_Channel() {
-    //DeleteHistograms();
-  };
+  virtual ~QwVQWK_Channel() { };
 
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
@@ -65,10 +67,12 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
 
+  void LoadChannelParameters(QwParameterFile &paramfile);
+
   // Will update the default sample size for the module.
-  void SetDefaultSampleSize(size_t NumberOfSamples_map) {
+  void SetDefaultSampleSize(size_t num_samples_map) {
     // This will be checked against the no.of samples read by the module
-    fNumberOfSamples_map = NumberOfSamples_map;
+    fNumberOfSamples_map = num_samples_map;
   };
   
   void  ClearEventData();
@@ -100,11 +104,18 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &value);
+  void AssignScaledValue(const QwVQWK_Channel &value, Double_t scale);
   void AssignValueFrom(const VQwDataElement* valueptr);
 
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator*= (const QwVQWK_Channel &value);
+
+  VQwHardwareChannel& operator+=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator-=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator*=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator/=(const VQwHardwareChannel* input);
+
   const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
@@ -116,21 +127,24 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 
-  void AccumulateRunningSum(const QwVQWK_Channel& value);
-  void AccumulateRunningSum(const VQwHardwareChannel *value){
+  inline void AccumulateRunningSum(const QwVQWK_Channel& value){
+    AccumulateRunningSum(value, value.fGoodEventCount);
+  }
+  void AccumulateRunningSum(const QwVQWK_Channel& value, Int_t count);
+  void AccumulateRunningSum(const VQwHardwareChannel *value, Int_t count){
     const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
-    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
+    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr, count);
   };
   ////deaccumulate one value from the running sum
-  void DeaccumulateRunningSum(QwVQWK_Channel& value){
-    value.fGoodEventCount=-1;
-    AccumulateRunningSum(value);
-    value.fGoodEventCount=0;
+  inline void DeaccumulateRunningSum(const QwVQWK_Channel& value){
+    AccumulateRunningSum(value, -1);
   };
-  void DeaccumulateRunningSum(VQwHardwareChannel *value){
-    QwVQWK_Channel *tmp_ptr = dynamic_cast<QwVQWK_Channel*>(value);
+  /*
+  void DeaccumulateRunningSum(cVQwHardwareChannel *value){
+    const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
     if (tmp_ptr != NULL) DeaccumulateRunningSum(*tmp_ptr);
   };
+  */
 
   void CalculateRunningAverage();
 
@@ -160,7 +174,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
@@ -195,7 +208,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;
@@ -255,9 +268,6 @@ private:
   Short_t fBlocksPerEvent;
   // @}
 
-  /*  Ntuple array indices */
-  size_t fTreeArrayIndex;
-  size_t fTreeArrayNumEntries;
 
   /*! \name Event data members---Raw values */
   // @{
@@ -291,12 +301,12 @@ private:
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 
   // Set of error counters for each HW test.
-  Int_t fErrorCount_sample;   // for sample size check
-  Int_t fErrorCount_SW_HW;    // HW_sum==SW_sum check
-  Int_t fErrorCount_Sequence; // sequence number check
-  Int_t fErrorCount_SameHW;   // check to see ADC returning same HW value
-  Int_t fErrorCount_ZeroHW;   // check to see ADC returning zero
-  Int_t fErrorCount_HWSat;   // check to see ADC channel is saturated
+  Int_t fErrorCount_sample;   ///< for sample size check
+  Int_t fErrorCount_SW_HW;    ///< HW_sum==SW_sum check
+  Int_t fErrorCount_Sequence; ///< sequence number check
+  Int_t fErrorCount_SameHW;   ///< check to see ADC returning same HW value
+  Int_t fErrorCount_ZeroHW;   ///< check to see ADC returning zero
+  Int_t fErrorCount_HWSat;   ///< check to see ADC channel is saturated
 
 
 
@@ -310,12 +320,12 @@ private:
 
 
 
-  Double_t fSaturationABSLimit;//absolute value of the VQWK saturation volt
+  Double_t fSaturationABSLimit;///<absolute value of the VQWK saturation volt
 
 
-  const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+  const static Bool_t bDEBUG=kFALSE;///<debugging display purposes
 
-  //For VQWK data element trimming uses
+  ///<For VQWK data element trimming uses
   Bool_t bHw_sum;
   Bool_t bHw_sum_raw;
   Bool_t  bBlock;
@@ -325,7 +335,8 @@ private:
   Bool_t bSequence_number;
 
 private:
-  // Functions to be removed
+  
+  
 
 
 

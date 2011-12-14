@@ -153,13 +153,6 @@ void  QwVQWK_Module::FillHistograms()
   }
 }
 
-void  QwVQWK_Module::DeleteHistograms()
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).DeleteHistograms();
-  }
-}
-
 void  QwVQWK_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){
@@ -260,11 +253,11 @@ void QwVQWK_Module::InitializeChannel(TString name, TString datatosave)
   }
 }
 
-void QwVQWK_Module::Copy(QwVQWK_Module *source)
+void QwVQWK_Module::Copy(const QwVQWK_Module *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
-      QwVQWK_Module* input = ((QwVQWK_Module*) source);
+      const QwVQWK_Module* input = dynamic_cast<const QwVQWK_Module*>(source);
       for (size_t i = 0; i < this->fChannels.size(); i++)
         this->fChannels[i].Copy(&(input->fChannels[i]));
     } else {

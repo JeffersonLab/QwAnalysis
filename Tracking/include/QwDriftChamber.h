@@ -43,10 +43,16 @@ class QwDriftChamber: public VQwSubsystemTracking{
    *
    *
    ******************************************************************/
- public:
-  QwDriftChamber(TString region_tmp);
-  QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
+ private:
+   /// Private default constructor (not implemented, will throw linker error on use)
+   QwDriftChamber();
 
+ public:
+  /// Constructor with name
+  QwDriftChamber(const TString& name);
+  /// Constructor with name and hit list
+  QwDriftChamber(const TString& region_tmp,std::vector< QwHit > &fWireHits_TEMP);
+  /// Virtual destructor
   virtual ~QwDriftChamber();
 
   /*  Member functions derived from VQwSubsystem. */
@@ -102,7 +108,6 @@ class QwDriftChamber: public VQwSubsystemTracking{
   using VQwSubsystem::ConstructHistograms;
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void FillHistograms() = 0;
-  virtual void DeleteHistograms();
 
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;

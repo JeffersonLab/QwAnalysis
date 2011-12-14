@@ -40,9 +40,6 @@
 #include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
 
-// Qweak subsystem factory
-#include "QwSubsystemFactory.h"
-
 
 #include <TStopwatch.h>
 void PrintInfo(TStopwatch& timer)

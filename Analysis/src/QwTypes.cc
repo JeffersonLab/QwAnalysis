@@ -133,10 +133,31 @@ UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut){
   if (evtype=="g" && stabilitycut>0)
     return (kGlobalCut|kStabilityCut|evntMode);
   else if (evtype=="g" && stabilitycut<=0)
-    return (kGlobalCut|evntMode);
+    return (kGlobalCut|evntMode);  
+  else if (evtype=="l" && stabilitycut>0)
+    return (kLocalCut|evntMode|kStabilityCut);
+  else if (evtype=="l" && stabilitycut<=0)
+    return (kLocalCut|evntMode); 
   
-  else if (evtype=="l")
-    return (kLocalCut|evntMode);
-
   return 0;
+}
+
+std::string WienModeName(EQwWienMode type){
+  const std::string wienname[5] = {"Indeterminate", "Forward", "Backward",
+			       "Vertical", "Horizontal"};
+  return wienname[type];
+};
+
+EQwWienMode WienModeIndex(TString name){
+  EQwWienMode retval = kWienIndeterminate;
+  if (name=="Forward"){
+    retval = kWienForward;
+  } else if (name=="Backward"){
+    retval = kWienBackward;
+  } else if (name=="Vertical"){
+    retval = kWienVertTrans;
+  } else if (name=="Horizontal"){
+    retval = kWienHorizTrans;
+  }
+  return retval;
 }

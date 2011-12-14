@@ -65,6 +65,10 @@ Int_t QwHaloMonitor::GetEventcutErrorCounters()
   return 1;
 }
 
+void QwHaloMonitor::UpdateEventcutErrorFlag(QwHaloMonitor *ev_error){
+  
+}
+
 QwHaloMonitor& QwHaloMonitor::operator= (const QwHaloMonitor &value)
 {
   if (GetElementName()!=""){
@@ -119,6 +123,11 @@ void QwHaloMonitor::Scale(Double_t factor)
 void QwHaloMonitor::AccumulateRunningSum(const QwHaloMonitor& value) {
   fHalo_Counter.AccumulateRunningSum(value.fHalo_Counter);
 }
+
+void QwHaloMonitor::DeaccumulateRunningSum(QwHaloMonitor& value) {
+  //fHalo_Counter.DeccumulateRunningSum(value.fHalo_Counter);
+}
+
 void QwHaloMonitor::CalculateRunningAverage(){
   fHalo_Counter.CalculateRunningAverage();
 }
@@ -158,27 +167,6 @@ void  QwHaloMonitor::FillHistograms()
 
   return;
 }
-
-
-
-
-
-
-
-
-
-
-void  QwHaloMonitor::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else{
-    fHalo_Counter.DeleteHistograms();
-  }
-  return;
-}
-
 
 void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -243,7 +231,7 @@ void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void  QwHaloMonitor::Copy(VQwDataElement *source)
+void  QwHaloMonitor::Copy(const VQwDataElement *source)
 {
   try
     {

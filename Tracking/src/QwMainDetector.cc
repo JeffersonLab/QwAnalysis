@@ -27,8 +27,8 @@ const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwMainDetector);
 
-QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
-						   VQwSubsystemTracking(region_tmp)
+QwMainDetector::QwMainDetector(const TString& name)
+: VQwSubsystem(name),VQwSubsystemTracking(name)
 {
   fDEBUG = false;
   ClearAllBankRegistrations();
@@ -45,6 +45,9 @@ QwMainDetector::~QwMainDetector()
   for (size_t i = 0; i < fSCAs.size(); i++)
     delete fSCAs.at(i);
   fSCAs.clear();
+
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
 
   delete fF1TDContainer;
 }
@@ -87,28 +90,28 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
       else if ( DIRMODE==1 )
         {
           //  Break this line Int_to tokens to process it.
-          varvalue = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
-          Zpos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          rot = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
-          sp_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          track_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          slope_match = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          package = mapstr.GetNextToken ( ", " ).c_str();
-          region  = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          dType = mapstr.GetNextToken ( ", " ).c_str();
-          direction  = mapstr.GetNextToken ( ", " ).c_str();
-          Det_originX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          Det_originY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          ActiveWidthX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          ActiveWidthY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          ActiveWidthZ = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          WireSpace = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          FirstWire = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          W_rcos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          W_rsin = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-	  tilt = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          varvalue = ( mapstr.GetTypedNextToken<TString>() );//this is the sType
+          Zpos = mapstr.GetTypedNextToken<Double_t>();
+          rot = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+          sp_res = mapstr.GetTypedNextToken<Double_t>();
+          track_res = mapstr.GetTypedNextToken<Double_t>();
+          slope_match = mapstr.GetTypedNextToken<Double_t>();
+          package = mapstr.GetTypedNextToken<TString>();
+          region  = mapstr.GetTypedNextToken<Int_t>();
+          dType = mapstr.GetTypedNextToken<TString>();
+          direction  = mapstr.GetTypedNextToken<TString>();
+          Det_originX = mapstr.GetTypedNextToken<Double_t>();
+          Det_originY = mapstr.GetTypedNextToken<Double_t>();
+          ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
+          ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
+          ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
+          WireSpace = mapstr.GetTypedNextToken<Double_t>();
+          FirstWire = mapstr.GetTypedNextToken<Double_t>();
+          W_rcos = mapstr.GetTypedNextToken<Double_t>();
+          W_rsin = mapstr.GetTypedNextToken<Double_t>();
+	  tilt = mapstr.GetTypedNextToken<Double_t>();
+          TotalWires = mapstr.GetTypedNextToken<Int_t>();
+          detectorId = mapstr.GetTypedNextToken<Int_t>();
           //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
 
           if ( region==5 )
@@ -212,11 +215,11 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
       else
         {
           //  Break this line into tokens to process it.
-          modtype   = mapstr.GetNextToken(", ").c_str();
-          modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-          channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-          dettype   = mapstr.GetNextToken(", ").c_str();
-          name      = mapstr.GetNextToken(", ").c_str();
+          modtype   = mapstr.GetTypedNextToken<TString>();
+          modnum    = mapstr.GetTypedNextToken<Int_t>();
+          channum   = mapstr.GetTypedNextToken<Int_t>();
+          dettype   = mapstr.GetTypedNextToken<TString>();
+          name      = mapstr.GetTypedNextToken<TString>();
 
           if (name=="md_reftime_f1") {
             reftime_slotnum = slotnum;
@@ -910,33 +913,6 @@ void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values) const
             std::cerr<<"QwMainDetector::FillTreeVector:  "<<"fSCA_Data.at("<<i<<") is NULL"<<std::endl;
         }
     }
-
-}
-
-
-void  QwMainDetector::DeleteHistograms()
-{
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
-  std::size_t i = 0;
-  std::size_t j = 0;
-
-  for ( i=0; i<fPMTs.size(); i++)
-    {
-      for ( j=0; j<fPMTs.at(i).size(); j++)
-        {
-          fPMTs.at(i).at(j).DeleteHistograms();
-        }
-    }
-
-  for ( i=0; i<fSCAs.size(); i++)
-    {
-      if (fSCAs.at(i) != NULL)
-        {
-          fSCAs.at(i)->DeleteHistograms();
-        }
-    }
-
 
 }
 

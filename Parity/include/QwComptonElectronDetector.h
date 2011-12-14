@@ -19,32 +19,31 @@
 
 // System headers
 #include <vector>
-  
-// ROOT headers
-#include <TTree.h>
-#include "TFile.h"
-#include<TH1D.h>
 
 // Boost math library for random number generation
 #include <boost/multi_array.hpp>
 
-
 // Qweak headers
 #include "VQwSubsystemParity.h"
-#include "QwScaler_Channel.h"
-#include "QwVQWK_Channel.h"
 
+class QwComptonElectronDetector:
+  public VQwSubsystemParity,
+  public MQwSubsystemCloneable<QwComptonElectronDetector> {
 
-class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<QwComptonElectronDetector> {
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwComptonElectronDetector();
 
   public:
 
-    /// \brief Constructor
-    QwComptonElectronDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
-    /// \brief Destructor
-    ~QwComptonElectronDetector() {
-      DeleteHistograms();
-    };
+    /// Constructor with name
+    QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name) { };
+    /// Copy constructor
+    QwComptonElectronDetector(const QwComptonElectronDetector& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
+    virtual ~QwComptonElectronDetector() { };
 
 
     /* derived from VQwSubsystem */
@@ -76,15 +75,23 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
     UInt_t GetEventcutErrorFlag() { return 0; };
+    //update the same error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
+    //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+    };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void AccumulateRunningSum(VQwSubsystem* value);
+    //remove one entry from the running sums for devices
+    void DeaccumulateRunningSum(VQwSubsystem* value){
+    };
     void CalculateRunningAverage();
 
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
@@ -96,14 +103,13 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     void  ConstructBranch(TTree *tree, TString& prefix) { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void  FillTreeVector(std::vector<Double_t> &values) const;
-    void  FillDB(QwDatabase *db, TString datatype){};
+//    void  FillDB(QwDatabase *db, TString datatype){};
 
     size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
     void SetNumberOfEvents(UInt_t nevents) {
      fNumberOfEvents = nevents;
     };
-    void Copy(VQwSubsystem *source);
-    VQwSubsystem*  Copy();
+    void Copy(const VQwSubsystem *source);
     Bool_t Compare(VQwSubsystem *source);
     void PrintValue() const;
 
@@ -139,7 +145,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
    *  inside the ConstructHistograms()
    */
 
-  std::vector<TH1*> fHistograms1D;
   std::vector<Int_t> fComptonElectronVector;
 
 
@@ -167,13 +172,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single,  kScaler, kV1495Scaler};
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single, kV1495Scaler};
     std::map< Int_t, ChannelType_t > fMapping;
-
-    /// List of scaler channels
-    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
-    Scaler_Mapping_t fScaler_Mapping;
-    std::vector< QwSIS3801D24_Channel > fScaler;
 
         // Assign static const member fields
     static const Int_t NModules = 3;///number of slave modules(!!change to 2?)

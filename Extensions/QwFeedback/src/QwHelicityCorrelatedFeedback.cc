@@ -33,7 +33,7 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
   QwHelicityPattern::ProcessOptions(options);
 
   fHalfWaveRevert      = options.GetValue<bool>("Half-wave-plate-revert");
-  fHalfWavePlateStatus = GetHalfWavePlateState();
+  fHalfWavePlateStatus = GetHalfWavePlateState();//read the IHWP for the first time when the feedback is starting.
   fAutoIHWP = options.GetValue<bool>("Auto-IHWP-Flip");
 
 
@@ -43,10 +43,12 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
   if(fHalfWavePlateStatus.Contains("IN")) {
     if(fHalfWaveRevert) fHalfWaveIN = false;
     else                fHalfWaveIN = true;
+    fDefaultHalfWavePlateStatus=1;
   }
   else {
     if(fHalfWaveRevert) fHalfWaveIN = true;
     else                fHalfWaveIN = false;
+    fDefaultHalfWavePlateStatus=0;
   }
 
   fHalfWaveOUT = !fHalfWaveIN;
@@ -244,7 +246,31 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
     }
   }
 
-  
+  //Read the last know good PC set points
+  out_file_PC_IN_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_IN", "r");//Open in read mode
+  out_file_PC_IN_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_IN", "r");//Open in read mode      
+  out_file_PC_OUT_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_OUT", "r");//Open in read mode
+  out_file_PC_OUT_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_OUT", "r");//Open in read mode
+
+  if (out_file_PC_IN_pos &&  out_file_PC_IN_neg && out_file_PC_OUT_pos && out_file_PC_OUT_neg){
+    UInt_t tmp;
+    fscanf(out_file_PC_IN_pos,"%d",&tmp);
+    fPITASetpointPOS_t0_IN=tmp;
+    fscanf(out_file_PC_IN_neg,"%d",&tmp);
+    fPITASetpointNEG_t0_IN=tmp;
+    fscanf(out_file_PC_OUT_pos,"%d",&tmp);
+    fPITASetpointPOS_t0_OUT=tmp;
+    fscanf(out_file_PC_OUT_neg,"%d",&tmp);
+    fPITASetpointNEG_t0_OUT=tmp;
+    fclose(out_file_PC_IN_pos);
+    fclose(out_file_PC_IN_neg);
+    fclose(out_file_PC_OUT_pos);
+    fclose(out_file_PC_OUT_neg);
+    
+  }
+
+
+
   QwMessage<<"Hall C patternMax = "<<fAccumulatePatternMax<<" Hall C patternMax = "<<fHAAccumulatePatternMax<<" deltaAq "<<fChargeAsymPrecision<<"ppm"<<QwLog::endl;
   //QwMessage<<"Optimal values - IA ["<<fOptimalIA<<"] PC+["<<fOptimalPCP<<"] PC-["<<fOptimalPCN<<"]"<<QwLog::endl;
   QwMessage<<"IA DAC counts limits "<<fIASetpointlow<<" to "<< fIASetpointup <<QwLog::endl;
@@ -258,17 +284,23 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
   QwMessage<<"t_0 corrections for OUT +["<<fPITASetpointPOS_t0_OUT<<"] -["<<fPITASetpointNEG_t0_OUT<<"]"<<QwLog::endl;
 
   if (fAutoIHWP){
+    IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "r");//Open in read mode to get the previous IHWP state
     if (IHWP_State!=NULL){
       fgets(buffer , 10 ,IHWP_State);//read the previous IHWP mode
       //printf("NOTICE \n %s \n",buffer);
       prev_IHWP_State=buffer;
       if (prev_IHWP_State.Contains("IN") || prev_IHWP_State.Contains("OUT")){
+	if (prev_IHWP_State.Contains("IN"))
+	  fPreviousHalfWavePlateStatus=1;
+	else
+	  fPreviousHalfWavePlateStatus=0;
 	if (fHalfWavePlateStatus.IsNull())//EPICS IHWP state is missing
 	  fHalfWavePlateStatus=prev_IHWP_State;//in case EPICS IHWP state is not existing set the previous run IHWP state
       }
     }
     else
       prev_IHWP_State="";
+
     if (!prev_IHWP_State.Contains("IN") && !prev_IHWP_State.Contains("OUT") ){//first time the file created
       if (IHWP_State!=NULL)
 	fclose(IHWP_State); 
@@ -280,10 +312,10 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
       }
     }
     else{
-      if (prev_IHWP_State!=fHalfWavePlateStatus){
+      if (fDefaultHalfWavePlateStatus!=fPreviousHalfWavePlateStatus){//at the begging of the feedback, if the current IHWP is not the same as last known good IHWP state then reset the PC values
 	printf("NOTICE \n Half-wave plate status has changed from %s to %s \n",prev_IHWP_State.Data(),fHalfWavePlateStatus.Data());
 	if (fHalfWaveIN){
-	  if (fPITASetpointPOS_t0_IN && fPITASetpointNEG){
+	  if (fPITASetpointPOS_t0_IN && fPITASetpointNEG_t0_IN){
 	    fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_IN);
 	    fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_IN);
 	  }
@@ -292,13 +324,13 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	    fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_OUT);
 	    fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_OUT);
 	  }
-	}
+	}	
       }
       printf("NOTICE \n previous half-wave plate status %s\n",prev_IHWP_State.Data());
       if (IHWP_State!=NULL)
 	fclose(IHWP_State); 
       IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "w");
-      printf("NOTICE \n previous half-wave plate status found. Updating new IHWP %s \n",fHalfWavePlateStatus.Data());
+      printf("NOTICE \n Updating new IHWP %s \n",fHalfWavePlateStatus.Data());
       if (IHWP_State!=NULL){
 	fprintf(IHWP_State,"%s",fHalfWavePlateStatus.Data());   
 	fclose(IHWP_State);
@@ -362,8 +394,10 @@ void QwHelicityCorrelatedFeedback::FeedHAIASetPoint(Int_t mode){
 
   QwMessage<<"FeedIASetPoint("<<mode<<") "<<fHAChargeAsym[mode]<<"+/-"<<fHAChargeAsymError[mode]<<" new set point  "<<fHAIASetpoint[mode]<<QwLog::endl;
   //send the new IA setpoint 
+
   for (Int_t i=0;i<4;i++)
     fEPICSCtrl.Set_HallAIA(i,fHAIASetpoint[mode]);//do the same correction to 4 DACs
+
   
   fScalerChargeRunningSum.ClearEventData();//reset the running sums
 };
@@ -420,9 +454,12 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   QwMessage<<"FeedPITASetPoint "<<" "<<fChargeAsymmetry<<" +/- "<<fChargeAsymmetryError<<" new set point[+]  "<<fPITASetpointPOS<<" [-] "<<fPITASetpointNEG<<QwLog::endl;
   
   //send the new PITA setpoint
+
   fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS);
   fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG);
   fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
+ 
+
   /*
   if (fFeedbackStatus){
       fFeedbackStatus=kFALSE;
@@ -643,6 +680,41 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
 	printf("NOTICE \n Half-wave-plate-IN\n");
       else
 	printf("NOTICE \n Half-wave-plate-OUT\n");
+
+      //Check to see the IHWP has changed if we are running is Auto IHWP mode
+      if (fAutoIHWP){
+	if((fDefaultHalfWavePlateStatus==1 && fHalfWaveOUT) ||  (fDefaultHalfWavePlateStatus==0 && fHalfWaveIN)){ //IHWP at the start of the feedback is different from current value
+	  if (fHalfWaveOUT){
+	    fDefaultHalfWavePlateStatus=0;//update the defalut IHWP state to OUT 
+	    if (fPITASetpointPOS_t0_OUT && fPITASetpointNEG_t0_OUT){//reset the PC
+	      fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_OUT);
+	      fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_OUT);
+	    }
+	  }
+	  else{
+	    fDefaultHalfWavePlateStatus=1;//update the defalut IHWP state to IN
+	    if (fPITASetpointPOS_t0_IN && fPITASetpointNEG_t0_IN){//reset the PC
+	      fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_IN);
+	      fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_IN);
+	    }
+	  }
+	  fGoodPatternCounter=0;//Reset after each feedback operation
+	  ClearRunningSum();//Then reset the running sum 
+
+	  //Update the new IHWP state in the text file
+	  if (IHWP_State!=NULL)
+	    fclose(IHWP_State); 
+	  IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "w");
+	  printf("NOTICE \n Updating new IHWP %s \n",fHalfWavePlateStatus.Data());
+	  if (IHWP_State!=NULL){
+	    fprintf(IHWP_State,"%s",fHalfWavePlateStatus.Data());   
+	    fclose(IHWP_State);
+	  }
+
+	  return;//and start the correction loop all over 
+	} 
+	
+      }
 
       IsAqPrecisionGood();//PITA corrections initiate here
     }
@@ -889,7 +961,7 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
   fAsymmetry.RequestExternalValue("sca_bcm", &fScalerCharge);
   //fScalerChargeRunningSum.PrintValue();
   fScalerChargeRunningSum.AccumulateRunningSum(fScalerCharge);
-  if (fScalerCharge.GetDeviceErrorCode()==0 && fAsymmetry.GetEventcutErrorFlag()==0)
+  if (fScalerCharge.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0)
     fHelModeGoodPatternCounter[0]++;//update the good HA asymmetry counter
 
 
@@ -935,9 +1007,9 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
   if (fRunningAsymmetry.RequestExternalValue("q_targ",&fTargetCharge)){
     QwMessage<<"Reading published charge value stats"<<QwLog::endl;
     fTargetCharge.PrintInfo();
-    fChargeAsymmetry=fTargetCharge.GetHardwareSum();
-    fChargeAsymmetryError=fTargetCharge.GetHardwareSumError();
-    fChargeAsymmetryWidth=fTargetCharge.GetHardwareSumWidth();
+    fChargeAsymmetry=fTargetCharge.GetValue();
+    fChargeAsymmetryError=fTargetCharge.GetValueError();
+    fChargeAsymmetryWidth=fTargetCharge.GetValueWidth();
     return ;
   }
   QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;

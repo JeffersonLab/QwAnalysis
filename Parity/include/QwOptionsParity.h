@@ -24,6 +24,7 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwRegression.h"
+#include "QwParityDB.h"
 
 void DefineOptionsParity(QwOptions& options)
 {
@@ -37,6 +38,7 @@ void DefineOptionsParity(QwOptions& options)
   QwHelicity::DefineOptions(options);
   QwHelicityPattern::DefineOptions(options);
   QwRegression::DefineOptions(options);
+  QwParityDB::DefineAdditionalOptions(options);
 }
 
 #endif // QWOPTIONSPARITY_H

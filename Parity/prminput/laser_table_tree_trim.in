@@ -1,0 +1,76 @@
+
+[Injector]
+
+  <QwQPD>
+	hw_sum
+
+   <QwLinearDiodeArray>
+	hw_sum
+
+# below the [DEVICELIST] include all the leaves that needs to be in the tree
+
+[DEVICELIST]
+
+##########################
+## Mps_Tree
+##########################
+
+CodaEventNumber
+
+#########
+
+qwk_qpdX
+qwk_qpdY
+qwk_qpdRelX
+qwk_qpdRelY
+qwk_qpdBL
+qwk_qpdTL
+qwk_qpdBR
+qwk_qpdTR
+qwk_qpd_EffectiveCharge
+qwk_linap1
+qwk_linap2
+qwk_linap3
+qwk_linap4
+qwk_linap5
+qwk_linap6
+qwk_linap7
+qwk_linap8
+qwk_linaRelVariance
+qwk_linaRelMean
+qwk_lina_EffectiveCharge
+
+##########
+## Scalers
+pattern_number
+mps_counter
+pat_counter
+#pat_phase
+
+##########################
+## Hel Tree  
+##########################
+mps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+
+yield_qwk_qpdX
+yield_qwk_qpdY
+asym_qwk_qpd_EffectiveCharge
+yield_qpd_EffectiveCharge
+diff_qwk_qpdX
+diff_qwk_qpdY
+diff_qwk_linap1
+diff_qwk_linap2
+diff_qwk_linap3
+diff_qwk_linap4
+diff_qwk_linap5
+diff_qwk_linap6
+diff_qwk_linap7
+diff_qwk_linap8
+yield_qwk_lina_RelVariance
+diff_qwk_lina_RelMean
+asym_qwk_lina_EffectiveCharge
