@@ -212,7 +212,6 @@ class VQwDataElement: public MQwHistograms {
       MQwHistograms::operator=(value);
       fGoodEventCount    = value.fGoodEventCount;
       fErrorFlag         = value.fErrorFlag;
-      fErrorConfigFlag   = value.fErrorConfigFlag;
     }
     return *this;
   }

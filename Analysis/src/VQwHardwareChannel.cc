@@ -86,7 +86,7 @@ void VQwHardwareChannel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Doubl
   SetSingleEventCuts(min,max);
   QwWarning << "Set single event cuts for " << GetElementName() << ": "
 	    << "Config-error-flag == 0x" << std::hex << errorflag << std::dec
-	    << ", global? " << ((fErrorConfigFlag & kGlobalCut)==kGlobalCut) << ", stability? " << ((fErrorConfigFlag & kStabilityCut)==kStabilityCut) << QwLog::endl;
+	    << ", global? " << ((fErrorConfigFlag & kGlobalCut)==kGlobalCut) << ", stability? " << ((fErrorConfigFlag & kStabilityCut)==kStabilityCut)<<" cut "<<fStability << QwLog::endl;
 }
 
 
