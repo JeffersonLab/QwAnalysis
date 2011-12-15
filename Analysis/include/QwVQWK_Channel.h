@@ -101,6 +101,10 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &value);
   void AssignValueFrom(const VQwDataElement* valueptr);
+  void AddValueFrom(const VQwHardwareChannel* valueptr);
+  void SubtractValueFrom(const VQwHardwareChannel* valueptr);
+  void MultiplyBy(const VQwHardwareChannel* valueptr);
+  void DivideBy(const VQwHardwareChannel* valueptr);
 
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);

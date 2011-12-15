@@ -84,9 +84,15 @@ public:
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
   void AssignValueFrom(const VQwDataElement* valueptr);
+  void AddValueFrom(const VQwHardwareChannel* valueptr);
+  void SubtractValueFrom(const VQwHardwareChannel* valueptr);
+  void MultiplyBy(const VQwHardwareChannel* valueptr);
+  void DivideBy(const VQwHardwareChannel* valueptr);
+
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
+  VQwScaler_Channel& operator*= (const VQwScaler_Channel &value);
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Ratio(const VQwScaler_Channel &numer, const VQwScaler_Channel &denom);

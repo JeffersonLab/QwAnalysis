@@ -243,7 +243,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Print some information about the subsystem
   void PrintInfo() const;
   
-  void push_back(boost::shared_ptr<VQwSubsystem>& subsys);
+  void push_back(boost::shared_ptr<VQwSubsystem> subsys);
 
  protected:
   void LoadSubsystemsFromParameterFile(QwParameterFile& detectors);

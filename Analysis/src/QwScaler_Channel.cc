@@ -295,6 +295,55 @@ void VQwScaler_Channel::AssignValueFrom(const VQwDataElement* valueptr){
     throw std::invalid_argument(loc.Data());
   }
 }
+void VQwScaler_Channel::AddValueFrom(const  VQwHardwareChannel* valueptr)
+{
+  const VQwScaler_Channel* tmpptr;
+  tmpptr = dynamic_cast<const VQwScaler_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this += *tmpptr;
+  } else {
+    TString loc="Standard exception from VQwScaler_Channel::AddValueFrom = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+void VQwScaler_Channel::SubtractValueFrom(const  VQwHardwareChannel* valueptr)
+{
+  const VQwScaler_Channel* tmpptr;
+  tmpptr = dynamic_cast<const VQwScaler_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this -= *tmpptr;
+  } else {
+    TString loc="Standard exception from VQwScaler_Channel::SubtractValueFrom = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+void VQwScaler_Channel::MultiplyBy(const VQwHardwareChannel* valueptr)
+{
+  const VQwScaler_Channel* tmpptr;
+  tmpptr = dynamic_cast<const VQwScaler_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this *= *tmpptr;
+  } else {
+    TString loc="Standard exception from VQwScaler_Channel::MultiplyBy = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+
+void VQwScaler_Channel::DivideBy(const VQwHardwareChannel* valueptr)
+{
+  const VQwScaler_Channel* tmpptr;
+  tmpptr = dynamic_cast<const VQwScaler_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this /= *tmpptr;
+  } else {
+    TString loc="Standard exception from VQwScaler_Channel::DivideBy = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
 
 
 VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
@@ -326,6 +375,16 @@ VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value
 {
   if (!IsNameEmpty()){
     this->fValue  -= value.fValue;
+    this->fValueM2 = 0.0;
+    this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+  }
+  return *this;
+}
+
+VQwScaler_Channel& VQwScaler_Channel::operator*= (const VQwScaler_Channel &value)
+{
+  if (!IsNameEmpty()){
+    this->fValue  *= value.fValue;
     this->fValueM2 = 0.0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
@@ -600,7 +659,7 @@ void VQwScaler_Channel::ScaledAdd(Double_t scale, const VQwHardwareChannel *valu
     const VQwScaler_Channel* input = dynamic_cast<const VQwScaler_Channel*>(value);
 
     // follows same steps as += but w/ scaling factor
-    if (!IsNameEmpty()){
+    if (input!=NULL && !IsNameEmpty()){
         this->fValue  += scale * input->fValue;
         this->fValueM2 = 0.0;
         this->fDeviceErrorCode |= (input->fDeviceErrorCode);//error code is ORed.

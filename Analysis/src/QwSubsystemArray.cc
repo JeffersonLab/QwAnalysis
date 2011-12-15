@@ -757,7 +757,7 @@ TList* QwSubsystemArray::GetParamFileNameList(TString name) const
  * there is already a subsystem with that name in the array.
  * @param subsys Subsystem to add to the array
  */
-void QwSubsystemArray::push_back(boost::shared_ptr<VQwSubsystem>& subsys)
+void QwSubsystemArray::push_back(boost::shared_ptr<VQwSubsystem> subsys)
 {
   
  if (subsys.get() == NULL) {

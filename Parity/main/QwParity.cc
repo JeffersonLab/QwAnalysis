@@ -105,21 +105,18 @@ Int_t main(Int_t argc, Char_t* argv[])
     detectors.ProcessOptions(gQwOptions);
     detectors.ListPublishedValues();
 
-    /// Create linear regression subsystem  //TEST
-     TString name = "test";
-     boost::shared_ptr<VQwSubsystem> regress_sub( new QwRegressionSubsystem(gQwOptions, detectors, name));
-     detectors.push_back(regress_sub);
-     QwRegressionSubsystem* regsub =  dynamic_cast<QwRegressionSubsystem*>(regress_sub.get());
-     std::cout<<"Printing RegressionSubsystem values "<<std::endl;
-     regsub->PrintValue();
+    /// Create event-based linear regression subsystem
+    TString name = "MpsRegression";
+    QwRegressionSubsystem regress_sub(gQwOptions, detectors, name);
+    detectors.push_back(regress_sub.GetSharedPointerToStaticObject());
     
     ///  Create the helicity pattern
     QwHelicityPattern helicitypattern(detectors);
     helicitypattern.ProcessOptions(gQwOptions);
       
-    ///  Create the linear regression
-//    QwRegression regression(gQwOptions,detectors,helicitypattern);
-//    QwRegression running_regression(regression);
+    ///  Create the asymmetry-based linear regression
+    QwRegression regression(gQwOptions,helicitypattern);
+    QwRegression running_regression(regression);
 
     ///  Create the event ring
     QwEventRing eventring;
@@ -151,8 +148,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  Construct tree branches
     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
-  //  rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
-  //  rootfile->ConstructTreeBranches("Hel_Tree_Reg", "Helicity event data tree (regressed)", regression);
+    rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+    rootfile->ConstructTreeBranches("Hel_Tree_Reg", "Helicity event data tree (regressed)", regression);
     rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
     // Summarize the ROOT file structure
@@ -207,7 +204,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (detectors.ApplySingleEventCuts()) {
 	
 	// TEST 
- 	dynamic_cast<QwRegressionSubsystem*>(regress_sub.get())->LinearRegression(QwRegression::kRegTypeMps);
+ 	regress_sub.LinearRegression();
 
         // Accumulate the running sum to calculate the event based running average
         runningsum.AccumulateRunningSum(detectors);
@@ -247,12 +244,12 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
               // Linear regression on asymmetries
-      //        regression.LinearRegression(QwRegression::kRegTypeAsym);
-      //        running_regression.AccumulateRunningSum(regression);
+	      regression.LinearRegression(QwRegression::kRegTypeAsym);
+	      running_regression.AccumulateRunningSum(regression);
 
               // Fill regressed tree branches
-      //        rootfile->FillTreeBranches(regression);
-      //        rootfile->FillTree("Hel_Tree_Reg");
+	      rootfile->FillTreeBranches(regression);
+	      rootfile->FillTree("Hel_Tree_Reg");
 
               // Clear the data
               helicitypattern.ClearEventData();
@@ -289,8 +286,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
     }
 
-  //  running_regression.CalculateRunningAverage();
-  //  running_regression.PrintValue();
+    running_regression.CalculateRunningAverage();
+    running_regression.PrintValue();
 
     // This will calculate running averages over single helicity events
     runningsum.CalculateRunningAverage();

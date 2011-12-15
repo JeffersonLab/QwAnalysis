@@ -15,8 +15,12 @@
 // Qweak headers
 #include "VQwDataElement.h"
 
-// Forward declarations
+// ROOT forward declarations
+class TTree;
+
+// Qweak forward declarations
 class QwDBInterface;
+class QwParameterFile;
 
 class VQwHardwareChannel: public VQwDataElement {
 /****************************************************************//**
@@ -118,12 +122,23 @@ public:
   
   virtual void AccumulateRunningSum(const VQwHardwareChannel *value) = 0;
 
-  
-  virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& input) {  this->AssignValueFrom(&input); return *this; };
-  virtual VQwHardwareChannel& operator*=(const VQwHardwareChannel& input)     { this->AssignValueFrom(&input); return *this; };
-  virtual VQwHardwareChannel& operator/=(const VQwHardwareChannel& input)
-      { this->AssignValueFrom(&input); return *this;};
-  virtual VQwHardwareChannel& operator+=(const VQwHardwareChannel& input){ this->AssignValueFrom(&input); return *this; };
+
+  virtual void AddValueFrom(const VQwHardwareChannel* valueptr) = 0;
+  virtual void SubtractValueFrom(const VQwHardwareChannel* valueptr) = 0;
+  virtual void MultiplyBy(const VQwHardwareChannel* valueptr) = 0;
+  virtual void DivideBy(const VQwHardwareChannel* valueptr) = 0;
+
+  virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) = 0;
+  virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
+  void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
+  virtual void FillTreeVector(std::vector<Double_t>& values) const = 0;
+
+ private:
+  virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& input) { std::cerr << "Operation = not defined!"  << std::endl; return *this; };
+  virtual VQwHardwareChannel& operator+=(const VQwHardwareChannel& input){ std::cerr << "Operation += not defined!" << std::endl; return *this; };
+  virtual VQwHardwareChannel& operator-=(const VQwHardwareChannel& input){ std::cerr << "Operation -= not defined!" << std::endl; return *this; };
+  virtual VQwHardwareChannel& operator*=(const VQwHardwareChannel& input){ std::cerr << "Operation *= not defined!" << std::endl; return *this; };
+  virtual VQwHardwareChannel& operator/=(const VQwHardwareChannel& input){ std::cerr << "Operation /= not defined!" << std::endl; return *this; };
 
 protected:
   /*! \brief Set the number of data words in this data element */

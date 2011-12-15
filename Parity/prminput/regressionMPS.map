@@ -73,6 +73,11 @@ asym:qwk_bcm2, -1
 # Currently disabled because of how we write ROOT trees
 #
 [mps:qwk_md1neg, mps:qwk_md1pos]
-mps:x_targ, 0.11, -0.11
-mps:y_targ, 0.12, -0.12
+mps:x_targ, 1.11, -5.11
+mps:y_targ, 1.12, -1.12
 
+[mps:qwk_md2neg, mps:qwk_md2pos]
+mps:x_targ,  0.11, -0.11
+mps:y_targ,  0.12, -0.12
+mps:xp_targ, 0.10, -0.10
+mps:yp_targ, 0.09, -0.09

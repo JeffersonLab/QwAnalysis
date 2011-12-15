@@ -10,11 +10,23 @@
 #include "QwRegression.h"
 #include "QwSubsystemArrayParity.h"
 
+#include "QwParameterFile.h"
+
+
 //RegisterSubsystemFactory(QwRegressionSubsystem);
 
 
 QwRegressionSubsystem::~QwRegressionSubsystem()
 {
+}
+
+struct null_deleter { 
+  void operator()(void const *) const { }
+};
+
+boost::shared_ptr<VQwSubsystem> QwRegressionSubsystem::GetSharedPointerToStaticObject(){
+  boost::shared_ptr<VQwSubsystem> px(this, null_deleter());
+  return px;
 }
 
 void QwRegressionSubsystem::Copy (const QwRegressionSubsystem &source)
@@ -25,14 +37,12 @@ void QwRegressionSubsystem::Copy (const QwRegressionSubsystem &source)
     return;
 }
 
- QwRegressionSubsystem* QwRegressionSubsystem:: operator= (const QwRegressionSubsystem *value)
- {
-     for (size_t i = 0; i < value->fDependentVar.size(); i++)
-     {
-         this->fDependentVar.at(i).second = value->fDependentVar.at(i).second;
-     }
-
-     return this;
+QwRegressionSubsystem* QwRegressionSubsystem:: operator= (const QwRegressionSubsystem *value)
+{
+  for (size_t i = 0; i < value->fDependentVar.size(); i++) {
+    this->fDependentVar.at(i).second->AssignValueFrom(value->fDependentVar.at(i).second);
+  }
+  return this;
 }
 
 
@@ -40,7 +50,7 @@ QwRegressionSubsystem& QwRegressionSubsystem::operator+= (QwRegressionSubsystem 
 {  
      for(size_t i = 0; i < value->fDependentVar.size(); i++)
      {
-         *(this->fDependentVar.at(i).second) += *(value->fDependentVar.at(i).second);
+       this->fDependentVar.at(i).second->AddValueFrom(value->fDependentVar.at(i).second);
      }
 
      return *this;
@@ -51,7 +61,7 @@ QwRegressionSubsystem& ::QwRegressionSubsystem::operator-= (const QwRegressionSu
 {   
     for(size_t i = 0; i < value->fDependentVar.size();i++)
     {
-        *(this->fDependentVar.at(i).second) -= *(value->fDependentVar.at(i).second);
+      this->fDependentVar.at(i).second->SubtractValueFrom(value->fDependentVar.at(i).second);
     }
 
     return *this;
@@ -63,7 +73,7 @@ QwRegressionSubsystem& QwRegressionSubsystem:: operator*= (const QwRegressionSub
   
     for(size_t i = 0; i < value-> fDependentVar.size(); i++)
     {
-        *(this->fDependentVar.at(i).second) *= *(value->fDependentVar.at(i).second);
+      this->fDependentVar.at(i).second->MultiplyBy(value->fDependentVar.at(i).second);
     }
   
     return *this; 
@@ -75,7 +85,7 @@ QwRegressionSubsystem& QwRegressionSubsystem:: operator/= (const QwRegressionSub
 {
     for(size_t i = 0; i < value->fDependentVar.size(); i++)
     {
-        *(this->fDependentVar.at(i).second) /= *(value->fDependentVar.at(i).second);
+      this->fDependentVar.at(i).second->DivideBy(value->fDependentVar.at(i).second);
     }
     
     return *this;
@@ -99,28 +109,63 @@ void QwRegressionSubsystem::Difference(QwRegressionSubsystem *value1,QwRegressio
 
 void QwRegressionSubsystem:: AccumulateRunningSum(QwRegressionSubsystem* value)
 {
-    for (size_t i = 0; i < value-> fDependentVar.size(); i++)
-    {
-        fDependentVar.at(i).second->AccumulateRunningSum(value->fDependentVar.at(i).second);
-    }
+  if (value!=NULL){
+    QwRegression::AccumulateRunningSum(*value);
+  }
 }
 
 void QwRegressionSubsystem::CalculateRunningAverage()
 {
-    for(size_t i = 0; i < fDependentVar.size(); i++)
-    {
-        fDependentVar.at(i).second->CalculateRunningAverage();
-    }
+  QwRegression::CalculateRunningAverage();
 }
 
 void QwRegressionSubsystem:: PrintValue() const{
-
-    for (size_t i = 0; i < fDependentVar.size(); i++)
-    {
-        fDependentVar.at(i).second->PrintValue();
-    }
-
+  QwRegression::PrintValue();
 }
+
+
+void QwRegressionSubsystem::ConstructHistograms(TDirectory *folder, TString &prefix)
+{
+  for (size_t i = 0; i < fDependentVar.size(); i++){
+    fDependentVar.at(i).second->ConstructHistograms(folder,prefix);
+  }
+};
+
+void QwRegressionSubsystem::FillHistograms()
+{
+  for (size_t i = 0; i < fDependentVar.size(); i++){
+    fDependentVar.at(i).second->FillHistograms();
+  }
+};
+
+void QwRegressionSubsystem::DeleteHistograms()
+{
+  for (size_t i = 0; i < fDependentVar.size(); i++){
+    fDependentVar.at(i).second->DeleteHistograms();
+  }
+};
+
+void QwRegressionSubsystem::ConstructBranch(TTree *tree, TString & prefix)
+{
+  for (size_t i = 0; i < fDependentVar.size(); i++){
+    fDependentVar.at(i).second->ConstructBranch(tree, prefix);
+  }
+};
+
+void QwRegressionSubsystem::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
+{
+  TString tmp;
+  QwParameterFile* nextmodule;
+  trim_file.RewindToFileStart();
+  tmp="Regression";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for (size_t i = 0; i < fDependentVar.size(); i++){
+      fDependentVar.at(i).second->ConstructBranch(tree, prefix, *nextmodule);
+    }
+  }
+};
 
 
 
@@ -171,16 +216,19 @@ Int_t QwRegressionSubsystem::ProcessEvBuffer(UInt_t, UInt_t, UInt_t*, UInt_t)
 }
 
 
+
+
+
+
+
+
+
+
 VQwSubsystem& QwRegressionSubsystem::operator=(VQwSubsystem* value)
 {
-    
-    QwRegressionSubsystem* input= dynamic_cast<QwRegressionSubsystem*>(value);
-    
-    for(size_t i = 0; i < input->fDependentVar.size(); i++)
-    {
-      *(this->fDependentVar.at(i).second) = *(input->fDependentVar.at(i).second);
-    }
-    return *this;
+  QwRegressionSubsystem* input= dynamic_cast<QwRegressionSubsystem*>(value);
+  *this =  input;
+  return *this;
 }
 
 
@@ -188,12 +236,7 @@ VQwSubsystem& QwRegressionSubsystem::operator=(VQwSubsystem* value)
 VQwSubsystem& QwRegressionSubsystem::operator+=(VQwSubsystem* value)
 {
   QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
-  
-  for(size_t i = 0; i < input->fDependentVar.size(); i++)
-  {
-    *(this->fDependentVar.at(i).second) += *(input->fDependentVar.at(i).second);
-  }
-  
+  *this += input;
   return *this;
   
 }
@@ -201,46 +244,31 @@ VQwSubsystem& QwRegressionSubsystem::operator+=(VQwSubsystem* value)
 VQwSubsystem& QwRegressionSubsystem:: operator-=(VQwSubsystem* value)
 {
   QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*>(value);
-  
-  for(size_t i = 0; i<input->fDependentVar.size(); i++)
-  {
-    *(this->fDependentVar.at(i).second) += *(input->fDependentVar.at(i).second);
-  } 
-  
+  *this -= input;
   return *this;
 }
 
 void QwRegressionSubsystem::Sum(VQwSubsystem* value1, VQwSubsystem* value2)
 {
   QwRegressionSubsystem* input1 = dynamic_cast<QwRegressionSubsystem*>(value1);
-  
   QwRegressionSubsystem* input2 = dynamic_cast<QwRegressionSubsystem*>(value2);
-  
-  *this = input1;
-  *this += input2;
-  
+  Sum(input1,input2);
 }
 
 
 void QwRegressionSubsystem::Difference(VQwSubsystem* value1, VQwSubsystem* value2)
 {
   QwRegressionSubsystem* input1 = dynamic_cast<QwRegressionSubsystem*>(value1);
-  
   QwRegressionSubsystem* input2 = dynamic_cast<QwRegressionSubsystem*>(value2);
-  
-  *this = input1;
-  *this -= input2;
-  
+  Difference(input1,input2);
 }
 
 
 void QwRegressionSubsystem::Ratio(VQwSubsystem* value1, VQwSubsystem* value2)
 {
   QwRegressionSubsystem* input1 = dynamic_cast<QwRegressionSubsystem*>(value1);
-  
   QwRegressionSubsystem* input2 = dynamic_cast<QwRegressionSubsystem*>(value2);
-  
-  *this = input1;
+  *this =  input1;
   *this /= input2;
 }
 
@@ -261,10 +289,9 @@ VQwSubsystem* QwRegressionSubsystem::Copy()
 }
   
 
-void AccumulateRunningSum(VQwSubsystem* input)
+void QwRegressionSubsystem::AccumulateRunningSum(VQwSubsystem* input)
 {
   QwRegressionSubsystem* value = dynamic_cast<QwRegressionSubsystem*> (input);
-  
   AccumulateRunningSum(value);
 }
 
