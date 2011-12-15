@@ -30,10 +30,11 @@ my $optstatus = GetOptions
 
 @channels = qw[ibcm1] if $nodaqcut;
 
-my $then = ParseDate(shift @ARGV);
-my $now  = ParseDate(shift @ARGV);
-unless (defined $then) { $then = ParseDate("yesterday midnight"); }
-unless (defined $now ) { $now  = DateCalc($then, "+48 hours"); }
+my $then = shift @ARGV;
+my $now  = shift @ARGV;
+
+$then = ParseDate( $then ? $then : "yesterday midnight");
+$now = $now ? ParseDate($now) : DateCalc($then, "+48 hours");
 
 # don't interpolate a few seconds into the next day
 $now = DateCalc $now, "-$interval seconds";
