@@ -25,12 +25,12 @@ QwRegression::QwRegression(
 {
   fEnableRegression = false;
   ProcessOptions(options);
+  fSubsystemArray = &event;
+  fHelicityPattern = &helicitypattern;
   LoadChannelMap(fRegressionMapFile);
   QwSubsystemArrayParity& asym = helicitypattern.fAsymmetry;
   QwSubsystemArrayParity& diff = helicitypattern.fDifference;
   ConnectChannels(event,asym,diff);
-  fSubsystemArray = &event;
-  fHelicityPattern = &helicitypattern;
 }
 
 /** Constructor with single event
@@ -43,9 +43,9 @@ QwRegression::QwRegression(QwOptions &options, QwSubsystemArrayParity& event)
 {
     fEnableRegression = false;
     ProcessOptions(options);
+    fSubsystemArray = &event;
     LoadChannelMap(fRegressionMapFile);
     ConnectChannels(event);
-    fSubsystemArray = &event;
       
 }
 
@@ -61,6 +61,9 @@ QwRegression::QwRegression(QwOptions &options, QwHelicityPattern& helicitypatter
   ProcessOptions(options);
   LoadChannelMap(fRegressionMapFile);
   fHelicityPattern = &helicitypattern;
+  QwSubsystemArrayParity& asym = helicitypattern.fAsymmetry;
+  QwSubsystemArrayParity& diff = helicitypattern.fDifference;
+  ConnectChannels(asym,diff);
 }
 
 /** Constructor with options
@@ -83,7 +86,7 @@ QwRegression::QwRegression(const QwRegression &source){
 /// Destructor
 QwRegression::~QwRegression()
 {
-  std::vector< std::pair< VQwHardwareChannel*,VQwHardwareChannel*> >::iterator element;
+  PairIterator element;
   for (element = fDependentVar.begin();
       element != fDependentVar.end(); element++) {
       if (element->second != NULL){
@@ -263,7 +266,8 @@ Int_t QwRegression::ConnectChannels(
 
     // pair creation
     if(new_vqwk != NULL){
-        fDependentVar.push_back(std::pair<VQwHardwareChannel*,VQwHardwareChannel*>(vqwk, new_vqwk));
+      fDependentVarType.push_back(fDependentType.at(dv));
+      fDependentVar.push_back(std::make_pair(vqwk, new_vqwk));
     }
 
       // Add independent variables
@@ -289,7 +293,114 @@ Int_t QwRegression::ConnectChannels(
         if (iv_ptr) {
           QwMessage << " iv: " << fIndependentName.at(dv).at(iv) << " (sens = "
                     << fSensitivity.at(dv).at(iv) << ")" << QwLog::endl;
-          fIndependentVar.back().push_back(iv_ptr);
+          fIndependentVar.back().push_back(std::make_pair(fSensitivity.at(dv).at(iv),
+							  iv_ptr));
+        } else {
+          QwWarning << "Independent variable " << fIndependentName.at(dv).at(iv) << " for regression of "
+                    << "dependent variable " << fDependentName.at(dv) << " could not be found."
+                    << QwLog::endl;
+        }
+      }
+  }
+  
+  return 0;
+
+}
+/** Connect to the dependent and independent channels
+ *
+ * @param asym Asymmetry event structure
+ * @param diff Difference event structure
+ * @return Zero on success
+ */
+Int_t QwRegression::ConnectChannels(
+    QwSubsystemArrayParity& asym,
+    QwSubsystemArrayParity& diff)
+{
+  // Return if regression is not enabled
+  if (! fEnableRegression) return 0;
+
+  /// Fill vector of pointers to the relevant data elements
+  for (size_t dv = 0; dv < fDependentName.size(); dv++) {
+    // Get the dependent variables
+
+    VQwHardwareChannel* dv_ptr = 0;
+    QwVQWK_Channel* new_vqwk = NULL;
+    QwVQWK_Channel* vqwk = NULL;
+    string name = "";
+    string reg = "reg_";
+    
+    if (fDependentType.at(dv)==kRegTypeMps){
+      //  Quietly ignore the MPS type when we're connecting the asym & diff
+      continue;
+    } else if(fDependentName.at(dv).at(0) == '@' ){
+        name = fDependentName.at(dv).substr(1,fDependentName.at(dv).length());
+    }else{
+        switch (fDependentType.at(dv)) {
+          case kRegTypeAsym:
+            dv_ptr = asym.ReturnInternalValueForFriends(fDependentName.at(dv));
+            break;
+          case kRegTypeDiff:
+            dv_ptr = diff.ReturnInternalValueForFriends(fDependentName.at(dv));
+            break;
+          default:
+            QwWarning << "QwRegression::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff):  Dependent variable, "
+		      << fDependentName.at(dv)
+		      << ", for asym/diff regression does not have proper type, type=="
+		      << fDependentType.at(dv) << "."<< QwLog::endl;
+            break;
+        }
+
+        vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
+        name = vqwk->GetElementName().Data();
+        name.insert(0, reg);
+        new_vqwk = new QwVQWK_Channel();
+        new_vqwk->Copy(vqwk);
+        new_vqwk->SetElementName(name);
+    }
+
+    // alias
+    if(fDependentName.at(dv).at(0) == '@'){
+        QwMessage << "dv: " << name << QwLog::endl;
+        name.insert(0,reg);
+        new_vqwk = new QwVQWK_Channel(name);
+    }
+    // defined type
+    else if(dv_ptr!=NULL){
+        QwMessage << "dv: " << fDependentName.at(dv) << QwLog::endl;
+    }else {
+        QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found, "
+                << "or is not a VQWK channel." << QwLog::endl;
+                continue; 
+    }
+
+    // pair creation
+    if(new_vqwk != NULL){
+      fDependentVarType.push_back(fDependentType.at(dv));
+      fDependentVar.push_back(std::make_pair(vqwk, new_vqwk));
+    }
+
+      // Add independent variables
+      fIndependentVar.resize(fDependentVar.size());
+      for (size_t iv = 0; iv < fIndependentName.at(dv).size(); iv++) {
+        // Get the independent variables
+        const VQwHardwareChannel* iv_ptr = 0;
+        switch (fIndependentType.at(dv).at(iv)) {
+          case kRegTypeAsym:
+            iv_ptr = asym.ReturnInternalValue(fIndependentName.at(dv).at(iv));
+            break;
+          case kRegTypeDiff:
+            iv_ptr = diff.ReturnInternalValue(fIndependentName.at(dv).at(iv));
+            break;
+          default:
+            QwWarning << "Independent variable for regression has unknown type."
+                      << QwLog::endl;
+            break;
+        }
+        if (iv_ptr) {
+          QwMessage << " iv: " << fIndependentName.at(dv).at(iv) << " (sens = "
+                    << fSensitivity.at(dv).at(iv) << ")" << QwLog::endl;
+          fIndependentVar.back().push_back(std::make_pair(fSensitivity.at(dv).at(iv),
+							  iv_ptr));
         } else {
           QwWarning << "Independent variable " << fIndependentName.at(dv).at(iv) << " for regression of "
                     << "dependent variable " << fDependentName.at(dv) << " could not be found."
@@ -321,39 +432,42 @@ Int_t QwRegression::ConnectChannels(QwSubsystemArrayParity& event)
     QwVQWK_Channel* vqwk = NULL;
     string name = " s";
     string reg = "reg_";
-    
-    if(fDependentName.at(dv).at(0) == '@' ){
+
+    if (fDependentType.at(dv)==kRegTypeAsym || fDependentType.at(dv)==kRegTypeDiff){
+      //  Quietly skip the asymmetry or difference types.
+      continue;
+    } else if(fDependentType.at(dv) != kRegTypeMps){
+      QwWarning << "QwRegression::ConnectChannels(QwSubsystemArrayParity& event):  Dependent variable, "
+	      << fDependentName.at(dv)
+	      << ", for MPS regression does not have MPS type, type=="
+	      << fDependentType.at(dv) << "."<< QwLog::endl;
+      continue;
+    } else {
+      if(fDependentName.at(dv).at(0) == '@' ){
         name = fDependentName.at(dv).substr(1,fDependentName.at(dv).length());
-    }else if(fDependentType.at(dv) == kRegTypeMps){
+        new_vqwk = new QwVQWK_Channel(name);
+      } else {
         dv_ptr = event.ReturnInternalValueForFriends(fDependentName.at(dv));
 
 	vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
         name = vqwk->GetElementName().Data();
         new_vqwk = new QwVQWK_Channel();
         new_vqwk->Copy(vqwk);
+        name.insert(0,reg);
         new_vqwk->SetElementName(name);
-    }else{
-        QwWarning << "Dependent variable for regression has unknown type."<< QwLog::endl;
+      }
     }
 
     // alias
-    if(fDependentName.at(dv).at(0) == '@'){
-        QwMessage << "dv: " << name << QwLog::endl;
-        name.insert(0,reg);
-        new_vqwk = new QwVQWK_Channel(name);
-    }
-    // defined type
-    else if(dv_ptr!=NULL){
-        QwMessage << "dv: " << fDependentName.at(dv) << QwLog::endl;
-    }else {
-        QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found, "
+    if(new_vqwk==NULL){
+      QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found, "
                 << "or is not a VQWK channel." << QwLog::endl;
-                continue; 
-    }
-
-    // pair creation
-    if(new_vqwk != NULL){
-        fDependentVar.push_back(std::pair<VQwHardwareChannel*,VQwHardwareChannel*>(vqwk, new_vqwk));
+      continue; 
+    } else {
+      QwMessage << "dv: " << new_vqwk->GetElementName() << QwLog::endl;
+      // pair creation
+      fDependentVarType.push_back(fDependentType.at(dv));
+      fDependentVar.push_back(std::make_pair(vqwk, new_vqwk));
     }
 
       // Add independent variables
@@ -364,13 +478,14 @@ Int_t QwRegression::ConnectChannels(QwSubsystemArrayParity& event)
         if(fIndependentType.at(dv).at(iv) == kRegTypeMps){
             iv_ptr = event.ReturnInternalValue(fIndependentName.at(dv).at(iv));
 	}else{
-            QwWarning << "Independent variable for regression has unknown type."
+            QwWarning << "Independent variable for MPS regression has unknown type."
                       << QwLog::endl;
         }
         if (iv_ptr) {
           QwMessage << " iv: " << fIndependentName.at(dv).at(iv) << " (sens = "
                     << fSensitivity.at(dv).at(iv) << ")" << QwLog::endl;
-          fIndependentVar.back().push_back(iv_ptr);
+          fIndependentVar.back().push_back(std::make_pair(fSensitivity.at(dv).at(iv),
+							  iv_ptr));
         } else {
           QwWarning << "Independent variable " << fIndependentName.at(dv).at(iv) << " for regression of "
                     << "dependent variable " << fDependentName.at(dv) << " could not be found."
@@ -413,7 +528,10 @@ void QwRegression::LinearRegression(EQwRegType type)
 
 
   // Return if regression is not enabled
-  if (! fEnableRegression) return;
+  if (! fEnableRegression){
+    QwError << "Regression is not enabled!" << QwLog::endl;
+    return;
+  }
   // Linear regression for each dependent variable
   for (size_t dv = 0; dv < fDependentVar.size(); dv++) {
     // if second is NULL, can't do regression
@@ -422,7 +540,8 @@ void QwRegression::LinearRegression(EQwRegType type)
         continue;
     }
     // For correct type (asym, diff, mps)
-    if (fDependentType.at(dv) != type) continue;
+    if (fDependentVarType.at(dv) != type) continue;
+
     // Clear data in second, if first is NULL
     if (fDependentVar.at(dv).first == NULL){
         fDependentVar.at(dv).second->ClearEventData();
@@ -432,7 +551,8 @@ void QwRegression::LinearRegression(EQwRegType type)
     }
     // Add corrections
     for (size_t iv = 0; iv < fIndependentVar.at(dv).size(); iv++) {
-        fDependentVar.at(dv).second->ScaledAdd(fSensitivity.at(dv).at(iv),fIndependentVar.at(dv).at(iv));
+      fDependentVar.at(dv).second->ScaledAdd(fIndependentVar.at(dv).at(iv).first,
+					     fIndependentVar.at(dv).at(iv).second);
     }
   }
 }
@@ -449,20 +569,10 @@ void  QwRegression::ConstructBranchAndVector(
     TString& prefix,
     std::vector<Double_t>& values)
 {
-  for (size_t element = 0; element < fDependentVar.size(); ++element) {
-    switch (fDependentType.at(element)) {
-      case kRegTypeAsym:
-        prefix = "asym_"; break;
-      case kRegTypeDiff:
-        prefix = "diff_"; break;
-      case kRegTypeMps:
-        prefix = "mps_"; break;
-      default: // nothing
-        break;
-    }
-    // Only QwVQWK_Channel has support for branch vectors built in
-    QwVQWK_Channel* vqwk = dynamic_cast<QwVQWK_Channel*>(fDependentVar.at(element).second);
-    if (vqwk) vqwk->ConstructBranchAndVector(tree, prefix, values);
+  PairConstIterator element;
+  for (element = fDependentVar.begin();
+       element != fDependentVar.end(); ++element) {
+    element->second->ConstructBranchAndVector(tree, prefix, values);
   }
 };
 
@@ -473,12 +583,11 @@ void  QwRegression::ConstructBranchAndVector(
 void QwRegression::FillTreeVector(std::vector<Double_t>& values) const
 {
   // Fill the data element
-  std::vector< std::pair<VQwHardwareChannel*, VQwHardwareChannel*> >::const_iterator element;
+  PairConstIterator element;
   for (element = fDependentVar.begin();
-      element != fDependentVar.end(); ++element) {
-    // Only QwVQWK_Channel has support for branch vectors built in
-    const QwVQWK_Channel* vqwk = dynamic_cast<const QwVQWK_Channel*>(element->second);
-    if (vqwk) vqwk->FillTreeVector(values);
+       element != fDependentVar.end(); ++element) {
+    if (element->second == NULL) continue;
+    element->second->FillTreeVector(values);
   }
 };
 
@@ -489,12 +598,12 @@ void QwRegression::FillTreeVector(std::vector<Double_t>& values) const
 void QwRegression::Copy (const QwRegression *source)
 {
     this->fDependentVar.resize(source->fDependentVar.size());
-
-    for (size_t i = 0; i < this->fDependentVar.size(); i++)
-    {
-       this->fDependentVar[i].first = NULL;
-       this->fDependentVar[i].second = new QwVQWK_Channel();
-       this->fDependentVar[i].second->Copy(source->fDependentVar[i].second);
+    fDependentVarType.resize(source->fDependentVar.size());
+    for (size_t i = 0; i < this->fDependentVar.size(); i++) {
+      this->fDependentVar[i].first = NULL;
+      this->fDependentVar[i].second = new QwVQWK_Channel();
+      this->fDependentVar[i].second->Copy(source->fDependentVar[i].second);
+      fDependentVarType[i] = source->fDependentVarType[i];
     }
     
     return; 
@@ -503,31 +612,27 @@ void QwRegression::Copy (const QwRegression *source)
 
 void QwRegression::AccumulateRunningSum(QwRegression value)
 {
-    for (size_t i = 0; i < value.fDependentVar.size(); i++){
-        this->fDependentVar[i].second->AccumulateRunningSum(const_cast<VQwHardwareChannel*>(value.fDependentVar[i].second));
-    }
+  for (size_t i = 0; i < value.fDependentVar.size(); i++){
+    this->fDependentVar[i].second->AccumulateRunningSum(value.fDependentVar[i].second);
+  }
 }
 
 
 void QwRegression::CalculateRunningAverage()
 {
-    for(size_t i = 0; i < fDependentVar.size(); i++)
-    {
-        fDependentVar[i].second->CalculateRunningAverage();
-    }
-
-    return;
+  for(size_t i = 0; i < fDependentVar.size(); i++) {
+    fDependentVar[i].second->CalculateRunningAverage();
+  }
+  
+  return;
 }
 
 
 void QwRegression::PrintValue() const
 {
-    QwMessage<<"=== QwRegression ==="<<QwLog::endl<<QwLog::endl;
-    for(size_t i = 0; i < fDependentVar.size(); i++)
-    {
-        QwMessage<<QwLog::endl;
-        fDependentVar[i].second->PrintValue();
-        QwMessage<<QwLog::endl;
-    }
+  QwMessage<<"=== QwRegression ==="<<QwLog::endl<<QwLog::endl;
+  for(size_t i = 0; i < fDependentVar.size(); i++) {
+    fDependentVar[i].second->PrintValue();
+  }
 }
 

@@ -92,6 +92,11 @@ public:
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
   void AssignScaledValue(const VQwScaler_Channel &value, Double_t scale);
   void AssignValueFrom(const VQwDataElement* valueptr);
+  void AddValueFrom(const VQwHardwareChannel* valueptr);
+  void SubtractValueFrom(const VQwHardwareChannel* valueptr);
+  void MultiplyBy(const VQwHardwareChannel* valueptr);
+  void DivideBy(const VQwHardwareChannel* valueptr);
+
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);

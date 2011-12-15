@@ -22,8 +22,11 @@ class QwRegression {
 
     /// Type of regression variable
     enum EQwRegType {
-      kRegTypeUnknown, kRegTypeMps, kRegTypeAsym, kRegTypeDiff
+      kRegTypeUnknown=0, kRegTypeMps, kRegTypeAsym, kRegTypeDiff
     };
+
+    typedef std::vector< std::pair< VQwHardwareChannel*,VQwHardwareChannel*> >::iterator PairIterator;
+    typedef std::vector< std::pair< VQwHardwareChannel*,VQwHardwareChannel*> >::const_iterator PairConstIterator;
 
   public:
 
@@ -57,6 +60,9 @@ class QwRegression {
         QwSubsystemArrayParity& diff);
     /// \brief Connect to Channels (event only)
     Int_t ConnectChannels(QwSubsystemArrayParity& event);
+    /// \brief Connect to Channels (asymmetry/difference only)
+    Int_t ConnectChannels(QwSubsystemArrayParity& asym,
+			  QwSubsystemArrayParity& diff);
 
     /// \brief Linear regression
     void LinearRegression(EQwRegType type);
@@ -71,6 +77,7 @@ class QwRegression {
     };
     /// \brief Construct a branch and vector for this subsystem with a prefix
     void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
+
     /// \brief Fill the vector for this subsystem
     void FillTreeVector(std::vector<Double_t> &values) const;
     // @}
@@ -104,13 +111,26 @@ class QwRegression {
     /// List of channels to use in the regression
     std::vector< EQwRegType > fDependentType;
     std::vector< std::string > fDependentName;
-    std::vector< std::pair< VQwHardwareChannel*, VQwHardwareChannel*> > fDependentVar;
     std::vector< std::vector< EQwRegType > > fIndependentType;
     std::vector< std::vector< std::string > > fIndependentName;
-    std::vector< std::vector< const VQwHardwareChannel* > > fIndependentVar;
     std::vector< std::vector< Double_t> > fSensitivity;
+
+    std::vector< EQwRegType > fDependentVarType;
+    std::vector< std::pair< VQwHardwareChannel*, VQwHardwareChannel*> > fDependentVar;
+    std::vector< std::vector< std::pair< Double_t, const VQwHardwareChannel* > > > fIndependentVar;
 
 
 }; // class QwRegression
+
+inline std::ostream& operator<< (std::ostream& stream, const QwRegression::EQwRegType& i) {
+  switch (i){
+  case QwRegression::kRegTypeMps:  stream << "mps"; break;
+  case QwRegression::kRegTypeAsym: stream << "asym"; break;
+  case QwRegression::kRegTypeDiff: stream << "diff"; break;
+  default:           stream << "Unknown";
+  }
+  return stream;
+}
+
 
 #endif // QWREGRESSION_H_
