@@ -11,7 +11,6 @@
 
  */
 
--- WHY DOESN'T THIS WORK?? It works in is_slug_done.sql ... argh.
 set @datatable := if(@datatable, @datatable, "md_data");
 select @datatable ;
 
