@@ -2,7 +2,7 @@
 
    This mysql script searches for runlets which have more than results
    from more than one analysis stored in a data table.  To check a
-   different data table, edit the assignment to @data_table in the
+   different data table, edit the assignment to @datatable in the
    first SELECT statement, then call (from the mysql prompt):
 
 	source find_dupes.sql
@@ -12,8 +12,8 @@
  */
 
 -- WHY DOESN'T THIS WORK?? It works in is_slug_done.sql ... argh.
-# set @data_table := if(@data_table, @data_table, "md_data");
-select @data_table ;
+set @datatable := if(@datatable, @datatable, "md_data");
+select @datatable ;
 
 -- The first temporary table, multianalyzed, contains all the runs
 -- that have been analyzed more than once.
@@ -28,7 +28,7 @@ CREATE TEMPORARY TABLE multianalyzed AS
 ;
 
 -- The second temporary table, possibly_ambiguous, is used to count
--- the number of analyses which are reported in @data_table.
+-- the number of analyses which are reported in @datatable.
 -- 
 -- Logically this query can be made without also creating
 -- multianalyzed; however when SELECTing from (analyze JOIN md_data
@@ -44,7 +44,7 @@ CREATE TEMPORARY TABLE possibly_ambiguous AS
         FROM multianalyzed 
                 JOIN analysis   USING (runlet_id) 
                 JOIN "
-                  , @data_table , 
+                  , @datatable , 
                                 " USING (analysis_id)
         GROUP BY analysis_id
         ORDER BY analysis.runlet_id
@@ -53,7 +53,7 @@ prepare list_ambiguous from @ambiguous;
 execute list_ambiguous;
 
 -- The third temporary table, ambiguous, contains only the runlets
--- where more than one analysis result appears in the @data_table.
+-- where more than one analysis result appears in the @datatable.
 DROP TEMPORARY TABLE IF EXISTS ambiguous ;
 CREATE TEMPORARY TABLE ambiguous AS
         SELECT 
@@ -86,7 +86,7 @@ execute ex2 using @limit;
 
 -- Sample query: count the number of runlets with multiple analyses
 -- stored, and the total number of analyses that need to be evaluated
--- (for @data_table).
+-- (for @datatable).
 select @ex3 := "SELECT count(*), sum(analyses) from ambiguous" as ex3;
 prepare ex3 from @ex3;
 execute ex3; 

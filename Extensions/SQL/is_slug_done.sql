@@ -13,7 +13,7 @@
 
  */
 
-set @slug := if(@slug, @slug, 49) ;
+set @slug := if(@slug, @slug, 159) ;
 
 drop temporary table if exists slug_runlets ; 
 create temporary table slug_runlets as 
@@ -22,7 +22,7 @@ select
 ,	analysis_id
 ,	run.run_number
 ,	segment_number
-,	good_for_id as good_for
+,	runlet.good_for_id as good_for
 ,	run_quality_id as run_quality
 from 
 	runlet join run using (run_id) 
