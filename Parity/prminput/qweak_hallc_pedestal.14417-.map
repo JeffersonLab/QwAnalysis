@@ -125,8 +125,8 @@
   qwk_bcm6        ,-417.065,      0.00217342
   qwk_bcm7        ,-569.71,       0.00212959
   qwk_bcm8        ,-512.469,      0.00206906
-  qwk_bcmGL       , -372.26,      0.002
   qwk_bcmGL1      , -207.06,      0.002
+  qwk_bcmGL2      , -372.26,      0.002
   qwk_invert_tstable   , -541.714 	, 1.0
   sca_habcm       , 260  , 0.0003132
   qwk_linephase, 0, 1.0
