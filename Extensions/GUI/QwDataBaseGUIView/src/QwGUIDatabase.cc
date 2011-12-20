@@ -6,7 +6,6 @@
 #include "TStopwatch.h"
 #include "TLatex.h"
 #include "TDatime.h"
-#include <vector.h>
 
 ClassImp(QwGUIDatabase);
 
@@ -119,12 +118,17 @@ const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] =
  
 };
 
-const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] = 
+//if you change this you need to change the IF statement in MakeQuery to reflect what
+//entry begins the "double difference" section.
+const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] =
 {
-  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
-  "qwk_linephase", "qwk_invert_tstable","bcmdd12","bcmdd15","bcmdd16","bcmdd56"
- 
-};
+
+
+ "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
+ "qwk_linephase", "qwk_invert_tstable","bcmdd12","bcmdd15","bcmdd16", "bcmdd17",
+ "bcmdd18","bcmdd25", "bcmdd26","bcmdd27", "bcmdd28","bcmdd56", "bcmdd57",
+ "bcmdd58", "bcmdd67","bcmdd68", "bcmdd78"
+ };
 
 const char *QwGUIDatabase::LumiCombos[N_LUMIS] = 
 {
@@ -159,7 +163,8 @@ const char *QwGUIDatabase::LumiCombos[N_LUMIS] =
   "uslumi1_uslumi5_diff",
   "dslumi_odd",
   "dslumi_even", 
-  "dslumi_sum"
+  "dslumi_sum",
+  "uslumi_sum"
 };
 
 
@@ -205,16 +210,16 @@ const char   *QwGUIDatabase::RegressionVarsOn_3[N_REG_VARS_ON_3]={
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_4[N_REG_VARS_ON_4]={
-  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_qwk_bpm3c12X", 
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_bpm3c12X",
   "wrt_asym_bcm5",
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_5[N_REG_VARS_ON_5]={
-  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_qwk_bpm3c12X"
+  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_bpm3c12X"
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_6[N_REG_VARS_ON_6]={
-  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","diff_qwk_bpm3c12X","wrt_asym_qwk_charge"
+  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
 };
 
 const char *QwGUIDatabase::RegressionSchemes[N_REGRESSION_SCHEMES] = {
@@ -1173,8 +1178,14 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
   if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="off" || det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
     // To get the unregressed data when slope correction is on all the schemes will have the same unregressed
     // values. So I can just pick one scheme for the slope_correction option
-    correction_flag  = "off";
-    regression_selected = regression_set;
+
+	  correction_flag  = "off";
+
+    if(dCmbInstrument->GetSelected() == ID_BCM && dCmbDetector->GetSelected() > 7){
+        	regression_selected = "on";//need this to see double differences?
+    }
+    else
+        	regression_selected = regression_set;
   }
   else{
     // To get the regressed data
@@ -2319,6 +2330,9 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
       }
       else
 	ytitle  = "Beam Position Differences (nm)";
+    }
+    else if (det_id == ID_BCM){
+      	ytitle = "BCM Double Difference (ppm)";
     }
     else
       ytitle = "Beam Position Differences (nm)";

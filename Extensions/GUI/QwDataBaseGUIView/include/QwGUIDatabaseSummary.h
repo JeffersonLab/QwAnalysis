@@ -36,9 +36,9 @@
 //=============================================================================
 
 #define N_DETECTORS      43
-#define N_LUMIS          36
+#define N_LUMIS          32
 #define N_BPMS           22
-#define N_BCMS           12
+#define N_BCMS           23
 #define N_CMB_BPMS        1
 #define N_CMB_BCMS        1
 #define N_ENERGY          1
@@ -134,7 +134,8 @@ using std::vector;
 
 	   TGComboBox		  *dCmbTimeScale;
 	   TGTextButton        *dBtnMDAsym;
-	   TGTextButton        *dBtnLumiAsym;
+	   TGTextButton        *dBtnDSLumiAsym;
+	   TGTextButton        *dBtnUSLumiAsym;
 	   TGTextButton        *dBtnBkgdAsym;
 	   TGTextButton        *dBtnBeamPos;
 	   TGTextButton        *dBtnCharge;
@@ -205,7 +206,8 @@ using std::vector;
   void PlotDetector(Int_t ncan, TCanvas *can);
 
   void PlotMD();
-  void PlotLumi();
+  void PlotDSLumi();
+  void PlotUSLumi();
   void PlotBkgd();
   void PlotBeamPos();
   void PlotCharge();

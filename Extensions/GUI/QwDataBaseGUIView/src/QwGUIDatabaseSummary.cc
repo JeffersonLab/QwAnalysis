@@ -51,7 +51,8 @@ enum EQwGUIDatabaseSummaryWidgetIDs {
   CMB_PROPERTY,
   CMB_TIMESCALE,
   BTN_MDASYM,
-  BTN_LUMIASYM,
+  BTN_DSLUMIASYM,
+  BTN_USLUMIASYM,
   BTN_BKGDASYM,
   BTN_BEAMPOS,
   BTN_CHARGE,
@@ -168,7 +169,8 @@ const char *QwGUIDatabaseSummary::LumiCombos[N_LUMIS] =
   "uslumi1_uslumi5_diff",
   "dslumi_odd",
   "dslumi_even", 
-  "dslumi_sum"
+  "dslumi_sum",
+  "uslumi_sum"
 };
 
 
@@ -209,21 +211,21 @@ const char *QwGUIDatabaseSummary::RegressionVarsOn_5_1[N_REG_VARS_ON_5_1]={
 };
 
 const char   *QwGUIDatabaseSummary::RegressionVarsOn_3[N_REG_VARS_ON_3]={
-  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_qwk_bpm3c12X",
-  "wrt_asym_qwk_charge",
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_bpm3c12X",
+  "wrt_asym_charge",
 };
 
 const char   *QwGUIDatabaseSummary::RegressionVarsOn_4[N_REG_VARS_ON_4]={
-  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_qwk_bpm3c12X",
-  "wrt_asym_qwk_bcm5",
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_bpm3c12X",
+  "wrt_asym_bcm5",
 };
 
 const char   *QwGUIDatabaseSummary::RegressionVarsOn_5[N_REG_VARS_ON_5]={
-  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_qwk_bpm3c12X"
+  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_bpm3c12X"
 };
 
 const char   *QwGUIDatabaseSummary::RegressionVarsOn_6[N_REG_VARS_ON_6]={
-  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","diff_qwk_bpm3c12X","wrt_asym_qwk_charge"
+  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","diff_qwk_bpm3c12X","wrt_asym_charge"
 };
 
 const char *QwGUIDatabaseSummary::RegressionSchemes[N_REGRESSION_SCHEMES] = {
@@ -349,7 +351,8 @@ QwGUIDatabaseSummary::QwGUIDatabaseSummary(const TGWindow *p, const TGWindow *ma
 	  dLabTimeScale		  = NULL;
 	  dCmbTimeScale		  = NULL;
 	  dBtnMDAsym          = NULL;
-	  dBtnLumiAsym        = NULL;
+	  dBtnDSLumiAsym      = NULL;
+	  dBtnDSLumiAsym      = NULL;
 	  dBtnBkgdAsym        = NULL;
 	  dBtnBeamPos         = NULL;
 	  dBtnCharge          = NULL;
@@ -419,7 +422,8 @@ QwGUIDatabaseSummary::~QwGUIDatabaseSummary()
 	  if(dLabTimeScale)		  delete dLabTimeScale;
 	  if(dCmbTimeScale)       delete dCmbTimeScale;
 	  if(dBtnMDAsym)          delete dBtnMDAsym;
-	  if(dBtnLumiAsym)        delete dBtnLumiAsym;
+	  if(dBtnDSLumiAsym)      delete dBtnDSLumiAsym;
+	  if(dBtnUSLumiAsym)      delete dBtnUSLumiAsym;
 	  if(dBtnBkgdAsym)        delete dBtnBkgdAsym;
 	  if(dBtnBeamPos)         delete dBtnBeamPos;
 	  if(dBtnCharge)          delete dBtnCharge;
@@ -490,7 +494,8 @@ void QwGUIDatabaseSummary::MakeLayout()
   dNumStartRun        = new TGNumberEntry(dRunFrame, 13500, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dNumStopRun         = new TGNumberEntry(dRunFrame, 16000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dBtnMDAsym          = new TGTextButton(dControlsFrame, "&MD Asymmetries", BTN_MDASYM);
-  dBtnLumiAsym        = new TGTextButton(dControlsFrame, "&Lumi Asymmetries", BTN_LUMIASYM);
+  dBtnDSLumiAsym      = new TGTextButton(dControlsFrame, "&DSLumi Asymmetries", BTN_DSLUMIASYM);
+  dBtnUSLumiAsym      = new TGTextButton(dControlsFrame, "&USLumi Asymmetries", BTN_USLUMIASYM);
   dBtnBkgdAsym        = new TGTextButton(dControlsFrame, "&Bkgd Asymmetries", BTN_BKGDASYM);
   dBtnBeamPos         = new TGTextButton(dControlsFrame, "&Position Differences", BTN_BEAMPOS);
   dBtnCharge          = new TGTextButton(dControlsFrame, "&Charge Quantities", BTN_CHARGE);
@@ -518,7 +523,7 @@ void QwGUIDatabaseSummary::MakeLayout()
   dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 10, 0 );
   dFrmLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
   dBoxLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
-  dSpacerLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0,0,150,0);
+  dSpacerLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0,0,120,0);
 
   dCmbTimeScale->Connect("Selected(Int_t)","QwGUIDatabaseSummary", this, "EnableRunRange()");
 
@@ -570,7 +575,8 @@ void QwGUIDatabaseSummary::MakeLayout()
   dRunFrame           -> AddFrame(dNumStartRun, dNumLayout );
   dRunFrame           -> AddFrame(dNumStopRun, dNumLayout );
   dControlsFrame      -> AddFrame(dBtnMDAsym, dBtnLayout);
-  dControlsFrame      -> AddFrame(dBtnLumiAsym, dBtnLayout);
+  dControlsFrame      -> AddFrame(dBtnDSLumiAsym, dBtnLayout);
+  dControlsFrame      -> AddFrame(dBtnUSLumiAsym, dBtnLayout);
   dControlsFrame      -> AddFrame(dBtnBkgdAsym, dBtnLayout);
   dControlsFrame      -> AddFrame(dBtnBeamPos, dBtnLayout);
   dControlsFrame      -> AddFrame(dBtnCharge, dBtnLayout);
@@ -596,7 +602,8 @@ void QwGUIDatabaseSummary::MakeLayout()
   dCmbXAxis           -> Associate(this);
   dCmbTimeScale       -> Associate(this);
   dBtnMDAsym          -> Associate(this);
-  dBtnLumiAsym        -> Associate(this);
+  dBtnDSLumiAsym      -> Associate(this);
+  dBtnUSLumiAsym      -> Associate(this);
   dBtnBkgdAsym        -> Associate(this);
   dBtnBeamPos         -> Associate(this);
   dBtnCharge          -> Associate(this);
@@ -1742,19 +1749,19 @@ void QwGUIDatabaseSummary::PlotMD(){
 }
 /******************************************
 
-Plot Lumi data
+Plot DSLumi data
 
 *******************************************/
-void QwGUIDatabaseSummary::PlotLumi(){
+void QwGUIDatabaseSummary::PlotDSLumi(){
 	ClearData();
 
-	TString lmSummaryDets [3] = {"dslumi_sum","dslumi_even","dslumi_odd"};
-	TString lmSummaryPlots [2] = {"Mean","RMS"};
+	TString dlmSummaryDets [3] = {"dslumi_sum","dslumi_even","dslumi_odd"};
+	TString dlmSummaryPlots [2] = {"Mean","RMS"};
 
 	Int_t wid = dCanvas->GetCanvasWindowId();
-	QwGUISuperCanvas *mcLM = new QwGUISuperCanvas("", 10,10, wid);
-	mcLM->Initialize();
-	dCanvas->AdoptCanvas(mcLM);
+	QwGUISuperCanvas *mcDLM = new QwGUISuperCanvas("", 10,10, wid);
+	mcDLM->Initialize();
+	dCanvas->AdoptCanvas(mcDLM);
 	dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabaseSummary", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 	dCanvas -> GetCanvas() -> Divide(3,2);
 
@@ -1769,9 +1776,48 @@ void QwGUIDatabaseSummary::PlotLumi(){
 
 	for(Int_t j=0;j<2;j++){
 		for(Int_t i=0;i<3;i++){
-			detector = lmSummaryDets[i];
-			plot = lmSummaryPlots[j];
+			detector = dlmSummaryDets[i];
+			plot = dlmSummaryPlots[j];
 			PlotDetector(3*j+i+1,dCanvas->GetCanvas());
+			dCanvas->GetCanvas()->Modified();
+			dCanvas->GetCanvas()->Update();
+		}
+	}
+
+
+}
+/******************************************
+
+Plot USLumi data
+
+*******************************************/
+void QwGUIDatabaseSummary::PlotUSLumi(){
+	ClearData();
+
+	TString ulmSummaryDets [1] = {"uslumi_sum"};
+	TString ulmSummaryPlots [2] = {"Mean","RMS"};
+
+	Int_t wid = dCanvas->GetCanvasWindowId();
+	QwGUISuperCanvas *mcULM = new QwGUISuperCanvas("", 10,10, wid);
+	mcULM->Initialize();
+	dCanvas->AdoptCanvas(mcULM);
+	dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabaseSummary", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+	dCanvas -> GetCanvas() -> Divide(1,2);
+
+	//common variables for all six plots
+	measurement_type  = "a";
+	det_id            = ID_LUMI;
+	target            = Targets[dCmbTargetType->GetSelected()];
+	subblock          = 0;
+	x_axis            = dCmbXAxis->GetSelected();
+	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
+	property = "";
+
+	for(Int_t j=0;j<2;j++){
+		for(Int_t i=0;i<1;i++){
+			detector = ulmSummaryDets[i];
+			plot = ulmSummaryPlots[j];
+			PlotDetector(1*j+i+1,dCanvas->GetCanvas());
 			dCanvas->GetCanvas()->Modified();
 			dCanvas->GetCanvas()->Update();
 		}
@@ -2534,8 +2580,11 @@ Bool_t QwGUIDatabaseSummary::ProcessMessage(Long_t msg, Long_t parm1, Long_t par
   	case BTN_MDASYM:
   	  PlotMD();
   	  break;
-  	case BTN_LUMIASYM:
-  		PlotLumi();
+  	case BTN_DSLUMIASYM:
+  		PlotDSLumi();
+  		break;
+  	case BTN_USLUMIASYM:
+  		PlotUSLumi();
   		break;
   	case BTN_BKGDASYM:
   		PlotBkgd();
