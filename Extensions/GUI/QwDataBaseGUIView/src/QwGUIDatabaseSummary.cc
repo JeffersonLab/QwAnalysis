@@ -305,8 +305,12 @@ const char *QwGUIDatabaseSummary::Plots[N_Plots] =
 const char *QwGUIDatabaseSummary::GoodForTypes[N_GOODFOR_TYPES] =
 {
   "production","commissioning","parity","tracking",
-  "centering_target","centering_plug","pedestals","transverse"
+  "centering_target","centering_plug","pedestals","transverse",
+  "transverse_horizontal","daq_test","bcm_scan","bpm_scan",
+  "ia_scan","pita_scan","rhwp_scan","background_studies",
+  "pockels_cell_off","n_to_delta","junk"
 };
+
 
 const char *QwGUIDatabaseSummary::X_axis[N_X_AXIS] =
 {
