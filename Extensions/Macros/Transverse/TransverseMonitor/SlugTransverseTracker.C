@@ -207,9 +207,9 @@ int main(Int_t argc,Char_t* argv[])
   
   /*connect to the data base*/
   //db = TSQLServer::Connect("mysql://localhost.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-  // db = TSQLServer::Connect("mysql://127.0.0.1/qw_run1_pass3","qweak", "QweakQweak");
-  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-  //db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  db = TSQLServer::Connect("mysql://127.0.0.1/qw_run2_pass1","qweak", "QweakQweak");
+  //db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  // db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
 
 
   if(db)
@@ -292,7 +292,7 @@ int main(Int_t argc,Char_t* argv[])
     if(fit_value0 == 0 && fit_error0 == 0 && fit_value1 == 0 && fit_error1 == 0) {
       /*do nothing. The slug number is not in the selected list*/
     } 
-    else if(fit_error0 <=0.08 && fit_error1 <=0.08) // to see a 5% transverse polarization with a 95% CL we need to have a error of 0.07 ppm.
+    else if(fit_error0 <=0.08 && fit_error1 <=0.08) // to see a 5% transverse polarization with a 95% CL we need to have an error of at least 0.05/3 = 0.016 from the fit.
       {
 	x_i.ResizeTo(ki+1);    x_i.operator()(ki)=i;
 	xerr_i.ResizeTo(ki+1); xerr_i.operator()(ki)=0.0;
