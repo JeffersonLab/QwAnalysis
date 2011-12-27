@@ -90,6 +90,10 @@ public:
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
   virtual std::vector<QwErrDBInterface> GetErrDBEntry() = 0;
 
+  virtual Double_t GetValue() = 0;
+  virtual Double_t GetValueError() = 0;
+  virtual Double_t GetValueWidth() = 0;
+
   virtual const VQwHardwareChannel* GetCharge() const = 0;
 
   virtual void  SetRandomEventParameters(Double_t mean, Double_t sigma) = 0;

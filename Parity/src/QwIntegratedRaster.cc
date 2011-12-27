@@ -819,7 +819,7 @@ void QwIntegratedRaster::FillDB(QwParityDB *db, TString datatype)
 void QwIntegratedRaster::FillErrDB(QwParityDB *db, TString datatype)
 {
 
-  Bool_t local_print_flag = true;
+  Bool_t local_print_flag = false;
   if(local_print_flag){
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
     QwMessage << "               QwIntegratedRaster::FillErrDB                    " << QwLog::endl;
@@ -868,7 +868,7 @@ void QwIntegratedRaster::FillErrDB(QwParityDB *db, TString datatype)
   return;
 };
 
-void QwIntegratedRaster::WritePromptSummary()
+void QwIntegratedRaster::WritePromptSummary(QwPromptSummary *ps, TString type)
 {
   QwMessage << "QwIntegratedRaster::WritePromptSummary()" << QwLog::endl;
   return;

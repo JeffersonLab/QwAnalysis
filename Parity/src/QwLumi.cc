@@ -16,6 +16,7 @@
 //#define MYSQLPP_SSQLS_NO_STATICS
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#include "QwPromptSummary.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwLumi);
@@ -1324,10 +1325,10 @@ void QwLumi::FillDB(QwParityDB *db, TString datatype)
 void QwLumi::FillErrDB(QwParityDB *db, TString datatype)
 {
 
-  Bool_t local_print_flag = true;
+  Bool_t local_print_flag = false;
   if(local_print_flag){
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-    QwMessage << "                         QwLumi::FillErrDB                          " << QwLog::endl;
+    QwMessage << "                         QwLumi::FillErrDB                       " << QwLog::endl;
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
 
@@ -1391,7 +1392,7 @@ void QwLumi::FillErrDB(QwParityDB *db, TString datatype)
 
 
 
-void QwLumi::WritePromptSummary() const
+void QwLumi::WritePromptSummary(QwPromptSummary *ps, TString type)
 {
 
   Bool_t local_print_flag = true;

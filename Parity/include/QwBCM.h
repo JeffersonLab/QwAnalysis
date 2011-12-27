@@ -162,6 +162,11 @@ class QwBCM : public VQwBCM {
   std::vector<QwDBInterface> GetDBEntry();
   std::vector<QwErrDBInterface> GetErrDBEntry();
 
+  Double_t GetValue();
+  Double_t GetValueError();
+  Double_t GetValueWidth();
+
+
 /////
  protected:
 

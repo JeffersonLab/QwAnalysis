@@ -62,6 +62,13 @@ void  QwSubsystemArrayParity::FillErrDB(QwParityDB *db, TString type)
   return;
 }
 
+void QwSubsystemArrayParity::WritePromptSummary(QwPromptSummary *ps, TString type)
+{
+  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->WritePromptSummary(ps, type);
+  }
+}
 
 //*****************************************************************//
 
@@ -239,13 +246,6 @@ void QwSubsystemArrayParity::PrintValue() const
 }
 
 
-void QwSubsystemArrayParity::WritePromptSummary() const
-{
-  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
-    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-    subsys_parity->WritePromptSummary();
-  }
-}
 
 //*****************************************************************//
 

@@ -482,7 +482,7 @@ void QwBPMStripline<T>::PrintValue() const
 
 
 template<typename T>
-void QwBPMStripline<T>::WritePromptSummary() const
+void QwBPMStripline<T>::WritePromptSummary(QwPromptSummary *ps, TString type)
 {
 
   QwMessage << "void QwBPMStripline<T>::WritePromptSummary() const test " << QwLog::endl;

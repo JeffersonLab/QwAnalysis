@@ -21,7 +21,7 @@
  *  \class QwPromptSummary
  *  \ingroup QwAnalysis
  *
- *  \brief one F1TDC configuration and reference signal(s) holder
+ *  \brief 
  *
  */
 
@@ -39,22 +39,30 @@ class PromptSummaryElement :  public TObject
   TString GetName () {return fElementName;};
 
 
+  // Mean      : fHardwareBlockSumM2 
+  // MeanError : fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
+
   void SetMean                (const Double_t in) { fMean=in; };
   void SetMeanError           (const Double_t in) { fMeanError=in; };
   void SetMeanUnit            (const TString  in) { fMeanUnit=in; };
 
-  void SetAsymmetryDifference           (const Double_t in) { fAsymmetryDifference=in; };
-  void SetAsymmetryDifferenceError      (const Double_t in) { fAsymmetryDifferenceError=in; };
-  void SetAsymmetryDifferenceUnit       (const TString  in) { fAsymmetryDifferenceUnit=in; };
-  void SetAsymmetryDifferenceWidth      (const Double_t in) { fAsymmetryDifferenceWidth=in; };
-  void SetAsymmetryDifferenceWidthError (const Double_t in) { fAsymmetryDifferenceWidthError=in; };
-  void SetAsymmetryDifferenceWidthUnit  (const TString  in) { fAsymmetryDifferenceWidthUnit=in; };
+  // Asymmetry : 
+
+  void SetAsymmetry           (const Double_t in) { fAsymmetry=in; };
+  void SetAsymmetryError      (const Double_t in) { fAsymmetryError=in; };
+  void SetAsymmetryUnit       (const TString  in) { fAsymmetryUnit=in; };
+  void SetAsymmetryWidth      (const Double_t in) { fAsymmetryWidth=in; };
+  void SetAsymmetryWidthError (const Double_t in) { fAsymmetryWidthError=in; };
+  void SetAsymmetryWidthUnit  (const TString  in) { fAsymmetryWidthUnit=in; };
 
 
   TString GetCSVSummary();
   TString GetTextSummary();
+  //
 
-
+  // This is not sigma, but error defined in QwVQWK_Channel::CalculateRunningAverage() in QwVQWK_Channel.cc as follows
+  // fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
+  //
  private:
 
   TString fElementName;
@@ -63,13 +71,13 @@ class PromptSummaryElement :  public TObject
   Double_t fMeanError;
   TString  fMeanUnit;
 
-  Double_t fAsymmetryDifference;
-  Double_t fAsymmetryDifferenceError;
-  TString  fAsymmetryDifferenceUnit;
+  Double_t fAsymmetry;
+  Double_t fAsymmetryError;
+  TString  fAsymmetryUnit;
 
-  Double_t fAsymmetryDifferenceWidth;
-  Double_t fAsymmetryDifferenceWidthError;
-  TString  fAsymmetryDifferenceWidthUnit;
+  Double_t fAsymmetryWidth;
+  Double_t fAsymmetryWidthError;
+  TString  fAsymmetryWidthUnit;
 
   ClassDef(PromptSummaryElement,0);
 
@@ -97,7 +105,13 @@ class QwPromptSummary  :  public TObject
 
 
   void AddElement(PromptSummaryElement *in);
+  PromptSummaryElement* GetElementByName(TString name);
+  
   void FillDataInElement(TString name, Double_t mean, Double_t mean_err, TString mean_unit, Double_t asym_diff, Double_t asym_diff_err, TString asym_diff_unit, Double_t asym_diff_width, Double_t asym_diff_width_err, TString asym_diff_width_unit);
+  
+  void FillYieldToElement(Double_t mean, Double_t mean_error, TString mean_unit);
+  void FillAsymmetryToElement(Double_t asym_diff, Double_t asym_diff_err, TString asym_diff_unit);
+  //  void FillDifferenceToElement(Double_t asym_diff, Double_t asym_diff_err, TString asym_diff_unit);
 
   //  void Print(const Option_t* options = 0) const;
 
@@ -111,7 +125,7 @@ class QwPromptSummary  :  public TObject
 private:
 
 
-  PromptSummaryElement* GetElementByName(TString name);
+ 
 
   TString PrintTextSummaryHeader();
   TString PrintTextSummaryTailer();

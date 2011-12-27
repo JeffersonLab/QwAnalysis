@@ -33,13 +33,13 @@ PromptSummaryElement::PromptSummaryElement()
   fMeanError                      = 0.0;
   fMeanUnit                       = "";
 
-  fAsymmetryDifference            = 0.0;
-  fAsymmetryDifferenceError       = 0.0;;
-  fAsymmetryDifferenceUnit        = "";
+  fAsymmetry            = 0.0;
+  fAsymmetryError       = 0.0;;
+  fAsymmetryUnit        = "";
 
-  fAsymmetryDifferenceWidth       = 0.0;
-  fAsymmetryDifferenceWidthError  = 0.0;
-  fAsymmetryDifferenceWidthUnit   = "";
+  fAsymmetryWidth       = 0.0;
+  fAsymmetryWidthError  = 0.0;
+  fAsymmetryWidthUnit   = "";
 
   
 
@@ -55,13 +55,13 @@ PromptSummaryElement::PromptSummaryElement(TString name)
   fMeanError                      = 0.0;
   fMeanUnit                       = "";
 
-  fAsymmetryDifference            = 0.0;
-  fAsymmetryDifferenceError       = 0.0;;
-  fAsymmetryDifferenceUnit        = "";
+  fAsymmetry            = 0.0;
+  fAsymmetryError       = 0.0;;
+  fAsymmetryUnit        = "";
 
-  fAsymmetryDifferenceWidth       = 0.0;
-  fAsymmetryDifferenceWidthError  = 0.0;
-  fAsymmetryDifferenceWidthUnit   = "";
+  fAsymmetryWidth       = 0.0;
+  fAsymmetryWidthError  = 0.0;
+  fAsymmetryWidthUnit   = "";
 
   
 
@@ -89,13 +89,13 @@ PromptSummaryElement::FillData(
   fMeanError                      = mean_err;
   fMeanUnit                       = mean_unit;
 
-  fAsymmetryDifference            = asym_diff;
-  fAsymmetryDifferenceError       = asym_diff_err;
-  fAsymmetryDifferenceUnit        = asym_diff_unit;
+  fAsymmetry            = asym_diff;
+  fAsymmetryError       = asym_diff_err;
+  fAsymmetryUnit        = asym_diff_unit;
 
-  fAsymmetryDifferenceWidth       = asym_diff_width;
-  fAsymmetryDifferenceWidthError  = asym_diff_width_err;
-  fAsymmetryDifferenceWidthUnit   = asym_diff_width_unit;
+  fAsymmetryWidth       = asym_diff_width;
+  fAsymmetryWidthError  = asym_diff_width_err;
+  fAsymmetryWidthUnit   = asym_diff_width_unit;
 
 };
 
@@ -103,13 +103,13 @@ PromptSummaryElement::FillData(
 TString
 PromptSummaryElement::GetTextSummary()
 {
-  return Form("%14s | %12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf\n", fElementName.Data(), fMean, fMeanError, fAsymmetryDifference, fAsymmetryDifferenceError, fAsymmetryDifferenceWidth, fAsymmetryDifferenceWidthError);
+  return Form("%14s | %12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf\n", fElementName.Data(), fMean, fMeanError, fAsymmetry, fAsymmetryError, fAsymmetryWidth, fAsymmetryWidthError);
 };
 
 TString
 PromptSummaryElement::GetCSVSummary()
 {
-  return Form("%s,%lf,%lf,%lf,%lf,%lf,%lf", fElementName.Data(), fMean, fMeanError, fAsymmetryDifference, fAsymmetryDifferenceError, fAsymmetryDifferenceWidth, fAsymmetryDifferenceWidthError);
+  return Form("%s,%e,%e,%e,%e,%e,%e", fElementName.Data(), fMean, fMeanError, fAsymmetry, fAsymmetryError, fAsymmetryWidth, fAsymmetryWidthError);
 };
 
 
@@ -375,6 +375,22 @@ QwPromptSummary::FillDataInElement(TString  name,
   }
   return;
 };
+
+void
+QwPromptSummary::FillYieldToElement(Double_t mean, 
+				    Double_t mean_error, 
+				    TString mean_unit)
+{
+  return;
+};
+
+void QwPromptSummary::FillAsymmetryToElement(Double_t asym_diff, 
+					     Double_t asym_diff_err, 
+					     TString asym_diff_unit)
+{
+  return;
+};
+
 
 void
 QwPromptSummary::PrintCSV()

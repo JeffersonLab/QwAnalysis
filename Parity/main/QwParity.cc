@@ -344,7 +344,10 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
     
     if (gQwOptions.GetValue<bool>("write-promptsummary")) {
-      detectors.WritePromptSummary();
+      //      runningsum.WritePromptSummary(&promptsummary, "yield");
+      // runningsum.WritePromptSummary(&promptsummary, "asymmetry");
+      //      runningsum.WritePromptSummary(&promptsummary, "difference");
+      helicitypattern.WritePromptSummary(&promptsummary);
       promptsummary.PrintCSV();
     }
     //  Read from the database

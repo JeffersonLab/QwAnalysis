@@ -132,7 +132,7 @@ class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneab
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db, TString datatype);
   void  FillErrDB(QwParityDB *db, TString datatype);
-  void  WritePromptSummary();
+  void  WritePromptSummary(QwPromptSummary *ps, TString type);
 
   const VQwDataElement* GetChannel(const TString name) const;
 

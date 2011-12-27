@@ -17,6 +17,8 @@
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
 
+#include "QwPromptSummary.h"
+
 // Forward declarations
 class QwParityDB;
 //class QwDBInterface;
@@ -2787,7 +2789,7 @@ void QwBeamLine::FillDB(QwParityDB *db, TString datatype)
 void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
 {
 
-  Bool_t local_print_flag = true;
+  Bool_t local_print_flag = false;
 
   if(local_print_flag) {
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
@@ -2860,11 +2862,78 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
 }
 
 
-void QwBeamLine::WritePromptSummary() const
+void QwBeamLine::WritePromptSummary(QwPromptSummary *ps, TString type) 
 {
+  Bool_t local_print_flag = true;
 
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-  QwMessage << "                  QwBeamLine::WritePromptSummary()               " << QwLog::endl;
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  if(local_print_flag) {
+    printf("---------------------------------------------------------------\n");
+    printf("QwBeamLine::WritePromptSummary()  Type : %12s\n", type.Data());
+    printf("---------------------------------------------------------------\n");
+  }
+  
+  TString  element_name        = "";
+  Double_t element_value       = 0.0;
+  Double_t element_value_err   = 0.0;
+  Double_t element_value_width = 0.0;
+
+  PromptSummaryElement *local_ps_element = NULL;
+
+  Double_t asymmetry_ppm = 1e-6;
+
+  for (size_t i = 0; i < fBCM.size();  i++) {
+
+    element_name        = fBCM[i]->GetElementName();
+    element_value       = 0.0;
+    element_value_err   = 0.0;
+    element_value_width = 0.0;
+    
+    if (element_name.Contains("qwk_bcm1")) {
+      local_ps_element = ps-> GetElementByName("bcm1");
+    } else if (element_name.Contains("qwk_bcm2")) {
+      local_ps_element = ps-> GetElementByName("bcm2");
+    } else if (element_name.Contains("qwk_bcm5")) {
+      local_ps_element = ps-> GetElementByName("bcm5");
+    } else if (element_name.Contains("qwk_bcm6")) {
+      local_ps_element = ps-> GetElementByName("bcm6");
+    } else if (element_name.Contains("qwk_bcm7")) {
+      local_ps_element = ps-> GetElementByName("bcm7");
+    } else if (element_name.Contains("qwk_bcm8")) {
+      local_ps_element = ps-> GetElementByName("bcm8");
+    } else {
+      local_ps_element = NULL;
+    }
+    
+ 
+
+    if(local_ps_element) {
+      element_value       = fBCM[i]->GetValue();
+      element_value_err   = fBCM[i]->GetValueError();
+      element_value_width = fBCM[i]->GetValueWidth();
+
+      if(type.Contains("yield")) {
+	local_ps_element->SetMean(element_value);
+	local_ps_element->SetMeanError(element_value_err);
+	local_ps_element->SetMeanUnit("uA");
+      } else  if(type.Contains("asymmetry")) {
+	  local_ps_element->SetAsymmetryUnit("ppm");
+	  local_ps_element->SetAsymmetry(element_value/asymmetry_ppm);
+	  local_ps_element->SetAsymmetryError(element_value_err/asymmetry_ppm);
+	  local_ps_element->SetAsymmetryWidth(element_value_width/asymmetry_ppm);
+      } else if(type.Contains("difference")) {
+	  //
+	  // does BCM have the difference?
+	  // Wednesday, December 21 11:20:26 EST 2011, jhlee
+	// local_ps_element->SetAsymmetryDifferenceWidthUnit("ppm");
+	// local_ps_element->SetAsymmetryDifferenceWidth(element_value);
+	// local_ps_element->SetAsymmetryDifferenceWidthError(element_value_err);
+	
+      }
+    }
+    
+    if( local_print_flag && local_ps_element) {
+      printf("Type %12s, %32s, %12.4e +- %8.4e\n", type.Data(), element_name.Data(), element_value, element_value_err);
+    }
+  }
   return;
 };

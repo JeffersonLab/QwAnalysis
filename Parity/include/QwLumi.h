@@ -146,7 +146,7 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
 
   void PrintValue() const;
   void PrintInfo() const;
-  void  WritePromptSummary() const;
+  void WritePromptSummary(QwPromptSummary *ps, TString type);
 
   std::vector<TString> fgDetectorTypeNames;
 

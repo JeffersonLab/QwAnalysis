@@ -19,6 +19,7 @@
 #include "QwIntegrationPMT.h"
 #include "QwCombinedPMT.h"
 
+
 // Forward declarations
 class QwBlinder;
 class QwMainCerenkovDetectorID;
@@ -155,7 +156,7 @@ class QwMainCerenkovDetector:
   };
 
   void  PrintValue() const;
-  void  WritePromptSummary() const;
+  void  WritePromptSummary(QwPromptSummary *ps, TString type);
   void  PrintInfo() const;
   void  PrintDetectorID() const;
 
