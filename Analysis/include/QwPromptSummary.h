@@ -33,27 +33,56 @@ class PromptSummaryElement :  public TObject
   virtual ~PromptSummaryElement();
   //  friend std::ostream& operator<<(std::ostream& os, const PromptSummaryElement &ps_element);
 
-  void FillData(Double_t mean, Double_t mean_err, TString mean_unit, Double_t asym_diff, Double_t asym_diff_err, TString asym_diff_unit, Double_t asym_diff_width, Double_t asym_diff_width_err, TString asym_diff_width_unit);
+  void FillData(Double_t yield, Double_t yield_err, Double_t yield_width, TString yield_unit, 
+		Double_t asym_diff, Double_t asym_diff_err,  Double_t asym_diff_width, TString asym_diff_unit);
 
-  void SetName                (const TString in)  { fElementName=in;};
-  TString GetName () {return fElementName;};
+  void    SetName (const TString in)  {fElementName=in;};
+  TString GetName ()                  {return fElementName;};
 
 
-  // Mean      : fHardwareBlockSumM2 
-  // MeanError : fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
+  // Yield      : fHardwareBlockSumM2 
+  // YieldError : fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
 
-  void SetMean                (const Double_t in) { fMean=in; };
-  void SetMeanError           (const Double_t in) { fMeanError=in; };
-  void SetMeanUnit            (const TString  in) { fMeanUnit=in; };
+  void SetYield                (const Double_t in) { fYield=in; };
+  void SetYieldError           (const Double_t in) { fYieldError=in; };
+  void SetYieldWidth           (const Double_t in) { fYieldWidth=in; };
+  void SetYieldUnit            (const TString  in) { fYieldUnit=in; };
 
   // Asymmetry : 
+  void SetAsymmetry           (const Double_t in) { fAsymDiff=in; };
+  void SetAsymmetryError      (const Double_t in) { fAsymDiffError=in; };
+  void SetAsymmetryWidth      (const Double_t in) { fAsymDiffWidth=in; };
+  void SetAsymmetryUnit       (const TString  in) { fAsymDiffUnit=in; };
 
-  void SetAsymmetry           (const Double_t in) { fAsymmetry=in; };
-  void SetAsymmetryError      (const Double_t in) { fAsymmetryError=in; };
-  void SetAsymmetryUnit       (const TString  in) { fAsymmetryUnit=in; };
-  void SetAsymmetryWidth      (const Double_t in) { fAsymmetryWidth=in; };
-  void SetAsymmetryWidthError (const Double_t in) { fAsymmetryWidthError=in; };
-  void SetAsymmetryWidthUnit  (const TString  in) { fAsymmetryWidthUnit=in; };
+
+  // Difference : 
+  void SetDifference           (const Double_t in) { fAsymDiff=in; };
+  void SetDifferenceError      (const Double_t in) { fAsymDiffError=in; };
+  void SetDifferenceWidth      (const Double_t in) { fAsymDiffWidth=in; };
+  void SetDifferenceUnit       (const TString  in) { fAsymDiffUnit=in; };
+
+
+  // Yield 
+  const Double_t GetYield         () { return fYield; };
+  const Double_t GetYieldError    () { return fYieldError; };
+  const Double_t GetYieldWidth    () { return fYieldWidth; };
+  const TString  GetYieldUnit     () { return  fYieldUnit; };
+
+  // Asymmetry : 
+  const Double_t GetAsymmetry     () { return fAsymDiff; };
+  const Double_t GetAsymmetryError() { return fAsymDiffError; };
+  const Double_t GetAsymmetryWidth() { return fAsymDiffWidth; };
+  const TString  GetAsymmetryUnit () { return fAsymDiffUnit; };
+
+
+  // Difference : 
+  const Double_t GetDifference     () { return fAsymDiff; };
+  const Double_t GetDifferenceError() { return fAsymDiffError; };
+  const Double_t GetDifferenceWidth() { return fAsymDiffWidth; };
+  const TString  GetDifferenceUnit () { return fAsymDiffUnit; };
+
+  //  void SetAsymmetryWidthError (const Double_t in) { fAsymmetryWidthError=in; };
+  // void SetAsymmetryWidthUnit  (const TString  in) { fAsymmetryWidthUnit=in; };
 
 
   TString GetCSVSummary();
@@ -67,17 +96,19 @@ class PromptSummaryElement :  public TObject
 
   TString fElementName;
   
-  Double_t fMean;
-  Double_t fMeanError;
-  TString  fMeanUnit;
+  Double_t fYield;
+  Double_t fYieldError;
+  Double_t fYieldWidth;
+  TString  fYieldUnit;
 
-  Double_t fAsymmetry;
-  Double_t fAsymmetryError;
-  TString  fAsymmetryUnit;
+  Double_t fAsymDiff;
+  Double_t fAsymDiffError;
+  Double_t fAsymDiffWidth;
+  TString  fAsymDiffUnit;
 
-  Double_t fAsymmetryWidth;
-  Double_t fAsymmetryWidthError;
-  TString  fAsymmetryWidthUnit;
+  /* Double_t fAsymmetryWidth; */
+  /* Double_t fAsymmetryWidthError; */
+  /* TString  fAsymmetryWidthUnit; */
 
   ClassDef(PromptSummaryElement,0);
 
@@ -107,17 +138,22 @@ class QwPromptSummary  :  public TObject
   void AddElement(PromptSummaryElement *in);
   PromptSummaryElement* GetElementByName(TString name);
   
-  void FillDataInElement(TString name, Double_t mean, Double_t mean_err, TString mean_unit, Double_t asym_diff, Double_t asym_diff_err, TString asym_diff_unit, Double_t asym_diff_width, Double_t asym_diff_width_err, TString asym_diff_width_unit);
+  void FillDataInElement(TString name, 
+			 Double_t yield, Double_t yield_err, Double_t yield_width, TString yield_unit, 
+			 Double_t asym_diff, Double_t asym_diff_err, Double_t asym_diff_width, TString asym_diff_unit);
   
-  void FillYieldToElement(Double_t mean, Double_t mean_error, TString mean_unit);
-  void FillAsymmetryToElement(Double_t asym_diff, Double_t asym_diff_err, TString asym_diff_unit);
+  void FillYieldToElement(TString name, Double_t yield, Double_t yield_error, Double_t yield_width, TString yield_unit);
+  void FillAsymDiffToElement(TString name, Double_t asym_diff, Double_t asym_diff_err, Double_t asym_diff_width, TString asym_diff_unit);
   //  void FillDifferenceToElement(Double_t asym_diff, Double_t asym_diff_err, TString asym_diff_unit);
 
   //  void Print(const Option_t* options = 0) const;
 
+  void FillDoubleDifference(TString type, TString name1, TString name2);
+
   Int_t  GetSize()         const {return fNElements;};
   Int_t  Size()            const {return fNElements;};
   Int_t  HowManyElements() const {return fNElements;};
+
 
   void PrintCSV();
   void PrintTextSummary();

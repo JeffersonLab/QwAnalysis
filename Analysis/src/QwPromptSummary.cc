@@ -5,6 +5,7 @@
 #include "QwLog.h"
 
 #include "TROOT.h"
+#include "TMath.h"
 
 /**
  *  \file   QwPromptSummary.cc
@@ -27,89 +28,80 @@ ClassImp(QwPromptSummary)
 
 PromptSummaryElement::PromptSummaryElement()
 {
-  fElementName                    = "";
+  fElementName         = "";
   
-  fMean                           = 0.0;
-  fMeanError                      = 0.0;
-  fMeanUnit                       = "";
+  fYield               = 0.0;
+  fYieldError          = 0.0;
+  fYieldWidth          = 0.0;
+  fYieldUnit           = "";
 
-  fAsymmetry            = 0.0;
-  fAsymmetryError       = 0.0;;
-  fAsymmetryUnit        = "";
-
-  fAsymmetryWidth       = 0.0;
-  fAsymmetryWidthError  = 0.0;
-  fAsymmetryWidthUnit   = "";
-
-  
+  fAsymDiff            = 0.0;
+  fAsymDiffError       = 0.0;
+  fAsymDiffWidth       = 0.0;
+  fAsymDiffUnit        = "";
 
 };
 
 
-
 PromptSummaryElement::PromptSummaryElement(TString name)
 {
-  fElementName                    = name;
+  fElementName         = name;
   
-  fMean                           = 0.0;
-  fMeanError                      = 0.0;
-  fMeanUnit                       = "";
+  fYield               = 0.0;
+  fYieldError          = 0.0;
+  fYieldWidth          = 0.0;
+  fYieldUnit           = "";
 
-  fAsymmetry            = 0.0;
-  fAsymmetryError       = 0.0;;
-  fAsymmetryUnit        = "";
-
-  fAsymmetryWidth       = 0.0;
-  fAsymmetryWidthError  = 0.0;
-  fAsymmetryWidthUnit   = "";
-
-  
+  fAsymDiff            = 0.0;
+  fAsymDiffError       = 0.0;
+  fAsymDiffWidth       = 0.0;
+  fAsymDiffUnit        = "";
 
 };
 
 PromptSummaryElement::~PromptSummaryElement()
 {
-
 };
+
 
 void
 PromptSummaryElement::FillData(
-				 Double_t mean, 
-				 Double_t mean_err, 
-				 TString  mean_unit,
-				 Double_t asym_diff, 
-				 Double_t asym_diff_err, 
-				 TString  asym_diff_unit,
-				 Double_t asym_diff_width, 
-				 Double_t asym_diff_width_err, 
-				 TString  asym_diff_width_unit
-				 )
+			       Double_t yield, 
+			       Double_t yield_err, 
+			       Double_t yield_width,
+			       TString  yield_unit,
+			       Double_t asym_diff, 
+			       Double_t asym_diff_err, 
+			       Double_t asym_diff_width, 
+			       TString  asym_diff_unit
+			       )
 {
-  fMean                           = mean;
-  fMeanError                      = mean_err;
-  fMeanUnit                       = mean_unit;
+  fYield                = yield;
+  fYieldError           = yield_err;
+  fYieldWidth           = yield_width;
+  fYieldUnit            = yield_unit;
 
-  fAsymmetry            = asym_diff;
-  fAsymmetryError       = asym_diff_err;
-  fAsymmetryUnit        = asym_diff_unit;
+  fAsymDiff            = asym_diff;
+  fAsymDiffError       = asym_diff_err;
+  fAsymDiffWidth       = asym_diff_width;
+  fAsymDiffUnit        = asym_diff_unit;
 
-  fAsymmetryWidth       = asym_diff_width;
-  fAsymmetryWidthError  = asym_diff_width_err;
-  fAsymmetryWidthUnit   = asym_diff_width_unit;
-
+  return;
 };
 
 
 TString
 PromptSummaryElement::GetTextSummary()
 {
-  return Form("%14s | %12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf\n", fElementName.Data(), fMean, fMeanError, fAsymmetry, fAsymmetryError, fAsymmetryWidth, fAsymmetryWidthError);
+  //  return Form("%14s | %12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf | %+12.2lf +/- %8.2lf\n", fElementName.Data(), fYield, fYieldError, fAsymDiff, fAsymDiffError, fAsymDiffWidth, fAsymDiffWidthError);
+  TString test;
+  return test;
 };
 
 TString
 PromptSummaryElement::GetCSVSummary()
 {
-  return Form("%s,%e,%e,%e,%e,%e,%e", fElementName.Data(), fMean, fMeanError, fAsymmetry, fAsymmetryError, fAsymmetryWidth, fAsymmetryWidthError);
+  return Form("%s,%e,%e,%e,%e,%e,%e", fElementName.Data(), fYield, fYieldError, fYieldWidth, fAsymDiff, fAsymDiffError, fAsymDiffWidth);
 };
 
 
@@ -271,7 +263,7 @@ QwPromptSummary::AddElement(PromptSummaryElement *in)
 
   fNElements++;
   return;
-}
+};
 
 
 PromptSummaryElement *
@@ -302,7 +294,6 @@ QwPromptSummary::GetElementByName(TString name)
 TString
 QwPromptSummary::PrintTextSummaryHeader()
 {
-  
   TString out = "";
   //  TString filename = "";
 
@@ -349,21 +340,21 @@ QwPromptSummary::PrintCSVHeader()
 
 void
 QwPromptSummary::FillDataInElement(TString  name, 
-				   Double_t mean, 
-				   Double_t mean_err, 
-				   TString  mean_unit, 
+				   Double_t yield, 
+				   Double_t yield_err, 
+				   Double_t yield_width, 
+				   TString  yield_unit, 
 				   Double_t asym_diff, 
 				   Double_t asym_diff_err, 
-				   TString  asym_diff_unit, 
-				   Double_t asym_diff_width, 
-				   Double_t asym_diff_width_err, 
-				   TString  asym_diff_width_unit)
+				   Double_t asym_diff_width,
+				   TString  asym_diff_unit
+				   )
 {
+ 
   PromptSummaryElement* an_element = NULL;
   an_element = this->GetElementByName(name);
   if(an_element) {
-    
-    an_element->FillData(mean, mean_err, mean_unit, asym_diff, asym_diff_err, asym_diff_unit, asym_diff_width, asym_diff_width_err, asym_diff_width_unit);
+    an_element->FillData(yield, yield_err, yield_width, yield_unit, asym_diff, asym_diff_err, asym_diff_width, asym_diff_unit);
   }
   else {
     if(fLocalDebug) {
@@ -376,20 +367,145 @@ QwPromptSummary::FillDataInElement(TString  name,
   return;
 };
 
+
 void
-QwPromptSummary::FillYieldToElement(Double_t mean, 
-				    Double_t mean_error, 
-				    TString mean_unit)
+QwPromptSummary::FillYieldToElement(TString name, 
+				    Double_t yield, 
+				    Double_t yield_error, 
+				    Double_t yield_width,
+				    TString yield_unit
+				    )
 {
+  PromptSummaryElement* an_element = NULL;
+  an_element = this->GetElementByName(name);
+  if(an_element) {
+    an_element->SetYield(yield);
+    an_element->SetYieldError(yield_error);
+    an_element->SetYieldWidth(yield_width);
+  }
+  else {
+    if(fLocalDebug) {
+      std::cout 
+	<< "QwPromptSummary::FillYieldToElement : No Element with the name " 
+	<< name 
+	<<  std::endl;
+    }
+  }
   return;
 };
 
-void QwPromptSummary::FillAsymmetryToElement(Double_t asym_diff, 
-					     Double_t asym_diff_err, 
-					     TString asym_diff_unit)
+void 
+QwPromptSummary::FillAsymDiffToElement(TString name, 
+				       Double_t asym_diff, 
+				       Double_t asym_diff_err, 
+				       Double_t asym_diff_width,
+				       TString asym_diff_unit
+				       )
 {
+  PromptSummaryElement* an_element = NULL;
+  an_element = this->GetElementByName(name);
+  if(an_element) {
+    an_element->SetAsymmetry(asym_diff);
+    an_element->SetAsymmetryError(asym_diff_err);
+    an_element->SetAsymmetryWidth(asym_diff_width);
+  }
+  else {
+    if(fLocalDebug) {
+      std::cout 
+	<< "QwPromptSummary::FillYieldToElement : No Element with the name " 
+	<< name 
+	<<  std::endl;
+    }
+  }
+
   return;
 };
+
+void 
+QwPromptSummary::FillDoubleDifference(TString type, TString name1, TString name2)
+{
+  PromptSummaryElement* an_element = NULL;
+
+
+  PromptSummaryElement* one_element = NULL;
+  PromptSummaryElement* two_element = NULL;
+
+  one_element = this->GetElementByName(name1);
+  two_element = this->GetElementByName(name2);
+
+
+  if(one_element and two_element ) {
+
+    an_element = this->GetElementByName(name1+"-"+name2);
+
+    if(an_element) {
+   
+      
+      Double_t diff       = 0.0;
+      Double_t error_diff = 0.0;
+      Double_t width_diff = 0.0;
+      
+      Double_t a = 0.0;
+      Double_t b = 0.0;
+      Double_t a_err = 0.0;
+      Double_t b_err = 0.0;
+      Double_t a_wit = 0.0;
+      Double_t b_wit = 0.0;
+      
+      if(type.Contains("yield")) {
+	a     = one_element -> GetYield();
+	b     = two_element -> GetYield();
+	a_err = one_element -> GetYieldError();
+	b_err = two_element -> GetYieldError();
+	a_wit = one_element -> GetYieldWidth();
+	b_wit = two_element -> GetYieldWidth();
+	
+	diff       = a - b;
+	error_diff = TMath::Sqrt(a_err*a_err + b_err*b_err);
+	width_diff = a_wit - b_wit;
+
+	an_element -> SetYield(diff);
+	an_element -> SetYieldError(error_diff);
+	an_element -> SetYieldWidth(width_diff);
+	
+      }
+      else if (type.Contains("asymmetry")) {
+	a     = one_element -> GetAsymmetry();
+	b     = two_element -> GetAsymmetry();
+	a_err = one_element -> GetAsymmetryError();
+	b_err = two_element -> GetAsymmetryError();
+	a_wit = one_element -> GetAsymmetryWidth();
+	b_wit = two_element -> GetAsymmetryWidth();
+	
+	diff       = a - b;
+	error_diff = TMath::Sqrt(a_err*a_err + b_err*b_err);
+	width_diff = a_wit - b_wit;
+
+	an_element -> SetAsymmetry(diff);
+	an_element -> SetAsymmetryError(error_diff);
+	an_element -> SetAsymmetryWidth(width_diff);
+      }
+    
+    }
+    else {
+      if(fLocalDebug) {
+	std::cout 
+	  << "QwPromptSummary::FillYieldToElement : No Element with the name " 
+	  << name1 + "-" + name2 
+	  <<  std::endl;
+      }
+  }
+
+  }
+  else {
+    if(fLocalDebug) {
+      std::cout 
+	<< "QwPromptSummary::FillDoubleDifference: No Elements with the name " 
+	<< name1 << " and " << name2  
+	<<  std::endl;
+    }
+  }
+}
 
 
 void

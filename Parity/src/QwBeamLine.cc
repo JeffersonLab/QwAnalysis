@@ -2912,28 +2912,41 @@ void QwBeamLine::WritePromptSummary(QwPromptSummary *ps, TString type)
       element_value_width = fBCM[i]->GetValueWidth();
 
       if(type.Contains("yield")) {
-	local_ps_element->SetMean(element_value);
-	local_ps_element->SetMeanError(element_value_err);
-	local_ps_element->SetMeanUnit("uA");
+	local_ps_element->SetYieldUnit("uA");
+	local_ps_element->SetYield(element_value);
+	local_ps_element->SetYieldError(element_value_err);
+	local_ps_element->SetYieldWidth(element_value_width);
+
       } else  if(type.Contains("asymmetry")) {
 	  local_ps_element->SetAsymmetryUnit("ppm");
 	  local_ps_element->SetAsymmetry(element_value/asymmetry_ppm);
 	  local_ps_element->SetAsymmetryError(element_value_err/asymmetry_ppm);
 	  local_ps_element->SetAsymmetryWidth(element_value_width/asymmetry_ppm);
       } else if(type.Contains("difference")) {
-	  //
-	  // does BCM have the difference?
-	  // Wednesday, December 21 11:20:26 EST 2011, jhlee
-	// local_ps_element->SetAsymmetryDifferenceWidthUnit("ppm");
-	// local_ps_element->SetAsymmetryDifferenceWidth(element_value);
-	// local_ps_element->SetAsymmetryDifferenceWidthError(element_value_err);
-	
+	//
+	// does BCM have the difference?
+	// Wednesday, December 21 11:20:26 EST 2011, jhlee
       }
     }
     
     if( local_print_flag && local_ps_element) {
-      printf("Type %12s, %32s, %12.4e +- %8.4e\n", type.Data(), element_name.Data(), element_value, element_value_err);
+      printf("Type %12s, Element %32s, value %12.4e error %8.4e  width %12.4e\n", 
+	     type.Data(), element_name.Data(), element_value, element_value_err, element_value_width);
     }
   }
+
+  ps->FillDoubleDifference(type, "bcm1", "bcm2");
+  ps->FillDoubleDifference(type, "bcm1", "bcm5");
+  ps->FillDoubleDifference(type, "bcm1", "bcm6");
+  ps->FillDoubleDifference(type, "bcm2", "bcm5");
+  ps->FillDoubleDifference(type, "bcm2", "bcm6");
+  ps->FillDoubleDifference(type, "bcm5", "bcm6");
+
+  ps->FillDoubleDifference(type, "bcm1", "bcm7");
+  ps->FillDoubleDifference(type, "bcm1", "bcm8");
+
+  ps->FillDoubleDifference(type, "bcm5", "bcm7");
+  ps->FillDoubleDifference(type, "bcm7", "bcm8");
+
   return;
 };
