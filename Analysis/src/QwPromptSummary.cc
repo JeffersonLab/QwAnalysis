@@ -97,7 +97,6 @@ PromptSummaryElement::GetTextSummary()
   TString test;
   return test;
 };
-
 TString
 PromptSummaryElement::GetCSVSummary()
 {
@@ -105,7 +104,53 @@ PromptSummaryElement::GetCSVSummary()
 };
 
 
+void 
+PromptSummaryElement::Set(TString type, const Double_t a, const Double_t a_err, const Double_t a_width)
+{
+  Double_t asymmetry_ppm = 1e-6;
 
+  if(type.Contains("yield")) {
+    if (fElementName.Contains("bcm")) {
+      this->SetYieldUnit("uA");
+    }
+    else if (fElementName.Contains("bpm")) {
+      this->SetYieldUnit("mm");
+    }
+    else if (fElementName.Contains("MD")) {
+      this->SetYieldUnit("V/uA");
+    }
+    else if (fElementName.Contains("lumi")) {
+      this->SetYieldUnit("V/uA");
+    }
+    else {
+      this->SetYieldUnit("---");
+    }
+    this->SetYield(a);
+    this->SetYieldError(a_err);
+    this->SetYieldWidth(a_width);
+  } 
+  else if(type.Contains("asymmetry")) {
+    
+    if (fElementName.Contains("bpm")) {
+      this->SetDifferenceUnit("nm");
+      this->SetDifference(a);
+      this->SetDifferenceError(a_err);
+      this->SetDifferenceWidth(a_width);
+    } 
+    else {
+      this->SetAsymmetryUnit("ppm");
+      this->SetAsymmetry(a/asymmetry_ppm);
+      this->SetAsymmetryError(a_err/asymmetry_ppm);
+      this->SetAsymmetryWidth(a_width/asymmetry_ppm);
+    }
+ 
+  } 
+  else if(type.Contains("difference")) {
+  } 
+  else {
+  }
+  return;
+};
 
 QwPromptSummary::QwPromptSummary()
 {

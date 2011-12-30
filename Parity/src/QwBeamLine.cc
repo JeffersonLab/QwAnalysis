@@ -2879,74 +2879,95 @@ void QwBeamLine::WritePromptSummary(QwPromptSummary *ps, TString type)
 
   PromptSummaryElement *local_ps_element = NULL;
 
-  Double_t asymmetry_ppm = 1e-6;
+  //  Double_t asymmetry_ppm = 1e-6;
 
-  for (size_t i = 0; i < fBCM.size();  i++) {
-
-    element_name        = fBCM[i]->GetElementName();
-    element_value       = 0.0;
-    element_value_err   = 0.0;
-    element_value_width = 0.0;
-    
-    if (element_name.Contains("qwk_bcm1")) {
-      local_ps_element = ps-> GetElementByName("bcm1");
-    } else if (element_name.Contains("qwk_bcm2")) {
-      local_ps_element = ps-> GetElementByName("bcm2");
-    } else if (element_name.Contains("qwk_bcm5")) {
-      local_ps_element = ps-> GetElementByName("bcm5");
-    } else if (element_name.Contains("qwk_bcm6")) {
-      local_ps_element = ps-> GetElementByName("bcm6");
-    } else if (element_name.Contains("qwk_bcm7")) {
-      local_ps_element = ps-> GetElementByName("bcm7");
-    } else if (element_name.Contains("qwk_bcm8")) {
-      local_ps_element = ps-> GetElementByName("bcm8");
-    } else {
-      local_ps_element = NULL;
-    }
-    
- 
-
-    if(local_ps_element) {
-      element_value       = fBCM[i]->GetValue();
-      element_value_err   = fBCM[i]->GetValueError();
-      element_value_width = fBCM[i]->GetValueWidth();
-
-      if(type.Contains("yield")) {
-	local_ps_element->SetYieldUnit("uA");
-	local_ps_element->SetYield(element_value);
-	local_ps_element->SetYieldError(element_value_err);
-	local_ps_element->SetYieldWidth(element_value_width);
-
-      } else  if(type.Contains("asymmetry")) {
-	  local_ps_element->SetAsymmetryUnit("ppm");
-	  local_ps_element->SetAsymmetry(element_value/asymmetry_ppm);
-	  local_ps_element->SetAsymmetryError(element_value_err/asymmetry_ppm);
-	  local_ps_element->SetAsymmetryWidth(element_value_width/asymmetry_ppm);
-      } else if(type.Contains("difference")) {
-	//
-	// does BCM have the difference?
-	// Wednesday, December 21 11:20:26 EST 2011, jhlee
+  for (size_t i = 0; i < fBCM.size();  i++) 
+    {
+      element_name        = fBCM[i].get()->GetElementName();
+      element_value       = 0.0;
+      element_value_err   = 0.0;
+      element_value_width = 0.0;
+      
+      if (element_name.Contains("qwk_bcm1")) {
+	local_ps_element = ps-> GetElementByName("bcm1");
+      } else if (element_name.Contains("qwk_bcm2")) {
+	local_ps_element = ps-> GetElementByName("bcm2");
+      } else if (element_name.Contains("qwk_bcm5")) {
+	local_ps_element = ps-> GetElementByName("bcm5");
+      } else if (element_name.Contains("qwk_bcm6")) {
+	local_ps_element = ps-> GetElementByName("bcm6");
+      } else if (element_name.Contains("qwk_bcm7")) {
+	local_ps_element = ps-> GetElementByName("bcm7");
+      } else if (element_name.Contains("qwk_bcm8")) {
+	local_ps_element = ps-> GetElementByName("bcm8");
+      } else {
+	local_ps_element = NULL;
+      }
+      
+      if(local_ps_element) {
+	element_value       = fBCM[i].get()->GetValue();
+	element_value_err   = fBCM[i].get()->GetValueError();
+	element_value_width = fBCM[i].get()->GetValueWidth();
+	
+	local_ps_element->Set(type, element_value, element_value_err, element_value_width);
+      }
+      
+      if( local_print_flag && local_ps_element) {
+	printf("Type %12s, Element %32s, value %12.4e error %8.4e  width %12.4e\n", 
+	       type.Data(), element_name.Data(), element_value, element_value_err, element_value_width);
       }
     }
-    
-    if( local_print_flag && local_ps_element) {
-      printf("Type %12s, Element %32s, value %12.4e error %8.4e  width %12.4e\n", 
-	     type.Data(), element_name.Data(), element_value, element_value_err, element_value_width);
-    }
-  }
-
+  
   ps->FillDoubleDifference(type, "bcm1", "bcm2");
   ps->FillDoubleDifference(type, "bcm1", "bcm5");
   ps->FillDoubleDifference(type, "bcm1", "bcm6");
   ps->FillDoubleDifference(type, "bcm2", "bcm5");
   ps->FillDoubleDifference(type, "bcm2", "bcm6");
   ps->FillDoubleDifference(type, "bcm5", "bcm6");
-
+  
   ps->FillDoubleDifference(type, "bcm1", "bcm7");
   ps->FillDoubleDifference(type, "bcm1", "bcm8");
 
   ps->FillDoubleDifference(type, "bcm5", "bcm7");
   ps->FillDoubleDifference(type, "bcm7", "bcm8");
+
+
+
+  // for(size_t i=0; i< fStripline.size(); i++) 
+  //   {
+  //     element_name        = fStripline[i].get()->GetElementName();
+  //     element_value       = 0.0;
+  //     element_value_err   = 0.0;
+  //     element_value_width = 0.0;
+      
+
+  //     printf("Strip BPM %d, name %s\n", (Int_t) i, element_name.Data());
+  //     // if (element_name.Contains("qwk_bcm1")) {
+  //     // 	local_ps_element = ps-> GetElementByName("bcm1");
+  //     // } else if (element_name.Contains("qwk_bcm2")) {
+  //     // 	local_ps_element = ps-> GetElementByName("bcm2");
+  //     // } else if (element_name.Contains("qwk_bcm5")) {
+  //     // 	local_ps_element = ps-> GetElementByName("bcm5");
+  //     // } else if (element_name.Contains("qwk_bcm6")) {
+  //     // 	local_ps_element = ps-> GetElementByName("bcm6");
+  //     // } else if (element_name.Contains("qwk_bcm7")) {
+  //     // 	local_ps_element = ps-> GetElementByName("bcm7");
+  //     // } else if (element_name.Contains("qwk_bcm8")) {
+  //     // 	local_ps_element = ps-> GetElementByName("bcm8");
+  //     // } else {
+  //     // 	local_ps_element = NULL;
+  //     // }
+      
+  //   }
+
+  // for(size_t i=0; i< fBPMCombo.size(); i++) 
+  //   {
+  //     element_name        = fBPMCombo[i].get()->GetElementName();
+  //     element_value       = 0.0;
+  //     element_value_err   = 0.0;
+  //     element_value_width = 0.0;
+  //     printf("Combo  BPM %d, name %s\n", (Int_t) i, element_name.Data());
+  //   }
 
   return;
 };

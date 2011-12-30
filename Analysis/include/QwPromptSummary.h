@@ -81,6 +81,9 @@ class PromptSummaryElement :  public TObject
   const Double_t GetDifferenceWidth() { return fAsymDiffWidth; };
   const TString  GetDifferenceUnit () { return fAsymDiffUnit; };
 
+
+  void Set(TString type, const Double_t a, const Double_t a_err, const Double_t a_width);
+
   //  void SetAsymmetryWidthError (const Double_t in) { fAsymmetryWidthError=in; };
   // void SetAsymmetryWidthUnit  (const TString  in) { fAsymmetryWidthUnit=in; };
 
