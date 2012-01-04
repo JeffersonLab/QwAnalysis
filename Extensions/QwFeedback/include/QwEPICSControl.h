@@ -154,7 +154,7 @@ public:
     } else {
       std::cerr << "Set_HelicityMagnet():  "
 		<< "magnet_index must be less than 4, and is " << magnet_index
-		<< "; helicity_index must be 0 or 1 but is " helicity_index
+		<< "; helicity_index must be 0 or 1 but is " << helicity_index
 		<< std::endl;
     }
   };
@@ -228,7 +228,7 @@ public:
     } else {
       std::cerr << "Get_HelicityMagnet():  "
 		<< "magnet_index must be less than 4, and is " << magnet_index
-		<< "; helicity_index must be 0 or 1 but is " helicity_index
+		<< "; helicity_index must be 0 or 1 but is " << helicity_index
 		<< std::endl;
     }
   };
