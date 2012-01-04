@@ -70,7 +70,7 @@ QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
 {
   // Make copies of all subsystems rather than copying just the pointers
   for (const_iterator subsys = source.begin(); subsys != source.end(); ++subsys) {
-    this->push_back(subsys->get()->Copy());
+    this->push_back(subsys->get()->Clone());
   }
 }
 
