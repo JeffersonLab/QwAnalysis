@@ -194,6 +194,51 @@ const char *QwGUIDatabase::EnergyCalculators[N_ENERGY] = {
   "qwk_energy"
 };
 
+
+/*
+Available slope types and slope calculation types from qw_run2_pass1.
+(as of 01/04/2012)
++-----------------------+-------------------+
+| slope                 | slope_calculation |
++-----------------------+-------------------+
+| wrt_diff_targetX      | on                |
+| wrt_diff_targetY      | on                |
+| wrt_diff_targetXSlope | on                |
+| wrt_diff_targetYSlope | on                |
+| wrt_diff_energy       | on                |
+| wrt_diff_targetX      | on_5+1            |
+| wrt_diff_targetY      | on_5+1            |
+| wrt_diff_targetXSlope | on_5+1            |
+| wrt_diff_targetYSlope | on_5+1            |
+| wrt_diff_energy       | on_5+1            |
+| wrt_asym_charge       | on_5+1            |
+| wrt_diff_targetX      | on_set3           |
+| wrt_diff_targetY      | on_set3           |
+| wrt_diff_targetXSlope | on_set3           |
+| wrt_diff_targetYSlope | on_set3           |
+| wrt_diff_bpm3c12X     | on_set3           |
+| wrt_asym_charge       | on_set3           |
+| wrt_diff_targetX      | on_set4           |
+| wrt_diff_targetY      | on_set4           |
+| wrt_diff_targetXSlope | on_set4           |
+| wrt_diff_targetYSlope | on_set4           |
+| wrt_diff_energy       | on_set4           |
+| wrt_asym_bcm5         | on_set4           |
+| wrt_diff_9b_p_4X      | on_set5           |
+| wrt_diff_9b_p_4Y      | on_set5           |
+| wrt_diff_9b_m_4X      | on_set5           |
+| wrt_diff_9b_m_4Y      | on_set5           |
+| wrt_diff_bpm3c12X     | on_set5           |
+| wrt_diff_9b_p_4X      | on_set6           |
+| wrt_diff_9b_p_4Y      | on_set6           |
+| wrt_diff_9b_m_4X      | on_set6           |
+| wrt_diff_9b_m_4Y      | on_set6           |
+| wrt_diff_bpm3c12X     | on_set6           |
+| wrt_asym_charge       | on_set6           |
+|
+
+*/
+
 const char *QwGUIDatabase::RegressionVarsOn[N_REG_VARS_ON]={
   "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy"
 };
@@ -210,20 +255,28 @@ const char   *QwGUIDatabase::RegressionVarsOn_3[N_REG_VARS_ON_3]={
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_4[N_REG_VARS_ON_4]={
-  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_bpm3c12X",
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy",
   "wrt_asym_bcm5",
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_5[N_REG_VARS_ON_5]={
-  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_bpm3c12X"
+  "wrt_diff_9b_p_4X","wrt_diff_9b_m_4X","wrt_diff_9b_m_4Y","wrt_diff_9b_p_4Y","wrt_diff_bpm3c12X"
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_6[N_REG_VARS_ON_6]={
-  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
+  "wrt_diff_9b_p_4X","wrt_diff_9b_m_4X","wrt_diff_9b_m_4Y","wrt_diff_9b_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
+};
+
+const char   *QwGUIDatabase::RegressionVarsOn_7[N_REG_VARS_ON_7]={
+  "wrt_diff_9_p_4X","wrt_diff_9_m_4X","wrt_diff_9_m_4Y","wrt_diff_9_p_4Y","wrt_diff_bpm3c12X"
+};
+
+const char   *QwGUIDatabase::RegressionVarsOn_8[N_REG_VARS_ON_8]={
+  "wrt_diff_9_p_4X","wrt_diff_9_m_4X","wrt_diff_9_m_4Y","wrt_diff_9_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
 };
 
 const char *QwGUIDatabase::RegressionSchemes[N_REGRESSION_SCHEMES] = {
-  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6"
+  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8"
 };
 
 
@@ -1151,7 +1204,9 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
   dBoxGoodFor->GetSelectedEntries(selected_types);
   TGTextLBEntry *entry;
   TIter next(selected_types);
-  TString good_for_check = " AND data.good_for_id is not NULL AND data.good_for_id='";
+  //  TString good_for_check = " AND data.good_for_id is not NULL AND data.good_for_id='";
+  TString good_for_check = " AND data.good_for_id is not NULL ";
+
   Int_t good_for_n = 0;
 
   for(size_t i=0; i<N_GOODFOR_TYPES;i++){ //initialize them as false
@@ -1160,18 +1215,26 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
 
   // validate the entries that are selected.
   while( (entry = (TGTextLBEntry *)next()) ) {
-	  good_for_id.push_back(dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId());
+	  good_for[dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId()-1] = kTRUE;
+
+	  //	  good_for_id.push_back(dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId());
   }
 
-  if(good_for_id.size()>0){
-    good_for_check = good_for_check + Form("%d",good_for_id[0]);
-    if(good_for_id.size()>1){
-      for(size_t i=1; i<good_for_id.size() ;i++){
-	good_for_check = good_for_check + Form(",%d",good_for_id[i]);
-      }
+  for (size_t i=0; i<N_GOODFOR_TYPES;i++){
+    if(good_for[i]){
+      good_for_check = good_for_check + Form(" AND FIND_IN_SET('%i',data.good_for_id)",i+1);
     }
   }
-  good_for_check = good_for_check + "' ";
+
+//   if(good_for_id.size()>0){
+//     good_for_check = good_for_check + Form("%d",good_for_id[0]);
+//     if(good_for_id.size()>1){
+//       for(size_t i=1; i<good_for_id.size() ;i++){
+// 	good_for_check = good_for_check + Form(",%d",good_for_id[i]);
+//       }
+//     }
+//   }
+//   good_for_check = good_for_check + "' ";
 
 
   /*Slope corrections ON/OFF?*/
@@ -2432,6 +2495,7 @@ void QwGUIDatabase::RegressionTypeInfo(){
   Bool_t bfill_reg_iv = kFALSE;
   TCanvas *mc = dCanvas->GetCanvas();
   mc->Clear();
+  mc->Draw();
   mc->SetFillColor(0);
   regression_ivs = NULL;
 
@@ -2442,12 +2506,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
     bfill_reg_iv = kTRUE;
   }
 
-  TLatex T1;
-  T1.SetTextAlign(12);
-  T1.SetTextSize(0.03);
+  TLatex * T1 = new TLatex();
+  T1->SetTextAlign(12);
+  T1->SetTextSize(0.03);
 
   if(regression_set == "off"){
-    T1.DrawLatex(0.1,0.8,"Selecting Unregressed data!");
+    T1->DrawLatex(0.1,0.8,"Selecting Unregressed data!");
     if(bfill_reg_iv){
       for (Int_t i = 0; i < N_REG_VARS_ON; i++){
 	dCmbProperty->AddEntry(RegressionVarsOn[i], i);
@@ -2456,7 +2520,7 @@ void QwGUIDatabase::RegressionTypeInfo(){
     }
   }
   else{
-    T1.DrawLatex(0.1,0.8,"Selecting Regression that use IVs:");
+    T1->DrawLatex(0.1,0.8,"Selecting Regression that use IVs:");
 
     if(regression_set == "on"){
       if(bfill_reg_iv){
@@ -2465,11 +2529,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn;
 	}
       }
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");        
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");      
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_energy");      
+      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
+      T1->DrawLatex(0.2,0.3,"#bullet diff_energy");    
+      gPad->Update();  
       
     }
     else if(regression_set == "on_5+1"){
@@ -2480,12 +2545,13 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	}
       }
       
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");        
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");      
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_energy"); 
-      T1.DrawLatex(0.2,0.2,"#bullet asym_qwk_charge"); 
+      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
+      T1->DrawLatex(0.2,0.3,"#bullet diff_energy"); 
+      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      gPad->Update();  
 
     }
     else if(regression_set == "on_set3"){
@@ -2495,12 +2561,14 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_3;
 	}
       }
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");        
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");      
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X"); 
-      T1.DrawLatex(0.2,0.2,"#bullet asym_qwk_charge"); 
+      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
+      T1->DrawLatex(0.2,0.3,"#bullet diff_bpm3c12X"); 
+      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      gPad->Update();  
+
     }
     else if(regression_set == "on_set4"){
       if(bfill_reg_iv){
@@ -2509,12 +2577,14 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_4;
 	}
       }
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");        
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");      
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X"); 
-      T1.DrawLatex(0.2,0.1,"#bullet asym_qwk_bcm5"); 
+      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
+      T1->DrawLatex(0.2,0.3,"#bullet diff_energy"); 
+      T1->DrawLatex(0.2,0.2,"#bullet asym_bcm5"); 
+      gPad->Update();  
+
     }
     else if(regression_set == "on_set5"){
       if(bfill_reg_iv){
@@ -2523,11 +2593,14 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_5;
 	}
       }
-      T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");      
-      T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");        
-      T1.DrawLatex(0.2,0.4,"#bullet diff_bpm_9b_p_4Y=diff_qwk_bpm3h09bY+diff_qwk_bpm3h04Y");      
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X"); 
+      T1->DrawLatex(0.2,0.7,"#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");      
+      T1->DrawLatex(0.2,0.3,"#bullet diff_bpm3c12X"); 
+      gPad->Modified();  
+      gPad->Update();  
+
     }
     else if(regression_set == "on_set6"){
       if(bfill_reg_iv){
@@ -2536,12 +2609,45 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_6;
 	}
       }
-      T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");      
-      T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");        
-      T1.DrawLatex(0.2,0.4,"#bullet diff_bpm_9b_p_4Y=diff_qwk_bpm3h09bY+diff_qwk_bpm3h04Y");
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");       
-      T1.DrawLatex(0.2,0.3,"#bullet asym_qwk_charge"); 
+      T1->DrawLatex(0.2,0.7,"#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");
+      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
+      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      gPad->Update();  
+
+    }
+    else if(regression_set == "on_set7"){
+      if(bfill_reg_iv){
+	for (Int_t i = 0; i < N_REG_VARS_ON_7; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_7[i], i);
+	  regression_ivs = RegressionVarsOn_7;
+	}
+      }
+      T1->DrawLatex(0.2,0.7,"#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
+      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
+      gPad->Update();  
+
+    }
+    else if(regression_set == "on_set8"){
+      if(bfill_reg_iv){
+	for (Int_t i = 0; i < N_REG_VARS_ON_8; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_8[i], i);
+	  regression_ivs = RegressionVarsOn_8;
+	}
+      }
+      T1->DrawLatex(0.2,0.7,"#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
+      T1->DrawLatex(0.2,0.6,"#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
+      T1->DrawLatex(0.2,0.5,"#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
+      T1->DrawLatex(0.2,0.4,"#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
+      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
+      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      gPad->Update();  
+
     }
   } 
   
