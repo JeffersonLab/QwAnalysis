@@ -39,6 +39,9 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
     void GetHitList(QwHitContainer& hitlist);
     void GetHitList(QwHitContainer* hitlist) { GetHitList(*hitlist); };
 
+    /// 
+    void FillHardwareErrorSummary();
+
   protected:
 
     /// Test whether this subsystem array can contain a particular subsystem

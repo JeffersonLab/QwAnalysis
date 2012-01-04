@@ -32,10 +32,10 @@
 #PC_neg_t0_OUT=40962
 
 #4. Runs checked OUT - 11283 IN - 11286 -Changed by Rakitha 04/11/2011 - rakithab@jlab.org
-PC_pos_t0_IN=43300
-PC_neg_t0_IN=40899
-PC_pos_t0_OUT=42864 
-PC_neg_t0_OUT=41335
+#PC_pos_t0_IN=43300
+#PC_neg_t0_IN=40899
+#PC_pos_t0_OUT=42864 
+#PC_neg_t0_OUT=41335
 
 #5. No longer needs above values.
 # Reads text files,

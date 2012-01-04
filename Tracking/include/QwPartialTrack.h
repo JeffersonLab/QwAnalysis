@@ -82,8 +82,8 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     // Creating and adding tree lines
     QwTrackingTreeLine* CreateNewTreeLine();
-    void AddTreeLine(QwTrackingTreeLine* treeline);
-    void AddTreeLineList(QwTrackingTreeLine* treelinelist);
+    void AddTreeLine(const QwTrackingTreeLine* treeline);
+    void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
     void AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist);
     void ClearTreeLines(Option_t *option = "");
     void ResetTreeLines(Option_t *option = "");

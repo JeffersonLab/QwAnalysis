@@ -21,6 +21,7 @@
 #include "TSystem.h"
 #include "TChain.h"
 #include "TGaxis.h"
+#include "TLeaf.h"
 
 #include "getChain.C"
 #include "cutOnLaser.C"
@@ -104,14 +105,28 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
             << "\t" << hTemp->GetMean() << std::endl;
   delete hTemp;
 
-  Double_t maxCur = helChain->GetMaximum("yield_sca_bcm6");
+  Double_t maxCur = helChain->GetMaximum("yield_sca_bcm6/value");
   Double_t cutCur = maxCur * 0.8;
-  std::cout << "BCM current cut is " << cutCur << " uA." << std::endl;
-  TCut bcmCut = Form("yield_sca_bcm6>%f",cutCur);
-  TCut beamOffCut = Form("yield_sca_bcm6<=%f", MINCUR);
+  Bool_t useBCMCut;
+  if ( cutCur > 0 ) {
+    std::cout << "BCM current cut is " << cutCur << " uA." << std::endl;
+    useBCMCut = kTRUE;
+  } else {
+    std::cout << "BCM current is too low at only " << cutCur << " uA. Disabling current cuts." << std::endl;
+    useBCMCut = kFALSE;
+  }
+  useBCMCut = kTRUE;
+
+  TCut bcmCut = Form("yield_sca_bcm6.value>%f",cutCur);
+  TCut beamOffCut = Form("yield_sca_bcm6.value<=%f", MINCUR);
 
   TCut scalerCut = "yield_sca_laser_photon>2";//PMT On and beam hitting laser
-  TCut powCut = bcmCut && scalerCut;//PMT On and hitting laser and beam On
+  TCut powCut;
+  if(useBCMCut) {
+      powCut = bcmCut && scalerCut;//PMT On and hitting laser and beam On
+  } else {
+    powCut = scalerCut; // We can't rely on a BCM cut, just ask for PMT on
+  }
   TCut lasOnCut = powCut && Form("yield_sca_laser_PowT>%f",cutval1)
                          && Form("yield_sca_laser_PowT<%f",cutval2);
   TCut lasOnCut1 = Form("yield_sca_laser_PowT>%f",cutval1);
@@ -129,7 +144,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
     TCut cut1 = (Form("Entry$>=%d",cut.at(2*i)));
     TCut cut2 = (Form("Entry$<=%d",cut.at(2*i+1)));
     TCut cut3 = (Form("Entry$>=%d",cut.at(2*i+2)));
-    TCut cut4 = (Form("Entry$<=%d",cut.at(2*i+3))); 
+    TCut cut4 = (Form("Entry$<=%d",cut.at(2*i+3)));
     lasWiseCut.push_back(cut1 && cut4);
     bkgCut.push_back(lasOffCut && lasWiseCut[i]);
     asymCut.push_back(lasOnCut && lasWiseCut[i]);
@@ -254,13 +269,18 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   //***different colors for laser On and Off states.  ***//
   //***Superimpose scaled laser power on plot as well.***//
   ////////////////////////////////////////////////////////
-  Float_t maxPowT = helChain->GetMaximum("yield_sca_laser_PowT");
+  Float_t maxPowT = helChain->GetMaximum("yield_sca_laser_PowT/value");
   //std::cout <<lBinX<<"\t"<<hBinX<<"\t"<<lBinY<<"\t"<<hBinY<<std::endl;
   diffY = hBinY - lBinY;
   hBinY += diffY*0.1;
   lBinY -= diffY*0.1;
   //  std::cout <<lBinX<<"\t"<<hBinX<<"\t"<<lBinY<<"\t"<<hBinY<<std::endl;
-  Float_t scale = LSCALE*(Float_t)(hBinY-lBinY)/(Float_t)maxPowT;
+  Float_t scale;
+  if (maxPowT > 0 ) {
+    scale = LSCALE*(Float_t)(hBinY-lBinY)/(Float_t)maxPowT;
+  } else {
+    scale = LSCALE*(Float_t)(hBinY-lBinY)/1;
+  }
   // printf("maxPowT=%f\nscale=%f\n",maxPowT,scale);
   TH2F *hPow = new TH2F("hPow","hPow", 2000, lBinX, hBinX, 2000, lBinY, hBinY);
   TH2F *hPUnsd = new TH2F("hPUnsd","hPUnsd",2000,lBinX,hBinX,2000,lBinY,hBinY);
@@ -306,7 +326,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   hPLow->Draw("same");
   hPUnsd->Draw("same");
   helChain->Draw("yield_fadc_compton_accum0.hw_sum:pattern_number>>hBeamOff"
-		 ,beamOffCut,"goff");
+		 ,useBCMCut?beamOffCut:"","goff");
   hBeamOff->SetMarkerColor(kGray+1);
   hBeamOff->SetLineColor(kGray+1);
   hBeamOff->Draw("same");
@@ -378,7 +398,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   Double_t lowY1, highY1, lowY2, highY2, diffY1, diffY2, meanY1, meanY2;
   Double_t rmsY1, rmsY2, offset;
    
-  helChain->Draw("yield_sca_bpm_3p02aY>>hPosY1", bcmCut,"goff");
+  helChain->Draw("yield_sca_bpm_3p02aY>>hPosY1", useBCMCut?bcmCut:"","goff");
   gPad->Update();
   TH1F *hPosY1 = (TH1F*)gDirectory->Get("hPosY1"); 
   lowY1 = (Double_t)getLeftmost(hPosY1);
@@ -389,7 +409,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   rmsY1 = hPosY1->GetRMS();
   meanY1 = (lowY1 + highY1)/2.0;
   delete hPosY1;
-  helChain->Draw("yield_sca_bpm_3p02aX>>hPosX1", bcmCut,"goff");
+  helChain->Draw("yield_sca_bpm_3p02aX>>hPosX1", useBCMCut?bcmCut:"","goff");
   gPad->Update();
   //Scale second graph to first and put new axis on right side.
   TH1F *hPosX1 = (TH1F*)gDirectory->Get("hPosX1"); 
@@ -410,7 +430,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   hPosY->SetMarkerColor(kRed);
   hPosY->SetLineColor(kRed);
   hPosY->Draw();
-  helChain->Draw("yield_sca_bpm_3p02aY:pattern_number>>hPosY", bcmCut,"");
+  helChain->Draw("yield_sca_bpm_3p02aY:pattern_number>>hPosY", useBCMCut?bcmCut:"","");
   gPad->Update();
   TPaveStats *st4 = (TPaveStats*)gPad->GetPrimitive("stats");
   st4->SetX1NDC(0.58); //new x start position
@@ -418,7 +438,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   Float_t scale1 = (diffY1+5*rmsY1)/(diffY2+5*rmsY2);
   offset = meanY1 - meanY2*scale1 - 0.4*diffY1;
   TH2F *hPosX = new TH2F("hPosX","hPosX",1000,lBinX,hBinX,1000,lowY2,highY2);
-  helChain->Draw("yield_sca_bpm_3p02aX:pattern_number>>hPosX",bcmCut,"goff");
+  helChain->Draw("yield_sca_bpm_3p02aX:pattern_number>>hPosX",useBCMCut?bcmCut:"","goff");
   printf("Scale hPosX by %f. Offset = %f.\n",scale1, offset);
   hPosX->SetMarkerColor(kBlue);
   hPosX->SetLineColor(kBlue);
@@ -455,6 +475,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
                   "*yield_fadc_compton_accum0.hw_sum*2>>hTemp",
 		 asymCut[i],"goff");
     numEnt =(Int_t)hTemp->GetEntries();
+    std::cout << "Cut " <<i<<" has " << numEnt << " entries\n";
     if(numEnt>MIN_ENTRIES){
       cutQual[i] = 1;
       m++;

@@ -2,7 +2,7 @@
  * QwDBInterface.h
  *
  *  Created on: Dec 14, 2010
- *      Author: jhlee (split off by wdconinc)
+ *      Author: jhlee
  */
 
 #ifndef QWDBINTERFACE_H_
@@ -52,7 +52,7 @@ class QwDBInterface {
 
  private:
   template <class T>
-  inline T TypedDBClone();
+  T TypedDBClone();
 
  public:
   static TString DetermineMeasurementTypeID(TString type, TString suffix = "",
@@ -106,7 +106,7 @@ class QwDBInterface {
       if(print_flag) {
         QwMessage << std::setw(12)
                   << " AnalysisID " << fAnalysisId
-                  << " Device :"    << std::setw(18) << fDeviceName
+                  << " Device :"    << std::setw(30) << fDeviceName
                   << ":" << std::setw(4) << fDeviceId
                   << " Subblock "   << fSubblock
                   << " n "          << fN
@@ -130,19 +130,114 @@ inline void QwDBInterface::AddThisEntryToList(std::vector<T> &list)
 {
   Bool_t okay = kTRUE;
   if (fAnalysisId == 0) {
-    QwError << "AddDBEntryToList:  Analysis ID invalid; entry dropped"
+    QwError << "QwDBInterface::AddDBEntryToList:  Analysis ID invalid; entry dropped"
             << QwLog::endl;
     okay = kFALSE;
   }
   if (fDeviceId == 0) {
-    QwError << "AddDBEntryToList:  Device ID invalid; entry dropped"
+    QwError << "QwDBInterface::AddDBEntryToList:  Device ID invalid; entry dropped"
             << QwLog::endl;
     okay = kFALSE;
   }
   if (okay) {
     T row = TypedDBClone<T>();
     if (row.analysis_id == 0){
-      QwError << "AddDBEntryToList:  Unknown list type; entry dropped"
+      QwError << "QwDBInterface::AddDBEntryToList:  Unknown list type; entry dropped"
+              << QwLog::endl;
+      okay = kFALSE;
+    } else {
+      list.push_back(row);
+    }
+  }
+  if (okay == kFALSE) {
+    PrintStatus(kTRUE);
+  };
+}
+
+
+
+
+
+
+class QwErrDBInterface {
+
+ private:
+
+  UInt_t fAnalysisId;
+  UInt_t fDeviceId;
+  UInt_t fErrorCodeId;
+  UInt_t fN;
+
+  TString fDeviceName;
+
+  template <class T>
+  T TypedDBClone();
+
+
+ public:
+
+    QwErrDBInterface()
+    : fAnalysisId(0),fDeviceId(0),fErrorCodeId(0),fN(0) {
+      fDeviceName ="";
+    }
+    virtual ~QwErrDBInterface() { }
+
+    void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
+    void SetDeviceName(TString &in) {fDeviceName = in;};
+    void SetDeviceID(UInt_t id) {fDeviceId = id;};
+
+    void SetMonitorID(QwParityDB *db);
+    void SetMainDetectorID(QwParityDB *db);
+    void SetLumiDetectorID(QwParityDB *db);
+
+    void SetErrorCodeId(UInt_t in) {fErrorCodeId = in;};
+    void SetN(UInt_t in)        {fN = in;};
+
+    TString GetDeviceName() {return fDeviceName;};
+
+    void Reset() {
+      fAnalysisId = 0;
+      fDeviceId = 0;
+      fErrorCodeId = 0;
+      fN = 0;
+      fDeviceName = "";
+    };
+
+    template <class T> inline
+    void AddThisEntryToList(std::vector<T> &list);
+
+
+    void PrintStatus(Bool_t print_flag) {
+      if(print_flag) {
+        QwMessage << std::setw(12)
+                  << " AnalysisID " << fAnalysisId
+                  << " Device :"    << std::setw(30) << fDeviceName
+                  << ":" << std::setw(4) << fDeviceId
+                  << " ErrorCode "   << fErrorCodeId
+                  << " n "          << fN
+                  << QwLog::endl;
+      }
+    }
+};
+
+template <class T>
+inline void QwErrDBInterface::AddThisEntryToList(std::vector<T> &list)
+{
+  Bool_t okay = kTRUE;
+  if (fAnalysisId == 0) {
+    QwError << "QwErrDBInterface::AddDBEntryToList:  Analysis ID invalid; entry dropped"
+            << QwLog::endl;
+    okay = kFALSE;
+  }
+  if (fDeviceId == 0) {
+    QwError << "QwErrDBInterface::AddDBEntryToList:  Device ID invalid; entry dropped"
+            << QwLog::endl;
+    okay = kFALSE;
+  }
+  if (okay) {
+    T row = TypedDBClone<T>();
+    if (row.analysis_id == 0){
+      QwError << "QwErrDBInterface::AddDBEntryToList:  Unknown list type; entry dropped"
               << QwLog::endl;
       okay = kFALSE;
     } else {

@@ -266,7 +266,7 @@ Int_t QwRegressionSubsystem::ProcessEvBuffer(UInt_t, UInt_t, UInt_t*, UInt_t)
 
 Bool_t QwRegressionSubsystem::ApplySingleEventCuts()
 {
-  return false;
+  return true;
 }
 
 Int_t QwRegressionSubsystem::GetEventcutErrorCounters()
@@ -277,7 +277,7 @@ Int_t QwRegressionSubsystem::GetEventcutErrorCounters()
 
 UInt_t QwRegressionSubsystem::GetEventcutErrorFlag()
 {
-    return 4;
+    return 0;
   
 }
 

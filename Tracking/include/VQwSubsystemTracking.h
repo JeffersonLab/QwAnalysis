@@ -7,6 +7,7 @@
 // Qweak headers
 #include "VQwSubsystem.h"
 #include "QwGeometry.h"
+#include "QwRootFile.h"
 
 // Forward declarations
 class QwHitContainer;
@@ -79,6 +80,9 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
 
     /// Get the detector geometry information
     const QwGeometry& GetDetectorInfo() const { return fDetectorInfo; };
+
+    /// Hardware error summary
+    virtual void FillHardwareErrorSummary() {};
 
   protected:
 

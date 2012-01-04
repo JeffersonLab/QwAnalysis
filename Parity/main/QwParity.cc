@@ -66,6 +66,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.AddOptions()("single-output-file", po::value<bool>()->default_bool_value(false), "Write a single output file");
+  gQwOptions.AddOptions()("print-errorcounters", po::value<bool>()->default_bool_value(true), "Print summary of error counters");
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qweak_mysql.conf");
 
@@ -140,14 +141,21 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (gQwOptions.GetValue<bool>("single-output-file")) {
       treerootfile = new QwRootFile(eventbuffer.GetRunLabel());
       burstrootfile = historootfile = treerootfile;
+
+      //  Construct a tree which contains map file names which are used to analyze data
+      treerootfile->WriteParamFileList("mapfiles", detectors);
+      
     } else {
       treerootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".trees");
       burstrootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".bursts");
       historootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".histos");
-    }
 
-    //  Construct a tree which contains map file names which are used to analyze data
-    historootfile->WriteParamFileList("mapfiles", detectors);
+      //  Construct a tree which contains map file names which are used to analyze data
+      detectors.PrintParamFileList();
+      treerootfile->WriteParamFileList("mapfiles", detectors);
+      burstrootfile->WriteParamFileList("mapfiles", detectors);
+      historootfile->WriteParamFileList("mapfiles", detectors);
+    }
 
     if (database.AllowsWriteAccess()) {
       database.FillParameterFiles(detectors);
@@ -319,8 +327,10 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwMessage << " Running average of events" << QwLog::endl;
       QwMessage << " =========================" << QwLog::endl;
       runningsum.PrintValue();
+      runningsum.WritePromptSummary();
     }
 
+  
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
      *  Doing this will remove the multiple copies of the ntuples    *
@@ -343,10 +353,10 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
 
     //  Print the event cut error summary for each subsystem
-    QwMessage << " Event cut error counters" << QwLog::endl;
-    QwMessage << " ========================" << QwLog::endl;
-    detectors.GetEventcutErrorCounters();
-
+    if (gQwOptions.GetValue<bool>("print-errorcounters")) {
+      QwMessage << " ------------ error counters ------------------ " << QwLog::endl;
+      detectors.GetEventcutErrorCounters();
+    }
 
     //  Read from the database
     database.SetupOneRun(eventbuffer);
@@ -354,8 +364,12 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Each subsystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
       helicitypattern.FillDB(&database);
+      //helicitypattern.FillErrDB(&database);
       epicsevent.FillDB(&database);
+
     }
+    
+  
     //epicsevent.WriteEPICSStringValues();
 
     //  Close event buffer stream

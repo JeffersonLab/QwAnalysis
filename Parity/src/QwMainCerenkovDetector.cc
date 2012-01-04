@@ -51,7 +51,7 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
 }
 
 
-//*****************************************************************
+//*****************************************************************//
 /**
  * Publish internal values
  * @return
@@ -117,33 +117,26 @@ Bool_t QwMainCerenkovDetector::PublishInternalValues() const
 }
 
 
-//*****************************************************************
+//*****************************************************************//
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
-
   Bool_t ldebug=kFALSE;
 
-  TString varname, varvalue;
-  TString modtype, dettype, namech, nameofcombinedchan;
-  TString keyword;
-  TString keyword2;
-  Int_t modnum, channum, combinedchans;
   std::vector<TString> combinedchannelnames;
   std::vector<Double_t> weight;
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
-  Int_t fSample_size=0;
+  Int_t sample_size=0;
 
-  modnum = 0;
-  channum = 0;
-  combinedchans = 0;
 
-  QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+  // Open the file
+  QwParameterFile mapstr(mapfile.Data());
+  TString varname, varvalue;
+
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-
-
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -168,43 +161,48 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
             }
           else if (varname=="sample_size")
             {
-              fSample_size=value;
+              sample_size=value;
             }
         }
       else
         {
-          Bool_t lineok=kTRUE;
-	  keyword = "";
-	  keyword2 = "";
-          //  Break this line into tokens to process it.
-          modtype   = mapstr.GetTypedNextToken<TString>();	// module type
+          Bool_t  lineok   = kTRUE;
+	  TString keyword  = "";
+	  TString keyword2 = "";
+          TString modtype  = "";
+          TString dettype  = "";
+	  TString namech   = "";
+          Int_t modnum     = 0;
+	  Int_t channum    = 0;
+
+	  modtype = mapstr.GetTypedNextToken<TString>();	// module type
+
           if (modtype == "VQWK")
             {
               modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
               channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
-              dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
+              dettype = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
               dettype.ToLower();
-              namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
+              namech  = mapstr.GetTypedNextToken<TString>();  //name of the detector
               namech.ToLower();
 
 	      keyword   = mapstr.GetTypedNextToken<TString>();
-	      keyword2  = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
+	      keyword2  = mapstr.GetTypedNextToken<TString>();
 	      keyword2.ToLower();
             }
           else if (modtype == "VPMT")
             {
               channum       = mapstr.GetTypedNextToken<Int_t>();	//channel number
-              combinedchans = mapstr.GetTypedNextToken<Int_t>();	//number of combined channels
-              dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
+              Int_t combinedchans = mapstr.GetTypedNextToken<Int_t>();	//number of combined channels
+              dettype     = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
               dettype.ToLower();
-              namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
+              namech      = mapstr.GetTypedNextToken<TString>();  //name of the detector
               namech.ToLower();
-              //TString nameofchannel;
               combinedchannelnames.clear();
               for (int i=0; i<combinedchans; i++)
                 {
-                  nameofcombinedchan = mapstr.GetTypedNextToken<TString>();
+                  TString nameofcombinedchan = mapstr.GetTypedNextToken<TString>();
                   nameofcombinedchan.ToLower();
                   combinedchannelnames.push_back(nameofcombinedchan);
                 }
@@ -213,9 +211,9 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
                 {
                   weight.push_back( mapstr.GetTypedNextToken<Double_t>());
                 }
-	      keyword   = mapstr.GetTypedNextToken<TString>();
-	      keyword2  = mapstr.GetTypedNextToken<TString>();
+	      keyword  = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
+	      keyword2 = mapstr.GetTypedNextToken<TString>();
 	      keyword2.ToLower();
             }
 
@@ -282,7 +280,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 		  else
 		  	localIntegrationPMT.SetNormalizability(kTRUE);
 		  fIntegrationPMT.push_back(localIntegrationPMT);
-                  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
+                  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(sample_size);
 		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
                 }
 
@@ -300,7 +298,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 		  else 
 		    localcombinedPMT.SetBlindability(kTRUE);
                   fCombinedPMT.push_back(localcombinedPMT);
-                  fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
+                  fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(sample_size);
                   localMainDetID.fIndex=fCombinedPMT.size()-1;
                 }
             }
@@ -418,66 +416,48 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 }
 
 
-Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
+Int_t QwMainCerenkovDetector::LoadEventCuts(TString filename)
 {
-  Double_t ULX, LLX, ULY, LLY;
-  Int_t samplesize;
-  Int_t check_flag;
-  Int_t eventcut_flag;
-  std::vector<Double_t> integrationPMTEventCuts;
-  std::vector<Double_t> combinedPMTEventCuts;
+  Int_t eventcut_flag = 1;
 
-  TString varname, varvalue, vartypeID;
-  TString device_type,device_name;
-  QwParameterFile mapstr(filename.Data());  //Open the file
+  // Open the file
+  QwParameterFile mapstr(filename.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-
-  Int_t det_index= -1; 
-  Double_t stabilitycut;
-
-  samplesize = 0;
-  check_flag = 0;
-  eventcut_flag=1;
-
   while (mapstr.ReadNextLine())
     {
       //std::cout<<"********* In the loop  *************"<<std::endl;
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
       mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
       if (mapstr.LineIsEmpty())  continue;
+      TString varname, varvalue;
       if (mapstr.HasVariablePair("=",varname,varvalue))
         {
           if (varname=="EVENTCUTS")
             {
               //varname="";
-              eventcut_flag= QwParameterFile::GetUInt(varvalue);
+              eventcut_flag = QwParameterFile::GetUInt(varvalue);
               //std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;
             }
         }
       else
         {
-          device_type= mapstr.GetTypedNextToken<TString>();
+          TString device_type = mapstr.GetTypedNextToken<TString>();
           device_type.ToLower();
-          device_name= mapstr.GetTypedNextToken<TString>();
+          TString device_name = mapstr.GetTypedNextToken<TString>();
           device_name.ToLower();
-	  det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-	  if (det_index==-1){
-	    QwWarning<<" Device not found "<<device_name<<" of type "<<device_type<<QwLog::endl;
+          Int_t det_index = GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+	  if (det_index == -1) {
+	    QwWarning << " Device not found " << device_name << " of type " << device_type << QwLog::endl;
 	    continue;
 	  }
-          //set limits to zero
-          ULX=0;
-          LLX=0;
-          ULY=0;
-          LLY=0;
 
 	  if (device_type == GetQwPMTInstrumentTypeName(kQwIntegrationPMT)){
-	    LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
-	    ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
-	    varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
-	    stabilitycut=mapstr.GetTypedNextToken<Double_t>();
-	    varvalue.ToLower();
-	    QwMessage<<"QwMainCerenkovDetector Error Code passing to QwIntegrationPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	    Double_t LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+	    Double_t ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	    varvalue = mapstr.GetTypedNextToken<TString>();//global/local
+            varvalue.ToLower();
+	    Double_t stabilitycut = mapstr.GetTypedNextToken<Double_t>();
+	    QwMessage << "QwMainCerenkovDetector Error Code passing to QwIntegrationPMT " << GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut) << QwLog::endl;
 
 	    //std::cout<<"*****************************"<<std::endl;
 	    //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
@@ -486,12 +466,12 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
 	    //std::cout<<"*****************************"<<std::endl;
 
 	  } else if (device_type == GetQwPMTInstrumentTypeName(kQwCombinedPMT)){
-	    LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
-	    ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
-	    varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
-	    stabilitycut=mapstr.GetTypedNextToken<Double_t>();
-	    varvalue.ToLower();
-	    QwMessage<<"QwMainCerenkovDetector Error Code passing to QwCombinedPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	    Double_t LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for CombinedPMT value
+	    Double_t ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for CombinedPMT value
+	    varvalue = mapstr.GetTypedNextToken<TString>();//global/local
+            varvalue.ToLower();
+	    Double_t stabilitycut = mapstr.GetTypedNextToken<Double_t>();
+	    QwMessage << "QwMainCerenkovDetector Error Code passing to QwCombinedPMT " << GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut) << QwLog::endl;
 
 	    //std::cout<<"*****************************"<<std::endl;
 	    //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
@@ -504,12 +484,12 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
         }
 
     }
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
     fIntegrationPMT[i].SetEventCutMode(eventcut_flag);
-  for (size_t i=0;i<fCombinedPMT.size();i++)
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].SetEventCutMode(eventcut_flag);
 
-  fMainDetErrorCount=0; //set the error counter to zero
+  fMainDetErrorCount = 0; //set the error counter to zero
 
   return 0;
 }
@@ -1200,7 +1180,7 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
   return;
 }
 
-//*****************************************************************
+//*****************************************************************//
 void QwMainCerenkovDetector::Normalize(VQwDataElement* denom)
 {
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
@@ -1285,7 +1265,7 @@ EQwPMTInstrumentType QwMainCerenkovDetector::GetDetectorTypeID(TString name)
   return GetQwPMTInstrumentType(name);
 }
 
-//*****************************************************************
+//*****************************************************************//
 Int_t QwMainCerenkovDetector::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
 {
   Bool_t ldebug=kFALSE;
@@ -1468,6 +1448,91 @@ void  QwMainCerenkovDetector::PrintDetectorID() const
   return;
 }
 
+
+
+
+void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "            QwMainCerenkovDetectorID::FillErrDB                  " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+
+  std::vector<QwErrDBInterface> interface;
+  std::vector<QwParitySSQLS::md_errors> entrylist;
+
+  UInt_t analysis_id = db->GetAnalysisID();
+
+  UInt_t i,j;
+  i = j = 0;
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
+
+  for(i=0; i<fIntegrationPMT.size(); i++) {
+    interface.clear();
+    interface = fIntegrationPMT[i].GetErrDBEntry();
+    for(j=0; j<interface.size(); j++) {
+      interface.at(j).SetAnalysisID     ( analysis_id );
+      interface.at(j).SetMainDetectorID ( db );
+      interface.at(j).PrintStatus       ( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined PMT" <<QwLog::endl;
+
+  for(i=0; i< fCombinedPMT.size(); i++)
+    {
+      interface.clear();
+      interface = fCombinedPMT[i].GetErrDBEntry();
+      for(j=0; j<interface.size(); j++) {
+	interface.at(j).SetAnalysisID     ( analysis_id );
+	interface.at(j).SetMainDetectorID ( db );
+	interface.at(j).PrintStatus       ( local_print_flag );
+	interface.at(j).AddThisEntryToList( entrylist );
+      }
+    }
+  if(local_print_flag) {
+    QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size()
+              << QwColor(Qw::kNormal) << QwLog::endl;
+  }
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwMainCerenkovDetector::FillErrDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
+  db->Disconnect();
+
+  return;
+};
+
+
+
+void QwMainCerenkovDetector::WritePromptSummary() const
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "        QwMainCerenkovDetectorID::WritePromptSummary()          " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  return;
+}
+
+
+
 void  QwMainCerenkovDetectorID::Print() const
 {
 
@@ -1482,5 +1547,7 @@ void  QwMainCerenkovDetectorID::Print() const
 
   return;
 }
+
+
 
 

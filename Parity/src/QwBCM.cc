@@ -500,6 +500,16 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
   return row_list;
 }
 
+
+template<typename T>
+std::vector<QwErrDBInterface> QwBCM<T>::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  fBeamCurrent.AddErrEntriesToList(row_list);
+  return row_list;
+}
+
+
 template class QwBCM<QwVQWK_Channel>; 
 template class QwBCM<QwSIS3801_Channel>; 
 template class QwBCM<QwSIS3801D24_Channel>; 

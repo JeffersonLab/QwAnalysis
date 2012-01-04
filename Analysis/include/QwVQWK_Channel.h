@@ -21,6 +21,7 @@
 // Forward declarations
 class QwBlinder;
 class QwParameterFile;
+class QwErrDBInterface;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -144,7 +145,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     AccumulateRunningSum(value, -1);
   };
   /*
-  void DeaccumulateRunningSum(cVQwHardwareChannel *value){
+  void DeaccumulateRunningSum(VQwHardwareChannel *value){
     const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
     if (tmp_ptr != NULL) DeaccumulateRunningSum(*tmp_ptr);
   };
@@ -229,7 +230,9 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void ScaledAdd(Double_t scale, const VQwHardwareChannel *value);
 
-  
+  // Error Counters exist in QwVQWK_Channel, not in VQwHardwareChannel
+  //
+  void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list);
 
  protected:
   QwVQWK_Channel& operator/= (const QwVQWK_Channel &value);
@@ -302,15 +305,17 @@ private:
   size_t fNumberOfSamples;     ///< Number of samples  read through the module
   size_t fNumberOfSamples_map; ///< Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file
 
-  Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
+ 
 
   // Set of error counters for each HW test.
-  Int_t fErrorCount_sample;   ///< for sample size check
+  Int_t fErrorCount_HWSat;    ///< check to see ADC channel is saturated 
+  Int_t fErrorCount_sample;   ///< for sample size check                 
   Int_t fErrorCount_SW_HW;    ///< HW_sum==SW_sum check
   Int_t fErrorCount_Sequence; ///< sequence number check
   Int_t fErrorCount_SameHW;   ///< check to see ADC returning same HW value
   Int_t fErrorCount_ZeroHW;   ///< check to see ADC returning zero
-  Int_t fErrorCount_HWSat;   ///< check to see ADC channel is saturated
+
+  Int_t fNumEvtsWithEventCutsRejected; ///< Counts the Event cut rejected events 
 
 
 

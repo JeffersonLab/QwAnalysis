@@ -297,7 +297,7 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   //Double_t dt_ = 0.12 * (drifttime);
  
   Double_t dt_= drifttime;
-  Double_t dd_ = 0.0,t0=15.0;
+  Double_t dd_ = 0.0,t0=0.0;
   Double_t resolution=1.0;
   dt_-=t0;
   if(dt_>=0 && dt_<130){
@@ -871,21 +871,6 @@ void  QwDriftChamberHDC::FillHistograms()
 }
 
 
-
-// void  QwDriftChamberHDC::DeleteHistograms()
-// {
-//   TSeqCollection *file_list = gROOT->GetListOfFiles();
-//   for(Int_t i=0; i<file_list->GetSize(); i++) {
-//     TFile * file = (TFile*) file_list->At(i);
-//     file -> WriteObject(QwDriftChamber::fF1TDContainer->GetErrorSummary(),
-// 			Form("%s : F1TDC Error Summary", GetSubsystemName().Data())
-// 			);
-//   }
-
-//   return;
-// }
-
-
 void  QwDriftChamberHDC::ClearEventData()
 {
   SetDataLoaded(kFALSE);
@@ -935,8 +920,8 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
         Int_t plane=0,wire=0;
         EQwDetectorPackage package = kPackageNull;
-        Double_t t0 = 0.0;
-        Double_t real_time=0.0;       
+	//        Double_t t0 = 0.0;
+	//        Double_t real_time=0.0;       
         size_t nhits=fTDCHits.size();
         for(size_t i=0;i<nhits;i++)
         {

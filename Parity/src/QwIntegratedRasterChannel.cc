@@ -450,4 +450,13 @@ std::vector<QwDBInterface> QwIntegratedRasterChannel<T>::GetDBEntry()
 }
 
 
+template<typename T>
+std::vector<QwErrDBInterface> QwIntegratedRasterChannel<T>::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  fTriumf_ADC.AddErrEntriesToList(row_list);
+  return row_list;
+}
+
+
 template class QwIntegratedRasterChannel<QwVQWK_Channel>;

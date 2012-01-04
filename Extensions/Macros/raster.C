@@ -46,6 +46,10 @@
 //                   to prevent double post in hclog
 //                 - 2D png is the first one than 1D.png  
 //
+//          0.2.0  : Sunday, November 20 00:26:35 EST 2011, jhlee
+//                 - added more EPICS into the comment window
+//                   target name, raster size, mps current, and ibcm1
+//
 // TO LIST
 //   * BPM offsets      -> fixed by Buddhini (0.0.7) QwAnalysis Rev 2272
 //   * BPMs X/Y along z -> done jhlee (0.0.7)
@@ -215,7 +219,7 @@ RasterMap::RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name)
   fCommentWindow -> Resize();
   comment_frame -> AddFrame(fCommentWindow, new TGLayoutHints(kLHintsExpandX|kLHintsCenterX,0,0,10,0));
    
-  SetWindowName("Raster Map and BPMs Helper v0.1");
+  SetWindowName("Raster Map and BPMs Helper v0.2");
   MapSubwindows();
   Resize(GetDefaultSize());
   MapWindow();
@@ -351,7 +355,7 @@ RasterMap::SubmitHClog()
     hclog_post_string += "\" ";
   }
 
-  hclog_post_string += "--tag=\"powered by hclog_post and plot_raster\"";
+  hclog_post_string += "--tag=\" \"";
   //  hclog_post_string += "  --test";
 
   std::cout << hclog_post_string << std::endl;
@@ -414,42 +418,6 @@ RasterMap::raster()
   gStyle->SetPalette(1); 
   tracking_histo->cd();
 
-  fRasterMap2D = new TCanvas(filename.Data(), filename.Data(), 600, 800);
-  raster_rate_map->SetTitle(Form("Raster Rate Map in %s", filename.Data()));
-  fRasterMap2D -> Divide(1,2,0.0001,0.0001);
-  TPad *pad1 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_1", filename.Data()));
-  TPad *pad2 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_2", filename.Data()));
- 
-  pad2->Divide(2,1, 0.000, 0.000);
-  TPad *pad21 = (TPad*) pad2->GetPrimitive(Form("%s_2_1", filename.Data()));
-  TPad *pad22 = (TPad*) pad2->GetPrimitive(Form("%s_2_2", filename.Data()));
-  
-  pad1 -> cd();
-  pad1 -> SetBorderSize(0);
-  //  pad1 -> SetFixedAspectRatio();
-  pad1 -> SetPad(0.1,0.4,0.9,1.0);
-  if(raster_rate_map-> GetEntries() != 0.0) {
-    raster_rate_map -> Draw();
-  }
-
-  gPad->Update();
-  
-  pad2 -> cd();
-  pad2 -> SetBorderSize(0);
-  pad2 -> SetPad(0.0,0.0,1.0,0.4);
-  pad2 -> Update();
-
-  pad21 -> cd();
-  Double_t p_range = 3.6;
-  pad21 -> SetBorderSize(0);
-  pad21 -> SetFrameLineColor(0);
-  
-  pad21 -> Range(-p_range,-p_range,+p_range,+p_range);
-  pad21 -> SetFixedAspectRatio();
-  TLatex *bpm_pos = new TLatex(-2.2,3.3,"Beam Positions on BPMs and Target");
-  bpm_pos->SetTextFont(22);
-  bpm_pos->SetTextSize(0.05);
-
   TString H07AX;
   TString H07BX;
   TString H07CX;
@@ -468,6 +436,12 @@ RasterMap::raster()
   TString targetY;
   TString tungstenY;
  
+  TString rasterx;
+  TString rastery;
+  TString TargetName;
+  TString HALLC_BCM1;
+  TString MCC_BCM;
+
   TString host_name;
   host_name = gSystem->HostName();
  
@@ -476,25 +450,28 @@ RasterMap::raster()
     // H07C and H09B are the most interesting BPMs.
     //Get BCM, target, W plug position values and save as strings
     //                                                                         xoffset, yoffset, zoffset 
-    H07AX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.XPOS");  // 0.4,    0.2,   138406.0
-    H07BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.XPOS");  // 0.2,   -0.2,   139363.0
-    H07CX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.XPOS");  // 0.6,    0.0,   140329.0 (*)
-    H08X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.XPOS");   // 0.6,    1.6,   143576.0
-    H09X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.XPOS");   //-0.1,    0.6,   144803.0 
-    H09BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.XPOS");  //-0.6,    0.3,   147351.0 (*)
-    targetX   = gSystem->GetFromPipe("caget -t -f 3 qw:targetX");     // 0.1,    1.2,   148750.0 (*)
-    tungstenX = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenX");   // 0.1,    0.1,   149408.0
+    H07AX     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H07A.XPOS");  // 0.4,    0.2,   138406.0
+    H07BX     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H07B.XPOS");  // 0.2,   -0.2,   139363.0
+    H07CX     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H07C.XPOS");  // 0.6,    0.0,   140329.0 (*)
+    H08X      = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H08.XPOS");   // 0.6,    1.6,   143576.0
+    H09X      = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H09.XPOS");   //-0.1,    0.6,   144803.0 
+    H09BX     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H09B.XPOS");  //-0.6,    0.3,   147351.0 (*)
+    targetX   = gSystem->GetFromPipe("caget -c -t -f 3 qw:targetX");     // 0.1,    1.2,   148750.0 (*)
+    tungstenX = gSystem->GetFromPipe("caget -c -t -f 3 qw:tungstenX");   // 0.1,    0.1,   149408.0
   
-    H07AY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.YPOS");
-    H07BY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.YPOS");
-    H07CY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.YPOS");
-    H08Y      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.YPOS");
-    H09Y      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.YPOS");
-    H09BY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.YPOS");
-    targetY   = gSystem->GetFromPipe("caget -t -f 3 qw:targetY");
-    tungstenY = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenY");
-
-
+    H07AY     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H07A.YPOS");
+    H07BY     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H07B.YPOS");
+    H07CY     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H07C.YPOS");
+    H08Y      = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H08.YPOS");
+    H09Y      = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H09.YPOS");
+    H09BY     = gSystem->GetFromPipe("caget -c -t -f 3 IPM3H09B.YPOS");
+    targetY   = gSystem->GetFromPipe("caget -c -t -f 3 qw:targetY");
+    tungstenY = gSystem->GetFromPipe("caget -c -t -f 3 qw:tungstenY");
+    rasterx   = gSystem->GetFromPipe("caget -c -t -f 3 EHCFR_LIXWidth");
+    rastery   = gSystem->GetFromPipe("caget -c -t -f 3 EHCFR_LIYWidth");
+    TargetName = gSystem->GetFromPipe("caget -c -t QWtgt_name");
+    HALLC_BCM1 = gSystem->GetFromPipe("caget -c -t -f 4 ibcm1");
+    MPS_BCM    = gSystem->GetFromPipe("caget -c -t -f 4 IBC3H00CRCUR4");
     //
     // Just in case, when 'caget' doesn't work well or when we
     // want to test this script not on cdaqlx machine.
@@ -518,6 +495,11 @@ RasterMap::raster()
     if(targetY.IsNull())   targetY   = "-0.457";
     if(tungstenX.IsNull()) tungstenX = "-0.336";
     if(tungstenY.IsNull()) tungstenY = "-0.651";
+    if(rasterx.IsNull())   rasterx   = "4";
+    if(rastery.IsNull())   rastery   = "4";
+    if(TargetName.IsNull()) TargetName = "";
+    if(HALLC_BCM1.IsNull()) HALLC_BCM1 = "0";
+    if(MPS_BCM.IsNull())    MPS_BCM    = "0";
 
   }
   else {
@@ -537,6 +519,11 @@ RasterMap::raster()
     targetY   = "-0.457";
     tungstenX = "-0.336";
     tungstenY = "-0.651";
+    rasterx   = "4";
+    rastery   = "4";
+    TargetName = "";
+    HALLC_BCM1 = "0";
+    MPS_BCM    = "0";
   }
 
   //Convert target position strings into doubles for plotting
@@ -572,6 +559,11 @@ RasterMap::raster()
  
   Double_t BPMs_X[3] = {0.0};
   Double_t BPMs_Y[3] = {0.0};
+  Double_t Double_MPS_BCM = 0.0;
+  Double_t Double_HallC_BCM1 = 0.0;
+  Int_t RasterX = 0;
+  Int_t RasterY = 0;
+
   BPMs_X[0] = H07CX.Atof();
   BPMs_X[1] = H09BX.Atof();
   BPMs_X[2] = targetX.Atof();
@@ -579,6 +571,49 @@ RasterMap::raster()
   BPMs_Y[1] = H09BY.Atof();
   BPMs_Y[2] = targetY.Atof();
   
+  RasterX = rasterx.Atoi();
+  RasterY = rastery.Atoi();
+
+  Double_MPS_BCM = MPS_BCM.Atof();
+  Double_HallC_BCM1 = HALLC_BCM1.Atof();
+
+  fRasterMap2D = new TCanvas(filename.Data(), filename.Data(), 600, 800);
+  raster_rate_map->SetTitle(Form("Raster %dX%d Map in %s", RasterX, RasterY, filename.Data()));
+  fRasterMap2D -> Divide(1,2,0.0001,0.0001);
+  TPad *pad1 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_1", filename.Data()));
+  TPad *pad2 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_2", filename.Data()));
+ 
+  pad2->Divide(2,1, 0.000, 0.000);
+  TPad *pad21 = (TPad*) pad2->GetPrimitive(Form("%s_2_1", filename.Data()));
+  TPad *pad22 = (TPad*) pad2->GetPrimitive(Form("%s_2_2", filename.Data()));
+  
+  pad1 -> cd();
+  pad1 -> SetBorderSize(0);
+  //  pad1 -> SetFixedAspectRatio();
+  pad1 -> SetPad(0.1,0.4,0.9,1.0);
+  if(raster_rate_map-> GetEntries() != 0.0) {
+    raster_rate_map -> Draw();
+  }
+
+  gPad->Update();
+  
+  pad2 -> cd();
+  pad2 -> SetBorderSize(0);
+  pad2 -> SetPad(0.0,0.0,1.0,0.4);
+  pad2 -> Update();
+
+  pad21 -> cd();
+  Double_t p_range = 3.6;
+  pad21 -> SetBorderSize(0);
+  pad21 -> SetFrameLineColor(0);
+  
+  pad21 -> Range(-p_range,-p_range,+p_range,+p_range);
+  pad21 -> SetFixedAspectRatio();
+  TLatex *bpm_pos = new TLatex(-2.2,3.3,"Beam Positions on BPMs and Target");
+  bpm_pos->SetTextFont(22);
+  bpm_pos->SetTextSize(0.05);
+
+
 
   //Create a plot for beam position
   Int_t max_plot_range = 3;
@@ -814,10 +849,16 @@ RasterMap::raster()
   //          3rd (0,1,   2)  
   //          2nd (0,     1)
 
-  default_subject = Form("Raster Map and BPMs : Run %s, event range %s - %s", 
-				run_number.Data(), ev_range0.Data(), ev_range1.Data() 
+  default_subject = Form("Raster %dX%d Map and BPMs : Run %s, event range %s - %s", 
+			 RasterX, RasterY,
+			 run_number.Data(), ev_range0.Data(), ev_range1.Data() 
 			 );
   fSubjectEntry -> SetText(default_subject);
+
+  fCommentWindow -> AddLineFast(Form("Target %s, MPS BCM %.2f(uA), HallC BCM1 %.2f(uA), and  Raster %dX%d", 
+				     TargetName.Data(), MPS_BCM, HALLC_BCM1, RasterX, RasterY));
+
+  fCommentWindow->Update();
 
   //  this->MapRaised();
   // this->Pop();

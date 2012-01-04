@@ -112,6 +112,7 @@ class QwBlinder {
 
     /// Write to the database
     void FillDB(QwParityDB *db, TString datatype);
+    void FillErrDB(QwParityDB *db, TString datatype);
 
     /// Modifies the device error code variable passed to it, if the blinder is
     /// not okay.

@@ -347,60 +347,46 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 
 
 //*****************************************************************
-Int_t QwLumi::LoadEventCuts(TString  filename){
-  Double_t ULX, LLX, ULY, LLY;
-  Int_t samplesize;
-  Int_t check_flag;
-  Int_t eventcut_flag;
+Int_t QwLumi::LoadEventCuts(TString  filename)
+{
+  Int_t eventcut_flag = 1;
 
-  TString varname, varvalue, vartypeID;
-  TString device_type,device_name;
-  //  std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl;
-  QwParameterFile mapstr(filename.Data());  //Open the file
+  // Open the file
+  QwParameterFile mapstr(filename.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-
-  Int_t det_index= -1; 
-  Double_t stabilitycut;
-  samplesize = 0;
-  check_flag = 0;
-  eventcut_flag=1;
-
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
+
+    TString varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue)){
-      if (varname=="EVENTCUTS"){
+      if (varname == "EVENTCUTS"){
 	//varname="";
-	eventcut_flag= QwParameterFile::GetUInt(varvalue);
+	eventcut_flag = QwParameterFile::GetUInt(varvalue);
 	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;
       }
     }
     else{
-      device_type= mapstr.GetTypedNextToken<TString>();
+      TString device_type = mapstr.GetTypedNextToken<TString>();
       device_type.ToLower();
-      device_name= mapstr.GetTypedNextToken<TString>();
+      TString device_name = mapstr.GetTypedNextToken<TString>();
       device_name.ToLower();
 
-      det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-      if (det_index==-1){
-	QwWarning<<" Device not found "<<device_name<<" of type "<<device_type<<QwLog::endl;
+      Int_t det_index = GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+      if (det_index == -1) {
+	QwWarning << " Device not found " << device_name << " of type " << device_type << QwLog::endl;
 	continue;
       }
-      //set limits to zero
-      ULX=0;
-      LLX=0;
-      ULY=0;
-      LLY=0;
 
       if (device_type == GetQwPMTInstrumentTypeName(kQwIntegrationPMT)){
-	LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
-	ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
-	varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
-	stabilitycut=mapstr.GetTypedNextToken<Double_t>();
+        Double_t LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+        Double_t ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	varvalue = mapstr.GetTypedNextToken<TString>();//global/loacal
+	Double_t stabilitycut = mapstr.GetTypedNextToken<Double_t>();
 	varvalue.ToLower();
-	QwMessage<<"QwLumi Error Code passing to QwIntegrationPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	QwMessage << "QwLumi Error Code passing to QwIntegrationPMT " << GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut) << QwLog::endl;
 
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
@@ -409,12 +395,12 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
 	//std::cout<<"*****************************"<<std::endl;
 
       } else if (device_type == GetQwPMTInstrumentTypeName(kQwCombinedPMT)){
-	LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
-	ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
-	varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
-	stabilitycut=mapstr.GetTypedNextToken<Double_t>();
+        Double_t LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+        Double_t ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	varvalue = mapstr.GetTypedNextToken<TString>();//global/loacal
+	Double_t stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	varvalue.ToLower();
-	QwMessage<<"QwLumi Error Code passing to QwCombinedPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	QwMessage << "QwLumi Error Code passing to QwCombinedPMT " << GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut) << QwLog::endl;
 
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
@@ -598,7 +584,9 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                     if (buffer[0]/32!=1)
                       {
                         issingleevent=kFALSE;
-                        std::cout<<"QwLumi::ProcessEvBuffer: More than one event was found in the buffer.  Setting these events to zero."<<std::endl;
+			if(lkDEBUG) {
+			  std::cout<<"QwLumi::ProcessEvBuffer: More than one event was found in the buffer.  Setting these events to zero."<<std::endl;
+			}
                       }
                   }
                 if (issingleevent==kFALSE) continue;
@@ -1326,6 +1314,92 @@ void QwLumi::FillDB(QwParityDB *db, TString datatype)
   }
 
   db->Disconnect();
+
+  return;
+}
+
+
+
+
+void QwLumi::FillErrDB(QwParityDB *db, TString datatype)
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "                         QwLumi::FillErrDB                          " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  std::vector<QwErrDBInterface> interface;
+  std::vector<QwParitySSQLS::lumi_errors> entrylist;
+  
+  UInt_t analysis_id = db->GetAnalysisID();
+  
+  UInt_t i,j;
+  i = j = 0;
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
+
+  for(i=0; i< fIntegrationPMT.size(); i++) {
+    interface.clear();
+    interface = fIntegrationPMT[i].GetErrDBEntry();
+    for(j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID     ( analysis_id );
+      interface.at(j).SetLumiDetectorID ( db );
+      interface.at(j).PrintStatus       ( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined PMT" <<QwLog::endl;
+
+  for(i=0; i< fCombinedPMT.size(); i++)
+    {
+      interface.clear();
+      interface = fCombinedPMT[i].GetErrDBEntry();
+      for(j=0; j<interface.size(); j++) {
+	interface.at(j).SetAnalysisID     ( analysis_id );
+	interface.at(j).SetLumiDetectorID ( db );
+	interface.at(j).PrintStatus       ( local_print_flag );
+	interface.at(j).AddThisEntryToList( entrylist );
+      }
+    }
+  
+  
+  
+  
+  if(local_print_flag) {
+    QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size()
+              << QwColor(Qw::kNormal) << QwLog::endl;
+  }
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwLumi::FillErrDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
+
+  db->Disconnect();
+
+  return;
+};
+
+
+
+void QwLumi::WritePromptSummary() const
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "                         QwLumi::WritePromptSummary()            " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
 
   return;
 }

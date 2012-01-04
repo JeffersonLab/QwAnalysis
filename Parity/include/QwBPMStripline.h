@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 /*****************************************************************
 *  Class:
@@ -80,6 +81,8 @@ class QwBPMStripline : public VQwBPM {
   void    ProcessEvent();
   void    PrintValue() const;
   void    PrintInfo() const;
+  void    WritePromptSummary() const;
+
 
   const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
     if (axis<0 || axis>2){
@@ -145,6 +148,7 @@ class QwBPMStripline : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
 
  protected:
   VQwHardwareChannel* GetSubelementByName(TString ch_name);

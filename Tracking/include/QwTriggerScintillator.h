@@ -68,6 +68,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
 
   void GetHitList(QwHitContainer & grandHitContainer){};
 
+  void FillHardwareErrorSummary();
+
 
   QwTriggerScintillator& operator=  (const QwTriggerScintillator &value);
 

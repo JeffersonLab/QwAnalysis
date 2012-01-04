@@ -135,7 +135,8 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db, TString datatype);
-
+  void  FillErrDB(QwParityDB *db, TString datatype);
+ 
   QwIntegrationPMT* GetChannel(const TString name);
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
   const QwCombinedPMT* GetCombinedPMT(const TString name) const;
@@ -145,6 +146,7 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
 
   void PrintValue() const;
   void PrintInfo() const;
+  void  WritePromptSummary() const;
 
   std::vector<TString> fgDetectorTypeNames;
 

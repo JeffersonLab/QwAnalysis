@@ -100,6 +100,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   Int_t dHistoReset;
   Int_t dHistoAccum;
   Int_t dHistoPause;
+  Int_t dHistoAutoReset;
  
 
   TMapFile *dMapFile;
@@ -268,6 +269,22 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   void             SetHistoReset(Int_t historeset){
     dHistoReset=historeset;
+  };
+
+ //!Set histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters:
+  //! - 1) Histo Auto reset entries
+  //!Return value: none
+  void             SetAutoHistoReset(Int_t histoautoreset){
+    dHistoAutoReset=histoautoreset;
+  };
+  void             UpdateAutoHistoReset(Int_t histoentries){
+    if (histoentries>0 && dHistoAutoReset && histoentries>dHistoAutoReset){//trigger histogram reset
+      SetHistoReset(1);
+      SetHistoAccumulate(0);
+      SetHistoPause(0);
+    }
   };
 
   //!Set histomode. This is called at QwGUIMain and other subsystems

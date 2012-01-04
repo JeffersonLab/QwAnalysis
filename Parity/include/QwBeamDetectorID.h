@@ -15,6 +15,9 @@
 // Qweak headers
 #include "QwTypes.h"
 
+// Qweak database headers
+#include "QwDBInterface.h"
+
 //  Forward declarations
 class QwParameterFile;
 

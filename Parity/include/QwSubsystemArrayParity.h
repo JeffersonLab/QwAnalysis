@@ -43,10 +43,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// Copy constructor by reference
     QwSubsystemArrayParity(const QwSubsystemArrayParity& source);
     /// Default destructor
-    virtual ~QwSubsystemArrayParity() { };
+    virtual ~QwSubsystemArrayParity();
 
-/*     /// \brief Get the subsystem with the specified name */
-/*     VQwSubsystemParity* GetSubsystemByName(const TString& name); */
+    /// \brief Get the subsystem with the specified name
+    VQwSubsystemParity* GetSubsystemByName(const TString& name);
     /// \brief Construct a branch and vector for this subsystem with a prefix
     void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
     /// \brief Fill the vector for this subsystem
@@ -56,7 +56,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Fill the database
     void FillDB(QwParityDB *db, TString type);
-
+    void FillErrDB(QwParityDB *db, TString type);
+    const QwSubsystemArrayParity *dummy_source;
 
     /// \brief Assignment operator
     QwSubsystemArrayParity& operator=  (const QwSubsystemArrayParity &value);
@@ -118,6 +119,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Print value of all channels
     void PrintValue() const;
+
+    void WritePromptSummary() const;
 
     virtual Bool_t CheckForEndOfBurst() const;
 

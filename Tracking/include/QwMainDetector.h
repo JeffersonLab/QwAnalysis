@@ -70,6 +70,8 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
+  void  FillHardwareErrorSummary();
+
   QwMainDetector& operator=(const QwMainDetector &value);
 
   void ReportConfiguration();

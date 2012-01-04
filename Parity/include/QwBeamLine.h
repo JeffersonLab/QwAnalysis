@@ -110,12 +110,14 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
   void FillTreeVector(std::vector<Double_t> &values) const;
   void FillDB(QwParityDB *db, TString datatype);
+  void FillErrDB(QwParityDB *db, TString datatype);
 
   void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;
   void PrintInfo() const;
+  void WritePromptSummary() const;
 
   VQwDataElement* GetElement(QwBeamDetectorID det_id);
   VQwDataElement* GetElement(EQwBeamInstrumentType TypeID, TString name);

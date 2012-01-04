@@ -196,8 +196,9 @@ enum CommandIdentifiers {
   M_LOAD_UNLOAD,
   M_RUN_STOP,
   M_RESET,
+  M_AUTO_RESET,
   M_EXIT,
-
+  TXT_ENTRIES,
 
   M_TABS   //always needs to be last in the list!
 };
@@ -283,13 +284,15 @@ class QwGUIMain : public TGMainFrame {
  
   Pixel_t                        green;
   Pixel_t                        red;
-  TGTextButton           *dMainButton[4];
+  TGTextButton           *dMainButton[5];
   TGHorizontalFrame      *dMainButtonsFrame;
 
   TGHorizontalFrame   *dTabFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
+
+  TGTextEntry         *dtxtEntries;
 
 
   Bool_t                  dRunStopFlag;

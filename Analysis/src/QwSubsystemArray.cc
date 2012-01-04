@@ -47,6 +47,34 @@ QwSubsystemArray::QwSubsystemArray(const char* filename, CanContainFn myCanConta
   LoadSubsystemsFromParameterFile(detectors);
 }
 
+
+/**
+ * Copy constructor by reference
+ * @param source Source subsystem array
+ */
+QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
+: fPublishedValuesDataElement(source.fPublishedValuesDataElement),
+  fPublishedValuesSubsystem(source.fPublishedValuesSubsystem),
+  fPublishedValuesDescription(source.fPublishedValuesDescription),
+  fTreeArrayIndex(source.fTreeArrayIndex),
+  fCodaRunNumber(source.fCodaRunNumber),
+  fCodaSegmentNumber(source.fCodaSegmentNumber),
+  fCodaEventNumber(source.fCodaEventNumber),
+  fCodaEventType(source.fCodaEventType),
+  fEventTypeMask(source.fEventTypeMask),
+  fHasDataLoaded(source.fHasDataLoaded),
+  fnCanContain(source.fnCanContain),
+  fSubsystemsMapFile(source.fSubsystemsMapFile),
+  fSubsystemsDisabledByName(source.fSubsystemsDisabledByName),
+  fSubsystemsDisabledByType(source.fSubsystemsDisabledByType)
+{
+  // Make copies of all subsystems rather than copying just the pointers
+  for (const_iterator subsys = source.begin(); subsys != source.end(); ++subsys) {
+    this->push_back(subsys->get()->Copy());
+  }
+}
+
+
 /**
  * Fill the subsystem array with the contents of a map file
  * @param filename Map file
@@ -107,7 +135,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     try {
       subsys =
         VQwSubsystemFactory::Create(subsys_type, subsys_name);
-    } catch (QwException_TypeUnknown) {
+    } catch (QwException_TypeUnknown&) {
       QwError << "No support for subsystems of type " << subsys_type << "." << QwLog::endl;
       // Fall-through to next error for more the psychological effect of many warnings
     }
@@ -131,6 +159,12 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     subsys->LoadDetectorMaps(*section);
     // Add to array
     this->push_back(subsys);
+
+    // Instruct the subsystem to publish variables
+    if (subsys->PublishInternalValues() == kFALSE) {
+      QwError << "Not all variables for " << subsys->GetSubsystemName()
+              << " could be published!" << QwLog::endl;
+    }
 
     // Delete parameter file section
     delete section; section = 0;
@@ -172,12 +206,6 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
     // Update the event type mask
     // Note: Active bits in the mask indicate event types that are accepted
     fEventTypeMask |= subsys_tmp->GetEventTypeMask();
-
-    // Instruct the subsystem to publish variables
-    if (subsys_tmp->PublishInternalValues() == kFALSE) {
-      QwError << "Not all variables for " << subsys_tmp->GetSubsystemName()
-              << " could be published!" << QwLog::endl;
-    }
   }
 }
 
@@ -714,6 +742,15 @@ VQwHardwareChannel* QwSubsystemArray::ReturnInternalValueForFriends(const TStrin
 // };
 
 
+void QwSubsystemArray::PrintParamFileList() const
+{
+  if (not empty()) {
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys)
+      {
+        (*subsys)->PrintDetectorMaps(true);
+      }
+  }
+}
 
 TList* QwSubsystemArray::GetParamFileNameList(TString name) const
 {
@@ -726,7 +763,6 @@ TList* QwSubsystemArray::GetParamFileNameList(TString name) const
 
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) 
       {
-	(*subsys)->PrintDetectorMaps(true);
 	mapfiles_subsystem = (*subsys)->GetDetectorMaps();
 	for( std::map<TString, TString>::iterator ii= mapfiles_subsystem.begin(); ii!= mapfiles_subsystem.end(); ++ii)
 	  {	

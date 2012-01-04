@@ -209,7 +209,6 @@ Int_t QwScaler::LoadInputParameters(TString mapfile)
     Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
     QwVerbose << varname << ": " << QwLog::endl;
 
-    Bool_t found = kFALSE;
     if (fName_Map.count(varname) != 0) {
       Int_t index = fName_Map[varname];
       QwMessage << "Parameters scaler channel " << varname << ": "
@@ -217,7 +216,6 @@ Int_t QwScaler::LoadInputParameters(TString mapfile)
                 << "cal = " << varcal << QwLog::endl;
       fScaler[index]->SetPedestal(varped);
       fScaler[index]->SetCalibrationFactor(varcal);
-      found = kTRUE;
     }
 
   } // end of loop reading all lines of the pedestal file

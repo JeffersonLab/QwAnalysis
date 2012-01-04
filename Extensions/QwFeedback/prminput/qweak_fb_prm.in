@@ -94,8 +94,23 @@ IA_up  = 50000
 
 
 ###  See HCLog 229730 on Apr 23, 2011 - rakithab
-PITASLOPE_OUT = 0.772325
-PITASLOPE_IN = 0.833674
+#PITASLOPE_OUT = 0.772325
+#PITASLOPE_IN = 0.833674
+
+### Run 2 ; IHWP IN slope is from the run 1 last setting
+### Run 2 ; IHWP OUT slope is from Mark D. 
+
+#PITASLOPE_OUT = -0.96
+
+#PITASLOPE_IN = 0.833674
+
+### Run 2 ; IHWP IN slope from run 13994
+### Run 2 ; IHWP OUT slope from run 14002
+
+PITASLOPE_OUT = -0.8879
+
+PITASLOPE_IN = 0.5506
+
 
 ###  PITANEG = 200
 

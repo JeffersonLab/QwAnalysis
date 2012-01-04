@@ -66,7 +66,7 @@ class QwMainCerenkovDetector:
   void ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
-  Int_t LoadEventCuts(TString  filename);
+  Int_t LoadEventCuts(TString filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag();//return the error flag
@@ -111,6 +111,7 @@ class QwMainCerenkovDetector:
 
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db, TString datatype);
+  void  FillErrDB(QwParityDB *db, TString datatype);
 
   const QwIntegrationPMT* GetChannel(const TString name) const;
 
@@ -154,6 +155,7 @@ class QwMainCerenkovDetector:
   };
 
   void  PrintValue() const;
+  void  WritePromptSummary() const;
   void  PrintInfo() const;
   void  PrintDetectorID() const;
 

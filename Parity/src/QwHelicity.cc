@@ -33,6 +33,76 @@ RegisterSubsystemFactory(QwHelicity);
 const UInt_t QwHelicity::kDefaultHelicityBitPattern = 0x69;
 
 //**************************************************//
+/// Constructor with name
+QwHelicity::QwHelicity(const TString& name)
+: VQwSubsystem(name),
+  VQwSubsystemParity(name),
+  fHelicityBitPattern(kDefaultHelicityBitPattern),
+  fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
+  fEventNumberFirst(-1),fPatternNumberFirst(-1),
+  fSuppressMPSErrorMsgs(kFALSE)
+{
+  ClearErrorCounters();
+  // Default helicity delay to two patterns.
+  fHelicityDelay = 2;
+  // Default the EventType flags to HelPlus=1 and HelMinus=4
+  // These are only used in Moller decoding mode.
+  kEventTypeHelPlus  = 4;
+  kEventTypeHelMinus = 1;
+  //
+  fEventNumberOld=-1; fEventNumber=-1;
+  fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
+  fPatternNumberOld=-1;  fPatternNumber=-1;
+  kUserbit=-1;
+  fActualPatternPolarity=kUndefinedHelicity;
+  fDelayedPatternPolarity=kUndefinedHelicity;
+  fHelicityReported=kUndefinedHelicity;
+  fHelicityActual=kUndefinedHelicity;
+  fHelicityDelayed=kUndefinedHelicity;
+  fHelicityBitPlus=kFALSE;
+  fHelicityBitMinus=kFALSE;
+  fGoodHelicity=kFALSE;
+  fGoodPattern=kFALSE;
+  fHelicityDecodingMode=-1;
+}
+
+//**************************************************//
+/// Copy constructor
+QwHelicity::QwHelicity(const QwHelicity& source)
+: VQwSubsystem(source.GetSubsystemName()),
+  VQwSubsystemParity(source.GetSubsystemName()),
+  fHelicityBitPattern(kDefaultHelicityBitPattern),
+  fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
+  fEventNumberFirst(-1),fPatternNumberFirst(-1),
+  fSuppressMPSErrorMsgs(kFALSE)
+{
+  ClearErrorCounters();
+  // Default helicity delay to two patterns.
+  fHelicityDelay = 2;
+  // Default the EventType flags to HelPlus=1 and HelMinus=4
+  // These are only used in Moller decoding mode.
+  kEventTypeHelPlus  = 4;
+  kEventTypeHelMinus = 1;
+  //
+  fEventNumberOld=-1; fEventNumber=-1;
+  fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
+  fPatternNumberOld=-1;  fPatternNumber=-1;
+  kUserbit=-1;
+  fActualPatternPolarity=kUndefinedHelicity;
+  fDelayedPatternPolarity=kUndefinedHelicity;
+  fHelicityReported=kUndefinedHelicity;
+  fHelicityActual=kUndefinedHelicity;
+  fHelicityDelayed=kUndefinedHelicity;
+  fHelicityBitPlus=kFALSE;
+  fHelicityBitMinus=kFALSE;
+  fGoodHelicity=kFALSE;
+  fGoodPattern=kFALSE;
+  fHelicityDecodingMode=-1;
+
+  this->Copy(&source);
+}
+
+//**************************************************//
 void QwHelicity::DefineOptions(QwOptions &options)
 {
   options.AddOptions("Helicity options")
@@ -561,6 +631,7 @@ void  QwHelicity::ProcessEvent()
     default:
       QwError << "QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!" << QwLog::endl;
       abort();
+      break;
     }
 
   if(fHelicityBitPlus==fHelicityBitMinus)
@@ -637,6 +708,7 @@ void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
   }
   default:
     QwWarning << "QwHelicity::EncodeEventData: Unsupported helicity encoding!" << QwLog::endl;
+    break;
   }
 
   // If there is element data, generate the subbank header
@@ -689,9 +761,6 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
 
-  TString varname, varvalue;
-  TString modtype, dettype, namech, keyword;
-  Int_t modnum, channum;
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t wordsofar=0;
@@ -712,6 +781,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
+    TString varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
@@ -786,16 +856,17 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	  }
 	}
     } else {
-      Bool_t lineok=kTRUE;
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
-      modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
-      channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
-      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
+      TString modtype = mapstr.GetTypedNextToken<TString>();	// module type
+      Int_t modnum    = 0;
+      modnum = mapstr.GetTypedNextToken<Int_t>();	//slot number
+      Int_t channum   = 0;
+      channum = mapstr.GetTypedNextToken<Int_t>();	//channel number
+      TString dettype = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
       dettype.ToLower();
-      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
+      TString namech  = mapstr.GetTypedNextToken<TString>();  //name of the detector
       namech.ToLower();
-      keyword = mapstr.GetTypedNextToken<TString>();
+      TString keyword = mapstr.GetTypedNextToken<TString>();
       keyword.ToLower();
       // Notice that "namech" and "keyword" are now forced to lower-case.
 
@@ -814,7 +885,6 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	  QwError << "QwHelicity::LoadChannelMap:  Unknown detector type: "
 		  << dettype  << ", the detector " << namech << " will not be decoded "
 		  << QwLog::endl;
-	  lineok=kFALSE;
 	  continue;
 	}
       else
@@ -1346,6 +1416,13 @@ void  QwHelicity::FillDB(QwParityDB *db, TString type)
 }
 
 
+
+void  QwHelicity::FillErrDB(QwParityDB *db, TString type)
+{
+  return;
+}
+
+
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
   Bool_t status = false;
 
@@ -1804,8 +1881,6 @@ void QwHelicity::Copy(const VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
-	  //VQwSubsystem::Copy(source);
-	  //QwHelicity* input=((QwHelicity*)source);
 	  VQwSubsystem::Copy(source);
           const QwHelicity* input = dynamic_cast<const QwHelicity*>(source);
 	  this->fWord.resize(input->fWord.size());
@@ -1815,6 +1890,31 @@ void QwHelicity::Copy(const VQwSubsystem *source)
 	      this->fWord[i].fModuleType=input->fWord[i].fModuleType;
 	      this->fWord[i].fWordType=input->fWord[i].fWordType;
 	    }
+	  fNumMissedGates = input->fNumMissedGates;
+	  fNumMissedEventBlocks = input->fNumMissedEventBlocks;
+	  fNumMultSyncErrors = input->fNumMultSyncErrors;
+	  fNumHelicityErrors = input->fNumHelicityErrors;
+	  fEventNumberFirst = input->fEventNumberFirst;
+	  fPatternNumberFirst = input->fPatternNumberFirst;
+	  fEventType = input->fEventType;
+	  fIgnoreHelicity = input->fIgnoreHelicity;
+	  fRandBits = input->fRandBits;
+	  fUsePredictor = input->fUsePredictor;
+	  fHelicityInfoOK = input->fHelicityInfoOK;
+          fPatternPhaseOffset = input->fPatternPhaseOffset;
+          fMinPatternPhase = input->fMinPatternPhase;
+          fMaxPatternPhase = input->fMaxPatternPhase;
+          fHelicityDelay = input->fHelicityDelay;
+          iseed_Delayed = input->iseed_Delayed;
+          iseed_Actual = input->iseed_Actual;
+          n_ranbits = input->n_ranbits;
+          fEventNumber = input->fEventNumber;
+          fEventNumberOld = input->fEventNumberOld;
+          fPatternPhaseNumber = input->fPatternPhaseNumber;
+          fPatternPhaseNumberOld = input->fPatternPhaseNumberOld;
+          fPatternNumber = input->fPatternNumber;
+          fPatternNumberOld = input->fPatternNumberOld;
+
 	  this->kUserbit = input->kUserbit;
 	  this->fIgnoreHelicity = input->fIgnoreHelicity;
 	}

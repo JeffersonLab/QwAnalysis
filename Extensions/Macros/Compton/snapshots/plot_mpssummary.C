@@ -81,7 +81,7 @@ void plot_mpssummary_worker(Int_t runnumber,
 	gROOT->ProcessLine(".L plotting.C");
 
 	char rundir[255], outtextfilename_ped[255], outtextfilename_width[255];
-	sprintf(rundir,"www");
+	sprintf(rundir,"$QWSCRATCH/www");
 	sprintf(outtextfilename_ped,"%s/run_%i/pedestalfit.txt", rundir, runnumber);
 	gROOT->SetStyle("Plain");
 	gStyle->SetOptStat(0);

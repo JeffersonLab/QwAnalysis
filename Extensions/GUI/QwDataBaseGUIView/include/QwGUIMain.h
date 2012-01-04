@@ -96,17 +96,10 @@
 /* #include "TFrame.h" */
 /* #include "TPaveText.h" */
 /* #include "TLeaf.h" */
-/* #include "QwGUIMainDetector.h" */
-/* #include "QwGUIScanner.h" */
-/* #include "QwGUIBeamModulation.h" */
-/* #include "QwGUILumiDetector.h"  */
-/* #include "QwGUIInjector.h" */
-/* #include "QwGUIHallCBeamline.h" */
-/* #include "QwGUITrackFinding.h" */
-/* #include "QwGUIEventDisplay.h" */
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
 #include "QwGUIDatabase.h"
+#include "QwGUIDatabaseSummary.h"
 #ifndef __CINT__
 
 #include "QwOptions.h"
@@ -135,6 +128,7 @@ class QwGUIMain : public TGMainFrame {
 /*   QwGUIInjector          *InjectorSubSystem; */
 /*   QwGUIHallCBeamline     *HallCBeamlineSubSystem; */
   QwGUIDatabase          *DatabaseSubSystem;
+  QwGUIDatabaseSummary	 *DbSummarySubSystem;
 /*   QwGUITrackFinding      *TrackFindingSubSystem; */
 /*   QwGUIEventDisplay      *EventDisplaySubSystem; */
 

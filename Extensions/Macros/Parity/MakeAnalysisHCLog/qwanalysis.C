@@ -2,7 +2,7 @@
 /*                              Nuruzzaman                                */
 /*                              03/10/2011                                */
 /*                                                                        */
-/*                        Last Edited:05/09/2011                          */
+/*                        Last Edited:11/24/2011                          */
 /*                                                                        */
 /* PLEASE CONSULT WITH ME BEFORE CHANGING THE SCRIPT. IF NEEDED YOU CAN   */
 /* HAVE YOUR COPY AND EDIT THERE.TRY NOT TO USE qwanalysis DIRECTORY.     */
@@ -68,10 +68,10 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   Bool_t MDPMT=kTRUE; Bool_t CHARGE=kTRUE; Bool_t CHARGEDD=kTRUE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kTRUE; 
   Bool_t MDYIELDVAR=kTRUE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kTRUE; Bool_t SENSITIVITY=kTRUE; 
   Bool_t MDLUMI=kTRUE; Bool_t USLUMI=kTRUE; Bool_t USLUMISEN=kTRUE; Bool_t BMODSEN=kTRUE;
-  //   Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
-  //   Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
-  //   Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
-  //   Bool_t BMODSEN=kFALSE;
+//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kFALSE; 
+//     Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kFALSE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
+//     Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
+//     Bool_t BMODSEN=kTRUE;
   
   //  UInt_t gRunNumber = 0;
   char run0[255],run[255],run100k[255],sline[255],dline[255],ssline[255],sslinen[255];
@@ -98,7 +98,13 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   tar[6] = "Qweak Target: 2% DS Al";
   tar[7] = "Qweak Target: 1% DS Al";
   tar[8] = "Qweak Target: US Pure Al";
-  gTarget = tar[1];
+  //  gTarget = tar[1];
+  gTarget = "Qweak Target: ";
+
+  TString caget_target_name = gSystem->GetFromPipe("caget -c -t QWtgt_name");
+  if(gTarget.IsNull()) caget_target_name = "undefined";
+
+  gTarget += caget_target_name;
 
 
   /* load the different Trees. */
@@ -158,13 +164,16 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   c0->Update();
 
-  const Int_t NUM = 8, NUM1 = 5,NUM2 = 6, NUM3 = 3, NUM4 = 4;
-  TString bcms[NUM1] = {"charge","bcm1","bcm2","bcm5","bcm6"};
-  TString bcms2[NUM2] = {"bcm1","bcm1","bcm1","bcm2","bcm2","bcm5"};
-  TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm5","bcm6","bcm6"};
+  const Int_t NUM = 8, NUM1 = 5,NUM2 = 6, NUM3 = 3, NUM4 = 4, NUM7 = 7, NUM15 = 15;
+  TString bcms[NUM7] = {"charge","bcm1","bcm2","bcm5","bcm6","bcm7","bcm8"};
+  TString bcms2[NUM2] = {"bcm1","bcm1","bcm5","bcm5","bcm7","bcm7"};
+  TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm1"};
+  TString bcms4[NUM15] = {"bcm1","bcm1","bcm1","bcm1","bcm1","bcm2","bcm2","bcm2","bcm2","bcm5","bcm5","bcm5","bcm6","bcm6","bcm7"};
+  TString bcms5[NUM15] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm5","bcm6","bcm7","bcm8","bcm6","bcm7","bcm8","bcm7","bcm8","bcm8"};
   TString bpms[NUM4] = {"target","bpm3h09b","bpm3h07c","bpm3c12"};
   TString mdasym[NUM] = {"md1barsum","md2barsum","md3barsum","md4barsum","md5barsum","md6barsum","md7barsum","md8barsum"};
   TString mdbkg[NUM2] = {"md9pos","md9neg","pmtonl","pmtltg","pmtled","preamp"};
+  TString mdbkg2[2] = {"pmtled","preamp"};
   TString allmd[NUM3] = {"all","even","odd"};
   TString lumi[NUM3] = {"sum","even","odd"};
   TString uslumi[NUM1] = {"uslumi1","uslumi3","uslumi5","uslumi7","uslumi"};
@@ -247,6 +256,9 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   int position12[5] = { 4, 2, 6, 8, 5 };
   int position13[6] = { 1, 2, 5, 6, 9, 10 };
   int position14[6] = { 3, 4, 7, 8, 11, 12 };
+  int position15[7] = { 1, 3, 4, 5, 6, 7, 8 };
+  int position16[15] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
   /****************************************************************************/
   char ycharge[255],cutycharge[255],acharge[255],cutacharge[255],ddcharge[255],cutddcharge[255],
     bpmx[255],cutbpmx[255],bpmy[255],cutbpmy[255],
@@ -425,7 +437,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   //   pad10->cd();
   //   DrawCanvasHeader("Charge (uA)");
   pad11->cd();
-  pad11->Divide(2,3);
+  pad11->Divide(2,4);
   printf("%sPlotting %sCharge (uA)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
   TCanvas *c2 = new TCanvas("c2",CanvasTitle("Charge Asymmetry (ppm)"),20,20,csizx,csizy);
@@ -439,7 +451,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   //   pad20->cd();
   //   DrawCanvasHeader("Charge Asymmetry (ppm)");
   pad21->cd();
-  pad21->Divide(2,3);
+  pad21->Divide(2,4);
   printf("%sPlotting %sCharge Asymmetry (ppm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
   char hycharge[255],hacharge[255],tycharge[255], tacharge[255];//, hddcharge[255];
@@ -448,7 +460,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TH1* histacrg;
   TH1* hycharge2;
   TH1* hacharge2;
-  for ( int i=0; i<5; i++) {
+  for ( int i=0; i<7; i++) {
 
     sprintf(ycharge,"yield_qwk_%s>>hycrg%d",bcms[i].Data(),i);
     sprintf(acharge,"asym_qwk_%s*1e6>>hacrg%d",bcms[i].Data(),i);
@@ -459,7 +471,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     sprintf(tycharge,"%s YIELD [uA]",bcms[i].Data());
     sprintf(tacharge,"%s ASYM [ppm]",bcms[i].Data());
 
-    pad11->cd(position1[i]);
+    pad11->cd(position15[i]);
     th->Draw(ycharge,cutycharge);
     histycrg = (TH1F *)gDirectory->Get(hycharge);
     histycrg->SetYTitle(tarbitrary);
@@ -468,7 +480,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     histycrg->Draw();
     gPad->Update();
    
-    pad21->cd(position1[i]);
+    pad21->cd(position15[i]);
     th->Draw(acharge,cutacharge);
     histacrg = (TH1F *)gDirectory->Get(hacharge);
     histacrg->SetYTitle(tarbitrary);
@@ -480,6 +492,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   }
     pad11->cd(2);
     th->Draw("yield_qwk_charge:mps_counter*0.001>>hycharge2",Form("%s && yield_qwk_charge.%s",s1,s2));
+//     TH1D* hycharge2 = (TH1D*)(gPad->FindObject("htemp"));
     hycharge2 = GetHist("hycharge2");
     hycharge2->SetYTitle("Charge YIELD [uA]");
     hycharge2->SetXTitle(txdetvar);
@@ -487,6 +500,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     hycharge2->Draw();
     pad21->cd(2);
     th->Draw("asym_qwk_charge*1e6:pat_counter>>hacharge2",Form("%s && asym_qwk_charge.%s",s1,s2));
+//     TH1F* hacharge2 = (TH1F*)(gPad->FindObject("hacharge2"));
     hacharge2 = GetHist("hacharge2");
     hacharge2->SetYTitle("Charge ASYM [ppm]");
     hacharge2->SetXTitle("PATTERN COUNTER");
@@ -563,7 +577,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     gStyle->SetOptStat(0);
     TString subblock0 = "((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1)) <  0.5e2";
     TString subblock1 = "((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1)) > -0.5e2";
-    TString error = "ErrorFlag == 0 && Device_Error_Code == 0";
+    TString error = "qwk_bcm1.Device_Error_Code==0 && (ramp.Device_Error_Code&0x80)==0x80";
     TString cut = Form("%s && %s && %s && event_number*0.001<99", subblock0.Data(), subblock1.Data(), error.Data());
     Double_t bmod_r[2] = { -0.4, 0.4};
     Int_t    bmod_bin[1] = {250};
@@ -784,6 +798,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   int xd=0;
   TH1* hybkg;
   TH1* habkg;
+
   for ( int x=0; x<6; x++) {
     xd = x+1;
 
@@ -798,8 +813,14 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     th->Draw(ymdbkg,cutymdbkg,"goff");
     hybkg = (TH1F *)gDirectory->Get(hymdbkg);
     hybkg->SetYTitle(tarbitrary);
+    if(xd==5||xd==6){
+    hybkg->SetXTitle(Form("MD %s YIELD [V]",mdbkg[x].Data()));
+    hybkg->SetTitle(Form("MD %s YIELD [V]",mdbkg[x].Data()));
+    }
+    else{
     hybkg->SetXTitle(Form("MD %s YIELD [V/uA]",mdbkg[x].Data()));
     hybkg->SetTitle(Form("MD %s YIELD [V/uA]",mdbkg[x].Data()));
+    }
     hybkg->Draw();
     gPad->Update();
 
@@ -809,12 +830,14 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     habkg->SetYTitle(tarbitrary);
     habkg->SetXTitle(Form("MD %s ASYM [ppm]",mdbkg[x].Data()));
     habkg->SetTitle(Form("MD %s ASYM [ppm]",mdbkg[x].Data()));
+
     habkg->SetFillColor(kBlack);
     habkg->SetFillStyle(3013);
     habkg->Draw();
     gPad->Update();
 
   }
+
   c18->Update(); c18->SaveAs(pmdbkg);}
   /****************************************************************************/
   if (MDALLASYM){
@@ -838,8 +861,10 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TH1F * hmdbcm2  = new TH1F("hmdbcm2", "hmdbcm2", mdt_bin[0],mdt_r[0],mdt_r[1]);
   TH1F * hmdbcm5  = new TH1F("hmdbcm5", "hmdbcm5", mdt_bin[0],mdt_r[0],mdt_r[1]);
   TH1F * hmdbcm6  = new TH1F("hmdbcm6", "hmdbcm6", mdt_bin[0],mdt_r[0],mdt_r[1]);
-  TH1F * hmdeven  = new TH1F("hmdeven", "hmdeven", mdt_bin[0],mdt_r[0],mdt_r[1]);
-  TH1F * hmdodd  = new TH1F("hmdodd", "hmdodd", mdt_bin[0],mdt_r[0],mdt_r[1]);
+  TH1F * hmdbcm7  = new TH1F("hmdbcm7", "hmdbcm7", mdt_bin[0],mdt_r[0],mdt_r[1]);
+  TH1F * hmdbcm8  = new TH1F("hmdbcm8", "hmdbcm8", mdt_bin[0],mdt_r[0],mdt_r[1]);
+//   TH1F * hmdeven  = new TH1F("hmdeven", "hmdeven", mdt_bin[0],mdt_r[0],mdt_r[1]);
+//   TH1F * hmdodd  = new TH1F("hmdodd", "hmdodd", mdt_bin[0],mdt_r[0],mdt_r[1]);
 
   pad61->cd(1);
   gPad->SetLogy();
@@ -885,22 +910,42 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   pad61->cd(5);
   gPad->SetLogy();
-  th->Draw("asym_qwk_mdevenbars*1e6>>hmdeven",Form("%s && asym_qwk_mdevenbars.%s",s1,s2),"goff");
-  hmdeven = (TH1F *)gDirectory->Get("hmdeven");
-  hmdeven->SetYTitle(tarbitrary);
-  hmdeven->SetXTitle("MD EVEN BAR ASYM [ppm]");
-  hmdeven->SetTitle("MD EVEN BAR ASYM");
-  hmdeven->Draw();
+  th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-asym_qwk_bcm7)*1e6>>hmdbcm7",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm7.%s",s1,s2,s2,s2),"goff");
+  hmdbcm7 = (TH1F *)gDirectory->Get("hmdbcm7");
+  hmdbcm7->SetYTitle(tarbitrary);
+  hmdbcm7->SetXTitle("MD BARSUM ASYM [ppm]");
+  hmdbcm7->SetTitle("MD BARSUM ASYM normalized to BCM7");
+  hmdbcm7->Draw();
   gPad->Update();
 
   pad61->cd(6);
   gPad->SetLogy();
-  th->Draw("asym_qwk_mdoddbars*1e6>>hmdodd",Form("%s && asym_qwk_mdoddbars.%s",s1,s2),"goff");
-  hmdodd = (TH1F *)gDirectory->Get("hmdodd");
-  hmdodd->SetYTitle(tarbitrary);
-  hmdodd->SetXTitle("MD ODD BAR ASYM [ppm]");
-  hmdodd->SetTitle("MD ODD BAR ASYM");
-  hmdodd->Draw();
+  th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-asym_qwk_bcm8)*1e6>>hmdbcm8",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm8.%s",s1,s2,s2,s2),"goff");
+  hmdbcm8 = (TH1F *)gDirectory->Get("hmdbcm8");
+  hmdbcm8->SetYTitle(tarbitrary);
+  hmdbcm8->SetXTitle("MD BARSUM ASYM [ppm]");
+  hmdbcm8->SetTitle("MD BARSUM ASYM normalized to BCM8");
+  hmdbcm8->Draw();
+  gPad->Update();
+
+//   pad61->cd(7);
+//   gPad->SetLogy();
+//   th->Draw("asym_qwk_mdevenbars*1e6>>hmdeven",Form("%s && asym_qwk_mdevenbars.%s",s1,s2),"goff");
+//   hmdeven = (TH1F *)gDirectory->Get("hmdeven");
+//   hmdeven->SetYTitle(tarbitrary);
+//   hmdeven->SetXTitle("MD EVEN BAR ASYM [ppm]");
+//   hmdeven->SetTitle("MD EVEN BAR ASYM");
+//   hmdeven->Draw();
+//   gPad->Update();
+
+//   pad61->cd(8);
+//   gPad->SetLogy();
+//   th->Draw("asym_qwk_mdoddbars*1e6>>hmdodd",Form("%s && asym_qwk_mdoddbars.%s",s1,s2),"goff");
+//   hmdodd = (TH1F *)gDirectory->Get("hmdodd");
+//   hmdodd->SetYTitle(tarbitrary);
+//   hmdodd->SetXTitle("MD ODD BAR ASYM [ppm]");
+//   hmdodd->SetTitle("MD ODD BAR ASYM");
+//   hmdodd->Draw();
 
   gPad->Update();
   c6->Update(); c6->SaveAs(pmdallasym);}
@@ -1206,7 +1251,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     TF1* fitbmody = new TF1("fitbmody","pol1",0.7,1.1);
     //    TF1* fitbmodxp = new TF1("fitbmodxp","pol1",0.7,1.1);
     //    TF1* fitbmodyp = new TF1("fitbmodyp","pol1",0.7,1.1);
-    char *s3 = Form("ErrorFlag==0 && ramp>0 && abs((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1))<50 && event_number>4500 && %s",cut_charge.Data());
+    char *s3 = Form("qwk_bcm1.Device_Error_Code==0 && (ramp.Device_Error_Code&0x80)==0x80 && ramp>0 && abs((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1))<50 && event_number>4500 && %s",cut_charge.Data());
 
     Double_t amplitudex = 0.092,  amplitudey  = 0.130;
     //    Double_t amplitudexp = 0.092, amplitudeyp = 0.130;
@@ -1555,14 +1600,14 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     hall15->Draw();
 
     pad51->cd(12);
-    th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-(asym_qwk_bcm2+asym_qwk_bcm6)/2)*1e6>>hall26",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm2.%s && asym_qwk_bcm6.%s",s1,s2,s2,s2,s2),"goff");
-    hall26 = GetHist("hall26");
-    hall26->SetFillColor(kRed-2);
-    hall26->SetFillStyle(3004);
-    hall26->SetYTitle(tarbitrary);
-    hall26->SetXTitle(txalladet);
-    hall26->SetTitle("Normalized to BCM 2 & 6");
-    hall26->Draw();
+    th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-(asym_qwk_bcm7+asym_qwk_bcm8)/2)*1e6>>hall78",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",s1,s2,s2,s2,s2),"goff");
+    hall78 = GetHist("hall78");
+    hall78->SetFillColor(kRed-2);
+    hall78->SetFillStyle(3004);
+    hall78->SetYTitle(tarbitrary);
+    hall78->SetXTitle(txalladet);
+    hall78->SetTitle("Normalized to BCM 7 & 8");
+    hall78->Draw();
 
   c5->Update(); c5->SaveAs(pmdasym);
   c9->Update(); c9->SaveAs(pdslumiyield);
@@ -1693,13 +1738,16 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   printf(ssline);printf("%s|\t%sRun Number: %6d%s\t\t\t\t|%s\n",green,blue,gRunNumber,green,normal);
   printf("%s|  \t%s%s, %s, %s%s  \t|%s\n",green,blue,gTarget.Data(),gCurrent.Data(),gRasterString.Data(),green,normal);
   printf(ssline);
-  printf("%s|%sI                         \t%s|%suA    \t%s|%s%s%s      \t|%s\n",green,blue,green,blue,green,red,gCurrent.Data(),green,normal);
-  printf("%s|%sMDALLBARS width           \t%s|%sppm   \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
-  printf("%s|%sBCM12-ddif width          \t%s|%sppm   \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
-  printf("%s|%sA_q mean                  \t%s|%sppm   \t%s|%s%2.2f%s      \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
-  printf("%s|%sA_q width                 \t%s|%sppm   \t%s|%s%2.1f%s       \t|%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
-  printf("%s|%sMDALLBARS X-sensitivity   \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdxsen,cal_emdxsen,green,normal);
-  printf("%s|%sMDALLBARS Y-sensitivity   \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdysen,cal_emdysen,green,normal);
+  printf("%s|%sI                        \t%s|%suA    \t%s|%s%s%s      \t|%s\n",green,blue,green,blue,green,red,gCurrent.Data(),green,normal);
+  printf("%s|%sMDALLBARS width          \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
+  printf("%s|%sBCM12-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
+  printf("%s|%sA_q mean                 \t%s|%sppm   \t%s|%s%2.2f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
+  printf("%s|%sA_q width                \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
+  printf("%s|%sMDALLBARS X-sens.        \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdxsen,cal_emdxsen,green,normal);
+  printf("%s|%sMDALLBARS Y-sens.        \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdysen,cal_emdysen,green,normal);
+  printf("%s|%sBMOD MDALLBARS X-sens.   \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,1e6*xbmodslope,1e6*exbmodslope,green,normal);
+  printf("%s|%sBMOD MDALLBARS Y-sens.   \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,1e6*ybmodslope,1e6*eybmodslope,green,normal);
+  printf("%s|%sBMOD MDALLBARS E-sens.   \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,1e6*ebmodslope,1e6*eebmodslope,green,normal);
   printf(ssline);
   /****************************************************************************/
   printf("%sDone with all the plots.%s\n",blue,normal);
@@ -1745,15 +1793,18 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   outfile << "<pre>\n" 
 	  << sslinen
 	  << Form("|\tRun Number: %6d\t\t\t\t|\n", gRunNumber)
-	  << Form("|   \t%s, %s, %s      \t|\n",tar[1],gCurrent.Data(),gRasterString.Data())
+	  << Form("|%30s,%9s,%13s |\n",gTarget.Data(),gCurrent.Data(),gRasterString.Data())
 	  << sslinen
-	  << Form("|I                         \t|uA    \t|%s       \t|\n",gCurrent.Data())
-	  << Form("|MDALLBARS width           \t|ppm   \t|%2.1f       \t|\n",cal_mdalla)
-	  << Form("|BCM12-ddif width          \t|ppm   \t|%2.1f       \t|\n",cal_bcmdd)
-	  << Form("|A_q mean                  \t|ppm   \t|%2.2f       \t|\n",cal_abcmm)
-	  << Form("|A_q width                 \t|ppm   \t|%2.1f       \t|\n",cal_abcm)
-	  << Form("|MDALLBARS X-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n",cal_mdxsen,cal_emdxsen)
-	  << Form("|MDALLBARS Y-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n",cal_mdysen,cal_emdysen)
+	  << Form("|I                        \t|uA    \t|%s      \t|\n",gCurrent.Data())
+	  << Form("|MDALLBARS width          \t|ppm   \t|%2.1f        \t|\n",cal_mdalla)
+	  << Form("|BCM12-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
+	  << Form("|A_q mean                 \t|ppm   \t|%2.2f        \t|\n",cal_abcmm)
+	  << Form("|A_q width                \t|ppm   \t|%2.1f        \t|\n",cal_abcm)
+	  << Form("|MDALLBARS X-sens.        \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",cal_mdxsen,cal_emdxsen)
+	  << Form("|MDALLBARS Y-sens.        \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",cal_mdysen,cal_emdysen)
+	  << Form("|BMOD MDALLBARS X-sens.   \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",1e6*xbmodslope,1e6*exbmodslope)
+	  << Form("|BMOD MDALLBARS Y-sens.   \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",1e6*ybmodslope,1e6*eybmodslope)
+	  << Form("|BMOD MDALLBARS E-sens.   \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",1e6*ebmodslope,1e6*eebmodslope)
 	  << sslinen
 	  << "</pre>"
 	  <<endl;

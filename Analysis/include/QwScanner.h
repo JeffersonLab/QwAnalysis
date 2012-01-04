@@ -180,6 +180,8 @@ class QwScanner:
 
     void PrintValue() const { };
     void PrintInfo() const;
+    void FillHardwareErrorSummary();
+
 
   protected:
 

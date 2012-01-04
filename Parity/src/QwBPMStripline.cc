@@ -480,6 +480,20 @@ void QwBPMStripline<T>::PrintValue() const
   return;
 }
 
+
+template<typename T>
+void QwBPMStripline<T>::WritePromptSummary() const
+{
+
+  QwMessage << "void QwBPMStripline<T>::WritePromptSummary() const test " << QwLog::endl;
+  //  for (Short_t i = 0; i < 2; i++) {
+  //    fAbsPos[i].PrintValue();
+  //    fRelPos[i].PrintValue();
+  //  }
+  return;
+}
+
+
 template<typename T>
 void QwBPMStripline<T>::PrintInfo() const
 {
@@ -948,6 +962,23 @@ std::vector<QwDBInterface> QwBPMStripline<T>::GetDBEntry()
   fEffectiveCharge.AddEntriesToList(row_list);
   return row_list;
 }
+
+
+template<typename T>
+std::vector<QwErrDBInterface> QwBPMStripline<T>::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+
+  for(size_t i=0;i<2;i++) {
+    fRelPos[i].AddErrEntriesToList(row_list);
+    fAbsPos[i].AddErrEntriesToList(row_list);
+  }
+  fEffectiveCharge.AddErrEntriesToList(row_list);
+  return row_list;
+}
+
+
 
 /**********************************
  * Mock data generation routines

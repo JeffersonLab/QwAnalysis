@@ -230,9 +230,10 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 		breakcut = wirespacing + resolution; // wirespacing + bin resolution
 
 	
-	// Loop over the hit list       
+	// Loop over the hit list
+	QwHitContainer::iterator end=hitlist->end();
 	for ( QwHitContainer::iterator hit = hitlist->begin();
-	        hit != hitlist->end(); ++hit )
+	        hit != end; ++hit )
 	{
 	  if(hit->GetHitNumber()!=0 || hit->GetDriftDistance()<0) continue;
 		// Consider the two options due to the left/right ambiguity
@@ -245,10 +246,10 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 			double signed_distance = track_position - hit_position;
 			double distance = fabs ( signed_distance );
         
-		        //if(hitlist->begin()->GetDirection()==1)
-			//  cout << "hit_pos: " << hit_position << " track pos: " << track_position << " resolution: " << resolution << endl;
 			// Only consider this hit if it is not too far away from the track position,
 			// i.e. within the drift distance resolution
+			//if(hit->GetPlane()==12)
+			//  cout << "resolution: " << resolution << " " << hit_position << " " << distance << endl;
 			if ( distance < resolution )
 			{
 				// Save only a maximum number of hits per track crossing through the plane
@@ -896,7 +897,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	if ( DLAYERS < 4 ) cerr << "Error: DLAYERS must be >= 4 for region 2!" << endl;
 
 
-	double minweight = 1e10;
+	//	double minweight = 1e10;
 	bool ret   = false;		/* return value (pessimistic)             */
 
 
@@ -994,7 +995,6 @@ bool QwTrackingTreeCombine::TlCheckForX (
               && tlayer == dlayer)
             resnow -= resolution * (fMaxRoad - 1.0);
 
-	  //resnow=1.1684;
           // SelectLeftRightHit finds the hits which occur closest to the path
           // through the first and last detectors:
           // nHitsInPlane is the number of good hits at each detector layer
@@ -1055,6 +1055,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 
 	// check the validity of goodhits
 	  
+
 	if ( nPlanesWithHits >= dlayer - fMaxMissedPlanes )
 	{
 
@@ -1443,7 +1444,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	    //double rcos = back->GetElementAngleCos();
 	    
 	    // We are looping over detectors with the same direction
-	    double Dr = (r2 - r1);           // difference in r position
+	    //	    double Dr = (r2 - r1);           // difference in r position
 	    double Dz = (z2 - z1);           // difference in z position
 	    //double Dx = Dr * fabs (rcos);    // difference in x position
 	    double Dx=back->GetPlaneOffset()-front->GetPlaneOffset();
@@ -1577,7 +1578,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	// Declarations #
 	//###############
 	double r[4];		//factors of elements of the metric matrix A
-	double uvx;		//u,v,or x coordinate of the track at a location in z
+	//	double uvx;		//u,v,or x coordinate of the track at a location in z
 	double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
 	double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
 	double offset[kNumDirections],slope[kNumDirections];	//track fit parameters
@@ -1615,7 +1616,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	double angle = hits[hitu]->GetDetectorInfo()->GetElementAngle();
 	double offsetu = hits[hitu]->GetDetectorInfo()->GetElementOffset();
 	double offsetv = hits[hitv]->GetDetectorInfo()->GetElementOffset();
-        double offsetx = hits[0]->GetDetectorInfo()->GetElementOffset();       
+	//        double offsetx = hits[0]->GetDetectorInfo()->GetElementOffset();       
 	double spacing = hits[hitu]->GetDetectorInfo()->GetElementSpacing();
 
 	
@@ -1754,7 +1755,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
 		double wire_off=-0.5*spacing+hits[i]->GetDetectorInfo()->GetElementOffset();
 		double hit_pos=hits[i]->GetDriftPosition()+wire_off-dx;
-
 		double residual=y*rCos[dir]+x*rSin[dir]-hit_pos;
 		signedresidual[hits[i]->GetPlane()-1]=residual;
 		residual=fabs(residual);
@@ -1766,7 +1766,8 @@ int QwTrackingTreeCombine::r2_TrackFit (
 		chi += norm*residual*residual;		
 	}
 	chi /= ( num - 4 );
-
+	//cout << "chi: " << chi << endl;
+	//cout << endl;
 	// Translate to the lab frame
 	//fit[0] += hits[0]->GetDetectorInfo()->GetYPosition();
 
@@ -1894,7 +1895,7 @@ int QwTrackingTreeCombine::r2_TrackFit2(
 {
     double xtrans = hits[0]->GetDetectorInfo()->GetXPosition();
     double ytrans = hits[0]->GetDetectorInfo()->GetYPosition();
-    double ztrans = hits[0]->GetDetectorInfo()->GetZPosition();
+    //    double ztrans = hits[0]->GetDetectorInfo()->GetZPosition();
     //exchange x,y? 
     fit[0]=ytrans+parameter[0];
     fit[1]=parameter[1];
@@ -2066,7 +2067,7 @@ int QwTrackingTreeCombine::r3_TrackFit2 (
 	// Declarations #
 	//###############
 	double r[4];
-	double uvx;
+	//	double uvx;
 	double offset[kNumDirections],slope[kNumDirections];
 
 	// Create the transformation helper object
@@ -2477,9 +2478,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
 	QwPartialTrack* pt = new QwPartialTrack();
 
 	// NOTE Why here x and y are swapped because of different coordinate systems
-	pt->fOffsetX = fit[2];
+	pt->fOffsetX = -fit[2];
 	pt->fOffsetY = fit[0];
-	pt->fSlopeX  = fit[3];
+	pt->fSlopeX  = -fit[3];
 	pt->fSlopeY  = fit[1];
 	pt->fIsVoid  = false;
 
@@ -2716,9 +2717,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	QwPartialTrack* pt = new QwPartialTrack();
 
 
-	pt->fOffsetX = fit[0];
+	pt->fOffsetX = -fit[0];
 	pt->fOffsetY = fit[2];
-	pt->fSlopeX  = fit[1];
+	pt->fSlopeX  = -fit[1];
 	pt->fSlopeY  = fit[3];
 	pt->fIsVoid  = false;
 	pt->fChi = sqrt ( chi );     
@@ -2787,7 +2788,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	// calling this is not ready for it yet.
 	std::vector<QwPartialTrack*> parttracklist;
 
-	int in_acceptance = 0;
+	//	int in_acceptance = 0;
 
 	chi_hashclear();
 
@@ -2909,8 +2910,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         QwGeometry hdc(fGeometry.in(package).in(region).in(kDirectionX));
         QwDetectorInfo* front = hdc.front();
         QwDetectorInfo* back = hdc.back();
-        double zx1 = front->GetZPosition();
-        double zx2 = back->GetZPosition();
+	//        double zx1 = front->GetZPosition();
+        //double zx2 = back->GetZPosition();
 
         //############################
         // Get the u, v and x tracks #
@@ -2935,7 +2936,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	while(wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS){
 	  
 	  // Skip this treeline if it was no good
-	  if(wu->IsVoid() || wu->fSlope<=0){
+	  if(wu->IsVoid()){
 	    wu=wu->next;
 	    continue;
 	  }
@@ -2943,7 +2944,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	  QwTrackingTreeLine* wv=uvl[kDirectionV];
 	  while(wv){
 
-	    if(wv->IsVoid() || wv->fSlope<=0){
+	    if(wv->IsVoid()){
 	      wv=wv->next;
 	      continue;
 	    }

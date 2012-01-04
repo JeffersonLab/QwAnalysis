@@ -13,6 +13,12 @@
  param = qweak_maindet_pedestal.map
  eventcut = qweak_maindet_eventcuts.in
 
+[QwLumi]
+ name = Lumi Detector
+ map = qweak_lumi.map
+ param = qweak_lumi_pedestal.map
+ eventcut = qweak_lumi_eventcuts.in
+
 [QwHelicity]
  name = Helicity info
  map = qweak_helicity.map

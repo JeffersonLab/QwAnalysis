@@ -22,6 +22,7 @@ class TTree;
 // Qweak forward declarations
 class QwDBInterface;
 class QwParameterFile;
+class QwErrDBInterface;
 
 class VQwHardwareChannel: public VQwDataElement {
 /****************************************************************//**
@@ -134,6 +135,7 @@ public:
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
 
   void AddEntriesToList(std::vector<QwDBInterface> &row_list);
+  virtual void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list) {};
 
   
   virtual void AccumulateRunningSum(const VQwHardwareChannel *value, Int_t count) = 0;

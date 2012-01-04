@@ -83,6 +83,8 @@ class QwDriftChamber: public VQwSubsystemTracking{
   void  FillDriftDistanceToHits();
  
  
+  void FillHardwareErrorSummary();
+
 
 
   virtual  void GetHitList(QwHitContainer & grandHitContainer)
@@ -193,24 +195,6 @@ class QwDriftChamber: public VQwSubsystemTracking{
     TOFW_raw.clear();
     HitsWire.clear();
   }
-
-  /* TH1F *TotHits[13]; */
-  /* TH1F *TOFP[13]; */
-  /* TH1F *TOFP_raw[13]; */
-  /* TH1F *WiresHit[13];  TH2F *TOFW[13]; */
-  /* TH2F *TOFW_raw[13]; */
-  /* TH2F *HitsWire[13]; */
-  /* void InitHistogramPointers() { */
-  /*   // this magic 13 is eventually fWiresPerPlane.size(), but where? */
-  /*   for(UInt_t i=0; i<13; ++i) { */
-  /*     TotHits[i] = TOFP[i] = TOFP_raw[i] = WiresHit[i] = NULL; */
-  /*     TOFW[i] = TOFW_raw[i] = HitsWire[i] = NULL; */
-  /*   } */
-  /* } */
-
-
-
-
 
 
   //below are the data structures that are used in HDC/VDC

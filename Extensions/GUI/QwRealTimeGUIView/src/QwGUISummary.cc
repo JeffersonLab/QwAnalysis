@@ -3,6 +3,7 @@
 #include "TGaxis.h"
 #include "TColor.h"
 #include "TStyle.h"
+#include "TPaveLabel.h"
 #include <TString.h>
 
 
@@ -12,14 +13,17 @@ ClassImp(QwGUISummary);
 const Int_t QwGUISummary::fSleepTimeMS = 2000;
 
 const char *QwGUISummary::fChannels[N_CH] = {
-  "asym_qwk_charge_hw", "diff_qwk_targetX_hw", "diff_qwk_targetY_hw",
-  "diff_qwk_bpm3c12X_hw", "asym_qwk_mdallbars_hw"
+  "asym_qwk_charge_hw", "asym_qwk_bcm1_hw", 
+  "diff_qwk_targetX_hw", "diff_qwk_targetY_hw",
+  "diff_qwk_bpm3c12X_hw", "yield_qwk_bpm3c12_EffectiveCharge_hw",
+  "asym_qwk_mdallbars_hw"
 };
 
 const char *QwGUISummary::fChannelsCheckError[N_CH_ERR] = {
-  "asym_qwk_charge_dev_err", "diff_qwk_targetX_dev_err", "diff_qwk_targetY_dev_err",
-  "diff_qwk_targetXSlope_dev_err", "diff_qwk_targetYSlope_dev_err","diff_qwk_bpm3c12X_dev_err", 
-  "asym_qwk_mdallbars_dev_err"
+  "asym_qwk_charge_dev_err", "asym_qwk_bcm1_dev_err", 
+  "diff_qwk_targetX_dev_err", "diff_qwk_targetY_dev_err",
+  "diff_qwk_targetXSlope_dev_err", "diff_qwk_targetYSlope_dev_err",
+  "diff_qwk_bpm3c12X_dev_err", "asym_qwk_mdallbars_dev_err"
 };
 
 QwGUISummary::QwGUISummary(const TGWindow *p, const TGWindow *main, const TGTab *tab,
@@ -79,14 +83,12 @@ void QwGUISummary::PlotMainData(){
   //stats
   gStyle->SetOptTitle(1);
   gStyle->SetStatH(0.4);
-  gStyle->SetStatW(0.2);     
-  gStyle->SetOptStat(1110);
+  gStyle->SetStatW(0.3);     
+  gStyle->SetOptStat("eMr");//with error on the mean
 
   // histo parameters
-  gStyle->SetTitleYOffset(0.8);
-  gStyle->SetTitleXOffset(0.8);
   gStyle->SetTitleX(0.3);
-  gStyle->SetTitleW(0.4);
+  gStyle->SetTitleW(0.35);
   gStyle->SetTitleSize(0.03);
   gStyle->SetTitleOffset(2);
   gStyle->SetTitleColor(kBlack);
@@ -95,32 +97,37 @@ void QwGUISummary::PlotMainData(){
   gStyle->SetTitleFontSize(0.08);
 
   gStyle->SetPadBottomMargin(0.2);
-
+  
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(2,3);
+  mc->Divide(2,4);
   
   TH1F* histo_buff[N_CH]          = {NULL};
   TH1F* histo[N_CH]               = {NULL};
   TH1F* histo_err_buff[N_CH_ERR]  = {NULL};
   TH1F* histo_err[N_CH_ERR]       = {NULL};
   TH1F * error_summary            = {NULL};
+  TBox* abox = NULL;
+  TPaveLabel *p = NULL;
+
   char hname[128];
   TString dummyname;
   Double_t mean = 0;
+  Double_t rms = 0;
 
   error_summary = new TH1F("error_summary","",3,0,3);
 
   Int_t i;
   Int_t j;
+  Int_t EntryCounts=0;
 
   SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
   if(dMapFileFlag){
     while(1){
 
-      // NOTE: I avoided using a single for loop for the whole process
+      // NOTE: I avoided using a single "for loop" for the whole process
       // because when resetting the histograms it creates issues if the reset
       // happens in the middle of the for loop. Then only the histograms
       // which are in the reminder of the loop will get reset and the ones
@@ -130,6 +137,7 @@ void QwGUISummary::PlotMainData(){
 	//!Check to see if the GUI is in "paused" mode
       if (GetHistoPause()==0){
 	//!If not "paused" grab the histograms from the map file
+	
 	for(i=0;i<N_CH;i++){
 	  sprintf (hname, "%s", fChannels[i]);
 	  histo[i]= (TH1F *)dMapFile->Get(hname);
@@ -161,10 +169,14 @@ void QwGUISummary::PlotMainData(){
 
 	for(j=0;j<N_CH_ERR;j++){
 	  mean = histo_err[j]->GetMean();
-	  *histo_err[j]=*histo_err[j]-*histo_err_buff[j];
+	  *histo_err[j]=*histo_err[j]-*histo_err_buff[j];	  
 	}
 	for(i=0;i<N_CH;i++)
 	  *histo[i]=*histo[i]-*histo_buff[i];
+
+	//I'm using the asym_charge channel to count entries
+	EntryCounts=(Int_t)(histo[0]->GetEntries());
+	UpdateAutoHistoReset(EntryCounts);//this will compare histogram entries with current auto reset limit
 
       }
       
@@ -179,14 +191,36 @@ void QwGUISummary::PlotMainData(){
 	    mc->cd(i+1);
 	    mean = histo[i]->GetMean();
 	    histo[i]->Draw();
-	    histo[i]->GetXaxis()->SetLabelSize(0.05);
-	    histo[i]->GetYaxis()->SetLabelSize(0.05);
-	    histo[i]->GetXaxis()->SetTitleSize(0.05);
-	    histo[i]->GetYaxis()->SetTitleSize(0.05);
+	    histo[i]->GetXaxis()->SetLabelSize(0.08);
+	    histo[i]->GetYaxis()->SetLabelSize(0.08);
+	    histo[i]->GetXaxis()->SetTitleSize(0.08);
+	    histo[i]->GetYaxis()->SetTitleSize(0.08);
+	    histo[i]->GetYaxis()->SetTitleOffset(0.5);
 	    histo[i]->SetFillColor(41+i);
+	    
+	    if(i==5){
+	      abox = new TBox(90e3,0,190e3, histo[i]->GetEntries());
+	      abox->SetFillColor(2);
+	      abox->SetFillStyle(3003);
+	      abox->Draw("");
+
+	      if(mean>190e3){
+		p = new TPaveLabel(0.2,0.4,0.6,0.7,"3c12 BPM is saturating!","brNDC");
+	      }
+	      if(mean<90e3){
+		p = new TPaveLabel(0.2,0.4,0.6,0.7,"3c12 BPM charge is too low!","brNDC");
+	      }
+	      if(p!=NULL && mean>190e3 || mean<90e3){
+		p->Draw();
+		p->SetTextColor(kRed);	
+		p->SetFillStyle(0);
+		p->SetBorderSize(0);
+	      } 
+	      gPad->Modified();
+	      gPad->Update();
+	    }
 	  }
 	}
-
 	//!Draw the summary plot when the tab is active
 	error_summary->Reset();
 	for(j=0;j<N_CH_ERR;j++){
@@ -205,7 +239,7 @@ void QwGUISummary::PlotMainData(){
 	}
 	
 	if (error_summary!=NULL){
-	  mc->cd(6);
+	  mc->cd(8);
 	  error_summary->SetStats(0);
 	  error_summary->SetFillColor(46);
 	  error_summary->SetBarWidth(0.5);
@@ -213,11 +247,11 @@ void QwGUISummary::PlotMainData(){
 	  error_summary->SetBit(TH1::kCanRebin);
 	  error_summary->LabelsDeflate();
 	  error_summary->SetTitle("Error Summary");
-	  error_summary->GetXaxis()->SetLabelSize(0.08);
+	  error_summary->GetXaxis()->SetLabelSize(0.10);
+	  error_summary->GetYaxis()->SetLabelSize(0.08);
 	  error_summary->GetXaxis()->SetLabelOffset(0.01);
-	  error_summary->GetYaxis()->SetLabelSize(0.05);
-	  error_summary->GetYaxis()->SetTitleOffset(1.0);
-	  error_summary->GetYaxis()->SetTitleSize(0.05);
+	  error_summary->GetYaxis()->SetTitleOffset(0.5);
+	  error_summary->GetYaxis()->SetTitleSize(0.08);
 	  error_summary->GetYaxis()->SetTitle("Bad Events");
 	  error_summary->SetMarkerSize(3.0);
 	  error_summary->Draw("bar2 TEXT0");

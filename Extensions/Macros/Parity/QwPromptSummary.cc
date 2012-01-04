@@ -29,7 +29,7 @@
 //       there are some unclear units 
 //    -- check 31MHz and its return are empty in
 //       hel_histo, but aren't in hel_tree
-//    -- 
+//    -- Update new golden value names
 //          
 
 
@@ -302,31 +302,29 @@ int main(Int_t argc,Char_t* argv[])
   }
   
   if (foundfile==0){//looking for runlet based root files
-    rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+".000.trees.root";
-    if((f = new TFile(rootfilename.Data(),"READ"))!=NULL &&!(f->IsZombie()) &&(f->IsOpen())){
-      noofrunlets=0;
-      runlet.Form("%03d",noofrunlets);
-      rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".trees.root";
-      if (expertmode){
-	chain_status = GetTree(Form("%s%s*.trees.root",rootfile_stem.Data(),runnum.Data()), &tree_chain);
-	if(chain_status == 0) {
-	  expertmode=kFALSE;
-	  std::cerr<<" Failed to access the tree \n";
-	}
+    //rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+".000.trees.root";
+    noofrunlets=0;
+    filenames.clear(); 
+    if (expertmode){
+      chain_status = GetTree(Form("%s%s*.trees.root",rootfile_stem.Data(),runnum.Data()), &tree_chain);
+      if(chain_status == 0) {
+	expertmode=kFALSE;
+	std::cerr<<" Failed to access the tree \n";
       }
-      rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+".000.histos.root";
-      while ((f = new TFile(rootfilename.Data(),"READ"))!=NULL &&!(f->IsZombie()) &&(f->IsOpen())){
-	std::cout<<rootfilename<<std::endl;
-	file_list.push_back(f);
-	filenames.push_back(rootfilename);
-	f=NULL;//reset the root file
-	noofrunlets++;
-	runlet.Form("%03d",noofrunlets);
-	rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".histos.root";
-      }
-      
-      foundfile = 2;//found runlet base root file 
     }
+    for(UInt_t rn=0;rn<20;rn++){
+      runlet.Form("%03d",rn);
+      rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".histos.root";
+      f=NULL;//reset the root file
+      if ((f = new TFile(rootfilename.Data(),"READ"))!=NULL &&!(f->IsZombie()) &&(f->IsOpen())){
+	std::cerr<<runnum<<"."<<runlet<<" histo found \n";
+	file_list.push_back(f);
+	noofrunlets++;
+	filenames.push_back(rootfilename);
+	foundfile = 2;//found runlet base root file 
+      }
+    }
+
   }
   if (foundfile==0){//no root files found
     std::cout<<"Root file "<<rootfilename<<" not found "<<std::endl;
@@ -335,7 +333,7 @@ int main(Int_t argc,Char_t* argv[])
     
   if (foundfile == 1){//regular root file found
     file_list.push_back(f);//add the regular file to the file-list vector
-  }else if (foundfile == 2){//In runlet mode. We need to create the TChain
+  }else if (noofrunlets>0){//In runlet mode. We need to create the TChain
     std::cout<<" found  "<<noofrunlets<<" runlets "<<std::endl;
   }
 
@@ -349,11 +347,11 @@ int main(Int_t argc,Char_t* argv[])
   results.push_back(" \n \nRoot file  on which this analysis based =\n \t");
   for (UInt_t nf=0;nf<filenames.size();nf++){
     results.push_back(filenames.at(nf));
-    results.push_back("\n");
+    results.push_back("\n \t");
   }
-
   results.push_back("\n\n");
   if(comparisonon){
+    Read_ref_file(name_of_ref_file);
     results.push_back("\nFile containing the golden values =\n \t"+name_of_ref_file+"\n\n");
     Read_ref_file(name_of_ref_file);
   }
@@ -642,8 +640,10 @@ void FillBeamParameters(){
   //Compare beam charge
   Fit_with_a_gaussian("hel_histo/asym_qwk_charge_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_2("charge", intensity, val));
-  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
-  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+  //compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  //compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+  compare_to_golden_value("yield_qwk_charge", intensity,0);
+  compare_to_golden_value("asym_qwk_charge", val[0],val[1]);
  
   csv_stream_all("charge", intensity, val);
   Int_t i =0;
@@ -653,9 +653,8 @@ void FillBeamParameters(){
   Get_Mean("hel_histo/yield_qwk_targetX_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.e+6); // unit is nm   
   util.push_back(MidRule_3("target x", mean, val));
-  compare_to_golden_value("x_beam_position", mean,0);
-  compare_to_golden_value("x_position_difference", val[0], val[2]);
-  compare_to_golden_value("x_position_difference_width", val[1], val[3]);
+  compare_to_golden_value("qwk_targetX", mean,0);
+  compare_to_golden_value("diff_qwk_targetX", val[0], val[1]);
 
   csv_stream_all("target_x", mean, val);
   // csv_stream("target X", "mm", mean);
@@ -667,9 +666,8 @@ void FillBeamParameters(){
   Get_Mean("hel_histo/yield_qwk_targetY_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.e+6);
   util.push_back(MidRule_3("target y", mean, val));
-  compare_to_golden_value("y_beam_position", mean,0);
-  compare_to_golden_value("y_position_difference", val[0], val[2]);
-  compare_to_golden_value("y_position_difference_width", val[1], val[3]);
+  compare_to_golden_value("yield_qwk_targetY", mean,0);
+  compare_to_golden_value("diff_qwk_targetY", val[0], val[1]);
 
   csv_stream_all("target_y", mean, val);
   // csv_stream("target Y", "mm", mean);
@@ -680,9 +678,8 @@ void FillBeamParameters(){
   Get_Mean("hel_histo/yield_qwk_targetXSlope_hw",mean,1.e+3);// unit is mrad
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1.e+6);// unit is urad
   util.push_back(MidRule_3("angle x", mean, val));
-  compare_to_golden_value("x_beam_angle", mean,0);
-  compare_to_golden_value("x_angle_difference", val[0], val[2]);
-  compare_to_golden_value("x_angle_difference_width", val[1], val[3]);
+  compare_to_golden_value("yield_qwk_targetXSlope", mean,0);
+  compare_to_golden_value("diff_qwk_targetXSlope", val[0], val[1]);
   csv_stream_all("angle_x", mean, val);
 
   // csv_stream("target XP", "mrad", mean);
@@ -692,9 +689,8 @@ void FillBeamParameters(){
   Get_Mean("hel_histo/yield_qwk_targetYSlope_hw",mean,1.e+3);// unit is mrad
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1.e+6);// unit is urad
   util.push_back(MidRule_3("angle y", mean, val));
-  compare_to_golden_value("y_beam_angle", mean,0);
-  compare_to_golden_value("y_angle_difference", val[0], val[2]);
-  compare_to_golden_value("y_angle_difference_width", val[1], val[3]);
+  compare_to_golden_value("yield_qwk_targetYSlope", mean,0);
+  compare_to_golden_value("diff_qwk_targetYSlope", val[0], val[1]);
   util.push_back("\n Note: Angles are in radians while angle differences are still presented in gradient differences\n");
   csv_stream_all("angle_y", mean, val);
   // csv_stream("target YP", "mrad", mean);
@@ -703,11 +699,10 @@ void FillBeamParameters(){
   mean = 0.0;
   for(i=0;i<4;i++) { val[i]=0.0;};
   Get_Mean("hel_histo/yield_qwk_energy_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/asym_qwk_energy_hw",val,1.e+6);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_energy_hw",val,1.e+6);
   util.push_back(MidRule_3("Energy (dP/P)", mean, val));
-  compare_to_golden_value("beam_energy", mean,0);
-  compare_to_golden_value("beam_energy_asymmetry", val[0], val[2]);
-  compare_to_golden_value("beam_energy_asymmetry_width", val[1], val[3]);
+  compare_to_golden_value("yield_qwk_energy", mean,0);
+  compare_to_golden_value("diff_qwk_energy", val[0], val[1]);
   csv_stream_all("energy_dp/p", mean, val);
 
   // csv_stream("energy", "dp/p", mean);
@@ -1357,8 +1352,7 @@ Int_t Read_ref_file(TString name_of_ref_file)
   TString line;
   TString tmp;
   REFDATA tmpref;
-  Bool_t ver=kFALSE;
-  //Bool_t ver=kTRUE;
+  Bool_t ver=kFALSE;//kTRUE;
 
   ifstream inputref(name_of_ref_file);
   if(!inputref)
@@ -1373,22 +1367,30 @@ Int_t Read_ref_file(TString name_of_ref_file)
     {
       line.ReadToken(inputref);
       if(ver) std::cout<<line<<std::endl;
-      if(line(0,1)=="=")  //this is a line of commentary
+      if(line(0,1)=="#")  //this is a line of commentary
 	{
-	  if(ver)  std::cout<<"this is a commentary line"<<std::endl;
-	line.ReadLine(inputref);
+	  line.ReadLine(inputref);
+	  if(ver){  
+	    //std::cout<<"this is a commentary line"<<std::endl;
+	    std::cout<<" # "<<line<<std::endl;
+	    //std::cout<<"end of the commentary line"<<std::endl;
+	  }
+	  continue;
 	}
-      else
+      else if (line==""){
+	continue;
+      }
+      else 
 	{
 	  tmpref.name=line;
 	  line.ReadToken(inputref);
-	  line.ReadToken(inputref);
-	  tmpref.unit=line;
-	  line.ReadToken(inputref);
-	  line.ReadToken(inputref);
 	  tmpref.value=atof(line.Data());
 	  line.ReadToken(inputref);
+	  tmpref.tolerance=atof(line.Data());
 	  line.ReadToken(inputref);
+	  tmpref.unit=line;
+
+	  /* //commented out below since we do not keep pecent tolarences	
 	  // now the tolerance has been read
 	  //assume that if % then it is in the last position
 	  if(line.Contains("%"))
@@ -1398,7 +1400,7 @@ Int_t Read_ref_file(TString name_of_ref_file)
 	  }
 	  else
 	    tmpref.tolerance=atof(line.Data());
-	
+	  */
 	  ref.push_back(tmpref);
 	}
     }
@@ -1620,7 +1622,7 @@ void compare_to_golden_value(TString valuetocompareto, Double_t value, Double_t 
   size_t i=0;
   Double_t high;
   Double_t low;
-  verbose=kFALSE;
+  verbose=kTRUE;//kFALSE;
   Bool_t notfound=kTRUE;
   good_or_bad=0;
 

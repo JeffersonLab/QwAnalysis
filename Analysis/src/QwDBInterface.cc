@@ -3,6 +3,7 @@
  *
  *  Created on: Dec 14, 2010
  *      Author: wdconinc
+ *      Author: jhlee
  */
 
 #include "QwDBInterface.h"
@@ -67,6 +68,8 @@ T QwDBInterface::TypedDBClone()
   return row;
 }
 
+
+
 /// Specifications of the templated function
 /// template <class T> inline T QwDBInterface::TypedDBClone();
 template<> QwParitySSQLS::md_data
@@ -105,6 +108,69 @@ QwDBInterface::TypedDBClone<QwParitySSQLS::beam>() {
   row.error               = fError;
   return row;
 }
+
+
+
+
+
+// QwErrDBInterface 
+
+
+void QwErrDBInterface::SetMonitorID(QwParityDB *db)
+{
+  fDeviceId = db->GetMonitorID(fDeviceName.Data());
+}
+
+void QwErrDBInterface::SetMainDetectorID(QwParityDB *db)
+{
+  fDeviceId = db->GetMainDetectorID(fDeviceName.Data());
+}
+
+void QwErrDBInterface::SetLumiDetectorID(QwParityDB *db)
+{
+  fDeviceId = db->GetLumiDetectorID(fDeviceName.Data());
+}
+
+template <class T>
+T QwErrDBInterface::TypedDBClone()
+{
+  T row(0);
+  return row;
+}
+
+template<> QwParitySSQLS::md_errors
+QwErrDBInterface::TypedDBClone<QwParitySSQLS::md_errors>() {
+  QwParitySSQLS::md_errors row(0);
+  row.analysis_id         = fAnalysisId;
+  row.main_detector_id    = fDeviceId;
+  row.error_code_id       = fErrorCodeId;
+  row.n                   = fN;
+  return row;
+};
+
+
+template<> QwParitySSQLS::lumi_errors
+QwErrDBInterface::TypedDBClone<QwParitySSQLS::lumi_errors>() {
+  QwParitySSQLS::lumi_errors row(0);
+  row.analysis_id         = fAnalysisId;
+  row.lumi_detector_id    = fDeviceId;
+  row.error_code_id       = fErrorCodeId;
+  row.n                   = fN;
+  return row;
+};
+
+
+
+
+template<> QwParitySSQLS::beam_errors
+QwErrDBInterface::TypedDBClone<QwParitySSQLS::beam_errors>() {
+  QwParitySSQLS::beam_errors row(0);
+  row.analysis_id         = fAnalysisId;
+  row.monitor_id          = fDeviceId;
+  row.error_code_id       = fErrorCodeId;
+  row.n                   = fN;
+  return row;
+};
 
 
 

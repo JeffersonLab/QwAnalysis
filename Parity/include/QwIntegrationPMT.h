@@ -154,6 +154,7 @@ class QwIntegrationPMT : public VQwDataElement{
   void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
 
  protected:
 

@@ -22,6 +22,8 @@ select
 ,	analysis_id
 ,	run.run_number
 ,	segment_number
+,	good_for_id as good_for
+,	run_quality_id as run_quality
 from 
 	runlet join run using (run_id) 
 	left join analysis using (runlet_id)

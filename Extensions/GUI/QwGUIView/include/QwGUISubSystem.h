@@ -57,6 +57,7 @@ enum RUNTYPE  {
 #include "QwGUIProgressDialog.h"
 #include "QwGUIDatabaseContainer.h"
 #include "QwGUIDataWindow.h"
+#include "QwGUIHCLogEntryDialog.h"
 
 #ifndef ROOTCINTMODE
 #include "QwParameterFile.h"
@@ -117,8 +118,26 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Parent window object reference (usually gRoot->Client ...)
   TGWindow        *dParent;
 
- protected:
+  TString     WrapParameter(TString param, TString value){
+    TString tmp("--");
+    tmp += param + "=\"" + value + "\" ";
+    return tmp;
+  }
+  TString     WrapAttachment(TString filename){
+    TString tmp("--attachment=\"");
+    tmp += filename + "\" ";
+    return tmp;
+  }
 
+  TString     MakeSubject(TString subject){
+    TString tmp("Analysis: ");
+    tmp += Form("Run %6d - ",GetRunNumber()) + subject;
+    return tmp;
+  } 
+
+
+ protected:
+  
   //!Buffer, mainly used in message passing and for other temporary storage.
   char             dMiscbuffer[MSG_SIZE_MAX];
   //!Buffer, mainly used in message passing and for other temporary storage.
@@ -135,6 +154,10 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!file is opened, by calling the member function SetDataContainer(RDataContainer *cont) in this class.   
   //!There is no direct instance of this container kept within the class. 
   QwGUIDatabaseContainer *dDatabaseCont;
+
+  QwGUIHCLogEntryDialog  *dHCLogEntryDlg;
+  HCLogEntry              dHCLogEntries;
+
 
   //!This is a database interface reference, it provides all necessary access to the qweak database.
   //!The pointer is set by the QwGUIMain class, when the database is opened via the GUI menu. The pointer is
@@ -214,6 +237,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   virtual Int_t    LoadChannelMap(TString mapfile) {return 0;};
 
   Bool_t               dProcessHalt;
+
+  void SubmitToHCLog(TCanvas*);
 
   QwGUIProgressDialog *dProgrDlg;
 
@@ -501,8 +526,9 @@ class QwGUISubSystem : public TGCompositeFrame {
   void           SetMultipleFiles(Bool_t mf) {dMultipleFiles = mf;}; 
   Bool_t         AddMultipleFiles() { return dMultipleFiles;};
 
-  char            *GetRootFileName(){ if(!dROOTCont) return NULL; return dROOTCont->GetFileName();};
+  char          *GetRootFileName(){ if(!dROOTCont) return NULL; return dROOTCont->GetFileName();};
 
+  virtual void   MakeHCLogEntry() {}; 
 
   
   ClassDef(QwGUISubSystem,0);

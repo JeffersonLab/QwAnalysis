@@ -25,6 +25,8 @@
 #include "TFile.h"
 #include "TH2F.h"
 
+
+
 /**
  *  \class QwF1TDC
  *  \ingroup QwAnalysis
@@ -314,7 +316,9 @@ class QwF1TDContainer :  public TObject
 
   void PrintErrorSummary();
   void WriteErrorSummary(Bool_t hist_flag=true);
-
+  //  void WriteErrorSummaryToDedicatedRootFile(QwRootFile* rootfile, Bool_t hist_flag=true);
+  // a stupid boost prevents this function, use a generic way to access root files internally. 
+  // Tuesday, December 13 12:27:39 EST 2011, jhlee
 
  public:
 
@@ -323,8 +327,6 @@ class QwF1TDContainer :  public TObject
   TString            fSystemName;
   
   TH2F              *fError2DHist;
-
-  //  typedef std::vararry <Double_t> 
 
 private:
 

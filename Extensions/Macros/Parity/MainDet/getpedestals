@@ -57,10 +57,14 @@ print "Running ROOT script mdlumi_ped.C ...\n";
 
 #display reference plots
 print "Displaying main detector and bg reference plots ...\n";
-!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_md.png&") or warn ("Cannot display plots: $!\n");
-!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_bg.png&") or warn ("Cannot display plots: $!\n");
-!system ("/usr/bin/display $refDirectory/ped_md.gif&") or warn ("Cannot display reference plots: $!\n");
-!system ("/usr/bin/display $refDirectory/ped_bg.gif&") or warn ("Cannot display reference plots: $!\n");
+#!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_md.png&") or warn ("Cannot display plots: $!\n");
+!system ("/usr/bin/eog $QWSCRATCH/calib/pedPlots/$runNum\_md.png&") or warn ("Cannot display plots: $!\n");
+#!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_bg.png&") or warn ("Cannot display plots: $!\n");
+!system ("/usr/bin/eog $QWSCRATCH/calib/pedPlots/$runNum\_bg.png&") or warn ("Cannot display plots: $!\n");
+#!system ("/usr/bin/display $refDirectory/ped_md.gif&") or warn ("Cannot display reference plots: $!\n");
+!system ("/usr/bin/eog $refDirectory/ped_md.gif&") or warn ("Cannot display reference plots: $!\n");
+#!system ("/usr/bin/display $refDirectory/ped_bg.gif&") or warn ("Cannot display reference plots: $!\n");
+!system ("/usr/bin/eog $refDirectory/ped_bg.gif&") or warn ("Cannot display reference plots: $!\n");
 sleep 2;
 
 #ask user if they want to update the pedestals
@@ -86,8 +90,10 @@ else{
 
 #display reference plots
 print "Displaying lumi reference plots...\n";
-!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_lumi.png&") or warn ("Cannot display plots: $!\n");
-!system ("/usr/bin/display $refDirectory/ped_lumi.gif&") or warn ("Cannot display reference plots: $!\n");
+#!system ("/usr/bin/display $QWSCRATCH/calib/pedPlots/$runNum\_lumi.png&") or warn ("Cannot display plots: $!\n");
+!system ("/usr/bin/eog $QWSCRATCH/calib/pedPlots/$runNum\_lumi.png&") or warn ("Cannot display plots: $!\n");
+#!system ("/usr/bin/display $refDirectory/ped_lumi.gif&") or warn ("Cannot display reference plots: $!\n");
+!system ("/usr/bin/eog $refDirectory/ped_lumi.gif&") or warn ("Cannot display reference plots: $!\n");
 sleep 2;
 
 #ask user if need to update

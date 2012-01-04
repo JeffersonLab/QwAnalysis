@@ -42,19 +42,20 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   
   //******* ADC settings
   const Double_t time_per_sample = 2e-06;//s
-  const Double_t t_settle = 50e-06;//s
+  const Double_t t_settle = 70e-6;//s
   
   //******* Signal Settings
   // get num samples from bcm1. 
-  TString time    = Form("mps_counter*((%s.num_samples*%f)+%f)",device.Data(),time_per_sample,t_settle);// units seconds.
+  TString time    = Form("mps_counter*(((%s.num_samples)*%f)+%f)",device.Data(),time_per_sample,t_settle);// units seconds.
   TString amplitude; 
 
 
 
   //******** get tree
   TChain *tree = new TChain("Mps_Tree");
+  TChain *slow_tree = new TChain("Slow_Tree");
 
-  TString filename = Form("QwPass1_%i.000.root", run_number);
+  TString filename = Form("QwPass1_%i.000.trees.root", run_number);
   Bool_t found = kFALSE;
 
   found = FindFiles(filename, tree);
@@ -66,7 +67,18 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
       exit(1);
     }
   }
+
+  found = FindFiles(filename, slow_tree);
+  if(!found){
+    filename = Form("first100k_%i.root", run_number);
+    found = FindFiles(filename, tree);
+    if(!found){
+      std::cerr<<"Unable to find rootfile(s) for run "<<run_number<<std::endl;
+      exit(1);
+    }
+  }
   
+
   // if (file->IsZombie()) {
   //   std::cout << "Error opening root file chain " << filename << std::endl;
   //   filename = Form("QwPass1_%i.root", run_number);
@@ -105,20 +117,20 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   Int_t samples = (max-min);
   
   // get sampling rate/event rate
-  // for this I am going to use the bcm1 num spales.
   TH1*h=NULL;
-  TString command = Form("%s.num_samples>>htemp",device.Data());
-  TString cut = Form("%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
-
-
-  tree->Draw(command,cut);
+  TString command = "HELFREQ>>htemp";
+  slow_tree->Draw(command);
   h = (TH1*)gDirectory->Get("htemp");
   if(h==NULL){
     std::cout<<"Unable to get num_samples!"<<std::endl;
     exit(1);
   }
-  std::cout<<h->GetMean()<<std::endl;
-  Double_t sampling_rate = 1.0/(h->GetMean()*time_per_sample+t_settle);
+  Double_t sampling_rate = h->GetMean();
+  std::cout<<sampling_rate<<std::endl;
+  if((sampling_rate>961) || (sampling_rate< 959)) {
+    std::cout<<"Sampling rate "<<sampling_rate<<"Hz is not realistic. The sampling rate of Qweak ADCs should be ~ 960HZ!"<<std::endl;
+    exit(1);
+  }
   Double_t length = samples*1.0/sampling_rate; 
   
   std::cout<<" --- Signal = "<<device<<"\n";
@@ -210,7 +222,6 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   std::cout<<" --- Average signal ="<<m<<"\n";
   
   canvas->cd(1);
-
   //Remove the DC/zero frequency component 
   TH1D *h2 = new TH1D("h2","noise profile",samples,low,up);  
   TH1D *h2_1 = new TH1D("h2_1","noise profile",samples,low,up);  

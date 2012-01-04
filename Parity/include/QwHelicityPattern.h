@@ -121,6 +121,8 @@ class QwHelicityPattern{
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile &trim_tree);
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db);
+  void  FillErrDB(QwParityDB *db);
+
   Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
 
   void  ClearEventData();

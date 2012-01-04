@@ -53,7 +53,7 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
 
     /// \brief Fill the database
     virtual void FillDB(QwParityDB *db, TString type) { };
-
+    virtual void FillErrDB(QwParityDB *db, TString type) { };
 
     // VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
     virtual VQwSubsystem& operator=  (VQwSubsystem *value) = 0;
@@ -93,6 +93,8 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
 
     /// \brief Print values of all channels
     virtual void PrintValue() const { };
+
+    virtual void WritePromptSummary() const {};
 
 
     virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};
