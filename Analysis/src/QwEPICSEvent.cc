@@ -94,8 +94,13 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
   fEPICSVariableList.clear();
   fEPICSVariableType.clear();
 
+  fExtraHelicityReversal = 1;
+  Bool_t found_BlinderReversalForRunTwo = kFALSE;
+  Bool_t found_PrecessionReversal       = kFALSE;
+
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
+  std::string varname, varvalue;
   while (mapstr.ReadNextLine()) {
     lineread++;
 
@@ -103,10 +108,26 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
-    std::string varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue)){
+      QwDebug << "QwEPICSEvent::LoadChannelMap:  keyword,value pair:"
+	      << varname << "," << varvalue << QwLog::endl;
       if (varname == "NominalWienAngle"){
 	fNominalWienAngle = atof(varvalue.c_str());
+      } else if (varname == "BlinderReversalForRunTwo"){
+	if (! found_BlinderReversalForRunTwo){
+	  found_BlinderReversalForRunTwo = kTRUE;
+	  fExtraHelicityReversal = -1 * fExtraHelicityReversal;
+	}
+      } else if (varname == "PrecessionReversal"){
+	if (! found_PrecessionReversal){
+	  found_PrecessionReversal = kTRUE;
+	  fExtraHelicityReversal = -1 * fExtraHelicityReversal;
+	}
+      } else {
+	QwError << "QwEPICSEvent::LoadChannelMap: "
+		<< "Unknown keyword,variable pair: "
+		<< varname << "," << varvalue << QwLog::endl;
+	exit(1);
       }
       continue;
     }
@@ -1266,6 +1287,13 @@ Int_t QwEPICSEvent::DetermineIHWPPolarity() const{
 	      << GetDataString("IGL1I00DI24_24M")
 	      << QwLog::endl;
   }
+  QwDebug << "QwEPICSEvent::DetermineIHWPPolarity: "
+	  << "raw IHWP polarity is: "
+	  << ihwppolarity << QwLog::endl;
+  ihwppolarity = fExtraHelicityReversal * ihwppolarity;
+  QwDebug << "QwEPICSEvent::DetermineIHWPPolarity: "
+	  << "IHWP polarity after extra reversal is: "
+	  << ihwppolarity << QwLog::endl;
   return ihwppolarity;
 }
 
