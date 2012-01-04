@@ -138,7 +138,8 @@ Int_t MakeSlug_lrb(
 //	const TString qwrootfiles = "/home/leacock/scratch/rootfiles";
 //	const TString qwrootfiles = "/data/disk1/leacock/linRegBlue/lrb_rootfiles";
 //	const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
-  const TString qwrootfiles = Form("/data/disk1/leacock/slugplots/25percent/lrb_links/%s",set);
+//  const TString qwrootfiles = Form("/data/disk1/leacock/slugplots/25percent/lrb_links/%s",set);
+  const TString qwrootfiles = Form("/volatile/hallc/qweak/leacock/25percent/lrb_links/%s",set);
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
 		signal(SIGINT, sigint_handler);
