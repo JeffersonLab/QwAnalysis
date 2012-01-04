@@ -114,19 +114,11 @@ class QwScanner:
       return kTRUE;
     };
 
-    void Copy(const VQwSubsystem *source)
-    {
-      VQwSubsystem::Copy(source);
-      return;
-    };
-    Bool_t Compare(VQwSubsystem *source)
-    {
-      return kTRUE;
-    };
+    void Copy(const VQwSubsystem *source);
 
     /*  Member functions derived from VQwSubsystem. */
     Int_t LoadChannelMap(TString mapfile);
-    Int_t LoadGeometryDefinition(TString mapfile)
+    Int_t LoadGeometryDefinition(TString filename)
     {
       return 0;
     };

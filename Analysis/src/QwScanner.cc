@@ -40,21 +40,46 @@ QwScanner::QwScanner(const TString& name)
 QwScanner::~QwScanner()
 {
   fPMTs.clear();
+
   for (size_t i = 0; i < fSCAs.size(); i++)
-    delete fSCAs.at(i);
+    if (fSCAs.at(i) != NULL)
+      delete fSCAs.at(i);
   fSCAs.clear();
 
   for (size_t i=0; i<fADC_Data.size(); i++)
-    {
-      if (fADC_Data.at(i) != NULL)
-        {
-          delete fADC_Data.at(i);
-          fADC_Data.at(i) = NULL;
-        }
-    }
+    if (fADC_Data.at(i) != NULL)
+      delete fADC_Data.at(i);
   fADC_Data.clear();
 
   delete fF1TDContainer;
+}
+
+
+void QwScanner::Copy(const VQwSubsystem *source)
+{
+  if (typeid(*source) == typeid(*this)) {
+    VQwSubsystem::Copy(source);
+    const QwScanner* input = dynamic_cast<const QwScanner*>(source);
+
+    // FIXME leaks!!!
+    fSCAs.resize(input->fSCAs.size());
+    for (size_t i = 0; i < input->fSCAs.size(); i++) {
+      if (input->fSCAs.at(i)) {
+        fSCAs.at(i) = new QwSIS3801_Module();
+        fSCAs.at(i)->Copy(input->fSCAs.at(i));
+      }
+    }
+    fADC_Data.resize(input->fADC_Data.size());
+    for (size_t i = 0; i < input->fADC_Data.size(); i++) {
+      if (input->fADC_Data.at(i)) {
+        fADC_Data.at(i) = new QwVQWK_Module();
+        fADC_Data.at(i)->Copy(input->fADC_Data.at(i));
+      }
+    }
+
+    fRateMapCM = input->fRateMapCM;
+    fRateMapEM = input->fRateMapEM;
+  }
 }
 
 
