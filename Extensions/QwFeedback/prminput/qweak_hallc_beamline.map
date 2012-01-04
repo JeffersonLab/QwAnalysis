@@ -23,15 +23,16 @@ sample_size=464
 ! HALL C BEAMLINE SCALERS
 !**************************************************************************
 ROC=0
-#normclock=sca_4MHz
+normclock=sca_4MHz
 Bank=0x6103
 
 !
 !! scaler.type, scaler.num  word.num, det.type, det.name
 
 
-   #SCALER, 0, 22, bcm, sca_habcm
-   #SCALER, 0, 30, clock, sca_4MHz
+   SCALER, 0, 22, bcm, sca_habcm
+   SCALER, 0, 30, clock, sca_4MHz
+
 
 ! Enter the device names in order they appear in the beamline.
 !
@@ -70,6 +71,7 @@ end=combinedbcm
 
 [PUBLISH]
  q_targ, combobcm, qwk_charge, c
- #sca_bcm, scaler, sca_habcm, sc
+ #sca_bcm, bcm, sca_habcm, sc
+ sca_bcm, bcm, sca_habcm, c
 
 

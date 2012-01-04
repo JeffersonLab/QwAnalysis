@@ -458,7 +458,7 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS);
   fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG);
   fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
- 
+
 
   /*
   if (fFeedbackStatus){
@@ -958,8 +958,8 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
 void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
   QwHelicityPattern::AccumulateRunningSum();
 
-  //fAsymmetry.RequestExternalValue("sca_bcm", &fScalerCharge);
-  //fScalerChargeRunningSum.PrintValue();
+  fAsymmetry.RequestExternalValue("sca_bcm", &fScalerCharge);
+  fScalerChargeRunningSum.PrintValue();
   fScalerChargeRunningSum.AccumulateRunningSum(fScalerCharge);
   if (fScalerCharge.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0)
     fHelModeGoodPatternCounter[0]++;//update the good HA asymmetry counter
