@@ -137,11 +137,11 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   th->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6>>bcmdd",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",s1,s2,s2),"goff");
   th->Draw("asym_qwk_charge*1e6>>abcm",Form("%s && asym_qwk_charge.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");
-  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bX>>mdxsen",
-	   Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bX.%s",s1,s2,s2),"prof");
+  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_targetX>>mdxsen",
+	   Form("%s && asym_qwk_mdallbars.%s && diff_qwk_targetX.%s",s1,s2,s2),"prof");
   GetHist("mdxsen")->Fit("fitfunx","E M R F Q","",-0.02,0.02);
-  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bY>>mdysen",
-	   Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bY.%s",s1,s2,s2),"prof");
+  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_targetY>>mdysen",
+	   Form("%s && asym_qwk_mdallbars.%s && diff_qwk_targetY.%s",s1,s2,s2),"prof");
   GetHist("mdysen")->Fit("fitfuny","E M R F Q","",-0.02,0.02);
   tm->Draw("qwk_charge:event_number>>histocrg", "ErrorFlag == 0 && qwk_charge.Device_Error_Code==0");
   mean_charge = GetHist("histocrg")->GetMean(2);
@@ -170,7 +170,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm1"};
   TString bcms4[NUM15] = {"bcm1","bcm1","bcm1","bcm1","bcm1","bcm2","bcm2","bcm2","bcm2","bcm5","bcm5","bcm5","bcm6","bcm6","bcm7"};
   TString bcms5[NUM15] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm5","bcm6","bcm7","bcm8","bcm6","bcm7","bcm8","bcm7","bcm8","bcm8"};
-  TString bpms[NUM4] = {"target","bpm3h09b","bpm3h07c","bpm3c12"};
+  TString bpms[NUM4] = {"target","bpm3h09","bpm3h07c","bpm3c12"};
   TString mdasym[NUM] = {"md1barsum","md2barsum","md3barsum","md4barsum","md5barsum","md6barsum","md7barsum","md8barsum"};
   TString mdbkg[NUM2] = {"md9pos","md9neg","pmtonl","pmtltg","pmtled","preamp"};
   TString mdbkg2[2] = {"pmtled","preamp"};
@@ -1021,11 +1021,11 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   for ( int t=0; t<8; t++) {
     dt = t+1;
 
-    sprintf(adetsenx,"asym_qwk_md%dbarsum*1e6:diff_qwk_bpm3h09bX>>htx%d",dt,dt);
-    sprintf(cutadetsenx,"%s && asym_qwk_md%dbarsum.%s && diff_qwk_bpm3h09bX.%s",s1,dt,s2,s2);
+    sprintf(adetsenx,"asym_qwk_md%dbarsum*1e6:diff_qwk_targetX>>htx%d",dt,dt);
+    sprintf(cutadetsenx,"%s && asym_qwk_md%dbarsum.%s && diff_qwk_targetX.%s",s1,dt,s2,s2);
     sprintf(histox,"htx%d",dt);
     sprintf(yaxis,"MD%d ASYM [ppm]",dt);
-    sprintf(xaxis,"BPM 3H09BX [mm]");
+    sprintf(xaxis,"TARGET X [mm]");
 
     pad71->cd(position6[dt]);
     pad71->cd(position6[dt])->SetGrid();
@@ -1053,10 +1053,10 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     gPad->Modified();
     gPad->Update();
 
-    sprintf(adetseny,"asym_qwk_md%dbarsum*1e6:diff_qwk_bpm3h09bY>>hty%d",dt,dt);
-    sprintf(cutadetseny,"%s && asym_qwk_md%dbarsum.%s && diff_qwk_bpm3h09bY.%s",s1,dt,s2,s2);
+    sprintf(adetseny,"asym_qwk_md%dbarsum*1e6:diff_qwk_targetY>>hty%d",dt,dt);
+    sprintf(cutadetseny,"%s && asym_qwk_md%dbarsum.%s && diff_qwk_targetY.%s",s1,dt,s2,s2);
     sprintf(histoy,"hty%d",dt);
-    sprintf(xaxis1,"BPM 3H09BY [mm]");
+    sprintf(xaxis1,"TARGET Y [mm]");
 
     pad81->cd(position6[dt]);
     pad81->cd(position6[dt])->SetGrid();
@@ -1076,8 +1076,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     pad111->cd(position6[dt]);
     pad111->cd(position6[dt])->SetGrid();
 
-    sprintf(alumisenx,"asym_qwk_dslumi%d*1e6:diff_qwk_bpm3h09bX>>hlx%d",dt,dt);
-    sprintf(cutalumisenx,"%s && asym_qwk_dslumi%d.%s && diff_qwk_bpm3h09bX.%s",s1,dt,s2,s2);
+    sprintf(alumisenx,"asym_qwk_dslumi%d*1e6:diff_qwk_targetX>>hlx%d",dt,dt);
+    sprintf(cutalumisenx,"%s && asym_qwk_dslumi%d.%s && diff_qwk_targetX.%s",s1,dt,s2,s2);
     sprintf(histolx,"hlx%d",dt);
     sprintf(yaxisl,"DSLUMI%d ASYM [ppm]",dt);
 
@@ -1096,8 +1096,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     pad121->cd(position6[dt]);
     pad121->cd(position6[dt])->SetGrid();
 
-    sprintf(alumiseny,"asym_qwk_dslumi%d*1e6:diff_qwk_bpm3h09bY>>hly%d",dt,dt);
-    sprintf(cutalumiseny,"%s && asym_qwk_dslumi%d.%s && diff_qwk_bpm3h09bY.%s",s1,dt,s2,s2);
+    sprintf(alumiseny,"asym_qwk_dslumi%d*1e6:diff_qwk_targetY>>hly%d",dt,dt);
+    sprintf(cutalumiseny,"%s && asym_qwk_dslumi%d.%s && diff_qwk_targetY.%s",s1,dt,s2,s2);
     sprintf(histoly,"hly%d",dt);
 
     th->Draw(alumiseny,cutalumiseny,"prof");
@@ -1122,11 +1122,11 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     pad71->cd(position7[v])->SetGrid();
     // pad71->cd(position7[v])->SetFillColor(kGreen-10);
 
-    sprintf(adetasenx,"asym_qwk_md%sbars*1e6:diff_qwk_bpm3h09bX>>h1x%d",allmd[v].Data(),v);
-    sprintf(cutadetasenx,"%s && asym_qwk_md%sbars.%s && diff_qwk_bpm3h09bX.%s",s1,allmd[v].Data(),s2,s2);
+    sprintf(adetasenx,"asym_qwk_md%sbars*1e6:diff_qwk_targetX>>h1x%d",allmd[v].Data(),v);
+    sprintf(cutadetasenx,"%s && asym_qwk_md%sbars.%s && diff_qwk_targetX.%s",s1,allmd[v].Data(),s2,s2);
     sprintf(histoxa,"h1x%d",v);
     sprintf(yaxisa,"MD %s BARS ASYM [ppm]",allmd[v].Data());
-    sprintf(xaxisa,"BPM 3H09BX [mm]");
+    sprintf(xaxisa,"TARGET X [mm]");
 
     th->Draw(adetasenx,cutadetasenx,"prof");
     TH1D *hxf = (TH1D*)gDirectory->Get(histoxa);
@@ -1149,10 +1149,10 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     pad81->cd(position7[v]);
     pad81->cd(position7[v])->SetGrid();
 
-    sprintf(adetaseny,"asym_qwk_md%sbars*1e6:diff_qwk_bpm3h09bY>>h1y%d",allmd[v].Data(),v);
-    sprintf(cutadetaseny,"%s && asym_qwk_md%sbars.%s && diff_qwk_bpm3h09bY.%s",s1,allmd[v].Data(),s2,s2);
+    sprintf(adetaseny,"asym_qwk_md%sbars*1e6:diff_qwk_targetY>>h1y%d",allmd[v].Data(),v);
+    sprintf(cutadetaseny,"%s && asym_qwk_md%sbars.%s && diff_qwk_targetY.%s",s1,allmd[v].Data(),s2,s2);
     sprintf(histoya,"h1y%d",v);
-    sprintf(xaxisa1,"BPM 3H09BY [mm]");
+    sprintf(xaxisa1,"TARGET Y [mm]");
 
     th->Draw(adetaseny,cutadetaseny,"prof");
     TH1D *hyf = (TH1D*)gDirectory->Get(histoya);
@@ -1166,8 +1166,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     pad111->cd(position7[v]);
     pad111->cd(position7[v])->SetGrid();
 
-    sprintf(alumiasenx,"asym_dslumi_%s*1e6:diff_qwk_bpm3h09bX>>hl1x%d",lumi[v].Data(),v);
-    sprintf(cutalumiasenx,"%s && asym_dslumi_%s.%s && diff_qwk_bpm3h09bX.%s",s1,lumi[v].Data(),s2,s2);
+    sprintf(alumiasenx,"asym_dslumi_%s*1e6:diff_qwk_targetX>>hl1x%d",lumi[v].Data(),v);
+    sprintf(cutalumiasenx,"%s && asym_dslumi_%s.%s && diff_qwk_targetX.%s",s1,lumi[v].Data(),s2,s2);
     sprintf(histolxa,"hl1x%d",v);
     sprintf(yaxisla,"DSLUMI %s ASYM [ppm]",lumi[v].Data());
 
@@ -1186,8 +1186,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     pad121->cd(position7[v]);
     pad121->cd(position7[v])->SetGrid();
 
-    sprintf(alumiaseny,"asym_dslumi_%s*1e6:diff_qwk_bpm3h09bY>>hl1y%d",lumi[v].Data(),v);
-    sprintf(cutalumiaseny,"%s && asym_dslumi_%s.%s && diff_qwk_bpm3h09bY.%s",s1,lumi[v].Data(),s2,s2);
+    sprintf(alumiaseny,"asym_dslumi_%s*1e6:diff_qwk_targetY>>hl1y%d",lumi[v].Data(),v);
+    sprintf(cutalumiaseny,"%s && asym_dslumi_%s.%s && diff_qwk_targetY.%s",s1,lumi[v].Data(),s2,s2);
     sprintf(histolya,"hl1y%d",v);
 
     th->Draw(alumiaseny,cutalumiaseny,"prof");
@@ -1692,12 +1692,12 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   for ( int x=0; x<5; x++) {
     xn = x +1;
 
-    sprintf(auslumisenx,"asym_%s_sum*1e6:diff_qwk_bpm3h09bX>>huslx%d",uslumi[x].Data(),x);
-    sprintf(cutauslumisenx,"%s && asym_%s_sum.%s && diff_qwk_bpm3h09bX.%s",s1,uslumi[x].Data(),s2,s2);
+    sprintf(auslumisenx,"asym_%s_sum*1e6:diff_qwk_targetX>>huslx%d",uslumi[x].Data(),x);
+    sprintf(cutauslumisenx,"%s && asym_%s_sum.%s && diff_qwk_targetX.%s",s1,uslumi[x].Data(),s2,s2);
     sprintf(histouslx,"huslx%d",x);
     sprintf(yaxisusl,"%s ASYM [ppm]",uslumi[x].Data());
-    sprintf(auslumiseny,"asym_%s_sum*1e6:diff_qwk_bpm3h09bY>>husly%d",uslumi[x].Data(),x);
-    sprintf(cutauslumiseny,"%s && asym_%s_sum.%s && diff_qwk_bpm3h09bY.%s",s1,uslumi[x].Data(),s2,s2);
+    sprintf(auslumiseny,"asym_%s_sum*1e6:diff_qwk_targetY>>husly%d",uslumi[x].Data(),x);
+    sprintf(cutauslumiseny,"%s && asym_%s_sum.%s && diff_qwk_targetY.%s",s1,uslumi[x].Data(),s2,s2);
     sprintf(histously,"husly%d",x);
 
     pad171->cd(position10[x]);

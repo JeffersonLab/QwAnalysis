@@ -122,6 +122,7 @@ class QwHelicityPattern{
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db);
   void  FillErrDB(QwParityDB *db);
+  void  WritePromptSummary(QwPromptSummary *ps);
 
   Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
 

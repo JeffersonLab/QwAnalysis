@@ -21,6 +21,7 @@
 // Forward declarations
 class QwDBInterface;
 class QwErrDBInterface;
+class QwPromptSummary;
 
 /*****************************************************************
 *  Class:
@@ -81,7 +82,7 @@ class QwBPMStripline : public VQwBPM {
   void    ProcessEvent();
   void    PrintValue() const;
   void    PrintInfo() const;
-  void    WritePromptSummary() const;
+  void    WritePromptSummary(QwPromptSummary *ps, TString type);
 
 
   const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {

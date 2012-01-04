@@ -1224,60 +1224,7 @@ void  QwBeamMod::Copy(const VQwSubsystem *source)
 
 void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 {
-  /*
-  vector<QwParityDB::beam> entrylist;
-
-  //      QwParityDB::beam row;
-  // Without (0), I see the following error message:
-  //terminate called after throwing an instance of 'mysqlpp::BadQuery'
-  //  what():  Duplicate entry '11399104' for key 1
-  //Abort
-  //
-
-  QwParityDB::beam row(0);
-
-  // try to access BCM mean and its error
-  // there are 2 different types BCM data we have at the moment
-  // Yield and Asymmetry
-  printf("%s  ************** BCM **************\n", datatype.Data());
-  for(UInt_t i=0; i< fModChannel.size(); i++)
-    {
-      entrylist.push_back(fModChannel[i].GetDBEntry(db, datatype, "" )) ;
-    }
-
-  ///   try to access BPM mean and its error
-  printf("%s  ************** BPM **************\n", datatype.Data());
-  for(UInt_t i=0; i< fStripline.size(); i++)
-    {
-      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelX"));
-      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelY"));
-    }
-
-  printf("BeamLine Entrylist Vector Size %d\n", (Int_t) entrylist.size());
-
-  db->Connect();
-  // Check the entrylist size, if it isn't zero, start to query..
-  if( entrylist.size() )
-    {
-      mysqlpp::Query query= db->Query();
-      //    if(query)
-      //	{
-	  query.insert(entrylist.begin(), entrylist.end());
-	  query.execute();
-	  //	  query.reset(); // do we need?
-	  //	}
-	  //      else
-	  //	{
-	  //	  printf("Query is empty\n");
-	  //	}
-    }
-  else
-    {
-      printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
-    }
-
-  db->Disconnect();
-  */
+ 
   return;
 }
 
@@ -1291,7 +1238,7 @@ void QwBeamMod::FillErrDB(QwParityDB *db, TString datatype)
 
 
 
-void QwBeamMod::WritePromptSummary() const
+void QwBeamMod::WritePromptSummary(QwPromptSummary *ps, TString datatype)
 {
   return;
 };

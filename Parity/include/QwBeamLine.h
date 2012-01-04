@@ -117,7 +117,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
 
   void PrintValue() const;
   void PrintInfo() const;
-  void WritePromptSummary() const;
+  void WritePromptSummary(QwPromptSummary *ps, TString type);
 
   VQwDataElement* GetElement(QwBeamDetectorID det_id);
   VQwDataElement* GetElement(EQwBeamInstrumentType TypeID, TString name);

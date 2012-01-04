@@ -155,9 +155,11 @@ int main(Int_t argc,Char_t* argv[])
 
   
   /*connect to the data base*/
-  // db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
-  // db = TSQLServer::Connect("mysql://127.0.0.1/qw_run1_pass3","qweak", "QweakQweak");
-  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  //  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
+  //  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+
+  db = TSQLServer::Connect("mysql://127.0.0.1/qw_run2_pass1","qweak", "QweakQweak");
+  //db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
 
 
   if(db)
@@ -181,11 +183,11 @@ int main(Int_t argc,Char_t* argv[])
   /*Get data from database*/
   std::cout<<"IHWP 'in'.."<<std::endl;
   get_data(quartz_bar_sum,8,"in",slug_num,barvaluesin,barerrorsin);
-  get_data(opposite_quartz_bar_sum,4,"in",slug_num,oppvaluesin,opperrorsin);
+  //get_data(opposite_quartz_bar_sum,4,"in",slug_num,oppvaluesin,opperrorsin);
 
   std::cout<<"IHWP 'out'.."<<std::endl;
   get_data(quartz_bar_sum,8,"out",slug_num,barvaluesout,barerrorsout);
-  get_data(opposite_quartz_bar_sum,4,"out",slug_num,oppvaluesout,opperrorsout);
+  // get_data(opposite_quartz_bar_sum,4,"out",slug_num,oppvaluesout,opperrorsout);
 
 
   /*Fit octants*/
@@ -196,14 +198,14 @@ int main(Int_t argc,Char_t* argv[])
   if(usefit1)
     Canvas1->Print(Form("transverse_monitor_slugs_all_fit1_%i_%i_plots.png",slug_first,slug_num));
   else
-    Canvas1->Print(Form("transverse_monitor_slugs_all_%i_%i_plots.png",slug_first,slug_num));
+    Canvas1->Print(Form("transverse_monitor_on_5+1_slugs_all_%i_%i_plots.png",slug_first,slug_num));
 
-  /*Fit opposite bar sums*/
-  Canvas2->Draw();
-  Canvas2->cd();
-  plot_n_fit_data(4, "pol0",  oppvaluesin,opperrorsin, oppvaluesout,opperrorsout);
-  Canvas2->Update();
-  Canvas2->Print(Form("transverse_monitor_slugs_opposite_%i_%i_plots.png",slug_first,slug_num));
+//   /*Fit opposite bar sums*/
+//   Canvas2->Draw();
+//   Canvas2->cd();
+//   plot_n_fit_data(4, "pol0",  oppvaluesin,opperrorsin, oppvaluesout,opperrorsout);
+//   Canvas2->Update();
+//   Canvas2->Print(Form("transverse_monitor_slugs_opposite_%i_%i_plots.png",slug_first,slug_num));
 
  
  
@@ -248,7 +250,7 @@ int main(Int_t argc,Char_t* argv[])
 /*A function to create the mysql query*/
 TString get_sum_query(TString device,TString ihwp, Int_t slug_last){
 
-  Bool_t ldebug = false;
+  Bool_t ldebug = true;
 
   std::cout<<"Getting regressed data for "<<device<<std::endl;
   TString datatable = "md_data_view";
@@ -257,10 +259,12 @@ TString get_sum_query(TString device,TString ihwp, Int_t slug_last){
   TString output = " sum( distinct("+datatable+".value/(POWER("
     +datatable+".error,2))))/sum( distinct(1/(POWER("
     +datatable+".error,2)))), SQRT(1/SUM(distinct(1/(POWER("
-    +datatable+".error,2)))))";
-  
-  TString slug_cut   = Form("(%s.slug >= %i and %s.slug <= %i)",
-			  datatable.Data(),slug_first,datatable.Data(),slug_last);
+    +datatable+".error,2))))),"
+    +datatable+".error* SQRT("+datatable+".n) ";
+
+ 
+  TString slug_cut   = Form("(%s.slug >= %i and %s.slug <= %i) ",
+ 			    datatable.Data(),slug_first,datatable.Data(),slug_last);
 
   TString run_quality =  Form("(%s.run_quality_id = '1') ",
 			   datatable.Data());
@@ -278,6 +282,7 @@ TString get_sum_query(TString device,TString ihwp, Int_t slug_last){
     +datatable+".measurement_type = 'a' AND target_position = 'HYDROGEN-CELL' AND "
     +slug_cut+" AND "+regression+" AND "+run_quality+" AND "
     +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "
+    +datatable+".error* SQRT("+datatable+".n) < 0.000700 AND "
     +datatable+".error != 0; ";
 
   if(ldebug) std::cout<<query<<std::endl;
@@ -626,8 +631,6 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuesin[],Double_t
       cosfit = new TF1("cosfit"," (-4.75)*[0]*sin((pi/180)*[1])*(sin((pi/180)*[2])*cos((pi/180)*(45*(x-1))) - cos((pi/180)*[2])*sin((pi/180)*(45*(x-1))))+ [3]",1,8);
       cosfit->SetParLimits(0,0,99999);
       cosfit->SetParLimits(1,0,99999);
-      cosfit->SetParLimits(1,-180,180);
-      cosfit->SetParLimits(2,-180,180);
     } 
     else {
       cosfit = new TF1("cosfit","(-4.75)*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
@@ -635,6 +638,8 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuesin[],Double_t
   }
 
   /*Draw IN values*/
+  for(size_t i=0;i<8;i++) std::cout<<" IN values bar "<<i+1<<" = "<<valuesin[i]<<", error = "<<errorsin[i]<<std::endl;
+
   TGraphErrors* grp_in  = new TGraphErrors(size,x,valuesin,errx,errorsin);
   grp_in ->SetMarkerSize(0.8);
   grp_in ->SetMarkerStyle(21);
@@ -682,6 +687,9 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuesin[],Double_t
 
 
    /*Draw OUT values*/
+
+  for(size_t i=0;i<8;i++) std::cout<<" out values bar "<<i+1<<" = "<<valuesout[i]<<", error = "<<errorsout[i]<<std::endl;
+
   TGraphErrors* grp_out  = new TGraphErrors(size,x,valuesout,errx,errorsout);
   grp_out ->SetMarkerSize(0.8);
   grp_out ->SetMarkerStyle(21);

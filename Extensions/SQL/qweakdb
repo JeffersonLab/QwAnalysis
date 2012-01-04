@@ -1,0 +1,21 @@
+#!/bin/bash
+DBHOST=qweakdb.jlab.org
+DBPORT=3306
+
+DBUSER=qweak
+DBPW=QweakQweak
+DBNAME=qw_run2_pass1
+
+TUNNELTHRU=login1.jlab.org
+TUNNELUSER=$USER
+
+LOCALHOST=127.0.0.1 # must be the numeric localhost or mysql will outsmart you
+LOCALPORT=$DBPORT
+
+if ! echo | nc -w1 $LOCALHOST $LOCALPORT >& /dev/null ; then
+    ## this ssh process will stay around to be re-used afterwards.  If
+    ## it hangs, send it a 'term' signal (perhaps using 'tunnels')
+    ssh -MfN -l $TUNNELUSER $TUNNELTHRU -L $LOCALPORT:$DBHOST:$DBPORT
+fi
+
+exec mysql -h $LOCALHOST -u $DBUSER -p$DBPW -D $DBNAME

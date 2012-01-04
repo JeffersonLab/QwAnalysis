@@ -33,6 +33,7 @@
 #include "QwEPICSEvent.h"
 #include "QwRegression.h"
 #include "QwRegressionSubsystem.h"
+#include "QwPromptSummary.h"
 
 // Qweak subsystems
 // (for correct dependency generation)
@@ -67,6 +68,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.AddOptions()("single-output-file", po::value<bool>()->default_bool_value(false), "Write a single output file");
   gQwOptions.AddOptions()("print-errorcounters", po::value<bool>()->default_bool_value(true), "Print summary of error counters");
+  gQwOptions.AddOptions()("write-promptsummary", po::value<bool>()->default_bool_value(false), "Write PromptSummary");
+
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qweak_mysql.conf");
 
@@ -87,16 +90,22 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Create the database connection
   QwParityDB database(gQwOptions);
 
+
+  //  QwPromptSummary promptsummary;
+
   ///  Start loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     ///  Begin processing for the first run
 
+    Int_t run_number = eventbuffer.GetRunNumber();
 
     ///  Set the current event number for parameter file lookup
-    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
+    QwParameterFile::SetCurrentRunNumber(run_number);
 
-
+    //    if (gQwOptions.GetValue<bool>("write-promptsummary")) {
+    QwPromptSummary promptsummary(run_number, eventbuffer.GetSegmentNumber());
+    //    }
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
     epicsevent.ProcessOptions(gQwOptions);
@@ -137,18 +146,22 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwRootFile *treerootfile  = NULL;
     QwRootFile *burstrootfile = NULL;
     QwRootFile *historootfile = NULL;
+    
+    TString run_label = eventbuffer.GetRunLabel();
+
 
     if (gQwOptions.GetValue<bool>("single-output-file")) {
-      treerootfile = new QwRootFile(eventbuffer.GetRunLabel());
-      burstrootfile = historootfile = treerootfile;
 
+      treerootfile  = new QwRootFile(run_label);
+      burstrootfile = historootfile = treerootfile;
       //  Construct a tree which contains map file names which are used to analyze data
       treerootfile->WriteParamFileList("mapfiles", detectors);
-      
+
     } else {
-      treerootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".trees");
-      burstrootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".bursts");
-      historootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".histos");
+
+      treerootfile  = new QwRootFile(run_label + ".trees");
+      burstrootfile = new QwRootFile(run_label + ".bursts");
+      historootfile = new QwRootFile(run_label + ".histos");
 
       //  Construct a tree which contains map file names which are used to analyze data
       detectors.PrintParamFileList();
@@ -327,9 +340,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwMessage << " Running average of events" << QwLog::endl;
       QwMessage << " =========================" << QwLog::endl;
       runningsum.PrintValue();
-      runningsum.WritePromptSummary();
     }
-
+   
   
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
@@ -357,7 +369,14 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwMessage << " ------------ error counters ------------------ " << QwLog::endl;
       detectors.GetEventcutErrorCounters();
     }
-
+    
+    if (gQwOptions.GetValue<bool>("write-promptsummary")) {
+      //      runningsum.WritePromptSummary(&promptsummary, "yield");
+      // runningsum.WritePromptSummary(&promptsummary, "asymmetry");
+      //      runningsum.WritePromptSummary(&promptsummary, "difference");
+      helicitypattern.WritePromptSummary(&promptsummary);
+      promptsummary.PrintCSV();
+    }
     //  Read from the database
     database.SetupOneRun(eventbuffer);
 

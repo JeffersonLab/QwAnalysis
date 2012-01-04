@@ -5,7 +5,9 @@
 #for Hall C PITA
 patterns = 20000
 #for Hall A IA
-HA_patterns = 20000
+HAF_patterns = 20000
+#for position feedback
+PF_patterns = 200000
 
 #The precision of the charge asymmetry in ppm
 #deltaAq = 62

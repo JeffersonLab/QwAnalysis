@@ -16,6 +16,7 @@
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#include "QwPromptSummary.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwMainCerenkovDetector);
@@ -1454,7 +1455,7 @@ void  QwMainCerenkovDetector::PrintDetectorID() const
 void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
 {
 
-  Bool_t local_print_flag = true;
+  Bool_t local_print_flag = false;
   if(local_print_flag){
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
     QwMessage << "            QwMainCerenkovDetectorID::FillErrDB                  " << QwLog::endl;
@@ -1518,7 +1519,7 @@ void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
 
 
 
-void QwMainCerenkovDetector::WritePromptSummary() const
+void QwMainCerenkovDetector::WritePromptSummary(QwPromptSummary *ps, TString type)
 {
 
   Bool_t local_print_flag = true;
@@ -1527,6 +1528,8 @@ void QwMainCerenkovDetector::WritePromptSummary() const
     QwMessage << "        QwMainCerenkovDetectorID::WritePromptSummary()          " << QwLog::endl;
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
+
+  //  ps->PrintCSV();
 
   return;
 }

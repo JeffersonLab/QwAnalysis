@@ -18,6 +18,7 @@
 // Forward declarations
 class QwBlinder;
 class QwParityDB;
+class QwPromptSummary;
 
 
 /**
@@ -94,7 +95,7 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Print values of all channels
     virtual void PrintValue() const { };
 
-    virtual void WritePromptSummary() const {};
+    virtual void WritePromptSummary(QwPromptSummary *ps, TString type) {};
 
 
     virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};

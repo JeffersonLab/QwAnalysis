@@ -16,7 +16,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  Special keywords
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-NominalWienAngle = 90.0   ! This ought to have been -90 for the 2-pass beam, but we started with it effectively at 90, so let's keep going like this.  Note that we will need to flip it to the opposite sign for the 1-pass beam, or do something else clever.
+NominalWienAngle = 30.0   ! This is the "nominal" Wien launch angle in degrees needed to have the spin pointing FORWARD for H+ when IHWP OUT & the Wien is Flip-Right (or Horizontal-Only)
+BlinderReversalForRunTwo = 1     !  Set this to 1 to use the extra reversal for Run2.  THIS IS NEEDED!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! NAME          DB_TABLE                TYPE    COMMENT

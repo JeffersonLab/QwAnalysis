@@ -657,29 +657,22 @@ void  QwHelicityPattern::PrintRunningBurstAverage() const
 //*****************************************************************
 void  QwHelicityPattern::PrintRunningAverage() const
 {
-  QwMessage << " Running average of asymmetry  " << QwLog::endl;
-  QwMessage << " ==============================" << QwLog::endl;
+  QwMessage << "QwHelicityPattern::PrintRunningAverage() const " << QwLog::endl;
+  //  QwMessage << " Running average of yields     " << QwLog::endl;
+  fRunningYield.PrintValue();
+  //  QwMessage << " Running average of asymmetry  " << QwLog::endl;
   fRunningAsymmetry.PrintValue();
-
   if (fEnableAlternateAsym) {
-    QwMessage << " Running average of first half/second half asymmetry  "
-	      << QwLog::endl;
-    QwMessage << " ====================================================="
-	      << QwLog::endl;
+    //    QwMessage << " Running average of first half/second half asymmetry  "  << QwLog::endl;
     fRunningAsymmetry1.PrintValue();
-    QwMessage << " Running average of even/odd asymmetry  " << QwLog::endl;
-    QwMessage << " =======================================" << QwLog::endl;
+    //    QwMessage << " Running average of even/odd asymmetry  " << QwLog::endl;
     fRunningAsymmetry2.PrintValue();
   }
   if (fEnableDifference){
-    QwMessage << " Running average of difference " << QwLog::endl;
-    QwMessage << " ==============================" << QwLog::endl;
+    //    QwMessage << " Running average of difference " << QwLog::endl;
     fRunningDifference.PrintValue();
   }
 
-  QwMessage << " Running average of yields     " << QwLog::endl;
-  QwMessage << " ==============================" << QwLog::endl;
-  fRunningYield.PrintValue();
 }
 
 //*****************************************************************
@@ -826,15 +819,16 @@ void QwHelicityPattern::FillErrDB(QwParityDB *db)
 {
   // fBlinder.FillDB(db,"");
 
-  //fRunningYield.FillErrDB(db, "");
   fRunningAsymmetry.FillErrDB(db, "asymmetry");
-  // if (fEnableDifference) {
-  //   fRunningDifference.FillErrDB(db, "difference");
-  // }
-  // if (fEnableAlternateAsym) {
-  //   fRunningAsymmetry1.FillErrDB(db, "asymmetry1");
-  //   fRunningAsymmetry2.FillErrDB(db, "asymmetry2");
-  // }
+  return;
+};
+
+
+void QwHelicityPattern::WritePromptSummary(QwPromptSummary *ps)
+{
+  fRunningYield.WritePromptSummary(ps, "yield");
+  fRunningAsymmetry.WritePromptSummary(ps, "asymmetry");
+  
   return;
 };
 

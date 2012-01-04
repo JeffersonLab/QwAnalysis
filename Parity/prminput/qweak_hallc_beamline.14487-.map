@@ -15,7 +15,8 @@ sample_size=464
 !
 !
 !ADC0, Slot 18, Serial Number 13, Address 0x7B
-   VQWK, 0, 3,  bcm,  QWK_BCMGL
+   VQWK, 0, 2,  bcm,  QWK_BCMGL1
+   VQWK, 0, 3,  bcm,  QWK_BCMGL2
    VQWK, 0, 4,  bcm,  QWK_BCM5
    VQWK, 0, 5,  bcm,  QWK_BCM6
    VQWK, 0, 6,  bcm,  QWK_BCM7 
@@ -221,7 +222,7 @@ name=qwk_target
  QWK_BPM3H07B,  bpmstripline, 1.0,   1.0,   1.0
  QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
  QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
- QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+! QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
 
 

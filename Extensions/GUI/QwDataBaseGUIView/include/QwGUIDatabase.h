@@ -36,9 +36,9 @@
 //=============================================================================
 
 #define N_DETECTORS      43
-#define N_LUMIS          36
+#define N_LUMIS          32
 #define N_BPMS           22
-#define N_BCMS           12
+#define N_BCMS           23
 #define N_CMB_BPMS        1
 #define N_CMB_BCMS        1
 #define N_ENERGY          1
