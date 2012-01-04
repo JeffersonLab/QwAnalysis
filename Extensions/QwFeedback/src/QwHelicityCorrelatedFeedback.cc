@@ -117,11 +117,13 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	value = QwParameterFile::GetUInt(varvalue);
 	fAccumulatePatternMax=value;
       }
-      else if (varname=="ha_patterns"){
+      else if (varname=="haf_patterns"){
 	value = QwParameterFile::GetUInt(varvalue);
 	fHAAccumulatePatternMax=value;
-      }
-      else if (varname=="deltaaq"){
+      }else if(varname=="pf_patterns"){
+	value = QwParameterFile::GetUInt(varvalue);
+	fPFAccumulatePatternMax=value;
+      }else if (varname=="deltaaq"){
 	dvalue = atof(varvalue.Data());
 	fChargeAsymPrecision=dvalue;
       }
@@ -467,13 +469,13 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   }
   */
 
-  //Greenmonster stuffs
+  //Greenmonster stuffs are commented out - rakithab
   //fScanCtrl.SCNSetValue(1,0);
   //fScanCtrl.SCNSetValue(2,0);
   //fScanCtrl.CheckScan();
   //fScanCtrl.PrintScanInfo();
   //fScanCtrl.Close();  
-  ClearRunningSum();//reset the running sum only if PITA correction applied
+  ClearRunningSum();//reset the running sum only if PITA correction applied, the object fRunningAsymmetry is solely dedicated to PITA feedback
 };
 
 /*****************************************************************/
@@ -486,7 +488,6 @@ void QwHelicityCorrelatedFeedback::FeedPCNeg(){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
   out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
-  //   out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
   //  fprintf(out_file," Feedback at %d current A_q[%d]:%5.8f+/-%5.8f IA Setpoint:%5.3f  IA Previous Setpoint:%5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
   fprintf(out_file_IA," %10.0d A_q[%1.0d] %20.4f +/-  %20.4f  %20.2f  %20.2f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
   fclose(out_file_IA);
@@ -546,6 +547,7 @@ void QwHelicityCorrelatedFeedback::UpdateGMClean(Int_t state){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::UpdateGMScanParameters(){
 };
+
 /*****************************************************************/
 Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
   Bool_t status=kFALSE;
@@ -558,12 +560,12 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
   fChargeAsymmetry=fChargeAsymmetry*1e+6;//converts to ppm
   fChargeAsymmetryWidth=fChargeAsymmetryWidth*1e+6;//converts to ppm
   if (fChargeAsymmetryError>fChargeAsymPrecision){
-    QwError<<"Charge Asymmetry precision not reached current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+    QwError<<"Charge Asymmetry precision has not reached. Current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
     status=kFALSE;
     fGoodPatternCounter=0;
   }
   else{
-    QwError<<"Charge Asymmetry precision current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+    QwError<<"Charge Asymmetry precision, Current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
     //UpdateGMClean(0);//set to not clean - Diabled the cfsocket comm-rakithab 11-27-2011
     FeedPITASetPoints();//set the new PITA values
     LogParameters();//Log PITA setting after feedback
@@ -577,20 +579,47 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
 };
 
 /*****************************************************************/
+Bool_t QwHelicityCorrelatedFeedback::IsHAAqPrecisionGood(){
+  Bool_t status=kFALSE;
+  
+  GetHAChargeStat(0);
+  if (fHAChargeAsym[0]==-1 && fHAChargeAsymError[0] == -1 && fHAChargeAsymWidth[0]==-1){//target asymmetry not published or accesible
+    QwError<<"Hall A asymmetry not published or accesible"<<QwLog::endl;
+  }else{
+    fHAChargeAsymError[0]=fHAChargeAsymError[0]*1.0e+6;//converts to ppm
+    fHAChargeAsym[0]=fHAChargeAsym[0]*1e+6;//converts to ppm
+    fHAChargeAsymWidth[0]=fHAChargeAsymWidth[0]*1e+6;//converts to ppm
+    if (fHAChargeAsymError[0]>fChargeAsymPrecision){
+      QwError<<"Hall A Charge Asymmetry precision has not reached. Current value "<<fHAChargeAsymError[0]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+      QwError<<"--------------------------------------------------------------------------------------------------------------------------------"<<QwLog::endl;
+      fHAGoodPatternCounter=0;
+    }else{
+      QwError<<"Hall A Charge Asymmetry precision, Current value "<<fHAChargeAsymError[0]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+      if (fHAIAFB){
+	//UpdateGMClean(0);//set to not clean  - Diabled the cfsocket comm-rakithab 11-27-2011
+	FeedHAIASetPoint(0);
+	//UpdateGMClean(1);//set back to clean
+	fHAGoodPatternCounter=0;    
+      }  
+      LogHAParameters(0);  
+    }
+  }  
+
+  return status;
+};
+
+/*****************************************************************/
 Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(Int_t mode){
+  Bool_t HCstatus=kFALSE;
+  
   if (mode<0 ||  mode>3){
     QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
     return kFALSE;
   }
   QwMessage<<"IsAqPrecisionGood["<<mode<<"]\n";
-  Bool_t HAstatus=kFALSE;
-  Bool_t HCstatus=kFALSE;
-
   
-  //GetTargetChargeStat(mode);
-  GetHAChargeStat(mode);
-  /*  
-//commented out Hall C IA feedback correction
+  GetTargetChargeStat(mode);
+  
   if (fChargeAsym[mode]==-1 && fChargeAsymError[mode] == -1 && fChargeAsymWidth[mode]==-1){//target asymmetry not published or accesible
     QwError<<"target asymmetry not published or accesible"<<QwLog::endl;
     HCstatus=kFALSE;
@@ -606,22 +635,6 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(Int_t mode){
     }else
       HCstatus=kTRUE;
   }
-  */
-  if (fHAChargeAsym[mode]==-1 && fHAChargeAsymError[mode] == -1 && fHAChargeAsymWidth[mode]==-1){//target asymmetry not published or accesible
-    QwError<<"Hall A asymmetry not published or accesible"<<QwLog::endl;
-    HAstatus=kFALSE;
-  }else{
-    fHAChargeAsymError[mode]=fHAChargeAsymError[mode]*1.0e+6;//converts to ppm
-    fHAChargeAsym[mode]=fHAChargeAsym[mode]*1e+6;//converts to ppm
-    fHAChargeAsymWidth[mode]=fHAChargeAsymWidth[mode]*1e+6;//converts to ppm
-    if (fHAChargeAsymError[mode]>fChargeAsymPrecision){
-      QwError<<"Hall A Charge Asymmetry["<<mode<<"] precision not reached current value "<<fHAChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
-      QwError<<"--------------------------------------------------------------------------------------------------------------------------------"<<QwLog::endl;
-      HAstatus=kFALSE;
-      fHelModeGoodPatternCounter[mode]=0;
-    }else
-      HAstatus=kTRUE;
-  }
   
   
   if (HCstatus && fIAFB){
@@ -631,34 +644,28 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(Int_t mode){
     LogParameters(mode);  
     //UpdateGMClean(1);//set back to clean
     fHelModeGoodPatternCounter[mode]=0;
+    fHAGoodPatternCounter=0;
   }
-  if (HAstatus && fHAIAFB){
-    QwError<<"Hall A Charge Asymmetry["<<mode<<"] precision current value "<<fHAChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
-    //UpdateGMClean(0);//set to not clean  - Diabled the cfsocket comm-rakithab 11-27-2011
-    FeedHAIASetPoint(mode);
-    LogHAParameters(mode);  
-    //UpdateGMClean(1);//set back to clean
-    fHelModeGoodPatternCounter[mode]=0;
-  }
-
-  //if ((HCstatus && fIAFB) || (HAstatus && fHAIAFB)){ //this could be a problem when we use both Hall A annd Hall C IA if only on hall gets the correction due to precision check
-    //ClearRunningSum(mode);//reset the running sum
-  //}
   
 
-  return (HCstatus || HAstatus);
+  return HCstatus;
 };
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
-  //Hall A & C IA feedback 
-  if (fIAFB || fHAIAFB){
-    //    for (Int_t i=0;i<kHelModes;i++){
-      if (IsPatternsAccumulated(0)){
-	QwMessage<<"IsPatternsAccumulated for Mode[0] (Hall A IA)"<<QwLog::endl;
-	IsAqPrecisionGood(0);//calling mode = 0 for HA IA feedback
+  //Hall C IA feedback 
+  if (fIAFB){
+    for (Int_t i=0;i<kHelModes;i++){
+      if (IsPatternsAccumulated(i)){
+	QwMessage<<"IsPatternsAccumulated for Hall C IA "<<QwLog::endl;
+	IsAqPrecisionGood(i);//Hall C IA is not set up properly due to this
       }
-      //  }
+    }
   }
+  //Hall A IA feedback, the condition fHAIAFB is checked inside the IsHAPatternsAccumulated() routine. This is done to report charge Aq even HA feedback is disabled.
+  if (IsHAPatternsAccumulated()){
+    QwMessage<<"IsPatternsAccumulated for Hall A IA "<<QwLog::endl;
+    IsHAAqPrecisionGood();
+  }  
   //End IA feedback
 
   //PITA feedback
@@ -892,7 +899,7 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
 
     if (fAsymmetry.GetEventcutErrorFlag()==0){//good pattern
       //fPatternIsGood = kTRUE;
-      fGoodPatternCounter++;//increment the quartet number - reset after each feedback operation
+      fGoodPatternCounter++;//increment the quartet number - reset after each PITA feedback operation
       fQuartetNumber++;//Then increment the quartet number - continously count
     }
 
@@ -958,11 +965,16 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
 void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
   QwHelicityPattern::AccumulateRunningSum();
 
-  fAsymmetry.RequestExternalValue("sca_bcm", &fScalerCharge);
-  fScalerChargeRunningSum.PrintValue();
-  fScalerChargeRunningSum.AccumulateRunningSum(fScalerCharge);
-  if (fScalerCharge.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0)
-    fHelModeGoodPatternCounter[0]++;//update the good HA asymmetry counter
+  if(fAsymmetry.RequestExternalValue("sca_bcm", &fScalerCharge)){
+    fScalerChargeRunningSum.PrintValue();
+    fScalerChargeRunningSum.AccumulateRunningSum(fScalerCharge);
+    if (fScalerCharge.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0){
+      fHAGoodPatternCounter++;//update the good HA asymmetry counter
+    }
+  }else{
+    QwError << " Could not get external value setting parameters to  sca_bcm" <<QwLog::endl;
+    fHAIAFB=kFALSE;
+  }
 
 
   switch(fCurrentHelPatMode){
@@ -1066,26 +1078,17 @@ void QwHelicityCorrelatedFeedback::GetHAChargeStat(Int_t mode){
      fHAChargeAsymWidth[mode]=-1;
   }
   if (mode<0 ||  mode>3){
-    QwError << " Could not get external value setting parameters to  sca_bcm " <<QwLog::endl;
+    QwError << " Hall A Mode is out of bound " << mode <<" mode<0 ||  mode>3 "<<QwLog::endl;
     return;
   }
-  //fFBRunningAsymmetry[mode].CalculateRunningAverage();
   fScalerChargeRunningSum.CalculateRunningAverage();
-  //if (fFBRunningAsymmetry[mode].RequestExternalValue("sca_bcm",&fScalerCharge)){
-    QwError<<"Reading published Hall A charge value stats "<<QwLog::endl;
-    fScalerChargeRunningSum.PrintValue();
-    fHAChargeAsym[mode]=fScalerChargeRunningSum.GetValue();
-    fHAChargeAsymError[mode]=fScalerChargeRunningSum.GetValueError();
-    fHAChargeAsymWidth[mode]=fScalerChargeRunningSum.GetValueWidth();
-    QwError<<" Scaler asym "<<fHAChargeAsym[mode]<<" error "<<fHAChargeAsymError[mode]<<" width "<<fHAChargeAsymWidth[mode]<<QwLog::endl;
-    return ;
-    //}
-    // QwError << " Could not get external value setting parameters to sca_bcm " <<QwLog::endl;
-    //fHAChargeAsym[mode]=-1;
-    //fHAChargeAsymError[mode]=-1;
-    //fHAChargeAsymWidth[mode]=-1;
-
-  return;  
+  QwError<<"Reading published Hall A charge value stats "<<QwLog::endl;
+  fScalerChargeRunningSum.PrintValue();
+  fHAChargeAsym[mode]=fScalerChargeRunningSum.GetValue();
+  fHAChargeAsymError[mode]=fScalerChargeRunningSum.GetValueError();
+  fHAChargeAsymWidth[mode]=fScalerChargeRunningSum.GetValueWidth();
+  QwError<<" Scaler asym "<<fHAChargeAsym[mode]<<" error "<<fHAChargeAsymError[mode]<<" width "<<fHAChargeAsymWidth[mode]<<QwLog::endl;
+  return ;
 };
 
 //*****************************************************************
@@ -1096,14 +1099,11 @@ void QwHelicityCorrelatedFeedback::GetHAChargeStat(Int_t mode){
 void  QwHelicityCorrelatedFeedback::ClearRunningSum()
 {
   QwHelicityPattern::ClearRunningSum();
-  
 }
 
 void  QwHelicityCorrelatedFeedback::ClearRunningSum(Int_t mode)
 {
   fFBRunningAsymmetry[mode].ClearEventData();
-  fHelModeGoodPatternCounter[mode]=0;
-
 };
 
 void  QwHelicityCorrelatedFeedback::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values){

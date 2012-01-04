@@ -37,6 +37,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fEnableBurstSum=kFALSE;
     fGoodPatternCounter=0;
+    fHAGoodPatternCounter=0;
+    fPFGoodPatternCounter=0;
     fPatternCounter=0;
 
 
@@ -169,6 +171,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     /// \brief Compare current A_q precision with a set precision.
     Bool_t IsAqPrecisionGood();
+    /// \brief Compare current Hall A  A_q precision with a set precision.
+    Bool_t IsHAAqPrecisionGood();
+
     /// \brief Compare current A_q precision with a set precision for given mode.
     Bool_t IsAqPrecisionGood(Int_t mode);
     /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value 
@@ -178,6 +183,23 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
       return kFALSE;
     };
+    /// \brief Check to see no.of good patterns accumulated after the last position/angle feedback correction
+    Bool_t IsPFPatternsAccumulated(){
+      if (fPFGoodPatternCounter>=fPFAccumulatePatternMax)
+	return kTRUE;
+
+      return kFALSE;
+    };
+
+    /// \brief Check to see no.of good patterns accumulated after the last position/angle feedback correction
+    Bool_t IsHAPatternsAccumulated(){
+      if (fHAGoodPatternCounter>=fHAAccumulatePatternMax)
+	return kTRUE;
+
+      return kFALSE;
+    };
+
+
     /// \brief Check neccessary conditions and apply IA setponts based on the charge asym for all four modes
     void ApplyFeedbackCorrections();
     /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value for given mode
@@ -240,8 +262,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fHAChargeAsymError[kHelModes];//Hall A current charge asym precision
     Double_t fHAChargeAsymWidth[kHelModes];//Hall A current charge asym width
 
-    Int_t fAccumulatePatternMax; //upper limit to the patterns before the feedback triiger;
-    Int_t fHAAccumulatePatternMax; //upper limit to the patterns before the HA IA feedback triiger;
+    Int_t fAccumulatePatternMax; //Hall C PITA Correction interval in units of patterns 
+    Int_t fHAAccumulatePatternMax; //Hall A IA Correction interval in units of patterns 
+    Int_t fPFAccumulatePatternMax; //HC Position/Angle difference  Correction interval in units of patterns 
     Double_t  fChargeAsymPrecision; //Charge asymmetry precision in ppm
 
 
@@ -301,8 +324,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     GreenMonster   fScanCtrl;
 
     //Pattern counter
-    Int_t fGoodPatternCounter;//increment the quartet number - reset after each feedback operation
+    Int_t fGoodPatternCounter;//increment the quartet number - reset after each PITA feedback operation
+    Int_t fHAGoodPatternCounter;//increment the quartet number - reset after each Hall A IA feedback operation
+    Int_t fPFGoodPatternCounter;//increment the quartet number - reset after each position/angle feedback operation
+
     Int_t fPatternCounter;//increment the quartet number - reset after each feedback operation
+
     
     Int_t fHelModeGoodPatternCounter[kHelModes];//count patterns for each mode seperately - reset after each feedback operation
 
