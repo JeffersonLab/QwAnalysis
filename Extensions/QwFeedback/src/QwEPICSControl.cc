@@ -33,6 +33,32 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("C1068_QDAC06", &fIDHall_A_IA_A3);//IA Cell Setpoint  Hall A
   status = ca_pend_io(10);
 
+  //  Helicity magnet controls
+  fHelMagNames[0] = "MHE0L01V";
+  fHelMagNames[1] = "MHE0L02H";
+  fHelMagNames[2] = "MHE0L03V";
+  fHelMagNames[3] = "MHE0L03H";
+  fHelicityNames[0] = "Even";
+  fHelicityNames[1] = "Odd";
+
+  status = ca_search("hel_even_1",&fIDHelMag[0][0]); //Even helicity setpoint for MHE0L01V
+  status = ca_pend_io(10);
+  status = ca_search("hel_odd_1", &fIDHelMag[0][1]);  //Odd helicity setpoint for MHE0L01V
+  status = ca_pend_io(10);
+  status = ca_search("hel_even_2",&fIDHelMag[1][0]); //Even helicity setpoint for MHE0L02H
+  status = ca_pend_io(10);
+  status = ca_search("hel_odd_2", &fIDHelMag[1][1]);  //Odd helicity setpoint for MHE0L02H
+  status = ca_pend_io(10);
+  status = ca_search("hel_even_3",&fIDHelMag[2][0]); //Even helicity setpoint for MHE0L03V
+  status = ca_pend_io(10);
+  status = ca_search("hel_odd_3", &fIDHelMag[2][1]);  //Odd helicity setpoint for MHE0L03V
+  status = ca_pend_io(10);
+  status = ca_search("hel_even_4",&fIDHelMag[3][0]); //Even helicity setpoint for MHE0L03H
+  status = ca_pend_io(10);
+  status = ca_search("hel_odd_4", &fIDHelMag[3][1]);  //Odd helicity setpoint for MHE0L03H
+  status = ca_pend_io(10);
+
+
 
   //Feedback status EPICS variables
   status = ca_search("qw:ChargeFeedback", &fFeedbackStatus);//

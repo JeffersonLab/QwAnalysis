@@ -141,6 +141,25 @@ public:
  
   };
 
+  void Set_HelicityMagnet(size_t magnet_index, size_t helicity_index, Double_t &value){
+    Int_t status;
+    if (magnet_index<4 && helicity_index<2){
+      status = ca_put(DBR_DOUBLE, fIDHelMag[magnet_index][helicity_index], &value);
+      status = ca_pend_io(10);
+      status = ca_get(DBR_DOUBLE, fIDHelMag[magnet_index][helicity_index], &value);
+      status = ca_pend_io(10);
+      std::cout << "Helicity Magnet, " << fHelMagNames[magnet_index] 
+		<< "," << fHelicityNames[helicity_index] << " setpoint: "
+		<< value << std::endl; 
+    } else {
+      std::cerr << "Set_HelicityMagnet():  "
+		<< "magnet_index must be less than 4, and is " << magnet_index
+		<< "; helicity_index must be 0 or 1 but is " helicity_index
+		<< std::endl;
+    }
+  };
+
+
 
   void Get_HallCIA(Int_t mode, Double_t &value){
     Int_t status;
@@ -198,6 +217,21 @@ public:
     
   }
 
+  void Get_HelicityMagnet(size_t magnet_index, size_t helicity_index, Double_t &value){
+    Int_t status;
+    if (magnet_index<4 && helicity_index<2){
+      status = ca_get(DBR_DOUBLE, fIDHelMag[magnet_index][helicity_index], &value);
+      status = ca_pend_io(10);
+      std::cout << "Helicity Magnet, " << fHelMagNames[magnet_index] 
+		<< "," << fHelicityNames[helicity_index] << " setpoint: "
+		<< value << std::endl; 
+    } else {
+      std::cerr << "Get_HelicityMagnet():  "
+		<< "magnet_index must be less than 4, and is " << magnet_index
+		<< "; helicity_index must be 0 or 1 but is " helicity_index
+		<< std::endl;
+    }
+  };
 
   void Set_Pockels_Cell_plus(Double_t &value){
     Int_t status;
@@ -393,17 +427,12 @@ public:
 
   chid fHalfWavePlateStatus;
   
-  chid fIDMagnet_1_Even;
-  chid fIDMagnet_1_Odd;
-  chid fIDMagnet_2_Even;
-  chid fIDMagnet_2_Odd;
-  chid fIDMagnet_3_Even;
-  chid fIDMagnet_3_Odd;
-  chid fIDMagnet_4_Even;
-  chid fIDMagnet_4_Odd;
+  chid fIDHelMag[4][2];    ///< EPICS control setpoints for helicity magnets indexed by magnet and helicity state
+  TString fHelMagNames[4]; ///< Device names of the helicity magnets
+  TString fHelicityNames[2];
 
 
-;
+  
 
 
 
