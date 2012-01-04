@@ -10,6 +10,7 @@
 !! know what you are doing!!!
 ! channel name, pedestal=0, frequency
 sca_4mhz, 0, 4e6
+sca_1mhz, 0, 1e6
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Scaler BCM pedestals

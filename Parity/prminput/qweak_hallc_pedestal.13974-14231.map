@@ -21,6 +21,9 @@
 !
 !   BCM5/6            Wednesday, May  4 14:46:26 EDT 2011
 !                     https://hallcweb.jlab.org/hclog/1105_archive/110504104024.html 
+!
+!   BCM1/2/5/6/7/8    Saturday, Nov 26 15:50:00 EDT 2011 bcm calibration using run 13844, 0-180 uA.
+!                     https://hallcweb.jlab.org/hclog/1111_archive/111126153445.html
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -116,18 +119,12 @@
   qwk_bpm3h09bXM   ,	3844.96 , 1.0
   qwk_bpm3h09bYP   ,	5128.03 , 1.0
   qwk_bpm3h09bYM   ,	4205.27 , 1.0
-  qwk_bcm1         ,-110,            +0.004472
-  qwk_bcm2         ,-485,            +0.004862
-! constants obtained from run 11840 
-  qwk_bcm5        ,-250,            +0.001285
-  qwk_bcm6        ,-260,            +0.001877
-  qwk_bcm7        ,-260,            +0.001877
-  qwk_bcm8        ,-260,            +0.001877
-
-! constants obtained from run 12102 and only for run 1202
-!  qwk_bcm5       ,6303.21, 0.019759
-!  qwk_bcm6       ,6096.54, 0.008896 
-
+  qwk_bcm1,          -197.599785,            +0.004342
+  qwk_bcm2,          -557.273210,            +0.004688
+  qwk_bcm5        ,-432.778,      0.00188306
+  qwk_bcm6        ,-392.906,      0.00191958
+  qwk_bcm7        ,-554.115,      0.00187959
+  qwk_bcm8        ,-499.478,      0.00185793
   qwk_invert_tstable   , -541.714 	, 1.0
   sca_habcm       , 260  , 0.0003132
   qwk_linephase, 0, 1.0
