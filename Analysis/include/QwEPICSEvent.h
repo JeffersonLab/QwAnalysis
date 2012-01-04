@@ -171,6 +171,7 @@ class QwEPICSEvent
   TList *GetEPICSStringValues();
 
   Double_t fNominalWienAngle;
+  Int_t    fExtraHelicityReversal;
   
 }; // class QwEPICSEvent
 
