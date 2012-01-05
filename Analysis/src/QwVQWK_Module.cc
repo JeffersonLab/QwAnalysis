@@ -131,7 +131,7 @@ Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 
 void  QwVQWK_Module::ProcessEvent()
 {
-  for (size_t i=0; i<fChannels.size(); i++){
+  for (size_t i = 0; i < fChannels.size(); i++) {
     fChannels.at(i).ProcessEvent();
   }
 }
@@ -169,15 +169,14 @@ void  QwVQWK_Module::FillTreeVector(std::vector<Double_t> &values) const
 
 QwVQWK_Channel* QwVQWK_Module::GetChannel(const TString name)
 {
-  QwVQWK_Channel* tmp = NULL;
   if (! fChannels.empty()) {
     for (size_t i = 0; i < fChannels.size(); i++) {
       if (fChannels.at(i).GetElementName() == name) {
-        tmp = &(fChannels.at(i));
+        return &(fChannels.at(i));
       }
     }
   }
-  return tmp;
+  return 0;
 }
 
 
