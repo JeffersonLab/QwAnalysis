@@ -73,6 +73,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fScalerChargeRunningSum.InitializeChannel("sca_bcm");
     fScalerCharge.InitializeChannel("sca_bcm");
+
+    fTargetXDiffRunningSum.InitializeChannel("x_targ","derived");//to access the published Target X diff
+    fTargetXPDiffRunningSum.InitializeChannel("xp_targ","derived");//to access the published Target XP diff
+    fTargetYDiffRunningSum.InitializeChannel("y_targ","derived");//to access the published Target Y diff
+    fTargetYPDiffRunningSum.InitializeChannel("yp_targ","derived");//to access the published Target YP diff
+
   
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
@@ -118,8 +124,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     void ClearRunningSum();
     void AccumulateRunningSum();
     void CalculateRunningAverage();
-    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values) const;
+    void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+    void FillTreeVector(std::vector<Double_t> &values) const;
 
     /// \brief Define the configuration options
     static void DefineOptions(QwOptions &options);
@@ -169,13 +175,20 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     /// \brief Update last feedback setting into scan variables in the GreenMonster
     void UpdateGMScanParameters();
 
-    /// \brief Compare current A_q precision with a set precision.
-    Bool_t IsAqPrecisionGood();
-    /// \brief Compare current Hall A  A_q precision with a set precision.
-    Bool_t IsHAAqPrecisionGood();
+    /// \brief Initiates the PITA feedback if the charge asymmetry passed the quality cut
+    Bool_t ApplyPITAFeedback();
+    /// \brief Initiates the Hall A IA feedback if the Hall A charge asymmetry passed the quality cut
+    Bool_t ApplyHAIAFeedback();
 
-    /// \brief Compare current A_q precision with a set precision for given mode.
-    Bool_t IsAqPrecisionGood(Int_t mode);
+    /// \brief Initiates the IA feedback if the Hall C charge asymmetry have passed the quality cut
+    Bool_t ApplyIAFeedback(Int_t mode);
+
+    /// \brief Initiates the Helicity magnet feedback if the position differences and/or angle differences have passed the quality cut
+    Bool_t ApplyHMFeedback(){
+      return kTRUE;
+    };
+
+
     /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value 
     Bool_t IsPatternsAccumulated(){
       if (fGoodPatternCounter>=fAccumulatePatternMax)
@@ -349,6 +362,14 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     QwSIS3801D24_Channel   fScalerCharge;//for Hall A feedback
     QwSIS3801D24_Channel   fScalerChargeRunningSum;//for Hall A feedback
+
+    QwBeamCharge   fTargetParameter;//to access the published postions/angles
+    
+    QwBeamCharge   fTargetXDiffRunningSum;//to access the published Target X diff
+    QwBeamCharge   fTargetXPDiffRunningSum;//to access the published Target XP diff
+    QwBeamCharge   fTargetYDiffRunningSum;//to access the published Target Y diff
+    QwBeamCharge   fTargetYPDiffRunningSum;//to access the published Target YP diff
+
 
 
     //log file

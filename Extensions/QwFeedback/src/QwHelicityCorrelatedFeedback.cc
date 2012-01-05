@@ -549,7 +549,7 @@ void QwHelicityCorrelatedFeedback::UpdateGMScanParameters(){
 };
 
 /*****************************************************************/
-Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
+Bool_t QwHelicityCorrelatedFeedback::ApplyPITAFeedback(){
   Bool_t status=kFALSE;
   GetTargetChargeStat();//call the calculate running sum routine and access the q_targ published value
   if (fChargeAsymmetry==-1 && fChargeAsymmetryError == -1 && fChargeAsymmetryWidth==-1){//target asymmetry not published or accesible
@@ -579,7 +579,7 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
 };
 
 /*****************************************************************/
-Bool_t QwHelicityCorrelatedFeedback::IsHAAqPrecisionGood(){
+Bool_t QwHelicityCorrelatedFeedback::ApplyHAIAFeedback(){
   Bool_t status=kFALSE;
   
   GetHAChargeStat(0);
@@ -609,14 +609,14 @@ Bool_t QwHelicityCorrelatedFeedback::IsHAAqPrecisionGood(){
 };
 
 /*****************************************************************/
-Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(Int_t mode){
+Bool_t QwHelicityCorrelatedFeedback::ApplyIAFeedback(Int_t mode){
   Bool_t HCstatus=kFALSE;
   
   if (mode<0 ||  mode>3){
     QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
     return kFALSE;
   }
-  QwMessage<<"IsAqPrecisionGood["<<mode<<"]\n";
+  QwMessage<<"ApplyIAFeedback["<<mode<<"]\n";
   
   GetTargetChargeStat(mode);
   
@@ -657,14 +657,14 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
     for (Int_t i=0;i<kHelModes;i++){
       if (IsPatternsAccumulated(i)){
 	QwMessage<<"IsPatternsAccumulated for Hall C IA "<<QwLog::endl;
-	IsAqPrecisionGood(i);//Hall C IA is not set up properly due to this
+	ApplyIAFeedback(i);//Hall C IA is not set up properly
       }
     }
   }
   //Hall A IA feedback, the condition fHAIAFB is checked inside the IsHAPatternsAccumulated() routine. This is done to report charge Aq even HA feedback is disabled.
   if (IsHAPatternsAccumulated()){
     QwMessage<<"IsPatternsAccumulated for Hall A IA "<<QwLog::endl;
-    IsHAAqPrecisionGood();
+    ApplyHAIAFeedback();
   }  
   //End IA feedback
 
@@ -723,7 +723,7 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
 	
       }
 
-      IsAqPrecisionGood();//PITA corrections initiate here
+      ApplyPITAFeedback();//PITA corrections initiate here
     }
   }
   //End PITA feedback
@@ -975,7 +975,11 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
     QwError << " Could not get external value setting parameters to  sca_bcm" <<QwLog::endl;
     fHAIAFB=kFALSE;
   }
-
+  /*
+  if(fAsymmetry.RequestExternalValue("x_targ", &fTargetParameter)){
+    
+  }
+  */
 
   switch(fCurrentHelPatMode){
   case 0:
