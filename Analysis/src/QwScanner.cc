@@ -46,10 +46,10 @@ QwScanner::~QwScanner()
       delete fSCAs.at(i);
   fSCAs.clear();
 
-  for (size_t i=0; i<fADC_Data.size(); i++)
-    if (fADC_Data.at(i) != NULL)
-      delete fADC_Data.at(i);
-  fADC_Data.clear();
+  for (size_t i=0; i<fADCs.size(); i++)
+    if (fADCs.at(i) != NULL)
+      delete fADCs.at(i);
+  fADCs.clear();
 
   delete fF1TDContainer;
 }
@@ -69,13 +69,28 @@ void QwScanner::Copy(const VQwSubsystem *source)
         fSCAs.at(i)->Copy(input->fSCAs.at(i));
       }
     }
-    fADC_Data.resize(input->fADC_Data.size());
-    for (size_t i = 0; i < input->fADC_Data.size(); i++) {
-      if (input->fADC_Data.at(i)) {
-        fADC_Data.at(i) = new QwVQWK_Module();
-        fADC_Data.at(i)->Copy(input->fADC_Data.at(i));
+    fADCs.resize(input->fADCs.size());
+    for (size_t i = 0; i < input->fADCs.size(); i++) {
+      if (input->fADCs.at(i)) {
+        fADCs.at(i) = new QwVQWK_Module();
+        fADCs.at(i)->Copy(input->fADCs.at(i));
       }
     }
+    fPMTs = input->fPMTs;
+
+    fHelicityFrequency = input->fHelicityFrequency;
+
+    fHomePositionX = input->fHomePositionX;
+    fHomePositionY = input->fHomePositionY;
+    fVoltage_Offset_X = input->fVoltage_Offset_X;
+    fVoltage_Offset_Y = input->fVoltage_Offset_Y;
+    fChannel_Offset_X = input->fChannel_Offset_X;
+    fChannel_Offset_Y = input->fChannel_Offset_Y;
+
+    fCal_Factor_VQWK_X = input->fCal_Factor_VQWK_X;
+    fCal_Factor_VQWK_Y = input->fCal_Factor_VQWK_Y;
+    fCal_Factor_QDC_X = input->fCal_Factor_QDC_X;
+    fCal_Factor_QDC_Y= input->fCal_Factor_QDC_Y;
 
     fRateMapCM = input->fRateMapCM;
     fRateMapEM = input->fRateMapEM;
@@ -158,9 +173,9 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
           if (modtype=="VQWK")
             {
               //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
-              if (modnum >= (Int_t) fADC_Data.size())  fADC_Data.resize(modnum+1);
-              if (! fADC_Data.at(modnum)) fADC_Data.at(modnum) = new QwVQWK_Module();
-              fADC_Data.at(modnum)->SetChannel(channum, name);
+              if (modnum >= (Int_t) fADCs.size())  fADCs.resize(modnum+1);
+              if (! fADCs.at(modnum)) fADCs.at(modnum) = new QwVQWK_Module();
+              fADCs.at(modnum)->SetChannel(channum, name);
             }
 
           else if (modtype=="SIS3801")
@@ -315,11 +330,11 @@ void  QwScanner::ClearEventData()
         }
     }
 
-  for (size_t i=0; i<fADC_Data.size(); i++)
+  for (size_t i=0; i<fADCs.size(); i++)
     {
-      if (fADC_Data.at(i) != NULL)
+      if (fADCs.at(i) != NULL)
         {
-          fADC_Data.at(i)->ClearEventData();
+          fADCs.at(i)->ClearEventData();
         }
     }
 
@@ -336,11 +351,11 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
 
       if (fBankID[3]==bank_id)
         {
-          for (size_t i=0; i<fADC_Data.size(); i++)
+          for (size_t i=0; i<fADCs.size(); i++)
             {
-              if (fADC_Data.at(i) != NULL)
+              if (fADCs.at(i) != NULL)
                 {
-                  words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
+                  words_read += fADCs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
                                 num_words-words_read);
                 }
             }
@@ -504,13 +519,13 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
           //  This is a VQWK bank We want to process this ROC.  Begin looping through the data.
           if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing VQWK Bank "<<bank_id
             <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
-            << " fADC_Data.size() = "<<fADC_Data.size()<<std::endl;
+            << " fADC_Data.size() = "<<fADCs.size()<<std::endl;
           UInt_t words_read = 0;
-          for (size_t i=0; i<fADC_Data.size(); i++)
+          for (size_t i=0; i<fADCs.size(); i++)
             {
-              if (fADC_Data.at(i) != NULL)
+              if (fADCs.at(i) != NULL)
                 {
-                  words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]),
+                  words_read += fADCs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
                                 num_words-words_read);
                   if (fDEBUG)
                     {
@@ -548,7 +563,6 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
       
       Bool_t data_integrity_flag = false;
       Bool_t temp_print_flag     = false;
-      Int_t tdcindex = 0;
       //   Int_t tmp_last_chan = 65535; // for removing the multiple hits....
       
       bank_index = GetSubbankIndex(roc_id, bank_id);
@@ -591,7 +605,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 	    
 	    tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
 	    tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
-	    tdcindex        = GetModuleIndex(bank_index, tdc_slot_number);
+	    //Int_t tdcindex = GetModuleIndex(bank_index, tdc_slot_number);
 	    
 	    if ( tdc_slot_number == 31) {
 	      //  This is a custom word which is not defined in
@@ -888,11 +902,11 @@ void  QwScanner::ProcessEvent()
         }
     }
 
-  for (size_t i=0; i<fADC_Data.size(); i++)
+  for (size_t i=0; i<fADCs.size(); i++)
     {
-      if (fADC_Data.at(i) != NULL)
+      if (fADCs.at(i) != NULL)
         {
-          fADC_Data.at(i)->ProcessEvent();
+          fADCs.at(i)->ProcessEvent();
         }
     }
 
@@ -964,25 +978,25 @@ void  QwScanner::ProcessEvent()
     }
 
   //Fill position data
-  for (size_t i=0; i<fADC_Data.size(); i++)
+  for (size_t i=0; i<fADCs.size(); i++)
     {
-      if (fADC_Data.at(i) != NULL)
+      if (fADCs.at(i) != NULL)
         {
 
           // TODO replace the position determination with interplation table
           const double volts_per_bit = (20./(1<<18));
           double num_samples;
-          fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetRawValue();
+          fPowSupply_VQWK = fADCs.at(i)->GetChannel(TString("power_vqwk"))->GetRawValue();
 	  //std::cout<<"fPowSupply_VQWK_HardSum = "<<fPowSupply_VQWK;
-	  num_samples = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetNumberOfSamples();
+	  num_samples = fADCs.at(i)->GetChannel(TString("power_vqwk"))->GetNumberOfSamples();
 	  //std::cout<<", num_samples = "<<num_samples;
 	  fPowSupply_VQWK = fPowSupply_VQWK * volts_per_bit / num_samples;
 	  //std::cout<<" fPowSupply_VQWK = "<<fPowSupply_VQWK<<std::endl<<std::endl;
 	  
 
-          fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetRawValue();
+          fPositionX_VQWK = fADCs.at(i)->GetChannel(TString("pos_x_vqwk"))->GetRawValue();
 	  //std::cout<<"fPositionX_VQWK_HardSum = "<<fPositionX_VQWK;
-	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetNumberOfSamples();
+	  num_samples = fADCs.at(i)->GetChannel(TString("pos_x_vqwk"))->GetNumberOfSamples();
 	  //std::cout<<", num_samples = "<<num_samples;
 	  fPositionX_VQWK = fPositionX_VQWK * volts_per_bit / num_samples;
 	  //std::cout<<"  fPositionX = "<<fPositionX_VQWK<<"  [V]";
@@ -990,9 +1004,9 @@ void  QwScanner::ProcessEvent()
           //std::cout<<"  fPositionX = "<<fPositionX_VQWK<<std::endl<<std::endl;
 	  
 	  //fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
-	  fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetRawValue();
+	  fPositionY_VQWK = fADCs.at(i)->GetChannel(TString("pos_y_vqwk"))->GetRawValue();
 	  //std::cout<<"fPositionY_VQWK_HardSum = "<<fPositionY_VQWK;
-	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetNumberOfSamples();
+	  num_samples = fADCs.at(i)->GetChannel(TString("pos_y_vqwk"))->GetNumberOfSamples();
 	  //std::cout<<", num_samples = "<<num_samples;
 	  fPositionY_VQWK = fPositionY_VQWK * volts_per_bit / num_samples;
 	  //std::cout<<"  fPositionY = "<<fPositionY_VQWK<<"  [V]";
@@ -1017,95 +1031,82 @@ void  QwScanner::ProcessEvent()
 
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
+  // TODO (wdc) disabled due to restriction imposed by memory mapped file
+  // Also changes to ConstructHistograms() calls below.
+  //TDirectory* scannerfolder = folder->mkdir("scanner");
 
-  TString pat1 = "asym";
-  TString pat2 = "yield";
-  TString basename;
+  if (folder != NULL) folder->cd();
 
-  if (prefix.BeginsWith(pat1)) {   }    //construct histograms in hel_histo folder if need
-  else if (prefix.BeginsWith(pat2)) {    }
-
-  else
+  TString basename = prefix + "scanner_";
+  if (bStoreRawData)
     {
-      if (prefix == "")  basename = "scanner_";
-      else  basename = prefix;
-
-      if (folder != NULL) folder->cd();
-
-      // TODO (wdc) disabled due to restriction imposed by memory mapped file
-      // Also changes to ConstructHistograms() calls below.
-      //TDirectory* scannerfolder = folder->mkdir("scanner");
-
-      if (bStoreRawData)
+      for (size_t i=0; i<fPMTs.size(); i++)
         {
-          for (size_t i=0; i<fPMTs.size(); i++)
-            {
-              for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
-            }
+          for (size_t j=0; j<fPMTs.at(i).size(); j++)
+            fPMTs.at(i).at(j).ConstructHistograms(folder,basename);
+        }
 
-          for (size_t i=0; i<fSCAs.size(); i++)
+      for (size_t i=0; i<fSCAs.size(); i++)
+        {
+          if (fSCAs.at(i) != NULL)
             {
-              if (fSCAs.at(i) != NULL)
-                {
-                  fSCAs.at(i)->ConstructHistograms(folder, basename);
-                }
-            }
-
-          for (size_t i=0; i<fADC_Data.size(); i++)
-            {
-              if (fADC_Data.at(i) != NULL)
-                fADC_Data.at(i)->ConstructHistograms(folder, basename);
+              fSCAs.at(i)->ConstructHistograms(folder,basename);
             }
         }
 
-      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
-      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
-      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
-      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
-      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
-
-      // fHistograms.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
-
-      //TProfile2D(const char* name, const char* title,
-      // Int_t nbinsx, Double_t xlow, Double_t xup,
-      // Int_t nbinsy, Double_t ylow, Double_t yup,
-      // Option_t* option = "")
-
-      fRateMapCM  = new TProfile2D("scanner_rate_map_cm",
-                                   "Scanner Rate Map (Current Mode)",110,-55.0,55.0,40,-360.0,-320.0);
-      fRateMapCM->GetXaxis()->SetTitle("PositionX [cm]");
-      fRateMapCM->GetYaxis()->SetTitle("PositionY [cm]");
-      fRateMapCM->SetOption("colz");
-
-      fRateMapEM  = new TProfile2D("scanner_rate_map_em",
-                                   "Scanner Rate Map (Event Mode)",110,-55.0,55.0,40,-360.0,-320.0);
-      fRateMapEM->GetXaxis()->SetTitle("PositionX [cm]");
-      fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
-      fRateMapEM->SetOption("colz");
-
-      // fParameterFileNamesHist = new TH1F("scanner_parameter_files", "scanner_parameter_files", 10,0,10);
-      // fParameterFileNamesHist -> SetBit(TH1::kCanRebin);
-      // fParameterFileNamesHist -> SetStats(0);
-      // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
-      // 	fParameterFileNamesHist -> Fill(fParameterFileNames[i].Data(), 1);
-      // }
-      // const char* opt = "TEXT";
-      // fParameterFileNamesHist->SetMarkerSize(1.4);
-      // fParameterFileNamesHist->SetOption(opt);
-      // fParameterFileNamesHist->LabelsDeflate("X");
-      // fParameterFileNamesHist->LabelsOption("avu", "X");
+      for (size_t i=0; i<fADCs.size(); i++)
+        {
+          if (fADCs.at(i) != NULL)
+            fADCs.at(i)->ConstructHistograms(folder,basename);
+        }
     }
+
+
+  fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
+  fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
+  fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
+  fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
+  fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
+
+  // fHistograms.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
+
+  //TProfile2D(const char* name, const char* title,
+  // Int_t nbinsx, Double_t xlow, Double_t xup,
+  // Int_t nbinsy, Double_t ylow, Double_t yup,
+  // Option_t* option = "")
+
+  fRateMapCM  = new TProfile2D("scanner_rate_map_cm",
+      "Scanner Rate Map (Current Mode)",110,-55.0,55.0,40,-360.0,-320.0);
+  fRateMapCM->GetXaxis()->SetTitle("PositionX [cm]");
+  fRateMapCM->GetYaxis()->SetTitle("PositionY [cm]");
+  fRateMapCM->SetOption("colz");
+
+  fRateMapEM  = new TProfile2D("scanner_rate_map_em",
+      "Scanner Rate Map (Event Mode)",110,-55.0,55.0,40,-360.0,-320.0);
+  fRateMapEM->GetXaxis()->SetTitle("PositionX [cm]");
+  fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
+  fRateMapEM->SetOption("colz");
+
+  // fParameterFileNamesHist = new TH1F("scanner_parameter_files", "scanner_parameter_files", 10,0,10);
+  // fParameterFileNamesHist -> SetBit(TH1::kCanRebin);
+  // fParameterFileNamesHist -> SetStats(0);
+  // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
+  // 	fParameterFileNamesHist -> Fill(fParameterFileNames[i].Data(), 1);
+  // }
+  // const char* opt = "TEXT";
+  // fParameterFileNamesHist->SetMarkerSize(1.4);
+  // fParameterFileNamesHist->SetOption(opt);
+  // fParameterFileNamesHist->LabelsDeflate("X");
+  // fParameterFileNamesHist->LabelsOption("avu", "X");
 }
 
 void  QwScanner::FillHistograms()
 {
-
   if (! HasDataLoaded()) return;
 
   if (bStoreRawData)
     {
-      //Fill trigger data
+      // Fill trigger data
       for (size_t i=0; i<fPMTs.size(); i++)
         {
           for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -1114,7 +1115,7 @@ void  QwScanner::FillHistograms()
             }
         }
 
-      //Fill scaler data
+      // Fill scaler data
       for (size_t i=0; i<fSCAs.size(); i++)
         {
           if (fSCAs.at(i) != NULL)
@@ -1123,12 +1124,12 @@ void  QwScanner::FillHistograms()
             }
         }
 
-      //Fill position data
-      for (size_t i=0; i<fADC_Data.size(); i++)
+      // Fill position data
+      for (size_t i=0; i<fADCs.size(); i++)
         {
-          if (fADC_Data.at(i) != NULL)
+          if (fADCs.at(i) != NULL)
             {
-              fADC_Data.at(i)->FillHistograms();
+              fADCs.at(i)->FillHistograms();
             }
         }
 
@@ -1194,118 +1195,74 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 {
   fTreeArrayIndex = values.size();
 
-  TString pat1 = "asym";
-  TString pat2 = "yield";
-  TString basename;
+  values.push_back(0.0);
+  TString list = prefix + "PowSupply_VQWK/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "PositionX_VQWK/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "PositionY_VQWK/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "FrontSCA/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "BackSCA/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "CoincidenceSCA/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "FrontADC/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "BackADC/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "FrontTDC/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "BackTDC/D";
+  values.push_back(0.0);
+  //list += ":" + prefix  + "PowSupply_QDC/D";
+  //values.push_back(0.0);
+  list += ":" + prefix  + "PositionX_QDC/D";
+  values.push_back(0.0);
+  list += ":" + prefix  + "PositionY_QDC/D";
 
-  if (prefix.BeginsWith(pat1)) {}
-
-  else if (prefix.BeginsWith(pat2))
-    {
-      //tree->Branch("scanner_posx",&fPositionX_VQWK,"scanner_posx/D");
-      //tree->Branch("scanner_posy",&fPositionY_VQWK,"scanner_posy/D");
-      //tree->Branch("scanner_rate",&fCoincidenceSCA,"scanner_rate/D");
-    }
-
-  else
-    {
-
-      if (prefix=="") basename = "scanner";
-      else basename = prefix;
-
-      values.push_back(0.0);
-      TString list = "PowSupply_VQWK/D";
-      values.push_back(0.0);
-      list += ":PositionX_VQWK/D";
-      values.push_back(0.0);
-      list += ":PositionY_VQWK/D";
-      values.push_back(0.0);
-      list += ":FrontSCA/D";
-      values.push_back(0.0);
-      list += ":BackSCA/D";
-      values.push_back(0.0);
-      list += ":CoincidenceSCA/D";
-      values.push_back(0.0);
-      list += ":FrontADC/D";
-      values.push_back(0.0);
-      list += ":BackADC/D";
-      values.push_back(0.0);
-      list += ":FrontTDC/D";
-      values.push_back(0.0);
-      list += ":BackTDC/D";
-      values.push_back(0.0);
-//         list += ":PowSupply_QDC/D";
-//         values.push_back(0.0);
-      list += ":PositionX_QDC/D";
-      values.push_back(0.0);
-      list += ":PositionY_QDC/D";
-
-      if (bStoreRawData)
-        {
-
-          for (size_t i=0; i<fPMTs.size(); i++)
-            {
-              for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                {
-                  //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
-                  if (fPMTs.at(i).at(j).GetElementName()=="")
-                    {
-                      //  This channel is not used, so skip setting up the tree.
-                    }
-                  else
-                    {
-                      values.push_back(0.0);
-                      list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
-                    }
-                }
-            }
-
-          for (size_t i=0; i<fSCAs.size(); i++)
-            {
-              if (fSCAs.at(i) != NULL)
-                {
-
-                  for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
-                    {
-                      if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-                      else
-                        {
-                          values.push_back(0.0);
-                          list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
-                        }
-                    }
-                }
-            }
-
-
-          for (size_t i=0; i<fADC_Data.size(); i++)
-            {
-              if (fADC_Data.at(i) != NULL)
-                {
-
-                  for (size_t j=0; j<fADC_Data.at(i)->fChannels.size(); j++)
-                    {
-                      TString channelname = fADC_Data.at(i)->fChannels.at(j).GetElementName();
-                      channelname.ToLower();
-                      if ( (channelname =="") || (channelname =="empty") || (channelname =="spare")) {}
-                      else
-                        {
-                          values.push_back(0.0);
-                          list += ":"+fADC_Data.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
-                        }
-                    }
-
-                }
-            }
-
+  if (bStoreRawData) {
+    for (size_t i=0; i<fPMTs.size(); i++) {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++) {
+        if (fPMTs.at(i).at(j).GetElementName() != "") {
+          values.push_back(0.0);
+          list += ":" + fPMTs.at(i).at(j).GetElementName() + "_raw/D";
         }
-
-      fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-      if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
-        tree->Branch(basename, &values[fTreeArrayIndex], list);
-
+      }
     }
-  return;
+
+    for (size_t i=0; i<fSCAs.size(); i++) {
+      if (fSCAs.at(i) != NULL) {
+        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
+          if (fSCAs.at(i)->fChannels.at(j).GetElementName() != "") {
+            values.push_back(0.0);
+            list += ":" + fSCAs.at(i)->fChannels.at(j).GetElementName() + "_raw/D";
+          }
+        }
+      }
+    }
+
+    for (size_t i=0; i<fADCs.size(); i++) {
+      if (fADCs.at(i) != NULL) {
+        for (size_t j=0; j<fADCs.at(i)->fChannels.size(); j++) {
+          TString channelname = fADCs.at(i)->fChannels.at(j).GetElementName();
+          channelname.ToLower();
+          if ( (channelname == "") || (channelname == "empty") || (channelname == "spare")) {}
+          else {
+            values.push_back(0.0);
+            list += ":" + fADCs.at(i)->fChannels.at(j).GetElementName() + "_raw/D";
+          }
+        }
+      }
+    }
+  }
+
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+
+  TString basename = "scanner";
+  if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
+    tree->Branch(basename, &values[fTreeArrayIndex], list);
 }
 
 
@@ -1328,76 +1285,50 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
   values[index++] = fPositionX_ADC;
   values[index++] = fPositionY_ADC;
 
-  if (bStoreRawData)
-    {
+  if (bStoreRawData) {
 
-      //fill trigvalues
-      for (size_t i=0; i<fPMTs.size(); i++)
-        {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-              if (fPMTs.at(i).at(j).GetElementName()=="") {}
-              else
-                {
-                  values[index++] = fPMTs.at(i).at(j).GetValue();
-                }
-            }
+    // Fill trigger values
+    for (size_t i=0; i<fPMTs.size(); i++) {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++) {
+        if (fPMTs.at(i).at(j).GetElementName() != "") {
+          values[index++] = fPMTs.at(i).at(j).GetValue();
         }
-
-      for (size_t i=0; i<fSCAs.size(); i++)
-        {
-          if (fSCAs.at(i) != NULL)
-            {
-              for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
-                {
-                  if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-                  else
-                    {
-                      values[index++] = fSCAs.at(i)->fChannels.at(j).GetValue();
-                    }
-                }
-            }
-          else
-            {
-              if (fDEBUG)
-                std::cerr<<"QwScanner::FillTreeVector:  "<<"fSCA_Data.at("<<i<<") is NULL"<<std::endl;
-            }
-        }
-
-      //fill sumvalues
-      for (size_t i=0; i<fADC_Data.size(); i++)
-        {
-          if (fADC_Data.at(i) != NULL)
-            {
-
-              for (size_t j=0; j<fADC_Data.at(i)->fChannels.size(); j++)
-                {
-                  TString channelname = fADC_Data.at(i)->fChannels.at(j).GetElementName();
-                  channelname.ToLower();
-                  if ( (channelname =="")
-                       || (channelname.BeginsWith("empty"))
-                       || (channelname.BeginsWith("spare")) )
-                    {
-
-                    }
-                  else
-                    {
-                      //values[index++] = fADC_Data.at(i)->fChannels.at(j).GetValue();
-                      values[index++] = fADC_Data.at(i)->fChannels.at(j).GetAverageVolts();
-                    }
-                }
-
-            }
-          else
-            {
-              if (fDEBUG)
-                std::cerr<<"QwScanner::FillTreeVector:  "<<"fADC_Data.at(" <<i<<") is NULL"<< std::endl;
-            }
-        }
-
-
+      }
     }
-  return;
+
+    for (size_t i=0; i<fSCAs.size(); i++) {
+      if (fSCAs.at(i) != NULL) {
+        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
+          if (fSCAs.at(i)->fChannels.at(j).GetElementName() != "") {
+            values[index++] = fSCAs.at(i)->fChannels.at(j).GetValue();
+          }
+        }
+      } else {
+        if (fDEBUG)
+          std::cerr<<"QwScanner::FillTreeVector:  "<<"fSCA_Data.at("<<i<<") is NULL"<<std::endl;
+      }
+    }
+
+    // Fill sumvalues
+    for (size_t i=0; i<fADCs.size(); i++) {
+      if (fADCs.at(i) != NULL) {
+        for (size_t j=0; j<fADCs.at(i)->fChannels.size(); j++) {
+          TString channelname = fADCs.at(i)->fChannels.at(j).GetElementName();
+          channelname.ToLower();
+          if ( (channelname =="")
+            || (channelname.BeginsWith("empty"))
+            || (channelname.BeginsWith("spare")) ) { }
+          else {
+            //values[index++] = fADC_Data.at(i)->fChannels.at(j).GetValue();
+            values[index++] = fADCs.at(i)->fChannels.at(j).GetAverageVolts();
+          }
+        }
+      } else {
+        if (fDEBUG)
+          std::cerr<<"QwScanner::FillTreeVector:  "<<"fADC_Data.at(" <<i<<") is NULL"<< std::endl;
+      }
+    }
+  }
 }
 
 
@@ -1435,99 +1366,133 @@ void  QwScanner::ReportConfiguration()
             }
           else if (fBank_IDs.at(i).at(j)==fBankID[3])
             {
-              std::cout << "    Number of TRIUMF ADC:  " << fADC_Data.size() << std::endl;
+              std::cout << "    Number of TRIUMF ADC:  " << fADCs.size() << std::endl;
             }
         }
     }
 
 }
 
-Bool_t  QwScanner::Compare(QwScanner &value)
+Bool_t QwScanner::Compare(VQwSubsystem* value)
 {
-
-  return kTRUE;
+  if (typeid(*value) != typeid(*this)) {
+    QwError << "QwScanner::Compare: "
+            << "value is " << typeid(*value).name() << ", "
+            << "but this is " << typeid(*this).name() << "!"
+            << QwLog::endl;
+    return kFALSE;
+  } else {
+    QwScanner* input = dynamic_cast<QwScanner*>(value);
+    if (input->fSCAs.size() != fSCAs.size() ||
+        input->fPMTs.size() != fPMTs.size() ||
+        input->fADCs.size() != fADCs.size()) {
+      QwError << "QwScanner::Compare: "
+              << "value is " << input->fSCAs.size() << "," << input->fPMTs.size() << "," << input->fADCs.size() << ", "
+              << "but this is " << fSCAs.size() << "," << fPMTs.size() << "," << fADCs.size() << "!"
+              << QwLog::endl;
+      return kFALSE;
+    } else {
+      return kTRUE;
+    }
+  }
 }
 
 
-QwScanner& QwScanner::operator=  (QwScanner &value)
+VQwSubsystem& QwScanner::operator=(VQwSubsystem* value)
 {
-  if (fPMTs.size() == value.fPMTs.size())
-    {
-      for (size_t i=0; i<fPMTs.size(); i++)
-        {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-              fPMTs.at(i).at(j) = value.fPMTs.at(i).at(j);
-            }
-        }
-    }
-//  else if (Compare(value)) {
-//    QwScanner* input= (QwScanner &)value;
-//    for(size_t i=0;i<input->fADC_Data.size();i++){
-//      *(QwVQWK_Module*)fADC_Data.at(i) = *(QwVQWK_Module*)(input->fADC_Data.at(i));
-//    }
-//  }
-  else
-    {
-      std::cerr << "QwScanner::operator=:  Problems!!!"
-      << std::endl;
-    }
+  if (Compare(value)) {
+    VQwSubsystem::operator=(value);
+    QwScanner* input = dynamic_cast<QwScanner*>(value);
+    for (size_t i = 0; i < fPMTs.size(); i++)
+      for (size_t j = 0; j < fPMTs.at(i).size(); j++)
+        fPMTs.at(i).at(j) = input->fPMTs.at(i).at(j);
+    for (size_t i = 0; i < fADCs.size(); i++)
+      if (input->fADCs.at(i))
+        *(fADCs.at(i)) = *(input->fADCs.at(i));
+    for (size_t i = 0; i < fSCAs.size(); i++)
+      if (input->fSCAs.at(i))
+        *(fSCAs.at(i)) = *(input->fSCAs.at(i));
+
+    fScaEventCounter = input->fScaEventCounter;
+
+    fPowSupply_VQWK = input->fPowSupply_VQWK;
+    fPositionX_VQWK = input->fPositionX_VQWK;
+    fPositionY_VQWK = input->fPositionY_VQWK;
+    fFrontSCA = input->fFrontSCA;
+    fBackSCA = input->fBackSCA;
+    fCoincidenceSCA = input->fCoincidenceSCA;
+
+    fFrontADC = input->fFrontADC;
+    fFrontTDC = input->fFrontTDC;
+    fBackADC = input->fBackADC;
+    fBackTDC = input->fBackTDC;
+    fPositionX_ADC = input->fPositionX_ADC;
+    fPositionY_ADC = input->fPositionY_ADC;
+
+    fMeanPositionX_ADC = input->fMeanPositionX_ADC;
+    fMeanPositionY_ADC = input->fMeanPositionY_ADC;
+
+    for (size_t i = 0; i < 4; i++)
+      fBankID[i] = input->fBankID[i];
+
+  } else {
+    QwError << "QwScanner::operator=:  Problems!!!"
+            << QwLog::endl;
+  }
   return *this;
 }
 
 
-QwScanner& QwScanner::operator+=  ( QwScanner &value)
+VQwSubsystem& QwScanner::operator+=(VQwSubsystem* value)
 {
-  if (fPMTs.size() == value.fPMTs.size())
-    {
-      for (size_t i=0; i<fPMTs.size(); i++)
-        {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-              fPMTs.at(i).at(j) += value.fPMTs.at(i).at(j);
-            }
-        }
-    }
-//  else if(Compare(value))
-//  {
-//    QwScanner* input= (QwScanner &)value ;
-//    for(size_t i=0;i<input->fADC_Data.size();i++){
-//      *(QwVQWK_Module*)fADC_Data.at(i) += *(QwVQWK_Module*)(input->fADC_Data.at(i));
-//      }
-//   }
-  else
-    {
-      std::cerr << "QwScanner::operator=:  Problems!!!"
-      << std::endl;
-    }
+  if (Compare(value)) {
+    QwScanner* input = dynamic_cast<QwScanner*>(value);
+    // operator+= not defined for tracking-type data element QwPMT_Channel
+    //for (size_t i = 0; i < fPMTs.size(); i++)
+    //  for (size_t j = 0; j < fPMTs.at(i).size(); j++)
+    //    fPMTs.at(i).at(j) += input->fPMTs.at(i).at(j);
+    for (size_t i = 0; i < fADCs.size(); i++)
+      if (input->fADCs.at(i))
+        *(fADCs.at(i)) += *(input->fADCs.at(i));
+    for (size_t i = 0; i < fSCAs.size(); i++)
+      if (input->fSCAs.at(i))
+        *(fSCAs.at(i)) += *(input->fSCAs.at(i));
+
+    fFrontSCA += input->fFrontSCA;
+    fBackSCA += input->fBackSCA;
+    fCoincidenceSCA += input->fCoincidenceSCA;
+
+  } else {
+    QwError << "QwScanner::operator+=:  Problems!!!"
+            << QwLog::endl;
+  }
   return *this;
 }
 
 
-QwScanner& QwScanner::operator-=  ( QwScanner &value)
+VQwSubsystem& QwScanner::operator-=(VQwSubsystem* value)
 {
-  if (fPMTs.size() == value.fPMTs.size())
-    {
-      for (size_t i=0; i<fPMTs.size(); i++)
-        {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-              fPMTs.at(i).at(j) -= value.fPMTs.at(i).at(j);
-            }
-        }
-    }
-//  else if(Compare(value))
-//  {
-//    QwScanner* input= (QwScanner &)value ;
-//    for(size_t i=0;i<input->fADC_Data.size();i++){
-//      *(QwVQWK_Module*)fADC_Data.at(i) -= *(QwVQWK_Module*)(input->fADC_Data.at(i));
-//      }
-//   }
-  else
-    {
-      std::cerr << "QwScanner::operator=:  Problems!!!"
-      << std::endl;
-    }
+  if (Compare(value)) {
+    QwScanner* input = dynamic_cast<QwScanner*>(value);
+    // operator-= not defined for tracking-type data element QwPMT_Channel
+    //for (size_t i = 0; i < fPMTs.size(); i++)
+    //  for (size_t j = 0; j < fPMTs.at(i).size(); j++)
+    //    fPMTs.at(i).at(j) -= input->fPMTs.at(i).at(j);
+    for (size_t i = 0; i < fADCs.size(); i++)
+      if (input->fADCs.at(i))
+        *(fADCs.at(i)) -= *(input->fADCs.at(i));
+    for (size_t i = 0; i < fSCAs.size(); i++)
+      if (input->fSCAs.at(i))
+        *(fSCAs.at(i)) -= *(input->fSCAs.at(i));
+
+    fFrontSCA -= input->fFrontSCA;
+    fBackSCA -= input->fBackSCA;
+    fCoincidenceSCA -= input->fCoincidenceSCA;
+
+  } else {
+    QwError << "QwScanner::operator-=:  Problems!!!"
+            << QwLog::endl;
+  }
   return *this;
 }
 
@@ -1719,11 +1684,11 @@ Int_t QwScanner::FindSignalIndex(const EQwModuleType modtype, const TString &nam
 
 void QwScanner::SetPedestal(Double_t pedestal)
 {
-  for (size_t i=0; i<fADC_Data.size(); i++)
+  for (size_t i=0; i<fADCs.size(); i++)
     {
-      if (fADC_Data.at(i) != NULL)
+      if (fADCs.at(i) != NULL)
         {
-          fADC_Data.at(i)->SetPedestal(pedestal);
+          fADCs.at(i)->SetPedestal(pedestal);
         }
     }
 
@@ -1732,11 +1697,11 @@ void QwScanner::SetPedestal(Double_t pedestal)
 
 void QwScanner::SetCalibrationFactor(Double_t calib)
 {
-  for (size_t i=0; i<fADC_Data.size(); i++)
+  for (size_t i=0; i<fADCs.size(); i++)
     {
-      if (fADC_Data.at(i) != NULL)
+      if (fADCs.at(i) != NULL)
         {
-          fADC_Data.at(i)->SetCalibrationFactor(calib);
+          fADCs.at(i)->SetCalibrationFactor(calib);
         }
     }
 
@@ -1748,11 +1713,11 @@ void  QwScanner::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
   SetCalibrationFactor(1.);
-  for (size_t i=0; i<fADC_Data.size(); i++)
+  for (size_t i=0; i<fADCs.size(); i++)
     {
-      if (fADC_Data.at(i) != NULL)
+      if (fADCs.at(i) != NULL)
         {
-          fADC_Data.at(i)->InitializeChannel(name,datatosave);
+          fADCs.at(i)->InitializeChannel(name,datatosave);
         }
     }
 
@@ -1765,11 +1730,11 @@ void QwScanner::PrintInfo() const
   std::cout << "QwScanner: " << fSystemName << std::endl;
 
   //fTriumf_ADC.PrintInfo();
-  for (size_t i=0; i<fADC_Data.size(); i++)
+  for (size_t i=0; i<fADCs.size(); i++)
     {
-      if (fADC_Data.at(i) != NULL)
+      if (fADCs.at(i) != NULL)
         {
-          fADC_Data.at(i)->PrintInfo();
+          fADCs.at(i)->PrintInfo();
         }
     }
 

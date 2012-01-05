@@ -54,18 +54,9 @@ class QwScanner:
     virtual ~QwScanner();
 
     // VQwSubsystem methods
-    VQwSubsystem& operator=  (VQwSubsystem *value)
-    {
-      return *this;
-    };
-    VQwSubsystem& operator+= (VQwSubsystem *value)
-    {
-      return *this;
-    };
-    VQwSubsystem& operator-= (VQwSubsystem *value)
-    {
-      return *this;
-    };
+    VQwSubsystem& operator=(VQwSubsystem *value);
+    VQwSubsystem& operator+=(VQwSubsystem *value);
+    VQwSubsystem& operator-=(VQwSubsystem *value);
     void ProcessOptions(QwOptions &options); //Handle command line options
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
     {
@@ -152,19 +143,16 @@ class QwScanner:
     void  GetHitList(QwHitContainer & grandHitContainer){};
     void  ReportConfiguration();
 
-    Bool_t Compare(QwScanner &value);
-    QwScanner& operator=  (QwScanner &value);
-    QwScanner& operator+=  (QwScanner &value);
-    QwScanner& operator-=  (QwScanner &value);
+    Bool_t Compare(VQwSubsystem* value);
 
     Bool_t ApplyHWChecks() //Check for harware errors in the devices
     {
       Bool_t status = kTRUE;
-      for (size_t i=0; i<fADC_Data.size(); i++)
+      for (size_t i=0; i<fADCs.size(); i++)
         {
-          if (fADC_Data.at(i) != NULL)
+          if (fADCs.at(i) != NULL)
             {
-              status &= fADC_Data.at(i)->ApplyHWChecks();
+              status &= fADCs.at(i)->ApplyHWChecks();
             }
         }
       return status;
@@ -186,7 +174,7 @@ class QwScanner:
     //    We need a mapping of module,channel into PMT index, ADC/TDC
     std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
     std::vector<QwSIS3801_Module*> fSCAs;
-    std::vector<QwVQWK_Module*> fADC_Data;
+    std::vector<QwVQWK_Module*> fADCs;
 
     void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
     void  ClearAllBankRegistrations();
