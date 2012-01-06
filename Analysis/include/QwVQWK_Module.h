@@ -39,18 +39,11 @@ class QwVQWK_Module {
   Int_t ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_left);
 
   void  ClearEventData();
-  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
-  void  SetEventData(Double_t* buffer, UInt_t sequencenumber); //jpan: set mock data
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left);
 
   QwVQWK_Module& operator=  (const QwVQWK_Module &value);
   QwVQWK_Module& operator+= (const QwVQWK_Module &value);
   QwVQWK_Module& operator-= (const QwVQWK_Module &value);
-  void Sum(QwVQWK_Module &value1, QwVQWK_Module &value2);
-  void Difference(QwVQWK_Module &value1, QwVQWK_Module &value2);
   void Ratio(QwVQWK_Module &numer, QwVQWK_Module &denom);
 
   void ProcessEvent();

@@ -63,48 +63,6 @@ void QwVQWK_Module::ClearEventData()
   fEventIsGood = kTRUE;
 }
 
-void QwVQWK_Module::SetRandomEventParameters(Double_t mean, Double_t sigma)
-{
-  // Set parameters on all QwVQWK_Channels
-  for (size_t i = 0; i < fChannels.size(); i++)
-    fChannels.at(i).SetRandomEventParameters(mean, sigma);
-  return;
-}
-
-void QwVQWK_Module::SetRandomEventAsymmetry(Double_t asymmetry)
-{
-  // Set asymmetry on all QwVQWK_Channels
-  for (size_t i = 0; i < fChannels.size(); i++)
-    fChannels.at(i).SetRandomEventAsymmetry(asymmetry);
-  return;
-}
-
-void QwVQWK_Module::RandomizeEventData(int helicity)
-{
-  // Randomize all QwVQWK_Channels
-  for (size_t i = 0; i < fChannels.size(); i++) {
-    fChannels.at(i).RandomizeEventData(helicity);
-  }
-  fEventIsGood = kTRUE;
-
-}
-//jpan: set mock data
-void QwVQWK_Module::SetEventData(Double_t* buffer, UInt_t sequencenumber)
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).SetEventData(buffer,sequencenumber);
-  }
-  fEventIsGood = kTRUE;
-}
-
-//jpan: encode data for each channel
-void QwVQWK_Module::EncodeEventData(std::vector<UInt_t> &buffer)
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).EncodeEventData(buffer);
-  }
-}
-
 Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
   UInt_t words_read = 0;
@@ -208,18 +166,6 @@ QwVQWK_Module& QwVQWK_Module::operator-= (const QwVQWK_Module &value)
   }
   fEventIsGood = value.fEventIsGood;
   return *this;
-}
-
-void QwVQWK_Module::Sum(QwVQWK_Module &value1, QwVQWK_Module &value2)
-{
-  *this =  value1;
-  *this += value2;
-}
-
-void QwVQWK_Module::Difference(QwVQWK_Module &value1, QwVQWK_Module &value2)
-{
-  *this =  value1;
-  *this -= value2;
 }
 
 void QwVQWK_Module::Ratio(QwVQWK_Module &numer, QwVQWK_Module &denom)
