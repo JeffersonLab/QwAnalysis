@@ -72,6 +72,30 @@ QwEPICSControl::QwEPICSControl()
   
   ca_search("IGL1I00DI24_24M", &fHalfWavePlateStatus);
   status = ca_pend_io(10);
+  //Hall A parameters
+  status = ca_search("qw:HAChargeAsymmetry", &fHAChargeAsymmetry);//
+  status = ca_pend_io(10);
+  status = ca_search("qw:HAChargeAsymmetryError", &fHAChargeAsymmetryError);//
+  status = ca_pend_io(10);
+  status = ca_search("qw:HAChargeAsymmetryWidth", &fHAChargeAsymmetryWidth);//
+  status = ca_pend_io(10);
+  
+  //Target paremetes
+  status = ca_search("qw:TargetDiffX", &fTargetXDiff);
+  status = ca_search("qw:TargetDiffXError", &fTargetXDiffError);
+  status = ca_search("qw:TargetDiffXWidth", &fTargetXDiffWidth);
+
+  status = ca_search("qw:TargetDiffXP", &fTargetXPDiff);
+  status = ca_search("qw:TargetDiffXPError", &fTargetXPDiffError);
+  status = ca_search("qw:TargetDiffXPWidth", &fTargetXPDiffWidth);
+
+  status = ca_search("qw:TargetDiffY", &fTargetYDiff);
+  status = ca_search("qw:TargetDiffYError", &fTargetYDiffError);
+  status = ca_search("qw:TargetDiffYWidth", &fTargetYDiffWidth);
+
+  status = ca_search("qw:TargetDiffYP", &fTargetYPDiff);
+  status = ca_search("qw:TargetDiffYPError", &fTargetYPDiffError);
+  status = ca_search("qw:TargetDiffYPWidth", &fTargetYPDiffWidth);
 
 };
 

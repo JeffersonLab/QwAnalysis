@@ -7,7 +7,7 @@ patterns = 20000
 #for Hall A IA
 HAF_patterns = 20000
 #for position feedback
-PF_patterns = 200000
+PF_patterns = 50000
 
 #The precision of the charge asymmetry in ppm
 #deltaAq = 62

@@ -61,6 +61,19 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPrevPITASetpointNEG=0;
     fPITA_MIN_Charge_asym=1;//default value is 1ppm
 
+    //initialize setpoints to zero
+    //HA IA
+    for(Int_t i=0;i<4;i++){
+      fPrevHAIASetpoint[i]=0;
+      fHAIASetpoint[i]=0;
+    }
+    //PITA
+    fPrevPITASetpointPOS=0;
+    fPrevPITASetpointNEG=0;
+    fPITASetpointPOS=0;
+    fPITASetpointNEG=0;
+	
+
     fTargetCharge.InitializeChannel("q_targ","derived");
     fRunningCharge.InitializeChannel("q_targ","derived");
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
@@ -74,6 +87,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fScalerChargeRunningSum.InitializeChannel("sca_bcm");
     fScalerCharge.InitializeChannel("sca_bcm");
 
+    fTargetParameter.InitializeChannel("x_targ","derived");
     fTargetXDiffRunningSum.InitializeChannel("x_targ","derived");//to access the published Target X diff
     fTargetXPDiffRunningSum.InitializeChannel("xp_targ","derived");//to access the published Target XP diff
     fTargetYDiffRunningSum.InitializeChannel("y_targ","derived");//to access the published Target Y diff
@@ -139,7 +153,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     void GetTargetChargeStat();
     /// \brief retrieves the target charge asymmetry,asymmetry error ,asymmetry width for given mode
     void GetTargetChargeStat(Int_t mode);
-
+    /// \brief retrieves the target  position angle parameters (X,XP,Y,YP) mean, error and width
+    void GetTargetPositionStat();
     /// \brief retrieves the Hall A charge asymmetry,asymmetry error ,asymmetry width for given mode
     void GetHAChargeStat(Int_t mode);
 
@@ -166,6 +181,11 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     /// \brief Log the last PITA feedback information
     void LogParameters();
 
+    /// \brief Log the Pos/angle information
+    void LogPFParameters();
+
+
+
     /// \brief Log the last Hall A IA feedback information
     void LogHAParameters(Int_t mode);
 
@@ -184,9 +204,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Bool_t ApplyIAFeedback(Int_t mode);
 
     /// \brief Initiates the Helicity magnet feedback if the position differences and/or angle differences have passed the quality cut
-    Bool_t ApplyHMFeedback(){
-      return kTRUE;
-    };
+    Bool_t ApplyHMFeedback();
+
 
 
     /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value 
@@ -266,6 +285,24 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fChargeAsymmetry;//current charge asym
     Double_t fChargeAsymmetryError;//current charge asym precision
     Double_t fChargeAsymmetryWidth;//current charge asym width
+
+    //position/angle parameters
+    Double_t fTargetXDiff;
+    Double_t fTargetXDiffError;
+    Double_t fTargetXDiffWidth;
+
+    Double_t fTargetXPDiff;
+    Double_t fTargetXPDiffError;
+    Double_t fTargetXPDiffWidth;
+
+    Double_t fTargetYDiff;
+    Double_t fTargetYDiffError;
+    Double_t fTargetYDiffWidth;
+
+    Double_t fTargetYPDiff;
+    Double_t fTargetYPDiffError;
+    Double_t fTargetYPDiffWidth;
+
 
     Double_t fChargeAsym[kHelModes];//current charge asym
     Double_t fChargeAsymError[kHelModes];//current charge asym precision

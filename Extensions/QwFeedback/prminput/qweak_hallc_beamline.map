@@ -19,6 +19,7 @@ sample_size=464
    VQWK, 1, 5,  bpmstripline,  QWK_BPM3H07AXM
    VQWK, 1, 6,  bpmstripline,  QWK_BPM3H07AYP
    VQWK, 1, 7,  bpmstripline,  QWK_BPM3H07AYM
+
 !ADC2, Slot 5,  Serial Number 22, Address 0x7D
    VQWK, 2, 0,  bpmstripline,  QWK_BPM3H07BXP
    VQWK, 2, 1,  bpmstripline,  QWK_BPM3H07BXM
@@ -28,6 +29,7 @@ sample_size=464
    VQWK, 2, 5,  bpmstripline,  QWK_BPM3H07CXM
    VQWK, 2, 6,  bpmstripline,  QWK_BPM3H07CYP
    VQWK, 2, 7,  bpmstripline,  QWK_BPM3H07CYM
+
 !ADC3, Slot 6,  Serial Number 08, Address 0x7E
    VQWK, 3, 4,  bpmstripline,  QWK_BPM3H09XP
    VQWK, 3, 5,  bpmstripline,  QWK_BPM3H09XM
@@ -61,6 +63,7 @@ begin=combinedbcm
 name=qwk_charge
 !name	   type	 wieght
  qwk_bcm1,  bcm, 1.0
+
 end=combinedbcm
 
 
@@ -104,7 +107,6 @@ end=combinedbpm
 
 [PUBLISH]
  q_targ, combobcm, qwk_charge, c
- #sca_bcm, bcm, sca_habcm, sc
  sca_bcm, bcm, sca_habcm, c
 
  x_targ, combobpm, qwk_target, x
