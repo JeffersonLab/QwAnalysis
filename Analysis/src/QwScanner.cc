@@ -699,66 +699,23 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 
 
   // This is a SCA bank
-  if (bank_id==fBankID[1])
-    {
+  if (bank_id==fBankID[1]) {
 
-      // Check if scaler buffer contains more than one event
-      if (buffer[0]/32!=1) return 0;
-     
-      if (index>=0 && num_words>0)
-        {
-          SetDataLoaded(kTRUE);
-          fScaEventCounter++;
-          //  This is a SCA bank We want to process this ROC.  Begin looping through the data.
+    // Check if scaler buffer contains more than one event
+    if (buffer[0]/32!=1) return 0;
 
-          if (fDEBUG)
-            {
-              std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing Bank "<<bank_id
-              <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
-              << " fSCAs.size() = "<<fSCAs.size()<<std::endl;
-            }
+    if (index>=0 && num_words>0) {
+      SetDataLoaded(kTRUE);
+      fScaEventCounter++;
+      //  This is a SCA bank We want to process this ROC.  Begin looping through the data.
 
-          UInt_t words_read = 0;
-          for (size_t i=0; i<fSCAs.size(); i++)
-            {
-              UInt_t num_dataword = buffer[words_read] & 0xffff;
-              words_read++; // skip header word
-
-              if ( (num_dataword%32) != 0) // (num_dataword%32) != 0, sick data set with extra words
-              {
-                std::cerr<<"QwScanner::ProcessEvBuffer(SCA):  sick data block "<<i<<", decode it anyway\n";
-              }
-
-              fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]),num_words-fSCAs_offset.at(i));
-//              QwMessage << "buffer[" << fSCAs_offset.at(i) << "] = "
-//                  << std::hex << buffer[fSCAs_offset.at(i)] << std::dec << QwLog::endl;
-//              QwMessage << "value  = " << fSCAs.at(i).GetValue() << QwLog::endl;
-              words_read += num_dataword;
-
-              if (fDEBUG)
-              {
-                std::cout<<"QwScanner::ProcessEvBuffer(SCA): data block "<<i<<", "
-                    <<words_read<<" words_read, "<<num_words<<" num_words"<<"\n";
-
-                for (UInt_t j=words_read-num_dataword; j<=words_read; j++)
-                {
-                  std::cout<<"ch"<<((buffer[j]>>24) & 0x1f);
-                  std::cout<<":"<<(buffer[j] & 0xffffff)<<"\t";
-                  if ( (j%8)==0 ) std::cout<<"\n";
-                }
-                std::cout<<"\n";
-              }
-
-            } //end of for (size_t i=0; i<fSCAs.size(); i++)
-
-
-          if (fDEBUG & (num_words != words_read))
-            {
-              std::cerr << "QwScanner::ProcessEvBuffer(SCA):  There were "<< num_words-words_read
-              << " leftover words after decoding everything we recognize.\n";
-            }
-        }
+      UInt_t words_read = 0;
+      for (size_t i=0; i<fSCAs.size(); i++) {
+        words_read += fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]),
+            num_words-fSCAs_offset.at(i));
+      }
     }
+  }
 
 
   //  This is a QADC/TDC bank
