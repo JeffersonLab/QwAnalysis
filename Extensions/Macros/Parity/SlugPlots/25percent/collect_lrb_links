@@ -7,8 +7,8 @@ SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4regression/${folder}"
 DEST="/volatile/hallc/qweak/leacock/25percent/lrb_links/${folder}"
 
 
-#echo "removing regression rootfile links"
-#rm -f ${DEST}/*
+echo "removing regression rootfile links"
+rm -f ${DEST}/*
 
 #if [ 1 -eq 0 ]
 #then
