@@ -23,7 +23,6 @@
 #include "MQwV775TDC.h"
 //#include "MQwF1TDC.h"
 #include "QwPMT_Channel.h"
-#include "QwSIS3801_Module.h"
 #include "QwScaler_Channel.h"
 #include "QwF1TDContainer.h"
 
@@ -136,7 +135,10 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
-  std::vector<QwSIS3801_Module*> fSCAs;
+
+  std::vector<QwSIS3801D24_Channel> fSCAs;
+  std::map<TString,size_t> fSCAs_map;
+  std::vector<Int_t> fSCAs_offset;
 
   // For reference time substraction
   Int_t reftime_slotnum;

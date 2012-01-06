@@ -32,8 +32,6 @@ QwRaster::QwRaster(const TString& name)
 QwRaster::~QwRaster()
 {
   fPMTs.clear();
-  for (size_t i = 0; i < fSCAs.size(); i++)
-    delete fSCAs.at(i);
   fSCAs.clear();
 }
 
@@ -85,9 +83,12 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
 
             //  Push a new record into the element array
             if (modtype=="SIS3801") {
-              if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
-              if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
-              fSCAs.at(modnum)->SetChannel(channum, name);
+              QwSIS3801D24_Channel localchannel(name);
+              localchannel.SetNeedsExternalClock(kFALSE);
+              fSCAs.push_back(localchannel);
+              fSCAs_map[name] = fSCAs.size()-1;
+              Int_t offset = QwSIS3801D24_Channel::GetBufferOffset(modnum,channum);
+              fSCAs_offset.push_back(offset);
             } else if (modtype=="V792" || modtype=="V775") {
                 RegisterModuleType(modtype);
                 //  Check to see if we've encountered this channel or name yet
@@ -217,9 +218,7 @@ void  QwRaster::ClearEventData()
     }*/
 
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i) != NULL) {
-        fSCAs.at(i)->ClearEventData();
-      }
+      fSCAs.at(i).ClearEventData();
     }
 
 }
@@ -227,24 +226,6 @@ void  QwRaster::ClearEventData()
 
 Int_t QwRaster::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-    Int_t index = GetSubbankIndex(roc_id,bank_id);
-    
-    if (index>=0 && num_words>0)
-    {
-        //  We want to process the configuration data for this ROC.
-        UInt_t words_read = 0;
-
-        if (fBankID[1]==bank_id){
-          for (size_t i=0; i<fSCAs.size(); i++){
-            if (fSCAs.at(i) != NULL){
-              words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
-                        num_words-words_read);
-            }
-          }
-        }
-
-    }
-
     return 0;
 }
 
@@ -311,12 +292,8 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
         SetDataLoaded(kTRUE);
         UInt_t words_read = 0;
         for (size_t i=0; i<fSCAs.size(); i++) {
-          words_read++; // skip header word
-          if (fSCAs.at(i) != NULL) {
-            words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),num_words-words_read);
-          } else {
-	    words_read += 32; // skip a block of data for a single module
-	  }
+          words_read += fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]),
+                                                    num_words-fSCAs_offset.at(i));
         }
       }
     }
@@ -344,9 +321,7 @@ void  QwRaster::ProcessEvent()
     }*/
 
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i) != NULL){
-        fSCAs.at(i)->ProcessEvent();
-      }
+      fSCAs.at(i).ProcessEvent();
     }
 
     //Fill trigger data
@@ -431,9 +406,7 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
     
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i) != NULL) {
-        fSCAs.at(i)->ConstructHistograms(folder, prefix);
-      }
+      fSCAs.at(i).ConstructHistograms(folder, prefix);
     }
 
     fHistograms.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
@@ -468,9 +441,7 @@ void  QwRaster::FillHistograms()
     }
 
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i) != NULL) {
-        fSCAs.at(i)->FillHistograms();
-      }
+      fSCAs.at(i).FillHistograms();
    }
    
     // FR fudge factor is 3.2, by Dave Mack
@@ -550,14 +521,9 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vect
     }
 
     for (size_t i=0; i<fSCAs.size(); i++){
-      if (fSCAs.at(i) != NULL){
-        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++){
-          if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-          else {
-            values.push_back(0.0);
-            list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
-          }
-        }
+      if (fSCAs.at(i).GetElementName() != "") {
+        values.push_back(0.0);
+        list += ":" + fSCAs.at(i).GetElementName() + "/D";
       }
     }
 
@@ -598,18 +564,11 @@ void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
     }
 
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i) != NULL) {
-        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
-          if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-          else {
-            values[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
-            index++;
-         }
-       }
+      if (fSCAs.at(i).GetElementName()=="") {
+        values[index] = fSCAs.at(i).GetValue();
+        index++;
       }
     }
-
-    return;
 }
 
 
