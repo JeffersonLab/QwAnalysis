@@ -71,33 +71,6 @@ void QwSIS3801_Module::ClearEventData()
   fEventIsGood = kTRUE;
 }
 
-
-void QwSIS3801_Module::RandomizeEventData(int helicity)
-{
-  // Randomize all QwSIS3801_Channels
-  for (size_t i = 0; i < fChannels.size(); i++) {
-    fChannels.at(i).RandomizeEventData(helicity);
-  }
-  fEventIsGood = kTRUE;
-
-}
-//jpan: set mock data
-void QwSIS3801_Module::SetEventData(Double_t* buffer)
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).SetEventData(buffer[i]);
-  }
-  fEventIsGood = kTRUE;
-}
-
-//jpan: encode data for each channel
-void QwSIS3801_Module::EncodeEventData(std::vector<UInt_t> &buffer)
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).EncodeEventData(buffer);
-  }
-}
-
 Int_t QwSIS3801_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
   UInt_t words_read = 0;
@@ -184,8 +157,6 @@ QwSIS3801_Module& QwSIS3801_Module::operator+= (const QwSIS3801_Module &value)
     fChannels.at(i) += value.fChannels.at(i);
   }
   fEventIsGood = value.fEventIsGood;
-
-
   return *this;
 }
 
@@ -197,28 +168,6 @@ QwSIS3801_Module& QwSIS3801_Module::operator-= (const QwSIS3801_Module &value)
   fEventIsGood = value.fEventIsGood;
   return *this;
 }
-
-void QwSIS3801_Module::Sum(QwSIS3801_Module &value1, QwSIS3801_Module &value2)
-{
-  *this =  value1;
-  *this += value2;
-}
-
-void QwSIS3801_Module::Difference(QwSIS3801_Module &value1, QwSIS3801_Module &value2)
-{
-  *this =  value1;
-  *this -= value2;
-}
-
-void QwSIS3801_Module::Ratio(QwSIS3801_Module &numer, QwSIS3801_Module &denom)
-{
-  fEventIsGood = numer.fEventIsGood && denom.fEventIsGood;
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).Ratio(numer.fChannels.at(i), denom.fChannels.at(i));
-  }
-}
-
-
 
 void QwSIS3801_Module::InitializeChannel(TString name)
 {
@@ -244,13 +193,3 @@ void QwSIS3801_Module::Copy(const QwSIS3801_Module *source)
     std::cerr << e.what() << std::endl;
   }
 }
-
-void  QwSIS3801_Module::PrintInfo() const
-{
-  for (size_t i = 0; i < fChannels.size(); i++) {
-    fChannels.at(i).PrintInfo();
-  }
-}
-
-
-
