@@ -26,7 +26,6 @@
 
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"
-#include "QwSIS3801_Module.h"
 
 //#include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
@@ -173,8 +172,13 @@ class QwScanner:
     QwF1TDContainer *fF1TDContainer;
     //    We need a mapping of module,channel into PMT index, ADC/TDC
     std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
-    std::vector<QwSIS3801_Module*> fSCAs;
+
+    std::vector<QwSIS3801D24_Channel> fSCAs;
+    std::map<TString,size_t> fSCAs_map;
+    std::vector<Int_t> fSCAs_offset;
+
     std::vector<QwVQWK_Module*> fADCs;
+
 
     void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
     void  ClearAllBankRegistrations();

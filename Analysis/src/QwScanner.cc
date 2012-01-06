@@ -40,10 +40,6 @@ QwScanner::QwScanner(const TString& name)
 QwScanner::~QwScanner()
 {
   fPMTs.clear();
-
-  for (size_t i = 0; i < fSCAs.size(); i++)
-    if (fSCAs.at(i) != NULL)
-      delete fSCAs.at(i);
   fSCAs.clear();
 
   for (size_t i=0; i<fADCs.size(); i++)
@@ -62,13 +58,7 @@ void QwScanner::Copy(const VQwSubsystem *source)
     const QwScanner* input = dynamic_cast<const QwScanner*>(source);
 
     // FIXME leaks!!!
-    fSCAs.resize(input->fSCAs.size());
-    for (size_t i = 0; i < input->fSCAs.size(); i++) {
-      if (input->fSCAs.at(i)) {
-        fSCAs.at(i) = new QwSIS3801_Module();
-        fSCAs.at(i)->Copy(input->fSCAs.at(i));
-      }
-    }
+    fSCAs = input->fSCAs;
     fADCs.resize(input->fADCs.size());
     for (size_t i = 0; i < input->fADCs.size(); i++) {
       if (input->fADCs.at(i)) {
@@ -180,10 +170,12 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
 
           else if (modtype=="SIS3801")
             {
-              //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
-              if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
-              if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
-              fSCAs.at(modnum)->SetChannel(channum, name);
+              QwSIS3801D24_Channel localchannel(name);
+              localchannel.SetNeedsExternalClock(kFALSE);
+              fSCAs.push_back(localchannel);
+              fSCAs_map[name] = fSCAs.size()-1;
+              Int_t offset = QwSIS3801D24_Channel::GetBufferOffset(modnum,channum);
+              fSCAs_offset.push_back(offset);
             }
 
           else if (modtype=="V792" || modtype=="V775" || modtype=="F1TDC")
@@ -323,12 +315,9 @@ void  QwScanner::ClearEventData()
     }
 
   for (size_t i=0; i<fSCAs.size(); i++)
-    {
-      if (fSCAs.at(i) != NULL)
-        {
-          fSCAs.at(i)->ClearEventData();
-        }
-    }
+  {
+    fSCAs.at(i).ClearEventData();
+  }
 
   for (size_t i=0; i<fADCs.size(); i++)
     {
@@ -365,11 +354,8 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
         {
           for (size_t i=0; i<fSCAs.size(); i++)
             {
-              if (fSCAs.at(i) != NULL)
-                {
-                  words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
-                                num_words-words_read);
-                }
+//                  words_read += fSCAs.at(i).ProcessConfigBuffer(&(buffer[words_read]),
+//                                num_words-words_read);
             }
         }
 
@@ -738,42 +724,30 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
               UInt_t num_dataword = buffer[words_read] & 0xffff;
               words_read++; // skip header word
 
-              if (fSCAs.at(i) != NULL)
+              if ( (num_dataword%32) != 0) // (num_dataword%32) != 0, sick data set with extra words
+              {
+                std::cerr<<"QwScanner::ProcessEvBuffer(SCA):  sick data block "<<i<<", decode it anyway\n";
+              }
+
+              fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]),num_words-fSCAs_offset.at(i));
+//              QwMessage << "buffer[" << fSCAs_offset.at(i) << "] = "
+//                  << std::hex << buffer[fSCAs_offset.at(i)] << std::dec << QwLog::endl;
+//              QwMessage << "value  = " << fSCAs.at(i).GetValue() << QwLog::endl;
+              words_read += num_dataword;
+
+              if (fDEBUG)
+              {
+                std::cout<<"QwScanner::ProcessEvBuffer(SCA): data block "<<i<<", "
+                    <<words_read<<" words_read, "<<num_words<<" num_words"<<"\n";
+
+                for (UInt_t j=words_read-num_dataword; j<=words_read; j++)
                 {
-                  if ( (num_dataword%32) != 0) // (num_dataword%32) != 0, sick data set with extra words
-                    {
-                      std::cerr<<"QwScanner::ProcessEvBuffer(SCA):  sick data block "<<i<<", decode it anyway\n";
-                    }
-
-                  //words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
-                  //              num_words-words_read);
-                  fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),num_words-words_read);
-                  words_read += num_dataword;
-
-                  if (fDEBUG)
-                    {
-                      std::cout<<"QwScanner::ProcessEvBuffer(SCA): data block "<<i<<", "
-                      <<words_read<<" words_read, "<<num_words<<" num_words"<<"\n";
-
-                      for (UInt_t j=words_read-num_dataword; j<=words_read; j++)
-                        {
-                          std::cout<<"ch"<<((buffer[j]>>24) & 0x1f);
-                          std::cout<<":"<<(buffer[j] & 0xffffff)<<"\t";
-                          if ( (j%8)==0 ) std::cout<<"\n";
-                        }
-                      std::cout<<"\n";
-                    }
+                  std::cout<<"ch"<<((buffer[j]>>24) & 0x1f);
+                  std::cout<<":"<<(buffer[j] & 0xffffff)<<"\t";
+                  if ( (j%8)==0 ) std::cout<<"\n";
                 }
-              else  // Null module for this subsystem, skip this block of data
-                {
-                  words_read += num_dataword;
-
-                  if (fDEBUG)
-                    {
-                      std::cout<<"Null module, data block "<<i<<", skip "<<num_dataword<<" data words, ";
-                      std::cout<<"words_read "<<words_read<<"\n";
-                    }
-                }
+                std::cout<<"\n";
+              }
 
             } //end of for (size_t i=0; i<fSCAs.size(); i++)
 
@@ -911,12 +885,9 @@ void  QwScanner::ProcessEvent()
     }
 
   for (size_t i=0; i<fSCAs.size(); i++)
-    {
-      if (fSCAs.at(i) != NULL)
-        {
-          fSCAs.at(i)->ProcessEvent();
-        }
-    }
+  {
+    fSCAs.at(i).ProcessEvent();
+  }
 
   //Fill trigger data
   for (size_t i=0; i<fPMTs.size(); i++)
@@ -1018,12 +989,9 @@ void  QwScanner::ProcessEvent()
   //Fill scaler data
   for (size_t i=0; i<fSCAs.size(); i++)
     {
-      if (fSCAs.at(i) != NULL)
-        {
-          fCoincidenceSCA = fHelicityFrequency*(fSCAs.at(i)->GetChannel(TString("coinc_sca"))->GetValue());
-          fFrontSCA = fHelicityFrequency*(fSCAs.at(i)->GetChannel(TString("front_sca"))->GetValue());
-          fBackSCA = fHelicityFrequency*(fSCAs.at(i)->GetChannel(TString("back__sca"))->GetValue());
-        }
+          fCoincidenceSCA = fHelicityFrequency*(fSCAs.at(fSCAs_map["coinc_sca"]).GetValue());
+          fFrontSCA = fHelicityFrequency*(fSCAs.at(fSCAs_map["front_sca"]).GetValue());
+          fBackSCA = fHelicityFrequency*(fSCAs.at(fSCAs_map["back__sca"]).GetValue());
     }
 
 }
@@ -1048,10 +1016,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
 
       for (size_t i=0; i<fSCAs.size(); i++)
         {
-          if (fSCAs.at(i) != NULL)
-            {
-              fSCAs.at(i)->ConstructHistograms(folder,basename);
-            }
+          fSCAs.at(i).ConstructHistograms(folder,basename);
         }
 
       for (size_t i=0; i<fADCs.size(); i++)
@@ -1118,10 +1083,7 @@ void  QwScanner::FillHistograms()
       // Fill scaler data
       for (size_t i=0; i<fSCAs.size(); i++)
         {
-          if (fSCAs.at(i) != NULL)
-            {
-              fSCAs.at(i)->FillHistograms();
-            }
+              fSCAs.at(i).FillHistograms();
         }
 
       // Fill position data
@@ -1233,13 +1195,9 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
     }
 
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i) != NULL) {
-        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
-          if (fSCAs.at(i)->fChannels.at(j).GetElementName() != "") {
-            values.push_back(0.0);
-            list += ":" + fSCAs.at(i)->fChannels.at(j).GetElementName() + "_raw/D";
-          }
-        }
+      if (fSCAs.at(i).GetElementName() != "") {
+        values.push_back(0.0);
+        list += ":" + fSCAs.at(i).GetElementName() + "_raw/D";
       }
     }
 
@@ -1297,15 +1255,8 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
     }
 
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i) != NULL) {
-        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
-          if (fSCAs.at(i)->fChannels.at(j).GetElementName() != "") {
-            values[index++] = fSCAs.at(i)->fChannels.at(j).GetValue();
-          }
-        }
-      } else {
-        if (fDEBUG)
-          std::cerr<<"QwScanner::FillTreeVector:  "<<"fSCA_Data.at("<<i<<") is NULL"<<std::endl;
+      if (fSCAs.at(i).GetElementName() != "") {
+        values[index++] = fSCAs.at(i).GetValue();
       }
     }
 
@@ -1410,8 +1361,7 @@ VQwSubsystem& QwScanner::operator=(VQwSubsystem* value)
       if (input->fADCs.at(i))
         *(fADCs.at(i)) = *(input->fADCs.at(i));
     for (size_t i = 0; i < fSCAs.size(); i++)
-      if (input->fSCAs.at(i))
-        *(fSCAs.at(i)) = *(input->fSCAs.at(i));
+      fSCAs.at(i) = input->fSCAs.at(i);
 
     fScaEventCounter = input->fScaEventCounter;
 
@@ -1455,8 +1405,7 @@ VQwSubsystem& QwScanner::operator+=(VQwSubsystem* value)
       if (input->fADCs.at(i))
         *(fADCs.at(i)) += *(input->fADCs.at(i));
     for (size_t i = 0; i < fSCAs.size(); i++)
-      if (input->fSCAs.at(i))
-        *(fSCAs.at(i)) += *(input->fSCAs.at(i));
+      fSCAs.at(i) += input->fSCAs.at(i);
 
     fFrontSCA += input->fFrontSCA;
     fBackSCA += input->fBackSCA;
@@ -1482,8 +1431,7 @@ VQwSubsystem& QwScanner::operator-=(VQwSubsystem* value)
       if (input->fADCs.at(i))
         *(fADCs.at(i)) -= *(input->fADCs.at(i));
     for (size_t i = 0; i < fSCAs.size(); i++)
-      if (input->fSCAs.at(i))
-        *(fSCAs.at(i)) -= *(input->fSCAs.at(i));
+      fSCAs.at(i) -= input->fSCAs.at(i);
 
     fFrontSCA -= input->fFrontSCA;
     fBackSCA -= input->fBackSCA;
