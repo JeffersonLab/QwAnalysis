@@ -25,9 +25,7 @@
 #include "VQwSubsystemParity.h"
 
 #include "MQwV775TDC.h"
-#include "QwVQWK_Module.h"
 
-//#include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
@@ -149,10 +147,7 @@ class QwScanner:
       Bool_t status = kTRUE;
       for (size_t i=0; i<fADCs.size(); i++)
         {
-          if (fADCs.at(i) != NULL)
-            {
-              status &= fADCs.at(i)->ApplyHWChecks();
-            }
+          status &= fADCs.at(i).ApplyHWChecks();
         }
       return status;
     };
@@ -177,7 +172,9 @@ class QwScanner:
     std::map<TString,size_t> fSCAs_map;
     std::vector<Int_t> fSCAs_offset;
 
-    std::vector<QwVQWK_Module*> fADCs;
+    std::vector<QwVQWK_Channel> fADCs;
+    std::map<TString,size_t> fADCs_map;
+    std::vector<Int_t> fADCs_offset;
 
 
     void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
