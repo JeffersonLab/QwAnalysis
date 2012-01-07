@@ -311,6 +311,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         treeline->SetRegion(frontline->GetRegion());
         treeline->SetPackage(frontline->GetPackage());
         treeline->SetDirection(frontline->GetDirection());
+	treeline->SetOctantNumber(frontline->GetOctantNumber());
 
         QwHit *DetecHits[2*MAX_LAYERS];
         for (int i = 0; i < 2*MAX_LAYERS; i++) DetecHits[i] = 0;

@@ -85,10 +85,12 @@ inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& directi
   double e0 = 1160.385 * Qw::MeV ;      // beam energy [MeV]
   // average value from the talk of David. A 
   // https://qweak.jlab.org/DocDB/0014/001429/001/Tracking_June2011.pdf
-  double e_loss = 12.0  * Qw::MeV;    // target energy loss ~12 MeV
+  double e_loss = 24.0  * Qw::MeV;    // target energy loss ~12 MeV
 
   // Kinematics for elastic e+p scattering
-  return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
+  //return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
+  e0-=e_loss;
+  return e0/(1.0+e0/wp*(1-cth));
 }
 
 
@@ -124,7 +126,7 @@ inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double a
   //
   //assume 48 MeV total energy loss through the full target length
     
-  momentum_correction_MeV = 0.0; // temp. turn off the momentum correction.
+  momentum_correction_MeV = 24.0; // temp. turn off the momentum correction.
 
   double Mp = 938.272013;    // Mass of the Proton in MeV
 
@@ -132,7 +134,9 @@ inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double a
   //double P0 = Mp*PP/(Mp-PP*(1-cos_theta)); //pre-scattering energy
   //double Q2 = 2.0*Mp*(P0-PP);
 
-  double P0=1165;
+  //double P0=1160.385;    // for run I
+  double P0=1157.5;
+  P0-=momentum_correction_MeV;
   double PP=Mp*P0/(Mp+P0*(1-cos_theta));
   double Q2=2.0*P0*PP*(1-cos_theta);
   results[0]=PP;

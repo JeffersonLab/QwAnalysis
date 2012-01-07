@@ -11,6 +11,7 @@
 #include "QwDriftChamberVDC.h"
 #include "QwParameterFile.h"
 #include "boost/bind.hpp"
+#include <algorithm>
 
 
 const UInt_t QwDriftChamberVDC::kBackPlaneNum=16;
@@ -18,6 +19,9 @@ const UInt_t QwDriftChamberVDC::kLineNum=8;
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwDriftChamberVDC);
+bool invalid(QwHit& hit){
+  return hit.GetDriftDistance() < 0;
+}
 
 QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :
   VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
@@ -98,7 +102,8 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 
 			
 	  // Octant R3 is in front of, is the only value used
-	  Int_t oct = gQwOptions.GetValue<Int_t> ("R3-octant");
+	  fR3Octant=gQwOptions.GetValue<Int_t> ("R3-octant");
+          Int_t oct=fR3Octant;
 	  if (oct == 8) oct=4;
 	  if (oct == 7) oct=5;
 	  Zpos = ZPOS[oct-1];
@@ -117,13 +122,17 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	      QwDetectorInfo* detector = new QwDetectorInfo();
 	      detector->SetDetectorInfo(dType, Zpos,
 					rot, sp_res, track_res, slope_match,
-					package, region, direction,
+					package,region, direction,
 					Det_originX, Det_originY,
 					ActiveWidthX, ActiveWidthY, ActiveWidthZ,
 					WireSpace, FirstWire,
 					W_rcos, W_rsin, tilt,
 					TotalWires,
 					detectorId);
+	      if(package=="u")
+		detector->SetOctantNumber((fR3Octant+4)%8);
+	      else
+		detector->SetOctantNumber(fR3Octant);
 	      fDetectorInfo.push_back(detector);
 	    }
 	}
@@ -919,6 +928,10 @@ void QwDriftChamberVDC::ProcessEvent()
   if ( fDisableWireTimeOffset==false ){
     SubtractWireTimeOffset();
     FillDriftDistanceToHits();
+    std::vector<QwHit>::iterator it;
+    it=std::remove_if(fWireHits.begin(),fWireHits.end(),invalid);
+    if(it!=fWireHits.end())
+    fWireHits.erase(it,fWireHits.end());    
   }
         
         

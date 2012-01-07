@@ -140,12 +140,12 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     void SetAlone(const int alone) { fAlone = alone; }
     //! Only 2 Treelines in Plane 0
     int GetAlone() const { return fAlone; }
-    
+   
     // Tree lines
     QwTrackingTreeLine* GetTreeLine(const EQwDirectionID dir) {
       return fTreeLine[dir];
-
     }
+    void RotateCoordinates();
 
   public: // members
 

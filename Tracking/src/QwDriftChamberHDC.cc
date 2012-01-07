@@ -33,7 +33,10 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   TString varname, varvalue,package, direction,dType;
   //  Int_t  chan;
   Int_t  plane, TotalWires,detectorId,region, DIRMODE;
-  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
+  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX=0,Det_originY=0,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
+  Double_t ZPOS[5]={0};
+  Double_t XPOS[5]={0};
+  Double_t YPOS[5]={0};
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
@@ -62,7 +65,10 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
     } else if (DIRMODE==1){
       //  Break this line into tokens to process it.
       varvalue     = mapstr.GetTypedNextToken<TString>();//this is the sType
-      Zpos         = mapstr.GetTypedNextToken<Double_t>();
+      for (Int_t i=0;i<5;i++){
+	 ZPOS[i]      = mapstr.GetTypedNextToken<Double_t>();
+      }
+       // Zpos         = mapstr.GetTypedNextToken<Double_t>();
       rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
       sp_res       = mapstr.GetTypedNextToken<Double_t>();
       track_res    = mapstr.GetTypedNextToken<Double_t>();
@@ -71,8 +77,12 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       region       = mapstr.GetTypedNextToken<Int_t>();
       dType        = mapstr.GetTypedNextToken<TString>();
       direction    = mapstr.GetTypedNextToken<TString>();
-      Det_originX  = mapstr.GetTypedNextToken<Double_t>();
-      Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+      for (Int_t i=0;i<5;i++){
+	XPOS[i]      =   mapstr.GetTypedNextToken<Double_t>();
+      }
+      for (Int_t i=0;i<5;i++){
+	YPOS[i]      =  mapstr.GetTypedNextToken<Double_t>();
+      }
       ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
       ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
       ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
@@ -84,21 +94,34 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       TotalWires   = mapstr.GetTypedNextToken<Int_t>();
       detectorId   = mapstr.GetTypedNextToken<Int_t>();
 
+      fR2Octant=gQwOptions.GetValue<Int_t> ("R2-octant");
+      Int_t oct=fR2Octant;
+	  if (oct == 8) oct=4;
+	  if (oct == 7) oct=5;
+	  Zpos = ZPOS[oct-1];
+	  Det_originX  = XPOS[oct-1];
+          Det_originY  = YPOS[oct-1];
+
       QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
               << " Package "     << package << " Plane " << Zpos
               << " Region "      << region << QwLog::endl;
 
+      
       if (region==2){
             QwDetectorInfo* detector = new QwDetectorInfo();
 	    detector->SetDetectorInfo(dType, Zpos,
 	        rot, sp_res, track_res, slope_match,
-	        package, region, direction,
+	        package,region, direction,
 	        Det_originX, Det_originY,
 	        ActiveWidthX, ActiveWidthY, ActiveWidthZ,
 	        WireSpace, FirstWire,
 		W_rcos, W_rsin, tilt,
 	        TotalWires,
-	        detectorId);
+		detectorId);
+	    if(package=="u")
+		detector->SetOctantNumber((fR2Octant+4)%8);
+	      else
+		detector->SetOctantNumber(fR2Octant);
 	    fDetectorInfo.push_back(detector);
 	}
     }
@@ -135,7 +158,6 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   }
 
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
-
   return OK;
 }
 
@@ -524,7 +546,7 @@ Int_t QwDriftChamberHDC::AddChannelDefinition()
       }
     }
   }
-  std::cout << " QwDriftChamberHDC::AddChannelDefinition END"<<std::endl;
+  
   return OK;
 }
 
@@ -688,6 +710,18 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 // }
 
 
+void QwDriftChamberHDC::DefineOptions ( QwOptions& options )
+{
+  options.AddOptions() ("R2-octant",
+			po::value<int>()->default_value(1),
+			"MD Package 2 of R2 is in front of" );
+}
+
+void QwDriftChamberHDC::ProcessOptions ( QwOptions& options )
+{
+ 
+  fR2Octant=options.GetValue<int> ( "R2-octant" );
+}
 
 void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix)
 {

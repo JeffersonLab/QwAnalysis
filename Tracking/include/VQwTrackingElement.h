@@ -42,11 +42,11 @@ class VQwTrackingElement: public TObject {
     VQwTrackingElement()
     : pDetectorInfo(0),
       fRegion(kRegionIDNull), fPackage(kPackageNull),
-      fDirection(kDirectionNull), fPlane(0), fElement(0) { };
+      fDirection(kDirectionNull), fPlane(0), fElement(0) {fOctant=0; };
     VQwTrackingElement(const VQwTrackingElement& that)
     : TObject(that),
       fRegion(that.fRegion), fPackage(that.fPackage),
-      fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) { };
+      fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) ,fOctant(that.fOctant){};
     /// \brief Virtual destructor
     virtual ~VQwTrackingElement() {};
 
@@ -86,6 +86,8 @@ class VQwTrackingElement: public TObject {
     /// \brief Set the element number
     void SetElement(int element) { fElement = element; };
 
+    int GetOctantNumber() const {return fOctant;};
+    void SetOctantNumber(int octant) {fOctant=octant;};
     /// \brief Copy the geometry info from another object
     void SetGeometryTo(const VQwTrackingElement& e) {
       fRegion = e.fRegion;
@@ -93,6 +95,7 @@ class VQwTrackingElement: public TObject {
       fDirection = e.fDirection;
       fPlane = e.fPlane;
       fElement = e.fElement;
+      fOctant = e.fOctant;
     };
 
   private:
@@ -109,6 +112,7 @@ class VQwTrackingElement: public TObject {
     EQwDirectionID fDirection;		///< Direction
     int fPlane;				///< Plane number
     int fElement;			///< Element number
+    int fOctant;                        ///< Octant information;
 
   ClassDef(VQwTrackingElement,1);
 

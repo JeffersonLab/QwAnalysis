@@ -75,10 +75,12 @@ void QwDetectorInfo::SetDetectorInfo (
     fType = kTypeScanner;
 
   // Package
-  if (spackage == "u")
+  if (spackage == "u"){
     fPackage = kPackageUp;
-  else if (spackage == "d")
+  }
+  else if (spackage == "d"){
     fPackage = kPackageDown;
+  }
 
   // Region
   if (region == 1)
@@ -114,7 +116,9 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionR;
   else if (planeDir == "f")
     fDirection = kDirectionPhi;
-
+  fOctant=0;
+  
+  
 
 }
 

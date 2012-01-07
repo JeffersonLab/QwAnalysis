@@ -1387,19 +1387,22 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 		        treeline && treeline->IsValid();
 		        treeline = treeline->next )
 		{
-
 			// First wire position
 			double z1 = ( double ) ( treeline->fR3Offset + treeline->fR3FirstWire );
 			// Last wire position
 			double z2 = ( double ) ( treeline->fR3Offset + treeline->fR3LastWire );
 
 			double d1 = 0, d2 = 0;
+			int oct=0;
 			for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++) {
 				int wire = hit->GetElement();
 				int row = wire-treeline->fR3Offset;
+				if(oct==0 && hit->GetDetectorInfo()->fPackage==package){
+				  oct=hit->GetDetectorInfo()->GetOctantNumber();
+				}
 				if (row < 0 || row > 7) continue;
 				double distance = hit->GetDriftDistance();
-				double track_resolution = hit->GetDetectorInfo()->GetTrackResolution();
+				double track_resolution=hit->GetDetectorInfo()->GetTrackResolution();
 				std::pair<double,double> range = treeline->CalculateDistance(row,width,bins,track_resolution);
 				if (distance >= range.first && distance <= range.second) {
 					hit->SetUsed(true);
@@ -1420,7 +1423,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 // 			double x1 = ( treeline->a_beg - ( double ) bins/2 ) * dx + dx/2;
 // 			double x2 = ( treeline->b_end - ( double ) bins/2 ) * dx + dx/2;
 
-
+			treeline->SetOctantNumber(oct);
 			// Match the hits with the correct treeline
 			TlMatchHits (
 			    d1, d2, z1, z2,
@@ -1442,6 +1445,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	    double r2 = back->GetYPosition();
 	    double z2 = back->GetZPosition();
 	    //double rcos = back->GetElementAngleCos();
+	    assert(front->GetOctantNumber()==back->GetOctantNumber());
 	    
 	    // We are looping over detectors with the same direction
 	    //	    double Dr = (r2 - r1);           // difference in r position
@@ -1472,6 +1476,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	        continue;
 	      }
 
+	      treeline->SetOctantNumber(front->GetOctantNumber());
 	      // Debug output
 	      QwDebug << *treeline << QwLog::endl;
 
@@ -1626,8 +1631,10 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	uv2xy.SetWireSpacing ( spacing );
 
 	// Set the angles for our reference frame
+	if(hitx!=num){
 	rCos[kDirectionX] = hits[hitx]->GetDetectorInfo()->GetElementAngleCos(); // cos theta x
 	rSin[kDirectionX] = hits[hitx]->GetDetectorInfo()->GetElementAngleSin(); // sin theta x
+	}
 	rCos[kDirectionU] = hits[hitu]->GetDetectorInfo()->GetElementAngleCos(); // cos theta x
 	rSin[kDirectionU] = hits[hitu]->GetDetectorInfo()->GetElementAngleSin(); // sin theta x
 	rCos[kDirectionV] = hits[hitv]->GetDetectorInfo()->GetElementAngleCos(); // cos theta x
@@ -1651,6 +1658,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	for(int i=0;i<num;++i)
 	  dx_[hits[i]->GetPlane()-1]=hits[i]->GetDetectorInfo()->GetPlaneOffset();
 
+
 	//dx_ is used to save the Dx for every detector
 	for (int i=0;i<3;++i){
 	h[i] = dx_[6+i]==0? dx_[9+i]: dx_[6+i];
@@ -1659,6 +1667,11 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	dx_[6+i]=dx_[9+i]=h[i]-l[i];
 	}
 	
+
+	//if(hits[0]->GetPackage()==1)
+	//  dx_[6]=dx_[9]=3.88946;
+	//else
+	//  dx_[6]=dx_[9]=4;
 
 	for ( int i = 0; i < num; ++i )
 	{
@@ -1908,7 +1921,7 @@ int QwTrackingTreeCombine::r2_TrackFit2(
 
 
 // NOTE:this version is using information directly from the treeline in plane0 to do the reconstruction
-int QwTrackingTreeCombine::r3_TrackFit3 (
+int QwTrackingTreeCombine::r3_TrackFit (
     const int num,
     QwHit **hits,
     double *fit,
@@ -2056,7 +2069,7 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::r3_TrackFit2 (
+int QwTrackingTreeCombine::r3_TrackFit_deprecated (
     const int num,
     QwHit **hits,
     double *fit,
@@ -2260,7 +2273,7 @@ int QwTrackingTreeCombine::r3_TrackFit2 (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::r3_TrackFit (
+int QwTrackingTreeCombine::r3_TrackFit_deprecated (
     const int num,
     QwHit **hit,
     double *fit,
@@ -2389,7 +2402,7 @@ int QwTrackingTreeCombine::r3_TrackFit (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
+QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
     QwTrackingTreeLine *wu,
     QwTrackingTreeLine *wv )
 {
@@ -2449,7 +2462,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
 	  }
 
 	  // Array bounds
-      QwDebug << "[QwTrackingTreeCombine::TcTreeLineCombine2] #hits   = " << num << QwLog::endl;
+      QwDebug << "[QwTrackingTreeCombine::TcTreeLineCombine] #hits   = " << num << QwLog::endl;
 
       // Loop over all hits
       for (int i = 0; i < num && *hitarray; i++, hitarray++) {
@@ -2463,7 +2476,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
 	}
 
 	// Perform the fit.
-	if (r3_TrackFit3(hitc, hits, fit, covp, chi, parameter) == -1) {
+	if (r3_TrackFit(hitc, hits, fit, covp, chi, parameter) == -1) {
 	  QwError << "QwPartialTrack Fit Failed" << QwLog::endl;
       return 0;
 	}
@@ -2478,6 +2491,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
 	QwPartialTrack* pt = new QwPartialTrack();
 
 	// NOTE Why here x and y are swapped because of different coordinate systems
+	// first assume it's in the octant 3,then call rotate method in pt class to rotate it to the right position
 	pt->fOffsetX = -fit[2];
 	pt->fOffsetY = fit[0];
 	pt->fSlopeX  = -fit[3];
@@ -2595,7 +2609,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	    fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
 	    return 0;
 	  }*/
-	if ( r3_TrackFit ( hitc, hits, fitp, covp, chi, uv2xy ) == -1 )
+	if ( r3_TrackFit_deprecated ( hitc, hits, fitp, covp, chi, uv2xy ) == -1 )
 	{
 		fprintf ( stderr,"hrc: QwPartialTrack Fit Failed\n" );
 		return 0;
@@ -2689,6 +2703,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 		{
 			case kDirectionU: hitarray = wu->fHits; break;
 			case kDirectionV: hitarray = wv->fHits; break;
+			  //case kDirectionX: hitarray = 0;break;
 			case kDirectionX: hitarray = wx->fHits; break;
 			default: hitarray = 0; break;
 		}
@@ -2699,7 +2714,10 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 			h = *hitarray;
 			ntotal++;
 			if ( h->IsUsed() != 0 && hitc < DLAYERS*3 ){
-				hits[hitc++] = h;                           
+			    //if(h->GetDirection()!=kDirectionX)
+				hits[hitc++] = h;
+			    //else if(h->GetPlane()==1 || h->GetPlane()==7 || h->GetPlane()==4 || h->GetPlane()==10)
+			    //    hits[hitc++] = h;
                         }                            
 		}
 	}
@@ -2721,7 +2739,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	pt->fOffsetY = fit[2];
 	pt->fSlopeX  = -fit[1];
 	pt->fSlopeY  = fit[3];
+
 	pt->fIsVoid  = false;
+	
 	pt->fChi = sqrt ( chi );     
 	pt->SetAverageResidual(wx->GetAverageResidual()+wu->GetAverageResidual()+wv->GetAverageResidual());
 
@@ -2868,12 +2888,14 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 					continue;
 				}
 
-				QwPartialTrack *pt = TcTreeLineCombine2 ( wu, wv );
+				QwPartialTrack *pt = TcTreeLineCombine ( wu, wv );
 
 				if (pt) {
 					// Set geometry identification
 					pt->SetRegion(region);
 					pt->SetPackage(package);
+					pt->SetOctantNumber(wu->GetOctantNumber());
+					pt->RotateCoordinates();
                                         //Set 2 plane 0 treelines only
 					pt->SetAlone(nump0);
 					//	std:: cout << pt->GetAlone() << std::endl;
@@ -2913,6 +2935,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	//        double zx1 = front->GetZPosition();
         //double zx2 = back->GetZPosition();
 
+	
         //############################
         // Get the u, v and x tracks #
         //############################
@@ -2958,6 +2981,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	      }
 
 	    QwPartialTrack *pt = TcTreeLineCombine ( wu, wv, wx, tlayer);
+	    pt->SetOctantNumber(wx->GetOctantNumber());
 	    if(!pt) continue;
 
 	    if(pt->fChi<best_chi){
@@ -2965,6 +2989,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
 	     pt->SetRegion(region);
              pt->SetPackage(package);
+	     pt->SetOctantNumber(wv->GetOctantNumber());
+	     pt->RotateCoordinates();
 
 	     if(!best_pt){
 	       QwPartialTrack* temp=best_pt;

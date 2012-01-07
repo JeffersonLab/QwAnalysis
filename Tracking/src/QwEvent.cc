@@ -284,8 +284,10 @@ void QwEvent::PrintHits(Option_t* option) const
     delete iterator;
   #else // QWHITS_IN_STL_VECTOR
     for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
-         hit != fQwHits.end(); hit++)
+         hit != fQwHits.end(); ++hit){
+      if((*hit)->GetDriftDistance()!=-5)
       std::cout << **hit << std::endl;
+    }
   #endif
 }
 
@@ -514,7 +516,7 @@ void QwEvent::PrintPartialTracks(Option_t* option) const
       std::cout << *partialtrack << std::endl;
   #else // QWPARTIALTRACKS_IN_STL_VECTOR
     for (std::vector<QwPartialTrack*>::const_iterator parttrack = fQwPartialTracks.begin();
-         parttrack != fQwPartialTracks.end(); parttrack++)
+         parttrack != fQwPartialTracks.end(); ++parttrack)
       std::cout << **parttrack << std::endl;
   #endif
 }
@@ -542,7 +544,7 @@ void QwEvent::AddTrack(QwTrack* track)
   #else // QWTRACKS_IN_STL_VECTOR
     fQwTracks.push_back(new QwTrack(track));
   #endif
-  fNQwTracks++;
+  ++fNQwTracks;
 }
 
 // Add a linked list of QwTrack's

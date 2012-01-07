@@ -10,6 +10,7 @@
 #define __QWDRIFTCHAMBERHDC__
 
 #include "QwDriftChamber.h"
+#include "QwOptions.h"
 ///
 /// \ingroup QwTrackingg
 class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberHDC> {
@@ -38,7 +39,8 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   //  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
   Int_t LoadChannelMap ( TString mapfile ) ;
   void  ClearEventData();
-  
+  static void DefineOptions(QwOptions& options);
+  void ProcessOptions(QwOptions& options);
 
  protected:
   // VDC and HDC
@@ -60,6 +62,8 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
   std::vector< Double_t> fTtoDNumbers;
   //  ClassDef(QwDriftChamber,2);
+
+  Int_t fR2Octant;
 
 
 };
