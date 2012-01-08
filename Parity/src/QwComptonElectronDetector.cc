@@ -1094,7 +1094,7 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
   //  SetHistoTreeSave(prefix);
   fTreeArrayIndex = values.size();
 
-  for (Int_t i = 1; i < NPlanes; i++) {
+  for (Int_t i = 0; i < NPlanes; i++) {
     //!!iteration of this loop from '1' instead of '0' is for Qweak run-1 when the first plane was inactive
     /// Note that currently the plane number in these tree-leafs correspond to the C++ counting(from 0)
     /// Event branch for this plane
