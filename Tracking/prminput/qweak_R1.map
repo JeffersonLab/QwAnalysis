@@ -1,4 +1,43 @@
-! Map file for GEM detectors
-ROC=11
-BANK=29971
-!Bank is in decimal to add another bank under same roc, include BANK=value pair under ROC=value pair
+! Map file for Region 1 Scintillating Fibers
+
+roc=11
+sca_bank=0x1103
+! module.type  module.num  chan.num, det.type, det.name
+  SIS3801, 0,  0, scifiber, sf_8b_sca
+  SIS3801, 0,  1, scifiber, sf_6b_sca
+  SIS3801, 0,  2, scifiber, sf_4b_sca
+  SIS3801, 0,  3, scifiber, sf_2b_sca
+  SIS3801, 0,  4, scifiber, sf_8a_sca
+  SIS3801, 0,  5, scifiber, sf_6a_sca
+  SIS3801, 0,  6, scifiber, sf_4a_sca
+  SIS3801, 0,  7, scifiber, sf_2a_sca
+
+
+
+roc=4
+pkg=2
+f1tdc_bank=0x0401
+slot=6
+module=F1TDC
+! module.type  module.num  chan.num, det.type, det.name
+!  F1TDC, 6, 32, scifiber, sf_pmt_1357_f1
+! channle, fiber numbers, fiber end
+32, 1357, 0
+
+
+! octant 1 = pkg 2 ?
+! https://hallcweb.jlab.org/hclog/1201_archive/120106145136.html
+roc=9
+pkg=2
+f1tdc_bank=0x0901
+slot=20
+!format: channel, fiber number, fiber ends 2(B), 1(A), 0(both)
+module=F1TDC
+  33, 8, 2
+  35, 6, 2
+  37, 4, 2
+  39, 2, 2
+  41, 8, 1
+  43, 6, 1
+  45, 4, 1
+  47, 2, 1
