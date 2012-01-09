@@ -361,8 +361,8 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
   QwMessage<<"FeedIASetPoint("<<mode<<") "<<fChargeAsym[mode]<<"+/-"<<fChargeAsymError[mode]<<" new set point  "<<fIASetpoint[mode]<<QwLog::endl;
   //send the new IA setpoint 
 
-
   fEPICSCtrl.Set_HallCIA(mode,fIASetpoint[mode]);
+
   //updating the standard asymmetry statistics
   //commented out - rakithab 01-06-2011
   //GetTargetChargeStat();
@@ -401,7 +401,7 @@ void QwHelicityCorrelatedFeedback::FeedHAIASetPoint(Int_t mode){
 
   for (Int_t i=0;i<4;i++)
     fEPICSCtrl.Set_HallAIA(i,fHAIASetpoint[mode]);//do the same correction to 4 DACs
-  
+   
   fScalerChargeRunningSum.ClearEventData();//reset the running sums
 };
 
@@ -499,7 +499,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
   fprintf(out_file_PITA,"%10.0d %+22.2f %16.2f %16.2f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,TMath::Abs(fPITASetpointPOS-fPrevPITASetpointPOS),fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
   fclose(out_file_PITA);
 
-  if(TMath::Abs(fChargeAsymmetry)<5){
+  if(TMath::Abs(fChargeAsymmetry)<1){
     //These files save the last good PC hw count value for IHWP IN and OUT
     if (fHalfWaveIN){
       out_file_PC_IN_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_IN", "w");//Open in write mode
@@ -517,6 +517,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
       fclose(out_file_PC_OUT_neg);    
     }
   }
+
 };
 
 /*****************************************************************/
