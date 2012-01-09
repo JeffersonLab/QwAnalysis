@@ -12,7 +12,7 @@
 //                                                                                                                                                //
 //                                                                                                                                                //
 //     run_number        : Number of the run containing the signal                                                                                //
-//     device list       : The device signal which is to be FFT'd. eg, "hcbpmx","hcbpmy","injbpmx" and injbpmy" and "mdbars"                      //
+//     device list       : The device signal which is to be FFT'd. eg, "hcbpmx","hcbpmy","injbpmx" and injbpmy", "mdbars", "lumis"                //
 //                         Right now there are the only two device arrays implemented.                                                            //
 //     min               : The lower limit of the event cut.                                                                                      //
 //     max               : The upper limit of the event cut                                                                                       //
@@ -31,7 +31,7 @@
 //Info in <TCanvas::Print>: GIF file 6206_FFT_of_bpmx_2.gif has been created
 //
 // 01-06-2012 B. Waidyawansa : Switched to using time derived from mps and helfreq instead of time per sample.
-// 01-09-2012 B. Waidyawansa : Added FFT plotting option for MD bar sums.
+// 01-09-2012 B. Waidyawansa : Added FFT plotting option for MD bar sums and lumis.
 
 #include <cstdlib>
 
@@ -75,6 +75,7 @@ Bool_t FindFiles(TString filename, TChain * chain);
 const Int_t nbpms   = 23;
 const Int_t injbpms = 21;
 const Int_t nbars   = 8;
+const Int_t nlumis  = 12;
 
 TString axis[2] ={"X","Y"};
 TString useaxis ="";
@@ -100,7 +101,21 @@ TString mdbarsums[nbars]={
   "qwk_md5barsum","qwk_md6barsum","qwk_md7barsum","qwk_md8barsum"
 };
 
-
+// lumi list
+TString lumis[nlumis]={
+  "qwk_dslumi1",
+  "qwk_dslumi2",
+  "qwk_dslumi3",
+  "qwk_dslumi4",
+  "qwk_dslumi5",
+  "qwk_dslumi6",
+  "qwk_dslumi7",
+  "qwk_dslumi8",
+  "uslumi1_sum",
+  "uslumi3_sum",
+  "uslumi5_sum",
+  "uslumi7_sum",
+};
 
 // Function
 void 
@@ -161,7 +176,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
     found_hel = FindFiles(filename, tree);
     found_slow = FindFiles(filename, slow_tree);
     if(!found_hel || ! found_slow){
-      filename = Form("Qweak_%i.000.root", run_number);
+      filename = Form("inj_parity_%i.000.trees.root", run_number);
       found_hel = FindFiles(filename, tree);
       found_slow = FindFiles(filename, slow_tree);
       if(!found_hel || !found_slow){
@@ -195,6 +210,9 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
     }
   }
   else if(devicelist.Contains("md")){
+    // do nothing
+  }
+  else if(devicelist.Contains("lumi")){
     // do nothing
   }
   else{
@@ -236,7 +254,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
 
   TH2D *h2_2;
   Int_t k =1;
-  Int_t j= 0;
+  Int_t j= 1;
 
   TCanvas *canvas = NULL;
   canvas = new TCanvas("canvas","Fast Fourier Transform",10,10,1550,1180);
@@ -285,8 +303,8 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
       k++;
       if(k==9){
 	k=1;
-	j++;
 	canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
+	j++;
       }
 
     };
@@ -295,6 +313,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
        canvas->cd(i);
        gPad->Clear();
     }
+    canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
   }
   else if(devicelist.Contains("inj")){
     
@@ -337,8 +356,8 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
       k++;
       if(k==9){
 	k=1;
+	canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j)); // save this canvas
 	j++;
-	canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
       }
     };
     //Clear out the rest of the pads
@@ -346,6 +365,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
       canvas->cd(i);
       gPad->Clear();
     }
+    canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j)); // save this canvas
   }
   else if(devicelist.Contains("md")){
 
@@ -384,30 +404,72 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
 
       canvas -> Modified();
       canvas -> Update();
-      k++;
+      k++; // 8th device was drawn..k is now 9
       if(k==9){
-	k=1;
-	j++;
+	k=1; //reset k
 	canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
+	j++;
       }
 
+    }; 
+  }
+  else if(devicelist.Contains("lumi")){
+    
+    for(Int_t i=0;i<nlumis;i++){
+      
+      canvas -> cd(2*k);
+      gStyle->SetOptStat(0);
+      device = Form("%s",lumis[i].Data());      
+      std::cout<<"Get FFT of "<<device<<std::endl;
+      gPad->SetLogy();
+      //  gPad->SetLogx();
+      cut = Form("mps_counter>%i && mps_counter<%i && ErrorFlag == 0 && %s.Device_Error_Code == 0",
+ 		 min,max,device.Data());
+      get_fft(run_number, tree, device, events, up, low, cut, event_rate); 
+
+      gPad->Update();
+
+      // Plot the base signal distribution.
+      canvas -> cd(2*k-1);
+      gStyle->SetOptStat(1);
+      tree->Draw(Form("%s.hw_sum:mps_counter>>htemp",device.Data()),cut);
+      h2_2 = (TH2D*) gDirectory -> Get("htemp");
+      if(h2_2 == NULL){
+	std::cout<<"Unable to plot "<<Form("%s.hw_sum>>htemp",device.Data())<<std::endl;
+	exit(1);
+      }
+      
+      h2_2 -> SetTitle(Form("Distribution of %s in %i",device.Data(), run_number));
+      h2_2 -> GetYaxis() -> SetTitle("Signal (V/muA)");
+      h2_2 -> GetYaxis() -> SetTitleSize(0.05);
+      h2_2 -> GetXaxis() -> SetTitle("Events");
+      h2_2 -> SetName(device);
+      h2_2 -> SetTitle("");
+      h2_2->DrawCopy();
+      delete h2_2;
+
+      canvas -> Modified();
+      canvas -> Update();
+      k++; // 8th device was drawn..k is now 9
+      if(k==9){
+	k=1; //reset k
+	canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
+	j++;
+      }
     };
     //Clear out the rest of the pads
-    for(Int_t i =15; i<17; i++){
-       canvas->cd(i);
-       gPad->Clear();
+    for(Int_t i =10; i<17; i++){
+      canvas->cd(i);
+      gPad->Clear();
     }
-
+    canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
+    
+    
   }
   else {
     std::cout<<"Unknown devicelist "<<devicelist<<std::endl;
     exit(1);
   }
-  
-  
-  // Print the last page of the canvas.
-  j++;
-  canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
   
   return;
 }
@@ -469,7 +531,7 @@ void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t events, Double
   hfft -> GetXaxis() -> SetTitleSize(0.05);
 
   xa = hfft -> GetXaxis();
-  xa -> SetRangeUser((xa->GetBinLowEdge(1)), xa->GetBinUpEdge(xa->GetNbins()/2.0));
+  xa -> SetRangeUser((xa->GetBinLowEdge(1)), xa->GetBinUpEdge(xa->GetNbins()/5.0));
   hfft -> GetYaxis() -> SetRangeUser(0.0000001,100);
 
   hfft->SetLineColor(1);
