@@ -2992,7 +2992,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	     pt->SetOctantNumber(wv->GetOctantNumber());
 	     pt->RotateCoordinates();
 
-	     if(!best_pt){
+	     if(best_pt){
 	       QwPartialTrack* temp=best_pt;
 	       delete temp;
 	       best_pt=0;
