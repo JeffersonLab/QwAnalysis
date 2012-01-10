@@ -10,6 +10,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   //  TApplication theApp("App", &argc, argv);
 
   TString filename;
+  TString correction_cut;
 
   TChain *mod_tree = new TChain("Mod_Tree");
   
@@ -36,11 +37,13 @@ Int_t main(Int_t argc, Char_t *argv[])
   Double_t meanx;
   Double_t meany;
   Double_t delta;
-  Double_t range[5] = {0.06, 2e-6, 0.06, 0.06, 2e-6};
+  Double_t range[5] = {0.12, 4e-6, 0.12, 0.12, 4e-6};
   Double_t yield_range[5] = {0.5, 0.02e-3, 0.5, 0.3, 0.02e-3};
   Double_t fRange[5] = {0.15, 0.0035e-3, 0.3, 0.12, 0.003e-3};
   Double_t fRangeDiff[5] = {0.12, 3.2e-6, 0.14, 0.12, 2.2e-6};
-  Double_t corr_range[5] = {0.15e-3, 0.15e-3, 0.15e-3, 0.05e-3, 0.1e-3};
+//   Double_t corr_range[5] = {50.e-3, 50.6e-3, 50.e-3, 50.e-3, 50.e-3};
+//   Double_t corr_range[5] = {0.1, 0.1, 0.1, 0.1, 0.1};
+  Double_t corr_range[5] = {1., 1., 1., 1., 1.};
 
   QwDiagnostic *modulation = new QwDiagnostic(mod_tree);
 
@@ -70,6 +73,22 @@ Int_t main(Int_t argc, Char_t *argv[])
   gSystem->Exec(Form("rm -rf %s_diagnostic", filename.Data()));
   gSystem->Exec(Form("mkdir %s_diagnostic", filename.Data()));
 
+  // ******************************************************************** //
+  // Build a proper cut string for the corrections plots.  This should    //
+  // match what is used to fill the corrected asymmetry in the analyzer.  //
+  // ******************************************************************** //
+
+  correction_cut = "ErrorFlag == 0";
+
+  for(Int_t i = 0; i < (Int_t)(modulation->fNDetector); i++)
+    correction_cut = Form("%s &&  asym_%s_Device_Error_Code == 0", correction_cut.Data(), modulation->DetectorList[i].Data());
+  for(Int_t i = 0; i < (Int_t)(modulation->fNMonitor); i++)
+    correction_cut = Form("%s &&  diff_%s_Device_Error_Code == 0", correction_cut.Data(), modulation->MonitorList[i].Data());
+
+  std::cout << red << correction_cut << normal << std::endl;
+
+  // ******************************************************************** //
+
   for(Int_t i = 0; i < (modulation->GetModNumber()); i++){
     modulation->SensHistogram.push_back(std::vector <TProfile *>());
     modulation->SensHistogramCorr.push_back(std::vector <TProfile *>());
@@ -82,20 +101,20 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
   for(Int_t j = 0; j < modulation->fNDetector; j++){
     modulation->AsymHistogram.push_back(new TH1F(Form("hist_asym_%s", modulation->DetectorList[j].Data()),
-						 Form("hist_asym_%s", modulation->DetectorList[j].Data()), 2000, -1000.0, 1000.0 ));
+						 Form("hist_asym_%s", modulation->DetectorList[j].Data()), 2000, -1.e6, 1.e6 ));
     modulation->RawAsymHistogram.push_back(new TH1F(Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()),
-						    Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()), 2000, -1000.0, 1000.0 ));
+						    Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()), 2000, -1.e6, 1.e6 ));
   }
 
   for(Int_t i = 0; i < modulation->fNDetector; i++){
 
       modulation->TotalCorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s", modulation->DetectorList[i].Data()),
 							      Form("hist_corr_%s", modulation->DetectorList[i].Data()),
-							      1000, -1.e-3, 1.e-3 ));
+							      10000, -100.e-3, 100.e-3 ));
     for(Int_t j = 0; j < modulation->fNMonitor; j++){
       modulation->CorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
 							 Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
-							 1000, -corr_range[j], corr_range[j] ));
+							 50000, -corr_range[j], corr_range[j] ));
     }
   }
   canvas2->Divide(1,modulation->fNMonitor);
@@ -162,8 +181,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 	std::cout << other << Form("asym_%s:diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
 				   modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()) << " " <<  cut_mod[j] << normal << std::endl;
 	modulation->SensHistogram[i][j] = (TProfile *)gDirectory->Get(Form("hist_%i_%s_%s", j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data() ));
-	modulation->SensHistogram[i][j]->SetAxisRange(-0.0005, 0.0005, "Y");
-
+ 	modulation->SensHistogram[i][j]->SetAxisRange(-0.0005, 0.0005, "Y");
  	for(Int_t m = 1; m < fResolution; m++){
  	  entries = (Int_t)(modulation->SensHistogram[i][j])->GetBinEntries(m);
 
@@ -281,7 +299,7 @@ Int_t main(Int_t argc, Char_t *argv[])
      
       canvas3->cd(i + 1);
       mod_tree->Draw(Form("corr_asym_%s_diff_%s>>hist_corr_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data(),
-			  modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data()), "ErrorFlag == 0");
+			  modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data()), correction_cut);
       modulation->CorrectionHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_corr_%s_%s", modulation->DetectorList[k].Data(), 
 									modulation->MonitorList[i].Data()));
       modulation->Correction[k][i]->slope = modulation->CorrectionHistogram[i]->GetMean();
@@ -290,6 +308,10 @@ Int_t main(Int_t argc, Char_t *argv[])
       modulation->CorrectionHistogram[i]->SetTitle("Correction to Asymmetry for each Monitor");
       modulation->CorrectionHistogram[i]->GetYaxis()->SetTitle("Counts");
       modulation->CorrectionHistogram[i]->GetXaxis()->SetTitle("correction position/angle difference");
+      // Try to refit the histogram to include the enormous widths of the lumis
+      Double_t rms = modulation->CorrectionHistogram[i]->GetRMS();
+      modulation->CorrectionHistogram[i]->SetAxisRange(-10*rms, 10*rms, "X");
+      modulation->CorrectionHistogram[i]->Draw();
       canvas3->Update();
       canvas3->Modified();
 
@@ -303,7 +325,7 @@ Int_t main(Int_t argc, Char_t *argv[])
      
       canvas8->cd();
       mod_tree->Draw(Form("correction_%s>>hist_corr_%s", modulation->DetectorList[k].Data(),
-			  modulation->DetectorList[k].Data()), "ErrorFlag == 0");
+			  modulation->DetectorList[k].Data()), correction_cut);
       modulation->TotalCorrectionHistogram[k] = (TH1F *)gDirectory->Get(Form("hist_corr_%s", modulation->DetectorList[k].Data()));
       modulation->TotalCorrection[k]->slope = modulation->TotalCorrectionHistogram[k]->GetMean();
       modulation->TotalCorrection[k]->error = modulation->TotalCorrectionHistogram[k]->GetRMS()/(TMath::Sqrt(modulation->TotalCorrectionHistogram[k]->GetEntries()));
@@ -311,6 +333,11 @@ Int_t main(Int_t argc, Char_t *argv[])
       modulation->TotalCorrectionHistogram[k]->SetTitle(Form("Total Correction to Asymmetry for %s", modulation->DetectorList[k].Data()));
       modulation->TotalCorrectionHistogram[k]->GetYaxis()->SetTitle("Counts");
       modulation->TotalCorrectionHistogram[k]->GetXaxis()->SetTitle("correction position/angle difference");
+
+      Double_t totalrms = modulation->TotalCorrectionHistogram[k]->GetRMS();
+      modulation->TotalCorrectionHistogram[k]->SetAxisRange(-10*totalrms, 10*totalrms, "X");
+      (modulation->TotalCorrectionHistogram[k]->GetXaxis())->SetLabelSize(0.02);
+      modulation->TotalCorrectionHistogram[k]->Draw();
       canvas8->Update();
       canvas8->Modified();
 
@@ -332,8 +359,6 @@ Int_t main(Int_t argc, Char_t *argv[])
 
       TH2F *temp = new TH2F("temp", "temp", fResolution, -1.0, 1.0, fResolution, -1.0, 1.0);    
       mod_tree->Draw(Form("corr_asym_%s:diff_%s>>temp", modulation->DetectorList[i].Data(), 
-
-
 			  modulation->MonitorList[j].Data()), cut_nat[j], "prof");
 
 	temp = (TH2F *)gDirectory->Get("temp");
