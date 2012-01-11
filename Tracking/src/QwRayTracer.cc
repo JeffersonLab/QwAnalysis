@@ -130,7 +130,7 @@ int QwRayTracer::Bridge(
   ClearListOfTracks();
 
   // Ray-tracing parameters
-  double res = 0.5 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
+  double res = 1 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
   double step = 1.0 * Qw::cm; // integration step size
   double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
@@ -138,7 +138,8 @@ int QwRayTracer::Bridge(
   double x0,y0,r0;
 
   // Front track position and direction
-  TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
+  //TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
+  TVector3 start_position = front->GetPosition(-250 * Qw::cm);
   fStartPosition = start_position;
   TVector3 start_direction = front->GetMomentumDirection();
   fScatteringAngle = start_direction.Theta();
@@ -146,7 +147,8 @@ int QwRayTracer::Bridge(
   p[0] = p[1] = EstimateInitialMomentum(start_direction)/Qw::GeV;
 
   // Back track position and direction
-  TVector3 end_position = back->GetPosition(439.625 * Qw::cm);
+  //TVector3 end_position = back->GetPosition(439.625 * Qw::cm);
+  TVector3 end_position = back->GetPosition(250.0 * Qw::cm);
   TVector3 end_direction = back->GetMomentumDirection();
 
   
@@ -263,6 +265,7 @@ int QwRayTracer::Bridge(
     track->fPositionPhioff = fPositionPhiOff;
     track->fDirectionThetaoff = fDirectionThetaOff;
     track->fDirectionPhioff = fDirectionPhiOff;
+    // let r2 to determine the package
     track->SetPackage(front->GetPackage());
 
 

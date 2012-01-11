@@ -24,11 +24,11 @@
 // this will carry out the same task as previous example for the first 10000 events. 
 // However, the name of the rootfile
 // has a suffix "_v2", so the script is looking for a rootfile named as Qweak_13653_v2.root.
-// Furthuremore, the octant which package2 covers is 3, which leads to the fact that package1
+// Furthuremore, the octant which package2 of R2 covers is 3, which leads to the fact that package1
 // covers oct 7. The default value for the octant specification number is 1, which corresponds
 // to the nominal situation(pkg2 is at oct1 and pkg1 is at oct5).
 
-
+// notion: the package number is always consitent with package number in R2
 
 
 
@@ -76,10 +76,10 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
     event_branch->SetAddress(&fEvent);
     int md_1=(oct+4)%8;
     int md_2=oct;
-    TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_adc",md_1));
-    TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_adc",md_1));
-    TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_adc",md_2));
-    TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_adc",md_2));
+    //TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_adc",md_1));
+    //TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_adc",md_1));
+    //TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_adc",md_2));
+    //TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_adc",md_2));
     
     TLeaf* tsp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
     TLeaf* tsm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
@@ -94,10 +94,10 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
       event_branch->GetEntry(i);
       maindet_branch->GetEntry(i);
        
-      double mdp_value_1=mdp_1->GetValue();
-      double mdm_value_1=mdm_1->GetValue();
-      double mdp_value_2=mdp_2->GetValue();
-      double mdm_value_2=mdm_2->GetValue();
+      //double mdp_value_1=mdp_1->GetValue();
+      //double mdm_value_1=mdm_1->GetValue();
+      //double mdp_value_2=mdp_2->GetValue();
+      //double mdm_value_2=mdm_2->GetValue();
 
       trig_branch->GetEntry(i);
        

@@ -95,9 +95,12 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       detectorId   = mapstr.GetTypedNextToken<Int_t>();
 
       fR2Octant=gQwOptions.GetValue<Int_t> ("R2-octant");
+      // order is 1,2,8,7,6 for pkg2
+      // order is 5,6,4,3,2 for pkg1
       Int_t oct=fR2Octant;
-	  if (oct == 8) oct=4;
-	  if (oct == 7) oct=5;
+	  if (oct == 8) oct=3;
+	  if (oct == 7) oct=4;
+	  if (oct == 6) oct=5;
 	  Zpos = ZPOS[oct-1];
 	  Det_originX  = XPOS[oct-1];
           Det_originY  = YPOS[oct-1];
@@ -319,9 +322,10 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   //Double_t dt_ = 0.12 * (drifttime);
  
   Double_t dt_= drifttime;
-  Double_t dd_ = 0.0,t0=0.0;
+  //Double_t dd_ = 0.0,t0=0.0;
+  Double_t dd_ = 0.0;
   Double_t resolution=1.0;
-  dt_-=t0;
+  //dt_-=t0;
   if(dt_>=0 && dt_<130){
     Int_t index = (Int_t) (dt_/resolution);
   dd_=( dt_-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );}
@@ -592,6 +596,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 {
 
     LoadTtoDParameters ( "R2_TtoDTable.map" );
+    LoadTimeWireOffset( "R2_timeoffset.map");
     TString varname, varvalue;
     UInt_t value   = 0;
     UInt_t  chan   = 0;
@@ -954,8 +959,8 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
         Int_t plane=0,wire=0;
         EQwDetectorPackage package = kPackageNull;
-	//        Double_t t0 = 0.0;
-	//        Double_t real_time=0.0;       
+	Double_t t0 = 0.0;
+	Double_t real_time=0.0;       
         size_t nhits=fTDCHits.size();
         for(size_t i=0;i<nhits;i++)
         {
@@ -963,10 +968,11 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
                 package = fTDCHits.at(i).GetPackage();
                 plane   = fTDCHits.at(i).GetPlane();
                 wire    = fTDCHits.at(i).GetElement();
-//                 t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
-                              
-                //real_time=fTDCHits.at(i).GetTime()-t0;
-                                      
+                t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
+                  
+		
+                real_time=fTDCHits.at(i).GetTime()-t0;
+                fTDCHits.at(i).SetTime(real_time);                      
 		//     if(real_time<0 || real_time>130){
 			  // fTDCHits.erase(fTDCHits.begin()+i);
 			  //--nhits;
@@ -977,7 +983,7 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
 		//      fTDCHits.at(i).SetTime(real_time);
 		//  }
 	}
-        return;
+        return ;
 }
 
 void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
@@ -1000,4 +1006,60 @@ void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
       fTtoDNumbers.push_back ( d );
     }
   return;
+}
+
+
+Int_t QwDriftChamberHDC::LoadTimeWireOffset ( TString t0_map )
+{
+  //std::cout << "beginning to load t0 file... " << std::endl;
+  //
+  QwParameterFile mapstr ( t0_map.Data() );
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
+  TString varname,varvalue;
+  Int_t plane=0,wire=0;
+  Double_t t0 = 0.0;
+  EQwDetectorPackage package = kPackageNull;
+
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )
+	{
+	  varname.ToLower();
+	  if ( varname=="package" )
+	    {
+	      package = ( EQwDetectorPackage ) atoi ( varvalue.Data() );
+	      if ( package> ( Int_t ) fTimeWireOffsets.size() ) fTimeWireOffsets.resize ( package );
+	    }
+	  else if ( varname=="plane" )
+	    {
+	      //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+	      plane = atoi ( varvalue.Data() );
+	      if ( plane> ( Int_t ) fTimeWireOffsets.at ( package-1 ).size() ) fTimeWireOffsets.at ( package-1 ).resize ( plane );
+	      //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+
+	      // To Siyuan, * : can package be obtained before plane in while loop? if plane is before package
+	      //                we have at(-1), thus, if condition is always "false", I guess.
+	      //            * : if, else if then can we expect something more?
+	      // from Han
+	    }
+	  continue;
+	}
+
+      wire = mapstr.GetTypedNextToken<Int_t>();
+      t0   = mapstr.GetTypedNextToken<Int_t>();
+
+      if ( wire > ( Int_t ) fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).size() )
+	{
+	  fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).resize ( wire );
+
+	  fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 ) = t0;
+	}
+
+    }
+  //
+  return OK;
 }
