@@ -68,8 +68,8 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   //////////////////////////////////
   //***Define the desired cuts.***//
   //////////////////////////////////
-  std::vector<Int_t> cut;
-  Int_t nCuts = cutOnLaser(cut, helChain);
+  std::vector<Int_t> cut = cutOnLaser(helChain);
+  Int_t nCuts = cut.size();
   helChain->ResetBranchAddresses();//resets branch address
   printf("nCuts=%d\n",nCuts); 
   if(nCuts>2*NCUTS){//Stop execution if # of cuts exceeds initialized array.
@@ -90,11 +90,11 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   Double_t bkg[NCUTS], bkgWidth[NCUTS];
   cout<<cutval1<<"\t"<<cutval2<<"\t"<<hTemp->GetMean()<<endl;
   hTemp->TH1D::~TH1D();
-  Double_t maxCur = helChain->GetMaximum("yield_bcm6_3c17");
+  Double_t maxCur = helChain->GetMaximum("yield_sca_bcm6.value");
   cout<<"maxCur="<<maxCur<<endl;
   Double_t cutCur = maxCur * 0.8 + 0.2 * MINSCALER;//subtract scaler pedestal of 235Hz
-  TCut bcmCut = Form("yield_bcm6_3c17>%f",cutCur);
-  TCut beamOffCut = Form("yield_bcm6_3c17<=%f", MINSCALER + 2);
+  TCut bcmCut = Form("yield_sca_bcm6.value>%f",cutCur);
+  TCut beamOffCut = Form("yield_sca_bcm6.value<=%f", MINSCALER + 2);
   TCut scalerCut = "yield_sca_laser_photon> 2";//PMT On and beam hitting laser
   TCut powCut = bcmCut && scalerCut;//PMT On and hitting laser and beam On
   printf("BCM current cut is %f.\n",cutCur);
@@ -156,7 +156,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   hBinX += diffX*0.1;
   lBinX -= diffX*0.1;
   Double_t hBinY ,lBinY, diffY;
-  helChain->Draw(Form("(yield_bcm6_3c17-%f)*%f:pattern_number>>hbcm(200,,,200,0.0,180.0)",
+  helChain->Draw(Form("(yield_sca_bcm6.value-%f)*%f:pattern_number>>hbcm(200,,,200,0.0,180.0)",
 		      MINSCALER,BCMGAIN),"","goff");
   gPad->Update();
   TH2F *hbcm = (TH2F*)gDirectory->Get("hbcm");
