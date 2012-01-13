@@ -56,7 +56,44 @@ TString plotc;
 TString cut;
 TH2F * ht;
 
-void plot(TString title, TTree * ntree, Int_t rnum, TString device1, TString device2 )
+// Adapted from hallc_bcm_calib.C GetTree function written by J.H.Lee.
+// This function use the chain to add all of the files with name 
+// "filename" and then use that chain to get the corresponding file list.
+// it return s 1 if files are found. 0 if not.
+
+Bool_t FindFiles(TString file_name, TChain * chain)
+{
+  TString file_dir;
+  Int_t  chain_status = 0;
+
+  file_dir = gSystem->Getenv("QW_ROOTFILES");
+  // To make the chain actually check if a file exsists, have to set the number of entries<=0.
+  chain_status = chain->Add(Form("%s/%s", file_dir.Data(), file_name.Data()),0);
+  
+  if(chain_status) {
+    
+    TString chain_name = chain -> GetName();
+    TObjArray *fileElements = chain->GetListOfFiles();
+    TIter next(fileElements);
+    TChainElement *chain_element = NULL;
+
+    while (( chain_element=(TChainElement*)next() )){      
+      std::cout << "File:  " 
+		<< chain_element->GetTitle() 
+		<< " is added into the file list with the name"<< std::endl;
+    }
+  }
+  else {
+    std::cout << "There is (are) no "
+	      << file_name 
+	      << "."
+	      << std::endl;
+  }
+  return chain_status;
+};
+
+
+void plot(TString title, TChain * ntree, Int_t rnum, TString device1, TString device2 )
 {
   
   //TGraph * gr = NULL;
@@ -169,20 +206,33 @@ void correlations( Int_t rnum, TString device1, TString device2)
   pad2->Divide(1,2);
   gPad->SetFillColor(20);
 
-  //Get the root file
-  sprintf(fname,"%s/QwPass1_%i.000.root",Directory.Data(),rnum);
-  TFile* rf = new TFile(fname);
-  if(!rf->IsOpen())
-    {
-      std::cerr<<"Cannot locate file "<<fname<<std::endl;
-      exit(1);
+
+  // Create trees
+  TChain *ntree = new TChain("Hel_Tree");
+
+
+  // Find the rootfiles
+  TString file_name = Form("QwPass1_%i.000.root", rnum);
+  
+  Bool_t found_hel = kFALSE;
+
+  found_hel = FindFiles(file_name, ntree);
+  
+  if(!found_hel){
+    file_name = Form("first100k_%i.root", rnum);
+    found_hel = FindFiles(file_name, ntree);
+    if(!found_hel){
+      file_name = Form("Qweak_%i.000.root", rnum);
+      found_hel = FindFiles(file_name, ntree);
+      if(!found_hel){
+	std::cerr<<"Unable to find rootfile(s) for run "<<rnum<<std::endl;
+	exit(1);
+      }
     }
-  else
-    std::cout<<"Obtaining data from: "<<fname<<"\n";
+  }
+  
 
 
-  //load the HEL_Tree. It has data based on quartets analysis
-  ntree = (TTree*)rf->Get("Hel_Tree"); 
 
   //plot the correlations
   plot(CTitle,ntree,rnum, device1, device2);
@@ -193,6 +243,5 @@ void correlations( Int_t rnum, TString device1, TString device2)
   std::cout<<" done with calibration \n";
 
 };
-
 
 

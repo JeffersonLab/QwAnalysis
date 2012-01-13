@@ -9,13 +9,15 @@
 //   a constant fit which is displayed in the right side pannel of the canvas.
 //   The canvas is saved as ****_Transverse_fit.gif
 //   e.g. use
-//   ./transverse_fit 9690 (run number)
+//   ./transverse_fit 9690 
 //
 //   To compile this code do a gmake.
 //
 //   
 //*****************************************************************************************************//
-
+// 01-13-2012 B.Waidyawansa : Renamed the script from TransverseFit.cc to 100k_transverse_fit.C
+//                            Changed the fit to [0]cos(phi)-[1]sin(phi)+[2]
+//
 
 using namespace std;
 
@@ -123,8 +125,8 @@ int main(Int_t argc,Char_t* argv[])
       exit(1);
   }
   std::cout<<"Fitting with  "<<std::endl;
-  std::cout<<"Left. pannel A*sin(phi+phi0) + delta  fit"<<std::endl;
-  std::cout<<"Right pannel constant first 0th order polynomial fit"<<std::endl;
+  std::cout<<"Left. pannel Av*cos(phi)-Ah*sin(phi)+const  fit"<<std::endl;
+  std::cout<<"Right pannel constant fit "<<std::endl;
   // std::cin>>opt;
  
   
@@ -218,17 +220,19 @@ int main(Int_t argc,Char_t* argv[])
   }
   
 
-  // Sin fit 
-  TF1 *sinfit = new TF1("sinfit","[0]*sin((pi/180)*(45*(x-1) + [1]))+[2]",1,8);
-  sinfit->SetParameter(0,0);
-  sinfit->SetParameter(1,0);
-  sinfit->SetParameter(2,0);
+  // xyfit
+  TF1 *xyfit = new TF1("xyfit","[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1)))+[2]",1,8);
+  xyfit->SetParameter(0,0);
+  xyfit->SetParameter(1,0);
+  xyfit->SetParameter(2,0);
+  xyfit->SetParName(0,"A_V");
+  xyfit->SetParName(1,"A_H");
+  xyfit->SetParName(2,"constant");
+
   
-  // cos fit (if we want we can switch to this)
-  TF1 *cosfit = new TF1("cosfit","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
-  cosfit->SetParameter(0,0);
-  //cosfit->SetParameter(1,0);
-  //cosfit->SetParameter(2,0);
+ //  // cos fit (if we want we can switch to this)
+//   TF1 *cosfit = new TF1("cosfit","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+//   cosfit->SetParameter(0,0);
 
 
   // Draw MD asymmetries
@@ -240,20 +244,20 @@ int main(Int_t argc,Char_t* argv[])
   get_octant_data(tree, run, quartz_bar_POS,opt, value1,err1);
   plot_octant(value1,err1);
   gr=(TGraphErrors*)gPad->GetPrimitive("Graph");
-  gr->Fit("cosfit");
-  TF1* fit = gr->GetFunction("cosfit");
+  gr->Fit("xyfit");
+  TF1* fit = gr->GetFunction("xyfit");
   fit->DrawCopy("same");
-  gtitle = Form("PMT POS Asymmetry Fit : p0 cos(#phi + p1) + p2");
+  gtitle = Form("PMT POS Asymmetry Fit :  A_{V}*cos(#phi)-A_{H}*sin(#phi)+const");
   gr->SetTitle(gtitle);
 
   pad2->cd(3);
   get_octant_data(tree, run, quartz_bar_NEG,opt, value2,err2);
   plot_octant(value2,err2);
   gr=(TGraphErrors*)gPad->GetPrimitive("Graph");
-  gr->Fit("cosfit");
-  fit = gr->GetFunction("cosfit");
+  gr->Fit("xyfit");
+  fit = gr->GetFunction("xyfit");
   fit->DrawCopy("same");
-  gtitle = Form("PMT NEG Asymmetry Fit : p0 cos(#phi + p1) + p2");
+  gtitle = Form("PMT NEG Asymmetry Fit : A_{V}*cos(#phi)-A_{H}*sin(#phi)+const");
   gr->SetTitle(gtitle);
 
 
@@ -261,10 +265,10 @@ int main(Int_t argc,Char_t* argv[])
   get_octant_data(tree, run, quartz_bar_SUM,opt, value3,err3);
   plot_octant(value3,err3);
   gr=(TGraphErrors*)gPad->GetPrimitive("Graph");
-  gr->Fit("cosfit");
-  fit = gr->GetFunction("cosfit");
+  gr->Fit("xyfit");
+  fit = gr->GetFunction("xyfit");
   fit->DrawCopy("same");
-  gtitle = Form("BAR SUM Asymmetry Fit : p0 cos(#phi + p1) + p2");
+  gtitle = Form("BAR SUM Asymmetry Fit : A_{V}*cos(#phi)-A_{H}*sin(#phi)+const");
   gr->SetTitle(gtitle);
 
   pad2->cd(2);
@@ -295,7 +299,7 @@ int main(Int_t argc,Char_t* argv[])
   gr->SetTitle(gtitle);
 
 
-  Canvas1->Print(Form("%i_MD_Transverse_fit_plots.gif",run));
+  Canvas1->Print(Form("100k_%i_MD_Transverse_fit_plots.gif",run));
 
 
   // Draw Lumi asymmetries
@@ -325,20 +329,20 @@ int main(Int_t argc,Char_t* argv[])
   get_octant_data(tree, run, us_lumi,opt, value1,err1);
   plot_octant(value1,err1);
   gr1=(TGraphErrors*)gPad->GetPrimitive("Graph");
-  gr1->Fit("cosfit");
-  TF1* fit1 = gr1->GetFunction("cosfit");
+  gr1->Fit("xyfit");
+  TF1* fit1 = gr1->GetFunction("xyfit");
   fit1->DrawCopy("same");
-  gtitle1 = Form("US lumi sum Asymmetry Fit : p0 cos(#phi + p1) + p2");
+  gtitle1 = Form("US lumi sum Asymmetry Fit : A_{V}*cos(#phi)-A_{H}*sin(#phi)+const");
   gr1->SetTitle(gtitle1);
 
   pad22->cd(3);
   get_octant_data(tree, run, ds_lumi,opt, value2,err2);
   plot_octant(value2,err2);
   gr1=(TGraphErrors*)gPad->GetPrimitive("Graph");
-  gr1->Fit("cosfit");
-  fit1 = gr1->GetFunction("cosfit");
+  gr1->Fit("xyfit");
+  fit1 = gr1->GetFunction("xyfit");
   fit1->DrawCopy("same");
-  gtitle1 = Form(" DS Lumi Asymmetry Fit : p0 cos(#phi + p1) + p2");
+  gtitle1 = Form(" DS Lumi Asymmetry Fit : A_{V}*cos(#phi)-A_{H}*sin(#phi)+const");
   gr1->SetTitle(gtitle1);
 
   pad22->cd(2);
@@ -360,7 +364,7 @@ int main(Int_t argc,Char_t* argv[])
   gr1->SetTitle(gtitle1);
 
 
-  Canvas2->Print(Form("%i_Lumi_Transverse_fit_plots.gif",run));
+  Canvas2->Print(Form("100k_%i_Lumi_Transverse_fit_plots.gif",run));
 
 
   std::cout<<"Done plotting fits \n";
