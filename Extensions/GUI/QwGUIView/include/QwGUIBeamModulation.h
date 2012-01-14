@@ -70,14 +70,7 @@ Added by Nuruzzaman to display the Beam Modulation data.
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dBtnPosDiff;
-  TGTextButton        *dBtnTgtParam;
-  TGTextButton        *dBtnTgtBPM;
-  TGTextButton        *dBtnDetectorSensitivity;
-  TGTextButton        *dBtnLumiSensitivity;
-  TGTextButton        *dBtnFgChannel;
-  TGTextButton        *dBtnLEMChannel;
-  TGTextButton        *dBtnTRIMChannel;
+  TGTextButton        *dBtnBPMResp; 
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -99,20 +92,8 @@ Added by Nuruzzaman to display the Beam Modulation data.
   //!Return value: none
   // void                 PlotData();
 
-  //  void PlotPosData();
+  void PlotBPMResponse(void);
 
-
-/*   void PlotChargeData(); */
-
-
-  void PositionDifferences(); 
-  void DisplayTargetParameters();
-  void DisplayTargetBPM();
-  void DisplayDetectorSensitivity();
-  void DisplayLumiSensitivity();
-  void DisplayFgChannel();
-  void DisplayLEMChannel();
-  void DisplayTRIMChannel();
 
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
@@ -144,10 +125,6 @@ Added by Nuruzzaman to display the Beam Modulation data.
   //!
   //!Return value: none  
   virtual void         MakeLayout();
-
-  void                 SummaryHist(TH1*in);
-
-
 
  public:
   
