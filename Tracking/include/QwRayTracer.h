@@ -94,6 +94,8 @@ class QwRayTracer: public VQwBridgingMethod {
 
     void GetBridgingResult(Double_t *buffer);
 
+    void LoadBeamProperty(TString map);
+
   private:
 
     /// Magnetic field (static)
@@ -129,6 +131,7 @@ class QwRayTracer: public VQwBridgingMethod {
                       // MatchFlag = 0; : matched with look-up table
                       // MatchFlag = 1; : matched by using shooting method
                       // MatchFlag = 2; : potential track is forced to match
+    Double_t fEnergy;
 
 }; // class QwRayTracer
 

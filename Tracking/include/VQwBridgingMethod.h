@@ -102,7 +102,7 @@ inline double VQwBridgingMethod::CalculateVertex(const TVector3& point,const dou
   return vertex_z;
 }
 
-inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double angle,const double momentum,double* results)
+inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double angle,const double energy,double* results)
 {
 
   Double_t cos_theta = 0.0;
@@ -144,7 +144,8 @@ inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double a
   //double Q2 = 2.0*Mp*(P0-PP);
 
   //double P0=1160.385;    // for run I
-  Double_t P0=1157.5*Qw::MeV;
+  //Double_t P0=1157.5*Qw::MeV;
+  Double_t P0=energy*Qw::MeV;
   P0-=pre_loss;
   Double_t PP=Mp*P0/(Mp+P0*(1-cos_theta));
   Double_t Q2=2.0*P0*PP*(1-cos_theta);

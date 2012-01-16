@@ -134,9 +134,19 @@ void QwMagneticField::DefineOptions(QwOptions& options)
 void QwMagneticField::ProcessOptions(QwOptions& options)
 {
   // Scaling
-  double bfil = options.GetValue<double>("QwMagneticField.current")
+  double default_current=options.GetValue<double>("QwMagneticField.current");
+  // Check if it's a typical run or not
+  if(default_current==8920){
+    double actual_current=LoadBeamProperty("beam_property.map");
+    double bfil = actual_current
               / options.GetValue<double>("QwMagneticField.reference");
-  SetScaleFactor(bfil);
+    SetScaleFactor(bfil);
+    }
+  else{
+    double bfil = options.GetValue<double>("QwMagneticField.current")
+              / options.GetValue<double>("QwMagneticField.reference");
+    SetScaleFactor(bfil);
+  }
 
   // Translation and rotation
   double trans = Qw::cm  * options.GetValue<double>("QwMagneticField.trans");
@@ -449,4 +459,29 @@ void QwMagneticField::GetFieldValue(
     QwWarning << "Could not get field value at (z,r,phi) = " << coord_zrf << QwLog::endl;
     QwWarning << "Will use field value (x,y,z) = " << field << QwLog::endl;
   }
+}
+
+
+
+double QwMagneticField::LoadBeamProperty (const TString & map )
+{
+
+  QwParameterFile mapstr ( map.Data() );
+  string varname, varvalue;
+   while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
+      mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+      if ( mapstr.LineIsEmpty() )  continue;
+
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ){
+	  //  This is a declaration line.  Decode it.
+	  //UInt_t value = atol(varvalue.Data());
+	  if ( varname=="QTOR" )   //Beginning of detector information
+	    {
+	       return atoi(varvalue.c_str());
+	    }
+      }
+    }
+   return -1;
 }
