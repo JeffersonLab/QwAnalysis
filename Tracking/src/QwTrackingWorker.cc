@@ -92,7 +92,7 @@ using std::endl;
 #include "globals.h"
 
 // Qweak GEM cluster finding
-#include "QwGEMClusterFinder.h"
+//#include "QwGEMClusterFinder.h"
 
 // Qweak tree search headers
 #include "QwHitPattern.h"
@@ -453,28 +453,28 @@ void QwTrackingWorker::ProcessEvent (
         if (package != kPackageUp && package != kPackageDown) continue;
 
         /// Find the region 1 clusters in this package
-        QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
-        QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);
-        QwGEMClusterFinder* clusterfinder = new QwGEMClusterFinder();
-        std::vector<QwGEMCluster> clusters_r;
-        std::vector<QwGEMCluster> clusters_phi;
-        if (hitlist_region1_r->size() > 0) {
-            clusters_r = clusterfinder->FindClusters(hitlist_region1_r);
-        }
-        if (hitlist_region1_phi->size() > 0) {
-            clusters_phi = clusterfinder->FindClusters(hitlist_region1_phi);
-        }
-        for (std::vector<QwGEMCluster>::iterator cluster = clusters_r.begin();
-                cluster != clusters_r.end(); cluster++) {
-            QwDebug << *cluster << QwLog::endl;
-        }
-        for (std::vector<QwGEMCluster>::iterator cluster = clusters_phi.begin();
-                cluster != clusters_phi.end(); cluster++) {
-            QwDebug << *cluster << QwLog::endl;
-        }
-        delete clusterfinder; // TODO (wdc) should go somewhere else
-        delete hitlist_region1_r;
-        delete hitlist_region1_phi;
+	//      QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
+	//        QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);
+	//        QwGEMClusterFinder* clusterfinder = new QwGEMClusterFinder();
+	//        std::vector<QwGEMCluster> clusters_r;
+	//        std::vector<QwGEMCluster> clusters_phi;
+        // if (hitlist_region1_r->size() > 0) {
+        //     clusters_r = clusterfinder->FindClusters(hitlist_region1_r);
+        // }
+        // if (hitlist_region1_phi->size() > 0) {
+        //     clusters_phi = clusterfinder->FindClusters(hitlist_region1_phi);
+        // }
+        // for (std::vector<QwGEMCluster>::iterator cluster = clusters_r.begin();
+        //         cluster != clusters_r.end(); cluster++) {
+        //     QwDebug << *cluster << QwLog::endl;
+        // }
+        // for (std::vector<QwGEMCluster>::iterator cluster = clusters_phi.begin();
+        //         cluster != clusters_phi.end(); cluster++) {
+        //     QwDebug << *cluster << QwLog::endl;
+        // }
+        // delete clusterfinder; // TODO (wdc) should go somewhere else
+        // delete hitlist_region1_r;
+        // delete hitlist_region1_phi;
 
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;

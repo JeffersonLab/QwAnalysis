@@ -8,6 +8,8 @@ Bank=0x0901
 !
 !
 slot=20
+! Channel 8 : Trig.Scint. Pkg 1 trigger
+! Channel 0 : Master Trigger
 8 99 0
 0 98 0
 8 99 0
@@ -292,6 +294,8 @@ Bank=0x1001
 !
 !
 slot=20
+! Chan 10 : Trig.Scint. Pkg 2 trigger
+! Chan  0 : Master Trigger
 10 99 0
 0 98 0
 10 99 0

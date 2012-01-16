@@ -26,7 +26,7 @@
 
 // Qweak tracking subsystems
 #include "QwSubsystemArrayTracking.h"
-#include "QwGasElectronMultiplier.h"
+#include "QwSciFiDetector.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 #include "QwTriggerScintillator.h"
