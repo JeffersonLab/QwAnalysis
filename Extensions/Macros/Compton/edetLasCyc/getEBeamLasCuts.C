@@ -2,6 +2,7 @@
  * Courtesy: Don Jones
  * modified by: Amrendra
  ************************************************ */
+#include <rootClass.h>
 #include "comptonRunConstants.h"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -31,8 +32,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   //   sprintf(textf,"%d_output.txt",runnum);
   //   ofstream outfile(Form("%s",textf));
   //   printf("%s file created\n",textf);
-  if (beamMax-Qmax >=2) {
-    printf("Warning: notice the difference in bcm6 and Combined Compton charge\n");
+  if (beamMax-Qmax >=5) {
+    printf("Warning: notice the difference in bcm6 and average of bcm 1&2\n");
     printf("             beamMax: %f, Qmax: %f\n",beamMax,Qmax);
   }
   TBranch *bLaser;
@@ -45,9 +46,6 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   chain->SetBranchStatus("sca_laser_PowT",1);//turn on cavity pow branch
   chain->SetBranchStatus("sca_bcm6",1);//turn on bcm branch
   chain->SetBranchStatus("compton_charge",1);//turn on charge branch
-  //chain->SetBranchAddress("sca_laser_PowT",&laser);
-  //chain->SetBranchAddress("sca_bcm1",&bcm);
-  //chain->SetBranchAddress("compton_charge",&comptQ);
   chain->SetAutoDelete(kTRUE);
   printf("Ebeam considered On if above %f.\n", beamFrac * Qmax);
 
@@ -64,8 +62,6 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     laser = lLaser->GetValue();
     bcm = lBCM->GetValue();
     comptQ = lCharge->GetValue();
-//     if( index%100000 == 0 )
-//       std::cout << "Entries processed: " << index << std::endl;
     ////find laser off periods and record start and finish entries
     if (n==minEntries) {
       cutL.push_back(index-minEntries);
@@ -86,8 +82,6 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       }
     }
     //    find and record electron beam off periods
-    //     rampIsDone = bcm > 0.9 * beamMax + 0.1 * BEAM_OFF;//beam above 90% maximum
-    //     isABeamTrip = bcm <= (BEAM_OFF + 1);
 //     rampIsDone = bcm > beamFrac * beamMax;
 //     isABeamTrip = bcm <= (1.0 - beamFrac) *beamMax;
     rampIsDone = comptQ > 0.2 * Qmax;//!review this condition

@@ -16,40 +16,6 @@ TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
 vector<Int_t>cutLas;//arrays of cuts for laser
 vector<Int_t>cutEB;//arrays of cuts for electron beam
 
-// Double_t comptAsymm(Double_t *str, Double_t *par)
-// {
-//   Double_t x, y, asymm, numer, denom, unPolCX, zeroFrac, cxEl, 
-//     nStripsInComptSpect, offset;
-
-//   cxEl = 2.0 *  PI_ * A0*A0;//electron cross section area using classical radius
-//   y = 1.0 / (1.0 + 4.0 * E0 * K0 / (ME*ME));//dimensionless scattering variable
-//   x = str[0];
-  
-//   //fractional distance to asymmetry zero crossing i.e. zero crossing = zeroFrac * KMAX
-//   zeroFrac = 1.0 / (1.0 + y);
-
-//   //strip 1 does not correspond to 0 MeV scattering energy (close to 10 MeV).
-//   //offset gives # of strip widths 0 MeV events are to the left of strip 1
-//   offset = (C_EDGE - Z_CROSS) / (1 - zeroFrac) - C_EDGE;
-
-//   //make x the number of strip widths from 0 MeV scattering events
-//   x += offset;
-
-//   //# of strip widths in full Compton spectrum.
-//   nStripsInComptSpect = (C_EDGE - Z_CROSS) / (1.0 - zeroFrac);
-
-//   //convert x in strip widths to fractional (dimensionless) variable
-//   x = x / nStripsInComptSpect;
-//   numer = 1.0 - x * (1.0 + y);
-//   denom = 1.0 - x * (1.0 - y); 
-
-// //unpolarized Compton differential cross section
-//   unPolCX = cxEl * y * (1 + pow(x*(1-y), 2) / denom + pow(numer/denom, 2));
-// //Compton differential cross section asymmetry
-//   asymm = par[0] * cxEl * y * numer * (1.0 - 1.0 / pow(denom, 2)) / unPolCX;
-//   return asymm;
-// }
-
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the results
 ///////////////////////////////////////////////////////////////////////////
@@ -68,9 +34,8 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   gStyle->SetTitleH(0.07);
   gStyle->SetLineWidth(2);
 
-
   time_t tStart = time(0), tEnd; 
-  Bool_t  lasOn, beamOn=kFALSE, chainExists,lastTrip=kFALSE,goodCycle=kFALSE,newCycle=kTRUE;//assums beamOn to begin with
+  Bool_t  lasOn, beamOn=kFALSE, chainExists,lastTrip=kFALSE,goodCycle=kFALSE,newCycle=kTRUE;
   Int_t h = 0, l = 0, nthBeamTrip = 0, nBeamTrips = 0;
   Int_t nLasCycles, nMpsH0 = 0,nMpsH1 = 0, nMpsBkgd = 0;
   Int_t p1Ac[2][2][nSTRIPS], p2Ac[2][2][nSTRIPS],p3Ac[2][2][nSTRIPS],p4Ac[2][2][nSTRIPS];
