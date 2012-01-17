@@ -69,8 +69,8 @@ void QwDetectorInfo::SetDetectorInfo (
     fType = kTypeTrigscint;
   else if (sdType == "c")
     fType = kTypeCerenkov;
-  else if (sdType == "g")
-    fType = kTypeGem;
+  else if (sdType == "f")
+    fType = kTypeSciFiber;
   else if (sdType == "s")
     fType = kTypeScanner;
 

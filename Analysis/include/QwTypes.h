@@ -52,7 +52,7 @@ inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorPackage&
 
 enum EQwDetectorType {
   kTypeNull = 0,
-  kTypeGem,	        // GEM detector
+  kTypeSciFiber,	// Scintillating Fiber detector
   kTypeDriftHDC,	// HDC Drift chamber
   kTypeDriftVDC,	// VDC Drift chamber
   kTypeTrigscint,	// Trigger scintillator
@@ -61,7 +61,7 @@ enum EQwDetectorType {
   kNumTypes
 };
 inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorType& i) {
-  stream << "?ghvtcs#"[i]; return stream;
+  stream << "?fhvtcs#"[i]; return stream;
 }
 
 // Enumerator type for the instrument type, used in subsystems that have to
@@ -190,6 +190,22 @@ class QwDetectorID
   Int_t              fPlane;   // R or theta index for R1; plane index for R2 & R3
   EQwDirectionID     fDirection; //direction of the wire plane X,Y,U,V etc - Rakitha (10/23/2008)
   Int_t              fElement; // trace number for R1; wire number for R2 & R3; PMT number for others
+  
+  friend std::ostream& operator<<(std::ostream& os, const QwDetectorID &detectorID) {
+    if (detectorID.fPlane != -1) {
+      os << " Region ";
+      os <<  detectorID.fRegion;
+      os << " Package ";
+      os << detectorID.fPackage;
+      os << " Plane ";
+      os << detectorID.fPlane;
+      os << " Direction";
+      os <<detectorID.fDirection;
+      os << " fElement ";
+      os << detectorID.fElement;
+    }
+    return os;
+  }
 };
 
 

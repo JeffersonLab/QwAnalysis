@@ -1,10 +1,10 @@
 ! Map file for Region 1 Scintillating Fibers
 roc=4
-f1tdc_bank=0x0401
+bank=0x0401
 
 ! Reference Time for F1TDC at ROC4
-slot=6
-23 99 0
+!slot=6
+!23 99 0
 
 pkg=2
 slot=6
@@ -12,7 +12,8 @@ slot=6
 ! module.type  module.num  chan.num, det.type, det.name
 !  F1TDC, 6, 32, scifiber, sf_pmt_1357_f1
 ! channle, fiber numbers, fiber end
-32, 1357, 0
+F1TDC, 6, 23, 99,   ref
+F1TDC, 6, 32, 1357, ab
 
 
 
@@ -20,38 +21,41 @@ slot=6
 ! octant 1 = pkg 2 ?
 ! https://hallcweb.jlab.org/hclog/1201_archive/120106145136.html
 roc=9
-f1tdc_bank=0x0901
+bank=0x0901
 
-slot=20
-0 99 0
+!slot=20
+!0 99 0
 
-pkg=2
+!pkg=2
 slot=20
-!format: channel, fiber number, fiber ends 2(B), 1(A), 0(both)
+!format: type chan.num  fiber.num  name
 !module=F1TDC
-  33, 8, 2
-  35, 6, 2
-  37, 4, 2
-  39, 2, 2
-  41, 8, 1
-  43, 6, 1
-  45, 4, 1
-  47, 2, 1
+F1TDC, 20,  0, 99, ref
+F1TDC, 20, 33, 8, b
+F1TDC, 20, 35, 6, b
+F1TDC, 20, 37, 4, b
+F1TDC, 20, 39, 2, b
+F1TDC, 20, 41, 8, a
+F1TDC, 20, 43, 6, a
+F1TDC, 20, 45, 4, a
+F1TDC, 20, 47, 2, a
 
 
 
-scaler=1
+
 roc=11
-sca_bank=0x1103
-! module.type  module.num  chan.num, det.type, det.name
-  SIS3801, 0,  0, scifiber, sf_8b_sca
-  SIS3801, 0,  1, scifiber, sf_6b_sca
-  SIS3801, 0,  2, scifiber, sf_4b_sca
-  SIS3801, 0,  3, scifiber, sf_2b_sca
-  SIS3801, 0,  4, scifiber, sf_8a_sca
-  SIS3801, 0,  5, scifiber, sf_6a_sca
-  SIS3801, 0,  6, scifiber, sf_4a_sca
-  SIS3801, 0,  7, scifiber, sf_2a_sca
+bank=0x1103
+! 5 is an just number in order to make RegisterSlotNumber happy, nothing else..
+slot=5
+! module.type  chan.num, fiber.num, det.name
+SIS3801, 0, 0, 8, sf_8b_sca
+SIS3801, 0, 1, 6, sf_6b_sca
+SIS3801, 0, 2, 4, sf_4b_sca
+SIS3801, 0, 3, 2, sf_2b_sca
+SIS3801, 0, 4, 8, sf_8a_sca
+SIS3801, 0, 5, 6, sf_6a_sca
+SIS3801, 0, 6, 4, sf_4a_sca
+SIS3801, 0, 7, 2, sf_2a_sca
 
 
 !END
