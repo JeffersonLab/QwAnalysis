@@ -1,4 +1,4 @@
-////I acknowledge Don Jones, Juan Carlos for help in the code
+////I acknowledge Don Jones and Juan Carlos for help in the code
 #include <rootClass.h>
 #include "getEBeamLasCuts.C"
 //#include "comptonRunConstants.h" //we don't need to re-include this
@@ -33,7 +33,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 
   time_t tStart = time(0), tEnd; 
   Bool_t debug  = 1;
-  Bool_t debug1 = 1;//print statements with line numb
+  //Bool_t debug1 = 1;//print statements with line numb
   Bool_t debug2 = 1;
   Bool_t debug3 = 0;
   Bool_t  lasOn, beamOn=kFALSE, chainExists;
@@ -41,34 +41,22 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   Bool_t goodCycle=kFALSE;//tracks if a given lasCyc had no beam trip
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
-  Int_t nLasCycles=0, nCycle=0;//total no.of LasCycles, index of the already declared cutLas vector
-  Int_t nMpsH0 = 0,nMpsH1 = 0, nMpsBkgd = 0;
+  Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
+//   Int_t nMpsH0 = 0,nMpsH1 = 0, nMpsBkgd = 0;
+//   Int_t nMpsH0LasCyc = 0, nMpsH1LasCyc = 0, nMpsH0BkgdLasCyc = 0, nMpsH1BkgdLasCyc = 0;
   Int_t p1Ac[2][2][nSTRIPS], p2Ac[2][2][nSTRIPS],p3Ac[2][2][nSTRIPS],p4Ac[2][2][nSTRIPS];//index:h,l,strip
-  Int_t nMpsH0LasCyc = 0, nMpsH1LasCyc = 0, nMpsH0BkgdLasCyc = 0, nMpsH1BkgdLasCyc = 0;
   Double_t lasPow[3], lasMax, helicity, comptQ[3], Qmax;//, beamMax, bcm
   Double_t pattern_number,  event_number;
-  Double_t bP1[nSTRIPS], bP2[nSTRIPS], bP3[nSTRIPS], bP4[nSTRIPS];
+  Double_t bP2[nSTRIPS], bP3[nSTRIPS], bP4[nSTRIPS];//bP1[nSTRIPS],
 
-  std::vector< Int_t > lasOnH1; //[nCycle]
-  std::vector< Int_t > lasOnH0; //[nCycle]
-  std::vector< Int_t > lasOffH1; //[nCycle]
-  std::vector< Int_t > lasOffH0; //[nCycle]
-  std::vector< Int_t > nMpsLasOnH1;
-  std::vector< Int_t > nMpsLasOnH0;
-  std::vector< Int_t > nMpsLasOffH1;
-  std::vector< Int_t > nMpsLasOffH0;
-  std::vector< Int_t > unNormLasCycSum;
-  std::vector< Double_t > normLasOnHpLasCyc;
-  std::vector< Double_t > normLasOnHmLasCyc;
-  std::vector< Double_t > normLasOffHpLasCyc;
-  std::vector< Double_t > normLasOffHmLasCyc;
-
-  std::vector< Double_t > BCnormLasOnHpLasCyc;
-  std::vector< Double_t > BCnormLasOnHmLasCyc;
-  std::vector< Double_t > BCnormLasCycDiff;
-  std::vector< Double_t > BCnormLasCycSum;
-  std::vector< Double_t > tNormLasCycAsym;
-  std::vector< Double_t > LasCycAsymEr;
+  Int_t lasOnH1[nSTRIPS], lasOnH0[nSTRIPS], lasOffH1[nSTRIPS], lasOffH0[nSTRIPS];
+  Int_t  nMpsLasOnH1[nSTRIPS], nMpsLasOnH0[nSTRIPS], nMpsLasOffH1[nSTRIPS], nMpsLasOffH0[nSTRIPS];
+  Int_t  unNormLasCycSum[nSTRIPS];
+  Double_t  normLasOnHpLasCyc[nSTRIPS], normLasOnHmLasCyc[nSTRIPS];
+  Double_t  normLasOffHmLasCyc[nSTRIPS], normLasOffHpLasCyc[nSTRIPS];
+  Double_t BCnormLasOnHpLasCyc[nSTRIPS], BCnormLasOnHmLasCyc[nSTRIPS]; 
+  Double_t  BCnormLasCycSum[nSTRIPS], BCnormLasCycDiff[nSTRIPS];
+  Double_t tNormLasCycAsym[nSTRIPS], LasCycAsymEr[nSTRIPS];
 
   TH1D *hAsymPlaneStr = new TH1D("hAsymPlaneStr", "Plane2SingleStripAsym", 25,-0.001,0.001);
   TH1D *hAsymErPlaneStr = new TH1D("hAsymErPlaneStr","Single Strip asymmetry error",25,-0.0001,0.0001);
@@ -139,59 +127,40 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   mpsChain->SetBranchAddress("sca_laser_PowT",&lasPow);
   mpsChain->SetBranchAddress("compton_charge",&comptQ);
 
-  //   mpsChain->SetBranchAddress("p1RawAc",&bP1);
+  //   mpsChain->SetBranchAddress("p1RawAc",&bP1);//!the old analyzer doesn't have this branch
   mpsChain->SetBranchAddress("p2RawAc",&bP2);
-  //   mpsChain->SetBranchAddress("p3RawAc",&bP3);
-  //   mpsChain->SetBranchAddress("p4RawAc",&bP4);
+  mpsChain->SetBranchAddress("p3RawAc",&bP3);
+  mpsChain->SetBranchAddress("p4RawAc",&bP4);
   
-  lasOnH1.resize(nLasCycles);
-  lasOffH1.resize(nLasCycles);
-  lasOnH0.resize(nLasCycles);
-  lasOffH0.resize(nLasCycles);
-  nMpsLasOnH1.resize(nLasCycles);
-  nMpsLasOffH1.resize(nLasCycles);
-  nMpsLasOnH0.resize(nLasCycles);
-  nMpsLasOffH0.resize(nLasCycles);
-
-  normLasOnHpLasCyc.resize(nLasCycles);
-  normLasOnHmLasCyc.resize(nLasCycles);
-  normLasOffHpLasCyc.resize(nLasCycles);
-  normLasOffHmLasCyc.resize(nLasCycles);
-
-  BCnormLasOnHpLasCyc.resize(nLasCycles);
-  BCnormLasOnHmLasCyc.resize(nLasCycles);
-  BCnormLasCycDiff.resize(nLasCycles);
-  BCnormLasCycSum.resize(nLasCycles);
-
-  unNormLasCycSum.resize(nLasCycles);
-  tNormLasCycAsym.resize(nLasCycles);
-  LasCycAsymEr.resize(nLasCycles);
-
   Int_t mystr = 48;
 
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
+    cout<<"\nStarting nCycle:"<<nCycle<<" and resetting all nCycle variables"<<endl;
     ////since this is the beginning of a new Laser cycle, and I have already assigned the 
     ////accumulated counts to a permanent variable reset the LasCyc counters
-    //!temp for speed	for(Int_t s=0; s<nSTRIPS; s++) {
-    for(Int_t s=mystr;s<=mystr;s++) {
-      for(Int_t h=0; h<2; h++) {
+    for(Int_t s=0; s<nSTRIPS; s++) {
+      for(h=0; h<2; h++) {
 	for(Int_t l=0; l<2; l++) {
 	  p1Ac[h][l][s]=0, p2Ac[h][l][s]=0, p3Ac[h][l][s]=0, p4Ac[h][l][s]=0;
 	}
       }
-      nMpsH0LasCyc=0,nMpsH0=0,nMpsH1=0,nMpsH1LasCyc=0,nMpsBkgd=0,nMpsH0BkgdLasCyc=0,nMpsH1BkgdLasCyc=0;
+      lasOnH1[s]= 0, lasOnH0[s]= 0, lasOffH1[s]= 0, lasOffH0[s]= 0;
+      nMpsLasOnH1[s]= 0, nMpsLasOnH0[s]= 0, nMpsLasOffH1[s]= 0, nMpsLasOffH0[s] = 0;
+      unNormLasCycSum[s]= 0;
+      normLasOnHpLasCyc[s]= 0.0, normLasOnHmLasCyc[s]= 0.0;
+      normLasOffHmLasCyc[s]= 0.0, normLasOffHpLasCyc[s]= 0.0;
+      BCnormLasOnHpLasCyc[s]= 0.0, BCnormLasOnHmLasCyc[s]= 0.0; 
+      BCnormLasCycSum[s]= 0.0, BCnormLasCycDiff[s]= 0.0;
+      tNormLasCycAsym[s]= 0.0, LasCycAsymEr[s]= 0.0;
+      //nMpsH0LasCyc=0,nMpsH0BkgdLasCyc=0;
+      // nMpsH0=0,nMpsH1=0,nMpsH1LasCyc=0,nMpsH1BkgdLasCyc=0,nMpsBkgd=0;
     }
-    cout<<"\nStarting nCycle:"<<nCycle<<endl;//<<"with i="<<i
     for(Int_t i=cutLas.at(2*nCycle+1); i<cutLas.at(2*nCycle+3); i++) { 
       //loop over laser cycle periods from one LasOn state upto just before beginning of next LasOn
       if(debug && i%25000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
       if(i<124) i = 124; //the first 122 events with unknown helicity shouldn't creep in
       if ((i >= cutLas.at(2*nCycle+1)) && (i < cutLas.at(2*nCycle+2))) l=1;
-      //cout<<"\nLaser On at i="<<i<<"; Laser Cycle="<<nCycle<<endl;
-
       if (i >= cutLas.at(2*nCycle+2)) l=0;
-      //cout<<"\nLaser OFF at i="<<i<<"; Laser Cycle="<<nCycle<<endl;
-      
       if(!lastTrip) {
 	if(i>=cutEB.at(2*nthBeamTrip)) { // && (i<cutEB.at(2*nthBeamTrip+1))) { //identifying beam-off
 	  beamOn = kFALSE;//declaring beam-off
@@ -211,45 +180,35 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
       lasOn = lasPow[0] > laserFrac *lasMax;
       h = (Int_t)helicity;
 
-      //currently the counters are only populated for beamOn cycles
-      if(l==1 && h==0 && lasOn && beamOn) { //Laser stable at On & H- & Beam On
-	nMpsH0++;
-	nMpsH0LasCyc++;
-	//       for(Int_t s=0; s<nSTRIPS; s++) { //sum up each strip individually
-	for(Int_t s=mystr; s==mystr; s++) {
+      for(Int_t s=0; s<nSTRIPS; s++) {
+	//currently the counters are only populated for beamOn cycles
+	if(l==1 && h==0 && lasOn && beamOn) { //Laser stable at On & H- & Beam On
+	  // 	  nMpsH0++;
+	  nMpsLasOnH0[s]++;//nMpsH0LasCyc++;
 	  // 	p1Ac[h][1][s] += (Int_t)bP1[s];
 	  p2Ac[h][1][s] += (Int_t)bP2[s];
 	  // 	p3Ac[h][1][s] += (Int_t)bP3[s];
 	  // 	p4Ac[h][1][s] += (Int_t)bP4[s];
 	}
-      }
-      else if(l==1 && h==1 && lasOn && beamOn) { //Laser stable at On & H+ & Beam On
-	nMpsH1++;      
-	nMpsH1LasCyc++;
-	//       for(Int_t s=0; s<nSTRIPS; s++) {	//sum up each strip individually. 
-	for(Int_t s=mystr; s==mystr; s++) {
+	else if(l==1 && h==1 && lasOn && beamOn) { //Laser stable at On & H+ & Beam On
+	  // 	  nMpsH1++;      
+	  nMpsLasOnH1[s]++;//nMpsH1LasCyc++;
 	  // 	p1Ac[h][1][s] += (Int_t)bP1[s];
 	  p2Ac[h][1][s] += (Int_t)bP2[s];
 	  // 	p3Ac[h][1][s] += (Int_t)bP3[s];
 	  // 	p4Ac[h][1][s] += (Int_t)bP4[s];
 	}
-      }
-      else if(l==0 && h==0 && beamOn) { //Laser stable at Off & H- & Beam On
-	nMpsBkgd++;      
-	nMpsH0BkgdLasCyc++;
-	//for(Int_t s=0; s<nSTRIPS; s++) { //sum up each strip individually
- 	for(Int_t s=mystr; s==mystr; s++) {
+	else if(l==0 && h==0 && beamOn) { //Laser stable at Off & H- & Beam On
+	  // 	  nMpsBkgd++;      
+	  nMpsLasOffH0[s]++;//nMpsH0BkgdLasCyc++;
 	  // 	p1Ac[h][0][s] += (Int_t)bP1[s];
 	  p2Ac[h][0][s] += (Int_t)bP2[s];
 	  // 	p3Ac[h][0][s] += (Int_t)bP3[s];
 	  // 	p4Ac[h][0][s] += (Int_t)bP4[s];
 	}
-      }
-      else if(l==0 && h==1 && beamOn) { //Laser stable at Off & H+ & Beam On
-	nMpsBkgd++;      
-	nMpsH1BkgdLasCyc++;
-	//       for(Int_t s=0; s<nSTRIPS; s++) {	//sum up each strip individually. 
-	for(Int_t s=mystr; s==mystr; s++) {
+	else if(l==0 && h==1 && beamOn) { //Laser stable at Off & H+ & Beam On
+	  // 	  nMpsBkgd++;      
+	  nMpsLasOffH1[s]++;//nMpsH1BkgdLasCyc++;
 	  // 	p1Ac[h][0][s] += (Int_t)bP1[s];
 	  p2Ac[h][0][s] += (Int_t)bP2[s];
 	  // 	p3Ac[h][0][s] += (Int_t)bP3[s];
@@ -257,76 +216,73 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 	}
       }
     }
-    if (goodCycle) {// && cutLas.at(2*nCycle+2)<=cutEB.at(2*nthBeamTrip)) { 
-      lasOnH1.at(nCycle)=p2Ac[1][1][mystr];
-      lasOffH1.at(nCycle)=(p2Ac[1][0][mystr]);
-      if (debug2) printf("lasOnH1:%d\t lasOffH1:%d\n",lasOnH1[nCycle],lasOffH1[nCycle]);
-      lasOnH0.at(nCycle)=(p2Ac[0][1][mystr]);
-      lasOffH0.at(nCycle)=(p2Ac[0][0][mystr]);
-      if (debug2) printf("lasOnH0:%d\t lasOffH0:%d\n",lasOnH0[nCycle],lasOffH0[nCycle]);
-      nMpsLasOnH1.at(nCycle)=(nMpsH1LasCyc);
-      nMpsLasOffH1.at(nCycle)=(nMpsH1BkgdLasCyc);
-      if (debug2) printf("nMpsLasOnH1:%d\t nMpsLasOffH1:%d \n",nMpsLasOnH1[nCycle],nMpsLasOffH1[nCycle]);
-      nMpsLasOnH0.at(nCycle)=(nMpsH0LasCyc);
-      nMpsLasOffH0.at(nCycle)=(nMpsH0BkgdLasCyc);
-      if (debug2) printf("nMpsLasOnH0:%d\t nMpsLasOffH0:%d \n",nMpsLasOnH0[nCycle],nMpsLasOffH0[nCycle]);
+    //     for (Int_t s=0; s<nSTRIPS; s++) { //these variables get stuffed irrespective of 'goodCycle' value
+    for (Int_t s=mystr; s<=mystr; s++) { //these variables get stuffed irrespective of 'goodCycle' value
+      lasOnH1[s] = p2Ac[1][1][s];
+      lasOffH1[s]= p2Ac[1][0][s];
+      if (debug2) printf("lasOnH1:%d\t lasOffH1:%d\n",lasOnH1[s],lasOffH1[s]);
+      lasOnH0[s] = p2Ac[0][1][s];
+      lasOffH0[s] = p2Ac[0][0][s];
+      if (debug2) printf("lasOnH0:%d\t lasOffH0:%d\n",lasOnH0[s],lasOffH0[s]);
+      if (debug2) printf("nMpsLasOnH1:%d\t nMpsLasOffH1:%d \n",nMpsLasOnH1[s],nMpsLasOffH1[s]);
+      if (debug2) printf("nMpsLasOnH0:%d\t nMpsLasOffH0:%d \n",nMpsLasOnH0[s],nMpsLasOffH0[s]);
     }
-  }
 
-  //after having filled the above vectors based on laser and beam periods, its time to draw
-  if (debug2) printf("\n  ****Entering laser Cycle Analysis**** \n");
-  for (Int_t nCycle=0; nCycle<nLasCycles; nCycle++) {
+    //after having filled the above vectors based on laser and beam periods, its time to calculate
+    if (debug2) printf("\n  ****Entering laser Cycle Analysis**** \n");
+    //   for (Int_t nCycle=0; nCycle<nLasCycles; nCycle++) {
     if (debug2) printf("\nnCycle:%d\n",nCycle);
     if (goodCycle) {
-      if (nMpsLasOnH0[nCycle] <= 0 || nMpsLasOnH1[nCycle] <= 0) {
-	printf("**number of Laser ON events in this laser nCycle:%d is ZERO**\n",nCycle); 
-      }//this should actually never happen
-      else if (nMpsLasOffH0[nCycle] <= 0 || nMpsLasOffH1[nCycle] <= 0) {
-	printf("**number of Laser Off events in this laser nCycle:%d is ZERO**\n",nCycle); 
-      }//this too should actually never happen
-      else {    
-	normLasOnHpLasCyc[nCycle] = (Double_t)lasOnH1[nCycle]/nMpsLasOnH1[nCycle];
-	if(debug2)printf(" normLasOnHpLasCyc:\t%f = lasOnH1:%d / nMpsLasOnH1:%d\n",normLasOnHpLasCyc[nCycle],lasOnH1[nCycle],(Int_t)nMpsLasOnH1[nCycle]);
-	normLasOffHpLasCyc[nCycle] = (Double_t)lasOffH1[nCycle]/nMpsLasOffH1[nCycle];
-	if(debug2)printf(" normLasOffHpLasCyc:\t%f = lasOffH1:%d / secH1BkgdLasCyc:%d\n",normLasOffHpLasCyc[nCycle],lasOffH1[nCycle],(Int_t)nMpsLasOffH1[nCycle]);
-      
-	normLasOnHmLasCyc[nCycle] = (Double_t)lasOnH0[nCycle]/nMpsLasOnH0[nCycle];
-	if(debug2)printf(" normLasOnHmLasCyc:\t%f = lasOnH0:%d / secH0LasCyc:%d\n",normLasOnHmLasCyc[nCycle],lasOnH0[nCycle],(Int_t)nMpsLasOnH0[nCycle]);
-	normLasOffHmLasCyc[nCycle] = (Double_t)lasOffH0[nCycle]/nMpsLasOffH0[nCycle];
-	if(debug2)printf(" normLasOffHmLasCyc:\t%f = lasOffH0:%d / secH0BkgdLasCyc:%d\n",normLasOffHmLasCyc[nCycle],lasOffH0[nCycle],(Int_t)nMpsLasOffH0[nCycle]);
-      
-	BCnormLasOnHpLasCyc[nCycle] = normLasOnHpLasCyc[nCycle] - normLasOffHpLasCyc[nCycle];
-	BCnormLasOnHmLasCyc[nCycle] = normLasOnHmLasCyc[nCycle] - normLasOffHmLasCyc[nCycle];
-
-	BCnormLasCycDiff[nCycle] = BCnormLasOnHpLasCyc[nCycle] - BCnormLasOnHmLasCyc[nCycle];
-	if (debug2)printf(" BCnormLasCycDiff:\t%f\n", BCnormLasCycDiff[nCycle]);
-	BCnormLasCycSum[nCycle] = BCnormLasOnHpLasCyc[nCycle] + BCnormLasOnHmLasCyc[nCycle];
-	if (debug2)printf(" BCnormLasCycSum:%f\n", BCnormLasCycSum[nCycle]);
-      
-	unNormLasCycSum[nCycle] = lasOnH1[nCycle] + lasOnH0[nCycle];
-	if (debug2) printf("Starting to evaluate asym\n");
-	if (debug2) printf(" unNormLasCycSum:%d\n",unNormLasCycSum[nCycle]);
-      
-	if (BCnormLasCycSum[nCycle] <= 0.0)
-	  printf("\n\n**Warning**:normLasCycSum[nCycle=%d] is %f, strip=%d\n\n",
-		 nCycle,BCnormLasCycSum[nCycle],mystr);
-	else {
-	  tNormLasCycAsym[nCycle] = (BCnormLasCycDiff[nCycle] / BCnormLasCycSum[nCycle]);
-	  hAsymPlaneStr->Fill(tNormLasCycAsym[nCycle]);
-	  LasCycAsymEr[nCycle] = 1.0/sqrt(unNormLasCycSum[nCycle]);
-	  if (debug2) printf("sqrt(unNormLasCycSum[nCycle]):%f\n",sqrt(unNormLasCycSum[nCycle]));
-	  hAsymErPlaneStr->Fill(LasCycAsymEr[nCycle]);
-	  if (debug2) {
-	    printf("for nCycle:%d, tNormLasCycAsym[strip:%d]= %f (stat.err:%f)\n"
-		   ,nCycle,mystr,tNormLasCycAsym[nCycle],LasCycAsymEr[nCycle]);
-	    printf("formed by normalized BC (%f -/+ %f) \n",
-		   normLasOnHpLasCyc[nCycle],normLasOnHmLasCyc[nCycle]);
-	  }
+      for (Int_t s=mystr;s<=mystr;s++) {
+	if (nMpsLasOnH0[s]  <= 0 || nMpsLasOnH1[s]  <= 0) {
+	  printf("**number of Laser ON events in this laser nCycle:%d is ZERO**\n",nCycle); 
 	}
+	else if (nMpsLasOffH0[s]  <= 0 || nMpsLasOffH1[s]  <= 0) {
+	  printf("**number of Laser Off events in this laser nCycle:%d is ZERO**\n",nCycle); 
+	}
+	else {    
+	  normLasOnHpLasCyc[s] = (Double_t)lasOnH1[s] /nMpsLasOnH1[s];
+	  if(debug2)printf(" normLasOnHpLasCyc:\t%f = lasOnH1:%d / nMpsLasOnH1:%d\n",normLasOnHpLasCyc[s] ,lasOnH1[s] ,(Int_t)nMpsLasOnH1[s] );
+	  normLasOffHpLasCyc[s] = (Double_t)lasOffH1[s] /nMpsLasOffH1[s] ;
+	  if(debug2)printf(" normLasOffHpLasCyc:\t%f = lasOffH1:%d / secH1BkgdLasCyc:%d\n",normLasOffHpLasCyc[s] ,lasOffH1[s] ,(Int_t)nMpsLasOffH1[s] );
+      
+	  normLasOnHmLasCyc[s] = ((Double_t)lasOnH0[s] /nMpsLasOnH0[s] );
+	  if(debug2)printf(" normLasOnHmLasCyc:\t%f = lasOnH0:%d / secH0LasCyc:%d\n",normLasOnHmLasCyc[s] ,lasOnH0[s] ,(Int_t)nMpsLasOnH0[s] );
+	  normLasOffHmLasCyc[s] = ((Double_t)lasOffH0[s] /nMpsLasOffH0[s] );
+	  if(debug2)printf(" normLasOffHmLasCyc:\t%f = lasOffH0:%d / secH0BkgdLasCyc:%d\n",normLasOffHmLasCyc[s] ,lasOffH0[s] ,(Int_t)nMpsLasOffH0[s] );
+      
+	  BCnormLasOnHpLasCyc[s] = (normLasOnHpLasCyc[s]  - normLasOffHpLasCyc[s] );
+	  BCnormLasOnHmLasCyc[s] = (normLasOnHmLasCyc[s]  - normLasOffHmLasCyc[s] );
+
+	  BCnormLasCycDiff[s] = (BCnormLasOnHpLasCyc[s]  - BCnormLasOnHmLasCyc[s] );
+	  if (debug2)printf(" BCnormLasCycDiff:\t%f\n", BCnormLasCycDiff[s] );
+	  BCnormLasCycSum[s] = (BCnormLasOnHpLasCyc[s]  + BCnormLasOnHmLasCyc[s] );
+	  if (debug2)printf(" BCnormLasCycSum:%f\n", BCnormLasCycSum[s] );
+      
+	  unNormLasCycSum[s] = lasOnH1[s]  + lasOnH0[s];
+	  if (debug2) printf("Starting to evaluate asym\n");
+	  if (debug2) printf(" unNormLasCycSum:%d\n",unNormLasCycSum[s] );
+      
+	  if (BCnormLasCycSum[s]  <= 0.0)
+	    printf("\n\n**Warning**:normLasCycSum[nCycle=%d] is %f, strip=%d\n\n", nCycle,BCnormLasCycSum[s] ,s);
+	  else {
+	    tNormLasCycAsym[s] = (BCnormLasCycDiff[s]  / BCnormLasCycSum[s] );
+	    LasCycAsymEr[s]  = 1.0/sqrt(unNormLasCycSum[s] );
+	    if (debug2) printf("sqrt(unNormLasCycSum ):%f\n",sqrt(unNormLasCycSum[s] ));
+	    if (debug2) {
+	      printf("for nCycle:%d, tNormLasCycAsym[strip:%d]= %f (stat.err:%f)\n"
+		     ,nCycle,s,tNormLasCycAsym[s] ,LasCycAsymEr[s] );
+	      printf("formed by normalized BC (%f -/+ %f) \n",normLasOnHpLasCyc[s],normLasOnHmLasCyc[s]);
+	    }
+	  }
+	  hAsymPlaneStr->Fill(tNormLasCycAsym[48]);
+	  hAsymErPlaneStr->Fill(LasCycAsymEr[48]);
+	}	
       }
     }
     else cout<<"this LasCyc had a beam trip, hence skipping"<<endl;
   }
+
   TCanvas *c1 = new TCanvas("c1","c1",0,0,800,400);
   c1->Divide(2,1);
   c1->cd(1);
