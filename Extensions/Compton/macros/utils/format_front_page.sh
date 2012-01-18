@@ -14,8 +14,10 @@ DBFILE=$2
 RUNNUM=$3
 WEBPAGE=$4
 FIRST100K=$5
+DETECTOR=$6
 ################################################################################
 ## Configurations
+BASEDIR=${HOME}/compton/macros
 RUNLIST=${WEBPAGE}/_runlist_frontpage
 RUNLISTTEMP=${WEBPAGE}/_runlist_frontpage_temp
 ISINFILE=`grep ${RUNNUM} ${RUNLISTTEMP}`
@@ -44,12 +46,15 @@ for line in `cat ${RUNLIST}`
 do
    run=`echo ${line} | awk -F. '/[0-9]/ {print $1}'`
    first100=`echo ${line} | awk -F. '{print $2}'`
+   if [ "x${first100}" == "x" ] ; then
+      first100="no"
+   fi
    #echo "Run: ${run}   First100K?: ${first100}"
-   utils/format_run_link.sh ${SQLITE} ${DBFILE} ${run} ${first100} >> ${WEBPAGE}/_front_page_runs.html
+   ${BASEDIR}/utils/format_run_link.sh ${SQLITE} ${DBFILE} ${run} ${first100} ${DETECTOR} >> ${WEBPAGE}/_front_page_runs.html
 done
 
 # Create the index.html file
-cat templates/header > ${WEBPAGE}/index.html
+cat ${BASEDIR}/templates/header > ${WEBPAGE}/index.html
 echo "<table class=\"runlist_table\">" >> ${WEBPAGE}/index.html
 
 ## Copy over the front page runs to the front page
@@ -57,7 +62,7 @@ cat ${WEBPAGE}/_front_page_runs.html >> ${WEBPAGE}/index.html
 echo "</table>" >> ${WEBPAGE}/index.html
 
 ## Copy the footer
-cat templates/footer >> ${WEBPAGE}/index.html
+cat ${BASEDIR}/templates/footer >> ${WEBPAGE}/index.html
 ###############################################################################
 ## 
 
@@ -74,7 +79,7 @@ echo $
 ## Copy over the headers
 cat templates/header > ${WEBPAGE}/index.html
 echo "<table class=\"runlist_table\">" >> ${WEBPAGE}/index.html
-utils/format_run_link.sh $SQLITE $DBFILE $RUNNUM > ${WEBPAGE}/_front_page_runs_new.html
+${BASEDIR}/utils/format_run_link.sh $SQLITE $DBFILE $RUNNUM ${DETECTOR} > ${WEBPAGE}/_front_page_runs_new.html
 
 ## Copy over the old front page runs to this new page
 cat ${WEBPAGE}/_front_page_runs.html >> ${WEBPAGE}/_front_page_runs_new.html
