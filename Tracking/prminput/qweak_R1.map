@@ -12,8 +12,8 @@ slot=6
 ! module.type  module.num  chan.num, det.type, det.name
 !  F1TDC, 6, 32, scifiber, sf_pmt_1357_f1
 ! channle, fiber numbers, fiber end
-F1TDC, 6, 23, 99,   ref
-F1TDC, 6, 32, 1357, ab
+F1TDC, 6, 23, 99,   99
+F1TDC, 6, 32, 1357, 0
 
 
 
@@ -30,15 +30,15 @@ bank=0x0901
 slot=20
 !format: type chan.num  fiber.num  name
 !module=F1TDC
-F1TDC, 20,  0, 99, ref
-F1TDC, 20, 33, 8, b
-F1TDC, 20, 35, 6, b
-F1TDC, 20, 37, 4, b
-F1TDC, 20, 39, 2, b
-F1TDC, 20, 41, 8, a
-F1TDC, 20, 43, 6, a
-F1TDC, 20, 45, 4, a
-F1TDC, 20, 47, 2, a
+F1TDC, 20,  0, 99, 99
+F1TDC, 20, 33, 8, 2
+F1TDC, 20, 35, 6, 2
+F1TDC, 20, 37, 4, 2
+F1TDC, 20, 39, 2, 2
+F1TDC, 20, 41, 8, 1
+F1TDC, 20, 43, 6, 1
+F1TDC, 20, 45, 4, 1
+F1TDC, 20, 47, 2, 1
 
 
 

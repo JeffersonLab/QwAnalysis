@@ -198,8 +198,8 @@ class QwScanner:
     Int_t fCurrentSlot;
     Int_t fCurrentIndex;
     static const UInt_t kMaxNumberOfModulesPerROC;
-    static const UInt_t kMaxNumberOfChannelsPerModule;
-    UInt_t kMaxNumberOfChannelsPerF1TDC;
+    UInt_t kMaxNumberOfChannelsPerModule;
+    //    UInt_t kMaxNumberOfChannelsPerF1TDC;
 
     Int_t fNumberOfModules;
     std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number

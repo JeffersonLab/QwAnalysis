@@ -231,10 +231,6 @@ void  QwTriggerScintillator::ClearEventData(){
 
 Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  // Sorry, I don't know how to combine the below F1TDContainer routine with the above code,
-  // thus I seperated them. It is a big ugly, but at least it works fine with less time
-  // consuming....
-  // Tuesday, September 28 14:26:48 EDT 2010, jhlee
 
   if( bank_id==fBankID[2] ) {
 
@@ -366,6 +362,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
   index = GetSubbankIndex(roc_id,bank_id);
 
+
   if (bank_id==fBankID[0]) { // V792 or V775
     if (index>=0 && num_words>0) {
       //  We want to process this ROC.  Begin looping through the data.
@@ -443,20 +440,6 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       //  We want to process this ROC.  Begin looping through the data.
       SetDataLoaded(kTRUE);
 	
-	
-      if (temp_print_flag ) {
-	std::cout << "QwTriggerScintillator::ProcessEvBuffer:  "
-		  << "Begin processing ROC" 
-		  << std::setw(2)
-		  << roc_id 
-		  << " bank id " 
-		  << bank_id 
-		  << " Subbbank Index "
-		  << bank_index
-		  << " Region "
-		  << GetSubsystemName()
-		  << std::endl;
-      }
 	
       //
       // CheckDataIntegrity() do "counter" whatever errors in each F1TDC 

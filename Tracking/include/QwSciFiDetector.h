@@ -72,7 +72,8 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   void  PrintConfigurationBuffer(UInt_t *buffer,UInt_t num_words);
   void  ReportConfiguration(Bool_t verbose);
 
-  void FillHardwareErrorSummary();
+  void  FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
+  void  FillHardwareErrorSummary();
 
 
   void  ClearEventData();
@@ -97,7 +98,9 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   Int_t   fCurrentModuleIndex;
   UInt_t  kMaxNumberOfChannelsPerF1TDC;
   Int_t   kNumberOfVMEModules;
-  Int_t   kNumberOfF1TDCs;
+  //  Int_t   kNumberOfF1TDCs;
+
+  
 
 
   MQwF1TDC         fF1TDCDecoder;
@@ -118,7 +121,7 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
 
 
 
-  std::vector< QwHit > fHits;
+  std::vector< QwHit > fTDCHits;
   std::vector< std::vector<Int_t> > fModuleIndex;  
   //  Module index, indexed by bank_index and slot_number
   // std::vector< EQwModuleType > fModuleTypes;
@@ -136,6 +139,11 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   std::map<TString,size_t> fSCAs_map;
   std::vector<Int_t> fSCAs_offset;
 
+
+  // Currently, we have only one scaler, if one wants to add more
+  // change this to vector or others.
+  // Wednesday, January 18 16:07:23 EST 2012,jhlee
+  Int_t fScalerBankIndex;
 
 };
 

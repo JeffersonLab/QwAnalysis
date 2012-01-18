@@ -19,7 +19,7 @@ RegisterSubsystemFactory(QwScanner);
 
 const Bool_t QwScanner::bStoreRawData = kTRUE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
-const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
+//const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
 QwScanner::QwScanner(const TString& name)
 : VQwSubsystem(name),
@@ -33,7 +33,7 @@ QwScanner::QwScanner(const TString& name)
   fScaEventCounter = 0;
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
-  kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
+  kMaxNumberOfChannelsPerModule = fF1TDCDecoder.GetTDCMaxChannels();
 }
 
 

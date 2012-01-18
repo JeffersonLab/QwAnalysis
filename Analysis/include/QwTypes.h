@@ -192,18 +192,17 @@ class QwDetectorID
   Int_t              fElement; // trace number for R1; wire number for R2 & R3; PMT number for others
   
   friend std::ostream& operator<<(std::ostream& os, const QwDetectorID &detectorID) {
-    if (detectorID.fPlane != -1) {
-      os << " Region ";
-      os <<  detectorID.fRegion;
-      os << " Package ";
-      os << detectorID.fPackage;
-      os << " Plane ";
-      os << detectorID.fPlane;
-      os << " Direction";
-      os <<detectorID.fDirection;
-      os << " fElement ";
-      os << detectorID.fElement;
-    }
+    os << " Region ";
+    os <<  detectorID.fRegion;
+    os << " Package ";
+    os << detectorID.fPackage;
+    os << " Plane ";
+    os << detectorID.fPlane;
+    os << " Direction";
+    os <<detectorID.fDirection;
+    os << " fElement ";
+    os << detectorID.fElement;
+
     return os;
   }
 };

@@ -8,6 +8,8 @@
 #include "QwSciFiDetector.h"
 #include "QwParameterFile.h"
 
+#include "boost/bind.hpp"
+
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwSciFiDetector);
 
@@ -23,13 +25,19 @@ QwSciFiDetector::QwSciFiDetector(const TString& name)
 : VQwSubsystem(name),
   VQwSubsystemTracking(name)
 {
+  // accept all event types to transfer to ProcessEvBuffer(roc_id .....)
+  // ProcessEvBuffer(eventtype...) is defined in VQwSubsystem.h uses ProcessEvBuffer(roc_id,...)
+  // 
+  SetEventTypeMask(0xffff); 
+  
   ClearAllBankRegistrations();
   kRegion             = "";
   fCurrentBankIndex   = 0;
   fCurrentSlot        = 0;
   fCurrentModuleIndex = 0;
   kNumberOfVMEModules = 0;
-  kNumberOfF1TDCs     = 0;
+  fScalerBankIndex    = -1;
+  //  kNumberOfF1TDCs     = 0;
 
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
@@ -55,12 +63,12 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
   TString varvalue  = "";
   UInt_t  value     = 0;
 
-  TString modtype  = "";
-  Int_t   moduleidx = 0; // for SIS3801 scaler. In case of F1TDC, it is a dummy slot number.
-  Int_t   channum  = 0; 
-  Int_t   fibernum = 0;
-  TString name     = "";
- 
+  TString modtype      = "";
+  Int_t   slot_number  = 0; // for SIS3801 scaler. In case of F1TDC, it is a dummy slot number.
+  Int_t   chan_number  = 0; 
+  Int_t   fiber_number = 0;
+  TString name         = "";
+  //  Int_t reference_counter = 0;
 
   EQwDetectorPackage package = kPackageNull;
   EQwDirectionID   direction = kDirectionNull;
@@ -98,47 +106,53 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
     }
     else {
 
-      modtype   = mapstr.GetTypedNextToken<TString>();
-      moduleidx = mapstr.GetTypedNextToken<Int_t>();
-      channum   = mapstr.GetTypedNextToken<Int_t>();
-      fibernum  = mapstr.GetTypedNextToken<Int_t>();
-      name      = mapstr.GetTypedNextToken<TString>();
+      modtype      = mapstr.GetTypedNextToken<TString>();
+      slot_number  = mapstr.GetTypedNextToken<Int_t>();
+      chan_number  = mapstr.GetTypedNextToken<Int_t>();
+      fiber_number = mapstr.GetTypedNextToken<Int_t>();
+      name         = mapstr.GetTypedNextToken<TString>();
 
       if(local_debug) {
-	printf("Modtype  %8s Moduleidx %d  ChanN %4d, FiberN %4d, FiberName %s\n", modtype.Data(), moduleidx, channum, fibernum, name.Data());
+	printf("Modtype  %8s Slot_Number %4d  ChanN %4d, FiberN %4d, FiberName %s\n", modtype.Data(), slot_number, chan_number, fiber_number, name.Data());
       }
       if (modtype=="F1TDC") {
-	Int_t temp_element = 0;
-	if (name=="ab") {
-	  temp_element = 0;
-	} else if (name=="a") {
-	  temp_element  = 1;
-	} else if (name=="b") {
-	  temp_element  = 2;
-	} else if (name=="ref") {
-	  temp_element = fCurrentModuleIndex;  
+
+	if (name=="99") {
+	  //	  fReferenceChannels.push_back(std::make_pair(fCurrentModuleIndex, chan_number));
+	  //	  printf("reference_counter %d\n", reference_counter);
 	  fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentModuleIndex;
-	  fReferenceChannels.at ( fCurrentBankIndex ).second = channum;
+	  fReferenceChannels.at ( fCurrentBankIndex ).second = chan_number;
+
+	  fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = fCurrentModuleIndex;
+	  //	  reference_counter++;
+	}
+	else {
+	  fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = name.Atoi();
 	}
 	
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionID1;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = fibernum;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = temp_element;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fRegion    = kRegionID1;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fPackage   = package;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fPlane     = fiber_number;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fDirection = direction;
+
       }
       else if (modtype == "SIS3801") {
+	
+	// We have *one* SIS3801 module, and "8" SIS3801 channels,
+	// So, fSCAs size is 8
+
+	fScalerBankIndex = fCurrentBankIndex;
 	QwSIS3801D24_Channel localchannel(name);
 	localchannel.SetNeedsExternalClock(kFALSE);
 	fSCAs.push_back(localchannel);
 	fSCAs_map[name] = fSCAs.size()-1;
-	fSCAs_offset.push_back( QwSIS3801D24_Channel::GetBufferOffset(moduleidx,channum) );
+	fSCAs_offset.push_back( QwSIS3801D24_Channel::GetBufferOffset(slot_number,chan_number) );
 
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionID1;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = fibernum;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fRegion    = kRegionID1;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fPackage   = package;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fPlane     = fiber_number;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fDirection = direction;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = 0;
 
       }
       
@@ -152,15 +166,19 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
   
   
     Int_t unused_size_counter = 0;
-    for(size_t bank_size = 0; bank_size < fModuleIndex.size(); bank_size++) 
+    std::size_t i = 0;
+    
+    
+
+    for( i = 0; i < fModuleIndex.size(); i++) 
       {
-	for(size_t slot_size =0; slot_size < fModuleIndex.at(bank_size).size(); slot_size++)
+	for(size_t slot_size =0; slot_size < fModuleIndex.at(i).size(); slot_size++)
 	  {
 	    Int_t m_idx = 0;
-	    m_idx = fModuleIndex.at(bank_size).at(slot_size);
+	    m_idx = fModuleIndex.at(i).at(slot_size);
 	    if(m_idx != -1 ) {
-	      std::cout << "[" << bank_size <<","<< slot_size << "] "
-			<< " module index " << fModuleIndex.at(bank_size).at(slot_size)
+	      std::cout << "[" << i <<","<< slot_size << "] "
+			<< " module index " << fModuleIndex.at(i).at(slot_size)
 			<< std::endl;
 	    }
 	    else {
@@ -170,7 +188,30 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
       }
     // why the bank index is always odd number?
     // 
+
     printf("Total unused size of fModuleIndex vector %6d\n", unused_size_counter);
+    
+    for(i = 0; i < fReferenceChannels.size(); i++) 
+      {
+	std::cout << "[" << i <<"] "
+		  << " fRerenceChannel " << fReferenceChannels.at(i).first
+		  << " " << fReferenceChannels.at(i).second
+		  << std::endl;
+      }
+
+
+    // for(i = 0; i < fReferenceData.size(); i++) 
+    //   {
+    // 	for(std::size_t j=0; j< fReferenceData.at(i).size(); j++) 
+    // 	  {
+    // 	    std::cout << "[" << i << "," << j << "]"
+    // 		      << " fReferenceData " << fReferenceData.at(i).at(j)
+    // 		      << std::endl;
+    // 	  }
+    //   }
+    //  fReferenceChannels.resize(fCurrentBankIndex+1);
+    //    fReferenceData.resize(fCurrentBankIndex+1);
+
     printf("\n------------- R1 LoadChannelMap End%s\n\n", mapfile.Data());
 
   }
@@ -195,7 +236,13 @@ QwSciFiDetector::ClearEventData()
 { 
   SetDataLoaded(kFALSE);
 
-  for (size_t i=0; i<fSCAs.size(); i++) {
+  fTDCHits.clear();
+  std::size_t i = 0;
+  
+  for (i=0; i<fReferenceData.size(); i++) {
+    fReferenceData.at(i).clear();
+  }
+  for (i=0; i<fSCAs.size(); i++) {
     fSCAs.at(i).ClearEventData();
   }
   return;
@@ -267,7 +314,7 @@ QwSciFiDetector::ClearAllBankRegistrations()
   fModuleIndex.clear();
 
   fDetectorIDs.clear();
-  fHits.clear();
+  fTDCHits.clear();
   kNumberOfVMEModules = 0;
   return;
 }
@@ -279,7 +326,7 @@ QwSciFiDetector::RegisterROCNumber(const UInt_t roc_id)
   status = VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
   std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
   fModuleIndex.push_back(tmpvec);
-  // std::cout<<"Registering ROC "<<roc_id<<std::endl;
+  //std::cout<<"Registering ROC "<<roc_id<<std::endl;
 
   return status;
 }
@@ -297,7 +344,8 @@ QwSciFiDetector::RegisterSubbank(const UInt_t bank_id)
   // from here, just expand some vectors in QwSciFiDetector...
   //
   fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
- if (fReferenceChannels.size()<=fCurrentBankIndex) {
+
+  if (fReferenceChannels.size()<=fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
   }
@@ -328,7 +376,7 @@ QwSciFiDetector::RegisterSlotNumber(UInt_t slot_id)
       kNumberOfVMEModules = (Int_t) fDetectorIDs.size();
       fModuleIndex.at(fCurrentBankIndex).at(slot_id) = kNumberOfVMEModules-1;
 
-      fCurrentSlot     = slot_id;
+      fCurrentSlot        = slot_id;
       fCurrentModuleIndex = kNumberOfVMEModules-1;
     }
   } 
@@ -608,11 +656,27 @@ QwSciFiDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
     return 0;
   }
   else {
-    ///    local_f1tdc = 0;
+   if(local_debug) {
+     printf("\nQwSciFiDetector::ProcessConfigurationBuffer: \n");
+     printf("Bank index is not defined with ROC id %d and Bank id %d. Thus, this is not F1TDC data. Skip this bank\n\n", roc_id, bank_id);
+    }
+ 
     return -1;
   }
 }
 
+
+
+// ProcessEvBuffer is called in QwEventBuffer.cc backtrace....
+// 0 ProcessEvBuffer(event_type, roc_id, bank_id, buffer, num_words) in QwEventBuffer
+// 1 ProcessEvBuffer(event_type, roc_id, bank_id, buffer, num_words) in QwSubsystemArray
+// 2 ProcessEvBuffer(event_type, roc_id, bank_id, buffer, num_words) in VQwSubsystem.h
+// 3 ProcessEvBuffer(roc_id, bank_id, buffer, num_words) in ProcessEvBuffer(event_type,...) in VQwSubsystem.h
+// * public Constructor of VQwSubsystemTracking.h uses SetEventTypeMask() in order to filter out
+//   0x1 (parity event, number 1 physics event). So I remove it by using SetEventTypeMask(0xffff)
+//   in the public Constructor of QwSciFiDetector.
+// 
+//  Wednesday, January 18 13:34:29 EST 2012, jhlee
 
 
 Int_t 
@@ -622,188 +686,213 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
 				 UInt_t num_words)
 {
 
-  // Int_t  bank_index      = 0;
-  // Int_t  tdc_slot_number = 0;
-  // Int_t  tdc_chan_number = 0;
-  // UInt_t tdc_data        = 0;
+  Int_t  bank_index      = 0;
+  Int_t  vme_module_slot_number = 0;
+  Int_t  vme_module_chan_number = 0;
+  UInt_t vme_module_data        = 0;
 
-  // Bool_t data_integrity_flag = false;
-  // Bool_t temp_print_flag     = false;
-  // Int_t tdcindex = 0;
+  Bool_t data_integrity_flag = false;
+  Bool_t temp_print_flag     = false;
+  Int_t  module_index = 0;
 
-  // bank_index = GetSubbankIndex(roc_id, bank_id);
-
- 
-
+  bank_index = GetSubbankIndex(roc_id, bank_id);
   
-  // if (bank_index>=0 && num_words>0) {
-  //   //  We want to process this ROC.  Begin looping through the data.
-  //   SetDataLoaded(kTRUE);
+  
 
+  if (bank_index>=0 && num_words>0) {
+    //  We want to process this ROC.  Begin looping through the data.
+    SetDataLoaded(kTRUE);
 
-  //   if (temp_print_flag ) {
-  //     std::cout << "QwSciFiDetector::ProcessEvBuffer:  "
-  // 		<< "Begin processing ROC" 
-  // 		<< std::setw(2)
-  // 		<< roc_id 
-  // 		<< " bank id " 
-  // 		<< bank_id 
-  // 		<< " Subbbank Index "
-  // 		<< bank_index
-  // 		<< " Region "
-  // 		<< GetSubsystemName()
-  // 		<< std::endl;
-  //   }
+    if (temp_print_flag ) {
+      std::cout << "\nQwSciFiDetector::ProcessEvBuffer:  "
+  		<< "Begin processing ROC" 
+  		<< std::setw(2)
+  		<< roc_id 
+  		<< " bank id " 
+  		<< bank_id 
+  		<< " Subbbank Index "
+  		<< bank_index
+  		<< " Region "
+  		<< GetSubsystemName()
+  		<< std::endl;
+    }
     
-  //   //
-  //   // CheckDataIntegrity() do "counter" whatever errors in each F1TDC 
-  //   // and check whether data is OK or not.
+    if( bank_index != fScalerBankIndex) {
+    //
+    // CheckDataIntegrity() do "counter" whatever errors in each F1TDC 
+    // and check whether data is OK or not.
 
-  //   data_integrity_flag = fF1TDContainer->CheckDataIntegrity(roc_id, buffer, num_words);
-  //   // if it is false (TFO, EMM, and SYN), the whole buffer is excluded for
-  //   // the further process, because of multiblock data transfer.
+      data_integrity_flag = fF1TDContainer->CheckDataIntegrity(roc_id, buffer, num_words);
+    // if it is false (TFO, EMM, and SYN), the whole buffer is excluded for
+    // the further process, because of multiblock data transfer.
 
-  //   if (data_integrity_flag) {
-      
-  //     for (UInt_t i=0; i<num_words ; i++) {
+      if (data_integrity_flag) {
 	
-  // 	//  Decode this word as a F1TDC word.
-  // 	fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
-
-  // 	// For MQwF1TDC,   roc_id is needed to print out some warning messages.
-  // 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
-  // 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
-
-  // 	tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
-  // 	tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
-  // 	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
-	
-  // 	if ( tdc_slot_number == 31) {
-  // 	  //  This is a custom word which is not defined in
-  // 	  //  the F1TDC, so we can use it as a marker for
-  // 	  //  other data; it may be useful for something.
-  // 	}
-	
-  // 	// Each subsystem has its own interesting slot(s), thus
-  // 	// here, if this slot isn't in its slot(s) (subsystem map file)
-  // 	// we skip this buffer to do the further process
-
-  // 	if (not IsSlotRegistered(bank_index, tdc_slot_number) ) continue;
-
-  // 	if(temp_print_flag) std::cout << fF1TDCDecoder << std::endl;
-
-  // 	if ( fF1TDCDecoder.IsValidDataword() ) {//;;
-  // 	  // if decoded F1TDC data has a valid slot, resolution locked, data word, no overflow (0xFFFF), and no fake data
-  // 	  // try get time and fill it into raw QwHit.. FillRawTDCWord function is in each subsystem.
-
-  // 	  try {
-  // 	    tdc_data = fF1TDCDecoder.GetTDCData();
-  // 	    FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
-  // 	  }
-  // 	  catch (std::exception& e) {
-  // 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
-  // 		      << e.what() << std::endl;
-  // 	    std::cerr << "   Parameters:  index==" <<bank_index
-  // 		      << "; GetF1SlotNumber()=="   <<tdc_slot_number
-  // 		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
-  // 		      << "; GetF1Data()=="         <<tdc_data
-  // 		      << std::endl;
-  // 	    // Int_t tdcindex = GetTDCIndex(bank_index, tdc_slot_number);
-  // 	    std::cerr << "   GetTDCIndex()=="<<tdcindex
-  // 		      << "; fTDCPtrs.at(tdcindex).size()=="
-  // 		      << fTDCPtrs.at(tdcindex).size()
-  // 		      << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
-  // 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fPlane
-  // 		      << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
-  // 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fElement
-  // 		      << std::endl;
-  // 	  }
-  // 	}//;;
-  //     } // for (UInt_t i=0; i<num_words ; i++) {
-  //   }
+	for (UInt_t i=0; i<num_words ; i++) {
+	  
+	  //  Decode this word as a F1TDC word.
+	  fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
+	  
+	  // For MQwF1TDC,   roc_id is needed to print out some warning messages.
+	  // For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
+	  //                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
+	  
+	  vme_module_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	  vme_module_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
+	  module_index           = GetModuleIndex(bank_index, vme_module_slot_number);
+	  
+	  if ( vme_module_slot_number == 31) {
+	    //  This is a custom word which is not defined in
+	    //  the F1TDC, so we can use it as a marker for
+	    //  other data; it may be useful for something.
+	  }
+	  
+	  // Each subsystem has its own interesting slot(s), thus
+	  // here, if this slot isn't in its slot(s) (subsystem map file)
+	  // we skip this buffer to do the further process
+	  
+	  if (not IsSlotRegistered(bank_index, vme_module_slot_number) ) continue;
+	  
+	  if(temp_print_flag) std::cout << fF1TDCDecoder << std::endl;
+	  
+	  if ( fF1TDCDecoder.IsValidDataword() ) {//;;
+	    // if decoded F1TDC data has a valid slot, resolution locked, data word, no overflow (0xFFFF), and no fake data
+	    // try get time and fill it into raw QwHit.. FillRawTDCWord function is in each subsystem.
+	    
+	    try {
+	      vme_module_data = fF1TDCDecoder.GetTDCData();
+	      FillRawTDCWord(bank_index, vme_module_slot_number, vme_module_chan_number, vme_module_data);
+	    }
+	    catch (std::exception& e) {
+	      std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+			<< e.what() << std::endl;
+	      std::cerr << "   Parameters:  index==" <<bank_index
+			<< "; Slot    Number=="   <<vme_module_slot_number
+			<< "; Channel Number=="<<vme_module_chan_number
+			<< "; Data=="         <<vme_module_data
+			<< std::endl;
+	      
+	      std::cerr << " Module Index=="<<module_index
+			<< "; fDetectorIDs.at(module_index).size()=="
+			<< fDetectorIDs.at(module_index).size()
+			<< "; fDetectorIDs.at(module_index).at(chan).fPlane=="
+			<< fDetectorIDs.at(module_index).at(vme_module_chan_number).fPlane
+			<< "; fDetectorIDs.at(module_index).at(chan).fElement=="
+			<< fDetectorIDs.at(module_index).at(vme_module_chan_number).fElement
+			<< std::endl;
+	    }
+	  }//;;
+	} // for (UInt_t i=0; i<num_words ; i++) {
+      }
  
-  // }
+    }
+    else {
+ 
+      // printf("Scaler %d\n", (Int_t)fSCAs.size());
+      // Check if scaler buffer contains more than one event, and if so, reject it to decode.
+      // 
+      if (buffer[0]/32!=1) {
+	printf("This buffer contains more than one event, thus, we reject them\n"); // Why? jhlee
+	return 0;
+      }
 
+      UInt_t words_read = 0;
+      for (size_t i=0; i<fSCAs.size(); i++) {
+	words_read += fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]), num_words-fSCAs_offset.at(i));
+	if(temp_print_flag) printf("i %d words_read %d\n", i, words_read);
+      }
+      
+    }
+  }
+  
   // // fF1TDContainer-> PrintErrorSummary();
   return 0;
 }
 
 
 
-// void  
-// QwSciFiDetector::FillRawTDCWord (Int_t bank_index, 
-// 				 Int_t slot_num, 
-// 				 Int_t chan, 
-// 				 UInt_t data)
-// {
-//   Bool_t local_debug = false;
-//   Int_t tdcindex =  0;
+void  
+QwSciFiDetector::FillRawTDCWord (Int_t bank_index, 
+				 Int_t slot_num, 
+				 Int_t chan, 
+				 UInt_t data)
+{
+  Bool_t local_debug = false;
+  Int_t tdcindex =  0;
 
-//   tdcindex = GetTDCIndex(bank_index,slot_num);
+  tdcindex = GetModuleIndex(bank_index,slot_num);
 
-  // if (tdcindex not_eq -1) {
 
-  //   Int_t hitcnt  = 0;
-  //   Int_t plane   = 0;
-  //   Int_t wire    = 0;
-  //   EQwDetectorPackage package = kPackageNull;
-  //   EQwDirectionID direction   = kDirectionNull;
-    
-  //   plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-  //   wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
-  //   package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
+  // I think, it is not necessary, but is just "safe" double check routine.
+  if (tdcindex not_eq -1) {
 
+    Int_t hitcnt  = 0;
+
+    EQwDetectorPackage package = kPackageNull;
+    EQwDirectionID direction   = kDirectionNull;
+
+    Int_t   plane   = 0; // fiber number (1357, 2,4,6,8)  for the fibers,  and  99 for the reference channel
+    Int_t   element = 0; // fiber orient type (0 (both), 1(a), 2(b)) for the fibers, and  the module index for the reference channel
+    TString name         = "";
+ 
+
+
+    plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
+    element = fDetectorIDs.at(tdcindex).at(chan).fElement;
+    package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+ 
   
 
-  //   if (plane == -1 or wire == -1){
-  //     //  This channel is not connected to anything. Do nothing.
-  //   }
-  //   else if (plane == kReferenceChannelPlaneNumber){
-  //     fReferenceData.at(wire).push_back(data);
-  //     //now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
-  //   }
-  //   else {
+    if (plane == -1 or element == -1){
+      //  This channel is not connected to anything. Do nothing.
+    }
+    else if (plane == kF1ReferenceChannelNumber){
+      fReferenceData.at(element).push_back(data);
+      // we assign the reference time into fReferenceData according the module index
+      // See LocalChannelMap
+    }
+    else {
+      direction = fDetectorIDs.at(tdcindex).at(chan).fDirection;
+
+      //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
+      hitcnt = std::count_if(fTDCHits.begin(), fTDCHits.end(), 
+			     boost::bind(
+					 &QwHit::WireMatches, _1, kRegionID1, boost::ref(package), boost::ref(plane), boost::ref(element)
+					 ) 
+			     );
    
-  //     direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); 
-  //     //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
-  //     //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
-  //     hitcnt = std::count_if(fTDCHits.begin(), fTDCHits.end(), 
-  // 			     boost::bind(
-  // 					 &QwHit::WireMatches, _1, kRegionID2, boost::ref(package), boost::ref(plane), boost::ref(wire)
-  // 					 ) 
-  // 			     );
-      
-  //     fTDCHits.push_back(
-  // 			 QwHit(
-  // 			       bank_index, 
-  // 			       slot_num, 
-  // 			       chan, 
-  // 			       hitcnt, 
-  // 			       kRegionID2, 
-  // 			       package, 
-  // 			       plane,
-  // 			       direction, 
-  // 			       wire, 
-  // 			       data
-  // 			       )
-  // 			 );
-  //     //in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
-  //     if(local_debug) {
-  // 	std::cout << "At QwDriftChamberHDC::FillRawTDCWord " << "\n";
-  // 	std::cout << " hitcnt " << hitcnt
-  // 		  << " plane  " << plane
-  // 		  << " wire   " << wire
-  // 		  << " package " << package 
-  // 		  << " fTDCHits.size() " <<  fTDCHits.size() 
-  // 		  << std::endl;
-  //     }
+      fTDCHits.push_back(
+    			 QwHit(
+    			       bank_index, 
+    			       slot_num, 
+    			       chan, 
+    			       hitcnt, 
+    			       kRegionID1, 
+    			       package, 
+    			       plane,
+    			       direction, 
+    			       element, 
+    			       data
+    			       )
+    			 );
+    // //   //in order-> bank index, slot num, chan_number, hitcount, region=2, package, plane,,direction, wire,wire hit time
+      if(local_debug) {
+	std::cout << "At QwSciFiDetector::FillRawTDCWord " 
+		  << " hitcnt " << hitcnt
+		  << " plane  " << plane
+		  << " wire   " << element
+		  << " package " << package 
+		  << " diection " << direction
+		  << " fTDCHits.size() " <<  fTDCHits.size() 
+		  << std::endl;
+      }
 
-  //   }
+    }
 
-  // }
+  } // (tdcindex not_eq -1) {
   
-//   return;
-// }
+  return;
+}
 
 
 
