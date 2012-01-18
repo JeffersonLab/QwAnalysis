@@ -227,18 +227,23 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
 
   TProfile *profx = new TProfile("profx", "profx", 100, 0., 360., -4., 4.);
   TProfile *profy = new TProfile("profy", "profy", 100, 0., 360., -4., 4.);
+  TProfile *profxp = new TProfile("profxp", "profxp", 100, 0., 360., -4., 4.);
+  TProfile *profyp = new TProfile("profyp", "profyp", 100, 0., 360., -4., 4.);
 
   Double_t offset;
   Double_t amplitude;
   Double_t phase;
 
-  TPaveText *no_data = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datax = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datay = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_dataxp = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datayp = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
 
   TF1 *sine = new TF1("sine", "[0] + [1]*sin(x*0.017951 + [2])", 0, 360.);
 
   canvas = dCanvas->GetCanvas();
   canvas->Clear();
-  canvas->Divide(1,3);
+  canvas->Divide(2,2);
 
   // Grab the Mps_Tree from the data container: Hel_Tree(0), Hel_Tree(1)
   tree = (TTree *)HistArray.At(1);
@@ -250,8 +255,8 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
 
   gStyle->SetOptFit(01011);
   gStyle->SetOptStat("ne");
-  gStyle->SetStatW(0.04);     
-  gStyle->SetStatH(0.005);     
+  gStyle->SetStatW(0.10);     
+  gStyle->SetStatH(0.0025);     
   gStyle->SetStatX(0.9);     
   gStyle->SetStatY(0.9);     
   gStyle->SetStatFontSize(0.03);
@@ -264,33 +269,32 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   profx = (TProfile *)gDirectory->Get("profx");
   if(profx->GetEntries() == 0){
     profx->Delete();
-    no_data->Clear();
-    no_data->AddText("No modulation X data found.");
-    no_data->Draw();
+    no_datax->Clear();
+    no_datax->AddText("No modulation X data found.");
+    no_datax->Draw();
   }
   else{
     profx->GetXaxis()->SetTitle("phase (deg)");
     profx->GetYaxis()->SetTitle("BPM Amplitude (mm)");
     sine->SetLineColor(2);
     sine->SetRange(10., 350.);
-    sine->SetParLimits(2, 0, 100.);
     profx->Fit("sine","BR");
     offset = sine->GetParameter(0);
     amplitude = sine->GetParameter(1);
     phase = sine->GetParameter(2);
-    profx->SetTitle(Form("Target BPM Response to X Modulation: %f + %f*Sin( a*x + %f)", offset, amplitude, phase));
+    profx->SetTitle(Form("Target BPM Response to X Modulation: |Amplitude| = %f", TMath::Abs(amplitude) ));
     profx->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
     profx->Draw();
   }
 
-  canvas->cd(2);
+  canvas->cd(3);
   tree->Draw("qwk_targetY:0.09*ramp>>profy", cut + " && bm_pattern_number == 12");
   profy = (TProfile *)gDirectory->Get("profy");
   if(profy->GetEntries() == 0){
     profy->Delete();
-    no_data->Clear();
-    no_data->AddText("No modulation Y data found.");
-    no_data->Draw();
+    no_datay->Clear();
+    no_datay->AddText("No modulation Y data found.");
+    no_datay->Draw();
   }
   else{
     gPad->SetGridx();
@@ -300,14 +304,67 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     profy->GetYaxis()->SetTitle("BPM Amplitude (mm)");
     sine->SetLineColor(3);
     sine->SetRange(10., 350.);
-    sine->SetParLimits(2, 0, 100.);
     profy->Fit("sine","BR");
     offset = sine->GetParameter(0);
     amplitude = sine->GetParameter(1);
-    phase = sine->GetParameter(2);
-    profy->SetTitle(Form("Target BPM Response to Y Modulation: %f + %f*Sin( a*x + %f)", offset, amplitude, phase));
+    phase = sine->GetParameter(3);
+    profy->SetTitle(Form("Target BPM Response to Y Modulation: |Amplitude| = %f", TMath::Abs(amplitude) ));
     profy->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
     profy->Draw();
+  }
+
+  canvas->cd(2);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("qwk_targetXSlope:0.09*ramp>>profxp", cut + " && bm_pattern_number == 14");
+  profxp = (TProfile *)gDirectory->Get("profxp");
+  if(profxp->GetEntries() == 0){
+    profxp->Delete();
+    no_dataxp->Clear();
+    no_dataxp->AddText("No modulation XP data found.");
+    no_dataxp->Draw();
+  }
+  else{
+    profxp->GetXaxis()->SetTitle("phase (deg)");
+    profxp->GetYaxis()->SetTitle("BPM Amplitude (rad)");
+    sine->SetLineColor(2);
+    sine->SetRange(10., 350.);
+    sine->SetParameter(1, 4.e-6);
+    profxp->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profxp->SetTitle(Form("Target BPM Response to XP Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
+    profxp->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profxp->Draw();
+  }
+
+  canvas->cd(4);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("qwk_targetYSlope:0.09*ramp>>profyp", cut + " && bm_pattern_number == 15");
+  profyp = (TProfile *)gDirectory->Get("profyp");
+  if(profyp->GetEntries() == 0){
+    profyp->Delete();
+    no_datayp->Clear();
+    no_datayp->AddText("No modulation YP data found.");
+    no_datayp->Draw();
+  }
+  else{
+    profyp->GetXaxis()->SetTitle("phase (deg)");
+    profyp->GetYaxis()->SetTitle("BPM Amplitude (rad)");
+    sine->SetLineColor(4);
+    sine->SetRange(10., 350.);
+    sine->SetParameter(1, 4.e-6);
+    profyp->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profyp->SetTitle(Form("Target BPM Response to YP Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
+    profyp->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profyp->Draw();
   }
 
 }
