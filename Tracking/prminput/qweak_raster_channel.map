@@ -22,6 +22,7 @@ module=V792
   V792, 1, 7, beamline, bpm_3h09b_xm_adc
   V792, 1, 8, beamline, bpm_3h09b_yp_adc
   V792, 1, 9, beamline, bpm_3h09b_ym_adc
+  V792, 1, 10, beamline, bcm6_adc
 !
 ROC=0
 sca_bank=0x6103
