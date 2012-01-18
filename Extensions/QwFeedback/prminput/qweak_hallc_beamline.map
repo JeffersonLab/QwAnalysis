@@ -14,6 +14,13 @@ sample_size=464
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
+!ADC0, Slot 18, Serial Number 13, Address 0x7B
+!   VQWK, 0, 4,  bcm,  QWK_BCM5
+!   VQWK, 0, 5,  bcm,  QWK_BCM6
+!   VQWK, 0, 6,  bcm,  QWK_BCM7 
+   VQWK, 0, 7,  bcm,  QWK_BCM8
+
+
 !ADC1, Slot 4,  Serial Number 26, Address 0x7C
    VQWK, 1, 4,  bpmstripline,  QWK_BPM3H07AXP
    VQWK, 1, 5,  bpmstripline,  QWK_BPM3H07AXM
@@ -63,6 +70,7 @@ begin=combinedbcm
 name=qwk_charge
 !name	   type	 wieght
  qwk_bcm1,  bcm, 1.0
+!qwk_bcm8,  bcm, 1.0	
 
 end=combinedbcm
 
