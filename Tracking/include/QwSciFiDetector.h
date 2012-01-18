@@ -1,8 +1,8 @@
-/**********************************************************\
-* File: QwSciFiDetector.h                          *
-* Author: Jeong Han Lee
-* Time-stamp: Sunday, January 15 17:26:13 EST 2012
-\**********************************************************/
+//
+// File: QwSciFiDetector.h                          
+// Author: Jeong Han Lee
+// Time-stamp: Sunday, January 15 17:26:13 EST 2012
+//
 
 #ifndef __QWSCIFIDETECTOR__
 #define __QWSCIFIDETECTOR__
@@ -30,9 +30,8 @@
 class QwHitContainer;
 
 
-///
-/// \ingroup QwTracking
-class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwSciFiDetector> {
+class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwSciFiDetector> 
+{
 
  private:
   /// Private default constructor (not implemented, will throw linker error on use)
@@ -52,11 +51,6 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   Int_t LoadInputParameters(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
 
-  void  ClearEventData();
-
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  void  ProcessEvent();
 
   void  FillListOfHits(QwHitContainer& hitlist);
 
@@ -70,10 +64,26 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   void  FillTreeVector(std::vector<Double_t> &values)const {};
 
 
+
+
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+ 
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  void  PrintConfigurationBuffer(UInt_t *buffer,UInt_t num_words);
+  void  ReportConfiguration(Bool_t verbose);
+
+  void FillHardwareErrorSummary();
+
+
+  void  ClearEventData();
+
+  void  ProcessEvent();
+
   void GetHitList(QwHitContainer & grandHitContainer){
     //    grandHitContainer.Append(fGEMHits);
   };
- void  ReportConfiguration(Bool_t verbose);
+
+
 
  protected:
 

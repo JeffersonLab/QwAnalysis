@@ -63,7 +63,7 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
  
 
   EQwDetectorPackage package = kPackageNull;
-  //  EQwDirectionID   direction = kDirectionNull;
+  EQwDirectionID   direction = kDirectionNull;
 
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
@@ -124,7 +124,7 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionID1;
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = fibernum;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = kDirectionNull;
+	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = temp_element;
       }
       else if (modtype == "SIS3801") {
@@ -137,7 +137,7 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionID1;
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = fibernum;
-	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = kDirectionNull;
+	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
 	fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
 
       }
@@ -200,20 +200,6 @@ QwSciFiDetector::ClearEventData()
   }
   return;
 };
-
-Int_t 
-QwSciFiDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
-{
- 
-  return 0;
-};
-
-Int_t 
-QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
-{
-
-  return 0;
-}
 
 void
 QwSciFiDetector::ProcessEvent()
@@ -359,9 +345,8 @@ Int_t
 QwSciFiDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const 
 {
   Int_t module_index = -1;
-  // bank_index and slot_num are unsigned int and always positive
-  if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size()) {
-    if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size()) {
+  if ( bank_index < fModuleIndex.size() ) {
+    if ( slot_num < fModuleIndex.at(bank_index).size() ) {
       module_index = fModuleIndex.at(bank_index).at(slot_num);
     }
   }
@@ -465,3 +450,371 @@ QwSciFiDetector::ReportConfiguration(Bool_t verbose)
 }
 
 
+
+
+
+
+
+void 
+QwSciFiDetector::PrintConfigurationBuffer(UInt_t *buffer, UInt_t num_words)
+{
+  UInt_t ipt = 0;
+  UInt_t j = 0;
+  UInt_t k = 0;
+  
+  for ( j=0; j<(num_words/5); j++ ) 
+    {
+      printf ( "buffer[%5d] = 0x:", ipt );
+      for ( k=j; k<j+5; k++ ) {
+	printf ( "%12x", buffer[ipt++] );
+      }
+      printf ( "\n" );
+    }
+  
+  if ( ipt<num_words ) {
+    printf ( "buffer[%5d] = 0x:", ipt );
+    for ( k=ipt; k<num_words; k++ ) 
+      {
+	printf ( "%12x", buffer[ipt++] );
+      }
+    printf ( "\n" );
+  }
+  printf ( "\n" );
+  
+  return;
+}
+
+
+
+
+Int_t 
+QwSciFiDetector::ProcessConfigurationBuffer(const UInt_t roc_id, 
+					    const UInt_t bank_id, 
+					    UInt_t* buffer, 
+					    UInt_t num_words)
+{
+
+  TString subsystem_name;
+
+  Int_t bank_index    = 0;
+  Int_t tdc_index     = 0;
+  UInt_t slot_id      = 0;
+  UInt_t vme_slot_num = 0;
+
+  Bool_t local_debug  = true;
+
+  QwF1TDC *local_f1tdc = NULL;
+   
+  bank_index = GetSubbankIndex(roc_id, bank_id);
+  
+  if(bank_index >=0) {
+    if(local_debug) {
+      std::cout << "fF1TDContainer " << fF1TDContainer
+		<<" local_f1tdc    " << local_f1tdc << "\n";
+    }
+    subsystem_name = this->GetSubsystemName();
+    fF1TDContainer -> SetSystemName(subsystem_name);
+
+    if(local_debug) {
+      std::cout << "-----------------------------------------------------" << std::endl;
+  
+      std::cout << "\nQwSciFiDetector : " 
+		<< subsystem_name
+		<< ", "
+		<< "ProcessConfigurationBuffer"
+		<< std::endl;
+      std::cout << "ROC " 
+		<< std::setw(2) << roc_id
+		<< " Bank [index,id]["
+		<<  bank_index
+		<< ","
+		<< bank_id
+		<< "]"
+		<< std::endl;
+    }
+    for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) 
+      { 
+	// slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
+	// and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
+	
+	tdc_index    = GetModuleIndex(bank_index, slot_id);
+	vme_slot_num = slot_id;
+	if(local_debug) {
+	  std::cout << "    "
+		    << "Slot [id, VME num] [" 
+		    << std::setw(2) << slot_id
+		    << ","
+		    << std::setw(2) << vme_slot_num
+		    << "]";
+	  std::cout << "    ";
+	}
+	local_f1tdc = NULL;
+
+	if(slot_id > 2) { // save time
+	
+	  if (tdc_index not_eq -1) {
+
+	    if(local_f1tdc) delete local_f1tdc; local_f1tdc = NULL;
+
+	    local_f1tdc = new QwF1TDC(roc_id, vme_slot_num);
+
+	    local_f1tdc->SetF1BankIndex(bank_index);
+	    local_f1tdc->SetF1TDCIndex(tdc_index);
+	    local_f1tdc->SetF1TDCBuffer(buffer, num_words);
+	    local_f1tdc->SetF1SystemName(subsystem_name);
+
+	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
+	    if(local_debug) { 
+	      std::cout << "F1TDC index " 
+			<< std::setw(2) 
+			<< tdc_index
+			<< std::setw(16) 
+			<< " local_f1tdc " 
+			<< *local_f1tdc
+			<< " at " 
+			<< local_f1tdc;
+	    }
+	  }
+	  else {
+	    if(local_debug){
+	      std::cout << "Unused in "  
+			<< std::setw(4) 
+			<< subsystem_name	
+			<< std::setw(16) 
+			<< " local_f1tdc  at " 
+			<< local_f1tdc;
+	    }
+	  }
+		
+	}
+	else { // slot_id == only 0, 1, & 2
+	  if(local_debug) {
+	    if      (slot_id == 0) std::cout << "         ";
+	    else if (slot_id == 1) std::cout << "MVME CPU ";
+	    else                   std::cout << "Trigger Interface"; // slot_id == 2;
+	  }
+	}
+	if(local_debug) {
+	  std::cout << std::endl;
+	}
+      }
+  
+    if(local_debug) fF1TDContainer->Print();
+    std::cout << "-----------------------------------------------------" << std::endl;
+
+    
+    // kMaxNumberOfChannelsPerTDC = fF1TDContainer->GetF1TDCChannelNumber();
+
+    return 0;
+  }
+  else {
+    ///    local_f1tdc = 0;
+    return -1;
+  }
+}
+
+
+
+Int_t 
+QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id, 
+				 const UInt_t bank_id, 
+				 UInt_t* buffer, 
+				 UInt_t num_words)
+{
+
+  // Int_t  bank_index      = 0;
+  // Int_t  tdc_slot_number = 0;
+  // Int_t  tdc_chan_number = 0;
+  // UInt_t tdc_data        = 0;
+
+  // Bool_t data_integrity_flag = false;
+  // Bool_t temp_print_flag     = false;
+  // Int_t tdcindex = 0;
+
+  // bank_index = GetSubbankIndex(roc_id, bank_id);
+
+ 
+
+  
+  // if (bank_index>=0 && num_words>0) {
+  //   //  We want to process this ROC.  Begin looping through the data.
+  //   SetDataLoaded(kTRUE);
+
+
+  //   if (temp_print_flag ) {
+  //     std::cout << "QwSciFiDetector::ProcessEvBuffer:  "
+  // 		<< "Begin processing ROC" 
+  // 		<< std::setw(2)
+  // 		<< roc_id 
+  // 		<< " bank id " 
+  // 		<< bank_id 
+  // 		<< " Subbbank Index "
+  // 		<< bank_index
+  // 		<< " Region "
+  // 		<< GetSubsystemName()
+  // 		<< std::endl;
+  //   }
+    
+  //   //
+  //   // CheckDataIntegrity() do "counter" whatever errors in each F1TDC 
+  //   // and check whether data is OK or not.
+
+  //   data_integrity_flag = fF1TDContainer->CheckDataIntegrity(roc_id, buffer, num_words);
+  //   // if it is false (TFO, EMM, and SYN), the whole buffer is excluded for
+  //   // the further process, because of multiblock data transfer.
+
+  //   if (data_integrity_flag) {
+      
+  //     for (UInt_t i=0; i<num_words ; i++) {
+	
+  // 	//  Decode this word as a F1TDC word.
+  // 	fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
+
+  // 	// For MQwF1TDC,   roc_id is needed to print out some warning messages.
+  // 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
+  // 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
+
+  // 	tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+  // 	tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
+  // 	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
+	
+  // 	if ( tdc_slot_number == 31) {
+  // 	  //  This is a custom word which is not defined in
+  // 	  //  the F1TDC, so we can use it as a marker for
+  // 	  //  other data; it may be useful for something.
+  // 	}
+	
+  // 	// Each subsystem has its own interesting slot(s), thus
+  // 	// here, if this slot isn't in its slot(s) (subsystem map file)
+  // 	// we skip this buffer to do the further process
+
+  // 	if (not IsSlotRegistered(bank_index, tdc_slot_number) ) continue;
+
+  // 	if(temp_print_flag) std::cout << fF1TDCDecoder << std::endl;
+
+  // 	if ( fF1TDCDecoder.IsValidDataword() ) {//;;
+  // 	  // if decoded F1TDC data has a valid slot, resolution locked, data word, no overflow (0xFFFF), and no fake data
+  // 	  // try get time and fill it into raw QwHit.. FillRawTDCWord function is in each subsystem.
+
+  // 	  try {
+  // 	    tdc_data = fF1TDCDecoder.GetTDCData();
+  // 	    FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
+  // 	  }
+  // 	  catch (std::exception& e) {
+  // 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+  // 		      << e.what() << std::endl;
+  // 	    std::cerr << "   Parameters:  index==" <<bank_index
+  // 		      << "; GetF1SlotNumber()=="   <<tdc_slot_number
+  // 		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
+  // 		      << "; GetF1Data()=="         <<tdc_data
+  // 		      << std::endl;
+  // 	    // Int_t tdcindex = GetTDCIndex(bank_index, tdc_slot_number);
+  // 	    std::cerr << "   GetTDCIndex()=="<<tdcindex
+  // 		      << "; fTDCPtrs.at(tdcindex).size()=="
+  // 		      << fTDCPtrs.at(tdcindex).size()
+  // 		      << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+  // 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fPlane
+  // 		      << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+  // 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fElement
+  // 		      << std::endl;
+  // 	  }
+  // 	}//;;
+  //     } // for (UInt_t i=0; i<num_words ; i++) {
+  //   }
+ 
+  // }
+
+  // // fF1TDContainer-> PrintErrorSummary();
+  return 0;
+}
+
+
+
+// void  
+// QwSciFiDetector::FillRawTDCWord (Int_t bank_index, 
+// 				 Int_t slot_num, 
+// 				 Int_t chan, 
+// 				 UInt_t data)
+// {
+//   Bool_t local_debug = false;
+//   Int_t tdcindex =  0;
+
+//   tdcindex = GetTDCIndex(bank_index,slot_num);
+
+  // if (tdcindex not_eq -1) {
+
+  //   Int_t hitcnt  = 0;
+  //   Int_t plane   = 0;
+  //   Int_t wire    = 0;
+  //   EQwDetectorPackage package = kPackageNull;
+  //   EQwDirectionID direction   = kDirectionNull;
+    
+  //   plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+  //   wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
+  //   package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
+
+  
+
+  //   if (plane == -1 or wire == -1){
+  //     //  This channel is not connected to anything. Do nothing.
+  //   }
+  //   else if (plane == kReferenceChannelPlaneNumber){
+  //     fReferenceData.at(wire).push_back(data);
+  //     //now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
+  //   }
+  //   else {
+   
+  //     direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); 
+  //     //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
+  //     //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
+  //     hitcnt = std::count_if(fTDCHits.begin(), fTDCHits.end(), 
+  // 			     boost::bind(
+  // 					 &QwHit::WireMatches, _1, kRegionID2, boost::ref(package), boost::ref(plane), boost::ref(wire)
+  // 					 ) 
+  // 			     );
+      
+  //     fTDCHits.push_back(
+  // 			 QwHit(
+  // 			       bank_index, 
+  // 			       slot_num, 
+  // 			       chan, 
+  // 			       hitcnt, 
+  // 			       kRegionID2, 
+  // 			       package, 
+  // 			       plane,
+  // 			       direction, 
+  // 			       wire, 
+  // 			       data
+  // 			       )
+  // 			 );
+  //     //in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
+  //     if(local_debug) {
+  // 	std::cout << "At QwDriftChamberHDC::FillRawTDCWord " << "\n";
+  // 	std::cout << " hitcnt " << hitcnt
+  // 		  << " plane  " << plane
+  // 		  << " wire   " << wire
+  // 		  << " package " << package 
+  // 		  << " fTDCHits.size() " <<  fTDCHits.size() 
+  // 		  << std::endl;
+  //     }
+
+  //   }
+
+  // }
+  
+//   return;
+// }
+
+
+
+
+
+void
+QwSciFiDetector::FillHardwareErrorSummary()
+{
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+  //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
+
+  return;
+};

@@ -1022,7 +1022,11 @@ QwF1TDContainer::SetSystemName(const TString name)
   // Types are defined in QwType.h
   if(fSystemName.IsNull()) {
     fSystemName = name;
-    if(fSystemName == "R2") {
+    if(fSystemName == "R1") {
+      fDetectorType = kTypeSciFiber;
+      fRegion       = kRegionID1;
+    }
+    else if(fSystemName == "R2") {
       fDetectorType = kTypeDriftHDC;
       fRegion       = kRegionID2;
     }
@@ -1030,6 +1034,7 @@ QwF1TDContainer::SetSystemName(const TString name)
       fDetectorType = kTypeDriftVDC;
       fRegion       = kRegionID3;
     }
+
     else if(fSystemName == "MD" ) {
       fDetectorType = kTypeCerenkov;
       fRegion       = kRegionIDCer;
@@ -1070,7 +1075,7 @@ QwF1TDContainer::Print(const Option_t* options) const
 
   std::cout << "\nQwF1TDContainer::Print() "
 	    << " QwF1TDContainer in System : "  
-	    <<  this->GetSystemName()
+	    << this->GetSystemName()
 	    << ", DetectorType " 
 	    << this->GetDetectorType()
 	    << ", RegionType "   
