@@ -1772,7 +1772,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   printf(ssline);
   printf("%s|%sI                        \t%s|%suA    \t%s|%s%s%s      \t|%s\n",green,blue,green,blue,green,red,gCurrent.Data(),green,normal);
   printf("%s|%sMDALLBARS width          \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
-  printf("%s|%sBCM18-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
+  printf("%s|%sBCM78-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
   printf("%s|%sA_q mean                 \t%s|%sppm   \t%s|%s%2.2f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
   printf("%s|%sA_q width                \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
   printf("%s|%sMDALLBARS X-sens.        \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdxsen,cal_emdxsen,green,normal);
@@ -1829,7 +1829,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 	  << sslinen
 	  << Form("|I                        \t|uA    \t|%s      \t|\n",gCurrent.Data())
 	  << Form("|MDALLBARS width          \t|ppm   \t|%2.1f        \t|\n",cal_mdalla)
-	  << Form("|BCM18-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
+	  << Form("|BCM78-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
 	  << Form("|A_q mean                 \t|ppm   \t|%2.2f        \t|\n",cal_abcmm)
 	  << Form("|A_q width                \t|ppm   \t|%2.1f        \t|\n",cal_abcm)
 	  << Form("|MDALLBARS X-sens.        \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",cal_mdxsen,cal_emdxsen)
