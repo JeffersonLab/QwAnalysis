@@ -3,7 +3,7 @@
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
 #for Hall C PITA
-patterns = 10000
+patterns = 25000
 #for Hall A IA
 HAF_patterns = 20000
 #for position feedback
