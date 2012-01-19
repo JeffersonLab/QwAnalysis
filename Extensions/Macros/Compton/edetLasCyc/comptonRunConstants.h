@@ -16,10 +16,10 @@ const Double_t C_EDGE = 51;//strip of Compton edge
 //Hardware constants
 const Int_t usedStrips = 50;
 const Int_t nSTRIPS = 96;
-const Int_t startStrip = 48;
-const Int_t endStrip = 48;
 const Int_t nPlanes = 4;
 const Int_t mystr = 48;
+const Int_t startStrip = 0;
+  const Int_t endStrip = 53;
 
 //Run constants
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
