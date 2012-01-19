@@ -2,7 +2,7 @@
 /*                              Nuruzzaman                                */
 /*                              03/10/2011                                */
 /*                                                                        */
-/*                        Last Edited:11/24/2011                          */
+/*                        Last Edited:12/19/2012                          */
 /*                                                                        */
 /* PLEASE CONSULT WITH ME BEFORE CHANGING THE SCRIPT. IF NEEDED YOU CAN   */
 /* HAVE YOUR COPY AND EDIT THERE.TRY NOT TO USE qwanalysis DIRECTORY.     */
@@ -83,10 +83,10 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   Bool_t USLUMISEN=kTRUE; 
   Bool_t BMODSEN=kTRUE;
   Bool_t BPM_EFAQ=kTRUE;
-//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kFALSE; 
+//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kTRUE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
 //     Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kFALSE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
 //     Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
-//     Bool_t BMODSEN=kTRUE;
+//     Bool_t BMODSEN=kFALSE;
   
   //  UInt_t gRunNumber = 0;
   char run0[255],run[255],run100k[255],sline[255],dline[255],ssline[255],sslinen[255];
@@ -149,7 +149,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
 
   th->Draw("yield_qwk_charge>>cur",Form("%s && yield_qwk_charge.%s",s1,s2),"goff");
-  th->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6>>bcmdd",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",s1,s2,s2),"goff");
+  th->Draw("(asym_qwk_bcm7-asym_qwk_bcm8)*1e6>>bcmdd",Form("%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",s1,s2,s2),"goff");
   th->Draw("asym_qwk_charge*1e6>>abcm",Form("%s && asym_qwk_charge.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_targetX>>mdxsen",
@@ -181,7 +181,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   const Int_t NUM = 8, NUM1 = 5,NUM2 = 6, NUM3 = 3, NUM4 = 4, NUM7 = 7, NUM15 = 15;
   TString bcms[NUM7] = {"charge","bcm1","bcm2","bcm5","bcm6","bcm7","bcm8"};
-  TString bcms2[NUM2] = {"bcm1","bcm1","bcm5","bcm5","bcm7","bcm7"};
+  TString bcms2[NUM2] = {"bcm1","bcm1","bcm5","bcm5","bcm7","bcm8"};
   TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm1"};
   TString bcms4[NUM15] = {"bcm1","bcm1","bcm1","bcm1","bcm1","bcm2","bcm2","bcm2","bcm2","bcm5","bcm5","bcm5","bcm6","bcm6","bcm7"};
   TString bcms5[NUM15] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm5","bcm6","bcm7","bcm8","bcm6","bcm7","bcm8","bcm7","bcm8","bcm8"};
@@ -1772,7 +1772,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   printf(ssline);
   printf("%s|%sI                        \t%s|%suA    \t%s|%s%s%s      \t|%s\n",green,blue,green,blue,green,red,gCurrent.Data(),green,normal);
   printf("%s|%sMDALLBARS width          \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
-  printf("%s|%sBCM12-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
+  printf("%s|%sBCM18-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
   printf("%s|%sA_q mean                 \t%s|%sppm   \t%s|%s%2.2f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
   printf("%s|%sA_q width                \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
   printf("%s|%sMDALLBARS X-sens.        \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdxsen,cal_emdxsen,green,normal);
@@ -1829,7 +1829,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 	  << sslinen
 	  << Form("|I                        \t|uA    \t|%s      \t|\n",gCurrent.Data())
 	  << Form("|MDALLBARS width          \t|ppm   \t|%2.1f        \t|\n",cal_mdalla)
-	  << Form("|BCM12-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
+	  << Form("|BCM18-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
 	  << Form("|A_q mean                 \t|ppm   \t|%2.2f        \t|\n",cal_abcmm)
 	  << Form("|A_q width                \t|ppm   \t|%2.1f        \t|\n",cal_abcm)
 	  << Form("|MDALLBARS X-sens.        \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",cal_mdxsen,cal_emdxsen)
