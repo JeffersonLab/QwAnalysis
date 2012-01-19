@@ -1,3 +1,6 @@
+#ifndef __myCLASS_H 
+#define __myCLASS_H
+
 #include "TF1.h"
 #include "TH1F.h"
 #include "TH1D.h"
@@ -27,10 +30,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include<vector>
 #include "TBranch.h"
 #include "TChain.h"
 #include <TLeaf.h>
 
 using namespace std;
 
+#endif

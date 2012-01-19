@@ -72,7 +72,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     if(laser<=20*1000) n++;
     else n=0;
     if(flipperIsUp){
-      if(n == 0 || index == nEntries-1 ){
+      if(n == 0 || index == nEntries-1 ) {
         cutL.push_back(index-1);
         printf("cutL[%d]=%d\n",m,cutL.back());
         //sprintf(textwrite,"%d %d",m,cutL.back());
@@ -82,10 +82,10 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       }
     }
     //    find and record electron beam off periods
-//     rampIsDone = bcm > beamFrac * beamMax;
-//     isABeamTrip = bcm <= (1.0 - beamFrac) *beamMax;
-    rampIsDone = comptQ > 0.2 * Qmax;//!review this condition
-    isABeamTrip = comptQ <= 0.1*Qmax;//!review this condition
+    rampIsDone = bcm > beamFrac * beamMax;
+    isABeamTrip = bcm <=  beamFrac * beamMax;
+    //     rampIsDone = comptQ > 0.2 * Qmax;//!review this condition
+    //     isABeamTrip = comptQ <= 0.1*Qmax;//!review this condition
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition
