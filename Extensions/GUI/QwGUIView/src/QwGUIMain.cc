@@ -164,9 +164,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   //   InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
   // 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  // if(!GetSubSystemPtr("Beam Modulation"))
-  //   BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
-  // 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(!GetSubSystemPtr("Beam Modulation"))
+    BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
+  					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
   // if(!GetSubSystemPtr("Qweak Database"))
   //   DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
@@ -439,10 +439,10 @@ void QwGUIMain::MakeLogTab()
 				     0, 0, 1, 2);
   dLogEditFrameLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
 				    kLHintsExpandX | kLHintsExpandY);
-  dDBQueryEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
-  dDBQueryLabelLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2,  2, 2);
+  // dDBQueryEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
+  // dDBQueryLabelLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2,  2, 2);
 
-  dDBQueryFrameLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
+  // dDBQueryFrameLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
 
 
   dLogTabFrame  = new TGVerticalFrame(tf,10,10);
@@ -668,16 +668,16 @@ void QwGUIMain::RemoveLogTab()
   delete dLogEdit; dLogEdit = NULL;
   delete dLogEditFrame; dLogEditFrame   = NULL;
   delete dLogTabFrame; dLogTabFrame = NULL;
-  delete dDBQueryFrame; dDBQueryFrame = NULL;
-  delete dDBQueryEntry; dDBQueryEntry = NULL;
+  // delete dDBQueryFrame; dDBQueryFrame = NULL;
+  // delete dDBQueryEntry; dDBQueryEntry = NULL;
   delete dLogTabLayout; dLogTabLayout   = NULL;
   delete dLogEditLayout; dLogEditLayout = NULL;
   delete dLogEditFrameLayout; dLogEditFrameLayout = NULL;
-  delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
-  delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
-  delete dDBQueryBuffer; dDBQueryBuffer = NULL;
-  delete dDBQueryLabel; dDBQueryLabel = NULL;
-  delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
+  // delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
+  // delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
+  // delete dDBQueryBuffer; dDBQueryBuffer = NULL;
+  // delete dDBQueryLabel; dDBQueryLabel = NULL;
+  // delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
 
   dMenuTabs->UnCheckEntry(M_VIEW_LOG);
 }

@@ -41,11 +41,49 @@ QwGUIBeamModulation::QwGUIBeamModulation(const TGWindow *p, const TGWindow *main
   PosDiffVar[0] = NULL;
   PosDiffVar[1] = NULL;
  
-  HistArray.Clear();
+  TreeArray.Clear();
+  PlotArray.Clear();
   DataWindowArray.Clear();
+
+  RemoveSelectedDataWindow();
 
   AddThisTab(this);
 
+}
+
+void QwGUIBeamModulation::CleanUp()
+{
+  // delete [] PosDiffVar;
+
+  TObject* obj;
+  vector <TObject*> obja;
+  TIter *next = new TIter(DataWindowArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    obja.push_back(obj);
+    //     delete obj;
+    obj = next->Next();
+  }
+  delete next;
+  
+  for(uint l = 0; l < obja.size(); l++)
+    delete obja[l];
+  
+  DataWindowArray.Clear();
+
+  //don't delete the trees (done by the main class when necessary) 
+  TreeArray.Clear();
+
+  //We do, however, need to clean up the histograms ...
+  //Need to check below that we set SetDirectory(0) for all of them ...
+  next = new TIter(PlotArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    delete obj;
+    obj = next->Next();
+  }
+  delete next;
+  PlotArray.Clear();
 }
 
 QwGUIBeamModulation::~QwGUIBeamModulation()
@@ -59,7 +97,7 @@ QwGUIBeamModulation::~QwGUIBeamModulation()
   if(dBtnLayout)              delete dBtnLayout;
   if(dBtnBPMResp)             delete dBtnBPMResp;
 
-  delete [] PosDiffVar;
+  CleanUp();
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -122,31 +160,71 @@ void QwGUIBeamModulation::MakeLayout()
   dBtnBPMResp -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUIBeamModulation",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
-
   Int_t wid = dCanvas->GetCanvasWindowId();
-
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
   dCanvas->AdoptCanvas(mc);
 
+  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+				"QwGUIBeamModulation",
+				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 }
 
-void QwGUIBeamModulation::OnReceiveMessage(char *obj)
+void QwGUIBeamModulation::OnReceiveMessage(char *msg)
 {
-//   TString name = obj;
-//   char *ptr = NULL;
+  TObject *obj = NULL;
+  Int_t ind = 0;
+  TString message = msg;
+
+  if(message.Contains("dDataWindow")){
+
+    if(message.Contains("Add to")){
+
+      message.ReplaceAll("Add to dDataWindow_",7,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	ind = DataWindowArray.IndexOf(obj);
+	SetSelectedDataWindow(ind);
+      }
+    }
+    else if(message.Contains("Don't add to")){
+
+      message.ReplaceAll("Don't add to dDataWindow_",13,"",0);
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	RemoveSelectedDataWindow();
+      }
+    }
+  }
 
 }
 
 void QwGUIBeamModulation::OnObjClose(char *obj)
 {
+  if(!obj) return;
+  TString name = obj;
+
+  if(name.Contains("dDataWindow")){
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));
+    if(window){
+      if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
+    }
+  }
+
   if(!strcmp(obj,"dROOTFile")){
 //     printf("Called QwGUIBeamModulation::OnObjClose\n");
-
+    ClearData();
     dROOTCont = NULL;
   }
+
+  QwGUISubSystem::OnObjClose(obj);
+}
+
+QwGUIDataWindow *QwGUIBeamModulation::GetSelectedDataWindow()
+{
+  if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
+
+  return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
 }
 
 
@@ -164,7 +242,7 @@ void QwGUIBeamModulation::OnNewDataContainer(RDataContainer *cont)
       if(obj)
 	{
 	  copy = obj->Clone();
-	  HistArray.Add(copy);
+	  TreeArray.Add(copy);
 	}
     }
   }
@@ -177,40 +255,155 @@ void QwGUIBeamModulation::OnRemoveThisTab()
 
 void QwGUIBeamModulation::ClearData()
 {
+  TObject *obj = NULL;
 
-  //  TObject *obj;
-  //   TIter next(HistArray.MakeIterator());
-  //   obj = next();
-  //   while(obj){    
-  //     delete obj;
-  //     obj = next();
-  //   }
+  //don't delete the trees (done by the main class when necessary) 
+  TreeArray.Clear();
 
-  HistArray.Clear();//Clear();
+  //We do, however, need to clean up the histograms ...
+  //Need to check below that we set SetDirectory(0) for all of them ...
+  TIter *next = new TIter(PlotArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    delete obj;
+    obj = next->Next();
+  }
+  delete next;
+  PlotArray.Clear();
+
+  if(dCanvas) {
+    TCanvas *c = dCanvas->GetCanvas();
+    if(c){
+      c->Clear();
+      c->Modified();
+      c->Update();
+    }
+  }
 }
 
 // Stuff to do after the tab is selected
 
 void QwGUIBeamModulation::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
+  QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
+  Bool_t add = kFalse;
+  TObject *plot = NULL;
+  
   if(event == kButton1Double){
     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
-    
-    if(pad > 0 && pad <= BEAMMODULATION_DEV_NUM)
-      {
-	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
-						     GetNewWindowName(),"QwGUIBeamModulation",
-						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
-	if(!dMiscWindow){
+
+    printf("%s,%d pad = %d\n",__FILE__,__LINE__,pad);
+
+    // if(pad > 0 && pad <= BEAMMODULATION_DEV_NUM)
+    if(pad > 0 && pad <= PlotArray.GetLast()+1) {
+      plot = PlotArray[pad-1];
+      
+      if(plot){
+
+	if(plot->InheritsFrom("TProfile")){
+	
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TProfile*)plot)->GetTitle(), PT_PROFILE,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  // DataWindowArray.Add(dDataWindow);
+	  dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TProfile*)plot));
+	  SetLogMessage(Form("Looking at beam modulation profile %s\n",(char*)((TProfile*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
 	  return;
 	}
-	DataWindowArray.Add(dMiscWindow);
-	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
-	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
-	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
-
-	return;
+	
+	if(plot->InheritsFrom("TH1")){
+	  
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TH1D*)plot)->GetTitle(), PT_HISTO_1D,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  dDataWindow->SetStaticData(plot,DataWindowArray.GetLast());
+	  dDataWindow->SetPlotTitle((char*)((TH1D*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TH1D*)plot),add);
+	  SetLogMessage(Form("Looking at beam modulation histogram %s\n",(char*)((TH1D*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
+	  return;
+	}
+	
+	
+	if(plot->InheritsFrom("TGraphErrors")){
+	  
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TGraphErrors*)plot),add);
+	  SetLogMessage(Form("Looking at beam modulation graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
+	  return;
+	}
+	
+	if(plot->InheritsFrom("TGraph")){
+	  
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TGraph*)plot)->GetTitle(), PT_GRAPH,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  dDataWindow->SetPlotTitle((char*)((TGraph*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TGraph*)plot),add);
+	  SetLogMessage(Form("Looking at beam modulation graph %s\n",(char*)((TGraph*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
+	  return;
+	}
       }
+    }
   }
 }
 
@@ -246,7 +439,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   canvas->Divide(2,2);
 
   // Grab the Mps_Tree from the data container: Hel_Tree(0), Hel_Tree(1)
-  tree = (TTree *)HistArray.At(1);
+  tree = (TTree *)TreeArray.At(1);
   if(!tree) return;
 
   cut = error_cut + " && " + ramp_cut;
@@ -272,6 +465,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     no_datax->Clear();
     no_datax->AddText("No modulation X data found.");
     no_datax->Draw();
+    PlotArray.Add(NULL);
   }
   else{
     profx->GetXaxis()->SetTitle("phase (deg)");
@@ -285,6 +479,44 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     profx->SetTitle(Form("Target BPM Response to X Modulation: |Amplitude| = %f", TMath::Abs(amplitude) ));
     profx->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
     profx->Draw();
+    profx->SetDirectory(0);
+    PlotArray.Add(profx);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);
+  }
+
+  canvas->cd(2);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("qwk_targetXSlope:0.09*ramp>>profxp", cut + " && bm_pattern_number == 14");
+  profxp = (TProfile *)gDirectory->Get("profxp");
+  if(profxp->GetEntries() == 0){
+    profxp->Delete();
+    no_dataxp->Clear();
+    no_dataxp->AddText("No modulation XP data found.");
+    no_dataxp->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    profxp->GetXaxis()->SetTitle("phase (deg)");
+    profxp->GetYaxis()->SetTitle("BPM Amplitude (rad)");
+    sine->SetLineColor(2);
+    sine->SetRange(10., 350.);
+    sine->SetParameter(1, 4.e-6);
+    profxp->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profxp->SetTitle(Form("Target BPM Response to XP Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
+    profxp->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profxp->Draw();
+    profxp->SetDirectory(0);
+    PlotArray.Add(profxp);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
   }
 
   canvas->cd(3);
@@ -295,6 +527,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     no_datay->Clear();
     no_datay->AddText("No modulation Y data found.");
     no_datay->Draw();
+    PlotArray.Add(NULL);
   }
   else{
     gPad->SetGridx();
@@ -311,33 +544,11 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     profy->SetTitle(Form("Target BPM Response to Y Modulation: |Amplitude| = %f", TMath::Abs(amplitude) ));
     profy->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
     profy->Draw();
-  }
-
-  canvas->cd(2);
-  gPad->SetGridx();
-  gPad->SetGridy();
-
-  tree->Draw("qwk_targetXSlope:0.09*ramp>>profxp", cut + " && bm_pattern_number == 14");
-  profxp = (TProfile *)gDirectory->Get("profxp");
-  if(profxp->GetEntries() == 0){
-    profxp->Delete();
-    no_dataxp->Clear();
-    no_dataxp->AddText("No modulation XP data found.");
-    no_dataxp->Draw();
-  }
-  else{
-    profxp->GetXaxis()->SetTitle("phase (deg)");
-    profxp->GetYaxis()->SetTitle("BPM Amplitude (rad)");
-    sine->SetLineColor(2);
-    sine->SetRange(10., 350.);
-    sine->SetParameter(1, 4.e-6);
-    profxp->Fit("sine","BR");
-    offset = sine->GetParameter(0);
-    amplitude = sine->GetParameter(1);
-    phase = sine->GetParameter(2);
-    profxp->SetTitle(Form("Target BPM Response to XP Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
-    profxp->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
-    profxp->Draw();
+    profy->SetDirectory(0);
+    PlotArray.Add(profy);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
   }
 
   canvas->cd(4);
@@ -351,6 +562,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     no_datayp->Clear();
     no_datayp->AddText("No modulation YP data found.");
     no_datayp->Draw();
+    PlotArray.Add(NULL);
   }
   else{
     profyp->GetXaxis()->SetTitle("phase (deg)");
@@ -365,7 +577,23 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     profyp->SetTitle(Form("Target BPM Response to YP Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
     profyp->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
     profyp->Draw();
+    profyp->SetDirectory(0);
+    PlotArray.Add(profyp);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
   }
+
+  canvas->Modified();
+  canvas->Update();
+
+}
+
+void QwGUIBeamModulation::MakeHCLogEntry()
+{
+
+  if(dCanvas)
+    SubmitToHCLog(dCanvas->GetCanvas());
 
 }
 
