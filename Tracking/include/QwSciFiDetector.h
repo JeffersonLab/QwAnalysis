@@ -81,9 +81,14 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   void  ProcessEvent();
 
   void GetHitList(QwHitContainer & grandHitContainer){
-    //    grandHitContainer.Append(fGEMHits);
+    grandHitContainer.Append(fTDCHits);
   };
 
+
+  /* void GetTDCHitList(QwHitContainer & grandHitContainer) */
+  /* { */
+  /*   grandHitContainer.Append(fTDCHits); */
+  /* }; */
 
 
  protected:
@@ -120,6 +125,9 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
 
 
 
+  void  SubtractReferenceTimes(); // be executed in ProcessEvent()
+  void  ApplyTimeCalibration();   // be executed in ProcessEvent()
+
 
   std::vector< QwHit > fTDCHits;
   std::vector< std::vector<Int_t> > fModuleIndex;  
@@ -133,7 +141,7 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   // reference chans number <first:tdc_index, second:channel_number>
   // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
   std::vector< std::vector<Double_t> > fReferenceData; 
-
+  // fReferenceData[bank_index][channel_number]
 
   std::vector<QwSIS3801D24_Channel> fSCAs;
   std::map<TString,size_t> fSCAs_map;

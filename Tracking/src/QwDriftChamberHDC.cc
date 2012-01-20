@@ -219,7 +219,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
 	  refokay.at(bankid)  = kTRUE;
 	}
 	if ( refokay.at(bankid) ){
-	  for ( j=0; i<fReferenceData.at(bankid).size(); j++ ) 
+	  for ( j=0; j<fReferenceData.at(bankid).size(); j++ ) 
 	    {
 	      fReferenceData.at(bankid).at(j) -= reftimes.at(bankid);
 	    }

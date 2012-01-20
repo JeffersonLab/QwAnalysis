@@ -68,7 +68,7 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
   Int_t   chan_number  = 0; 
   Int_t   fiber_number = 0;
   TString name         = "";
-  //  Int_t reference_counter = 0;
+  Int_t reference_counter = 0;
 
   EQwDetectorPackage package = kPackageNull;
   EQwDirectionID   direction = kDirectionNull;
@@ -119,12 +119,12 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
 
 	if (name=="99") {
 	  //	  fReferenceChannels.push_back(std::make_pair(fCurrentModuleIndex, chan_number));
-	  //	  printf("reference_counter %d\n", reference_counter);
+	  printf("bank index %d Chan %d reference_counter %d\n", fCurrentBankIndex, chan_number, reference_counter);
 	  fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentModuleIndex;
 	  fReferenceChannels.at ( fCurrentBankIndex ).second = chan_number;
 
-	  fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = fCurrentModuleIndex;
-	  //	  reference_counter++;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = fCurrentBankIndex;
+	  reference_counter++;
 	}
 	else {
 	  fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = name.Atoi();
@@ -142,6 +142,7 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
 	// So, fSCAs size is 8
 
 	fScalerBankIndex = fCurrentBankIndex;
+	//	printf("Scaler bank index %d\n", fScalerBankIndex);
 	QwSIS3801D24_Channel localchannel(name);
 	localchannel.SetNeedsExternalClock(kFALSE);
 	fSCAs.push_back(localchannel);
@@ -228,6 +229,21 @@ QwSciFiDetector::LoadInputParameters(TString mapfile)
 Int_t 
 QwSciFiDetector::LoadGeometryDefinition(TString mapfile)
 {
+  Bool_t local_debug = true;
+  if(local_debug) {
+    std::cout << "------------ QwSciFiDetector::LoadGeometryDefinition -------------" << std::endl;
+  }
+    
+  fDetectorInfo.clear();
+
+  // QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
+  //     << fDetectorInfo.in(kPackageUp).size()
+  //     << ", "
+  //     << "kPackagDown "
+  //     << fDetectorInfo.in(kPackageDown).size()
+  //     << QwLog::endl;
+
+  
   return 0;
 }
 
@@ -251,8 +267,36 @@ QwSciFiDetector::ClearEventData()
 void
 QwSciFiDetector::ProcessEvent()
 {
+  if (not HasDataLoaded()) return;
 
-  for (size_t i=0; i<fSCAs.size(); i++)
+  // // F1TDCs
+  SubtractReferenceTimes();
+
+  // After Geometry...
+  // EQwDetectorPackage package = kPackageNull;
+  // Int_t plane   = 0;
+
+  // QwDetectorID local_id;
+  // QwDetectorInfo * local_info;
+
+  // for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) 
+  //   {
+  //     local_id   = hit->GetDetectorID();
+  //     package    = local_id.fPackage;
+  //     plane      = local_id.fPlane - 1;
+  //     // ahha, here is a hidden magic number 1.
+  //     local_info = fDetectorInfo.in(package).at(plane);
+  //     hit->SetDetectorInfo(local_info);
+  //   }
+  
+
+
+  ApplyTimeCalibration();
+
+
+  // SIS3801 scaler
+  std::size_t i = 0;
+  for (i=0; i<fSCAs.size(); i++)
     {
       fSCAs.at(i).ProcessEvent();
     }
@@ -298,201 +342,100 @@ QwSciFiDetector::DeleteHistograms()
 
 
 
-
-void 
-QwSciFiDetector::ClearAllBankRegistrations()
-{
-  VQwSubsystemTracking::ClearAllBankRegistrations();
-
-  std::size_t i = 0;
-
-  for ( i=0; i<fModuleIndex.size(); i++)
-    {
-      fModuleIndex.at(i).clear();
-    }
-  
-  fModuleIndex.clear();
-
-  fDetectorIDs.clear();
-  fTDCHits.clear();
-  kNumberOfVMEModules = 0;
-  return;
-}
-
-Int_t 
-QwSciFiDetector::RegisterROCNumber(const UInt_t roc_id)
-{
-  Int_t status = 0;
-  status = VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
-  std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
-  fModuleIndex.push_back(tmpvec);
-  //std::cout<<"Registering ROC "<<roc_id<<std::endl;
-
-  return status;
-}
-
-
-Int_t 
-QwSciFiDetector::RegisterSubbank(const UInt_t bank_id)
-{
-
-  // In VQwSubsystem, register subbank to where for what?
-  //
-  Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
-
- 
-  // from here, just expand some vectors in QwSciFiDetector...
-  //
-  fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
-
-  if (fReferenceChannels.size()<=fCurrentBankIndex) {
-    fReferenceChannels.resize(fCurrentBankIndex+1);
-    fReferenceData.resize(fCurrentBankIndex+1);
-  }
-
-
-  // Why do we need to expand unused and empty vector...
-  // 
-  std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
-  fModuleIndex.push_back(tmpvec);
-  std::cout<< "RegisterSubbank()" 
-	   <<" ROC " << (VQwSubsystem::fCurrentROC_ID)
-	   <<" Subbank "<<bank_id
-	   <<" with BankIndex "<<fCurrentBankIndex<<std::endl;
-
-  return stat;
-}
-
-
-Int_t 
-QwSciFiDetector::RegisterSlotNumber(UInt_t slot_id)
-{
-  if (slot_id<kMaxNumberOfSlotsPerROC) {
-    
-    if (fCurrentBankIndex <= fModuleIndex.size()) {
- 
-      fDetectorIDs.resize(kNumberOfVMEModules+1);
-      fDetectorIDs.at(kNumberOfVMEModules).resize(kMaxNumberOfChannelsPerF1TDC);
-      kNumberOfVMEModules = (Int_t) fDetectorIDs.size();
-      fModuleIndex.at(fCurrentBankIndex).at(slot_id) = kNumberOfVMEModules-1;
-
-      fCurrentSlot        = slot_id;
-      fCurrentModuleIndex = kNumberOfVMEModules-1;
-    }
-  } 
-  else {
-    std::cerr << "QwSciFiDetector::RegisterSlotNumber:  Slot number "
-	      << slot_id << " is larger than the number of slots per ROC, "
-	      << kMaxNumberOfSlotsPerROC << std::endl;
-  }
-  return fCurrentModuleIndex;
-    
-}
-
-Int_t 
-QwSciFiDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const 
-{
-  Int_t module_index = -1;
-  if ( bank_index < fModuleIndex.size() ) {
-    if ( slot_num < fModuleIndex.at(bank_index).size() ) {
-      module_index = fModuleIndex.at(bank_index).at(slot_num);
-    }
-  }
-  return module_index;
-}
-
-
-
-
-
 void  
 QwSciFiDetector::ReportConfiguration(Bool_t verbose)
 {
+
+  // Bank index 1 : ROC4  F1TDC
+  // Bank index 3 : ROC9  F1TDCs
+  // Bank index 5 : ROC11 SIS3801 
+
+
   if(verbose) {
-  std::size_t i    = 0;
-  std::size_t j    = 0;
+    std::size_t i    = 0;
+    std::size_t j    = 0;
 
-  Int_t roc_num    = 0;
-  Int_t bank_flag  = 0;
-  Int_t bank_index = 0;
-  Int_t module_index  = 0;
+    Int_t roc_num    = 0;
+    Int_t bank_flag  = 0;
+    Int_t bank_index = 0;
+    Int_t module_index  = 0;
 
-  UInt_t slot_id   = 0;
-  UInt_t vme_slot_num = 0;
+    UInt_t slot_id   = 0;
+    UInt_t vme_slot_num = 0;
     
-  std::cout << "QwSciFiDetector Region : " 
-	    << this->GetSubsystemName()
-	    << "::ReportConfiguration fDetectorIDs.size() " 
-	    << fDetectorIDs.size() << std::endl;
+    std::cout << "QwSciFiDetector Region : " 
+	      << this->GetSubsystemName()
+	      << "::ReportConfiguration fDetectorIDs.size() " 
+	      << fDetectorIDs.size() << std::endl;
 
 
-  for ( i=0; i<fROC_IDs.size(); i++ ) 
-    {
+    for ( i=0; i<fROC_IDs.size(); i++ ) 
+      {
 
-      roc_num = fROC_IDs.at(i);
+	roc_num = fROC_IDs.at(i);
 
-      for ( j=0; j<fBank_IDs.at(i).size(); j++ ) 
-	{
+	for ( j=0; j<fBank_IDs.at(i).size(); j++ ) 
+	  {
 	
-	  bank_flag    = fBank_IDs.at(i).at(j);
-	  if(bank_flag == 0) continue; 
-	  // must be uncommented if one doesn't define "bank_flag" in a CRL file
-	  // but, now we use "bank_flag" in our crl files, thus skip to print
-	  // unnecessary things on a screen
-	  // Monday, August 30 14:45:34 EDT 2010, jhlee
+	    bank_flag    = fBank_IDs.at(i).at(j);
+	    if(bank_flag == 0) continue; 
+	    // must be uncommented if one doesn't define "bank_flag" in a CRL file
+	    // but, now we use "bank_flag" in our crl files, thus skip to print
+	    // unnecessary things on a screen
+	    // Monday, August 30 14:45:34 EDT 2010, jhlee
 
-	  bank_index = GetSubbankIndex(roc_num, bank_flag);
+	    bank_index = GetSubbankIndex(roc_num, bank_flag);
 	
-	  std::cout << "ROC [index, Num][" 
-		    << i
-		    << ","
-		    << std::setw(2) << roc_num
-		    << "]"
-		    << " Bank [index,id]["
-		    <<  bank_index
-		    << ","
-		    << bank_flag
-		    << "]"
-		    << std::endl;
+	    std::cout << "ROC [index, Num][" 
+		      << i
+		      << ","
+		      << std::setw(2) << roc_num
+		      << "]"
+		      << " Bank [index,id]["
+		      <<  bank_index
+		      << ","
+		      << bank_flag
+		      << "]"
+		      << std::endl;
 	
-	  for ( slot_id=2; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) 
-	    { 
-	      // slot id starts from 2, because 0 and 1 are used for CPU and TI.
-	      // Tuesday, August 31 10:57:07 EDT 2010, jhlee
+	    for ( slot_id=2; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) 
+	      { 
+		// slot id starts from 2, because 0 and 1 are used for CPU and TI.
+		// Tuesday, August 31 10:57:07 EDT 2010, jhlee
 
-	      module_index = GetModuleIndex(bank_index, slot_id);
+		module_index = GetModuleIndex(bank_index, slot_id);
 	  
-	      vme_slot_num = slot_id;
+		vme_slot_num = slot_id;
 	  
-	      std::cout << "    "
-			<< "Slot [id, VME num] [" 
-			<< std::setw(2) << slot_id
-			<< ","
-			<< std::setw(2) << vme_slot_num
-			<< "]";
-	      if ( module_index == -1 ) {
 		std::cout << "    "
-			  << "Unused in R1 SciFiDetector" 
-			  << std::endl;
+			  << "Slot [id, VME num] [" 
+			  << std::setw(2) << slot_id
+			  << ","
+			  << std::setw(2) << vme_slot_num
+			  << "]";
+		if ( module_index == -1 ) {
+		  std::cout << "    "
+			    << "Unused in R1 SciFiDetector" 
+			    << std::endl;
+		}
+		else {
+		  std::cout << "    "
+			    << "Module index " 
+			    << module_index << std::endl;
+		}
 	      }
-	      else {
-		std::cout << "    "
-			  << "Module index " 
-			  << module_index << std::endl;
-	      }
-	    }
-	}
-    }
+	  }
+      }
     
-  for( size_t midx = 0; midx < fDetectorIDs.size(); midx++ )
-    {
-      for (size_t chan = 0 ; chan< fDetectorIDs.at(midx).size(); chan++)
-	{
-	  std::cout << "[" << midx <<","<< chan << "] "
-		    << " detectorID " << fDetectorIDs.at(midx).at(chan)
-		    << std::endl;
-	}
-    }
+    for( size_t midx = 0; midx < fDetectorIDs.size(); midx++ )
+      {
+	for (size_t chan = 0 ; chan< fDetectorIDs.at(midx).size(); chan++)
+	  {
+	    std::cout << "[" << midx <<","<< chan << "] "
+		      << " detectorID " << fDetectorIDs.at(midx).at(chan)
+		      << std::endl;
+	  }
+      }
   }
   return;
 }
@@ -764,7 +707,7 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
 	      FillRawTDCWord(bank_index, vme_module_slot_number, vme_module_chan_number, vme_module_data);
 	    }
 	    catch (std::exception& e) {
-	      std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+	      std::cerr << "Standard exception from QwSciFiDetector::FillRawTDCWord: "
 			<< e.what() << std::endl;
 	      std::cerr << "   Parameters:  index==" <<bank_index
 			<< "; Slot    Number=="   <<vme_module_slot_number
@@ -792,14 +735,14 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
       // Check if scaler buffer contains more than one event, and if so, reject it to decode.
       // 
       if (buffer[0]/32!=1) {
-	printf("This buffer contains more than one event, thus, we reject them\n"); // Why? jhlee
+	if(temp_print_flag) printf("This buffer contains more than one event, thus, we reject them\n"); // Why? jhlee
 	return 0;
       }
 
       UInt_t words_read = 0;
       for (size_t i=0; i<fSCAs.size(); i++) {
 	words_read += fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]), num_words-fSCAs_offset.at(i));
-	if(temp_print_flag) printf("i %d words_read %d\n", i, words_read);
+	if(temp_print_flag) printf("i %d words_read %d\n", (Int_t)i, words_read);
       }
       
     }
@@ -840,8 +783,10 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
     element = fDetectorIDs.at(tdcindex).at(chan).fElement;
     package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
- 
-  
+    if(local_debug) {
+      printf("bank_idx %d, slot %d, plane %d, element %d, package %d\n",
+	     bank_index, slot_num, (Int_t) plane, (Int_t) element, (Int_t) package);
+    }
 
     if (plane == -1 or element == -1){
       //  This channel is not connected to anything. Do nothing.
@@ -854,7 +799,6 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     else {
       direction = fDetectorIDs.at(tdcindex).at(chan).fDirection;
 
-      //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
       hitcnt = std::count_if(fTDCHits.begin(), fTDCHits.end(), 
 			     boost::bind(
 					 &QwHit::WireMatches, _1, kRegionID1, boost::ref(package), boost::ref(plane), boost::ref(element)
@@ -875,9 +819,12 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     			       data
     			       )
     			 );
-    // //   //in order-> bank index, slot num, chan_number, hitcount, region=2, package, plane,,direction, wire,wire hit time
+
       if(local_debug) {
 	std::cout << "At QwSciFiDetector::FillRawTDCWord " 
+		  << " bank index " << bank_index
+		  << " slot num " << slot_num
+		  << " chan num " << chan
 		  << " hitcnt " << hitcnt
 		  << " plane  " << plane
 		  << " wire   " << element
@@ -896,8 +843,6 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
 
 
 
-
-
 void
 QwSciFiDetector::FillHardwareErrorSummary()
 {
@@ -907,3 +852,256 @@ QwSciFiDetector::FillHardwareErrorSummary()
 
   return;
 };
+
+
+
+
+// protected
+void 
+QwSciFiDetector::ClearAllBankRegistrations()
+{
+  VQwSubsystemTracking::ClearAllBankRegistrations();
+
+  std::size_t i = 0;
+
+  for ( i=0; i<fModuleIndex.size(); i++)
+    {
+      fModuleIndex.at(i).clear();
+    }
+  
+  fModuleIndex.clear();
+
+  fDetectorIDs.clear();
+  fTDCHits.clear();
+  kNumberOfVMEModules = 0;
+  return;
+}
+
+Int_t 
+QwSciFiDetector::RegisterROCNumber(const UInt_t roc_id)
+{
+  Int_t status = 0;
+  status = VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
+  std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
+  fModuleIndex.push_back(tmpvec);
+  //std::cout<<"Registering ROC "<<roc_id<<std::endl;
+
+  return status;
+}
+
+
+Int_t 
+QwSciFiDetector::RegisterSubbank(const UInt_t bank_id)
+{
+
+  // In VQwSubsystem, register subbank to where for what?
+  //
+  Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
+
+ 
+  // from here, just expand some vectors in QwSciFiDetector...
+  //
+  fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
+
+  if (fReferenceChannels.size()<=fCurrentBankIndex) {
+    fReferenceChannels.resize(fCurrentBankIndex+1);
+    fReferenceData.resize(fCurrentBankIndex+1);
+  }
+
+
+  // Why do we need to expand unused and empty vector...
+  // 
+  std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
+  fModuleIndex.push_back(tmpvec);
+  std::cout<< "RegisterSubbank()" 
+	   <<" ROC " << (VQwSubsystem::fCurrentROC_ID)
+	   <<" Subbank "<<bank_id
+	   <<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+
+  return stat;
+}
+
+
+Int_t 
+QwSciFiDetector::RegisterSlotNumber(UInt_t slot_id)
+{
+  if (slot_id<kMaxNumberOfSlotsPerROC) {
+    
+    if (fCurrentBankIndex <= fModuleIndex.size()) {
+ 
+      fDetectorIDs.resize(kNumberOfVMEModules+1);
+      fDetectorIDs.at(kNumberOfVMEModules).resize(kMaxNumberOfChannelsPerF1TDC);
+      kNumberOfVMEModules = (Int_t) fDetectorIDs.size();
+      fModuleIndex.at(fCurrentBankIndex).at(slot_id) = kNumberOfVMEModules-1;
+
+      fCurrentSlot        = slot_id;
+      fCurrentModuleIndex = kNumberOfVMEModules-1;
+    }
+  } 
+  else {
+    std::cout << "QwSciFiDetector::RegisterSlotNumber:  Slot number "
+	     << slot_id << " is larger than the number of slots per ROC, "
+	     << kMaxNumberOfSlotsPerROC << std::endl;
+  }
+  return fCurrentModuleIndex;
+    
+}
+
+Int_t 
+QwSciFiDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const 
+{
+  Int_t module_index = -1;
+  if ( bank_index < fModuleIndex.size() ) {
+    if ( slot_num < fModuleIndex.at(bank_index).size() ) {
+      module_index = fModuleIndex.at(bank_index).at(slot_num);
+    }
+  }
+  return module_index;
+}
+
+
+
+
+
+void  
+QwSciFiDetector::SubtractReferenceTimes()
+{
+
+  std::vector<Double_t> reftimes;
+  std::vector<Bool_t>   refchecked;
+  std::vector<Bool_t>   refokay;
+  Bool_t allrefsokay;
+
+
+  std::size_t ref_size = 0;
+  std::size_t i = 0;
+  std::size_t j = 0;
+
+  ref_size = fReferenceData.size();
+
+
+  reftimes.resize  ( ref_size );
+  refchecked.resize( ref_size );
+  refokay.resize   ( ref_size );
+
+  for ( i=0; i<ref_size; i++ ) {
+    reftimes.at(i)   = 0.0;
+    refchecked.at(i) = kFALSE;
+    refokay.at(i)    = kFALSE;
+  }
+
+  allrefsokay = kTRUE;
+
+
+
+  UInt_t   bank_index = 0;
+  Double_t raw_time   = 0.0;
+  Double_t ref_time   = 0.0;
+  Double_t time       = 0.0;
+
+  Bool_t local_debug = false;
+
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+    {
+      //  Only try to check the reference time for a bank if there is at least one
+      //  non-reference hit in the bank.
+      bank_index = hit->GetSubbankID();
+
+      //     if(local_debug) printf("QwHit :: bank index %d\n", bank_index);
+
+      if ( not refchecked.at(bank_index) ) {
+	
+	if ( fReferenceData.at(bank_index).empty() ) {
+	  std::cout << "QwSciFiDetector::SubtractReferenceTimes:  Subbank ID "
+	     	    << bank_index << " is missing a reference time." << std::endl;
+	  refokay.at(bank_index) = kFALSE;
+	  allrefsokay            = kFALSE;
+	}
+	else {
+	  if(fReferenceData.at(bank_index).size() not_eq 1) {
+	    std::cout << "Multiple hits are recorded in the reference channel, we use the first hit signal as the refererence signal." << std::endl;
+	  }
+	  reftimes.at(bank_index) = fReferenceData.at(bank_index).at(0);
+	  refokay.at(bank_index)  = kTRUE;
+	}
+
+	if (refokay.at(bank_index)){
+	  for ( j=0; j<fReferenceData.at(bank_index).size(); j++ ) 
+	    {
+	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
+	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
+	      fReferenceData.at(bank_index).at(j) -= reftimes.at(bank_index);
+	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
+	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
+	    }
+	}
+
+     	refchecked.at(bank_index) = kTRUE;
+      }
+      
+      if ( refokay.at(bank_index) ) {
+      	raw_time = (Double_t) hit -> GetRawTime();
+      	ref_time = (Double_t) reftimes.at(bank_index);
+
+      	Int_t slot_num   = hit->GetModule();
+
+      	time = fF1TDContainer->ReferenceSignalCorrection(raw_time, ref_time, bank_index, slot_num);
+      	hit -> SetTime(time); 
+      	if(local_debug) {
+      	  QwMessage << this->GetSubsystemName()
+      		    << " BankIndex " << std::setw(2) << bank_index
+      		    << " Slot "      << std::setw(2) << slot_num
+      		    << " RawTime : " << std::setw(6) << raw_time
+      		    << " RefTime : " << std::setw(6) << ref_time
+      		    << " time : "    << std::setw(6) << time
+      		    << std::endl;
+	  
+      	}
+      }
+    }
+  
+  bank_index = 0;
+  
+  if ( not allrefsokay ) {
+    std::vector<QwHit> tmp_hits;
+    tmp_hits.clear();
+    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+      {
+	bank_index = hit->GetSubbankID();
+	if ( refokay.at(bank_index) ) tmp_hits.push_back(*hit);
+      }
+    std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+    fTDCHits.clear();
+    fTDCHits = tmp_hits;
+     std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+  }
+  
+  return;
+}
+
+
+
+void 
+QwSciFiDetector::ApplyTimeCalibration()
+{
+  Double_t f1tdc_resolution_ns = 0.0;
+  std::size_t numberofhits     = 0;
+  std::size_t i                = 0;
+  
+  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
+  numberofhits        = fTDCHits.size();
+
+  if (f1tdc_resolution_ns==0.0) {
+    f1tdc_resolution_ns = 0.116312881651642913;
+    printf("WARNING : QwSciFiDetector::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further. Please use the default qwtracking.conf file or the command line option --chainfiles 1\n", f1tdc_resolution_ns);
+  }
+
+
+  for(i=0; i<numberofhits; i++) 
+    {
+      fTDCHits.at(i).SetTime( f1tdc_resolution_ns*fTDCHits.at(i).GetTime() );
+    }
+
+  return;
+}
+
