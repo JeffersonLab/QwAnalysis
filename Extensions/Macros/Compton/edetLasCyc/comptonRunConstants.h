@@ -14,14 +14,17 @@ const Double_t Z_CROSS = 9;//strip of Compton asymmetry zero crossing
 const Double_t C_EDGE = 51;//strip of Compton edge
 
 //Hardware constants
-const Int_t usedStrips = 50;
-const Int_t nSTRIPS = 96;
+const Int_t nStrips = 96;
 const Int_t nPlanes = 4;
-const Int_t mystr = 48;
-const Int_t startStrip = 0;
-  const Int_t endStrip = 53;
 
 //Run constants
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
 const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn
 const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
+
+const Int_t usedStrips = 50;
+const Int_t mystr = 48;
+const Int_t startStrip = 48;
+  const Int_t endStrip = 48;
+const Int_t startPlane = 2;
+  const Int_t endPlane = 2;
