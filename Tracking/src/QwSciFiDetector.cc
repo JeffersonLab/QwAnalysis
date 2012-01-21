@@ -16,7 +16,7 @@ RegisterSubsystemFactory(QwSciFiDetector);
 
 
 
-const UInt_t QwSciFiDetector::kMaxNumberOfSlotsPerROC = 21;
+const UInt_t QwSciFiDetector::kMaxNumberOfSlotsPerROC   = 21;
 const Int_t  QwSciFiDetector::kF1ReferenceChannelNumber = 99;
 
 
@@ -31,6 +31,7 @@ QwSciFiDetector::QwSciFiDetector(const TString& name)
   SetEventTypeMask(0xffff); 
   
   ClearAllBankRegistrations();
+
   kRegion             = "";
   fCurrentBankIndex   = 0;
   fCurrentSlot        = 0;
@@ -48,6 +49,7 @@ QwSciFiDetector::QwSciFiDetector(const TString& name)
 QwSciFiDetector::~QwSciFiDetector()
 {
   fSCAs.clear();
+  delete fF1TDContainer;
 };
 
 
@@ -341,6 +343,53 @@ QwSciFiDetector::DeleteHistograms()
 
 
 
+void 
+QwSciFiDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
+{
+  fTreeArrayIndex = values.size();
+
+  TString basename;
+  if (prefix=="") basename = "scifiber";
+  else            basename = prefix;
+
+  TString list = "";
+
+  for (std::size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i).GetElementName() != "") {
+	values.push_back(0.0);
+	list += ":" + fSCAs.at(i).GetElementName() + "/D";
+      }
+    }
+  
+  if (list[0]==':') {
+    list = list(1,list.Length()-1);
+  }
+  
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+  tree->Branch(basename, &values[fTreeArrayIndex], list);
+  return;
+}
+
+void
+QwSciFiDetector::FillTreeVector(std::vector<Double_t> &values) const
+{
+  if (! HasDataLoaded()) return;
+
+  Int_t index = fTreeArrayIndex;
+
+  for (std::size_t i=0; i<fSCAs.size(); i++) 
+    {
+      if (fSCAs.at(i).GetElementName() != "") {
+	values[index] = fSCAs.at(i).GetValue();
+	index++;
+      }
+    }
+  return;
+}
+
+
+
 
 void  
 QwSciFiDetector::ReportConfiguration(Bool_t verbose)
@@ -352,15 +401,15 @@ QwSciFiDetector::ReportConfiguration(Bool_t verbose)
 
 
   if(verbose) {
-    std::size_t i    = 0;
-    std::size_t j    = 0;
+    std::size_t i       = 0;
+    std::size_t j       = 0;
 
-    Int_t roc_num    = 0;
-    Int_t bank_flag  = 0;
-    Int_t bank_index = 0;
+    Int_t roc_num       = 0;
+    Int_t bank_flag     = 0;
+    Int_t bank_index    = 0;
     Int_t module_index  = 0;
 
-    UInt_t slot_id   = 0;
+    UInt_t slot_id      = 0;
     UInt_t vme_slot_num = 0;
     
     std::cout << "QwSciFiDetector Region : " 
@@ -376,8 +425,7 @@ QwSciFiDetector::ReportConfiguration(Bool_t verbose)
 
 	for ( j=0; j<fBank_IDs.at(i).size(); j++ ) 
 	  {
-	
-	    bank_flag    = fBank_IDs.at(i).at(j);
+	    bank_flag = fBank_IDs.at(i).at(j);
 	    if(bank_flag == 0) continue; 
 	    // must be uncommented if one doesn't define "bank_flag" in a CRL file
 	    // but, now we use "bank_flag" in our crl files, thus skip to print
@@ -450,15 +498,16 @@ void
 QwSciFiDetector::PrintConfigurationBuffer(UInt_t *buffer, UInt_t num_words)
 {
   UInt_t ipt = 0;
-  UInt_t j = 0;
-  UInt_t k = 0;
+  UInt_t j   = 0;
+  UInt_t k   = 0;
   
   for ( j=0; j<(num_words/5); j++ ) 
     {
       printf ( "buffer[%5d] = 0x:", ipt );
-      for ( k=j; k<j+5; k++ ) {
-	printf ( "%12x", buffer[ipt++] );
-      }
+      for ( k=j; k<j+5; k++ ) 
+	{
+	  printf ( "%12x", buffer[ipt++] );
+	}
       printf ( "\n" );
     }
   
@@ -485,15 +534,14 @@ QwSciFiDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
 					    UInt_t num_words)
 {
 
-  TString subsystem_name;
+  TString subsystem_name = "";
 
-  Int_t bank_index    = 0;
-  Int_t tdc_index     = 0;
-  UInt_t slot_id      = 0;
-  UInt_t vme_slot_num = 0;
+  Int_t bank_index     = 0;
+  Int_t tdc_index      = 0;
+  UInt_t slot_id       = 0;
+  UInt_t vme_slot_num  = 0;
 
-  Bool_t local_debug  = true;
-
+  Bool_t local_debug   = true;
   QwF1TDC *local_f1tdc = NULL;
    
   bank_index = GetSubbankIndex(roc_id, bank_id);
@@ -674,11 +722,7 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
 	for (UInt_t i=0; i<num_words ; i++) {
 	  
 	  //  Decode this word as a F1TDC word.
-	  fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
-	  
-	  // For MQwF1TDC,   roc_id is needed to print out some warning messages.
-	  // For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
-	  //                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
+	  fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); 
 	  
 	  vme_module_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
 	  vme_module_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
@@ -896,14 +940,17 @@ QwSciFiDetector::RegisterSubbank(const UInt_t bank_id)
 
   // In VQwSubsystem, register subbank to where for what?
   //
-  Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
+  Int_t status         = VQwSubsystem::RegisterSubbank(bank_id);
+  Int_t current_roc_id = VQwSubsystem::fCurrentROC_ID;
 
+  std::size_t reference_size = fReferenceChannels.size();
  
   // from here, just expand some vectors in QwSciFiDetector...
   //
-  fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
+  fCurrentBankIndex = GetSubbankIndex(current_roc_id, bank_id);
+  //subbank id is directly related to the ROC
 
-  if (fReferenceChannels.size()<=fCurrentBankIndex) {
+  if ( (Int_t) reference_size <= fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
   }
@@ -912,13 +959,16 @@ QwSciFiDetector::RegisterSubbank(const UInt_t bank_id)
   // Why do we need to expand unused and empty vector...
   // 
   std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
-  fModuleIndex.push_back(tmpvec);
-  std::cout<< "RegisterSubbank()" 
-	   <<" ROC " << (VQwSubsystem::fCurrentROC_ID)
-	   <<" Subbank "<<bank_id
-	   <<" with BankIndex "<<fCurrentBankIndex<<std::endl;
 
-  return stat;
+  fModuleIndex.push_back(tmpvec);
+
+  std::cout<< "QwSciFiDetector::RegisterSubbank()" 
+	   <<" ROC "            << current_roc_id
+	   <<" Subbank "        << bank_id
+	   <<" with BankIndex " << fCurrentBankIndex
+	   << std::endl;
+
+  return status;
 }
 
 
@@ -927,15 +977,17 @@ QwSciFiDetector::RegisterSlotNumber(UInt_t slot_id)
 {
   if (slot_id<kMaxNumberOfSlotsPerROC) {
     
-    if (fCurrentBankIndex <= fModuleIndex.size()) {
+    if (fCurrentBankIndex <= (Int_t) fModuleIndex.size()) {
  
       fDetectorIDs.resize(kNumberOfVMEModules+1);
       fDetectorIDs.at(kNumberOfVMEModules).resize(kMaxNumberOfChannelsPerF1TDC);
-      kNumberOfVMEModules = (Int_t) fDetectorIDs.size();
-      fModuleIndex.at(fCurrentBankIndex).at(slot_id) = kNumberOfVMEModules-1;
 
-      fCurrentSlot        = slot_id;
+      // reassign kNumberOfVMEModules
+
+      kNumberOfVMEModules = (Int_t) fDetectorIDs.size();
       fCurrentModuleIndex = kNumberOfVMEModules-1;
+      fCurrentSlot        = slot_id;
+      fModuleIndex.at(fCurrentBankIndex).at(fCurrentSlot) = fCurrentModuleIndex;
     }
   } 
   else {
@@ -1070,10 +1122,10 @@ QwSciFiDetector::SubtractReferenceTimes()
 	bank_index = hit->GetSubbankID();
 	if ( refokay.at(bank_index) ) tmp_hits.push_back(*hit);
       }
-    std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+    //    std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
     fTDCHits.clear();
     fTDCHits = tmp_hits;
-     std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+    //     std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
   }
   
   return;

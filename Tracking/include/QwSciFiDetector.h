@@ -60,8 +60,8 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
-  void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values) {};
-  void  FillTreeVector(std::vector<Double_t> &values)const {};
+  void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
 
 
@@ -98,7 +98,7 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   static const Int_t  kF1ReferenceChannelNumber;
 
   TString kRegion;  ///  Name of this subsystem (the region).
-  size_t  fCurrentBankIndex;
+  Int_t   fCurrentBankIndex;
   Int_t   fCurrentSlot;
   Int_t   fCurrentModuleIndex;
   UInt_t  kMaxNumberOfChannelsPerF1TDC;
