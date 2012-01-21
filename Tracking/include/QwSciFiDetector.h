@@ -112,14 +112,13 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   QwF1TDContainer *fF1TDContainer;
   
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id);
-  Int_t RegisterSubbank(const UInt_t bank_id);
-  Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
+  Int_t RegisterROCNumber  (const UInt_t roc_id);
+  Int_t RegisterSubbank    (const UInt_t bank_id);
+  Int_t RegisterSlotNumber (const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
 
-  Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
-  {
+  Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
     return (GetModuleIndex(bank_index,slot_num) != -1);
   };
 

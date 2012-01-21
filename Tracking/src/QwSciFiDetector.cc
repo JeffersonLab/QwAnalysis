@@ -13,12 +13,8 @@
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwSciFiDetector);
 
-
-
-
 const UInt_t QwSciFiDetector::kMaxNumberOfSlotsPerROC   = 21;
 const Int_t  QwSciFiDetector::kF1ReferenceChannelNumber = 99;
-
 
 
 QwSciFiDetector::QwSciFiDetector(const TString& name)
@@ -38,7 +34,6 @@ QwSciFiDetector::QwSciFiDetector(const TString& name)
   fCurrentModuleIndex = 0;
   kNumberOfVMEModules = 0;
   fScalerBankIndex    = -1;
-  //  kNumberOfF1TDCs     = 0;
 
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
@@ -317,7 +312,7 @@ void
 QwSciFiDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   
-  for (size_t i=0; i<fSCAs.size(); i++) {
+  for (std::size_t i=0; i<fSCAs.size(); i++) {
     fSCAs.at(i).ConstructHistograms(folder, prefix);
   }
   return;
@@ -327,10 +322,10 @@ void
 QwSciFiDetector::FillHistograms()
 {
   if (! HasDataLoaded()) return;
-  for (size_t i=0; i<fSCAs.size(); i++) {
+  for (std::size_t i=0; i<fSCAs.size(); i++) {
     fSCAs.at(i).FillHistograms();
   }
-
+  
   return;
 };
 
@@ -344,7 +339,9 @@ QwSciFiDetector::DeleteHistograms()
 
 
 void 
-QwSciFiDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
+QwSciFiDetector::ConstructBranchAndVector(TTree *tree, 
+					  TString& prefix, 
+					  std::vector<Double_t> &values)
 {
   fTreeArrayIndex = values.size();
 
@@ -638,6 +635,8 @@ QwSciFiDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
 	}
       }
   
+    fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
+
     if(local_debug) fF1TDContainer->Print();
     std::cout << "-----------------------------------------------------" << std::endl;
 
@@ -677,24 +676,22 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
 				 UInt_t num_words)
 {
 
-  Int_t  bank_index      = 0;
+  Int_t  bank_index             = 0;
   Int_t  vme_module_slot_number = 0;
   Int_t  vme_module_chan_number = 0;
   UInt_t vme_module_data        = 0;
+  Int_t  module_index           = 0;
 
-  Bool_t data_integrity_flag = false;
-  Bool_t temp_print_flag     = false;
-  Int_t  module_index = 0;
+  Bool_t data_integrity_flag    = false;
+  Bool_t temp_print_flag        = false;
 
   bank_index = GetSubbankIndex(roc_id, bank_id);
   
-  
-
   if (bank_index>=0 && num_words>0) {
     //  We want to process this ROC.  Begin looping through the data.
     SetDataLoaded(kTRUE);
 
-    if (temp_print_flag ) {
+    if ( temp_print_flag ) {
       std::cout << "\nQwSciFiDetector::ProcessEvBuffer:  "
   		<< "Begin processing ROC" 
   		<< std::setw(2)
@@ -784,9 +781,9 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
       }
 
       UInt_t words_read = 0;
-      for (size_t i=0; i<fSCAs.size(); i++) {
-	words_read += fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]), num_words-fSCAs_offset.at(i));
-	if(temp_print_flag) printf("i %d words_read %d\n", (Int_t)i, words_read);
+      for (std::size_t k=0; k<fSCAs.size(); k++) {
+	words_read += fSCAs.at(k).ProcessEvBuffer(&(buffer[fSCAs_offset.at(k)]), num_words-fSCAs_offset.at(k));
+	if(temp_print_flag) printf("k %d words_read %d\n", (Int_t)k, words_read);
       }
       
     }
@@ -805,7 +802,7 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
 				 UInt_t data)
 {
   Bool_t local_debug = false;
-  Int_t tdcindex =  0;
+  Int_t tdcindex     =  0;
 
   tdcindex = GetModuleIndex(bank_index,slot_num);
 
@@ -914,7 +911,6 @@ QwSciFiDetector::ClearAllBankRegistrations()
     }
   
   fModuleIndex.clear();
-
   fDetectorIDs.clear();
   fTDCHits.clear();
   kNumberOfVMEModules = 0;
@@ -938,8 +934,6 @@ Int_t
 QwSciFiDetector::RegisterSubbank(const UInt_t bank_id)
 {
 
-  // In VQwSubsystem, register subbank to where for what?
-  //
   Int_t status         = VQwSubsystem::RegisterSubbank(bank_id);
   Int_t current_roc_id = VQwSubsystem::fCurrentROC_ID;
 
@@ -955,9 +949,9 @@ QwSciFiDetector::RegisterSubbank(const UInt_t bank_id)
     fReferenceData.resize(fCurrentBankIndex+1);
   }
 
+  // Why do we need to expand this vector size
+  // even if most of them are empty? --- jhlee
 
-  // Why do we need to expand unused and empty vector...
-  // 
   std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
 
   fModuleIndex.push_back(tmpvec);
@@ -982,7 +976,7 @@ QwSciFiDetector::RegisterSlotNumber(UInt_t slot_id)
       fDetectorIDs.resize(kNumberOfVMEModules+1);
       fDetectorIDs.at(kNumberOfVMEModules).resize(kMaxNumberOfChannelsPerF1TDC);
 
-      // reassign kNumberOfVMEModules
+      // reassign kNumberOfVMEModules after resize it
 
       kNumberOfVMEModules = (Int_t) fDetectorIDs.size();
       fCurrentModuleIndex = kNumberOfVMEModules-1;
@@ -1031,7 +1025,6 @@ QwSciFiDetector::SubtractReferenceTimes()
 
   ref_size = fReferenceData.size();
 
-
   reftimes.resize  ( ref_size );
   refchecked.resize( ref_size );
   refokay.resize   ( ref_size );
@@ -1046,10 +1039,10 @@ QwSciFiDetector::SubtractReferenceTimes()
 
 
 
-  UInt_t   bank_index = 0;
-  Double_t raw_time   = 0.0;
-  Double_t ref_time   = 0.0;
-  Double_t time       = 0.0;
+  UInt_t   bank_index        = 0;
+  Double_t raw_time_arb_unit = 0.0;
+  Double_t ref_time_arb_unit = 0.0;
+  Double_t time_arb_unit       = 0.0;
 
   Bool_t local_debug = false;
 
@@ -1092,20 +1085,22 @@ QwSciFiDetector::SubtractReferenceTimes()
       }
       
       if ( refokay.at(bank_index) ) {
-      	raw_time = (Double_t) hit -> GetRawTime();
-      	ref_time = (Double_t) reftimes.at(bank_index);
-
+      	raw_time_arb_unit = (Double_t) hit -> GetRawTime();
+      	ref_time_arb_unit = (Double_t) reftimes.at(bank_index);
       	Int_t slot_num   = hit->GetModule();
 
-      	time = fF1TDContainer->ReferenceSignalCorrection(raw_time, ref_time, bank_index, slot_num);
-      	hit -> SetTime(time); 
+      	time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
+
+      	hit -> SetTime(time_arb_unit); 
+
+
       	if(local_debug) {
       	  QwMessage << this->GetSubsystemName()
       		    << " BankIndex " << std::setw(2) << bank_index
       		    << " Slot "      << std::setw(2) << slot_num
-      		    << " RawTime : " << std::setw(6) << raw_time
-      		    << " RefTime : " << std::setw(6) << ref_time
-      		    << " time : "    << std::setw(6) << time
+      		    << " RawTime : " << std::setw(6) << raw_time_arb_unit
+      		    << " RefTime : " << std::setw(6) << ref_time_arb_unit
+      		    << " time : "    << std::setw(6) << time_arb_unit
       		    << std::endl;
 	  
       	}
@@ -1136,22 +1131,11 @@ QwSciFiDetector::SubtractReferenceTimes()
 void 
 QwSciFiDetector::ApplyTimeCalibration()
 {
-  Double_t f1tdc_resolution_ns = 0.0;
-  std::size_t numberofhits     = 0;
-  std::size_t i                = 0;
-  
-  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
-  numberofhits        = fTDCHits.size();
-
-  if (f1tdc_resolution_ns==0.0) {
-    f1tdc_resolution_ns = 0.116312881651642913;
-    printf("WARNING : QwSciFiDetector::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further. Please use the default qwtracking.conf file or the command line option --chainfiles 1\n", f1tdc_resolution_ns);
-  }
-
-
-  for(i=0; i<numberofhits; i++) 
+ 
+  for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
     {
-      fTDCHits.at(i).SetTime( f1tdc_resolution_ns*fTDCHits.at(i).GetTime() );
+      iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
+      iter->SetTimeRes(fF1TDCResolutionNS);
     }
 
   return;

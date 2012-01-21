@@ -1366,18 +1366,13 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
 
 void QwDriftChamberVDC::ApplyTimeCalibration()
 {
-  Double_t f1tdc_resolution_ns = 0.0;
-  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
-  if (f1tdc_resolution_ns==0.0) {
-    f1tdc_resolution_ns = 0.116312881651642913;
-    printf("WARNING : QwDriftChamberVDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
-  }
 
   for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); ++iter)
     {
-      iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
+      iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
+      iter->SetTimeRes(fF1TDCResolutionNS);
     }
-  
+
   return;
 }
 

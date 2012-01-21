@@ -143,6 +143,7 @@ class QwF1TDC :  public TObject
   UInt_t GetTotalFDF();
   UInt_t GetTotalS30();
 
+  UInt_t GetTotalRFM() {return fF1TDC_RFM_counter;};
 
   void ResetCounters();
 
@@ -236,6 +237,7 @@ class QwF1TDC :  public TObject
   static const Int_t fWordsPerBuffer;
   static const Int_t fMaxF1TDCChannelNumber;
   
+  UInt_t  fF1TDC_RFM_counter;  // ReFerence signal Miss counter
 
   UInt_t GetTotal(UInt_t* error_counter);
 
@@ -290,7 +292,16 @@ class QwF1TDContainer :  public TObject
   QwF1TDC* GetF1TDCwithIndex(Int_t tdc_index);
   QwF1TDC* GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot);
 
-  Double_t GetF1TDCResolution();
+  Double_t GetF1TDCOneResolution() const {return fF1TDCOneResolutionNS;};
+  Double_t DoneF1TDCsConfiguration();
+
+  //
+  // This function will be removed after several tests
+  // in order to reduce 'call' per event/hit
+  // Saturday, January 21 15:33:40 EST 2012, jhlee
+
+  /// Double_t GetF1TDCResolution();
+
   Int_t GetF1TDCChannelNumber();
   const TH2F* GetF1TDCErrorHist();
 
@@ -339,6 +350,10 @@ private:
   Bool_t fLocalDebug;
   Bool_t fLocalF1ErrorDebug;
   
+  Double_t fF1TDCOneResolutionNS;
+  Double_t GetF1TDCsResolution();
+
+
   TList* GetErrorSummary();
 
   TString PrintNoF1TDC(Int_t roc, Int_t slot);

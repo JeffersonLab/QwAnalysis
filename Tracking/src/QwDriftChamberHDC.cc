@@ -932,26 +932,14 @@ void  QwDriftChamberHDC::ClearEventData()
 
 void QwDriftChamberHDC::ApplyTimeCalibration()
 {
-  Double_t f1tdc_resolution_ns = 0.0;
-  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
-  if (f1tdc_resolution_ns==0.0) {
-    f1tdc_resolution_ns = 0.116312881651642913;
-    //  printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
-  }
 
-  size_t nhits=fTDCHits.size();
-  for(size_t i=0;i<nhits;i++) 
+  for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
     {
-      double time=f1tdc_resolution_ns*fTDCHits.at(i).GetTime() ;
-      //if(time<25 || time > 155){
-      //  fTDCHits.erase(fTDCHits.begin()+i);
-      //  --nhits;
-      //  --i;
-      //  continue;
-      //}
-        
-      fTDCHits.at(i).SetTime( time );
+      iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
+      iter->SetTimeRes(fF1TDCResolutionNS);
     }
+
+
   return;
 }
 

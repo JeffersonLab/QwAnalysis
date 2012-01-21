@@ -115,7 +115,7 @@ inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double a
   target_z_space[1] = target_z_position + 0.5*target_z_length;
 
   Double_t momentum_correction_MeV = 0.0;
-  Double_t path_length_mm = 0.0;
+  // Double_t path_length_mm = 0.0;
 
   
   //if (vertex_z < target_z_space_mm[1]) {

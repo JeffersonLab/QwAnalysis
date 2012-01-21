@@ -520,7 +520,9 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	  std::cout << std::endl;
 	}
       }
-  
+    
+    fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
+
     if(local_debug) fF1TDContainer->Print();
     std::cout << "-----------------------------------------------------" << std::endl;
 

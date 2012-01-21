@@ -116,6 +116,7 @@ QwF1TDC::QwF1TDC()
   fF1TDC_FDF_counter = new UInt_t[fMaxF1TDCChannelNumber];
   fF1TDC_S30_counter = new UInt_t[fMaxF1TDCChannelNumber];
 
+  fF1TDC_RFM_counter = 0;
 
   fReferenceSignals    = NULL;
 
@@ -168,6 +169,7 @@ QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
   fF1TDC_FDF_counter = new UInt_t[fMaxF1TDCChannelNumber];
   fF1TDC_S30_counter = new UInt_t[fMaxF1TDCChannelNumber];
 
+  fF1TDC_RFM_counter = 0;
 
   fReferenceSignals    = NULL;
 
@@ -301,46 +303,99 @@ Double_t
 QwF1TDC::ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time)
 {
 
-  Double_t trigger_window = (Double_t) fF1TDC_trigwin;
-  Double_t time_offset    = (Double_t) fF1TDC_t_offset;
 
-
-  Double_t time_condition = 0.0;
-  Double_t local_time_difference = 0.0;
   Double_t actual_time_difference = 0.0;
-
-  local_time_difference = raw_time - ref_time; 
   
-  if(local_time_difference == 0.0) {
-    // raw_time is the same as ref_time
-    // std::cout << "QwF1TDC::ReferenceSignalCorrection " 
-    // 	      << local_time_difference
-    // 	      << " ref " << ref_time
-    // 	      << " raw " << raw_time
-    // 	      << std::endl;
-    actual_time_difference = local_time_difference;
-  }
-  else {
-    time_condition = fabs(local_time_difference); 
-    // maximum value is trigger_window -1, 
-    if(time_condition < trigger_window) {
-      // there is no ROLLEVENT within trigger window
-      actual_time_difference = local_time_difference;
-    }
-    else {
-      // there is an ROLLOVER event within trigger window
-      if (local_time_difference > 0.0) {
-	// ref_time is in after ROLLOVER event
-	actual_time_difference =  local_time_difference - time_offset;
+
+  // If we don't have the reference signal in the case that 
+  // it is recorded as "0.0" or it isn't recorded at the same time when the raw_time is recoreded
+  // return zero corrected time, because without a reference time, raw_time has no meaning
+  // Friday, January 20 13:04:33 EST 2012 , jhlee
+
+  if (ref_time !=0.0) {
+    
+    Double_t trigger_window        = (Double_t) fF1TDC_trigwin;
+    Double_t time_offset           = (Double_t) fF1TDC_t_offset;
+    Double_t time_condition        = 0.0;
+    Double_t local_time_difference = 0.0;
+ 
+    local_time_difference = raw_time - ref_time; 
+
+    if(local_time_difference != 0.0) {
+
+      time_condition = fabs(local_time_difference); 
+      // maximum value is trigger_window -1, 
+      if(time_condition < trigger_window) {
+	// there is no ROLLEVENT within trigger window
+	actual_time_difference = local_time_difference;
       }
       else {
-	// we already excluded local_time_diffrence == 0 case.
-	// ref_time is in before ROLLOVER event
-	actual_time_difference = local_time_difference + time_offset;
+	// there is an ROLLOVER event within trigger window
+	if (local_time_difference > 0.0) {
+	  // ref_time is in after ROLLOVER event
+	  actual_time_difference =  local_time_difference - time_offset;
+	}
+	else {
+	  // we already excluded local_time_diffrence == 0 case.
+	  // ref_time is in before ROLLOVER event
+	  actual_time_difference = local_time_difference + time_offset;
+	}
       }
-      
     }
+    else {
+      // raw_time is the same as ref_time
+      // std::cout << "QwF1TDC::ReferenceSignalCorrection " 
+      // 	      << local_time_difference
+      // 	      << " ref " << ref_time
+      // 	      << " raw " << raw_time
+      // 	      << std::endl;
+      actual_time_difference = local_time_difference;
+    }
+  
+  } 
+  else {
+    fF1TDC_RFM_counter++;
   }
+  // Double_t trigger_window = (Double_t) fF1TDC_trigwin;
+  // Double_t time_offset    = (Double_t) fF1TDC_t_offset;
+
+
+  // Double_t time_condition = 0.0;
+  // Double_t local_time_difference = 0.0;
+  // Double_t actual_time_difference = 0.0;
+
+  // local_time_difference = raw_time - ref_time; 
+  
+  // if(local_time_difference == 0.0) {
+  //   // raw_time is the same as ref_time
+  //   // std::cout << "QwF1TDC::ReferenceSignalCorrection " 
+  //   // 	      << local_time_difference
+  //   // 	      << " ref " << ref_time
+  //   // 	      << " raw " << raw_time
+  //   // 	      << std::endl;
+  //   actual_time_difference = local_time_difference;
+  // }
+  // else {
+  //   time_condition = fabs(local_time_difference); 
+  //   // maximum value is trigger_window -1, 
+  //   if(time_condition < trigger_window) {
+  //     // there is no ROLLEVENT within trigger window
+  //     actual_time_difference = local_time_difference;
+  //   }
+  //   else {
+  //     // there is an ROLLOVER event within trigger window
+  //     if (local_time_difference > 0.0) {
+  // 	// ref_time is in after ROLLOVER event
+  // 	actual_time_difference =  local_time_difference - time_offset;
+  //     }
+  //     else {
+  // 	// we already excluded local_time_diffrence == 0 case.
+  // 	// ref_time is in before ROLLOVER event
+  // 	actual_time_difference = local_time_difference + time_offset;
+  //     }
+      
+  //   }
+  // }
   return actual_time_difference;
 }
 
@@ -400,6 +455,8 @@ QwF1TDC::ResetCounters()
 {
   Int_t i = 0;
 
+  fF1TDC_RFM_counter = 0;
+  
   for(i=0; i<fMaxF1TDCChannelNumber; i++) 
     {
       fF1TDC_SEU_counter[i] = 0;
@@ -544,6 +601,7 @@ QwF1TDC::PrintTotalErrorCounter()
 	    << " SEU " << this->GetTotalSEU()
 	    << " FDF " << this->GetTotalFDF()
 	    << " SYN " << this->GetTotalSYN()
+      	    << " RFM " << this->GetTotalRFM()
 	    << " HFO " << this->GetTotalHFO()
     //  	    << " S30 " << this->GetTotalS30()
 	    << std::endl;
@@ -573,6 +631,8 @@ QwF1TDC::GetChannelErrorCounter(Int_t channel)
   error_counter += this->GetFDF(channel);
   error_counter += " SYN : ";
   error_counter += this->GetSYN(channel);
+  error_counter += " RFM : ";
+  error_counter += this->GetTotalRFM();
   error_counter += " HFO : ";
   error_counter += this->GetHFO(channel);
   //  error_counter += " S30 : ";
@@ -1116,9 +1176,50 @@ QwF1TDContainer::PrintNoF1TDC(Int_t tdc_index)
   return tmp;
 }
 
+// // This function will be removed after several tests..
+// //
+// Double_t
+// QwF1TDContainer::GetF1TDCResolution()
+// {
+
+//   // F1TDC resolution must be the same
+//   // among VME crates and among F1TDC boards
+//   // We cannot change it on each F1TDC board.QwF1TDContainer::GetF1TDCResolution()
+//   // Thus, this function return one value of them.
+//   // Wednesday, September  1 16:52:05 EDT 2010, jhlee
+
+//   Double_t old_r = 0.0;
+//   Double_t new_r = 0.0;
+//   Int_t cnt      = 0;
+
+//   TObjArrayIter next(fQwF1TDCList);
+//   TObject* obj = NULL;
+
+//   while ( (obj = next()) )
+//     {
+//       QwF1TDC* F1 = (QwF1TDC*) obj;
+//       new_r = F1->GetF1TDC_resolution();
+//       if(cnt not_eq 0) {
+// 	if(old_r not_eq new_r) {
+// 	  F1->PrintContact();
+// 	  printf("%s : QwF1TDContainer::GetF1TDCResolution(): F1TDC configurations are corrupted!\n", 
+// 		 GetSystemName().Data());
+// 	  F1->PrintF1TDCConfigure();
+
+// 	  return 0.0;
+// 	}
+
+//       }
+//       old_r = new_r;
+//       cnt++;
+//     }
+
+//   return old_r;
+// }
+
 
 Double_t
-QwF1TDContainer::GetF1TDCResolution()
+QwF1TDContainer::GetF1TDCsResolution()
 {
 
   // F1TDC resolution must be the same
@@ -1155,6 +1256,7 @@ QwF1TDContainer::GetF1TDCResolution()
 
   return old_r;
 }
+
 
 
 Double_t
@@ -1788,4 +1890,17 @@ Bool_t
 QwF1TDContainer::CheckSlot20Chan30(Int_t slot, Int_t chan)
 {
   return ( (slot==20) and (chan==30) );
+}
+
+//
+// return F1TDC resolution for possible further check
+// 
+Double_t 
+QwF1TDContainer::DoneF1TDCsConfiguration()
+{
+  //
+  // reduce call "GetF1TDCsResolution" inside subsystem...
+  //
+  fF1TDCOneResolutionNS = this->GetF1TDCsResolution();
+  return fF1TDCOneResolutionNS;
 }
