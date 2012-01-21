@@ -1357,7 +1357,7 @@ void QwGUIMain::PlotMainData()
       HelTree->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6 >> DDiff12",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",general_cut,det_cut,det_cut),"goff");
       DDiff12->SetDirectory(0);
       DDiff12->GetXaxis()->SetTitle("bcm 1-2 DDiff [ppm]");
-      DDiff12->GetXaxis()->SetRangeUser(DDiff12->GetMean()-5*DDiff12->GetRMS(), DDiff12->GetMean()+5*DDiff12->GetRMS());
+      DDiff12->GetXaxis()->SetRangeUser(DDiff12->GetMean()-8*DDiff12->GetRMS(), DDiff12->GetMean()+8*DDiff12->GetRMS());
       DDiff12->GetXaxis()->CenterTitle();
       DDiff12->GetXaxis()->SetTitleSize(0.06);
       DDiff12->GetXaxis()->SetLabelSize(0.06);
@@ -1422,13 +1422,13 @@ void QwGUIMain::PlotMainData()
     }
 
     mc->cd(6);
-    TH1F *DDiff56 = new TH1F("DDiff56","bcm 5 and 6 Double Difference",1001,-500,500);
+    TH1F *DDiff56 = new TH1F("DDiff78","bcm 7 and 8 Double Difference",1001,-500,500);
     if(DDiff56){
       DDiff56->SetBit(TH1::kCanRebin);
-      HelTree->Draw("(asym_qwk_bcm5-asym_qwk_bcm6)*1e6 >> DDiff56",Form("%s && asym_qwk_bcm5.%s && asym_qwk_bcm6.%s",general_cut,det_cut,det_cut),"goff");
+      HelTree->Draw("(asym_qwk_bcm7-asym_qwk_bcm8)*1e6 >> DDiff78",Form("%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",general_cut,det_cut,det_cut),"goff");
       DDiff56->SetDirectory(0);
-      DDiff56->GetXaxis()->SetTitle("bcm 5-6 DDiff [ppm]");
-      DDiff56->GetXaxis()->SetRangeUser(DDiff56->GetMean()-5*DDiff56->GetRMS(), DDiff56->GetMean()+5*DDiff56->GetRMS());
+      DDiff56->GetXaxis()->SetTitle("bcm 7-8 DDiff [ppm]");
+      DDiff56->GetXaxis()->SetRangeUser(DDiff56->GetMean()-8*DDiff56->GetRMS(), DDiff56->GetMean()+8*DDiff56->GetRMS());
       DDiff56->GetXaxis()->CenterTitle();
       DDiff56->GetXaxis()->SetTitleSize(0.06);
       DDiff56->GetXaxis()->SetLabelSize(0.06);
@@ -1507,7 +1507,7 @@ void QwGUIMain::PlotMainData()
 
     mc->cd(6);
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
-    ref[n]->AddText("No data for bcm5-bcm6 double difference");
+    ref[n]->AddText("No data for bcm7-bcm8 double difference");
     ref[n]->SetBorderSize(0);
     ref[n]->SetFillColor(0);
     ref[n]->SetFillColor(0);
@@ -1772,9 +1772,7 @@ void QwGUIMain::PlotMainData()
   TString PWD = gSystem->pwd();
 
   TString rightnow = gSystem->GetFromPipe("date");
-//   std::cout << rightnow << std::endl;
   TString tempo = rightnow.ReplaceAll(" ","-");
-//   std::cout << tempo << std::endl;  
   
   if(PWD.Contains("cdaq") && dClArgs.autoupdate == kTrue){
     gSystem->CopyFile(Form("%s/Extensions/GUI/QwAutoGUIHistories.dat",gSystem->Getenv("QWANALYSIS")),
