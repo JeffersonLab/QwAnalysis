@@ -21,8 +21,19 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   //  Char_t textf[255],textwrite[255];
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0, bcm = 0 , comptQ = 0;
+//   chain->Draw("sca_bcm6.value>>histBeamMax",Form("sca_bcm6.value < %d",ignoreBeamAbove));
+//   Double_t beamMax = ((TH1D*)gDirectory->Get("histBeamMax"))->GetMaximum();
+//   chain->Draw("sca_bcm6.value>>histComptCharge",Form("compton_charge.value < %d",ignoreBeamAbove));
+//   Double_t Qmax = ((TH1D*)gDirectory->Get("histComptCharge"))->GetBinLowEdge(98);
+//   TH1 * h1 = (TH1D*)gDirectory->Get("histBeamMax");
+//   TH1 * h2 = (TH1D*)gDirectory->Get("histComptCharge");
+//   Double_t beamMax = h1->GetMaximum();
+//   Double_t Qmax = h2->GetMaximum();
+
   Double_t beamMax = chain->GetMaximum("sca_bcm6/value");
   Double_t Qmax = chain->GetMaximum("compton_charge/value");
+  cout<<"beamMax(bcm6) "<<beamMax<<" Qmax:(avg of bcm 1 & 2):"<<Qmax<<endl;
+
   Int_t nLasCycBeamTrips;
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
@@ -47,7 +58,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   chain->SetBranchStatus("sca_bcm6",1);//turn on bcm branch
   chain->SetBranchStatus("compton_charge",1);//turn on charge branch
   chain->SetAutoDelete(kTRUE);
-  printf("Ebeam considered On if above %f.\n", beamFrac * Qmax);
+  printf("Ebeam considered On if above %f.\n", beamFrac*beamMax);
 
   for(Int_t index=0; index<nEntries;index++) {
     chain->GetEntry(index);
@@ -82,8 +93,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       }
     }
     //    find and record electron beam off periods
-    rampIsDone = bcm > beamFrac * beamMax;
-    isABeamTrip = bcm <=  beamFrac * beamMax;
+    rampIsDone = (bcm> (beamFrac*beamMax));
+    isABeamTrip = (bcm<= (beamFrac*beamMax));
     //     rampIsDone = comptQ > 0.2 * Qmax;//!review this condition
     //     isABeamTrip = comptQ <= 0.1*Qmax;//!review this condition
 

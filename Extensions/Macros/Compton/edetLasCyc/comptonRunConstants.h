@@ -21,10 +21,12 @@ const Int_t nPlanes = 4;
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
 const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn
 const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
+const Double_t ignoreBeamAbove = 195.0;
+const Double_t ignoreLasPowAbove = 195.0;
 
 const Int_t usedStrips = 50;
 const Int_t mystr = 48;
-const Int_t startStrip = 48;
-  const Int_t endStrip = 48;
+const Int_t startStrip = 1;
+  const Int_t endStrip = 55;
 const Int_t startPlane = 2;
-  const Int_t endPlane = 2;
+  const Int_t endPlane = 4;

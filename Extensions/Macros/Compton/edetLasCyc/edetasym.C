@@ -34,13 +34,13 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 
   //   Char_t textf[255],textwrite[255];
   time_t tStart = time(0), tEnd; 
-  Bool_t debug  = 1;
-  Bool_t debug1 = 1;//print statements with line numb
-  Bool_t debug2 = 1;
-  Bool_t debug3 = 1;
+  Bool_t debug  = 0;
+  Bool_t debug1 = 0;
+  Bool_t debug2 = 0;
+  Bool_t debug3 = 0;//print statements with line numb
   Bool_t  lasOn, beamOn=kFALSE, chainExists;
-  Bool_t lastTrip=kFALSE;//asserted only when we encounter the last trip
-  Bool_t goodCycle=kFALSE;//tracks if a given lasCyc had no beam trip
+//   Bool_t lastTrip=kFALSE;//asserted only when we encounter the last trip
+//   Bool_t goodCycle=kFALSE;//tracks if a given lasCyc had no beam trip
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
@@ -55,7 +55,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   Double_t stripAsymP2[nStrips],stripAsymErP2[nStrips],stripAsymRMSP2[nStrips];//to store mean distribution
   Double_t stripAsymP3[nStrips],stripAsymErP3[nStrips],stripAsymRMSP3[nStrips];
   Double_t stripAsymP4[nStrips],stripAsymErP4[nStrips],stripAsymRMSP4[nStrips];
-
+  Double_t stripPlot[nStrips];//..!for plotting may not be required later
   Double_t normL1H1LasCyc[nPlanes][nStrips], normL1H0LasCyc[nPlanes][nStrips];
   Double_t normL0H0LasCyc[nPlanes][nStrips], normL0H1LasCyc[nPlanes][nStrips];
   Double_t BCnormL1H1LasCyc[nPlanes][nStrips], BCnormL1H0LasCyc[nPlanes][nStrips]; 
@@ -142,7 +142,8 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
       chainExists = mpsChain->Add(Form("$QW_ROOTFILES/pass2/first100k_%d.root",runnum));
     }
     else {
-      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Qweak Run2
+      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+//       cout<<"max compton_charge"<< mpsChain->GetMaximum("compton_chargee")<<endl;
     }
  
     if(!chainExists){//delete chains and exit if files do not exist
@@ -158,12 +159,13 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   }
   //printf("%d files attached to chain.\n",chainExists);! shows always only 1 file attached
 
+
   Int_t nEntries = mpsChain->GetEntries();
   printf("This chain has %i entries.\n", nEntries);
 
   Int_t nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain);
   if (debug3) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
-  if (debug3) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
+  if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
   mpsChain->ResetBranchAddresses();//!? should it be here?
   nLasCycles = nLasCycBeamTrips%1000 - 1;
   ////first two digits of return value of getEBeamLasCuts
@@ -221,26 +223,40 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 	tNormLasCycAsym[p][s]= 0.0, LasCycAsymEr[p][s]= 0.0;
       }
     }
+
+    if(nthBeamTrip < nBeamTrips) {
+      if(cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip)) {
+	//will work for the beginning when there has been no beamtrip yet
+	//!?what if the run starts with a beamTrip
+	//!?what if the run ends with a beamTrip
+	//!?what if there is no beamTrip
+// 	goodCycle = kTRUE;
+	beamOn = kTRUE;
+      }
+      else {
+// 	goodCycle = kFALSE;
+	beamOn = kFALSE;
+	nthBeamTrip++;
+      }
+    }
+    else {//processing the last beamTrip
+      if(nthBeamTrip != nBeamTrips) cout<<"\n***Error in BeamTrip evaluation***\n"<<endl;
+      if (cutLas.at(2*nCycle+1)>cutEB.at(2*nthBeamTrip-1)) { //this happens when run ends with beamOn
+// 	goodCycle = kTRUE;
+ 	beamOn = kTRUE;	
+      }
+      else {
+// 	goodCycle = kFALSE;
+ 	beamOn = kFALSE;
+      }
+    }
+      
     for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++) { 
       //loop over laser cycle periods from one LasOn state upto just before beginning of next LasOn
       if(debug && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
       if(i<124) i = 124; //the first 122 events with unknown helicity shouldn't creep in
       if ((i >= cutLas.at(2*nCycle+1)) && (i < cutLas.at(2*nCycle+2))) l=1;
       if (i >= cutLas.at(2*nCycle+2)) l=0;
-
-      if(!lastTrip) {
-	if(i>=cutEB.at(2*nthBeamTrip)) { // && (i<cutEB.at(2*nthBeamTrip+1))) { //identifying beam-off
-	  beamOn = kFALSE;//declaring beam-off
-	  nthBeamTrip ++;
-	  cout<<"Beam OFF at entry "<<i <<endl;
-	  if (nthBeamTrip == nBeamTrips) lastTrip=kTRUE;	
-	}
-	else beamOn = kTRUE;
-      }
-      else if (i >= (cutEB.at(2*nthBeamTrip-1))) beamOn = kTRUE;
-
-      if ((!lastTrip) ? (cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip)) : kTRUE) goodCycle=kTRUE;
-      else goodCycle=kFALSE;
 
       mpsChain->GetEntry(i);
       lasOn = lasPow[0] > laserFrac *lasMax;//!this part should be directly done in getEBeamLasCuts.C
@@ -253,7 +269,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
       if (h ==1 && l==1) nMpsB1H1L1++;
 
       if ((h ==1 || h ==0) && beamOn) { //to avoid the h=-9999 that appears in beginning of every runlet
-	//      if (beamOn) { //currently the counters are only populated for beamOn cycles
+	////currently the counters are only populated for beamOn cycles
 	for(Int_t s =startStrip; s <=endStrip; s++) {
 	  // 	  p1Ac[h][l][s] += (Int_t)bP1[s];
 	  p2Ac[h][l][s] += (Int_t)bP2[s];
@@ -261,12 +277,12 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 	  p4Ac[h][l][s] += (Int_t)bP4[s];
 	}
       }
-    }//end of the process of populating the LasCyc counters
+    }///for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++)
 
     //after having filled the above vectors based on laser and beam periods, its time to calculate
     if (debug1) printf("\n  ****Entering laser Cycle Analysis @ nCycle : %d**** \n",nCycle);
-    if (goodCycle) {
-      cout<<"the nCycle: "<<nCycle<<" has 'goodCycle': "<<goodCycle<<" lastTrip:"<<lastTrip<<endl;
+    if (beamOn) {
+      cout<<"the nCycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
       if (nMpsB1H0L1<= 0 || nMpsB1H1L1<= 0 || nMpsB1H0L0<= 0 || nMpsB1H1L0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nMpsB1H0L1:%d,nMpsB1H1L1:%d, nMpsB1H0L0:%d, nMpsB1H1L0:%d**\n",
 	       nCycle,nMpsB1H0L1,nMpsB1H1L1,nMpsB1H0L0,nMpsB1H1L0);
@@ -332,24 +348,27 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 	  hAsymP4S[s].Fill(tNormLasCycAsym[4][s]);	  
 	  // 	  hAsymErP1S[s].Fill(LasCycAsymEr[2][s]);
 	  hAsymErP2S[s].Fill(LasCycAsymEr[2][s]);
-	  // 	  hAsymErP3S[s].Fill(LasCycAsymEr[2][s]);
-	  // 	  hAsymErP4S[s].Fill(LasCycAsymEr[2][s]);
+	  hAsymErP3S[s].Fill(LasCycAsymEr[2][s]);
+	  hAsymErP4S[s].Fill(LasCycAsymEr[2][s]);
 	}
       }
-    }
-    else cout<<"this LasCyc had a beam trip, hence skipping"<<endl;
+    }///if (beamOn)
+    else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip, hence skipping"<<endl;
   }
   
-  TCanvas *c1 = new TCanvas("c1","c1",0,0,800,400);
-  c1->Divide(2,1);
-  c1->cd(1);
+//   TCanvas *c1 = new TCanvas("c1","edetAsymmetry Plane1",0,0,800,400);
+  TCanvas *c2 = new TCanvas("c2","Plane2 Asymmetry Vs Strip number",200,10,600,400);
+  TCanvas *c3 = new TCanvas("c3","Plane3 Asymmetry Vs Strip number",200,10,600,400);
+  TCanvas *c4 = new TCanvas("c4","Plane4 Asymmetry Vs Strip number",200,10,600,400);
+
   for (Int_t s=startStrip; s<=endStrip;s++) {    
+    //      c1->cd(1);
     //     hAsymP1S[s]->Draw("H");//"H","","goff");//WHY IS My goff not working!
     //     hAsymP1S[s]->Fit("gaus");
     //     stripAsymP1[s] = hAsymP1S[s]->GetMean();
     //     stripAsymRMSP1[s] = hAsymP1S[s]->GetRMS();
     
-    hAsymP2S[s].Draw("H");//"H","","goff");//WHY IS My goff not working!
+    hAsymP2S[s].Draw("");//"H","","goff");//WHY IS My goff not working!
     hAsymP2S[s].Fit("gaus");
     stripAsymP2[s] = hAsymP2S[s].GetMean();
     stripAsymRMSP2[s] = hAsymP2S[s].GetRMS();
@@ -364,17 +383,68 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
     stripAsymP4[s] = hAsymP4S[s].GetMean();
     stripAsymRMSP4[s] = hAsymP4S[s].GetRMS();
     
-    c1->cd(2);
+    //    hAsymErP1S[s].Draw("H");//,"","goff");
+    //    stripAsymErP1[s] = hAsymErP1S[s].GetMean();
+    
     hAsymErP2S[s].Draw("H");//,"","goff");
     stripAsymErP2[s] = hAsymErP2S[s].GetMean();
+    
+     hAsymErP3S[s].Draw("H");//,"","goff");
+    stripAsymErP3[s] = hAsymErP3S[s].GetMean();
+    
+    hAsymErP4S[s].Draw("H");//,"","goff");
+    stripAsymErP4[s] = hAsymErP4S[s].GetMean();
   }
-  for (Int_t s=startStrip;s<=endStrip;s++) {    
-    //     printf("stripAsymP1[%d]:%f\t stripAsymErP1[%d]:%f\t stripAsymRMSP1[%d]:%f\n",s,stripAsymP1[s],s,stripAsymErP1[s],s,stripAsymRMSP1[s]);
-    printf("stripAsymP2[%d]:%f\t stripAsymErP2[%d]:%f\t stripAsymRMSP2[%d]:%f\n",s,stripAsymP2[s],s,stripAsymErP2[s],s,stripAsymRMSP2[s]);
-    printf("stripAsymP3[%d]:%f\t stripAsymErP3[%d]:%f\t stripAsymRMSP3[%d]:%f\n",s,stripAsymP3[s],s,stripAsymErP3[s],s,stripAsymRMSP3[s]);
-    printf("stripAsymP4[%d]:%f\t stripAsymErP4[%d]:%f\t stripAsymRMSP4[%d]:%f\n",s,stripAsymP4[s],s,stripAsymErP4[s],s,stripAsymRMSP4[s]);
+
+//     for (Int_t s=startStrip;s<=endStrip;s++) {    
+  //     printf("stripAsymP1[%d]:%f\t stripAsymErP1[%d]:%f\t stripAsymRMSP1[%d]:%f\n",s,stripAsymP1[s],s,stripAsymErP1[s],s,stripAsymRMSP1[s]);
+  //     printf("asymP2S[%d]:%f; asymErP2S[%d]:%f; asymRMSP2S[%d]:%f\n",s,stripAsymP2[s],s,stripAsymErP2[s],s,stripAsymRMSP2[s]);
+//        printf("asymP3S[%d]:%f; asymErP3S[%d]:%f; asymRMSP3S[%d]:%f\n",s,stripAsymP3[s],s,stripAsymErP3[s],s,stripAsymRMSP3[s]);
+  //     printf("asymP4S[%d]:%f; asymErP4S[%d]:%f; asymRMSP4S[%d]:%f\n",s,stripAsymP4[s],s,stripAsymErP4[s],s,stripAsymRMSP4[s]);
+//     }
+
+  Double_t zero[nStrips];
+  for (Int_t s =startStrip; s <=endStrip;s++) {
+    stripPlot[s]=s+1;
+    zero[s] =0;
   }
-  
+//   TGraphErrors *grP1 = new TGraphErrors(nStrips,stripPlot,stripAsymP1,zero,stripAsymRMSP1);
+  TGraphErrors *grP2 = new TGraphErrors(nStrips,stripPlot,stripAsymP2,zero,stripAsymRMSP2);
+  TGraphErrors *grP3 = new TGraphErrors(nStrips,stripPlot,stripAsymP3,zero,stripAsymRMSP3);
+  TGraphErrors *grP4 = new TGraphErrors(nStrips,stripPlot,stripAsymP4,zero,stripAsymRMSP4);
+  TLine *myline = new TLine(0,0,60,0);
+  myline->SetLineStyle(1);
+
+//   grP1->GetXaxis()->SetTitle("strip number");
+//   grP1->GetYaxis()->SetTitle("asymmetry");
+//   grP1->SetTitle("Asymmetry Vs Strip number");
+//   grP1->Draw("A*");
+//   c1->Update();
+
+  c2->cd();
+  grP2->GetXaxis()->SetTitle("strip number");
+  grP2->GetYaxis()->SetTitle("asymmetry");
+  grP2->SetTitle("Plane2 Asymmetry Vs Strip number");
+  grP2->Draw("A*");
+  myline->Draw();
+  c2->Update();
+
+  c3->cd();
+  grP3->GetXaxis()->SetTitle("strip number");
+  grP3->GetYaxis()->SetTitle("asymmetry");
+  grP3->SetTitle("Plane3 Asymmetry Vs Strip number");
+  grP3->Draw("A*");
+  myline->Draw();
+  c3->Update();
+
+  c4->cd();
+  grP4->GetXaxis()->SetTitle("strip number");
+  grP4->GetYaxis()->SetTitle("asymmetry");
+  grP4->SetTitle("Plane4 Asymmetry Vs Strip number");
+  grP4->Draw("A*");
+  myline->Draw();
+  c4->Update();
+
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to complete.\n",div_output.quot,div_output.rem );
