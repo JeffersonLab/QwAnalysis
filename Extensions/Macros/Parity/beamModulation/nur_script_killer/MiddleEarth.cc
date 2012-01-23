@@ -112,7 +112,7 @@ void MiddleEarth::LoadRootFile(TString filename, TChain *tree)
   Bool_t found = FileSearch(filename, tree);
   
   if(!found){
-    filename = Form("Qweak_%d.*.trees.root", run_number);
+    filename = Form("Qweak_%d.00[0-1].trees.root", run_number);
     found = FileSearch(filename, tree);
     std::cerr << "Couldn't find QwPass1_*.trees.root trying "
 	      << filename

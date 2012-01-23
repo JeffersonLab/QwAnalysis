@@ -5,10 +5,12 @@
 # Run by doing:
 # ./bmod_optics run_number
 
-#./nur_script_killer/moria ${1}
+cd `dirname $0`
+
+./nur_script_killer/moria ${1}
 
 if [ $? -ne 0 ]; then
-    echo "The Balrog Nur meets Gandalf and dies!!!!!! -=#|:-o> \ "
+    echo "Run $1 doesn't have any modulation data.  Exiting..."
     exit
 fi
 

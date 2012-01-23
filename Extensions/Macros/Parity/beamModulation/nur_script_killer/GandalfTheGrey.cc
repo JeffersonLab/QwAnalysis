@@ -16,7 +16,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   MiddleEarth *grey_wizard = new MiddleEarth(chain);
   grey_wizard->run_number = run_number;
   
-  filename = Form("QwPass1_%i.0*.trees.root", run_number);
+  filename = Form("QwPass1_%i.00[0-1].trees.root", run_number);
 
   grey_wizard->LoadRootFile(filename, chain);
   grey_wizard->ScanData();

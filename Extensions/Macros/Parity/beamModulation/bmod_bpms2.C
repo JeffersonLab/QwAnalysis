@@ -40,7 +40,7 @@ void bmod_bpms2(UInt_t run_number=0)
   //   chain->Add(run);
 
   TChain * chain = new TChain("Mps_Tree");
-  for(Int_t t=0; t<1; t++) 
+  for(Int_t t=0; t<=1; t++) 
     {
       sprintf(run,"%sQwPass1_%d.00%d.trees.root",rootDirectory.Data(),run_number,t);
       TFile f1(run);

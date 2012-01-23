@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# bmod_optics - Nuruzzaman 11/10/2011
+#
+# Run by doing:
+# ./bmod_optics run_number
+
+cd `dirname $0`
+
+echo "Checking for modulation data in run $1..."
+
+./nur_script_killer/moria ${1} > /dev/null  2>&1 
+
+if [ $? -ne 0 ]; then
+    echo "Run $1 doesn't have any modulation data.  Aborting optics analysis."
+    exit
+else
+    echo "Found modulation data in run $1; continuing with optics analysis."
+fi
+
+umask 002  || exit 11
+
+sg c-qweak "root -l -b -q 'bmod_bpms2.C+($1)'"      > /dev/null  2>&1 
+sg c-qweak "root -l -b -q 'bmod_beamline2.C+($1)'"  > /dev/null  2>&1
