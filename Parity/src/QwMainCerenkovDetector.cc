@@ -380,7 +380,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
           fMainDetID[i].Print();
     }
   ldebug=kFALSE;
-
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -459,7 +459,7 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString filename)
     fCombinedPMT[i].SetEventCutMode(eventcut_flag);
 
   fMainDetErrorCount = 0; //set the error counter to zero
-
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -512,6 +512,7 @@ Int_t QwMainCerenkovDetector::LoadInputParameters(TString pedestalfile)
   if (ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 

@@ -342,6 +342,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	fLumiDetectorID[i].Print();
     }
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
 
   return 0;
 }
@@ -420,7 +421,7 @@ Int_t QwLumi::LoadEventCuts(TString  filename)
     fCombinedPMT[i].SetEventCutMode(eventcut_flag);
 
   fQwLumiErrorCount=0; //set the error counter to zero
-
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -474,6 +475,7 @@ Int_t QwLumi::LoadInputParameters(TString pedestalfile)
   if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 

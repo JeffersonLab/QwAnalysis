@@ -75,7 +75,8 @@ class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   Int_t LoadTimeWireOffset(TString t0_map); 
   void LoadTtoDParameters(TString ttod_map); 
   void SubtractWireTimeOffset();
-  void ApplyTimeCalibration();
+  void UpdateHits();
+  //  void ApplyTimeCalibration();
   
   // VDC
   void GetHitList(QwHitContainer & grandHitContainer)

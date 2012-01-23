@@ -1,3 +1,4 @@
+! wire number, time offset (ns)
 package=1
 plane= 1
 1 15

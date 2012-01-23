@@ -94,7 +94,7 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   const UInt_t&         GetRawTime()       const { return fRawTime; };
   const UInt_t&         GetRawRefTime()    const { return fRawRefTime; };
   const Double_t&       GetTime()          const { return fTime; };
-  const Double_t&       GetTimens()        const { return fTimens; };
+  const Double_t&       GetTimeNs()        const { return fTimeNs; };
   const Double_t&       GetTimeRes()       const { return fTimeRes; };
   const Double_t&       GetDriftDistance() const { return fDistance; };
   const Double_t&       GetDriftPosition() const { return fDriftPosition; };
@@ -132,7 +132,7 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
 
   void SetRawTime(const UInt_t rawtime)             { fRawTime = rawtime; };
   void SetRawRefTime(const UInt_t rawreftime)       { fRawRefTime = rawreftime; };
-  void SetTimens(const Double_t timens)             { fTimens = timens; };
+  void SetTimens(const Double_t timens)             { fTimeNs = timens; };
   void SetTime(const Double_t time)                 { fTime = time; };
   void SetTimeRes(const Double_t timeres)           { fTimeRes = timeres; };
   void SetDriftDistance(const Double_t distance)    { fDistance = distance; };
@@ -151,7 +151,14 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   // @}
 
   Bool_t IsFirstDetectorHit()                  {  return (fHitNumber == 0); };
-  void SubtractTimeOffset(Double_t timeoffset) { fTime = fTime - timeoffset; };
+
+  void SubtractTimeAuOffset(Double_t time_au_offset) { fTime   -= time_au_offset; };
+  void SubtractTimeNsOffset(Double_t time_ns_offset) { fTimeNs -= time_ns_offset; };
+
+  void ApplyTimeCalibration(Double_t f1tdc_resolution_ns) { 
+    fTimeRes = f1tdc_resolution_ns;
+    fTimeNs  = fTime*fTimeRes;
+  };
 
   // three functions and their comments can be found in QwHit.cc,
   Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
@@ -186,7 +193,7 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   //  Data specific to the hit
   UInt_t   fRawTime;                 ///< Time as reported by TDC; it is a raw data word, and is UNSUBTRACTED
   UInt_t   fRawRefTime;              ///< Time as reported by TDC as a reference time 
-  Double_t fTimens;                  ///< Reference Corrected and TimeCalibration time (unit ns)
+  Double_t fTimeNs;                  ///< Reference Corrected and TimeCalibration time (unit ns)
   Double_t fTime;                    ///< Start corrected time, may also be further modified
   Double_t fTimeRes;                 ///< Resolution of time (if appropriate)
   Double_t fDistance;                ///< Perpendicular distance from the wire to the track,

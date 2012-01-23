@@ -1162,14 +1162,14 @@ QwSciFiDetector::SubtractReferenceTimes()
       }
       
       if ( refokay.at(bank_index) ) {
+   	Int_t slot_num    = hit -> GetModule();
       	raw_time_arb_unit = (Double_t) hit -> GetRawTime();
       	ref_time_arb_unit = (Double_t) reftimes.at(bank_index);
-      	Int_t slot_num   = hit->GetModule();
 
       	time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
-	hit -> SetRawRefTime(ref_time_arb_unit);
-      	hit -> SetTime(time_arb_unit); 
 
+      	hit -> SetTime(time_arb_unit); 
+	hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
 
       	if(local_debug) {
       	  QwMessage << this->GetSubsystemName()
@@ -1225,8 +1225,7 @@ QwSciFiDetector::UpdateHits()
 
       // local_info = fDetectorInfo.in(package).at(plane);
       // iter->SetDetectorInfo(local_info);
-      iter->SetTimeRes(fF1TDCResolutionNS);
-      iter->SetTimens(fF1TDCResolutionNS*iter->GetTime());
+      iter->ApplyTimeCalibration(fF1TDCResolutionNS); // Fill fTimeRes and fTimeNs in QwHit
 
     }
 

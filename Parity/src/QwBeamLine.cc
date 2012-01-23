@@ -436,7 +436,8 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
     }
   }
   ldebug=kFALSE;
-
+  
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -608,6 +609,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename)
 
   fQwBeamLineErrorCount=0; //set the error counter to zero
 
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -777,6 +779,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 
 }
@@ -987,6 +990,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
   if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 

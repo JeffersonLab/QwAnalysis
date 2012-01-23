@@ -189,6 +189,7 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
     }
   }
 
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -220,6 +221,7 @@ Int_t QwScaler::LoadInputParameters(TString mapfile)
 
   } // end of loop reading all lines of the pedestal file
 
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 

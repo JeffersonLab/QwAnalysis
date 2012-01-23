@@ -74,11 +74,12 @@ QwDriftChamber::~QwDriftChamber()
 }
 
 void  QwDriftChamber::FillDriftDistanceToHits()
-{ //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
+{ 
+//Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
 //   std::cout << "size: " << fWireHits.size() << std::endl;
   for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
     
-    hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
+    hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTimeNs(),hit1->GetDetectorID()));
     
   }
   return;

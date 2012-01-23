@@ -961,6 +961,8 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       exit(65);
     }
   }
+
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 

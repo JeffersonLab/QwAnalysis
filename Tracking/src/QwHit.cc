@@ -126,7 +126,7 @@ void QwHit::Initialize()
 
   fRawTime           = 0;
   fRawRefTime        = 0;
-  fTimens            = 0.0;
+  fTimeNs            = 0.0;
   fTime              = 0.0;
   fTimeRes           = 0.0;
   fDistance          = 0.0;
@@ -173,7 +173,7 @@ QwHit& QwHit::operator=(const QwHit& hit)
 
   fRawTime           = hit.fRawTime;
   fRawRefTime        = hit.fRawRefTime;
-  fTimens            = hit.fTimens;
+  fTimeNs            = hit.fTimeNs;
   fTime              = hit.fTime;
   fTimeRes           = hit.fTimeRes;
   fDistance          = hit.fDistance;

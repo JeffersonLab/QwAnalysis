@@ -105,6 +105,7 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
            }
        }
   }
+    mapstr.Close(); // Close the file (ifstream)
   //ReportConfiguration();
   return 0;
 }
@@ -193,6 +194,7 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
     if (ldebug) std::cout<<" line read in the parameter file ="<<lineread<<" \n";
 
     ldebug=kFALSE;
+    mapstr.Close(); // Close the file (ifstream)
     return 0;
 }
 

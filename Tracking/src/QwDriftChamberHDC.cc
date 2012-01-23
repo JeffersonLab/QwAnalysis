@@ -195,12 +195,12 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   allrefsokay = kTRUE;
 
   UInt_t bankid      = 0;
-  Double_t raw_time  = 0.0;
-  Double_t ref_time  = 0.0;
-  Double_t time      = 0.0;
-  Double_t educated_guess_t0_correction = 11255.0;
-  //Double_t educated_guess_t0_correction=0;
+  Double_t raw_time_arb_unit = 0.0;
+  Double_t ref_time_arb_unit = 0.0;
+  Double_t time_arb_unit     = 0.0;
+
   Bool_t local_debug = false;
+
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
       //  Only try to check the reference time for a bank if there is at least one
@@ -214,8 +214,9 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
 	  allrefsokay        = kFALSE;
 	}
 	else {
-	  if(fReferenceData.at(bankid).size()!=1)
-	    std::cout << "wierd thing..." << std::endl;
+	  if(fReferenceData.at(bankid).size() not_eq 1) {
+	    std::cout << "Multiple hits are recorded in the reference channel, we use the first hit signal as the refererence signal." << std::endl;
+	  }
 	  reftimes.at(bankid) = fReferenceData.at(bankid).at(0);
 	  refokay.at(bankid)  = kTRUE;
 	}
@@ -229,31 +230,32 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
       }
       
     if ( refokay.at(bankid) ) {
-      raw_time = (Double_t) hit -> GetRawTime();
-      ref_time = (Double_t) reftimes.at(bankid);
-      Int_t bank_index = hit->GetSubbankID();
-      Int_t slot_num   = hit->GetModule();
-      time = fF1TDContainer->ReferenceSignalCorrection(raw_time, ref_time, bank_index, slot_num);
+      Int_t slot_num    = hit -> GetModule();
+      raw_time_arb_unit = (Double_t) hit -> GetRawTime();
+      ref_time_arb_unit = (Double_t) reftimes.at(bankid);
+      //      raw_time = (Double_t) hit -> GetRawTime();
+      //      ref_time = (Double_t) reftimes.at(bankid);
+      //      Int_t bank_index = hit->GetSubbankID();
+      //      Int_t slot_num   = hit->GetModule();
 
-      hit -> SetTime(time+educated_guess_t0_correction); // an educated guess 
+      time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bankid, slot_num);
+
+      hit -> SetTime(time_arb_unit); 
+      hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
+
+      //  hit -> SetTime(time+educated_guess_t0_correction); // an educated guess 
+
+
       if(local_debug) {
 	QwMessage << this->GetSubsystemName()
-		  << " BankIndex " << std::setw(2) << bank_index
+		  << " BankIndex " << std::setw(2) << bankid
 		  << " Slot "      << std::setw(2) << slot_num
-		  << " RawTime : " << std::setw(6) << raw_time
-		  << " RefTime : " << std::setw(6) << ref_time
-		  << " time : "    << std::setw(6) << time
+		  << " RawTime : " << std::setw(6) << raw_time_arb_unit
+		  << " RefTime : " << std::setw(6) << ref_time_arb_unit
+		  << " time : "    << std::setw(6) << time_arb_unit
 		  << std::endl;
 	
       }
-      // if ( counter>0 ) {
-      // 	if (hit->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
-      // 	  trig_h1=hit->GetTime();
-      // 	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
-      // 	  counter=0;
-      // 	}
-      // }
-      //      counter++;
     }
   }
   
@@ -273,45 +275,6 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
   }
   
-  
-  // Bool_t refs_okay = kTRUE;
-  // std::vector<Double_t> reftimes;
-  // std::bitset< fReferenceData.size() > refchecked;
-  // Boot_t allrefsokay = kTRUE;
-
-  // Int_t counter=1;
-  // std::size_t i = 0;
-  
-  // for ( i=0; i<fReferenceData.size(); i++){
-    
-  //   if (fReferenceData.at(i).size()==0){
-  //     //  There isn't a reference time!
-  //     //QwWarning << "QwDriftChamber:HDC:SubtractReferenceTimes:  Subbank ID "
-  //     //<< i << " is missing a reference time." << QwLog::endl;
-  //     refs_okay = kFALSE;
-  //   } else {
-  //     reftimes.at(i) = fReferenceData.at(i).at(0);
-  //   }
-  // }
-  // if (refs_okay) {
-  //   for (size_t i=0; i<fReferenceData.size(); i++){
-  //     for (size_t j=0; j<fReferenceData.at(i).size(); j++){
-  // 	fReferenceData.at(i).at(j) -= reftimes.at(i);
-  //     }
-  //   }
-  //   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-
-  //     hit1->SetTime(QwDriftChamber::fF1TDC.ActualTimeDifference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
-  //     if (counter>0){
-  // 	if (hit1->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
-  // 	  trig_h1=hit1->GetTime();
-  // 	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
-  // 	  counter=0;
-  // 	}
-  //     }
-  //     counter++;
-  //   }
-  // }
   return;
 }
 
@@ -559,35 +522,11 @@ void  QwDriftChamberHDC::ProcessEvent()
 {
   if (not HasDataLoaded()) return;
 
-  SubtractReferenceTimes();
+  SubtractReferenceTimes();  // A.U. unit
+  UpdateHits();              // Fill QwDetectorInfo, fTimeRes (ns), and fTimeNs (ns) in QwHits
 
-  EQwDetectorPackage package = kPackageNull;
-  Int_t plane   = 0;
-
-  QwDetectorID local_id;
-  QwDetectorInfo * local_info;
-
-  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
-    
-    //if (hit->GetDetectorID().fPlane<7){
-    //std::cout<<"Plane "<<hit->GetDetectorID().fPlane<<std::endl;
-    // Set the detector info pointer for this hit
-    // (TODO Should probably go in VQwSubsystemTracking or even VQwSubsystem)
-    
-    local_id   = hit->GetDetectorID();
-    package    = local_id.fPackage;
-    plane      = local_id.fPlane - 1;
-    // ahha, here is a hidden magic number 1.
-    local_info = fDetectorInfo.in(package).at(plane);
-    hit->SetDetectorInfo(local_info);
-//     std::cout << "Plane: " << plane+1 << " " << hit->fDirection << std::endl;
-    //     hit->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
-    //}
-  }
-  
-  ApplyTimeCalibration();
-  SubtractWireTimeOffset();
-  FillDriftDistanceToHits();
+  SubtractWireTimeOffset();  // Subtract t0 offset (ns) and educated guesss t0 (a.u.) from fTime (a.u.) and fTimeNs (ns)
+  FillDriftDistanceToHits(); // must call GetTimeNs() instead of GetTime()
 
   return;
 }
@@ -596,8 +535,9 @@ void  QwDriftChamberHDC::ProcessEvent()
 Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 {
 
-    LoadTtoDParameters ( "R2_TtoDTable.map" );
-    LoadTimeWireOffset( "R2_timeoffset.map");
+    LoadTtoDParameters ( "R2_TtoDTable.map"  );
+    LoadTimeWireOffset ( "R2_timeoffset.map" );
+
     TString varname, varvalue;
     UInt_t value   = 0;
     UInt_t  chan   = 0;
@@ -718,9 +658,11 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 
 void QwDriftChamberHDC::DefineOptions ( QwOptions& options )
 {
+
   options.AddOptions() ("R2-octant",
 			po::value<int>()->default_value(1),
 			"MD Package 2 of R2 is in front of" );
+
 }
 
 void QwDriftChamberHDC::ProcessOptions ( QwOptions& options )
@@ -931,27 +873,60 @@ void  QwDriftChamberHDC::ClearEventData()
 
 
 
-void QwDriftChamberHDC::ApplyTimeCalibration()
+// void QwDriftChamberHDC::ApplyTimeCalibration()
+// {
+
+// //   for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+// //     {
+// //       iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
+// //       iter->SetTimeRes(fF1TDCResolutionNS);
+// //     }
+
+
+//   return;
+// }
+
+
+
+void QwDriftChamberHDC::UpdateHits()
 {
 
+
+  EQwDetectorPackage package = kPackageNull;
+  Int_t plane   = 0;
+
+  QwDetectorID local_id;
+  QwDetectorInfo * local_info;
+
+  
   for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
     {
-      iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
-      iter->SetTimeRes(fF1TDCResolutionNS);
+
+      local_id   = iter->GetDetectorID();
+      package    = local_id.fPackage;
+      plane      = local_id.fPlane - 1;
+      // ahha, here is a hidden magic number 1.
+      local_info = fDetectorInfo.in(package).at(plane);
+      iter->SetDetectorInfo(local_info);
+      iter->ApplyTimeCalibration(fF1TDCResolutionNS); // Fill fTimeRes and fTimeNs in QwHit
     }
 
 
   return;
 }
 
+
 void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
   Int_t plane = 0;
   Int_t wire  = 0;
   EQwDetectorPackage package = kPackageNull;
-  Double_t t0 = 0.0;
+  Double_t t0_NS = 0.0;
 
-  //   Double_t real_time=0.0;
+  Double_t educated_guess_t0_correction_AU = 11255.0;
+  Double_t educated_guess_t0_correction_NS = educated_guess_t0_correction_AU*fF1TDCResolutionNS;
+
+  //hit -> SetTime(time+educated_guess_t0_correction); // an educated guess 
 
   std::size_t nhits=fTDCHits.size();
 
@@ -960,12 +935,11 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
       package = fTDCHits.at(i).GetPackage();
       plane   = fTDCHits.at(i).GetPlane();
       wire    = fTDCHits.at(i).GetElement();
-      t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
+      t0_NS   = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
+      t0_NS   = t0_NS - educated_guess_t0_correction_NS;
       
-      fTDCHits.at(i).SubtractTimeOffset(t0);
-
-      // real_time=fTDCHits.at(i).GetTime()-t0;
-      // fTDCHits.at(i).SetTime(real_time);         
+      fTDCHits.at(i).SubtractTimeNsOffset(t0_NS);                    // time unit is ns, Replace fTimeNs
+      fTDCHits.at(i).SubtractTimeAuOffset(t0_NS/fF1TDCResolutionNS); // time unit is a.u. Replace fTime
      }
   return ;
 }

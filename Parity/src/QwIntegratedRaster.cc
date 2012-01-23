@@ -163,7 +163,7 @@ Int_t QwIntegratedRaster::LoadChannelMap(TString mapfile)
       fDetectorIDs[i].Print();
   }
   ldebug=kFALSE;
-
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -282,6 +282,8 @@ Int_t QwIntegratedRaster::LoadInputParameters(TString pedestalfile)
   if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
+
   return 0;
 }
 

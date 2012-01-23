@@ -108,7 +108,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;
-  virtual void ApplyTimeCalibration() = 0;
+  //  virtual void ApplyTimeCalibration() = 0;
 
 
   Int_t LinkReferenceChannel(const UInt_t chan, const Int_t plane, const Int_t wire);

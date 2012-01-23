@@ -56,7 +56,9 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   Int_t LoadTimeWireOffset(TString t0_map);
   void LoadTtoDParameters(TString ttod_map);
   void SubtractWireTimeOffset();
-  void ApplyTimeCalibration();
+  //  void ApplyTimeCalibration();
+
+  void  UpdateHits();             // be executed in ProcessEvent()
 
   // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
