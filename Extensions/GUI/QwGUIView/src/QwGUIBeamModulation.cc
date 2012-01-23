@@ -422,6 +422,9 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   TProfile *profy = new TProfile("profy", "profy", 100, 0., 360., -4., 4.);
   TProfile *profxp = new TProfile("profxp", "profxp", 100, 0., 360., -4., 4.);
   TProfile *profyp = new TProfile("profyp", "profyp", 100, 0., 360., -4., 4.);
+  TProfile *profe = new TProfile("profe", "profe", 100, 0., 360., -4., 4.);
+
+  TH2F *histr = new TH2F("histr", "histr", 10e3, 0, 1000, 100, -0.01, 0.1);
 
   Double_t offset;
   Double_t amplitude;
@@ -431,12 +434,14 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   TPaveText *no_datay = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
   TPaveText *no_dataxp = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
   TPaveText *no_datayp = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datae = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datar = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
 
   TF1 *sine = new TF1("sine", "[0] + [1]*sin(x*0.017951 + [2])", 0, 360.);
 
   canvas = dCanvas->GetCanvas();
   canvas->Clear();
-  canvas->Divide(2,2);
+  canvas->Divide(2,3);
 
   // Grab the Mps_Tree from the data container: Hel_Tree(0), Hel_Tree(1)
   tree = (TTree *)TreeArray.At(1);
@@ -579,6 +584,65 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
     profyp->Draw();
     profyp->SetDirectory(0);
     PlotArray.Add(profyp);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
+  }
+
+  canvas->cd(5);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("qwk_bpm3c12X:0.09*ramp>>profe", cut + " && bm_pattern_number == 13");
+  profyp = (TProfile *)gDirectory->Get("profe");
+  if(profe->GetEntries() == 0){
+    profe->Delete();
+    no_datae->Clear();
+    no_datae->AddText("No modulation E data found.");
+    no_datae->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    profe->GetXaxis()->SetTitle("phase (deg)");
+    profe->GetYaxis()->SetTitle("BPM Amplitude (rad)");
+    sine->SetLineColor(5);
+    sine->SetRange(10., 350.);
+    sine->SetParameter(1, 4.e-6);
+    profe->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profe->SetTitle(Form("Target BPM Response to E Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
+    profe->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profe->Draw();
+    profe->SetDirectory(0);
+    PlotArray.Add(profe);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
+  }
+
+  canvas->cd(6);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("0.3*76.29e-6*ramp:event_number*0.001>>histr", "");
+  histr = (TH2F *)gDirectory->Get("histr");
+  if(histr->GetEntries() == 0){
+    histr->Delete();
+    no_datar->Clear();
+    no_datar->SetTextColor(2);
+    no_datar->AddText("No readback of the ramp signal in the ADC.");
+    no_datar->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    histr->GetXaxis()->SetTitle("event number (msec)");
+    histr->GetYaxis()->SetTitle("Ramp Amplitude (I)");
+    histr->SetTitle("ADC readback of ramp signal");
+    histr->Draw();
+    histr->SetDirectory(0);
+    PlotArray.Add(histr);
     canvas->Modified();
     canvas->Update();
     gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
