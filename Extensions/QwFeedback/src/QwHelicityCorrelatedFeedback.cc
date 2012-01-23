@@ -58,6 +58,10 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
   else
     printf("NOTICE \n Half-wave-plate-OUT\n");
 
+  if (GetHalfWavePlate2State()==1)
+    printf("NOTICE \n Half-wave-plate-2 is IN \n");
+  else if (GetHalfWavePlate2State()==0)
+    printf("NOTICE \n Half-wave-plate-2 is OUT \n");
 
  
 
@@ -502,19 +506,37 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
   if(TMath::Abs(fChargeAsymmetry)<5){
     //These files save the last good PC hw count value for IHWP IN and OUT
     if (fHalfWaveIN){
-      out_file_PC_IN_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_IN", "w");//Open in write mode
-      out_file_PC_IN_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_IN", "w");//Open in write mode      
-      fprintf(out_file_PC_IN_pos,"%5.0f \n",fPrevPITASetpointPOS);
-      fprintf(out_file_PC_IN_neg,"%5.0f \n",fPrevPITASetpointNEG);
-      fclose(out_file_PC_IN_pos);
-      fclose(out_file_PC_IN_neg);      
+      if (GetHalfWavePlate2State()==0){//IHWP2==OUT or No IHWP2 anymore
+	out_file_PC_IN_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_IN", "w");//Open in write mode
+	out_file_PC_IN_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_IN", "w");//Open in write mode      
+	fprintf(out_file_PC_IN_pos,"%5.0f \n",fPrevPITASetpointPOS);
+	fprintf(out_file_PC_IN_neg,"%5.0f \n",fPrevPITASetpointNEG);
+	fclose(out_file_PC_IN_pos);
+	fclose(out_file_PC_IN_neg);  
+      }else{//IHWP2==IN
+	out_file_PC_IN_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_IN_IHWP2_IN", "w");//Open in write mode
+	out_file_PC_IN_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_IN_IHWP2_IN", "w");//Open in write mode      
+	fprintf(out_file_PC_IN_pos,"%5.0f \n",fPrevPITASetpointPOS);
+	fprintf(out_file_PC_IN_neg,"%5.0f \n",fPrevPITASetpointNEG);
+	fclose(out_file_PC_IN_pos);
+	fclose(out_file_PC_IN_neg);  
+      }
     }else{
-      out_file_PC_OUT_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_OUT", "w");//Open in write mode
-      out_file_PC_OUT_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_OUT", "w");//Open in write mode
-      fprintf(out_file_PC_OUT_pos,"%5.0f \n",fPrevPITASetpointPOS);
-      fprintf(out_file_PC_OUT_neg,"%5.0f \n",fPrevPITASetpointNEG);      
-      fclose(out_file_PC_OUT_pos);
-      fclose(out_file_PC_OUT_neg);    
+      if (GetHalfWavePlate2State()==0){//IHWP2==OUT or No IHWP2 anymore
+	out_file_PC_OUT_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_OUT", "w");//Open in write mode
+	out_file_PC_OUT_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_OUT", "w");//Open in write mode
+	fprintf(out_file_PC_OUT_pos,"%5.0f \n",fPrevPITASetpointPOS);
+	fprintf(out_file_PC_OUT_neg,"%5.0f \n",fPrevPITASetpointNEG);      
+	fclose(out_file_PC_OUT_pos);
+	fclose(out_file_PC_OUT_neg);   
+      }else{//IHWP2==IN
+	out_file_PC_OUT_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_OUT_IHWP2_IN", "w");//Open in write mode
+	out_file_PC_OUT_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_OUT_IHWP2_IN", "w");//Open in write mode
+	fprintf(out_file_PC_OUT_pos,"%5.0f \n",fPrevPITASetpointPOS);
+	fprintf(out_file_PC_OUT_neg,"%5.0f \n",fPrevPITASetpointNEG);      
+	fclose(out_file_PC_OUT_pos);
+	fclose(out_file_PC_OUT_neg);	
+      }
     }
   }
 
@@ -1224,6 +1246,15 @@ TString  QwHelicityCorrelatedFeedback::GetHalfWavePlateState()
   return plate_status;
 };
 
+UInt_t QwHelicityCorrelatedFeedback::GetHalfWavePlate2State(){
+  TString ihwp2_value = gSystem->GetFromPipe("caget -tf0 -w 0.1  IGL1I00DIOFLRD");
+  UInt_t ihwp2 =ihwp2_value.Atoi();
+  
+  if (ihwp2>10000)
+    return 1;//13056=IN
+  else
+    return 0; //8960=OUT
+};
 
 void QwHelicityCorrelatedFeedback::CheckFeedbackStatus()
 {

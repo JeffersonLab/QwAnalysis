@@ -270,6 +270,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
  
     
     TString GetHalfWavePlateState();
+    UInt_t GetHalfWavePlate2State();
     void    CheckFeedbackStatus();
 
     static const Int_t kHelPat1=1001;//to compare with current or previous helpat
