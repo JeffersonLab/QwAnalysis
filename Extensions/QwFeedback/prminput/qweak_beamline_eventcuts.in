@@ -27,9 +27,11 @@ EVENTCUTS = 3
 ! ****** The bcm lower cut value should be 70% of the asked current
 ! for 150 uA, lower limit 100 uA
 !bcm, qwk_bcm1,			110,		1000000,  	g,  	0 
+
 ! for standard running beam current range 10-180 uA
-bcm, qwk_bcm1,			5,		1000000,  	g,  	2 
-bcm, qwk_bcm8,			5,		1000000,  	g,  	2 
+!bcm, qwk_bcm1,			1,		1000000,  	l,  	2 
+bcm, qwk_bcm8,			10,		1000000,  	g,  	2 
+
 ! for 100 uA, lower limit 100 uA
 !bcm, qwk_bcm1,			80,		1000000,  	g,  	0 
 !bcm, qwk_bcm1,		20,		1000000,  	g,  	0 
