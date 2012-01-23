@@ -160,6 +160,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
         << QwLog::endl;
   }
 
+  mapstr.Close(); // Close the file (ifstream)
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
   return OK;
 }
@@ -678,7 +679,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     */
     //
 
-
+    mapstr.Close(); // Close the file (ifstream)
     // /   ReportConfiguration();
 
     return OK;
@@ -945,33 +946,28 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
 
 void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
-        Int_t plane=0,wire=0;
-        EQwDetectorPackage package = kPackageNull;
-	Double_t t0 = 0.0;
-	Double_t real_time=0.0;       
-        size_t nhits=fTDCHits.size();
-        for(size_t i=0;i<nhits;i++)
-        {
+  Int_t plane = 0;
+  Int_t wire  = 0;
+  EQwDetectorPackage package = kPackageNull;
+  Double_t t0 = 0.0;
 
-                package = fTDCHits.at(i).GetPackage();
-                plane   = fTDCHits.at(i).GetPlane();
-                wire    = fTDCHits.at(i).GetElement();
-                t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
-                  
-		
-                real_time=fTDCHits.at(i).GetTime()-t0;
-                fTDCHits.at(i).SetTime(real_time);                      
-		//     if(real_time<0 || real_time>130){
-			  // fTDCHits.erase(fTDCHits.begin()+i);
-			  //--nhits;
-			  //--i;
-			  //continue;
-                //}
-                //else{
-		//      fTDCHits.at(i).SetTime(real_time);
-		//  }
-	}
-        return ;
+  //   Double_t real_time=0.0;
+
+  std::size_t nhits=fTDCHits.size();
+
+  for(std::size_t i=0;i<nhits;i++)
+    {
+      package = fTDCHits.at(i).GetPackage();
+      plane   = fTDCHits.at(i).GetPlane();
+      wire    = fTDCHits.at(i).GetElement();
+      t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
+      
+      fTDCHits.at(i).SubtractTimeOffset(t0);
+
+      // real_time=fTDCHits.at(i).GetTime()-t0;
+      // fTDCHits.at(i).SetTime(real_time);         
+     }
+  return ;
 }
 
 void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
@@ -993,6 +989,8 @@ void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
       d = mapstr.GetTypedNextToken<Double_t>();
       fTtoDNumbers.push_back ( d );
     }
+
+  mapstr.Close(); // Close the file (ifstream)
   return;
 }
 
@@ -1049,5 +1047,7 @@ Int_t QwDriftChamberHDC::LoadTimeWireOffset ( TString t0_map )
 
     }
   //
+
+  mapstr.Close(); // Close the file (ifstream)
   return OK;
 }

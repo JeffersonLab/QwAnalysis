@@ -125,7 +125,12 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
 
 
   void  SubtractReferenceTimes(); // be executed in ProcessEvent()
-  void  ApplyTimeCalibration();   // be executed in ProcessEvent()
+
+  // add   QwDetectorInfo   into QwDetecotrInfor of QwHit
+  // add   F1TDC resolution into fTimeRes of QwHit
+  // add   calibrated time (fTime*F1TDC_resolution_ns) into fTimens of QwHit
+
+  void  UpdateHits();             // be executed in ProcessEvent()
 
 
   std::vector< QwHit > fTDCHits;

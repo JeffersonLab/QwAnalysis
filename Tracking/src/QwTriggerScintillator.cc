@@ -134,6 +134,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
         << QwLog::endl;
   }
 
+  mapstr.Close(); // Close the file (ifstream)
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
   return 0;
@@ -212,6 +213,8 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
         }
       }
   }
+
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -343,7 +346,9 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
       
 	if(local_debug) std::cout << std::endl;
       }
-  
+
+      fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
+
       if(local_debug) {
 	fF1TDContainer->Print();
 	std::cout << "-----------------------------------------------------" << std::endl;

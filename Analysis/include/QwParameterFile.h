@@ -199,6 +199,8 @@ class QwParameterFile {
 
     void AddBreakpointKeyword(std::string keyname);
 
+    void Close() { fFile.close();};
+
     Bool_t HasNewPairs(){
       Bool_t status = fHasNewPairs;
       if (fHasNewPairs) fHasNewPairs=kFALSE;
@@ -223,6 +225,8 @@ class QwParameterFile {
       }
       return status;
     };
+
+    
 
   protected:
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);

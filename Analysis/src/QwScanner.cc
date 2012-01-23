@@ -201,6 +201,7 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
             }
         }
     }
+  mapstr.Close(); // Close the file (ifstream)
   if(local_debug) ReportConfiguration();
   return 0;
 }
@@ -289,6 +290,7 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
   if (ldebug) std::cout<<" line read in the parameter file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -432,7 +434,9 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
       
 	if(local_debug) std::cout << std::endl;
       }
-  
+
+      fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
+
       if(local_debug) {
 	fF1TDContainer->Print();
 	std::cout << "-----------------------------------------------------" << std::endl;
@@ -756,7 +760,6 @@ void  QwScanner::ProcessEvent()
 		  bank_index = fPMTs.at(i).at(j).GetSubbankID();
 		  slot_num   = fPMTs.at(i).at(j).GetModule();
 		  newdata    = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
-		  //		  Newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
                   fPMTs.at(i).at(j).SetValue(newdata);
                 }
             }
@@ -1565,6 +1568,5 @@ void QwScanner::FillHardwareErrorSummary()
 {
   fF1TDContainer->PrintErrorSummary();
   fF1TDContainer->WriteErrorSummary();
-  //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
   return;
 };

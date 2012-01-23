@@ -167,6 +167,8 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 		<< QwLog::endl;
     }
 
+  mapstr.Close(); // Close the file (ifstream)
+
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
   //  ReportConfiguration();
@@ -760,6 +762,8 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 	}
     }
   AddChannelDefinition();
+
+  mapstr.Close(); // Close the file (ifstream)
   return OK;
 }
 
@@ -797,6 +801,8 @@ void QwDriftChamberVDC::ReadEvent ( TString& eventfile )
       //std::cout << "signal is: " << signal << endl;
       fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,direction,0, ( UInt_t ) signal ) );
     }        //only know TDC information and time value
+
+  mapstr.Close(); // Close the file (ifstream)
   return;
 }
 
@@ -1320,44 +1326,34 @@ Int_t QwDriftChamberVDC::LoadTimeWireOffset ( TString t0_map )
 
     }
   //
+  mapstr.Close(); // Close the file (ifstream)
   return OK;
 }
 
 
 void QwDriftChamberVDC::SubtractWireTimeOffset()
 {
-  Int_t plane=0,wire=0;
+  Int_t plane = 0;
+  Int_t wire  = 0;
   EQwDetectorPackage package = kPackageNull;
   Double_t t0 = 0.0;
-  Double_t real_time=0.0;       
+
+  // Double_t real_time=0.0;       
 
   // 	for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
-  size_t nhits=fWireHits.size();
-  for(size_t i=0;i<nhits;i++)
-    {
+  std::size_t nhits = fWireHits.size();
 
+  for(std::size_t i=0;i<nhits;i++)
+    {
       package = fWireHits.at(i).GetPackage();
       plane   = fWireHits.at(i).GetPlane();
       wire    = fWireHits.at(i).GetElement();
       t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
-                              
-      //if(package==1)
-      //        real_time=fWireHits.at(i).GetTime()-t0-91;
-      //else if(package==2)
-      //	real_time=fWireHits.at(i).GetTime()-t0-91;
-                                      
-      real_time=fWireHits.at(i).GetTime()-t0-91;
-      //if(real_time<0 || real_time>310){
-	//fWireHits.erase(fWireHits.begin()+i);
-	//--nhits;
-	//--i;
-	//continue;
-	//fWireHis.at(i).SetTime(real_time);
-      //}
-      //else{
-      //	fWireHits.at(i).SetTime(real_time);
-      //}
-      fWireHits.at(i).SetTime(real_time);
+
+      fWireHits.at(i).SubtractTimeOffset(t0-91);
+
+      // real_time=fWireHits.at(i).GetTime()-t0-91;
+      // fWireHits.at(i).SetTime(real_time);
     }
   return;
 }
@@ -1397,5 +1393,7 @@ void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )
       d = mapstr.GetTypedNextToken<Double_t>();
       fTtoDNumbers.push_back ( d );
     }
+  
+  mapstr.Close(); // Close the file (ifstream)
   return;
 }

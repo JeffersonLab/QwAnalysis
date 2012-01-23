@@ -125,6 +125,8 @@ void QwHit::Initialize()
   fLRAmbiguity       = false;
 
   fRawTime           = 0;
+  fRawRefTime        = 0;
+  fTimens            = 0.0;
   fTime              = 0.0;
   fTimeRes           = 0.0;
   fDistance          = 0.0;
@@ -170,6 +172,8 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fLRAmbiguity       = hit.fLRAmbiguity;
 
   fRawTime           = hit.fRawTime;
+  fRawRefTime        = hit.fRawRefTime;
+  fTimens            = hit.fTimens;
   fTime              = hit.fTime;
   fTimeRes           = hit.fTimeRes;
   fDistance          = hit.fDistance;

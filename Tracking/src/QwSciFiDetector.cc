@@ -213,6 +213,9 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
     printf("\n------------- R1 LoadChannelMap End%s\n\n", mapfile.Data());
 
   }
+
+  mapstr.Close(); // Close the file (ifstream)
+
   ReportConfiguration(local_debug);
   return 0;
 };
@@ -226,19 +229,113 @@ QwSciFiDetector::LoadInputParameters(TString mapfile)
 Int_t 
 QwSciFiDetector::LoadGeometryDefinition(TString mapfile)
 {
-  Bool_t local_debug = true;
-  if(local_debug) {
-    std::cout << "------------ QwSciFiDetector::LoadGeometryDefinition -------------" << std::endl;
-  }
-    
+
+  // TString varname, varvalue,package, direction,dType;
+  // //  Int_t  chan;
+  // Int_t  plane, TotalWires,detectorId,region, DIRMODE;
+  // Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX=0,Det_originY=0,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
+  // Double_t ZPOS[5]={0};
+  // Double_t XPOS[5]={0};
+  // Double_t YPOS[5]={0};
+
+  //std::vector< QwDetectorInfo >  fDetectorGeom;
+
   fDetectorInfo.clear();
 
-  // QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
-  //     << fDetectorInfo.in(kPackageUp).size()
-  //     << ", "
-  //     << "kPackagDown "
-  //     << fDetectorInfo.in(kPackageDown).size()
-  //     << QwLog::endl;
+
+  // DIRMODE=0;
+
+  
+
+  // QwParameterFile mapstr(mapfile.Data());  //Open the file
+  // fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
+  // while (mapstr.ReadNextLine()){
+  //   mapstr.TrimComment('!');   // Remove everything after a '!' character.
+  //   mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+  //   if (mapstr.LineIsEmpty())  continue;
+
+  //   if (mapstr.HasVariablePair("=",varname,varvalue)){
+  //     //  This is a declaration line.  Decode it.
+  //     varname.ToLower();
+  //     //UInt_t value = atol(varvalue.Data());
+  //     if (varname=="name"){//Beginning of detector information
+  // 	DIRMODE=1;
+  //     }
+  //   } else if (DIRMODE==1){
+  //     //  Break this line into tokens to process it.
+  //     varvalue     = mapstr.GetTypedNextToken<TString>();//this is the sType
+  //     for (Int_t i=0;i<5;i++){
+  // 	 ZPOS[i]      = mapstr.GetTypedNextToken<Double_t>();
+  //     }
+  //      // Zpos         = mapstr.GetTypedNextToken<Double_t>();
+  //     rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+  //     sp_res       = mapstr.GetTypedNextToken<Double_t>();
+  //     track_res    = mapstr.GetTypedNextToken<Double_t>();
+  //     slope_match  = mapstr.GetTypedNextToken<Double_t>();
+  //     package      = mapstr.GetTypedNextToken<TString>();
+  //     region       = mapstr.GetTypedNextToken<Int_t>();
+  //     dType        = mapstr.GetTypedNextToken<TString>();
+  //     direction    = mapstr.GetTypedNextToken<TString>();
+  //     for (Int_t i=0;i<5;i++){
+  // 	XPOS[i]      =   mapstr.GetTypedNextToken<Double_t>();
+  //     }
+  //     for (Int_t i=0;i<5;i++){
+  // 	YPOS[i]      =  mapstr.GetTypedNextToken<Double_t>();
+  //     }
+  //     ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
+  //     ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
+  //     ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
+  //     WireSpace    = mapstr.GetTypedNextToken<Double_t>();
+  //     FirstWire    = mapstr.GetTypedNextToken<Double_t>();
+  //     W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+  //     W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+  //     tilt         = mapstr.GetTypedNextToken<Double_t>();
+  //     TotalWires   = mapstr.GetTypedNextToken<Int_t>();
+  //     detectorId   = mapstr.GetTypedNextToken<Int_t>();
+
+  //     // fR2Octant=gQwOptions.GetValue<Int_t> ("R2-octant");
+  //     // // order is 1,2,8,7,6 for pkg2
+  //     // // order is 5,6,4,3,2 for pkg1
+  //     // Int_t oct=fR2Octant;
+  //     // 	  if (oct == 8) oct=3;
+  //     // 	  if (oct == 7) oct=4;
+  //     // 	  if (oct == 6) oct=5;
+  //     // 	  Zpos = ZPOS[oct-1];
+  //     // 	  Det_originX  = XPOS[oct-1];
+  //     //     Det_originY  = YPOS[oct-1];
+
+  //     // QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
+  //     //         << " Package "     << package << " Plane " << Zpos
+  //     //         << " Region "      << region << QwLog::endl;
+
+      
+  //     if (region==1){
+  // 	QwDetectorInfo detector;
+  // 	detector.SetDetectorInfo(dType, Zpos,
+  // 				 rot, sp_res, track_res, slope_match,
+  // 				 package,region, direction,
+  // 				 Det_originX, Det_originY,
+  // 				 ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+  // 				 WireSpace, FirstWire,
+  // 				 W_rcos, W_rsin, tilt,
+  // 				 TotalWires,
+  // 				 detectorId);
+
+  // 	// if(package=="u")
+  // 	// 	detector->SetOctantNumber((fR2Octant+4)%8);
+  // 	//   else
+  // 	// 	detector->SetOctantNumber(fR2Octant);
+  // 	fDetectorInfo.push_back(&detector);
+  //     }
+  //   }
+
+  // }
+
+  // mapstr.Close();
+
+  // QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
+
 
   
   return 0;
@@ -266,29 +363,9 @@ QwSciFiDetector::ProcessEvent()
 {
   if (not HasDataLoaded()) return;
 
-  // // F1TDCs
+  // F1TDCs
   SubtractReferenceTimes();
-
-  // After Geometry...
-  // EQwDetectorPackage package = kPackageNull;
-  // Int_t plane   = 0;
-
-  // QwDetectorID local_id;
-  // QwDetectorInfo * local_info;
-
-  // for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) 
-  //   {
-  //     local_id   = hit->GetDetectorID();
-  //     package    = local_id.fPackage;
-  //     plane      = local_id.fPlane - 1;
-  //     // ahha, here is a hidden magic number 1.
-  //     local_info = fDetectorInfo.in(package).at(plane);
-  //     hit->SetDetectorInfo(local_info);
-  //   }
-  
-
-
-  ApplyTimeCalibration();
+  UpdateHits();
 
 
   // SIS3801 scaler
@@ -1090,7 +1167,7 @@ QwSciFiDetector::SubtractReferenceTimes()
       	Int_t slot_num   = hit->GetModule();
 
       	time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
-
+	hit -> SetRawRefTime(ref_time_arb_unit);
       	hit -> SetTime(time_arb_unit); 
 
 
@@ -1129,13 +1206,28 @@ QwSciFiDetector::SubtractReferenceTimes()
 
 
 void 
-QwSciFiDetector::ApplyTimeCalibration()
+QwSciFiDetector::UpdateHits()
 {
  
+  
+  // EQwDetectorPackage package = kPackageNull;
+  // Int_t              plane   = 0;
+
+  // QwDetectorID       local_id;
+  // QwDetectorInfo  *local_info;
+
   for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
     {
-      iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
+      // local_id   = iter->GetDetectorID();
+      // package    = local_id.fPackage;
+      // plane      = local_id.fPlane- 1;
+      // // ahha, here is a hidden magic number 1.
+
+      // local_info = fDetectorInfo.in(package).at(plane);
+      // iter->SetDetectorInfo(local_info);
       iter->SetTimeRes(fF1TDCResolutionNS);
+      iter->SetTimens(fF1TDCResolutionNS*iter->GetTime());
+
     }
 
   return;

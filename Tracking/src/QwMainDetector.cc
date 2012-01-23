@@ -154,7 +154,7 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
 		<< " Detector ID " << detector_info_down.at(i)->fDetectorID
 		<< QwLog::endl;
     }
-
+  mapstr.Close(); // Close the file (ifstream)
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
   return 0;
@@ -260,6 +260,8 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
             }
         }
     }
+
+  mapstr.Close(); // Close the file (ifstream)
   //ReportConfiguration();
   return 0;
 }
@@ -284,11 +286,6 @@ void  QwMainDetector::ClearEventData()
 
 Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  // Sorry, I don't know how to combine the below F1TDContainer routine with the above code,
-  // thus I seperated them. It is a big ugly, but at least it works fine with less time
-  // consuming....
-  // Tuesday, September 28 14:26:48 EDT 2010, jhlee
-
   if( bank_id==fBankID[2] ) {
 
     TString subsystem_name;
@@ -401,6 +398,8 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
 	if(local_debug) std::cout << std::endl;
       }
   
+      fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
+
       if(local_debug) {
 	fF1TDContainer->Print();
 	std::cout << "-----------------------------------------------------" << std::endl;
