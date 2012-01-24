@@ -1,27 +1,16 @@
-# This is the detector definition file to be used with run type
-# inj_parity (injector+parity).
-# October 4th, 2011 B. Waidyawansa.
+# This is an example of a detector definition file.
 
 [QwBeamLine]
  name = HallCBeamLine
  map = qweak_hallc_beamline.map
  geom = qweak_beamline_geometry.map
  param = qweak_hallc_pedestal.map
-#added to keep local cuts on BPMs - rakitha - 01/23/2012
  eventcut = qweak_first100k_beamline_eventcuts.in
-
-[QwBeamLine]
- name = Injector
- map = injector_beamline_for_inj_parity.map
- geom = injector_beamline_geometry.map
- eventcut = injtest_beamline_eventcuts.in
- param = injtest_pedestal.map
 
 [QwMainCerenkovDetector]
  name = Main Detector
  map = qweak_maindet.map
  param = qweak_maindet_pedestal.map
-#added to keep local cuts on MD yields - rakitha - 01/23/2012
  eventcut = qweak_first100k_maindet_eventcuts.in
 
 [QwLumi]
