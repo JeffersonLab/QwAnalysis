@@ -841,7 +841,7 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     dCmbSubblock->SetEnabled(kFALSE);
     dCmbMeasurementType->SetEnabled(kFALSE);
     
-    for (Int_t i = 0; i < N_LUMIS; i++) {
+    for (Int_t i = 0; i < N_DETECTORS; i++) {
       dCmbDetector->AddEntry(DetectorCombos[i], i);
     }
   }
