@@ -19,8 +19,16 @@ void sigint_handler(int sig)
 	globalEXIT=1;
 }
 
+struct runletSort{
+	bool operator()(const std::pair<Int_t,Int_t> &left, const std::pair<Int_t,Int_t> &right) {
+        return left.second < right.second;
+    }
 
-Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0",TString slugrootfilename="0",TString qwstem="",TString suffix="0")
+};
+
+
+
+Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootfilename="0",TString qwrootfiles="0", TString qwstem="",TString suffix="0")
 {
 	TStopwatch timer;
 	if (runnum==0 ||  leaflistfilename == "0" ||  slugrootfilename == "0" || qwstem== "") {
@@ -28,6 +36,7 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0",TString slugrootfi
 		printf("Where: runnum = \n");
 		printf("       leaflistfilename = \n");
 		printf("       slugrootfilename = \n");
+		printf("       qwrootfiles = \n");
 		printf("       qwstem = \n");
 		printf("       suffix = \n");
 		return 0;
@@ -36,15 +45,14 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0",TString slugrootfi
 	const Int_t debug2=0;
 
 
-        const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
+//        const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 	if(debug2==1){
 	std::cout<<"Fetching list of files from "<<qwrootfiles<<std::endl;
 	}
 
-	const Int_t maxfiles=600;
-	pair<Int_t,Int_t> runletlist[maxfiles]; //store pairs of (run, runlet)
+	std::vector<std::pair<Int_t,Int_t> > runletlist; //store pairs of (run, runlet)
 
 	TString filename;
 	TString filenameformat;
@@ -71,16 +79,23 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0",TString slugrootfi
 			if(debug2==1){std::cout<<"Found a match"<<std::endl;}
 				TObjArray *tmp = seg.MatchS(filename); //returns an object array containing the matches. 0th entry is the full character array match, 1 is just the match, etc.
 			const TString subStr = ((TObjString *)tmp->At(1))->GetString(); //grab the runlet number
-			runletlist[counter] = pair<Int_t,Int_t>(runnum,atoi(subStr)); //use atoi to convert it to an integer (is this still standard?)
+			runletlist.push_back(pair<Int_t,Int_t>(runnum,atoi(subStr)));
 			counter++;
         	}
 	  }
 	}
 	Int_t numfiles = counter;
 	
+	std::sort(runletlist.begin(), runletlist.end(), runletSort());
+	
 	if(debug2==1){
 		std::cout<<"Finished getting file list"<<std::endl;
 	}
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// created the file and tree to hold the slug data
@@ -267,18 +282,6 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0",TString slugrootfi
 	islugevnum = (int) (slugeventnumber+0.1);
 //	return slugeventnumber;
 	return islugevnum;
+
 }
 
-
-
-
-
-
-/* emacs
- * Local Variables:
- * mode:C++
- * mode:font-lock
- * c-file-style: "stroustrup"
- * tab-width: 4
- * End:
- */
