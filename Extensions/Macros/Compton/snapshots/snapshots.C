@@ -41,11 +41,11 @@
 #include "getChain.C"
 
 
-void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
+void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents = 0)
 {
 	if (runnumber==0) {
-		printf("\n\nUseage:\n\t .x stepthru_mps.C(runnumber, [maxevents])\n");
-		printf("\t .x stepthru_mps_DEVEL.C(runnumber, [maxevents])\n\n");
+		printf("\n\nUseage:\n\t .x stepthru_mps.C(runnumber, [first100k, [maxevents]])\n");
+		printf("\t .x stepthru_mps_DEVEL.C(runnumber, [first100k, [maxevents]])\n\n");
 		return;
 	}
 	// **********
@@ -69,7 +69,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 	TString rootoutname = rootoutdir + Form("Compton_NewSummary_%i.root",runnumber);
 	TFile*  rootoutfile = TFile::Open(rootoutname,"RECREATE");
 
-	TChain *Mps_Chain = getMpsChain(runnumber);
+	TChain *Mps_Chain = getMpsChain(runnumber,isFirst100k);
 
 	Int_t nentries = Mps_Chain->GetEntries();
 	printf("There are %i entries\n",nentries);

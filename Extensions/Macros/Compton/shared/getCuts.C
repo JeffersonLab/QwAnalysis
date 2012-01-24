@@ -23,7 +23,7 @@
 
 
 Int_t getCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE,
-	      TTree *tree, Double_t lasLlimit = 20000.0)
+	      TTree *tree, Double_t lasLlimit = 20000.0, Bool_t isFirst100k = kFALSE)
 {
   //FILE *file = fopen("f.txt","w");
 
@@ -136,7 +136,7 @@ Int_t getCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE,
 /////////////////////////////////////////////////////
 
 Int_t getCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, 
-	      Int_t runNum, Double_t lasLlimit = 5000.0)
+	      Int_t runNum, Double_t lasLlimit = 5000.0, Bool_t isFirst100k = kFALSE)
 {
   const Int_t WAIT_N_ENTRIES = 1400;//# of quartets to wait after beam trip
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
@@ -152,8 +152,14 @@ Int_t getCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE,
   //Get number of runlets and total entries then 
   //reset chain and attach one runlet at a time
   TChain *ch = new TChain("Hel_Tree");
-  TString baseDir = TString("/net/cdaq/cdaql8data/compton/rootfiles/");
-  TString fileName = baseDir + Form("Compton_Pass1_%d*", runNum);
+  TString baseDir(getenv("QW_ROOTFILES"));
+  baseDir += "/";
+  TString fileName;
+  if (isFirst100k) {
+    fileName = baseDir + Form("Compton_first100k_%d*", runNum);
+  } else {
+    fileName = baseDir + Form("Compton_Pass?_%d*", runNum);
+  }
   numFiles = ch->Add(fileName);
   nEntTotal = ch->GetEntries(); 
   std::cout<<numFiles<<" runlets in run "<<runNum<<" with a total of "<<nEntTotal<<" entries."<<std::endl;
@@ -171,7 +177,11 @@ Int_t getCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE,
   while(fileNum<numFiles){
 
     ch->Reset();
-    fileName = baseDir + Form("Compton_Pass1_%d.%03d.root", runNum, fileNum);
+    if (isFirst100k) {
+      fileName = baseDir + Form("Compton_first100k_%d.root", runNum);
+    } else {
+      fileName = baseDir + Form("Compton_Pass?_%d.%03d.root", runNum, fileNum);
+    }
     ch->Add(fileName);
 
     TBranch *bBCM = (TBranch*)ch->GetBranch("yield_sca_bcm6");

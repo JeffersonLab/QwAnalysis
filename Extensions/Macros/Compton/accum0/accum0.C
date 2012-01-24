@@ -43,7 +43,7 @@ using namespace std;
 //instructs the program whether or not to delete everything upon closing.//
 ////////////////////////////////////////////////////////////////////////////
 
-Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE){
+Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE){
 
   gROOT->SetStyle("Plain");
   gStyle->SetCanvasColor(0);
@@ -61,13 +61,13 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
 
   // Create a chain
   Bool_t drawForDebug = kFALSE;//draw graphs to show results of electron beam and laser cuts
-  TChain *helChain = getHelChain(runnum,isFirst100K);
+  TChain *helChain = getHelChain(runnum,isFirst100k);
   if(helChain == 0)
   {
     printf("Exiting program.\n");
     return 0;
   }
-  TChain *mpsChain = getMpsChain(runnum,isFirst100K);
+  TChain *mpsChain = getMpsChain(runnum,isFirst100k);
   
   const Double_t LOW_LSR_LMT = 3000.0; // laser unlocked below this
   const Double_t MINCUR = 2.0; // bcm6 values
@@ -77,9 +77,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
   const char* BCM = "yield_sca_bcm6";
 
 
-  TString www = Form("/u/group/hallc/www/hallcweb/html/compton/photonsummary"
-  		     "/run2/pass1/run_%d/",runnum);
-  //TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
+  TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
   gSystem->mkdir(www,true);
   gSystem->mkdir(www,true);
   TString canvas1 = www + "accum0_plots.png";
@@ -102,7 +100,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
   std::vector<Int_t> cutLas;//vector for laser power cut
   std::vector<Int_t> cutEB;//vector for electron beam trip cut
   Int_t startEntry, endEntry, nCuts, nLasCycles; 
-  Int_t nBeamTrips = getCuts(cutLas,cutEB, runnum, LOW_LSR_LMT);
+  Int_t nBeamTrips = getCuts(cutLas,cutEB, runnum, LOW_LSR_LMT, isFirst100k);
   if(helChain->GetEntries()==0){
     printf("No entries in chain. Exiting program.\n");
     return 0;
@@ -1165,7 +1163,7 @@ Int_t analyzeAll(Int_t runNumFirst, Int_t runNumLast){
 
 Int_t main(int argc, char *argv[]){
   if (argc < 1){
-    std::cout<<"Usage:analyzeRun(int runNumber,bool isFirst100K, bool deleteOnExit)"
+    std::cout<<"Usage:analyzeRun(int runNumber,bool isFirst100k, bool deleteOnExit)"
 	<<std::endl;
     return 0;
   }else if(argc==3){

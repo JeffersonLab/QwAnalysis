@@ -35,14 +35,14 @@
 //instructs the program whether or not to delete everything upon closing.//
 ////////////////////////////////////////////////////////////////////////////
 
-Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE){
+Int_t accum03(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE){
   gROOT->Reset();
   //  gStyle->SetCanvasColor(0);
   // Create a chain
   const Double_t LOW_LSR_LMT = 20.0;//laser considered unlocked below this
 
-  TChain *helChain = getHelChain(runnum);
-  TChain *mpsChain = getMpsChain(runnum);
+  TChain *helChain = getHelChain(runnum,isFirst100k);
+  TChain *mpsChain = getMpsChain(runnum,isFirst100k);
 
   // const Double_t MAXCUR = 140, MINSCALER = 235, MAXSCALER = 468;//bcm2_3h05a  values
   const Double_t MAXCUR = 60, MINSCALER = 235, MAXSCALER = 292;//bcm6_3c17 values
@@ -716,7 +716,7 @@ Int_t analyzeAll(Int_t runNumFirst, Int_t runNumLast){
 
 Int_t main(int argc, char *argv[]){
   if (argc < 3){
-    cout<<"Usage:accum03(int runNumber,bool isFirst100K, bool deleteOnExit)"
+    cout<<"Usage:accum03(int runNumber,bool isFirst100k, bool deleteOnExit)"
 	<<endl;
     return 0;
   }else if(argc==3){
