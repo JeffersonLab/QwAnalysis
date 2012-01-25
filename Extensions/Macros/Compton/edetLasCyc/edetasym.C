@@ -25,8 +25,8 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 {
   gROOT->Reset();
   gStyle->SetFillColor(0);
-  gStyle->SetOptStat(1);
-  gStyle->SetOptFit(1); //displays the fit parameters on the respective plots
+  gStyle->SetOptStat(0);
+  gStyle->SetOptFit(0); //displays the fit parameters on the respective plots
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleW(0.6);
   gStyle->SetTitleH(0.07);
@@ -36,21 +36,23 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   time_t tStart = time(0), tEnd; 
   Bool_t debug  = 0;
   Bool_t debug1 = 0;
-  Bool_t debug2 = 1;
+  Bool_t debug2 = 0;
   Bool_t debug3 = 0;//print statements with line numb
-  Bool_t  lasOn, beamOn=kFALSE;
-//   Bool_t goodCycle=kFALSE;//tracks if a given lasCyc had no beam trip
+  Bool_t lasOn, beamOn =kFALSE;
   Int_t chainExists = 0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
-  Int_t p1Ac[2][2][nStrips], p2Ac[2][2][nStrips], p3Ac[2][2][nStrips], p4Ac[2][2][nStrips];//index:h,l,strip
+  Int_t AccumB1H0L0[nPlanes][nStrips];
+  Int_t AccumB1H0L1[nPlanes][nStrips];
+  Int_t AccumB1H1L0[nPlanes][nStrips];
+  Int_t AccumB1H1L1[nPlanes][nStrips];
 
   Int_t nMpsB1H1L1, nMpsB1H0L1, nMpsB1H1L0, nMpsB1H0L0;
   Int_t unNormLasCycSum[nPlanes][nStrips];
   Double_t lasPow[3], lasMax, helicity, comptQ[3], Qmax;//, beamMax, bcm
   Double_t pattern_number, event_number;
-  Double_t bP2[nStrips], bP3[nStrips], bP4[nStrips];//bP1[nStrips],
+  Double_t bRawAccum[nPlanes][nStrips];
   Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsymRMS[nPlanes][nStrips] ;
   Double_t stripPlot[nStrips];//..!for plotting may not be required later
   Double_t normL1H1LasCyc[nPlanes][nStrips], normL1H0LasCyc[nPlanes][nStrips];
@@ -60,76 +62,34 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   Double_t tNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips];
   Double_t zero[nStrips];//because TGraphErrors needs error on x-axis too
 
-  //   char hNameP1[120],hNameErP1[120];
-  char hNameP2[120],hNameErP2[120];
-  char hNameP3[120],hNameErP3[120];
-  char hNameP4[120],hNameErP4[120];
+  char hName[nPlanes][120],hNameEr[nPlanes][120];
 
-  //  std::vector<TH1D> hAsymP1S, hAsymErP1S;
-  std::vector<TH1D> hAsymP2S, hAsymErP2S;
-  std::vector<TH1D> hAsymP3S, hAsymErP3S; 
-  std::vector<TH1D> hAsymP4S, hAsymErP4S;
-  // std::vector<std::vector<TH1D> > hAsymPS, hAsymErPS;
+  std::vector<std::vector<TH1D> > hAsymPS, hAsymErPS;
 
- 
   TGraphErrors *grAsymPlane[nPlanes];
-  
-  for (Int_t s=0; s<nStrips; s++) { 
-    //     sprintf(hNameP1,"asymPlane1Str%d",s);
-    //     hAsymP1S.push_back(TH1D(hNameP1,"Plane 1 stripwise asymmetry",25,-0.001,0.001));
-    //     sprintf(hNameP1Er,"asymErPlane1Str%d",s);
-    //     hAsymErP1S.push_back(TH1D(hNameErP1,"Single Strip asym stat.error",25,-0.001,0.001));
 
-    sprintf(hNameP2,"asymPlane2Str%d",s);
-    hAsymP2S.push_back(TH1D(hNameP2,"Plane 2 stripwise asymmetry",25,-0.001,0.001));
-    sprintf(hNameErP2,"asymErPlane2Str%d",s);
-    hAsymErP2S.push_back(TH1D(hNameErP2,"Single Strip asym stat.error",25,-0.001,0.001));
+  for (Int_t p =0; p <nPlanes; p++) {   
+    if (p >= (Int_t) hAsymPS.size()) {
+      hAsymPS.resize(p+1);
+      hAsymErPS.resize(p+1);
+      if(debug) cout<<"hAsymPS.size():"<<hAsymPS.size()<<endl;
+    }
+    for (Int_t s=0; s<nStrips; s++) { 
+      sprintf(hName[p],"asymPlane%d_Str%d",p,s);
+      hAsymPS[p].push_back(TH1D(hName[p],"Plane strip",25,-0.001,0.001));
+      sprintf(hNameEr[p],"asymErPlane%dStr%d",p,s);
+      hAsymErPS[p].push_back(TH1D(hNameEr[p],"Single Strip asym stat.error",25,-0.001,0.001));
 
-    sprintf(hNameP3,"asymPlane3Str%d",s);
-    hAsymP3S.push_back(TH1D(hNameP3,"Plane 3 stripwise asymmetry",25,-0.001,0.001));
-    sprintf(hNameErP3,"asymErPlane3Str%d",s);
-    hAsymErP3S.push_back(TH1D(hNameErP3,"Single Strip asym stat.error",25,-0.001,0.001));
+      hAsymPS[p][s].SetBit(TH1::kCanRebin);
+      hAsymPS[p][s].SetTitle(Form("Plane %d Strip %d Asymmetry",p,s));
+      hAsymPS[p][s].GetXaxis()->SetTitle("Asymmetry");
+      hAsymPS[p][s].GetYaxis()->SetTitle("Counts");
 
-    sprintf(hNameP4,"asymPlane4Str%d",s);
-    hAsymP4S.push_back(TH1D(hNameP4,"Plane 4 stripwise asymmetry",25,-0.001,0.001));
-    sprintf(hNameErP4,"asymErPlane4Str%d",s);
-    hAsymErP4S.push_back(TH1D(hNameErP4,"Single Strip asym stat.error",25,-0.001,0.001));
-
-    //     hAsymP1S[s].SetBit(TH1::kCanRebin);
-    //     hAsymP1S[s].SetTitle(Form("Plane 1 Strip %d Asymmetry",s));
-    //     hAsymP1S[s].GetXaxis()->SetTitle("Asymmetry");
-    //     hAsymP1S[s].GetYaxis()->SetTitle("Counts");
-    //     hAsymErP1S[s].SetBit(TH1::kCanRebin);
-    //     hAsymErP1S[s].SetTitle(Form("Plane 1 Strip %d Asymmetry Error",s));
-    //     hAsymErP1S[s].GetXaxis()->SetTitle("Asym Error");
-    //     hAsymErP1S[s].GetYaxis()->SetTitle("Counts");
-
-    hAsymP2S[s].SetBit(TH1::kCanRebin);
-    hAsymP2S[s].SetTitle(Form("Plane 2 Strip %d Asymmetry",s));
-    hAsymP2S[s].GetXaxis()->SetTitle("Asymmetry");
-    hAsymP2S[s].GetYaxis()->SetTitle("Counts");
-    hAsymErP2S[s].SetBit(TH1::kCanRebin);
-    hAsymErP2S[s].SetTitle(Form("Plane 2 Strip %d Asymmetry Error",s));
-    hAsymErP2S[s].GetXaxis()->SetTitle("Asym Error");
-    hAsymErP2S[s].GetYaxis()->SetTitle("Counts");
-
-    hAsymP3S[s].SetBit(TH1::kCanRebin);
-    hAsymP3S[s].SetTitle(Form("Plane 3 Strip %d Asymmetry",s));
-    hAsymP3S[s].GetXaxis()->SetTitle("Asymmetry");
-    hAsymP3S[s].GetYaxis()->SetTitle("Counts");
-    hAsymErP3S[s].SetBit(TH1::kCanRebin);
-    hAsymErP3S[s].SetTitle(Form("Plane 3 Strip %d Asymmetry Error",s));
-    hAsymErP3S[s].GetXaxis()->SetTitle("Asym Error");
-    hAsymErP3S[s].GetYaxis()->SetTitle("Counts");
-
-    hAsymP4S[s].SetBit(TH1::kCanRebin);
-    hAsymP4S[s].SetTitle(Form("Plane 4 Strip %d Asymmetry",s));
-    hAsymP4S[s].GetXaxis()->SetTitle("Asymmetry");
-    hAsymP4S[s].GetYaxis()->SetTitle("Counts");
-    hAsymErP4S[s].SetBit(TH1::kCanRebin);
-    hAsymErP4S[s].SetTitle(Form("Plane 4 Strip %d Asymmetry Error",s));
-    hAsymErP4S[s].GetXaxis()->SetTitle("Asym Error");
-    hAsymErP4S[s].GetYaxis()->SetTitle("Counts");
+      hAsymErPS[p][s].SetBit(TH1::kCanRebin);
+      hAsymErPS[p][s].SetTitle(Form("Plane %d Strip %d Asymmetry Error",p,s));
+      hAsymErPS[p][s].GetXaxis()->SetTitle("Asym Error");
+      hAsymErPS[p][s].GetYaxis()->SetTitle("Counts");
+    }
   }
 
   TPaveText *pvTxt1 = new  TPaveText(0.75,0.84,0.98,1.0,"NDC");
@@ -143,7 +103,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
     }
     else {
       chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
-      printf("%d files attached to chain for Run # %d\n",chainExists,runnum);
+      printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
 //       cout<<"max compton_charge"<< mpsChain->GetMaximum("compton_chargee")<<endl;
     }
     if(!chainExists){//delete chains and exit if files do not exist
@@ -186,25 +146,24 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   mpsChain->SetBranchAddress("actual_helicity",&helicity);
   mpsChain->SetBranchAddress("sca_laser_PowT",&lasPow);
   mpsChain->SetBranchAddress("compton_charge",&comptQ);
-
-  //   mpsChain->SetBranchAddress("p1RawAc",&bP1);//!the old analyzer doesn't have this branch
-  mpsChain->SetBranchAddress("p2RawAc",&bP2);
-  mpsChain->SetBranchAddress("p3RawAc",&bP3);
-  mpsChain->SetBranchAddress("p4RawAc",&bP4);
   
+//   mpsChain->SetBranchAddress("p1RawAc",&bRawAccum[1]);
+//   mpsChain->SetBranchAddress("p2RawAc",&bRawAccum[2]);
+//   mpsChain->SetBranchAddress("p3RawAc",&bRawAccum[3]);
+//   mpsChain->SetBranchAddress("p4RawAc",&bRawAccum[4]);
+  for(Int_t p = 0; p <nPlanes; p++) {      
+    mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
+  }//the branch for each plane is named from 1 to 4
+
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
     if (debug) cout<<"\nStarting nCycle:"<<nCycle<<" and resetting all nCycle variables"<<endl;
     ////since this is the beginning of a new Laser cycle, and I have already assigned the 
     ////accumulated counts to a permanent variable reset the LasCyc counters
     nMpsB1H1L1= 0, nMpsB1H0L1= 0, nMpsB1H1L0= 0, nMpsB1H0L0= 0;
-    for(Int_t s = 0; s <nStrips; s++) {
-      for(h=0; h<2; h++) {
-	for(Int_t l=0; l<2; l++) {
-	  p1Ac[h][l][s]=0, p2Ac[h][l][s]=0, p3Ac[h][l][s]=0, p4Ac[h][l][s]=0;
-	}
-      }
 
-      for(Int_t p = 0; p <nPlanes; p++) {
+    for(Int_t p = 0; p <nPlanes; p++) {      
+      for(Int_t s = 0; s <nStrips; s++) {
+	AccumB1H0L0[p][s] = 0, AccumB1H0L1[p][s] = 0, AccumB1H1L0[p][s] = 0, AccumB1H1L1[p][s] = 0;
  	unNormLasCycSum[p][s]= 0;
 	normL1H1LasCyc[p][s]= 0.0, normL1H0LasCyc[p][s]= 0.0;
 	normL0H0LasCyc[p][s]= 0.0, normL0H1LasCyc[p][s]= 0.0;
@@ -247,68 +206,84 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
       mpsChain->GetEntry(i);
       lasOn = lasPow[0] > laserFrac *lasMax;//!this part should be directly done in getEBeamLasCuts.C
       h = (Int_t)helicity;
-
       if ((l==1) && lasOn) l=1; //making the laser On requirement more strict
-      if (h ==0 && l==0) nMpsB1H0L0++;
-      if (h ==0 && l==1) nMpsB1H0L1++;
-      if (h ==1 && l==0) nMpsB1H1L0++;
-      if (h ==1 && l==1) nMpsB1H1L1++;
 
-      if ((h ==1 || h ==0) && beamOn) { //to avoid the h=-9999 that appears in beginning of every runlet
-	////currently the counters are only populated for beamOn cycles
-	for(Int_t s =startStrip; s <endStrip; s++) {
-	  // 	  p1Ac[h][l][s] += (Int_t)bP1[s];
-	  p2Ac[h][l][s] += (Int_t)bP2[s];
-	  p3Ac[h][l][s] += (Int_t)bP3[s];
-	  p4Ac[h][l][s] += (Int_t)bP4[s];
+      /**********
+       * currently this method appears a little inefficient because since we not processing beamOff data
+       * why do we even enter this laser-cycle which is not going to do anything;
+       * but later on, we are going to use use the beam off part in someway and this would make sense then
+       **********/
+      if (beamOn) { 	    ////currently the counters are only populated for beamOn cycles
+	// 	if (h ==1 || h ==0) {  ////to avoid the h=-9999 that appears in beginning of every runlet
+	if (h ==0 && l ==0) {
+	  nMpsB1H0L0++;
+	  for(Int_t p = startPlane; p <endPlane; p++) {      	
+	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];
+	    }
+	  }
+	}
+	else if (h ==0 && l==1) {///the elseif statement helps avoid overhead in each entry
+	  nMpsB1H0L1++;
+	  for(Int_t p = startPlane; p <endPlane; p++) {      	
+	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];
+	    }	  
+	  }
+	}
+	else if (h ==1 && l==0) {
+	  nMpsB1H1L0++;
+	  for(Int_t p = startPlane; p <endPlane; p++) {      	
+	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];
+	    }
+	  }
+	}
+	else if (h ==1 && l==1) {
+	  nMpsB1H1L1++;
+	  for(Int_t p = startPlane; p <endPlane; p++) {      	
+	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];
+	    }
+	  }
 	}
       }
     }///for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++)
-
+    
+//     for(Int_t p = startPlane; p <endPlane; p++) {      	
+//       for(Int_t s =startStrip; s <endStrip; s++) {    
+// 	printf("AccumB1H0L0[%d][%d]:%d, AccumB1H0L1[%d][%d]:%d\n",p,s,AccumB1H0L0[p][s],p,s,AccumB1H0L1[p][s]);
+// 	printf("AccumB1H1L0[%d][%d]:%d, AccumB1H1L1[%d][%d]:%d\n",p,s,AccumB1H1L0[p][s],p,s,AccumB1H1L1[p][s]);
+//      }
+//     }
     //after having filled the above vectors based on laser and beam periods, its time to calculate
     if (debug1) printf("\n  *Entering laser Cycle Analysis @ nCycle : %d* \n",nCycle);
     if (beamOn) {
-      cout<<"the nCycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
+      if (debug3) cout<<"the nCycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
       if (nMpsB1H0L1<= 0 || nMpsB1H1L1<= 0 || nMpsB1H0L0<= 0 || nMpsB1H1L0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nMpsB1H0L1:%d,nMpsB1H1L1:%d, nMpsB1H0L0:%d, nMpsB1H1L0:%d**\n",
 	       nCycle,nMpsB1H0L1,nMpsB1H1L1,nMpsB1H0L0,nMpsB1H1L0);
       else {
-	for (Int_t s =startStrip; s <endStrip;s++) {	  
-	  // 	  normL1H1LasCyc[0][s] = (Double_t) p1Ac[1][1][s]/nMpsB1H1L1;
-	  // 	  normL0H1LasCyc[0][s] = (Double_t) p1Ac[1][0][s]/nMpsB1H1L0;
-	  // 	  normL1H0LasCyc[0][s] = ((Double_t) p1Ac[0][1][s]/nMpsB1H0L1 );
-	  // 	  normL0H0LasCyc[0][s] = ((Double_t) p1Ac[0][0][s]/nMpsB1H0L0 );
-	  
-	  normL1H1LasCyc[1][s] = (Double_t)p2Ac[1][1][s]/nMpsB1H1L1;
-	  normL0H1LasCyc[1][s] = (Double_t)p2Ac[1][0][s]/nMpsB1H1L0;
-	  normL1H0LasCyc[1][s] = (Double_t)p2Ac[0][1][s]/nMpsB1H0L1;
-	  normL0H0LasCyc[1][s] = (Double_t)p2Ac[0][0][s]/nMpsB1H0L0;
-      
-	  normL1H1LasCyc[2][s] = (Double_t)p3Ac[1][1][s]/nMpsB1H1L1;
-	  if(debug2)printf(" normL1H1LasCyc:\t%f = lasOnH1:%d / nMpsB1H1L1:%d\n"
-			   ,normL1H1LasCyc[3][s], p3Ac[1][1][s], nMpsB1H1L1 );
-	  normL0H1LasCyc[2][s] = (Double_t)p3Ac[1][0][s]/nMpsB1H1L0;
-	  if(debug2)printf(" normL0H1LasCyc:\t%f = lasOffH1:%d / secH1BkgdLasCyc:%d\n"
-			   ,normL0H1LasCyc[3][s], p3Ac[1][0][s], nMpsB1H1L0 );      
-	  normL1H0LasCyc[2][s] = (Double_t)p3Ac[0][1][s]/nMpsB1H0L1;
-	  if(debug2)printf(" normL1H0LasCyc:\t%f = lasOnH0:%d / secH0LasCyc:%d\n"
-			   ,normL1H0LasCyc[3][s], p3Ac[0][1][s], nMpsB1H0L1 );
-	  normL0H0LasCyc[2][s] = (Double_t)p3Ac[0][0][s]/nMpsB1H0L0;
- 	  if(debug2)printf(" normL0H0LasCyc:\t%f = lasOffH0:%d / secH0BkgdLasCyc:%d\n"
-			   ,normL0H0LasCyc[3][s], p3Ac[0][0][s], nMpsB1H0L0 );
-     
-	  normL1H1LasCyc[3][s] = (Double_t)p4Ac[1][1][s]/nMpsB1H1L1;
-	  normL0H1LasCyc[3][s] = (Double_t)p4Ac[1][0][s]/nMpsB1H1L0;
-	  normL1H0LasCyc[3][s] = (Double_t)p4Ac[0][1][s]/nMpsB1H0L1;
-	  normL0H0LasCyc[3][s] = (Double_t)p4Ac[0][0][s]/nMpsB1H0L0;
-      
-// 	  unNormLasCycSum[0][s] = p1Ac[1][1][s] + p1Ac[0][1][s];
-	  unNormLasCycSum[1][s] = p2Ac[1][1][s] + p2Ac[0][1][s];
-	  unNormLasCycSum[2][s] = p3Ac[1][1][s] + p3Ac[0][1][s];
-	  unNormLasCycSum[3][s] = p4Ac[1][1][s] + p4Ac[0][1][s];
-	}
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s =startStrip; s <endStrip; s++) {	  
+	    normL1H1LasCyc[p][s] = (Double_t)AccumB1H1L1[p][s]/nMpsB1H1L1;
+	    if(debug2)printf(" normL1H1LasCyc:\t%f = lasOnH1:%d / nMpsB1H1L1:%d\n"
+			     ,normL1H1LasCyc[p][s],AccumB1H1L1[p][s] , nMpsB1H1L1 );
+
+	    normL0H1LasCyc[p][s] = (Double_t)AccumB1H1L0[p][s]/nMpsB1H1L0;
+	    if(debug2)printf(" normL1H1LasCyc:\t%f = lasOnH1:%d / nMpsB1H1L1:%d\n"
+			     ,normL0H1LasCyc[p][s],AccumB1H1L0[p][s] , nMpsB1H1L0 );
+
+	    normL1H0LasCyc[p][s] = (Double_t)AccumB1H0L1[p][s]/nMpsB1H0L1;
+	    if(debug2)printf(" normL1H1LasCyc:\t%f = lasOnH1:%d / nMpsB1H1L1:%d\n"
+			     ,normL1H0LasCyc[p][s],AccumB1H0L1[p][s] , nMpsB1H0L1 );
+
+	    normL0H0LasCyc[p][s] = (Double_t)AccumB1H0L0[p][s]/nMpsB1H0L0;
+	    if(debug2)printf(" normL1H1LasCyc:\t%f = lasOnH1:%d / nMpsB1H1L1:%d\n"
+			     ,normL0H0LasCyc[p][s],AccumB1H0L0[p][s] , nMpsB1H0L0 );
+	    
+	    unNormLasCycSum[p][s] = AccumB1H1L1[p][s] + AccumB1H0L1[p][s];
+
 	    BCnormL1H1LasCyc[p][s] = (normL1H1LasCyc[p][s] - normL0H1LasCyc[p][s]);
 	    BCnormL1H0LasCyc[p][s] = (normL1H0LasCyc[p][s] - normL0H0LasCyc[p][s]);
 
@@ -321,68 +296,39 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 
 	    if (unNormLasCycSum[p][s]<=0) {
 	      if(debug) printf("***Warning: unNormLasCycSum[p%d][s%d]:%d\n",p,s,unNormLasCycSum[p][s]);
+	      if(debug) printf("***Warning: tNormLasCycAsym[p%d][s%d]:%f\n",p,s,tNormLasCycAsym[p][s]);
 	    }
 	    else LasCycAsymEr[p][s]  = 1.0/sqrt(unNormLasCycSum[p][s]);
 
-	    if (debug2) {
+	    if (debug3) {
 	      printf("for nCycle:%d, tNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",nCycle,p,s,tNormLasCycAsym[p][s] ,LasCycAsymEr[p][s]);
 	      printf("formed by normalized BC (%f -/+ %f) \n",normL1H1LasCyc[p][s],normL1H0LasCyc[p][s]);
 	    }
+	    hAsymPS[p][s].Fill(tNormLasCycAsym[p][s]);
+	    hAsymErPS[p][s].Fill(LasCycAsymEr[p][s]);	    
 	  }
-	}
-	for (Int_t s =startStrip; s <endStrip; s++) {	  
-	  // 	  hAsymP1S[s].Fill(tNormLasCycAsym[0][s]);
-	  hAsymP2S[s].Fill(tNormLasCycAsym[1][s]);
-	  hAsymP3S[s].Fill(tNormLasCycAsym[2][s]);
-	  hAsymP4S[s].Fill(tNormLasCycAsym[3][s]);	  
-	  // 	  hAsymErP1S[s].Fill(LasCycAsymEr[0[s]);
-	  hAsymErP2S[s].Fill(LasCycAsymEr[1][s]);
-	  hAsymErP3S[s].Fill(LasCycAsymEr[2][s]);
-	  hAsymErP4S[s].Fill(LasCycAsymEr[3][s]);
-	}
+	}//for (Int_t p =startPlane; p <endPlane; p++) {
       }
     }///if (beamOn)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip, hence skipping"<<endl;
   }
   
-  TCanvas *c1 = new TCanvas("c1","edetAsymmetry Plane1",0,0,800,400);
+//   TCanvas *c1 = new TCanvas("c1","edetAsymmetry Plane1",0,0,800,400);
 
-  for (Int_t s =startStrip; s<endStrip; s++) {    
-    //     hAsymP1S[0][s]->Draw("H");//"H","","goff");//WHY IS My goff not working!
-    //     hAsymP1S[0][s]->Fit("gaus");
-    //     stripAsymP1[0][s] = hAsymP1S[s]->GetMean();
-    //     stripAsymRMSP1[0][s] = hAsymP1S[s]->GetRMS();
-    
-    hAsymP2S[s].Draw("H");//"H","","goff");//WHY IS My goff not working!
-    hAsymP2S[s].Fit("gaus");
-    stripAsym[1][s] = hAsymP2S[s].GetMean();
-    stripAsymRMS[1][s] = hAsymP2S[s].GetRMS();
-    
-    hAsymP3S[s].Draw("H");//,"","goff");//WHY IS My goff not working!
-    hAsymP3S[s].Fit("gaus");
-    stripAsym[2][s] = hAsymP3S[s].GetMean();
-    stripAsymRMS[2][s] = hAsymP3S[s].GetRMS();
-    
-    hAsymP4S[s].Draw("H");//"H","","goff");//WHY IS My goff not working!
-    hAsymP4S[s].Fit("gaus");
-    stripAsym[3][s] = hAsymP4S[s].GetMean();
-    stripAsymRMS[3][s] = hAsymP4S[s].GetRMS();
-    
-    //    hAsymErP1S[s].Draw("H");//,"","goff");
-    //    stripAsymEr[0][s] = hAsymErP1S[s].GetMean();
-    
-     hAsymErP2S[s].Draw("H");//,"","goff");
-     stripAsymEr[1][s] = hAsymErP2S[s].GetMean();
-    
-     hAsymErP3S[s].Draw("H");//,"","goff");
-     stripAsymEr[2][s] = hAsymErP3S[s].GetMean();
-    
-     hAsymErP4S[s].Draw("H");//,"","goff");
-     stripAsymEr[3][s] = hAsymErP4S[s].GetMean();
+  for (Int_t p =startPlane; p <endPlane; p++) {	  	  
+    for (Int_t s =startStrip; s <endStrip; s++) {        
+      hAsymPS[p][s].Draw("H");//"H","","goff");//WHY IS My goff not working!
+      hAsymPS[p][s].Fit("gaus");
+      stripAsym[p][s] = hAsymPS[p][s].GetMean();
+      stripAsymRMS[p][s] = hAsymPS[p][s].GetRMS();
+      
+      hAsymErPS[p][s].Draw("H");//,"","goff");
+      stripAsymEr[p][s] = hAsymErPS[p][s].GetMean();
+    }
   }
   if(debug2) {
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
-    for (Int_t s=startStrip; s <endStrip;s++) {    
+    for (Int_t s =startStrip; s <endStrip;s++) {    
       printf("asym[%d][%d]:%f; asymEr[%d][%d]:%f; asymRMS[%d][%d]:%f\n",p,s,stripAsym[p][s],p,s,stripAsymEr[p][s],p,s,stripAsymRMS[p][s]);
     }
   }
@@ -393,7 +339,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   }
   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
   cAsym->Divide(2,2);
-  cAsym->cd(1);
+//   cAsym->cd(1);
   TLine *myline = new TLine(0,0,60,0);
   myline->SetLineStyle(1);
 
