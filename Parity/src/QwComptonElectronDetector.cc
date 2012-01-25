@@ -1141,7 +1141,7 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
 
   ///The 'values' should be filled in exactly the same order in which they were created above
   /// ...below we follow the pattern as in Notice-2
-    for (Int_t i = 1; i < NPlanes; i++) {
+    for (Int_t i = 0; i < NPlanes; i++) {
       for (Int_t j = 0; j < StripsPerPlane; j++)
 	values[index++] = fStripsRawEv[i][j];/// Event Raw
       for (Int_t j = 0; j < StripsPerPlane; j++)
