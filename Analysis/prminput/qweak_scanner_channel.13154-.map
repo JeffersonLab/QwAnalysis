@@ -24,6 +24,7 @@ QDC_Bank=0x0402
 ! V775, 0, 1, scanner_tdc, back__tdc
 !
 slot=1
+!slot=16
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 1, 25, scanner_qadc, front_adc
   V792, 1, 27, scanner_qadc, back__adc
@@ -42,6 +43,7 @@ slot=6
 !
 ! module.num counting from 0
 SCA_Bank=0x0403
+!slot=12
 !
 ! module.type  module.num  chan.num, det.type, det.name
   SIS3801, 1, 24, scanner_sca, front_sca

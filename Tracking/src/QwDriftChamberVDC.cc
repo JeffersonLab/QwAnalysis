@@ -1059,7 +1059,7 @@ void  QwDriftChamberVDC::FillHistograms()
 	}
 
       raw_time = hit->GetRawTime();
-      time     = hit->GetTime();
+      time     = hit->GetTimeNs();
 
       //  Fill ToF histograms
       TOFP_raw[plane_index]->Fill ( raw_time );
@@ -1113,7 +1113,7 @@ void  QwDriftChamberVDC::FillHistograms()
 	}
       //  Fill ToF histograms
 
-      time     = hit1->GetTime();
+      time     = hit1->GetTimeNs();
 
       TOFP[plane_index]->Fill ( time );
       TOFW[plane_index]->Fill ( element,time );

@@ -52,7 +52,7 @@ Int_t
 QwSciFiDetector::LoadChannelMap( TString mapfile )
 {
   
-  Bool_t local_debug = false;
+  Bool_t local_debug = true;
 
   if(local_debug) printf("\n------------- R1 LoadChannelMap %s\n\n", mapfile.Data());
 
@@ -1209,22 +1209,11 @@ void
 QwSciFiDetector::UpdateHits()
 {
  
-  
-  // EQwDetectorPackage package = kPackageNull;
-  // Int_t              plane   = 0;
-
-  // QwDetectorID       local_id;
-  // QwDetectorInfo  *local_info;
+ 
 
   for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
     {
-      // local_id   = iter->GetDetectorID();
-      // package    = local_id.fPackage;
-      // plane      = local_id.fPlane- 1;
-      // // ahha, here is a hidden magic number 1.
-
-      // local_info = fDetectorInfo.in(package).at(plane);
-      // iter->SetDetectorInfo(local_info);
+  
       iter->ApplyTimeCalibration(fF1TDCResolutionNS); // Fill fTimeRes and fTimeNs in QwHit
 
     }

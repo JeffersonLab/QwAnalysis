@@ -295,6 +295,8 @@ class QwF1TDContainer :  public TObject
   Double_t GetF1TDCOneResolution() const {return fF1TDCOneResolutionNS;};
   Double_t DoneF1TDCsConfiguration();
 
+  Double_t ReturnTimeCalibration(Double_t time_arb_unit) {return fF1TDCOneResolutionNS*time_arb_unit;};
+
   //
   // This function will be removed after several tests
   // in order to reduce 'call' per event/hit

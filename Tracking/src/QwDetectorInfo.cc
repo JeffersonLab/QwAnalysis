@@ -158,10 +158,14 @@ double QwDetectorInfo::GetElementCoordinate(const int element) const
  */
 std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det)
 {
-  stream << "det " << det.fDetectorID << ": ";
+  stream << "det "     << det.fDetectorID << ": ";
+  stream << "type "    << det.fType  << ", ";
   stream << "package " << det.fPackage << ", ";
-  stream << "region " << det.fRegion << ", ";
-  stream << "dir " << det.GetElementDirection() << " ";
-  stream << "(z = " << det.GetZPosition()/Qw::cm << " cm)";
+  stream << "region "  << det.fRegion << ", ";
+  stream << "plane "   << det.fPlane << ", ";
+  stream << "octant "  << det.fOctant << ", ";
+  stream << "dir "     << det.GetElementDirection() << " ";
+  stream << "(y = "    << det.fDetectorOriginX/Qw::cm << " cm)";
+  stream << "(z = "    << det.GetZPosition()/Qw::cm << " cm)";
   return stream;
 }

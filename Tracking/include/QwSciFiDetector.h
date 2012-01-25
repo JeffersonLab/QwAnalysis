@@ -7,8 +7,8 @@
 #ifndef __QWSCIFIDETECTOR__
 #define __QWSCIFIDETECTOR__
 
-#include "TH1F.h"
-#include "TH2F.h"
+//#include "TH1F.h"
+//#include "TH2F.h"
 #include "TTree.h"
 
 #include "QwHit.h"
@@ -71,6 +71,7 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  PrintConfigurationBuffer(UInt_t *buffer,UInt_t num_words);
   void  ReportConfiguration(Bool_t verbose);
+  void  ProcessEvent();
 
   void  FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   void  FillHardwareErrorSummary();
@@ -78,17 +79,12 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
 
   void  ClearEventData();
 
-  void  ProcessEvent();
+
 
   void GetHitList(QwHitContainer & grandHitContainer){
     grandHitContainer.Append(fTDCHits);
   };
 
-
-  /* void GetTDCHitList(QwHitContainer & grandHitContainer) */
-  /* { */
-  /*   grandHitContainer.Append(fTDCHits); */
-  /* }; */
 
 
  protected:
@@ -133,7 +129,7 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   void  UpdateHits();             // be executed in ProcessEvent()
 
 
-  std::vector< QwHit > fTDCHits;
+  std::vector< QwHit >              fTDCHits;
   std::vector< std::vector<Int_t> > fModuleIndex;  
   //  Module index, indexed by bank_index and slot_number
   // std::vector< EQwModuleType > fModuleTypes;
@@ -148,8 +144,8 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   // fReferenceData[bank_index][channel_number]
 
   std::vector<QwSIS3801D24_Channel> fSCAs;
-  std::map<TString,size_t> fSCAs_map;
-  std::vector<Int_t> fSCAs_offset;
+  std::map<TString,size_t>          fSCAs_map;
+  std::vector<Int_t>                fSCAs_offset;
 
 
   // Currently, we have only one scaler, if one wants to add more
