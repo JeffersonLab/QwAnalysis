@@ -1793,16 +1793,18 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	 * procedure one more time. Now it is temporarily turned off
 	 */
 
+	bool optimization=true;
 	double temp_residual[12];
 	
 	for(int i=1;i<12;++i)
 	  temp_residual[i]=-10;
 
-	for(int drop=num;drop<num;++drop){
-	  if(drop!=worst_case.first){
-	    continue;
-	  }
-
+	if(optimization){
+	  //for(int drop=0;drop<num;++drop){
+	  //if(drop!=worst_case.first){
+	  //  continue;
+	  //}
+        
 	//renitialize
 	for ( int i = 0; i < 4; ++i )
 	{
@@ -1810,7 +1812,8 @@ int QwTrackingTreeCombine::r2_TrackFit (
 		for ( int j = 0; j < 4; ++j )
 			A[i][j] = 0.0;
 	}
-
+	
+	int drop=worst_case.first;
 	double fit_drop[4]={0.0};
 	for ( int i = 0; i < num; ++i )
 	{
@@ -1842,6 +1845,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	  }
 	}     // end of the for loop for num
 
+	
 	M_Invert ( Ap, cov, 4 );
 
 	// Check that inversion was successful
@@ -1888,7 +1892,8 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	    signedresidual[k]=temp_residual[k];
 	}
 
-      	}   // end of the for loop for drop hits
+      	//}   // end of the for loop for drop hits
+	}
 
 	chi=best_chi;
 	return 0;
