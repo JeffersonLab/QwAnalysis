@@ -281,7 +281,7 @@ void residual(int run_number=6327){
     TH1F* ar_0=new TH1F("ar_0","ar_0",100,0,0.5);
     TH1F* ar_1=new TH1F("ar_1","ar_1",100,0,0.5);
     
-    event_tree->Project("dt","fQwHits.fTime","fQwHits.fRegion==3");
+    event_tree->Project("dt","fQwHits.fTimeNs","fQwHits.fRegion==3");
     
     event_tree->Project("dd","fQwHits.fDistance","fQwHits.fRegion==3");
     

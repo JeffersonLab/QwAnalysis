@@ -29,8 +29,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
  public:
   QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){ 
-
-    //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
+     //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
     for (Int_t i=0;i<kHelModes;i++){
       fFBRunningAsymmetry[i].Copy(&event);
       fHelModeGoodPatternCounter[i]=0;
@@ -38,6 +37,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fEnableBurstSum=kFALSE;
     fGoodPatternCounter=0;
+    fHAGoodPatternCounter=0;
+    fPFGoodPatternCounter=0;
     fPatternCounter=0;
 
 
@@ -60,6 +61,19 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPrevPITASetpointNEG=0;
     fPITA_MIN_Charge_asym=1;//default value is 1ppm
 
+    //initialize setpoints to zero
+    //HA IA
+    for(Int_t i=0;i<4;i++){
+      fPrevHAIASetpoint[i]=0;
+      fHAIASetpoint[i]=0;
+    }
+    //PITA
+    fPrevPITASetpointPOS=0;
+    fPrevPITASetpointNEG=0;
+    fPITASetpointPOS=0;
+    fPITASetpointNEG=0;
+	
+
     fTargetCharge.InitializeChannel("q_targ","derived");
     fRunningCharge.InitializeChannel("q_targ","derived");
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
@@ -73,21 +87,25 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fScalerChargeRunningSum.InitializeChannel("sca_bcm");
     fScalerCharge.InitializeChannel("sca_bcm");
 
+    fTargetParameter.InitializeChannel("x_targ","derived");
+    fTargetXDiffRunningSum.InitializeChannel("x_targ","derived");//to access the published Target X diff
+    fTargetXPDiffRunningSum.InitializeChannel("xp_targ","derived");//to access the published Target XP diff
+    fTargetYDiffRunningSum.InitializeChannel("y_targ","derived");//to access the published Target Y diff
+    fTargetYPDiffRunningSum.InitializeChannel("yp_targ","derived");//to access the published Target YP diff
 
+  
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-
-    IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "r");//Open in read mode
-
     out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
     //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
+    
     fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_IA,"Pat num. \t  A_q[mode]\t  IA Setpoint \t  IA Previous Setpoint \n");
     fclose(out_file_IA);
     //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
+ 
     out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
     out_file_HA_IA = fopen("/local/scratch/qweak/Feedback_HA_IA_log.txt", "a"); 
-
     fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_PITA,
 	    "%10s %22s +- %16s %16s %26s %26s %26s %26s\n",
@@ -102,6 +120,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 	    "Pat num.", "Charge Asym(ppm)", "Asym Error", "Correction",
 	    "New IA Setpoint", "Old IA Setpoint");
     fclose(out_file_HA_IA);
+
+    
   
   };
     
@@ -118,8 +138,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     void ClearRunningSum();
     void AccumulateRunningSum();
     void CalculateRunningAverage();
-    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values) const;
+    void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+    void FillTreeVector(std::vector<Double_t> &values) const;
 
     /// \brief Define the configuration options
     static void DefineOptions(QwOptions &options);
@@ -133,7 +153,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     void GetTargetChargeStat();
     /// \brief retrieves the target charge asymmetry,asymmetry error ,asymmetry width for given mode
     void GetTargetChargeStat(Int_t mode);
-
+    /// \brief retrieves the target  position angle parameters (X,XP,Y,YP) mean, error and width
+    void GetTargetPositionStat();
     /// \brief retrieves the Hall A charge asymmetry,asymmetry error ,asymmetry width for given mode
     void GetHAChargeStat(Int_t mode);
 
@@ -160,6 +181,11 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     /// \brief Log the last PITA feedback information
     void LogParameters();
 
+    /// \brief Log the Pos/angle information
+    void LogPFParameters();
+
+
+
     /// \brief Log the last Hall A IA feedback information
     void LogHAParameters(Int_t mode);
 
@@ -169,10 +195,19 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     /// \brief Update last feedback setting into scan variables in the GreenMonster
     void UpdateGMScanParameters();
 
-    /// \brief Compare current A_q precision with a set precision.
-    Bool_t IsAqPrecisionGood();
-    /// \brief Compare current A_q precision with a set precision for given mode.
-    Bool_t IsAqPrecisionGood(Int_t mode);
+    /// \brief Initiates the PITA feedback if the charge asymmetry passed the quality cut
+    Bool_t ApplyPITAFeedback();
+    /// \brief Initiates the Hall A IA feedback if the Hall A charge asymmetry passed the quality cut
+    Bool_t ApplyHAIAFeedback();
+
+    /// \brief Initiates the IA feedback if the Hall C charge asymmetry have passed the quality cut
+    Bool_t ApplyIAFeedback(Int_t mode);
+
+    /// \brief Initiates the Helicity magnet feedback if the position differences and/or angle differences have passed the quality cut
+    Bool_t ApplyHMFeedback();
+
+
+
     /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value 
     Bool_t IsPatternsAccumulated(){
       if (fGoodPatternCounter>=fAccumulatePatternMax)
@@ -180,6 +215,23 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
       return kFALSE;
     };
+    /// \brief Check to see no.of good patterns accumulated after the last position/angle feedback correction
+    Bool_t IsPFPatternsAccumulated(){
+      if (fPFGoodPatternCounter>=fPFAccumulatePatternMax)
+	return kTRUE;
+
+      return kFALSE;
+    };
+
+    /// \brief Check to see no.of good patterns accumulated after the last position/angle feedback correction
+    Bool_t IsHAPatternsAccumulated(){
+      if (fHAGoodPatternCounter>=fHAAccumulatePatternMax)
+	return kTRUE;
+
+      return kFALSE;
+    };
+
+
     /// \brief Check neccessary conditions and apply IA setponts based on the charge asym for all four modes
     void ApplyFeedbackCorrections();
     /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value for given mode
@@ -218,6 +270,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
  
     
     TString GetHalfWavePlateState();
+    UInt_t GetHalfWavePlate2State();
     void    CheckFeedbackStatus();
 
     static const Int_t kHelPat1=1001;//to compare with current or previous helpat
@@ -234,6 +287,24 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fChargeAsymmetryError;//current charge asym precision
     Double_t fChargeAsymmetryWidth;//current charge asym width
 
+    //position/angle parameters
+    Double_t fTargetXDiff;
+    Double_t fTargetXDiffError;
+    Double_t fTargetXDiffWidth;
+
+    Double_t fTargetXPDiff;
+    Double_t fTargetXPDiffError;
+    Double_t fTargetXPDiffWidth;
+
+    Double_t fTargetYDiff;
+    Double_t fTargetYDiffError;
+    Double_t fTargetYDiffWidth;
+
+    Double_t fTargetYPDiff;
+    Double_t fTargetYPDiffError;
+    Double_t fTargetYPDiffWidth;
+
+
     Double_t fChargeAsym[kHelModes];//current charge asym
     Double_t fChargeAsymError[kHelModes];//current charge asym precision
     Double_t fChargeAsymWidth[kHelModes];//current charge asym width
@@ -242,8 +313,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fHAChargeAsymError[kHelModes];//Hall A current charge asym precision
     Double_t fHAChargeAsymWidth[kHelModes];//Hall A current charge asym width
 
-    Int_t fAccumulatePatternMax; //upper limit to the patterns before the feedback triiger;
-    Int_t fHAAccumulatePatternMax; //upper limit to the patterns before the HA IA feedback triiger;
+    Int_t fAccumulatePatternMax; //Hall C PITA Correction interval in units of patterns 
+    Int_t fHAAccumulatePatternMax; //Hall A IA Correction interval in units of patterns 
+    Int_t fPFAccumulatePatternMax; //HC Position/Angle difference  Correction interval in units of patterns 
     Double_t  fChargeAsymPrecision; //Charge asymmetry precision in ppm
 
 
@@ -303,8 +375,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     GreenMonster   fScanCtrl;
 
     //Pattern counter
-    Int_t fGoodPatternCounter;//increment the quartet number - reset after each feedback operation
+    Int_t fGoodPatternCounter;//increment the quartet number - reset after each PITA feedback operation
+    Int_t fHAGoodPatternCounter;//increment the quartet number - reset after each Hall A IA feedback operation
+    Int_t fPFGoodPatternCounter;//increment the quartet number - reset after each position/angle feedback operation
+
     Int_t fPatternCounter;//increment the quartet number - reset after each feedback operation
+
     
     Int_t fHelModeGoodPatternCounter[kHelModes];//count patterns for each mode seperately - reset after each feedback operation
 
@@ -325,6 +401,14 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     QwSIS3801D24_Channel   fScalerCharge;//for Hall A feedback
     QwSIS3801D24_Channel   fScalerChargeRunningSum;//for Hall A feedback
 
+    QwBeamCharge   fTargetParameter;//to access the published postions/angles
+    
+    QwBeamCharge   fTargetXDiffRunningSum;//to access the published Target X diff
+    QwBeamCharge   fTargetXPDiffRunningSum;//to access the published Target XP diff
+    QwBeamCharge   fTargetYDiffRunningSum;//to access the published Target Y diff
+    QwBeamCharge   fTargetYPDiffRunningSum;//to access the published Target YP diff
+
+
 
     //log file
     FILE *out_file_PITA;
@@ -344,6 +428,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Bool_t fAutoIHWP;
 
     TString fHalfWavePlateStatus;
+    UInt_t fDefaultHalfWavePlateStatus;
+    UInt_t fPreviousHalfWavePlateStatus;
 
     Bool_t fPITAFB;
     Bool_t fHAIAFB;

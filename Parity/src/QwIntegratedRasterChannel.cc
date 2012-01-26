@@ -411,7 +411,7 @@ void  QwIntegratedRasterChannel<T>::FillTreeVector(std::vector<Double_t> &values
 
 /********************************************************/
 template<typename T>
-void  QwIntegratedRasterChannel<T>::Copy(VQwDataElement *source)
+void  QwIntegratedRasterChannel<T>::Copy(const VQwDataElement *source)
 {
   try
     {
@@ -446,6 +446,15 @@ std::vector<QwDBInterface> QwIntegratedRasterChannel<T>::GetDBEntry()
 {
   std::vector <QwDBInterface> row_list;
   fTriumf_ADC.AddEntriesToList(row_list);
+  return row_list;
+}
+
+
+template<typename T>
+std::vector<QwErrDBInterface> QwIntegratedRasterChannel<T>::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  fTriumf_ADC.AddErrEntriesToList(row_list);
   return row_list;
 }
 

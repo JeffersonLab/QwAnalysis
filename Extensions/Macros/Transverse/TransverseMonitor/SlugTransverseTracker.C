@@ -66,6 +66,8 @@ TSQLServer *db;
 Int_t slug_first = 0;
 Int_t slug_last = 0;
 Int_t end_slug = 0;
+
+
 TVectorD x_i;
 TVectorD xerr_i;
 TVectorD x_o;
@@ -78,6 +80,15 @@ TVectorD p1_i;
 TVectorD p1_ie;
 TVectorD p1_o;
 TVectorD p1_oe;
+TVectorD p1s;
+TVectorD p1s_e;
+TVectorD p0s;
+TVectorD p0s_e;
+TVectorD x1s;
+TVectorD x1s_e;
+TVectorD x0s;
+TVectorD x0s_e;
+
 Double_t fit_value0;
 Double_t fit_error0;
 Double_t fit_value1;
@@ -89,6 +100,13 @@ Double_t set_p1;
 Double_t get_p2;
 Double_t set_p2;
 Double_t dummy=0;
+
+Int_t ki =0;
+Int_t ko =0;
+Int_t k0s =0;
+Int_t k1s =0;
+
+
 
 /*Flag to turn on drawing of individual slug fit plots*/
 Bool_t draw_slugs = false;
@@ -111,9 +129,13 @@ void fit_octants_data(TString devicelist[],Int_t slug, TString ihwp,
  void draw_plots(TVectorD value_in, TVectorD value_out,
 		 TVectorD error_in, TVectorD error_out, 
 		 TVectorD valuex_in, TVectorD errorx_in, 
-		 TVectorD valuex_out, TVectorD errorx_out, 
-		 Int_t ko, Int_t ki, TString type);
+		 TVectorD valuex_out, TVectorD errorx_out,
+		 TVectorD value_suspect, TVectorD error_suspect,  
+		 TVectorD x_suspect, TVectorD x_error_suspect,  
+		 Int_t ko, Int_t ki,  Int_t ks, TString type);
 
+
+ void draw_plots(TString type);
 
 /*main function*/
 int main(Int_t argc,Char_t* argv[])
@@ -185,8 +207,9 @@ int main(Int_t argc,Char_t* argv[])
   
   /*connect to the data base*/
   //db = TSQLServer::Connect("mysql://localhost.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-  // db = TSQLServer::Connect("mysql://127.0.0.1/qw_run1_pass3","qweak", "QweakQweak");
-  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  db = TSQLServer::Connect("mysql://127.0.0.1/qw_run2_pass1","qweak", "QweakQweak");
+  //db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  // db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
 
 
   if(db)
@@ -236,8 +259,24 @@ int main(Int_t argc,Char_t* argv[])
   p1_o.Clear();
   p1_oe.ResizeTo(0);
 
-  Int_t ki =0;
-  Int_t ko =0;
+  p1s.Clear();
+  p1s.ResizeTo(0);
+  p1s_e.Clear();
+  p1s_e.ResizeTo(0);
+  p0s.Clear();
+  p0s.ResizeTo(0);
+  p0s_e.Clear();
+  p0s_e.ResizeTo(0);
+  x1s.Clear();
+  x1s.ResizeTo(0);
+  x1s_e.Clear();
+  x1s_e.ResizeTo(0);
+  x0s.Clear();
+  x0s.ResizeTo(0);
+  x0s_e.Clear();
+  x0s_e.ResizeTo(0);
+
+
 
 
   /*Get data from database for the given slug range, fit and extract the fit parameters*/
@@ -245,43 +284,89 @@ int main(Int_t argc,Char_t* argv[])
   Myfile <<"# ihwp\t\t  slug \t\t"<<setw(8)<<" P_V+-error \t\t P_H+-p1error  \t chisqure min "<<std::endl;
  
   for(Int_t i=slug_first;i<slug_last+1;i++){
+
+    /*Fit data for IHWP  IN state*/
     fit_octants_data(quartz_bar_sum,i,"in",set_p0, &get_p0,set_p1, &get_p1,set_p2, &get_p2,
 		     &fit_value0,&fit_error0,&fit_value1,&fit_error1);
     
     if(fit_value0 == 0 && fit_error0 == 0 && fit_value1 == 0 && fit_error1 == 0) {
       /*do nothing. The slug number is not in the selected list*/
-    } else {
-      x_i.ResizeTo(ki+1);    x_i.operator()(ki)=i;
-      xerr_i.ResizeTo(ki+1); xerr_i.operator()(ki)=0.0;
-      p0_i.ResizeTo(ki+1);   p0_i.operator()(ki)=fit_value0*100;
-      p0_ie.ResizeTo(ki+1);  p0_ie.operator()(ki)=fit_error0*100;
-      p1_i.ResizeTo(ki+1);   p1_i.operator()(ki)=fit_value1*100;
-      p1_ie.ResizeTo(ki+1);  p1_ie.operator()(ki)=fit_error1*100;
-
-      ki++;
+    } 
+    else if(fit_error0 <=0.08 && fit_error1 <=0.08) // to see a 5% transverse polarization with a 95% CL we need to have an error of at least 0.05/3 = 0.016 from the fit.
+      {
+	x_i.ResizeTo(ki+1);    x_i.operator()(ki)=i;
+	xerr_i.ResizeTo(ki+1); xerr_i.operator()(ki)=0.0;
+	p0_i.ResizeTo(ki+1);   p0_i.operator()(ki)=fit_value0*100;
+	p0_ie.ResizeTo(ki+1);  p0_ie.operator()(ki)=fit_error0*100;
+	p1_i.ResizeTo(ki+1);   p1_i.operator()(ki)=fit_value1*100;
+	p1_ie.ResizeTo(ki+1);  p1_ie.operator()(ki)=fit_error1*100;
+	ki++;
+      }
+    else{
+      if (fit_error0 > 0.08)
+	{
+	  x0s.ResizeTo(k0s+1);   x0s.operator()(k0s)=i;
+	  x0s_e.ResizeTo(k0s+1);  x0s_e.operator()(k0s)=0.0;
+	  p0s.ResizeTo(k0s+1);   p0s.operator()(k0s)=fit_value0*100;
+	  p0s_e.ResizeTo(k0s+1);  p0s_e.operator()(k0s)=fit_error0*100;
+	  k0s++;
+	}
+      if(fit_error1 > 0.08)
+	{
+	  x1s.ResizeTo(k1s+1);   x1s.operator()(k1s)=i;
+	  x1s_e.ResizeTo(k1s+1);  x1s_e.operator()(k1s)=0.0;
+	      p1s.ResizeTo(k1s+1);   p1s.operator()(k1s)=fit_value1*100;
+	      p1s_e.ResizeTo(k1s+1);  p1s_e.operator()(k1s)=fit_error1*100;
+	      k1s++;		
+	}
     }
+    
+
+    
     fit_value0 = 0.0;
     fit_error0 = 0.0;
     fit_value1 = 0.0;
     fit_error1 = 0.0;
-
+    
     fit_octants_data(quartz_bar_sum,i,"out",get_p0,&dummy,get_p1,&dummy,get_p2,&dummy,
 		     &fit_value0,&fit_error0,&fit_value1,&fit_error1);
 
     if(fit_value0 == 0 && fit_error0 == 0 && fit_value1 == 0 && fit_error1 == 0) {
       /*do nothing. The slug number is not in the selected list*/
-    } else {
-      x_o.ResizeTo(ko+1);    x_o.operator()(ko)=i;
-      xerr_o.ResizeTo(ko+1); xerr_o.operator()(ko)=0.0;
-      p0_o.ResizeTo(ko+1);   p0_o.operator()(ko)=fit_value0*100;
-      p0_oe.ResizeTo(ko+1);  p0_oe.operator()(ko)=fit_error0*100;
-      p1_o.ResizeTo(ko+1);   p1_o.operator()(ko)=fit_value1*100;
-      p1_oe.ResizeTo(ko+1);  p1_oe.operator()(ko)=fit_error1*100;
-      ko++;
+    } 
+    else if(fit_error0 <=0.08 or fit_error1 <=0.08)
+      {
+	x_o.ResizeTo(ko+1);    x_o.operator()(ko)=i;
+	xerr_o.ResizeTo(ko+1); xerr_o.operator()(ko)=0.0;
+	p0_o.ResizeTo(ko+1);   p0_o.operator()(ko)=fit_value0*100;
+	p0_oe.ResizeTo(ko+1);  p0_oe.operator()(ko)=fit_error0*100;
+	p1_o.ResizeTo(ko+1);   p1_o.operator()(ko)=fit_value1*100;
+	p1_oe.ResizeTo(ko+1);  p1_oe.operator()(ko)=fit_error1*100;
+	ko++;
+      }
+    else {
+      if (fit_error0 > 0.08)
+	{
+	  x0s.ResizeTo(k0s+1);   x0s.operator()(k0s)=i;
+	  x0s_e.ResizeTo(k0s+1);  x0s_e.operator()(k0s)=0.0;
+	  p0s.ResizeTo(k0s+1);   p0s.operator()(k0s)=fit_value0*100;
+	  p0s_e.ResizeTo(k0s+1);  p0s_e.operator()(k0s)=fit_error0*100;
+	  k0s++;
+	}
+      if(fit_error1 > 0.08)
+	{
+	  x1s.ResizeTo(k1s+1);   x1s.operator()(k1s)=i;
+	  x1s_e.ResizeTo(k1s+1);  x1s_e.operator()(k1s)=0.0;
+	  p1s.ResizeTo(k1s+1);   p1s.operator()(k1s)=fit_value1*100;
+	  p1s_e.ResizeTo(k1s+1);  p1s_e.operator()(k1s)=fit_error1*100;
+	  k1s++;		
+	}
     }
+    
+    
   }
  
-  if(ko==0 && ki==0) {std::cout<<"No data!"<<std::endl;
+  if(ko==0 && ki==0 && k1s==0 && k0s == 0) {std::cout<<"No data!"<<std::endl;
     TString text2 = "Unable to find regressed values for the given slug range.";
     TText*t2 = new TText(0.06,0.5,text2);
     t2->SetTextSize(0.05);
@@ -314,11 +399,11 @@ int main(Int_t argc,Char_t* argv[])
     pad2->Divide(1,2);
 
     pad2->cd(1);
-    draw_plots(p0_i, p0_o,p0_ie, p0_oe, x_i, xerr_i,x_o, xerr_o,ko,ki,"Y");
+    draw_plots(p0_i, p0_o, p0_ie, p0_oe, x_i, xerr_i,x_o, xerr_o,p0s, p0s_e, x0s, x0s_e,ko,ki,k0s,"Y");
 
     pad2->cd(2);
-    draw_plots(p1_i, p1_o,p1_ie, p1_oe, x_i, xerr_i,x_o, xerr_o,ko,ki,"X");
- 
+    draw_plots(p1_i, p1_o,p1_ie, p1_oe, x_i, xerr_i,x_o, xerr_o,p1s, p1s_e,x1s, x1s_e,ko,ki,k1s,"X");
+
     Canvas->Modified();
     Canvas->Update();
     Canvas->Print(Form("transverse_in_slugs_%i_%i.png",slug_first,slug_last));
@@ -337,7 +422,7 @@ int main(Int_t argc,Char_t* argv[])
 /*A function to create the mysql query to grab the runlet average of a md detector*/
 TString data_query(TString device,Int_t slug,TString ihwp){
 
-  Bool_t ldebug = false;
+  Bool_t ldebug = true;
 
   if(ldebug) std::cout<<"Getting regressed data for "<<device<<std::endl;
   TString datatable = "md_data_view";
@@ -345,11 +430,11 @@ TString data_query(TString device,Int_t slug,TString ihwp){
   TString output = " sum( distinct("+datatable+".value/(POWER("
     +datatable+".error,2))))/sum( distinct(1/(POWER("
     +datatable+".error,2)))), SQRT(1/SUM(distinct(1/(POWER("
-    +datatable+".error,2)))))";
-  
+    +datatable+".error,2))))),"
+    +datatable+".error* SQRT("+datatable+".n) ";
  
-  TString slug_cut   = Form("%s.slug = %i",
-			   datatable.Data(),slug);
+  TString slug_cut   = Form("(%s.slug = %i ) ",
+			    datatable.Data(),slug);
 
   TString run_quality =  Form("(%s.run_quality_id = '1') ",
 			   datatable.Data());
@@ -367,6 +452,7 @@ TString data_query(TString device,Int_t slug,TString ihwp){
     +datatable+".measurement_type = 'a' AND target_position = 'HYDROGEN-CELL' AND "
     +slug_cut+" AND "+regression+" AND "+run_quality+" AND "
     +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "
+    +datatable+".error* SQRT("+datatable+".n) < 0.000700 AND "
     +datatable+".error != 0; ";
 
   if(ldebug) std::cout<<query<<std::endl;
@@ -525,10 +611,12 @@ void fit_octants_data(TString devicelist[],Int_t slug, TString ihwp,
  void draw_plots(TVectorD value_in, TVectorD value_out,
 		 TVectorD error_in, TVectorD error_out, 
 		 TVectorD valuex_in, TVectorD errorx_in, 
-		 TVectorD valuex_out, TVectorD errorx_out, 
-		 Int_t ko, Int_t ki, TString type){
+		 TVectorD valuex_out, TVectorD errorx_out,
+		 TVectorD value_suspect, TVectorD error_suspect,  
+		 TVectorD x_suspect, TVectorD x_error_suspect,  
+		 Int_t ko, Int_t ki,  Int_t ks, TString type){
 
-
+     
 
    TString title;
    TString ytitle;
@@ -542,24 +630,26 @@ void fit_octants_data(TString devicelist[],Int_t slug, TString ihwp,
      ytitle = "P_{V} (%)";
    }
 
-
+   
    TMultiGraph * grp = new TMultiGraph();
    TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
    TGraphErrors* grp_out = NULL;
    TGraphErrors* grp_in = NULL;
+   TGraphErrors* grp_suspect = NULL;
+
    TPaveStats *stats1;
    TPaveStats *stats2;
    
 
    if(ko!=0){
-      grp_out  = new TGraphErrors(valuex_out,value_out,errorx_out,error_out);
-      grp_out ->SetMarkerSize(0.8);
-      grp_out ->SetMarkerStyle(21);
-      grp_out ->SetMarkerColor(kRed);
-      grp_out ->SetLineColor(kRed);
-      grp_out ->Fit("pol0");
-      TF1* fit1 = grp_out->GetFunction("pol0");
-      fit1->SetParNames(title);
+     grp_out  = new TGraphErrors(valuex_out,value_out,errorx_out,error_out);
+     grp_out ->SetMarkerSize(0.8);
+     grp_out ->SetMarkerStyle(21);
+     grp_out ->SetMarkerColor(kRed);
+     grp_out ->SetLineColor(kRed);
+     grp_out ->Fit("pol0");
+     TF1* fit1 = grp_out->GetFunction("pol0");
+     fit1->SetParNames(title);
       if(fit1==NULL) {
 	std::cout<<"Fit is empty for OUT data"<<std::endl;
 	exit(1);
@@ -592,13 +682,27 @@ void fit_octants_data(TString devicelist[],Int_t slug, TString ihwp,
       legend->AddEntry(grp_in, "IHWP-IN", "p");
     }
 
-    if(ko!=0 or ki!=0) {
+    if(ks!=0){
+      grp_suspect  = new TGraphErrors(x_suspect,value_suspect,x_error_suspect,error_suspect);
+      grp_suspect ->SetMarkerSize(0.8);
+      grp_suspect ->SetMarkerStyle(21);
+      grp_suspect ->SetMarkerColor(kGreen-1);
+      grp_suspect ->SetLineColor(kGreen-1);
+      grp->Add(grp_suspect);
+      legend->AddEntry(grp_suspect, "Low Stats", "p");
+
+    }
+
+
+
+   if(ko!=0 or ki!=0) {
 
       grp->Draw("AP");
       grp->GetXaxis()->SetTitle("slug number");
       grp->GetYaxis()->SetTitle(ytitle);
       grp->GetYaxis()->CenterTitle();
       grp->GetXaxis()->CenterTitle();
+      grp->GetXaxis()->SetNdivisions(511);
       legend->SetFillColor(0);
       legend->Draw();
      }

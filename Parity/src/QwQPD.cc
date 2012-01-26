@@ -137,6 +137,21 @@ Int_t QwQPD::GetEventcutErrorCounters()
   return 1;
 }
 
+UInt_t QwQPD::GetEventcutErrorFlag()
+{
+  Short_t i=0;
+  UInt_t error=0;
+  for(i=0;i<4;i++) 
+    error|=fPhotodiode[i].GetEventcutErrorFlag();
+
+  for(i=kXAxis;i<kNumAxes;i++) {
+    error|=fRelPos[i].GetEventcutErrorFlag();
+    error|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
+  return error;
+}
 
 Bool_t QwQPD::ApplySingleEventCuts()
 {
@@ -157,12 +172,15 @@ Bool_t QwQPD::ApplySingleEventCuts()
   }
 
   for(i=0;i<2;i++){
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fRelPos[i].ApplySingleEventCuts();
     fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
 
+    fAbsPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fAbsPos[i].ApplySingleEventCuts();
     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);// To update the eff-charge error code from the channels/wires event cut error codes
   status &= fEffectiveCharge.ApplySingleEventCuts();
   fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
   
@@ -201,7 +219,7 @@ VQwHardwareChannel* QwQPD::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
-
+/*
 void QwQPD::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
 
@@ -277,6 +295,54 @@ void QwQPD::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, 
   }
 
 }
+
+*/
+
+void QwQPD::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+
+  for(i=0;i<4;i++) fPhotodiode[i].UpdateEventcutErrorFlag(error);
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateEventcutErrorFlag(error);
+    fAbsPos[i].UpdateEventcutErrorFlag(error);
+  }
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+  
+};
+
+void QwQPD::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwQPD::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwQPD* value_bpm = dynamic_cast<QwQPD* >(ev_error);
+	for(i=0;i<4;i++){
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fPhotodiode[i]));
+	  fPhotodiode[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
+	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
+	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwQPD::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+  
+};
+
 
 
 void  QwQPD::ProcessEvent()
@@ -405,7 +471,7 @@ TString QwQPD::GetSubElementName(Int_t subindex)
 UInt_t QwQPD::GetSubElementIndex(TString subname)
 {
   subname.ToUpper();
-  UInt_t localindex=999999;
+  UInt_t localindex=kInvalidSubelementIndex;
   for(Short_t i=0;i<4;i++) if(subname==subelement[i])localindex=i;
 
   if(localindex>3)
@@ -503,24 +569,35 @@ void QwQPD::Scale(Double_t factor)
   return;
 }
 
-void QwQPD::Copy(QwQPD *source)
+void QwQPD::Copy(const VQwDataElement *source)
 {
-  Short_t i = 0;
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwQPD* input = dynamic_cast<const QwQPD*>(source);
+      for (size_t i = 0; i < 4; i++)
+        fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
+      for (size_t i = kXAxis; i < kNumAxes; i++) {
+        fRelPos[i].Copy(&(input->fRelPos[i]));
+        fAbsPos[i].Copy(&(input->fAbsPos[i]));
+      }
+      fEffectiveCharge.Copy(&(input->fEffectiveCharge));
 
-  VQwBPM::Copy(source);
-  for(i=0;i<4;i++) fPhotodiode[i].Copy(&(source->fPhotodiode[i]));
-  for(i=kXAxis;i<kNumAxes;i++){
-    fRelPos[i].Copy(&(source->fRelPos[i]));
-    fAbsPos[i].Copy(&(source->fAbsPos[i]));
+    } else {
+      TString loc="Standard exception from QwQPD::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
   }
-  fEffectiveCharge.Copy(&(source->fEffectiveCharge));
-
-  return;
 }
 
 void QwQPD::CalculateRunningAverage()
 {
   Short_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].CalculateRunningAverage();
   for (i = 0; i < 2; i++){
     fRelPos[i].CalculateRunningAverage();
     fAbsPos[i].CalculateRunningAverage();
@@ -529,18 +606,45 @@ void QwQPD::CalculateRunningAverage()
   return;
 }
 
+void QwQPD::AccumulateRunningSum(const VQwBPM& value)
+{
+  AccumulateRunningSum(*dynamic_cast<const QwQPD* >(&value));
+}
+
 void QwQPD::AccumulateRunningSum(const QwQPD& value)
 {
-  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   Short_t i = 0;
-
-  for (i = 0; i < 2; i++){
+  for(i=0;i<4;i++) fPhotodiode[i].AccumulateRunningSum(value.fPhotodiode[i]);
+  for (i = 0; i < 2; i++){    
     fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
     fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   }
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   return;
+
+
 }
+
+void QwQPD::DeaccumulateRunningSum(VQwBPM& value)
+{
+  DeaccumulateRunningSum(*dynamic_cast<QwQPD* >(&value));
+}
+
+void QwQPD::DeaccumulateRunningSum(QwQPD& value)
+{
+
+  Short_t i = 0;
+  for(i=0;i<4;i++) fPhotodiode[i].DeaccumulateRunningSum(value.fPhotodiode[i]);
+  for (i = 0; i < 2; i++){    
+    fRelPos[i].DeaccumulateRunningSum(value.fRelPos[i]);
+    fAbsPos[i].DeaccumulateRunningSum(value.fAbsPos[i]);
+  }
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
+  return;
+
+
+}
+
 
 
 void  QwQPD::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -741,68 +845,24 @@ std::vector<QwDBInterface> QwQPD::GetDBEntry()
   fEffectiveCharge.AddEntriesToList(row_list);
   return row_list;
 
-  //   UShort_t i = 0;
-  //   UShort_t n_qpd_element = 0;
-  
-  //   std::vector <QwDBInterface> row_list;
-  //   row_list.clear();
-  
-  //   QwDBInterface row;
-  
-  //   TString name;
-  //   Double_t avg         = 0.0;
-  //   Double_t err         = 0.0;
-  //   UInt_t beam_subblock = 0;
-  //   UInt_t beam_n        = 0;
-  
-  //   for(n_qpd_element=0; n_qpd_element<fQPDElementList.size(); n_qpd_element++) {
-  
-  //     row.Reset();
-  //     // the element name and the n (number of measurements in average)
-  //     // is the same in each block and hardwaresum.
-  
-  //     name          = fQPDElementList.at(n_qpd_element).GetElementName();
-  //     beam_n        = fQPDElementList.at(n_qpd_element).GetGoodEventCount();
-  
-  //     // Get HardwareSum average and its error
-  //     avg           = fQPDElementList.at(n_qpd_element).GetHardwareSum();
-  //     err           = fQPDElementList.at(n_qpd_element).GetHardwareSumError();
-  //     // ADC subblock sum : 0 in MySQL database
-  //     beam_subblock = 0;
-  
-  //     row.SetDetectorName(name);
-  //     row.SetSubblock(beam_subblock);
-  //     row.SetN(beam_n);
-  //     row.SetValue(avg);
-  //     row.SetError(err);
-  
-  //     row_list.push_back(row);
-  
-  //     // Get four Block averages and thier errors
-  
-  //     for(i=0; i<4; i++) {
-  //       row.Reset();
-  //       avg           = fQPDElementList.at(n_qpd_element).GetBlockValue(i);
-  //       err           = fQPDElementList.at(n_qpd_element).GetBlockErrorValue(i);
-  //       beam_subblock = (UInt_t) (i+1);
-  //       // QwVQWK_Channel  | MySQL
-  //       // fBlock[0]       | subblock 1
-  //       // fBlock[1]       | subblock 2
-  //       // fBlock[2]       | subblock 3
-  //       // fBlock[3]       | subblock 4
-  //       row.SetDetectorName(name);
-  //       row.SetSubblock(beam_subblock);
-  //       row.SetN(beam_n);
-  //       row.SetValue(avg);
-  //       row.SetError(err);
-  
-  //       row_list.push_back(row);
-  //     }
-  //   }
-
-  return row_list;
 
 }
+
+
+std::vector<QwErrDBInterface> QwQPD::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+  for(size_t i=kXAxis;i<kNumAxes;i++) {
+    fAbsPos[i].AddErrEntriesToList(row_list);
+  }
+  fEffectiveCharge.AddErrEntriesToList(row_list);
+  return row_list;
+
+
+}
+
+
 
 /**********************************
  * Mock data generation routines

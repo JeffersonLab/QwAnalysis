@@ -38,13 +38,17 @@ class QwModChannelID;
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwBeamMod: public VQwSubsystemParity, public MQwCloneable<QwBeamMod> {
+class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamMod> {
+
+ private:
+  ///
+  QwBeamMod();
 
  public:
-
-  QwBeamMod(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+  /// Constructor with name
+  QwBeamMod(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name)
     {
-
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       fgModTypeNames.push_back(""); // Need to define these wrt to our detector types.
       fgModTypeNames.push_back("");
@@ -53,13 +57,20 @@ class QwBeamMod: public VQwSubsystemParity, public MQwCloneable<QwBeamMod> {
       for(size_t i=0;i<fgModTypeNames.size();i++)
         fgModTypeNames[i].ToLower();
     };
-
+  /// Copy constructor
+  QwBeamMod(const QwBeamMod& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
   virtual ~QwBeamMod() { };
 
  std::vector<TString> fgModTypeNames;
   /* derived from VQwSubsystem */
   void ProcessOptions(QwOptions &options);//Handle command line options
   void AccumulateRunningSum(VQwSubsystem*);
+  //remove one entry from the running sums for devices
+  void DeaccumulateRunningSum(VQwSubsystem* value){
+  };
 
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
@@ -70,6 +81,12 @@ class QwBeamMod: public VQwSubsystemParity, public MQwCloneable<QwBeamMod> {
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
+  //update the same error flag in the classes belong to the subsystem.
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+  }
+  //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  };
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -113,10 +130,12 @@ class QwBeamMod: public VQwSubsystemParity, public MQwCloneable<QwBeamMod> {
   void ConstructBranch(TTree *tree, TString& prefix) { };
   void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
   void FillTreeVector(std::vector<Double_t> &values) const;
-  void FillDB(QwParityDB *db, TString datatype);
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void FillDB(QwParityDB *db, TString datatype);
+  void FillErrDB(QwParityDB *db, TString datatype);
+  void WritePromptSummary(QwPromptSummary *ps, TString type);
+
+  void Copy(const VQwSubsystem *source);
 
   Bool_t Compare(VQwSubsystem *source);
 

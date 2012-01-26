@@ -237,16 +237,16 @@ QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
 }
 
 // Add an existing QwTreeLine
-void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
+void QwPartialTrack::AddTreeLine(const QwTrackingTreeLine* treeline)
 {
   fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
   ++fNQwTreeLines;
 }
 
 // Add a linked list of QwTreeLine's
-void QwPartialTrack::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+void QwPartialTrack::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
 {
-  for (QwTrackingTreeLine *treeline = treelinelist;
+  for (const QwTrackingTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next){
     if (treeline->IsValid()){
        AddTreeLine(treeline);
@@ -325,6 +325,9 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
   stream << "x,y(z=0) = (" << pt.fOffsetX/Qw::cm << " cm, " << pt.fOffsetY/Qw::cm << " cm), ";
   stream << "d(x,y)/dz = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
 
+  double x=pt.fOffsetX/Qw::cm-663*pt.fSlopeX;
+  double y=pt.fOffsetY/Qw::cm-663*pt.fSlopeY;
+  stream << " downstream target: " << x << ", " << y; 
   if (pt.fChi > 0.0) { // parttrack has been fitted
     stream << ", chi = " << pt.fChi;
   }
@@ -499,4 +502,37 @@ const QwVertex* QwPartialTrack::DeterminePositionInHDC (const QwGeometry& geomet
     if (vertex) return vertex;
   }
   return 0;
+}
+
+/**
+ * This method rotate track geometry information to the right postion
+ * according to the octant number. Remember the initial position is at 
+ * octant 3.
+ */
+
+void QwPartialTrack::RotateCoordinates(){
+  //pick two points
+  double z1=0,z2=-250;
+  double x1=0,y1=0,x2=0,y2=0;
+  double x3=0,y3=0,x4=0,y4=0;
+  double PI=3.1415926;
+  x1=fOffsetX+fSlopeX*z1;
+  y1=fOffsetY+fSlopeY*z1;
+  x2=fOffsetX+fSlopeX*z2;
+  y2=fOffsetY+fSlopeY*z2;
+  int oct=GetOctantNumber();
+  double rotate=oct==8? 135: (3-oct)*45;
+  double Cos=cos(rotate*PI/180);
+  double Sin=sin(rotate*PI/180);
+  x3=Cos*x1+Sin*y1;
+  y3=-Sin*x1+Cos*y1;
+  x4=Cos*x2+Sin*y2;
+  y4=-Sin*x2+Cos*y2;
+
+  fOffsetX=x3;
+  fOffsetY=y3;
+
+  fSlopeX=(x4-x3)/(z2-z1);
+  fSlopeY=(y4-y3)/(z2-z1);
+
 }

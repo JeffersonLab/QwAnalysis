@@ -26,13 +26,23 @@
 // Qweak headers
 #include "VQwSubsystemParity.h"
 
-class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<QwComptonElectronDetector> {
+class QwComptonElectronDetector:
+  public VQwSubsystemParity,
+  public MQwSubsystemCloneable<QwComptonElectronDetector> {
+
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwComptonElectronDetector();
 
   public:
 
-    /// \brief Constructor
-    QwComptonElectronDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
-    /// \brief Destructor
+    /// Constructor with name
+    QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name) { };
+    /// Copy constructor
+    QwComptonElectronDetector(const QwComptonElectronDetector& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwComptonElectronDetector() { };
 
 
@@ -65,9 +75,18 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
     UInt_t GetEventcutErrorFlag() { return 0; };
+    //update the same error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
+    //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+    };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void AccumulateRunningSum(VQwSubsystem* value);
+    //remove one entry from the running sums for devices
+    void DeaccumulateRunningSum(VQwSubsystem* value){
+    };
     void CalculateRunningAverage();
 
     using VQwSubsystem::ConstructHistograms;
@@ -90,8 +109,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     void SetNumberOfEvents(UInt_t nevents) {
      fNumberOfEvents = nevents;
     };
-    void Copy(VQwSubsystem *source);
-    VQwSubsystem*  Copy();
+    void Copy(const VQwSubsystem *source);
     Bool_t Compare(VQwSubsystem *source);
     void PrintValue() const;
 

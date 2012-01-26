@@ -120,6 +120,19 @@ Int_t QwLinearDiodeArray::GetEventcutErrorCounters()
   return 1;
 }
 
+UInt_t QwLinearDiodeArray::GetEventcutErrorFlag()
+{
+  size_t i=0;
+  UInt_t error=0;
+  for(i=0;i<8;i++) error|=fPhotodiode[i].GetEventcutErrorFlag();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    error|=fRelPos[i].GetEventcutErrorFlag();
+  }
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
+
+  return error;
+}
+
 
 Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 {
@@ -141,7 +154,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the event cut failed error code from the channels/wires error codes
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -155,6 +168,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);//To update the eff-charge error code from the channels/wires event cut error codes
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -194,6 +208,7 @@ VQwHardwareChannel* QwLinearDiodeArray::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
+/*
 void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
   QwWarning << "QwLinearDiodeArray::SetSingleEventCuts:  "
@@ -216,7 +231,48 @@ void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Do
     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
   }
 }
+*/
 
+void QwLinearDiodeArray::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+
+  for(i=0;i<8;i++) fPhotodiode[i].UpdateEventcutErrorFlag(error);
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateEventcutErrorFlag(error);
+  }
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+  
+};
+
+void QwLinearDiodeArray::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwQPD::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwLinearDiodeArray* value_bpm = dynamic_cast<QwLinearDiodeArray* >(ev_error);
+	for(i=0;i<4;i++){
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fPhotodiode[i]));
+	  fPhotodiode[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
+	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwLinearDiodeArray::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 void  QwLinearDiodeArray::ProcessEvent()
 {
@@ -319,7 +375,7 @@ void QwLinearDiodeArray::PrintInfo() const
 TString QwLinearDiodeArray::GetSubElementName(Int_t subindex)
 {
   TString thisname;
-  size_t localindex=999999;
+  size_t localindex=kInvalidSubelementIndex;
   if (subindex>-1) localindex = subindex;
 
   if(localindex<8)
@@ -334,7 +390,7 @@ TString QwLinearDiodeArray::GetSubElementName(Int_t subindex)
 
 UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
 {
-  size_t localindex=999999;
+  size_t localindex=kInvalidSubelementIndex;
   TString padindex;
 
   padindex = subname(subname.Sizeof()-2,1);
@@ -345,10 +401,10 @@ UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
   }
 
   // localindex is unsigned int and always positive
-  if (/* localindex >= 0 && */ localindex > kMaxElements){
+  if (localindex > kMaxElements){
     std::cerr << "QwLinearDiodeArray::GetSubElementIndex is unable to associate the string -"
 	      <<subname<<"- to any index"<<std::endl;
-    localindex=999999;
+    localindex=kInvalidSubelementIndex;
   }
   return localindex;
 }
@@ -455,17 +511,38 @@ void QwLinearDiodeArray::Scale(Double_t factor)
 void QwLinearDiodeArray::CalculateRunningAverage()
 {
   size_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].CalculateRunningAverage();
   for (i = 0; i < 2; i++) fRelPos[i].CalculateRunningAverage();
+  fEffectiveCharge.CalculateRunningAverage();
   return;
+}
+
+void QwLinearDiodeArray::AccumulateRunningSum(const VQwBPM& value){
+  AccumulateRunningSum(*dynamic_cast<const QwLinearDiodeArray* >(&value));
 }
 
 void QwLinearDiodeArray::AccumulateRunningSum(const QwLinearDiodeArray& value)
 {
-  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   size_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].AccumulateRunningSum(value.fPhotodiode[i]);
   for (i = 0; i < 2; i++) fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
+  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   return;
 }
+
+void QwLinearDiodeArray::DeaccumulateRunningSum(VQwBPM& value){
+  DeaccumulateRunningSum(*dynamic_cast<QwLinearDiodeArray* >(&value));
+}
+
+void QwLinearDiodeArray::DeaccumulateRunningSum(QwLinearDiodeArray& value)
+{
+  size_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].DeaccumulateRunningSum(value.fPhotodiode[i]);
+  for (i = 0; i < 2; i++) fRelPos[i].DeaccumulateRunningSum(value.fRelPos[i]);
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
+  return;
+}
+
 
 
 void  QwLinearDiodeArray::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -615,35 +692,27 @@ void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void QwLinearDiodeArray::Copy(QwLinearDiodeArray *source)
+void QwLinearDiodeArray::Copy(const VQwDataElement *source)
 {
-  try
-    {
-      if( typeid(*source)==typeid(*this) ) {
-       QwLinearDiodeArray* input = ((QwLinearDiodeArray*)source);
-       this->fElementName = input->fElementName;
-       this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-       this->bFullSave = input->bFullSave;
-       size_t i = 0;
-       for(i = 0; i<8; i++) this->fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
-       for(i = 0; i<2; i++){
-	 this->fRelPos[i].Copy(&(input->fRelPos[i]));
-       }
-     }
-      else {
-       TString loc="Standard exception from QwLinearDiodeArray::Copy = "
-	 +source->GetElementName()+" "
-	 +this->GetElementName()+" are not of the same type";
-       throw std::invalid_argument(loc.Data());
-     }
-    }
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwLinearDiodeArray* input = dynamic_cast<const QwLinearDiodeArray*>(source);
+      this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+      for(size_t i = 0; i<8; i++)
+        this->fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
+      for(size_t i = 0; i<2; i++)
+        this->fRelPos[i].Copy(&(input->fRelPos[i]));
 
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
+    } else {
+      TString loc="Standard exception from QwLinearDiodeArray::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-
-  return;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 void QwLinearDiodeArray::SetEventCutMode(Int_t bcuts)
@@ -689,63 +758,24 @@ std::vector<QwDBInterface> QwLinearDiodeArray::GetDBEntry()
   fEffectiveCharge.AddEntriesToList(row_list);
   return row_list;
 
-  //   size_t i = 0;
-  //   UShort_t n_qpd_element = 0;
-  //   std::vector <QwDBInterface> row_list;
-  //   row_list.clear();
-  //   QwDBInterface row;
-  //   TString name;
-  //   Double_t avg         = 0.0;
-  //   Double_t err         = 0.0;
-  //   UInt_t beam_subblock = 0;
-  //   UInt_t beam_n        = 0;
-  //   for(n_qpd_element=0; n_qpd_element<fLinearArrayElementList.size(); n_qpd_element++) {
-  //     row.Reset();
-  //     // the element name and the n (number of measurements in average)
-  //     // is the same in each block and hardwaresum.
-  
-  //     name          = fLinearArrayElementList.at(n_qpd_element).GetElementName();
-  //     beam_n        = fLinearArrayElementList.at(n_qpd_element).GetGoodEventCount();
-  
-  //     // Get HardwareSum average and its error
-  //     avg           = fLinearArrayElementList.at(n_qpd_element).GetHardwareSum();
-  //     err           = fLinearArrayElementList.at(n_qpd_element).GetHardwareSumError();
-  //     // ADC subblock sum : 0 in MySQL database
-  //     beam_subblock = 0;
-  
-  //     row.SetDetectorName(name);
-  //     row.SetSubblock(beam_subblock);
-  //     row.SetN(beam_n);
-  //     row.SetValue(avg);
-  //     row.SetError(err);
-
-  //     row_list.push_back(row);
-  
-  //     // Get four Block averages and thier errors
-  
-  //     for(i=0; i<4; i++) {
-  //       row.Reset();
-  //       avg           = fLinearArrayElementList.at(n_qpd_element).GetBlockValue(i);
-  //       err           = fLinearArrayElementList.at(n_qpd_element).GetBlockErrorValue(i);
-  //       beam_subblock = (UInt_t) (i+1);
-  //       // QwVQWK_Channel  | MySQL
-  //       // fBlock[0]       | subblock 1
-  //       // fBlock[1]       | subblock 2
-  //       // fBlock[2]       | subblock 3
-  //       // fBlock[3]       | subblock 4
-  //       row.SetDetectorName(name);
-  //       row.SetSubblock(beam_subblock);
-  //       row.SetN(beam_n);
-  //       row.SetValue(avg);
-  //       row.SetError(err);
-  
-  //       row_list.push_back(row);
-  //     }
-  //   }
-
-  return row_list;
 
 }
+
+
+std::vector<QwErrDBInterface> QwLinearDiodeArray::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+  for(size_t i=0;i<2;i++) {
+    fRelPos[i].AddErrEntriesToList(row_list);
+  }
+  fEffectiveCharge.AddErrEntriesToList(row_list);
+  return row_list;
+
+
+}
+
+
 
 /**********************************
  * Mock data generation routines

@@ -1,0 +1,1166 @@
+[Injector]
+  <QwBCM>
+	hw_sum
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+  <QwBPMStripline>
+	hw_sum
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+[HallCBeamLine]
+  <QwBCM>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+
+  <QwBPMStripline>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+  <QwBPMCavity>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+  <QwCombinedBPM>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+  <QwCombinedBCM>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+  <QwEnergyCalculator>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+[Main Detector]
+   <QwIntegrationPMT>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+   <QwCombinedPMT>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+[Lumi Detector]
+  <QwIntegrationPMT>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+   <QwCombinedPMT>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+[BeamMod]
+   <QwBeamMod>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+[Focal Plane Scanner]
+   <QwScanner>
+        BackADC
+        BackSCA
+        BackTDC
+        FrontADC
+        FrontSCA
+        FrontTDC
+        CoincidanceSCA
+        PositionX_QDC
+        PositionX_VQWK
+        PositionY_QDC
+        PositionY_VQWK
+        PowSupply_VQWK
+        
+
+[Helicity info]
+    <QwHelicity>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+[IntegratedRaster]
+     <QwIntegratedRaster>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+# Tree trim file of run  14430
+##################################################################################
+## Mps_Tree
+##################################################################################
+# No. of branches  367
+
+CodaEventNumber
+CodaEventType
+Coda_CleanData
+Coda_ScanData1
+Coda_ScanData2
+sca_31mhz
+sca_4mhz
+sca_20mhz
+qwk_bpm3h04_EffectiveCharge
+qwk_bpm3h04XP
+qwk_bpm3h04XM
+qwk_bpm3h04YP
+qwk_bpm3h04YM
+qwk_bpm3h04RelX
+qwk_bpm3h04X
+qwk_bpm3h04RelY
+qwk_bpm3h04Y
+qwk_bpm3h07a_EffectiveCharge
+qwk_bpm3h07aXP
+qwk_bpm3h07aXM
+qwk_bpm3h07aYP
+qwk_bpm3h07aYM
+qwk_bpm3h07aRelX
+qwk_bpm3h07aX
+qwk_bpm3h07aRelY
+qwk_bpm3h07aY
+qwk_bpm3h07b_EffectiveCharge
+qwk_bpm3h07bXP
+qwk_bpm3h07bXM
+qwk_bpm3h07bYP
+qwk_bpm3h07bYM
+qwk_bpm3h07bRelX
+qwk_bpm3h07bX
+qwk_bpm3h07bRelY
+qwk_bpm3h07bY
+qwk_bpm3h07c_EffectiveCharge
+qwk_bpm3h07cXP
+qwk_bpm3h07cXM
+qwk_bpm3h07cYP
+qwk_bpm3h07cYM
+qwk_bpm3h07cRelX
+qwk_bpm3h07cX
+qwk_bpm3h07cRelY
+qwk_bpm3h07cY
+qwk_bpm3h08_EffectiveCharge
+qwk_bpm3h08XP
+qwk_bpm3h08XM
+qwk_bpm3h08YP
+qwk_bpm3h08YM
+qwk_bpm3h08RelX
+qwk_bpm3h08X
+qwk_bpm3h08RelY
+qwk_bpm3h08Y
+qwk_bpm3h09_EffectiveCharge
+qwk_bpm3h09XP
+qwk_bpm3h09XM
+qwk_bpm3h09YP
+qwk_bpm3h09YM
+qwk_bpm3h09RelX
+qwk_bpm3h09X
+qwk_bpm3h09RelY
+qwk_bpm3h09Y
+qwk_bpm3h09b_EffectiveCharge
+qwk_bpm3h09bXP
+qwk_bpm3h09bXM
+qwk_bpm3h09bYP
+qwk_bpm3h09bYM
+qwk_bpm3h09bRelX
+qwk_bpm3h09bX
+qwk_bpm3h09bRelY
+qwk_bpm3h09bY
+qwk_bpm3c07_EffectiveCharge
+qwk_bpm3c07XP
+qwk_bpm3c07XM
+qwk_bpm3c07YP
+qwk_bpm3c07YM
+qwk_bpm3c07RelX
+qwk_bpm3c07X
+qwk_bpm3c07RelY
+qwk_bpm3c07Y
+qwk_bpm3c08_EffectiveCharge
+qwk_bpm3c08XP
+qwk_bpm3c08XM
+qwk_bpm3c08YP
+qwk_bpm3c08YM
+qwk_bpm3c08RelX
+qwk_bpm3c08X
+qwk_bpm3c08RelY
+qwk_bpm3c08Y
+qwk_bpm3c11_EffectiveCharge
+qwk_bpm3c11XP
+qwk_bpm3c11XM
+qwk_bpm3c11YP
+qwk_bpm3c11YM
+qwk_bpm3c11RelX
+qwk_bpm3c11X
+qwk_bpm3c11RelY
+qwk_bpm3c11Y
+qwk_bpm3c12_EffectiveCharge
+qwk_bpm3c12XP
+qwk_bpm3c12XM
+qwk_bpm3c12YP
+qwk_bpm3c12YM
+qwk_bpm3c12RelX
+qwk_bpm3c12X
+qwk_bpm3c12RelY
+qwk_bpm3c12Y
+qwk_bpm3c14_EffectiveCharge
+qwk_bpm3c14XP
+qwk_bpm3c14XM
+qwk_bpm3c14YP
+qwk_bpm3c14YM
+qwk_bpm3c14RelX
+qwk_bpm3c14X
+qwk_bpm3c14RelY
+qwk_bpm3c14Y
+qwk_bpm3c16_EffectiveCharge
+qwk_bpm3c16XP
+qwk_bpm3c16XM
+qwk_bpm3c16YP
+qwk_bpm3c16YM
+qwk_bpm3c16RelX
+qwk_bpm3c16X
+qwk_bpm3c16RelY
+qwk_bpm3c16Y
+qwk_bpm3c17_EffectiveCharge
+qwk_bpm3c17XP
+qwk_bpm3c17XM
+qwk_bpm3c17YP
+qwk_bpm3c17YM
+qwk_bpm3c17RelX
+qwk_bpm3c17X
+qwk_bpm3c17RelY
+qwk_bpm3c17Y
+qwk_bpm3c18_EffectiveCharge
+qwk_bpm3c18XP
+qwk_bpm3c18XM
+qwk_bpm3c18YP
+qwk_bpm3c18YM
+qwk_bpm3c18RelX
+qwk_bpm3c18X
+qwk_bpm3c18RelY
+qwk_bpm3c18Y
+qwk_bpm3c19_EffectiveCharge
+qwk_bpm3c19XP
+qwk_bpm3c19XM
+qwk_bpm3c19YP
+qwk_bpm3c19YM
+qwk_bpm3c19RelX
+qwk_bpm3c19X
+qwk_bpm3c19RelY
+qwk_bpm3c19Y
+qwk_bpm3c07a_EffectiveCharge
+qwk_bpm3c07aXP
+qwk_bpm3c07aXM
+qwk_bpm3c07aYP
+qwk_bpm3c07aYM
+qwk_bpm3c07aRelX
+qwk_bpm3c07aX
+qwk_bpm3c07aRelY
+qwk_bpm3c07aY
+qwk_bpm3p02a_EffectiveCharge
+qwk_bpm3p02aXP
+qwk_bpm3p02aXM
+qwk_bpm3p02aYP
+qwk_bpm3p02aYM
+qwk_bpm3p02aRelX
+qwk_bpm3p02aX
+qwk_bpm3p02aRelY
+qwk_bpm3p02aY
+qwk_bpm3p02b_EffectiveCharge
+qwk_bpm3p02bXP
+qwk_bpm3p02bXM
+qwk_bpm3p02bYP
+qwk_bpm3p02bYM
+qwk_bpm3p02bRelX
+qwk_bpm3p02bX
+qwk_bpm3p02bRelY
+qwk_bpm3p02bY
+qwk_bpm3p03a_EffectiveCharge
+qwk_bpm3p03aXP
+qwk_bpm3p03aXM
+qwk_bpm3p03aYP
+qwk_bpm3p03aYM
+qwk_bpm3p03aRelX
+qwk_bpm3p03aX
+qwk_bpm3p03aRelY
+qwk_bpm3p03aY
+qwk_bpm3c20_EffectiveCharge
+qwk_bpm3c20XP
+qwk_bpm3c20XM
+qwk_bpm3c20YP
+qwk_bpm3c20YM
+qwk_bpm3c20RelX
+qwk_bpm3c20X
+qwk_bpm3c20RelY
+qwk_bpm3c20Y
+qwk_bpm3c21_EffectiveCharge
+qwk_bpm3c21XP
+qwk_bpm3c21XM
+qwk_bpm3c21YP
+qwk_bpm3c21YM
+qwk_bpm3c21RelX
+qwk_bpm3c21X
+qwk_bpm3c21RelY
+qwk_bpm3c21Y
+qwk_bpm3h02_EffectiveCharge
+qwk_bpm3h02XP
+qwk_bpm3h02XM
+qwk_bpm3h02YP
+qwk_bpm3h02YM
+qwk_bpm3h02RelX
+qwk_bpm3h02X
+qwk_bpm3h02RelY
+qwk_bpm3h02Y
+qwk_bcmgl
+qwk_bcm5
+qwk_bcm6
+qwk_bcm7
+qwk_bcm8
+qwk_6v_battery
+qwk_bcm2
+qwk_bcm1
+qwk_linephase
+qwk_invert_tstable
+sca_bcm1
+sca_bcm2
+sca_bcm17
+sca_unser
+sca_habcm
+sca_halo3
+sca_halo4
+sca_halo5
+sca_halo6
+sca_halo7
+sca_halo8
+sca_halo9
+sca_halo10
+qwk_charge
+qwk_target_EffectiveCharge
+qwk_targetXSlope
+qwk_targetXIntercept
+qwk_targetX
+qwk_targetYSlope
+qwk_targetYIntercept
+qwk_targetY
+qwk_energy
+qwk_md1neg
+qwk_md2neg
+qwk_md3neg
+qwk_md4neg
+qwk_md5neg
+qwk_md6neg
+qwk_md7neg
+qwk_md8neg
+qwk_md1pos
+qwk_md2pos
+qwk_md3pos
+qwk_md4pos
+qwk_md5pos
+qwk_md6pos
+qwk_md7pos
+qwk_md8pos
+qwk_pmtled
+qwk_pmtonl
+qwk_pmtltg
+qwk_md9neg
+qwk_md9pos
+qwk_isourc
+qwk_preamp
+qwk_cagesr
+qwk_md1barsum
+qwk_md2barsum
+qwk_md3barsum
+qwk_md4barsum
+qwk_md5barsum
+qwk_md6barsum
+qwk_md7barsum
+qwk_md8barsum
+qwk_md1_qwk_md5
+qwk_md2_qwk_md6
+qwk_md3_qwk_md7
+qwk_md4_qwk_md8
+qwk_mdoddbars
+qwk_mdevenbars
+qwk_mdallbars
+qwk_md9barsum
+qwk_uslumi1neg
+qwk_uslumi1pos
+qwk_uslumi3neg
+qwk_uslumi3pos
+qwk_uslumi5neg
+qwk_uslumi5pos
+qwk_uslumi7neg
+qwk_uslumi7pos
+qwk_dslumi1
+qwk_dslumi2
+qwk_dslumi3
+qwk_dslumi4
+qwk_dslumi5
+qwk_dslumi6
+qwk_dslumi7
+qwk_dslumi8
+uslumi1_sum
+uslumi3_sum
+uslumi5_sum
+uslumi7_sum
+uslumi1_uslumi5_sum
+uslumi3_uslumi7_sum
+uslumi1_uslumi5_diff
+uslumi3_uslumi7_diff
+uslumi_sum
+dslumi1_dslumi5_sum
+dslumi2_dslumi6_sum
+dslumi3_dslumi7_sum
+dslumi4_dslumi8_sum
+dslumi1_dslumi5_diff
+dslumi2_dslumi6_diff
+dslumi3_dslumi7_diff
+dslumi4_dslumi8_diff
+dslumi_odd
+dslumi_even
+dslumi_sum
+sca_dslumi1
+sca_dslumi2
+sca_dslumi3
+sca_dslumi4
+sca_dslumi5
+sca_dslumi6
+sca_dslumi7
+sca_dslumi8
+sca_uslumi1neg
+sca_uslumi1pos
+sca_uslumi3neg
+sca_uslumi3pos
+sca_uslumi5neg
+sca_uslumi5pos
+sca_uslumi7neg
+sca_uslumi7pos
+actual_helicity
+delayed_helicity
+reported_helicity
+pattern_phase
+pattern_number
+pattern_seed
+event_number
+input_register
+output_register
+mps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+scanner
+fgx1
+fgy1
+fgx2
+fgy2
+fge
+ramp
+bm_init
+bm_pattern_number
+qwk_raster_x
+qwk_raster_y
+qwk_raster_sumxy
+ErrorFlag
+
+##################################################################################
+## Mps_Tree
+##################################################################################
+# No. of branches  525
+
+CodaEventNumber
+CodaEventType
+Coda_CleanData
+Coda_ScanData1
+Coda_ScanData2
+yield_sca_31mhz
+yield_sca_4mhz
+yield_sca_20mhz
+yield_qwk_bpm3h04_EffectiveCharge
+yield_qwk_bpm3h04RelX
+yield_qwk_bpm3h04X
+yield_qwk_bpm3h04RelY
+yield_qwk_bpm3h04Y
+yield_qwk_bpm3h07a_EffectiveCharge
+yield_qwk_bpm3h07aRelX
+yield_qwk_bpm3h07aX
+yield_qwk_bpm3h07aRelY
+yield_qwk_bpm3h07aY
+yield_qwk_bpm3h07b_EffectiveCharge
+yield_qwk_bpm3h07bRelX
+yield_qwk_bpm3h07bX
+yield_qwk_bpm3h07bRelY
+yield_qwk_bpm3h07bY
+yield_qwk_bpm3h07c_EffectiveCharge
+yield_qwk_bpm3h07cRelX
+yield_qwk_bpm3h07cX
+yield_qwk_bpm3h07cRelY
+yield_qwk_bpm3h07cY
+yield_qwk_bpm3h08_EffectiveCharge
+yield_qwk_bpm3h08RelX
+yield_qwk_bpm3h08X
+yield_qwk_bpm3h08RelY
+yield_qwk_bpm3h08Y
+yield_qwk_bpm3h09_EffectiveCharge
+yield_qwk_bpm3h09RelX
+yield_qwk_bpm3h09X
+yield_qwk_bpm3h09RelY
+yield_qwk_bpm3h09Y
+yield_qwk_bpm3h09b_EffectiveCharge
+yield_qwk_bpm3h09bRelX
+yield_qwk_bpm3h09bX
+yield_qwk_bpm3h09bRelY
+yield_qwk_bpm3h09bY
+yield_qwk_bpm3c07_EffectiveCharge
+yield_qwk_bpm3c07RelX
+yield_qwk_bpm3c07X
+yield_qwk_bpm3c07RelY
+yield_qwk_bpm3c07Y
+yield_qwk_bpm3c08_EffectiveCharge
+yield_qwk_bpm3c08RelX
+yield_qwk_bpm3c08X
+yield_qwk_bpm3c08RelY
+yield_qwk_bpm3c08Y
+yield_qwk_bpm3c11_EffectiveCharge
+yield_qwk_bpm3c11RelX
+yield_qwk_bpm3c11X
+yield_qwk_bpm3c11RelY
+yield_qwk_bpm3c11Y
+yield_qwk_bpm3c12_EffectiveCharge
+yield_qwk_bpm3c12RelX
+yield_qwk_bpm3c12X
+yield_qwk_bpm3c12RelY
+yield_qwk_bpm3c12Y
+yield_qwk_bpm3c14_EffectiveCharge
+yield_qwk_bpm3c14RelX
+yield_qwk_bpm3c14X
+yield_qwk_bpm3c14RelY
+yield_qwk_bpm3c14Y
+yield_qwk_bpm3c16_EffectiveCharge
+yield_qwk_bpm3c16RelX
+yield_qwk_bpm3c16X
+yield_qwk_bpm3c16RelY
+yield_qwk_bpm3c16Y
+yield_qwk_bpm3c17_EffectiveCharge
+yield_qwk_bpm3c17RelX
+yield_qwk_bpm3c17X
+yield_qwk_bpm3c17RelY
+yield_qwk_bpm3c17Y
+yield_qwk_bpm3c18_EffectiveCharge
+yield_qwk_bpm3c18RelX
+yield_qwk_bpm3c18X
+yield_qwk_bpm3c18RelY
+yield_qwk_bpm3c18Y
+yield_qwk_bpm3c19_EffectiveCharge
+yield_qwk_bpm3c19RelX
+yield_qwk_bpm3c19X
+yield_qwk_bpm3c19RelY
+yield_qwk_bpm3c19Y
+yield_qwk_bpm3c07a_EffectiveCharge
+yield_qwk_bpm3c07aRelX
+yield_qwk_bpm3c07aX
+yield_qwk_bpm3c07aRelY
+yield_qwk_bpm3c07aY
+yield_qwk_bpm3p02a_EffectiveCharge
+yield_qwk_bpm3p02aRelX
+yield_qwk_bpm3p02aX
+yield_qwk_bpm3p02aRelY
+yield_qwk_bpm3p02aY
+yield_qwk_bpm3p02b_EffectiveCharge
+yield_qwk_bpm3p02bRelX
+yield_qwk_bpm3p02bX
+yield_qwk_bpm3p02bRelY
+yield_qwk_bpm3p02bY
+yield_qwk_bpm3p03a_EffectiveCharge
+yield_qwk_bpm3p03aRelX
+yield_qwk_bpm3p03aX
+yield_qwk_bpm3p03aRelY
+yield_qwk_bpm3p03aY
+yield_qwk_bpm3c20_EffectiveCharge
+yield_qwk_bpm3c20RelX
+yield_qwk_bpm3c20X
+yield_qwk_bpm3c20RelY
+yield_qwk_bpm3c20Y
+yield_qwk_bpm3c21_EffectiveCharge
+yield_qwk_bpm3c21RelX
+yield_qwk_bpm3c21X
+yield_qwk_bpm3c21RelY
+yield_qwk_bpm3c21Y
+yield_qwk_bpm3h02_EffectiveCharge
+yield_qwk_bpm3h02RelX
+yield_qwk_bpm3h02X
+yield_qwk_bpm3h02RelY
+yield_qwk_bpm3h02Y
+yield_qwk_bcmgl
+yield_qwk_bcm5
+yield_qwk_bcm6
+yield_qwk_bcm7
+yield_qwk_bcm8
+yield_qwk_6v_battery
+yield_qwk_bcm2
+yield_qwk_bcm1
+yield_qwk_linephase
+yield_qwk_invert_tstable
+yield_sca_bcm1
+yield_sca_bcm2
+yield_sca_bcm17
+yield_sca_unser
+yield_sca_habcm
+yield_sca_halo3
+yield_sca_halo4
+yield_sca_halo5
+yield_sca_halo6
+yield_sca_halo7
+yield_sca_halo8
+yield_sca_halo9
+yield_sca_halo10
+yield_qwk_charge
+yield_qwk_target_EffectiveCharge
+yield_qwk_targetXSlope
+yield_qwk_targetXIntercept
+yield_qwk_targetX
+yield_qwk_targetYSlope
+yield_qwk_targetYIntercept
+yield_qwk_targetY
+yield_qwk_energy
+yield_qwk_md1neg
+yield_qwk_md2neg
+yield_qwk_md3neg
+yield_qwk_md4neg
+yield_qwk_md5neg
+yield_qwk_md6neg
+yield_qwk_md7neg
+yield_qwk_md8neg
+yield_qwk_md1pos
+yield_qwk_md2pos
+yield_qwk_md3pos
+yield_qwk_md4pos
+yield_qwk_md5pos
+yield_qwk_md6pos
+yield_qwk_md7pos
+yield_qwk_md8pos
+yield_qwk_pmtled
+yield_qwk_pmtonl
+yield_qwk_pmtltg
+yield_qwk_md9neg
+yield_qwk_md9pos
+yield_qwk_isourc
+yield_qwk_preamp
+yield_qwk_cagesr
+yield_qwk_md1barsum
+yield_qwk_md2barsum
+yield_qwk_md3barsum
+yield_qwk_md4barsum
+yield_qwk_md5barsum
+yield_qwk_md6barsum
+yield_qwk_md7barsum
+yield_qwk_md8barsum
+yield_qwk_md1_qwk_md5
+yield_qwk_md2_qwk_md6
+yield_qwk_md3_qwk_md7
+yield_qwk_md4_qwk_md8
+yield_qwk_mdoddbars
+yield_qwk_mdevenbars
+yield_qwk_mdallbars
+yield_qwk_md9barsum
+yield_qwk_uslumi1neg
+yield_qwk_uslumi1pos
+yield_qwk_uslumi3neg
+yield_qwk_uslumi3pos
+yield_qwk_uslumi5neg
+yield_qwk_uslumi5pos
+yield_qwk_uslumi7neg
+yield_qwk_uslumi7pos
+yield_qwk_dslumi1
+yield_qwk_dslumi2
+yield_qwk_dslumi3
+yield_qwk_dslumi4
+yield_qwk_dslumi5
+yield_qwk_dslumi6
+yield_qwk_dslumi7
+yield_qwk_dslumi8
+yield_uslumi1_sum
+yield_uslumi3_sum
+yield_uslumi5_sum
+yield_uslumi7_sum
+yield_uslumi1_uslumi5_sum
+yield_uslumi3_uslumi7_sum
+yield_uslumi1_uslumi5_diff
+yield_uslumi3_uslumi7_diff
+yield_uslumi_sum
+yield_dslumi1_dslumi5_sum
+yield_dslumi2_dslumi6_sum
+yield_dslumi3_dslumi7_sum
+yield_dslumi4_dslumi8_sum
+yield_dslumi1_dslumi5_diff
+yield_dslumi2_dslumi6_diff
+yield_dslumi3_dslumi7_diff
+yield_dslumi4_dslumi8_diff
+yield_dslumi_odd
+yield_dslumi_even
+yield_dslumi_sum
+yield_sca_dslumi1
+yield_sca_dslumi2
+yield_sca_dslumi3
+yield_sca_dslumi4
+yield_sca_dslumi5
+yield_sca_dslumi6
+yield_sca_dslumi7
+yield_sca_dslumi8
+yield_sca_uslumi1neg
+yield_sca_uslumi1pos
+yield_sca_uslumi3neg
+yield_sca_uslumi3pos
+yield_sca_uslumi5neg
+yield_sca_uslumi5pos
+yield_sca_uslumi7neg
+yield_sca_uslumi7pos
+actual_pattern_polarity
+actual_previous_pattern_polarity
+delayed_pattern_polarity
+pattern_number
+pattern_seed
+input_register
+output_register
+mps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+yield_fgx1
+yield_fgy1
+yield_fgx2
+yield_fgy2
+yield_fge
+yield_ramp
+yield_bm_init
+yield_bm_pattern_number
+yield_qwk_raster_x
+yield_qwk_raster_y
+yield_qwk_raster_sumxy
+ErrorFlag
+asym_sca_31mhz
+asym_sca_4mhz
+asym_sca_20mhz
+asym_qwk_bpm3h04_EffectiveCharge
+diff_qwk_bpm3h04RelX
+diff_qwk_bpm3h04X
+diff_qwk_bpm3h04RelY
+diff_qwk_bpm3h04Y
+asym_qwk_bpm3h07a_EffectiveCharge
+diff_qwk_bpm3h07aRelX
+diff_qwk_bpm3h07aX
+diff_qwk_bpm3h07aRelY
+diff_qwk_bpm3h07aY
+asym_qwk_bpm3h07b_EffectiveCharge
+diff_qwk_bpm3h07bRelX
+diff_qwk_bpm3h07bX
+diff_qwk_bpm3h07bRelY
+diff_qwk_bpm3h07bY
+asym_qwk_bpm3h07c_EffectiveCharge
+diff_qwk_bpm3h07cRelX
+diff_qwk_bpm3h07cX
+diff_qwk_bpm3h07cRelY
+diff_qwk_bpm3h07cY
+asym_qwk_bpm3h08_EffectiveCharge
+diff_qwk_bpm3h08RelX
+diff_qwk_bpm3h08X
+diff_qwk_bpm3h08RelY
+diff_qwk_bpm3h08Y
+asym_qwk_bpm3h09_EffectiveCharge
+diff_qwk_bpm3h09RelX
+diff_qwk_bpm3h09X
+diff_qwk_bpm3h09RelY
+diff_qwk_bpm3h09Y
+asym_qwk_bpm3h09b_EffectiveCharge
+diff_qwk_bpm3h09bRelX
+diff_qwk_bpm3h09bX
+diff_qwk_bpm3h09bRelY
+diff_qwk_bpm3h09bY
+asym_qwk_bpm3c07_EffectiveCharge
+diff_qwk_bpm3c07RelX
+diff_qwk_bpm3c07X
+diff_qwk_bpm3c07RelY
+diff_qwk_bpm3c07Y
+asym_qwk_bpm3c08_EffectiveCharge
+diff_qwk_bpm3c08RelX
+diff_qwk_bpm3c08X
+diff_qwk_bpm3c08RelY
+diff_qwk_bpm3c08Y
+asym_qwk_bpm3c11_EffectiveCharge
+diff_qwk_bpm3c11RelX
+diff_qwk_bpm3c11X
+diff_qwk_bpm3c11RelY
+diff_qwk_bpm3c11Y
+asym_qwk_bpm3c12_EffectiveCharge
+diff_qwk_bpm3c12RelX
+diff_qwk_bpm3c12X
+diff_qwk_bpm3c12RelY
+diff_qwk_bpm3c12Y
+asym_qwk_bpm3c14_EffectiveCharge
+diff_qwk_bpm3c14RelX
+diff_qwk_bpm3c14X
+diff_qwk_bpm3c14RelY
+diff_qwk_bpm3c14Y
+asym_qwk_bpm3c16_EffectiveCharge
+diff_qwk_bpm3c16RelX
+diff_qwk_bpm3c16X
+diff_qwk_bpm3c16RelY
+diff_qwk_bpm3c16Y
+asym_qwk_bpm3c17_EffectiveCharge
+diff_qwk_bpm3c17RelX
+diff_qwk_bpm3c17X
+diff_qwk_bpm3c17RelY
+diff_qwk_bpm3c17Y
+asym_qwk_bpm3c18_EffectiveCharge
+diff_qwk_bpm3c18RelX
+diff_qwk_bpm3c18X
+diff_qwk_bpm3c18RelY
+diff_qwk_bpm3c18Y
+asym_qwk_bpm3c19_EffectiveCharge
+diff_qwk_bpm3c19RelX
+diff_qwk_bpm3c19X
+diff_qwk_bpm3c19RelY
+diff_qwk_bpm3c19Y
+asym_qwk_bpm3c07a_EffectiveCharge
+diff_qwk_bpm3c07aRelX
+diff_qwk_bpm3c07aX
+diff_qwk_bpm3c07aRelY
+diff_qwk_bpm3c07aY
+asym_qwk_bpm3p02a_EffectiveCharge
+diff_qwk_bpm3p02aRelX
+diff_qwk_bpm3p02aX
+diff_qwk_bpm3p02aRelY
+diff_qwk_bpm3p02aY
+asym_qwk_bpm3p02b_EffectiveCharge
+diff_qwk_bpm3p02bRelX
+diff_qwk_bpm3p02bX
+diff_qwk_bpm3p02bRelY
+diff_qwk_bpm3p02bY
+asym_qwk_bpm3p03a_EffectiveCharge
+diff_qwk_bpm3p03aRelX
+diff_qwk_bpm3p03aX
+diff_qwk_bpm3p03aRelY
+diff_qwk_bpm3p03aY
+asym_qwk_bpm3c20_EffectiveCharge
+diff_qwk_bpm3c20RelX
+diff_qwk_bpm3c20X
+diff_qwk_bpm3c20RelY
+diff_qwk_bpm3c20Y
+asym_qwk_bpm3c21_EffectiveCharge
+diff_qwk_bpm3c21RelX
+diff_qwk_bpm3c21X
+diff_qwk_bpm3c21RelY
+diff_qwk_bpm3c21Y
+asym_qwk_bpm3h02_EffectiveCharge
+diff_qwk_bpm3h02RelX
+diff_qwk_bpm3h02X
+diff_qwk_bpm3h02RelY
+diff_qwk_bpm3h02Y
+asym_qwk_bcmgl
+asym_qwk_bcm5
+asym_qwk_bcm6
+asym_qwk_bcm7
+asym_qwk_bcm8
+asym_qwk_6v_battery
+asym_qwk_bcm2
+asym_qwk_bcm1
+asym_qwk_linephase
+asym_qwk_invert_tstable
+asym_sca_bcm1
+asym_sca_bcm2
+asym_sca_bcm17
+asym_sca_unser
+asym_sca_habcm
+asym_sca_halo3
+asym_sca_halo4
+asym_sca_halo5
+asym_sca_halo6
+asym_sca_halo7
+asym_sca_halo8
+asym_sca_halo9
+asym_sca_halo10
+asym_qwk_charge
+asym_qwk_target_EffectiveCharge
+diff_qwk_targetXSlope
+diff_qwk_targetXIntercept
+diff_qwk_targetX
+diff_qwk_targetYSlope
+diff_qwk_targetYIntercept
+diff_qwk_targetY
+diff_qwk_energy
+asym_qwk_md1neg
+asym_qwk_md2neg
+asym_qwk_md3neg
+asym_qwk_md4neg
+asym_qwk_md5neg
+asym_qwk_md6neg
+asym_qwk_md7neg
+asym_qwk_md8neg
+asym_qwk_md1pos
+asym_qwk_md2pos
+asym_qwk_md3pos
+asym_qwk_md4pos
+asym_qwk_md5pos
+asym_qwk_md6pos
+asym_qwk_md7pos
+asym_qwk_md8pos
+asym_qwk_pmtled
+asym_qwk_pmtonl
+asym_qwk_pmtltg
+asym_qwk_md9neg
+asym_qwk_md9pos
+asym_qwk_isourc
+asym_qwk_preamp
+asym_qwk_cagesr
+asym_qwk_md1barsum
+asym_qwk_md2barsum
+asym_qwk_md3barsum
+asym_qwk_md4barsum
+asym_qwk_md5barsum
+asym_qwk_md6barsum
+asym_qwk_md7barsum
+asym_qwk_md8barsum
+asym_qwk_md1_qwk_md5
+asym_qwk_md2_qwk_md6
+asym_qwk_md3_qwk_md7
+asym_qwk_md4_qwk_md8
+asym_qwk_mdoddbars
+asym_qwk_mdevenbars
+asym_qwk_mdallbars
+asym_qwk_md9barsum
+asym_qwk_uslumi1neg
+asym_qwk_uslumi1pos
+asym_qwk_uslumi3neg
+asym_qwk_uslumi3pos
+asym_qwk_uslumi5neg
+asym_qwk_uslumi5pos
+asym_qwk_uslumi7neg
+asym_qwk_uslumi7pos
+asym_qwk_dslumi1
+asym_qwk_dslumi2
+asym_qwk_dslumi3
+asym_qwk_dslumi4
+asym_qwk_dslumi5
+asym_qwk_dslumi6
+asym_qwk_dslumi7
+asym_qwk_dslumi8
+asym_uslumi1_sum
+asym_uslumi3_sum
+asym_uslumi5_sum
+asym_uslumi7_sum
+asym_uslumi1_uslumi5_sum
+asym_uslumi3_uslumi7_sum
+asym_uslumi1_uslumi5_diff
+asym_uslumi3_uslumi7_diff
+asym_uslumi_sum
+asym_dslumi1_dslumi5_sum
+asym_dslumi2_dslumi6_sum
+asym_dslumi3_dslumi7_sum
+asym_dslumi4_dslumi8_sum
+asym_dslumi1_dslumi5_diff
+asym_dslumi2_dslumi6_diff
+asym_dslumi3_dslumi7_diff
+asym_dslumi4_dslumi8_diff
+asym_dslumi_odd
+asym_dslumi_even
+asym_dslumi_sum
+asym_sca_dslumi1
+asym_sca_dslumi2
+asym_sca_dslumi3
+asym_sca_dslumi4
+asym_sca_dslumi5
+asym_sca_dslumi6
+asym_sca_dslumi7
+asym_sca_dslumi8
+asym_sca_uslumi1neg
+asym_sca_uslumi1pos
+asym_sca_uslumi3neg
+asym_sca_uslumi3pos
+asym_sca_uslumi5neg
+asym_sca_uslumi5pos
+asym_sca_uslumi7neg
+asym_sca_uslumi7pos
+asym_fgx1
+asym_fgy1
+asym_fgx2
+asym_fgy2
+asym_fge
+asym_ramp
+asym_bm_init
+asym_bm_pattern_number
+diff_qwk_raster_x
+diff_qwk_raster_y
+diff_qwk_raster_sumxy
+
+##########
+# From injector
+##########
+asym_qwk_1i02_EffectiveCharge
+asym_qwk_1i04_EffectiveCharge
+asym_qwk_1i06_EffectiveCharge
+asym_qwk_0i02_EffectiveCharge
+asym_qwk_0i02a_EffectiveCharge
+asym_qwk_0i05_EffectiveCharge
+asym_qwk_0i07_EffectiveCharge
+asym_qwk_0l01_EffectiveCharge
+asym_qwk_0l02_EffectiveCharge
+asym_qwk_0l03_EffectiveCharge
+asym_qwk_0l04_EffectiveCharge
+asym_qwk_0l05_EffectiveCharge
+asym_qwk_0l06_EffectiveCharge
+asym_qwk_0l07_EffectiveCharge
+asym_qwk_0l08_EffectiveCharge
+asym_qwk_0l09_EffectiveCharge
+asym_qwk_0l10_EffectiveCharge
+asym_qwk_0r01_EffectiveCharge
+asym_qwk_0r01a_EffectiveCharge
+asym_qwk_0r03_EffectiveCharge
+asym_qwk_0r04_EffectiveCharge
+asym_qwk_0r06_EffectiveCharge
+asym_qwk_bcm0l02

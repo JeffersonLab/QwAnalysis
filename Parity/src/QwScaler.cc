@@ -26,8 +26,8 @@ void QwScaler::ProcessOptions(QwOptions &options)
 /**
  * Constructor
  */
-QwScaler::QwScaler(TString region_tmp)
-: VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+QwScaler::QwScaler(const TString& name)
+: VQwSubsystem(name),VQwSubsystemParity(name)
 {
   // Nothing, really
 }
@@ -107,11 +107,11 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
     } else {
 
       //  Break this line into tokens to process it.
-      TString modtype = mapstr.GetNextToken().c_str();
-      UInt_t  modnum  = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      UInt_t  channum = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      TString dettype = mapstr.GetNextToken().c_str();
-      TString keyword = mapstr.GetNextToken().c_str();
+      TString modtype = mapstr.GetTypedNextToken<TString>();
+      UInt_t  modnum  = mapstr.GetTypedNextToken<UInt_t>();
+      UInt_t  channum = mapstr.GetTypedNextToken<UInt_t>();
+      TString dettype = mapstr.GetTypedNextToken<TString>();
+      TString keyword = mapstr.GetTypedNextToken<TString>();
       modtype.ToUpper();
       dettype.ToUpper();
 
@@ -189,6 +189,7 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
     }
   }
 
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -202,14 +203,13 @@ Int_t QwScaler::LoadInputParameters(TString mapfile)
     mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
     if (mapstr.LineIsEmpty())  continue;
 
-    TString varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+    TString varname = mapstr.GetTypedNextToken<TString>();  // name of the channel
     varname.ToLower();
     varname.Remove(TString::kBoth,' ');
-    Double_t varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-    Double_t varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+    Double_t varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+    Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
     QwVerbose << varname << ": " << QwLog::endl;
 
-    Bool_t found = kFALSE;
     if (fName_Map.count(varname) != 0) {
       Int_t index = fName_Map[varname];
       QwMessage << "Parameters scaler channel " << varname << ": "
@@ -217,11 +217,11 @@ Int_t QwScaler::LoadInputParameters(TString mapfile)
                 << "cal = " << varcal << QwLog::endl;
       fScaler[index]->SetPedestal(varped);
       fScaler[index]->SetCalibrationFactor(varcal);
-      found = kTRUE;
     }
 
   } // end of loop reading all lines of the pedestal file
 
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -242,12 +242,12 @@ void QwScaler::ClearEventData()
  * Make a copy of this subsystem, including all its subcomponents
  * @param source Original version
  */
-void  QwScaler::Copy(VQwSubsystem *source)
+void  QwScaler::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwScaler* input = dynamic_cast<QwScaler*>(source);
+      const QwScaler* input = dynamic_cast<const QwScaler*>(source);
 
       fScaler.resize(input->fScaler.size());
       for (size_t i = 0; i < fScaler.size(); i++) {
@@ -270,18 +270,6 @@ void  QwScaler::Copy(VQwSubsystem *source)
   } catch (std::exception& e) {
     QwError << e.what() << QwLog::endl;
   }
-}
-
-
-/**
- * Make a copy of this subsystem
- * @return Copy of this subsystem
- */
-VQwSubsystem*  QwScaler::Copy()
-{
-  QwScaler* copy = new QwScaler(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
 }
 
 

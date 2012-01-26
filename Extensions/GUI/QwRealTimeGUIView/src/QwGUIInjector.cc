@@ -111,13 +111,13 @@ void QwGUIInjector::LoadHistoMapFile(TString mapfile){
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
     else{
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
       if (modtype=="VQWK" || modtype=="SCALER"){
-	mapstr.GetNextToken(", ");	//slot number
-	mapstr.GetNextToken(", ");	//channel number
-	dettype=mapstr.GetNextToken(", ");	//type-purpose of the detector
+	mapstr.GetTypedNextToken<TString>();	//slot number
+	mapstr.GetTypedNextToken<TString>();	//channel number
+	dettype=mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	namech.ToLower();
 
 	// Now sort out detectors to the two categories of charge monitors and position monitors.

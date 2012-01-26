@@ -21,21 +21,12 @@ QwRootFile::QwRootFile(const TString& run_label)
 {
   // Process the configuration options
   ProcessOptions(gQwOptions);
-
+  
   // Check for the memory-mapped file flag
   if (fEnableMapFile) {
-
-    // // get hostname and user name
-    // char host_string[127];
-    // char user_string[127];
-
-    // gethostname(host_string, 127);
-    // getlogin_r (user_string, 127);
-
-    // TString host_name = host_string;
-    // TString user_name = user_string;
+    
     TString mapfilename = "/dev/shm/";
-
+    
     // if( host_name.Contains("cdaql4") and (not user_name.CompareTo("cdaq", TString::kExact)) ) {
     //   mapfilename = "/local/scratch/qweak/";
     // }
@@ -62,12 +53,25 @@ QwRootFile::QwRootFile(const TString& run_label)
     //TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
     TString hostname = gSystem -> HostName();
     TString rootfilename;
-    TString localRootFileName = getenv("QW_ROOTFILES_LOCAL");
-    if( localRootFileName.CompareTo("") == 0 ) {
+    TString localRootFileName = gSystem->Getenv("QW_ROOTFILES_LOCAL");
+
+//     std::cout << "---------------------------------------------------------------------------------" << std::endl;
+//     printf("\n\n\n\n\n\n");
+//     printf("%s %s \n", hostname.Data(), localRootFileName.Data());
+//     printf("\n\n\n\n\n\n");
+//     std::cout << "---------------------------------------------------------------------------------" << std::endl;
+//     //    if( localRootFileName.CompareTo("") == 0 ) {
+    if (localRootFileName.IsNull()) {
         rootfilename = getenv_safe_TString("QW_ROOTFILES");
     } else {
         rootfilename = localRootFileName;
     }
+//     std::cout << "---------------------------------------------------------------------------------" << std::endl;
+//     printf("\n\n\n\n\n\n");
+//     printf("%s %s \n", hostname.Data(), localRootFileName.Data());
+//     printf("\n\n\n\n\n\n");
+//     std::cout << "---------------------------------------------------------------------------------" << std::endl;
+
 
     // Use a probably-unique temporary file name.
     pid_t pid = getpid();

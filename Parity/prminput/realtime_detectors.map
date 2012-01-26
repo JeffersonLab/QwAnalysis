@@ -3,21 +3,24 @@
 
 [QwBeamLine]
  name = HallCBeamLine
- map = qweak_hallc_beamline.12103-.map
+ map = qweak_hallc_beamline.map
+# map = qweak_hallc_beamline_realtime.map
  geom = qweak_beamline_geometry.map
- param = qweak_hallc_pedestal.12103-.map
+ param = qweak_hallc_pedestal.map
  eventcut = qweak_beamline_realtime_eventcuts.in
 
 [QwMainCerenkovDetector]
  name = Main Detector
- map = qweak_maindet.12033-.map
- param = qweak_maindet_pedestal.12163-.map
- eventcut = qweak_maindet_eventcuts.in
+ map = qweak_maindet.map
+# map = qweak_maindet_realtime.map
+ param = qweak_maindet_pedestal.map
+ eventcut = qweak_maindet_realtime_eventcuts.in
 
 [QwLumi]
  name = Lumi Detector
- map = qweak_lumi.11158-.map
- param = qweak_lumi_pedestal.12163-.map
+ map = qweak_lumi.map
+ #map = qweak_lumi_realtime.map
+ param = qweak_lumi_pedestal.map
  eventcut = qweak_lumi_eventcuts.in
 
 [QwHelicity]

@@ -21,6 +21,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 template<typename T> class QwCombinedBCM;
 
@@ -60,6 +61,9 @@ class QwBCM : public VQwBCM {
       TString datatosave);
   void  ClearEventData();
 
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    fBeamCurrent.LoadChannelParameters(paramfile);
+  };
 
   void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
@@ -78,6 +82,17 @@ class QwBCM : public VQwBCM {
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fBeamCurrent.GetEventcutErrorFlag();
   }
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fBeamCurrent.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(VQwBCM *ev_error);
+
+  UInt_t GetErrorCode() const {return (fBeamCurrent.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fBeamCurrent.UpdateErrorCode(error);};
+
+
 
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
@@ -99,7 +114,7 @@ class QwBCM : public VQwBCM {
   // These are for the clocks
   std::string GetExternalClockName() { return fBeamCurrent.GetExternalClockName(); };
   Bool_t NeedsExternalClock() { return fBeamCurrent.NeedsExternalClock(); };
-  void SetExternalClockPtr( const VQwDataElement* clock) {fBeamCurrent.SetExternalClockPtr(clock);};
+  void SetExternalClockPtr( const VQwHardwareChannel* clock) {fBeamCurrent.SetExternalClockPtr(clock);};
   void SetExternalClockName( const std::string name) { fBeamCurrent.SetExternalClockName(name);};
   Double_t GetNormClockValue() { return fBeamCurrent.GetNormClockValue();}
 
@@ -126,6 +141,7 @@ class QwBCM : public VQwBCM {
   void Scale(Double_t factor);
 
   void AccumulateRunningSum(const VQwBCM& value);
+  void DeaccumulateRunningSum(VQwBCM& value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
@@ -141,9 +157,14 @@ class QwBCM : public VQwBCM {
 
   UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
+
+  Double_t GetValue();
+  Double_t GetValueError();
+  Double_t GetValueWidth();
 
 
 /////

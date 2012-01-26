@@ -18,6 +18,7 @@
 // Forward declarations
 class QwBlinder;
 class QwParityDB;
+class QwPromptSummary;
 
 
 /**
@@ -34,19 +35,26 @@ class QwParityDB;
  */
 class VQwSubsystemParity: virtual public VQwSubsystem {
 
-  public:
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemParity();
 
+  public:
     /// Constructor with name
-    VQwSubsystemParity(TString name): VQwSubsystem(name) {
+    VQwSubsystemParity(const TString& name): VQwSubsystem(name) {
       SetEventTypeMask(0x1); // only accept 0x1
     };
+    /// Copy constructor
+    VQwSubsystemParity(const VQwSubsystemParity& source)
+    : VQwSubsystem(source)
+    { }
     /// Default destructor
     virtual ~VQwSubsystemParity() { };
 
 
     /// \brief Fill the database
     virtual void FillDB(QwParityDB *db, TString type) { };
-
+    virtual void FillErrDB(QwParityDB *db, TString type) { };
 
     // VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
     virtual VQwSubsystem& operator=  (VQwSubsystem *value) = 0;
@@ -57,10 +65,11 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) = 0;
     virtual void Scale(Double_t factor) = 0;
 
-    virtual VQwSubsystem* Copy() = 0;
-
     /// \brief Update the running sums for devices
     virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;
+    /// \brief remove one entry from the running sums for devices
+    virtual void DeaccumulateRunningSum(VQwSubsystem* value) = 0;
+
     /// \brief Calculate the average for all good events
     virtual void CalculateRunningAverage() = 0;
 
@@ -70,8 +79,13 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual Bool_t ApplySingleEventCuts() = 0;
     /// \brief Report the number of events failed due to HW and event cut failures
     virtual Int_t GetEventcutErrorCounters() = 0;
-    /// \brief Return the error flag to the main routine
+    /// \brief Return the error flag to the top level routines related to stability checks and ErrorFlag updates
     virtual UInt_t GetEventcutErrorFlag() = 0;
+    /// \brief update the error flag in the subsystem level from the top level routines related to stability checks. This will set the same errorflag to all the channels
+    virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
+    /// \brief update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    virtual void UpdateEventcutErrorFlag(VQwSubsystem *ev_error) = 0;
+
 
     /// \brief Blind the asymmetry of this subsystem
     virtual void Blind(const QwBlinder *blinder) { return; };
@@ -81,16 +95,11 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Print values of all channels
     virtual void PrintValue() const { };
 
+    virtual void WritePromptSummary(QwPromptSummary *ps, TString type) {};
+
 
     virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};
 	
-
-
-  private:
-
-    /// Private default constructor (not implemented, will throw linker error on use)
-    VQwSubsystemParity();
-
 }; // class VQwSubsystemParity
 
 #endif // __VQWSUBSYSTEMPARITY__

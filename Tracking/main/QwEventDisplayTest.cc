@@ -21,9 +21,8 @@
 #include "QwLog.h"
 
 // Qweak subsystem headers
-#include "QwSubsystemFactory.h"
 #include "QwSubsystemArrayTracking.h"
-#include "QwGasElectronMultiplier.h"
+//#include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 #include "QwTriggerScintillator.h"

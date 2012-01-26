@@ -2,50 +2,63 @@
 
 eventrange=100000
 rangename=`echo $eventrange/1000 | bc`
+pass=first${rangename}k
 
 cd $HOME/$EXPID/autoanalyzer
+
+touch $HOME/$EXPID/autoanalyzer/first100k.started
+
 stateval=`$HOME/$EXPID/coda26/scripts/dpsh_test ER0| awk '{print $2}'`
 eventnum=`$HOME/$EXPID/coda26/scripts/dpsh_test ER0| awk '{print $3}'`
-
 if [[ "$stateval" == "active" ]]; then
-    runnum=`$HOME/$EXPID/coda26/scripts/dpsh_test | grep "Run Number:" | awk '{print $3}'`
-    echo "Waiting for event $eventrange; found $eventnum so far."
-    while (( $eventnum < $eventrange ))
-      do
-      eventnum=`$HOME/$EXPID/coda26/scripts/dpsh_test ER0| awk '{print $3}'`
-      stateval=`$HOME/$EXPID/coda26/scripts/dpsh_test ER0| awk '{print $2}'`
-      # echo "Waiting for event $eventrange; found $eventnum so far."
-      if [[ "$stateval" != "active" ]]; then
-	  break
-      fi
-      sleep 10
-    done
-    startevent=1
-    endevent=$eventrange
+	runnum=`$HOME/$EXPID/coda26/scripts/dpsh_test | grep "Run Number:" | awk '{print $3}'`
 
-    echo "Preparing to analyze event range ${startevent} to ${endevent} of run $runnum."
+	echo "Waiting for event $eventrange; found $eventnum so far."
+	while (( $eventnum < $eventrange ))
+	do
+		eventnum=`$HOME/$EXPID/coda26/scripts/dpsh_test ER0| awk '{print $3}'`
+		stateval=`$HOME/$EXPID/coda26/scripts/dpsh_test ER0| awk '{print $2}'`
+		# echo "Waiting for event $eventrange; found $eventnum so far."
+		if [[ "$stateval" != "active" ]]; then
+			break
+		fi
+		sleep 10
+	done
 
-    analysis_log=log/first${rangename}k_${runnum}_analysis.log
-    macro_log=log/first${rangename}k_${runnum}_macros.log
+	startevent=1
+	endevent=$eventrange
 
-    qwcompton -r $runnum -e $startevent:$endevent \
-	--QwLog.logfile ${analysis_log} \
-	--QwLog.loglevel-screen 0 \
-	--QwLog.loglevel-file 0 \
-	--chainfiles true \
-	--rootfile-stem first${rangename}k_ 2>&1
-    nice gzip -f ${analysis_log}
+	echo "Preparing to analyze event range ${startevent} to ${endevent} of run $runnum."
 
-    echo "Produced root file $QW_ROOTFILES/first${rangename}k_$runnum.root"
+	unset QW_ROOTFILES_LOCAL
+	QWSCRATCH=${HOME}/${EXPID}/QwScratch
+	QWANALYSIS=${HOME}/${EXPID}/QwAnalysis
 
-    echo "Starting macros for run ${runnum} on $(hostname)..."
-    ${HOME}/${EXPID}/macros/process_run.sh --run=${runnum} --first100k > ${macro_log}
-    nice gzip -f ${macro_log}
-    echo "Finished macros for run ${runnum}."
+	analysis_log=${QWSCRATCH}/log/Compton_${pass}_${runnum}_analysis.log
+	macros_log=${QWSCRATCH}/log/Compton_${pass}_${runnum}_macros.log
+	script_log=${QWSCRATCH}/log/Compton_${pass}_${runnum}.log
 
-    $HOME/bin/qweak_speak.sh --man "The first 100 k analysis of Compton run $runnum, is finished."
+	source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash \
+		2>&1 >> ${script_log}
+
+	qwcompton -r $runnum -e $startevent:$endevent \
+		--QwLog.logfile ${analysis_log} \
+		--chainfiles true \
+		--rootfile-stem Compton_${pass}_ \
+		2>&1 ${analysis_log}
+	nice gzip -f ${analysis_log}
+
+	echo "Produced root file $QW_ROOTFILES/Compton_${pass}_${runnum}.root"
+
+	echo "Starting macros for run ${runnum} on $(hostname)..."
+	${HOME}/${EXPID}/macros/process_run.sh --run=${runnum} --first100k > ${macros_log}
+	nice gzip -f ${macros_log}
+	echo "Finished macros for run ${runnum}."
+
+	$HOME/bin/qweak_speak.sh --man "The first 100 k analysis of Compton run ${runnum}, is finished."
 
 else
-    echo "No run is in progress; do not run the first${rangename}k analysis."
+	echo "No run is in progress; do not run the first${rangename}k analysis."
 fi
 
+touch $HOME/$EXPID/autoanalyzer/first100k.ended

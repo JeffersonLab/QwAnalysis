@@ -30,7 +30,7 @@ EVENTCUTS = 3
 !for bcm devices
 !device_type, device_name,      lower limit, upper limit, local(l)/global(g), stability percentage
  
-bcm, qwk_bcm1,		1,	1000000,	g,	0
+bcm, qwk_bcm1,		1,	1000000,	g,	2
 !bcm, qwk_bcm2, 		0, 	0,		l,	0
 !bcm, qwk_bcm3, 		0, 0, l, 0
 !bcm, qwk_bcm5, 		0, 0, l, 0
@@ -143,7 +143,7 @@ bpmstripline, 	qwk_bpm3h09,    YM,		0,  61900,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   XP,		0,  64260,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   XM,		0,  60150,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   YP,		0,  59030,	 l,	 0
-bpmstripline, 	qwk_bpm3h09b,   YM,		0,  76200,	 l,	 0
+bpmstripline, 	qwk_bpm3h09b,   YM,             0,  76200,       l,      0
 
 
 
@@ -155,7 +155,7 @@ bpmstripline, 	qwk_bpm3h09b,   YM,		0,  76200,	 l,	 0
 !So pedestals are applied before appyling the cuts.
 
 !device_type, device_name, channel_name, lower limit, upper limit, local(l)/global(g), stability percentage
-!bpmcavity, qwk_bpmcavity1, absx, 0, 0, l, 0
+!bpmcavity, qwk_bpmcavity1, absx, 0, 10000, l, 1
 !bpmcavity, qwk_bpmcavity1, absy, 0, 0, l, 0
 !bpmcaivty, qwk_bpmcavity2, absx, 0, 0, l, 0
 !bpmcavity, qwk_bpmcavity2, absy, 0, 0, l, 0
@@ -167,22 +167,25 @@ bpmstripline, 	qwk_bpm3h09b,   YM,		0,  76200,	 l,	 0
 !Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
 
 !device_type, device_name,   channel_name,   lower limit,      upper limit, local(l)/global(g), stability percentage
-!combinedbpm, qwk_target, absx, 0, 10, l, 0
-!combinedbpm, qwk_target, absy, 0.42192, 0.42197, l, 0
+!New abs positions cuts added by Rakitha (rakithab@jlab.org)
+combinedbpm, qwk_target, absx, -10, 10, g, 0.1
+combinedbpm, qwk_target, absy, -10, 10, g, 0.1
 !combinedbpm, qwk_target, xslope, -0.274556, -0.274542, l, 0
 !combinedbpm, qwk_target, yslope, -0.785934, -0.785922, l, 0
-!combinedbpm, qwk_target, effectivecharge, 1.440334e+12, 1.440335e+12, g, 0
+!combinedbpm, qwk_target, effectivecharge, -1e-12, 1e+12, g, 200
 
 
 !***************************************************		
 !for combined bcm devices (tested with injector run 924)
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
 !combinedbcm, qwk_charge,  	3.18588, 	3.18591e+10, l, 0
+!combinedbcm, qwk_charge,  	1, 	500, g, 0.001
+!combinedbcm, qwk_charge,  	0, 	3.18591e+10, l, 4
 
 !***************************************************	
 !for QwEnergyCalculator
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-!energycalculator, qwk_energy,  	3.18588, 	3.18591e+10, l, 0
+!energycalculator, qwk_energy,  	-3.18588e-100, 	3.18591e+100, l, 1
 
 
 !Comments

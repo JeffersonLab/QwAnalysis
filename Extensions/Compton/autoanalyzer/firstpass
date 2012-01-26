@@ -1,26 +1,23 @@
 #!/bin/bash
 
+pass=Pass1
 slots=4
-timeout_before=1800
-timeout_between=300
+timeout=300
 preferred_host=cdaql3
 
 # Usage info
 if [ $# -eq 0 ] ; then
-	echo "Usage: $0 [--macros-only] [--here] [--now | --delay] runstart [runend]"
+	echo "Usage: $0 [--macros-only] [--here] runstart [runend]"
 	exit
 fi
 
 # Parse flags
 opts=$*
-run_now="false"
 run_here="false"
 while [ $# -gt 0 -a -z "${1/--*/}" ] ; do
 	case ${1} in
 		(--macros-only)	macros_only="true"; shift ;;
 		(--here)	run_here="true"; shift ;;
-		(--delay)	run_now="false"; shift ;;
-		(--now)		run_now="true"; shift ;;
 	esac
 done
 
@@ -45,11 +42,6 @@ if [ "${host}" != "${preferred_host}" -a "${run_here}" == "false" ] ; then
 	echo "  ${cmd}"
 	exec ssh ${preferred_host} "source ~/${EXPID}/env.sh; ${cmd}"
 	exit
-fi
-
-# Timeout before starting
-if [ "${run_now}" == "false" ] ; then
-	sleep ${timeout_before}
 fi
 
 cd ${HOME}/${EXPID}/autoanalyzer
@@ -86,7 +78,7 @@ while [ ${runnum} -le ${runnum_end} ] ; do
 		if [ ${slot} -ge ${slots} ] ; then
 			echo "Waiting for analyzer slot to open..."
 			echo "(all starting locks are newer than the ending locks)"
-			sleep ${timeout_between}
+			sleep ${timeout}
 			let slot=0
 		fi
 	done
@@ -94,39 +86,58 @@ while [ ${runnum} -le ${runnum_end} ] ; do
 	# Claim slot
 	echo "Host ${host}, slot ${slot}: pid $$, run $runnum, ${date}" > ${lock}.${slot}.started
 
-	# Set the analyzer options
-	if [ "$runnum" -lt 20000 ] ; then
-		options="--enable-differences true --disable-by-type QwComptonPhotonDetector"
-	else
-		options="--enable-differences true"
-	fi
+
+	# Set the environment
+	unset QW_ROOTFILES_LOCAL
+	QWSCRATCH=${HOME}/${EXPID}/QwScratch
+	QWANALYSIS=${HOME}/${EXPID}/QwAnalysis
+
+	analysis_log=${QWSCRATCH}/log/Compton_${pass}_${runnum}_analysis.log
+	macros_log=${QWSCRATCH}/log/Compton_${pass}_${runnum}_macros.log
+	script_log=${QWSCRATCH}/log/Compton_${pass}_${runnum}.log
+
+	source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash \
+		2>&1 >> ${script_log}
+ 
 
 	# Start the analyzer
 	if [ -z "${macros_only}" ] ; then
 		echo "Starting analyzer for run ${runnum} on $(hostname)... (go get some coffee)"
-		QWSCRATCH=${HOME}/${EXPID}/QwScratch
-		QWANALYSIS=${HOME}/${EXPID}/QwAnalysis
-		source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash 2>&1 > log/Compton_Pass1_${runnum}.out
+
+		if [ "$runnum" -lt 20000 ] ; then
+			options="--enable-differences true --disable-by-type QwComptonPhotonDetector"
+		else
+			options="--enable-differences true"
+		fi
+
 		nice qwcompton -r $runnum ${options} \
-			--QwLog.logfile log/Compton_Pass1_${runnum}.log \
-			--rootfile-stem Compton_Pass1_ 2>&1 > /dev/null
-		nice gzip -f log/Compton_Pass1_${runnum}.out
-		nice gzip -f log/Compton_Pass1_${runnum}.log
+			--QwLog.logfile ${analysis_log} \
+			--rootfile-stem Compton_${pass}_ \
+			2>&1 >> ${script_log}
+
+		nice gzip -f ${analysis_log}
+		nice gzip -f ${script_log}
+
 		echo "Finished analyzing run ${runnum}."
 	fi
 
+
+	# Start the macros
 	echo "Starting macros for run ${runnum} on $(hostname)..."
 	${HOME}/${EXPID}/macros/process_run.sh --run=${runnum} \
-            > log/firstpass_${runnum}_macros.log
-	nice gzip -f log/firstpass_${runnum}_macros.log
+		2>&1 >> ${macros_log}
+	nice gzip -f ${macros_log}
 	echo "Finished macros for run ${runnum}."
+
 
 	# Release slot
 	echo "End: pid $$, run $runnum, `date`" > ${lock}.${slot}.ended
 
+
 	# Wait until starting next job to give other jobs a chance
 	if [ ${runnum} -lt ${runnum_end} ] ; then
-		sleep ${timeout_between}
+		echo "Waiting to start next run..."
+		sleep ${timeout}
 	fi
 
 	# Next run

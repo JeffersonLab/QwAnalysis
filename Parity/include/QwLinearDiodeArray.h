@@ -21,6 +21,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 /*****************************************************************
 *  Class:
@@ -31,6 +32,8 @@ class QwDBInterface;
 class QwLinearDiodeArray : public VQwBPM {
 
  public:
+  static UInt_t  GetSubElementIndex(TString subname);
+
   QwLinearDiodeArray() {
   };
   QwLinearDiodeArray(TString name):VQwBPM(name){
@@ -48,12 +51,17 @@ class QwLinearDiodeArray : public VQwBPM {
   // new routine added to update necessary information for tree trimming
   void    InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    for(size_t i=0;i<kMaxElements;i++)
+      fPhotodiode[i].LoadChannelParameters(paramfile);
+  }
+
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
   void    PrintValue() const;
   void    PrintInfo() const;
-
 
   const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
     if (axis<0 || axis>2){
@@ -65,19 +73,20 @@ class QwLinearDiodeArray : public VQwBPM {
   }
   const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
 
-
-
-  UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
+  UInt_t  SetSubElementName(TString subname);
   void    GetAbsolutePosition();
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  //void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  UInt_t GetEventcutErrorFlag();
+  void UpdateEventcutErrorFlag(const UInt_t error);
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error);
 
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
@@ -87,7 +96,7 @@ class QwLinearDiodeArray : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(QwLinearDiodeArray *source);
+  void    Copy(const VQwDataElement *source);
   void    Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom);
   void    Scale(Double_t factor);
 
@@ -101,6 +110,9 @@ class QwLinearDiodeArray : public VQwBPM {
   virtual QwLinearDiodeArray& operator-= (const QwLinearDiodeArray &value);
 
   void    AccumulateRunningSum(const QwLinearDiodeArray& value);
+  void    AccumulateRunningSum(const VQwBPM& value);
+  void    DeaccumulateRunningSum(QwLinearDiodeArray& value);
+  void    DeaccumulateRunningSum(VQwBPM& value);
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -114,6 +126,8 @@ class QwLinearDiodeArray : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
+
   void    MakeLinearArrayList();
 
   protected:

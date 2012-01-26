@@ -62,6 +62,7 @@ class QwParityDB: public QwDatabase {
     UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
     const string GetMeasurementID(const Int_t index);
     UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
+    UInt_t GetErrorCodeID(const string& name);         //<! Get error_code_id for error code name
     
     UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
     UInt_t GetSegmentNumber() {return fSegmentNumber;}       //<! CODA File segment number getter
@@ -75,6 +76,8 @@ class QwParityDB: public QwDatabase {
     UInt_t GetAnalysisID(QwEventBuffer& qwevt);      //<! Get analysis ID using data from CODA event buffer
     Bool_t       SetRunNumber(const UInt_t runnum);        //<! Run number setter
     Bool_t       SetSegmentNumber(const UInt_t segment);        //<! CODA file segment number setter
+    static void  DefineAdditionalOptions(QwOptions& options); //!< Defines QwParityDB-specific class options for QwOptions
+    void ProcessAdditionalOptions(QwOptions &options); //!< Processes the options contained in the QwOptions object.
 
  private:
 
@@ -86,17 +89,20 @@ class QwParityDB: public QwDatabase {
     void StoreLumiDetectorIDs();                        //<! Retrieve LUMI monitor IDs from database and populate fLumiDetectorIDs
     void StoreMeasurementIDs();
     void StoreSlowControlDetectorIDs();                  //<! Retrieve slow controls data IDs from database and populate fSlow_Controls_DataIDs
+    void StoreErrorCodeIDs();                             //<! Retrieve error code IDs from database and populate fErrorCodeIDs
 
     UInt_t fRunNumber;       //!< Run number of current run
     Int_t fSegmentNumber;    //!< CODA file segment number of current run
     UInt_t fRunID;           //!< run_id of current run
     UInt_t fRunletID;        //!< runlet_id of current run
     UInt_t fAnalysisID;      //!< analysis_id of current analysis pass
+    bool fDisableAnalysisCheck; //!< Flag to disable pre-existing analysis_id check
 
     static std::map<string, unsigned int> fMonitorIDs; //!< Associative array of beam monitor IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fMainDetectorIDs; //!< Associative array of main detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fLumiDetectorIDs; //!< Associative array of LUMI detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fSlowControlDetectorIDs; //!< Associative array of slow controls data IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
+    static std::map<string, unsigned char> fErrorCodeIDs; //!< Associative array of error code IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::vector<string>            fMeasurementIDs;
 
     friend class StoreMonitorID;
@@ -104,6 +110,7 @@ class QwParityDB: public QwDatabase {
     friend class StoreLumiDetectorID;
     friend class StoreMeasurementID;
     friend class StoreSlowControlDetectorID;
+    friend class StoreErrorCodeID;
 };
 
 

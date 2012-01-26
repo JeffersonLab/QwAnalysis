@@ -27,6 +27,10 @@ QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
   // Copy tracks
   fFront = new QwPartialTrack(front);
   fBack  = new QwPartialTrack(back);
+
+  // Add partial tracks
+  AddPartialTrack(front);
+  AddPartialTrack(back);
 }
 
 /**
@@ -76,6 +80,8 @@ QwTrack::~QwTrack()
   if (fBack)  delete fBack;
 
   if (fBridge) delete fBridge;
+
+  ClearPartialTracks();
 }
 
 /**
@@ -108,7 +114,11 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fDirectionThetaoff = that.fDirectionThetaoff;
   fDirectionPhioff = that.fDirectionPhioff;
 
-  return *this;
+  // Copy partial tracks
+  ClearPartialTracks();
+  AddPartialTrackList(that.fQwPartialTracks);
+
+ return *this;
 }
 
 /**
@@ -136,6 +146,73 @@ void QwTrack::Initialize()
   beamvertex = 0;
   next = 0;
 }
+
+
+// Create a new QwPartialTrack
+QwPartialTrack* QwTrack::CreateNewPartialTrack()
+{
+  QwPartialTrack* partialtrack = new QwPartialTrack();
+  AddPartialTrack(partialtrack);
+  return partialtrack;
+}
+
+// Add an existing QwPartialTrack
+void QwTrack::AddPartialTrack(const QwPartialTrack* partialtrack)
+{
+  fQwPartialTracks.push_back(new QwPartialTrack(partialtrack));
+  ++fNQwPartialTracks;
+}
+
+// Add a linked list of QwPartialTrack's
+void QwTrack::AddPartialTrackList(const QwPartialTrack* partialtracklist)
+{
+  for (const QwPartialTrack *partialtrack = partialtracklist;
+         partialtrack; partialtrack = partialtrack->next){
+    if (partialtrack->IsValid()){
+       AddPartialTrack(partialtrack);
+    }
+  }
+}
+
+// Add a list of partial tracks
+void QwTrack::AddPartialTrackList(const std::vector<QwPartialTrack*> &partialtracklist)
+{
+  for (std::vector<QwPartialTrack*>::const_iterator partialtrack = partialtracklist.begin();
+       partialtrack != partialtracklist.end(); partialtrack++)
+    AddPartialTrack(*partialtrack);
+}
+
+// Clear the local TClonesArray of partial tracks
+void QwTrack::ClearPartialTracks(Option_t *option)
+{
+  for (size_t i = 0; i < fQwPartialTracks.size(); i++) {
+    QwPartialTrack* tl = fQwPartialTracks.at(i);
+    delete tl;
+  }
+  fQwPartialTracks.clear();
+  fNQwPartialTracks = 0;
+}
+
+// Delete the static TClonesArray of partial tracks
+void QwTrack::ResetPartialTracks(Option_t *option)
+{
+  ClearPartialTracks();
+}
+
+// Print the partial tracks
+void QwTrack::PrintPartialTracks(Option_t *option) const
+{
+  for (std::vector<QwPartialTrack*>::const_iterator partialtrack = fQwPartialTracks.begin();
+       partialtrack != fQwPartialTracks.end(); partialtrack++) {
+    std::cout << **partialtrack << std::endl;
+    QwPartialTrack* tl = (*partialtrack)->next;
+    while (tl) {
+      std::cout << *tl << std::endl;
+      tl = tl->next;
+    }
+  }
+}
+
 
 /**
  * Output stream operator overloading

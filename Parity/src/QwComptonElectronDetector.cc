@@ -100,13 +100,13 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       }
     } else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", \t").c_str();
-      modnum    = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
-      channum   = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
-      dettype   = mapstr.GetNextToken(", \t").c_str();
-      name      = mapstr.GetNextToken(", \t").c_str();
-      plane     = (atol(mapstr.GetNextToken(", \t").c_str()));
-      stripnum  = (atol(mapstr.GetNextToken(", \t").c_str()));
+      modtype   = mapstr.GetTypedNextToken<TString>();
+      modnum    = mapstr.GetTypedNextToken<UInt_t>();
+      channum   = mapstr.GetTypedNextToken<UInt_t>();
+      dettype   = mapstr.GetTypedNextToken<TString>();
+      name      = mapstr.GetTypedNextToken<TString>();
+      plane     = mapstr.GetTypedNextToken<Int_t>();
+      stripnum  = mapstr.GetTypedNextToken<Int_t>();
       //  Push a new record into the element array
       if (modtype == "V1495") {
 	if (dettype == "eaccum") {
@@ -194,10 +194,10 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
     else {
-      TString varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+      TString varname = mapstr.GetTypedNextToken<TString>();  // name of the channel
       varname.ToLower();
       varname.Remove(TString::kBoth,' ');
-      Double_t varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+      Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
     }
   } // end of loop reading all lines of the pedestal file
 
@@ -1094,7 +1094,7 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
   //  SetHistoTreeSave(prefix);
   fTreeArrayIndex = values.size();
 
-  for (Int_t i = 1; i < NPlanes; i++) {
+  for (Int_t i = 0; i < NPlanes; i++) {
     //!!iteration of this loop from '1' instead of '0' is for Qweak run-1 when the first plane was inactive
     /// Note that currently the plane number in these tree-leafs correspond to the C++ counting(from 0)
     /// Event branch for this plane
@@ -1141,7 +1141,7 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
 
   ///The 'values' should be filled in exactly the same order in which they were created above
   /// ...below we follow the pattern as in Notice-2
-    for (Int_t i = 1; i < NPlanes; i++) {
+    for (Int_t i = 0; i < NPlanes; i++) {
       for (Int_t j = 0; j < StripsPerPlane; j++)
 	values[index++] = fStripsRawEv[i][j];/// Event Raw
       for (Int_t j = 0; j < StripsPerPlane; j++)
@@ -1245,13 +1245,13 @@ void  QwComptonElectronDetector::PrintValue() const
  * Make a copy of this electron detector, including all its subcomponents
  * @param source Original version
  */
-void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
+void  QwComptonElectronDetector::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonElectronDetector* input =
-	dynamic_cast<QwComptonElectronDetector*>(source);
+      const QwComptonElectronDetector* input =
+	dynamic_cast<const QwComptonElectronDetector*>(source);
       fStripsRaw.resize(input->NPlanes);
       fStripsRawEv.resize(input->NPlanes);
       fStripsRawScal.resize(input->NPlanes);
@@ -1283,15 +1283,4 @@ void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
   }
 
   return;
-}
-
-/**
- * Make a copy of this electron detector
- * @return Copy of this electron detector
- */
-VQwSubsystem*  QwComptonElectronDetector::Copy()
-{
-  QwComptonElectronDetector* copy = new QwComptonElectronDetector(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
 }

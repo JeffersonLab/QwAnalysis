@@ -185,13 +185,13 @@ void QwGUILumiDetector::LoadHistoMapFile(TString mapfile)
     else
     */{
 
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
       if (modtype=="VQWK" || modtype=="SCALER"){
-	mapstr.GetNextToken(", ");	//slot number
-	mapstr.GetNextToken(", ");	//channel number
-	dettype=mapstr.GetNextToken(", ");	//type-purpose of the detector
+	mapstr.GetTypedNextToken<TString>();	//slot number
+	mapstr.GetTypedNextToken<TString>();	//channel number
+	dettype=mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	namech.ToLower();
 
 	if (dettype=="integrationpmt"){

@@ -6,7 +6,7 @@
 \**********************************************************/
 
 #ifndef __QwHALO_MONITOR__
-#define __QwHALO_MONITOR_
+#define __QwHALO_MONITOR__
 
 // System headers
 #include <vector>
@@ -46,6 +46,18 @@ class  QwHaloMonitor : public VQwDataElement{
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name);
   void  ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    fHalo_Counter.LoadChannelParameters(paramfile);
+  }
+  std::string GetExternalClockName() { return fHalo_Counter.GetExternalClockName(); };
+  Bool_t NeedsExternalClock() { return fHalo_Counter.NeedsExternalClock(); };
+  void SetExternalClockPtr( const VQwHardwareChannel* clock) {fHalo_Counter.SetExternalClockPtr(clock);};
+  void SetExternalClockName( const std::string name) { fHalo_Counter.SetExternalClockName(name);};
+  Double_t GetNormClockValue() { return fHalo_Counter.GetNormClockValue();}
+
+
+
   void  ReportErrorCounters();//This will display the error summary for each device
   void  UpdateHWErrorCount();//Update error counter for HW faliure
 
@@ -67,10 +79,18 @@ class  QwHaloMonitor : public VQwDataElement{
   void     SetPedestal(Double_t ped) { fHalo_Counter.SetPedestal(ped); };
   void     SetCalibrationFactor(Double_t factor) { fHalo_Counter.SetCalibrationFactor(factor); };
   void AccumulateRunningSum(const QwHaloMonitor& value);
+  void DeaccumulateRunningSum(QwHaloMonitor& value);
   void CalculateRunningAverage();
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   UInt_t GetEventcutErrorFlag(){return fHalo_Counter.GetEventcutErrorFlag();};
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fHalo_Counter.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(QwHaloMonitor *ev_error);
+
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t ApplyHWChecks();
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
@@ -100,7 +120,7 @@ class  QwHaloMonitor : public VQwDataElement{
   Double_t GetValue() {
     return fHalo_Counter.GetValue();
   }
-  void  Copy(VQwDataElement *source);
+  void  Copy(const VQwDataElement *source);
 
   void  PrintValue() const;
   void  PrintInfo() const;

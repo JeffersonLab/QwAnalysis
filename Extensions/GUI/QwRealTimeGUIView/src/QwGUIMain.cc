@@ -87,6 +87,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMenuBarLayout        = NULL;
   dMenuBarItemLayout    = NULL;
 
+  
+  dtxtEntries           = NULL;
+
   MakeMenuLayout();
 
 
@@ -104,7 +107,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMainButton[0] = new TGTextButton(dMainButtonsFrame, "Load/Unload",  M_LOAD_UNLOAD);
   dMainButton[1] = new TGTextButton(dMainButtonsFrame, "Run/Stop", M_RUN_STOP);
   dMainButton[2] = new TGTextButton(dMainButtonsFrame, "Reset", M_RESET);
-  dMainButton[3] = new TGTextButton(dMainButtonsFrame, "Exit", M_EXIT);
+  dMainButton[3] = new TGTextButton(dMainButtonsFrame, "Auto-Rest", M_AUTO_RESET);
+  dMainButton[4] = new TGTextButton(dMainButtonsFrame, "Exit", M_EXIT);
+
+  dtxtEntries= new TGTextEntry(dMainButtonsFrame,"100000",TXT_ENTRIES);
+
 
   
   // reduce "for" in order to get 'ns' faster than...
@@ -115,15 +122,21 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMainButton[1] -> Associate(this);
   dMainButton[2] -> Associate(this);  
   dMainButton[3] -> Associate(this);
+  dMainButton[4] -> Associate(this);
+  dtxtEntries -> Associate(this);
 
   dMainButton[0] -> ChangeBackground(red);
   dMainButton[1] -> SetEnabled(false);
   dMainButton[2] -> SetEnabled(false);
+  dMainButton[3] -> SetEnabled(false);
 
   dMainButtonsFrame -> AddFrame(dMainButton[0], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
   dMainButtonsFrame -> AddFrame(dMainButton[1], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
   dMainButtonsFrame -> AddFrame(dMainButton[2], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
   dMainButtonsFrame -> AddFrame(dMainButton[3], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  dMainButtonsFrame -> AddFrame(dtxtEntries, new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  dMainButtonsFrame -> AddFrame(dMainButton[4], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+
 
 
   if (dClArgs.detectormap==kTRUE){
@@ -203,6 +216,8 @@ QwGUIMain::~QwGUIMain()
 
   delete [] dMainButton;
   delete    dMainButtonsFrame;
+
+  delete dtxtEntries;
 
 
 }
@@ -669,12 +684,14 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 			  dMainButton[0] -> ChangeBackground(red);
 			  dMainButton[1] -> SetEnabled(false);
 			  dMainButton[2] -> SetEnabled(false);
+			  dMainButton[3] -> SetEnabled(false);
 			}
 			else {
 			  if(OpenMapFile()) {
 			    dMainButton[0] -> ChangeBackground(green);
 			    dMainButton[1] -> SetEnabled(true);
 			    dMainButton[2] -> SetEnabled(true);
+			    dMainButton[3] -> SetEnabled(true);
 			    SummaryTab->PlotMainData();
 			  }
 			}
@@ -731,6 +748,26 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		    }
 		  };;;
 		  break;
+		case M_AUTO_RESET:
+		  {;;;
+		    TString sAutoentries=dtxtEntries->GetText();
+		    Int_t iAutoentries=sAutoentries.Atoi();
+		    std::cerr << " AUTO RESET Entries:" <<iAutoentries<< std::endl;
+		    // dtxtEntries->GetText();
+		    TObject *obj;
+		    TIter next1(SubSystemArray.MakeIterator());
+		    obj = next1();
+		    while(obj){
+		      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+		      entry->SetAutoHistoReset(iAutoentries);
+		      entry->SetHistoReset(1);
+		      entry->SetHistoAccumulate(0);
+		      entry->SetHistoPause(0);
+		      obj = next1();
+		    }
+		    
+		  };;;
+		  break;		
 		case M_EXIT:
 		  {;;;
 

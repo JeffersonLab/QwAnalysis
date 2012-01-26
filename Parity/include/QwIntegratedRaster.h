@@ -52,13 +52,23 @@ class QwIntegratedRasterDetectorID{
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwIntegratedRaster : public VQwSubsystemParity, public MQwCloneable<QwIntegratedRaster> {
+class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneable<QwIntegratedRaster> {
   /////  
-public:
-  QwIntegratedRaster(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
-   {
-   };
 
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwIntegratedRaster();
+
+ public:
+  /// Constructor with name
+  QwIntegratedRaster(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name)
+  { };
+  /// Copy constructor
+  QwIntegratedRaster(const QwIntegratedRaster& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
   virtual ~QwIntegratedRaster() { };
 
 
@@ -75,8 +85,17 @@ public:
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
+  //update the same error flag in the classes belong to the subsystem.
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+  }
+  //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  };
 
   void AccumulateRunningSum(VQwSubsystem* value);
+  //remove one entry from the running sums for devices
+  void DeaccumulateRunningSum(VQwSubsystem* value){
+  };
   void CalculateRunningAverage();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -112,11 +131,12 @@ public:
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db, TString datatype);
+  void  FillErrDB(QwParityDB *db, TString datatype);
+  void  WritePromptSummary(QwPromptSummary *ps, TString type);
 
   const VQwDataElement* GetChannel(const TString name) const;
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

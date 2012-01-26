@@ -1,7 +1,3 @@
-//To Do: NewDataInit() probably needs more attention with regard to opening
-//       new files, when one is currently loaded!
-//       
-//       Edit starting with the newly created function ::CleanUp() ...
 
 #include <QwGUIMainDetector.h>
 
@@ -99,6 +95,7 @@ Int_t QwGUIMainDetectorDataStructure::SetTree(TTree *tree)
 	grp = new TGraph();
 	grp->SetName(Form("%s_grp",DataName[c].Data()));//Form("%s.%s",DetectorName,TreeLeafName[c].data())));
 	grp->SetTitle(Form("Run %d %s",GetRunNumber(),DataName[c].Data()));//Form("%s.%s",DetectorName,TreeLeafName[c])));
+	grp->SetEditable(kFalse);
 	DataGraph.push_back(grp);
 // 	TreeLeafMenuID.push_back(IDOFFSET+DetectorID*100+c); 
 	fft = new EventOptions;
@@ -207,7 +204,8 @@ Int_t QwGUIMainDetectorDataStructure::SetHistograms(RDataContainer *cont, TTree 
 //     MPSCntLeaf = CurrentTree->GetLeaf("mps_counter");
     if(ThisDetectorBranch){
       
-//       EventOptions *fft = NULL;
+      // printf("F: %s L: %d, Setting Histogram for: %s\n",__FILE__,__LINE__,DetectorName.Data());
+      //       EventOptions *fft = NULL;
 //       TGraph *grp = NULL;
       TObjArray *leafes = ThisDetectorBranch->GetListOfLeaves();
       TString objname;
@@ -242,12 +240,17 @@ Int_t QwGUIMainDetectorDataStructure::SetHistograms(RDataContainer *cont, TTree 
 
 
 
-	if(tmp){
+	if(tmp){	  
+
 
 	  TH1D *hst = new TH1D(*(TH1D*)(tmp->Clone()));	  
 	  hst->SetTitle(Form("Run %d %s",GetRunNumber(),DataName[c].Data()));
 	  hst->GetXaxis()->SetTitle(TreeLeafXUnits[c].Data());
+	  // // if(DetectorName.Contains("asym"))
+	  // //   hst->GetXaxis()->SetRangeUser(tmp->GetMean()-1000*tmp->GetRMS(), tmp->GetMean()+1000*tmp->GetRMS());
+	  // // else
 	  hst->GetXaxis()->SetRangeUser(tmp->GetMean()-10*tmp->GetRMS(), tmp->GetMean()+10*tmp->GetRMS());
+
 	  hst->GetXaxis()->CenterTitle();
 	  hst->GetXaxis()->SetTitleSize(0.06);
 	  hst->GetXaxis()->SetLabelSize(0.06);
@@ -533,7 +536,7 @@ void QwGUIMainDetectorDataStructure::FillHistograms()
     grp = DataGraph[i];
     if(grp){    
       hst = new TH1D(Form("%s_hst",DataName[i].Data()),Form("Run %d %s",GetRunNumber(),DataName[i].Data()),
-		     1000,TreeLeafMean[i]-5*TreeLeafRMS[i],TreeLeafMean[i]+5*TreeLeafRMS[i]);
+		     1000,TreeLeafMean[i]-10*TreeLeafRMS[i],TreeLeafMean[i]+10*TreeLeafRMS[i]);
       hst->SetDirectory(0);
       hst->SetBit(TH1::kCanRebin);
 
@@ -963,7 +966,7 @@ UInt_t QwGUIMainDetectorDataType::SetHistograms(RDataContainer *cont, TTree *tre
       TBranch *branch = CurrentTree->GetBranch(DetNames[i].Data());
       if(branch){
 	dataStr = new QwGUIMainDetectorDataStructure(ID+200+i,thisRun,Type);
-	dataStr->SetDetectorName(DetNames[i].Data());
+	dataStr->SetDetectorName(DetNames[i].Data());	
 	dDetDataStr.push_back(dataStr);
 	temp = dDetDataStr[i]->SetHistograms(cont,tree);
 	if(!i)  NumberOfLeafs = temp;
@@ -1066,7 +1069,6 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
       grph = new TGraphErrors(dDetDataStr.size());
       grph->SetName(Form("%s_SignalMean",GetType()));
       grph->SetTitle(Form("%s Mean: %s %s",GetType(),dDetDataStr[0]->GetTreeLeafName(j),SummaryTitle));
-      
       for(uint i = 0; i < dDetDataStr.size(); i++){
 	grph->SetPoint(i,i+1,dDetDataStr[i]->GetTreeLeafMean(j));
 	grph->SetPointError(i,0,dDetDataStr[i]->GetTreeLeafError(j));      
@@ -1084,7 +1086,7 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
       grph->GetYaxis()->SetTitleOffset(1.5);
       grph->SetMarkerStyle(20);
       grph->SetMarkerSize(0.6);
-
+      grph->SetEditable(kFalse);
       
       dMeanGraph.push_back(grph);
       
@@ -1111,7 +1113,8 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
       grph->GetYaxis()->SetTitleOffset(1.5);
       grph->SetMarkerStyle(20);
       grph->SetMarkerSize(0.6);
-      
+      grph->SetEditable(kFalse);
+
       dRMSGraph.push_back(grph);
     }
   }
@@ -1157,6 +1160,8 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawHistogram(j);
 	      PlotType = PLOT_TYPE_HISTO;
 	      gPad->SetLogy(1);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
+
 
 	    }
 	    if(CurrentPlotMenuItemID == GraphMenuID){
@@ -1165,6 +1170,7 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawGraph(j);
 	      PlotType = PLOT_TYPE_GRAPH;
 	      gPad->SetLogy(0);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
 	      
 	    }
 	    if(CurrentPlotMenuItemID == FFTMenuID){
@@ -1173,6 +1179,7 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawFFTHistogram(j);
 	      PlotType = PLOT_TYPE_HISTO;
 	      gPad->SetLogy(1);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
 	      
 	    }
 	    if(CurrentPlotMenuItemID == ProfMenuID){
@@ -1181,6 +1188,7 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawCorrelationProfile(j);
 	      PlotType = PLOT_TYPE_PROFILE;
 	      gPad->SetLogy(0);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
 	      
 	    }
 	    if(CurrentPlotMenuItemID == ProjectionMenuID){
@@ -1189,12 +1197,15 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawCorrelationProjection(j);
 	      PlotType = PLOT_TYPE_HISTO;
 	      gPad->SetLogy(1);	      
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
+
 	    }
 	  }
 	}
       }
       mc->Modified();
       mc->Update();
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
     }
   }
   else{    
@@ -1214,6 +1225,7 @@ void QwGUIMainDetectorDataType::PlotData()
     }
     mc->Modified();
     mc->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
     
   }
 }
@@ -1598,8 +1610,15 @@ TRootEmbeddedCanvas *QwGUIMainDetectorDataType::MakeDataTab(TGTab *dMDTab,
     if(n == 14){xn = 4; yn = 4;}
     if(n == 15){xn = 4; yn = 4;}
     if(n == 16){xn = 4; yn = 4;}
+    if(n == 17){xn = 4; yn = 5;}
+    if(n == 18){xn = 4; yn = 5;}
+    if(n == 19){xn = 4; yn = 5;}
+
+    // xn = TMath::Floor(TMath::Sqrt(n));
+    // yn = TMath::Ceil(TMath::Sqrt(n));
 
     mc->Divide(xn,yn);
+
     dNumberOfPads = xn*yn;
   }
   else
@@ -1710,8 +1729,8 @@ QwGUIMainDetector::~QwGUIMainDetector()
 {
   CleanUp();
 
-  if(dMDTab) delete dMDTab;
-  if(dTabFrame)  delete dTabFrame;
+  // if(dMDTab) delete dMDTab;
+  // if(dTabFrame)  delete dTabFrame;
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -1939,8 +1958,9 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
   MAIN_DET_COMBIND = 0;
   MAIN_MSC_INDEX = 0;
 
-  //  TString mapfile = Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH"));
-  TString mapfile = Form("qweak_maindet.map");
+  // TString mapfile = Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH"));
+  // TString mapfile = Form("qweak_maindet.map");
+  TString mapfile = Form("%s/Parity/prminput/qweak_maindet.map",gSystem->Getenv("QWANALYSIS"));
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
   Int_t modnum, channum, combinedchans;
@@ -1957,26 +1977,19 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
     }
     else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
+
       if (modtype == "VQWK"){
-	modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-	channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+	channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	namech.ToLower();
-	if(modnum == 4){
 
-	  if(MPSTree->GetBranch(namech.Data()))
-	    MainDetectorMscYieldNames.push_back(namech);
-	  
-	  namech.Prepend("asym_");
-	  if(HELTree->GetBranch(namech.Data()))
-	    MainDetectorMscAsymNames.push_back(namech);
 
-	  MAIN_MSC_INDEX++;
-	}
-	if(modnum < 4){
+	if((namech.Contains("pos") || namech.Contains("neg"))
+	   && !namech.Contains("9pos") && !namech.Contains("9neg")){
 
 	  if(MPSTree->GetBranch(namech.Data()))
 	    MainDetectorPMTYieldNames.push_back(namech);
@@ -1984,18 +1997,30 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	  namech.Prepend("asym_");
 	  if(HELTree->GetBranch(namech.Data()))
 	    MainDetectorPMTAsymNames.push_back(namech);
-
+	  
 	  MAIN_PMT_INDEX++;
+
+	}
+	else{
+	  // if(modnum == 4){}
+	  if(MPSTree->GetBranch(namech.Data()))
+	    MainDetectorMscYieldNames.push_back(namech);
+	  
+	  namech.Prepend("asym_");
+	  if(HELTree->GetBranch(namech.Data()))
+	    MainDetectorMscAsymNames.push_back(namech);
+	  MAIN_MSC_INDEX++;
 	}
       }
       else if (modtype == "VPMT"){
-	channum       = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	combinedchans = (atol(mapstr.GetNextToken(", ").c_str()));	//number of combined channels
-	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	channum       = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	combinedchans = mapstr.GetTypedNextToken<Int_t>();	//number of combined channels
+	dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	namech.ToLower();
-	if(combinedchans == 2){
+
+	if(namech.Contains("barsum")){
 
 	  if(MPSTree->GetBranch(namech.Data()))
 	    MainDetectorYieldNames.push_back(namech);
@@ -2004,18 +2029,17 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	  if(HELTree->GetBranch(namech.Data()))
 	    MainDetectorAsymNames.push_back(namech);
 
-// 	  MainDetectorNames.push_back(namech);
 	  MAIN_DET_INDEX++;
 	}
-	if(combinedchans >= 4){
+	else{
 
 // 	  if(MPSTree->GetBranch(namech.Data()))
 // 	    MainDetectorYieldNames.push_back(namech);
 	  
 	  namech.Prepend("asym_");
-	  if(HELTree->GetBranch(namech.Data()))
+	  if(HELTree->GetBranch(namech.Data())){
 	    MainDetectorCombinationNames.push_back(namech);
-
+	  }
 	  MAIN_DET_COMBIND++;
 	}
 
@@ -2273,19 +2297,19 @@ void QwGUIMainDetector::AddDataHistograms(TTree *MPSTree,TTree *HELTree)
 //     temp4.push_back(Form("asym_%s",MainDetectorCombinationNames[l].Data()));
 
   dCurrentYields->AddHistograms(dROOTCont,MPSTree,MainDetectorPMTYieldNames);
-  dCurrentYields->ProcessData("(md1- -> md8+)",kTrue);
+  dCurrentYields->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTYieldNames.size()/2)),kTrue);
   printf("dCurrentYields->ProcessData Done\n");
 
   gSystem->ProcessEvents();
 
   dCurrentPMTAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorPMTAsymNames);
-  dCurrentPMTAsyms->ProcessData("(md1- -> md8+)",kTrue);
+  dCurrentPMTAsyms->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTAsymNames.size()/2)),kTrue);
   printf("dCurrentPMTAsyms->ProcessData Done\n");
   
   gSystem->ProcessEvents();
 
   dCurrentDETAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorAsymNames);
-  dCurrentDETAsyms->ProcessData("(md1barsum -> md8barsum)",kTrue);
+  dCurrentDETAsyms->ProcessData(Form("(md1barsum -> md%dbarsum)",(Int_t)MainDetectorAsymNames.size()),kTrue);
   printf("dCurrentDETAsyms->ProcessData Done\n");  
   
   gSystem->ProcessEvents();
@@ -2404,29 +2428,53 @@ Int_t QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
     if(dProgrDlg)
       dProgrDlg->CloseWindow();
   }
-  
+  // RMsgBox *mBox = new RMsgBox(GetParent(), GetMain(), "mBox", 
+  // 				"QwGUIMainDetector","Processing",
+  // 				"Please wait!\nProcessing MD Data ...",
+  // 				kMBIconExclamation,0);
 
-  dCurrentYields->ProcessData("(md1- -> md8+)");
+  // if(mBox){
+  //   gSystem->ProcessEvents();
+  // }
+
+  // printf("File %s, Line %d\n",__FILE__,__LINE__);
+
+  dCurrentYields->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTYieldNames.size()/2)));
   printf("dCurrentYields->ProcessData Done\n");
   
-  dCurrentPMTAsyms->ProcessData("(md1- -> md8+)");
+  // mBox->UpdateText("Done Processing Yields");
+  // gSystem->ProcessEvents();
+
+  dCurrentPMTAsyms->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTAsymNames.size()/2)));
   printf("dCurrentPMTAsyms->ProcessData Done\n");
   
-  dCurrentDETAsyms->ProcessData("(md1barsum -> md8barsum)");
+  dCurrentDETAsyms->ProcessData(Form("(md1barsum -> md%dbarsum)",(Int_t)MainDetectorAsymNames.size()));
   printf("dCurrentDETAsyms->ProcessData Done\n");
   
   dCurrentCMBAsyms->ProcessData("(1+5,2+6,3+7,4+8,odd,even,all)");
   printf("dCurrentCMBAsyms->ProcessData Done\n");
+
+  // mBox->UpdateText("Done Processing Asymmetries");
+  // gSystem->ProcessEvents();
   
   dCurrentMSCYields->ProcessData("(PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");    
   printf("dCurrentMSCYields->ProcessData Done\n");
-  
+
+  // mBox->UpdateText("Done Processing Background Detector Yields");
+  // gSystem->ProcessEvents();
+
   dCurrentMSCAsyms->ProcessData("(PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
   printf("dCurrentMSCAsyms->ProcessData Done\n");
-  
+
+  // mBox->UpdateText("Done Processing Background Detector Asymmetries");
+  // gSystem->ProcessEvents();
+
   dCurrentSummary->ProcessData(""); //Must be called last!
   printf("dCurrentSummary->ProcessData Done\n");  
-    
+
+  // mBox->UpdateText("Done Processing Summaries");
+  // gSystem->ProcessEvents();
+  
     //End filling root data
 
   return 1;
@@ -2596,13 +2644,17 @@ Bool_t QwGUIMainDetector::PlotCurrentModeData(UInt_t tab)
 		     0.5+rad*TMath::Sin(2*(k)*TMath::Pi()/8 - TMath::Pi()/2)+0.125,
 		     0.5+rad*TMath::Cos(2*(k)*TMath::Pi()/8 - TMath::Pi()/2)+0.125);
 
+	if(k == 8){
+	  gPad->SetPad(0.5-0.125,0.5-0.125,0.5+0.125,0.5+0.125);
+	}
+
       }
       gPad->SetLeftMargin(0.2);
       gPad->SetBottomMargin(0.2);
     }
 
     if(type.Contains("Det. Asym")){
-      TPaveText *ref = new TPaveText(0.43,0.48,0.57,0.52);
+      TPaveText *ref = new TPaveText(0.43+0.4,0.48+0.45,0.57+0.4,0.52+0.45);
       ref->AddText("Looking Downstream");
       ref->SetBorderSize(0);
       ref->SetFillColor(0);
@@ -2623,6 +2675,16 @@ Bool_t QwGUIMainDetector::PlotCurrentModeData(UInt_t tab)
   }
 
   return kFalse;
+}
+
+void QwGUIMainDetector::MakeHCLogEntry()
+{
+
+  if(!dCurrentModeData[GetActiveTab()]) return;
+  TRootEmbeddedCanvas* ec = dCurrentModeData[GetActiveTab()]->GetCanvas();
+  if(ec)
+    SubmitToHCLog(ec->GetCanvas());
+
 }
 
 void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
@@ -2665,6 +2727,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
       return;
     }
     if(plot->InheritsFrom("TH1")){
@@ -2691,6 +2754,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
       
       return;
     }
@@ -2729,6 +2793,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
 
       return;
     }
@@ -2767,6 +2832,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
       return;
     }
   }

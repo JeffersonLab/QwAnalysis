@@ -78,13 +78,16 @@
 //                   - Fixed the way the fitting range was being calculated.
 //                   - Passed the correct command to plot residuals in to residual plots. 
 //
-//          0.1.0 : Friday, May 6th Buddhini
+//          0.1.0 : Friday, May 6th,2011 Buddhini
 //                   - Added the bcm1 vs mps_counter plot.
 //                   - Added a method get the minimum and maximum current from the bcm1 reading.
 //                   - Disabled getting the bpm names from the geometry map file. Due to the new column of rotation in the map file
 //                     the code reading the map files seems to skip bpms that have the rotation column filled.
 //                     I was in a hurry to get the calibrations so I did not try to go and fix the map file reading routine.
-// 
+//
+//          0.1.1 : Sunday, November 20th, 2011 Buddhini
+//                   - Changed to search for rootfiles with the extension *.trees.root
+ 
 // Additional BPM calibration run info
 //
 //  run 
@@ -1009,7 +1012,8 @@ main(int argc, char **argv)
  
   mps_tree_in_chain = new TChain("Mps_Tree");
 
-  TString bpm_calibration_filename = Form("BPMCalib_%s*.root", run_number);
+  TString bpm_calibration_filename = Form("BPMCalib_%s*.trees.root", run_number);
+
   Int_t chain_status = 0;
   chain_status = GetTree(bpm_calibration_filename, mps_tree_in_chain);
 

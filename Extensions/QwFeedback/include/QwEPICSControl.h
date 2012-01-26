@@ -141,6 +141,25 @@ public:
  
   };
 
+  void Set_HelicityMagnet(size_t magnet_index, size_t helicity_index, Double_t &value){
+    Int_t status;
+    if (magnet_index<4 && helicity_index<2){
+      status = ca_put(DBR_DOUBLE, fIDHelMag[magnet_index][helicity_index], &value);
+      status = ca_pend_io(10);
+      status = ca_get(DBR_DOUBLE, fIDHelMag[magnet_index][helicity_index], &value);
+      status = ca_pend_io(10);
+      std::cout << "Helicity Magnet, " << fHelMagNames[magnet_index] 
+		<< "," << fHelicityNames[helicity_index] << " setpoint: "
+		<< value << std::endl; 
+    } else {
+      std::cerr << "Set_HelicityMagnet():  "
+		<< "magnet_index must be less than 4, and is " << magnet_index
+		<< "; helicity_index must be 0 or 1 but is " << helicity_index
+		<< std::endl;
+    }
+  };
+
+
 
   void Get_HallCIA(Int_t mode, Double_t &value){
     Int_t status;
@@ -198,6 +217,21 @@ public:
     
   }
 
+  void Get_HelicityMagnet(size_t magnet_index, size_t helicity_index, Double_t &value){
+    Int_t status;
+    if (magnet_index<4 && helicity_index<2){
+      status = ca_get(DBR_DOUBLE, fIDHelMag[magnet_index][helicity_index], &value);
+      status = ca_pend_io(10);
+      std::cout << "Helicity Magnet, " << fHelMagNames[magnet_index] 
+		<< "," << fHelicityNames[helicity_index] << " setpoint: "
+		<< value << std::endl; 
+    } else {
+      std::cerr << "Get_HelicityMagnet():  "
+		<< "magnet_index must be less than 4, and is " << magnet_index
+		<< "; helicity_index must be 0 or 1 but is " << helicity_index
+		<< std::endl;
+    }
+  };
 
   void Set_Pockels_Cell_plus(Double_t &value){
     Int_t status;
@@ -261,7 +295,113 @@ public:
     std::cout << "Charge asymmetry  " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
 
   };
+
+  void Set_HAChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fHAChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+
+    std::cout << "EPICS HA Charge asymmetry updated " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
+
+  };
  
+  void Get_HAChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+    std::cout << "HA Charge asymmetry  " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
+
+  };
+
+  void Set_TargetHCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width,Double_t &xpvalue, Double_t &xpvalue_error, Double_t &xpvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &ypvalue, Double_t &ypvalue_error, Double_t &ypvalue_width){
+
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fTargetXDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,fTargetXPDiff , &xpvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXPDiffError , &xpvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXPDiffWidth , &xpvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,fTargetYDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,fTargetYPDiff , &ypvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYPDiffError , &ypvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYPDiffWidth , &ypvalue_width);
+    status = ca_pend_io(10);
+
+
+    std::cout << "Target X Diff (um)  " << xvalue <<" +/- "<<xvalue_error<<" width "<<xvalue_width << std::endl;
+    std::cout << "Target XP Diff (mrad)  " << xpvalue <<" +/- "<<xpvalue_error<<" width "<<xpvalue_width << std::endl;
+    std::cout << "Target Y Diff (um)  " << yvalue <<" +/- "<<yvalue_error<<" width "<<yvalue_width << std::endl;
+    std::cout << "Target YP Diff (mrad)  " << ypvalue <<" +/- "<<ypvalue_error<<" width "<<ypvalue_width << std::endl;
+
+
+
+  }
+
+  void Get_TargetHCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width,Double_t &xpvalue, Double_t &xpvalue_error, Double_t &xpvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &ypvalue, Double_t &ypvalue_error, Double_t &ypvalue_width){
+
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fTargetXDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,fTargetXPDiff , &xpvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXPDiffError , &xpvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXPDiffWidth , &xpvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,fTargetYDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,fTargetYPDiff , &ypvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYPDiffError , &ypvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYPDiffWidth , &ypvalue_width);
+    status = ca_pend_io(10);
+
+  }
+
+
   
   void Set_FeedbackStatus(Double_t value){
     Int_t status;
@@ -389,21 +529,43 @@ public:
   chid fChargeAsymmetry;
   chid fChargeAsymmetryError;
   chid fChargeAsymmetryWidth;
+
+  chid fHAChargeAsymmetry;
+  chid fHAChargeAsymmetryError;
+  chid fHAChargeAsymmetryWidth;
+
+  chid fTargetXDiff;
+  chid fTargetXDiffError;
+  chid fTargetXDiffWidth;
+
+  chid fTargetXPDiff;
+  chid fTargetXPDiffError;
+  chid fTargetXPDiffWidth;
+
+  chid fTargetYDiff;
+  chid fTargetYDiffError;
+  chid fTargetYDiffWidth;
+
+  chid fTargetYPDiff;
+  chid fTargetYPDiffError;
+  chid fTargetYPDiffWidth;
+
+
+
+
+
+
+
   chid fFeedbackStatus;
 
   chid fHalfWavePlateStatus;
   
-  chid fIDMagnet_1_Even;
-  chid fIDMagnet_1_Odd;
-  chid fIDMagnet_2_Even;
-  chid fIDMagnet_2_Odd;
-  chid fIDMagnet_3_Even;
-  chid fIDMagnet_3_Odd;
-  chid fIDMagnet_4_Even;
-  chid fIDMagnet_4_Odd;
+  chid fIDHelMag[4][2];    ///< EPICS control setpoints for helicity magnets indexed by magnet and helicity state
+  TString fHelMagNames[4]; ///< Device names of the helicity magnets
+  TString fHelicityNames[2];
 
 
-;
+  
 
 
 

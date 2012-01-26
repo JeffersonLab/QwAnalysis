@@ -18,25 +18,27 @@
 // Random number generator seed
 ULong_t gRandomSeed = 55.;
 // Prototype functions
-void ExpandBPMRange(Double_t *min, Double_t *max);
+void ExpandBPMRange(Double_t *min, Double_t *max, Bool_t isX = kFALSE);
+void PlotBPM(TString name,TString prefix,TChain *chain,Double_t minMps, Double_t maxMps,
+    TCanvas *canvas, TCanvas *tmpCanvas,Int_t index);
 
 Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kFALSE)
 {
   gROOT->Reset();
 
   // Get the chain
-  TChain *mpsChain = getMpsChain(runnum,isFirst100k);
-  if (!mpsChain) {
+  TChain *helChain = getHelChain(runnum,isFirst100k);
+  if (!helChain) {
     std::cout << "What a scam!! We didn't even get data!" << std::endl;
     return -1;
   }
 
   // Prepare the canvas
-  TCanvas *canvas = new TCanvas("BeamLineCanvas","Beam Line Canvas",800,1024);
-  canvas->Divide(1,5);
+  TCanvas *canvas = new TCanvas("BeamLineCanvas","Beam Line Canvas",800,2048);
+  canvas->Divide(1,9);
   canvas->SetFillColor(0);
   TCanvas *tmpCanvas = new TCanvas("TmpBeamLineCanvas","Beam Line Canvas",1024,1600);
-  tmpCanvas->Divide(1,4);
+  tmpCanvas->Divide(1,9);
 
   // Prepare the web url
   TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
@@ -45,222 +47,17 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
 
   // Record Extremeties
   Double_t maxMps, minMps;
-  Double_t maxBPMX, minBPMX, minBPMY, maxBPMY;
-  Double_t dx, dy;
-  maxMps = mpsChain->GetMaximum("mps_counter");
-  minMps = mpsChain->GetMinimum("mps_counter");
+  maxMps = helChain->GetMaximum("mps_counter");
+  minMps = helChain->GetMinimum("mps_counter");
 
-  // Plot BPM 3P02A
-  TPad *p02AX = new TPad("p02AX","",0,0,1,1);
-  TPad *p02AY = new TPad("p02AY","",0,0,1,1);
-  p02AY->SetFillStyle(4000);
-  TGaxis *a02A;
-
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02aX");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02aX");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02aY");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02aY");
-
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
-
-  TH2F *h02AX = new TH2F("h02AX",
-      "BPM 3P02AX vs Mps Counter;Mps Counter;BPM 3P02AX (mm)",
-      500,minMps,maxMps,500,minBPMX,maxBPMX);
-  TH2F *h02AY = new TH2F("h02AY",
-      "BPM 3P02AY vs Mps Counter;Mps Counter;BPM 3P02AY (mm)",
-      500,minMps,maxMps,500,minBPMY,maxBPMY);
-
-  // Now plot all the stuff out
-  tmpCanvas->cd(1);
-  p02AX->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3p02aX:mps_counter>>h02AX","compton_charge>25");
-  canvas->cd(1);
-  h02AX = (TH2F*)gDirectory->Get("h02AX");
-  p02AX->Draw();
-  p02AX->cd();
-  h02AX->SetMarkerColor(kBlue);
-  h02AX->SetStats(kFALSE);
-  h02AX->Draw();
-  tmpCanvas->cd(1);
-  mpsChain->Draw("sca_bpm_3p02aY:mps_counter>>h02AY","compton_charge>25","][sames");
-  h02AY = (TH2F*)gDirectory->Get("h02AY");
-  h02AY->SetMarkerColor(kRed);
-  h02AY->SetStats(kFALSE);
-  canvas->cd(1);
-  dy = (maxBPMY-minBPMY)/.8;
-  dx = (maxMps-minMps)/.8;
-  p02AY->Range(minMps-.1*dx,minBPMY-.1*dy,maxMps+.1*dx,maxBPMY+.1*dy);
-  p02AY->Draw();
-  p02AY->cd();
-  //h02AY->Draw();//"][sames");
-  h02AY->Draw("][sames");
-  p02AY->Update();
-  a02A = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
-  a02A->SetLabelColor(kRed);
-  a02A->SetTitleColor(kRed);
-  a02A->SetTitle("BPM 3P02AY (mm)");
-  a02A->Draw();
-
-  // Plot BPM 3P02B
-  TPad *p02BX = new TPad("p02AX","",0,0,1,1);
-  TPad *p02BY = new TPad("p02AY","",0,0,1,1);
-  p02BY->SetFillStyle(4000);
-  TGaxis *a02b;
-
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02bX");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02bX");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02bY");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02bY");
-
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
-
-  TH2F *h02BX = new TH2F("h02BX",
-      "BPM 3P02BX vs Mps Counter;Mps Counter;BPM 3P02BX (mm)",
-      500,minMps,maxMps,500,minBPMX,maxBPMX);
-  TH2F *h02BY = new TH2F("h02BY",
-      "BPM 3P02BY vs Mps Counter;Mps Counter;BPM 3P02BY (mm)",
-      500,minMps,maxMps,500,minBPMY,maxBPMY);
-
-  // Now plot all the stuff out
-  tmpCanvas->cd(2);
-  p02BX->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3p02bX:mps_counter>>h02BX","compton_charge>25");
-  h02BX = (TH2F*)gDirectory->Get("h02BX");
-  canvas->cd(2);
-  p02BX->Draw();
-  p02BX->cd();
-  h02BX->SetMarkerColor(kBlue);
-  h02BX->SetStats(kFALSE);
-  h02BX->Draw();
-  tmpCanvas->cd(2);
-  mpsChain->Draw("sca_bpm_3p02bY:mps_counter>>h02BY","compton_charge>25","][sames");
-  canvas->cd(2);
-  h02BY = (TH2F*)gDirectory->Get("h02BY");
-  h02BY->SetMarkerColor(kRed);
-  h02BY->SetStats(kFALSE);
-  dy = (maxBPMY-minBPMY)/.8;
-  dx = (maxMps-minMps)/.8;
-  p02BY->Range(minMps-.1*dx,minBPMY-.1*dy,maxMps+.1*dx,maxBPMY+.1*dy);
-  p02BY->Draw();
-  p02BY->cd();
-  //h02BY->Draw();//"][sames");
-  h02BY->Draw("][sames");
-  p02BY->Update();
-  a02b = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
-  a02b->SetLabelColor(kRed);
-  a02b->SetTitleColor(kRed);
-  a02b->SetTitle("BPM 3P02BY (mm)");
-  a02b->Draw();
-
-
-
-  // Plot BPM 3P03A
-  TPad *p03AX = new TPad("p02AX","",0,0,1,1);
-  TPad *p03AY = new TPad("p02AY","",0,0,1,1);
-  p03AY->SetFillStyle(4000);
-  TGaxis *a03a;
-
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p03aX");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p03aX");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p03aY");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p03aY");
-
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
-
-  TH2F *h03AX = new TH2F("h03AX",
-      "BPM 3P03AX vs Mps Counter;Mps Counter;BPM 3P03AX (mm)",
-      500,minMps,maxMps,500,minBPMX,maxBPMX);
-  TH2F *h03AY = new TH2F("h03AY",
-      "BPM 3P03AY vs Mps Counter;Mps Counter;BPM 3P03AY (mm)",
-      500,minMps,maxMps,500,minBPMY,maxBPMY);
-
-  // Now plot all the stuff out
-  tmpCanvas->cd(3);
-  p03AX->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3p03aX:mps_counter>>h03AX","compton_charge>25");
-  h03AX = (TH2F*)gDirectory->Get("h03AX");
-  canvas->cd(3);
-  p03AX->Draw();
-  p03AX->cd();
-  h03AX->SetMarkerColor(kBlue);
-  h03AX->SetStats(kFALSE);
-  h03AX->Draw();
-  tmpCanvas->cd(3);
-  mpsChain->Draw("sca_bpm_3p03aY:mps_counter>>h03AY","compton_charge>25","][sames");
-  canvas->cd(3);
-  h03AY = (TH2F*)gDirectory->Get("h03AY");
-  h03AY->SetMarkerColor(kRed);
-  h03AY->SetStats(kFALSE);
-  dy = (maxBPMY-minBPMY)/.8;
-  dx = (maxMps-minMps)/.8;
-  p03AY->Range(minMps-.1*dx,minBPMY-.1*dy,maxMps+.1*dx,maxBPMY+.1*dy);
-  p03AY->Draw();
-  p03AY->cd();
-  //h03AY->Draw();//"][sames");
-  h03AY->Draw("][sames");
-  p03AY->Update();
-  a03a = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
-  a03a->SetLabelColor(kRed);
-  a03a->SetTitleColor(kRed);
-  a03a->SetTitle("BPM 3P03AY (mm)");
-  a03a->Draw();
-
-
-
-  // Plot BPM 3C020
-  TPad *p020X = new TPad("p02AX","",0,0,1,1);
-  TPad *p020Y = new TPad("p02AY","",0,0,1,1);
-  p020Y->SetFillStyle(4000);
-  TGaxis *a020;
-
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3c20X");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3c20X");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3c20Y");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3c20Y");
-
-  ExpandBPMRange(&minBPMX,&maxBPMX);
-  ExpandBPMRange(&minBPMY,&maxBPMY);
-
-  TH2F *h020X = new TH2F("h020X",
-      "BPM 3C020X vs Mps Counter;Mps Counter;BPM 3C020X (mm)",
-      500,minMps,maxMps,500,minBPMX,maxBPMX);
-  TH2F *h020Y = new TH2F("h020Y",
-      "BPM 3C020Y vs Mps Counter;Mps Counter;BPM 3C020Y (mm)",
-      500,minMps,maxMps,500,minBPMY,maxBPMY);
-
-  // Now plot all the stuff out
-  tmpCanvas->cd(4);
-  p020X->SetFillColor(0);
-  mpsChain->Draw("sca_bpm_3c20X:mps_counter>>h020X","compton_charge>25");
-  h020X = (TH2F*)gDirectory->Get("h020X");
-  canvas->cd(4);
-  p020X->Draw();
-  p020X->cd();
-  h020X->SetMarkerColor(kBlue);
-  h020X->SetStats(kFALSE);
-  h020X->Draw();
-  tmpCanvas->cd(4);
-  mpsChain->Draw("sca_bpm_3c20Y:mps_counter>>h020Y","compton_charge>25","][sames");
-  canvas->cd(4);
-  h020Y = (TH2F*)gDirectory->Get("h020Y");
-  h020Y->SetMarkerColor(kRed);
-  h020Y->SetStats(kFALSE);
-  dy = (maxBPMY-minBPMY)/.8;
-  dx = (maxMps-minMps)/.8;
-  p020Y->Range(minMps-.1*dx,minBPMY-.1*dy,maxMps+.1*dx,maxBPMY+.1*dy);
-  p020Y->Draw();
-  p020Y->cd();
-  //h020Y->Draw();//"][sames");
-  h020Y->Draw("][sames");
-  p020Y->Update();
-  a020 = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
-  a020->SetLabelColor(kRed);
-  a020->SetTitleColor(kRed);
-  a020->SetTitle("BPM 3C020Y (mm)");
-  a020->Draw();
+  PlotBPM("3p02a","diff",helChain,minMps,maxMps,canvas,tmpCanvas,1);
+  PlotBPM("3p02a","yield",helChain,minMps,maxMps,canvas,tmpCanvas,2);
+  PlotBPM("3p02b","diff",helChain,minMps,maxMps,canvas,tmpCanvas,3);
+  PlotBPM("3p02b","yield",helChain,minMps,maxMps,canvas,tmpCanvas,4);
+  PlotBPM("3p03a","diff",helChain,minMps,maxMps,canvas,tmpCanvas,5);
+  PlotBPM("3p03a","yield",helChain,minMps,maxMps,canvas,tmpCanvas,6);
+  PlotBPM("3c20","diff",helChain,minMps,maxMps,canvas,tmpCanvas,7);
+  PlotBPM("3c20","yield",helChain,minMps,maxMps,canvas,tmpCanvas,8);
 
   // Plot the BCM's
   TH2F *hBCM1 = new TH2F("hBCM1",
@@ -277,23 +74,22 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
       500,minMps,maxMps,500,0.,200.);
 
   // Now plot all the stuff out
-  canvas->cd(5);
-  mpsChain->Draw("sca_bcm1:mps_counter>>hBCM1");
+  canvas->cd(9);
+  helChain->Draw("yield_sca_bcm1:mps_counter>>hBCM1");
   hBCM1->SetMarkerColor(kBlue);
   hBCM1->SetStats(kFALSE);
-  mpsChain->Draw("sca_bcm2:mps_counter>>hBCM2");
+  helChain->Draw("yield_sca_bcm2:mps_counter>>hBCM2");
   hBCM2->SetMarkerColor(kRed);
   hBCM2->SetStats(kFALSE);
-  mpsChain->Draw("sca_bcm6:mps_counter>>hBCM6");
+  helChain->Draw("yield_sca_bcm6:mps_counter>>hBCM6");
   hBCM6->SetMarkerColor(kGreen);
   hBCM6->SetStats(kFALSE);
-  mpsChain->Draw("compton_charge:mps_counter>>hComptonCharge");
+  helChain->Draw("yield_compton_charge:mps_counter>>hComptonCharge");
   hComptonCharge->SetMarkerColor(kBlack);
   hComptonCharge->SetStats(kFALSE);
 
-
   //TPad *pBCM = new TPad("pBCM","",0,0,1,1);
-  TPad *pBCM  = (TPad*)canvas->GetPad(5);
+  TPad *pBCM  = (TPad*)canvas->GetPad(9);
   pBCM->SetFillColor(0);
   pBCM->Draw();
   hBCM1->Draw();
@@ -305,7 +101,7 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   canvas->SaveAs(canvas1);
 
   if ( deleteOnExit == kTRUE ) {
-    delete mpsChain;
+    delete helChain;
     delete canvas;
   }
 
@@ -313,17 +109,108 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
 
 }
 
-void ExpandBPMRange( Double_t *min, Double_t *max )
+void ExpandBPMRange( Double_t *min, Double_t *max, Bool_t isX )
 {
+  Int_t exp;
+  Double_t maxScale, minScale;
+  frexp(*max,&exp);
+  maxScale = pow(10.,exp<0?0:exp+1);
+  maxScale = maxScale>1?1:maxScale;
+  frexp(*min,&exp);
+  minScale = pow(10.,exp<0?0:exp+1);
+  minScale = minScale>1?1:minScale;
+  Double_t maxRange[4] = {0.10,0.20,0.20,0.30};
+  Double_t minRange[4] = {0.20,0.10,0.30,0.20};
+  Int_t index = 0;
+  if( !isX )
+    index = 1;
   TRandom r;
   TTime t;
   Double_t rmin, rmax;
   r.SetSeed((ULong_t)t+gRandomSeed);
-  rmax = r.Uniform(1.0,1.5);
+  rmax = r.Uniform(maxScale*maxRange[index],maxScale*maxRange[index+2]);
   gRandomSeed += TMath::Abs(rmax);
   *max += rmax;
   r.SetSeed((ULong_t)t+gRandomSeed);
-  rmin = -r.Uniform(.25,1.5);
+  rmin = -r.Uniform(minScale*minRange[index],minScale*minRange[index+2]);
   gRandomSeed += TMath::Abs(rmin);
   *min += rmin;
+}
+
+void PlotBPM(TString name, TString prefix, TChain *chain,Double_t minMps, Double_t maxMps,
+    TCanvas *canvas, TCanvas *tmpCanvas,Int_t index)
+{
+  // Prepare the strings
+  TString desc;
+  if( prefix == "yield" ) {
+    desc = "Positions";
+  } else {
+    desc = "Differences";
+  }
+  TString padXName = Form("p%sX",name.Data());
+  TString padYName = Form("p%sY",name.Data());
+  TString histXName = "h"+prefix+name+"X";
+  TString histYName = "h"+prefix+name+"Y";
+  TString diffLeafXName = Form("%s_sca_bpm_%sX/value",prefix.Data(),name.Data());
+  TString diffLeafYName = Form("%s_sca_bpm_%sY/value",prefix.Data(),name.Data());
+  TString diffPlotX = Form("%s_sca_bpm_%sX.value:mps_counter>>%s",
+      prefix.Data(),name.Data(),histXName.Data());
+  TString diffPlotY = Form("%s_sca_bpm_%sY.value:mps_counter>>%s",
+      prefix.Data(),name.Data(),histYName.Data());
+
+  // Plot BPM
+  TPad *padX = new TPad(padXName,"",0,0,1,1);
+  TPad *padY = new TPad(padXName,"",0,0,1,1);
+  padY->SetFillStyle(4000);
+  TGaxis *yAxis;
+
+  Double_t minBPMX,maxBPMX,minBPMY,maxBPMY;
+  Double_t dx, dy;
+  minBPMX = chain->GetMinimum(diffLeafXName);
+  maxBPMX = chain->GetMaximum(diffLeafXName);
+  minBPMY = chain->GetMinimum(diffLeafYName);
+  maxBPMY = chain->GetMaximum(diffLeafYName);
+
+  ExpandBPMRange(&minBPMX,&maxBPMX,kTRUE);
+  ExpandBPMRange(&minBPMY,&maxBPMY,kFALSE);
+
+  name.ToUpper();
+  TH2F *hX = new TH2F(histXName,
+      "BPM "+desc+" "+name+"X;Mps Counter;BPM "+desc+" "+name+"X (mm)",
+      500,minMps,maxMps,500,minBPMX,maxBPMX);
+  TH2F *hY = new TH2F(histYName,
+      "BPM "+desc+" "+name+"Y;Mps Counter;BPM "+desc+" "+name+"Y (mm)",
+      500,minMps,maxMps,500,minBPMY,maxBPMY);
+
+  // Now plot all the stuff out
+  tmpCanvas->cd(index);
+  padX->SetFillColor(0);
+  chain->Draw(diffPlotX,"yield_compton_charge>25");
+  canvas->cd(index);
+  hX = (TH2F*)gDirectory->Get(histXName);
+  padX->Draw();
+  padX->cd();
+  hX->SetMarkerColor(kBlue);
+  hX->SetStats(kFALSE);
+  hX->GetYaxis()->SetNoExponent();
+  hX->Draw();
+  tmpCanvas->cd(index);
+  chain->Draw(diffPlotY,"yield_compton_charge>25","][sames");
+  hY = (TH2F*)gDirectory->Get(histYName);
+  hY->SetMarkerColor(kRed);
+  hY->SetStats(kFALSE);
+  canvas->cd(index);
+  dy = (maxBPMY-minBPMY)/.8;
+  dx = (maxMps-minMps)/.8;
+  padY->Range(minMps-.1*dx,minBPMY-.1*dy,maxMps+.1*dx,maxBPMY+.1*dy);
+  padY->Draw();
+  padY->cd();
+  hY->Draw("][sames");
+  padY->Update();
+  yAxis = new TGaxis(maxMps,minBPMY,maxMps,maxBPMY,minBPMY,maxBPMY,50510,"L+");
+  yAxis->SetLabelColor(kRed);
+  yAxis->SetTitleColor(kRed);
+  yAxis->SetTitle("BPM "+desc+" "+name+" (mm)");
+  yAxis->SetNoExponent();
+  yAxis->Draw();
 }

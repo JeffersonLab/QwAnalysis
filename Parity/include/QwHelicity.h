@@ -35,43 +35,19 @@ enum HelicityRootSavingType{kHelSaveMPS = 0,
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
-  /////
+class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHelicity> {
+
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwHelicity();
+
  public:
-
-
- QwHelicity(TString region_tmp): VQwSubsystem(region_tmp),
-    VQwSubsystemParity(region_tmp),
-   fHelicityBitPattern(kDefaultHelicityBitPattern),
-   fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
-   fEventNumberFirst(-1),fPatternNumberFirst(-1),
-   fSuppressMPSErrorMsgs(kFALSE)
-  {
-    ClearErrorCounters();
-    // Default helicity delay to two patterns.
-    fHelicityDelay = 2;
-    // Default the EventType flags to HelPlus=1 and HelMinus=4
-    // These are only used in Moller decoding mode.
-    kEventTypeHelPlus  = 4;
-    kEventTypeHelMinus = 1;
-    //
-    fEventNumberOld=-1; fEventNumber=-1;
-    fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
-    fPatternNumberOld=-1;  fPatternNumber=-1;
-    kUserbit=-1;
-    fActualPatternPolarity=kUndefinedHelicity;
-    fDelayedPatternPolarity=kUndefinedHelicity;
-    fHelicityReported=kUndefinedHelicity;
-    fHelicityActual=kUndefinedHelicity;
-    fHelicityDelayed=kUndefinedHelicity;
-    fHelicityBitPlus=kFALSE;
-    fHelicityBitMinus=kFALSE;
-    fGoodHelicity=kFALSE;
-    fGoodPattern=kFALSE;
-    fHelicityDecodingMode=-1;
-  };
-
-  virtual ~QwHelicity() { };
+  /// Constructor with name
+  QwHelicity(const TString& name);
+  /// Copy constructor
+  QwHelicity(const QwHelicity& source);
+  /// Virtual destructor
+  virtual ~QwHelicity() { }
 
 
 
@@ -86,6 +62,12 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
   Int_t  GetEventcutErrorCounters();// report number of events failed due to HW and event cut failure, derived from VQwSubsystemParity
   UInt_t  GetEventcutErrorFlag();//return the error flag
+  //update the same error flag in the classes belong to the subsystem.
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+  }
+  //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  };
 
   Int_t  ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
@@ -126,8 +108,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   void SetFirstBits(UInt_t nbits, UInt_t firstbits);
   void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
 
-  void  Copy(VQwSubsystem *source);
-  virtual VQwSubsystem*  Copy();
+  void  Copy(const VQwSubsystem *source);
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+=  (VQwSubsystem *value);
   void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
@@ -140,6 +121,9 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   // end of "empty" functions
 
   void  AccumulateRunningSum(VQwSubsystem* value) { };
+  //remove one entry from the running sums for devices
+  void DeaccumulateRunningSum(VQwSubsystem* value){
+  };
   void  CalculateRunningAverage() { };
 
   using VQwSubsystem::ConstructHistograms;
@@ -152,6 +136,8 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db, TString type);
+  void  FillErrDB(QwParityDB *db, TString datatype);
+
   void  Print() const;
 
   Bool_t IsHelicityIgnored(){return fIgnoreHelicity;};
@@ -288,6 +274,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
     fNumMultSyncErrors    = 0;
     fNumHelicityErrors    = 0;
   };
+
   //  Error counters
   Int_t  fNumMissedGates;      // Total number of missed events
   Int_t  fNumMissedEventBlocks; // Number of groups of missed events

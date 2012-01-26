@@ -71,12 +71,36 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   : fBlinder(),
-    fHelicityIsMissing(kFALSE),   fIgnoreHelicity(kFALSE),
-    fEnableAlternateAsym(kFALSE),
-    fEnableBurstSum(kFALSE),      fPrintBurstSum(kFALSE),
-    fEnableRunningSum(kTRUE),     fPrintRunningSum(kFALSE),
+    fHelicityIsMissing(kFALSE),   
+    fIgnoreHelicity(kFALSE),
+    fYield(event), 
+    fAsymmetry(event),   
+    fEnableAlternateAsym(kFALSE), 
+    fAsymmetry1(event), 
+    fAsymmetry2(event),
+    fEnableBurstSum(kFALSE),      
+    fPrintBurstSum(kFALSE),
+    fBurstYield(event), 
+    fBurstDifference(event), 
+    fBurstAsymmetry(event),
+    fRunningBurstYield(event), 
+    fRunningBurstDifference(event), 
+    fRunningBurstAsymmetry(event),
+    fEnableRunningSum(kTRUE),     
+    fPrintRunningSum(kFALSE),
+    fRunningYield(event), 
+    fRunningDifference(event), 
+    fRunningAsymmetry(event),
+    fRunningAsymmetry1(event), 
+    fRunningAsymmetry2(event),
     fEnableDifference(kFALSE),
-    fLastWindowNumber(0),fLastPatternNumber(0),fLastPhaseNumber(0)
+    fDifference(event), 
+    fAlternateDiff(event),
+    fPositiveHelicitySum(event), 
+    fNegativeHelicitySum(event),
+    fLastWindowNumber(0),
+    fLastPatternNumber(0),
+    fLastPhaseNumber(0)
 {
   // Retrieve the helicity subsystem to query for
   std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
@@ -109,54 +133,20 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
     {
       if(fPatternSize%2 == 0)
         {
-          fEvents.resize(fPatternSize);
-          for(int i=0;i<fPatternSize;i++)
-            {
-              fHelicity.push_back(-9999);
-              fEventLoaded.push_back(kFALSE);
-              fEvents[i].Copy(&event);
-              fEventNumber.push_back(-1);
-            }
-
+          fEvents.resize(fPatternSize,event);
+          fHelicity.resize(fPatternSize,-9999);
+          fEventNumber.resize(fPatternSize,-1);
+          fEventLoaded.resize(fPatternSize,kFALSE);
 
           // Initialize the pattern number
           fQuartetNumber = 0;
           fCurrentPatternNumber = -1;
 
-          // Positive and negative helicity sum and difference
-          fPositiveHelicitySum.Copy(&event);
-          fNegativeHelicitySum.Copy(&event);
-          fDifference.Copy(&event);
-
-          // Primary yield and asymmetry
-          fYield.Copy(&event);
-          fAsymmetry.Copy(&event);
-          // Alternate asymmetries
-          fAlternateDiff.Copy(&event);
-          fAsymmetry1.Copy(&event);
-          fAsymmetry2.Copy(&event);
-
-          // Burst sum quantities
-          fBurstYield.Copy(&event);
-          fBurstDifference.Copy(&event);
-          fBurstAsymmetry.Copy(&event);
           // Clear the burst sum
           ClearBurstSum();
 
-          // Running sum quantities
-          fRunningYield.Copy(&event);
-          fRunningDifference.Copy(&event);
-          fRunningAsymmetry.Copy(&event);
-          // Running alternate asymmetries
-          fRunningAsymmetry1.Copy(&event);
-          fRunningAsymmetry2.Copy(&event);
-          // Running burst sums
-          fRunningBurstYield.Copy(&event);
-          fRunningBurstDifference.Copy(&event);
-          fRunningBurstAsymmetry.Copy(&event);
           // Clear the running sum
           ClearRunningSum();
-
 
         }
       else
@@ -667,29 +657,22 @@ void  QwHelicityPattern::PrintRunningBurstAverage() const
 //*****************************************************************
 void  QwHelicityPattern::PrintRunningAverage() const
 {
-  QwMessage << " Running average of asymmetry  " << QwLog::endl;
-  QwMessage << " ==============================" << QwLog::endl;
+  QwMessage << "QwHelicityPattern::PrintRunningAverage() const " << QwLog::endl;
+  //  QwMessage << " Running average of yields     " << QwLog::endl;
+  fRunningYield.PrintValue();
+  //  QwMessage << " Running average of asymmetry  " << QwLog::endl;
   fRunningAsymmetry.PrintValue();
-
   if (fEnableAlternateAsym) {
-    QwMessage << " Running average of first half/second half asymmetry  "
-	      << QwLog::endl;
-    QwMessage << " ====================================================="
-	      << QwLog::endl;
+    //    QwMessage << " Running average of first half/second half asymmetry  "  << QwLog::endl;
     fRunningAsymmetry1.PrintValue();
-    QwMessage << " Running average of even/odd asymmetry  " << QwLog::endl;
-    QwMessage << " =======================================" << QwLog::endl;
+    //    QwMessage << " Running average of even/odd asymmetry  " << QwLog::endl;
     fRunningAsymmetry2.PrintValue();
   }
   if (fEnableDifference){
-    QwMessage << " Running average of difference " << QwLog::endl;
-    QwMessage << " ==============================" << QwLog::endl;
+    //    QwMessage << " Running average of difference " << QwLog::endl;
     fRunningDifference.PrintValue();
   }
 
-  QwMessage << " Running average of yields     " << QwLog::endl;
-  QwMessage << " ==============================" << QwLog::endl;
-  fRunningYield.PrintValue();
 }
 
 //*****************************************************************
@@ -830,6 +813,25 @@ void QwHelicityPattern::FillDB(QwParityDB *db)
     fRunningAsymmetry2.FillDB(db, "asymmetry2");
   }
 }
+
+
+void QwHelicityPattern::FillErrDB(QwParityDB *db)
+{
+  // fBlinder.FillDB(db,"");
+
+  fRunningAsymmetry.FillErrDB(db, "asymmetry");
+  return;
+};
+
+
+void QwHelicityPattern::WritePromptSummary(QwPromptSummary *ps)
+{
+  fRunningYield.WritePromptSummary(ps, "yield");
+  fRunningAsymmetry.WritePromptSummary(ps, "asymmetry");
+  
+  return;
+};
+
 
 //*****************************************************************
 

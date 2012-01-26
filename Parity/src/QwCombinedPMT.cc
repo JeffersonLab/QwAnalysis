@@ -170,13 +170,27 @@ Int_t QwCombinedPMT::GetEventcutErrorCounters()
 }
 
 /********************************************************/
+void QwCombinedPMT::UpdateEventcutErrorFlag(QwCombinedPMT *ev_error){
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwCombinedPMT::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+	fSumADC.UpdateEventcutErrorFlag(&(ev_error->fSumADC));//the routine GetErrorCode() return the error flag unconditionally
+      }
+    } else {
+      TString loc="Standard exception from QwCombinedPMT::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
+
+
+/********************************************************/
 Bool_t QwCombinedPMT::ApplySingleEventCuts(){
-  //  First update the error code based on the codes
-  //  of the elements.  This requires that the single
-  //  PMTs have had ApplySingleEventCuts run on them already.
-  for (size_t i=0;i<fElement.size();i++){
-    fSumADC.UpdateErrorCode(fElement.at(i)->GetErrorCode());
-  }
   return fSumADC.ApplySingleEventCuts();
 }
 
@@ -267,8 +281,13 @@ void QwCombinedPMT::Sum(QwCombinedPMT &value1, QwCombinedPMT &value2)
 void QwCombinedPMT::AccumulateRunningSum(const QwCombinedPMT& value)
 {
   fSumADC.AccumulateRunningSum(value.fSumADC);
-//  fAvgADC.AccumulateRunningSum(value.fAvgADC);
 }
+
+void QwCombinedPMT::DeaccumulateRunningSum(QwCombinedPMT& value)
+{
+  fSumADC.DeaccumulateRunningSum(value.fSumADC);
+}
+
 
 void QwCombinedPMT::Difference(QwCombinedPMT &value1, QwCombinedPMT &value2)
 {
@@ -426,7 +445,7 @@ void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 /********************************************************/
-void  QwCombinedPMT::Copy(VQwDataElement *source)
+void  QwCombinedPMT::Copy(const VQwDataElement *source)
 {
   try
     {
@@ -471,4 +490,9 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
 std::vector<QwDBInterface>  QwCombinedPMT::GetDBEntry()
 {
   return fSumADC.GetDBEntry();
+}
+
+std::vector<QwErrDBInterface>  QwCombinedPMT::GetErrDBEntry()
+{
+  return fSumADC.GetErrDBEntry();
 }

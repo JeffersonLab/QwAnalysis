@@ -76,6 +76,17 @@ class QwCombinedPMT : public VQwDataElement {
     return fSumADC.GetEventcutErrorFlag();
   }
 
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fSumADC.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(QwCombinedPMT *ev_error);
+
+  UInt_t GetErrorCode() const {return (fSumADC.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fSumADC.UpdateErrorCode(error);};
+ 
+
   void PrintInfo() const;
   void PrintValue() const;
 
@@ -88,6 +99,7 @@ class QwCombinedPMT : public VQwDataElement {
   void Scale(Double_t factor);
   void Normalize(VQwDataElement* denom);
   void AccumulateRunningSum(const QwCombinedPMT& value);
+  void DeaccumulateRunningSum(QwCombinedPMT& value);
   void CalculateRunningAverage();
 
   void SetBlindability(Bool_t isblindable){fSumADC.SetBlindability(isblindable);};
@@ -114,9 +126,10 @@ class QwCombinedPMT : public VQwDataElement {
   UInt_t   GetGoodEventCount() {return fSumADC.GetGoodEventCount();};
 
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface>  GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
 
  protected:
 

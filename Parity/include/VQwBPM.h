@@ -9,6 +9,9 @@
 #ifndef __VQWBPM__
 #define __VQWBPM__
 
+// System headers
+#include <boost/shared_ptr.hpp>
+
 // ROOT headers
 #include <TTree.h>
 #include <TMath.h>
@@ -20,6 +23,9 @@
 class QwParameterFile;
 template<typename T> class QwCombinedBPM;
 template<typename T> class QwBPMStripline;
+
+class QwDBInterface;
+class QwErrDBInterface;
 
 ///
 /// \ingroup QwAnalysis_BeamLine
@@ -57,19 +63,25 @@ class VQwBPM : public VQwDataElement {
 
   void   InitializeChannel(TString name);
   //  virtual void   ClearEventData() = 0;
+
+  virtual void LoadChannelParameters(QwParameterFile &paramfile) = 0;
+
   void   GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
   void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   void   SetRotation(Double_t);
   void   SetRotationOff();
+  /*
   UInt_t  GetEventcutErrorFlag(){//return the error flag
     return fErrorFlag;
-    //return fDeviceErrorCode;
-  };
+    };
+  */
   //  virtual Int_t   GetEventcutErrorCounters() = 0;
 
 /*   Bool_t  ApplySingleEventCuts(); */
   void    SetSingleEventCuts(TString, Double_t, Double_t);
   void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t);
+  virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
+  virtual void UpdateEventcutErrorFlag(VQwBPM *ev_error) = 0;
 
 
 /*   void Sum(VQwBPM &value1, VQwBPM &value2); */
@@ -77,7 +89,7 @@ class VQwBPM : public VQwDataElement {
   virtual void Scale(Double_t factor) {
     std::cerr << "Scale for VQwBPM not implemented!\n";
   }
-  virtual void Copy(VQwBPM *source);
+  virtual void Copy(const VQwDataElement *source);
   void SetGains(TString pos, Double_t value);
 
   // Operators subclasses MUST support!
@@ -132,6 +144,7 @@ class VQwBPM : public VQwDataElement {
     std::cerr << "AccumulateRunningSum not implemented for BPM named="
       <<GetElementName()<<"\n";
   };
+  virtual void DeaccumulateRunningSum(VQwBPM& value) = 0;
 
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void FillHistograms() = 0;
@@ -142,18 +155,20 @@ class VQwBPM : public VQwDataElement {
   virtual void ConstructBranch(TTree *tree, TString &prefix,
       QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
+
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
+  virtual std::vector<QwErrDBInterface> GetErrDBEntry() = 0;
 
   virtual void Ratio(VQwBPM &numer, VQwBPM &denom) {
     std::cerr << "Ratio() is not defined for BPM named="<<GetElementName()<<"\n";
   }
 
   // Stuff required for QwBPMStripLine
-  virtual UInt_t  GetSubElementIndex(TString subname) {
-    std::cerr << "GetSubElementIndex() is not implemented for BPM named="
-      <<GetElementName()<< "!!\n";
-    return 0;
-  }
+/*   virtual UInt_t  GetSubElementIndex(TString subname) { */
+/*     std::cerr << "GetSubElementIndex() is not implemented for BPM named=" */
+/*       <<GetElementName()<< "!!\n"; */
+/*     return 0; */
+/*   } */
   virtual TString GetSubElementName(Int_t subindex) {
     std::cerr << "GetSubElementName()  is not implemented!!\n";
     return TString("OBJECT_UNDEFINED"); // Return an erroneous TString
@@ -265,6 +280,7 @@ class VQwBPM : public VQwDataElement {
 
 };
 
+typedef boost::shared_ptr<VQwBPM> VQwBPM_ptr;
 
 #endif
 

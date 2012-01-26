@@ -6,21 +6,36 @@
 \**********************************************************/
 
 #include "QwTriggerScintillator.h"
-
-// Qweak headers
 #include "QwParameterFile.h"
 
-const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC     = 21;
-
+#include "boost/bind.hpp"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwTriggerScintillator);
 
 
-QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(region_tmp),
-                                                         VQwSubsystemTracking(region_tmp)
+const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC = 21;
+const Int_t  QwTriggerScintillator::kF1ReferenceChannelNumber = 99;
+
+
+QwTriggerScintillator::QwTriggerScintillator(const TString& name)
+: VQwSubsystem(name),VQwSubsystemTracking(name)
 {
+  SetEventTypeMask(0xffff); 
+
   ClearAllBankRegistrations();
+
+  fRegion             = "";
+  fCurrentBankIndex   = 0;
+  fCurrentSlot        = 0;
+  fCurrentModuleIndex = 0;
+
+  fBankID[0]          = 0;
+  fBankID[1]          = 0;
+  fBankID[2]          = 0;
+
+  fNumberOfModules    = 0;
+
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
@@ -29,12 +44,7 @@ QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(re
 QwTriggerScintillator::~QwTriggerScintillator()
 {
   fPMTs.clear();
-  for (size_t i = 0; i < fSCAs.size(); i++)
-    delete fSCAs.at(i);
   fSCAs.clear();
-
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -70,28 +80,28 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
     }
     else if ( DIRMODE==1 ) {
       //  Break this line Int_to tokens to process it.
-      varvalue = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
-      Zpos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      rot = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
-      sp_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      track_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      slope_match = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      package = mapstr.GetNextToken ( ", " ).c_str();
-      region  = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      dType = mapstr.GetNextToken ( ", " ).c_str();
-      direction  = mapstr.GetNextToken ( ", " ).c_str();
-      Det_originX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      Det_originY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      ActiveWidthX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      ActiveWidthY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      ActiveWidthZ = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      WireSpace = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      FirstWire = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      W_rcos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      W_rsin = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      tilt = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      varvalue = ( mapstr.GetTypedNextToken<TString>() );//this is the sType
+      Zpos = mapstr.GetTypedNextToken<Double_t>();
+      rot = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+      sp_res = mapstr.GetTypedNextToken<Double_t>();
+      track_res = mapstr.GetTypedNextToken<Double_t>();
+      slope_match = mapstr.GetTypedNextToken<Double_t>();
+      package = mapstr.GetTypedNextToken<TString>();
+      region  = mapstr.GetTypedNextToken<Int_t>();
+      dType = mapstr.GetTypedNextToken<TString>();
+      direction  = mapstr.GetTypedNextToken<TString>();
+      Det_originX = mapstr.GetTypedNextToken<Double_t>();
+      Det_originY = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
+      WireSpace = mapstr.GetTypedNextToken<Double_t>();
+      FirstWire = mapstr.GetTypedNextToken<Double_t>();
+      W_rcos = mapstr.GetTypedNextToken<Double_t>();
+      W_rsin = mapstr.GetTypedNextToken<Double_t>();
+      tilt = mapstr.GetTypedNextToken<Double_t>();
+      TotalWires = mapstr.GetTypedNextToken<Int_t>();
+      detectorId = mapstr.GetTypedNextToken<Int_t>();
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
 
       if ( region==4 ) {
@@ -106,6 +116,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
             TotalWires,
             detectorId);
         fDetectorInfo.push_back(detector);
+	//	std::cout << *detector << std::endl;
       }
     }
   }
@@ -139,37 +150,68 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
         << QwLog::endl;
   }
 
+  mapstr.Close(); // Close the file (ifstream)
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
   return 0;
 }
 
 
-Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
+Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile)
+{
 
-  TString varname, varvalue;
-  TString modtype, dettype, name;
-  Int_t modnum=0, channum=0, slotnum=0;
+  TString varname  = "";
+  TString varvalue = "";
+  UInt_t  value     = 0;
+
+  TString modtype  = "";
+  TString dettype  = "";
+  TString name     = "";
+
+  Int_t   modnum   = 0;
+  Int_t   channum  = 0;
+  Int_t   slotnum  = 0;
+
+  Int_t   ts_chan_num_to_plane    = 0;
+  Int_t   ts_chan_type_to_element = 0;
+
+  // 
+  // u ->? ts2 --> plane 2
+  // d ->? ts1 --> plane 1
+
+  // mt -> element 0
+  // p  -> element 1
+  // m  -> element 2
+
+
+  Bool_t local_debug = false;
+  Int_t reference_counter = 0;
+
+  EQwDetectorPackage package = kPackageNull;
+  EQwDirectionID   direction = kDirectionNull;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+  
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+  
     if (mapstr.LineIsEmpty())  continue;
 
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
-      UInt_t value = QwParameterFile::GetUInt(varvalue);
+      value = QwParameterFile::GetUInt(varvalue);
+
       if (varname=="roc") {
 	RegisterROCNumber(value);
       } else if (varname=="qdc_bank") {
 	  RegisterSubbank(value);
           fBankID[0] = value;
       } else if (varname=="sca_bank") {
-          fBankID[1] = value;
           RegisterSubbank(value);
+          fBankID[1] = value;
       } else if (varname=="f1tdc_bank") {
 	  RegisterSubbank(value);
           fBankID[2] = value;
@@ -181,45 +223,179 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
       }
     } else {
         //  Break this line into tokens to process it.
-        modtype   = mapstr.GetNextToken(", ").c_str();
-        modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-        channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-        dettype   = mapstr.GetNextToken(", ").c_str();
-        name      = mapstr.GetNextToken(", ").c_str();
+        modtype   = mapstr.GetTypedNextToken<TString>();
+        modnum    = mapstr.GetTypedNextToken<Int_t>();
+        channum   = mapstr.GetTypedNextToken<Int_t>();
+        dettype   = mapstr.GetTypedNextToken<TString>();
+        name      = mapstr.GetTypedNextToken<TString>();
 
-        // Check for the reference time channel
-        if (name=="ts_reftime_f1") {
-          reftime_slotnum = slotnum;
-          reftime_channum = channum;
-        }
 
         //  Push a new record into the element array
         if (modtype=="SIS3801") {
-          if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
-          if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
-          fSCAs.at(modnum)->SetChannel(channum, name);
-        } else if (modtype=="V792" || modtype=="V775" || modtype=="F1TDC") {
-            RegisterModuleType(modtype);
-            //  Check to see if we've encountered this channel or name yet
-            if (fModulePtrs.at(fCurrentIndex).at(channum).first != kUnknownModuleType) {
-              //  We've seen this channel
-            } else if (FindSignalIndex(fCurrentType, name)>=0) {
-                //  We've seen this signal
-            } else {
-              //  If not, push a new record into the element array
-              LinkChannelToSignal(channum, name);
-            }
-        } else {
-            std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
+          QwSIS3801D24_Channel localchannel(name);
+          localchannel.SetNeedsExternalClock(kFALSE);
+          fSCAs.push_back(localchannel);
+          fSCAs_map[name] = fSCAs.size()-1;
+	  fSCAs_offset.push_back(QwSIS3801D24_Channel::GetBufferOffset(modnum,channum));
+
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDTrig;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
+	  
+        } 
+	else if  (modtype=="V792") { // || modtype=="F1TDC") {
+	  RegisterModuleType(modtype);
+	  //  Check to see if we've encountered this channel or name yet
+	  if (fModulePtrs.at(fCurrentModuleIndex).at(channum).first != kUnknownModuleType) {
+	    //  We've seen this channel
+	  } else if (FindSignalIndex(fCurrentType, name)>=0) {
+	    //  We've seen this signal
+	  } else {
+	    //  If not, push a new record into the element array
+	    LinkChannelToSignal(channum, name);
+	  }
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDTrig;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
+	}
+	else if( modtype=="F1TDC") {
+
+	  RegisterModuleType(modtype);
+	  //  Check to see if we've encountered this channel or name yet
+	  if (fModulePtrs.at(fCurrentModuleIndex).at(channum).first != kUnknownModuleType) {
+	    //  We've seen this channel
+	  } else if (FindSignalIndex(fCurrentType, name)>=0) {
+	    //  We've seen this signal
+	  } else {
+	    //  If not, push a new record into the element array
+	    LinkChannelToSignal(channum, name);
+	  }
+
+	  printf("%8s, %d, %d %s, %s\n", modtype.Data(), modnum, channum, dettype.Data(), name.Data());
+	  if (name=="ts_reftime_f1") {
+
+	    reftime_slotnum = slotnum;
+	    reftime_channum = channum;
+
+	    printf("bank index %d Chan %d reference_counter %d\n", fCurrentBankIndex, channum, reference_counter);
+	    fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentModuleIndex;
+	    fReferenceChannels.at ( fCurrentBankIndex ).second = channum;
+	    
+	    package = kPackageNull;
+
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement = fCurrentBankIndex;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane   = kF1ReferenceChannelNumber;
+	    reference_counter++;
+	  }
+	  else {
+	    if (name=="ts2m_f1") {
+	      ts_chan_num_to_plane    = 2;
+	      ts_chan_type_to_element = 2;
+	      package = kPackageDown;
+	    }
+	    else if (name=="ts2p_f1") {
+	      ts_chan_num_to_plane    = 2;
+	      ts_chan_type_to_element = 1;
+	      package = kPackageDown;
+	    }
+	    else if (name=="ts2mt_f1") {
+	      ts_chan_num_to_plane    = 2;
+	      ts_chan_type_to_element = 0;
+	      package = kPackageDown;
+	    }
+	    else if (name=="ts1m_f1") {
+	      ts_chan_num_to_plane    = 1;
+	      ts_chan_type_to_element = 2;
+	      package = kPackageUp;
+	    }
+	    else if (name=="ts1p_f1") {
+	      ts_chan_num_to_plane    = 1;
+	      ts_chan_type_to_element = 1;
+	      package = kPackageUp;
+	    }
+	    else if (name=="ts1mt_f1") {
+	      ts_chan_num_to_plane    = 1;
+	      ts_chan_type_to_element = 0;	      
+	      package = kPackageUp;
+
+	    }
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = ts_chan_type_to_element;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = ts_chan_num_to_plane;
+	
+	  }
+	    
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDTrig;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
+	
+	}
+	else {
+	  std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
         }
-      }
+    }
   }
+
+  if(local_debug) {
+    
+    
+    Int_t unused_size_counter = 0;
+    std::size_t i = 0;
+    
+    for( i = 0; i < fModuleIndex.size(); i++) 
+      {
+	for(size_t slot_size =0; slot_size < fModuleIndex.at(i).size(); slot_size++)
+	  {
+	    Int_t m_idx = 0;
+	    m_idx = fModuleIndex.at(i).at(slot_size);
+	    if(m_idx != -1 ) {
+	      std::cout << "[" << i <<","<< slot_size << "] "
+			<< " module index " << m_idx
+			<< std::endl;
+	    }
+	    else {
+	      unused_size_counter++;
+	    }
+	  }
+      }
+    // why the bank index is always odd number?
+    // 
+
+    printf("Total unused size of fModuleIndex vector %6d\n", unused_size_counter);
+    
+    for(i = 0; i < fReferenceChannels.size(); i++) 
+      {
+	std::cout << "[" << i <<"] "
+		  << " fRerenceChannel " << fReferenceChannels.at(i).first
+		  << " " << fReferenceChannels.at(i).second
+		  << std::endl;
+      }
+    
+    printf("\n------------- TS LoadChannelMap End%s\n\n", mapfile.Data());
+
+  }
+
+  ReportConfiguration(local_debug);
+
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
 
 void  QwTriggerScintillator::ClearEventData(){
   SetDataLoaded(kFALSE);
+
+
+  fTDCHits.clear();
+  std::size_t i = 0;
+  
+  for (i=0; i<fReferenceData.size(); i++) {
+    fReferenceData.at(i).clear();
+  }
+
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).SetValue(0);
@@ -227,35 +403,12 @@ void  QwTriggerScintillator::ClearEventData(){
   }
 
   for (size_t i=0; i<fSCAs.size(); i++) {
-    if (fSCAs.at(i) != NULL) {
-      fSCAs.at(i)->ClearEventData();
-    }
+    fSCAs.at(i).ClearEventData();
   }
 }
 
 Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  Int_t index = GetSubbankIndex(roc_id,bank_id);
-  if (index>=0 && num_words>0){
-    //  We want to process the configuration data for this ROC.
-    UInt_t words_read = 0;
-
-    if (fBankID[1]==bank_id){
-      for (size_t i=0; i<fSCAs.size(); i++){
-        if (fSCAs.at(i) != NULL){
-          words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
-                        num_words-words_read);
-        }
-      }
-    }
-
-  }
-
-
-  // Sorry, I don't know how to combine the below F1TDContainer routine with the above code,
-  // thus I seperated them. It is a big ugly, but at least it works fine with less time
-  // consuming....
-  // Tuesday, September 28 14:26:48 EDT 2010, jhlee
 
   if( bank_id==fBankID[2] ) {
 
@@ -368,7 +521,9 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
       
 	if(local_debug) std::cout << std::endl;
       }
-  
+
+      fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
+
       if(local_debug) {
 	fF1TDContainer->Print();
 	std::cout << "-----------------------------------------------------" << std::endl;
@@ -387,6 +542,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
   index = GetSubbankIndex(roc_id,bank_id);
 
+
   if (bank_id==fBankID[0]) { // V792 or V775
     if (index>=0 && num_words>0) {
       //  We want to process this ROC.  Begin looping through the data.
@@ -402,6 +558,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	  try {
 	    FillRawWord(index,fQDCTDC.GetTDCSlotNumber(),fQDCTDC.GetTDCChannelNumber(),
 			fQDCTDC.GetTDCData());
+
 	  }
 	  catch (std::exception& e) {
 	    std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
@@ -436,18 +593,14 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       SetDataLoaded(kTRUE);
       UInt_t words_read = 0;
       for (size_t i=0; i<fSCAs.size(); i++) {
-        words_read++; // skip header word
-        if (fSCAs.at(i) != NULL) {
-          words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),num_words-words_read);
-        } else {
-	  words_read += 32; // skip a block of data for a single module
-	}
+        words_read += fSCAs.at(i).ProcessEvBuffer(&(buffer[fSCAs_offset.at(i)]),
+                                                  num_words-fSCAs_offset.at(i));
       }
     }
   }
 
   else if (bank_id==fBankID[2]) { // F1TDC
-   // reset the refrence time 
+    // reset the refrence time 
     reftime = 0.0;
 
     Bool_t local_debug_f1 = false;
@@ -456,11 +609,17 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
     Int_t  tdc_slot_number = 0;
     Int_t  tdc_chan_number = 0;
     UInt_t tdc_data        = 0;
-      
+
+
+    Int_t  dummy_slot_number = 0;
+    Int_t  dummy_chan_number = 0;
+
     Bool_t data_integrity_flag = false;
     Bool_t temp_print_flag     = false;
     Int_t tdcindex = 0;
-    Int_t tmp_last_chan = 65535;
+    //    Int_t tmp_last_chan = 65535;
+
+    UInt_t hit_counter = 0;
 
     bank_index = GetSubbankIndex(roc_id, bank_id);
       
@@ -468,20 +627,6 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       //  We want to process this ROC.  Begin looping through the data.
       SetDataLoaded(kTRUE);
 	
-	
-      if (temp_print_flag ) {
-	std::cout << "QwTriggerScintillator::ProcessEvBuffer:  "
-		  << "Begin processing ROC" 
-		  << std::setw(2)
-		  << roc_id 
-		  << " bank id " 
-		  << bank_id 
-		  << " Subbbank Index "
-		  << bank_index
-		  << " Region "
-		  << GetSubsystemName()
-		  << std::endl;
-      }
 	
       //
       // CheckDataIntegrity() do "counter" whatever errors in each F1TDC 
@@ -492,9 +637,13 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       // the further process, because of multiblock data transfer.
 	
       if (data_integrity_flag) {
-	  
+
+	dummy_slot_number = 0;
+	dummy_chan_number = 0;
+	hit_counter = 0;
+	if(local_debug_f1) printf("\n");
 	for (UInt_t i=0; i<num_words ; i++) {
-	    
+
 	  //  Decode this word as a F1TDC word.
 	  fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); 
 	    
@@ -503,7 +652,8 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	  tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
 	  tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
 	  tdcindex        = GetModuleIndex(bank_index, tdc_slot_number);
-	    
+	  
+
 	  if ( tdc_slot_number == 31) {
 	    //  This is a custom word which is not defined in
 	    //  the F1TDC, so we can use it as a marker for
@@ -522,21 +672,33 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	    // if decoded F1TDC data has a valid slot, resolution locked, data word, no overflow (0xFFFF), and no fake data
 	      
 	    try {
-	      if(tdc_chan_number != tmp_last_chan)
-		{
-		  tdc_data = fF1TDCDecoder.GetTDCData();
-		  FillRawWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
-		  //		  Check if this is reference time data
-		  if ( IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number) ) {
-		    reftime = (Double_t) tdc_data;
-		  }
-		  if(local_debug_f1) {
-		    printf("TS::ProcessEvBuffer: bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10d %10.2f\n",
-			   bank_index, tdc_slot_number, reftime_slotnum, tdc_chan_number, reftime_channum,tdc_data, reftime);
-		  }
-
-		  tmp_last_chan = tdc_chan_number;
+		
+	      tdc_data = fF1TDCDecoder.GetTDCData();
+	      if (dummy_slot_number == tdc_slot_number && dummy_chan_number == tdc_chan_number) {  
+		hit_counter++;
+	      } 
+	      else {
+		hit_counter = 0;
+	      }
+	      
+	      if(local_debug_f1) {
+		printf("TS::ProcessEvBuffer: [%4d] hit counter %d, bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10d %10.2f\n", i, hit_counter,
+		       bank_index, tdc_slot_number, reftime_slotnum, tdc_chan_number, reftime_channum,tdc_data, reftime);
+	      }
+	      
+	      if (hit_counter == 0) {
+		FillRawWord   (bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
+		if ( IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number) ) {
+		  reftime = (Double_t) tdc_data;
 		}
+	      }
+	      
+	      FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
+	      
+	      dummy_slot_number = tdc_slot_number;
+	      dummy_chan_number = tdc_chan_number;
+	      
+	
 	    }
 	    catch (std::exception& e) {
 	      std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
@@ -547,72 +709,13 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 			<< "; GetF1Data()=="         <<tdc_data
 			<< std::endl;
 	    }
+	    
 	  }//;;
 	} // for (UInt_t i=0; i<num_words ; i++) {
       }
 	
     }
       
-    // if (index>=0 && num_words>0) {
-    //   SetDataLoaded(kTRUE);
-    //   if (fDEBUG) std::cout << "QwTriggerScintillator::ProcessEvBuffer:  "
-    // 			    << "Begin processing F1TDC Bank "<<bank_id<< std::endl;
-
-    //   Int_t tdc_slot_number = 0;
-    //   Int_t tdc_chan_number = 0;
-    //   Int_t tmp_last_chan = 65535;
-
-    //   Bool_t data_integrity_flag = false;
-    //   Bool_t temp_print_flag     = false;
-
-    //   data_integrity_flag = fF1TDCDecoder.CheckDataIntegrity(roc_id, buffer, num_words);
-
-    //   if (data_integrity_flag) {
-    //     for (UInt_t i=0; i<num_words ; i++) {
-    //       fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id);
-    // 	  tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
-    // 	  tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
-
-    // 	  if ( tdc_slot_number == 31) {
-    //         //  This is a custom word which is not defined in
-    //         //  the F1TDC, so we can use it as a marker for
-    //         //  other data; it may be useful for something.
-    //       }
-
-    // 	  // Each subsystem has its own interesting slot(s), thus
-    // 	  // here, if this slot isn't in its slot(s) (subsystem map file)
-    // 	  // we skip this buffer to do the further process
-
-    //       if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
-    // 	  if ( fF1TDCDecoder.IsValidDataword() )
-    // 	    {
-    // 	      try
-    // 		{
-    // 		  if(tdc_chan_number != tmp_last_chan)
-    // 		    {
-    // 		      FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDCDecoder.GetTDCData());
-    // 		      fF1TDCDecoder.PrintTDCData(temp_print_flag);
-
-    // 		      // Check if this is reference time data
-    // 		      if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
-    //         		reftime = fF1TDCDecoder.GetTDCData();
-    // 		      tmp_last_chan = tdc_chan_number;
-    // 		    }
-    // 		}
-    // 	      catch (std::exception& e)
-    // 		{
-    // 		  std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
-    // 			    << e.what() << std::endl;
-    // 		  std::cerr << "   Parameters:  index=="  <<index
-    // 			    << "; GetF1SlotNumber()=="    << tdc_slot_number
-    // 			    << "; GetF1ChannelNumber()==" <<tdc_chan_number
-    // 			    << "; GetF1Data()=="          <<fF1TDCDecoder.GetTDCData()
-    // 			    << std::endl;
-    // 		}
-    // 	    }
-    // 	}
-    //   }
-    // }
   }
   return 0;
 }
@@ -622,53 +725,90 @@ void  QwTriggerScintillator::ProcessEvent()
 {
   if (! HasDataLoaded()) return;
 
-  TString elementname = "";
-  Double_t rawtime = 0.0;
-  Double_t corrected_time = 0.0;
-  
-  Int_t bank_index = 0;
-  Int_t slot_num   = 0;
+  TString  elementname = "";
+  Double_t rawtime_arb_unit       = 0.0;
+  Double_t corrected_time_arb_unit = 0.0;
+  Double_t time_ns                 = 0.0;
+
+  Int_t    bank_index = 0;
+  Int_t    slot_num   = 0;
 
   for (size_t i=0; i<fPMTs.size(); i++) 
     {//;
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
 	{//;;
-	  fPMTs.at(i).at(j).ProcessEvent();
+
 	  elementname = fPMTs.at(i).at(j).GetElementName();
-
-	  // Check whether the element is "reftime" 
-	  if ( not elementname.Contains("reftime") ) {
-	    rawtime = fPMTs.at(i).at(j).GetValue();
-
-	    if (elementname.EndsWith("f1") && rawtime!=0.0) {
-
-	      bank_index = fPMTs.at(i).at(j).GetSubbankID();
-	      slot_num   = fPMTs.at(i).at(j).GetModule();
-	      // if the reference time signal is recorded by (a) channel(s) of F1TDC(s),
-	      // we correct them. And if not, we set them to zero. (jhlee)
-
-	      if ( reftime!=0.0 ) {
-		corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
-	      }
+	  
+	  if (elementname.EndsWith("f1") ) {
+	    rawtime_arb_unit = fPMTs.at(i).at(j).GetValue(); // returns Double_t
+	    
+	    if ( rawtime_arb_unit not_eq 0.0) {
+	      
+	      if ( not elementname.Contains("reftime") ) {
+	    	bank_index              = fPMTs.at(i).at(j).GetSubbankID();
+	    	slot_num                = fPMTs.at(i).at(j).GetModule();
+	    	corrected_time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(rawtime_arb_unit, reftime, bank_index, slot_num);
+		time_ns                 = fF1TDContainer->ReturnTimeCalibration(corrected_time_arb_unit);
+		fPMTs.at(i).at(j).SetValue(time_ns);
+	    	// printf("TS::ProcessBuffer:  bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10f %10.2f, %10.2f\n", 
+	       	//        bank_index, slot_num, reftime_slotnum, tdc_chan_number, reftime_channum, rawtime_arb_unit, reftime, corrected_time_arb_unit);
+	      } 
 	      else {
-		corrected_time = 0.0;
+		// 	// we save the referennce raw time
+	       	fPMTs.at(i).at(j).SetValue(rawtime_arb_unit);
 	      }
-	      fPMTs.at(i).at(j).SetValue(corrected_time);
-	    } // if (elementname.EndsWith("f1") && rawtime!=0.0) {
-	  } 
+	    }
+	    else {
+	      fPMTs.at(i).at(j).SetValue(rawtime_arb_unit); // zero
+	    }
+	    
+	  }
+	  else {
+	    fPMTs.at(i).at(j).ProcessEvent();
+	  }
+
+
+	  // fPMTs.at(i).at(j).ProcessEvent();
+	  // elementname = fPMTs.at(i).at(j).GetElementName();
+	  
+	  // // Check whether the element is "reftime" 
 	  // if ( not elementname.Contains("reftime") ) {
-	  //
-	  // we keep the raw reference time information in an output ROOT file. 
-	  //
+	  //   rawtime_arb_unit = fPMTs.at(i).at(j).GetValue();
+
+	  //   if (elementname.EndsWith("f1") && rawtime_arb_unit!=0.0) {
+
+	  //     bank_index = fPMTs.at(i).at(j).GetSubbankID();
+	  //     slot_num   = fPMTs.at(i).at(j).GetModule();
+	  //     // if the reference time signal is recorded by (a) channel(s) of F1TDC(s),
+	  //     // we correct them. And if not, we set them to zero. (jhlee)
+
+	  //     if ( reftime!=0.0 ) {
+	  // 	corrected_time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(rawtime_arb_unit, reftime, bank_index, slot_num);
+	  //     }
+	  //     else {
+	  // 	corrected_time_arb_unit = 0.0;
+	  //     }
+	  //     fPMTs.at(i).at(j).SetValue(corrected_time_arb_unit);
+	  //   } // if (elementname.EndsWith("f1") && rawtime!=0.0) {
+	  // } 
+	  // // if ( not elementname.Contains("reftime") ) {
+	  // //
+	  // // we keep the raw reference time information in an output ROOT file. 
+	  // //
 	}//;;
     }//;
 
   
-  for (size_t i=0; i<fSCAs.size(); i++)
+  // F1TDCs of  QwHit
+  SubtractReferenceTimes();
+  UpdateHits();
+
+ // SIS3801 scaler
+  std::size_t i = 0;
+  for (i=0; i<fSCAs.size(); i++)
     {
-      if (fSCAs.at(i) != NULL){
-	fSCAs.at(i)->ProcessEvent();
-      }
+      fSCAs.at(i).ProcessEvent();
     }
   return;
 };
@@ -683,9 +823,7 @@ void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &pr
   }
 
   for (size_t i=0; i<fSCAs.size(); i++) {
-    if (fSCAs.at(i) != NULL) {
-      fSCAs.at(i)->ConstructHistograms(folder, prefix);
-    }
+    fSCAs.at(i).ConstructHistograms(folder, prefix);
   }
 
 }
@@ -699,9 +837,7 @@ void  QwTriggerScintillator::FillHistograms(){
   }
 
   for (size_t i=0; i<fSCAs.size(); i++) {
-    if (fSCAs.at(i) != NULL) {
-      fSCAs.at(i)->FillHistograms();
-    }
+    fSCAs.at(i).FillHistograms();
   }
 
 }
@@ -728,14 +864,9 @@ void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString& prefi
   }
 
   for (size_t i=0; i<fSCAs.size(); i++){
-    if (fSCAs.at(i) != NULL){
-      for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++){
-        if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-        else {
-          values.push_back(0.0);
-          list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
-        }
-      }
+    if (fSCAs.at(i).GetElementName() != "") {
+      values.push_back(0.0);
+      list += ":" + fSCAs.at(i).GetElementName() + "/D";
     }
   }
 
@@ -764,18 +895,113 @@ void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values) const
   }
 
   for (size_t i=0; i<fSCAs.size(); i++) {
-    if (fSCAs.at(i) != NULL) {
-      for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
-        if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-        else {
-          values[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
-          index++;
-        }
-      }
+    if (fSCAs.at(i).GetElementName() != "") {
+      values[index] = fSCAs.at(i).GetValue();
+      index++;
     }
   }
 
 }
+
+
+
+void  
+QwTriggerScintillator::ReportConfiguration(Bool_t verbose)
+{
+
+  if(verbose) {
+    std::size_t i       = 0;
+    std::size_t j       = 0;
+
+    Int_t roc_num       = 0;
+    Int_t bank_flag     = 0;
+    Int_t bank_index    = 0;
+    Int_t module_index  = 0;
+
+    UInt_t slot_id      = 0;
+    UInt_t vme_slot_num = 0;
+    
+    std::cout << "QwTriggerScintillator Region : " 
+	      << this->GetSubsystemName()
+	      << "::ReportConfiguration fDetectorIDs.size() " 
+	      << fDetectorIDs.size() << std::endl;
+
+
+    for ( i=0; i<fROC_IDs.size(); i++ ) 
+      {
+
+	roc_num = fROC_IDs.at(i);
+
+	for ( j=0; j<fBank_IDs.at(i).size(); j++ ) 
+	  {
+	    bank_flag = fBank_IDs.at(i).at(j);
+	    if(bank_flag == 0) continue; 
+	    // must be uncommented if one doesn't define "bank_flag" in a CRL file
+	    // but, now we use "bank_flag" in our crl files, thus skip to print
+	    // unnecessary things on a screen
+	    // Monday, August 30 14:45:34 EDT 2010, jhlee
+
+	    bank_index = GetSubbankIndex(roc_num, bank_flag);
+	
+	    std::cout << "ROC [index, Num][" 
+		      << i
+		      << ","
+		      << std::setw(2) << roc_num
+		      << "]"
+		      << " Bank [index,id]["
+		      <<  bank_index
+		      << ","
+		      << bank_flag
+		      << "]"
+		      << std::endl;
+	
+	    for ( slot_id=2; slot_id<kMaxNumberOfModulesPerROC; slot_id++ ) 
+	      { 
+		// slot id starts from 2, because 0 and 1 are used for CPU and TI.
+		// Tuesday, August 31 10:57:07 EDT 2010, jhlee
+
+		module_index = GetModuleIndex(bank_index, slot_id);
+	  
+		vme_slot_num = slot_id;
+	  
+		std::cout << "    "
+			  << "Slot [id, VME num] [" 
+			  << std::setw(2) << slot_id
+			  << ","
+			  << std::setw(2) << vme_slot_num
+			  << "]";
+		if ( module_index == -1 ) {
+		  std::cout << "    "
+			    << "Unused in "
+			    << GetSubsystemName()
+			    << std::endl;
+		}
+		else {
+		  std::cout << "    "
+			    << "Module index " 
+			    << module_index << std::endl;
+		}
+	      }
+	  }
+      }
+    
+    for( size_t midx = 0; midx < fDetectorIDs.size(); midx++ )
+      {
+	for (size_t chan = 0 ; chan< fDetectorIDs.at(midx).size(); chan++)
+	  {
+	    std::cout << "[" << midx <<","<< chan << "] "
+		      << " detectorID " << fDetectorIDs.at(midx).at(chan)
+		      << std::endl;
+	  }
+      }
+  }
+  return;
+}
+
+
+
+
+
 
 
 QwTriggerScintillator& QwTriggerScintillator::operator=  (const QwTriggerScintillator &value){
@@ -800,24 +1026,45 @@ void QwTriggerScintillator::ClearAllBankRegistrations(){
   fModuleIndex.clear();
   fModulePtrs.clear();
   fModuleTypes.clear();
+
+  fDetectorIDs.clear();
+  fTDCHits.clear();
   fNumberOfModules = 0;
 }
 
-Int_t QwTriggerScintillator::RegisterROCNumber(const UInt_t roc_id){
-  VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
-  fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
+Int_t QwTriggerScintillator::RegisterROCNumber(const UInt_t roc_id)
+{
+  Int_t status = 0;
+  status = VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
   fModuleIndex.push_back(tmpvec);
-  return fCurrentBankIndex;
+  return status;
 }
 
-Int_t QwTriggerScintillator::RegisterSubbank(const UInt_t bank_id){
-  Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
-  fCurrentBankIndex++;
+Int_t QwTriggerScintillator::RegisterSubbank(const UInt_t bank_id)
+{
+  Int_t status         = VQwSubsystem::RegisterSubbank(bank_id);
+  Int_t current_roc_id = VQwSubsystem::fCurrentROC_ID;
+
+  std::size_t reference_size = fReferenceChannels.size();
+
+  fCurrentBankIndex = GetSubbankIndex(current_roc_id, bank_id);
+
+  if ( (Int_t) reference_size <= fCurrentBankIndex) {
+    fReferenceChannels.resize(fCurrentBankIndex+1);
+    fReferenceData.resize(fCurrentBankIndex+1);
+  }
+
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
   fModuleIndex.push_back(tmpvec);
-  //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
-  return stat;
+
+  std::cout<< "QwTriggerScintillator::RegisterSubbank()" 
+	   <<" ROC "            << current_roc_id
+	   <<" Subbank "        << bank_id
+	   <<" with BankIndex " << fCurrentBankIndex
+	   << std::endl;
+
+  return status;
 }
 
 Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id)
@@ -825,24 +1072,39 @@ Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id)
   std::pair<EQwModuleType, Int_t> tmppair;
   tmppair.first  = kUnknownModuleType;
   tmppair.second = -1;
-  if (slot_id < kMaxNumberOfModulesPerROC){
-    // fCurrentBankIndex is unsigned int and always positive
-    if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fModuleIndex.size()) {
+ 
+ if (slot_id < kMaxNumberOfModulesPerROC){
+   
+   if ( fCurrentBankIndex <= (Int_t) fModuleIndex.size()) {
+     
+
+     // fModuleTypes and fModulePtrs could be replaced by fDetectorID,
+     // but I leave them here while .....
+     // Tuesday, January 24 11:49:20 EST 2012, jhlee
+
       fModuleTypes.resize(fNumberOfModules+1);
       fModulePtrs.resize(fNumberOfModules+1);
-      fModulePtrs.at(fNumberOfModules).resize(fF1TDCDecoder.GetTDCMaxChannels(),
+      fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerF1TDC,
 					      tmppair);
-      fNumberOfModules = fModulePtrs.size();
-      fModuleIndex.at(fCurrentBankIndex).at(slot_id) = fNumberOfModules-1;
-      fCurrentSlot     = slot_id;
-      fCurrentIndex = fNumberOfModules-1;
+
+      //   fNumberOfModules = fModulePtrs.size();
+     
+      fDetectorIDs.resize(fNumberOfModules+1);
+      fDetectorIDs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerF1TDC);
+
+      // // reassign kNumberOfVMEModules after resize it
+
+      fNumberOfModules = (Int_t) fDetectorIDs.size();
+      fCurrentModuleIndex = fNumberOfModules-1;
+      fCurrentSlot        = slot_id;
+      fModuleIndex.at(fCurrentBankIndex).at(fCurrentSlot) = fCurrentModuleIndex;
     }
   } else {
     std::cerr << "QwTriggerScintillator::RegisterSlotNumber:  Slot number "
 	      << slot_id << " is larger than the number of slots per ROC, "
 	      << kMaxNumberOfModulesPerROC << std::endl;
   }
-  return fCurrentIndex;
+  return fCurrentModuleIndex;
 }
 
 EQwModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype)
@@ -861,7 +1123,7 @@ EQwModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype)
   } else if (moduletype=="SIS3801") {
     fCurrentType = kSIS3801;
   }
-  fModuleTypes.at(fCurrentIndex) = fCurrentType;
+  fModuleTypes.at(fCurrentModuleIndex) = fCurrentType;
 
   if ((Int_t) fPMTs.size() <= fCurrentType){
     fPMTs.resize(fCurrentType+1);
@@ -873,8 +1135,8 @@ EQwModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype)
 Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TString &name)
 {
   fPMTs.at(fCurrentType).push_back(QwPMT_Channel(name));
-  fModulePtrs.at(fCurrentIndex).at(chan).first  = fCurrentType;
-  fModulePtrs.at(fCurrentIndex).at(chan).second =
+  fModulePtrs.at(fCurrentModuleIndex).at(chan).first  = fCurrentType;
+  fModulePtrs.at(fCurrentModuleIndex).at(chan).second =
     fPMTs.at(fCurrentType).size() -1;
 
   return 0;
@@ -882,8 +1144,9 @@ Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TStrin
 }
 
 void QwTriggerScintillator::FillRawWord(Int_t bank_index,
-				 Int_t slot_num,
-				 Int_t chan, UInt_t data){
+					Int_t slot_num,
+					Int_t chan, UInt_t data)
+{
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
   if (modindex != -1){
     EQwModuleType modtype = fModulePtrs.at(modindex).at(chan).first;
@@ -897,14 +1160,271 @@ void QwTriggerScintillator::FillRawWord(Int_t bank_index,
       fPMTs.at(modtype).at(chanindex).SetModule(slot_num);
     }
   }
+  
 }
 
 
-Int_t QwTriggerScintillator::GetModuleIndex(size_t bank_index, size_t slot_num) const {
+
+void  QwTriggerScintillator::FillRawTDCWord (Int_t bank_index, 
+					     Int_t slot_num, 
+					     Int_t chan, 
+					     UInt_t data)
+{
+  Bool_t local_debug = false;
+  Int_t tdcindex     =  0;
+  
+  tdcindex = GetModuleIndex(bank_index,slot_num);
+
+
+  // I think, it is not necessary, but is just "safe" double check routine.
+  if (tdcindex not_eq -1) {
+  
+    Int_t hitcnt  = 0;
+
+    EQwDetectorPackage package = kPackageNull;
+    EQwDirectionID direction   = kDirectionNull;
+
+    Int_t   plane   = 0; // ts2 plane 2, ts1 is plane 1
+    Int_t   element = 0; // mt is element 0, p is element 1, and m is element 2
+    TString name         = "";
+ 
+
+
+    plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
+    element = fDetectorIDs.at(tdcindex).at(chan).fElement;
+    package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+
+    if(local_debug) {
+      printf("bank_idx %d, slot %d, plane %d, element %d, package %d\n",
+	     bank_index, slot_num, (Int_t) plane, (Int_t) element, (Int_t) package);
+    }
+
+    if (plane == -1 or element == -1){
+      //  This channel is not connected to anything. Do nothing.
+    }
+    else if (plane == kF1ReferenceChannelNumber){
+      fReferenceData.at(element).push_back(data);
+      // we assign the reference time into fReferenceData according the module index
+      // See LocalChannelMap
+      if(local_debug) {
+	std::cout << "At QwTriggerScintillator::FillRawTDCWord " 
+		  << " bank index " << bank_index
+		  << " slot num " << slot_num
+		  << " chan num " << chan
+		  << " hitcnt " << 0
+		  << " plane  " << plane
+		  << " wire   " << element
+		  << " package " << package 
+		  << " diection " << direction
+		  << " data " << data
+		  << " fTDCHits.size() " <<  0
+		  << std::endl;
+      }
+    }
+    else {
+      direction = fDetectorIDs.at(tdcindex).at(chan).fDirection;
+
+      hitcnt = std::count_if(fTDCHits.begin(), fTDCHits.end(), 
+			     boost::bind(
+					 &QwHit::WireMatches, _1, kRegionIDTrig, boost::ref(package), boost::ref(plane), boost::ref(element)
+					 ) 
+			     );
+   
+      fTDCHits.push_back(
+    			 QwHit(
+    			       bank_index, 
+    			       slot_num, 
+    			       chan, 
+    			       hitcnt, 
+    			       kRegionIDTrig, 
+    			       package, 
+    			       plane,
+    			       direction, 
+    			       element, 
+    			       data
+    			       )
+    			 );
+
+      if(local_debug) {
+	std::cout << "At QwTriggerScintillator::FillRawTDCWord " 
+		  << " bank index " << bank_index
+		  << " slot num " << slot_num
+		  << " chan num " << chan
+		  << " hitcnt " << hitcnt
+		  << " plane  " << plane
+		  << " wire   " << element
+		  << " package " << package 
+		  << " diection " << direction
+		  << " data " << data
+		  << " fTDCHits.size() " <<  fTDCHits.size() 
+		  << std::endl;
+      }
+
+    }
+    //  }
+  } // (tdcindex not_eq -1) {
+  
+  return;
+}
+
+
+
+void  QwTriggerScintillator::SubtractReferenceTimes()
+{
+
+  std::vector<Double_t> reftimes;
+  std::vector<Bool_t>   refchecked;
+  std::vector<Bool_t>   refokay;
+  Bool_t allrefsokay;
+
+
+  std::size_t ref_size = 0;
+  std::size_t i = 0;
+  std::size_t j = 0;
+
+  ref_size = fReferenceData.size();
+
+  reftimes.resize  ( ref_size );
+  refchecked.resize( ref_size );
+  refokay.resize   ( ref_size );
+
+  for ( i=0; i<ref_size; i++ ) {
+    reftimes.at(i)   = 0.0;
+    refchecked.at(i) = kFALSE;
+    refokay.at(i)    = kFALSE;
+  }
+
+  allrefsokay = kTRUE;
+
+
+
+  UInt_t   bank_index        = 0;
+  Double_t raw_time_arb_unit = 0.0;
+  Double_t ref_time_arb_unit = 0.0;
+  Double_t time_arb_unit       = 0.0;
+
+  Bool_t local_debug = false;
+
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+    {
+      //  Only try to check the reference time for a bank if there is at least one
+      //  non-reference hit in the bank.
+      bank_index = hit->GetSubbankID();
+
+      //     if(local_debug) printf("QwHit :: bank index %d\n", bank_index);
+
+      if ( not refchecked.at(bank_index) ) {
+	
+	if ( fReferenceData.at(bank_index).empty() ) {
+	  std::cout << "QwSciFiDetector::SubtractReferenceTimes:  Subbank ID "
+	     	    << bank_index << " is missing a reference time." << std::endl;
+	  refokay.at(bank_index) = kFALSE;
+	  allrefsokay            = kFALSE;
+	}
+	else {
+	  if(fReferenceData.at(bank_index).size() not_eq 1) {
+	    std::cout << "Multiple hits are recorded in the reference channel, we use the first hit signal as the refererence signal." << std::endl;
+	  }
+	  reftimes.at(bank_index) = fReferenceData.at(bank_index).at(0);
+	  refokay.at(bank_index)  = kTRUE;
+	}
+
+	if (refokay.at(bank_index)){
+	  for ( j=0; j<fReferenceData.at(bank_index).size(); j++ ) 
+	    {
+	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
+	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
+	      fReferenceData.at(bank_index).at(j) -= reftimes.at(bank_index);
+	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
+	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
+	    }
+	}
+
+     	refchecked.at(bank_index) = kTRUE;
+      }
+      
+      if ( refokay.at(bank_index) ) {
+   	Int_t slot_num    = hit -> GetModule();
+      	raw_time_arb_unit = (Double_t) hit -> GetRawTime();
+      	ref_time_arb_unit = (Double_t) reftimes.at(bank_index);
+
+      	time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
+
+      	hit -> SetTime(time_arb_unit); 
+	hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
+
+      	if(local_debug) {
+      	  QwMessage << this->GetSubsystemName()
+      		    << " BankIndex " << std::setw(2) << bank_index
+      		    << " Slot "      << std::setw(2) << slot_num
+      		    << " RawTime : " << std::setw(6) << raw_time_arb_unit
+      		    << " RefTime : " << std::setw(6) << ref_time_arb_unit
+      		    << " time : "    << std::setw(6) << time_arb_unit
+      		    << std::endl;
+	  
+      	}
+      }
+    }
+  
+  // bank_index = 0;
+  
+  if ( not allrefsokay ) {
+    std::vector<QwHit> tmp_hits;
+    tmp_hits.clear();
+    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+      {
+  	bank_index = hit->GetSubbankID();
+  	if ( refokay.at(bank_index) ) tmp_hits.push_back(*hit);
+      }
+    //    std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+    fTDCHits.clear();
+    fTDCHits = tmp_hits;
+    //     std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+  }
+  
+  return;
+}
+
+
+
+
+void QwTriggerScintillator::UpdateHits()
+{
+ 
+  
+  EQwDetectorPackage package = kPackageNull;
+  //  Int_t              plane   = 0;
+
+  QwDetectorID       local_id;
+  QwDetectorInfo  *local_info;
+
+  for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+    {
+      local_id   = iter->GetDetectorID();
+      package    = local_id.fPackage;
+      //      plane      = local_id.fPlane;
+      // For TS, we have only one plane in each package according to its geometry, but I am using
+      // plane number is used for f1tdc channel, it is impossible to make general method in other subsystem...
+      // 
+      local_info = fDetectorInfo.in(package).at(0); 
+      //      local_info = fDetectorInfo.in(package).at(plane); 
+
+      iter->SetDetectorInfo(local_info);
+      iter->ApplyTimeCalibration(fF1TDCResolutionNS); // Fill fTimeRes and fTimeNs in QwHit
+
+    }
+
+  return;
+}
+
+
+
+Int_t QwTriggerScintillator::GetModuleIndex(size_t bank_index, size_t slot_num) const 
+{
   Int_t modindex = -1;
-  // bank_index and slot_num are unsigned int and always positive
-  if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size()){
-    if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size()){
+
+  if ( bank_index < fModuleIndex.size()) {
+    if ( slot_num < fModuleIndex.at(bank_index).size()){
       modindex = fModuleIndex.at(bank_index).at(slot_num);
     }
   }
@@ -925,3 +1445,11 @@ Int_t QwTriggerScintillator::FindSignalIndex(const EQwModuleType modtype, const 
   }
   return chanindex;
 }
+
+
+void QwTriggerScintillator::FillHardwareErrorSummary()
+{
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+  return;
+};

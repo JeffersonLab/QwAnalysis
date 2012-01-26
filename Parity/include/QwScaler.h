@@ -13,14 +13,21 @@
 #include "QwScaler_Channel.h"
 
 
-class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
+class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler>
 {
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwScaler();
 
   public:
 
-    /// \brief Constructor
-    QwScaler(TString region_tmp);
-    /// \brief Destructor
+    /// Constructor with name
+    QwScaler(const TString& name);
+    /// Copy constructor
+    QwScaler(const QwScaler& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Destructor
     virtual ~QwScaler();
 
     // Handle command line options
@@ -48,8 +55,7 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
 
     Bool_t Compare(VQwSubsystem *source);
 
-    VQwSubsystem* Copy();
-    void Copy(VQwSubsystem *source);
+    void Copy(const VQwSubsystem *source);
 
     VQwSubsystem& operator=(VQwSubsystem *value);
     VQwSubsystem& operator+=(VQwSubsystem *value);
@@ -60,7 +66,10 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
     void Scale(Double_t factor);
 
     void AccumulateRunningSum(VQwSubsystem* value);
-    void CalculateRunningAverage();
+    //remove one entry from the running sums for devices
+    void DeaccumulateRunningSum(VQwSubsystem* value){
+    };
+   void CalculateRunningAverage();
 
     Int_t LoadEventCuts(TString filename);
     Bool_t SingleEventCuts();
@@ -68,7 +77,13 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
 
     Int_t GetEventcutErrorCounters();
     UInt_t GetEventcutErrorFlag();
-
+    //update the same error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
+    //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+    };
+    
     void PrintValue() const;
     void PrintInfo() const;
 

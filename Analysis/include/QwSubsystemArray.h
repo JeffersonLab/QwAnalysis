@@ -50,6 +50,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   QwSubsystemArray(QwOptions& options, CanContainFn myCanContain);
   /// \brief Constructor with filename
   QwSubsystemArray(const char* filename, CanContainFn myCanContain);
+  /// \brief Copy constructor by reference
+  QwSubsystemArray(const QwSubsystemArray& source);
   /// \brief Virtual destructor
   virtual ~QwSubsystemArray() { };
 
@@ -160,6 +162,10 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief List the published values and description in this subsystem array
   void ListPublishedValues() const;
 
+  /// \brief Print list of parameter files
+  void PrintParamFileList() const;
+
+  /// \brief Get list of parameter files
   TList* GetParamFileNameList(TString name) const;
 
  private:

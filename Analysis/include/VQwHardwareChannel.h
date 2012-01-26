@@ -18,6 +18,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 class VQwHardwareChannel: public VQwDataElement {
 /****************************************************************//**
@@ -31,7 +32,7 @@ class VQwHardwareChannel: public VQwDataElement {
 public:
   VQwHardwareChannel();
   VQwHardwareChannel(const VQwHardwareChannel& value);
-  virtual ~VQwHardwareChannel();
+  virtual ~VQwHardwareChannel() { };
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
@@ -59,7 +60,11 @@ public:
     return width;
   };
 
-  UInt_t GetErrorCode() const {return (fErrorFlag);}; 
+  UInt_t GetErrorCode() const {
+    if (fErrorFlag>0)
+      return fErrorFlag;
+    return 0;
+  }; 
   void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
 
   virtual void  ClearEventData(){
@@ -106,7 +111,6 @@ public:
 
   /*! \brief Copy method:  Should make a full, identical copy. */
   virtual void Copy(const VQwDataElement *source);
-  virtual void Copy(const VQwHardwareChannel& source);
 
   /// Arithmetic assignment operator:  Should only copy event-based data
   virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& value) {
@@ -121,6 +125,7 @@ public:
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
 
   void AddEntriesToList(std::vector<QwDBInterface> &row_list);
+  virtual void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list) {};
 
 
 protected:

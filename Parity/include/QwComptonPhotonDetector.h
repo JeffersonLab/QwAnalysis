@@ -29,13 +29,24 @@
 #include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
 
-class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, public MQwCloneable<QwComptonPhotonDetector> {
+class QwComptonPhotonDetector:
+  public VQwSubsystemParity,
+  public MQwV775TDC,
+  public MQwSubsystemCloneable<QwComptonPhotonDetector> {
+
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwComptonPhotonDetector();
 
   public:
 
-    /// \brief Constructor
+    /// Constructor with name
     QwComptonPhotonDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
-    /// \brief Destructor
+    /// Copy constructor
+    QwComptonPhotonDetector(const QwComptonPhotonDetector& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwComptonPhotonDetector() { };
 
 
@@ -70,9 +81,18 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
     UInt_t GetEventcutErrorFlag() { return 0; };
+    //update the same error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
+    //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+    };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void AccumulateRunningSum(VQwSubsystem* value);
+    //remove one entry from the running sums for devices
+    void DeaccumulateRunningSum(VQwSubsystem* value){
+    };
     void CalculateRunningAverage();
 
     using VQwSubsystem::ConstructHistograms;
@@ -90,8 +110,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
-    void Copy(VQwSubsystem *source);
-    VQwSubsystem*  Copy();
+    void Copy(const VQwSubsystem *source);
 
     Bool_t Compare(VQwSubsystem *source);
     Bool_t CompareADC(VQwSubsystem *source);

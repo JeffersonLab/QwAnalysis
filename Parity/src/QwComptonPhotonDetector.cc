@@ -73,11 +73,11 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
     } else {
       //  Break this line into tokens to process it.
-      TString modtype = mapstr.GetNextToken().c_str();
-      UInt_t modnum   = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      UInt_t channum  = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      TString dettype = mapstr.GetNextToken().c_str();
-      TString name    = mapstr.GetNextToken().c_str();
+      TString modtype = mapstr.GetTypedNextToken<TString>();
+      UInt_t modnum   = mapstr.GetTypedNextToken<UInt_t>();
+      UInt_t channum  = mapstr.GetTypedNextToken<UInt_t>();
+      TString dettype = mapstr.GetTypedNextToken<TString>();
+      TString name    = mapstr.GetTypedNextToken<TString>();
       modtype.ToUpper();
       dettype.ToUpper();
 
@@ -210,11 +210,11 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 
     if (mapstr.LineIsEmpty())  continue;
     else {
-      varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+      varname = mapstr.GetTypedNextToken<TString>();  // name of the channel
       varname.ToLower();
       varname.Remove(TString::kBoth,' ');
-      varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-      varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+      varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+      varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
       QwVerbose << varname << ": " << QwLog::endl;
     }
 
@@ -873,12 +873,12 @@ void  QwComptonPhotonDetector::PrintInfo() const
  * Make a copy of this subsystem, including all its subcomponents
  * @param source Original version
  */
-void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
+void  QwComptonPhotonDetector::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(source);
+      const QwComptonPhotonDetector* input = dynamic_cast<const QwComptonPhotonDetector*>(source);
 
       this->fSamplingADC.resize(input->fSamplingADC.size());
       for (size_t i = 0; i < this->fSamplingADC.size(); i++)
@@ -904,17 +904,6 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
   }
 }
 
-
-/**
- * Make a copy of this subsystem
- * @return Copy of this subsystem
- */
-VQwSubsystem*  QwComptonPhotonDetector::Copy()
-{
-  QwComptonPhotonDetector* copy = new QwComptonPhotonDetector(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
-}
 
 /**
  * Get the SIS3320 channel for this photon detector

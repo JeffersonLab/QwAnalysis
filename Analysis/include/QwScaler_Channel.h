@@ -18,6 +18,9 @@
 #include "VQwHardwareChannel.h"
 #include "MQwMockable.h"
 
+// Forward declarations
+class QwParameterFile;
+
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -55,6 +58,8 @@ public:
     //std::cerr << "QwScaler_Channel SetDefaultSampleSize does nothing!"
 	  //    << std::endl;
   }
+
+  void LoadChannelParameters(QwParameterFile &paramfile);
 
   void  ClearEventData();
 
@@ -126,8 +131,11 @@ public:
     if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
   };
 
+  void DeaccumulateRunningSum(VQwScaler_Channel &value){
+  };
+  
+
   void Copy(const VQwDataElement *source);
-  void Copy(const VQwScaler_Channel &source);
 
   void PrintValue() const;
   void PrintInfo() const;
@@ -138,7 +146,7 @@ public:
   virtual Bool_t NeedsExternalClock() { return fNeedsExternalClock; };
   virtual void SetNeedsExternalClock(Bool_t needed) { fNeedsExternalClock = needed; };
   virtual std::string GetExternalClockName() {  return fNormChannelName; };
-  virtual void SetExternalClockPtr( const VQwDataElement* clock) { fNormChannelPtr = clock; };
+  virtual void SetExternalClockPtr( const VQwHardwareChannel* clock) { fNormChannelPtr = clock; };
   virtual void SetExternalClockName( const std::string name) { fNormChannelName = name; };
 
 protected:
@@ -151,7 +159,7 @@ protected:
   Double_t fValue;
   Double_t fValueM2;
   Double_t fValueError;
-  const VQwDataElement *fNormChannelPtr;
+  const VQwHardwareChannel *fNormChannelPtr;
   Double_t fClockNormalization;
   std::string fNormChannelName;
   Bool_t fNeedsExternalClock;

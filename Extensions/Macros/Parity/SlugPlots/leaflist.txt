@@ -40,6 +40,9 @@ diff_qwk_targetY.hw_sum diff_qwk_targetY
 diff_qwk_targetXSlope.hw_sum    diff_qwk_targetXSlope
 diff_qwk_targetYSlope.hw_sum    diff_qwk_targetYSlope
 diff_qwk_energy.hw_sum  diff_qwk_energy
+asym_dslumi_even.hw_sum		asym_dslumi_even
+asym_dslumi_odd.hw_sum		asym_dslumi_odd
+asym_dslumi_sum.hw_sum		asym_dslumi_sum
 asym_qwk_mdallbars.hw_sum       asym_qwk_mdallbars
 asym_qwk_mdallbars.block0       asym_qwk_mdallbars_0
 asym_qwk_mdallbars.block1       asym_qwk_mdallbars_1
@@ -55,6 +58,8 @@ asym2_qwk_mdallbars.block0      aeo_qwk_mdallbars_0
 asym2_qwk_mdallbars.block1      aeo_qwk_mdallbars_1
 asym2_qwk_mdallbars.block2      aeo_qwk_mdallbars_2
 asym2_qwk_mdallbars.block3      aeo_qwk_mdallbars_3
+asym_qwk_mdevenbars.hw_sum       asym_qwk_mdevenbars
+asym_qwk_mdoddbars.hw_sum       asym_qwk_mdoddbars
 asym_qwk_pmtonl.hw_sum  asym_qwk_pmtonl
 asym_qwk_pmtonl.block0  asym_qwk_pmtonl_0
 asym_qwk_pmtonl.block1  asym_qwk_pmtonl_1

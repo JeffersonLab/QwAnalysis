@@ -23,6 +23,7 @@
 #include "QwUnits.h"
 #include "QwOptions.h"
 #include "QwInterpolator.h"
+#include "QwParameterFile.h"
 
 // Forward declarations
 template <class value_t, unsigned int value_n> class QwInterpolator;
@@ -68,8 +69,8 @@ class QwMagneticField  {
     static void DefineOptions(QwOptions& options);
     /// \brief Process command line and config file options
     void ProcessOptions(QwOptions& options);
-
-
+    /// \load beam property
+    double LoadBeamProperty(const TString& map);
     /// Set the filename
     void SetFilename(const std::string& filename)
       { fFilename = filename; };

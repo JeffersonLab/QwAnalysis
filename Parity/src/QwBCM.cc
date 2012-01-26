@@ -142,7 +142,7 @@ template<typename T>
 void QwBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
   //set the unique tag to identify device type (bcm,bpm & etc)
   errorflag|=kBCMErrorFlag;
-  QwMessage<<"QwBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  QwMessage<<"QwBCM Error Code passing to QwVQWK_Ch "<<errorflag<<" "<<stability<<QwLog::endl;
   fBeamCurrent.SetSingleEventCuts(errorflag,LL,UL,stability);
 
 }
@@ -178,8 +178,30 @@ Int_t QwBCM<T>::GetEventcutErrorCounters()
   return fBeamCurrent.GetEventcutErrorCounters();
 }
 
+/********************************************************/
+template<typename T>
+void QwBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwBCM::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwBCM<T>* value_bcm = dynamic_cast<QwBCM<T>* >(ev_error);
+	VQwDataElement *value_data = dynamic_cast<VQwDataElement *>(&(value_bcm->fBeamCurrent));
+	fBeamCurrent.UpdateEventcutErrorFlag(value_data->GetErrorCode());//the routine GetErrorCode() return the error flag unconditionally
+      }
+    } else {
+      TString loc="Standard exception from QwBCM::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl; 
+  }
+};
 
 
+/********************************************************/
 template<typename T>
 Int_t QwBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
@@ -351,6 +373,10 @@ void QwBCM<T>::AccumulateRunningSum(const VQwBCM& value) {
 }
 
 template<typename T>
+void QwBCM<T>::DeaccumulateRunningSum(VQwBCM& value) {
+  fBeamCurrent.DeaccumulateRunningSum(dynamic_cast<QwBCM<T>* >(&value)->fBeamCurrent);
+}
+template<typename T>
 void QwBCM<T>::PrintValue() const
 {
   fBeamCurrent.PrintValue();
@@ -448,12 +474,12 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 
 /********************************************************/
 template<typename T>
-void QwBCM<T>::Copy(VQwDataElement *source)
+void QwBCM<T>::Copy(const VQwDataElement *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwBCM::Copy(source);
-      const QwBCM<T>* input = dynamic_cast<QwBCM<T>*>(source);
+      const QwBCM<T>* input = dynamic_cast<const QwBCM<T>*>(source);
       this->fBeamCurrent.Copy(&(input->fBeamCurrent));
     } else {
       TString loc="Standard exception from QwBCM::Copy = "
@@ -472,6 +498,36 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
   std::vector <QwDBInterface> row_list;
   fBeamCurrent.AddEntriesToList(row_list);
   return row_list;
+}
+
+
+
+template<typename T>
+std::vector<QwErrDBInterface> QwBCM<T>::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  fBeamCurrent.AddErrEntriesToList(row_list);
+  return row_list;
+}
+
+
+template<typename T>
+Double_t QwBCM<T>::GetValue()
+{
+  return fBeamCurrent.GetValue();
+}
+
+
+template<typename T>
+Double_t QwBCM<T>::GetValueError()
+{
+  return fBeamCurrent.GetValueError();
+}
+
+template<typename T>
+Double_t QwBCM<T>::GetValueWidth()
+{
+  return fBeamCurrent.GetValueWidth();
 }
 
 template class QwBCM<QwVQWK_Channel>; 

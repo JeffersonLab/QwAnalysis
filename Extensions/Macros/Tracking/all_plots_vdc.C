@@ -293,14 +293,14 @@ void plot_times(){
   h_time_7= new TH1F("h_time_7", "Yoda Drift Time", 250, -300, 1300);
   h_time_8= new TH1F("h_time_8", "Han Drift Time", 250, -300, 1300);
 
-  event_tree->Draw("fTime>>h_time_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTime>>h_time_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fTime>>h_time_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTime>>h_time_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fTime>>h_time_5","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTime>>h_time_6","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fTime>>h_time_7","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTime>>h_time_8","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTimeNs>>h_time_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTimeNs>>h_time_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTimeNs>>h_time_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTimeNs>>h_time_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTimeNs>>h_time_5","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTimeNs>>h_time_6","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTimeNs>>h_time_7","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTimeNs>>h_time_8","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
   h_time_1 -> SetLineColor(2);
   h_time_1 -> GetXaxis()-> SetTitle("Drift Time   (ns)  Vader");
   h_time_2 -> SetLineColor(4);
@@ -310,7 +310,7 @@ void plot_times(){
   h_time_4 -> SetLineColor(6);
   h_time_4 -> GetXaxis()-> SetTitle("Drift Time   (ns)  Han");
   h_time_5 -> SetLineColor(2);
-  h_time_5 -> GetXaxis()-> SetTitle("Drift Time   (ns)  Vsder");
+  h_time_5 -> GetXaxis()-> SetTitle("Drift Time   (ns)  Vader");
   h_time_6 -> SetLineColor(4);
   h_time_6 -> GetXaxis()-> SetTitle("Drift Time   (ns)  Leia");
   h_time_7 -> SetLineColor(3);

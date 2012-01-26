@@ -21,6 +21,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 /*****************************************************************
 *  Class:
@@ -31,8 +32,11 @@ class QwDBInterface;
 class QwQPD : public VQwBPM {
 
  public:
+  static UInt_t  GetSubElementIndex(TString subname);
+
   QwQPD() {
   };
+
   QwQPD(TString name):VQwBPM(name){
     InitializeChannel(name);
   };
@@ -50,6 +54,12 @@ class QwQPD : public VQwBPM {
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
   void    InitializeChannel(TString subsystem, TString name);
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    for(Short_t i=0;i<4;i++)
+      fPhotodiode[i].LoadChannelParameters(paramfile);
+  }
+
   void    GetCalibrationFactors(Double_t AlphaX, Double_t AlphaY);
   
   void    ClearEventData();
@@ -67,18 +77,19 @@ class QwQPD : public VQwBPM {
   }
   const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
 
-
-  UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void    GetAbsolutePosition(){};
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  //void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  UInt_t  GetEventcutErrorFlag();
+  void UpdateEventcutErrorFlag(const UInt_t error);
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error);
 
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
@@ -88,7 +99,7 @@ class QwQPD : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(QwQPD *source);
+  void    Copy(const VQwDataElement *source);
   void    Ratio(QwQPD &numer, QwQPD &denom);
   void    Scale(Double_t factor);
 
@@ -101,6 +112,9 @@ class QwQPD : public VQwBPM {
   virtual QwQPD& operator-= (const QwQPD &value);
 
   void    AccumulateRunningSum(const QwQPD& value);
+  void    AccumulateRunningSum(const VQwBPM& value);
+  void    DeaccumulateRunningSum(VQwBPM &value);
+  void    DeaccumulateRunningSum(QwQPD& value);
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -114,6 +128,7 @@ class QwQPD : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
   void    MakeQPDList();
 
 

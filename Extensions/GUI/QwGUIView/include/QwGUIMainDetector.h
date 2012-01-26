@@ -424,7 +424,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
 
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
-  //!four histograms from the ROOT file that is contained within the data container makes copies of
+  //! histograms from the ROOT file that is contained within the data container makes copies of
   //!them and adds them to a histogram pointer array for later plotting and cleanup.
   //!
   //!Parameters:
@@ -432,6 +432,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!
   //!Return value: none  
   virtual void        OnNewDataContainer(RDataContainer *cont);
+
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
@@ -442,6 +443,8 @@ class QwGUIMainDetector : public QwGUISubSystem {
 
   TObject*            GetAsymmetrySummaryPlot();
   TObject*            GetMDAllAsymmetryHisto();
+
+  virtual void        MakeHCLogEntry(); 
 
   ClassDef(QwGUIMainDetector,0);
 };

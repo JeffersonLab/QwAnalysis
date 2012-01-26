@@ -84,6 +84,7 @@
 #include <TPave.h>
 #include "KeySymbols.h"
 #include "QwGUIMainDetector.h"
+#include "QwGUIHistories.h"
 #include "QwGUIScanner.h"
 #include "QwGUIBeamModulation.h"
 #include "QwGUILumiDetector.h" 
@@ -120,6 +121,7 @@ class QwGUIMain : public TGMainFrame {
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUIScanner           *ScannerSubSystem;
+  QwGUIHistories         *HistoriesSubSystem;
   QwGUIBeamModulation    *BeamModulationSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
@@ -146,6 +148,16 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   MCnt;
 
   Int_t                   dCurrentSegment;
+
+  Double_t                dRasterSize[2];
+  void                    SetRasterSize(Double_t rasterX, Double_t rasterY){dRasterSize[0] = rasterX; dRasterSize[1] = rasterY;}
+  Double_t               *GetRasterSize(){return dRasterSize;}
+  Double_t                dEnergy;
+  void                    SetEnergy(Double_t energy) {dEnergy = energy;}
+  Double_t                GetEnergy() {return dEnergy;}
+  Double_t                dCurrent;
+  void                    SetCurrent(Double_t current) {dCurrent = current;}
+  Double_t                GetCurrent() {return dCurrent;}
 
   //!Index (in DataWindowArray) of the currently slected data window
   Int_t                dSelectedDataWindow;
@@ -189,6 +201,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIComboBox          *dSegmentEntry;
   QwGUIComboBox          *dPrefixEntry;
   TGCheckButton          *dAddSegmentCheckButton;
+  TGCheckButton          *dEventModeCheckButton;
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
   TGLayoutHints          *dSegmentEntryLayout;
@@ -196,9 +209,12 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dAddSegmentLayout;
   TGLabel                *dRunEntryLabel;
   TGLabel                *dAddSegmentLabel;  
-  TGLabel                *dPrefixEntryLabel;  
+  TGLabel                *dPrefixEntryLabel;
+  TGLabel                *dRunInfoLabel;
+  
   TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;
+  TGHorizontalFrame      *dRunInfoFrame;
   TGLayoutHints          *dUtilityLayout;
 
   //!Main window tab environment
@@ -228,6 +244,10 @@ class QwGUIMain : public TGMainFrame {
   TGTextBuffer           *dDBQueryBuffer;
   TGLabel                *dDBQueryLabel;
   TGLayoutHints          *dDBQueryLabelLayout;
+  TGTextButton           *dHCEntryButton;
+  QwGUIHCLogEntryDialog  *dHCLogEntryDlg;
+  HCLogEntry              dHCLogEntries;
+  TGLabel                *dHCLogEntryLabel;
 
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
@@ -246,6 +266,8 @@ class QwGUIMain : public TGMainFrame {
   vector <TH1F*>          dMainHistos;
   vector <TGraph*>        dMainGraphs;
   vector <TObject*>       dMainPlotsArray;
+  vector <TH1F*>          dHistoryPlotsArray;
+  vector <TBox*>          dErrorBoxArray;
 
   EventOptions            dCurrentRunEventOptions;
 
@@ -472,6 +494,7 @@ class QwGUIMain : public TGMainFrame {
   void                    LoopOverRunSegments();
 
   void                    PlotMainData();
+  void                    SubmitToHCLog();
   
 
   //!This function checks to see if a tab with a certain name is already active.
@@ -503,6 +526,24 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not yet implemented.
   Int_t                   WriteRootData();
+
+  TString     WrapParameter(TString param, TString value){
+    TString tmp("--");
+    tmp += param + "=\"" + value + "\" ";
+    return tmp;
+  }
+  TString     WrapAttachment(TString filename){
+    TString tmp("--attachment=\"");
+    tmp += filename + "\" ";
+    return tmp;
+  }
+
+  TString     MakeSubject(TString subject){
+    TString tmp("Analysis: ");
+    tmp += Form("Run %6d - ",GetCurrentRunNumber()) + subject;
+    return tmp;
+  } 
+
 
  public:
   QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h);

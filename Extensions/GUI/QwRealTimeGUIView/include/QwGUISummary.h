@@ -33,8 +33,8 @@
 //=============================================================================
 
 
-#define N_CH      5
-#define N_CH_ERR  7
+#define N_CH      7
+#define N_CH_ERR  8
 
 ///
 /// \ingroup QwGUISummary

@@ -20,6 +20,8 @@
 
 // Forward declarations
 class QwBlinder;
+class QwParameterFile;
+class QwErrDBInterface;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -63,10 +65,12 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
 
+  void LoadChannelParameters(QwParameterFile &paramfile);
+
   // Will update the default sample size for the module.
-  void SetDefaultSampleSize(size_t NumberOfSamples_map) {
+  void SetDefaultSampleSize(size_t num_samples_map) {
     // This will be checked against the no.of samples read by the module
-    fNumberOfSamples_map = NumberOfSamples_map;
+    fNumberOfSamples_map = num_samples_map;
   };
   
   void  ClearEventData();
@@ -126,10 +130,12 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     AccumulateRunningSum(value);
     value.fGoodEventCount=0;
   };
+  /*
   void DeaccumulateRunningSum(VQwHardwareChannel *value){
-    QwVQWK_Channel *tmp_ptr = dynamic_cast<QwVQWK_Channel*>(value);
+    const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
     if (tmp_ptr != NULL) DeaccumulateRunningSum(*tmp_ptr);
   };
+  */
 
   void CalculateRunningAverage();
 
@@ -194,7 +200,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
   void Copy(const VQwDataElement *source);
-  void Copy(const QwVQWK_Channel& source);
 
   friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;
@@ -209,7 +214,9 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /// \brief Blind this channel as a difference
   void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
 
-  
+  // Error Counters exist in QwVQWK_Channel, not in VQwHardwareChannel
+  //
+  void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list);
 
  protected:
   QwVQWK_Channel& operator/= (const QwVQWK_Channel &value);
@@ -282,15 +289,17 @@ private:
   size_t fNumberOfSamples;     ///< Number of samples  read through the module
   size_t fNumberOfSamples_map; ///< Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file
 
-  Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
+ 
 
   // Set of error counters for each HW test.
-  Int_t fErrorCount_sample;   ///< for sample size check
+  Int_t fErrorCount_HWSat;    ///< check to see ADC channel is saturated 
+  Int_t fErrorCount_sample;   ///< for sample size check                 
   Int_t fErrorCount_SW_HW;    ///< HW_sum==SW_sum check
   Int_t fErrorCount_Sequence; ///< sequence number check
   Int_t fErrorCount_SameHW;   ///< check to see ADC returning same HW value
   Int_t fErrorCount_ZeroHW;   ///< check to see ADC returning zero
-  Int_t fErrorCount_HWSat;   ///< check to see ADC channel is saturated
+
+  Int_t fNumEvtsWithEventCutsRejected; ///< Counts the Event cut rejected events 
 
 
 

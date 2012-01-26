@@ -33,6 +33,7 @@
 !
 !  For BCM5/6       Friday, February  4 16:10:37 EST 2011,jhlee
 !                   https://hallcweb.jlab.org/hclog/1102_archive/110204144852.html
+!  For BCM1/2/5/6   https://hallcweb.jlab.org/hclog/1111_archive/111126153445.html log-240704
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
@@ -129,12 +130,17 @@
   qwk_bpm3h09bXM   , 2998.2   , 1.0
   qwk_bpm3h09bYP   , 4482.01  , 1.0
   qwk_bpm3h09bYM   , 2208.63  , 1.0
-#updated from the qweak_hallc_pedestal.11338-.map -- rakithab
-  qwk_bcm1         , 253.3   , 0.00418347
-  qwk_bcm2         , 420.338  , 0.00448045
-! constants obtained from run 11173 
-  qwk_bcm5        ,5325.2,        0.00149165 
-  qwk_bcm6        ,6846.81,       0.00184725 
+#updated from the qweak_hallc_pedestal.14417-.map -- rakithab
+
+
+  qwk_bcm1 , -197.599785, +0.004342
+  qwk_bcm2 , -557.273210, +0.004688
+  qwk_bcm5  ,-427.799,      0.00213436
+  qwk_bcm6  ,-409.644,      0.00222752
+  qwk_bcm7  ,-553.898,      0.00214255
+  qwk_bcm8  ,-494.289,      0.00207661
+
+########
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
   sca_habcm       , 260  , 0.0003132

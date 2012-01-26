@@ -27,13 +27,20 @@ class QwPMT_Channel: public VQwDataElement {
    *
    ******************************************************************/
  public:
+  /// Default constructor
   QwPMT_Channel() {
-// Prepare the random number generator.
-  gRandom->SetSeed(); };
-
-  QwPMT_Channel(TString name){
+    // Prepare the random number generator.
+    gRandom->SetSeed();
+  };
+  /// Copy constructor
+  QwPMT_Channel(const QwPMT_Channel& source)
+  : VQwDataElement(source)
+  { };
+  /// Constructor with name
+  QwPMT_Channel(TString name) {
     InitializeChannel(name);
   };
+  /// Virtual destructor
   virtual ~QwPMT_Channel() { };
 
   void  InitializeChannel(TString name){

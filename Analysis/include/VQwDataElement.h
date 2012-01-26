@@ -23,6 +23,9 @@
 #include "QwTypes.h"
 #include "MQwHistograms.h"
 
+class QwParameterFile;
+class VQwHardwareChannel;
+
 /**
  *  \class   VQwDataElement
  *  \ingroup QwAnalysis
@@ -86,6 +89,8 @@ class VQwDataElement: public MQwHistograms {
   /*! \brief Get the name of this element */
   virtual const TString& GetElementName() const { return fElementName; }
 
+  virtual void LoadChannelParameters(QwParameterFile &paramfile){};
+
   /*! \brief Clear the event data in this element */
   virtual void  ClearEventData(){
     fErrorFlag=0;
@@ -136,12 +141,21 @@ class VQwDataElement: public MQwHistograms {
 
   /*! \brief return the error flag on this channel/device*/
   virtual UInt_t GetEventcutErrorFlag(){return fErrorFlag;};
+ /*! \brief update the error flag on this channel/device*/
+  virtual void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fErrorFlag|=errorflag;
+  }
+
+  virtual UInt_t GetErrorCode() const {return (fErrorFlag);}; 
+  virtual void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
+
 
   // These are related to those hardware channels that need to normalize
   // to an external clock
+  virtual void SetNeedsExternalClock(Bool_t needed) {};   // Default is No!
   virtual Bool_t NeedsExternalClock() { return kFALSE; }; // Default is No!
   virtual std::string GetExternalClockName() {  return ""; }; // Default is none
-  virtual void SetExternalClockPtr( const VQwDataElement* clock) {};
+  virtual void SetExternalClockPtr( const VQwHardwareChannel* clock) {};
   virtual void SetExternalClockName( const std::string name) {};
   virtual Double_t GetNormClockValue() { return 1.;}
 
@@ -198,7 +212,6 @@ class VQwDataElement: public MQwHistograms {
       MQwHistograms::operator=(value);
       fGoodEventCount    = value.fGoodEventCount;
       fErrorFlag         = value.fErrorFlag;
-      fErrorConfigFlag   = value.fErrorConfigFlag;
     }
     return *this;
   }
@@ -206,7 +219,7 @@ class VQwDataElement: public MQwHistograms {
  protected:
   TString fElementName; ///< Name of this data element
   UInt_t  fNumberOfDataWords; ///< Number of raw data words in this data element
-  UInt_t fGoodEventCount;  ///< Number of good events accumulated in this element
+  Int_t fGoodEventCount; ///< Number of good events accumulated in this element
 
 
   // Name of the inheriting subsystem

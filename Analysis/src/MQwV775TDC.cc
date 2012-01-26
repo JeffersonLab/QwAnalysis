@@ -122,9 +122,11 @@ void MQwV775TDC::PrintTDCData(Bool_t flag)
 {
   if(flag)
     {
-      std::cout << ">>>>>>>>> DATA : Ch "
+      std::cout << ">>>>>>>>> DATA : "
+		<< "Slot " << fV775SlotNumber << " "
+		<< "Ch "
 		<< std::setw(2) << fV775ChannelNumber
-		<< ", Raw Time "
+		<< ", Raw dataword "
 		<< std::setw(12) << fV775Dataword
 		<< std::endl;
     }

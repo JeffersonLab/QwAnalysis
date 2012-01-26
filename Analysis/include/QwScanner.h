@@ -25,37 +25,35 @@
 #include "VQwSubsystemParity.h"
 
 #include "MQwV775TDC.h"
-#include "QwVQWK_Module.h"
-#include "QwSIS3801_Module.h"
 
-//#include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 #include "QwF1TDContainer.h"
 
-class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
-    public MQwCloneable<QwScanner>
-  {
+class QwScanner:
+  public VQwSubsystemParity,
+  public VQwSubsystemTracking,
+  public MQwSubsystemCloneable<QwScanner> {
+
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwScanner();
 
   public:
-
-    QwScanner(TString region_tmp);
+    /// Constructor with name
+    QwScanner(const TString& name);
+    /// Copy constructor
+    QwScanner(const QwScanner& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source),VQwSubsystemTracking(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwScanner();
 
     // VQwSubsystem methods
-    VQwSubsystem& operator=  (VQwSubsystem *value)
-    {
-      return *this;
-    };
-    VQwSubsystem& operator+= (VQwSubsystem *value)
-    {
-      return *this;
-    };
-    VQwSubsystem& operator-= (VQwSubsystem *value)
-    {
-      return *this;
-    };
+    VQwSubsystem& operator=(VQwSubsystem *value);
+    VQwSubsystem& operator+=(VQwSubsystem *value);
+    VQwSubsystem& operator-=(VQwSubsystem *value);
     void ProcessOptions(QwOptions &options); //Handle command line options
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
     {
@@ -78,6 +76,10 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     {
       return;
     };
+    //remove one entry from the running sums for devices
+    void DeaccumulateRunningSum(VQwSubsystem* value){
+    };
+
     void CalculateRunningAverage()
     {
       return;
@@ -100,25 +102,11 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
       return kTRUE;
     };
 
-    void Copy(VQwSubsystem *source)
-    {
-      VQwSubsystem::Copy(source);
-      return;
-    };
-    VQwSubsystem* Copy()
-    {
-      QwScanner* copy = new QwScanner("copy");
-      copy->Copy(this);
-      return copy;
-    };
-    Bool_t Compare(VQwSubsystem *source)
-    {
-      return kTRUE;
-    };
+    void Copy(const VQwSubsystem *source);
 
     /*  Member functions derived from VQwSubsystem. */
     Int_t LoadChannelMap(TString mapfile);
-    Int_t LoadGeometryDefinition(TString mapfile)
+    Int_t LoadGeometryDefinition(TString filename)
     {
       return 0;
     };
@@ -152,26 +140,22 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     void  GetHitList(QwHitContainer & grandHitContainer){};
     void  ReportConfiguration();
 
-    Bool_t Compare(QwScanner &value);
-    QwScanner& operator=  (QwScanner &value);
-    QwScanner& operator+=  (QwScanner &value);
-    QwScanner& operator-=  (QwScanner &value);
+    Bool_t Compare(VQwSubsystem* value);
 
     Bool_t ApplyHWChecks() //Check for harware errors in the devices
     {
       Bool_t status = kTRUE;
-      for (size_t i=0; i<fADC_Data.size(); i++)
+      for (size_t i=0; i<fADCs.size(); i++)
         {
-          if (fADC_Data.at(i) != NULL)
-            {
-              status &= fADC_Data.at(i)->ApplyHWChecks();
-            }
+          status &= fADCs.at(i).ApplyHWChecks();
         }
       return status;
     };
 
     void PrintValue() const { };
     void PrintInfo() const;
+    void FillHardwareErrorSummary();
+
 
   protected:
 
@@ -183,8 +167,15 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     QwF1TDContainer *fF1TDContainer;
     //    We need a mapping of module,channel into PMT index, ADC/TDC
     std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
-    std::vector<QwSIS3801_Module*> fSCAs;
-    std::vector<QwVQWK_Module*> fADC_Data;
+
+    std::vector<QwSIS3801D24_Channel> fSCAs;
+    std::map<TString,size_t> fSCAs_map;
+    std::vector<Int_t> fSCAs_offset;
+
+    std::vector<QwVQWK_Channel> fADCs;
+    std::map<TString,size_t> fADCs_map;
+    std::vector<Int_t> fADCs_offset;
+
 
     void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
     void  ClearAllBankRegistrations();
@@ -207,8 +198,8 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     Int_t fCurrentSlot;
     Int_t fCurrentIndex;
     static const UInt_t kMaxNumberOfModulesPerROC;
-    static const UInt_t kMaxNumberOfChannelsPerModule;
-    UInt_t kMaxNumberOfChannelsPerF1TDC;
+    UInt_t kMaxNumberOfChannelsPerModule;
+    //    UInt_t kMaxNumberOfChannelsPerF1TDC;
 
     Int_t fNumberOfModules;
     std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number
@@ -219,6 +210,14 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     {
       return 0;
     };//return the error flag to the main routine
+
+    //update the same error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
+    //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+    };
+
 
     // scanner specified histograms
     TProfile2D* fRateMapCM;

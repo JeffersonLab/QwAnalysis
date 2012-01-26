@@ -13,8 +13,6 @@
 #include <fstream>
 #include "QwSubsystemArrayParity.h"
 
-#include "QwVQWK_Channel.h"
-
 class QwEventRing {
 
 /******************************************************************
@@ -23,10 +21,12 @@ class QwEventRing {
  *  averages.
  *
  ******************************************************************/
+ private:
+  QwEventRing();
+
  public:
-  QwEventRing() { };
-  QwEventRing(QwOptions &options) { ProcessOptions(options); };
-  QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t event_holdoff, Int_t min_BT_count);//this will create a fixed size vent ring
+  QwEventRing(QwOptions &options, QwSubsystemArrayParity &event);
+  QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size); //this will create a fixed size event ring
   virtual ~QwEventRing() { };
 
   /// \brief Define options
@@ -41,56 +41,32 @@ class QwEventRing {
 
   /// \brief Return the read status of the ring
   Bool_t IsReady();
-  /// \brief Update parameters when an event fails
-  void FailedEvent(UInt_t);
-  /// \brief check the error flag and flag with kBeamTripError for failed events in ev mode = 3
-  Bool_t CheckEvent(UInt_t);
-
-  Int_t GetFailedEventCount() const { return fFailedEventCount; };
-
-  void SetupRing(QwSubsystemArrayParity &event);
-
 
  private:
 
   Int_t fRING_SIZE;//this is the length of the ring
-  Int_t fEVENT_HOLDOFF;//no,of good events to discard after a beam trip
-  Int_t fMIN_BT_COUNT;//minimum no.of events fails to determine a beam trip has occured
 
 
   Int_t fNextToBeFilled;//counts events in the ring
   Int_t fNextToBeRead;//keep track off when to read next from the ring.
 
   
-  Int_t fEventsSinceLastTrip;//no.of good events after a beam trip
-  Int_t fFailedEventCount;//Counts on.of failed events. if the fFailedEventCount> Min_BT_COUNT then we have a beam trip
-    
-  Bool_t bGoodEvent; //beam trip status.
-  //kTRUE -> At present no beam trip occurred
-  //kFALSE -> A beam trip occurred
   Bool_t bEVENT_READY; //If kTRUE, the good events are added to the event ring. After a beam trip this is set to kFALSE
   //after discarding LEAVE_COUNT no.of good event this is set to kTRUE
 
   Bool_t bRING_READY; //set to true after ring is filled with good events and time to process them. Set to kFALSE after processing 
   //all the events in the ring
   std::vector<QwSubsystemArrayParity> fEvent_Ring;
-
-  //parameters used in event cut mode 3
-  Bool_t  bGoodEvent_ev3; //beam trip status in event cut mode 3
-  Bool_t bEVENT_READY_ev3; //After a beam trip this is set to kFALSE, after flagging  LEAVE_COUNT no.of good event this is set to kTRUE
+  //to track all the rolling averages for stability checks
+  QwSubsystemArrayParity fRollingAvg;
   
   //for debugging purposes
-  
   FILE *out_file;   
   static const Bool_t bDEBUG=kFALSE;//kTRUE;
   static const Bool_t bDEBUG_Write=kFALSE;
 
-  //to accumulate the running avg
-  QwBeamCharge   fTargetCharge;
-  QwBeamCharge   fChargeRunningSum;
-  Double_t fStability;//Stability level in units of sigmafChargeRunningSum.
+  //State of the stability check - ON/OFF
   Bool_t bStability;
-  UInt_t fErrorCode;
 
 };
 

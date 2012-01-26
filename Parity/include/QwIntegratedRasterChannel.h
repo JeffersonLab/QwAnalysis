@@ -109,9 +109,10 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
-  std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwDBInterface>    GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
 
   const VQwDataElement* GetElement() const {
     return const_cast<QwIntegratedRasterChannel*>(this)->GetElement();

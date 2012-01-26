@@ -573,7 +573,7 @@ sub create_old_jobfile($$$@) {
     my $optionlist = $AnalysisOptionList;
     my $suffix;
     if (defined($segmentlist) && $segmentlist ne ""){
-	$optionlist = "--segments $segmentlist $AnalysisOptionList";
+	$optionlist = "--segment $segmentlist $AnalysisOptionList";
 	$suffix = "_$segmentlist";
     }
 
@@ -631,7 +631,7 @@ sub create_xml_jobfile($$$@) {
     my $optionlist = $AnalysisOptionList;
     my $suffix = "";
     if (defined($segmentlist) && $segmentlist ne ""){
-	$optionlist = "--segments $segmentlist $AnalysisOptionList";
+	$optionlist = "--segment $segmentlist $AnalysisOptionList";
 	$suffix = "_$segmentlist";
     }
     
@@ -658,6 +658,7 @@ sub create_xml_jobfile($$$@) {
 	" <Command><![CDATA[\n",
 	"  set nonomatch\n",
 	"  umask 002\n",
+	"  echo $timestamp > \$WORKDIR/timeStamp\n",
 	"  echo \"User:         \" `whoami`\n",
 	"  echo \"Groups:       \" `groups`\n",
 	"  echo \"WORKDIR:      \" \$WORKDIR\n",

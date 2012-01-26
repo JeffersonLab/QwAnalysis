@@ -30,6 +30,7 @@ std::map<string, unsigned int> QwParityDB::fMainDetectorIDs;
 std::map<string, unsigned int> QwParityDB::fLumiDetectorIDs;
 std::vector<string>            QwParityDB::fMeasurementIDs;
 std::map<string, unsigned int> QwParityDB::fSlowControlDetectorIDs;// for epics
+std::map<string, unsigned char> QwParityDB::fErrorCodeIDs;
 
 class StoreMonitorID {
   public:
@@ -72,6 +73,14 @@ class StoreSlowControlDetectorID {
     }
 };
 
+class StoreErrorCodeID {
+  public:
+    void operator() (QwParitySSQLS::error_code elem) {
+      QwDebug << "StoreErrorCodeID: error_code_id = " << elem.error_code_id << " quantity = " << elem.quantity << QwLog::endl;
+      QwParityDB::fErrorCodeIDs.insert(std::make_pair(elem.quantity, elem.error_code_id));
+    }
+};
+
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
@@ -88,6 +97,7 @@ QwParityDB::QwParityDB() : QwDatabase("01", "03", "0000")
   fRunletID          = 0;
   fAnalysisID        = 0;
   fSegmentNumber     = -1;
+  fDisableAnalysisCheck = false;
   
 }
 
@@ -102,9 +112,13 @@ QwParityDB::QwParityDB(QwOptions &options) : QwDatabase(options, "01", "03", "00
   // Initialize member fields
   fRunNumber         = 0;
   fRunID             = 0;
+  fRunletID          = 0;
   fAnalysisID        = 0;
   fSegmentNumber     = -1;
+  fDisableAnalysisCheck = false;
   
+  ProcessAdditionalOptions(options);
+
 }
 
 /*! The destructor says "Good-bye World!"
@@ -410,9 +424,47 @@ UInt_t QwParityDB::GetRunletID(QwEventBuffer& qwevt)
  */
 UInt_t QwParityDB::SetAnalysisID(QwEventBuffer& qwevt)
 {
+
+  // If there is already an analysis_id for this run, then let's bomb out.
+
   try {
+    this->Connect();
+    mysqlpp::Query query= this->Query();
+    query << "SELECT analysis_id FROM analysis WHERE beam_mode=" << mysqlpp::quote << "nbm";
+    query << " AND slope_calculation=" << mysqlpp::quote << "off";
+    query << " AND slope_correction=" << mysqlpp::quote << "off";
+    query << " AND runlet_id = " << mysqlpp::quote << this->GetRunletID(qwevt); 
+
+    mysqlpp::StoreQueryResult res = query.store();
+
+    if (res.num_rows() != 0) {
+      QwError << "This runlet has already been analyzed by the engine!" << QwLog::endl;
+      QwError << "The following analysis_id values already exist in the database:  ";
+      for (size_t i=0; i<res.num_rows(); i++) {
+        QwError << res[i][0] << " ";
+      }
+      QwError << QwLog::endl;
+
+      if (fDisableAnalysisCheck==false) {
+        QwError << "Analysis of this run will now be terminated."  << QwLog::endl;
+
+        return 0;
+      } else {
+        QwWarning << "Analysis will continue.  A duplicate entry with new analysis_id will be added to the analysis table." << QwLog::endl;
+      }
+    }
+
+    this->Disconnect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    QwError << "Unable to determine if there are other database entries for this run.  Exiting." << QwLog::endl;
+    this->Disconnect();
+    return 0;
+  }
 
 
+  try {
 
     analysis analysis_row(0);
 
@@ -664,6 +716,25 @@ UInt_t QwParityDB::GetSlowControlDetectorID(const string& name)
 }
 
 /*
+ * This function retrieves the error code table key 'error_code_id' for a given error code name.
+ */
+UInt_t QwParityDB::GetErrorCodeID(const string& name)
+{
+  if (fErrorCodeIDs.size() == 0) {
+    StoreErrorCodeIDs();
+  }
+
+  UInt_t error_code_id = fErrorCodeIDs[name];
+
+  if (error_code_id==0) {
+    QwError << "QwParityDB::GetErrorCodeID() => Unable to determine valid ID for the error code " << name << QwLog::endl;
+  }
+
+  return error_code_id;
+
+}
+
+/*
  * Stores slow control detector table keys in an associative array indexed by slow_controls_data name.
  */
 void QwParityDB::StoreSlowControlDetectorIDs()
@@ -673,6 +744,29 @@ void QwParityDB::StoreSlowControlDetectorIDs()
     this->Connect();
     mysqlpp::Query query=this->Query();
     query.for_each(sc_detector(), StoreSlowControlDetectorID());
+
+//    QwDebug<< "QwParityDB::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    this->Disconnect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
+  return;
+}
+
+/*
+ * Stores error_code table keys in an associative array indexed by error_code quantity.
+ */
+void QwParityDB::StoreErrorCodeIDs()
+{
+
+  try {
+    this->Connect();
+    mysqlpp::Query query=this->Query();
+    query.for_each(error_code(), StoreErrorCodeID());
 
 //    QwDebug<< "QwParityDB::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
 
@@ -766,6 +860,35 @@ void QwParityDB::StoreMeasurementIDs()
     Disconnect();
     exit(1);
   }
+  return;
+}
+
+/*!
+ * Defines configuration options for QwParityDB class using QwOptions
+ * functionality.
+ *
+ * Should apparently by called by QwOptions::DefineOptions() in
+ * QwParityOptions.h
+ */
+void QwParityDB::DefineAdditionalOptions(QwOptions& options)
+{
+  // Specify command line options for use by QwParityDB
+  options.AddOptions("Parity Analyzer Database options")
+    ("QwParityDB.disable-analysis-check", 
+     po::value<bool>()->default_bool_value(false),
+     "disable check of pre-existing analysis_id");
+}
+
+/*!
+ * Loads the configuration options for QwParityDB class into this instance of
+ * QwParityDB from the QwOptions object.
+ * @param options Options object
+ */
+void QwParityDB::ProcessAdditionalOptions(QwOptions &options)
+{
+  if (options.GetValue<bool>("QwParityDB.disable-analysis-check"))  
+    fDisableAnalysisCheck=true;
+
   return;
 }
 

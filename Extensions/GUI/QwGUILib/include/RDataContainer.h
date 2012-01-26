@@ -99,6 +99,7 @@ class RDataContainer : public TQObject {
   Int_t         OpenMapFile(const char* file = NULL);
   TObject      *ReadData(const char *);
   TObject      *ReadTree(const char *);
+  int           ReadRow(const char *, int);
   int           ReadData(Double_t*,int);
   int           ReadData(Double_t*,int,int);
   int           ReadData(Double_t*,int,int,int);
@@ -119,6 +120,7 @@ class RDataContainer : public TQObject {
   void          SetDataSize(long int sz){dDatasize=sz;};
   long int      GetCurrentPos();
   long int      GetFileSize();
+  int           GetRowLength(int row);
   int           GetNumOfColumns();
   int           GetNumOfRows();
   ERFileTypes   GetFileType()      {return dType;};

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+
+slug_num=$1
+#dir=/work/hallc/qweak/leacock/QwAnalysis/Extensions/Macros/Parity/SlugPlots/25percent/
+
+###############
+#
+# first make links
+#
+./collect_lrb_links std
+./collect_lrb_links 5+1
+./collect_lrb_links set3
+./collect_lrb_links set4
+./collect_lrb_links set5
+./collect_lrb_links set6
+#
+###############
+
+###############
+#
+# for testing purposes
+#
+#argument1="MakeSlug_lrb.C+(\"test.txt\",\"leaflist_25percent_lrb_reg.txt\",\"slugs/test.root\",\"std\")"
+#root -q -b -l ${argument1} 
+#root -q -b -l 'MakeSlug_lrb.C+("test.txt","leaflist_25percent_lrb_reg.txt","slugs/test.root","std")'
+#
+###############
+
+
+
+################
+#
+# check that all runlets exist for all slugs
+#
+# taking care of this when making the goodrun lists
+#
+################
+
+
+
+
+
+
+
+
+
+argument1="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_25percent_lrb_reg.txt\",\"/volatile/hallc/qweak/leacock/25percent/slugs/slug${slug_num}_lrb_std.root\",\"std\")"
+argument2="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_25percent_lrb_reg.txt\",\"/volatile/hallc/qweak/leacock/25percent/slugs/slug${slug_num}_lrb_5+1.root\",\"5+1\")"
+argument3="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_25percent_lrb_reg.txt\",\"/volatile/hallc/qweak/leacock/25percent/slugs/slug${slug_num}_lrb_set3.root\",\"set3\")"
+argument4="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_25percent_lrb_reg.txt\",\"/volatile/hallc/qweak/leacock/25percent/slugs/slug${slug_num}_lrb_set4.root\",\"set4\")"
+argument5="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_25percent_lrb_reg.txt\",\"/volatile/hallc/qweak/leacock/25percent/slugs/slug${slug_num}_lrb_set5.root\",\"set5\")"
+argument6="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_25percent_lrb_reg.txt\",\"/volatile/hallc/qweak/leacock/25percent/slugs/slug${slug_num}_lrb_set6.root\",\"set6\")"
+argument7="MakeSlug.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_25percent_unreg.txt\",\"/volatile/hallc/qweak/leacock/25percent/slugs/slug${slug_num}.root\")"
+
+
+
+root -n -q -b -l ${argument7} >/volatile/hallc/qweak/leacock/25percent/out_files/slug${slug_num}.out
+root -n -q -b -l ${argument1} >/volatile/hallc/qweak/leacock/25percent/out_files/slug${slug_num}_lrb_std.out
+root -n -q -b -l ${argument2} >/volatile/hallc/qweak/leacock/25percent/out_files/slug${slug_num}_lrb_5+1.out
+root -n -q -b -l ${argument3} >/volatile/hallc/qweak/leacock/25percent/out_files/slug${slug_num}_lrb_set3.out
+root -n -q -b -l ${argument4} >/volatile/hallc/qweak/leacock/25percent/out_files/slug${slug_num}_lrb_set4.out 
+root -n -q -b -l ${argument5} >/volatile/hallc/qweak/leacock/25percent/out_files/slug${slug_num}_lrb_set5.out
+root -n -q -b -l ${argument6} >/volatile/hallc/qweak/leacock/25percent/out_files/slug${slug_num}_lrb_set6.out
+
+
+
+
+

@@ -208,6 +208,24 @@ Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events fa
   return 1;
 }
 
+/********************************************************/
+void QwIntegrationPMT::UpdateEventcutErrorFlag(QwIntegrationPMT*ev_error){
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwIntegrationPMT::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+	fTriumf_ADC.UpdateEventcutErrorFlag(ev_error->GetErrorCode());//the routine GetErrorCode() return the error flag unconditionally
+      }
+    } else {
+      TString loc="Standard exception from QwIntegrationPMT::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 /********************************************************/
 
@@ -396,7 +414,7 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 /********************************************************/
-void  QwIntegrationPMT::Copy(VQwDataElement *source)
+void  QwIntegrationPMT::Copy(const VQwDataElement *source)
 {
   try
     {
@@ -437,6 +455,12 @@ void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value)
   fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 }
 
+void QwIntegrationPMT::DeaccumulateRunningSum(QwIntegrationPMT& value)
+{
+  fTriumf_ADC.DeaccumulateRunningSum(value.fTriumf_ADC);
+}
+
+
 void QwIntegrationPMT::Blind(const QwBlinder *blinder)
 {
   if (fIsBlindable)  fTriumf_ADC.Blind(blinder);
@@ -455,61 +479,15 @@ std::vector<QwDBInterface> QwIntegrationPMT::GetDBEntry()
   fTriumf_ADC.AddEntriesToList(row_list);
   return row_list;
 
-  //   UShort_t i = 0;
-  //   std::vector<QwDBInterface> row_list;
-  //   QwDBInterface row;
-  
-  //   TString name;
-  //   Double_t avg         = 0.0;
-  //   Double_t err         = 0.0;
-  //   UInt_t beam_subblock = 0;
-  //   UInt_t beam_n        = 0;
-
-  //   row_list.clear();
-  //   row.Reset();
-
-  //   // the element name and the n (number of measurements in average)
-  //   // is the same in each block and hardwaresum.
-  
-  //   name          = fTriumf_ADC.GetElementName();
-  //   beam_n        = fTriumf_ADC.GetGoodEventCount();
-
-  //   // Get HardwareSum average and its error
-  //   avg           = fTriumf_ADC.GetHardwareSum();
-  //   err           = fTriumf_ADC.GetHardwareSumError();
-  //   // ADC subblock sum : 0 in MySQL database
-  //   beam_subblock = 0;
-
-  //   row.SetDetectorName(name);
-  //   row.SetSubblock(beam_subblock);
-  //   row.SetN(beam_n);
-  //   row.SetValue(avg);
-  //   row.SetError(err);
-
-  //   row_list.push_back(row);
-
-  //   // Get four Block averages and thier errors
-
-  //   for(i=0; i<4; i++) {
-  //     row.Reset();
-  //     avg           = fTriumf_ADC.GetBlockValue(i);
-  //     err           = fTriumf_ADC.GetBlockErrorValue(i);
-  //     beam_subblock = (UInt_t) (i+1);
-  //     // QwVQWK_Channel  | MySQL
-  //     // fBlock[0]       | subblock 1
-  //     // fBlock[1]       | subblock 2
-  //     // fBlock[2]       | subblock 3
-  //     // fBlock[3]       | subblock 4
-  //     row.SetDetectorName(name);
-  //     row.SetSubblock(beam_subblock);
-  //     row.SetN(beam_n);
-  //     row.SetValue(avg);
-  //     row.SetError(err);
-
-  //     row_list.push_back(row);
-  //   }
-
-  //   return row_list;
-
 }
 
+
+
+
+std::vector<QwErrDBInterface> QwIntegrationPMT::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+  fTriumf_ADC.AddErrEntriesToList(row_list);
+  return row_list;
+};

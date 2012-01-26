@@ -8,7 +8,7 @@
 #include "QwUnits.h"
 #include "QwBlinder.h"
 #include "QwHistogramHelper.h"
-
+#include "QwDBInterface.h"
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
 
@@ -223,6 +223,19 @@ void QwVQWK_Channel::InitializeChannel(TString subsystem, TString instrumenttype
   SetModuleType(instrumenttype);
   //PrintInfo();
 }
+
+void QwVQWK_Channel::LoadChannelParameters(QwParameterFile &paramfile){
+  UInt_t value = 0;
+  if (paramfile.ReturnValue("sample_size",value)){
+    SetDefaultSampleSize(value);
+  } else {
+    QwWarning << "VQWK Channel "
+	      << GetElementName()
+	      << " cannot set the default sample size."
+	      << QwLog::endl;
+  }
+};
+
 
 /********************************************************/
 Int_t QwVQWK_Channel::GetEventcutErrorCounters()
@@ -795,6 +808,8 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
     this->fHardwareBlockSumError = value.fHardwareBlockSumError;
     this->fNumberOfSamples = value.fNumberOfSamples;
     this->fSequenceNumber  = value.fSequenceNumber;
+   
+
   }
   return *this;
 }
@@ -857,6 +872,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
     this->fNumberOfSamples     += value.fNumberOfSamples;
     this->fSequenceNumber       = 0;
     this->fErrorFlag            |= (value.fErrorFlag);
+
   }
 
   return *this;
@@ -1117,23 +1133,49 @@ void QwVQWK_Channel::DivideBy(const QwVQWK_Channel &denom)
 void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 {
   // Moment calculations
+  Bool_t berror=kTRUE;//only needed for deaccumulation (stability check purposes)
+
+  /*
+    note:
+    The AccumulateRunningSum is called on a dedicated subsystem array object and for the standard running avg computations
+    we only need value.fErrorFlag==0 events to be included in the running avg. So the "berror" conditions is only used for the stability check purposes.
+
+    The need for this check below came due to fact that when routine DeaccumulateRunningSum is called the errorflag is updated with 
+    the kBeamStabilityError flag (+ configuration flags for global errors) and need to make sure we remove this flag and any configuration flags before 
+    checking the (fErrorFlag != 0) condition
+    
+    See how the stability check is implemented in the QwEventRing class
+
+    Rakitha
+  */
+
+  if (value.fGoodEventCount==-1 && value.fErrorFlag>0){
+    berror=(((value.fErrorFlag) & 0xFFFFFFF) == 0); //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero //-value.fErrorConfigFlag
+    if (GetElementName()=="qwk_enegy"){//qwk_target_EffectiveCharge
+      PrintValue();
+    }
+  }
+
+  
+  
   Int_t n1 = fGoodEventCount;
   Int_t n2 = value.fGoodEventCount;
-  // If there are no good events, check the  device HW error codes
+  // If there are no good events, check the error flag
   if (n2 == 0 && (value.fErrorFlag) == 0) {
     n2 = 1;
-  }else if (n2 == -1 && (value.fErrorFlag) == 0) {
+    //one event is removed from the sum (Deaccumulation)
+  }else if (n2 == -1 && berror) { //check only single event cut errors except stability fail flag since by the time the value is deaccumulated this could be flagged as stability failed error. 
     n2 = -1;
   }else
     n2 = -100;//ignore it
   Int_t n = n1 + n2;
-
   // Set up variables
   Double_t M11 = fHardwareBlockSum;
   Double_t M12 = value.fHardwareBlockSum;
   Double_t M22 = value.fHardwareBlockSumM2;
   if (n2 == 0) {
     // no good events for addition
+
     return;
   } else if (n2 == -1) {
     // simple version for removal of single event from the sum
@@ -1151,20 +1193,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 	fBlock[i] -= (M12 - M11) / n;
 	fBlockM2[i] -= (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
       }
-      //QwMessage<<"Deaccumulate "<<QwLog::endl;
     }else if (n==0){
       //QwMessage<<"Deaccumulate at zero "<<QwLog::endl;
-      /*
-      fHardwareBlockSum -= (M12 - M11) / n;
-      fHardwareBlockSumM2 -= (M12 - M11) * (M12 - fHardwareBlockSum); // note: using updated mean
-      // and for individual blocks
-      for (Int_t i = 0; i < 4; i++) {
-	M11 = fBlock[i];
-	M12 = value.fBlock[i];
-	M22 = value.fBlockM2[i];
-	fBlock[i] -= (M12 - M11) / n;
-	fBlockM2[i] -= (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
-      }
+      /* 
+      //Need any fail safe check for Deaccumulation????
       */
     }
 
@@ -1200,11 +1232,21 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   // Nanny
   if (fHardwareBlockSum != fHardwareBlockSum)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
+
+
+   
+
 }
 
 
 void QwVQWK_Channel::CalculateRunningAverage()
 {
+  /*
+  if (GetElementName()=="qwk_engy"){//qwk_target_EffectiveCharge
+      PrintValue();
+  }
+  */
+
   if (fGoodEventCount <= 0)
     {
       for (Int_t i = 0; i < fBlocksPerEvent; i++) {
@@ -1223,6 +1265,18 @@ void QwVQWK_Channel::CalculateRunningAverage()
       for (Int_t i = 0; i < fBlocksPerEvent; i++)
         fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
+      //Stability check 83951872 
+      if ((fStability>0) &&( (fErrorConfigFlag & kStabilityCut)==kStabilityCut)){//check to see the channel has stability cut activated in the event cut file
+	/*
+	  //for Debugging
+	  PrintValue();
+	*/
+	if (GetValueWidth()>fStability){//if the width is greater than the stability required flag the event
+	  fErrorFlag=kBeamStabilityError;
+	}else
+	  fErrorFlag=0;
+      }
+	  
     }
 }
 
@@ -1245,7 +1299,14 @@ void QwVQWK_Channel::PrintValue() const
             << std::setw(12) << std::left << GetBlockErrorValue(2) << " "
             << std::setw(12) << std::left << GetBlockValue(3)      << "+/- "
             << std::setw(12) << std::left << GetBlockErrorValue(3) << " "
+            << std::setw(12) << std::left << fGoodEventCount << " "
             << QwLog::endl;
+  /*
+    //for Debudding
+            << std::setw(12) << std::left << fErrorFlag << " err "
+            << std::setw(12) << std::left << fErrorConfigFlag << " c-err "
+
+  */
 }
 
 std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel)
@@ -1323,7 +1384,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   return status;
 }
 
-Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)//only check to see HW_Sum is within these given limits
+Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL,Double_t UL)//only check to see HW_Sum is within these given limits
 {
   Bool_t status = kFALSE;
 
@@ -1377,82 +1438,205 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
   return status;
 }
 
-void QwVQWK_Channel::Copy(const VQwDataElement *source){
-  const QwVQWK_Channel* input =
-    dynamic_cast<const QwVQWK_Channel*>(source);
-  if (input == NULL){
-    TString loc="Standard exception from QwVQWK_Channel::Copy = "
-      +source->GetElementName()+" "
-      +this->GetElementName()+" are not of the same type";
-    throw(std::invalid_argument(loc.Data()));
-  } else {
-    Copy(*input);
-  }
-}
-
-void QwVQWK_Channel::Copy(const QwVQWK_Channel& input)
+void QwVQWK_Channel::Copy(const VQwDataElement *source)
 {
-  VQwHardwareChannel::Copy(input);
-  fBlocksPerEvent = input.fBlocksPerEvent;
-  fNumberOfSamples_map = input.fNumberOfSamples_map;
-  fSaturationABSLimit  = input.fSaturationABSLimit;
-  //  Copy the flags used for tree trimming
-  bHw_sum            = input.bHw_sum;
-  bHw_sum_raw        = input.bHw_sum_raw;
-  bBlock             = input.bBlock;
-  bBlock_raw         = input.bBlock_raw;
-  bNum_samples       = input.bNum_samples;
-  bDevice_Error_Code = input.bDevice_Error_Code;
-  bSequence_number   = input.bSequence_number;
+  if (typeid(*source) == typeid(*this)) {
+    VQwHardwareChannel::Copy(source);
+    const QwVQWK_Channel* input = dynamic_cast<const QwVQWK_Channel*>(source);
 
-  this->fNumberOfSamples       = input.fNumberOfSamples;
-  this->fHardwareBlockSum      = input.fHardwareBlockSum;
-  this->fHardwareBlockSumError = input.fHardwareBlockSumError;
-  this->fGoodEventCount=input.fGoodEventCount;
-  for(Int_t i=0; i<4; i++ ) {
-    this->fBlock[i] = input.fBlock[i];
-    this->fBlockError[i] = input.fBlockError[i];
+    fBlocksPerEvent = input->fBlocksPerEvent;
+    fNumberOfSamples_map = input->fNumberOfSamples_map;
+    fSaturationABSLimit  = input->fSaturationABSLimit;
+    //  Copy the flags used for tree trimming
+    bHw_sum            = input->bHw_sum;
+    bHw_sum_raw        = input->bHw_sum_raw;
+    bBlock             = input->bBlock;
+    bBlock_raw         = input->bBlock_raw;
+    bNum_samples       = input->bNum_samples;
+    bDevice_Error_Code = input->bDevice_Error_Code;
+    bSequence_number   = input->bSequence_number;
+
+    this->fNumberOfSamples       = input->fNumberOfSamples;
+    this->fHardwareBlockSum      = input->fHardwareBlockSum;
+    this->fHardwareBlockSumError = input->fHardwareBlockSumError;
+    this->fGoodEventCount        = input->fGoodEventCount;
+    
+    // //
+    // // Error counter copy....
+    // //
+
+    // this->fErrorCount_HWSat    = input->fErrorCount_HWSat;
+    // this->fErrorCount_sample   = input->fErrorCount_sample;
+    // this->fErrorCount_SW_HW    = input->fErrorCount_SW_HW;
+    // this->fErrorCount_Sequence = input->fErrorCount_Sequence;
+    // this->fErrorCount_SameHW   = input->fErrorCount_SameHW;
+    // this->fErrorCount_ZeroHW   = input->fErrorCount_ZeroHW;
+    // this->fNumEvtsWithEventCutsRejected = input->fNumEvtsWithEventCutsRejected;
+    
+
+
+    for(Int_t i=0; i<4; i++ ) {
+      this->fBlock[i] = input->fBlock[i];
+      this->fBlockError[i] = input->fBlockError[i];
+    }
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::Copy = "
+        +source->GetElementName()+" "
+        +this->GetElementName()+" are not of the same type";
+    throw(std::invalid_argument(loc.Data()));
   }
 }
 
-void  QwVQWK_Channel::PrintErrorCounterHead(){
+void  QwVQWK_Channel::PrintErrorCounterHead()
+{
   TString message;
-  message  = Form("%-20s\t","Device name");
-  message += "   Sample";
-  message += "    SW_HW";
-  message += " Sequence";
-  message += "   SameHW";
-  message += "   ZeroHW";
-  message += "   HW Sat";
-  message += " EventCut";
+  message  = Form("%30s","Device name");
+  message += Form("%9s", "HW Sat");
+  message += Form("%9s", "Sample");
+  message += Form("%9s", "SW_HW");
+  message += Form("%9s", "Sequence");
+  message += Form("%9s", "SameHW");
+  message += Form("%9s", "ZeroHW");
+  message += Form("%9s", "EventCut");
+  QwMessage << "---------------------------------------------------------------------------------------------" << QwLog::endl;
   QwMessage << message << QwLog::endl; 
+  QwMessage << "---------------------------------------------------------------------------------------------" << QwLog::endl;
+  return;
 }
 
-void  QwVQWK_Channel::PrintErrorCounterTail(){
-  QwMessage << "---------------------------------------------------"
-	    << QwLog::endl;
+void  QwVQWK_Channel::PrintErrorCounterTail()
+{
+  QwMessage << "---------------------------------------------------------------------------------------------" << QwLog::endl;
+  return;
 }
 
 void  QwVQWK_Channel::ReportErrorCounters()
 {
   TString message;
-  if (fErrorCount_sample || fErrorCount_SW_HW 
-      || fErrorCount_Sequence || fErrorCount_SameHW 
-      || fErrorCount_ZeroHW || fErrorCount_HWSat || fNumEvtsWithEventCutsRejected){
-    message  = Form("%-20s\t",GetElementName().Data());
-    message += Form(" %8d", fErrorCount_sample);
-    message += Form(" %8d", fErrorCount_SW_HW);
-    message += Form(" %8d", fErrorCount_Sequence);
-    message += Form(" %8d", fErrorCount_SameHW);
-    message += Form(" %8d", fErrorCount_ZeroHW);
-    message += Form(" %8d", fErrorCount_HWSat);
-    message += Form(" %8d", fNumEvtsWithEventCutsRejected);
+  if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fErrorCount_ZeroHW || fErrorCount_HWSat || fNumEvtsWithEventCutsRejected) {
+    message  = Form("%30s", GetElementName().Data());
+    message += Form("%9d", fErrorCount_HWSat);
+    message += Form("%9d", fErrorCount_sample);
+    message += Form("%9d", fErrorCount_SW_HW);
+    message += Form("%9d", fErrorCount_Sequence);
+    message += Form("%9d", fErrorCount_SameHW);
+    message += Form("%9d", fErrorCount_ZeroHW);
+    message += Form("%9d", fNumEvtsWithEventCutsRejected);
     
     if((fDataToSave == kRaw) && (!kFoundPedestal||!kFoundGain)){
-      message += " ~Warning~ No Pedestal or Gain entered in map file for this channel";
+      message += " >>>>> No Pedestal or Gain in map file";
     }
 
     QwMessage << message << QwLog::endl;
   }
   return;
 }
+
+
+
+void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list)
+{
+
+  // TString message;
+  // message  = Form("%30s",GetElementName().Data());
+  // message += Form("%9d", fErrorCount_HWSat);
+  // message += Form("%9d", fErrorCount_sample);
+  // message += Form("%9d", fErrorCount_SW_HW);
+  // message += Form("%9d", fErrorCount_Sequence);
+  // message += Form("%9d", fErrorCount_SameHW);
+  // message += Form("%9d", fErrorCount_ZeroHW);
+  // message += Form("%9d", fNumEvtsWithEventCutsRejected);
+  // QwMessage << message << QwLog::endl;
+
+  // kErrorFlag_VQWK_Sat   =0x1;    //VQWK Saturation Cut. Currently saturation limit is set to +/-8.5V
+  // kErrorFlag_sample     =0x2;    //If sample size mis-matches with the default value in the map file.
+  // kErrorFlag_SW_HW      =0x4;    //If software sum and hardware sum are not equal.
+  // kErrorFlag_Sequence   =0x8;    //If the ADC sequence number is not incrementing properly
+  // kErrorFlag_SameHW     =0x10;   //If ADC value keep returning the same value
+  // kErrorFlag_ZeroHW     =0x20;   //Check to see ADC is returning zero
+  
+
+  
+  // kErrorFlag_EventCut_L =0x40;   //Flagged if lower limit of the event cut has failed
+  // kErrorFlag_EventCut_U =0x80;   //Flagged if upper limit of the event cut has failed
+  // >>>>>>  fNumEvtsWithEventCutsRejected
+  
+  
+  // outside QwVQWK_Channel
+  // kErrorFlag_BlinderFail = 0x0200;// in Decimal  512 to identify the blinder fail flag
+  // kStabilityCutError     = 0x10000000;// in Decimal 2^28 to identify the stability cut failure
+  
+  // This is my modified mysql DB, Thursday, December  8 16:40:36 EST 2011, jhlee
+  // Error code must be matched to MySQL DB
+  // 
+  // mysql> select * from error_code;
+  // +---------------+------------------------------+
+  // | error_code_id | quantity                     |
+  // +---------------+------------------------------+
+  // |             1 | kErrorFlag_VQWK_Sat          | 
+  // |             2 | kErrorFlag_sample            | 
+  // |             3 | kErrorFlag_SW_HW             | 
+  // |             4 | kErrorFlag_Sequence          | 
+  // |             5 | kErrorFlag_SameHW            | 
+  // |             6 | kErrorFlag_ZeroHW            | 
+  // |             7 | kErrorFlag_EventCut_Rejected | 
+  // |             8 | kErrorFlag_EventCut_L        | 
+  // |             9 | kErrorFlag_EventCut_U        | 
+  // |            10 | kErrorFlag_BlinderFail       | 
+  // |            11 | kStabilityCutError           | 
+  // +---------------+------------------------------+
+  // 11 rows in set (0.00 sec)
+
+
+  QwErrDBInterface row;
+  TString name    = GetElementName();
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(1); 
+  row.SetN(fErrorCount_HWSat);
+  row_list.push_back(row);
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(2);
+  row.SetN(fErrorCount_sample);
+  row_list.push_back(row);
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(3);
+  row.SetN(fErrorCount_SW_HW);
+  row_list.push_back(row);
+  
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(4);
+  row.SetN(fErrorCount_Sequence);
+  row_list.push_back(row);
+  
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(5); 
+  row.SetN(fErrorCount_SameHW);
+  row_list.push_back(row);
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(6); 
+  row.SetN(fErrorCount_ZeroHW);
+  row_list.push_back(row);
+
+
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(7); 
+  row.SetN(fNumEvtsWithEventCutsRejected);
+  row_list.push_back(row);
+  return;
+  
+}
+
+

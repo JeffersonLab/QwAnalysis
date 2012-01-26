@@ -3,12 +3,27 @@
 //       : College of William & Mary
 //       : sxyang@email.wm.edu
 // calculate the residual from combinations of hits
- 
+
+#include "TSystem.h"
+
 #include <iostream>
 #include <iterator>
 #include <vector>
 #include <algorithm>
 #include <ctime>
+#include <string>
+#include <sstream>
+#include <functional>
+#include "TFile.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TTree.h"
+#include "TCanvas.h"
+#include "TLine.h"
+#include "TGraph.h"
+#include "TStyle.h"
+#include "QwEvent.h"
+
 
 // this work is to repeat Mark's calculation in VT but instead of cosmic ray data, using the real data
 // here, we only apply the calculation on one chamber
@@ -19,33 +34,79 @@ const int layers=12;
 const int ndirs=3;
 const double wirespace=1.1684;
 const double offset=-18.1102;
-const double locations[layers]={-338.50,-336.522,-334.544,-332.566,-330.588,-328.610,-295.800,-293.822,-291.844,-289.866,,-287.888,-285.910};
-const double centery[layers]={51.013,50.911,51.155,51.013,50.911,51.155,54.903,54.601,54.845,54.903,54.601,54.845};
+const double locations[layers]={-338.50,-336.522,-334.544,-332.566,-330.588,-328.610,-295.800,-293.822,-291.844,-289.866,-287.888,-285.910};
+const double centery[layers]={51.013,50.911,51.155,51.013,50.911,51.155,55.003,54.901,55.145,55.003,54.901,55.145};
 const double centerx[layers]={-0.276,-0.275,-0.276,-0.276,-0.275,-0.276,-0.141,-0.140,-0.141,-0.141,-0.140,-0.141};
 //const double locations[layers]={-337.9,-335.922,-333.944,-331.966,-329.988,-328.01,-295.05,-293.072,-291.094,-289.166,-287.138,-285.160};
 //const double centery[layers]={51.013,50.911,51.155,51.013,50.911,51.155,55.013,54.911,55.155,55.013,54.911,55.155};
 //const double centerx[layers]={0};
-const pnumber=12;
+const int pnumber=6;
+const double coll1=-568.17;
+const double us_target=-667;
+const double Cos[2][5]={{0,1,0,0.597,0.603},{0,1,0,0.6,0.6}};
+const double Sin[2][5]={{-0.004,0,0,-0.802,0.798},{0,0,0,-0.8,0.8}};
 
-void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=8658,Int_t run_end=8659){
+void mul_do (
+    int i,
+    int mul,
+    int l,
+    vector<vector<double> > & r,
+    vector<double>& used,
+    vector<double>& z,
+    vector<int>& dirs
+    );
+
+int trackfit(vector<double>& distance,
+	      vector<double>& location,
+	      vector<int>& dirs,
+	      double num,
+	      double chi,
+	     double* signed_residual,
+	     double* fit,
+	     int pkg
+	     );
+
+double* M_Invert (double *Ap, double *Bp, const int n);
+double *M_A_times_b (double *y, const double *A, const int n, const int m, const double *b);
+int find_plane(double z);
+double weight_lsq (
+    vector<double>& usedhits,	//!< list of hits in every plane
+    vector<double>& z
+    );
+
+
+void reconstruction(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run=8658,string suffix=""){
   time_t start,end;
   time(&start);
-    TChain* chain=new TChain("event_tree");
-    for(int run=run_start;run<run_end;run++){
-    string file_name= Form ( "%s/Qweak_%d_check.root",gSystem->Getenv ( "QW_ROOTFILES" ),run );
-    chain->Add(file_name.c_str());
-    }
-
+  
+  gSystem->Load("home/sxyang/QwAnalysis_2000/libs");
+   string folder="/scratch/sxyang";
+   ostringstream ss;
+   ss << folder << "/Qweak_";
+   ss << run << suffix;
+   ss << ".root";
+   string file_name=ss.str();
+   cout << file_name << endl;
+   TFile* file=new TFile(file_name.c_str());
    
     QwEvent* fEvent=0;
-    QwHit* hit=0;
+    const QwHit* hit=0;
     QwPartialTrack* pt=0;
     TH1F* histo=new TH1F("chi","chi",100,0,500);
     TH1F* slopey=new TH1F("slope in y","slope in y",200,-1,1);
     TH1F* slopex=new TH1F("slope in x","slope in x",200,-1,1);
     TH1F* dt=new TH1F("drift time","drift time",400,0,400);
-    chain->SetBranchAddress ( "events",&fEvent );
-    Int_t nevents=chain->GetEntries();
+
+    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
+    Int_t nevents=event_tree->GetEntries();
+    cout << "total events: " << nevents << endl;
+    if(event_end==-1)
+      event_end=nevents;
+
+    event_tree->SetBranchStatus("events",1);
+    TBranch* event_branch=event_tree->GetBranch("events");
+    //TBranch* maindet_branch=event_tree->GetBranch("maindet");
+    event_branch->SetAddress(&fEvent);
     
     cout << "total events:  " << nevents << endl;
     vector< vector<double> > banks;
@@ -59,10 +120,9 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
     }
     
 
-    int ngood=0,nbad=0;
     TH1F* signed_planes[pnumber];
     for(int j=0;j<pnumber;++j)
-     signed_planes[j]=new TH1F(Form("signed_residual for plane%d",j),Form("signed_residual for plane%d",(j+1)),200,-1,1);
+     signed_planes[j]=new TH1F(Form("signed_residual for plane%d",j),Form("signed_residual for plane%d",(j+1)),100,-0.5,0.5);
     TH2F* projection=new TH2F("projection","projection",80,-20,20,100,-10,40);
     int counts=0;
     if(event_end==-1)
@@ -70,8 +130,7 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
 
     //starting event loop
     for(int i=event_start;i<event_end;++i){
-       chain->GetEntry(i);
-
+       event_branch->GetEntry(i);
        for(int j=0;j<pnumber;++j)
 	  banks[j].clear();
 
@@ -79,33 +138,26 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
         cout << "events process so far: " << i << endl; 
        }
 	int nhits=fEvent->GetNumberOfHits();
-	     
-	if(nhits<9) continue;
+	
+	
+	
         
 	//first filter:select out the correct event
-        int a[pnumber]={0};
+	vector<int> a(pnumber,0);
+        //int a[pnumber]={0};
         vector<double> ddistance;
 		
 	for(int j=0;j<nhits;++j){
 	  hit=fEvent->GetHit(j);
-	  if(hit->GetPlane()<pnumber+1 && hit->GetRegion()==2 && hit->GetDriftDistance()>=0 && hit->GetPackage()==pkg && hit->GetHitNumber()==0){
-	    a[hit->GetPlane()-1]++;
+	  if(hit->GetPlane()<pnumber+1 && hit->GetRegion()==2 && hit->GetDriftDistance()>=0 && hit->GetDriftDistance() < 5 && hit->GetPackage()==pkg && hit->GetHitNumber()==0){
+	    ++a[hit->GetPlane()-1];
 	   
 		  double dd1,dd2,base;
                   
 		  double rCos=0,rSin=0;
-		  //double angle=hit->GetDetectorInfo()->GetElementAngle();
-		  //cout << "angle: " << angle << endl;
-		  if(hit->GetDirection()==1){
-		    rCos=1;rSin=-0.004;
-		  }
-		  else if(hit->GetDirection()==3){
-		    rCos=0.597;rSin=-0.802;
-		  }
-		  else{
-		    rCos=0.603;rSin=0.798;
-		  }
-
+		  rCos=Cos[pkg-1][hit->GetDirection()];
+		  rSin=Sin[pkg-1][hit->GetDirection()];
+		 
 		  base=centery[hit->GetPlane()-1]*rCos+centerx[hit->GetPlane()-1]*rSin+(hit->GetElement()-1)*wirespace+offset;
 		  // dd1 and dd2 will store the drift position
 		  dd1=base+hit->GetDriftDistance();
@@ -113,38 +165,38 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
 		  ddistance.push_back(hit->GetDriftDistance());
 		  banks[hit->GetPlane()-1].push_back(dd1);
 		  banks[hit->GetPlane()-1].push_back(dd2);
-		  //cout << "plane: " << hit->GetPlane() << ", distance=" << hit->GetElement() << "+" << dd1 << endl;
-		  //cout << "plane: " << hit->GetPlane() << ", distance=" << hit->GetElement() << "-" << dd2 << endl;
 	  }
 	}// end of hits loop
 
 	
 	int planes_with_hits=0;
 	bool discard=false;
+
+	//int missed=std::count_if(a.begin(),a.end(),std::bind2nd(std::less<int>(),1) );
+	//	int greater=count_if(a.begin(),a.end(),bind2nd(greater<int>(),1) );
 	
-        for(int j=0;j<pnumber;++j){
-	  if(a[j]!=0)
+	//cout << "missed" << missed << " " << endl;
+	int permutations=1;
+	for(int j=0;j<pnumber;++j){
+	  if(a[j]==1){
+	    permutations*=2;
 	    ++planes_with_hits;
-      
-	  if(a[j]>2){
+	  }
+	  if(a[j]>1){
 	    discard=true;
+	    break;
 	  }
       	}
-
-	if(discard==true) continue;
-
-	int permutations=1;
-	if(planes_with_hits>(pnumber-3)){
-	  //a[3]=0;
-	  //banks[3].clear();
-	  for(int j=0;j<pnumber;++j){
-	    if(a[j]!=0)
-	    permutations*=(2*a[j]);
-	  }
+	
+	if(discard==true || planes_with_hits<pnumber-1){
+	  continue;
 	}
 	
+       
+
+	
       
-	if(permutations==1 ||  permutations>5000) continue;
+	//if(permutations==1 ||  permutations>500000) continue;
 	//cout << "permutations: "<< permutations << " in event " << i << endl;
 	
 	  
@@ -168,16 +220,18 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
 	   //mul_do will loop through banks to fill in usedhits,z,dirs
 	
 	   mul_do(j,permutations,pnumber,banks,usedhits,z,dirs);
-	   trackfit(usedhits,z,dirs,usedhits.size(),chi,signed_residual,fit);
-	   /*
-	   if(j==486){
-	     for(int k=0;k<usedhits.size();++k)
-	     cout << usedhits.at(k) << " at plane" << z.at(k) << endl;
-	     cout << "fit: " << fit[0] << " " << fit[1] << " " << fit[2] << " " << fit[3] << endl;
-	     cout << "pos: " << fit[0]-568.17*fit[1] << " " << fit[2]-568.17*fit[3] << " " << chi << endl;
-	   }
-	   */
-	    
+	   trackfit(usedhits,z,dirs,usedhits.size(),chi,signed_residual,fit,pkg);
+	   double x=fit[0]+us_target*fit[1]+0.469;
+	   double y=fit[2]+us_target*fit[3]+0.2585;
+	   double r=sqrt(x*x+y*y);
+	   double vertex_z= (fit[0]*fit[1]+fit[2]*fit[3])/(fit[1]*fit[1]+fit[3]*fit[3]);
+	   
+	  
+	   
+	   //  if( chi < 0.2 ){
+	   //  cout << "r: " << r << " j: " << j << " chi: " << 100*chi << endl;
+	   //}
+	   
 	   if(chi<minchi){
 	     minchi=chi;
 	     best_per=j;
@@ -194,18 +248,35 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
 	   usedhits.clear();
 	   dirs.clear();
 	 } // end of for permutation loop
-	 /*
+	 
+	 
 	  if(best_per!=-1){
 	 mul_do(best_per,permutations,pnumber,banks,usedhits,z,dirs);
-	 for(int k=0;k<usedhits.size();++k)
-	   cout << usedhits.at(k) << " at plane" << z.at(k) << endl;
+	 //for(int k=0;k<usedhits.size();++k)
+	   // cout << usedhits.at(k) << " at plane" << z.at(k) << endl;
+	  z.clear();
+	   usedhits.clear();
+	   dirs.clear();
+	   //cout << endl;
+	   // mul_do(979,permutations,pnumber,banks,usedhits,z,dirs);
+	   //for(int k=0;k<usedhits.size();++k)
+	   //cout << usedhits.at(k) << " at plane" << z.at(k) << endl;
 	 }
-	 */
-
+	 
+	  
+	
 	 if(minchi!=10000){
+	   //cout << "best: " << best_per << endl;
 	   histo->Fill(minchi);
 	   //cout << "x,y(z=0) = (" << bestfit[0] << " cm, " << bestfit[2] << " cm), d(x,y)/dz = (" << bestfit[1] << ", " << bestfit[3] << "), chi=" << 100*minchi << endl;
-	   projection->Fill(bestfit[0]-568.17*bestfit[1],bestfit[2]-568.17*bestfit[3]);
+	   double x=bestfit[0]+us_target*bestfit[1];
+	   double y=bestfit[2]+us_target*bestfit[3];
+	   double r=sqrt(x*x+y*y);
+	   //cout << "r=" << r << " x= " << x << " y= " << y << endl;
+	   double vertex_z= (bestfit[0]*bestfit[1]+bestfit[2]*bestfit[3])/(bestfit[1]*bestfit[1]+bestfit[3]*bestfit[3]);
+	   //cout << "vertex_z " << vertex_z << endl;
+   
+	   projection->Fill(bestfit[0]+us_target*bestfit[1],bestfit[2]+us_target*bestfit[3]);
 	   slopey->Fill(bestfit[3]);
 	   slopex->Fill(bestfit[1]);
 	   for(int k=0;k<pnumber;++k){
@@ -215,17 +286,18 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
 	 }    // end of if statment
 	
     }    // ends of the loop for event
-    // cout << "good events: " << ngood << " bad events: " << nbad << endl;
-    //histo->Draw();
     
     cout << "total number of qualified events: " << counts << endl;
     TCanvas* c=new TCanvas("c","c",800,600);
     
-    c->Divide(3,5);
+    c->Divide(3,2);
     for(int k=0;k<pnumber;++k){
       c->cd(k+1);
       signed_planes[k]->Draw();
+      signed_planes[k]->GetXaxis()->SetTitle("residue: cm");
+      signed_planes[k]->SetTitle(Form("signed_residual in plane%",k+1));
     }
+    /*
     c->cd(pnumber+1);
     slopey->Draw();
     c->cd(pnumber+2);
@@ -261,6 +333,7 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
     t4->Draw("same");
     t5->Draw("same");
     t6->Draw("same");
+    */
     time(&end);
     double dif=difftime(end,start);
     cout << "time consuming " << dif << " seconds" << endl;
@@ -273,10 +346,11 @@ void res_r2(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run_start=865
 int trackfit(vector<double>& distance,
 	      vector<double>& location,
 	      vector<int>& dirs,
-	      double& num,
-	      double& chi,
+	      double num,
+	      double &chi,
 	     double* signed_residual,
-	     double* fit
+	     double* fit,
+	     int pkg
 	     )
 {
   //initialize
@@ -295,16 +369,12 @@ int trackfit(vector<double>& distance,
 	  {
 		double norm = 1.0 / ( resolution * resolution );
 		double rSin=0,rCos=0;
-		if(dirs.at(i)==0){
-		  rSin=-0.004;rCos=1;
-	        }
-		else if(dirs.at(i)==1){
-		  rSin=-0.802;rCos=0.597;
-		}
-		else{
-		  rSin=0.798;rCos=0.603;
-		}
-	
+		
+		int dir_index=2*dirs.at(i)+1;
+	        if(dir_index>4)
+		  dir_index=4;
+		rCos=Cos[pkg-1][dir_index];
+		rSin=Sin[pkg-1][dir_index];
 	        r[0] = rSin;
 		r[1] = rSin * location.at(i);
 		r[2] = rCos;
@@ -330,15 +400,11 @@ int trackfit(vector<double>& distance,
 		double y=fit[2]+fit[3]*z;
    
 		double rSin=0,rCos=0;
-		if(dirs.at(i)==0){
-		  rSin=-0.004;rCos=1;
-	        }
-		else if(dirs.at(i)==1){
-		  rSin=-0.802;rCos=0.597;
-		}
-		else{
-		  rSin=0.798;rCos=0.603;
-		}
+		int dir_index=2*dirs.at(i)+1;
+	        if(dir_index>4)
+		  dir_index=4;
+		rCos=Cos[pkg-1][dir_index];
+		rSin=Sin[pkg-1][dir_index];
 	
      
 		
@@ -597,54 +663,6 @@ double weight_lsq (
 
 }
 
-
-
-void check_events(Int_t event_start=0,Int_t event_end=-1,int pkg=1,Int_t run=8658){
-  time_t start,end;
-  time(&start);
-   bool fDebug=false;
-   string file_name=Form("%s/Qweak_%d_check.root",gSystem->Getenv ( "QW_ROOTFILES" ),run);
-   TFile* file=new TFile(file_name.c_str());
-   
-    QwEvent* fEvent=0;
-    QwHit* hit=0;
-    QwTrack* track=0;
-    QwPartialTrack* pt=0;
-
-    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
-    Int_t nevents=event_tree->GetEntries();
-    cout << "total events: " << nevents << endl;
-    if(event_end==-1)
-      event_end=nevents;
-
-    event_tree->SetBranchStatus("events",1);
-    TBranch* event_branch=event_tree->GetBranch("events");
-    event_branch->SetAddress(&fEvent);
-  
-   
-  
-    for(int i=event_start;i<event_end;++i){
-
-      if(i%10000==0)
-	cout << "events processed so far: " << i << endl;
-      
-     
-      event_branch->GetEntry(i);
-      double npts=fEvent->GetNumberOfPartialTracks();
-
-      double chi=0;
-      // call build function
-      for(int j=0;j<npts;++j){
-	pt=fEvent->GetPartialTrack(j);
-	if(pt->GetRegion()!=2 || pt->GetPackage()!=pkg) continue;
-	cout << "partial track found in event: " << i+1 << endl;
-	double x=pt->fOffsetX-568.17*pt->fSlopeX;
-	double y=pt->fOffsetY-568.17*pt->fSlopeY;
-	//cout << "coll position: "<< x << " " << y <<" in event " << i << " with chi: " << pt->fChi << endl;
-      }
-    }  // end of for loop over events
-    
-}
    
    
 int find_plane(double z){
@@ -671,47 +689,5 @@ int find_plane(double z){
 }
 
 
-void test_linear(){
-
-  //double Dx=2.3112;
-  double space=1.1684;
-  double Dx=2.1174;
-  //double z[4]={-336.522,-330.588,-293.822,-287.888};
-  //double z[3]={-334.544,-328.61,-285.91};
-  double z[3]={-338.5,-295.8,-289.866};
-  double y[3]={55.5019,62.2409,63.2114};
-  double w[3]={16,17,18};
-  /*
-  for(int i=0;i<3;++i){
-      y[i]=(w[i]-0.5)*space+y[i];
-      if(i!=0)
-	y[i]+=Dx;
-  }
-  */
-  TGraph* t=new TGraph(3,z,y);
-  TF1 *f=new TF1("m1","pol1");
-  t->Fit("m1");
-  t->SetMarkerSize(1);
-  t->SetMarkerStyle(21);
-  t->Draw("AP");
-  double res=0;
-  for(int i=0;i<3;++i)
-    res+=fabs(f->Eval(z[i])-y[i]);
-  cout << "res: " << res/3 << endl;
-  return;
-
-}
 
 
-
-/*
-16.5822 at plane-334.544
-16.3814 at plane-328.61
-18.4155 at plane-285.91
-
-
-
-distance: 15.4602 z:-334.544
-distance: 15.661 z:-328.61
-distance: 18.2925 z:-285.91
-*/

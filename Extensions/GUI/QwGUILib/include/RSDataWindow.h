@@ -15,6 +15,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <vector>
+using std::vector;
+
 #include <TVirtualX.h>
 #include <TGClient.h>
 #include <TGFrame.h>
@@ -101,6 +104,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
 
   TH1D                *fFitHisto[10];
   TH1D                *dDummyPlot;
+  vector <TBox*>       dErrorBoxArray;
 
   void                 SleepWithEvents(int sec);
 
@@ -133,7 +137,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
 
   void                 PrintCanvas();
 
-  void                 SaveCanvas();
+  void                 SaveCanvas(const char* file = NULL);
   void                 SavePlotObjects();
   void                 ScaleWindowData();
   Bool_t               SetMessage(const char *msg, const char *func,Int_t TS,Int_t MESSAGETYPE);
@@ -167,6 +171,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   Int_t                DrawData(Double_t*,Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
   Int_t                DrawData(Double_t*,Double_t*,Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
   Int_t                DrawLegend(TLegend *leg = NULL);
+  Int_t                DrawBox(const TBox&);
   Bool_t               DrawOptionsSet(){return dDrawOptsSet;};
 
   Double_t             GetAxisMax(Int_t a = 0);

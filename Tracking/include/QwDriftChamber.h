@@ -28,11 +28,6 @@
 #include <iomanip>
 
 #include "VQwSubsystemTracking.h"
-//#include "MQwF1TDC.h"
-//#include "MQwV775TDC.h"
-
-
-
 #include "QwF1TDContainer.h"
 
 ///
@@ -43,10 +38,16 @@ class QwDriftChamber: public VQwSubsystemTracking{
    *
    *
    ******************************************************************/
- public:
-  QwDriftChamber(TString region_tmp);
-  QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
+ private:
+   /// Private default constructor (not implemented, will throw linker error on use)
+   QwDriftChamber();
 
+ public:
+  /// Constructor with name
+  QwDriftChamber(const TString& name);
+  /// Constructor with name and hit list
+  QwDriftChamber(const TString& region_tmp,std::vector< QwHit > &fWireHits_TEMP);
+  /// Virtual destructor
   virtual ~QwDriftChamber();
 
   /*  Member functions derived from VQwSubsystem. */
@@ -77,6 +78,8 @@ class QwDriftChamber: public VQwSubsystemTracking{
   void  FillDriftDistanceToHits();
  
  
+  void FillHardwareErrorSummary();
+
 
 
   virtual  void GetHitList(QwHitContainer & grandHitContainer)
@@ -105,7 +108,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;
-  virtual void ApplyTimeCalibration() = 0;
+  //  virtual void ApplyTimeCalibration() = 0;
 
 
   Int_t LinkReferenceChannel(const UInt_t chan, const Int_t plane, const Int_t wire);
@@ -187,24 +190,6 @@ class QwDriftChamber: public VQwSubsystemTracking{
     TOFW_raw.clear();
     HitsWire.clear();
   }
-
-  /* TH1F *TotHits[13]; */
-  /* TH1F *TOFP[13]; */
-  /* TH1F *TOFP_raw[13]; */
-  /* TH1F *WiresHit[13];  TH2F *TOFW[13]; */
-  /* TH2F *TOFW_raw[13]; */
-  /* TH2F *HitsWire[13]; */
-  /* void InitHistogramPointers() { */
-  /*   // this magic 13 is eventually fWiresPerPlane.size(), but where? */
-  /*   for(UInt_t i=0; i<13; ++i) { */
-  /*     TotHits[i] = TOFP[i] = TOFP_raw[i] = WiresHit[i] = NULL; */
-  /*     TOFW[i] = TOFW_raw[i] = HitsWire[i] = NULL; */
-  /*   } */
-  /* } */
-
-
-
-
 
 
   //below are the data structures that are used in HDC/VDC

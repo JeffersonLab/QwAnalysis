@@ -23,21 +23,31 @@
 #include "MQwV775TDC.h"
 //#include "MQwF1TDC.h"
 #include "QwPMT_Channel.h"
-#include "QwSIS3801_Module.h"
 #include "QwScaler_Channel.h"
 #include "QwF1TDContainer.h"
 
 ///
 /// \ingroup QwTracking
-class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDetector> {
+class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwMainDetector> {
   /******************************************************************
    *  Class: QwMainDetector
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwMainDetector();
+
  public:
-  QwMainDetector(TString region_tmp);
+  /// Constructor with name
+  QwMainDetector(const TString& name);
+  /// Virtual destructor
   virtual ~QwMainDetector();
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
@@ -58,6 +68,8 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values) const;
+
+  void  FillHardwareErrorSummary();
 
   QwMainDetector& operator=(const QwMainDetector &value);
 
@@ -123,7 +135,10 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
-  std::vector<QwSIS3801_Module*> fSCAs;
+
+  std::vector<QwSIS3801D24_Channel> fSCAs;
+  std::map<TString,size_t> fSCAs_map;
+  std::vector<Int_t> fSCAs_offset;
 
   // For reference time substraction
   Int_t reftime_slotnum;

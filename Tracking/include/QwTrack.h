@@ -30,6 +30,13 @@
  */
 class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
+  private:
+
+    //! Number of partial tracks in this track
+    Int_t fNQwPartialTracks;
+    //! List of partial tracks in this track
+    std::vector<QwPartialTrack*> fQwPartialTracks;
+
   public:
 
     /// Default constructor
@@ -48,6 +55,20 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
     /// Initialization
     void Initialize();
+
+
+    // Creating and adding partial tracks
+    QwPartialTrack* CreateNewPartialTrack();
+    void AddPartialTrack(const QwPartialTrack* partialtrack);
+    void AddPartialTrackList(const QwPartialTrack* partialtracklist);
+    void AddPartialTrackList(const std::vector<QwPartialTrack*> &partialtracklist);
+    void ClearPartialTracks(Option_t *option = "");
+    void ResetPartialTracks(Option_t *option = "");
+    // Get the number of partial tracks
+    Int_t GetNumberOfPartialTracks() const { return fNQwPartialTracks; };
+    // Print the list of partial tracks
+    void PrintPartialTracks(Option_t *option = "") const;
+
 
     void Print(const Option_t* option = 0) const {
       if (!this) return;

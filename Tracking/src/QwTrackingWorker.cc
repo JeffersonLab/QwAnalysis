@@ -92,7 +92,7 @@ using std::endl;
 #include "globals.h"
 
 // Qweak GEM cluster finding
-#include "QwGEMClusterFinder.h"
+//#include "QwGEMClusterFinder.h"
 
 // Qweak tree search headers
 #include "QwHitPattern.h"
@@ -236,6 +236,11 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
                           po::value<bool>()->default_bool_value(false),
                           "show bit pattern for matching tracks");
 
+  options.AddOptions("Tracking options")("QwTracking.package-mismatch",
+					 po::value<bool>()->default_bool_value(false),
+					 "if the package number is different for R2 and R3 at the same octant"
+					 );
+
   // Region 2
   options.AddOptions("Tracking options")("QwTracking.R2.levels",
                           po::value<int>()->default_value(8),
@@ -287,6 +292,7 @@ void QwTrackingWorker::ProcessOptions(QwOptions& options)
   // Disable tracking and/or momentu reconstruction
   fDisableTracking = options.GetValue<bool>("QwTracking.disable-tracking");
   fDisableMomentum = options.GetValue<bool>("QwTracking.disable-momentum");
+  fMismatchPkg=options.GetValue<bool>("QwTracking.package-mismatch");
 
   // Set the flags for printing the pattern database
   fPrintPatternDatabase = options.GetValue<bool>("QwTracking.print-pattern-db");
@@ -447,28 +453,28 @@ void QwTrackingWorker::ProcessEvent (
         if (package != kPackageUp && package != kPackageDown) continue;
 
         /// Find the region 1 clusters in this package
-        QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
-        QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);
-        QwGEMClusterFinder* clusterfinder = new QwGEMClusterFinder();
-        std::vector<QwGEMCluster> clusters_r;
-        std::vector<QwGEMCluster> clusters_phi;
-        if (hitlist_region1_r->size() > 0) {
-            clusters_r = clusterfinder->FindClusters(hitlist_region1_r);
-        }
-        if (hitlist_region1_phi->size() > 0) {
-            clusters_phi = clusterfinder->FindClusters(hitlist_region1_phi);
-        }
-        for (std::vector<QwGEMCluster>::iterator cluster = clusters_r.begin();
-                cluster != clusters_r.end(); cluster++) {
-            QwDebug << *cluster << QwLog::endl;
-        }
-        for (std::vector<QwGEMCluster>::iterator cluster = clusters_phi.begin();
-                cluster != clusters_phi.end(); cluster++) {
-            QwDebug << *cluster << QwLog::endl;
-        }
-        delete clusterfinder; // TODO (wdc) should go somewhere else
-        delete hitlist_region1_r;
-        delete hitlist_region1_phi;
+	//      QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
+	//        QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);
+	//        QwGEMClusterFinder* clusterfinder = new QwGEMClusterFinder();
+	//        std::vector<QwGEMCluster> clusters_r;
+	//        std::vector<QwGEMCluster> clusters_phi;
+        // if (hitlist_region1_r->size() > 0) {
+        //     clusters_r = clusterfinder->FindClusters(hitlist_region1_r);
+        // }
+        // if (hitlist_region1_phi->size() > 0) {
+        //     clusters_phi = clusterfinder->FindClusters(hitlist_region1_phi);
+        // }
+        // for (std::vector<QwGEMCluster>::iterator cluster = clusters_r.begin();
+        //         cluster != clusters_r.end(); cluster++) {
+        //     QwDebug << *cluster << QwLog::endl;
+        // }
+        // for (std::vector<QwGEMCluster>::iterator cluster = clusters_phi.begin();
+        //         cluster != clusters_phi.end(); cluster++) {
+        //     QwDebug << *cluster << QwLog::endl;
+        // }
+        // delete clusterfinder; // TODO (wdc) should go somewhere else
+        // delete hitlist_region1_r;
+        // delete hitlist_region1_phi;
 
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;
@@ -901,7 +907,7 @@ void QwTrackingWorker::ProcessEvent (
 
         // If there were partial tracks in the HDC and VDC regions
 
-        if (! fDisableMomentum
+        if (! fDisableMomentum && !fMismatchPkg
          && event->fPartialTrack[package][kRegionID2][kTypeDriftHDC]
          && event->fPartialTrack[package][kRegionID3][kTypeDriftVDC]) {
 
@@ -964,7 +970,73 @@ void QwTrackingWorker::ProcessEvent (
 
     } /* end of loop over the detector packages */
 
+    if(fMismatchPkg && !fDisableMomentum){
+       for (EQwDetectorPackage R3package = kPackageUp;
+	    R3package <= kPackageDown; R3package++) {
+	  for (EQwDetectorPackage R2package = kPackageUp;
+	       R2package <= kPackageDown; R2package++) {
+	     if (R3package!=R2package && event->fPartialTrack[R2package][kRegionID2][kTypeDriftHDC]
+                && event->fPartialTrack[R3package][kRegionID3][kTypeDriftVDC]) {
 
+	  // QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
+
+            // Local copies of front and back track
+            QwPartialTrack* front = event->fPartialTrack[R2package][kRegionID2][kTypeDriftHDC];
+            QwPartialTrack* back  = event->fPartialTrack[R3package][kRegionID3][kTypeDriftVDC];
+
+            // Loop over all good front and back partial tracks
+            while (front) {
+              while (back) {
+
+                int status = 0;
+
+                // Filter reasonable pairs
+                status = fBridgingTrackFilter->Filter(front, back);
+		status = 0;
+                //QwMessage << "Filter: " << status << QwLog::endl;
+                if (status != 0) {
+                  QwMessage << "Tracks did not pass filter." << QwLog::endl;
+                  back = back->next;
+                  continue;
+                }
+
+                // Attempt to bridge tracks using lookup table
+                if (! fDisableMatrixLookup) {
+                  status = fMatrixLookup->Bridge(front, back);
+                  QwMessage << "Matrix lookup: " << status << QwLog::endl;
+                  if (status == 0) {
+                    event->AddTrackList(fMatrixLookup->GetListOfTracks());
+                    back = back->next;
+                    continue;
+                  }
+                }
+
+                // Attempt to bridge tracks using ray-tracing
+                if (! fDisableRayTracer) {
+                  status = fRayTracer->Bridge(front, back);
+                  //QwMessage << "Ray tracer: " << status << QwLog::endl;
+                  if (status == 0) {
+                    event->AddTrackList(fRayTracer->GetListOfTracks());
+		    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
+                    back = back->next;
+                    continue;
+                  }
+                }
+
+                // Next back track
+                back = back->next;
+
+              } // end of loop over back tracks
+
+              // Next front track
+              front = front->next;
+
+	    } // end of loop over front tracks
+
+	    } /* end of if*/
+	  }
+       }
+    }
 //   if (fDebug)
 //     cout<<"R2Good, R2Bad, R3Good, R3Bad: "<<R2Good<<" "<<R2Bad<<" "<<R3Good<<" "<<R3Bad<<endl;
 //     cout<<"Efficiency:     region 2  "<<float(R2Good)/(R2Good+R2Bad)*100.0

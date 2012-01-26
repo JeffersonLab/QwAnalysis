@@ -99,23 +99,24 @@ public:
   }
 
   void PrintScanInfo(){
+    std::cout << "Scandata 1: " << Form("%7i,",setpoint1SCN );
+    std::cout << "  Scandata 2: " << Form("%7i,",setpoint2SCN );
     switch (statusSCN)
       {
       case SCN_INT_CLN:
 	{
-	  std::cout << "Scan Status is CLEAN" << std::endl;
+	  std::cout << "  CLEAN" << std::endl;
 	  break;
 	}
       case SCN_INT_NOT:
 	{
-	  std::cout << "Scan Status is NOT_CLEAN" << std::endl;
+	  std::cout << "  NOT_CLEAN" << std::endl;
 	  break;
 	}
       default:
 	std::cout << "ERROR: Unrecognized SCAN status flag" << std::endl;
       }
-    std::cout << "Scan data 1: " << setpoint1SCN << std::endl;
-    std::cout << "Scan data 2: " << setpoint2SCN << std::endl;
+
   }
 
 private:

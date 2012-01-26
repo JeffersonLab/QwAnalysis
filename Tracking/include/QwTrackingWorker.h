@@ -118,6 +118,7 @@ class QwTrackingWorker {
     bool fDisableMomentum;	///< Disable momentum reconstruction
     bool fDisableMatrixLookup;	///< Disable matrix lookup momentum reconstruction
     bool fDisableRayTracer;	///< Disable ray tracer momentum reconstruction
+    bool fMismatchPkg;          ///< Indicates if the pkg for R2 and R3 is differnt at the same octant
     std::string fFilenameFieldmap;	///< Filename of the fieldmap in QW_FIELDMAP
     std::string fFilenameLookupTable;	///< Filename of the lookup table in QW_LOOKUP
     //@}

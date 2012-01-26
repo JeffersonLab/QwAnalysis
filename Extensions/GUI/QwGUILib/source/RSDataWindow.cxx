@@ -573,7 +573,7 @@ void RSDataWindow::WriteMiscData()
   TGFileInfo fi;
   fi.fFileTypes = (const char **)filetypes;
   fi.fIniDir    = StrDup(dir);
-  new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
+  new TGFileDialog(fClient->GetRoot(), 0 /*this*/, kFDSave, &fi);
   dir = fi.fIniDir;
 
   Int_t ngrphs = 0;
@@ -631,7 +631,9 @@ void RSDataWindow::WriteMiscData()
       cont->WriteData(gr->GetX(),gr->GetY(),gr->GetN(), gr->GetName());
       cont->Close();
     }
-    else if(obj && obj->InheritsFrom("TH1D")){
+    else if(obj && obj->InheritsFrom("TH1")){
+
+      
     }
   }
 }
@@ -931,6 +933,11 @@ void RSDataWindow::ClearPlots()
     if(fFitHisto[i] != NULL){delete fFitHisto[i];fFitHisto[i]=NULL;}
   dFitHistocnt = 0;
 
+  for(UInt_t i = 0; i < dErrorBoxArray.size(); i++){
+    delete dErrorBoxArray[i];
+  }
+  dErrorBoxArray.clear();
+
   delete dDummyPlot;
 }
 
@@ -1019,23 +1026,32 @@ Bool_t RSDataWindow::SetMessage(const char *msg, const char *func, int TS, int M
 }
 
 
-void RSDataWindow::SaveCanvas()
+void RSDataWindow::SaveCanvas(const char* file)
 {
-  const char *filetypes[] = { "Postscript",     "*.ps", 
-			      0,               0 };
+  TString filename;
 
-  static TString dir(".");
-  TGFileInfo fi;
-  fi.fFileTypes = (const char **)filetypes;
-  fi.fIniDir    = StrDup(dir);
-  new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
-  dir = fi.fIniDir;
+  if(!file){
+    const char *filetypes[] = { "Postscript",     "*.ps",
+				"Portable Document Format",     "*.pdf",
+				0,               0 };
 
-  if(fi.fFilename)
-    fPlotCanvas->Print(fi.fFilename);
+    static TString dir(".");
+    TGFileInfo fi;
+    fi.fFileTypes = (const char **)filetypes;
+    fi.fIniDir    = StrDup(dir);
+    new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
+    dir = fi.fIniDir;
+
+    if(fi.fFilename)
+      filename = fi.fFilename;
+  }
+  else
+    filename = file;
+
+  fPlotCanvas->SaveAs(filename.Data());
   
   memset(dMiscbuffer,'\0',MSG_SIZE_MAX);
-  sprintf(dMiscbuffer,"Plot saved as %s",fi.fFilename);
+  sprintf(dMiscbuffer,"Plot saved as %s",filename.Data());
   SetMessage(dMiscbuffer,"",(int)dPtype,M_DTWIND_LOGTXTTS);
 }
 
@@ -1321,6 +1337,25 @@ Int_t RSDataWindow::UpdateDrawData(TH1D* h1d)
   return PLOT_PROCESS_OK;
 }
 
+Int_t RSDataWindow::DrawBox(const TBox& box)
+{
+  
+  TBox *mBox = new TBox(*(TBox*)box.Clone());
+
+  TCanvas *aC = GetPlotCanvas();
+  aC->cd();
+  // abox = new TBox(-5e-4,dMainHistos.back()->GetMinimum(), 5e-4, dMainHistos.back()->GetMaximum());
+  // abox->SetFillColor(2);
+  // abox->SetFillStyle(3002);
+  mBox->Draw("");
+  dErrorBoxArray.push_back(mBox);
+  gPad->Modified();
+  gPad->Update();
+
+  return PLOT_PROCESS_OK;
+
+}
+
 Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 {
   Bool_t Add = add;
@@ -1555,6 +1590,7 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add, TLegend *leg)
     gr->GetYaxis()->SetTitleSize(0.04);
     gr->GetXaxis()->SetLabelSize(0.04);
     gr->GetYaxis()->SetLabelSize(0.04);
+    gr->GetXaxis()->SetTitleColor(1);
     
     if(IsUserLimitSet()){
       gr->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
@@ -1607,6 +1643,7 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add, TLegend *leg)
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
@@ -1652,6 +1689,9 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
       
     TString opts = dDrawOptions;
     if(!opts.Contains("ap")){strcat(dDrawOptions,"ap");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
 
     gr->Draw(dDrawOptions);
     SetDrawOptions();
@@ -1659,8 +1699,6 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
@@ -1700,14 +1738,15 @@ Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add, TLegend *leg)
       
     TString opts = dDrawOptions;
     if(!opts.Contains("ap")){strcat(dDrawOptions,"ap");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     gr->Draw(dDrawOptions);
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
     SetDrawOptions();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
   }
   else{
     TGraph *tmp = (TGraph*)&g1d;
@@ -1726,14 +1765,15 @@ Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add, TLegend *leg)
     }
     TString opts = dDrawOptions;
     if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     gr->Draw(dDrawOptions);
     SetDrawOptions();
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
@@ -1773,6 +1813,9 @@ Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add, TLegend *
       
     TString opts = dDrawOptions;
     if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
 
     gr->Draw(dDrawOptions);
     SetDrawOptions();
@@ -1780,8 +1823,6 @@ Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add, TLegend *
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
   }
   else{
     TGraph *tmp = (TGraph*)&g1d;
@@ -1800,14 +1841,15 @@ Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add, TLegend *
     }
     TString opts = dDrawOptions;
     if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     gr->Draw(dDrawOptions);
     SetDrawOptions();
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;

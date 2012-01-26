@@ -59,14 +59,9 @@ DOMACROS=1
 DOINDEXING=1
 for i in $*
 do
-  if [[ $i =~ [[:digit:]]+ ]]
-  then
-	RUNNUM=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
-	continue
-  fi
   case $i in
       --run=*)
-	  RUNNUM=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+	  RUNNUM=`echo $i | sed 's/--run=//'`
 	  ;;
       --first100k)
 	  FIRST100K=kTRUE
@@ -148,7 +143,7 @@ then
     STARTDATE=$(stat -c %y $STARTRUNFILE | cut -f1 -d".")
 fi
 
-ROOTFILE=`ls ${QW_ROOTFILES}/Compton_Pass*_$RUNNUM.000.root`
+ROOTFILE=`ls ${QW_ROOTFILES}/Compton_*_$RUNNUM.*root`
 if [  -f $ROOTFILE ]
 then
     ROOTDATE=$(stat -c %y $ROOTFILE | cut -f1 -d".")
@@ -239,8 +234,8 @@ then
 
                 ## Now after the configuration file has been read, and the script is enabled, process the script
                 echo "Running ${MACRO}"
-                echo "qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log"
-                nice  qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log
+                echo "qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log"
+                nice  qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log
             else
                 echo "Macro ${MACROSDIR}/${MACRO} not found"
             fi

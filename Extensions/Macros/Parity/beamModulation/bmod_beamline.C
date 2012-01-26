@@ -2,31 +2,31 @@
 /*                              Nuruzzaman                                */
 /*                              10/22/2011                                */
 /*                                                                        */
-/*                        Last Edited:10/31/2011                          */
+/*                        Last Edited:11/11/2011                          */
 /*                                                                        */
 /* This Macro create plots for beamline optics using beam modulation.     */
 /* Please see the USER MANUAL at the bottom of this macro for its usage.  */
 /**************************************************************************/
 #include <NurClass.h>
-
 void bmod_beamline(  UInt_t run_number = 0){
+  time_t tStart = time(0), tEnd; 
   const Int_t NUM = 24;
-  char sline[255],dline[255],text_check[255],contact[255];
-  char dircreate[255],saveplot1[255],title1[255],saveplot2[255],title2[255],textfile[255],textfit[255],dirdelete[255];
+  char text_check[255];
+  char dircreate[255],saveplot1[255],title1[255];
 
-  sprintf(sline,"%s#-------------------------------------------------------------------------#%s\n",magenta,normal);
-  sprintf(dline,"%s#*************************************************************************#%s\n",red,normal);
-  sprintf(contact,"%sPlease contact Nuruzzaman (nur@jlab.org) for problems and comments%s\n",blue,normal);
-
-  /* Ask to input the run condition to user */
-  printf(sline); printf("%sEnter Run Number%s\n",blue,normal); printf(sline);
-  cin >> run_number;
+//   /* Ask to input the run condition to user */
+//   printf("%s%sEnter Run Number%s\n%s",SolidLine.Data(),blue,normal,SolidLine.Data()); 
+//   cin >> run_number;
 
 //   TString dir = "/w/hallc/qweak/nur/data_analysis/beamModulation/plots/beamModulation_plots";
-  TString dir = "/u/group/hallc/www/hallcweb/html/qweak/bmod/images";
-  TString dir2 = "/u/group/hallc/www/hallcweb/html/qweak/bmod/text";
-  TString dir4 = "/u/group/hallc/www/hallcweb/html/qweak/bmod/images";
-  TString var[10] = {"X","Y","E","Xp","Yp","X","Y","E","Xp","Yp"};
+  TString bmodDirectory = "/u/group/hallc/www/hallcweb/html/qweak/bmod";
+  TString textDirectory = "/u/group/hallc/www/hallcweb/html/qweak/bmod/text";
+  TString imageDirectory = "/u/group/hallc/www/hallcweb/html/qweak/bmod/images";
+  TString archiveDirectory = "/u/group/hallc/www/hallcweb/html/qweak/bmod/archive";
+  TString imageWeb = "https://hallcweb.jlab.org/qweak/bmod/images";
+  TString archiveWebHtml = "https://hallcweb.jlab.org/qweak/bmod/archive.html";
+  TString archiveWeb = "https://hallcweb.jlab.org/qweak/bmod/archive";
+
   TString xy[10] = {"X","Y","X","X","Y","Y","X","Y","Y","X"};
   TString mod[10] = {"X","Y","E","Xp","Yp","X","Y","E","Xp","Yp"};
   TString modtype[10] = {"XX","YY","XE","XXp","YYp","YX","XY","YE","YXp","XYp"};
@@ -34,15 +34,19 @@ void bmod_beamline(  UInt_t run_number = 0){
 		       "bpm3h04","bpm3h02","bpm3c21","bpm3c20","bpm3p03a","bpm3p02b","bpm3p02a",
 		       "bpm3c19","bpm3c18","bpm3c17","bpm3c16","bpm3c14","bpm3c12","bpm3c11",
 		       "bpm3c08","bpm3c07","bpm3c07a"};
+  TString l_xx = "BPM-X response to X-Modulation";
+  TString l_yy = "BPM-Y response to Y-Modulation";
+  TString l_xe = "BPM-X response to E-Modulation";
+  TString l_ye = "BPM-Y response to E-Modulation";
 
-  sprintf(text_check,"%s/%dbpmfitXX.txt",dir2.Data(),run_number);
+  sprintf(text_check,"%s/%dbpmfitXX.txt",textDirectory.Data(),run_number);
   FILE *check;
   check = fopen(text_check,"r");
-  if (check == NULL) {printf("%sNo Modulation data for this run !!!. Exiting Program%s\n",red,normal);printf(contact);exit(1);}
+  if (check == NULL) {printf("%sNo Modulation data for this run !!!. Exiting Program\n%s",red,contact.Data());exit(1);}
   
 
 //   UInt_t pattern = 0;
-//   printf(sline);printf("%sPlease Insert %s0%s for X, %s1%s for Y,%s2%s for E, %s3%s for Xp and %s4%s for Yp and hit ENTER\n%s",blue,red,blue,red,blue,red,blue,red,blue,red,blue,normal);printf(sline);
+//   printf("%sPlease Insert %s0%s for X, %s1%s for Y,%s2%s for E, %s3%s for Xp and %s4%s for Yp and hit ENTER\n%s",SolidLine.Data(),blue,red,blue,red,blue,red,blue,red,blue,red,blue,normal,SolidLine.Data());
 //   cin >> pattern;
 //   if (pattern> 9) {printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal); exit(1);}
 
@@ -92,21 +96,16 @@ void bmod_beamline(  UInt_t run_number = 0){
 
   Float_t signp,signm;
   signp=1;signm=-1;
-//   TLine * l;
-//   TLine * q07,q08,q11,q12,q13,q16,q17,q18,q19,q20,q21,m1,m3,dcc1,dcc2,dcc3,dcc4,bmod1,bmod2;
-//   TLine * c07a,c07,c08,c11,c12,c14,c16,c17,c18,c19,p02a,p02b,p03a,c20,c21,h02,h04,h07a,h07b,h07c,h08,h09,h09b;
-//   TText * tq07,tq08,tq11,tq12,tq13,tq16,tq17,tq18,tq19,tq20,tq21,tm1,tbmod,ttarget;
-//   TText * tc07a,tc07,tc08,tc11,tc12,tc14,tc16,tc17,tc18,tc19,tp02a,tp02b,tp03a,tc20,tc21,th02,th04,th07a,th07b,th07tc,th08,th09,th09b;
 
   Double_t csizx,csizy,csiz3x,csiz3y,cx1,cy1,cx2,cx3,tsiz,tsiz3,tll,tlr,ps1,ps2,ps3,ps4;
   csizx=1600;csizy=1300;csiz3x=1100;csiz3y=780;tsiz=0.40;tsiz3=0.45;tll=0.012;tlr=0.4;cx1=0;cy1=0;cx2=300;cx3=600;
   ps1=0.01;ps2=0.93;ps3=0.94;ps4=0.99;
 
   /* Create a directory by run number under plots directory */
-  sprintf(dircreate,"%s/%d",dir4.Data(), run_number);
+  sprintf(dircreate,"%s/%d",imageDirectory.Data(), run_number);
   gSystem->mkdir(dircreate);
+  gSystem->Chmod(dircreate, 509);  /* 509 decimal == 775 octal, giving user permission to overwrite */
   printf("%sDirectory%s %s\n%shas been created sucessfully%s\n",blue,red,dircreate,blue,normal);
-
 
   for ( Int_t pattern = 0; pattern <10; pattern++ ){
 
@@ -127,7 +126,7 @@ void bmod_beamline(  UInt_t run_number = 0){
     };
   
   
-  sprintf(saveplot1,"%s/%d/%doptics%s.png",dir4.Data(),run_number,run_number,modtype[pattern].Data());
+  sprintf(saveplot1,"%s/%d/%doptics%s.png",imageDirectory.Data(),run_number,run_number,modtype[pattern].Data());
   sprintf(title1,"%d: Hall-C BPM-%s Response to %s-Modulation",run_number,xy[pattern].Data(),mod[pattern].Data());
 
   TCanvas *c1 = new TCanvas("c1",title1,0,0,1300,900);
@@ -145,7 +144,7 @@ void bmod_beamline(  UInt_t run_number = 0){
   padc11->cd()->SetGrid();
   //  c1->cd();
 
-  Double_t ymax,ymin,qline,bpmline,qtext,bpmtext,qhtext,bpmhtext,ypmax,ypmin,yp,ypa;
+  Double_t ymax,ymin,qline,bpmline,qtext,bpmtext,qhtext,bpmhtext;
   Double_t amp[NUM],eamp[NUM],z[NUM],ez[NUM],optim[NUM],eoptim[NUM],x_optimx[NUM],ex_optimx[NUM],y_optimy[NUM],ey_optimy[NUM],e_optimx[NUM],ee_optimx[NUM],xp_optimx[NUM],exp_optimx[NUM],yp_optimy[NUM],eyp_optimy[NUM],e_optimy[NUM],ee_optimy[NUM],control_optim[NUM],econtrol_optim[NUM];
 
   if (pattern==2){
@@ -161,15 +160,15 @@ void bmod_beamline(  UInt_t run_number = 0){
   int counter=0;
   Int_t counter2 = 0;
   ifstream in,inz,inx_optimx,iny_optimy,ine_optimx,inxp_optimx,inyp_optimy,ine_optimy,incontrol_optim;
-  in.open(Form("%s/%dbpmfit%s.txt",dir2.Data(),run_number,modtype[pattern].Data()));
-  inz.open(Form("%s/z.txt",dir2.Data()));
-  inx_optimx.open(Form("%s/x_optimx.txt",dir2.Data()));
-  iny_optimy.open(Form("%s/y_optimy.txt",dir2.Data()));
-  ine_optimx.open(Form("%s/e_optimx.txt",dir2.Data()));
-  inxp_optimx.open(Form("%s/xp_optimx.txt",dir2.Data()));
-  inyp_optimy.open(Form("%s/yp_optimy.txt",dir2.Data()));
-  ine_optimy.open(Form("%s/e_optimy.txt",dir2.Data()));
-  incontrol_optim.open(Form("%s/control_optim.txt",dir2.Data()));
+  in.open(Form("%s/%dbpmfit%s.txt",textDirectory.Data(),run_number,modtype[pattern].Data()));
+  inz.open(Form("%s/z.txt",textDirectory.Data()));
+  inx_optimx.open(Form("%s/x_optimx.txt",textDirectory.Data()));
+  iny_optimy.open(Form("%s/y_optimy.txt",textDirectory.Data()));
+  ine_optimx.open(Form("%s/e_optimx.txt",textDirectory.Data()));
+  inxp_optimx.open(Form("%s/xp_optimx.txt",textDirectory.Data()));
+  inyp_optimy.open(Form("%s/yp_optimy.txt",textDirectory.Data()));
+  ine_optimy.open(Form("%s/e_optimy.txt",textDirectory.Data()));
+  incontrol_optim.open(Form("%s/control_optim.txt",textDirectory.Data()));
 
   while (1) {
     // Read data file
@@ -405,31 +404,34 @@ void bmod_beamline(  UInt_t run_number = 0){
   /********************************************************************************************/
   /*                  Updating information to the Beam Modulation Website                     */
   /********************************************************************************************/
-  char htmlfile_main[255],htmlfile_run[255];
+  char htmlfile_main[255],htmlfile_run[255],htmlfile_archive[255],htmlfile_archive3[255];
+  UInt_t run_number_i;
+  run_number_i = run_number-25;
+//   run_number_f = 12200;
 
   Double_t fig_width,fig_height;
   fig_width = 500;fig_height = 350;
 
-  TString dir3 = "/u/group/hallc/www/hallcweb/html/qweak/bmod";
-  TString dir5 = "https://hallcweb.jlab.org/qweak/bmod/images";
-  TString l_xx = "BPM-X response to X-Modulation";
-  TString l_yy = "BPM-Y response to Y-Modulation";
-  TString l_xe = "BPM-X response to E-Modulation";
-  TString l_ye = "BPM-Y response to E-Modulation";
-
+  time_t rawtime;
+  struct tm * timeinfo;
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
 
   /* Create a text file for saving fit parameters */
-  sprintf(htmlfile_main,"%s/index.html",dir3.Data());
+  sprintf(htmlfile_main,"%s/index.html",bmodDirectory.Data());
   ofstream outfile_html(htmlfile_main);
-  sprintf(htmlfile_run,"%s/optics.html",dir3.Data());
+  sprintf(htmlfile_run,"%s/optics.html",bmodDirectory.Data());
   ofstream outfile_run(htmlfile_run);
-//   sprintf(htmlfile_archive,"optics_all.html");
+  sprintf(htmlfile_archive,"%s/%doptics.html",archiveDirectory.Data(),run_number);
+  ofstream outfile_archive(htmlfile_archive);
+  sprintf(htmlfile_archive3,"%s/archive.html",bmodDirectory.Data());
+  ofstream outfile_archive3(htmlfile_archive3);
 
-  TString header = "<head><title>Beam Modulation</title><link rel='SHORTCUT ICON' href='bmod_logo_black.png' background='white' type='image/x-icon'></head><body><center><a href='https://hallcweb.jlab.org/qweak/bmod'><img src='bmod_logo_white.png' width='240' height='150' align='left' border='0'></a><img src='bmod_blank.png' width='240' height='150' align='right'><a name='top'><h1>Welcome to Beam Modulation Website</h1>";
+  TString header = Form("<head><title>Beam Modulation</title><link rel='SHORTCUT ICON' href='bmod_logo_black.png' background='white' type='image/x-icon'></head><body><center><a href='https://hallcweb.jlab.org/qweak/bmod'><img src='bmod_logo_white.png' width='240' height='150' align='left' border='0'></a><img src='bmod_blank.png' width='240' height='150' align='right'><a name='top'><h1>Welcome to Beam Modulation Website</h1><h2>Hall-C Beamline Optics</h2><h3><a href='%s'>Archive</a></h3><p allign='right'>Last updated: %s</p>",archiveWebHtml.Data(),asctime(timeinfo));
 
-  TString body = Form("<h2>Hall-C Beamline Optics</h2><h3><a href='%s'>Archive</a></h3><a href='optics.html'>Beamline Optics for Most Recent Run (%d)</a><br><br><br><a href='%s/%d/%dopticsXX.png'><img src='%s/%d/%dopticsXX.png' width='%f' height='%f' align='center' border='2'></a><a href='%s/%d/%dopticsYY.png'><img src='%s/%d/%dopticsYY.png' width='%f' height='%f' align='center' border='2'></a><p align='center'><font size='3' face='arial' color='red'><span style='padding-left:10px'>%s</font><font size='3' face='arial' color='green'><span style='padding-left:300px'>%s</font></p><br><br><a href='%s/%d/%dopticsXE.png'><img src='%s/%d/%dopticsXE.png' width='%f' height='%f' align='center' border='2'></a><a href='%s/%d/%dopticsYE.png'><img src='%s/%d/%dopticsYE.png' width='%f' height='%f' align='center' border='2'></a><p align='center'><font size='3' face='arial' color='blue'><span style='padding-left:10px'>%s</font><span style='padding-left:300px'><font size='3' face='arial' color='blue'>%s</font></p>",dir5.Data(),run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,fig_width,fig_height,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,fig_width,fig_height,l_xx.Data(),l_yy.Data(),dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,fig_width,fig_height,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,fig_width,fig_height,l_xe.Data(),l_ye.Data());
+  TString body = Form("<a href='optics.html'>Beamline Optics for Most Recent Run (%d)</a><br><br><br><a href='%s/%d/%dopticsXX.png'><img src='%s/%d/%dopticsXX.png' width='%f' height='%f' align='center' border='2'></a><a href='%s/%d/%dopticsYY.png'><img src='%s/%d/%dopticsYY.png' width='%f' height='%f' align='center' border='2'></a><p align='center'><font size='3' face='arial' color='red'><span style='padding-left:10px'>%s</font><font size='3' face='arial' color='green'><span style='padding-left:300px'>%s</font></p><br><br><a href='%s/%d/%dopticsXE.png'><img src='%s/%d/%dopticsXE.png' width='%f' height='%f' align='center' border='2'></a><a href='%s/%d/%dopticsYE.png'><img src='%s/%d/%dopticsYE.png' width='%f' height='%f' align='center' border='2'></a><p align='center'><font size='3' face='arial' color='blue'><span style='padding-left:10px'>%s</font><span style='padding-left:300px'><font size='3' face='arial' color='blue'>%s</font></p>",run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,fig_width,fig_height,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,fig_width,fig_height,l_xx.Data(),l_yy.Data(),imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,fig_width,fig_height,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,fig_width,fig_height,l_xe.Data(),l_ye.Data());
 
-  TString body_run = Form("<h3><a href='%s'>Archive</a></h3><h2>Beamline Optics for Run %d</h2><img src='%s/%d/%dopticsXX.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsYY.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsXE.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsXXp.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsYYp.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsYX.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsXY.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsYE.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsYXp.png'><a href='#top' class='menu'>Go to TOP</a><br><img src='%s/%d/%dopticsXYp.png'><a href='#top' class='menu'>Go to TOP</a><br>",dir5.Data(),run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number,dir5.Data(),run_number,run_number);
+  TString body_run = Form("<h2>Beamline Optics for Run %d</h2><pre><a href='#XX' class='menu'>Bpm-X X-Mod</a>\t<a href='#YY' class='menu'>Bpm-Y Y-Mod</a>\t<a href='#XE' class='menu'>Bpm-X E-Mod</a>\t<a href='#XXp' class='menu'>Bpm-X Xp-Mod</a>\t<a href='#YYp' class='menu'>Bpm-Y Yp-Mod</a><br><br><a href='#YX' class='menu'>Bpm-Y X-Mod</a>\t<a href='#XY' class='menu'>Bpm-X Y-Mod</a>\t<a href='#YE' class='menu'>Bpm-Y E-Mod</a>\t<a href='#YXp' class='menu'>Bpm-Y Xp-Mod</a>\t<a href='#XYp' class='menu'>Bpm-X Yp-Mod</a></pre><a name='XX'><img src='%s/%d/%dopticsXX.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='YY'><img src='%s/%d/%dopticsYY.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='XE'><img src='%s/%d/%dopticsXE.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='XXp'><img src='%s/%d/%dopticsXXp.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='YYp'><img src='%s/%d/%dopticsYYp.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='YX'><img src='%s/%d/%dopticsYX.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='XY'><img src='%s/%d/%dopticsXY.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='YE'><img src='%s/%d/%dopticsYE.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='YXp'><img src='%s/%d/%dopticsYXp.png'><a href='#top' class='menu'>Go to TOP</a><br><a name='XYp'><img src='%s/%d/%dopticsXYp.png'><a href='#top' class='menu'>Go to TOP</a><br>",run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number,imageWeb.Data(),run_number,run_number);
 
   outfile_html <<Form("%s",header.Data())<<endl;
   outfile_html <<Form("%s",body.Data())<<endl;
@@ -437,7 +439,36 @@ void bmod_beamline(  UInt_t run_number = 0){
   outfile_run <<Form("%s",header.Data())<<endl;
   outfile_run <<Form("%s",body_run.Data())<<endl;
 
-  printf("%s%sBeam Modulation website has been updated with current run %s%d\n%s%s",dline,blue,red,run_number,contact,dline);
+  outfile_archive <<Form("%s",header.Data())<<endl;
+  outfile_archive <<Form("%s",body_run.Data())<<endl;
+
+  outfile_archive3 <<Form("%s",header.Data())<<endl;
+
+  for(Int_t run=run_number_i; run< run_number+1; run++) 
+    {
+      run_number_i = run;
+
+  sprintf(text_check,"%s/%doptics.html",archiveDirectory.Data(),run_number_i);
+  FILE *check;
+  check = fopen(text_check,"r");
+  if (check == NULL) 
+    {printf("No Modulation data for run %d !!!.\n",run);
+      continue; }
+  
+  TString body_archive = Form("<a href='%s/%doptics.html'>%d</a><br>",archiveWeb.Data(),run_number_i,run_number_i);
+  outfile_archive3 <<Form("%s",body_archive.Data())<<endl;
+
+    }
+
+  printf("%s%sBeam Modulation website has been updated with current run %s%d\n%s%s",DashedLine.Data(),blue,red,run_number,contact.Data(),DashedLine.Data());
+  Int_t dif,hr,min,sec;
+  tEnd = time(0);
+  dif = difftime(tEnd, tStart);
+  hr = dif/3600;
+  min = dif/60-hr*60;
+  sec = dif-min*60-hr*3600;
+  printf("%sTime taken to complete : %s%d hour %d min %d sec%s\n",blue,red,hr,min,sec,normal);
+  printf ( "%sThe current date/time is: %s%s%s\n",blue,red,asctime(timeinfo),normal);
 }
 /******************************************************************************************************/
 /*                                        USER MANUAL                                                 */

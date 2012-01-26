@@ -79,6 +79,9 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("online", po::value<bool>()->default_bool_value(false),
      "use online data stream");
   options.AddDefaultOptions()
+    ("online.RunNumber", po::value<int>()->default_bool_value(0),
+     "Effective run number to be used by online system to find the parameter files");
+  options.AddDefaultOptions()
     ("run,r", po::value<string>()->default_value("0:0"),
      "run range in format #[:#]");
   options.AddDefaultOptions()
@@ -104,6 +107,12 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
      "extension of the input CODA filename");
   //  Options specific to the ET clients
   options.AddOptions("ET system options")
+    ("ET.hostname", po::value<string>(),
+     "Name of the ET session's host machine --- Only used in online mode\nDefaults to the environment variable $HOSTNAME"); 
+  options.AddOptions("ET system options")
+    ("ET.session", po::value<string>(),
+     "ET session name --- Only used in online mode\nDefaults to the environment variable $SESSION"); 
+  options.AddOptions("ET system options")
     ("ET.station", po::value<string>(),
      "ET station name --- Only used in online mode"); 
 }
@@ -117,13 +126,24 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
 	    << QwLog::endl;
     exit(EXIT_FAILURE);
 #else
+    if (options.HasValue("online.RunNumber")) {
+      fCurrentRun = options.GetValue<int>("online.RunNumber");
+    }
     if (options.HasValue("ET.station")) {
       fETStationName = options.GetValue<string>("ET.station");
     } else {
       fETStationName = "";
     }
-    fETHostname = getenv("HOSTNAME");
-    fETSession  = getenv("SESSION");
+    if (options.HasValue("ET.hostname")) {
+      fETHostname = options.GetValue<string>("ET.hostname");
+    } else {
+      fETHostname = getenv("HOSTNAME");
+    }
+    if (options.HasValue("ET.session")) {
+      fETSession = options.GetValue<string>("ET.session");
+    } else {
+      fETSession = getenv("SESSION");
+    }
     if (fETHostname.Length() == 0 || fETSession.Length() == 0) {
       TString tmp = "";
       if (fETHostname == NULL)

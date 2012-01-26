@@ -3,7 +3,7 @@
 /*                         Nuruzzaman                               */
 /*                         10/08/2010                               */
 /*                                                                  */
-/*                   Last Edited:10/08/2010                         */
+/*                   Last Edited:11/11/2011                         */
 /*                                                                  */
 /* This includes the different classes needed for the main files.   */
 /* It also defines the different styles used in the plots.          */
@@ -55,10 +55,20 @@
 //#include <QwColor.h>
 //#include <ConsoleColor.h>
 
+#define UTC (0)
+#define CDT (-5)
+
 char red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
 char green[] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
 char blue[] = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
 char magenta[] = { 0x1b, '[', '1', ';', '3', '5', 'm', 0 };
 char normal[] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
+
+TString contact = Form("%sPlease contact Nuruzzaman (nur@jlab.org) for problems and comments%s\n",blue,normal);
+
+
+TString SolidLine = Form("%s#-------------------------------------------------------------------------#%s\n",magenta,normal);
+TString DashedLine = Form("%s#*************************************************************************#%s\n",red,normal);
+
 
 #endif

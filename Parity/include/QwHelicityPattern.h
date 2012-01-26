@@ -31,8 +31,13 @@ class QwHelicityPattern{
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwHelicityPattern();
  public:
+  /// Constructor with subsystem array
   QwHelicityPattern(QwSubsystemArrayParity &event);
+  /// Virtual destructor
   virtual ~QwHelicityPattern() { };
 
   /// \brief Define the configuration options
@@ -115,6 +120,9 @@ class QwHelicityPattern{
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile &trim_tree);
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db);
+  void  FillErrDB(QwParityDB *db);
+  void  WritePromptSummary(QwPromptSummary *ps);
+
   Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
 
   void  ClearEventData();

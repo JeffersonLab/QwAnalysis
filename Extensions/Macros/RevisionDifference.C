@@ -53,7 +53,7 @@ void RevisionDifference( Int_t runnumber = 12161, const char *prefix = "Qweak_")
   // Chain All the Trees
   TChain *mpsChain = new TChain("Mps_Tree");
   TChain *helChain = new TChain("Hel_Tree");
-  TString fileName = Form("%s/%s%d.*.root",getenv("QW_ROOTFILES"),
+  TString fileName = Form("%s/%s%d.*.trees.root",getenv("QW_ROOTFILES"),
       prefix,runnumber);
   mpsChain->Add(fileName);
   helChain->Add(fileName);

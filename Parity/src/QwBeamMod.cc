@@ -28,15 +28,11 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
 
-  TString varname, varvalue;
-  TString modtype, dettype, namech, keyword;
-  TString combotype, comboname, dev_name;
-  Int_t modnum, channum;
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
-  Int_t fSample_size=0;
+  Int_t sample_size=0;
   //  Int_t index=0;
   //  Bool_t combolistdecoded;
 
@@ -51,24 +47,19 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 
   //end QwWord part one
 
-  std::vector<TString> fDeviceName;
-  std::vector<Double_t> fQWeight;
-  std::vector<Double_t> fXWeight;
-  std::vector<Double_t> fYWeight;
 
-
-  QwParameterFile mapstr(mapfile.Data());  //Open the file
+  // Open the file
+  QwParameterFile mapstr(mapfile.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-
   while (mapstr.ReadNextLine())
   {
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
-
-   if (mapstr.HasVariablePair("=",varname,varvalue))
-   { //  This is a declaration line.  Decode it.
+    TString varname, varvalue;
+    if (mapstr.HasVariablePair("=",varname,varvalue))
+    { //  This is a declaration line.  Decode it.
       varname.ToLower();
       UInt_t value = QwParameterFile::GetUInt(varvalue);
 
@@ -87,28 +78,28 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	}
       else if (varname=="sample_size")
 	{
-	  fSample_size=value;
+	  sample_size=value;
 	}
    }
    else
      {
        Bool_t lineok=kTRUE;
        //  Break this line into tokens to process it.
-       modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-       modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-       channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-       //	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+       TString modtype = mapstr.GetTypedNextToken<TString>();	// module type
+       /* Int_t modnum    = */ mapstr.GetTypedNextToken<Int_t>();	//slot number
+       /* Int_t channum   = */ mapstr.GetTypedNextToken<Int_t>();	//channel number
+       //	TString dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
        //	dettype.ToLower();
-       namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+       TString namech  = mapstr.GetTypedNextToken<TString>();  //name of the detector
        namech.ToLower();
-       keyword = mapstr.GetNextToken(", ").c_str();
+       TString keyword = mapstr.GetTypedNextToken<TString>();
        keyword.ToLower();
 
 
-       if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
+       if (currentsubbankindex != GetSubbankIndex(currentrocread,currentbankread))
 	  {
-	    currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
-	    wordsofar=0;
+	    currentsubbankindex = GetSubbankIndex(currentrocread,currentbankread);
+	    wordsofar = 0;
 	  }
 
 
@@ -123,7 +114,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	     QwVQWK_Channel localchan;
 	     localchan.InitializeChannel(GetSubsystemName(),"QwBeamMod",localModChannelID.fmodulename,"raw");
 	     fModChannel.push_back(localchan);
-	     fModChannel[fModChannel.size()-1].SetDefaultSampleSize(fSample_size);
+	     fModChannel[fModChannel.size()-1].SetDefaultSampleSize(sample_size);
 	     localModChannelID.fIndex=fModChannel.size()-1;
 	     fModChannelID.push_back(localModChannelID);
 	   }
@@ -176,7 +167,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	  // example the triumf adc gives 6 words per channel
 	  localword.fModuleType=modtype;
 	  localword.fWordName=namech;
-	  localword.fWordType=dettype;
+	  //localword.fWordType=dettype; // FIXME dettype is undefined so commented this out
 	  fWord.push_back(localword);
 	  fWordsPerSubbank[currentsubbankindex].second = fWord.size();
 	  QwDebug << "--" << namech << "--" << fWord.size()-1 << QwLog::endl;
@@ -247,63 +238,46 @@ QwModChannelID::QwModChannelID(Int_t subbankid, Int_t wordssofar,
 
 //*****************************************************************
 
-Int_t QwBeamMod::LoadEventCuts(TString  filename){
-  Double_t ULX, LLX, ULY, LLY;
-  Int_t samplesize;
+Int_t QwBeamMod::LoadEventCuts(TString  filename)
+{
+  Int_t eventcut_flag = 1;
 
-  Int_t check_flag;
-  Int_t eventcut_flag;
-  TString varname, varvalue, vartypeID,varname2, varvalue2;
-  TString device_type,device_name,channel_name;
-  Double_t stabilitycut;
-  std::cout<<" QwBeamMod::LoadEventCuts  "<<filename<<std::endl;
-  QwParameterFile mapstr(filename.Data());  //Open the file
+  // Open the file
+  QwParameterFile mapstr(filename.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-  samplesize = 0;
-  check_flag = 0;
-
-  eventcut_flag=1;
-
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
-    if (mapstr.HasVariablePair("=",varname2,varvalue2)){
-      if (varname2=="EVENTCUTS"){
-	//varname="";
-	eventcut_flag= QwParameterFile::GetUInt(varvalue2);
+    TString varname, varvalue;
+    if (mapstr.HasVariablePair("=",varname,varvalue)){
+      if (varname == "EVENTCUTS"){
+	eventcut_flag = QwParameterFile::GetUInt(varvalue);
 	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;
       }
     }
     else{
-      device_type= mapstr.GetNextToken(", ").c_str();
+      TString device_type = mapstr.GetTypedNextToken<TString>();
       device_type.ToLower();
-      device_name= mapstr.GetNextToken(", ").c_str();
+      TString device_name = mapstr.GetTypedNextToken<TString>();
       device_name.ToLower();
 
 
-      //set limits to zero
-      ULX=0;
-      LLX=0;
-      ULY=0;
-      LLY=0;
-
       if (device_type == "vqwk"){
 
-	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	Double_t LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for BCM value
+	Double_t ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for BCM value
+	varvalue = mapstr.GetTypedNextToken<TString>();//global/loacal
 	varvalue.ToLower();
+	Double_t stabilitycut = mapstr.GetTypedNextToken<Double_t>();
 	QwMessage<<"QwBeamLine Error Code passing to QwBCM "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(kQwUnknownDeviceType),device_name);
 	std::cout<<"*****************************"<<std::endl;
 	std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
 	fModChannel[det_index].PrintInfo();
-	fModChannel[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);//(fBCMEventCuts);
+	fModChannel[det_index].SetSingleEventCuts((GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)|kBModErrorFlag),LLX,ULX,stabilitycut);
 	std::cout<<"*****************************"<<std::endl;
 
       }
@@ -328,7 +302,6 @@ Int_t QwBeamMod::LoadGeometry(TString mapfile)
   Int_t index;
   TString  devname,devtype;
   Double_t devOffsetX,devOffsetY, devOffsetZ;
-  TString localname;
 
 
   if(ldebug)std::cout<<"QwBeamMod::LoadGeometry("<< mapfile<<")\n";
@@ -343,16 +316,16 @@ Int_t QwBeamMod::LoadGeometry(TString mapfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  devtype = mapstr.GetNextToken(", \t").c_str();
+	  devtype = mapstr.GetTypedNextToken<TString>();
 	  devtype.ToLower();
 	  devtype.Remove(TString::kBoth,' ');
-	  devname = mapstr.GetNextToken(", \t").c_str();
+	  devname = mapstr.GetTypedNextToken<TString>();
 	  devname.ToLower();
 	  devname.Remove(TString::kBoth,' ');
 
-	  devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
-	  devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
-	  devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+	  devOffsetX = mapstr.GetTypedNextToken<Double_t>(); // X offset
+	  devOffsetY = mapstr.GetTypedNextToken<Double_t>(); // Y offset
+	  devOffsetZ = mapstr.GetTypedNextToken<Double_t>(); // Z offset
 
 	  Bool_t notfound=kTRUE;
 
@@ -370,7 +343,7 @@ Int_t QwBeamMod::LoadGeometry(TString mapfile)
 		    notfound=kFALSE;
 		    continue;
 		  }
-		localname=fStripline[index].GetElementName();
+		TString localname = fStripline[index].GetElementName();
 		localname.ToLower();
 		if(ldebug)  std::cout<<"element name =="<<localname
 				     <<"== to be compared to =="<<devname<<"== \n";
@@ -395,7 +368,7 @@ Int_t QwBeamMod::LoadGeometry(TString mapfile)
 		    continue;
 		  }
 
-		localname=fBPMCombo[index].GetElementName();
+		TString localname = fBPMCombo[index].GetElementName();
 		localname.ToLower();
 		if(ldebug)
 		  std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
@@ -433,10 +406,6 @@ Int_t QwBeamMod::LoadInputParameters(TString pedestalfile)
 {
   Bool_t ldebug=kFALSE;
   TString varname;
-  Double_t varped;
-  Double_t varcal;
-  Double_t varweight;
-  TString localname;
 
   Int_t lineread=1;
 
@@ -452,22 +421,20 @@ Int_t QwBeamMod::LoadInputParameters(TString pedestalfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+	  TString varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
 	  varname.ToLower();
 	  varname.Remove(TString::kBoth,' ');
-	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
-	  varweight= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the statistical weight
+	  Double_t varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+	  Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
+	  /* Double_t varweight = */ mapstr.GetTypedNextToken<Double_t>(); // value of the statistical weight
 
 	  //if(ldebug) std::cout<<"inputs for channel "<<varname
 	  //	      <<": ped="<<varped<<": cal="<<varcal<<": weight="<<varweight<<"\n";
-	  Bool_t notfound=kTRUE;
 	  for(size_t i=0;i<fModChannel.size();i++)
 	    if(fModChannel[i].GetElementName()==varname)
 		{
 		  fModChannel[i].SetPedestal(varped);
 		  fModChannel[i].SetCalibrationFactor(varcal);
-		  notfound=kFALSE;
 		  break;
 		}
 	}
@@ -1206,7 +1173,7 @@ void  QwModChannelID::Print()
 //*****************************************************************
 
 
-void  QwBeamMod::Copy(VQwSubsystem *source)
+void  QwBeamMod::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1214,8 +1181,7 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
      if(typeid(*source)==typeid(*this))
 	 {
 	  VQwSubsystem::Copy(source);
-	  //QwBeamMod* input=((QwBeamMod*)source);
-          QwBeamMod* input = dynamic_cast<QwBeamMod*>(source);
+	  const QwBeamMod* input = dynamic_cast<const QwBeamMod*>(source);
 
 	  this->fModChannel.resize(input->fModChannel.size());
 	  for(size_t i=0;i<this->fModChannel.size();i++)
@@ -1255,73 +1221,24 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
 }
 
 
-VQwSubsystem*  QwBeamMod::Copy()
-{
-
-  QwBeamMod* TheCopy=new QwBeamMod("BeamMod");
-  TheCopy->Copy(this);
-  return TheCopy;
-}
-
-
 
 void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 {
-  /*
-  vector<QwParityDB::beam> entrylist;
-
-  //      QwParityDB::beam row;
-  // Without (0), I see the following error message:
-  //terminate called after throwing an instance of 'mysqlpp::BadQuery'
-  //  what():  Duplicate entry '11399104' for key 1
-  //Abort
-  //
-
-  QwParityDB::beam row(0);
-
-  // try to access BCM mean and its error
-  // there are 2 different types BCM data we have at the moment
-  // Yield and Asymmetry
-  printf("%s  ************** BCM **************\n", datatype.Data());
-  for(UInt_t i=0; i< fModChannel.size(); i++)
-    {
-      entrylist.push_back(fModChannel[i].GetDBEntry(db, datatype, "" )) ;
-    }
-
-  ///   try to access BPM mean and its error
-  printf("%s  ************** BPM **************\n", datatype.Data());
-  for(UInt_t i=0; i< fStripline.size(); i++)
-    {
-      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelX"));
-      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelY"));
-    }
-
-  printf("BeamLine Entrylist Vector Size %d\n", (Int_t) entrylist.size());
-
-  db->Connect();
-  // Check the entrylist size, if it isn't zero, start to query..
-  if( entrylist.size() )
-    {
-      mysqlpp::Query query= db->Query();
-      //    if(query)
-      //	{
-	  query.insert(entrylist.begin(), entrylist.end());
-	  query.execute();
-	  //	  query.reset(); // do we need?
-	  //	}
-	  //      else
-	  //	{
-	  //	  printf("Query is empty\n");
-	  //	}
-    }
-  else
-    {
-      printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
-    }
-
-  db->Disconnect();
-  */
+ 
   return;
 }
 
 
+
+void QwBeamMod::FillErrDB(QwParityDB *db, TString datatype)
+{
+  return;
+}
+
+
+
+
+void QwBeamMod::WritePromptSummary(QwPromptSummary *ps, TString datatype)
+{
+  return;
+};

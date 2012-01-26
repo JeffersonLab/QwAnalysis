@@ -122,10 +122,13 @@ void QwAutoGUI::DoWarn()
   if(dPID){
   
     while(1){
-      
-      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_* -1 | tail -1",gSystem->Getenv("QW_ROOTFILES")));
-      
-      if(NewRun.Length()>0){
+      ///  TODO:  figure out a more clever way of getting only file
+      ///         names like first100k_#####.root other than this
+      ///         annoyingly nested filename.
+      ///  Use reverse time ordering of the directory.
+      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_[0-9][0-9][0-9][0-9][0-9].root -1rt | tail -1",gSystem->Getenv("QW_ROOTFILES")));
+
+      if(NewRun.Length()>0 && !NewRun.Contains("jlab.org")){
 	
 	GetFileInfo(NewRun.Data(),run,seg);
 	
@@ -141,7 +144,7 @@ void QwAutoGUI::DoWarn()
 	  }
 	}
       }
-      gSystem->Sleep(60000);
+      gSystem->Sleep(10000);
     }
   }
 }

@@ -7,6 +7,7 @@
 // Qweak headers
 #include "VQwSubsystem.h"
 #include "QwGeometry.h"
+#include "QwRootFile.h"
 
 // Forward declarations
 class QwHitContainer;
@@ -31,6 +32,11 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
    *         with the CODA routines.
    *
    ******************************************************************/
+  private:
+
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemTracking();
+
   public:
 
     /// Constructor with name
@@ -75,6 +81,9 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     /// Get the detector geometry information
     const QwGeometry& GetDetectorInfo() const { return fDetectorInfo; };
 
+    /// Hardware error summary
+    virtual void FillHardwareErrorSummary() {};
+
   protected:
 
     /// Geometry information of this subsystem
@@ -84,10 +93,7 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     size_t fTreeArrayIndex;
     size_t fTreeArrayNumEntries;
 
-  private:
-
-    /// Private default constructor (not implemented, will throw linker error on use)
-    VQwSubsystemTracking();
+    Double_t fF1TDCResolutionNS;
 
 }; // class VQwSubsystemTracking
 

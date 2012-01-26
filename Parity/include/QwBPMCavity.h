@@ -21,6 +21,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 /*****************************************************************
 *  Class:
@@ -31,6 +32,9 @@ class QwDBInterface;
 class QwBPMCavity : public VQwBPM {
   template <typename TT> friend class QwCombinedBPM;
   friend class QwEnergyCalculator;
+
+ public:
+  static UInt_t  GetSubElementIndex(TString subname);
 
  public:
   QwBPMCavity() { };
@@ -52,6 +56,12 @@ class QwBPMCavity : public VQwBPM {
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    for(Short_t i=0;i<2;i++)
+      fWire[i].LoadChannelParameters(paramfile);
+  }
+
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
@@ -68,18 +78,19 @@ class QwBPMCavity : public VQwBPM {
   }
   const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
 
-
-  UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void    GetAbsolutePosition();
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  //void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  UInt_t  GetEventcutErrorFlag();
+  void UpdateEventcutErrorFlag(const UInt_t error);
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error);
 
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
@@ -89,7 +100,7 @@ class QwBPMCavity : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(VQwDataElement *source);
+  void    Copy(const VQwDataElement *source);
   void    Ratio(QwBPMCavity &numer, QwBPMCavity &denom);
   void    Scale(Double_t factor);
 
@@ -101,7 +112,10 @@ class QwBPMCavity : public VQwBPM {
   virtual QwBPMCavity& operator+= (const QwBPMCavity &value);
   virtual QwBPMCavity& operator-= (const QwBPMCavity &value);
 
-  void    AccumulateRunningSum(const QwBPMCavity& value);
+  void    AccumulateRunningSum(const VQwBPM &value);
+  void    AccumulateRunningSum(const QwBPMCavity &value);
+  void    DeaccumulateRunningSum(VQwBPM &value);
+  void    DeaccumulateRunningSum(QwBPMCavity &value);
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -114,6 +128,7 @@ class QwBPMCavity : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
 
   protected:
   VQwHardwareChannel* GetSubelementByName(TString ch_name);

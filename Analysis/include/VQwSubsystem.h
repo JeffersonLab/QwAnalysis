@@ -21,9 +21,9 @@
 
 // Qweak headers
 #include "MQwHistograms.h"
-// Note: the subsystem factory header is included here because every subsystem
+// Note: the factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
-#include "QwSubsystemFactory.h"
+#include "QwFactory.h"
 
 // Forward declarations
 class VQwDataElement;
@@ -56,7 +56,7 @@ class QwParameterFile;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem: virtual public VQwCloneable, public MQwHistograms {
+class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
 
  public:
 
@@ -266,17 +266,19 @@ class VQwSubsystem: virtual public VQwCloneable, public MQwHistograms {
   /// \brief Print some information about the subsystem
   virtual void  PrintInfo() const;
 
+  /// Inherit Copy methods from VQwSubsystemCloneable
+  using VQwSubsystemCloneable::Copy;
   /// \brief Copy method
   /// Note: Must be called at the beginning of all subsystems routine
-  /// call to Copy(VQwSubsystem *source) by using VQwSubsystem::Copy(source)
-  virtual void Copy(VQwSubsystem *source);
+  /// call to Copy(const VQwSubsystem *source) by using VQwSubsystem::Copy(source)
+  virtual void Copy(const VQwSubsystem *source);
   /// \brief Assignment
   /// Note: Must be called at the beginning of all subsystems routine
   /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)
   virtual VQwSubsystem& operator=(VQwSubsystem *value);
 
 
-  virtual void PrintDetectorMaps(Bool_t status);
+  virtual void PrintDetectorMaps(Bool_t status) const;
 
  protected:
 

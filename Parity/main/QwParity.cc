@@ -31,6 +31,7 @@
 #include "QwHelicityPattern.h"
 #include "QwEventRing.h"
 #include "QwEPICSEvent.h"
+#include "QwPromptSummary.h"
 
 // Qweak subsystems
 // (for correct dependency generation)
@@ -64,6 +65,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.AddOptions()("single-output-file", po::value<bool>()->default_bool_value(false), "Write a single output file");
+  gQwOptions.AddOptions()("print-errorcounters", po::value<bool>()->default_bool_value(true), "Print summary of error counters");
+  gQwOptions.AddOptions()("write-promptsummary", po::value<bool>()->default_bool_value(false), "Write PromptSummary");
+
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qweak_mysql.conf");
 
@@ -84,16 +88,22 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Create the database connection
   QwParityDB database(gQwOptions);
 
+
+  //  QwPromptSummary promptsummary;
+
   ///  Start loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     ///  Begin processing for the first run
 
+    Int_t run_number = eventbuffer.GetRunNumber();
 
     ///  Set the current event number for parameter file lookup
-    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
+    QwParameterFile::SetCurrentRunNumber(run_number);
 
-
+    //    if (gQwOptions.GetValue<bool>("write-promptsummary")) {
+    QwPromptSummary promptsummary(run_number, eventbuffer.GetSegmentNumber());
+    //    }
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
     epicsevent.ProcessOptions(gQwOptions);
@@ -107,11 +117,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwHelicityPattern helicitypattern(detectors);
     helicitypattern.ProcessOptions(gQwOptions);
 
-    ///  Create the event ring
-    QwEventRing eventring;
-    eventring.ProcessOptions(gQwOptions);
-    ///  Set up the ring with the subsystem array
-    eventring.SetupRing(detectors);
+    ///  Create the event ring with the subsystem array
+    QwEventRing eventring(gQwOptions,detectors);
     //  Make a copy of the detectors object to hold the
     //  events which pass through the ring.
     QwSubsystemArrayParity ringoutput(detectors);
@@ -124,20 +131,36 @@ Int_t main(Int_t argc, Char_t* argv[])
     database.SetupOneRun(eventbuffer);
 
     //  Open the ROOT file (close when scope ends)
-    QwRootFile *treerootfile, *burstrootfile, *historootfile;
+    QwRootFile *treerootfile  = NULL;
+    QwRootFile *burstrootfile = NULL;
+    QwRootFile *historootfile = NULL;
+    
+    TString run_label = eventbuffer.GetRunLabel();
+
+
     if (gQwOptions.GetValue<bool>("single-output-file")) {
-      treerootfile = new QwRootFile(eventbuffer.GetRunLabel());
+
+      treerootfile  = new QwRootFile(run_label);
       burstrootfile = historootfile = treerootfile;
+      //  Construct a tree which contains map file names which are used to analyze data
+      treerootfile->WriteParamFileList("mapfiles", detectors);
+
     } else {
-      treerootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".trees");
-      burstrootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".bursts");
-      historootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".histos");
+
+      treerootfile  = new QwRootFile(run_label + ".trees");
+      burstrootfile = new QwRootFile(run_label + ".bursts");
+      historootfile = new QwRootFile(run_label + ".histos");
+
+      //  Construct a tree which contains map file names which are used to analyze data
+      detectors.PrintParamFileList();
+      treerootfile->WriteParamFileList("mapfiles", detectors);
+      burstrootfile->WriteParamFileList("mapfiles", detectors);
+      historootfile->WriteParamFileList("mapfiles", detectors);
     }
 
-    //  Construct a tree which contains map file names which are used to analyze data
-    historootfile->WriteParamFileList("mapfiles", detectors);
-
-    database.FillParameterFiles(detectors);
+    if (database.AllowsWriteAccess()) {
+      database.FillParameterFiles(detectors);
+    }
 
     //  Construct histograms
     historootfile->ConstructHistograms("mps_histo", ringoutput);
@@ -178,11 +201,13 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Secondly, process EPICS events
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
-        epicsevent.CalculateRunningValues();
-        helicitypattern.UpdateBlinder(epicsevent);
-
-        treerootfile->FillTreeBranches(epicsevent);
-        treerootfile->FillTree("Slow_Tree");
+	if (epicsevent.HasDataLoaded()){
+	  epicsevent.CalculateRunningValues();
+	  helicitypattern.UpdateBlinder(epicsevent);
+	
+	  treerootfile->FillTreeBranches(epicsevent);
+	  treerootfile->FillTree("Slow_Tree");
+	}
       }
 
 
@@ -250,7 +275,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Failed single event cuts
       } else {
-	eventring.FailedEvent(detectors.GetEventcutErrorFlag());
+
       }
 
       // Burst mode
@@ -289,7 +314,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwMessage << " =========================" << QwLog::endl;
       runningsum.PrintValue();
     }
-
+   
+  
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
      *  Doing this will remove the multiple copies of the ntuples    *
@@ -312,27 +338,36 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
 
     //  Print the event cut error summary for each subsystem
-    QwMessage << " Event cut error counters" << QwLog::endl;
-    QwMessage << " ========================" << QwLog::endl;
-    detectors.GetEventcutErrorCounters();
-
-
+    if (gQwOptions.GetValue<bool>("print-errorcounters")) {
+      QwMessage << " ------------ error counters ------------------ " << QwLog::endl;
+      detectors.GetEventcutErrorCounters();
+    }
+    
+    if (gQwOptions.GetValue<bool>("write-promptsummary")) {
+      //      runningsum.WritePromptSummary(&promptsummary, "yield");
+      // runningsum.WritePromptSummary(&promptsummary, "asymmetry");
+      //      runningsum.WritePromptSummary(&promptsummary, "difference");
+      helicitypattern.WritePromptSummary(&promptsummary);
+      promptsummary.PrintCSV();
+    }
     //  Read from the database
     database.SetupOneRun(eventbuffer);
 
     // Each subsystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
       helicitypattern.FillDB(&database);
+      //helicitypattern.FillErrDB(&database);
       epicsevent.FillDB(&database);
+
     }
+    
+  
     //epicsevent.WriteEPICSStringValues();
 
     //  Close event buffer stream
     eventbuffer.CloseStream();
 
 
-
-    QwMessage << "Total events failed " << eventring.GetFailedEventCount() << QwLog::endl;
 
     //  Report run summary
     eventbuffer.ReportRunSummary();

@@ -24,8 +24,6 @@
 //  String names of the blinding and Wien status values
 const TString QwBlinder::fStatusName[4] = {"Indeterminate", "NotBlindable",
 					   "Blindable", "BlindableFail"};
-const TString QwBlinder::fWienName[5] = {"Indeterminate", "Forward", "Backward",
-					 "Vertical", "Horizontal"};
 
 // Maximum blinding asymmetry for additive blinding
 const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.06; // ppm
@@ -211,56 +209,17 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
   //
   if (fBlindingStrategy != kDisabled &&
       (fTargetBlindability == QwBlinder::kBlindable) ) {
-    Int_t ihwppolarity;
-    if (epics.GetDataString("IGL1I00DI24_24M")=="OUT"){
-      ihwppolarity = 1;
-    } else if (epics.GetDataString("IGL1I00DI24_24M")=="IN"){
-      ihwppolarity = -1;
-    } else {
-      ihwppolarity = 0;
-    }
-    //  Check for Wien polarity should go here.
-    Double_t vwienangle = epics.GetDataValue("VWienAngle");
-    Double_t phiangle   = epics.GetDataValue("Phi_FG");
-    Double_t hwienangle = epics.GetDataValue("HWienAngle");
-
-    const Double_t nominal_launch = 30.0;
-
-    Double_t launchangle = 0.0;
-    EQwBlinderWienMode wienmode = kWienIndeterminate;
-
-    Double_t hoffset = 0.0;
-    if (fabs(vwienangle)<10.0 && fabs(phiangle)<10.0){
-      hoffset = 0.0;
-    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
-	       && fabs(vwienangle+phiangle)<10. ){
-      hoffset = -90.0;
-    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
-	       && fabs(vwienangle+phiangle)>170. ){
-      hoffset = +90.0;
-    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)<10.0) {
-      wienmode = kWienVertTrans;
-    } 
-    if (wienmode == kWienIndeterminate){
-      launchangle = hoffset+hwienangle;
-      Double_t long_proj = 
-	cos((launchangle-nominal_launch)*TMath::DegToRad());
-      if (long_proj > 0.5){
-	wienmode = kWienForward;
-      } else if (long_proj < -0.5){
-	wienmode = kWienBackward;
-      } else if (fabs(long_proj)<0.25){
-	wienmode = kWienHorizTrans;
-      }
-    }
-
-    SetWienState(wienmode);
-    SetIHWPPolarity(ihwppolarity);
+    //  Use the EPICS class functions to determine the
+    //  Wien mode and IHWP polarity.
+    SetWienState(epics.DetermineWienMode());
+    SetIHWPPolarity(epics.DetermineIHWPPolarity());
     
     if (fWienMode == kWienForward){
       fBlindingOffset = fBlindingOffset_Base * fIHWPPolarity;
     } else if (fWienMode == kWienBackward){
       fBlindingOffset = -1 * fBlindingOffset_Base * fIHWPPolarity;
+    } else {
+      fBlindingOffset = 0.0;
     }
   }
 }
@@ -1016,6 +975,17 @@ void QwBlinder::FillDB(QwParityDB *db, TString datatype)
 
 }
 
+void QwBlinder::FillErrDB(QwParityDB *db, TString datatype)
+{
+  QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
+  QwDebug << "                     QwBlinder::FillErrDB                        " << QwLog::endl;
+  QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
+
+  return;
+};
+
+
+
 void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status)
 {
   fTargetBlindability = status;
@@ -1027,14 +997,14 @@ void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status)
   }
 }
 
-void QwBlinder::SetWienState(QwBlinder::EQwBlinderWienMode wienmode)
+void QwBlinder::SetWienState(EQwWienMode wienmode)
 {
   fWienMode = wienmode;
-  if (fWienMode_firstread == QwBlinder::kWienIndeterminate
-      && fWienMode != QwBlinder::kWienIndeterminate){
+  if (fWienMode_firstread == kWienIndeterminate
+      && fWienMode != kWienIndeterminate){
     fWienMode_firstread = fWienMode;
     QwMessage << "QwBlinder:  First set Wien state to " 
-	      << fWienName[fWienMode] << QwLog::endl;
+	      << WienModeName(fWienMode) << QwLog::endl;
   }
 }
 

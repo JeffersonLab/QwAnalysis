@@ -32,10 +32,10 @@
 #PC_neg_t0_OUT=40962
 
 #4. Runs checked OUT - 11283 IN - 11286 -Changed by Rakitha 04/11/2011 - rakithab@jlab.org
-PC_pos_t0_IN=43300
-PC_neg_t0_IN=40899
-PC_pos_t0_OUT=42864 
-PC_neg_t0_OUT=41335
+#PC_pos_t0_IN=43300
+#PC_neg_t0_IN=40899
+#PC_pos_t0_OUT=42864 
+#PC_neg_t0_OUT=41335
 
 #5. No longer needs above values.
 # Reads text files,
@@ -58,8 +58,11 @@ IHWP_State="`caget -t IGL1I00DI24_24M`"
 echo "Offsetting Pockels Cell values by $PC_Delta_Counts"
 
 if [ "$IHWP_State" == "OUT " ];then
-	PC_pos_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_pos_OUT`"
-	PC_neg_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_neg_OUT`"
+	#PC_pos_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_pos_OUT`"
+	#PC_neg_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_neg_OUT`"
+        PC_pos_t0_OUT="`cat /local/scratch/qweak/norminal_PC_OUT`"
+	PC_neg_t0_OUT="`cat /local/scratch/qweak/norminal_PC_OUT`"
+    
 
     	echo "Current IHWP state is OUT"
 	echo "Norminal PC_pos = $PC_pos_t0_OUT"
@@ -73,8 +76,11 @@ if [ "$IHWP_State" == "OUT " ];then
 	echo "Setting PC positive setpoint to $PC_neg_OUT to get large negative charge asymmetry"
 	caput C1068_QDAC02 $PC_neg_OUT
 else
-	PC_pos_t0_IN="`cat /local/scratch/qweak/Last_good_PC_pos_IN`"
-	PC_neg_t0_IN="`cat /local/scratch/qweak/Last_good_PC_neg_IN`"
+	#PC_pos_t0_IN="`cat /local/scratch/qweak/Last_good_PC_pos_IN`"
+	#PC_neg_t0_IN="`cat /local/scratch/qweak/Last_good_PC_neg_IN`"
+        PC_pos_t0_IN="`cat /local/scratch/qweak/norminal_PC_IN`"
+	PC_neg_t0_IN="`cat /local/scratch/qweak/norminal_PC_IN`"
+
 
     	echo "Current IHWP state is IN"	
 	echo "Norminal PC_pos = $PC_pos_t0_IN"
