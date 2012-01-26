@@ -172,9 +172,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
     return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
   };
 
-  Int_t tdc_slot_number;
-  Int_t tdc_chan_number;
-  Int_t tmp_last_chan;
+  /* Int_t tdc_slot_number; */
+  /* Int_t tdc_chan_number; */
 
 };
 

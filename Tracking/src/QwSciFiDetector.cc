@@ -52,7 +52,7 @@ Int_t
 QwSciFiDetector::LoadChannelMap( TString mapfile )
 {
   
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
 
   if(local_debug) printf("\n------------- R1 LoadChannelMap %s\n\n", mapfile.Data());
 
