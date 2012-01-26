@@ -760,6 +760,24 @@ void FillBeamParameters(){
 
   intensity = 0.0;
   for(i=0;i<4;i++) { val[i]=0.0;};
+  Get_Mean("hel_histo/yield_qwk_bcm7_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bcm7_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_2("bcm7", intensity, val));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+  csv_stream_all("bcm7", intensity, val);
+
+  intensity = 0.0;
+  for(i=0;i<4;i++) { val[i]=0.0;};
+  Get_Mean("hel_histo/yield_qwk_bcm8_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bcm8_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_2("bcm8", intensity, val));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+  csv_stream_all("bcm8", intensity, val);
+
+  intensity = 0.0;
+  for(i=0;i<4;i++) { val[i]=0.0;};
   Get_Mean("hel_histo/yield_qwk_bpm3h04_EffectiveCharge_hw",intensity,1);
   Fit_with_a_gaussian("hel_histo/asym_qwk_bpm3h04_EffectiveCharge_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_2("bpm3h04", intensity, val));
@@ -860,7 +878,7 @@ void FillBeamParameters(){
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
   csv_stream_all("bpm3h09y", mean, val);
 
-
+  /*
   mean = 0.0;
   for(i=0;i<4;i++) { val[i]=0.0;};
   Get_Mean("hel_histo/yield_qwk_bpm3h09bX_hw",mean,1.);
@@ -871,7 +889,7 @@ void FillBeamParameters(){
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
   csv_stream_all("bpm3h09bx", mean, val);
 
-
+  
   mean = 0.0;
   for(i=0;i<4;i++) { val[i]=0.0;};
   Get_Mean("hel_histo/yield_qwk_bpm3h09bY_hw",mean,1.);
@@ -881,7 +899,7 @@ void FillBeamParameters(){
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
   csv_stream_all("bpm3h09by", mean, val);
-
+  */
    if (expertmode){
 
      util.push_back("\n\n\n Beam Line Devices Double Differences Summary \n");
@@ -910,39 +928,39 @@ void FillBeamParameters(){
 
      intensity = 0.0;
      for(i=0;i<4;i++) { val[i]=0.0;};
-     Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
-     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_3("bcm1-bcm6", intensity, val));
-     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
-     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
-     csv_stream_all("bcm1-bcm6", intensity, val);
-
-     intensity = 0.0;
-     for(i=0;i<4;i++) { val[i]=0.0;};
-     Get_Tree_Mean("(yield_qwk_bcm2.hw_sum-yield_qwk_bcm5.hw_sum)",intensity,1);
-     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm2.hw_sum-asym_qwk_bcm5.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_3("bcm2-bcm5", intensity, val));
-     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
-     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
-     csv_stream_all("bcm2-bcm5", intensity, val);
-
-     intensity = 0.0;
-     for(i=0;i<4;i++) { val[i]=0.0;};
-     Get_Tree_Mean("(yield_qwk_bcm2.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
-     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm2.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_3("bcm2-bcm6", intensity, val));
-     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
-     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
-     csv_stream_all("bcm2-bcm6", intensity, val);
-
-     intensity = 0.0;
-     for(i=0;i<4;i++) { val[i]=0.0;};
      Get_Tree_Mean("(yield_qwk_bcm5.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm5.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
      util.push_back(MidRule_3("bcm5-bcm6", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
      csv_stream_all("bcm5-bcm6", intensity, val);
+
+     intensity = 0.0;
+     for(i=0;i<4;i++) { val[i]=0.0;};
+     Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm8.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm8.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("bcm1-bcm8", intensity, val));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     csv_stream_all("bcm1-bcm8", intensity, val);
+
+     intensity = 0.0;
+     for(i=0;i<4;i++) { val[i]=0.0;};
+     Get_Tree_Mean("(yield_qwk_bcm6.hw_sum-yield_qwk_bcm7.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm6.hw_sum-asym_qwk_bcm7.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("bcm6-bcm7", intensity, val));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     csv_stream_all("bcm6-bcm7", intensity, val);
+
+     intensity = 0.0;
+     for(i=0;i<4;i++) { val[i]=0.0;};
+     Get_Tree_Mean("(yield_qwk_bcm7.hw_sum-yield_qwk_bcm8.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm7.hw_sum-asym_qwk_bcm8.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("bcm7-bcm8", intensity, val));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     csv_stream_all("bcm7-bcm8", intensity, val);
 
      mean = 0.0;
      for(i=0;i<4;i++) { val[i]=0.0;};
@@ -976,18 +994,18 @@ void FillBeamParameters(){
 
      mean = 0.0;
      for(i=0;i<4;i++) { val[i]=0.0;};
-     Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bpm3h04_EffectiveCharge.hw_sum)",mean,1);
-     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bpm3h04_EffectiveCharge.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_3("(bcm1-3h04Q)", mean, val));
-     csv_stream_all("bcm1-3h04Q", mean, val);
+     Get_Tree_Mean("(yield_qwk_bcm8.hw_sum-yield_qwk_bpm3h04_EffectiveCharge.hw_sum)",mean,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm8.hw_sum-asym_qwk_bpm3h04_EffectiveCharge.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("(bcm8-3h04Q)", mean, val));
+     csv_stream_all("bcm8-3h04Q", mean, val);
 
 
      mean = 0.0;
      for(i=0;i<4;i++) { val[i]=0.0;};
-     Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bpm3h09_EffectiveCharge.hw_sum)",mean,1);
-     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bpm3h09_EffectiveCharge.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_3("(bcm1-3h09Q)", mean, val));
-     csv_stream_all("bcm1-3h09Q", mean, val);
+     Get_Tree_Mean("(yield_qwk_bcm8.hw_sum-yield_qwk_bpm3h09_EffectiveCharge.hw_sum)",mean,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm8.hw_sum-asym_qwk_bpm3h09_EffectiveCharge.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("(bcm8-3h09Q)", mean, val));
+     csv_stream_all("bcm8-3h09Q", mean, val);
 
    }//end of expert mode
 
