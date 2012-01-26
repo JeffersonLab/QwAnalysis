@@ -42,8 +42,17 @@ struct detector
   vector<Double_t> slug;
   vector<Double_t> slug_error;
   vector<TString> ihwp_slug;
+  vector<Double_t> slug_IN;
+  vector<Double_t> slug_IN_error;
+  vector<Double_t> slug_OUT;
+  vector<Double_t> slug_OUT_error;
+  vector<Double_t> wien_IN;
+  vector<Double_t> wien_IN_error;
+  vector<Double_t> wien_OUT;
+  vector<Double_t> wien_OUT_error;
   void get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db);
   void slug_avg (void);
+  void wien_avg (void);
 
 };
 
@@ -52,12 +61,15 @@ void detector::get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db)
 
   // placeholder var that will become cmd line option
 	TString data = Form("%s.lumi_data", table);
+	TString data_reg = Form("%s.lumi_data", table);
 	TString analysis = Form("%s.analysis", table);
+	TString analysis_reg = Form("%s.analysis", table);
 	TString runlet = Form("%s.runlet", table);
 	TString run = Form("%s.run", table);
 	TString plate = Form("%s.slow_controls_settings", table);
 	TString beam = Form("%s.beam", table);
-	TString values = "run.slug, data.value, data.error, plate.slow_helicity_plate";
+	TString values = "run.slug, data_reg.value, data_reg.error, plate.slow_helicity_plate";
+	TString detector = Form("%i",detector_id);
 
 	// MySQL query
 	// select the data from the table
@@ -74,6 +86,16 @@ void detector::get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db)
 	query += "JOIN " + run + " AS run\n";
 	// conditions for run
 	query += "ON runlet.run_id = run.run_id\n";
+	// join regressed data
+	// join regressed analysis ids
+	query += "JOIN " + analysis_reg + " AS analysis_reg\n";
+	// conditions for analysis_reg
+	query += "ON analysis.slope_correction != analysis_reg.slope_correction\n";
+	query += "AND analysis.runlet_id = analysis_reg.runlet_id\n";
+	// join regressed data
+	query += "JOIN " + data_reg + " AS data_reg\n";
+	// conditions for regressed data
+	query += "ON analysis_reg.analysis_id = data_reg.analysis_id\n";
 	// join beam data 1
 	query += "JOIN " + beam + " AS beam_1\n";
 	// conditions for beam data 1
@@ -87,14 +109,14 @@ void detector::get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db)
 	// conditions for plate
 	query += "ON runlet.runlet_id = plate.runlet_id\n";
 	// select quality and slugs
-	query += "WHERE (run.slug >= 42 AND run.slug <= 136)\n";
+	query += "WHERE (run.slug >= 117 AND run.slug <= 136)\n";
 	query += "AND run.run_quality_id = 1\n";
 	// select detector and cut on quartets
-	query += "AND data.measurement_type_id = \"a\"\n";
-	query += "AND data.subblock = 0\n";
-	query += "AND data.lumi_detector_id = 162\n";
-	query += "AND data.error != 1\n";
-	query += "AND data.n > 50000\n";
+	query += "AND data_reg.measurement_type_id = \"a\"\n";
+	query += "AND data_reg.subblock = 0\n";
+	query += "AND data_reg.lumi_detector_id = " + detector + "\n";
+	query += "AND data_reg.error != 1\n";
+	query += "AND data_reg.n > 50000\n";
 	query += "AND run.run_quality_id = 1\n";
 	// cut on beam data
 	// quartets, beam asymmetry, and beam current
@@ -112,6 +134,9 @@ void detector::get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db)
 	query += "AND beam_2.error !=0\n";
 	query += "AND beam_2.n > 50000\n";
 	query += "ORDER BY runlet.runlet_id, run.run_number, runlet.segment_number;";
+	
+	// debug
+	//cout << query << endl;
 	
 	TSQLStatement* stmt = db->Statement(query, 100);
 	if (stmt->Process())
@@ -191,6 +216,54 @@ void detector::slug_avg (void)
   }
 }
 
+void detector::wien_avg (void)
+{
+  UInt_t i;
+  for (i = 0; i < this->slug_num.size(); i++)
+  {
+  	if (this->ihwp_slug[i] == "in")	{
+  		slug_IN.push_back(this->slug[i]);
+  		slug_IN_error.push_back(this->slug_error[i]);
+  	}
+  	else 
+  	{
+  		slug_OUT.push_back(this->slug[i]);
+  		slug_OUT_error.push_back(this->slug_error[i]);
+  	}
+  }
+
+  wien_IN.push_back(0);
+  wien_IN_error.push_back(0);
+  wien_OUT.push_back(0);
+  wien_OUT_error.push_back(0);
+
+
+  for (i = 0; i < this->slug_IN.size(); i++)
+  {
+  	// in
+  	wien_IN[1] += this->slug_IN[i] / (this->slug_IN_error[i] * this->slug_IN_error[i]);
+  	wien_IN_error[1] += 1 / (this->slug_IN_error[i] * this->slug_IN_error[i]);
+  }
+
+  for (i = 0; i < this->slug_OUT.size(); i++)
+  {
+  	// out
+  	wien_OUT[1] += this->slug_OUT[i] / (this->slug_OUT_error[i] * this->slug_OUT_error[i]);
+  	wien_OUT_error[1] += 1 / (this->slug_OUT_error[i] * this->slug_OUT_error[i]);
+
+  }
+
+  // debug
+  //cout << "IN   " << this->wien_IN[1] / this->wien_IN_error[1] << "   " << 1 / sqrt(this->wien_IN_error[1]) << endl;
+  //cout << "OUT   " << this->wien_OUT[1] / this->wien_OUT_error[1] << "   " << 1 / sqrt(this->wien_OUT_error[1]) << endl;
+  
+  wien_IN[1] = this->wien_IN[1] / this->wien_IN_error[1];
+  wien_OUT[1] = this->wien_OUT[1] / this->wien_OUT_error[1];
+
+	wien_IN_error[1] = 1 / sqrt(this->wien_IN_error[1]);
+	wien_OUT_error[1] = 1 / sqrt(this->wien_OUT_error[1]);
+}
+
 Int_t main(int argc, char *argv[])
 {
 	// connect to qweak server
@@ -204,20 +277,43 @@ Int_t main(int argc, char *argv[])
   }
   
   // test function for pull
-  detector test;
-	test.get_lumi (162, "qw_run1_pass3", db);
+  detector uslumi_1, uslumi_3, uslumi_5, uslumi_7;
+	uslumi_1.get_lumi (162, "qw_run1_pass3", db);
+	uslumi_3.get_lumi (172, "qw_run1_pass3", db);
+	uslumi_5.get_lumi (182, "qw_run1_pass3", db);
+	uslumi_7.get_lumi (192, "qw_run1_pass3", db);
+
 	Int_t i;
-	for (i = 0; i < test.asym.size(); i++)
+	// debug
+	for (i = 0; i < uslumi_1.asym.size(); i++)
 	{
 		//cout << test.asym_num[i] << "   " << test.asym[i] << "   " << test.asym_error[i] << "   " << test.ihwp[i] << endl;
 	}
 	
 	// test function for slug avg
-	test.slug_avg();
-	for (i = 0; i < test.slug_num.size(); i++)
+	uslumi_1.slug_avg();
+	uslumi_3.slug_avg();
+	uslumi_5.slug_avg();
+	uslumi_7.slug_avg();
+	// debug
+	for (i = 0; i < uslumi_1.slug_num.size(); i++)
 	{
-		cout << test.slug_num[i] << "   " << test.slug[i] << "   " << test.slug_error[i] << "   " << test.ihwp_slug[i] << endl;
+		//cout << "1   " << uslumi_1.slug_num[i] << "   " << uslumi_1.slug[i] << "   " << uslumi_1.slug_error[i] << "   " << uslumi_1.ihwp_slug[i] << endl;
+		//cout << "3   " << uslumi_3.slug_num[i] << "   " << uslumi_3.slug[i] << "   " << uslumi_3.slug_error[i] << "   " << uslumi_3.ihwp_slug[i] << endl;
+		//cout << "5   " << uslumi_5.slug_num[i] << "   " << uslumi_5.slug[i] << "   " << uslumi_5.slug_error[i] << "   " << uslumi_5.ihwp_slug[i] << endl;
+		//cout << "7   " << uslumi_7.slug_num[i] << "   " << uslumi_7.slug[i] << "   " << uslumi_7.slug_error[i] << "   " << uslumi_7.ihwp_slug[i] << endl;
 	}
+
+	// calculate the avg wien
+	uslumi_1.wien_avg();
+	uslumi_3.wien_avg();
+	uslumi_5.wien_avg();
+	uslumi_7.wien_avg();
+
+	cout << "1   " << uslumi_1.wien_IN[1] - uslumi_1.wien_OUT[1] << "   " << uslumi_1.wien_IN_error[1] << endl;
+	cout << "3   " << uslumi_3.wien_IN[1] - uslumi_3.wien_OUT[1] << "   " << uslumi_3.wien_IN_error[1] << endl;
+	cout << "5   " << uslumi_5.wien_IN[1] - uslumi_5.wien_OUT[1] << "   " << uslumi_5.wien_IN_error[1] << endl;
+	cout << "7   " << uslumi_7.wien_IN[1] - uslumi_7.wien_OUT[1] << "   " << uslumi_7.wien_IN_error[1] << endl;
 
 	// close the db
 	db->Close();
