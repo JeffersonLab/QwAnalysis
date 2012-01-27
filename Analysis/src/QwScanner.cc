@@ -276,6 +276,9 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
 	      else if (name=="coinc_f1") {
 		ts_chan_type_to_element = 0;
 	      }
+	      else {
+		ts_chan_type_to_element = -1;	      
+	      }
 
 	      fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = ts_chan_type_to_element;
 	      fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = ts_chan_num_to_plane;
