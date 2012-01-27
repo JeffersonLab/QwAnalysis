@@ -566,7 +566,7 @@ void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
     }
 
     for (size_t i=0; i<fSCAs.size(); i++) {
-      if (fSCAs.at(i).GetElementName()=="") {
+      if (fSCAs.at(i).GetElementName()!="") {
         values[index] = fSCAs.at(i).GetValue();
         index++;
       }
