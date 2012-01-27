@@ -240,9 +240,9 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile)
 
 	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDTrig;
 	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = -1;
 	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = -1;
 	  
         } 
 	else if  (modtype=="V792") { // || modtype=="F1TDC") {
@@ -258,9 +258,9 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile)
 	  }
 	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDTrig;
 	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = -1;
 	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
+	  fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = -1;
 	}
 	else if( modtype=="F1TDC") {
 
