@@ -6,7 +6,7 @@
 
 ROOTLIBS   = $(shell root-config --libs )
 ROOTGLIBS  = $(shell root-config --glibs)
-INCLUDES   = -I$(ROOTSYS)/include -Iinclude/ 
+INCLUDES   = -I$(shell root-config --incdir) -Iinclude/ 
 CC         = g++ ${INCLUDES}
 SRC        = src
 DEPS       = QwModulation.hh
