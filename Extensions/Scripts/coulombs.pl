@@ -87,6 +87,7 @@ my %args = (
 	Y1		=> "0",
 	INTERPOL	=> $interval,
 	   );
+my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
 
 sub does_target_match {
   ## Call this sub with three arguments: name, x, y
@@ -122,7 +123,21 @@ sub does_target_match {
   return 1;
 }
 
-my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
+sub announce {
+  my ($day, $shift, $coulombs) = (shift, shift, shift);
+
+  my $threshold = 5;
+  my $say = "/home/cdaq/bin/qweak_speak.sh";	# cdaq cluster
+  # $say = "/usr/bin/say";  			# testing
+  return unless [ -x $say ];			# be polite
+
+  if ($coulombs > $threshold) {
+    system $say, <<EOF;
+Congratulations $shift shift on $day 
+for breaking the $threshold coulomb barrier!
+EOF
+  }
+}
 
 my $ofh;
 if ($outfile) {
@@ -171,6 +186,7 @@ foreach my $day (sort keys %coulombs) {
   foreach my $s (grep { ($coulombs{$day}[$_] += 0) > 0.01} 0..2) {
     $day_total += $coulombs{$day}[$s];
     printf "$day %-5s %6.2f C\n", $shift[$s], $coulombs{$day}[$s];
+    announce($day, $shift[$s], $coulombs{$day}[$s]);
   }
   printf "$day total %6.2f C\n\n", $day_total;
   $Total += $day_total;
