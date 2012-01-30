@@ -124,10 +124,18 @@ void project()
     return;
 }
 
-void project_root(string command="", int package=1,int md_number=1,int run_number=6327)
+void project_root(string command="", int package=1,int md_number=1,int run_number=6327,
+		  TString file_suffix="Qweak_")
 {
-    string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QWSCRATCH" ),run_number );
-    TFile *file = new TFile ( file_name.c_str() );
+
+  TString file_name = "";
+  file_name += gSystem->Getenv ( "QW_ROOTFILES" );
+  file_name +="/";
+  file_name += file_suffix;
+  file_name += run_number;
+  file_name +=".root";
+  
+  TFile *file = new TFile ( file_name );
 
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
@@ -188,9 +196,9 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
     TH2F* h_2d;
     TProfile2D* hp_2d;
     if (IsProfile==false)
-        h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",240,280,400,400,-100,100);
+        h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",240,0,0,400,0,0);
     else
-        hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",240,280,400,400,-100,100);
+        hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",240,0,0,400,0,0);
 
     TH1D* h_1f=new TH1D("project run","project run",240,280,400);
 
@@ -271,6 +279,7 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
                     weight=1;
                 }
 
+		printf("x %10.2f y %10.2f weight %10.2f mdp %10.2f mdm %10.2f \n", x, y, weight, p, m);
                 if (p!=0 && m!=0)
                 {
                     if (IsProfile==false)

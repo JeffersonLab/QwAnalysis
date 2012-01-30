@@ -81,6 +81,8 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
     else if ( DIRMODE==1 ) {
       //  Break this line Int_to tokens to process it.
       varvalue = ( mapstr.GetTypedNextToken<TString>() );//this is the sType
+      if(varvalue != "scint")  continue;
+
       Zpos = mapstr.GetTypedNextToken<Double_t>();
       rot = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
       sp_res = mapstr.GetTypedNextToken<Double_t>();
@@ -88,6 +90,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
       slope_match = mapstr.GetTypedNextToken<Double_t>();
       package = mapstr.GetTypedNextToken<TString>();
       region  = mapstr.GetTypedNextToken<Int_t>();
+      if (region !=4 ) continue;
       dType = mapstr.GetTypedNextToken<TString>();
       direction  = mapstr.GetTypedNextToken<TString>();
       Det_originX = mapstr.GetTypedNextToken<Double_t>();
@@ -103,6 +106,19 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
       TotalWires = mapstr.GetTypedNextToken<Int_t>();
       detectorId = mapstr.GetTypedNextToken<Int_t>();
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
+
+      std::cout << " Package " << package 
+	//			<< " Plane " << plane 
+		<< " Region " << region
+	//		<< " R3-octant " << fR3Octant
+	//		<< " oct       " << oct
+		<< " Zpos      " << Zpos
+		<< " Det_origin [x,y] " << Det_originX << " , " << Det_originY
+		<< " Rot " << rot 
+		<< " Tilt " << tilt
+		<< " Detector ID " << detectorId
+		<< std::endl;
+
 
       if ( region==4 ) {
         QwDetectorInfo* detector = new QwDetectorInfo();

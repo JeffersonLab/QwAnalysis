@@ -65,6 +65,8 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
     } else if (DIRMODE==1){
       //  Break this line into tokens to process it.
       varvalue     = mapstr.GetTypedNextToken<TString>();//this is the sType
+      if (varvalue != "drift") continue;
+
       for (Int_t i=0;i<5;i++){
 	 ZPOS[i]      = mapstr.GetTypedNextToken<Double_t>();
       }
@@ -75,6 +77,8 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       slope_match  = mapstr.GetTypedNextToken<Double_t>();
       package      = mapstr.GetTypedNextToken<TString>();
       region       = mapstr.GetTypedNextToken<Int_t>();
+      if (region != 2) continue;
+
       dType        = mapstr.GetTypedNextToken<TString>();
       direction    = mapstr.GetTypedNextToken<TString>();
       for (Int_t i=0;i<5;i++){
@@ -98,18 +102,31 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       // order is 1,2,8,7,6 for pkg2
       // order is 5,6,4,3,2 for pkg1
       Int_t oct=fR2Octant;
-	  if (oct == 8) oct=3;
-	  if (oct == 7) oct=4;
-	  if (oct == 6) oct=5;
-	  Zpos = ZPOS[oct-1];
-	  Det_originX  = XPOS[oct-1];
-          Det_originY  = YPOS[oct-1];
-
+      if (oct == 8) oct=3;
+      if (oct == 7) oct=4;
+      if (oct == 6) oct=5;
+      Zpos = ZPOS[oct-1];
+      Det_originX  = XPOS[oct-1];
+      Det_originY  = YPOS[oct-1];
+      
+      
       QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
               << " Package "     << package << " Plane " << Zpos
               << " Region "      << region << QwLog::endl;
 
-      
+      std::cout << " Package " << package 
+	//		<< " Plane " << plane 
+		<< " Region " << region
+		<< " R2-octant " << fR2Octant
+		<< " oct       " << oct
+		<< " Zpos      " << Zpos
+		<< " Det_origin [x,y] " << Det_originX << " , " << Det_originY
+		<< " Rot " << rot 
+		<< " Tilt " << tilt
+		<< " Detector ID " << detectorId
+		<< std::endl;
+
+
       if (region==2){
             QwDetectorInfo* detector = new QwDetectorInfo();
 	    detector->SetDetectorInfo(dType, Zpos,
@@ -123,8 +140,9 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 		detectorId);
 	    if(package=="u")
 		detector->SetOctantNumber((fR2Octant+4)%8);
-	      else
-		detector->SetOctantNumber(fR2Octant);
+	    else
+	      detector->SetOctantNumber(fR2Octant);
+	    
 	    fDetectorInfo.push_back(detector);
 	}
     }

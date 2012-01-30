@@ -97,6 +97,8 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
         {
           //  Break this line Int_to tokens to process it.
           varvalue = ( mapstr.GetTypedNextToken<TString>() );//this is the sType
+	  if (varvalue != "cerenkov") continue;
+
           Zpos = mapstr.GetTypedNextToken<Double_t>();
           rot = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
           sp_res = mapstr.GetTypedNextToken<Double_t>();
@@ -104,6 +106,8 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
           slope_match = mapstr.GetTypedNextToken<Double_t>();
           package = mapstr.GetTypedNextToken<TString>();
           region  = mapstr.GetTypedNextToken<Int_t>();
+	  if (region != 5) continue;
+
           dType = mapstr.GetTypedNextToken<TString>();
           direction  = mapstr.GetTypedNextToken<TString>();
           Det_originX = mapstr.GetTypedNextToken<Double_t>();
@@ -120,6 +124,19 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
           detectorId = mapstr.GetTypedNextToken<Int_t>();
           //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
 
+	  std::cout << " Package " << package 
+	    //			<< " Plane " << plane 
+			<< " Region " << region
+	    //		<< " R3-octant " << fR3Octant
+	    //		<< " oct       " << oct
+			<< " Zpos      " << Zpos
+			<< " Det_origin [x,y] " << Det_originX << " , " << Det_originY
+			<< " Rot " << rot 
+			<< " Tilt " << tilt
+			<< " Detector ID " << detectorId
+			<< std::endl;
+
+
           if ( region==5 )
             {
 	      QwDetectorInfo* detector = new QwDetectorInfo();
@@ -133,7 +150,7 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
 					TotalWires,
 					detectorId);
 	      fDetectorInfo.push_back(detector);
-	      std::cout << *detector << std::endl;
+	      //	      std::cout << *detector << std::endl;
             }
         }
     }
