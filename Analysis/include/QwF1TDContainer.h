@@ -380,4 +380,107 @@ private:
 };
 
 
+
+
+
+class F1TDCReferenceSignal :  public TObject
+{
+
+ public:
+  F1TDCReferenceSignal();
+  F1TDCReferenceSignal(const Int_t bank_index, const Int_t slot, const Int_t channel);
+  F1TDCReferenceSignal(const Int_t bank_index, const Int_t slot, const Int_t channel, const TString name);
+  virtual ~F1TDCReferenceSignal() {};
+  friend std::ostream& operator<<(std::ostream& os, const F1TDCReferenceSignal &f1tdcref);
+
+  Int_t         GetSlotNumber()    const {return fSlot;};
+  Int_t         GetChannelNumber() const {return fChannelNumber;};
+  Int_t         GetBankIndex()     const {return fBankIndex;};
+  const TString GetRefSignalName() const {return fRefSignalName;};
+
+  const Double_t GetRefTimeAU()    const {return fRefTimeArbUnit;};
+
+  void SetSlotNumber  (const Int_t slot)       {fSlot = slot;};
+  void SetChanNumber  (const Int_t chan)       {fChannelNumber = chan;};    
+  void SetBankIndex   (const Int_t bank_index) {fBankIndex = bank_index;};
+  void SetRefSignalName  (const TString name)  {fRefSignalName = name;};
+
+  Bool_t SetRefTimeAU   (const Double_t ref_time);// { if  fFirstHitFlag  = false;fRefTimeArbUnit = ref_time;};
+  
+  Bool_t HasFirstHit() {return fFirstHitFlag; };
+
+  void ClearEventData() { Clear(); };
+
+ private:
+
+  Int_t fSlot;         // F1TDC slot number 
+                       // QwAnalysis' slot range 0-20. But, the physical VME
+                       // slot range is 1-21. QwAlaysis's slot range is acceptable
+                       // if we carefully match them with each other as follows:
+                       //  QwAnalysis slot 0, 1, 2, .... , 2
+                       //  VME        slot 1, 2, 3, .... , 21
+                       // Inside codes, we did the following way:
+                       //  QwAnalysis slot 0, 1, 2, .... , 20
+                       //     VME     slot    1, 2, 3, .... , 21
+                       // It is acceptable if we don't use the VME slot 21 as
+                       // we do.
+                       // Friday, July 30 11:26:36 EDT 2010, jhlee
+
+   
+  Int_t    fChannelNumber;
+
+  Int_t    fBankIndex; // This is the Bank index, which
+                         // is the redefined index to access "bank=0x0901"
+                         // defined in map file (e.g. qweak_R2.map)
+ 
+  TString  fRefSignalName;
+
+  Double_t  fRefTimeArbUnit;
+  Bool_t    fFirstHitFlag;
+
+  void Clear() { fRefTimeArbUnit = -1.0; fFirstHitFlag = false;};
+
+  ClassDef(F1TDCReferenceSignal,1);
+
+};
+
+
+
+class F1TDCReferenceContainer :  public TObject
+{
+  
+ public:
+  Int_t                    fNF1TDCReferenceSignals;
+  TObjArray               *fF1TDCReferenceSignalsList; 
+ 
+ public:
+  F1TDCReferenceContainer();
+  virtual ~F1TDCReferenceContainer();
+
+  // friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
+
+  /* void SetSystemName(const TString name);// {fSystemName = name;}; */
+  /* const TString GetSystemName() const {return fSystemName;}; */
+
+  void AddF1TDCReferenceSignal(F1TDCReferenceSignal *in);
+  /* void Print(const Option_t* options = 0) const; */
+
+  Int_t              GetSize()         const {return fNF1TDCReferenceSignals;};
+  Int_t              Size()            const {return fNF1TDCReferenceSignals;};
+
+
+  F1TDCReferenceSignal* GetReferenceSignal(Int_t bank_index, Int_t slot, Int_t chan);
+
+  Double_t GetReferenceTimeAU(Int_t bank_index, Int_t slot, Int_t chan);
+  void     ClearEventData();
+  // we need Double_t to return a negative refererence time so that
+  // we can distinguish them with "zero" reference time. 
+private:
+
+ /* TString            fSystemName; */
+  ClassDef(F1TDCReferenceContainer,1);
+
+};
+
+
 #endif
