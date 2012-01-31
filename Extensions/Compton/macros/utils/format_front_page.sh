@@ -17,7 +17,7 @@ FIRST100K=$5
 DETECTOR=$6
 ################################################################################
 ## Configurations
-BASEDIR=${HOME}/compton/macros
+BASEDIR=${QWANALYSIS}/Extensions/Compton/macros
 RUNLIST=${WEBPAGE}/_runlist_frontpage
 RUNLISTTEMP=${WEBPAGE}/_runlist_frontpage_temp
 ISINFILE=`grep ${RUNNUM} ${RUNLISTTEMP}`
