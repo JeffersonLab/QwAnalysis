@@ -30,7 +30,7 @@ my $refDirectory = "/net/cdaqfs/home/cdaq/Desktop/reference_plots/";
 
 my $eSubject = "Run $runNum Pedestal Data";
 my $calib = "$QWSCRATCH/calib";
-my @pedplots = map { "$calib/pedPlots/$runNum\_$_.png" } qw[lumi md];
+my @pedplots = map { "$calib/pedPlots/$runNum\_$_.png" } qw[lumi md bg];
 my @mapfiles = map { "$calib/qweak_$_\_pedestal.$runNum-.map" } qw[lumi maindet];
 
 #set up scratch directory for pedestal data if it doesn't exist
