@@ -4,8 +4,9 @@
  ** A.Narayan */
 
 #include <rootClass.h>
+const TString wwwPath("$QWSCRATCH/www");
 
-Int_t eDetViewAll(Int_t runnum, Bool_t isFirst100k=kFALSE)
+Int_t eDetHitsHistos(Int_t runnum, Bool_t isFirst100k=kFALSE)
 {
   Bool_t debug = 1, chainExists=0;
   Int_t nPlanes = 4;
@@ -77,6 +78,10 @@ Int_t eDetViewAll(Int_t runnum, Bool_t isFirst100k=kFALSE)
     }
     else printf("***Error: Didn't find Event histogram***\n");
   }
+  c1->SaveAs(Form("%s/run_%d/eDetHitsHistos_%d_scalar.png",wwwPath.Data(),runnum,runnum));
+  c2->SaveAs(Form("%s/run_%d/eDetHitsHistos_%d_accum.png",wwwPath.Data(),runnum,runnum));
+  c3->SaveAs(Form("%s/run_%d/eDetHitsHistos_%d_event.png",wwwPath.Data(),runnum,runnum));
+
   delete f1;
   return chainExists;
 }
