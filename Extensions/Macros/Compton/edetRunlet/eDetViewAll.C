@@ -5,7 +5,7 @@
 
 #include <rootClass.h>
 
-Int_t eDetviewAll(Int_t runnum, Bool_t isFirst100k=kFALSE)
+Int_t eDetViewAll(Int_t runnum, Bool_t isFirst100k=kFALSE)
 {
   Bool_t debug = 1, chainExists=0;
   Int_t nPlanes = 4;
