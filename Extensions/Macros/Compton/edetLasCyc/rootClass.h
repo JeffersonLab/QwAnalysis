@@ -1,5 +1,5 @@
-#ifndef __myCLASS_H 
-#define __myCLASS_H
+#ifndef __rootCLASS_H 
+#define __rootCLASS_H
 
 #include "TF1.h"
 #include "TH1F.h"

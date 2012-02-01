@@ -21,7 +21,7 @@ vector<Int_t>cutEB;//arrays of cuts for electron beam
 //This program analyzes a Compton electron detector run laser wise and plots the results
 ///////////////////////////////////////////////////////////////////////////
  
-Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
+Int_t edetasym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
 {
   gROOT->Reset();
   gStyle->SetFillColor(0);
@@ -53,20 +53,16 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   Double_t lasPow[3], lasMax, helicity, comptQ[3], Qmax;//, beamMax, bcm
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];
-  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsymRMS[nPlanes][nStrips] ;
-  Double_t stripPlot[nStrips];//..!for plotting may not be required later
+  //  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsymRMS[nPlanes][nStrips] ;
   Double_t normL1H1LasCyc[nPlanes][nStrips], normL1H0LasCyc[nPlanes][nStrips];
   Double_t normL0H0LasCyc[nPlanes][nStrips], normL0H1LasCyc[nPlanes][nStrips];
   Double_t BCnormL1H1LasCyc[nPlanes][nStrips], BCnormL1H0LasCyc[nPlanes][nStrips]; 
   Double_t BCnormLasCycSum[nPlanes][nStrips], BCnormLasCycDiff[nPlanes][nStrips];
   Double_t tNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips];
-  Double_t zero[nStrips];//because TGraphErrors needs error on x-axis too
 
   char hName[nPlanes][120],hNameEr[nPlanes][120];
 
   std::vector<std::vector<TH1D> > hAsymPS, hAsymErPS;
-
-  TGraphErrors *grAsymPlane[nPlanes];
 
   for (Int_t p =0; p <nPlanes; p++) {   
     if (p >= (Int_t) hAsymPS.size()) {
@@ -311,36 +307,38 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
     }
   }
   if(debug2) {
-  for (Int_t p =startPlane; p <endPlane; p++) {	  	  
-    for (Int_t s =startStrip; s <endStrip;s++) {    
-      printf("asym[%d][%d]:%f; asymEr[%d][%d]:%f; asymRMS[%d][%d]:%f\n",p,s,stripAsym[p][s],p,s,stripAsymEr[p][s],p,s,stripAsymRMS[p][s]);
+    for (Int_t p =startPlane; p <endPlane; p++) {	  	  
+      for (Int_t s =startStrip; s <endStrip;s++) {    
+	printf("asym[%d][%d]:%f; asymEr[%d][%d]:%f; asymRMS[%d][%d]:%f\n",p,s,stripAsym[p][s],p,s,stripAsymEr[p][s],p,s,stripAsymRMS[p][s]);
+      }
     }
   }
-  }
-  for (Int_t s =0; s <nStrips;s++) {
-    stripPlot[s]=s+1;
-    zero[s] =0;
-  }
-  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
-  cAsym->Divide(2,2);
+//   for (Int_t s =0; s <nStrips;s++) {
+//     stripPlot[s]=s+1;
+//     zero[s] =0;
+//   }
+//   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
+//   cAsym->Divide(2,2);
 
-  TLine *myline = new TLine(0,0,60,0);
-  myline->SetLineStyle(1);
+//   TLine *myline = new TLine(0,0,60,0);
+//   myline->SetLineStyle(1);
 
-  for (Int_t p =startPlane; p <endPlane; p++) {	  	  
-    cAsym->cd(p+1);
-    grAsymPlane[p] = new TGraphErrors(nStrips,stripPlot,stripAsym[p],zero,stripAsymRMS[p]);
-    grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
-    grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
-    grAsymPlane[p]->SetTitle(Form("Plane %d",p+1));
-    grAsymPlane[p]->Draw("A*");
-    myline->Draw();
-    cAsym->Update();
-  }
+//   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
+//     cAsym->cd(p+1);
+//     grAsymPlane[p] = new TGraphErrors(nStrips,stripPlot,stripAsym[p],zero,stripAsymRMS[p]);
+//     grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
+//     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
+//     grAsymPlane[p]->SetTitle(Form("Plane %d",p+1));
+//     grAsymPlane[p]->Draw("A*");
+//     myline->Draw();
+//     cAsym->Update();
+//   }
+  
+  //  delete cAsym, myline, grAsymPlane;
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to complete.\n",div_output.quot,div_output.rem );
+  printf("\n it took %d minutes %d seconds to complete.\n",div_output.quot,div_output.rem );  
   return 1;
 }
 
