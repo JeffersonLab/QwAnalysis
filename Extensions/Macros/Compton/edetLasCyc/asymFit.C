@@ -2,7 +2,7 @@
 
 #include <rootClass.h>
 #include "theoryAsym.C"
-#include "edetasym.C"
+#include "edetExpAsym.C"
 //#include "comptonRunConstants.h"///don't reinclude
 
 void asymFit() {
@@ -11,7 +11,7 @@ void asymFit() {
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsymRMS[nPlanes][nStrips];
 
   theoryAsym(calcAsym);
-  edetasym(runnum,runnum,stripAsym,stripAsymEr,stripAsymRMS);
+  edetExpAsym(runnum,runnum,stripAsym,stripAsymEr,stripAsymRMS);
   
   TGraphErrors *grTheoryAsym;
   TGraphErrors *grAsymPlane[nPlanes];
@@ -50,5 +50,6 @@ void asymFit() {
 /*Comments
  *I'm currently including my rootClass.h and comptonRunConstants.h separately in every file
  *..there must be a way to do it non-repetatively.
- *Currently I am doing this for all strips, I should limit myself to 64 strips at max
+ *I am doing this for all strips, I should limit myself to 64 strips at max
+ *'m not using the asymStripEr in any way yet
  */
