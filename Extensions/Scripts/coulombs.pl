@@ -29,8 +29,6 @@ my $optstatus = GetOptions
   "target=s"	=> \$target_want,
 ;
 
-@channels = qw[ibcm1] if $nodaqcut;
-
 my $then = shift @ARGV;
 my $now  = shift @ARGV;
 
