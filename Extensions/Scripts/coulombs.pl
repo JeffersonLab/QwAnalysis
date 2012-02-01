@@ -175,6 +175,7 @@ unless ($.) { warn "warning: fetched no data.  url was\n\t$url\n" }
 # print "Read $. lines from archiver\n";
 
 if (!keys %coulombs){
+print "With target restricted to '$target_want':\n" if $target_want;
 print "No coulombs acquired during this interval\n";
 die;
 }
@@ -191,4 +192,5 @@ foreach my $day (sort keys %coulombs) {
   printf "$day total %6.2f C\n\n", $day_total;
   $Total += $day_total;
 }
+print "With target restricted to '$target_want':\n" if $target_want;
 printf "Total calculated %6.2f C\n", $Total;
