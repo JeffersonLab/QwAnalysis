@@ -348,8 +348,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fIASetpointup;
 
     //PITA Slopes for halfwave plate IN & OUT
-    Double_t fPITASlopeIN;
-    Double_t fPITASlopeOUT;
+    Double_t fPITASlopeIN;//IHWP1 IN IHWP2 OUT
+    Double_t fPITASlopeOUT;//IHWP1 OUT IHWP2 OUT
+    Double_t fPITASlopeOUT_IN;//IHWP1 OUT IHWP2 IN
     Double_t fPITASlope;
 
     //PITA setpoints for pos hel and neg hel

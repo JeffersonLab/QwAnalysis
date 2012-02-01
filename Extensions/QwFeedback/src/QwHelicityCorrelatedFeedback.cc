@@ -201,14 +201,17 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	if (dvalue>0)
 	  fIASetpointup = dvalue;
       }
-      else if (varname=="pitaslope_in"){
+      else if (varname=="pitaslope_in"){//IHWP1 IN IHWP2 OUT
 	dvalue = atof(varvalue.Data());
 	fPITASlopeIN = dvalue;
       }
-      else if (varname=="pitaslope_out"){
-
+      else if (varname=="pitaslope_out"){//IHWP1 OUT IHWP2 OUT
 	dvalue = atof(varvalue.Data());
 	fPITASlopeOUT = dvalue;
+      }
+      else if (varname=="pitaslope_out_in"){//IHWP1 OUT IHWP2 IN
+	dvalue = atof(varvalue.Data());
+	fPITASlopeOUT_IN = dvalue;
       }
       else if (varname=="pc_pos_t0_in"){
 	dvalue = atof(varvalue.Data());
@@ -282,7 +285,7 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
   QwMessage<<"IA DAC counts limits "<<fIASetpointlow<<" to "<< fIASetpointup <<QwLog::endl;
   for (Int_t i=0;i<kHelModes;i++)
     QwMessage<<"Slope A["<<i<<"] "<<fIASlopeA[i]<<"+-"<<fDelta_IASlopeA[i]<<QwLog::endl;
-  QwMessage<<"PITA slopes: H-wave IN "<<fPITASlopeIN<<" H-wave OUT "<<fPITASlopeOUT<<QwLog::endl;
+  QwMessage<<"PITA slopes: H-wave IN "<<fPITASlopeIN<<" H-wave OUT "<<fPITASlopeOUT<<" H-wave OUT IHWP2 IN"<<fPITASlopeOUT_IN<<QwLog::endl;
   QwMessage<<"PC dac limits "<<fPITASetpointlow<<" to "<<fPITASetpointup<<QwLog::endl;
 
   fInitialCorrection=kFALSE;
@@ -417,8 +420,12 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   //calculate the new setpoint
   if (fHalfWaveIN)
     fPITASlope=fPITASlopeIN;
-  else
-    fPITASlope=fPITASlopeOUT;
+  else{
+    if (GetHalfWavePlate2State()==0)//IHWP2==OUT or No IHWP2 anymore
+      fPITASlope=fPITASlopeOUT;
+    else
+      fPITASlope=fPITASlopeOUT_IN;//IHWP2==IN
+  }
 
   
 

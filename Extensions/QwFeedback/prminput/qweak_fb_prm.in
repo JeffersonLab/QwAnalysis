@@ -109,9 +109,10 @@ IA_up  = 50000
 ### Run 2 ; IHWP IN slope from run 13994
 ### Run 2 ; IHWP OUT slope from run 14002
 
-PITASLOPE_OUT = -0.8879
 
 PITASLOPE_IN = 0.5506
+PITASLOPE_OUT = -0.8879
+PITASLOPE_OUT_IN = -0.8879
 
 
 ###  PITANEG = 200
