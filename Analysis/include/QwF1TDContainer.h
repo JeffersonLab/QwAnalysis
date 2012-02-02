@@ -471,7 +471,8 @@ class F1TDCReferenceContainer :  public TObject
 
   F1TDCReferenceSignal* GetReferenceSignal(Int_t bank_index, Int_t slot, Int_t chan);
 
-  Double_t GetReferenceTimeAU(Int_t bank_index, Int_t slot, Int_t chan);
+
+  Double_t GetReferenceTimeAU(Int_t bank_index, TString name);
   void     ClearEventData();
   // we need Double_t to return a negative refererence time so that
   // we can distinguish them with "zero" reference time. 

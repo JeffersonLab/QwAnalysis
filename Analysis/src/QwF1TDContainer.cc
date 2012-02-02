@@ -1783,7 +1783,6 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   return (data_integrity_flag); 
 }
 
-
 void
 QwF1TDContainer::SetErrorHistOptions()
 {
@@ -2080,7 +2079,7 @@ F1TDCReferenceContainer::GetReferenceSignal(Int_t bank_index,
       //     time_au     = F1RefSignal->
       if( (bank_idx == bank_index) and (slot_num == slot) and (chan_num == chan) ) {
 	if ( F1RefSignal->HasFirstHit() ) return NULL;
-	else return F1RefSignal;
+	else                              return F1RefSignal;
       }
     }
 
@@ -2090,14 +2089,13 @@ F1TDCReferenceContainer::GetReferenceSignal(Int_t bank_index,
 
 
 Double_t
-F1TDCReferenceContainer::GetReferenceTimeAU(Int_t bank_index, 
-					    Int_t slot, 
-					    Int_t chan
+F1TDCReferenceContainer::GetReferenceTimeAU(
+					    Int_t bank_index, 
+					    TString name 
 					    )
 {
-  Int_t bank_idx = 0;
-  Int_t slot_num = 0;
-  Int_t chan_num = 0;
+  Int_t   bank_idx = 0;
+  TString ref_name = "";
   
   TObjArrayIter next(fF1TDCReferenceSignalsList);
   TObject* obj = NULL;
@@ -2107,16 +2105,15 @@ F1TDCReferenceContainer::GetReferenceTimeAU(Int_t bank_index,
     {
       F1RefSignal = (F1TDCReferenceSignal*) obj;
 
-      bank_idx    = F1RefSignal->GetBankIndex();
-      slot_num    = F1RefSignal->GetSlotNumber();
-      chan_num    = F1RefSignal->GetChannelNumber();
+      bank_idx = F1RefSignal->GetBankIndex();
+      ref_name = F1RefSignal->GetRefSignalName(); 
 
-      if( (bank_idx == bank_index) and (slot_num == slot) and (chan_num == chan) ) {
-	return F1RefSignal->  GetRefTimeAU();
+      if( (bank_idx == bank_index) and (ref_name == name) ) {
+	return F1RefSignal->GetRefTimeAU();
       }
     }
 
-  return -1.0;
+  return 0.0;
 }
 
 
