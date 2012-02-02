@@ -79,7 +79,8 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t k = 0; k < 2; k ++){
     for(Int_t j = 0; j < fCycles; j++){
 
-      cut = Form("ErrorFlag == 0x4018080 && bm_pattern_number == %i && %s", j + 11, ramp_cut.Data());
+      // cut = Form("ErrorFlag == 0x4018080 && bm_pattern_number == %i && %s", j + 11, ramp_cut.Data());
+      cut = Form("ramp > 0 && bm_pattern_number == %i && %s", j + 11, ramp_cut.Data());
       std::cout << cut << std::endl;
       
       for(Int_t i = 0; i < fNMonitors; i++){
@@ -89,7 +90,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 	chain->Draw(Form("%s%s:ramp>>histo", monitor[i].Data(), coord[k].Data()), cut, "prof");
 	histo = (TH2F *)gDirectory->Get("histo");
 	sine->SetParameters(histo->GetMean(), 0.150, 0.1);
-	sine->SetParLimits(2, 0, TMath::PiOver4() );
+	sine->SetParLimits(2, 0, TMath::PiOver2() );
 	histo->Fit("sine","R");    
 	amplitude[i] = sine->GetParameter(1);
 	error[i] = sine->GetParError(1);
@@ -102,7 +103,8 @@ Int_t main(Int_t argc, Char_t *argv[])
 	    gSystem->Exec(Form("mkdir %s/plots/hist_%i", scratch_dir.Data(), run_number));
 	  }
 
-	  canvas->SaveAs(Form("%s/plots/hist_%i/hist_%s_%i.png", scratch_dir.Data(), run_number, monitor[i].Data(), j + 11));
+	  canvas->SaveAs(Form("%s/plots/hist_%i/hist_%s%s_%i.png", scratch_dir.Data(), 
+			      run_number, monitor[i].Data(), pattern_name[i].Data(), j + 11));
 	  std::cout << "Trying to write histogram....." << std::endl;
 	}
 
