@@ -5,9 +5,11 @@
 #include "edetExpAsym.C"
 //#include "comptonRunConstants.h"///don't reinclude
 
-Float_t asymFit(Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips])
+void asymFit(Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips])
 {
-  Float_t calcAsym[nStrips],zero[nStrips],stripPlot[nStrips];
+  Bool_t debug2=1;
+  Float_t calcAsym[nStrips];
+  //Float_t zero[nStrips],stripPlot[nStrips];
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];//,stripAsymRMS[nPlanes][nStrips];
   //  Float_t theoExpRatio[nPlanes][nStrips];
 
@@ -47,13 +49,16 @@ Float_t asymFit(Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPl
 //     grTheoryAsym->Draw("L");    
 //     cAsym->Update();
 //   } 
+  if(debug2) cout<<"\nstrip#\ttheoExpRatio\tcalcAsym\tstripAsym"<<endl;
 
   for (Int_t p =startPlane; p <endPlane; p++) {  
     for (Int_t s =startStrip; s <endStrip; s++) {  
-      if (stripAsym[p][s]!=0.0 && calcAsym[s]!=0.0) theoExpRatio[p][s]= calcAsym[s]/stripAsym[p][s];
+      if (maskedStrips(p,s)) continue;
+      if (stripAsym[p][s]!=0.0) theoExpRatio[p][s]= stripAsym[p][s]/calcAsym[s];
+      if(debug2) printf("theoExpRatio[%d][%d]:%f = %f / %f\n",p,s,theoExpRatio[p][s],calcAsym[s],stripAsym[p][s]);
     }    
   }
-  return 1.0; ///! just for now, since compiler won't let me pass a variable as an argument in a 'void' type function
+  //  return 1.0; ///! just for now, since compiler won't let me pass a variable as an argument in a 'void' type function
 }
 
 /*Comments

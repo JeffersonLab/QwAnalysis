@@ -26,12 +26,19 @@ const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
 const Double_t ignoreBeamAbove = 195.0;
 const Double_t ignoreLasPowAbove = 195.0;
 const Bool_t IHWP_in=1;///1:in; 0:out
-/* const Int_t usedStrips = 50; */
-/* const Int_t mystr = 48; */
+
+const Int_t runnum = 23351;
 const Int_t startStrip = 0;
   const Int_t endStrip = 55;
 const Int_t startPlane = 0;
   const Int_t endPlane = 4;
 const Int_t Cedge = 49;///Compton-edge for the current run
+
+///skip p1:s02,s06,s20 //as of Feb2,2012
+///skip p2:s12
+///skip p3:s39,s53,s64
+///skip p4:none
+
+///flags file: p1b=0xFFFFFFFF,p1m=0xFFFFFFFF,p1t=0xFFF7FFdd,p2b=0xFFFFFFFF,p2m=0xFFFFFFFF,p2t=0xFFFFF7FF,p3b=0xFFFFFFFF,p3m=0x7FEFFFbF,p3t=0xFFFFFFFF,p4b=0xFFFFFFFF,p4m=0xFFFFFFFF,p4t=0xFFFFFFFF
 
 #endif

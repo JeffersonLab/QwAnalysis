@@ -1,6 +1,8 @@
 ////Don Jones and Juan Carlos helped significantly in the development of this code
 #include <rootClass.h>
 #include "getEBeamLasCuts.C"
+#include "maskedStrips.C"
+
 //#include "comptonRunConstants.h" //we don't need to re-include this
 div_t div_output;
 //////////////////////////////////////////////////////////////////////////
@@ -70,7 +72,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       hAsymErPS.resize(p+1);
       if(debug) cout<<"hAsymPS.size():"<<hAsymPS.size()<<endl;
     }
-    for (Int_t s=0; s<nStrips; s++) { 
+    for (Int_t s =0; s<nStrips; s++) { 
       sprintf(hName[p],"asymPlane%d_Str%d",p,s);
       hAsymPS[p].push_back(TH1D(hName[p],"Plane strip",25,-0.001,0.001));
       sprintf(hNameEr[p],"asymErPlane%dStr%d",p,s);
@@ -197,16 +199,18 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       if ((l==1) && lasOn) l=1; //making the laser On requirement more strict
 
       /**********
-       * currently this method appears a little inefficient because since we not processing beamOff data
+       * (a)currently this method appears a little inefficient because since we not processing beamOff data
        * why do we even enter this laser-cycle which is not going to do anything;
        * but later on, we are going to use use the beam off part in someway and this would make sense then
        **********/
+      
       if (beamOn) { ////currently the counters are only populated for beamOn cycles
 	// 	if (h ==1 || h ==0) {  ////to avoid the h=-9999 that appears in beginning of every runlet
 	if (h ==0 && l ==0) {
 	  nMpsB1H0L0++;
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      if (maskedStrips(p,s)) continue;
 	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];
 	    }
 	  }
@@ -215,6 +219,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  nMpsB1H0L1++;
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      if (maskedStrips(p,s)) continue;
 	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];
 	    }	  
 	  }
@@ -223,6 +228,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  nMpsB1H1L0++;
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      if (maskedStrips(p,s)) continue;
 	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];
 	    }
 	  }
@@ -231,6 +237,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  nMpsB1H1L1++;
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
+	      if (maskedStrips(p,s)) continue;
 	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];
 	    }
 	  }
@@ -248,6 +255,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       else {
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s =startStrip; s <endStrip; s++) {	  
+	    if (maskedStrips(p,s)) continue;
 	    normL1H1LasCyc[p][s] = (Double_t)AccumB1H1L1[p][s]/nMpsB1H1L1;
 	    if(debug2)printf(" normL1H1LasCyc:\t%f = lasOnH1:%d / nMpsB1H1L1:%d\n"
 			     ,normL1H1LasCyc[p][s],AccumB1H1L1[p][s] , nMpsB1H1L1 );
@@ -297,18 +305,20 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {        
-      hAsymPS[p][s].Draw("H");//"H","","goff");//WHY IS My goff not working!
-      hAsymPS[p][s].Fit("gaus");
+      if (maskedStrips(p,s)) continue;
+      //      hAsymPS[p][s].Draw();//"H","","goff");//WHY IS My goff not working!
+      //      hAsymPS[p][s].Fit("gaus");
       stripAsym[p][s] = hAsymPS[p][s].GetMean();
       stripAsymRMS[p][s] = hAsymPS[p][s].GetRMS();
       
-      hAsymErPS[p][s].Draw("H");//,"","goff");
+//       hAsymErPS[p][s].Draw("H");//,"","goff");
       stripAsymEr[p][s] = hAsymErPS[p][s].GetMean();
     }
   }
   if(debug2) {
     for (Int_t p =startPlane; p <endPlane; p++) {	  	  
       for (Int_t s =startStrip; s <endStrip;s++) {    
+	if (maskedStrips(p,s)) continue;
 	printf("asym[%d][%d]:%f; asymEr[%d][%d]:%f; asymRMS[%d][%d]:%f\n",p,s,stripAsym[p][s],p,s,stripAsymEr[p][s],p,s,stripAsymRMS[p][s]);
       }
     }
@@ -338,7 +348,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to complete.\n",div_output.quot,div_output.rem );  
+  printf("\n it took %d minutes %d seconds to evaluate edetExpAsym.\n",div_output.quot,div_output.rem );  
   return 1;
 }
 
