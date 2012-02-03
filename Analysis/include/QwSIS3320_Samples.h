@@ -71,6 +71,11 @@ class QwSIS3320_Samples: public TObject {
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
     };
 
+    UInt_t GetSamplePointer() const { return fSamplePointer; };
+    void SetSamplePointer(const UInt_t samplepointer) {
+      fSamplePointer = samplepointer;
+    };
+
     UInt_t GetSamplesPerWord() const { return fSamplesPerWord; };
     void SetSamplesPerWord(const UInt_t nsamples) {
       fSamplesPerWord = nsamples;
@@ -113,10 +118,12 @@ class QwSIS3320_Samples: public TObject {
 
   private:
 
-    //! Number of 12-bit sample values per data word
+    /// Number of 12-bit sample values per data word
     UInt_t fSamplesPerWord;
-    ///< Number of data words in this data element
-    UInt_t  fNumberOfDataWords;
+    /// Number of data words in this data element
+    UInt_t fNumberOfDataWords;
+    /// Sample position in buffer
+    UInt_t fSamplePointer;
 
     //! Samples index
     static std::vector<QwSIS3320_Type> fIndex; //!

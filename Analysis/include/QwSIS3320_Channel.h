@@ -154,7 +154,6 @@ class QwSIS3320_Channel: public VQwDataElement {
 
     /* ADC sample data */
     UInt_t fSampleFormat;
-    UInt_t fSamplePointer;
     std::vector<QwSIS3320_Samples> fSamples;
     std::vector<QwSIS3320_Samples> fSamplesRaw;
     //
