@@ -184,89 +184,41 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 }
 
 
-
 void  QwDriftChamberHDC::SubtractReferenceTimes()
 {
-  std::vector<Double_t> reftimes;
-  std::vector<Bool_t>   refchecked;
-  std::vector<Bool_t>   refokay;
-  Bool_t allrefsokay;
-  //  Int_t counter = 1;
-
-  std::size_t ref_size = 0;
-  std::size_t i = 0;
-  std::size_t j = 0;
-
-  ref_size = fReferenceData.size();
-
-
-  reftimes.resize  ( ref_size );
-  refchecked.resize( ref_size );
-  refokay.resize   ( ref_size );
-
-  for ( i=0; i<ref_size; i++ ) {
-    reftimes.at(i)   = 0.0;
-    refchecked.at(i) = kFALSE;
-    refokay.at(i)    = kFALSE;
-  }
-
-  allrefsokay = kTRUE;
-
-  UInt_t bankid      = 0;
+ 
+  UInt_t   bank_index        = 0;
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;
   Double_t time_arb_unit     = 0.0;
 
   Bool_t local_debug = false;
+  Int_t slot_num = 0;
 
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
-      //  Only try to check the reference time for a bank if there is at least one
-      //  non-reference hit in the bank.
-      bankid = hit->GetSubbankID();
-      if ( not refchecked.at(bankid) ) {
-	if ( fReferenceData.at(bankid).empty() ) {
-	  QwWarning << "QwDriftChamberHDC::SubtractReferenceTimes:  Subbank ID "
-		    << bankid << " is missing a reference time." << QwLog::endl;
-	  refokay.at(bankid) = kFALSE;
-	  allrefsokay        = kFALSE;
-	}
-	else {
-	  if(fReferenceData.at(bankid).size() not_eq 1) {
-	    std::cout << "Multiple hits are recorded in the reference channel, we use the first hit signal as the refererence signal." << std::endl;
-	  }
-	  reftimes.at(bankid) = fReferenceData.at(bankid).at(0);
-	  refokay.at(bankid)  = kTRUE;
-	}
-	if ( refokay.at(bankid) ){
-	  for ( j=0; j<fReferenceData.at(bankid).size(); j++ ) 
-	    {
-	      fReferenceData.at(bankid).at(j) -= reftimes.at(bankid);
-	    }
-	}
-	refchecked.at(bankid) = kTRUE;
-      }
-      
-    if ( refokay.at(bankid) ) {
-      Int_t slot_num    = hit -> GetModule();
-      raw_time_arb_unit = (Double_t) hit -> GetRawTime();
-      ref_time_arb_unit = (Double_t) reftimes.at(bankid);
-      //      raw_time = (Double_t) hit -> GetRawTime();
-      //      ref_time = (Double_t) reftimes.at(bankid);
-      //      Int_t bank_index = hit->GetSubbankID();
-      //      Int_t slot_num   = hit->GetModule();
 
-      time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bankid, slot_num);
+      bank_index        =            hit  -> GetSubbankID();
+      slot_num          =            hit  -> GetModule();
+      raw_time_arb_unit = (Double_t) hit  -> GetRawTime();
+      ref_time_arb_unit = fF1RefContainer -> GetReferenceTimeAU(bank_index, "MasterTrigger");
+      //
+      // if there is no reference time due to a channel error, try to use a copy of mater trigger
+      // 
+      if(ref_time_arb_unit==0.0) {
+	ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, "CopyMasterTrigger");
+      }
+      // second time, it returns 0.0, we simply ignore this event .... 
+      // set time zero. ReferenceSignalCorrection() will return zero, and increase RFM counter...
+      //
+      time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
 
       hit -> SetTime(time_arb_unit); 
       hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
 
-      //  hit -> SetTime(time+educated_guess_t0_correction); // an educated guess 
-
-
       if(local_debug) {
 	QwMessage << this->GetSubsystemName()
-		  << " BankIndex " << std::setw(2) << bankid
+		  << " BankIndex " << std::setw(2) << bank_index
 		  << " Slot "      << std::setw(2) << slot_num
 		  << " RawTime : " << std::setw(6) << raw_time_arb_unit
 		  << " RefTime : " << std::setw(6) << ref_time_arb_unit
@@ -275,26 +227,125 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
 	
       }
     }
-  }
-  
-  bankid = 0;
-  
-  if ( not allrefsokay ) {
-    std::vector<QwHit> tmp_hits;
-    tmp_hits.clear();
-    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
-      {
-	bankid = hit->GetSubbankID();
-	if ( refokay.at(bankid) ) tmp_hits.push_back(*hit);
-      }
-    // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-    fTDCHits.clear();
-    fTDCHits = tmp_hits;
-    // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-  }
-  
+
+
+
   return;
 }
+
+
+
+
+// void  QwDriftChamberHDC::SubtractReferenceTimes()
+// {
+//   std::vector<Double_t> reftimes;
+//   std::vector<Bool_t>   refchecked;
+//   std::vector<Bool_t>   refokay;
+//   Bool_t allrefsokay;
+//   //  Int_t counter = 1;
+
+//   std::size_t ref_size = 0;
+//   std::size_t i = 0;
+//   std::size_t j = 0;
+
+//   ref_size = fReferenceData.size();
+
+
+//   reftimes.resize  ( ref_size );
+//   refchecked.resize( ref_size );
+//   refokay.resize   ( ref_size );
+
+//   for ( i=0; i<ref_size; i++ ) {
+//     reftimes.at(i)   = 0.0;
+//     refchecked.at(i) = kFALSE;
+//     refokay.at(i)    = kFALSE;
+//   }
+
+//   allrefsokay = kTRUE;
+
+//   UInt_t bankid      = 0;
+//   Double_t raw_time_arb_unit = 0.0;
+//   Double_t ref_time_arb_unit = 0.0;
+//   Double_t time_arb_unit     = 0.0;
+
+//   Bool_t local_debug = true;
+
+//   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+//     {
+//       //  Only try to check the reference time for a bank if there is at least one
+//       //  non-reference hit in the bank.
+//       bankid = hit->GetSubbankID();
+//       if ( not refchecked.at(bankid) ) {
+// 	if ( fReferenceData.at(bankid).empty() ) {
+// 	  QwWarning << "QwDriftChamberHDC::SubtractReferenceTimes:  Subbank ID "
+// 		    << bankid << " is missing a reference time." << QwLog::endl;
+// 	  refokay.at(bankid) = kFALSE;
+// 	  allrefsokay        = kFALSE;
+// 	}
+// 	else {
+// 	  if(fReferenceData.at(bankid).size() not_eq 1) {
+// 	    std::cout << "Multiple hits are recorded in the reference channel, we use the first hit signal as the refererence signal." << std::endl;
+// 	  }
+// 	  reftimes.at(bankid) = fReferenceData.at(bankid).at(0);
+// 	  refokay.at(bankid)  = kTRUE;
+// 	}
+// 	if ( refokay.at(bankid) ){
+// 	  for ( j=0; j<fReferenceData.at(bankid).size(); j++ ) 
+// 	    {
+// 	      fReferenceData.at(bankid).at(j) -= reftimes.at(bankid);
+// 	    }
+// 	}
+// 	refchecked.at(bankid) = kTRUE;
+//       }
+      
+//     if ( refokay.at(bankid) ) {
+//       Int_t slot_num    = hit -> GetModule();
+//       raw_time_arb_unit = (Double_t) hit -> GetRawTime();
+//       ref_time_arb_unit = (Double_t) reftimes.at(bankid);
+//       //      raw_time = (Double_t) hit -> GetRawTime();
+//       //      ref_time = (Double_t) reftimes.at(bankid);
+//       //      Int_t bank_index = hit->GetSubbankID();
+//       //      Int_t slot_num   = hit->GetModule();
+
+//       time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bankid, slot_num);
+
+//       hit -> SetTime(time_arb_unit); 
+//       hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
+
+//       //  hit -> SetTime(time+educated_guess_t0_correction); // an educated guess 
+
+
+//       if(local_debug) {
+// 	QwMessage << this->GetSubsystemName()
+// 		  << " BankIndex " << std::setw(2) << bankid
+// 		  << " Slot "      << std::setw(2) << slot_num
+// 		  << " RawTime : " << std::setw(6) << raw_time_arb_unit
+// 		  << " RefTime : " << std::setw(6) << ref_time_arb_unit
+// 		  << " time : "    << std::setw(6) << time_arb_unit
+// 		  << std::endl;
+	
+//       }
+//     }
+//   }
+  
+//   bankid = 0;
+  
+//   if ( not allrefsokay ) {
+//     std::vector<QwHit> tmp_hits;
+//     tmp_hits.clear();
+//     for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+//       {
+// 	bankid = hit->GetSubbankID();
+// 	if ( refokay.at(bankid) ) tmp_hits.push_back(*hit);
+//       }
+//     // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+//     fTDCHits.clear();
+//     fTDCHits = tmp_hits;
+//     // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+//   }
+  
+//   return;
+// }
 
 
 Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)
@@ -394,6 +445,16 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
     EQwDetectorPackage package = kPackageNull;
     EQwDirectionID direction   = kDirectionNull;
     
+
+    F1TDCReferenceSignal *f1_ref_signal;
+    
+    f1_ref_signal = fF1RefContainer->GetReferenceSignal(bank_index, slot_num, chan);
+    if( f1_ref_signal ) {
+      f1_ref_signal -> SetRefTimeAU (data);
+      //      std::cout << *f1_ref_signal << std::endl;
+    }
+    
+
     plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
     wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
     package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
@@ -458,7 +519,7 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan,
 						const Int_t plane, 
 						const Int_t wire)
 {
-  if (plane == kReferenceChannelPlaneNumber || plane==kCodaMasterPlaneNumber){
+  if (plane == kReferenceChannelPlaneNumber ){
     LinkReferenceChannel(chan, plane, wire);
   } 
   else {
@@ -552,95 +613,108 @@ void  QwDriftChamberHDC::ProcessEvent()
 
 Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 {
+  Bool_t local_debug = false;
+  LoadTtoDParameters ( "R2_TtoDTable.map"  );
+  LoadTimeWireOffset ( "R2_timeoffset.map" );
 
-    LoadTtoDParameters ( "R2_TtoDTable.map"  );
-    LoadTimeWireOffset ( "R2_timeoffset.map" );
+  TString varname, varvalue;
+  UInt_t value   = 0;
+  UInt_t  chan   = 0;
+  UInt_t DIRMODE = 0;
+  Int_t  plane   = 0;
+  Int_t  wire    = 0;
+  TString name   = "";
 
-    TString varname, varvalue;
-    UInt_t value   = 0;
-    UInt_t  chan   = 0;
-    UInt_t DIRMODE = 0;
-    Int_t  plane   = 0;
-    Int_t  wire    = 0;
+  EQwDetectorPackage package = kPackageNull;
+  EQwDirectionID   direction = kDirectionNull;
 
-    EQwDetectorPackage package = kPackageNull;
-    EQwDirectionID   direction = kDirectionNull;
+  fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
+  fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+  fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
 
-    fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
-    fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
-    fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
-    QwParameterFile mapstr(mapfile.Data());  //Open the file
-    fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+  while (mapstr.ReadNextLine()) {
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
 
-    while (mapstr.ReadNextLine()) {
-        mapstr.TrimComment('!');   // Remove everything after a '!' character.
-        mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-        if (mapstr.LineIsEmpty())  continue;
-
-        if (mapstr.HasVariablePair("=",varname,varvalue)) {
-            //  This is a declaration line.  Decode it.
-            varname.ToLower();
-            value = QwParameterFile::GetUInt(varvalue);
-	    if (value ==0){
-	      value = atol(varvalue.Data());
-	    }
-            if (varname=="roc") {
-	      RegisterROCNumber(value,0);
-	      DIRMODE=0;
-	    } 
-	    else if (varname=="bank") {
-              RegisterSubbank(value);
-	      DIRMODE=0;
-	    } 
-	    else if (varname=="pkg") {
-	      //this will identify the coming sequence is wire plane to direction mapping - Rakitha
-	      DIRMODE=1;
-	      package=(EQwDetectorPackage)value;
-            }
-	    else if (varname=="slot") {
-	      RegisterSlotNumber(value);
-	      DIRMODE=0;
-            } 
+    if (mapstr.HasVariablePair("=",varname,varvalue)) {
+      //  This is a declaration line.  Decode it.
+      varname.ToLower();
+      value = QwParameterFile::GetUInt(varvalue);
+      if (value ==0){
+	value = atol(varvalue.Data());
+      }
+      if (varname=="roc") {
+	RegisterROCNumber(value,0);
+	DIRMODE=0;
+      } 
+      else if (varname=="bank") {
+	RegisterSubbank(value);
+	DIRMODE=0;
+      } 
+      else if (varname=="pkg") {
+	//this will identify the coming sequence is wire plane to direction mapping - Rakitha
+	DIRMODE=1;
+	package=(EQwDetectorPackage)value;
+      }
+      else if (varname=="slot") {
+	RegisterSlotNumber(value);
+	DIRMODE=0;
+      } 
 	    
-        } 
-	else if (DIRMODE==0) {
-	  //  Break this line into tokens to process it.
-	  chan    = mapstr.GetTypedNextToken<Int_t>();
-	  //package = 1;
-	  plane   = mapstr.GetTypedNextToken<Int_t>();
-	  wire    = mapstr.GetTypedNextToken<Int_t>();
-	  
-	  // VDC and HDC
+    } 
+    else if (DIRMODE==0) {
+      //  Break this line into tokens to process it.
+      chan    = mapstr.GetTypedNextToken<Int_t>();
+      plane   = mapstr.GetTypedNextToken<Int_t>();
+      //	  wire    = mapstr.GetTypedNextToken<Int_t>();
+      name    = mapstr.GetTypedNextToken<TString>();
+      if(local_debug) {
+	printf("chan  %8d plan %4d  wire %12s\n", chan, plane, name.Data());
+      }
+      if (plane==99) {
+	fF1RefContainer -> AddF1TDCReferenceSignal(new F1TDCReferenceSignal(fCurrentBankIndex, fCurrentSlot, chan, name));
+	if (name=="MasterTrigger" ) {
+	  wire = 0;
 	  BuildWireDataStructure(chan, package, plane, wire);
+	}
+      }
+      else {
+	wire = name.Atoi();
+	// VDC and HDC
+	BuildWireDataStructure(chan, package, plane, wire);
+      }
 	  
-        } 
-	else if (DIRMODE==1) {
-	  //this will decode the wire plane directions - Rakitha
-	  plane     = mapstr.GetTypedNextToken<Int_t>();
-	  direction = (EQwDirectionID) mapstr.GetTypedNextToken<Int_t>();
-	  fDirectionData.at(package-1).at(plane-1) = direction;
-        }
-	
+    } 
+    else if (DIRMODE==1) {
+      //this will decode the wire plane directions - Rakitha
+      plane     = mapstr.GetTypedNextToken<Int_t>();
+      direction = (EQwDirectionID) mapstr.GetTypedNextToken<Int_t>();
+      fDirectionData.at(package-1).at(plane-1) = direction;
     }
+	
+  }
     
    
 
 
-    //  Construct the wire data structures.
-    AddChannelDefinition();
+  //  Construct the wire data structures.
+  AddChannelDefinition();
 
-    /*
+  /*
     for (size_t i=0; i<fDirectionData.at(0).size(); i++){
     std::cout<<"Direction data Plane "<<i+1<<" "<<fDirectionData.at(0).at(i)<<std::endl;
     }
-    */
-    //
+  */
+  //
 
-    mapstr.Close(); // Close the file (ifstream)
-    // /   ReportConfiguration();
+  mapstr.Close(); // Close the file (ifstream)
+  // /   ReportConfiguration();
 
-    return OK;
+  return OK;
 }
 
 
@@ -881,28 +955,14 @@ void  QwDriftChamberHDC::ClearEventData()
     fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
   }
   fTDCHits.clear();
+
+  fF1RefContainer->ClearEventData();
   std::size_t i = 0;
   for (i=0; i<fReferenceData.size(); i++) {
     fReferenceData.at(i).clear();
   }
   return;
 }
-
-
-
-
-// void QwDriftChamberHDC::ApplyTimeCalibration()
-// {
-
-// //   for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
-// //     {
-// //       iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
-// //       iter->SetTimeRes(fF1TDCResolutionNS);
-// //     }
-
-
-//   return;
-// }
 
 
 

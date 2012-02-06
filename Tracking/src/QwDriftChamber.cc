@@ -223,7 +223,7 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_i
   status = VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
   std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
   fTDC_Index.push_back(tmpvec);
-  std::cout<<"Registering ROC "<<roc_id<<std::endl;
+  // std::cout<<"Registering ROC "<<roc_id<<std::endl;
 
   return status;
 }

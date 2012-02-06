@@ -884,6 +884,8 @@ void QwDriftChamberVDC::ClearEventData()
 	  fDelayLineArray.at ( i ).at ( j ).Wire.clear();
 	}
     }
+  
+  fF1RefContainer->ClearEventData();
 
   for ( i=0;i<fReferenceData.size(); i++ )
     {

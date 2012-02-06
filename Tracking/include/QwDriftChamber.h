@@ -157,10 +157,8 @@ class QwDriftChamber: public VQwSubsystemTracking{
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
 
-  MQwF1TDC fF1TDCDecoder;
-
-  QwF1TDContainer *fF1TDContainer;
-
+  MQwF1TDC                fF1TDCDecoder;
+  QwF1TDContainer         *fF1TDContainer;
   F1TDCReferenceContainer *fF1RefContainer;
 
   //  NOTE:  The plane and wire indices count from "1" instead

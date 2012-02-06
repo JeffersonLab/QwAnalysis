@@ -1105,36 +1105,10 @@ void
 QwSciFiDetector::SubtractReferenceTimes()
 {
 
-  // std::vector<Double_t> reftimes;
-  // std::vector<Bool_t>   refchecked;
-  // std::vector<Bool_t>   refokay;
-  // Bool_t allrefsokay;
-
-
-  // std::size_t ref_size = 0;
-  // std::size_t i = 0;
-  // std::size_t j = 0;
-
-  // ref_size = fReferenceData.size();
-
-  // reftimes.resize  ( ref_size );
-  // refchecked.resize( ref_size );
-  // refokay.resize   ( ref_size );
-
-  // for ( i=0; i<ref_size; i++ ) {
-  //   reftimes.at(i)   = 0.0;
-  //   refchecked.at(i) = kFALSE;
-  //   refokay.at(i)    = kFALSE;
-  // }
-
-  // allrefsokay = kTRUE;
-
   UInt_t   bank_index        = 0;
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;
-  // Double_t ref_time2_arb_unit = 0.0;
-  // Double_t ref_time3_arb_unit = 0.0;
-  Double_t time_arb_unit       = 0.0;
+  Double_t time_arb_unit     = 0.0;
 
   Bool_t local_debug = false;
   Int_t slot_num = 0;
@@ -1142,7 +1116,7 @@ QwSciFiDetector::SubtractReferenceTimes()
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
 
-      bank_index        = hit->GetSubbankID();
+      bank_index        = hit -> GetSubbankID();
       slot_num          = hit -> GetModule();
       raw_time_arb_unit = (Double_t) hit -> GetRawTime();
       ref_time_arb_unit = fF1RefContainer->GetReferenceTimeAU(bank_index, "MasterTrigger");
@@ -1172,6 +1146,7 @@ QwSciFiDetector::SubtractReferenceTimes()
       }
     }
 
+  return;
   
 }
 
