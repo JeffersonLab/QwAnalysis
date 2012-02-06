@@ -15,21 +15,12 @@
 //*** in a similar fashion. It requires the Mps_Tree to be used.        ***//
 ///////////////////////////////////////////////////////////////////////////// 
 
-Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain)
+Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
   chain->ResetBranchAddresses();
-  //  Char_t textf[255],textwrite[255];
+  Char_t textf[255],textwrite[255];
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0, bcm = 0 , comptQ = 0;
-//   chain->Draw("sca_bcm6.value>>histBeamMax",Form("sca_bcm6.value < %d",ignoreBeamAbove));
-//   Double_t beamMax = ((TH1D*)gDirectory->Get("histBeamMax"))->GetMaximum();
-//   chain->Draw("sca_bcm6.value>>histComptCharge",Form("compton_charge.value < %d",ignoreBeamAbove));
-//   Double_t Qmax = ((TH1D*)gDirectory->Get("histComptCharge"))->GetBinLowEdge(98);
-//   TH1 * h1 = (TH1D*)gDirectory->Get("histBeamMax");
-//   TH1 * h2 = (TH1D*)gDirectory->Get("histComptCharge");
-//   Double_t beamMax = h1->GetMaximum();
-//   Double_t Qmax = h2->GetMaximum();
-
   Double_t beamMax = chain->GetMaximum("sca_bcm6/value");
   Double_t Qmax = chain->GetMaximum("compton_charge/value");
   cout<<"beamMax(bcm6) "<<beamMax<<" Qmax:(avg of bcm 1 & 2):"<<Qmax<<endl;
@@ -38,11 +29,15 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
-  Int_t minEntries = 2000; //Laser must be off for at least this many
-  //consecutive entries to be considered off.
-  //   sprintf(textf,"%d_output.txt",runnum);
-  //   ofstream outfile(Form("%s",textf));
-  //   printf("%s file created\n",textf);
+  Int_t minEntries = 2000; //Laser must be off for at least this many consecutive entries to be considered off.
+  sprintf(textf,"r%d_cutLas.txt",runnum);
+  ofstream outfileLas(Form("%s",textf));
+  printf("%s file created\n",textf);
+
+  sprintf(textf,"r%d_cutBeam.txt",runnum);
+  ofstream outfileBeam(Form("%s",textf));
+  printf("%s file created\n",textf);
+
   if (beamMax-Qmax >=5) {
     printf("Warning: notice the difference in bcm6 and average of bcm 1&2\n");
     printf("             beamMax: %f, Qmax: %f\n",beamMax,Qmax);
@@ -76,7 +71,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     ////find laser off periods and record start and finish entries
     if (n==minEntries) {
       cutL.push_back(index-minEntries);
-      printf("cutL[%d]=%d\n",m,cutL.back());
+      //printf("cutL[%d]=%d\n",m,cutL.back());///print begin of laser off entry
       flipperIsUp = kTRUE;
       m++;
     }
@@ -85,9 +80,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     if(flipperIsUp){
       if(n == 0 || index == nEntries-1 ) {
         cutL.push_back(index-1);
-        printf("cutL[%d]=%d\n",m,cutL.back());
-        //sprintf(textwrite,"%d %d",m,cutL.back());
-        //	outfile <<textwrite<<endl;
+	//printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
         m++;
         flipperIsUp = kFALSE;
       }
@@ -95,8 +88,6 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     //    find and record electron beam off periods
     rampIsDone = (bcm> (beamFrac*beamMax));
     isABeamTrip = (bcm<= (beamFrac*beamMax));
-    //     rampIsDone = comptQ > 0.2 * Qmax;//!review this condition
-    //     isABeamTrip = comptQ <= 0.1*Qmax;//!review this condition
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition
@@ -130,10 +121,17 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   //print the beam trip cuts
 
   for(Int_t i=0;i<o;i++) {
-    printf("cutE[%i]=%i\n",i,cutE.at(i));
+    //printf("cutE[%i]=%i\n",i,cutE.at(i));
+    sprintf(textwrite,"%d",cutE.at(i));
+    outfileBeam <<textwrite<<endl;
   }
 
-  chain->SetBranchStatus("*",1);//turn on all branches again
+  for(Int_t i=0;i<m;i++) {
+    sprintf(textwrite,"%d",cutL.at(i));
+    outfileLas <<textwrite<<endl;
+  }
+
+//   chain->SetBranchStatus("*",1);//turn on all branches again
   nLasCycBeamTrips = o*500+m/2;
   return o*500+m/2;//nEntries for both arrays is encoded into return value
 }
