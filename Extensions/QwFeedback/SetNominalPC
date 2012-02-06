@@ -22,8 +22,8 @@ case "$host_name" in
      *cdaql5* ) 
 	PC_pos_current="`caget -t C1068_QDAC01`"
 	PC_neg_current="`caget -t C1068_QDAC02`"
-	Midpoint=$(((PC_pos_current+PC_neg_current)/2))
-	echo "PC Mid-point  = $Midpoint"
+	#Midpoint=$(((PC_pos_current+PC_neg_current)/2))
+	#echo "PC Mid-point  = $Midpoint"
 	IHWP_State="`caget -t IGL1I00DI24_24M`"
 	RHWP="`caget -t psub_pl_ipos`"
 	echo "Current RHWP  = $RHWP"
