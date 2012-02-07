@@ -948,7 +948,9 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
     //std::cout<<" quartet count ="<<fQuartetNumber<<"\n";
 
     fYield.Sum(fPositiveHelicitySum,fNegativeHelicitySum);
+    fYield.Scale(1.0/fPatternSize);
     fDifference.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
+    fDifference.Scale(1.0/fPatternSize);
     if (! fIgnoreHelicity){
       //  Only blind the difference if we're using the real helicity.
       fBlinder.Blind(fDifference,fYield);
