@@ -1181,9 +1181,9 @@ void QwHelicityCorrelatedFeedback::GetTargetPositionStat(){
   fTargetXDiffWidth=fTargetXDiffRunningSum.GetValueWidth()*1.0e+3;
 
   //Update XP stats in nrad
-  fTargetXPDiff=fTargetXPDiffRunningSum.GetValue()*1.0e+6;
-  fTargetXPDiffError=fTargetXPDiffRunningSum.GetValueError()*1.0e+6;
-  fTargetXPDiffWidth=fTargetXPDiffRunningSum.GetValueWidth()*1.0e+6;
+  fTargetXPDiff=fTargetXPDiffRunningSum.GetValue()*1.0e+9;
+  fTargetXPDiffError=fTargetXPDiffRunningSum.GetValueError()*1.0e+9;
+  fTargetXPDiffWidth=fTargetXPDiffRunningSum.GetValueWidth()*1.0e+9;
 
   //Update Y stats
   fTargetYDiff=fTargetYDiffRunningSum.GetValue()*1.0e+3;
@@ -1191,9 +1191,9 @@ void QwHelicityCorrelatedFeedback::GetTargetPositionStat(){
   fTargetYDiffWidth=fTargetYDiffRunningSum.GetValueWidth()*1.0e+3;
 
   //Update YP stats in nrad
-  fTargetYPDiff=fTargetYPDiffRunningSum.GetValue()*1.0e+6;
-  fTargetYPDiffError=fTargetYPDiffRunningSum.GetValueError()*1.0e+6;
-  fTargetYPDiffWidth=fTargetYPDiffRunningSum.GetValueWidth()*1.0e+6;
+  fTargetYPDiff=fTargetYPDiffRunningSum.GetValue()*1.0e+9;
+  fTargetYPDiffError=fTargetYPDiffRunningSum.GetValueError()*1.0e+9;
+  fTargetYPDiffWidth=fTargetYPDiffRunningSum.GetValueWidth()*1.0e+9;
 
   /*
   fTargetXDiffRunningSum.PrintInfo();
