@@ -63,8 +63,7 @@ void plot_planes(TChain *event_tree){
   h_wires_hit_3 -> Draw();
   wires_c->cd(4);
   h_wires_hit_4 -> Draw();
-  wires_c->SaveAs(outputPrefix+"wires.png");
-  return;
+  wires_c->SaveAs(outputPrefix+"wires_package1.png");
 
 // -----------------------------------------------------------------------------
 
@@ -101,6 +100,7 @@ void plot_planes(TChain *event_tree){
   h_wires_hit_7 -> Draw();
   wires_c2->cd(4);
   h_wires_hit_8 -> Draw();
+  wires_c2->SaveAs(outputPrefix+"wires_package2.png");
 
 // -----------------------------------------------------------------------------
 
@@ -138,6 +138,7 @@ void plot_planes(TChain *event_tree){
   h_wires_amb_3 -> Draw();
   ambig_c->cd(4);
   h_wires_amb_4 -> Draw();
+  ambig_c->SaveAs(outputPrefix+"wires_ambig_package1.png");
   
 // -----------------------------------------------------------------------------
 
@@ -175,6 +176,7 @@ void plot_planes(TChain *event_tree){
   h_wires_amb_7 -> Draw();
   ambig_c2->cd(4);
   h_wires_amb_8 -> Draw();
+  ambig_c2->SaveAs(outputPrefix+"wires_ambig_package2.png");
   
 // -----------------------------------------------------------------------------
 
@@ -199,6 +201,7 @@ void plot_planes(TChain *event_tree){
  h_planes_hit_1->Draw();
  planes_c->cd(2);
  h_planes_hit_2->Draw();
+ planes_c->SaveAs(outputPrefix+"planes_hits.png");
 
 // -----------------------------------------------------------------------------
 
@@ -223,6 +226,7 @@ void plot_planes(TChain *event_tree){
  h_planes_am_hit_1->Draw();
  am_planes_c->cd(2);
  h_planes_am_hit_2->Draw();
+ am_planes_c->SaveAs(outputPrefix+"planes_hit_ambigious.png");
 
 }
 
@@ -268,6 +272,7 @@ void plot_delaylines(TChain *event_tree){
   h_delay_line_3 -> Draw();
   delaylines_c->cd(4);
   h_delay_line_4 -> Draw();
+  delaylines_c->Draw(outputPrefix+"delaylines_hit.png");
 
 }
 
@@ -347,6 +352,7 @@ void plot_times(TChain *event_tree){
   times_c->cd(8);
   gPad->SetLogy();
   h_time_8 -> Draw();
+  times_c->Draw(outputPrefix+"drifttimes.png");
 
 }
 
@@ -397,6 +403,7 @@ void plot_hitnumber(TChain *event_tree){
   nhits_c->cd(4);
   gPad->SetLogy();
   h_nhits_4 -> Draw();
+  nhits_c->SaveAs(outputPrefix+"hit_number.png");
 }
 
 void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
@@ -412,7 +419,7 @@ void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
 
 
   plot_planes(chain);
-//  plot_delaylines(chain);
-//  plot_times(chain);
-//  plot_hitnumber(chain);
+  plot_delaylines(chain);
+  plot_times(chain);
+  plot_hitnumber(chain);
 }
