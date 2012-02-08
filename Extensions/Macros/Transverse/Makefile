@@ -18,7 +18,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := sim_15_effect_on_correction md_correlation_plots 100k_transverse_fit slug_average_fits plot_regressed_lumi slug_summary slug_average_fits_regressed unregressed_slug_plots slug_average_fits_regressed_run_range compare_regressed_unregressed fits_unregressed_run_range slug_average_fits_unregressed draw_correlations_runlets pass3_regressed sim_15_effect
+EXE := transverse_md_fit_slugs transverse_compare_reg_schemes sim_15_effect_on_correction md_correlation_plots 100k_transverse_fit slug_average_fits plot_regressed_lumi slug_summary slug_average_fits_regressed unregressed_slug_plots slug_average_fits_regressed_run_range compare_regressed_unregressed fits_unregressed_run_range slug_average_fits_unregressed draw_correlations_runlets pass3_regressed sim_15_effect
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -38,6 +38,13 @@ EXE := sim_15_effect_on_correction md_correlation_plots 100k_transverse_fit slug
 all:  $(EXE)
 	@echo "---------------------> $(EXE) done <---------------------- "
 
+
+transverse_md_fit_slugs :transverse_md_fit_slugs.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+transverse_compare_reg_schemes :transverse_compare_reg_schemes.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
 md_correlation_plots : md_correlations.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
@@ -46,6 +53,7 @@ md_correlation_plots : md_correlations.o
 
 slug_average_fits : slug_average_fits.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
 
 slug_average_fits_regressed :slug_avrage_fits_regressed.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<	
