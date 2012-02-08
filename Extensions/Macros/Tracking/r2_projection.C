@@ -78,7 +78,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     TH1F* Xtreeline_histo=new TH1F("ar in treeline x","ar in treeline x",100,0,0.3);
     TH1F* Utreeline_histo=new TH1F("ar in treeline x","ar in treeline u",100,0,0.3);
     TH1F* Vtreeline_histo=new TH1F("ar in treeline x","ar in treeline v",100,0,0.3);
-    TH1F* Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",1000,0,100);
+    TH1F* Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",200,0,20);
     TH1F* x_histo=new TH1F("x coll1 distribution","x coll1 distribution",200,-10,10);
     TH1F* y_histo=new TH1F("y coll1 distriution","y coll1 distribution",200,0,20);
     TH1F* Plane_residual[12];
@@ -114,26 +114,29 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 
 
     // cuts
-      double mean_phioff_pkg1=-0.00603;
-      double mean_phioff_pkg2=-0.01637;
-      double mean_thetaoff_pkg1=-0.00128;
-      double mean_thetaoff_pkg2=-0.01144;
+      double mean_phioff_pkg1=-0.006526;
+      double mean_phioff_pkg2=-0.01667;
+      
+      double sigma_phioff_pkg1=0.0281;
+      double sigma_phioff_pkg2=0.02121;
 
-      double rms_phioff_pkg1=0.04053;
-      double rms_phioff_pkg2=0.04011;
-      double rms_thetaoff_pkg1=0.00857;
-      double rms_thetaoff_pkg2=0.00858;
+      double mean_thetaoff_pkg1=-0.002897;
+      double sigma_thetaoff_pkg1=0.0031565;
 
-      double width=25;
-      double pkg1_phioff_lower=mean_phioff_pkg1-width*rms_phioff_pkg1;
-      double pkg1_phioff_upper=mean_phioff_pkg1+width*rms_phioff_pkg1;
-      double pkg2_phioff_lower=mean_phioff_pkg2-width*rms_phioff_pkg2;
-      double pkg2_phioff_upper=mean_phioff_pkg2+width*rms_phioff_pkg2;
 
-      double pkg1_thetaoff_lower=mean_thetaoff_pkg1-width*rms_thetaoff_pkg1;
-      double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*rms_thetaoff_pkg1;
-      double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*rms_thetaoff_pkg2;
-      double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*rms_thetaoff_pkg2;
+      double mean_thetaoff_pkg2=-2.12082e-02;
+      double sigma_thetaoff_pkg2=3.74405e-03;
+
+     double width=25;
+     double pkg1_phioff_lower=mean_phioff_pkg1-width*sigma_phioff_pkg1;
+     double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
+     double pkg2_phioff_lower=mean_phioff_pkg2-width*sigma_phioff_pkg2;
+     double pkg2_phioff_upper=mean_phioff_pkg2+width*sigma_phioff_pkg2;
+
+     double pkg1_thetaoff_lower=mean_thetaoff_pkg1-width*sigma_thetaoff_pkg1;
+     double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*sigma_thetaoff_pkg1;
+     double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*sigma_thetaoff_pkg2;
+     double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*sigma_thetaoff_pkg2;
 
     int oct=0;
     for(int i=start;i<end;++i){
@@ -192,7 +195,8 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	if(oct==0)
 	  oct=pt->GetOctantNumber();
 	chi=pt->fChi;
-        double vertex_z=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
+        //double vertex_z=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
+	double vertex_z=track->fVertexZ;
 	double x=pt->fOffsetX+z*pt->fSlopeX;
 	double y=pt->fOffsetY+z*pt->fSlopeY;
 	//double x_tar=pt->fOffsetX+ds_target*pt->fSlopeX;
@@ -225,9 +229,22 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     //cout << "good: " << good << endl;
     cout << "oct: " << oct << endl;
     
-    TCanvas* c1=new TCanvas("c","c",1000,500);
-    c1->Divide(2,1);
-    c1->cd(1);
+    TCanvas* c1=new TCanvas("c","c",1000,600);
+    
+    TPad* spad1=new TPad("spad1","spad1",.61,.51,.99,.99);
+    spad1->Draw();
+    spad1->cd();
+    vertex->Draw();
+    c1->cd();
+    TPad* spad2=new TPad("spad2","spad2",.61,0.01,.99,.49);
+    spad2->Draw();
+    spad2->cd();
+    Chi_histo->Draw();
+    c1->cd();
+    TPad* spad3=new TPad("spad3","spad3",.01,.01,.59,.99);
+    spad3->Draw();
+    spad3->cd();
+  
     gStyle->SetPalette(1);
     projection->GetXaxis()->SetTitle("x axis:cm");
     projection->GetYaxis()->SetTitle("y axis:cm");
@@ -316,9 +333,6 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     t5->Draw("same");
     t6->Draw("same");
     }
-
-    c1->cd(2);
-    vertex->Draw();
 
     // TCanvas* c2=new TCanvas("c","c",800,800);
     // vertex->Draw();
