@@ -212,7 +212,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
   //
   
   
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
   Int_t reference_counter = 0;
 
   EQwDetectorPackage package = kPackageNull;
@@ -280,9 +280,9 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDCer;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = -1;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = -1;
 	  }
           else if (modtype=="V792" ) {// || modtype=="V775" || modtype=="F1TDC")
 	    RegisterModuleType(modtype);
@@ -302,9 +302,9 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 	    }
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDCer;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = -1;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = -1;
 	  }	
 	  else if( modtype=="F1TDC") {
 
@@ -831,7 +831,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	
 	    }
 	    catch (std::exception& e) {
-	      std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
+	      std::cerr << "Standard exception from QwMainDetector::FillRawWord: "
 			<< e.what() << std::endl;
 	      std::cerr << "   Parameters:  index==" <<bank_index
 			<< "; GetF1SlotNumber()=="   <<tdc_slot_number
@@ -1121,7 +1121,7 @@ Int_t QwMainDetector::RegisterSubbank(const UInt_t bank_id)
 
 Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
 {
-  printf("QwMainDetector::RegisterSlotNumber\n");
+  //  printf("QwMainDetector::RegisterSlotNumber\n");
   std::pair<EQwModuleType, Int_t> tmppair;
   tmppair.first  = kUnknownModuleType;
   tmppair.second = -1;
