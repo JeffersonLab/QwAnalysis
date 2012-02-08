@@ -197,15 +197,16 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
       // This is a sampling buffer using short words
       case FORMAT_SHORT_WORD_SAMPLING:
         UInt_t numberofsamples, numberofevents_expected, numberofevents_actual;
+        UInt_t samplepointer;
         switch (local_setupmode) {
 
           // This is a sampling buffer in multi event mode:
           // - many events are saved in one buffer for a complete helicity event
           case MODE_ACCUM_EVENT:
           case MODE_MULTI_EVENT:
+            samplepointer = buffer[2];
             numberofsamples = buffer[3];
             numberofevents_expected = buffer[4];
-            fSamplePointer = 0;
             words_read = 5;
 
             // For all events in this buffer
@@ -214,6 +215,7 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
             for (size_t event = 0; event < GetNumberOfEvents(); event++) {
               // create a new raw sampled event
               fSamplesRaw[event].SetNumberOfSamples(numberofsamples);
+              fSamplesRaw[event].SetSamplePointer(samplepointer);
               // pass the buffer to read the samples
               UInt_t samples_read = fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
               // check whether we actually read any data
@@ -237,15 +239,16 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
           // - because a circular buffer is used the pointer to the last sample
           //   is stored
           case MODE_SINGLE_EVENT:
+            samplepointer = buffer[2];
             numberofsamples = buffer[3];
             numberofevents_expected = 1;
-            fSamplePointer = buffer[2];
 
             // Create a new raw sampled event
             SetNumberOfEvents(numberofevents_expected);
             // Pass the buffer to read the samples (only one event)
             fSamplesRaw.at(0).SetNumberOfSamples(numberofsamples);
-            fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, fSamplePointer);
+            fSamplesRaw.at(0).SetSamplePointer(samplepointer);
+            fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, samplepointer);
 
             break;
 
@@ -799,7 +802,6 @@ void QwSIS3320_Channel::Copy(const VQwDataElement* source)
       this->fCurrentEvent           = input->fCurrentEvent;
       this->fNumberOfEvents         = input->fNumberOfEvents;
       this->fSampleFormat           = input->fSampleFormat;
-      this->fSamplePointer          = input->fSamplePointer;
       this->fSamples                = input->fSamples;
       this->fSamplesRaw             = input->fSamplesRaw;
       this->fAverageSamples         = input->fAverageSamples;
