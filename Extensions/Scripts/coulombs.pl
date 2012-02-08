@@ -19,13 +19,15 @@ my @shift = qw[owl day swing];
 my @wget = qw[wget --no-check-certificate -q -O-];
 my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
 my $interval = 10; # interpolation time in seconds
-my @channels = qw[ibcm1 g0rate14];
+## TODO: this is not the horizontal encoder variable ...
+my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
-my ($help,$nodaqcut,$outfile);
+my ($help,$nodaqcut,$outfile,$target_want);
 my $optstatus = GetOptions
   "help|h|?"	=> \$help,
   "no-daq-cut"	=> \$nodaqcut,
   "outfile=s"	=> \$outfile,
+  "target=s"	=> \$target_want,
 ;
 
 @channels = qw[ibcm1] if $nodaqcut;
@@ -59,6 +61,7 @@ For example:
 Options:
 	--help		print this text
 	--no-daq-cut	integrate /all/ the time, ignore g0rate14
+	--target=blah	(eventually) count only data taken on target "blah"
 	--outfile=blah	save the downloaded data to a file named "blah"
 EOF
 die $helpstring if $help;
@@ -86,6 +89,35 @@ my %args = (
 	INTERPOL	=> $interval,
 	   );
 
+sub does_target_match {
+  ## Call this sub with three arguments: name, x, y
+  my $target_want = lc shift;
+  my ($read_x, $read_y) = (shift, shift);
+
+  my ($x_tol, $y_tol) = (10, 10);
+
+  my %encoder =
+    ## taken from hclog 243382
+    ## https://hallcweb.jlab.org/hclog/1112_archive/111209140452.html
+    ## TODO: not all targets listed ...
+    (	"ds-2%-aluminum"	=> [ -65996.00, 301.60 ],
+	"ds-8%-aluminum"	=> [  -1904.00, 301.60 ],
+	"ds-4%-aluminum"	=> [ +64432.00, 301.60 ],
+	"hydrogen-cell"		=> [ -3776.00, 474.00 ],
+    );
+
+  unless (exists $encoder{$target_want}) {
+    die "don't know about target '$target_want'; options are:\n",
+      map {"\t$_\n"} sort keys %encoder;
+  }
+
+  my ($want_x, $want_y) = $encoder{$target_want};
+
+  return 0 if abs( $read_x - $want_x ) > $x_tol;
+  return 0 if abs( $read_y - $want_y ) > $y_tol;
+  return 1;
+}
+
 my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
 
 my $ofh;
@@ -97,13 +129,17 @@ open DATA, "-|", @wget, $url
   or die "couldn't open wget: $!\n";
 while (<DATA>) {
   print $ofh $_ if $ofh;
-  my($day, $time, $ibcm1, $daqrate) = split ' ';
+  my($day, $time, $ibcm1, $daqrate, $target_x, $target_y) = split ' ';
 
   $daqrate = 960 if $nodaqcut;
 
   # skip ugly lines
   next if /^[;T]/ or m[N/A];
   next unless looks_like_number $ibcm1 and looks_like_number $daqrate;
+
+  # possibly limit by target
+  next if $target_want and
+    not does_target_match $target_want, $target_x, $target_y;
 
   my($hour,$minute,$second) = split /:/, $time;
   my $shift = int($hour/8);
