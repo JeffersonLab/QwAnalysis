@@ -3,7 +3,7 @@
  **.. of data from first runlet
  ** A.Narayan */
 
-# include "MyClass.h"
+#include <rootClass.h>
 
 Int_t eDetviewAll(Int_t runnum, Bool_t isFirst100k=kFALSE)
 {
