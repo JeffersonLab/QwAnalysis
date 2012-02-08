@@ -1180,20 +1180,20 @@ void QwHelicityCorrelatedFeedback::GetTargetPositionStat(){
   fTargetXDiffError=fTargetXDiffRunningSum.GetValueError()*1.0e+3;
   fTargetXDiffWidth=fTargetXDiffRunningSum.GetValueWidth()*1.0e+3;
 
-  //Update XP stats
-  fTargetXPDiff=fTargetXPDiffRunningSum.GetValue()*1.0e+3;
-  fTargetXPDiffError=fTargetXPDiffRunningSum.GetValueError()*1.0e+3;
-  fTargetXPDiffWidth=fTargetXPDiffRunningSum.GetValueWidth()*1.0e+3;
+  //Update XP stats in nrad
+  fTargetXPDiff=fTargetXPDiffRunningSum.GetValue()*1.0e+6;
+  fTargetXPDiffError=fTargetXPDiffRunningSum.GetValueError()*1.0e+6;
+  fTargetXPDiffWidth=fTargetXPDiffRunningSum.GetValueWidth()*1.0e+6;
 
   //Update Y stats
   fTargetYDiff=fTargetYDiffRunningSum.GetValue()*1.0e+3;
   fTargetYDiffError=fTargetYDiffRunningSum.GetValueError()*1.0e+3;
   fTargetYDiffWidth=fTargetYDiffRunningSum.GetValueWidth()*1.0e+3;
 
-  //Update YP stats
-  fTargetYPDiff=fTargetYPDiffRunningSum.GetValue()*1.0e+3;
-  fTargetYPDiffError=fTargetYPDiffRunningSum.GetValueError()*1.0e+3;
-  fTargetYPDiffWidth=fTargetYPDiffRunningSum.GetValueWidth()*1.0e+3;
+  //Update YP stats in nrad
+  fTargetYPDiff=fTargetYPDiffRunningSum.GetValue()*1.0e+6;
+  fTargetYPDiffError=fTargetYPDiffRunningSum.GetValueError()*1.0e+6;
+  fTargetYPDiffWidth=fTargetYPDiffRunningSum.GetValueWidth()*1.0e+6;
 
   /*
   fTargetXDiffRunningSum.PrintInfo();
