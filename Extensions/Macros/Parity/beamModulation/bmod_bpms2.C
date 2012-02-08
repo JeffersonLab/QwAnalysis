@@ -312,7 +312,7 @@ void bmod_bpms2(UInt_t run_number=0)
 	  phase[i] = func->GetParameter(2);
 	  phase_e[i] = func->GetParError(2);
 	  // 	  printf("%s%7.4f%s\n",green,phase[i],normal);
-	  angle[i] = func->Derivative(phase[i] = 180);
+	  angle[i] = func->Derivative(phaseY[i] = 180);
 
 
 
