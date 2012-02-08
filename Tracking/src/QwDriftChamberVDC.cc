@@ -72,6 +72,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	{
 	  //  Break this line Int_to tokens to process it.
 	  varvalue     = mapstr.GetTypedNextToken<TString>();//this is the sType
+	  if (varvalue != "drift") continue;
 	  for (Int_t i=0;i<5;i++)
 	    ZPOS[i]      = mapstr.GetTypedNextToken<Double_t>();			
 	  for (Int_t i=0;i<5;i++)
@@ -81,6 +82,8 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	  slope_match  = mapstr.GetTypedNextToken<Double_t>();
 	  package      = mapstr.GetTypedNextToken<TString>();
 	  region       = mapstr.GetTypedNextToken<Int_t>();
+	  if (region != 3) continue;
+
 	  dType        = mapstr.GetTypedNextToken<TString>();
 	  direction    = mapstr.GetTypedNextToken<TString>();
 	  for (Int_t i=0;i<5;i++)
@@ -115,10 +118,23 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	  QwDebug << " VDC : Detector ID " << detectorId << " " << varvalue
 		  << " Package "     << package << " Plane " << Zpos
 		  << " Region "      << region << QwLog::endl;
-	  //std::cout << oct << "------------- " << " oct " << Zpos << " zpos " << Det_originX << " x " << Det_originY << " y " << rot << " rot " << tilt << " tilt " << detectorId <<  "----------" << std::endl; 
+	  std::cout << " Package " << package 
+	    //			<< " Plane " << plane 
+			<< " Region " << region
+			<< " R3-octant " << fR3Octant
+			<< " oct       " << oct
+			<< " Zpos      " << Zpos
+			<< " Det_origin [x,y] " << Det_originX << " , " << Det_originY
+			<< " Rot " << rot 
+			<< " Tilt " << tilt
+			<< " Detector ID " << detectorId
+			<< std::endl;
 
 	  if ( region==3 )
 	    {
+	      
+	 
+	      
 	      QwDetectorInfo* detector = new QwDetectorInfo();
 	      detector->SetDetectorInfo(dType, Zpos,
 					rot, sp_res, track_res, slope_match,
