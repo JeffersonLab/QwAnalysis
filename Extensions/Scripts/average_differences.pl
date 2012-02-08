@@ -3,10 +3,13 @@ use strict;
 use warnings;
 
 use Date::Manip;
+
 use Scalar::Util qw[looks_like_number];
 use Getopt::Long;
 
+sub comparetimestamps($$);
 sub buildurl($$@);
+sub HCdiffs_for_timerange($$@);
 
 
 ################################################################
@@ -37,6 +40,12 @@ my @diff_channels = qw[
 		     qw:TargetDiffYP
 		     qw:TargetDiffYPError
 		       ];
+my @helmag_channels = qw[
+			 hel_even_1
+			 hel_even_2
+			 hel_even_3
+			 hel_even_4
+			 ];
 
 my ($help,$outfile);
 my $optstatus = GetOptions
@@ -46,15 +55,16 @@ my $optstatus = GetOptions
 my $then = shift @ARGV;
 my $later  = shift @ARGV;
 
-my $now;
-my $timestamp_prev = "";
+my $rightnow;
 
 $then = ParseDate( $then ? $then : "yesterday midnight");
-$now  = DateCalc  ParseDate( "now" ), "-10 seconds";
+$rightnow  = DateCalc  ParseDate( "now" ), "-10 seconds";
 $later = $later ? ParseDate($later) : DateCalc($then, "+48 hours");
 
 # don't interpolate a few seconds into the next day
 $later = DateCalc $later, "-10 seconds";
+
+my $timestamp_prev = $then;
 
 my @fmt = qw[%Y %m %d %H %M %S];
 my @then = UnixDate($then, @fmt);
@@ -92,77 +102,85 @@ if ($outfile) {
 my($day, $time, $ihwp1, $ihwp2, $tmpihwp1, $tmpihwp2, $ihwpmode,  $ihwpmode_prev);
 $ihwpmode_prev = $ihwpmode = $ihwp1 = $ihwp2 = -1;
 
+my $VerboseDebug = 0;
 
-open DATA, "-|", @wget, buildurl($then,$later,@ihwp_channels)
+my ($dim, $channame, @helmag, @helmag_prev);
+
+for ($dim=0; $dim<=$#helmag_channels; $dim++){
+    $helmag[$dim]      = 0;
+    $helmag_prev[$dim] = 0;
+}
+
+open DATA, "-|", @wget, buildurl($then,$later,@ihwp_channels,@helmag_channels)
   or die "couldn't open wget: $!\n";
 while (<DATA>) {
-  next if /^[;T]/;
-  my($day, $time, $tmpihwp1, $tmpihwp2) = split ' ';
+    next if /^[;T]/;
+    my @hc_fields = split ' ';
+    my $day  = shift @hc_fields;
+    my $time = shift @hc_fields;
+  
+    if ($hc_fields[0] =~ /\#N\/A/) {
+	#  Do nothing for N/A
+    } elsif ($hc_fields[0] =~ /OUT/){
+	$ihwp1 = 0;
+    } elsif ($hc_fields[0] =~ /IN/){
+	$ihwp1 = 1;
+    }
+    if ($hc_fields[1] =~ /\#N\/A/) {
+	#  Do nothing for N/A
+    } elsif ( abs($hc_fields[1] - 8960)<1) {
+	#  IHWP2 is out
+	$ihwp2 = 0;
+    } elsif ( abs($hc_fields[1] - 13056)<1) {
+	#  IHWP2 is in
+	$ihwp2 = 2;
+    }
+    if ($ihwp1>-1 && $ihwp2>-1){
+	$ihwpmode = ($ihwp1+$ihwp2);
+    }
+    my $helmag_change = 0;
+    for ($dim=0; $dim<=$#helmag_channels; $dim++){
+	if ($hc_fields[2+$dim] =~ /\#N\/A/){
+	    #  Do nothing for N/A
+	} elsif ( $helmag[$dim] != $hc_fields[2+$dim]){
+	    $helmag[$dim] = $hc_fields[2+$dim];
+	    $helmag_change++;
+	}
+    }
+    next if ($helmag_change==0 && $ihwpmode == $ihwpmode_prev);
+    my $timestamp = ParseDate ("$day $time");
 
-  next if ( $tmpihwp1 =~ /\#N\/A/) && ($tmpihwp2 =~ /\#N\/A/);
+    print STDOUT
+	"Found: $timestamp $ihwpmode ",
+	join(" ",@helmag_prev),"\n"
+	if $VerboseDebug;
 
-  if ($tmpihwp1 =~ /\#N\/A/) {
-    #  Do nothing for N/A
-  } elsif ($tmpihwp1 =~ /OUT/){
-    $ihwp1 = 0;
-  } elsif ($tmpihwp1 =~ /IN/){
-    $ihwp1 = 1;
-  }
-  if ($tmpihwp2 =~ /\#N\/A/) {
-    #  Do nothing for N/A
-  } elsif ( abs($tmpihwp2 - 8960)<1) {
-    #  IHWP2 is out
-    $ihwp2 = 0;
-  } elsif ( abs($tmpihwp2 - 13056)<1) {
-    #  IHWP2 is in
-    $ihwp2 = 2;
-  }
-
-  if ($ihwp1>-1 && $ihwp2>-1) {
-    if ($ihwpmode != ($ihwp1+$ihwp2)) {
-      $ihwpmode = ($ihwp1+$ihwp2);
-      my $timestamp = ParseDate ("$day $time");
-      if ($ihwpmode_prev>-1) {
-        print "$timestamp_prev $timestamp $ihwpmode_prev\n";
+    #  If the new timestamp is less than 1 minute different from
+    #  the previous timestamp, then don't handle it as a timerange.
+    if ($ihwpmode_prev>-1 
+	&& comparetimestamps($timestamp_prev,$timestamp)>60) {
+	print 
+	    "$timestamp_prev $timestamp $ihwpmode_prev ",
+	    join(" ",@helmag_prev),"\n";
 	print $ofh  "$timestamp_prev $timestamp $ihwpmode_prev\n" if $ofh;
 
 	# Found a date range corresponding to a IHWP setting.
-	# Get position differences.
-	open DATA2, "-|", @wget, buildurl($timestamp_prev,$timestamp,@diff_channels);
-	my ($hcdate, $hctime);
-	while (<DATA2>) {
-	    next if /^[;T]/;
-	    print $ofh $_ if $ofh;
-	    my @hc_fields = split ' ';
-	    $hcdate = shift @hc_fields;
-	    $hctime = shift @hc_fields;
-	    if ($_ =~ /\#N\/A/){
-		#  One or more fields are empty.
-		#  We could check the next entry to see if it completes
-		#  the missing data.
-		#
-		#  But skip it for now.
-		next;
-	    }
-	    #  Here is where we should accumulate the averages.
-	    #  Or we could dump the values into a set of arrays until
-	    #  we have them all to be able to work with them all at
-	    #  once.
-	    print @hc_fields,"\n";
-	}
-	#  Here is where we ought to be able to get a "final" set of
-	#  HC position differences for this time period, which could
-	#  be used to figure out how to make a correction, perhaps.
-      }
-      $timestamp_prev =  $timestamp;
-      $ihwpmode_prev  =  $ihwpmode;
+	HCdiffs_for_timerange($timestamp_prev,$timestamp, @diff_channels);
     }
-  }
-}
-if ($timestamp_prev ne ""){
-  print "Current IHWP mode:  $timestamp_prev $now $ihwpmode_prev\n";
+    $timestamp_prev =  $timestamp;
+    $ihwpmode_prev  =  $ihwpmode;
+    for ($dim=0; $dim<=$#helmag_channels; $dim++){
+	$helmag_prev[$dim] = $helmag[$dim];
+    }
 }
 unless ($.) { warn "warning: fetched no data.\n" }
+
+if ($timestamp_prev ne ""){
+    print 
+	"$timestamp_prev $rightnow $ihwpmode_prev ",
+	join(" ",@helmag_prev),"\n";
+    HCdiffs_for_timerange($timestamp_prev,$rightnow, @diff_channels);
+}
 
 ### Parse this block after reaching the end of the input file
 # print "Read $. lines from archiver\n";
@@ -172,31 +190,38 @@ unless ($.) { warn "warning: fetched no data.\n" }
 exit;
 
 
+#########################################################################
+sub comparetimestamps($$){
+    my ($date1, $date2) = @_;
+    my $seconds =  UnixDate($date2,"%s") - UnixDate($date1,"%s");
+    # print "$date1 $date2 $seconds\n";
+    return $seconds;
+}
 
 #########################################################################
 sub buildurl($$@){
-    my ($then, $now, @channels) = @_;
+    my ($starttime, $stoptime, @channels) = @_;
 
     my @fmt = qw[%Y %m %d %H %M %S];
-    my @then = UnixDate($then, @fmt);
-    my @now  = UnixDate($now , @fmt);
+    my @starttime = UnixDate($starttime, @fmt);
+    my @stoptime  = UnixDate($stoptime , @fmt);
 
     my %args = (
 	DIRECTORY	=> "..%2FArchives%2FArchiveData%2Ffreq_directory",
 	PATTERN		=> "",
 	NAMES		=> "@channels",
-	STARTMONTH	=> $then[1],
-	STARTDAY	=> $then[2],
-	STARTYEAR	=> $then[0],
-	STARTHOUR	=> $then[3],
-	STARTMINUTE	=> $then[4],
-	STARTSECOND	=> $then[5],
-	ENDMONTH	=> $now[1],
-	ENDDAY		=> $now[2],
-	ENDYEAR		=> $now[0],
-	ENDHOUR		=> $now[3],
-	ENDMINUTE	=> $now[4],
-	ENDSECOND	=> $now[5],
+	STARTMONTH	=> $starttime[1],
+	STARTDAY	=> $starttime[2],
+	STARTYEAR	=> $starttime[0],
+	STARTHOUR	=> $starttime[3],
+	STARTMINUTE	=> $starttime[4],
+	STARTSECOND	=> $starttime[5],
+	ENDMONTH	=> $stoptime[1],
+	ENDDAY		=> $stoptime[2],
+	ENDYEAR		=> $stoptime[0],
+	ENDHOUR		=> $stoptime[3],
+	ENDMINUTE	=> $stoptime[4],
+	ENDSECOND	=> $stoptime[5],
 	COMMAND		=> "GET",
 	FORMAT		=> "SPREADSHEET",
 	Y0		=> "0",
@@ -207,3 +232,76 @@ sub buildurl($$@){
 }
 
 
+#########################################################################
+sub HCdiffs_for_timerange($$@){
+    my($timestamp_prev,$timestamp,@channels) = @_;
+
+    my (@sumval, @sumerr, $dim, $val, $err, $err2);
+    my $maxdim = 4;
+    for ($dim=0; $dim<$maxdim; $dim++){
+	$sumval[$dim] = 0.0;
+	$sumerr[$dim] = 0.0;
+    };
+
+    # Get position differences.
+    open DATA2, "-|", @wget, buildurl($timestamp_prev,$timestamp,@channels);
+    my ($hcdate, $hctime);
+    while (<DATA2>) {
+	next if /^[;T]/;
+	print $ofh $_ if $ofh;
+	my @hc_fields = split ' ';
+	$hcdate = shift @hc_fields;
+	$hctime = shift @hc_fields;
+	if ($_ =~ /\#N\/A/){
+	    #  One or more fields are empty.
+	    #  We could check the next entry to see if it completes
+	    #  the missing data.
+	    #
+	    #  But skip it for now.
+	    next;
+	}
+	#  Here is where we should accumulate the averages.
+	#  Or we could dump the values into a set of arrays until
+	#  we have them all to be able to work with them all at
+	#  once.
+	for ($dim=0; $dim<$maxdim; $dim++){
+	    $val = $hc_fields[2*$dim];
+	    $err = $hc_fields[2*$dim+1];
+	    if ($err > 0){
+		$err2 = $err * $err;
+		$sumval[$dim] += $val/$err2;
+		$sumerr[$dim] += 1.0/$err2;
+	    } else {
+		$val = $err = 0.0;
+	    }
+	    if ($VerboseDebug){
+		print 
+		    "\t",$channels[2*$dim]," ",
+		    $val," +/- ",$err," ";
+		if ($sumerr[$dim] > 0){
+		    print
+			$sumval[$dim]/$sumerr[$dim]," +/- ",
+			sqrt(1.0/$sumerr[$dim]);
+		} else {
+		    print 0.0," +/- ",0.0;
+		}
+	    }
+	}
+	print "\n" if $VerboseDebug;
+    }
+    close DATA2;
+    
+    #  Here is where we ought to be able to get a "final" set of
+    #  HC position differences for this time period, which could
+    #  be used to figure out how to make a correction, perhaps.
+    for ($dim=0; $dim<$maxdim; $dim++){
+	my ($val, $err);
+	if ($sumerr[$dim] > 0){
+	    $val = $sumval[$dim]/$sumerr[$dim];
+	    $err = sqrt(1.0/$sumerr[$dim]);
+	} else {
+	    $val = $err = 0.0;
+	}
+	print "\t",$channels[2*$dim],"\t",$val," +/- ",$err,"\n";
+    };
+}
