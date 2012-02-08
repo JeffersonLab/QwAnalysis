@@ -3,7 +3,8 @@ bank=0x0901
 
 
 slot=20
-0 99 0
+0,  99, MasterTrigger
+!0 99 0
 
 !package 1
 !below format is wire plane, direction
@@ -479,7 +480,8 @@ pkg=2
  12,4
 
 slot=20
-0 99 0
+0,  99, MasterTrigger
+!0 99 0
 
 !format: channel, plane, wire
 
