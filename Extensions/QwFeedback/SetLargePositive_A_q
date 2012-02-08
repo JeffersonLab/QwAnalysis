@@ -63,9 +63,9 @@ if [ "$IHWP_State" == "OUT " ];then
 	PC_pos_OUT=$(($PC_pos_t0_OUT + $PC_Delta_Counts))
 	PC_neg_OUT=$(($PC_neg_t0_OUT - $PC_Delta_Counts))
 	echo "Setting PC positive setpoint to $PC_pos_OUT to get large positive charge asymmetry"
-	#caput C1068_QDAC01 $PC_pos_OUT
+	caput C1068_QDAC01 $PC_pos_OUT
 	echo "Setting PC negative setpoint to $PC_neg_OUT to get large positive charge asymmetry"
-	#caput C1068_QDAC02 $PC_neg_OUT
+	caput C1068_QDAC02 $PC_neg_OUT
 else
 #	PC_pos_t0_IN="`cat /local/scratch/qweak/Last_good_PC_pos_IN`"
 #	PC_neg_t0_IN="`cat /local/scratch/qweak/Last_good_PC_neg_IN`"

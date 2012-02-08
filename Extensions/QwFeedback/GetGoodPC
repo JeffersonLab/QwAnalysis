@@ -14,9 +14,9 @@
 # /local/scratch/qweak/Last_good_PC_pos_IN
 # /local/scratch/qweak/Last_good_PC_neg_IN
 # set updated by the feedback program with last oggd PC values.- Changed by Rakitha 04/15/2011 - rakithab@jlab.org
-RHWP_IN=289
-RHWP_OUT=4679
-RHWP_OUT_IN=5547
+RHWP_IN=391
+RHWP_OUT=6342
+RHWP_OUT_IN=7519
 
 IHWP2="`caget -tf0 -w 0.1  IGL1I00DIOFLRD`"
 if [ $IHWP2 -ge 10000 ]; then

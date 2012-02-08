@@ -113,14 +113,17 @@ IA_up  = 50000
 #PITASLOPE_OUT = -0.8879
 #PITASLOPE_OUT_IN = -0.8879
 
-### Run 2 ; IHWP IN-OUT slope from run 15683
-### Run 2 ; IHWP OUT-OUT slope from run 15681
-### Run 2 ; IHWP OUT-IN slope from run 15682
-### See HCLOG 251489
+### Run 2 ; IHWP IN-OUT slope from run 15716
+### Run 2 ; IHWP OUT-OUT slope from run 15712
+### Run 2 ; IHWP OUT-IN slope from run 15786 
+### See HCLOG 252279
 
-PITASLOPE_IN = 0.866863
-PITASLOPE_OUT = 0.347861
-PITASLOPE_OUT_IN = 0.345174
+PITASLOPE_IN = 0.8080
+PITASLOPE_OUT = -1.22794
+PITASLOPE_OUT_IN = 0.6002
+
+
+
 
 
 
