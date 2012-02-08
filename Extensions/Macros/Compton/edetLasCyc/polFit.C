@@ -2,7 +2,7 @@
 #include "asymFit.C"
 #include "comptonRunConstants.h"
 
-Float_t polFit()
+void polFit()
 {
   Float_t theoExpRatio[nPlanes][nStrips], stripAsymRMS[nPlanes][nStrips];
   Float_t zero[nStrips],stripPlot[nStrips];
@@ -28,6 +28,5 @@ Float_t polFit()
     grPolPlane[p]->Draw("A*");                      
     cPol->Update();
   }
-  return 1.0;
 }
   

@@ -7,7 +7,7 @@ const Float_t hbarc=0.197E-15;/// GeV.m
 const Float_t alpha=0.00729927; ///=1.0/137.0;
 const Float_t me=0.000511;///GeV
 const Float_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
-const Float_t B_dipole = 0.675;///T
+const Float_t B_dipole = 0.544;///T
 const Float_t E = 1.159; //Beam energy (GeV)
 const Float_t lambda = 532E-9; //photon wavelength (nm)      
 const Float_t xgap = 0.007; //!min distance (m)
@@ -27,12 +27,13 @@ const Double_t ignoreBeamAbove = 195.0;
 const Double_t ignoreLasPowAbove = 195.0;
 const Bool_t IHWP_in=1;///1:in; 0:out
 
-const Int_t runnum = 23351;
+const Int_t runnum = 23351;//23351;23625
+const Int_t mystr = 48; //a strip near compton edge to testing my script
 const Int_t startStrip = 0;
-  const Int_t endStrip = 55;
+  const Int_t endStrip = 53;
 const Int_t startPlane = 0;
   const Int_t endPlane = 4;
-const Int_t Cedge = 49;///Compton-edge for the current run
+const Int_t Cedge = 48;///Compton-edge for the current run(counting from 0)
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
