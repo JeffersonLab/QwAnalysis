@@ -47,6 +47,7 @@ QwDriftChamber::QwDriftChamber(const TString& name, std::vector< QwHit > &fWireH
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
+  fF1RefContainer = new F1TDCReferenceContainer();
 
 }
 
@@ -64,13 +65,14 @@ QwDriftChamber::QwDriftChamber(const TString& name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
-
+  fF1RefContainer = new F1TDCReferenceContainer();
 }
 
 
 QwDriftChamber::~QwDriftChamber()
 {
   delete fF1TDContainer;
+  delete fF1RefContainer;
 }
 
 void  QwDriftChamber::FillDriftDistanceToHits()

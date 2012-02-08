@@ -38,13 +38,14 @@ QwSciFiDetector::QwSciFiDetector(const TString& name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels(); 
-  
+  fF1RefContainer = new F1TDCReferenceContainer();
 }
 
 QwSciFiDetector::~QwSciFiDetector()
 {
   fSCAs.clear();
   delete fF1TDContainer;
+  delete fF1RefContainer;
 };
 
 
@@ -114,14 +115,19 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
       }
       if (modtype=="F1TDC") {
 
-	if (name=="99") {
-	  //	  fReferenceChannels.push_back(std::make_pair(fCurrentModuleIndex, chan_number));
-	  printf("bank index %d Chan %d reference_counter %d\n", fCurrentBankIndex, chan_number, reference_counter);
-	  fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentModuleIndex;
-	  fReferenceChannels.at ( fCurrentBankIndex ).second = chan_number;
+	if (fiber_number==99) {
 
-	  fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = fCurrentBankIndex;
-	  reference_counter++;
+	  fF1RefContainer -> AddF1TDCReferenceSignal(new F1TDCReferenceSignal(fCurrentBankIndex, slot_number, chan_number, name));
+
+	  if (name=="MasterTrigger" ) {
+	    //	  fReferenceChannels.push_back(std::make_pair(fCurrentModuleIndex, chan_number));
+	    //	    printf("bank index %d Chan %d reference_counter %d\n", fCurrentBankIndex, chan_number, reference_counter);
+	    fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentModuleIndex;
+	    fReferenceChannels.at ( fCurrentBankIndex ).second = chan_number;
+	    
+	    fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = fCurrentBankIndex;
+	    reference_counter++;
+	  }
 	}
 	else {
 	  fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = name.Atoi();
@@ -349,6 +355,8 @@ QwSciFiDetector::ClearEventData()
   fTDCHits.clear();
   std::size_t i = 0;
   
+  fF1RefContainer->ClearEventData();
+
   for (i=0; i<fReferenceData.size(); i++) {
     fReferenceData.at(i).clear();
   }
@@ -793,6 +801,7 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
 
       if (data_integrity_flag) {
 	
+	//	printf("\n");
 	for (UInt_t i=0; i<num_words ; i++) {
 	  
 	  //  Decode this word as a F1TDC word.
@@ -823,6 +832,7 @@ QwSciFiDetector::ProcessEvBuffer(const UInt_t roc_id,
 	    try {
 	      vme_module_data = fF1TDCDecoder.GetTDCData();
 	      FillRawTDCWord(bank_index, vme_module_slot_number, vme_module_chan_number, vme_module_data);
+
 	    }
 	    catch (std::exception& e) {
 	      std::cerr << "Standard exception from QwSciFiDetector::FillRawTDCWord: "
@@ -883,7 +893,6 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
 
   tdcindex = GetModuleIndex(bank_index,slot_num);
 
-
   // I think, it is not necessary, but is just "safe" double check routine.
   if (tdcindex not_eq -1) {
 
@@ -896,8 +905,14 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     Int_t   element = 0; // fiber orient type (0 (both), 1(a), 2(b)) for the fibers, and  the module index for the reference channel
     TString name         = "";
  
-
-
+    F1TDCReferenceSignal *f1_ref_signal;
+    
+    f1_ref_signal = fF1RefContainer->GetReferenceSignal(bank_index, slot_num, chan);
+    if( f1_ref_signal ) {
+      f1_ref_signal -> SetRefTimeAU (data);
+      //  std::cout << *f1_ref_signal << std::endl;
+    }
+    
     plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
     element = fDetectorIDs.at(tdcindex).at(chan).fElement;
     package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
@@ -913,6 +928,7 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
       fReferenceData.at(element).push_back(data);
       // we assign the reference time into fReferenceData according the module index
       // See LocalChannelMap
+ 
     }
     else {
       direction = fDetectorIDs.at(tdcindex).at(chan).fDirection;

@@ -17,7 +17,8 @@
 
 ClassImp(QwF1TDC)
 ClassImp(QwF1TDContainer)
-
+ClassImp(F1TDCReferenceSignal)
+ClassImp(F1TDCReferenceContainer)
 
 //
 //
@@ -1903,4 +1904,236 @@ QwF1TDContainer::DoneF1TDCsConfiguration()
   //
   fF1TDCOneResolutionNS = this->GetF1TDCsResolution();
   return fF1TDCOneResolutionNS;
+}
+
+
+
+
+//----------------------------------
+//
+//
+//
+//  F1TDCReferenceSignal
+//
+//
+//
+//
+//----------------------------------
+
+
+
+
+F1TDCReferenceSignal::F1TDCReferenceSignal()
+{
+  fSlot          = -1;
+  fChannelNumber = -1;
+  fBankIndex     = -1;
+  fRefSignalName = "";
+
+  Clear();
+}
+
+
+
+F1TDCReferenceSignal::F1TDCReferenceSignal(
+					   const Int_t bank_index, 
+					   const Int_t slot, 
+					   const Int_t channel
+					   )
+{
+  fSlot          = slot;
+  fChannelNumber = channel;
+  fBankIndex     = bank_index;
+  fRefSignalName = "";
+
+  Clear();
+
+}
+
+
+
+F1TDCReferenceSignal::F1TDCReferenceSignal(
+					   const Int_t bank_index, 
+					   const Int_t slot, 
+					   const Int_t channel,
+					   const TString name
+					   )
+{
+  fSlot          = slot;
+  fChannelNumber = channel;
+  fBankIndex     = bank_index;
+  fRefSignalName = name;
+  
+  Clear();
+} 
+
+
+
+
+
+
+std::ostream& operator<< (std::ostream& os,  const F1TDCReferenceSignal &f1tdcref)
+{
+  os << " Name ";
+  os << std::setw(22) << f1tdcref.fRefSignalName;
+  os << " Bank idx ";
+  os << std::setw(2) << f1tdcref.fBankIndex;
+  os << " Slot ";
+  os << std::setw(2) << f1tdcref.fSlot;
+  os << " Chan ";
+  os << std::setw(2) << f1tdcref.fChannelNumber;
+  os << " RefTime (a.u.) ";
+  os << std::setw(2) << f1tdcref.fRefTimeArbUnit;
+
+  return os;
+}
+
+
+Bool_t F1TDCReferenceSignal::SetRefTimeAU(const Double_t ref_time) 
+{
+  // always save the first hit as the reference signal
+  Bool_t status = false;
+  if( not HasFirstHit() ) { 
+  fRefTimeArbUnit = ref_time; 
+  fFirstHitFlag = true;
+  status = true;
+  }
+  return status;
+};
+
+
+
+
+//----------------------------------
+//
+//
+//
+//  F1TDCReferenceContainer
+//
+//
+//
+//
+//----------------------------------
+
+
+
+
+F1TDCReferenceContainer::F1TDCReferenceContainer()
+{
+  fF1TDCReferenceSignalsList = new TObjArray();
+ 
+  fF1TDCReferenceSignalsList -> Clear();
+  fF1TDCReferenceSignalsList -> SetOwner(kTRUE);
+
+
+  fNF1TDCReferenceSignals = 0;
+
+}
+
+
+F1TDCReferenceContainer::~F1TDCReferenceContainer()
+{
+  if(fF1TDCReferenceSignalsList) {
+    delete fF1TDCReferenceSignalsList; 
+    fF1TDCReferenceSignalsList = NULL;
+  }
+}
+
+
+
+void 
+F1TDCReferenceContainer::AddF1TDCReferenceSignal(F1TDCReferenceSignal *in)
+{
+  Int_t pos = 0;
+
+  pos = fF1TDCReferenceSignalsList -> AddAtFree(in);
+  //  printf("AddF1TDCReferenceSignal at pos %d\n", pos);
+  std::cout << *in << std::endl;
+  fNF1TDCReferenceSignals++;
+  return;
+}
+
+
+
+F1TDCReferenceSignal *
+F1TDCReferenceContainer::GetReferenceSignal(Int_t bank_index, 
+					    Int_t slot, 
+					    Int_t chan
+					    )
+{
+  Int_t bank_idx = 0;
+  Int_t slot_num = 0;
+  Int_t chan_num = 0;
+  // Int_t time_au  = 0;
+  
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+
+      bank_idx    = F1RefSignal->GetBankIndex();
+      slot_num    = F1RefSignal->GetSlotNumber();
+      chan_num    = F1RefSignal->GetChannelNumber();
+      //     time_au     = F1RefSignal->
+      if( (bank_idx == bank_index) and (slot_num == slot) and (chan_num == chan) ) {
+	if ( F1RefSignal->HasFirstHit() ) return NULL;
+	else return F1RefSignal;
+      }
+    }
+
+  return NULL;
+}
+
+
+
+Double_t
+F1TDCReferenceContainer::GetReferenceTimeAU(Int_t bank_index, 
+					    Int_t slot, 
+					    Int_t chan
+					    )
+{
+  Int_t bank_idx = 0;
+  Int_t slot_num = 0;
+  Int_t chan_num = 0;
+  
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+
+      bank_idx    = F1RefSignal->GetBankIndex();
+      slot_num    = F1RefSignal->GetSlotNumber();
+      chan_num    = F1RefSignal->GetChannelNumber();
+
+      if( (bank_idx == bank_index) and (slot_num == slot) and (chan_num == chan) ) {
+	return F1RefSignal->  GetRefTimeAU();
+      }
+    }
+
+  return -1.0;
+}
+
+
+
+void
+F1TDCReferenceContainer::ClearEventData()
+{
+  
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+      F1RefSignal->ClearEventData();
+    }
+
+  return;
 }

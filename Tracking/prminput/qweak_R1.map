@@ -12,7 +12,7 @@ slot=6
 ! module.type  module.num  chan.num, det.type, det.name
 !  F1TDC, 6, 32, scifiber, sf_pmt_1357_f1
 ! channle, fiber numbers, fiber end
-F1TDC, 6, 23, 99,   99
+F1TDC, 6, 23, 99,   MasterTrigger
 F1TDC, 6, 32, 1357, 0
 
 
@@ -30,7 +30,16 @@ bank=0x0901
 slot=20
 !format: type chan.num  fiber.num  name
 !module=F1TDC
-F1TDC, 20,  0, 99, 99
+F1TDC, 20,  0, 99, MasterTrigger
+F1TDC, 20,  2, 99, R2ScintPkg1
+F1TDC, 20,  4, 99, R2ScintPkg2
+F1TDC, 20,  6, 99, R2ScintOR
+F1TDC, 20,  8, 99, TrigScintPkg1
+F1TDC, 20, 10, 99, TrigScintPkg2
+F1TDC, 20, 12, 99, TrigScintOR
+F1TDC, 20, 18, 99, MainDetTrigger
+!F1TDC, 20, 20, 99, ScannerTrigger
+F1TDC, 20, 28, 99, CopyMasterTrigger
 F1TDC, 20, 33, 8, 2
 F1TDC, 20, 35, 6, 2
 F1TDC, 20, 37, 4, 2

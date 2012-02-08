@@ -161,6 +161,8 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   QwF1TDContainer *fF1TDContainer;
 
+  F1TDCReferenceContainer *fF1RefContainer;
+
   //  NOTE:  The plane and wire indices count from "1" instead
   //         of from "0".
   //         When you're creating loops, just be careful that

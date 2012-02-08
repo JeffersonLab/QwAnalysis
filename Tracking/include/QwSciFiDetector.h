@@ -106,7 +106,8 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
 
   MQwF1TDC         fF1TDCDecoder;
   QwF1TDContainer *fF1TDContainer;
-  
+  F1TDCReferenceContainer * fF1RefContainer;
+
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber  (const UInt_t roc_id);
   Int_t RegisterSubbank    (const UInt_t bank_id);
