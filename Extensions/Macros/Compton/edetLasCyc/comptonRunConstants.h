@@ -14,7 +14,7 @@ const Float_t B_dipole = 0.675;
 const Float_t E = 1.159; //Beam energy (GeV)
 const Float_t lambda = 532E-9; //photon wavelength (nm)      
 //const Float_t lambda = 532.0; //old photon wavelength (nm)      
-const Float_t xgap = 0.005; //!min distance (m)
+const Float_t xgap = 0.007; //!min distance (m)
 //Hardware constants
 const Int_t nStrips = 96;
 const Int_t nPlanes = 4;

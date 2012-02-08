@@ -346,10 +346,14 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 
 /******************************************************
 Querries:
+* how to properly delete the new TGraphErrors and the new TCanvas and the new TLine 
+* ..created in the code
+* why is my 'goff' not working in the histogram Draw method?
 ******************************************************/
 
 /******************************************************
 Further modifications:
+* 'stripPlot' should be Int_t rather than Double_t
 * the code should skip masked strips
 * ensure efficient evaluation of beamtrips
 * check consistency of cut on laserPow and beamtrip
