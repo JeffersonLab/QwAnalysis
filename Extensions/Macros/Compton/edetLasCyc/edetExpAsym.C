@@ -29,7 +29,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Bool_t debug = 1, debug1 = 0, debug2 = 0;
   Bool_t lasOn, beamOn =kFALSE;
   Int_t chainExists = 0;
-  Int_t nLasCycBeamTrips=0;
+  Int_t nLasCycBeamTrips=0,goodCycle=0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
@@ -47,7 +47,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Float_t normAcB1H0L0LasCyc[nPlanes][nStrips], normAcB1H1L0LasCyc[nPlanes][nStrips];
   Float_t BCnormAcB1H1L1LasCyc[nPlanes][nStrips], BCnormAcB1H0L1LasCyc[nPlanes][nStrips]; //Background Corrected
   Float_t BCnormLasCycSum[nPlanes][nStrips], BCnormLasCycDiff[nPlanes][nStrips];
-  Double_t tNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips];
+  Double_t qNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips];
 
   TH1D *h1[10], *h2[10]; //!temp test histograms
   char hName[nPlanes][120],hNameEr[nPlanes][120];
@@ -182,7 +182,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	normAcB1H0L0LasCyc[p][s]= 0.0, normAcB1H1L0LasCyc[p][s]= 0.0;
 	BCnormAcB1H1L1LasCyc[p][s]= 0.0, BCnormAcB1H0L1LasCyc[p][s]= 0.0; 
 	BCnormLasCycSum[p][s]= 0.0, BCnormLasCycDiff[p][s]= 0.0;
-	tNormLasCycAsym[p][s]= 0.0, LasCycAsymEr[p][s]= 0.0;
+	qNormLasCycAsym[p][s]= 0.0, LasCycAsymEr[p][s]= 0.0;
 	stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0,stripAsymRMS[p][s]= 0.0;
       }
     }
@@ -248,7 +248,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
-	      AccumB1H0L1[p][s] += bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
+	      AccumB1H0L1[p][s] += bRawAccum[p][s];// / bcm[0]; // /lasPow[0];	    
 	    }	  
 	  }
 	}
@@ -259,7 +259,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
-	      AccumB1H1L0[p][s] += bRawAccum[p][s];// / bcm[0];// /lasPow[0];
+	      AccumB1H1L0[p][s] += bRawAccum[p][s];// / bcm[0];// /lasPow[0];	    
 	    }
 	  }
 	}
@@ -271,7 +271,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
-	      AccumB1H1L1[p][s] += bRawAccum[p][s];// / bcm[0];// /lasPow[0];
+	      AccumB1H1L1[p][s] += bRawAccum[p][s];// / bcm[0];// /lasPow[0];	    
 	    }
 	  }
 	}
@@ -280,6 +280,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     
     //after having filled the above vectors based on laser and beam periods, its time to calculate
     if (beamOn) {
+      goodCycle++;
       if (debug1) cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
       if (nMpsB1H0L1<= 0 || nMpsB1H1L1<= 0 || nMpsB1H0L0<= 0 || nMpsB1H1L0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nMpsB1H0L1:%d,nMpsB1H1L1:%d, nMpsB1H0L0:%d, nMpsB1H1L0:%d**\n",
@@ -292,7 +293,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  for (Int_t s =startStrip; s <endStrip; s++) {	  
 	    if (maskedStrips(p,s)) continue;
 	    normAcB1H1L1LasCyc[p][s] = AccumB1H1L1[p][s] /comptQH1L1;
-	    normAcB1H1L0LasCyc[p][s] = AccumB1H1L0[p][s] /comptQH1L0;
+	    normAcB1H1L0LasCyc[p][s] = AccumB1H1L0[p][s] /comptQH1L0;;// 
 	    normAcB1H0L1LasCyc[p][s] = AccumB1H0L1[p][s] /comptQH0L1;
 	    normAcB1H0L0LasCyc[p][s] = AccumB1H0L0[p][s] /comptQH0L0;
 
@@ -316,19 +317,19 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    if (BCnormLasCycSum[p][s]  <= 0.0) {
 	      if(debug) printf("\n**Warning**:BCnormLasCycSum[p%d][s%d] is %f in nCycle:%d\n",p,s,BCnormLasCycSum[p][s],nCycle);
 	    }
-	    else tNormLasCycAsym[p][s] = (BCnormLasCycDiff[p][s] / BCnormLasCycSum[p][s]);
+	    else qNormLasCycAsym[p][s] = (BCnormLasCycDiff[p][s] / BCnormLasCycSum[p][s]);
 
 	    if (unNormLasCycSum[p][s]<=0) {
 	      if(debug) printf("***Warning: unNormLasCycSum[p%d][s%d]:%f\n",p,s,unNormLasCycSum[p][s]);
-	      if(debug) printf("***Warning: tNormLasCycAsym[p%d][s%d]:%f\n",p,s,tNormLasCycAsym[p][s]);
+	      if(debug) printf("***Warning: qNormLasCycAsym[p%d][s%d]:%f\n",p,s,qNormLasCycAsym[p][s]);
 	    }
 	    else LasCycAsymEr[p][s]  = 1.0/sqrt(unNormLasCycSum[p][s]);
 
 	    if (debug1) {
-	      printf("for nCycle:%d, tNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",nCycle,p,s,tNormLasCycAsym[p][s] ,LasCycAsymEr[p][s]);
+	      printf("for nCycle:%d, qNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",nCycle,p,s,qNormLasCycAsym[p][s] ,LasCycAsymEr[p][s]);
 	      printf("formed by normalized BC (%f -/+ %f) \n",normAcB1H1L1LasCyc[p][s],normAcB1H0L1LasCyc[p][s]);
 	    }
-	    hAsymPS[p][s].Fill(tNormLasCycAsym[p][s]);
+	    hAsymPS[p][s].Fill(qNormLasCycAsym[p][s]);
 	    hAsymErPS[p][s].Fill(LasCycAsymEr[p][s]);	    
 	  }
 	}//for (Int_t p =startPlane; p <endPlane; p++) {
@@ -343,7 +344,8 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   for(Int_t s =mystr; s >(mystr-4); s--) {
     cmystrAsym->cd(1+2*n);
     h1[s] = (TH1D*)hAsymPS[0][s].Clone();    
-    h1[s]->Fit("gaus");//the fit function probably automatically draws it too
+    h1[s]->Draw();
+    //h1[s]->Fit("gaus");//the fit function probably automatically draws it too
 
     cmystrAsym->cd(2+2*n);
     h2[s] = (TH1D*)hAsymErPS[0][s].Clone(); //,"","goff");
@@ -352,13 +354,13 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     n++;
   }
   cmystrAsym->SaveAs(Form("AsymStrip%d.png",mystr));
-
+  
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (maskedStrips(p,s)) continue;
       stripAsym[p][s] = hAsymPS[p][s].GetMean();
       stripAsymRMS[p][s] = hAsymPS[p][s].GetRMS();      
-      stripAsymEr[p][s] = hAsymErPS[p][s].GetMean();
+      stripAsymEr[p][s] = ( hAsymErPS[p][s].GetMean() ) / (TMath::Sqrt((Double_t)goodCycle));/// 1/sqrt(N)
     }
   }
 
