@@ -199,18 +199,18 @@ void QwGUISummary::PlotMainData(){
 	    histo[i]->SetFillColor(41+i);
 	    
 	    if(i==5){
-	      abox = new TBox(90e3,0,190e3, histo[i]->GetEntries());
+	      abox = new TBox(90e3,0,200e3, histo[i]->GetEntries());
 	      abox->SetFillColor(2);
 	      abox->SetFillStyle(3003);
 	      abox->Draw("");
 
-	      if(mean>190e3){
+	      if(mean>200e3){
 		p = new TPaveLabel(0.2,0.4,0.6,0.7,"3c12 BPM is saturating!","brNDC");
 	      }
 	      if(mean<90e3){
 		p = new TPaveLabel(0.2,0.4,0.6,0.7,"3c12 BPM charge is too low!","brNDC");
 	      }
-	      if(p!=NULL && mean>190e3 || mean<90e3){
+	      if(p!=NULL && mean>200e3 || mean<90e3){
 		p->Draw();
 		p->SetTextColor(kRed);	
 		p->SetFillStyle(0);
