@@ -128,6 +128,8 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
 		  TString file_suffix="Qweak_")
 {
 
+  Double_t md_zpos[9] = {0.0, 581.665,  576.705, 577.020, 577.425, 582.515,  577.955, 577.885, 577.060};
+
   TString file_name = "";
   file_name += gSystem->Getenv ( "QW_ROOTFILES" );
   file_name +="/";
@@ -137,189 +139,190 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
   
   TFile *file = new TFile ( file_name );
 
-    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
-    QwEvent* fEvent=0;
-    QwPartialTrack* pt=0;
-    QwTrackingTreeLine* tl=0;
+  TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
+  QwEvent* fEvent=0;
+  QwPartialTrack* pt=0;
+  QwTrackingTreeLine* tl=0;
+  // QwHit* hits=0;
 
-    //check if you put some crazy numbers here
-    if (package<=0 || package >4 || md_number <=0 || md_number > 8)
+  //check if you put some crazy numbers here
+  if (package<=0 || package >4 || md_number <=0 || md_number > 8)
     {
-        cout << "put the wrong package or main detector number, please check agian! " << endl;
-        return;
+      cout << "put the wrong package or main detector number, please check agian! " << endl;
+      return;
     }
-    // section to process the command
+  // section to process the command
 
-    size_t type_found;
-    string type;
-    type_found=command.find_first_of("_");
-    if (type_found==string::npos)
+  size_t type_found;
+  string type;
+  type_found=command.find_first_of("_");
+  if (type_found==string::npos)
     {
-        cerr << "bad things happens! You need to type a underscore _" << endl;
-        return;
+      cerr << "bad things happens! You need to type a underscore _" << endl;
+      return;
     }
-    else
+  else
     {
-        type.assign(command,0,type_found);
-    }
-
-    bool IsProfile=false;
-    if (command.find("profile")==string::npos)
-        IsProfile=false;
-    else IsProfile=true;
-
-    bool pe=false;
-    if (command.find("photon")==string::npos)
-        pe=false;
-    else pe=true;
-
-    int mode=0;   //p,m,m+p,p-m;starting from 1
-    size_t found=0;
-    if ((found=command.find("+"))!=string::npos)
-        mode=3;
-    else if ((found=command.find("-"))!=string::npos)
-        mode=4;
-    else if (found=command.find_first_of("p")!=string::npos)
-    {
-        if (command.at(++found)!="r" || command.at(++found)!="e")
-            mode=1;
-    }
-    else if (command.find("m")!=string::npos)
-        mode=2;
-
-    string w_title;
-    cout << "mode: " << mode << endl;
-    if (mode==0)
-        w_title="not weighted";
-    else
-        w_title="weighted";
-    TH2F* h_2d;
-    TProfile2D* hp_2d;
-    if (IsProfile==false)
-        h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",240,0,0,400,0,0);
-    else
-        hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",240,0,0,400,0,0);
-
-    TH1D* h_1f=new TH1D("project run","project run",240,280,400);
-
-    TBranch* branch_event=event_tree->GetBranch("events");
-    TBranch* branch=event_tree->GetBranch("maindet");
-    branch_event->SetAddress(&fEvent);
-    TLeaf* mdp=branch->GetLeaf(Form("md%dp_adc",md_number));
-    TLeaf* mdm=branch->GetLeaf(Form("md%dm_adc",md_number));
-
-
-    Int_t nevents=event_tree->GetEntries();
-
-
-    double dz=0;
-    if (type=="QTOR")
-        dz=0;
-    else if (type=="TS")
-        dz=539.74;
-    else if (type=="MD")
-        dz=577.515;
-    else if (type=="SC")
-        dz=591.515;
-    else
-    {
-        cerr << "no such plane!" << endl;
-        return;
+      type.assign(command,0,type_found);
     }
 
+  bool IsProfile=false;
+  if (command.find("profile")==string::npos)
+    IsProfile=false;
+  else IsProfile=true;
+
+  bool pe=false;
+  if (command.find("photon")==string::npos)
+    pe=false;
+  else pe=true;
+
+  int mode=0;   //p,m,m+p,p-m;starting from 1
+  size_t found=0;
+  if ((found=command.find("+"))!=string::npos)
+    mode=3;
+  else if ((found=command.find("-"))!=string::npos)
+    mode=4;
+  else if (found=command.find_first_of("p")!=string::npos)
+    {
+      if (command.at(++found)!="r" || command.at(++found)!="e")
+	mode=1;
+    }
+  else if (command.find("m")!=string::npos)
+    mode=2;
+
+  string w_title;
+  cout << "mode: " << mode << endl;
+  if (mode==0)
+    w_title="not weighted";
+  else
+    w_title="weighted";
+  TH2F* h_2d;
+  TProfile2D* hp_2d;
+  if (IsProfile==false)
+    h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",240,0,0,480,0,0);
+  else
+    hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",240,0,0,480,0,0);
+
+  TH1D* h_1f=new TH1D("project run","project run",240,280,400);
+
+  TBranch* branch_event=event_tree->GetBranch("events");
+  TBranch* branch     = event_tree->GetBranch("maindet");
+  // TBranch* branch_hits = event_tree->GetBranch("fQwHits");
+
+  branch_event->SetAddress(&fEvent);
+  // brahch_hits->SetAddress(&hits);
+
+  TLeaf* mdp=branch->GetLeaf(Form("md%dp_adc",md_number));
+  TLeaf* mdm=branch->GetLeaf(Form("md%dm_adc",md_number));
 
 
-    for (int i=0;i<nevents;i++)
+  Int_t nevents=event_tree->GetEntries();
+
+
+  Double_t dz = 0.0;
+  
+  if      (type=="QTOR") dz = 0.0;
+  else if (type=="TS")   dz = 539.74;
+  else if (type=="MD")   dz = md_zpos[md_number];
+  else if (type=="SC")   dz = 591.515;
+  else {
+    cerr << "no such plane!" << endl;
+    return;
+  }
+
+
+
+  for (int i=0;i<nevents;i++)
     {
 
-        if(i % 1000 == 0) cout << "events process so far: " << i << endl;
-        branch_event->GetEntry(i);
-        branch->GetEntry(i);
-
-        double xoffset,yoffset,xslope,yslope,x,y;
-        weight=0;
-        for (int p=0;p< fEvent->GetNumberOfPartialTracks();p++)
+      if(i % 1000 == 0) cout << "events process so far: " << i << endl;
+      branch_event->GetEntry(i);
+      branch->GetEntry(i);
+ 
+      Double_t xoffset,yoffset,xslope,yslope,x,y;
+      //      weight=0;
+      for (int num_p=0; num_p< fEvent->GetNumberOfPartialTracks();num_p++)
         {
-            pt=fEvent->GetPartialTrack(p);
-            if (pt->GetRegion()==3 && pt->GetPackage()==package)
+	  pt=fEvent->GetPartialTrack(num_p);
+	  if (pt->GetRegion()==3 && pt->GetPackage()==package)
             {
-                xoffset=pt->fOffsetX;
-                yoffset=pt->fOffsetY;
-                xslope=pt->fSlopeX;
-                yslope=pt->fSlopeY;
-                x=xoffset+xslope*dz;
-                y=yoffset+yslope*dz;
-                int m=0,p=0,weight=1;
-                if (pe==false)
-                {
-                    p=mdp->GetValue();
-                    m=mdm->GetValue();
-                }
-                else
-                {
-                    p=mdp->GetValue()/pe_convert[2*md_number-1];
-                    m=mdm->GetValue()/pe_convert[2*(md_number-1)];
-                }
+	      xoffset = pt->fOffsetX;
+	      yoffset = pt->fOffsetY;
+	      xslope  = pt->fSlopeX;
+	      yslope  = pt->fSlopeY;
+	      x       = xoffset+xslope*dz;
+	      y       = yoffset+yslope*dz;
 
-                switch (mode)
+	      Double_t m = 0;
+	      Double_t p = 0;
+	      Double_t weight = 1.0;
+	      p = mdp->GetValue();
+	      m = mdm->GetValue();
+	      if (pe==true) {
+		p = p/pe_convert[2*md_number-1];
+		m = m/pe_convert[2*(md_number-1)];
+	      }
+	      
+	      switch (mode)
                 {
                 case 1:
-                    weight=p;
-                    break;
+		  weight = p;
+		  break;
                 case 2:
-                    weight=m;
-                    break;
+		  weight = m;
+		  break;
                 case 3:
-                    weight=m+p;
-                    break;
+		  weight = m+p;
+		  break;
                 case 4:
-                    weight=p-m;
-                    break;
+		  weight = p-m;
+		  break;
                 default:
-                    weight=1;
+		  weight = 1.0;
                 }
 
-		printf("x %10.2f y %10.2f weight %10.2f mdp %10.2f mdm %10.2f \n", x, y, weight, p, m);
-                if (p!=0 && m!=0)
+	      //		printf("x %10.2f y %10.2f weight %10.2f mdp %10.2f mdm %10.2f \n", x, y, weight, p, m);
+	      if (p!=0.0 && m!=0.0)
                 {
-                    if (IsProfile==false)
-                        h_2d->Fill(y,x,weight);
-                    else
-                        hp_2d->Fill(y,x,weight);
+		  if (IsProfile==false)
+		    h_2d->Fill(x,y);
+		  else
+		    hp_2d->Fill(x,y,weight);
                 }
             }
         }
     }
 
-    TCanvas* c=new TCanvas("c","c",800,800);
-    c->Divide(1,2);
-    gStyle->SetPalette(1);
-    c->cd(1);
-    if (IsProfile==false)
+  TCanvas* c=new TCanvas("c","c",800,800);
+  c->Divide(1,2);
+  gStyle->SetPalette(1);
+  gStyle->SetMarkerStyle(2);
+  c->cd(1);
+  if (IsProfile==false)
     {
-        string title="track projection on main detector: " + w_title + ": not profile";
-        h_2d->GetXaxis()->SetTitle("position x:cm");
-        h_2d->GetYaxis()->SetTitle("position y:cm");
-        h_2d->SetTitle(title.c_str());
-        h_2d->Draw("colz");
+      string title="track projection on main detector: " + w_title + ": not profile";
+      h_2d->GetXaxis()->SetTitle("position x:cm");
+      h_2d->GetYaxis()->SetTitle("position y:cm");
+      h_2d->SetTitle(title.c_str());
+      h_2d->Draw("colz");
     }
-    else
+  else
     {
-        string title="track projection on main detector: " + w_title + "light per event";
-        hp_2d->GetXaxis()->SetTitle("position x:cm");
-        hp_2d->GetYaxis()->SetTitle("position y:cm");
-        hp_2d->SetTitle(title.c_str());
-        hp_2d->Draw("colz");
+      string title="track projection on main detector: " + w_title + "light per event";
+      hp_2d->GetXaxis()->SetTitle("position x:cm");
+      hp_2d->GetYaxis()->SetTitle("position y:cm");
+      hp_2d->SetTitle(title.c_str());
+      hp_2d->Draw("colz");
     }
     
-    c->cd(2);
-    if(IsProfile==false){
-        h_2d->ProjectionX()->Draw();
-       }
-    else if(IsProfile==true){
-        hp_2d->ProjectionX()->Draw();
-       }
-    return;
+  c->cd(2);
+  if(IsProfile==false){
+    h_2d->ProjectionX()->Draw();
+  }
+  else if(IsProfile==true){
+    hp_2d->ProjectionX()->Draw();
+  }
+  return;
 };
 
 
