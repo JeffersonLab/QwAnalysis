@@ -304,6 +304,19 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fTargetYPDiffError;
     Double_t fTargetYPDiffWidth;
 
+    Double_t f3C12XDiff;
+    Double_t f3C12XDiffError;
+    Double_t f3C12XDiffWidth;
+    
+    Double_t f3C12YDiff;
+    Double_t f3C12YDiffError;
+    Double_t f3C12YDiffWidth;
+
+    Double_t f3C12YQ;
+    Double_t f3C12YQError;
+    Double_t f3C12YQWidth;
+
+
 
     Double_t fChargeAsym[kHelModes];//current charge asym
     Double_t fChargeAsymError[kHelModes];//current charge asym precision
@@ -408,6 +421,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     QwBeamCharge   fTargetXPDiffRunningSum;//to access the published Target XP diff
     QwBeamCharge   fTargetYDiffRunningSum;//to access the published Target Y diff
     QwBeamCharge   fTargetYPDiffRunningSum;//to access the published Target YP diff
+    QwBeamCharge   f3C12XDiffRunningSum;//to access the published 3c12 X diff
+    QwBeamCharge   f3C12YDiffRunningSum;//to access the published 3c12 Y diff
+    QwBeamCharge   f3C12YQRunningSum;//to access the published 3c12 eff. charge
+
 
 
 

@@ -49,6 +49,14 @@ sample_size=464
    VQWK, 4, 6,  bcm,  QWK_BCM2              
    VQWK, 4, 7,  bcm,  QWK_BCM1    
 
+!Last updated Feb 08 2012 Rakitha (rakithab) using Parity/prminput/qweak_hallc_beamline.15261-.map
+!ADC6, Slot 9,  Serial Number 04, Address 0x81
+   VQWK, 6, 4,  bpmstripline,  QWK_BPM3C12XP
+   VQWK, 6, 5,  bpmstripline,  QWK_BPM3C12XM
+   VQWK, 6, 6,  bpmstripline,  QWK_BPM3C12YP
+   VQWK, 6, 7,  bpmstripline,  QWK_BPM3C12YM
+
+
 !**************************************************************************
 ! HALL C BEAMLINE SCALERS
 !**************************************************************************
@@ -82,7 +90,6 @@ name=qwk_target
  QWK_BPM3H07B,  bpmstripline, 1.0,   1.0,   1.0
  QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
  QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
-! QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
 
 
@@ -96,7 +103,7 @@ end=combinedbpm
 !1. publish name
 !2. device type
 !	bcm
-!	bpmstrpline
+!	bpmstripline
 !	bpmcavity
 !	combobpm
 !	combobcm
@@ -121,4 +128,9 @@ end=combinedbpm
  y_targ, combobpm,  qwk_target, y
  xp_targ, combobpm,  qwk_target, xp
  yp_targ, combobpm,  qwk_target, yp
+
+ 3c12x, bpmstripline, qwk_bpm3c12, x
+ 3c12y, bpmstripline, qwk_bpm3c12, y
+ 3c12efc, bpmstripline, qwk_bpm3c12, ef
+
 

@@ -552,6 +552,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogPFParameters(){
   fEPICSCtrl.Set_TargetHCDiffereces(fTargetXDiff,fTargetXDiffError,fTargetXDiffWidth, fTargetXPDiff,fTargetXPDiffError,fTargetXPDiffWidth,fTargetYDiff,fTargetYDiffError,fTargetYDiffWidth, fTargetYPDiff,fTargetYPDiffError,fTargetYPDiffWidth);
+  fEPICSCtrl.Set_3C12HCDiffereces(f3C12XDiff,f3C12XDiffError,f3C12XDiffWidth, f3C12YDiff,f3C12YDiffError,f3C12YDiffWidth,f3C12YQ,f3C12YQError,f3C12YQWidth);
 }
 
 /*****************************************************************/
@@ -696,6 +697,9 @@ Bool_t QwHelicityCorrelatedFeedback::ApplyHMFeedback(){
   fTargetXPDiffRunningSum.ClearEventData();//reset the running sums
   fTargetYDiffRunningSum.ClearEventData();//reset the running sums
   fTargetYPDiffRunningSum.ClearEventData();//reset the running sums
+  f3C12XDiffRunningSum.ClearEventData();//reset the running sums
+  f3C12YDiffRunningSum.ClearEventData();//reset the running sums
+  f3C12YQRunningSum.ClearEventData();//reset the running sums
 
   return kTRUE;
 };
@@ -1027,6 +1031,12 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
   Bool_t bXPDiff=kFALSE;
   Bool_t bYDiff=kFALSE;
   Bool_t bYPDiff=kFALSE;
+  Bool_t b3C12XDiff=kFALSE;
+  Bool_t b3C12YDiff=kFALSE;
+  Bool_t b3C12YQ=kFALSE;
+
+
+  
 
   QwHelicityPattern::AccumulateRunningSum();
 
@@ -1070,7 +1080,31 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
     }
   }
 
-  if (bXDiff && bXPDiff && bYDiff && bYPDiff)
+  if(fAsymmetry.RequestExternalValue("3c12x", &fTargetParameter)){
+    if (fTargetParameter.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0){
+      f3C12XDiffRunningSum.AccumulateRunningSum(fTargetParameter);
+      b3C12XDiff=kTRUE;
+    }
+  }
+
+  if(fAsymmetry.RequestExternalValue("3c12y", &fTargetParameter)){
+    if (fTargetParameter.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0){
+      f3C12YDiffRunningSum.AccumulateRunningSum(fTargetParameter);
+      b3C12YDiff=kTRUE;
+    }
+  }
+
+  if(fAsymmetry.RequestExternalValue("3c12efc", &fTargetParameter)){
+    if (fTargetParameter.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0){
+      f3C12YQRunningSum.AccumulateRunningSum(fTargetParameter);
+      b3C12YQ=kTRUE;
+    }
+  }
+
+
+  
+
+  if (bXDiff && bXPDiff && bYDiff && bYPDiff && b3C12YQ)//if all parameters are good
     fPFGoodPatternCounter++;//update the good position/angle asymmetry counter
     
 
@@ -1174,7 +1208,11 @@ void QwHelicityCorrelatedFeedback::GetTargetPositionStat(){
   fTargetXPDiffRunningSum.CalculateRunningAverage();
   fTargetYDiffRunningSum.CalculateRunningAverage();  
   fTargetYPDiffRunningSum.CalculateRunningAverage();
-  
+  f3C12XDiffRunningSum.CalculateRunningAverage(); 
+  f3C12YDiffRunningSum.CalculateRunningAverage(); 
+  f3C12YQRunningSum.CalculateRunningAverage();
+
+
   //Update X stats
   fTargetXDiff=fTargetXDiffRunningSum.GetValue()*1.0e+3;
   fTargetXDiffError=fTargetXDiffRunningSum.GetValueError()*1.0e+3;
@@ -1194,6 +1232,26 @@ void QwHelicityCorrelatedFeedback::GetTargetPositionStat(){
   fTargetYPDiff=fTargetYPDiffRunningSum.GetValue()*1.0e+9;
   fTargetYPDiffError=fTargetYPDiffRunningSum.GetValueError()*1.0e+9;
   fTargetYPDiffWidth=fTargetYPDiffRunningSum.GetValueWidth()*1.0e+9;
+
+
+  //Update 3c12X stats
+  f3C12XDiff=f3C12XDiffRunningSum.GetValue()*1.0e+3;
+  f3C12XDiffError=f3C12XDiffRunningSum.GetValueError()*1.0e+3;
+  f3C12XDiffWidth=f3C12XDiffRunningSum.GetValueWidth()*1.0e+3;
+
+  //Update 3c12Y stats
+  f3C12YDiff=f3C12YDiffRunningSum.GetValue()*1.0e+3;
+  f3C12YDiffError=f3C12YDiffRunningSum.GetValueError()*1.0e+3;
+  f3C12YDiffWidth=f3C12YDiffRunningSum.GetValueWidth()*1.0e+3;
+
+  //Update 3c12YQ stats
+  f3C12YQ=f3C12YDiffRunningSum.GetValue();
+  f3C12YQError=f3C12YDiffRunningSum.GetValueError();
+  f3C12YQWidth=f3C12YDiffRunningSum.GetValueWidth();
+
+
+
+  
 
   /*
   fTargetXDiffRunningSum.PrintInfo();
