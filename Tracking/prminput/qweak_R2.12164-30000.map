@@ -6,7 +6,7 @@ slot=20
 0,  99, MasterTrigger
 2,  99, R2ScintPkg1
 4,  99, R2ScintPkg2
-4,  99, R2ScintOR
+6,  99, R2ScintOR
 8,  99, TrigScintPkg1
 10, 99, TrigScintPkg2
 12, 99, TrigScintOR
@@ -490,7 +490,7 @@ slot=20
 0,  99, MasterTrigger
 2,  99, R2ScintPkg1
 4,  99, R2ScintPkg2
-4,  99, R2ScintOR
+6,  99, R2ScintOR
 8,  99, TrigScintPkg1
 10, 99, TrigScintPkg2
 12, 99, TrigScintOR

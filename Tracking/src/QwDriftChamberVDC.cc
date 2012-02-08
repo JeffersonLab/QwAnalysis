@@ -490,6 +490,9 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 
 void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data )
 {
+  Bool_t local_debug = false;
+  
+  if (local_debug) printf("\n");
   Int_t tdcindex = 0;
   tdcindex = GetTDCIndex ( bank_index,slot_num );
   if ( tdcindex not_eq -1 )
@@ -500,6 +503,16 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
       EQwDetectorPackage package = kPackageUp;
       EQwDirectionID direction   = kDirectionNull;
 
+
+      F1TDCReferenceSignal *f1_ref_signal;
+      
+      f1_ref_signal = fF1RefContainer->GetReferenceSignal(bank_index, slot_num, chan);
+      if( f1_ref_signal ) {
+	f1_ref_signal -> SetRefTimeAU (data);
+	if (local_debug)  std::cout << *f1_ref_signal << std::endl;
+      }
+
+
       plane = fTDCPtrs.at ( tdcindex ).at ( chan ).fPlane;
       wire  = fTDCPtrs.at ( tdcindex ).at ( chan ).fElement;
 
@@ -509,13 +522,26 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 	}
       else if ( plane == kReferenceChannelPlaneNumber )
 	{
-	  //std::cout << bank_index << " " << slot_num << " " << tdcindex << std::endl;
-	  //fReferenceData.at ( wire ).push_back ( data );
+	  if (local_debug)  {
+	    std::cout << " -------------------------"
+		      << " plane " << plane 
+		      << " slot "  << slot_num 
+		      << " wire "  << wire
+		      << " data " << data 
+		      << std::endl;
+	  }
+	  
 	  fReferenceData.at ( wire ).push_back ( data );
 	}
       else if ( plane == kCodaMasterPlaneNumber )
 	{
-			
+	  if (local_debug)  {
+	    std::cout << " -------------------------" << " plane " << plane 
+		      << " slot "  << slot_num 
+		      << " wire "  << wire
+		      << " data " << data 
+		      << std::endl;
+	  }
 	  fReferenceMaster.at ( wire ).push_back ( data );
 	}
       else
@@ -559,34 +585,38 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan,
 
   Int_t r3_wire_number_per_plane = 279;
 
-  //  std::cout << "R3 chan " << chan
-  //	    << " package "  << package
-  //	    << " plane " << plane
-  //	    << " wire " << wire
-  //	    << std::endl;
-  if ( plane == kReferenceChannelPlaneNumber )
-    {
-      LinkReferenceChannel ( chan, plane, wire );
-    }
-  else
-    {
-      fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = package;
-      fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
-      fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = wire;
 
-      Int_t real_size=4* ( ( Int_t ) package-1 ) +plane;
-      if ( real_size>= ( Int_t ) fWiresPerPlane.size() ) // plane is Int_t
-	{
-	  fWiresPerPlane.resize ( real_size + 1 );
-	  // size() is one more larger than last plane number
-	  // For VDC, plane    1,2,....,8
-	  //          vector 0,1,2,....,8
-	  //          thus, vector.size() returns 9
-	  // So the magic number "1" is.
-	  // Wednesday, July 28 21:58:13 EDT 2010, jhlee
-	}
-      fWiresPerPlane.at ( real_size ) = r3_wire_number_per_plane;
+  // We should not see when plane is equal to "kReferenceChannelPlaneNumber"
+  //, because in LocalChannelMap, we assigned "reference channels" already into whatever objects.
+  // And Since it is the same structure as HDC, but R3 uses its own method to select the refernece signals, 
+  // which I want to undestand how and why soon, all if conditions are invaild for Region 3. 
+  // Wednesday, February  8 10:51:20 EST 2012, jhlee
+  
+  // if ( plane == kReferenceChannelPlaneNumber )
+  //   {
+  //     printf("Can we See this?t\n");
+  //     LinkReferenceChannel ( chan, plane, wire );
+  //   }
+  // else
+  //   {
+  fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = package;
+  fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
+  fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = wire;
+  
+  Int_t real_size = 0;
+  real_size = 4 * ( ( Int_t ) package-1 ) +plane;
+  if ( real_size >= ( Int_t ) fWiresPerPlane.size() ) // plane is Int_t
+    {
+      fWiresPerPlane.resize ( real_size + 1 );
+      // size() is one more larger than last plane number
+      // For VDC, plane    1,2,....,8
+      //          vector 0,1,2,....,8
+      //          thus, vector.size() returns 9
+      // So the magic number "1" is.
+      // Wednesday, July 28 21:58:13 EDT 2010, jhlee
     }
+  fWiresPerPlane.at ( real_size ) = r3_wire_number_per_plane;
+  //    }
   return OK;
 }
 
@@ -651,10 +681,142 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
 	    }
 	}
     }
-  std::cout << " QwDriftChamberVDC::AddChannelDefinition END"<<std::endl;
+  // std::cout << " QwDriftChamberVDC::AddChannelDefinition END"<<std::endl;
   return OK;
 }
 
+
+
+// Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
+// {
+//   //some type(like string,Int_t)need to be changed to root type
+//   LoadTimeWireOffset ( "R3_timeoffset.map" );
+//   LoadTtoDParameters ( "R3_TtoDTable.map" );
+//   TString varname,varvalue;
+//   UInt_t value   = 0;
+//   UInt_t channum = 0;            //store temporary channel number
+//   UInt_t lnnum   = 0;        //store line number
+//   Int_t  bpnum   = 0;    // temp backplane
+//   UInt_t plnum,firstwire,LR;         //store temp package,plane,firstwire and left or right information
+//   plnum = firstwire = LR = 0;
+
+//   TString pknum,dir;
+//   Bool_t IsFirstChannel = kTRUE;
+
+//   std::vector<Double_t> tmpWindows;
+//   QwParameterFile mapstr ( mapfile.Data() );
+//   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+//   EQwDetectorPackage package = kPackageNull;
+//   EQwDirectionID   direction = kDirectionNull;
+
+//   std::string string_a;
+//   std::pair<Double_t,Double_t> pair_a;
+
+//   while ( mapstr.ReadNextLine() )
+//     {
+//       mapstr.TrimComment ( '!' );
+//       mapstr.TrimWhitespace();
+//       if ( mapstr.LineIsEmpty() ) continue;
+
+//       if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )   //to judge whether we find a new slot
+// 	{
+// 	  varname.ToLower();
+// 	  value = QwParameterFile::GetUInt ( varvalue );
+// 	  if ( value ==0 )
+// 	    {
+// 	      value = atol ( varvalue.Data() );
+// 	    }
+// 	  if ( varname == "roc" )
+// 	    {
+// 	      RegisterROCNumber ( value , 0 );
+// 	    }
+// 	  else if ( varname=="bank" )
+// 	    {
+// 	      RegisterSubbank ( value );
+// 	    }
+// 	  else if ( varname == "slot" )
+// 	    {
+// 	      RegisterSlotNumber ( value );
+// 	    }
+// 	  continue;        //go to the next line
+// 	}
+
+//       channum = mapstr.GetTypedNextToken<Int_t>();
+//       bpnum   = mapstr.GetTypedNextToken<Int_t>();
+//       lnnum   = mapstr.GetTypedNextToken<Int_t>();
+
+//       if ( channum ==0 and bpnum ==0 )
+// 	{
+// 	  if ( IsFirstChannel == kTRUE ) IsFirstChannel = kFALSE;
+// 	  else                         continue;
+// 	}
+
+//       if ( bpnum == kReferenceChannelPlaneNumber || bpnum == kCodaMasterPlaneNumber )
+// 	{
+// 	  LinkReferenceChannel ( channum, bpnum, lnnum );
+// 	  continue;
+// 	}
+
+//       LR= mapstr.GetTypedNextToken<Int_t>();
+//       fDelayLinePtrs.at ( value ).push_back ( QwDelayLineID ( bpnum,lnnum,LR ) );    //the slot and channel number must be in order
+//       //pknum=(atol(mapstr.GetTypedNextToken<TString>()));
+//       pknum = mapstr.GetTypedNextToken<TString>();
+//       plnum = mapstr.GetTypedNextToken<Int_t>();
+//       //dir=(atol(mapstr.GetTypedNextToken<TString>()));
+//       dir= mapstr.GetTypedNextToken<TString>();
+//       firstwire= mapstr.GetTypedNextToken<Int_t>();
+
+
+//       if ( pknum=="u" )
+// 	{
+// 	  package=kPackageUp;
+// 	}
+//       else if ( pknum=="v" )
+// 	{
+// 	  package=kPackageDown;
+// 	}
+
+//       BuildWireDataStructure ( channum,package,plnum,firstwire );
+
+//       if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == kFALSE )   //if this delay line has not been Filled in the data
+// 	{
+// 	  string_a = mapstr.GetTypedNextToken<std::string>();
+// 	  while ( string_a.size() !=0 )
+// 	    {
+// 	      tmpWindows.push_back ( atof ( string_a.c_str() ) );
+// 	      string_a = mapstr.GetTypedNextToken<std::string>();
+// 	    }
+
+// 	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage=  package;
+// 	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPlane=plnum;
+// 	  if ( dir == "u" ) direction=kDirectionU;
+// 	  else if ( dir == "v" ) direction=kDirectionV;
+// 	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= direction;
+// 	  //    if ( dir == "u" )
+// 	  //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionU;
+// 	  //    else if ( dir == "v" )
+// 	  //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionV;
+// 	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fFirstWire=firstwire;
+// 	  for ( size_t i=0;i<tmpWindows.size() /2;i++ )
+// 	    {
+// 	      pair_a.first  = tmpWindows.at ( 2*i );
+// 	      pair_a.second = tmpWindows.at ( 2*i+1 );
+// 	      fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.push_back ( pair_a );
+// 	    }
+
+// 	  //            std::cout << "DelayLine: back plane: " << bpnum
+// 	  //      		<< "line number " << lnnum
+// 	  //      		<< " Windows.size: "  << fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.size()
+// 	  //      		<< std::endl;
+// 	  fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill=kTRUE;
+// 	  tmpWindows.clear();
+// 	}
+//     }
+//   AddChannelDefinition();
+
+//   mapstr.Close(); // Close the file (ifstream)
+//   return OK;
+// }
 
 
 Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
@@ -665,9 +827,12 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
   TString varname,varvalue;
   UInt_t value   = 0;
   UInt_t channum = 0;            //store temporary channel number
-  UInt_t lnnum   = 0;        //store line number
-  Int_t  bpnum   = 0;    // temp backplane
+  UInt_t lnnum   = 0;           //store line number
+  Int_t  bpnum   = 0;           // temp backplane
   UInt_t plnum,firstwire,LR;         //store temp package,plane,firstwire and left or right information
+
+  TString name = "";
+
   plnum = firstwire = LR = 0;
 
   TString pknum,dir;
@@ -682,13 +847,15 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
   std::string string_a;
   std::pair<Double_t,Double_t> pair_a;
 
+  Int_t extra_reference_channel_number_for_R3 = 97;
+
   while ( mapstr.ReadNextLine() )
     {
       mapstr.TrimComment ( '!' );
       mapstr.TrimWhitespace();
       if ( mapstr.LineIsEmpty() ) continue;
 
-      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )   //to judge whether we find a new slot
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )    //to judge whether we find a new slot
 	{
 	  varname.ToLower();
 	  value = QwParameterFile::GetUInt ( varvalue );
@@ -713,7 +880,29 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 
       channum = mapstr.GetTypedNextToken<Int_t>();
       bpnum   = mapstr.GetTypedNextToken<Int_t>();
-      lnnum   = mapstr.GetTypedNextToken<Int_t>();
+      name    = mapstr.GetTypedNextToken<TString>();
+
+   
+
+      if ( bpnum == kReferenceChannelPlaneNumber || bpnum == kCodaMasterPlaneNumber  || bpnum == extra_reference_channel_number_for_R3) {
+
+	fF1RefContainer -> AddF1TDCReferenceSignal(new F1TDCReferenceSignal(fCurrentBankIndex, fCurrentSlot, channum, name));
+	//
+	// old map uses 0, so simply set lnnum = 0
+	//
+	if ( bpnum != extra_reference_channel_number_for_R3 ) {
+	  lnnum = 0;
+	  LinkReferenceChannel ( channum, bpnum, lnnum);
+	}
+	continue;
+      }
+      
+      //
+      // read third one as string, so it must be converted to integer
+      // out of Reference channels
+      //
+
+      lnnum = name.Atoi();
 
       if ( channum ==0 and bpnum ==0 )
 	{
@@ -721,19 +910,14 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 	  else                         continue;
 	}
 
-      if ( bpnum == kReferenceChannelPlaneNumber || bpnum == kCodaMasterPlaneNumber )
-	{
-	  LinkReferenceChannel ( channum, bpnum, lnnum );
-	  continue;
-	}
 
-      LR= mapstr.GetTypedNextToken<Int_t>();
+      LR       = mapstr.GetTypedNextToken<Int_t>();
+
       fDelayLinePtrs.at ( value ).push_back ( QwDelayLineID ( bpnum,lnnum,LR ) );    //the slot and channel number must be in order
-      //pknum=(atol(mapstr.GetTypedNextToken<TString>()));
-      pknum = mapstr.GetTypedNextToken<TString>();
-      plnum = mapstr.GetTypedNextToken<Int_t>();
-      //dir=(atol(mapstr.GetTypedNextToken<TString>()));
-      dir= mapstr.GetTypedNextToken<TString>();
+
+      pknum    = mapstr.GetTypedNextToken<TString>();
+      plnum    = mapstr.GetTypedNextToken<Int_t>();
+      dir      = mapstr.GetTypedNextToken<TString>();
       firstwire= mapstr.GetTypedNextToken<Int_t>();
 
 
@@ -757,16 +941,15 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 	      string_a = mapstr.GetTypedNextToken<std::string>();
 	    }
 
-	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage=  package;
-	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPlane=plnum;
-	  if ( dir == "u" ) direction=kDirectionU;
-	  else if ( dir == "v" ) direction=kDirectionV;
-	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= direction;
-	  //    if ( dir == "u" )
-	  //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionU;
-	  //    else if ( dir == "v" )
-	  //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionV;
-	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fFirstWire=firstwire;
+	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage = package;
+	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPlane   = plnum;
+
+	  if      ( dir == "u" ) direction = kDirectionU;
+	  else if ( dir == "v" ) direction = kDirectionV;
+
+	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection = direction;
+	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fFirstWire = firstwire;
+
 	  for ( size_t i=0;i<tmpWindows.size() /2;i++ )
 	    {
 	      pair_a.first  = tmpWindows.at ( 2*i );
@@ -778,15 +961,17 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 	  //      		<< "line number " << lnnum
 	  //      		<< " Windows.size: "  << fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.size()
 	  //      		<< std::endl;
-	  fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill=kTRUE;
+	  fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill = kTRUE;
 	  tmpWindows.clear();
 	}
     }
+
   AddChannelDefinition();
 
   mapstr.Close(); // Close the file (ifstream)
   return OK;
 }
+
 
 
 

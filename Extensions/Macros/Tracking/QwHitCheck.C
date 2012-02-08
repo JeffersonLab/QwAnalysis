@@ -276,6 +276,31 @@ ScannerF1Plot(Int_t element)
   return;
 }
 
+
+void 
+VDC_F1_TimePlot()
+{
+  c1.Clear();
+
+  c1.Divide(4,1);
+  c1.cd(1);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2)"); // Vader
+  gPad->Update();
+  c1.cd(2);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==3||fQwHits.fPlane==4)"); // Leia
+  gPad->Update();
+  c1.cd(3);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==2&&(fQwHits.fPlane==1||fQwHits.fPlane==2)"); // Yoda
+  gPad->Update();
+  c1.cd(4);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==2&&(fQwHits.fPlane==3||fQwHits.fPlane==4)"); // Han
+  gPad->Update();
+
+  return;
+}
+
+
+
 // TCanvas c1;
 
 // c1.Divide(3,1);

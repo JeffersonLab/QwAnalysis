@@ -8,11 +8,21 @@ Bank=0x0901
 !
 !
 slot=20
+0,  98, MasterTrigger
+2,  97, R2ScintPkg1
+4,  97, R2ScintPkg2
+4,  97, R2ScintOR
+8,  99, TrigScintPkg1
+10, 97, TrigScintPkg2
+12, 97, TrigScintOR
+18, 97, MainDetTrigger
+28, 97, CopyMasterTrigger
+
 ! Channel 8 : Trig.Scint. Pkg 1 trigger
 ! Channel 0 : Master Trigger
-8 99 0
-0 98 0
-8 99 0
+!8 99 0
+!0 98 0
+!8 99 0
 !
 !
 !
@@ -296,9 +306,18 @@ Bank=0x1001
 slot=20
 ! Chan 10 : Trig.Scint. Pkg 2 trigger
 ! Chan  0 : Master Trigger
-10 99 0
-0 98 0
-10 99 0
+0,  98, MasterTrigger
+2,  97, R2ScintPkg1
+4,  97, R2ScintPkg2
+6,  97, R2ScintOR
+8,  97, TrigScintPkg1
+10, 99, TrigScintPkg2
+12, 97, TrigScintOR
+18, 97, MainDetTrigger
+28, 97, CopyMasterTrigger
+!10 99 0
+!0 98 0
+!10 99 0
 !
 slot=4
 !

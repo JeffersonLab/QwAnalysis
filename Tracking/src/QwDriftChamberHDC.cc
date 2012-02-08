@@ -675,8 +675,9 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
       if(local_debug) {
 	printf("chan  %8d plan %4d  wire %12s\n", chan, plane, name.Data());
       }
-      if (plane==99) {
+      if (plane==kReferenceChannelPlaneNumber) {
 	fF1RefContainer -> AddF1TDCReferenceSignal(new F1TDCReferenceSignal(fCurrentBankIndex, fCurrentSlot, chan, name));
+
 	if (name=="MasterTrigger" ) {
 	  wire = 0;
 	  BuildWireDataStructure(chan, package, plane, wire);
