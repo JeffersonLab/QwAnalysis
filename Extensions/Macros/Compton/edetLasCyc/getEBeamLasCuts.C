@@ -21,10 +21,21 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Char_t textf[255],textwrite[255];
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0, bcm = 0 , comptQ = 0;
-  Double_t beamMax = chain->GetMaximum("sca_bcm6/value");
-  Double_t Qmax = chain->GetMaximum("compton_charge/value");
-  cout<<"beamMax(bcm6) "<<beamMax<<" Qmax:(avg of bcm 1 & 2):"<<Qmax<<endl;
+  Double_t beamMax, Qmax;
 
+  TH1D *h1 = new TH1D("h1","dummy",100,0,220);
+  chain->Draw("sca_bcm6.value>>h1","","goff");
+  h1 = (TH1D*)gDirectory->Get("h1");  
+  beamMax = h1->GetBinLowEdge(h1->FindLastBinAbove(100));
+//   printf("new beamMax:%f\n",beamMax);
+
+//   TProfile *myhist;
+//   chain->Draw("sca_bcm6.value>>myhist","","prof goff");///!format not right yet
+
+//  beamMax = chain->GetMaximum("sca_bcm6/value");
+  Qmax = chain->GetMaximum("compton_charge/value");
+  cout<<"beamMax(bcm6) "<<beamMax<<" Qmax:(avg of bcm 1 & 2):"<<Qmax<<endl;
+ 
   Int_t nLasCycBeamTrips;
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
@@ -68,6 +79,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     laser = lLaser->GetValue();
     bcm = lBCM->GetValue();
     comptQ = lCharge->GetValue();
+
     ////find laser off periods and record start and finish entries
     if (n==minEntries) {
       cutL.push_back(index-minEntries);

@@ -30,9 +30,9 @@ const Bool_t IHWP_in=1;///1:in; 0:out
 const Int_t runnum = 23351;//23351;23625
 const Int_t mystr = 48; //a strip near compton edge to testing my script
 const Int_t startStrip = 0;
-  const Int_t endStrip = 53;
+  const Int_t endStrip = 63;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 4;
+  const Int_t endPlane = 2;
 const Int_t Cedge = 48;///Compton-edge for the current run(counting from 0)
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
