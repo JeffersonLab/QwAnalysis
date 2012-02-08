@@ -21,7 +21,7 @@ vector<Int_t>cutEB;//arrays of cuts for electron beam
 //This program analyzes a Compton electron detector run laser wise and plots the results
 ///////////////////////////////////////////////////////////////////////////
  
-Int_t edetasym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
+Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
 {
   gROOT->Reset();
   gStyle->SetFillColor(0);

@@ -14,7 +14,7 @@ Float_t theoryAsym(Float_t *calcAsym)
   Float_t re,R_bend;
   Float_t dsdrho1,dsdrho;
   
-  Float_t thetabend = 10*pi/180; //bend angle in Compton chicane (radians)
+  Float_t thetabend = chicaneBend*pi/180; //(radians)
   //  Float_t thetaprime = 10.39*pi/180; //bend angle for the max deflected electrons
 
   if(debug) {
@@ -55,9 +55,9 @@ Float_t theoryAsym(Float_t *calcAsym)
 
   if(debug2) cout<<"\nstrip#\tdis(mm)\trho\tk-photon\tcalcAsym"<<endl;
   
-  //for(Int_t p =0; p <=nPlanes; p++) {
   for(Int_t s =startStrip; s <=endStrip; s++) {
-    kStripprime=((xgap+s*2E-4)/zdrift)*E/thetabend; //   scattered photon energy (GeV)
+    //    kStripprime=((xgap+s*2E-4)/zdrift)*E/thetabend; //   scattered photon energy (GeV)
+    kStripprime=((dxprimemax-(Cedge-s)*2E-4)/zdrift)*E/thetabend;
     rhoStrip=kStripprime/kprimemax; //  rho (dimensionless)
     dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // eqn 22
     dsdrho = 2*pi*re*re/100*a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22
