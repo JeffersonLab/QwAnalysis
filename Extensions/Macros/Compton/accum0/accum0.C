@@ -40,10 +40,10 @@ using namespace std;
 //If "clear" is nonzero, the canvases will be deleted at the end.         //
 //The inputs are run number and either 0 or 1 for whether or not the file //
 //is a first100K file. The last argument is also either 
-//instructs the program whether or not to delete everything upon closing.//
-////////////////////////////////////////////////////////////////////////////
+//instructs the program whether or not to delete everything upon closing.///
+///////////////////////////////////////////////////////////////////////////
 
-Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE){
+Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE){
 
   gROOT->SetStyle("Plain");
   gStyle->SetCanvasColor(0);
@@ -61,13 +61,13 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 
   // Create a chain
   Bool_t drawForDebug = kFALSE;//draw graphs to show results of electron beam and laser cuts
-  TChain *helChain = getHelChain(runnum,isFirst100k);
+  TChain *helChain = getHelChain(runnum,isFirst100K);
   if(helChain == 0)
   {
     printf("Exiting program.\n");
     return 0;
   }
-  TChain *mpsChain = getMpsChain(runnum,isFirst100k);
+  TChain *mpsChain = getMpsChain(runnum,isFirst100K);
   
   const Double_t LOW_LSR_LMT = 3000.0; // laser unlocked below this
   const Double_t MINCUR = 2.0; // bcm6 values
@@ -77,7 +77,9 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   const char* BCM = "yield_sca_bcm6";
 
 
-  TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
+  TString www = Form("/u/group/hallc/www/hallcweb/html/compton/photonsummary"
+  		     "/run2/pass1/run_%d/",runnum);
+  //TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
   gSystem->mkdir(www,true);
   gSystem->mkdir(www,true);
   TString canvas1 = www + "accum0_plots.png";
@@ -100,7 +102,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   std::vector<Int_t> cutLas;//vector for laser power cut
   std::vector<Int_t> cutEB;//vector for electron beam trip cut
   Int_t startEntry, endEntry, nCuts, nLasCycles; 
-  Int_t nBeamTrips = getCuts(cutLas,cutEB, runnum, LOW_LSR_LMT, isFirst100k);
+  Int_t nBeamTrips = getCuts(cutLas,cutEB, runnum, LOW_LSR_LMT);
   if(helChain->GetEntries()==0){
     printf("No entries in chain. Exiting program.\n");
     return 0;
@@ -108,8 +110,8 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 
 
   helChain->ResetBranchAddresses();//resets branch address
-  nLasCycles = nBeamTrips%1000 - 1;//first two digits of return value of getCuts
-  nBeamTrips = nBeamTrips / 1000;//fourth digit of return value of getCuts
+  nLasCycles = nBeamTrips%1000;//first two digits of return value of getCuts
+  nBeamTrips = (nBeamTrips -  nLasCycles)/1000;//thousands place of return value of getCuts
   nCuts = cutLas.size();//number of entries in laser cycles vector
   printf("nLasCycles=%d,   nBeamTrips=%d,   nCuts=%d\n",nLasCycles, nBeamTrips, nCuts);
 
@@ -125,10 +127,11 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 
   helChain->Draw("yield_sca_laser_PowT>>hL(100,0,2.2e5)","","goff");
   TH1F *hL = (TH1F*)gDirectory->Get("hL");
-  Double_t hBinX = hL->GetBinLowEdge(hL->FindLastBinAbove(100));
+  Double_t hBinX = hL->GetBinLowEdge(hL->FindLastBinAbove(100)+1);
   Double_t lBinX = hL->GetBinLowEdge(hL->FindFirstBinAbove(100));
   Double_t diffX = hBinX - lBinX;
   std::cout<<"hBinX="<<hBinX<<"   "<<"lBinX="<<lBinX<<std::endl;
+
   delete hL;
   helChain->Draw(Form("yield_sca_laser_PowT>>hTemp(100,%f,%f)",lBinX,hBinX),
 		 Form("yield_sca_laser_PowT>%f",0.2 * hBinX),"goff");
@@ -143,27 +146,26 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   Double_t asymm[NCUTS],asymmErr[NCUTS];
   Double_t diffOn[NCUTS], diffOnRMS[NCUTS], diffOnErr[NCUTS];
   Double_t diffOff[NCUTS], diffOffRMS[NCUTS], diffOffErr[NCUTS];
-  helChain->Draw("yield_sca_bcm6.value>>hB(100,0,200)", "yield_sca_bcm6.value<200","goff");
+  helChain->Draw("yield_sca_bcm6.value>>hB(500)", "yield_sca_bcm6.value<200","goff");
   TH1F *hB = (TH1F*)gDirectory->Get("hB");
-  Double_t maxCur = hB->GetBinLowEdge(hB->FindLastBinAbove(100)+1);
+  Double_t maxCur = hB->GetBinLowEdge(hB->FindLastBinAbove(1000)+1);
+  Double_t minCur = hB->GetBinLowEdge(hB->FindFirstBinAbove(50)-1);
   delete hB;
 
   helChain->Draw("yield_fadc_compton_accum0.hw_sum>>hTemp(100)","","goff");
   hTemp = (TH1D*)gDirectory->Get("hTemp");
   Double_t maxYield = hTemp->GetBinLowEdge(hTemp->FindLastBinAbove(100)+1);
-  delete hTemp;
-
   std::cout<<"maxCur="<<maxCur<<std::endl;
   std::cout<<"maxYield="<<maxYield<<std::endl;
   Double_t cutCur = maxCur * 0.9;
   std::cout << "BCM current cut is " << cutCur << " uA." << std::endl;
-
+  delete hTemp;
 
   //////////////////////////////////
   //***Define the desired cuts.***//
   //////////////////////////////////
 
-  TCut bcmCut = "";
+  TCut bcmCut;
   if(nBeamTrips != 0)
   {
     TString bcmCutStr =  Form("(!(Entry$>%i&&Entry$<%i))",cutEB.at(0),cutEB.at(1));
@@ -174,10 +176,14 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
     }
     bcmCut = TCut(bcmCutStr);
   }
+  bcmCut += Form("yield_sca_bcm6<%f", 200.0);
   std::cout<<"Beam off cut is: "<<std::endl;
   bcmCut.Print();
+
+
   TCut beamOffCut = Form("%s<=%f", BCM, MINCUR);
-  TCut pmtCut = "yield_sca_laser_photon.value> 200";//PMT On 
+  TCut pmtCut = "yield_sca_laser_photon.value > 200";//PMT On
+                                                    
 
   TCut cut1, cut2, cut3, cut4, cutTemp, cutTemp1, cutTemp2, cutTemp3;
   //  TCut bModCut = "yield_rate0x118<10";
@@ -188,11 +194,13 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   //laser, PMT and electron beam all on and beam hitting laser
   TCut lasONCut = pmtCut && bcmCut && Form("yield_sca_laser_PowT.value>%f",cutval1)
                                    && Form("yield_sca_laser_PowT.value<%f",cutval2);
-  TCut lasOnCut1 = Form("yield_sca_laser_PowT.value>%f",cutval1);
-  TCut lasOnCut2 = Form("yield_sca_laser_PowT.value<%f",cutval2);
-  TCut unusedCut = pmtCut && Form("yield_sca_laser_PowT.value<=%f",cutval1)
-                          && Form("yield_sca_laser_PowT.value>=%f", LOW_LSR_LMT/2.0) ||
-		   pmtCut && Form("yield_sca_laser_PowT.value>=%f",cutval2); 
+  TCut lasOnCutL = Form("yield_sca_laser_PowT.value>%f",cutval1);
+  TCut lasOnCutH = Form("yield_sca_laser_PowT.value<%f",cutval2);
+  //unused data between laser on and off
+  TCut unusedCut = Form("yield_sca_laser_PowT.value<=%f", cutval1);
+  unusedCut +=  Form("yield_sca_laser_PowT.value>=%f", LOW_LSR_LMT/2.0);
+  unusedCut  = unusedCut || Form("yield_sca_laser_PowT.value>=%f", cutval2); 
+
   //If flipper mirror not working flashing occurs even when cavity unlocked. These flashes 
   //make it more difficult to identify laser off times. Therefore, the LOW_LSR_LMT has been 
   //set high to allow for these times. However, only data below one half of this value is
@@ -212,7 +220,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   }
   
   Int_t btCnt = 0;//counter for beam trip array indices
-  for(Int_t i=0; i*2<nCuts-4; i++)
+  for(Int_t i=0; i*2<nCuts-2; i++)
   {
     Bool_t enoughBkgData = kFALSE, enoughLasOnData = kFALSE;
     std::cout<<"i="<<i<<std::endl;
@@ -272,7 +280,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 	endEntry =  min(cutEB.at(2*btCnt+1), cutLas.at(2*i+1));
 	cutTemp1 = cutTemp1 && Form("!(Entry$>%d&&Entry$<%d)",startEntry, endEntry);
 	
-	if(cutEB.at(2*btCnt+1) < cutLas.at(2*i+1))//if end of current beam trip in this las cycle
+	if(cutEB.at(2*btCnt+1) < cutLas.at(2*i+1))//if end of beam trip in this las cycle
 	{
 	  if(btCnt != nBeamTrips-1)
 	  {
@@ -309,14 +317,17 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
     //-- start during and end after  the current cycle
     //-- start before and end during the current cycle
     //-- start during and end during the current cycle
-    beamTripInLasCycle = 
-      (cutEB.at(2*btCnt) <= cutLas.at(2*i+1) && cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2)) ||
-      (cutEB.at(2*btCnt) >= cutLas.at(2*i+1) && cutEB.at(2*btCnt) <= cutLas.at(2*i+2) && 
-       cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2)) ||
-      (cutEB.at(2*btCnt) <= cutLas.at(2*i+1) &&  cutEB.at(2*btCnt+1) >= cutLas.at(2*i+1) && 
-       cutEB.at(2*btCnt+1) <= cutLas.at(2*i+2)) ||
-      (cutEB.at(2*btCnt) >= cutLas.at(2*i+1) && cutEB.at(2*btCnt) <= cutLas.at(2*i+2)) &&  
-       (cutEB.at(2*btCnt+1) >= cutLas.at(2*i+1) && cutEB.at(2*btCnt+1) <= cutLas.at(2*i+2));
+    if(nBeamTrips != 0){
+      beamTripInLasCycle = 
+	(cutEB.at(2*btCnt) <= cutLas.at(2*i+1) && cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2)) ||
+	(cutEB.at(2*btCnt) >= cutLas.at(2*i+1) && cutEB.at(2*btCnt) <= cutLas.at(2*i+2) && 
+	 cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2)) ||
+	(cutEB.at(2*btCnt) <= cutLas.at(2*i+1) &&  cutEB.at(2*btCnt+1) >= cutLas.at(2*i+1) && 
+	 cutEB.at(2*btCnt+1) <= cutLas.at(2*i+2)) ||
+	(cutEB.at(2*btCnt) >= cutLas.at(2*i+1) && cutEB.at(2*btCnt) <= cutLas.at(2*i+2)) &&  
+	(cutEB.at(2*btCnt+1) >= cutLas.at(2*i+1) && cutEB.at(2*btCnt+1) <= cutLas.at(2*i+2));
+    }
+    else beamTripInLasCycle = kFALSE;
 
     while(beamTripInLasCycle)
     {
@@ -324,7 +335,6 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
       endEntry =  min(cutEB.at(2*btCnt+1), cutLas.at(2*i+2));
       cutTemp2 = cutTemp2 && Form("!(Entry$>%d&&Entry$<%d)",startEntry, endEntry);
       
-
       if(cutEB.at(2*btCnt+1)<cutLas.at(2*i+2))//if end of current beam trip in this las cycle
       {
 	if(btCnt != nBeamTrips-1)
@@ -355,15 +365,18 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
     //-- start during and end after  the current cycle
     //-- start before and end during the current cycle
     //-- start during and end during the current cycle
-    beamTripInLasCycle = 
-      (cutEB.at(2*btCnt) <= cutLas.at(2*i+2) && cutEB.at(2*btCnt+1) >= cutLas.at(2*i+3)) ||
-      (cutEB.at(2*btCnt) >= cutLas.at(2*i+2) && cutEB.at(2*btCnt) <= cutLas.at(2*i+3) && 
-       cutEB.at(2*btCnt+1) >= cutLas.at(2*i+3)) ||
-      (cutEB.at(2*btCnt) <= cutLas.at(2*i+2) &&  cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2) && 
-       cutEB.at(2*btCnt+1) <= cutLas.at(2*i+3)) ||
-      (cutEB.at(2*btCnt) >= cutLas.at(2*i+2) && cutEB.at(2*btCnt) <= cutLas.at(2*i+3)) &&  
-       (cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2) && cutEB.at(2*btCnt+1) <= cutLas.at(2*i+3));
-    
+    if(nBeamTrips != 0){
+      beamTripInLasCycle = 
+	(cutEB.at(2*btCnt) <= cutLas.at(2*i+2) && cutEB.at(2*btCnt+1) >= cutLas.at(2*i+3)) ||
+	(cutEB.at(2*btCnt) >= cutLas.at(2*i+2) && cutEB.at(2*btCnt) <= cutLas.at(2*i+3) && 
+	 cutEB.at(2*btCnt+1) >= cutLas.at(2*i+3)) ||
+	(cutEB.at(2*btCnt) <= cutLas.at(2*i+2) &&  cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2) && 
+	 cutEB.at(2*btCnt+1) <= cutLas.at(2*i+3)) ||
+	(cutEB.at(2*btCnt) >= cutLas.at(2*i+2) && cutEB.at(2*btCnt) <= cutLas.at(2*i+3)) &&  
+	(cutEB.at(2*btCnt+1) >= cutLas.at(2*i+2) && cutEB.at(2*btCnt+1) <= cutLas.at(2*i+3));
+    } 
+    else beamTripInLasCycle = kFALSE;
+   
     while(beamTripInLasCycle)
     {
       startEntry = max(cutEB.at(2*btCnt), cutLas.at(2*i+2));
@@ -480,14 +493,18 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   delete ctemp;
 
   lasOFFCut = lasOFFCut && bcmCut && pmtCut;//laser off and PMT on and e-beam on
+ 
 
   ////////////////////////////////////
-  //***Create a canvas for plots.***//
+  //***Create canvases for plots.***//
   ////////////////////////////////////
   TCanvas *c1 = new TCanvas("c1","c1",0,0,1000,950);
   c1->SetFillColor(0);
   c1->Divide(2,3);
+  TCanvas *c3 = new TCanvas("c3","c3",0,0,950,750);
+  c3->Divide(2,2);
   c1->cd(1);
+
 
   ////////////////////////////////////////
   //***Draw Current vs Pattern Number***//
@@ -497,18 +514,21 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   diffX = hBinX - lBinX;
   hBinX += diffX*0.1;
   lBinX -= diffX*0.1;
-  Double_t hBinY ,lBinY, diffY;
-  TH2F *hbcm = new TH2F("hbcm", "hbcm",300,lBinX,hBinX,300,-10,200);
+  Double_t hBinY, lBinY, diffY;
+  diffY = maxCur - minCur;
+  hBinY = maxCur + 0.1 * diffY;
+  lBinY = minCur - 0.1 * diffY; 
+
+  TH2F *hbcm = new TH2F("hbcm", "hbcm",300,lBinX,hBinX,300,lBinY,hBinY);
   hbcm->GetXaxis()->SetTitle("Pattern Number");
   hbcm->GetYaxis()->SetTitle("BCM Yield");
   hbcm->SetMarkerColor(kGray+2);
   hbcm->SetLineColor(kGray+2);
   hbcm->SetTitle("BCM Yield vs. Pattern Number");
-  TH2F *hbcmOn = new TH2F("hbcmOn", "hbcmOn",300,lBinX,hBinX,300,-10,200);
+  TH2F *hbcmOn = new TH2F("hbcmOn", "hbcmOn",300,lBinX,hBinX,300,lBinY,hBinY);
   hbcmOn->SetMarkerColor(kRed);
   hbcmOn->SetLineColor(kRed);
-  helChain->Draw(Form("%s:pattern_number>>hbcm", BCM),
-		 Form("%s<%e", BCM, 1.06*cutCur));
+  helChain->Draw(Form("%s:pattern_number>>hbcm", BCM));
   helChain->Draw(Form("%s:pattern_number>>hbcmOn", BCM),
 		 bcmCut,"sames");
   gPad->Update();
@@ -520,10 +540,11 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
     delete c1;
     return 0;
   }
+
  
   ////////////////////////////////////////////////////////
   //***Draw accumulator 0 yield with different colors***//
-  //***for laser On and Laser Off states.            ***//
+  //***for Laser On and Laser Off states.            ***//
   ////////////////////////////////////////////////////////
   c1->cd(2);
   helChain->Draw("yield_fadc_compton_accum0.hw_sum>>h(100)","","goff");
@@ -543,6 +564,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   diffY = hBinY - lBinY;
   hBinY += diffY*0.1;
   lBinY -= diffY*0.1;
+  
   Double_t hBinYtmp = h->GetMean()+3*h->GetRMS();
   if(hBinY>hBinYtmp){
     hBinY = hBinYtmp;
@@ -551,11 +573,13 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   if(lBinY<lBinYtmp){
     lBinY = lBinYtmp;
   }
+  
   delete h;
+
   TH1F *hYieldOn = new TH1F("hYieldOn", "hYieldOn", 300, lBinY, hBinY);
   TH1F *hYieldOff = new TH1F("hYieldOff", "hYieldOff", 300, lBinY, hBinY);
   helChain->Draw("yield_fadc_compton_accum0.hw_sum>>hYieldOn",
-		 lasONCut,"goff");
+		   lasONCut,"goff");
   hYieldOn->SetLineColor(kGreen);
   hYieldOn->GetXaxis()->SetTitle("Accumulator_0 Yields");
   hYieldOff->GetXaxis()->SetTitle("Accumulator_0 Yields");
@@ -568,21 +592,24 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
     gStyle->SetOptStat(1111);
     hYieldOn->Draw();
     gPad->Update();
+
     TPaveStats *stOn = (TPaveStats*)gPad->GetPrimitive("stats");
     stOn->SetY1NDC(0.67); //new y start position
     stOn->SetY2NDC(0.84); //new y end position
     hYieldOff->Draw("sames");
     gPad->Update();
-  }else{
+    }else{
     gStyle->SetOptStat(1111);
     hYieldOff->Draw();
     gPad->Update();
+    cout<<"haha"<<endl;
     TPaveStats *stOff = (TPaveStats*)gPad->GetPrimitive("stats");
     stOff->SetY1NDC(0.67); //new y start position
     stOff->SetY2NDC(0.84); //new y end position
     hYieldOn->Draw("sames");
     gPad->Update();
   }
+
   TLegend *legend1 = new TLegend(0.86,0.55,0.98,0.67);
   //legend1->SetHeader("Some histograms");
   legend1->AddEntry(hYieldOn,"Laser On","l");
@@ -643,8 +670,9 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   hBeamOff->SetMarkerColor(kGray+1);
   hBeamOff->SetLineColor(kGray+1);
 
+
   helChain->Draw("yield_fadc_compton_accum0.hw_sum:pattern_number>>hOn",
-		 lasONCut);
+		   lasONCut);
   gPad->Update();
   helChain->Draw("yield_fadc_compton_accum0.hw_sum:pattern_number>>hBeamOff",
 		 Form("%s<%f", BCM, cutCur), "same");
@@ -659,9 +687,9 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   helChain->Draw(Form("yield_sca_laser_PowT*%f+%f:pattern_number>>hPUnsd",
 		      scale,lBinY+diffY*0.05),unusedCut,"same");
   helChain->Draw(Form("yield_sca_laser_PowT*%f+%f:pattern_number>>hPow",
-		      scale,lBinY+diffY*0.05),lasOnCut, "same");
+		      scale,lBinY+diffY*0.05),lasOnCutL && lasOnCutH, "same");
   helChain->Draw(Form("yield_sca_laser_PowT*%f+%f:pattern_number>>hPLow",
-		    scale,lBinY+diffY*0.05),lasOffCut,"same");
+		    scale,lBinY+diffY*0.05),lasOffCut2,"same");
 
 
   TLegend *legend2 = new TLegend(0.83,0.64,0.98,0.835);
@@ -671,9 +699,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   legend2->AddEntry(hBeamOff,"Yield Beam Off", "l");
   legend2->Draw();
 
-  //Create a third canvas for plots.
-  TCanvas *c3 = new TCanvas("c3","c3",0,0,950,750);
-  c3->Divide(2,2);
+  //Change to third canvas for plots.
   c3->cd(1);
 
   //Draw plot of Scalars vs pattern number.
@@ -691,7 +717,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   hOff3->SetMarkerColor(kGray+2);
   hOff3->SetLineColor(kGray+2);
   helChain->Draw("yield_sca_laser_photon:pattern_number>>hOn2"
-	         ,lasOnCut1 && lasOnCut2 && bcmCut,"goff");
+	         ,lasOnCutL && lasOnCutH && bcmCut,"goff");
   helChain->Draw("yield_sca_laser_photon:pattern_number>>hOff2"
 	         ,lasOffCut2 && bcmCut,"goff");
   hOff2->SetMarkerColor(kBlue);
@@ -789,7 +815,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   //***Draw Accumulator 0 Differences for Laser On and Off.***//
   //////////////////////////////////////////////////////////////
   c1->cd(4);
-  gStyle->SetOptStat(1111);
+  gStyle->SetOptStat(111111);
   helChain->Draw("diff_fadc_compton_accum0.hw_sum*2>>h",
 		 Form("yield_sca_laser_PowT>%e", cutval1),"goff");
   h = (TH1F*)gDirectory->Get("h");
@@ -820,15 +846,15 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   TH1F *hDiffOff = new TH1F("hDiffOff", "hDiffOff", 300, lBinX, hBinX); 
   TH1D *hTempOn = new TH1D("hTempOn","hTempOn",300,lBinX,hBinX);
   TH1D *hTempOff = new TH1D("hTempOff", "hTempOff",300, lBinX, hBinX);
-  hTemp = new TH1D("hTemp","hTemp",300,lBinX,hBinX);
+  TH1D *hTemp0 = new TH1D("hTemp0","hTemp0",300,lBinX,hBinX);
   hDiffOn->StatOverflows(kTRUE);
   hDiffOff->StatOverflows(kTRUE);
   hTempOn->StatOverflows(kTRUE);
   hTempOff->StatOverflows(kTRUE);
-  hTemp->StatOverflows(kTRUE);
+  hTemp0->StatOverflows(kTRUE);
   Int_t m = 0, n = 0, p = 0, numEnt = 0;
   Int_t enoughEntries[NCUTS];//cut quality flag.0 if cut not usable.1 if good.
-  for(Int_t i=0; i*2<nCuts-4; i++){
+  for(Int_t i=0; i*2<nCuts-2; i++){
     helChain->Draw("diff_fadc_compton_accum0.hw_sum*2>>hTempOn",
 		   asymCut[i],"goff");
     //asymCut[i].Print();
@@ -865,7 +891,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 	diffOnRMS[p] = hTempOn->GetRMS();
 	diffOnErr[p] = diffOnRMS[p] / sqrt(hTempOn->GetEntries());
 	hDiffOff->Add(hTempOff);
-	hTemp->Add(hTempOff);
+	hTemp0->Add(hTempOff);
 	helChain->Draw("diff_fadc_compton_accum0.hw_sum*2>>hTempOff",
 		       cut1 && cut2 && bkgCut[i],"goff");
 	hDiffOff->Add(hTempOff);
@@ -879,11 +905,11 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 	diffOnRMS[p] = hTempOn->GetRMS();
 	diffOnErr[p] = diffOnRMS[p] / sqrt(hTempOn->GetEntries());
 	hDiffOff->Add(hTempOff);
-	hTempOff->Add(hTemp);
+	hTempOff->Add(hTemp0);
 	diffOff[p] = hTempOff->GetMean();
 	diffOffRMS[p] = hTempOff->GetRMS();
 	diffOffErr[p] = diffOffRMS[p] / sqrt(hTempOff->GetEntries());
-	hTemp->Add(hTemp, hTempOff, -1, 1);//hTemp only holds previous off data
+	hTemp0->Add(hTemp0, hTempOff, -1, 1);//hTemp only holds previous off data
 	p++;
       }
     }
@@ -928,7 +954,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 	  " \t ScaLasOff\t MeanPosX\t MeanPosY\t DiffLasOn\t DiffLasOnErr\t"
 	  "DiffLasOnRMS\t DiffLasOff\t DiffLasOffErr\t DiffLasOffRMS\n"); 
   //TCanvas *ctemp = new TCanvas("ctemp","ctemp",0,0,600,400);
-  for(Int_t i=0; i*2<nCuts-4; i++){
+  for(Int_t i=0; i*2<nCuts-2; i++){
     TH1D *hTempD = new TH1D("hTempD","hTempD",300,-3,3);
     hTempD->StatOverflows(kTRUE);
     helChain->Draw(Form("diff_fadc_compton_accum0.hw_sum/%e>>hTempD",
@@ -1005,7 +1031,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
 	      scaLasOnRate,scaLasOffRate, meanPosX, meanPosY, diffOn[n], 
 	      diffOnErr[n], diffOnRMS[n],diffOff[n], diffOffErr[n], diffOffRMS[n]);
       hAsymm->Add(hTempD);
-      cutNum[n] = i+1;
+      cutNum[n] = i;
       errorY[n] = asymmErr[i];
       errorX[n] = 0;
 
@@ -1043,11 +1069,14 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   gPad->Update();
 
   fclose(polstats);
+
   TCanvas *c2 = new TCanvas("c2","c2",900,0,530,380);
-  //c2->SetFillColor(0);
+  TGraphErrors *gr = new TGraphErrors(n,cutNum,mean,errorX,errorY);
+  TPaveStats *st4 = new TPaveStats();
+
+  if(n!=0){
   c2->SetLeftMargin(0.14);
   c2->SetRightMargin(0.06);
-  TGraphErrors *gr = new TGraphErrors(n,cutNum,mean,errorX,errorY);
   gr->GetXaxis()->SetTitle("Laser Cycle Number");
   gr->GetYaxis()->SetTitle("Accumulator_0 Asymmetry");
   gr->GetYaxis()->SetTitleOffset(1.7);
@@ -1058,19 +1087,21 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k=kFALSE, Bool_t deleteOnExit=kFALSE
   gr->Fit("pol0");
   gr->Draw("AP");
   gPad->Update();
-  TPaveStats *st4 = (TPaveStats*)gr->GetListOfFunctions()->FindObject("stats");
+  st4 = (TPaveStats*)gr->GetListOfFunctions()->FindObject("stats");
   st4->SetX1NDC(0.70); //new x start position
   st4->SetX2NDC(0.99); //new x end position 
   st4->Draw();
   gPad->Update();
+  c2->Print(canvas2);
+  std::cout<<canvas1<<std::endl;
+}
   //Save canvases to file.
   std::cout<<"Saving to web directory."<<std::endl;
 
   c1->Print(canvas1);
-  c2->Print(canvas2);
   c3->Print(canvas3);
   std::cout<<canvas1<<std::endl;
-  std::cout<<canvas2<<std::endl;
+  std::cout<<canvas3<<std::endl;
   printf("\n\n\nRun %d completed.\n\n\n",runnum);
   //  cutLas.clear();
   if (deleteOnExit==kTRUE){
@@ -1163,7 +1194,7 @@ Int_t analyzeAll(Int_t runNumFirst, Int_t runNumLast){
 
 Int_t main(int argc, char *argv[]){
   if (argc < 1){
-    std::cout<<"Usage:analyzeRun(int runNumber,bool isFirst100k, bool deleteOnExit)"
+    std::cout<<"Usage:accum0(int runNumber,bool isFirst100K, bool deleteOnExit)"
 	<<std::endl;
     return 0;
   }else if(argc==3){

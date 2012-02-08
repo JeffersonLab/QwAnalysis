@@ -178,30 +178,30 @@ sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $RUNPAGE
 #Make links to other pages
 PREVRUN=$RUNNUM
 let "PREVRUN -= 1"
-PREVRUNPAGE=../www/photonsummary/run_$PREVRUN/run_$PREVRUN.html
+PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
+PREVRUNLINK=run_$PREVRUN/run_$PREVRUN.html
 until [ -f $PREVRUNPAGE -o $PREVRUN -lt 1 ]
 do
     let "PREVRUN -= 1"
-    PREVRUNPAGE=photonsummary/run_$PREVRUN/run_$PREVRUN.html
+    PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
 done
 if [ $PREVRUN -gt 1 ]
 then
     echo "previous run: $PREVRUN $PREVRUNPAGE"
-    PREVRUNLINK=../photonsummary/run_$PREVRUN/run_$PREVRUN.html
     sed -i -e "s|Previous Run|<a href=\"../$PREVRUNLINK\">Run $PREVRUN</a>|" $RUNPAGE
     sed -i -e "s|Next Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $PREVRUNPAGE
     sed -i -e "s|<!--prev|<a href=\"../$PREVRUNLINK\#mps|" $RUNPAGE
     sed -i -e "s|prev-->|\"><- Run $PREVRUN</a>|" $RUNPAGE
 fi
-#MPSFILE=$(cat ../www/photonsummary/run_$RUNNUM/mpsanalysis.txt)
+#MPSFILE=$(cat $WEBDIR/photonsummary/run_$RUNNUM/mpsanalysis.txt)
 #echo $MPSFILE
 #sed -i -e "s|<!--mpsanalysisresults-->|$MPSFILE|" $RUNPAGE
 #sed -i -e "s|Next Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $PREVRUNPAGE
 
 NEXTRUN=$RUNNUM
 let "NEXTRUN += 1"
-NEXTRUNPAGE=../www/photonsummary/run_$NEXTRUN/run_$NEXTRUN.html
-NEXTRUNLINK=../photonsummary/run_$NEXTRUN/run_$NEXTRUN.html
+NEXTRUNPAGE=$WEBDIR/run_$NEXTRUN/run_$NEXTRUN.html
+NEXTRUNLINK=run_$NEXTRUN/run_$NEXTRUN.html
 if [ -f $NEXTRUNPAGE ]
 then
     sed -i -e "s|Next Run|<a href=\"../run_$NEXTRUN/run_$NEXTRUN.html\">Run $NEXTRUN</a>|" $RUNPAGE
