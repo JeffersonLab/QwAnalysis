@@ -29,6 +29,10 @@ my $optstatus = GetOptions
   "target=s"	=> \$target_want,
 ;
 
+## don't get the 'target' stuff unless it's requested, see hclog 251158
+@channels = grep { !/tgt/i } @channels
+  unless $target_want;
+
 my $then = shift @ARGV;
 my $now  = shift @ARGV;
 
