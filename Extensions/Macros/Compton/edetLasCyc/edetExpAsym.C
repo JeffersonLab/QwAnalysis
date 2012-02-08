@@ -24,9 +24,9 @@ vector<Int_t>cutEB;//arrays of cuts for electron beam
  
 Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
 {
-  Char_t textf[255];//,textwrite[255];
+  Char_t textf[255],textwrite[255];
   time_t tStart = time(0), tEnd; 
-  Bool_t debug = 1, debug1 = 0, debug2 = 0, debug3 = 0;
+  Bool_t debug = 1, debug1 = 0, debug2 = 0;
   Bool_t lasOn, beamOn =kFALSE;
   Int_t chainExists = 0;
   Int_t nLasCycBeamTrips=0;
@@ -34,7 +34,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
   Int_t nMpsB1H1L1, nMpsB1H0L1, nMpsB1H1L0, nMpsB1H0L0;
-  Int_t entry;
+  //Int_t entry;
   Float_t AccumB1H0L0[nPlanes][nStrips],AccumB1H0L1[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
   Double_t comptQH1L1, comptQH0L1, comptQH1L0, comptQH0L0;
   Double_t lasPowB1H1, lasPowB1H0; //, lasPowB0H1, lasPowB0H0;
@@ -57,11 +57,15 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   gStyle->SetOptFit(1);
   gStyle->SetOptStat(1);
   
-  sprintf(textf,"r%d_cutLas.txt",runnum);
-  ifstream infileLas(Form("%s",textf));
+  sprintf(textf,"r%d_expAsymP1.txt",runnum);
+  ofstream outfileExpAsymP1(Form("%s",textf));
+  printf("%s file created\n",textf);
+
+//   sprintf(textf,"r%d_cutLas.txt",runnum);
+//   ifstream infileLas(Form("%s",textf));
   
-  sprintf(textf,"r%d_cutBeam.txt",runnum);
-  ifstream infileBeam(Form("%s",textf));
+//   sprintf(textf,"r%d_cutBeam.txt",runnum);
+//   ifstream infileBeam(Form("%s",textf));
   
   for (Int_t p =0; p <nPlanes; p++) {   
     if (p >= (Int_t) hAsymPS.size()) {
@@ -128,7 +132,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 //     } 
 //     else cout << "\n*****Error: Unable to cutEB file*****\n"; 
 //     nBeamTrips = cutEB.size();
-    
+
     if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
   }
   Int_t nEntries = mpsChain->GetEntries();
@@ -173,8 +177,6 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     for(Int_t p = 0; p <nPlanes; p++) {      
       for(Int_t s = 0; s <nStrips; s++) {
 	AccumB1H0L0[p][s] =0.0, AccumB1H0L1[p][s] =0.0, AccumB1H1L0[p][s] =0.0, AccumB1H1L1[p][s] =0.0;
-// 	CNormAccumB1H0L0[p][s] =0.0, CNormAccumB1H0L1[p][s] =0.0, CNormAccumB1H1L0[p][s] =0.0, CNormAccumB1H1L1[p][s] =0.0;
-// 	CLNormAccumB1H0L0[p][s] =0.0, CLNormAccumB1H0L1[p][s] =0.0, CLNormAccumB1H1L0[p][s] =0.0, CLNormAccumB1H1L1[p][s] =0.0;
  	unNormLasCycSum[p][s]= 0.0;
 	normAcB1H1L1LasCyc[p][s]= 0.0, normAcB1H0L1LasCyc[p][s]= 0.0;
 	normAcB1H0L0LasCyc[p][s]= 0.0, normAcB1H1L0LasCyc[p][s]= 0.0;
@@ -247,7 +249,6 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
 	      AccumB1H0L1[p][s] += bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
-	      //if(i >500000 && i < 600000 && s==mystr) printf("for i:%d; AccumB1H0L0[%d][%d]:%f = %f / %f\n",i,p,s,AccumB1H0L0[p][s],bRawAccum[p][s],bcm[0]);
 	    }	  
 	  }
 	}
@@ -356,17 +357,19 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (maskedStrips(p,s)) continue;
       stripAsym[p][s] = hAsymPS[p][s].GetMean();
-      stripAsymRMS[p][s] = hAsymPS[p][s].GetRMS();
-      
+      stripAsymRMS[p][s] = hAsymPS[p][s].GetRMS();      
       stripAsymEr[p][s] = hAsymErPS[p][s].GetMean();
     }
   }
 
-  if(debug3) {
-    for (Int_t p =startPlane; p <endPlane; p++) {	  	  
-      for (Int_t s =startStrip; s <endStrip;s++) {    
-	if (maskedStrips(p,s)) continue;
-	printf("asym[%d][%d]:%f; asymEr[%d][%d]:%f; asymRMS[%d][%d]:%f\n",p,s,stripAsym[p][s],p,s,stripAsymEr[p][s],p,s,stripAsymRMS[p][s]);
+  //sprintf(textwrite,"strip\texpAsym\tasymEr\tasymRMS");
+  //outfileExpAsymP1 <<textwrite<<endl;
+  for (Int_t p =startPlane; p <endPlane; p++) {	  	  
+    for (Int_t s =startStrip; s <endStrip;s++) {    
+      if (maskedStrips(p,s)) continue;
+      if (p==0) { //plane 1
+	sprintf(textwrite,"%d\t%f\t%f\t%f",s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
+	outfileExpAsymP1 <<textwrite<<endl;
       }
     }
   }
