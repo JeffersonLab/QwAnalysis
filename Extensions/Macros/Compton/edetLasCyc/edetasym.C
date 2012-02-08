@@ -1,4 +1,4 @@
-////I acknowledge Don Jones and Juan Carlos for help in the code
+////Don Jones and Juan Carlos helped significantly in the development of this code
 #include <rootClass.h>
 #include "getEBeamLasCuts.C"
 //#include "comptonRunConstants.h" //we don't need to re-include this
@@ -98,22 +98,18 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   /** Open either Pass1 or the First 100K **/
   for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
     if( isFirst100k) {
-      mpsChain->Add(Form("$QW_ROOTFILES/first100k_%d.root",runnum));
-      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/pass2/first100k_%d.root",runnum));
+      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/first100k_%d.root",runnum));
     }
     else {
-      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+//       chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for my Analyzer output files
       printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
-//       cout<<"max compton_charge"<< mpsChain->GetMaximum("compton_chargee")<<endl;
     }
     if(!chainExists){//delete chains and exit if files do not exist
       cout<<"\n***Error: File for run "<<runnum<<" does not exist***\n"<<endl;
       delete mpsChain;
       return -1;
     }
-    //   sprintf(textf,"%d_asymPerStrip.txt",runnum);
-    //   ofstream outfile(Form("%s",textf));
-    //   printf("%s file created\n",textf);
   }
 
   Int_t nEntries = mpsChain->GetEntries();
@@ -147,10 +143,6 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   mpsChain->SetBranchAddress("sca_laser_PowT",&lasPow);
   mpsChain->SetBranchAddress("compton_charge",&comptQ);
   
-//   mpsChain->SetBranchAddress("p1RawAc",&bRawAccum[1]);
-//   mpsChain->SetBranchAddress("p2RawAc",&bRawAccum[2]);
-//   mpsChain->SetBranchAddress("p3RawAc",&bRawAccum[3]);
-//   mpsChain->SetBranchAddress("p4RawAc",&bRawAccum[4]);
   for(Int_t p = 0; p <nPlanes; p++) {      
     mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
   }//the branch for each plane is named from 1 to 4
@@ -213,7 +205,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
        * why do we even enter this laser-cycle which is not going to do anything;
        * but later on, we are going to use use the beam off part in someway and this would make sense then
        **********/
-      if (beamOn) { 	    ////currently the counters are only populated for beamOn cycles
+      if (beamOn) { ////currently the counters are only populated for beamOn cycles
 	// 	if (h ==1 || h ==0) {  ////to avoid the h=-9999 that appears in beginning of every runlet
 	if (h ==0 && l ==0) {
 	  nMpsB1H0L0++;
@@ -223,7 +215,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 	    }
 	  }
 	}
-	else if (h ==0 && l==1) {///the elseif statement helps avoid overhead in each entry
+	else if (h ==0 && l==1) {////the elseif statement helps avoid overhead in each entry
 	  nMpsB1H0L1++;
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
@@ -250,12 +242,6 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
       }
     }///for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++)
     
-//     for(Int_t p = startPlane; p <endPlane; p++) {      	
-//       for(Int_t s =startStrip; s <endStrip; s++) {    
-// 	printf("AccumB1H0L0[%d][%d]:%d, AccumB1H0L1[%d][%d]:%d\n",p,s,AccumB1H0L0[p][s],p,s,AccumB1H0L1[p][s]);
-// 	printf("AccumB1H1L0[%d][%d]:%d, AccumB1H1L1[%d][%d]:%d\n",p,s,AccumB1H1L0[p][s],p,s,AccumB1H1L1[p][s]);
-//      }
-//     }
     //after having filled the above vectors based on laser and beam periods, its time to calculate
     if (debug1) printf("\n  *Entering laser Cycle Analysis @ nCycle : %d* \n",nCycle);
     if (beamOn) {
@@ -313,8 +299,6 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip, hence skipping"<<endl;
   }
   
-//   TCanvas *c1 = new TCanvas("c1","edetAsymmetry Plane1",0,0,800,400);
-
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {        
       hAsymPS[p][s].Draw("H");//"H","","goff");//WHY IS My goff not working!
@@ -339,7 +323,7 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
   }
   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
   cAsym->Divide(2,2);
-//   cAsym->cd(1);
+
   TLine *myline = new TLine(0,0,60,0);
   myline->SetLineStyle(1);
 
@@ -362,4 +346,11 @@ Int_t edetasym(Int_t runnum1, Int_t runnum2, Bool_t isFirst100k=kFALSE)
 
 /******************************************************
 Querries:
+******************************************************/
+
+/******************************************************
+Further modifications:
+* the code should skip masked strips
+* ensure efficient evaluation of beamtrips
+* check consistency of cut on laserPow and beamtrip
 ******************************************************/
