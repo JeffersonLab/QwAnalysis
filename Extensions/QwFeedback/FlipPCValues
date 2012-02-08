@@ -39,6 +39,13 @@ PC_neg_t0_OUT=41335
 #conversion from deg to dac is 360 deg -> 8000 dac
 RHWP_IN=6478
 RHWP_OUT=349
+
+
+#New RHWP for run 2 - 01-31-2012 rakitha (rakithab)
+#conversion from deg to dac is 360 deg -> 8000 dac
+#RHWP_IN=289
+#RHWP_OUT=4679
+RHWP_OUT_IN=5547
 IHWP2="`caget -tf0 -w 0.1  IGL1I00DIOFLRD`"
 
 if [ $IHWP2 -ge 10000 ]; then
@@ -95,10 +102,12 @@ case "$host_name" in
 		echo "Current IHWP2 state is $IHWP2"		
 		PC_pos_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_pos_OUT_IHWP2_IN`"
 		PC_neg_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_neg_OUT_IHWP2_IN`"
+		#caput psub_pl_ipos $RHWP_OUT_IN
 	    else
 		echo "Current IHWP2 state is $IHWP2"
 		PC_pos_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_pos_OUT`"
 		PC_neg_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_neg_OUT`"
+		#caput psub_pl_ipos $RHWP_OUT
 	    fi
 	    echo "Norminal PC_pos = $PC_pos_t0_OUT"
 	    echo "Current PC_pos = $PC_pos_current"
