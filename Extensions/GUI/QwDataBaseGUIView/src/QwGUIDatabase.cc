@@ -1977,7 +1977,7 @@ void QwGUIDatabase::PlotDetector()
     if(x_axis == ID_X_RUN){
       // set the alphanumeric labels for run/slug
       grp->GetXaxis()->Set(row_size, 0, row_size-1);
-      for (k=1;k<=row_size;k++) {
+      for (k=1;k<=row_size-1;k++) {
 	label = (char*)(xval[k].c_str());
 	(grp->GetXaxis())->SetBinLabel(k,label);
       }
