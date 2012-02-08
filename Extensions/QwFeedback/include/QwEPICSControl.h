@@ -402,6 +402,70 @@ public:
   }
 
 
+  void Set_3C12HCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &yqvalue, Double_t &yqvalue_error, Double_t &yqvalue_width){
+
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,f3C12XDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12XDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12XDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,f3C12YDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,f3C12YQ , &yqvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YQError , &yqvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YQWidth , &yqvalue_width);
+    status = ca_pend_io(10);
+
+
+
+
+
+
+    std::cout << "3C12 X Diff (um)  " << xvalue <<" +/- "<<xvalue_error<<" width "<<xvalue_width << std::endl;
+    std::cout << "3C12 Y Diff (mrad)  " << yvalue <<" +/- "<<yvalue_error<<" width "<<yvalue_width << std::endl;
+    std::cout << "3C12 EffQ Diff (um)  " << yqvalue <<" +/- "<<yqvalue_error<<" width "<<yqvalue_width << std::endl;
+
+
+  }
+
+  void Get_3C12HCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &yqvalue, Double_t &yqvalue_error, Double_t &yqvalue_width){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,f3C12XDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12XDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12XDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,f3C12YDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,f3C12YQ , &yqvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YQError , &yqvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YQWidth , &yqvalue_width);
+    status = ca_pend_io(10);
+  }
+
+
+  
+
+
   
   void Set_FeedbackStatus(Double_t value){
     Int_t status;
@@ -550,6 +614,18 @@ public:
   chid fTargetYPDiffError;
   chid fTargetYPDiffWidth;
 
+  
+  chid f3C12XDiff;
+  chid f3C12XDiffError;
+  chid f3C12XDiffWidth;
+
+  chid f3C12YDiff;
+  chid f3C12YDiffError;
+  chid f3C12YDiffWidth;
+
+  chid f3C12YQ;
+  chid f3C12YQError;
+  chid f3C12YQWidth;
 
 
 

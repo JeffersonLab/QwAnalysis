@@ -97,6 +97,25 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("qw:TargetDiffYPError", &fTargetYPDiffError);
   status = ca_search("qw:TargetDiffYPWidth", &fTargetYPDiffWidth);
 
+  //3C12 paremetes
+  status = ca_search("qw:3C12DiffX", &f3C12XDiff);
+  status = ca_search("qw:3C12DiffXError", &f3C12XDiffError);
+  status = ca_search("qw:3C12DiffXWidth", &f3C12XDiffWidth);
+
+  status = ca_search("qw:3C12DiffY", &f3C12YDiff);
+  status = ca_search("qw:3C12DiffYError", &f3C12YDiffError);
+  status = ca_search("qw:3C12DiffYWidth", &f3C12YDiffWidth);
+
+  status = ca_search("qw:3C12EffQ", &f3C12YQ);
+  status = ca_search("qw:3C12EffQError", &f3C12YQError);
+  status = ca_search("qw:3C12EffQWidth", &f3C12YQWidth);
+
+
+
+
+
+
+
 };
 
 QwEPICSControl::~QwEPICSControl()
