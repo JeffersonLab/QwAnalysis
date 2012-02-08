@@ -280,9 +280,9 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDCer;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = -1;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = -1;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
 	  }
           else if (modtype=="V792" ) {// || modtype=="V775" || modtype=="F1TDC")
 	    RegisterModuleType(modtype);
@@ -302,9 +302,9 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 	    }
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fRegion    = kRegionIDCer;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPackage   = package;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = -1;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = 0;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fDirection = direction;
-	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = -1;
+	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = 0;
 	  }	
 	  else if( modtype=="F1TDC") {
 
@@ -417,7 +417,11 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 		ts_chan_type_to_element = 1;
 		package                 = kPackageDown;
 	      }
-
+	      else {
+		ts_chan_num_to_plane    = -1;
+		ts_chan_type_to_element = -1;	      
+		package                 = kPackageNull;
+	      }
 	    
 
 	      fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = ts_chan_type_to_element;

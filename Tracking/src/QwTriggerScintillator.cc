@@ -324,6 +324,11 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile)
 	      package = kPackageUp;
 
 	    }
+	    else {
+	      ts_chan_num_to_plane    = -1;
+	      ts_chan_type_to_element = -1;	      
+	      package                 = kPackageNull;
+	    }
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fElement   = ts_chan_type_to_element;
 	    fDetectorIDs.at(fCurrentModuleIndex).at(channum).fPlane     = ts_chan_num_to_plane;
 	
@@ -699,7 +704,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	      
 	      dummy_slot_number = tdc_slot_number;
 	      dummy_chan_number = tdc_chan_number;
-	      
+	      //	      printf("\n");
 	
 	    }
 	    catch (std::exception& e) {
@@ -751,8 +756,10 @@ void  QwTriggerScintillator::ProcessEvent()
 	    	corrected_time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(rawtime_arb_unit, reftime, bank_index, slot_num);
 		time_ns                 = fF1TDContainer->ReturnTimeCalibration(corrected_time_arb_unit);
 		fPMTs.at(i).at(j).SetValue(time_ns);
-	    	// printf("TS::ProcessBuffer:  bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10f %10.2f, %10.2f\n", 
-	       	//        bank_index, slot_num, reftime_slotnum, tdc_chan_number, reftime_channum, rawtime_arb_unit, reftime, corrected_time_arb_unit);
+		// if (bank_index == 2 and  slot_num == 4) {
+		//   printf("TS::ProcessBuffer:  bank_index %2d slot_number %2d raw au %10f  reftime au %10.2f, corrected au %10.2f, corrected ns %10.2f\n", 
+		// 	 bank_index, slot_num, rawtime_arb_unit, reftime, corrected_time_arb_unit, time_ns);
+		// }
 	      } 
 	      else {
 		// 	// we save the referennce raw time
@@ -1061,6 +1068,10 @@ void QwTriggerScintillator::FillRawWord(Int_t bank_index,
       //  This channel is not connected to anything.
       //  Do nothing.
     } else {
+      // if (bank_index == 2 and  slot_num == 4 and chan == 4) {
+      // 	printf("FillRawWord    bank_index %2d slot_number %2d chan %2d, data %10d \n", 
+      // 	       bank_index, slot_num, chan, data);
+      // }
       fPMTs.at(modtype).at(chanindex).SetValue(data);
       fPMTs.at(modtype).at(chanindex).SetSubbankID(bank_index);
       fPMTs.at(modtype).at(chanindex).SetModule(slot_num);
@@ -1084,7 +1095,10 @@ void  QwTriggerScintillator::FillRawTDCWord (Int_t bank_index,
 
   // I think, it is not necessary, but is just "safe" double check routine.
   if (tdcindex not_eq -1) {
-  
+    // if ( slot_num == 4 and chan == 4) {
+    //   printf("FillRawTDCWord bank_index %2d slot_number %2d chan %2d, data %10d \n", 
+    // 	     bank_index, slot_num, chan, data);
+    // }
     Int_t hitcnt  = 0;
 
     EQwDetectorPackage package = kPackageNull;

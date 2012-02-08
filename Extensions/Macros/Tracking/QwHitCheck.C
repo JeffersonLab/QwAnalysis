@@ -63,7 +63,8 @@ TSF1Plot(Int_t plane, Int_t element)
   c1.Clear();
   TString name ="";
   TString cut = "";
- 
+  gStyle->SetStatW(0.4);//   - set the width of a stat box
+  gStyle->SetStatH(0.4);//   - set the width of a stat box
   c1.Divide(3,1);
   //  if(region==5) {
   name = "trigscint.ts";
@@ -88,10 +89,10 @@ TSF1Plot(Int_t plane, Int_t element)
   event_tree->Draw(name, cut);
   gPad->Update();
   c1.cd(2);
-  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==0", region, plane, element));
+  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==0 && fQwHits.fTimeNs!=0", region, plane, element));
   gPad->Update();
   c1.cd(3);
-  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d", region, plane, element));
+  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fTimeNs!=0", region, plane, element));
   gPad->Update();
   c1.Update();
 
@@ -170,10 +171,10 @@ MDF1Plot(Int_t plane, Int_t element)
   event_tree->Draw(name.Data(), cut.Data());
   gPad->Update();
   c1.cd(2);
-  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==5 && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==0", plane, element));
+  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==5 && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==0  && fQwHits.fTimeNs!=0", plane, element));
   gPad->Update();
   c1.cd(3);
-  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==5 && fQwHits.fPlane==%d && fQwHits.fElement==%d", plane, element));
+  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==5 && fQwHits.fPlane==%d && fQwHits.fElement==%d  && fQwHits.fTimeNs!=0", plane, element));
   gPad->Update();
   c1.Update();
 
@@ -265,10 +266,10 @@ ScannerF1Plot(Int_t element)
   event_tree->Draw(name.Data(), cut.Data());
   gPad->Update();
   c1.cd(2);
-  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fElement==%d && fQwHits.fPlane==0 &&fQwHits.fHitNumber==0", region,  element));
+  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fElement==%d && fQwHits.fPlane==0 &&fQwHits.fHitNumber==0  && fQwHits.fTimeNs!=0", region,  element));
   gPad->Update();
   c1.cd(3);
-  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d  && fQwHits.fPlane==0&& fQwHits.fElement==%d", region, element));
+  event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d  && fQwHits.fPlane==0&& fQwHits.fElement==%d  && fQwHits.fTimeNs!=0", region, element));
   gPad->Update();
   c1.Update();
 

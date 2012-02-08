@@ -150,7 +150,7 @@ QwSciFiDetector::LoadChannelMap( TString mapfile )
 	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fPackage   = package;
 	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fPlane     = fiber_number;
 	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fDirection = direction;
-	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = 0;
+	fDetectorIDs.at(fCurrentModuleIndex).at(chan_number).fElement   = -1;
 
       }
       
