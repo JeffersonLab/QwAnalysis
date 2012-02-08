@@ -264,6 +264,8 @@ void detector::wien_avg (void)
 	wien_OUT_error[1] = 1 / sqrt(this->wien_OUT_error[1]);
 }
 
+	
+
 Int_t main(int argc, char *argv[])
 {
 	// connect to qweak server
@@ -314,6 +316,41 @@ Int_t main(int argc, char *argv[])
 	cout << "3   " << uslumi_3.wien_IN[1] - uslumi_3.wien_OUT[1] << "   " << uslumi_3.wien_IN_error[1] << endl;
 	cout << "5   " << uslumi_5.wien_IN[1] - uslumi_5.wien_OUT[1] << "   " << uslumi_5.wien_IN_error[1] << endl;
 	cout << "7   " << uslumi_7.wien_IN[1] - uslumi_7.wien_OUT[1] << "   " << uslumi_7.wien_IN_error[1] << endl;
+
+  vector<Double_t> wien;
+  vector<Double_t> wien_error;
+  vector<Double_t> uslumi_number;
+  vector<Double_t> error;
+
+	wien.push_back(uslumi_1.wien_IN[1] - uslumi_1.wien_OUT[1]);
+	wien.push_back(uslumi_3.wien_IN[1] - uslumi_3.wien_OUT[1]);
+	wien.push_back(uslumi_5.wien_IN[1] - uslumi_5.wien_OUT[1]);
+	wien.push_back(uslumi_7.wien_IN[1] - uslumi_7.wien_OUT[1]);
+	wien_error.push_back(uslumi_1.wien_IN_error[1] + uslumi_1.wien_OUT_error[i]);
+	wien_error.push_back(uslumi_3.wien_IN_error[1] + uslumi_3.wien_OUT_error[i]);
+	wien_error.push_back(uslumi_5.wien_IN_error[1] + uslumi_5.wien_OUT_error[i]);
+	wien_error.push_back(uslumi_7.wien_IN_error[1] + uslumi_7.wien_OUT_error[i]);
+	uslumi_number.push_back(1);
+	uslumi_number.push_back(3);
+	uslumi_number.push_back(5);
+	uslumi_number.push_back(7);
+	error.push_back(0);
+	error.push_back(0);
+	error.push_back(0);
+	error.push_back(0);
+
+
+	// create ROOT application for graphs
+	TApplication *app = new TApplication("transverse polerization uslumi", &argc, argv);
+
+	// create ROOT canvas
+	TCanvas *c1 = new TCanvas("c1", "transverse polerization uslumi", 800, 800);
+
+	// graph wien
+	TGraphErrors *gr1 = new TGraphErrors (wien.size(), &(uslumi_number[0]), &(wien[0]), &(error[0]), &(wien_error[0]));
+	gr1->Draw("AP");
+	app->Run();
+
 
 	// close the db
 	db->Close();
