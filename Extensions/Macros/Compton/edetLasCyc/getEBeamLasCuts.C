@@ -26,12 +26,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   TH1D *h1 = new TH1D("h1","dummy",100,0,220);
   chain->Draw("sca_bcm6.value>>h1","","goff");
   h1 = (TH1D*)gDirectory->Get("h1");  
-  beamMax = h1->GetBinLowEdge(h1->FindLastBinAbove(100));
-//   printf("new beamMax:%f\n",beamMax);
-
-//   TProfile *myhist;
-//   chain->Draw("sca_bcm6.value>>myhist","","prof goff");///!format not right yet
-
+  beamMax = h1->GetBinLowEdge(h1->FindLastBinAbove(100));//to avoid extraneous values
 //  beamMax = chain->GetMaximum("sca_bcm6/value");
   Qmax = chain->GetMaximum("compton_charge/value");
   cout<<"beamMax(bcm6) "<<beamMax<<" Qmax:(avg of bcm 1 & 2):"<<Qmax<<endl;
@@ -40,7 +35,6 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
-  Int_t minEntries = 2000; //Laser must be off for at least this many consecutive entries to be considered off.
   sprintf(textf,"r%d_cutLas.txt",runnum);
   ofstream outfileLas(Form("%s",textf));
   printf("%s file created\n",textf);

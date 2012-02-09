@@ -4,7 +4,7 @@
 #include "theoryAsym.C"
 #include "edetExpAsym.C"
 
-void asymFit(Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips])
+void asymFit(Int_t runnum, Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips])
 {
   Bool_t debug2=0;
   Float_t calcAsym[nStrips];
@@ -28,25 +28,25 @@ void asymFit(Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPlane
     }
   }
 
-//   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
-//   cAsym->Divide(2,2);
+  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
+  cAsym->Divide(2,2);
   
-//   TLine *myline = new TLine(0,0,60,0);
-//   myline->SetLineStyle(1);
+  TLine *myline = new TLine(0,0,60,0);
+  myline->SetLineStyle(1);
   
-//   for (Int_t p =startPlane; p <endPlane; p++) {
-//     cAsym->cd(p+1);
-//     grAsymPlane[p] = new TGraphErrors(endStrip,stripPlot,stripAsym[p],zero,stripAsymRMS[p]);
-//     grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
-//     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
-//     grAsymPlane[p]->SetTitle(Form("Plane %d",p+1));
-//     grAsymPlane[p]->Draw("A*");
-//     myline->Draw();
-//     grTheoryAsym = new TGraphErrors(endStrip,stripPlot,calcAsym,zero,zero);
-//     grTheoryAsym->SetLineColor(4);
-//     grTheoryAsym->Draw("L");    
-//     cAsym->Update();
-//   } 
+  for (Int_t p =startPlane; p <endPlane; p++) {
+    cAsym->cd(p+1);
+    grAsymPlane[p] = new TGraphErrors(endStrip,stripPlot,stripAsym[p],zero,stripAsymRMS[p]);
+    grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
+    grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
+    grAsymPlane[p]->SetTitle(Form("Plane %d",p+1));
+    grAsymPlane[p]->Draw("A*");
+    myline->Draw();
+    grTheoryAsym = new TGraphErrors(endStrip,stripPlot,calcAsym,zero,zero);
+    grTheoryAsym->SetLineColor(4);
+    grTheoryAsym->Draw("L");    
+    cAsym->Update();
+  } 
   if(debug2) cout<<"\nstrip#\t\ttheoExpRatio\tstripAsym\tcalcAsym"<<endl;
 
   for (Int_t p =startPlane; p <endPlane; p++) {  

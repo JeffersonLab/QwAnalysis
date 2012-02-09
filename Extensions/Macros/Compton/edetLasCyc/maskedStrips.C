@@ -1,3 +1,7 @@
+#ifndef __MASKEDSTRIPS_F
+#define __MASKEDSTRIPS_F
+
+
 #include "comptonRunConstants.h"
 
 Bool_t maskedStrips(Int_t plane,Int_t strip)
@@ -7,3 +11,4 @@ Bool_t maskedStrips(Int_t plane,Int_t strip)
   else if(plane==1&&(strip==11)) return kTRUE;//skip masked strip of plane2
   else return kFALSE;
 }
+#endif

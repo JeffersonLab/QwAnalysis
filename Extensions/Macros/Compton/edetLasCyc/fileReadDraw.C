@@ -47,10 +47,10 @@ Int_t fileReadDraw(Int_t run) //TString *tobePlotted)
     else printf("didn't find the file 2 \n");
   }
 
-  //  TCanvas *cAsymCompared = new TCanvas("cAsymCompared","Asymmetry evaluation in Fort and Cpp",10,10,600,800);
+  //TCanvas *cAsymCompared = new TCanvas("cAsymCompared","Asymmetry evaluation in Fort and Cpp",10,10,600,800);
   TCanvas *c1 = new TCanvas("c1","Comparision of Asymmetry evaluation",10,10,800,600);
   TLine *myline = new TLine(0,0,64,0);
-
+  c1->cd();
    grFort = new TGraphErrors(endStrip,stripFort,expAsymFort,zero,asymErFort);
    grCpp = new TGraphErrors(endStrip,strip,expAsym,zero,asymEr);
 

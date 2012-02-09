@@ -12,12 +12,14 @@ const Float_t E = 1.159; //Beam energy (GeV)
 const Float_t lambda = 532E-9; //photon wavelength (nm)      
 const Float_t xgap = 0.007; //!min distance (m)
 
-//Hardware constants
+//Hardware related constants
 const Int_t nStrips = 96;
 const Int_t nPlanes = 4;
 const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
 const Double_t chicaneBend = 10.0;
 // const Float_t thetaprime = 10.39*pi/180; //bend angle for the max deflected electrons
+const Int_t minEntries = 2000; //Laser must be off for at least this many consecutive entries to be considered off.
+
 
 ///Run constants
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
@@ -27,10 +29,10 @@ const Double_t ignoreBeamAbove = 195.0;
 const Double_t ignoreLasPowAbove = 195.0;
 const Bool_t IHWP_in=1;///1:in; 0:out
 
-const Int_t runnum = 23351;//23351;23625
+//following numbers are all in C++ counting(start at 0)
 const Int_t mystr = 48; //a strip near compton edge to testing my script
 const Int_t startStrip = 0;
-  const Int_t endStrip = 63;
+ const Int_t endStrip = 63;
 const Int_t startPlane = 0;
   const Int_t endPlane = 2;
 const Int_t Cedge = 48;///Compton-edge for the current run(counting from 0)

@@ -1,4 +1,4 @@
-////Don Jones and Juan Carlos helped significantly in the development of this code
+////Don Jones seeded the code and Juan Carlos helped significantly in the development of this code
 #include <rootClass.h>
 #include "getEBeamLasCuts.C"
 #include "maskedStrips.C"
@@ -29,7 +29,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Bool_t debug = 1, debug1 = 0, debug2 = 0;
   Bool_t lasOn, beamOn =kFALSE;
   Int_t chainExists = 0;
-  Int_t nLasCycBeamTrips=0,goodCycle=0;
+  Int_t nLasCycBeamTrips=0,goodCycles=0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
@@ -38,7 +38,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Float_t AccumB1H0L0[nPlanes][nStrips],AccumB1H0L1[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
   Double_t comptQH1L1, comptQH0L1, comptQH1L0, comptQH0L0;
   Double_t lasPowB1H1, lasPowB1H0; //, lasPowB0H1, lasPowB0H0;
-  Double_t unNormLasCycSum[nPlanes][nStrips];
+  //Double_t unNormLasCycSum[nPlanes][nStrips];
   Double_t lasPow[3], lasMax, helicity, bcm[3], Qmax;
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];
@@ -48,6 +48,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Float_t BCnormAcB1H1L1LasCyc[nPlanes][nStrips], BCnormAcB1H0L1LasCyc[nPlanes][nStrips]; //Background Corrected
   Float_t BCnormLasCycSum[nPlanes][nStrips], BCnormLasCycDiff[nPlanes][nStrips];
   Double_t qNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips];
+  Float_t errB1H1L1[nPlanes][nStrips],errB1H0L1[nPlanes][nStrips],errB1H1L0[nPlanes][nStrips],errB1H0L0[nPlanes][nStrips];
 
   TH1D *h1[10], *h2[10]; //!temp test histograms
   char hName[nPlanes][120],hNameEr[nPlanes][120];
@@ -57,10 +58,15 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   gStyle->SetOptFit(1);
   gStyle->SetOptStat(1);
   
-  sprintf(textf,"r%d_expAsymP1.txt",runnum);
+  //ofstream outfileExpAsymP1;
+
+  //  for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
+  //for(Int_t p = startPlane; p < endPlane; p++) {
+  sprintf(textf,"r%d_expAsymP1.txt",runnum1);
   ofstream outfileExpAsymP1(Form("%s",textf));
   printf("%s file created\n",textf);
-
+  //}
+  //  }
 //   sprintf(textf,"r%d_cutLas.txt",runnum);
 //   ifstream infileLas(Form("%s",textf));
   
@@ -177,10 +183,11 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     for(Int_t p = 0; p <nPlanes; p++) {      
       for(Int_t s = 0; s <nStrips; s++) {
 	AccumB1H0L0[p][s] =0.0, AccumB1H0L1[p][s] =0.0, AccumB1H1L0[p][s] =0.0, AccumB1H1L1[p][s] =0.0;
- 	unNormLasCycSum[p][s]= 0.0;
-	normAcB1H1L1LasCyc[p][s]= 0.0, normAcB1H0L1LasCyc[p][s]= 0.0;
+	normAcB1H1L1LasCyc[p][s]= 0.0, normAcB1H0L1LasCyc[p][s]= 0.0; 	//unNormLasCycSum[p][s]= 0.0;
 	normAcB1H0L0LasCyc[p][s]= 0.0, normAcB1H1L0LasCyc[p][s]= 0.0;
 	BCnormAcB1H1L1LasCyc[p][s]= 0.0, BCnormAcB1H0L1LasCyc[p][s]= 0.0; 
+	errB1H1L1[p][s]=0.0,errB1H0L1[p][s]=0.0,errB1H1L0[p][s]=0.0,errB1H0L0[p][s]=0.0;
+
 	BCnormLasCycSum[p][s]= 0.0, BCnormLasCycDiff[p][s]= 0.0;
 	qNormLasCycAsym[p][s]= 0.0, LasCycAsymEr[p][s]= 0.0;
 	stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0,stripAsymRMS[p][s]= 0.0;
@@ -189,7 +196,6 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 
     if(nthBeamTrip < nBeamTrips) {
       if(cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip)) {
-	//will work for the beginning when there has been no beamtrip yet
 	//!?what if the run starts with a beamTrip
 	//!?what if the run ends with a beamTrip
 	//!?what if there is no beamTrip
@@ -280,7 +286,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     
     //after having filled the above vectors based on laser and beam periods, its time to calculate
     if (beamOn) {
-      goodCycle++;
+      goodCycles++;
       if (debug1) cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
       if (nMpsB1H0L1<= 0 || nMpsB1H1L1<= 0 || nMpsB1H0L0<= 0 || nMpsB1H1L0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nMpsB1H0L1:%d,nMpsB1H1L1:%d, nMpsB1H0L0:%d, nMpsB1H1L0:%d**\n",
@@ -307,7 +313,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	      printf(" normAcB1H0L0LasCyc[%d][%d]:\t%f = AccumB1H0L0:%f / comptQH0L0:%f\n"
 			     ,p,s,normAcB1H0L0LasCyc[p][s],AccumB1H0L0[p][s], comptQH0L0 );
 	    }
-	    unNormLasCycSum[p][s] = AccumB1H1L1[p][s] + AccumB1H0L1[p][s];//total counts during Laser ON
+	    //unNormLasCycSum[p][s] = AccumB1H1L1[p][s] + AccumB1H0L1[p][s];//total counts during Laser ON
 
 	    BCnormAcB1H1L1LasCyc[p][s] = normAcB1H1L1LasCyc[p][s] - normAcB1H1L0LasCyc[p][s]; //* comptQH1L1/comptQH1L0;
 	    BCnormAcB1H0L1LasCyc[p][s] = normAcB1H0L1LasCyc[p][s] - normAcB1H0L0LasCyc[p][s]; //* comptQH0L1/comptQH0L0;
@@ -317,13 +323,18 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    if (BCnormLasCycSum[p][s]  <= 0.0) {
 	      if(debug) printf("\n**Warning**:BCnormLasCycSum[p%d][s%d] is %f in nCycle:%d\n",p,s,BCnormLasCycSum[p][s],nCycle);
 	    }
-	    else qNormLasCycAsym[p][s] = (BCnormLasCycDiff[p][s] / BCnormLasCycSum[p][s]);
+	    else {
+	      qNormLasCycAsym[p][s] = (BCnormLasCycDiff[p][s] / BCnormLasCycSum[p][s]);
+	      
+	      ///Evaluation of error on asymmetry
+	      errB1H1L1[p][s]= pow(((1-qNormLasCycAsym[p][s])/(comptQH1L1*BCnormLasCycSum[p][s])),2)*(AccumB1H1L1[p][s]);
+	      errB1H0L1[p][s]= pow(((1+qNormLasCycAsym[p][s])/(comptQH0L1*BCnormLasCycSum[p][s])),2)*(AccumB1H0L1[p][s]);
+	      errB1H1L0[p][s]= pow(((1-qNormLasCycAsym[p][s])/(comptQH1L0*BCnormLasCycSum[p][s])),2)*(AccumB1H1L0[p][s]);
+	      errB1H0L0[p][s]= pow(((1+qNormLasCycAsym[p][s])/(comptQH0L0*BCnormLasCycSum[p][s])),2)*(AccumB1H0L0[p][s]);
 
-	    if (unNormLasCycSum[p][s]<=0) {
-	      if(debug) printf("***Warning: unNormLasCycSum[p%d][s%d]:%f\n",p,s,unNormLasCycSum[p][s]);
-	      if(debug) printf("***Warning: qNormLasCycAsym[p%d][s%d]:%f\n",p,s,qNormLasCycAsym[p][s]);
+	      LasCycAsymEr[p][s] = sqrt(pow(errB1H1L1[p][s],2)+pow(errB1H0L1[p][s],2)+pow(errB1H1L0[p][s],2)+pow(errB1H0L0[p][s],2));
 	    }
-	    else LasCycAsymEr[p][s]  = 1.0/sqrt(unNormLasCycSum[p][s]);
+	    //LasCycAsymEr[p][s]  = 1.0/sqrt(unNormLasCycSum[p][s]);
 
 	    if (debug1) {
 	      printf("for nCycle:%d, qNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",nCycle,p,s,qNormLasCycAsym[p][s] ,LasCycAsymEr[p][s]);
@@ -332,20 +343,28 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    hAsymPS[p][s].Fill(qNormLasCycAsym[p][s]);
 	    hAsymErPS[p][s].Fill(LasCycAsymEr[p][s]);	    
 	  }
-	}//for (Int_t p =startPlane; p <endPlane; p++) {
+	}///for (Int_t p =startPlane; p <endPlane; p++) {
       }
     }///if (beamOn)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip, hence skipping"<<endl;
-  }//for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
+  }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
   
+  if(debug) {
+    for(Int_t s=40; s<=Cedge; s++) {
+    cout<<"\nasym: "<<qNormLasCycAsym[0][s]<<" comptQH1L1: "<<comptQH1L1<<" sum: "<<BCnormLasCycSum[0][s]<<" B1H1L1: "<<AccumB1H1L1[0][s]<<endl;
+    cout<<"errB1H1L1: "<<errB1H1L1[0][s]<<" errB1H0L1: "<<errB1H0L1[0][s]<<" errB1H1L0:"<<errB1H1L0[0][s]<<" errB1H0L0: "<<errB1H0L0[0][s]<<endl;
+    cout<<"for strip s="<<s<<" LasCycAsymEr: "<<LasCycAsymEr[0][s]<<endl;
+    }
+  }
+
   TCanvas *cmystrAsym = new TCanvas("cmystrAsym","Asymmetry in strip",10,10,1500,1100);
   cmystrAsym->Divide(2,4);
   Int_t n = 0;
   for(Int_t s =mystr; s >(mystr-4); s--) {
     cmystrAsym->cd(1+2*n);
     h1[s] = (TH1D*)hAsymPS[0][s].Clone();    
-    h1[s]->Draw();
-    //h1[s]->Fit("gaus");//the fit function probably automatically draws it too
+    //h1[s]->Draw();
+    h1[s]->Fit("gaus");//the fit function probably automatically draws it too
 
     cmystrAsym->cd(2+2*n);
     h2[s] = (TH1D*)hAsymErPS[0][s].Clone(); //,"","goff");
@@ -360,11 +379,11 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       if (maskedStrips(p,s)) continue;
       stripAsym[p][s] = hAsymPS[p][s].GetMean();
       stripAsymRMS[p][s] = hAsymPS[p][s].GetRMS();      
-      stripAsymEr[p][s] = ( hAsymErPS[p][s].GetMean() ) / (TMath::Sqrt((Double_t)goodCycle));/// 1/sqrt(N)
+      stripAsymEr[p][s] = ( hAsymErPS[p][s].GetMean() ) / (TMath::Sqrt((Double_t)goodCycles));/// 1/sqrt(N)
     }
   }
 
-  //sprintf(textwrite,"strip\texpAsym\tasymEr\tasymRMS");
+  //sprintf(textwrite,"strip\texpAsym\tasymEr\tasymRMS"); ///Title heading in first row
   //outfileExpAsymP1 <<textwrite<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip;s++) {    
@@ -379,11 +398,13 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to evaluate edetExpAsym.\n",div_output.quot,div_output.rem );  
-  return 1;
+  return goodCycles;//the function returns the number of used Laser cycles
 }
 
 /******************************************************
 !Querries:
+* why does a repeat execution of the code causes crash of root-session
+* how to read in the cutLas and cutEB file for all planes cleanly
 * how to properly delete the new TGraphErrors and the new TCanvas and the new TLine 
 * ..created in the code
 * why is my 'goff' not working in the histogram Draw method?
