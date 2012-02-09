@@ -392,13 +392,17 @@ ifeq ($(ARCH),Darwin)
 ## Override on the command line with "make GCC=g++-whatever"
 
 GCC            := g++-4.2
+ifeq ($(shell which $(GCC)),)
+  ## At least one installation of 10.7 comes only with "g++", which
+  ## happens to be version 4.2 
+  GCC          := g++
+endif
 CXX            := $(GCC)
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := $(OPTIM)
 LD             = $(GCC)
 LIBTOOL 	   = libtool
 LDFLAGS        = -all_load
-LDLIBS         = -lSystemStubs
 SOFLAGS        =
 DllSuf        := .dylib
 
