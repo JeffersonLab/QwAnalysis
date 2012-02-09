@@ -26,7 +26,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 {
   Char_t textf[255],textwrite[255];
   time_t tStart = time(0), tEnd; 
-  Bool_t debug = 1, debug1 = 0, debug2 = 0;
+  Bool_t debug = 0, debug1 = 0, debug2 = 0;
   Bool_t lasOn, beamOn =kFALSE;
   Int_t chainExists = 0;
   Int_t nLasCycBeamTrips=0,goodCycles=0;
@@ -118,7 +118,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     if (debug) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
 ///!trying to get the cut positions by reading a file rather than executing the function repeatedly
 //..while re-running the macro again
-
+    
 //     if (infileLas.is_open()) {
 //       while (infileLas.good() )	{
 // 	infileLas >> entry;
@@ -327,12 +327,14 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	      qNormLasCycAsym[p][s] = (BCnormLasCycDiff[p][s] / BCnormLasCycSum[p][s]);
 	      
 	      ///Evaluation of error on asymmetry
-	      errB1H1L1[p][s]= pow(((1-qNormLasCycAsym[p][s])/(comptQH1L1*BCnormLasCycSum[p][s])),2)*(AccumB1H1L1[p][s]);
-	      errB1H0L1[p][s]= pow(((1+qNormLasCycAsym[p][s])/(comptQH0L1*BCnormLasCycSum[p][s])),2)*(AccumB1H0L1[p][s]);
-	      errB1H1L0[p][s]= pow(((1-qNormLasCycAsym[p][s])/(comptQH1L0*BCnormLasCycSum[p][s])),2)*(AccumB1H1L0[p][s]);
-	      errB1H0L0[p][s]= pow(((1+qNormLasCycAsym[p][s])/(comptQH0L0*BCnormLasCycSum[p][s])),2)*(AccumB1H0L0[p][s]);
+	      errB1H1L1[p][s]=((1-qNormLasCycAsym[p][s])/(comptQH1L1*BCnormLasCycSum[p][s]))*sqrt(AccumB1H1L1[p][s]);
+	      errB1H0L1[p][s]=((1+qNormLasCycAsym[p][s])/(comptQH0L1*BCnormLasCycSum[p][s]))*sqrt(AccumB1H0L1[p][s]);
+	      errB1H1L0[p][s]=((1-qNormLasCycAsym[p][s])/(comptQH1L0*BCnormLasCycSum[p][s]))*sqrt(AccumB1H1L0[p][s]);
+	      errB1H0L0[p][s]=((1+qNormLasCycAsym[p][s])/(comptQH0L0*BCnormLasCycSum[p][s]))*sqrt(AccumB1H0L0[p][s]);
 
 	      LasCycAsymEr[p][s] = sqrt(pow(errB1H1L1[p][s],2)+pow(errB1H0L1[p][s],2)+pow(errB1H1L0[p][s],2)+pow(errB1H0L0[p][s],2));
+	      hAsymPS[p][s].Fill(qNormLasCycAsym[p][s]);
+	      hAsymErPS[p][s].Fill(LasCycAsymEr[p][s]);	    
 	    }
 	    //LasCycAsymEr[p][s]  = 1.0/sqrt(unNormLasCycSum[p][s]);
 
@@ -340,8 +342,6 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	      printf("for nCycle:%d, qNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",nCycle,p,s,qNormLasCycAsym[p][s] ,LasCycAsymEr[p][s]);
 	      printf("formed by normalized BC (%f -/+ %f) \n",normAcB1H1L1LasCyc[p][s],normAcB1H0L1LasCyc[p][s]);
 	    }
-	    hAsymPS[p][s].Fill(qNormLasCycAsym[p][s]);
-	    hAsymErPS[p][s].Fill(LasCycAsymEr[p][s]);	    
 	  }
 	}///for (Int_t p =startPlane; p <endPlane; p++) {
       }
@@ -349,14 +349,6 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip, hence skipping"<<endl;
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
   
-  if(debug) {
-    for(Int_t s=40; s<=Cedge; s++) {
-    cout<<"\nasym: "<<qNormLasCycAsym[0][s]<<" comptQH1L1: "<<comptQH1L1<<" sum: "<<BCnormLasCycSum[0][s]<<" B1H1L1: "<<AccumB1H1L1[0][s]<<endl;
-    cout<<"errB1H1L1: "<<errB1H1L1[0][s]<<" errB1H0L1: "<<errB1H0L1[0][s]<<" errB1H1L0:"<<errB1H1L0[0][s]<<" errB1H0L0: "<<errB1H0L0[0][s]<<endl;
-    cout<<"for strip s="<<s<<" LasCycAsymEr: "<<LasCycAsymEr[0][s]<<endl;
-    }
-  }
-
   TCanvas *cmystrAsym = new TCanvas("cmystrAsym","Asymmetry in strip",10,10,1500,1100);
   cmystrAsym->Divide(2,4);
   Int_t n = 0;
@@ -364,7 +356,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     cmystrAsym->cd(1+2*n);
     h1[s] = (TH1D*)hAsymPS[0][s].Clone();    
     //h1[s]->Draw();
-    h1[s]->Fit("gaus");//the fit function probably automatically draws it too
+    h1[s]->Fit("gaus");//the fit function automatically draws it too
 
     cmystrAsym->cd(2+2*n);
     h2[s] = (TH1D*)hAsymErPS[0][s].Clone(); //,"","goff");
@@ -379,7 +371,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       if (maskedStrips(p,s)) continue;
       stripAsym[p][s] = hAsymPS[p][s].GetMean();
       stripAsymRMS[p][s] = hAsymPS[p][s].GetRMS();      
-      stripAsymEr[p][s] = ( hAsymErPS[p][s].GetMean() ) / (TMath::Sqrt((Double_t)goodCycles));/// 1/sqrt(N)
+      stripAsymEr[p][s] = ( hAsymErPS[p][s].GetMean() ) / sqrt(goodCycles);/// 1/sqrt(N)
     }
   }
 
@@ -412,9 +404,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 
 /******************************************************
 !Further modifications:
-* I'm not sure if the precursor file 'getEBeamLasCuts.C' can handle multile run numbers
-*..though this file seems to be capable of handle multiple runnumbers, it is practically not
-*.. because of the limitation posed by the getEBeamLasCuts.C file. For now, we are limited to 1 runnumber.
+* Adapt to handle multiple run numbers
 * due charge normalization per MPS window
 * ensure efficient evaluation of beamtrips
 * check consistency of cut on laserPow and beamtrip
