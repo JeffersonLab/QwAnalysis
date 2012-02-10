@@ -11,11 +11,12 @@ slot=20
 0,  98, MasterTrigger
 2,  97, R2ScintPkg1
 4,  97, R2ScintPkg2
-4,  97, R2ScintOR
+6,  97, R2ScintOR
 8,  99, TrigScintPkg1
 10, 97, TrigScintPkg2
 12, 97, TrigScintOR
 18, 97, MainDetTrigger
+!20, 97, ScannerTrigger
 28, 97, CopyMasterTrigger
 
 ! Channel 8 : Trig.Scint. Pkg 1 trigger
@@ -314,6 +315,7 @@ slot=20
 10, 99, TrigScintPkg2
 12, 97, TrigScintOR
 18, 97, MainDetTrigger
+!20, 97, ScannerTrigger
 28, 97, CopyMasterTrigger
 !10 99 0
 !0 98 0

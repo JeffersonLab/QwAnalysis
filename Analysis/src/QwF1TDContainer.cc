@@ -250,14 +250,15 @@ QwF1TDC::SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words)
   else {
     fF1TDCSyncFlag = false;
   }
-  
+  // calculate resolution_ns or bin_size_ns and full_range_ns
+  Double_t f1tdc_internal_reference_clock_ns = 25.0; // 40MHz
   // decide max channel number of F1TDC according to "resolution mode"
 
   fChannelNumber   = (Int_t) (fF1TDCFactor*fMaxF1TDCChannelNumber);
 
   // get refcnt and calculate tframe_ns
   fF1TDC_refcnt    = (fBuffer[7]>>6) & 0x1FF;
-  fF1TDC_tframe_ns = (Double_t)(25 * (fF1TDC_refcnt +2 ));
+  fF1TDC_tframe_ns = (Double_t)(f1tdc_internal_reference_clock_ns * (fF1TDC_refcnt +2 ));
 
 
   // calculate refclkdiv
@@ -270,8 +271,7 @@ QwF1TDC::SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words)
   // get hsdiv
   fF1TDC_hsdiv = fBuffer[10] & 0xFF;
 
-  // calculate resolution_ns or bin_size_ns and full_range_ns
-  Double_t f1tdc_internal_reference_clock_ns = 25.0; // 40MHz
+ 
   fF1TDC_resolution_ns = fF1TDCFactor * (f1tdc_internal_reference_clock_ns/152.0) * ( (Double_t) fF1TDC_refclkdiv )/( (Double_t) fF1TDC_hsdiv );
   fF1TDC_full_range_ns = buffer_range * fF1TDC_resolution_ns;
 
@@ -316,7 +316,7 @@ QwF1TDC::ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time)
   if (ref_time !=0.0) {
     
     Double_t trigger_window        = (Double_t) fF1TDC_trigwin;
-    Double_t time_offset           = (Double_t) fF1TDC_t_offset;
+    Double_t time_offset           = (Double_t) fF1TDC_t_offset; // effective total bin numbers
     Double_t time_condition        = 0.0;
     Double_t local_time_difference = 0.0;
  
@@ -1928,7 +1928,7 @@ F1TDCReferenceSignal::F1TDCReferenceSignal()
   fChannelNumber = -1;
   fBankIndex     = -1;
   fRefSignalName = "";
-
+  fSystemName    = "";
   Clear();
 }
 
@@ -1944,7 +1944,7 @@ F1TDCReferenceSignal::F1TDCReferenceSignal(
   fChannelNumber = channel;
   fBankIndex     = bank_index;
   fRefSignalName = "";
-
+  fSystemName    = "";
   Clear();
 
 }
@@ -1962,7 +1962,7 @@ F1TDCReferenceSignal::F1TDCReferenceSignal(
   fChannelNumber = channel;
   fBankIndex     = bank_index;
   fRefSignalName = name;
-  
+  fSystemName    = "";
   Clear();
 } 
 
@@ -1983,12 +1983,15 @@ std::ostream& operator<< (std::ostream& os,  const F1TDCReferenceSignal &f1tdcre
   os << std::setw(2) << f1tdcref.fChannelNumber;
   os << " RefTime (a.u.) ";
   os << std::setw(2) << f1tdcref.fRefTimeArbUnit;
+  os << " Counter ";
+  os << std::setw(20) << f1tdcref.fCounter;
 
   return os;
 }
 
 
-Bool_t F1TDCReferenceSignal::SetRefTimeAU(const Double_t ref_time) 
+Bool_t 
+F1TDCReferenceSignal::SetRefTimeAU(const Double_t ref_time) 
 {
   // always save the first hit as the reference signal
   Bool_t status = false;
@@ -1996,10 +1999,23 @@ Bool_t F1TDCReferenceSignal::SetRefTimeAU(const Double_t ref_time)
   fRefTimeArbUnit = ref_time; 
   fFirstHitFlag = true;
   status = true;
+  fCounter++;
   }
   return status;
 };
 
+
+void 
+F1TDCReferenceSignal::PrintCounterSummary()
+{
+  std::cout << " Name " << std::setw(20) << fRefSignalName
+	    << " Bank idx " << std::setw(2) <<  fBankIndex
+	    << " Slot "     << std::setw(2) <<  fSlot
+            << " Chan "     << std::setw(2) <<  fChannelNumber
+	    << " Counter "  << std::setw(20) << fCounter
+	    << std::endl;
+  return;
+};
 
 
 
@@ -2132,5 +2148,39 @@ F1TDCReferenceContainer::ClearEventData()
       F1RefSignal->ClearEventData();
     }
 
+  return;
+}
+
+void
+F1TDCReferenceContainer::PrintCounters()
+{
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+
+  std::cout << "F1Reference Signal Counters at System " << fSystemName << std::endl;
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+      F1RefSignal->PrintCounterSummary();
+    }
+  return;
+};
+
+
+void
+F1TDCReferenceContainer::SetSystemName(const TString name)
+{
+  // Types are defined in QwType.h
+  if(fSystemName.IsNull()) {
+    fSystemName = name;
+  }
+  else {
+    std::cout << "F1TDCReferenceContainer::SetSystemName " 
+	      << fSystemName 
+	      << " is already registered."
+	      << std::endl;
+  }
   return;
 }

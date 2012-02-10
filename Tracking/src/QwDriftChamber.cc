@@ -66,6 +66,7 @@ QwDriftChamber::QwDriftChamber(const TString& name)
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
   fF1RefContainer = new F1TDCReferenceContainer();
+
 }
 
 
@@ -439,6 +440,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     }
     subsystem_name = this->GetSubsystemName();
     fF1TDContainer -> SetSystemName(subsystem_name);
+    fF1RefContainer-> SetSystemName(subsystem_name);
 
     if(local_debug) {
       std::cout << "-----------------------------------------------------" << std::endl;
@@ -544,8 +546,9 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 void
 QwDriftChamber::FillHardwareErrorSummary()
 {
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
+  fF1RefContainer -> PrintCounters();
+  fF1TDContainer  -> PrintErrorSummary();
+  fF1TDContainer  -> WriteErrorSummary();
   //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
 
   return;

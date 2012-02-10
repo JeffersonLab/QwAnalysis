@@ -408,6 +408,9 @@ class F1TDCReferenceSignal :  public TObject
   Bool_t SetRefTimeAU   (const Double_t ref_time);// { if  fFirstHitFlag  = false;fRefTimeArbUnit = ref_time;};
   
   Bool_t HasFirstHit() {return fFirstHitFlag; };
+  const UInt_t GetCounter() const {return fCounter;};
+
+  void PrintCounterSummary();
 
   void ClearEventData() { Clear(); };
 
@@ -437,6 +440,9 @@ class F1TDCReferenceSignal :  public TObject
 
   Double_t  fRefTimeArbUnit;
   Bool_t    fFirstHitFlag;
+  UInt_t    fCounter;
+
+  TString            fSystemName;
 
   void Clear() { fRefTimeArbUnit = -1.0; fFirstHitFlag = false;};
 
@@ -459,8 +465,8 @@ class F1TDCReferenceContainer :  public TObject
 
   // friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
 
-  /* void SetSystemName(const TString name);// {fSystemName = name;}; */
-  /* const TString GetSystemName() const {return fSystemName;}; */
+  void SetSystemName(const TString name);//{fSystemName = name;};
+  const TString GetSystemName() const {return fSystemName;};
 
   void AddF1TDCReferenceSignal(F1TDCReferenceSignal *in);
   /* void Print(const Option_t* options = 0) const; */
@@ -468,6 +474,7 @@ class F1TDCReferenceContainer :  public TObject
   Int_t              GetSize()         const {return fNF1TDCReferenceSignals;};
   Int_t              Size()            const {return fNF1TDCReferenceSignals;};
 
+  void PrintCounters();
 
   F1TDCReferenceSignal* GetReferenceSignal(Int_t bank_index, Int_t slot, Int_t chan);
 
@@ -478,7 +485,7 @@ class F1TDCReferenceContainer :  public TObject
   // we can distinguish them with "zero" reference time. 
 private:
 
- /* TString            fSystemName; */
+  TString            fSystemName;
   ClassDef(F1TDCReferenceContainer,1);
 
 };
