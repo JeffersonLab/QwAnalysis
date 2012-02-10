@@ -16,43 +16,41 @@ Int_t fileReadDraw(Int_t run) //TString *tobePlotted)
     zero[s]=0;
   }
 
-  ifstream in1;
-  ifstream in2;
+  ifstream in1, in2;
 
   // Open file 1
   in1.open(Form("r%d_expAsymP1.txt",run));
-
-  for(Int_t s =0; s <endStrip; s++) {
-    if (maskedStrips(0,s)) continue;
-    /// Read data file
-    if(in1.is_open()) {
-      if(in1.good()) {
+  if(in1.is_open()) {
+    for(Int_t s =0; s <endStrip; s++) {
+      if (maskedStrips(0,s)) continue;
+      /// Read data file
+      while(in1.good()) {
 	in1 >> strip[s]>>expAsym[s]>>asymEr[s]>>asymRMS[s];
 	//printf("%f\t%f\t%f\t%f\n",strip[s],expAsym[s],asymEr[s],asymRMS[s]);
       }
     }
-    else printf("didn't find the file 1 \n");
   }
+  else printf("Note: didn't find the laserCycle based asym file \n");
   
   in2.open(Form("%d-plane-1.output",run));
-  for(Int_t s =0; s <endStrip; s++) {
-    if (maskedStrips(0,s)) continue;
-    /// Read data file
-    if(in2.is_open()) {
-      if(in2.good()) {
+  if(in2.is_open()) {
+    for(Int_t s =0; s <endStrip; s++) {
+      if (maskedStrips(0,s)) continue;
+      /// Read data file
+      while(in2.good()) {
 	in2 >> stripFort[s]>>expAsymFort[s]>>asymErFort[s];
 	//printf("%f\t%f\t%f\n",stripFort[s],expAsymFort[s],asymErFort[s]);
       }
-    } 
-    else printf("didn't find the file 2 \n");
+    }
   }
+  else printf("Note: didn't find the runlet based asym file \n");
 
   //TCanvas *cAsymCompared = new TCanvas("cAsymCompared","Asymmetry evaluation in Fort and Cpp",10,10,600,800);
   TCanvas *c1 = new TCanvas("c1","Comparision of Asymmetry evaluation",10,10,800,600);
   TLine *myline = new TLine(0,0,64,0);
   c1->cd();
-   grFort = new TGraphErrors(endStrip,stripFort,expAsymFort,zero,asymErFort);
-   grCpp = new TGraphErrors(endStrip,strip,expAsym,zero,asymEr);
+  grFort = new TGraphErrors(endStrip,stripFort,expAsymFort,zero,asymErFort);
+  grCpp = new TGraphErrors(endStrip,strip,expAsym,zero,asymEr);
 
 //   cAsymCompared->Divide(1,2);
 //   cAsymCompared->cd(1);
@@ -73,7 +71,7 @@ Int_t fileReadDraw(Int_t run) //TString *tobePlotted)
 //   grCpp->SetLineColor(2);
 //   grCpp->GetXaxis()->SetTitle("strip number");
 //   grCpp->GetYaxis()->SetTitle("asymmetry");
-   grCpp->SetTitle("laser based asym evaluation");
+   grCpp->SetTitle("laser cycle wise asym evaluation");
 //   grCpp->SetMarkerStyle(22);
 //   grCpp->Draw("A*");
 
@@ -82,25 +80,24 @@ Int_t fileReadDraw(Int_t run) //TString *tobePlotted)
 
 //   cAsymCompared->Update();
 
-  grFort->GetXaxis()->SetTitle("strip number");
-  grFort->GetYaxis()->SetTitle("asymmetry");
-  grFort->SetMaximum(0.02);
-  grFort->SetMinimum(-0.05);
-
-  grFort->SetMarkerColor(4);
-  grFort->SetMarkerStyle(24);
-  grFort->SetLineColor(4);
-  grFort->Draw("AP");
+  grCpp->GetXaxis()->SetTitle("strip number");
+  grCpp->GetYaxis()->SetTitle("asymmetry");
+  grCpp->SetMaximum(0.045);
+  grCpp->SetMinimum(-0.045);
 
   grCpp->SetMarkerStyle(20);
   grCpp->SetLineColor(2);
   grCpp->SetMarkerColor(2);
+  grCpp->Draw("AP");
+
+  grFort->SetMarkerColor(4);
+  grFort->SetMarkerStyle(24);
+  grFort->SetLineColor(4);
   grCpp->Draw("P");
 
   myline->SetLineStyle(1);
   myline->Draw();
 
-  return 1;
+  c1->SaveAs(Form("expAsym_r%d.png",run));
+  return run;
 }
- 
-// grCpp->SetTitle("C++ evaluated asymm compared to Fortran");

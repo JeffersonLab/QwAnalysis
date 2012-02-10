@@ -3,12 +3,12 @@
 #include "comptonRunConstants.h"
 #include "fileReadDraw.C"
 
-void polFit(Int_t runnum)
+void polFit(Int_t runnum1, Int_t runnum2)
 {
   Float_t theoExpRatio[nPlanes][nStrips], stripAsymRMS[nPlanes][nStrips];
   Float_t zero[nStrips],stripPlot[nStrips];
 
-  asymFit(runnum,theoExpRatio,stripAsymRMS);
+  asymFit(runnum1,runnum2,theoExpRatio,stripAsymRMS);
 
   TGraphErrors *grPolPlane[nPlanes];
              
@@ -29,7 +29,9 @@ void polFit(Int_t runnum)
     grPolPlane[p]->Draw("A*");                      
     cPol->Update();
   }
-
-  fileReadDraw(runnum);
+  for (Int_t runnum=runnum1; runnum<=runnum2; runnum++) {
+    fileReadDraw(runnum);
+  }
+  
 }
   

@@ -24,55 +24,40 @@ vector<Int_t>cutEB;//arrays of cuts for electron beam
  
 Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
 {
-  Char_t textf[255],textwrite[255];
   time_t tStart = time(0), tEnd; 
-  Bool_t debug = 0, debug1 = 0, debug2 = 0;
+  Bool_t debug = 1, debug1 = 0, debug2 = 0;
   Bool_t lasOn, beamOn =kFALSE;
-  Int_t chainExists = 0;
-  Int_t nLasCycBeamTrips=0,goodCycles=0;
+  Int_t chainExists = 0,goodCycles=0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
   Int_t nMpsB1H1L1, nMpsB1H0L1, nMpsB1H1L0, nMpsB1H0L0;
-  //Int_t entry;
+  Int_t entry;
   Float_t AccumB1H0L0[nPlanes][nStrips],AccumB1H0L1[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
   Double_t comptQH1L1, comptQH0L1, comptQH1L0, comptQH0L0;
   Double_t lasPowB1H1, lasPowB1H0; //, lasPowB0H1, lasPowB0H0;
   //Double_t unNormLasCycSum[nPlanes][nStrips];
-  Double_t lasPow[3], lasMax, helicity, bcm[3], Qmax;
+  Double_t lasPow[3], lasMax, helicity, bcm[3];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];
   //  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsymRMS[nPlanes][nStrips] ;
   Float_t normAcB1H1L1LasCyc[nPlanes][nStrips], normAcB1H0L1LasCyc[nPlanes][nStrips];
   Float_t normAcB1H0L0LasCyc[nPlanes][nStrips], normAcB1H1L0LasCyc[nPlanes][nStrips];
-  Float_t BCnormAcB1H1L1LasCyc[nPlanes][nStrips], BCnormAcB1H0L1LasCyc[nPlanes][nStrips]; //Background Corrected
+  Float_t BCnormAcB1H1L1LasCyc[nPlanes][nStrips], BCnormAcB1H0L1LasCyc[nPlanes][nStrips];//Background Corrected
   Float_t BCnormLasCycSum[nPlanes][nStrips], BCnormLasCycDiff[nPlanes][nStrips];
   Double_t qNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips];
   Float_t errB1H1L1[nPlanes][nStrips],errB1H0L1[nPlanes][nStrips],errB1H1L0[nPlanes][nStrips],errB1H0L0[nPlanes][nStrips];
-
+  TString readEntry;
   TH1D *h1[10], *h2[10]; //!temp test histograms
   char hName[nPlanes][120],hNameEr[nPlanes][120];
-
   std::vector<std::vector<TH1D> > hAsymPS;
   std::vector<std::vector<TH1D> > hAsymErPS;
+  ofstream outfileExpAsymP; 
+  ifstream infileLas, infileBeam;
+
   gStyle->SetOptFit(1);
   gStyle->SetOptStat(1);
-  
-  //ofstream outfileExpAsymP1;
 
-  //  for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
-  //for(Int_t p = startPlane; p < endPlane; p++) {
-  sprintf(textf,"r%d_expAsymP1.txt",runnum1);
-  ofstream outfileExpAsymP1(Form("%s",textf));
-  printf("%s file created\n",textf);
-  //}
-  //  }
-//   sprintf(textf,"r%d_cutLas.txt",runnum);
-//   ifstream infileLas(Form("%s",textf));
-  
-//   sprintf(textf,"r%d_cutBeam.txt",runnum);
-//   ifstream infileBeam(Form("%s",textf));
-  
   for (Int_t p =0; p <nPlanes; p++) {   
     if (p >= (Int_t) hAsymPS.size()) {
       hAsymPS.resize(p+1);
@@ -105,8 +90,8 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       chainExists = mpsChain->Add(Form("$QW_ROOTFILES/first100k_%d.root",runnum));
     }
     else {
-      //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
-      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for my Analyzer output files
+      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+      //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for my Analyzer output
       printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
     }
     if(!chainExists){//delete chains and exit if files do not exist
@@ -114,44 +99,54 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       delete mpsChain;
       return -1;
     }
-    nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain,runnum);
-    if (debug) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
-///!trying to get the cut positions by reading a file rather than executing the function repeatedly
-//..while re-running the macro again
+
+    infileLas.open(Form("r%d_cutLas.txt",runnum));
+    infileBeam.open(Form("r%d_cutBeam.txt",runnum));
     
-//     if (infileLas.is_open()) {
-//       while (infileLas.good() )	{
-// 	infileLas >> entry;
-// 	cutLas.push_back(entry);
-//       }
-//       infileLas.close();
-//     } 
-//     else cout << "\n*****Error: Unable to cutLas file*****\n"; 
-//     nLasCycles = cutLas.size();
-
-//     if (infileBeam.is_open()) {
-//       while (infileBeam.good() )	{
-// 	infileBeam>>entry;
-// 	cutEB.push_back(entry);
-//       }
-//       infileBeam.close();
-//     } 
-//     else cout << "\n*****Error: Unable to cutEB file*****\n"; 
-//     nBeamTrips = cutEB.size();
-
+    if (infileLas.is_open() && infileBeam.is_open()) {
+      cout<<"Found the cutLas and cutEB file"<<endl;
+      while (infileLas.good()) {
+	infileLas >> readEntry; //read the contents of the line in a string first
+	if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
+	  entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
+	  if (debug2) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
+	  cutLas.push_back(entry);
+	}
+	else cout<<"check cutLas file for "<<runnum<<endl;
+      }
+      infileLas.close();
+      nLasCycles = (cutLas.size() - 1)/2;
+    
+      while (infileBeam.good()) {
+	infileBeam >> readEntry;
+	if (readEntry.IsDigit()) {
+	  entry = readEntry.Atoi();
+	  if (debug2) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
+	  cutEB.push_back(entry);
+	}
+	else cout<<"check cutEB file for "<<runnum<<endl;
+      }
+      infileBeam.close();
+      nBeamTrips = (cutEB.size())/2;
+    }
+    else {
+      cout << "\n*****:Atleast one of the Cut files missing *****\n"<<endl;
+      cout<<"          hence executing the cut function"<<endl;
+      Int_t nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain,runnum);
+      if (debug) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
+      nLasCycles = nLasCycBeamTrips%1000 - 1;
+      ////first two digits of return value of getEBeamLasCuts
+      nBeamTrips = nLasCycBeamTrips / 1000;
+      ////fourth digit of return value of getEBeamLasCuts
+    }
+    
     if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
   }
   Int_t nEntries = mpsChain->GetEntries();
   printf("This chain has %i entries.\n", nEntries);
 
   mpsChain->ResetBranchAddresses();//!? should it be here?
-  nLasCycles = nLasCycBeamTrips%1000 - 1;
-  ////first two digits of return value of getEBeamLasCuts
-  nBeamTrips = nLasCycBeamTrips / 1000;
-  ////fourth digit of return value of getEBeamLasCuts
-
-  Qmax = mpsChain->GetMaximum("sca_bcm6/value");//!I should use sca_bcm6
-  cout<<"Qmax = "<<Qmax <<endl;
+  
   lasMax = mpsChain->GetMaximum("sca_laser_PowT/value");
   cout<<"lasMax="<<lasMax<<endl;
   cout<<"nbeamTrips="<<nBeamTrips<<endl;
@@ -375,15 +370,17 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     }
   }
 
-  //sprintf(textwrite,"strip\texpAsym\tasymEr\tasymRMS"); ///Title heading in first row
-  //outfileExpAsymP1 <<textwrite<<endl;
-  for (Int_t p =startPlane; p <endPlane; p++) {	  	  
-    for (Int_t s =startStrip; s <endStrip;s++) {    
-      if (maskedStrips(p,s)) continue;
-      if (p==0) { //plane 1
-	sprintf(textwrite,"%d\t%f\t%f\t%f",s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
-	outfileExpAsymP1 <<textwrite<<endl;
+  //outfileExpAsymP1<<"strip\texpAsym\tasymEr\tasymRMS"<<endl; ///If I want a heading on the following text
+  for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
+    for(Int_t p = startPlane; p < endPlane; p++) {
+      outfileExpAsymP.open(Form("r%d_expAsymP%d.txt",runnum,p+1));
+      cout<<Form("r%d_expAsymP%d.txt",runnum,p)<<" file created"<<endl;
+      for (Int_t s =startStrip; s <endStrip;s++) {    
+	if (maskedStrips(p,s)) continue;
+	outfileExpAsymP<<s+1<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<"\t"<<stripAsymRMS[p][s]<<endl;
       }
+      outfileExpAsymP.close();
+      cout<<Form("r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
     }
   }
   
@@ -396,16 +393,14 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 /******************************************************
 !Querries:
 * why does a repeat execution of the code causes crash of root-session
-* how to read in the cutLas and cutEB file for all planes cleanly
 * how to properly delete the new TGraphErrors and the new TCanvas and the new TLine 
 * ..created in the code
-* why is my 'goff' not working in the histogram Draw method?
 ******************************************************/
 
 /******************************************************
 !Further modifications:
 * Adapt to handle multiple run numbers
-* due charge normalization per MPS window
+* evaluate asymmetry per pattern and see its pattern
 * ensure efficient evaluation of beamtrips
 * check consistency of cut on laserPow and beamtrip
 ******************************************************/
