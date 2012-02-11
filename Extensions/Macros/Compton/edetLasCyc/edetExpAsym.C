@@ -4,17 +4,8 @@
 #include "maskedStrips.C"
 
 div_t div_output;
-//////////////////////////////////////////////////////////////////////////
-/** This calculates the Compton differential cross section asymmetry.  **/
-/** The asymmetry equation below is in dimensionless units x=k/kmax    **/
-/** which puts the Compton edge at x = 1.Strip # has to be converted   **/
-/** to this dimensionless scale.                                       **/
-/** Arguments: scattering energy in strip # and e-beam polarization    **/
-/** Beam and laser parameters are set as constants.                    **/ 
-//////////////////////////////////////////////////////////////////////////
 
 TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
-
 vector<Int_t>cutLas;//arrays of cuts for laser
 vector<Int_t>cutEB;//arrays of cuts for electron beam
 
@@ -91,7 +82,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     }
     else {
       chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
-      //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for my Analyzer output
+      //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
       printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
     }
     if(!chainExists){//delete chains and exit if files do not exist
@@ -109,19 +100,19 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	infileLas >> readEntry; //read the contents of the line in a string first
 	if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
 	  entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
-	  if (debug2) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
+	  if (debug) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
 	  cutLas.push_back(entry);
 	}
 	else cout<<"check cutLas file for "<<runnum<<endl;
       }
       infileLas.close();
-      nLasCycles = (cutLas.size() - 1)/2;
+      nLasCycles = (cutLas.size() - 2)/2;
     
       while (infileBeam.good()) {
 	infileBeam >> readEntry;
 	if (readEntry.IsDigit()) {
 	  entry = readEntry.Atoi();
-	  if (debug2) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
+	  if (debug) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
 	  cutEB.push_back(entry);
 	}
 	else cout<<"check cutEB file for "<<runnum<<endl;
@@ -151,7 +142,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   cout<<"lasMax="<<lasMax<<endl;
   cout<<"nbeamTrips="<<nBeamTrips<<endl;
   cout<<"nLasCycles="<<nLasCycles<<endl;
-
+  
   mpsChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
   mpsChain->SetBranchStatus("actual_helicity",1);
   mpsChain->SetBranchStatus("sca_laser_PowT",1);
@@ -170,8 +161,8 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
     if (debug) cout<<"\nStarting nCycle:"<<nCycle<<" and resetting all nCycle variables"<<endl;
-    ////since this is the beginning of a new Laser cycle, and I have already assigned the 
-    ////accumulated counts to a permanent variable reset the LasCyc counters
+    ///since this is the beginning of a new Laser cycle, and all Laser cycle based variables 
+    ///..are already assigned to a permanent variable reset the LasCyc based variables
     nMpsB1H1L1= 0, nMpsB1H0L1= 0, nMpsB1H1L0= 0, nMpsB1H0L0= 0;
     comptQH1L1= 0.0, comptQH0L1= 0.0, comptQH1L0= 0.0, comptQH0L0= 0.0;
     lasPowB1H1= 0.0, lasPowB1H0= 0.0;
@@ -189,27 +180,19 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       }
     }
 
-    if(nthBeamTrip < nBeamTrips) {
-      if(cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip)) {
-	//!?what if the run starts with a beamTrip
-	//!?what if the run ends with a beamTrip
-	//!?what if there is no beamTrip
-	beamOn = kTRUE;
-      }
-      else {
+    if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
+    else if(nthBeamTrip < nBeamTrips) {  ///finite number of beamtrip(s)
+      if(cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip))	beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
+      else {                    ///there is a beam trip during this laser cycle
 	beamOn = kFALSE;
-	nthBeamTrip++;
+	nthBeamTrip++;          ///encountered a beam trip
       }
     }
-    else {//processing the last beamTrip
-      if(nthBeamTrip != nBeamTrips) cout<<"\n***Error in BeamTrip evaluation***\n"<<endl;
-      if (cutLas.at(2*nCycle+1)>cutEB.at(2*nthBeamTrip-1)) { //this happens when run ends with beamOn
- 	beamOn = kTRUE;	
-      }
-      else {
- 	beamOn = kFALSE;
-      }
+    else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
+      if (cutLas.at(2*nCycle+1) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
+      else beamOn = kFALSE;
     }
+    else cout<<"\n***Error ... Something drastically worng in BeamTrip evaluation***\n"<<endl;
       
     for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++) { 
       //loop over laser cycle periods from one LasOn state upto just before beginning of next LasOn
@@ -223,7 +206,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       if ((l==1) && lasOn) l=1; //making the laser On requirement more strict
 
       /**********
-       * (a)currently this method appears a little inefficient because since we not processing beamOff data
+       * (a)currently this method appears a little inefficient since we not processing beamOff data
        * why do we even enter this laser-cycle which is not going to do anything;
        * but later on, we are going to use use the beam off part in someway and this would make sense then
        **********/
@@ -317,6 +300,9 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    BCnormLasCycSum[p][s] = (BCnormAcB1H1L1LasCyc[p][s]  + BCnormAcB1H0L1LasCyc[p][s]);
 	    if (BCnormLasCycSum[p][s]  <= 0.0) {
 	      if(debug) printf("\n**Warning**:BCnormLasCycSum[p%d][s%d] is %f in nCycle:%d\n",p,s,BCnormLasCycSum[p][s],nCycle);
+	      if(debug) printf("note: AccumB1H1L1:%f, AccumB1H1L0:%f, AccumB1H0L1:%f, AccumB1H0L0:%f\n"
+			       ,AccumB1H1L1[p][s],AccumB1H1L0[p][s],AccumB1H0L1[p][s],AccumB1H0L0[p][s]);
+	      if(debug) printf("and comptQH1L1:%f, comptQH1L0:%f, comptQH0L1:%f, comptQH0L0:%f",comptQH1L1,comptQH1L0,comptQH0L1,comptQH0L0);
 	    }
 	    else {
 	      qNormLasCycAsym[p][s] = (BCnormLasCycDiff[p][s] / BCnormLasCycSum[p][s]);
@@ -370,14 +356,15 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     }
   }
 
-  //outfileExpAsymP1<<"strip\texpAsym\tasymEr\tasymRMS"<<endl; ///If I want a heading on the following text
   for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
     for(Int_t p = startPlane; p < endPlane; p++) {
       outfileExpAsymP.open(Form("r%d_expAsymP%d.txt",runnum,p+1));
-      cout<<Form("r%d_expAsymP%d.txt",runnum,p)<<" file created"<<endl;
+      //outfileExpAsymP<<"strip\texpAsym\tasymEr\tasymRMS"<<endl; ///If I want a header for the following text
+      cout<<Form("r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) {    
 	if (maskedStrips(p,s)) continue;
-	outfileExpAsymP<<s+1<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<"\t"<<stripAsymRMS[p][s]<<endl;
+	//	outfileExpAsymP<<s+1<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<"\t"<<stripAsymRMS[p][s]<<endl;
+	outfileExpAsymP<<Form("%d\t%f\t%f\t%f\n",s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
       }
       outfileExpAsymP.close();
       cout<<Form("r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
@@ -395,6 +382,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 * why does a repeat execution of the code causes crash of root-session
 * how to properly delete the new TGraphErrors and the new TCanvas and the new TLine 
 * ..created in the code
+*	//!?what if the run starts with a beamTrip
 ******************************************************/
 
 /******************************************************

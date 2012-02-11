@@ -30,7 +30,8 @@ void polFit(Int_t runnum1, Int_t runnum2)
     cPol->Update();
   }
   for (Int_t runnum=runnum1; runnum<=runnum2; runnum++) {
-    fileReadDraw(runnum);
+    Int_t check= fileReadDraw(runnum);
+    if(check!=runnum) cout<<"check the fileReadDraw.C and polFit.C"<<endl;
   }
   
 }
