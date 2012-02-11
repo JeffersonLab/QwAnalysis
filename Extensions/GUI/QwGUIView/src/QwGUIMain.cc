@@ -983,6 +983,7 @@ void QwGUIMain::PlotMainData()
   Float_t StatH = gStyle->GetStatH();
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.3);             
+  gStyle->SetOptStat("nemr");
 
   TString file(Form("%s/Extensions/Macros/Parity/golden_values_run_summary",gSystem->Getenv("QWANALYSIS")));
   // RDataContainer *GoldenData = new RDataContainer(fClient->GetRoot(), this,
