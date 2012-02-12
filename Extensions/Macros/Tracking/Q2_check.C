@@ -1,8 +1,8 @@
 // Name:   Q2_check.C
 // Author: Siyuan Yang
 // Email:  sxyang@email.wm.edu
-// Date:   Monday Jan 9th,2010
-// Version:1.0
+// Date:   Monday Jan 9th,2012
+// Version:1.1
 //
 //
 // This script is used to extract the Q2 information for both packages
@@ -30,6 +30,10 @@
 
 // notion: the package number is always consitent with package number in R2
 
+// UPDATE on Feb 12th, 2012
+// remove the oct number in the argument list. The octant number will be automatically deduced give 
+// the run number by the getOctNumber function.This modification saves people's time to remeber 
+// the octant number for specific run.
 
 
 #include <cstring>
@@ -39,7 +43,10 @@
 
 const int multiple=18;
 
-void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string suffix=""){
+void q2_check(int event_start=-1,int event_end=-1,int run=8658,string suffix=""){
+
+  //try to get the oct number from the run number
+  int oct=getOctNumber(run);
 
 
   //string folder="/scratch/sxyang";
@@ -59,6 +66,7 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
    TH1F* q2_1=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0,0.12);
    TH1F* q2_2=new TH1F("Q2 distribution in Package 2","Q2 distribution in Package 2",100,0,0.12);
 
+   TH1F* special=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0.1,0.06);
    QwEvent* fEvent=0;
    QwTrack* track=0;
    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
@@ -81,10 +89,69 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
     //TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_adc",md_2));
     //TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_adc",md_2));
     
-    TLeaf* tsp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
-    TLeaf* tsm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
-    TLeaf* tsp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
-    TLeaf* tsm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
+    TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
+    TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
+    TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
+    TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
+
+          
+
+      TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
+      TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
+
+      TH1F* pkg1_phi=new TH1F("c","c",500,-1,1);
+      TH1F* pkg2_phi=new TH1F("d","d",500,-1,1);
+
+      TF1* f1=new TF1("f1","gaus",-1,1);
+      f1->SetParameters(1,-0.5,1);
+
+      TF1* f2=new TF1("f2","gaus",-1,1);
+      f2->SetParameters(1,-0.5,1);
+
+      TF1* f3=new TF1("f3","gaus",-1,1);
+      f1->SetParameters(1,-0.5,1);
+
+      TF1* f4=new TF1("f4","gaus",-1,1);
+      f1->SetParameters(1,-0.5,1);
+
+      
+      event_tree->Project("a","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==1");
+      pkg1_theta->Fit("f1","QN0");
+
+      event_tree->Project("b","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==2");
+      pkg2_theta->Fit("f2","QN0");
+
+      event_tree->Project("c","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==1");
+      pkg1_phi->Fit("f3","QN0");
+
+      event_tree->Project("d","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==2");
+      pkg2_phi->Fit("f4","QN0");
+      
+      double mean_thetaoff_pkg1=f1->GetParameter(1);
+      double sigma_thetaoff_pkg1=f1->GetParameter(2);
+
+      double mean_thetaoff_pkg2=f2->GetParameter(1);
+      double sigma_thetaoff_pkg2=f2->GetParameter(2);
+
+      double mean_phioff_pkg1=f3->GetParameter(1);
+      double sigma_phioff_pkg1=f3->GetParameter(2);
+
+      double mean_phioff_pkg2=f4->GetParameter(1);
+      double sigma_phioff_pkg2=f4->GetParameter(2);
+      
+
+      //for(int i=0;i<3;++i)
+      //cout << "parameter[" << i << "]=" << f1->GetParameter(i) << endl;
+     double width=1000;
+     double pkg1_phioff_lower=mean_phioff_pkg1-width*sigma_phioff_pkg1;
+     double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
+     double pkg2_phioff_lower=mean_phioff_pkg2-width*sigma_phioff_pkg2;
+     double pkg2_phioff_upper=mean_phioff_pkg2+width*sigma_phioff_pkg2;
+
+     double pkg1_thetaoff_lower=mean_thetaoff_pkg1-width*sigma_thetaoff_pkg1;
+     double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*sigma_thetaoff_pkg1;
+     double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*sigma_thetaoff_pkg2;
+     double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*sigma_thetaoff_pkg2;
     
     for(int i=start;i<end;++i){
 
@@ -101,34 +168,17 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
 
       trig_branch->GetEntry(i);
        
-      double tsp_value_1=tsp_1->GetValue();
-      double tsm_value_1=tsm_1->GetValue();
-      double tsp_value_2=tsp_2->GetValue();
-      double tsm_value_2=tsm_2->GetValue();
+      double mdp_value_1=mdp_1->GetValue();
+      double mdm_value_1=mdm_1->GetValue();
+      double mdp_value_2=mdp_2->GetValue();
+      double mdm_value_2=mdm_2->GetValue();
       
       double ntracks=fEvent->GetNumberOfTracks();
       // those filters are related with the quality of matching of r2 and r3 tracks
-      double mean_phioff_pkg1=-0.006526;
-      double mean_phioff_pkg2=-0.01667;
-      double mean_thetaoff_pkg1=-0.0007041;
-      double mean_thetaoff_pkg2=-0.01098;
-
-      double rms_phioff_pkg1=0.0281;
-      double rms_phioff_pkg2=0.02121;
-      double rms_thetaoff_pkg1=0.002918;
-      double rms_thetaoff_pkg2=0.003083;
+     
 
 
-      double width=25;
-      double pkg1_phioff_lower=mean_phioff_pkg1-width*rms_phioff_pkg1;
-      double pkg1_phioff_upper=mean_phioff_pkg1+width*rms_phioff_pkg1;
-      double pkg2_phioff_lower=mean_phioff_pkg2-width*rms_phioff_pkg2;
-      double pkg2_phioff_upper=mean_phioff_pkg2+width*rms_phioff_pkg2;
-
-      double pkg1_thetaoff_lower=mean_thetaoff_pkg1-width*rms_thetaoff_pkg1;
-      double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*rms_thetaoff_pkg1;
-      double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*rms_thetaoff_pkg2;
-      double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*rms_thetaoff_pkg2;
+     
       // extract Q2 and Scattering Angle
 
       	int nhits=fEvent->GetNumberOfHits();
@@ -146,15 +196,16 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
 
       for(int j=0;j<ntracks;++j){
 	track=fEvent->GetTrack(j);
-	if(track->GetPackage()==1 && valid_hits_1 < multiple && tsm_value_1 >-1800 && tsm_value_1 < -1200 && tsp_value_1 > -1800 && tsp_value_1 < -1200){
-	   if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper){
+	if(track->GetPackage()==1 && valid_hits_1 < multiple && mdm_value_1 >-1800 && mdm_value_1 < -1200 && mdp_value_1 > -1800 && mdp_value_1 < -1200){
+	   if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper ){
 	  angle_1->Fill(track->fScatteringAngle);
 	  q2_1->Fill(track->fQ2);
+	  special->Fill(track->fQ2);
 	  angle->Fill(track->fScatteringAngle);
 	  q2->Fill(track->fQ2);
 	   }
 	}
-      	else if(track->GetPackage()==2 && valid_hits_2 < multiple && tsm_value_2 > -1800 && tsm_value_2 <-1200 && tsp_value_2 > -1800 && tsp_value_2 < -1200 ){
+      	else if(track->GetPackage()==2 && valid_hits_2 < multiple && mdm_value_2 > -1800 && mdm_value_2 <-1200 && mdp_value_2 > -1800 && mdp_value_2 < -1200 ){
 	  if(track->fDirectionPhioff>pkg2_phioff_lower && track->fDirectionPhioff<pkg2_phioff_upper && track->fDirectionThetaoff>pkg2_thetaoff_lower && track->fDirectionThetaoff<pkg2_thetaoff_upper){
 	angle_2->Fill(track->fScatteringAngle);
 	  q2_2->Fill(track->fQ2);
@@ -183,7 +234,7 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
     cout << "pkg1: " <<  setprecision(5) << 1000*q2_1->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
     if(q2_2->GetEntries()!=0)
     cout << "pkg2: " <<  setprecision(5) << 1000*q2_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
-      
+    
     TCanvas* c=new TCanvas("c","c",800,600);
     c->Divide(2,3);
     c->cd(1);
@@ -193,7 +244,7 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
 
     c->cd(2);
     q2->Draw();
-    q2->GetXaxis()->SetTitle("Scattering Angle: degree");
+    q2->GetXaxis()->SetTitle("Q2: (GeV/c)^2");
     q2->SetTitle("Q2 Distribution in Package 1");
     
     c->cd(3);
@@ -203,12 +254,12 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
 
     c->cd(4);
     q2_1->Draw();
-    q2_1->GetXaxis()->SetTitle("Scattering Angle: degree");
+    q2_1->GetXaxis()->SetTitle("Q2: (GeV/c)^2");
     q2_1->SetTitle("Q2 Distribution in Package 1");
     
      c->cd(5);
     angle_2->Draw();
-    angle_2->GetXaxis()->SetTitle("Scattering Angle: degree");
+    angle_2->GetXaxis()->SetTitle("Q2: (GeV/c)^2");
     angle_2->SetTitle("Scattering Angle Distribution in Package 2");
 
     c->cd(6);
@@ -216,9 +267,35 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,int oct=1,string 
     q2_2->GetXaxis()->SetTitle("Scattering Angle: degree");
     q2_2->SetTitle("Q2 Distribution in Package 2");
     
+    //special->Draw();
+    //special->GetXaxis()->SetTitle("Q2: (GeV/c)^2");
+    //special->SetTitle("Q2 Distribution in Package 1");
     return;
 
  }
+
+
+
+int getOctNumber(int run){
+
+  if((run>=15025 && run <= 15036) || (run>=13671 && run<=13673) || (run>=8662 && run<=8666) ){
+    return 2;
+  }
+  else if((run>=15037 && run<=15084) || (run>=15111 && run<=15116) || (run>=13676 && run<=13680) || (run>=8668 && run<=8675)){
+    return 7;
+  }
+  else if ((run>=15085 && run<=15087) || (run>=13707 && run<=13708)){
+    return 6;
+  }
+  else if ((run>=15089 && run<= 15110) || (run>=13674 && run<=13675) || (run>=8676 && run<=8679)){
+    return 8;
+  }
+  else{
+    return 1;
+  }
+}
+
+
 
 void sim(Int_t run=8658,std::string element="fQ2"){
 
