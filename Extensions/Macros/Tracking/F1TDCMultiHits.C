@@ -7,10 +7,26 @@
 //         ShowMultiHits(1,1) // for MD1p and TS1p
 //         ShowMultiHits(1,2) // for MD1m and TS1m
 //         ShowMultiHits(5,2) // for MD1m and TS1m
-//          0.0.1 : Friday, January 27 15:26:27 EST 2012
-//                  
-// 
-gStyle->SetHistMinimumZero(true);
+//
+//          0.1 : Friday, January 27 15:26:27 EST 2012
+//
+//          0.2 : Sunday, February 12 00:16:16 EST 2012,
+//                added ShowMTMultiHits
+//                      in order to understand a software meantime
+//                      histograms in TS and MD F1TDC signals.
+//
+//                ShowMTMultiHits(1,1,-1, -1, 102, 0,0, filename);
+
+
+
+void
+Style() 
+{
+  gStyle->SetHistMinimumZero(kTRUE);
+  gStyle->SetPalette(1,0);
+  gROOT->ForceStyle();
+  return;
+}
 
 TCanvas * 
 ShowMultiHits(Int_t md_plane, Int_t md_element,   
@@ -19,6 +35,8 @@ ShowMultiHits(Int_t md_plane, Int_t md_element,
 	      Int_t nbin=225, 
 	      TString filename="14955.root" )
 {
+
+  Style();
 
   TString path = gSystem->Getenv("QW_ROOTFILES");
   
@@ -30,8 +48,8 @@ ShowMultiHits(Int_t md_plane, Int_t md_element,
   path += "/"; //  just in case...
   path += filename;
   
-  TFile *afile = new TFile(path);
-  if (afile->IsZombie()) { 
+  TFile afile(path);
+  if (afile.IsZombie()) { 
       printf("Error opening file\n"); 
       return NULL;
   }
@@ -44,45 +62,6 @@ ShowMultiHits(Int_t md_plane, Int_t md_element,
 
   THStack *hs[2];
 
-  
-  // if(region ==1 ){
-  //   name="SciFi";
-  // }
-  // else if(region==2) {
-  //   name="HDC";
-  // }
-  // else if(region==3) {
-  //   name="VDC";
-  // }
-  // else
-  // if(region == 4) {
-  //   name = "TS";
-  // }
-  // else if (region==5) {
-  //   name = "MD";
-  // }
-  // else if (region==6) {
-  //   name = "Scanner";
-  // }
-  // else {
-  //   printf("Region %d is not defined ....\n", region);
-  //   delete c1;
-  //   return NULL;
-  // }
-  
-  //  name += plane;
-  
-  // if (element == 1) {
-  //   tube = "p";
-  // }
-  // else if( element == 2) {
-  //   tube = "m";
-  // }
-  // else {
-  //   delete c1;
-  //   return NULL;
-  // }
- 
 
   
   
@@ -107,7 +86,7 @@ ShowMultiHits(Int_t md_plane, Int_t md_element,
   
 
 
-  TTree*   event_tree  = (TTree*) afile->Get("event_tree");
+  TTree*   event_tree  = (TTree*) afile.Get("event_tree");
   TBranch* ev_branch   = event_tree->GetBranch("events");
   QwEvent* qw_event    = 0; 
   QwHit*   qwhit       = 0;
@@ -174,7 +153,7 @@ ShowMultiHits(Int_t md_plane, Int_t md_element,
       hs[1]->Add(tshist[idx]);
     }
 
-  delete afile;
+  afile.Close();
 
 
   mdhist[0] -> SetFillColor(2);
@@ -296,12 +275,18 @@ ShowMultiHits(Int_t md_plane, Int_t md_element,
 
 TCanvas * 
 ShowMTMultiHits(Int_t md_plane, Int_t ts_plane, 
-		Int_t event_number=-1, 
-		Int_t nbin=102, 
+		Int_t event_number_start=-1, 
+		Int_t event_number_end=-1,
+		Int_t nbin=102, Bool_t ts_debug = false, Bool_t md_debug = false,
 		TString filename="14955.root",
 		Int_t time_shift_ns=0)
 {
-  
+
+  Style();
+  Bool_t verbose = true;
+  // Bool_t ts_debug = false;
+  // Bool_t md_debug = true;
+
   TString path = gSystem->Getenv("QW_ROOTFILES");
   
   if (path.IsNull()) { 
@@ -312,8 +297,8 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
   path += "/"; //  just in case...
   path += filename;
   
-  TFile *afile = new TFile(path);
-  if (afile->IsZombie()) { 
+  TFile afile(path);
+  if (afile.IsZombie()) { 
       printf("Error opening file\n"); 
       return NULL;
   }
@@ -323,16 +308,16 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
   TString name ="";
   
 
-  THStack *hs[3];
+  THStack *mt_hs[3];
 
   
-  hs[0] = new THStack(Form("MD%dsMTHitStack", md_plane),
+  mt_hs[0] = new THStack(Form("MD%dsMTHitStack", md_plane),
 		      Form("MD%dsMT F1TDC Multi-Hit Contribution Histogram", md_plane)
 		      );
-  hs[1] = new THStack(Form("TS%dsMTHitStack", ts_plane),
+  mt_hs[1] = new THStack(Form("TS%dsMTHitStack", ts_plane),
 		      Form("TS%dsMT F1TDC Multi-Hit Contribution Histogram", ts_plane)
 		      );
-  hs[2] = new THStack(Form("TS%dhMTHitStack", ts_plane),
+  mt_hs[2] = new THStack(Form("TS%dhMTHitStack", ts_plane),
 		      Form("TS%dhMT F1TDC Multi-Hit Contribution Histogram", ts_plane)
 		      );
   
@@ -340,128 +325,167 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
   TH1D* mdhist[7];
   TH1D* tshist[7];
   TH1D* tsmthist[7];
-  
+
+
+
   //
   for(Int_t idx=0; idx <7;idx++)
     {// 2200, 1100, 550
       mdhist[idx]   = new TH1D(Form("MDsMT_hitid%d", idx), Form("MD sMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
       tshist[idx]   = new TH1D(Form("TSsMT_hitid%d", idx), Form("TS sMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
       tsmthist[idx] = new TH1D(Form("TShMT_hitid%d", idx), Form("TS hMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
-    }
+    } 
   
 
 
-  TTree*   event_tree  = (TTree*) afile->Get("event_tree");
+  TTree*   event_tree  = (TTree*) afile.Get("event_tree");
   TBranch* ev_branch   = event_tree->GetBranch("events");
   QwEvent* qw_event    = 0; 
   QwHit*   qwhit       = 0;
 
   Long64_t num_entries = event_tree->GetEntries();
+  //  Long64_t ini_event   = 0;
   Long64_t localEntry  = 0;
   Int_t    nhit        = 0;
 
   ev_branch -> SetAddress(&qw_event);
  
-  if(event_number != -1) num_entries = event_number;
 
-  for (Long64_t i=0; i<num_entries; i++)
+  if (event_number_start ==-1) {
+    event_number_start = 0;
+  }
+  if (event_number_end != -1) {
+    num_entries = event_number_end;
+  }
+
+  Double_t ini = 0.0;
+  for (Long64_t i=event_number_start; i<num_entries; i++)
     {//;
       localEntry = event_tree->LoadTree(i);
       event_tree->GetEntry(localEntry);
       
-      if(i % 10000 == 0) {
-	std::cout <<" Total events " << num_entries
-		  << " events process so far: " << i
-		  << std::endl;
+      if(i % 1000 == 0) {
+	printf(" Total events %d events process so far : %d\n", num_entries, i);
       }
       
       //    printf("\n");
       nhit = qw_event->GetNumberOfHits();
       
-      Double_t tsp[7] = {0.0};
-      Double_t tsm[7] = {0.0};
-      Double_t tsmt[7] = {0.0};
+      
 
-      Double_t mdp[7] = {0.0};
-      Double_t mdm[7] = {0.0};
+      Double_t tsp[7]  = {ini};
+      Double_t tsm[7]  = {ini};
+      Double_t tsmt[7] = {ini};
 
+      Double_t mdp[7]  = {ini};
+      Double_t mdm[7]  = {ini};
+
+      Int_t fregion    = 0;
+      Int_t fplane     = 0;
+      Int_t felement   = 0;
+      Int_t fhitnumber = 0;
+
+      Double_t timens  = 0.0;
+      
+      Int_t ts_max_hit = 0;
+      Int_t md_max_hit = 0;
+    
       for(Int_t hit_idx=0; hit_idx<nhit; hit_idx++) 
 	{//;;
 	  qwhit = qw_event->GetHit(hit_idx);
 
-	  Int_t fregion    = qwhit->GetRegion();
-	  Int_t fplane     = qwhit->GetPlane();
-	  Int_t felement   = qwhit->GetElement();
-	  Int_t package    = (Int_t) qwhit-> GetPackage();
+	  fregion    = qwhit->GetRegion();
 
-	  Int_t fhitnumber = 0; 
-	  Double_t timens =  0.0; 
-	  fhitnumber = qwhit->GetHitNumber();
-	  timens     = qwhit->GetTimeNs() +time_shift_ns;
-	  if (fregion == 4 ) {
-	    // if(verbose) {
-	    //   std::cout << " i " << i <<" : " 
-	    //   	      << hit_idx << " " 
-	    //   	      << " Region " << fregion
-	    //   	      << " package " << package
-	    //   	      << " plane " << fplane 
-	    //   	      << " element " << felement
-	    //   	      << " Hit num " << fhitnumber
-	    //   	      << " time " << timens
-	    //   	      << std::endl;
-	    // }
-	    if (felement == 1 ) {
-	      tsp[fhitnumber] = timens;
-	    }
-	    else if(felement == 2) {
-	      tsm[fhitnumber] = timens;
-	    }
-	    else if(felement == 0) {
-	      tsmt[fhitnumber] = timens;
-	      tsmthist[fhitnumber] -> Fill(timens);
+	  if (fregion == 4 ) { 
+	    fplane     = qwhit->GetPlane();
+	    if (fplane != ts_plane)   continue;
+	    else {
+	      felement   = qwhit->GetElement();
+	      fhitnumber = qwhit->GetHitNumber(); 
+	      
+	      if (fhitnumber > ts_max_hit ) ts_max_hit = fhitnumber;
+	      timens =  qwhit->GetTimeNs() +time_shift_ns;
+	      if     (felement == 1) tsp[fhitnumber] = timens;
+	      else if(felement == 2) tsm[fhitnumber] = timens;
+	      else if(felement == 0) {
+		tsmt[fhitnumber] = timens;
+		tsmthist[fhitnumber] -> Fill(timens);
+	      }
 	    }
 	  }
-	  else if ( fregion == 5 ) {
-	    // if(verbose) {
-	    //   std::cout << " i " << i <<" : " 
-	    // 		<< hit_idx << " " 
-	    // 		<< " Region " << fregion
-	    // 		<< " package " << package
-	    // 		<< " plane " << fplane 
-	    // 		<< " element " << felement
-	    // 		<< " Hit num " << fhitnumber
-	    // 		<< " time " << timens
-	    // 		<< std::endl;
-	    // }
-	    if (felement == 1 ) {
-	      mdp[fhitnumber] = timens;
+	  else if (fregion == 5 ) {
+	    fplane     = qwhit->GetPlane();
+	    if (fplane != md_plane)   continue;
+	    else {
+	      felement   = qwhit->GetElement();
+	      fhitnumber = qwhit->GetHitNumber(); 
+	      timens =  qwhit->GetTimeNs() +time_shift_ns;
+	      if(fhitnumber > md_max_hit ) md_max_hit = fhitnumber;
+
+	      if     (felement == 1) mdp[fhitnumber] = timens;
+	      else if(felement == 2) mdm[fhitnumber] = timens;
 	    }
-	    else if(felement == 2) {
-	      mdm[fhitnumber] = timens;
-	    }
+	    
+	  }
+	  else {
+	    continue;
 	  }
 	}//;;
 
-      for(Int_t hit_id=0; hit_id<7; hit_id++) 
+     
+      // if (ts_debug || md_debug ) {
+      //  	printf("\nEvent ID %d TotalHits %d over all subsystem\n", i, nhit);
+      // }
+      // if (ts_debug && md_debug ) {
+      // 	for(Int_t idx=0; idx<7; idx++) 
+      // 	  {//;;
+      // 	    printf(">>%d TSp%+10.2f TSm%+10.2f MDp%+10.2f MDm%+10.2f\n", idx, tsp[idx], tsm[idx], mdp[idx], mdm[idx]);
+      // 	  }
+
+      // }
+      if (md_debug || ts_debug) printf("\n");
+
+      Int_t ts_max_hit_range = ts_max_hit+1;
+
+      for(Int_t idx=0; idx<ts_max_hit_range; idx++) 
 	{//;;
-	  if (tsp[hit_id]!=0.0 && tsm[hit_id]!=0.0) {
-	    Double_t software_mt_ts = 0.5*(tsp[hit_id]+tsm[hit_id]);
-	    // if(verbose) {
-	    //   printf("id %d tsp %+8.2f tsm%+8.2f tssmt %+8.2f  tsmt %+8.2f\n", hit_id, tsp[hit_id], tsm[hit_id], software_mt_ts, tsmt[hit_id]);
-	    // }
-	    tshist[hit_id] -> Fill(software_mt_ts);
+	  Double_t software_mt_ts = 0.0;
+	  if(ts_debug) {
+	    printf(">>TS>> TotalHit %4d in Event %8d: HitOrder[%d,%d] TSp%+10.2f TSm%+10.2f TSsMT", nhit, i, idx+1, ts_max_hit_range, tsp[idx], tsm[idx]);
 	  }
+	  if (tsp[idx]!=ini && tsm[idx]!=ini) {
+	    software_mt_ts = 0.5*(tsp[idx]+tsm[idx]);
+	    if (ts_debug) printf("%+10.2f", software_mt_ts);
+	    tshist[idx] -> Fill(software_mt_ts);
+	  }
+	  else {
+	    if (ts_debug) printf(" ---------");
+	  }
+
+	  if (ts_debug)  printf(" TSMT %+8.2f >>\n", tsmt[idx]);
+	}
+    
+
+      Int_t md_max_hit_range = md_max_hit+1;
+      for(Int_t idx=0; idx<md_max_hit_range; idx++) 
+	{//;;
 	  Double_t software_mt_md = 0.0;
 
-	  printf("event %d id %d mdp %+8.2f mdm%+8.2f mdsmt ", i, hit_id, mdp[hit_id], mdm[hit_id]);
-	  if (mdp[hit_id]!=0.0 && mdm[hit_id]!=0.0) {
-	    //	    printf("event %18d id %d mdp %+8.2f mdm%+8.2f mdsmt ", i, hit_id, mdp[hit_id], mdm[hit_id]);
-	    software_mt_md = 0.5*(mdp[hit_id]+mdm[hit_id]);
-	    printf(" %+8.2f", software_mt_md);
-
-	    mdhist[hit_id] -> Fill(software_mt_md);
+	  if (md_debug) {
+	    printf("<<MD<< TotalHit %4d in Event %8d: HitOrder[%d,%d] MDp%+10.2f MDm%+10.2f MDsMT", nhit, i, idx+1, md_max_hit_range, mdp[idx], mdm[idx]);
 	  }
-	  printf("\n");
+	  if (mdp[idx]!=ini && mdm[idx]!=ini) {
+	    //	    printf("event %18d id %d mdp %+8.2f mdm%+8.2f mdsmt ", i, idx, mdp[idx], mdm[idx]);
+	    software_mt_md = 0.5*(mdp[idx]+mdm[idx]);
+	    if (md_debug) printf("%+10.2f", software_mt_md);
+
+	    mdhist[idx] -> Fill(software_mt_md);
+	  }
+	  else {
+	    if(md_debug) printf(" ---------");
+
+	  }
+	  if (md_debug) printf(" ------------- <<\n");
 	  
 	}//;;
 
@@ -473,18 +497,19 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
     {
       mdhist[idx] -> SetDirectory(0);
       mdhist[idx] -> SetMarkerStyle(21);
-      hs[0]->Add(mdhist[idx]);   
+      mt_hs[0]->Add(mdhist[idx]);   
    
       tshist[idx] -> SetDirectory(0);
       tshist[idx] -> SetMarkerStyle(21);
-      hs[1]->Add(tshist[idx]);
+      mt_hs[1]->Add(tshist[idx]);
 
       tsmthist[idx] -> SetDirectory(0);
       tsmthist[idx] -> SetMarkerStyle(21);
-      hs[2]->Add(tsmthist[idx]);
+      mt_hs[2]->Add(tsmthist[idx]);
     }
 
-  delete afile;
+
+  afile.Close();
 
 
   mdhist[0] -> SetFillColor(2);
@@ -555,14 +580,14 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
   TLegend *leg = NULL;
   
   c1->Divide(3,2);
-  if(hs[0]) {
+  if(mt_hs[0]) {
     c1->cd(1);
  
     gPad->SetGridy();
     gPad->SetLogy();
-    hs[0] -> Draw("goff");
-    hs[0] -> GetXaxis() -> SetTitle("Time[ns]");
-    hs[0] -> Draw();
+    mt_hs[0] -> Draw("goff");
+    mt_hs[0] -> GetXaxis() -> SetTitle("Time[ns]");
+    mt_hs[0] -> Draw();
     leg = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
     
     leg->SetNColumns(2);
@@ -589,71 +614,71 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
     c1->cd(4);
     gPad->SetGridy();
     gPad->SetLogy();
-    hs[0]->Draw("nostack");
+    mt_hs[0]->Draw("nostack");
     leg->SetHeader("Non Stack Histogram");
     leg->Draw();
     gPad->Update();
 
   }
 
-  if(hs[1]) {
+  if(mt_hs[1]) {
     c1->cd(2);
     gPad->SetGridy();
     gPad->SetLogy();
-    hs[1] -> Draw("goff");
-    hs[1] -> GetXaxis() -> SetTitle("Time[ns]");
-    hs[1] -> Draw();
-    leg = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
-    leg->SetHeader("Stack Histogram");
-    leg->SetNColumns(2);
-    leg->AddEntry(tshist[0],"1st Hits","f");
-    leg->AddEntry(tshist[1],"2nd Hits","f");
-    leg->AddEntry(tshist[2],"3rd Hits","f");
-    leg->AddEntry(tshist[3],"4th Hits","f"); 
-    leg->AddEntry(tshist[4],"5th Hits","f");
-    leg->AddEntry(tshist[5],"6th Hits","f");
-    leg->AddEntry(tshist[6],"7th Hits","f");
-    leg->Draw();
+    mt_hs[1] -> Draw("goff");
+    mt_hs[1] -> GetXaxis() -> SetTitle("Time[ns]");
+    mt_hs[1] -> Draw();
+    TLegend *leg2 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
+    leg2->SetHeader("Stack Histogram");
+    leg2->SetNColumns(2);
+    leg2->AddEntry(tshist[0],"1st Hits","f");
+    leg2->AddEntry(tshist[1],"2nd Hits","f");
+    leg2->AddEntry(tshist[2],"3rd Hits","f");
+    leg2->AddEntry(tshist[3],"4th Hits","f"); 
+    leg2->AddEntry(tshist[4],"5th Hits","f");
+    leg2->AddEntry(tshist[5],"6th Hits","f");
+    leg2->AddEntry(tshist[6],"7th Hits","f");
+    leg2->Draw();
     gPad->Update();
 
     c1->cd(5);
     gPad->SetGridy();
     gPad->SetLogy();
-    hs[1]->Draw("nostack");
-    leg->SetHeader("Non Stack Histogram");
-    leg->Draw();
+    mt_hs[1]->Draw("nostack");
+    leg2->SetHeader("Non Stack Histogram");
+    leg2->Draw();
     gPad->Update();
     c1-> Modified();
     c1-> Update();
 
   }
   
-  if(hs[2]) {
+  if(mt_hs[2]) {
     c1->cd(3);
     gPad->SetGridy();
     gPad->SetLogy();
-    hs[2] -> Draw("goff");
-    hs[2] -> GetXaxis() -> SetTitle("Time[ns]");
-    hs[2] -> Draw();
-    leg = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
-    leg->SetHeader("Stack Histogram");
-    leg->SetNColumns(2);
-    leg->AddEntry(tshist[0],"1st Hits","f");
-    leg->AddEntry(tshist[1],"2nd Hits","f");
-    leg->AddEntry(tshist[2],"3rd Hits","f");
-    leg->AddEntry(tshist[3],"4th Hits","f"); 
-    leg->AddEntry(tshist[4],"5th Hits","f");
-    leg->AddEntry(tshist[5],"6th Hits","f");
-    leg->AddEntry(tshist[6],"7th Hits","f");
-    leg->Draw();
+    mt_hs[2] -> Draw("goff");
+    mt_hs[2] -> GetXaxis() -> SetTitle("Time[ns]");
+    mt_hs[2] -> Draw();
+    TLegend *leg3 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
+    leg3->SetHeader("Stack Histogram");
+    leg3->SetNColumns(2);
+    leg3->AddEntry(tshist[0],"1st Hits","f");
+    leg3->AddEntry(tshist[1],"2nd Hits","f");
+    leg3->AddEntry(tshist[2],"3rd Hits","f");
+    leg3->AddEntry(tshist[3],"4th Hits","f"); 
+    leg3->AddEntry(tshist[4],"5th Hits","f");
+    leg3->AddEntry(tshist[5],"6th Hits","f");
+    leg3->AddEntry(tshist[6],"7th Hits","f");
+    leg3->Draw();
     gPad->Update();
 
     c1->cd(6);
     gPad->SetGridy();
     gPad->SetLogy();
-    hs[2]->Draw("nostack");
-    leg->SetHeader("Non Stack Histogram");
-    leg->Draw();
+    mt_hs[2]->Draw("nostack");
+    leg3->SetHeader("Non Stack Histogram");
+    leg3->Draw();
     gPad->Update();
 
   }
