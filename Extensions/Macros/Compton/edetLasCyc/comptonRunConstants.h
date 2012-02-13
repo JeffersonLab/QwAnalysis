@@ -1,6 +1,12 @@
 #ifndef __COMPTONRUNCONSTANTS_H
 #define __COMPTONRUNCONSTANTS_H
 
+#include <rootClass.h>
+
+//Directory paths
+const TString wwwPath("$QWSCRATCH/www");
+const TString outPath("analout");
+
 //Asymmetry constants 
 const Float_t pi=3.141592;
 const Float_t hbarc=0.197E-15;/// GeV.m
@@ -23,7 +29,7 @@ const Int_t minEntries = 2000; //Laser must be off for at least this many consec
 
 ///Run constants
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
-const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn
+const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn///typical 160E3. 
 const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
 const Double_t ignoreBeamAbove = 195.0;
 const Double_t ignoreLasPowAbove = 195.0;

@@ -17,7 +17,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 {
   time_t tStart = time(0), tEnd; 
   Bool_t debug = 1, debug1 = 0, debug2 = 0;
-  Bool_t lasOn, beamOn =kFALSE;
+  Bool_t beamOn =kFALSE;//lasOn,
   Int_t chainExists = 0,goodCycles=0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
@@ -28,7 +28,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Double_t comptQH1L1, comptQH0L1, comptQH1L0, comptQH0L0;
   Double_t lasPowB1H1, lasPowB1H0; //, lasPowB0H1, lasPowB0H0;
   //Double_t unNormLasCycSum[nPlanes][nStrips];
-  Double_t lasPow[3], lasMax, helicity, bcm[3];
+  Double_t lasPow[3], helicity, bcm[3];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];
   //  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsymRMS[nPlanes][nStrips] ;
@@ -56,9 +56,9 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     }
     for (Int_t s =0; s<nStrips; s++) { 
       sprintf(hName[p],"asymPlane%d_Str%d",p+1,s+1);
-      hAsymPS[p].push_back(TH1D(hName[p],"Plane strip",25,-0.001,0.001));
+      hAsymPS[p].push_back(TH1D(hName[p],"Plane strip",35,-0.0001,0.0001));
       sprintf(hNameEr[p],"asymErPlane%dStr%d",p+1,s+1);
-      hAsymErPS[p].push_back(TH1D(hNameEr[p],"Single Strip asym stat.error",25,-0.001,0.001));
+      hAsymErPS[p].push_back(TH1D(hNameEr[p],"Single Strip asym stat.error",35,-0.0001,0.0001));
 
       hAsymPS[p][s].SetBit(TH1::kCanRebin);
       hAsymPS[p][s].SetTitle(Form("Plane %d Strip %d Asymmetry",p+1,s+1));
@@ -91,8 +91,8 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       return -1;
     }
 
-    infileLas.open(Form("r%d_cutLas.txt",runnum));
-    infileBeam.open(Form("r%d_cutBeam.txt",runnum));
+    infileLas.open(Form("analOut/r%d_cutLas.txt",runnum));
+    infileBeam.open(Form("analOut/r%d_cutBeam.txt",runnum));
     
     if (infileLas.is_open() && infileBeam.is_open()) {
       cout<<"Found the cutLas and cutEB file"<<endl;
@@ -138,8 +138,6 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 
   mpsChain->ResetBranchAddresses();//!? should it be here?
   
-  lasMax = mpsChain->GetMaximum("sca_laser_PowT/value");
-  cout<<"lasMax="<<lasMax<<endl;
   cout<<"nbeamTrips="<<nBeamTrips<<endl;
   cout<<"nLasCycles="<<nLasCycles<<endl;
   
@@ -179,31 +177,38 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0,stripAsymRMS[p][s]= 0.0;
       }
     }
+    //      if(cutLas.at(2*nCycle+1)>cutEB.at(2*nthBeamTrip)) ///previous beamTrip recovered? before the beginning of THIS laser cycle?
 
     if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
-    else if(nthBeamTrip < nBeamTrips) {  ///finite number of beamtrip(s)
-      if(cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip))	beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
-      else {                    ///there is a beam trip during this laser cycle
-	beamOn = kFALSE;
-	nthBeamTrip++;          ///encountered a beam trip
+    else if(nthBeamTrip < nBeamTrips) {  ///yes, we do have beamtrip(s)
+      if(nthBeamTrip==0) { // haven't encountered a trip yet(special case of first trip)
+	if(cutLas.at(2*nCycle+3)<cutEB.at(0)) beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
+	else {                    ///there is a beam trip during this laser cycle
+	  beamOn = kFALSE;
+	  nthBeamTrip++;          ///encountered a beam trip
+	}
+      }
+      else if(cutLas.at(2*nCycle+1)<cutEB.at(2*nthBeamTrip-1)) beamOn=kFALSE;///continuation of the previous nthBeamTrip
+      else if(cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip)) beamOn=kTRUE;
+      else { ///encountered "another" beam trip	
+	beamOn = kFALSE;  
+	nthBeamTrip++;          
       }
     }
     else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
       if (cutLas.at(2*nCycle+1) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
       else beamOn = kFALSE;
-    }
+    }   
     else cout<<"\n***Error ... Something drastically worng in BeamTrip evaluation***\n"<<endl;
       
     for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++) { 
       //loop over laser cycle periods from one LasOn state upto just before beginning of next LasOn
       if(debug && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
-      if ((i >= cutLas.at(2*nCycle+1)) && (i < cutLas.at(2*nCycle+2))) l=1;
-      if (i >= cutLas.at(2*nCycle+2)) l=0;
+      if ((i >= cutLas.at(2*nCycle+1)) && (i < cutLas.at(2*nCycle+2))) l =1;
+      if (i >= cutLas.at(2*nCycle+2)) l =0;///inside the laser Cycle period if the laser was off
 
       mpsChain->GetEntry(i);
-      lasOn = lasPow[0] > laserFrac *lasMax;//!this part should be directly done in getEBeamLasCuts.C
       h = (Int_t)helicity;
-      if ((l==1) && lasOn) l=1; //making the laser On requirement more strict
 
       /**********
        * (a)currently this method appears a little inefficient since we not processing beamOff data
@@ -327,10 +332,10 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	}///for (Int_t p =startPlane; p <endPlane; p++) {
       }
     }///if (beamOn)
-    else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip, hence skipping"<<endl;
+    else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
   
-  TCanvas *cmystrAsym = new TCanvas("cmystrAsym","Asymmetry in strip",10,10,1500,1100);
+  TCanvas *cmystrAsym = new TCanvas("cmystrAsym",Form("Strip Asym starting r%d",runnum1),10,10,1500,1100);
   cmystrAsym->Divide(2,4);
   Int_t n = 0;
   for(Int_t s =mystr; s >(mystr-4); s--) {
@@ -345,7 +350,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     cmystrAsym->Update();
     n++;
   }
-  cmystrAsym->SaveAs(Form("AsymStrip%d.png",mystr));
+  cmystrAsym->SaveAs(Form("analOut/AsymStrip%d.png",mystr));
   
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {        
@@ -358,16 +363,16 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 
   for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
     for(Int_t p = startPlane; p < endPlane; p++) {
-      outfileExpAsymP.open(Form("r%d_expAsymP%d.txt",runnum,p+1));
+      outfileExpAsymP.open(Form("analOut/r%d_expAsymP%d.txt",runnum,p+1));
       //outfileExpAsymP<<"strip\texpAsym\tasymEr\tasymRMS"<<endl; ///If I want a header for the following text
-      cout<<Form("r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
+      cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) {    
 	if (maskedStrips(p,s)) continue;
 	//	outfileExpAsymP<<s+1<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<"\t"<<stripAsymRMS[p][s]<<endl;
-	outfileExpAsymP<<Form("%d\t%f\t%f\t%f\n",s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
+	outfileExpAsymP<<Form("%f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
       }
       outfileExpAsymP.close();
-      cout<<Form("r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
+      cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
     }
   }
   
@@ -391,4 +396,15 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 * evaluate asymmetry per pattern and see its pattern
 * ensure efficient evaluation of beamtrips
 * check consistency of cut on laserPow and beamtrip
+******************************************************/
+
+/******************************************************
+Comments:
+* each Laser cycle consitutes of one laser on and one laser off period.
+* ..it begins with a Laser On period and ends with the (just)next laser off period.
+* While checking if we want to consider a laser cycle as bad, we check till 
+* ..the beginning of the next laser cycle on purpose to make sure that the 
+* ..beam was indeed ON during both laser On as well as Off periods
+* nCycle refers to the present/current/ongoing laser-cycle
+* nthBeamTrip (on the contrary) refers to the upcoming beamTrip
 ******************************************************/

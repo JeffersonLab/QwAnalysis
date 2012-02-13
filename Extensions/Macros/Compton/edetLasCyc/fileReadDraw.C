@@ -8,7 +8,7 @@ Int_t fileReadDraw(Int_t run) //TString *tobePlotted)
   Float_t strip[nStrips],expAsym[nStrips],asymEr[nStrips],asymRMS[nStrips];
   Float_t zero[nStrips];
   Bool_t debug=1;
-  TGraphErrors *grFort;
+  //TGraphErrors *grFort;
   TGraphErrors *grCpp;
 
   for (Int_t s=0; s <endStrip; s++) {
@@ -19,9 +19,9 @@ Int_t fileReadDraw(Int_t run) //TString *tobePlotted)
   ifstream in2;
 
   // Open file 1
-  in1.open(Form("r%d_expAsymP1.txt",run));
+  in1.open(Form("analOut/r%d_expAsymP1.txt",run));
   if(in1.is_open()) {   
-    cout<<"Reading file "<<Form("r%d_expAsymP1.txt",run)<<endl;
+    cout<<"Reading file "<<Form("analOut/r%d_expAsymP1.txt",run)<<endl;
     for(Int_t s =0; s <endStrip; s++) {
       if (maskedStrips(0,s)) continue;
       /// Read data file
@@ -46,7 +46,7 @@ Int_t fileReadDraw(Int_t run) //TString *tobePlotted)
 //     else printf("didn't find the file 2 \n");
 //   }
 
-  TCanvas *c1 = new TCanvas("c1","Comparision of Asymmetry evaluation",10,10,1000,600);
+  TCanvas *c1 = new TCanvas("c1",Form("Comparision of Asym evaluation run:%d",run),10,10,1000,600);
   TLine *myline = new TLine(0,0,64,0);
   //  c1->cd();
   //   grFort = new TGraphErrors(endStrip,stripFort,expAsymFort,zero,asymErFort);

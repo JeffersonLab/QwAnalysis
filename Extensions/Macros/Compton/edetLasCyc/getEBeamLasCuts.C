@@ -21,25 +21,27 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Char_t textf[255],textwrite[255];
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0, bcm = 0 , comptQ = 0;
-  Double_t beamMax, Qmax;
+  Double_t beamMax, Qmax, laserMax;
 
   TH1D *h1 = new TH1D("h1","dummy",100,0,220);
   chain->Draw("sca_bcm6.value>>h1","","goff");
   h1 = (TH1D*)gDirectory->Get("h1");  
   beamMax = h1->GetBinLowEdge(h1->FindLastBinAbove(100));//to avoid extraneous values
-//  beamMax = chain->GetMaximum("sca_bcm6/value");
   Qmax = chain->GetMaximum("compton_charge/value");
   cout<<"beamMax(bcm6) "<<beamMax<<" Qmax:(avg of bcm 1 & 2):"<<Qmax<<endl;
  
+  laserMax = chain->GetMaximum("sca_laser_PowT/value");
+  cout<<"laserMax ="<<laserMax<<endl;
+
   Int_t nLasCycBeamTrips;
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
-  sprintf(textf,"r%d_cutLas.txt",runnum);
+  sprintf(textf,"analOut/r%d_cutLas.txt",runnum);
   ofstream outfileLas(Form("%s",textf));
   printf("%s file created\n",textf);
 
-  sprintf(textf,"r%d_cutBeam.txt",runnum);
+  sprintf(textf,"analOut/r%d_cutBeam.txt",runnum);
   ofstream outfileBeam(Form("%s",textf));
   printf("%s file created\n",textf);
 
@@ -81,8 +83,9 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       flipperIsUp = kTRUE;
       m++;
     }
-    if(laser<=20*1000) n++;
+    if(laser<=laserFrac*laserMax) n++;
     else n=0;
+
     if(flipperIsUp){
       if(n == 0 || index == nEntries-1 ) {
         cutL.push_back(index-1);
