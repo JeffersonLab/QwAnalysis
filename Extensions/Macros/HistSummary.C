@@ -19,19 +19,38 @@
 //              Then it is useful to just diff two different outputs and check
 //              that no unintentional changes were made.
 ///////////////////////////////////////////////////////////////////////////////
+
+#include <cstdlib>
+
 #include <iostream>
 #include <iomanip>
+
 #include "TH1.h"
 #include "TH2.h"
 #include "TKey.h"
 #include "TFile.h"
 
 
+void PrintHeader(const char* first, const char* second);
+void HistSummary(TString filename);
+void Summarize_TH1(TObject* object);
+void Summarize_TH2(TObject* object);
+void Summarize_List(TObject* object);
+void Summarize_Directory(TObject* object);
 void HandleObject(TObject* object);
+
 
 void PrintHeader(const char* first, const char* second){
   std::cout << std::setw(10) << first << " " 
 	    << std::setw(28) << second;
+}
+
+template <class T> void Summarize(T* object){
+  HandleObject(object);
+}
+
+template < > void Summarize(TFile* object){
+  Summarize_Directory(object);
 }
 
 void HistSummary(TString filename){
@@ -40,18 +59,6 @@ void HistSummary(TString filename){
   TFile object(fileName);
   Summarize(&object);
 }
-
-
-template <class T> void Summarize(T* object);
-
-template void Summarize(TFile* object){
-  Summarize_Directory(object);
-}
-
-template <class T> void Summarize(T* object){
-  HandleObject(object);
-}
-
 
 void Summarize_TH1(TObject* object){
   //  We ought to only enter this after we have
