@@ -554,86 +554,138 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 
 };
 
-void QwGUIMainDetector::DrawMDCmbPlots(){
-  TH1F *histo1=NULL;
-  TH1F *histo2=NULL;
+void QwGUIMainDetector::DrawMDCmbPlots()
+{
+  //gStyle->SetOptFit(1); 
+  gStyle->SetOptFit(1111);
+  gStyle->SetOptStat(0000000);
+  gStyle->SetStatY(0.99);
+  gStyle->SetStatX(0.99);
+  gStyle->SetStatW(0.15);
+  gStyle->SetStatH(0.2);
 
-  char histo[128];
-  
   Int_t xcount = 0;
-  Int_t ycount = 0;
-  
-  Double_t offset = 0.5;
-  Double_t min_range = - offset;
+  Int_t ycount = 0; 
 
-  Int_t MDCmbCount = fMDDevices.at(VPMT).size();
+  Double_t offset = 0.5;
+  Double_t min_range = 4;
+  
+  Int_t MDCmbCount = fMDDevices.at(VPMT).size()-4;
   Double_t max_range = (Double_t)MDCmbCount- offset ; 
 
-  
   TString dummyname;
-
   Bool_t ldebug = kFALSE;
-  
+
+  std::vector<TH1F *> histo1;//_array;
+  histo1.resize(MDCmbCount);
+
+  std::vector<TH1F *> histo2;//_array;
+  histo2.resize(MDCmbCount);
+
+  std::vector<TH1F *> histo1_buff;//_array;
+  histo1_buff.resize(MDCmbCount);
+  std::vector<TH1F *> histo2_buff;//_array;
+  histo2_buff.resize(MDCmbCount);
+
+  char histo[128];
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
- 
 
-   while (1){ 
-     MDPlots[0] = new TH1F("Asym", "Asymmetry Variation",MDCmbCount , min_range, max_range);
-     MDPlots[1] = new TH1F("Yield", "Yield variation",MDCmbCount , min_range, max_range); 
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
+
+  // Fit
+  TF1 *cosfit = new TF1("cosfit","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+  TF1* fit=NULL;
+
+  /// grp to draw md asymmetries
+  TGraphErrors* grp = NULL;
+  Double_t x[8]={1,2,3,4,5,6,7,8};
+  Double_t xe[8]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+  Double_t mean[8];
+  Double_t error[8];
+
+
+  while (1){ 
+    // MDPlots[0] = new TH1F("Asymmetry", "Asymmetry Variation",MDCmbCount , min_range, max_range);
+    //    MDPlots[1] = new TH1F("Yield", "Yield variation",MDCmbCount , min_range, max_range); 
+    MDPlots[1] = new TH1F("RMS", "RMS Variation",8, -0.5, 7.5);
+    
     for(Int_t p = 0; p <MDCmbCount ; p++) 
-    {
-      sprintf (histo, "asym_%s_hw",fMDDevices.at(VPMT).at(p).Data() );
-      histo1= (TH1F *)dMapFile->Get(histo); 
-      if (histo1!=NULL) {
-	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
-	histo1->SetName(histo);
-	    
-	dummyname = histo1->GetName();
-	    
-	dummyname.Replace(0,5," ");
-	dummyname.ReplaceAll("_hw", "");
-	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
-	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
-	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	if(ldebug) SummaryHist(histo1);
-	delete histo1; histo1= NULL;
+      {
+	if (GetHistoPause()==0){
+	  sprintf (histo, "asym_%s_hw", fMDDevices.at(VPMT).at(p).Data());
+	  histo1[p]= (TH1F *)dMapFile->Get(histo); 
+	}
+	if (histo1[p]!=NULL)
+	  {
+	    if (GetHistoReset()){
+	      histo1_buff[p]=(TH1F*)histo1[p]->Clone(Form("%s_buff",histo1[p]->GetName()));
+	      *histo1[p]=*histo1[p]-*histo1_buff[p];
+	      if (p==MDCmbCount-1)//once all histo are buffered set the reser state
+		SetHistoReset(0);
+	    }else if (GetHistoAccumulate()==0){
+	      *histo1[p]=*histo1[p]-*histo1_buff[p];
+	    }	    
+	
+	    xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	    if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	    histo1[p]->SetName(histo);
+	      
+	    dummyname = histo1[p]->GetName();
+	       
+	    dummyname.Replace(0,5," ");
+	    dummyname.ReplaceAll("_hw", "");
+
+	    mean[p]=histo1[p]->GetMean()*1e6; // ppm
+	    error[p] = histo1[p]->GetMeanError()*1e6; //ppm
+
+// 	    MDPlots[0] -> SetBinContent(xcount, histo1[p]->GetMean()*1e6);
+// 	    MDPlots[0] -> SetBinError  (xcount, histo1[p]->GetMeanError()*1e6);//this gives std deviation not RMS
+// 	    MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	    MDPlots[1] -> SetBinContent(xcount, histo1[p]->GetRMS()*1e6);
+	    MDPlots[1] -> SetBinError  (xcount, 0);
+	    MDPlots[1] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	  
+	    if(ldebug) SummaryHist(histo1[p]);
+
+	  }	  
       }
-	  
-      sprintf (histo, "yield_%s_hw", fMDDevices.at(VPMT).at(p).Data());
-      histo2= (TH1F *)dMapFile->Get(histo); 
-      if(histo2!=NULL){		
-	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
-	histo2->SetName(histo);
-	dummyname = histo2->GetName();
-	dummyname.Replace(0,6," ");
-	dummyname.ReplaceAll("_hw", "");
-	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
-	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
-	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	if(ldebug) SummaryHist(histo2);
-	delete histo2; histo2= NULL; 
-      }
-	  
-	  
-    }
+
+
     xcount = 0;
     ycount = 0;
     mc->Clear();
     mc->Divide(1,2);
-
-
-
     
     mc->cd(1);
-    MDPlots[0] -> SetMarkerStyle(20);
-    MDPlots[0] -> SetStats(kFALSE);
-    MDPlots[0] -> SetTitle("Asymmetry Variation");
-    MDPlots[0] -> GetYaxis() -> SetTitle("Asymmetry");
-    MDPlots[0] -> GetXaxis() -> SetTitle("MD");
-    MDPlots[0] -> Draw("E1");
+    grp  = new TGraphErrors(8,x,mean,xe,error);
+    grp->SetMarkerSize(1);
+    grp->SetMarkerStyle(21);
+    grp->Draw("AEP");
+    grp-> Fit("cosfit","Q");
+    fit =grp->GetFunction("cosfit");
+    fit->SetLineColor(kBlue);
+    grp->GetXaxis()->SetTitle("Octant");
+    grp->GetXaxis()->CenterTitle();
+    grp->GetYaxis()->SetTitle("MD Asymmetry (ppm)");
+    grp->GetYaxis()->CenterTitle();
+    grp->GetYaxis()->SetTitleOffset(0.7);
+    grp->GetXaxis()->SetTitleOffset(0.8);
+    grp->SetTitle("Md asymmetry variation");
+
+
+    //    gPad->Update();
+//     MDPlots[0] -> SetMarkerStyle(20);
+//     MDPlots[0] -> SetStats(kFALSE);
+//     MDPlots[0] -> SetTitle("Asymmetry Variation");
+//     MDPlots[0] -> GetYaxis() -> SetTitle("(ppm)");
+//     MDPlots[0] -> GetXaxis() -> SetTitle("MD");
+//     MDPlots[0] -> Draw("E1");
+//     MDPlots[0] -> Fit("cosfit","B");
+//     fit =MDPlots[0]->GetFunction("cosfit");
+//     fit->SetLineColor(kBlue);
+  
     //gPad->Update();
     //mc->Modified();
     //mc->Update();
@@ -641,24 +693,24 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     mc->cd(2);
     MDPlots[1] -> SetMarkerStyle(20);
     MDPlots[1] -> SetStats(kFALSE);
-    MDPlots[1] -> SetTitle("Yield Variation");
-    MDPlots[1] -> GetYaxis()-> SetTitle ("Yield");
+    MDPlots[1] -> SetTitle("RMS Variation");
+    MDPlots[1] -> GetYaxis()-> SetTitle ("ppm");
     MDPlots[1] -> GetXaxis() -> SetTitle("MD");
     MDPlots[1] -> Draw("E1");
     
     gPad->Update();
     mc->Modified();
     mc->Update();
-    // for (Int_t p = 0; p < 2 ; p++){
-    //   delete MDPlots[p];
-    // }
+    for (Int_t p = 0; p < 2 ; p++){
+      delete MDPlots[p];
+    }
+
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
       break;
     }
-   }
+  }
    
-
   return;
 
 };
@@ -989,7 +1041,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	DrawMDBkgPlots();	
 	break;  
       case   BA_MD_CMB:
-	//printf("text button id %ld pressed \n", parm1);		  
+	//	printf("text button id %ld pressed \n", parm1);		  
 	DrawMDCmbPlots();	
 	break;  
       case   BA_MD_PMT:
