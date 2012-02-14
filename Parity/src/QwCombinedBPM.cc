@@ -29,6 +29,7 @@ void  QwCombinedBPM<T>::InitializeChannel(TString name)
     fAbsPos[axis].InitializeChannel(name+kAxisLabel[axis],"derived");
     fSlope[axis].InitializeChannel(name+kAxisLabel[axis]+"Slope","derived");
     fIntercept[axis].InitializeChannel(name+kAxisLabel[axis]+"Intercept","derived");
+    fMinimumChiSquare[axis].InitializeChannel(name+kAxisLabel[axis]+"MinChiSquare","derived");
   }
 
   fixedParamCalculated = false;
@@ -48,7 +49,6 @@ void  QwCombinedBPM<T>::InitializeChannel(TString name)
     B[axis]          = 0.0;
     D[axis]          = 0.0;
     m[axis]          = 0.0;
-    chi_square[axis] = 0.0;
   }
 
   return;
@@ -66,8 +66,9 @@ void  QwCombinedBPM<T>::InitializeChannel(TString subsystem, TString name)
     fAbsPos[axis].InitializeChannel(subsystem, "QwCombinedBPM", name+kAxisLabel[axis],"derived");
     fSlope[axis].InitializeChannel(subsystem, "QwCombinedBPM", name+kAxisLabel[axis]+"Slope","derived");
     fIntercept[axis].InitializeChannel(subsystem, "QwCombinedBPM", name+kAxisLabel[axis]+"Intercept","derived");
+    fMinimumChiSquare[axis].InitializeChannel(subsystem, "QwCombinedBPM",name+kAxisLabel[axis]+"MinChiSquare","derived");
   }
-
+  
   fixedParamCalculated = false;
 
   fElement.clear();
@@ -85,7 +86,6 @@ void  QwCombinedBPM<T>::InitializeChannel(TString subsystem, TString name)
     B[axis]          = 0.0;
     D[axis]          = 0.0;
     m[axis]          = 0.0;
-    chi_square[axis] = 0.0;
   }
 
   return;
@@ -152,6 +152,7 @@ Int_t QwCombinedBPM<T>::GetEventcutErrorCounters()
     fAbsPos[axis].GetEventcutErrorCounters();
     fSlope[axis].GetEventcutErrorCounters();
     fIntercept[axis].GetEventcutErrorCounters();
+    fMinimumChiSquare[axis].GetEventcutErrorCounters();
   }
 
   fEffectiveCharge.GetEventcutErrorCounters();
@@ -167,6 +168,7 @@ UInt_t QwCombinedBPM<T>::GetEventcutErrorFlag()
     error|=fAbsPos[axis].GetEventcutErrorFlag();
     error|=fSlope[axis].GetEventcutErrorFlag();
     error|=fIntercept[axis].GetEventcutErrorFlag();
+    error|=fMinimumChiSquare[axis].GetEventcutErrorFlag();
   }
 
   error|=fEffectiveCharge.GetEventcutErrorFlag();
@@ -224,10 +226,27 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" X Intercept event cut failed ";
     }
-    //Get the Event cut error flag for SlopeX/Y
+    //Get the Event cut error flag for intercept X/Y
     fErrorFlag|=fIntercept[axis].GetEventcutErrorFlag();
   }
 
+
+  //Event cuts for  X & Y minimum chi square
+  for(axis=kXAxis;axis<kNumAxes;axis++){
+    fMinimumChiSquare[axis].UpdateErrorCode(pos_error[axis]);
+    if (fMinimumChiSquare[axis].ApplySingleEventCuts()){ //for X slope
+      status&=kTRUE;
+    }
+    else{
+      status&=kFALSE;
+      if (bDEBUG) std::cout<<" X Intercept event cut failed ";
+    }
+    //Get the Event cut error flag for min chi square X/Y
+    fErrorFlag|=fMinimumChiSquare[axis].GetEventcutErrorFlag();
+  }
+
+
+  //Event cuts for  X & Y positions
   for(axis=kXAxis;axis<kNumAxes;axis++){
     fAbsPos[axis].UpdateErrorCode(pos_error[axis]);
     if (fAbsPos[axis].ApplySingleEventCuts()){ 
@@ -271,6 +290,10 @@ VQwHardwareChannel* QwCombinedBPM<T>::GetSubelementByName(TString ch_name)
     tmpptr = &fIntercept[kXAxis];
   }else if (ch_name=="yintercept"){
     tmpptr = &fIntercept[kYAxis];
+  }else if (ch_name=="xminchisquare"){
+    tmpptr = &fMinimumChiSquare[kXAxis];
+  }else if (ch_name=="yminchisquare"){
+    tmpptr = &fMinimumChiSquare[kYAxis];
   }else  if (ch_name=="absx" || ch_name=="x" ){
     tmpptr = &fAbsPos[kXAxis];
   }else if (ch_name=="absy" || ch_name=="y"){
@@ -368,6 +391,7 @@ void QwCombinedBPM<T>::UpdateEventcutErrorFlag(const UInt_t error){
     fAbsPos[i].UpdateEventcutErrorFlag(error);
     fSlope[i].UpdateEventcutErrorFlag(error);
     fIntercept[i].UpdateEventcutErrorFlag(error);
+     fMinimumChiSquare[i].UpdateEventcutErrorFlag(error);
   }
   
   fEffectiveCharge.UpdateEventcutErrorFlag(error);
@@ -389,6 +413,8 @@ void QwCombinedBPM<T>::UpdateEventcutErrorFlag(VQwBPM *ev_error){
 	  fSlope[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
 	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fIntercept[i]));
 	  fIntercept[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fMinimumChiSquare[i]));
+	  fMinimumChiSquare[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
 	}
 	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
 	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
@@ -477,15 +503,12 @@ void  QwCombinedBPM<T>::ProcessEvent()
     std::cout<<" QwCombinedBPM:: Projected target X position = "<<fAbsPos[kXAxis].GetValue()
 	     <<" and target X slope = "<<fSlope[kXAxis].GetValue()
 	     <<" and target X intercept = "<<fIntercept[kXAxis].GetValue()
+	     <<" with mimimum chi square = "<< fMinimumChiSquare[kXAxis].GetValue()
 	     <<" \nProjected target Y position = "<<fAbsPos[kYAxis].GetValue()
 	     <<" and target Y slope = "<<fSlope[kYAxis].GetValue()
-	     <<" and target Y intercept = "<<fIntercept[kYAxis].GetValue()<<std::endl;
-  }
-
-  if(ldebug){
-    std::cout<<" QwCombinedBPM:: The minimul chi-square for the fit on X is  "<<chi_square[kXAxis]
-	     <<" and for Y = "<<chi_square[kYAxis]<<std::endl;
-    std::cout<<" For a good fit minimul-chisquare should be close to 1!"<<std::endl;
+	     <<" and target Y intercept = "<<fIntercept[kYAxis].GetValue()
+	     <<" with mimimum chi square = "<< fMinimumChiSquare[kYAxis].GetValue()<<std::endl;
+		 
   }
 
 
@@ -495,6 +518,7 @@ void  QwCombinedBPM<T>::ProcessEvent()
       fAbsPos[axis].PrintInfo();
       fSlope[axis].PrintInfo();
       fIntercept[axis].PrintInfo();
+      fMinimumChiSquare[axis].PrintInfo();
     }
   }
 
@@ -575,6 +599,7 @@ template<typename T>
    static Double_t zpos = 0;
    static T tmp1("tmp1","derived");
    static T tmp2("tmp2","derived");
+   static T tmp3("tmp3","derived");
    static T C[kNumAxes];
    static T E[kNumAxes];
 
@@ -623,26 +648,43 @@ template<typename T>
 
 
    zpos = this->GetPositionInZ();
-   //UInt_t err_flag=fAbsPos[axis].GetEventcutErrorFlag();   
+   //UInt_t err_flag=fAbsPos[axis].GetEventcutErrorFlag();    
    fAbsPos[axis] = fIntercept[axis]; // X =  b
    //fAbsPos[axis].ResetErrorFlag(err_flag);
    tmp1.AssignScaledValue(fSlope[axis],zpos); //az
    fAbsPos[axis] += tmp1;  //X = az+b
 
+
    // to perform the minimul chi-square test
-   tmp2.ClearEventData();
-   chi_square[axis]=0;
+   // We want to calculte (X-az-b)^2 for each bpm in the combination and sum over the values
+   tmp3.ClearEventData();
+   fMinimumChiSquare[axis].ClearEventData();
+
    for(size_t i=0;i<fElement.size();i++){
      tmp1.ClearEventData();
+     tmp2.ClearEventData();
+     //std::cout<<"\nName -------- ="<<(fElement[i]->GetElementName())<<std::endl;
+     //std::cout<<"\nRead value ="<<(fElement[i]->GetPosition(axis))->GetValue()<<std::endl;
+
      tmp1.AssignValueFrom(fElement[i]->GetPosition(axis)); // = X
-     tmp1 -= fAbsPos[axis];      // = X-Za-b
+     //std::cout<<"Read value ="<<tmp1.GetValue()<<std::endl;
+
+     tmp2.AssignScaledValue(fSlope[axis],fElement[i]->GetPositionInZ());
+     tmp2+=fIntercept[axis];
+     //std::cout<<"Calculated abs value ="<<tmp2.GetValue()<<std::endl;
+
+     tmp1 -= tmp2;      // = X-Za-b
+     //std::cout<<"Read-calculated ="<<tmp1.GetValue()<<std::endl;
      tmp1.Product(tmp1,tmp1); // = (X-Za-b)^2
-     tmp1.Scale(fWeights[i]); // = [(X-Za-b)^2]W
-     tmp2+=tmp1; //sum over
+     //std::cout<<"(Read-calculated)^2 ="<<tmp1.GetValue()<<std::endl;
+     tmp1.Scale(fWeights[i]*fWeights[i]); // = [(X-Za-b)^2]W
+     //std::cout<<"(Read-calculated)^2/weight ="<<tmp1.GetValue()<<std::endl;
+     tmp3+=tmp1; //sum over
+     //std::cout<<"Sum (Read-calculated)^2/weight +="<<tmp3.GetValue()<<std::endl;
    }
 
-   chi_square[axis]=tmp2.GetValue()/(fElement.size()-2); //minimul chi-square
-
+   fMinimumChiSquare[axis].AssignScaledValue(tmp3,1.0/(fElement.size()-2)); //minimul chi-square
+   
    return;
  }
 
@@ -666,6 +708,7 @@ void QwCombinedBPM<T>::PrintValue() const
    for(axis = kXAxis; axis < kNumAxes; axis++) {
      fSlope[axis].PrintValue();
      fIntercept[axis].PrintValue();
+     fMinimumChiSquare[axis].PrintValue();
    }
    fEffectiveCharge.PrintValue();
 
@@ -686,6 +729,7 @@ void QwCombinedBPM<T>::PrintInfo() const
   for(axis = kXAxis; axis < kNumAxes; axis++) {
     fSlope[axis].PrintInfo();
     fIntercept[axis].PrintInfo();
+    fMinimumChiSquare[axis].PrintInfo();
   }
   fEffectiveCharge.PrintInfo();
 
@@ -711,6 +755,7 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator= (const QwCombinedBPM<T> &value)
       this->fSlope[axis]=value.fSlope[axis];
       this->fIntercept[axis] = value.fIntercept[axis];
       this->fAbsPos[axis]=value.fAbsPos[axis];
+      this->fMinimumChiSquare[axis]=value.fMinimumChiSquare[axis];
     }
   }
   return *this;
@@ -735,7 +780,7 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator+= (const QwCombinedBPM<T> &value)
 	 this->fSlope[axis]+=value.fSlope[axis];
 	 this->fIntercept[axis]+=value.fIntercept[axis];
 	 this->fAbsPos[axis]+=value.fAbsPos[axis];
-
+	 this->fMinimumChiSquare[axis]+=value.fMinimumChiSquare[axis];
        }
      }
      return *this;
@@ -760,6 +805,7 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator-= (const QwCombinedBPM<T> &value)
       this->fSlope[axis]-=value.fSlope[axis];
       this->fIntercept[axis]-=value.fIntercept[axis];
       this->fAbsPos[axis]-=value.fAbsPos[axis];
+      this->fMinimumChiSquare[axis]-=value.fMinimumChiSquare[axis];
     }
   }
   return *this;
@@ -788,6 +834,7 @@ void QwCombinedBPM<T>::Ratio(QwCombinedBPM<T> &numer,
       this->fSlope[axis]     = numer.fSlope[axis];
       this->fIntercept[axis] = numer.fIntercept[axis];
       this->fAbsPos[axis]    = numer.fAbsPos[axis];
+      this->fMinimumChiSquare[axis]    = numer.fMinimumChiSquare[axis];
     }
   }
 
@@ -803,6 +850,7 @@ void QwCombinedBPM<T>::Scale(Double_t factor)
     fSlope[axis].Scale(factor);
     fIntercept[axis].Scale(factor);
     fAbsPos[axis].Scale(factor);
+    fMinimumChiSquare[axis].Scale(factor);
   }
   return;
 }
@@ -816,6 +864,7 @@ void QwCombinedBPM<T>::CalculateRunningAverage()
     fSlope[axis].CalculateRunningAverage();
     fIntercept[axis].CalculateRunningAverage();
     fAbsPos[axis].CalculateRunningAverage();
+    fMinimumChiSquare[axis].CalculateRunningAverage();
   }
 }
 
@@ -833,6 +882,7 @@ void QwCombinedBPM<T>::AccumulateRunningSum(const QwCombinedBPM<T>& value)
     fSlope[axis].AccumulateRunningSum(value.fSlope[axis]);
     fIntercept[axis].AccumulateRunningSum(value.fIntercept[axis]);
     fAbsPos[axis].AccumulateRunningSum(value.fAbsPos[axis]);
+    fMinimumChiSquare[axis].AccumulateRunningSum(value.fMinimumChiSquare[axis]);
   }
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
 }
@@ -851,6 +901,7 @@ void QwCombinedBPM<T>::DeaccumulateRunningSum(QwCombinedBPM<T>& value)
     fSlope[axis].DeaccumulateRunningSum(value.fSlope[axis]);
     fIntercept[axis].DeaccumulateRunningSum(value.fIntercept[axis]);
     fAbsPos[axis].DeaccumulateRunningSum(value.fAbsPos[axis]);
+    fMinimumChiSquare[axis].DeaccumulateRunningSum(value.fMinimumChiSquare[axis]);
   }
   fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
 
@@ -879,6 +930,7 @@ void  QwCombinedBPM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
 	fSlope[axis].ConstructHistograms(folder, thisprefix);
 	fIntercept[axis].ConstructHistograms(folder, thisprefix);
 	fAbsPos[axis].ConstructHistograms(folder, thisprefix);
+	fMinimumChiSquare[axis].ConstructHistograms(folder, thisprefix);
     }
 
   }
@@ -897,6 +949,7 @@ void  QwCombinedBPM<T>::FillHistograms()
       fSlope[axis].FillHistograms();
       fIntercept[axis].FillHistograms();
       fAbsPos[axis].FillHistograms();
+      fMinimumChiSquare[axis].FillHistograms();
     }
   }
   return;
@@ -921,6 +974,7 @@ void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, s
 	fSlope[axis].ConstructBranchAndVector(tree,thisprefix,values);
 	fIntercept[axis].ConstructBranchAndVector(tree,thisprefix,values);
 	fAbsPos[axis].ConstructBranchAndVector(tree,thisprefix,values);
+	fMinimumChiSquare[axis].ConstructBranchAndVector(tree,thisprefix,values);
       }
 
     }
@@ -946,6 +1000,7 @@ void  QwCombinedBPM<T>::ConstructBranch(TTree *tree, TString &prefix)
 	fSlope[axis].ConstructBranch(tree,thisprefix);
 	fIntercept[axis].ConstructBranch(tree,thisprefix);
 	fAbsPos[axis].ConstructBranch(tree,thisprefix);
+	fMinimumChiSquare[axis].ConstructBranch(tree,thisprefix);
       }
 
     }
@@ -975,6 +1030,7 @@ void  QwCombinedBPM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParamete
 	  fSlope[axis].ConstructBranch(tree,thisprefix);
 	  fIntercept[axis].ConstructBranch(tree,thisprefix);
 	  fAbsPos[axis].ConstructBranch(tree,thisprefix);
+	  fMinimumChiSquare[axis].ConstructBranch(tree,thisprefix);
 	}
 	QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
     }
@@ -997,6 +1053,7 @@ void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
       fSlope[axis].FillTreeVector(values);
       fIntercept[axis].FillTreeVector(values);
       fAbsPos[axis].FillTreeVector(values);
+      fMinimumChiSquare[axis].FillTreeVector(values);
     }
   }
   return;
@@ -1019,6 +1076,7 @@ void QwCombinedBPM<T>::Copy(const VQwDataElement *source)
         this->fSlope[axis].Copy(&(input->fSlope[axis]));
         this->fIntercept[axis].Copy(&(input->fIntercept[axis]));
         this->fAbsPos[axis].Copy(&(input->fAbsPos[axis]));
+        this->fMinimumChiSquare[axis].Copy(&(input->fMinimumChiSquare[axis]));
       }
 
     } else {
@@ -1041,6 +1099,7 @@ void QwCombinedBPM<T>::SetEventCutMode(Int_t bcuts)
     fSlope[axis].SetEventCutMode(bcuts);
     fIntercept[axis].SetEventCutMode(bcuts);
     fAbsPos[axis].SetEventCutMode(bcuts);
+    fMinimumChiSquare[axis].SetEventCutMode(bcuts);
   }
   fEffectiveCharge.SetEventCutMode(bcuts);
 
@@ -1066,6 +1125,10 @@ void QwCombinedBPM<T>::MakeBPMComboList()
     combo_bpm_sub_element.Copy(&fIntercept[axis]);
     combo_bpm_sub_element = fIntercept[axis];
     fBPMComboElementList.push_back( combo_bpm_sub_element );
+    combo_bpm_sub_element.Copy(&fMinimumChiSquare[axis]);
+    combo_bpm_sub_element = fMinimumChiSquare[axis];
+    fBPMComboElementList.push_back( combo_bpm_sub_element );
+
   }
   combo_bpm_sub_element.Copy(&fEffectiveCharge);
   combo_bpm_sub_element = fEffectiveCharge;
@@ -1086,6 +1149,7 @@ std::vector<QwDBInterface> QwCombinedBPM<T>::GetDBEntry()
     fAbsPos[axis].AddEntriesToList(row_list);
     fSlope[axis].AddEntriesToList(row_list);
     fIntercept[axis].AddEntriesToList(row_list);
+    fMinimumChiSquare[axis].AddEntriesToList(row_list);
   }
   fEffectiveCharge.AddEntriesToList(row_list);
   return row_list;
@@ -1102,6 +1166,7 @@ std::vector<QwErrDBInterface> QwCombinedBPM<T>::GetErrDBEntry()
     fAbsPos[axis].AddErrEntriesToList(row_list);
     fSlope[axis].AddErrEntriesToList(row_list);
     fIntercept[axis].AddErrEntriesToList(row_list);
+    fMinimumChiSquare[axis].AddErrEntriesToList(row_list);
   }
   //  fEffectiveCharge.AddErrEntriesToList(row_list);
   return row_list;

@@ -187,6 +187,9 @@ class QwCombinedBPM : public VQwBPM {
   /* This channel contains the beam intercept w.r.t the X & Y axis at the target */
   T fIntercept[2];
 
+  /*This channel gives the minimum chisquare value for the fit over target bpms*/
+  T fMinimumChiSquare[2];
+
   //  These are the "real" data elements, to which the base class
   //  fAbsPos_base and fEffectiveCharge_base are pointers.
   T fAbsPos[2];
