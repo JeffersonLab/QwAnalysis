@@ -76,24 +76,24 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     comptQ = lCharge->GetValue();
 
     ////find laser off periods and record start and finish entries
-    if (n==minEntries) {
+    if(laser<=laserFrac*laserMax) n++;///laser is off for n consecutive entries
+    else n=0; ///laser On begins
+
+    if (n==minEntries) { ///laser has been off for minEntries/960 seconds continuously, hence consider it a valid laseroff
       cutL.push_back(index-minEntries);
       //printf("cutL[%d]=%d\n",m,cutL.back());///print begin of laser off entry
-      flipperIsUp = kTRUE;
-      m++;
+      flipperIsUp = kTRUE; ///laserOff state begins
+      m++; ///cutLas array's even number index (corresponding to a laserOff)
     }
-    if(laser<=laserFrac*laserMax) n++;
-    else n=0;
-
-    if(flipperIsUp){
-      if(n == 0 || index == nEntries-1 ) {
-        cutL.push_back(index-1);
+    if(flipperIsUp){ ///if the laser is known to be off check ...
+      if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the end of run has been reached
+        cutL.push_back(index-1); ///record this as the end of laserOn cycle
 	//printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
-        m++;
-        flipperIsUp = kFALSE;
+        m++; ///cutLas array's odd number index (corresponding to a laserOn)
+        flipperIsUp = kFALSE; ///laserOff state ends
       }
     }
-    //    find and record electron beam off periods
+    ///    find and record electron beam off periods
     rampIsDone = (bcm> (beamFrac*beamMax));
     isABeamTrip = (bcm<= (beamFrac*beamMax));
 
@@ -101,22 +101,21 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       //to make sure it is a beam trip not a problem with acquisition
       //insist > 10 in a row meet the isABeamTrip criterion
       q++;
-      if(q>10) {
+      if(q>100) { ///beam is found off for over 100 consecutive entries (~ 100ms) 
         q = 0;
-        o++;
-        cutE.push_back(index);
-        prevTripDone = kFALSE;
+        o++; ///cutE array's even number index (corresponding to a beamTrip)
+        cutE.push_back(index-(PREV_N_ENTRIES+100)); ///register the entry# ~ 5s before this instance as a beam-trip
+        prevTripDone = kFALSE; ///register that the trip is not recovered yet
       }
     }
 
     if(!prevTripDone && rampIsDone){
-      p++;
-      //wait a few seconds for beam to stabilize then record the final entry
-      if(p>=WAIT_N_ENTRIES){
-        o++;
-        p = 0;
-        cutE.push_back(index);
-        prevTripDone = kTRUE;
+      p++;      
+      if(p>=WAIT_N_ENTRIES) { //wait ~10s for beam to stabilize in this state
+        o++; ///cutE array's odd number index (corresponding to a beam recovery)
+        p = 0; 
+        cutE.push_back(index); ///register that the trip is recovered. 
+        prevTripDone = kTRUE; 
       }
     }
   }
@@ -144,7 +143,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   return o*500+m/2;//nEntries for both arrays is encoded into return value
 }
 
-/* !A couple of inconsistenties exit as of now:
-.. 1. the beam trip evaluation is neither what is claimed nor what it should be
-.. 2. 
-..*/
+/* Comments**************************
+ * we throw away about 2 seconds of data before the beamTrip was noticed
+ * the laser on state still doesn't have a check for how long it stays ON?
+ ************************************/

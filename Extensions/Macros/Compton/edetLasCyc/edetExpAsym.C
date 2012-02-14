@@ -43,8 +43,11 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   char hName[nPlanes][120],hNameEr[nPlanes][120];
   std::vector<std::vector<TH1D> > hAsymPS;
   std::vector<std::vector<TH1D> > hAsymErPS;
-  ofstream outfileExpAsymP; 
+  ofstream outfileExpAsymP;
+  ofstream outElecNoiseS1, outElecNoiseS2, outElecNoiseS3, outElecNoiseS4;
   ifstream infileLas, infileBeam;
+//   TVector<Float_t> elecNoiseAcB1H1L0;//[goodCycles]=AccumB1H1L0[0][9];///!delete!
+//   TVector<Float_t> elecNoiseQB1H1L0;//[goodCycles]=comptQH1L1;
 
   gStyle->SetOptFit(1);
   gStyle->SetOptStat(1);
@@ -103,7 +106,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  if (debug) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
 	  cutLas.push_back(entry);
 	}
-	else cout<<"check cutLas file for "<<runnum<<endl;
+	//else cout<<"check cutLas file for "<<runnum<<endl;///this always happens at the end of file read
       }
       infileLas.close();
       nLasCycles = (cutLas.size() - 2)/2;
@@ -115,7 +118,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  if (debug) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
 	  cutEB.push_back(entry);
 	}
-	else cout<<"check cutEB file for "<<runnum<<endl;
+	//else cout<<"check cutEB file for "<<runnum<<endl;
       }
       infileBeam.close();
       nBeamTrips = (cutEB.size())/2;
@@ -156,6 +159,13 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   for(Int_t p = 0; p <nPlanes; p++) {      
     mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
   }//the branch for each plane is named from 1 to 4
+  
+  outElecNoiseS1.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr));
+  outElecNoiseS2.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-10));
+  outElecNoiseS3.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-20));
+  outElecNoiseS4.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-30));
+
+  cout<<"files for electronic noise opened for filling"<<endl;
 
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
     if (debug) cout<<"\nStarting nCycle:"<<nCycle<<" and resetting all nCycle variables"<<endl;
@@ -199,7 +209,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       if (cutLas.at(2*nCycle+1) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
       else beamOn = kFALSE;
     }   
-    else cout<<"\n***Error ... Something drastically worng in BeamTrip evaluation***\n"<<endl;
+    else cout<<"\n***Error ... Something drastically wrong in BeamTrip evaluation***\n"<<endl;
       
     for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++) { 
       //loop over laser cycle periods from one LasOn state upto just before beginning of next LasOn
@@ -282,7 +292,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  for (Int_t s =startStrip; s <endStrip; s++) {	  
 	    if (maskedStrips(p,s)) continue;
 	    normAcB1H1L1LasCyc[p][s] = AccumB1H1L1[p][s] /comptQH1L1;
-	    normAcB1H1L0LasCyc[p][s] = AccumB1H1L0[p][s] /comptQH1L0;;// 
+	    normAcB1H1L0LasCyc[p][s] = AccumB1H1L0[p][s] /comptQH1L0;;
 	    normAcB1H0L1LasCyc[p][s] = AccumB1H0L1[p][s] /comptQH0L1;
 	    normAcB1H0L0LasCyc[p][s] = AccumB1H0L0[p][s] /comptQH0L0;
 
@@ -330,11 +340,61 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    }
 	  }
 	}///for (Int_t p =startPlane; p <endPlane; p++) {
-      }
+	
+	///!trying to estimate electronic noise using p1,s10 for all laser cycles
+	if(outElecNoiseS1.is_open()) outElecNoiseS1<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr],sqrt(AccumB1H1L0[0][mystr]));
+	if(outElecNoiseS2.is_open()) outElecNoiseS2<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr-10],sqrt(AccumB1H1L0[0][mystr-10]));
+	if(outElecNoiseS3.is_open()) outElecNoiseS3<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr-20],sqrt(AccumB1H1L0[0][mystr-20]));
+	if(outElecNoiseS4.is_open()) outElecNoiseS4<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr-30],sqrt(AccumB1H1L0[0][mystr-30]));
+	else cout<<"\nerror in writing to file for electronic noise\n"<<endl;
+      }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-  
+  outElecNoiseS1.close();
+  outElecNoiseS2.close();
+  outElecNoiseS3.close();
+  outElecNoiseS4.close();
+  cout<<"file for electronic noise written and closed"<<endl;
+
+  TGraphErrors *grEN;
+  TCanvas *cEN = new TCanvas("cEN",Form("electronic noise r%d",runnum1),10,10,1000,1000);
+  cEN->Divide(2,2);
+  cEN->SetGridx(1);
+
+  cEN->cd(1);
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr), "%lg %lg %lg");
+  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+  grEN->GetYaxis()->SetTitle("accumulated counts");
+  grEN->SetTitle(Form("counts in plane1 strip %d",mystr));
+  grEN->Fit("pol1");
+  grEN->Draw("A*");
+
+  cEN->cd(2);
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-10), "%lg %lg %lg");
+  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+  grEN->GetYaxis()->SetTitle("accumulated counts");
+  grEN->SetTitle(Form("counts in plane1 strip %d",mystr-10));
+  grEN->Fit("pol1");
+  grEN->Draw("A*");
+
+  cEN->cd(3);
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-20), "%lg %lg %lg");
+  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+  grEN->GetYaxis()->SetTitle("accumulated counts");
+  grEN->SetTitle(Form("counts in plane1 strip %d",mystr-20));
+  grEN->Fit("pol1");
+  grEN->Draw("A*");
+
+  cEN->cd(4);
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-30), "%lg %lg %lg");
+  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+  grEN->GetYaxis()->SetTitle("accumulated counts");
+  grEN->SetTitle(Form("counts in plane1 strip %d",mystr-30));
+  grEN->Fit("pol1");
+  grEN->Draw("A*");
+
+
   TCanvas *cmystrAsym = new TCanvas("cmystrAsym",Form("Strip Asym starting r%d",runnum1),10,10,1500,1100);
   cmystrAsym->Divide(2,4);
   Int_t n = 0;
@@ -368,8 +428,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
       cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) {    
 	if (maskedStrips(p,s)) continue;
-	//	outfileExpAsymP<<s+1<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<"\t"<<stripAsymRMS[p][s]<<endl;
-	outfileExpAsymP<<Form("%f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
+	outfileExpAsymP<<Form("%2.0f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
       }
       outfileExpAsymP.close();
       cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
@@ -392,10 +451,12 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 
 /******************************************************
 !Further modifications:
-* Adapt to handle multiple run numbers
+* plot normAcB1H1L0LasCyc and normAcB1H0L0LasCyc against
+* ..strip numbers to watch the helicity correlated beam-background
 * evaluate asymmetry per pattern and see its pattern
 * ensure efficient evaluation of beamtrips
 * check consistency of cut on laserPow and beamtrip
+* in the current LasCyc method, I can change AccumB1H1L1 etc to Int_t to save CPU effort
 ******************************************************/
 
 /******************************************************
