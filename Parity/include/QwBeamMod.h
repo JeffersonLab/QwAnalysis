@@ -56,6 +56,8 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
       fgModTypeNames.push_back("");
       for(size_t i=0;i<fgModTypeNames.size();i++)
         fgModTypeNames[i].ToLower();
+      fFFB_holdoff_Counter=0;
+      fFFB_Flag=kTRUE;
     };
   /// Copy constructor
   QwBeamMod(const QwBeamMod& source)
@@ -160,12 +162,11 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 
  private:
 
- // Int_t fQwBeamLineErrorCount;
- // Double_t fSumXweights;
- // Double_t fSumYweights;
- // Double_t fSumQweights;
-
-
+ UInt_t fFFB_Index;
+ UInt_t fFFB_holdoff;
+ UInt_t fFFB_holdoff_Counter;
+ UInt_t fFFB_ErrorFlag;
+ Bool_t fFFB_Flag;
  static const Bool_t bDEBUG=kFALSE;
 
 };

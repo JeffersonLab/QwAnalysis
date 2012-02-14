@@ -169,6 +169,11 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	  localword.fWordName=namech;
 	  //localword.fWordType=dettype; // FIXME dettype is undefined so commented this out
 	  fWord.push_back(localword);
+
+	  if(namech=="ffb_status")//save the location of this word to access this later
+	    fFFB_Index=fWord.size()-1;
+
+
 	  fWordsPerSubbank[currentsubbankindex].second = fWord.size();
 	  QwDebug << "--" << namech << "--" << fWord.size()-1 << QwLog::endl;
 
@@ -245,6 +250,7 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename)
   // Open the file
   QwParameterFile mapstr(filename.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+  fFFB_holdoff=0;//Default holdoff for the FFB pause
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -272,7 +278,7 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename)
 	varvalue = mapstr.GetTypedNextToken<TString>();//global/loacal
 	varvalue.ToLower();
 	Double_t stabilitycut = mapstr.GetTypedNextToken<Double_t>();
-	QwMessage<<"QwBeamLine Error Code passing to QwBCM "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	QwMessage<<"QwBeamMod Error Code  "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(kQwUnknownDeviceType),device_name);
 	std::cout<<"*****************************"<<std::endl;
 	std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
@@ -280,6 +286,9 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename)
 	fModChannel[det_index].SetSingleEventCuts((GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)|kBModErrorFlag),LLX,ULX,stabilitycut);
 	std::cout<<"*****************************"<<std::endl;
 
+      }
+      else if (device_type == "word" && device_name== "ffb_status"){
+	fFFB_holdoff=mapstr.GetTypedNextToken<UInt_t>();//Read the FFB OFF interval
       }
 
     }
@@ -577,8 +586,21 @@ Bool_t QwBeamMod::ApplySingleEventCuts(){
     test_Mod &= test_BCM1;
     if(!test_BCM1 && bDEBUG) std::cout<<"******* QwBeamMod::SingleEventCuts()->BCM[ "<<i<<" , "<<fModChannel[i].GetElementName()<<" ] ******\n";
   }
-  //if (!test_BCM)
-  //fNumError_Evt_BCM++;//BCM falied  event counter for QwBeamMod
+  
+  if (fWord[fFFB_Index].fValue==8 && fFFB_Flag && fFFB_holdoff_Counter==0){
+    fFFB_holdoff_Counter=fFFB_holdoff;
+    fFFB_Flag=kFALSE;
+    
+  } 
+  if (!fFFB_Flag &&  (fFFB_holdoff_Counter>0 && fFFB_holdoff_Counter<=fFFB_holdoff) ){
+    fFFB_ErrorFlag = (kGlobalCut+kBModErrorFlag+kBModFFBErrorFlag+kEventCutMode3);
+    fFFB_holdoff_Counter--;
+    if(fFFB_holdoff_Counter==0)
+      fFFB_Flag=kTRUE;
+  }else
+    fFFB_ErrorFlag=0;
+
+
 
   return test_Mod;
 
@@ -602,7 +624,7 @@ UInt_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
   for(size_t i=0;i<fModChannel.size();i++){
     ErrorFlag |= fModChannel[i].GetEventcutErrorFlag();
   }
-
+  ErrorFlag |= fFFB_ErrorFlag;
   return ErrorFlag;
 
 }
@@ -815,8 +837,9 @@ VQwSubsystem&  QwBeamMod::operator=  (VQwSubsystem *value)
       
       for(size_t i=0;i<input->fModChannel.size();i++)
 	this->fModChannel[i]=input->fModChannel[i];
-        for(size_t i=0;i<input->fWord.size();i++)
+      for(size_t i=0;i<input->fWord.size();i++)
   	this->fWord[i].fValue=input->fWord[i].fValue;
+      this->fFFB_ErrorFlag=input->fFFB_ErrorFlag;
     }
   return *this;
 }
@@ -832,7 +855,7 @@ VQwSubsystem&  QwBeamMod::operator+=  (VQwSubsystem *value)
 	this->fModChannel[i]+=input->fModChannel[i];
 //         for(size_t i=0;i<input->fWord.size();i++)
 //    	this->fWord[i]+=input->fWord[i];
-
+      this->fFFB_ErrorFlag |= input->fFFB_ErrorFlag;
     }
   return *this;
 }
@@ -849,6 +872,7 @@ VQwSubsystem&  QwBeamMod::operator-=  (VQwSubsystem *value)
 	this->fModChannel[i]-=input->fModChannel[i];
 //       for(size_t i=0;i<input->fWord.size();i++)
 //         this->fWord[i]-=input->fWord[i];
+      this->fFFB_ErrorFlag |= input->fFFB_ErrorFlag;
 
     }
   return *this;
@@ -1199,6 +1223,7 @@ void  QwBeamMod::Copy(const VQwSubsystem *source)
               this->fWord[i].fWordType=input->fWord[i].fWordType;
             } 
 
+	  this->fFFB_ErrorFlag=input->fFFB_ErrorFlag;
          }
 
 

@@ -23,6 +23,14 @@ sample_size=464
 ! module.type, module.num  chan.num, det.type, det.name
 
 ROC=0
+Bank=0x6101
+
+!
+! module.type, module.num  chan.num, det.type, det.name
+!
+WORD, 0,  0, in_reg
+WORD, 0,  0, ffb_status
+
 Bank=0x6106
 
 WORD, 0, 0,  bm_init
@@ -31,3 +39,6 @@ WORD, 0, 0,  bm_pattern_number
 !
 !  The TRIG and LEM signals go through a V/F module to scalers in ROC=0.
 !  Their decoding ought to be added at some point.
+
+
+!ROC=0

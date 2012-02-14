@@ -34,6 +34,12 @@ sample_size=464
 ! module.type, module.num  chan.num, det.type, det.name
 
 ROC=0
+Bank=0x6101
+
+WORD, 0,  0, in_reg
+WORD, 0,  0, ffb_status
+
+
 Bank=0x6106
 
 WORD, 0, 0,  bm_init
