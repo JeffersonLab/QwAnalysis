@@ -16,6 +16,10 @@
 //                      histograms in TS and MD F1TDC signals.
 //
 //                ShowMTMultiHits(1,1,-1, -1, 102, 0,0, filename);
+//          0.3 : Tuesday, February 14 16:35:36 EST 2012
+//                modified ShowMTMultiHits
+//   
+
 
 
 
@@ -271,7 +275,6 @@ ShowMultiHits(Int_t md_plane, Int_t md_element,
 };
 
 
-// nbin is the same as Draw();
 
 TCanvas * 
 ShowMTMultiHits(Int_t md_plane, Int_t ts_plane, 
@@ -303,12 +306,25 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
       return NULL;
   }
 
-  TCanvas *c1 = new TCanvas("c1","stacked hists",100,100,1080,800);
+  TString output_filename="MTMultiHits";
+ 
+  output_filename += "md";
+  output_filename += md_plane;
+					       
+  output_filename += "ts";
+  output_filename += ts_plane;
+  
+  output_filename += "_";
+  output_filename += filename;
+
+   TCanvas *c1 = new TCanvas("c1","stacked hists",100,100,1080,800);
 
   TString name ="";
   
 
-  THStack *mt_hs[3];
+  TObjArray HistList(0);
+
+  THStack *mt_hs[6];
 
   
   mt_hs[0] = new THStack(Form("MD%dsMTHitStack", md_plane),
@@ -320,20 +336,50 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
   mt_hs[2] = new THStack(Form("TS%dhMTHitStack", ts_plane),
 		      Form("TS%dhMT F1TDC Multi-Hit Contribution Histogram", ts_plane)
 		      );
-  
 
+  mt_hs[3] = new THStack(Form("dMD%dpmHitStack", md_plane),
+			 Form("MD%p - MD%dm F1TDC Multi-Hit Contribution Histogram", md_plane, md_plane)
+		      );
+  mt_hs[4] = new THStack(Form("dTS%dpmHitStack", ts_plane),
+			 Form("TS%dp - TS%dm F1TDC Multi-Hit Contribution Histogram", ts_plane, ts_plane)
+		      );
+  mt_hs[5] = new THStack(Form("dTS%dMTsHitStack", ts_plane),
+			 Form("TS%dhMT -TS%dsMT F1TDC Multi-Hit Contribution Histogram", ts_plane, ts_plane)
+			 );
+  
+  
+  for(Int_t idx=0; idx<6; idx++)
+    {
+      HistList.Add(mt_hs[idx]);
+    }
+  
   TH1D* mdhist[7];
   TH1D* tshist[7];
   TH1D* tsmthist[7];
 
-
+  TH1D* dmdhist[7];
+  TH1D* dtshist[7];
+  TH1D* dtsmthist[7];
 
   //
   for(Int_t idx=0; idx <7;idx++)
     {// 2200, 1100, 550
-      mdhist[idx]   = new TH1D(Form("MDsMT_hitid%d", idx), Form("MD sMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
-      tshist[idx]   = new TH1D(Form("TSsMT_hitid%d", idx), Form("TS sMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
-      tsmthist[idx] = new TH1D(Form("TShMT_hitid%d", idx), Form("TS hMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
+      mdhist[idx]   = new TH1D(Form("MDsMT_hitid_%d", idx), Form("MD sMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
+      tshist[idx]   = new TH1D(Form("TSsMT_hitid_%d", idx), Form("TS sMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
+      tsmthist[idx] = new TH1D(Form("TShMT_hitid_%d", idx), Form("TS hMT HitId %d", idx), nbin, -950+time_shift_ns, 1400+time_shift_ns);
+   
+      dmdhist[idx]   = new TH1D(Form("dMDpm_hitid_%d", idx), Form("MDp - MDm  HitId %d", idx),    nbin, -2000+time_shift_ns, 2000+time_shift_ns);
+      dtshist[idx]   = new TH1D(Form("dTSpm_hitid_%d", idx), Form("TSp - TSm  HitId %d", idx),    nbin, -2000+time_shift_ns, 2000+time_shift_ns);
+      dtsmthist[idx] = new TH1D(Form("dTSMT_hitid_%d", idx), Form("TShMT - TSsMT HitId %d", idx), nbin, -2000+time_shift_ns, 2000+time_shift_ns);
+
+      HistList.Add(mdhist[idx]);
+      HistList.Add(tshist[idx]);
+      HistList.Add(tsmthist[idx]);
+
+      HistList.Add(dmdhist[idx]);
+      HistList.Add(dtshist[idx]);
+      HistList.Add(dtsmthist[idx]);
+      
     } 
   
 
@@ -432,17 +478,6 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
 	  }
 	}//;;
 
-     
-      // if (ts_debug || md_debug ) {
-      //  	printf("\nEvent ID %d TotalHits %d over all subsystem\n", i, nhit);
-      // }
-      // if (ts_debug && md_debug ) {
-      // 	for(Int_t idx=0; idx<7; idx++) 
-      // 	  {//;;
-      // 	    printf(">>%d TSp%+10.2f TSm%+10.2f MDp%+10.2f MDm%+10.2f\n", idx, tsp[idx], tsm[idx], mdp[idx], mdm[idx]);
-      // 	  }
-
-      // }
       if (md_debug || ts_debug) printf("\n");
 
       Int_t ts_max_hit_range = ts_max_hit+1;
@@ -450,42 +485,64 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
       for(Int_t idx=0; idx<ts_max_hit_range; idx++) 
 	{//;;
 	  Double_t software_mt_ts = 0.0;
+	  Double_t software_del_ts = 0.0;
 	  if(ts_debug) {
-	    printf(">>TS>> TotalHit %4d in Event %8d: HitOrder[%d,%d] TSp%+10.2f TSm%+10.2f TSsMT", nhit, i, idx+1, ts_max_hit_range, tsp[idx], tsm[idx]);
+	    printf(">>TS>> NHits%4d in Event %8d: HitOrder[%d,%d] TSp%+9.2f TSm%+9.2f", 
+		   nhit, i, idx+1, ts_max_hit_range, tsp[idx], tsm[idx]);
 	  }
 	  if (tsp[idx]!=ini && tsm[idx]!=ini) {
-	    software_mt_ts = 0.5*(tsp[idx]+tsm[idx]);
-	    if (ts_debug) printf("%+10.2f", software_mt_ts);
-	    tshist[idx] -> Fill(software_mt_ts);
+	    software_mt_ts  = 0.5*(tsp[idx]+tsm[idx]);
+	    software_del_ts = tsp[idx] - tsm[idx];
+	    if (ts_debug) printf(" dTS%+9.2f TSsMT %+10.2f", software_del_ts, software_mt_ts);
+	    tshist[idx]  -> Fill(software_mt_ts);
+	    dtshist[idx] -> Fill(software_del_ts);
 	  }
 	  else {
-	    if (ts_debug) printf(" ---------");
+	    software_mt_ts = 0.0;
+	    if (ts_debug) printf(" >>---------- >>--------------");
 	  }
 
-	  if (ts_debug)  printf(" TSMT %+8.2f >>\n", tsmt[idx]);
+	 
+	  if(software_mt_ts!=0.0) {
+	    dtsmthist[idx] -> Fill(tsmt[idx]-software_mt_ts);
+	    if (ts_debug )  {
+	      printf(" TSMT %+8.2f dTSMT %+8.2f >>\n", tsmt[idx], tsmt[idx]-software_mt_ts);
+	    }
+	  }
+	  else {
+	    if (ts_debug )  {
+	      printf(" TSMT %+8.2f >>------------ >>\n", tsmt[idx]);
+	    }
+	  }
+	
+
+	  
 	}
     
 
       Int_t md_max_hit_range = md_max_hit+1;
       for(Int_t idx=0; idx<md_max_hit_range; idx++) 
 	{//;;
-	  Double_t software_mt_md = 0.0;
-
+	  Double_t software_mt_md  = 0.0;
+	  Double_t software_del_md = 0.0;
 	  if (md_debug) {
-	    printf("<<MD<< TotalHit %4d in Event %8d: HitOrder[%d,%d] MDp%+10.2f MDm%+10.2f MDsMT", nhit, i, idx+1, md_max_hit_range, mdp[idx], mdm[idx]);
+	    printf("<<MD<< NHits%4d in Event %8d: HitOrder[%d,%d] MDp%+9.2f MDm%+9.2f", 
+		   nhit, i, idx+1, md_max_hit_range, mdp[idx], mdm[idx]);
 	  }
 	  if (mdp[idx]!=ini && mdm[idx]!=ini) {
 	    //	    printf("event %18d id %d mdp %+8.2f mdm%+8.2f mdsmt ", i, idx, mdp[idx], mdm[idx]);
-	    software_mt_md = 0.5*(mdp[idx]+mdm[idx]);
-	    if (md_debug) printf("%+10.2f", software_mt_md);
+	    software_mt_md  = 0.5*(mdp[idx]+mdm[idx]);
+	    software_del_md = mdp[idx]-mdm[idx];
 
-	    mdhist[idx] -> Fill(software_mt_md);
+	    mdhist[idx]  -> Fill(software_mt_md);
+	    dmdhist[idx] -> Fill(software_del_md);
+	    if (md_debug) printf(" dMD%+9.2f MDsMT %+10.2f", software_del_md, software_mt_md);
 	  }
 	  else {
-	    if(md_debug) printf(" ---------");
+	    if(md_debug)  printf(" <<---------- <<--------------");
 
 	  }
-	  if (md_debug) printf(" ------------- <<\n");
+	  if (md_debug) printf(" <<----------- <<------------ <<\n");
 	  
 	}//;;
 
@@ -506,76 +563,197 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
       tsmthist[idx] -> SetDirectory(0);
       tsmthist[idx] -> SetMarkerStyle(21);
       mt_hs[2]->Add(tsmthist[idx]);
+
+      dmdhist[idx] -> SetDirectory(0);
+      dmdhist[idx] -> SetMarkerStyle(21);
+      mt_hs[3]->Add(dmdhist[idx]);   
+   
+      dtshist[idx] -> SetDirectory(0);
+      dtshist[idx] -> SetMarkerStyle(21);
+      mt_hs[4]->Add(dtshist[idx]);
+
+      dtsmthist[idx] -> SetDirectory(0);
+      dtsmthist[idx] -> SetMarkerStyle(21);
+      mt_hs[5]->Add(dtsmthist[idx]);
+
     }
 
 
   afile.Close();
 
 
+  // Int_t color[7]= {2,3,4,6,7,5,43};
+
+  // for (Int_t idx = 0; i<7; i++) 
+  //   {
+  //     //      color[idx] = gROOT->GetColor(int_color[idx]);
+
+      // mdhist[idx] -> SetFillColor((Color_t) color[idx]);
+      // mdhist[idx] -> SetMarkerColor((Color_t) color[idx]);
+      
+      // tshist[idx] -> SetFillColor((Color_t) color[idx]);
+      // tshist[idx] -> SetMarkerColor((Color_t) color[idx]);
+      
+      // tsmthist[idx] -> SetFillColor((Color_t) color[idx]);
+      // tsmthist[idx] -> SetMarkerColor((Color_t) color[idx]);
+
+      // dmdhist[idx] -> SetFillColor((Color_t) color[idx]);
+      // dmdhist[idx] -> SetMarkerColor((Color_t) color[idx]);
+      
+      // dtshist[idx] -> SetFillColor((Color_t) color[idx]);
+      // dtshist[idx] -> SetMarkerColor((Color_t) color[idx]);
+      
+      // dtsmthist[idx] -> SetFillColor((Color_t) color[idx]);
+      // dtsmthist[idx] -> SetMarkerColor((Color_t) color[idx]);
+    
+  //    }
+
+
   mdhist[0] -> SetFillColor(2);
   mdhist[0] -> SetMarkerColor(2);
+  
+  tshist[0] -> SetFillColor(2);
+  tshist[0] -> SetMarkerColor(2);
+  
+  tsmthist[0] -> SetFillColor(2);
+  tsmthist[0] -> SetMarkerColor(2);
+  
+  dmdhist[0] -> SetFillColor(2);
+  dmdhist[0] -> SetMarkerColor(2);
+  
+  dtshist[0] -> SetFillColor(2);
+  dtshist[0] -> SetMarkerColor(2);
+  
+  dtsmthist[0] -> SetFillColor(2);
+  dtsmthist[0] -> SetMarkerColor(2);
+
 
   mdhist[1] -> SetFillColor(3);
   mdhist[1] -> SetMarkerColor(3);
+  
+  tshist[1] -> SetFillColor(3);
+  tshist[1] -> SetMarkerColor(3);
+  
+  tsmthist[1] -> SetFillColor(3);
+  tsmthist[1] -> SetMarkerColor(3);
+  
+  dmdhist[1] -> SetFillColor(3);
+  dmdhist[1] -> SetMarkerColor(3);
+  
+  dtshist[1] -> SetFillColor(3);
+  dtshist[1] -> SetMarkerColor(3);
+  
+  dtsmthist[1] -> SetFillColor(3);
+  dtsmthist[1] -> SetMarkerColor(3);
+
+
 
   mdhist[2] -> SetFillColor(4);
   mdhist[2] -> SetMarkerColor(4);
-
-  mdhist[3] -> SetFillColor(6); 
-  mdhist[3] -> SetMarkerColor(6); 
-
-  mdhist[4] -> SetFillColor(7); 
-  mdhist[4] -> SetMarkerColor(7); 
-
-  mdhist[5] -> SetFillColor(5); 
-  mdhist[5] -> SetMarkerColor(5); 
-
-  mdhist[6] -> SetFillColor(43); 
-  mdhist[6] -> SetMarkerColor(43); 
-
-
-  tshist[0] -> SetFillColor(2);
-  tshist[0] -> SetMarkerColor(2);
-
-  tshist[1] -> SetFillColor(3);
-  tshist[1] -> SetMarkerColor(3);
-
+  
   tshist[2] -> SetFillColor(4);
   tshist[2] -> SetMarkerColor(4);
-
-  tshist[3] -> SetFillColor(6); 
-  tshist[3] -> SetMarkerColor(6); 
-
-  tshist[4] -> SetFillColor(7); 
-  tshist[4] -> SetMarkerColor(7); 
-
-  tshist[5] -> SetFillColor(5); 
-  tshist[5] -> SetMarkerColor(5); 
-
-  tshist[6] -> SetFillColor(43); 
-  tshist[6] -> SetMarkerColor(43); 
-
-
-  tsmthist[0] -> SetFillColor(2);
-  tsmthist[0] -> SetMarkerColor(2);
-
-  tsmthist[1] -> SetFillColor(3);
-  tsmthist[1] -> SetMarkerColor(3);
-
+  
   tsmthist[2] -> SetFillColor(4);
   tsmthist[2] -> SetMarkerColor(4);
+  
+  dmdhist[2] -> SetFillColor(4);
+  dmdhist[2] -> SetMarkerColor(4);
+  
+  dtshist[2] -> SetFillColor(4);
+  dtshist[2] -> SetMarkerColor(4);
+  
+  dtsmthist[2] -> SetFillColor(4);
+  dtsmthist[2] -> SetMarkerColor(4);
 
-  tsmthist[3] -> SetFillColor(6); 
-  tsmthist[3] -> SetMarkerColor(6); 
 
-  tsmthist[4] -> SetFillColor(7); 
-  tsmthist[4] -> SetMarkerColor(7); 
 
-  tsmthist[5] -> SetFillColor(5); 
-  tsmthist[5] -> SetMarkerColor(5); 
 
-  tsmthist[6] -> SetFillColor(43); 
-  tsmthist[6] -> SetMarkerColor(43); 
+  mdhist[3] -> SetFillColor(6);
+  mdhist[3] -> SetMarkerColor(6);
+  
+  tshist[3] -> SetFillColor(6);
+  tshist[3] -> SetMarkerColor(6);
+  
+  tsmthist[3] -> SetFillColor(6);
+  tsmthist[3] -> SetMarkerColor(6);
+  
+  dmdhist[3] -> SetFillColor(6);
+  dmdhist[3] -> SetMarkerColor(6);
+  
+  dtshist[3] -> SetFillColor(6);
+  dtshist[3] -> SetMarkerColor(6);
+  
+  dtsmthist[3] -> SetFillColor(6);
+  dtsmthist[3] -> SetMarkerColor(6);
+
+
+
+
+  mdhist[4] -> SetFillColor(7);
+  mdhist[4] -> SetMarkerColor(7);
+  
+  tshist[4] -> SetFillColor(7);
+  tshist[4] -> SetMarkerColor(7);
+  
+  tsmthist[4] -> SetFillColor(7);
+  tsmthist[4] -> SetMarkerColor(7);
+  
+  dmdhist[4] -> SetFillColor(7);
+  dmdhist[4] -> SetMarkerColor(7);
+  
+  dtshist[4] -> SetFillColor(7);
+  dtshist[4] -> SetMarkerColor(7);
+  
+  dtsmthist[4] -> SetFillColor(7);
+  dtsmthist[4] -> SetMarkerColor(7);
+
+
+
+
+  mdhist[5] -> SetFillColor(5);
+  mdhist[5] -> SetMarkerColor(5);
+  
+  tshist[5] -> SetFillColor(5);
+  tshist[5] -> SetMarkerColor(5);
+  
+  tsmthist[5] -> SetFillColor(5);
+  tsmthist[5] -> SetMarkerColor(5);
+  
+  dmdhist[5] -> SetFillColor(5);
+  dmdhist[5] -> SetMarkerColor(5);
+  
+  dtshist[5] -> SetFillColor(5);
+  dtshist[5] -> SetMarkerColor(5);
+  
+  dtsmthist[5] -> SetFillColor(5);
+  dtsmthist[5] -> SetMarkerColor(5);
+
+
+
+
+
+
+  mdhist[6] -> SetFillColor(43);
+  mdhist[6] -> SetMarkerColor(43);
+  
+  tshist[6] -> SetFillColor(43);
+  tshist[6] -> SetMarkerColor(43);
+  
+  tsmthist[6] -> SetFillColor(43);
+  tsmthist[6] -> SetMarkerColor(43);
+  
+  dmdhist[6] -> SetFillColor(43);
+  dmdhist[6] -> SetMarkerColor(43);
+  
+  dtshist[6] -> SetFillColor(43);
+  dtshist[6] -> SetMarkerColor(43);
+  
+  dtsmthist[6] -> SetFillColor(43);
+  dtsmthist[6] -> SetMarkerColor(43);
+
+
+
 
   TLegend *leg = NULL;
   
@@ -684,6 +862,12 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
   }
   c1-> Modified();
   c1-> Update();
+
+
+  TFile f(Form("%s", output_filename.Data()),"recreate");
+  //  printf("2\n");
+  HistList.Write();
+
 
   return c1;
 };
