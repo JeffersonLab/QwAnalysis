@@ -350,7 +350,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     cmystrAsym->Update();
     n++;
   }
-  cmystrAsym->SaveAs(Form("analOut/AsymStrip%d.png",mystr));
+  cmystrAsym->SaveAs(Form("analOut/r%d_AsymStrip%d.png",runnum1,mystr));
   
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {        
@@ -407,4 +407,5 @@ Comments:
 * ..beam was indeed ON during both laser On as well as Off periods
 * nCycle refers to the present/current/ongoing laser-cycle
 * nthBeamTrip (on the contrary) refers to the upcoming beamTrip
+* the code counts from '0' but at all human interface, I add '+1' hence human counting
 ******************************************************/

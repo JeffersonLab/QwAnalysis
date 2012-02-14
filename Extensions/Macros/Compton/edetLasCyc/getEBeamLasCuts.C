@@ -21,17 +21,20 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Char_t textf[255],textwrite[255];
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0, bcm = 0 , comptQ = 0;
-  Double_t beamMax, Qmax, laserMax;
+  Double_t beamMax, laserMax;
 
-  TH1D *h1 = new TH1D("h1","dummy",100,0,220);
-  chain->Draw("sca_bcm6.value>>h1","","goff");
-  h1 = (TH1D*)gDirectory->Get("h1");  
-  beamMax = h1->GetBinLowEdge(h1->FindLastBinAbove(100));//to avoid extraneous values
-  Qmax = chain->GetMaximum("compton_charge/value");
-  cout<<"beamMax(bcm6) "<<beamMax<<" Qmax:(avg of bcm 1 & 2):"<<Qmax<<endl;
- 
-  laserMax = chain->GetMaximum("sca_laser_PowT/value");
-  cout<<"laserMax ="<<laserMax<<endl;
+  TH1D *hBeam = new TH1D("hBeam","dummy",100,0,220);//typical value of maximum beam current
+  TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,180000);//typical value of maximum laser power
+
+  chain->Draw("sca_bcm6.value>>hBeam","","goff");
+  hBeam = (TH1D*)gDirectory->Get("hBeam");  
+  beamMax = hBeam->GetBinLowEdge(hBeam->FindLastBinAbove(100));//to avoid extraneous values
+  cout<<"beamMax(bcm6) "<<beamMax<<endl;
+
+  chain->Draw("sca_laser_PowT.value>>hLaser","","goff");
+  hLaser = (TH1D*)gDirectory->Get("hLaser");  
+  laserMax = hLaser->GetBinLowEdge(hLaser->FindLastBinAbove(100));//to avoid extraneous values
+  cout<<"laserMax = "<<laserMax<<endl;
 
   Int_t nLasCycBeamTrips;
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
@@ -45,10 +48,6 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   ofstream outfileBeam(Form("%s",textf));
   printf("%s file created\n",textf);
 
-  if (beamMax-Qmax >=5) {
-    printf("Warning: notice the difference in bcm6 and average of bcm 1&2\n");
-    printf("             beamMax: %f, Qmax: %f\n",beamMax,Qmax);
-  }
   TBranch *bLaser;
   TBranch *bBCM;
   TBranch *bCharge;
