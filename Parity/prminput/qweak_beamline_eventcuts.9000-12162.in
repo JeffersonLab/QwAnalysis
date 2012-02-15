@@ -30,12 +30,11 @@ EVENTCUTS = 3
 !for bcm devices
 !device_type, device_name,      lower limit, upper limit, local(l)/global(g), stability percentage
  
-bcm, qwk_bcm1,		1,	1000000,	l,	2
+bcm, qwk_bcm1,		10,	1000000,	g,	2
 !bcm, qwk_bcm2, 		0, 	0,		l,	0
 !bcm, qwk_bcm3, 		0, 0, l, 0
 !bcm, qwk_bcm5, 		0, 0, l, 0
 !bcm, qwk_bcm6, 		0, 0, l, 0
-bcm, qwk_bcm8,		10,	1000000,	g,	2
 
 !bcm, qwk_batext1, 		1, 2, l, 0
 !bcm, qwk_batext2,  		0, 0, l, 0
@@ -45,7 +44,6 @@ bcm, qwk_bcm8,		10,	1000000,	g,	2
 !bcm, phasemonitor, 		0, 0, l, 0
 
 halomonitor , sca_habcm, 5, 	1000000,	l,	0
-
 
 !****************************************************		
 !For bpmstrpline devices 
@@ -77,6 +75,11 @@ bpmstripline, 	qwk_bpm3c12,    XP,		0,  57000,	 l,	 0
 bpmstripline, 	qwk_bpm3c12,    XM,		0,  57000,	 l,	 0
 bpmstripline, 	qwk_bpm3c12,    YP,		0,  59000,	 l,	 0
 bpmstripline, 	qwk_bpm3c12,    YM,		0,  54000,	 l,	 0
+
+!bpmstripline, 	qwk_bpm3c12,    ABSX,		-10,  10,	 l,	 0.08
+!bpmstripline, 	qwk_bpm3c12,    ABSY,		-10,  10,	 l,	 0.08
+
+
 bpmstripline, 	qwk_bpm3c14,    XP,		0,  59000,	 l,	 0
 bpmstripline, 	qwk_bpm3c14,    XM,		0,  57000,	 l,	 0
 bpmstripline, 	qwk_bpm3c14,    YP,		0,  59000,	 l,	 0
@@ -154,17 +157,6 @@ bpmstripline, 	qwk_bpm3h09b,   YM,             0,  76200,       l,      0
 
 
 
-!***************************************************		
-!For bpmcavity devices
-!channel_name can be relx, rely, absx, absy, q
-!Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
-!So pedestals are applied before appyling the cuts.
-
-!device_type, device_name, channel_name, lower limit, upper limit, local(l)/global(g), stability percentage
-!bpmcavity, qwk_bpmcavity1, absx, 0, 10000, l, 1
-!bpmcavity, qwk_bpmcavity1, absy, 0, 0, l, 0
-!bpmcaivty, qwk_bpmcavity2, absx, 0, 0, l, 0
-!bpmcavity, qwk_bpmcavity2, absy, 0, 0, l, 0
 
 
 !***************************************************		
@@ -184,15 +176,7 @@ combinedbpm, qwk_target, absy, -10, 10, g, 0.15
 !***************************************************		
 !for combined bcm devices (tested with injector run 924)
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-!combinedbcm, qwk_charge,  	3.18588, 	3.18591e+10, l, 0
-!combinedbcm, qwk_charge,  	1, 	500, g, 0.001
-!combinedbcm, qwk_charge,  	0, 	3.18591e+10, l, 4
-
-!***************************************************	
-!for QwEnergyCalculator
-!device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-!energycalculator, qwk_energy,  	-3.18588e-100, 	3.18591e+100, l, 1
-
+!combinedbcm, qwk_charge,  	10,    500,  g,   2
 
 !Comments
 !--------
