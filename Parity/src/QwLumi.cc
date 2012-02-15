@@ -626,7 +626,7 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 
 
   if (!status) 
-    fQwLumiErrorCount++;//falied  event counter for QwLumi
+    fQwLumiErrorCount++;//failed  event counter for QwLumi
 
   return status;
 }
@@ -1140,45 +1140,6 @@ void  QwLumiDetectorID::Print() const
   std::cout<<"Subelement index= "<<
     fSubelement<<std::endl;
   std::cout<<"==========================================\n";
-}
-
-//*****************************************************************
-void  QwLumi::Copy(const VQwSubsystem *source)
-{
-
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  VQwSubsystem::Copy(source);
-	  const QwLumi* input= dynamic_cast<const QwLumi*>(source);
-
-	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
-	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)
-	    this->fIntegrationPMT[i].Copy(&(input->fIntegrationPMT[i]));
-      
-	  this->fCombinedPMT.resize(input->fCombinedPMT.size());
-	  for (size_t i=0;i<this->fCombinedPMT.size();i++)
-	    this->fCombinedPMT[i].Copy(&(input->fCombinedPMT[i]));
-        
-	  this->fScalerPMT.resize(input->fScalerPMT.size());
-	  for(size_t i=0;i<this->fScalerPMT.size();i++)
-	    this->fScalerPMT[i].Copy(&(input->fScalerPMT[i]));
-
-	}
-      else
-	{
-	  TString loc="Standard exception from QwLumi::Copy = "
-	    +source->GetSubsystemName()+" "
-	    +this->GetSubsystemName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-  // this->Print();
 }
 
 //*****************************************************************

@@ -309,26 +309,6 @@ void  QwCombinedBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 */
 
 /********************************************************/
-template<typename T>
-void  QwCombinedBCM<T>::Copy(const VQwDataElement *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      QwBCM<T>::Copy(source);
-      //const QwCombinedBCM<T>* input = dynamic_cast<const QwCombinedBCM<T>*>(source);
-      // do we need to copy the elements and weights here?
-    } else {
-      TString loc="Standard exception from QwCombinedBCM::Copy = "
-          +source->GetElementName()+" "
-          +this->GetElementName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
-/********************************************************/
 template class QwCombinedBCM<QwVQWK_Channel>; 
 template class QwCombinedBCM<QwSIS3801_Channel>; 
 template class QwCombinedBCM<QwSIS3801D24_Channel>; 

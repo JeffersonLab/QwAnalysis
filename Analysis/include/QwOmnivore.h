@@ -25,7 +25,7 @@ class QwOmnivore: public VQwSubsystem_t {
     /// Copy constructor
     QwOmnivore(const QwOmnivore& source)
     : VQwSubsystem(source),VQwSubsystem_t(source)
-    { this->Copy(&source); }
+    { }
     /// Virtual destructor
     virtual ~QwOmnivore() { };
 
@@ -91,12 +91,6 @@ class QwOmnivore: public VQwSubsystem_t {
     void Difference(VQwSubsystem *value1, VQwSubsystem *value2) { };
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) { };
     void Scale(Double_t factor) { };
-
-    /// Copy operation
-    void Copy(const VQwSubsystem *source) {
-      VQwSubsystem::Copy(source);
-    };
-
 
     /// Construct the histograms for this subsystem in a folder with a prefix
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };

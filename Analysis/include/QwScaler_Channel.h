@@ -46,6 +46,18 @@ public:
   VQwScaler_Channel(TString name, TString datatosave = "raw"): MQwMockable() {
     InitializeChannel(name,datatosave);
   };
+  VQwScaler_Channel(const VQwScaler_Channel& source)
+  : VQwHardwareChannel(source),MQwMockable(source),
+    fValue_Raw(source.fValue_Raw),
+    fValue(source.fValue),
+    fValueM2(source.fValueM2),
+    fValueError(source.fValueError),
+    // TODO:  Don't copy the pointer; we need to regenerate it somehow.
+    //fNormChannelPtr(source.fNormChannelPtr);
+    fClockNormalization(source.fClockNormalization),
+    fNormChannelName(source.fNormChannelName),
+    fNeedsExternalClock(source.fNeedsExternalClock)
+  { }
   virtual ~VQwScaler_Channel() { };
 
   /// \brief Initialize the fields in this object
@@ -56,7 +68,7 @@ public:
 
   void SetDefaultSampleSize(size_t NumberOfSamples_map) {
     //std::cerr << "QwScaler_Channel SetDefaultSampleSize does nothing!"
-	  //    << std::endl;
+    //    << std::endl;
   }
 
   void LoadChannelParameters(QwParameterFile &paramfile);
@@ -98,19 +110,14 @@ public:
   void Product(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
-  void ScaleRawRate(Double_t Offset);
   void DivideBy(const VQwScaler_Channel &denom);
-
-  /// TODO The Normalize function should be replaced by DivideBy,
-  ///      for consistency with the QwVQWK_Channel.
-  void Normalize(const VQwScaler_Channel &norm){DivideBy(norm);};
   
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
 
-  /// report number of events falied due to HW and event cut failure
+  /// report number of events failed due to HW and event cut failure
   Int_t GetEventcutErrorCounters();
 
 //   UInt_t GetDeviceErrorCode(){//return the device error code
@@ -134,9 +141,6 @@ public:
   void DeaccumulateRunningSum(VQwScaler_Channel &value){
   };
   
-
-  void Copy(const VQwDataElement *source);
-
   void PrintValue() const;
   void PrintInfo() const;
   void CalculateRunningAverage();
@@ -165,7 +169,7 @@ protected:
   Bool_t fNeedsExternalClock;
 
 
-  Int_t fNumEvtsWithHWErrors;//counts the HW falied events
+  Int_t fNumEvtsWithHWErrors;//counts the HW failed events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
 };
 
@@ -178,7 +182,10 @@ class QwScaler_Channel: public VQwScaler_Channel
 
     // Define the constructors (cascade)
     QwScaler_Channel(): VQwScaler_Channel() { };
-    QwScaler_Channel(TString name, TString datatosave = "raw"): VQwScaler_Channel(name,datatosave) { };
+    QwScaler_Channel(const QwScaler_Channel& source)
+    : VQwScaler_Channel(source) { };
+    QwScaler_Channel(TString name, TString datatosave = "raw")
+    : VQwScaler_Channel(name,datatosave) { };
 
   public:
 

@@ -50,9 +50,7 @@ class QwScanner:
     /// Constructor with name
     QwScanner(const TString& name);
     /// Copy constructor
-    QwScanner(const QwScanner& source)
-    : VQwSubsystem(source),VQwSubsystemParity(source),VQwSubsystemTracking(source)
-    { this->Copy(&source); }
+    QwScanner(const QwScanner& source);
     /// Virtual destructor
     virtual ~QwScanner();
 
@@ -107,8 +105,6 @@ class QwScanner:
     {
       return kTRUE;
     };
-
-    void Copy(const VQwSubsystem *source);
 
     /*  Member functions derived from VQwSubsystem. */
     Int_t LoadChannelMap(TString mapfile);
@@ -207,12 +203,12 @@ class QwScanner:
 
 
     // For reference time substraction
-    Int_t reftime_slotnum;
-    Int_t reftime_channum;
-    Double_t reftime;
+    Int_t fRefTime_SlotNum;
+    Int_t fRefTime_ChanNum;
+    Double_t fRefTime;
     
     Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
-      return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
+      return ( slot == fRefTime_SlotNum &&  chan == fRefTime_ChanNum) ;
     };
 
 

@@ -16,28 +16,22 @@
 void  QwHaloMonitor::InitializeChannel(TString subsystem, TString name){
   fHalo_Counter.InitializeChannel(name);
   SetElementName(name);
-
-  return;
 }
 
 void  QwHaloMonitor::InitializeChannel(TString name){
   fHalo_Counter.InitializeChannel(name);
   SetElementName(name);
-
-  return;
 }
 
 void QwHaloMonitor::ClearEventData()
 {
   fHalo_Counter.ClearEventData();
-  return;
 }
 
 void QwHaloMonitor::ProcessEvent()
 {
   // no processing required for the halos as they are just counters(?).
   fHalo_Counter.ProcessEvent();
-  return;
 }
 
 Int_t QwHaloMonitor::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index)
@@ -49,7 +43,7 @@ Int_t QwHaloMonitor::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_
 Bool_t QwHaloMonitor::ApplyHWChecks()
 {
   Bool_t eventokay=kTRUE;
-  return eventokay ;
+  return eventokay;
 }
 
 
@@ -60,8 +54,7 @@ Bool_t QwHaloMonitor::ApplySingleEventCuts()
 
 
 Int_t QwHaloMonitor::GetEventcutErrorCounters()
-{// report number of events falied due to HW and event cut faliure
-
+{// report number of events failed due to HW and event cut faliure
   return 1;
 }
 
@@ -115,10 +108,7 @@ void QwHaloMonitor::Ratio(QwHaloMonitor &numer, QwHaloMonitor &denom)
 void QwHaloMonitor::Scale(Double_t factor)
 {
   fHalo_Counter.Scale(factor);
-  return;
 }
-
-
 
 void QwHaloMonitor::AccumulateRunningSum(const QwHaloMonitor& value) {
   fHalo_Counter.AccumulateRunningSum(value.fHalo_Counter);
@@ -152,7 +142,6 @@ void  QwHaloMonitor::ConstructHistograms(TDirectory *folder, TString &prefix)
   else{
       fHalo_Counter.ConstructHistograms(folder, prefix);
   }
-  return;
 }
 
 void  QwHaloMonitor::FillHistograms()
@@ -163,9 +152,6 @@ void  QwHaloMonitor::FillHistograms()
   else{
     fHalo_Counter.FillHistograms();
   }
-
-
-  return;
 }
 
 void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -177,7 +163,6 @@ void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     fHalo_Counter.ConstructBranchAndVector(tree, prefix,values);
     // this functions doesn't do anything yet
   }
-  return;
 }
 
 void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix)
@@ -189,7 +174,6 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix)
     fHalo_Counter.ConstructBranch(tree, prefix);
     // this functions doesn't do anything yet
   }
-  return;
 }
 
 
@@ -202,17 +186,15 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
   devicename.ToLower();
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } else
-    {
+  } else {
 
-      //QwMessage <<" QwHaloMonitor "<<devicename<<QwLog::endl;
-      if (modulelist.HasValue(devicename)){
-	fHalo_Counter.ConstructBranch(tree, prefix);
-	QwMessage <<" Tree leaf added to "<<devicename<<QwLog::endl;
-      }
-      // this functions doesn't do anything yet
+    //QwMessage <<" QwHaloMonitor "<<devicename<<QwLog::endl;
+    if (modulelist.HasValue(devicename)){
+      fHalo_Counter.ConstructBranch(tree, prefix);
+      QwMessage <<" Tree leaf added to "<<devicename<<QwLog::endl;
     }
-  return;
+    // this functions doesn't do anything yet
+  }
 }
 
 
@@ -227,32 +209,8 @@ void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values) const
     fHalo_Counter.FillTreeVector(values);
     // this functions doesn't do anything yet
   }
-  return;
 }
 
-
-void  QwHaloMonitor::Copy(const VQwDataElement *source)
-{
-  try
-    {
-      if(typeid(*source)==typeid(*this)){
-	QwHaloMonitor* input=((QwHaloMonitor*)source);
-	this->fElementName=input->fElementName;
-	this->fHalo_Counter.Copy(&(input->fHalo_Counter));
-      }
-      else{
-	TString loc="Standard exception from QwHaloMonitor::Copy = "
-	  +source->GetElementName()+" "
-	  +this->GetElementName()+" are not of the same type";
-	throw std::invalid_argument(loc.Data());
-      }
-    }
-  catch (std::exception& e){
-    std::cerr << e.what() << std::endl;
-  }
-
-  return;
-}
 
 std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 {

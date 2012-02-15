@@ -36,19 +36,22 @@ class QwQPD : public VQwBPM {
 
   QwQPD() {
   };
-
   QwQPD(TString name):VQwBPM(name){
     InitializeChannel(name);
   };
-    
-    
- QwQPD(TString subsystemname, TString name):VQwBPM(name){
+  QwQPD(TString subsystemname, TString name):VQwBPM(name){
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name);
     fQwQPDCalibration[0] = 1.0;
     fQwQPDCalibration[1] = 1.0;
   };    
-  
+  QwQPD(const QwQPD& source)
+  : VQwBPM(source),
+    fPhotodiode(source.fPhotodiode),
+    fRelPos(source.fRelPos),
+    fAbsPos(source.fAbsPos),
+    fEffectiveCharge(source.fEffectiveCharge)
+  { }
   virtual ~QwQPD() { };
   
   void    InitializeChannel(TString name);
@@ -86,7 +89,7 @@ class QwQPD : public VQwBPM {
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
-  Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t   GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   UInt_t  GetEventcutErrorFlag();
   void UpdateEventcutErrorFlag(const UInt_t error);
   void UpdateEventcutErrorFlag(VQwBPM *ev_error);
@@ -99,7 +102,6 @@ class QwQPD : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(const VQwDataElement *source);
   void    Ratio(QwQPD &numer, QwQPD &denom);
   void    Scale(Double_t factor);
 

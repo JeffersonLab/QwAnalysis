@@ -23,11 +23,6 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   QwDriftChamberHDC(TString region_tmp);
   virtual ~QwDriftChamberHDC() { };
 
-  /// Copying is not supported for tracking subsystems
-  void Copy(const VQwSubsystem *source) {
-    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
-  }
-
   /* Unique virtual member functions from QwDrifChamber base class */
 
 

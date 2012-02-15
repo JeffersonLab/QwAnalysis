@@ -1195,61 +1195,8 @@ void  QwModChannelID::Print()
 }
 
 //*****************************************************************
-
-
-void  QwBeamMod::Copy(const VQwSubsystem *source)
-{
-
-  try
-    {
-     if(typeid(*source)==typeid(*this))
-	 {
-	  VQwSubsystem::Copy(source);
-	  const QwBeamMod* input = dynamic_cast<const QwBeamMod*>(source);
-
-	  this->fModChannel.resize(input->fModChannel.size());
-	  for(size_t i=0;i<this->fModChannel.size();i++)
-	    this->fModChannel[i].Copy(&(input->fModChannel[i]));
-
-//  	  this->fWord.resize(input->fWord.size());
-//  	  for(size_t i=0;i<this->fWord.size();i++)
-//  	    this->fWord[i].Copy(&(input->fWord[i]));
-
-	  this->fWord.resize(input->fWord.size());
-          for(size_t i=0;i<this->fWord.size();i++)
-            {
-              this->fWord[i].fWordName=input->fWord[i].fWordName;
-              this->fWord[i].fModuleType=input->fWord[i].fModuleType;
-              this->fWord[i].fWordType=input->fWord[i].fWordType;
-            } 
-
-	  this->fFFB_ErrorFlag=input->fFFB_ErrorFlag;
-         }
-
-
-
-
-  else
-    {
-	  TString loc="Standard exception from QwBeamMod::Copy = "
-	    +source->GetSubsystemName()+" "
-	    +this->GetSubsystemName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-    }
-   }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
-}
-
-
-
 void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 {
- 
   return;
 }
 

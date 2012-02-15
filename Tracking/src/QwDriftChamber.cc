@@ -96,8 +96,6 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 {
 
   Int_t  bank_index      = 0;
-  Int_t  tdc_slot_number = 0;
-  Int_t  tdc_chan_number = 0;
   UInt_t tdc_data        = 0;
 
   Bool_t data_integrity_flag = false;
@@ -147,9 +145,9 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
 
-	tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
-	tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
-	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
+	Int_t tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	Int_t tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
+	Int_t tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
 	
 	if ( tdc_slot_number == 31) {
 	  //  This is a custom word which is not defined in

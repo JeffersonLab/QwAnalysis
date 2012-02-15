@@ -27,10 +27,8 @@ const unsigned int QwSIS3320_Accumulator::INDEX_SUM = 1;
 Int_t QwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
 {
   UInt_t words_read = 0;
-  UInt_t index;
   Long64_t hw_sum;
   Long64_t num_samples;
-  index = 0;
   if (num_words_left >= fNumberOfDataWords) {
 
     // Read all words

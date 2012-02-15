@@ -123,13 +123,7 @@ Int_t QwMollerDetector::LoadChannelMap(TString mapfile)
     }
   } // end looping over parameter file
 
-  fPrevious_STR7200_Channel.resize(fSTR7200_Channel.size());
-  for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
-    fPrevious_STR7200_Channel[i].resize(fSTR7200_Channel[i].size());
-    for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
-      fPrevious_STR7200_Channel[i][j].Copy(&(fSTR7200_Channel[i][j]));
-    }
-  }
+  fPrevious_STR7200_Channel = fSTR7200_Channel;
 
 //  for (size_t i = 0; i < fMollerChannelID.size(); i++){
 //     std::cout << i << ": " << fMollerChannelID[i].fChannelName << ' ' << fMollerChannelID[i].fChannelNumber << ' ' << fMollerChannelID[i].fIndex << std::endl;
@@ -141,42 +135,6 @@ Int_t QwMollerDetector::LoadChannelMap(TString mapfile)
 void QwMollerDetector::ProcessOptions(QwOptions &){}
 Int_t QwMollerDetector::LoadInputParameters(TString){ return 0;}
 void QwMollerDetector::ClearEventData(){}
-
-void  QwMollerDetector::Copy(const VQwSubsystem *source)
-{
-
-  try
-    {
-     if(typeid(*source)==typeid(*this))
-  {
-    VQwSubsystem::Copy(source);
-    const QwMollerDetector* input= dynamic_cast<const QwMollerDetector*>(source);
-
-    this->fSTR7200_Channel.resize(input->fSTR7200_Channel.size());
-
-    for(size_t i=0; i < fSTR7200_Channel.size(); i++)
-      this->fSTR7200_Channel[i].resize(input->fSTR7200_Channel[i].size());
-
-    for(size_t i=0;i<this->fSTR7200_Channel.size();i++)
-      for(size_t j=0;j < fSTR7200_Channel[i].size(); j++)
-        this->fSTR7200_Channel[i][j].Copy(&(input->fSTR7200_Channel[i][j]));
-  }
-      else
-  {
-    TString loc="Standard exception from QwMoller::Copy = "
-      +source->GetSubsystemName()+" "
-      +this->GetSubsystemName()+" are not of the same type";
-    throw std::invalid_argument(loc.Data());
-  }
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-  // this->Print();
-
-  return;
-}
 
 
 Int_t QwMollerDetector::ProcessConfigurationBuffer(UInt_t, UInt_t, UInt_t*, UInt_t){
@@ -230,13 +188,12 @@ Int_t QwMollerDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t *b
 
 
 
-void QwMollerDetector::ProcessEvent(){
-  static QwSTR7200_Channel tempscaler;
-
+void QwMollerDetector::ProcessEvent()
+{
   for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
     for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
       fSTR7200_Channel[i][j].ProcessEvent();
-      tempscaler.Copy(&(fSTR7200_Channel[i][j]));
+      QwSTR7200_Channel tempscaler(fSTR7200_Channel[i][j]);
       tempscaler = fSTR7200_Channel[i][j];
       fSTR7200_Channel[i][j] -= fPrevious_STR7200_Channel[i][j];
       fPrevious_STR7200_Channel[i][j] = tempscaler;

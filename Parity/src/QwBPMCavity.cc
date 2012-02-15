@@ -729,40 +729,6 @@ void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void QwBPMCavity::Copy(const VQwDataElement *source)
-{
-  try
-    {
-      if( typeid(*source)==typeid(*this) ) {
-       QwBPMCavity* input = ((QwBPMCavity*)source);
-       this->fElementName = input->fElementName;
-       this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-       this->bRotated = input->bRotated;
-       this->bFullSave = input->bFullSave;
-       Short_t i = 0;
-       for(i = 0; i<2; i++) this->fPositionCenter[i] = input->fPositionCenter[i];
-       for(i = 0; i<2; i++){
-	 this->fWire[i].Copy(&(input->fWire[i]));
-	 this->fRelPos[i].Copy(&(input->fRelPos[i]));
-	 this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
-       }
-     }
-      else {
-       TString loc="Standard exception from QwBPMCavity::Copy = "
-	 +source->GetElementName()+" "
-	 +this->GetElementName()+" are not of the same type";
-       throw std::invalid_argument(loc.Data());
-     }
-    }
-
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
-}
-
 void QwBPMCavity::SetEventCutMode(Int_t bcuts)
 {
   Short_t i = 0;
@@ -778,21 +744,14 @@ void QwBPMCavity::SetEventCutMode(Int_t bcuts)
 
 void QwBPMCavity::MakeBPMCavityList()
 {
-  UShort_t i = 0;
-
-  QwVQWK_Channel bpm_sub_element;
-
-  for(i=kXAxis;i<kNumAxes;i++) {
-    bpm_sub_element.ClearEventData();
-    bpm_sub_element.Copy(&fRelPos[i]);
-    bpm_sub_element = fRelPos[i];
-    fBPMElementList.push_back( bpm_sub_element );
+  for (size_t i = kXAxis; i < kNumAxes; i++) {
+	QwVQWK_Channel relpos(fRelPos[i]);
+	relpos = fRelPos[i];
+	fBPMElementList.push_back(relpos);
   }
-  bpm_sub_element.ClearEventData();
-  bpm_sub_element.Copy(&fEffectiveCharge);
-  bpm_sub_element = fEffectiveCharge;
-  fBPMElementList.push_back( bpm_sub_element );
-  return;
+  QwVQWK_Channel effectivecharge(fEffectiveCharge);
+  effectivecharge = fEffectiveCharge;
+  fBPMElementList.push_back(effectivecharge);
 }
 
 

@@ -1060,37 +1060,6 @@ void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 template<typename T>
-void QwCombinedBPM<T>::Copy(const VQwDataElement *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwBPM::Copy(source);
-      const QwCombinedBPM<T>* input = dynamic_cast<const QwCombinedBPM<T>*>(source);
-      this->fElementName = input->fElementName;
-      this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-      this->bFullSave = input->bFullSave;
-      for(Short_t axis = kXAxis; axis < 3; axis++){
-        this->fPositionCenter[axis] = input->fPositionCenter[axis];
-      }
-      for(Short_t axis = kXAxis; axis < kNumAxes; axis++){
-        this->fSlope[axis].Copy(&(input->fSlope[axis]));
-        this->fIntercept[axis].Copy(&(input->fIntercept[axis]));
-        this->fAbsPos[axis].Copy(&(input->fAbsPos[axis]));
-        this->fMinimumChiSquare[axis].Copy(&(input->fMinimumChiSquare[axis]));
-      }
-
-    } else {
-      TString loc="Standard exception from QwCombinedBPM::Copy = "
-          +source->GetElementName()+" "
-          +this->GetElementName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
-template<typename T>
 void QwCombinedBPM<T>::SetEventCutMode(Int_t bcuts)
 {
 
@@ -1110,32 +1079,23 @@ void QwCombinedBPM<T>::SetEventCutMode(Int_t bcuts)
 template<typename T>
 void QwCombinedBPM<T>::MakeBPMComboList()
 {
-  UShort_t axis = 0;
-
-  T combo_bpm_sub_element;
-  
-  for(axis=kXAxis;axis<kNumAxes;axis++) {
-    combo_bpm_sub_element.ClearEventData();
-    combo_bpm_sub_element.Copy(&fAbsPos[axis]);
-    combo_bpm_sub_element = fAbsPos[axis];
-    fBPMComboElementList.push_back( combo_bpm_sub_element );
-    combo_bpm_sub_element.Copy(&fSlope[axis]);
-    combo_bpm_sub_element = fSlope[axis];
-    fBPMComboElementList.push_back( combo_bpm_sub_element );
-    combo_bpm_sub_element.Copy(&fIntercept[axis]);
-    combo_bpm_sub_element = fIntercept[axis];
-    fBPMComboElementList.push_back( combo_bpm_sub_element );
-    combo_bpm_sub_element.Copy(&fMinimumChiSquare[axis]);
-    combo_bpm_sub_element = fMinimumChiSquare[axis];
-    fBPMComboElementList.push_back( combo_bpm_sub_element );
-
+  for (size_t axis = kXAxis; axis < kNumAxes; axis++) {
+    T abspos(fAbsPos[axis]);
+    abspos = fAbsPos[axis];
+    fBPMComboElementList.push_back(abspos);
+    T slope(fSlope[axis]);
+    slope = fSlope[axis];
+    fBPMComboElementList.push_back(slope);
+    T intercept(fIntercept[axis]);
+    intercept = fIntercept[axis];
+    fBPMComboElementList.push_back(intercept);
+    T minimumchisquare(fMinimumChiSquare[axis]);
+    minimumchisquare = fMinimumChiSquare[axis];
+    fBPMComboElementList.push_back(minimumchisquare);
   }
-  combo_bpm_sub_element.Copy(&fEffectiveCharge);
-  combo_bpm_sub_element = fEffectiveCharge;
-  fBPMComboElementList.push_back( combo_bpm_sub_element );
-
-
-  return;
+  T effectivecharge(fEffectiveCharge);
+  effectivecharge = fEffectiveCharge;
+  fBPMComboElementList.push_back(effectivecharge);
 }
 
 

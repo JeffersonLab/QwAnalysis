@@ -31,7 +31,13 @@ class QwCombinedPMT : public VQwDataElement {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name, "derived");
   };
-
+  QwCombinedPMT(const QwCombinedPMT& source)
+  : VQwDataElement(source),
+    fCalibration(source.fCalibration),
+    fElement(source.fElement),
+    fWeights(source.fWeights),
+    fSumADC(source.fSumADC)
+  { }
   virtual ~QwCombinedPMT() { };
 
   void  InitializeChannel(TString name, TString datatosave);
@@ -63,7 +69,7 @@ class QwCombinedPMT : public VQwDataElement {
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag, Double_t LL, Double_t UL, Double_t stability);
 
@@ -124,9 +130,6 @@ class QwCombinedPMT : public VQwDataElement {
   Double_t GetAverage()        {return fSumADC.GetAverage();};
   Double_t GetAverageError()   {return fSumADC.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fSumADC.GetGoodEventCount();};
-
-
-  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface>  GetDBEntry();
   std::vector<QwErrDBInterface> GetErrDBEntry();

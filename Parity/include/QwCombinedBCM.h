@@ -45,6 +45,9 @@ class QwCombinedBCM : public QwBCM<T> {
     this->SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
+  QwCombinedBCM(const QwCombinedBCM& source)
+  : QwBCM<T>(source)
+  { }
   virtual ~QwCombinedBCM() { };
 
   // This is to setup one of the used BCM's in this combo
@@ -70,7 +73,7 @@ class QwCombinedBCM : public QwBCM<T> {
 
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   /*
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fCombined_bcm.GetEventcutErrorFlag();
   }
@@ -111,8 +114,6 @@ class QwCombinedBCM : public QwBCM<T> {
   void SetCalibrationFactor(Double_t calib) {
     QwBCM<T>::SetCalibrationFactor(1.0);
   }
-
-  void Copy(const VQwDataElement *source); 
 
   VQwHardwareChannel* GetCharge(){
     return &(this->fBeamCurrent);

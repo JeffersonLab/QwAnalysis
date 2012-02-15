@@ -40,8 +40,11 @@ class QwComptonElectronDetector:
     QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// Copy constructor
     QwComptonElectronDetector(const QwComptonElectronDetector& source)
-    : VQwSubsystem(source),VQwSubsystemParity(source)
-    { this->Copy(&source); }
+    : VQwSubsystem(source),VQwSubsystemParity(source),
+      fStrips(source.fStrips),fStripsRaw(source.fStripsRaw),
+      fStripsEv(source.fStripsEv),fStripsRawEv(source.fStripsRawEv),
+      fStripsRawScal(source.fStripsRawScal)
+    { }
     /// Virtual destructor
     virtual ~QwComptonElectronDetector() { };
 
@@ -58,8 +61,7 @@ class QwComptonElectronDetector:
     void  ProcessEvent();
     Bool_t IsGoodEvent();
 
-    void RandomizeEventData(int helicity = 0);
-    void EncodeEventData(std::vector<UInt_t> &buffer);
+    void EncodeEventData(std::vector<UInt_t> &buffer) { };
 
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
@@ -109,7 +111,6 @@ class QwComptonElectronDetector:
     void SetNumberOfEvents(UInt_t nevents) {
      fNumberOfEvents = nevents;
     };
-    void Copy(const VQwSubsystem *source);
     Bool_t Compare(VQwSubsystem *source);
     void PrintValue() const;
 

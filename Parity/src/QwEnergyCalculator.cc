@@ -121,7 +121,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 
 
 Int_t QwEnergyCalculator::GetEventcutErrorCounters(){
-  // report number of events falied due to HW and event cut faliure
+  // report number of events failed due to HW and event cut faliure
   fEnergyChange.GetEventcutErrorCounters();
   return 1;
 }
@@ -311,29 +311,6 @@ void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values) const
     fEnergyChange.FillTreeVector(values);
   return;
 }
-
-
-void  QwEnergyCalculator::Copy(const VQwDataElement *source){
-  try{
-    if(typeid(*source)==typeid(*this)){
-      QwEnergyCalculator* input=((QwEnergyCalculator*)source);
-      this->fElementName=input->fElementName;
-      this->fEnergyChange.Copy(&(input->fEnergyChange));
-    }
-    else {
-      TString loc="Standard exception from QwEnergyCalculator::Copy = "
-	+source->GetElementName()+" "
-	+this->GetElementName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-  }
-  catch (std::exception& e){
-    std::cerr << e.what() << std::endl;
-  }
-
-  return;
-}
-
 
 
 std::vector<QwDBInterface> QwEnergyCalculator::GetDBEntry()

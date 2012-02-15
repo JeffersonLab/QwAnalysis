@@ -44,11 +44,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   /// Virtual destructor
   virtual ~QwTriggerScintillator();
 
-  /// Copying is not supported for tracking subsystems
-  void Copy(const VQwSubsystem *source) {
-    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
-  }
-
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
@@ -163,17 +158,14 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   std::vector<Int_t>                        fSCAs_offset;
 
 
-  // For reference time substraction
-  Int_t reftime_slotnum;
-  Int_t reftime_channum;
-  Double_t reftime;
+  // For reference time subtraction
+  Int_t fRefTime_SlotNum;
+  Int_t fRefTime_ChanNum;
+  Double_t fRefTime;
 
   Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
-    return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
+    return ( slot == fRefTime_SlotNum &&  chan == fRefTime_ChanNum) ;
   };
-
-  /* Int_t tdc_slot_number; */
-  /* Int_t tdc_chan_number; */
 
 };
 

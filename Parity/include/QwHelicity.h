@@ -108,7 +108,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
   void SetFirstBits(UInt_t nbits, UInt_t firstbits);
   void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
 
-  void  Copy(const VQwSubsystem *source);
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+=  (VQwSubsystem *value);
   void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);

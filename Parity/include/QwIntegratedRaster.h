@@ -66,8 +66,9 @@ class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneab
   { };
   /// Copy constructor
   QwIntegratedRaster(const QwIntegratedRaster& source)
-  : VQwSubsystem(source),VQwSubsystemParity(source)
-  { this->Copy(&source); }
+  : VQwSubsystem(source),VQwSubsystemParity(source),
+    fIntegratedRasterChannel(source.fIntegratedRasterChannel)
+  { }
   /// Virtual destructor
   virtual ~QwIntegratedRaster() { };
 
@@ -83,7 +84,7 @@ class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneab
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
   //update the same error flag in the classes belong to the subsystem.
   void UpdateEventcutErrorFlag(UInt_t errorflag){
@@ -136,7 +137,6 @@ class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneab
 
   const VQwDataElement* GetChannel(const TString name) const;
 
-  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

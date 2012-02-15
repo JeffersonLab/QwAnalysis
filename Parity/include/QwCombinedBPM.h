@@ -45,7 +45,14 @@ class QwCombinedBPM : public VQwBPM {
   QwCombinedBPM(TString subsystem, TString name, TString type): VQwBPM(name){
     InitializeChannel(subsystem, name,type);
   };
-
+  QwCombinedBPM(const QwCombinedBPM& source)
+  : VQwBPM(source),
+    fSlope(source.fSlope),
+    fIntercept(source.fIntercept),
+    fMinimumChiSquare(source.fMinimumChiSquare),
+    fAbsPos(source.fAbsPos),
+    fEffectiveCharge(source.fEffectiveCharge)
+  { }
   virtual ~QwCombinedBPM() { };
 
   using VQwBPM::EBeamPositionMonitorAxis;
@@ -95,7 +102,7 @@ class QwCombinedBPM : public VQwBPM {
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
-  Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t   GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   UInt_t  GetEventcutErrorFlag();
   void UpdateEventcutErrorFlag(const UInt_t error);
   void UpdateEventcutErrorFlag(VQwBPM *ev_error);
@@ -103,7 +110,6 @@ class QwCombinedBPM : public VQwBPM {
 
   void    SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
 
-  void    Copy(const VQwDataElement *source);
   void    Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom);
   void    Ratio(VQwBPM &numer, VQwBPM &denom);
   void    Scale(Double_t factor);

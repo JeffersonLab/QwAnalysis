@@ -52,7 +52,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     InitializeChannel("","");
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
-
   QwVQWK_Channel(TString name, TString datatosave = "raw"): MQwMockable() {
     InitializeChannel(name, datatosave);
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
@@ -198,8 +197,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
 
   void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
-
-  void Copy(const VQwDataElement *source);
 
   friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;

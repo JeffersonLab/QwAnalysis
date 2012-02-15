@@ -24,7 +24,7 @@ class VQwHardwareChannel: public VQwDataElement {
 /****************************************************************//**
  *  Class: VQwHardwareChannel
  *         Virtual base class to support common functions for all
- *         harware channel data elements.
+ *         hardware channel data elements.
  *         Only the data element classes which contain raw data
  *         from one physical channel (such as QwVQWK_Channel,
  *         QwScaler_Channel, etc.) should inherit from this class.
@@ -108,9 +108,6 @@ public:
 
   virtual void CalculateRunningAverage() = 0;
 //   virtual void AccumulateRunningSum(const VQwHardwareChannel *value) = 0;
-
-  /*! \brief Copy method:  Should make a full, identical copy. */
-  virtual void Copy(const VQwDataElement *source);
 
   /// Arithmetic assignment operator:  Should only copy event-based data
   virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& value) {

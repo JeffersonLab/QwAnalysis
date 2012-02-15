@@ -569,35 +569,10 @@ void QwQPD::Scale(Double_t factor)
   return;
 }
 
-void QwQPD::Copy(const VQwDataElement *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwBPM::Copy(source);
-      const QwQPD* input = dynamic_cast<const QwQPD*>(source);
-      for (size_t i = 0; i < 4; i++)
-        fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
-      for (size_t i = kXAxis; i < kNumAxes; i++) {
-        fRelPos[i].Copy(&(input->fRelPos[i]));
-        fAbsPos[i].Copy(&(input->fAbsPos[i]));
-      }
-      fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-
-    } else {
-      TString loc="Standard exception from QwQPD::Copy = "
-          +source->GetElementName()+" "
-          +this->GetElementName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
 void QwQPD::CalculateRunningAverage()
 {
   Short_t i = 0;
-  for(i=0;i<8;i++) fPhotodiode[i].CalculateRunningAverage();
+  for(i=0;i<4;i++) fPhotodiode[i].CalculateRunningAverage();
   for (i = 0; i < 2; i++){
     fRelPos[i].CalculateRunningAverage();
     fAbsPos[i].CalculateRunningAverage();
@@ -818,20 +793,14 @@ void QwQPD::SetEventCutMode(Int_t bcuts)
 
 void QwQPD::MakeQPDList()
 {
-  UShort_t i = 0;
-
-  QwVQWK_Channel qpd_sub_element;
-
-  for(i=kXAxis;i<kNumAxes;i++) {
-    qpd_sub_element.ClearEventData();
-    qpd_sub_element.Copy(&fAbsPos[i]);
-    qpd_sub_element = fAbsPos[i];
-    fQPDElementList.push_back( qpd_sub_element );
+  for (size_t i = kXAxis; i < kNumAxes; i++) {
+	QwVQWK_Channel abspos(fAbsPos[i]);
+    abspos = fAbsPos[i];
+    fQPDElementList.push_back(abspos);
   }
-  qpd_sub_element.Copy(&fEffectiveCharge);
-  qpd_sub_element = fEffectiveCharge;
-  fQPDElementList.push_back(qpd_sub_element );
-  return;
+  QwVQWK_Channel effectivecharge(fEffectiveCharge);
+  effectivecharge = fEffectiveCharge;
+  fQPDElementList.push_back(effectivecharge);
 }
 
 

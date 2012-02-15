@@ -70,9 +70,7 @@ Int_t myrun;
 Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
-  TString modtype, dettype, name;
-  UInt_t modnum, channum;
-  Int_t plane, stripnum, fdettype;
+  Int_t fdettype;
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t currentsubbankindex=-1;
@@ -100,13 +98,13 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       }
     } else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetTypedNextToken<TString>();
-      modnum    = mapstr.GetTypedNextToken<UInt_t>();
-      channum   = mapstr.GetTypedNextToken<UInt_t>();
-      dettype   = mapstr.GetTypedNextToken<TString>();
-      name      = mapstr.GetTypedNextToken<TString>();
-      plane     = mapstr.GetTypedNextToken<Int_t>();
-      stripnum  = mapstr.GetTypedNextToken<Int_t>();
+      TString modtype = mapstr.GetTypedNextToken<TString>();
+      UInt_t modnum   = mapstr.GetTypedNextToken<UInt_t>();
+      /* UInt_t channum = */ mapstr.GetTypedNextToken<UInt_t>(); /* unused */
+      TString dettype = mapstr.GetTypedNextToken<TString>();
+      TString name    = mapstr.GetTypedNextToken<TString>();
+      Int_t plane     = mapstr.GetTypedNextToken<Int_t>();
+      Int_t stripnum  = mapstr.GetTypedNextToken<Int_t>();
       //  Push a new record into the element array
       if (modtype == "V1495") {
 	if (dettype == "eaccum") {
@@ -197,21 +195,11 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
       TString varname = mapstr.GetTypedNextToken<TString>();  // name of the channel
       varname.ToLower();
       varname.Remove(TString::kBoth,' ');
-      Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
+      /* Double_t varcal = */ mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
     }
   } // end of loop reading all lines of the pedestal file
 
   return 0;
-}
-
-//*****************************************************************
-void QwComptonElectronDetector::RandomizeEventData(int helicity)
-{
-}
-
-//*****************************************************************
-void QwComptonElectronDetector::EncodeEventData(std::vector<UInt_t> &buffer)
-{
 }
 
 //Boot CheckForEndOfBurst()
@@ -1237,50 +1225,5 @@ void  QwComptonElectronDetector::PrintValue() const
   //   myfile << endl;
 
   myfile.close();  
-  return;
-}
-
-//*****************************************************************
-/**
- * Make a copy of this electron detector, including all its subcomponents
- * @param source Original version
- */
-void  QwComptonElectronDetector::Copy(const VQwSubsystem *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwSubsystem::Copy(source);
-      const QwComptonElectronDetector* input =
-	dynamic_cast<const QwComptonElectronDetector*>(source);
-      fStripsRaw.resize(input->NPlanes);
-      fStripsRawEv.resize(input->NPlanes);
-      fStripsRawScal.resize(input->NPlanes);
-      fStrips.resize(input->NPlanes);
-      fStripsEv.resize(input->NPlanes);
-      for (Int_t i = 0; i < input->NPlanes; i++) {
-        fStripsRaw[i].resize(StripsPerPlane);
-        fStripsRawEv[i].resize(StripsPerPlane);
-        fStripsRawScal[i].resize(StripsPerPlane);
-        fStrips[i].resize(StripsPerPlane);
-        fStripsEv[i].resize(StripsPerPlane);
-        for (Int_t j = 0; j < input->StripsPerPlane; j++) {
-          fStripsRaw[i][j] = input->fStripsRaw[i][j];
-          fStripsRawEv[i][j] = input->fStripsRawEv[i][j];
-          fStripsRawScal[i][j] = input->fStripsRawScal[i][j];
-          fStrips[i][j] = input->fStrips[i][j];
-          fStripsEv[i][j] = input->fStripsEv[i][j];
-        }
-      }
-    } else {
-      TString loc = "Standard exception from QwComptonElectronDetector::Copy = "
-	+ source->GetSubsystemName() + " "
-	+ this->GetSubsystemName() + " are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-
-  } catch (std::exception& e) {
-    QwError << e.what() << QwLog::endl;
-  }
-
   return;
 }

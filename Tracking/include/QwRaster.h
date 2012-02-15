@@ -40,11 +40,6 @@ class QwRaster: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwRast
    /// Virtual destructor
    virtual ~QwRaster();
 
-   /// Copying is not supported for tracking subsystems
-   void Copy(const VQwSubsystem *source) {
-     QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
-   }
-
    // VQwSubsystem methods
    void ProcessOptions(QwOptions &options); //Handle command line options
 

@@ -33,22 +33,6 @@ QwSubsystemArray::QwSubsystemArray(QwOptions& options, CanContainFn myCanContain
 }
 
 /**
- * Create a subsystem array with the contents of a map file
- * @param filename Map file
- */
-QwSubsystemArray::QwSubsystemArray(const char* filename, CanContainFn myCanContain)
-: fEventTypeMask(0x0),fnCanContain(myCanContain)
-{
-  QwWarning << "Preferable call to QwSubsystemArray constructor is by specifying options objects."
-            << QwLog::endl;
-  QwMessage << "Loading subsystems from " << filename << "."
-            << QwLog::endl;
-  QwParameterFile detectors(filename);
-  LoadSubsystemsFromParameterFile(detectors);
-}
-
-
-/**
  * Copy constructor by reference
  * @param source Source subsystem array
  */

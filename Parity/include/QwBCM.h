@@ -50,6 +50,10 @@ class QwBCM : public VQwBCM {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname,name,type,"raw");
   };
+  QwBCM(const QwBCM& source)
+  : VQwBCM(source),
+    fBeamCurrent(source.fBeamCurrent)
+  { }
   virtual ~QwBCM() { };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
@@ -78,7 +82,7 @@ class QwBCM : public VQwBCM {
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fBeamCurrent.GetEventcutErrorFlag();
   }
@@ -156,8 +160,6 @@ class QwBCM : public VQwBCM {
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
   UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
-
-  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
   std::vector<QwErrDBInterface> GetErrDBEntry();

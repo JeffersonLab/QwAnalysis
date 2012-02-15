@@ -75,8 +75,9 @@ class QwMollerDetector:
     { };
     /// Copy constructor
     QwMollerDetector(const QwMollerDetector& source)
-    : VQwSubsystem(source),VQwSubsystemParity(source)
-    { this->Copy(&source); }
+    : VQwSubsystem(source),VQwSubsystemParity(source),
+      fSTR7200_Channel(source.fSTR7200_Channel)
+    { }
     /// Virtual destructor
     virtual ~QwMollerDetector() { };
 
@@ -100,7 +101,6 @@ class QwMollerDetector:
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
-    void  Copy(const VQwSubsystem *source);
     void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2);

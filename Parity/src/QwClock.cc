@@ -21,58 +21,29 @@
 template<typename T>
 void QwClock<T>::SetPedestal(Double_t pedestal)
 {
-	fPedestal=pedestal;
-	fClock.SetPedestal(fPedestal);
-	return;
+  fPedestal=pedestal;
+  fClock.SetPedestal(fPedestal);
 }
 
 template<typename T>
 void QwClock<T>::SetCalibrationFactor(Double_t calib)
 {
-	fCalibration=calib;
-	fClock.SetCalibrationFactor(fCalibration);
-	return;
+  fCalibration=calib;
+  fClock.SetCalibrationFactor(fCalibration);
 }
 /********************************************************/
 template<typename T>
-void QwClock<T>::InitializeChannel(TString name, TString datatosave)
-{
+void  QwClock<T>::InitializeChannel(TString subsystem, TString name, TString datatosave, TString type){
   SetPedestal(0.);
   SetCalibrationFactor(1.);
-  fClock.InitializeChannel(name,datatosave);
-  this->SetElementName(name);
-  //set default limits to event cuts
-  fLLimit=0;//init two timits
-  fULimit=0;//init two timits
- return;
-}
-/********************************************************/
-template<typename T>
-void  QwClock<T>::InitializeChannel(TString subsystem, TString name, TString datatosave){
-  SetPedestal(0.);
-  SetCalibrationFactor(1.);
+  if (type.Length() > 0)
+    SetModuleType(type);
   fClock.InitializeChannel(subsystem, "QwClock", name, datatosave);
   fClock.SetNeedsExternalClock(kFALSE);
   SetElementName(name);
   //set default limits to event cuts
   fLLimit=0;//init two timits
   fULimit=0;//init two timits
-  return;  
-}
-/********************************************************/
-template<typename T>
-void  QwClock<T>::InitializeChannel(TString subsystem, TString name, TString type,
-    TString datatosave){
-  SetPedestal(0.);
-  SetCalibrationFactor(1.);
-  SetModuleType(type);
-  fClock.InitializeChannel(subsystem, "QwClock", name, datatosave);
-  fClock.SetNeedsExternalClock(kFALSE);
-  SetElementName(name);
-  //set default limits to event cuts
-  fLLimit=0;//init two timits
-  fULimit=0;//init two timits
-  return;  
 }
 /********************************************************/
 template<typename T>
@@ -159,7 +130,7 @@ Bool_t QwClock<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwClock<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwClock<T>::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
   fClock.GetEventcutErrorCounters();
   return 1;
 }
@@ -457,38 +428,6 @@ void QwClock<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 /********************************************************/
-template<typename T>
-void QwClock<T>::Copy(const VQwDataElement *source)
-{
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  QwClock* input=((QwClock*)source);
-	  this->fElementName=input->fElementName;
-	  this->fPedestal=input->fPedestal;
-	  this->fCalibration=input->fCalibration;
-    this->fNormalizationValue = input->fNormalizationValue;
-	  this->fClock.Copy(&(input->fClock));
-	}
-      else
-	{
-	  TString loc="Standard exception from QwClock::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
-}
-
-
-
 template<typename T>
 std::vector<QwDBInterface> QwClock<T>::GetDBEntry()
 {

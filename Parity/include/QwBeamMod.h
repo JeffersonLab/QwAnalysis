@@ -61,8 +61,9 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
     };
   /// Copy constructor
   QwBeamMod(const QwBeamMod& source)
-  : VQwSubsystem(source),VQwSubsystemParity(source)
-  { this->Copy(&source); }
+  : VQwSubsystem(source),VQwSubsystemParity(source),
+    fModChannel(source.fModChannel),fWord(source.fWord)
+  { }
   /// Virtual destructor
   virtual ~QwBeamMod() { };
 
@@ -81,7 +82,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
   //update the same error flag in the classes belong to the subsystem.
   void UpdateEventcutErrorFlag(UInt_t errorflag){
@@ -136,8 +137,6 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   void FillDB(QwParityDB *db, TString datatype);
   void FillErrDB(QwParityDB *db, TString datatype);
   void WritePromptSummary(QwPromptSummary *ps, TString type);
-
-  void Copy(const VQwSubsystem *source);
 
   Bool_t Compare(VQwSubsystem *source);
 

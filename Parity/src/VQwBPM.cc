@@ -257,39 +257,9 @@ void VQwBPM::SetRootSaveStatus(TString &prefix)
 //   return;
 // }
 
-
-/********************************************************/
-void  VQwBPM::Copy(const VQwDataElement *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwDataElement::Copy(source);
-      const VQwBPM* input= dynamic_cast<const VQwBPM*>(source);
-      this->bFullSave = input->bFullSave;
-      // 	  this->fEffectiveCharge_base->Copy(input->fEffectiveCharge_base);
-      // 	  for(size_t i =0;i<2;i++)
-      // 	    this->fAbsPos_base[i]->Copy(input->fAbsPos_base[i]);
-
-    } else {
-      TString loc="Standard exception from VQwBPM::Copy = "
-          +source->GetElementName()+" "
-          +this->GetElementName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
 /**
- * \brief A fast way of creating a BPM stripline of VQWK type with a generic name.
+ * \brief A fast way of creating a BPM stripline of specified type
  */
-VQwBPM* VQwBPM::CreateStripline(TString type)
-{
-  return CreateStripline("bpmstripline","bpm_generic",type);
-}
-
 VQwBPM* VQwBPM::CreateStripline(TString subsystemname, TString name, TString type)
 {
   Bool_t localDebug = kFALSE;
@@ -310,12 +280,29 @@ VQwBPM* VQwBPM::CreateStripline(TString subsystemname, TString name, TString typ
   }
 }
 
-// QwCombinedBPM<T> Factory function
-VQwBPM* VQwBPM::CreateCombo(TString type)
+VQwBPM* VQwBPM::CreateStripline(const VQwBPM& source)
 {
-  return CreateCombo("bpm","bpm_generic",type);
+  Bool_t localDebug = kFALSE;
+  TString type = source.GetModuleType();
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating BPM of type: "<<type << QwLog::endl;
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BPM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwBPMStripline<QwVQWK_Channel>(dynamic_cast<const QwBPMStripline<QwVQWK_Channel>&>(source));
+  } else if ( type == "SIS3801" ) {
+    return new QwBPMStripline<QwSIS3801_Channel>(dynamic_cast<const QwBPMStripline<QwSIS3801_Channel>&>(source));
+  } else if ( type == "SCALER" || type == "SIS3801D24" ) {
+    return new QwBPMStripline<QwSIS3801D24_Channel>(dynamic_cast<const QwBPMStripline<QwSIS3801D24_Channel>&>(source));
+  } else { // Unsupported one!
+    QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
 }
 
+/**
+ * \brief A fast way of creating a BPM stripline of specified type
+ */
 VQwBPM* VQwBPM::CreateCombo(TString subsystemname, TString name,
     TString type)
 {
@@ -331,6 +318,26 @@ VQwBPM* VQwBPM::CreateCombo(TString subsystemname, TString name,
     return new QwCombinedBPM<QwSIS3801_Channel>(subsystemname,name,type);
   } else if ( type == "SCALER" || type == "SIS3801D24" ) {
     return new QwCombinedBPM<QwSIS3801D24_Channel>(subsystemname,name,type);
+  } else { // Unsupported one!
+    QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
+}
+
+VQwBPM* VQwBPM::CreateCombo(const VQwBPM& source)
+{
+  Bool_t localDebug = kFALSE;
+  TString type = source.GetModuleType();
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating CombinedBCM of type: "<<type<< QwLog::endl;
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BCM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwCombinedBPM<QwVQWK_Channel>(dynamic_cast<const QwCombinedBPM<QwVQWK_Channel>&>(source));
+  } else if ( type == "SIS3801" ) { // Default SCALER channel
+    return new QwCombinedBPM<QwSIS3801_Channel>(dynamic_cast<const QwCombinedBPM<QwSIS3801_Channel>&>(source));
+  } else if ( type == "SCALER" || type == "SIS3801D24" ) {
+    return new QwCombinedBPM<QwSIS3801D24_Channel>(dynamic_cast<const QwCombinedBPM<QwSIS3801D24_Channel>&>(source));
   } else { // Unsupported one!
     QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
     exit(-1);

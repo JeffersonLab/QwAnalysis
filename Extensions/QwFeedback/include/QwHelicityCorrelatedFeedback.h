@@ -30,10 +30,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
  public:
   QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){ 
      //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
-    for (Int_t i=0;i<kHelModes;i++){
-      fFBRunningAsymmetry[i].Copy(&event);
-      fHelModeGoodPatternCounter[i]=0;
-    }
+    fFBRunningAsymmetry.resize(kHelModes,event);
+    fHelModeGoodPatternCounter.resize(kHelModes,0);
 
     fEnableBurstSum=kFALSE;
     fGoodPatternCounter=0;
@@ -277,7 +275,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     static const Int_t kHelPat2=110;
     static const Int_t kHelModes=4;//kHelModes
 
-    QwSubsystemArrayParity fFBRunningAsymmetry[kHelModes];
+    std::vector<QwSubsystemArrayParity> fFBRunningAsymmetry;
     Int_t fCurrentHelPat;
     Int_t fPreviousHelPat;
 
@@ -396,7 +394,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Int_t fPatternCounter;//increment the quartet number - reset after each feedback operation
 
     
-    Int_t fHelModeGoodPatternCounter[kHelModes];//count patterns for each mode seperately - reset after each feedback operation
+    std::vector<Int_t> fHelModeGoodPatternCounter;//count patterns for each mode seperately - reset after each feedback operation
 
     // Keep four VQWK channels, one each for pattern history 1, 2, 3, and 4
     // Use AddToRunningSum to add the asymmetry for the current pattern

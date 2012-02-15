@@ -46,6 +46,27 @@ QwScanner::QwScanner(const TString& name)
   kMaxNumberOfChannelsPerModule = fF1TDCDecoder.GetTDCMaxChannels();
 }
 
+QwScanner::QwScanner(const QwScanner& source)
+: VQwSubsystem(source),VQwSubsystemParity(source),VQwSubsystemTracking(source),
+  fPMTs(source.fPMTs),fSCAs(source.fSCAs),fADCs(source.fADCs)
+{
+  fHelicityFrequency = source.fHelicityFrequency;
+
+  fHomePositionX = source.fHomePositionX;
+  fHomePositionY = source.fHomePositionY;
+  fVoltage_Offset_X = source.fVoltage_Offset_X;
+  fVoltage_Offset_Y = source.fVoltage_Offset_Y;
+  fChannel_Offset_X = source.fChannel_Offset_X;
+  fChannel_Offset_Y = source.fChannel_Offset_Y;
+
+  fCal_Factor_VQWK_X = source.fCal_Factor_VQWK_X;
+  fCal_Factor_VQWK_Y = source.fCal_Factor_VQWK_Y;
+  fCal_Factor_QDC_X = source.fCal_Factor_QDC_X;
+  fCal_Factor_QDC_Y= source.fCal_Factor_QDC_Y;
+
+  fRateMapCM = source.fRateMapCM;
+  fRateMapEM = source.fRateMapEM;
+}
 
 QwScanner::~QwScanner()
 {
@@ -55,37 +76,6 @@ QwScanner::~QwScanner()
 
   delete fF1TDContainer;
 }
-
-
-void QwScanner::Copy(const VQwSubsystem *source)
-{
-  if (typeid(*source) == typeid(*this)) {
-    VQwSubsystem::Copy(source);
-    const QwScanner* input = dynamic_cast<const QwScanner*>(source);
-
-    fSCAs = input->fSCAs;
-    fADCs = input->fADCs;
-    fPMTs = input->fPMTs;
-
-    fHelicityFrequency = input->fHelicityFrequency;
-
-    fHomePositionX = input->fHomePositionX;
-    fHomePositionY = input->fHomePositionY;
-    fVoltage_Offset_X = input->fVoltage_Offset_X;
-    fVoltage_Offset_Y = input->fVoltage_Offset_Y;
-    fChannel_Offset_X = input->fChannel_Offset_X;
-    fChannel_Offset_Y = input->fChannel_Offset_Y;
-
-    fCal_Factor_VQWK_X = input->fCal_Factor_VQWK_X;
-    fCal_Factor_VQWK_Y = input->fCal_Factor_VQWK_Y;
-    fCal_Factor_QDC_X = input->fCal_Factor_QDC_X;
-    fCal_Factor_QDC_Y= input->fCal_Factor_QDC_Y;
-
-    fRateMapCM = input->fRateMapCM;
-    fRateMapEM = input->fRateMapEM;
-  }
-}
-
 
 void QwScanner::ProcessOptions(QwOptions &options)
 {
@@ -251,8 +241,8 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
 
 	    if (name=="ref_t_f1") {
 	      
-	      reftime_slotnum = slotnum;
-	      reftime_channum = channum;
+	      fRefTime_SlotNum = slotnum;
+	      fRefTime_ChanNum = channum;
 	      reference_counter++;
 	      //  printf("bank index %d Chan %d reference_counter %d\n", fCurrentBankIndex, channum, reference_counter);
 	      fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentModuleIndex;
@@ -631,13 +621,11 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
   else if (bank_id==fBankID[2]) {
 
     // reset the refrence time 
-    reftime = 0.0;
+    fRefTime = 0.0;
     
     Bool_t local_debug_f1 = false;
 
     Int_t  bank_index      = 0;
-    Int_t  tdc_slot_number = 0;
-    Int_t  tdc_chan_number = 0;
     UInt_t tdc_data        = 0;
 
 
@@ -647,7 +635,6 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     Bool_t data_integrity_flag = false;
     Bool_t temp_print_flag     = false;
 
-    Int_t  tdcindex    = 0;
     UInt_t hit_counter = 0;
 
     bank_index = GetSubbankIndex(roc_id, bank_id);
@@ -691,9 +678,9 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 	    
 	  // For MQwF1TDC,   roc_id is needed to print out some warning messages.
 	  	    
-	  tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
-	  tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
-	  tdcindex        = GetModuleIndex(bank_index, tdc_slot_number);
+	  Int_t tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	  Int_t tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
+	  //Int_t tdcindex = GetModuleIndex(bank_index, tdc_slot_number);
 	    
 	  if ( tdc_slot_number == 31) {
 	    //  This is a custom word which is not defined in
@@ -724,13 +711,13 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 	      
 	      if(local_debug_f1) {
 		printf("QwScanner::ProcessEvBuffer: [%4d] hit counter %d, bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10d %10.2f\n", i, hit_counter,
-		       bank_index, tdc_slot_number, reftime_slotnum, tdc_chan_number, reftime_channum,tdc_data, reftime);
+		       bank_index, tdc_slot_number, fRefTime_SlotNum, tdc_chan_number, fRefTime_ChanNum,tdc_data, fRefTime);
 	      }
 	      
 	      if (hit_counter == 0) {
 	      	FillRawWord   (bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
 	      	if ( IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number) ) {
-	      	  reftime = (Double_t) tdc_data;
+	      	  fRefTime = (Double_t) tdc_data;
 	      	}
 	      }
 	      
@@ -1011,7 +998,7 @@ void  QwScanner::ProcessEvent()
 		//		printf("element name %s rawtime a.u. %f \n", elementname.Data(), rawtime_arb_unit);
 	    	bank_index              = fPMTs.at(i).at(j).GetSubbankID();
 	    	slot_num                = fPMTs.at(i).at(j).GetModule();
-	    	corrected_time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(rawtime_arb_unit, reftime, bank_index, slot_num);
+	    	corrected_time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(rawtime_arb_unit, fRefTime, bank_index, slot_num);
 		time_ns                 = fF1TDContainer->ReturnTimeCalibration(corrected_time_arb_unit);
 		fPMTs.at(i).at(j).SetValue(time_ns);
 		//		printf("Scanner::ProcessBuffer:  bank_index %2d slot_number %2d data %10f %10.2f, %10.2f\n", 

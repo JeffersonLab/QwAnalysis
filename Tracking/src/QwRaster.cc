@@ -393,10 +393,9 @@ void  QwRaster::ProcessEvent()
 
 void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-
     TString basename;
 
-    if (prefix = "")  basename = "";
+    if (prefix == "")  basename = "";
     else  basename = prefix;
 
     if (folder != NULL) folder->cd();

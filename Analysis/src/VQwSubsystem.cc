@@ -346,40 +346,6 @@ void VQwSubsystem::PrintInfo() const
 }
 
 
-void VQwSubsystem::Copy(const VQwSubsystem *source)
-{
-  try
-    {
-      MQwHistograms::Copy(*source);
-
-      this->fSystemName=source->fSystemName;
-      this->fIsDataLoaded= source->fIsDataLoaded;
-      this->fCurrentROC_ID= source->fCurrentROC_ID;
-      this->fCurrentBank_ID= source->fCurrentBank_ID;
-
-      this->fROC_IDs.resize(source->fROC_IDs.size());
-      for(size_t i=0;i<this->fROC_IDs.size();i++)
-	this->fROC_IDs[i]=source->fROC_IDs[i];
-
-      this->fBank_IDs.resize(source->fBank_IDs.size());
-
-
-      for(size_t i=0;i<this->fBank_IDs.size();i++)
-	this->fBank_IDs[i].resize(source->fBank_IDs[i].size());
-
-      for(size_t i=0;i<this->fBank_IDs.size();i++)
-	for(size_t j=0;j<this->fBank_IDs.size();j++)
-	  this->fBank_IDs[i][j]=source->fBank_IDs[i][j];
-
-
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-  return;
-}
-
 VQwSubsystem& VQwSubsystem::operator=(VQwSubsystem *value)
 {
   this->fIsDataLoaded = value->fIsDataLoaded;

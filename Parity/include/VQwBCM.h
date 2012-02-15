@@ -83,9 +83,6 @@ public:
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
-  virtual void Copy(const VQwDataElement *source) {
-    VQwDataElement::Copy(source);
-  }
 
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
   virtual std::vector<QwErrDBInterface> GetErrDBEntry() = 0;
@@ -111,9 +108,9 @@ public:
 
   // Factory function to produce appropriate BCM
   static VQwBCM* Create(TString subsystemname, TString type, TString name, TString clock = "");
-  static VQwBCM* Create(TString type); // Create a generic BCM (define properties later)
+  static VQwBCM* Create(const VQwBCM& source); // Create a generic BCM (define properties later)
   static VQwBCM* CreateCombo(TString subsystemname, TString type, TString name);
-  static VQwBCM* CreateCombo(TString type); // Create a generic BCM (define properties later)
+  static VQwBCM* CreateCombo(const VQwBCM& source); // Create a generic BCM (define properties later)
 
 
 protected:

@@ -44,15 +44,21 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
  public:
   /// Constructor with name
   QwBeamLine(const TString& name)
-  : VQwSubsystem(name),VQwSubsystemParity(name),index_4mhz(-1)
+  : VQwSubsystem(name),VQwSubsystemParity(name)
   { };
   /// Copy constructor
   QwBeamLine(const QwBeamLine& source)
-  : VQwSubsystem(source),VQwSubsystemParity(source)
-  { this->Copy(&source); }
+  : VQwSubsystem(source),VQwSubsystemParity(source),
+    fQPD(source.fQPD),
+    fLinearArray(source.fLinearArray),
+    fCavity(source.fCavity),
+    fHaloMonitor(source.fHaloMonitor),
+    fECalculator(source.fECalculator)
+  { this->CopyTemplatedDataElements(&source); }
   /// Virtual destructor
   virtual ~QwBeamLine() { };
 
+  void CopyTemplatedDataElements(const VQwSubsystem *source);
 
   /* derived from VQwSubsystem */
   
@@ -64,7 +70,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
   void  AssignGeometry(QwParameterFile* mapstr, VQwBPM * bpm);
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
   //update the smae error flag in the classes belong to the subsystem.
   void UpdateEventcutErrorFlag(UInt_t errorflag);
@@ -112,7 +118,6 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
   void FillDB(QwParityDB *db, TString datatype);
   void FillErrDB(QwParityDB *db, TString datatype);
 
-  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;
@@ -150,39 +155,33 @@ protected:
   Int_t AddToElementList(std::vector<TT> &elementlist, QwBeamDetectorID &detector_id);
   
   Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
- //when the type and the name is passed the detector index from appropriate vector will be returned
- //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
+  //when the type and the name is passed the detector index from appropriate vector will be returned
+  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
 
- std::vector <VQwBPM_ptr> fStripline;
- std::vector <VQwBPM_ptr> fBPMCombo;
+  std::vector <VQwBPM_ptr> fStripline;
+  std::vector <VQwBPM_ptr> fBPMCombo;
 
- std::vector <VQwBCM_ptr> fBCM;
- std::vector <VQwBCM_ptr> fBCMCombo;
+  std::vector <VQwBCM_ptr> fBCM;
+  std::vector <VQwBCM_ptr> fBCMCombo;
 
- std::vector <VQwClock_ptr> fClock;
+  std::vector <VQwClock_ptr> fClock;
 
- std::vector <QwQPD> fQPD;
- std::vector <QwLinearDiodeArray> fLinearArray;
- std::vector <QwBPMCavity> fCavity;
- std::vector <QwHaloMonitor> fHaloMonitor;
-
-
- std::vector <QwEnergyCalculator> fECalculator;
- std::vector <QwBeamDetectorID> fBeamDetectorID;
+  std::vector <QwQPD> fQPD;
+  std::vector <QwLinearDiodeArray> fLinearArray;
+  std::vector <QwBPMCavity> fCavity;
+  std::vector <QwHaloMonitor> fHaloMonitor;
 
 
+  std::vector <QwEnergyCalculator> fECalculator;
+  std::vector <QwBeamDetectorID> fBeamDetectorID;
 
 /////
- private:
- // std::vector<TString> DetectorTypes;// for example could be BCM, LUMI,BPMSTRIPLINE, etc..
- Int_t fQwBeamLineErrorCount;
- Double_t fSumXweights;
- Double_t fSumYweights;
- Double_t fSumQweights;
+private:
+  // std::vector<TString> DetectorTypes;// for example could be BCM, LUMI,BPMSTRIPLINE, etc..
+  Int_t fQwBeamLineErrorCount;
 
 
- Int_t index_4mhz;//index of the 4mhz scaler in the QwHaloMonitor vector
- static const Bool_t bDEBUG=kFALSE;
+  static const Bool_t bDEBUG=kFALSE;
 
 };
 

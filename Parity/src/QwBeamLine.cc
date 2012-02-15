@@ -98,7 +98,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   TString varname, varvalue;
 
   TString combotype, comboname, dev_name;
-  TString clock_norm_channel;
 
   Int_t   index = 0;
   Bool_t  combolistdecoded;
@@ -110,6 +109,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   std::vector<Double_t> fQWeight;
   std::vector<Double_t> fXWeight;
   std::vector<Double_t> fYWeight;
+  Double_t sumQweights;
 
   std::vector<QwBeamDetectorID> clock_needed_list;
 
@@ -132,24 +132,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       RegisterSubbank(value);
     }
 
-    // FIXME (wdc) sample_size is unused, needs to be removed or used
-    /*
-    Int_t sample_size = 0;
-    if (mapstr.ReturnValue("sample_size",value)){
-      sample_size=value;
-    }
-    */
-
-    ///TODO:  The clock info ought to just be passed as a keyword in
-    ///       the parameter file object, but for now, get it as a
-    ///       local variable.
-    if (mapstr.ReturnValue("normclock",varvalue)){
-      clock_norm_channel = varvalue;
-      clock_norm_channel.ToLower();
-    }
-    
-
-
     if (mapstr.HasVariablePair("=",varname,varvalue)){ //  This is a declaration line.  Decode it.
       varname.ToLower();
 
@@ -168,7 +150,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    if (varname=="end"){
 	      // calculate the total weights of the charge
 	      for(size_t i=0;i<fDeviceName.size();i++)
-		fSumQweights+=fQWeight[i];
+		sumQweights+=fQWeight[i];
 	      combolistdecoded = kTRUE;
 	      break;
 	    }
@@ -246,7 +228,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    for(size_t i=0;i<fDeviceName.size();i++){
 	      index=GetDetectorIndex(GetQwBeamInstrumentType(dettype),fDeviceName[i]);
 	      fBCMCombo[fBCMCombo.size()-1].get()->SetBCMForCombo(fBCM.at(index).get(),
-            fQWeight[i],fSumQweights );
+            fQWeight[i],sumQweights );
 	    }
 	    fDeviceName.clear();
 	    fQWeight.clear();
@@ -263,8 +245,8 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    for(size_t i=0;i<fDeviceName.size();i++){
 	      index=GetDetectorIndex(GetQwBeamInstrumentType(dettype),fDeviceName[i]);
 	      fBPMCombo[fBPMCombo.size()-1].get()->SetBPMForCombo(
-            fStripline.at(index).get(), fQWeight[i],fXWeight[i],
-            fYWeight[i],fSumQweights  );
+	          fStripline.at(index).get(), fQWeight[i],fXWeight[i],
+	          fYWeight[i],sumQweights  );
 
 	    }
 	    fDeviceName.clear();
@@ -323,10 +305,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	if(localBeamDetectorID.fTypeID == kQwHaloMonitor){
 	  index = AddToElementList(fHaloMonitor, localBeamDetectorID);
 	  local_element = &(fHaloMonitor.at(index));
-
-	  // 	  if(localBeamDetectorID.fdetectorname=="sca_4mhz"){
-	  // 	    index_4mhz=localBeamDetectorID.fIndex;
-	  // 	  }
 	}
 	if(localBeamDetectorID.fTypeID==kQwBPMCavity){
 	  index = AddToElementList(fCavity, localBeamDetectorID);
@@ -855,8 +833,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 	  varname.Remove(TString::kBoth,' ');
 	  Double_t varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
 	  Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
-	  Double_t varweight = 0.0;
-	  varweight=mapstr.GetTypedNextToken<Double_t>(); // value of the statistical weight
+	  /*Double_t varweight = */ mapstr.GetTypedNextToken<Double_t>(); // value of the statistical weight
 
 	  //if(ldebug) std::cout<<"inputs for channel "<<varname
 	  //	      <<": ped="<<varped<<": cal="<<varcal<<": weight="<<varweight<<"\n";
@@ -1248,7 +1225,7 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
   }
 
 
-  //If at least one of the devices falied  event cuts, increment error counter for QwBeamLine
+  //If at least one of the devices failed  event cuts, increment error counter for QwBeamLine
   if (!status)
     fQwBeamLineErrorCount++;
 
@@ -1429,16 +1406,7 @@ void  QwBeamLine::ProcessEvent()
   for(size_t i=0;i<fLinearArray.size();i++)
     fLinearArray[i].ProcessEvent();
 
-//   Double_t clock_counts = 0.0;
-//   if (index_4mhz != -1){
-//     fHaloMonitor.at(index_4mhz).ProcessEvent();//call the ProcessEvent() for the 4MHz scaler
-//     clock_counts = fHaloMonitor.at(index_4mhz).GetValue();
-//     //QwError << "QwBeamLine::ProcessEvent() "<<fHaloMonitor[index_4mhz].GetElementName()<<" "<<fHaloMonitor[index_4mhz].GetValue()<<QwLog::endl;
-//   }
   for(size_t i=0;i<fHaloMonitor.size();i++){
-//     if (index_4mhz != -1 && clock_counts>0.0 ){
-//       fHaloMonitor[i].ScaleRawRate(4.0e6/clock_counts);//convert raw rates to Hz
-//     }
     fHaloMonitor[i].ProcessEvent();
  }
 
@@ -1538,7 +1506,7 @@ void QwBeamLine::ClearEventData()
   for(size_t i=0;i<fCavity.size();i++)
     fCavity[i].ClearEventData();
   for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].get()->ClearEventData();
+    fBCM[i]->ClearEventData();
   for(size_t i=0;i<fQPD.size();i++)
     fQPD[i].ClearEventData();
   for(size_t i=0;i<fLinearArray.size();i++)
@@ -1817,8 +1785,6 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
     {
 
       QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
-
-      //      index_4mhz = input->index_4mhz;
 
       for(size_t i=0;i<input->fClock.size();i++)
 	*(this->fClock[i].get())=*(input->fClock[i].get());
@@ -2459,106 +2425,39 @@ void  QwBeamLine::PrintDetectorID() const
 
 
 //*****************************************************************//
-void  QwBeamLine::Copy(const VQwSubsystem *source)
+void  QwBeamLine::CopyTemplatedDataElements(const VQwSubsystem *source)
 {
+  const QwBeamLine* input = dynamic_cast<const QwBeamLine*>(source);
 
-  try
-    {
-     if(typeid(*source)==typeid(*this))
-	{
-	  VQwSubsystem::Copy(source);
+  this->fClock.reserve(input->fClock.size());
+  for(size_t i=0;i<input->fClock.size();i++) {
+    this->fClock.push_back(VQwClock_ptr(VQwClock::Create(*(input->fClock[i].get()))));
+  }
 
-          const QwBeamLine* input = dynamic_cast<const QwBeamLine*>(source);
+  this->fStripline.reserve(input->fStripline.size());
+  for(size_t i=0;i<input->fStripline.size();i++) {
+    this->fStripline.push_back(VQwBPM_ptr(
+        VQwBPM::CreateStripline(*(input->fStripline[i].get()))));
+  }
 
-	  //  index_4mhz = input->index_4mhz;
+  this->fBCM.reserve(input->fBCM.size());
+  for(size_t i=0;i<input->fBCM.size();i++) {
+    this->fBCM.push_back(VQwBCM_ptr(
+        VQwBCM::Create(*(input->fBCM[i].get()))));
+  }
 
-	  this->fClock.reserve(input->fClock.size());
-	  for(size_t i=0;i<input->fClock.size();i++) {
-	    this->fClock.push_back(VQwClock_ptr(
-        VQwClock::Create((input->fClock[i].get())->GetModuleType())));
-      if((this->fClock[i].get()) )
-        (this->fClock[i].get())->Copy((input->fClock[i].get()));
-    }
+  this->fBCMCombo.reserve(input->fBCMCombo.size());
+  for(size_t i=0;i<input->fBCMCombo.size();i++) {
+    this->fBCMCombo.push_back(VQwBCM_ptr(
+        VQwBCM::CreateCombo(*(
+            input->fBCMCombo[i].get()))));
+  }
 
-	  this->fStripline.reserve(input->fStripline.size());
-	  for(size_t i=0;i<input->fStripline.size();i++) {
-      this->fStripline.push_back(VQwBPM_ptr(
-            VQwBPM::CreateStripline(input->fStripline[i].get()->GetModuleType())));
-      (this->fStripline[i].get())->Copy((input->fStripline[i].get()));
-    }
-
-	  this->fQPD.resize(input->fQPD.size());
-	  for(size_t i=0;i<this->fQPD.size();i++)
-	    this->fQPD[i].Copy(&(input->fQPD[i]));
-
-	  this->fLinearArray.resize(input->fLinearArray.size());
-	  for(size_t i=0;i<this->fLinearArray.size();i++)
-	    this->fLinearArray[i].Copy(&(input->fLinearArray[i]));
-
-	  this->fCavity.resize(input->fCavity.size());
-	  for(size_t i=0;i<this->fCavity.size();i++)
-	    this->fCavity[i].Copy(&(input->fCavity[i]));
-
-	  this->fBCM.reserve(input->fBCM.size());
-	  for(size_t i=0;i<input->fBCM.size();i++) {
-	    this->fBCM.push_back(VQwBCM_ptr(
-        VQwBCM::Create((input->fBCM[i].get())->GetModuleType())));
-      if((this->fBCM[i].get()) )
-        (this->fBCM[i].get())->Copy((input->fBCM[i].get()));
-    }
-
-	  this->fHaloMonitor.resize(input->fHaloMonitor.size());
-	  for(size_t i=0;i<this->fHaloMonitor.size();i++)
-	    this->fHaloMonitor[i].Copy(&(input->fHaloMonitor[i]));
-
-	  this->fBCMCombo.reserve(input->fBCMCombo.size());
-	  for(size_t i=0;i<input->fBCMCombo.size();i++) {
-	    this->fBCMCombo.push_back(VQwBCM_ptr(
-        VQwBCM::CreateCombo((
-            input->fBCMCombo[i].get())->GetModuleType())));
-      if((this->fBCMCombo[i].get()) )
-        (this->fBCMCombo[i].get())->Copy((input->fBCMCombo[i].get()));
-    }
-
-	  this->fBPMCombo.reserve(input->fBPMCombo.size());
-	  for(size_t i=0;i<input->fBPMCombo.size();i++){
-	    this->fBPMCombo.push_back(VQwBPM_ptr(
-        VQwBPM::CreateCombo(input->fBPMCombo[i].get()->GetModuleType())));
-      this->fBPMCombo[i].get()->Copy(input->fBPMCombo[i].get());
-	  }
-
-	  this->fECalculator.resize(input->fECalculator.size());
-	  for(size_t i=0;i<this->fECalculator.size();i++){
-	    this->fECalculator[i].Copy(&(input->fECalculator[i]));
-	  }
-
-	  if (input->fPublishList.size()>0){
-	    this->fPublishList.resize(input->fPublishList.size());
-	    for(size_t i=0;i<input->fPublishList.size();i++){
-	      this->fPublishList.at(i).resize(input->fPublishList.at(i).size());
-	      for(size_t j=0;j<input->fPublishList.at(i).size();j++){
-		this->fPublishList.at(i).at(j)=input->fPublishList.at(i).at(j);
-	      }
-	    }
-	  }
-	    
-
-	}
-     else
-       {
-	  TString loc="Standard exception from QwBeamLine::Copy = "
-	    +source->GetSubsystemName()+" "
-	    +this->GetSubsystemName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-       }
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-
-  return;
+  this->fBPMCombo.reserve(input->fBPMCombo.size());
+  for(size_t i=0;i<input->fBPMCombo.size();i++){
+    this->fBPMCombo.push_back(VQwBPM_ptr(
+        VQwBPM::CreateCombo(*(input->fBPMCombo[i].get()))));
+  }
 }
 
 //*****************************************************************//

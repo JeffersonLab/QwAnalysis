@@ -26,7 +26,19 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
     /// Copy constructor
     QwScaler(const QwScaler& source)
     : VQwSubsystem(source),VQwSubsystemParity(source)
-    { this->Copy(&source); }
+    {
+      fScaler.resize(source.fScaler.size());
+      for (size_t i = 0; i < fScaler.size(); i++) {
+        VQwScaler_Channel* scaler_tmp = 0;
+        if ((scaler_tmp = dynamic_cast<QwSIS3801D24_Channel*>(source.fScaler.at(i)))) {
+          QwSIS3801D24_Channel* scaler = dynamic_cast<QwSIS3801D24_Channel*>(source.fScaler.at(i));
+          fScaler.at(i) = new QwSIS3801D24_Channel(*scaler);
+        } else if ((scaler_tmp = dynamic_cast<QwSIS3801D32_Channel*>(source.fScaler.at(i)))) {
+          QwSIS3801D32_Channel* scaler = dynamic_cast<QwSIS3801D32_Channel*>(source.fScaler.at(i));
+          fScaler.at(i) = new QwSIS3801D32_Channel(*scaler);
+        }
+      }
+    }
     /// Destructor
     virtual ~QwScaler();
 
@@ -54,8 +66,6 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
     Bool_t Compare(VQwSubsystem *source);
-
-    void Copy(const VQwSubsystem *source);
 
     VQwSubsystem& operator=(VQwSubsystem *value);
     VQwSubsystem& operator+=(VQwSubsystem *value);

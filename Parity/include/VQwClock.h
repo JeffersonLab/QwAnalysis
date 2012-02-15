@@ -37,8 +37,9 @@ class VQwClock : public VQwDataElement {
    ***************************************************************/
 public:
   VQwClock() { }; // Do not use this function!!
-  VQwClock(TString name){ }; // Do not use this function!!
-
+  VQwClock(const VQwClock& source)
+  : VQwDataElement(source)
+  { }
   virtual ~VQwClock() {};
 
   // VQwDataElement virtual functions
@@ -52,9 +53,7 @@ public:
   virtual void ClearEventData() = 0;
 
   // Virtual functions delegated to sub classes
-  virtual void  InitializeChannel(TString name, TString datatosave) = 0;
-  // new routine added to update necessary information for tree trimming
-  virtual void  InitializeChannel(TString subsystem, TString name, TString datatosave) = 0;
+  virtual void  InitializeChannel(TString subsystem, TString name, TString datatosave, TString type = "") = 0;
 
   virtual void LoadChannelParameters(QwParameterFile &paramfile) = 0;
 
@@ -70,7 +69,6 @@ public:
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
-  virtual void Copy(const VQwDataElement *source) = 0;
 
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
 
@@ -81,7 +79,7 @@ public:
 
   // Factory function to produce appropriate Clock
   static VQwClock* Create(TString subsystemname, TString type, TString name);
-  static VQwClock* Create(TString type); // Create a generic Clock (define properties later)
+  static VQwClock* Create(const VQwClock& source);
 
   // These are related to those hardware channels that need to normalize
   // to an external clock
@@ -90,7 +88,6 @@ public:
 
   virtual const VQwHardwareChannel* GetTime() const = 0;
 
-protected:
 };
 
 typedef boost::shared_ptr<VQwClock> VQwClock_ptr;

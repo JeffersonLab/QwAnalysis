@@ -678,7 +678,7 @@ Bool_t QwMainCerenkovDetector::ApplySingleEventCuts()
 
 
   if (!status) 
-   fMainDetErrorCount++;//falied  event counter for QwMainCerenkovDetector
+   fMainDetErrorCount++;//failed  event counter for QwMainCerenkovDetector
 
   return status;
 
@@ -985,42 +985,6 @@ void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values) const
 const QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name) const
 {
   return GetIntegrationPMT(name);
-}
-
-
-void  QwMainCerenkovDetector::Copy(const VQwSubsystem *source)
-{
-
-  try
-    {
-      if (typeid(*source)==typeid(*this))
-        {
-          VQwSubsystem::Copy(source);
-          const QwMainCerenkovDetector* input= dynamic_cast<const QwMainCerenkovDetector*>(source);
-
-          this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
-          for (size_t i=0;i<this->fIntegrationPMT.size();i++)
-            this->fIntegrationPMT[i].Copy(&(input->fIntegrationPMT[i]));
-
-          this->fCombinedPMT.resize(input->fCombinedPMT.size());
-          for (size_t i=0;i<this->fCombinedPMT.size();i++)
-            this->fCombinedPMT[i].Copy(&(input->fCombinedPMT[i]));
-        }
-      else
-        {
-          TString loc="Standard exception from QwMainCerenkovDetector::Copy = "
-                      +source->GetSubsystemName()+" "
-                      +this->GetSubsystemName()+" are not of the same type";
-          throw std::invalid_argument(loc.Data());
-        }
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-  // this->Print();
-
-  return;
 }
 
 
