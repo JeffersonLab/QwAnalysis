@@ -3,8 +3,6 @@
 #include "getEBeamLasCuts.C"
 #include "maskedStrips.C"
 
-div_t div_output;
-
 TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
 vector<Int_t>cutLas;//arrays of cuts for laser
 vector<Int_t>cutEB;//arrays of cuts for electron beam
@@ -13,9 +11,10 @@ vector<Int_t>cutEB;//arrays of cuts for electron beam
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
  
-Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
+Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
 {
-  time_t tStart = time(0), tEnd; 
+  //time_t tStart = time(0), tEnd; 
+  //div_t div_output;
   Bool_t debug = 1, debug1 = 0, debug2 = 0;
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t chainExists = 0,goodCycles=0;
@@ -24,10 +23,12 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
   Int_t nMpsB1H1L1, nMpsB1H0L1, nMpsB1H1L0, nMpsB1H0L0;
   Int_t entry;
-  Float_t AccumB1H0L0[nPlanes][nStrips],AccumB1H0L1[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
+  Int_t AccumB1H0L0[nPlanes][nStrips],AccumB1H0L1[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
   Double_t comptQH1L1, comptQH0L1, comptQH1L0, comptQH0L0;
   Double_t lasPowB1H1, lasPowB1H0; //, lasPowB0H1, lasPowB0H0;
-  //Double_t unNormLasCycSum[nPlanes][nStrips];
+  Int_t unNormAcB1L0[nPlanes][nStrips],unNormAcB1L1[nPlanes][nStrips];
+  //Int_t unNormAcB1H1[nPlanes][nStrips],unNormAcB1H0[nPlanes][nStrips];
+  Double_t unNormQL0;//,unNormQL1,unNormQH0,unNormQH1;
   Double_t lasPow[3], helicity, bcm[3];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];
@@ -79,63 +80,62 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   pvTxt1->SetBorderSize(1);
   
   /** Open either Pass1 or the First 100K **/
-  for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
-    if( isFirst100k) {
-      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/first100k_%d.root",runnum));
-    }
-    else {
-      chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
-      //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
-      printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
-    }
-    if(!chainExists){//delete chains and exit if files do not exist
-      cout<<"\n***Error: File for run "<<runnum<<" does not exist***\n"<<endl;
-      delete mpsChain;
-      return -1;
-    }
-
-    infileLas.open(Form("analOut/r%d_cutLas.txt",runnum));
-    infileBeam.open(Form("analOut/r%d_cutBeam.txt",runnum));
-    
-    if (infileLas.is_open() && infileBeam.is_open()) {
-      cout<<"Found the cutLas and cutEB file"<<endl;
-      while (infileLas.good()) {
-	infileLas >> readEntry; //read the contents of the line in a string first
-	if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
-	  entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
-	  if (debug) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
-	  cutLas.push_back(entry);
-	}
-	//else cout<<"check cutLas file for "<<runnum<<endl;///this always happens at the end of file read
-      }
-      infileLas.close();
-      nLasCycles = (cutLas.size() - 2)/2;
-    
-      while (infileBeam.good()) {
-	infileBeam >> readEntry;
-	if (readEntry.IsDigit()) {
-	  entry = readEntry.Atoi();
-	  if (debug) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
-	  cutEB.push_back(entry);
-	}
-	//else cout<<"check cutEB file for "<<runnum<<endl;
-      }
-      infileBeam.close();
-      nBeamTrips = (cutEB.size())/2;
-    }
-    else {
-      cout << "\n*****:Atleast one of the Cut files missing *****\n"<<endl;
-      cout<<"          hence executing the cut function"<<endl;
-      Int_t nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain,runnum);
-      if (debug) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
-      nLasCycles = nLasCycBeamTrips%1000 - 1;
-      ////first two digits of return value of getEBeamLasCuts
-      nBeamTrips = nLasCycBeamTrips / 1000;
-      ////fourth digit of return value of getEBeamLasCuts
-    }
-    
-    if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
+  if( isFirst100k) {
+    chainExists = mpsChain->Add(Form("$QW_ROOTFILES/first100k_%d.root",runnum));
   }
+  else {
+    chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+    //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
+    printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
+  }
+  if(!chainExists){//delete chains and exit if files do not exist
+    cout<<"\n***Error: File for run "<<runnum<<" does not exist***\n"<<endl;
+    delete mpsChain;
+    return -1;
+  }
+  
+  infileLas.open(Form("analOut/r%d_cutLas.txt",runnum));
+  infileBeam.open(Form("analOut/r%d_cutBeam.txt",runnum));
+    
+  if (infileLas.is_open() && infileBeam.is_open()) {
+    cout<<"Found the cutLas and cutEB file"<<endl;
+    while (infileLas.good()) {
+      infileLas >> readEntry; //read the contents of the line in a string first
+      if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
+	entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
+	if (debug) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
+	cutLas.push_back(entry);
+      }
+      //else cout<<"check cutLas file for "<<runnum<<endl;///this always happens at the end of file read
+    }
+    infileLas.close();
+    nLasCycles = (cutLas.size() - 2)/2;
+    
+    while (infileBeam.good()) {
+      infileBeam >> readEntry;
+      if (readEntry.IsDigit()) {
+	entry = readEntry.Atoi();
+	if (debug) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
+	cutEB.push_back(entry);
+      }
+      //else cout<<"check cutEB file for "<<runnum<<endl;
+    }
+    infileBeam.close();
+    nBeamTrips = (cutEB.size())/2;
+  }
+  else {
+    cout << "\n*****:Atleast one of the Cut files missing *****\n"<<endl;
+    cout<<"          hence executing the cut function"<<endl;
+    Int_t nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain,runnum);
+    if (debug) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
+    nLasCycles = nLasCycBeamTrips%1000 - 1;
+    ////first two digits of return value of getEBeamLasCuts
+    nBeamTrips = nLasCycBeamTrips / 1000;
+    ////fourth digit of return value of getEBeamLasCuts
+  }
+  
+  if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
+
   Int_t nEntries = mpsChain->GetEntries();
   printf("This chain has %i entries.\n", nEntries);
 
@@ -160,10 +160,10 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
   }//the branch for each plane is named from 1 to 4
   
-  outElecNoiseS1.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr));
-  outElecNoiseS2.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-10));
-  outElecNoiseS3.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-20));
-  outElecNoiseS4.open(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-30));
+  outElecNoiseS1.open(Form("r%d_eleNoiseS%d.txt",runnum,mystr));
+  outElecNoiseS2.open(Form("r%d_eleNoiseS%d.txt",runnum,mystr-10));
+  outElecNoiseS3.open(Form("r%d_eleNoiseS%d.txt",runnum,mystr-20));
+  outElecNoiseS4.open(Form("r%d_eleNoiseS%d.txt",runnum,mystr-30));
 
   cout<<"files for electronic noise opened for filling"<<endl;
 
@@ -176,8 +176,9 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     lasPowB1H1= 0.0, lasPowB1H0= 0.0;
     for(Int_t p = 0; p <nPlanes; p++) {      
       for(Int_t s = 0; s <nStrips; s++) {
-	AccumB1H0L0[p][s] =0.0, AccumB1H0L1[p][s] =0.0, AccumB1H1L0[p][s] =0.0, AccumB1H1L1[p][s] =0.0;
-	normAcB1H1L1LasCyc[p][s]= 0.0, normAcB1H0L1LasCyc[p][s]= 0.0; 	//unNormLasCycSum[p][s]= 0.0;
+	unNormAcB1L0[p][s]=0,unNormAcB1L1[p][s]=0;//,unNormAcB1H[p][s]0=0,unNormAcB1H1[p][s]=0;
+	AccumB1H0L0[p][s] =0, AccumB1H0L1[p][s] =0, AccumB1H1L0[p][s] =0, AccumB1H1L1[p][s] =0;
+	normAcB1H1L1LasCyc[p][s]= 0.0, normAcB1H0L1LasCyc[p][s]= 0.0; 
 	normAcB1H0L0LasCyc[p][s]= 0.0, normAcB1H1L0LasCyc[p][s]= 0.0;
 	BCnormAcB1H1L1LasCyc[p][s]= 0.0, BCnormAcB1H0L1LasCyc[p][s]= 0.0; 
 	errB1H1L1[p][s]=0.0,errB1H0L1[p][s]=0.0,errB1H1L0[p][s]=0.0,errB1H0L0[p][s]=0.0;
@@ -187,7 +188,6 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0,stripAsymRMS[p][s]= 0.0;
       }
     }
-    //      if(cutLas.at(2*nCycle+1)>cutEB.at(2*nthBeamTrip)) ///previous beamTrip recovered? before the beginning of THIS laser cycle?
 
     if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
     else if(nthBeamTrip < nBeamTrips) {  ///yes, we do have beamtrip(s)
@@ -235,7 +235,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
-	      AccumB1H0L0[p][s] += bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
+	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
 	    }
 	  }
 	}
@@ -247,7 +247,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
-	      AccumB1H0L1[p][s] += bRawAccum[p][s];// / bcm[0]; // /lasPow[0];	    
+	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
 	    }	  
 	  }
 	}
@@ -258,7 +258,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
-	      AccumB1H1L0[p][s] += bRawAccum[p][s];// / bcm[0];// /lasPow[0];	    
+	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0];// /lasPow[0];
 	    }
 	  }
 	}
@@ -270,7 +270,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      //if(bRawAccum[p][s]) 
-	      AccumB1H1L1[p][s] += bRawAccum[p][s];// / bcm[0];// /lasPow[0];	    
+	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0];// /lasPow[0];
 	    }
 	  }
 	}
@@ -292,21 +292,23 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	  for (Int_t s =startStrip; s <endStrip; s++) {	  
 	    if (maskedStrips(p,s)) continue;
 	    normAcB1H1L1LasCyc[p][s] = AccumB1H1L1[p][s] /comptQH1L1;
-	    normAcB1H1L0LasCyc[p][s] = AccumB1H1L0[p][s] /comptQH1L0;;
+	    normAcB1H1L0LasCyc[p][s] = AccumB1H1L0[p][s] /comptQH1L0;
 	    normAcB1H0L1LasCyc[p][s] = AccumB1H0L1[p][s] /comptQH0L1;
 	    normAcB1H0L0LasCyc[p][s] = AccumB1H0L0[p][s] /comptQH0L0;
 
+	    unNormAcB1L0[p][s] = AccumB1H1L0[p][s] + AccumB1H0L0[p][s];
+	    unNormAcB1L1[p][s] = AccumB1H1L1[p][s] + AccumB1H0L1[p][s];///total counts during Laser ON
+
 	    if(debug2) {
-	      printf(" normAcB1H1L1LasCyc[%d][%d]:\t%f = AccumB1H1L1:%f / comptQH1L1:%f\n"
-			     ,p,s,normAcB1H1L1LasCyc[p][s],AccumB1H1L1[p][s], comptQH1L1 );
-	      printf(" normAcB1H1L0LasCyc[%d][%d]:\t%f = AccumB1H1L0:%f / comptQH1L0:%f\n"
-			     ,p,s,normAcB1H1L0LasCyc[p][s],AccumB1H1L0[p][s], comptQH1L0 );
-	      printf(" normAcB1H0L1LasCyc[%d][%d]:\t%f = AccumB1H0L1:%f / comptQH0L1:%f\n"
-			     ,p,s,normAcB1H0L1LasCyc[p][s],AccumB1H0L1[p][s], comptQH0L1 );
-	      printf(" normAcB1H0L0LasCyc[%d][%d]:\t%f = AccumB1H0L0:%f / comptQH0L0:%f\n"
-			     ,p,s,normAcB1H0L0LasCyc[p][s],AccumB1H0L0[p][s], comptQH0L0 );
+	      printf("normAcB1H1L1[%d][%d]:\t%f = AccumB1H1L1:%d / comptQH1L1:%f; nMpsB1H1L1:%d\n"
+		     ,p,s,normAcB1H1L1LasCyc[p][s],AccumB1H1L1[p][s],comptQH1L1,nMpsB1H1L1);
+	      printf("normAcB1H1L0[%d][%d]:\t%f = AccumB1H1L0:%d / comptQH1L0:%f; nMpsB1H1L0:%d\n"
+		     ,p,s,normAcB1H1L0LasCyc[p][s],AccumB1H1L0[p][s],comptQH1L0,nMpsB1H1L0);
+	      printf("normAcB1H0L1[%d][%d]:\t%f = AccumB1H0L1:%d / comptQH0L1:%f; nMpsB1H0L1:%d\n"
+		     ,p,s,normAcB1H0L1LasCyc[p][s],AccumB1H0L1[p][s],comptQH0L1,nMpsB1H0L1);
+	      printf("normAcB1H0L0[%d][%d]:\t%f = AccumB1H0L0:%d / comptQH0L0:%f; nMpsB1H0L0:%d\n"
+		     ,p,s,normAcB1H0L0LasCyc[p][s],AccumB1H0L0[p][s],comptQH0L0,nMpsB1H0L0);
 	    }
-	    //unNormLasCycSum[p][s] = AccumB1H1L1[p][s] + AccumB1H0L1[p][s];//total counts during Laser ON
 
 	    BCnormAcB1H1L1LasCyc[p][s] = normAcB1H1L1LasCyc[p][s] - normAcB1H1L0LasCyc[p][s]; //* comptQH1L1/comptQH1L0;
 	    BCnormAcB1H0L1LasCyc[p][s] = normAcB1H0L1LasCyc[p][s] - normAcB1H0L0LasCyc[p][s]; //* comptQH0L1/comptQH0L0;
@@ -315,7 +317,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	    BCnormLasCycSum[p][s] = (BCnormAcB1H1L1LasCyc[p][s]  + BCnormAcB1H0L1LasCyc[p][s]);
 	    if (BCnormLasCycSum[p][s]  <= 0.0) {
 	      if(debug) printf("\n**Warning**:BCnormLasCycSum[p%d][s%d] is %f in nCycle:%d\n",p,s,BCnormLasCycSum[p][s],nCycle);
-	      if(debug) printf("note: AccumB1H1L1:%f, AccumB1H1L0:%f, AccumB1H0L1:%f, AccumB1H0L0:%f\n"
+	      if(debug) printf("note: AccumB1H1L1:%d, AccumB1H1L0:%d, AccumB1H0L1:%d, AccumB1H0L0:%d\n"
 			       ,AccumB1H1L1[p][s],AccumB1H1L0[p][s],AccumB1H0L1[p][s],AccumB1H0L0[p][s]);
 	      if(debug) printf("and comptQH1L1:%f, comptQH1L0:%f, comptQH0L1:%f, comptQH0L0:%f",comptQH1L1,comptQH1L0,comptQH0L1,comptQH0L0);
 	    }
@@ -332,20 +334,21 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 	      hAsymPS[p][s].Fill(qNormLasCycAsym[p][s]);
 	      hAsymErPS[p][s].Fill(LasCycAsymEr[p][s]);	    
 	    }
-	    //LasCycAsymEr[p][s]  = 1.0/sqrt(unNormLasCycSum[p][s]);
+	    //LasCycAsymEr[p][s]  = 1.0/sqrt(unNormAcB1L1[p][s]);
 
 	    if (debug1) {
-	      printf("for nCycle:%d, qNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",nCycle,p,s,qNormLasCycAsym[p][s] ,LasCycAsymEr[p][s]);
+	      printf("for nCycle:%d, qNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",nCycle,p,s,qNormLasCycAsym[p][s],LasCycAsymEr[p][s]);
 	      printf("formed by normalized BC (%f -/+ %f) \n",normAcB1H1L1LasCyc[p][s],normAcB1H0L1LasCyc[p][s]);
 	    }
 	  }
 	}///for (Int_t p =startPlane; p <endPlane; p++) {
+	unNormQL0 = comptQH1L0 + comptQH0L0;
 	
 	///!trying to estimate electronic noise using p1,s10 for all laser cycles
-	if(outElecNoiseS1.is_open()) outElecNoiseS1<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr],sqrt(AccumB1H1L0[0][mystr]));
-	if(outElecNoiseS2.is_open()) outElecNoiseS2<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr-10],sqrt(AccumB1H1L0[0][mystr-10]));
-	if(outElecNoiseS3.is_open()) outElecNoiseS3<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr-20],sqrt(AccumB1H1L0[0][mystr-20]));
-	if(outElecNoiseS4.is_open()) outElecNoiseS4<<Form("%f\t%f\t%f\n",comptQH1L0,AccumB1H1L0[0][mystr-30],sqrt(AccumB1H1L0[0][mystr-30]));
+	if(outElecNoiseS1.is_open()) outElecNoiseS1<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr],sqrt(unNormAcB1L0[0][mystr]));
+	if(outElecNoiseS2.is_open()) outElecNoiseS2<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-10],sqrt(unNormAcB1L0[0][mystr-10]));
+	if(outElecNoiseS3.is_open()) outElecNoiseS3<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-20],sqrt(unNormAcB1L0[0][mystr-20]));
+	if(outElecNoiseS4.is_open()) outElecNoiseS4<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-30],sqrt(unNormAcB1L0[0][mystr-30]));
 	else cout<<"\nerror in writing to file for electronic noise\n"<<endl;
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
@@ -358,12 +361,12 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   cout<<"file for electronic noise written and closed"<<endl;
 
   TGraphErrors *grEN;
-  TCanvas *cEN = new TCanvas("cEN",Form("electronic noise r%d",runnum1),10,10,1000,1000);
+  TCanvas *cEN = new TCanvas("cEN",Form("electronic noise r%d",runnum),10,10,1000,1000);
   cEN->Divide(2,2);
   cEN->SetGridx(1);
 
   cEN->cd(1);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr), "%lg %lg %lg");
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr), "%lg %lg %lg");
   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
   grEN->GetYaxis()->SetTitle("accumulated counts");
   grEN->SetTitle(Form("counts in plane1 strip %d",mystr));
@@ -371,7 +374,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   grEN->Draw("A*");
 
   cEN->cd(2);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-10), "%lg %lg %lg");
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-10), "%lg %lg %lg");
   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
   grEN->GetYaxis()->SetTitle("accumulated counts");
   grEN->SetTitle(Form("counts in plane1 strip %d",mystr-10));
@@ -379,7 +382,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   grEN->Draw("A*");
 
   cEN->cd(3);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-20), "%lg %lg %lg");
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-20), "%lg %lg %lg");
   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
   grEN->GetYaxis()->SetTitle("accumulated counts");
   grEN->SetTitle(Form("counts in plane1 strip %d",mystr-20));
@@ -387,7 +390,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   grEN->Draw("A*");
 
   cEN->cd(4);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum1,mystr-30), "%lg %lg %lg");
+  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-30), "%lg %lg %lg");
   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
   grEN->GetYaxis()->SetTitle("accumulated counts");
   grEN->SetTitle(Form("counts in plane1 strip %d",mystr-30));
@@ -395,7 +398,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
   grEN->Draw("A*");
 
 
-  TCanvas *cmystrAsym = new TCanvas("cmystrAsym",Form("Strip Asym starting r%d",runnum1),10,10,1500,1100);
+  TCanvas *cmystrAsym = new TCanvas("cmystrAsym",Form("Strip Asym starting r%d",runnum),10,10,1500,1100);
   cmystrAsym->Divide(2,4);
   Int_t n = 0;
   for(Int_t s =mystr; s >(mystr-4); s--) {
@@ -410,7 +413,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     cmystrAsym->Update();
     n++;
   }
-  cmystrAsym->SaveAs(Form("analOut/r%d_AsymStrip%d.png",runnum1,mystr));
+  cmystrAsym->SaveAs(Form("analOut/r%d_AsymStrip%d.png",runnum,mystr));
   
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {        
@@ -421,24 +424,22 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
     }
   }
 
-  for (Int_t runnum = runnum1; runnum <= runnum2; runnum++) {
-    for(Int_t p = startPlane; p < endPlane; p++) {
-      outfileExpAsymP.open(Form("analOut/r%d_expAsymP%d.txt",runnum,p+1));
-      //outfileExpAsymP<<"strip\texpAsym\tasymEr\tasymRMS"<<endl; ///If I want a header for the following text
-      cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
-      for (Int_t s =startStrip; s <endStrip;s++) {    
-	if (maskedStrips(p,s)) continue;
-	outfileExpAsymP<<Form("%2.0f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
-      }
-      outfileExpAsymP.close();
-      cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
+  for(Int_t p = startPlane; p < endPlane; p++) {
+    outfileExpAsymP.open(Form("analOut/r%d_expAsymP%d.txt",runnum,p+1));
+    //outfileExpAsymP<<"strip\texpAsym\tasymEr\tasymRMS"<<endl; ///If I want a header for the following text
+    cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
+    for (Int_t s =startStrip; s <endStrip;s++) {    
+      if (maskedStrips(p,s)) continue;
+      outfileExpAsymP<<Form("%2.0f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
     }
+    outfileExpAsymP.close();
+    cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
   }
   
-  tEnd = time(0);
-  div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to evaluate edetExpAsym.\n",div_output.quot,div_output.rem );  
-  return goodCycles;//the function returns the number of used Laser cycles
+  //tEnd = time(0);
+  //div_output = div((Int_t)difftime(tEnd, tStart),60);
+  //printf("\n it took %d minutes %d seconds to evaluate edetExpAsym.\n",div_output.quot,div_output.rem );  
+  return 1;//the function returns the number of used Laser cycles
 }
 
 /******************************************************
@@ -446,6 +447,7 @@ Int_t edetExpAsym(Int_t runnum1, Int_t runnum2, Float_t stripAsym[nPlanes][nStri
 * why does a repeat execution of the code causes crash of root-session
 * how to properly delete the new TGraphErrors and the new TCanvas and the new TLine 
 * ..created in the code
+* tried to return 'goodCycles' integer but the program didn't do that
 *	//!?what if the run starts with a beamTrip
 ******************************************************/
 

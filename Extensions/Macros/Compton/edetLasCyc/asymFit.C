@@ -4,7 +4,7 @@
 #include "theoryAsym.C"
 #include "edetExpAsym.C"
 
-void asymFit(Int_t runnum1, Int_t runnum2, Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips])
+void asymFit(Int_t runnum, Float_t theoExpRatio[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips])
 {
   Bool_t debug2=0;
   Float_t calcAsym[nStrips];
@@ -12,7 +12,7 @@ void asymFit(Int_t runnum1, Int_t runnum2, Float_t theoExpRatio[nPlanes][nStrips
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
   
   theoryAsym(calcAsym);
-  edetExpAsym(runnum1,runnum2,stripAsym,stripAsymEr,stripAsymRMS);
+  edetExpAsym(runnum,stripAsym,stripAsymEr,stripAsymRMS);
   
   TGraphErrors *grTheoryAsym;
   TGraphErrors *grAsymPlane[nPlanes];
