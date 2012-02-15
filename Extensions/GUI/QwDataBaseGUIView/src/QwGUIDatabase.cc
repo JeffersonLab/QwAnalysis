@@ -309,17 +309,17 @@ main_detectors/lumis - a, y
 
 const char *QwGUIDatabase::ChargeMeasurementTypes[N_Q_MEAS_TYPES]=
   {
-    "yq","a","a12", "aeo", "r", "d"
+    "a","yq","a12", "aeo", "r", "d"
   };
 
 const char *QwGUIDatabase::PositionMeasurementTypes[N_POS_MEAS_TYPES]=
   {
-    "yp", "d", "d12", "deo","r"
+    "d", "yp", "d12", "deo","r"
   };
 
 const char *QwGUIDatabase::DetectorMeasurementTypes[N_DET_MEAS_TYPES]=
   {
-    "y", "a", "a12", "aeo", "r"
+    "a", "y", "a12", "aeo", "r"
   };
 
 const char *QwGUIDatabase::OtherMeasurementTypes[N_MEAS_TYPES]=
@@ -454,7 +454,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dLabPlot            = NULL;
 
   RemoveSelectedDataWindow();
-
+  
   GraphArray.Clear();
   LegendArray.Clear();
 
@@ -547,12 +547,10 @@ void QwGUIDatabase::MakeLayout()
   gStyle->SetPadBorderSize(0);
   gStyle->SetPadGridX(kTRUE);
   gStyle->SetPadGridY(kTRUE);
-  gStyle->SetPadTopMargin(0.1);
-  gStyle->SetPadBottomMargin(0.12);
-  gStyle->SetPadLeftMargin(0.12);  
-  gStyle->SetPadRightMargin(0.04);  
+  gStyle->SetPadBottomMargin(4.0);
   gStyle->SetPadGridX(0);
   gStyle->SetPadGridY(0);
+
   // histo parameters
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(0.8);
@@ -743,6 +741,8 @@ void QwGUIDatabase::MakeLayout()
   Int_t wid = dCanvas->GetCanvasWindowId();
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
   mc->Initialize();
+  mc->SetFillColor(0);
+  mc->SetHighLightColor(0);
   dCanvas->AdoptCanvas(mc);
   dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabase", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
@@ -1024,7 +1024,6 @@ void QwGUIDatabase::PlotGraphs()
 {
   // TString plot = Plots[dCmbPlotType->GetSelected()];
   Int_t ind = 0;
-
   TCanvas *mc = dCanvas->GetCanvas();
   if(plot.Contains("Both"))
     {
@@ -1038,14 +1037,15 @@ void QwGUIDatabase::PlotGraphs()
   TIter next(GraphArray.MakeIterator());
   obj = next();
   while(obj){
-    gPad->SetLogy(0);
+    mc->cd(ind+1);
+    gPad->SetBottomMargin(0.2);
     ((TGraph*)obj)->Draw("ap");
+
     leg = (TLegend*)LegendArray.At(ind);
-    if(leg) leg->Draw("");
+    if(leg!=NULL) leg->Draw("");
     ind++;
     obj = next();
   }
-
   mc->Modified();
   mc->Update();
 
@@ -1093,7 +1093,6 @@ void QwGUIDatabase::ClearData()
   obj = next1->Next();
   while(obj){
     obja.push_back(obj);
-//     delete obj;
     obj = next1->Next();
   }
   delete next1;
@@ -1204,10 +1203,7 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
   dBoxGoodFor->GetSelectedEntries(selected_types);
   TGTextLBEntry *entry;
   TIter next(selected_types);
-  //  TString good_for_check = " AND data.good_for_id is not NULL AND data.good_for_id='";
   TString good_for_check = " AND data.good_for_id is not NULL ";
-
-  Int_t good_for_n = 0;
 
   for(size_t i=0; i<N_GOODFOR_TYPES;i++){ //initialize them as false
 	  good_for[i] = kFALSE;
@@ -1216,8 +1212,6 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
   // validate the entries that are selected.
   while( (entry = (TGTextLBEntry *)next()) ) {
 	  good_for[dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId()-1] = kTRUE;
-
-	  //	  good_for_id.push_back(dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId());
   }
 
   for (size_t i=0; i<N_GOODFOR_TYPES;i++){
@@ -1226,19 +1220,10 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
     }
   }
 
-//   if(good_for_id.size()>0){
-//     good_for_check = good_for_check + Form("%d",good_for_id[0]);
-//     if(good_for_id.size()>1){
-//       for(size_t i=1; i<good_for_id.size() ;i++){
-// 	good_for_check = good_for_check + Form(",%d",good_for_id[i]);
-//       }
-//     }
-//   }
-//   good_for_check = good_for_check + "' ";
 
 
   /*Slope corrections ON/OFF?*/
-  if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="off" || det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
+  if (strcmp((RegressionSchemes[dCmbRegressionType->GetSelected()]),"off") || det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
     // To get the unregressed data when slope correction is on all the schemes will have the same unregressed
     // values. So I can just pick one scheme for the slope_correction option
 
@@ -1431,14 +1416,15 @@ void QwGUIDatabase::PlotDetector()
   gDirectory->Delete();
   gStyle->Reset();
   gStyle->SetTitleYOffset(1.0);
-  gStyle->SetTitleXOffset(0.7);
+  gStyle->SetTitleXOffset(1.0);
   gStyle->SetTitleX(0.2);
   gStyle->SetTitleW(0.6);
   gStyle->SetTitleSize(0.07);
-  gStyle->SetTitleOffset(1.5);
+  gStyle->SetTitleOffset(2.2);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
+  gStyle->SetFrameBorderMode(0);
   gStyle->SetHistMinimumZero();
   gStyle->SetBarOffset(0.25);
   gStyle->SetBarWidth(0.5);
@@ -1448,17 +1434,20 @@ void QwGUIDatabase::PlotDetector()
   gStyle->SetTitleColor(kBlack,"X");
   gStyle->SetTitleColor(kBlack,"Y");
 
+
   if(dDatabaseCont){
 
     TCanvas *mc = dCanvas->GetCanvas();
     mc->Clear();
     mc->SetFillColor(0);
+    mc->SetHighLightColor(0);
+
     if(!(dCmbMeasurementType->IsEnabled())) measurement_type = "sensitivity";
     //
     // Query Database for Data
     //
     mysqlpp::StoreQueryResult read_data;
-    size_t row_size;
+    Int_t row_size;
     read_data = QueryDetector();
     row_size =  read_data.num_rows();
     if(ldebug) std::cout<<" row_size="<<row_size<<"\n";
@@ -1473,20 +1462,24 @@ void QwGUIDatabase::PlotDetector()
     vector <string> xval;
     Double_t val;
     
+    //vectors to fill IHWP IN & Wien right values
     TVectorD x_in(row_size), xerr_in(row_size);
     TVectorD x_out(row_size), xerr_out(row_size);
     TVectorD run_in(row_size), run_out(row_size);
     TVectorD err_in(row_size), err_out(row_size);
     
+    //vectors to fill IHWP IN & Wien left values
     TVectorD x_in_L(row_size), xerr_in_L(row_size);
     TVectorD x_out_L(row_size), xerr_out_L(row_size);
     TVectorD run_in_L(row_size), run_out_L(row_size);
     TVectorD err_in_L(row_size), err_out_L(row_size);
-    
+
+    //vectors to fill bad values
     TVectorD x_bad(row_size), xerr_bad(row_size);
     TVectorD run_bad(row_size);
     TVectorD err_bad(row_size);
     
+    //vectors to fill suspect values
     TVectorD x_suspect(row_size), xerr_suspect(row_size);
     TVectorD run_suspect(row_size);
     TVectorD err_suspect(row_size);
@@ -1558,7 +1551,6 @@ void QwGUIDatabase::PlotDetector()
     Int_t n = 0;
     Int_t o = 0; //bad quality
     Int_t p = 0; //suspect quality
-    Int_t i_rms = 0;//rms will contain all points, no in/out
 
     TGraphErrors* grp_in = NULL;
     TGraphErrors* grp_in_L = NULL;
@@ -1567,6 +1559,7 @@ void QwGUIDatabase::PlotDetector()
     TGraphErrors* grp_bad = NULL;
     TGraphErrors* grp_suspect = NULL;
     TGraphErrors* grp_rms = NULL;
+    TMultiGraph * grp = NULL;
 
     TF1* fit1 = NULL;
     TF1* fit2 = NULL;
@@ -1588,7 +1581,7 @@ void QwGUIDatabase::PlotDetector()
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
     std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
-    for (size_t i = 0; i < row_size; ++i)
+    for (Int_t i = 0; i < row_size; ++i)
       { 	   
 
 	if(x_axis == ID_X_TIME){
@@ -1629,54 +1622,38 @@ void QwGUIDatabase::PlotDetector()
 	    std::cout<<""<<adjust_for_DST<<std::endl;
 	  }
 	}
-
+	// Convert asymmetries  in to ppm, convert differences in to nm/murad
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
-	  if(plot.Contains("RMS") == 1){
-	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
-	    xerr = 0.0;
-	  }
-	  else {
-	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
-	    xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
-            x_rms = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
-	  }
+	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
+	  xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
+	  x_rms = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
 	} 
 	else{
-	  if(plot.Contains("RMS") == 1){
-	    x    = (read_data[i]["rms"]);
-	    xerr = 0.0;
-	  }
-	  else {
-	    x    = read_data[i]["value"];
-	    xerr = read_data[i]["error"];
-            x_rms = (read_data[i]["rms"]);
-	  }
+	  x    = read_data[i]["value"];
+	  xerr = read_data[i]["error"];
+	  x_rms = (read_data[i]["rms"]);
 	}
+     
 	  
         
         //Fist fill the rms stuff without quality checks
-        if(x_axis == ID_X_TIME){
-            run_rms.operator()(i_rms)  = (runtime_start->Convert()) + adjust_for_DST;
+	if(x_axis == ID_X_TIME){
+	  run_rms.operator()(i)  = (runtime_start->Convert()) + adjust_for_DST;
         }
         else if(x_axis == ID_X_RUN){
-	  run_rms.operator()(i_rms)  = read_data[i]["x_value"];
+	  run_rms.operator()(i)  = i;
 	  val = read_data[i]["x_value"];
-	  if(fmod (val*100,100)== 0)
-	    xval.push_back(Form("%5.2f",val ));
-	  else
-	    xval.push_back("");
+	  xval.push_back(Form("%5.2f",val ));
 	}
 	else{
 	  //do nothing for WEIN/SLUG
 	}
 	
-
-	x_rms_all.operator()(i_rms) = x_rms;
-        x_rmserr_all.operator()(i_rms) = 0.0;
-        i_rms++;
+	// Fill the rms vectors
+	x_rms_all.operator()(i) = x_rms;
+        x_rmserr_all.operator()(i) = 0.0;
  
 	// Now fill the mean values
-
         if(read_data[i]["run_quality_id"] == "1"){
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
 	    if (read_data[i]["wien_reversal"]*1 == 1){
@@ -1888,16 +1865,17 @@ void QwGUIDatabase::PlotDetector()
       fit6 -> SetLineColor(kGreen);
     }
     
-//Make RMS graph with all events
-    //run_rms.ResizeTo(i_rms);
-    //x_rms_all.ResizeTo(i_rms);
-    //x_rmserr_all.ResizeTo(i_rms);
-    grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
+    //Make RMS graph with all events
+    if(plot.Contains("RMS")) grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
 
+    // Multigraph for the mean values
+    if(plot.Contains("Mean")) grp = new TMultiGraph();
 
-    TMultiGraph * grp = new TMultiGraph();
-
-
+    if(plot.Contains("Both")){
+      grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
+      grp = new TMultiGraph();
+    }
+    
     TString y_title = GetYTitle(measurement_type, det_id);
     TString title   = GetTitle(measurement_type, device);
     TString x_title;
@@ -1907,89 +1885,87 @@ void QwGUIDatabase::PlotDetector()
       else
 	if(x_axis == ID_X_TIME)x_title = "Slug Number";
 	else x_title = "";
-
-    if(plot.Contains("RMS"))
-      {
-	y_title = "RMS of "+y_title;
-	title   = "RMS of "+title;
-      }
-
-
-    if(m>0)grp->Add(grp_in);
-    if(k>0)grp->Add(grp_out);
-    if(n>0)grp->Add(grp_in_L);
-    if(l>0)grp->Add(grp_out_L);
-    if(o>0)grp->Add(grp_bad);
-    if(p>0)grp->Add(grp_suspect);
-
+    
+    if(grp){
+      if(m>0)grp->Add(grp_in);
+      if(k>0)grp->Add(grp_out);
+      if(n>0)grp->Add(grp_in_L);
+      if(l>0)grp->Add(grp_out_L);
+      if(o>0)grp->Add(grp_bad);
+      if(p>0)grp->Add(grp_suspect);
+    }
+    
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.5f #pm %2.5f", 
+    if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.5f #pm %2.5f (stat)", 
 					  fit1->GetParameter(0), fit1->GetParError(0)), "p");
-    if(n>0) legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.5f #pm %2.5f", 
+    if(n>0) legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.5f #pm %2.5f (stat)", 
 					    fit2->GetParameter(0), fit2->GetParError(0)), "p");
-    if(k>0) legend->AddEntry(grp_out,Form("<OUT_R> = %2.5f #pm %2.5f", 
+    if(k>0) legend->AddEntry(grp_out,Form("<OUT_R> = %2.5f #pm %2.5f (stat)", 
 					  fit3->GetParameter(0), fit3->GetParError(0)), "p");
-    if(l>0) legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.5f #pm %2.5f", 
+    if(l>0) legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.5f #pm %2.5f (stat)", 
 					    fit4->GetParameter(0), fit4->GetParError(0)), "p");
-    if(o>0) legend->AddEntry(grp_bad,Form("<BAD> = %2.5f #pm %2.5f", 
+    if(o>0) legend->AddEntry(grp_bad,Form("<BAD> = %2.5f #pm %2.5f (stat)", 
 					  fit5->GetParameter(0), fit5->GetParError(0)), "p");
-    if(p>0) legend->AddEntry(grp_suspect,Form("<SUSPECT> = %2.5f #pm %2.5f", 
+    if(p>0) legend->AddEntry(grp_suspect,Form("<SUSPECT> = %2.5f #pm %2.5f (stat)", 
 					      fit6->GetParameter(0), fit6->GetParError(0)), "p");
     legend->SetFillColor(0);
 
     
-    AddNewGraph(grp,legend);
+    if(grp) AddNewGraph(grp,legend);
+    if(grp_rms) AddNewGraph(grp_rms,NULL);
     PlotGraphs();
     char * label;
 
+    // format axis to display time
     if(x_axis == ID_X_TIME){
       grp->GetXaxis()->SetTimeDisplay(1);
       grp->GetXaxis()->SetTimeOffset(0,"gmt");
-      grp->GetXaxis()->SetLabelOffset(0.02); 
+      grp->GetXaxis()->SetLabelOffset(0.03); 
       grp->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
       grp->GetXaxis()->Draw();
     }
-    
+
+
     if(x_axis == ID_X_RUN){
       // set the alphanumeric labels for run/slug
-      grp->GetXaxis()->Set(row_size, 0, row_size-1);
+      if(grp) grp->GetXaxis()->Set(row_size, 0, row_size-1); // rebin
+      if(grp_rms) {
+	grp_rms->Draw("ab");
+	grp_rms->GetXaxis()->Set(row_size, 0, row_size-1);
+	gPad->SetBottomMargin(0.2);
+	gPad->Update();
+      }
       for (k=1;k<=row_size;k++) {
-	label = (char*)(xval[k].c_str());
-	(grp->GetXaxis())->SetBinLabel(k,label);
+    	label = (char*)(xval[k].c_str());
+    	if(grp) (grp->GetXaxis())->SetBinLabel(k,label);
+	if(grp_rms) (grp_rms->GetXaxis())->SetBinLabel(k,label);
       }
     }
 
     // For WEIN and SLUG we can just use the values we read.
 
-    
-    grp->SetTitle(title);
-    grp->GetYaxis()->SetTitle(y_title);
-    grp->GetXaxis()->SetTitle(x_title);
-    grp->GetYaxis()->CenterTitle();
-
-    
-    if( plot.Contains("Both")){
-      mc->cd(2);
-      grp_rms->Draw("ab");
-      grp_rms->GetHistogram()->SetXTitle(x_title);
-        grp_rms->GetHistogram()->SetYTitle("RMS of "+y_title);
-        grp_rms->GetYaxis()->CenterTitle();
-        if(x_axis == ID_X_TIME){
-          grp_rms->GetXaxis()->SetTimeDisplay(1);
-          grp_rms->GetXaxis()->SetTimeOffset(0,"gmt");
-          grp_rms->GetXaxis()->SetLabelOffset(0.02); 
-          grp_rms->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
-          grp_rms->GetXaxis()->Draw();
-        }
-        mc->cd();
+    // set titles for mean value graph
+    if(grp){
+      grp->SetTitle(title);
+      grp->GetYaxis()->SetTitle(y_title);
+      grp->GetXaxis()->SetTitle(x_title);
+      grp->GetYaxis()->CenterTitle();
     }
-    else{
-        grp->GetYaxis()->SetTitleOffset(2);
-        grp->GetXaxis()->SetTitleOffset(2);
-        grp->GetYaxis()->SetTitleSize(0.03);
-        grp->GetXaxis()->SetTitleSize(0.03);
-    }
+ 
+    // set titles for rms value graph
+    if(grp_rms){
+      grp_rms->SetTitle(title);
+      grp_rms->GetYaxis()->SetTitle("RMS of "+y_title);
+      grp_rms->GetXaxis()->SetTitle("RMS of "+x_title);
+      grp_rms->GetYaxis()->CenterTitle();
+    }   
 
+    if(plot.Contains("Both")){
+      mc->cd(1);
+      gPad->SetBottomMargin(0.2);
+      gPad->Modified();
+      gPad->Update();
+    }
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
@@ -2016,7 +1992,7 @@ void QwGUIDatabase::PlotDetector()
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
-    
+
   }
   
   
@@ -2087,7 +2063,7 @@ void QwGUIDatabase::HistogramDetector()
     //
     // Loop Over Results and Fill Vectors
     //
-    size_t row_size =  read_data.num_rows();
+    Int_t row_size =  read_data.num_rows();
     if(ldebug) std::cout<<" row_size="<<row_size<<"\n";
 
     //check for empty queries. If empty exit with error.
@@ -2098,8 +2074,9 @@ void QwGUIDatabase::HistogramDetector()
     }
 
     TH1F all_runs("all_runs","all_runs",1000,0,0);
-    Float_t x = 0.0 , xerr = 0.0;
-    for (size_t i = 0; i < row_size; ++i){
+    Float_t x = 0.0, xerr = 0.0;
+
+    for (Int_t i = 0; i < row_size; ++i){
       if(measurement_type =="a" || measurement_type =="aeo" 
 	 || measurement_type =="a12" || measurement_type =="d" 
 	 || measurement_type =="deo" || measurement_type =="d12"){
@@ -2150,7 +2127,7 @@ void QwGUIDatabase::HistogramDetector()
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
     std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
-    for (size_t i = 0; i < row_size; ++i)
+    for (Int_t i = 0; i < row_size; ++i)
       { 	    
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
 	  if(plot.Contains("RMS") == 1){
@@ -2300,17 +2277,17 @@ void QwGUIDatabase::HistogramDetector()
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R>  = %2.4f #pm %2.4f", 
+    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R>  = %2.4f #pm %2.4f (stat)", 
 				  fit1->GetParameter(1), fit1->GetParError(1)), "p");
-    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> = %2.4f #pm %2.4f", 
+    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> = %2.4f #pm %2.4f (stat)", 
 				  fit2->GetParameter(1), fit2->GetParError(1)), "p");
-    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L>  = %2.4f #pm %2.4f", 
+    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L>  = %2.4f #pm %2.4f (stat)", 
 				  fit3->GetParameter(1), fit3->GetParError(1)), "p");
-    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> = %2.4f #pm %2.4f", 
+    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> = %2.4f #pm %2.4f (stat)", 
 				  fit4->GetParameter(1), fit4->GetParError(1)), "p");
-    if(o>0) legend->AddEntry(h_bad,Form("<BAD> = %2.4f #pm %2.4f", 
+    if(o>0) legend->AddEntry(h_bad,Form("<BAD> = %2.4f #pm %2.4f (stat)", 
 				  fit5->GetParameter(1), fit5->GetParError(1)), "p");
-    if(p>0) legend->AddEntry(h_suspect,Form("<SUSPECT> = %2.4f #pm %2.4f", 
+    if(p>0) legend->AddEntry(h_suspect,Form("<SUSPECT> = %2.4f #pm %2.4f (stat)", 
 				  fit6->GetParameter(1), fit6->GetParError(1)), "p");
 
 
@@ -2385,7 +2362,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
   if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
     ytitle = "Asymmetry (ppm)";
 
-  if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" )
+  if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" ){
     if (det_id == ID_E_CAL) ytitle  = "Energy Asymetry (ppm)";
     else if (det_id == ID_CMB_BPM ){
       if(property.Contains("Slope")){ //angles
@@ -2399,7 +2376,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
     }
     else
       ytitle = "Beam Position Differences (nm)";
-
+  }
   
   if (measurement_type == "yq"){
     if (det_id == ID_BCM || det_id == ID_CMB_BCM )  ytitle  = "Current (#muA)";
@@ -2407,7 +2384,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
       ytitle  = "Effective Charge (arbitary units)";
   }
   
-  if (measurement_type == "yp")
+  if (measurement_type == "yp"){
     if (det_id == ID_E_CAL)  ytitle  = "Relative Momentum Change dP/P";
     else if (det_id == ID_CMB_BPM ){
       if(property.Contains("Slope")) //angles
@@ -2418,7 +2395,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
 	ytitle  = "Beam Position (mm)";
     }else
       ytitle = "Beam Position (mm)";
-  
+  }
   if (measurement_type == "s")
     ytitle = "Sensitivity (ppm/mm)";
 
