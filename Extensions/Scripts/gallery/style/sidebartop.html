@@ -10,3 +10,8 @@
         <td>
            <div class="sidebar">
            <!-- Sidebar menu begin -->
+           <!--#if expr="${QUERY_STRING} == /print/" -->
+           <!-- No sidebar when in printable mode -->
+           <!--#else -->
+           <ul>
+

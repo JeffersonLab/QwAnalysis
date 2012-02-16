@@ -2,7 +2,6 @@
 <!-- No sidebar when in printable mode -->
 <!--#else -->
 <ul>
-  <li id="new"><a href="/private/wdconinc/gallery/index.html" title="Home">Home</a></li>
   <!--#include virtual="/private/wdconinc/gallery/sidebar.html" -->
 </ul>
 <!--#endif -->
