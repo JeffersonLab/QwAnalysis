@@ -79,8 +79,16 @@ QwRegression::QwRegression(QwOptions &options)
 } 
 
 
-QwRegression::QwRegression(const QwRegression &source){
-    Copy(&source);
+QwRegression::QwRegression(const QwRegression &source)
+{
+    this->fDependentVar.resize(source.fDependentVar.size());
+    fDependentVarType.resize(source.fDependentVar.size());
+    for (size_t i = 0; i < this->fDependentVar.size(); i++) {
+      const QwVQWK_Channel* vqwk = dynamic_cast<const QwVQWK_Channel*>(source.fDependentVar[i].second);
+      this->fDependentVar[i].first = NULL;
+      this->fDependentVar[i].second = new QwVQWK_Channel(*vqwk);
+      fDependentVarType[i] = source.fDependentVarType[i];
+    }
 }
 
 /// Destructor
@@ -244,8 +252,7 @@ Int_t QwRegression::ConnectChannels(
         vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
         name = vqwk->GetElementName().Data();
         name.insert(0, reg);
-        new_vqwk = new QwVQWK_Channel();
-        new_vqwk->Copy(vqwk);
+        new_vqwk = new QwVQWK_Channel(*vqwk);
         new_vqwk->SetElementName(name);
     }
 
@@ -353,8 +360,7 @@ Int_t QwRegression::ConnectChannels(
         vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
         name = vqwk->GetElementName().Data();
         name.insert(0, reg);
-        new_vqwk = new QwVQWK_Channel();
-        new_vqwk->Copy(vqwk);
+        new_vqwk = new QwVQWK_Channel(*vqwk);
         new_vqwk->SetElementName(name);
     }
 
@@ -451,9 +457,8 @@ Int_t QwRegression::ConnectChannels(QwSubsystemArrayParity& event)
 
 	vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
         name = vqwk->GetElementName().Data();
-        new_vqwk = new QwVQWK_Channel();
-        new_vqwk->Copy(vqwk);
         name.insert(0,reg);
+        new_vqwk = new QwVQWK_Channel(*vqwk);
         new_vqwk->SetElementName(name);
       }
     }
@@ -591,25 +596,7 @@ void QwRegression::FillTreeVector(std::vector<Double_t>& values) const
   }
 };
 
-/**
- * Copy constructor
- * @param QwRegression souce
- */
-void QwRegression::Copy (const QwRegression *source)
-{
-    this->fDependentVar.resize(source->fDependentVar.size());
-    fDependentVarType.resize(source->fDependentVar.size());
-    for (size_t i = 0; i < this->fDependentVar.size(); i++) {
-      this->fDependentVar[i].first = NULL;
-      this->fDependentVar[i].second = new QwVQWK_Channel();
-      this->fDependentVar[i].second->Copy(source->fDependentVar[i].second);
-      fDependentVarType[i] = source->fDependentVarType[i];
-    }
     
-    return; 
-}
-
-
 void QwRegression::AccumulateRunningSum(QwRegression value)
 {
   for (size_t i = 0; i < value.fDependentVar.size(); i++){

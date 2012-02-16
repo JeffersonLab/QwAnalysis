@@ -150,6 +150,21 @@
         num_samples
         sequence_number
 
+   <QwCombinedPMT>
+        block0
+        block0_raw
+        block1
+        block1_raw
+        block2
+        block2_raw
+        block3
+        block3_raw
+	hw_sum
+        hw_sum_raw
+        Device_Error_Code
+        num_samples
+        sequence_number
+
 [BeamMod]
    <QwBeamMod>
         block0

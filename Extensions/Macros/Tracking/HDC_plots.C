@@ -122,49 +122,49 @@ void HDC_plots(char* run_name){
   int t0_full = 0;
   int td_full = 0;
   c2->cd(1);
-  event_tree->Draw("events.fQwHits.fTime>>T1","fPlane<7&&fRegion==2&&fPackage==2");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T1","fPlane<7&&fRegion==2&&fPackage==2");
   T1->GetXaxis()->SetRangeUser(t0,td);
-  T1->SetTitle("Hokie 2: fTime");
+  T1->SetTitle("Hokie 2: fTimeNs");
  
 
   c2->cd(2);
-  event_tree->Draw("events.fQwHits.fTime>>T2","fPlane>6&&fPlane!=10&&fRegion==2&&fPackage==2");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T2","fPlane>6&&fPlane!=10&&fRegion==2&&fPackage==2");
   T2->GetXaxis()->SetRangeUser(t0,td);
-  T2->SetTitle("Hokie 3: fTime ");
+  T2->SetTitle("Hokie 3: fTimeNs ");
   
   c2->cd(3);
-  event_tree->Draw("events.fQwHits.fTime>>T3","fPlane<7&&fRegion==2&&fPackage==1");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T3","fPlane<7&&fRegion==2&&fPackage==1");
   T3->GetXaxis()->SetRangeUser(t0,td);
-  T3->SetTitle("Hokie 4: fTime");
+  T3->SetTitle("Hokie 4: fTimeNs");
 
   c2->cd(4);
-  event_tree->Draw("events.fQwHits.fTime>>T4","fPlane>6&&fRegion==2&&fPackage==1");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T4","fPlane>6&&fRegion==2&&fPackage==1");
   T4->GetXaxis()->SetRangeUser(t0,td);
-  T4->SetTitle("Hokie 5: fTime");
+  T4->SetTitle("Hokie 5: fTimeNs");
 
   c2->cd(5);
-  event_tree->Draw("events.fQwHits.fTime>>T5","fPlane<7&&fRegion==2&&fPackage==2");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T5","fPlane<7&&fRegion==2&&fPackage==2");
   gPad->SetLogy(1);
   //T5->GetXaxis()->SetRangeUser(t0_full,td_full);
-  T5->SetTitle("Hokie 2: fTime-Log Scale");
+  T5->SetTitle("Hokie 2: fTimeNs-Log Scale");
 
   c2->cd(6);
-  event_tree->Draw("events.fQwHits.fTime>>T6","fPlane>6&&fPlane!=10&&fRegion==2&&fPackage==2");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T6","fPlane>6&&fPlane!=10&&fRegion==2&&fPackage==2");
   gPad->SetLogy(1);
   //T6->GetXaxis()->SetRangeUser(t0_full,td_full);
-  T6->SetTitle("Hokie 3: fTime-Log Scale");  
+  T6->SetTitle("Hokie 3: fTimeNs-Log Scale");  
 
   c2->cd(7);
-  event_tree->Draw("events.fQwHits.fTime>>T7","fPlane<7&&fRegion==2&&fPackage==1");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T7","fPlane<7&&fRegion==2&&fPackage==1");
   gPad->SetLogy(1);
   //T7->GetXaxis()->SetRangeUser(t0_full,td_full);
-  T7->SetTitle("Hokie 4: fTime-Log Scale");
+  T7->SetTitle("Hokie 4: fTimeNs-Log Scale");
 
   c2->cd(8);
-  event_tree->Draw("events.fQwHits.fTime>>T8","fPlane>6&&fRegion==2&&fPackage==1");
+  event_tree->Draw("events.fQwHits.fTimeNs>>T8","fPlane>6&&fRegion==2&&fPackage==1");
   gPad->SetLogy(1);
   //T8->GetXaxis()->SetRangeUser(t0_full,td_full);
-  T8->SetTitle("Hokie 5: fTime-Log Scale");
+  T8->SetTitle("Hokie 5: fTimeNs-Log Scale");
 
 
 

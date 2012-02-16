@@ -36,10 +36,13 @@ class  QwHaloMonitor : public VQwDataElement{
   QwHaloMonitor(TString name){
     InitializeChannel(name);
   };
-
   QwHaloMonitor(TString subsystemname, TString name){
     InitializeChannel(subsystemname, name);
   };
+  QwHaloMonitor(const QwHaloMonitor& source)
+  : VQwDataElement(source),
+    fHalo_Counter(source.fHalo_Counter)
+  { }
   virtual ~QwHaloMonitor() { };
 
   void  InitializeChannel(TString name);
@@ -72,9 +75,6 @@ class  QwHaloMonitor : public VQwDataElement{
   void Ratio(QwHaloMonitor &numer, QwHaloMonitor &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
-  void ScaleRawRate(Double_t Offset){
-    fHalo_Counter.ScaleRawRate(Offset);
-  };
 
   void     SetPedestal(Double_t ped) { fHalo_Counter.SetPedestal(ped); };
   void     SetCalibrationFactor(Double_t factor) { fHalo_Counter.SetCalibrationFactor(factor); };
@@ -91,7 +91,7 @@ class  QwHaloMonitor : public VQwDataElement{
 
   void UpdateEventcutErrorFlag(QwHaloMonitor *ev_error);
 
-  Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t  GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   Bool_t ApplyHWChecks();
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
     fHalo_Counter.SetSingleEventCuts(errorflag,min,max,stability);
@@ -120,7 +120,6 @@ class  QwHaloMonitor : public VQwDataElement{
   Double_t GetValue() {
     return fHalo_Counter.GetValue();
   }
-  void  Copy(const VQwDataElement *source);
 
   void  PrintValue() const;
   void  PrintInfo() const;

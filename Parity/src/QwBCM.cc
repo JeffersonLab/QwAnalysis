@@ -174,7 +174,7 @@ Bool_t QwBCM<T>::ApplySingleEventCuts()
 
 template<typename T>
 Int_t QwBCM<T>::GetEventcutErrorCounters()
-{// report number of events falied due to HW and event cut faliure
+{// report number of events failed due to HW and event cut faliure
   return fBeamCurrent.GetEventcutErrorCounters();
 }
 
@@ -470,26 +470,6 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
       fBeamCurrent.FillTreeVector(values);
       // this functions doesn't do anything yet
     }
-}
-
-/********************************************************/
-template<typename T>
-void QwBCM<T>::Copy(const VQwDataElement *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwBCM::Copy(source);
-      const QwBCM<T>* input = dynamic_cast<const QwBCM<T>*>(source);
-      this->fBeamCurrent.Copy(&(input->fBeamCurrent));
-    } else {
-      TString loc="Standard exception from QwBCM::Copy = "
-          +source->GetElementName()+" "
-          +this->GetElementName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
 }
 
 template<typename T>

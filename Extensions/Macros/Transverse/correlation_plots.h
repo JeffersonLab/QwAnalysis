@@ -35,6 +35,10 @@
 #include <TBox.h>
 #include <TPaveText.h>
 #include <TObject.h>
+#include <TChain.h>
+#include <TSystem.h>
+#include <TChainElement.h>
+
 #include "correlations.cc"
 
 void main_detector_correlations(TString  device_list[], TCanvas *Canvas); 

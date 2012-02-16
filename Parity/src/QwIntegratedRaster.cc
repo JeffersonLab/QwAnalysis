@@ -163,7 +163,7 @@ Int_t QwIntegratedRaster::LoadChannelMap(TString mapfile)
       fDetectorIDs[i].Print();
   }
   ldebug=kFALSE;
-
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -282,6 +282,8 @@ Int_t QwIntegratedRaster::LoadInputParameters(TString pedestalfile)
   if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
+  mapstr.Close(); // Close the file (ifstream)
+
   return 0;
 }
 
@@ -386,7 +388,7 @@ Bool_t QwIntegratedRaster::ApplySingleEventCuts(){
   }
 
   if (!status) 
-    fQwIntegratedRasterErrorCount++;//falied  event counter for QwIntegratedRaster
+    fQwIntegratedRasterErrorCount++;//failed  event counter for QwIntegratedRaster
 
   return status;
 }
@@ -705,37 +707,6 @@ void  QwIntegratedRasterDetectorID::Print() const
   std::cout<<"Subelement index= "<<
     fSubelement<<std::endl;
   std::cout<<"==========================================\n";
-}
-
-//*****************************************************************
-void  QwIntegratedRaster::Copy(const VQwSubsystem *source)
-{
-
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  VQwSubsystem::Copy(source);
-	  const QwIntegratedRaster* input= dynamic_cast<const QwIntegratedRaster*>(source);
-
-	  this->fIntegratedRasterChannel.resize(input->fIntegratedRasterChannel.size());
-	  for(size_t i=0;i<this->fIntegratedRasterChannel.size();i++)
-	    this->fIntegratedRasterChannel[i].Copy(&(input->fIntegratedRasterChannel[i]));
-      
-	}
-      else
-	{
-	  TString loc="Standard exception from QwIntegratedRaster::Copy = "
-	    +source->GetSubsystemName()+" "
-	    +this->GetSubsystemName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-  // this->Print();
 }
 
 //*****************************************************************

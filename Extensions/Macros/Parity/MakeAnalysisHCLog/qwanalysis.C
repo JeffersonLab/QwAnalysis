@@ -2,7 +2,7 @@
 /*                              Nuruzzaman                                */
 /*                              03/10/2011                                */
 /*                                                                        */
-/*                        Last Edited:11/24/2011                          */
+/*                        Last Edited:12/19/2012                          */
 /*                                                                        */
 /* PLEASE CONSULT WITH ME BEFORE CHANGING THE SCRIPT. IF NEEDED YOU CAN   */
 /* HAVE YOUR COPY AND EDIT THERE.TRY NOT TO USE qwanalysis DIRECTORY.     */
@@ -12,6 +12,7 @@
 /* for the user. Manual at the bottom of this macro for its use           */
 /**************************************************************************/
 //gROOT->Reset();
+// B. Waidyawansa : 12-21-2011 Adding transmission plots
 #include "NurClass.h"
 
 
@@ -19,6 +20,7 @@
 //void prepareHCLog();
 void qwanalysis(UInt_t run_number=0, Int_t hclog_switch=-1);
 void qwanalysis(TString rootfile, UInt_t run_number=0, Int_t hclog_switch=-1);
+void PlotBPM_effectiveq_asyms(TTree* tree, TPad * pad);
 
 
 
@@ -33,6 +35,8 @@ void qwanalysis(UInt_t run_number, Int_t hclog_switch)
 
   // TString rootname(Form("/home/nur/scratch/rootfiles/first100k_%d.root",gRunNumber));
   TString rootname(Form("$QW_ROOTFILES/first100k_%d.root",gRunNumber));
+  //  TString rootname(Form("$QW_ROOTFILES/inj_parity_%d.000.trees.root",gRunNumber));
+
   // TString rootname(Form("$QW_ROOTFILES/QwPass1_%d.000.root",gRunNumber));
 
   gPlotDir = "/net/cdaqfs/home/cdaq/users/qwanalysis/plots";
@@ -65,13 +69,24 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   }
 
 
-  Bool_t MDPMT=kTRUE; Bool_t CHARGE=kTRUE; Bool_t CHARGEDD=kTRUE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kTRUE; 
-  Bool_t MDYIELDVAR=kTRUE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kTRUE; Bool_t SENSITIVITY=kTRUE; 
-  Bool_t MDLUMI=kTRUE; Bool_t USLUMI=kTRUE; Bool_t USLUMISEN=kTRUE; Bool_t BMODSEN=kTRUE;
-//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kFALSE; 
+  Bool_t MDPMT=kTRUE; 
+  Bool_t CHARGE=kTRUE; 
+  Bool_t CHARGEDD=kTRUE; 
+  Bool_t BMODCYCLE=kTRUE; 
+  Bool_t BPMS=kTRUE; 
+  Bool_t MDYIELDVAR=kTRUE; 
+  Bool_t MDBKG=kTRUE; 
+  Bool_t MDALLASYM=kTRUE; 
+  Bool_t SENSITIVITY=kTRUE; 
+  Bool_t MDLUMI=kTRUE; 
+  Bool_t USLUMI=kTRUE; 
+  Bool_t USLUMISEN=kTRUE; 
+  Bool_t BMODSEN=kTRUE;
+  Bool_t BPM_EFAQ=kTRUE;
+//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kTRUE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
 //     Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kFALSE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
 //     Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
-//     Bool_t BMODSEN=kTRUE;
+//     Bool_t BMODSEN=kFALSE;
   
   //  UInt_t gRunNumber = 0;
   char run0[255],run[255],run100k[255],sline[255],dline[255],ssline[255],sslinen[255];
@@ -134,7 +149,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
 
   th->Draw("yield_qwk_charge>>cur",Form("%s && yield_qwk_charge.%s",s1,s2),"goff");
-  th->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6>>bcmdd",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",s1,s2,s2),"goff");
+  th->Draw("(asym_qwk_bcm7-asym_qwk_bcm8)*1e6>>bcmdd",Form("%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",s1,s2,s2),"goff");
   th->Draw("asym_qwk_charge*1e6>>abcm",Form("%s && asym_qwk_charge.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_targetX>>mdxsen",
@@ -166,7 +181,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   const Int_t NUM = 8, NUM1 = 5,NUM2 = 6, NUM3 = 3, NUM4 = 4, NUM7 = 7, NUM15 = 15;
   TString bcms[NUM7] = {"charge","bcm1","bcm2","bcm5","bcm6","bcm7","bcm8"};
-  TString bcms2[NUM2] = {"bcm1","bcm1","bcm5","bcm5","bcm7","bcm7"};
+  TString bcms2[NUM2] = {"bcm1","bcm1","bcm5","bcm5","bcm7","bcm8"};
   TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm1"};
   TString bcms4[NUM15] = {"bcm1","bcm1","bcm1","bcm1","bcm1","bcm2","bcm2","bcm2","bcm2","bcm5","bcm5","bcm5","bcm6","bcm6","bcm7"};
   TString bcms5[NUM15] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm5","bcm6","bcm7","bcm8","bcm6","bcm7","bcm8","bcm7","bcm8","bcm8"};
@@ -180,6 +195,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TString bmod[NUM2] = {"ramp","fgx1","fgx2","fge","fgy1","fgy2"};
 
   char pcharge[255],pchargeasym[255],pchargeddasym[255],pbpmd[255],pmdyield[255],pmdasym[255],pmdallasym[255],pmdallsenx[255],pmdallseny[255],pdslumiyield[255],pdslumiasym[255],plumisenx[255],plumiseny[255],pmodulation[255],puslumi[255],puslumisen[255],pmdyieldvar[255],pmdbkg[255],psenbmod[255];
+  char pbpmefcharge[255];
+
   sprintf(pcharge,"%s/%dCharge.png",gPlotDir.Data(),gRunNumber);
   sprintf(pchargeasym,"%s/%dChargeAsym.png",gPlotDir.Data(),gRunNumber);
   sprintf(pchargeddasym,"%s/%dChargeDDAsym.png",gPlotDir.Data(),gRunNumber);
@@ -199,6 +216,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   sprintf(plumiseny,"%s/%dLumiYSensitivity.png",gPlotDir.Data(),gRunNumber);
   sprintf(puslumi,"%s/%dUSLumiYieldAsym.png",gPlotDir.Data(),gRunNumber);
   sprintf(puslumisen,"%s/%dUSLumiSensitivity.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pbpmefcharge,"%s/%dBPMEffectiveCharge.png",gPlotDir.Data(),gRunNumber);
+
 
 //   char txtcharge[255],txtchargeasym[255];
 //   char comontext[255],txtcharge1[255],txtchargeasym1[255];
@@ -516,7 +535,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TPad* pad31 = NewFramedPad(kCyan-10, kWhite, "Charge Double Difference Asymmetry (ppm)");
   //   pad30 = new TPad("pad30","pad30",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
   //   pad31 = new TPad("pad31","pad31",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
-  //   pad30->SetFillColor(kCyan-10);
+  //   pad30->SetF20illColor(kCyan-10);
   //   pad31->SetFillColor(kWhite);
   //   pad30->Draw();
   //   pad31->Draw();
@@ -710,7 +729,20 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
     gPad->Update();
   }
-  c4->Update(); c4->SaveAs(pbpmd);}
+  c4->Update(); c4->SaveAs(pbpmd);
+  }
+
+  /****************************************************************************/
+  /*Plot bpm effective charge*/
+  if(BPM_EFAQ){
+    TCanvas *c20 = new TCanvas("c20", CanvasTitle("BPM Effective Charge Asymmetry (ppm)"),40,40,csizx,csizy);
+    TPad* pad20 = NewFramedPad(kOrange-9, kWhite, "BPM Effective Charge Asymmetry (ppm)");
+    printf("%sPlotting %sBPM effective charge asymmetry (ppm)%s\n",blue,red,normal);
+    PlotBPM_effectiveq_asyms(th, pad20);
+    c20->Update(); 
+    c20->SaveAs(pbpmefcharge);
+  }
+
 
   gStyle->SetTitleSize(0.04);
   gStyle->SetTitleYSize(0.04);
@@ -1740,7 +1772,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   printf(ssline);
   printf("%s|%sI                        \t%s|%suA    \t%s|%s%s%s      \t|%s\n",green,blue,green,blue,green,red,gCurrent.Data(),green,normal);
   printf("%s|%sMDALLBARS width          \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
-  printf("%s|%sBCM12-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
+  printf("%s|%sBCM78-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
   printf("%s|%sA_q mean                 \t%s|%sppm   \t%s|%s%2.2f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
   printf("%s|%sA_q width                \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
   printf("%s|%sMDALLBARS X-sens.        \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdxsen,cal_emdxsen,green,normal);
@@ -1797,7 +1829,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 	  << sslinen
 	  << Form("|I                        \t|uA    \t|%s      \t|\n",gCurrent.Data())
 	  << Form("|MDALLBARS width          \t|ppm   \t|%2.1f        \t|\n",cal_mdalla)
-	  << Form("|BCM12-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
+	  << Form("|BCM78-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
 	  << Form("|A_q mean                 \t|ppm   \t|%2.2f        \t|\n",cal_abcmm)
 	  << Form("|A_q width                \t|ppm   \t|%2.1f        \t|\n",cal_abcm)
 	  << Form("|MDALLBARS X-sens.        \t|ppm/mm\t|%2.1f+-%1.1f \t|\n",cal_mdxsen,cal_emdxsen)
@@ -1829,7 +1861,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     hclog_post_string += WrapParameter("author", user_name_hclog);
     hclog_post_string += WrapParameter("emailto",email_list);
     hclog_post_string += "--tag=\"This is logged by hclog_post and qwanalysis\" ";
-    //    hclog_post_string += "  --test ";
+    // hclog_post_string += "  --test ";
     hclog_post_string += "  --cleanup ";
 
     hclog_post_string += WrapParameter("subject", MakeSubject());
@@ -1838,6 +1870,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     hclog_post_string += WrapAttachment(pchargeasym);
     hclog_post_string += WrapAttachment(pchargeddasym);
     hclog_post_string += WrapAttachment(pbpmd);
+    hclog_post_string += WrapAttachment(pbpmefcharge);
     hclog_post_string += WrapAttachment(pmdallasym);
     hclog_post_string += WrapAttachment(pmdasym);
     hclog_post_string += WrapAttachment(pmdallsenx);
@@ -1887,3 +1920,146 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 /*       'users/qwanalysis/plots/'                                                                    */
 /*       Type 'display filename.png' & 'emacs filename.txt' to view the figures & run information.    */
 /******************************************************************************************************/
+
+
+/*A function to plot bpm effective charge across hallc beamline*/
+void PlotBPM_effectiveq_asyms(TTree* tree, TPad * pad)
+{
+    
+  const Int_t ndevices = 45;
+  
+  TString devicelist[ndevices]=
+  {
+    "1i02","1i04","1i06","0i02","0i02a","0i05","0i07","0l01","0l02","0l03",
+    "0l04","0l05","0l06","0l07","0l08","0l09","0l10","0r03","0r04",
+    "0r05","0r06",
+    "bpm3c07","bpm3c07a","bpm3c08","bpm3c11","bpm3c12","bpm3c14","bpm3c16","bpm3c17",
+    "bpm3c18","bpm3c19","bpm3p02a","bpm3p02b","bpm3p03a","bpm3c20","bpm3c21","bpm3h02",
+    "bpm3h04","bpm3h07a","bpm3h07b","bpm3h07c","bpm3h08","bpm3h09","bpm3h09b","target"
+  };
+
+
+  gStyle->Reset();
+  gStyle->SetOptTitle(1);
+  gStyle->SetStatColor(10);  
+  gStyle->SetStatH(0.4);
+  gStyle->SetStatW(0.3);     
+  gStyle->SetOptStat(1110); 
+  gStyle->SetOptStat(1); 
+
+
+  // canvas parameters
+  gStyle->SetFrameBorderMode(0);
+  gStyle->SetFrameBorderSize(0);
+  gStyle->SetFrameFillColor(10);
+
+  // pads parameters
+  gStyle->SetPadColor(0); 
+  gStyle->SetPadBorderMode(0);
+  gStyle->SetPadBorderSize(0);
+  gStyle->SetPadTopMargin(0.05);
+  gStyle->SetPadBottomMargin(0.2);
+  gStyle->SetPadLeftMargin(0.07);  
+  gStyle->SetPadRightMargin(0.05);  
+  gStyle->SetLabelSize(0.07,"x");
+  gStyle->SetLabelSize(0.04,"y");
+  gStyle->SetPadGridX(kTRUE);
+  gStyle->SetPadGridY(kTRUE);
+
+
+  pad->Divide(1,2);
+
+  TString command;
+  TString cut;
+  std::vector<TString>  names;
+  TVectorD  mean(0);
+  TVectorD  width(0);	
+  TVectorD  meanerr(0);
+  TVectorD  fakeerr(0);
+  TVectorD  fakename(0);
+  names.clear();
+
+  Int_t k = 0;
+
+  for(Int_t i=0; i<ndevices; i++) {  
+    command = Form("asym_qwk_%s_EffectiveCharge.hw_sum*1e6>>htemp",devicelist[i].Data());
+    cut =  Form("asym_qwk_%s_EffectiveCharge.Device_Error_Code == 0 && ErrorFlag == 0",
+		devicelist[i].Data());
+    tree->Draw(command, cut, "goff");
+    
+    TH1 * h1 = (TH1D*)gDirectory->Get("htemp");
+    if(!h1) exit(1);
+    mean.ResizeTo(k+1);
+    width.ResizeTo(k+1);	
+    meanerr.ResizeTo(k+1);
+    fakeerr.ResizeTo(k+1);
+    fakename.ResizeTo(k+1);
+    
+    Double_t meanl = h1->GetMean();
+    
+    std::cout<<"Getting data from : "<<devicelist[i]<<std::endl;
+    mean.operator()(k) = meanl;
+    width.operator()(k) = h1->GetRMS();
+    meanerr.operator()(k) = (h1->GetMeanError());
+    fakeerr.operator()(k) = (0.0);
+    fakename.operator()(k) =(k+1);
+    names.push_back(devicelist[i]);
+    k++;
+  }
+
+  std::cout<<"here\n";
+  Int_t size = mean.GetNoElements();
+
+
+  TGraphErrors* grp = new TGraphErrors(fakename, mean, fakeerr,meanerr);
+  grp->SetMarkerColor(2);
+  grp->SetMarkerStyle(21);
+  grp->SetMarkerSize(1);
+  grp->SetTitle("");
+  grp->GetYaxis()->SetTitle("Effective Charge Asymmetry (ppm)");
+  grp->GetYaxis()->SetTitleOffset(0.7);
+
+  TGraph* grw = new TGraph(fakename, width);
+  grw->SetMarkerColor(2);
+  grw->SetMarkerStyle(21);
+  grw->SetMarkerSize(1);
+  grw->SetTitle("");
+  grw->GetYaxis()->SetTitle("Width (ppm)");
+  grw->GetYaxis()->SetTitleOffset(0.7);
+  
+  pad->cd(1);
+  TAxis *axis = grp->GetHistogram()->GetXaxis();
+  axis->SetLabelOffset(999);
+  Double_t ypos =  grp->GetHistogram()->GetMaximum()-grp->GetHistogram()->GetMinimum();
+  Double_t ylabel = grp->GetHistogram()->GetMinimum() - 0.01*ypos;
+  grp->Draw("AEP");
+
+  TText t;
+  t.SetTextSize(0.04);
+  t.SetTextAlign(31);
+  t.SetTextAngle(90);
+  for (Int_t i=0;i<size;i++){
+    t.DrawText(fakename[i],ylabel,names[i]);
+  }
+
+  pad->cd(2);
+  axis = grw->GetHistogram()->GetXaxis();
+  axis->SetLabelOffset(999);
+  ypos =  grw->GetHistogram()->GetMaximum()-grw->GetHistogram()->GetMinimum();
+  ylabel = grw->GetHistogram()->GetMinimum() - 0.01*ypos;
+  grw->Draw("APB");
+
+  t.SetTextSize(0.04);
+  t.SetTextAlign(31);
+  t.SetTextAngle(90);
+  for (Int_t i=0;i<size;i++){
+    t.DrawText(fakename[i],ylabel,names[i]);
+  }
+
+  gPad->Update();
+  std::cout<<"Done plotting!\n";
+};
+
+
+
+

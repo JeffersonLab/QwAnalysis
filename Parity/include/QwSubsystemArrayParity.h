@@ -33,14 +33,15 @@ class QwPromptSummary;
  */
 class QwSubsystemArrayParity: public QwSubsystemArray {
 
- public:
+  private:
 
-    /// Default constructor
-    QwSubsystemArrayParity(): QwSubsystemArray(CanContain),fErrorFlag(0),fErrorFlagTreeIndex(-1){ };
+    /// Private default constructor
+    QwSubsystemArrayParity(); // not implement, will thrown linker error on use
+
+  public:
+
     /// Constructor with options
     QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options, CanContain),fErrorFlag(0),fErrorFlagTreeIndex(-1) { };
-    /// Constructor with map file
-    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename, CanContain),fErrorFlag(0),fErrorFlagTreeIndex(-1) { };
     /// Copy constructor by reference
     QwSubsystemArrayParity(const QwSubsystemArrayParity& source);
     /// Default destructor
@@ -66,8 +67,6 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     QwSubsystemArrayParity& operator+= (const QwSubsystemArrayParity &value);
     /// \brief Subtraction-assignment operator
     QwSubsystemArrayParity& operator-= (const QwSubsystemArrayParity &value);
-    /// \brief Copy a subsystem array
-    void Copy(const QwSubsystemArrayParity *source);
     /// \brief Sum of two subsystem arrays
     void Sum(const QwSubsystemArrayParity &value1, const QwSubsystemArrayParity &value2);
     /// \brief Difference of two subsystem arrays

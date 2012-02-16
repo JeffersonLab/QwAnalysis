@@ -41,6 +41,14 @@ class QwIntegrationPMT : public VQwDataElement{
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,"raw");
   };
+  QwIntegrationPMT(const QwIntegrationPMT& source)
+  : VQwDataElement(source),
+    fPedestal(source.fPedestal),
+    fCalibration(source.fCalibration),
+    fTriumf_ADC(source.fTriumf_ADC),
+    fIsBlindable(source.fIsBlindable),
+    fIsNormalizable(source.fIsNormalizable)
+  { }
   virtual ~QwIntegrationPMT() { };
 
   void    LoadChannelParameters(QwParameterFile &paramfile){};
@@ -83,7 +91,7 @@ class QwIntegrationPMT : public VQwDataElement{
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   Int_t SetSingleEventCuts(Double_t, Double_t);//set two limts
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag, Double_t LL, Double_t UL, Double_t stability);
@@ -150,8 +158,6 @@ class QwIntegrationPMT : public VQwDataElement{
   Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
   Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
-
-  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
   std::vector<QwErrDBInterface> GetErrDBEntry();

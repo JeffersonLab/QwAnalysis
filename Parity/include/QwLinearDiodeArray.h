@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwLinearDiodeArray.h                                           *
+* File: QwLinearDiodeArray.h                              *
 *                                                         *
 * Author: B.Waidyawansa                                   *
 * Time-stamp: 09-14-2010                                  *
@@ -38,13 +38,22 @@ class QwLinearDiodeArray : public VQwBPM {
   };
   QwLinearDiodeArray(TString name):VQwBPM(name){
   };
-    
-    
- QwLinearDiodeArray(TString subsystemname, TString name):VQwBPM(name){
+  QwLinearDiodeArray(TString subsystemname, TString name):VQwBPM(name){
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name);
   };    
-  
+  QwLinearDiodeArray(const QwLinearDiodeArray& source)
+  : VQwBPM(source),
+    fEffectiveCharge(source.fEffectiveCharge)
+  {
+    for (size_t i = 0; i < 2; i++) {
+      fRelPos[i] = source.fRelPos[i];
+      fAbsPos[i] = source.fAbsPos[i];
+    }
+    for (size_t i = 0; i < 8; i++) {
+      fPhotodiode[i] = source.fPhotodiode[i];
+    }
+  }
   virtual ~QwLinearDiodeArray() { };
   
   void    InitializeChannel(TString name);
@@ -83,7 +92,7 @@ class QwLinearDiodeArray : public VQwBPM {
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
-  Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t   GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag();
   void UpdateEventcutErrorFlag(const UInt_t error);
   void UpdateEventcutErrorFlag(VQwBPM *ev_error);
@@ -96,7 +105,6 @@ class QwLinearDiodeArray : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(const VQwDataElement *source);
   void    Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom);
   void    Scale(Double_t factor);
 

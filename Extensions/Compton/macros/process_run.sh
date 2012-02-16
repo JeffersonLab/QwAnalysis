@@ -59,14 +59,9 @@ DOMACROS=1
 DOINDEXING=1
 for i in $*
 do
-  if [[ $i =~ [[:digit:]]+ ]]
-  then
-	RUNNUM=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
-	continue
-  fi
   case $i in
       --run=*)
-	  RUNNUM=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+	  RUNNUM=`echo $i | sed 's/--run=//'`
 	  ;;
       --first100k)
 	  FIRST100K=kTRUE
@@ -148,7 +143,7 @@ then
     STARTDATE=$(stat -c %y $STARTRUNFILE | cut -f1 -d".")
 fi
 
-ROOTFILE=`ls ${QW_ROOTFILES}/Compton_Pass*_$RUNNUM.000.root`
+ROOTFILE=`ls ${QW_ROOTFILES}/Compton_*_$RUNNUM.*root`
 if [  -f $ROOTFILE ]
 then
     ROOTDATE=$(stat -c %y $ROOTFILE | cut -f1 -d".")
@@ -183,30 +178,30 @@ sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $RUNPAGE
 #Make links to other pages
 PREVRUN=$RUNNUM
 let "PREVRUN -= 1"
-PREVRUNPAGE=../www/photonsummary/run_$PREVRUN/run_$PREVRUN.html
+PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
+PREVRUNLINK=run_$PREVRUN/run_$PREVRUN.html
 until [ -f $PREVRUNPAGE -o $PREVRUN -lt 1 ]
 do
     let "PREVRUN -= 1"
-    PREVRUNPAGE=photonsummary/run_$PREVRUN/run_$PREVRUN.html
+    PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
 done
 if [ $PREVRUN -gt 1 ]
 then
     echo "previous run: $PREVRUN $PREVRUNPAGE"
-    PREVRUNLINK=../photonsummary/run_$PREVRUN/run_$PREVRUN.html
     sed -i -e "s|Previous Run|<a href=\"../$PREVRUNLINK\">Run $PREVRUN</a>|" $RUNPAGE
     sed -i -e "s|Next Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $PREVRUNPAGE
     sed -i -e "s|<!--prev|<a href=\"../$PREVRUNLINK\#mps|" $RUNPAGE
     sed -i -e "s|prev-->|\"><- Run $PREVRUN</a>|" $RUNPAGE
 fi
-#MPSFILE=$(cat ../www/photonsummary/run_$RUNNUM/mpsanalysis.txt)
+#MPSFILE=$(cat $WEBDIR/photonsummary/run_$RUNNUM/mpsanalysis.txt)
 #echo $MPSFILE
 #sed -i -e "s|<!--mpsanalysisresults-->|$MPSFILE|" $RUNPAGE
 #sed -i -e "s|Next Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $PREVRUNPAGE
 
 NEXTRUN=$RUNNUM
 let "NEXTRUN += 1"
-NEXTRUNPAGE=../www/photonsummary/run_$NEXTRUN/run_$NEXTRUN.html
-NEXTRUNLINK=../photonsummary/run_$NEXTRUN/run_$NEXTRUN.html
+NEXTRUNPAGE=$WEBDIR/run_$NEXTRUN/run_$NEXTRUN.html
+NEXTRUNLINK=run_$NEXTRUN/run_$NEXTRUN.html
 if [ -f $NEXTRUNPAGE ]
 then
     sed -i -e "s|Next Run|<a href=\"../run_$NEXTRUN/run_$NEXTRUN.html\">Run $NEXTRUN</a>|" $RUNPAGE
@@ -239,8 +234,8 @@ then
 
                 ## Now after the configuration file has been read, and the script is enabled, process the script
                 echo "Running ${MACRO}"
-                echo "qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log"
-                nice  qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log
+                echo "qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log"
+                nice  qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log
             else
                 echo "Macro ${MACROSDIR}/${MACRO} not found"
             fi

@@ -7,6 +7,10 @@
 //
 //   ./md_correlation_plots 9690
 //
+// 1. Position Differences
+// 2. Charge ASymmetry
+// 3. Energy 
+//
 //   When prompted. give the required bpm name and X/Y position.
 //   To compile this code do a gmake.
 //   To use the exe file from command prompt following inputs are needed:
@@ -45,14 +49,12 @@ TCanvas * Canvas2;
 TCanvas * Canvas3;
 TPad * pad1, *pad2;
 TText *t1;
-TTree *tree;
+TChain *tree;
 TString CanvasTitle;
 TString bpm,bpmdata,var1;
-Int_t runnum;
+Int_t run_number;
 
-Int_t run;
 Int_t opt =1;
-TTree * nt;
 
 std::ofstream Myfile;
 Char_t textfile[100];
@@ -66,6 +68,9 @@ Double_t ep1[8];
 
 TString xunit, yunit, slopeunit;
 
+Bool_t FindFiles(TString file_name, TChain * chain);
+void plot_correlations(TChain *tree, Int_t run_number, TString device, Int_t opt);
+
 
 int main(Int_t argc,Char_t* argv[])
 {
@@ -76,7 +81,7 @@ int main(Int_t argc,Char_t* argv[])
   
   if(argc == 2)
     {
-      run   = atoi(argv[1]);     // runnumber
+      run_number   = atoi(argv[1]);     // runnumber
     }
   else if((argc < 2)||(argc > 2))
     {
@@ -141,28 +146,36 @@ int main(Int_t argc,Char_t* argv[])
   //Delete all the objects stored in the current directory memmory
   gDirectory->Delete("*");
 
-  //Get the root file
-  sprintf(filename,"%s/first100k_%d.root",directory.Data(),run);
-    
-  f = new TFile(filename);
-  if(!f->IsOpen())
-    return 0;
-  if (f->IsZombie())
-    exit(1);
 
-  std::cout<<"Obtaining data from: "<<filename<<"\n";
+  // Create trees
+  tree = new TChain("Hel_Tree");
 
-    
-  //load the Hel_Tree. It has data based on quartets analysis.
-  tree = (TTree*)(f->Get("Hel_Tree")); 
-  if(tree==NULL) {
-    std::cout<<"Unable to find the helicity tree!\n"<<std::endl;
-    exit(1);
+
+  // Find the rootfiles
+  TString file_name = Form("QwPass1_%i.000.root", run_number);
+  
+  Bool_t found_hel = kFALSE;
+
+  found_hel = FindFiles(file_name, tree);
+  
+  if(!found_hel){
+    file_name = Form("first100k_%i.root", run_number);
+    found_hel = FindFiles(file_name, tree);
+    if(!found_hel){
+      file_name = Form("Qweak_%i.000.root", run_number);
+      found_hel = FindFiles(file_name, tree);
+      if(!found_hel){
+	std::cerr<<"Unable to find rootfile(s) for run "<<run_number<<std::endl;
+	exit(1);
+      }
+    }
   }
-  plot_correlations(tree,run,bpm,opt);
+
+  std::cout<<"Obtaining data from: "<<file_name<<"\n";
+  plot_correlations(tree,run_number,bpm,opt);
 
   std::cout<<"Done with plotting correlations \n";
-
+  
   theApp.Run();
   return(1);
 
@@ -176,11 +189,11 @@ int main(Int_t argc,Char_t* argv[])
 //***************************************************
 //***************************************************
 
-  void plot_correlations(TTree *heltree, Int_t run_number, TString device, Int_t opt)
+void plot_correlations(TChain *tree, Int_t run_number, TString device, Int_t opt)
   {
+    
 
-    runnum = run_number;
-    nt = heltree;
+    //set beam property based on the option selected
     if(opt == 1)
       bpmdata = Form("diff_qwk_bpm%s",bpm.Data());
     else if(opt == 2)
@@ -188,46 +201,6 @@ int main(Int_t argc,Char_t* argv[])
     else
       bpmdata = "asym_qwk_energy";
 
-    // Open file to store the correlation fit paramters
-    sprintf(textfile,"%i_%s_correlation_fit_paramters.txt",
-	    runnum,bpmdata.Data()); 
-    //   Myfile.open(textfile);
-    
-    
-    //Put the date and time to the text file
-    time_t theTime;
-    time(&theTime);
-    //    Myfile <<"! date of transverse analysis ="<<ctime(&theTime)<<"\n\n";
-    
-    
-  //   // select the unit for the y axis
-//     if(prop1.Contains("asym")) yunit = " ";
-//     else if ((dev1.Contains("LPMT")) && quartz_bar_L[0].Contains("Rel")) yunit = "#mum";
-//     else if ((dev1.Contains("RPMT")) && quartz_bar_R[0].Contains("Rel")) yunit = "#mum";
-//     else yunit = "#muA";
-    
-//     if(dev2.Contains("asym")) xunit = " ";
-//     else if (dev2.Contains("Rel")) xunit = "(#mum)";
-//     else xunit = "(#muA)";
-    
-//     slopeunit = Form("%s/%s",yunit.Data(),xunit.Data());
-    
-   
-//     //Put the run number
-//     Myfile <<"! run number ="<<runnum<<"\n\n";
-//     Myfile << setw(20) << "!detector\t" 
-// 	   << setw(20) << "beam parameter \t"  
-// 	   << setw(10) << "(p0"                
-// 	   << setw(4)  << "+-" 
-// 	   << setw(10) << "dp0)"               
-// 	   << setw(5)  << yunit <<",\t" 
-// 	   << setw(10) << "(p1"                
-// 	   << setw(4)  << "+-" 
-// 	   << setw(10) << "dp1)"                
-// 	   << setw(10)  << slopeunit            <<",\t" 
-// 	   << setw(15) << "reduced chi square" <<",\t\t"
-// 	   << setw(10) << "entries"            <<"\n\n";
-    
     //Create a canvas
     Canvas1 = new TCanvas("canvas1", "",0,0,1200,800);  
     Canvas1->Divide(3,3);
@@ -235,17 +208,18 @@ int main(Int_t argc,Char_t* argv[])
    
     // Plot the correaltions for PMT POS
     main_detector_correlations(quartz_bar_POS,Canvas1); 
-    //fit_parameter_variation(quartz_bar_POS,"PMTPOS"); 
+
     // Set the plot information on the center pad
     Canvas1->cd(5);
     gPad->SetFillColor(24);
     TPaveText *pt = new TPaveText(.05,.05,.95,.95);
-    pt->AddText(Form("Run = %i", runnum));
+    pt->AddText(Form("Run = %i", run_number));
     pt->AddText("Correlations between");
     pt->AddText(Form("PMT POS"));
     pt->AddText("and");
     pt->AddText(Form("%s", bpmdata.Data()));
     pt->Draw();
+    
      // Print the canvas on to a  file
     CanvasTitle=Form("correlations_of_pmt_pos");
     Canvas1->Print(CanvasTitle+".gif");    
@@ -256,18 +230,18 @@ int main(Int_t argc,Char_t* argv[])
     gPad->SetFillColor(20);
  
     main_detector_correlations(quartz_bar_POS,Canvas2); 
-    // fit_parameter_variation(quartz_bar_POS,"PMTNEG");  
 
      // Set the plot information on the center pad
     Canvas2->cd(5);
     gPad->SetFillColor(24);
     pt = new TPaveText(.05,.05,.95,.95);
-    pt->AddText(Form("Run = %i", runnum));
+    pt->AddText(Form("Run = %i", run_number));
     pt->AddText("Correlations between");
     pt->AddText(Form("PMT NEG"));
     pt->AddText("and");
     pt->AddText(Form("%s", bpmdata.Data()));
     pt->Draw();
+
     // Print the canvas on to a  file
     CanvasTitle=Form("correlations_of_pmt_neg");
     Canvas2->Print(CanvasTitle+".gif");
@@ -277,13 +251,12 @@ int main(Int_t argc,Char_t* argv[])
     Canvas3->Divide(3,3);
     gPad->SetFillColor(20);
     main_detector_correlations(quartz_bar_SUM,Canvas3); 
-    // fit_parameter_variation(quartz_bar_SUM,"PMTSUM");  
 
    // Set the plot information on the center pad
     Canvas3->cd(5);
     gPad->SetFillColor(24);
     pt = new TPaveText(.05,.05,.95,.95);
-    pt->AddText(Form("Run = %i", runnum));
+    pt->AddText(Form("Run = %i", run_number));
     pt->AddText("Correlations between");
     pt->AddText(Form("BAR sum"));
     pt->AddText("and");
@@ -292,12 +265,7 @@ int main(Int_t argc,Char_t* argv[])
     // Print the canvas on to a  file
     CanvasTitle=Form("correlations_of_barsum");
     Canvas3->Print(CanvasTitle+".gif");
-    
-    
-    //   Myfile.close();
-    
-
-    
+      
   }
 
 //***************************************************
@@ -305,7 +273,6 @@ int main(Int_t argc,Char_t* argv[])
 //         Main detector correlations                   
 //***************************************************
 //***************************************************
-
 void main_detector_correlations(TString device_list[], TCanvas *Canvas)  
 {
   std::cout<<" Plotting array "<<std::endl;
@@ -314,49 +281,49 @@ void main_detector_correlations(TString device_list[], TCanvas *Canvas)
   // Octant 1
   Canvas->cd(4);
   var1 = Form("asym_qwk_%s",device_list[0].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
   // Octant 2
   Canvas->cd(1);  
   var1 = Form("asym_qwk_%s",device_list[1].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
   // Octant 3
   Canvas->cd(2);
   var1 = Form("asym_qwk_%s",device_list[2].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
   // Octant 4
   Canvas->cd(3);
   var1 = Form("asym_qwk_%s",device_list[3].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
   // Ocatant 5
   Canvas->cd(6);
   var1 = Form("asym_qwk_%s",device_list[4].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
   // Octant 6
   Canvas->cd(9);
   var1 = Form("asym_qwk_%s",device_list[5].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
   // Octant 7
   Canvas->cd(8);
   var1 = Form("asym_qwk_%s",device_list[6].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
   // Octant 8
   Canvas->cd(7);
   var1 = Form("asym_qwk_%s",device_list[7].Data());
-  plot(CanvasTitle, nt,runnum, var1, bpmdata);
+  plot(CanvasTitle, tree,run_number, var1, bpmdata);
   //get_fit_parameters( ); 
 
 }
@@ -416,7 +383,7 @@ void fit_parameter_variation(TString device_list[], TString name)
 { 
 
   //Create a canvas
-  TString ctitle =Form("%i_%s_vs_%s_fit_parameters",runnum,name.Data(), bpmdata.Data());
+  TString ctitle =Form("%i_%s_vs_%s_fit_parameters",run_number,name.Data(), bpmdata.Data());
   TCanvas * c= new TCanvas(ctitle, ctitle,0,0,1200,800);  
 
   pad1 = new TPad("pad1","pad1",0.01,0.93,0.99,0.99);
@@ -426,7 +393,7 @@ void fit_parameter_variation(TString device_list[], TString name)
   pad2->Draw();
   
   pad1->cd();
-  TString text = Form("%i :  %s vs %s fit parameter variation",runnum,name.Data(),bpmdata.Data());
+  TString text = Form("%i :  %s vs %s fit parameter variation",run_number,name.Data(),bpmdata.Data());
   t1 = new TText(0.1,0.4,text);
   t1->SetTextSize(0.7);
   t1->Draw();
@@ -497,6 +464,5 @@ void fit_parameter_variation(TString device_list[], TString name)
   // Print the canvas on to a file
   c->Print(ctitle+".gif");
 }
-
 
 

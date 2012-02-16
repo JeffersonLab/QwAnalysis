@@ -58,6 +58,7 @@ Added by Nuruzzaman to display the Beam Modulation data.
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
 #include "RSDataWindow.h"
+#include "TFrame.h"
 
 
  class QwGUIBeamModulation : public QwGUISubSystem {
@@ -70,17 +71,11 @@ Added by Nuruzzaman to display the Beam Modulation data.
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dBtnPosDiff;
-  TGTextButton        *dBtnTgtParam;
-  TGTextButton        *dBtnTgtBPM;
-  TGTextButton        *dBtnDetectorSensitivity;
-  TGTextButton        *dBtnLumiSensitivity;
-  TGTextButton        *dBtnFgChannel;
-  TGTextButton        *dBtnLEMChannel;
-  TGTextButton        *dBtnTRIMChannel;
+  TGTextButton        *dBtnBPMResp; 
 
   //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
+  TObjArray            TreeArray;
+  TObjArray            PlotArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
@@ -99,20 +94,8 @@ Added by Nuruzzaman to display the Beam Modulation data.
   //!Return value: none
   // void                 PlotData();
 
-  //  void PlotPosData();
+  void PlotBPMResponse(void);
 
-
-/*   void PlotChargeData(); */
-
-
-  void PositionDifferences(); 
-  void DisplayTargetParameters();
-  void DisplayTargetBPM();
-  void DisplayDetectorSensitivity();
-  void DisplayLumiSensitivity();
-  void DisplayFgChannel();
-  void DisplayLEMChannel();
-  void DisplayTRIMChannel();
 
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
@@ -125,6 +108,13 @@ Added by Nuruzzaman to display the Beam Modulation data.
   //!Return value: none  
   void  ClearData();
 
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow();  
+
+  Int_t                dSelectedDataWindow;
+
+
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
 
@@ -132,6 +122,8 @@ Added by Nuruzzaman to display the Beam Modulation data.
   static const char   *RootTrees[TRE_NUM];
   //  static const char   *BeamModulationTrees[BEAMMODULATION_TRE_NUM];
   //  static const char   *BeamModulationDevices2[BEAMMODULATION_DEV_NUM];
+
+  void                 CleanUp();
 
  protected:
 
@@ -144,10 +136,6 @@ Added by Nuruzzaman to display the Beam Modulation data.
   //!
   //!Return value: none  
   virtual void         MakeLayout();
-
-  void                 SummaryHist(TH1*in);
-
-
 
  public:
   
@@ -172,6 +160,8 @@ Added by Nuruzzaman to display the Beam Modulation data.
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+
+  virtual void        MakeHCLogEntry(); 
   
   ClassDef(QwGUIBeamModulation,0); 
 

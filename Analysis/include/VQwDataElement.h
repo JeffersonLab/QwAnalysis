@@ -107,12 +107,14 @@ class VQwDataElement: public MQwHistograms {
   virtual void AssignValueFrom(const VQwDataElement* valueptr){
     std::cerr << "Operation AssignValueFrom not defined!" << std::endl;
   };
+
   /*! \brief Addition-assignment operator */
   virtual VQwDataElement& operator+= (const VQwDataElement &value)
     { std::cerr << "Operation += not defined!" << std::endl; return *this; }
   /*! \brief Subtraction-assignment operator */
   virtual VQwDataElement& operator-= (const VQwDataElement &value)
     { std::cerr << "Operation -= not defined!" << std::endl; return *this; }
+
   /*! \brief Sum operator */
   virtual void Sum(const VQwDataElement &value1, const VQwDataElement &value2)
     { std::cerr << "Sum not defined!" << std::endl; }
@@ -184,27 +186,6 @@ class VQwDataElement: public MQwHistograms {
  protected:
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;}
-
-  /*! \brief Copy method:  Should make a full, identical copy. */
-  virtual void Copy(const VQwDataElement *source) {
-    //  Just call the reference version of the Copy function,
-    //  since we know the types are consistent.
-    Copy(*source);
-  }
-
-  /*! \brief Copy method:  Should make a full, identical copy. */
-  virtual void Copy(const VQwDataElement &source) {
-    if(this != &source){
-      MQwHistograms::Copy(source);
-      fElementName       = source.fElementName;
-      fNumberOfDataWords = source.fNumberOfDataWords;
-      fGoodEventCount    = source.fGoodEventCount;
-      fSubsystemName     = source.fSubsystemName;
-      fModuleType        = source.fModuleType;
-      fErrorFlag         = source.fErrorFlag;
-      fErrorConfigFlag   = source.fErrorConfigFlag;
-    }
-  }
 
   /// Arithmetic assignment operator:  Should only copy event-based data
   virtual VQwDataElement& operator=(const VQwDataElement& value) {

@@ -195,24 +195,27 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
       }
     }
     for(Int_t i = 0; i < fNDetector; i++){
-      if( (Int_t)DetBranch[i][fDeviceErrorCode] ){
+      if( (Int_t)DetBranch[i][fDeviceErrorCode] != 0){
 	code = 1;
       }
     }
     if( !((subblock > -50) && (subblock < 50)) )
       code = 1;
     if( (ramp_hw_sum > 0) && ((UInt_t)ErrorFlag != 0x4018080)  ){
-        std::cout << red << "Mps Tree::Modulation ErrorFlag" << normal << std::endl;
-        code = 1;
+#ifdef __VERBOSE_ERRORS
+      std::cout << red << "Mps Tree::Modulation ErrorFlag" << normal << std::endl;
+#endif
+      code = 1;
     }
 
     if( (ramp_hw_sum < 0) && ((UInt_t)ErrorFlag != 0) ){
+#ifdef __VERBOSE_ERRORS
       std::cout << red << "Mps Tree::Natural Motion ErrorFlag" << normal << std::endl;
+#endif
       code = 1;
     }
 
   }
-  
   if( type.CompareTo("hel_tree", TString::kIgnoreCase) == 0 ){
     subblock = ((yield_ramp_block3+yield_ramp_block0)-(yield_ramp_block2+yield_ramp_block1));
     
@@ -222,7 +225,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
       }
     }
     for(Int_t i = 0; i < fNDetector; i++){
-      if( (Int_t)HDetBranch[i][fDeviceErrorCode] ){
+      if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
 	code = 1;
       }
     }
@@ -339,8 +342,6 @@ void QwModulation::ComputeYieldCorrections()
   mod_tree->Branch("asym_qwk_charge", &asym_qwk_charge_hw_sum, "asym_qwk_charge/D"); 
 
   for(Int_t i = 0; i < fNDetector; i++){
-
-
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &YieldCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("%s_Device_Error_Code", HDetectorList[i].Data()), &HDetBranch[i][fDeviceErrorCode], 
@@ -383,8 +384,7 @@ void QwModulation::ComputeYieldCorrections()
 	for(Int_t k = 0; k < fNMonitor; k++){
 	  temp_correction += YieldSlope[j][k]*HMonBranch[k][0];
 	  monitor_correction[j][k] = YieldSlope[j][k]*HMonBranch[k][0];
-	  if( (i % 100000) == 0 ){
-	  }
+	  if( (i % 100000) == 0 ){}
 	}
 
 //      Used when not normalizing dY/Y in earlier function (near human-readable)
@@ -729,7 +729,7 @@ void QwModulation::PilferData()
 	  std::cout << "YP Modulation found" << std::endl;
 	  do{
 	  fChain->GetEntry(i);
-	  
+
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[4]++;

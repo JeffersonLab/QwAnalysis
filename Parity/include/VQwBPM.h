@@ -57,7 +57,14 @@ class VQwBPM : public VQwDataElement {
   // Default constructor
   VQwBPM() {InitializeChannel_base();};
   VQwBPM(TString& name) {InitializeChannel_base();};
-
+  VQwBPM(const VQwBPM& source)
+  : VQwDataElement(source),
+    bRotated(source.bRotated),
+    bFullSave(source.bFullSave)
+  {
+    for (size_t i = 0; i < 3; i++)
+      fPositionCenter[i] = source.fPositionCenter[i];
+  }
   virtual ~VQwBPM() { };
 
 
@@ -89,7 +96,6 @@ class VQwBPM : public VQwDataElement {
   virtual void Scale(Double_t factor) {
     std::cerr << "Scale for VQwBPM not implemented!\n";
   }
-  virtual void Copy(const VQwDataElement *source);
   void SetGains(TString pos, Double_t value);
 
   // Operators subclasses MUST support!
@@ -177,7 +183,7 @@ class VQwBPM : public VQwDataElement {
     std::cerr << "GetAbsolutePosition() is not implemented!!\n";
   }
   virtual void SetEventCutMode(Int_t bcuts) = 0;
-  virtual Int_t GetEventcutErrorCounters() {// report number of events falied due to HW and event cut faliure
+  virtual Int_t GetEventcutErrorCounters() {// report number of events failed due to HW and event cut faliure
     std::cerr << "GetEventcutErrorCounters() is not implemented!!\n";
     return 0;
   }
@@ -225,9 +231,9 @@ class VQwBPM : public VQwDataElement {
 
   // Factory function to produce appropriate BCM
   static VQwBPM* CreateStripline(TString subsystemname, TString type, TString name);
-  static VQwBPM* CreateStripline(TString type); // Create a generic BPM (define properties later)
+  static VQwBPM* CreateStripline(const VQwBPM& source);
   static VQwBPM* CreateCombo(TString subsystemname, TString type, TString name);
-  static VQwBPM* CreateCombo(TString type); // Create a generic BPM (define properties later)
+  static VQwBPM* CreateCombo(const VQwBPM& source);
 
   private:
 

@@ -33,35 +33,6 @@ VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value)
 {
 }
 
-void VQwHardwareChannel::Copy(const VQwDataElement *source)
-{
-  if (typeid(*source) == typeid(*this)) {
-    VQwDataElement::Copy(source);
-    const VQwHardwareChannel* input =
-        dynamic_cast<const VQwHardwareChannel*>(source);
-
-    fNumberOfDataWords   = input->fNumberOfDataWords;
-    fNumberOfSubElements = input->fNumberOfSubElements;
-    fDataToSave          = input->fDataToSave;
-    fTreeArrayIndex      = input->fTreeArrayIndex;
-    fTreeArrayNumEntries = input->fTreeArrayNumEntries;
-    fPedestal            = input->fPedestal;
-    fCalibrationFactor   = input->fCalibrationFactor;
-    kFoundPedestal       = input->kFoundPedestal;
-    kFoundGain           = input->kFoundGain;
-    bEVENTCUTMODE        = input->bEVENTCUTMODE;
-    fULimit              = input->fULimit;
-    fLLimit              = input->fLLimit;
-    fStability           = input->fStability;
-
-  } else {
-    TString loc="VQwHardwareChannel::Copy for "
-      +this->GetElementName()+" failed with input "
-      +source->GetElementName();
-    throw(std::invalid_argument(loc.Data()));
-  }
-}
-
 UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
 {
   // return the error flag

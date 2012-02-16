@@ -68,6 +68,9 @@ QwHelicity::QwHelicity(const TString& name)
 
 //**************************************************//
 /// Copy constructor
+// FIXME this is pretty horrible as a copy constructor, but it gets around
+// all of the copy protection built into the helicity subsystem.  I can't be
+// bothered to clean it up right now... (wdc)
 QwHelicity::QwHelicity(const QwHelicity& source)
 : VQwSubsystem(source.GetSubsystemName()),
   VQwSubsystemParity(source.GetSubsystemName()),
@@ -99,7 +102,40 @@ QwHelicity::QwHelicity(const QwHelicity& source)
   fGoodPattern=kFALSE;
   fHelicityDecodingMode=-1;
 
-  this->Copy(&source);
+  this->fWord.resize(source.fWord.size());
+  for(size_t i=0;i<this->fWord.size();i++)
+    {
+      this->fWord[i].fWordName=source.fWord[i].fWordName;
+      this->fWord[i].fModuleType=source.fWord[i].fModuleType;
+      this->fWord[i].fWordType=source.fWord[i].fWordType;
+    }
+  fNumMissedGates = source.fNumMissedGates;
+  fNumMissedEventBlocks = source.fNumMissedEventBlocks;
+  fNumMultSyncErrors = source.fNumMultSyncErrors;
+  fNumHelicityErrors = source.fNumHelicityErrors;
+  fEventNumberFirst = source.fEventNumberFirst;
+  fPatternNumberFirst = source.fPatternNumberFirst;
+  fEventType = source.fEventType;
+  fIgnoreHelicity = source.fIgnoreHelicity;
+  fRandBits = source.fRandBits;
+  fUsePredictor = source.fUsePredictor;
+  fHelicityInfoOK = source.fHelicityInfoOK;
+  fPatternPhaseOffset = source.fPatternPhaseOffset;
+  fMinPatternPhase = source.fMinPatternPhase;
+  fMaxPatternPhase = source.fMaxPatternPhase;
+  fHelicityDelay = source.fHelicityDelay;
+  iseed_Delayed = source.iseed_Delayed;
+  iseed_Actual = source.iseed_Actual;
+  n_ranbits = source.n_ranbits;
+  fEventNumber = source.fEventNumber;
+  fEventNumberOld = source.fEventNumberOld;
+  fPatternPhaseNumber = source.fPatternPhaseNumber;
+  fPatternPhaseNumberOld = source.fPatternPhaseNumberOld;
+  fPatternNumber = source.fPatternNumber;
+  fPatternNumberOld = source.fPatternNumberOld;
+
+  this->kUserbit = source.kUserbit;
+  this->fIgnoreHelicity = source.fIgnoreHelicity;
 }
 
 //**************************************************//
@@ -359,7 +395,7 @@ Bool_t QwHelicity::ApplySingleEventCuts(){
 }
 
 Int_t QwHelicity::GetEventcutErrorCounters(){
-  // report number of events falied due to HW and event cut faliure
+  // report number of events failed due to HW and event cut faliure
   QwMessage << "\n*********QwHelicity Error Summary****************"
 	    << QwLog::endl;
   QwMessage << "First helicity gate counter:  "
@@ -858,10 +894,8 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     } else {
       //  Break this line into tokens to process it.
       TString modtype = mapstr.GetTypedNextToken<TString>();	// module type
-      Int_t modnum    = 0;
-      modnum = mapstr.GetTypedNextToken<Int_t>();	//slot number
-      Int_t channum   = 0;
-      channum = mapstr.GetTypedNextToken<Int_t>();	//channel number
+      Int_t modnum = mapstr.GetTypedNextToken<Int_t>();	//slot number
+      /* Int_t channum = */ mapstr.GetTypedNextToken<Int_t>();	//channel number /* unused */
       TString dettype = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
       dettype.ToLower();
       TString namech  = mapstr.GetTypedNextToken<TString>();  //name of the detector
@@ -961,6 +995,8 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       exit(65);
     }
   }
+
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -1874,65 +1910,6 @@ void QwHelicity::ResetPredictor()
 }
 
 
-
-void QwHelicity::Copy(const VQwSubsystem *source)
-{
- try
-    {
-     if(typeid(*source)==typeid(*this))
-	{
-	  VQwSubsystem::Copy(source);
-          const QwHelicity* input = dynamic_cast<const QwHelicity*>(source);
-	  this->fWord.resize(input->fWord.size());
-	  for(size_t i=0;i<this->fWord.size();i++)
-	    {
-	      this->fWord[i].fWordName=input->fWord[i].fWordName;
-	      this->fWord[i].fModuleType=input->fWord[i].fModuleType;
-	      this->fWord[i].fWordType=input->fWord[i].fWordType;
-	    }
-	  fNumMissedGates = input->fNumMissedGates;
-	  fNumMissedEventBlocks = input->fNumMissedEventBlocks;
-	  fNumMultSyncErrors = input->fNumMultSyncErrors;
-	  fNumHelicityErrors = input->fNumHelicityErrors;
-	  fEventNumberFirst = input->fEventNumberFirst;
-	  fPatternNumberFirst = input->fPatternNumberFirst;
-	  fEventType = input->fEventType;
-	  fIgnoreHelicity = input->fIgnoreHelicity;
-	  fRandBits = input->fRandBits;
-	  fUsePredictor = input->fUsePredictor;
-	  fHelicityInfoOK = input->fHelicityInfoOK;
-          fPatternPhaseOffset = input->fPatternPhaseOffset;
-          fMinPatternPhase = input->fMinPatternPhase;
-          fMaxPatternPhase = input->fMaxPatternPhase;
-          fHelicityDelay = input->fHelicityDelay;
-          iseed_Delayed = input->iseed_Delayed;
-          iseed_Actual = input->iseed_Actual;
-          n_ranbits = input->n_ranbits;
-          fEventNumber = input->fEventNumber;
-          fEventNumberOld = input->fEventNumberOld;
-          fPatternPhaseNumber = input->fPatternPhaseNumber;
-          fPatternPhaseNumberOld = input->fPatternPhaseNumberOld;
-          fPatternNumber = input->fPatternNumber;
-          fPatternNumberOld = input->fPatternNumberOld;
-
-	  this->kUserbit = input->kUserbit;
-	  this->fIgnoreHelicity = input->fIgnoreHelicity;
-	}
-      else
-	{
-	  TString loc="Standard exception from QwHelicity::Copy = "
-	    +source->GetSubsystemName()+" "
-	    +this->GetSubsystemName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
-    }
-  catch (std::exception& e)
-    {
-      QwError << e.what() << QwLog::endl;
-    }
-
-  return;
-}
 
 VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
 {

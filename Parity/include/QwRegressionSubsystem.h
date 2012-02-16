@@ -44,10 +44,8 @@ class QwRegressionSubsystem: public VQwSubsystemParity,
 
       // Copy Constructor
       QwRegressionSubsystem(const QwRegressionSubsystem &source)
-	: VQwSubsystem(source), VQwSubsystemParity(source),
-	QwRegression(source) {
-	this->Copy(&source);
-      }
+      : VQwSubsystem(source),VQwSubsystemParity(source),QwRegression(source)
+      { }
 	
       // Destructor 
       ~QwRegressionSubsystem();
@@ -55,8 +53,6 @@ class QwRegressionSubsystem: public VQwSubsystemParity,
       boost::shared_ptr<VQwSubsystem> GetSharedPointerToStaticObject();
 
       void ProcessOptions(QwOptions &options){QwRegression::ProcessOptions(options);};
-
-      void Copy(const VQwSubsystem* source);
 
       /// \brief Update the running sums
       void AccumulateRunningSum(VQwSubsystem* input);

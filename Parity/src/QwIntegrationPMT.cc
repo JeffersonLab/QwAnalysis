@@ -203,7 +203,7 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 
 /********************************************************/
 
-Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
   fTriumf_ADC.GetEventcutErrorCounters();
   return 1;
 }
@@ -309,12 +309,11 @@ void QwIntegrationPMT::Scale(Double_t factor)
 
 void QwIntegrationPMT::Normalize(VQwDataElement* denom)
 {
-	if (fIsNormalizable) {
-  	QwVQWK_Channel vqwk_denom;
-  	vqwk_denom.Copy(denom);
-  	fTriumf_ADC.DivideBy(vqwk_denom);
+  if (fIsNormalizable) {
+    QwVQWK_Channel* denom_ptr = dynamic_cast<QwVQWK_Channel*>(denom);
+    QwVQWK_Channel vqwk_denom(*denom_ptr);
+    fTriumf_ADC.DivideBy(vqwk_denom);
   }
-  return;
 }
 
 void QwIntegrationPMT::PrintValue() const
@@ -412,38 +411,6 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
     fTriumf_ADC.FillTreeVector(values);
   }
 }
-
-/********************************************************/
-void  QwIntegrationPMT::Copy(const VQwDataElement *source)
-{
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  QwIntegrationPMT* input=((QwIntegrationPMT*)source);
-	  this->fElementName=input->fElementName;
-	  this->fPedestal=input->fPedestal;
-	  this->fCalibration=input->fCalibration;
-	  this->fIsBlindable=input->fIsBlindable;
-	  this->fIsNormalizable=input->fIsNormalizable;
-	  this->fTriumf_ADC.Copy(&(input->fTriumf_ADC));
-	}
-      else
-	{
-	  TString loc="Standard exception from QwIntegrationPMT::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
-}
-
 
 void QwIntegrationPMT::CalculateRunningAverage()
 {

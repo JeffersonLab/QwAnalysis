@@ -35,18 +35,48 @@
 #include <boost/random.hpp>
 
 // Qweak headers
+#include "MQwMockable.h"
 #include "VQwDataElement.h"
 #include "QwSIS3320_Accumulator.h"
 #include "QwSIS3320_LogicalAccumulator.h"
 #include "QwSIS3320_Samples.h"
 
-class QwSIS3320_Channel: public VQwDataElement {
+class QwSIS3320_Channel: public VQwDataElement, public MQwMockable {
 
   public:
 
-    QwSIS3320_Channel(UInt_t channel = 0, TString name = "auto") {
+    QwSIS3320_Channel(UInt_t channel = 0, TString name = "auto")
+    : VQwDataElement(),MQwMockable() {
       InitializeChannel(channel, name);
     };
+    QwSIS3320_Channel(const QwSIS3320_Channel& source)
+    : VQwDataElement(source),MQwMockable(source),
+      fChannel(source.fChannel),
+      fHasSamplingData(source.fHasSamplingData),
+      fHasAccumulatorData(source.fHasAccumulatorData),
+      fPedestal(source.fPedestal),
+      fCalibrationFactor(source.fCalibrationFactor),
+      fCurrentEvent(source.fCurrentEvent),
+      fNumberOfEvents(source.fNumberOfEvents),
+      fSampleFormat(source.fSampleFormat),
+      fSamples(source.fSamples),
+      fSamplesRaw(source.fSamplesRaw),
+      fAverageSamples(source.fAverageSamples),
+      fTimeWindowAverages(source.fTimeWindowAverages),
+      fTimeWindows(source.fTimeWindows),
+      fSampleWindowAverages(source.fTimeWindowAverages),
+      fSampleWindows(source.fSampleWindows),
+      fAccumulatorDAC(source.fAccumulatorDAC),
+      fAccumulatorThreshold1(source.fAccumulatorThreshold1),
+      fAccumulatorThreshold2(source.fAccumulatorThreshold2),
+      fAccumulatorTimingBefore5(source.fAccumulatorTimingBefore5),
+      fAccumulatorTimingAfter5(source.fAccumulatorTimingAfter5),
+      fAccumulatorTimingBefore6(source.fAccumulatorTimingBefore6),
+      fAccumulatorTimingAfter6(source.fAccumulatorTimingAfter6),
+      fAccumulators(source.fAccumulators),
+      fAccumulatorsRaw(source.fAccumulatorsRaw),
+      fLogicalAccumulators(source.fLogicalAccumulators)
+    { }
     virtual ~QwSIS3320_Channel() { };
 
     enum LogicalType_e {
@@ -60,11 +90,7 @@ class QwSIS3320_Channel: public VQwDataElement {
     void  InitializeChannel(UInt_t channel, TString name);
     void  ClearEventData();
 
-    void  SetRandomEventParameters(Double_t mean, Double_t sigma) { };
-    void  SetRandomEventAsymmetry(Double_t asymmetry) { };
-    void  RandomizeEventData(int helicity) { };
-    void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0) { };
-    void  SetEventData(Double_t* block, UInt_t sequencenumber = 0) { };
+    void  RandomizeEventData(int helicity = 0, double time = 0.0) { };
     void  EncodeEventData(std::vector<UInt_t> &buffer);
 
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
@@ -85,9 +111,6 @@ class QwSIS3320_Channel: public VQwDataElement {
     void Offset(Double_t Offset);
     void Scale(Double_t Offset);
 
-    Bool_t MatchSequenceNumber(UInt_t seqnum);
-    Bool_t MatchNumberOfSamples(UInt_t numsamp);
-
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
 
@@ -96,8 +119,6 @@ class QwSIS3320_Channel: public VQwDataElement {
 
     QwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
     QwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };
-
-    size_t GetSequenceNumber() const { return (fSequenceNumber); };
 
     size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
     void SetNumberOfEvents(UInt_t nevents) {
@@ -120,14 +141,10 @@ class QwSIS3320_Channel: public VQwDataElement {
 
     Bool_t IsGoodEvent();
 
-    void Copy(const VQwDataElement* source);
-
     void PrintValue() const;
     void PrintInfo() const;
 
- protected:
-
- private:
+  private:
 
     static const Bool_t kDEBUG;
 
@@ -135,12 +152,6 @@ class QwSIS3320_Channel: public VQwDataElement {
     UInt_t fChannel;
     Bool_t fHasSamplingData;
     Bool_t fHasAccumulatorData;
-
-    // Randomness generator
-    static boost::mt19937 fRandomnessGenerator;
-    static boost::normal_distribution<double> fNormalDistribution;
-    static boost::variate_generator
-      < boost::mt19937, boost::normal_distribution<double> >fNormalRandomVariable;
 
     /* ADC Calibration */
     static const Double_t kVoltsPerBit;
@@ -154,7 +165,6 @@ class QwSIS3320_Channel: public VQwDataElement {
 
     /* ADC sample data */
     UInt_t fSampleFormat;
-    UInt_t fSamplePointer;
     std::vector<QwSIS3320_Samples> fSamples;
     std::vector<QwSIS3320_Samples> fSamplesRaw;
     //
@@ -165,10 +175,6 @@ class QwSIS3320_Channel: public VQwDataElement {
     std::vector<Double_t> fSampleWindowAverages;
     std::vector<std::pair<Double_t, Double_t> > fSampleWindows;
 
-    // Ntuple array indices
-    size_t fTreeArrayIndex; //! Index of this data element in tree
-    size_t fTreeArrayNumEntries; //! Number of entries from this data element
-
     /* ADC accumulator data */
     Int_t fNumberOfAccumulators;
     Int_t fAccumulatorDAC;
@@ -177,19 +183,6 @@ class QwSIS3320_Channel: public VQwDataElement {
     Int_t fAccumulatorTimingBefore6, fAccumulatorTimingAfter6;
     std::vector<QwSIS3320_Accumulator> fAccumulators;
     std::vector<QwSIS3320_Accumulator> fAccumulatorsRaw;
-
-    /* Sequence number */
-    UInt_t fSequenceNumber;
-
-    /**
-     * Parity mock data generation parameters:
-     * For the sampling ADC a standard pulse profile is assumed, and the
-     * following parameters are used in that distribution.  The asymmetry
-     * is applied on the integrated of the entire pulse.
-     */
-    Double_t fMockAsymmetry;
-    Double_t fMockGaussianMean;
-    Double_t fMockGaussianSigma;
 
     // Operation mode flags
     static const unsigned int MODE_ACCUM_EVENT;

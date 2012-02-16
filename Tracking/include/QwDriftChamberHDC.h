@@ -10,6 +10,7 @@
 #define __QWDRIFTCHAMBERHDC__
 
 #include "QwDriftChamber.h"
+#include "QwOptions.h"
 ///
 /// \ingroup QwTrackingg
 class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberHDC> {
@@ -22,11 +23,6 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   QwDriftChamberHDC(TString region_tmp);
   virtual ~QwDriftChamberHDC() { };
 
-  /// Copying is not supported for tracking subsystems
-  void Copy(const VQwSubsystem *source) {
-    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
-  }
-
   /* Unique virtual member functions from QwDrifChamber base class */
 
 
@@ -38,7 +34,8 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   //  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
   Int_t LoadChannelMap ( TString mapfile ) ;
   void  ClearEventData();
-  
+  static void DefineOptions(QwOptions& options);
+  void ProcessOptions(QwOptions& options);
 
  protected:
   // VDC and HDC
@@ -51,15 +48,20 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   void  ConstructHistograms(TDirectory *folder, TString &prefix) ;
   void  FillHistograms();
 
-  Int_t LoadTimeWireOffset(TString t0_map) {return 0;}; 
+  Int_t LoadTimeWireOffset(TString t0_map);
   void LoadTtoDParameters(TString ttod_map);
   void SubtractWireTimeOffset();
-  void ApplyTimeCalibration();
+  //  void ApplyTimeCalibration();
+
+  void  UpdateHits();             // be executed in ProcessEvent()
 
   // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
+  std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
   std::vector< Double_t> fTtoDNumbers;
   //  ClassDef(QwDriftChamber,2);
+
+  Int_t fR2Octant;
 
 
 };

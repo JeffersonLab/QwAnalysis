@@ -340,9 +340,9 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
           break; // Bad ADC/TDC
 
         // Parse number of events
-        UInt_t num_events = 0;
-        if ((header & 0xda000dc0) == 0xda000dc0)
-          num_events = (buffer[0] & 0x00FF0000) >> 16;
+        //UInt_t num_events = 0;
+        //if ((header & 0xda000dc0) == 0xda000dc0)
+        //  num_events = (buffer[0] & 0x00FF0000) >> 16;
         // TODO Multihit functionality
 
         // Loop over buffered events
@@ -529,10 +529,6 @@ VQwSubsystem&  QwComptonPhotonDetector::operator+=  (VQwSubsystem *value)
     QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] += input->fSamplingADC[i];
-    for (size_t i = 0; i < input->fMultiTDC_Channel.size(); i++)
-      this->fMultiTDC_Channel[i] += input->fMultiTDC_Channel[i];
-    for (size_t i = 0; i < input->fMultiQDC_Channel.size(); i++)
-      this->fMultiQDC_Channel[i] += input->fMultiQDC_Channel[i];
   }
   return *this;
 }
@@ -548,10 +544,6 @@ VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
     QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] -= input->fSamplingADC[i];
-    for (size_t i = 0; i < input->fMultiTDC_Channel.size(); i++)
-      this->fMultiTDC_Channel[i] -= input->fMultiTDC_Channel[i];
-    for (size_t i = 0; i < input->fMultiQDC_Channel.size(); i++)
-      this->fMultiQDC_Channel[i] -= input->fMultiQDC_Channel[i];
   }
   return *this;
 }
@@ -594,10 +586,6 @@ void QwComptonPhotonDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     QwComptonPhotonDetector* indenom = dynamic_cast<QwComptonPhotonDetector*> (denom);
     for (size_t i = 0; i < innumer->fSamplingADC.size(); i++)
       this->fSamplingADC[i].Ratio(innumer->fSamplingADC[i], indenom->fSamplingADC[i]);
-    for (size_t i = 0; i < innumer->fMultiTDC_Channel.size(); i++)
-      this->fMultiTDC_Channel[i].Ratio(innumer->fMultiTDC_Channel[i], indenom->fMultiTDC_Channel[i]);
-    for (size_t i = 0; i < innumer->fMultiQDC_Channel.size(); i++)
-      this->fMultiQDC_Channel[i].Ratio(innumer->fMultiQDC_Channel[i], indenom->fMultiQDC_Channel[i]);
   }
 }
 
@@ -609,10 +597,6 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
 {
   for (size_t i = 0; i < fSamplingADC.size(); i++)
     fSamplingADC[i].Scale(factor);
-  //for (size_t i = 0; i < fMultiTDC_Channel.size(); i++)
-  //  fMultiTDC_Channel[i].Scale(factor);
-  //for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
-  //  fMultiQDC_Channel[i].Scale(factor);
 }
 
 /**
@@ -868,42 +852,6 @@ void  QwComptonPhotonDetector::PrintInfo() const
     fMultiQDC_Channel[i].PrintInfo();
   }
 }
-
-/**
- * Make a copy of this subsystem, including all its subcomponents
- * @param source Original version
- */
-void  QwComptonPhotonDetector::Copy(const VQwSubsystem *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwSubsystem::Copy(source);
-      const QwComptonPhotonDetector* input = dynamic_cast<const QwComptonPhotonDetector*>(source);
-
-      this->fSamplingADC.resize(input->fSamplingADC.size());
-      for (size_t i = 0; i < this->fSamplingADC.size(); i++)
-        this->fSamplingADC[i].Copy(&(input->fSamplingADC[i]));
-
-      //this->fMultiTDC_Channel.resize(input->fMultiTDC_Channel.size());
-      //for (size_t i = 0; i < this->fMultiTDC_Channel.size(); i++)
-      //  this->fMultiTDC_Channel[i].Copy(&(input->fMultiTDC_Channel[i]));
-
-      //this->fMultiQDC_Channel.resize(input->fMultiQDC_Channel.size());
-      //for (size_t i = 0; i < this->fMultiQDC_Channel.size(); i++)
-      //  this->fMultiQDC_Channel[i].Copy(&(input->fMultiQDC_Channel[i]));
-
-    } else {
-      TString loc = "Standard exception from QwComptonPhotonDetector::Copy = "
-             + source->GetSubsystemName() + " "
-             + this->GetSubsystemName() + " are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-
-  } catch (std::exception& e) {
-    QwError << e.what() << QwLog::endl;
-  }
-}
-
 
 /**
  * Get the SIS3320 channel for this photon detector

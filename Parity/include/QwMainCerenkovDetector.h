@@ -53,8 +53,10 @@ class QwMainCerenkovDetector:
   };
   /// Copy constructor
   QwMainCerenkovDetector(const QwMainCerenkovDetector& source)
-  : VQwSubsystem(source),VQwSubsystemParity(source)
-  { this->Copy(&source); }
+  : VQwSubsystem(source),VQwSubsystemParity(source),
+    fIntegrationPMT(source.fIntegrationPMT),
+    fCombinedPMT(source.fCombinedPMT)
+  { }
   /// Virtual destructor
   virtual ~QwMainCerenkovDetector() { };
 
@@ -69,7 +71,7 @@ class QwMainCerenkovDetector:
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag();//return the error flag
   //update the same error flag in the classes belong to the subsystem.
   void UpdateEventcutErrorFlag(UInt_t errorflag);
@@ -116,7 +118,6 @@ class QwMainCerenkovDetector:
 
   const QwIntegrationPMT* GetChannel(const TString name) const;
 
-  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem* source);
 
 

@@ -28,11 +28,6 @@
 #include <iomanip>
 
 #include "VQwSubsystemTracking.h"
-//#include "MQwF1TDC.h"
-//#include "MQwV775TDC.h"
-
-
-
 #include "QwF1TDContainer.h"
 
 ///
@@ -113,7 +108,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;
-  virtual void ApplyTimeCalibration() = 0;
+  //  virtual void ApplyTimeCalibration() = 0;
 
 
   Int_t LinkReferenceChannel(const UInt_t chan, const Int_t plane, const Int_t wire);
@@ -162,9 +157,9 @@ class QwDriftChamber: public VQwSubsystemTracking{
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
 
-  MQwF1TDC fF1TDCDecoder;
-
-  QwF1TDContainer *fF1TDContainer;
+  MQwF1TDC                fF1TDCDecoder;
+  QwF1TDContainer         *fF1TDContainer;
+  F1TDCReferenceContainer *fF1RefContainer;
 
   //  NOTE:  The plane and wire indices count from "1" instead
   //         of from "0".

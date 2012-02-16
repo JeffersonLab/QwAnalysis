@@ -66,7 +66,8 @@ int main(int argc, char* argv[])
   QwEventBuffer eventbuffer;
 
   // Detector array
-  QwSubsystemArrayParity detectors("detectors.map");
+  QwSubsystemArrayParity detectors(gQwOptions);
+  detectors.ProcessOptions(gQwOptions);
 
   // Get the helicity
   QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystemByName("Helicity Info"));

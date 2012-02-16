@@ -295,7 +295,177 @@ public:
     std::cout << "Charge asymmetry  " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
 
   };
+
+  void Set_HAChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fHAChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+
+    std::cout << "EPICS HA Charge asymmetry updated " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
+
+  };
  
+  void Get_HAChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+    std::cout << "HA Charge asymmetry  " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
+
+  };
+
+  void Set_TargetHCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width,Double_t &xpvalue, Double_t &xpvalue_error, Double_t &xpvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &ypvalue, Double_t &ypvalue_error, Double_t &ypvalue_width){
+
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fTargetXDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,fTargetXPDiff , &xpvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXPDiffError , &xpvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetXPDiffWidth , &xpvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,fTargetYDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,fTargetYPDiff , &ypvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYPDiffError , &ypvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fTargetYPDiffWidth , &ypvalue_width);
+    status = ca_pend_io(10);
+
+
+    std::cout << "Target X Diff (um)  " << xvalue <<" +/- "<<xvalue_error<<" width "<<xvalue_width << std::endl;
+    std::cout << "Target XP Diff (mrad)  " << xpvalue <<" +/- "<<xpvalue_error<<" width "<<xpvalue_width << std::endl;
+    std::cout << "Target Y Diff (um)  " << yvalue <<" +/- "<<yvalue_error<<" width "<<yvalue_width << std::endl;
+    std::cout << "Target YP Diff (mrad)  " << ypvalue <<" +/- "<<ypvalue_error<<" width "<<ypvalue_width << std::endl;
+
+
+
+  }
+
+  void Get_TargetHCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width,Double_t &xpvalue, Double_t &xpvalue_error, Double_t &xpvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &ypvalue, Double_t &ypvalue_error, Double_t &ypvalue_width){
+
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fTargetXDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,fTargetXPDiff , &xpvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXPDiffError , &xpvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetXPDiffWidth , &xpvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,fTargetYDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,fTargetYPDiff , &ypvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYPDiffError , &ypvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fTargetYPDiffWidth , &ypvalue_width);
+    status = ca_pend_io(10);
+
+  }
+
+
+  void Set_3C12HCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &yqvalue, Double_t &yqvalue_error, Double_t &yqvalue_width){
+
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,f3C12XDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12XDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12XDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,f3C12YDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_put(DBR_DOUBLE,f3C12YQ , &yqvalue);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YQError , &yqvalue_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,f3C12YQWidth , &yqvalue_width);
+    status = ca_pend_io(10);
+
+
+
+
+
+
+    std::cout << "3C12 X Diff (um)  " << xvalue <<" +/- "<<xvalue_error<<" width "<<xvalue_width << std::endl;
+    std::cout << "3C12 Y Diff (mrad)  " << yvalue <<" +/- "<<yvalue_error<<" width "<<yvalue_width << std::endl;
+    std::cout << "3C12 EffQ Diff (um)  " << yqvalue <<" +/- "<<yqvalue_error<<" width "<<yqvalue_width << std::endl;
+
+
+  }
+
+  void Get_3C12HCDiffereces(Double_t &xvalue, Double_t &xvalue_error, Double_t &xvalue_width, Double_t &yvalue, Double_t &yvalue_error, Double_t &yvalue_width, Double_t &yqvalue, Double_t &yqvalue_error, Double_t &yqvalue_width){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,f3C12XDiff , &xvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12XDiffError , &xvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12XDiffWidth , &xvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,f3C12YDiff , &yvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YDiffError , &yvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YDiffWidth , &yvalue_width);
+    status = ca_pend_io(10);
+
+    status = ca_get(DBR_DOUBLE,f3C12YQ , &yqvalue);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YQError , &yqvalue_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,f3C12YQWidth , &yqvalue_width);
+    status = ca_pend_io(10);
+  }
+
+
+  
+
+
   
   void Set_FeedbackStatus(Double_t value){
     Int_t status;
@@ -423,6 +593,45 @@ public:
   chid fChargeAsymmetry;
   chid fChargeAsymmetryError;
   chid fChargeAsymmetryWidth;
+
+  chid fHAChargeAsymmetry;
+  chid fHAChargeAsymmetryError;
+  chid fHAChargeAsymmetryWidth;
+
+  chid fTargetXDiff;
+  chid fTargetXDiffError;
+  chid fTargetXDiffWidth;
+
+  chid fTargetXPDiff;
+  chid fTargetXPDiffError;
+  chid fTargetXPDiffWidth;
+
+  chid fTargetYDiff;
+  chid fTargetYDiffError;
+  chid fTargetYDiffWidth;
+
+  chid fTargetYPDiff;
+  chid fTargetYPDiffError;
+  chid fTargetYPDiffWidth;
+
+  
+  chid f3C12XDiff;
+  chid f3C12XDiffError;
+  chid f3C12XDiffWidth;
+
+  chid f3C12YDiff;
+  chid f3C12YDiffError;
+  chid f3C12YDiffWidth;
+
+  chid f3C12YQ;
+  chid f3C12YQError;
+  chid f3C12YQWidth;
+
+
+
+
+
+
   chid fFeedbackStatus;
 
   chid fHalfWavePlateStatus;

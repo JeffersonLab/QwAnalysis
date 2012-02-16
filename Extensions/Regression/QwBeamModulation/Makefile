@@ -4,9 +4,15 @@
 #
 
 
+ifndef EXTRAFLAGS
+  EXTRAFLAGS := 
+  $(warning Verbose MPS error messages have been disabled.  Recompile with 'make EXTRAFLAGS=-D__VERBOSE_ERRORS' to enable them.)
+endif
+
+
 ROOTLIBS   = $(shell root-config --libs )
 ROOTGLIBS  = $(shell root-config --glibs)
-INCLUDES   = -I$(ROOTSYS)/include -Iinclude/ 
+INCLUDES   = -I$(shell root-config --incdir) -Iinclude/ 
 CC         = g++ ${INCLUDES}
 SRC        = src
 DEPS       = QwModulation.hh
@@ -15,7 +21,7 @@ CFLAGS     = -O -Wall ${INCLUDES}
 all: qwbeammod qwlibra
 
 %.o: %.cc
-	${CC} ${CFLAGS} -c -o $@ $< 
+	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 
 
 qwbeammod : qwbeammod.o ${SRC}/QwModulation.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}

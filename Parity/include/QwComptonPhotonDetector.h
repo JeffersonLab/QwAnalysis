@@ -44,8 +44,11 @@ class QwComptonPhotonDetector:
     QwComptonPhotonDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// Copy constructor
     QwComptonPhotonDetector(const QwComptonPhotonDetector& source)
-    : VQwSubsystem(source),VQwSubsystemParity(source)
-    { this->Copy(&source); }
+    : VQwSubsystem(source),VQwSubsystemParity(source),
+      fSamplingADC(source.fSamplingADC),
+      fMultiQDC_Channel(source.fMultiQDC_Channel),
+      fMultiTDC_Channel(source.fMultiTDC_Channel)
+    { }
     /// Virtual destructor
     virtual ~QwComptonPhotonDetector() { };
 
@@ -109,8 +112,6 @@ class QwComptonPhotonDetector:
     void  ConstructBranch(TTree *tree, TString& prefix) { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void  FillTreeVector(std::vector<Double_t> &values) const;
-
-    void Copy(const VQwSubsystem *source);
 
     Bool_t Compare(VQwSubsystem *source);
     Bool_t CompareADC(VQwSubsystem *source);

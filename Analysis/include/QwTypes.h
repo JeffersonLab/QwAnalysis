@@ -52,7 +52,7 @@ inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorPackage&
 
 enum EQwDetectorType {
   kTypeNull = 0,
-  kTypeGem,	        // GEM detector
+  kTypeSciFiber,	// Scintillating Fiber detector
   kTypeDriftHDC,	// HDC Drift chamber
   kTypeDriftVDC,	// VDC Drift chamber
   kTypeTrigscint,	// Trigger scintillator
@@ -61,7 +61,7 @@ enum EQwDetectorType {
   kNumTypes
 };
 inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorType& i) {
-  stream << "?ghvtcs#"[i]; return stream;
+  stream << "?fhvtcs#"[i]; return stream;
 }
 
 // Enumerator type for the instrument type, used in subsystems that have to
@@ -113,6 +113,7 @@ static const UInt_t kBCMErrorFlag = 0x100; // in Decimal 256 to identify the sin
 static const UInt_t kErrorFlag_BlinderFail = 0x200;// in Decimal 512 to identify the blinder flag
 static const UInt_t kBPMErrorFlag = 0x400; // in Decimal 1024 to identify the single event cut is failed for a BPM (Stripline or cavity or comboBPM)
 static const UInt_t kPMTErrorFlag = 0x800; // in Decimal 2048 to identify the single event cut is failed for a PMT (Combined or regular)
+static const UInt_t kBModFFBErrorFlag = 0x1000; // in Decimal 4096 (2^12) to identify the FFB OFF periods for Energy modulation
 static const UInt_t kBModErrorFlag = 0x8000; // in Decimal 32768 (2^15) to identify the single event cut is failed for a BMod channel
 static const UInt_t kEventCutMode3 = 0x10000;  // in Decimal 65536 to identify the mode 3 where we only flag event cut failed events 
 static const UInt_t kBeamStabilityError= 0x10000000;//in Decimal 2^28(268435456) to identify the a stability cut
@@ -190,6 +191,21 @@ class QwDetectorID
   Int_t              fPlane;   // R or theta index for R1; plane index for R2 & R3
   EQwDirectionID     fDirection; //direction of the wire plane X,Y,U,V etc - Rakitha (10/23/2008)
   Int_t              fElement; // trace number for R1; wire number for R2 & R3; PMT number for others
+  
+  friend std::ostream& operator<<(std::ostream& os, const QwDetectorID &detectorID) {
+    os << " Region ";
+    os <<  detectorID.fRegion;
+    os << " Package ";
+    os << detectorID.fPackage;
+    os << " Plane ";
+    os << detectorID.fPlane;
+    os << " Direction";
+    os <<detectorID.fDirection;
+    os << " fElement ";
+    os << detectorID.fElement;
+
+    return os;
+  }
 };
 
 

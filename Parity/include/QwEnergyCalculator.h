@@ -43,8 +43,10 @@ class QwEnergyCalculator : public VQwDataElement{
   QwEnergyCalculator(TString subsystem, TString name){
     InitializeChannel(subsystem, name,"derived");
   };
-
-    virtual ~QwEnergyCalculator() { };
+  QwEnergyCalculator(const QwEnergyCalculator& source)
+  : VQwDataElement(source),fEnergyChange(source.fEnergyChange)
+  { }
+  virtual ~QwEnergyCalculator() { };
 
     void    InitializeChannel(TString name,TString datatosave);
     // new routine added to update necessary information for tree trimming
@@ -69,7 +71,7 @@ class QwEnergyCalculator : public VQwDataElement{
       bEVENTCUTMODE=bcuts;
       fEnergyChange.SetEventCutMode(bcuts);
     }
-    Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+    Int_t   GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
     UInt_t   GetEventcutErrorFlag(){//return the error flag
       return fEnergyChange.GetEventcutErrorFlag();
     }
@@ -81,7 +83,6 @@ class QwEnergyCalculator : public VQwDataElement{
   
 
     void    Set(const VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
-    void    Copy(const VQwDataElement *source);
     void    Ratio(QwEnergyCalculator &numer,QwEnergyCalculator &denom);
     void    Scale(Double_t factor);
 

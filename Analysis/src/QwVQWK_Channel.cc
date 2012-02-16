@@ -1043,14 +1043,12 @@ void QwVQWK_Channel::Sum(const QwVQWK_Channel &value1, const QwVQWK_Channel &val
 {
   *this  = value1;
   *this += value2;
-  return;
 }
 
 void QwVQWK_Channel::Difference(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2)
 {
   *this  = value1;
   *this -= value2;
-  return;
 }
 
 void QwVQWK_Channel::Ratio(const QwVQWK_Channel &numer, const QwVQWK_Channel &denom)
@@ -1069,7 +1067,6 @@ void QwVQWK_Channel::Ratio(const QwVQWK_Channel &numer, const QwVQWK_Channel &de
     fGoodEventCount       = denom.fGoodEventCount;
     fErrorFlag            = (numer.fErrorFlag|denom.fErrorFlag);
   }
-  return;
 }
 
 QwVQWK_Channel& QwVQWK_Channel::operator/= (const QwVQWK_Channel &denom)
@@ -1543,55 +1540,6 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
 
 
   return status;
-}
-
-void QwVQWK_Channel::Copy(const VQwDataElement *source)
-{
-  if (typeid(*source) == typeid(*this)) {
-    VQwHardwareChannel::Copy(source);
-    const QwVQWK_Channel* input = dynamic_cast<const QwVQWK_Channel*>(source);
-
-    fBlocksPerEvent = input->fBlocksPerEvent;
-    fNumberOfSamples_map = input->fNumberOfSamples_map;
-    fSaturationABSLimit  = input->fSaturationABSLimit;
-    //  Copy the flags used for tree trimming
-    bHw_sum            = input->bHw_sum;
-    bHw_sum_raw        = input->bHw_sum_raw;
-    bBlock             = input->bBlock;
-    bBlock_raw         = input->bBlock_raw;
-    bNum_samples       = input->bNum_samples;
-    bDevice_Error_Code = input->bDevice_Error_Code;
-    bSequence_number   = input->bSequence_number;
-
-    this->fNumberOfSamples       = input->fNumberOfSamples;
-    this->fHardwareBlockSum      = input->fHardwareBlockSum;
-    this->fHardwareBlockSumError = input->fHardwareBlockSumError;
-    this->fGoodEventCount        = input->fGoodEventCount;
-    
-    // //
-    // // Error counter copy....
-    // //
-
-    // this->fErrorCount_HWSat    = input->fErrorCount_HWSat;
-    // this->fErrorCount_sample   = input->fErrorCount_sample;
-    // this->fErrorCount_SW_HW    = input->fErrorCount_SW_HW;
-    // this->fErrorCount_Sequence = input->fErrorCount_Sequence;
-    // this->fErrorCount_SameHW   = input->fErrorCount_SameHW;
-    // this->fErrorCount_ZeroHW   = input->fErrorCount_ZeroHW;
-    // this->fNumEvtsWithEventCutsRejected = input->fNumEvtsWithEventCutsRejected;
-    
-
-
-    for(Int_t i=0; i<4; i++ ) {
-      this->fBlock[i] = input->fBlock[i];
-      this->fBlockError[i] = input->fBlockError[i];
-    }
-  } else {
-    TString loc="Standard exception from QwVQWK_Channel::Copy = "
-        +source->GetElementName()+" "
-        +this->GetElementName()+" are not of the same type";
-    throw(std::invalid_argument(loc.Data()));
-  }
 }
 
 void  QwVQWK_Channel::PrintErrorCounterHead()

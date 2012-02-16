@@ -22,15 +22,9 @@
 
 
 /**
- * \brief A fast way of creating a BCM of VQWK type with a generic name.
+ * \brief A fast way of creating a BCM of specified type
  */
-VQwBCM* VQwBCM::Create(TString type)
-{
-  return Create("bcm","bcm_generic",type);
-}
-
-VQwBCM* VQwBCM::Create(TString subsystemname, TString name, TString type,
-    TString clock)
+VQwBCM* VQwBCM::Create(TString subsystemname, TString name, TString type, TString clock)
 {
   Bool_t localDebug = kFALSE;
   type.ToUpper();
@@ -50,14 +44,30 @@ VQwBCM* VQwBCM::Create(TString subsystemname, TString name, TString type,
   }
 }
 
-// QwCombinedBCM<T> Factory function
-VQwBCM* VQwBCM::CreateCombo(TString type)
+VQwBCM* VQwBCM::Create(const VQwBCM& source)
 {
-  return CreateCombo("bcm","bcm_generic",type);
+  Bool_t localDebug = kFALSE;
+  TString type = source.GetModuleType();
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating BCM of type: "<<type<<QwLog::endl;
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BCM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwBCM<QwVQWK_Channel>(dynamic_cast<const QwBCM<QwVQWK_Channel>&>(source));
+  } else if ( type == "SIS3801" ) {
+    return new QwBCM<QwSIS3801_Channel>(dynamic_cast<const QwBCM<QwSIS3801_Channel>&>(source));
+  } else if ( type == "SCALER" || type == "SIS3801D24" ) {
+    return new QwBCM<QwSIS3801D24_Channel>(dynamic_cast<const QwBCM<QwSIS3801D24_Channel>&>(source));
+  } else { // Unsupported one!
+    QwWarning << "BCM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
 }
 
-VQwBCM* VQwBCM::CreateCombo(TString subsystemname, TString name,
-    TString type)
+/**
+ * \brief A fast way of creating a combo BCM of specified type
+ */
+VQwBCM* VQwBCM::CreateCombo(TString subsystemname, TString name, TString type)
 {
   Bool_t localDebug = kFALSE;
   type.ToUpper();
@@ -77,4 +87,23 @@ VQwBCM* VQwBCM::CreateCombo(TString subsystemname, TString name,
   }
 }
 
+VQwBCM* VQwBCM::CreateCombo(const VQwBCM& source)
+{
+  Bool_t localDebug = kFALSE;
+  TString type = source.GetModuleType();
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating CombinedBCM of type: "<<type<< QwLog::endl;
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BCM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwCombinedBCM<QwVQWK_Channel>(dynamic_cast<const QwCombinedBCM<QwVQWK_Channel>&>(source));
+  } else if ( type == "SIS3801" ) { // Default SCALER channel
+    return new QwCombinedBCM<QwSIS3801_Channel>(dynamic_cast<const QwCombinedBCM<QwSIS3801_Channel>&>(source));
+  } else if ( type == "SCALER" || type == "SIS3801D24" ) {
+    return new QwCombinedBCM<QwSIS3801D24_Channel>(dynamic_cast<const QwCombinedBCM<QwSIS3801D24_Channel>&>(source));
+  } else { // Unsupported one!
+    QwWarning << "BCM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
+}
 

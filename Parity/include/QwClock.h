@@ -36,17 +36,17 @@ class QwClock : public VQwClock {
 /////
  public:
   QwClock() { };
-  QwClock(TString name){
-    InitializeChannel(name,"raw");
-  };
-  QwClock(TString subsystemname, TString name){
+  QwClock(TString subsystemname, TString name, TString type = ""){
     SetSubsystemName(subsystemname);
-    InitializeChannel(subsystemname, name,"raw");
+    InitializeChannel(subsystemname, name, "raw", type);
   };
-  QwClock(TString subsystemname, TString name, TString type, TString clock = ""){
-    SetSubsystemName(subsystemname);
-    InitializeChannel(subsystemname, name,type,"raw");
-  };
+  QwClock(const QwClock& source)
+  : VQwClock(source),
+    fPedestal(source.fPedestal),fCalibration(source.fCalibration),
+    fULimit(source.fULimit),fLLimit(source.fLLimit),
+    fClock(source.fClock),
+    fNormalizationValue(source.fNormalizationValue)
+  { }
   virtual ~QwClock() { };
 
   void LoadChannelParameters(QwParameterFile &paramfile){
@@ -55,11 +55,7 @@ class QwClock : public VQwClock {
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
-  void  InitializeChannel(TString name, TString datatosave);
-  // new routine added to update necessary information for tree trimming
-  void  InitializeChannel(TString subsystem, TString name, TString datatosave);
-  void  InitializeChannel(TString subsystem, TString name, TString type,
-      TString datatosave);
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave, TString type = "");
   void  ClearEventData();
 
 
@@ -68,7 +64,7 @@ class QwClock : public VQwClock {
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fClock.GetEventcutErrorFlag();
   }
@@ -113,8 +109,6 @@ class QwClock : public VQwClock {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-
-  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 

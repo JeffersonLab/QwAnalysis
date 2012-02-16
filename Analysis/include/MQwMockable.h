@@ -61,7 +61,7 @@ public:
   virtual void  RandomizeEventData(int helicity = 0, double time = 0.0) = 0;
 
   /// Encode the event data into a CODA buffer  
-  virtual void EncodeEventData(std::vector<UInt_t> &buffer) =0;
+  virtual void EncodeEventData(std::vector<UInt_t> &buffer) = 0;
 
   /// Set the flag to use an externally provided random variable
   void  UseExternalRandomVariable() { fUseExternalRandomVariable = true; };

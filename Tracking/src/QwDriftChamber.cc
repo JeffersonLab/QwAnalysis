@@ -47,6 +47,7 @@ QwDriftChamber::QwDriftChamber(const TString& name, std::vector< QwHit > &fWireH
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
+  fF1RefContainer = new F1TDCReferenceContainer();
 
 }
 
@@ -64,6 +65,7 @@ QwDriftChamber::QwDriftChamber(const TString& name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
+  fF1RefContainer = new F1TDCReferenceContainer();
 
 }
 
@@ -71,14 +73,16 @@ QwDriftChamber::QwDriftChamber(const TString& name)
 QwDriftChamber::~QwDriftChamber()
 {
   delete fF1TDContainer;
+  delete fF1RefContainer;
 }
 
 void  QwDriftChamber::FillDriftDistanceToHits()
-{ //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
+{ 
+//Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
 //   std::cout << "size: " << fWireHits.size() << std::endl;
   for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
     
-    hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
+    hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTimeNs(),hit1->GetDetectorID()));
     
   }
   return;
@@ -92,8 +96,6 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 {
 
   Int_t  bank_index      = 0;
-  Int_t  tdc_slot_number = 0;
-  Int_t  tdc_chan_number = 0;
   UInt_t tdc_data        = 0;
 
   Bool_t data_integrity_flag = false;
@@ -143,9 +145,9 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
 
-	tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
-	tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
-	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
+	Int_t tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	Int_t tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
+	Int_t tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
 	
 	if ( tdc_slot_number == 31) {
 	  //  This is a custom word which is not defined in
@@ -220,7 +222,7 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_i
   status = VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
   std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
   fTDC_Index.push_back(tmpvec);
-  std::cout<<"Registering ROC "<<roc_id<<std::endl;
+  // std::cout<<"Registering ROC "<<roc_id<<std::endl;
 
   return status;
 }
@@ -436,6 +438,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     }
     subsystem_name = this->GetSubsystemName();
     fF1TDContainer -> SetSystemName(subsystem_name);
+    fF1RefContainer-> SetSystemName(subsystem_name);
 
     if(local_debug) {
       std::cout << "-----------------------------------------------------" << std::endl;
@@ -520,7 +523,9 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	  std::cout << std::endl;
 	}
       }
-  
+    
+    fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
+
     if(local_debug) fF1TDContainer->Print();
     std::cout << "-----------------------------------------------------" << std::endl;
 
@@ -539,8 +544,9 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 void
 QwDriftChamber::FillHardwareErrorSummary()
 {
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
+  fF1RefContainer -> PrintCounters();
+  fF1TDContainer  -> PrintErrorSummary();
+  fF1TDContainer  -> WriteErrorSummary();
   //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
 
   return;

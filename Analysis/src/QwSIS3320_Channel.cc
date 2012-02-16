@@ -98,8 +98,6 @@ void  QwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
   fMockAsymmetry = 0.0;
   fMockGaussianMean = 0.0;
   fMockGaussianSigma = 0.0;
-
-  return;
 }
 
 /**
@@ -165,8 +163,7 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
     if (local_tag != 0xFADC) return words_read;
 
     // Check whether the first word contains the correct channel number
-    UInt_t local_module = 0;
-    local_module = (buffer[0] >> 8) & 0xFF;
+    //UInt_t local_module = (buffer[0] >> 8) & 0xFF;
     UInt_t local_channel = buffer[0] & 0xFF;
  
     if (local_channel != fChannel) return words_read;
@@ -180,8 +177,7 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
     // - stop mode is 1 for hardware trigger
     // - setup mode is 1,2,3,4...
     UInt_t local_format = (buffer[1] >> 16) & 0xFFFF;
-    UInt_t local_stopmode = 0;
-    local_stopmode = (buffer[1] >> 8) & 0xFF;
+    //UInt_t local_stopmode = (buffer[1] >> 8) & 0xFF;
 
     UInt_t local_setupmode = (buffer[1]) & 0xFF;
     words_read = 2;
@@ -197,15 +193,16 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
       // This is a sampling buffer using short words
       case FORMAT_SHORT_WORD_SAMPLING:
         UInt_t numberofsamples, numberofevents_expected, numberofevents_actual;
+        UInt_t samplepointer;
         switch (local_setupmode) {
 
           // This is a sampling buffer in multi event mode:
           // - many events are saved in one buffer for a complete helicity event
           case MODE_ACCUM_EVENT:
           case MODE_MULTI_EVENT:
+            samplepointer = buffer[2];
             numberofsamples = buffer[3];
             numberofevents_expected = buffer[4];
-            fSamplePointer = 0;
             words_read = 5;
 
             // For all events in this buffer
@@ -214,6 +211,7 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
             for (size_t event = 0; event < GetNumberOfEvents(); event++) {
               // create a new raw sampled event
               fSamplesRaw[event].SetNumberOfSamples(numberofsamples);
+              fSamplesRaw[event].SetSamplePointer(samplepointer);
               // pass the buffer to read the samples
               UInt_t samples_read = fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
               // check whether we actually read any data
@@ -237,15 +235,16 @@ Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
           // - because a circular buffer is used the pointer to the last sample
           //   is stored
           case MODE_SINGLE_EVENT:
+            samplepointer = buffer[2];
             numberofsamples = buffer[3];
             numberofevents_expected = 1;
-            fSamplePointer = buffer[2];
 
             // Create a new raw sampled event
             SetNumberOfEvents(numberofevents_expected);
             // Pass the buffer to read the samples (only one event)
             fSamplesRaw.at(0).SetNumberOfSamples(numberofsamples);
-            fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, fSamplePointer);
+            fSamplesRaw.at(0).SetSamplePointer(samplepointer);
+            fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, samplepointer);
 
             break;
 
@@ -557,7 +556,7 @@ QwSIS3320_Channel& QwSIS3320_Channel::operator-= (const QwSIS3320_Channel &value
  */
 void QwSIS3320_Channel::Sum(QwSIS3320_Channel &value1, QwSIS3320_Channel &value2)
 {
-  *this  =  value1;
+  *this  = value1;
   *this += value2;
 }
 
@@ -568,7 +567,7 @@ void QwSIS3320_Channel::Sum(QwSIS3320_Channel &value1, QwSIS3320_Channel &value2
  */
 void QwSIS3320_Channel::Difference(QwSIS3320_Channel &value1, QwSIS3320_Channel &value2)
 {
-  *this  =  value1;
+  *this  = value1;
   *this -= value2;
 }
 
@@ -611,35 +610,6 @@ void QwSIS3320_Channel::Scale(Double_t scale)
     for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
       fLogicalAccumulators[i] *= scale;
   }
-}
-
-/**
- * Check whether the sequence number matches
- * @param seqnumber Sequence number
- * @return kTRUE if the sequence number matches
- */
-Bool_t QwSIS3320_Channel::MatchSequenceNumber(UInt_t seqnumber)
-{
-  Bool_t status = kTRUE;
-  if (!IsNameEmpty()) {
-    status = (fSequenceNumber == seqnumber);
-  }
-  return status;
-}
-
-/**
- * Check whether the number of samples matches
- * @param numsamples Number of samples
- * @return kTRUE if the number of samples matches
- */
-Bool_t QwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
-{
-  Bool_t status = kTRUE;
-// TOOO
-//  if (!IsNameEmpty()) {
-//    status = (fNumberOfSamples == numsamples);
-//  }
-  return status;
 }
 
 void QwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -778,63 +748,6 @@ void QwSIS3320_Channel::PrintInfo() const
   if (fSamplesRaw.size() > 0) {
     QwOut << "Average pedestal is: " << fAverageSamplesRaw.GetSumInTimeWindow(0, nped) / (Double_t) nped << QwLog::endl;
   }
-}
-
-/*
- * Copy
- */
-void QwSIS3320_Channel::Copy(const VQwDataElement* source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwDataElement::Copy(source);
-      const QwSIS3320_Channel* input = dynamic_cast<const QwSIS3320_Channel*>(source);
-
-      // Now copy all the data
-      this->fChannel                = input->fChannel;
-      this->fHasSamplingData        = input->fHasSamplingData;
-      this->fHasAccumulatorData     = input->fHasAccumulatorData;
-      this->fPedestal               = input->fPedestal;
-      this->fCalibrationFactor      = input->fCalibrationFactor;
-      this->fCurrentEvent           = input->fCurrentEvent;
-      this->fNumberOfEvents         = input->fNumberOfEvents;
-      this->fSampleFormat           = input->fSampleFormat;
-      this->fSamplePointer          = input->fSamplePointer;
-      this->fSamples                = input->fSamples;
-      this->fSamplesRaw             = input->fSamplesRaw;
-      this->fAverageSamples         = input->fAverageSamples;
-      this->fTimeWindowAverages     = input->fTimeWindowAverages;
-      this->fTimeWindows            = input->fTimeWindows;
-      this->fSampleWindowAverages   = input->fTimeWindowAverages;
-      this->fSampleWindows          = input->fSampleWindows;
-      this->fTreeArrayIndex         = input->fTreeArrayIndex;
-      this->fTreeArrayNumEntries    = input->fTreeArrayNumEntries;
-      this->fAccumulatorDAC         = input->fAccumulatorDAC;
-      this->fAccumulatorThreshold1  = input->fAccumulatorThreshold1;
-      this->fAccumulatorThreshold2  = input->fAccumulatorThreshold2;
-      this->fAccumulatorTimingBefore5 = input->fAccumulatorTimingBefore5;
-      this->fAccumulatorTimingBefore6 = input->fAccumulatorTimingBefore6;
-      this->fAccumulatorTimingAfter5 = input->fAccumulatorTimingAfter5;
-      this->fAccumulatorTimingAfter6 = input->fAccumulatorTimingAfter6;
-      this->fAccumulators           = input->fAccumulators;
-      this->fAccumulatorsRaw        = input->fAccumulatorsRaw;
-      this->fLogicalAccumulators    = input->fLogicalAccumulators;
-      this->fSequenceNumber         = input->fSequenceNumber;
-      this->fMockAsymmetry          = input->fMockAsymmetry;
-      this->fMockGaussianMean       = input->fMockGaussianMean;
-      this->fMockGaussianSigma      = input->fMockGaussianSigma;
-
-    } else {
-      TString message = "Standard exception from QwSIS3320_Channel::Copy = "
-          + source->GetElementName() + " "
-          + this->GetElementName() + " are not of the same type";
-      throw std::invalid_argument(message.Data());
-    }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << "\n";
-  }
-
-  return;
 }
 
 void QwSIS3320_Channel::CreateLogicalAccumulator( LogicalType_e type )

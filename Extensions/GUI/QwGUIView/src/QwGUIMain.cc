@@ -164,9 +164,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   //   InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
   // 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  // if(!GetSubSystemPtr("Beam Modulation"))
-  //   BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
-  // 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(!GetSubSystemPtr("Beam Modulation"))
+    BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
+  					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
   // if(!GetSubSystemPtr("Qweak Database"))
   //   DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
@@ -439,10 +439,10 @@ void QwGUIMain::MakeLogTab()
 				     0, 0, 1, 2);
   dLogEditFrameLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
 				    kLHintsExpandX | kLHintsExpandY);
-  dDBQueryEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
-  dDBQueryLabelLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2,  2, 2);
+  // dDBQueryEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
+  // dDBQueryLabelLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2,  2, 2);
 
-  dDBQueryFrameLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
+  // dDBQueryFrameLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
 
 
   dLogTabFrame  = new TGVerticalFrame(tf,10,10);
@@ -668,16 +668,16 @@ void QwGUIMain::RemoveLogTab()
   delete dLogEdit; dLogEdit = NULL;
   delete dLogEditFrame; dLogEditFrame   = NULL;
   delete dLogTabFrame; dLogTabFrame = NULL;
-  delete dDBQueryFrame; dDBQueryFrame = NULL;
-  delete dDBQueryEntry; dDBQueryEntry = NULL;
+  // delete dDBQueryFrame; dDBQueryFrame = NULL;
+  // delete dDBQueryEntry; dDBQueryEntry = NULL;
   delete dLogTabLayout; dLogTabLayout   = NULL;
   delete dLogEditLayout; dLogEditLayout = NULL;
   delete dLogEditFrameLayout; dLogEditFrameLayout = NULL;
-  delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
-  delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
-  delete dDBQueryBuffer; dDBQueryBuffer = NULL;
-  delete dDBQueryLabel; dDBQueryLabel = NULL;
-  delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
+  // delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
+  // delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
+  // delete dDBQueryBuffer; dDBQueryBuffer = NULL;
+  // delete dDBQueryLabel; dDBQueryLabel = NULL;
+  // delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
 
   dMenuTabs->UnCheckEntry(M_VIEW_LOG);
 }
@@ -983,6 +983,7 @@ void QwGUIMain::PlotMainData()
   Float_t StatH = gStyle->GetStatH();
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.3);             
+  gStyle->SetOptStat("nemr");
 
   TString file(Form("%s/Extensions/Macros/Parity/golden_values_run_summary",gSystem->Getenv("QWANALYSIS")));
   // RDataContainer *GoldenData = new RDataContainer(fClient->GetRoot(), this,
@@ -1357,7 +1358,7 @@ void QwGUIMain::PlotMainData()
       HelTree->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6 >> DDiff12",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",general_cut,det_cut,det_cut),"goff");
       DDiff12->SetDirectory(0);
       DDiff12->GetXaxis()->SetTitle("bcm 1-2 DDiff [ppm]");
-      DDiff12->GetXaxis()->SetRangeUser(DDiff12->GetMean()-5*DDiff12->GetRMS(), DDiff12->GetMean()+5*DDiff12->GetRMS());
+      DDiff12->GetXaxis()->SetRangeUser(DDiff12->GetMean()-8*DDiff12->GetRMS(), DDiff12->GetMean()+8*DDiff12->GetRMS());
       DDiff12->GetXaxis()->CenterTitle();
       DDiff12->GetXaxis()->SetTitleSize(0.06);
       DDiff12->GetXaxis()->SetLabelSize(0.06);
@@ -1422,13 +1423,13 @@ void QwGUIMain::PlotMainData()
     }
 
     mc->cd(6);
-    TH1F *DDiff56 = new TH1F("DDiff56","bcm 5 and 6 Double Difference",1001,-500,500);
+    TH1F *DDiff56 = new TH1F("DDiff78","bcm 7 and 8 Double Difference",1001,-500,500);
     if(DDiff56){
       DDiff56->SetBit(TH1::kCanRebin);
-      HelTree->Draw("(asym_qwk_bcm5-asym_qwk_bcm6)*1e6 >> DDiff56",Form("%s && asym_qwk_bcm5.%s && asym_qwk_bcm6.%s",general_cut,det_cut,det_cut),"goff");
+      HelTree->Draw("(asym_qwk_bcm7-asym_qwk_bcm8)*1e6 >> DDiff78",Form("%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",general_cut,det_cut,det_cut),"goff");
       DDiff56->SetDirectory(0);
-      DDiff56->GetXaxis()->SetTitle("bcm 5-6 DDiff [ppm]");
-      DDiff56->GetXaxis()->SetRangeUser(DDiff56->GetMean()-5*DDiff56->GetRMS(), DDiff56->GetMean()+5*DDiff56->GetRMS());
+      DDiff56->GetXaxis()->SetTitle("bcm 7-8 DDiff [ppm]");
+      DDiff56->GetXaxis()->SetRangeUser(DDiff56->GetMean()-8*DDiff56->GetRMS(), DDiff56->GetMean()+8*DDiff56->GetRMS());
       DDiff56->GetXaxis()->CenterTitle();
       DDiff56->GetXaxis()->SetTitleSize(0.06);
       DDiff56->GetXaxis()->SetLabelSize(0.06);
@@ -1507,7 +1508,7 @@ void QwGUIMain::PlotMainData()
 
     mc->cd(6);
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
-    ref[n]->AddText("No data for bcm5-bcm6 double difference");
+    ref[n]->AddText("No data for bcm7-bcm8 double difference");
     ref[n]->SetBorderSize(0);
     ref[n]->SetFillColor(0);
     ref[n]->SetFillColor(0);
@@ -1772,9 +1773,7 @@ void QwGUIMain::PlotMainData()
   TString PWD = gSystem->pwd();
 
   TString rightnow = gSystem->GetFromPipe("date");
-//   std::cout << rightnow << std::endl;
   TString tempo = rightnow.ReplaceAll(" ","-");
-//   std::cout << tempo << std::endl;  
   
   if(PWD.Contains("cdaq") && dClArgs.autoupdate == kTrue){
     gSystem->CopyFile(Form("%s/Extensions/GUI/QwAutoGUIHistories.dat",gSystem->Getenv("QWANALYSIS")),

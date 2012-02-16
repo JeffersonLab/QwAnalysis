@@ -20,10 +20,14 @@
 #include "VQwSubsystemTracking.h"
 #include "QwColor.h"
 
+#include "QwHit.h"
+#include "QwHitContainer.h"
+
+#include "QwTypes.h"
+#include "QwDetectorInfo.h"
+
 #include "MQwV775TDC.h"
-//#include "MQwF1TDC.h"
 #include "QwPMT_Channel.h"
-#include "QwSIS3801_Module.h"
 #include "QwScaler_Channel.h"
 #include "QwF1TDContainer.h"
 
@@ -45,22 +49,10 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   /// Virtual destructor
   virtual ~QwMainDetector();
 
-  /// Copying is not supported for tracking subsystems
-  void Copy(const VQwSubsystem *source) {
-    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
-  }
-
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
   Int_t LoadInputParameters(TString mapfile){return 0;};
-
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-
-  void  ClearEventData();
-  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-
-  void  ProcessEvent();
 
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -70,30 +62,58 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  void  ReportConfiguration(Bool_t verbose);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+
+  void  ProcessEvent();
+
+  void  FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   void  FillHardwareErrorSummary();
+
+  void  ClearEventData();
+
+  void GetHitList(QwHitContainer & grandHitContainer) {
+    grandHitContainer.Append(fTDCHits);
+  };
 
   QwMainDetector& operator=(const QwMainDetector &value);
 
-  void ReportConfiguration();
 
  protected:
   EQwModuleType fCurrentType;
 
   Bool_t fDEBUG;
 
-  MQwV775TDC fQDCTDC;
-  MQwF1TDC fF1TDCDecoder;
+  TString fRegion;     ///  Name of this subsystem (the region).
+  Int_t   fCurrentBankIndex;
+  Int_t   fCurrentSlot;
+  Int_t   fCurrentModuleIndex;
+
+  UInt_t  fBankID[3];  
+  //bank ID's of 3 different modules for trigger scintillator
+  //fBankID[0] for V792/V775 QDC_Bank
+  //fBankID[1] for SIS3801   SCA_Bank
+  //fBankID[2] for F1TDC     F1TDC_Bank
+
+
+  static const UInt_t kMaxNumberOfModulesPerROC;
+  static const Int_t  kF1ReferenceChannelNumber;
+
+  UInt_t kMaxNumberOfChannelsPerF1TDC;
+  Int_t fNumberOfModules;
+
+
+  MQwV775TDC       fQDCTDC;
+  MQwF1TDC         fF1TDCDecoder;
   QwF1TDContainer *fF1TDContainer;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
- protected:
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id);
-  Int_t RegisterSubbank(const UInt_t bank_id);
-  Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
-
-  EQwModuleType RegisterModuleType(TString moduletype);
+  Int_t RegisterROCNumber  (const UInt_t roc_id);
+  Int_t RegisterSubbank    (const UInt_t bank_id);
+  Int_t RegisterSlotNumber (const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
 
@@ -101,34 +121,26 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
     return (GetModuleIndex(bank_index,slot_num) != -1);
   };
 
+  EQwModuleType RegisterModuleType(TString moduletype);
   Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
   Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
 
-  void GetHitList(QwHitContainer & grandHitContainer){
 
-  }; //empty function
-
-
- protected:
+  void  SubtractReferenceTimes(); // be executed in ProcessEvent()
+  void  UpdateHits();             // be executed in ProcessEvent()
 
 
-  TString fRegion;  ///  Name of this subsystem (the region).
+  std::vector< QwHit >              fTDCHits;
+
+  std::vector< std::vector< QwDetectorID   > > fDetectorIDs; 
+  // Indexed by module_index and Channel; and so on....
+  std::vector< std::pair<Int_t, Int_t> >       fReferenceChannels;  
+  // reference chans number <first:tdc_index, second:channel_number>
+  // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
+  std::vector< std::vector<Double_t> >         fReferenceData; 
+  // fReferenceData[bank_index][channel_number]
 
 
- protected:
-  size_t fCurrentBankIndex;
-  Int_t fCurrentSlot;
-  Int_t fCurrentIndex;
-
-  UInt_t fBankID[3];  //bank ID for 3 different modules
-                      //fBankID[0] for V792/V775 QDC_Bank
-                      //fBankID[1] for SIS3801   SCA_Bank
-                      //fBankID[2] for F1TDC     F1TDC_Bank
-
- protected:
-  static const UInt_t kMaxNumberOfModulesPerROC;
-  UInt_t kMaxNumberOfChannelsPerF1TDC;
-  Int_t fNumberOfModules;
 
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
   std::vector< EQwModuleType > fModuleTypes;
@@ -136,22 +148,18 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
-  std::vector<QwSIS3801_Module*> fSCAs;
+  std::vector<QwSIS3801D24_Channel>         fSCAs;
+  std::map<TString,size_t>                  fSCAs_map;
+  std::vector<Int_t>                        fSCAs_offset;
 
-  // For reference time substraction
-  Int_t reftime_slotnum;
-  Int_t reftime_channum;
-  Double_t reftime;
+  // For reference time subtraction
+  Int_t fRefTime_SlotNum;
+  Int_t fRefTime_ChanNum;
+  Double_t fRefTime;
 
   Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
-    return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
+    return ( slot == fRefTime_SlotNum &&  chan == fRefTime_ChanNum) ;
   };
-
-  Int_t tdc_slot_number;
-  Int_t tdc_chan_number;
-  Int_t tmp_last_chan;
-
-  
 
 };
 

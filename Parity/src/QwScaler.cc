@@ -189,6 +189,7 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
     }
   }
 
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -220,6 +221,7 @@ Int_t QwScaler::LoadInputParameters(TString mapfile)
 
   } // end of loop reading all lines of the pedestal file
 
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 
@@ -235,41 +237,6 @@ void QwScaler::ClearEventData()
   // Reset good event count
   fGoodEventCount = 0;
 }
-
-/**
- * Make a copy of this subsystem, including all its subcomponents
- * @param source Original version
- */
-void  QwScaler::Copy(const VQwSubsystem *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwSubsystem::Copy(source);
-      const QwScaler* input = dynamic_cast<const QwScaler*>(source);
-
-      fScaler.resize(input->fScaler.size());
-      for (size_t i = 0; i < fScaler.size(); i++) {
-        VQwScaler_Channel* scaler = 0;
-        if ((scaler = dynamic_cast<QwSIS3801D24_Channel*>(input->fScaler.at(i)))) {
-          fScaler.at(i) = new QwSIS3801D24_Channel();
-        } else if ((scaler = dynamic_cast<QwSIS3801D32_Channel*>(input->fScaler.at(i)))) {
-          fScaler.at(i) = new QwSIS3801D32_Channel();
-        }
-        fScaler.at(i)->Copy(scaler);
-      }
-
-    } else {
-      TString loc = "Standard exception from QwScaler::Copy = "
-             + source->GetSubsystemName() + " "
-             + this->GetSubsystemName() + " are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-
-  } catch (std::exception& e) {
-    QwError << e.what() << QwLog::endl;
-  }
-}
-
 
 /**
  * Process the configuration buffer for this subsystem
@@ -336,7 +303,7 @@ void QwScaler::ProcessEvent()
   for (size_t i = 0; i < fScaler.size(); i++) {
     if (fNorm.at(i).first) {
       fScaler.at(i)->Scale(fNorm.at(i).second);
-      fScaler.at(i)->Normalize(*(fNorm.at(i).first));
+      fScaler.at(i)->DivideBy(*(fNorm.at(i).first));
     }
   }
 }

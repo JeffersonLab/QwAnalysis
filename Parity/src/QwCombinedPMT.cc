@@ -162,7 +162,7 @@ void QwCombinedPMT::SetDefaultSampleSize(Int_t sample_size)
   fSumADC.SetDefaultSampleSize((size_t)sample_size);
 }
 
-// report number of events falied due to HW and event cut faliure
+// report number of events failed due to HW and event cut faliure
 Int_t QwCombinedPMT::GetEventcutErrorCounters()
 {
   fSumADC.GetEventcutErrorCounters();
@@ -442,48 +442,6 @@ void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values) const
     fSumADC.FillTreeVector(values);
 //  fAvgADC.FillTreeVector(values);
   }
-}
-
-/********************************************************/
-void  QwCombinedPMT::Copy(const VQwDataElement *source)
-{
-  try
-    {
-      if (typeid(*source)==typeid(*this))
-        {
-          QwCombinedPMT* input=((QwCombinedPMT*)source);
-          this->fElementName=input->fElementName;
-          this->fCalibration=input->fCalibration;
-
-          size_t element_size = input->fElement.size();
-          this->fElement.resize(element_size);
-          this->fWeights.resize(element_size);
-          for (size_t i=0; i<element_size; i++)
-            {
-              fElement[i] = input->fElement[i];
-              this->fWeights[i] = input->fWeights[i];
-
-              //std::cout<<"ElementName="<<fElement[i]->GetElementName()
-              //         <<" weight["<<i<<"]="<<fWeights[i]<<std::endl;
-            }
-
-          fSumADC.Copy(&(input->fSumADC));
-//          fAvgADC.Copy(&(input->fAvgADC));
-        }
-      else
-        {
-          TString loc="Standard exception from QwCombinedPMT::Copy = "
-                      +source->GetElementName()+" "
-                      +this->GetElementName()+" are not of the same type";
-          throw std::invalid_argument(loc.Data());
-        }
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
 }
 
 /********************************************************/

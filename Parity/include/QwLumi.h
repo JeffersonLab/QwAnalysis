@@ -71,8 +71,10 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   };
   /// Copy constructor
   QwLumi(const QwLumi& source)
-  : VQwSubsystem(source),VQwSubsystemParity(source)
-  { this->Copy(&source); }
+  : VQwSubsystem(source),VQwSubsystemParity(source),
+    fIntegrationPMT(source.fIntegrationPMT),fCombinedPMT(source.fCombinedPMT),
+    fScalerPMT(source.fScalerPMT)
+  { }
   /// Virtual destructor
   virtual ~QwLumi() { };
 
@@ -88,7 +90,7 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
   //update the same error flag in the classes belong to the subsystem.
   void UpdateEventcutErrorFlag(UInt_t errorflag);
@@ -141,7 +143,6 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
   const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
-  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

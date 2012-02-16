@@ -151,7 +151,7 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
   if (kDebug == 1) std::cout << "line read in the parameter file =" << lineread << std::endl;
 
   ResetCounters();
-
+  mapstr.Close(); // Close the file (ifstream)
   return 0;
 }
 

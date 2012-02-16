@@ -93,6 +93,8 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     size_t fTreeArrayIndex;
     size_t fTreeArrayNumEntries;
 
+    Double_t fF1TDCResolutionNS;
+
 }; // class VQwSubsystemTracking
 
 #endif // __VQWSUBSYSTEMTRACKING__

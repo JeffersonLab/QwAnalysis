@@ -2,31 +2,20 @@
 
 #include <TG3DLine.h>
 #include "TGaxis.h"
+#include "TStyle.h"
 
 ClassImp(QwGUIBeamModulation);
 
 enum QwGUIBeamModulationIndentificator {
-  BA_POS_DIFF,
-  BA_TGT_PARAM,
-  BA_TGT_BPM,
-  BA_DET_SENSITIVITY,
-  BA_LUMI_SENSITIVITY,
-  BA_FG_CHANNEL,
-  BA_LEM_CHANNEL,
-  BA_TRIM_CHANNEL
+  BA_BPM_RESP,
+
 };
 
 const char *QwGUIBeamModulation::RootTrees[TRE_NUM] = 
   {
-    "HEL_Tree",
-    "MPS_Tree"
+    "Hel_Tree",
+    "Mps_Tree"
   };
-
-// const char *QwGUIBeamModulation::BeamModulationTrees[BEAMMODULATION_TRE_NUM] = 
-//   {
-//     "HEL_Tree",
-//     "MPS_Tree"
-//   };
 
 const char *QwGUIBeamModulation::BeamModulationDevices[BEAMMODULATION_DEV_NUM]=
   {
@@ -35,13 +24,6 @@ const char *QwGUIBeamModulation::BeamModulationDevices[BEAMMODULATION_DEV_NUM]=
     "qwk_trimx1","qwk_trimx2","qwk_trimy1","qwk_trimy2",
     "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16"
   };
-
-
-// const char *QwGUIBeamModulation::BeamModulationDevices2[BEAMMODULATION_DEV_NUM]=
-//   {"qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a"
-  
-//     };
-
 
 QwGUIBeamModulation::QwGUIBeamModulation(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -54,23 +36,54 @@ QwGUIBeamModulation::QwGUIBeamModulation(const TGWindow *p, const TGWindow *main
   dCnvLayout              = NULL;
   dSubLayout              = NULL;
   dBtnLayout              = NULL;
-  dBtnPosDiff             = NULL;
-  dBtnTgtParam            = NULL;
-  dBtnTgtBPM              = NULL;
-  dBtnDetectorSensitivity = NULL;
-  dBtnLumiSensitivity     = NULL;
-  dBtnFgChannel           = NULL;
-  dBtnLEMChannel          = NULL;
-  dBtnTRIMChannel         = NULL;
+  dBtnBPMResp             = NULL;
 
   PosDiffVar[0] = NULL;
   PosDiffVar[1] = NULL;
  
-  HistArray.Clear();
+  TreeArray.Clear();
+  PlotArray.Clear();
   DataWindowArray.Clear();
+
+  RemoveSelectedDataWindow();
 
   AddThisTab(this);
 
+}
+
+void QwGUIBeamModulation::CleanUp()
+{
+  // delete [] PosDiffVar;
+
+  TObject* obj;
+  vector <TObject*> obja;
+  TIter *next = new TIter(DataWindowArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    obja.push_back(obj);
+    //     delete obj;
+    obj = next->Next();
+  }
+  delete next;
+  
+  for(uint l = 0; l < obja.size(); l++)
+    delete obja[l];
+  
+  DataWindowArray.Clear();
+
+  //don't delete the trees (done by the main class when necessary) 
+  TreeArray.Clear();
+
+  //We do, however, need to clean up the histograms ...
+  //Need to check below that we set SetDirectory(0) for all of them ...
+  next = new TIter(PlotArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    delete obj;
+    obj = next->Next();
+  }
+  delete next;
+  PlotArray.Clear();
 }
 
 QwGUIBeamModulation::~QwGUIBeamModulation()
@@ -82,16 +95,9 @@ QwGUIBeamModulation::~QwGUIBeamModulation()
   if(dCnvLayout)              delete dCnvLayout;
   if(dSubLayout)              delete dSubLayout;
   if(dBtnLayout)              delete dBtnLayout;
-  if(dBtnPosDiff)             delete dBtnPosDiff;
-  if(dBtnTgtParam)            delete dBtnTgtParam;
-  if(dBtnTgtBPM)              delete dBtnTgtBPM;
-  if(dBtnDetectorSensitivity) delete dBtnDetectorSensitivity;
-  if(dBtnLumiSensitivity)     delete dBtnLumiSensitivity;
-  if(dBtnFgChannel)           delete dBtnFgChannel;
-  if(dBtnLEMChannel)          delete dBtnLEMChannel;
-  if(dBtnTRIMChannel)         delete dBtnTRIMChannel;
+  if(dBtnBPMResp)             delete dBtnBPMResp;
 
-  delete [] PosDiffVar;
+  CleanUp();
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -108,9 +114,8 @@ void QwGUIBeamModulation::MakeLayout()
   gStyle->SetOptTitle(1);
   gStyle->SetOptFit(1111);
   gStyle->SetStatColor(0);  
-  gStyle->SetStatH(0.2);
-  gStyle->SetStatW(0.2);     
- 
+  gStyle->SetStatH(0.1);
+
   // pads parameters
   gStyle->SetPadColor(0); 
   gStyle->SetPadBorderMode(0);
@@ -148,61 +153,78 @@ void QwGUIBeamModulation::MakeLayout()
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
-  dBtnPosDiff  = new TGTextButton(dControlsFrame, "&Position Difference Variation", BA_POS_DIFF);
-  dBtnTgtParam = new TGTextButton(dControlsFrame, "&Beam Parameters at Target", BA_TGT_PARAM);
-  dBtnTgtBPM = new TGTextButton(dControlsFrame, "&Target BPMs", BA_TGT_BPM);
-  dBtnDetectorSensitivity = new TGTextButton(dControlsFrame, "&Detector Sensitivity", BA_DET_SENSITIVITY);
-  dBtnLumiSensitivity = new TGTextButton(dControlsFrame, "&Lumi Sensitivity", BA_LUMI_SENSITIVITY);
-  dBtnFgChannel = new TGTextButton(dControlsFrame, "&Function Generator", BA_FG_CHANNEL);
-  dBtnLEMChannel = new TGTextButton(dControlsFrame, "&LEM Channels", BA_LEM_CHANNEL);
-  dBtnTRIMChannel = new TGTextButton(dControlsFrame, "&TRIM Channels", BA_TRIM_CHANNEL);
-  dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 6, 6);
+  dBtnBPMResp  = new TGTextButton(dControlsFrame, "&BPM Response Diagnostic", BA_BPM_RESP);
 
-  dControlsFrame->AddFrame(dBtnPosDiff ,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnTgtParam,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnTgtBPM,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnDetectorSensitivity,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnLumiSensitivity,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnFgChannel,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnLEMChannel,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnTRIMChannel,dBtnLayout );
+  dControlsFrame->AddFrame(dBtnBPMResp ,dBtnLayout );
 
-  dBtnPosDiff -> Associate(this);
-  dBtnTgtParam-> Associate(this);
-  dBtnTgtBPM-> Associate(this);
-  dBtnDetectorSensitivity-> Associate(this);
-  dBtnLumiSensitivity-> Associate(this);
-  dBtnFgChannel-> Associate(this);
-  dBtnLEMChannel-> Associate(this);
-  dBtnTRIMChannel-> Associate(this);
+  dBtnBPMResp -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
+  Int_t wid = dCanvas->GetCanvasWindowId();
+  QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
+  dCanvas->AdoptCanvas(mc);
+
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUIBeamModulation",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
-
-  Int_t wid = dCanvas->GetCanvasWindowId();
-  //  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
-  QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
-  dCanvas->AdoptCanvas(mc);
-  //  super_canvas -> Divide(2,4);
-
 }
 
-void QwGUIBeamModulation::OnReceiveMessage(char *obj)
+void QwGUIBeamModulation::OnReceiveMessage(char *msg)
 {
-//   TString name = obj;
-//   char *ptr = NULL;
+  TObject *obj = NULL;
+  Int_t ind = 0;
+  TString message = msg;
+
+  if(message.Contains("dDataWindow")){
+
+    if(message.Contains("Add to")){
+
+      message.ReplaceAll("Add to dDataWindow_",7,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	ind = DataWindowArray.IndexOf(obj);
+	SetSelectedDataWindow(ind);
+      }
+    }
+    else if(message.Contains("Don't add to")){
+
+      message.ReplaceAll("Don't add to dDataWindow_",13,"",0);
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	RemoveSelectedDataWindow();
+      }
+    }
+  }
 
 }
 
 void QwGUIBeamModulation::OnObjClose(char *obj)
 {
+  if(!obj) return;
+  TString name = obj;
+
+  if(name.Contains("dDataWindow")){
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));
+    if(window){
+      if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
+    }
+  }
+
   if(!strcmp(obj,"dROOTFile")){
 //     printf("Called QwGUIBeamModulation::OnObjClose\n");
-
+    ClearData();
     dROOTCont = NULL;
   }
+
+  QwGUISubSystem::OnObjClose(obj);
+}
+
+QwGUIDataWindow *QwGUIBeamModulation::GetSelectedDataWindow()
+{
+  if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
+
+  return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
 }
 
 
@@ -220,7 +242,7 @@ void QwGUIBeamModulation::OnNewDataContainer(RDataContainer *cont)
       if(obj)
 	{
 	  copy = obj->Clone();
-	  HistArray.Add(copy);
+	  TreeArray.Add(copy);
 	}
     }
   }
@@ -233,1043 +255,413 @@ void QwGUIBeamModulation::OnRemoveThisTab()
 
 void QwGUIBeamModulation::ClearData()
 {
+  TObject *obj = NULL;
 
-  //  TObject *obj;
-  //   TIter next(HistArray.MakeIterator());
-  //   obj = next();
-  //   while(obj){    
-  //     delete obj;
-  //     obj = next();
-  //   }
-  HistArray.Clear();//Clear();
+  //don't delete the trees (done by the main class when necessary) 
+  TreeArray.Clear();
+
+  //We do, however, need to clean up the histograms ...
+  //Need to check below that we set SetDirectory(0) for all of them ...
+  TIter *next = new TIter(PlotArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    delete obj;
+    obj = next->Next();
+  }
+  delete next;
+  PlotArray.Clear();
+
+  if(dCanvas) {
+    TCanvas *c = dCanvas->GetCanvas();
+    if(c){
+      c->Clear();
+      c->Modified();
+      c->Update();
+    }
+  }
 }
 
-//Stuff to do after the tab is selected
+// Stuff to do after the tab is selected
+
 void QwGUIBeamModulation::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
+  QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
+  Bool_t add = kFalse;
+  TObject *plot = NULL;
+  
   if(event == kButton1Double){
     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
-    
-    if(pad > 0 && pad <= BEAMMODULATION_DEV_NUM)
-      {
-	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
-						     GetNewWindowName(),"QwGUIBeamModulation",
-						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
-	if(!dMiscWindow){
+
+    printf("%s,%d pad = %d\n",__FILE__,__LINE__,pad);
+
+    // if(pad > 0 && pad <= BEAMMODULATION_DEV_NUM)
+    if(pad > 0 && pad <= PlotArray.GetLast()+1) {
+      plot = PlotArray[pad-1];
+      
+      if(plot){
+
+	if(plot->InheritsFrom("TProfile")){
+	
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TProfile*)plot)->GetTitle(), PT_PROFILE,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  // DataWindowArray.Add(dDataWindow);
+	  dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TProfile*)plot));
+	  SetLogMessage(Form("Looking at beam modulation profile %s\n",(char*)((TProfile*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
 	  return;
 	}
-	DataWindowArray.Add(dMiscWindow);
-	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
-	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
-	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
-
-	return;
+	
+	if(plot->InheritsFrom("TH1")){
+	  
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TH1D*)plot)->GetTitle(), PT_HISTO_1D,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  dDataWindow->SetStaticData(plot,DataWindowArray.GetLast());
+	  dDataWindow->SetPlotTitle((char*)((TH1D*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TH1D*)plot),add);
+	  SetLogMessage(Form("Looking at beam modulation histogram %s\n",(char*)((TH1D*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
+	  return;
+	}
+	
+	
+	if(plot->InheritsFrom("TGraphErrors")){
+	  
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TGraphErrors*)plot),add);
+	  SetLogMessage(Form("Looking at beam modulation graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
+	  return;
+	}
+	
+	if(plot->InheritsFrom("TGraph")){
+	  
+	  if(!dDataWindow){
+	    dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					      "QwGUIBeamModulation",((TGraph*)plot)->GetTitle(), PT_GRAPH,
+					      DDT_BPM,600,400);
+	    if(!dDataWindow){
+	      return;
+	    }
+	    DataWindowArray.Add(dDataWindow);
+	  }
+	  else
+	    add = kTrue;
+	  
+	  dDataWindow->SetPlotTitle((char*)((TGraph*)plot)->GetTitle());
+	  dDataWindow->DrawData(*((TGraph*)plot),add);
+	  SetLogMessage(Form("Looking at beam modulation graph %s\n",(char*)((TGraph*)plot)->GetTitle()),add);
+	  
+	  Connect(dDataWindow,"IsClosing(char*)","QwGUIBeamModulation",(void*)this,"OnObjClose(char*)");
+	  Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIBeamModulation",(void*)this,"OnReceiveMessage(char*)");
+	  //Connect(dDataWindow,"UpdatePlot(char*)","QwGUIBeamModulation",(void*)this,"OnUpdatePlot(char *)");
+	  dDataWindow->SetRunNumber(GetRunNumber());
+	  return;
+	}
       }
+    }
   }
 }
 
-
-void QwGUIBeamModulation::PositionDifferences()
+void QwGUIBeamModulation::PlotBPMResponse(void)
 {
 
-  Bool_t ldebug = kTRUE;
-  TObject *obj = NULL;
-  TCanvas *mc = NULL;
-  TH1D *dummyhist = NULL;
-  TPaveText * errlabel;
-  Bool_t status = kTRUE;
+  TTree *tree = NULL;
 
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
+  TCanvas *canvas = NULL;
 
-  // check to see if the TH1s used for the calculation are empty.
-  for(Short_t i=0;i<2;i++) 
-    {
-      if(PosDiffVar[i]) delete PosDiffVar[i];  PosDiffVar[i] = NULL;
-    }
+  TString  cut;
+  TString  error_cut = "ErrorFlag == 0x4018080";
+  TString  ramp_cut = "(( ramp.block3 + ramp.block1) - (ramp.block2 - ramp.block0)) > 5e2";
 
+  TProfile *profx = new TProfile("profx", "profx", 100, 0., 360., -4., 4.);
+  TProfile *profy = new TProfile("profy", "profy", 100, 0., 360., -4., 4.);
+  TProfile *profxp = new TProfile("profxp", "profxp", 100, 0., 360., -4., 4.);
+  TProfile *profyp = new TProfile("profyp", "profyp", 100, 0., 360., -4., 4.);
+  TProfile *profe = new TProfile("profe", "profe", 100, 0., 360., -4., 4.);
 
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(1,2);
+  TH2F *histr = new TH2F("histr", "histr", 10e3, 0, 1000, 100, -0.01, 0.1);
 
-  // Get HEL tree
-  obj = HistArray.At(0);  
-  if( !obj ) return; 
+  Double_t offset;
+  Double_t amplitude;
+  Double_t phase;
 
-  if(ldebug) {
-    printf("PositionDiffercences -------------------------------\n");
-    printf("Found th tree named %s \n", obj->GetName());
-  }
+  TPaveText *no_datax = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datay = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_dataxp = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datayp = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datae = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
+  TPaveText *no_datar = new TPaveText(.15,.15,.8,.8, "TL NDC ARC");
 
-  char histo[128];
-  PosDiffVar[0] = new TH1D("dxvar", "#Delta X Variation", BEAMMODULATION_DEV_NUM, 0.0, BEAMMODULATION_DEV_NUM);
-  PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", BEAMMODULATION_DEV_NUM, 0.0, BEAMMODULATION_DEV_NUM);
+  TF1 *sine = new TF1("sine", "[0] + [1]*sin(x*0.017951 + [2])", 0, 360.);
+
+  canvas = dCanvas->GetCanvas();
+  canvas->Clear();
+  canvas->Divide(2,3);
+
+  // Grab the Mps_Tree from the data container: Hel_Tree(0), Hel_Tree(1)
+  tree = (TTree *)TreeArray.At(1);
+  if(!tree) return;
+
+  cut = error_cut + " && " + ramp_cut;
+
+  std::cout << "Executing Beam Modulation Diagnostic Plots." << std::endl;
+
+  gStyle->SetOptFit(01011);
+  gStyle->SetOptStat("ne");
+  gStyle->SetStatW(0.10);     
+  gStyle->SetStatH(0.0025);     
+  gStyle->SetStatX(0.9);     
+  gStyle->SetStatY(0.9);     
+  gStyle->SetStatFontSize(0.03);
  
-  for(Int_t p = 0; p <BEAMMODULATION_DEV_NUM ; p++) 
-    {
-      sprintf (histo, "diff_%sRelX.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-	  obj -> Draw(histo);
-	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(histo);
-	  PosDiffVar[0] -> SetBinContent(p+1, dummyhist->GetMean()*1000);
-	  PosDiffVar[0] -> SetBinError  (p+1, dummyhist->GetMeanError()*1000);
-	  PosDiffVar[0] -> GetXaxis()->SetBinLabel(p+1,BeamModulationDevices[p]);
-	  PosDiffVar[0]->SetStats(0);
-	  SummaryHist(dummyhist);
-	  delete dummyhist; dummyhist= NULL;
-	}
-      else 
-	{
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  status = kFALSE;
-	}
+  canvas->cd(1);
+  gPad->SetGridx();
+  gPad->SetGridy();
 
-      
-      sprintf (histo, "diff_%sRelY.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-	  obj -> Draw(histo);
-	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(histo);
-	  PosDiffVar[1] -> SetBinContent(p+1, dummyhist->GetMean()*1000); //convert mum to nm
-	  PosDiffVar[1] -> SetBinError  (p+1, dummyhist->GetMeanError()*1000);
-	  PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, BeamModulationDevices[p]);
-	  PosDiffVar[1]->SetStats(0);
-	  SummaryHist(dummyhist);
-	  delete dummyhist; dummyhist= NULL;
-	}
-      else 
-	{
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  status = kFALSE;
-	}
-    }
+  tree->Draw("qwk_targetX:0.09*ramp>>profx", cut + " && bm_pattern_number == 11");
+  profx = (TProfile *)gDirectory->Get("profx");
+  if(profx->GetEntries() == 0){
+    profx->Delete();
+    no_datax->Clear();
+    no_datax->AddText("No modulation X data found.");
+    no_datax->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    profx->GetXaxis()->SetTitle("phase (deg)");
+    profx->GetYaxis()->SetTitle("BPM Amplitude (mm)");
+    sine->SetLineColor(2);
+    sine->SetRange(10., 350.);
+    profx->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profx->SetTitle(Form("Target BPM Response to X Modulation: |Amplitude| = %f", TMath::Abs(amplitude) ));
+    profx->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profx->Draw();
+    profx->SetDirectory(0);
+    PlotArray.Add(profx);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);
+  }
 
+  canvas->cd(2);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("qwk_targetXSlope:0.09*ramp>>profxp", cut + " && bm_pattern_number == 14");
+  profxp = (TProfile *)gDirectory->Get("profxp");
+  if(profxp->GetEntries() == 0){
+    profxp->Delete();
+    no_dataxp->Clear();
+    no_dataxp->AddText("No modulation XP data found.");
+    no_dataxp->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    profxp->GetXaxis()->SetTitle("phase (deg)");
+    profxp->GetYaxis()->SetTitle("BPM Amplitude (rad)");
+    sine->SetLineColor(2);
+    sine->SetRange(10., 350.);
+    sine->SetParameter(1, 4.e-6);
+    profxp->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profxp->SetTitle(Form("Target BPM Response to XP Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
+    profxp->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profxp->Draw();
+    profxp->SetDirectory(0);
+    PlotArray.Add(profxp);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
+  }
+
+  canvas->cd(3);
+  tree->Draw("qwk_targetY:0.09*ramp>>profy", cut + " && bm_pattern_number == 12");
+  profy = (TProfile *)gDirectory->Get("profy");
+  if(profy->GetEntries() == 0){
+    profy->Delete();
+    no_datay->Clear();
+    no_datay->AddText("No modulation Y data found.");
+    no_datay->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    gPad->SetGridx();
+    gPad->SetGridy();
   
-  if (!status) 
-    {
-      mc->Clear();
-      errlabel ->Draw();
-      mc->Update();
-    }
-  else
-    {
-      mc->Clear();
-      mc->Divide(1,2);
-      
-      mc->cd(1);
-      SummaryHist(PosDiffVar[0]);
-      PosDiffVar[0] -> SetMarkerStyle(20);
-      PosDiffVar[0] -> SetMarkerColor(2);
-      PosDiffVar[0] -> SetTitle("#Delta X Variation");
-      PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (nm)");
-      PosDiffVar[0] -> GetXaxis() -> SetTitle("BPM X");
-      PosDiffVar[0] -> Draw("E1");
-      gPad->Update();
-      
-      
-      mc->cd(2);
-      SummaryHist(PosDiffVar[1]);
-      PosDiffVar[1] -> SetMarkerStyle(20);
-      PosDiffVar[1] -> SetMarkerColor(4);
-      PosDiffVar[1] -> SetTitle("#Delta Y Variation");
-      PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (nm)");
-      PosDiffVar[1] -> GetXaxis() -> SetTitle("BPM Y");
-      PosDiffVar[1] -> Draw("E1");
-      gPad->Update();
- 
-  
-      if(ldebug) printf("----------------------------------------------------\n");
-      mc->Modified();
-      mc->Update();
-    }
-  
-  if(dummyhist) delete dummyhist;
-  return;
+    profy->GetXaxis()->SetTitle("phase (deg)");
+    profy->GetYaxis()->SetTitle("BPM Amplitude (mm)");
+    sine->SetLineColor(3);
+    sine->SetRange(10., 350.);
+    profy->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(3);
+    profy->SetTitle(Form("Target BPM Response to Y Modulation: |Amplitude| = %f", TMath::Abs(amplitude) ));
+    profy->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profy->Draw();
+    profy->SetDirectory(0);
+    PlotArray.Add(profy);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
+  }
+
+  canvas->cd(4);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("qwk_targetYSlope:0.09*ramp>>profyp", cut + " && bm_pattern_number == 15");
+  profyp = (TProfile *)gDirectory->Get("profyp");
+  if(profyp->GetEntries() == 0){
+    profyp->Delete();
+    no_datayp->Clear();
+    no_datayp->AddText("No modulation YP data found.");
+    no_datayp->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    profyp->GetXaxis()->SetTitle("phase (deg)");
+    profyp->GetYaxis()->SetTitle("BPM Amplitude (rad)");
+    sine->SetLineColor(4);
+    sine->SetRange(10., 350.);
+    sine->SetParameter(1, 4.e-6);
+    profyp->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profyp->SetTitle(Form("Target BPM Response to YP Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
+    profyp->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profyp->Draw();
+    profyp->SetDirectory(0);
+    PlotArray.Add(profyp);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
+  }
+
+  canvas->cd(5);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("qwk_bpm3c12X:0.09*ramp>>profe", cut + " && bm_pattern_number == 13");
+  profyp = (TProfile *)gDirectory->Get("profe");
+  if(profe->GetEntries() == 0){
+    profe->Delete();
+    no_datae->Clear();
+    no_datae->AddText("No modulation E data found.");
+    no_datae->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    profe->GetXaxis()->SetTitle("phase (deg)");
+    profe->GetYaxis()->SetTitle("BPM Amplitude (rad)");
+    sine->SetLineColor(5);
+    sine->SetRange(10., 350.);
+    sine->SetParameter(1, 4.e-6);
+    profe->Fit("sine","BR");
+    offset = sine->GetParameter(0);
+    amplitude = sine->GetParameter(1);
+    phase = sine->GetParameter(2);
+    profe->SetTitle(Form("Target BPM Response to E Modulation: |Amplitude| = %e", TMath::Abs(amplitude) ));
+    profe->SetAxisRange(offset - TMath::Abs(amplitude*2.), offset + TMath::Abs(amplitude*2.), "Y");
+    profe->Draw();
+    profe->SetDirectory(0);
+    PlotArray.Add(profe);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
+  }
+
+  canvas->cd(6);
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  tree->Draw("0.3*76.29e-6*ramp:event_number*0.001>>histr", "");
+  histr = (TH2F *)gDirectory->Get("histr");
+  if(histr->GetEntries() == 0){
+    histr->Delete();
+    no_datar->Clear();
+    no_datar->SetTextColor(2);
+    no_datar->AddText("No readback of the ramp signal in the ADC.");
+    no_datar->Draw();
+    PlotArray.Add(NULL);
+  }
+  else{
+    histr->GetXaxis()->SetTitle("event number (msec)");
+    histr->GetYaxis()->SetTitle("Ramp Amplitude (I)");
+    histr->SetTitle("ADC readback of ramp signal");
+    histr->Draw();
+    histr->SetDirectory(0);
+    PlotArray.Add(histr);
+    canvas->Modified();
+    canvas->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250); 
+  }
+
+  canvas->Modified();
+  canvas->Update();
+
 }
 
-
-
-void 
-QwGUIBeamModulation::SummaryHist(TH1 *in)
+void QwGUIBeamModulation::MakeHCLogEntry()
 {
 
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
-
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
-
-  //  Print the calculated values:
-
-  //  printf("%sName%s", BOLD, NORMAL);
-  //  printf("%22s", in->GetName());
-  //  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  //  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  //  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  //  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  //  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  return;
-};
-
-//------------------------------------------------------------------------------------------
-// Display the Target BPMs response.
-void QwGUIBeamModulation::DisplayTargetBPM()
-{
-  
-  TH1D * t[5];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kTRUE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * BeamModulationDevices[5]=
-    {
-      "0i07WSum", "0i02WSum", "0i02aWSum", "0i05WSum", "0l04WSum", 
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(2,3);
-
-  // Get the HEL tree
-  obj = HistArray.At(0);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("Target BPM -----------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<5;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <5 ; p++) 
-    {
-      sprintf (histo, "asym_qwk_%s.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	      sprintf (histo, "asym_qwk_%s.hw_sum*0.000076*100/(4*asym_qwk_%s.num_samples)", 
-		       BeamModulationDevices[p],BeamModulationDevices[p]);
-	 
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(BeamModulationDevices[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.7);
-
-	  if(strcmp( BeamModulationDevices[p],"0i07WSum") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("3H09X");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0i02WSum") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("3H09Y");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0i02aWSum") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("3H09BX");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0i05WSum") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("3H09BY" );
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0l04WSum") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("3C12");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("End Target BPM ---------------------------------\n");
-  mc->Modified();
-  mc->Update();
+  if(dCanvas)
+    SubmitToHCLog(dCanvas->GetCanvas());
 
 }
 
 
-//------------------------------------------------------------------------------------------
-// Display the Mian Detector sensitivity.
-void QwGUIBeamModulation::DisplayDetectorSensitivity()
-{
-  
-  TH1D * t[8];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kTRUE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * BeamModulationDevices[8]=
-    {
-      "batext1", "batext2", "batery6", "batery7", "0r05X", "0r05Y", "0r02X", "0r02Y",
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(3,3);
-
-  // Get the HEL tree
-  obj = HistArray.At(0);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("Detector Sensitivity -----------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<8;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <8 ; p++) 
-    {
-      sprintf (histo, "yield_qwk_%s.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	      sprintf (histo, "yield_qwk_%s.hw_sum*0.000076*100/(4*yield_qwk_%s.num_samples)", 
-		       BeamModulationDevices[p],BeamModulationDevices[p]);
-	 
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(BeamModulationDevices[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.7);
-
-	  if(strcmp( BeamModulationDevices[p],"batext1") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("DET 1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"batext2") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("DET 2");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"batery6") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("DET 3");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"batery7") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("DET 4" );
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0r05X") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("DET 5");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0r05Y") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("DET 6");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0r02X") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("DET 7");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"0r02Y") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("DET 8");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("End Detector Sensitivity ---------------------------------\n");
-  mc->Modified();
-  mc->Update();
-
-}
-
-
-//------------------------------------------------------------------------------------------
-// Display the sensitivity of the Luminosity Monitors.
-void QwGUIBeamModulation::DisplayLumiSensitivity()
-{
-  
-  TH1D * t[8];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kTRUE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * BeamModulationDevices[8]=
-    {
-      "dslumi1", "dslumi2", "dslumi3", "dslumi4", "dslumi5", "dslumi6", "dslumi7", "dslumi8",
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(3,3);
-
-  // Get the HEL tree
-  obj = HistArray.At(0);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("Lumi Sensitivity -----------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<8;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <8 ; p++) 
-    {
-      sprintf (histo, "yield_qwk_%s.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-      	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	    sprintf (histo, "yield_qwk_%s.hw_sum*0.000076*100/(4*yield_qwk_%s.num_samples)", 
- 	       BeamModulationDevices[p],BeamModulationDevices[p]);
-	 
-	  // To plot in symetric manner
-	  //	  mc->cd(1);
-	  //	  obj -> Draw(histo);
-	  //	  mc->cd(2);
-	  //	  obj -> Draw(histo);
-	  //	  mc->cd(3);
-	  //	  obj -> Draw(histo);
-	  //	  mc->cd(4);
-	  //	  obj -> Draw(histo);
-	  //	  mc->cd(6);
-	  //	  obj -> Draw(histo);
-	  //	  mc->cd(7);
-	  //	  obj -> Draw(histo);
-	  //	  mc->cd(8);
-	  //	  obj -> Draw(histo);
-	  //	  mc->cd(9);
-	  //	  obj -> Draw(histo);
-
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(BeamModulationDevices[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.7);
-
-
-	  if(strcmp( BeamModulationDevices[p],"dslumi1") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("LUMI 1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-       	    }
-	  else  if(strcmp( BeamModulationDevices[p],"dslumi2") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("LUMI 2");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"dslumi3") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LUMI 3");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"dslumi4") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LUMI 4" );
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"dslumi5") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LUMI 5");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"dslumi6") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LUMI 6");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"dslumi7") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LUMI 7");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"dslumi8") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LUMI 8");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("End Lumi Sensitivity ---------------------------------\n");
-  mc->Modified();
-  mc->Update();
-
-}
-
-//------------------------------------------------------------------------------------------
-// Display the Function Generator Channels
-void QwGUIBeamModulation::DisplayFgChannel()
-{ 
-
-  TH1D * t[6];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kTRUE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * BeamModulationDevices[6]=
-    {
-      "qwk_fgx1", "qwk_fgx2", "qwk_fgy1", "qwk_fgy2", "qwk_fge", "qwk_fgphase",
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(3,2);
-
-  // Get the HEL tree
-  obj = HistArray.At(1);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("Function Generator Channels ------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<6;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <6 ; p++) 
-    {
-      sprintf (histo, "%s.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-      	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	    sprintf (histo, "%s.hw_sum*0.000076*100/(4*%s.num_samples)", 
- 	       BeamModulationDevices[p],BeamModulationDevices[p]);
-
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(BeamModulationDevices[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.7);
-
-
-	  if(strcmp( BeamModulationDevices[p],"qwk_fgx1") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("FG X1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-       	    }
-	  else  if(strcmp( BeamModulationDevices[p],"qwk_fgx2") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("FG X2");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_fgy1") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("FG Y1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_fgy2") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("FG Y2" );
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_fge") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("FG E");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(52);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_fgphase") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("FG Phase");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("End Function Generator Channels------------------\n");
-  mc->Modified();
-  mc->Update();
-
-}
-
-//------------------------------------------------------------------------------------------
-// Display the LEM Current Transducer Channels
-void QwGUIBeamModulation::DisplayLEMChannel()
-{ 
-
-  TH1D * t[4];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kTRUE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * BeamModulationDevices[4]=
-    {
-      "qwk_lemx1", "qwk_lemx2", "qwk_lemy1", "qwk_lemy2",
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(2,2);
-
-  // Get the HEL tree
-  obj = HistArray.At(1);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("LEM Channels --------------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<4;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <4 ; p++) 
-    {
-      sprintf (histo, "%s.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-      	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	    sprintf (histo, "%s.hw_sum*0.000076*100/(4*%s.num_samples)", 
- 	       BeamModulationDevices[p],BeamModulationDevices[p]);
-
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(BeamModulationDevices[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.7);
-
-
-	  if(strcmp( BeamModulationDevices[p],"qwk_lemx1") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("LEM X1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-       	    }
-	  else  if(strcmp( BeamModulationDevices[p],"qwk_lemx2") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("LEM X2");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_lemy1") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LEM Y1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_lemy2") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("LEM Y2" );
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("End LEM Channels------------------------\n");
-  mc->Modified();
-  mc->Update();
-
-}
-
-//------------------------------------------------------------------------------------------
-// Display the TRIM Power Amplifier Channels
-void QwGUIBeamModulation::DisplayTRIMChannel()
-{ 
-
-  TH1D * t[4];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kTRUE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * BeamModulationDevices[4]=
-    {
-      "qwk_trimx1", "qwk_trimx2", "qwk_trimy1", "qwk_trimy2",
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(2,2);
-
-  // Get the HEL tree
-  obj = HistArray.At(1);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("TRIM Channels --------------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<4;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <4 ; p++) 
-    {
-      sprintf (histo, "%s.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-      	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	    sprintf (histo, "%s.hw_sum*0.000076*100/(4*%s.num_samples)", 
- 	       BeamModulationDevices[p],BeamModulationDevices[p]);
-
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(BeamModulationDevices[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.7);
-
-
-	  if(strcmp( BeamModulationDevices[p],"qwk_trimx1") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("TRIM X1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-       	    }
-	  else  if(strcmp( BeamModulationDevices[p],"qwk_trimx2") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("TRIM X2");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_trimy1") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("TRIM Y1");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"qwk_trimy2") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("TRIM Y2" );
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("End TRIM Channels------------------------\n");
-  mc->Modified();
-  mc->Update();
-
-}
-
-
-//------------------------------------------------------------------------------------------
-// Display the beam postion and angle in X & Y, beam energy and beam charge on the target.
-void QwGUIBeamModulation::DisplayTargetParameters()
-{
-  
-  TH1D * t[5];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kTRUE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * BeamModulationDevices[5]=
-    {
-      "targetX","targetY","targetXSlope","targetYSlope","average_charge"
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(2,3);
-
-  // Get the HEL tree
-  obj = HistArray.At(0);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("Target beam parameters-----------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<5;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <5 ; p++) 
-    {
-      sprintf (histo, "yield_qwk_%s.hw_sum", BeamModulationDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	      sprintf (histo, "yield_qwk_%s.hw_sum*0.000076*100/(4*yield_qwk_%s.num_samples)", 
-		       BeamModulationDevices[p],BeamModulationDevices[p]);
-	 
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(BeamModulationDevices[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.7);
-
-	  if(strcmp( BeamModulationDevices[p],"average_charge") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("Current (#muA)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"targetX") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("X Position (#mum)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"targetY") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("Y Position (#mum)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"targetXSlope") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("X Angle (#murad)" );
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(50);
-	    }
-	  else 	if(strcmp( BeamModulationDevices[p],"targetYSlope") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("Y Angle (#murad)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(8);
-	    }
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("End of Target beam parameters---------------------------------\n");
-  mc->Modified();
-  mc->Update();
-
-}
-
-
-//-------------------------------------------------------------------------------------------
-// Process events generated by the object in the frame.
 Bool_t QwGUIBeamModulation::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
 
@@ -1296,37 +688,11 @@ Bool_t QwGUIBeamModulation::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm
 	    {
 	      switch(parm1)
 		{
-		case   BA_POS_DIFF:
-		  PositionDifferences();
+		case   BA_BPM_RESP:
+		  PlotBPMResponse();
 		  break;
 		  
-		case BA_TGT_PARAM:
-		  DisplayTargetParameters();
-		  break;
-		
-		case BA_TGT_BPM:
-		  DisplayTargetBPM();
-		  break;
-
-		case BA_DET_SENSITIVITY:
-		  DisplayDetectorSensitivity();
-		  break;
-		
-		case BA_LUMI_SENSITIVITY:
-		  DisplayLumiSensitivity();
-		  break;
-
-		case BA_FG_CHANNEL:
-		  DisplayFgChannel();
-		  break;
-
-		case BA_LEM_CHANNEL:
-		  DisplayLEMChannel();
-		  break;
-
-		case BA_TRIM_CHANNEL:
-		  DisplayTRIMChannel();
-		  break;
+		// case BA_TGT_PARAM:
 
 		}
 

@@ -233,7 +233,7 @@ end=combinedbpm
 !**************************************************************************
 ! COMBINATION OF DEVICES USED TO OBTAIN THE BEAM ENERGY
 !**************************************************************************
-! For the energy calculation we need the following inforamtion.
+! For the energy calculation we need the following inforamtion. 
 ! 	Beam position at the highest dispersive region (beamposition)
 !	Beam angle on target (targetbeamangle)
 !	Beam position on target (targetbeamposition)

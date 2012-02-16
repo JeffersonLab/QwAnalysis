@@ -1,119 +1,397 @@
-
-// author: Siyuan Yang
-//       : College of William & Mary
-//       : sxyang@email.wm.edu
-// calculate the residual from combinations of hits
- 
-#include <iostream>
-#include <iterator>
-#include <vector>
-#include <algorithm>
-
-
-using namespace std;
-const int layers=12;
-const int ndirs=3;
-const double wirespace=1.1684;
-const double offset=-18.1102;
-const double location[layers]={-338.10,-336.122,-334.144,-332.166,-330.188,-328.120,-295.400,-293.422,-291.444,-289.466,,-287.488,-285.510};
-const double centery[layers]={51.013,50.711,50.955,51.013,50.711,50.955,55.013,54.711,54.955,55.013,54.711,54.955};
-
-
-
+// Author:Siyuan Yang
+// Email:sxyang@email.wm.edu
+// Date: Jan 12th 2012
+// 
+// Description: This file is used project the r2 track back to certain planes
+// Two basic cuts are set as default here: MD cut and one-track-per-event cut.
+// 
+// Example
+// root[1] projection("ds",1,0,-1,13563,1)
+// this will draw the projection of qualified R2 tracks back to the downstream target plane for package 1 over all events
+// the number behind the run number 13563 specifies which octant the pkg2 of R2 covers in this run.
+// Notice that the first string can be either of the following listed choices:
+// "ds" downstream solid target
+// "us" upstream solid target
+// "coll1" downstream face of collimator 1
+// "coll2" downstream face of primary collimator
+// "-500" arbitrary number in z location
+// Another example
+// root[2] projection("-330",1,0,-1,13654,7)
+// this will draw the projection of qualified R2 tracks back to z=-330 plane, where the pkg2 of R2 covers octant 7 this time.
 
 
 
- void reconstruction(Int_t event_start=0,Int_t event_end=-1,Int_t run_start=8658,Int_t run_end=8659){
+#include <cstring>
+#include <cstdlib>
+#include <sstream>
+//#include <string>
+
+const int multitracks=18;
+
+void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int run=8658,int oct=1,string suffix=""){
+
+
+   //bool fDebug=false;
+   //string folder= "/scratch/sxyang";
+   string folder=gSystem->Getenv("QW_ROOTFILES");
+   ostringstream ss;
+   ss << folder << "/Qweak_";
+   ss << run << suffix;
+   ss << ".root";
+   string file_name=ss.str();
+   cout <<  file_name << endl;
+   TFile* file=new TFile(file_name.c_str());
+  
+   double z;
+   if(target=="coll1")
+     z=-568.17;
+   else if(target=="coll2")
+     z=-370.719;
+   else if(target=="ds")
+     z=-633;
+   else if(target=="us")
+     z=-667;
+   else{
+     istringstream random(target);
+     random >> z;
+   }
+
+   TH1F* vertex=new TH1F("vertex in Z","vertex in Z",200,-850,-450);
+   TH2F* projection;
+   if(z<-500 && z>-600)
+     projection=new TH2F("projection","projection",240,-30,30,240,-30,30);
+   else if(z<-600)
+     projection=new TH2F("projection","projection",120,-15,15,120,-15,15);
+   else if(z<-350)
+     projection=new TH2F("projection","projection",480,-60,60,480,-60,60);
+   else
+     projection=new TH2F("projection","projection",720,-90,90,720,-90,90);
+     
+    //TH2F* projection=new TH2F("projection","projection",240,-30,30,240,-30,30);
+    //TH2F* projection=new TH2F("projection","projection",240,-30,30,140,25,60);
+    // TH2F* projection_target=new TH2F("projection to target plane","projection to target plane",120,-15,15,120,-15,15);
+    TH2F* Directionphioff=new TH2F("DirectionPhioff vs r","DirectionPhioff vs r",1000,-0.5,0.5,200,0,20);
+    TH2F* Directionthetaoff=new TH2F("DirectionThetaoff vs r","DirectionThetaoff vs r",1000,-0.05,0.05,200,0,20);
     
-    TChain* chain=new TChain("event_tree");
-    for(int run=run_start;run<run_end;run++){
-    string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QW_ROOTFILES" ),run );
-    chain->Add(file_name.c_str());
-    }
-
-
+    TProfile2D* profile_target=new TProfile2D("1","1",120,-15,15,80,-10,10);
    
-    TH1F* vertex=new TH1F("vertex in Z","vertex in Z",300,-1000,-400);
-    TH1F* vertexr=new TH1F("vertex in R","vertex in R",100,0,10);
-    TH1F* test=new TH1F("test","test",100,-1,1);
-    TH2F* projection=new TH2F("projection","projection",80,-20,20,100,-10,40);
-    TProfile2D* projection_profile=new TProfile2D("projection related with number of hits","projection related with hits",80,-20,20,100,-10,40);
-    //TH1F* slopex=new TH1F("slope in x","slope in x",100,-0.2,0.2);
-    
-    // only calcualte from those events which has tracks
+    TH1F* Xtreeline_histo=new TH1F("ar in treeline x","ar in treeline x",100,0,0.3);
+    TH1F* Utreeline_histo=new TH1F("ar in treeline x","ar in treeline u",100,0,0.3);
+    TH1F* Vtreeline_histo=new TH1F("ar in treeline x","ar in treeline v",100,0,0.3);
+    TH1F* Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",200,0,20);
+    TH1F* x_histo=new TH1F("x coll1 distribution","x coll1 distribution",200,-10,10);
+    TH1F* y_histo=new TH1F("y coll1 distriution","y coll1 distribution",200,0,20);
+    TH1F* Plane_residual[12];
+    for(int i=0;i<12;++i)
+      Plane_residual[i]=new TH1F(Form("residual in plane%d",i+1),Form("residual in plane%d",i+1),100,-0.5,0.5);
+
     QwEvent* fEvent=0;
+    QwHit* hit=0;
     QwTrack* track=0;
     QwPartialTrack* pt=0;
-    QwHit* hit=0;
-   
-   
-    chain->SetBranchAddress ( "events",&fEvent);
-    Int_t nevents=chain->GetEntries();
 
-    if(event_end==-1)
-      event_end=nevents;
+    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
+    Int_t nevents=event_tree->GetEntries();
+    cout << "total events: " << nevents << endl;
+    
+    int start=(event_start==-1)? 0:event_start;
+    int end=(event_end==-1)? nevents:event_end;
+    event_tree->SetBranchStatus("events",1);
+    TBranch* event_branch=event_tree->GetBranch("events");
+    TBranch* maindet_branch=event_tree->GetBranch("maindet");
+    event_branch->SetAddress(&fEvent);
+  
+    int md_1=(oct+4)%8;
+    int md_2=oct;
+    
+    TLeaf* tsp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
+    TLeaf* tsm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
+    TLeaf* tsp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
+    TLeaf* tsm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
+   
+    //chain->SetBranchAddress ( "events",&fEvent);
+    
 
-    for(int i=event_start;i<event_end;i++){
+
+    // cuts
+      double mean_phioff_pkg1=-0.006526;
+      double mean_phioff_pkg2=-0.01667;
+      
+      double sigma_phioff_pkg1=0.0281;
+      double sigma_phioff_pkg2=0.02121;
+
+      double mean_thetaoff_pkg1=-0.002897;
+      double sigma_thetaoff_pkg1=0.0031565;
+
+
+      double mean_thetaoff_pkg2=-2.12082e-02;
+      double sigma_thetaoff_pkg2=3.74405e-03;
+
+     double width=25;
+     double pkg1_phioff_lower=mean_phioff_pkg1-width*sigma_phioff_pkg1;
+     double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
+     double pkg2_phioff_lower=mean_phioff_pkg2-width*sigma_phioff_pkg2;
+     double pkg2_phioff_upper=mean_phioff_pkg2+width*sigma_phioff_pkg2;
+
+     double pkg1_thetaoff_lower=mean_thetaoff_pkg1-width*sigma_thetaoff_pkg1;
+     double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*sigma_thetaoff_pkg1;
+     double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*sigma_thetaoff_pkg2;
+     double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*sigma_thetaoff_pkg2;
+
+    int oct=0;
+    for(int i=start;i<end;++i){
 
       if(i%10000==0)
 	cout << "events processed so far: " << i << endl;
       
-      chain->GetEntry(i);
-
-      double ntracks=0;
-      ntracks=fEvent->GetNumberOfTracks();
-
-      //if(ntracks!=0) cout << "event " << i << " has a track!" << endl;
-      //fit will store the final results
-      double fit[4]={0};
+      event_branch->GetEntry(i);
+      maindet_branch->GetEntry(i);
+       
+      double tsp_value_1=tsp_1->GetValue();
+      double tsm_value_1=tsm_1->GetValue();
+      double tsp_value_2=tsp_2->GetValue();
+      double tsm_value_2=tsm_2->GetValue();
       
-      //get rid of those events which has two partial tracks
-      double npts=0;
-      npts=fEvent->GetNumberOfPartialTracks();
+      	int nhits=fEvent->GetNumberOfHits();
+	int valid_hits=0;
+	for(int j=0;j<nhits;++j){
+	  hit=fEvent->GetHit(j);
+	  if(hit->GetRegion() ==2 && hit->GetDriftDistance() >=0 && hit->GetHitNumber()==0 && hit->GetPackage() == pkg)
+	    ++valid_hits;
+	}
 
-     
+	// test if the md get hit
+	
+	if(pkg==1){
+	  if(tsm_value_1 <-1800 || tsm_value_1 > -1200 || tsp_value_1 < -1800 || tsp_value_1 > -1200)
+	    continue;
+	}
+	else if(pkg==2){
+	  if(tsm_value_2 <-1800 || tsm_value_2 > -1200 || tsp_value_2 < -1800 || tsp_value_2 > -1200)
+	    continue;
+	}
+	
+	
+      if(valid_hits>=multitracks) continue;
+      double ntracks=fEvent->GetNumberOfTracks();
+      double npts=fEvent->GetNumberOfPartialTracks();
+
+      double chi=0;
       // call build function
-    
-      for(int j=0;j<npts;j++){
-	pt=fEvent->GetPartialTrack(j);
-	if(pt->GetRegion()!=2) continue;
-	
-		double vertexz=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
-		double vertex_r=sqrt((pt->fSlopeX*vertexz+pt->fOffsetX)*(pt->fSlopeX*vertexz+pt->fOffsetX)+(pt->fSlopeY*vertexz+pt->fOffsetY)*(pt->fSlopeY*vertexz+pt->fOffsetY));
-	
-	projection->Fill(pt->fOffsetX-568.17*pt->fSlopeX,pt->fOffsetY-568.17*pt->fSlopeY);
-	// projection_profile->Fill(pt->fOffsetX-568.17*pt->fSlopeX,pt->fOffsetY-568.17*pt->fSlopeY,pt->fChi,1);
-	// projection_profile->Fill(pt->fOffsetX-568.17*pt->fSlopeX,pt->fOffsetY-568.17*pt->fSlopeY,hit_in_r2,1);
+      for(int nts=0;nts<ntracks;++nts){
+      track=fEvent->GetTrack(nts);
+      if(track->GetPackage()!=pkg){
+	continue;
       }
-       } 
+      else if(pkg==1){
+      if(track->fDirectionPhioff<pkg1_phioff_lower || track->fDirectionPhioff>pkg1_phioff_upper || track->fDirectionThetaoff < pkg1_thetaoff_lower || track->fDirectionThetaoff > pkg1_thetaoff_upper) continue;
+      }
+      else{
+      if(track->fDirectionPhioff<pkg2_phioff_lower || track->fDirectionPhioff> pkg2_phioff_upper || track->fDirectionThetaoff < pkg2_thetaoff_lower || track->fDirectionThetaoff >  pkg2_thetaoff_upper ) continue;
+      }
+      for(int j=0;j<npts;++j){
+        pt=fEvent->GetPartialTrack(j);
+	if(pt->GetRegion()!=2 || pt->GetPackage()!=pkg || pt->GetPackage()!=track->GetPackage()) continue;
+	if(oct==0)
+	  oct=pt->GetOctantNumber();
+	chi=pt->fChi;
+        //double vertex_z=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
+	double vertex_z=track->fVertexZ;
+	double x=pt->fOffsetX+z*pt->fSlopeX;
+	double y=pt->fOffsetY+z*pt->fSlopeY;
+	//double x_tar=pt->fOffsetX+ds_target*pt->fSlopeX;
+	//double y_tar=pt->fOffsetY+ds_target*pt->fSlopeY;
+	x*=-1;
+	//x_tar*=-1;
+	//double r=sqrt(x_tar*x_tar+y_tar*y_tar);
+	double r=sqrt(x*x+y*y);
+	Directionphioff->Fill(track->fDirectionPhioff,r);
+	Directionthetaoff->Fill(track->fDirectionThetaoff,r);
+
+	vertex->Fill(vertex_z);
+	projection->Fill(x,y);
+
+	x_histo->Fill(x);
+	y_histo->Fill(y);
+	//projection_target->Fill(x_tar,y_tar);
+	//profile_target->Fill(x,y,chi);
+	Xtreeline_histo->Fill(pt->TResidual[1]);
+	Utreeline_histo->Fill(pt->TResidual[3]);
+	Vtreeline_histo->Fill(pt->TResidual[4]);
+	Chi_histo->Fill(pt->fChi);
+	for(int k=0;k<12;++k)
+	  if(pt->fSignedResidual[k]!=-10)
+	    Plane_residual[k]->Fill(pt->fSignedResidual[k]);
+      }
+      }
+    }  // end of for loop over events
    
-   
-    TCanvas* c=new TCanvas("c","c",800,600);
+    //cout << "good: " << good << endl;
+    cout << "oct: " << oct << endl;
+    
+    TCanvas* c1=new TCanvas("c","c",1000,600);
+    
+    TPad* spad1=new TPad("spad1","spad1",.61,.51,.99,.99);
+    spad1->Draw();
+    spad1->cd();
     vertex->Draw();
-    
+    c1->cd();
+    TPad* spad2=new TPad("spad2","spad2",.61,0.01,.99,.49);
+    spad2->Draw();
+    spad2->cd();
+    Chi_histo->Draw();
+    c1->cd();
+    TPad* spad3=new TPad("spad3","spad3",.01,.01,.59,.99);
+    spad3->Draw();
+    spad3->cd();
+  
     gStyle->SetPalette(1);
-    projection->SetTitle("projection to collmator 2: z=-568.17");
-    projection_profile->GetXaxis()->SetTitle("x axis:cm");
-    projection_profile->GetYaxis()->SetTitle("y axis:cm");
+    projection->GetXaxis()->SetTitle("x axis:cm");
+    projection->GetYaxis()->SetTitle("y axis:cm");
     projection->Draw("colz");
-    //projection_profile->SetMaximum(30);
-    //projection_profile->SetMinimum(6);
-    //projection_profile->Draw("colz");
     
-    
-    // ds coll1
+    projection->SetTitle(Form("run %d: pkg%d projection to Z=%f",run,pkg,z));
+    double PI=3.1415926;
+    double px[6];
+    double py[6];
+    if(target=="coll1"){
+     
+    double angle=oct==8? -135:-(3-oct)*45;
+    double Sin=sin(angle*PI/180);
+    double Cos=cos(angle*PI/180);
     double highy=18.46,middley=12.63,lowy=7.03;
     double highx=3.65,middlex=3.65,lowx=1.91;
-    //double highy=53.7,middley=37.1,lowy=30.57;
-    //double highx=9.2,middlex=9.2,lowx=6.5;
+    
+    px[0]=-Cos*highx+Sin*highy;
+    py[0]=Sin*highx+Cos*highy;
+    px[1]=Cos*highx+Sin*highy;
+    py[1]=-Sin*highx+Cos*highy;
+    px[2]=-Cos*lowx+Sin*lowy;
+    py[2]=Sin*lowx+Cos*lowy;
+    px[3]=Cos*lowx+Sin*lowy;
+    py[3]=-Sin*lowx+Cos*lowy;
+    px[4]=-Cos*middlex+Sin*middley;
+    py[4]=Sin*middlex+Cos*middley;
+    px[5]=Cos*middlex+Sin*middley;
+    py[5]=-Sin*middlex+Cos*middley;
+    
+    TLine* t1=new TLine(px[0],py[0],px[1],py[1]);
+    TLine* t2=new TLine(px[2],py[2],px[3],py[3]);
+    TLine* t3=new TLine(px[0],py[0],px[4],py[4]);
+    TLine* t4=new TLine(px[1],py[1],px[5],py[5]);
+    TLine* t5=new TLine(px[4],py[4],px[2],py[2]);
+    TLine* t6=new TLine(px[5],py[5],px[3],py[3]);
+    t1->SetLineWidth(2);
+    t2->SetLineWidth(2);
+    t3->SetLineWidth(2);
+    t4->SetLineWidth(2);
+    t5->SetLineWidth(2);
+    t6->SetLineWidth(2);
+    t1->Draw("same");
+    t2->Draw("same");
+    t3->Draw("same");
+    t4->Draw("same");
+    t5->Draw("same");
+    t6->Draw("same");
+    }
+    else if(target=="coll2"){
+       double angle=oct==8? -135:-(3-oct)*45;
+    double Sin=sin(angle*PI/180);
+    double Cos=cos(angle*PI/180);
+    double highy=53.7,middley=37.1,lowy=30.57;
+    double highx=9.2,middlex=9.2,lowx=6.5;
+    
+    px[0]=-Cos*highx+Sin*highy;
+    py[0]=Sin*highx+Cos*highy;
+    px[1]=Cos*highx+Sin*highy;
+    py[1]=-Sin*highx+Cos*highy;
+    px[2]=-Cos*lowx+Sin*lowy;
+    py[2]=Sin*lowx+Cos*lowy;
+    px[3]=Cos*lowx+Sin*lowy;
+    py[3]=-Sin*lowx+Cos*lowy;
+    px[4]=-Cos*middlex+Sin*middley;
+    py[4]=Sin*middlex+Cos*middley;
+    px[5]=Cos*middlex+Sin*middley;
+    py[5]=-Sin*middlex+Cos*middley;
+    
+    TLine* t1=new TLine(px[0],py[0],px[1],py[1]);
+    TLine* t2=new TLine(px[2],py[2],px[3],py[3]);
+    TLine* t3=new TLine(px[0],py[0],px[4],py[4]);
+    TLine* t4=new TLine(px[1],py[1],px[5],py[5]);
+    TLine* t5=new TLine(px[4],py[4],px[2],py[2]);
+    TLine* t6=new TLine(px[5],py[5],px[3],py[3]);
+    t1->SetLineWidth(2);
+    t2->SetLineWidth(2);
+    t3->SetLineWidth(2);
+    t4->SetLineWidth(2);
+    t5->SetLineWidth(2);
+    t6->SetLineWidth(2);
+    t1->Draw("same");
+    t2->Draw("same");
+    t3->Draw("same");
+    t4->Draw("same");
+    t5->Draw("same");
+    t6->Draw("same");
+    }
+
+    // TCanvas* c2=new TCanvas("c","c",800,800);
+    // vertex->Draw();
+    /*if(option==1){
+      //c->Divide(1,3);
+      c->Divide(1,2);
+      c->cd(1);
+    gStyle->SetPalette(1);
+    projection->GetXaxis()->SetTitle("x axis:cm");
+    projection->GetYaxis()->SetTitle("y axis:cm");
+    projection->Draw("colz");
+    projection->SetTitle(Form("run %d: pkg%d projection to primary collimator",run,pkg));
+    
+    // ds coll1
+    double PI=3.1415926;
+    oct=3;
+    double angle=oct==8? -135:-(3-oct)*45;
+    double Sin=sin(angle*PI/180);
+    double Cos=cos(angle*PI/180);
+    
+    double px[6];
+    double py[6];
+    //double highy=18.46,middley=12.63,lowy=7.03;
+    //double highx=3.65,middlex=3.65,lowx=1.91;
+    double highy=53.7,middley=37.1,lowy=30.57;
+    double highx=9.2,middlex=9.2,lowx=6.5;
     //double highy=77.5,middley=51,lowy=39.95;
     //double highx=14.5,middlex=14.5,lowx=10.1;
-    TLine* t1=new TLine(-highx,highy,highx,highy);
-    TLine* t2=new TLine(-lowx,lowy,lowx,lowy);
-    TLine* t3=new TLine(-highx,highy,-middlex,middley);
-    TLine* t4=new TLine(highx,highy,middlex,middley);
-    TLine* t5=new TLine(-middlex,middley,-lowx,lowy);
-    TLine* t6=new TLine(middlex,middley,lowx,lowy);
+    px[0]=-Cos*highx+Sin*highy;
+    py[0]=Sin*highx+Cos*highy;
+    px[1]=Cos*highx+Sin*highy;
+    py[1]=-Sin*highx+Cos*highy;
+    px[2]=-Cos*lowx+Sin*lowy;
+    py[2]=Sin*lowx+Cos*lowy;
+    px[3]=Cos*lowx+Sin*lowy;
+    py[3]=-Sin*lowx+Cos*lowy;
+    px[4]=-Cos*middlex+Sin*middley;
+    py[4]=Sin*middlex+Cos*middley;
+    px[5]=Cos*middlex+Sin*middley;
+    py[5]=-Sin*middlex+Cos*middley;
+    
+    //TLine* t1=new TLine(-highx,highy,highx,highy);
+    //TLine* t2=new TLine(-lowx,lowy,lowx,lowy);
+    //TLine* t3=new TLine(-highx,highy,-middlex,middley);
+    //TLine* t4=new TLine(highx,highy,middlex,middley);
+    //TLine* t5=new TLine(-middlex,middley,-lowx,lowy);
+    //TLine* t6=new TLine(middlex,middley,lowx,lowy);
+    TLine* t1=new TLine(px[0],py[0],px[1],py[1]);
+    TLine* t2=new TLine(px[2],py[2],px[3],py[3]);
+    TLine* t3=new TLine(px[0],py[0],px[4],py[4]);
+    TLine* t4=new TLine(px[1],py[1],px[5],py[5]);
+    TLine* t5=new TLine(px[4],py[4],px[2],py[2]);
+    TLine* t6=new TLine(px[5],py[5],px[3],py[3]);
+    t1->SetLineWidth(2);
+    t2->SetLineWidth(2);
+    t3->SetLineWidth(2);
+    t4->SetLineWidth(2);
+    t5->SetLineWidth(2);
+    t6->SetLineWidth(2);
     t1->Draw("same");
     t2->Draw("same");
     t3->Draw("same");
@@ -121,129 +399,92 @@ const double centery[layers]={51.013,50.711,50.955,51.013,50.711,50.955,55.013,5
     t5->Draw("same");
     t6->Draw("same");
     
+    c->cd(2);
+    vertex->Draw();
+    vertex->GetXaxis()->SetTitle("z axis:cm");
+    vertex->SetTitle(Form("run %d: pkg%d vertex distribution",run,pkg));
+    //c->cd(3);
+    //Chi_histo->Draw();
+    }
+    else if(option==2){
+    c->Divide(2,2);
+    c->cd(1);
+    Xtreeline_histo->Draw();
+    c->cd(2);
+    Utreeline_histo->Draw();
+    c->cd(3);
+    Vtreeline_histo->Draw();
+    c->cd(4);
+    Chi_histo->Draw();
+    }
+    else if(option==3){
+      c->Divide(3,4);
+      int a=0;
+      while(a!=12){
+	c->cd(a+1);
+	Plane_residual[a++]->Draw();
+      }
+     }
+    else if(option==4){
+    c->Divide(1,2);
+    c->cd(1);
+    gStyle->SetPalette(1);
+    projection_target->GetXaxis()->SetTitle("x axis:cm");
+    projection_target->GetYaxis()->SetTitle("y axis:cm");
+    projection_target->Draw("colz");
+    projection_target->SetTitle(Form("run %d: projection to target from pkg %d",run,pkg));
+    c->cd(2);
+    vertex->Draw();
+    vertex->GetXaxis()->SetTitle("z axis:cm");
+    vertex->SetTitle(Form("run %d: pkg%d vertex distribution",run,pkg));
+    }
+    else if(option==5){
+      gStyle->SetPalette(1);
+    profile_target->GetXaxis()->SetTitle("x axis:cm");
+    profile_target->GetYaxis()->SetTitle("y axis:cm");
+    profile_target->Draw("colz");
+    profile_target->SetTitle(Form("run %d: projection to target from pkg %d",run,pkg));
+    }
+    else if(option==6){
+      c->Divide(2,1);
+      c->cd(1);
+      x_histo->Draw();
+      c->cd(2);
+      y_histo->Draw();
+    }
+    else if(option==7){
+    gStyle->SetPalette(1);
+    c->Divide(1,2);
+    c->cd(1);
+    Directionphioff->GetXaxis()->SetTitle("fDirectionPhioff: rad");
+    Directionphioff->GetYaxis()->SetTitle("r: cm");
+    Directionphioff->Draw("colz");
+    c->cd(2);
+    Directionthetaoff->GetXaxis()->SetTitle("fDirectionThetaoff: rad");
+    Directionthetaoff->GetYaxis()->SetTitle("r: cm");
+    Directionthetaoff->Draw("colz");
+    
+    }
+    */
+    
     return;
 
  }
 
-void buildtrack(double slope1,double offset1,double slope2,double offset2,double slope3,double offset3,double* fit)
-{
-
-  // cout << "slope1: " << slope1 << " " << offset1 << " " << slope2 << " " << offset2 << endl;
-  double zx=-338.10,zu=-336.122,zv=-334.144;
-  double centerx=51.013,centeru=50.711,centerv=50.955;
-  double wirespace=1.1684,first=-18.1102;
-  double slopex=slope1,offsetx=offset1;
-  double slopeu=slope2,offsetu=offset2;
-  double slopev=slope3,offsetv=offset3;
-
-  double cosu=0.6,sinu=-0.8;
-  double cosv=0.6,sinv=0.8;
-
-  double x=offsetx+slopex*zx;
-  double u=offsetu+slopeu*zx-(centeru-centerx)*cosu;
-  double v=offsetv+slopev*zx-(centerv-centerx)*cosv;
-
-  double ux=u*cosu,uy=u*sinu;
-  double vx=v*cosv,vy=v*sinv;
-
-  x-=0.5*wirespace;
-  x+=first;
-
-  ux-=0.5*wirespace;
-  ux+=first;
-
-  vx-=0.5*wirespace;
-  vx+=first;
-  //three planes
-  // first x
-  double para[3][4];
-  para[0][0]=1;
-  para[0][1]=0;
-  para[0][2]=-slopex;
-  para[0][3]=-(x+para[0][2]*zx);
-
-  // first u
-  para[1][0]=-0.75;
-  para[1][1]=1;
-  para[1][2]=fabs(slopeu*para[1][0]);
-  para[1][3]=-(para[1][0]*ux+para[1][1]*uy+para[1][2]*zx);
-
- // first v
-  para[2][0]=0.75;
-  para[2][1]=1;
-  para[2][2]=-fabs(slopev*para[2][0]);
-  para[2][3]=-(para[2][0]*vx+para[2][1]*vy+para[2][2]*zx);
- 
 
 
-  // set two points
-  double z1=-63,z2=-439;
-  // question is: how do we want to combine, three optionsvoid 
-  double x1=0,x2=0,y1=0,y2=0;
-  double i=1,j=2; // means u,v
+bool in_coll(double x,double y){
+  if(y<7.03 || y>18.46 )
+    return false;
+  if(y<12.63){
+    if(fabs(x) < (1.91+(y-7.03)/3.218))
+      return true;
+    else
+      return false;
+  }
   
-  y1=((para[i][0]*para[j][2]-para[i][2]*para[j][0])*z1+(para[i][0]*para[j][3]-para[i][3]*para[j][0]))/(para[i][1]*para[j][0]-para[i][0]*para[j][1]);
-  x1=-(para[i][1]*y1+para[i][2]*z1+para[i][3])/para[i][0];
-
-  y2=((para[i][0]*para[j][2]-para[i][2]*para[j][0])*z2+(para[i][0]*para[j][3]-para[i][3]*para[j][0]))/(para[i][1]*para[j][0]-para[i][0]*para[j][1]);
-  x2=-(para[i][1]*y2+para[i][2]*z2+para[i][3])/para[i][0];
-
-  //fit[3]=(x1-x2)/(z1-z2);
-  //fit[2]=x1-fit[1]*z1;
- 
-
-  fit[1]=(y1-y2)/(z1-z2);
-  fit[0]=y1-fit[1]*z1;
-
-  fit[3]=slopex;
-  fit[2]=offsetx+centerx+first-0.5*wirespace;
-  //fit[2]+=centerx;
-  
-  // cout << "x,y(z=0)=(" << fit[0] << "," << fit[2] << ") d(x,y)/dz=(" << fit[1] << "," << fit[3] << ")" << endl;  
-  return;
+  if(fabs(x)<3.65)
+    return true;
+  else
+    return false;
 }
-
-/*
-
- void signed_check(Int_t event_start=0,Int_t event_end=-1,Int_t run_start=8658,Int_t run_end=8659){
-    
-    TChain* chain=new TChain("event_tree");
-    for(int run=run_start;run<run_end;run++){
-    string file_name= Form ( "%s/Qweak_%d_base.root",gSystem->Getenv ( "QW_ROOTFILES" ),run );
-    chain->Add(file_name.c_str());
-    }
-
-
-   
-    double signed[24]={0};
- 
-
-    
-    QwEvent* fEvent=0;
-    QwTrack* track=0;
-    QwPartialTrack* pt=0;
-
-  
-    chain->SetBranchAddress ( "events",&fEvent);
-    Int_t nevents=chain->GetEntries();
-
-    
-    if(event_end==-1)
-      event_end=nevents;
-
-    for(int i=event_start;i<event_end;i++){
-
-      if(i%10000==0)
-	cout << "events processed so far: " << i << endl;
-      
-      chain->GetEntry(i);
-
-      double ntracks=0;
-      ntracks=fEvent->GetNumberOfTracks();
-
-      if(ntracks!=0){
-
-	double npts=fEvent->GetNumberOfPartialTracks();
-      }
-
-*/

@@ -14,7 +14,7 @@
  map = qweak_maindet.map
 # map = qweak_maindet_realtime.map
  param = qweak_maindet_pedestal.map
- eventcut = qweak_maindet_eventcuts.in
+ eventcut = qweak_maindet_realtime_eventcuts.in
 
 [QwLumi]
  name = Lumi Detector

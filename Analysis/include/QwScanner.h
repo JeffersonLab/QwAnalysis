@@ -24,11 +24,14 @@
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
 
-#include "MQwV775TDC.h"
-#include "QwVQWK_Module.h"
-#include "QwSIS3801_Module.h"
 
-//#include "VQwDataElement.h"
+#include "QwHit.h"
+#include "QwHitContainer.h"
+
+#include "QwTypes.h"
+#include "QwDetectorInfo.h"
+
+#include "MQwV775TDC.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
@@ -47,25 +50,14 @@ class QwScanner:
     /// Constructor with name
     QwScanner(const TString& name);
     /// Copy constructor
-    QwScanner(const QwScanner& source)
-    : VQwSubsystem(source),VQwSubsystemParity(source),VQwSubsystemTracking(source)
-    { this->Copy(&source); }
+    QwScanner(const QwScanner& source);
     /// Virtual destructor
     virtual ~QwScanner();
 
     // VQwSubsystem methods
-    VQwSubsystem& operator=  (VQwSubsystem *value)
-    {
-      return *this;
-    };
-    VQwSubsystem& operator+= (VQwSubsystem *value)
-    {
-      return *this;
-    };
-    VQwSubsystem& operator-= (VQwSubsystem *value)
-    {
-      return *this;
-    };
+    VQwSubsystem& operator=(VQwSubsystem *value);
+    VQwSubsystem& operator+=(VQwSubsystem *value);
+    VQwSubsystem& operator-=(VQwSubsystem *value);
     void ProcessOptions(QwOptions &options); //Handle command line options
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
     {
@@ -114,8 +106,6 @@ class QwScanner:
       return kTRUE;
     };
 
-    void Copy(const VQwSubsystem *source);
-
     /*  Member functions derived from VQwSubsystem. */
     Int_t LoadChannelMap(TString mapfile);
     Int_t LoadGeometryDefinition(TString filename)
@@ -149,29 +139,28 @@ class QwScanner:
       return;
     };
 
-    void  GetHitList(QwHitContainer & grandHitContainer){};
-    void  ReportConfiguration();
+    void GetHitList(QwHitContainer & grandHitContainer) {
+      grandHitContainer.Append(fTDCHits);
+    };
 
-    Bool_t Compare(QwScanner &value);
-    QwScanner& operator=  (QwScanner &value);
-    QwScanner& operator+=  (QwScanner &value);
-    QwScanner& operator-=  (QwScanner &value);
+    void  ReportConfiguration(Bool_t verbose);
+
+    Bool_t Compare(VQwSubsystem* value);
 
     Bool_t ApplyHWChecks() //Check for harware errors in the devices
     {
       Bool_t status = kTRUE;
-      for (size_t i=0; i<fADC_Data.size(); i++)
+      for (size_t i=0; i<fADCs.size(); i++)
         {
-          if (fADC_Data.at(i) != NULL)
-            {
-              status &= fADC_Data.at(i)->ApplyHWChecks();
-            }
+          status &= fADCs.at(i).ApplyHWChecks();
         }
       return status;
     };
 
     void PrintValue() const { };
     void PrintInfo() const;
+
+    void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
     void FillHardwareErrorSummary();
 
 
@@ -180,15 +169,65 @@ class QwScanner:
     EQwModuleType fCurrentType;
     Bool_t fDEBUG;
 
-    MQwV775TDC fQDCTDC;
-    MQwF1TDC fF1TDCDecoder;
+    TString fRegion;  ///  Name of this subsystem (the region).
+    Int_t   fCurrentBankIndex;
+    Int_t   fCurrentSlot;
+    Int_t   fCurrentModuleIndex;
+
+    static const UInt_t kMaxNumberOfModulesPerROC;
+    static const Int_t  kF1ReferenceChannelNumber;
+
+    UInt_t kMaxNumberOfChannelsPerModule;
+    Int_t fNumberOfModules;
+
+    MQwV775TDC       fQDCTDC;
+    MQwF1TDC         fF1TDCDecoder;
     QwF1TDContainer *fF1TDContainer;
+
+
+
+    // --- For F1TDC QwHit
+    void  SubtractReferenceTimes(); // be executed in ProcessEvent()
+    void  UpdateHits();             // be executed in ProcessEvent()
+    
+    std::vector< QwHit >              fTDCHits;
+    
+    std::vector< std::vector< QwDetectorID   > > fDetectorIDs; 
+    // Indexed by module_index and Channel; and so on....
+    std::vector< std::pair<Int_t, Int_t> >       fReferenceChannels;  
+    // reference chans number <first:tdc_index, second:channel_number>
+    // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
+    std::vector< std::vector<Double_t> >         fReferenceData; 
+    // fReferenceData[bank_index][channel_number]
+    // --- For F1TDC QwHit
+
+
+    // For reference time substraction
+    Int_t fRefTime_SlotNum;
+    Int_t fRefTime_ChanNum;
+    Double_t fRefTime;
+    
+    Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
+      return ( slot == fRefTime_SlotNum &&  chan == fRefTime_ChanNum) ;
+    };
+
+
     //    We need a mapping of module,channel into PMT index, ADC/TDC
     std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
-    std::vector<QwSIS3801_Module*> fSCAs;
-    std::vector<QwVQWK_Module*> fADC_Data;
 
-    void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
+    std::vector<QwSIS3801D24_Channel>         fSCAs;
+    std::map<TString,size_t>                  fSCAs_map;
+    std::vector<Int_t>                        fSCAs_offset;
+
+    std::vector<QwVQWK_Channel>               fADCs;
+    std::map<TString,size_t>                  fADCs_map;
+    std::vector<Int_t>                        fADCs_offset;
+
+
+
+
+
+    void  FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
     void  ClearAllBankRegistrations();
     Int_t RegisterROCNumber(const UInt_t roc_id);
     Int_t RegisterSubbank(const UInt_t bank_id);
@@ -204,15 +243,7 @@ class QwScanner:
 
     Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
     Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
-    TString fRegion;  ///  Name of this subsystem (the region).
-    size_t fCurrentBankIndex;
-    Int_t fCurrentSlot;
-    Int_t fCurrentIndex;
-    static const UInt_t kMaxNumberOfModulesPerROC;
-    static const UInt_t kMaxNumberOfChannelsPerModule;
-    UInt_t kMaxNumberOfChannelsPerF1TDC;
-
-    Int_t fNumberOfModules;
+ 
     std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number
     std::vector< EQwModuleType > fModuleTypes;
     std::vector< std::vector< std::pair< EQwModuleType, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel

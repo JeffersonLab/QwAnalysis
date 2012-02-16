@@ -40,10 +40,10 @@ class QwRegression {
     QwRegression(QwOptions &options, QwHelicityPattern& helicitypattern);
     /// \brief Constructor with only options
     QwRegression(QwOptions &options);
+    /// \brief Copy constructor
+    QwRegression(const QwRegression &source);
     /// Virtual destructor
     virtual ~QwRegression();
-    QwRegression(const QwRegression &source);
-    void Copy (const QwRegression *source);
 
 
     /// \brief Define the configuration options

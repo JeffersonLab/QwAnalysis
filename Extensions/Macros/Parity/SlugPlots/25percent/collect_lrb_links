@@ -6,7 +6,13 @@ SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4regression/${folder}"
 #DEST="/data/disk1/leacock/slugplots/25percent/lrb_links/${folder}"
 DEST="/volatile/hallc/qweak/leacock/25percent/lrb_links/${folder}"
 
-#rm -f ${DEST}/${folder}/*
+
+echo "removing regression rootfile links"
+rm -f ${DEST}/*
+
+#if [ 1 -eq 0 ]
+#then
+#echo "making regression rootfile links"
 
 arr=( $(find ${SRC} -type f -name reg_temp\*.root) )
 #echo ${#arr[@]}
@@ -14,6 +20,8 @@ arr=( $(find ${SRC} -type f -name reg_temp\*.root) )
 
 for d in "${arr[@]}"; do
   #echo ${d}
-  /bin/cp -s -u -v ${d} ${DEST}/  >/dev/null 2>&1
+  /bin/cp -suvf ${d} ${DEST}/  >/dev/null 2>&1
+  #/bin/cp -suvf ${d} ${DEST}/
 done
 
+#fi

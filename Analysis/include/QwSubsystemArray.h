@@ -42,14 +42,15 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   typedef Bool_t (*CanContainFn)(VQwSubsystem*);
 
+ private:
+
+  /// Private default constructor
+  QwSubsystemArray(); // not implemented, will throw linker error on use
+
  public:
-  /// \brief Default constructor
-  QwSubsystemArray(CanContainFn myCanContain = CanContain)
-  : fEventTypeMask(0x0),fnCanContain(myCanContain) { };
+
   /// \brief Constructor with options
   QwSubsystemArray(QwOptions& options, CanContainFn myCanContain);
-  /// \brief Constructor with filename
-  QwSubsystemArray(const char* filename, CanContainFn myCanContain);
   /// \brief Copy constructor by reference
   QwSubsystemArray(const QwSubsystemArray& source);
   /// \brief Virtual destructor
@@ -73,8 +74,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   UInt_t GetCodaEventType() const { return fCodaEventType; };
 
   /// \brief Set the internal record of the CODA event number
-  void SetCleanParameters(Double_t cleanparameter[]) 
-  { 
+  void SetCleanParameters(Double_t cleanparameter[3])
+  {
     fCleanParameter[0] = cleanparameter[0];
     fCleanParameter[1] = cleanparameter[1];
     fCleanParameter[2] = cleanparameter[2];

@@ -69,8 +69,14 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   }
   /// Copy constructor by object
   VQwSubsystem(const VQwSubsystem& orig)
-  : MQwHistograms(orig) {
-    *this = orig;
+  : MQwHistograms(orig),
+    fROC_IDs(orig.fROC_IDs),
+    fBank_IDs(orig.fBank_IDs)
+  {
+    fSystemName = orig.fSystemName;
+    fIsDataLoaded = orig.fIsDataLoaded;
+    fCurrentROC_ID = orig.fCurrentROC_ID;
+    fCurrentBank_ID = orig.fCurrentBank_ID;
   }
   /// Copy constructor by pointer
   VQwSubsystem(const VQwSubsystem* orig)
@@ -266,12 +272,6 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   /// \brief Print some information about the subsystem
   virtual void  PrintInfo() const;
 
-  /// Inherit Copy methods from VQwSubsystemCloneable
-  using VQwSubsystemCloneable::Copy;
-  /// \brief Copy method
-  /// Note: Must be called at the beginning of all subsystems routine
-  /// call to Copy(const VQwSubsystem *source) by using VQwSubsystem::Copy(source)
-  virtual void Copy(const VQwSubsystem *source);
   /// \brief Assignment
   /// Note: Must be called at the beginning of all subsystems routine
   /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)

@@ -69,16 +69,18 @@ void QwDetectorInfo::SetDetectorInfo (
     fType = kTypeTrigscint;
   else if (sdType == "c")
     fType = kTypeCerenkov;
-  else if (sdType == "g")
-    fType = kTypeGem;
+  else if (sdType == "f")
+    fType = kTypeSciFiber;
   else if (sdType == "s")
     fType = kTypeScanner;
 
   // Package
-  if (spackage == "u")
+  if (spackage == "u"){
     fPackage = kPackageUp;
-  else if (spackage == "d")
+  }
+  else if (spackage == "d"){
     fPackage = kPackageDown;
+  }
 
   // Region
   if (region == 1)
@@ -114,7 +116,9 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionR;
   else if (planeDir == "f")
     fDirection = kDirectionPhi;
-
+  fOctant=0;
+  
+  
 
 }
 
@@ -154,10 +158,14 @@ double QwDetectorInfo::GetElementCoordinate(const int element) const
  */
 std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det)
 {
-  stream << "det " << det.fDetectorID << ": ";
+  stream << "det "     << det.fDetectorID << ": ";
+  stream << "type "    << det.fType  << ", ";
   stream << "package " << det.fPackage << ", ";
-  stream << "region " << det.fRegion << ", ";
-  stream << "dir " << det.GetElementDirection() << " ";
-  stream << "(z = " << det.GetZPosition()/Qw::cm << " cm)";
+  stream << "region "  << det.fRegion << ", ";
+  stream << "plane "   << det.fPlane << ", ";
+  stream << "octant "  << det.fOctant << ", ";
+  stream << "dir "     << det.GetElementDirection() << " ";
+  stream << "(y = "    << det.fDetectorOriginX/Qw::cm << " cm)";
+  stream << "(z = "    << det.GetZPosition()/Qw::cm << " cm)";
   return stream;
 }

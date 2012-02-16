@@ -206,7 +206,7 @@ Bool_t QwIntegratedRasterChannel<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwIntegratedRasterChannel<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwIntegratedRasterChannel<T>::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
   fTriumf_ADC.GetEventcutErrorCounters();
   return 1;
 }
@@ -408,38 +408,6 @@ void  QwIntegratedRasterChannel<T>::FillTreeVector(std::vector<Double_t> &values
     }
   return;
 }
-
-/********************************************************/
-template<typename T>
-void  QwIntegratedRasterChannel<T>::Copy(const VQwDataElement *source)
-{
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  QwIntegratedRasterChannel* input=((QwIntegratedRasterChannel*)source);
-	  this->fElementName=input->fElementName;
-	  this->fPedestal=input->fPedestal;
-	  this->fCalibration=input->fCalibration;
-	  this->fTriumf_ADC.Copy(&(input->fTriumf_ADC));
-	}
-      else
-	{
-	  TString loc="Standard exception from QwIntegratedRasterChannel<T>::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
-    }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
-}
-
-
 
 template<typename T>
 std::vector<QwDBInterface> QwIntegratedRasterChannel<T>::GetDBEntry()

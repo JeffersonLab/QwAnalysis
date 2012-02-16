@@ -48,6 +48,8 @@
 
 #include "QwOptions.h"
 #include "QwParameterFile.h"
+#include <TGraphErrors.h>
+#include <TStyle.h>
 
 #endif /* __CINT__ */
 

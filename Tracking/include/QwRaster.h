@@ -21,7 +21,7 @@
 // Qweak headers
 #include "VQwSubsystemTracking.h"
 #include "MQwV775TDC.h"
-#include "QwSIS3801_Module.h"
+#include "QwScaler_Channel.h"
 #include "QwVQWK_Channel.h"
 #include "QwPMT_Channel.h"
 
@@ -39,11 +39,6 @@ class QwRaster: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwRast
    QwRaster(const TString& name);
    /// Virtual destructor
    virtual ~QwRaster();
-
-   /// Copying is not supported for tracking subsystems
-   void Copy(const VQwSubsystem *source) {
-     QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
-   }
 
    // VQwSubsystem methods
    void ProcessOptions(QwOptions &options); //Handle command line options
@@ -111,7 +106,10 @@ class QwRaster: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwRast
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
-  std::vector<QwSIS3801_Module*> fSCAs;
+
+  std::vector<QwSIS3801D24_Channel> fSCAs;
+  std::map<TString,size_t> fSCAs_map;
+  std::vector<Int_t> fSCAs_offset;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   void  ClearAllBankRegistrations();

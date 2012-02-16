@@ -96,27 +96,27 @@ void QwDiagnostic::Write(void){
 
   // Uncorrected Slopes during modulation
 
-  for(Int_t k = 0; k < fNDetector; k++){  
-    fprintf(regression, "\n# uncorrected sensitivities %s (during modulation)\n", DetectorList[k].Data() );
-    for(Int_t i = 0; i < fNMonitor; i++){  
-      for(Int_t j = 0; j < GetModNumber(); j++){
-	fprintf(regression, "%s : %i : %-5.5e : %-5.5e : %-5.5e \n", 
-		MonitorList[i].Data(), j,Slope[k][i][j]->slope, Slope[k][i][j]->error, Slope[k][i][j]->ChiSquareNDF);
-      }
-    }
-  }
+//   for(Int_t k = 0; k < fNDetector; k++){  
+//     fprintf(regression, "\n# uncorrected sensitivities %s (during modulation)\n", DetectorList[k].Data() );
+//     for(Int_t i = 0; i < fNMonitor; i++){  
+//       for(Int_t j = 0; j < GetModNumber(); j++){
+// 	fprintf(regression, "%s : %i : %-5.5e : %-5.5e : %-5.5e \n", 
+// 		MonitorList[i].Data(), j,Slope[k][i][j]->slope, Slope[k][i][j]->error, Slope[k][i][j]->ChiSquareNDF);
+//       }
+//     }
+//   }
 
   // Corrected Slopes during modulation
 
-  for(Int_t k = 0; k < fNDetector; k++){  
-    fprintf(regression, "\n# corrected sensitivities %s (during modulation)\n", DetectorList[k].Data() );
-    for(Int_t i = 0; i < fNMonitor; i++){  
-      for(Int_t j = 0; j < GetModNumber(); j++){
-	fprintf(regression, "%s : %i : %-5.5e : %-5.5e : %-5.5e \n", 
-		MonitorList[i].Data(), j,SlopeCorr[k][i][j]->slope, SlopeCorr[k][i][j]->error, SlopeCorr[k][i][j]->ChiSquareNDF);
-      }
-    }
-  }
+//   for(Int_t k = 0; k < fNDetector; k++){  
+//     fprintf(regression, "\n# corrected sensitivities %s (during modulation)\n", DetectorList[k].Data() );
+//     for(Int_t i = 0; i < fNMonitor; i++){  
+//       for(Int_t j = 0; j < GetModNumber(); j++){
+// 	fprintf(regression, "%s : %i : %-5.5e : %-5.5e : %-5.5e \n", 
+// 		MonitorList[i].Data(), j,SlopeCorr[k][i][j]->slope, SlopeCorr[k][i][j]->error, SlopeCorr[k][i][j]->ChiSquareNDF);
+//       }
+//     }
+//   }
 
   // Corrections
 
@@ -127,14 +127,14 @@ void QwDiagnostic::Write(void){
   for(Int_t k = 0; k < fNDetector; k++){
     fprintf(regression, "\n# corrections %s\n", DetectorList[k].Data());
     for(Int_t i = 0; i < fNMonitor; i++){
-      fprintf(regression, "%s :%d: %-5.5e : %-5.5e \n", MonitorList[i].Data(), Correction[k][i]->entries, Correction[k][i]->slope, Correction[k][i]->GetRMS());
-      total += Correction[k][i]->slope;
-      rms += TMath::Power( Correction[k][i]->GetRMS(), 2);
-      total_entries += Correction[k][i]->entries;
+      fprintf(regression, "%s :%d: %-5.5e : %-5.5e \n", MonitorList[i].Data(), Correction[k][i]->entries, Correction[k][i]->slope, Correction[k][i]->GetError());
+//       total += Correction[k][i]->slope;
+//       rms += TMath::Power( Correction[k][i]->GetRMS(), 2);
+//       total_entries += Correction[k][i]->entries;
     }
-    rms = TMath::Sqrt(rms);
-    fprintf(regression, "%s total:%d: %-5.5e : %-5.5e: %-5.5e : %-5.5e \n", DetectorList[k].Data(), 
-	    total_entries, total, rms, TotalCorrection[k]->slope, TotalCorrection[k]->GetRMS());
+//     rms = TMath::Sqrt(rms);
+//     fprintf(regression, "%s total:%d: %-5.5e : %-5.5e: %-5.5e : %-5.5e \n", DetectorList[k].Data(), 
+//  	    total_entries, total, rms, TotalCorrection[k]->slope, TotalCorrection[k]->GetRMS());
     rms = 0;
     total = 0;
     total_entries = 0;
@@ -142,15 +142,15 @@ void QwDiagnostic::Write(void){
   
   // Differences
 
-    fprintf(regression, "\n# differences\n");
-    for(Int_t i = 0; i < fNMonitor; i++){
-      fprintf(regression, "%s :%d: %-5.5e : %-5.5e \n", MonitorList[i].Data(), DiffSlope[i]->entries, DiffSlope[i]->slope, DiffSlope[i]->GetRMS());
-    }
+//     fprintf(regression, "\n# differences\n");
+//     for(Int_t i = 0; i < fNMonitor; i++){
+//       fprintf(regression, "%s :%d: %-5.5e : %-5.5e \n", MonitorList[i].Data(), DiffSlope[i]->entries, DiffSlope[i]->slope, DiffSlope[i]->GetRMS());
+//     }
 
     // Corrected Asymmetry
     fprintf(regression, "\n# corrected asymmetry \n");
     for(Int_t i = 0; i < fNDetector; i++){
-      fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", DetectorList[i].Data(), (Int_t)AsymEntries[i], AsymMean[i], AsymRMS[i]);
+      fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", DetectorList[i].Data(), (Int_t)AsymEntries[i], AsymMean[i], AsymRMS[i]/TMath::Sqrt(AsymEntries[i]) );
     }
 
 
@@ -212,6 +212,9 @@ void QwDiagnostic::Write(void){
       fprintf(correction,"\nasym_raw(ppm)\t\t\t\t    correction(ppm)[SOM]\t\t\t  correction(ppm)[MOS]\t\t\t\t   asym_final(ppm)\n");
       fprintf(correction, "%-8.6e +- %-8.6e\t\t  %-8.6e +- %-8.6e\t\t %-8.6e +- %-8.6e\t\t %-8.6e +- %-8.6e\t\t\n", 
 	      RawAsymMean[k], RawAsymRMS[k], total_correction, corr_rms, 1e6*TotalCorrection[k]->slope, 1e6*TotalCorrection[k]->GetRMS(), AsymMean[k], AsymRMS[k]);
+
+      total_correction = 0;
+      corr_rms = 0;
     }
 
   //*********************** 

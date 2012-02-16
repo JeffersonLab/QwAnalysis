@@ -29,14 +29,6 @@ class MQwHistograms {
     /// Virtual destructor
     virtual ~MQwHistograms() { }
 
-    /// Copy operator:  Should make a full, identical copy.
-    /// In this particular class, the pointers should be copied, 
-    /// not the objects pointed-to.
-    virtual MQwHistograms& Copy(const MQwHistograms& value) {
-      fHistograms = value.fHistograms;
-      return *this;
-    }
-
     /// Arithmetic assignment operator:  Should only copy event-based data.
     /// In this particular class, there is no event-based data.
     virtual MQwHistograms& operator=(const MQwHistograms& value) {

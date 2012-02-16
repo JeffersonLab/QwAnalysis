@@ -18,14 +18,15 @@
 /// \ingroup QwTracking
 class QwSubsystemArrayTracking:  public QwSubsystemArray {
 
+  private:
+
+    /// Private default constructor
+    QwSubsystemArrayTracking(); // not implemented, will throw linker error on use
+
   public:
 
-    /// Default constructor
-    QwSubsystemArrayTracking(): QwSubsystemArray(CanContain) { };
     /// Constructor with options
     QwSubsystemArrayTracking(QwOptions& options): QwSubsystemArray(options, CanContain) { };
-    /// Constructor with map file
-    QwSubsystemArrayTracking(const char* filename): QwSubsystemArray(filename, CanContain) { };
     /// Default destructor
     virtual ~QwSubsystemArrayTracking() { };
 

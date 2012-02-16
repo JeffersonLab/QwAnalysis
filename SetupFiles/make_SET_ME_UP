@@ -28,16 +28,18 @@ export QWANALYSIS=`echo $local_path | sed 's/\/SetupFiles//'`
 
 
 
-###  Determine machine type (library names)
-OS=$(uname)
-if [ "$OS" == "Darwin" ] ; then
-    echo "Will use .dylib rather than .so to search for libraries"
-fi
-###  ... 64-bit
+### ... 64-bit
 if [[ "`uname -m`" == "x86_64" ]]; then
   lib=lib64
 else
   lib=lib
+fi
+
+###  Determine machine type (library names)
+OS=$(uname)
+if [ "$OS" == "Darwin" ] ; then
+    echo "Will use .dylib rather than .so to search for libraries"
+    lib=lib # don't use lib64, doesn't seem to exist on MacOS 10.6 or 10.7
 fi
 echo "Libraries will be searched for in ${lib}."
 

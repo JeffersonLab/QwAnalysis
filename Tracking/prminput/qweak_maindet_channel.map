@@ -21,12 +21,13 @@ slot=6
   F1TDC, 6, 26, maindet, md6p_f1
   F1TDC, 6, 28, maindet, md7p_f1
   F1TDC, 6, 30, maindet, md8p_f1
-  F1TDC, 6, 32, maindet, r1_active_f1
+!  F1TDC, 6, 32, maindet, r1_active_f1
 !
 !
 QDC_Bank=0x0402
 !QDC_Bank=0x7501
 slot=1
+!slot=16
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 1,  0, maindet, md1m_adc
   V792, 1,  1, maindet, md2m_adc
@@ -50,6 +51,18 @@ slot=1
 SCA_Bank=0x0403
 !
 ! slot=2
+slot=9
+! module.type  module.num  chan.num, det.type, det.name
+  SIS3801, 0,  20, maindet, md1bar_sca
+  SIS3801, 0,  21, maindet, md2bar_sca
+  SIS3801, 0,  22, maindet, md3bar_sca
+  SIS3801, 0,  23, maindet, md4bar_sca
+  SIS3801, 0,  24, maindet, md5bar_sca
+  SIS3801, 0,  25, maindet, md6bar_sca
+  SIS3801, 0,  26, maindet, md7bar_sca
+  SIS3801, 0,  27, maindet, md8bar_sca
+
+slot=12
 ! module.type  module.num  chan.num, det.type, det.name
   SIS3801, 1,  0, maindet, md1m_sca
   SIS3801, 1,  1, maindet, md2m_sca
@@ -69,16 +82,8 @@ SCA_Bank=0x0403
   SIS3801, 1, 15, maindet, md8p_sca
 !
 !
-sca_bank=0x0403
-! module.type  module.num  chan.num, det.type, det.name
-  SIS3801, 0,  20, maindet, md1bar_sca
-  SIS3801, 0,  21, maindet, md2bar_sca
-  SIS3801, 0,  22, maindet, md3bar_sca
-  SIS3801, 0,  23, maindet, md4bar_sca
-  SIS3801, 0,  24, maindet, md5bar_sca
-  SIS3801, 0,  25, maindet, md6bar_sca
-  SIS3801, 0,  26, maindet, md7bar_sca
-  SIS3801, 0,  27, maindet, md8bar_sca
+!sca_bank=0x0403
+
 !END
 !
 !

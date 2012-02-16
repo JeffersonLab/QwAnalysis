@@ -29,11 +29,6 @@ class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   QwDriftChamberVDC(TString region_tmp);
   virtual ~QwDriftChamberVDC() { };
 
-  /// Copying is not supported for tracking subsystems
-  void Copy(const VQwSubsystem *source) {
-    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
-  }
-
   /* Unique virtual member functions from QwDrifChamber base class */
 
   
@@ -75,7 +70,8 @@ class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   Int_t LoadTimeWireOffset(TString t0_map); 
   void LoadTtoDParameters(TString ttod_map); 
   void SubtractWireTimeOffset();
-  void ApplyTimeCalibration();
+  void UpdateHits();
+  //  void ApplyTimeCalibration();
   
   // VDC
   void GetHitList(QwHitContainer & grandHitContainer)

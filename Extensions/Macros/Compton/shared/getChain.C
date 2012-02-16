@@ -12,12 +12,13 @@ TChain* getChain(const TString& name, Int_t runnumber = 0, Bool_t isFirst100k = 
 
   TString searchstring = "";
   if (isFirst100k) {
-    searchstring = Form("first100k_%d.root",runnumber);
+    searchstring = Form("Compton_first100k_%d.root",runnumber);
   } else {
     searchstring = Form("Compton_Pass?_%d.*.root",runnumber);
   }
 
   TChain *chain = new TChain(name);
+  std::cout << "Adding " << rootfilesdir + searchstring << "..." << std::endl;
   Bool_t chainExists = chain->Add(rootfilesdir + searchstring);
 
   // Check local folder in case running locally

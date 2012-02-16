@@ -7,7 +7,8 @@
  map = qweak_hallc_beamline.map
  geom = qweak_beamline_geometry.map
  param = qweak_hallc_pedestal.map
- eventcut = qweak_beamline_eventcuts.in
+#added to keep local cuts on BPMs - rakitha - 01/23/2012
+ eventcut = qweak_first100k_beamline_eventcuts.in
 
 [QwBeamLine]
  name = Injector
@@ -20,7 +21,8 @@
  name = Main Detector
  map = qweak_maindet.map
  param = qweak_maindet_pedestal.map
- eventcut = qweak_maindet_eventcuts.in
+#added to keep local cuts on MD yields - rakitha - 01/23/2012
+ eventcut = qweak_first100k_maindet_eventcuts.in
 
 [QwLumi]
  name = Lumi Detector

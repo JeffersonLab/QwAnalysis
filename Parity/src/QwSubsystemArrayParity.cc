@@ -503,7 +503,7 @@ Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
 
 
 
-Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
 
 
   VQwSubsystemParity *subsys_parity;

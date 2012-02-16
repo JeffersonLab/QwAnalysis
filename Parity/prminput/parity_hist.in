@@ -135,39 +135,39 @@ asym_qwk_uslumi...._hw	TH1F	10000	-0.2	0.2				Asymmetry	Events
 
 ###  Scanner histograms
 
-scanner_vqwk_power              TH1F    4096    0.5             4096.5                  front_adc       Events
-scanner_front_adc		TH1F	4096	0.5		4096.5			front_adc	Events
-scanner_back__adc		TH1F	4096	0.5		4096.5			back__adc	Events
-scanner_power_adc		TH1F	4096	0.5		4096.5			power_adc	Events
-scanner_pos_x_adc		TH1F	4096	0.5		4096.5			pos_x_adc	Events
-scanner_pos_y_adc		TH1F	4096	0.5		4096.5			pos_y_adc	Events
+.*scanner_vqwk_power		TH1F	4096	0.5		4096.5			vqwk_power	Events
+.*scanner_front_adc		TH1F	4096	0.5		4096.5			front_adc	Events
+.*scanner_back__adc		TH1F	4096	0.5		4096.5			back__adc	Events
+.*scanner_power_adc		TH1F	4096	0.5		4096.5			power_adc	Events
+.*scanner_pos_x_adc		TH1F	4096	0.5		4096.5			pos_x_adc	Events
+.*scanner_pos_y_adc		TH1F	4096	0.5		4096.5			pos_y_adc	Events
 
-scanner_front_tdc		TH1F	4096	0.5		4096.5			front_tdc	Events
-scanner_back__tdc		TH1F	4096	0.5		4096.5			back__tdc	Events
-scanner_front_f1		TH1F	4096	0.5		4096.5			front_f1	Events
-scanner_back__f1		TH1F	4096	0.5		4096.5			back__f1	Events
-scanner_coinc_f1		TH1F	4096	0.5		4096.5			coinc_f1	Events
-scanner_ref_t_f1		TH1F	4096	0.5		4096.5			ref_t_f1	Events
+.*scanner_front_tdc		TH1F	4096	0.5		4096.5			front_tdc	Events
+.*scanner_back__tdc		TH1F	4096	0.5		4096.5			back__tdc	Events
+.*scanner_front_f1		TH1F	4096	0.5		4096.5			front_f1	Events
+.*scanner_back__f1		TH1F	4096	0.5		4096.5			back__f1	Events
+.*scanner_coinc_f1		TH1F	4096	0.5		4096.5			coinc_f1	Events
+.*scanner_ref_t_f1		TH1F	4096	0.5		4096.5			ref_t_f1	Events
 
-scanner_front_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
-scanner_back__sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
-scanner_coinc_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
-scanner_randm_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
+.*scanner_front_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
+.*scanner_back__sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
+.*scanner_coinc_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
+.*scanner_randm_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 
-scanner_bg_chrlt_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
-scanner_bg_wilbr_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
+.*scanner_bg_chrlt_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
+.*scanner_bg_wilbr_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 
-scanner_power_vqwk		TH1F	10000	0.0		5.0e9			power_vqwk	Events
-scanner_pos_x_vqwk		TH1F	10000	0.0		5.0e9			pos_x_vqwk	Events
-scanner_pos_y_vqwk		TH1F	10000	0.0		5.0e9			pos_y_vqwk	Events
-scanner_spare.			TH1F	10001	-5.0e9		5.0e9			spare		Events
+.*scanner_power_vqwk		TH1F	1000	0.0		5.0e9			power_vqwk	Events
+.*scanner_pos_x_vqwk		TH1F	1000	0.0		5.0e9			pos_x_vqwk	Events
+.*scanner_pos_y_vqwk		TH1F	1000	0.0		5.0e9			pos_y_vqwk	Events
+.*scanner_spare.		TH1F	2001	-5.0e9		5.0e9			spare		Events
 
-scanner_position_x		TH1F	2000	-60.0		60.0			X[cm]		Events
-scanner_position_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
-scanner_ref_posi_x		TH1F	2000	-60.0		60.0			X[cm]		Events
-scanner_ref_posi_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
+.*scanner_position_x		TH1F	2000	-60.0		60.0			X[cm]		Events
+.*scanner_position_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
+.*scanner_ref_posi_x		TH1F	2000	-60.0		60.0			X[cm]		Events
+.*scanner_ref_posi_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
 
-scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
+.*scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 
 
 ###  Compton Electron histograms

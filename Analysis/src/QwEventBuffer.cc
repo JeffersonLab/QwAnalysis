@@ -64,6 +64,9 @@ QwEventBuffer::QwEventBuffer()
       fDataDirectory.Append("/");
   }
 
+  fCleanParameter[0] = 0.0;
+  fCleanParameter[1] = 0.0;
+  fCleanParameter[2] = 0.0;
 }
 
 /**
@@ -758,7 +761,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 
     }
     
-    subsystems.SetCleanParameters(fCleanParameter); // fCleanParameter[3]
+    subsystems.SetCleanParameters(fCleanParameter);
 
     subsystems.ProcessEvBuffer(fEvtType, fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],

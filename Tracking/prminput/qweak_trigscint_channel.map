@@ -6,7 +6,8 @@ ROC=4
 !
 qdc_bank=0x0402
 slot=1
-module=V792
+!slot=16 with the real slot number, I cannot get the ADC spectra, somehow slot 1 is hard code in somewhere. Great.... :-(
+!module=V792
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 1, 24, trigscint, ts2m_adc
   V792, 1, 26, trigscint, ts1m_adc
@@ -15,7 +16,7 @@ module=V792
 !
 f1tdc_bank=0x0401
 slot=4
-module=F1TDC
+!module=F1TDC
 ! module.type  module.num  chan.num, det.type, det.name
   F1TDC, 4, 0, trigscint, ts2m_f1
   F1TDC, 4, 2, trigscint, ts2p_f1
@@ -25,9 +26,12 @@ module=F1TDC
   F1TDC, 4, 14, trigscint, ts1mt_f1
 
 slot=6
-  F1TDC, 6, 23, trigscint, ts_reftime_f1
+ F1TDC, 6, 23, trigscint, ts_reftime_f1
+! F1TDC, 6, 23, 99, 99
 
 sca_bank=0x0403
+slot=9
+!module=SIS3801
 ! module.type  module.num  chan.num, det.type, det.name
   SIS3801, 0,  0, trigscint, ts2m_sca
   SIS3801, 0,  1, trigscint, ts2p_sca

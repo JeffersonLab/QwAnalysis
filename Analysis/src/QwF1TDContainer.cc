@@ -17,7 +17,8 @@
 
 ClassImp(QwF1TDC)
 ClassImp(QwF1TDContainer)
-
+ClassImp(F1TDCReferenceSignal)
+ClassImp(F1TDCReferenceContainer)
 
 //
 //
@@ -116,6 +117,7 @@ QwF1TDC::QwF1TDC()
   fF1TDC_FDF_counter = new UInt_t[fMaxF1TDCChannelNumber];
   fF1TDC_S30_counter = new UInt_t[fMaxF1TDCChannelNumber];
 
+  fF1TDC_RFM_counter = 0;
 
   fReferenceSignals    = NULL;
 
@@ -168,6 +170,7 @@ QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
   fF1TDC_FDF_counter = new UInt_t[fMaxF1TDCChannelNumber];
   fF1TDC_S30_counter = new UInt_t[fMaxF1TDCChannelNumber];
 
+  fF1TDC_RFM_counter = 0;
 
   fReferenceSignals    = NULL;
 
@@ -247,14 +250,15 @@ QwF1TDC::SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words)
   else {
     fF1TDCSyncFlag = false;
   }
-  
+  // calculate resolution_ns or bin_size_ns and full_range_ns
+  Double_t f1tdc_internal_reference_clock_ns = 25.0; // 40MHz
   // decide max channel number of F1TDC according to "resolution mode"
 
   fChannelNumber   = (Int_t) (fF1TDCFactor*fMaxF1TDCChannelNumber);
 
   // get refcnt and calculate tframe_ns
   fF1TDC_refcnt    = (fBuffer[7]>>6) & 0x1FF;
-  fF1TDC_tframe_ns = (Double_t)(25 * (fF1TDC_refcnt +2 ));
+  fF1TDC_tframe_ns = (Double_t)(f1tdc_internal_reference_clock_ns * (fF1TDC_refcnt +2 ));
 
 
   // calculate refclkdiv
@@ -267,8 +271,7 @@ QwF1TDC::SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words)
   // get hsdiv
   fF1TDC_hsdiv = fBuffer[10] & 0xFF;
 
-  // calculate resolution_ns or bin_size_ns and full_range_ns
-  Double_t f1tdc_internal_reference_clock_ns = 25.0; // 40MHz
+ 
   fF1TDC_resolution_ns = fF1TDCFactor * (f1tdc_internal_reference_clock_ns/152.0) * ( (Double_t) fF1TDC_refclkdiv )/( (Double_t) fF1TDC_hsdiv );
   fF1TDC_full_range_ns = buffer_range * fF1TDC_resolution_ns;
 
@@ -301,46 +304,99 @@ Double_t
 QwF1TDC::ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time)
 {
 
-  Double_t trigger_window = (Double_t) fF1TDC_trigwin;
-  Double_t time_offset    = (Double_t) fF1TDC_t_offset;
 
-
-  Double_t time_condition = 0.0;
-  Double_t local_time_difference = 0.0;
   Double_t actual_time_difference = 0.0;
-
-  local_time_difference = raw_time - ref_time; 
   
-  if(local_time_difference == 0.0) {
-    // raw_time is the same as ref_time
-    // std::cout << "QwF1TDC::ReferenceSignalCorrection " 
-    // 	      << local_time_difference
-    // 	      << " ref " << ref_time
-    // 	      << " raw " << raw_time
-    // 	      << std::endl;
-    actual_time_difference = local_time_difference;
-  }
-  else {
-    time_condition = fabs(local_time_difference); 
-    // maximum value is trigger_window -1, 
-    if(time_condition < trigger_window) {
-      // there is no ROLLEVENT within trigger window
-      actual_time_difference = local_time_difference;
-    }
-    else {
-      // there is an ROLLOVER event within trigger window
-      if (local_time_difference > 0.0) {
-	// ref_time is in after ROLLOVER event
-	actual_time_difference =  local_time_difference - time_offset;
+
+  // If we don't have the reference signal in the case that 
+  // it is recorded as "0.0" or it isn't recorded at the same time when the raw_time is recoreded
+  // return zero corrected time, because without a reference time, raw_time has no meaning
+  // Friday, January 20 13:04:33 EST 2012 , jhlee
+
+  if (ref_time !=0.0) {
+    
+    Double_t trigger_window        = (Double_t) fF1TDC_trigwin;
+    Double_t time_offset           = (Double_t) fF1TDC_t_offset; // effective total bin numbers
+    Double_t time_condition        = 0.0;
+    Double_t local_time_difference = 0.0;
+ 
+    local_time_difference = raw_time - ref_time; 
+
+    if(local_time_difference != 0.0) {
+
+      time_condition = fabs(local_time_difference); 
+      // maximum value is trigger_window -1, 
+      if(time_condition < trigger_window) {
+	// there is no ROLLEVENT within trigger window
+	actual_time_difference = local_time_difference;
       }
       else {
-	// we already excluded local_time_diffrence == 0 case.
-	// ref_time is in before ROLLOVER event
-	actual_time_difference = local_time_difference + time_offset;
+	// there is an ROLLOVER event within trigger window
+	if (local_time_difference > 0.0) {
+	  // ref_time is in after ROLLOVER event
+	  actual_time_difference =  local_time_difference - time_offset;
+	}
+	else {
+	  // we already excluded local_time_diffrence == 0 case.
+	  // ref_time is in before ROLLOVER event
+	  actual_time_difference = local_time_difference + time_offset;
+	}
       }
-      
     }
+    else {
+      // raw_time is the same as ref_time
+      // std::cout << "QwF1TDC::ReferenceSignalCorrection " 
+      // 	      << local_time_difference
+      // 	      << " ref " << ref_time
+      // 	      << " raw " << raw_time
+      // 	      << std::endl;
+      actual_time_difference = local_time_difference;
+    }
+  
+  } 
+  else {
+    fF1TDC_RFM_counter++;
   }
+  // Double_t trigger_window = (Double_t) fF1TDC_trigwin;
+  // Double_t time_offset    = (Double_t) fF1TDC_t_offset;
+
+
+  // Double_t time_condition = 0.0;
+  // Double_t local_time_difference = 0.0;
+  // Double_t actual_time_difference = 0.0;
+
+  // local_time_difference = raw_time - ref_time; 
+  
+  // if(local_time_difference == 0.0) {
+  //   // raw_time is the same as ref_time
+  //   // std::cout << "QwF1TDC::ReferenceSignalCorrection " 
+  //   // 	      << local_time_difference
+  //   // 	      << " ref " << ref_time
+  //   // 	      << " raw " << raw_time
+  //   // 	      << std::endl;
+  //   actual_time_difference = local_time_difference;
+  // }
+  // else {
+  //   time_condition = fabs(local_time_difference); 
+  //   // maximum value is trigger_window -1, 
+  //   if(time_condition < trigger_window) {
+  //     // there is no ROLLEVENT within trigger window
+  //     actual_time_difference = local_time_difference;
+  //   }
+  //   else {
+  //     // there is an ROLLOVER event within trigger window
+  //     if (local_time_difference > 0.0) {
+  // 	// ref_time is in after ROLLOVER event
+  // 	actual_time_difference =  local_time_difference - time_offset;
+  //     }
+  //     else {
+  // 	// we already excluded local_time_diffrence == 0 case.
+  // 	// ref_time is in before ROLLOVER event
+  // 	actual_time_difference = local_time_difference + time_offset;
+  //     }
+      
+  //   }
+  // }
   return actual_time_difference;
 }
 
@@ -400,6 +456,8 @@ QwF1TDC::ResetCounters()
 {
   Int_t i = 0;
 
+  fF1TDC_RFM_counter = 0;
+  
   for(i=0; i<fMaxF1TDCChannelNumber; i++) 
     {
       fF1TDC_SEU_counter[i] = 0;
@@ -544,6 +602,7 @@ QwF1TDC::PrintTotalErrorCounter()
 	    << " SEU " << this->GetTotalSEU()
 	    << " FDF " << this->GetTotalFDF()
 	    << " SYN " << this->GetTotalSYN()
+      	    << " RFM " << this->GetTotalRFM()
 	    << " HFO " << this->GetTotalHFO()
     //  	    << " S30 " << this->GetTotalS30()
 	    << std::endl;
@@ -573,6 +632,8 @@ QwF1TDC::GetChannelErrorCounter(Int_t channel)
   error_counter += this->GetFDF(channel);
   error_counter += " SYN : ";
   error_counter += this->GetSYN(channel);
+  error_counter += " RFM : ";
+  error_counter += this->GetTotalRFM();
   error_counter += " HFO : ";
   error_counter += this->GetHFO(channel);
   //  error_counter += " S30 : ";
@@ -1022,7 +1083,11 @@ QwF1TDContainer::SetSystemName(const TString name)
   // Types are defined in QwType.h
   if(fSystemName.IsNull()) {
     fSystemName = name;
-    if(fSystemName == "R2") {
+    if(fSystemName == "R1") {
+      fDetectorType = kTypeSciFiber;
+      fRegion       = kRegionID1;
+    }
+    else if(fSystemName == "R2") {
       fDetectorType = kTypeDriftHDC;
       fRegion       = kRegionID2;
     }
@@ -1030,6 +1095,7 @@ QwF1TDContainer::SetSystemName(const TString name)
       fDetectorType = kTypeDriftVDC;
       fRegion       = kRegionID3;
     }
+
     else if(fSystemName == "MD" ) {
       fDetectorType = kTypeCerenkov;
       fRegion       = kRegionIDCer;
@@ -1070,7 +1136,7 @@ QwF1TDContainer::Print(const Option_t* options) const
 
   std::cout << "\nQwF1TDContainer::Print() "
 	    << " QwF1TDContainer in System : "  
-	    <<  this->GetSystemName()
+	    << this->GetSystemName()
 	    << ", DetectorType " 
 	    << this->GetDetectorType()
 	    << ", RegionType "   
@@ -1111,9 +1177,50 @@ QwF1TDContainer::PrintNoF1TDC(Int_t tdc_index)
   return tmp;
 }
 
+// // This function will be removed after several tests..
+// //
+// Double_t
+// QwF1TDContainer::GetF1TDCResolution()
+// {
+
+//   // F1TDC resolution must be the same
+//   // among VME crates and among F1TDC boards
+//   // We cannot change it on each F1TDC board.QwF1TDContainer::GetF1TDCResolution()
+//   // Thus, this function return one value of them.
+//   // Wednesday, September  1 16:52:05 EDT 2010, jhlee
+
+//   Double_t old_r = 0.0;
+//   Double_t new_r = 0.0;
+//   Int_t cnt      = 0;
+
+//   TObjArrayIter next(fQwF1TDCList);
+//   TObject* obj = NULL;
+
+//   while ( (obj = next()) )
+//     {
+//       QwF1TDC* F1 = (QwF1TDC*) obj;
+//       new_r = F1->GetF1TDC_resolution();
+//       if(cnt not_eq 0) {
+// 	if(old_r not_eq new_r) {
+// 	  F1->PrintContact();
+// 	  printf("%s : QwF1TDContainer::GetF1TDCResolution(): F1TDC configurations are corrupted!\n", 
+// 		 GetSystemName().Data());
+// 	  F1->PrintF1TDCConfigure();
+
+// 	  return 0.0;
+// 	}
+
+//       }
+//       old_r = new_r;
+//       cnt++;
+//     }
+
+//   return old_r;
+// }
+
 
 Double_t
-QwF1TDContainer::GetF1TDCResolution()
+QwF1TDContainer::GetF1TDCsResolution()
 {
 
   // F1TDC resolution must be the same
@@ -1150,6 +1257,7 @@ QwF1TDContainer::GetF1TDCResolution()
 
   return old_r;
 }
+
 
 
 Double_t
@@ -1675,7 +1783,6 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   return (data_integrity_flag); 
 }
 
-
 void
 QwF1TDContainer::SetErrorHistOptions()
 {
@@ -1783,4 +1890,297 @@ Bool_t
 QwF1TDContainer::CheckSlot20Chan30(Int_t slot, Int_t chan)
 {
   return ( (slot==20) and (chan==30) );
+}
+
+//
+// return F1TDC resolution for possible further check
+// 
+Double_t 
+QwF1TDContainer::DoneF1TDCsConfiguration()
+{
+  //
+  // reduce call "GetF1TDCsResolution" inside subsystem...
+  //
+  fF1TDCOneResolutionNS = this->GetF1TDCsResolution();
+  return fF1TDCOneResolutionNS;
+}
+
+
+
+
+//----------------------------------
+//
+//
+//
+//  F1TDCReferenceSignal
+//
+//
+//
+//
+//----------------------------------
+
+
+
+
+F1TDCReferenceSignal::F1TDCReferenceSignal()
+{
+  fSlot          = -1;
+  fChannelNumber = -1;
+  fBankIndex     = -1;
+  fRefSignalName = "";
+  fSystemName    = "";
+  Clear();
+}
+
+
+
+F1TDCReferenceSignal::F1TDCReferenceSignal(
+					   const Int_t bank_index, 
+					   const Int_t slot, 
+					   const Int_t channel
+					   )
+{
+  fSlot          = slot;
+  fChannelNumber = channel;
+  fBankIndex     = bank_index;
+  fRefSignalName = "";
+  fSystemName    = "";
+  Clear();
+
+}
+
+
+
+F1TDCReferenceSignal::F1TDCReferenceSignal(
+					   const Int_t bank_index, 
+					   const Int_t slot, 
+					   const Int_t channel,
+					   const TString name
+					   )
+{
+  fSlot          = slot;
+  fChannelNumber = channel;
+  fBankIndex     = bank_index;
+  fRefSignalName = name;
+  fSystemName    = "";
+  Clear();
+} 
+
+
+
+
+
+
+std::ostream& operator<< (std::ostream& os,  const F1TDCReferenceSignal &f1tdcref)
+{
+  os << " Name ";
+  os << std::setw(22) << f1tdcref.fRefSignalName;
+  os << " Bank idx ";
+  os << std::setw(2) << f1tdcref.fBankIndex;
+  os << " Slot ";
+  os << std::setw(2) << f1tdcref.fSlot;
+  os << " Chan ";
+  os << std::setw(2) << f1tdcref.fChannelNumber;
+  os << " RefTime (a.u.) ";
+  os << std::setw(2) << f1tdcref.fRefTimeArbUnit;
+  os << " Counter ";
+  os << std::setw(20) << f1tdcref.fCounter;
+
+  return os;
+}
+
+
+Bool_t 
+F1TDCReferenceSignal::SetRefTimeAU(const Double_t ref_time) 
+{
+  // always save the first hit as the reference signal
+  Bool_t status = false;
+  if( not HasFirstHit() ) { 
+  fRefTimeArbUnit = ref_time; 
+  fFirstHitFlag = true;
+  status = true;
+  fCounter++;
+  }
+  return status;
+};
+
+
+void 
+F1TDCReferenceSignal::PrintCounterSummary()
+{
+  std::cout << " Name " << std::setw(20) << fRefSignalName
+	    << " Bank idx " << std::setw(2) <<  fBankIndex
+	    << " Slot "     << std::setw(2) <<  fSlot
+            << " Chan "     << std::setw(2) <<  fChannelNumber
+	    << " Counter "  << std::setw(20) << fCounter
+	    << std::endl;
+  return;
+};
+
+
+
+//----------------------------------
+//
+//
+//
+//  F1TDCReferenceContainer
+//
+//
+//
+//
+//----------------------------------
+
+
+
+
+F1TDCReferenceContainer::F1TDCReferenceContainer()
+{
+  fF1TDCReferenceSignalsList = new TObjArray();
+ 
+  fF1TDCReferenceSignalsList -> Clear();
+  fF1TDCReferenceSignalsList -> SetOwner(kTRUE);
+
+
+  fNF1TDCReferenceSignals = 0;
+
+}
+
+
+F1TDCReferenceContainer::~F1TDCReferenceContainer()
+{
+  if(fF1TDCReferenceSignalsList) {
+    delete fF1TDCReferenceSignalsList; 
+    fF1TDCReferenceSignalsList = NULL;
+  }
+}
+
+
+
+void 
+F1TDCReferenceContainer::AddF1TDCReferenceSignal(F1TDCReferenceSignal *in)
+{
+  Int_t pos = 0;
+
+  pos = fF1TDCReferenceSignalsList -> AddAtFree(in);
+  //  printf("AddF1TDCReferenceSignal at pos %d\n", pos);
+  std::cout << *in << std::endl;
+  fNF1TDCReferenceSignals++;
+  return;
+}
+
+
+
+F1TDCReferenceSignal *
+F1TDCReferenceContainer::GetReferenceSignal(Int_t bank_index, 
+					    Int_t slot, 
+					    Int_t chan
+					    )
+{
+  Int_t bank_idx = 0;
+  Int_t slot_num = 0;
+  Int_t chan_num = 0;
+  // Int_t time_au  = 0;
+  
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+
+      bank_idx    = F1RefSignal->GetBankIndex();
+      slot_num    = F1RefSignal->GetSlotNumber();
+      chan_num    = F1RefSignal->GetChannelNumber();
+      //     time_au     = F1RefSignal->
+      if( (bank_idx == bank_index) and (slot_num == slot) and (chan_num == chan) ) {
+	if ( F1RefSignal->HasFirstHit() ) return NULL;
+	else                              return F1RefSignal;
+      }
+    }
+
+  return NULL;
+}
+
+
+
+Double_t
+F1TDCReferenceContainer::GetReferenceTimeAU(
+					    Int_t bank_index, 
+					    TString name 
+					    )
+{
+  Int_t   bank_idx = 0;
+  TString ref_name = "";
+  
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+
+      bank_idx = F1RefSignal->GetBankIndex();
+      ref_name = F1RefSignal->GetRefSignalName(); 
+
+      if( (bank_idx == bank_index) and (ref_name == name) ) {
+	return F1RefSignal->GetRefTimeAU();
+      }
+    }
+
+  return 0.0;
+}
+
+
+
+void
+F1TDCReferenceContainer::ClearEventData()
+{
+  
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+      F1RefSignal->ClearEventData();
+    }
+
+  return;
+}
+
+void
+F1TDCReferenceContainer::PrintCounters()
+{
+  TObjArrayIter next(fF1TDCReferenceSignalsList);
+  TObject* obj = NULL;
+  F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+
+  std::cout << "F1Reference Signal Counters at System " << fSystemName << std::endl;
+  while ( (obj = next()) )
+    {
+      F1RefSignal = (F1TDCReferenceSignal*) obj;
+      F1RefSignal->PrintCounterSummary();
+    }
+  return;
+};
+
+
+void
+F1TDCReferenceContainer::SetSystemName(const TString name)
+{
+  // Types are defined in QwType.h
+  if(fSystemName.IsNull()) {
+    fSystemName = name;
+  }
+  else {
+    std::cout << "F1TDCReferenceContainer::SetSystemName " 
+	      << fSystemName 
+	      << " is already registered."
+	      << std::endl;
+  }
+  return;
 }

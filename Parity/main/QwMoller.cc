@@ -40,16 +40,9 @@
 // Moller headers
 #include "QwMollerDetector.h"
 
-//function declarations
-void calc_asym(float m, float m0, float p, float p0, float r, float &a, float &da);
-void calc_instant_bpol(char, int, QwMollerDetector *);
-
 //global variables
 static const int scal_num = 96;
 float gscalar[scal_num], gscaler_old[scal_num], gscaler_new[scal_num], gscaler_change[scal_num];
-
-// Debug level
-static bool bDebug = false;
 
 // Activate components
 static bool bTree = true;
@@ -57,9 +50,6 @@ static bool bHisto = true;
 static bool bHelicity = true;
 
 void setOptions();
-
-/// Multiplet structure ought to be changed so dynamic loading in config file is allowable
-static const int kMultiplet = 4;
 
 int main(int argc, char* argv[])
 {
@@ -100,35 +90,13 @@ int main(int argc, char* argv[])
 
 
   // Detector array
-  QwSubsystemArrayParity detectors;
-
-  // Moller subsystem
-  QwMollerDetector* moll_detect = 0;
-
-  detectors.push_back(new QwMollerDetector("Moller Detector"));
-  moll_detect = dynamic_cast<QwMollerDetector*> (detectors.GetSubsystemByName("Moller Detector"));
+  QwSubsystemArrayParity detectors(gQwOptions);
+  detectors.ProcessOptions(gQwOptions);
+  detectors.UpdateEventTypeMask();
 
   ///  Create the running sum
   QwSubsystemArrayParity runningsum(detectors);
 
-  if (moll_detect) {
-    moll_detect->LoadChannelMap("moller_channels.map");
-    moll_detect->SetEventTypeMask(9);
-    if (bDebug){
-      moll_detect->print();
-    }
-  } else {
-    QwError << "Could not initialize moller detector!" << QwLog::endl;
-  }
-
-  // Helicity subsystem
-  detectors.push_back(new QwHelicity("Helicity info"));
-  detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("moller_helicity.map");
-  //detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
-
-  // Get the helicity
-  QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystemByName("Helicity info"));
-  detectors.UpdateEventTypeMask();
   // Helicity pattern
   QwHelicityPattern helicitypattern(detectors);
 
@@ -228,19 +196,19 @@ int main(int argc, char* argv[])
       helicitypattern.LoadEventData(detectors);
       
       /// Accumulate the running sum to calculate the event based running average
-        runningsum.AccumulateRunningSum(detectors);
+      runningsum.AccumulateRunningSum(detectors);
 
       /// Print the helicity information
-      if (bHelicity && false) {
+      //if (bHelicity && false) {
         // - actual helicity
-        std::cout << (helicity->GetHelicityReported() == 0 ? "-" : helicity->GetHelicityReported() == 1 ? "+" : "?");
+        //std::cout << (helicity->GetHelicityReported() == 0 ? "-" : helicity->GetHelicityReported() == 1 ? "+" : "?");
         // - delayed helicity
-        std::cout << (helicity->GetHelicityActual() == 0 ? "(-) " : helicity->GetHelicityActual() == 1 ? "(+) " : "(?) ");
-        if (helicity->GetPhaseNumber() == kMultiplet) {
-          std::cout << std::uppercase << std::hex << helicity->GetRandomSeedActual() << ",  \t";
-          std::cout << helicity->GetRandomSeedDelayed() << std::dec << std::endl;
-        }
-      }
+        //std::cout << (helicity->GetHelicityActual() == 0 ? "(-) " : helicity->GetHelicityActual() == 1 ? "(+) " : "(?) ");
+        //if (helicity->GetPhaseNumber() == kMultiplet) {
+        //  std::cout << std::uppercase << std::hex << helicity->GetRandomSeedActual() << ",  \t";
+        //  std::cout << helicity->GetRandomSeedDelayed() << std::dec << std::endl;
+        //}
+      //}
 
       /// Fill the histograms
       if (bHisto) detectors.FillHistograms();

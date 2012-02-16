@@ -18,7 +18,8 @@ const Bool_t VQwScaler_Channel::kDEBUG = kFALSE;
 
 
 /********************************************************/
-void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave) {
+void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave)
+{
   fNormChannelPtr = NULL;
   SetElementName(name);
   SetDataToSave(datatosave);
@@ -58,7 +59,7 @@ void VQwScaler_Channel::InitializeChannel(TString subsystem, TString instrumentt
 }
 
 /********************************************************/
-Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
 
   return 1;
 }
@@ -580,15 +581,6 @@ void VQwScaler_Channel::Scale(Double_t scale)
     }
 }
 
-void VQwScaler_Channel::ScaleRawRate(Double_t scale)
-{
-  if (!IsNameEmpty())
-    {
-      // TODO improper cast for integer values!
-      this->fValue_Raw *= static_cast<int>(scale);
-    }
-}
-
 void VQwScaler_Channel::DivideBy(const VQwScaler_Channel &denom)
 {
   *this /= denom;
@@ -680,8 +672,6 @@ void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value, Int
   // Nanny
   if (fValue != fValue)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
-
-  return;
 }
 
 void VQwScaler_Channel::CalculateRunningAverage()
@@ -697,31 +687,6 @@ void VQwScaler_Channel::CalculateRunningAverage()
     fValueError = 0.0;
   }
 
-}
-
-void VQwScaler_Channel::Copy(const VQwDataElement* source)
-{
-  if (typeid(*source) == typeid(*this)) {
-    VQwHardwareChannel::Copy(source);
-    const VQwScaler_Channel* input =
-        dynamic_cast<const VQwScaler_Channel*>(source);
-
-    //  TODO:  Don't copy the pointer; we need to regenerate it somehow.
-    //  this->fNormChannelPtr    = input->fNormChannelPtr;
-    this->fNormChannelName   = input->fNormChannelName;
-    this->fClockNormalization = input->fClockNormalization;
-
-    this->fValue_Raw         = input->fValue_Raw;
-    this->fValue             = input->fValue;
-    this->fValueError        = input->fValueError;
-    this->fValueM2           = input->fValueM2;
-
-  } else {
-    TString loc="Standard exception from VQwScaler_Channel::Copy = "
-      +source->GetElementName()+" "
-      +this->GetElementName()+" are not of the same type";
-    throw(std::invalid_argument(loc.Data()));
-  }
 }
 
 void  VQwScaler_Channel::ReportErrorCounters(){

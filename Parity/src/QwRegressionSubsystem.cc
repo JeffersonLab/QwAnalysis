@@ -27,26 +27,6 @@ boost::shared_ptr<VQwSubsystem> QwRegressionSubsystem::GetSharedPointerToStaticO
   return px;
 }
 
-void QwRegressionSubsystem::Copy (const VQwSubsystem *source)
-{
-  try {
-    const QwRegressionSubsystem* input = dynamic_cast<const QwRegressionSubsystem*>(source);
-    if (input != NULL){
-      VQwSubsystem::Copy(input);
-      QwRegression::Copy(input);
-    } else {
-      TString loc="Standard exception from QwRegressionSubsystem::Copy = "
-	+source->GetSubsystemName()+" "
-	+this->GetSubsystemName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-  // this->Print();
-  return;
-}
-
 VQwSubsystem& QwRegressionSubsystem::operator=(VQwSubsystem* value)
 {
   QwRegressionSubsystem* input= dynamic_cast<QwRegressionSubsystem*>(value);

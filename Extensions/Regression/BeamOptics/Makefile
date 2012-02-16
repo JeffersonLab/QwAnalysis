@@ -6,7 +6,7 @@
 
 ROOTLIBS  = $(shell root-config --libs )
 ROOTGLIBS = $(shell root-config --glibs)
-INCLUDES  = -I$(ROOTSYS)/include
+INCLUDES  = -I$(shell root-config --incdir)
 CC        = g++
 DEPS      = headers.h beammod.hh
 CFLAGS    = -O -Wall $(INCLUDES)

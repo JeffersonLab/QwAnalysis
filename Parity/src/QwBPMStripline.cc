@@ -880,36 +880,6 @@ void  QwBPMStripline<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 template<typename T>
-void QwBPMStripline<T>::Copy(const VQwDataElement *source)
-{
-  try {
-    if (typeid(*source) == typeid(*this)) {
-      VQwBPM::Copy(source);
-      const QwBPMStripline<T>* input = dynamic_cast<const QwBPMStripline<T>*>(source);
-      this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-      this->bRotated = input->bRotated;
-      this->bFullSave = input->bFullSave;
-      for(size_t i = 0; i<3; i++)
-        this->fPositionCenter[i] = input->fPositionCenter[i];
-      for(size_t i = 0; i<4; i++)
-        this->fWire[i].Copy(&(input->fWire[i]));
-      for(size_t i = 0; i<2; i++) {
-        this->fRelPos[i].Copy(&(input->fRelPos[i]));
-        this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
-      }
-
-    } else {
-      TString loc="Standard exception from QwBPMStripline::Copy = "
-          +source->GetElementName()+" "
-          +this->GetElementName()+" are not of the same type";
-      throw std::invalid_argument(loc.Data());
-    }
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
-template<typename T>
 void QwBPMStripline<T>::SetEventCutMode(Int_t bcuts)
 {
   Short_t i = 0;
@@ -926,26 +896,17 @@ void QwBPMStripline<T>::SetEventCutMode(Int_t bcuts)
 template<typename T>
 void QwBPMStripline<T>::MakeBPMList()
 {
-  UShort_t i = 0;
-
-  T bpm_sub_element;
-
-  for(i=kXAxis;i<kNumAxes;i++) {
-    bpm_sub_element.ClearEventData();
-    bpm_sub_element.Copy(&fRelPos[i]);
-    bpm_sub_element = fRelPos[i];                     // data
-    fBPMElementList.push_back( bpm_sub_element );
-    bpm_sub_element.ClearEventData();
-    bpm_sub_element.Copy(&fAbsPos[i]);
-    bpm_sub_element = fAbsPos[i];                     // data
-    fBPMElementList.push_back( bpm_sub_element );
+  for(size_t i=kXAxis;i<kNumAxes;i++) {
+    T relpos(fRelPos[i]);
+    relpos = fRelPos[i];                     // data
+    fBPMElementList.push_back(relpos);
+    T abspos(fAbsPos[i]);
+    abspos = fAbsPos[i];                     // data
+    fBPMElementList.push_back(abspos);
   }
-  bpm_sub_element.ClearEventData();
-  bpm_sub_element.Copy(&fEffectiveCharge);
+  T bpm_sub_element(fEffectiveCharge);
   bpm_sub_element = fEffectiveCharge;
-  fBPMElementList.push_back( bpm_sub_element );
-
-  return;
+  fBPMElementList.push_back(bpm_sub_element);
 }
 
 
