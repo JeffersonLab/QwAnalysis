@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////////////////////
+/*/////////////////////////////////////////////////////////////////////////////
 //  File:       HistSummary.C
 //  Author(s):  Paul King <pking@jlab.org>
 //  ChangeLog:  * Mon Oct 03 2011 Paul King <pking@jlab.org>
@@ -18,7 +18,7 @@
 //
 //              Then it is useful to just diff two different outputs and check
 //              that no unintentional changes were made.
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////*/
 
 #include <cstdlib>
 
@@ -96,16 +96,16 @@ void Summarize_TH2(TObject* object){
 }
 
 void Summarize_Directory(TObject* object){
-  TDirectory *obj = (TDirectory*)(object);
-  if (obj != NULL){
+  TDirectory *dir = (TDirectory*)(object);
+  if (dir != NULL){
     PrintHeader(object->ClassName(),object->GetName());
     std::cout << " Entering directory" << std::endl;
-    TIter nextkey(obj->GetListOfKeys());
+    TIter nextkey(dir->GetListOfKeys());
     TKey *key;
-    TObject *object;
+    TObject *obj;
     while ((key = (TKey*)nextkey())) {
-      object = key->ReadObj();
-      HandleObject(object);
+      obj = key->ReadObj();
+      HandleObject(obj);
     }
   }
 }
