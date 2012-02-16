@@ -138,12 +138,15 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     outfileLas <<textwrite<<endl;
   }
 
-//   chain->SetBranchStatus("*",1);//turn on all branches again
+  //chain->SetBranchStatus("*",1);//turn on all branches again
   nLasCycBeamTrips = o*500+m/2;
   return o*500+m/2;//nEntries for both arrays is encoded into return value
 }
 
 /* Comments**************************
- * we throw away about 2 seconds of data before the beamTrip was noticed
- * the laser on state still doesn't have a check for how long it stays ON?
+ * the entry numbers in cutLas and cutEB demarcate the periods when the the laser
+ *..and beam were ON and Good. This is unlike the previous version where the 
+ *..demarcation was for beam Off and laser-off.
+ * we throw away about 2 seconds of data before the beamTrip is found
+ * the laser on state doesn't have a check for how long it stays ON?
  ************************************/

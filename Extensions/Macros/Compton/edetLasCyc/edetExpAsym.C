@@ -13,8 +13,8 @@ vector<Int_t>cutEB;//arrays of cuts for electron beam
  
 Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
 {
-  //time_t tStart = time(0), tEnd; 
-  //div_t div_output;
+  time_t tStart = time(0), tEnd; 
+  div_t div_output;
   Bool_t debug = 1, debug1 = 0, debug2 = 0;
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t chainExists = 0,goodCycles=0;
@@ -24,11 +24,12 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   Int_t nMpsB1H1L1, nMpsB1H0L1, nMpsB1H1L0, nMpsB1H0L0;
   Int_t entry;
   Int_t AccumB1H0L0[nPlanes][nStrips],AccumB1H0L1[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
+  //Int_t AccumB0H0L0[nPlanes][nStrips],AccumB0H0L1[nPlanes][nStrips],AccumB0H1L0[nPlanes][nStrips],AccumB0H1L1[nPlanes][nStrips];
   Double_t comptQH1L1, comptQH0L1, comptQH1L0, comptQH0L0;
   Double_t lasPowB1H1, lasPowB1H0; //, lasPowB0H1, lasPowB0H0;
   Int_t unNormAcB1L0[nPlanes][nStrips],unNormAcB1L1[nPlanes][nStrips];
   //Int_t unNormAcB1H1[nPlanes][nStrips],unNormAcB1H0[nPlanes][nStrips];
-  Double_t unNormQL0;//,unNormQL1,unNormQH0,unNormQH1;
+  //Double_t unNormQL0;//,unNormQL1,unNormQH0,unNormQH1;
   Double_t lasPow[3], helicity, bcm[3];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];
@@ -44,6 +45,9 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   char hName[nPlanes][120],hNameEr[nPlanes][120];
   std::vector<std::vector<TH1D> > hAsymPS;
   std::vector<std::vector<TH1D> > hAsymErPS;
+  //std::vector<std::vector<TGraphErrors> > grEN;
+//   std::vector<std::vector<TCanvas> > cmystrAsym;//!?why is this not working ?
+
   ofstream outfileExpAsymP;
   ofstream outElecNoiseS1, outElecNoiseS2, outElecNoiseS3, outElecNoiseS4;
   ifstream infileLas, infileBeam;
@@ -52,7 +56,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 
   gStyle->SetOptFit(1);
   gStyle->SetOptStat(1);
-
+  
   for (Int_t p =0; p <nPlanes; p++) {   
     if (p >= (Int_t) hAsymPS.size()) {
       hAsymPS.resize(p+1);
@@ -103,7 +107,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
       infileLas >> readEntry; //read the contents of the line in a string first
       if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
 	entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
-	if (debug) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
+	if (debug2) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
 	cutLas.push_back(entry);
       }
       //else cout<<"check cutLas file for "<<runnum<<endl;///this always happens at the end of file read
@@ -115,7 +119,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
       infileBeam >> readEntry;
       if (readEntry.IsDigit()) {
 	entry = readEntry.Atoi();
-	if (debug) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
+	if (debug2) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
 	cutEB.push_back(entry);
       }
       //else cout<<"check cutEB file for "<<runnum<<endl;
@@ -139,11 +143,10 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   Int_t nEntries = mpsChain->GetEntries();
   printf("This chain has %i entries.\n", nEntries);
 
-  mpsChain->ResetBranchAddresses();//!? should it be here?
-  
   cout<<"nbeamTrips="<<nBeamTrips<<endl;
   cout<<"nLasCycles="<<nLasCycles<<endl;
   
+  mpsChain->ResetBranchAddresses();//!? should it be here?
   mpsChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
   mpsChain->SetBranchStatus("actual_helicity",1);
   mpsChain->SetBranchStatus("sca_laser_PowT",1);
@@ -155,7 +158,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   mpsChain->SetBranchAddress("actual_helicity",&helicity);
   mpsChain->SetBranchAddress("sca_laser_PowT",&lasPow);
   mpsChain->SetBranchAddress("sca_bcm6",&bcm);
-  
+
   for(Int_t p = 0; p <nPlanes; p++) {      
     mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
   }//the branch for each plane is named from 1 to 4
@@ -211,19 +214,27 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
     }   
     else cout<<"\n***Error ... Something drastically wrong in BeamTrip evaluation***\n"<<endl;
       
-    for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++) { 
-      //loop over laser cycle periods from one LasOn state upto just before beginning of next LasOn
-      if(debug && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
-      if ((i >= cutLas.at(2*nCycle+1)) && (i < cutLas.at(2*nCycle+2))) l =1;
-      if (i >= cutLas.at(2*nCycle+2)) l =0;///inside the laser Cycle period if the laser was off
+    if(debug) cout<<"Will analyze from entry # "<<cutLas.at(2*nCycle)<<" to entry # "<<cutLas.at(2*nCycle+3)<<endl;
 
+    Int_t missedLasEntries=0;
+    for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+3); i++) { 
+      //loop over laser cycle periods taking one LasOn state and two adjacent laserOff states
+      if(debug && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
+
+      if(((i < cutLas.at(2*nCycle+1)) || (i > cutLas.at(2*nCycle+2))) && lasPow[0]<minLasPow) l =0;///laser off zone
+      else if((i >=cutLas.at(2*nCycle+1)) && (i <=cutLas.at(2*nCycle+2))) l =1;///laser on zone
+      ///the equal sign above is in laser-On zone because that's how getEBeamLasCuts currents assign it(may change!)
+      else missedLasEntries++;
+      //cout<<"\n\nERROR: something seriously wrong **** CHECK at nCycle: "<<nCycle<<" i: "<<i<<"*****\n\n"<<endl;
+
+      //&& (lasPow[0]>laserFrac*lasMax) //!this should be added
       mpsChain->GetEntry(i);
       h = (Int_t)helicity;
 
       /**********
        * (a)currently this method appears a little inefficient since we not processing beamOff data
        * why do we even enter this laser-cycle which is not going to do anything;
-       * but later on, we are going to use use the beam off part in someway and this would make sense then
+       * but later on, we are going to use the beam off part in someway and this would make sense then
        **********/
       
       if (beamOn) { ////currently the counters are only populated for beamOn cycles
@@ -275,8 +286,9 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 	  }
 	}
       }
-    }///for(Int_t i =cutLas.at(2*nCycle+1); i <cutLas.at(2*nCycle+3); i++)
-    
+    }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+3); i++)
+    if(debug) cout<<"Had to skip "<<missedLasEntries<<" entries in this laser cycle"<<endl;
+
     //after having filled the above vectors based on laser and beam periods, its time to calculate
     if (beamOn) {
       goodCycles++;
@@ -288,6 +300,12 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check comptQH0L1:%f,comptQH1L1:%f, comptQH0L0:%f, comptQH1L0:%f**\n",
 	       nCycle,comptQH0L1,comptQH1L1,comptQH0L0,comptQH1L0);
       else {
+	if(debug) {
+	  printf("comptQB1H1L1:%f\tcomptQB1H0L1:%f\tcomptQB1H1L0:%f\tcomptQB1H0L0:%f\n",
+		 comptQH1L1,comptQH0L1,comptQH1L0,comptQH0L0);
+	  printf("nMpsB1H1L1:%d\tnMpsB1H0L1:%d\tnMpsB1H1L0:%d\tnMpsB1H0L0:%d\n",
+		 nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0,nMpsB1H0L0);
+	}
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s =startStrip; s <endStrip; s++) {	  
 	    if (maskedStrips(p,s)) continue;
@@ -296,25 +314,17 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 	    normAcB1H0L1LasCyc[p][s] = AccumB1H0L1[p][s] /comptQH0L1;
 	    normAcB1H0L0LasCyc[p][s] = AccumB1H0L0[p][s] /comptQH0L0;
 
-	    unNormAcB1L0[p][s] = AccumB1H1L0[p][s] + AccumB1H0L0[p][s];
-	    unNormAcB1L1[p][s] = AccumB1H1L1[p][s] + AccumB1H0L1[p][s];///total counts during Laser ON
+// 	    unNormAcB1L0[p][s] = AccumB1H1L0[p][s] + AccumB1H0L0[p][s];
+// 	    unNormAcB1L1[p][s] = AccumB1H1L1[p][s] + AccumB1H0L1[p][s];///total counts during Laser ON
 
-	    if(debug2) {
-	      printf("normAcB1H1L1[%d][%d]:\t%f = AccumB1H1L1:%d / comptQH1L1:%f; nMpsB1H1L1:%d\n"
-		     ,p,s,normAcB1H1L1LasCyc[p][s],AccumB1H1L1[p][s],comptQH1L1,nMpsB1H1L1);
-	      printf("normAcB1H1L0[%d][%d]:\t%f = AccumB1H1L0:%d / comptQH1L0:%f; nMpsB1H1L0:%d\n"
-		     ,p,s,normAcB1H1L0LasCyc[p][s],AccumB1H1L0[p][s],comptQH1L0,nMpsB1H1L0);
-	      printf("normAcB1H0L1[%d][%d]:\t%f = AccumB1H0L1:%d / comptQH0L1:%f; nMpsB1H0L1:%d\n"
-		     ,p,s,normAcB1H0L1LasCyc[p][s],AccumB1H0L1[p][s],comptQH0L1,nMpsB1H0L1);
-	      printf("normAcB1H0L0[%d][%d]:\t%f = AccumB1H0L0:%d / comptQH0L0:%f; nMpsB1H0L0:%d\n"
-		     ,p,s,normAcB1H0L0LasCyc[p][s],AccumB1H0L0[p][s],comptQH0L0,nMpsB1H0L0);
-	    }
+	    if(debug2) printf("AccumB1H1L1[%d][%d]: %d\tAccumB1H0L1: %d\tAccumB1H1L0: %d\tAccumB1H0L0: %d\n",
+			     p,s,AccumB1H1L1[p][s],AccumB1H0L1[p][s],AccumB1H1L0[p][s],AccumB1H0L0[p][s]);
 
 	    BCnormAcB1H1L1LasCyc[p][s] = normAcB1H1L1LasCyc[p][s] - normAcB1H1L0LasCyc[p][s]; //* comptQH1L1/comptQH1L0;
 	    BCnormAcB1H0L1LasCyc[p][s] = normAcB1H0L1LasCyc[p][s] - normAcB1H0L0LasCyc[p][s]; //* comptQH0L1/comptQH0L0;
 
 	    BCnormLasCycDiff[p][s] = (BCnormAcB1H1L1LasCyc[p][s] - BCnormAcB1H0L1LasCyc[p][s]);
-	    BCnormLasCycSum[p][s] = (BCnormAcB1H1L1LasCyc[p][s]  + BCnormAcB1H0L1LasCyc[p][s]);
+	    BCnormLasCycSum[p][s]  = (BCnormAcB1H1L1LasCyc[p][s] + BCnormAcB1H0L1LasCyc[p][s]);
 	    if (BCnormLasCycSum[p][s]  <= 0.0) {
 	      if(debug) printf("\n**Warning**:BCnormLasCycSum[p%d][s%d] is %f in nCycle:%d\n",p,s,BCnormLasCycSum[p][s],nCycle);
 	      if(debug) printf("note: AccumB1H1L1:%d, AccumB1H1L0:%d, AccumB1H0L1:%d, AccumB1H0L0:%d\n"
@@ -342,14 +352,18 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 	    }
 	  }
 	}///for (Int_t p =startPlane; p <endPlane; p++) {
-	unNormQL0 = comptQH1L0 + comptQH0L0;
+// 	unNormQL0 = comptQH1L0 + comptQH0L0;
 	
-	///!trying to estimate electronic noise using p1,s10 for all laser cycles
-	if(outElecNoiseS1.is_open()) outElecNoiseS1<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr],sqrt(unNormAcB1L0[0][mystr]));
-	if(outElecNoiseS2.is_open()) outElecNoiseS2<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-10],sqrt(unNormAcB1L0[0][mystr-10]));
-	if(outElecNoiseS3.is_open()) outElecNoiseS3<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-20],sqrt(unNormAcB1L0[0][mystr-20]));
-	if(outElecNoiseS4.is_open()) outElecNoiseS4<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-30],sqrt(unNormAcB1L0[0][mystr-30]));
-	else cout<<"\nerror in writing to file for electronic noise\n"<<endl;
+// 	if(outElecNoiseS1.is_open()) 
+// 	  outElecNoiseS1<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr],sqrt(unNormAcB1L0[0][mystr]));
+// 	if(outElecNoiseS2.is_open()) 
+// 	  outElecNoiseS2<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-10],sqrt(unNormAcB1L0[0][mystr-10]));
+// 	if(outElecNoiseS3.is_open()) 
+// 	  outElecNoiseS3<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-20],sqrt(unNormAcB1L0[0][mystr-20]));
+// 	if(outElecNoiseS4.is_open()) 
+// 	  outElecNoiseS4<<Form("%f\t%d\t%f\n",unNormQL0,unNormAcB1L0[0][mystr-30],sqrt(unNormAcB1L0[0][mystr-30]));
+// 	///!trying to estimate electronic noise using p1,s10 for all laser cycles
+// 	else cout<<"\nerror in writing to file for electronic noise\n"<<endl;
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
@@ -360,44 +374,44 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   outElecNoiseS4.close();
   cout<<"file for electronic noise written and closed"<<endl;
 
-  TGraphErrors *grEN;
-  TCanvas *cEN = new TCanvas("cEN",Form("electronic noise r%d",runnum),10,10,1000,1000);
-  cEN->Divide(2,2);
-  cEN->SetGridx(1);
+  //  TGraphErrors *grEN;
+//   TCanvas *cEN = new TCanvas("cEN",Form("electronic noise r%d",runnum),10,10,1000,1000);
+//   cEN->Divide(2,2);
+//   cEN->SetGridx(1);
 
-  cEN->cd(1);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr), "%lg %lg %lg");
-  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
-  grEN->GetYaxis()->SetTitle("accumulated counts");
-  grEN->SetTitle(Form("counts in plane1 strip %d",mystr));
-  grEN->Fit("pol1");
-  grEN->Draw("A*");
+//   cEN->cd(1);
+//   grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr), "%lg %lg %lg");
+//   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+//   grEN->GetYaxis()->SetTitle("accumulated counts");
+//   grEN->SetTitle(Form("counts in plane1 strip %d",mystr));
+//   grEN->Fit("pol1");
+//   grEN->Draw("A*");
 
-  cEN->cd(2);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-10), "%lg %lg %lg");
-  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
-  grEN->GetYaxis()->SetTitle("accumulated counts");
-  grEN->SetTitle(Form("counts in plane1 strip %d",mystr-10));
-  grEN->Fit("pol1");
-  grEN->Draw("A*");
+//   cEN->cd(2);
+//   grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-10), "%lg %lg %lg");
+//   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+//   grEN->GetYaxis()->SetTitle("accumulated counts");
+//   grEN->SetTitle(Form("counts in plane1 strip %d",mystr-10));
+//   grEN->Fit("pol1");
+//   grEN->Draw("A*");
 
-  cEN->cd(3);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-20), "%lg %lg %lg");
-  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
-  grEN->GetYaxis()->SetTitle("accumulated counts");
-  grEN->SetTitle(Form("counts in plane1 strip %d",mystr-20));
-  grEN->Fit("pol1");
-  grEN->Draw("A*");
+//   cEN->cd(3);
+//   grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-20), "%lg %lg %lg");
+//   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+//   grEN->GetYaxis()->SetTitle("accumulated counts");
+//   grEN->SetTitle(Form("counts in plane1 strip %d",mystr-20));
+//   grEN->Fit("pol1");
+//   grEN->Draw("A*");
 
-  cEN->cd(4);
-  grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-30), "%lg %lg %lg");
-  grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
-  grEN->GetYaxis()->SetTitle("accumulated counts");
-  grEN->SetTitle(Form("counts in plane1 strip %d",mystr-30));
-  grEN->Fit("pol1");
-  grEN->Draw("A*");
+//   cEN->cd(4);
+//   grEN = new TGraphErrors(Form("r%d_eleNoiseS%d.txt",runnum,mystr-30), "%lg %lg %lg");
+//   grEN->GetXaxis()->SetTitle("accumulated charge in one LasCycle");
+//   grEN->GetYaxis()->SetTitle("accumulated counts");
+//   grEN->SetTitle(Form("counts in plane1 strip %d",mystr-30));
+//   grEN->Fit("pol1");
+//   grEN->Draw("A*");
 
-
+//  cmystrAsym.push_back(TCanvas("c2","Strip Asym r",10,10,1500,1100));
   TCanvas *cmystrAsym = new TCanvas("cmystrAsym",Form("Strip Asym starting r%d",runnum),10,10,1500,1100);
   cmystrAsym->Divide(2,4);
   Int_t n = 0;
@@ -433,13 +447,15 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
       outfileExpAsymP<<Form("%2.0f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],stripAsymRMS[p][s]);
     }
     outfileExpAsymP.close();
-    cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<< " filled and closed"<<endl;
+    //cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" filled and closed"<<endl;
+    printf("analOut/r%d_expAsymP%d.txt filled and closed\n",runnum,p+1);
   }
   
-  //tEnd = time(0);
-  //div_output = div((Int_t)difftime(tEnd, tStart),60);
-  //printf("\n it took %d minutes %d seconds to evaluate edetExpAsym.\n",div_output.quot,div_output.rem );  
-  return 1;//the function returns the number of used Laser cycles
+  delete mpsChain;
+  tEnd = time(0);
+  div_output = div((Int_t)difftime(tEnd, tStart),60);
+  printf("\n it took %d minutes %d seconds to evaluate edetExpAsym.\n",div_output.quot,div_output.rem );  
+  return goodCycles;//the function returns the number of used Laser cycles
 }
 
 /******************************************************
@@ -458,7 +474,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 * evaluate asymmetry per pattern and see its pattern
 * ensure efficient evaluation of beamtrips
 * check consistency of cut on laserPow and beamtrip
-* in the current LasCyc method, I can change AccumB1H1L1 etc to Int_t to save CPU effort
+* add color code to the error and warning messages
 ******************************************************/
 
 /******************************************************

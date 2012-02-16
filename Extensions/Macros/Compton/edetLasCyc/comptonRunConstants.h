@@ -28,6 +28,7 @@ const Int_t minEntries = 8000; //Laser must be off for at least this many consec
 
 
 ///Run constants
+const Double_t minLasPow = 1000;///put by eyeballing, needs to be checked !!
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
 const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn///typical 160E3. 
 const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
@@ -37,7 +38,7 @@ const Double_t ignoreLasPowAbove = 195.0;
 const Bool_t IHWP_in=1;///1:in; 0:out
 
 //following numbers are all in C++ counting(start at 0)
-const Int_t mystr = 30; //a random strip for testing my script
+const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
  const Int_t endStrip = 63;
 const Int_t startPlane = 0;
