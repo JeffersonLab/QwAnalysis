@@ -202,12 +202,16 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
     if( !((subblock > -50) && (subblock < 50)) )
       code = 1;
     if( (ramp_hw_sum > 0) && ((UInt_t)ErrorFlag != 0x4018080)  ){
-        std::cout << red << "Mps Tree::Modulation ErrorFlag" << normal << std::endl;
-        code = 1;
+#ifdef __VERBOSE_ERRORS
+      std::cout << red << "Mps Tree::Modulation ErrorFlag" << normal << std::endl;
+#endif
+      code = 1;
     }
 
     if( (ramp_hw_sum < 0) && ((UInt_t)ErrorFlag != 0) ){
+#ifdef __VERBOSE_ERRORS
       std::cout << red << "Mps Tree::Natural Motion ErrorFlag" << normal << std::endl;
+#endif
       code = 1;
     }
 
