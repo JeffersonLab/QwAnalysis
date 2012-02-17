@@ -196,6 +196,10 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
     w_title="not weighted";
   else
     w_title="weighted";
+
+
+
+
   TH2F* h_2d;
   TProfile2D* hp_2d;
   if (IsProfile==false)
@@ -293,14 +297,14 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
         }
     }
 
-  TCanvas* c=new TCanvas("c","c",800,800);
+  TCanvas* c=new TCanvas("c","c",10, 10, 800,800);
   c->Divide(1,2);
   gStyle->SetPalette(1);
   gStyle->SetMarkerStyle(2);
   c->cd(1);
   if (IsProfile==false)
     {
-      string title="track projection on main detector: " + w_title + ": not profile";
+      string title="track projection on " + type + "  " +  w_title + ": not profile";
       h_2d->GetXaxis()->SetTitle("position x:cm");
       h_2d->GetYaxis()->SetTitle("position y:cm");
       h_2d->SetTitle(title.c_str());
@@ -308,7 +312,7 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
     }
   else
     {
-      string title="track projection on main detector: " + w_title + "light per event";
+      string title="track projection on " + type + "  " +  w_title + ": not profile";
       hp_2d->GetXaxis()->SetTitle("position x:cm");
       hp_2d->GetYaxis()->SetTitle("position y:cm");
       hp_2d->SetTitle(title.c_str());

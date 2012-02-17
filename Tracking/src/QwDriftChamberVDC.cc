@@ -193,159 +193,242 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 }
 
 
-
 void  QwDriftChamberVDC::SubtractReferenceTimes()
 {
-  std::vector<Double_t> reftimes;
-  std::vector<Bool_t>   refchecked;
-  std::vector<Bool_t>   refokay;
-  Bool_t allrefsokay;
 
-  std::size_t ref_size = 0;
-  std::size_t i = 0;
-  std::size_t j = 0;
 
-  ref_size = fReferenceData.size();
-
-  reftimes.resize  ( ref_size );
-  refchecked.resize( ref_size );
-  refokay.resize   ( ref_size );
-
-  for ( i=0; i<ref_size; i++ )
-    {
-      reftimes.at  (i) = 0.0;
-      refchecked.at(i) = kFALSE;
-      refokay.at   (i) = kFALSE;
-    }
-
-  allrefsokay = kTRUE;
-
-  UInt_t bankid      = 0;
+  UInt_t   bank_index        = 0;
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;
   Double_t time_arb_unit     = 0.0;
-
-  // Double_t raw_time  = 0.0;
-  // Double_t ref_time  = 0.0;
-  // Double_t time      = 0.0;
+  EQwDetectorPackage package = kPackageNull;
   Bool_t local_debug = false;
+  Int_t slot_num = 0;
 
-  std::size_t ref_data_size = 0;
-  std::size_t bank = 0;
-  Double_t diff_between_refs = 0.0;
+  TString reference_name1 = "MasterTrigger";
+  TString reference_name2 = "CopyMasterTrigger";
 
-  //test if the reference time is ok
-  
-  for ( bank=0; bank< ref_size; bank++ )
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
-      if(fReferenceMaster.size()==0) continue;
 
-      ref_data_size = fReferenceData.at(bank).size();
-      for ( i=0; i<ref_data_size; ++i )
-	{
-	  if(fReferenceMaster.at(bank).size()==0) continue;
-	  
-	  diff_between_refs = fReferenceData.at ( bank ).at ( i )  -  fReferenceMaster.at ( bank ).at(0);
-	  // 			std::cout << fReferenceData.at ( bank ).at ( i ) << " " << fReferenceMaster.at ( bank ).at(0) << std::endl;
-	  // 			std::cout << "diff: " << diff << std::endl;
-	  if ( diff_between_refs> -400.0 || diff_between_refs < -940.0 ) {       
-	    fReferenceData.at ( bank ).erase ( fReferenceData.at(bank).begin() +i );
-	    i--;
-	  }
-	  else{
-	  }
-	  ref_data_size = fReferenceData.at ( bank ).size();
-	}
-    }
-  
-
-  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
-    {
-      //  Only try to check the reference time for a bank if there is at least one
-      //  non-reference hit in the bank.
-      bankid = hit->GetSubbankID();
-   
-      if ( not refchecked.at ( bankid ) )
-	{
-
-	  if ( fReferenceData.at ( bankid ).empty() )
-	    {
-	      if(local_debug) {
-		QwWarning << "QwDriftChamberVDC::SubtractReferenceTimes:  Subbank ID "
-			  << bankid << " is missing a reference time." << QwLog::endl;
-	      }
-	      refokay.at ( bankid ) = kFALSE;
-	      allrefsokay           = kFALSE;
-	    }
-	  else
-	    {
-	      reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( fReferenceData.at ( bankid ).size()-1 );
-	      refokay.at ( bankid ) = kTRUE;
-	    }
-
-	  if ( refokay.at ( bankid ) )
-	    {
-	      for ( j=0; j<fReferenceData.at ( bankid ).size(); j++ )
-		{
-		  fReferenceData.at ( bankid ).at ( j ) -= reftimes.at ( bankid );
-		}
-	    }
-	  refchecked.at ( bankid ) = kTRUE;
-	}
-
-      if ( refokay.at ( bankid ) )
-	{
-	  Int_t slot_num    = hit -> GetModule();
-	  raw_time_arb_unit = (Double_t) hit -> GetRawTime();
-	  ref_time_arb_unit = (Double_t) reftimes.at(bankid);
-	  // raw_time = ( Double_t ) hit -> GetRawTime();
-	  // ref_time = ( Double_t ) reftimes.at ( bankid );
-	  // Int_t bank_index = hit->GetSubbankID();
-	  // Int_t slot_num   = hit->GetModule();
-	  
-	  time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bankid, slot_num);
-	  
-	  hit -> SetTime(time_arb_unit); 
-	  hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
-	  // time = fF1TDContainer->ReferenceSignalCorrection ( raw_time, ref_time, bankid, slot_num );
-	  // hit -> SetTime ( time );
-	  
-	  if(local_debug) {
-	    QwMessage << this->GetSubsystemName()
-		      << " BankIndex " << std::setw(2) << bankid
-		      << " Slot "      << std::setw(2) << slot_num
-		      << " RawTime : " << std::setw(6) << raw_time_arb_unit
-		      << " RefTime : " << std::setw(6) << ref_time_arb_unit
-		      << " time : "    << std::setw(6) << time_arb_unit
-		      << std::endl;
-	    
-	  }
+      bank_index        =            hit  -> GetSubbankID();
+      slot_num          =            hit  -> GetModule();
+      raw_time_arb_unit = (Double_t) hit  -> GetRawTime();
+      package           =            hit  -> GetPackage();
 
 
-	}
+      // John L. introduced this package match reference time subtraction for only Region 3,
+      // I was told it would be better to extend this concept to Region2, so I did, and I 
+      // got the worst result.....  Q2 = +2.735199e-02  its RMS +1.192504e-02 
+      // if I don't use this method in Region2, Q2 = +2.292274e-02  and RMS = +7.133603e-03
+      // if I don't use this method in Region3, I couldn't get "peak" structure 
+      // in time distributions of four VDC chambers. 
+      // 
+      // Why does this method give us a good result for only Region 3? MUX? 
+      // I don't know ..
+      // Friday, February 17 14:01:12 EST 2012, jhlee
+
+      if (package == kPackageUp) { // Up is 1
+	reference_name1 = "TrigScintPkg1";
+      }
+      else if (package == kPackageDown) {// Down is 2
+	reference_name1 = "TrigScintPkg2";
+      }
+      else {
+	reference_name1 = "MasterTrigger";
+      }
+      
+      ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, reference_name1);
+    
+      //   printf("%f\n", ref_time_arb_unit);
+
+      if(ref_time_arb_unit== 0.0 ) {
+	ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, reference_name2);
+      }
+      //      printf("%f\n", ref_time_arb_unit);
+      // second time, it returns 0.0, we simply ignore this event .... 
+      // set time zero. ReferenceSignalCorrection() will return zero, and increase RFM counter...
+      //
+      time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
+
+      hit -> SetTime(time_arb_unit); 
+      hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
+      if(local_debug) {
+	QwMessage << this->GetSubsystemName()
+		  << " Package "   << std::setw(2) << package
+		  << " BankIndex " << std::setw(2) << bank_index
+		  << " Slot "      << std::setw(2) << slot_num
+		  << " RawTime : " << std::setw(6) << raw_time_arb_unit
+		  << " RefTime : " << std::setw(6) << ref_time_arb_unit
+		  << " time : "    << std::setw(6) << time_arb_unit
+		  << std::endl;
+	
+      }
+    
     }
 
-  bankid = 0;
 
-  if ( not allrefsokay )
-    {
-      std::vector<QwHit> tmp_hits;
-      tmp_hits.clear();
-      for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
-	{
-	  bankid = hit->GetSubbankID();
-	  if ( refokay.at ( bankid ) )
-	    {
-	      tmp_hits.push_back ( *hit );
-	    }
-	}
-      // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-      fTDCHits.clear();
-      fTDCHits = tmp_hits;
-      // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-    }
+
   return;
 }
+
+
+
+// void  QwDriftChamberVDC::SubtractReferenceTimes()
+// {
+//   std::vector<Double_t> reftimes;
+//   std::vector<Bool_t>   refchecked;
+//   std::vector<Bool_t>   refokay;
+//   Bool_t allrefsokay;
+
+//   std::size_t ref_size = 0;
+//   std::size_t i = 0;
+//   std::size_t j = 0;
+
+//   ref_size = fReferenceData.size();
+
+//   reftimes.resize  ( ref_size );
+//   refchecked.resize( ref_size );
+//   refokay.resize   ( ref_size );
+
+//   for ( i=0; i<ref_size; i++ )
+//     {
+//       reftimes.at  (i) = 0.0;
+//       refchecked.at(i) = kFALSE;
+//       refokay.at   (i) = kFALSE;
+//     }
+
+//   allrefsokay = kTRUE;
+
+//   UInt_t bankid      = 0;
+//   Double_t raw_time_arb_unit = 0.0;
+//   Double_t ref_time_arb_unit = 0.0;
+//   Double_t time_arb_unit     = 0.0;
+
+//   // Double_t raw_time  = 0.0;
+//   // Double_t ref_time  = 0.0;
+//   // Double_t time      = 0.0;
+//   Bool_t local_debug = false;
+
+//   std::size_t ref_data_size = 0;
+//   std::size_t bank = 0;
+//   Double_t diff_between_refs = 0.0;
+
+//   //test if the reference time is ok
+  
+//   for ( bank=0; bank< ref_size; bank++ )
+//     {
+//       if(fReferenceMaster.size()==0) continue;
+
+//       ref_data_size = fReferenceData.at(bank).size();
+//       for ( i=0; i<ref_data_size; ++i )
+// 	{
+// 	  if(fReferenceMaster.at(bank).size()==0) continue;
+	  
+// 	  diff_between_refs = fReferenceData.at ( bank ).at ( i )  -  fReferenceMaster.at ( bank ).at(0);
+// 	  // std::cout << fReferenceData.at ( bank ).at ( i ) << " " << fReferenceMaster.at ( bank ).at(0) << std::endl;
+// 	  // std::cout << "diff: " << diff_between_refs << std::endl;
+
+// 	  if ( diff_between_refs> -400.0 || diff_between_refs < -940.0 ) {       
+// 	    fReferenceData.at ( bank ).erase ( fReferenceData.at(bank).begin() +i );
+// 	    i--;
+// 	  }
+
+// 	  else{
+// 	  }
+
+// 	  ref_data_size = fReferenceData.at ( bank ).size();
+// 	}
+//     }
+  
+
+//   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
+//     {
+//       //  Only try to check the reference time for a bank if there is at least one
+//       //  non-reference hit in the bank.
+//       bankid = hit->GetSubbankID();
+   
+//       if ( not refchecked.at ( bankid ) )
+// 	{
+
+// 	  if ( fReferenceData.at ( bankid ).empty() )
+// 	    {
+// 	      if(local_debug) {
+// 		QwWarning << "QwDriftChamberVDC::SubtractReferenceTimes:  Subbank ID "
+// 			  << bankid << " is missing a reference time." << QwLog::endl;
+// 	      }
+// 	      refokay.at ( bankid ) = kFALSE;
+// 	      allrefsokay           = kFALSE;
+// 	    }
+// 	  else
+// 	    {
+// 	      reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( fReferenceData.at ( bankid ).size()-1 );
+// 	      refokay.at ( bankid ) = kTRUE;
+// 	    }
+
+// 	  if ( refokay.at ( bankid ) )
+// 	    {
+// 	      for ( j=0; j<fReferenceData.at ( bankid ).size(); j++ )
+// 		{
+// 		  fReferenceData.at ( bankid ).at ( j ) -= reftimes.at ( bankid );
+// 		}
+// 	    }
+// 	  refchecked.at ( bankid ) = kTRUE;
+// 	}
+
+//       if ( refokay.at ( bankid ) )
+// 	{
+// 	  Int_t slot_num    = hit -> GetModule();
+// 	  raw_time_arb_unit = (Double_t) hit -> GetRawTime();
+// 	  ref_time_arb_unit = (Double_t) reftimes.at(bankid);
+// 	  // raw_time = ( Double_t ) hit -> GetRawTime();
+// 	  // ref_time = ( Double_t ) reftimes.at ( bankid );
+// 	  // Int_t bank_index = hit->GetSubbankID();
+// 	  // Int_t slot_num   = hit->GetModule();
+	  
+// 	  time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bankid, slot_num);
+	  
+// 	  hit -> SetTime(time_arb_unit); 
+// 	  hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
+// 	  // time = fF1TDContainer->ReferenceSignalCorrection ( raw_time, ref_time, bankid, slot_num );
+// 	  // hit -> SetTime ( time );
+	  
+// 	  if(local_debug) {
+// 	    QwMessage << this->GetSubsystemName()
+// 		      << " BankIndex " << std::setw(2) << bankid
+// 		      << " Slot "      << std::setw(2) << slot_num
+// 		      << " RawTime : " << std::setw(6) << raw_time_arb_unit
+// 		      << " RefTime : " << std::setw(6) << ref_time_arb_unit
+// 		      << " time : "    << std::setw(6) << time_arb_unit
+// 		      << std::endl;
+	    
+// 	  }
+
+
+// 	}
+//     }
+
+//   bankid = 0;
+
+//   if ( not allrefsokay )
+//     {
+//       std::vector<QwHit> tmp_hits;
+//       tmp_hits.clear();
+//       for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
+// 	{
+// 	  bankid = hit->GetSubbankID();
+// 	  if ( refokay.at ( bankid ) )
+// 	    {
+// 	      tmp_hits.push_back ( *hit );
+// 	    }
+// 	}
+//       // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+//       fTDCHits.clear();
+//       fTDCHits = tmp_hits;
+//       // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+//     }
+//   return;
+// }
 
 
 Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDetectorID detector )
@@ -353,137 +436,22 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
   //    Double_t angle_degree = 45.0;
   Double_t distance_mm = 0.0;
   Double_t distance_cm = 0.0;
-  Double_t dt=drifttime;
-  Double_t resolution=0.5;     //resolution is 0.5ns
-  //     Double_t cut0=0,cut1=0,cut2=0;
-
-  // 	if ( fTtoDNumbers.size() <15 )
-  // 	{
-  // 		std::cerr << "the size of parameters is not correct, please check! " << std::endl;
-  // 		return -1;
-  // 	}
-
-  //     cut0=fTtoDNumbers.at(0);
-  //     cut1=fTtoDNumbers.at(1);
-  //     cut2=fTtoDNumbers.at(2);
-
+  Double_t dt          = drifttime;
+  Double_t resolution  = 0.5;     //resolution is 0.5ns
 
   Int_t index = (Int_t) (dt/resolution);
-
+  
+  Int_t maximum_allowed_drifttime_by_john = 310;
+  Int_t minimum_allowed_drifttime_by_john = 0;
  
-  if(dt>=0 && dt<310){
-    distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );}
-  else{
+  if(dt >= minimum_allowed_drifttime_by_john && dt < maximum_allowed_drifttime_by_john) {
+    distance_mm = ( dt-resolution*index ) / resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) + fTtoDNumbers.at ( index );
+  }
+  else {
     distance_mm=-50;
   }
-  // 	}
-  //     if ( dt < cut0 )
-  //       {
-  //         distance_mm = fTtoDNumbers.at(3)+fTtoDNumbers.at(4)*dt+fTtoDNumbers.at(5)*dt*dt+fTtoDNumbers.at(6)*dt*dt*dt/1000000;
-  //       }
-  //     else if ( dt>=cut0 && dt<cut1 )
-  //       {
-  //         distance_mm = fTtoDNumbers.at(7)+fTtoDNumbers.at(8)*dt;
-  //       }
-  //     else if ( dt>=cut1 && dt < cut2 )
-  //       {
-  //         distance_mm = fTtoDNumbers.at(9)+fTtoDNumbers.at(10)*dt+fTtoDNumbers.at(11)*dt*dt+fTtoDNumbers.at(12)*dt*dt*dt/1000000;
-  //       }
-  //     else if ( dt>=cut2 && dt <=400 )
-  //       {
-  //         distance_mm = fTtoDNumbers.at(13)+fTtoDNumbers.at(14)*dt;
-  //       }
-  //     else { distance_mm = -50;}
-
-  //     Double_t p[12]={0.0};
-  //     Double_t cut_time[3]={60,236,300};
-  //
-  //     p[0]=-0.0217483;
-  //     p[1]=0.0671134;
-  //     p[2]=0.000371857;
-  //     p[3]=-6.10097;
-  //
-  //     p[4]=0.797553;
-  //     p[5]=0.0538063;
-  //
-  //     p[6]=-39.0646;
-  //     p[7]=0.449894;
-  //     p[8]=-0.00119686;
-  //     p[9]=1.00028;
-  //
-  //     p[10]=14.7995;
-  //     p[11]=0.00100113;
-  //
-  //
-  //     if ( dt < cut_time[0] )
-  //       {
-  //         distance_mm = p[0]+p[1]*dt+p[2]*dt*dt+p[3]*dt*dt*dt/1000000;
-  //       }
-  //     else if ( dt>=cut_time[0] && dt<cut_time[1] )
-  //       {
-  //         distance_mm = p[4]+p[5]*dt;
-  //       }
-  //     else if ( dt>=cut_time[1] && dt < cut_time[2] )
-  //       {
-  //         distance_mm = p[6]+p[7]*dt+p[8]*dt*dt+p[9]*dt*dt*dt/1000000;
-  //       }
-  //     else if ( dt>=cut_time[2] )
-  //       {
-  //         distance_mm = p[10]+p[11]*dt;
-  //       }
-  //     else {}
-
-
-  //Double_t p[11]={0.0};
-
-  //for arg-50-ethane-50
-  //p[ 0] = -1.749 + 0.021670*angle_degree; // [T], then what unit of 0.021670 is?
-  // [T]/[DEGREE]
-  // jhlee, confirmed by siyuan
-  // Thursday, July  8 10:50:23 EDT 2010
-  //p[ 1] = 24.100 - 0.305100*angle_degree; // [T]/[L]   0.305100 [T]/([L].[DEGREE])
-  //p[ 2] = -3.133 + 0.009078*angle_degree; // [T]
-  //p[ 3] = 28.510 - 0.295100*angle_degree; // [T]/[L]
-  //p[ 4] =  7.869 - 0.163500*angle_degree; // [T]
-  //p[ 5] = 17.690 - 0.120800*angle_degree; // [T]/[L]
-  //p[ 6] =  2.495 - 0.041040*angle_degree; // [T]/[L2]
-  //p[ 7] =  3.359 - 0.478000*angle_degree; // [T]
-  //p[ 8] = 29.350 - 0.219500*angle_degree; // [T]/[L]
-  //p[ 9] = 55.680 - 1.730000*angle_degree; // [T]
-  //p[10] = 20.380 - 0.004761*angle_degree; // [T]/[L]
-
-  //Double_t cut[4]  = {0.5, 1.5, 4.0, 6.0};// [L] // mm
-  //Double_t time[4] = {0.0};// [T]
-
-  //time[0] = 0.5* ( p[0] + p[1]*cut[0] + p[2] + p[3]*cut[0] );
-  //time[1] = 0.5* ( p[2] + p[3]*cut[1] + p[4] + p[5]*cut[1] + p[6]*cut[1]*cut[1] );
-  //time[2] = 0.5* ( p[4] + p[5]*cut[2] + p[6]*cut[2]*cut[2] + p[7] + p[8]*cut[2] );
-  //time[3] = 0.5* ( p[7] + p[8]*cut[3] + p[9] +p[10]*cut[3] );
-
-  /*if ( drifttime < time[0] )
-    {
-    distance_mm = ( drifttime - p[0] ) /p[1];
-    }
-    else if ( drifttime>=time[0] && drifttime<time[1] )
-    {
-    distance_mm = ( drifttime-p[2] ) /p[3];
-    }
-    else if ( drifttime>=time[1] && drifttime < time[2] )
-    {
-    distance_mm = ( -p[5] + sqrt ( p[5]*p[5] - 4.0*p[6]* ( p[4]-drifttime ) ) ) / ( 2.0*p[6] );
-    }
-    else if ( drifttime>=time[2] && drifttime<time[3] )
-    {
-    distance_mm = ( drifttime - p[7] ) /p[8];
-    }
-    else if ( drifttime>=time[3] )
-    {
-    distance_mm = ( drifttime - p[9] ) /p[10];
-    }*/
-  //if(drifttime>=4 && drifttime < 4.1)
-  //std::cout << "drifttime: " << drifttime << " " << "x: " << x << std::endl;
-
   distance_cm = 0.1*distance_mm;
+
   return distance_cm;
 }
 
@@ -500,21 +468,31 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
       Int_t hitCount = 1;
       Int_t plane    = 0;
       Int_t wire     = 0;
-      EQwDetectorPackage package = kPackageUp;
+
+      // somehow, R3 package is assigned with the very strange way
+      // it was kPackageUp instead of kPackageNull
+      //
+      EQwDetectorPackage package = kPackageNull;
       EQwDirectionID direction   = kDirectionNull;
 
+      fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, false);
 
-      F1TDCReferenceSignal *f1_ref_signal;
-      
-      f1_ref_signal = fF1RefContainer->GetReferenceSignal(bank_index, slot_num, chan);
-      if( f1_ref_signal ) {
-	f1_ref_signal -> SetRefTimeAU (data);
-	if (local_debug)  std::cout << *f1_ref_signal << std::endl;
-      }
+      plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+      wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
+
+      // And this below line was missing.
+      package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
+      // But I did the correct way to assign the correct package in fTDCPtrs
+      //  *** Break *** segmentation violation
+      // due to FillHistograms()
+      // I guess, plane_index is calculated from kPackageUp instead of kPackageUp and kPackageDown
+      // In here I use kPackageNull as an initial value,
+      // and save the correct package number in fTDCPtrs in order to use
+      // the correct reference time according to package number,
+      // and use kpackageUp instead of access fPackage in fTDCPtrs in FillHistograms.
+      // Monday, February 13 14:27:50 EST 2012, jhlee
 
 
-      plane = fTDCPtrs.at ( tdcindex ).at ( chan ).fPlane;
-      wire  = fTDCPtrs.at ( tdcindex ).at ( chan ).fElement;
 
       if ( plane == -1 or wire == -1 )
 	{
@@ -1235,7 +1213,7 @@ void  QwDriftChamberVDC::FillHistograms()
 
   Int_t plane = 0;
   Int_t element = 0;
-  EQwDetectorPackage package = kPackageNull;
+  EQwDetectorPackage package = kPackageUp; // this is weird..... 
 
   Int_t plane_index = 0;
 
@@ -1245,21 +1223,23 @@ void  QwDriftChamberVDC::FillHistograms()
       this_detid = hit->GetDetectorID();
       plane      = this_detid.fPlane;
       element    = this_detid.fElement;
-      package    = this_detid.fPackage;
+      //      package    = //kthis_detid.fPackage;
 
+      // I guess, plane_index is calculated from kPackageUp instead of kPackageUp and kPackageDown
+      // See the FillRawTDCWordtop
       plane_index = 4* ( ( Int_t ) package -1 ) + plane;
 
       if ( plane<=0 or element<=0 )
-	{
-	  if ( local_debug )
-	    {
-	      QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
-			<< "  fPlane = "  << plane
-			<< "  fElement= " << element
-			<< QwLog::endl;
-	    }
-	  continue;
-	}
+  	{
+  	  if ( local_debug )
+  	    {
+  	      QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
+  			<< "  fPlane = "  << plane
+  			<< "  fElement= " << element
+  			<< QwLog::endl;
+  	    }
+  	  continue;
+  	}
 
       raw_time = hit->GetRawTime();
       time     = hit->GetTimeNs();
@@ -1270,13 +1250,13 @@ void  QwDriftChamberVDC::FillHistograms()
 
 
       if ( local_debug )
-	{
-	  QwMessage << " QwDriftChamberVDC::FillHistograms() plane " << plane
-		    << " element " << element
-		    << " package " << package
-		    << " plane_index " << plane_index
-		    << QwLog::endl;
-	}
+  	{
+  	  QwMessage << " QwDriftChamberVDC::FillHistograms() plane " << plane
+  		    << " element " << element
+  		    << " package " << package
+  		    << " plane_index " << plane_index
+  		    << QwLog::endl;
+  	}
     }
   for ( std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++ )
     {
@@ -1287,33 +1267,33 @@ void  QwDriftChamberVDC::FillHistograms()
       package    = this_detid.fPackage;
 
       if ( plane<=0 or element<=0 )
-	{
-	  if ( local_debug )
-	    {
-	      QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
-			<< "  fPlane = "  << plane
-			<< "  fElement= " << element
-			<< QwLog::endl;
-	    }
-	  continue;
-	}
+  	{
+  	  if ( local_debug )
+  	    {
+  	      QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
+  			<< "  fPlane = "  << plane
+  			<< "  fElement= " << element
+  			<< QwLog::endl;
+  	    }
+  	  continue;
+  	}
 
       plane_index = 4* ( ( Int_t ) package -1 ) + plane;
       this_det   = & ( fWireData.at ( plane_index ).at ( element-1 ) );
 
 
       if ( hit1->IsFirstDetectorHit() )
-	{
-	  //  If this is the first hit for this detector, then let's plot the
-	  //  total number of hits this wire had.
-	  //		 std::cout << "this_det->GetNumHits: " << this_det->GetNumHits() << std::endl;
-	  HitsWire[plane_index]->Fill ( element,this_det->GetNumHits() );
+  	{
+  	  //  If this is the first hit for this detector, then let's plot the
+  	  //  total number of hits this wire had.
+  	  //		 std::cout << "this_det->GetNumHits: " << this_det->GetNumHits() << std::endl;
+  	  HitsWire[plane_index]->Fill ( element,this_det->GetNumHits() );
 
-	  // //     //  Also increment the total number of events in whichthis wire was hit.
-	  TotHits[plane_index]->Fill ( element,1 );
-	  //  Increment the number of wires hit in this plane
-	  wireshitperplane.at ( plane_index ) += 1;
-	}
+  	  // //     //  Also increment the total number of events in whichthis wire was hit.
+  	  TotHits[plane_index]->Fill ( element,1 );
+  	  //  Increment the number of wires hit in this plane
+  	  wireshitperplane.at ( plane_index ) += 1;
+  	}
       //  Fill ToF histograms
 
       time     = hit1->GetTimeNs();
@@ -1571,19 +1551,6 @@ void QwDriftChamberVDC::UpdateHits()
   return;
 }
 
-
-
-// void QwDriftChamberVDC::ApplyTimeCalibration()
-// {
-
-//   for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); ++iter)
-//     {
-//       iter->SetTime(fF1TDCResolutionNS*iter->GetTime());
-//       iter->SetTimeRes(fF1TDCResolutionNS);
-//     }
-
-//   return;
-// }
 
 
 

@@ -1440,9 +1440,9 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	    QwGeometry hdc(fGeometry.in(package).in(region).in(dir));
 	    QwDetectorInfo* front = hdc.front();
 	    QwDetectorInfo* back = hdc.back();
-	    double r1 = front->GetYPosition();
+	    //	    double r1 = front->GetYPosition();
 	    double z1 = front->GetZPosition();
-	    double r2 = back->GetYPosition();
+	    //	    double r2 = back->GetYPosition();
 	    double z2 = back->GetZPosition();
 	    //double rcos = back->GetElementAngleCos();
 	    assert(front->GetOctantNumber()==back->GetOctantNumber());
@@ -2935,8 +2935,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
       {
         // Get the front and back HDC plane to determine offset
         QwGeometry hdc(fGeometry.in(package).in(region).in(kDirectionX));
-        QwDetectorInfo* front = hdc.front();
-        QwDetectorInfo* back = hdc.back();
+	//        QwDetectorInfo* front = hdc.front();
+	//        QwDetectorInfo* back = hdc.back();
 	//        double zx1 = front->GetZPosition();
         //double zx2 = back->GetZPosition();
 

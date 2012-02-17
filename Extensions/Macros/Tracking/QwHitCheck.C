@@ -301,6 +301,47 @@ VDC_F1_TimePlot()
 
 
 
+
+void 
+VDC_F1_VaderTimePlot()
+{
+  c1.Clear();
+
+  c1.Divide(4,2);
+  c1.cd(1);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2)"); // Vader
+  gPad->Update();
+  c1.cd(2);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2) && fQwHits.fHitNumber==0"); // Vader
+  gPad->Update();
+  c1.cd(3);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2) && fQwHits.fHitNumber==1"); // Vader
+  gPad->Update();
+  c1.cd(4);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2) && fQwHits.fHitNumber==2"); // Vader
+  gPad->Update();
+  c1.cd(5);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2) && fQwHits.fHitNumber==3"); // Vader
+  gPad->Update();
+
+  c1.cd(6);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2) && fQwHits.fHitNumber==4"); // Vader
+  gPad->Update();
+  c1.cd(7);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2) && fQwHits.fHitNumber==5"); // Vader
+  gPad->Update();
+  c1.cd(8);
+  event_tree->Draw("fQwHits.fTimeNs","fQwHits.fRegion==3&&fQwHits.fPackage==1&&(fQwHits.fPlane==1||fQwHits.fPlane==2) && fQwHits.fHitNumber==6"); // Vader
+  gPad->Update();
+ 
+  
+
+  return;
+}
+
+
+
+
 // TCanvas c1;
 
 // c1.Divide(3,1);

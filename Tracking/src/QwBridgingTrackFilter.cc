@@ -75,7 +75,7 @@ QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
     double x = start_position.X() + r * start_direction.X();
     double y = start_position.Y() + r * start_direction.Y();
 
-    double position_r = sqrt(x*x + y*y);
+    //    double position_r = sqrt(x*x + y*y);
     double position_phi = 0.0;
     position_phi = start_position.Phi();
     double direction_theta = 0.0;

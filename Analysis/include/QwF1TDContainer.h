@@ -400,6 +400,11 @@ class F1TDCReferenceSignal :  public TObject
 
   const Double_t GetRefTimeAU()    const {return fRefTimeArbUnit;};
 
+
+
+  const UInt_t   GetNoRefTimeAU()  const {return fNoRefTimeArbUnit;};
+
+
   void SetSlotNumber  (const Int_t slot)       {fSlot = slot;};
   void SetChanNumber  (const Int_t chan)       {fChannelNumber = chan;};    
   void SetBankIndex   (const Int_t bank_index) {fBankIndex = bank_index;};
@@ -408,7 +413,10 @@ class F1TDCReferenceSignal :  public TObject
   Bool_t SetRefTimeAU   (const Double_t ref_time);// { if  fFirstHitFlag  = false;fRefTimeArbUnit = ref_time;};
   
   Bool_t HasFirstHit() {return fFirstHitFlag; };
+  Bool_t HasRefTime(); 
   const UInt_t GetCounter() const {return fCounter;};
+
+
 
   void PrintCounterSummary();
 
@@ -444,7 +452,10 @@ class F1TDCReferenceSignal :  public TObject
 
   TString            fSystemName;
 
-  void Clear() { fRefTimeArbUnit = -1.0; fFirstHitFlag = false;};
+  static const UInt_t fNoRefTimeArbUnit; 
+  Bool_t    fRefTimeFlag;
+
+  void Clear() { fRefTimeArbUnit = (Double_t) fNoRefTimeArbUnit; fFirstHitFlag = false;};
 
   ClassDef(F1TDCReferenceSignal,1);
 
@@ -476,10 +487,13 @@ class F1TDCReferenceContainer :  public TObject
 
   void PrintCounters();
 
-  F1TDCReferenceSignal* GetReferenceSignal(Int_t bank_index, Int_t slot, Int_t chan);
+  //  F1TDCReferenceSignal* GetReferenceSignal(Int_t bank_index, Int_t slot, Int_t chan);
+  void SetReferenceSignal(Int_t bank_index, Int_t slot, Int_t chan, UInt_t data, Bool_t debug=false);
+  
 
+  Double_t GetReferenceTimeAU  (Int_t bank_index, TString name);
+  // Double_t GetNoReferneceTimeAU(Int_t bank_index, TString name);
 
-  Double_t GetReferenceTimeAU(Int_t bank_index, TString name);
   void     ClearEventData();
   // we need Double_t to return a negative refererence time so that
   // we can distinguish them with "zero" reference time. 
