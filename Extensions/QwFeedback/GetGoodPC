@@ -14,9 +14,16 @@
 # /local/scratch/qweak/Last_good_PC_pos_IN
 # /local/scratch/qweak/Last_good_PC_neg_IN
 # set updated by the feedback program with last oggd PC values.- Changed by Rakitha 04/15/2011 - rakithab@jlab.org
-RHWP_IN=391
-RHWP_OUT=6342
-RHWP_OUT_IN=7519
+#RHWP_IN=391
+#RHWP_OUT=6342
+#RHWP_OUT_IN=7519
+
+#New RHWP for run 2 - 02-16-2012 rakitha (rakithab) from E-log 250
+#conversion from deg to dac is 360 deg -> 8000 dac
+
+RHWP_IN=329
+RHWP_OUT=3496
+RHWP_OUT_IN=7511
 
 IHWP2="`caget -tf0 -w 0.1  IGL1I00DIOFLRD`"
 if [ $IHWP2 -ge 10000 ]; then

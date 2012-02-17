@@ -1094,8 +1094,8 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
     }
   }
 
-  if(fAsymmetry.RequestExternalValue("3c12efc", &fTargetParameter)){
-    if (fTargetParameter.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0){
+  if(fYield.RequestExternalValue("3c12efc", &fTargetParameter)){
+    if (fTargetParameter.GetEventcutErrorFlag()==0 && fYield.GetEventcutErrorFlag()==0){
       f3C12YQRunningSum.AccumulateRunningSum(fTargetParameter);
       b3C12YQ=kTRUE;
     }
@@ -1245,9 +1245,9 @@ void QwHelicityCorrelatedFeedback::GetTargetPositionStat(){
   f3C12YDiffWidth=f3C12YDiffRunningSum.GetValueWidth()*1.0e+3;
 
   //Update 3c12YQ stats
-  f3C12YQ=f3C12YDiffRunningSum.GetValue();
-  f3C12YQError=f3C12YDiffRunningSum.GetValueError();
-  f3C12YQWidth=f3C12YDiffRunningSum.GetValueWidth();
+  f3C12YQ=f3C12YQRunningSum.GetValue();
+  f3C12YQError=f3C12YQRunningSum.GetValueError();
+  f3C12YQWidth=f3C12YQRunningSum.GetValueWidth();
 
 
 
