@@ -566,7 +566,6 @@ void RSDataWindow::WriteMiscData()
   ERFileTypes ftype;
   const char *filetypes[] = { "Data files",     "*.dat",
 			      "Data files",     "*.txt",
-			      "MathCad files",  "*.mth",
 			      0,               0 };  
   static TString dir(".");
   TString ext;
@@ -631,10 +630,62 @@ void RSDataWindow::WriteMiscData()
       cont->WriteData(gr->GetX(),gr->GetY(),gr->GetN(), gr->GetName());
       cont->Close();
     }
-    else if(obj && obj->InheritsFrom("TH1")){
-
-      
-    }
+   else if(obj && obj->InheritsFrom("TMultiGraph")){
+     ext.Contains(".mth") ? ftype = FT_MATHCAD : ftype = FT_ROWCOLUMN;
+     if(ftype == FT_MATHCAD) printf("Write MathCad\n");
+     TMultiGraph *mgr = (TMultiGraph*)obj;
+     TGraphErrors *grer = NULL;
+     TGraph *gr = NULL;
+     
+     //       char row[200];
+     TString row;
+     RDataContainer * cont = new RDataContainer(fClient->GetRoot(), this,"cont",
+						"RSDataWindow","TEXT",FM_UPDATE,
+						FT_TEXT);
+     if(!cont) return;
+     if(cont->OpenFile(fi.fFilename) != FILE_PROCESS_OK) {cont->Close(); return;}
+     
+     int c = 0;
+     TList *graphs = mgr->GetListOfGraphs();
+     if(graphs){
+       
+       for(int i = 0; i < graphs->GetSize(); i++){
+	 
+	 obj = graphs->At(i);
+	 if(obj->InheritsFrom("TGraphErrors")) {
+	   grer = (TGraphErrors*)obj;
+	   
+	   for(int j = 1; j <= grer->GetXaxis()->GetNbins(); j++){  
+	     
+	     row = Form("%s,%d,%+10.10s,%1.4e,%1.4e,%1.4e,%1.4e\n",
+			grer->GetName(),c,grer->GetXaxis()->GetBinLabel(j),
+			grer->GetX()[j],grer->GetY()[j],grer->GetEX()[j],grer->GetEY()[j]);
+	     c++;
+	     cont->WriteData(row.Data(),row.Length());   
+	     row.Resize(0);
+	   }
+	 }
+	 else if(obj->InheritsFrom("TGraph")) {
+	   gr = (TGraph*)obj;
+	   
+	   for(int j = 1; j <= gr->GetXaxis()->GetNbins(); j++){  
+	     
+	     row = Form("%s,%d,%+10.10s,%1.4e,%1.4e,%1.4e,%1.4e\n",
+			gr->GetName(),c,gr->GetXaxis()->GetBinLabel(j),
+			gr->GetX()[j],gr->GetY()[j]);
+	     c++;
+	     cont->WriteData(row.Data(),row.Length());   
+	     row.Resize(0);
+	   }
+	 }
+       }	 
+     }
+     cont->Close();
+   }
+   else if(obj && obj->InheritsFrom("TH1")){
+     
+     
+   }
   }
 }
 
@@ -1649,6 +1700,8 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add, TLegend *leg)
   return PLOT_PROCESS_OK;
 }
 
+
+
 Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
@@ -1662,11 +1715,13 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
   aC->Flush();
   aC->Update();
 
-  gPad->SetGrid();
+  gPad->SetGrid();	
  
   if(!add){
     ClearPlots();
     TMultiGraph *gr = NULL;
+    
+
     TList *graphs = g1d.GetListOfGraphs();
     if(graphs){
       for(int i = 0; i < graphs->GetSize(); i++){
@@ -1689,13 +1744,18 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
       
     TString opts = dDrawOptions;
     if(!opts.Contains("ap")){strcat(dDrawOptions,"ap");}
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
-    gr->GetXaxis()->SetTitleColor(1);
+//     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+//     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+//     gr->GetXaxis()->SetTitleColor(1);
 
     gr->Draw(dDrawOptions);
     SetDrawOptions();
-    gPad->RedrawAxis();      
+    
+    (g1d.GetXaxis())->Copy(*(gr->GetXaxis()));
+    (g1d.GetYaxis())->Copy(*(gr->GetYaxis()));    
+
+    //     gPad->RedrawAxis();      
+
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
@@ -1703,6 +1763,34 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
   }
   return PLOT_PROCESS_OK;
 }
+
+// Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
+// {
+//   TCanvas *aC = GetPlotCanvas();
+//   aC->Clear();
+//   aC->Flush();
+//   aC->Update();
+
+//   gPad->SetGrid();	
+//   ClearPlots();
+
+//   TObject *tmp = new TObject(*(TMultiGraph*)g1d.Clone());
+
+//   TMultiGraph *gr = (TMultiGraph*)tmp;
+// //   TMultiGraph *gr = (TMultiGraph*)&g1d;
+
+//   TString opts = dDrawOptions;
+//   if(!opts.Contains("ap")){strcat(dDrawOptions,"ap");}
+
+//   gr->Draw(dDrawOptions);
+//   SetDrawOptions();
+//   gPad->Modified();
+//   gPad->Update();
+//   fCurrPlot = gr;
+//   DrawLegend(leg);
+//   return PLOT_PROCESS_OK;
+  
+// }
 
 
 Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add, TLegend *leg)

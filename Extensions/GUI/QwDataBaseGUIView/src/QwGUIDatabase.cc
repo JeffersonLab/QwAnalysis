@@ -1138,6 +1138,7 @@ void QwGUIDatabase::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 	}
 	else
 	  add = kTrue;
+
 	
 	dDataWindow->SetPlotTitle((char*)((TMultiGraph*)plot)->GetTitle());
 	//       if(!dCurrentModeData[GetActiveTab()]->IsSummary()){
@@ -1148,7 +1149,7 @@ void QwGUIDatabase::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 	// 				detStr->GetTreeLeafMin(leafInd));
 	// 	dDataWindow->SetAxisMax(((TMultiGraph*)plot)->GetXaxis()->GetXmax(),
 	// 				detStr->GetTreeLeafMax(leafInd));
-	// 	dDataWindow->SetLimitsFlag(kTrue);
+	dDataWindow->SetLimitsFlag(kFalse);
 	// 	dDataWindow->DrawData(*((TMultiGraph*)plot),add);
 	//       }
 	//       else{	
@@ -1463,6 +1464,8 @@ void QwGUIDatabase::PlotDetector()
     Double_t val;
     
     //vectors to fill IHWP IN & Wien right values
+    vector <string> run_in_label;
+    vector <string> run_out_label;
     TVectorD x_in(row_size), xerr_in(row_size);
     TVectorD x_out(row_size), xerr_out(row_size);
     TVectorD run_in(row_size), run_out(row_size);
@@ -1473,16 +1476,20 @@ void QwGUIDatabase::PlotDetector()
     TVectorD x_out_L(row_size), xerr_out_L(row_size);
     TVectorD run_in_L(row_size), run_out_L(row_size);
     TVectorD err_in_L(row_size), err_out_L(row_size);
+    vector <string> run_in_L_label; 
+    vector <string> run_out_L_label;
 
     //vectors to fill bad values
     TVectorD x_bad(row_size), xerr_bad(row_size);
     TVectorD run_bad(row_size);
     TVectorD err_bad(row_size);
-    
+    vector <string> run_bad_label;
+   
     //vectors to fill suspect values
     TVectorD x_suspect(row_size), xerr_suspect(row_size);
     TVectorD run_suspect(row_size);
     TVectorD err_suspect(row_size);
+    vector <string> run_suspect_label;
 
     TVectorD x_rms_all(row_size), x_rmserr_all(row_size), run_rms(row_size);
 
@@ -1492,6 +1499,7 @@ void QwGUIDatabase::PlotDetector()
     xerr_in.Clear();
     xerr_in.ResizeTo(row_size);
     run_in.Clear();
+    run_in_label.clear();
     run_in.ResizeTo(row_size);
     err_in.Clear();
     err_in.ResizeTo(row_size);
@@ -1501,6 +1509,7 @@ void QwGUIDatabase::PlotDetector()
     xerr_out.Clear();
     xerr_out.ResizeTo(row_size);
     run_out.Clear();
+    run_out_label.clear();
     run_out.ResizeTo(row_size);
     err_out.Clear();
     err_out.ResizeTo(row_size);
@@ -1510,6 +1519,7 @@ void QwGUIDatabase::PlotDetector()
     xerr_in_L.Clear();
     xerr_in_L.ResizeTo(row_size);
     run_in_L.Clear();
+    run_in_L_label.clear();
     run_in_L.ResizeTo(row_size);
     err_in_L.Clear();
     err_in_L.ResizeTo(row_size);
@@ -1519,6 +1529,7 @@ void QwGUIDatabase::PlotDetector()
     xerr_out_L.Clear();
     xerr_out_L.ResizeTo(row_size);
     run_out_L.Clear();
+    run_out_L_label.clear();
     run_out_L.ResizeTo(row_size);
     err_out_L.Clear();
     err_out_L.ResizeTo(row_size);
@@ -1528,6 +1539,7 @@ void QwGUIDatabase::PlotDetector()
     xerr_bad.Clear();
     xerr_bad.ResizeTo(row_size);
     run_bad.Clear();
+    run_bad_label.clear();
     run_bad.ResizeTo(row_size);
     err_bad.Clear();
     err_bad.ResizeTo(row_size);
@@ -1537,6 +1549,7 @@ void QwGUIDatabase::PlotDetector()
     xerr_suspect.Clear();
     xerr_suspect.ResizeTo(row_size);
     run_suspect.Clear();
+    run_suspect_label.clear();
     run_suspect.ResizeTo(row_size);
     err_suspect.Clear();
     err_suspect.ResizeTo(row_size);
@@ -1632,9 +1645,7 @@ void QwGUIDatabase::PlotDetector()
 	  x    = read_data[i]["value"];
 	  xerr = read_data[i]["error"];
 	  x_rms = (read_data[i]["rms"]);
-	}
-     
-	  
+	}	  
         
         //Fist fill the rms stuff without quality checks
 	if(x_axis == ID_X_TIME){
@@ -1660,12 +1671,18 @@ void QwGUIDatabase::PlotDetector()
 
 	      if(x_axis == ID_X_TIME){
 		run_out.operator()(k)  = (runtime_start->Convert()) + adjust_for_DST;
+		run_out_label.push_back(Form("%f",(runtime_start->Convert()) + adjust_for_DST));
 	      }
-	      else if(x_axis == ID_X_RUN)
+	      else if(x_axis == ID_X_RUN){
 		run_out.operator()(k)  = i;
-	      else
-		run_out.operator()(k)  = read_data[i]["x_value"];
-	      
+		run_out_label.push_back((char*)(xval[i].c_str()));
+
+	      }
+	      else{
+		val = read_data[i]["x_value"];
+		run_out.operator()(k) =  read_data[i]["x_value"];
+		run_out_label.push_back(Form("%f",val));
+	      }
 	      x_out.operator()(k)    = x;
 	      xerr_out.operator()(k) = xerr;
 	      err_out.operator()(k)  = 0.0;
@@ -1674,12 +1691,17 @@ void QwGUIDatabase::PlotDetector()
 	    } else {
 	      if(x_axis == ID_X_TIME){
 		run_out_L.operator()(l)  = (runtime_start->Convert())+ adjust_for_DST;
+		run_out_L_label.push_back(Form("%f",(runtime_start->Convert()) + adjust_for_DST));
 	      }
-	      else if (x_axis == ID_X_RUN)
+	      else if (x_axis == ID_X_RUN){
 		run_out_L.operator()(l)  = i;
-	      else
-	      	run_out_L.operator()(l)  = read_data[i]["x_value"];
-
+		run_out_L_label.push_back((char*)(xval[i].c_str()));
+	      }
+	      else{
+		val = read_data[i]["x_value"];
+		run_out_L.operator()(l)  = read_data[i]["x_value"];
+		run_out_L_label.push_back(Form("%f",val));
+	      }
 	      x_out_L.operator()(l)    = x;
 	      xerr_out_L.operator()(l) = xerr;
 	      err_out_L.operator()(l)  = 0.0;
@@ -1693,12 +1715,17 @@ void QwGUIDatabase::PlotDetector()
 	    if (read_data[i]["wien_reversal"]*1 == 1){
 	      if(x_axis == ID_X_TIME){
 		run_in.operator()(m)  = runtime_start->Convert()+ adjust_for_DST;
+		run_in_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));		
 	      }
-	      else if(x_axis == ID_X_RUN)
+	      else if(x_axis == ID_X_RUN){
 		run_in.operator()(m)  = i;
-	      else
+		run_in_label.push_back((char*)(xval[i].c_str()));
+	      }
+	      else{
+		val = read_data[i]["x_value"];
 		run_in.operator()(m)  = read_data[i]["x_value"];
-
+		run_in_label.push_back(Form("%f",val));
+	      }
 	      x_in.operator()(m)    = x;
 	      xerr_in.operator()(m) = xerr;
 	      err_in.operator()(m)  = 0.0;
@@ -1706,12 +1733,17 @@ void QwGUIDatabase::PlotDetector()
 	    } else {
 	      if(x_axis == ID_X_TIME){
 		run_in_L.operator()(n)  = runtime_start->Convert()+ adjust_for_DST;
+		run_in_L_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	      }
-	      else if(x_axis == ID_X_RUN)
+	      else if(x_axis == ID_X_RUN){
 		run_in_L.operator()(n)  = i;
-	      else
+		run_in_L_label.push_back((char*)(xval[i].c_str()));
+	      }
+	      else{
+		val = read_data[i]["x_value"];
 		run_in_L.operator()(n)  = read_data[i]["x_value"];
-
+		run_in_L_label.push_back(Form("%f",val));
+	      }
 	      x_in_L.operator()(n)    = x;
 	      xerr_in_L.operator()(n) = xerr;
 	      err_in_L.operator()(n)  = 0.0;
@@ -1727,11 +1759,17 @@ void QwGUIDatabase::PlotDetector()
 
 	  if(x_axis == ID_X_TIME){
 	    run_bad.operator()(o)  = runtime_start->Convert()+ adjust_for_DST;
+	    run_bad_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	  }
-	  else if(x_axis == ID_X_RUN)
+	  else if(x_axis == ID_X_RUN){
 	    run_bad.operator()(o)  = i;
-	  else
+	    run_bad_label.push_back((char*)(xval[i].c_str()));
+	  }
+	  else{
+	    val = read_data[i]["x_value"];
 	    run_bad.operator()(o)  = read_data[i]["x_value"];
+	    run_bad_label.push_back(Form("%f",val));
+	  }
 	  x_bad.operator()(o)    = x;
 	  xerr_bad.operator()(o) = xerr;
 	  err_bad.operator()(o)  = 0.0;
@@ -1742,11 +1780,17 @@ void QwGUIDatabase::PlotDetector()
 	   (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
 	  if(x_axis == ID_X_TIME){
 	    run_suspect.operator()(p)  = runtime_start->Convert()+ adjust_for_DST;
+	    run_suspect_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	  }
-	  else  if(x_axis == ID_X_RUN)
+	  else  if(x_axis == ID_X_RUN){
 	    run_suspect.operator()(p)  = i;
-	  else
+	    run_suspect_label.push_back((char*)(xval[i].c_str()));
+	  }
+	  else{
+	    val = read_data[i]["x_value"];
 	    run_suspect.operator()(p)  = read_data[i]["x_value"];
+	    run_suspect_label.push_back(Form("%f",val));
+	  }
 	  x_suspect.operator()(p)    = x;
 	  xerr_suspect.operator()(p) = xerr;
 	  err_suspect.operator()(p)  = 0.0;
@@ -1972,6 +2016,21 @@ void QwGUIDatabase::PlotDetector()
    
     std::cout<<"QwGUI : Done!"<<std::endl;
     
+    for(uint w = 0; w < run_in_label.size(); w++){
+      grp_in->GetXaxis()->SetBinLabel(w+1,(char*)(run_in_label[w].c_str()));
+    }
+    for(uint w = 0; w < run_in_L_label.size(); w++)
+      grp_in_L->GetXaxis()->SetBinLabel(w+1,(char*)(run_in_L_label[w].c_str()));
+    for(uint w = 0; w < run_out_label.size(); w++)
+      grp_out->GetXaxis()->SetBinLabel(w+1,(char*)(run_out_label[w].c_str()));
+    for(uint  w = 0; w < run_out_L_label.size(); w++){
+      grp_out_L->GetXaxis()->SetBinLabel(w+1,(char*)(run_out_L_label[w].c_str()));
+    }
+    for(uint w = 0; w < run_bad_label.size(); w++)
+      grp_bad->GetXaxis()->SetBinLabel(w+1,(char*)(run_bad_label[w].c_str()));
+    for(uint w = 0; w < run_suspect_label.size(); w++)
+      grp_suspect->GetXaxis()->SetBinLabel(w+1,(char*)(run_suspect_label[w].c_str()));
+
     
   }
   else{
@@ -1995,8 +2054,6 @@ void QwGUIDatabase::PlotDetector()
 
   }
   
-  
-
 
 }
 
