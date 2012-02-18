@@ -1225,21 +1225,20 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
 
   /*Slope corrections ON/OFF?*/
   if (strcmp((RegressionSchemes[dCmbRegressionType->GetSelected()]),"off") || det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
-    // To get the unregressed data when slope correction is on all the schemes will have the same unregressed
+    // To get the unregressed data when slope correction is 'on' all the schemes will have the same unregressed
     // values. So I can just pick one scheme for the slope_correction option
-
-	  correction_flag  = "off";
+    correction_flag  = "off";
 
     if(dCmbInstrument->GetSelected() == ID_BCM && dCmbDetector->GetSelected() > 7){
-        	regression_selected = "on";//need this to see double differences?
+      regression_selected = "on";//need this to see double differences?
     }
     else
-        	regression_selected = regression_set;
+      regression_selected = regression_set;
   }
   else{
     // To get the regressed data
-    correction_flag = regression_set;
-    regression_selected  = "off";
+    regression_selected = regression_set;
+    correction_flag  = "off";
   }
 
 
