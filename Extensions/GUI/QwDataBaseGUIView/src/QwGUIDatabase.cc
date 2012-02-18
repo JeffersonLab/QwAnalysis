@@ -1254,7 +1254,7 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
     + quality_check
     + good_for_check
     + special_cuts
-    + " ORDER BY data.run_number;";
+    + " ORDER BY data.run_number, data.segment_number;";
 
 
   return querystring;
