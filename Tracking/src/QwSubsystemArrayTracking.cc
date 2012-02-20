@@ -10,15 +10,15 @@
 // Qweak headers
 #include "QwDriftChamber.h"
 
-// /**
-//  * Get the subsystem with the specified name
-//  * @param name Name of the subsystem
-//  * @return Subsystem with that name
-//  */
-// VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystemByName(const TString& name)
-// {
-//   return dynamic_cast<VQwSubsystemTracking*>(QwSubsystemArray::GetSubsystemByName(name));
-// }
+/**
+ * Get the subsystem with the specified name
+ * @param name Name of the subsystem
+ * @return Subsystem with that name
+ */
+VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystemByName(const TString& name)
+{
+  return dynamic_cast<VQwSubsystemTracking*>(QwSubsystemArray::GetSubsystemByName(name));
+}
 
 
 /**

@@ -30,8 +30,8 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
     /// Default destructor
     virtual ~QwSubsystemArrayTracking() { };
 
-/*     /// \brief Get the subsystem with the specified name */
-/*     VQwSubsystemTracking* GetSubsystemByName(const TString& name); */
+    /// \brief Get the subsystem with the specified name
+    VQwSubsystemTracking* GetSubsystemByName(const TString& name);
 
     /// \brief Get the detector info for all detectors
     const QwGeometry GetGeometry();
