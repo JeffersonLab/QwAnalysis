@@ -2,6 +2,7 @@
 !  HALL C  BEAMLINE
 !**************************************************************************
 !
+! 2/12/2012 B.Waidyawansa : Rearranged 3c16 wires to fix the wire mixup done at bpm can.
 !
 ROC=1
 Bank=0x102
@@ -79,10 +80,10 @@ sample_size=976
    VQWK, 6, 1,  bpmstripline,  QWK_BPM3C14XM
    VQWK, 6, 2,  bpmstripline,  QWK_BPM3C14YP
    VQWK, 6, 3,  bpmstripline,  QWK_BPM3C14YM
-   VQWK, 6, 4,  bpmstripline,  QWK_BPM3C16XP
-   VQWK, 6, 5,  bpmstripline,  QWK_BPM3C16XM
-   VQWK, 6, 6,  bpmstripline,  QWK_BPM3C16YP
-   VQWK, 6, 7,  bpmstripline,  QWK_BPM3C16YM
+   VQWK, 6, 4,  bpmstripline,  QWK_BPM3C16YM
+   VQWK, 6, 5,  bpmstripline,  QWK_BPM3C16YP
+   VQWK, 6, 6,  bpmstripline,  QWK_BPM3C16XM
+   VQWK, 6, 7,  bpmstripline,  QWK_BPM3C16XP
 
 !ADC7, Slot 11, Address 20, 0x83
    VQWK, 7, 0,  bpmstripline,  QWK_BPM3C17XP

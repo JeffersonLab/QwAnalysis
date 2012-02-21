@@ -3,6 +3,8 @@
 !**************************************************************************
 !As of 11/10/2011 
 !
+! 2/12/2012 B.Waidyawansa : Rearranged 3c16 wires to fix the wire mixup done at bpm can.
+!
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
@@ -86,10 +88,10 @@ sample_size=464
    VQWK, 7, 1,  bpmstripline,  QWK_BPM3C14XM
    VQWK, 7, 2,  bpmstripline,  QWK_BPM3C14YP
    VQWK, 7, 3,  bpmstripline,  QWK_BPM3C14YM
-   VQWK, 7, 4,  bpmstripline,  QWK_BPM3C16XP
-   VQWK, 7, 5,  bpmstripline,  QWK_BPM3C16XM
-   VQWK, 7, 6,  bpmstripline,  QWK_BPM3C16YP
-   VQWK, 7, 7,  bpmstripline,  QWK_BPM3C16YM
+   VQWK, 7, 4,  bpmstripline,  QWK_BPM3C16YM
+   VQWK, 7, 5,  bpmstripline,  QWK_BPM3C16YP
+   VQWK, 7, 6,  bpmstripline,  QWK_BPM3C16XM
+   VQWK, 7, 7,  bpmstripline,  QWK_BPM3C16XP
 
 !ADC8, Slot 11, Serial Number 20, Address 0x83
    VQWK, 8, 0,  bpmstripline,  QWK_BPM3C17XP
