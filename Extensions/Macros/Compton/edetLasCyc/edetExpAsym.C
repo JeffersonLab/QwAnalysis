@@ -291,11 +291,12 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
     if (beamOn) {
       goodCycles++;
       nMpsB1H1L0 = nMpsB1H1L0L + nMpsB1H1L0R; ///total laserOff time for this laserCycle
-      laserOnOffRatioH1 = nMpsB1H1L1/nMpsB1H1L0;
+      laserOnOffRatioH1 = (Float_t)nMpsB1H1L1/nMpsB1H1L0;
 
       nMpsB1H0L0 = nMpsB1H0L0L + nMpsB1H0L0R; ///total laserOff time for this laserCycle
-      laserOnOffRatioH0 = nMpsB1H0L1/nMpsB1H0L0;
+      laserOnOffRatioH0 = (Float_t)nMpsB1H0L1/nMpsB1H0L0;
 
+      if(debug) cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<" laserOnOffRatioH1: "<<laserOnOffRatioH1<<endl;
       if (debug1) cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
       if (nMpsB1H0L1<= 0 || nMpsB1H1L1<= 0 || nMpsB1H0L0L<= 0 || nMpsB1H1L0L<= 0|| nMpsB1H0L0R<= 0 || nMpsB1H1L0R<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nMpsB1H0L1:%d,nMpsB1H1L1:%d, nMpsB1H0L0L:%d, nMpsB1H1L0L:%d, nMpsB1H0L0R:%d, nMpsB1H1L0R:%d**\n",
@@ -409,9 +410,10 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 
 /******************************************************
 !Further modifications:
-* evolve a mechanism for making the laser-off events equivalent to laser-on in time
+* if I figure out a way to normalize by laserPower then I can relax 
+*..the condition of laserPower being 90% of maximum for the laser entries to be accepted.
 * plot qNormAcB1H1L0LasCyc and qNormAcB1H0L0LasCyc against
-* ..strip numbers to watch the helicity correlated beam-background
+*..strip numbers to watch the helicity correlated beam-background
 * evaluate asymmetry per pattern_number and see its behaviour
 * ensure efficient evaluation of beamtrips
 * check consistency of cut on laserPow and beamtrip
