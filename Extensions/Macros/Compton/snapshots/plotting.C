@@ -41,7 +41,7 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
     //Int_t colors[numtypes] = {kGreen, kBlue, kRed, kViolet};
 
   Double_t entries[numtypes];
-  Double_t maxi=0, mini=1e12;
+  Double_t maxi=0, mini=1;//e12;
   Int_t xbinmin=1000, xbinmax=0;
   for (Int_t i=1; i<=numtypes; i++) {
     hist[i-1] = bighist->ProjectionX(Form("%s_type%i",bighist->GetName(),i),i,i);
@@ -54,7 +54,7 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
       xbinmax = std::max(xbinmaxtemp,xbinmax);
       maxi = std::max(maxi, hist[i-1]->GetMaximum());
       //      mini = std::min(mini, hist[i-1]->GetMinimum());
-      mini = std::min(mini, hist[i-1]->GetBinContent(hist[i-1]->GetMinimumBin()));
+      //mini = std::min(mini, hist[i-1]->GetBinContent(hist[i-1]->GetMinimumBin()));
       hist[i-1]->SetLineColor(colors[i-1]);
       if (title=="") {
         hist[i-1]->SetTitle(bighist->GetTitle());
@@ -76,13 +76,15 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
         if (mini!=0 && mini < 1e12) hist[i-1]->SetMinimum(mini);
          if (logy) {
           gPad->SetLogy(logy);
-          hist[i-1]->SetMaximum(15*maxi);
+          hist[i-1]->SetMaximum(10*maxi);
+		  hist[i-1]->SetMinimum(1);
         } else {
           hist[i-1]->SetMaximum(1.2*maxi);          
         }
          hist[i-1]->DrawCopy();
         if (printstats) {
-          leg = new TLegend(0.4,0.75,0.99,0.99);
+		  gPad->SetTopMargin(0.2);
+          leg = new TLegend(0.2,0.7,0.99,0.99);
         } else {
           leg = new TLegend(0.7,0.75,0.99,0.99);
         }
@@ -115,11 +117,10 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
     }
     fclose(outfile);
   }
-
 }
 
 
-void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "", Bool_t /*logy*/ = 0, Int_t startbin = 0, Int_t endbin = 0) 
+void drawslicesTH1(TH2F* bighist, Bool_t printstats = 1, TString title = "", Bool_t /*logy*/ = 0, Int_t startbin = 0, Int_t endbin = 0) 
 {
   std::cout << "drawslicesTH1:  (" << bighist->GetName() << ")  " << bighist->GetTitle() << std::endl;
   if (bighist->GetEntries() <= 0) {
@@ -432,7 +433,7 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title
 }
 
 
-void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t /*printstats*/ = 0, TString title = "", Bool_t logz = 0, Int_t rebinx = 1, Int_t rebiny = 1) 
+void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t printstats = 0, TString title = "", Bool_t logz = 0, Int_t rebinx = 1, Int_t rebiny = 1) 
 {
   gPad->SetLogz(logz);
   std::cout << "draw1typeTH2:  (" << bighist->GetName() << ")  " << bighist->GetTitle() << "   for " << type << std::endl;
@@ -441,7 +442,9 @@ void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t /*printstats*/ = 0, TString 
   Double_t entries;
   char name[255];
   sprintf(name,"%s",bighist->GetName());
-  bighist->GetZaxis()->SetRange(type,type);
+  if (type>0 && type<=numtypes) { // if a valid typw was chosen
+	  bighist->GetZaxis()->SetRange(type,type);
+  }
   hist2D = (TH2D*)bighist->Project3D(Form("yx_%i",type));
   entries = hist2D->GetEntries();
   if (entries>0) {
@@ -469,8 +472,9 @@ void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t /*printstats*/ = 0, TString 
   } 
 }
 
-TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t intmin=0, Float_t intmax=0, Bool_t logy=0, Bool_t dotitles=1) {
-  //gPad->SetLogy(logy);
+TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t intmin=0, Float_t intmax=0, 
+							Bool_t logy=0, Bool_t dotitles=1, Bool_t plotbelownormonly=0, Float_t plotmaxbinval = 0) {
+  gPad->SetLogy(logy);
   TLegend *leg = 0;
   Bool_t scaleandsub;
   Double_t int1, int2;
@@ -490,6 +494,7 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
   hist1->SetMarkerColor(colors[type1-1]);
   hist2->SetLineColor(colors[type2-1]);
   hist2->SetMarkerColor(colors[type2-1]);
+  // intmin and intmax = 0 implies integrate the whole spectrum
   if (intmin==0 && intmax==0) {
     intminbin = 1;
     intmaxbin = hist1->GetNbinsX();
@@ -518,17 +523,27 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
     hsub->SetMarkerColor(kBlack);
     hsub->SetMinimum(1);    
   }  
-   if (scaleandsub && logy==0) {
-     maxi = 1.1 * hsub->GetMaximum();
-    std::cout << "drawscalesubbytypeTH1: setting maximum to " << maxi << " from sub" << std::endl;
-
-   } else {
-    maxi = 1.1 * std::max(hist1->GetMaximum(),hist2->GetMaximum());
-    std::cout << "drawscalesubbytypeTH1: setting maximum to " << maxi << std::endl;
+  if (scaleandsub && logy==0) {
+	  if (plotmaxbinval==0) 
+		  maxi = 1.1 * hsub->GetMaximum();
+	  else {
+		  maxi = 2 * hsub->GetBinContent(hsub->FindBin(plotmaxbinval));
+	  }
+	  std::cout << "drawscalesubbytypeTH1: setting maximum to " << maxi << " from sub" << std::endl;
+  } else {
+	  if (plotmaxbinval==0) 
+		  maxi = 1.1 * std::max(hist1->GetMaximum(),hist2->GetMaximum());
+	  else {
+		  maxi = 2 * hsub->GetBinContent(hsub->FindBin(plotmaxbinval));
+	  }
+	  std::cout << "drawscalesubbytypeTH1: setting maximum to " << maxi << std::endl;
   }
   hist1->SetMaximum(maxi);
   Int_t xbinmin = hist1->FindFirstBinAbove(0, 1);
   Int_t xbinmax = hist1->FindLastBinAbove(0, 1);
+  if (plotbelownormonly) {
+	  xbinmax = intminbin;
+  }
   hist1->GetXaxis()->SetRange(xbinmin-10,xbinmax+10);
   hist1->DrawCopy("h");
   hist2->DrawCopy("h,same");
