@@ -5,6 +5,8 @@ slots=4
 timeout=300
 preferred_host=cdaql3
 
+mss_path=hallc/qweak/polarimetry/rootfiles
+
 # Usage info
 if [ $# -eq 0 ] ; then
 	echo "Usage: $0 [--macros-only] [--here] runstart [runend]"
@@ -117,6 +119,11 @@ while [ ${runnum} -le ${runnum_end} ] ; do
 
 		nice gzip -f ${analysis_log}
 		nice gzip -f ${script_log}
+
+		if [ ! -f /mss/${mss_path}/Compton_${pass}_${runnum}.000.root \
+		  -a ! -f /w/stage/output/${mss_path}/Compton_${pass}_${runnum}.000.root ] ; then
+			cp ${QW_ROOTFILES}/Compton_${pass}_${runnum}.???.root /w/stage/output/hallc/qweak/polarimetry/rootfiles/
+		fi
 
 		echo "Finished analyzing run ${runnum}."
 	fi
