@@ -28,7 +28,7 @@ Int_t fileReadDraw(Int_t run)
   myline->SetLineStyle(1);
   myline->Draw();
 
-  fortranOutP1.open(Form("%d-plane-1.output",run));
+  fortranOutP1.open(Form("%d-plane-1-nc.output",run));
   if(fortranOutP1.is_open()) {
     cout<<"found runlet based raw asymmetry file"<<endl;
     grFort = new TGraphErrors(Form("%d-plane-1.output",run), "%lg %lg %lg");
