@@ -162,8 +162,10 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
 
   enum InputRegisterBits{kInputReg_HelPlus     = 0x1,
 			 kInputReg_HelMinus    = 0x2,
-			 kInputReg_PatternSync = 0x4,
-			 kInputReg_FakeMPS     = 0x8000};
+			 kInputReg_PatternSync = 0x4};
+
+  static const UInt_t kInputReg_FakeMPS;
+  UInt_t fInputReg_FakeMPS;
 
   static const UInt_t kDefaultHelicityBitPattern;
 

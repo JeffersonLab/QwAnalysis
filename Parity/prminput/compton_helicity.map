@@ -23,6 +23,7 @@ PatternPhase=4
 RandSeedBits=30
 NumberPatternsDelayed=2
 PatternPhaseOffset=1
+FakeMPSbit=0x10000
 
 ROC=31
 Bank=0x1f01
