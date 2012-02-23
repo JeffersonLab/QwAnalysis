@@ -70,6 +70,7 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   /// Copy constructor by object
   VQwSubsystem(const VQwSubsystem& orig)
   : MQwHistograms(orig),
+    fPublishList(orig.fPublishList),
     fROC_IDs(orig.fROC_IDs),
     fBank_IDs(orig.fBank_IDs)
   {
@@ -77,11 +78,6 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
     fIsDataLoaded = orig.fIsDataLoaded;
     fCurrentROC_ID = orig.fCurrentROC_ID;
     fCurrentBank_ID = orig.fCurrentBank_ID;
-  }
-  /// Copy constructor by pointer
-  VQwSubsystem(const VQwSubsystem* orig)
-  : MQwHistograms(*orig) {
-    *this = *orig;
   }
 
   /// Default destructor

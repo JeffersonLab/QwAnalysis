@@ -44,27 +44,27 @@ diff:qwk_bcm2, -1
 # Double difference
 [asym:@DD1_5]
 asym:qwk_bcm1, 1
-asym:qwk_bcm2, -1
+asym:qwk_bcm5, -1
 
 # Double difference
 [asym:@DD1_6]
 asym:qwk_bcm1, 1
-asym:qwk_bcm2, -1
+asym:qwk_bcm6, -1
 
 # Double difference
 [asym:@DD2_5]
-asym:qwk_bcm1, 1
-asym:qwk_bcm2, -1
+asym:qwk_bcm2, 1
+asym:qwk_bcm5, -1
 
 # Double difference
 [asym:@DD2_6]
-asym:qwk_bcm1, 1
-asym:qwk_bcm2, -1
+asym:qwk_bcm2, 1
+asym:qwk_bcm6, -1
 
 # Double difference
 [asym:@DD5_6]
-asym:qwk_bcm1, 1
-asym:qwk_bcm2, -1
+asym:qwk_bcm5, 1
+asym:qwk_bcm6, -1
 
 # This is an event case:
 #  two dependent variables

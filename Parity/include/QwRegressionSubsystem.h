@@ -36,16 +36,19 @@ class QwRegressionSubsystem: public VQwSubsystemParity,
       // Constructors
       /// \brief Constructor with just name.
       /// (use gQwOptions to initialize the QwRegression baseclass)
-      QwRegressionSubsystem(TString name): VQwSubsystem(name), VQwSubsystemParity(name), QwRegression(gQwOptions) {};
+      QwRegressionSubsystem(TString name)
+      : VQwSubsystem(name), VQwSubsystemParity(name), QwRegression(gQwOptions) { }
       /// \brief Constructor with only options
-      QwRegressionSubsystem(QwOptions &options, TString name): VQwSubsystem(name), VQwSubsystemParity(name), QwRegression(options) {};
+      QwRegressionSubsystem(QwOptions &options, TString name)
+      : VQwSubsystem(name), VQwSubsystemParity(name), QwRegression(options) { }
       /// \brief Constructor with single event
-      QwRegressionSubsystem(QwOptions &options, QwSubsystemArrayParity& event, TString name):VQwSubsystem(name),   VQwSubsystemParity(name), QwRegression(options, event) {QwError << "Constructing QwRegressionSubsystem" << QwLog::endl;};     
+      QwRegressionSubsystem(QwOptions &options, QwSubsystemArrayParity& event, TString name)
+      : VQwSubsystem(name), VQwSubsystemParity(name), QwRegression(options, event)
+      { QwMessage << "Constructing QwRegressionSubsystem" << QwLog::endl; }
 
       // Copy Constructor
       QwRegressionSubsystem(const QwRegressionSubsystem &source)
-      : VQwSubsystem(source),VQwSubsystemParity(source),QwRegression(source)
-      { }
+      : VQwSubsystem(source), VQwSubsystemParity(source), QwRegression(source) { }
 	
       // Destructor 
       ~QwRegressionSubsystem();

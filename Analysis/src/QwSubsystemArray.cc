@@ -37,10 +37,7 @@ QwSubsystemArray::QwSubsystemArray(QwOptions& options, CanContainFn myCanContain
  * @param source Source subsystem array
  */
 QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
-: fPublishedValuesDataElement(source.fPublishedValuesDataElement),
-  fPublishedValuesSubsystem(source.fPublishedValuesSubsystem),
-  fPublishedValuesDescription(source.fPublishedValuesDescription),
-  fTreeArrayIndex(source.fTreeArrayIndex),
+: fTreeArrayIndex(source.fTreeArrayIndex),
   fCodaRunNumber(source.fCodaRunNumber),
   fCodaSegmentNumber(source.fCodaSegmentNumber),
   fCodaEventNumber(source.fCodaEventNumber),
@@ -52,9 +49,18 @@ QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
   fSubsystemsDisabledByName(source.fSubsystemsDisabledByName),
   fSubsystemsDisabledByType(source.fSubsystemsDisabledByType)
 {
+  fPublishedValuesDataElement.clear();
+  fPublishedValuesSubsystem.clear();
+  fPublishedValuesDescription.clear();
+
   // Make copies of all subsystems rather than copying just the pointers
   for (const_iterator subsys = source.begin(); subsys != source.end(); ++subsys) {
     this->push_back(subsys->get()->Clone());
+    // Instruct the subsystem to publish variables
+    if (this->back()->PublishInternalValues() == kFALSE) {
+      QwError << "Not all variables for " << this->back()->GetSubsystemName()
+             << " could be published!" << QwLog::endl;
+    }
   }
 }
 
