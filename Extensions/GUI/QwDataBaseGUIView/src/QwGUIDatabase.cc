@@ -18,6 +18,7 @@ enum EQwGUIDatabaseXAxisIDs {
   ID_X_SLUG,
   ID_X_BEAM,
   ID_X_TIME,
+  ID_X_TIME_RUNLET,
   ID_X_WEIN,
   ID_TGT_X,
   ID_TGT_Y,
@@ -410,7 +411,7 @@ const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
 
 const char *QwGUIDatabase::X_axis[N_X_AXIS] =
 {
-  "Vs. Run Number","Vs. Slug","Histogram","Vs. Time", "Vs. Wein"
+  "Vs. Run Number","Vs. Slug","Histogram","Vs. Run start time","Vs. Runlet start time","Vs. Wein"
 };
 
 
@@ -646,7 +647,8 @@ void QwGUIDatabase::MakeLayout()
   dCmbXAxis->AddEntry(X_axis[1],ID_X_SLUG);
   dCmbXAxis->AddEntry(X_axis[2],ID_X_HISTO);
   dCmbXAxis->AddEntry(X_axis[3],ID_X_TIME);
-  dCmbXAxis->AddEntry(X_axis[4],ID_X_WEIN);
+  dCmbXAxis->AddEntry(X_axis[4],ID_X_TIME_RUNLET);
+  dCmbXAxis->AddEntry(X_axis[5],ID_X_WEIN);
 
   // Populate regression combo box
   for (Int_t i = 0; i < N_REGRESSION_SCHEMES; i++) {
@@ -1380,10 +1382,14 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 
   if((dCmbXAxis->GetSelected()) == ID_X_TIME) {
     tables_used+=" run,  ";
-    outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, run.start_time AS x_value,";
-    special_cuts += Form(" AND run.run_number = data.run_number AND (data.run_number >= %i  AND data.run_number <= %i) GROUP BY data.run_number ",index_first, index_last);
+    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(data.n)*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,run.start_time AS x_value, ";
+    special_cuts += Form(" AND run.run_number = data.run_number AND (data.run_number >= %i  AND data.run_number <= %i) and run.start_time!='NULL' and run.start_time>'2009-01-01' GROUP BY data.run_number ",index_first, index_last);
   }
-
+  if((dCmbXAxis->GetSelected()) == ID_X_TIME_RUNLET) {
+    tables_used+=" runlet,  ";
+    outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms,runlet.start_time AS x_value,";
+    special_cuts += Form(" AND runlet.runlet_id = data.runlet_id AND (data.run_number >= %i  AND data.run_number <= %i) AND runlet.start_time!='NULL' ",index_first, index_last);
+  }
 
   querystring= MakeQuery(outputs,tables_used,table_links,special_cuts);
 
@@ -1596,7 +1602,7 @@ void QwGUIDatabase::PlotDetector()
     for (Int_t i = 0; i < row_size; ++i)
       { 	   
 
-	if(x_axis == ID_X_TIME){
+	if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET ){
 	  /*How to address DST issue in TAxis? 
 	  Aparently TAxis time dispaly have a bug (which was not fixed in V 5.27.02) in it which means 
 	  that when it converts from UInt to time display it is not correcting for DST.
@@ -1621,8 +1627,8 @@ void QwGUIDatabase::PlotDetector()
 	  converted = runtime_start->Convert();
 
 	  //If the time is in the DST time zone 
-	  if( (converted >= (DST2010_start->Convert()) and (converted <= (DST2010_end->Convert())))||
-	      (converted >= (DST2011_start->Convert()) and (converted <= (DST2011_end->Convert())))||
+	  if( (converted >= (DST2010_start->Convert()) and (converted <= (DST2010_end->Convert())))or
+	      (converted >= (DST2011_start->Convert()) and (converted <= (DST2011_end->Convert())))or
 	      (converted >= (DST2012_start->Convert()) and (converted <= (DST2012_end->Convert()))))
 	    adjust_for_DST = 3600;	   
 	  else
@@ -1647,7 +1653,7 @@ void QwGUIDatabase::PlotDetector()
 	}	  
         
         //Fist fill the rms stuff without quality checks
-	if(x_axis == ID_X_TIME){
+	if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 	  run_rms.operator()(i)  = (runtime_start->Convert()) + adjust_for_DST;
         }
         else if(x_axis == ID_X_RUN){
@@ -1668,7 +1674,7 @@ void QwGUIDatabase::PlotDetector()
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
 	    if (read_data[i]["wien_reversal"]*1 == 1){
 
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_out.operator()(k)  = (runtime_start->Convert()) + adjust_for_DST;
 		run_out_label.push_back(Form("%f",(runtime_start->Convert()) + adjust_for_DST));
 	      }
@@ -1688,7 +1694,7 @@ void QwGUIDatabase::PlotDetector()
 	      k++;
 
 	    } else {
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_out_L.operator()(l)  = (runtime_start->Convert())+ adjust_for_DST;
 		run_out_L_label.push_back(Form("%f",(runtime_start->Convert()) + adjust_for_DST));
 	      }
@@ -1712,7 +1718,7 @@ void QwGUIDatabase::PlotDetector()
 	  if(read_data[i]["slow_helicity_plate"] == "in") {
 
 	    if (read_data[i]["wien_reversal"]*1 == 1){
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_in.operator()(m)  = runtime_start->Convert()+ adjust_for_DST;
 		run_in_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));		
 	      }
@@ -1730,7 +1736,7 @@ void QwGUIDatabase::PlotDetector()
 	      err_in.operator()(m)  = 0.0;
 	      m++;
 	    } else {
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_in_L.operator()(n)  = runtime_start->Convert()+ adjust_for_DST;
 		run_in_L_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	      }
@@ -1756,7 +1762,7 @@ void QwGUIDatabase::PlotDetector()
 	   (read_data[i]["run_quality_id"] == "1,2") | //or
 	   (read_data[i]["run_quality_id"] == "2,3") ) { //all instances of bad
 
-	  if(x_axis == ID_X_TIME){
+	  if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 	    run_bad.operator()(o)  = runtime_start->Convert()+ adjust_for_DST;
 	    run_bad_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	  }
@@ -1777,7 +1783,7 @@ void QwGUIDatabase::PlotDetector()
 	
 	if((read_data[i]["run_quality_id"] == "3")  | //or
 	   (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
-	  if(x_axis == ID_X_TIME){
+	  if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 	    run_suspect.operator()(p)  = runtime_start->Convert()+ adjust_for_DST;
 	    run_suspect_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	  }
@@ -1909,6 +1915,7 @@ void QwGUIDatabase::PlotDetector()
     }
     
     //Make RMS graph with all events
+
     if(plot.Contains("RMS")) grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
 
     // Multigraph for the mean values
@@ -1922,12 +1929,14 @@ void QwGUIDatabase::PlotDetector()
     TString y_title = GetYTitle(measurement_type, det_id);
     TString title   = GetTitle(measurement_type, device);
     TString x_title;
-    if(x_axis == ID_X_TIME)x_title = "Time (YY:MM:DD / HH:MM)";
+    if(x_axis == ID_X_TIME)x_title = "Run Start Time (YY:MM:DD / HH:MM)";
     else
-      if(x_axis == ID_X_RUN)x_title = "Run Number";
-      else
-	if(x_axis == ID_X_TIME)x_title = "Slug Number";
-	else x_title = "";
+      if(x_axis == ID_X_TIME_RUNLET)x_title = "Runlet Start Time (YY:MM:DD / HH:MM)";
+      else							
+	if(x_axis == ID_X_RUN)x_title = "Run Number";
+	else
+	  if(x_axis == ID_X_SLUG)x_title = "Slug Number";
+	  else x_title = "";
     
     if(grp){
       if(m>0)grp->Add(grp_in);
@@ -1937,7 +1946,7 @@ void QwGUIDatabase::PlotDetector()
       if(o>0)grp->Add(grp_bad);
       if(p>0)grp->Add(grp_suspect);
     }
-    
+   
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
     if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.5f #pm %2.5f (stat)", 
 					  fit1->GetParameter(0), fit1->GetParError(0)), "p");
@@ -1960,12 +1969,24 @@ void QwGUIDatabase::PlotDetector()
     char * label;
 
     // format axis to display time
-    if(x_axis == ID_X_TIME){
-      grp->GetXaxis()->SetTimeDisplay(1);
-      grp->GetXaxis()->SetTimeOffset(0,"gmt");
-      grp->GetXaxis()->SetLabelOffset(0.03); 
-      grp->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
-      grp->GetXaxis()->Draw();
+    if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
+      if(grp){
+	grp->GetXaxis()->SetTimeDisplay(1);
+	grp->GetXaxis()->SetTimeOffset(0,"gmt");
+	grp->GetXaxis()->SetLabelOffset(0.03); 
+	grp->GetXaxis()->SetLabelSize(0.02); 
+	grp->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
+	grp->GetXaxis()->Draw();
+      }
+      if(grp_rms) {
+	grp_rms->Draw("ab");
+ 	grp_rms->GetXaxis()->SetTimeDisplay(1);
+	grp_rms->GetXaxis()->SetTimeOffset(0,"gmt");
+	grp_rms->GetXaxis()->SetLabelOffset(0.03); 
+	grp_rms->GetXaxis()->SetLabelSize(0.02); 
+	grp_rms->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
+	grp_rms->GetXaxis()->Draw();
+      }
     }
 
 
@@ -1998,8 +2019,8 @@ void QwGUIDatabase::PlotDetector()
     // set titles for rms value graph
     if(grp_rms){
       grp_rms->SetTitle(title);
-      grp_rms->GetYaxis()->SetTitle("RMS of "+y_title);
-      grp_rms->GetXaxis()->SetTitle("RMS of "+x_title);
+      grp_rms->GetYaxis()->SetTitle(y_title);
+      grp_rms->GetXaxis()->SetTitle(x_title);
       grp_rms->GetYaxis()->CenterTitle();
     }   
 
@@ -2009,6 +2030,7 @@ void QwGUIDatabase::PlotDetector()
       gPad->Modified();
       gPad->Update();
     }
+
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
@@ -2474,7 +2496,9 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
     case ID_X_RUN:
       xaxis = "vs Run Number";
     case ID_X_TIME:
-      xaxis = "vs Time";
+      xaxis = "vs Run start time";
+    case ID_X_TIME_RUNLET:
+      xaxis = "vs Runlet start time";
     case ID_X_SLUG:
       xaxis = "vs Slug";
     case ID_X_HISTO:
@@ -2760,6 +2784,7 @@ void QwGUIDatabase::OnSubmitPushed()
     case ID_X_RUN:
     case ID_X_SLUG:
     case ID_X_TIME:
+    case ID_X_TIME_RUNLET:
       PlotDetector();
       break;
     case ID_X_BEAM:
