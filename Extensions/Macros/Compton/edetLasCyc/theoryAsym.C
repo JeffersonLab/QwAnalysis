@@ -5,19 +5,19 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
 
-void theoryAsym(Float_t *calcAsym) 
+void theoryAsym(Int_t comptEdge) //Float_t *calcAsym) 
 {
-  Int_t nPoints=800;
+  const Int_t nPoints=800;
   gStyle->SetOptFit(1);
-  Bool_t debug=0,debug1=0;
+  Bool_t debug=0;
   Double_t xPrime[nPoints],rho[nPoints];
-  Float_t kStripprime,rhoStrip;
+  Float_t rhoStrip; 
   Float_t calcAsym1;
   Float_t xStrip,dsdrho1,dsdrho;  
   Float_t thetabend = chicaneBend*pi/180; //(radians)
   //  Float_t thetaprime = 10.39*pi/180; //bend angle for the max deflected electrons
-  ofstream QEDasym;
-  //Float_t *calcAsym;
+  ofstream theoreticalAsym,QEDasym;
+  Float_t calcAsym[nStrips];
 
   if(debug) {
     printf("Qweak Compton Calculator:\n");
@@ -25,44 +25,42 @@ void theoryAsym(Float_t *calcAsym)
     cout<<"\tIncident Photon Wavelength: "<<lambda<<endl;
   }
   Float_t re = alpha*hbarc/me;
-  if(debug) cout<<"\tClassical electron radius: "<<re<<endl;
-
   Float_t gamma=E/me; //electron gamma, eqn.20
   Float_t R_bend = (gamma*hbarc)/(2.0*xmuB*B_dipole);
-  if(debug) cout<<"\tR_bend: "<<R_bend<<endl;
-
-  Float_t k=2*pi*hbarc/(lambda); // incident photon energy (GeV)
-  if(debug1) cout<<"\tincident photon energy: "<<k<<" GeV"<<endl;
-
+  Float_t k =2*pi*hbarc/(lambda); // incident photon energy (GeV)
   Float_t a =1/(1+4*k*gamma/me); // eqn.15 
-  if(debug1) cout<<"\ta: "<<a<<endl;
-
   Float_t kprimemax=4*a*k*gamma*gamma; //eqn.16{max recoil photon energy} (GeV)
-  if(debug1) cout<<"\tMaximum Scatt. Photon Energy: "<<kprimemax<<" GeV"<<endl;
-
   Float_t asymmax=(1-a)*(1+a)/(1+a*a);
-  if(debug1) cout<<"\tMaximum (theoretical) asymmetry: "<<asymmax<<endl;
 
   Float_t rho0=1/(1+a);
-  if(debug1) cout<<"\n\tAsym Zero rho: "<<rho0<<endl;
-
   Float_t k0prime=rho0*kprimemax;
-  if(debug1) cout<<"\tAsym Zero Photon Energy: "<<k0prime<<"GeV"<<endl;
-
   Float_t dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
-  if(debug1) cout<<"\tAsym Zero e-displacement: "<<dx0prime*1000<<" mm"<<endl;
 
-  Float_t p_beam=sqrt(E*E - me*me);
-  Float_t r=p_beam/me*(hbarc/(2*xmuB*B_dipole));
-  Float_t h=(r*tan(thetabend)-lmag)/tan(thetabend);
-  Float_t kk=ldet*tan(thetabend);
-  Float_t x1=kk+h;
+  Float_t p_beam =sqrt(E*E - me*me);
+  Float_t r =p_beam/me*(hbarc/(2*xmuB*B_dipole));
+  Float_t h =(r*tan(thetabend)-lmag)/tan(thetabend);
+  Float_t kk =ldet*tan(thetabend);
+  Float_t x1 =kk+h;
  	  
+  if(debug) {
+    cout<<"\tR_bend: "<<R_bend<<endl;
+    cout<<"\tClassical electron radius: "<<re<<endl;
+    cout<<"\tincident photon energy: "<<k<<" GeV"<<endl;
+    cout<<"\ta: "<<a<<endl;
+    cout<<"\tMaximum Scatt. Photon Energy: "<<kprimemax<<" GeV"<<endl;
+    cout<<"\tMaximum (theoretical) asymmetry: "<<asymmax<<endl;
+    cout<<"\n\tAsym Zero rho: "<<rho0<<endl;
+    cout<<"\tAsym Zero Photon Energy: "<<k0prime<<"GeV"<<endl;
+    cout<<"\tAsym Zero Photon Energy: "<<k0prime<<"GeV"<<endl;
+    cout<<"\tAsym Zero e-displacement: "<<dx0prime*1000<<" mm"<<endl;
+    cout<<"\tAsym Zero e-displacement: "<<dx0prime*1000<<" mm"<<endl;
+  }
+  
   Float_t kkk = kprimemax;
   Float_t p_edge,r_edge,th_edge,hprime,kprime,x2;//,maxdist,rho;
 
-  QEDasym.open("QEDasym.txt");
-  for (Int_t i = 0; i <nPoints; i++) {//xPrime[nPoints],rhoPrime[nPoints];
+  QEDasym.open("QEDasym.txt"); //!I don't really need to write this to a file
+  for (Int_t i = 0; i <nPoints; i++) {//xPrime[nPoints],rho[nPoints];
     xPrime[i]=0.0; ///initialize
     rho[i]=0.0;
     p_edge=p_beam-kkk;
@@ -86,21 +84,30 @@ void theoryAsym(Float_t *calcAsym)
   grtheory->SetMarkerStyle(20);
   grtheory->SetLineColor(2);
   grtheory->SetMarkerColor(2);
-  grtheory->Fit("pol3");
-  //grtheory->Draw("AP");
+  //grtheory->Fit("pol3");
+  grtheory->Fit("pol3","B","",dx0prime,xPrime[0]); ///the fit would happen only between zero-crossing and Cedge
+  grtheory->Draw("AP");
 
+  theoreticalAsym.open(Form("analOut/theoryAsymForCedge_%d.txt",comptEdge));
   for(Int_t s =startStrip; s <=endStrip; s++) {
-    xStrip = xPrime[0] - (Cedge - s)*2E-4; ///xPrime[0] corresponds to Cedge distance
+    xStrip = xPrime[0] - (comptEdge - s+1)*2E-4; ///xPrime[0] corresponds to Cedge distance
     rhoStrip = grtheory->Eval(xStrip);
-    dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // eqn 22
+    if(rhoStrip>1.0) cout<<"**Alert: rho for strip "<<s<<" is greater than 1 !"<<endl;
+    dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // 2nd term of eqn 22
     dsdrho = 2*pi*re*re/100*a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22
     calcAsym1 = 1-rhoStrip*(1-a);
-    calcAsym[s]=((2*pi*re*re/100*a/dsdrho)*(1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)));
-    if(debug1) cout<<s<<"\t"<<(xgap+s*2E-4)*1E3<<"\t"<<rhoStrip<<"\t"<<kStripprime<<"\t"<<calcAsym[s]<<endl;
-  }  
+    calcAsym[s]=(-1*(Int_t)IHWP_in)*((2*pi*re*re/100*a/dsdrho)*(1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)));
+    theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s+1,calcAsym[s]);
+  }
+  theoreticalAsym.close();
 }
 
-/****Comments*****************
+/****************************
+!Comments
+ * ?should there be a s+1 in xStrip evaluation?, 
+ *..this was added because otherwise the Cedge would be literally be taken as the true Cedge 
+ *..even though it is so only in the C++ counting
+ * Make sure to delete the "old" file if you want this to be reevaluated
  * In doing it this way, are we effectively projecting
  *..the strip to the vertical plane, hence decresing the
  *..strip-width from 180 um to 180*cos(thetaDetector)?;

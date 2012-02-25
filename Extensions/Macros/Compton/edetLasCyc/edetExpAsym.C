@@ -7,7 +7,7 @@
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
  
-Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsymRMS[nPlanes][nStrips], Bool_t isFirst100k=kFALSE)
+Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Bool_t isFirst100k=kFALSE) //, Float_t stripAsymRMS[nPlanes][nStrips]
 {
   time_t tStart = time(0), tEnd; 
   div_t div_output;
@@ -35,7 +35,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   Double_t lasPow[3], helicity, bcm[3];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];//qNormAcB1H1L0LLasCyc
-  //  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsymRMS[nPlanes][nStrips] ;
+  //  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips]//,stripAsymRMS[nPlanes][nStrips] ;
   Float_t laserOnOffRatioH1=0.0, laserOnOffRatioH0=0.0;
   Float_t qNormAcB1H1L1LasCyc[nPlanes][nStrips], qNormAcB1H0L1LasCyc[nPlanes][nStrips];
   Float_t qNormAcB1H0L0RLasCyc[nPlanes][nStrips], qNormAcB1H1L0LLasCyc[nPlanes][nStrips];
@@ -172,7 +172,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 	qNormLasCycAsym[p][s]= 0.0, LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0;
 	errB1H1L1[p][s]=0.0,errB1H0L1[p][s]=0.0;
 	errB1H1L0L[p][s]=0.0,errB1H0L0L[p][s]=0.0,errB1H1L0R[p][s]=0.0,errB1H0L0R[p][s]=0.0;
-	stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0,stripAsymRMS[p][s]= 0.0;
+	stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0;
       }
     }
 
@@ -379,14 +379,13 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
       else if(weightedMeanNrAsym[p][s]==0.0) cout<<"asym for strip "<<s<<" in plane "<<p<<" is zero"<<endl;
       else stripAsym[p][s]= weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
       stripAsymEr[p][s] = TMath::Sqrt(1/weightedMeanDrAsym[p][s]);
-      stripAsymRMS[p][s] = stripAsymEr[p][s];//!!!temp fix, since I'm not histogramming anymore, so I don't have an RMS from a distribution
       if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
     }
   }
   
   for(Int_t p = startPlane; p < endPlane; p++) {
     outfileExpAsymP.open(Form("analOut/r%d_expAsymP%d.txt",runnum,p+1));
-    //outfileExpAsymP<<"strip\texpAsym\tasymEr\tasymRMS"<<endl; ///If I want a header for the following text
+    //outfileExpAsymP<<"strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
     cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
     for (Int_t s =startStrip; s <endStrip;s++) {    
       if (maskedStrips(p,s)) continue;
