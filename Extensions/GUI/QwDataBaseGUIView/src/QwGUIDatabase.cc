@@ -128,7 +128,7 @@ const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] =
  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
  "qwk_linephase", "qwk_invert_tstable","bcmdd12","bcmdd15","bcmdd16", "bcmdd17",
  "bcmdd18","bcmdd25", "bcmdd26","bcmdd27", "bcmdd28","bcmdd56", "bcmdd57",
- "bcmdd58", "bcmdd67","bcmdd68", "bcmdd78"
+ "bcmdd58", "bcmdd67","bcmdd68", "bcmdd78","qwk_bcmgl1","qwk_bcmgl2","bcmddgl"
  };
 
 const char *QwGUIDatabase::LumiCombos[N_LUMIS] = 
@@ -921,6 +921,7 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
     }    
   }
 
+
   dCmbMeasurementType->Select(0);
 
 }
@@ -935,6 +936,7 @@ void QwGUIDatabase::PopulatePlotComboBox()
 {
     for (Int_t k = 0; k < N_Plots; k++)
       dCmbPlotType->AddEntry(Plots[k], k);
+
 } 
 
 
@@ -2534,11 +2536,11 @@ void QwGUIDatabase::GetDataSelections(){
   measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
   det_id            = dCmbInstrument->GetSelected();
   device            = Form("%s",detector.Data());
+  regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
   target            = Targets[dCmbTargetType->GetSelected()];
   subblock          = dCmbSubblock -> GetSelected();
   plot              = Plots[dCmbPlotType->GetSelected()];
   x_axis            = dCmbXAxis->GetSelected();
-  regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 }
 
 
@@ -2744,6 +2746,12 @@ void QwGUIDatabase::OnSubmitPushed()
   case ID_BCM:
     detector = BeamCurrentMonitors[dCmbDetector->GetSelected()];
     property = "";
+    if(strncmp (detector,"bcmddxx",5) == 0) {
+      regression_set="on";
+      measurement_type="d";
+      dCmbRegressionType->Select(1);
+    }     
+
     break;
   case ID_CMB_BCM:
     detector = CombinedBCMS[dCmbDetector->GetSelected()];
