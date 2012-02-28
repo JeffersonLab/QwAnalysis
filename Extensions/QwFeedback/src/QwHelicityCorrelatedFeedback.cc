@@ -1094,12 +1094,26 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
     }
   }
 
+  if(fAsymmetry.RequestExternalValue("bcm7", &fAsymBCM7) && fAsymmetry.RequestExternalValue("bcm8", &fAsymBCM8)){
+    if (fAsymBCM7.GetEventcutErrorFlag()==0 && fAsymBCM8.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0){
+      fAsymBCM78DDRunningSum.AccumulateRunningSum((fAsymBCM7-fAsymBCM8));
+    }
+  }
+
+
   if(fYield.RequestExternalValue("3c12efc", &fTargetParameter)){
     if (fTargetParameter.GetEventcutErrorFlag()==0 && fYield.GetEventcutErrorFlag()==0){
       f3C12YQRunningSum.AccumulateRunningSum(fTargetParameter);
       b3C12YQ=kTRUE;
     }
   }
+  if(fYield.RequestExternalValue("bcm8", &fTargetCharge)){
+    if (fTargetCharge.GetEventcutErrorFlag()==0 && fYield.GetEventcutErrorFlag()==0){
+      fYieldBCM8RunningSum.AccumulateRunningSum(fTargetCharge);
+    }
+  }
+
+  
 
 
   
@@ -1151,6 +1165,7 @@ void QwHelicityCorrelatedFeedback::CalculateRunningAverage(Int_t mode){
 */
 void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
   fRunningAsymmetry.CalculateRunningAverage();
+
   if (fRunningAsymmetry.RequestExternalValue("q_targ",&fTargetCharge)){
     QwMessage<<"Reading published charge value stats"<<QwLog::endl;
     fTargetCharge.PrintInfo();
@@ -1164,6 +1179,15 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
   fChargeAsymmetryError=-1;
   fChargeAsymmetryWidth=-1;
 
+  //calculate mean BCM78DD asymmetry and bcm8 yield and update parameters to be publised in EPICS
+  fAsymBCM78DDRunningSum.CalculateRunningAverage();
+  fYieldBCM8RunningSum.CalculateRunningAverage();
+
+  fBCM8Yield=fYieldBCM8RunningSum.GetValue();
+
+  fAsymBCM78DD=fAsymBCM78DDRunningSum.GetValue()*1.0e+6;
+  fAsymBCM78DDError=fAsymBCM78DDRunningSum.GetValueError()*1.0e+6;
+  fAsymBCM78DDWidth=fAsymBCM78DDRunningSum.GetValueWidth()*1.0e+6;
   return;  
 };
 
@@ -1291,6 +1315,8 @@ void QwHelicityCorrelatedFeedback::GetHAChargeStat(Int_t mode){
 void  QwHelicityCorrelatedFeedback::ClearRunningSum()
 {
   QwHelicityPattern::ClearRunningSum();
+  fAsymBCM78DDRunningSum.ClearEventData();
+  fYieldBCM8RunningSum.ClearEventData();
 }
 
 void  QwHelicityCorrelatedFeedback::ClearRunningSum(Int_t mode)
