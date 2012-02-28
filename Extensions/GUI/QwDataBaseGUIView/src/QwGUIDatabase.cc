@@ -411,7 +411,7 @@ const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
 
 const char *QwGUIDatabase::X_axis[N_X_AXIS] =
 {
-  "Vs. Run Number","Vs. Slug","Histogram","Vs. Run start time","Vs. Runlet start time","Vs. Wein"
+  "Vs. Run Number","Vs. Slug","Runlet Histogram","Vs. Run start time","Vs. Runlet start time","Vs. Wein"
 };
 
 
@@ -648,7 +648,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbXAxis->AddEntry(X_axis[2],ID_X_HISTO);
   dCmbXAxis->AddEntry(X_axis[3],ID_X_TIME);
   dCmbXAxis->AddEntry(X_axis[4],ID_X_TIME_RUNLET);
-  dCmbXAxis->AddEntry(X_axis[5],ID_X_WEIN);
+  //dCmbXAxis->AddEntry(X_axis[5],ID_X_WEIN);
 
   // Populate regression combo box
   for (Int_t i = 0; i < N_REGRESSION_SCHEMES; i++) {
@@ -1642,6 +1642,7 @@ void QwGUIDatabase::PlotDetector()
 	    std::cout<<""<<adjust_for_DST<<std::endl;
 	  }
 	}
+
 	// Convert asymmetries  in to ppm, convert differences in to nm/murad
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
 	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
@@ -1654,7 +1655,7 @@ void QwGUIDatabase::PlotDetector()
 	  x_rms = (read_data[i]["rms"]);
 	}	  
         
-        //Fist fill the rms stuff without quality checks
+        //Set the lables for rms plots
 	if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 	  run_rms.operator()(i)  = (runtime_start->Convert()) + adjust_for_DST;
         }
@@ -1664,7 +1665,8 @@ void QwGUIDatabase::PlotDetector()
 	  xval.push_back(Form("%5.2f",val ));
 	}
 	else{
-	  //do nothing for WEIN/SLUG
+	  run_rms.operator()(i)  = read_data[i]["x_value"];
+	  //do nothing for WEIN/SLUG. Don't need labels for these.
 	}
 	
 	// Fill the rms vectors
@@ -1981,7 +1983,7 @@ void QwGUIDatabase::PlotDetector()
 	grp->GetXaxis()->Draw();
       }
       if(grp_rms) {
-	grp_rms->Draw("ab");
+	grp_rms->Draw("ab"); // by default PlotGraphs() draws graphs in "ap" format. So to get the bars, we have to redraw the rms graph.
  	grp_rms->GetXaxis()->SetTimeDisplay(1);
 	grp_rms->GetXaxis()->SetTimeOffset(0,"gmt");
 	grp_rms->GetXaxis()->SetLabelOffset(0.03); 
@@ -1993,7 +1995,7 @@ void QwGUIDatabase::PlotDetector()
 
 
     if(x_axis == ID_X_RUN){
-      // set the alphanumeric labels for run/slug
+      // set the alphanumeric labels for runlets
       if(grp) grp->GetXaxis()->Set(row_size, 0, row_size-1); // rebin
       if(grp_rms) {
 	grp_rms->Draw("ab");
@@ -2006,8 +2008,10 @@ void QwGUIDatabase::PlotDetector()
     	if(grp) (grp->GetXaxis())->SetBinLabel(k,label);
 	if(grp_rms) (grp_rms->GetXaxis())->SetBinLabel(k,label);
       }
+    } else{
+      if(grp_rms)
+	grp_rms->Draw("ab");
     }
-
     // For WEIN and SLUG we can just use the values we read.
 
     // set titles for mean value graph
@@ -2092,15 +2096,18 @@ void QwGUIDatabase::HistogramDetector()
   Bool_t ldebug = kTRUE;
 
   // histo parameters
+  gDirectory->Delete();
+  gStyle->Reset();
   gStyle->SetTitleYOffset(1.0);
-  gStyle->SetTitleXOffset(0.7);
+  gStyle->SetTitleXOffset(1.0);
   gStyle->SetTitleX(0.2);
   gStyle->SetTitleW(0.6);
   gStyle->SetTitleSize(0.07);
-  gStyle->SetTitleOffset(1.5);
+  gStyle->SetTitleOffset(2.2);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
+  gStyle->SetFrameBorderMode(0);
   gStyle->SetHistMinimumZero();
   gStyle->SetBarOffset(0.25);
   gStyle->SetBarWidth(0.5);
@@ -2110,77 +2117,33 @@ void QwGUIDatabase::HistogramDetector()
   gStyle->SetTitleColor(kBlack,"X");
   gStyle->SetTitleColor(kBlack,"Y");
 
-  gDirectory->Delete();
-
   if(dDatabaseCont){
 
     TCanvas *mc = dCanvas->GetCanvas();
     mc->Clear();
     mc->SetFillColor(0);
 
-    if(dCmbMeasurementType->IsEnabled()) measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
-    else 
-      measurement_type = "sensitivity";
-
-    //Get run quality cut information
-    Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
-    if(dChkQualityGood->IsOn())	      quality[0] 	= kTRUE;
-    if(dChkQualityBad->IsOn())		  quality[1]	= kTRUE;
-    if(dChkQualitySuspect->IsOn())      quality[2] 	= kTRUE;
-
-    TString quality_check = " ";
-    for (size_t i=0; i<3;i++){
-  	if(!quality[i]){
-  		quality_check = quality_check +"  AND run_quality_id not like" + Form("\"%%%d%%\"",i+1);
-  	}
-    }
-
+    if(!(dCmbMeasurementType->IsEnabled())) measurement_type = "sensitivity";
     //
     // Query Database for Data
     //
-    mysqlpp::StoreQueryResult read_data = QueryDetector();
-
-    //
-    // Loop Over Results and Fill Vectors
-    //
-    Int_t row_size =  read_data.num_rows();
+    mysqlpp::StoreQueryResult read_data;
+    Int_t row_size;
+    read_data = QueryDetector();
+    row_size =  read_data.num_rows();
     if(ldebug) std::cout<<" row_size="<<row_size<<"\n";
-
+    
     //check for empty queries. If empty exit with error.
     if(row_size == 0){
-      std::cout<<"There is no data for "<<measurement_type<<" of "<<device<<" for subblock "<<subblock
-	       <<" in the given run range!"<<std::endl;
+      
+      std::cout  <<"There is no data for "<<measurement_type<<" of "<<device<<" in the given range!"<<std::endl;
       return;
     }
 
-    TH1F all_runs("all_runs","all_runs",1000,0,0);
-    Float_t x = 0.0, xerr = 0.0;
+    // Create histograms
+    //    TH1F all_runs("all_runs","all_runs",1000,0,0);
+    Float_t x = 0.0, x_rms = 0.0;
 
-    for (Int_t i = 0; i < row_size; ++i){
-      if(measurement_type =="a" || measurement_type =="aeo" 
-	 || measurement_type =="a12" || measurement_type =="d" 
-	 || measurement_type =="deo" || measurement_type =="d12"){
-	if(plot.Contains("RMS") == 1){
-	  x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
-	  xerr = 0.0;
-	}
-	else {
-	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
-	  xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
-	}
-      } 
-      else{
-	if(plot.Contains("RMS") == 1){
-	  x    = (read_data[i]["rms"]);
-	  xerr = 0.0;
-	}
-	else {
-	  x    = read_data[i]["value"];
-	  xerr = read_data[i]["error"];
-	}
-      }
-      all_runs.Fill(x);
-    }
 
     THStack *hs = new THStack("hs","");
     TH1F *h_in_L = new TH1F("h_in_L","",1000,-10,10);
@@ -2189,6 +2152,8 @@ void QwGUIDatabase::HistogramDetector()
     TH1F *h_out_R = new TH1F("h_out_R","",1000,-10,10);
     TH1F *h_suspect = new TH1F("h_suspect","",1000,-10,10);
     TH1F *h_bad = new TH1F("h_bad","",1000,-10,10);
+    TH1F *h_rms = new TH1F("h_rms","",1000,-500,500);
+
 
     TF1* fit1 = NULL;
     TF1* fit2 = NULL;
@@ -2208,23 +2173,22 @@ void QwGUIDatabase::HistogramDetector()
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
     std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
     for (Int_t i = 0; i < row_size; ++i)
-      { 	    
+      {
+
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
-	  if(plot.Contains("RMS") == 1){
- 	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
-	  }
-	  else {
-	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
-	  }
+	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
+	  x_rms = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
 	} 
 	else{
-	  if(plot.Contains("RMS") == 1){
- 	    x    = (read_data[i]["rms"]);
-	  }
-	  else {
-	    x    = read_data[i]["value"];
-	  }
-	}
+	  x    = read_data[i]["value"];
+	  x_rms = (read_data[i]["rms"]);
+	}	  
+
+
+	// Fill the rms histo
+	h_rms->Fill(x_rms);
+
+	// Now fill the mean values
 	if(read_data[i]["run_quality_id"] == "1"){
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
 	    if (read_data[i]["wien_reversal"]*1 == 1){
@@ -2270,89 +2234,86 @@ void QwGUIDatabase::HistogramDetector()
       exit(1);
     }
     else
-      std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
+      std::cout<<"QwGUI : Moving on to draw the histogram"<<std::endl;
+
+    TString y_title = GetYTitle(measurement_type, det_id);
+    TString title   = GetTitle(measurement_type, device);
     
-
-//GROUP_IN_R
-    h_in_R ->SetMarkerSize(1.0);
-    h_in_R ->SetMarkerStyle(21);
-    h_in_R ->SetMarkerColor(kBlue);
-
-//GROUP_IN_L
-
-	h_in_L ->SetMarkerSize(1.0);
-	h_in_L ->SetMarkerStyle(21);
-	h_in_L ->SetMarkerColor(kOrange-2);
-    
-
-//GROUP_OUT_R
-	h_out_R ->SetMarkerSize(1.0);
-	h_out_R ->SetMarkerStyle(21);
-	h_out_R ->SetMarkerColor(kRed);
-
-//GROUP_OUT_L
-	h_out_L ->SetMarkerSize(1.0);
-	h_out_L ->SetMarkerStyle(21);
-	h_out_L ->SetMarkerColor(kViolet);
-
-//GROUP_BAD
-	h_bad ->SetMarkerSize(1.0);
-	h_bad ->SetMarkerStyle(29);
-	h_bad ->SetMarkerColor(kBlack);
-
-//GROUP_SUSPECT
-	h_suspect ->SetMarkerSize(1.0);
-	h_suspect ->SetMarkerStyle(29);
-	h_suspect ->SetMarkerColor(kGreen);
-
-
-
-	TString y_title = GetYTitle(measurement_type, det_id);
-	TString title   = GetTitle(measurement_type, device);
-
-    if(plot.Contains("RMS"))
-      {
-	y_title = "RMS of "+y_title;
-	title   = "RMS of "+title;
-      }
 
 
     if(m>0){
-      hs->Add(h_in_R);
+      //GROUP_IN_R
+      h_in_R ->SetMarkerSize(1.0);
+      h_in_R ->SetMarkerStyle(21);
+      h_in_R ->SetFillColor(kBlue);
+      h_in_R ->SetMarkerColor(kBlue);
+      h_in_R ->SetLineColor(kBlue);
       h_in_R ->Fit("gaus");
       fit1 = h_in_R->GetFunction("gaus");
       fit1 -> SetLineColor(kBlue);
+      hs->Add(h_in_R);
     }
     if(k>0){
-      hs->Add(h_out_R);
+      //GROUP_OUT_R
+      h_out_R ->SetMarkerSize(1.0);
+      h_out_R ->SetMarkerStyle(21);
+      h_out_R ->SetFillColor(kRed);
+      h_out_R ->SetMarkerColor(kRed);
+      h_out_R ->SetMarkerColor(kRed);
+      h_out_R ->SetLineColor(kRed);
       h_out_R ->Fit("gaus");
       fit2 = h_out_R->GetFunction("gaus");
       fit2 -> SetLineColor(kRed);
+      hs->Add(h_out_R);
     }
     if(n>0){
-      hs->Add(h_in_L);
+      //GROUP_IN_L
+      h_in_L ->SetMarkerSize(1.0);
+      h_in_L ->SetMarkerStyle(21);
+      h_in_L ->SetFillColor(kOrange-2);
+      h_in_L ->SetMarkerColor(kOrange-2);
+      h_in_L ->SetLineColor(kOrange-2);
       h_in_L ->Fit("gaus");
       fit3 = h_in_L->GetFunction("gaus");
       fit3 -> SetLineColor(kOrange-2);
+      hs->Add(h_in_L);
    
     }
     if(l>0){
-      hs->Add(h_out_L);
+      //GROUP_OUT_L
+      h_out_L ->SetMarkerSize(1.0);
+      h_out_L ->SetMarkerStyle(21);
+      h_out_L ->SetFillColor(kViolet);
+      h_out_L ->SetMarkerColor(kViolet);
+      h_out_L ->SetLineColor(kViolet);
       h_out_L ->Fit("gaus");
       fit4 = h_out_L->GetFunction("gaus");
       fit4 -> SetLineColor(kViolet);
+      hs->Add(h_out_L);
     }
     if(o>0){
-      hs->Add(h_bad);
+      //GROUP_BAD
+      h_bad ->SetMarkerSize(1.0);
+      h_bad ->SetMarkerStyle(29);
+      h_bad ->SetFillColor(kBlack);
+      h_bad ->SetMarkerColor(kBlack);
+      h_bad ->SetLineColor(kBlack);
       h_bad ->Fit("gaus");
       fit5 = h_bad->GetFunction("gaus");
       fit5 -> SetLineColor(kBlack);
+      hs->Add(h_bad);
     }
     if(p>0){
-      hs->Add(h_suspect);
+      //GROUP_SUSPECT
+      h_suspect ->SetMarkerSize(1.0);
+      h_suspect ->SetMarkerStyle(29);
+      h_suspect ->SetFillColor(kGreen);
+      h_suspect ->SetMarkerColor(kGreen);
+      h_suspect ->SetLineColor(kGreen);
       h_suspect ->Fit("gaus");
       fit6 = h_suspect->GetFunction("gaus");
       fit6 -> SetLineColor(kGreen);
+      hs->Add(h_suspect);
     }
 
 
@@ -2372,29 +2333,61 @@ void QwGUIDatabase::HistogramDetector()
 
 
     legend->SetFillColor(0);
-    
-    mc->cd();
-    hs->Draw("nostack,ap");
-    if(m>0)fit1->Draw("same");
-    if(k>0)fit2->Draw("same");
 
-    legend->Draw("");
-    
-    
-    hs->SetTitle(title);
-    hs->GetYaxis()->SetTitleOffset(2);
-    hs->GetYaxis()->SetTitle("Runlets");
-    hs->GetXaxis()->SetTitle(y_title);
-    hs->GetXaxis()->SetTitleOffset(2);
-    hs->GetYaxis()->SetTitleSize(0.03);
-    hs->GetXaxis()->SetTitleSize(0.03);
-    hs->GetYaxis()->CenterTitle();
-    
-    
-    mc->Modified();
-    mc->SetBorderMode(0);
-    mc->Update();
-    
+    mc->cd();
+    if(plot.Contains("Mean")){
+      hs->Draw();
+      legend->Draw("");
+      gPad->Update();
+    }
+    else if(plot.Contains("RMS")){
+      h_rms->Draw();
+      gPad->Update();
+    } 
+    else {
+      mc->Clear();
+      mc->Divide(1,2);
+      mc->cd(1);
+      hs->Draw();
+      legend->Draw();
+      gPad->Update();
+      mc->cd(2);
+      h_rms->Draw();
+      gPad->Update();
+      mc->Update();
+    }
+
+  
+//     if(m>0)fit1->Draw("same");
+//     if(k>0)fit2->Draw("same");
+
+    if(plot.Contains("Mean") or plot.Contains("Both") ){  
+      y_title = "Averages of "+y_title; 
+      hs->SetTitle(title);
+      hs->GetYaxis()->SetTitleOffset(1.5);
+      hs->GetXaxis()->SetTitleOffset(1.5);
+      hs->GetYaxis()->SetTitle("Runlets");
+      hs->GetXaxis()->SetTitle(y_title);
+      hs->GetYaxis()->SetTitleSize(0.03);
+      hs->GetXaxis()->SetTitleSize(0.03);
+      hs->GetYaxis()->CenterTitle();
+      mc->Modified();
+      mc->Update();
+    }
+    if(plot.Contains("RMS") or plot.Contains("Both") ){ 
+      y_title = "RMS's of "+y_title;  
+      h_rms->SetTitle(title);
+      h_rms->GetYaxis()->SetTitleOffset(1.5);
+      h_rms->GetXaxis()->SetTitleOffset(1.5);
+      h_rms->GetYaxis()->SetTitle("Runlets");
+      h_rms->GetXaxis()->SetTitle(y_title);
+      h_rms->GetYaxis()->SetTitleSize(0.03);
+      h_rms->GetXaxis()->SetTitleSize(0.03);
+      h_rms->GetYaxis()->CenterTitle();
+      mc->Modified();
+      mc->Update();
+    }
+ 
     std::cout<<"QwGUI : Done!"<<std::endl;
     
     
