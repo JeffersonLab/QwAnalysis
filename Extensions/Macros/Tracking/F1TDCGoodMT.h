@@ -1,3 +1,23 @@
+// Author : Jeong Han Lee
+//          jhlee@jlab.org
+//
+// Date   : Tuesday, February 28 14:59:01 EST 2012
+// 
+//         This script is used to calculate or find good software mentime of MDs and TSs,
+//         because of F1TDC multihit structure
+// 
+//         One needs qwroot instead of root
+//         $ qwroot 
+//         Qw-Root [0] .L F1TDCGoodMT.C
+//         Qw-Root [1] GoodMTMultiHits(1,2,-1, 10000, 50, 20, 1, 1, filename, 102)
+//
+//         MD1, TS2, event 0:10000, delta MD1 < 50, delta TS2 <20, MD debug on, TS debug on, rootfile, binnumber
+//         in order to save debug outputs in a file
+//         Qw-Root [3] GoodMtMultiHits(1,2,-1,-1,50,20,1,1); > debug.log
+
+
+
+
 
 
 #include <iostream>
@@ -10,6 +30,8 @@
 #include "TROOT.h"
 
 
+
+// A good meantime holder 
 class MeanTime  :  public TObject
 {
   
@@ -61,6 +83,10 @@ private:
 
 
 
+
+// all possible combination of meantimes per an event
+// a method to find good meantimes.
+// ....
 class MeanTimeContainer 
 {
 

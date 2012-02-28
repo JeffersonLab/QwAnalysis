@@ -1,3 +1,25 @@
+// Author : Jeong Han Lee
+//          jhlee@jlab.org
+//
+// Date   : Tuesday, February 28 15:09:13 EST 2012
+// 
+//         This script is the same as F1TDCGoodMT.C, but is develping for further studies.
+//         It dosen't show anything after run, it will save all information in an additional
+//         Root file which will has good meantime branches, and QwEvents. So
+//         it will be easy to apply various cuts among MD, TS, and VDC
+//       
+//         NOTE that this is developing version, not working one. 
+// 
+//         One needs qwroot instead of root
+//         $ qwroot 
+//         Qw-Root [0] .L F1TDCGoodMT.C
+//         Qw-Root [1] GoodMTMultiHits(1,2,-1, 10000, 50, 20, 1, 1, filename, 102)
+//
+//         MD1, TS2, event 0:10000, delta MD1 < 50, delta TS2 <20, MD debug on, TS debug on, rootfile, binnumber
+//         in order to save debug outputs in a file
+//         Qw-Root [3] GoodMtMultiHits(1,2,-1,-1,50,20,1,1); > debug.log
+
+
 
 #include "F1TDCGoodMT.h"
 
