@@ -505,6 +505,8 @@ void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogParameters(){
   fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
+  fEPICSCtrl.Set_BCM78DDAsymmetry(fAsymBCM78DD,fAsymBCM78DDError,fAsymBCM78DDWidth);//update BCM78DD
+  fEPICSCtrl.Set_BCM8Yield(fBCM8Yield);//Update BCM8 Yield
   out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
   // out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
   fprintf(out_file_PITA,"%10.0d %+22.2f %16.2f %16.2f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,TMath::Abs(fPITASetpointPOS-fPrevPITASetpointPOS),fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
@@ -1172,6 +1174,16 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
     fChargeAsymmetry=fTargetCharge.GetValue();
     fChargeAsymmetryError=fTargetCharge.GetValueError();
     fChargeAsymmetryWidth=fTargetCharge.GetValueWidth();
+
+    //calculate mean BCM78DD asymmetry and bcm8 yield and update parameters to be publised in EPICS
+    fAsymBCM78DDRunningSum.CalculateRunningAverage();
+    fYieldBCM8RunningSum.CalculateRunningAverage();
+
+    fBCM8Yield=fYieldBCM8RunningSum.GetValue();
+
+    fAsymBCM78DD=fAsymBCM78DDRunningSum.GetValue()*1.0e+6;
+    fAsymBCM78DDError=fAsymBCM78DDRunningSum.GetValueError()*1.0e+6;
+    fAsymBCM78DDWidth=fAsymBCM78DDRunningSum.GetValueWidth()*1.0e+6;
     return ;
   }
   QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
@@ -1179,15 +1191,10 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
   fChargeAsymmetryError=-1;
   fChargeAsymmetryWidth=-1;
 
-  //calculate mean BCM78DD asymmetry and bcm8 yield and update parameters to be publised in EPICS
-  fAsymBCM78DDRunningSum.CalculateRunningAverage();
-  fYieldBCM8RunningSum.CalculateRunningAverage();
-
-  fBCM8Yield=fYieldBCM8RunningSum.GetValue();
-
-  fAsymBCM78DD=fAsymBCM78DDRunningSum.GetValue()*1.0e+6;
-  fAsymBCM78DDError=fAsymBCM78DDRunningSum.GetValueError()*1.0e+6;
-  fAsymBCM78DDWidth=fAsymBCM78DDRunningSum.GetValueWidth()*1.0e+6;
+  fBCM8Yield=0;
+  fAsymBCM78DD=0;
+  fAsymBCM78DDError=0;
+  fAsymBCM78DDWidth=0;
   return;  
 };
 
@@ -1315,6 +1322,7 @@ void QwHelicityCorrelatedFeedback::GetHAChargeStat(Int_t mode){
 void  QwHelicityCorrelatedFeedback::ClearRunningSum()
 {
   QwHelicityPattern::ClearRunningSum();
+  //Clean bcm8 yield and bcm78 DD running sums
   fAsymBCM78DDRunningSum.ClearEventData();
   fYieldBCM8RunningSum.ClearEventData();
 }

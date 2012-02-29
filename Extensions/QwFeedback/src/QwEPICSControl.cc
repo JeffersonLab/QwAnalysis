@@ -40,7 +40,7 @@ QwEPICSControl::QwEPICSControl()
   fHelMagNames[3] = "MHE0L03H";
   fHelicityNames[0] = "Even";
   fHelicityNames[1] = "Odd";
-
+  /*
   status = ca_search("hel_even_1",&fIDHelMag[0][0]); //Even helicity setpoint for MHE0L01V
   status = ca_pend_io(10);
   status = ca_search("hel_odd_1", &fIDHelMag[0][1]);  //Odd helicity setpoint for MHE0L01V
@@ -58,7 +58,7 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("hel_odd_4", &fIDHelMag[3][1]);  //Odd helicity setpoint for MHE0L03H
   status = ca_pend_io(10);
 
-
+  */
 
   //Feedback status EPICS variables
   status = ca_search("qw:ChargeFeedback", &fFeedbackStatus);//
@@ -110,8 +110,13 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("qw:3C12EffQError", &f3C12YQError);
   status = ca_search("qw:3C12EffQWidth", &f3C12YQWidth);
 
+  status = ca_search("qw:BCM8", &fBCM8Yield);
+  status = ca_search("qw:BCM78DDAsymmetry", &fBCM8DDAsymmetry);
+  status = ca_search("qw:BCM78DDAsymmetryError", &fBCM8DDAsymmetryError);
+  status = ca_search("qw:BCM78DDAsymmetryWidth", &fBCM8DDAsymmetryWidth);
 
 
+  
 
 
 
