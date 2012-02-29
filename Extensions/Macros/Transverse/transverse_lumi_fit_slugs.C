@@ -2,17 +2,47 @@
 // Author : B. Waidyawansa
 // Date   : February 8th, 2012
 //*****************************************************************************************************//
-//
-//  This macro was adapted from transverse_md_fit_slugs.C macro to plot only the lumi data.
-//  It will connect to the qw_run1_pass4(or the latest) data base and get the slug averages from the lumi
-//  regressed data and plot them in to three plots of in,out,in+out/2 , in-out and sum of oppsite octants
-//   e.g. use
-//   ./transverse_lumi_fit_slugs
-//
-//   To compile this code do a gmake.
-//    
-//*****************************************************************************************************//
-//
+/*
+  This macro was adapted from transverse_md_fit_slugs.C macro to plot only the lumi data.
+  It will connect to the qw_run1_pass4(or the given) data base and get the slug averages from the lumi
+  regressed data and plot them in to three plots of in,out,in+out/2 , in-out and sum of oppsite octants.
+  You have the option to change the database at the command line. Just type:
+
+  To compile this code do a gmake.
+  
+  e.g. use
+  ./transverse_lumi_fit_slugs "qw_run1_pass4"
+  
+  ###############################################
+  
+  Slug averages of Lumi  Asymmetries
+  
+  ###############################################
+  Enter lumi type:
+  1. Upstream
+  2. Downstream
+  1
+  Enter target type:
+  1. Liquid Hydrogen
+  2. 4% DS Al
+  3. 1.6% DS Carbon
+  1
+  Enter data type:
+  1. Longitudinal
+  2. Vertical Transverse
+  3. Horizontal Transverse
+  3
+  Enter reaction type:
+  1. elastic
+  2. N->Delta
+  1
+  Getting slug averages of lumi detectors
+  ..
+  ..
+
+  Updates:
+  2012-02-23 B.Waidyawansa        Added the option to change database.
+******************************************************************************************************/
 
 using namespace std;
 
@@ -59,12 +89,18 @@ using namespace std;
 TString us_lumi[4]=
   {"uslumi1_sum","uslumi3_sum","uslumi5_sum","uslumi7_sum"};
 
-// ds lumi sum
-TString ds_lumi[5]=
+// ds lumi
+TString ds_lumi[8]=
+  {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5","qwk_dslumi6"
+   ,"qwk_dslumi7","qwk_dslumi8"};
+
+// ds lumi reduced
+TString ds_lumi_reduced[5]=
   {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5"};
 
 
 TSQLServer *db;
+TString database="qw_run2_pass1";
 TString database_stem="run2_pass1";
 
 std::ofstream Myfile;    
@@ -91,6 +127,11 @@ Double_t err111[4] ={0.0};
 Double_t value222[4] ={0.0};
 Double_t err222[4] ={0.0};
 
+Double_t valuein1[8] ={0.0};
+Double_t errin1[8] ={0.0};
+Double_t valueout1[8] ={0.0};
+Double_t errout1[8] ={0.0};
+
 Double_t valuein[5] ={0.0};
 Double_t errin[5] ={0.0};
 Double_t valueout[5] ={0.0};
@@ -112,7 +153,8 @@ int main(Int_t argc,Char_t* argv[])
   std::cout<<"###############################################"<<std::endl;
   std::cout<<"Enter lumi type:"<<std::endl;
   std::cout<<"1. Upstream"<<std::endl;
-  std::cout<<"2. Downstream "<<std::endl;
+  std::cout<<"2. Downstream(1-8) "<<std::endl;
+  std::cout<<"3. Downstream reduced(1-5)"<<std::endl;
   std::cin>>lumiopt;
   std::cout<<"Enter target type:"<<std::endl;
   std::cout<<"1. Liquid Hydrogen"<<std::endl;
@@ -136,6 +178,10 @@ int main(Int_t argc,Char_t* argv[])
     std::cin>>qtor_opt;
   }
 
+
+  // database option?
+  if(argc>1) database = argv[1];
+  
    // select the target
   if(opt == 1){
     target = "HYDROGEN-CELL";
@@ -249,13 +295,10 @@ int main(Int_t argc,Char_t* argv[])
   //Delete all the objects stored in the current directory memmory
   gDirectory->Delete("*");
 
-  //connect to the data base
-  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run2_pass1","qweak", "QweakQweak");
+ //connect to the data base
+  std::cout<<" Connecting to "<<Form("mysql://qweakdb.jlab.org/%s",database.Data())<<std::endl;
+  db = TSQLServer::Connect(Form("mysql://qweakdb.jlab.org/%s",database.Data()),"qweak", "QweakQweak");
 
-  //  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass4","qweak", "QweakQweak");
-  //db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-  //db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
-  //db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
 
   // regression set
   reg_set="on_5+1";
@@ -267,14 +310,7 @@ int main(Int_t argc,Char_t* argv[])
     exit(1);
   
   // clear arrays;
-  for(Int_t i =0;i<8;i++){
-    valuein[i] = 0.0;
-    errin[i] = 0.0;
-    valueout[i]=0.0;
-    errout[i]=0.0;
-  }
-
-
+ 
   for(Int_t i =0;i<4;i++){
     value111[i] = 0.0;
     err111[i] = 0.0;
@@ -282,27 +318,48 @@ int main(Int_t argc,Char_t* argv[])
     err222[i]=0.0;  
   }
 
+ for(Int_t i =0;i<8;i++){
+    valuein1[i] = 0.0;
+    errin1[i] = 0.0;
+    valueout1[i]=0.0;
+    errout1[i]=0.0;
+  }
+
+  for(Int_t i =0;i<5;i++){
+    valuein[i] = 0.0;
+    errin[i] = 0.0;
+    valueout[i]=0.0;
+    errout[i]=0.0;
+  }
+
  
   // Open a txt file to store data
   Char_t  textfile[400];
   if(lumiopt==1)
-    sprintf(textfile,"%s_%s_%s_%s_uslumi_%s_in_out_values_pass4.txt",
-	    interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data()); 
-  if(lumiopt==2)
-    sprintf(textfile,"%s_%s_%s_%s_ds_lumi_%s_in_out_values_pass4.txt",
-	    interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data()); 
+    sprintf(textfile,"%s_%s_%s_%s_USLUMI_regressed_%s_in_out_values_%s.txt"
+	    ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data(),database_stem.Data()); 
+  else if(lumiopt==2)
+    sprintf(textfile,"%s_%s_%s_%s_DSLUMI18_regressed_%s_in_out_values_%s.txt"
+	    ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data(),database_stem.Data()); 
+  else if(lumiopt==3)
+    sprintf(textfile,"%s_%s_%s_%s_DSLUMI15_regressed_%s_in_out_values_%s.txt"
+	    ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data(),database_stem.Data()); 
 
   Myfile.open(textfile);
 
   //plot Lumi asymmetries
   TString title1;
   if(lumiopt==1) 
-    title1= Form("%s (%s): Regressed averages of Upstream Lumi  asymmetries. FIT = p0*cos(phi + p1) + p2"
+    title1= Form("%s (%s): Regressed averages of Upstream Lumi asymmetries. FIT = p0*cos(phi + p1) + p2"
 		 ,targ.Data(),polar.Data());
-  if(lumiopt==2) 
-    title1= Form("%s (%s): Regressed averages of Downstream Lumi  asymmetries. FIT = p0*cos(phi + p1) + p2"
+  else if(lumiopt==2) 
+    title1= Form("%s (%s): Regressed averages of Downstream Lumi 1-8  asymmetries. FIT = p0*cos(phi + p1) + p2"
 		 ,targ.Data(),polar.Data());
 
+  else if(lumiopt==3) 
+    title1= Form("%s (%s): Regressed averages of Downstream Lumi 1-5  asymmetries. FIT = p0*cos(phi + p1) + p2"
+		 ,targ.Data(),polar.Data());
+  
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,500);
   Canvas1->Draw();
   Canvas1->cd();
@@ -332,6 +389,12 @@ int main(Int_t argc,Char_t* argv[])
     gPad->Update();
   } 
   if(lumiopt==2){
+    get_octant_data(ds_lumi,"out", valueout1, errout1);
+    get_octant_data(ds_lumi,"in",  valuein1, errin1);
+    plot_octant(valuein1,errin1,valueout1,errout1);
+    gPad->Update();
+  }  
+  if(lumiopt==3){
     get_octant_data(ds_lumi,"out", valueout, errout);
     get_octant_data(ds_lumi,"in",  valuein, errin);
     plot_octant(valuein,errin,valueout,errout);
@@ -339,8 +402,9 @@ int main(Int_t argc,Char_t* argv[])
   }    
 
   TString lumi;
-  if(lumiopt == 1) lumi = "us";
-  if(lumiopt == 2) lumi = "reduced_ds";
+  if(lumiopt == 1) lumi = "USLUMI";
+  if(lumiopt == 2) lumi = "DSLUMI18";
+  if(lumiopt == 3) lumi = "DSLUMI15";
 
   Canvas1->Update();
   Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_"+lumi+"_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".png");
@@ -348,8 +412,8 @@ int main(Int_t argc,Char_t* argv[])
   Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_"+lumi+"_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".C");
  
   if(lumiopt==2){
-    // Calculate sum of opposite octants
-    get_opposite_octant_average(valuein,errin,valueout,errout);
+    // Calculate sum of opposite octants for dslumi 1-8
+    get_opposite_octant_average(valuein1,errin1,valueout1,errout1);
   }
 
   Myfile.close();
@@ -415,8 +479,9 @@ TString get_query(TString detector, TString measurement, TString ihwp){
 void get_octant_data(TString devicelist[],TString ihwp, Double_t value[], Double_t error[])
 {
   Bool_t ldebug = true;
-  Int_t size = 5;
+  Int_t size = 0;
   if(lumiopt == 1) size = 4;
+  else if(lumiopt == 2) size = 8;
   else size = 5;
  
 
@@ -455,7 +520,9 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
 
   Int_t k =0;
   if(lumiopt == 1) k = 4;
+  else if(lumiopt == 2) k = 8;
   else k = 5;
+
 
   Double_t valuesum[k];
   Double_t valueerror[k];
@@ -468,9 +535,6 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   for(Int_t i =0;i<k;i++){
     if(lumiopt==1)
       x[i] = 2*i+1;
-    else if(lumiopt==2){
-	x[i] = i+1;
-    }
     else
       x[i] = i+1;
 
@@ -654,8 +718,9 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
 
   TString lumi;
-  if(lumiopt == 1) lumi = "us";
-  if(lumiopt == 2) lumi = "reduced_ds";
+  if(lumiopt == 1) lumi = "USLUMI";
+  if(lumiopt == 2) lumi = "DSLUMI18";
+  if(lumiopt == 3) lumi = "DSLUMI15";
 
 
   Canvas11-> Update();
@@ -726,7 +791,7 @@ void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
   Myfile<<"##############################\n"<<std::endl;
 
 
-  TString title = targ+"("+polar+"): Regressed slug based opposite octant averages of Lumis. FIT = p0*cos(phi + p1) + p2";
+  TString title = targ+"("+polar+"): Regressed slug based opposite octant averages of DSLumis. FIT = p0*cos(phi + p1) + p2";
   
   TCanvas * Canvas11 = new TCanvas("canvas11",title,0,0,1000,500);
   Canvas11->Draw();
@@ -804,9 +869,9 @@ void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
   // stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
 
   Canvas11-> Update();
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_reduced_dslumi_regressed_opposite_octant_plots_"+reg_set+"_"+database_stem+".png");
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_reduced_dslumi_regressed_opposite_octant_plots_"+reg_set+"_"+database_stem+".svg");
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_reduced_dslumi_regressed_opposite_octant_plots_"+reg_set+"_"+database_stem+".C");
+  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_DSLUMI18_regressed_opposite_octant_plots_"+reg_set+"_"+database_stem+".png");
+  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_DSLUMI18_regressed_opposite_octant_plots_"+reg_set+"_"+database_stem+".svg");
+  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_DSLUMI18_regressed_opposite_octant_plots_"+reg_set+"_"+database_stem+".C");
   
 }
 

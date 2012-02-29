@@ -320,8 +320,8 @@ int main(Int_t argc,Char_t* argv[])
 
   // Open a txt file to store data
   Char_t  textfile[400];
-  sprintf(textfile,"%s_%s_%s_%s_%s_in_out_values_pass4.txt"
-	  ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data()); 
+  sprintf(textfile,"%s_%s_%s_%s_MD_regressed_%s_in_out_values_%s.txt"
+	  ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data(),database_stem.Data()); 
   Myfile.open(textfile);
 
   //plot MD asymmetries
@@ -359,9 +359,9 @@ int main(Int_t argc,Char_t* argv[])
 
 
   Canvas1->Update();
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_md_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".png");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_md_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".svg");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_md_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".C");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".png");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".svg");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".C");
 
   // Calculate sum of opposite octants
   get_opposite_octant_average(value11,err11,value1,err1);
