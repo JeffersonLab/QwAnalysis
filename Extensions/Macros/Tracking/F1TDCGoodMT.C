@@ -137,7 +137,7 @@ MeanTimeContainer::MeanTimeContainer(TString name)
     {
       fPositiveValue[i]    = 0.0;
       fNegativeValue[i]    = 0.0;
-      fHardWareMeantime[i] = 0.0;
+      //      fHardWareMeantime[i] = 0.0;
     }
   
 };
