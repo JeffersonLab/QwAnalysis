@@ -14,7 +14,8 @@
 //         MD1, TS2, event 0:10000, delta MD1 < 50, delta TS2 <20, MD debug on, TS debug on, rootfile, binnumber
 //         in order to save debug outputs in a file
 //         Qw-Root [3] GoodMtMultiHits(1,2,-1,-1,50,20,1,1); > debug.log
-
+//
+//         GoodMTMultiHits(2,2,-1,-1, 2000, 2000, 1,1, "MDTrigger_15027.root"); > MD2_2000_TS2_2000_Run15027.log
 
 #include "F1TDCGoodMT.h"
 
@@ -67,35 +68,37 @@ MeanTime::AddPNValues(Double_t p_value, Double_t n_value, Int_t p_id, Int_t n_id
 
 
 void
-MeanTime::Print()
+MeanTime::Print(Bool_t on)
 {
 
-  TString output = "";
-  if     (fDetectorType == "MD") output += "<<";
-  else if(fDetectorType == "TS") output += ">>";
-
-  output += fDetectorType;
-  
-  if     (fDetectorType == "MD") output += "<<";
-  else if(fDetectorType == "TS") output += ">>";
-
-  output += Form("-- ID %d ------Event %8d:", fMeanTimeId, fEventId);
-  output += " HitIndex[";
-  output += fPositiveHitId;
-  output += ",";
-  output += fNegativeHitId;
-  output += "]";
-
-  if      (fDetectorType == "MD") {
-    output += Form( " MDp%+9.2f MDm%+9.2f dMD%+9.2f MDsMT %+10.2f",
-		    fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
+  if(on) {
+    TString output = "";
+    if     (fDetectorType == "MD") output += "<<";
+    else if(fDetectorType == "TS") output += ">>";
+    
+    output += fDetectorType;
+    
+    if     (fDetectorType == "MD") output += "<<";
+    else if(fDetectorType == "TS") output += ">>";
+    
+    output += Form("-- ID %d ------Event %8d:", fMeanTimeId, fEventId);
+    output += " HitIndex[";
+    output += fPositiveHitId;
+    output += ",";
+    output += fNegativeHitId;
+    output += "]";
+    
+    if      (fDetectorType == "MD") {
+      output += Form( " MDp%+9.2f MDm%+9.2f dMD%+9.2f MDsMT %+10.2f",
+		      fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
+    }
+    else if (fDetectorType == "TS") {
+      output += Form( " TSp%+9.2f TSm%+9.2f dTS%+9.2f TSsMT %+10.2f",
+		      fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
+    }
+    
+    std::cout << output << std::endl;
   }
-  else if (fDetectorType == "TS") {
-    output += Form( " TSp%+9.2f TSm%+9.2f dTS%+9.2f TSsMT %+10.2f",
-		    fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
-  }
-
-  std::cout << output << std::endl;
   return;
 };
 
@@ -132,8 +135,9 @@ MeanTimeContainer::MeanTimeContainer(TString name)
   
   for(Int_t i=0;i<7;i++) 
     {
-      fPositiveValue[i] = 0.0;
-      fNegativeValue[i] = 0.0;
+      fPositiveValue[i]    = 0.0;
+      fNegativeValue[i]    = 0.0;
+      fHardWareMeantime[i] = 0.0;
     }
   
 };
@@ -190,12 +194,20 @@ MeanTimeContainer::Add(Double_t p_value[7], Double_t n_value[7])
 }
 
 
+// ProcessMeanTime function is very inefficient, because
+// it uses all hit combinations, even if we don't need them.
+// Anyway, this first attempt is good enough to see
+// what I want.
+
+// But it would bebetter to add a better logic to exclude empty entries.
+// If so, we will get a bit faster script. 
+
+// Wednesday, February 29 09:20:10 EST 2012, jhlee
 
 void 
 MeanTimeContainer::ProcessMeanTime()
 {
-  //  MD 791 event...
-  
+
   Bool_t   local_debug = false;
   Bool_t   GS_Stable_marriage_debug = false;
 
@@ -360,7 +372,7 @@ MeanTimeContainer::ProcessMeanTime()
   
   while (getting_engaged < 7)
     {
-      // While there is a positive channel p which is free and has not proposed to every pixel
+      // While there is a positive channel p which is free and has not proposed to every negative
       // Chose such a positive channel p which is free or solo
       for (p=0; fiancee[p]!=-1; p++)
        	;
@@ -374,6 +386,7 @@ MeanTimeContainer::ProcessMeanTime()
 	// decrease_rank[p] = 0 means the highest-ranked negative number
 	
 	n = p_preference_list[p][decrease_rank[p]];
+
 	if(GS_Stable_marriage_debug) printf(" to negative %2d", n);
 
 	// decrease the rank number, which means preparing the next highest-ranked negative number
@@ -388,7 +401,7 @@ MeanTimeContainer::ProcessMeanTime()
 	}
 	// Else negative is currently engaged to positive "suitor[n]"
 	else {
-	  // if pixel prefer f_old(suitor[p]) to f 
+	  // if negative prefer positive_old(suitor[n]) to positive
 	  // Greater rank means the lowest-ranked pixel.
 	  if (n_rank[n][suitor[n]] < n_rank[n][p]) {
 	    if(GS_Stable_marriage_debug) printf(" rejected\t(negative %2d prefers %d)\n", n, suitor[n]);
@@ -409,7 +422,6 @@ MeanTimeContainer::ProcessMeanTime()
   for(p=0; p<7; p++)
     {
       if (local_debug)printf("%s %s\n", p_name[p], n_name[fiancee[p]]);
-      //     if ( subtract > fTimeWindowNs ) continue; // reject a meantime out of a reasonable time window
       if(fPositiveValue[p] !=0.0 && fNegativeValue[fiancee[p]]!=0.0) {
 	AddMeanTime(fDetectorName, fEventId, fPositiveValue[p], fNegativeValue[fiancee[p]], p, fiancee[p]);
       }
@@ -455,18 +467,21 @@ MeanTimeContainer::ProcessMeanTime()
 }
 
 void
-MeanTimeContainer::Print()
+MeanTimeContainer::Print(Bool_t on)
 {
-  TObjArrayIter next(fMeanTimeList);
-  TObject* obj = NULL;
-  MeanTime * mean_time  = NULL;
-
-
-  while ( (obj = next()) )
-    {
-      mean_time = (MeanTime *) obj;
-      mean_time->Print();
-    }
+  if(on) {
+    TObjArrayIter next(fMeanTimeList);
+    TObject* obj = NULL;
+    MeanTime * mean_time  = NULL;
+    
+    
+    while ( (obj = next()) )
+      {
+	mean_time = (MeanTime *) obj;
+	mean_time->Print();
+      }
+  }
+  
   return;
 };
 
@@ -555,9 +570,6 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 {
 
   Style();
-  Bool_t verbose = true;
-  // Bool_t ts_debug = false;
-  // Bool_t md_debug = true;
 
   TString path = gSystem->Getenv("QW_ROOTFILES");
   
@@ -575,8 +587,9 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       return NULL;
   }
 
-  TString output_filename="GoodMTMultiHits";
- 
+  TString output_filename="MT";
+
+  TString canvas_name = "";
   
   output_filename += "_MD";
   output_filename += md_plane;
@@ -586,11 +599,19 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
   output_filename += ts_plane;
   output_filename += "_";
   output_filename += TS_MT_time_window_ns;
+
+  canvas_name     = output_filename;
+
   output_filename += "_";
   output_filename += filename;
 
 
-  TCanvas *c1 = new TCanvas("GoodMTMultiHits","GoodMtMultiHits Stacked hists",100,100,1080,800);
+  TCanvas *c1 = new TCanvas(canvas_name, 
+			    Form("%s Stacked Histograms", canvas_name.Data()),
+			    100,
+			    100,
+			    1024,
+			    612);
 
   TString name ="";
   
@@ -698,27 +719,6 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
   // Int_t TS_MT_time_window_ns = 20;
 
 
-  // TTree t1("t1", "tree test");
-  // static hits mdp;
-  // static hits mdm;
-  // static hits tsp;
-  // static hits tsm;
-  // static hits tsmt;
-
-  // t1.Branch("mdp", &mdp, "0:1:2:3:4:5:6:MDp");
-  // t1.Branch("mdm", &mdm, "0:1:2:3:4:5:6:MDm");
-  // t1.Branch("tsp", &tsp, "0:1:2:3:4:5:6:TSp");
-  // t1.Branch("tsm", &tsm, "0:1:2:3:4:5:6:TSm");
-  // t1.Branch("tsmt", &tsmt, "0:1:2:3:4:5:6:TSmt");
-
-
-  // Double_t tsp[7]  = {ini};
-  // Double_t tsm[7]  = {ini};
-  // Double_t tsmt[7] = {ini};
-  
-  // Double_t mdp[7]  = {ini};
-  // Double_t mdm[7]  = {ini};
-
 
   for (Long64_t i=event_number_start; i<num_entries; i++)
     {//;
@@ -753,10 +753,11 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
     
       for(Int_t hit_idx=0; hit_idx<nhit; hit_idx++) 
 	{//;;
-	  qwhit = qw_event->GetHit(hit_idx);
 
-	  fregion    = qwhit->GetRegion();
+	  qwhit   = qw_event->GetHit(hit_idx);
+	  fregion = qwhit->GetRegion();
 
+	  // Trigger Scintillator is Region 4 in QwHit
 	  if (fregion == 4 ) { 
 	    fplane     = qwhit->GetPlane();
 	    if (fplane != ts_plane)   continue;
@@ -774,6 +775,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 	      }
 	    }
 	  }
+	  // Main Detector is Region 5 in QwHit
 	  else if (fregion == 5 ) {
 	    fplane     = qwhit->GetPlane();
 	    if (fplane != md_plane)   continue;
@@ -800,20 +802,20 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       for(Int_t idx=0; idx<ts_max_hit_range; idx++) 
 	{//;;
 
-
 	  if (tsp[idx] == ini && tsm[idx] == ini) continue;
+
 	  Double_t software_mt_ts = 0.0;
 	  Double_t software_del_ts = 0.0;
+
 	  if(ts_debug) {
 	    printf(">>TS>> NHits%4d in Event %8d: HitOrder[%d,%d] TSp%+9.2f TSm%+9.2f", 
 		   nhit, i, ts_max_hit,  idx,tsp[idx], tsm[idx]);
 	  }
+
 	  if (tsp[idx]!=ini && tsm[idx]!=ini) {
 	    software_mt_ts  = 0.5*(tsp[idx]+tsm[idx]);
 	    software_del_ts = tsp[idx] - tsm[idx];
 	    if (ts_debug) printf(" dTS%+9.2f TSsMT %+10.2f", software_del_ts, software_mt_ts);
-	    //	    tshist[idx]  -> Fill(software_mt_ts);
-	    //	    dtshist[idx] -> Fill(software_del_ts);
 	  }
 	  else {
 	    software_mt_ts = 0.0;
@@ -832,10 +834,6 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 	      printf(" TSMT %+8.2f >>------------ >>\n", tsmt[idx]);
 	    }
 	  }
-	  // if (tsp[idx]!=ini && tsm[idx]!=ini) {
-
-	  
-	  // }
 	}//;;
 
 
@@ -852,20 +850,17 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       for(Int_t ts_size=0; ts_size < mt_container->Size(); ts_size++)
 	{
 	  ts_mt_time = mt_container->GetMeanTimeObject(ts_size);
-	  ts_mt_time -> Print();
-	  tshist[ts_size]  -> Fill(ts_mt_time->GetMeanTime());
+	  ts_mt_time -> Print(ts_debug);
+	  tshist [ts_size] -> Fill(ts_mt_time->GetMeanTime());
 	  dtshist[ts_size] -> Fill(ts_mt_time->GetSubtractTime());
 	  
 	}
 
-
       delete mt_container; mt_container = NULL;
 
-
-
-      Bool_t md_zero_suppress = false;
-
+      
       Int_t md_max_hit_range = md_max_hit+1;
+
       for(Int_t idx=0; idx<md_max_hit_range; idx++) 
       	{//;;
 
@@ -878,13 +873,11 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 	    printf("<<MD<< NHits%4d in Event %8d: HitOrder[%d,%d] MDp%+9.2f MDm%+9.2f", 
 		   nhit, i, md_max_hit, idx, mdp[idx], mdm[idx]);
 	  }
+
       	  if (mdp[idx]!=ini && mdm[idx]!=ini) {
       	    //	    printf("event %18d id %d mdp %+8.2f mdm%+8.2f mdsmt ", i, idx, mdp[idx], mdm[idx]);
       	    software_mt_md  = 0.5*(mdp[idx]+mdm[idx]);
       	    software_del_md = mdp[idx]-mdm[idx];
-
-	    //   	    mdhist[idx]  -> Fill(software_mt_md);
-	    //      	    dmdhist[idx] -> Fill(software_del_md);
       	    if (md_debug) printf(" dMD%+9.2f MDsMT %+10.2f", software_del_md, software_mt_md);
       	  }
       	  else {
@@ -908,44 +901,44 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       for(Int_t md_size=0; md_size < mt_container->Size(); md_size++)
 	{
 	  md_mt_time = mt_container->GetMeanTimeObject(md_size);
-	  md_mt_time -> Print();
-	  mdhist[md_size]  -> Fill(md_mt_time->GetMeanTime());
+	  md_mt_time -> Print(md_debug);
+	  mdhist [md_size] -> Fill(md_mt_time->GetMeanTime());
 	  dmdhist[md_size] -> Fill(md_mt_time->GetSubtractTime());
 	  
 	}
+
       delete mt_container; mt_container = NULL;
-      //    	}//;; for(Int_t hit_idx=0; 
+
     }//; Long64_t i=0; i<num_entries....
   
   
   for(Int_t idx=0; idx <7;idx++)
     {
-      mdhist[idx] -> SetDirectory(0);
-      mdhist[idx] -> SetMarkerStyle(21);
-      mt_hs[0]->Add(mdhist[idx]);   
+      mdhist  [idx] -> SetDirectory(0);
+      mdhist  [idx] -> SetMarkerStyle(21);
+      mt_hs     [0] -> Add(mdhist[idx]);   
    
-      tshist[idx] -> SetDirectory(0);
-      tshist[idx] -> SetMarkerStyle(21);
-      mt_hs[1]->Add(tshist[idx]);
+      tshist  [idx] -> SetDirectory(0);
+      tshist  [idx] -> SetMarkerStyle(21);
+      mt_hs     [1]      -> Add(tshist[idx]);
 
       tsmthist[idx] -> SetDirectory(0);
       tsmthist[idx] -> SetMarkerStyle(21);
-      mt_hs[2]->Add(tsmthist[idx]);
+      mt_hs     [2] -> Add(tsmthist[idx]);
 
-      dmdhist[idx] -> SetDirectory(0);
-      dmdhist[idx] -> SetMarkerStyle(21);
-      mt_hs[3]->Add(dmdhist[idx]);   
+      dmdhist [idx] -> SetDirectory(0);
+      dmdhist [idx] -> SetMarkerStyle(21);
+      mt_hs     [3] -> Add(dmdhist[idx]);   
    
-      dtshist[idx] -> SetDirectory(0);
-      dtshist[idx] -> SetMarkerStyle(21);
-      mt_hs[4]->Add(dtshist[idx]);
+      dtshist [idx] -> SetDirectory(0);
+      dtshist [idx] -> SetMarkerStyle(21);
+      mt_hs     [4] -> Add(dtshist[idx]);
 
       dtsmthist[idx] -> SetDirectory(0);
       dtsmthist[idx] -> SetMarkerStyle(21);
-      mt_hs[5]->Add(dtsmthist[idx]);
+      mt_hs      [5] -> Add(dtsmthist[idx]);
 
     }
-
 
   afile.Close();
 
@@ -1145,7 +1138,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
     leg->SetFillColor(0);
     leg->SetFillStyle(1001);
     
-    leg->SetHeader("Stack Histogram");
+    //   leg->SetHeader("Stack Histogram");
     leg->AddEntry(mdhist[0],"1st Hits","f");
     leg->AddEntry(mdhist[1],"2nd Hits","f");
     leg->AddEntry(mdhist[2],"3rd Hits","f");
@@ -1161,8 +1154,8 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
     gPad->SetGridy();
     gPad->SetLogy();
     mt_hs[0]->Draw("nostack");
-    leg->SetHeader("Non Stack Histogram");
-    leg->Draw();
+    // leg->SetHeader("Non Stack Histogram");
+    // leg->Draw();
     gPad->Update();
 
   }
@@ -1174,25 +1167,25 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
     mt_hs[1] -> Draw("goff");
     mt_hs[1] -> GetXaxis() -> SetTitle("Time[ns]");
     mt_hs[1] -> Draw();
-    TLegend *leg2 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
-    leg2->SetHeader("Stack Histogram");
-    leg2->SetNColumns(2);
-    leg2->AddEntry(tshist[0],"1st Hits","f");
-    leg2->AddEntry(tshist[1],"2nd Hits","f");
-    leg2->AddEntry(tshist[2],"3rd Hits","f");
-    leg2->AddEntry(tshist[3],"4th Hits","f"); 
-    leg2->AddEntry(tshist[4],"5th Hits","f");
-    leg2->AddEntry(tshist[5],"6th Hits","f");
-    leg2->AddEntry(tshist[6],"7th Hits","f");
-    leg2->Draw();
+    // TLegend *leg2 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
+    // leg2->SetHeader("Stack Histogram");
+    // leg2->SetNColumns(2);
+    // leg2->AddEntry(tshist[0],"1st Hits","f");
+    // leg2->AddEntry(tshist[1],"2nd Hits","f");
+    // leg2->AddEntry(tshist[2],"3rd Hits","f");
+    // leg2->AddEntry(tshist[3],"4th Hits","f"); 
+    // leg2->AddEntry(tshist[4],"5th Hits","f");
+    // leg2->AddEntry(tshist[5],"6th Hits","f");
+    // leg2->AddEntry(tshist[6],"7th Hits","f");
+    // leg2->Draw();
     gPad->Update();
 
     c1->cd(5);
     gPad->SetGridy();
     gPad->SetLogy();
     mt_hs[1]->Draw("nostack");
-    leg2->SetHeader("Non Stack Histogram");
-    leg2->Draw();
+    // leg2->SetHeader("Non Stack Histogram");
+    // leg2->Draw();
     gPad->Update();
     c1-> Modified();
     c1-> Update();
@@ -1206,25 +1199,25 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
     mt_hs[2] -> Draw("goff");
     mt_hs[2] -> GetXaxis() -> SetTitle("Time[ns]");
     mt_hs[2] -> Draw();
-    TLegend *leg3 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
-    leg3->SetHeader("Stack Histogram");
-    leg3->SetNColumns(2);
-    leg3->AddEntry(tshist[0],"1st Hits","f");
-    leg3->AddEntry(tshist[1],"2nd Hits","f");
-    leg3->AddEntry(tshist[2],"3rd Hits","f");
-    leg3->AddEntry(tshist[3],"4th Hits","f"); 
-    leg3->AddEntry(tshist[4],"5th Hits","f");
-    leg3->AddEntry(tshist[5],"6th Hits","f");
-    leg3->AddEntry(tshist[6],"7th Hits","f");
-    leg3->Draw();
+    // TLegend *leg3 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
+    // leg3->SetHeader("Stack Histogram");
+    // leg3->SetNColumns(2);
+    // leg3->AddEntry(tshist[0],"1st Hits","f");
+    // leg3->AddEntry(tshist[1],"2nd Hits","f");
+    // leg3->AddEntry(tshist[2],"3rd Hits","f");
+    // leg3->AddEntry(tshist[3],"4th Hits","f"); 
+    // leg3->AddEntry(tshist[4],"5th Hits","f");
+    // leg3->AddEntry(tshist[5],"6th Hits","f");
+    // leg3->AddEntry(tshist[6],"7th Hits","f");
+    // leg3->Draw();
     gPad->Update();
 
     c1->cd(6);
     gPad->SetGridy();
     gPad->SetLogy();
     mt_hs[2]->Draw("nostack");
-    leg3->SetHeader("Non Stack Histogram");
-    leg3->Draw();
+    // leg3->SetHeader("Non Stack Histogram");
+    // leg3->Draw();
     gPad->Update();
 
   }
