@@ -34,11 +34,14 @@ my $optstatus = GetOptions
 @channels = grep { !/tgt/i } @channels
   unless $target_want;
 
-my $then = shift @ARGV;
-my $now  = shift @ARGV;
+my $request_then = shift @ARGV;
+my $request_now  = shift @ARGV;
+## Don't leave these undefined if they are blank.
+map { $_ = "" unless defined $_ } $request_then, $request_now;
 
-$then = ParseDate( $then ? $then : "yesterday midnight");
-$now = $now ? ParseDate($now) : DateCalc($then, "+48 hours");
+my $then = ParseDate( $request_then ? $request_then : "yesterday midnight");
+my $now = $request_now ?
+  ParseDate($request_now) : DateCalc($then, "+48 hours");
 
 # don't interpolate a few seconds into the next day
 $now = DateCalc $now, "-$interval seconds";
@@ -48,6 +51,27 @@ my @then = UnixDate($then, @fmt);
 my @now  = UnixDate($now , @fmt);
 
 #print "@then, @now\n";
+
+my @corrupt_time_intervals =
+  (	{ start	=> "2012-02-29 14:28",
+	  end	=> "2012-02-29 14:51",
+	  url	=> "https://hallcweb.jlab.org/hclog/1203_archive/120301104428.html",
+	  },
+  );
+foreach my $bad (@corrupt_time_intervals) {
+  my $bad_start = ParseDate($bad->{start});
+  ## n.b. assume requested interval is much longer than the problem ...
+  if ($then le $bad_start and $bad_start le $now) {
+    warn <<EOF;
+WARNING: your time interval includes a period where the archiver was unhappy.
+See $bad->{url} .
+Consider instead two queries
+	$0 '$request_then' '$bad->{start}'
+	$0 '$bad->{end}' '$request_now'
+and adding the results together.
+EOF
+  }
+}
 
 my $helpstring = <<EOF;
 A Coulomb counter.  Accesses the Hall C EPICS archiver and downloads
