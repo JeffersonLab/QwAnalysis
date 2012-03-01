@@ -21,6 +21,10 @@
 #New RHWP for run 2 - 02-16-2012 rakitha (rakithab) from E-log 250
 #conversion from deg to dac is 360 deg -> 8000 dac
 
+#
+#/home/EPICS/dvlepics/R3.14.12.1/base/bin/linux-x86/cainfo
+#/home/EPICS/dvlepics/R3.14.12.1/base/bin/linux-x86/caget
+
 RHWP_IN=329
 RHWP_OUT=3496
 RHWP_OUT_IN=7511
@@ -44,6 +48,17 @@ case "$host_name" in
 	IHWP_State="`caget -t IGL1I00DI24_24M`"
 	RHWP="`caget -t psub_pl_ipos`"
 	echo "Current RHWP  = $RHWP"
+	echo "RHWP"
+	echo "`cainfo psub_pl_ipos | grep Access | cut -c 20-30`"
+	echo "PC DAC status"
+	echo "`cainfo C1068_QDAC01 | grep Access | cut -c 20-30`"
+	echo "`cainfo C1068_QDAC02 | grep Access | cut -c 20-30`"
+#	RHWP_access="`cainfo psub_pl_ipos | grep Access | cut -c 26-30 `"
+#	if [ "$RHWP_access" != "write" ]; then
+#	    echo "Hall C have no write access to RHWP"
+#	    echo "Please request MCC to set RHWP setting to $RHWP"
+#	    echo "Once RHWP setting is set $RHWP run the script again"
+#	fi
 	if [ "$IHWP_State" == "OUT " ];then
 	    echo "Current IHWP state is OUT"
 	    echo "Nominal Mid-point  = 40800"
