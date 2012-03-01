@@ -66,8 +66,8 @@ foreach my $bad (@corrupt_time_intervals) {
 WARNING: your time interval includes a period where the archiver was unhappy.
 See $bad->{url} .
 Consider instead two queries
-	$0 '$request_then' '$bad->{start}'
-	$0 '$bad->{end}' '$request_now'
+    $0 '$request_then' '$bad->{start}'
+    $0 '$bad->{end}' '$request_now'
 and adding the results together.
 EOF
   }
