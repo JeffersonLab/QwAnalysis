@@ -16,6 +16,19 @@
 //         Qw-Root [3] GoodMtMultiHits(1,2,-1,-1,50,20,1,1); > debug.log
 //
 //         GoodMTMultiHits(2,2,-1,-1, 2000, 2000, 1,1, "MDTrigger_15027.root"); > MD2_2000_TS2_2000_Run15027.log
+//
+//
+//         0.0.2 Thursday, March  1 16:50:53 EST 2012 , jhlee
+//
+//               added a difference between hardware meantime and software meantime of TS
+//                     in order to check this script quality.
+//                     if we see always constant difference between software and hardware
+//                     we might say, this scripts is good enough to use to build software meantime
+//                     of MD, which doesn't have hardware meantime. 
+//
+//               added some boolean conditions to suppress Draw or Canvas when a given event range is small
+//                       
+
 
 #include "F1TDCGoodMT.h"
 
@@ -31,6 +44,9 @@ MeanTime::MeanTime()
   fPositiveValue = 0.0;
   fNegativeValue = 0.0;
 
+  fDiffHardSoftMeanTime = 0.0; // Hardware MT - Software MT
+  fHardWareMeanTime     = 0.0;
+
   fPositiveHitId = 0;
   fNegativeHitId = 0;
   fMeanTimeId    = 0;
@@ -45,6 +61,8 @@ MeanTime::MeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, I
 {
   fDetectorType = name;
   fEventId      = ev_id;
+  fDiffHardSoftMeanTime = 0.0; 
+  fHardWareMeanTime     = 0.0;
   AddPNValues(p_in, n_in, p_id, n_id);
 
 };
@@ -89,12 +107,12 @@ MeanTime::Print(Bool_t on)
     output += "]";
     
     if      (fDetectorType == "MD") {
-      output += Form( " MDp%+9.2f MDm%+9.2f dMD%+9.2f MDsMT %+10.2f",
+      output += Form( " MDp%+9.2f MDm%+9.2f dMD%+9.2f MDsMT %+10.2f << ---------------------------- <<",
 		      fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
     }
     else if (fDetectorType == "TS") {
-      output += Form( " TSp%+9.2f TSm%+9.2f dTS%+9.2f TSsMT %+10.2f",
-		      fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
+      output += Form( " TSp%+9.2f TSm%+9.2f dTS%+9.2f TSsMT %+10.2f TShMT %+10.2f dTSMT %+8.2f >>",
+		      fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime, fHardWareMeanTime, fHardWareMeanTime - fMeanTime);
     }
     
     std::cout << output << std::endl;
@@ -110,6 +128,18 @@ MeanTime::IsInTimeWindow(Double_t time_window)
   status = ( fabs(fSubtractTime) < time_window ) ? true : false;
   return status;
 }
+
+
+
+
+void
+MeanTime::SetHardwareMeanTime(Double_t hardware_meantime)
+{
+  fHardWareMeanTime     = hardware_meantime;
+  fDiffHardSoftMeanTime = fHardWareMeanTime - fMeanTime;
+  return;
+}
+
 
 
 void 
@@ -137,7 +167,7 @@ MeanTimeContainer::MeanTimeContainer(TString name)
     {
       fPositiveValue[i]    = 0.0;
       fNegativeValue[i]    = 0.0;
-      //      fHardWareMeantime[i] = 0.0;
+      fHardwareMeantimeValue[i] = 0.0;
     }
   
 };
@@ -159,9 +189,20 @@ MeanTimeContainer::AddMeanTime(TString name, Long64_t ev_id, Double_t p_in, Doub
   temp = new MeanTime(name, ev_id, p_in, n_in, p_id, n_id);
 
   if(temp->IsInTimeWindow(fTimeWindowNs)) {
-    temp->SetMeanTimeId(fNMeanTimes);
-    pos = fMeanTimeList->AddAtFree(temp) ;
-    //  temp->Print();
+    
+    temp -> SetMeanTimeId(fNMeanTimes);
+    //
+    // Our GS Stable Marriage Algorithm uses "Positive proposes to Negative",
+    // thus Negative will accept the proposal of Positive according to
+    // Negative preference list. Therefore we must use TS Hardware Meantime with negative index
+    // in order to compare Software and Hardware...
+    //
+    // Thursday, March  1 16:21:26 EST 2012, jhlee
+    // 
+    Int_t negative_id = temp -> GetNegativeHitId();
+    temp -> SetHardwareMeanTime(fHardwareMeantimeValue[negative_id]);
+    pos   = fMeanTimeList->AddAtFree(temp) ;
+    //    temp->Print(true);
     fNMeanTimes++;
   }
   else {
@@ -194,12 +235,25 @@ MeanTimeContainer::Add(Double_t p_value[7], Double_t n_value[7])
 }
 
 
+void 
+MeanTimeContainer::Add(Double_t p_value[7], Double_t n_value[7], Double_t hardware_meantime[7])
+{
+  for(Int_t i=0; i<7; i++)
+    {
+      fPositiveValue[i]         = p_value[i];
+      fNegativeValue[i]         = n_value[i];
+      fHardwareMeantimeValue[i] = hardware_meantime[i];
+    }
+
+  return;
+}
+
 // ProcessMeanTime function is very inefficient, because
 // it uses all hit combinations, even if we don't need them.
 // Anyway, this first attempt is good enough to see
 // what I want.
 
-// But it would bebetter to add a better logic to exclude empty entries.
+// But it would be better to add a better logic to exclude empty entries.
 // If so, we will get a bit faster script. 
 
 // Wednesday, February 29 09:20:10 EST 2012, jhlee
@@ -569,6 +623,8 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 		Int_t time_shift_ns=0)
 {
 
+  Bool_t local_debug = true;
+
   Style();
 
   TString path = gSystem->Getenv("QW_ROOTFILES");
@@ -701,7 +757,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 
   Double_t ini = 0.0;
 
-  MeanTimeContainer *mt_container = 0;
+  MeanTimeContainer *mt_container = NULL;
   
   // MD time window is selected from Rob's talk
   // Typical event collects light for ~40ns
@@ -804,7 +860,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 
 	  if (tsp[idx] == ini && tsm[idx] == ini) continue;
 
-	  Double_t software_mt_ts = 0.0;
+	  Double_t software_mt_ts  = 0.0;
 	  Double_t software_del_ts = 0.0;
 
 	  if(ts_debug) {
@@ -826,12 +882,12 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 	  if(software_mt_ts!=0.0) {
 	    dtsmthist[idx] -> Fill(tsmt[idx]-software_mt_ts);
 	    if (ts_debug )  {
-	      printf(" TSMT %+8.2f dTSMT %+8.2f >>\n", tsmt[idx], tsmt[idx]-software_mt_ts);
+	      printf(" TShMT %+10.2f dTSMT %+8.2f >>\n", tsmt[idx], tsmt[idx]-software_mt_ts);
 	    }
 	  }
 	  else {
 	    if (ts_debug )  {
-	      printf(" TSMT %+8.2f >>------------ >>\n", tsmt[idx]);
+	      printf(" TShMT %+10.2f >>------------ >>\n", tsmt[idx]);
 	    }
 	  }
 	}//;;
@@ -841,7 +897,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       mt_container = new MeanTimeContainer("TS");
       mt_container -> SetEventId(i);
       mt_container -> SetTimeWindow(TS_MT_time_window_ns);
-      mt_container -> Add(tsp, tsm);
+      mt_container -> Add(tsp, tsm, tsmt);
       mt_container -> ProcessMeanTime();
 
 
@@ -850,9 +906,10 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       for(Int_t ts_size=0; ts_size < mt_container->Size(); ts_size++)
 	{
 	  ts_mt_time = mt_container->GetMeanTimeObject(ts_size);
-	  ts_mt_time -> Print(ts_debug);
-	  tshist [ts_size] -> Fill(ts_mt_time->GetMeanTime());
-	  dtshist[ts_size] -> Fill(ts_mt_time->GetSubtractTime());
+	  ts_mt_time -> Print(local_debug);
+	  tshist [ts_size]   -> Fill(ts_mt_time->GetMeanTime());
+	  dtshist[ts_size]   -> Fill(ts_mt_time->GetSubtractTime());
+	  dtsmthist[ts_size] -> Fill(ts_mt_time->GetDiffHardSoftMeanTime());
 	  
 	}
 
@@ -884,7 +941,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       	    if(md_debug)  printf(" <<---------- <<--------------");
 
       	  }
-      	  if (md_debug) printf(" <<----------- <<------------ <<\n");
+      	  if (md_debug)   printf(" <<-------------- <<------------ <<\n");
 
       	}//;;
 
@@ -901,7 +958,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       for(Int_t md_size=0; md_size < mt_container->Size(); md_size++)
 	{
 	  md_mt_time = mt_container->GetMeanTimeObject(md_size);
-	  md_mt_time -> Print(md_debug);
+	  md_mt_time -> Print(local_debug);
 	  mdhist [md_size] -> Fill(md_mt_time->GetMeanTime());
 	  dmdhist[md_size] -> Fill(md_mt_time->GetSubtractTime());
 	  
@@ -920,7 +977,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
    
       tshist  [idx] -> SetDirectory(0);
       tshist  [idx] -> SetMarkerStyle(21);
-      mt_hs     [1]      -> Add(tshist[idx]);
+      mt_hs     [1] -> Add(tshist[idx]);
 
       tsmthist[idx] -> SetDirectory(0);
       tsmthist[idx] -> SetMarkerStyle(21);
@@ -969,266 +1026,274 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
     
   //    }
 
-
-  mdhist[0] -> SetFillColor(2);
-  mdhist[0] -> SetMarkerColor(2);
-  
-  tshist[0] -> SetFillColor(2);
-  tshist[0] -> SetMarkerColor(2);
-  
-  tsmthist[0] -> SetFillColor(2);
-  tsmthist[0] -> SetMarkerColor(2);
-  
-  dmdhist[0] -> SetFillColor(2);
-  dmdhist[0] -> SetMarkerColor(2);
-  
-  dtshist[0] -> SetFillColor(2);
-  dtshist[0] -> SetMarkerColor(2);
-  
-  dtsmthist[0] -> SetFillColor(2);
-  dtsmthist[0] -> SetMarkerColor(2);
+  Bool_t md_plot_flag   = (mdhist  [0]->GetEntries()!=0) ? true : false;
+  Bool_t ts_plot_flag   = (tshist  [0]->GetEntries()!=0) ? true : false;
+  Bool_t tsmt_plot_flag = (tsmthist[0]->GetEntries()!=0) ? true : false;
 
 
-  mdhist[1] -> SetFillColor(3);
-  mdhist[1] -> SetMarkerColor(3);
+  if (md_plot_flag || ts_plot_flag || tsmt_plot_flag) {
+    mdhist[0] -> SetFillColor(2);
+    mdhist[0] -> SetMarkerColor(2);
   
-  tshist[1] -> SetFillColor(3);
-  tshist[1] -> SetMarkerColor(3);
+    tshist[0] -> SetFillColor(2);
+    tshist[0] -> SetMarkerColor(2);
   
-  tsmthist[1] -> SetFillColor(3);
-  tsmthist[1] -> SetMarkerColor(3);
+    tsmthist[0] -> SetFillColor(2);
+    tsmthist[0] -> SetMarkerColor(2);
   
-  dmdhist[1] -> SetFillColor(3);
-  dmdhist[1] -> SetMarkerColor(3);
+    dmdhist[0] -> SetFillColor(2);
+    dmdhist[0] -> SetMarkerColor(2);
   
-  dtshist[1] -> SetFillColor(3);
-  dtshist[1] -> SetMarkerColor(3);
+    dtshist[0] -> SetFillColor(2);
+    dtshist[0] -> SetMarkerColor(2);
   
-  dtsmthist[1] -> SetFillColor(3);
-  dtsmthist[1] -> SetMarkerColor(3);
+    dtsmthist[0] -> SetFillColor(2);
+    dtsmthist[0] -> SetMarkerColor(2);
 
 
-
-  mdhist[2] -> SetFillColor(4);
-  mdhist[2] -> SetMarkerColor(4);
+    mdhist[1] -> SetFillColor(3);
+    mdhist[1] -> SetMarkerColor(3);
   
-  tshist[2] -> SetFillColor(4);
-  tshist[2] -> SetMarkerColor(4);
+    tshist[1] -> SetFillColor(3);
+    tshist[1] -> SetMarkerColor(3);
   
-  tsmthist[2] -> SetFillColor(4);
-  tsmthist[2] -> SetMarkerColor(4);
+    tsmthist[1] -> SetFillColor(3);
+    tsmthist[1] -> SetMarkerColor(3);
   
-  dmdhist[2] -> SetFillColor(4);
-  dmdhist[2] -> SetMarkerColor(4);
+    dmdhist[1] -> SetFillColor(3);
+    dmdhist[1] -> SetMarkerColor(3);
   
-  dtshist[2] -> SetFillColor(4);
-  dtshist[2] -> SetMarkerColor(4);
+    dtshist[1] -> SetFillColor(3);
+    dtshist[1] -> SetMarkerColor(3);
   
-  dtsmthist[2] -> SetFillColor(4);
-  dtsmthist[2] -> SetMarkerColor(4);
+    dtsmthist[1] -> SetFillColor(3);
+    dtsmthist[1] -> SetMarkerColor(3);
 
 
 
-
-  mdhist[3] -> SetFillColor(6);
-  mdhist[3] -> SetMarkerColor(6);
+    mdhist[2] -> SetFillColor(4);
+    mdhist[2] -> SetMarkerColor(4);
   
-  tshist[3] -> SetFillColor(6);
-  tshist[3] -> SetMarkerColor(6);
+    tshist[2] -> SetFillColor(4);
+    tshist[2] -> SetMarkerColor(4);
   
-  tsmthist[3] -> SetFillColor(6);
-  tsmthist[3] -> SetMarkerColor(6);
+    tsmthist[2] -> SetFillColor(4);
+    tsmthist[2] -> SetMarkerColor(4);
   
-  dmdhist[3] -> SetFillColor(6);
-  dmdhist[3] -> SetMarkerColor(6);
+    dmdhist[2] -> SetFillColor(4);
+    dmdhist[2] -> SetMarkerColor(4);
   
-  dtshist[3] -> SetFillColor(6);
-  dtshist[3] -> SetMarkerColor(6);
+    dtshist[2] -> SetFillColor(4);
+    dtshist[2] -> SetMarkerColor(4);
   
-  dtsmthist[3] -> SetFillColor(6);
-  dtsmthist[3] -> SetMarkerColor(6);
+    dtsmthist[2] -> SetFillColor(4);
+    dtsmthist[2] -> SetMarkerColor(4);
 
 
 
 
-  mdhist[4] -> SetFillColor(7);
-  mdhist[4] -> SetMarkerColor(7);
+    mdhist[3] -> SetFillColor(6);
+    mdhist[3] -> SetMarkerColor(6);
   
-  tshist[4] -> SetFillColor(7);
-  tshist[4] -> SetMarkerColor(7);
+    tshist[3] -> SetFillColor(6);
+    tshist[3] -> SetMarkerColor(6);
   
-  tsmthist[4] -> SetFillColor(7);
-  tsmthist[4] -> SetMarkerColor(7);
+    tsmthist[3] -> SetFillColor(6);
+    tsmthist[3] -> SetMarkerColor(6);
   
-  dmdhist[4] -> SetFillColor(7);
-  dmdhist[4] -> SetMarkerColor(7);
+    dmdhist[3] -> SetFillColor(6);
+    dmdhist[3] -> SetMarkerColor(6);
   
-  dtshist[4] -> SetFillColor(7);
-  dtshist[4] -> SetMarkerColor(7);
+    dtshist[3] -> SetFillColor(6);
+    dtshist[3] -> SetMarkerColor(6);
   
-  dtsmthist[4] -> SetFillColor(7);
-  dtsmthist[4] -> SetMarkerColor(7);
+    dtsmthist[3] -> SetFillColor(6);
+    dtsmthist[3] -> SetMarkerColor(6);
 
 
 
 
-  mdhist[5] -> SetFillColor(5);
-  mdhist[5] -> SetMarkerColor(5);
+    mdhist[4] -> SetFillColor(7);
+    mdhist[4] -> SetMarkerColor(7);
   
-  tshist[5] -> SetFillColor(5);
-  tshist[5] -> SetMarkerColor(5);
+    tshist[4] -> SetFillColor(7);
+    tshist[4] -> SetMarkerColor(7);
   
-  tsmthist[5] -> SetFillColor(5);
-  tsmthist[5] -> SetMarkerColor(5);
+    tsmthist[4] -> SetFillColor(7);
+    tsmthist[4] -> SetMarkerColor(7);
   
-  dmdhist[5] -> SetFillColor(5);
-  dmdhist[5] -> SetMarkerColor(5);
+    dmdhist[4] -> SetFillColor(7);
+    dmdhist[4] -> SetMarkerColor(7);
   
-  dtshist[5] -> SetFillColor(5);
-  dtshist[5] -> SetMarkerColor(5);
+    dtshist[4] -> SetFillColor(7);
+    dtshist[4] -> SetMarkerColor(7);
   
-  dtsmthist[5] -> SetFillColor(5);
-  dtsmthist[5] -> SetMarkerColor(5);
+    dtsmthist[4] -> SetFillColor(7);
+    dtsmthist[4] -> SetMarkerColor(7);
+
+
+
+
+    mdhist[5] -> SetFillColor(5);
+    mdhist[5] -> SetMarkerColor(5);
+  
+    tshist[5] -> SetFillColor(5);
+    tshist[5] -> SetMarkerColor(5);
+  
+    tsmthist[5] -> SetFillColor(5);
+    tsmthist[5] -> SetMarkerColor(5);
+  
+    dmdhist[5] -> SetFillColor(5);
+    dmdhist[5] -> SetMarkerColor(5);
+  
+    dtshist[5] -> SetFillColor(5);
+    dtshist[5] -> SetMarkerColor(5);
+  
+    dtsmthist[5] -> SetFillColor(5);
+    dtsmthist[5] -> SetMarkerColor(5);
 
 
 
 
 
 
-  mdhist[6] -> SetFillColor(43);
-  mdhist[6] -> SetMarkerColor(43);
+    mdhist[6] -> SetFillColor(43);
+    mdhist[6] -> SetMarkerColor(43);
   
-  tshist[6] -> SetFillColor(43);
-  tshist[6] -> SetMarkerColor(43);
+    tshist[6] -> SetFillColor(43);
+    tshist[6] -> SetMarkerColor(43);
   
-  tsmthist[6] -> SetFillColor(43);
-  tsmthist[6] -> SetMarkerColor(43);
+    tsmthist[6] -> SetFillColor(43);
+    tsmthist[6] -> SetMarkerColor(43);
   
-  dmdhist[6] -> SetFillColor(43);
-  dmdhist[6] -> SetMarkerColor(43);
+    dmdhist[6] -> SetFillColor(43);
+    dmdhist[6] -> SetMarkerColor(43);
   
-  dtshist[6] -> SetFillColor(43);
-  dtshist[6] -> SetMarkerColor(43);
+    dtshist[6] -> SetFillColor(43);
+    dtshist[6] -> SetMarkerColor(43);
   
-  dtsmthist[6] -> SetFillColor(43);
-  dtsmthist[6] -> SetMarkerColor(43);
+    dtsmthist[6] -> SetFillColor(43);
+    dtsmthist[6] -> SetMarkerColor(43);
 
 
 
 
-  TLegend *leg = NULL;
+
+    TLegend *leg = NULL;
   
-  c1->Divide(3,2);
-  if(mt_hs[0]) {
-    c1->cd(1);
+    c1->Divide(3,2);
+    if(md_plot_flag) {
+      c1->cd(1);
  
-    gPad->SetGridy();
-    gPad->SetLogy();
-    mt_hs[0] -> Draw("goff");
-    mt_hs[0] -> GetXaxis() -> SetTitle("Time[ns]");
-    mt_hs[0] -> Draw();
-    leg = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
+      gPad->SetGridy();
+      gPad->SetLogy();
+      mt_hs[0] -> Draw("goff");
+      mt_hs[0] -> GetXaxis() -> SetTitle("Time[ns]");
+      mt_hs[0] -> Draw();
+      leg = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
     
-    leg->SetNColumns(2);
-    leg->SetBorderSize(1);
-    leg->SetTextFont(62);
-    leg->SetLineColor(1);
-    leg->SetLineStyle(1);
-    leg->SetLineWidth(1);
-    leg->SetFillColor(0);
-    leg->SetFillStyle(1001);
+      leg->SetNColumns(2);
+      leg->SetBorderSize(1);
+      leg->SetTextFont(62);
+      leg->SetLineColor(1);
+      leg->SetLineStyle(1);
+      leg->SetLineWidth(1);
+      leg->SetFillColor(0);
+      leg->SetFillStyle(1001);
     
-    //   leg->SetHeader("Stack Histogram");
-    leg->AddEntry(mdhist[0],"1st Hits","f");
-    leg->AddEntry(mdhist[1],"2nd Hits","f");
-    leg->AddEntry(mdhist[2],"3rd Hits","f");
-    leg->AddEntry(mdhist[3],"4th Hits","f"); 
-    leg->AddEntry(mdhist[4],"5th Hits","f");
-    leg->AddEntry(mdhist[5],"6th Hits","f");
-    leg->AddEntry(mdhist[6],"7th Hits","f");
-    leg->Draw();
-    gPad->Update();
+      //   leg->SetHeader("Stack Histogram");
+      leg->AddEntry(mdhist[0],"1st Hits","f");
+      leg->AddEntry(mdhist[1],"2nd Hits","f");
+      leg->AddEntry(mdhist[2],"3rd Hits","f");
+      leg->AddEntry(mdhist[3],"4th Hits","f"); 
+      leg->AddEntry(mdhist[4],"5th Hits","f");
+      leg->AddEntry(mdhist[5],"6th Hits","f");
+      leg->AddEntry(mdhist[6],"7th Hits","f");
+      leg->Draw();
+      gPad->Update();
  
  
-    c1->cd(4);
-    gPad->SetGridy();
-    gPad->SetLogy();
-    mt_hs[0]->Draw("nostack");
-    // leg->SetHeader("Non Stack Histogram");
-    // leg->Draw();
-    gPad->Update();
+      c1->cd(4);
+      gPad->SetGridy();
+      gPad->SetLogy();
+      mt_hs[0]->Draw("nostack");
+      // leg->SetHeader("Non Stack Histogram");
+      // leg->Draw();
+      gPad->Update();
 
-  }
+    }
 
-  if(mt_hs[1]) {
-    c1->cd(2);
-    gPad->SetGridy();
-    gPad->SetLogy();
-    mt_hs[1] -> Draw("goff");
-    mt_hs[1] -> GetXaxis() -> SetTitle("Time[ns]");
-    mt_hs[1] -> Draw();
-    // TLegend *leg2 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
-    // leg2->SetHeader("Stack Histogram");
-    // leg2->SetNColumns(2);
-    // leg2->AddEntry(tshist[0],"1st Hits","f");
-    // leg2->AddEntry(tshist[1],"2nd Hits","f");
-    // leg2->AddEntry(tshist[2],"3rd Hits","f");
-    // leg2->AddEntry(tshist[3],"4th Hits","f"); 
-    // leg2->AddEntry(tshist[4],"5th Hits","f");
-    // leg2->AddEntry(tshist[5],"6th Hits","f");
-    // leg2->AddEntry(tshist[6],"7th Hits","f");
-    // leg2->Draw();
-    gPad->Update();
+    if(ts_plot_flag) {
+      c1->cd(2);
+      gPad->SetGridy();
+      gPad->SetLogy();
+      mt_hs[1] -> Draw("goff");
+      mt_hs[1] -> GetXaxis() -> SetTitle("Time[ns]");
+      mt_hs[1] -> Draw();
+      // TLegend *leg2 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
+      // leg2->SetHeader("Stack Histogram");
+      // leg2->SetNColumns(2);
+      // leg2->AddEntry(tshist[0],"1st Hits","f");
+      // leg2->AddEntry(tshist[1],"2nd Hits","f");
+      // leg2->AddEntry(tshist[2],"3rd Hits","f");
+      // leg2->AddEntry(tshist[3],"4th Hits","f"); 
+      // leg2->AddEntry(tshist[4],"5th Hits","f");
+      // leg2->AddEntry(tshist[5],"6th Hits","f");
+      // leg2->AddEntry(tshist[6],"7th Hits","f");
+      // leg2->Draw();
+      gPad->Update();
 
-    c1->cd(5);
-    gPad->SetGridy();
-    gPad->SetLogy();
-    mt_hs[1]->Draw("nostack");
-    // leg2->SetHeader("Non Stack Histogram");
-    // leg2->Draw();
-    gPad->Update();
+      c1->cd(5);
+      gPad->SetGridy();
+      gPad->SetLogy();
+      mt_hs[1]->Draw("nostack");
+      // leg2->SetHeader("Non Stack Histogram");
+      // leg2->Draw();
+      gPad->Update();
+      c1-> Modified();
+      c1-> Update();
+
+    }
+  
+    if(tsmt_plot_flag)) {
+      c1->cd(3);
+      gPad->SetGridy();
+      gPad->SetLogy();
+      mt_hs[2] -> Draw("goff");
+      mt_hs[2] -> GetXaxis() -> SetTitle("Time[ns]");
+      mt_hs[2] -> Draw();
+      // TLegend *leg3 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
+      // leg3->SetHeader("Stack Histogram");
+      // leg3->SetNColumns(2);
+      // leg3->AddEntry(tshist[0],"1st Hits","f");
+      // leg3->AddEntry(tshist[1],"2nd Hits","f");
+      // leg3->AddEntry(tshist[2],"3rd Hits","f");
+      // leg3->AddEntry(tshist[3],"4th Hits","f"); 
+      // leg3->AddEntry(tshist[4],"5th Hits","f");
+      // leg3->AddEntry(tshist[5],"6th Hits","f");
+      // leg3->AddEntry(tshist[6],"7th Hits","f");
+      // leg3->Draw();
+      gPad->Update();
+
+      c1->cd(6);
+      gPad->SetGridy();
+      gPad->SetLogy();
+      mt_hs[2]->Draw("nostack");
+      // leg3->SetHeader("Non Stack Histogram");
+      // leg3->Draw();
+      gPad->Update();
+
+    }
     c1-> Modified();
     c1-> Update();
 
-  }
-  
-  if(mt_hs[2]) {
-    c1->cd(3);
-    gPad->SetGridy();
-    gPad->SetLogy();
-    mt_hs[2] -> Draw("goff");
-    mt_hs[2] -> GetXaxis() -> SetTitle("Time[ns]");
-    mt_hs[2] -> Draw();
-    // TLegend *leg3 = new TLegend(0.6,0.7,0.99,0.92,NULL,"brNDC");
-    // leg3->SetHeader("Stack Histogram");
-    // leg3->SetNColumns(2);
-    // leg3->AddEntry(tshist[0],"1st Hits","f");
-    // leg3->AddEntry(tshist[1],"2nd Hits","f");
-    // leg3->AddEntry(tshist[2],"3rd Hits","f");
-    // leg3->AddEntry(tshist[3],"4th Hits","f"); 
-    // leg3->AddEntry(tshist[4],"5th Hits","f");
-    // leg3->AddEntry(tshist[5],"6th Hits","f");
-    // leg3->AddEntry(tshist[6],"7th Hits","f");
-    // leg3->Draw();
-    gPad->Update();
-
-    c1->cd(6);
-    gPad->SetGridy();
-    gPad->SetLogy();
-    mt_hs[2]->Draw("nostack");
-    // leg3->SetHeader("Non Stack Histogram");
-    // leg3->Draw();
-    gPad->Update();
+    if(md_plot_flag && ts_plot_flag && tsmt_plot_flag) {
+      TFile f(Form("%s", output_filename.Data()),"recreate");
+      //  printf("2\n");
+      HistList.Write();
+    }
 
   }
-  c1-> Modified();
-  c1-> Update();
-
-
-  TFile f(Form("%s", output_filename.Data()),"recreate");
-  //  printf("2\n");
-  HistList.Write();
-
 
   return c1;
 };

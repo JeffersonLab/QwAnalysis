@@ -14,10 +14,20 @@
 //         MD1, TS2, event 0:10000, delta MD1 < 50, delta TS2 <20, MD debug on, TS debug on, rootfile, binnumber
 //         in order to save debug outputs in a file
 //         Qw-Root [3] GoodMtMultiHits(1,2,-1,-1,50,20,1,1); > debug.log
-
-
-
-
+//
+//         GoodMTMultiHits(2,2,-1,-1, 2000, 2000, 1,1, "MDTrigger_15027.root"); > MD2_2000_TS2_2000_Run15027.log
+//
+//
+//         0.0.2 Thursday, March  1 16:50:53 EST 2012 , jhlee
+//
+//               added a difference between hardware meantime and software meantime of TS
+//                     in order to check this script quality.
+//                     if we see always constant difference between software and hardware
+//                     we might say, this scripts is good enough to use to build software meantime
+//                     of MD, which doesn't have hardware meantime. 
+//
+//               added some boolean conditions to suppress Draw or Canvas when a given event range is small
+//     
 
 
 #include <iostream>
@@ -34,7 +44,7 @@
 // A good meantime holder 
 class MeanTime  :  public TObject
 {
-  
+
 public:
 
   MeanTime();
@@ -43,8 +53,10 @@ public:
 
   Bool_t   HasMeanTime() {return fHasValue;};
 
-  Double_t GetMeanTime()     const { return fMeanTime; };
+  Double_t GetMeanTime()      const { return fMeanTime; };
   Double_t GetSubtractTime()  const { return fSubtractTime; };
+
+  Double_t GetDiffHardSoftMeanTime() const { return fDiffHardSoftMeanTime; };
 
   Double_t GetPositiveValue() const { return fPositiveValue; };
   Double_t GetNegativeValue() const { return fNegativeValue; };
@@ -58,7 +70,9 @@ public:
   void     AddPNValues(Double_t p_value, Double_t n_value, , Int_t p_id, Int_t n_id);
   void     SetDetectorType(TString d_type) {fDetectorType = d_type;};
   void     SetMeanTimeId(Int_t id) {fMeanTimeId = id;};
-  void     Print();
+  void     SetHardwareMeanTime(Double_t hardware_meantime);
+
+  void     Print(Bool_t on);
 
   Bool_t   IsInTimeWindow(Double_t time_window);
 
@@ -67,6 +81,9 @@ private:
   Bool_t   fHasValue;
   Double_t fMeanTime;
   Double_t fSubtractTime;  // positive - negative
+
+  Double_t fDiffHardSoftMeanTime; // Hardware MT - Software MT
+  Double_t fHardWareMeanTime;
 
   Double_t fPositiveValue;
   Double_t fNegativeValue;
@@ -104,6 +121,7 @@ public:
 
   void Add(Double_t p_value, Double_t n_value, Int_t hit_id);
   void Add(Double_t p_value[7], Double_t n_value[7]);
+  void Add(Double_t p_value[7], Double_t n_value[7], Double_t hardware_meantime[7]);
   void AddMeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id);
   void Clear();
 
@@ -119,7 +137,7 @@ public:
   MeanTime *GetMeanTimeObject(Int_t index);
   Double_T  GetMeanTime(Int_t index);
 
-  void Print();
+  void Print(Bool_t on);
  
 private:
 
@@ -131,6 +149,7 @@ private:
 
   Double_t  fPositiveValue[7];
   Double_t  fNegativeValue[7];
+  Double_t  fHardwareMeantimeValue[7];
 
   ClassDef(MeanTimeContainer,0);
 
