@@ -21,12 +21,13 @@ my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
-my ($help,$nodaqcut,$outfile,$target_want);
+my ($help,$nodaqcut,$target_want,$ploturl,$outfile);
 my $optstatus = GetOptions
   "help|h|?"	=> \$help,
   "no-daq-cut"	=> \$nodaqcut,
-  "outfile=s"	=> \$outfile,
   "target=s"	=> \$target_want,
+  "ploturl"	=> \$ploturl,
+  "outfile=s"	=> \$outfile,
 ;
 
 ## don't get the 'target' stuff unless it's requested, see hclog 251158
@@ -63,6 +64,7 @@ Options:
 	--help		print this text
 	--no-daq-cut	integrate /all/ the time, ignore g0rate14
 	--target=blah	count only data taken on target "blah"
+	--ploturl	display Hall C archiver URL to plot the requested data
 	--outfile=blah	save the downloaded data to a file named "blah"
 EOF
 die $helpstring if $help;
@@ -141,6 +143,7 @@ EOF
   }
 }
 
+
 my $ofh;
 if ($outfile) {
   open $ofh, ">", $outfile
@@ -148,6 +151,11 @@ if ($outfile) {
 }
 open DATA, "-|", @wget, $url
   or die "couldn't open wget: $!\n";
+if ($ploturl) {
+  print "Reading data from ", $url, "\n";
+  (my $url_with_plot = $url) =~ s/SPREADSHEET/PLOT/;
+  print "View in archiver: ", $url_with_plot, "\n";
+}
 while (<DATA>) {
   print $ofh $_ if $ofh;
   my($day, $time, $ibcm1, $daqrate, $target_x, $target_y) = split ' ';
