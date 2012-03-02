@@ -437,8 +437,8 @@ void  QwBPMStripline<T>::ProcessEvent()
 
   for(i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i] = fRelPos[i];
-    fAbsPos[i].Scale(1.0/fGains[i]);
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
+    fAbsPos[i].Scale(1.0/fGains[i]);
 
     if(localdebug)
     {
