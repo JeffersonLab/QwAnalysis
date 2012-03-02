@@ -57,13 +57,11 @@ sample_size=464
     VQWK, 8, 6,  bpmstripline,  QWK_0L09YP
     VQWK, 8, 7,  bpmstripline,  QWK_0L09YM
 
-!ADC10
-    VQWK, 10, 4,  bpmstripline,  QWK_0R05XP
-    VQWK, 10, 5,  bpmstripline,  QWK_0R05XM
-    VQWK, 10, 6,  bpmstripline,  QWK_0R05YP
-    VQWK, 10, 7,  bpmstripline,  QWK_0R05YM
-
 !ADC11
+    VQWK, 11, 0,  bpmstripline,  QWK_0R06XP
+    VQWK, 11, 1,  bpmstripline,  QWK_0R06XM
+    VQWK, 11, 2,  bpmstripline,  QWK_0R06YP
+    VQWK, 11, 3,  bpmstripline,  QWK_0R06YM
     VQWK, 11, 4,  bcm,  QWK_BCM0L02
     VQWK, 11, 5,  bcm,  QWK_Batery6
     VQWK, 11, 6,  bcm,  QWK_Batery7

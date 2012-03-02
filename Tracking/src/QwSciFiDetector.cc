@@ -905,13 +905,14 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     Int_t   element = 0; // fiber orient type (0 (both), 1(a), 2(b)) for the fibers, and  the module index for the reference channel
     TString name         = "";
  
-    F1TDCReferenceSignal *f1_ref_signal;
+    //    F1TDCReferenceSignal *f1_ref_signal;
     
-    f1_ref_signal = fF1RefContainer->GetReferenceSignal(bank_index, slot_num, chan);
-    if( f1_ref_signal ) {
-      f1_ref_signal -> SetRefTimeAU (data);
-      //  std::cout << *f1_ref_signal << std::endl;
-    }
+    fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, local_debug);
+
+    // if( f1_ref_signal ) {
+    //   f1_ref_signal -> SetRefTimeAU (data);
+    //   //  std::cout << *f1_ref_signal << std::endl;
+    // }
     
     plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
     element = fDetectorIDs.at(tdcindex).at(chan).fElement;
@@ -1109,9 +1110,14 @@ QwSciFiDetector::SubtractReferenceTimes()
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;
   Double_t time_arb_unit     = 0.0;
+ // EQwDetectorPackage package = kPackageNull;  // Region 1 has only Package 2, so kPackageDown
 
   Bool_t local_debug = false;
   Int_t slot_num = 0;
+
+  TString reference_name1 = "MasterTrigger";
+  TString reference_name2 = "CopyMasterTrigger";
+
 
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
@@ -1119,12 +1125,12 @@ QwSciFiDetector::SubtractReferenceTimes()
       bank_index        = hit -> GetSubbankID();
       slot_num          = hit -> GetModule();
       raw_time_arb_unit = (Double_t) hit -> GetRawTime();
-      ref_time_arb_unit = fF1RefContainer->GetReferenceTimeAU(bank_index, "MasterTrigger");
+      ref_time_arb_unit = fF1RefContainer -> GetReferenceTimeAU(bank_index, reference_name1);
       //
       // if there is no reference time due to a channel error, try to use a copy of mater trigger
       // 
       if(ref_time_arb_unit==0.0) {
-	ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, "CopyMasterTrigger");
+	ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, reference_name2);
       }
       // second time, it returns 0.0, we simply ignore this event .... 
       // set time zero. ReferenceSignalCorrection() will return zero, and increase RFM counter...

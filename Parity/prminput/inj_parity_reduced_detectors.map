@@ -13,7 +13,7 @@
 [QwBeamLine]
  name = Injector
  map = injector_beamline_for_inj_parity_reduced.map
- geom = injector_reduced_beamline_geometry.map
+ geom = injector_beamline_geometry.map
  eventcut = injtest_beamline_eventcuts.in
  param = injtest_pedestal.map
 

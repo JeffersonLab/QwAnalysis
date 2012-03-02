@@ -191,9 +191,13 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;
   Double_t time_arb_unit     = 0.0;
+  // EQwDetectorPackage package = kPackageNull;
 
   Bool_t local_debug = false;
   Int_t slot_num = 0;
+
+  TString reference_name1 = "MasterTrigger";
+  TString reference_name2 = "CopyMasterTrigger";
 
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
@@ -201,12 +205,36 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
       bank_index        =            hit  -> GetSubbankID();
       slot_num          =            hit  -> GetModule();
       raw_time_arb_unit = (Double_t) hit  -> GetRawTime();
-      ref_time_arb_unit = fF1RefContainer -> GetReferenceTimeAU(bank_index, "MasterTrigger");
+
+
+      // John L. introduced this package match reference time subtraction for only Region 3,
+      // I was told it would be better to extend this concept to Region2, so I did, and I 
+      // got the worst result.....  Q2 = +2.735199e-02  its RMS +1.192504e-02 
+      // if I don't use this method in Region2, Q2 = +2.292274e-02  and RMS = +7.133603e-03
+      // if I don't use this method in Region3, I couldn't get "peak" structure 
+      // in time distributions of four VDC chambers. 
+      // 
+      // Why does this method give us a good result for only Region 3? MUX? 
+      // I don't know ..
+      // Friday, February 17 14:01:12 EST 2012, jhlee
+
+      //    package           =            hit  -> GetPackage();
+      // if (package == kPackageUp) { // Up is 1
+      // 	reference_name1 = "TrigScintPkg1";
+      // }
+      // else if (package == kPackageDown) {// Down is 2
+      // 	reference_name1 = "TrigScintPkg2";
+      // }
+      // else {
+      // 	reference_name1 = "MasterTrigger";
+      // }
+
+      ref_time_arb_unit = fF1RefContainer -> GetReferenceTimeAU(bank_index, reference_name1);
       //
       // if there is no reference time due to a channel error, try to use a copy of mater trigger
       // 
       if(ref_time_arb_unit==0.0) {
-	ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, "CopyMasterTrigger");
+	ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, reference_name2);
       }
       // second time, it returns 0.0, we simply ignore this event .... 
       // set time zero. ReferenceSignalCorrection() will return zero, and increase RFM counter...
@@ -445,15 +473,8 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
     EQwDetectorPackage package = kPackageNull;
     EQwDirectionID direction   = kDirectionNull;
     
+    fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, local_debug);
 
-    F1TDCReferenceSignal *f1_ref_signal;
-    
-    f1_ref_signal = fF1RefContainer->GetReferenceSignal(bank_index, slot_num, chan);
-    if( f1_ref_signal ) {
-      f1_ref_signal -> SetRefTimeAU (data);
-      //      std::cout << *f1_ref_signal << std::endl;
-    }
-    
 
     plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
     wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;

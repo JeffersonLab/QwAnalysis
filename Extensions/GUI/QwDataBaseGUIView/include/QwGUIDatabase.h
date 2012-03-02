@@ -38,7 +38,7 @@
 #define N_DETECTORS      43
 #define N_LUMIS          32
 #define N_BPMS           22
-#define N_BCMS           23
+#define N_BCMS           26
 #define N_CMB_BPMS        1
 #define N_CMB_BCMS        1
 #define N_ENERGY          1
@@ -52,7 +52,7 @@
 #define N_CMB_READ        7
 #define N_TGTS           15
 #define N_GOODFOR_TYPES   19
-#define N_X_AXIS          5
+#define N_X_AXIS          6
 #define N_Plots          3
 #define N_REGRESSION_SCHEMES 9
 #define N_REG_VARS_ON     5

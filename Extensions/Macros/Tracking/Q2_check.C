@@ -43,7 +43,7 @@
 
 const int multiple=18;
 
-void q2_check(int event_start=-1,int event_end=-1,int run=8658,string suffix=""){
+void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qweak_", string suffix=""){
 
   //try to get the oct number from the run number
   int oct=getOctNumber(run);
@@ -52,7 +52,8 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,string suffix="")
   //string folder="/scratch/sxyang";
    string folder=gSystem->Getenv("QW_ROOTFILES");
    ostringstream ss;
-   ss << folder << "/Qweak_";
+   ss << folder << "/";
+   ss << stem.Data();
    ss << run << suffix;
    ss << ".root";
    string file_name=ss.str();
@@ -222,18 +223,26 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658,string suffix="")
     cout << "pkg2: " << angle_2->GetEntries() << endl;
 
     cout << "scattering angle: " << endl;
-    cout << "all: " << setprecision(5) << angle->GetMean() << " error RMS/sqrt(N): " << setprecision(4) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
-    if(angle_1->GetEntries()!=0)
-    cout << "pkg1: " << setprecision(5) << angle_1->GetMean() << " error RMS/sqrt(N): " << setprecision(4) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
-    if(angle_2->GetEntries()!=0)
-    cout << "pkg2: " <<  setprecision(5) << angle_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
+    if(angle->GetEntries()) {
+      cout << "all: " << setprecision(5) << angle->GetMean() << " error RMS/sqrt(N): " << setprecision(4) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
+    }
+    if(angle_1->GetEntries()!=0) {
+      cout << "pkg1: " << setprecision(5) << angle_1->GetMean() << " error RMS/sqrt(N): " << setprecision(4) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
+    }
+    if(angle_2->GetEntries()!=0) {
+      cout << "pkg2: " <<  setprecision(5) << angle_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
+    }
 
     cout << "q2: " << endl;
-    cout << "all: " <<  setprecision(5) << 1000*q2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2->GetRMS()/sqrt(q2->GetEntries()) << endl;
-    if(q2_1->GetEntries()!=0)
-    cout << "pkg1: " <<  setprecision(5) << 1000*q2_1->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
-    if(q2_2->GetEntries()!=0)
-    cout << "pkg2: " <<  setprecision(5) << 1000*q2_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
+    if(q2->GetEntries()) {
+      cout << "all: " <<  setprecision(5) << 1000*q2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2->GetRMS()/sqrt(q2->GetEntries()) << endl;
+    }
+    if(q2_1->GetEntries()!=0) {
+      cout << "pkg1: " <<  setprecision(5) << 1000*q2_1->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
+    }
+    if(q2_2->GetEntries()!=0) {
+      cout << "pkg2: " <<  setprecision(5) << 1000*q2_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
+    }
     
     TCanvas* c=new TCanvas("c","c",800,600);
     c->Divide(2,3);

@@ -7,7 +7,7 @@
 const TString wwwPath("$QWSCRATCH/www");
 const TString outPath("analout");
 
-//Asymmetry constants 
+//Asymmetry calculation constants 
 const Float_t pi=3.141592;
 const Float_t hbarc=0.197E-15;/// GeV.m
 const Float_t alpha=0.00729927; ///=1.0/137.0;
@@ -22,8 +22,9 @@ const Float_t xgap = 0.007; //!min distance (m)
 const Int_t nStrips = 96;
 const Int_t nPlanes = 4;
 const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
-const Double_t chicaneBend = 10.0;
-// const Float_t thetaprime = 10.39*pi/180; //bend angle for the max deflected electrons
+const Double_t chicaneBend = 10.131; ///(degree)
+const Double_t ldet = 1.645; ///(m)
+const Double_t lmag = 1.25; ///(m)
 const Int_t minEntries = 8000; //Laser must be off for at least this many consecutive entries to be considered off.
 
 
@@ -34,13 +35,13 @@ const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn/
 const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
 const Int_t PREV_N_ENTRIES = 5000;//# of mps's to wait after beam trip
 const Double_t ignoreBeamAbove = 195.0;
-const Double_t ignoreLasPowAbove = 195.0;
+//const Double_t ignoreLasPowAbove = 195.0;
 const Bool_t IHWP_in=1;///1:in; 0:out
 
 //following numbers are all in C++ counting(start at 0)
 const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
- const Int_t endStrip = 63;
+ const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
 const Int_t Cedge = 48;///Compton-edge for the current run(counting from 0)

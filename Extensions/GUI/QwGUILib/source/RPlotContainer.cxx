@@ -518,45 +518,66 @@ TMultiGraph *RPlotContainer::AddMultiGraphObject(TObject *obj, const char *title
   if(!obj->InheritsFrom("TGraph")) return NULL;
   if(!type) return NULL;
 
-  if(!fMultiGraph){
-    fMultiGraph = new TMultiGraph();
-    if(!fMultiGraph) return NULL;
-    fPlotList->Add(fMultiGraph);
-  }
+//   if(obj->InheritsFrom("TMultiGraph")){
+    
+//     fMultiGraph = new TMultiGraph(*(TMultiGraph*)obj->Clone());
+//     fPlotList->Add(fMultiGraph);
+//     return fMultiGraph;
+//   }
+//   else{
 
-  if(!strcmp(type,"TGraph")){
-    TGraph *gr = new TGraph(*(TGraph*)obj->Clone());
-    if(gr){
-      sprintf(temp,"%s_cp",gr->GetName());
-      gr->SetName(temp);
-      fGraphList->Add(gr);
-      // fPlotList->Add(gr);
-      fMultiGraph->Add(gr,opts);
-      return fMultiGraph;
+    if(!fMultiGraph){
+      fMultiGraph = new TMultiGraph();
+      if(!fMultiGraph) return NULL;
+      fPlotList->Add(fMultiGraph);
     }
-  }
-  else if(!strcmp(type,"TGraphErrors")){
-    TGraphErrors *gr = new TGraphErrors(*(TGraphErrors*)obj->Clone());
-    if(gr){
-      sprintf(temp,"%s_cp",gr->GetName());
-      gr->SetName(temp);
-      fGraphErList->Add(gr);
-      // fPlotList->Add(gr);
-      fMultiGraph->Add(gr,opts);
-      return fMultiGraph;
+    
+    if(!strcmp(type,"TGraph")){
+      TGraph *tmp = (TGraph*)obj->Clone();
+      TGraph *gr = new TGraph(*(TGraph*)tmp);
+      if(gr){
+	sprintf(temp,"%s_cp",gr->GetName());
+	gr->SetName(temp);
+	(tmp->GetXaxis())->Copy(*(gr->GetXaxis()));
+	(tmp->GetYaxis())->Copy(*(gr->GetYaxis()));    
+
+	fGraphList->Add(gr);
+	// fPlotList->Add(gr);
+	fMultiGraph->Add(gr,opts);
+	return fMultiGraph;
+      }
     }
-  }
-  else if(!strcmp(type,"TGraphAsymmErrors")){
-    TGraphAsymmErrors *gr = new TGraphAsymmErrors(*(TGraphAsymmErrors*)obj->Clone());
-    if(gr){
-      sprintf(temp,"%s_cp",gr->GetName());
-      gr->SetName(temp);
-      fGraphAsymErList->Add(gr);
-      // fPlotList->Add(gr);
-      fMultiGraph->Add(gr,opts);
-      return fMultiGraph;
+    else if(!strcmp(type,"TGraphErrors")){
+      TGraphErrors *tmp = (TGraphErrors*)obj->Clone();
+      TGraphErrors *gr = new TGraphErrors(*tmp);
+      if(gr){
+	sprintf(temp,"%s_cp",gr->GetName());
+	gr->SetName(temp);
+	(tmp->GetXaxis())->Copy(*(gr->GetXaxis()));
+	(tmp->GetYaxis())->Copy(*(gr->GetYaxis()));    
+
+	fGraphErList->Add(gr);
+	// fPlotList->Add(gr);
+	fMultiGraph->Add(gr,opts);
+	return fMultiGraph;
+      }
     }
-  }
+    else if(!strcmp(type,"TGraphAsymmErrors")){
+      TGraphAsymmErrors *tmp = (TGraphAsymmErrors*)obj->Clone();
+      TGraphAsymmErrors *gr = new TGraphAsymmErrors(*tmp);
+      if(gr){
+	sprintf(temp,"%s_cp",gr->GetName());
+	gr->SetName(temp);
+	(tmp->GetXaxis())->Copy(*(gr->GetXaxis()));
+	(tmp->GetYaxis())->Copy(*(gr->GetYaxis()));    
+
+	fGraphAsymErList->Add(gr);
+	// fPlotList->Add(gr);
+	fMultiGraph->Add(gr,opts);
+	return fMultiGraph;
+      }
+    }
+//   }
   return NULL;
 }
 

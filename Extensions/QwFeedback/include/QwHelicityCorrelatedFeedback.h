@@ -74,6 +74,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fTargetCharge.InitializeChannel("q_targ","derived");
     fRunningCharge.InitializeChannel("q_targ","derived");
+    fAsymBCM7.InitializeChannel("bcm7","derived");
+    fAsymBCM8.InitializeChannel("bcm8","derived");
+
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
     fPreviousChargeAsymmetry.InitializeChannel("q_targ","derived");//charge asymmetry at the previous feedback loop
     fCurrentChargeAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry 
@@ -86,11 +89,14 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fScalerCharge.InitializeChannel("sca_bcm");
 
     fTargetParameter.InitializeChannel("x_targ","derived");
+
     fTargetXDiffRunningSum.InitializeChannel("x_targ","derived");//to access the published Target X diff
     fTargetXPDiffRunningSum.InitializeChannel("xp_targ","derived");//to access the published Target XP diff
     fTargetYDiffRunningSum.InitializeChannel("y_targ","derived");//to access the published Target Y diff
     fTargetYPDiffRunningSum.InitializeChannel("yp_targ","derived");//to access the published Target YP diff
 
+    fAsymBCM78DDRunningSum.InitializeChannel("bcm78dd","derived");
+    fYieldBCM8RunningSum.InitializeChannel("q_targ","derived");
   
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
@@ -314,6 +320,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t f3C12YQError;
     Double_t f3C12YQWidth;
 
+    Double_t fAsymBCM78DD;
+    Double_t fAsymBCM78DDError;
+    Double_t fAsymBCM78DDWidth;
+
+    Double_t fBCM8Yield;
+
 
 
     Double_t fChargeAsym[kHelModes];//current charge asym
@@ -423,7 +435,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     QwBeamCharge   f3C12YDiffRunningSum;//to access the published 3c12 Y diff
     QwBeamCharge   f3C12YQRunningSum;//to access the published 3c12 eff. charge
 
-
+    QwBeamCharge   fAsymBCM7;//to access bcm7 asymmetry
+    QwBeamCharge   fAsymBCM8;//to access bcm8 asymmetry
+    QwBeamCharge   fAsymBCM78DDRunningSum;//to accumulate bcm78 DD asymmetry
+    QwBeamCharge   fYieldBCM8RunningSum;//to access bcm8 Yield
 
 
     //log file

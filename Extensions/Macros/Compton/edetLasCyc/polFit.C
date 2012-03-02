@@ -8,7 +8,7 @@ void polFit(Int_t runnum)
   Float_t theoExpRatio[nPlanes][nStrips], stripAsymRMS[nPlanes][nStrips];
   Float_t zero[nStrips],stripPlot[nStrips];
 
-  asymFit(runnum,theoExpRatio,stripAsymRMS);
+  asymFit(runnum,theoExpRatio);//,stripAsymRMS);
 
   TGraphErrors *grPolPlane[nPlanes];
              
@@ -26,10 +26,11 @@ void polFit(Int_t runnum)
     grPolPlane[p]->GetXaxis()->SetTitle("strip number");
     grPolPlane[p]->GetYaxis()->SetTitle("ratioExpTheory"); 
     grPolPlane[p]->SetTitle(Form("Plane %d",p+1));      
-    grPolPlane[p]->Draw("A*");                      
-    cPol->Update();
+    grPolPlane[p]->SetMarkerStyle(20);
+    grPolPlane[p]->SetMarkerColor(kRed+2);
+    grPolPlane[p]->Draw("AP");                      
   }
-  Int_t check= fileReadDraw(runnum);
-  if(check!=runnum) cout<<"check the fileReadDraw.C and polFit.C"<<endl;  
+  cPol->Update();
+  fileReadDraw(runnum);  
 }
   

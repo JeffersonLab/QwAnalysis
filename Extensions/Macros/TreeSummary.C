@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////////////////////
+/*/////////////////////////////////////////////////////////////////////////////
 //  File:       TreeSummary.C
 //  Author(s):  Juan Carlos Cornejo <cornejo@jlab.org>
 //  ChangeLog:  * Mon Jun 27 2011 Juan Carlos Cornejo <cornejo@jlab.org>
@@ -18,7 +18,7 @@
 //
 //              Then it is useful to just diff two different outputs and check
 //              that no unintentional changes were made.
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////*/
 // ROOT Includes
 #include "TString.h"
 #include "TCanvas.h"
@@ -115,8 +115,8 @@ void ProcessBranch( TChain *chain, std::vector<std::string> names,
 
   // Now draw each entry and extract information to print
   TH1F *htemp;
-  UInt_t hEntries;
-  Double_t mean,rms,min,max;
+  Double_t hEntries = 0.0;
+  Double_t mean = 0.0, rms = 0.0, min = 0.0, max = 0.0;
   char compare_output[1000];
   TString draw;
   for( UInt_t entry = 0; entry < entries; entry++ ) {
@@ -143,7 +143,7 @@ void ProcessBranch( TChain *chain, std::vector<std::string> names,
     } else {
       std::cout << "Error! Lost histogram for " << names[entry] << std::endl;
     }
-    sprintf(compare_output,"%-30s \t%7d \t%#6.6e \t%#6.6e \t%#6.6e \t%#6.6e",
+    sprintf(compare_output,"%-30s \t%6.6e \t%#6.6e \t%#6.6e \t%#6.6e \t%#6.6e",
         names[entry].c_str(),hEntries,mean,rms,min,max);
     std::cout<<compare_output<<std::endl;
   }

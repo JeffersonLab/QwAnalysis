@@ -1921,6 +1921,8 @@ QwF1TDContainer::DoneF1TDCsConfiguration()
 
 
 
+const UInt_t F1TDCReferenceSignal::fNoRefTimeArbUnit = 0xFFFFF; // whatever number which is out of the F1TDC hardware range FFFF.
+
 
 F1TDCReferenceSignal::F1TDCReferenceSignal()
 {
@@ -1982,9 +1984,9 @@ std::ostream& operator<< (std::ostream& os,  const F1TDCReferenceSignal &f1tdcre
   os << " Chan ";
   os << std::setw(2) << f1tdcref.fChannelNumber;
   os << " RefTime (a.u.) ";
-  os << std::setw(2) << f1tdcref.fRefTimeArbUnit;
+  os << std::setw(8) << f1tdcref.fRefTimeArbUnit;
   os << " Counter ";
-  os << std::setw(20) << f1tdcref.fCounter;
+  os << std::setw(12) << f1tdcref.fCounter;
 
   return os;
 }
@@ -1996,12 +1998,28 @@ F1TDCReferenceSignal::SetRefTimeAU(const Double_t ref_time)
   // always save the first hit as the reference signal
   Bool_t status = false;
   if( not HasFirstHit() ) { 
-  fRefTimeArbUnit = ref_time; 
-  fFirstHitFlag = true;
-  status = true;
-  fCounter++;
+    // save the reference fime
+    fRefTimeArbUnit = ref_time; 
+    //   fRefTimeFlag = true;
+    fFirstHitFlag = true;
+    status = true;
+    fCounter++;
   }
   return status;
+};
+
+
+
+Bool_t 
+F1TDCReferenceSignal::HasRefTime() 
+{
+  if( (Double_t) fNoRefTimeArbUnit == fRefTimeArbUnit) {
+    fRefTimeFlag = false;
+  }
+  else {
+    fRefTimeFlag = true;
+  }
+  return fRefTimeFlag;
 };
 
 
@@ -2029,8 +2047,6 @@ F1TDCReferenceSignal::PrintCounterSummary()
 //
 //
 //----------------------------------
-
-
 
 
 F1TDCReferenceContainer::F1TDCReferenceContainer()
@@ -2070,10 +2086,46 @@ F1TDCReferenceContainer::AddF1TDCReferenceSignal(F1TDCReferenceSignal *in)
 
 
 
-F1TDCReferenceSignal *
-F1TDCReferenceContainer::GetReferenceSignal(Int_t bank_index, 
+// F1TDCReferenceSignal *
+// F1TDCReferenceContainer::GetReferenceSignal(Int_t bank_index, 
+// 					    Int_t slot, 
+// 					    Int_t chan
+// 					    )
+// {
+//   Int_t bank_idx = 0;
+//   Int_t slot_num = 0;
+//   Int_t chan_num = 0;
+//   // Int_t time_au  = 0;
+  
+//   TObjArrayIter next(fF1TDCReferenceSignalsList);
+//   TObject* obj = NULL;
+//   F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+//   while ( (obj = next()) )
+//     {
+//       F1RefSignal = (F1TDCReferenceSignal*) obj;
+
+//       bank_idx    = F1RefSignal->GetBankIndex();
+//       slot_num    = F1RefSignal->GetSlotNumber();
+//       chan_num    = F1RefSignal->GetChannelNumber();
+//       //     time_au     = F1RefSignal->
+//       if( (bank_idx == bank_index) and (slot_num == slot) and (chan_num == chan) ) {
+// 	if ( F1RefSignal->HasFirstHit() ) return NULL;
+// 	else                              return F1RefSignal;
+//       }
+//     }
+
+//   return NULL;
+// }
+
+
+
+void
+F1TDCReferenceContainer::SetReferenceSignal(Int_t bank_index, 
 					    Int_t slot, 
-					    Int_t chan
+					    Int_t chan,
+					    UInt_t data,
+					    Bool_t debug
 					    )
 {
   Int_t bank_idx = 0;
@@ -2092,16 +2144,17 @@ F1TDCReferenceContainer::GetReferenceSignal(Int_t bank_index,
       bank_idx    = F1RefSignal->GetBankIndex();
       slot_num    = F1RefSignal->GetSlotNumber();
       chan_num    = F1RefSignal->GetChannelNumber();
-      //     time_au     = F1RefSignal->
+
       if( (bank_idx == bank_index) and (slot_num == slot) and (chan_num == chan) ) {
-	if ( F1RefSignal->HasFirstHit() ) return NULL;
-	else                              return F1RefSignal;
+	if ( not F1RefSignal->HasFirstHit() ) {
+	  F1RefSignal -> SetRefTimeAU (data);
+	  if(debug) std::cout << *F1RefSignal << std::endl;
+	}
       }
     }
 
-  return NULL;
+  return;
 }
-
 
 
 Double_t
@@ -2125,11 +2178,17 @@ F1TDCReferenceContainer::GetReferenceTimeAU(
       ref_name = F1RefSignal->GetRefSignalName(); 
 
       if( (bank_idx == bank_index) and (ref_name == name) ) {
-	return F1RefSignal->GetRefTimeAU();
+	// find the reference signals,
+	if(F1RefSignal->HasRefTime()) {
+	  // return a ref time if the reference time is filled up
+	  // can be zero. 
+	  return F1RefSignal->GetRefTimeAU();
+	}
+	//	return F1RefSignal->GetRefTimeAU();
       }
     }
 
-  return 0.0;
+  return 0.0; // they cannot find a reference signal for bank_index and name.
 }
 
 
@@ -2184,3 +2243,33 @@ F1TDCReferenceContainer::SetSystemName(const TString name)
   }
   return;
 }
+
+
+
+// Double_t
+// F1TDCReferenceContainer::GetNoReferenceTimeAU(
+// 					      Int_t bank_index, 
+// 					      TString name 
+// 					      )
+// {
+//   Int_t   bank_idx = 0;
+//   TString ref_name = "";
+  
+//   TObjArrayIter next(fF1TDCReferenceSignalsList);
+//   TObject* obj = NULL;
+//   F1TDCReferenceSignal* F1RefSignal  = NULL;
+
+//   while ( (obj = next()) )
+//     {
+//       F1RefSignal = (F1TDCReferenceSignal*) obj;
+
+//       bank_idx = F1RefSignal->GetBankIndex();
+//       ref_name = F1RefSignal->GetRefSignalName(); 
+
+//       if( (bank_idx == bank_index) and (ref_name == name) ) {
+// 	return F1RefSignal->GetNoRefTimeAU();
+//       }
+//     }
+
+//   return 0.0;
+// }

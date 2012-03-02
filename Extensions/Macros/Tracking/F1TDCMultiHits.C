@@ -280,8 +280,9 @@ TCanvas *
 ShowMTMultiHits(Int_t md_plane, Int_t ts_plane, 
 		Int_t event_number_start=-1, 
 		Int_t event_number_end=-1,
-		Int_t nbin=102, Bool_t ts_debug = false, Bool_t md_debug = false,
+		Bool_t ts_debug = false, Bool_t md_debug = false,
 		TString filename="14955.root",
+		Int_t nbin=102, 
 		Int_t time_shift_ns=0)
 {
 
@@ -488,7 +489,7 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
 	  Double_t software_del_ts = 0.0;
 	  if(ts_debug) {
 	    printf(">>TS>> NHits%4d in Event %8d: HitOrder[%d,%d] TSp%+9.2f TSm%+9.2f", 
-		   nhit, i, idx+1, ts_max_hit_range, tsp[idx], tsm[idx]);
+		   nhit, i, ts_max_hit, idx, tsp[idx], tsm[idx]);
 	  }
 	  if (tsp[idx]!=ini && tsm[idx]!=ini) {
 	    software_mt_ts  = 0.5*(tsp[idx]+tsm[idx]);
@@ -527,7 +528,7 @@ ShowMTMultiHits(Int_t md_plane, Int_t ts_plane,
 	  Double_t software_del_md = 0.0;
 	  if (md_debug) {
 	    printf("<<MD<< NHits%4d in Event %8d: HitOrder[%d,%d] MDp%+9.2f MDm%+9.2f", 
-		   nhit, i, idx+1, md_max_hit_range, mdp[idx], mdm[idx]);
+		   nhit, i,md_max_hit,  idx, mdp[idx], mdm[idx]);
 	  }
 	  if (mdp[idx]!=ini && mdm[idx]!=ini) {
 	    //	    printf("event %18d id %d mdp %+8.2f mdm%+8.2f mdsmt ", i, idx, mdp[idx], mdm[idx]);

@@ -21,23 +21,27 @@ my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
-my ($help,$nodaqcut,$outfile,$target_want);
+my ($help,$nodaqcut,$target_want,$ploturl,$outfile);
 my $optstatus = GetOptions
   "help|h|?"	=> \$help,
   "no-daq-cut"	=> \$nodaqcut,
-  "outfile=s"	=> \$outfile,
   "target=s"	=> \$target_want,
+  "ploturl"	=> \$ploturl,
+  "outfile=s"	=> \$outfile,
 ;
 
 ## don't get the 'target' stuff unless it's requested, see hclog 251158
 @channels = grep { !/tgt/i } @channels
   unless $target_want;
 
-my $then = shift @ARGV;
-my $now  = shift @ARGV;
+my $request_then = shift @ARGV;
+my $request_now  = shift @ARGV;
+## Don't leave these undefined if they are blank.
+map { $_ = "" unless defined $_ } $request_then, $request_now;
 
-$then = ParseDate( $then ? $then : "yesterday midnight");
-$now = $now ? ParseDate($now) : DateCalc($then, "+48 hours");
+my $then = ParseDate( $request_then ? $request_then : "yesterday midnight");
+my $now = $request_now ?
+  ParseDate($request_now) : DateCalc($then, "+48 hours");
 
 # don't interpolate a few seconds into the next day
 $now = DateCalc $now, "-$interval seconds";
@@ -47,6 +51,27 @@ my @then = UnixDate($then, @fmt);
 my @now  = UnixDate($now , @fmt);
 
 #print "@then, @now\n";
+
+my @corrupt_time_intervals =
+  (	{ start	=> "2012-02-29 14:28",
+	  end	=> "2012-02-29 14:51",
+	  url	=> "https://hallcweb.jlab.org/hclog/1203_archive/120301104428.html",
+	  },
+  );
+foreach my $bad (@corrupt_time_intervals) {
+  my $bad_start = ParseDate($bad->{start});
+  ## n.b. assume requested interval is much longer than the problem ...
+  if ($then le $bad_start and $bad_start le $now) {
+    warn <<EOF;
+WARNING: your time interval includes a period where the archiver was unhappy.
+See $bad->{url} .
+Consider instead two queries
+    $0 '$request_then' '$bad->{start}'
+    $0 '$bad->{end}' '$request_now'
+and adding the results together.
+EOF
+  }
+}
 
 my $helpstring = <<EOF;
 A Coulomb counter.  Accesses the Hall C EPICS archiver and downloads
@@ -63,6 +88,7 @@ Options:
 	--help		print this text
 	--no-daq-cut	integrate /all/ the time, ignore g0rate14
 	--target=blah	count only data taken on target "blah"
+	--ploturl	display Hall C archiver URL to plot the requested data
 	--outfile=blah	save the downloaded data to a file named "blah"
 EOF
 die $helpstring if $help;
@@ -141,6 +167,7 @@ EOF
   }
 }
 
+
 my $ofh;
 if ($outfile) {
   open $ofh, ">", $outfile
@@ -148,6 +175,11 @@ if ($outfile) {
 }
 open DATA, "-|", @wget, $url
   or die "couldn't open wget: $!\n";
+if ($ploturl) {
+  print "Reading data from ", $url, "\n";
+  (my $url_with_plot = $url) =~ s/SPREADSHEET/PLOT/;
+  print "View in archiver: ", $url_with_plot, "\n";
+}
 while (<DATA>) {
   print $ofh $_ if $ofh;
   my($day, $time, $ibcm1, $daqrate, $target_x, $target_y) = split ' ';

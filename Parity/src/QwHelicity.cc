@@ -32,6 +32,9 @@ RegisterSubsystemFactory(QwHelicity);
 /// of the bit pattern is the first event of the pattern.
 const UInt_t QwHelicity::kDefaultHelicityBitPattern = 0x69;
 
+/// Default mask for fake MPS latch bit
+const UInt_t QwHelicity::kInputReg_FakeMPS = 0x8000;
+
 //**************************************************//
 /// Constructor with name
 QwHelicity::QwHelicity(const TString& name)
@@ -64,6 +67,8 @@ QwHelicity::QwHelicity(const TString& name)
   fGoodHelicity=kFALSE;
   fGoodPattern=kFALSE;
   fHelicityDecodingMode=-1;
+
+  fInputReg_FakeMPS = kInputReg_FakeMPS;
 }
 
 //**************************************************//
@@ -101,6 +106,8 @@ QwHelicity::QwHelicity(const QwHelicity& source)
   fGoodHelicity=kFALSE;
   fGoodPattern=kFALSE;
   fHelicityDecodingMode=-1;
+
+  fInputReg_FakeMPS = source.fInputReg_FakeMPS;
 
   this->fWord.resize(source.fWord.size());
   for(size_t i=0;i<this->fWord.size();i++)
@@ -226,7 +233,6 @@ void QwHelicity::ProcessOptions(QwOptions &options)
   } else {
     fSuppressMPSErrorMsgs = kFALSE;
   }
-
 }
 
 
@@ -517,10 +523,8 @@ void QwHelicity::ProcessEventInputRegisterMode()
   */
   fEventNumber=fWord[kMpsCounter].fValue;
 
-  if (CheckIORegisterMask(thisinputregister,kInputReg_FakeMPS)){
-    
+  if (CheckIORegisterMask(thisinputregister,fInputReg_FakeMPS))
     fIgnoreHelicity = kTRUE;
-  }
   else 
     fIgnoreHelicity = kFALSE;
 
@@ -843,7 +847,11 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       else if (varname=="patternbits")
         {
           SetHelicityBitPattern(value);
-          QwMessage << " fPatternBits " << fHelicityBitPattern << QwLog::endl;
+        }
+      else if (varname=="fakempsbit")
+        {
+          fInputReg_FakeMPS = value;
+          QwWarning << " fInputReg_FakeMPS 0x" << std::hex << fInputReg_FakeMPS << std::dec << QwLog::endl;
         }
       else if (varname=="numberpatternsdelayed")
 	{
@@ -857,7 +865,6 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       else if (varname=="patternphaseoffset")
 	{
 	  fPatternPhaseOffset=value;
-
 	}
       else if(varname=="helpluseventtype")
 	{
@@ -870,19 +877,19 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       else if (varname=="helicitydecodingmode")
 	{
 	  if (varvalue=="InputRegisterMode") {
-	    QwMessage << " **** Input Register Mode **** " << std::endl;
+	    QwMessage << " **** Input Register Mode **** " << QwLog::endl;
 	    fHelicityDecodingMode=kHelInputRegisterMode;
 	  }
 	  else if (varvalue=="UserbitMode"){
-	    QwMessage << " **** Userbit Mode **** " << std::endl;
+	    QwMessage << " **** Userbit Mode **** " << QwLog::endl;
 	    fHelicityDecodingMode=kHelUserbitMode;
 	  }
 	  else if (varvalue=="HelLocalyMadeUp"){
-	    QwMessage << "**** Helicity Locally Made Up ****" << std::endl;
+	    QwMessage << "**** Helicity Locally Made Up ****" << QwLog::endl;
 	    fHelicityDecodingMode=kHelLocalyMadeUp;
 	  }
 	  else if (varvalue=="InputMollerMode") {
-	    QwMessage << "**** Input Moller Mode ****" << std::endl;
+	    QwMessage << "**** Input Moller Mode ****" << QwLog::endl;
 	    fHelicityDecodingMode=kHelInputMollerMode;
 	  }
 	  else {
@@ -1896,6 +1903,8 @@ void QwHelicity::SetHelicityBitPattern(UInt_t bits)
   if (parity(bits) == 0)
     fHelicityBitPattern = bits;
   else QwError << "What, exactly, are you trying to do ?!?!?" << QwLog::endl;
+  // Notify the user
+  QwMessage << " fPatternBits 0x" << std::hex << fHelicityBitPattern << std::dec << QwLog::endl;
 }
 
 void QwHelicity::ResetPredictor()

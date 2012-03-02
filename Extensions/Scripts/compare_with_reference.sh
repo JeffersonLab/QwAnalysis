@@ -29,14 +29,18 @@ fi
 
 echo "Creating summary of reference run..."
 pushd $QW_ROOTFILES/$ref
-QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/HistSummary.C+\(\"${stem}_${run}.000.${tag_histos}root\"\) > ${stem}_${run}.000.${tag_histos}root.log
-QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/TreeSummary.C+\(\"${stem}_${run}.000.${tag_trees}root\"\)    > ${stem}_${run}.000.${tag_trees}root.log
+  if [ ${stem}_${run}.000.${tag_histos}root -nt ${stem}_${run}.000.${tag_histos}root.log ] ; then
+    QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/HistSummary.C+\(\"${stem}_${run}.000.${tag_histos}root\"\) > ${stem}_${run}.000.${tag_histos}root.log
+    QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/TreeSummary.C+\(\"${stem}_${run}.000.${tag_trees}root\"\)  > ${stem}_${run}.000.${tag_trees}root.log
+  fi
 popd
 
 echo "Creating summary of test run..."
 pushd $QW_ROOTFILES
-QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/HistSummary.C+\(\"${stem}_${run}.000.${tag_histos}root\"\) > ${stem}_${run}.000.${tag_histos}root.log
-QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/TreeSummary.C+\(\"${stem}_${run}.000.${tag_trees}root\"\)    > ${stem}_${run}.000.${tag_trees}root.log
+  if [ ${stem}_${run}.000.${tag_histos}root -nt ${stem}_${run}.000.${tag_histos}root.log ] ; then
+    QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/HistSummary.C+\(\"${stem}_${run}.000.${tag_histos}root\"\) > ${stem}_${run}.000.${tag_histos}root.log
+    QW_ROOTFILES=. qwroot -l -b -q $QWANALYSIS/Extensions/Macros/TreeSummary.C+\(\"${stem}_${run}.000.${tag_trees}root\"\)  > ${stem}_${run}.000.${tag_trees}root.log
+  fi
 popd
 
 echo "Differences between histograms:"

@@ -80,11 +80,13 @@ void  QwDriftChamber::FillDriftDistanceToHits()
 { 
 //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
 //   std::cout << "size: " << fWireHits.size() << std::endl;
-  for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
-    
-    hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTimeNs(),hit1->GetDetectorID()));
-    
-  }
+
+  for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) 
+    {
+      hit1->SetDriftDistance(
+			     CalculateDriftDistance( hit1->GetTimeNs(), hit1->GetDetectorID() )
+			     );
+    }
   return;
 }
 
@@ -100,7 +102,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 
   Bool_t data_integrity_flag = false;
   Bool_t temp_print_flag     = false;
-  Int_t tdcindex = 0;
+  //  Int_t tdcindex = 0;
 
   bank_index = GetSubbankIndex(roc_id, bank_id);
 
@@ -547,7 +549,5 @@ QwDriftChamber::FillHardwareErrorSummary()
   fF1RefContainer -> PrintCounters();
   fF1TDContainer  -> PrintErrorSummary();
   fF1TDContainer  -> WriteErrorSummary();
-  //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
-
   return;
 };

@@ -118,9 +118,16 @@ IA_up  = 50000
 ### Run 2 ; IHWP OUT-IN slope from run 15786 
 ### See HCLOG 252279
 
-PITASLOPE_IN = 0.8080
-PITASLOPE_OUT = -1.22794
-PITASLOPE_OUT_IN = 0.6002
+#PITASLOPE_IN = 0.8080
+#PITASLOPE_OUT = -1.22794
+#PITASLOPE_OUT_IN = 0.6002
+
+
+### Run 2 ; new IHWP1-2 slopes from Beam E-log 250. All slopes have flipped sign
+
+PITASLOPE_IN = 1.06
+PITASLOPE_OUT = 0.53
+PITASLOPE_OUT_IN = 0.57
 
 
 

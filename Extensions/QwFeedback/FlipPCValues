@@ -44,9 +44,18 @@ PC_neg_t0_OUT=41335
 #New RHWP for run 2 - 02-03-2012 rakitha (rakithab)
 #conversion from deg to dac is 360 deg -> 8000 dac
 
-RHWP_IN=391
-RHWP_OUT=6342
-RHWP_OUT_IN=7519
+#RHWP_IN=391
+#RHWP_OUT=6342
+#RHWP_OUT_IN=7519
+
+#New RHWP for run 2 - 02-16-2012 rakitha (rakithab) from E-log 250
+#conversion from deg to dac is 360 deg -> 8000 dac
+
+RHWP_IN=329
+RHWP_OUT=3496
+RHWP_OUT_IN=7511
+
+
 IHWP2="`caget -tf0 -w 0.1  IGL1I00DIOFLRD`"
 
 if [ $IHWP2 -ge 10000 ]; then

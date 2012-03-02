@@ -14,11 +14,12 @@
 # evoke by:
 # ./ppMakeSluglet RUNNUM
 
+umask 002
 
 PATH_TO_SCRIPT=`dirname $0`
 LEAFLIST=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/leaflist.txt\"
 #ROOTFILE=\"$QW_ROOTFILES/Sluglet_$1.root\"
-ROOTFILE=\"$QW_ROOTFILES/Sluglet_$1.root\"
+ROOTFILE=\"/work/hallc/qweak/QwAnalysis/run2/pass1sluglets/Sluglet_$1.root\"
 QWROOTFILES=\"/volatile/hallc/qweak/QwAnalysis/run2/rootfiles/\"
 #QWROOTFILES=\"$QW_ROOTFILES/\"
 STEM=\"QwPass1\" 

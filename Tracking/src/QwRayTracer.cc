@@ -137,8 +137,11 @@ int QwRayTracer::Bridge(
   double step = 1.0 * Qw::cm; // integration step size
   double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
-  double p[2],x[2],y[2],r[2];
-  double x0,y0,r0;
+  Double_t p[2] = {0.0};
+  Double_t x[2] = {0.0};
+  Double_t y[2] = {0.0};
+  Double_t r[2] = {0.0};
+  //  double x0,y0,r0;
 
   // Front track position and direction
   //TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);

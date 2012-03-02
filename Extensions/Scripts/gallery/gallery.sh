@@ -53,10 +53,10 @@ footer=footer.html
 indexfile=index.html
 
 # Filter of items to consider
-filter="png"
+filter="[jp][pn]g"
 
 # File with sidebar categories
-sidebarfile=$basedir/sidebar.html
+sidebarfile=sidebar.html
 
 
 # Function to do server-side includes on html generation
@@ -94,14 +94,21 @@ process_dirs_in_dir () {
 
 	local parent=$1
 
-	local ndirs=$(find "$origdir/$parent" -maxdepth 1 -type d | wc -l)
-	if [ "$ndirs" == 1 ] ; then return ; fi
-
-
+	local nparentdirs=$(find "$origdir/$parent" -maxdepth 1 -type d | wc -l)
+	let nparentdirs=$nparentdirs-1
+	if [ "$ndirs" != 0 ] ; then
 	{
 		echo "<h3>Sub$sectionsname:</h3>"
 		echo "<ul>"
 	} >> "$indexfile".new
+	fi
+
+	# Main page sidebar header
+	touch "$sidebarfile"
+	echo "<li><a href=\"$baseweb/$indexfile\" id=\"new\">Home</a>" >> "$sidebarfile".new
+	if [ "$parent" != "." ] ; then
+		echo "<li><a href=\"$baseweb/${parent/\/*/}\" id=\"new\">${parent/\/*/}</a>" >> "$sidebarfile".new
+	fi
 
 	for dir in $origdir/$parent/* ; do
 		if [ -d "$dir" ] ; then
@@ -111,23 +118,28 @@ process_dirs_in_dir () {
 			# Create working directory if necessary
 			if [ ! -d "$section" ] ; then mkdir -p "$section" ; fi
 
-			# Main page categories
-			if [ "$parent" == "." ] ; then
-				echo "<li><a href=\"$baseweb/$section/$indexfile\">`basename "$section"`</a>" >> "$sidebarfile".new
-			fi
+			local nfiles=`find "$origdir/$section" -maxdepth 1 -type f -regex ".*\.$filter" | wc -l`
+			local ndirs=`find "$origdir/$section" -maxdepth 1 -type d | wc -l`
+			let ndirs=$ndirs-1
+
+			# Categories
+			echo "<li><a href=\"$baseweb/$section/$indexfile\">`basename "$section"` ($ndirs/$nfiles)</a>" >> "$sidebarfile".new
 
 			# Line with number of entries
-			local total=`find "$origdir/$section" -maxdepth 1 -type f -regex ".*\.$filter" | wc -l`
-			echo "<li><a href=\"$baseweb/$section/$indexfile\">$section</a> ($total $itemsname)" >> "$indexfile".new
+			echo "<li><a href=\"$baseweb/$section/$indexfile\">`basename "$section"`</a> ($ndirs $sectionsname, $nfiles $itemsname)" >> "$indexfile".new
 
 			# Process this directory
 			process_dir "$section"
 		fi
 	done
 
+	mv "$sidebarfile".new "$sidebarfile"
+
+	if [ "$nparentdirs" != 0 ] ; then
 	{
 		echo "</ul>"
 	} >> "$indexfile".new
+	fi
 }
 
 
@@ -161,13 +173,13 @@ process_file () {
 	# Create html frame for this item
 	touch "$itemframe".new
 	{
-		writehtml $styledir/$header
+		writehtml "$styledir/$header"
 		echo "$title $sep $item"
-		writehtml $styledir/$titlebar
+		writehtml "$styledir/$titlebar"
 		echo "$item"
-		writehtml $styledir/$sidebartop
-		writehtml $styledir/$sidebarmid
-		writehtml $styledir/$sidebarbot
+		writehtml "$styledir/$sidebartop"
+		writehtml "$section/$sidebarfile"
+		writehtml "$styledir/$sidebarbot"
 		echo "<p align=\"center\">"
 	} >> "$itemframe".new
 
@@ -353,7 +365,7 @@ process_dir () {
 	# Go to equivalent directory in basedir
 	echo $Sectionname: $section
 	if [ ! -d "$basedir/$section" ] ; then mkdir -p "$basedir/$section" ; fi
-	pushd "$basedir/$section"
+	pushd "$basedir/$section" > /dev/null
 
 	# Link to index.html if different
 	touch "$indexfile"
@@ -370,11 +382,11 @@ process_dir () {
 		else
 			echo "$title $sep $sectionname $section"
 		fi
-		writehtml $styledir/$titlebar
+		writehtml "$styledir/$titlebar"
 		echo "$Sectionname $section"
-		writehtml $styledir/$sidebartop
-		writehtml $styledir/$sidebarmid
-		writehtml $styledir/$sidebarbot
+		writehtml "$styledir/$sidebartop"
+		writehtml "$section/$sidebarfile"
+		writehtml "$styledir/$sidebarbot"
 	} >> "$indexfile".new
 
 
@@ -401,13 +413,8 @@ process_dir () {
 mkdir -p "$basedir/style"
 cp -u style/* "$basedir/style"
 
-# Start with an empty sidebar
-touch "$sidebarfile"
-
 # Start processing at top level
 process_dir "."
 
-# Move sidebar with top level categories
-echo "Note: the sidebar will only be correct after a second pass."
-mv "$sidebarfile".new "$sidebarfile"
+echo "Note: the sidebars will only be correct after a second pass."
 
