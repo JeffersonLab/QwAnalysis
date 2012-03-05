@@ -109,6 +109,10 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   virtual Bool_t PublishInternalValues() const {
     return kTRUE; // when not implemented, this returns success
   };
+  /// \brief Try to publish an internal variable matching the submitted name
+  virtual Bool_t PublishByRequest(TString device_name){
+    return kFALSE; // when not implemented, this returns failure
+  };
 
   /// \brief Request a named value which is owned by an external subsystem;
   ///        the request will be handled by the parent subsystem array

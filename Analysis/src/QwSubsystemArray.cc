@@ -603,9 +603,17 @@ const VQwHardwareChannel* QwSubsystemArray::ReturnInternalValue(const TString& n
   if (iter2 != fPublishedValuesSubsystem.end()) {
     return (iter2->second)->ReturnInternalValue(name);
   }
-  //  If the value is not yet published, try asking all subsystems for it.
-  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
-    return (*subsys)->ReturnInternalValue(name);
+  //  If the value is not yet published, try requesting it.
+  if (const_cast<QwSubsystemArray*>(this)->PublishByRequest(name)){
+    iter1 = fPublishedValuesDataElement.find(name);
+    if (iter1 != fPublishedValuesDataElement.end()) {
+      return iter1->second;
+    }
+    QwError << "PublishByRequest succeeded, but can't find the record for "
+	    << name << QwLog::endl;
+    
+  } else {
+    QwError << "PublishByRequest failed for " << name << QwLog::endl;
   }
   //  Not found
   return 0;
@@ -668,6 +676,30 @@ Bool_t QwSubsystemArray::PublishInternalValue(
 }
 
 /**
+ * Try to publish an internal variable matching the submitted name
+ * @param name Name of the desired published variable
+ * @return True if the variable could be published, false if not published
+ */
+Bool_t QwSubsystemArray::PublishByRequest(TString device_name){
+  Bool_t status = kFALSE;
+  if (fPublishedValuesSubsystem.count(device_name) > 0) {
+    QwError << "QwSubsystemArray::PublishByRequest:  Channel "
+	    << device_name << " has already been published."
+	    << QwLog::endl;
+    ListPublishedValues();
+    status = kTRUE;
+  } else if (not empty()) {
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys)
+      {
+        status = (*subsys)->PublishByRequest(device_name);
+	if (status) break;
+      }
+  }
+  return status;
+}
+
+
+/**
  * List the published values and description in this subsystem array
  */
 void QwSubsystemArray::ListPublishedValues() const
@@ -687,14 +719,7 @@ void QwSubsystemArray::ListPublishedValues() const
  */
 VQwHardwareChannel* QwSubsystemArray::ReturnInternalValueForFriends(const TString& name) const
 {
-  //  First try to find the value in the list of published values.
-  std::map<TString, const VQwHardwareChannel*>::const_iterator iter =
-      fPublishedValuesDataElement.find(name);
-  if (iter != fPublishedValuesDataElement.end()) {
-    return const_cast<VQwHardwareChannel*>(iter->second);
-  }
-  //  Not found
-  return 0;
+  return const_cast<VQwHardwareChannel*>(ReturnInternalValue(name));
 }
 
 

@@ -53,7 +53,8 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
     fLinearArray(source.fLinearArray),
     fCavity(source.fCavity),
     fHaloMonitor(source.fHaloMonitor),
-    fECalculator(source.fECalculator)
+    fECalculator(source.fECalculator),
+    fBeamDetectorID(source.fBeamDetectorID)
   { this->CopyTemplatedDataElements(&source); }
   /// Virtual destructor
   virtual ~QwBeamLine() { };
@@ -85,6 +86,8 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
   void  ProcessEvent();
 
   Bool_t PublishInternalValues() const;
+  Bool_t PublishByRequest(TString device_name);
+
 
  public:
   void RandomizeEventData(int helicity = 0, double time = 0.0);
@@ -127,6 +130,9 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
   VQwDataElement* GetElement(QwBeamDetectorID det_id);
   VQwDataElement* GetElement(EQwBeamInstrumentType TypeID, TString name);
   VQwDataElement* GetElement(EQwBeamInstrumentType TypeID, Int_t index);
+  const VQwDataElement* GetElement(EQwBeamInstrumentType TypeID, Int_t index) const;
+
+  const VQwHardwareChannel* GetChannel(EQwBeamInstrumentType TypeID, Int_t index, TString device_prop) const;
 
   VQwBPM* GetBPMStripline(const TString name);
   VQwBCM* GetBCM(const TString name);
@@ -154,7 +160,7 @@ protected:
   template <typename TT>
   Int_t AddToElementList(std::vector<TT> &elementlist, QwBeamDetectorID &detector_id);
   
-  Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
+  Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name) const;
   //when the type and the name is passed the detector index from appropriate vector will be returned
   //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
 

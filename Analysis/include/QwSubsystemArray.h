@@ -170,6 +170,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   TList* GetParamFileNameList(TString name) const;
 
  private:
+  /// \brief Try to publish an internal variable matching the submitted name
+  Bool_t PublishByRequest(TString device_name);
 
   /// \brief Retrieve the variable name from subsystems in this subsystem array
   VQwHardwareChannel* ReturnInternalValueForFriends(const TString& name) const;
