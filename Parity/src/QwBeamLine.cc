@@ -660,11 +660,20 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
     devname.ToLower();
     devname.Remove(TString::kBoth,' ');
 
+    if (GetQwBeamInstrumentType(devtype)==kQwUnknownDeviceType){
+      QwError << "Error! Unknown detector type '"<<devtype
+	      << "' in Geometry file!"<<QwLog::endl;
+      /*If the device type is unknown there is no point in going through the rest of the specs for that device*/
+      continue;
+    }
+
     index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
     if( index<0 ) {
-      QwError << "Error! Unknown detector type "<<devtype<<" in Geometry file!"<<QwLog::endl;
-      /*If the device type is unknown there is no point in going through the rest of the specs for that device*/
-      /*Ignore it!*/ 
+      /*Detector name isn't recognized. Ignore it!*/
+      QwWarning << "Unrecognized detector name '" << devname
+		<< "' in Geometry file.  This may not be a problem, "
+		<< "if we're using a reduced channel map."
+		<< QwLog::endl;
     } 
     else {
       devOffsetX   = mapstr.GetTypedNextToken<Double_t>(); // X offset

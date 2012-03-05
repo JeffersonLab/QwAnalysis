@@ -110,6 +110,9 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   void  ProcessEvent();
   void  ExchangeProcessedData();
   void  ProcessEvent_2();
+
+  Bool_t PublishInternalValues() const;
+
   void DoNormalization(Double_t factor=1.0);
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);

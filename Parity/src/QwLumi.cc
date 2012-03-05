@@ -758,6 +758,16 @@ void  QwLumi::ProcessEvent_2()
     }
 }
 
+Bool_t QwLumi::PublishInternalValues() const
+{
+  // Publish variables
+  Bool_t status = kTRUE;
+  
+  status = status && PublishInternalValue("uslumisum", "uslumisum", GetCombinedPMT("uslumi_sum")->GetChannel("uslumi_sum"));
+
+  return status;
+}
+
 
 
 //*****************************************************************
