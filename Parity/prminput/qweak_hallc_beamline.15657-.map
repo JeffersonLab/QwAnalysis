@@ -282,4 +282,9 @@ end=energycalculator
  yp_targ, combobpm,  qwk_target, yp
  e_targ, comboenergy,  qwk_energy, e
  qwk_3c16_effectivecharge, bpmstripline, qwk_bpm3c16, ef
-
+ qwk_bcm1, bcm, qwk_bcm1, c
+ qwk_bcm2, bcm, qwk_bcm2, c
+ qwk_bcm5, bcm, qwk_bcm5, c
+ qwk_bcm6, bcm, qwk_bcm6, c
+ qwk_bcm7, bcm, qwk_bcm7, c
+ qwk_bcm8, bcm, qwk_bcm8, c

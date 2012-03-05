@@ -31,40 +31,135 @@ diff:y_targ, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12
 diff:xp_targ, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10
 diff:yp_targ, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09
 
-# Alias case
-[asym:@alias_name, asym:@alias_2]
-diff:x_targ, 0.11, -0.11 
-diff:y_targ, 0.12, -0.12
-
-# Double difference
+# Double differences
 [asym:@DD1_2]
-diff:qwk_bcm1, 1
-diff:qwk_bcm2, -1
+asym:qwk_bcm1, 1
+asym:qwk_bcm2, -1
 
-# Double difference
 [asym:@DD1_5]
 asym:qwk_bcm1, 1
 asym:qwk_bcm5, -1
 
-# Double difference
 [asym:@DD1_6]
 asym:qwk_bcm1, 1
 asym:qwk_bcm6, -1
 
-# Double difference
+[asym:@DD1_7]
+asym:qwk_bcm1, 1
+asym:qwk_bcm7, -1
+
+[asym:@DD1_8]
+asym:qwk_bcm1, 1
+asym:qwk_bcm8, -1
+
 [asym:@DD2_5]
 asym:qwk_bcm2, 1
 asym:qwk_bcm5, -1
 
-# Double difference
 [asym:@DD2_6]
 asym:qwk_bcm2, 1
 asym:qwk_bcm6, -1
 
-# Double difference
+[asym:@DD2_7]
+asym:qwk_bcm2, 1
+asym:qwk_bcm7, -1
+
+[asym:@DD2_8]
+asym:qwk_bcm2, 1
+asym:qwk_bcm8, -1
+
 [asym:@DD5_6]
 asym:qwk_bcm5, 1
 asym:qwk_bcm6, -1
+
+[asym:@DD5_7]
+asym:qwk_bcm5, 1
+asym:qwk_bcm7, -1
+
+[asym:@DD5_8]
+asym:qwk_bcm5, 1
+asym:qwk_bcm8, -1
+
+[asym:@DD6_7]
+asym:qwk_bcm6, 1
+asym:qwk_bcm7, -1
+
+[asym:@DD6_8]
+asym:qwk_bcm6, 1
+asym:qwk_bcm8, -1
+
+[asym:@DD7_8]
+asym:qwk_bcm7, 1
+asym:qwk_bcm8, -1
+
+
+# MD Dipoles
+[asym:@md15dipole]
+asym:qwk_md1barsum, 1
+asym:qwk_md5barsum, -1
+
+[asym:@md26dipole]
+asym:qwk_md2barsum, 1
+asym:qwk_md6barsum, -1
+
+[asym:@md37dipole]
+asym:qwk_md3barsum, 1
+asym:qwk_md7barsum, -1
+
+[asym:@md48dipole]
+asym:qwk_md4barsum, 1
+asym:qwk_md8barsum, -1
+
+#0.1667 = 1/6
+#0.2357 = (sqrt2)/6
+[asym:@mddipole_h]
+asym:qwk_md1barsum,  0.1667
+asym:qwk_md2barsum,  0.2357
+asym:qwk_md4barsum, -0.2357
+asym:qwk_md5barsum, -0.1667
+asym:qwk_md6barsum, -0.2357
+asym:qwk_md8barsum,  0.2357
+
+[asym:@mddipole_v]
+asym:qwk_md2barsum,  0.2357
+asym:qwk_md3barsum,  0.1667
+asym:qwk_md4barsum,  0.2357
+asym:qwk_md6barsum, -0.2357
+asym:qwk_md7barsum, -0.1667
+asym:qwk_md8barsum, -0.2357
+
+
+# MD Asymmetry Average
+[asym:@mdallbarsAVG]
+asym:qwk_md1barsum, 0.125
+asym:qwk_md2barsum, 0.125
+asym:qwk_md3barsum, 0.125
+asym:qwk_md4barsum, 0.125
+asym:qwk_md5barsum, 0.125
+asym:qwk_md6barsum, 0.125
+asym:qwk_md7barsum, 0.125
+asym:qwk_md8barsum, 0.125
+
+# MD Asymmetry Average PMT
+[asym:@mdallpmtAVG]
+asym:qwk_md1neg, 0.0625
+asym:qwk_md2neg, 0.0625
+asym:qwk_md3neg, 0.0625
+asym:qwk_md4neg, 0.0625
+asym:qwk_md5neg, 0.0625
+asym:qwk_md6neg, 0.0625
+asym:qwk_md7neg, 0.0625
+asym:qwk_md8neg, 0.0625
+asym:qwk_md1neg, 0.0625
+asym:qwk_md2pos, 0.0625
+asym:qwk_md3pos, 0.0625
+asym:qwk_md4pos, 0.0625
+asym:qwk_md5pos, 0.0625
+asym:qwk_md6pos, 0.0625
+asym:qwk_md7pos, 0.0625
+asym:qwk_md8pos, 0.0625
+
+
 
 # This is an event case:
 #  two dependent variables
