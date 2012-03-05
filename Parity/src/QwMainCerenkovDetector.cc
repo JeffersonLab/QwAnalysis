@@ -62,40 +62,22 @@ Bool_t QwMainCerenkovDetector::PublishInternalValues() const
   // Publish variables
   Bool_t status = kTRUE;
 
-  status = status && PublishInternalValue("qwk_md1neg", "qwk_md1-", GetIntegrationPMT("qwk_md1neg")->GetChannel("qwk_md1neg"));
-  status = status && PublishInternalValue("qwk_md1pos", "qwk_md1+", GetIntegrationPMT("qwk_md1pos")->GetChannel("qwk_md1pos"));
-  status = status && PublishInternalValue("qwk_md2neg", "qwk_md2-", GetIntegrationPMT("qwk_md2neg")->GetChannel("qwk_md2neg"));
-  status = status && PublishInternalValue("qwk_md2pos", "qwk_md2+", GetIntegrationPMT("qwk_md2pos")->GetChannel("qwk_md2pos"));
-  status = status && PublishInternalValue("qwk_md3neg", "qwk_md3-", GetIntegrationPMT("qwk_md3neg")->GetChannel("qwk_md3neg"));
-  status = status && PublishInternalValue("qwk_md3pos", "qwk_md3+", GetIntegrationPMT("qwk_md3pos")->GetChannel("qwk_md3pos"));
-  status = status && PublishInternalValue("qwk_md4neg", "qwk_md4-", GetIntegrationPMT("qwk_md4neg")->GetChannel("qwk_md4neg"));
-  status = status && PublishInternalValue("qwk_md4pos", "qwk_md4+", GetIntegrationPMT("qwk_md4pos")->GetChannel("qwk_md4pos"));
-  status = status && PublishInternalValue("qwk_md5neg", "qwk_md5-", GetIntegrationPMT("qwk_md5neg")->GetChannel("qwk_md5neg"));
-  status = status && PublishInternalValue("qwk_md5pos", "qwk_md5+", GetIntegrationPMT("qwk_md5pos")->GetChannel("qwk_md5pos"));
-  status = status && PublishInternalValue("qwk_md6neg", "qwk_md6-", GetIntegrationPMT("qwk_md6neg")->GetChannel("qwk_md6neg"));
-  status = status && PublishInternalValue("qwk_md6pos", "qwk_md6+", GetIntegrationPMT("qwk_md6pos")->GetChannel("qwk_md6pos"));
-  status = status && PublishInternalValue("qwk_md7neg", "qwk_md7-", GetIntegrationPMT("qwk_md7neg")->GetChannel("qwk_md7neg"));
-  status = status && PublishInternalValue("qwk_md7pos", "qwk_md7+", GetIntegrationPMT("qwk_md7pos")->GetChannel("qwk_md7pos"));
-  status = status && PublishInternalValue("qwk_md8neg", "qwk_md8-", GetIntegrationPMT("qwk_md8neg")->GetChannel("qwk_md8neg"));
-  status = status && PublishInternalValue("qwk_md8pos", "qwk_md8+", GetIntegrationPMT("qwk_md8pos")->GetChannel("qwk_md8pos"));
-
-  status = status && PublishInternalValue("qwk_md1neg", "qwk_md1neg", GetIntegrationPMT("qwk_md1neg")neg>GetChannel("qwk_md1neg"));
-  status = status && PublishInternalValue("qwk_md1pos", "qwk_md1pos", GetIntegrationPMT("qwk_md1pos")neg>GetChannel("qwk_md1pos"));
-  status = status && PublishInternalValue("qwk_md2neg", "qwk_md2neg", GetIntegrationPMT("qwk_md2neg")neg>GetChannel("qwk_md2neg"));
-  status = status && PublishInternalValue("qwk_md2pos", "qwk_md2pos", GetIntegrationPMT("qwk_md2pos")neg>GetChannel("qwk_md2pos"));
-  status = status && PublishInternalValue("qwk_md3neg", "qwk_md3neg", GetIntegrationPMT("qwk_md3neg")neg>GetChannel("qwk_md3neg"));
-  status = status && PublishInternalValue("qwk_md3pos", "qwk_md3pos", GetIntegrationPMT("qwk_md3pos")neg>GetChannel("qwk_md3pos"));
-  status = status && PublishInternalValue("qwk_md4neg", "qwk_md4neg", GetIntegrationPMT("qwk_md4neg")neg>GetChannel("qwk_md4neg"));
-  status = status && PublishInternalValue("qwk_md4pos", "qwk_md4pos", GetIntegrationPMT("qwk_md4pos")neg>GetChannel("qwk_md4pos"));
-  status = status && PublishInternalValue("qwk_md5neg", "qwk_md5neg", GetIntegrationPMT("qwk_md5neg")neg>GetChannel("qwk_md5neg"));
-  status = status && PublishInternalValue("qwk_md5pos", "qwk_md5pos", GetIntegrationPMT("qwk_md5pos")neg>GetChannel("qwk_md5pos"));
-  status = status && PublishInternalValue("qwk_md6neg", "qwk_md6neg", GetIntegrationPMT("qwk_md6neg")neg>GetChannel("qwk_md6neg"));
-  status = status && PublishInternalValue("qwk_md6pos", "qwk_md6pos", GetIntegrationPMT("qwk_md6pos")neg>GetChannel("qwk_md6pos"));
-  status = status && PublishInternalValue("qwk_md7neg", "qwk_md7neg", GetIntegrationPMT("qwk_md7neg")neg>GetChannel("qwk_md7neg"));
-  status = status && PublishInternalValue("qwk_md7pos", "qwk_md7pos", GetIntegrationPMT("qwk_md7pos")neg>GetChannel("qwk_md7pos"));
-  status = status && PublishInternalValue("qwk_md8neg", "qwk_md8neg", GetIntegrationPMT("qwk_md8neg")neg>GetChannel("qwk_md8neg"));
-  status = status && PublishInternalValue("qwk_md8pos", "qwk_md8pos", GetIntegrationPMT("qwk_md8pos")neg>GetChannel("qwk_md8pos"));
-
+  status = status && PublishInternalValue("qwk_md1neg", "qwk_md1neg", GetIntegrationPMT("qwk_md1neg")->GetChannel("qwk_md1neg"));
+  status = status && PublishInternalValue("qwk_md1pos", "qwk_md1pos", GetIntegrationPMT("qwk_md1pos")->GetChannel("qwk_md1pos"));
+  status = status && PublishInternalValue("qwk_md2neg", "qwk_md2neg", GetIntegrationPMT("qwk_md2neg")->GetChannel("qwk_md2neg"));
+  status = status && PublishInternalValue("qwk_md2pos", "qwk_md2pos", GetIntegrationPMT("qwk_md2pos")->GetChannel("qwk_md2pos"));
+  status = status && PublishInternalValue("qwk_md3neg", "qwk_md3neg", GetIntegrationPMT("qwk_md3neg")->GetChannel("qwk_md3neg"));
+  status = status && PublishInternalValue("qwk_md3pos", "qwk_md3pos", GetIntegrationPMT("qwk_md3pos")->GetChannel("qwk_md3pos"));
+  status = status && PublishInternalValue("qwk_md4neg", "qwk_md4neg", GetIntegrationPMT("qwk_md4neg")->GetChannel("qwk_md4neg"));
+  status = status && PublishInternalValue("qwk_md4pos", "qwk_md4pos", GetIntegrationPMT("qwk_md4pos")->GetChannel("qwk_md4pos"));
+  status = status && PublishInternalValue("qwk_md5neg", "qwk_md5neg", GetIntegrationPMT("qwk_md5neg")->GetChannel("qwk_md5neg"));
+  status = status && PublishInternalValue("qwk_md5pos", "qwk_md5pos", GetIntegrationPMT("qwk_md5pos")->GetChannel("qwk_md5pos"));
+  status = status && PublishInternalValue("qwk_md6neg", "qwk_md6neg", GetIntegrationPMT("qwk_md6neg")->GetChannel("qwk_md6neg"));
+  status = status && PublishInternalValue("qwk_md6pos", "qwk_md6pos", GetIntegrationPMT("qwk_md6pos")->GetChannel("qwk_md6pos"));
+  status = status && PublishInternalValue("qwk_md7neg", "qwk_md7neg", GetIntegrationPMT("qwk_md7neg")->GetChannel("qwk_md7neg"));
+  status = status && PublishInternalValue("qwk_md7pos", "qwk_md7pos", GetIntegrationPMT("qwk_md7pos")->GetChannel("qwk_md7pos"));
+  status = status && PublishInternalValue("qwk_md8neg", "qwk_md8neg", GetIntegrationPMT("qwk_md8neg")->GetChannel("qwk_md8neg"));
+  status = status && PublishInternalValue("qwk_md8pos", "qwk_md8pos", GetIntegrationPMT("qwk_md8pos")->GetChannel("qwk_md8pos"));
 
   status = status && PublishInternalValue("qwk_md1barsum","qwk_md1barsum", GetCombinedPMT("qwk_md1barsum")->GetChannel("qwk_md1barsum"));
   status = status && PublishInternalValue("qwk_md2barsum","qwk_md2barsum", GetCombinedPMT("qwk_md2barsum")->GetChannel("qwk_md2barsum"));
