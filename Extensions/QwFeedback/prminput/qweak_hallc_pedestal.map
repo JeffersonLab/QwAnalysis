@@ -37,7 +37,7 @@
 
 ! ** HallC BPM pedestals (per sample) obtained using Run 11956 (qweak_hallc_pedestal.15261-.map)
 !
-
+! Hall A bcm:ha_bcm   Mon Mar 05 13:28:44 EST 2012 Hclog: 257105 (rakitha - rakithab@jlab.org)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
@@ -148,4 +148,7 @@
 ########
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
-  sca_habcm       , 260  , 0.0003132
+  sca_habcm, 5335.6, 0.00000121050
+  sca_4mhz         ,    0.0,     0.000000250
+
+
