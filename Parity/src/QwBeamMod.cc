@@ -648,75 +648,7 @@ Int_t QwBeamMod::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
 
   return 0;
 }
-/*
 
-const Bool_t QwBeamMod::PublishInternalValues() const
-{
-  // Publish variables
-  Bool_t status = kTRUE;
-  status = status && PublishInternalValue("q_targ", "Calculated charge on target");
-  return status;
-}
-
-*/
-
-/**
- * Return the value of variable name
- * @param name Name of the desired variable
- * @param value Pointer to the value to be filled by the call
- * @return True if the variable was found, false if not found
- */
-
-/*
-const Bool_t QwBeamMod::ReturnInternalValue(TString name,
-				       VQwDataElement* value) const
-{
-  Bool_t ldebug=kFALSE;
-  if (ldebug) std::cout << "QwBeamMod::ReturnInternalValue called for value name, "
-	    << name.Data() <<std::endl;
-  Bool_t foundit = kFALSE;
-  QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
-  if (tmp==NULL){
-    QwWarning << "QwBeamMod::ReturnInternalValue requires that "
-	      << "'value' be a pointer to QwVQWK_Channel"
-	      << QwLog::endl;
-  } else {
-    if (name=="q_targ"){
-      foundit = kTRUE;
-      (*tmp) = GetModChannel("qwk_bcm0l02")->GetCharge();
-        if (ldebug) std::cout<<"QwBeamMod::ReturnInternalValue got element qwk_bcm0l02"<<std::endl;
-    }
-
-    //test for x_targ, y_targ, ...
-    else if (name=="x_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamMod::ReturnInternalValue got element for x_targ"<<std::endl;
-    }
-    else if (name=="y_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamMod::ReturnInternalValue got element for y_targ"<<std::endl;
-    }
-    else if (name=="xp_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamMod::ReturnInternalValue got element for xp_targ"<<std::endl;
-    }
-    else if (name=="yp_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamMod::ReturnInternalValue got element for yp_targ"<<std::endl;
-    }
-    else if (name=="e_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetModChannel("ch_name")->GetCharge();
-        if (ldebug) std::cout<<"QwBeamMod::ReturnInternalValue got element for e_targ"<<std::endl;
-    }
-  }
-  return foundit;
-}
-*/
 //*****************************************************************
 
 void QwBeamMod::ClearEventData()

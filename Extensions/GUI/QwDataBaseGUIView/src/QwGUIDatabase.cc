@@ -1378,13 +1378,13 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   }
 
   if((dCmbXAxis->GetSelected()) == ID_X_SLUG){
-    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(data.n)*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,data.slug AS x_value, ";
+    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(SUM(data.n))*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,data.slug AS x_value, ";
     special_cuts += Form(" AND (data.slug >= %i AND data.slug <= %i ) GROUP BY data.slug",index_first,index_last);
   }
 
   if((dCmbXAxis->GetSelected()) == ID_X_TIME) {
     tables_used+=" run,  ";
-    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(data.n)*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,run.start_time AS x_value, ";
+    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(SUM(data.n))*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,run.start_time AS x_value, ";
     special_cuts += Form(" AND run.run_number = data.run_number AND (data.run_number >= %i  AND data.run_number <= %i) and run.start_time!='NULL' and run.start_time>'2009-01-01' GROUP BY data.run_number ",index_first, index_last);
   }
   if((dCmbXAxis->GetSelected()) == ID_X_TIME_RUNLET) {
