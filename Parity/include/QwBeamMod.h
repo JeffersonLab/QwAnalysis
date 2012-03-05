@@ -98,10 +98,6 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   void  ClearEventData();
   void  ProcessEvent();
 
-
-//  const Bool_t PublishInternalValues() const;
-//  const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const;
-
 //  void RandomizeEventData(int helicity = 0);
 //  void EncodeEventData(std::vector<UInt_t> &buffer);
 
