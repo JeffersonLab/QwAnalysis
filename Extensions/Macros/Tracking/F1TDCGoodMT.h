@@ -75,6 +75,7 @@ public:
   void     Print(Bool_t on);
 
   Bool_t   IsInTimeWindow(Double_t time_window);
+  Bool_t   IsHitIDsMatch();
 
 private:
 
@@ -111,6 +112,9 @@ class MeanTimeContainer
  public :
   Int_t                    fNMeanTimes;
   TObjArray               *fMeanTimeList; 
+  Int_t                    fNHarewareMeanTimes;
+  Int_t                    fNPositive;
+  Int_t                    fNNegative;
 
 public:
 
@@ -128,6 +132,7 @@ public:
   void ProcessMeanTime();
  
   Int_t  Size() const {return fNMeanTimes;};
+  Int_t  HardwareMTSize() const {return fNHarewareMeanTimes;};
 
   void   SetTimeWindow  (const Double_t in_ns) {fTimeWindowNs = in_ns;};
   void   SetDetectorType(const TString name  ) {fDetectorName = name;};
@@ -150,6 +155,9 @@ private:
   Double_t  fPositiveValue[7];
   Double_t  fNegativeValue[7];
   Double_t  fHardwareMeantimeValue[7];
+
+  void      MatchHardwareMeanTime();
+  Bool_t    IsHarewareMatchSoftware();
 
   ClassDef(MeanTimeContainer,0);
 
