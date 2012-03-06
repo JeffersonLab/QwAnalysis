@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+<meta http-equiv="Pragma" content="no-cache">
+<title>Compton  %%RUNNUM%% Run Summary</title>
+</head>
+<body>
+
+<a name="top"></a>
+
+<table border="0" width="100%">
+<tr>
+<td><h2><-Previous Run
+</td></h2>
+<td><h1 align="center">Run %%RUNNUM%% %%FIRST100KMESSAGE%% 
+</h1></td>
+<td><h2 align="right">Next Run->
+</td></h2>
+<td><h2 align="right"><a href="../index.html">^Runlist^</a>
+</td></h2>
+</tr>
+</table> 
+
+<table class="runpage-info" width="100%">
+<tr>
+	<td>Links</td>
+	<td></td><td>Start Run: %%STARTDATE%%</td>
+	<td></td><td>%%BCM01%%</td>
+</tr>
+<tr>
+	<td><a href="./">Directory List</a></td>
+	<td></td><td>End Run: %%ENDDATE%%</td>
+	<td></td><td>%%BCM02%%</td>
+</tr>
+<tr>
+	<td><a href="#histos">Electron Online Histograms</a></td>
+	<td></td><td>Root file date: %%ROOTDATE%%</td>
+	<td></td><td>%%BCM17%%</td>
+</tr>
+<tr>
+	<td><a href="run_%%RUNNUM%%.html">Photon Detector</a></td>
+	<td></td><td>Last Analysis: %%ANALYSISDATE%%</td>
+	<td></td><td>%%HWP%%</td>
+</tr>
+</table>
+
+<a name="histos"></a>
+<center><h2>Electron Online Histograms<h2></center>
+<p><center><img src="eDetHitsHistos_%%RUNNUM%%_accum.png"></center></p>
+<p><center><img src="eDetHitsHistos_%%RUNNUM%%_event.png"></center></p>
+<p><center><img src="eDetHitsHistos_%%RUNNUM%%_scalar.png"></center></p>
+
+</body>
+</html>
