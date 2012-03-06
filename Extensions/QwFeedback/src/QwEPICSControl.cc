@@ -116,7 +116,10 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("qw:BCM78DDAsymmetryWidth", &fBCM8DDAsymmetryWidth);
 
 
-  
+  status = ca_search("qw:USLumiAsymmetry", &fUSLumiSumAsymmetry);
+  status = ca_search("qw:USLumiAsymmetryError", &fUSLumiSumAsymmetryError);
+  status = ca_search("qw:USLumiAsymmetryWidth", &fUSLumiSumAsymmetryWidth);
+
 
 
 

@@ -238,8 +238,8 @@ public:
     Int_t status;
     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
-    //status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
-    //status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_pend_io(10);
     std::cout << "Pockels Cell pos HW-count value: " << value << std::endl;
 
   };
@@ -247,8 +247,8 @@ public:
     Int_t status;
     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
-    //status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
-    //status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_pend_io(10);
     std::cout << "Pockels Cell minus HW-count value: " << value << std::endl;
   };
 
@@ -502,6 +502,22 @@ public:
     status = ca_pend_io(10);
   }
 
+  void Set_USLumiSumAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fUSLumiSumAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fUSLumiSumAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fUSLumiSumAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+  }
+
+  void Get_USLumiSumAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fUSLumiSumAsymmetry , &value);
+    status = ca_get(DBR_DOUBLE,fUSLumiSumAsymmetryError , &value_error);
+    status = ca_get(DBR_DOUBLE,fUSLumiSumAsymmetryWidth , &value_width);
+  }
   
   void Set_FeedbackStatus(Double_t value){
     Int_t status;
@@ -669,6 +685,9 @@ public:
 
   chid fBCM8Yield;
 
+  chid fUSLumiSumAsymmetry;
+  chid fUSLumiSumAsymmetryError;
+  chid fUSLumiSumAsymmetryWidth;
 
 
 

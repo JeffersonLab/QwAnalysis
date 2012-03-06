@@ -97,6 +97,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fAsymBCM78DDRunningSum.InitializeChannel("bcm78dd","derived");
     fYieldBCM8RunningSum.InitializeChannel("q_targ","derived");
+    fAsymUSLumiSumRunningSum.InitializeChannel("uslumisum","derived");
   
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
@@ -326,7 +327,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     Double_t fBCM8Yield;
 
-
+    
+    Double_t fAsymBCMUSLumiSum;
+    Double_t fAsymBCMUSLumiSumError;
+    Double_t fAsymBCMUSLumiSumWidth;
 
     Double_t fChargeAsym[kHelModes];//current charge asym
     Double_t fChargeAsymError[kHelModes];//current charge asym precision
@@ -439,6 +443,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     QwBeamCharge   fAsymBCM8;//to access bcm8 asymmetry
     QwBeamCharge   fAsymBCM78DDRunningSum;//to accumulate bcm78 DD asymmetry
     QwBeamCharge   fYieldBCM8RunningSum;//to access bcm8 Yield
+
+    QwBeamCharge   fAsymUSLumiSumRunningSum;//to accumulate US Lumi sum
 
 
     //log file
