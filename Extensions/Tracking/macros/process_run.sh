@@ -105,6 +105,9 @@ then
     ROOTDATE=$(stat -c %y $ROOTFILE | cut -f1 -d".")
 fi
 
+DATE=`date +%Y%m%d`
+TIME=`date +%H%M%S`
+
 ANALYSISDATE=$(date +"%Y-%m-%d %H:%M")
 ## First create the web page 
 RUNPAGE="${WEBDIR}/run_$RUNNUM/run_$RUNNUM.html"
@@ -141,8 +144,8 @@ then
 
                 ## Now after the configuration file has been read, and the script is enabled, process the script
                 echo "Running ${MACRO}"
-                echo "qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log"
-                nice  qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log
+                echo "qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log"
+                nice  qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log
             else
                 echo "Macro ${MACROSDIR}/${MACRO} not found"
             fi
