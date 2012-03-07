@@ -107,6 +107,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   MQwV775TDC       fQDCTDC;
   MQwF1TDC         fF1TDCDecoder;
   QwF1TDContainer *fF1TDContainer;
+  F1TDCReferenceContainer * fF1RefContainer;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 

@@ -49,6 +49,7 @@ QwMainDetector::QwMainDetector(const TString& name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
+  fF1RefContainer = new F1TDCReferenceContainer();
 }
 
 QwMainDetector::~QwMainDetector()
@@ -56,6 +57,7 @@ QwMainDetector::~QwMainDetector()
   fPMTs.clear();
   fSCAs.clear();
   delete fF1TDContainer;
+  delete fF1RefContainer;
 }
 
 
@@ -340,6 +342,8 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 
 	    if (name=="md_reftime_f1") {
 
+	      fF1RefContainer -> AddF1TDCReferenceSignal(new F1TDCReferenceSignal(fCurrentBankIndex, slotnum, channum, "MasterTrigger"));
+
 	      fRefTime_SlotNum = slotnum;
 	      fRefTime_ChanNum = channum;
 	      reference_counter++;
@@ -512,6 +516,8 @@ void  QwMainDetector::ClearEventData()
   fTDCHits.clear();
   std::size_t i = 0;
   
+  fF1RefContainer->ClearEventData();
+
   for (i=0; i<fReferenceData.size(); i++) {
     fReferenceData.at(i).clear();
   }
@@ -554,7 +560,8 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
       }
       subsystem_name = this->GetSubsystemName();
       fF1TDContainer -> SetSystemName(subsystem_name);
-      
+      fF1RefContainer-> SetSystemName(subsystem_name);
+
       if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
       
       std::cout << "QwMainDetector : " 
@@ -1260,7 +1267,8 @@ void  QwMainDetector::FillRawTDCWord (Int_t bank_index,
     TString name         = "";
  
 
-
+    fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, local_debug);
+  
     plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
     element = fDetectorIDs.at(tdcindex).at(chan).fElement;
     package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
@@ -1347,115 +1355,162 @@ void  QwMainDetector::FillRawTDCWord (Int_t bank_index,
 void  QwMainDetector::SubtractReferenceTimes()
 {
 
-  std::vector<Double_t> reftimes;
-  std::vector<Bool_t>   refchecked;
-  std::vector<Bool_t>   refokay;
-  Bool_t allrefsokay;
-
-
-  std::size_t ref_size = 0;
-  std::size_t i = 0;
-  std::size_t j = 0;
-
-  ref_size = fReferenceData.size();
-
-  reftimes.resize  ( ref_size );
-  refchecked.resize( ref_size );
-  refokay.resize   ( ref_size );
-
-  for ( i=0; i<ref_size; i++ ) {
-    reftimes.at(i)   = 0.0;
-    refchecked.at(i) = kFALSE;
-    refokay.at(i)    = kFALSE;
-  }
-
-  allrefsokay = kTRUE;
-
-
 
   UInt_t   bank_index        = 0;
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;
-  Double_t time_arb_unit       = 0.0;
+  Double_t time_arb_unit     = 0.0;
+ // EQwDetectorPackage package = kPackageNull;  // Region 1 has only Package 2, so kPackageDown
 
   Bool_t local_debug = false;
+  Int_t slot_num = 0;
+
+  TString reference_name1 = "MasterTrigger";
+  //  TString reference_name2 = "CopyMasterTrigger";
+
 
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
-      //  Only try to check the reference time for a bank if there is at least one
-      //  non-reference hit in the bank.
-      bank_index = hit->GetSubbankID();
 
-      //     if(local_debug) printf("QwHit :: bank index %d\n", bank_index);
+      bank_index        = hit -> GetSubbankID();
+      slot_num          = hit -> GetModule();
+      raw_time_arb_unit = (Double_t) hit -> GetRawTime();
+      ref_time_arb_unit = fF1RefContainer -> GetReferenceTimeAU(bank_index, reference_name1);
+      //
+      // if there is no reference time due to a channel error, try to use a copy of mater trigger
+      // 
+      // if(ref_time_arb_unit==0.0) {
+      // 	ref_time_arb_unit =  fF1RefContainer->GetReferenceTimeAU(bank_index, reference_name2);
+      // }
+      // second time, it returns 0.0, we simply ignore this event .... 
+      // set time zero. ReferenceSignalCorrection() will return zero, and increase RFM counter...
+      //
+      time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
 
-      if ( not refchecked.at(bank_index) ) {
+      hit -> SetTime(time_arb_unit); 
+      hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
+
+      if(local_debug) {
+	QwMessage << this->GetSubsystemName()
+		  << " BankIndex " << std::setw(2) << bank_index
+		  << " Slot "      << std::setw(2) << slot_num
+		  << " RawTime : " << std::setw(6) << raw_time_arb_unit
+		  << " RefTime : " << std::setw(6) << ref_time_arb_unit
+		  << " time : "    << std::setw(6) << time_arb_unit
+		  << std::endl;
 	
-	if ( fReferenceData.at(bank_index).empty() ) {
-	  std::cout << "QwMainDetector::SubtractReferenceTimes:  Subbank ID "
-	     	    << bank_index << " is missing a reference time." << std::endl;
-	  refokay.at(bank_index) = kFALSE;
-	  allrefsokay            = kFALSE;
-	}
-	else {
-	  if(fReferenceData.at(bank_index).size() not_eq 1) {
-	    std::cout << "Multiple hits are recorded in the reference channel, we use the first hit signal as the refererence signal." << std::endl;
-	  }
-	  reftimes.at(bank_index) = fReferenceData.at(bank_index).at(0);
-	  refokay.at(bank_index)  = kTRUE;
-	}
-
-	if (refokay.at(bank_index)){
-	  for ( j=0; j<fReferenceData.at(bank_index).size(); j++ ) 
-	    {
-	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
-	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
-	      fReferenceData.at(bank_index).at(j) -= reftimes.at(bank_index);
-	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
-	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
-	    }
-	}
-
-     	refchecked.at(bank_index) = kTRUE;
-      }
-      
-      if ( refokay.at(bank_index) ) {
-   	Int_t slot_num    = hit -> GetModule();
-      	raw_time_arb_unit = (Double_t) hit -> GetRawTime();
-      	ref_time_arb_unit = (Double_t) reftimes.at(bank_index);
-
-      	time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
-
-      	hit -> SetTime(time_arb_unit); 
-	hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
-
-      	if(local_debug) {
-      	  QwMessage << this->GetSubsystemName()
-      		    << " BankIndex " << std::setw(2) << bank_index
-      		    << " Slot "      << std::setw(2) << slot_num
-      		    << " RawTime : " << std::setw(6) << raw_time_arb_unit
-      		    << " RefTime : " << std::setw(6) << ref_time_arb_unit
-      		    << " time : "    << std::setw(6) << time_arb_unit
-      		    << std::endl;
-	  
-      	}
       }
     }
+
+  // std::vector<Double_t> reftimes;
+  // std::vector<Bool_t>   refchecked;
+  // std::vector<Bool_t>   refokay;
+  // Bool_t allrefsokay;
+
+
+  // std::size_t ref_size = 0;
+  // std::size_t i = 0;
+  // std::size_t j = 0;
+
+  // ref_size = fReferenceData.size();
+
+  // reftimes.resize  ( ref_size );
+  // refchecked.resize( ref_size );
+  // refokay.resize   ( ref_size );
+
+  // for ( i=0; i<ref_size; i++ ) {
+  //   reftimes.at(i)   = 0.0;
+  //   refchecked.at(i) = kFALSE;
+  //   refokay.at(i)    = kFALSE;
+  // }
+
+  // allrefsokay = kTRUE;
+
+
+
+  // UInt_t   bank_index        = 0;
+  // Double_t raw_time_arb_unit = 0.0;
+  // Double_t ref_time_arb_unit = 0.0;
+  // Double_t time_arb_unit       = 0.0;
+
+  // Bool_t local_debug = false;
+
+  // for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+  //   {
+  //     //  Only try to check the reference time for a bank if there is at least one
+  //     //  non-reference hit in the bank.
+  //     bank_index = hit->GetSubbankID();
+
+  //     //     if(local_debug) printf("QwHit :: bank index %d\n", bank_index);
+
+  //     if ( not refchecked.at(bank_index) ) {
+	
+  // 	if ( fReferenceData.at(bank_index).empty() ) {
+  // 	  std::cout << "QwMainDetector::SubtractReferenceTimes:  Subbank ID "
+  // 	     	    << bank_index << " is missing a reference time." << std::endl;
+  // 	  refokay.at(bank_index) = kFALSE;
+  // 	  allrefsokay            = kFALSE;
+  // 	}
+  // 	else {
+  // 	  if(fReferenceData.at(bank_index).size() not_eq 1) {
+  // 	    std::cout << "Multiple hits are recorded in the reference channel, we use the first hit signal as the refererence signal." << std::endl;
+  // 	  }
+  // 	  reftimes.at(bank_index) = fReferenceData.at(bank_index).at(0);
+  // 	  refokay.at(bank_index)  = kTRUE;
+  // 	}
+
+  // 	if (refokay.at(bank_index)){
+  // 	  for ( j=0; j<fReferenceData.at(bank_index).size(); j++ ) 
+  // 	    {
+  // 	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
+  // 	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
+  // 	      fReferenceData.at(bank_index).at(j) -= reftimes.at(bank_index);
+  // 	      // printf("Reference time %f fReferenceData.at(%d).at(%d) %f\n", 
+  // 	      // 	     reftimes.at(bank_index), (Int_t) bank_index, (Int_t) j, fReferenceData.at(bank_index).at(j));
+  // 	    }
+  // 	}
+
+  //    	refchecked.at(bank_index) = kTRUE;
+  //     }
+      
+  //     if ( refokay.at(bank_index) ) {
+  //  	Int_t slot_num    = hit -> GetModule();
+  //     	raw_time_arb_unit = (Double_t) hit -> GetRawTime();
+  //     	ref_time_arb_unit = (Double_t) reftimes.at(bank_index);
+
+  //     	time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(raw_time_arb_unit, ref_time_arb_unit, bank_index, slot_num);
+
+  //     	hit -> SetTime(time_arb_unit); 
+  // 	hit -> SetRawRefTime((UInt_t) ref_time_arb_unit);
+
+  //     	if(local_debug) {
+  //     	  QwMessage << this->GetSubsystemName()
+  //     		    << " BankIndex " << std::setw(2) << bank_index
+  //     		    << " Slot "      << std::setw(2) << slot_num
+  //     		    << " RawTime : " << std::setw(6) << raw_time_arb_unit
+  //     		    << " RefTime : " << std::setw(6) << ref_time_arb_unit
+  //     		    << " time : "    << std::setw(6) << time_arb_unit
+  //     		    << std::endl;
+	  
+  //     	}
+  //     }
+  //   }
   
-  // bank_index = 0;
+  // // bank_index = 0;
   
-  if ( not allrefsokay ) {
-    std::vector<QwHit> tmp_hits;
-    tmp_hits.clear();
-    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
-      {
-  	bank_index = hit->GetSubbankID();
-  	if ( refokay.at(bank_index) ) tmp_hits.push_back(*hit);
-      }
-    //    std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-    fTDCHits.clear();
-    fTDCHits = tmp_hits;
-    //     std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-  }
+  // if ( not allrefsokay ) {
+  //   std::vector<QwHit> tmp_hits;
+  //   tmp_hits.clear();
+  //   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+  //     {
+  // 	bank_index = hit->GetSubbankID();
+  // 	if ( refokay.at(bank_index) ) tmp_hits.push_back(*hit);
+  //     }
+  //   //    std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+  //   fTDCHits.clear();
+  //   fTDCHits = tmp_hits;
+  //   //     std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+  // }
   
   return;
 }
@@ -1538,8 +1593,9 @@ Int_t QwMainDetector::FindSignalIndex(const EQwModuleType modtype, const TString
 void
 QwMainDetector::FillHardwareErrorSummary()
 {
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
+  fF1RefContainer -> PrintCounters();
+  fF1TDContainer  -> PrintErrorSummary();
+  fF1TDContainer  -> WriteErrorSummary();
   return;
 };
 

@@ -981,10 +981,9 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
 void
 QwSciFiDetector::FillHardwareErrorSummary()
 {
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
-  //  fF1TDContainer->WriteErrorSummaryToDedicatedRootFile(rootfile);
-
+  fF1RefContainer-> PrintCounters();
+  fF1TDContainer -> PrintErrorSummary();
+  fF1TDContainer -> WriteErrorSummary();
   return;
 };
 
