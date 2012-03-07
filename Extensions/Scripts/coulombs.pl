@@ -21,6 +21,7 @@ my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
 sub parse_date_interval;
 sub suggest_better_time_intervals;
+sub in_out_filehandles;
 sub buildurl;
 sub does_target_match;
 sub announce;
@@ -66,15 +67,10 @@ die $helpstring if $help;
 
 suggest_better_time_intervals($request_then, $request_now);
 
-my $ofh;
-if ($outfile) {
-  open $ofh, ">", $outfile
-    or die "couldn't open '$outfile' for writing: $!"
-}
-open DATA, "-|", @wget, buildurl($request_then, $request_now,
-				 $interval, @channels)
-  or die "couldn't open wget: $!\n";
-while (<DATA>) {
+my ($datafh, $ofh) = in_out_filehandles $outfile,
+  $request_then, $request_now, $interval, @channels;
+
+while (<$datafh>) {
   print $ofh $_ if $ofh;
   my($day, $time, $ibcm1, $daqrate, $target_x, $target_y) = split ' ';
 
@@ -138,6 +134,20 @@ and adding the results together.
 EOF
     }
   }
+}
+
+sub in_out_filehandles {
+  my $outfile = shift;
+  ## remaining arguments are passed to buildurl, q.v.
+
+  my $ofh;
+  if ($outfile) {
+    open $ofh, ">", $outfile
+      or die "couldn't open '$outfile' for writing: $!"
+    }
+  open $datafh, "-|", @wget, buildurl(@_)
+    or die "couldn't open wget: $!\n";
+  return ($datafh, $ofh);
 }
 
 sub buildurl {
