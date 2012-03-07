@@ -747,7 +747,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 		Int_t nbin=102, 
 		Int_t time_shift_ns=0) {
   
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
 
   Style();
 
@@ -849,6 +849,8 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       dtshist[idx]   = new TH1D(Form("dTSpm_hitid_%d", idx), Form("TSp - TSm  HitId %d", idx),    nbin, -2000+time_shift_ns, 2000+time_shift_ns);
       dtsmthist[idx] = new TH1D(Form("dTSMT_hitid_%d", idx), Form("TShMT - TSsMT HitId %d", idx), nbin, -2000+time_shift_ns, 2000+time_shift_ns);
 
+      // To see data with 0.001ns bin width https://qweak.jlab.org/elog/Detector/58
+      //      dtsmthist[idx] = new TH1D(Form("dTSMT_hitid_%d", idx), Form("TShMT - TSsMT HitId %d", idx), 20000, 35, 55); // 10/100000 = 1/10000 : 0.001 ns
       HistList.Add(mdhist[idx]);
       HistList.Add(tshist[idx]);
       HistList.Add(tsmthist[idx]);
