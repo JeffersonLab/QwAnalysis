@@ -2436,7 +2436,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
     ytitle = "Asymmetry (ppm)";
 
   if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" ){
-    if (det_id == ID_E_CAL) ytitle  = "Energy Asymetry (ppm)";
+    if (det_id == ID_E_CAL) ytitle  = "Energy Asymmetry (ppm)";
     else if (det_id == ID_CMB_BPM ){
       if(property.Contains("Slope")){ //angles
 	ytitle  = "Beam Angle Differences(#murad)";
