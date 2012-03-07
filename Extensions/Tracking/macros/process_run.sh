@@ -121,6 +121,39 @@ sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|"  $RUNPAGE
 sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|"  $RUNPAGE
 sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $RUNPAGE
 
+
+## Make links to other runs
+PREVRUN=$RUNNUM
+let "PREVRUN -= 1"
+PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
+PREVRUNLINK=run_$PREVRUN/run_$PREVRUN.html
+until [ -f $PREVRUNPAGE -o $PREVRUN -lt 1 ]
+do
+    let "PREVRUN -= 1"
+    PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
+done
+if [ $PREVRUN -gt 1 ]
+then
+    echo "previous run: $PREVRUN $PREVRUNPAGE"
+    sed -i -e "s|Previous Run|<a href=\"../$PREVRUNLINK\">Run $PREVRUN</a>|" $RUNPAGE
+    sed -i -e "s|Next Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $PREVRUNPAGE
+    sed -i -e "s|<!--prev|<a href=\"../$PREVRUNLINK|" $RUNPAGE
+    sed -i -e "s|prev-->|\"><- Run $PREVRUN</a>|" $RUNPAGE
+fi
+
+NEXTRUN=$RUNNUM
+let "NEXTRUN += 1"
+NEXTRUNPAGE=$WEBDIR/run_$NEXTRUN/run_$NEXTRUN.html
+NEXTRUNLINK=run_$NEXTRUN/run_$NEXTRUN.html
+if [ -f $NEXTRUNPAGE ]
+then
+    sed -i -e "s|Previous Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $NEXTRUNPAGE
+    sed -i -e "s|Next Run|<a href=\"../run_$NEXTRUN/run_$NEXTRUN.html\">Run $NEXTRUN</a>|" $RUNPAGE
+    sed -i -e "s|<!--next|<a href=\"../$NEXTRUNLINK|" $RUNPAGE
+    sed -i -e "s|next-->|\">Run $NEXTRUN -></a>|" $RUNPAGE
+fi
+
+
 ## Find all macros that need to run and run them
 if [ ${DOMACROS} ==  1 ]
 then

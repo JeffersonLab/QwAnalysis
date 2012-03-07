@@ -57,6 +57,8 @@
 
 <a name="hdc"></a>
 <center><h2>Horizontal Drift Chamber Plots</h2></center>
+<p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png"></center></p>
+<p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_2.png"></center></p>
 
 <a name="vdc"></a>
 <center><h2>Vertical Drift Chamber Plots</h2></center>
