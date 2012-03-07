@@ -40,6 +40,7 @@ QwTriggerScintillator::QwTriggerScintillator(const TString& name)
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
   fF1RefContainer = new F1TDCReferenceContainer();
+  fSoftwareMeantimeContainer = new MeanTimeContainer();
 
 }
 
@@ -49,6 +50,7 @@ QwTriggerScintillator::~QwTriggerScintillator()
   fSCAs.clear();
   delete fF1TDContainer;
   delete fF1RefContainer;
+  delete fSoftwareMeantimeContainer;
 }
 
 
@@ -464,7 +466,8 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
       subsystem_name = this->GetSubsystemName();
       fF1TDContainer -> SetSystemName(subsystem_name);
       fF1RefContainer-> SetSystemName(subsystem_name);
-      
+      fSoftwareMeantimeContainer->SetSystemName(subsystem_name);
+
       if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
       
       std::cout << "QwTriggerScintillator : " 
@@ -831,6 +834,8 @@ void  QwTriggerScintillator::ProcessEvent()
   // F1TDCs of  QwHit
   SubtractReferenceTimes();
   UpdateHits();
+  AddSoftwareMeantimeToHits(fSoftwareMeantimeOption);
+
 
  // SIS3801 scaler
   std::size_t i = 0;
@@ -840,6 +845,24 @@ void  QwTriggerScintillator::ProcessEvent()
     }
   return;
 };
+
+
+
+
+void QwTriggerScintillator::DefineOptions ( QwOptions& options )
+{
+  options.AddOptions() ( "software-meantime-ts",
+			 po::value<bool>()->default_bool_value(false),
+			 "Create Software meantime for TS in QwHits" );
+  return;
+};
+
+void QwTriggerScintillator::ProcessOptions ( QwOptions& options )
+{
+  fSoftwareMeantimeOption = options.GetValue<bool> ( "software-meantime-ts" );
+  return;
+};
+
 
 
 void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &prefix){
@@ -1414,9 +1437,64 @@ void QwTriggerScintillator::UpdateHits()
       iter->ApplyTimeCalibration(fF1TDCResolutionNS); // Fill fTimeRes and fTimeNs in QwHit
 
     }
-
+ 
   return;
 }
+
+
+
+void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
+{
+  if(option) {
+
+    Int_t plane     = 0;
+    Int_t element   = 0;
+    Int_t hitnumber = 0;
+    Double_t timens = 0.0;
+    TString output = "";
+    
+    
+    for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+      {
+	// local_id   = iter->GetDetectorID();
+	// package    = local_id.fPackage;
+	// //      plane      = local_id.fPlane;
+	// // For TS, we have only 1 plane in each package according to its geometry, but I use a plane
+	// // number to assign a f1tdc channel. Channel 99 is not assigned into this vector
+	// // 
+	// local_info = fDetectorInfo.in(package).at(0); 
+	// //      local_info = fDetectorInfo.in(package).at(plane); 
+	
+	// iter->SetDetectorInfo(local_info);
+	iter->ApplyTimeCalibration(fF1TDCResolutionNS); // Fill fTimeRes and fTimeNs in QwHit
+	
+	plane     = iter->GetPlane();
+	element   = iter->GetElement();
+	hitnumber = iter->GetHitNumber();
+	timens    = iter->GetTimeNs();
+	
+	output += GetSubsystemName();
+	output += " Plane ";
+	output += plane;
+	output += " Element ";
+	output += element;
+	output += " Hit ";
+	output += hitnumber;
+      output += Form(" TimeNs %+10.2f\n", timens);
+      
+      
+      }
+    
+    // for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+    //   {
+    //     //    iter->SetSoftwareMeantimeNs(20000.00);
+    //   }
+    
+    std::cout << output << std::endl;
+  }
+  return;
+}
+
 
 
 

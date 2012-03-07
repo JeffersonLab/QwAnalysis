@@ -31,6 +31,8 @@
 #include "QwScaler_Channel.h"
 #include "QwF1TDContainer.h"
 
+#include "QwSoftwareMeantime.h"
+#include "QwOptions.h"
 ///
 /// \ingroup QwTracking
 class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwMainDetector> {
@@ -73,6 +75,10 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
 
   void  ClearEventData();
 
+
+  static void DefineOptions(QwOptions& options);
+  void ProcessOptions(QwOptions& options);
+
   void GetHitList(QwHitContainer & grandHitContainer) {
     grandHitContainer.Append(fTDCHits);
   };
@@ -84,6 +90,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   EQwModuleType fCurrentType;
 
   Bool_t fDEBUG;
+  Bool_t fSoftwareMeantimeOption;
 
   TString fRegion;     ///  Name of this subsystem (the region).
   Int_t   fCurrentBankIndex;

@@ -966,6 +966,23 @@ void  QwMainDetector::ProcessEvent()
 };
 
 
+
+void QwMainDetector::DefineOptions ( QwOptions& options )
+{
+  options.AddOptions() ( "software-meantime-md",
+			 po::value<bool>()->default_bool_value(false),
+			 "Create Software meantime for MD in QwHits" );
+  return;
+};
+
+void QwMainDetector::ProcessOptions ( QwOptions& options )
+{
+  fSoftwareMeantimeOption = options.GetValue<bool> ( "software-meantime-md" );
+  return;
+};
+
+
+
 void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   for (size_t i=0; i<fPMTs.size(); i++)
@@ -1543,6 +1560,14 @@ void QwMainDetector::UpdateHits()
   // QwDetectorID       local_id;
   // QwDetectorInfo  *local_info;
 
+
+  // Int_t plane = 0;
+  // Int_t element = 0;
+  // Int_t hitnumber = 0;
+  // Double_t timens = 0.0;
+  // TString output = "";
+
+
   for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
     {
       // local_id   = iter->GetDetectorID();
@@ -1556,7 +1581,29 @@ void QwMainDetector::UpdateHits()
       // iter->SetDetectorInfo(local_info);
       iter->ApplyTimeCalibration(fF1TDCResolutionNS); // Fill fTimeRes and fTimeNs in QwHit
 
+
+      // plane     = iter->GetPlane();
+      // element   = iter->GetElement();
+      // hitnumber = iter->GetHitNumber();
+      // timens    = iter->GetTimeNs();
+      // output += GetSubsystemName();
+      // output += " Plane ";
+      // output += plane;
+      // output += " Element ";
+      // output += element;
+      // output += " Hit ";
+      // output += hitnumber;
+      // output += Form(" TimeNs %+10.2f\n", timens);
+      
+
+
     }
+
+  // for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+  //   {
+  //     iter->SetSoftwareMeantimeNs(10000.00);
+  //   }
+  // std::cout << output << std::endl;
 
   return;
 }
