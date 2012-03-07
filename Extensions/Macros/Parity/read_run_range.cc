@@ -185,7 +185,7 @@ int main(Int_t argc,Char_t* argv[])
       counter = "pattern_number";
       if(property.Contains("y")){
 	histoname = Form("yield_%s.hw_sum>>htemp",device.Data());
-	cut = Form("yield_%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data(),device.Data());
+	cut = Form("yield_%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
       }
       if(property.Contains("a")){
 	histoname = Form("asym_%s.hw_sum>>htemp",device.Data());
@@ -245,15 +245,15 @@ int main(Int_t argc,Char_t* argv[])
       filename = Form("QwPass*_%i.*root", run);
       found = FindFiles(filename, file_list, tree);
       if(!found){
-      filename = Form("first100k_%i.root", run); 
-      found = FindFiles(filename, file_list, tree);
+	filename = Form("first100k_%i.root", run);
+	found = FindFiles(filename, file_list, tree);
 	if(!found){
 	  filename = Form("Qweak*_%i.*root", run);
 	  found = FindFiles(filename, file_list, tree);
 	  if(!found){
 	    std::cerr<<"Unable to find root file(s) for run "<<run<<std::endl;
 	    file_list.clear();
-	  } 
+	  }
 	}
       }
       // If there are no files in this range, nothing to plot. Move to next run.
