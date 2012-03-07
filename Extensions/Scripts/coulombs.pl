@@ -19,6 +19,8 @@ my @wget = qw[wget --no-check-certificate -q -O-];
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
+sub parse_date_interval;
+sub suggest_better_time_intervals;
 sub buildurl;
 sub does_target_match;
 sub announce;
@@ -42,34 +44,6 @@ my $request_now  = shift @ARGV;
 ## Don't leave these undefined if they are blank.
 map { $_ = "" unless defined $_ } $request_then, $request_now;
 
-my $then = ParseDate( $request_then ? $request_then : "yesterday midnight");
-my $now = $request_now ?
-  ParseDate($request_now) : DateCalc($then, "+48 hours");
-
-# don't interpolate a few seconds into the next day
-$now = DateCalc $now, "-$interval seconds";
-
-my @corrupt_time_intervals =
-  (	{ start	=> "2012-02-29 14:28",
-	  end	=> "2012-02-29 14:51",
-	  url	=> "https://hallcweb.jlab.org/hclog/1203_archive/120301104428.html",
-	  },
-  );
-foreach my $bad (@corrupt_time_intervals) {
-  my $bad_start = ParseDate($bad->{start});
-  ## n.b. assume requested interval is much longer than the problem ...
-  if ($then le $bad_start and $bad_start le $now) {
-    warn <<EOF;
-WARNING: your time interval includes a period where the archiver was unhappy.
-See $bad->{url} .
-Consider instead two queries
-    $0 '$request_then' '$bad->{start}'
-    $0 '$bad->{end}' '$request_now'
-and adding the results together.
-EOF
-  }
-}
-
 my $helpstring = <<EOF;
 A Coulomb counter.  Accesses the Hall C EPICS archiver and downloads
 an interpolated "spreadsheet" of ibcm1 (beam current) and g0rate14
@@ -90,12 +64,15 @@ Options:
 EOF
 die $helpstring if $help;
 
+suggest_better_time_intervals($request_then, $request_now);
+
 my $ofh;
 if ($outfile) {
   open $ofh, ">", $outfile
     or die "couldn't open '$outfile' for writing: $!"
 }
-open DATA, "-|", @wget, buildurl($then, $now, $interval, @channels)
+open DATA, "-|", @wget, buildurl($request_then, $request_now,
+				 $interval, @channels)
   or die "couldn't open wget: $!\n";
 while (<DATA>) {
   print $ofh $_ if $ofh;
@@ -130,8 +107,45 @@ exit;
 ## End of main logic.  Subroutines defined below.
 ################################################################
 
+sub parse_date_interval {
+  my ($request_then, $request_now)  = @_;
+  my $then = ParseDate( $request_then ? $request_then : "yesterday midnight");
+  my $now = $request_now ?
+    ParseDate($request_now) : DateCalc($then, "+48 hours");
+  return ($then, $now);
+}
+
+sub suggest_better_time_intervals {
+  my ($request_start, $request_end) = (shift, shift);
+  my ($start, $end)  = parse_date_interval($request_start, $request_end);
+  my @corrupt_time_intervals =
+    ( {	start	=> "2012-02-29 14:28",
+	end	=> "2012-02-29 14:51",
+	url	=> "https://hallcweb.jlab.org/hclog/1203_archive/120301104428.html",
+      },
+    );
+  foreach my $bad (@corrupt_time_intervals) {
+    my $bad_start = ParseDate($bad->{start});
+    ## n.b. assume requested interval is much longer than the problem ...
+    if ($start le $bad_start and $bad_start le $end) {
+      warn <<EOF;
+WARNING: your time interval includes a period where the archiver was unhappy.
+See $bad->{url} .
+Consider instead two queries
+    $0 '$request_start' '$bad->{start}'
+    $0 '$bad->{end}' '$request_end'
+and adding the results together.
+EOF
+    }
+  }
+}
+
 sub buildurl {
-  my ($then, $now, $interval, @channels) = @_;
+  my ($request_then, $request_now, $interval, @channels) = @_;
+  my ($then, $now)  = parse_date_interval($request_then, $request_now);
+
+  # don't interpolate a few seconds into the next day
+  $now = DateCalc $now, "-$interval seconds";
 
   my @fmt = qw[%Y %m %d %H %M %S];
   my @then = UnixDate($then, @fmt);
