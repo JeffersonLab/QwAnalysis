@@ -103,7 +103,7 @@ c1.cd(6);
 event_tree->Draw("events.fQwHits.fTime>>tV","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==1&&events.fQwHits.fPlane%3==0");
 
 //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-c1.SaveAs(Prefix+"_Package_1.png");
+c1.SaveAs(Prefix+"Package_1.png");
 
 //Create the canvas - for package 2
 TCanvas c2("c2", "Drift Distance and Drift Time for Package 2", 900,1000);
@@ -172,7 +172,7 @@ event_tree->Draw("events.fQwHits.fTime>>tV2","events.fQwHits.fRegion==2&&events.
 
 
 //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-c1.SaveAs(Prefix+"_Package_2.png");
+c1.SaveAs(Prefix+"Package_2.png");
 
 return;
 
