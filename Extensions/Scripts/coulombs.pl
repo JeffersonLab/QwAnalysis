@@ -95,7 +95,7 @@ while (<$datafh>) {
 
 unless ($.) { warn "warning: fetched no data.  consider --ploturl to debug\n" }
 
-display_shift_summaries;
+display_shift_summaries $target_want, %coulombs;
 
 exit;
 
@@ -248,8 +248,10 @@ EOF
 }
 
 sub display_shift_summaries {
-  ## Use the global %coulombs and $target_want
-   if (!keys %coulombs) {
+  my $target_want = shift;
+  my %coulombs = @_;
+
+  if (!keys %coulombs) {
     print "With target restricted to '$target_want':\n" if $target_want;
     print "No coulombs acquired during this interval\n";
     return;
