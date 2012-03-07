@@ -21,6 +21,9 @@ my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
+sub does_target_match;
+sub announce;
+
 my ($help,$nodaqcut,$target_want,$ploturl,$outfile);
 my $optstatus = GetOptions
   "help|h|?"	=> \$help,
@@ -117,57 +120,6 @@ my %args = (
 	   );
 my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
 
-sub does_target_match {
-  ## Call this sub with three arguments: name, x, y
-  my $target_want = lc shift;
-  my ($read_x, $read_y) = (shift, shift);
-
-  ## horizontal position is missing a magic multiplicative factor 
-  $read_x *= 1600;
-
-  ## tolerances are sort of half the distance between adjacent targets ...
-  my ($x_tol, $y_tol) = (30000, 10);
-
-  my %encoder =
-    ## taken from hclog 243382
-    ## https://hallcweb.jlab.org/hclog/1112_archive/111209140452.html
-    ## TODO: not all targets listed ...
-    (
-	"ds-2%-aluminum"	=> [ -65996.00, 301.60 ],
-	"ds-8%-aluminum"	=> [  -1904.00, 301.60 ],
-	"ds-4%-aluminum"	=> [ +64432.00, 301.60 ],
-	"hydrogen-cell"		=> [ -3776.00, 474.00 ],
-    );
-
-  unless (exists $encoder{$target_want}) {
-    die "don't know about target '$target_want'; options are:\n",
-      map {"\t$_\n"} sort keys %encoder;
-  }
-
-  my ($want_x, $want_y) = @{$encoder{$target_want}};
-
-  return 0 if abs( $read_x - $want_x ) > $x_tol;
-  return 0 if abs( $read_y - $want_y ) > $y_tol;
-  return 1;
-}
-
-sub announce {
-  my ($day, $shift, $coulombs) = (shift, shift, shift);
-
-  my $threshold = 5;
-  my $say = "/home/cdaq/bin/qweak_speak.sh";	# cdaq cluster
-  # $say = "/usr/bin/say";  			# testing
-  return unless [ -x $say ];			# be polite
-
-  if ($coulombs > $threshold) {
-    system $say, <<EOF;
-Congratulations $shift shift on $day 
-for breaking the $threshold coulomb barrier!
-EOF
-  }
-}
-
-
 my $ofh;
 if ($outfile) {
   open $ofh, ">", $outfile
@@ -228,3 +180,59 @@ foreach my $day (sort keys %coulombs) {
 }
 print "With target restricted to '$target_want':\n" if $target_want;
 printf "Total calculated %6.2f C\n", $Total;
+
+exit;
+
+################################################################
+## End of main logic.  Subroutines defined below.
+################################################################
+
+sub does_target_match {
+  ## Call this sub with three arguments: name, x, y
+  my $target_want = lc shift;
+  my ($read_x, $read_y) = (shift, shift);
+
+  ## horizontal position is missing a magic multiplicative factor
+  $read_x *= 1600;
+
+  ## tolerances are sort of half the distance between adjacent targets ...
+  my ($x_tol, $y_tol) = (30000, 10);
+
+  my %encoder =
+    ## taken from hclog 243382
+    ## https://hallcweb.jlab.org/hclog/1112_archive/111209140452.html
+    ## TODO: not all targets listed ...
+    (
+	"ds-2%-aluminum"	=> [ -65996.00, 301.60 ],
+	"ds-8%-aluminum"	=> [  -1904.00, 301.60 ],
+	"ds-4%-aluminum"	=> [ +64432.00, 301.60 ],
+	"hydrogen-cell"		=> [ -3776.00, 474.00 ],
+    );
+
+  unless (exists $encoder{$target_want}) {
+    die "don't know about target '$target_want'; options are:\n",
+      map {"\t$_\n"} sort keys %encoder;
+  }
+
+  my ($want_x, $want_y) = @{$encoder{$target_want}};
+
+  return 0 if abs( $read_x - $want_x ) > $x_tol;
+  return 0 if abs( $read_y - $want_y ) > $y_tol;
+  return 1;
+}
+
+sub announce {
+  my ($day, $shift, $coulombs) = (shift, shift, shift);
+
+  my $threshold = 5;
+  my $say = "/home/cdaq/bin/qweak_speak.sh";	# cdaq cluster
+  # $say = "/usr/bin/say";  			# testing
+  return unless [ -x $say ];			# be polite
+
+  if ($coulombs > $threshold) {
+    system $say, <<EOF;
+Congratulations $shift shift on $day
+for breaking the $threshold coulomb barrier!
+EOF
+  }
+}
