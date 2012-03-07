@@ -14,7 +14,6 @@ use Getopt::Long;
 ## 2011-03-17
 
 my %coulombs;
-my @shift = qw[owl day swing];
 
 my @wget = qw[wget --no-check-certificate -q -O-];
 my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
@@ -23,6 +22,7 @@ my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
 sub does_target_match;
 sub announce;
+sub display_shift_summaries;
 
 my ($help,$nodaqcut,$target_want,$ploturl,$outfile);
 my $optstatus = GetOptions
@@ -157,29 +157,7 @@ while (<DATA>) {
 
 unless ($.) { warn "warning: fetched no data.  url was\n\t$url\n" }
 
-### Parse this block after reaching the end of the input file
-# print "Read $. lines from archiver\n";
-
-if (!keys %coulombs){
-print "With target restricted to '$target_want':\n" if $target_want;
-print "No coulombs acquired during this interval\n";
-die;
-}
-
-my $Total = 0;
-
-foreach my $day (sort keys %coulombs) {
-  my $day_total = 0;
-  foreach my $s (grep { ($coulombs{$day}[$_] += 0) > 0.01} 0..2) {
-    $day_total += $coulombs{$day}[$s];
-    printf "$day %-5s %6.2f C\n", $shift[$s], $coulombs{$day}[$s];
-    announce($day, $shift[$s], $coulombs{$day}[$s]);
-  }
-  printf "$day total %6.2f C\n\n", $day_total;
-  $Total += $day_total;
-}
-print "With target restricted to '$target_want':\n" if $target_want;
-printf "Total calculated %6.2f C\n", $Total;
+display_shift_summaries;
 
 exit;
 
@@ -235,4 +213,29 @@ Congratulations $shift shift on $day
 for breaking the $threshold coulomb barrier!
 EOF
   }
+}
+
+sub display_shift_summaries {
+  ## Use the global %coulombs and $target_want
+   if (!keys %coulombs) {
+    print "With target restricted to '$target_want':\n" if $target_want;
+    print "No coulombs acquired during this interval\n";
+    return;
+  }
+
+  my @shift = qw[owl day swing];
+  my $Total = 0;
+
+  foreach my $day (sort keys %coulombs) {
+    my $day_total = 0;
+    foreach my $s (grep { ($coulombs{$day}[$_] += 0) > 0.01} 0..2) {
+      $day_total += $coulombs{$day}[$s];
+      printf "$day %-5s %6.2f C\n", $shift[$s], $coulombs{$day}[$s];
+      announce($day, $shift[$s], $coulombs{$day}[$s]);
+    }
+    printf "$day total %6.2f C\n\n", $day_total;
+    $Total += $day_total;
+  }
+  print "With target restricted to '$target_want':\n" if $target_want;
+  printf "Total calculated %6.2f C\n", $Total;
 }
