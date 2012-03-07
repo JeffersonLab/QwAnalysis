@@ -16,10 +16,10 @@ use Getopt::Long;
 my %coulombs;
 
 my @wget = qw[wget --no-check-certificate -q -O-];
-my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
 
+sub buildurl;
 sub does_target_match;
 sub announce;
 sub display_shift_summaries;
@@ -48,12 +48,6 @@ my $now = $request_now ?
 
 # don't interpolate a few seconds into the next day
 $now = DateCalc $now, "-$interval seconds";
-
-my @fmt = qw[%Y %m %d %H %M %S];
-my @then = UnixDate($then, @fmt);
-my @now  = UnixDate($now , @fmt);
-
-#print "@then, @now\n";
 
 my @corrupt_time_intervals =
   (	{ start	=> "2012-02-29 14:28",
@@ -96,42 +90,13 @@ Options:
 EOF
 die $helpstring if $help;
 
-my %args = (
-	DIRECTORY	=> "..%2FArchives%2FArchiveData%2Ffreq_directory",
-	PATTERN		=> "",
-	NAMES		=> "@channels",
-	STARTMONTH	=> $then[1],
-	STARTDAY	=> $then[2],
-	STARTYEAR	=> $then[0],
-	STARTHOUR	=> $then[3],
-	STARTMINUTE	=> $then[4],
-	STARTSECOND	=> $then[5],
-	ENDMONTH	=> $now[1],
-	ENDDAY		=> $now[2],
-	ENDYEAR		=> $now[0],
-	ENDHOUR		=> $now[3],
-	ENDMINUTE	=> $now[4],
-	ENDSECOND	=> $now[5],
-	COMMAND		=> "GET",
-	FORMAT		=> "SPREADSHEET",
-	Y0		=> "0",
-	Y1		=> "0",
-	INTERPOL	=> $interval,
-	   );
-my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
-
 my $ofh;
 if ($outfile) {
   open $ofh, ">", $outfile
     or die "couldn't open '$outfile' for writing: $!"
 }
-open DATA, "-|", @wget, $url
+open DATA, "-|", @wget, buildurl($then, $now, $interval, @channels)
   or die "couldn't open wget: $!\n";
-if ($ploturl) {
-  print "Reading data from ", $url, "\n";
-  (my $url_with_plot = $url) =~ s/SPREADSHEET/PLOT/;
-  print "View in archiver: ", $url_with_plot, "\n";
-}
 while (<DATA>) {
   print $ofh $_ if $ofh;
   my($day, $time, $ibcm1, $daqrate, $target_x, $target_y) = split ' ';
@@ -155,7 +120,7 @@ while (<DATA>) {
 
 }
 
-unless ($.) { warn "warning: fetched no data.  url was\n\t$url\n" }
+unless ($.) { warn "warning: fetched no data.  consider --ploturl to debug\n" }
 
 display_shift_summaries;
 
@@ -164,6 +129,49 @@ exit;
 ################################################################
 ## End of main logic.  Subroutines defined below.
 ################################################################
+
+sub buildurl {
+  my ($then, $now, $interval, @channels) = @_;
+
+  my @fmt = qw[%Y %m %d %H %M %S];
+  my @then = UnixDate($then, @fmt);
+  my @now  = UnixDate($now , @fmt);
+  #print "@then, @now\n";
+
+  my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
+  my %args = (
+	DIRECTORY	=> "..%2FArchives%2FArchiveData%2Ffreq_directory",
+	PATTERN		=> "",
+	NAMES		=> "@channels",
+	STARTMONTH	=> $then[1],
+	STARTDAY	=> $then[2],
+	STARTYEAR	=> $then[0],
+	STARTHOUR	=> $then[3],
+	STARTMINUTE	=> $then[4],
+	STARTSECOND	=> $then[5],
+	ENDMONTH	=> $now[1],
+	ENDDAY		=> $now[2],
+	ENDYEAR		=> $now[0],
+	ENDHOUR		=> $now[3],
+	ENDMINUTE	=> $now[4],
+	ENDSECOND	=> $now[5],
+	COMMAND		=> "GET",
+	FORMAT		=> "SPREADSHEET",
+	Y0		=> "0",
+	Y1		=> "0",
+	INTERPOL	=> $interval,
+	     );
+  my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
+
+  ## this global flag is set by GetOptions
+  if ($ploturl) {
+    print "Reading data from ", $url, "\n";
+    (my $url_with_plot = $url) =~ s/SPREADSHEET/PLOT/;
+    print "View in archiver: ", $url_with_plot, "\n";
+  }
+
+  return $url;
+}
 
 sub does_target_match {
   ## Call this sub with three arguments: name, x, y
