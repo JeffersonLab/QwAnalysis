@@ -89,7 +89,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
 
   Bool_t fDEBUG;
 
-  Bool_t fSoftwareMeantimeOption;
+  Bool_t   fSoftwareMeantimeOption;
+  Double_t fSoftwareMeantimeTimeWindowNs;
 
 
   TString fRegion;     ///  Name of this subsystem (the region).
@@ -115,7 +116,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   MQwF1TDC         fF1TDCDecoder;
   QwF1TDContainer *fF1TDContainer; 
   F1TDCReferenceContainer *fF1RefContainer;
-  MeanTimeContainer       *fSoftwareMeantimeContainer;
+  MeanTimeContainer       *fSoftwareMeantimeContainer[2];
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 

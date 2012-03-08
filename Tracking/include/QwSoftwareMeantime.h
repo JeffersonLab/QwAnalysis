@@ -58,6 +58,7 @@ public:
   void     AddPNValues(Double_t p_value, Double_t n_value, Int_t p_id, Int_t n_id);
   void     SetDetectorType(TString d_type) {fDetectorType = d_type;};
   void     SetMeanTimeId(Int_t id)         {fMeanTimeId = id;};
+  void     SetPlane(Int_t in)              {fPlane = in;};
 
   void     SetHardwareMeanTime(Double_t hardware_meantime);
 
@@ -65,6 +66,8 @@ public:
 
   Bool_t   IsInTimeWindow(Double_t time_window);
   Bool_t   IsHitIDsMatch();
+
+  void     ClearEventData();
 
 private:
 
@@ -84,6 +87,7 @@ private:
   
   Long64_t fEventId;
   TString  fDetectorType;
+  Int_t    fPlane;
 
   ClassDef(MeanTime,0);
 };
@@ -103,12 +107,12 @@ private:
 // all possible combination of meantimes per an event
 // a method to find good meantimes.
 // ....
-class MeanTimeContainer 
+class MeanTimeContainer   :  public TObject
 {
 
 
  public :
-  //  Int_t                    fNMeanTimes;
+  Int_t                    fNMeanTimes;
   TObjArray               *fMeanTimeList; 
   Int_t                    fNHarewareMeanTimes;
   Int_t                    fNPositive;
@@ -125,18 +129,23 @@ public:
   void Add(Double_t p_value, Double_t n_value, Int_t hit_id);
   void Add(Double_t p_value[7], Double_t n_value[7]);
   void Add(Double_t p_value[7], Double_t n_value[7], Double_t hardware_meantime[7]);
+  void Add(Int_t element, Int_t hit_number, Double_t time_ns);
+
   Int_t AddMeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id);
-  void Clear();
+  Int_t AddMeanTime(TString name, Int_t plane_id, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id);
+
+  void ClearEventData();
 
   void ProcessMeanTime();
  
-  Int_t  Size()           const {return fNMeanTimes;};
+  Int_t  SoftwareMTSize() const {return fNMeanTimes;};
   Int_t  HardwareMTSize() const {return fNHarewareMeanTimes;};
 
   void   SetSystemName  (const TString name  ) { fDetectorName = name;};
-  void   SetTimeWindow  (const Double_t in_ns) {fTimeWindowNs = in_ns;};
-  void   SetDetectorType(const TString name  ) {fDetectorName = name;};
-  void   SetEventId     (const Long64_t in   ) {fEventId = in;};
+  void   SetPlane       (const Int_t   in    ) { fPlane = in;};
+  void   SetTimeWindow  (const Double_t in_ns) { fTimeWindowNs = in_ns;};
+  void   SetDetectorType(const TString name  ) { fDetectorName = name;};
+  void   SetEventId     (const Long64_t in   ) { fEventId = in;};
 
   const  TString GetDetectorType() const {return fDetectorName;};
 
@@ -149,7 +158,8 @@ private:
 
   Double_t  fTimeWindowNs;
   TString   fDetectorName;
-  Int_t     fNMeanTimes;
+  Int_t     fPlane;
+  // Int_t     fNMeanTimes;
   
   Long64_t  fEventId;
 
