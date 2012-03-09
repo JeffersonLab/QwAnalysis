@@ -610,7 +610,6 @@ void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
 //*****************************************************************//
 void  QwSubsystemArrayParity::FillHistograms()
 {
-  if (GetEventcutErrorFlag()==0){
+  if (GetEventcutErrorFlag()==0)
     QwSubsystemArray::FillHistograms();
-  }
 }
