@@ -53,14 +53,14 @@ yield_qwk_bcm._hw		TH1F	1001	0	0	Yield(uA)	Entries
 asym_qwk_linephase_hw		TH1F	1001	0	0	Asymmetry	Entries
 yield_qwk_linephase_hw		TH1F	1001	0	0	Yield	Entries
 
-asym_qwk_invert_tstable_hw     	TH1F	1001	0	0	Asymetry	Entries
+asym_qwk_invert_tstable_hw     	TH1F	1001	0	0	Asymmetry	Entries
 yield_qwk_invert_tstable_hw     TH1F	1001	0	0	Yield	Entries
 
 
 
 #############################################################################################
 #Combined bcm for hall C 
-asym_qwk_charge_hw		TH1F	1001	0	0	Asymetry	Entries  
+asym_qwk_charge_hw		TH1F	1001	0	0	Asymmetry	Entries
 yield_qwk_charge_hw		TH1F	1001	0	0	Yield(#muA)	Entries
 asym_qwk_charge_dev_err  	TH1F	1001	0	0	Error	Events
                  
@@ -79,7 +79,7 @@ yield_qwk_.......Slope_hw	TH1F	1001	0	0		Yield	Entries
 yield_qwk_.......Intercept_hw  	TH1F	1001	0	0		Yield	Entries
 yield_qwk_......._hw   		TH1F	1001	0	0		Yield  	Entries
      
-diff_qwk_energy_hw		TH1F	1001	0	0	        Asymetry   Events                
+diff_qwk_energy_hw		TH1F	1001	0	0	        Asymmetry   Events
 yield_qwk_energy_hw		TH1F	1001	0	0	        Yield  Events
 
 diff_qwk_......._dev_err	TH1F	1001	0	0		Error Events     
@@ -89,7 +89,7 @@ diff_qwk_.......Slope_dev_err	TH1F	1001	0	0		Error Events
 #  VQWK wildcard names for lumi
 ###########################################################################################
 
-asym_qwk_uslumi...._hw			TH1F	1001	0	0	Asymetry	Entries
+asym_qwk_uslumi...._hw			TH1F	1001	0	0	Asymmetry	Entries
 yield_qwk_uslumi...._hw			TH1F	1001	0	0	Yield	Entries
 
 asym_qwk_dslumi._hw			TH1F	1001	0	0	Asymmetry	Entries  

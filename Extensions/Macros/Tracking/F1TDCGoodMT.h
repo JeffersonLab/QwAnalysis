@@ -29,128 +29,159 @@
 //               added some boolean conditions to suppress Draw or Canvas when a given event range is small
 //     
 
-
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
 
 #include "TObject.h"
+#include "TObjArray.h"
 #include "TString.h"
+#include "TMath.h"
 
 #include "TROOT.h"
 
 
 
-// A good meantime holder 
-class MeanTime  :  public TObject
-{
 
-public:
+/* /\** */
+/*  *  \class MeanTime */
+/*  *  \ingroup QwAnalysis */
+/*  * */
+/*  *  \brief one software meantim holder */
+/*  * */
+/*  *\/ */
 
-  MeanTime();
-  MeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id);
-  ~MeanTime(){};
+/* // A good meantime holder  */
+/* class MeanTime  :  public TObject */
+/* { */
 
-  Bool_t   HasMeanTime() {return fHasValue;};
+/* public: */
 
-  Double_t GetMeanTime()      const { return fMeanTime; };
-  Double_t GetSubtractTime()  const { return fSubtractTime; };
+/*   MeanTime(); */
+/*   MeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id); */
+/*   virtual ~MeanTime(); */
 
-  Double_t GetDiffHardSoftMeanTime() const { return fDiffHardSoftMeanTime; };
+/*   Bool_t   HasMeanTime()            {return fHasValue;}; */
 
-  Double_t GetPositiveValue() const { return fPositiveValue; };
-  Double_t GetNegativeValue() const { return fNegativeValue; };
+/*   Double_t GetMeanTime()      const { return fMeanTime; }; */
+/*   Double_t GetSubtractTime()  const { return fSubtractTime; }; */
 
-  Int_t    GetPositiveHitId() const { return fPositiveHitId; };
-  Int_t    GetNegativeHitId() const { return fNegativeHitId; };
+/*   Double_t GetDiffHardSoftMeanTime() const { return fDiffHardSoftMeanTime; }; */
 
-  Int_t    GetMeanTimeId()    const { return fMeanTimeId; };
+/*   Double_t GetPositiveValue() const { return fPositiveValue; }; */
+/*   Double_t GetNegativeValue() const { return fNegativeValue; }; */
+
+/*   Int_t    GetPositiveHitId() const { return fPositiveHitId; }; */
+/*   Int_t    GetNegativeHitId() const { return fNegativeHitId; }; */
+
+/*   Int_t    GetMeanTimeId()    const { return fMeanTimeId; }; */
 
 
-  void     AddPNValues(Double_t p_value, Double_t n_value, , Int_t p_id, Int_t n_id);
-  void     SetDetectorType(TString d_type) {fDetectorType = d_type;};
-  void     SetMeanTimeId(Int_t id) {fMeanTimeId = id;};
-  void     SetHardwareMeanTime(Double_t hardware_meantime);
+/*   void     AddPNValues(Double_t p_value, Double_t n_value, Int_t p_id, Int_t n_id); */
+/*   void     SetDetectorType(TString d_type) {fDetectorType = d_type;}; */
+/*   void     SetMeanTimeId(Int_t id)         {fMeanTimeId = id;}; */
 
-  void     Print(Bool_t on);
+/*   void     SetHardwareMeanTime(Double_t hardware_meantime); */
 
-  Bool_t   IsInTimeWindow(Double_t time_window);
+/*   void     Print(Bool_t on); */
 
-private:
+/*   Bool_t   IsInTimeWindow(Double_t time_window); */
+/*   Bool_t   IsHitIDsMatch(); */
 
-  Bool_t   fHasValue;
-  Double_t fMeanTime;
-  Double_t fSubtractTime;  // positive - negative
+/* private: */
 
-  Double_t fDiffHardSoftMeanTime; // Hardware MT - Software MT
-  Double_t fHardWareMeanTime;
+/*   Bool_t   fHasValue; */
+/*   Double_t fMeanTime; */
+/*   Double_t fSubtractTime;  // positive - negative */
 
-  Double_t fPositiveValue;
-  Double_t fNegativeValue;
+/*   Double_t fDiffHardSoftMeanTime; // Hardware MT - Software MT */
+/*   Double_t fHardWareMeanTime; */
 
-  Int_t    fPositiveHitId;
-  Int_t    fNegativeHitId;
-  Int_t    fMeanTimeId;
+/*   Double_t fPositiveValue; */
+/*   Double_t fNegativeValue; */
+
+/*   Int_t    fPositiveHitId; */
+/*   Int_t    fNegativeHitId; */
+/*   Int_t    fMeanTimeId; */
   
-  Long64_t fEventId;
-  TString  fDetectorType;
+/*   Long64_t fEventId; */
+/*   TString  fDetectorType; */
 
-  ClassDef(MeanTime,0);
-};
-
-
+/*   ClassDef(MeanTime,0); */
+/* }; */
 
 
-// all possible combination of meantimes per an event
-// a method to find good meantimes.
-// ....
-class MeanTimeContainer 
-{
 
 
- public :
-  Int_t                    fNMeanTimes;
-  TObjArray               *fMeanTimeList; 
-
-public:
-
-  MeanTimeContainer();
-  MeanTimeContainer(TString name);
-  ~MeanTimeContainer();
+/* /\** */
+/*  *  \class MeanTimeContainer */
+/*  *  \ingroup QwAnalysis */
+/*  * */
+/*  *  \brief  Software Meantime container */
+/*  *  */
+/*  *\/ */
 
 
-  void Add(Double_t p_value, Double_t n_value, Int_t hit_id);
-  void Add(Double_t p_value[7], Double_t n_value[7]);
-  void Add(Double_t p_value[7], Double_t n_value[7], Double_t hardware_meantime[7]);
-  void AddMeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id);
-  void Clear();
+/* // all possible combination of meantimes per an event */
+/* // a method to find good meantimes. */
+/* // .... */
+/* class MeanTimeContainer  */
+/* { */
 
-  void ProcessMeanTime();
- 
-  Int_t  Size() const {return fNMeanTimes;};
 
-  void   SetTimeWindow  (const Double_t in_ns) {fTimeWindowNs = in_ns;};
-  void   SetDetectorType(const TString name  ) {fDetectorName = name;};
-  void   SetEventId     (const Long64_t in   ) {fEventId = in;};
-  const  TString GetDetectorType() const {return fDetectorName;};
+/*  public : */
+/*   Int_t                    fNMeanTimes; */
+/*   TObjArray               *fMeanTimeList;  */
+/*   Int_t                    fNHarewareMeanTimes; */
+/*   Int_t                    fNPositive; */
+/*   Int_t                    fNNegative; */
 
-  MeanTime *GetMeanTimeObject(Int_t index);
-  Double_T  GetMeanTime(Int_t index);
+/* public: */
 
-  void Print(Bool_t on);
- 
-private:
+/*   MeanTimeContainer(); */
+/*   MeanTimeContainer(TString name); */
+/*   virtual ~MeanTimeContainer(); */
 
-  Double_t  fTimeWindowNs;
-  TString   fDetectorName;
-  Int_t     fNMeanTimes;
   
-  Long64_t  fEventId;
 
-  Double_t  fPositiveValue[7];
-  Double_t  fNegativeValue[7];
-  Double_t  fHardwareMeantimeValue[7];
+/*   void Add(Double_t p_value, Double_t n_value, Int_t hit_id); */
+/*   void Add(Double_t p_value[7], Double_t n_value[7]); */
+/*   void Add(Double_t p_value[7], Double_t n_value[7], Double_t hardware_meantime[7]); */
+/*   Int_t AddMeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id); */
+/*   void Clear(); */
 
-  ClassDef(MeanTimeContainer,0);
+/*   void ProcessMeanTime(); */
+ 
+/*   Int_t  Size()           const {return fNMeanTimes;}; */
+/*   Int_t  HardwareMTSize() const {return fNHarewareMeanTimes;}; */
 
-};
+/*   void   SetSystemName  (const TString name  ) { fDetectorName = name;}; */
+/*   void   SetTimeWindow  (const Double_t in_ns) {fTimeWindowNs = in_ns;}; */
+/*   void   SetDetectorType(const TString name  ) {fDetectorName = name;}; */
+/*   void   SetEventId     (const Long64_t in   ) {fEventId = in;}; */
+
+/*   const  TString GetDetectorType() const {return fDetectorName;}; */
+
+/*   MeanTime *GetMeanTimeObject(Int_t index); */
+/*   Double_t  GetMeanTime(Int_t index); */
+
+/*   void Print(Bool_t on); */
+ 
+/* private: */
+
+/*   Double_t  fTimeWindowNs; */
+/*   TString   fDetectorName; */
+/*   //  Int_t     fNMeanTimes; */
+  
+/*   Long64_t  fEventId; */
+
+/*   Double_t  fPositiveValue[7]; */
+/*   Double_t  fNegativeValue[7]; */
+/*   Double_t  fHardwareMeantimeValue[7]; */
+
+/*   void      MatchHardwareMeanTime(); */
+/*   Bool_t    IsHarewareMatchSoftware(); */
+
+/*   ClassDef(MeanTimeContainer,0); */
+
+/* }; */

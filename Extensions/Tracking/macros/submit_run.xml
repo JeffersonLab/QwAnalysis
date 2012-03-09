@@ -1,0 +1,39 @@
+<Request>
+ <Email email="%USER%@jlab.org" request="false" job="true"/>
+ <Project name="qweak"/>
+ <Track name="one_pass"/>
+ <Name name="Qweak_%RUN%"/>
+ <OS name="linux64"/>
+ <TimeLimit unit="minutes" time="4000"/>
+ <DiskSpace space="13000" unit="MB"/>
+ <Memory space="2048" unit="MB"/>
+ <Command><![CDATA[
+  set nonomatch
+  umask 002
+  echo %DATE%_%TIME% > $WORKDIR/timeStamp
+  echo "User:         " `whoami`
+  echo "Groups:       " `groups`
+  echo "WORKDIR:      " $WORKDIR
+  echo "PWD:          " $PWD
+  setenv QWSCRATCH  %QWSCRATCH%
+  setenv QWANALYSIS %QWANALYSIS%
+  echo "QWSCRATCH:    " $QWSCRATCH
+  echo "QWANALYSIS:   " $QWANALYSIS
+  source $QWANALYSIS/SetupFiles/SET_ME_UP.csh
+  setenv QW_DATA      $WORKDIR
+  setenv QW_ROOTFILES $WORKDIR
+  echo "QW_DATA:      " $QW_DATA
+  echo "QW_ROOTFILES: " $QW_ROOTFILES
+  echo "------"
+  echo "Started at `date`"
+  echo \
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN%
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN%
+  echo "Finished at `date`"
+]]></Command>
+ <Job>
+  <Input src="mss:/mss/hallc/qweak/rootfiles/pass1/tracking/Qweak_%RUN%.root" dest="Qweak_%RUN%.root"/>
+  <Stdout dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.out"/>
+  <Stderr dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.err"/>
+ </Job>
+</Request>

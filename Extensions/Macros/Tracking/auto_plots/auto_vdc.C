@@ -412,7 +412,7 @@ void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
 
   // Create and load the chain
   TChain *chain = new TChain("event_tree");
-  chain->Add(Form("$QWSCRATCH/rootfiles/Qweak_%d.root",runnum));
+  chain->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
   // Configure root
   gStyle->SetPalette(1);

@@ -23,8 +23,10 @@
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 #include "QwF1TDContainer.h"
+#include "QwSoftwareMeantime.h"
 
 #include "QwColor.h"
+#include "QwOptions.h"
 
 ///
 /// \ingroup QwTracking
@@ -69,7 +71,11 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   void  FillHardwareErrorSummary();
 
   void  ClearEventData();
-  
+
+  static void DefineOptions(QwOptions& options);
+  void ProcessOptions(QwOptions& options);
+
+
   void GetHitList(QwHitContainer & grandHitContainer) {
     grandHitContainer.Append(fTDCHits);
   };
@@ -82,6 +88,10 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   EQwModuleType fCurrentType;
 
   Bool_t fDEBUG;
+
+  Bool_t   fSoftwareMeantimeOption;
+  Double_t fSoftwareMeantimeTimeWindowNs;
+
 
   TString fRegion;     ///  Name of this subsystem (the region).
   Int_t   fCurrentBankIndex;
@@ -97,6 +107,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   static const UInt_t kMaxNumberOfModulesPerROC;
   static const Int_t  kF1ReferenceChannelNumber;
 
+  static const Int_t  kMaxNumberOfQwHitPlane;
+
   UInt_t kMaxNumberOfChannelsPerF1TDC;
   Int_t fNumberOfModules;
 
@@ -104,7 +116,9 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
 
   MQwV775TDC       fQDCTDC;
   MQwF1TDC         fF1TDCDecoder;
-  QwF1TDContainer *fF1TDContainer;
+  QwF1TDContainer *fF1TDContainer; 
+  F1TDCReferenceContainer *fF1RefContainer;
+  MeanTimeContainer       *fSoftwareMeantimeContainer[2];
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -134,6 +148,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
 
   void  UpdateHits();             // be executed in ProcessEvent()
 
+  void  AddSoftwareMeantimeToHits(Bool_t option);
 
   std::vector< QwHit >              fTDCHits;
 

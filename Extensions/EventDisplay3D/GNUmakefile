@@ -130,13 +130,8 @@ endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
 ## ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGui
-ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGui
-ROOTLIBS     += -lEve -lGui   -lGed -lRGL -lGeom -lGdml -lEG -lXMLIO
-        # -lNew : for map file capability
-        # -lTreePlayer -lProof : for user loops calling tree
-        #                        variables under conditions
-#ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs --evelibs) -lTreePlayer -lGui
+ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 # -lMathMore : for using ROOT advanced math library
 ifeq ($(shell $(ROOTCONFIG) --has-mathmore),yes)

@@ -34,183 +34,48 @@
 	<td></td><td>%%BCM02%%</td>
 </tr>
 <tr>
-	<td><a href="#accum0">Accum 0 Analysis</a></td>
+	<td><a href="#hdc">Horizontal Drift Chambers</a></td>
 	<td></td><td>Root file date: %%ROOTDATE%%</td>
 	<td></td><td>%%BCM17%%</td>
 </tr>
 <tr>
-	<td><a href="#accum2">Accum 2 Analysis</a></td>
+	<td><a href="#vdc">Vertical Drift Chambers</a></td>
 	<td></td><td>Last Analysis: %%ANALYSISDATE%%</td>
 	<td></td><td>%%HWP%%</td>
 </tr>
 <tr>
-	<td><a href="#mps">MPS tree and snapshot analysis</a></td>
-	<td></td><td></td>
-	<td></td><td></td>
+	<td><a href="#ts">Trigger Scintillators</a></td>
+	<td></td>
+	<td></td>
 </tr>
 <tr>
-	<td><a href="#mps7">Waveforms</a></td>
-	<td></td><td></td>
-	<td></td><td></td>
-</tr>
-
-<tr>
-	<td><a href="#beamline">Beamline</a></td>
-	<td></td><td></td>
-	<td></td><td></td>
+	<td><a href="#lumi">Luminosity Detectors</a></td>
+	<td></td>
+	<td></td>
 </tr>
 </table>
 
-<a name="accum0"></a>
-<center><h2>Accumulator 0 Analysis</h2></center>
-<p><center><img src="accum0_plots.png"></center></p>
-<p><center><img src="accum0_asymm.png"></center></p>
-<p><center><img src="accum0_yieldvspatnum.png"></center></p>
+<a name="hdc"></a>
+<center><h2>Horizontal Drift Chamber Plots</h2></center>
+<p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png"></center></p>
+<p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_2.png"></center></p>
 
-<a name="accum03"></a>
-<center><h2>Accumulator 0 minus Accumulator 3 Analysis</h2></center>
-<p><center><img src="accum03_plots.png"></center></p>
-<p><center><img src="accum03_asymm.png"></center></p>
-<p><center><img src="accum03_yieldvspatnum.png"></center></p>
+<a name="vdc"></a>
+<center><h2>Vertical Drift Chamber Plots</h2></center>
+<p><center><img src="auto_vdc_%%RUNNUM%%_wires_package1.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_wires_package2.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_wires_ambig_package1.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_wires_ambig_package2.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_planes_hits.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_planes_hit_ambigious.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_hit_number.png"></center></p>
 
-<a name="mps"></a>
-<center><h2>MPS tree and snapshot analysis</h2>
-<!--mpsanalysisresults--> 
-<table class="runpage-info" width="100%">
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prevprev--></td>
-	<td align="center"><img src="mps_summary.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--nextnext--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev2prev--></td>
-	<td align="center"><a name="mps2"></a><img src="samples_correl.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next2next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev3prev--></td>
-	<td align="center"><a name="mps3"></a><img src="samples_ped.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next3next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev4prev--></td>
-	<td align="center"><a name="mps4"></a><img src="samples_pedcorr.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next4next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev5prev--></td>
-	<td align="center"><a name="mps5"></a><img src="samples_summary.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next5next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev6prev--></td>
-	<td align="center"><a name="mps6"></a><img src="samples_asymmetry.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next6next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev7prev--></td>
-	<td align="center"><a name="mps7"></a><img src="waveforms_laserON.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next7next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev8prev--></td>
-	<td align="center"><a name="mps8"></a><img src="waveforms_laserOFF.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next8next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev9prev--></td>
-	<td align="center"><a name="mps9"></a><img src="waveforms_beamOFF.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next9next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev10prev--></td>
-	<td align="center"><a name="mps10"></a><img src="samples_responsefunc.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next10next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev11prev--></td>
-	<td align="center"><a name="mps11"></a><img src="samples_responsefunc_max.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next11next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev12prev--></td>
-	<td align="center"><a name="mps12"></a><img src="samples_responsefunc_sum.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next12next--></td>
-</tr>
-<tr>
-	<td><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--prev13prev--></td>
-	<td align="center"><a name="mps13"></a><img src="samples_responsefuncline.png"><br></td>
-	<td align="right"><a href="../index.html">^Runlist^</a>
-	<br><br><br><a href="#top">top^</a>
-	<br><br><br><!--next13next--></td>
-</tr>
-</center>
-</table>
+<a name="ts"></a>
+<center><h2>Trigger Scintillator Plots</h2></center>
+<p><center><img src="trigger_scint_scalers_vs_time_%%RUNNUM%%.png"></center></p>
 
-
-<a name="beamline"></a>
-<center><h2>BeamLine</h2></center>
-<p><center><img src="beamline_plots.png"></center></p>
-
-
-<!--
-	
-<a name="electron"></a>
-<center><h2>Electron Analysis</h2></center>
-<p><center><img src="ComptonPhotonAccum2SummaryPlots_%%RUNNUM%%_asymmetry.png"></center></p>
-<p><center><img src="ComptonPhotonAccum2SummaryPlots_%%RUNNUM%%_yield.png"></center></p>
-
--->
-
-</body>
-</html>
+<a name="lumi"></a>
+<center><h2>Luminosity Detector Plots</h2></center>
+<p><center><img src="dslumi_%%RUNNUM%%_vs_time.png"></center></p>
+<p><center><img src="dslumi_%%RUNNUM%%_sum_vs_time.png"></center></p>
+<p><center><img src="dslumi_%%RUNNUM%%_ratios_vs_time.png"></center></p>

@@ -41,7 +41,7 @@
 #include <math.h>
 
 using namespace std;
-
+Int_t notGood=0,debug=0;//!temporary 
 // Qweak headers
 #include "QwLog.h"
 #include "QwHistogramHelper.h"
@@ -106,7 +106,8 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       Int_t plane     = mapstr.GetTypedNextToken<Int_t>();
       Int_t stripnum  = mapstr.GetTypedNextToken<Int_t>();
       //  Push a new record into the element array
-      if (modtype == "V1495") {
+ 	if(debug) printf("line:%d",__LINE__);
+     if (modtype == "V1495") {
 	if (dettype == "eaccum") {
           // Register data channel type
           fMapping[currentsubbankindex] = kV1495Accum;
@@ -148,6 +149,22 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	    fStripsRawScal[plane-1].push_back(0);
 	}
 
+	else if (dettype == "eaccum_v2") {
+          // Register data channel type
+          fMapping[currentsubbankindex] = kV1495Accum_v2;
+          fdettype = 3;
+ 	  if (fdettype >= (Int_t) fSubbankIndex.size())
+	    fSubbankIndex.resize(fdettype+1);
+          if (modnum >= fSubbankIndex[fdettype].size()) {
+            fSubbankIndex[fdettype].push_back(modnum);
+            fSubbankIndex[fdettype][modnum] = currentsubbankindex;
+          }
+	  if (plane >= (Int_t) fStripsRaw_v2.size())
+	    fStripsRaw_v2.resize(plane);
+	  if (stripnum >= (Int_t) fStripsRaw_v2[plane-1].size())
+	    fStripsRaw_v2[plane-1].push_back(0);
+	}
+
 	else if (dettype == "esingle") {
           // Register data channel type
           fMapping[currentsubbankindex] = kV1495Single;
@@ -169,6 +186,10 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
             fStripsEv[plane-1].push_back(0);
 	} // end of switch (dettype)
 
+	else {
+	  notGood=notGood+1;
+	  cout<<"***found an undefined data type "<<notGood<<" times"<<endl;
+	}
       } // end of switch (modtype)
     } // end of if for token line
   } // end of while over parameter file
@@ -226,13 +247,15 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   //  UInt_t accum_count = 0;
   // Get the subbank index (or -1 when no match)
   Int_t subbank = GetSubbankIndex(roc_id, bank_id);
-
+	if(debug) printf("line:%d\n",__LINE__);
   if (subbank >= 0 && num_words > 0) {
+	if(debug) printf("line:%d\n",__LINE__);
 
     //  We want to process this ROC.  Begin looping through the data.
     switch (fMapping[subbank]) {
     case kV1495Accum:
-      {
+      {	if(debug) printf("line:%d",__LINE__);
+
 	for (Int_t k = 0; k < NModules; k++) {
 	  if (fSubbankIndex[1][k]==subbank) {
 	    // sub-bank 0x0204, accum mode data from strips 0-31 of planes 1 thru 4
@@ -271,7 +294,8 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
       }
       
     case kV1495Single:
-      {
+      {	if(debug) printf("line:%d",__LINE__);
+
 	for (Int_t jj = 0; jj < NModules; jj++) {
 	  if (fSubbankIndex[0][jj]==subbank) {
 	    if (num_words > 0) {
@@ -328,7 +352,8 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
       }///end of case V1495Singles
       
     case kV1495Scaler:
-      {
+      {	if(debug) printf("line:%d",__LINE__);
+
 	for (Int_t k = 0; k < NModules; k++) {
 	  if (fSubbankIndex[2][k]==subbank) {
 	    // sub-bank 0x020A, V1495 SCALER data from strips 0-31 of planes 1 thru 4
@@ -358,6 +383,37 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 	break;
       }
      
+    case kV1495Accum_v2:
+      {	if(debug) printf("line:%d",__LINE__);
+
+	for (Int_t k = 0; k < NModules; k++) {
+	  if (fSubbankIndex[3][k]==subbank) {
+	    // sub-bank 0x020D, accum mode V2 data from strips 0-31 of planes 1 thru 4
+	    if (num_words > 0) { //!?this has already been checked in this function. remove this if?
+
+	      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
+		Int_t j = k*StripsPerModule+i;
+		fStripsRaw_v2[0][j] = (buffer[i] & 0xff000000) >> 24;
+		fStripsRaw_v2[1][j] = (buffer[i] & 0x00ff0000) >> 16;
+		fStripsRaw_v2[2][j] = (buffer[i] & 0x0000ff00) >> 8;
+		fStripsRaw_v2[3][j] = (buffer[i] & 0x000000ff);
+		words_read++;
+	      }
+	    }
+	    if (num_words != words_read) {
+	      QwError << "QwComptonElectronDetector: There were "
+		      << num_words - words_read
+		      << " leftover words after decoding everything we recognize in version 2 accum data"
+		      << std::hex
+		      << " in ROC " << roc_id << ", bank " << bank_id << "."
+		      << std::dec
+		      << QwLog::endl;
+	    }
+	  }
+	} // for (Int_t k = 0; k < NModules; k++) 
+	break;
+      }
+      
     case kUnknown: // Unknown data channel type
     default:
       {
@@ -808,6 +864,7 @@ void QwComptonElectronDetector::ClearEventData()
     for (Int_t j = 0; j < StripsPerPlane; j++){
 
       fStripsRaw[i][j] = 0;
+      fStripsRaw_v2[i][j] = 0;
       fStrips[i][j] = 0;
       fStripsRawEv[i][j] = 0;
       fStripsEv[i][j] = 0;
@@ -906,7 +963,7 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
 
 
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
-{
+{//!?what does this do?
   if (Compare(numer) && Compare(denom)) {
     QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
     QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
@@ -983,13 +1040,14 @@ void  QwComptonElectronDetector::CalculateRunningAverage()
  * @param prefix Prefix with information about the type of histogram
  */
 void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
-{
+{/// not adding the version-2 accum data to the histograms, only interested in adding it to tree
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
   //  Go into subdirectory if it exists
   TDirectory* eDetfolder = folder->GetDirectory("Compton_Electron");
   if (eDetfolder == 0) eDetfolder = folder->mkdir("Compton_Electron");
+	if(debug) printf("line:%d",__LINE__);
 
   //  Now create the histograms.
   TString basename = prefix + GetSubsystemName();
@@ -1028,7 +1086,8 @@ void  QwComptonElectronDetector::FillHistograms()
   //  edet_cut_on_ntracks=2;
   edet_cut_on_x2=7;
   edet_cut_on_ntracks=5;
-  
+  	if(debug) printf("line:%d",__LINE__);
+
   for (Int_t i = 0; i < NPlanes; i++) {
     Int_t ii = 5*i;
     //apology for the hardcoding; had to do so in keeping with DaveG's philosophy of least change.
@@ -1081,6 +1140,7 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 {
   //  SetHistoTreeSave(prefix);
   fTreeArrayIndex = values.size();
+	if(debug) printf("line:%d",__LINE__);
 
   for (Int_t i = 0; i < NPlanes; i++) {
     //!!iteration of this loop from '1' instead of '0' is for Qweak run-1 when the first plane was inactive
@@ -1102,6 +1162,17 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
     valstart = &(values.back());
     for (Int_t j = 0; j < StripsPerPlane; j++) {
       valnames += TString(":") + prefix + Form("p%ds%dRawAc",i+1,j+1) + "/D";
+      values.push_back(0.0);
+    }
+    valnames.Remove(0,1); // remove first ':' character
+    tree->Branch(basename, valstart+1, valnames);
+
+    /// Accumulator2 branch for this plane
+    basename = prefix + Form("p%dRawAc_v2",i+1);
+    valnames = "";
+    valstart = &(values.back());
+    for (Int_t j = 0; j < StripsPerPlane; j++) {
+      valnames += TString(":") + prefix + Form("p%ds%dRawAc_v2",i+1,j+1) + "/D";
       values.push_back(0.0);
     }
     valnames.Remove(0,1); // remove first ':' character
@@ -1134,6 +1205,8 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
 	values[index++] = fStripsRawEv[i][j];/// Event Raw
       for (Int_t j = 0; j < StripsPerPlane; j++)
 	values[index++] = fStripsRaw[i][j];/// Accum Raw
+      for (Int_t j = 0; j < StripsPerPlane; j++)
+	values[index++] = fStripsRaw_v2[i][j];/// Accum Raw
       for (Int_t j = 0; j < StripsPerPlane; j++)
 	values[index++] = fStripsRawScal[i][j];/// v1495 Scaler Raw
     }
@@ -1189,7 +1262,7 @@ void  QwComptonElectronDetector::FillTree()
 
 //*****************************************************************
 void  QwComptonElectronDetector::PrintValue() const
-{
+{//!?what does this do?
   string path = getenv_safe_string("QW_TMP") + "/" + "edet_asym";
   stringstream ss; ss << myrun;
   string str = ss.str();

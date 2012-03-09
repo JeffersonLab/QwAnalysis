@@ -191,9 +191,9 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
   //laser and PMT on
   TCut lasOnCut = pmtCut && Form("yield_sca_laser_PowT.value>%f",cutval1)
                             && Form("yield_sca_laser_PowT.value<%f",cutval2);
-  //laser, PMT and electron beam all on and beam hitting laser
+  //laser and electron beam 
   TCut lasONCut = bcmCut && Form("yield_sca_laser_PowT.value>%f",cutval1)
-                                   && Form("yield_sca_laser_PowT.value<%f",cutval2);
+                         && Form("yield_sca_laser_PowT.value<%f",cutval2);
   TCut lasOnCutL = Form("yield_sca_laser_PowT.value>%f",cutval1);
   TCut lasOnCutH = Form("yield_sca_laser_PowT.value<%f",cutval2);
   //unused data between laser on and off
@@ -492,7 +492,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
   }
   delete ctemp;
 
-  lasOFFCut = lasOFFCut && bcmCut && pmtCut;//laser off and PMT on and e-beam on
+  //  lasOFFCut = lasOFFCut && bcmCut && pmtCut;//laser off and PMT on and e-beam on
  
 
   ////////////////////////////////////
@@ -586,7 +586,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
   hYieldOn->SetTitle("Accumulator_0 Yields");
   hYieldOff->SetTitle("Accumulator_0 Yields");
   helChain->Draw("yield_fadc_compton_accum0.hw_sum>>hYieldOff",
-		 lasOFFCut,"goff");
+		 lasOFFCut && pmtCut && bcmCut,"goff");
   hYieldOff->SetLineColor(kBlue);
   if(hYieldOn->GetMaximum()>hYieldOff->GetMaximum()){
     gStyle->SetOptStat(1111);
@@ -602,7 +602,6 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
     gStyle->SetOptStat(1111);
     hYieldOff->Draw();
     gPad->Update();
-    cout<<"haha"<<endl;
     TPaveStats *stOff = (TPaveStats*)gPad->GetPrimitive("stats");
     stOff->SetY1NDC(0.67); //new y start position
     stOff->SetY2NDC(0.84); //new y end position
@@ -677,7 +676,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
   helChain->Draw("yield_fadc_compton_accum0.hw_sum:pattern_number>>hBeamOff",
 		 Form("%s<%f", BCM, cutCur), "same");
   helChain->Draw("yield_fadc_compton_accum0.hw_sum:pattern_number>>hOff",
-		 lasOFFCut,"sames");
+		 lasOFFCut && pmtCut && bcmCut,"sames");
   gPad->Update();
   TPaveStats *st1 = (TPaveStats*)gPad->GetPrimitive("stats");
   st1->SetX1NDC(0.58); //new x start position
@@ -862,9 +861,9 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
     if(numEnt>MIN_ENTRIES){
       enoughEntries[i] = 1;
       m++;
-      std::cout<<"Cut "<<i<<" for laser On is good."<<std::endl;
+      std::cout<<"Cycle "<<i<<" for laser On is good."<<std::endl;
     }else{
-      std::cout<<"Cut "<<i<<" for laser On is NOT good."<<std::endl;
+      std::cout<<"Cycle "<<i<<" for laser On is NOT good."<<std::endl;
       enoughEntries[i] = 0;
     }
     cut1 = Form("Entry$>=%d",cutLas.at(2*i)); 
@@ -916,9 +915,9 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
     hTempOn->Reset();
     hTempOff->Reset();
    }
-  std::cout<<m<<" good cuts for laser On."<<std::endl;
-  std::cout<<n<<" good cuts for laser Off."<<std::endl;
-  std::cout<<"On && Off = "<<p<<" good cuts in total."<<std::endl;
+  std::cout<<m<<" good cycles for laser On."<<std::endl;
+  std::cout<<n<<" good cycles for laser Off."<<std::endl;
+  std::cout<<"On && Off = "<<p<<" good cycles in total."<<std::endl;
   hDiffOn->GetXaxis()->SetTitle("Accumulator 0 Differences");
   hDiffOn->SetTitle("Laser On Accumulator 0 Differences (x2)");
   hDiffOn->SetLineColor(kGreen);
@@ -991,18 +990,18 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
       sumWeighted += mean[n] * pow(asymmErr[i],-2);
       helChain->Draw("yield_sca_laser_photon>>hScaOn",
 		     lasOnCut && lasWiseCut[i], "goff");
-
       TH1D *hScaOn=(TH1D*)gDirectory->Get("hScaOn");
       Double_t scaLasOnRate = hScaOn->GetMean();
       delete hScaOn;
 
-      helChain->Draw("yield_sca_laser_photon>>hScaOff", lasOFFCut && lasWiseCut[i],
+      helChain->Draw("yield_sca_laser_photon>>hScaOff", lasWiseCut[i] && lasOFFCut && bcmCut,
 		     "goff");
       TH1D *hScaOff = (TH1D*)gDirectory->Get("hScaOff");
+
       Double_t scaLasOffRate = hScaOff->GetMean();
       delete hScaOff;
 
-      helChain->Draw("yield_sca_laser_PowT.value>>hLasOn", lasONCut && lasWiseCut[i],
+      helChain->Draw("yield_sca_laser_PowT.value>>hLasOn", lasWiseCut[i] && lasONCut,
 		     "goff");
 
       TH1D *hLasOn=(TH1D*)gDirectory->Get("hLasOn");
@@ -1011,10 +1010,15 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE
 
       delete hLasOn;
 
+
       helChain->Draw("yield_sca_bpm_3p02bY>>hPosYtmp", lasWiseCut[i] &&
 		     Form("%s>1", BCM), "goff");
+
+
       TH1D *hPosYtmp = (TH1D*)gDirectory->Get("hPosYtmp");
+
       meanPosY = hPosYtmp->GetMean();
+
       delete hPosYtmp;
 
       helChain->Draw("yield_sca_bpm_3p02bX>>hPosXtmp", lasWiseCut[i] &&

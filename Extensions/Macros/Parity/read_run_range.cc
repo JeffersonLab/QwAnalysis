@@ -7,6 +7,8 @@
 //                          Use error Device_Error_Code == 0 to identify good events.
 // November 21st Buddhini : Updated to use a landaun fit to get rid of beam trips and rampings.
 //
+// December 5th  Buddhini : Added the ErrorFlag == 0 event cut.
+//
 // This macro can access a range of runs specified by "run1" to "run2" to
 // to get the mean value and mean error of the "property" of the "device".
 // The canvas is then saved in to a .gif file with name e.g.5070_5080_qwk_bpm3h09bXP_s_summary.gif.
@@ -25,6 +27,8 @@
 //          3. "y"  which is yield from hel_histo
 //          4. "s"  which is signal from mps_histo
 //
+//          5. "-" for getting bcm double difference
+//
 // e.g. ./get_from_runs 5070 5080 qwk_bpm3h09bXP s
 // 
 // bugs - While scanning through the given run range, if it comes across a rootfile from a tracking run it will ignore that run
@@ -35,7 +39,6 @@
 //********************************************
 // Main function
 //********************************************
-
 
 #include <vector>
 #include <TRandom.h>
@@ -105,7 +108,7 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetFrameFillColor(0);
 
   // pads parameters
-  gStyle->SetPadColor(kOrange-8); 
+  gStyle->SetPadColor(0); 
   gStyle->SetPadBorderMode(0);
   gStyle->SetPadBorderSize(0);
   gStyle->SetPadGridX(kTRUE);
@@ -123,7 +126,7 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetTitleSize(0.07);
   gStyle->SetTitleOffset(1.5);
   gStyle->SetTitleBorderSize(1);
-  gStyle->SetTitleFillColor(kYellow-8);
+  gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
   gStyle->SetLabelSize(0.06,"x");
   gStyle->SetLabelSize(0.06,"y");
@@ -176,29 +179,35 @@ int main(Int_t argc,Char_t* argv[])
   Char_t  treename[200];
   TH1F* htemp1 = NULL;
 
-    if(property.Contains("d")||property.Contains("a")||property.Contains("y")){
+    if(property.Contains("d")||property.Contains("a")||property.Contains("y")||property.Contains("m")){
       sprintf(treename,"Hel_Tree");
       currentcut = "yield_qwk_bcm1.hw_sum";
       counter = "pattern_number";
       if(property.Contains("y")){
 	histoname = Form("yield_%s.hw_sum>>htemp",device.Data());
-	cut = Form("yield_%s.Device_Error_Code == 0 && yield_qwk_bcm1.Device_Error_Code == 0",device.Data());
+	cut = Form("yield_%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
       }
       if(property.Contains("a")){
 	histoname = Form("asym_%s.hw_sum>>htemp",device.Data());
-	cut = Form("asym_%s.Device_Error_Code == 0 && asym_qwk_bcm1.Device_Error_Code == 0",device.Data());
+	cut = Form("asym_%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
       }
       if(property.Contains("d")){
 	histoname = Form("diff_%s.hw_sum>>htemp",device.Data());
-	cut = Form("diff_%s.Device_Error_Code == 0 && yield_qwk_bcm1.Device_Error_Code == 0",device.Data());
+	cut = Form("diff_%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
       }
+      if(property.Contains("m")){
+        histoname = Form("%s>>htemp",device.Data());
+        cut = Form("yield_qwk_bcm1.Device_Error_Code == 0 && ErrorFlag == 0");
+        std::cout<<"draw '"<< histoname<<"' with cut '"<<cut<<"'\n";
+      }
+
     }
     else if (property.Contains("s")){
       currentcut = "qwk_bcm1.hw_sum";
       counter = "mps_counter";
       sprintf(treename,"Mps_Tree");
-      histoname = Form("%s.hw_sum>>htemp",device.Data());
-      cut = Form("%s.Device_Error_Code == 0 && qwk_bcm1.Device_Error_Code == 0",device.Data());
+      histoname = Form("%s>>htemp",device.Data());
+      cut = Form("%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
     }
     else{
       std::cout<<"Requested unknown "<<property<<" from device "<<device<<".\n I don't know this"<<std::endl;
@@ -223,7 +232,7 @@ int main(Int_t argc,Char_t* argv[])
     for(Int_t run = run1; run< run2+1; run++){
  
       //create chains
-      if(property.Contains("d")||property.Contains("a")||property.Contains("y")){
+      if(property.Contains("d")||property.Contains("a")||property.Contains("y")||property.Contains("m")){
 	tree = new TChain("Hel_Tree");
       }
       else if (property.Contains("s")){
@@ -233,10 +242,10 @@ int main(Int_t argc,Char_t* argv[])
       // Open the file
       file_list.clear();
       filename = "";
-      filename = Form("first*_%i.root", run);  
+      filename = Form("QwPass*_%i.*root", run);
       found = FindFiles(filename, file_list, tree);
       if(!found){
-	filename = Form("QwPass*_%i.*root", run);	
+	filename = Form("first100k_%i.root", run);
 	found = FindFiles(filename, file_list, tree);
 	if(!found){
 	  filename = Form("Qweak*_%i.*root", run);
@@ -244,7 +253,7 @@ int main(Int_t argc,Char_t* argv[])
 	  if(!found){
 	    std::cerr<<"Unable to find root file(s) for run "<<run<<std::endl;
 	    file_list.clear();
-	  } 
+	  }
 	}
       }
       // If there are no files in this range, nothing to plot. Move to next run.
@@ -329,7 +338,7 @@ int main(Int_t argc,Char_t* argv[])
 	      runs.ResizeTo(k+1);
 	      fakeerror.ResizeTo(k+1);
 	      
-	      if(property.Contains("a") || property.Contains("d")){
+	      if(property.Contains("a") || property.Contains("d")||property.Contains("m")){
 		if(device.Contains("md"))
 		  mean.operator()(k) = meanl*1e+6 + 80; //put asymmetry in ppm and add a blinder to md asyms of 60ppm
 		mean.operator()(k) = meanl*1e+6; //put ather asyms and diffs in ppm/nm. 
@@ -386,6 +395,7 @@ int main(Int_t argc,Char_t* argv[])
     else if(device.Contains("bpm")) prop = "position (mm)";
     else prop = "signal";
   }
+  if(property.Contains("m")) prop = "double difference (ppm)";
   g->GetYaxis()->SetTitle(Form("%s %s",device.Data(), prop.Data()));
   g->GetXaxis()->SetTitle("run number");
 
@@ -403,12 +413,12 @@ int main(Int_t argc,Char_t* argv[])
   // Create a canvas 
   TString title = Form("Run range summary of %s %s for runs %i to %i",device.Data(), prop.Data(),run1,run2);
   TCanvas *canvas = new TCanvas("canvas",title,1200,600);
-  canvas->SetFillColor(kYellow-8);
+  canvas->SetFillColor(0);
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
   TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
   pad1->Draw();
   pad2->Draw();
-  pad1->SetFillColor(45);
+  pad1->SetFillColor(0);
   pad1->cd();
   TText*t = new TText(0.03,0.25,title);
   t->SetTextSize(0.7);

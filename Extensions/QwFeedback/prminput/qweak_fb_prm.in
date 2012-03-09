@@ -41,12 +41,23 @@ A3 = -4.553e-2
 
 #Hall A IA Slopes for 4 modes from hclog - 228845
 #for IHWP IN
-HAA0 = 0.0283573 
+#HAA0 = 0.0283573 
 #for IHWP OUT
-HAA1 = 0.0283573
+#HAA1 = 0.0283573
 
-HAA2 = 0.0283573
-HAA3 = 0.0283573
+#HAA2 = 0.0283573
+#HAA3 = 0.0283573
+
+#Hall A IA Slopes for 4 modes from hclog - 257218
+#valid for all  IHWP 1-2
+
+#for IHWP IN
+HAA0 = -0.270058
+#for IHWP OUT
+HAA1 = -0.270058
+
+HAA2 = -0.270058
+HAA3 = -0.270058
 
 #IA hardware counts set-point limits
 

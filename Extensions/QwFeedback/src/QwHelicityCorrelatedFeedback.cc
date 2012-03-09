@@ -507,6 +507,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
   fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
   fEPICSCtrl.Set_BCM78DDAsymmetry(fAsymBCM78DD,fAsymBCM78DDError,fAsymBCM78DDWidth);//update BCM78DD
   fEPICSCtrl.Set_BCM8Yield(fBCM8Yield);//Update BCM8 Yield
+  fEPICSCtrl.Set_USLumiSumAsymmetry(fAsymBCMUSLumiSum,fAsymBCMUSLumiSumError,fAsymBCMUSLumiSumWidth);//update the EPICS
   out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
   // out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
   fprintf(out_file_PITA,"%10.0d %+22.2f %16.2f %16.2f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,TMath::Abs(fPITASetpointPOS-fPrevPITASetpointPOS),fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
@@ -702,6 +703,7 @@ Bool_t QwHelicityCorrelatedFeedback::ApplyHMFeedback(){
   f3C12XDiffRunningSum.ClearEventData();//reset the running sums
   f3C12YDiffRunningSum.ClearEventData();//reset the running sums
   f3C12YQRunningSum.ClearEventData();//reset the running sums
+
 
   return kTRUE;
 };
@@ -1102,7 +1104,11 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
     }
   }
 
-
+  if(fAsymmetry.RequestExternalValue("uslumisum", &fTargetCharge)){
+    if (fAsymmetry.GetEventcutErrorFlag()==0 && fTargetCharge.GetEventcutErrorFlag()==0){
+      fAsymUSLumiSumRunningSum.AccumulateRunningSum(fTargetCharge);
+    }
+  }
   if(fYield.RequestExternalValue("3c12efc", &fTargetParameter)){
     if (fTargetParameter.GetEventcutErrorFlag()==0 && fYield.GetEventcutErrorFlag()==0){
       f3C12YQRunningSum.AccumulateRunningSum(fTargetParameter);
@@ -1114,6 +1120,8 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
       fYieldBCM8RunningSum.AccumulateRunningSum(fTargetCharge);
     }
   }
+
+  
 
   
 
@@ -1184,6 +1192,12 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
     fAsymBCM78DD=fAsymBCM78DDRunningSum.GetValue()*1.0e+6;
     fAsymBCM78DDError=fAsymBCM78DDRunningSum.GetValueError()*1.0e+6;
     fAsymBCM78DDWidth=fAsymBCM78DDRunningSum.GetValueWidth()*1.0e+6;
+
+    //calculate mean USLumi Sum asymmetry and update parameters to be publised in EPICS
+    fAsymUSLumiSumRunningSum.CalculateRunningAverage();
+    fAsymBCMUSLumiSum=fAsymUSLumiSumRunningSum.GetValue()*1.0e+6;
+    fAsymBCMUSLumiSumError=fAsymUSLumiSumRunningSum.GetValueError()*1.0e+6;
+    fAsymBCMUSLumiSumWidth=fAsymUSLumiSumRunningSum.GetValueWidth()*1.0e+6;
     return ;
   }
   QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
@@ -1195,6 +1209,10 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
   fAsymBCM78DD=0;
   fAsymBCM78DDError=0;
   fAsymBCM78DDWidth=0;
+
+  fAsymBCMUSLumiSum=0;
+  fAsymBCMUSLumiSumError=0;
+  fAsymBCMUSLumiSumWidth=0;
   return;  
 };
 
@@ -1325,6 +1343,8 @@ void  QwHelicityCorrelatedFeedback::ClearRunningSum()
   //Clean bcm8 yield and bcm78 DD running sums
   fAsymBCM78DDRunningSum.ClearEventData();
   fYieldBCM8RunningSum.ClearEventData();
+  //clear US lumi running sum 
+  fAsymUSLumiSumRunningSum.ClearEventData();
 }
 
 void  QwHelicityCorrelatedFeedback::ClearRunningSum(Int_t mode)

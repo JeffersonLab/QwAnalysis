@@ -86,8 +86,7 @@ void
 all_plots_hdc(TString name="")
 {
   TString file_dir;
-  file_dir = gSystem->Getenv("QWSCRATCH");
-  file_dir += "/rootfiles/";
+  file_dir = gSystem->Getenv("QW_ROOTFILES");
  
   if(name.IsNull()) {
     printf("There is no root file\n");

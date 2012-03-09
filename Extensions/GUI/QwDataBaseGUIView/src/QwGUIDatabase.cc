@@ -365,7 +365,7 @@ const char *QwGUIDatabase::Targets[N_TGTS] =
 {
   "HOME=OutOfBeam","HYDROGEN-CELL","DS-8%-Aluminum","DS-4%-Aluminum","DS-2%-Aluminum",
   "US-4%-Aluminum","US-2%-Aluminum","US-1%-Aluminum","US-Empty-Frame","Optics-3",
-  "Unknown position","US-Pure-Al","DS-Cntring-hole","DS-0.5%-C","US-Cntring-hole"
+  "Unknown position","US-Pure-Al","DS-Cntring-hole","DS-0.5%-C","US-Cntring-hole","All"
 };
 
 
@@ -1092,6 +1092,8 @@ void QwGUIDatabase::ClearData()
   GraphArray.Clear();//Clear();
   LegendArray.Clear();//Clear();
 
+  DataWindowArray.Clear();
+
   vector <TObject*> obja;
   TIter *next1 = new TIter(DataWindowArray.MakeIterator());
   obj = next1->Next();
@@ -1183,7 +1185,7 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
 
   TString correction_flag;
   TString regression_selected;
-
+  TString target_position;
 
   /*Basic data selections that are valid for any type of query*/
 
@@ -1245,7 +1247,12 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
     correction_flag  = "off";
   }
 
-
+  /*target selection*/
+  if(target=="All")
+    target_position = "";
+  else
+    target_position = Form("AND target_position = '%s' ",target.Data());
+  
   TString querystring 
     = "SELECT "+outputs+" slow_helicity_plate, data.run_quality_id,data.good_for_id,target_position, (scd.value<0)*-2+1 as wien_reversal"
     +" FROM "+tables_used+" analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
@@ -1253,7 +1260,7 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
     + Form(" AND data.slope_correction='%s' AND data.slope_calculation='%s' ",correction_flag.Data(),regression_selected.Data())
     +" AND data.subblock = "+ Form("%i",subblock) 
     +" AND data.error !=0 "
-    +" AND target_position = '"+Form("%s",target.Data())+"'"
+    +target_position+
     +" AND scd.runlet_id=ana.runlet_id "
     + quality_check
     + good_for_check
@@ -1352,8 +1359,8 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
  /* Now get the run number information*/
   mysqlpp::Query query      = dDatabaseCont->Query();
 
-  TString querystring;
-  TString outputs;
+  TString querystring="";
+  TString outputs="";
  
   TString special_cuts =" AND data."+det_type+"='"+device+"'  AND scd.sc_detector_id = "
     + Form("%i", phi_fg_id)+" ";
@@ -1403,7 +1410,8 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   
   mysqlpp::StoreQueryResult read_data = query.store();
   dDatabaseCont->Disconnect(); 
-    
+
+
   return read_data;
 
 }
@@ -2436,7 +2444,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
     ytitle = "Asymmetry (ppm)";
 
   if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" ){
-    if (det_id == ID_E_CAL) ytitle  = "Energy Asymetry (ppm)";
+    if (det_id == ID_E_CAL) ytitle  = "Energy Asymmetry (ppm)";
     else if (det_id == ID_CMB_BPM ){
       if(property.Contains("Slope")){ //angles
 	ytitle  = "Beam Angle Differences(#murad)";
