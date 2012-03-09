@@ -1072,7 +1072,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 
       MeanTime* ts_mt_time= NULL;
 
-      for(Int_t ts_size=0; ts_size < mt_container->Size(); ts_size++)
+      for(Int_t ts_size=0; ts_size < mt_container->SoftwareMTSize(); ts_size++)
 	{
 	  ts_mt_time = mt_container->GetMeanTimeObject(ts_size);
 	  ts_mt_time -> Print(local_debug);
@@ -1124,7 +1124,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
 
       MeanTime* md_mt_time= NULL;
 
-      for(Int_t md_size=0; md_size < mt_container->Size(); md_size++)
+      for(Int_t md_size=0; md_size < mt_container->SoftwareMTSize(); md_size++)
 	{
 	  md_mt_time = mt_container->GetMeanTimeObject(md_size);
 	  md_mt_time -> Print(local_debug);
