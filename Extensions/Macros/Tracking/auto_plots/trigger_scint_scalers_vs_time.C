@@ -36,7 +36,7 @@ for(int i =1; i<=2; i++)
 		
 		//Note I am not sure that the data is getting printed here however the print statment is working
 		
-		chain->Draw(Form("trigscint.ts%dmt_sca:CodaEventNumber",i),Form("trigscint.ts%dmt_sca>0",i));
+		chain->Draw(Form("trigscint.ts%dmt_sca:CodaEventNumber>>v%d",i,i),Form("trigscint.ts%dmt_sca>0",i));
 		
 		//cout <<"I printed " << i <<endl;
 
