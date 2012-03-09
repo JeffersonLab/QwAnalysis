@@ -172,7 +172,7 @@ event_tree->Draw("events.fQwHits.fTime>>tV2","events.fQwHits.fRegion==2&&events.
 
 
 //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-c1.SaveAs(Prefix+"Package_2.png");
+c2.SaveAs(Prefix+"Package_2.png");
 
 return;
 
