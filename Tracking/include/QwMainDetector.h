@@ -91,6 +91,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
 
   Bool_t fDEBUG;
   Bool_t fSoftwareMeantimeOption;
+  Double_t fSoftwareMeantimeTimeWindowNs;
 
   TString fRegion;     ///  Name of this subsystem (the region).
   Int_t   fCurrentBankIndex;

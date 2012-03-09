@@ -353,7 +353,7 @@ VDC_F1_VaderTimePlot()
 
 
 void 
-TSSMTPlot(Int_t plane)
+TSSMTPlot()
 {
   Int_t region = 4;
   //  TCanvas c1;
@@ -364,12 +364,23 @@ TSSMTPlot(Int_t plane)
   gStyle->SetStatH(0.4);//   - set the width of a stat box
   c1.Divide(4,4);
 
+  plane = 1;
   for(Int_t idx=0;idx<7; idx++)
     {
       c1.cd(idx+1);
       event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==3 && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, plane, idx));
       gPad->Update();
     }
+
+  plane = 2;
+  for(Int_t idx=0;idx<7; idx++)
+    {
+      c1.cd(idx+9);
+      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==3 && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, plane, idx));
+      gPad->Update();
+    }
+
+
 
   c1.Update();
 

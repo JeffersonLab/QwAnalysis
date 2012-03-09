@@ -1469,133 +1469,113 @@ void QwTriggerScintillator::UpdateHits()
 
 void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
 {
-  if(option) {
+  // reduce if {}, 
 
+  // if option is false, end this function
+  if( !option )  return;
+  // // if fTDCHits size is zero, end this function
+  if (fTDCHits.size() ==0)   return;
+  
 
-    Long64_t           ev_num    = 0;
-    Int_t              plane     = 0;
-    Int_t              element   = 0;
-    Int_t              hitnumber = 0;
-    Double_t           timens    = 0.0;
-    TString            output    = "";
+  Bool_t     local_debug = false;
 
-    Int_t              bank_index = 0;
-    Int_t              slot_num   = 0;
-    Int_t              chan_num   = 0;
-    EQwDetectorPackage package    = kPackageNull;
+  Long64_t           ev_num    = 0;
+  Int_t              plane     = 0;
+  Int_t              element   = 0;
+  Int_t              hitnumber = 0;
+  Double_t           timens    = 0.0;
+ 
 
-    ev_num = VQwSubsystem::GetParent()->GetCodaEventNumber();
+  Int_t              bank_index = 0;
+  Int_t              slot_num   = 0;
+  Int_t              chan_num   = 0;
+  EQwDetectorPackage package    = kPackageNull;
+  EQwDirectionID     direction  = kDirectionNull;
+  EQwRegionID        region     = kRegionIDTrig;
 
-    // fSoftwareMeantimeContainer -> SetEventId(ev_num);
-    // fSoftwareMeantimeContainer -> SetTimeWindow(fSoftwareMeantimeTimeWindowNs);
+  MeanTime*          ts_mt_time = NULL;
 
-    for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
-      {
+  Int_t              v_plane_idx = 0;
 
-	// bank_index = iter->GetSubbankID();
-	// slot_num   = iter->GetModule();
-	// chan_num   = iter->GetChannel();
-	// package    = iter->GetPackage();
-
-
-	plane      = iter->GetPlane();
+  for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+    {
+      plane = iter->GetPlane();
+      if(plane == 1 || plane == 2) {
+	v_plane_idx = plane -1;
 	element    = iter->GetElement();
 	hitnumber  = iter->GetHitNumber();
 	timens     = iter->GetTimeNs();
-	if(plane == 1) {
-	  fSoftwareMeantimeContainer[0] -> Add(element, hitnumber, timens);
-	}
-	else if(plane == 2){
-	  fSoftwareMeantimeContainer[1] -> Add(element, hitnumber, timens);
-	}
-	
+	fSoftwareMeantimeContainer[v_plane_idx] -> Add(element, hitnumber, timens);
       }
+    }
     
-    //   std::cout << output << std::endl;
-    
-    fSoftwareMeantimeContainer[0] -> SetEventId(ev_num);
-    fSoftwareMeantimeContainer[1] -> SetEventId(ev_num);
-
-    fSoftwareMeantimeContainer[0] -> SetTimeWindow(fSoftwareMeantimeTimeWindowNs);
-    fSoftwareMeantimeContainer[1] -> SetTimeWindow(fSoftwareMeantimeTimeWindowNs);
-
-    fSoftwareMeantimeContainer[0] -> ProcessMeanTime();
-    fSoftwareMeantimeContainer[1] -> ProcessMeanTime();
-    //
-    // define the software meantime as an element 3
-    //
-    Int_t software_meantime_element = 3; 
-    Int_t software_subtract_time_element = 6;
-    // Reset bank_index, slot_num, and chan_num to -9,-99,-999
-    // because we don't have these numbers for software meantime
-    // and we don't need these numbers in order to access software meantime from QwHit
-    // 
   
+  Int_t v_software_meantime_element = 3; 
+  Int_t v_software_positive_element = 4;
+  Int_t v_software_negative_element = 5;
+  Int_t v_software_subtract_element = 6;
+  
+  // Reset bank_index, slot_num, and chan_num to -9,-99,-999
+  // because we don't have these numbers for software meantime
+  // and we don't need these numbers in order to access software meantime from QwHit
+  
+  ev_num     = VQwSubsystem::GetParent()->GetCodaEventNumber();
+  bank_index = -9;
+  slot_num   = -99;
+  chan_num   = -999;
 
-    bank_index = -9;
-    slot_num   = -99;
-    chan_num   = -999;
-    
-    MeanTime* ts_mt_time= NULL;
-    
-    for (Int_t smt_idx=0; smt_idx < fSoftwareMeantimeContainer[0]->SoftwareMTSize(); smt_idx++ )
-      {
-	ts_mt_time = fSoftwareMeantimeContainer[0]->GetMeanTimeObject(smt_idx);
-	ts_mt_time -> Print(true);
-	// package is the same as plane for only TS
-	QwHit software_meantime_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageUp, 1, kDirectionNull, software_meantime_element);
-	software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
-    	fTDCHits.push_back(software_meantime_hit);
-
-	QwHit correct_positive_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageUp, 1, kDirectionNull, 4);
-	correct_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
-    	fTDCHits.push_back(correct_positive_hit);
-
-	QwHit correct_negative_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageUp, 1, kDirectionNull, 5);
-	correct_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
-    	fTDCHits.push_back(correct_negative_hit);
-
-	QwHit software_subtracttime_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageUp, 1, kDirectionNull, software_subtract_time_element);
-	software_subtracttime_hit.SetTimens(ts_mt_time->GetSubtractTime());
-    	fTDCHits.push_back(software_subtracttime_hit);
+  
+  for (v_plane_idx=0; v_plane_idx<2; v_plane_idx++)
+    {
+   
+      if(v_plane_idx == 0) {
+	package = kPackageUp;
+	plane   = 1;
       }
-
-
-    ts_mt_time= NULL;
-    for (Int_t smt_idx=0; smt_idx < fSoftwareMeantimeContainer[1]->SoftwareMTSize(); smt_idx++ )
-      {
-	ts_mt_time = fSoftwareMeantimeContainer[1]->GetMeanTimeObject(smt_idx);
-	ts_mt_time -> Print(true);
-	// package is the same as plane for only TS
-	QwHit software_meantime_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageDown, 2, kDirectionNull, software_meantime_element);
-	software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
-    	fTDCHits.push_back(software_meantime_hit);
-
-	QwHit correct_positive_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageDown, 2, kDirectionNull, 4);
-	correct_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
-    	fTDCHits.push_back(correct_positive_hit);
-
-	QwHit correct_negative_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageDown, 2, kDirectionNull, 5);
-	correct_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
-    	fTDCHits.push_back(correct_negative_hit);
-
-
-	QwHit software_subtracttime_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageDown, 2, kDirectionNull, software_subtract_time_element);
-	software_subtracttime_hit.SetTimens(ts_mt_time->GetSubtractTime());
-    	fTDCHits.push_back(software_subtracttime_hit);
-
-	// QwHit software_meantime_hit(bank_index, slot_num, chan_num, smt_idx, kRegionIDTrig, kPackageDown, 2, kDirectionNull, software_meantime_element);
-	// software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
-    	// fTDCHits.push_back(software_meantime_hit);
-
+      else if (v_plane_idx ==1){
+	package = kPackageDown;
+	plane   = 2;
       }
+      else {
+	break;
+      }
+      
+      fSoftwareMeantimeContainer[v_plane_idx] -> SetEventId(ev_num);
+      fSoftwareMeantimeContainer[v_plane_idx] -> SetTimeWindow(fSoftwareMeantimeTimeWindowNs);
+      fSoftwareMeantimeContainer[v_plane_idx] -> ProcessMeanTime();
+
+      ts_mt_time = NULL;
+      for (Int_t v_smt_idx=0; v_smt_idx < fSoftwareMeantimeContainer[v_plane_idx]->SoftwareMTSize(); v_smt_idx++ )
+	{
+	  ts_mt_time = fSoftwareMeantimeContainer[v_plane_idx]->GetMeanTimeObject(v_smt_idx);
+	  ts_mt_time -> Print(local_debug);
+	  
+	  QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_meantime_element);
+	  software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
+	  fTDCHits.push_back(software_meantime_hit);
+	  
+	  QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_positive_element);
+	  software_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
+	  fTDCHits.push_back(software_positive_hit);
+	  
+	  QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_negative_element);
+	  software_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
+	  fTDCHits.push_back(software_negative_hit);
+	  
+	  QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_subtract_element);
+	  software_subtract_hit.SetTimens(ts_mt_time->GetSubtractTime());
+	  fTDCHits.push_back(software_subtract_hit);
+	}
+    }
 
 
+  if(local_debug) {
 
-
+    TString output    = "";
+    
     for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
       {
-
+	
 	bank_index = iter->GetSubbankID();
 	slot_num   = iter->GetModule();
 	chan_num   = iter->GetChannel();
@@ -1605,8 +1585,8 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
 	element    = iter->GetElement();
 	hitnumber  = iter->GetHitNumber();
 	timens     = iter->GetTimeNs();
-
-
+	
+	
 	output += GetSubsystemName();
 	output += Form(" Bank ID %+2d", bank_index);
 	output += Form(" Slot %+3d", slot_num);
@@ -1618,12 +1598,14 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
 	output += " Hit ";
 	output += hitnumber;
 	output += Form(" TimeNs %+10.2f\n", timens);
-      
-      
+	
+	
       }
     
-    std::cout << "Event Number " << ev_num << "\n" << output << std::endl;
+    std::cout << "Size fTDCHits " << fTDCHits.size()
+	      << " Event Number " << ev_num << "\n" << output << std::endl;
   }
+  
   return;
 }
 

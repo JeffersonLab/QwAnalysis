@@ -50,6 +50,9 @@ QwMainDetector::QwMainDetector(const TString& name)
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
   fF1RefContainer = new F1TDCReferenceContainer();
+
+  fSoftwareMeantimeOption = false;
+  fSoftwareMeantimeTimeWindowNs = 0.0;
 }
 
 QwMainDetector::~QwMainDetector()
@@ -969,15 +972,23 @@ void  QwMainDetector::ProcessEvent()
 
 void QwMainDetector::DefineOptions ( QwOptions& options )
 {
-  options.AddOptions() ( "software-meantime-md",
-			 po::value<bool>()->default_bool_value(false),
-			 "Create Software meantime for MD in QwHits" );
+  options.AddOptions()("enable-md-software-meantime",
+		       po::value<Bool_t>()->default_bool_value(false),
+		       "Create Software meantime for MD in QwHits" 
+		       );
+  options.AddOptions()("set-md-software-meantime-timewindow",
+		       po::value<Double_t>()->default_value(2000.0),
+		       "TimeWindow (ns) for MD Software meantime"
+		       );
+
   return;
 };
 
 void QwMainDetector::ProcessOptions ( QwOptions& options )
 {
-  fSoftwareMeantimeOption = options.GetValue<bool> ( "software-meantime-md" );
+  //  fSoftwareMeantimeOption = options.GetValue<bool> ( "software-meantime-md" );
+  fSoftwareMeantimeOption       = options.GetValue<Bool_t>   ( "enable-md-software-meantime" );
+  fSoftwareMeantimeTimeWindowNs = options.GetValue<Double_t> ( "set-md-software-meantime-timewindow" );
   return;
 };
 
