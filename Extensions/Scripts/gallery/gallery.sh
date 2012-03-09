@@ -11,16 +11,8 @@ formatdir=format
 formats="png jpg"
 ncols=3
 
-# Directory with original images (remains untouched)
-origdir=/group/qweak/www/html/private/wdconinc/images
-
-# Directory for gallery page
-basedir=/group/qweak/www/html/private/wdconinc/gallery
-baseweb=/private/wdconinc/gallery
-
 # Relative directories under basedir
 styledir=/style
-commentsdir=/comments
 
 # Interface
 title="Qweak Collaboration Figure Database"
@@ -35,8 +27,10 @@ Itemsname="Items"
 itemsname="items"
 
 # Options:
-# - comments yes or no
-comments=no
+# - include comments yes or no
+includecomments=yes
+# - enter comments yes or no
+entercomments=no
 # - server-side include yes or no
 includes=no
 
@@ -57,6 +51,10 @@ filter="[jp][pn]g"
 
 # File with sidebar categories
 sidebarfile=sidebar.html
+
+
+# Source configuration file
+source ${0/sh/conf}
 
 
 # Function to do server-side includes on html generation
@@ -232,20 +230,26 @@ END
 	echo " |</p>" >> "$itemframe".new	
 
 
-	# Comments if enabled
-	if [ "$comments" == "yes" ] ; then
-		commentsfile="${item}.html"
-		if [ ! -d "$basedir/$commentsdir/$section" ] ; then
-			mkdir -p "$basedir/$commentsdir/$section"
+	# Include comments if enabled
+	if [ "$includecomments" == "yes" ] ; then
+		commentsfile="${item}.comments.html"
+		if [ ! -s "$basedir/$section/$commentsfile" ] ; then
+			echo "<\!-- DO NOT REMOVE THIS LINE -->" > "$basedir/$section/$commentsfile"
 		fi
-		if [ ! -s "$basedir/$commentsdir/$section/$commentsfile" ] ; then
-			echo "<\!-- DO NOT REMOVE THIS LINE -->" > "$basedir/$commentsdir/$section/$commentsfile"
+		if [ -r "$origdir/$section/$commentsfile" ] ; then
+			echo "    [comment added from $origdir/$section/$commentsfile]"
+			cp -f "$origdir/$section/$commentsfile" "$basedir/$section/$commentsfile"
+			writehtml "$section/$commentsfile" >> "$itemframe".new
 		fi
-		writehtml "$commentsdir/$section/$commentsfile" >> "$itemframe".new
+	fi
+
+
+	# Enter comments if enabled
+	if [ "$entercomments" == "yes" ] ; then
 		echo "<hr />" >> "$itemframe".new
 
 		cat << END >> "$itemframe".new
-<form action="/cgi-bin/guestbook/wdconinc" method="POST" target="_self">
+<form action="/cgi-bin/guestbook.pl" method="POST" target="_self">
   <input type="hidden" name="successURL" value="http://qweak.jlab.org/$section/$itemframe">
   <input type="hidden" name="ccme" value="yes">
   <input type="hidden" name="filename" value="$section/$commentsfile">
@@ -411,7 +415,7 @@ process_dir () {
 
 # Create the base directory and copy style
 mkdir -p "$basedir/style"
-cp -u style/* "$basedir/style"
+cp -u `dirname $0`/style/* "$basedir/style"
 
 # Start processing at top level
 process_dir "."

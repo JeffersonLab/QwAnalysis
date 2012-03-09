@@ -9,7 +9,7 @@ function popup(url) {
   return false;
 }
 function map(url) {
-  newwindow = window.open('/private/wdconinc/map/' + url,'map','height=400,width=400');
+  newwindow = window.open('/private/map/' + url,'map','height=400,width=400');
   if (window.focus) {newwindow.focus()}
   return false;
 }
@@ -17,9 +17,9 @@ function map(url) {
 </script>
 
 <head>
-  <link rel=stylesheet href="/private/wdconinc/gallery/style/style.css" type="text/css">
-  <link rel=stylesheet href="/private/wdconinc/gallery/style/sidebar.css" type="text/css">
-  <link rel=stylesheet href="/private/wdconinc/gallery/style/topbar.css" type="text/css">
+  <link rel=stylesheet href="/private/gallery/style/style.css" type="text/css">
+  <link rel=stylesheet href="/private/gallery/style/sidebar.css" type="text/css">
+  <link rel=stylesheet href="/private/gallery/style/topbar.css" type="text/css">
 
   <!-- Page title begin -->
   <title>
