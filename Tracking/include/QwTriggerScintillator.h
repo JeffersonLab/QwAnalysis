@@ -107,6 +107,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   static const UInt_t kMaxNumberOfModulesPerROC;
   static const Int_t  kF1ReferenceChannelNumber;
 
+  static const Int_t  kMaxNumberOfQwHitPlane;
+
   UInt_t kMaxNumberOfChannelsPerF1TDC;
   Int_t fNumberOfModules;
 

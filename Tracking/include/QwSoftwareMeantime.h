@@ -48,12 +48,17 @@ public:
 
   Double_t GetPositiveValue() const { return fPositiveValue; };
   Double_t GetNegativeValue() const { return fNegativeValue; };
+  
+  const Int_t GetSoftwareMeantimeHitElement() const { return fSoftwareMeantimeHitElementID;};
+  const Int_t GetSoftwarePositiveHitElement() const { return fSoftwarePositiveHitElementID;};
+  const Int_t GetSoftwareNegativeHitElement() const { return fSoftwareNegativeHitElementID;};
+  const Int_t GetSoftwareSubtractHitElement() const { return fSoftwareSubtractHitElementID;};
 
   Int_t    GetPositiveHitId() const { return fPositiveHitId; };
   Int_t    GetNegativeHitId() const { return fNegativeHitId; };
 
   Int_t    GetMeanTimeId()    const { return fMeanTimeId; };
-
+  Int_t    GetPlane()         const { return fPlane;};
 
   void     AddPNValues(Double_t p_value, Double_t n_value, Int_t p_id, Int_t n_id);
   void     SetDetectorType(TString d_type) {fDetectorType = d_type;};
@@ -88,6 +93,11 @@ private:
   Long64_t fEventId;
   TString  fDetectorType;
   Int_t    fPlane;
+
+  static const Int_t fSoftwareMeantimeHitElementID;
+  static const Int_t fSoftwarePositiveHitElementID;
+  static const Int_t fSoftwareNegativeHitElementID;
+  static const Int_t fSoftwareSubtractHitElementID;
 
   ClassDef(MeanTime,0);
 };
@@ -146,9 +156,10 @@ public:
   void   SetTimeWindow  (const Double_t in_ns) { fTimeWindowNs = in_ns;};
   void   SetDetectorType(const TString name  ) { fDetectorName = name;};
   void   SetEventId     (const Long64_t in   ) { fEventId = in;};
-
+  
   const  TString GetDetectorType() const {return fDetectorName;};
-
+  Int_t    GetPlane()         const { return fPlane;};
+  
   MeanTime *GetMeanTimeObject(Int_t index);
   Double_t  GetMeanTime(Int_t index);
 
@@ -169,6 +180,7 @@ private:
 
   void      MatchHardwareMeanTime();
   Bool_t    IsHarewareMatchSoftware();
+
 
   ClassDef(MeanTimeContainer,0);
 

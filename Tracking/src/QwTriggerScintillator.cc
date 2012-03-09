@@ -17,7 +17,7 @@ RegisterSubsystemFactory(QwTriggerScintillator);
 
 const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC = 21;
 const Int_t  QwTriggerScintillator::kF1ReferenceChannelNumber = 99;
-
+const Int_t  QwTriggerScintillator::kMaxNumberOfQwHitPlane    =  2;
 
 QwTriggerScintillator::QwTriggerScintillator(const TString& name)
 : VQwSubsystem(name),VQwSubsystemTracking(name)
@@ -42,9 +42,11 @@ QwTriggerScintillator::QwTriggerScintillator(const TString& name)
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
   fF1RefContainer = new F1TDCReferenceContainer();
 
-  fSoftwareMeantimeContainer[0] = new MeanTimeContainer();  
-  fSoftwareMeantimeContainer[1] = new MeanTimeContainer();
 
+  for (Int_t plane_idx=0; plane_idx<kMaxNumberOfQwHitPlane; plane_idx++)
+    {
+      fSoftwareMeantimeContainer[plane_idx] = new MeanTimeContainer();  
+    }
 
   fSoftwareMeantimeOption = false;
   fSoftwareMeantimeTimeWindowNs = 0.0;
@@ -57,9 +59,13 @@ QwTriggerScintillator::~QwTriggerScintillator()
   fSCAs.clear();
   delete fF1TDContainer;
   delete fF1RefContainer;
-  delete fSoftwareMeantimeContainer[0];
-  delete fSoftwareMeantimeContainer[1];
-}
+
+  for (Int_t plane_idx=0; plane_idx < kMaxNumberOfQwHitPlane; plane_idx++)
+    {
+      delete fSoftwareMeantimeContainer[plane_idx];
+    }
+
+};
 
 
 Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
@@ -481,10 +487,12 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
       subsystem_name = this->GetSubsystemName();
       fF1TDContainer -> SetSystemName(subsystem_name);
       fF1RefContainer-> SetSystemName(subsystem_name);
-      fSoftwareMeantimeContainer[0]->SetSystemName(subsystem_name);
-      fSoftwareMeantimeContainer[1]->SetSystemName(subsystem_name);
-      fSoftwareMeantimeContainer[0]->SetPlane(1);
-      fSoftwareMeantimeContainer[1]->SetPlane(2);
+
+      for (Int_t plane_idx=0; plane_idx<kMaxNumberOfQwHitPlane; plane_idx++) 
+	{
+	  fSoftwareMeantimeContainer[plane_idx]->SetSystemName(subsystem_name);
+	  fSoftwareMeantimeContainer[plane_idx]->SetPlane(plane_idx+1);
+	}
 
       if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
       
@@ -1510,10 +1518,10 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
     }
     
   
-  Int_t v_software_meantime_element = 3; 
-  Int_t v_software_positive_element = 4;
-  Int_t v_software_negative_element = 5;
-  Int_t v_software_subtract_element = 6;
+  // Int_t v_software_meantime_element = 3; 
+  // Int_t v_software_positive_element = 4;
+  // Int_t v_software_negative_element = 5;
+  // Int_t v_software_subtract_element = 6;
   
   // Reset bank_index, slot_num, and chan_num to -9,-99,-999
   // because we don't have these numbers for software meantime
@@ -1525,16 +1533,14 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
   chan_num   = -999;
 
   
-  for (v_plane_idx=0; v_plane_idx<2; v_plane_idx++)
+  for (v_plane_idx=0; v_plane_idx<kMaxNumberOfQwHitPlane; v_plane_idx++)
     {
    
       if(v_plane_idx == 0) {
 	package = kPackageUp;
-	plane   = 1;
       }
       else if (v_plane_idx ==1){
 	package = kPackageDown;
-	plane   = 2;
       }
       else {
 	break;
@@ -1543,26 +1549,41 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
       fSoftwareMeantimeContainer[v_plane_idx] -> SetEventId(ev_num);
       fSoftwareMeantimeContainer[v_plane_idx] -> SetTimeWindow(fSoftwareMeantimeTimeWindowNs);
       fSoftwareMeantimeContainer[v_plane_idx] -> ProcessMeanTime();
-
+      plane = fSoftwareMeantimeContainer[v_plane_idx]->GetPlane();
+      
       ts_mt_time = NULL;
       for (Int_t v_smt_idx=0; v_smt_idx < fSoftwareMeantimeContainer[v_plane_idx]->SoftwareMTSize(); v_smt_idx++ )
 	{
 	  ts_mt_time = fSoftwareMeantimeContainer[v_plane_idx]->GetMeanTimeObject(v_smt_idx);
 	  ts_mt_time -> Print(local_debug);
-	  
-	  QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_meantime_element);
+
+	  //	  plane = ts_mt_time->GetPlane();
+
+	  QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+				      region, package, plane, direction, 
+				      ts_mt_time->GetSoftwareMeantimeHitElement()
+				      );
 	  software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
 	  fTDCHits.push_back(software_meantime_hit);
 	  
-	  QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_positive_element);
+	  QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+				      region, package, plane, direction, 
+				      ts_mt_time->GetSoftwarePositiveHitElement()
+				      );
 	  software_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
 	  fTDCHits.push_back(software_positive_hit);
 	  
-	  QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_negative_element);
+	  QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+				      region, package, plane, direction, 
+				      ts_mt_time->GetSoftwareNegativeHitElement()
+				      );
 	  software_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
 	  fTDCHits.push_back(software_negative_hit);
 	  
-	  QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, region, package, plane, direction, v_software_subtract_element);
+	  QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+				      region, package, plane, direction, 
+				      ts_mt_time->GetSoftwareSubtractHitElement()
+				      );
 	  software_subtract_hit.SetTimens(ts_mt_time->GetSubtractTime());
 	  fTDCHits.push_back(software_subtract_hit);
 	}

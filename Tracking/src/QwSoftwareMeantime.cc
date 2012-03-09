@@ -4,6 +4,14 @@
 ClassImp(MeanTime)
 ClassImp(MeanTimeContainer)
 
+
+const Int_t MeanTime::fSoftwareMeantimeHitElementID = 3;
+const Int_t MeanTime::fSoftwarePositiveHitElementID = 4;
+const Int_t MeanTime::fSoftwareNegativeHitElementID = 5;
+const Int_t MeanTime::fSoftwareSubtractHitElementID = 6;
+
+
+
 MeanTime::MeanTime()
 {
   
@@ -296,11 +304,12 @@ MeanTimeContainer::Add(Int_t element, Int_t hit_number, Double_t time_ns)
       fNegativeValue[hit_number] = time_ns;
       fNNegative++;
     }
-    else if (element == 0) {
-      // do we need this? QwHit has hardware mt anyway....
-      fHardwareMeantimeValue[hit_number] = time_ns;
-      fNHarewareMeanTimes++;
-    }
+    // We don'tneed this to fill element == 0, because QwHit has hardware mt anyway....
+    // else if (element == 0) {
+    //   // do we need this? QwHit has hardware mt anyway....
+    //   fHardwareMeantimeValue[hit_number] = time_ns;
+    //   fNHarewareMeanTimes++;
+    // }
   }
 
   return;
