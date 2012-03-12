@@ -5,7 +5,11 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
 
-void theoryAsym(Int_t comptEdge) //Float_t *calcAsym) 
+Double_t polynomial(Double_t *x, Double_t *par) {
+  return par[0] + par[1]*x[0] + par[2]*x[0]*x[0] + par[3]*x[0]*x[0]*x[0];
+}
+
+void theoryAsym(Int_t comptEdge, Double_t par[]) //Float_t *calcAsym) 
 {
   const Int_t nPoints=800;
   gStyle->SetOptFit(1);
@@ -85,14 +89,20 @@ void theoryAsym(Int_t comptEdge) //Float_t *calcAsym)
   grtheory->SetLineColor(2);
   grtheory->SetMarkerColor(2);
   //grtheory->Fit("pol3");
-  grtheory->Fit("pol3","B","",dx0prime,xPrime[0]); ///the fit would happen only between zero-crossing and Cedge
+  
+  TF1 *fitFcn= new TF1("fitFcn",polynomial,dx0prime,xPrime[0],4); ///limiting my fit to be upto Cedge
+  fitFcn->SetParameters(1,1,1,1);
+  grtheory->Fit("fitFcn","RV+","ep",dx0prime,xPrime[0]); ///the fit would happen only between zero-crossing and Cedge
   grtheory->Draw("AP");
-
+  //Double_t par[4]; !temporarily passing this variable in the function
+  fitFcn->GetParameters(par);
+  printf("param[0]:%f,param[1]:%f,param[2]:%f\n",par[0],par[1],par[2]);
+  
   theoreticalAsym.open(Form("analOut/theoryAsymForCedge_%d.txt",comptEdge));
   for(Int_t s =startStrip; s <=endStrip; s++) {
-    xStrip = xPrime[0] - (comptEdge - s+1)*2E-4; ///xPrime[0] corresponds to Cedge distance
+    xStrip = xPrime[0] - (comptEdge - s)*2E-4; ///xPrime[0] corresponds to Cedge distance
     rhoStrip = grtheory->Eval(xStrip);
-    if(rhoStrip>1.0) cout<<"**Alert: rho for strip "<<s<<" is greater than 1 !"<<endl;
+    //!if(rhoStrip>1.0) cout<<"**Alert: rho for strip "<<s<<" is greater than 1 !"<<endl;
     dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // 2nd term of eqn 22
     dsdrho = 2*pi*re*re/100*a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22
     calcAsym1 = 1-rhoStrip*(1-a);

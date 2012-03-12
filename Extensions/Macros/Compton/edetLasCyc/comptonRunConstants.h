@@ -29,7 +29,7 @@ const Int_t minEntries = 8000; //Laser must be off for at least this many consec
 
 
 ///Run constants
-const Double_t minLasPow = 1000;///put by eyeballing, needs to be checked !!
+const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
 const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn///typical 160E3. 
 const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip

@@ -28,10 +28,6 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   Double_t comptQH1L1=0.0, comptQH0L1=0.0;
   Double_t comptQH1L0L=0.0, comptQH0L0R=0.0;
   Double_t comptQH1L0R=0.0, comptQH0L0L=0.0;
-  //Double_t lasPowB1H1=0.0, lasPowB1H0=0.0; //, lasPowB0H1, lasPowB0H0;
-  //Int_t unNormAcB1L0[nPlanes][nStrips],unNormAcB1L1[nPlanes][nStrips];
-  //Int_t unNormAcB1H1[nPlanes][nStrips],unNormAcB1H0[nPlanes][nStrips];
-  //Double_t unNormQL0;//,unNormQL1,unNormQH0,unNormQH1;
   Double_t lasPow[3], helicity, bcm[3];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips];//qNormAcB1H1L0LLasCyc
@@ -75,7 +71,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
     printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
   }
   if(!chainExists){//delete chains and exit if files do not exist
-    cout<<"\n***Error: File for run "<<runnum<<" does not exist***\n"<<endl;
+    cout<<"\n***Error: The analyzed Root file for run "<<runnum<<" does not exist***\n"<<endl;
     delete mpsChain;
     return -1;
   }
@@ -207,7 +203,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
       if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<minLasPow) l= -1; ///left laser off zone
       else if((i > cutLas.at(2*nCycle+2)) && lasPow[0]<minLasPow) l =0; ///right laser off zone
       else if((i >=cutLas.at(2*nCycle+1)) && (i <=cutLas.at(2*nCycle+2))) l =1;///laser on zone
-      ///the equal sign above is in laser-On zone because that's how getEBeamLasCuts currents assign it(may change!)
+      ///the equal sign above is in laser-On zone because that's how getEBeamLasCuts currently assign it(may change!)
       else missedLasEntries++;
 
       mpsChain->GetEntry(i);
@@ -409,6 +405,8 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 
 /******************************************************
 !Further modifications:
+* Plot asymmetry numerators and denominators separately, because the numerator naturally 
+*..has background subtraction, while the denominator is artificially subtracted.
 * if I figure out a way to normalize by laserPower then I can relax 
 *..the condition of laserPower being 90% of maximum for the laser entries to be accepted.
 * plot qNormAcB1H1L0LasCyc and qNormAcB1H0L0LasCyc against

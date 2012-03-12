@@ -10,14 +10,19 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
   Float_t calcAsym[nStrips],stripNum[nStrips];
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
   ifstream theoAsym;
-  theoAsym.open(Form("analOut/theoryAsymForCedge_%d.txt",Cedge));
-
-  if (!theoAsym.is_open()) {
-    cout<<"theoretial asymmetry file not found hence calling the function to evaluate"<<endl;
-    theoryAsym(Cedge);
-    theoAsym.open(Form("analOut/theoryAsymForCedge_%d.txt",Cedge));
-  }
+  Double_t par[4];
+  //   theoAsym.open(Form("analOut/theoryAsymForCedge_%d.txt",Cedge));
   
+  //   if (!theoAsym.is_open()) {
+  //     cout<<"theoretial asymmetry file not found hence calling the function to evaluate"<<endl;
+  theoryAsym(Cedge,par);
+  theoAsym.open(Form("analOut/theoryAsymForCedge_%d.txt",Cedge));
+  //   }
+  printf("\nthe parameters received from theoretical fitting are par[0]:%f,par[1]:%f,par[2]:%f,par[3]:%f\n\n" ,par[0],par[1],par[2],par[3]);
+  TF1 *fn2 = new TF1("fn2",Form("[0] + [1]*(%f + %f*x + %f*x*x + %f*x*x*x)",par[0],par[1],par[2],par[3]),10,Cedge);
+  fn2->SetParameters(0.9,0);
+  fn2->SetParLimits(0,-1,1);
+  fn2->SetParLimits(1,2,-2);
   if (theoAsym.is_open()) {
     for(Int_t s =0 ; s <endStrip; s++) {
       theoAsym>>stripNum[s]>>calcAsym[s];
@@ -28,13 +33,12 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
 
   edetExpAsym(runnum,stripAsym,stripAsymEr);
   
-  TGraphErrors *grTheoryAsym;
-  TGraphErrors *grAsymPlane[nPlanes];
+  TGraphErrors *grTheoryAsym, *grAsymPlane[nPlanes];
 
   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
   cAsym->Divide(2,2);
   
-  TLine *myline = new TLine(0,0,64,0);
+  TLine *myline = new TLine(0,0,70,0);
   myline->SetLineStyle(1);
   
   for (Int_t p =startPlane; p <endPlane; p++) {
@@ -43,10 +47,11 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
     grAsymPlane[p] = new TGraphErrors(Form("analOut/r%d_expAsymP%d.txt",runnum,p+1), "%lg %lg %lg");
     grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
-    grAsymPlane[p]->SetTitle(Form("Plane %d",p+1));
+    grAsymPlane[p]->SetTitle(Form("Run: %d, Plane %d",runnum,p+1));
     grAsymPlane[p]->SetMarkerStyle(20);
     grAsymPlane[p]->SetLineColor(kRed+2);
     grAsymPlane[p]->SetMarkerColor(kRed+2); ///Maroon
+    grAsymPlane[p]->Fit("fn2","R");
     grAsymPlane[p]->Draw("AP");
     myline->Draw();
 
@@ -59,11 +64,11 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
   if(debug) cout<<"\nstrip#\t\texpTheoRatio\tstripAsym\tcalcAsym"<<endl;
 
   for (Int_t p =startPlane; p <endPlane; p++) {  
-    for (Int_t s =startStrip; s <endStrip; s++) {  
+    for (Int_t s =startStrip; s < endStrip; s++) {  
       if (maskedStrips(p,s)) continue;
-      if (calcAsym[s]!=0.0) expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
-      if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %f\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
-    }    
+      if (calcAsym[s]!= 0.0) expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
+      if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %e\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
+    }     
   }
 }
 

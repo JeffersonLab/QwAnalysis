@@ -7,7 +7,7 @@ Int_t fileReadDraw(Int_t run)
   ifstream in1, in2;
   TLegend *leg;
   TCanvas *c1 = new TCanvas("c1",Form("edet Asymmetry run:%d",run),10,10,1000,600);
-  TLine *myline = new TLine(0,0,71,0);
+  TLine *myline = new TLine(0,0,70,0);
   ifstream fortranOutP1;
   leg = new TLegend(0.1,0.7,0.4,0.9);
 
