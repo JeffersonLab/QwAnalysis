@@ -170,8 +170,12 @@ class QwEPICSEvent
 
   TList *GetEPICSStringValues();
 
+  Bool_t fBlinderReversalForRunTwo;
+  Bool_t fPrecessionReversal;
+
   Double_t fNominalWienAngle;
   Int_t    fExtraHelicityReversal;
+
   
 }; // class QwEPICSEvent
 
