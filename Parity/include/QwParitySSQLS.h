@@ -71,7 +71,7 @@ namespace QwParitySSQLS {
   
     sql_create_5(lumi_errors, 1, 2 , mysqlpp::sql_int_unsigned, lumi_errors_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, lumi_detector_id, mysqlpp::sql_tinyint_unsigned, error_code_id, mysqlpp::sql_int_unsigned, n) 
   
-    sql_create_9(slow_controls_settings, 1, 2 , mysqlpp::sql_int_unsigned, slow_controls_settings_id, mysqlpp::sql_int_unsigned, runlet_id, mysqlpp::Null<mysqlpp::sql_enum>, slow_helicity_plate, mysqlpp::Null<mysqlpp::sql_enum>, wien_reversal, mysqlpp::Null<mysqlpp::sql_int_unsigned>, helicity_length, mysqlpp::Null<mysqlpp::sql_enum>, charge_feedback, mysqlpp::Null<mysqlpp::sql_enum>, position_feedback, mysqlpp::Null<mysqlpp::sql_float>, qtor_current, mysqlpp::Null<mysqlpp::sql_text>, target_position) 
+    sql_create_11(slow_controls_settings, 1, 2 , mysqlpp::sql_int_unsigned, slow_controls_settings_id, mysqlpp::sql_int_unsigned, runlet_id, mysqlpp::Null<mysqlpp::sql_enum>, slow_helicity_plate, mysqlpp::Null<mysqlpp::sql_enum>, passive_helicity_plate, mysqlpp::Null<mysqlpp::sql_enum>, wien_reversal, mysqlpp::Null<mysqlpp::sql_enum>, precession_reversal, mysqlpp::Null<mysqlpp::sql_int_unsigned>, helicity_length, mysqlpp::Null<mysqlpp::sql_enum>, charge_feedback, mysqlpp::Null<mysqlpp::sql_enum>, position_feedback, mysqlpp::Null<mysqlpp::sql_float>, qtor_current, mysqlpp::Null<mysqlpp::sql_text>, target_position) 
   
     sql_create_4(sc_detector, 1, 2 , mysqlpp::sql_int_unsigned, sc_detector_id, mysqlpp::sql_text, name, mysqlpp::sql_text, units, mysqlpp::sql_text, comment) 
   
