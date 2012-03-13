@@ -87,7 +87,7 @@ class QwRegression {
     void AccumulateRunningSum(QwRegression value);
     void CalculateRunningAverage();
     void PrintValue() const;
-
+    void FillDB(QwParityDB *db, TString datatype);
   private:
 
     /// Private default constructor

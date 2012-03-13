@@ -11,6 +11,10 @@
 #include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
 #include "QwParameterFile.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
+
 
 /** Constructor with single event and helicity pattern
  *
@@ -79,7 +83,9 @@ QwRegression::QwRegression(QwOptions &options)
 } 
 
 
-QwRegression::QwRegression(const QwRegression &source)
+QwRegression::QwRegression(const QwRegression &source):
+  fEnableRegression(source.fEnableRegression),
+  fRegressionMapFile(source.fRegressionMapFile)
 {
     this->fDependentVar.resize(source.fDependentVar.size());
     fDependentVarType.resize(source.fDependentVar.size());
@@ -259,7 +265,6 @@ Int_t QwRegression::ConnectChannels(
     // alias
     if(fDependentName.at(dv).at(0) == '@'){
         QwMessage << "dv: " << name << QwLog::endl;
-        name.insert(0,reg);
         new_vqwk = new QwVQWK_Channel(name);
     }
     // defined type
@@ -367,7 +372,6 @@ Int_t QwRegression::ConnectChannels(
     // alias
     if(fDependentName.at(dv).at(0) == '@'){
         QwMessage << "dv: " << name << QwLog::endl;
-        name.insert(0,reg);
         new_vqwk = new QwVQWK_Channel(name);
     }
     // defined type
@@ -534,7 +538,7 @@ void QwRegression::LinearRegression(EQwRegType type)
 
   // Return if regression is not enabled
   if (! fEnableRegression){
-    QwError << "Regression is not enabled!" << QwLog::endl;
+    QwDebug << "Regression is not enabled!" << QwLog::endl;
     return;
   }
   // Linear regression for each dependent variable
@@ -622,4 +626,79 @@ void QwRegression::PrintValue() const
     fDependentVar[i].second->PrintValue();
   }
 }
+
+void QwRegression::FillDB(QwParityDB *db, TString datatype)
+{
+  if (! fEnableRegression){
+    QwDebug << " QwRegression::FillDB: Regression is not enabled!" 
+	    << QwLog::endl;
+    return;
+  }
+  Bool_t local_print_flag = kTRUE;
+
+  UInt_t analysis_id = db->GetAnalysisID();
+
+  TString measurement_type;
+  measurement_type = QwDBInterface::DetermineMeasurementTypeID(datatype);
+
+  std::vector<QwDBInterface> interface;
+
+  std::vector<QwParitySSQLS::beam>      beamlist;
+  std::vector<QwParitySSQLS::md_data>   mdlist;
+  std::vector<QwParitySSQLS::lumi_data> lumilist;
+
+  QwDBInterface::EQwDBIDataTableType tabletype;
+
+
+  for(size_t i = 0; i < fDependentVar.size(); i++) {
+    interface.clear();
+    fDependentVar[i].second->AddEntriesToList(interface);
+    for(size_t j=0; j<interface.size(); j++) {
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMeasurementTypeID( measurement_type );
+      tabletype = interface.at(j).SetDetectorID( db );
+      if (tabletype==QwDBInterface::kQwDBI_BeamTable){
+	interface.at(j).AddThisEntryToList( beamlist );
+      } else if (tabletype==QwDBInterface::kQwDBI_MDTable){
+	interface.at(j).AddThisEntryToList( mdlist );
+      } else if (tabletype==QwDBInterface::kQwDBI_LumiTable){
+	interface.at(j).AddThisEntryToList( lumilist );
+      } else {
+	QwError << "QwRegression::FillDB:  Unrecognized detector name:  " 
+		<< interface.at(j).GetDeviceName() << QwLog::endl;
+      }
+      interface.at(j).PrintStatus( local_print_flag);
+    }
+  }
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( beamlist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(beamlist.begin(), beamlist.end());
+    query.execute();
+  } else {
+    QwMessage << "QwRegression::FillDB :: This is the case when the beamlist contains nothing for type="<< measurement_type.Data() 
+	      << QwLog::endl;
+  }
+  if( mdlist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(mdlist.begin(), mdlist.end());
+    query.execute();
+  } else {
+    QwMessage << "QwRegression::FillDB :: This is the case when the mdlist contains nothing for type="<< measurement_type.Data() 
+	      << QwLog::endl;
+  }
+  if( lumilist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(lumilist.begin(), lumilist.end());
+    query.execute();
+  } else {
+    QwMessage << "QwRegression::FillDB :: This is the case when the lumilist contains nothing for type="<< measurement_type.Data() 
+	      << QwLog::endl;
+  }
+  db->Disconnect();
+  return;
+}
+
 

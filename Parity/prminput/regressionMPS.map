@@ -32,87 +32,87 @@ diff:xp_targ, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10
 diff:yp_targ, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09
 
 # Double differences
-[asym:@DD1_2]
+[asym:@bcmdd12]
 asym:qwk_bcm1, 1
 asym:qwk_bcm2, -1
 
-[asym:@DD1_5]
+[asym:@bcmdd15]
 asym:qwk_bcm1, 1
 asym:qwk_bcm5, -1
 
-[asym:@DD1_6]
+[asym:@bcmdd16]
 asym:qwk_bcm1, 1
 asym:qwk_bcm6, -1
 
-[asym:@DD1_7]
+[asym:@bcmdd17]
 asym:qwk_bcm1, 1
 asym:qwk_bcm7, -1
 
-[asym:@DD1_8]
+[asym:@bcmdd18]
 asym:qwk_bcm1, 1
 asym:qwk_bcm8, -1
 
-[asym:@DD2_5]
+[asym:@bcmdd25]
 asym:qwk_bcm2, 1
 asym:qwk_bcm5, -1
 
-[asym:@DD2_6]
+[asym:@bcmdd26]
 asym:qwk_bcm2, 1
 asym:qwk_bcm6, -1
 
-[asym:@DD2_7]
+[asym:@bcmdd27]
 asym:qwk_bcm2, 1
 asym:qwk_bcm7, -1
 
-[asym:@DD2_8]
+[asym:@bcmdd28]
 asym:qwk_bcm2, 1
 asym:qwk_bcm8, -1
 
-[asym:@DD5_6]
+[asym:@bcmdd56]
 asym:qwk_bcm5, 1
 asym:qwk_bcm6, -1
 
-[asym:@DD5_7]
+[asym:@bcmdd57]
 asym:qwk_bcm5, 1
 asym:qwk_bcm7, -1
 
-[asym:@DD5_8]
+[asym:@bcmdd58]
 asym:qwk_bcm5, 1
 asym:qwk_bcm8, -1
 
-[asym:@DD6_7]
+[asym:@bcmdd67]
 asym:qwk_bcm6, 1
 asym:qwk_bcm7, -1
 
-[asym:@DD6_8]
+[asym:@bcmdd68]
 asym:qwk_bcm6, 1
 asym:qwk_bcm8, -1
 
-[asym:@DD7_8]
+[asym:@bcmdd78]
 asym:qwk_bcm7, 1
 asym:qwk_bcm8, -1
 
 
 # MD Dipoles
-[asym:@md15dipole]
+[asym:@asym_md15dipole]
 asym:qwk_md1barsum, 1
 asym:qwk_md5barsum, -1
 
-[asym:@md26dipole]
+[asym:@asym_md26dipole]
 asym:qwk_md2barsum, 1
 asym:qwk_md6barsum, -1
 
-[asym:@md37dipole]
+[asym:@asym_md37dipole]
 asym:qwk_md3barsum, 1
 asym:qwk_md7barsum, -1
 
-[asym:@md48dipole]
+[asym:@asym_md48dipole]
 asym:qwk_md4barsum, 1
 asym:qwk_md8barsum, -1
 
 #0.1667 = 1/6
 #0.2357 = (sqrt2)/6
-[asym:@mddipole_h]
+[asym:@asym_mddipole_h]
 asym:qwk_md1barsum,  0.1667
 asym:qwk_md2barsum,  0.2357
 asym:qwk_md4barsum, -0.2357
@@ -120,7 +120,7 @@ asym:qwk_md5barsum, -0.1667
 asym:qwk_md6barsum, -0.2357
 asym:qwk_md8barsum,  0.2357
 
-[asym:@mddipole_v]
+[asym:@asym_mddipole_v]
 asym:qwk_md2barsum,  0.2357
 asym:qwk_md3barsum,  0.1667
 asym:qwk_md4barsum,  0.2357
@@ -130,7 +130,7 @@ asym:qwk_md8barsum, -0.2357
 
 
 # MD Asymmetry Average
-[asym:@mdallbarsAVG]
+[asym:@asym_mdallbarsavg]
 asym:qwk_md1barsum, 0.125
 asym:qwk_md2barsum, 0.125
 asym:qwk_md3barsum, 0.125
@@ -141,7 +141,7 @@ asym:qwk_md7barsum, 0.125
 asym:qwk_md8barsum, 0.125
 
 # MD Asymmetry Average PMT
-[asym:@mdallpmtAVG]
+[asym:@asym_mdallpmtavg]
 asym:qwk_md1neg, 0.0625
 asym:qwk_md2neg, 0.0625
 asym:qwk_md3neg, 0.0625
