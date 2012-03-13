@@ -362,8 +362,8 @@ MeanTimeContainer::ProcessMeanTime()
     Double_t nst[7][7] = {{ini}}; // [negative][positive]
     Double_t pst[7][7] = {{ini}}; // [positive][negative]
 
-    Char_t *p_name[7] = {"p0", "p1", "p2", "p3", "p4", "p5", "p6"};
-    Char_t *n_name[7] = {"n0", "n1", "n2", "n3", "n4", "n5", "n6"};
+    std::string p_name[7] = {"p0", "p1", "p2", "p3", "p4", "p5", "p6"};
+    std::string n_name[7] = {"n0", "n1", "n2", "n3", "n4", "n5", "n6"};
 
     Int_t   p =    0;
     Int_t   n    = 0;
@@ -544,7 +544,7 @@ MeanTimeContainer::ProcessMeanTime()
 
     for(p=0; p<7; p++)
       {
-	if (local_debug)printf("%s %s\n", p_name[p], n_name[fiancee[p]]);
+	if (local_debug) printf("%s %s\n", p_name[p].c_str(), n_name[fiancee[p]].c_str());
 	if(fPositiveValue[p] !=0.0 && fNegativeValue[fiancee[p]]!=0.0) {
 	  AddMeanTime(fDetectorName, fPlane, fEventId, fPositiveValue[p], fNegativeValue[fiancee[p]], p, fiancee[p]);
 	}
