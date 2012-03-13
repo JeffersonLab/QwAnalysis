@@ -11,6 +11,7 @@
 //          0.0.1 : Friday, January 27 15:26:27 EST 2012
 //                  
 // 
+
  gStyle->SetStatW(0.4);//   - set the width of a stat box
  gStyle->SetStatH(0.4);//   - set the width of a stat box
 
@@ -353,7 +354,7 @@ VDC_F1_VaderTimePlot()
 
 
 void 
-TSSMTPlot()
+TSsMTPlot()
 {
   Int_t region = 4;
   //  TCanvas c1;
@@ -381,6 +382,33 @@ TSSMTPlot()
     }
 
 
+
+  c1.Update();
+
+  return;
+}
+
+
+
+void 
+MSsMTPlot(Int_t plane)
+{
+  Int_t region = 5;
+  //  TCanvas c1;
+  c1.Clear();
+  TString name ="";
+  TString cut = "";
+  gStyle->SetStatW(0.4);//   - set the width of a stat box
+  gStyle->SetStatH(0.4);//   - set the width of a stat box
+  c1.Divide(4,2);
+
+
+  for(Int_t idx=0;idx<7; idx++)
+    {
+      c1.cd(idx+1);
+      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==3 && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, plane, idx));
+      gPad->Update();
+    }
 
   c1.Update();
 
