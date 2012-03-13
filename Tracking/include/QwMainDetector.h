@@ -111,11 +111,14 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   UInt_t kMaxNumberOfChannelsPerF1TDC;
   Int_t fNumberOfModules;
 
+  static const Int_t kMaxNumberOfQwHitPlane; //JAM 2012-03-12
+
 
   MQwV775TDC       fQDCTDC;
   MQwF1TDC         fF1TDCDecoder;
   QwF1TDContainer *fF1TDContainer;
   F1TDCReferenceContainer * fF1RefContainer;
+  MeanTimeContainer       *fSoftwareMeantimeContainer[2]; //JAM
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
