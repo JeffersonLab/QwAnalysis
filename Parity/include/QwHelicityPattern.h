@@ -50,6 +50,11 @@ class QwHelicityPattern{
 
   Bool_t IsCompletePattern() const;
 
+  Bool_t IsEndOfBurst(){
+    //  Is this the end of a burst?
+    return (fBurstLength > 0 && fCurrentPatternNumber % fBurstLength == 0);
+  }
+
   void  CalculateAsymmetry();
   void GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width);//retrieves the target charge asymmetry,asymmetry error ,asymmetry width
 
@@ -163,6 +168,7 @@ class QwHelicityPattern{
   QwSubsystemArrayParity fAsymmetry2;
 
   // Burst sum/difference of the yield and asymmetry
+  Int_t fBurstLength;
   Bool_t fEnableBurstSum;
   Bool_t fPrintBurstSum;
   QwSubsystemArrayParity fBurstYield;

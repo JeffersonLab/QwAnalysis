@@ -97,9 +97,6 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("segment,s", po::value<string>()->default_value("0:"),
      "run segment range in format #[:#]");
   options.AddDefaultOptions()
-    ("burstlength", po::value<int>()->default_value(0),
-     "number of events in a burst\n\t(0 to disable burst analysis)");
-  options.AddDefaultOptions()
     ("chainfiles", po::value<bool>()->default_bool_value(false),
      "chain file segments together, do not analyze them separately");
   options.AddDefaultOptions()
@@ -168,7 +165,6 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
   fEventRange = options.GetIntValuePair("event");
   fSegmentRange = options.GetIntValuePair("segment");
   fRunListFileName = options.GetValue<string>("runlist");
-  fBurstLength = options.GetValue<int>("burstlength");
   fChainDataFiles = options.GetValue<bool>("chainfiles");
   fDataFileStem = options.GetValue<string>("codafile-stem");
   fDataFileExtension = options.GetValue<string>("codafile-ext");

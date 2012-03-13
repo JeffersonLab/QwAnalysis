@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
       }
 
       // Burst mode
-      if (eventbuffer.IsEndOfBurst()) {
+      if (helicitypattern.IsEndOfBurst()) {
         helicitypattern.CalculateBurstAverage();
         helicitypattern.AccumulateRunningBurstSum();
 

@@ -248,26 +248,26 @@ int main(int argc, char* argv[])
 
   } // end of loop over runs
 
-      if (eventbuffer.IsEndOfBurst()) {
-        helicitypattern.AccumulateRunningBurstSum();
-        helicitypattern.CalculateBurstAverage();
-        helicitypattern.ClearBurstSum();
-      }
+  if (helicitypattern.IsEndOfBurst()) {
+    helicitypattern.AccumulateRunningBurstSum();
+    helicitypattern.CalculateBurstAverage();
+    helicitypattern.ClearBurstSum();
+  }
 
-    if (helicitypattern.IsRunningSumEnabled()) {
-      helicitypattern.CalculateRunningAverage();
-      helicitypattern.PrintRunningAverage();
-      if (helicitypattern.IsBurstSumEnabled()) {
-        helicitypattern.CalculateRunningBurstAverage();
-        helicitypattern.PrintRunningBurstAverage();
-      }
+  if (helicitypattern.IsRunningSumEnabled()) {
+    helicitypattern.CalculateRunningAverage();
+    helicitypattern.PrintRunningAverage();
+    if (helicitypattern.IsBurstSumEnabled()) {
+      helicitypattern.CalculateRunningBurstAverage();
+      helicitypattern.PrintRunningBurstAverage();
     }
+  }
 
-    // This will calculate running averages over single helicity events
-    runningsum.CalculateRunningAverage();
-    QwMessage << " Running average of events" << QwLog::endl;
-    QwMessage << " =========================" << QwLog::endl;
-    runningsum.PrintValue();
+  // This will calculate running averages over single helicity events
+  runningsum.CalculateRunningAverage();
+  QwMessage << " Running average of events" << QwLog::endl;
+  QwMessage << " =========================" << QwLog::endl;
+  runningsum.PrintValue();
 
 
   std::cout << std::endl << " -= Moller Run Analyzer Ended =-" << std::endl << std::endl;

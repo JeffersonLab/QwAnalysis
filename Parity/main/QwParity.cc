@@ -264,34 +264,31 @@ Int_t main(Int_t argc, Char_t* argv[])
               treerootfile->FillTreeBranches(helicitypattern);
               treerootfile->FillTree("Hel_Tree");
 
+              // Burst mode
+              if (helicitypattern.IsEndOfBurst()) {
+                helicitypattern.AccumulateRunningBurstSum();
+                helicitypattern.CalculateBurstAverage();
+
+                // Fill burst tree branches
+                burstrootfile->FillTreeBranches(helicitypattern.GetBurstYield());
+                burstrootfile->FillTreeBranches(helicitypattern.GetBurstAsymmetry());
+                burstrootfile->FillTreeBranches(helicitypattern.GetBurstDifference());
+                burstrootfile->FillTree("Burst_Tree");
+
+                // Clear the data
+                helicitypattern.ClearBurstSum();
+              }
+
               // Clear the data
               helicitypattern.ClearEventData();
-            }
+
+            } // helicitypattern.IsGoodAsymmetry()
 
           } // helicitypattern.IsCompletePattern()
 
         } // eventring.IsReady()
 
-
-      // Failed single event cuts
-      } else {
-
-      }
-
-      // Burst mode
-      if (eventbuffer.IsEndOfBurst()) {
-        helicitypattern.AccumulateRunningBurstSum();
-        helicitypattern.CalculateBurstAverage();
-
-        // Fill burst tree branches
-        burstrootfile->FillTreeBranches(helicitypattern.GetBurstYield());
-        burstrootfile->FillTreeBranches(helicitypattern.GetBurstAsymmetry());
-        burstrootfile->FillTreeBranches(helicitypattern.GetBurstDifference());
-        burstrootfile->FillTree("Burst_Tree");
-
-        // Clear the data
-        helicitypattern.ClearBurstSum();
-      }
+      } // detectors.ApplySingleEventCuts()
 
     } // end of loop over events
 
