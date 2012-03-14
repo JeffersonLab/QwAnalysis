@@ -440,7 +440,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	samp_yieldVSsubint_hel0->SetDirectory(rootoutfile);
 
 	TH3F *samp_intVSmax = new 
-		TH3F("samp_intVSmax", "integral vs max;snapshot maximum;snapshot integral",
+		TH3F("samp_intVSmax", "integral vs max (no cuts);snapshot maximum;snapshot integral",
 			 maxnbins,maxmin,maxmax,integnbins,integmin,integmax,
 			 type_nbins,type_axismin,type_axismax);
 	samp_intVSmax->SetDirectory(rootoutfile);
@@ -1113,7 +1113,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		mps->Print(webdir + "mps_summary.png");
 	}
 
-	Bool_t prinbeamoff = num_beamon_laseron + num_beamon_laseroff < num_beamoff;
+	Bool_t dobeamoffsamps = num_beamon_laseron + num_beamon_laseroff < num_beamoff;
 
  	TCanvas *samples_correl;
  	TPad *c_samples_correl;
@@ -1127,7 +1127,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		c_samples_correl->Divide(3,5,0.001,0.001);
 
 		c_samples_correl->cd(1);
-		if (prinbeamoff) {
+		if (dobeamoffsamps) {
 			drawALLtypeTH1(samp_max,0,"",1);
 		} else {
 			drawscalesubbytypeTH1(samp_max, 1, 2, maxnormintminchan, maxnormintmaxchan, 0, 1, 1, maxcomptonedge);
@@ -1151,13 +1151,13 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		drawALLtypeTH1(samp_min,0,"",1);
 
 		c_samples_correl->cd(4);
-		if (prinbeamoff) {
+		if (dobeamoffsamps) {
 			drawALLtypeTH1(samp_integral,0,"",1);
 		} else {
 			drawscalesubbytypeTH1(samp_subintegral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
 		}
 		c_samples_correl->cd(5);
-		draw1typeTH2(samp_intVSmax,-1,0,"integral vs max",1,5,10);
+		draw1typeTH2(samp_intVSmax,-1,0,"",1,5,10);
 
 		c_samples_correl->cd(6);
 		drawALLtypeTH1(samp_minpos,0,"",1);
@@ -1313,6 +1313,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		samples_pedcorr->Print(webdir + "samples_pedcorr.png");
 	}
 
+/*
 	// ******************
 	// **** Here correct for pedestal shift
 	// ******************
@@ -1399,7 +1400,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			timer.Start(1);
 		}
 	}
-
+*/
 
 	TCanvas *samples;
 	TPad *c_samples;
@@ -1431,11 +1432,13 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 // 			ProjectionX("samp_laserON_yieldVSsubint_hel1_pedcorr_proj",1,-1,"e"); 
 // 		samp_laserON_hel0_pedcorr_subintproj->SetTitle("integral, hel 0, pedestal corrected;integral");
 // 		samp_laserON_hel1_pedcorr_subintproj->SetTitle("integral, hel 1, pedestal corrected;integral");
-			
+
+/* temporarily disabled			
 			c_samples->cd(3);
 			draw1typeTH2(samp_yieldVSsubint_pedcorr,1,0,"Laser ON, ped. corr.");
 			c_samples->cd(4);
 			draw1typeTH2(samp_yieldVSsubint_pedcorr,2,0,"Laser OFF, ped. corr.");
+*/
 // 			c_samples->cd(6);
 // 			draw1typeTH2(samp_yieldVSsubint_pedcorr,3,0,"Beam OFF, ped. corr.");
 				
@@ -1444,12 +1447,13 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			c_samples->cd(7);
 			drawscalesubbytypeTH1(samp_subintegral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
 			c_samples->cd(9);			
+/* temporarily disabled	
 			samp_yieldVSsubint_pedcorr->GetZaxis()->SetRange();
 			TH2F *samp_subint_pedcorr  = (TH2F*)samp_yieldVSsubint_pedcorr->Project3D("zx");
 			samp_subint_pedcorr->SetTitle("integral around maximum sample, timing cut, ped. corr.");
-
+*/
 			// Now write out the spectrum
-			TH1F *printouthist = drawscalesubbytypeTH1(samp_subint_pedcorr, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+			TH1F *printouthist = drawscalesubbytypeTH1(samp_subintegral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
 			TString spectrumfilename = logdir + "Integral_spectrum.txt";
 			std::cout << "Writing integral spectrum to " << spectrumfilename << std::endl;
 			FILE* intspectfile = 0;
@@ -1475,7 +1479,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			c_samples->cd(8);
 			drawscalesubbytypeTH1(samp_subintegral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
 			c_samples->cd(10);
-			drawscalesubbytypeTH1(samp_subint_pedcorr, 1, 2,  intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+/* temporarily disabled	
+   drawscalesubbytypeTH1(samp_subint_pedcorr, 1, 2,  intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+*/
 			c_samples->cd(12);
 			drawscalesubbytypeTH1(samp_timing_integral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
 
@@ -1501,39 +1507,62 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		if (!do_pedcorrection) {
 			printf("Need to calculate pedestals to plot this stuff\n");
 		} else {
-			maxandint = new TCanvas("maxandint", Form("maxandint %i",runnumber), canvasxoff,0,canvaswidth,canvasheight);
+			maxandint = new TCanvas("maxandint", Form("maxandint %i",runnumber), canvasxoff,0,canvaswidth,canvasheight*4/3);
 			maxandint->cd();
 			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Max and Integral", runnumber));
 			c_maxandint = new TPad("c_maxandint","c_maxandint",0,0,1,1.0-textspace);
 			c_maxandint->Draw();
 			c_maxandint->Divide(3,4,0.001,0.001);
 				
-			c_maxandint->cd(1);
-			drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 1);
-			c_maxandint->cd(2);
-			drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 0, 1, 1, intcomptonedge);
-			c_maxandint->cd(3);
-			samp_intVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
-			samp_intVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
-			draw1typeTH2(samp_intVSmax,-2,0,"integral vs max",1,0,0);
-
-			c_maxandint->cd(4);
-			drawscalesubbytypeTH1(samp_subintegral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
-			c_maxandint->cd(5);
-			drawscalesubbytypeTH1(samp_subintegral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
-			c_maxandint->cd(6);
-			samp_subintVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
-			samp_subintVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
-			draw1typeTH2(samp_subintVSmax,-1,0,"integral vs max",1,0,0);
+			if (dobeamoffsamps) {
+				c_maxandint->cd(1);
+				drawALLtypeTH1(samp_integral,0,"",1);
+				c_maxandint->cd(4);
+				drawALLtypeTH1(samp_integral,0,"",1);
+				c_maxandint->cd(2);
+				drawALLtypeTH1(samp_subintegral,0,"",1);
+				c_maxandint->cd(5);
+				drawALLtypeTH1(samp_subintegral,0,"",1);
+				c_maxandint->cd(3);
+				drawALLtypeTH1(samp_timing_integral,0,"",1);
+				c_maxandint->cd(6);
+				drawALLtypeTH1(samp_timing_integral,0,"",1);
+			} else {
+				c_maxandint->cd(1);
+				drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 1);
+				c_maxandint->cd(4);
+				drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+				c_maxandint->cd(2);
+				drawscalesubbytypeTH1(samp_subintegral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+				c_maxandint->cd(5);
+				drawscalesubbytypeTH1(samp_subintegral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+				c_maxandint->cd(3);
+				drawscalesubbytypeTH1(samp_timing_integral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+				c_maxandint->cd(6);
+				drawscalesubbytypeTH1(samp_timing_integral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+			}
 
 			c_maxandint->cd(7);
-			drawscalesubbytypeTH1(samp_timing_integral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+			draw1typeTH2(samp_intVSmax,-2,0,"",1,0,0);
+			c_maxandint->cd(10);
+			samp_intVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
+			samp_intVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
+			draw1typeTH2(samp_intVSmax,-3,0,"",1,0,0);
+
+
 			c_maxandint->cd(8);
-			drawscalesubbytypeTH1(samp_timing_integral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+			draw1typeTH2(samp_subintVSmax,-2,0,"",1,0,0);
+			c_maxandint->cd(11);
+			samp_subintVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
+			samp_subintVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
+			draw1typeTH2(samp_subintVSmax,-3,0,"",1,0,0);
+
 			c_maxandint->cd(9);
+			draw1typeTH2(samp_timingintVSmax,-2,0,"",1,0,0);
+			c_maxandint->cd(12);
 			samp_timingintVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
 			samp_timingintVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
-			draw1typeTH2(samp_timingintVSmax,-1,0,"integral vs max",1,0,0);
+			draw1typeTH2(samp_timingintVSmax,-3,0,"",1,0,0);
 
 			maxandint->Print(webdir + "samples_maxandint.png");
 		}
