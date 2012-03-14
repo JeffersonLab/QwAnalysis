@@ -4,8 +4,13 @@
 #include <rootClass.h>
 
 //Directory paths
-const TString wwwPath("$QWSCRATCH/www");
-const TString outPath("analout");
+//TString wwwPath=Form("$QWSCRATCH")+TString("/www/run_%d/edetLasCyc_%d_");
+//TString wwwPath = getenv("QWSCRATCH") + TString("/www/");//this has worked!
+//TString wwwPath(gSystem->Getenv("QWSCRATCH/www/"));
+//  TString prefix(Form("%s/run_%d/edetLasCyc_%d_",wwwPath,run,run));
+//TString pPath = TString(gSystem->Getenv("QWSCRATCH"));
+const char *pPath = getenv("QWSCRATCH");
+const char *webDirectory= "www";
 
 //Asymmetry calculation constants 
 const Float_t pi=3.141592;

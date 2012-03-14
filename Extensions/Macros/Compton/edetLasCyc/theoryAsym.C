@@ -9,11 +9,12 @@ Double_t polynomial(Double_t *x, Double_t *par) {
   return par[0] + par[1]*x[0] + par[2]*x[0]*x[0] + par[3]*x[0]*x[0]*x[0];
 }
 
-void theoryAsym(Int_t comptEdge, Double_t par[]) //Float_t *calcAsym) 
+void theoryAsym(Int_t comptEdge,Double_t par[]) //Float_t *calcAsym) //
 {
-  const Int_t nPoints=800;
+  const Int_t nPoints=800;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
   gStyle->SetOptFit(1);
   Bool_t debug=0;
+  //Double_t par[4];
   Double_t xPrime[nPoints],rho[nPoints];
   Float_t rhoStrip; 
   Float_t calcAsym1;
@@ -83,7 +84,8 @@ void theoryAsym(Int_t comptEdge, Double_t par[]) //Float_t *calcAsym)
 
   TGraph *grtheory = new TGraph(Form("QEDasym.txt"), "%lg %lg");
   grtheory->GetXaxis()->SetTitle("dist compton scattered electrons(m)");
-  grtheory->GetYaxis()->SetTitle("rho");
+  grtheory->GetYaxis()->SetTitle("#rho");
+  grtheory->GetYaxis()->CenterTitle();
   grtheory->SetTitle("rho to x");
   grtheory->SetMarkerStyle(20);
   grtheory->SetLineColor(2);
@@ -97,8 +99,16 @@ void theoryAsym(Int_t comptEdge, Double_t par[]) //Float_t *calcAsym)
   //Double_t par[4]; !temporarily passing this variable in the function
   fitFcn->GetParameters(par);
   printf("param[0]:%f,param[1]:%f,param[2]:%f\n",par[0],par[1],par[2]);
-  
-  theoreticalAsym.open(Form("analOut/theoryAsymForCedge_%d.txt",comptEdge));
+  theoreticalAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge));
+  //theoreticalAsym.open(Form("%stheoryAsymForCedge_%d.txt",wwwPath.Data(),comptEdge));
+  if (theoreticalAsym.is_open()) 
+    //cout<<"theoretical asymmetry file "<<Form("%stheoryAsymForCedge_%d.txt",wwwPath.Data(),comptEdge)<<" opened"<<endl;
+    cout<<"theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<" opened"<<endl;
+  else 
+    //cout<<"\ncouldn't open the theoretical asymmetry file "<<Form("%stheoryAsymForCedge_%d.txt",wwwPath.Data(),comptEdge)<<endl;
+    cout<<"\ncouldn't open the theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<endl;
+  //!I do not intend to execute this for every run, but for each value of comptEdge
+  //..that's why this didn't go to the subdirecotry named after runnumber
   for(Int_t s =startStrip; s <=endStrip; s++) {
     xStrip = xPrime[0] - (comptEdge - s)*2E-4; ///xPrime[0] corresponds to Cedge distance
     rhoStrip = grtheory->Eval(xStrip);

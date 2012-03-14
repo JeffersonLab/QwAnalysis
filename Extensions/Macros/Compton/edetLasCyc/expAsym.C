@@ -1,7 +1,9 @@
-////Don Jones seeded the code and Juan Carlos helped significantly in the development of this code
+///Author: Amrendra Narayan
+///Courtesy: Don Jones seeded the code and Juan Carlos helped significantly in the development of this code
 #include <rootClass.h>
 #include "getEBeamLasCuts.C"
 #include "maskedStrips.C"
+#include "comptonRunConstants.h"
 
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
@@ -9,6 +11,7 @@
  
 Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Bool_t isFirst100k=kFALSE) //, Float_t stripAsymRMS[nPlanes][nStrips]
 {
+  TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   Bool_t debug = 1, debug1 = 0, debug2 = 0;
@@ -76,8 +79,8 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
     return -1;
   }
   
-  infileLas.open(Form("analOut/r%d_cutLas.txt",runnum));
-  infileBeam.open(Form("analOut/r%d_cutBeam.txt",runnum));
+  infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
+  infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
     
   if (infileLas.is_open() && infileBeam.is_open()) {
     cout<<"Found the cutLas and cutEB file"<<endl;
@@ -106,8 +109,8 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
     nBeamTrips = (cutEB.size())/2;
   }
   else {
-    cout << "\n*****:Atleast one of the Cut files missing *****\n"<<endl;
-    cout<<"          hence executing the cut function"<<endl;
+    cout << "****:Atleast one of the Cut files missing"<<endl;
+    cout<<"       hence executing the cut function****"<<endl;
     Int_t nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain,runnum);
     if (debug) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
     nLasCycles = nLasCycBeamTrips%1000 - 1;
@@ -141,11 +144,11 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
     mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
   }//the branch for each plane is named from 1 to 4
 
-  if (debug2) {    
-    checkStat.open(Form("check_r%d.txt",runnum));
-    checkStat2.open(Form("check2_r%d.txt",runnum));
-    checkStat3.open(Form("check3_r%d.txt",runnum));
-  }
+//   if (debug2) {    
+//     checkStat.open(Form("check_r%d.txt",runnum));
+//     checkStat2.open(Form("check2_r%d.txt",runnum));
+//     checkStat3.open(Form("check3_r%d.txt",runnum));
+//   }
 
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
     if (debug) cout<<"\nStarting nCycle:"<<nCycle<<" and resetting all nCycle variables"<<endl;
@@ -353,9 +356,9 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 	      weightedMeanDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator eqn 4.17(Bevington)
 	    }
 	    if (debug2) {
-// 	      checkStat<<nCycle<<" "<<p+1<<" "<<s+1<<"  "<<qNormLasCycAsym[p][s]<<"\t"<<LasCycAsymErSqr[p][s]<<"\t"<<weightedMeanDrAsym[p][s]<<endl;
-// 	      checkStat2<<nCycle<<" "<<p+1<<" "<<s+1<<"  "<<errB1H1L1[p][s]<<"\t"<<errB1H0L1[p][s]<<"\t"<<errB1H1L0R[p][s]<<"\t"<<errB1H0L0R[p][s]<<endl;
-// 	      checkStat3<<nCycle<<" "<<p+1<<" "<<s+1<<"  "<<pow(errB1H1L1[p][s],2)<<"\t"<<pow(errB1H0L1[p][s],2)<<"\t"<<pow(errB1H1L0[p][s],2)<<"\t"<<pow(errB1H0L0[p][s],2)<<endl;
+//checkStat<<nCycle<<" "<<p+1<<" "<<s+1<<"  "<<qNormLasCycAsym[p][s]<<"\t"<<LasCycAsymErSqr[p][s]<<"\t"<<weightedMeanDrAsym[p][s]<<endl;
+//checkStat2<<nCycle<<" "<<p+1<<" "<<s+1<<"  "<<errB1H1L1[p][s]<<"\t"<<errB1H0L1[p][s]<<"\t"<<errB1H1L0R[p][s]<<"\t"<<errB1H0L0R[p][s]<<endl;
+//checkStat3<<nCycle<<" "<<p+1<<" "<<s+1<<"  "<<pow(errB1H1L1[p][s],2)<<"\t"<<pow(errB1H0L1[p][s],2)<<"\t"<<pow(errB1H1L0[p][s],2)<<"\t"<<pow(errB1H0L0[p][s],2)<<endl;
 	      printf("qNormLasCycAsym[p%d][s%d]= %f (stat.err:%f)\n",p,s,qNormLasCycAsym[p][s],LasCycAsymErSqr[p][s]);
 	      printf("formed by normalized BC (%f -/+ %f) \n",qNormAcB1H1L1LasCyc[p][s],qNormAcB1H0L1LasCyc[p][s]);
 	    }
@@ -365,9 +368,9 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
     }///if (beamOn)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-  if (debug2) {
-    checkStat.close(), checkStat2.close(), checkStat3.close();
-  }
+//   if (debug2) {
+//     checkStat.close(), checkStat2.close(), checkStat3.close();
+//   }
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (maskedStrips(p,s)) continue;
@@ -380,15 +383,18 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   }
   
   for(Int_t p = startPlane; p < endPlane; p++) {
-    outfileExpAsymP.open(Form("analOut/r%d_expAsymP%d.txt",runnum,p+1));
+    outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     //outfileExpAsymP<<"strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
-    cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" file created"<<endl;
-    for (Int_t s =startStrip; s <endStrip;s++) {    
-      if (maskedStrips(p,s)) continue;
-      outfileExpAsymP<<Form("%2.0f\t%f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],weightedMeanNrAsym[p][s],weightedMeanDrAsym[p][s]);
+    if (outfileExpAsymP.is_open()) {
+      cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      for (Int_t s =startStrip; s <endStrip;s++) {    
+	if (maskedStrips(p,s)) continue;
+	outfileExpAsymP<<Form("%2.0f\t%f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s],weightedMeanNrAsym[p][s],weightedMeanDrAsym[p][s]);
+      }
+      outfileExpAsymP.close();
+      cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
     }
-    outfileExpAsymP.close();
-    cout<<Form("analOut/r%d_expAsymP%d.txt",runnum,p+1)<<" filled and closed"<<endl;
+    else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;
   }
   delete mpsChain;
   tEnd = time(0);
@@ -399,7 +405,6 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
 
 /******************************************************
 !Querries:
-* tried to return 'goodCycles' integer but the program didn't do that
 *	//!?what if the run starts with a beamTrip
 ******************************************************/
 
