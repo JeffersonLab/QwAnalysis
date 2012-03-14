@@ -1,3 +1,9 @@
+/**
+ *  \file   QwSoftwareMeantime.cc
+ *  \brief  
+ *  \author Jeong Han Lee, jhlee@jlab.org
+ *  \date   Wednesday, March 14 13:46:22 EDT 2012
+ */
 
 #include "QwSoftwareMeantime.h"
 
@@ -36,19 +42,19 @@ MeanTime::MeanTime()
 
 MeanTime::MeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, Int_t p_id, Int_t n_id)
 {
-  fDetectorType = name;
-  fEventId      = ev_id;
+  fDetectorType         = name;
+  fEventId              = ev_id;
   fDiffHardSoftMeanTime = 0.0; 
   fHardWareMeanTime     = 0.0;
-  AddPNValues(p_in, n_in, p_id, n_id);
 
+  AddPNValues(p_in, n_in, p_id, n_id);
 };
 
 
 MeanTime::~MeanTime()
 {
-
 };
+
 void
 MeanTime::AddPNValues(Double_t p_value, Double_t n_value, Int_t p_id, Int_t n_id)
 {
@@ -62,6 +68,7 @@ MeanTime::AddPNValues(Double_t p_value, Double_t n_value, Int_t p_id, Int_t n_id
   fSubtractTime  = fPositiveValue - fNegativeValue;
 
   fHasValue      = true;
+
   return;
 }
 
@@ -69,36 +76,36 @@ MeanTime::AddPNValues(Double_t p_value, Double_t n_value, Int_t p_id, Int_t n_id
 void
 MeanTime::Print(Bool_t on=true)
 {
+  if (!on) return;
 
-  if(on) {
-    TString output = "";
-    if     (fDetectorType == "MD") output += "<<";
-    else if(fDetectorType == "TS") output += ">>";
-    
-    output += fDetectorType;
-    
-    if     (fDetectorType == "MD") output += fPlane;
-    else if(fDetectorType == "TS") output += fPlane;
-    
-    output += Form("-- ID %d ------Event ", fMeanTimeId);
-    output += fEventId;
-    output += ": HitIndex[";
-    output += fPositiveHitId;
-    output += ",";
-    output += fNegativeHitId;
-    output += "]";
-    
-    if      (fDetectorType == "MD") {
-      output += Form( " MDp%+9.2f MDm%+9.2f dMD%+9.2f MDsMT %+10.2f << ---------------------------- <<",
-		      fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
-    }
-    else if (fDetectorType == "TS") {
-      output += Form( " TSp%+9.2f TSm%+9.2f dTS%+9.2f TSsMT %+10.2f TShMT %+10.2f dTSMT %+8.2f >>",
-		      fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime, fHardWareMeanTime, fHardWareMeanTime - fMeanTime);
-    }
-    
-    std::cout << output << std::endl;
+  TString output = "";
+  if     (fDetectorType == "MD") output += "<<";
+  else if(fDetectorType == "TS") output += ">>";
+  
+  output += fDetectorType;
+  
+  if     (fDetectorType == "MD") output += fPlane;
+  else if(fDetectorType == "TS") output += fPlane;
+  
+  output += Form("-- ID %d ------Event ", fMeanTimeId);
+  output += fEventId;
+  output += ": HitIndex[";
+  output += fPositiveHitId;
+  output += ",";
+  output += fNegativeHitId;
+  output += "]";
+  
+  if      (fDetectorType == "MD") {
+    output += Form( " MDp%+9.2f MDm%+9.2f dMD%+9.2f MDsMT %+10.2f << ---------------------------- <<",
+		    fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime);
   }
+  else if (fDetectorType == "TS") {
+    output += Form( " TSp%+9.2f TSm%+9.2f dTS%+9.2f TSsMT %+10.2f TShMT %+10.2f dTSMT %+8.2f >>",
+		    fPositiveValue, fNegativeValue, fSubtractTime, fMeanTime, fHardWareMeanTime, fHardWareMeanTime - fMeanTime);
+  }
+  
+  printf("%s\n", output.Data());
+  
   return;
 };
 
@@ -109,7 +116,7 @@ MeanTime::IsInTimeWindow(Double_t time_window)
   Bool_t status = false;
   status = ( fabs(fSubtractTime) < time_window ) ? true : false;
   return status;
-}
+};
 
 
 Bool_t 
@@ -118,10 +125,7 @@ MeanTime::IsHitIDsMatch()
   Bool_t status = false;
   status = ( fPositiveHitId == fNegativeHitId ) ? true : false;
   return status;
-}
-
-
-
+};
 
 
 
@@ -138,22 +142,22 @@ MeanTime::SetHardwareMeanTime(Double_t hardware_meantime)
 void 
 MeanTime::ClearEventData()
 {
-  fHasValue      = false;
+  fHasValue             = false;
 
-  fMeanTime      = 0.0; 
-  fSubtractTime  = 0.0;
+  fMeanTime             = 0.0; 
+  fSubtractTime         = 0.0;
 
   fDiffHardSoftMeanTime = 0.0; 
   fHardWareMeanTime     = 0.0;
 
-  fPositiveValue = 0.0;
-  fNegativeValue = 0.0;
+  fPositiveValue        = 0.0;
+  fNegativeValue        = 0.0;
 
-  fPositiveHitId = 0;
-  fNegativeHitId = 0;
-  fMeanTimeId    = 0;
+  fPositiveHitId        = 0;
+  fNegativeHitId        = 0;
+  fMeanTimeId           = 0;
   
-  fEventId       = 0;
+  fEventId              = 0;
 
   return;
 }
@@ -224,10 +228,6 @@ MeanTimeContainer::AddMeanTime(TString name, Long64_t ev_id, Double_t p_in, Doub
 {
 
   Int_t pos = 0;
-  //  Double_t h_mt_pos = 0.0;
-  //  Double_t h_mt_neg = 0.0;
-  //  Double_t h_mt     = 0.0;
-
   MeanTime *temp = NULL;
   temp = new MeanTime(name, ev_id, p_in, n_in, p_id, n_id);
 
@@ -249,10 +249,6 @@ MeanTimeContainer::AddMeanTime(TString name, Int_t plane_id, Long64_t ev_id, Dou
 {
 
   Int_t pos = 0;
-  //  Double_t h_mt_pos = 0.0;
-  //  Double_t h_mt_neg = 0.0;
-  //  Double_t h_mt     = 0.0;
-
   MeanTime *temp = NULL;
   temp = new MeanTime(name, ev_id, p_in, n_in, p_id, n_id);
 
@@ -304,7 +300,7 @@ MeanTimeContainer::Add(Int_t element, Int_t hit_number, Double_t time_ns)
       fNegativeValue[hit_number] = time_ns;
       fNNegative++;
     }
-    // We don'tneed this to fill element == 0, because QwHit has hardware mt anyway....
+    // We don't need this to fill element == 0, because QwHit has hardware mt anyway....
     // else if (element == 0) {
     //   // do we need this? QwHit has hardware mt anyway....
     //   fHardwareMeantimeValue[hit_number] = time_ns;
@@ -320,10 +316,16 @@ MeanTimeContainer::Add(Double_t p_value[7], Double_t n_value[7], Double_t hardwa
 {
   for(Int_t i=0; i<7; i++)
     {
-      fPositiveValue[i]         = p_value[i];
-      if(p_value[i]!=0.0) fNPositive++;
-      fNegativeValue[i]         = n_value[i];
-      if(n_value[i]!=0.0) fNNegative++;
+      fPositiveValue[i] = p_value[i];
+      if(p_value[i]!=0.0) {
+	fNPositive++;
+      }
+
+      fNegativeValue[i] = n_value[i];
+      if(n_value[i]!=0.0) {
+	fNNegative++;
+      }
+      
       fHardwareMeantimeValue[i] = hardware_meantime[i];
       if(hardware_meantime[i]!=0.0) {
 	fNHarewareMeanTimes++;
@@ -333,6 +335,7 @@ MeanTimeContainer::Add(Double_t p_value[7], Double_t n_value[7], Double_t hardwa
   //  printf("positive %d negative %d and hardware %d\n", fNPositive, fNNegative, fNHarewareMeanTimes);
   return;
 }
+
 
 // ProcessMeanTime function is very inefficient, because
 // it uses all hit combinations, even if we don't need them.
@@ -347,23 +350,22 @@ MeanTimeContainer::Add(Double_t p_value[7], Double_t n_value[7], Double_t hardwa
 void 
 MeanTimeContainer::ProcessMeanTime()
 {
-
-
+  
   if (fNPositive == 1 && fNNegative == 1) {
     AddMeanTime(fDetectorName, fPlane, fEventId, fPositiveValue[0], fNegativeValue[0], 0,0);
   }
   else {
+    
     Bool_t   local_debug = false;
     Bool_t   GS_Stable_marriage_debug = false;
 
     Double_t ini      = 100000.0;
 
-
     Double_t nst[7][7] = {{ini}}; // [negative][positive]
     Double_t pst[7][7] = {{ini}}; // [positive][negative]
 
-    std::string p_name[7] = {"p0", "p1", "p2", "p3", "p4", "p5", "p6"};
-    std::string n_name[7] = {"n0", "n1", "n2", "n3", "n4", "n5", "n6"};
+    TString p_name[7] = {"p0", "p1", "p2", "p3", "p4", "p5", "p6"};
+    TString n_name[7] = {"n0", "n1", "n2", "n3", "n4", "n5", "n6"};
 
     Int_t   p =    0;
     Int_t   n    = 0;
@@ -544,7 +546,7 @@ MeanTimeContainer::ProcessMeanTime()
 
     for(p=0; p<7; p++)
       {
-	if (local_debug) printf("%s %s\n", p_name[p].c_str(), n_name[fiancee[p]].c_str());
+	//	if (local_debug) printf("%s %s\n", p_name[p].Data(), n_name[fiancee[p]].Data());
 	if(fPositiveValue[p] !=0.0 && fNegativeValue[fiancee[p]]!=0.0) {
 	  AddMeanTime(fDetectorName, fPlane, fEventId, fPositiveValue[p], fNegativeValue[fiancee[p]], p, fiancee[p]);
 	}
@@ -596,22 +598,20 @@ MeanTimeContainer::ProcessMeanTime()
 void
 MeanTimeContainer::Print(Bool_t on)
 {
-  if(on) {
+  if (!on) return;
 
-    printf("%s fNPositive %d fNNegative %d, fNMeanTimes %d fNHarewareMeanTimes %d\n", 
-	   fDetectorName.Data(), fNPositive, fNNegative, fNMeanTimes, fNHarewareMeanTimes);
-
-    TObjArrayIter next(fMeanTimeList);
-    TObject* obj = NULL;
-    MeanTime * mean_time  = NULL;
-    
-    
-    while ( (obj = next()) )
-      {
-	mean_time = (MeanTime *) obj;
-	mean_time->Print();
-      }
-  }
+  printf("%s fNPositive %d fNNegative %d, fNMeanTimes %d fNHarewareMeanTimes %d\n", 
+	 fDetectorName.Data(), fNPositive, fNNegative, fNMeanTimes, fNHarewareMeanTimes);
+  
+  TObjArrayIter next(fMeanTimeList);
+  TObject* obj = NULL;
+  MeanTime * mean_time  = NULL;
+  
+  while ( (obj = next()) )
+    {
+      mean_time = (MeanTime *) obj;
+      mean_time->Print();
+    }
   
   return;
 };
@@ -621,14 +621,12 @@ MeanTimeContainer::Print(Bool_t on)
 MeanTime*
 MeanTimeContainer::GetMeanTimeObject(Int_t index)
 {
-
   
   Int_t mt_index = 0;
   TObjArrayIter next(fMeanTimeList);
   TObject* obj = NULL;
   MeanTime * mean_time  = NULL;
-
-
+  
   while ( (obj = next()) )
     {
       mean_time = (MeanTime *) obj;
@@ -639,7 +637,7 @@ MeanTimeContainer::GetMeanTimeObject(Int_t index)
 	return mean_time;
       }
     }
-
+  
   return NULL;
 };
 
@@ -647,17 +645,18 @@ MeanTimeContainer::GetMeanTimeObject(Int_t index)
 void
 MeanTimeContainer::MatchHardwareMeanTime()
 {
+  // we don't use this function into the main analyzer, it was used in F1TDCGoodMT.C script
+  // to check the reliability of a method to build software meantime for MD 
+  // See  https://qweak.jlab.org/elog/Detector/58
+  // Wednesday, March 14 13:57:37 EDT 2012, jhlee
+
   Int_t mt_index = 0;
-
-
+  
   TObjArrayIter next(fMeanTimeList);
   TObject* obj = NULL;
   MeanTime * mean_time  = NULL;
-
+  
   Double_t h_mt     = 0.0;
-
-  //  Int_t mt_pos_id = 0;
-  //  Int_t mt_neg_id = 0;
   Double_t h_mt_pos = 0.0;
   Double_t h_mt_neg = 0.0;
 
@@ -684,6 +683,7 @@ MeanTimeContainer::MatchHardwareMeanTime()
 	  mt_index = mean_time->GetMeanTimeId();
 	  
 	  Int_t idx = mt_index;
+
 	  while(1) 
 	    {
 	      h_mt = fHardwareMeantimeValue[idx];
@@ -700,7 +700,7 @@ MeanTimeContainer::MatchHardwareMeanTime()
     }
     else if (fNPositive == 2 && fNNegative == 1 && fNHarewareMeanTimes == 2){
 
-      // extream ugly... only one meantime because of "if condition"
+      // ugly... only one meantime because of "if condition"
       while ( (obj = next()) )
 	{
 	  mean_time = (MeanTime *) obj;
@@ -786,11 +786,11 @@ MeanTimeContainer::ClearEventData()
 
   fMeanTimeList-> Clear();
 
-  fNMeanTimes = 0;
-  fEventId    = 0;
+  fNMeanTimes         = 0;
+  fEventId            = 0;
 
-  fNPositive  = 0;
-  fNNegative   = 0;
+  fNPositive          = 0;
+  fNNegative          = 0;
   fNHarewareMeanTimes = 0;
 
   for(Int_t i=0;i<7;i++) 

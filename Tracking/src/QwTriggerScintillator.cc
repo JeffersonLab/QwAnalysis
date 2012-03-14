@@ -1272,7 +1272,7 @@ void  QwTriggerScintillator::SubtractReferenceTimes()
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;
   Double_t time_arb_unit     = 0.0;
- // EQwDetectorPackage package = kPackageNull;  // Region 1 has only Package 2, so kPackageDown
+ // EQwDetectorPackage package = kPackageNull;  
 
   Bool_t local_debug = false;
   Int_t slot_num = 0;
@@ -1485,7 +1485,7 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
   if (fTDCHits.size() ==0)   return;
   
 
-  Bool_t     local_debug = false;
+  Bool_t           local_debug = false;
 
   Long64_t           ev_num    = 0;
   Int_t              plane     = 0;
@@ -1510,19 +1510,13 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
       plane = iter->GetPlane();
       if(plane == 1 || plane == 2) {
 	v_plane_idx = plane -1;
-	element    = iter->GetElement();
-	hitnumber  = iter->GetHitNumber();
-	timens     = iter->GetTimeNs();
+	element     = iter->GetElement();
+	hitnumber   = iter->GetHitNumber();
+	timens      = iter->GetTimeNs();
 	fSoftwareMeantimeContainer[v_plane_idx] -> Add(element, hitnumber, timens);
       }
     }
     
-  
-  // Int_t v_software_meantime_element = 3; 
-  // Int_t v_software_positive_element = 4;
-  // Int_t v_software_negative_element = 5;
-  // Int_t v_software_subtract_element = 6;
-  
   // Reset bank_index, slot_num, and chan_num to -9,-99,-999
   // because we don't have these numbers for software meantime
   // and we don't need these numbers in order to access software meantime from QwHit
@@ -1556,8 +1550,6 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
 	{
 	  ts_mt_time = fSoftwareMeantimeContainer[v_plane_idx]->GetMeanTimeObject(v_smt_idx);
 	  ts_mt_time -> Print(local_debug);
-
-	  //	  plane = ts_mt_time->GetPlane();
 
 	  QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, 
 				      region, package, plane, direction, 
