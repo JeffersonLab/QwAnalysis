@@ -2,7 +2,7 @@
 
 #include <rootClass.h>
 #include "theoryAsym.C"
-#include "edetExpAsym.C"
+#include "expAsym.C"
 #include "comptonRunConstants.h"
 
 void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
@@ -16,23 +16,22 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
 
   theoryAsym(Cedge,par);
 //   theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
-//   printf("\nthe parameters received from theoretical fitting are par[0]:%f,par[1]:%f,par[2]:%f,par[3]:%f\n\n" ,par[0],par[1],par[2],par[3]);
-//   TF1 *fn2 = new TF1("fn2",Form("[0] + [1]*(%f + %f*x + %f*x*x + %f*x*x*x)",par[0],par[1],par[2],par[3]),10,Cedge);
-//   fn2->SetParameters(0.9,0);
-//   fn2->SetParLimits(0,-1,1);
-//   fn2->SetParLimits(1,2,-2);
+  printf("\nthe parameters received from theoretical fitting are par[0]:%f,par[1]:%f,par[2]:%f,par[3]:%f\n\n" ,par[0],par[1],par[2],par[3]);
+  TF1 *fn2 = new TF1("fn2",Form("[0] + [1]*(%f + %f*x + %f*x*x + %f*x*x*x)",par[0],par[1],par[2],par[3]),10,Cedge);
+  fn2->SetParameters(0.9,0);
+  fn2->SetParLimits(0,-1,1);
+  fn2->SetParLimits(1,2,-2);
 //   if (theoAsym.is_open()) {
 //     for(Int_t s =0 ; s <endStrip; s++) {
 //       theoAsym>>stripNum[s]>>calcAsym[s];
 //       if(debug) cout<<stripNum[s]<<"\t"<<calcAsym[s]<<endl;
 //     }
 //   }
-//   else cout<<"\n***Error:Could not find the file "<<Form("%stheoryAsymForCedge_%d.txt",wwwPath.Data(),Cedge)<<endl;
+//   else cout<<"\n***Error:Could not find the file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
 
-  edetExpAsym(runnum,stripAsym,stripAsymEr);
+  expAsym(runnum,stripAsym,stripAsymEr);
   
   TGraphErrors *grTheoryAsym, *grAsymPlane[nPlanes];
-
   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
   cAsym->Divide(2,2);
   

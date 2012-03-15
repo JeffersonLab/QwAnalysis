@@ -9,7 +9,7 @@
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
  
-Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Bool_t isFirst100k=kFALSE) //, Float_t stripAsymRMS[nPlanes][nStrips]
+Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Bool_t isFirst100k=kFALSE) //, Float_t stripAsymRMS[nPlanes][nStrips]
 {
   TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
@@ -399,7 +399,7 @@ Int_t edetExpAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t str
   delete mpsChain;
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to evaluate edetExpAsym.\n",div_output.quot,div_output.rem );  
+  printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  
   return goodCycles;//the function returns the number of used Laser cycles
 }
 
