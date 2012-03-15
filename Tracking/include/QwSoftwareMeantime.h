@@ -3,7 +3,7 @@
 /**
  *  \file   QwSoftwareMeantime.h
  *  \brief  
- *  \author jhlee@jlab.org
+ *  \author Jeong Han Lee, jhlee@jlab.org
  *  \date   Wednesday, March  7 15:17:15 EST 2012
  */
 
@@ -156,7 +156,7 @@ public:
   void   SetTimeWindow  (const Double_t in_ns) { fTimeWindowNs = in_ns;};
   void   SetDetectorType(const TString name  ) { fDetectorName = name;};
   void   SetEventId     (const Long64_t in   ) { fEventId = in;};
-  
+  void   SetDisableMatchHardwareMeantime(const Bool_t disable)      { fDisableMatchHardwareMeanTime=disable;};
   const  TString GetDetectorType() const {return fDetectorName;};
   Int_t    GetPlane()         const { return fPlane;};
   
@@ -170,7 +170,6 @@ private:
   Double_t  fTimeWindowNs;
   TString   fDetectorName;
   Int_t     fPlane;
-  // Int_t     fNMeanTimes;
   
   Long64_t  fEventId;
 
@@ -180,6 +179,8 @@ private:
 
   void      MatchHardwareMeanTime();
   Bool_t    IsHarewareMatchSoftware();
+
+  Bool_t    fDisableMatchHardwareMeanTime;
 
 
   ClassDef(MeanTimeContainer,0);

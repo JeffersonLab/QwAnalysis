@@ -37,6 +37,7 @@ MeanTime::MeanTime()
   fEventId       = 0;
   fDetectorType  = "";
   fHasValue      = false;
+ 
 };
 
 
@@ -46,6 +47,7 @@ MeanTime::MeanTime(TString name, Long64_t ev_id, Double_t p_in, Double_t n_in, I
   fEventId              = ev_id;
   fDiffHardSoftMeanTime = 0.0; 
   fHardWareMeanTime     = 0.0;
+ 
 
   AddPNValues(p_in, n_in, p_id, n_id);
 };
@@ -181,7 +183,8 @@ MeanTimeContainer::MeanTimeContainer()
   fNMeanTimes   = 0;
   
   fEventId      = 0;
-  
+  fDisableMatchHardwareMeanTime = true;
+
   for(Int_t i=0;i<7;i++) 
     {
       fPositiveValue[i]         = 0.0;
@@ -206,7 +209,9 @@ MeanTimeContainer::MeanTimeContainer(TString name)
   fNMeanTimes   = 0;
   
   fEventId      = 0;
-  
+
+  fDisableMatchHardwareMeanTime = true;
+
   for(Int_t i=0;i<7;i++) 
     {
       fPositiveValue[i]         = 0.0;
@@ -332,6 +337,8 @@ MeanTimeContainer::Add(Double_t p_value[7], Double_t n_value[7], Double_t hardwa
       }
     }
 
+  SetDisableMatchHardwareMeantime(false);
+
   //  printf("positive %d negative %d and hardware %d\n", fNPositive, fNNegative, fNHarewareMeanTimes);
   return;
 }
@@ -356,6 +363,7 @@ MeanTimeContainer::ProcessMeanTime()
   }
   else {
     
+
     Bool_t   local_debug = false;
     Bool_t   GS_Stable_marriage_debug = false;
 
@@ -364,8 +372,8 @@ MeanTimeContainer::ProcessMeanTime()
     Double_t nst[7][7] = {{ini}}; // [negative][positive]
     Double_t pst[7][7] = {{ini}}; // [positive][negative]
 
-    TString p_name[7] = {"p0", "p1", "p2", "p3", "p4", "p5", "p6"};
-    TString n_name[7] = {"n0", "n1", "n2", "n3", "n4", "n5", "n6"};
+    //    TString p_name[7] = {"p0", "p1", "p2", "p3", "p4", "p5", "p6"};
+    //    TString n_name[7] = {"n0", "n1", "n2", "n3", "n4", "n5", "n6"};
 
     Int_t   p =    0;
     Int_t   n    = 0;
@@ -553,7 +561,6 @@ MeanTimeContainer::ProcessMeanTime()
       }
 
     
-
     MatchHardwareMeanTime();
   
     // //  Int_t exclude_j = 0;
@@ -650,6 +657,14 @@ MeanTimeContainer::MatchHardwareMeanTime()
   // See  https://qweak.jlab.org/elog/Detector/58
   // Wednesday, March 14 13:57:37 EDT 2012, jhlee
 
+  if( fDisableMatchHardwareMeanTime ) {
+    //    printf("%s  disable .....\n\n\n", fDetectorName.Data());
+    return;
+  }
+  // else {
+  //   printf("%s enable ....\n\n\n", fDetectorName.Data());
+  // }
+ 
   Int_t mt_index = 0;
   
   TObjArrayIter next(fMeanTimeList);

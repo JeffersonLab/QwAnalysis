@@ -1067,6 +1067,7 @@ GoodMTMultiHits(Int_t md_plane, Int_t ts_plane,
       mt_container -> SetEventId(i);
       mt_container -> SetTimeWindow(TS_MT_time_window_ns);
       mt_container -> Add(tsp, tsm, tsmt);
+      //   mt_container -> SetEnableMatchHardwareMeantime(false);
       mt_container -> ProcessMeanTime();
 
 
