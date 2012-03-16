@@ -45,14 +45,14 @@ const int multiple=18;
 
 void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qweak_", string suffix=""){
 
-  //try to get the oct number from the run number
-  int oct=getOctNumber(run);
+  //try to get the oct number from the run number - this was the old way and doesn't seam to work :(
+  //int oct=getOctNumber(run);
 
 
   //string folder="/scratch/sxyang";
    string folder=gSystem->Getenv("QW_ROOTFILES");
    ostringstream ss;
-   ss << folder << "/";
+   ss << folder << "/tracking/";
    ss << stem.Data();
    ss << run << suffix;
    ss << ".root";
@@ -71,6 +71,10 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
    QwEvent* fEvent=0;
    QwTrack* track=0;
    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
+   
+   //try to get the oct number from the run number
+  int oct=getOctNumber(event_tree);
+   
    Int_t nevents=event_tree->GetEntries();
    cout << "total events: " << nevents << endl;
    int start=(event_start==-1)? 0:event_start;
@@ -284,10 +288,23 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
  }
 
 
+//Function- taking the run number fiqure out which octant is package 2 for region 2, which is what q2_check 
+//needs to get the right values
 
-int getOctNumber(int run){
+int getOctNumber(TTree* event_tree){
 
-  if((run>=15025 && run <= 15036) || (run>=13671 && run<=13673) || (run>=8662 && run<=8666) ){
+//get a histogram (called h) of the octant cutting on region 2 and pacakge 2 - only one octant will be return - the one we want
+
+event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==2&&events.fQwPartialTracks.fPackage==2");
+
+//get the mean of histgram h made above, this returns a double value that is the trunkated to interger which is the region 2 pacakge 2 octant number
+
+int j = int (h->GetMean());
+
+return (j);
+
+
+  /*if((run>=15025 && run <= 15036) || (run>=13671 && run<=13673) || (run>=8662 && run<=8666) ){
     return 2;
   }
   else if((run>=15037 && run<=15084) || (run>=15111 && run<=15116) || (run>=13676 && run<=13680) || (run>=8668 && run<=8675)){
@@ -301,7 +318,7 @@ int getOctNumber(int run){
   }
   else{
     return 1;
-  }
+  }*/
 }
 
 

@@ -48,37 +48,33 @@ const int multiple=18;
 
 TString outputPrefix;
 
-int getOctNumber(int run){
+int getOctNumber(TChain* event_tree){
 
-  if((run>=15025 && run <= 15036) || (run>=13671 && run<=13673) || (run>=8662 && run<=8666) ){
-    return 2;
-  }
-  else if((run>=15037 && run<=15084) || (run>=15111 && run<=15116) || (run>=13676 && run<=13680) || (run>=8668 && run<=8675)){
-    return 7;
-  }
-  else if ((run>=15085 && run<=15087) || (run>=13707 && run<=13708)){
-    return 6;
-  }
-  else if ((run>=15089 && run<= 15110) || (run>=13674 && run<=13675) || (run>=8676 && run<=8679)){
-    return 8;
-  }
-  else{
-    return 1;
-  }
+//get a histogram (called h) of the octant cutting on region 2 and pacakge 2 - only one octant will be return - the one we want
+
+TH1F* h = new TH1F("h","Region 2, Package 2 Octant number",9,-0.5,8.5);
+
+event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==2&&events.fQwPartialTracks.fPackage==2");
+
+//get the mean of histgram h made above, this returns a double value that is the trunkated to interger which is the region 2 pacakge 2 octant number
+
+int j = int (h->GetMean());
+
+return (j);
 }
 
 
 void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1, int event_end=-1, TString stem="Qweak_", string suffix=""){
-
-   // try to get the oct number from the run number
-   int oct=getOctNumber(runnum);
 
 
    outputPrefix = Form("$QWSCRATCH/tracking/www/run_%d/auto_hdc_%d_",runnum,runnum);
 
    // Create and load the chain
    TChain *event_tree = new TChain("event_tree");
-   event_tree->Add(Form("$QW_ROOTFILES/%s%d%s.root",stem.Data(),runnum,suffix.c_str()));
+   event_tree->Add(Form("$QW_ROOTFILES/tracking/%s%d%s.root",stem.Data(),runnum,suffix.c_str()));
+
+//try to get the oct number from the run number
+  int oct=getOctNumber(event_tree);
 
    // Configure root
    gStyle->SetPalette(1);
