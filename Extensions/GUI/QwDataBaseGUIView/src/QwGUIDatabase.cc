@@ -38,6 +38,7 @@ enum EQwGUIDatabaseInstrumentIDs {
   ID_E_CAL,
   ID_BPM,
   ID_BCM,
+  ID_BCM_DD,
   ID_MD_SENS,
   ID_LUMI_SENS
 };
@@ -119,17 +120,22 @@ const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] =
  
 };
 
-//if you change this you need to change the IF statement in MakeQuery to reflect what
-//entry begins the "double difference" section.
+// bcms
 const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] =
 {
+  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
+  "qwk_bcmgl1","qwk_bcmgl2","bcmddgl",
+  "qwk_linephase", "qwk_invert_tstable"
+};
 
-
- "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
- "qwk_linephase", "qwk_invert_tstable","bcmdd12","bcmdd15","bcmdd16", "bcmdd17",
- "bcmdd18","bcmdd25", "bcmdd26","bcmdd27", "bcmdd28","bcmdd56", "bcmdd57",
- "bcmdd58", "bcmdd67","bcmdd68", "bcmdd78","qwk_bcmgl1","qwk_bcmgl2","bcmddgl"
- };
+// bcm double differences
+const char *QwGUIDatabase::BCMDoubleDifferences[N_BCM_DD] =
+{
+  "bcmdd12","bcmdd15","bcmdd16", "bcmdd17","bcmdd18",
+  "bcmdd25", "bcmdd26","bcmdd27", "bcmdd28",
+  "bcmdd56", "bcmdd57","bcmdd58", 
+  "bcmdd67","bcmdd68", "bcmdd78"
+};
 
 const char *QwGUIDatabase::LumiCombos[N_LUMIS] = 
 {
@@ -276,8 +282,11 @@ const char   *QwGUIDatabase::RegressionVarsOn_8[N_REG_VARS_ON_8]={
   "wrt_diff_9_p_4X","wrt_diff_9_m_4X","wrt_diff_9_m_4Y","wrt_diff_9_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
 };
 
+// Regression types
+// To get the raw data from QwAnalysis that pass the standard event cuts use "raw(from rootfiles)"
+// To get the unregressed data that pass LinRegBlue event cuts use "off"
 const char *QwGUIDatabase::RegressionSchemes[N_REGRESSION_SCHEMES] = {
-  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8"
+  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","raw(from rootfiles)"
 };
 
 
@@ -623,6 +632,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbInstrument->AddEntry("Main Detectors", ID_MD);
   dCmbInstrument->AddEntry("BPMs", ID_BPM);
   dCmbInstrument->AddEntry("BCMs", ID_BCM);
+  dCmbInstrument->AddEntry("BCM Double Difference", ID_BCM_DD);
   dCmbInstrument->AddEntry("LUMI Detectors", ID_LUMI);
   dCmbInstrument->AddEntry("Combined BPMs", ID_CMB_BPM);
   dCmbInstrument->AddEntry("Combined BCMs", ID_CMB_BCM);
@@ -655,7 +665,7 @@ void QwGUIDatabase::MakeLayout()
     dCmbRegressionType->AddEntry(RegressionSchemes[i], i);
   }
   dCmbRegressionType->Connect("Selected(Int_t)","QwGUIDatabase", this, "RegressionTypeInfo()");
-  dCmbRegressionType->Select(0);
+  dCmbRegressionType->Select(1);
 
 
   // Populate good for list
@@ -808,6 +818,16 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     measurements = ChargeMeasurementTypes;
   }
 
+  if (dCmbInstrument->GetSelected() == ID_BCM_DD) {
+    dCmbRegressionType->SetEnabled(kFALSE);
+    for (Int_t i = 0; i < N_BCM_DD; i++) {
+      dCmbDetector->AddEntry(BCMDoubleDifferences[i], i);
+    }
+    dCmbMeasurementType->AddEntry("d", 0);
+    measurements =PositionMeasurementTypes; // Here I am going to use this array for the sake of using an array
+    // with "d" in it. 
+  }
+
   if (dCmbInstrument->GetSelected() == ID_CMB_BPM) {
     dCmbProperty->SetEnabled(kTRUE);
     for (Int_t i = 0; i < N_CMB_BPMS; i++) {
@@ -864,15 +884,6 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     dCmbProperty->Select(0);
   }
 
-//     std::cout<<regression_set<<std::endl;
-//     if(regression_set == "off"){ // do nothing
-//     }
-//     else  if (regression_set == "on"){
-//       for (Int_t i = 0; i < N_REGRESSION_VARS; i++) {
-// 	dCmbProperty->AddEntry(RegressionVars[i], i);
-//       }
-//     }
-//   }
 
   dCmbMeasurementType->Select(0);
   dCmbDetector->Select(0);
@@ -921,10 +932,13 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
     }    
   }
 
-
   dCmbMeasurementType->Select(0);
-
+  
 }
+
+
+
+
 
 /********************************************
 
@@ -1183,7 +1197,7 @@ Create a mysql query with the specific SELECT options
 TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString table_links, 
 				 TString special_cuts){
 
-  TString correction_flag;
+  TString slope_calculation_flag;
   TString regression_selected;
   TString target_position;
 
@@ -1226,30 +1240,48 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
       good_for_check = good_for_check + Form(" AND FIND_IN_SET('%i',data.good_for_id)",i+1);
     }
   }
-
-
-
-  /*Slope corrections ON/OFF?*/
-  if (strcmp((RegressionSchemes[dCmbRegressionType->GetSelected()]),"off") || det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
-    // To get the unregressed data when slope correction is 'on' all the schemes will have the same unregressed
-    // values. So I can just pick one scheme for the slope_correction option
-    correction_flag  = "off";
-
-    if(dCmbInstrument->GetSelected() == ID_BCM && dCmbDetector->GetSelected() > 7){
-      regression_selected = "on";//need this to see double differences?
-    }
-    else
-      regression_selected = regression_set;
+  
+  //
+  // Selecting regressed data and sensitivities
+  //
+  if (det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
+    /*To get Sensitivities :
+      The calculated sensitivities are stored in the data base with the option 'slope_calculation'='regression_type'.
+      e.g.slope_calculation'='on_5+1'.
+      To access the sensitivities we need to use the selection
+      slope_calculation'='regression_type' and slope_correction='off'
+      beacuse the regression script is not applying corrections at the same time slopes are being calculated.
+    */
+    slope_calculation_flag  = regression_set;
+    regression_selected = "off";
+  }
+  else if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="off"){
+    /* To get the unregressed data (data that passed regression cuts in LinRegBlue) :
+       When slope correction is 'off' all the schemes will have the same unregressed
+       values. So I can just pick one scheme for the slope_correction option
+    */
+    slope_calculation_flag  = "on";
+    regression_selected = regression_set;
+  }
+  else if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="raw(from rootfiles)"){
+    /* To get the raw data from QwAnalysis (with standard analyzer cuts) :
+     */
+    slope_calculation_flag  = "off";
+    regression_selected = "off";
   }
   else{
-    // To get the regressed data
+    /* To get regressed data :
+       slope_calculation='off' and slope_correction= regression_set
+    */
+    slope_calculation_flag  = "off";
     regression_selected = regression_set;
-    correction_flag  = "off";
   }
-
-  /*target selection*/
+  
+  //
+  // Selecting a target type
+  //
   if(target=="All")
-    target_position = "";
+    target_position = ""; // No selection. Just show all target types
   else
     target_position = Form("AND target_position = '%s' ",target.Data());
   
@@ -1257,7 +1289,7 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
     = "SELECT "+outputs+" slow_helicity_plate, data.run_quality_id,data.good_for_id,target_position, (scd.value<0)*-2+1 as wien_reversal"
     +" FROM "+tables_used+" analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
     +" WHERE "+table_links+" data.analysis_id = ana.analysis_id AND ana.runlet_id = slow_controls_settings.runlet_id "
-    + Form(" AND data.slope_correction='%s' AND data.slope_calculation='%s' ",correction_flag.Data(),regression_selected.Data())
+    + Form(" AND data.slope_correction='%s' AND data.slope_calculation='%s' ",regression_selected.Data(),slope_calculation_flag.Data())
     +" AND data.subblock = "+ Form("%i",subblock) 
     +" AND data.error !=0 "
     +target_position+
@@ -1322,6 +1354,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   case ID_BPM:
   case ID_CMB_BPM:
   case ID_BCM:
+  case ID_BCM_DD:
   case ID_CMB_BCM:
   case ID_E_CAL:
     det_table    = "monitor";
@@ -2452,7 +2485,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
       else
 	ytitle  = "Beam Position Differences (nm)";
     }
-    else if (det_id == ID_BCM){
+    else if (det_id == ID_BCM_DD){
       	ytitle = "BCM Double Difference (ppm)";
     }
     else
@@ -2566,12 +2599,24 @@ void QwGUIDatabase::RegressionTypeInfo(){
     bfill_reg_iv = kTRUE;
   }
 
-  TLatex * T1 = new TLatex();
+  TPaveText *T1 = new TPaveText(0.05,0.05,0.95,0.95,"ndc");
+//   TLatex * T1 = new TLatex();
   T1->SetTextAlign(12);
   T1->SetTextSize(0.03);
 
-  if(regression_set == "off"){
-    T1->DrawLatex(0.1,0.8,"Selecting Unregressed data!");
+  if(regression_set == "raw(from rootfiles)"){
+    T1->AddText("Selecting unregressed data that have passed standard QwAnalysis event cuts!");
+
+    if(bfill_reg_iv){
+      for (Int_t i = 0; i < N_REG_VARS_ON; i++){
+	dCmbProperty->AddEntry(RegressionVarsOn[i], i);
+	regression_ivs = RegressionVarsOn;
+      }
+    }
+    T1->AddText("These data are unregressed and are averages of outputs that can be find in rootfiles.");
+  }
+  else if(regression_set == "off"){
+    T1->AddText("Selecting unregressed data that passed regression script event cuts!");
     if(bfill_reg_iv){
       for (Int_t i = 0; i < N_REG_VARS_ON; i++){
 	dCmbProperty->AddEntry(RegressionVarsOn[i], i);
@@ -2580,7 +2625,7 @@ void QwGUIDatabase::RegressionTypeInfo(){
     }
   }
   else{
-    T1->DrawLatex(0.1,0.8,"Selecting Regression that use IVs:");
+    T1->AddText("Selecting Regression that use IVs:");
 
     if(regression_set == "on"){
       if(bfill_reg_iv){
@@ -2589,11 +2634,11 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_energy");    
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_energy");    
       gPad->Update();  
       
     }
@@ -2605,12 +2650,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	}
       }
       
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_energy"); 
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_energy"); 
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
@@ -2621,12 +2666,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_3;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_bpm3c12X"); 
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_bpm3c12X"); 
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
@@ -2637,12 +2682,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_4;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_energy"); 
-      T1->DrawLatex(0.2,0.2,"#bullet asym_bcm5"); 
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_energy"); 
+      T1->AddText("#bullet asym_bcm5"); 
       gPad->Update();  
 
     }
@@ -2653,11 +2698,11 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_5;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_bpm3c12X"); 
+      T1->AddText("#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_bpm3c12X"); 
       gPad->Modified();  
       gPad->Update();  
 
@@ -2669,12 +2714,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_6;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");
-      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");
+      T1->AddText("#bullet diff__bpm3c12X");       
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
@@ -2685,11 +2730,11 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_7;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
-      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
+      T1->AddText("#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
+      T1->AddText("#bullet diff__bpm3c12X");       
       gPad->Update();  
 
     }
@@ -2700,17 +2745,17 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_8;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
-      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
+      T1->AddText("#bullet diff__bpm3c12X");       
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
   } 
-  
+  T1->Draw();
   if(bfill_reg_iv)
     dCmbProperty->Select(0);
 
@@ -2747,12 +2792,10 @@ void QwGUIDatabase::OnSubmitPushed()
   case ID_BCM:
     detector = BeamCurrentMonitors[dCmbDetector->GetSelected()];
     property = "";
-    if(strncmp (detector,"bcmddxx",5) == 0) {
-      regression_set="on";
-      measurement_type="d";
-      dCmbRegressionType->Select(1);
-    }     
-
+    break;
+  case ID_BCM_DD:
+    detector = BCMDoubleDifferences[dCmbDetector->GetSelected()];
+    property = "";
     break;
   case ID_CMB_BCM:
     detector = CombinedBCMS[dCmbDetector->GetSelected()];
