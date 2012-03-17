@@ -16,6 +16,7 @@
 
 #include "QwMainDetector.h"
 #include "QwParameterFile.h"
+#include "QwSubsystemArrayTracking.h"
 
 #include "boost/bind.hpp"
 
@@ -25,6 +26,7 @@ RegisterSubsystemFactory(QwMainDetector);
 
 const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC = 21;
 const Int_t  QwMainDetector::kF1ReferenceChannelNumber = 99;
+const Int_t  QwMainDetector::kMaxNumberOfQwHitPlane    = 8;   //JAM 2012-03-13
 
 
 QwMainDetector::QwMainDetector(const TString& name)
@@ -51,6 +53,11 @@ QwMainDetector::QwMainDetector(const TString& name)
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
   fF1RefContainer = new F1TDCReferenceContainer();
 
+  for (Int_t plane_idx=0; plane_idx<kMaxNumberOfQwHitPlane; plane_idx++) //JAM
+  {
+    fSoftwareMeantimeContainer[plane_idx] = new MeanTimeContainer();
+  }
+
   fSoftwareMeantimeOption = false;
   fSoftwareMeantimeTimeWindowNs = 0.0;
 }
@@ -61,6 +68,12 @@ QwMainDetector::~QwMainDetector()
   fSCAs.clear();
   delete fF1TDContainer;
   delete fF1RefContainer;
+
+  for (Int_t plane_idx=0; plane_idx<kMaxNumberOfQwHitPlane; plane_idx++)
+  {
+    delete fSoftwareMeantimeContainer[plane_idx];
+  }
+
 }
 
 
@@ -521,6 +534,13 @@ void  QwMainDetector::ClearEventData()
   
   fF1RefContainer->ClearEventData();
 
+  //Added by JAM 2012-03-13
+  for (Int_t plane_idx=0; plane_idx<kMaxNumberOfQwHitPlane; plane_idx++)
+  {
+    fSoftwareMeantimeContainer[plane_idx] -> ClearEventData();
+  }
+
+
   for (i=0; i<fReferenceData.size(); i++) {
     fReferenceData.at(i).clear();
   }
@@ -536,6 +556,8 @@ void  QwMainDetector::ClearEventData()
   }
   return;
 }
+
+//JAM stopped here
 
 Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
@@ -564,6 +586,12 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
       subsystem_name = this->GetSubsystemName();
       fF1TDContainer -> SetSystemName(subsystem_name);
       fF1RefContainer-> SetSystemName(subsystem_name);
+
+      for (Int_t plane_idx=0; plane_idx<kMaxNumberOfQwHitPlane; plane_idx++)
+      {
+        fSoftwareMeantimeContainer[plane_idx]->SetSystemName(subsystem_name);
+        fSoftwareMeantimeContainer[plane_idx]->SetPlane(plane_idx+1);
+      } //JAM
 
       if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
       
@@ -882,7 +910,7 @@ void  QwMainDetector::ProcessEvent()
   if (! HasDataLoaded()) return;
 
   TString elementname = "";
- 
+
   Double_t rawtime_arb_unit       = 0.0;
   Double_t corrected_time_arb_unit = 0.0;
   Double_t time_ns                 = 0.0;
@@ -892,79 +920,82 @@ void  QwMainDetector::ProcessEvent()
   Int_t slot_num   = 0;
 
   for (size_t i=0; i<fPMTs.size(); i++) 
-    {//;
-      for (size_t j=0; j<fPMTs.at(i).size(); j++)
-	{//;;
-	  elementname = fPMTs.at(i).at(j).GetElementName();
+  {
+    for (size_t j=0; j<fPMTs.at(i).size(); j++)
+    {
+      elementname = fPMTs.at(i).at(j).GetElementName();
 
 
-	  if (elementname.EndsWith("f1") ) {
-	    rawtime_arb_unit = fPMTs.at(i).at(j).GetValue(); // returns Double_t
-	    
-	    if ( rawtime_arb_unit not_eq 0.0) {
-	      
-	      if ( not elementname.Contains("reftime") ) {
-	    	bank_index              = fPMTs.at(i).at(j).GetSubbankID();
-	    	slot_num                = fPMTs.at(i).at(j).GetModule();
-	    	corrected_time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(rawtime_arb_unit, fRefTime, bank_index, slot_num);
-		time_ns                 = fF1TDContainer->ReturnTimeCalibration(corrected_time_arb_unit);
-		fPMTs.at(i).at(j).SetValue(time_ns);
-	    	// printf("TS::ProcessBuffer:  bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10f %10.2f, %10.2f\n", 
-	       	//        bank_index, slot_num, fRefTime_SlotNum, tdc_chan_number, fRefTime_ChanNum, rawtime_arb_unit, fRefTime, corrected_time_arb_unit);
-	      } 
-	      else {
-		// 	// we save the referennce raw time
-	       	fPMTs.at(i).at(j).SetValue(rawtime_arb_unit);
-	      }
-	    }
-	    else {
-	      fPMTs.at(i).at(j).SetValue(rawtime_arb_unit); // zero
-	    }
-	    
-	  }
-	  else {
-	    fPMTs.at(i).at(j).ProcessEvent();
-	  }
+      if (elementname.EndsWith("f1") ) {
+        rawtime_arb_unit = fPMTs.at(i).at(j).GetValue(); // returns Double_t
+
+        if ( rawtime_arb_unit not_eq 0.0) {
+
+          if ( not elementname.Contains("reftime") ) {
+            bank_index              = fPMTs.at(i).at(j).GetSubbankID();
+            slot_num                = fPMTs.at(i).at(j).GetModule();
+            corrected_time_arb_unit = fF1TDContainer->ReferenceSignalCorrection(rawtime_arb_unit, fRefTime, bank_index, slot_num);
+            time_ns                 = fF1TDContainer->ReturnTimeCalibration(corrected_time_arb_unit);
+            fPMTs.at(i).at(j).SetValue(time_ns);
+            // printf("TS::ProcessBuffer:  bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10f %10.2f, %10.2f\n", 
+            //        bank_index, slot_num, fRefTime_SlotNum, tdc_chan_number, fRefTime_ChanNum, rawtime_arb_unit, fRefTime, corrected_time_arb_unit);
+          } 
+          else {
+            // we save the referennce raw time
+            fPMTs.at(i).at(j).SetValue(rawtime_arb_unit);
+          } 
+        }
+        else {
+          fPMTs.at(i).at(j).SetValue(rawtime_arb_unit); // zero
+        }
+
+      }
+      else {
+        fPMTs.at(i).at(j).ProcessEvent();
+      }
 
 
 
-	  // fPMTs.at(i).at(j).ProcessEvent();
-	  // elementname = fPMTs.at(i).at(j).GetElementName();
-	  
-	  // // Check whether the element is "reftime" 
-	  // if ( not elementname.Contains("reftime") ) {
-	  //   rawtime = fPMTs.at(i).at(j).GetValue();
+      // fPMTs.at(i).at(j).ProcessEvent();
+      // elementname = fPMTs.at(i).at(j).GetElementName();
 
-	  //   if (elementname.EndsWith("f1") && rawtime!=0.0) {
-	  //     bank_index = fPMTs.at(i).at(j).GetSubbankID();
-	  //     slot_num   = fPMTs.at(i).at(j).GetModule();
-	  //     // if the reference time signal is recorded by (a) channel(s) of F1TDC(s),
-	  //     // we correct them. And if not, we set them to zero. (jhlee)
-	  //     if ( reftime!=0.0 ) {
-	  // 	corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
-	  //     }
-	  //     else {
-	  // 	corrected_time = 0.0;
-	  //     }
+      // // Check whether the element is "reftime" 
+      // if ( not elementname.Contains("reftime") ) {
+      //   rawtime = fPMTs.at(i).at(j).GetValue();
 
-	  //     fPMTs.at(i).at(j).SetValue(corrected_time);
-	  //   } // if (elementname.EndsWith("f1") && rawtime!=0.0) {
-	  // } 
-	  // // if ( not elementname.Contains("reftime") ) {
-	  // //
-	  // // we keep the raw reference time information in an output ROOT file. 
-	  // //
-	}//;;
-    }//;
+      //   if (elementname.EndsWith("f1") && rawtime!=0.0) {
+      //     bank_index = fPMTs.at(i).at(j).GetSubbankID();
+      //     slot_num   = fPMTs.at(i).at(j).GetModule();
+      //     // if the reference time signal is recorded by (a) channel(s) of F1TDC(s),
+      //     // we correct them. And if not, we set them to zero. (jhlee)
+      //     if ( reftime!=0.0 ) {
+      // 	corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
+      //     }
+      //     else {
+      // 	corrected_time = 0.0;
+      //     }
+
+      //     fPMTs.at(i).at(j).SetValue(corrected_time);
+      //   } // if (elementname.EndsWith("f1") && rawtime!=0.0) {
+      // } 
+      // // if ( not elementname.Contains("reftime") ) {
+      // //
+      // // we keep the raw reference time information in an output ROOT file.
+      // }
+      // } 
+
+    }//;;
+  }//;
 
   // F1TDCs of  QwHit
   SubtractReferenceTimes();
   UpdateHits();
+  AddSoftwareMeantimeToHits(fSoftwareMeantimeOption); //JAM
 
-  for (size_t i=0; i<fSCAs.size(); i++) 
-    {
-      fSCAs.at(i).ProcessEvent();
-    }
+  for (size_t i=0; i<fSCAs.size(); i++)
+  {
+    fSCAs.at(i).ProcessEvent();
+  }
   return;
 };
 
@@ -1618,6 +1649,160 @@ void QwMainDetector::UpdateHits()
 
   return;
 }
+
+
+//JAM
+void QwMainDetector::AddSoftwareMeantimeToHits(Bool_t option)
+{
+  //if option is false, end this function
+  if( !option ) return;
+  // if fTDCHits size is zero, end this function
+  if ( fTDCHits.size() ==0 ) return;
+
+  Bool_t    local_debug = true; //local debug
+
+  Long64_t             ev_num    = 0;
+  Int_t                plane     = 0;
+  Int_t                element   = 0;
+  Int_t                hitnumber = 0;
+  Double_t             timens   = 0.0;
+
+
+  Int_t                bank_index  = 0;
+  Int_t                slot_num    = 0;
+  Int_t                chan_num    = 0;
+  EQwDetectorPackage   package     = kPackageNull;
+  EQwDirectionID       direction   = kDirectionNull;
+  EQwRegionID          region      = kRegionIDTrig;
+
+  MeanTime*            ts_mt_time = NULL;
+
+  Int_t               v_plane_idx = 0;
+
+  for( std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+  {
+    plane = iter->GetPlane();
+//    if(plane ==1 || plane == 2))
+//    {
+        v_plane_idx = plane-1;
+        element     = iter->GetElement();
+        hitnumber   = iter->GetHitNumber();
+        timens      = iter->GetTimeNs();
+        fSoftwareMeantimeContainer[v_plane_idx] ->  Add(element, hitnumber, timens);
+
+
+//    } //end for
+
+
+
+  } //end for loop JAM2 
+
+
+
+
+  // Reset bank_index, slot_num, and chan_num to -9,-99,-999
+  // because we don't have these numbers for software meantime
+  //  and we don't need these numbers in otfer to access software meantime from QwHit
+
+  ev_num      = VQwSubsystem::GetParent()->GetCodaEventNumber();
+  bank_index  = -9;
+  slot_num    = -99;
+  chan_num    = -999;
+
+  for (v_plane_idx=0; v_plane_idx<kMaxNumberOfQwHitPlane; v_plane_idx++)
+  {
+    if(v_plane_idx%2 ==0) {
+      package = kPackageUp;
+      } // end if
+    else if  (v_plane_idx%2 ==1) {
+      package = kPackageDown;
+    } //end else if
+    else {
+      break;
+    } //end else
+
+    fSoftwareMeantimeContainer[v_plane_idx] -> SetEventId(ev_num);
+    fSoftwareMeantimeContainer[v_plane_idx] -> SetTimeWindow(fSoftwareMeantimeTimeWindowNs);
+    fSoftwareMeantimeContainer[v_plane_idx] -> ProcessMeanTime();
+    plane = fSoftwareMeantimeContainer[v_plane_idx] -> GetPlane();
+
+    ts_mt_time = NULL;
+
+    for (Int_t v_smt_idx=0; v_smt_idx < fSoftwareMeantimeContainer[v_plane_idx]->SoftwareMTSize(); v_smt_idx++)
+    {
+      ts_mt_time =  fSoftwareMeantimeContainer[v_plane_idx]->GetMeanTimeObject(v_smt_idx); //Note: this should be md_mt_time
+      ts_mt_time  -> Print(local_debug);
+
+      QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+          region, package, plane, direction, 
+          ts_mt_time->GetSoftwareMeantimeHitElement()
+          );
+      software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
+      fTDCHits.push_back(software_meantime_hit);
+
+      QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+          region, package, plane, direction,
+          ts_mt_time->GetSoftwarePositiveHitElement()
+          );
+      software_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
+      fTDCHits.push_back(software_positive_hit);
+
+      QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+          region, package, plane, direction, 
+          ts_mt_time->GetSoftwareNegativeHitElement()
+          );
+      software_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
+      fTDCHits.push_back(software_negative_hit);
+
+      QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+          region, package, plane, direction, 
+          ts_mt_time->GetSoftwareSubtractHitElement()
+          );
+      software_subtract_hit.SetTimens(ts_mt_time->GetSubtractTime());
+      fTDCHits.push_back(software_subtract_hit);
+
+    }//end internal for "v_smt_idx"
+
+  } //end external for "v_plane_idx"
+
+
+  if(local_debug) {
+
+    TString output = "";
+
+    for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+    {
+
+      bank_index    = iter->GetSubbankID();
+      slot_num      = iter->GetModule();
+      chan_num      = iter->GetChannel();
+      package       = iter->GetPackage();
+      plane         = iter->GetPlane();
+      element       = iter->GetElement();
+      hitnumber     = iter->GetHitNumber();
+      timens       = iter->GetTimeNs();
+
+      output += GetSubsystemName();
+      output += Form(" Bank ID %+2d", bank_index);
+      output += Form(" Slot %+3d", slot_num);
+      output += Form(" Chan %+4d", chan_num);
+      output += Form(" Package %2d", (Int_t) package);
+      output += Form(" Plane %2d", plane);
+      output += " Element ";
+      output += element;
+      output += " Hit ";
+      output += hitnumber;
+      output += Form(" TimeNs %+10.2f\n", timens);
+
+    } //end for iter
+
+    std::cout <<"Size fTDCHits " << fTDCHits.size()
+      << " Event Number " <<ev_num << "\n" << output <<std::endl;
+  } //end local_debug
+
+  return;
+} //end SoftwareMeantimeToHits member function
+
 
 
 
