@@ -61,6 +61,7 @@ use vars qw($original_cwd $executable $script_dir $BaseMSSDir
 	    $runnumber $input_file @input_files $command_file
 	    @RunPostProcess @RunletPostProcess
 	    $SpacePerInputfile $ReserveSpace $MaxSpacePerJob
+	    $MaxFilesPerJob
 	    $SkipCheckingPaths
 	    $InputfilesPerJob
 	    );
@@ -126,6 +127,7 @@ my $ret = GetOptions("help|usage|h"       => \$opt_h,
 		     #  sense that we deliberately do not include
 		     #  them in the usage.
 		     #  They are expert level options only.
+		     "max-files-per-job=i"=> \$MaxFilesPerJob,
 		     "job-maxspace=i"     => \$MaxSpacePerJob,
 		     "job-reservespace=i" => \$ReserveSpace,
 		     "job-spaceperfile=i" => \$SpacePerInputfile,
@@ -271,14 +273,21 @@ if (($SpacePerInputfile+$ReserveSpace)>$MaxSpacePerJob){
 	"*** This is a major problem; contact an expert to investigate this!!!\n",
 	"Exiting");
 }
+
 #  The restriction on input files per job only applies if we need
 #  to split the job.  If a job with more than InputfilesPerJob files
 #  can fit into the MaxSpacePerJob, it will go through as one job.
 $InputfilesPerJob = int(($MaxSpacePerJob-$ReserveSpace)
 			/$SpacePerInputfile);
-if ($InputfilesPerJob>5) {
-    #  Round to a multiple of five, because I like multiples of five.
-    $InputfilesPerJob = int($InputfilesPerJob/5) * 5;
+if (defined($MaxFilesPerJob) && $MaxFilesPerJob+0>0
+    && $MaxFilesPerJob<=$InputfilesPerJob) {
+    $MaxSpacePerJob = $SpacePerInputfile*$MaxFilesPerJob + $ReserveSpace;
+    $InputfilesPerJob = $MaxFilesPerJob
+} else {
+    if ($InputfilesPerJob>5) {
+	#  Round to a multiple of five, because I like multiples of five.
+	$InputfilesPerJob = int($InputfilesPerJob/5) * 5;
+    }
 }
 if ($InputfilesPerJob<=0) {
     die("*** The space needed per input file ($SpacePerInputfile MB) and as a reserve ($ReserveSpace MB) is too large for the maximum disk space permitted per farm job ($MaxSpacePerJob MB).\n",
@@ -652,9 +661,10 @@ sub create_xml_jobfile($$$@) {
 	" <Track name=\"$BatchQueue\"/>\n",
 	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
     my $memory=2048;
+    my $timelimit = 180*($#infiles+1);  # Allow 3 hrs per input file
     print JOBFILE
 	" <OS name=\"linux64\"/>\n",
-	" <TimeLimit unit=\"minutes\" time=\"1800\"/>\n",
+	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
 	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
 	" <Memory space=\"$memory\" unit=\"MB\"/>\n";
     print JOBFILE
