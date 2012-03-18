@@ -118,7 +118,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   MQwF1TDC         fF1TDCDecoder;
   QwF1TDContainer *fF1TDContainer;
   F1TDCReferenceContainer * fF1RefContainer;
-  MeanTimeContainer       *fSoftwareMeantimeContainer[2]; //JAM
+  MeanTimeContainer       *fSoftwareMeantimeContainer[8]; //JAM
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -141,6 +141,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   void  SubtractReferenceTimes(); // be executed in ProcessEvent()
   void  UpdateHits();             // be executed in ProcessEvent()
 
+  void AddSoftwareMeantimeToHits(Bool_t option);
 
   std::vector< QwHit >              fTDCHits;
 
