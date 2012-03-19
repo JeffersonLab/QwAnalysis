@@ -354,7 +354,7 @@ VDC_F1_VaderTimePlot()
 
 
 void 
-TSsMTPlot()
+TSsMTPlot(Int_t element=3)
 {
   Int_t region = 4;
   //  TCanvas c1;
@@ -365,19 +365,19 @@ TSsMTPlot()
   gStyle->SetStatH(0.4);//   - set the width of a stat box
   c1.Divide(4,4);
 
-  plane = 1;
+  //  plane = 1;
   for(Int_t idx=0;idx<7; idx++)
     {
       c1.cd(idx+1);
-      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==3 && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, plane, idx));
+      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, 1, element, idx));
       gPad->Update();
     }
 
-  plane = 2;
+  //  plane = 2;
   for(Int_t idx=0;idx<7; idx++)
     {
       c1.cd(idx+9);
-      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==3 && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, plane, idx));
+      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, 2, element, idx));
       gPad->Update();
     }
 
@@ -391,7 +391,7 @@ TSsMTPlot()
 
 
 void 
-MSsMTPlot(Int_t plane)
+MDsMTPlot(Int_t plane)
 {
   Int_t region = 5;
   //  TCanvas c1;
