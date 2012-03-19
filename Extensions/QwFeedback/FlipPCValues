@@ -8,6 +8,10 @@
 # and then run ./FlipPCValues
 # EPICS names PC [+] C1068_QDAC01PC [-] C1068_QDAC02
 
+#cainfo=/home/EPICS/dvlepics/R3.14.12.1/base/bin/linux-x86/cainfo
+#caget=/home/EPICS/dvlepics/R3.14.12.1/base/bin/linux-x86/caget
+#caput=/home/EPICS/dvlepics/R3.14.12.1/base/bin/linux-x86/caput
+
 #1. PITA starting setpoints when IHWP is flipped from the IN-OUT in 8:18am 02/23/2011
 #2. Runs checked OUT - 10810 IN - 10766 -Changed by Rakitha 03/17/2011
 #PC_pos_t0_IN=43766
@@ -54,6 +58,11 @@ PC_neg_t0_OUT=41335
 RHWP_IN=329
 RHWP_OUT=3496
 RHWP_OUT_IN=7511
+
+#Helicity magnet set points
+hel_odd_2_IN=-2
+hel_odd_2_OUT=-3
+hel_odd_2_OUT_IN=-3
 
 
 IHWP2="`caget -tf0 -w 0.1  IGL1I00DIOFLRD`"
@@ -114,12 +123,16 @@ case "$host_name" in
 		PC_neg_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_neg_OUT_IHWP2_IN`"
 		echo "RHWP for IHWP OUT state = $RHWP_OUT_IN"
 		caput psub_pl_ipos $RHWP_OUT_IN
+		echo " Helicity magnet setpoint hel_odd_2 = $hel_odd_2_OUT"
+		caput hel_odd_2 $hel_odd_2_OUT
 	    else
 		echo "Current IHWP2 state is $IHWP2"
 		PC_pos_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_pos_OUT`"
 		PC_neg_t0_OUT="`cat /local/scratch/qweak/Last_good_PC_neg_OUT`"
 		echo "RHWP for IHWP OUT state = $RHWP_OUT"
 	        caput psub_pl_ipos $RHWP_OUT
+		echo " Helicity magnet setpoint hel_odd_2 = $hel_odd_2_OUT_IN"
+		caput hel_odd_2 $hel_odd_2_OUT_IN
 	    fi
 	    echo "Norminal PC_pos = $PC_pos_t0_OUT"
 	    echo "Current PC_pos = $PC_pos_current"
@@ -138,6 +151,8 @@ case "$host_name" in
 		echo "Current IHWP2 state is $IHWP2"
 		PC_pos_t0_IN="`cat /local/scratch/qweak/Last_good_PC_pos_IN`"
 		PC_neg_t0_IN="`cat /local/scratch/qweak/Last_good_PC_neg_IN`"
+		echo " Setting Helicity magnet setpoint hel_odd_2 = $hel_odd_2_IN"
+		caput hel_odd_2 $hel_odd_2_IN
 	    fi
 	    echo "Norminal PC_pos = $PC_pos_t0_IN"
 	    echo "Current PC_pos = $PC_pos_current"
