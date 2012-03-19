@@ -18,6 +18,7 @@ my %coulombs;
 my @wget = qw[wget --no-check-certificate -q -O-];
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14 qw_hztgt_Xenc QWTGTPOS];
+my $dst_flag;
 
 sub parse_date_interval;
 sub suggest_better_time_intervals;
@@ -26,6 +27,7 @@ sub buildurl;
 sub does_target_match;
 sub announce;
 sub display_shift_summaries;
+sub daylight_savings_check;
 
 my ($help,$nodaqcut,$target_want,$ploturl,$outfile);
 my $optstatus = GetOptions
@@ -65,7 +67,8 @@ Options:
 EOF
 die $helpstring if $help;
 
-suggest_better_time_intervals($request_then, $request_now);
+($request_then, $request_now) =
+  suggest_better_time_intervals($request_then, $request_now);
 
 my ($datafh, $ofh) = in_out_filehandles $outfile,
   $request_then, $request_now, $interval, @channels;
@@ -84,7 +87,21 @@ while (<$datafh>) {
   next if $target_want and
     not does_target_match $target_want, $target_x, $target_y;
 
+  my $match = ($day =~ s[^(..)/(..)/(....)$][$3-$1-$2] );
+  die "couldn't parse line $_\nDay: $day\nMatch: $match\n" unless $match;
+
   my($hour,$minute,$second) = split /:/, $time;
+  if ( defined $dst_flag ) {
+    if ( $hour < 23 ) {
+      ## DateCalc is kind of slow, do the easy ones this way
+      $hour += 1;
+    } else {
+      my $adjusted_date = DateCalc("$day $time", "+1 hour");
+      $day = UnixDate("$adjusted_date","%Y-%m-%d",);
+      $time = UnixDate("$adjusted_date","%H:%M:%S",);
+      ($hour,$minute,$second) = split /:/, $time;
+    }
+  }
   my $shift = int($hour/8);
 
   if ( $ibcm1>0 and abs($daqrate - 960) < 10 ) {
@@ -105,28 +122,68 @@ exit;
 
 sub parse_date_interval {
   my ($request_then, $request_now)  = @_;
+
   my $then = ParseDate( $request_then ? $request_then : "yesterday midnight");
   my $now = $request_now ?
     ParseDate($request_now) : DateCalc($then, "+48 hours");
+
+  return ( $then, $now );
+}
+
+sub daylight_savings_check {
+  my $dst_testing;
+  my ($then, $now, $saving_new_start, $saving_old_start) =
+    map { ParseDate $_ } @_;
+  foreach ($then, $now) {
+    print "before dst:\t$_\n" if $dst_testing;
+    if ( $saving_new_start le $_ and
+	 $_ le $saving_old_start ) {
+      $_ = DateCalc($_, "-1 hour");
+      $dst_flag = 1;
+    } else {
+      $dst_flag = undef;
+    }
+    print "after dst:\t$_\n" if $dst_testing;
+  }
   return ($then, $now);
 }
 
 sub suggest_better_time_intervals {
   my ($request_start, $request_end) = (shift, shift);
   my ($start, $end)  = parse_date_interval($request_start, $request_end);
+
+  #old rules (pre-2005) are the first Sunday of April
+  my $dst_start = "2012-03-11 01:59";
+  my $dst_start_old_rules = "2012-04-01 02:00";
+
+
+  ($start, $end) = 
+    daylight_savings_check($start, $end, $dst_start, $dst_start_old_rules);
+
   my @corrupt_time_intervals =
-    ( {	start	=> "2012-02-29 14:28",
-	end	=> "2012-02-29 14:51",
-	url	=> "https://hallcweb.jlab.org/hclog/1203_archive/120301104428.html",
+  ( {	start	=> "2012-02-29 14:28",
+        end	=> "2012-02-29 14:51",
+        reason	=> "two archivers were running at once. See:"
+	. " https://hallcweb.jlab.org/hclog/1203_archive/120301104428.html",
       },
-    );
+    {	start	=> $dst_start,
+        end	=> DateCalc($dst_start,"+1 minute"),
+        reason	=> "daylight savings time began, archiver didn't notice",
+    },
+    {	start	=> "$dst_start_old_rules",
+        end	=> DateCalc($dst_start_old_rules,"+1 hour"),
+        reason	=> "The archiver finally things daylight savings time begin"
+			. " under the pre-2005 rules"
+    },
+  );
+
   foreach my $bad (@corrupt_time_intervals) {
     my $bad_start = ParseDate($bad->{start});
     ## n.b. assume requested interval is much longer than the problem ...
     if ($start le $bad_start and $bad_start le $end) {
       warn <<EOF;
 WARNING: your time interval includes a period where the archiver was unhappy.
-See $bad->{url} .
+The reason is $bad->{reason} .
 Consider instead two queries
     $0 '$request_start' '$bad->{start}'
     $0 '$bad->{end}' '$request_end'
@@ -134,6 +191,9 @@ and adding the results together.
 EOF
     }
   }
+
+  return ($start, $end);
+
 }
 
 sub in_out_filehandles {
@@ -259,6 +319,13 @@ sub display_shift_summaries {
 
   my @shift = qw[owl day swing];
   my $Total = 0;
+
+  if ( defined $dst_flag ) {
+    print <<EOF
+Your results have been corrected for the 
+archiver's mishandling daylight savings time.
+EOF
+  }
 
   foreach my $day (sort keys %coulombs) {
     my $day_total = 0;
