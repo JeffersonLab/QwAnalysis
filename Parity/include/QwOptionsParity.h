@@ -23,7 +23,7 @@
 #include "QwEventRing.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
-#include "QwRootFile.h"
+#include "QwRegression.h"
 #include "QwParityDB.h"
 
 void DefineOptionsParity(QwOptions& options)
@@ -37,6 +37,7 @@ void DefineOptionsParity(QwOptions& options)
   QwEventRing::DefineOptions(options);
   QwHelicity::DefineOptions(options);
   QwHelicityPattern::DefineOptions(options);
+  QwRegression::DefineOptions(options);
   QwParityDB::DefineAdditionalOptions(options);
 }
 

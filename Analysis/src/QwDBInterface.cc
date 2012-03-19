@@ -61,6 +61,17 @@ void QwDBInterface::SetLumiDetectorID(QwParityDB *db)
   fDeviceId = db->GetLumiDetectorID(fDeviceName.Data());
 }
 
+QwDBInterface::EQwDBIDataTableType QwDBInterface::SetDetectorID(QwParityDB *db)
+{
+  fDeviceId = db->GetMonitorID(fDeviceName.Data(),kFALSE);
+  if (fDeviceId!=0) return kQwDBI_BeamTable;
+  fDeviceId = db->GetMainDetectorID(fDeviceName.Data(),kFALSE);
+  if (fDeviceId!=0) return kQwDBI_MDTable;
+  fDeviceId = db->GetLumiDetectorID(fDeviceName.Data(),kFALSE);
+  if (fDeviceId!=0) return kQwDBI_LumiTable;
+  return kQwDBI_OtherTable;
+}
+
 template <class T>
 T QwDBInterface::TypedDBClone()
 {

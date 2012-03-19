@@ -3,6 +3,7 @@
 // Qweak database headers
 #include "QwLog.h"
 #include "QwDBInterface.h"
+#include "QwParameterFile.h"
 
 VQwHardwareChannel::VQwHardwareChannel():
   fNumberOfDataWords(0),
@@ -63,23 +64,30 @@ void VQwHardwareChannel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Doubl
 
 void VQwHardwareChannel::AddEntriesToList(std::vector<QwDBInterface> &row_list)
 {
-    QwDBInterface row;
-    TString name    = GetElementName();
-    UInt_t  entries = GetGoodEventCount();
-    //  Loop over subelements and build the list.
-    for(UInt_t subelement=0; 
-	subelement<GetNumberOfSubelements();
-	subelement++) {
-      row.Reset();
-      row.SetDetectorName(name);
-      row.SetSubblock(subelement);
-      row.SetN(entries);
-      row.SetValue(GetValue(subelement));
-      row.SetError(GetValueError(subelement));
-      row_list.push_back(row);
+  QwDBInterface row;
+  TString name    = GetElementName();
+  UInt_t  entries = GetGoodEventCount();
+  //  Loop over subelements and build the list.
+  for(UInt_t subelement=0; 
+      subelement<GetNumberOfSubelements();
+      subelement++) {
+    row.Reset();
+    row.SetDetectorName(name);
+    row.SetSubblock(subelement);
+    row.SetN(entries);
+    row.SetValue(GetValue(subelement));
+    row.SetError(GetValueError(subelement));
+    row_list.push_back(row);
+  }
+}
+
+void VQwHardwareChannel::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist){
+  if (GetElementName()!=""){
+    TString devicename;
+    devicename=GetElementName();
+    devicename.ToLower();
+    if (modulelist.HasValue(devicename)){
+      ConstructBranch(tree,prefix);
     }
   }
-
-
-
-
+}

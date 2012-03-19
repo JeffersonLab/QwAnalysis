@@ -1455,55 +1455,95 @@ Bool_t QwBeamLine::PublishInternalValues() const
     device_type.ToLower();
     device_prop.ToLower();
 
-    const VQwDataElement* tmp_channel = 0;
+    const VQwHardwareChannel* tmp_channel = 0;
 
-    if (device_type == "bcm") {
-      tmp_channel = GetBCM(device_name)->GetCharge();
-    } else if (device_type == "clock") {
-      tmp_channel = GetClock(device_name)->GetTime();
-    } else if (device_type == "bpmstripline") {
-      if (device_prop == "x")
-	tmp_channel = GetBPMStripline(device_name)->GetPosition(VQwBPM::kXAxis);
-      else if (device_prop == "y")
-	tmp_channel = GetBPMStripline(device_name)->GetPosition(VQwBPM::kYAxis);
-      else if (device_prop == "ef")
-	tmp_channel = GetBPMStripline(device_name)->GetEffectiveCharge();
-    } else if (device_type == "bpmcavity") {
-      if (device_prop == "x")
-	tmp_channel = GetBPMCavity(device_name)->GetPosition(VQwBPM::kXAxis);
-      else if (device_prop == "y")
-	tmp_channel = GetBPMCavity(device_name)->GetPosition(VQwBPM::kYAxis);
-      else if (device_prop == "ef")
-	tmp_channel = GetBPMCavity(device_name)->GetEffectiveCharge();
-    } else if (device_type == "combobpm") {
-      if (device_prop == "x")
-	tmp_channel = GetCombinedBPM(device_name)->GetPosition(VQwBPM::kXAxis);
-      else if (device_prop == "y")
-	tmp_channel = GetCombinedBPM(device_name)->GetPosition(VQwBPM::kYAxis);
-      else if (device_prop == "xp")
-	tmp_channel = GetCombinedBPM(device_name)->GetAngleX();
-      else if (device_prop == "yp")
-	tmp_channel = GetCombinedBPM(device_name)->GetAngleY();
-    } else if (device_type == "combobcm") {
-      tmp_channel = GetCombinedBCM(device_name)->GetCharge();
-    } else if (device_type == "comboenergy") {
-      tmp_channel = GetEnergyCalculator(device_name)->GetEnergy();
-    }  else if (device_type == "scaler") {
-      tmp_channel = GetScalerChannel(device_name)->GetScaler();  
-    }else
+    EQwBeamInstrumentType type_id;
+    if (device_type == "combobpm")
+      type_id = kQwCombinedBPM;
+    else if (device_type == "combobcm")
+      type_id = kQwCombinedBCM;
+    else if (device_type == "comboenergy")
+      type_id = kQwEnergyCalculator;
+    else if (device_type == "scaler")
+      type_id = kQwHaloMonitor;
+    else 
+      type_id = GetQwBeamInstrumentType(device_type);
+
+    Int_t index = GetDetectorIndex(type_id,device_name);
+
+    if (type_id != kQwUnknownDeviceType 
+	&& index != -1){
+      tmp_channel = GetChannel(type_id,index,device_prop);
+    } else
       QwError << "QwBeamLine::PublishInternalValues() error "<< QwLog::endl;
     
      if (tmp_channel == NULL) {
        QwError << "QwBeamLine::PublishInternalValues(): " << publish_name << " not found" << QwLog::endl;
-       status |= kFALSE;
+       status = kFALSE;
      } else {
        QwDebug << "QwBeamLine::PublishInternalValues(): " << publish_name << " found" << QwLog::endl;
+       
+       status = PublishInternalValue(publish_name, "published-value", tmp_channel);
      }
-     status = status && PublishInternalValue(publish_name, "published-value", tmp_channel);
   }
   
   return status;
 }
+
+//*****************************************************************//
+Bool_t QwBeamLine::PublishByRequest(TString device_name)
+{
+  Bool_t status = kFALSE;
+  const VQwHardwareChannel* tmp_channel = 0;
+
+  std::vector<TString> publishinfo(4,TString(""));
+  publishinfo.at(0) = device_name;
+
+  EQwBeamInstrumentType type_id;
+  Int_t index=-1;
+
+  TString name = device_name;
+  TString device_prop = "value";
+  if (device_name.EndsWith("_EffectiveCharge")){
+    name = device_name(0,device_name.Length()-16);
+    device_prop = "ef";
+  } else if (device_name.EndsWith("XSlope")){
+    name = device_name(0,device_name.Length()-6);
+    device_prop = "xp";
+  } else if (device_name.EndsWith("YSlope")){
+    name = device_name(0,device_name.Length()-6);
+    device_prop = "yp";
+  } else if (device_name.EndsWith("X")){
+    name = device_name(0,device_name.Length()-1);
+    device_prop = "x";
+  } else if (device_name.EndsWith("Y")){
+    name = device_name(0,device_name.Length()-1);
+    device_prop = "y";
+  }
+
+  for(size_t i=0;i<fBeamDetectorID.size();i++) {
+    if(fBeamDetectorID[i].fdetectorname==name
+       || fBeamDetectorID[i].fdetectorname==device_name){
+      index   = fBeamDetectorID[i].fIndex;
+      type_id = fBeamDetectorID[i].fTypeID;
+
+      publishinfo.at(1) = GetQwBeamInstrumentTypeName(type_id);
+      publishinfo.at(2) = fBeamDetectorID[i].fdetectorname;
+      publishinfo.at(3) = device_prop;
+      break;
+    }
+  }
+
+  if (index != -1){
+    tmp_channel = GetChannel(type_id,index,publishinfo.at(3));
+    fPublishList.push_back(publishinfo);
+    status = PublishInternalValue(publishinfo.at(0), "published-by-request",
+				  tmp_channel);
+  }
+
+  return status;
+}
+
 
 //*****************************************************************//
 void QwBeamLine::ClearEventData()
@@ -1533,29 +1573,26 @@ void QwBeamLine::ClearEventData()
 }
 
 //*****************************************************************//
-Int_t QwBeamLine::GetDetectorIndex( EQwBeamInstrumentType type_id, TString name)
+Int_t QwBeamLine::GetDetectorIndex( EQwBeamInstrumentType type_id, TString name) const
 {
   Bool_t ldebug=kFALSE;
-  if(ldebug)
-    {
-      std::cout<<"QwBeamLine::GetDetectorIndex\n";
-      std::cout<<"type_id=="<<type_id<<" name="<<name<<"\n";
-      std::cout<<fBeamDetectorID.size()<<" already registered detector\n";
-    }
-
   Int_t result=-1;
-  for(size_t i=0;i<fBeamDetectorID.size();i++)
-    {
-      if(fBeamDetectorID[i].fTypeID==type_id)
-	if(fBeamDetectorID[i].fdetectorname==name)
-	  result=fBeamDetectorID[i].fIndex;
-      if(ldebug)
-	{
-	  std::cout<<"testing against ("<<fBeamDetectorID[i].fTypeID
-		   <<","<<fBeamDetectorID[i].fdetectorname<<")=>"<<result<<"\n";
-	}
+  if(ldebug) {
+    std::cout<<"QwBeamLine::GetDetectorIndex\n";
+    std::cout<<"type_id=="<<type_id<<" name="<<name<<"\n";
+    std::cout<<fBeamDetectorID.size()<<" already registered detector\n";
+  }
+  for(size_t i=0;i<fBeamDetectorID.size();i++) {
+    if(ldebug){ 
+      std::cout<<"testing against ("<<fBeamDetectorID[i].fTypeID
+	       <<","<<fBeamDetectorID[i].fdetectorname<<")=>"<<result<<"\n";
     }
-
+    if(fBeamDetectorID[i].fTypeID==type_id 
+       && fBeamDetectorID[i].fdetectorname==name){
+      result=fBeamDetectorID[i].fIndex;
+      break;
+    }
+  }
   return result;
 }
 
@@ -1614,6 +1651,54 @@ VQwDataElement* QwBeamLine::GetElement(EQwBeamInstrumentType TypeID, Int_t index
   return tmp_ptr;
 };
 
+const VQwDataElement* QwBeamLine::GetElement(EQwBeamInstrumentType TypeID, Int_t index) const
+{
+  return const_cast<QwBeamLine*>(this)->GetElement(TypeID,index);
+}
+
+const VQwHardwareChannel* QwBeamLine::GetChannel(EQwBeamInstrumentType TypeID, Int_t index, TString device_prop) const
+{
+  const VQwHardwareChannel* tmp_channel = 0;
+
+  if (TypeID==kQwBPMStripline || TypeID==kQwBPMCavity || TypeID==kQwQPD){
+    const VQwBPM* tmp_ptr = dynamic_cast<const VQwBPM*>(GetElement(TypeID, index));
+    if (device_prop == "x")
+      tmp_channel = tmp_ptr->GetPosition(VQwBPM::kXAxis);
+    else if (device_prop == "y")
+      tmp_channel = tmp_ptr->GetPosition(VQwBPM::kYAxis);
+    else if (device_prop == "ef")
+      tmp_channel = tmp_ptr->GetEffectiveCharge();
+  } else if (TypeID==kQwCombinedBPM){
+    if (device_prop == "x")
+      tmp_channel = fBPMCombo.at(index)->GetPosition(VQwBPM::kXAxis);
+    else if (device_prop == "y")
+      tmp_channel = fBPMCombo.at(index)->GetPosition(VQwBPM::kYAxis);
+    else if (device_prop == "ef")
+      tmp_channel = fBPMCombo.at(index)->GetEffectiveCharge();
+    else if (device_prop == "xp")
+      tmp_channel = fBPMCombo.at(index)->GetAngleX();
+    else if (device_prop == "yp")
+      tmp_channel = fBPMCombo.at(index)->GetAngleY();
+  } else if (TypeID==kQwLinearArray){
+    /// TODO: QwBeamLine::GetChannel
+    /// How do we access linear array channel outputs?
+  } else if (TypeID==kQwBCM || TypeID==kQwCombinedBCM){
+    tmp_channel = dynamic_cast<const VQwBCM*>(GetElement(TypeID,index))->GetCharge();
+  } else if (TypeID==kQwEnergyCalculator){
+    tmp_channel = fECalculator.at(index).GetEnergy();
+  } else if (TypeID==kQwHaloMonitor){
+    tmp_channel = fHaloMonitor.at(index).GetScaler();  
+  } else if (TypeID==kQwClock){
+    tmp_channel = fClock.at(index)->GetTime();
+  } else {
+    TString loc="QwBeamLine::GetChannel called by "
+      +this->GetSubsystemName()+" with invalid arguements: "
+      +GetQwBeamInstrumentTypeName(TypeID)+" "
+      +Form("%d",index);
+    throw std::invalid_argument(loc.Data());
+  }
+  return tmp_channel;
+}
 
 //*****************************************************************//
 VQwBPM* QwBeamLine::GetBPMStripline(const TString name)

@@ -24,7 +24,7 @@
 #include "QwOptions.h"
 
 // Forward declarations
-class VQwDataElement;
+class VQwHardwareChannel;
 class QwParameterFile;
 
 ///
@@ -145,20 +145,20 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  public:
 
   /// \brief Retrieve the variable name from other subsystem arrays
-  Bool_t RequestExternalValue(const TString& name, VQwDataElement* value) const;
+  Bool_t RequestExternalValue(const TString& name, VQwHardwareChannel* value) const;
 
   /// \brief Retrieve the variable name from subsystems in this subsystem array
-  const VQwDataElement* ReturnInternalValue(const TString& name) const;
+  const VQwHardwareChannel* ReturnInternalValue(const TString& name) const;
 
   /// \brief Retrieve the variable name from subsystems in this subsystem array
-  Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
+  Bool_t ReturnInternalValue(const TString& name, VQwHardwareChannel* value) const;
 
   /// \brief Publish the value name with description from a subsystem in this array
   Bool_t PublishInternalValue(
       const TString name,
       const TString desc,
       const VQwSubsystem* subsys,
-      const VQwDataElement* element);
+      const VQwHardwareChannel* element);
 
   /// \brief List the published values and description in this subsystem array
   void ListPublishedValues() const;
@@ -170,12 +170,17 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   TList* GetParamFileNameList(TString name) const;
 
  private:
+  /// \brief Try to publish an internal variable matching the submitted name
+  Bool_t PublishByRequest(TString device_name);
 
   /// \brief Retrieve the variable name from subsystems in this subsystem array
-  VQwDataElement* ReturnInternalValueForFriends(const TString& name) const;
+  VQwHardwareChannel* ReturnInternalValueForFriends(const TString& name) const;
+
+  /// Friend with regression class who needs write access to data
+  friend class QwRegression;
 
   /// Published values
-  std::map<TString, const VQwDataElement*> fPublishedValuesDataElement;
+  std::map<TString, const VQwHardwareChannel*> fPublishedValuesDataElement;
   std::map<TString, const VQwSubsystem*>   fPublishedValuesSubsystem;
   std::map<TString, TString>               fPublishedValuesDescription;
 
@@ -244,6 +249,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   /// \brief Print some information about the subsystem
   void PrintInfo() const;
+  
+  void push_back(boost::shared_ptr<VQwSubsystem> subsys);
 
  protected:
   void LoadSubsystemsFromParameterFile(QwParameterFile& detectors);

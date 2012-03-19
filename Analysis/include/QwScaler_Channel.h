@@ -38,6 +38,9 @@ public:
   using VQwHardwareChannel::GetValueError;
   using VQwHardwareChannel::GetValueWidth;
 
+  using VQwHardwareChannel::AccumulateRunningSum;
+  using VQwHardwareChannel::DeaccumulateRunningSum;
+
 public:
   VQwScaler_Channel(): MQwMockable() {
     InitializeChannel("","");
@@ -101,9 +104,21 @@ public:
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
   void AssignScaledValue(const VQwScaler_Channel &value, Double_t scale);
   void AssignValueFrom(const VQwDataElement* valueptr);
+  void AddValueFrom(const VQwHardwareChannel* valueptr);
+  void SubtractValueFrom(const VQwHardwareChannel* valueptr);
+  void MultiplyBy(const VQwHardwareChannel* valueptr);
+  void DivideBy(const VQwHardwareChannel* valueptr);
+
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
+  VQwScaler_Channel& operator*= (const VQwScaler_Channel &value);
+
+  VQwHardwareChannel& operator+=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator-=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator*=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator/=(const VQwHardwareChannel* input);
+
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Ratio(const VQwScaler_Channel &numer, const VQwScaler_Channel &denom);
@@ -132,13 +147,16 @@ public:
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  void AccumulateRunningSum(const VQwScaler_Channel &value);
-  void AccumulateRunningSum(const VQwHardwareChannel *value){
+  inline void AccumulateRunningSum(const VQwScaler_Channel& value){
+    AccumulateRunningSum(value, value.fGoodEventCount);
+  }
+  void AccumulateRunningSum(const VQwScaler_Channel &value, Int_t count);
+  void AccumulateRunningSum(const VQwHardwareChannel *value, Int_t count){
     const VQwScaler_Channel *tmp_ptr = dynamic_cast<const VQwScaler_Channel*>(value);
-    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
+    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr, count);
   };
-
-  void DeaccumulateRunningSum(VQwScaler_Channel &value){
+  inline void DeaccumulateRunningSum(const VQwScaler_Channel& value){
+    AccumulateRunningSum(value, -1);
   };
   
   void PrintValue() const;
@@ -152,6 +170,8 @@ public:
   virtual std::string GetExternalClockName() {  return fNormChannelName; };
   virtual void SetExternalClockPtr( const VQwHardwareChannel* clock) { fNormChannelPtr = clock; };
   virtual void SetExternalClockName( const std::string name) { fNormChannelName = name; };
+
+  void ScaledAdd(Double_t scale, const VQwHardwareChannel *value);
 
 protected:
   VQwScaler_Channel& operator/=(const VQwScaler_Channel&);

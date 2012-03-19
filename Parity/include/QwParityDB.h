@@ -57,9 +57,9 @@ class QwParityDB: public QwDatabase {
     void         SetupOneRun(QwEventBuffer& qwevt);        //<! Initialize run ID, runlet ID, and analysis ID using data from CODA event buffer
     void         FillParameterFiles(QwSubsystemArrayParity& subsys);
 
-    UInt_t GetMonitorID(const string& name);         //<! Get monitor_id for beam monitor name
-    UInt_t GetMainDetectorID(const string& name);    //<! Get main_detector_id for main detector name
-    UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
+    UInt_t GetMonitorID(const string& name, Bool_t zero_id_is_error=kTRUE);         //<! Get monitor_id for beam monitor name
+    UInt_t GetMainDetectorID(const string& name, Bool_t zero_id_is_error=kTRUE);    //<! Get main_detector_id for main detector name
+    UInt_t GetLumiDetectorID(const string& name, Bool_t zero_id_is_error=kTRUE);    //<! Get lumi_detector_id for lumi detector name
     const string GetMeasurementID(const Int_t index);
     UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
     UInt_t GetErrorCodeID(const string& name);         //<! Get error_code_id for error code name

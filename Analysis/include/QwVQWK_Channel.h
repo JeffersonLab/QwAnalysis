@@ -47,6 +47,9 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   using VQwHardwareChannel::GetValueError;
   using VQwHardwareChannel::GetValueWidth;
 
+  using VQwHardwareChannel::AccumulateRunningSum;
+  using VQwHardwareChannel::DeaccumulateRunningSum;
+
  public:
   QwVQWK_Channel(): MQwMockable() {
     InitializeChannel("","");
@@ -103,10 +106,20 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &value);
   void AssignScaledValue(const QwVQWK_Channel &value, Double_t scale);
   void AssignValueFrom(const VQwDataElement* valueptr);
+  void AddValueFrom(const VQwHardwareChannel* valueptr);
+  void SubtractValueFrom(const VQwHardwareChannel* valueptr);
+  void MultiplyBy(const VQwHardwareChannel* valueptr);
+  void DivideBy(const VQwHardwareChannel* valueptr);
 
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator*= (const QwVQWK_Channel &value);
+
+  VQwHardwareChannel& operator+=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator-=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator*=(const VQwHardwareChannel* input);
+  VQwHardwareChannel& operator/=(const VQwHardwareChannel* input);
+
   const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
@@ -118,16 +131,17 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 
-  void AccumulateRunningSum(const QwVQWK_Channel& value);
-  void AccumulateRunningSum(const VQwHardwareChannel *value){
+  inline void AccumulateRunningSum(const QwVQWK_Channel& value){
+    AccumulateRunningSum(value, value.fGoodEventCount);
+  }
+  void AccumulateRunningSum(const QwVQWK_Channel& value, Int_t count);
+  void AccumulateRunningSum(const VQwHardwareChannel *value, Int_t count){
     const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
-    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
+    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr, count);
   };
   ////deaccumulate one value from the running sum
-  void DeaccumulateRunningSum(QwVQWK_Channel& value){
-    value.fGoodEventCount=-1;
-    AccumulateRunningSum(value);
-    value.fGoodEventCount=0;
+  inline void DeaccumulateRunningSum(const QwVQWK_Channel& value){
+    AccumulateRunningSum(value, -1);
   };
   /*
   void DeaccumulateRunningSum(VQwHardwareChannel *value){
@@ -210,6 +224,8 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   void Blind(const QwBlinder *blinder);
   /// \brief Blind this channel as a difference
   void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
+
+  void ScaledAdd(Double_t scale, const VQwHardwareChannel *value);
 
   // Error Counters exist in QwVQWK_Channel, not in VQwHardwareChannel
   //

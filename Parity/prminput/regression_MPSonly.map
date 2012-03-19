@@ -1,0 +1,9 @@
+# This is an event case:
+#  two dependent variables
+#  two independent variables
+#
+# Currently disabled because of how we write ROOT trees
+#
+[mps:qwk_md1neg, mps:qwk_md1pos]
+mps:x_targ, 0.11, -0.11
+mps:y_targ, 0.12, -0.12

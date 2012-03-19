@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwHelicity;
+class QwRegression;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -202,6 +203,8 @@ class QwHelicityPattern{
   // Flag to indicate that the pattern contains data
   Bool_t fIsDataLoaded;
   void SetDataLoaded(Bool_t flag) { fIsDataLoaded = flag; };
+
+  friend class QwRegression;
 
 };
 

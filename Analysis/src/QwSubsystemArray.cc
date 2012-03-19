@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 // Qweak headers
-#include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 #include "QwLog.h"
 #include "QwParameterFile.h"
 
@@ -37,10 +37,7 @@ QwSubsystemArray::QwSubsystemArray(QwOptions& options, CanContainFn myCanContain
  * @param source Source subsystem array
  */
 QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
-: fPublishedValuesDataElement(source.fPublishedValuesDataElement),
-  fPublishedValuesSubsystem(source.fPublishedValuesSubsystem),
-  fPublishedValuesDescription(source.fPublishedValuesDescription),
-  fTreeArrayIndex(source.fTreeArrayIndex),
+: fTreeArrayIndex(source.fTreeArrayIndex),
   fCodaRunNumber(source.fCodaRunNumber),
   fCodaSegmentNumber(source.fCodaSegmentNumber),
   fCodaEventNumber(source.fCodaEventNumber),
@@ -52,9 +49,18 @@ QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
   fSubsystemsDisabledByName(source.fSubsystemsDisabledByName),
   fSubsystemsDisabledByType(source.fSubsystemsDisabledByType)
 {
+  fPublishedValuesDataElement.clear();
+  fPublishedValuesSubsystem.clear();
+  fPublishedValuesDescription.clear();
+
   // Make copies of all subsystems rather than copying just the pointers
   for (const_iterator subsys = source.begin(); subsys != source.end(); ++subsys) {
     this->push_back(subsys->get()->Clone());
+    // Instruct the subsystem to publish variables
+    if (this->back()->PublishInternalValues() == kFALSE) {
+      QwError << "Not all variables for " << this->back()->GetSubsystemName()
+             << " could be published!" << QwLog::endl;
+    }
   }
 }
 
@@ -293,8 +299,8 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const std::strin
     // Loop over the subsystems
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
 
-      // Try to cast the subsystem into the required type
-      if (VQwSubsystemFactory::Cast((*subsys).get(),type)) {
+      // Test to see if the subsystem inherits from the required type
+      if (VQwSubsystemFactory::InheritsFrom((*subsys).get(),type)) {
         subsys_list.push_back((*subsys).get());
       }
 
@@ -571,7 +577,7 @@ void QwSubsystemArray::FillTreeVector(std::vector<Double_t>& values) const
  * @param value (return) Data element with the variable name
  * @return True if the variable is found, false if not found
  */
-Bool_t QwSubsystemArray::RequestExternalValue(const TString& name, VQwDataElement* value) const
+Bool_t QwSubsystemArray::RequestExternalValue(const TString& name, VQwHardwareChannel* value) const
 {
   //  If this has a parent, we should escalate the call to that object,
   //  but so far we don't have that capability.
@@ -583,10 +589,10 @@ Bool_t QwSubsystemArray::RequestExternalValue(const TString& name, VQwDataElemen
  * @param name Variable name to be retrieved
  * @return Data element with the variable name, null if not found
  */
-const VQwDataElement* QwSubsystemArray::ReturnInternalValue(const TString& name) const
+const VQwHardwareChannel* QwSubsystemArray::ReturnInternalValue(const TString& name) const
 {
   //  First try to find the value in the list of published values.
-  std::map<TString, const VQwDataElement*>::const_iterator iter1 =
+  std::map<TString, const VQwHardwareChannel*>::const_iterator iter1 =
       fPublishedValuesDataElement.find(name);
   if (iter1 != fPublishedValuesDataElement.end()) {
     return iter1->second;
@@ -597,9 +603,17 @@ const VQwDataElement* QwSubsystemArray::ReturnInternalValue(const TString& name)
   if (iter2 != fPublishedValuesSubsystem.end()) {
     return (iter2->second)->ReturnInternalValue(name);
   }
-  //  If the value is not yet published, try asking all subsystems for it.
-  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
-    return (*subsys)->ReturnInternalValue(name);
+  //  If the value is not yet published, try requesting it.
+  if (const_cast<QwSubsystemArray*>(this)->PublishByRequest(name)){
+    iter1 = fPublishedValuesDataElement.find(name);
+    if (iter1 != fPublishedValuesDataElement.end()) {
+      return iter1->second;
+    }
+    QwError << "PublishByRequest succeeded, but can't find the record for "
+	    << name << QwLog::endl;
+    
+  } else {
+    QwError << "PublishByRequest failed for " << name << QwLog::endl;
   }
   //  Not found
   return 0;
@@ -611,21 +625,21 @@ const VQwDataElement* QwSubsystemArray::ReturnInternalValue(const TString& name)
  * @param value (return) Data element with the variable name
  * @return True if the variable was found, false if not found
  */
-Bool_t QwSubsystemArray::ReturnInternalValue(const TString& name, VQwDataElement* value) const
+Bool_t QwSubsystemArray::ReturnInternalValue(const TString& name, VQwHardwareChannel* value) const
 {
   Bool_t foundit = kFALSE;
 
   // Check for null pointer
   if (! value)
     QwWarning << "QwSubsystemArray::ReturnInternalValue requires that "
-              << "'value' be a non-null pointer to a VQwDataElement."
+              << "'value' be a non-null pointer to a VQwHardwareChannel."
               << QwLog::endl;
 
   //  Get a const pointer to the internal value
-  VQwDataElement* internal_value = const_cast<VQwDataElement*>(ReturnInternalValue(name));
+  VQwHardwareChannel* internal_value = const_cast<VQwHardwareChannel*>(ReturnInternalValue(name));
   if (value && internal_value && typeid(value) == typeid(internal_value)) {
     /// \todo TODO (wdc) Remove this ugly statement by redefining
-    ///       QwVQWK_Channel::operator= to accept any VQwDataElement.
+    ///       QwVQWK_Channel::operator= to accept any VQwHardwareChannel.
     //*(dynamic_cast<QwVQWK_Channel*>(value)) = *(dynamic_cast<QwVQWK_Channel*>(internal_value));
     value->AssignValueFrom(internal_value);
     foundit = kTRUE;
@@ -648,7 +662,7 @@ Bool_t QwSubsystemArray::PublishInternalValue(
     const TString name,
     const TString desc,
     const VQwSubsystem* subsys,
-    const VQwDataElement* element)
+    const VQwHardwareChannel* element)
 {
   if (fPublishedValuesSubsystem.count(name) > 0) {
     QwError << "Attempting to publish existing variable key!" << QwLog::endl;
@@ -660,6 +674,30 @@ Bool_t QwSubsystemArray::PublishInternalValue(
   fPublishedValuesDataElement[name] = element;
   return kTRUE;
 }
+
+/**
+ * Try to publish an internal variable matching the submitted name
+ * @param name Name of the desired published variable
+ * @return True if the variable could be published, false if not published
+ */
+Bool_t QwSubsystemArray::PublishByRequest(TString device_name){
+  Bool_t status = kFALSE;
+  if (fPublishedValuesSubsystem.count(device_name) > 0) {
+    QwError << "QwSubsystemArray::PublishByRequest:  Channel "
+	    << device_name << " has already been published."
+	    << QwLog::endl;
+    ListPublishedValues();
+    status = kTRUE;
+  } else if (not empty()) {
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys)
+      {
+        status = (*subsys)->PublishByRequest(device_name);
+	if (status) break;
+      }
+  }
+  return status;
+}
+
 
 /**
  * List the published values and description in this subsystem array
@@ -679,16 +717,9 @@ void QwSubsystemArray::ListPublishedValues() const
  * @param name Variable name to be retrieved
  * @return Data element with the variable name
  */
-VQwDataElement* QwSubsystemArray::ReturnInternalValueForFriends(const TString& name) const
+VQwHardwareChannel* QwSubsystemArray::ReturnInternalValueForFriends(const TString& name) const
 {
-  //  First try to find the value in the list of published values.
-  std::map<TString, const VQwDataElement*>::const_iterator iter =
-      fPublishedValuesDataElement.find(name);
-  if (iter != fPublishedValuesDataElement.end()) {
-    return const_cast<VQwDataElement*>(iter->second);
-  }
-  //  Not found
-  return 0;
+  return const_cast<VQwHardwareChannel*>(ReturnInternalValue(name));
 }
 
 
@@ -763,3 +794,53 @@ TList* QwSubsystemArray::GetParamFileNameList(TString name) const
     return NULL;
   }
 };
+
+
+
+/**
+ * Add the subsystem to this array.  Do nothing if the subsystem is null or if
+ * there is already a subsystem with that name in the array.
+ * @param subsys Subsystem to add to the array
+ */
+void QwSubsystemArray::push_back(boost::shared_ptr<VQwSubsystem> subsys)
+{
+  
+ if (subsys.get() == NULL) {
+   QwError << "QwSubsystemArray::push_back(): NULL subsys"
+           << QwLog::endl;
+   //  This is an empty subsystem...
+   //  Do nothing for now.
+
+ } else if (!this->empty() && GetSubsystemByName(subsys->GetSubsystemName())){
+   //  There is already a subsystem with this name!
+   QwError << "QwSubsystemArray::push_back(): subsys " << subsys->GetSubsystemName()
+           << " already exists" << QwLog::endl;
+
+ } else if (!fnCanContain(subsys.get())) {
+   //  There is no support for this type of subsystem
+   QwError << "QwSubsystemArray::push_back(): subsys " << subsys->GetSubsystemName()
+           << " is not supported by this subsystem array" << QwLog::endl;
+
+ } else {
+   boost::shared_ptr<VQwSubsystem> subsys_tmp(subsys);
+   SubsysPtrs::push_back(subsys_tmp);
+
+   // Set the parent of the subsystem to this array
+   subsys_tmp->SetParent(this);
+
+   // Update the event type mask
+   // Note: Active bits in the mask indicate event types that are accepted
+   fEventTypeMask |= subsys_tmp->GetEventTypeMask();
+
+   // Instruct the subsystem to publish variables
+   if (subsys_tmp->PublishInternalValues() == kFALSE) {
+     QwError << "Not all variables for " << subsys_tmp->GetSubsystemName()
+             << " could be published!" << QwLog::endl;
+   }
+ }
+}
+  
+  
+  
+  
+  

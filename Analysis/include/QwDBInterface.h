@@ -36,7 +36,9 @@ class QwParityDB;
 // QwMainCerenkovDetector, and QwLumi class.
 
 class QwDBInterface {
-
+ public:
+  enum EQwDBIDataTableType{kQwDBI_OtherTable, kQwDBI_BeamTable, 
+			   kQwDBI_MDTable, kQwDBI_LumiTable};
  private:
   static std::map<TString, TString> fPrefix;
 
@@ -72,6 +74,7 @@ class QwDBInterface {
     void SetMonitorID(QwParityDB *db);
     void SetMainDetectorID(QwParityDB *db);
     void SetLumiDetectorID(QwParityDB *db);
+    EQwDBIDataTableType SetDetectorID(QwParityDB *db);
     void SetMeasurementTypeID(const TString& in) {
       std::strncpy(fMeasurementTypeId, in.Data(), 3);
       fMeasurementTypeId[3] = '\0';

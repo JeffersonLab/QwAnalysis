@@ -192,7 +192,7 @@ VQwSubsystem* VQwSubsystem::GetSibling(const std::string& name) const
  */
 Bool_t VQwSubsystem::RequestExternalValue(
 	const TString& name,
-	VQwDataElement* value) const
+	VQwHardwareChannel* value) const
 {
   // Get the parent and check for existence (NOTE: only one parent supported)
   QwSubsystemArray* parent = GetParent();
@@ -212,7 +212,7 @@ Bool_t VQwSubsystem::RequestExternalValue(
 Bool_t VQwSubsystem::PublishInternalValue(
     const TString& name,
     const TString& desc,
-    const VQwDataElement* value) const
+    const VQwHardwareChannel* value) const
 {
   // Get the parent and check for existence
   QwSubsystemArray* parent = GetParent();
