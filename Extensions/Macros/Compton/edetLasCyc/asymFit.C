@@ -5,31 +5,33 @@
 #include "expAsym.C"
 #include "comptonRunConstants.h"
 
-void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
+void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips],Float_t stripAsymEr[nPlanes][nStrips])
 {
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=0;
-  Float_t calcAsym[nStrips];//,stripNum[nStrips];
-  Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
+  Bool_t debug=1;
+  Float_t calcAsym[nStrips],stripNum[nStrips];
+  Float_t stripAsym[nPlanes][nStrips];
+  Float_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
   ifstream theoAsym;
   Double_t par[4];
 
   theoryAsym(Cedge,par);
-//   theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
+  theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
+  if (theoAsym.is_open()) {
+    for(Int_t s =0 ; s <endStrip; s++) {
+      theoAsym>>stripNum[s]>>calcAsym[s];
+      if(debug) cout<<stripNum[s]<<"\t"<<calcAsym[s]<<endl;
+    }
+  }
+  else cout<<"\n***Error:Could not find the file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
+
   printf("\nthe parameters received from theoretical fitting are par[0]:%f,par[1]:%f,par[2]:%f,par[3]:%f\n\n" ,par[0],par[1],par[2],par[3]);
   TF1 *fn2 = new TF1("fn2",Form("[0] + [1]*(%f + %f*x + %f*x*x + %f*x*x*x)",par[0],par[1],par[2],par[3]),10,Cedge);
   fn2->SetParameters(0.9,0);
   fn2->SetParLimits(0,-1,1);
   fn2->SetParLimits(1,2,-2);
-//   if (theoAsym.is_open()) {
-//     for(Int_t s =0 ; s <endStrip; s++) {
-//       theoAsym>>stripNum[s]>>calcAsym[s];
-//       if(debug) cout<<stripNum[s]<<"\t"<<calcAsym[s]<<endl;
-//     }
-//   }
-//   else cout<<"\n***Error:Could not find the file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
 
-  expAsym(runnum,stripAsym,stripAsymEr);
+  expAsym(runnum,stripAsym,stripAsymEr,stripAsym_v2,stripAsymEr_v2);
   
   TGraphErrors *grTheoryAsym, *grAsymPlane[nPlanes];
   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
@@ -58,12 +60,12 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips])
     grTheoryAsym->Draw("L");    
     cAsym->Update();
   } 
-  if(debug) cout<<"\nstrip#\t\texpTheoRatio\tstripAsym\tcalcAsym"<<endl;
+  if(debug) cout<<"\nexpTheoRatio\tstripAsym\tcalcAsym"<<endl;
 
   for (Int_t p =startPlane; p <endPlane; p++) {  
-    for (Int_t s =startStrip; s < endStrip; s++) {  
+    for (Int_t s =startStrip; s <= Cedge; s++) {  
       if (maskedStrips(p,s)) continue;
-      if (calcAsym[s]!= 0.0) expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
+      expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
       if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %e\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
     }     
   }

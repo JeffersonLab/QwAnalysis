@@ -4,11 +4,6 @@
 #include <rootClass.h>
 
 //Directory paths
-//TString wwwPath=Form("$QWSCRATCH")+TString("/www/run_%d/edetLasCyc_%d_");
-//TString wwwPath = getenv("QWSCRATCH") + TString("/www/");//this has worked!
-//TString wwwPath(gSystem->Getenv("QWSCRATCH/www/"));
-//  TString prefix(Form("%s/run_%d/edetLasCyc_%d_",wwwPath,run,run));
-//TString pPath = TString(gSystem->Getenv("QWSCRATCH"));
 const char *pPath = getenv("QWSCRATCH");
 const char *webDirectory= "www";
 
@@ -49,7 +44,7 @@ const Int_t startStrip = 0;
  const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
-const Int_t Cedge = 48;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge = 54;///Compton-edge for the current run(counting from 0)
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
