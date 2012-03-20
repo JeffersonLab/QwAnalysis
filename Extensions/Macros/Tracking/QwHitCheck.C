@@ -1,15 +1,25 @@
 // Author : Jeong Han Lee
 // Date   : Friday, January 27 15:26:23 EST 2012
 // 
-//         TS, MD, and Scanner Hit and histogram plot script
-//         ROOT file is opened before loading this script
+//         a TS, MD, and Scanner Hit and histogram plot script
+//         which is written for Jeong Han Lee. So it is very
+//         incovenient to run this script
+//
+//
+//  NOTE that : a ROOT file must be opened with qwroot before loading this script
+//              'tab' will show possible options of a function
+//              
 
-//         qwroot TrackingDAQ_15144.root
-//         .L QwHitCheck.C
-//         TSGeneralPlot()
-
+//         For example 
+//        
+//         ~$ qwroot $QW_ROOTFILES/TrackingDAQ_15144.root
+//         Qw-Root [1] .L $QWANALYSIS/Extensions/Macros/Tracking/QwHitCheck.C 
+//         Qw-Root [2] TSsMTPlot()
+//                     
 //          0.0.1 : Friday, January 27 15:26:27 EST 2012
-//                  
+//          0.0.2 : Tuesday, March 20 00:03:53 EDT 2012, jhlee
+//                  - added more description which how to use
+//                  - refined TSsMT and MDsMT functions        
 // 
 
  gStyle->SetStatW(0.4);//   - set the width of a stat box
