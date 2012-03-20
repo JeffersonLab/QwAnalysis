@@ -137,18 +137,24 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TF1* fitfunx = new TF1("fitfunx","pol1",fit_range[0],fit_range[1]);
   TF1* fitfuny = new TF1("fitfuny","pol1",fit_range[0],fit_range[1]);
 
-  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,charge_scale;
+  Double_t current,current_check,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,charge_scale;
   TString cut_charge;
   TCanvas *c0 = new TCanvas("c0","c0",340,340,100,100);
   c0->cd();
   //   ts->Draw("ibcm1>>bcm1","","goff");bcm1->Draw("goff");
 
+
+  th->Draw("yield_qwk_charge>>cur",Form("%s && yield_qwk_charge.%s",s1,s2),"goff");
+  current_check = GetHist("cur")->GetEntries();
+  if(!current_check){
+    printf("%sRun %d: No data for this run. Exiting program %s\n",blue,run_number,normal);
+    exit(1);
+  }
+
   //  Extract raster settings.
   ts->Draw("EHCFR_LIXWidth>>rasterx","","goff");
   ts->Draw("EHCFR_LIYWidth>>rastery","","goff");
 
-
-  th->Draw("yield_qwk_charge>>cur",Form("%s && yield_qwk_charge.%s",s1,s2),"goff");
   th->Draw("(asym_qwk_bcm7-asym_qwk_bcm8)*1e6>>bcmdd",Form("%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",s1,s2,s2),"goff");
   th->Draw("asym_qwk_charge*1e6>>abcm",Form("%s && asym_qwk_charge.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");
