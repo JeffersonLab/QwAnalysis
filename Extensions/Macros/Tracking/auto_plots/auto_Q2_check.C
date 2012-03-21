@@ -37,12 +37,16 @@
 
 #include "auto_shared_includes.h"
 
+#include "TSystem.h"
 #include "TF1.h"
 #include "TLeaf.h"
 
 #include "QwEvent.h"
 #include "QwTrack.h"
 #include "QwHit.h"
+
+#include <fstream>
+#include <iostream>
 
 const int multiple=18;
 
@@ -60,6 +64,8 @@ event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.f
 
 int j = int (h->GetMean());
 
+delete h;
+
 return (j);
 }
 
@@ -67,7 +73,8 @@ return (j);
 void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1, int event_end=-1, TString stem="Qweak_", string suffix=""){
 
 
-   outputPrefix = Form("$QWSCRATCH/tracking/www/run_%d/auto_hdc_%d_",runnum,runnum);
+  // changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly 
+   outputPrefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/auto_hdc_%d_",runnum,runnum);
 
    // Create and load the chain
    TChain *event_tree = new TChain("event_tree");
@@ -262,6 +269,52 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
     if(q2_2->GetEntries()!=0) {
       cout << "pkg2: " <<  setprecision(5) << 1000*q2_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
     }
+    
+    //print to file 
+    //this file and evrything related to it is fout
+    std::ofstream fout;
+    
+    //open file
+    // open file with outputPrefix+q2.txt which will store the output of the vlaues to a file in a easy way that should be able to be read back into a program if needed
+    fout.open(outputPrefix+"q2.txt");
+    if (!fout.is_open()) cout << "File not opened" << endl;
+    
+    //outputPrefix will inculed run number which we need.
+    
+
+    //Name what each coulmn is Note Package 0 is the compination of package 1 and package 2
+    //Error is the RMS.sqrt(N)
+    fout << "What \t Run \t Pkg \t Value \t Error" <<endl; 
+     
+    fout << "Ntrig \t " << runnum << "\t 0 \t" << angle->GetEntries()<< endl;
+    fout << "Ntrig \t " << runnum << "\t 1 \t" << angle_1->GetEntries() << endl;
+    fout << "Ntrig \t " << runnum << "\t 2 \t" << angle_2->GetEntries() << endl;
+     
+    //fout << "scattering angle: " << endl;
+    if(angle->GetEntries()) {
+      fout << "angle \t " << runnum <<"\t 0 \t" << setprecision(5) << angle->GetMean() << "\t" << setprecision(4) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
+    }
+    if(angle_1->GetEntries()!=0) {
+      fout << "angle \t " << runnum <<"\t 1 \t" << setprecision(5) << angle_1->GetMean() << "\t" << setprecision(4) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
+    }
+    if(angle_2->GetEntries()!=0) {
+      fout << "angle \t " << runnum <<"\t 2 \t" <<  setprecision(5) << angle_2->GetMean() << " \t " <<  setprecision(4) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
+    }
+
+    //fout << "q2: " << endl;
+    if(q2->GetEntries()) {
+      fout << "q2 \t " << runnum <<"\t 0 \t" <<  setprecision(5) << 1000*q2->GetMean() << " \t " <<  setprecision(4) << 1000*q2->GetRMS()/sqrt(q2->GetEntries()) << endl;
+    }
+    if(q2_1->GetEntries()!=0) {
+      fout << "q2 \t " << runnum <<"\t 1 \t" <<  setprecision(5) << 1000*q2_1->GetMean() << " \t " <<  setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
+    }
+    if(q2_2->GetEntries()!=0) {
+      fout << "q2 \t " << runnum <<"\t 2 \t" <<  setprecision(5) << 1000*q2_2->GetMean() << " \t " <<  setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
+    }
+    
+    //close the file
+    fout.close();
+    
     
     TCanvas* c=new TCanvas("c","c",800,600);
     c->Divide(2,3);
