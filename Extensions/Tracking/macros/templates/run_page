@@ -55,6 +55,11 @@
 </tr>
 </table>
 
+<a name="Q2"></a>
+<center><h2>Q2 Plots and Values</h2></center>
+<p><center><img src="auto_hdc_%%RUNNUM%%_q2.png"></center></p>
+<p><center><a href="auto_hdc_%%RUNNUM%%_q2.txt">Q2 Values</a></center></p>
+
 <a name="hdc"></a>
 <center><h2>Horizontal Drift Chamber Plots</h2></center>
 <p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png"></center></p>
