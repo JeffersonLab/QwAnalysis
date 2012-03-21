@@ -105,6 +105,8 @@ class QwRegression {
     /// Helicity pattern pointer
     QwHelicityPattern* fHelicityPattern;
 
+    UInt_t fErrorFlag;
+
     /// Parse regression variable in type and name
     std::pair<EQwRegType,std::string> ParseRegressionVariable(const std::string& variable);
 

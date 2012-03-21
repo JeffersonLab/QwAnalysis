@@ -756,23 +756,23 @@ Bool_t QwLumi::PublishInternalValues() const
   
   status = status && PublishInternalValue("uslumisum", "uslumisum", GetCombinedPMT("uslumi_sum")->GetChannel("uslumi_sum"));
   
-  status = status && PublishInternalValue("qwk_uslumi1neg", "qwk_uslumi1neg", GetCombinedPMT("qwk_uslumi1neg")->GetChannel("qwk_uslumi1neg"));
-  status = status && PublishInternalValue("qwk_uslumi1pos", "qwk_uslumi1pos", GetCombinedPMT("qwk_uslumi1pos")->GetChannel("qwk_uslumi1pos"));
-  status = status && PublishInternalValue("qwk_uslumi3neg", "qwk_uslumi3neg", GetCombinedPMT("qwk_uslumi3neg")->GetChannel("qwk_uslumi3neg"));
-  status = status && PublishInternalValue("qwk_uslumi3pos", "qwk_uslumi3pos", GetCombinedPMT("qwk_uslumi3pos")->GetChannel("qwk_uslumi3pos"));
-  status = status && PublishInternalValue("qwk_uslumi5neg", "qwk_uslumi5neg", GetCombinedPMT("qwk_uslumi5neg")->GetChannel("qwk_uslumi5neg"));
-  status = status && PublishInternalValue("qwk_uslumi5pos", "qwk_uslumi5pos", GetCombinedPMT("qwk_uslumi5pos")->GetChannel("qwk_uslumi5pos"));
-  status = status && PublishInternalValue("qwk_uslumi7neg", "qwk_uslumi7neg", GetCombinedPMT("qwk_uslumi7neg")->GetChannel("qwk_uslumi7neg"));
-  status = status && PublishInternalValue("qwk_uslumi7pos", "qwk_uslumi7pos", GetCombinedPMT("qwk_uslumi7pos")->GetChannel("qwk_uslumi7pos"));
+  status = status && PublishInternalValue("qwk_uslumi1neg", "qwk_uslumi1neg", GetIntegrationPMT("qwk_uslumi1neg")->GetChannel("qwk_uslumi1neg"));
+  status = status && PublishInternalValue("qwk_uslumi1pos", "qwk_uslumi1pos", GetIntegrationPMT("qwk_uslumi1pos")->GetChannel("qwk_uslumi1pos"));
+  status = status && PublishInternalValue("qwk_uslumi3neg", "qwk_uslumi3neg", GetIntegrationPMT("qwk_uslumi3neg")->GetChannel("qwk_uslumi3neg"));
+  status = status && PublishInternalValue("qwk_uslumi3pos", "qwk_uslumi3pos", GetIntegrationPMT("qwk_uslumi3pos")->GetChannel("qwk_uslumi3pos"));
+  status = status && PublishInternalValue("qwk_uslumi5neg", "qwk_uslumi5neg", GetIntegrationPMT("qwk_uslumi5neg")->GetChannel("qwk_uslumi5neg"));
+  status = status && PublishInternalValue("qwk_uslumi5pos", "qwk_uslumi5pos", GetIntegrationPMT("qwk_uslumi5pos")->GetChannel("qwk_uslumi5pos"));
+  status = status && PublishInternalValue("qwk_uslumi7neg", "qwk_uslumi7neg", GetIntegrationPMT("qwk_uslumi7neg")->GetChannel("qwk_uslumi7neg"));
+  status = status && PublishInternalValue("qwk_uslumi7pos", "qwk_uslumi7pos", GetIntegrationPMT("qwk_uslumi7pos")->GetChannel("qwk_uslumi7pos"));
  
-  status = status && PublishInternalValue("qwk_dslumi1", "qwk_dslumi1", GetCombinedPMT("qwk_dslumi1")->GetChannel("qwk_dslumi1"));
-  status = status && PublishInternalValue("qwk_dslumi2", "qwk_dslumi2", GetCombinedPMT("qwk_dslumi2")->GetChannel("qwk_dslumi2"));
-  status = status && PublishInternalValue("qwk_dslumi3", "qwk_dslumi3", GetCombinedPMT("qwk_dslumi3")->GetChannel("qwk_dslumi3"));
-  status = status && PublishInternalValue("qwk_dslumi4", "qwk_dslumi4", GetCombinedPMT("qwk_dslumi4")->GetChannel("qwk_dslumi4"));
-  status = status && PublishInternalValue("qwk_dslumi5", "qwk_dslumi5", GetCombinedPMT("qwk_dslumi5")->GetChannel("qwk_dslumi5"));
-  status = status && PublishInternalValue("qwk_dslumi6", "qwk_dslumi6", GetCombinedPMT("qwk_dslumi6")->GetChannel("qwk_dslumi6"));
-  status = status && PublishInternalValue("qwk_dslumi7", "qwk_dslumi7", GetCombinedPMT("qwk_dslumi7")->GetChannel("qwk_dslumi7"));
-  status = status && PublishInternalValue("qwk_dslumi8", "qwk_dslumi8", GetCombinedPMT("qwk_dslumi8")->GetChannel("qwk_dslumi8"));
+  status = status && PublishInternalValue("qwk_dslumi1", "qwk_dslumi1", GetIntegrationPMT("qwk_dslumi1")->GetChannel("qwk_dslumi1"));
+  status = status && PublishInternalValue("qwk_dslumi2", "qwk_dslumi2", GetIntegrationPMT("qwk_dslumi2")->GetChannel("qwk_dslumi2"));
+  status = status && PublishInternalValue("qwk_dslumi3", "qwk_dslumi3", GetIntegrationPMT("qwk_dslumi3")->GetChannel("qwk_dslumi3"));
+  status = status && PublishInternalValue("qwk_dslumi4", "qwk_dslumi4", GetIntegrationPMT("qwk_dslumi4")->GetChannel("qwk_dslumi4"));
+  status = status && PublishInternalValue("qwk_dslumi5", "qwk_dslumi5", GetIntegrationPMT("qwk_dslumi5")->GetChannel("qwk_dslumi5"));
+  status = status && PublishInternalValue("qwk_dslumi6", "qwk_dslumi6", GetIntegrationPMT("qwk_dslumi6")->GetChannel("qwk_dslumi6"));
+  status = status && PublishInternalValue("qwk_dslumi7", "qwk_dslumi7", GetIntegrationPMT("qwk_dslumi7")->GetChannel("qwk_dslumi7"));
+  status = status && PublishInternalValue("qwk_dslumi8", "qwk_dslumi8", GetIntegrationPMT("qwk_dslumi8")->GetChannel("qwk_dslumi8"));
 
   status = status && PublishInternalValue("uslumi1_sum", "uslumi1_sum", GetCombinedPMT("uslumi1_sum")->GetChannel("uslumi1_sum"));
   status = status && PublishInternalValue("uslumi3_sum", "uslumi3_sum", GetCombinedPMT("uslumi3_sum")->GetChannel("uslumi3_sum"));
@@ -850,17 +850,17 @@ Int_t QwLumi::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
 }
 
 //*****************************************************************
-QwIntegrationPMT* QwLumi::GetChannel(const TString name)
+const QwIntegrationPMT* QwLumi::GetChannel(const TString name) const
 {
   return GetIntegrationPMT(name);
 }
 
 
 //*****************************************************************
-QwIntegrationPMT* QwLumi::GetIntegrationPMT(const TString name)
+const QwIntegrationPMT* QwLumi::GetIntegrationPMT(const TString name) const
 {
   if (! fIntegrationPMT.empty()) {
-    for (std::vector<QwIntegrationPMT>::iterator IntegrationPMT = fIntegrationPMT.begin(); IntegrationPMT != fIntegrationPMT.end(); ++IntegrationPMT) {
+    for (std::vector<QwIntegrationPMT>::const_iterator IntegrationPMT = fIntegrationPMT.begin(); IntegrationPMT != fIntegrationPMT.end(); ++IntegrationPMT) {
       if (IntegrationPMT->GetElementName() == name) {
         return &(*IntegrationPMT);
       }

@@ -43,7 +43,7 @@ QwRegression::QwRegression(
  * @param event Single event
  * 
  */
-QwRegression::QwRegression(QwOptions &options, QwSubsystemArrayParity& event)
+QwRegression::QwRegression(QwOptions &options, QwSubsystemArrayParity& event):fHelicityPattern(NULL)
 {
     fEnableRegression = false;
     ProcessOptions(options);
@@ -59,7 +59,7 @@ QwRegression::QwRegression(QwOptions &options, QwSubsystemArrayParity& event)
  * @param helicitypattern Helicity Pattern
  * 
  */
-QwRegression::QwRegression(QwOptions &options, QwHelicityPattern& helicitypattern)
+QwRegression::QwRegression(QwOptions &options, QwHelicityPattern& helicitypattern):fSubsystemArray(NULL)
 {
   fEnableRegression = false;
   ProcessOptions(options);
@@ -85,7 +85,8 @@ QwRegression::QwRegression(QwOptions &options)
 
 QwRegression::QwRegression(const QwRegression &source):
   fEnableRegression(source.fEnableRegression),
-  fRegressionMapFile(source.fRegressionMapFile)
+  fRegressionMapFile(source.fRegressionMapFile),
+  fErrorFlag(source.fErrorFlag)
 {
     this->fDependentVar.resize(source.fDependentVar.size());
     fDependentVarType.resize(source.fDependentVar.size());
@@ -534,12 +535,19 @@ void QwRegression::ProcessOptions(QwOptions &options)
 /// Do the linear regression
 void QwRegression::LinearRegression(EQwRegType type)
 {
-
-
   // Return if regression is not enabled
   if (! fEnableRegression){
     QwDebug << "Regression is not enabled!" << QwLog::endl;
     return;
+  }
+  // Get error flag from QwHelicityPattern
+  if (fHelicityPattern != NULL){
+    fErrorFlag = fHelicityPattern->GetEventcutErrorFlag();
+  } else if (fSubsystemArray != NULL){
+    fErrorFlag = fSubsystemArray->GetEventcutErrorFlag();
+  } else {
+    QwError << "QwRegression::LinearRegression: Can't set fErrorFlag" << QwLog::endl;
+    fErrorFlag = 0;
   }
   // Linear regression for each dependent variable
   for (size_t dv = 0; dv < fDependentVar.size(); dv++) {
@@ -603,8 +611,10 @@ void QwRegression::FillTreeVector(std::vector<Double_t>& values) const
     
 void QwRegression::AccumulateRunningSum(QwRegression value)
 {
-  for (size_t i = 0; i < value.fDependentVar.size(); i++){
-    this->fDependentVar[i].second->AccumulateRunningSum(value.fDependentVar[i].second);
+  if (value.fErrorFlag==0){
+    for (size_t i = 0; i < value.fDependentVar.size(); i++){
+      this->fDependentVar[i].second->AccumulateRunningSum(value.fDependentVar[i].second);
+    }
   }
 }
 
@@ -657,6 +667,12 @@ void QwRegression::FillDB(QwParityDB *db, TString datatype)
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMeasurementTypeID( measurement_type );
       tabletype = interface.at(j).SetDetectorID( db );
+      if (tabletype==QwDBInterface::kQwDBI_OtherTable){
+	TString tmp_name = interface.at(j).GetDeviceName();
+	tmp_name.Remove(0,5);
+	interface.at(j).SetDetectorName(tmp_name);
+	tabletype = interface.at(j).SetDetectorID( db );
+      }
       if (tabletype==QwDBInterface::kQwDBI_BeamTable){
 	interface.at(j).AddThisEntryToList( beamlist );
       } else if (tabletype==QwDBInterface::kQwDBI_MDTable){
