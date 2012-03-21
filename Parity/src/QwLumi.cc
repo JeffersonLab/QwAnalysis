@@ -755,7 +755,36 @@ Bool_t QwLumi::PublishInternalValues() const
   Bool_t status = kTRUE;
   
   status = status && PublishInternalValue("uslumisum", "uslumisum", GetCombinedPMT("uslumi_sum")->GetChannel("uslumi_sum"));
+  
+  status = status && PublishInternalValue("qwk_uslumi1neg", "qwk_uslumi1neg", GetCombinedPMT("qwk_uslumi1neg")->GetChannel("qwk_uslumi1neg"));
+  status = status && PublishInternalValue("qwk_uslumi1pos", "qwk_uslumi1pos", GetCombinedPMT("qwk_uslumi1pos")->GetChannel("qwk_uslumi1pos"));
+  status = status && PublishInternalValue("qwk_uslumi3neg", "qwk_uslumi3neg", GetCombinedPMT("qwk_uslumi3neg")->GetChannel("qwk_uslumi3neg"));
+  status = status && PublishInternalValue("qwk_uslumi3pos", "qwk_uslumi3pos", GetCombinedPMT("qwk_uslumi3pos")->GetChannel("qwk_uslumi3pos"));
+  status = status && PublishInternalValue("qwk_uslumi5neg", "qwk_uslumi5neg", GetCombinedPMT("qwk_uslumi5neg")->GetChannel("qwk_uslumi5neg"));
+  status = status && PublishInternalValue("qwk_uslumi5pos", "qwk_uslumi5pos", GetCombinedPMT("qwk_uslumi5pos")->GetChannel("qwk_uslumi5pos"));
+  status = status && PublishInternalValue("qwk_uslumi7neg", "qwk_uslumi7neg", GetCombinedPMT("qwk_uslumi7neg")->GetChannel("qwk_uslumi7neg"));
+  status = status && PublishInternalValue("qwk_uslumi7pos", "qwk_uslumi7pos", GetCombinedPMT("qwk_uslumi7pos")->GetChannel("qwk_uslumi7pos"));
+ 
+  status = status && PublishInternalValue("qwk_dslumi1", "qwk_dslumi1", GetCombinedPMT("qwk_dslumi1")->GetChannel("qwk_dslumi1"));
+  status = status && PublishInternalValue("qwk_dslumi2", "qwk_dslumi2", GetCombinedPMT("qwk_dslumi2")->GetChannel("qwk_dslumi2"));
+  status = status && PublishInternalValue("qwk_dslumi3", "qwk_dslumi3", GetCombinedPMT("qwk_dslumi3")->GetChannel("qwk_dslumi3"));
+  status = status && PublishInternalValue("qwk_dslumi4", "qwk_dslumi4", GetCombinedPMT("qwk_dslumi4")->GetChannel("qwk_dslumi4"));
+  status = status && PublishInternalValue("qwk_dslumi5", "qwk_dslumi5", GetCombinedPMT("qwk_dslumi5")->GetChannel("qwk_dslumi5"));
+  status = status && PublishInternalValue("qwk_dslumi6", "qwk_dslumi6", GetCombinedPMT("qwk_dslumi6")->GetChannel("qwk_dslumi6"));
+  status = status && PublishInternalValue("qwk_dslumi7", "qwk_dslumi7", GetCombinedPMT("qwk_dslumi7")->GetChannel("qwk_dslumi7"));
+  status = status && PublishInternalValue("qwk_dslumi8", "qwk_dslumi8", GetCombinedPMT("qwk_dslumi8")->GetChannel("qwk_dslumi8"));
 
+  status = status && PublishInternalValue("uslumi1_sum", "uslumi1_sum", GetCombinedPMT("uslumi1_sum")->GetChannel("uslumi1_sum"));
+  status = status && PublishInternalValue("uslumi3_sum", "uslumi3_sum", GetCombinedPMT("uslumi3_sum")->GetChannel("uslumi3_sum"));
+  status = status && PublishInternalValue("uslumi5_sum", "uslumi5_sum", GetCombinedPMT("uslumi5_sum")->GetChannel("uslumi5_sum"));
+  status = status && PublishInternalValue("uslumi7_sum", "uslumi7_sum", GetCombinedPMT("uslumi7_sum")->GetChannel("uslumi7_sum"));
+  
+  status = status && PublishInternalValue("dslumi_odd", "dslumi_odd", GetCombinedPMT("dslumi_odd")->GetChannel("dslumi_odd"));
+  status = status && PublishInternalValue("dslumi_even", "dslumi_even", GetCombinedPMT("dslumi_even")->GetChannel("dslumi_even"));
+  status = status && PublishInternalValue("dslumi_sum", "dslumi_sum", GetCombinedPMT("dslumi_sum")->GetChannel("dslumi_sum"));
+
+
+ 
   return status;
 }
 
