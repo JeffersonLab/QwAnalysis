@@ -1,7 +1,6 @@
 !**************************************************************************
 !  HALL C  BEAMLINE
 !**************************************************************************
-!
 ! 2/12/2012 B.Waidyawansa : Rearranged 3c16 wires to fix the wire mixup done at bpm can.
 !
 !
@@ -76,7 +75,7 @@ sample_size=464
    VQWK, 5, 6,  bpmstripline,  QWK_BPM3C12YP
    VQWK, 5, 7,  bpmstripline,  QWK_BPM3C12YM
 
-!ADC6, Slot 10, Address 31, 0x82
+!ADC6, Slot 10, Address 31, 0x82 
    VQWK, 6, 0,  bpmstripline,  QWK_BPM3C14XP
    VQWK, 6, 1,  bpmstripline,  QWK_BPM3C14XM
    VQWK, 6, 2,  bpmstripline,  QWK_BPM3C14YP
@@ -210,10 +209,11 @@ Bank=0x6103
 begin=combinedbcm
 name=qwk_charge
 !name	   type	 wieght
-  qwk_bcm5,  bcm, 1.0
-
-
+  qwk_bcm1,  bcm, 1.0
+  qwk_bcm2,  bcm, 1.0
+!  qwk_bcm5,  bcm, 1.0
 end=combinedbcm
+
 
 begin=combinedbpm
 name=qwk_target	
@@ -224,7 +224,6 @@ name=qwk_target
  QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
  QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
-
 
 
 ! The X and Y weights were obtained using run 10220 at 150uA.
@@ -286,4 +285,3 @@ end=energycalculator
  yp_targ, combobpm,  qwk_target, yp
  e_targ, comboenergy,  qwk_energy, e
  qwk_3c16_effectivecharge, bpmstripline, qwk_bpm3c16, ef
-
