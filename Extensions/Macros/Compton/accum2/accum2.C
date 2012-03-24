@@ -43,7 +43,7 @@ using namespace std;
 //instructs the program whether or not to delete everything upon closing.///
 ///////////////////////////////////////////////////////////////////////////
 
-Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE){
+Int_t accum2(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALSE){
 
   gROOT->SetStyle("Plain");
   gStyle->SetCanvasColor(0);
@@ -82,15 +82,15 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   //TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
   gSystem->mkdir(www,true);
   gSystem->mkdir(www,true);
-  TString canvas1 = www + "accum03_plots.png";
-  TString canvas2 = www + "accum03_asymm.png";
-  TString canvas3 = www + "accum03_yieldvspatnum.png";
+  TString canvas1 = www + "accum2_plots.png";
+  TString canvas2 = www + "accum2_asymm.png";
+  TString canvas3 = www + "accum2_yieldvspatnum.png";
   TString canvas4;
   Bool_t beamTripInLasCycle = kFALSE;
 
 
   // File for storing stats.
-  TString stats =  www + "accum03_stats.txt";
+  TString stats =  www + "accum2_stats.txt";
   FILE *polstats = fopen(stats.Data(),"w");
 
  
@@ -118,7 +118,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
  
   if(nCuts>NCUTS-2){//Stop execution if # of cuts exceeds initialized array.
     printf("Number of cuts exceeds program limits.");
-    printf("Need to increase NCUTS value in analyzeAccum03.C.\n");
+    printf("Need to increase NCUTS value in analyzeaccum2.C.\n");
     cutLas.vector::~vector();
     cutEB.vector::~vector();
     return 0;
@@ -152,7 +152,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   Double_t minCur = hB->GetBinLowEdge(hB->FindFirstBinAbove(50)-1);
   delete hB;
 
-  helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum>>hTemp(100)","","goff");
+  helChain->Draw("yield_fadc_compton_accum2.hw_sum>>hTemp(100)","","goff");
   hTemp = (TH1D*)gDirectory->Get("hTemp");
   Double_t maxYield = hTemp->GetBinLowEdge(hTemp->FindLastBinAbove(100)+1);
   std::cout<<"maxCur="<<maxCur<<std::endl;
@@ -405,7 +405,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
     std::cout<<"cutTemp="<<cutTemp<<"\n"<<std::endl;
     asymCut.push_back(lasOnCut && cutTemp2);//laser locked and PMT on and e-beam On
     std::cout<<"asymCut="<<asymCut[i]<<"\n"<<std::endl;
-    helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum>>h(100)",bkgCut[i],"goff");
+    helChain->Draw("yield_fadc_compton_accum2.hw_sum>>h(100)",bkgCut[i],"goff");
     // gPad->Update();
     TH1D *h = (TH1D*)gDirectory->Get("h");
     Double_t mean = h->GetMean(), width = h->GetRMS(), nEnt = h->GetEntries(), err;
@@ -428,7 +428,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
 	      << "bkgWidth[" << i << "]=" << bkgWidth[i] <<",  "
 	      << "bkgErr[" << i << "]=" <<bkgErr[i]<<",  "
 	      << "nEntries=" << nEnt << std::endl;
-    helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum>>ha(100)", asymCut[i],"goff");
+    helChain->Draw("yield_fadc_compton_accum2.hw_sum>>ha(100)", asymCut[i],"goff");
     TH1D *ha = (TH1D*)gDirectory->Get("ha");
     nEnt = (Double_t)ha->GetEntries();
     enoughLasOnData = nEnt > MIN_ENTRIES;
@@ -454,12 +454,12 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
     {
       Double_t hbin = (Double_t)cutLas.at(2*i+3) + 1000.0;
       Double_t lbin = (Double_t)cutLas.at(2*i) - 1000.0;
-      helChain->Draw(Form("(yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum)*%e:Entry$>>hBkgd(300,%e,%e,"
+      helChain->Draw(Form("yield_fadc_compton_accum2.hw_sum*%e:Entry$>>hBkgd(300,%e,%e,"
 			  "300,-5,100)",90./maxYield, lbin, hbin), bkgCut.at(i), "goff");
       hBkgd=(TH2D*)gDirectory->Get("hBkgd");
       hBkgd->SetMarkerColor(kBlue);
       hBkgd->SetLineColor(kBlue);
-      helChain->Draw(Form("(yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum)*%e:Entry$>>hLocked(300,%e,%e,"
+      helChain->Draw(Form("yield_fadc_compton_accum2.hw_sum*%e:Entry$>>hLocked(300,%e,%e,"
 			  "300,-5,100)",90./maxYield,lbin,hbin), asymCut.at(i) , "goff");
       hLocked=(TH2D*)gDirectory->Get("hLocked");
       hLocked->SetMarkerColor(kRed);
@@ -542,12 +542,12 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   }
 
  
-  /////////////////////////////////////////////////////////
-  //***Draw accumulator 03 yield with different colors***//
-  //***for Laser On and Laser Off states.             ***//
-  /////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  //***Draw accumulator 2 yield with different colors***//
+  //***for Laser On and Laser Off states.            ***//
+  ////////////////////////////////////////////////////////
   c1->cd(2);
-  helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum>>h(100)","","goff");
+  helChain->Draw("yield_fadc_compton_accum2.hw_sum>>h(100)","","goff");
   TH1F *h = (TH1F*)gDirectory->Get("h");
   if(h->GetEntries()==0){
     printf("\n\nNo useful events in Run %d.\n\n\n",runnum);
@@ -578,14 +578,14 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
 
   TH1F *hYieldOn = new TH1F("hYieldOn", "hYieldOn", 300, lBinY, hBinY);
   TH1F *hYieldOff = new TH1F("hYieldOff", "hYieldOff", 300, lBinY, hBinY);
-  helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum>>hYieldOn",
+  helChain->Draw("yield_fadc_compton_accum2.hw_sum>>hYieldOn",
 		   lasONCut && pmtCut,"goff");
   hYieldOn->SetLineColor(kGreen);
-  hYieldOn->GetXaxis()->SetTitle("Accumulator_03 Yields");
-  hYieldOff->GetXaxis()->SetTitle("Accumulator_03 Yields");
-  hYieldOn->SetTitle("Accumulator_03 Yields");
-  hYieldOff->SetTitle("Accumulator_03 Yields");
-  helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum>>hYieldOff",
+  hYieldOn->GetXaxis()->SetTitle("Accumulator_2 Yields");
+  hYieldOff->GetXaxis()->SetTitle("Accumulator_2 Yields");
+  hYieldOn->SetTitle("Accumulator_2 Yields");
+  hYieldOff->SetTitle("Accumulator_2 Yields");
+  helChain->Draw("yield_fadc_compton_accum2.hw_sum>>hYieldOff",
 		 lasOFFCut && pmtCut && bcmCut,"goff");
   hYieldOff->SetLineColor(kBlue);
   if(hYieldOn->GetMaximum()>hYieldOff->GetMaximum()){
@@ -618,11 +618,11 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   legend1->Draw();
   gPad->Update();
   
-  //////////////////////////////////////////////////////////
-  //***Draw accumulator 03 yield vs pattern number with***//
-  //***different colors for laser On and Off states.   ***//
-  //***Superimpose scaled laser power on plot as well. ***//
-  //////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  //***Draw Accumulator 2 yield vs pattern number with***//
+  //***different colors for laser On and Off states.  ***//
+  //***Superimpose scaled laser power on plot as well.***//
+  ////////////////////////////////////////////////////////
   c1->cd(3);
   gStyle->SetOptStat(111);
   helChain->Draw("yield_sca_laser_PowT>>hPowT(100)");
@@ -656,8 +656,8 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   hOn->SetMarkerColor(kGreen);
   hOn->SetLineColor(kGreen);
   hOn->GetXaxis()->SetTitle("Pattern Number");
-  hOn->GetYaxis()->SetTitle("Accumulator 03 Values");
-  hOn->SetTitle("Accumulator 03 vs. Pattern Number");
+  hOn->GetYaxis()->SetTitle("Accumulator 2 Values");
+  hOn->SetTitle("Accumulator 2 vs. Pattern Number");
   hOff->SetMarkerColor(kBlue);
   hOff->SetLineColor(kBlue);
   hPow->SetMarkerColor(kRed);
@@ -670,12 +670,12 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   hBeamOff->SetLineColor(kGray+1);
 
 
-  helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum:pattern_number>>hOn",
+  helChain->Draw("yield_fadc_compton_accum2.hw_sum:pattern_number>>hOn",
 		   lasONCut && pmtCut);
   gPad->Update();
-  helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum:pattern_number>>hBeamOff",
+  helChain->Draw("yield_fadc_compton_accum2.hw_sum:pattern_number>>hBeamOff",
 		 Form("%s<%f", BCM, cutCur), "same");
-  helChain->Draw("yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum:pattern_number>>hOff",
+  helChain->Draw("yield_fadc_compton_accum2.hw_sum:pattern_number>>hOff",
 		 lasOFFCut && pmtCut && bcmCut,"sames");
   gPad->Update();
   TPaveStats *st1 = (TPaveStats*)gPad->GetPrimitive("stats");
@@ -810,19 +810,19 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
 
   gPad->Update();
 
-  ///////////////////////////////////////////////////////////////
-  //***Draw Accumulator 03 Differences for Laser On and Off.***//
-  ///////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
+  //***Draw Accumulator 2 Differences for Laser On and Off.***//
+  //////////////////////////////////////////////////////////////
   c1->cd(4);
   gStyle->SetOptStat(111111);
-  helChain->Draw("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)*2>>h",
+  helChain->Draw("diff_fadc_compton_accum2.hw_sum*2>>h",
 		 Form("yield_sca_laser_PowT>%e", cutval1),"goff");
   h = (TH1F*)gDirectory->Get("h");
   hBinX =   h->GetMean() + h->GetRMS()*3;
   lBinX = h->GetMean() - h->GetRMS()*3;
   //std::cout<<"\nhBinx="<<hBinX<<",  lBinX="<<lBinX<<"\n"<<std::endl;
   delete h;
-  helChain->Draw(Form("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)*2>>h(100,%e,%e)",
+  helChain->Draw(Form("diff_fadc_compton_accum2.hw_sum*2>>h(100,%e,%e)",
 		      lBinX, hBinX), Form("yield_sca_laser_PowT>%e", 
 					 cutval1),"goff");
   h = (TH1F*)gDirectory->Get("h");
@@ -830,7 +830,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   lBinX =  h->GetMean() - h->GetRMS()*3;
   h->TH1F::~TH1F();
 
-  helChain->Draw(Form("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)*2>>h(100,%e,%e)",
+  helChain->Draw(Form("diff_fadc_compton_accum2.hw_sum*2>>h(100,%e,%e)",
 		      lBinX, hBinX), Form("yield_sca_laser_PowT>%e", 
 					 cutval1),"goff");
   h = (TH1F*)gDirectory->Get("h");
@@ -854,7 +854,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   Int_t m = 0, n = 0, p = 0, numEnt = 0;
   Int_t enoughEntries[NCUTS];//cut quality flag.0 if cut not usable.1 if good.
   for(Int_t i=0; i*2<nCuts-2; i++){
-    helChain->Draw("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)*2>>hTempOn",
+    helChain->Draw("diff_fadc_compton_accum2.hw_sum*2>>hTempOn",
 		   asymCut[i],"goff");
     //asymCut[i].Print();
     numEnt =(Int_t)hTempOn->GetEntries();
@@ -870,10 +870,10 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
     cut2 = Form("Entry$<=%d",cutLas.at(2*i+1));
     cut3 = Form("Entry$>=%d",cutLas.at(2*i+2));
     cut4 = Form("Entry$<=%d",cutLas.at(2*i+3));
-    helChain->Draw("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)*2>>hTempOff",
+    helChain->Draw("diff_fadc_compton_accum2.hw_sum*2>>hTempOff",
 		   cut1 && cut2 && bkgCut[i],"goff");
     numEnt = (Int_t)hTempOff->GetEntries();
-    helChain->Draw("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)*2>>hTempOff",
+    helChain->Draw("diff_fadc_compton_accum2.hw_sum*2>>hTempOff",
 		   cut3 && cut4 && bkgCut[i],"goff");
     numEnt = TMath::Min(numEnt,(Int_t)hTempOff->GetEntries());
     if(numEnt>MIN_ENTRIES){
@@ -891,7 +891,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
 	diffOnErr[p] = diffOnRMS[p] / sqrt(hTempOn->GetEntries());
 	hDiffOff->Add(hTempOff);
 	hTemp0->Add(hTempOff);
-	helChain->Draw("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)*2>>hTempOff",
+	helChain->Draw("diff_fadc_compton_accum2.hw_sum*2>>hTempOff",
 		       cut1 && cut2 && bkgCut[i],"goff");
 	hDiffOff->Add(hTempOff);
 	diffOff[p] = hTempOff->GetMean();
@@ -918,14 +918,14 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   std::cout<<m<<" good cycles for laser On."<<std::endl;
   std::cout<<n<<" good cycles for laser Off."<<std::endl;
   std::cout<<"On && Off = "<<p<<" good cycles in total."<<std::endl;
-  hDiffOn->GetXaxis()->SetTitle("Accumulator 03 Differences");
-  hDiffOn->SetTitle("Laser On Accumulator 03 Differences (x2)");
+  hDiffOn->GetXaxis()->SetTitle("Accumulator 2 Differences");
+  hDiffOn->SetTitle("Laser On Accumulator 2 Differences (x2)");
   hDiffOn->SetLineColor(kGreen);
   hDiffOn->Draw();
   gPad->Update();
   c1->cd(5);
-  hDiffOff->GetXaxis()->SetTitle("Accumulator 03 Differences");
-  hDiffOff->SetTitle("Laser Off Accumulator 03 Differences (x2)");
+  hDiffOff->GetXaxis()->SetTitle("Accumulator 2 Differences");
+  hDiffOff->SetTitle("Laser Off Accumulator 2 Differences (x2)");
   hDiffOff->SetLineColor(kBlue);
   hDiffOff->Draw();
   gPad->Update();
@@ -944,8 +944,8 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
 
   Double_t mean[NCUTS];
   Double_t errorX[NCUTS], errorY[NCUTS], cutNum[NCUTS];
-  hAsymm->GetXaxis()->SetTitle("Accumulator_03 Asymmetry");
-  hAsymm->SetTitle("Accumulator_03 Asymmetry (Difference/YieldAboveBackground)");
+  hAsymm->GetXaxis()->SetTitle("Accumulator_2 Asymmetry");
+  hAsymm->SetTitle("Accumulator_2 Asymmetry (Difference/YieldAboveBackground)");
   n = 0;
   numEnt = 0;
   fprintf(polstats,"#CutNum\t Asymm\t\t AsymmErr \tNumEnt\t YieldAbvBkgd  "
@@ -956,11 +956,11 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   for(Int_t i=0; i*2<nCuts-2; i++){
     TH1D *hTempD = new TH1D("hTempD","hTempD",300,-3,3);
     hTempD->StatOverflows(kTRUE);
-    helChain->Draw(Form("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)/%e>>hTempD",
+    helChain->Draw(Form("diff_fadc_compton_accum2.hw_sum/%e>>hTempD",
         		yldAbvBkgd[i]),asymCut[i], "goff");
     hTempD = (TH1D*)gDirectory->Get("hTempD");
-    //helChain->Draw(Form("(diff_fadc_compton_accum0.hw_sum-diff_fadc_compton_accum3.hw_sum)/"
-    //		"(yield_fadc_compton_accum0.hw_sum-yield_fadc_compton_accum3.hw_sum-%e)>>hTempD",
+    //helChain->Draw(Form("diff_fadc_compton_accum2.hw_sum/"
+    //		"(yield_fadc_compton_accum2.hw_sum-%e)>>hTempD",
     //		bkgMean[i]),asymCut[i],"goff");
     //asymCut[i].Print();
     //ctemp->Print(Form("wwwdon/run_%i/hist%i.png",runnum,i));
@@ -1082,9 +1082,9 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   c2->SetLeftMargin(0.14);
   c2->SetRightMargin(0.06);
   gr->GetXaxis()->SetTitle("Laser Cycle Number");
-  gr->GetYaxis()->SetTitle("Accumulator_03 Asymmetry");
+  gr->GetYaxis()->SetTitle("Accumulator_2 Asymmetry");
   gr->GetYaxis()->SetTitleOffset(1.7);
-  gr->SetTitle("Accum_0 Asymmetry vs. Laser Cycle Number");
+  gr->SetTitle("Accum_2 Asymmetry vs. Laser Cycle Number");
   gr->SetMarkerColor(kBlue);
   gr->SetMarkerStyle(21);
   gStyle->SetOptFit(1111);
@@ -1184,7 +1184,7 @@ Int_t analyzeAll(Int_t runNumFirst, Int_t runNumLast){
   Int_t i = runNumFirst;
   while(i<= runNumLast){
     for(Int_t n=0;n<2;n++){
-	accum03(i,kFALSE,0);
+	accum2(i,kFALSE,0);
     }    
     i++;
   }
@@ -1193,17 +1193,17 @@ Int_t analyzeAll(Int_t runNumFirst, Int_t runNumLast){
 ///////////////////////////////////////////////////////////
 //To compile at the command line                         //
 //g++ -Wall `root-config --ldflags --libs --cflags` -O0  //
-//accum03.C -o accum03                                   //
+//accum2.C -o accum2                                     //
 ///////////////////////////////////////////////////////////
 
 Int_t main(int argc, char *argv[]){
   if (argc < 1){
-    std::cout<<"Usage:accum03(int runNumber,bool isFirst100K, bool deleteOnExit)"
+    std::cout<<"Usage:accum2(int runNumber,bool isFirst100K, bool deleteOnExit)"
 	<<std::endl;
     return 0;
   }else if(argc==3){
-  accum03(atoi(argv[1]),atoi(argv[2]));
-  }else accum03(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
+  accum2(atoi(argv[1]),atoi(argv[2]));
+  }else accum2(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]));
   return 1;
 }
 
