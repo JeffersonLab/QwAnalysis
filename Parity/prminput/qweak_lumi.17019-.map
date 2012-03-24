@@ -1,7 +1,7 @@
 !**************************************************************************
 !  QWEAK LUMI MAP
 !**************************************************************************
-!
+!As of 03/23/2012
 !
 ROC=2
 Bank=0x0202
@@ -17,29 +17,25 @@ sample_size=464
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
-!ADC6
-  VQWK, 5, 0,  integrationpmt,  QWK_USLUMI1NEG
-!  VQWK, 5, 1,  integrationpmt,  QWK_USLUMI1POS
-  VQWK, 5, 2,  integrationpmt,  QWK_USLUMI3NEG
-  VQWK, 5, 3,  integrationpmt,  QWK_USLUMI3POS
-  VQWK, 5, 4,  integrationpmt,  QWK_USLUMI5NEG
-  !VQWK, 5, 5,  integrationpmt,  QWK_USLUMI5POS
-  VQWK, 5, 6,  integrationpmt,  QWK_USLUMI7NEG
-  VQWK, 5, 7,  integrationpmt,  QWK_USLUMI7POS
+!ADC4, Slot 12, Serial Number 18, Address 0x84
+  VQWK, 4, 0,  integrationpmt,  QWK_USLUMI1NEG
+  VQWK, 4, 1,  integrationpmt,  QWK_USLUMI1POS
+  VQWK, 4, 2,  integrationpmt,  QWK_USLUMI3NEG
+  VQWK, 4, 3,  integrationpmt,  QWK_USLUMI3POS
+  VQWK, 4, 4,  integrationpmt,  QWK_USLUMI5NEG
+  !VQWK, 4, 5,  integrationpmt,  QWK_USLUMI5POS
+  VQWK, 4, 6,  integrationpmt,  QWK_USLUMI7NEG
+  VQWK, 4, 7,  integrationpmt,  QWK_USLUMI7POS
 
-!ADC7
-  VQWK, 6, 0,  integrationpmt,  QWK_DSLUMI1
-  VQWK, 6, 1,  integrationpmt,  QWK_DSLUMI2
-  VQWK, 6, 2,  integrationpmt,  QWK_DSLUMI3
-  VQWK, 6, 3,  integrationpmt,  QWK_DSLUMI4
-  VQWK, 6, 4,  integrationpmt,  QWK_DSLUMI5
-  VQWK, 6, 5,  integrationpmt,  QWK_DSLUMI6
-  VQWK, 6, 6,  integrationpmt,  QWK_DSLUMI7
-  VQWK, 6, 7,  integrationpmt,  QWK_DSLUMI8
-
-!ADC8
-  VQWK, 7, 0,  integrationpmt,  QWK_USLUMI1POS
-
+!ADC5, Slot 14, Serial Number 03, Address 0x85
+  VQWK, 5, 0,  integrationpmt,  QWK_DSLUMI1
+  VQWK, 5, 1,  integrationpmt,  QWK_DSLUMI2
+  VQWK, 5, 2,  integrationpmt,  QWK_DSLUMI3
+  VQWK, 5, 3,  integrationpmt,  QWK_DSLUMI4
+  VQWK, 5, 4,  integrationpmt,  QWK_DSLUMI5
+  VQWK, 5, 5,  integrationpmt,  QWK_DSLUMI6
+  VQWK, 5, 6,  integrationpmt,  QWK_DSLUMI7
+  VQWK, 5, 7,  integrationpmt,  QWK_DSLUMI8
 
 !**************************************************************************
 !  QWEAK LUMI SCALERS
@@ -110,11 +106,11 @@ SCALER,2,15,scalerpmt,sca_uslumi7pos
 ! when naming the DetName, do not use arithmetic and logic operators, such as +,-, &, and so on
 !
 ! ModuleType, Chan#, NumberOfCombinedChan's, DetType, DetName, PhysicalChanNames, WeightNumbers,
-!  VPMT, 40,  2, CombinationPMT,  uslumi1_sum,  	 qwk_uslumi1Pos,  qwk_uslumi1Neg, 1.0,  1.0
+  VPMT, 40,  2, CombinationPMT,  uslumi1_sum,  	 qwk_uslumi1Pos,  qwk_uslumi1Neg, 1.0,  1.0
   VPMT, 40,  2, CombinationPMT,  uslumi1_sum,  	 qwk_uslumi1Neg,  qwk_uslumi1Neg, 1.0,  1.0
   VPMT, 41,  2, CombinationPMT,  uslumi3_sum,  	 qwk_uslumi3Pos,  qwk_uslumi3Neg, 1.0,  1.0
   !VPMT, 42,  2, CombinationPMT,  uslumi5_sum,  	 qwk_uslumi5Pos,  qwk_uslumi5Neg, 1.0,  1.0
-  VPMT, 42,  1, CombinationPMT,  uslumi5_sum,  	 qwk_uslumi5Neg,  qwk_uslumi5Neg, 1.0,  1.0
+  VPMT, 42,  2, CombinationPMT,  uslumi5_sum,  	 qwk_uslumi5Neg,  qwk_uslumi5Neg, 1.0,  1.0
   VPMT, 43,  2, CombinationPMT,  uslumi7_sum,  	 qwk_uslumi7Pos,  qwk_uslumi7Neg, 1.0,  1.0
 ! VPMT, 44,  4, CombinationPMT,  uslumi1_uslumi5_sum,	 qwk_uslumi1Pos,  qwk_uslumi1Neg,  qwk_uslumi5Pos,  qwk_uslumi5Neg, 1.0,  1.0, 1.0,  1.0
   VPMT, 44,  4, CombinationPMT,  uslumi1_uslumi5_sum,	 qwk_uslumi1Neg,  qwk_uslumi1Neg,  qwk_uslumi5Neg,  qwk_uslumi5Neg, 1.0,  1.0, 1.0,  1.0
