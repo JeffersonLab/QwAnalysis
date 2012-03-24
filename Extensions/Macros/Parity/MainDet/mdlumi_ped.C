@@ -51,7 +51,7 @@ void mdlumi_ped(int run_num)
       TCanvas *c_md = new TCanvas("md","md",1500,1100);
       c_md->Divide(4,4);
       TH1F *mdhst[16];
-      for (int i=0;i<15;i++)
+      for (int i=0;i<16;i++)
         {
           c_md->cd(i+1);      
           mdhst[i] = new TH1F(Form("%h_%s",md[i].Data()),"",100,0,0);
