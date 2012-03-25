@@ -18,7 +18,7 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips],Float_t stripA
   theoryAsym(Cedge,par);
   theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
   if (theoAsym.is_open()) {
-    for(Int_t s =0 ; s <endStrip; s++) {
+    for(Int_t s =startStrip ; s <Cedge; s++) {
       theoAsym>>stripNum[s]>>calcAsym[s];
       if(debug) cout<<stripNum[s]<<"\t"<<calcAsym[s]<<endl;
     }

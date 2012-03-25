@@ -57,6 +57,11 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
   Float_t errB1H1L1_v2[nPlanes][nStrips],errB1H0L1_v2[nPlanes][nStrips];
   Float_t errB1H1L0L_v2[nPlanes][nStrips],errB1H0L0L_v2[nPlanes][nStrips],errB1H1L0R_v2[nPlanes][nStrips],errB1H0L0R_v2[nPlanes][nStrips];
 
+  Float_t term1[nPlanes][nStrips],term2[nPlanes][nStrips],NplusOn_SqQplusOn[nPlanes][nStrips],NminusOn_SqQminusOn[nPlanes][nStrips],NplusOffL_SqQplusOffL[nPlanes][nStrips];
+  Float_t NminusOffL_SqQminusOffL[nPlanes][nStrips],NplusOffR_SqQplusOffR[nPlanes][nStrips],NminusOffR_SqQminusOffR[nPlanes][nStrips];
+  Float_t erBCqNormLasCycSumSq[nPlanes][nStrips],weightedMeanNrBCqNormSum[nPlanes][nStrips],weightedMeanDrBCqNormSum[nPlanes][nStrips];
+  Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
+
   TString readEntry;
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
@@ -72,11 +77,14 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
   for(Int_t p = startPlane; p <endPlane; p++) {      	
     for(Int_t s =startStrip; s <endStrip; s++) {
       //if (maskedStrips(p,s)) continue;    
-      weightedMeanNrAsym[p][s]=0,weightedMeanDrAsym[p][s]=0;
-      weightedMeanNrAsym_v2[p][s]=0,weightedMeanDrAsym_v2[p][s]=0;
-
+      weightedMeanNrAsym[p][s]=0.0,weightedMeanDrAsym[p][s]=0.0;
       stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0;
+
+      weightedMeanNrAsym_v2[p][s]=0.0,weightedMeanDrAsym_v2[p][s]=0.0;
       stripAsym_v2[p][s]= 0.0,stripAsymEr_v2[p][s]= 0.0;
+
+      weightedMeanNrBCqNormSum[p][s]=0.0,weightedMeanDrBCqNormSum[p][s]=0.0;
+      stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
     }
   }
 
@@ -194,6 +202,10 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 	qNormLasCycAsym_v2[p][s]= 0.0, LasCycAsymEr_v2[p][s]= 0.0,LasCycAsymErSqr_v2[p][s]= 0.0;
 	errB1H1L1_v2[p][s]=0.0,errB1H0L1_v2[p][s]=0.0;
 	errB1H1L0L_v2[p][s]=0.0,errB1H0L0L_v2[p][s]=0.0,errB1H1L0R_v2[p][s]=0.0,errB1H0L0R_v2[p][s]=0.0;
+
+	term1[p][s]=0.0,term2[p][s]=0.0,NplusOn_SqQplusOn[p][s]=0.0,NminusOn_SqQminusOn[p][s]=0.0,NplusOffL_SqQplusOffL[p][s]=0.0;
+	NminusOffL_SqQminusOffL[p][s]=0.0,NplusOffR_SqQplusOffR[p][s]=0.0,NminusOffR_SqQminusOffR[p][s]=0.0;
+	erBCqNormLasCycSumSq[p][s]=0.0,weightedMeanNrBCqNormSum[p][s]=0.0,weightedMeanDrBCqNormSum[p][s]=0.0;
       }
     }
 
@@ -376,22 +388,31 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 	      qNormLasCycAsym[p][s] = (BCqNormLasCycDiff[p][s] / BCqNormLasCycSum[p][s]);
 	      qNormLasCycAsym_v2[p][s] = (BCqNormLasCycDiff_v2[p][s] / BCqNormLasCycSum_v2[p][s]);
 	      
-	      ///Evaluation of error on asymmetry
-	      errB1H1L1[p][s] =(1-qNormLasCycAsym[p][s])/(comptQH1L1 *BCqNormLasCycSum[p][s]);
-	      errB1H0L1[p][s] =(1+qNormLasCycAsym[p][s])/(comptQH0L1 *BCqNormLasCycSum[p][s]);
-	      errB1H1L0L[p][s]=(1-qNormLasCycAsym[p][s])/(comptQH1L0L*BCqNormLasCycSum[p][s]);
-	      errB1H0L0L[p][s]=(1+qNormLasCycAsym[p][s])/(comptQH0L0L*BCqNormLasCycSum[p][s]);
-	      errB1H1L0R[p][s]=(1-qNormLasCycAsym[p][s])/(comptQH1L0R*BCqNormLasCycSum[p][s]);
-	      errB1H0L0R[p][s]=(1+qNormLasCycAsym[p][s])/(comptQH0L0R*BCqNormLasCycSum[p][s]);
+	      ///Evaluation of error on asymmetry; I've partitioned the evaluation in a way which avoids re-calculation
+	      term1[p][s] = (1-qNormLasCycAsym[p][s])/BCqNormLasCycSum[p][s];
+	      term2[p][s] = (1+qNormLasCycAsym[p][s])/BCqNormLasCycSum[p][s];
+	      NplusOn_SqQplusOn[p][s] = qNormAcB1H1L1LasCyc[p][s]/comptQH1L1;
+	      NminusOn_SqQminusOn[p][s] = qNormAcB1H0L1LasCyc[p][s]/comptQH0L1;
+	      NplusOffL_SqQplusOffL[p][s] = qNormAcB1H1L0LLasCyc[p][s]/comptQH1L0L;
+	      NminusOffL_SqQminusOffL[p][s] = qNormAcB1H0L0LLasCyc[p][s]/comptQH0L0L;
+	      NplusOffR_SqQplusOffR[p][s] = qNormAcB1H1L0RLasCyc[p][s]/comptQH1L0R;
+	      NminusOffR_SqQminusOffR[p][s] = qNormAcB1H0L0RLasCyc[p][s]/comptQH0L0R;
 
-	      LasCycAsymErSqr[p][s] =(pow(errB1H1L1[p][s],2))*(AccumB1H1L1[p][s])+ (pow(errB1H0L1[p][s],2))*(AccumB1H0L1[p][s])
-		+ (pow(errB1H1L0R[p][s],2))*(AccumB1H1L0R[p][s])+ (pow(errB1H0L0R[p][s],2))*(AccumB1H0L0R[p][s])
-		+ (pow(errB1H1L0L[p][s],2))*(AccumB1H1L0L[p][s])+ (pow(errB1H0L0L[p][s],2))*(AccumB1H0L0L[p][s]);
+	      ///redefining these error variables 
+	      errB1H1L1[p][s] = pow(term1[p][s],2) * NplusOn_SqQplusOn[p][s];
+	      errB1H0L1[p][s] = pow(term2[p][s],2) * NminusOn_SqQminusOn[p][s];
+	      errB1H1L0L[p][s]= pow(term1[p][s],2) * NplusOffL_SqQplusOffL[p][s];
+	      errB1H0L0L[p][s]= pow(term2[p][s],2) * NminusOffL_SqQminusOffL[p][s]; 
+	      errB1H1L0R[p][s]= pow(term1[p][s],2) * NplusOffR_SqQplusOffR[p][s];
+	      errB1H0L0R[p][s]= pow(term2[p][s],2) * NminusOffR_SqQminusOffR[p][s];
 
-	      if(LasCycAsymErSqr[p][s]!=(Float_t)0.0)
-		weightedMeanNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator eqn 4.17(Bevington)
+ 	      LasCycAsymErSqr[p][s] = (errB1H1L1[p][s] + errB1H0L1[p][s] + errB1H1L0R[p][s] + errB1H0L0R[p][s] + errB1H1L0L[p][s] + errB1H0L0L[p][s]);
+
+	      if(LasCycAsymErSqr[p][s]!=(Float_t)0.0) {///eqn 4.17(Bevington)
+		weightedMeanNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
+		weightedMeanDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator 
+	      }
 	      else cout<<"check plane "<<p<<" strip "<<s<<" . It gives zero Asym Er"<<endl;
-	      weightedMeanDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator eqn 4.17(Bevington)
 
 	      errB1H1L1_v2[p][s] =(1-qNormLasCycAsym_v2[p][s])/(comptQH1L1 *BCqNormLasCycSum_v2[p][s]);
 	      errB1H0L1_v2[p][s] =(1+qNormLasCycAsym_v2[p][s])/(comptQH0L1 *BCqNormLasCycSum_v2[p][s]);
@@ -408,6 +429,15 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 		weightedMeanNrAsym_v2[p][s] += qNormLasCycAsym_v2[p][s]/LasCycAsymErSqr_v2[p][s]; ///Numerator eqn 4.17(Bevington)
 	      else cout<<"check plane "<<p<<" strip "<<s<<" . It gives zero Asym Er"<<endl;
 	      weightedMeanDrAsym_v2[p][s] += 1.0/LasCycAsymErSqr_v2[p][s]; ///Denominator eqn 4.17(Bevington)
+
+	      ///Error evaluation for SUM (in asymmetry)
+	      erBCqNormLasCycSumSq[p][s] = (NplusOn_SqQplusOn[p][s]+NminusOn_SqQminusOn[p][s]+NplusOffL_SqQplusOffL[p][s]+NminusOffL_SqQminusOffL[p][s]
+					    +NplusOffR_SqQplusOffR[p][s]+NminusOffR_SqQminusOffR[p][s]);
+	      if(erBCqNormLasCycSumSq[p][s]!=0.0) {
+		weightedMeanNrBCqNormSum[p][s] += BCqNormLasCycSum[p][s]/erBCqNormLasCycSumSq[p][s]; ///Numerator eqn 4.17(Bevington)
+		weightedMeanDrBCqNormSum[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
+	      }
+	      else cout<<"getting zero for erBCqNormLasCycSumSq"<<" in line"<<__LINE__<<endl;
 	    }
 	  }
 	}///for (Int_t p =startPlane; p <endPlane; p++) {
@@ -422,20 +452,23 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
       if(weightedMeanDrAsym[p][s]==0.0) cout<<"stand. deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
       else if(weightedMeanNrAsym[p][s]==0.0) cout<<"asym for strip "<<s<<" in plane "<<p<<" is zero"<<endl;
       else {
-	stripAsym[p][s]= weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
+	stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
 	stripAsymEr[p][s] = TMath::Sqrt(1/weightedMeanDrAsym[p][s]);
 
-	stripAsym_v2[p][s]= weightedMeanNrAsym_v2[p][s]/weightedMeanDrAsym_v2[p][s];
+	stripAsym_v2[p][s] = weightedMeanNrAsym_v2[p][s]/weightedMeanDrAsym_v2[p][s];
 	stripAsymEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrAsym_v2[p][s]);
+
+	stripAsymDr[p][s] = weightedMeanNrBCqNormSum[p][s]/weightedMeanDrBCqNormSum[p][s];
+	stripAsymDrEr[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormSum[p][s]);
       }
       if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
     }
   }
   
-  for(Int_t p = startPlane; p < endPlane; p++) {
-    outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outfileExpAsymP_v2.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+  ///Writing to all useful files
+  for(Int_t p = startPlane; p < endPlane; p++) { //currently this is set to work only for 1 plane
     //outfileExpAsymP<<"strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
+    outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if (outfileExpAsymP.is_open()) {
       cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) {    
@@ -447,6 +480,7 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
     }
     else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;
 
+    outfileExpAsymP_v2.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if (outfileExpAsymP_v2.is_open()) {
       cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) {    
@@ -457,7 +491,20 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
       cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
     }
     else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values for version2(v2) data\n\n"<<endl;
+    
+    outAsymComponents.open(Form("%s/%s/%sexpAsymDrP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    if(outAsymComponents.is_open()) {
+      cout<<Form("%s/%s/%sexpAsymDrP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      for (Int_t s =startStrip; s <endStrip;s++) {    
+	if (maskedStrips(p,s)) continue;
+	outAsymComponents<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s]);
+      }
+      outAsymComponents.close();
+      cout<<Form("%s/%s/%sexpAsymDrP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+    }
+    else cout<<"\n***Alert: Couldn't open file for writing asymmetry components\n\n"<<endl;      
   }
+
   //  delete mpsChain;
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);

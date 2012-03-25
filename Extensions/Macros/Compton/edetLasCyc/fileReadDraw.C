@@ -4,16 +4,18 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  TGraphErrors *grCpp,*grCpp_v2,*grFort,*grDiffPWTL1_2;
+  TGraphErrors *grCpp,*grCpp_v2,*grFort,*grDiffPWTL1_2,*grAsymDr;
   ifstream in1, in2;
   TLegend *leg;
   TCanvas *c1 = new TCanvas("c1",Form("edet Asymmetry run:%d",runnum),10,10,1000,600);
-  TCanvas *cDiffPercent = new TCanvas("cDiffPercent",Form("diff/PWTL1 for run:%d",runnum),10,30,1000,600);
+  TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),30,30,1000,600);
+  TCanvas *cAsymDr = new TCanvas("cAsymDiff",Form("Normalized Rates for run:%d",runnum),30,30,1000,600);
   TLine *myline = new TLine(0,0,70,0);
-  ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2;
+  ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymDr;
   leg = new TLegend(0.1,0.7,0.4,0.9);
-  Float_t stripAsym[nStrips],stripAsymEr[nStrips],stripAsym_v2[nStrips],stripAsymEr_v2[nStrips],asymDiffPercent[nStrips];
+  Float_t stripAsym[nStrips],stripAsymEr[nStrips],stripAsym_v2[nStrips],stripAsymEr_v2[nStrips];//,asymDiffPercent[nStrips];
   Float_t stripNum[nStrips],asymDiff[nStrips];//, zero[nStrips];
+  Float_t stripAsymDr[nStrips],stripAsymDrEr[nStrips];
   Bool_t debug=1,debug1=1;
 
   expAsymPWTL1.open(Form("%s/%s/%sexpAsymP1.txt",pPath,webDirectory,filePrefix.Data()));
@@ -29,24 +31,43 @@ Int_t fileReadDraw(Int_t runnum)
       }
       if (debug1) cout<<"stripAsym\t"<<"stripAsym_v2\t"<<"stripAsymEr"<<endl;
       for(Int_t s =startStrip ; s <endStrip; s++) {
-	asymDiff[s] = (stripAsym[s]- stripAsym_v2[s])*100.0;
-	if((stripAsym[s]>0.001)||(stripAsym[s]<-0.001)) asymDiffPercent[s] = asymDiff[s]/stripAsym[s];
-	if (debug1) cout<<asymDiffPercent[s]<<"\t"<<stripAsymEr[s]<<endl;
+	asymDiff[s] = (stripAsym[s]- stripAsym_v2[s]);
+	//if((stripAsym[s]>0.001)||(stripAsym[s]<-0.001)) asymDiffPercent[s] = asymDiff[s]/stripAsym[s];
+	//if (debug1) cout<<asymDiffPercent[s]<<"\t"<<stripAsymEr[s]<<endl;
       }
     }
     else cout<<"did not find "<<Form("%s/%s/%sexpAsymP1_v2.txt",pPath,webDirectory,filePrefix.Data())<<endl;
   }
   else cout<<"did not find "<<Form("%s/%s/%sexpAsymP1.txt",pPath,webDirectory,filePrefix.Data())<<endl;
 
-  cDiffPercent->cd();
-  grDiffPWTL1_2 = new TGraphErrors(Cedge,stripNum,asymDiffPercent,stripAsymEr);
+  expAsymDr.open(Form("%s/%s/%sexpAsymDrP1.txt",pPath,webDirectory,filePrefix.Data()));
+  if(expAsymDr.is_open()) {
+    cout<<"Plotting the denominator of exp asymmetry from PWTL1"<<endl;
+      for(Int_t s =0 ; s < endStrip; s++) {//the index# below does not necessarily represent strip#
+	expAsymDr>>stripNum[s]>>stripAsymDr[s]>>stripAsymDrEr[s];
+      }
+  }
+  else cout<<"did not find "<<Form("%s/%s/%sexpAsymDrP1.txt",pPath,webDirectory,filePrefix.Data())<<endl;
+
+  cAsymDr->cd();
+  grAsymDr = new TGraphErrors(Cedge,stripNum,stripAsymDr,stripAsymDrEr);
+  grAsymDr->SetMarkerStyle(kClosedSquare);
+  grAsymDr->SetMarkerSize(0.5);
+  grAsymDr->GetXaxis()->SetTitle("strip number");
+  grAsymDr->GetYaxis()->SetTitle("expAsym from (PWTL1-PWTL2)");
+  grAsymDr->SetTitle("Difference in asymmetry between two trigger width");
+  grAsymDr->Draw("AP");
+  cAsymDr->SetGridx(1);
+
+  cDiff->cd();
+  grDiffPWTL1_2 = new TGraphErrors(Cedge,stripNum,asymDiff,stripAsymEr);
   grDiffPWTL1_2->SetMarkerStyle(kOpenSquare);
   grDiffPWTL1_2->SetMarkerSize(0.5);
   grDiffPWTL1_2->GetXaxis()->SetTitle("strip number");
-  grDiffPWTL1_2->GetYaxis()->SetTitle("expAsym (PWTL1-PWTL2)*100/PWTL1");
-  grDiffPWTL1_2->SetTitle("Percent difference in asymmetry between two PWTL");
+  grDiffPWTL1_2->GetYaxis()->SetTitle("Normalized Rates (Hz/uA)");
+  grDiffPWTL1_2->SetTitle("Denominator of experimental asymmetry");
   grDiffPWTL1_2->Draw("AP");
-  cDiffPercent->SetGridx(1);
+  cDiff->SetGridx(1);
 
   c1->cd();
   grCpp = new TGraphErrors(Form("%s/%s/%sexpAsymP1.txt",pPath,webDirectory,filePrefix.Data()), "%lg %lg %lg");
@@ -94,6 +115,7 @@ Int_t fileReadDraw(Int_t runnum)
   leg->Draw();
   
   c1->SaveAs(Form("%s/%s/%sexpAsymP1.png",pPath,webDirectory,filePrefix.Data()));
-  //cDiffPercent->SaveAs(Form("%s/%s/%sdiffexpAsymP1.png",pPath,webDirectory,filePrefix.Data()));
+  cDiff->SaveAs(Form("%s/%s/%sdiffexpAsymP1.png",pPath,webDirectory,filePrefix.Data()));
+  cAsymDr->SaveAs(Form("%s/%s/%sexpAsymDrP1.png",pPath,webDirectory,filePrefix.Data()));
   return runnum;
 }
