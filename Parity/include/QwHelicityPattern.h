@@ -130,6 +130,9 @@ class QwHelicityPattern{
   void  WritePromptSummary(QwPromptSummary *ps);
 
   Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
+  UInt_t GetEventcutErrorFlag() const{
+    return fAsymmetry.GetEventcutErrorFlag();
+  };
 
   void  ClearEventData();
   void  ClearBurstSum();

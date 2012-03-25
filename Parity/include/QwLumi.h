@@ -142,8 +142,8 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   void  FillDB(QwParityDB *db, TString datatype);
   void  FillErrDB(QwParityDB *db, TString datatype);
  
-  QwIntegrationPMT* GetChannel(const TString name);
-  QwIntegrationPMT* GetIntegrationPMT(const TString name);
+  const QwIntegrationPMT* GetChannel(const TString name) const;
+  const QwIntegrationPMT* GetIntegrationPMT(const TString name) const;
   const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
   Bool_t Compare(VQwSubsystem *source);

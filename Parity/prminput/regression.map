@@ -134,6 +134,96 @@ asym:qwk_md6pos, 0.0625
 asym:qwk_md7pos, 0.0625
 asym:qwk_md8pos, 0.0625
 
+#Lumi Asymmetery Average PMT
+[asym:@asym_uslumi_pmtavg]
+asym:qwk_uslumi1neg, 0.125 
+asym:qwk_uslumi1pos, 0.125 
+asym:qwk_uslumi3neg, 0.125 
+asym:qwk_uslumi3pos, 0.125 
+asym:qwk_uslumi5neg, 0.125 
+asym:qwk_uslumi5pos, 0.125 
+asym:qwk_uslumi7neg, 0.125 
+asym:qwk_uslumi7pos, 0.125
+
+[asym:@asym_dslumi_pmtavg]
+asym:qwk_dslumi1, 0.125 
+asym:qwk_dslumi2, 0.125 
+asym:qwk_dslumi3, 0.125 
+asym:qwk_dslumi4, 0.125 
+asym:qwk_dslumi5, 0.125 
+asym:qwk_dslumi6, 0.125 
+asym:qwk_dslumi7, 0.125 
+asym:qwk_dslumi8, 0.125
+ 
+#USLumi Asymmetry Average Detector
+[asym:@asym_uslumi_detavg]
+asym:qwk_uslumi1, 0.25 
+asym:qwk_uslumi3, 0.25 
+asym:qwk_uslumi5, 0.25 
+asym:qwk_uslumi7, 0.25
+
+#USLumi Detector Asymmetries form Averaged Tube Asyms
+[asym:@asym_uslumi1_avg]
+asym:qwk_uslumi1neg, 0.50
+asym:qwk_uslumi1pos, 0.50
+ 
+[asym:@asym_uslumi3_avg]
+asym:qwk_uslumi3neg, 0.50
+asym:qwk_uslumi3pos, 0.50
+
+[asym:@asym_uslumi5_avg]
+asym:qwk_uslumi5neg, 0.50
+asym:qwk_uslumi5pos, 0.50
+
+[asym:@asym_uslumi7_avg]
+asym:qwk_uslumi7neg, 0.50
+asym:qwk_uslumi7pos, 0.50
+
+
+#USLumi Dipoles
+[asym:@asym_uslumi15_dipole]
+asym:qwk_uslumi1_sum,  1
+asym:qwk_uslumi5_sum, -1
+
+[asym:@asym_uslumi37_dipole]
+asym:qwk_uslumi3_sum,  1
+asym:qwk_uslumi7_sum, -1
+
+#DSLumi Dipoles
+[asym:@asym_dslumi15_dipole]
+asym:qwk_dslumi1,  1
+asym:qwk_dslumi5, -1
+
+[asym:@asym_dslumi26_dipole]
+asym:qwk_dslumi2,  1
+asym:qwk_dslumi6, -1
+
+[asym:@asym_dslumi37_dipole]
+asym:qwk_dslumi3,  1
+asym:qwk_dslumi7, -1
+
+[asym:@asym_dslumi48_dipole]
+asym:qwk_dslumi4,  1
+asym:qwk_dslumi8, -1
+
+#0.1667 = 1/6
+#0.2357 = (sqrt2)/6
+[asym:@asym_dslumidipole_h]
+asym:qwk_dslumi1,  0.1667
+asym:qwk_dslumi2,  0.2357
+asym:qwk_dslumi4, -0.2357
+asym:qwk_dslumi5, -0.1667
+asym:qwk_dslumi6, -0.2357
+asym:qwk_dslumi8,  0.2357
+
+[asym:@asym_dslumidipole_v]
+asym:qwk_dslumi2,  0.2357
+asym:qwk_dslumi3,  0.1667
+asym:qwk_dslumi4,  0.2357
+asym:qwk_dslumi6, -0.2357
+asym:qwk_dslumi7, -0.1667
+asym:qwk_dslumi8, -0.2357
+
 
 #####
 #####  Some examples, all commented out.
