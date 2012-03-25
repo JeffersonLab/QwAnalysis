@@ -380,7 +380,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Each subsystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
       helicitypattern.FillDB(&database);
-      //helicitypattern.FillErrDB(&database);
+      helicitypattern.FillErrDB(&database);
       epicsevent.FillDB(&database);
       running_regression.FillDB(&database,"asymmetry");
     }

@@ -322,4 +322,11 @@ std::vector<QwDBInterface> QwEnergyCalculator::GetDBEntry()
 
 }
 
+std::vector<QwErrDBInterface> QwEnergyCalculator::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+  fEnergyChange.AddErrEntriesToList(row_list);
+  return row_list;
+}
 

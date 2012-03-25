@@ -2820,14 +2820,7 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
   for(i=0; i< fStripline.size(); i++) {
     interface.clear();
     interface = fStripline[i].get()->GetErrDBEntry();
-    for (j=0; j<interface.size()-5; j++){
-      interface.at(j).SetAnalysisID( analysis_id ) ;
-      interface.at(j).SetMonitorID( db );
-      interface.at(j).PrintStatus( local_print_flag );
-      interface.at(j).AddThisEntryToList( entrylist );
-    }
-    // effective charge (last 4 elements)  need to be saved as measurement_type_bcm
-    for (j=interface.size()-5; j<interface.size(); j++){
+    for (j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMonitorID( db );
       interface.at(j).PrintStatus( local_print_flag );
@@ -2836,6 +2829,102 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
     if(local_print_flag) printf("\n");
   }
 
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined Beam Position Monitors" <<QwLog::endl;
+  for(i=0; i< fBPMCombo.size(); i++) {
+    interface.clear();
+    interface = fBPMCombo[i].get()->GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    if(local_print_flag) printf("\n");
+  }
+
+  ///   try to access CombinedBCM means and errors
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined Beam Current Monitors" <<QwLog::endl;
+  for(i=0; i< fBCMCombo.size(); i++) {
+    interface.clear();
+    interface = fBCMCombo[i].get()->GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    if(local_print_flag) printf("\n");
+  }
+
+  ///   try to access Energy Calculator mean and its error
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Energy Calculator" <<QwLog::endl;
+  for(i=0; i< fECalculator.size(); i++) {
+    interface.clear();
+    interface = fECalculator[i].GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    if(local_print_flag) printf("\n");
+  }
+
+  ///   try to access QPD mean and its error
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Quadrant PhotoDiodes" <<QwLog::endl;
+  for(i=0; i< fQPD.size(); i++) {
+    interface.clear();
+    interface = fQPD[i].GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    if(local_print_flag) printf("\n");
+  }
+
+  ///   try to access LinearArray mean and its error
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Linear PhotoDiode Array" <<QwLog::endl;
+  for(i=0; i< fLinearArray.size(); i++) {
+    interface.clear();
+    interface = fLinearArray[i].GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    if(local_print_flag) printf("\n");
+  }
+
+  ///   try to access cavity bpm mean and its error
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Cavity Monitors" <<QwLog::endl;
+  for(i=0; i< fCavity.size(); i++) {
+    interface.clear();
+    interface = fCavity[i].GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    if(local_print_flag) printf("\n");
+  }
+
+  // try to access halo mean and its error
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Halo Monitors" <<QwLog::endl;
+  for(i=0; i< fHaloMonitor.size(); i++) {
+    interface.clear();
+    interface = fHaloMonitor[i].GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+    if(local_print_flag) printf("\n");
+  }
 
 
   if(local_print_flag){
