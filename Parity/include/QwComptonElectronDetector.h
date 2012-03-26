@@ -12,6 +12,7 @@
  * It reads in a channel map and pedestal file, and defines the histograms
  * and output trees.
  *
+ * A. Narayan
  */
 
 #ifndef __QwComptonElectronDetector__
@@ -43,8 +44,9 @@ class QwComptonElectronDetector:
     : VQwSubsystem(source),VQwSubsystemParity(source),
       fStrips(source.fStrips),fStripsRaw(source.fStripsRaw),
       fStripsEv(source.fStripsEv),fStripsRawEv(source.fStripsRawEv),
-      fStripsRawScal(source.fStripsRawScal)
-    { }
+      fStripsRawScal(source.fStripsRawScal),
+      fStripsRaw_v2(source.fStripsRaw_v2)
+   { }
     /// Virtual destructor
     virtual ~QwComptonElectronDetector() { };
 
@@ -135,6 +137,7 @@ class QwComptonElectronDetector:
     std::vector< std::vector <Int_t> > fStripsRawEv; 
     /// List of V1495 scaler counts
     std::vector< std::vector <Int_t> > fStripsRawScal;
+    std::vector< std::vector <Int_t> > fStripsRaw_v2;
 
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
@@ -173,7 +176,7 @@ class QwComptonElectronDetector:
     Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single, kV1495Scaler};
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Accum_v2, kV1495Single, kV1495Scaler};
     std::map< Int_t, ChannelType_t > fMapping;
 
         // Assign static const member fields

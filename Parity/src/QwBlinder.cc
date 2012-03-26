@@ -176,9 +176,17 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
     TString  position  = epics.GetDataString("QWtgt_name");
     Double_t tgt_pos   = epics.GetDataValue("QWTGTPOS");
     Double_t tgt_temperture  = epics.GetDataValue("QWT_miB");
-    Double_t tgt_temperture2 = epics.GetDataValue("QWT_moA");
+    Double_t tgt_temperture2 = epics.GetDataValue("QWT_moB");
     Double_t tgt_pressure    = epics.GetDataValue("QW_PT3");
     Double_t tgt_pressure2   = epics.GetDataValue("QW_PT4");
+    QwDebug << "Target parameters used by the blinder: "
+	    << "QWtgt_name=" << position << " "
+	    << "QWTGTPOS=" << tgt_pos << " "
+	    << "QWT_miB=" << tgt_temperture << " "
+	    << "QWT_moB=" << tgt_temperture2 << " "
+	    << "QW_PT3=" << tgt_pressure << " "
+	    << "QW_PT4=" << tgt_pressure2 << " "
+	    << QwLog::endl;
     if (position == "HYDROGEN-CELL"
 	&& tgt_pos > 350. 
 	&& (tgt_temperture>18.0 && tgt_temperture<22.0)
@@ -202,6 +210,16 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
       SetTargetBlindability(QwBlinder::kNotBlindable);
     } else {
       SetTargetBlindability(QwBlinder::kIndeterminate);
+      QwWarning << "Target parameters used by the blinder are indeterminate: "
+		<< "QWtgt_name=" << position << " "
+		<< "QWTGTPOS=" << tgt_pos << " "
+		<< "QWT_miB=" << tgt_temperture << " "
+		<< "QWT_moB=" << tgt_temperture2 << " "
+		<< "QW_PT3=" << tgt_pressure << " "
+		<< "QW_PT4=" << tgt_pressure2 << " "
+		<< QwLog::endl;
+
+
     }
   }
   // Check for the beam polarity information

@@ -17,7 +17,7 @@ sample_size=464
 !ADC0, Slot 18, Serial Number 13, Address 0x7B
 !   VQWK, 0, 4,  bcm,  QWK_BCM5
 !   VQWK, 0, 5,  bcm,  QWK_BCM6
-!   VQWK, 0, 6,  bcm,  QWK_BCM7 
+   VQWK, 0, 6,  bcm,  QWK_BCM7 
    VQWK, 0, 7,  bcm,  QWK_BCM8
 
 
@@ -132,5 +132,8 @@ end=combinedbpm
  3c12x, bpmstripline, qwk_bpm3c12, x
  3c12y, bpmstripline, qwk_bpm3c12, y
  3c12efc, bpmstripline, qwk_bpm3c12, ef
+
+ bcm7, bcm, qwk_bcm7, c
+ bcm8, bcm, qwk_bcm8, c
 
 

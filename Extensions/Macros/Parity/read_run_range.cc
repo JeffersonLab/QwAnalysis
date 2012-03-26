@@ -185,7 +185,7 @@ int main(Int_t argc,Char_t* argv[])
       counter = "pattern_number";
       if(property.Contains("y")){
 	histoname = Form("yield_%s.hw_sum>>htemp",device.Data());
-	cut = Form("yield_%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data(),device.Data());
+	cut = Form("yield_%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
       }
       if(property.Contains("a")){
 	histoname = Form("asym_%s.hw_sum>>htemp",device.Data());
@@ -245,15 +245,15 @@ int main(Int_t argc,Char_t* argv[])
       filename = Form("QwPass*_%i.*root", run);
       found = FindFiles(filename, file_list, tree);
       if(!found){
-      filename = Form("first100k_%i.root", run); 
-      found = FindFiles(filename, file_list, tree);
+	filename = Form("first100k_%i.root", run);
+	found = FindFiles(filename, file_list, tree);
 	if(!found){
 	  filename = Form("Qweak*_%i.*root", run);
 	  found = FindFiles(filename, file_list, tree);
 	  if(!found){
 	    std::cerr<<"Unable to find root file(s) for run "<<run<<std::endl;
 	    file_list.clear();
-	  } 
+	  }
 	}
       }
       // If there are no files in this range, nothing to plot. Move to next run.
@@ -281,7 +281,7 @@ int main(Int_t argc,Char_t* argv[])
 	std::cout << "\nFound file "<<f->GetName()<<std::endl; 
 
 	TTree* nt = (TTree*)(f->Get(treename));
-	if(!nt) exit(1);
+	if(!nt) continue;
 
 	// apply cuts for average current and current fluctuations.
 	// I fit bcm1 data with landaun fit to get the most probable current
@@ -449,10 +449,9 @@ Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * ch
   TChainElement *chain_element = NULL;
 
   chain ->Clear();
-  file_dir = gSystem->Getenv("QWSCRATCH");
-  if (!file_dir) file_dir = "~/scratch/";
-  file_dir += "/rootfiles/";
-  chain_status = chain->Add(Form("%s%s", file_dir.Data(), filename.Data()));
+  file_dir = gSystem->Getenv("QW_ROOTFILES");
+  if (!file_dir) file_dir = "~/scratch/rootfiles/";
+  chain_status = chain->Add(Form("%s/%s", file_dir.Data(), filename.Data()));
 
   if(chain_status) {
 

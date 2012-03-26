@@ -3,6 +3,7 @@
 !**************************************************************************
 !
 !
+
 ROC=31
 Bank = 0x1f02
 
@@ -38,8 +39,8 @@ SCALER,   0, 0x1e, bcm, sca_unser
 
 !! Clocks in the QWeak Beam Line (read the above warning)
 !! scaler.type, scaler.num, chan.num, det.type, det.name
+SCALER,   0, 0x13, clock, sca_1MHz
 SCALER,   0, 0x1f, clock, sca_4MHz
-SCALER,   0, 0x1a, clock, sca_1MHz
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Combined BCM's

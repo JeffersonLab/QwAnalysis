@@ -59,6 +59,15 @@
 	<td></td><td></td>
 	<td></td><td></td>
 </tr>
+<tr>
+
+
+	<td><a href="erun_%%RUNNUM%%.html">Electron Detector</a></td>
+	<td></td><td></td>
+	<td></td><td></td>
+</tr>
+
+
 </table>
 
 <a name="accum0"></a>
@@ -75,8 +84,16 @@
 
 <a name="accum2"></a>
 <center><h2>Accumulator 2 Analysis</h2></center>
+<p><center><img src="accum2_plots.png"></center></p>
+<p><center><img src="accum2_asymm.png"></center></p>
+<p><center><img src="accum2_yieldvspatnum.png"></center></p>
+
+<!--
+<a name="accum2"></a>
+<center><h2>Accumulator 2 Analysis</h2></center>
 <p><center><img src="ComptonPhotonAccum2SummaryPlots_%%RUNNUM%%_asymmetry.png"></center></p>
 <p><center><img src="ComptonPhotonAccum2SummaryPlots_%%RUNNUM%%_yield.png"></center></p>
+-->
 
 <a name="mps"></a>
 <center><h2>MPS tree and snapshot analysis</h2>

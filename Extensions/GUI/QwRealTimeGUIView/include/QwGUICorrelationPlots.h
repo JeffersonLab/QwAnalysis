@@ -72,6 +72,7 @@ class QwGUICorrelationPlots : public QwGUISubSystem {
   TGLayoutHints       *dTreeLayout;
 
   TGTextButton        *dButtonCorrelationPlot;
+  TGTextButton        *dButtonBCMDDPlot;
 
   TGListBox           *dListboxTrees;
 
@@ -118,6 +119,15 @@ class QwGUICorrelationPlots : public QwGUISubSystem {
   //!
   //!Return value: none 
   void PlotCorrelation();
+
+  //!This function Draws bcm7-8 DD plot from the rolling buffer tree in the  Memory map file. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotBCMDD();
+
   
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 

@@ -37,12 +37,17 @@ void QwHelicityPattern::DefineOptions(QwOptions &options)
   options.AddOptions("Helicity pattern")
     ("enable-alternateasym", po::value<bool>()->default_bool_value(false),
      "enable alternate asymmetries");
+
   options.AddOptions("Helicity pattern")
     ("print-burstsum", po::value<bool>()->default_bool_value(false),
      "print burst sum of subsystems");
   options.AddOptions("Helicity pattern")
     ("print-runningsum", po::value<bool>()->default_bool_value(false),
      "print running sum of subsystems");
+
+  options.AddOptions("Helicity pattern")
+    ("burstlength", po::value<int>()->default_value(240),
+     "number of patterns per burst");
 
   QwBlinder::DefineOptions(options);
 }
@@ -57,6 +62,9 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 
   fEnableDifference    = options.GetValue<bool>("enable-differences");
   fEnableAlternateAsym = options.GetValue<bool>("enable-alternateasym");
+
+  fBurstLength = options.GetValue<int>("burstlength");
+  if (fBurstLength == 0) DisableBurstSum();
 
   if (fEnableAlternateAsym && fPatternSize <= 2){
     QwWarning << "QwHelicityPattern::ProcessOptions: "

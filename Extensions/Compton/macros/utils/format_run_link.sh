@@ -18,5 +18,5 @@ DB="${SQLITE} ${DBFILE}"
 if [ "x$DETECTOR" == "xelectron" ]; then
    echo "<tr class=\"runlink_row\"><td><a href=\"Run_$RUN/\">Run $RUN ${MESSAGE}</td></tr>"
 else
-   echo "<tr class=\"runlink_row\"><td><a href=\"run_$RUN/run_$RUN.html\">Run $RUN ${MESSAGE}</td></tr>"
+ echo "<tr class=\"runlink_row\"><td>Run ${RUN}</td><td><a href=\"run_$RUN/run_$RUN.html\">Photon</a></td><td><a href=\"run_$RUN/erun_$RUN.html\">Electron</a></td><td>${MESSAGE}</td></tr>"
 fi

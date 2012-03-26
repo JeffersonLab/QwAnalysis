@@ -1,0 +1,287 @@
+!**************************************************************************
+!  HALL C  BEAMLINE
+!**************************************************************************
+! 2/12/2012 B.Waidyawansa : Rearranged 3c16 wires to fix the wire mixup done at bpm can.
+!
+!
+ROC=1
+Bank=0x102
+!same sample size for ADCs in a given bank
+!sample_size=480
+!for 960Hz
+sample_size=464  
+!
+!
+! module.type, module.num  chan.num, det.type, det.name
+
+
+!ADC0, Slot 4, Address 26, 0x7C
+   VQWK, 0, 0,  bpmstripline,  QWK_BPM3H04XP
+   VQWK, 0, 1,  bpmstripline,  QWK_BPM3H04XM
+   VQWK, 0, 2,  bpmstripline,  QWK_BPM3H04YP
+   VQWK, 0, 3,  bpmstripline,  QWK_BPM3H04YM
+   VQWK, 0, 4,  bpmstripline,  QWK_BPM3H07AXP
+   VQWK, 0, 5,  bpmstripline,  QWK_BPM3H07AXM
+   VQWK, 0, 6,  bpmstripline,  QWK_BPM3H07AYP
+   VQWK, 0, 7,  bpmstripline,  QWK_BPM3H07AYM
+
+!ADC1, Slot 5, Address 22, 0x7D
+   VQWK, 1, 0,  bpmstripline,  QWK_BPM3H07BXP
+   VQWK, 1, 2,  bpmstripline,  QWK_BPM3H07BYP
+   VQWK, 1, 3,  bpmstripline,  QWK_BPM3H07BYM
+   VQWK, 1, 4,  bpmstripline,  QWK_BPM3H07CXP
+   VQWK, 1, 5,  bpmstripline,  QWK_BPM3H07CXM
+   VQWK, 1, 6,  bpmstripline,  QWK_BPM3H07CYP
+   VQWK, 1, 7,  bpmstripline,  QWK_BPM3H07CYM
+
+!ADC2, Slot 6, Address 8, 0x7E
+   VQWK, 2, 0,  bpmstripline,  QWK_BPM3H08XP
+   VQWK, 2, 1,  bpmstripline,  QWK_BPM3H08XM
+   VQWK, 2, 2,  bpmstripline,  QWK_BPM3H08YP
+   VQWK, 2, 3,  bpmstripline,  QWK_BPM3H08YM
+   VQWK, 2, 4,  bpmstripline,  QWK_BPM3H09XP
+   VQWK, 2, 5,  bpmstripline,  QWK_BPM3H09XM
+   VQWK, 2, 6,  bpmstripline,  QWK_BPM3H09YP
+   VQWK, 2, 7,  bpmstripline,  QWK_BPM3H09YM
+
+!ADC3, Slot 7, Address 37, 0x7F
+   VQWK, 3, 0,  bpmstripline,  QWK_BPM3H09BXP	
+   VQWK, 3, 1,  bpmstripline,  QWK_BPM3H09BXM
+   VQWK, 3, 2,  bpmstripline,  QWK_BPM3H09BYP
+   VQWK, 3, 3,  bpmstripline,  QWK_BPM3H09BYM
+   VQWK, 3, 4,  bpmstripline,  QWK_BPM3H07BXM
+   VQWK, 3, 6,  bcm,  QWK_BCM2              
+   VQWK, 3, 7,  bcm,  QWK_BCM1    
+
+
+!ADC4, Slot 8, Address 32, 0x80
+
+   VQWK, 4, 0,  bpmstripline,  QWK_BPM3C07XP
+   VQWK, 4, 1,  bpmstripline,  QWK_BPM3C07XM
+   VQWK, 4, 2,  bpmstripline,  QWK_BPM3C07YP
+   VQWK, 4, 3,  bpmstripline,  QWK_BPM3C07YM
+   VQWK, 4, 4,  bpmstripline,  QWK_BPM3C08XP
+   VQWK, 4, 5,  bpmstripline,  QWK_BPM3C08XM
+   VQWK, 4, 6,  bpmstripline,  QWK_BPM3C08YP
+   VQWK, 4, 7,  bpmstripline,  QWK_BPM3C08YM
+
+!ADC5, Slot 9, Address 4, 0x81
+   VQWK, 5, 0,  bpmstripline,  QWK_BPM3C11XP
+   VQWK, 5, 1,  bpmstripline,  QWK_BPM3C11XM
+   VQWK, 5, 2,  bpmstripline,  QWK_BPM3C11YP
+   VQWK, 5, 3,  bpmstripline,  QWK_BPM3C11YM
+   VQWK, 5, 4,  bpmstripline,  QWK_BPM3C12XP
+   VQWK, 5, 5,  bpmstripline,  QWK_BPM3C12XM
+   VQWK, 5, 6,  bpmstripline,  QWK_BPM3C12YP
+   VQWK, 5, 7,  bpmstripline,  QWK_BPM3C12YM
+
+!ADC6, Slot 10, Address 31, 0x82 
+   VQWK, 6, 0,  bpmstripline,  QWK_BPM3C14XP
+   VQWK, 6, 1,  bpmstripline,  QWK_BPM3C14XM
+   VQWK, 6, 2,  bpmstripline,  QWK_BPM3C14YP
+   VQWK, 6, 3,  bpmstripline,  QWK_BPM3C14YM
+   VQWK, 6, 4,  bpmstripline,  QWK_BPM3C16YM
+   VQWK, 6, 5,  bpmstripline,  QWK_BPM3C16YP
+   VQWK, 6, 6,  bpmstripline,  QWK_BPM3C16XM
+   VQWK, 6, 7,  bpmstripline,  QWK_BPM3C16XP
+
+!ADC7, Slot 11, Address 20, 0x83
+   VQWK, 7, 0,  bpmstripline,  QWK_BPM3C17XP
+   VQWK, 7, 1,  bpmstripline,  QWK_BPM3C17XM
+   VQWK, 7, 2,  bpmstripline,  QWK_BPM3C17YP
+   VQWK, 7, 3,  bpmstripline,  QWK_BPM3C17YM
+   VQWK, 7, 4,  bpmstripline,  QWK_BPM3C18XP
+   VQWK, 7, 5,  bpmstripline,  QWK_BPM3C18XM
+   VQWK, 7, 6,  bpmstripline,  QWK_BPM3C18YP
+   VQWK, 7, 7,  bpmstripline,  QWK_BPM3C18YM
+
+!ADC8, Slot 12, Address 30, 0x84
+   VQWK, 8, 0,  bpmstripline,  QWK_BPM3C19XP
+   VQWK, 8, 1,  bpmstripline,  QWK_BPM3C19XM
+   VQWK, 8, 2,  bpmstripline,  QWK_BPM3C19YP
+   VQWK, 8, 3,  bpmstripline,  QWK_BPM3C19YM
+   VQWK, 8, 4,  bpmstripline,  QWK_BPM3C07AXP
+   VQWK, 8, 5,  bpmstripline,  QWK_BPM3C07AXM
+   VQWK, 8, 6,  bpmstripline,  QWK_BPM3C07AYP
+   VQWK, 8, 7,  bpmstripline,  QWK_BPM3C07AYM
+
+!ADC9, Slot 13, Address 29, 0x85	
+   VQWK, 9, 0,  bpmstripline,  QWK_BPM3P02AXP
+   VQWK, 9, 1,  bpmstripline,  QWK_BPM3P02AXM
+   VQWK, 9, 2,  bpmstripline,  QWK_BPM3P02AYP
+   VQWK, 9, 3,  bpmstripline,  QWK_BPM3P02AYM
+   VQWK, 9, 4,  bpmstripline,  QWK_BPM3P02BXP
+   VQWK, 9, 5,  bpmstripline,  QWK_BPM3P02BXM
+   VQWK, 9, 6,  bpmstripline,  QWK_BPM3P02BYP
+   VQWK, 9, 7,  bpmstripline,  QWK_BPM3P02BYM
+
+!ADC10, Slot 14, Address 1, 0x86
+   VQWK, 10, 0,  bpmstripline,  QWK_BPM3P03AXP
+   VQWK, 10, 1,  bpmstripline,  QWK_BPM3P03AXM
+   VQWK, 10, 2,  bpmstripline,  QWK_BPM3P03AYP
+   VQWK, 10, 3,  bpmstripline,  QWK_BPM3P03AYM
+   VQWK, 10, 4,  bpmstripline,  QWK_BPM3C20XP
+   VQWK, 10, 5,  bpmstripline,  QWK_BPM3C20XM
+   VQWK, 10, 6,  bpmstripline,  QWK_BPM3C20YP
+   VQWK, 10, 7,  bpmstripline,  QWK_BPM3C20YM
+
+!ADC11, Slot 15, Address 5, 0x87
+   VQWK, 11, 0,  bpmstripline,  QWK_BPM3C21XP
+   VQWK, 11, 1,  bpmstripline,  QWK_BPM3C21XM
+   VQWK, 11, 2,  bpmstripline,  QWK_BPM3C21YP
+   VQWK, 11, 3,  bpmstripline,  QWK_BPM3C21YM
+   VQWK, 11, 4,  bpmstripline,  QWK_BPM3H02XP
+   VQWK, 11, 5,  bpmstripline,  QWK_BPM3H02XM
+   VQWK, 11, 6,  bpmstripline,  QWK_BPM3H02YP
+   VQWK, 11, 7,  bpmstripline,  QWK_BPM3H02YM
+          
+
+!**************************************************************************
+! HALL C PHASE MONITOR
+!**************************************************************************
+ROC=0
+Bank=0x6110
+
+!ADC0
+   VQWK, 0, 0,  bcm,  QWK_LINEPHASE
+   VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
+   VQWK, 0, 2,  raster,  QWK_RASTER_X
+   VQWK, 0, 3,  raster,  QWK_RASTER_Y
+   VQWK, 0, 5,  raster,  QWK_RASTER_SUMXY
+	
+!These are cavity BPM1 signals (IPM3H04)
+!   VQWK, 1, 0,  bcm,  QWK_BCM5_Ix
+!   VQWK, 1, 1,  bcm,  QWK_BCM5_Iy
+!   VQWK, 1, 2,  bcm,  QWK_BCM5_Phase
+!These are cavity BPM2 signals (IPM3H09)
+!   VQWK, 1, 3,  bcm,  QWK_BCM6_Ix
+!   VQWK, 1, 4,  bcm,  QWK_BCM6_Iy
+!   VQWK, 1, 5,  bcm,  QWK_BCM6_Phase
+   VQWK, 1, 6,  bcm,  QWK_BCM6 
+   VQWK, 1, 7,  bcm,  QWK_BCM5
+
+!Analog signal for BCM17, when used.
+!   VQWK, 1, 7,  bcm,  QWK_BCM17
+
+!
+!
+!**************************************************************************
+! HALL C BEAMLINE SCALERS
+!**************************************************************************
+
+normclock=sca_4MHz
+
+Bank=0x6103
+!
+!! scaler.type, scaler.num  word.num, det.type, det.name
+
+
+   SCALER, 0, 16, bcm, sca_bcm1
+   SCALER, 0, 17, bcm, sca_bcm2
+   SCALER, 0, 18, bcm, sca_bcm17
+   SCALER, 0, 19, bcm, sca_unser	
+   SCALER, 0, 20, bcm, sca_bcm5
+   SCALER, 0, 21, bcm, sca_bcm6
+   SCALER, 0, 22, bcm, sca_habcm
+
+
+   SCALER, 0, 29, clock, sca_31MHz
+   SCALER, 0, 30, clock, sca_4MHz
+   SCALER, 0, 31, clock, sca_31MHzreturn
+
+   SCALER, 2, 18, halomonitor, sca_halo3
+   SCALER, 2, 19, halomonitor, sca_halo4
+   SCALER, 2, 20, halomonitor, sca_halo5
+   SCALER, 2, 21, halomonitor, sca_halo6
+   SCALER, 2, 22, halomonitor, sca_halo7
+   SCALER, 2, 24, halomonitor, sca_halo8
+   SCALER, 2, 25, halomonitor, sca_halo9
+   SCALER, 2, 26, halomonitor, sca_halo10
+
+
+
+!**************************************************************************
+! COMBINATIONS OF BEAM LINE DEVICES USED FOR BEAM ON TARGET 
+!**************************************************************************
+!
+! Enter the device names in order they appear in the beamline.
+!
+begin=combinedbcm
+name=qwk_charge
+!name	   type	 wieght
+  qwk_bcm1,  bcm, 1.0
+  qwk_bcm2,  bcm, 1.0
+!  qwk_bcm5,  bcm, 1.0
+end=combinedbcm
+
+
+begin=combinedbpm
+name=qwk_target	
+!name           type          q      x          y    
+ QWK_BPM3H07A,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H07B,  bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
+
+! The X and Y weights were obtained using run 10220 at 150uA.
+
+
+!**************************************************************************
+! COMBINATION OF DEVICES USED TO OBTAIN THE BEAM ENERGY
+!**************************************************************************
+! For the energy calculation we need the following inforamtion.
+! 	Beam position at the highest dispersive region (beamposition)
+!	Beam angle on target (targetbeamangle)
+!	Beam position on target (targetbeamposition)
+! 	The ratios of the TMatrix elements (with the appropriate signs).
+! These are used in the equation
+!	(dP/P) = (1/M15)*X_3c12 + (-M11/M15)*X_T + (-M12/M15)*X_T`
+! To get (dP/P).
+
+begin=energycalculator
+name=qwk_energy
+! name      type 	  ratios property  
+ qwk_bpm3c12, bpmstripline,  0.00024, beamposition 
+ qwk_target,  combinedbpm,  -0.00017, targetbeamposition	  
+ qwk_target,  combinedbpm,   2.6, targetbeamangle
+end=energycalculator
+
+! CHECK THE SIGNS OF THE MATRIX ELEMENT RATIOS!. Since M11 and M12 are
+! negative you have to USE the NEGATIVE sign for the ratios.
+
+
+!END
+
+!set of published variables
+!publish name,device_type, device name, property (x-pos,xp-angle,y-pos,yp-angle,c-charge,e-energy change, ef - effective charge)
+
+!Each line must contain,
+!1. publish name
+!2. device type
+!	bcm
+!	bpmstrpline
+!	bpmcavity
+!	combobpm
+!	combobcm
+!	comboenergy
+!3. device name 
+!4. property to publish
+!	x-pos
+!	xp-angle
+!	y-pos
+!	yp-angle
+!	c-charge
+!	e-energy change
+!	ef-effective charge
+
+[PUBLISH]
+ q_targ, combobcm, qwk_charge, c
+ x_targ, combobpm, qwk_target, x
+ y_targ, combobpm,  qwk_target, y
+ xp_targ, combobpm,  qwk_target, xp
+ yp_targ, combobpm,  qwk_target, yp
+ e_targ, comboenergy,  qwk_energy, e
+ qwk_3c16_effectivecharge, bpmstripline, qwk_bpm3c16, ef

@@ -233,11 +233,12 @@ public:
     }
   };
 
+  //I removed followup read after eahc ca_put command - rakithab (02-29-2012)
   void Set_Pockels_Cell_plus(Double_t &value){
     Int_t status;
     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell pos HW-count value: " << value << std::endl;
 
@@ -246,7 +247,7 @@ public:
     Int_t status;
     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell minus HW-count value: " << value << std::endl;
   };
@@ -269,16 +270,16 @@ public:
     Int_t status;
     status = ca_put(DBR_DOUBLE,fChargeAsymmetry , &value);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE,fChargeAsymmetry , &value);
-    status = ca_pend_io(10);
+    //status = ca_get(DBR_DOUBLE,fChargeAsymmetry , &value);
+    //status = ca_pend_io(10);
     status = ca_put(DBR_DOUBLE,fChargeAsymmetryError , &value_error);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE,fChargeAsymmetryError , &value_error);
-    status = ca_pend_io(10);
+    //status = ca_get(DBR_DOUBLE,fChargeAsymmetryError , &value_error);
+    //status = ca_pend_io(10);
     status = ca_put(DBR_DOUBLE,fChargeAsymmetryWidth , &value_width);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE,fChargeAsymmetryWidth , &value_width);
-    status = ca_pend_io(10);
+    //status = ca_get(DBR_DOUBLE,fChargeAsymmetryWidth , &value_width);
+    //status = ca_pend_io(10);
 
     std::cout << "EPICS Charge asymmetry updated " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
 
@@ -300,16 +301,16 @@ public:
     Int_t status;
     status = ca_put(DBR_DOUBLE,fHAChargeAsymmetry , &value);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetry , &value);
-    status = ca_pend_io(10);
+    //status = ca_get(DBR_DOUBLE,fHAChargeAsymmetry , &value);
+    // status = ca_pend_io(10);
     status = ca_put(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
-    status = ca_pend_io(10);
+    //status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryError , &value_error);
+    //status = ca_pend_io(10);
     status = ca_put(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
     status = ca_pend_io(10);
-    status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
-    status = ca_pend_io(10);
+    //status = ca_get(DBR_DOUBLE,fHAChargeAsymmetryWidth , &value_width);
+    //status = ca_pend_io(10);
 
     std::cout << "EPICS HA Charge asymmetry updated " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
 
@@ -464,8 +465,59 @@ public:
 
 
   
+  void Set_BCM78DDAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fBCM8DDAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fBCM8DDAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fBCM8DDAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
 
+    std::cout << "EPICS BCM78 DD asymmetry updated " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
 
+  }
+
+  void Get_BCM78DDAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fBCM8DDAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fBCM8DDAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fBCM8DDAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+
+  };
+
+  
+  void Set_BCM8Yield(Double_t &value){
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fBCM8Yield, &value);
+    status = ca_pend_io(10);
+  }
+
+  void Get_BCM8Yield(Double_t &value){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fBCM8Yield, &value);
+    status = ca_pend_io(10);
+  }
+
+  void Set_USLumiSumAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_put(DBR_DOUBLE,fUSLumiSumAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fUSLumiSumAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fUSLumiSumAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+  }
+
+  void Get_USLumiSumAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    Int_t status;
+    status = ca_get(DBR_DOUBLE,fUSLumiSumAsymmetry , &value);
+    status = ca_get(DBR_DOUBLE,fUSLumiSumAsymmetryError , &value_error);
+    status = ca_get(DBR_DOUBLE,fUSLumiSumAsymmetryWidth , &value_width);
+  }
   
   void Set_FeedbackStatus(Double_t value){
     Int_t status;
@@ -627,8 +679,15 @@ public:
   chid f3C12YQError;
   chid f3C12YQWidth;
 
+  chid fBCM8DDAsymmetry;
+  chid fBCM8DDAsymmetryError;  
+  chid fBCM8DDAsymmetryWidth;
 
+  chid fBCM8Yield;
 
+  chid fUSLumiSumAsymmetry;
+  chid fUSLumiSumAsymmetryError;
+  chid fUSLumiSumAsymmetryWidth;
 
 
 

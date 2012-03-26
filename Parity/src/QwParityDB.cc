@@ -611,7 +611,7 @@ UInt_t QwParityDB::GetAnalysisID(QwEventBuffer& qwevt)
 /*
  * This function retrieves the monitor table key 'monitor_id' for a given beam monitor.
  */
-UInt_t QwParityDB::GetMonitorID(const string& name)
+UInt_t QwParityDB::GetMonitorID(const string& name, Bool_t zero_id_is_error)
 {
   if (fMonitorIDs.size() == 0) {
     StoreMonitorIDs();
@@ -619,7 +619,7 @@ UInt_t QwParityDB::GetMonitorID(const string& name)
 
   UInt_t monitor_id = fMonitorIDs[name];
 
-  if (monitor_id==0) {
+  if (zero_id_is_error && monitor_id==0) {
     //    monitor_id = 6; // only for QwMockDataAnalysis
     QwError << "QwParityDB::GetMonitorID() => Unable to determine valid ID for beam monitor " << name << QwLog::endl;
   }
@@ -654,7 +654,7 @@ void QwParityDB::StoreMonitorIDs()
 /*
  * This function retrieves the main_detector table key 'main_detector_id' for a given beam main_detector.
  */
-UInt_t QwParityDB::GetMainDetectorID(const string& name)
+UInt_t QwParityDB::GetMainDetectorID(const string& name, Bool_t zero_id_is_error)
 {
   if (fMainDetectorIDs.size() == 0) {
     StoreMainDetectorIDs();
@@ -662,7 +662,7 @@ UInt_t QwParityDB::GetMainDetectorID(const string& name)
 
   UInt_t main_detector_id = fMainDetectorIDs[name];
 
-  if (main_detector_id==0) {
+  if (zero_id_is_error && main_detector_id==0) {
     //    main_detector_id = 19; // only for QwMockDataAnalysis
     QwError << "QwParityDB::GetMainDetectorID() => Unable to determine valid ID for beam main_detector " << name << QwLog::endl;
   }
@@ -783,7 +783,7 @@ void QwParityDB::StoreErrorCodeIDs()
 /*
  * This function retrieves the lumi_detector table key 'lumi_detector_id' for a given beam lumi_detector.
  */
-UInt_t QwParityDB::GetLumiDetectorID(const string& name)
+UInt_t QwParityDB::GetLumiDetectorID(const string& name, Bool_t zero_id_is_error)
 {
   if (fLumiDetectorIDs.size() == 0) {
     StoreLumiDetectorIDs();
@@ -791,7 +791,7 @@ UInt_t QwParityDB::GetLumiDetectorID(const string& name)
 
   UInt_t lumi_detector_id = fLumiDetectorIDs[name];
 
-  if (lumi_detector_id==0) {
+  if (zero_id_is_error && lumi_detector_id==0) {
      QwError << "QwParityDB::GetLumiDetectorID() => Unable to determine valid ID for beam lumi_detector " << name << QwLog::endl;
   }
 

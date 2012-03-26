@@ -44,7 +44,8 @@ std::vector<std::string> QwEPICSEvent::fDefaultAutogainList;
 /*************************************
  *  Constructors/Destructors.
  *************************************/
-QwEPICSEvent::QwEPICSEvent():fNominalWienAngle(30.0)
+QwEPICSEvent::QwEPICSEvent():fBlinderReversalForRunTwo(kFALSE),
+			     fPrecessionReversal(kFALSE),fNominalWienAngle(30.0)
 {
   SetDataLoaded(kFALSE);
   QwEPICSEvent::InitDefaultAutogainList();
@@ -95,8 +96,8 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
   fEPICSVariableType.clear();
 
   fExtraHelicityReversal = 1;
-  Bool_t found_BlinderReversalForRunTwo = kFALSE;
-  Bool_t found_PrecessionReversal       = kFALSE;
+  fBlinderReversalForRunTwo = kFALSE;
+  fPrecessionReversal       = kFALSE;
 
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
@@ -114,13 +115,13 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
       if (varname == "NominalWienAngle"){
 	fNominalWienAngle = atof(varvalue.c_str());
       } else if (varname == "BlinderReversalForRunTwo"){
-	if (! found_BlinderReversalForRunTwo){
-	  found_BlinderReversalForRunTwo = kTRUE;
+	if (! fBlinderReversalForRunTwo){
+	  fBlinderReversalForRunTwo = kTRUE;
 	  fExtraHelicityReversal = -1 * fExtraHelicityReversal;
 	}
       } else if (varname == "PrecessionReversal"){
-	if (! found_PrecessionReversal){
-	  found_PrecessionReversal = kTRUE;
+	if (! fPrecessionReversal){
+	  fPrecessionReversal = kTRUE;
 	  fExtraHelicityReversal = -1 * fExtraHelicityReversal;
 	}
       } else {
@@ -1015,7 +1016,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 
   ////////////////////////////////////////////////////////////
 
-  // For rotatable Half Wave Plate Setting
+  // For insertable Half Wave Plate Setting
   tagindex = FindIndex("IGL1I00DI24_24M");
   if (tagindex != kEPICS_Error) {
   QwDebug << "tagindex for IGL1I00DI24_24M = " << tagindex << QwLog::endl;
@@ -1025,7 +1026,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
     tmp_row.slow_helicity_plate = mysqlpp::null;
   } else if (fEPICSCumulativeData[tagindex].NumberRecords
 	     != fNumberEPICSEvents) {
-    // Rotatable Half Wave Plate Setting position changed
+    // Insertable Half Wave Plate Setting position changed
     QwWarning << "The value of "
 	      << fEPICSVariableList[tagindex]
 	      << " changed during the run."
@@ -1041,8 +1042,8 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 	      << QwLog::endl;
     tmp_row.slow_helicity_plate =mysqlpp::null;
   } else {
-    // Rotatable Half Wave Plate Setting position did not change
-    // Rotatable Half Wave Plate Setting setting is stored as a string with possible values
+    // Insertable Half Wave Plate Setting position did not change
+    // Insertable Half Wave Plate Setting setting is stored as a string with possible values
     // "OUT" and "IN".
     QwDebug << "Send the value of "
 	    << fEPICSVariableList[tagindex]
@@ -1052,6 +1053,56 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 	    << QwLog::endl;
     tmp_row.slow_helicity_plate = fEPICSDataEvent[tagindex].StringValue.Data();
   }
+  }
+
+  // For IHWP2 Setting
+  // IGL1I00DIOFLRD: Passive IHWP readback (13056=IN,8960=OUT)
+  tagindex = FindIndex("IGL1I00DIOFLRD");
+  if (tagindex != kEPICS_Error) {
+    QwDebug << "tagindex for IGL1I00DIOFLRD = " << tagindex << QwLog::endl;
+    
+    if (! fEPICSCumulativeData[tagindex].Filled) {
+      //  No data for this run.
+      tmp_row.passive_helicity_plate = mysqlpp::null;
+    } else if (fEPICSCumulativeData[tagindex].NumberRecords
+	       != fNumberEPICSEvents) {
+      // IHWP2 Setting position changed
+      QwWarning << "The value of "
+		<< fEPICSVariableList[tagindex]
+		<< " changed during the run."
+		<< "Send NULL word to the database."
+		<< QwLog::endl;
+      tmp_row.passive_helicity_plate = mysqlpp::null;
+    } else {
+      Double_t ihwp2_readback = (fEPICSCumulativeData[tagindex].Sum)/
+	((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
+      if (fabs(ihwp2_readback-13056)<1){
+	// IHWP2 is IN
+	QwDebug << "Send the value of "
+		<< fEPICSVariableList[tagindex]
+		<< ", "
+		<< fEPICSDataEvent[tagindex].StringValue.Data()
+		<< ", to the database."
+		<< QwLog::endl;
+	tmp_row.passive_helicity_plate = "in";
+      } else if (fabs(ihwp2_readback-8960)<1){
+	// IHWP2 is OUT
+	QwDebug << "Send the value of "
+		<< fEPICSVariableList[tagindex]
+		<< ", "
+		<< fEPICSDataEvent[tagindex].StringValue.Data()
+		<< ", to the database."
+		<< QwLog::endl;
+	tmp_row.passive_helicity_plate = "out";
+      } else {
+	QwWarning << "The value of "
+		  << fEPICSVariableList[tagindex]
+		  << " is not defined."
+		  << "Send NULL word to the database."
+		  << QwLog::endl;
+	tmp_row.passive_helicity_plate =mysqlpp::null;
+      }
+    }
   }
 
  // For Wien Setting
@@ -1083,8 +1134,8 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
       // WienMode is stored as an enum of the following labels:
       TString wien_enum[5] = {"indeterminate",
 			      "normal","reverse",
-			      "transverse_horizontal",
-			      "transverse_vertical"};
+			      "transverse_vertical",
+			      "transverse_horizontal"};
       QwDebug << "Send the value of "
 	      << fEPICSVariableList[tagindex]
 	      << ", "
@@ -1095,6 +1146,14 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
     }
   }
   
+  // For the precession reversal
+  //   This just uses the flag from the channel map to determine if the precession 
+  //   is normal or reversed.
+  if (fPrecessionReversal){
+    tmp_row.precession_reversal = "reverse";
+  } else {
+    tmp_row.precession_reversal = "normal";
+  }
 
   // For charge feedback
 

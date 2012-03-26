@@ -849,6 +849,55 @@ void QwVQWK_Channel::AssignValueFrom(const  VQwDataElement* valueptr)
     throw std::invalid_argument(loc.Data());
   }
 }
+void QwVQWK_Channel::AddValueFrom(const  VQwHardwareChannel* valueptr)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this += *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::AddValueFrom = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+void QwVQWK_Channel::SubtractValueFrom(const  VQwHardwareChannel* valueptr)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this -= *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::SubtractValueFrom = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+void QwVQWK_Channel::MultiplyBy(const VQwHardwareChannel* valueptr)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this *= *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::MultiplyBy = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+void QwVQWK_Channel::DivideBy(const VQwHardwareChannel* valueptr)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this /= *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::DivideBy = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+
 
 const QwVQWK_Channel QwVQWK_Channel::operator+ (const QwVQWK_Channel &value) const
 {
@@ -931,6 +980,64 @@ QwVQWK_Channel& QwVQWK_Channel::operator*= (const QwVQWK_Channel &value)
 
   return *this;
 }
+
+VQwHardwareChannel& QwVQWK_Channel::operator+=(const VQwHardwareChannel *source)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(source);
+  if (tmpptr!=NULL){
+    *this += *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::operator+= "
+        +source->GetElementName()+" "
+        +this->GetElementName()+" are not of the same type";
+    throw(std::invalid_argument(loc.Data()));
+  }
+  return *this;
+}
+VQwHardwareChannel& QwVQWK_Channel::operator-=(const VQwHardwareChannel *source)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(source);
+  if (tmpptr!=NULL){
+    *this -= *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::operator-= "
+        +source->GetElementName()+" "
+        +this->GetElementName()+" are not of the same type";
+    throw(std::invalid_argument(loc.Data()));
+  }
+  return *this;
+}
+VQwHardwareChannel& QwVQWK_Channel::operator*=(const VQwHardwareChannel *source)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(source);
+  if (tmpptr!=NULL){
+    *this *= *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::operator*= "
+        +source->GetElementName()+" "
+        +this->GetElementName()+" are not of the same type";
+    throw(std::invalid_argument(loc.Data()));
+  }
+  return *this;
+}
+VQwHardwareChannel& QwVQWK_Channel::operator/=(const VQwHardwareChannel *source)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(source);
+  if (tmpptr!=NULL){
+    *this /= *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::operator/= "
+        +source->GetElementName()+" "
+        +this->GetElementName()+" are not of the same type";
+    throw(std::invalid_argument(loc.Data()));
+  }
+  return *this;
+}
+
 
 void QwVQWK_Channel::Sum(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2)
 {
@@ -1049,8 +1156,8 @@ This function will add a offset to the hw_sum and add the same offset for blocks
 void QwVQWK_Channel::AddChannelOffset(Double_t offset)
 {
   if (!IsNameEmpty()){
-      fHardwareBlockSum += offset;
-      for (Int_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += offset;
+    fHardwareBlockSum += offset;
+    for (Int_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += offset;
   }
   return;
 }
@@ -1127,7 +1234,7 @@ void QwVQWK_Channel::DivideBy(const QwVQWK_Channel &denom)
  * Accumulate the running moments M1 and M2
  * @param value Object (single event or accumulated) to add to running moments
  */
-void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
+void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value, Int_t count)
 {
   // Moment calculations
   Bool_t berror=kTRUE;//only needed for deaccumulation (stability check purposes)
@@ -1146,7 +1253,7 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
     Rakitha
   */
 
-  if (value.fGoodEventCount==-1 && value.fErrorFlag>0){
+  if (count==-1 && value.fErrorFlag>0){
     berror=(((value.fErrorFlag) & 0xFFFFFFF) == 0); //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero //-value.fErrorConfigFlag
     if (GetElementName()=="qwk_enegy"){//qwk_target_EffectiveCharge
       PrintValue();
@@ -1156,7 +1263,7 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   
   
   Int_t n1 = fGoodEventCount;
-  Int_t n2 = value.fGoodEventCount;
+  Int_t n2 = count;
   // If there are no good events, check the error flag
   if (n2 == 0 && (value.fErrorFlag) == 0) {
     n2 = 1;
@@ -1480,7 +1587,34 @@ void  QwVQWK_Channel::ReportErrorCounters()
   return;
 }
 
-
+void QwVQWK_Channel::ScaledAdd(Double_t scale, const VQwHardwareChannel *value)
+{
+  const QwVQWK_Channel* input = dynamic_cast<const QwVQWK_Channel*>(value);
+  
+  // follows same steps as += but w/ scaling factor
+  if(input!=NULL && !IsNameEmpty()){
+    //     QwWarning << "Adding " << input->GetElementName()
+    // 	      << " to " << GetElementName()
+    // 	      << " with scale factor " << scale
+    // 	      << QwLog::endl;
+    //     PrintValue();
+    //     input->PrintValue();
+    for(Int_t i = 0; i < fBlocksPerEvent; i++){
+      this -> fBlock[i] += scale * input->fBlock[i];
+      this->fBlock_raw[i] = 0;
+      this -> fBlockM2[i] = 0.0;
+    }
+    this->fHardwareBlockSum_raw = 0;
+    this->fSoftwareBlockSum_raw = 0;
+    this -> fHardwareBlockSum += scale * input->fHardwareBlockSum;
+    this -> fHardwareBlockSumM2 = 0.0;
+    this -> fNumberOfSamples += input->fNumberOfSamples;
+    this -> fSequenceNumber  =  0;
+    this -> fErrorFlag       |= (input->fErrorFlag);   
+  }
+  //   QwWarning << "Finsihed with addition"  << QwLog::endl;
+  //   PrintValue();
+}
 
 void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list)
 {
@@ -1586,5 +1720,3 @@ void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list
   return;
   
 }
-
-

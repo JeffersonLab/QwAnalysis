@@ -22,6 +22,9 @@
 #include "QwDriftChamberVDC.h"
 #include "QwDriftChamberHDC.h"
 #include "QwMagneticField.h"
+#include "QwTriggerScintillator.h"
+#include "QwMainDetector.h"
+
 
 void DefineOptionsTracking(QwOptions& options)
 {
@@ -33,6 +36,8 @@ void DefineOptionsTracking(QwOptions& options)
   QwDriftChamberVDC::DefineOptions(options);
   QwDriftChamberHDC::DefineOptions(options);
   QwMagneticField::DefineOptions(options);
+  QwTriggerScintillator::DefineOptions(options);
+  QwMainDetector::DefineOptions(options);
 }
 
 #endif // QWOPTIONSTRACKING_H

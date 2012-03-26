@@ -160,10 +160,13 @@ fi
 
 ## First create the web page 
 RUNPAGE="${WEBDIR}/run_$RUNNUM/run_$RUNNUM.html"
+ERUNPAGE="${WEBDIR}/run_$RUNNUM/erun_$RUNNUM.html"
 # The body of the page
 cat ${TEMPLATES}/run_page > $RUNPAGE
+cat ${TEMPLATES}/erun_page > $ERUNPAGE
 # End this run's page
 cat ${TEMPLATES}/footer_run >> $RUNPAGE
+cat ${TEMPLATES}/footer_run >> $ERUNPAGE
 ## Then make the substitutions to make it relevant
 sed -i -e "s|%%RUNNUM%%|$RUNNUM|" $RUNPAGE
 sed -i -e "s|%%STARTDATE%%|$STARTDATE|"  $RUNPAGE
@@ -175,6 +178,18 @@ sed -i -e "s|%%BCM02%%|$BCM2VAL|"  $RUNPAGE
 sed -i -e "s|%%BCM17%%|$BCM17VAL|"  $RUNPAGE
 sed -i -e "s|%%HWP%%|$HWPVAL|"  $RUNPAGE
 sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $RUNPAGE
+
+sed -i -e "s|%%RUNNUM%%|$RUNNUM|" $ERUNPAGE
+sed -i -e "s|%%STARTDATE%%|$STARTDATE|"  $ERUNPAGE
+sed -i -e "s|%%ENDDATE%%|$ENDDATE|"  $ERUNPAGE
+sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|"  $ERUNPAGE
+sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|"  $ERUNPAGE
+sed -i -e "s|%%BCM01%%|$BCM1VAL|"  $ERUNPAGE
+sed -i -e "s|%%BCM02%%|$BCM2VAL|"  $ERUNPAGE
+sed -i -e "s|%%BCM17%%|$BCM17VAL|"  $ERUNPAGE
+sed -i -e "s|%%HWP%%|$HWPVAL|"  $ERUNPAGE
+sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $ERUNPAGE
+
 #Make links to other pages
 PREVRUN=$RUNNUM
 let "PREVRUN -= 1"

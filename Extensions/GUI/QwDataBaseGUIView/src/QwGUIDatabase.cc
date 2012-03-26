@@ -18,6 +18,7 @@ enum EQwGUIDatabaseXAxisIDs {
   ID_X_SLUG,
   ID_X_BEAM,
   ID_X_TIME,
+  ID_X_TIME_RUNLET,
   ID_X_WEIN,
   ID_TGT_X,
   ID_TGT_Y,
@@ -37,6 +38,7 @@ enum EQwGUIDatabaseInstrumentIDs {
   ID_E_CAL,
   ID_BPM,
   ID_BCM,
+  ID_BCM_DD,
   ID_MD_SENS,
   ID_LUMI_SENS
 };
@@ -118,17 +120,22 @@ const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] =
  
 };
 
-//if you change this you need to change the IF statement in MakeQuery to reflect what
-//entry begins the "double difference" section.
+// bcms
 const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] =
 {
+  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
+  "qwk_bcmgl1","qwk_bcmgl2","bcmddgl",
+  "qwk_linephase", "qwk_invert_tstable"
+};
 
-
- "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
- "qwk_linephase", "qwk_invert_tstable","bcmdd12","bcmdd15","bcmdd16", "bcmdd17",
- "bcmdd18","bcmdd25", "bcmdd26","bcmdd27", "bcmdd28","bcmdd56", "bcmdd57",
- "bcmdd58", "bcmdd67","bcmdd68", "bcmdd78"
- };
+// bcm double differences
+const char *QwGUIDatabase::BCMDoubleDifferences[N_BCM_DD] =
+{
+  "bcmdd12","bcmdd15","bcmdd16", "bcmdd17","bcmdd18",
+  "bcmdd25", "bcmdd26","bcmdd27", "bcmdd28",
+  "bcmdd56", "bcmdd57","bcmdd58", 
+  "bcmdd67","bcmdd68", "bcmdd78"
+};
 
 const char *QwGUIDatabase::LumiCombos[N_LUMIS] = 
 {
@@ -275,8 +282,11 @@ const char   *QwGUIDatabase::RegressionVarsOn_8[N_REG_VARS_ON_8]={
   "wrt_diff_9_p_4X","wrt_diff_9_m_4X","wrt_diff_9_m_4Y","wrt_diff_9_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
 };
 
+// Regression types
+// To get the raw data from QwAnalysis that pass the standard event cuts use "raw(from rootfiles)"
+// To get the unregressed data that pass LinRegBlue event cuts use "off"
 const char *QwGUIDatabase::RegressionSchemes[N_REGRESSION_SCHEMES] = {
-  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8"
+  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","raw(from rootfiles)"
 };
 
 
@@ -364,7 +374,7 @@ const char *QwGUIDatabase::Targets[N_TGTS] =
 {
   "HOME=OutOfBeam","HYDROGEN-CELL","DS-8%-Aluminum","DS-4%-Aluminum","DS-2%-Aluminum",
   "US-4%-Aluminum","US-2%-Aluminum","US-1%-Aluminum","US-Empty-Frame","Optics-3",
-  "Unknown position","US-Pure-Al","DS-Cntring-hole","DS-0.5%-C","US-Cntring-hole"
+  "Unknown position","US-Pure-Al","DS-Cntring-hole","DS-0.5%-C","US-Cntring-hole","All"
 };
 
 
@@ -410,7 +420,7 @@ const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
 
 const char *QwGUIDatabase::X_axis[N_X_AXIS] =
 {
-  "Vs. Run Number","Vs. Slug","Histogram","Vs. Time", "Vs. Wein"
+  "Vs. Run Number","Vs. Slug","Runlet Histogram","Vs. Run start time","Vs. Runlet start time","Vs. Wein"
 };
 
 
@@ -622,6 +632,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbInstrument->AddEntry("Main Detectors", ID_MD);
   dCmbInstrument->AddEntry("BPMs", ID_BPM);
   dCmbInstrument->AddEntry("BCMs", ID_BCM);
+  dCmbInstrument->AddEntry("BCM Double Difference", ID_BCM_DD);
   dCmbInstrument->AddEntry("LUMI Detectors", ID_LUMI);
   dCmbInstrument->AddEntry("Combined BPMs", ID_CMB_BPM);
   dCmbInstrument->AddEntry("Combined BCMs", ID_CMB_BCM);
@@ -646,14 +657,15 @@ void QwGUIDatabase::MakeLayout()
   dCmbXAxis->AddEntry(X_axis[1],ID_X_SLUG);
   dCmbXAxis->AddEntry(X_axis[2],ID_X_HISTO);
   dCmbXAxis->AddEntry(X_axis[3],ID_X_TIME);
-  dCmbXAxis->AddEntry(X_axis[4],ID_X_WEIN);
+  dCmbXAxis->AddEntry(X_axis[4],ID_X_TIME_RUNLET);
+  //dCmbXAxis->AddEntry(X_axis[5],ID_X_WEIN);
 
   // Populate regression combo box
   for (Int_t i = 0; i < N_REGRESSION_SCHEMES; i++) {
     dCmbRegressionType->AddEntry(RegressionSchemes[i], i);
   }
   dCmbRegressionType->Connect("Selected(Int_t)","QwGUIDatabase", this, "RegressionTypeInfo()");
-  dCmbRegressionType->Select(0);
+  dCmbRegressionType->Select(1);
 
 
   // Populate good for list
@@ -806,6 +818,16 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     measurements = ChargeMeasurementTypes;
   }
 
+  if (dCmbInstrument->GetSelected() == ID_BCM_DD) {
+    dCmbRegressionType->SetEnabled(kFALSE);
+    for (Int_t i = 0; i < N_BCM_DD; i++) {
+      dCmbDetector->AddEntry(BCMDoubleDifferences[i], i);
+    }
+    dCmbMeasurementType->AddEntry("d", 0);
+    measurements =PositionMeasurementTypes; // Here I am going to use this array for the sake of using an array
+    // with "d" in it. 
+  }
+
   if (dCmbInstrument->GetSelected() == ID_CMB_BPM) {
     dCmbProperty->SetEnabled(kTRUE);
     for (Int_t i = 0; i < N_CMB_BPMS; i++) {
@@ -862,15 +884,6 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     dCmbProperty->Select(0);
   }
 
-//     std::cout<<regression_set<<std::endl;
-//     if(regression_set == "off"){ // do nothing
-//     }
-//     else  if (regression_set == "on"){
-//       for (Int_t i = 0; i < N_REGRESSION_VARS; i++) {
-// 	dCmbProperty->AddEntry(RegressionVars[i], i);
-//       }
-//     }
-//   }
 
   dCmbMeasurementType->Select(0);
   dCmbDetector->Select(0);
@@ -920,8 +933,12 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
   }
 
   dCmbMeasurementType->Select(0);
-
+  
 }
+
+
+
+
 
 /********************************************
 
@@ -933,6 +950,7 @@ void QwGUIDatabase::PopulatePlotComboBox()
 {
     for (Int_t k = 0; k < N_Plots; k++)
       dCmbPlotType->AddEntry(Plots[k], k);
+
 } 
 
 
@@ -1088,6 +1106,8 @@ void QwGUIDatabase::ClearData()
   GraphArray.Clear();//Clear();
   LegendArray.Clear();//Clear();
 
+  DataWindowArray.Clear();
+
   vector <TObject*> obja;
   TIter *next1 = new TIter(DataWindowArray.MakeIterator());
   obj = next1->Next();
@@ -1177,9 +1197,9 @@ Create a mysql query with the specific SELECT options
 TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString table_links, 
 				 TString special_cuts){
 
-  TString correction_flag;
+  TString slope_calculation_flag;
   TString regression_selected;
-
+  TString target_position;
 
   /*Basic data selections that are valid for any type of query*/
 
@@ -1220,36 +1240,59 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
       good_for_check = good_for_check + Form(" AND FIND_IN_SET('%i',data.good_for_id)",i+1);
     }
   }
-
-
-
-  /*Slope corrections ON/OFF?*/
-  if (strcmp((RegressionSchemes[dCmbRegressionType->GetSelected()]),"off") || det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
-    // To get the unregressed data when slope correction is 'on' all the schemes will have the same unregressed
-    // values. So I can just pick one scheme for the slope_correction option
-    correction_flag  = "off";
-
-    if(dCmbInstrument->GetSelected() == ID_BCM && dCmbDetector->GetSelected() > 7){
-      regression_selected = "on";//need this to see double differences?
-    }
-    else
-      regression_selected = regression_set;
+  
+  //
+  // Selecting regressed data and sensitivities
+  //
+  if (det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
+    /*To get Sensitivities :
+      The calculated sensitivities are stored in the data base with the option 'slope_calculation'='regression_type'.
+      e.g.slope_calculation'='on_5+1'.
+      To access the sensitivities we need to use the selection
+      slope_calculation'='regression_type' and slope_correction='off'
+      beacuse the regression script is not applying corrections at the same time slopes are being calculated.
+    */
+    slope_calculation_flag  = regression_set;
+    regression_selected = "off";
+  }
+  else if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="off"){
+    /* To get the unregressed data (data that passed regression cuts in LinRegBlue) :
+       When slope correction is 'off' all the schemes will have the same unregressed
+       values. So I can just pick one scheme for the slope_correction option
+    */
+    slope_calculation_flag  = "on";
+    regression_selected = regression_set;
+  }
+  else if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="raw(from rootfiles)"){
+    /* To get the raw data from QwAnalysis (with standard analyzer cuts) :
+     */
+    slope_calculation_flag  = "off";
+    regression_selected = "off";
   }
   else{
-    // To get the regressed data
+    /* To get regressed data :
+       slope_calculation='off' and slope_correction= regression_set
+    */
+    slope_calculation_flag  = "off";
     regression_selected = regression_set;
-    correction_flag  = "off";
   }
-
-
+  
+  //
+  // Selecting a target type
+  //
+  if(target=="All")
+    target_position = ""; // No selection. Just show all target types
+  else
+    target_position = Form("AND target_position = '%s' ",target.Data());
+  
   TString querystring 
     = "SELECT "+outputs+" slow_helicity_plate, data.run_quality_id,data.good_for_id,target_position, (scd.value<0)*-2+1 as wien_reversal"
     +" FROM "+tables_used+" analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
     +" WHERE "+table_links+" data.analysis_id = ana.analysis_id AND ana.runlet_id = slow_controls_settings.runlet_id "
-    + Form(" AND data.slope_correction='%s' AND data.slope_calculation='%s' ",correction_flag.Data(),regression_selected.Data())
+    + Form(" AND data.slope_correction='%s' AND data.slope_calculation='%s' ",regression_selected.Data(),slope_calculation_flag.Data())
     +" AND data.subblock = "+ Form("%i",subblock) 
     +" AND data.error !=0 "
-    +" AND target_position = '"+Form("%s",target.Data())+"'"
+    +target_position+
     +" AND scd.runlet_id=ana.runlet_id "
     + quality_check
     + good_for_check
@@ -1311,6 +1354,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   case ID_BPM:
   case ID_CMB_BPM:
   case ID_BCM:
+  case ID_BCM_DD:
   case ID_CMB_BCM:
   case ID_E_CAL:
     det_table    = "monitor";
@@ -1348,8 +1392,8 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
  /* Now get the run number information*/
   mysqlpp::Query query      = dDatabaseCont->Query();
 
-  TString querystring;
-  TString outputs;
+  TString querystring="";
+  TString outputs="";
  
   TString special_cuts =" AND data."+det_type+"='"+device+"'  AND scd.sc_detector_id = "
     + Form("%i", phi_fg_id)+" ";
@@ -1374,16 +1418,20 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   }
 
   if((dCmbXAxis->GetSelected()) == ID_X_SLUG){
-    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(data.n)*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,data.slug AS x_value, ";
+    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(SUM(data.n))*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,data.slug AS x_value, ";
     special_cuts += Form(" AND (data.slug >= %i AND data.slug <= %i ) GROUP BY data.slug",index_first,index_last);
   }
 
   if((dCmbXAxis->GetSelected()) == ID_X_TIME) {
     tables_used+=" run,  ";
-    outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, run.start_time AS x_value,";
-    special_cuts += Form(" AND run.run_number = data.run_number AND (data.run_number >= %i  AND data.run_number <= %i) GROUP BY data.run_number ",index_first, index_last);
+    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(SUM(data.n))*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,run.start_time AS x_value, ";
+    special_cuts += Form(" AND run.run_number = data.run_number AND (data.run_number >= %i  AND data.run_number <= %i) and run.start_time!='NULL' and run.start_time>'2009-01-01' GROUP BY data.run_number ",index_first, index_last);
   }
-
+  if((dCmbXAxis->GetSelected()) == ID_X_TIME_RUNLET) {
+    tables_used+=" runlet,  ";
+    outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms,runlet.start_time AS x_value,";
+    special_cuts += Form(" AND runlet.runlet_id = data.runlet_id AND (data.run_number >= %i  AND data.run_number <= %i) AND runlet.start_time!='NULL' ",index_first, index_last);
+  }
 
   querystring= MakeQuery(outputs,tables_used,table_links,special_cuts);
 
@@ -1395,7 +1443,8 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   
   mysqlpp::StoreQueryResult read_data = query.store();
   dDatabaseCont->Disconnect(); 
-    
+
+
   return read_data;
 
 }
@@ -1596,7 +1645,7 @@ void QwGUIDatabase::PlotDetector()
     for (Int_t i = 0; i < row_size; ++i)
       { 	   
 
-	if(x_axis == ID_X_TIME){
+	if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET ){
 	  /*How to address DST issue in TAxis? 
 	  Aparently TAxis time dispaly have a bug (which was not fixed in V 5.27.02) in it which means 
 	  that when it converts from UInt to time display it is not correcting for DST.
@@ -1621,8 +1670,8 @@ void QwGUIDatabase::PlotDetector()
 	  converted = runtime_start->Convert();
 
 	  //If the time is in the DST time zone 
-	  if( (converted >= (DST2010_start->Convert()) and (converted <= (DST2010_end->Convert())))||
-	      (converted >= (DST2011_start->Convert()) and (converted <= (DST2011_end->Convert())))||
+	  if( (converted >= (DST2010_start->Convert()) and (converted <= (DST2010_end->Convert())))or
+	      (converted >= (DST2011_start->Convert()) and (converted <= (DST2011_end->Convert())))or
 	      (converted >= (DST2012_start->Convert()) and (converted <= (DST2012_end->Convert()))))
 	    adjust_for_DST = 3600;	   
 	  else
@@ -1634,6 +1683,7 @@ void QwGUIDatabase::PlotDetector()
 	    std::cout<<""<<adjust_for_DST<<std::endl;
 	  }
 	}
+
 	// Convert asymmetries  in to ppm, convert differences in to nm/murad
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
 	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
@@ -1646,8 +1696,8 @@ void QwGUIDatabase::PlotDetector()
 	  x_rms = (read_data[i]["rms"]);
 	}	  
         
-        //Fist fill the rms stuff without quality checks
-	if(x_axis == ID_X_TIME){
+        //Set the lables for rms plots
+	if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 	  run_rms.operator()(i)  = (runtime_start->Convert()) + adjust_for_DST;
         }
         else if(x_axis == ID_X_RUN){
@@ -1656,7 +1706,8 @@ void QwGUIDatabase::PlotDetector()
 	  xval.push_back(Form("%5.2f",val ));
 	}
 	else{
-	  //do nothing for WEIN/SLUG
+	  run_rms.operator()(i)  = read_data[i]["x_value"];
+	  //do nothing for WEIN/SLUG. Don't need labels for these.
 	}
 	
 	// Fill the rms vectors
@@ -1668,7 +1719,7 @@ void QwGUIDatabase::PlotDetector()
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
 	    if (read_data[i]["wien_reversal"]*1 == 1){
 
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_out.operator()(k)  = (runtime_start->Convert()) + adjust_for_DST;
 		run_out_label.push_back(Form("%f",(runtime_start->Convert()) + adjust_for_DST));
 	      }
@@ -1688,7 +1739,7 @@ void QwGUIDatabase::PlotDetector()
 	      k++;
 
 	    } else {
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_out_L.operator()(l)  = (runtime_start->Convert())+ adjust_for_DST;
 		run_out_L_label.push_back(Form("%f",(runtime_start->Convert()) + adjust_for_DST));
 	      }
@@ -1712,7 +1763,7 @@ void QwGUIDatabase::PlotDetector()
 	  if(read_data[i]["slow_helicity_plate"] == "in") {
 
 	    if (read_data[i]["wien_reversal"]*1 == 1){
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_in.operator()(m)  = runtime_start->Convert()+ adjust_for_DST;
 		run_in_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));		
 	      }
@@ -1730,7 +1781,7 @@ void QwGUIDatabase::PlotDetector()
 	      err_in.operator()(m)  = 0.0;
 	      m++;
 	    } else {
-	      if(x_axis == ID_X_TIME){
+	      if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 		run_in_L.operator()(n)  = runtime_start->Convert()+ adjust_for_DST;
 		run_in_L_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	      }
@@ -1756,7 +1807,7 @@ void QwGUIDatabase::PlotDetector()
 	   (read_data[i]["run_quality_id"] == "1,2") | //or
 	   (read_data[i]["run_quality_id"] == "2,3") ) { //all instances of bad
 
-	  if(x_axis == ID_X_TIME){
+	  if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 	    run_bad.operator()(o)  = runtime_start->Convert()+ adjust_for_DST;
 	    run_bad_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	  }
@@ -1777,7 +1828,7 @@ void QwGUIDatabase::PlotDetector()
 	
 	if((read_data[i]["run_quality_id"] == "3")  | //or
 	   (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
-	  if(x_axis == ID_X_TIME){
+	  if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
 	    run_suspect.operator()(p)  = runtime_start->Convert()+ adjust_for_DST;
 	    run_suspect_label.push_back(Form("%f",runtime_start->Convert()+ adjust_for_DST));
 	  }
@@ -1909,6 +1960,7 @@ void QwGUIDatabase::PlotDetector()
     }
     
     //Make RMS graph with all events
+
     if(plot.Contains("RMS")) grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
 
     // Multigraph for the mean values
@@ -1922,12 +1974,14 @@ void QwGUIDatabase::PlotDetector()
     TString y_title = GetYTitle(measurement_type, det_id);
     TString title   = GetTitle(measurement_type, device);
     TString x_title;
-    if(x_axis == ID_X_TIME)x_title = "Time (YY:MM:DD / HH:MM)";
+    if(x_axis == ID_X_TIME)x_title = "Run Start Time (YY:MM:DD / HH:MM)";
     else
-      if(x_axis == ID_X_RUN)x_title = "Run Number";
-      else
-	if(x_axis == ID_X_TIME)x_title = "Slug Number";
-	else x_title = "";
+      if(x_axis == ID_X_TIME_RUNLET)x_title = "Runlet Start Time (YY:MM:DD / HH:MM)";
+      else							
+	if(x_axis == ID_X_RUN)x_title = "Run Number";
+	else
+	  if(x_axis == ID_X_SLUG)x_title = "Slug Number";
+	  else x_title = "";
     
     if(grp){
       if(m>0)grp->Add(grp_in);
@@ -1937,7 +1991,7 @@ void QwGUIDatabase::PlotDetector()
       if(o>0)grp->Add(grp_bad);
       if(p>0)grp->Add(grp_suspect);
     }
-    
+   
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
     if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.5f #pm %2.5f (stat)", 
 					  fit1->GetParameter(0), fit1->GetParError(0)), "p");
@@ -1960,17 +2014,29 @@ void QwGUIDatabase::PlotDetector()
     char * label;
 
     // format axis to display time
-    if(x_axis == ID_X_TIME){
-      grp->GetXaxis()->SetTimeDisplay(1);
-      grp->GetXaxis()->SetTimeOffset(0,"gmt");
-      grp->GetXaxis()->SetLabelOffset(0.03); 
-      grp->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
-      grp->GetXaxis()->Draw();
+    if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
+      if(grp){
+	grp->GetXaxis()->SetTimeDisplay(1);
+	grp->GetXaxis()->SetTimeOffset(0,"gmt");
+	grp->GetXaxis()->SetLabelOffset(0.03); 
+	grp->GetXaxis()->SetLabelSize(0.02); 
+	grp->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
+	grp->GetXaxis()->Draw();
+      }
+      if(grp_rms) {
+	grp_rms->Draw("ab"); // by default PlotGraphs() draws graphs in "ap" format. So to get the bars, we have to redraw the rms graph.
+ 	grp_rms->GetXaxis()->SetTimeDisplay(1);
+	grp_rms->GetXaxis()->SetTimeOffset(0,"gmt");
+	grp_rms->GetXaxis()->SetLabelOffset(0.03); 
+	grp_rms->GetXaxis()->SetLabelSize(0.02); 
+	grp_rms->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
+	grp_rms->GetXaxis()->Draw();
+      }
     }
 
 
     if(x_axis == ID_X_RUN){
-      // set the alphanumeric labels for run/slug
+      // set the alphanumeric labels for runlets
       if(grp) grp->GetXaxis()->Set(row_size, 0, row_size-1); // rebin
       if(grp_rms) {
 	grp_rms->Draw("ab");
@@ -1983,8 +2049,10 @@ void QwGUIDatabase::PlotDetector()
     	if(grp) (grp->GetXaxis())->SetBinLabel(k,label);
 	if(grp_rms) (grp_rms->GetXaxis())->SetBinLabel(k,label);
       }
+    } else{
+      if(grp_rms)
+	grp_rms->Draw("ab");
     }
-
     // For WEIN and SLUG we can just use the values we read.
 
     // set titles for mean value graph
@@ -1998,8 +2066,8 @@ void QwGUIDatabase::PlotDetector()
     // set titles for rms value graph
     if(grp_rms){
       grp_rms->SetTitle(title);
-      grp_rms->GetYaxis()->SetTitle("RMS of "+y_title);
-      grp_rms->GetXaxis()->SetTitle("RMS of "+x_title);
+      grp_rms->GetYaxis()->SetTitle(y_title);
+      grp_rms->GetXaxis()->SetTitle(x_title);
       grp_rms->GetYaxis()->CenterTitle();
     }   
 
@@ -2009,6 +2077,7 @@ void QwGUIDatabase::PlotDetector()
       gPad->Modified();
       gPad->Update();
     }
+
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
@@ -2068,15 +2137,18 @@ void QwGUIDatabase::HistogramDetector()
   Bool_t ldebug = kTRUE;
 
   // histo parameters
+  gDirectory->Delete();
+  gStyle->Reset();
   gStyle->SetTitleYOffset(1.0);
-  gStyle->SetTitleXOffset(0.7);
+  gStyle->SetTitleXOffset(1.0);
   gStyle->SetTitleX(0.2);
   gStyle->SetTitleW(0.6);
   gStyle->SetTitleSize(0.07);
-  gStyle->SetTitleOffset(1.5);
+  gStyle->SetTitleOffset(2.2);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
+  gStyle->SetFrameBorderMode(0);
   gStyle->SetHistMinimumZero();
   gStyle->SetBarOffset(0.25);
   gStyle->SetBarWidth(0.5);
@@ -2086,77 +2158,33 @@ void QwGUIDatabase::HistogramDetector()
   gStyle->SetTitleColor(kBlack,"X");
   gStyle->SetTitleColor(kBlack,"Y");
 
-  gDirectory->Delete();
-
   if(dDatabaseCont){
 
     TCanvas *mc = dCanvas->GetCanvas();
     mc->Clear();
     mc->SetFillColor(0);
 
-    if(dCmbMeasurementType->IsEnabled()) measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
-    else 
-      measurement_type = "sensitivity";
-
-    //Get run quality cut information
-    Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
-    if(dChkQualityGood->IsOn())	      quality[0] 	= kTRUE;
-    if(dChkQualityBad->IsOn())		  quality[1]	= kTRUE;
-    if(dChkQualitySuspect->IsOn())      quality[2] 	= kTRUE;
-
-    TString quality_check = " ";
-    for (size_t i=0; i<3;i++){
-  	if(!quality[i]){
-  		quality_check = quality_check +"  AND run_quality_id not like" + Form("\"%%%d%%\"",i+1);
-  	}
-    }
-
+    if(!(dCmbMeasurementType->IsEnabled())) measurement_type = "sensitivity";
     //
     // Query Database for Data
     //
-    mysqlpp::StoreQueryResult read_data = QueryDetector();
-
-    //
-    // Loop Over Results and Fill Vectors
-    //
-    Int_t row_size =  read_data.num_rows();
+    mysqlpp::StoreQueryResult read_data;
+    Int_t row_size;
+    read_data = QueryDetector();
+    row_size =  read_data.num_rows();
     if(ldebug) std::cout<<" row_size="<<row_size<<"\n";
-
+    
     //check for empty queries. If empty exit with error.
     if(row_size == 0){
-      std::cout<<"There is no data for "<<measurement_type<<" of "<<device<<" for subblock "<<subblock
-	       <<" in the given run range!"<<std::endl;
+      
+      std::cout  <<"There is no data for "<<measurement_type<<" of "<<device<<" in the given range!"<<std::endl;
       return;
     }
 
-    TH1F all_runs("all_runs","all_runs",1000,0,0);
-    Float_t x = 0.0, xerr = 0.0;
+    // Create histograms
+    //    TH1F all_runs("all_runs","all_runs",1000,0,0);
+    Float_t x = 0.0, x_rms = 0.0;
 
-    for (Int_t i = 0; i < row_size; ++i){
-      if(measurement_type =="a" || measurement_type =="aeo" 
-	 || measurement_type =="a12" || measurement_type =="d" 
-	 || measurement_type =="deo" || measurement_type =="d12"){
-	if(plot.Contains("RMS") == 1){
-	  x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
-	  xerr = 0.0;
-	}
-	else {
-	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
-	  xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
-	}
-      } 
-      else{
-	if(plot.Contains("RMS") == 1){
-	  x    = (read_data[i]["rms"]);
-	  xerr = 0.0;
-	}
-	else {
-	  x    = read_data[i]["value"];
-	  xerr = read_data[i]["error"];
-	}
-      }
-      all_runs.Fill(x);
-    }
 
     THStack *hs = new THStack("hs","");
     TH1F *h_in_L = new TH1F("h_in_L","",1000,-10,10);
@@ -2165,6 +2193,8 @@ void QwGUIDatabase::HistogramDetector()
     TH1F *h_out_R = new TH1F("h_out_R","",1000,-10,10);
     TH1F *h_suspect = new TH1F("h_suspect","",1000,-10,10);
     TH1F *h_bad = new TH1F("h_bad","",1000,-10,10);
+    TH1F *h_rms = new TH1F("h_rms","",1000,-500,500);
+
 
     TF1* fit1 = NULL;
     TF1* fit2 = NULL;
@@ -2184,23 +2214,22 @@ void QwGUIDatabase::HistogramDetector()
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
     std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
     for (Int_t i = 0; i < row_size; ++i)
-      { 	    
+      {
+
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
-	  if(plot.Contains("RMS") == 1){
- 	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
-	  }
-	  else {
-	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
-	  }
+	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
+	  x_rms = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
 	} 
 	else{
-	  if(plot.Contains("RMS") == 1){
- 	    x    = (read_data[i]["rms"]);
-	  }
-	  else {
-	    x    = read_data[i]["value"];
-	  }
-	}
+	  x    = read_data[i]["value"];
+	  x_rms = (read_data[i]["rms"]);
+	}	  
+
+
+	// Fill the rms histo
+	h_rms->Fill(x_rms);
+
+	// Now fill the mean values
 	if(read_data[i]["run_quality_id"] == "1"){
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
 	    if (read_data[i]["wien_reversal"]*1 == 1){
@@ -2246,89 +2275,86 @@ void QwGUIDatabase::HistogramDetector()
       exit(1);
     }
     else
-      std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
+      std::cout<<"QwGUI : Moving on to draw the histogram"<<std::endl;
+
+    TString y_title = GetYTitle(measurement_type, det_id);
+    TString title   = GetTitle(measurement_type, device);
     
-
-//GROUP_IN_R
-    h_in_R ->SetMarkerSize(1.0);
-    h_in_R ->SetMarkerStyle(21);
-    h_in_R ->SetMarkerColor(kBlue);
-
-//GROUP_IN_L
-
-	h_in_L ->SetMarkerSize(1.0);
-	h_in_L ->SetMarkerStyle(21);
-	h_in_L ->SetMarkerColor(kOrange-2);
-    
-
-//GROUP_OUT_R
-	h_out_R ->SetMarkerSize(1.0);
-	h_out_R ->SetMarkerStyle(21);
-	h_out_R ->SetMarkerColor(kRed);
-
-//GROUP_OUT_L
-	h_out_L ->SetMarkerSize(1.0);
-	h_out_L ->SetMarkerStyle(21);
-	h_out_L ->SetMarkerColor(kViolet);
-
-//GROUP_BAD
-	h_bad ->SetMarkerSize(1.0);
-	h_bad ->SetMarkerStyle(29);
-	h_bad ->SetMarkerColor(kBlack);
-
-//GROUP_SUSPECT
-	h_suspect ->SetMarkerSize(1.0);
-	h_suspect ->SetMarkerStyle(29);
-	h_suspect ->SetMarkerColor(kGreen);
-
-
-
-	TString y_title = GetYTitle(measurement_type, det_id);
-	TString title   = GetTitle(measurement_type, device);
-
-    if(plot.Contains("RMS"))
-      {
-	y_title = "RMS of "+y_title;
-	title   = "RMS of "+title;
-      }
 
 
     if(m>0){
-      hs->Add(h_in_R);
+      //GROUP_IN_R
+      h_in_R ->SetMarkerSize(1.0);
+      h_in_R ->SetMarkerStyle(21);
+      h_in_R ->SetFillColor(kBlue);
+      h_in_R ->SetMarkerColor(kBlue);
+      h_in_R ->SetLineColor(kBlue);
       h_in_R ->Fit("gaus");
       fit1 = h_in_R->GetFunction("gaus");
       fit1 -> SetLineColor(kBlue);
+      hs->Add(h_in_R);
     }
     if(k>0){
-      hs->Add(h_out_R);
+      //GROUP_OUT_R
+      h_out_R ->SetMarkerSize(1.0);
+      h_out_R ->SetMarkerStyle(21);
+      h_out_R ->SetFillColor(kRed);
+      h_out_R ->SetMarkerColor(kRed);
+      h_out_R ->SetMarkerColor(kRed);
+      h_out_R ->SetLineColor(kRed);
       h_out_R ->Fit("gaus");
       fit2 = h_out_R->GetFunction("gaus");
       fit2 -> SetLineColor(kRed);
+      hs->Add(h_out_R);
     }
     if(n>0){
-      hs->Add(h_in_L);
+      //GROUP_IN_L
+      h_in_L ->SetMarkerSize(1.0);
+      h_in_L ->SetMarkerStyle(21);
+      h_in_L ->SetFillColor(kOrange-2);
+      h_in_L ->SetMarkerColor(kOrange-2);
+      h_in_L ->SetLineColor(kOrange-2);
       h_in_L ->Fit("gaus");
       fit3 = h_in_L->GetFunction("gaus");
       fit3 -> SetLineColor(kOrange-2);
+      hs->Add(h_in_L);
    
     }
     if(l>0){
-      hs->Add(h_out_L);
+      //GROUP_OUT_L
+      h_out_L ->SetMarkerSize(1.0);
+      h_out_L ->SetMarkerStyle(21);
+      h_out_L ->SetFillColor(kViolet);
+      h_out_L ->SetMarkerColor(kViolet);
+      h_out_L ->SetLineColor(kViolet);
       h_out_L ->Fit("gaus");
       fit4 = h_out_L->GetFunction("gaus");
       fit4 -> SetLineColor(kViolet);
+      hs->Add(h_out_L);
     }
     if(o>0){
-      hs->Add(h_bad);
+      //GROUP_BAD
+      h_bad ->SetMarkerSize(1.0);
+      h_bad ->SetMarkerStyle(29);
+      h_bad ->SetFillColor(kBlack);
+      h_bad ->SetMarkerColor(kBlack);
+      h_bad ->SetLineColor(kBlack);
       h_bad ->Fit("gaus");
       fit5 = h_bad->GetFunction("gaus");
       fit5 -> SetLineColor(kBlack);
+      hs->Add(h_bad);
     }
     if(p>0){
-      hs->Add(h_suspect);
+      //GROUP_SUSPECT
+      h_suspect ->SetMarkerSize(1.0);
+      h_suspect ->SetMarkerStyle(29);
+      h_suspect ->SetFillColor(kGreen);
+      h_suspect ->SetMarkerColor(kGreen);
+      h_suspect ->SetLineColor(kGreen);
       h_suspect ->Fit("gaus");
       fit6 = h_suspect->GetFunction("gaus");
       fit6 -> SetLineColor(kGreen);
+      hs->Add(h_suspect);
     }
 
 
@@ -2348,29 +2374,61 @@ void QwGUIDatabase::HistogramDetector()
 
 
     legend->SetFillColor(0);
-    
-    mc->cd();
-    hs->Draw("nostack,ap");
-    if(m>0)fit1->Draw("same");
-    if(k>0)fit2->Draw("same");
 
-    legend->Draw("");
-    
-    
-    hs->SetTitle(title);
-    hs->GetYaxis()->SetTitleOffset(2);
-    hs->GetYaxis()->SetTitle("Runlets");
-    hs->GetXaxis()->SetTitle(y_title);
-    hs->GetXaxis()->SetTitleOffset(2);
-    hs->GetYaxis()->SetTitleSize(0.03);
-    hs->GetXaxis()->SetTitleSize(0.03);
-    hs->GetYaxis()->CenterTitle();
-    
-    
-    mc->Modified();
-    mc->SetBorderMode(0);
-    mc->Update();
-    
+    mc->cd();
+    if(plot.Contains("Mean")){
+      hs->Draw();
+      legend->Draw("");
+      gPad->Update();
+    }
+    else if(plot.Contains("RMS")){
+      h_rms->Draw();
+      gPad->Update();
+    } 
+    else {
+      mc->Clear();
+      mc->Divide(1,2);
+      mc->cd(1);
+      hs->Draw();
+      legend->Draw();
+      gPad->Update();
+      mc->cd(2);
+      h_rms->Draw();
+      gPad->Update();
+      mc->Update();
+    }
+
+  
+//     if(m>0)fit1->Draw("same");
+//     if(k>0)fit2->Draw("same");
+
+    if(plot.Contains("Mean") or plot.Contains("Both") ){  
+      y_title = "Averages of "+y_title; 
+      hs->SetTitle(title);
+      hs->GetYaxis()->SetTitleOffset(1.5);
+      hs->GetXaxis()->SetTitleOffset(1.5);
+      hs->GetYaxis()->SetTitle("Runlets");
+      hs->GetXaxis()->SetTitle(y_title);
+      hs->GetYaxis()->SetTitleSize(0.03);
+      hs->GetXaxis()->SetTitleSize(0.03);
+      hs->GetYaxis()->CenterTitle();
+      mc->Modified();
+      mc->Update();
+    }
+    if(plot.Contains("RMS") or plot.Contains("Both") ){ 
+      y_title = "RMS's of "+y_title;  
+      h_rms->SetTitle(title);
+      h_rms->GetYaxis()->SetTitleOffset(1.5);
+      h_rms->GetXaxis()->SetTitleOffset(1.5);
+      h_rms->GetYaxis()->SetTitle("Runlets");
+      h_rms->GetXaxis()->SetTitle(y_title);
+      h_rms->GetYaxis()->SetTitleSize(0.03);
+      h_rms->GetXaxis()->SetTitleSize(0.03);
+      h_rms->GetYaxis()->CenterTitle();
+      mc->Modified();
+      mc->Update();
+    }
+ 
     std::cout<<"QwGUI : Done!"<<std::endl;
     
     
@@ -2419,7 +2477,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
     ytitle = "Asymmetry (ppm)";
 
   if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" ){
-    if (det_id == ID_E_CAL) ytitle  = "Energy Asymetry (ppm)";
+    if (det_id == ID_E_CAL) ytitle  = "Energy Asymmetry (ppm)";
     else if (det_id == ID_CMB_BPM ){
       if(property.Contains("Slope")){ //angles
 	ytitle  = "Beam Angle Differences(#murad)";
@@ -2427,7 +2485,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
       else
 	ytitle  = "Beam Position Differences (nm)";
     }
-    else if (det_id == ID_BCM){
+    else if (det_id == ID_BCM_DD){
       	ytitle = "BCM Double Difference (ppm)";
     }
     else
@@ -2474,7 +2532,9 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
     case ID_X_RUN:
       xaxis = "vs Run Number";
     case ID_X_TIME:
-      xaxis = "vs Time";
+      xaxis = "vs Run start time";
+    case ID_X_TIME_RUNLET:
+      xaxis = "vs Runlet start time";
     case ID_X_SLUG:
       xaxis = "vs Slug";
     case ID_X_HISTO:
@@ -2510,11 +2570,11 @@ void QwGUIDatabase::GetDataSelections(){
   measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
   det_id            = dCmbInstrument->GetSelected();
   device            = Form("%s",detector.Data());
+  regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
   target            = Targets[dCmbTargetType->GetSelected()];
   subblock          = dCmbSubblock -> GetSelected();
   plot              = Plots[dCmbPlotType->GetSelected()];
   x_axis            = dCmbXAxis->GetSelected();
-  regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 }
 
 
@@ -2539,12 +2599,24 @@ void QwGUIDatabase::RegressionTypeInfo(){
     bfill_reg_iv = kTRUE;
   }
 
-  TLatex * T1 = new TLatex();
+  TPaveText *T1 = new TPaveText(0.05,0.05,0.95,0.95,"ndc");
+//   TLatex * T1 = new TLatex();
   T1->SetTextAlign(12);
   T1->SetTextSize(0.03);
 
-  if(regression_set == "off"){
-    T1->DrawLatex(0.1,0.8,"Selecting Unregressed data!");
+  if(regression_set == "raw(from rootfiles)"){
+    T1->AddText("Selecting unregressed data that have passed standard QwAnalysis event cuts!");
+
+    if(bfill_reg_iv){
+      for (Int_t i = 0; i < N_REG_VARS_ON; i++){
+	dCmbProperty->AddEntry(RegressionVarsOn[i], i);
+	regression_ivs = RegressionVarsOn;
+      }
+    }
+    T1->AddText("These data are unregressed and are averages of outputs that can be find in rootfiles.");
+  }
+  else if(regression_set == "off"){
+    T1->AddText("Selecting unregressed data that passed regression script event cuts!");
     if(bfill_reg_iv){
       for (Int_t i = 0; i < N_REG_VARS_ON; i++){
 	dCmbProperty->AddEntry(RegressionVarsOn[i], i);
@@ -2553,7 +2625,7 @@ void QwGUIDatabase::RegressionTypeInfo(){
     }
   }
   else{
-    T1->DrawLatex(0.1,0.8,"Selecting Regression that use IVs:");
+    T1->AddText("Selecting Regression that use IVs:");
 
     if(regression_set == "on"){
       if(bfill_reg_iv){
@@ -2562,11 +2634,11 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_energy");    
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_energy");    
       gPad->Update();  
       
     }
@@ -2578,12 +2650,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	}
       }
       
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_energy"); 
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_energy"); 
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
@@ -2594,12 +2666,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_3;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_bpm3c12X"); 
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_bpm3c12X"); 
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
@@ -2610,12 +2682,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_4;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_targetX");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_targetY");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_targetXSlope");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_targetYSlope");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_energy"); 
-      T1->DrawLatex(0.2,0.2,"#bullet asym_bcm5"); 
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");      
+      T1->AddText("#bullet diff_targetXSlope");        
+      T1->AddText("#bullet diff_targetYSlope");      
+      T1->AddText("#bullet diff_energy"); 
+      T1->AddText("#bullet asym_bcm5"); 
       gPad->Update();  
 
     }
@@ -2626,11 +2698,11 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_5;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.3,"#bullet diff_bpm3c12X"); 
+      T1->AddText("#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_bpm3c12X"); 
       gPad->Modified();  
       gPad->Update();  
 
@@ -2642,12 +2714,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_6;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");
-      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_9b_m_4X=diff_qwk_3h09bX-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9b_m_4Y=diff_qwk_3h09bY-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9b_p_4X=diff_qwk_3h09bX+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9b_p_4Y=diff_qwk_3h09bY+diff_qwk_3h04Y");
+      T1->AddText("#bullet diff__bpm3c12X");       
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
@@ -2658,11 +2730,11 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_7;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
-      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
+      T1->AddText("#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
+      T1->AddText("#bullet diff__bpm3c12X");       
       gPad->Update();  
 
     }
@@ -2673,17 +2745,17 @@ void QwGUIDatabase::RegressionTypeInfo(){
 	  regression_ivs = RegressionVarsOn_8;
 	}
       }
-      T1->DrawLatex(0.2,0.7,"#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
-      T1->DrawLatex(0.2,0.6,"#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
-      T1->DrawLatex(0.2,0.5,"#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
-      T1->DrawLatex(0.2,0.4,"#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
-      T1->DrawLatex(0.2,0.3,"#bullet diff__bpm3c12X");       
-      T1->DrawLatex(0.2,0.2,"#bullet asym_charge"); 
+      T1->AddText("#bullet diff_9_m_4X=diff_qwk_3h09X-diff_qwk_3h04X");
+      T1->AddText("#bullet diff_9_m_4Y=diff_qwk_3h09Y-diff_qwk_3h04Y");      
+      T1->AddText("#bullet diff_9_p_4X=diff_qwk_3h09X+diff_qwk_3h04X");        
+      T1->AddText("#bullet diff_9_p_4Y=diff_qwk_3h09Y+diff_qwk_3h04Y");
+      T1->AddText("#bullet diff__bpm3c12X");       
+      T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
 
     }
   } 
-  
+  T1->Draw();
   if(bfill_reg_iv)
     dCmbProperty->Select(0);
 
@@ -2719,6 +2791,10 @@ void QwGUIDatabase::OnSubmitPushed()
     break;
   case ID_BCM:
     detector = BeamCurrentMonitors[dCmbDetector->GetSelected()];
+    property = "";
+    break;
+  case ID_BCM_DD:
+    detector = BCMDoubleDifferences[dCmbDetector->GetSelected()];
     property = "";
     break;
   case ID_CMB_BCM:
@@ -2760,6 +2836,7 @@ void QwGUIDatabase::OnSubmitPushed()
     case ID_X_RUN:
     case ID_X_SLUG:
     case ID_X_TIME:
+    case ID_X_TIME_RUNLET:
       PlotDetector();
       break;
     case ID_X_BEAM:

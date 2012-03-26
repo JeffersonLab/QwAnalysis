@@ -132,11 +132,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return (fEvtType>=160 && fEvtType<=190);// epics event type is only with tag="180" from July 2010 running
   };
 
-  Bool_t IsEndOfBurst(){
-    //  Is this the end of a burst?
-    return (fBurstLength > 0 && fEvtNumber % fBurstLength == 0);
-  };
-
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
@@ -179,8 +174,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
   std::vector<UInt_t> fEventList;
 
   std::pair<Int_t, Int_t> fSegmentRange;
-
-  Int_t fBurstLength;
 
  protected:
 

@@ -215,60 +215,16 @@ void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values) const
 std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 {
   std::vector <QwDBInterface> row_list;
-  QwDBInterface row;
-
-  TString name;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
-
-  row.Reset();
-
-  // the element name and the n (number of measurements in average)
-  // is the same in each block and hardwaresum.
-
-  name          = fHalo_Counter.GetElementName();
-  beam_n        = fHalo_Counter.GetGoodEventCount();
-
-  // Get HardwareSum average and its error
-  avg           = fHalo_Counter.GetValue();
-  err           = fHalo_Counter.GetValueError();
-  // ADC subblock sum : 0 in MySQL database
-  beam_subblock = 0;
-
-  row.SetDetectorName(name);
-  row.SetSubblock(beam_subblock);
-  row.SetN(beam_n);
-  row.SetValue(avg);
-  row.SetError(err);
-
-  row_list.push_back(row);
-
-  /*
-
-  // Get four Block averages and thier errors
-
-  for (int i=0; i<4; i++) {
-    row.Reset();
-    avg           = fHalo_Counter.GetBlockValue(i);
-    err           = fHalo_Counter.GetBlockErrorValue(i);
-    beam_subblock = (UInt_t) (i+1);
-    // QwVQWK_Channel  | MySQL
-    // fBlock[0]       | subblock 1
-    // fBlock[1]       | subblock 2
-    // fBlock[2]       | subblock 3
-    // fBlock[3]       | subblock 4
-    row.SetDetectorName(name);
-    row.SetSubblock(beam_subblock);
-    row.SetN(beam_n);
-    row.SetValue(avg);
-    row.SetError(err);
-
-    row_list.push_back(row);
-  }
-  */
-
+  row_list.clear();
+  fHalo_Counter.AddEntriesToList(row_list);
   return row_list;
+}
 
+
+std::vector<QwErrDBInterface> QwHaloMonitor::GetErrDBEntry()
+{
+  std::vector <QwErrDBInterface> row_list;
+  row_list.clear();
+  fHalo_Counter.AddErrEntriesToList(row_list);
+  return row_list;
 }

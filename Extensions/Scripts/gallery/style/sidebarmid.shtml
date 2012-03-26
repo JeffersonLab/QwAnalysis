@@ -2,6 +2,6 @@
 <!-- No sidebar when in printable mode -->
 <!--#else -->
 <ul>
-  <!--#include virtual="/private/wdconinc/gallery/sidebar.html" -->
+  <!--#include virtual="/private/gallery/sidebar.html" -->
 </ul>
 <!--#endif -->

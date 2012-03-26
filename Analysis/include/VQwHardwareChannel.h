@@ -16,8 +16,12 @@
 // Qweak headers
 #include "VQwDataElement.h"
 
-// Forward declarations
+// ROOT forward declarations
+class TTree;
+
+// Qweak forward declarations
 class QwDBInterface;
+class QwParameterFile;
 class QwErrDBInterface;
 
 class VQwHardwareChannel: public VQwDataElement {
@@ -72,7 +76,7 @@ public:
   };
 
   /*   virtual void AddChannelOffset(Double_t Offset) = 0; */
-  /*   virtual void Scale(Double_t Offset) = 0; */
+  virtual void Scale(Double_t Offset) = 0;
 
 
   /// \brief Initialize the fields in this object
@@ -114,7 +118,13 @@ public:
     VQwDataElement::operator=(value);
     return *this;
   }
+  void AssignValueFrom(const VQwDataElement* valueptr) = 0;
+  virtual VQwHardwareChannel& operator+=(const VQwHardwareChannel* input) = 0;
+  virtual VQwHardwareChannel& operator-=(const VQwHardwareChannel* input) = 0;
+  virtual VQwHardwareChannel& operator*=(const VQwHardwareChannel* input) = 0;
+  virtual VQwHardwareChannel& operator/=(const VQwHardwareChannel* input) = 0;
 
+  virtual void ScaledAdd(Double_t scale, const VQwHardwareChannel *value) = 0;
 
   void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
   Double_t GetPedestal() const       { return fPedestal; };
@@ -124,8 +134,26 @@ public:
   void AddEntriesToList(std::vector<QwDBInterface> &row_list);
   virtual void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list) {};
 
+  
+  virtual void AccumulateRunningSum(const VQwHardwareChannel *value, Int_t count) = 0;
+  virtual void AccumulateRunningSum(const VQwHardwareChannel *value){
+    AccumulateRunningSum(value, value->fGoodEventCount);
+  };
+  virtual void DeaccumulateRunningSum(const VQwHardwareChannel *value){
+    AccumulateRunningSum(value, -1);
+  };
 
-protected:
+  virtual void AddValueFrom(const VQwHardwareChannel* valueptr) = 0;
+  virtual void SubtractValueFrom(const VQwHardwareChannel* valueptr) = 0;
+  virtual void MultiplyBy(const VQwHardwareChannel* valueptr) = 0;
+  virtual void DivideBy(const VQwHardwareChannel* valueptr) = 0;
+
+  virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) = 0;
+  virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
+  void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
+  virtual void FillTreeVector(std::vector<Double_t>& values) const = 0;
+
+ protected:
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;}
   /*! \brief Set the number of data words in this data element */

@@ -40,6 +40,12 @@
 
 #include "getChain.C"
 
+// Notes:
+// Run this script as follows
+// source ~/compton/env.sh
+// .x /home/cdaq/compton/QwAnalysis/Extensions/Compton/macros/utils/run_macro.C("snapshots/snapshots.C","snapshots","snapshots",23507,kTRUE,kTRUE)
+// log file at $QWSCRATCH/log/snapshot_23507.log
+//qwroot -l -b -q '/home/cdaq/compton/QwAnalysis/Extensions/Compton/macros/utils/run_macro.C("snapshots/snapshots.C","snapshots","snapshots",23507,kTRUE,kTRUE)'
 
 void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents = 0)
 {
@@ -49,9 +55,6 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		return;
 	}
 	// **********
-	// **** Set Globals
-	//TH1::AddDirectory(kFALSE);
-	// **********
 	// **** Start the timer
 	TStopwatch timer;
 	// **********
@@ -59,7 +62,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	const Int_t debug=0;
 	//const Int_t maxsnapshots=0;
 	Int_t maxpeakposcut_min=62, maxpeakposcut_max=90;
-	const Float_t currentCut=5;
+	Float_t current_beamon=150;
+	Float_t current_beamoff=10;
 	const Int_t offsetentry = 2100;
 //	const Int_t numstrips = 64;
 	//Int_t multcutincl = 2;
@@ -79,22 +83,20 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	}
 	// **********
 	// **** Set constants required for histograms
-	Int_t bcm_nbins = 180;
+	Int_t bcm_nbins = 200;
 	Float_t bcm_axismin = 0.0;
-	Float_t bcm_axismax = 180.0;
+	Float_t bcm_axismax = 200.0;
 	Int_t laser_nbins = 100;
 	Float_t laser_axismin = 0.0;
 	Float_t laser_axismax = 200000.0;
-	Int_t type_nbins = 4;
+	Int_t type_nbins = numtypes;
 	Float_t type_axismin = 0;
-	Float_t type_axismax = 4;
+	Float_t type_axismax = numtypes;
 	Int_t diff_nbins = 1000;
 	Float_t diff_axismin = -4000000;
 	Float_t diff_axismax = 4000000;
 
 	Int_t sampxpos_nbins = 256;
-	Double_t sampxpos_axismin = 0;
-	Double_t sampxpos_axismax = 256;
 	Int_t maxnbins = 400;
 	Double_t maxmin = -100;
 	Double_t maxmax = 3900;
@@ -106,10 +108,20 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	Double_t pedval_axismax = 300; //280
 	Int_t integnbins=1000, yieldnbins=1000;
 	Double_t integmin = 0.0, integmax = 0.0;
+	Int_t intnormintminchan = 0;
+	Int_t intnormintmaxchan = 0;
+	Int_t maxnormintminchan = 0;
+	Int_t maxnormintmaxchan = 0;
+	Int_t intrebinnum = 1;
+
+	Int_t maxcomptonedge = 250;
+	Int_t intcomptonedge = 1000;
+	Int_t bigintoffset = 1500;
+	Float_t bigsnapmin = 3000;
 
  	// **** read parameter file
 	int i_run = -1, i_lowint = -1, i_upint = -1;
-	char params[255][15];
+	char params[255][20];
 	TString infiledir = TString(getenv("QWANALYSIS")) + "/Extensions/Macros/Compton/snapshots/";
 	TString infilename = infiledir + "paramfile.ini";
 	std::cout << "Reading parameter input file " << infilename << std::endl;
@@ -154,31 +166,52 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				maxnbins = atoi(params[6]);	
 				maxmin = atoi(params[7]);	
 				maxmax = atoi(params[8]);
-				maxpeakposcut_min = atoi(params[9]);	
-				maxpeakposcut_max = atoi(params[10]);
+				sampxpos_nbins = atoi(params[9]);
+				maxpeakposcut_min = atoi(params[10]);	
+				maxpeakposcut_max = atoi(params[11]);
+				intnormintminchan = atoi(params[12]);
+				intnormintmaxchan = atoi(params[13]);
+				maxnormintminchan = atoi(params[14]);
+				maxnormintmaxchan = atoi(params[15]);
+				current_beamon = atoi(params[16]);
+				current_beamon = atoi(params[17]);
+				intrebinnum = atoi(params[18]);
 			}
 		}
 	}
  	printf("\nUsing the following values from parameter file:\n");
-	printf("run number:                    %8i  \n", i_run);
-	printf("number of integral bins:       %8i  \n", integnbins);
-	printf("minimum expected integral:     %8f  \n", integmin);
-	printf("maximum expected integra:      %8f  \n", integmax);
-	printf("integral start from max:       %8i  \n", i_lowint);
-	printf("integral end from max:         %8i  \n", i_upint);
-	printf("number of max bins:            %8i  \n", maxnbins);
-	printf("minimum expected max:          %8f  \n", maxmin);
-	printf("maximum expected max:          %8f  \n", maxmax);
-	printf("timing cut min sample:         %8i  \n", maxpeakposcut_min);
-	printf("timing cut max sample:         %8i  \n", maxpeakposcut_max);
+	printf("run number:                                        %8i  \n", i_run);
+	printf("number of integral bins:                           %8i  \n", integnbins);
+	printf("minimum expected integral:                         %8.0f  \n", integmin);
+	printf("maximum expected integral:                         %8.0f  \n", integmax);
+	printf("sample peak integral start (offset from max pos):  %8i  \n", i_lowint);
+	printf("sample peak integral end (offset from max pos):    %8i  \n", i_upint);
+	printf("number of bins for sample max:                     %8i  \n", maxnbins);
+	printf("low bin for sample max:                            %8.0f  \n", maxmin);
+	printf("high bin for sample max:                           %8.0f  \n", maxmax);
+	printf("number of samples per snapshot:                    %8i  \n", sampxpos_nbins);
+	printf("timing cut min sample:                             %8i  \n", maxpeakposcut_min);
+	printf("timing cut max sample:                             %8i  \n", maxpeakposcut_max);
+	printf("integral norm min channel                          %8i  \n", intnormintminchan);
+	printf("maximum norm max channel                           %8i  \n", intnormintmaxchan);
+	printf("integral norm min channel                          %8i  \n", maxnormintminchan);
+	printf("maximum norm max channel                           %8i  \n", maxnormintmaxchan);
+	printf("beam current zero threshold                        %8.0f  \n", current_beamoff);
+	printf("beam current minimum                               %8.0f  \n", current_beamon);
+	printf("number of bins to combine for asymmetry analysis   %8i  \n", intrebinnum);
 
+	Double_t sampxpos_axismin = 0;
+	Double_t sampxpos_axismax = sampxpos_nbins;
+	Int_t maxpeakposcut_width =  maxpeakposcut_max - maxpeakposcut_min;
+	// **** Really important number for pedestal correction
+	Int_t numsamples = i_upint - i_lowint;
 
 	// **** Determine the max and min for filling various quantities
 	Mps_Chain->Draw(Form("sca_laser_PowT.value>>laserpowinit(300,%f,%f)",laser_axismin,laser_axismax),"Entry$>2100","goff");
 	TH1F *laserpowinit = (TH1F*)gDirectory->Get("laserpowinit");
 	laserpowinit->SetDirectory(rootoutfile);
-	Int_t nbins = laserpowinit->GetNbinsX();
-	Float_t laserpowmax = laserpowinit->GetXaxis()->GetBinUpEdge(nbins);
+	Int_t highbin = laserpowinit->FindLastBinAbove(0, 1);
+	Float_t laserpowmax = laserpowinit->GetXaxis()->GetBinUpEdge(highbin);
 	Float_t laseroncut = 0.7*laserpowmax;
 	Float_t laseroffcut = 0.1*laserpowmax;
 	printf("max of sca_laser_PowT is %.1f, using %.1f as the cut position\n",laserpowmax,laseroncut);
@@ -186,7 +219,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	Mps_Chain->Draw("fadc_compton_accum0.hw_sum>>accum0init(300)","Entry$>2100","goff");
 	TH1F *accum0init = (TH1F*)gDirectory->Get("accum0init");
 	accum0init->SetDirectory(rootoutfile);
-	nbins = accum0init->GetNbinsX();
+	Int_t nbins = accum0init->GetNbinsX();
 	Double_t  yield_RMS = accum0init->GetRMS();
 	Double_t  yield_mean = accum0init->GetMean();
 	Double_t  yield_supermin = yield_mean - 4 * yield_RMS;
@@ -197,6 +230,16 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		   yield_mean, yield_RMS, yield_axismin, yield_axismax, yield_supermin, yield_supermax);
 	yield_axismin = std::max(yield_axismin,yield_supermin);
 	yield_axismax = std::min(yield_axismax,yield_supermax);
+
+	// make the minimum good beam current the greter of the min from the param file or 85% of the highest beam current
+	Mps_Chain->Draw("sca_bcm1.hw_sum>>bcminit(200,0,200)","Entry$>2100","goff");
+	TH1F *bcminit = (TH1F*)gDirectory->Get("bcminit");
+	bcminit->SetDirectory(rootoutfile);
+	highbin = bcminit->FindLastBinAbove(0, 1);
+	Float_t bcmmax = bcminit->GetXaxis()->GetBinUpEdge(highbin);
+	printf ("bcmmax=%f\n",bcmmax);
+	if (current_beamon < 0.85*bcmmax) current_beamon = 0.85*bcmmax;
+//	current_beamon = std::max(current_beamon,0.85*bcmmax);
 
 	Int_t timebins = (nentries-offsetentry)/960;
 	Double_t starttime = offsetentry/960.0;
@@ -248,7 +291,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	snaphist->SetDirectory(rootoutfile);
 
 	TH2F *laser = new TH2F("laser","laser",
-				300, 0, 300,
+				300, 0, laserpowmax,
 				type_nbins, type_axismin, type_axismax);
 	laser->SetDirectory(rootoutfile);
 
@@ -275,9 +318,19 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				type_nbins, type_axismin, type_axismax);
 	accum0time->SetDirectory(rootoutfile);
 
-	TH1F *samp_bcm1 = new TH1F("samp_bcm1","bcm 1", bcm_nbins, bcm_axismin, bcm_axismax);
-	TH1F *samp_bcm2 = new TH1F("samp_bcm2","bcm 2", bcm_nbins, bcm_axismin, bcm_axismax);
-	TH1F *samp_bcm6 = new TH1F("samp_bcm6","bcm 6", bcm_nbins, bcm_axismin, bcm_axismax);
+	TH2F *samp_bcm1 = new TH2F("samp_bcm1","bcm 1;beam current  (uA);type",
+							   bcm_nbins,bcm_axismin,bcm_axismax, type_nbins, type_axismin, type_axismax);
+	samp_bcm1->SetDirectory(rootoutfile);
+	TH2F *samp_bcm2 = new TH2F("samp_bcm2","bcm 2;beam current  (uA);type",
+							   bcm_nbins,bcm_axismin,bcm_axismax, type_nbins, type_axismin, type_axismax);
+	samp_bcm2->SetDirectory(rootoutfile);
+	TH2F *samp_bcm6 = new TH2F("samp_bcm6","bcm 6;beam current  (uA);type",
+								bcm_nbins,bcm_axismin,bcm_axismax, type_nbins, type_axismin, type_axismax);
+	samp_bcm6->SetDirectory(rootoutfile);
+
+// 	TH1F *samp_bcm1 = new TH1F("samp_bcm1","bcm 1", bcm_nbins, bcm_axismin, bcm_axismax);
+// 	TH1F *samp_bcm2 = new TH1F("samp_bcm2","bcm 2", bcm_nbins, bcm_axismin, bcm_axismax);
+// 	TH1F *samp_bcm6 = new TH1F("samp_bcm6","bcm 6", bcm_nbins, bcm_axismin, bcm_axismax);
 	TH1F *samp_bcm1_hel0 = new TH1F("samp_bcm1_hel0", "bcm 1 hel0", bcm_nbins, bcm_axismin, bcm_axismax);
 	TH1F *samp_bcm2_hel0 = new TH1F("samp_bcm2_hel0", "bcm 2 hel0", bcm_nbins, bcm_axismin, bcm_axismax);
 	TH1F *samp_bcm6_hel0 = new TH1F("samp_bcm6_hel0", "bcm 6 hel0", bcm_nbins, bcm_axismin, bcm_axismax);
@@ -297,16 +350,19 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	TH2F *samp_pedave = new TH2F("samp_pedave","samp 1 to 5 ave (max pos cut);pedestal ave;type",
 								 pedval_nbins,pedval_axismin,pedval_axismax,type_nbins,type_axismin,type_axismax);
 	samp_pedave->SetDirectory(rootoutfile);
-	TH2F *samp_subintegral = new TH2F("samp_subintegral"," integral (max pos cut, peak cut);type",
+	TH2F *samp_subintegral = new TH2F("samp_subintegral",Form("integral around maximum sample, timing cut;sum of %i samples;type",numsamples),
 									  integnbins,integmin,integmax,type_nbins,type_axismin,type_axismax);
 	samp_subintegral->SetDirectory(rootoutfile);
+	TH2F *samp_timing_integral = new TH2F("samp_timing_integral",Form("integral within timing region, no cuts;sum of %i samples;type",maxpeakposcut_width),
+									  integnbins,integmin,integmax,type_nbins,type_axismin,type_axismax);
+	samp_timing_integral->SetDirectory(rootoutfile);
 	TH2F *samp_pedprepeakave = new TH2F("samp_pedprepeakave","samp 10-6 before max ave;pedestal ave;type",
 										pedval_nbins,pedval_axismin,pedval_axismax,type_nbins,type_axismin,type_axismax);
 	samp_pedprepeakave->SetDirectory(rootoutfile);
-	TH2F *samp_integral = new TH2F("samp_integral"," integral;integral;type",
+	TH2F *samp_integral = new TH2F("samp_integral",Form("full snapshot integral, no cuts;sum of %i samples;type",sampxpos_nbins),
 								   integnbins,integmin,integmax,type_nbins,type_axismin,type_axismax);
 	samp_integral->SetDirectory(rootoutfile);
-	TH2F *samp_max = new TH2F("samp_max"," max;max",
+	TH2F *samp_max = new TH2F("samp_max","snapshot maximum sample, no cuts;max",
 							  maxnbins,maxmin,maxmax,type_nbins,type_axismin,type_axismax);
 	samp_max->SetDirectory(rootoutfile);
 // 	TH2F *samp_peakintegral = new TH2F("samp_peakintegral"," integral (peak cut);type",
@@ -383,6 +439,24 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			 type_nbins,type_axismin,type_axismax);
 	samp_yieldVSsubint_hel0->SetDirectory(rootoutfile);
 
+	TH3F *samp_intVSmax = new 
+		TH3F("samp_intVSmax", "integral vs max (no cuts);snapshot maximum;snapshot integral",
+			 maxnbins,maxmin,maxmax,integnbins,integmin,integmax,
+			 type_nbins,type_axismin,type_axismax);
+	samp_intVSmax->SetDirectory(rootoutfile);
+	TH3F *samp_subintVSmax = new 
+		TH3F("samp_subintVSmax", "integral within timing region vs max;snapshot maximum;snapshot integral",
+			 maxnbins,maxmin,maxmax,integnbins,integmin,integmax,
+			 type_nbins,type_axismin,type_axismax);
+	samp_subintVSmax->SetDirectory(rootoutfile);
+	TH3F *samp_timingintVSmax = new 
+		TH3F("samp_timingintVSmax", "integral vs max, timing cut;snapshot maximum;snapshot integral",
+			 maxnbins,maxmin,maxmax,integnbins,integmin,integmax,
+			 type_nbins,type_axismin,type_axismax);
+	samp_timingintVSmax->SetDirectory(rootoutfile);
+
+
+
 // 	TH3F *samp_maxVSstrip_p1 = new TH3F("samp_maxVSstrip_p1","photon max vs strip, plane 1;photon max;strip",
 // 					maxnbins,maxmin,maxmax,numstrips,0,numstrips,type_nbins,type_axismin,type_axismax);
 // 	samp_maxVSstrip_p1->SetDirectory(rootoutfile);
@@ -422,12 +496,18 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 // 	TH2F *plane31_offset = new TH2F("plane31_offset","plane 3 - plane 1 offset",9,-4.5,4.5,type_nbins,type_axismin,type_axismax); 
 // 	plane31_offset->SetDirectory(rootoutfile);
 
-	TGraph *graphslaserON[20];
-	TGraph *graphslaserOFF[20];
-	TGraph *graphsbeamOFF[20];
-	Int_t num_graphslaserON=0, num_graphslaserOFF=0, num_graphsbeamOFF=0;
-	for(Int_t i=0; i<20; i++) {
+
+	const Int_t numwaveforms = 36;
+	TGraph *graphslaserON[numwaveforms];
+	TGraph *graphslaserONtimingcut[numwaveforms];
+	TGraph *graphslaserOFF[numwaveforms];
+	TGraph *graphsbeamOFF[numwaveforms];
+	TGraph *graphsbig[numwaveforms];
+	Int_t num_graphslaserON=0, num_graphslaserOFF=0, num_graphsbeamOFF=0, num_graphsbig=0;
+	for(Int_t i=0; i<numwaveforms; i++) {
 		graphslaserON[i]=NULL;
+		graphsbig[i]=NULL;
+		graphslaserONtimingcut[i]=NULL;
 		graphslaserOFF[i]=NULL;
 		graphsbeamOFF[i]=NULL;
 	}
@@ -440,8 +520,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	Int_t num_no_samples=0;
 	Int_t num_badsnaps=0, num_badhelicity=0, num_badbcm=0, num_badmaxpos=0;
 	//Int_t numsamp=0, numsnapshots=0;
-	Int_t num_beamon_laseron=0, num_beamon_laseroff=0, num_beamon_laserbad=0, num_beamoff=0;
-	Bool_t beamon, laseron, laseroff, printsample, drawsnapshot, screwedup, maxposgood, no_pileup;
+	Int_t num_beamon_laseron=0, num_beamon_laseroff=0, num_beamon_laserbad=0, num_beamoff=0, num_beamramp=0;
+	Bool_t beamon, beamoff, laseron, laseroff, printsample, drawsnapshot, screwedup, maxposgood, no_pileup;
 	Int_t paircount=0, quadcount=0, octoquadcount=0;
 	Double_t pairsum=0, pairdiff=0, /*pairasym=0,*/ quaddiff=0, octoquaddiff=0;
 	Int_t type = 0;
@@ -451,7 +531,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	Double_t samp_ped1, samp_ped2, samp_ped3, samp_ped4, samp_ped5, xgpos;
 	Double_t samp_pedave_val, samp_pedprepeakave_val;
 	Double_t samp_ped_maxm6, samp_ped_maxm7, samp_ped_maxm8, samp_ped_maxm9, samp_ped_maxm10;
-	Double_t samp_peakintegral_val, samp_pointval;
+	Double_t samp_peakintegral_val, samp_pointval, samp_pointer;
+	Double_t cutbcmval;
+	Bool_t goodsample;
 
 // 	Double_t plane1sum, plane2sum, plane3sum;
 // 	Bool_t goodtrack;
@@ -466,7 +548,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	for (Int_t jentry=offsetentry+1; jentry<nentries; jentry++) {
 		//	printf("%i\n",jentry);
 		Mps_Chain->GetEntry(jentry);
-		if (bcm1[0]==0) { // Must have a good BCM value to be useful 
+		cutbcmval = bcm1[0];
+		if (cutbcmval==0) { // Must have a good BCM value to be useful 
 			num_badbcm++;
 		} else  {
 			if (jentry==1) {
@@ -479,7 +562,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			// **** Set the switches for the event
 			laseron = sca_laser_PowT[0] > laseroncut;
 			laseroff = sca_laser_PowT[0] < laseroffcut;
-			beamon = bcm6[0] > currentCut;
+			beamoff = cutbcmval < current_beamoff;
+			beamon = cutbcmval > current_beamon;
 			printsample = 0;
 			screwedup = 0;
 			drawsnapshot = 0;
@@ -499,6 +583,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			if (beamon && !laseroff && !laseron) {
 				type=3;
 			}
+			if (!beamon && !beamoff) {
+				type=4;
+			}
 			switch(type)
 			{
 			case 0:
@@ -513,6 +600,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			case 3:
 				num_beamon_laserbad++;
 				break; 
+			case 4:
+				num_beamramp++;
+				break; 
 			}
 
 			if (actual_helicity==0) {      
@@ -520,13 +610,13 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				if (actual_helicity==1) {
 				} else {
 					num_badhelicity++;
-					if (num_badhelicity%100 == 0) {
+					if (num_badhelicity%1000 == 0) {
 						printf("Event %i is %i with bad helicity: %f\n",jentry,num_badhelicity,actual_helicity);
 					}
 				}
 			}    
 			lasertime->Fill(eventtime,sca_laser_PowT[0],type);
-			bcmtime->Fill(eventtime,bcm1[0],type);
+			bcmtime->Fill(eventtime,cutbcmval,type);
 			accum0time->Fill(eventtime,fadc_compton_accum0[0],type);
 			accum0->Fill(fadc_compton_accum0[0],type);
 			// ****************
@@ -579,183 +669,206 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			// ****************
 			// **** Moving on to snapshots we need to actually have one
 			// **** But they can be done even with bad helicity
+			
+
+
 			if (sampled_events->size() <= 0) { // Did we get samples?
 				num_no_samples++;
 				if (debug>0) printf("Warning:%4i: no samples for event %i\n",num_no_samples,jentry);
 			} else {
-				samp_max_val = sampled_events->at(0).GetMaxSample();
-				samp_min_val = sampled_events->at(0).GetMinSample();
-				samp_maxpos_val = sampled_events->at(0).GetMaxIndex();
-				samp_minpos_val = sampled_events->at(0).GetMinIndex();
-				// samp_pedestal;// = sampled_events->at(0).GetPedestal();
-				samp_integral_val = sampled_events->at(0).GetSum();
-				TGraph* thegraph = sampled_events->at(0).GetGraph();
-				char sampname[255], samptitle[255];
-				thegraph->GetPoint(1,xgpos,samp_ped1);
-				thegraph->GetPoint(2,xgpos,samp_ped2);
-				thegraph->GetPoint(3,xgpos,samp_ped3);
-				thegraph->GetPoint(4,xgpos,samp_ped4);
-				thegraph->GetPoint(5,xgpos,samp_ped5);
-				samp_pedave_val = (samp_ped1+samp_ped2+samp_ped3+samp_ped4+samp_ped5)/5.;
-				samp_peakintegral_val = 0, samp_pointval = 0;
-				if (samp_maxpos_val>12) {
-					thegraph->GetPoint(samp_maxpos_val-6,xgpos,samp_ped_maxm6);
-					thegraph->GetPoint(samp_maxpos_val-7,xgpos,samp_ped_maxm7);
-					thegraph->GetPoint(samp_maxpos_val-8,xgpos,samp_ped_maxm8);
-					thegraph->GetPoint(samp_maxpos_val-9,xgpos,samp_ped_maxm9);
-					thegraph->GetPoint(samp_maxpos_val-10,xgpos,samp_ped_maxm10);
+				goodsample = 1;
+				if (!goodsample) {
+					printf("cutting one\n");
+				} else {
+					samp_max_val = sampled_events->at(0).GetMaxSample();
+					samp_min_val = sampled_events->at(0).GetMinSample();
+					samp_maxpos_val = sampled_events->at(0).GetMaxIndex();
+					samp_minpos_val = sampled_events->at(0).GetMinIndex();
+					// samp_pedestal;// = sampled_events->at(0).GetPedestal();
+					samp_integral_val = sampled_events->at(0).GetSum();
+					samp_pointer = sampled_events->at(0).fSamplePointer;
+					TGraph* thegraph = sampled_events->at(0).GetGraph();
+					char sampname[255], samptitle[255];
+					thegraph->GetPoint(1,xgpos,samp_ped1);
+					thegraph->GetPoint(2,xgpos,samp_ped2);
+					thegraph->GetPoint(3,xgpos,samp_ped3);
+					thegraph->GetPoint(4,xgpos,samp_ped4);
+					thegraph->GetPoint(5,xgpos,samp_ped5);
+					samp_pedave_val = (samp_ped1+samp_ped2+samp_ped3+samp_ped4+samp_ped5)/5.;
+					samp_peakintegral_val = 0, samp_pointval = 0;
+					if (samp_maxpos_val>12) {
+						thegraph->GetPoint(samp_maxpos_val-6,xgpos,samp_ped_maxm6);
+						thegraph->GetPoint(samp_maxpos_val-7,xgpos,samp_ped_maxm7);
+						thegraph->GetPoint(samp_maxpos_val-8,xgpos,samp_ped_maxm8);
+						thegraph->GetPoint(samp_maxpos_val-9,xgpos,samp_ped_maxm9);
+						thegraph->GetPoint(samp_maxpos_val-10,xgpos,samp_ped_maxm10);
 // 					for (Int_t i=samp_maxpos_val + i_lowint; i<=samp_maxpos_val + i_upint; i++) {
 // 						thegraph->GetPoint(i,xgpos,samp_pointval);
 // 						samp_peakintegral_val += samp_pointval;
 // 						printf("%i  %.0f  %.0f,  ",i,samp_pointval,samp_peakintegral_val);
 // 					}
 // 					printf("\n");
-				} else {
-					samp_ped_maxm6=samp_ped1;
-					samp_ped_maxm7=samp_ped2;
-					samp_ped_maxm8=samp_ped3;
-					samp_ped_maxm9=samp_ped4;
-					samp_ped_maxm10=samp_ped5;
-				}
-				Double_t minped = std::min(std::min(std::min(samp_ped1,samp_ped2),std::min(samp_ped3,samp_ped4)),
-						std::min(std::min(samp_ped_maxm6,samp_ped_maxm7),std::min(samp_ped_maxm8,samp_ped_maxm9)));
-				samp_pedprepeakave_val = (samp_ped_maxm10+samp_ped_maxm6+samp_ped_maxm7+samp_ped_maxm8+samp_ped_maxm9)/5.;
-
-				if (jentry%10000 == 0) printsample=1;
-				if (printsample) {
-					printf("%8i %3i%% %3.0f %6.1f  %i,%i,%i,%i %10.2f %8i %8.0f %i %8.0f %10.2f %10.4g %s\n",
-						   jentry, 100*jentry/nentries, sca_laser_PowT[0], bcm1[0], laseron, laseroff, beamon, type,
-						   samp_max_val, samp_maxpos_val, samp_min_val, samp_minpos_val, samp_pedave_val, samp_integral_val, 
-						   fadc_compton_accum0[0], mytext.c_str());
-					//       printf("%8i %3i%%\n",
-					// 	     jentry, 100*jentry/nentries);
-					printsample=0;
-				}
-
-				// this makes no sense, samp_min is a pointer to a histogram (wdc)
-				//if (samp_min < -60000) {  // They can't be the overflow kind
-				//	mytext = "screwed up";
-				//	screwedup = 1;
-				//	num_badsnaps++;
-				//}
-				if(samp_maxpos_val > maxpeakposcut_min && samp_maxpos_val < maxpeakposcut_max) {
-					maxposgood=1;
-				}
-				if (!screwedup) {
-					snaphist->Fill(eventtime);
-					if (num_graphslaserON<20 && type == 0) {
-						sprintf(samptitle,"Entry %i",jentry);
-						sprintf(sampname,"laserON%02i",num_graphslaserON);
-						graphslaserON[num_graphslaserON] = sampled_events->at(0).GetGraph();
-						graphslaserON[num_graphslaserON]->SetTitle(samptitle);
-						graphslaserON[num_graphslaserON]->SetName(sampname);
-						//graphslaserON[num_graphslaserON]->SetDirectory(rootoutfile);
-						//printf("Writing shapshot  %s  %s\n",sampname,samptitle);
-						rootoutfile->cd();
-						graphslaserON[num_graphslaserON]->Write();
-						num_graphslaserON++;
-					}
-					if (num_graphslaserOFF<20 && type == 1) {
-						sprintf(samptitle,"Entry %i",jentry);
-						sprintf(sampname,"laserOFF%02i",num_graphslaserOFF);
-						graphslaserOFF[num_graphslaserOFF] = sampled_events->at(0).GetGraph();
-						graphslaserOFF[num_graphslaserOFF]->SetTitle(samptitle);
-						graphslaserOFF[num_graphslaserOFF]->SetName(sampname);
-						//graphslaserOFF[num_graphslaserOFF]->SetDirectory(rootoutfile);
-						//printf("Writing shapshot  %s  %s\n",sampname,samptitle);
-						rootoutfile->cd();
-						graphslaserOFF[num_graphslaserOFF]->Write();
-						num_graphslaserOFF++;
-					}
-					if (num_graphsbeamOFF<20 && type == 2) {
-						sprintf(samptitle,"Entry %i",jentry);
-						sprintf(sampname,"beamOFF%02i",num_graphsbeamOFF);
-						graphsbeamOFF[num_graphsbeamOFF] = sampled_events->at(0).GetGraph();
-						graphsbeamOFF[num_graphsbeamOFF]->SetTitle(samptitle);
-						graphsbeamOFF[num_graphsbeamOFF]->SetName(sampname);
-						//graphsbeamOFF[num_graphsbeamOFF]->SetDirectory(rootoutfile);
-						//printf("Writing shapshot   %s  %s\n",sampname,samptitle);
-						rootoutfile->cd();
-						graphsbeamOFF[num_graphsbeamOFF]->Write();
-						num_graphsbeamOFF++;
-					}
-					samp_integral->Fill(samp_integral_val,type);
-					samp_max->Fill(samp_max_val,type);
-					samp_maxpos->Fill(samp_maxpos_val,type);
-					samp_maxVSmaxpos->Fill(samp_maxpos_val,samp_max_val,type);
-					samp_min->Fill(samp_min_val,type);
-					samp_minpos->Fill(samp_minpos_val,type);
-					samp_minVSminpos->Fill(samp_minpos_val,samp_min_val,type);
-					if (!maxposgood) {
-						num_badmaxpos++;
 					} else {
-						Int_t maxpoint = thegraph->GetN();
-						maxpoint = std::min(maxpoint, samp_maxpos_val + i_upint); // Use the last point if the length is too long.
-						for (Int_t i=samp_maxpos_val + i_lowint; i<=maxpoint; i++) {
+						samp_ped_maxm6=samp_ped1;
+						samp_ped_maxm7=samp_ped2;
+						samp_ped_maxm8=samp_ped3;
+						samp_ped_maxm9=samp_ped4;
+						samp_ped_maxm10=samp_ped5;
+					}
+					Double_t minped = std::min(std::min(std::min(samp_ped1,samp_ped2),std::min(samp_ped3,samp_ped4)),
+											   std::min(std::min(samp_ped_maxm6,samp_ped_maxm7),std::min(samp_ped_maxm8,samp_ped_maxm9)));
+					samp_pedprepeakave_val = (samp_ped_maxm10+samp_ped_maxm6+samp_ped_maxm7+samp_ped_maxm8+samp_ped_maxm9)/5.;
+
+					if (jentry%20000 == 0) printsample=1;
+					if (printsample) {
+						printf("%8i %3i%% %8.0f %6.1f  %i,%i,%i,%i %10.2f %6i %6.0f %6i %6.0f %10.2f %10.4g %s\n",
+							   jentry, 100*jentry/nentries, sca_laser_PowT[0], cutbcmval, laseron, laseroff, beamon, type,
+							   samp_max_val, samp_maxpos_val, samp_min_val, samp_minpos_val, samp_pedave_val, samp_integral_val, 
+							   fadc_compton_accum0[0], mytext.c_str());
+						//       printf("%8i %3i%%\n",
+						// 	     jentry, 100*jentry/nentries);
+						printsample=0;
+					}
+
+					// this makes no sense, samp_min is a pointer to a histogram (wdc)
+					//if (samp_min < -60000) {  // They can't be the overflow kind
+					//	mytext = "screwed up";
+					//	screwedup = 1;
+					//	num_badsnaps++;
+					//}
+					if(samp_maxpos_val > maxpeakposcut_min && samp_maxpos_val < maxpeakposcut_max) {
+						maxposgood=1;
+					}
+					if (!screwedup) {
+						snaphist->Fill(eventtime);
+						if (num_graphslaserON<numwaveforms && type == 0) {
+							sprintf(samptitle,"Entry %i",jentry);
+							sprintf(sampname,"laserON%02i",num_graphslaserON);
+							graphslaserON[num_graphslaserON] = sampled_events->at(0).GetGraph();
+							graphslaserON[num_graphslaserON]->SetTitle(samptitle);
+							graphslaserON[num_graphslaserON]->SetName(sampname);
+							//graphslaserON[num_graphslaserON]->SetDirectory(rootoutfile);
+							//printf("Writing shapshot  %s  %s\n",sampname,samptitle);
+							rootoutfile->cd();
+							graphslaserON[num_graphslaserON]->Write();
+							num_graphslaserON++;
+						}
+// 					if (num_graphslaserONtimingcut<numwaveforms && type == 0) {
+// 						sprintf(samptitle,"Entry %i",jentry);
+// 						sprintf(sampname,"laserONtimed%02i",num_graphslaserONtimingcut);
+// 						graphslaserONtimingcut[num_graphslaserONtimingcut] = sampled_events->at(0).GetGraph();
+// 						graphslaserONtimingcut[num_graphslaserONtimingcut]->SetTitle(samptitle);
+// 						graphslaserONtimingcut[num_graphslaserONtimingcut]->SetName(sampname);
+// 						//graphslaserON[num_graphslaserON]->SetDirectory(rootoutfile);
+// 						//printf("Writing shapshot  %s  %s\n",sampname,samptitle);
+// 						rootoutfile->cd();
+// 						graphslaserONtimingcut[num_graphslaserONtimingcut]->Write();
+// 						num_graphslaserONtimingcut++;
+// 					}
+						
+						if (num_graphsbig<numwaveforms && samp_max_val>bigsnapmin) {
+							sprintf(samptitle,"Entry %i",jentry);
+							sprintf(sampname,"big%02i",num_graphsbig);
+							graphsbig[num_graphsbig] = sampled_events->at(0).GetGraph();
+							graphsbig[num_graphsbig]->SetTitle(samptitle);
+							graphsbig[num_graphsbig]->SetName(sampname);
+							//graphsbig[num_graphsbig]->SetDirectory(rootoutfile);
+							//printf("Writing shapshot  %s  %s\n",sampname,samptitle);
+							rootoutfile->cd();
+							graphsbig[num_graphsbig]->Write();
+							num_graphsbig++;
+						}
+						if (num_graphslaserOFF<numwaveforms && type == 1) {
+							sprintf(samptitle,"Entry %i",jentry);
+							sprintf(sampname,"laserOFF%02i",num_graphslaserOFF);
+							graphslaserOFF[num_graphslaserOFF] = sampled_events->at(0).GetGraph();
+							graphslaserOFF[num_graphslaserOFF]->SetTitle(samptitle);
+							graphslaserOFF[num_graphslaserOFF]->SetName(sampname);
+							//graphslaserOFF[num_graphslaserOFF]->SetDirectory(rootoutfile);
+							//printf("Writing shapshot  %s  %s\n",sampname,samptitle);
+							rootoutfile->cd();
+							graphslaserOFF[num_graphslaserOFF]->Write();
+							num_graphslaserOFF++;
+						}
+						if (num_graphsbeamOFF<numwaveforms && type == 2) {
+							sprintf(samptitle,"Entry %i",jentry);
+							sprintf(sampname,"beamOFF%02i",num_graphsbeamOFF);
+							graphsbeamOFF[num_graphsbeamOFF] = sampled_events->at(0).GetGraph();
+							graphsbeamOFF[num_graphsbeamOFF]->SetTitle(samptitle);
+							graphsbeamOFF[num_graphsbeamOFF]->SetName(sampname);
+							//graphsbeamOFF[num_graphsbeamOFF]->SetDirectory(rootoutfile);
+							//printf("Writing shapshot   %s  %s\n",sampname,samptitle);
+							rootoutfile->cd();
+							graphsbeamOFF[num_graphsbeamOFF]->Write();
+							num_graphsbeamOFF++;
+						}
+						samp_intVSmax->Fill(samp_max_val,samp_integral_val,type);
+						samp_integral->Fill(samp_integral_val,type);
+						samp_max->Fill(samp_max_val,type);
+						samp_maxpos->Fill(samp_maxpos_val,type);
+						samp_maxVSmaxpos->Fill(samp_maxpos_val,samp_max_val,type);
+						samp_min->Fill(samp_min_val,type);
+						samp_minpos->Fill(samp_minpos_val,type);
+						samp_minVSminpos->Fill(samp_minpos_val,samp_min_val,type); 
+						// intergrate over cut window
+						for (Int_t i=maxpeakposcut_min; i<=maxpeakposcut_max; i++) {
 							thegraph->GetPoint(i,xgpos,samp_pointval);
 							samp_peakintegral_val += samp_pointval;
 							//printf("%i  %.0f  %.0f,  ",i,samp_pointval,samp_peakintegral_val);
 						}
-						//printf("%i  %i  %.0f\n",  jentry, samp_maxpos_val, samp_peakintegral_val);
-						samp_pedprepeakave->Fill(samp_pedprepeakave_val,type);
-						samp_pedave->Fill(samp_pedave_val,type);
-						samp_pedVSpedpp->Fill(samp_pedave_val,samp_pedprepeakave_val,type);
-						//samp_peakintegral->Fill(samp_peakintegral_val,type);
-						samp_subintegral->Fill(samp_peakintegral_val,type);
-						samp_yieldVSsubint->Fill(samp_peakintegral_val,fadc_compton_accum0[0],type);
-						samp_bcm1->Fill(bcm1[0]);
-						samp_bcm2->Fill(bcm2[0]);
-						samp_bcm6->Fill(bcm6[0]); 
-						if (actual_helicity==0) {
-							samp_max_hel0->Fill(samp_max_val,type);
-							samp_yieldVSsubint_hel0->Fill(samp_integral_val,fadc_compton_accum0[0]);
-							samp_bcm1_hel0->Fill(bcm1[0]);
-							samp_bcm2_hel0->Fill(bcm2[0]);
-							samp_bcm6_hel0->Fill(bcm6[0]); 
+						samp_timing_integral->Fill(samp_peakintegral_val,type);
+						samp_timingintVSmax->Fill(samp_max_val,samp_peakintegral_val,type);
+						samp_peakintegral_val = 0;
+						if (!maxposgood) {
+							num_badmaxpos++;
 						} else {
-							if (actual_helicity==1) {
-								samp_max_hel1->Fill(samp_max_val,type);
-								samp_yieldVSsubint_hel1->Fill(samp_integral_val,fadc_compton_accum0[0]);
-								samp_bcm1_hel1->Fill(bcm1[0]);
-								samp_bcm2_hel1->Fill(bcm2[0]);
-								samp_bcm6_hel1->Fill(bcm6[0]);
+							Int_t maxpoint = thegraph->GetN();
+							maxpoint = std::min(maxpoint, samp_maxpos_val + i_upint); // Use the last point if the length is too long.
+							for (Int_t i=samp_maxpos_val + i_lowint; i<=maxpoint; i++) {
+								thegraph->GetPoint(i,xgpos,samp_pointval);
+								samp_peakintegral_val += samp_pointval;
+								//printf("%i  %.0f  %.0f,  ",i,samp_pointval,samp_peakintegral_val);
 							}
-						}
-						samp_pedVSyield->Fill(fadc_compton_accum0[0],minped,type);
+							//printf("%i  %i  %.0f\n",  jentry, samp_maxpos_val, samp_peakintegral_val);
+							samp_pedprepeakave->Fill(samp_pedprepeakave_val,type);
+							samp_pedave->Fill(samp_pedave_val,type);
+							samp_pedVSpedpp->Fill(samp_pedave_val,samp_pedprepeakave_val,type);
+							//samp_peakintegral->Fill(samp_peakintegral_val,type);
+							samp_subintegral->Fill(samp_peakintegral_val,type);
+							samp_yieldVSsubint->Fill(samp_peakintegral_val,fadc_compton_accum0[0],type);
+							samp_subintVSmax->Fill(samp_max_val,samp_peakintegral_val,type);
+							laser->Fill(sca_laser_PowT[0],type);
+							samp_bcm1->Fill(bcm1[0],type);
+							samp_bcm2->Fill(bcm2[0],type);
+							samp_bcm6->Fill(bcm6[0],type); 
+							if (actual_helicity==0) {
+								samp_max_hel0->Fill(samp_max_val,type);
+								samp_yieldVSsubint_hel0->Fill(samp_integral_val,fadc_compton_accum0[0]);
+								samp_bcm1_hel0->Fill(bcm1[0]);
+								samp_bcm2_hel0->Fill(bcm2[0]);
+								samp_bcm6_hel0->Fill(bcm6[0]); 
+							} else {
+								if (actual_helicity==1) {
+									samp_max_hel1->Fill(samp_max_val,type);
+									samp_yieldVSsubint_hel1->Fill(samp_integral_val,fadc_compton_accum0[0]);
+									samp_bcm1_hel1->Fill(bcm1[0]);
+									samp_bcm2_hel1->Fill(bcm2[0]);
+									samp_bcm6_hel1->Fill(bcm6[0]);
+								}
+							}
+							samp_pedVSyield->Fill(fadc_compton_accum0[0],minped,type);
 //						samp_pedVSyield->Fill(fadc_compton_accum0[0],minpedsamp_pedprepeakave_val,type);
-						samp_pedVSmin->Fill(samp_min_val,minped,type);
-						samp_pedVStime->Fill(eventtime,minped,type);
+							samp_pedVSmin->Fill(samp_min_val,minped,type);
+							samp_pedVStime->Fill(eventtime,minped,type);
+						}
 					}
-				}
+				} // endif goodsample
 			}
 		}
 	}
 	cputime = timer.CpuTime();
 	realtime = timer.RealTime();
 	
-// 	rootoutfile->cd();
-// 	for (Int_t i=0; i<20; i++) {
-// 		std::cout << "Writing beam OFF " << i << "  " << graphsbeamOFF[i] << std::endl;
-// 		if (graphsbeamOFF[i]) {
-// 			//graphsbeamOFF[i]->SetDirectory(rootoutfile);	
-// 			graphsbeamOFF[i]->Write();	
-// 		}
-// 	}
-// 	for (Int_t i=0; i<20; i++) {
-// 		std::cout << "Writing laser ON " << i << "  " << graphslaserON[i] << std::endl;
-// 		if (graphslaserON[i]){
-// 			//	graphslaserON[i]->SetDirectory(rootoutfile);	
-// 			graphslaserON[i]->Write();	
-// 		}
-// 	}
-// 	for (Int_t i=0; i<20; i++) {
-// 		if (graphslaserOFF[i]){
-// 			//	graphslaserOFF[i]->SetDirectory(rootoutfile);	
-// 			graphslaserOFF[i]->Write();	
-// 		}
-// 	}
-	
-
 	TString logdir = TString(getenv("QWSCRATCH")) + Form("/www/run_%i/",runnumber);
 	TString logfilename = logdir + "stepthru_mps_time.log";
 	std::cout << "Writing time log to " << logfilename << std::endl;
@@ -776,16 +889,17 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		std::cout << "Could not open file " << logfilename << " for writing." << std::endl;
 		return;
 	}
-	fprintf(logfile," Total events:           %8i     \n", nentries);
-	fprintf(logfile," Snaps, beam and laser:  %8i     \n", num_beamon_laseron);
-	fprintf(logfile," Snaps, beam no laser:   %8i     \n", num_beamon_laseroff);
-	fprintf(logfile," Snaps, beam some laser: %8i     \n", num_beamon_laserbad);
-	fprintf(logfile," Snaps, no beam:         %8i     \n", num_beamoff);
-	fprintf(logfile," No snapshots:           %8i     \n", num_no_samples);
-	fprintf(logfile," Bad snapshots:          %8i     \n", num_badsnaps);
-	fprintf(logfile," Bad helicity:           %8i     \n", num_badhelicity);
-	fprintf(logfile," Bad BCM:                %8i     \n", num_badbcm);
-	fprintf(logfile," Bad Max position:       %8i     \n", num_badmaxpos);
+	fprintf(logfile," Total events:                %8i     \n", nentries);
+	fprintf(logfile," Snaps, full beam and laser:  %8i     \n", num_beamon_laseron);
+	fprintf(logfile," Snaps, full beam no laser:   %8i     \n", num_beamon_laseroff);
+	fprintf(logfile," Snaps, full beam some laser: %8i     \n", num_beamon_laserbad);
+	fprintf(logfile," Snaps, beam ramp:            %8i     \n", num_beamramp);
+	fprintf(logfile," Snaps, no beam:              %8i     \n", num_beamoff);
+	fprintf(logfile," No snapshots:                %8i     \n", num_no_samples);
+	fprintf(logfile," Bad snapshots:               %8i     \n", num_badsnaps);
+	fprintf(logfile," Bad helicity:                %8i     \n", num_badhelicity);
+	fprintf(logfile," Bad BCM:                     %8i     \n", num_badbcm);
+	fprintf(logfile," Bad Max position:            %8i     \n", num_badmaxpos);
 	fclose(logfile);
 
 
@@ -802,31 +916,32 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	Bool_t do_samples_asymmetry = kTRUE;
 	Bool_t do_samples_responsefunc = kTRUE;
 	Bool_t do_waveforms = kTRUE;
+	Bool_t do_maxandint = kTRUE;
 
 	std::cout << "do_mps: " << do_mps << std::endl;
-        std::cout << "do_samples_correl " << do_samples_correl << std::endl;
-        std::cout << "do_samples_pedestal " << do_samples_pedestal << std::endl;
-        std::cout << "do_samples_pedcorr " << do_samples_pedcorr << std::endl;
-        std::cout << "do_pedcorrection " << do_pedcorrection << std::endl;
-        std::cout << "do_samples " << do_samples << std::endl;
-        std::cout << "do_samples_asymmetry " << do_samples_asymmetry << std::endl;
-        std::cout << "do_samples_responsefunc " << do_samples_responsefunc << std::endl;
-        std::cout << "do_waveforms " << do_waveforms << std::endl;
-
+	std::cout << "do_samples_correl " << do_samples_correl << std::endl;
+	std::cout << "do_samples_pedestal " << do_samples_pedestal << std::endl;
+	std::cout << "do_samples_pedcorr " << do_samples_pedcorr << std::endl;
+	std::cout << "do_pedcorrection " << do_pedcorrection << std::endl;
+	std::cout << "do_samples " << do_samples << std::endl;
+	std::cout << "do_samples_asymmetry " << do_samples_asymmetry << std::endl;
+	std::cout << "do_samples_responsefunc " << do_samples_responsefunc << std::endl;
+	std::cout << "do_waveforms " << do_waveforms << std::endl;
+	std::cout << "do_maxandint " << do_maxandint << std::endl;
+	
 	TString outtextfilename_ped;
 	TString outtextfilename_width;
-  TString webdir = kWebDirectory+ Form("/run_%i/",runnumber);
+	TString webdir = kWebDirectory+ Form("/run_%i/",runnumber);
 	gSystem->mkdir(webdir.Data(),kTRUE);
 	outtextfilename_ped = webdir + "pedestalfit.txt";
+
 	gROOT->SetStyle("Plain");
 	gStyle->SetOptStat(0);
 	gStyle->SetOptFit(1);
-	// **** Really important number for pedestal correction
-	Double_t numsamples = 190; //256
 
 
 	//Int_t yieldrebinnum = 10;
-	Int_t intrebinnum = 10;
+
 
 	// *************************** 
 	// ***** Set up for the canvas
@@ -835,79 +950,13 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	if (gROOT->IsBatch()) {
 		canvasxoff=0;  canvaswidth=1000;  canvasheight=800; xpads=3; ypads=6; // Batch mode
 	} else {
-		canvasxoff=100;  canvaswidth=800;  canvasheight=600; xpads=6; ypads=3; // Interactive vnc
+		canvasxoff=100;  canvaswidth=1000;  canvasheight=800; xpads=6; ypads=3; // Interactive vnc
 		//canvasxoff=200;  canvaswidth=1000;  canvasheight=800; xpads=3; ypads=6; // Interactive ccomptl1
 	}
 	if (0) {
 		printf("\nKill me now!!!!!\n");
 		sleep(10);
 	}
-
-
-	Int_t intmin, intmax, subintmin, subintmax;
-	intmin = 100; intmax = 550; subintmin = 300; subintmax = 550;
-	if (runnumber <= 21136) {
-		intmin = 350; intmax = 650; subintmin = 350; subintmax = 650; maxmin=250; maxmax=400;
-	}
-// 	if (runnumber == 21136) {
-// 		intmin = 80; intmax = 650; subintmin = 160; subintmax = 650; maxmin=180; maxmax=330;
-// 	}
-	if (runnumber >= 21137) {
-		intmin = 110; intmax = 650; subintmin = 200; subintmax = 650; maxmin=140; maxmax=330;
-	}
-	if (runnumber >= 21139) {
-		intmin = 300; intmax = 1150; subintmin = 350; subintmax = 1150; maxmin=190; maxmax=330;
-	}
-	if (runnumber >= 21140) {
-		intmin = 550; intmax = 1150; subintmin = 600; subintmax = 1150; maxmin=300; maxmax=330;
-	}
-	if (runnumber >= 21142) {
-		intmin = 500; intmax = 1000; subintmin = 550; subintmax = 1000; maxmin=330; maxmax=350;
-	}
-	if (runnumber >= 21143) {
-		intmin = 450; intmax = 1000; subintmin = 450; subintmax = 1000; maxmin=330; maxmax=350;
-	}	
-	if (runnumber == 21144) {
-		intmin = 100; intmax = 1000; subintmin = 170; subintmax = 1000; maxmin=150; maxmax=330;
-	}	
-	if (runnumber == 21145) {
-		intmin = 300; intmax = 1000; subintmin = 350; subintmax = 1000; maxmin=330; maxmax=350;
-	}	
-	if (runnumber == 21146 || runnumber == 21147) {
-		intmin = 300; intmax = 1000; subintmin = 300; subintmax = 1000; maxmin=250; maxmax=350;
-	}
-	if (runnumber >= 21148) {
-		intmin = 300; intmax = 1000; subintmin = 350; subintmax = 1000; maxmin=250; maxmax=350;
-	}	
-	if (runnumber >= 21317) {
-		intmin = 300; intmax = 1000; subintmin = 350; subintmax = 1000; maxmin=270; maxmax=350;
-	}
-	if (runnumber >= 21339) { // Start with electron triggers, 1900 V
-		intmin = 400; intmax = 1000; subintmin = 450; subintmax = 1000; maxmin=270; maxmax=350;
-	}	
-	if (runnumber >= 21391) { // Go to 1800 V
-		intmin = 250; intmax = 1000; subintmin = 300; subintmax = 1000; maxmin=200; maxmax=350;
-	}	
- 	if (runnumber == 21393) { // 1900 V
-		intmin = 300; intmax = 1000; subintmin = 350; subintmax = 1000; maxmin=270; maxmax=350;
-	}  
-	if (runnumber >= 21452) { // Go to 1900 V
-		intmin = 350; intmax = 1000; subintmin = 400; subintmax = 1000; maxmin=270; maxmax=350;
-	}
-	if (runnumber >= 21608) { // PbW04
-		intmin = 200; intmax = 1000; subintmin = 360; subintmax = 1000; maxmin=80; maxmax=260;
-	}
-	if (runnumber == 21619) { // PbW04
-		intmin = 360; intmax = 1000; subintmin = 400; subintmax = 1000; maxmin=130; maxmax=260;
-	}
-	if (runnumber >= 21660) { // PbW04
-		intmin = 150; intmax = 1000; subintmin = 200; subintmax = 1000; maxmin=140; maxmax=388;
-	}
-	if (runnumber >= 21987) { // BGO
-		intmin = 150; intmax = 1000; subintmin = 200; subintmax = 1000; maxmin=140; maxmax=388;
-	}
-	printf("Using intmin %i   intmax %i   subintmin %i   subintmax %i   maxmin %f   maxmax %f \n",
-		   intmin, intmax, subintmin, subintmax, maxmin, maxmax);
 
 	TLatex text;
 	text.SetNDC(kTRUE);
@@ -932,8 +981,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 7: Laser ON snapshots", runnumber));
 		c_waveforms_laserON = new TPad("c_waveforms_laserON","c_waveforms_laserON",0,0,1,1.0-textspace);
 		c_waveforms_laserON->Draw();
-		c_waveforms_laserON->Divide(5,4,0.001,0.001);
-		for (Int_t i=1; i<=20; i++) {
+		c_waveforms_laserON->Divide(6,6,0.001,0.001);
+		for (Int_t i=1; i<=numwaveforms; i++) {
 			padp = c_waveforms_laserON->cd(i);
 			TGraph *graph1 = (TGraph*) gDirectory->Get(Form("laserON%02i",i-1));
 			if (graph1) {
@@ -949,6 +998,32 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		waveforms_laserON->Print(webdir + "waveforms_laserON.png");
 	}
 
+	TCanvas *waveforms_big;
+	TPad *c_waveforms_big;
+	if (do_waveforms) {
+		waveforms_big = new TCanvas("waveforms_big", Form("waveforms %i",runnumber), 
+										canvasxoff,0,canvaswidth,canvasheight);
+		waveforms_big->cd();
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 10: BIG snapshots (max > 3000)", runnumber));
+		c_waveforms_big = new TPad("c_waveforms_big","c_waveforms_big",0,0,1,1.0-textspace);
+		c_waveforms_big->Draw();
+		c_waveforms_big->Divide(6,6,0.001,0.001);
+		for (Int_t i=1; i<=numwaveforms; i++) {
+			padp = c_waveforms_big->cd(i);
+			TGraph *graph1 = (TGraph*) gDirectory->Get(Form("big%02i",i-1));
+			if (graph1) {
+				graph1->Draw("al");
+				padp->SetMargin(0.15,0.02,0.1,0.1);
+				graph1->GetXaxis()->SetLabelSize(0.07);
+				graph1->GetYaxis()->SetLabelSize(0.07);
+				graph1->GetXaxis()->SetTitleSize(0.07);
+				graph1->GetYaxis()->SetTitleSize(0.07);
+				//graph1->SetTitleSize(0.07);
+			}
+		}
+		waveforms_big->Print(webdir + "waveforms_big.png");
+	}
+
 	TCanvas *waveforms_laserOFF;
 	TPad *c_waveforms_laserOFF;    
 	if (do_waveforms) {
@@ -958,8 +1033,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 8: Laser OFF snapshots", runnumber));
 		c_waveforms_laserOFF = new TPad("c_waveforms_laserOFF","c_waveforms_laserOFF",0,0,1,1.0-textspace);
 		c_waveforms_laserOFF->Draw();
-		c_waveforms_laserOFF->Divide(5,4,0.001,0.001);
-		for (Int_t i=1; i<=20; i++) {
+		c_waveforms_laserOFF->Divide(6,6,0.001,0.001);
+		for (Int_t i=1; i<=numwaveforms; i++) {
 			padp = c_waveforms_laserOFF->cd(i);
 			TGraph *graph2 = (TGraph*) gDirectory->Get(Form("laserOFF%02i",i-1));
 			if (graph2) {
@@ -982,11 +1057,11 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		waveforms_beamOFF = new TCanvas("waveforms_beamOFF", Form("waveforms %i",runnumber), 
 										canvasxoff,0,canvaswidth,canvasheight);
 		waveforms_beamOFF->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 9: beam OFF snapshots", runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 9: Beam OFF snapshots", runnumber));
 		c_waveforms_beamOFF = new TPad("c_waveforms_beamOFF","c_waveforms_beamOFF",0,0,1,1.0-textspace);
 		c_waveforms_beamOFF->Draw();
-		c_waveforms_beamOFF->Divide(5,4,0.001,0.001);
-		for (Int_t i=1; i<=20; i++) {
+		c_waveforms_beamOFF->Divide(6,6,0.001,0.001);
+		for (Int_t i=1; i<=numwaveforms; i++) {
 			padp = c_waveforms_beamOFF->cd(i);
 			TGraph *graph3 = (TGraph*) gDirectory->Get(Form("beamOFF%02i",i-1));
 			if (graph3) {
@@ -1022,49 +1097,142 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		c_mps->cd(4);
 		projectALLtypeTH1(samp_pedVStime,0,"",0,1,1);
 		c_mps->cd(5);
+		snaphist->SetMarkerStyle(20);
+		snaphist->SetMarkerSize(0.2);
+		snaphist->GetXaxis()->SetLabelSize(0.08);
+		snaphist->GetYaxis()->SetLabelSize(0.08);
+		snaphist->GetXaxis()->SetTitleSize(0.08);
+		snaphist->GetYaxis()->SetTitleSize(0.08);
+		snaphist->GetXaxis()->SetTitleOffset(0.6);
+		snaphist->GetYaxis()->SetTitleOffset(0.6);
+		snaphist->GetXaxis()->CenterTitle();
 		snaphist->DrawCopy();
+
 		//cerr << "time 3\n" << endl;
 		gPad->SetMargin(0.06,0.02,0.1,0.1);
 		mps->Print(webdir + "mps_summary.png");
 	}
 
-	TCanvas *samples_correl;
-	TPad *c_samples_correl;
+	Bool_t dobeamoffsamps = num_beamon_laseron + num_beamon_laseroff < num_beamoff;
+
+ 	TCanvas *samples_correl;
+ 	TPad *c_samples_correl;
 	if (do_samples_correl) {
 		samples_correl = new TCanvas("samples_correl", Form("samples_correl %i",runnumber),
-									 canvasxoff,0,canvaswidth,canvasheight);
+									 canvasxoff,0,canvaswidth,canvasheight*5./3);
 		samples_correl->cd();
 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 2: Snapshot general",runnumber));
 		c_samples_correl = new TPad("c_samples_correl","c_samples_correl",0,0,1,1.0-textspace);
 		c_samples_correl->Draw();
-		c_samples_correl->Divide(3,3,0.001,0.001);
+		c_samples_correl->Divide(3,5,0.001,0.001);
+
 		c_samples_correl->cd(1);
-		drawscalesubbytypeTH1(samp_max, 1, 2, maxmin, maxmax, 1);
+		if (dobeamoffsamps) {
+			drawALLtypeTH1(samp_max,0,"",1);
+		} else {
+			drawscalesubbytypeTH1(samp_max, 1, 2, maxnormintminchan, maxnormintmaxchan, 0, 1, 1, maxcomptonedge);
+		}
 		c_samples_correl->cd(2);
-		drawALLtypeTH1(samp_min,0,"",1);
+		drawALLtypeTH1(samp_maxpos,0,"max position (timing cut)",1);
+		TLine t1;
+		t1.SetLineColor(kRed);
+		Double_t linexmin,lineymin,linexmax,lineymax;
+//		gPad->GetPadPar(linexmin,lineymin,linexmax,lineymax);
+//		gPad->GetRangeAxis(linexmin,lineymin,linexmax,lineymax);
+		lineymin = 0.1;
+		lineymax = 0.9;
+		linexmin=0.1+0.8*maxpeakposcut_min/sampxpos_nbins;
+		linexmax=0.1+0.8*maxpeakposcut_max/sampxpos_nbins;
+		t1.DrawLineNDC(linexmin,lineymin,linexmin,lineymax);
+		t1.DrawLineNDC(linexmax,lineymin,linexmax,lineymax);
+		printf("lines %f  %f  %f  %f  %i  %i\n",
+			   linexmin,lineymin,linexmax,lineymax,maxpeakposcut_min,maxpeakposcut_max);
 		c_samples_correl->cd(3);
-		drawALLtypeTH1(samp_pedave,1,"",1);
+		drawALLtypeTH1(samp_min,0,"",1);
+
 		c_samples_correl->cd(4);
-		drawALLtypeTH1(samp_maxpos,0,"",1);
+		if (dobeamoffsamps) {
+			drawALLtypeTH1(samp_integral,0,"",1);
+		} else {
+			drawscalesubbytypeTH1(samp_subintegral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+		}
 		c_samples_correl->cd(5);
-		drawALLtypeTH1(samp_minpos,0,"",1);
+		draw1typeTH2(samp_intVSmax,-1,0,"",1,5,10);
+
 		c_samples_correl->cd(6);
-		drawALLtypeTH1(samp_pedprepeakave,1,"",1);
-		c_samples_correl->cd(7);
-		outtextfilename_width = webdir + "width_pairdiff.txt";
-		drawALLtypeTH1(accum0_diff_pair,1,"",1,outtextfilename_width.Data());
-		c_samples_correl->cd(8);
-		outtextfilename_width = webdir + "width_quaddiff.txt";
-		drawALLtypeTH1(accum0_diff_quad,1,"",1,outtextfilename_width.Data());
+		drawALLtypeTH1(samp_minpos,0,"",1);
+
+ 		c_samples_correl->cd(7);
+// 		snap_average->Divide(snap_average_norm);
+// 		drawALLtypeTH1(snap_average);
+		outtextfilename_width = webdir + "ave_accum0.txt";
+		drawALLtypeTH1(accum0,1,"",1,outtextfilename_width);
+ 		c_samples_correl->cd(8);
+		drawALLtypeTH1(laser,1,"",1,outtextfilename_width);
 		c_samples_correl->cd(9);
+		outtextfilename_width = webdir + "pedestal_ave.txt";
+		drawALLtypeTH1(samp_pedprepeakave,1,"",1,outtextfilename_width);
+//		drawALLtypeTH1(samp_pedave,1,"",1);
+
+
+ 		c_samples_correl->cd(10);
+		drawALLtypeTH1(samp_bcm1,1,"",1);
+ 		c_samples_correl->cd(11);
+		drawALLtypeTH1(samp_bcm2,1,"",1);
+		c_samples_correl->cd(12);
+		drawALLtypeTH1(samp_bcm6,1,"",1);
+
+		c_samples_correl->cd(13);
+		outtextfilename_width = webdir + "width_pairdiff.txt";
+		drawALLtypeTH1(accum0_diff_pair,1,"",1,outtextfilename_width); 
+		c_samples_correl->cd(14);
+		outtextfilename_width = webdir + "width_quaddiff.txt";
+		drawALLtypeTH1(accum0_diff_quad,1,"",1,outtextfilename_width);
+		c_samples_correl->cd(15);
 		outtextfilename_width = webdir + "width_32diff.txt";
-		drawALLtypeTH1(accum0_diff_32,1,"",1,outtextfilename_width.Data());
-		//drawALLtypeTH1(accum0_asym_32);
-		//draw3TH1gen(samp_bcm6,samp_bcm1,samp_bcm2,1,"bcm 6","bcm 1","bcm 2",kRed,kGreen,kBlue,"bcms");
-		//drawALLtypeTH1(accum0,1,"",1);
-		//drawscalesub1D(samp_laserOFF_max, samp_laserON_max, 160, 280, 0);
+		drawALLtypeTH1(accum0_diff_32,1,"",1,outtextfilename_width);
+
 		samples_correl->Print(webdir + "samples_correl.png");
 	}
+
+
+// 	TCanvas *samples_correl;
+// 	TPad *c_samples_correl;
+// 	if (do_samples_correl) {
+// 		samples_correl = new TCanvas("samples_correl", Form("samples_correl %i",runnumber),
+// 									 canvasxoff,0,canvaswidth,canvasheight);
+// 		samples_correl->cd();
+// 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 2: Snapshot general",runnumber));
+// 		c_samples_correl = new TPad("c_samples_correl","c_samples_correl",0,0,1,1.0-textspace);
+// 		c_samples_correl->Draw();
+// 		c_samples_correl->Divide(3,3,0.001,0.001);
+// 		c_samples_correl->cd(1);
+// 		drawscalesubbytypeTH1(samp_max, 1, 2, maxmin, maxmax, 1);
+// 		c_samples_correl->cd(2);
+// 		drawALLtypeTH1(samp_min,0,"",1);
+// 		c_samples_correl->cd(3);
+// 		drawALLtypeTH1(samp_pedave,1,"",1);
+// 		c_samples_correl->cd(4);
+// 		drawALLtypeTH1(samp_maxpos,0,"",1);
+// 		c_samples_correl->cd(5);
+// 		drawALLtypeTH1(samp_minpos,0,"",1);
+// 		c_samples_correl->cd(6);
+// 		drawALLtypeTH1(samp_pedprepeakave,1,"",1);
+// 		c_samples_correl->cd(7);
+// 		outtextfilename_width = webdir + "width_pairdiff.txt";
+// 		drawALLtypeTH1(accum0_diff_pair,1,"",1,outtextfilename_width.Data());
+// 		c_samples_correl->cd(8);
+// 		outtextfilename_width = webdir + "width_quaddiff.txt";
+// 		drawALLtypeTH1(accum0_diff_quad,1,"",1,outtextfilename_width.Data());
+// 		c_samples_correl->cd(9);
+// 		outtextfilename_width = webdir + "width_32diff.txt";
+// 		drawALLtypeTH1(accum0_diff_32,1,"",1,outtextfilename_width.Data());
+// 		//drawALLtypeTH1(accum0_asym_32);
+// 		//draw3TH1gen(samp_bcm6,samp_bcm1,samp_bcm2,1,"bcm 6","bcm 1","bcm 2",kRed,kGreen,kBlue,"bcms");
+// 		//drawALLtypeTH1(accum0,1,"",1);
+// 		//drawscalesub1D(samp_laserOFF_max, samp_laserON_max, 160, 280, 0);
+// 		samples_correl->Print(webdir + "samples_correl.png");
+// 	}
 
 	TCanvas *samples_pedestal;
 	TPad *c_samples_pedestal;
@@ -1073,45 +1241,45 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 									   Form("samples_pedestal %i",runnumber),
 									   canvasxoff,0,canvaswidth,canvasheight);
 		samples_pedestal->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 3: Snapshot pedestal analysis",runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 3: Snapshot timing",runnumber));
 		c_samples_pedestal = new TPad("c_samples_pedestal","c_samples_pedestal",0,0,1,1.0-textspace);
 		c_samples_pedestal->Draw();
-		c_samples_pedestal->Divide(4,4,0.001,0.001);
+		c_samples_pedestal->Divide(3,3,0.001,0.001);
 		c_samples_pedestal->cd(1);
-		draw1typeTH2(samp_maxVSmaxpos,1,0,"Laser ON");
+		draw1typeTH2(samp_maxVSmaxpos,1,0,"Laser ON",1,2,10);
 		c_samples_pedestal->cd(2);
-		draw1typeTH2(samp_maxVSmaxpos,2,0,"Laser OFF");
+		draw1typeTH2(samp_maxVSmaxpos,2,0,"Laser OFF",1,2,10);
 		c_samples_pedestal->cd(3);
-		draw1typeTH2(samp_maxVSmaxpos,3,0,"Beam OFF");
+		draw1typeTH2(samp_maxVSmaxpos,3,0,"Beam OFF",1,2,10);
+//		c_samples_pedestal->cd(4);
+//		draw1typeTH2(samp_maxVSmaxpos,4,0,"laser flash");
+
 		c_samples_pedestal->cd(4);
-		draw1typeTH2(samp_maxVSmaxpos,4,0,"laser flash");
-
+		draw1typeTH2(samp_minVSminpos,1,0,"Laser ON",1,2,3);
 		c_samples_pedestal->cd(5);
-		draw1typeTH2(samp_minVSminpos,1,0,"Laser ON");
+		draw1typeTH2(samp_minVSminpos,2,0,"Laser OFF",1,2,3);
 		c_samples_pedestal->cd(6);
-		draw1typeTH2(samp_minVSminpos,2,0,"Laser OFF");
+		draw1typeTH2(samp_minVSminpos,3,0,"Beam OFF",1,2,3);
+// 		c_samples_pedestal->cd(8);
+// 		draw1typeTH2(samp_minVSminpos,4,0,"laser flash");
+
 		c_samples_pedestal->cd(7);
-		draw1typeTH2(samp_minVSminpos,3,0,"Beam OFF");
-		c_samples_pedestal->cd(8);
-		draw1typeTH2(samp_minVSminpos,4,0,"laser flash");
-
-		c_samples_pedestal->cd(9);
 		draw1typeTH2(samp_pedVStime,1,0,"Laser ON");
-		c_samples_pedestal->cd(10);
+		c_samples_pedestal->cd(8);
 		draw1typeTH2(samp_pedVStime,2,0,"Laser OFF");
-		c_samples_pedestal->cd(11);
+		c_samples_pedestal->cd(9);
 		draw1typeTH2(samp_pedVStime,3,0,"Beam OFF");
-		c_samples_pedestal->cd(12);
-		draw1typeTH2(samp_pedVStime,4,0,"laser flash");
+// 		c_samples_pedestal->cd(12);
+// 		draw1typeTH2(samp_pedVStime,4,0,"laser flash");
 
-		c_samples_pedestal->cd(13);
-		draw1typeTH2(samp_pedVSpedpp,1,0,"Laser ON");
-		c_samples_pedestal->cd(14);
-		draw1typeTH2(samp_pedVSpedpp,2,0,"Laser OFF");
-		c_samples_pedestal->cd(15);
-		draw1typeTH2(samp_pedVSpedpp,3,0,"Beam OFF");
-		c_samples_pedestal->cd(16);
-		draw1typeTH2(samp_pedVSpedpp,4,0,"laser flash");
+// 		c_samples_pedestal->cd(13);
+// 		draw1typeTH2(samp_pedVSpedpp,1,0,"Laser ON");
+// 		c_samples_pedestal->cd(14);
+// 		draw1typeTH2(samp_pedVSpedpp,2,0,"Laser OFF");
+// 		c_samples_pedestal->cd(15);
+// 		draw1typeTH2(samp_pedVSpedpp,3,0,"Beam OFF");
+// 		c_samples_pedestal->cd(16);
+// 		draw1typeTH2(samp_pedVSpedpp,4,0,"laser flash");
 
 		samples_pedestal->Print(webdir + "samples_ped.png");
 	}
@@ -1145,6 +1313,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		samples_pedcorr->Print(webdir + "samples_pedcorr.png");
 	}
 
+/*
 	// ******************
 	// **** Here correct for pedestal shift
 	// ******************
@@ -1231,26 +1400,27 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			timer.Start(1);
 		}
 	}
-
+*/
 
 	TCanvas *samples;
 	TPad *c_samples;
 	if (do_samples) {
 		if (!do_pedcorrection) {
-			printf("Need to calculatepedestals to plot this stuff\n");
+			printf("Need to calculate pedestals to plot this stuff\n");
 		} else {
-			samples = new TCanvas("samples", Form("samples %i",runnumber), canvasxoff,0,canvaswidth,canvasheight);
+			samples = new TCanvas("samples", Form("samples %i",runnumber), canvasxoff,0,canvaswidth,canvasheight*2);
 			samples->cd();
-			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 5: Pedestal corrected integral analysis", runnumber));
+			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 5: Max and Integral", runnumber));
 			c_samples = new TPad("c_samples","c_samples",0,0,1,1.0-textspace);
 			c_samples->Draw();
-			c_samples->Divide(3,4,0.001,0.001);
+			c_samples->Divide(2,6,0.001,0.001);
 			c_samples->cd(1);
 			draw1typeTH2(samp_yieldVSsubint,1,0,"Laser ON");
 			c_samples->cd(2);
 			draw1typeTH2(samp_yieldVSsubint,2,0,"Laser OFF");
-			c_samples->cd(3);
-			draw1typeTH2(samp_yieldVSsubint,3,0,"Beam OFF");
+
+// 			c_samples->cd(3);
+// 			draw1typeTH2(samp_yieldVSsubint,3,0,"Beam OFF");
 			
 // 		TH1F *samp_pedcorr_subintproj = (TH1F*)samp_yieldVSsubint_pedcorr->
 // 			ProjectionX("samp_yieldVSsubint_pedcorr_proj",1,-1,"e");
@@ -1262,33 +1432,58 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 // 			ProjectionX("samp_laserON_yieldVSsubint_hel1_pedcorr_proj",1,-1,"e"); 
 // 		samp_laserON_hel0_pedcorr_subintproj->SetTitle("integral, hel 0, pedestal corrected;integral");
 // 		samp_laserON_hel1_pedcorr_subintproj->SetTitle("integral, hel 1, pedestal corrected;integral");
-			
-			c_samples->cd(4);
+
+/* temporarily disabled			
+			c_samples->cd(3);
 			draw1typeTH2(samp_yieldVSsubint_pedcorr,1,0,"Laser ON, ped. corr.");
-			c_samples->cd(5);
+			c_samples->cd(4);
 			draw1typeTH2(samp_yieldVSsubint_pedcorr,2,0,"Laser OFF, ped. corr.");
-			c_samples->cd(6);
-			draw1typeTH2(samp_yieldVSsubint_pedcorr,3,0,"Beam OFF, ped. corr.");
-			
+*/
+// 			c_samples->cd(6);
+// 			draw1typeTH2(samp_yieldVSsubint_pedcorr,3,0,"Beam OFF, ped. corr.");
+				
+			c_samples->cd(5);
+			drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 1);
 			c_samples->cd(7);
-			drawscalesubbytypeTH1(samp_integral, 1, 2, intmin, intmax, 1);
-			c_samples->cd(8);
-			drawscalesubbytypeTH1(samp_subintegral, 1, 2, intmin, intmax, 1);
+			drawscalesubbytypeTH1(samp_subintegral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
 			c_samples->cd(9);			
-// 		samp_yieldVSsubint_pedcorr->GetXaxis()->SetRange();
-// 		samp_yieldVSsubint_pedcorr->GetYaxis()->SetRange();
+/* temporarily disabled	
 			samp_yieldVSsubint_pedcorr->GetZaxis()->SetRange();
 			TH2F *samp_subint_pedcorr  = (TH2F*)samp_yieldVSsubint_pedcorr->Project3D("zx");
-			samp_subint_pedcorr->SetTitle("Integral, (max pos cut, peak cut, ped. corr.)");
-			//samp_subint_pedcorr->Draw("colz");
-			drawscalesubbytypeTH1(samp_subint_pedcorr, 1, 2, subintmin, subintmax, 1);
+			samp_subint_pedcorr->SetTitle("integral around maximum sample, timing cut, ped. corr.");
+*/
+			// Now write out the spectrum
+			TH1F *printouthist = drawscalesubbytypeTH1(samp_subintegral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+			TString spectrumfilename = logdir + "Integral_spectrum.txt";
+			std::cout << "Writing integral spectrum to " << spectrumfilename << std::endl;
+			FILE* intspectfile = 0;
+			if (!(intspectfile = fopen(spectrumfilename,"w"))) {
+				std::cout << "Could not open file " << spectrumfilename << " for writing." << std::endl;
+				return;
+			}
+			Int_t tmpminbin = printouthist->FindFirstBinAbove(0, 1);
+			Int_t tmpmaxbin = printouthist->FindBin(intnormintminchan);
+			for (Int_t count = tmpminbin; count <= tmpmaxbin; count++) {
+				fprintf(intspectfile,"%.0f   %f   %f\n", printouthist->GetBinCenter(count), 
+						printouthist->GetBinContent(count),  printouthist->GetBinError(count));
+			}
+			fclose(intspectfile);
+
 	
-			c_samples->cd(10);
-			drawscalesubbytypeTH1(samp_integral, 1, 2, intmin, intmax, 0);
 			c_samples->cd(11);
-			drawscalesubbytypeTH1(samp_subintegral, 1, 2, intmin, intmax, 0);
+			drawscalesubbytypeTH1(samp_timing_integral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+
+
+			c_samples->cd(6);
+			drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+			c_samples->cd(8);
+			drawscalesubbytypeTH1(samp_subintegral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+			c_samples->cd(10);
+/* temporarily disabled	
+   drawscalesubbytypeTH1(samp_subint_pedcorr, 1, 2,  intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+*/
 			c_samples->cd(12);
-			drawscalesubbytypeTH1(samp_subint_pedcorr, 1, 2, subintmin, subintmax, 0);	
+			drawscalesubbytypeTH1(samp_timing_integral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
 
 //     c_samples->cd(10);
 //     samp_laserON_yieldVSsubint_hel0_pedcorr->Draw("colz");
@@ -1306,6 +1501,76 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 
 
 
+	TCanvas *maxandint;
+	TPad *c_maxandint;
+	if (do_maxandint) {
+		if (!do_pedcorrection) {
+			printf("Need to calculate pedestals to plot this stuff\n");
+		} else {
+			maxandint = new TCanvas("maxandint", Form("maxandint %i",runnumber), canvasxoff,0,canvaswidth,canvasheight*4/3);
+			maxandint->cd();
+			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Max and Integral", runnumber));
+			c_maxandint = new TPad("c_maxandint","c_maxandint",0,0,1,1.0-textspace);
+			c_maxandint->Draw();
+			c_maxandint->Divide(3,4,0.001,0.001);
+				
+			if (dobeamoffsamps) {
+				c_maxandint->cd(1);
+				drawALLtypeTH1(samp_integral,0,"",1);
+				c_maxandint->cd(4);
+				drawALLtypeTH1(samp_integral,0,"",1);
+				c_maxandint->cd(2);
+				drawALLtypeTH1(samp_subintegral,0,"",1);
+				c_maxandint->cd(5);
+				drawALLtypeTH1(samp_subintegral,0,"",1);
+				c_maxandint->cd(3);
+				drawALLtypeTH1(samp_timing_integral,0,"",1);
+				c_maxandint->cd(6);
+				drawALLtypeTH1(samp_timing_integral,0,"",1);
+			} else {
+				c_maxandint->cd(1);
+				drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 1);
+				c_maxandint->cd(4);
+				drawscalesubbytypeTH1(samp_integral, 1, 2, intnormintminchan+bigintoffset, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+				c_maxandint->cd(2);
+				drawscalesubbytypeTH1(samp_subintegral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+				c_maxandint->cd(5);
+				drawscalesubbytypeTH1(samp_subintegral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+				c_maxandint->cd(3);
+				drawscalesubbytypeTH1(samp_timing_integral, 1, 2,  intnormintminchan, intnormintmaxchan, 1);
+				c_maxandint->cd(6);
+				drawscalesubbytypeTH1(samp_timing_integral, 1, 2, intnormintminchan, intnormintmaxchan, 0, 1, 1, intcomptonedge);
+			}
+
+			c_maxandint->cd(7);
+			draw1typeTH2(samp_intVSmax,-2,0,"",1,0,0);
+			c_maxandint->cd(10);
+			samp_intVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
+			samp_intVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
+			draw1typeTH2(samp_intVSmax,-3,0,"",1,0,0);
+
+
+			c_maxandint->cd(8);
+			draw1typeTH2(samp_subintVSmax,-2,0,"",1,0,0);
+			c_maxandint->cd(11);
+			samp_subintVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
+			samp_subintVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
+			draw1typeTH2(samp_subintVSmax,-3,0,"",1,0,0);
+
+			c_maxandint->cd(9);
+			draw1typeTH2(samp_timingintVSmax,-2,0,"",1,0,0);
+			c_maxandint->cd(12);
+			samp_timingintVSmax->GetXaxis()->SetRangeUser(0,maxnormintminchan);
+			samp_timingintVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
+			draw1typeTH2(samp_timingintVSmax,-3,0,"",1,0,0);
+
+			maxandint->Print(webdir + "samples_maxandint.png");
+		}
+	}
+
+
+
+
  	TCanvas *samples_asymmetry;
  	TPad *c_samples_asymmetry;
  	if (do_samples_asymmetry) {
@@ -1317,9 +1582,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		c_samples_asymmetry->Draw();
 		c_samples_asymmetry->Divide(3,3,0.001,0.001);
 		c_samples_asymmetry->cd(1);
-		drawscalesubbytypeTH1(samp_max_hel0, 1, 2, maxmin, maxmax, 1);
+		drawscalesubbytypeTH1(samp_max_hel0, 1, 2, maxnormintminchan, maxnormintmaxchan, 1);
 		c_samples_asymmetry->cd(2);
-		drawscalesubbytypeTH1(samp_max_hel1, 1, 2, maxmin, maxmax, 1);
+		drawscalesubbytypeTH1(samp_max_hel1, 1, 2, maxnormintminchan, maxnormintmaxchan, 1);
 
 		TH1F *samp_max_hel0_laserON = (TH1F*)samp_max_hel0->ProjectionX("samp_max_hel0_laserON",1,1,"e");
 		TH1F *samp_max_hel1_laserON = (TH1F*)samp_max_hel1->ProjectionX("samp_max_hel1_laserON",1,1,"e"); 
@@ -1329,8 +1594,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
  		TH1F *samp_max_laserOFF = (TH1F*)samp_max->ProjectionX("samp_max_laserOFF",2,2,"e"); 
 		samp_max_laserOFF->SetTitle("max, laser OFF,;max");
 
-		Int_t maxminbin = samp_max_laserOFF->FindBin(maxmin);
-		Int_t maxmaxbin = samp_max_laserOFF->FindBin(maxmax);
+		Int_t maxminbin = samp_max_laserOFF->FindBin(maxnormintminchan);
+		Int_t maxmaxbin = samp_max_laserOFF->FindBin(maxnormintmaxchan);
  		Double_t intOFF = samp_max_laserOFF->Integral(maxminbin, maxmaxbin);
  		Double_t intON_hel0 = samp_max_hel0_laserON->Integral(maxminbin, maxmaxbin);
  		Double_t intON_hel1 = samp_max_hel1_laserON->Integral(maxminbin, maxmaxbin);
@@ -1344,12 +1609,23 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
  		c_samples_asymmetry->cd(4);
 		TH2F *samp_max_hel0_rebin = (TH2F*)samp_max_hel0->Clone("samp_max_hel0_rebin");
  		samp_max_hel0_rebin->RebinX(intrebinnum);
- 		TH1F* samp_max_hel0_rebin_sub = drawscalesubbytypeTH1(samp_max_hel0_rebin, 1, 2, (maxmin+1)/intrebinnum, (maxmax+1)/intrebinnum, 1);
+// 		TH1F* samp_max_hel0_rebin_sub = drawscalesubbytypeTH1(samp_max_hel0_rebin, 1, 2, (maxmin+1)/intrebinnum, (maxmax+1)/intrebinnum, 1);
+ 		TH1F* samp_max_hel0_rebin_sub = drawscalesubbytypeTH1(samp_max_hel0_rebin, 1, 2, maxnormintminchan, maxnormintmaxchan, 1);
  		c_samples_asymmetry->cd(5);
 		TH2F *samp_max_hel1_rebin = (TH2F*)samp_max_hel1->Clone("samp_max_hel1_rebin");
  		samp_max_hel1_rebin->RebinX(intrebinnum);
- 		TH1F* samp_max_hel1_rebin_sub = drawscalesubbytypeTH1(samp_max_hel1_rebin, 1, 2, (maxmin+1)/intrebinnum, (maxmax+1)/intrebinnum, 1);
+// 		TH1F* samp_max_hel1_rebin_sub = drawscalesubbytypeTH1(samp_max_hel1_rebin, 1, 2, (maxmin+1)intrebinnum, (maxmax+1)/intrebinnum, 1);
 
+ 		TH1F* samp_max_hel1_rebin_sub = drawscalesubbytypeTH1(samp_max_hel1_rebin, 1, 2, maxnormintminchan, maxnormintmaxchan, 1);
+
+		c_samples_asymmetry->cd(6);
+ 		TH1F *asym_notbksub = (TH1F*) samp_max_hel1_laserON->GetAsymmetry(samp_max_hel0_laserON);
+ 		asym_notbksub->SetMaximum(std::min(asym_notbksub->GetMaximum(),0.06));
+ 		asym_notbksub->SetMinimum(std::max(asym_notbksub->GetMinimum(),-0.06));
+ 		asym_notbksub->SetTitle("Asymmetry (NOT background subtracted)");
+		asym_notbksub->SetLineColor(kRed);
+ 		asym_notbksub->Draw();
+		asym_notbksub->GetXaxis()->SetRangeUser(0,maxnormintminchan);
 
 
 // 		c_samples_asymmetry->cd(4);
@@ -1365,8 +1641,10 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 //  		samp_max_hel1_laserON_bksub->Add(samp_max_laserOFF,-1);
 
 		c_samples_asymmetry->cd(7);
+		samp_max_hel0_rebin_sub->GetXaxis()->SetRangeUser(0,maxnormintminchan);
 		samp_max_hel0_rebin_sub->DrawCopy("e");
 		c_samples_asymmetry->cd(8);
+		samp_max_hel1_rebin_sub->GetXaxis()->SetRangeUser(0,maxnormintminchan);
 		samp_max_hel1_rebin_sub->DrawCopy("e");
 		c_samples_asymmetry->cd(9);
  		TH1F *asym_bksub = (TH1F*) samp_max_hel1_rebin_sub->GetAsymmetry(samp_max_hel0_rebin_sub);
@@ -1375,6 +1653,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
  		asym_bksub->SetTitle("Asymmetry (background subtracted)");
 		asym_bksub->SetLineColor(kRed);
  		asym_bksub->Draw();
+		asym_bksub->GetXaxis()->SetRangeUser(0,maxnormintminchan);
 
 		samples_asymmetry->Print(webdir + "samples_asymmetry.png");
 	}

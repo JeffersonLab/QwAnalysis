@@ -1,16 +1,27 @@
 // Author : Jeong Han Lee
 // Date   : Friday, January 27 15:26:23 EST 2012
 // 
-//         TS, MD, and Scanner Hit and histogram plot script
-//         ROOT file is opened before loading this script
+//         a TS, MD, and Scanner Hit and histogram plot script
+//         which is written for Jeong Han Lee. So it is very
+//         incovenient to run this script
+//
+//
+//  NOTE that : a ROOT file must be opened with qwroot before loading this script
+//              'tab' will show possible options of a function
+//              
 
-//         qwroot TrackingDAQ_15144.root
-//         .L QwHitCheck.C
-//         TSGeneralPlot()
-
+//         For example 
+//        
+//         ~$ qwroot $QW_ROOTFILES/TrackingDAQ_15144.root
+//         Qw-Root [1] .L $QWANALYSIS/Extensions/Macros/Tracking/QwHitCheck.C 
+//         Qw-Root [2] TSsMTPlot()
+//                     
 //          0.0.1 : Friday, January 27 15:26:27 EST 2012
-//                  
+//          0.0.2 : Tuesday, March 20 00:03:53 EDT 2012, jhlee
+//                  - added more description which how to use
+//                  - refined TSsMT and MDsMT functions        
 // 
+
  gStyle->SetStatW(0.4);//   - set the width of a stat box
  gStyle->SetStatH(0.4);//   - set the width of a stat box
 
@@ -78,6 +89,9 @@ TSF1Plot(Int_t plane, Int_t element)
   else if (element == 0) {
     name += "mt_f1";
   }
+  else if (element == 3 ) {
+    name += "software_meantime";
+  }
   else {
     return;
   }
@@ -85,9 +99,12 @@ TSF1Plot(Int_t plane, Int_t element)
 
   std::cout << " Name " << name << " cut " << cut << std::endl;
 
-  c1.cd(1);
-  event_tree->Draw(name, cut);
-  gPad->Update();
+  
+  if (! name.Contains("software")) {
+    c1.cd(1);
+    event_tree->Draw(name, cut);
+    gPad->Update();
+  }
   c1.cd(2);
   event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==0 && fQwHits.fTimeNs!=0", region, plane, element));
   gPad->Update();
@@ -159,6 +176,9 @@ MDF1Plot(Int_t plane, Int_t element)
   else if( element == 2) {
     name += "m_f1";
   }
+  else if (element == 3 ) {
+    name += "software_meantime";
+  }
   else {
     return;
   }
@@ -168,7 +188,9 @@ MDF1Plot(Int_t plane, Int_t element)
   
   printf("\"%s\":%s\n", name.Data(), cut.Data());
   c1.cd(1);
-  event_tree->Draw(name.Data(), cut.Data());
+  if (! name.Contains("software")) {
+    event_tree->Draw(name.Data(), cut.Data());
+  }
   gPad->Update();
   c1.cd(2);
   event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==5 && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==0  && fQwHits.fTimeNs!=0", plane, element));
@@ -335,6 +357,70 @@ VDC_F1_VaderTimePlot()
   gPad->Update();
  
   
+
+  return;
+}
+
+
+
+void 
+TSsMTPlot(Int_t element=3)
+{
+  Int_t region = 4;
+  //  TCanvas c1;
+  c1.Clear();
+  TString name ="";
+  TString cut = "";
+  gStyle->SetStatW(0.4);//   - set the width of a stat box
+  gStyle->SetStatH(0.4);//   - set the width of a stat box
+  c1.Divide(4,4);
+
+  //  plane = 1;
+  for(Int_t idx=0;idx<7; idx++)
+    {
+      c1.cd(idx+1);
+      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, 1, element, idx));
+      gPad->Update();
+    }
+
+  //  plane = 2;
+  for(Int_t idx=0;idx<7; idx++)
+    {
+      c1.cd(idx+9);
+      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==%d && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, 2, element, idx));
+      gPad->Update();
+    }
+
+
+
+  c1.Update();
+
+  return;
+}
+
+
+
+void 
+MDsMTPlot(Int_t plane)
+{
+  Int_t region = 5;
+  //  TCanvas c1;
+  c1.Clear();
+  TString name ="";
+  TString cut = "";
+  gStyle->SetStatW(0.4);//   - set the width of a stat box
+  gStyle->SetStatH(0.4);//   - set the width of a stat box
+  c1.Divide(4,2);
+
+
+  for(Int_t idx=0;idx<7; idx++)
+    {
+      c1.cd(idx+1);
+      event_tree->Draw("fQwHits.fTimeNs", Form("fQwHits.fRegion==%d && fQwHits.fPlane==%d && fQwHits.fElement==3 && fQwHits.fHitNumber==%d && fQwHits.fTimeNs!=0", region, plane, idx));
+      gPad->Update();
+    }
+
+  c1.Update();
 
   return;
 }

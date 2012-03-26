@@ -125,6 +125,7 @@ class  QwHaloMonitor : public VQwDataElement{
   void  PrintInfo() const;
 
   std::vector<QwDBInterface> GetDBEntry();
+  std::vector<QwErrDBInterface> GetErrDBEntry();
 
  protected:
 

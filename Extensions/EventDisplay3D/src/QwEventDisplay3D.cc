@@ -700,7 +700,7 @@ void QwEventDisplay3D::DisplayEvent()
          // Now light up the respective labels to indicate hits
          switch( region ) {
             case 1:
-               fRegion1Label->ChangeBackground(fGreen);
+               //fRegion1Label->ChangeBackground(fGreen);
                break;
             case 2:
                fRegion2Label->ChangeBackground(fGreen);

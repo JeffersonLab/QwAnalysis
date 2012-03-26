@@ -111,6 +111,7 @@ class QwEnergyCalculator : public VQwDataElement{
     };
 
     std::vector<QwDBInterface> GetDBEntry();
+    std::vector<QwErrDBInterface> GetErrDBEntry();
 
  protected:
     QwVQWK_Channel fEnergyChange;

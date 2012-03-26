@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwHelicity;
+class QwRegression;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -49,6 +50,11 @@ class QwHelicityPattern{
   Bool_t HasDataLoaded() const { return fIsDataLoaded; };
 
   Bool_t IsCompletePattern() const;
+
+  Bool_t IsEndOfBurst(){
+    //  Is this the end of a burst?
+    return (fBurstLength > 0 && fCurrentPatternNumber % fBurstLength == 0);
+  }
 
   void  CalculateAsymmetry();
   void GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width);//retrieves the target charge asymmetry,asymmetry error ,asymmetry width
@@ -124,6 +130,9 @@ class QwHelicityPattern{
   void  WritePromptSummary(QwPromptSummary *ps);
 
   Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
+  UInt_t GetEventcutErrorFlag() const{
+    return fAsymmetry.GetEventcutErrorFlag();
+  };
 
   void  ClearEventData();
   void  ClearBurstSum();
@@ -163,6 +172,7 @@ class QwHelicityPattern{
   QwSubsystemArrayParity fAsymmetry2;
 
   // Burst sum/difference of the yield and asymmetry
+  Int_t fBurstLength;
   Bool_t fEnableBurstSum;
   Bool_t fPrintBurstSum;
   QwSubsystemArrayParity fBurstYield;
@@ -196,6 +206,8 @@ class QwHelicityPattern{
   // Flag to indicate that the pattern contains data
   Bool_t fIsDataLoaded;
   void SetDataLoaded(Bool_t flag) { fIsDataLoaded = flag; };
+
+  friend class QwRegression;
 
 };
 

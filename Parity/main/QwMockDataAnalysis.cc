@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   QwSubsystemArrayParity runningsum(detectors);
 
   // Get the helicity
-  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
+  QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystemByName("Helicity info"));
 
   // Event buffer
   QwEventBuffer eventbuffer;

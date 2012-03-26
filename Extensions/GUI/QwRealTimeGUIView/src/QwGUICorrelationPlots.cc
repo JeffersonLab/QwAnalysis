@@ -4,6 +4,11 @@
 #include "TGaxis.h"
 #include "TCut.h"
 
+#include "TGaxis.h"
+#include "TColor.h"
+#include "TStyle.h"
+#include "TPaveLabel.h"
+#include <TString.h>
 
 
 
@@ -11,7 +16,8 @@ ClassImp(QwGUICorrelationPlots);
 
 //buttons
 enum QwGUICorrelationPlotsIndentificator {
-  BA_CORR_PLOT
+  BA_CORR_PLOT,
+  BA_BCMDD_PLOT,
 };
 
 //text entry
@@ -58,6 +64,7 @@ QwGUICorrelationPlots::QwGUICorrelationPlots(const TGWindow *p, const TGWindow *
   dSubLayout          = NULL;
   dBtnLayout          = NULL;
   dButtonCorrelationPlot = NULL;
+  dButtonBCMDDPlot       = NULL;
 
   //Tree List box
   dListboxTrees       = NULL;
@@ -110,6 +117,7 @@ QwGUICorrelationPlots::~QwGUICorrelationPlots()
 
   if(dListboxTrees)       delete dListboxTrees;
   if(dButtonCorrelationPlot) delete dButtonCorrelationPlot;
+  if(dButtonBCMDDPlot) delete dButtonBCMDDPlot;
 
   if(dComboBoxTreePrm1)   delete dComboBoxTreePrm1;
   if(dComboBoxTreePrm2)   delete dComboBoxTreePrm2;
@@ -233,9 +241,12 @@ void QwGUICorrelationPlots::MakeLayout()
   dButtonCorrelationPlot = new TGTextButton(dTreeFrame, "&Plot", BA_CORR_PLOT);
   dButtonCorrelationPlot->SetEnabled(kFALSE);
   dTreeFrame->AddFrame(dButtonCorrelationPlot, dBtnLayout);
-  
+
+  dButtonBCMDDPlot= new TGTextButton(dControlsFrame, "Plot-BCMDD", BA_BCMDD_PLOT);
+  dControlsFrame->AddFrame(dButtonBCMDDPlot, dBtnLayout);
 
   dButtonCorrelationPlot -> Associate(this);
+  dButtonBCMDDPlot -> Associate(this);
   dListboxTrees -> Associate(this);
 
   dComboBoxTreePrm1 -> Associate(this);
@@ -343,7 +354,6 @@ void QwGUICorrelationPlots::PlotCorrelation()
     mc->Divide(1,1);
 
     mc->cd(1);
-     //gPad->Update();
 
     if (tree==NULL){
       printf("No Such tree object exist!\n");
@@ -399,6 +409,76 @@ void QwGUICorrelationPlots::PlotCorrelation()
   return;
 };
 
+void QwGUICorrelationPlots::PlotBCMDD(){
+  TTree *tree=NULL;
+  TString tree_name=CorrelationPlotsTrees[fTreeIndex];
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  Char_t drw[100];
+  TCut  cut;
+  TCut  cutX;
+  TCut  cutY;
+  TString PrmY;
+  TString PrmX;
+
+
+  //stats
+  gStyle->SetOptTitle(1);
+  gStyle->SetStatH(0.4);
+  gStyle->SetStatW(0.3);     
+  gStyle->SetOptStat("eMr");//with error on the mean
+
+  // histo parameters
+  gStyle->SetTitleX(0.3);
+  gStyle->SetTitleW(0.35);
+  gStyle->SetTitleSize(0.03);
+  gStyle->SetTitleOffset(2);
+  gStyle->SetTitleColor(kBlack);
+  gStyle->SetTitleBorderSize(0);
+  gStyle->SetTitleFillColor(0);
+  gStyle->SetTitleFontSize(0.08);
+
+  gStyle->SetPadBottomMargin(0.2);
+  gStyle->SetHistFillColor(41);
+
+  while (1){ 
+    tree= (TTree *)dMapFile->Get(tree_name);
+    
+    mc->Clear();
+    mc->Divide(1,1);
+
+    mc->cd(1);
+    gPad->SetLogy(1);
+
+    if (tree==NULL){
+      printf("No Such tree object exist!\n");
+      break;
+    }
+
+    if (tree->Draw("(asym_qwk_bcm7.hw_sum - asym_qwk_bcm8.hw_sum)*1e+6","ErrorFlag==0")<0){
+	printf("Bad numerical expression \n");
+	break;
+    }
+
+    ((TH1F *)(mc->FindObject("htemp")))->SetTitle("BCM-DD (7-8)");
+    ((TH1F *)(mc->FindObject("htemp")))->GetXaxis()->SetTitle("ppm");
+    
+    gPad->Update();
+     
+    mc->Modified();
+    mc->Update();
+     
+     
+    gSystem->Sleep(2000);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+    delete tree;
+  }
+  
+
+  return;  
+};
   
 
 // void QwGUICorrelationPlots::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
@@ -470,6 +550,10 @@ Bool_t QwGUICorrelationPlots::ProcessMessage(Long_t msg, Long_t parm1, Long_t pa
 		case BA_CORR_PLOT:
 		  //printf(" PLOT CORR \n ");
 		  PlotCorrelation();
+		  break;
+		case BA_BCMDD_PLOT:
+		  //printf(" PLOT CORR \n ");
+		  PlotBCMDD();
 		  break;
 
 		}

@@ -39,6 +39,7 @@ class QwSIS3320_Samples: public TObject {
 
     QwSIS3320_Samples(UInt_t nsamples = 256) {
       fGraph = 0;
+      SetSamplePointer(0);
       SetSamplesPerWord(2);
       SetNumberOfSamples(nsamples);
     };

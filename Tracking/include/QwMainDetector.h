@@ -31,6 +31,8 @@
 #include "QwScaler_Channel.h"
 #include "QwF1TDContainer.h"
 
+#include "QwSoftwareMeantime.h"
+#include "QwOptions.h"
 ///
 /// \ingroup QwTracking
 class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwMainDetector> {
@@ -73,6 +75,10 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
 
   void  ClearEventData();
 
+
+  static void DefineOptions(QwOptions& options);
+  void ProcessOptions(QwOptions& options);
+
   void GetHitList(QwHitContainer & grandHitContainer) {
     grandHitContainer.Append(fTDCHits);
   };
@@ -84,6 +90,8 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   EQwModuleType fCurrentType;
 
   Bool_t fDEBUG;
+  Bool_t fSoftwareMeantimeOption;
+  Double_t fSoftwareMeantimeTimeWindowNs;
 
   TString fRegion;     ///  Name of this subsystem (the region).
   Int_t   fCurrentBankIndex;
@@ -103,10 +111,14 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   UInt_t kMaxNumberOfChannelsPerF1TDC;
   Int_t fNumberOfModules;
 
+  static const Int_t kMaxNumberOfQwHitPlane; //JAM 2012-03-12
+
 
   MQwV775TDC       fQDCTDC;
   MQwF1TDC         fF1TDCDecoder;
   QwF1TDContainer *fF1TDContainer;
+  F1TDCReferenceContainer * fF1RefContainer;
+  MeanTimeContainer       *fSoftwareMeantimeContainer[8]; //JAM
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -129,6 +141,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
   void  SubtractReferenceTimes(); // be executed in ProcessEvent()
   void  UpdateHits();             // be executed in ProcessEvent()
 
+  void AddSoftwareMeantimeToHits(Bool_t option);
 
   std::vector< QwHit >              fTDCHits;
 

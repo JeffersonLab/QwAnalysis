@@ -222,9 +222,10 @@ const QwSIS3320_Samples QwSIS3320_Samples::operator- (const QwSIS3320_Samples &v
  */
 QwSIS3320_Samples& QwSIS3320_Samples::operator= (const QwSIS3320_Samples &value)
 {
-  this->fSamples.resize(value.fSamples.size());
-  for (size_t i = 0; i < fSamples.size(); i++)
-    this->fSamples.at(i) = value.fSamples.at(i);
+  fSamplesPerWord = value.fSamplesPerWord;
+  fNumberOfDataWords = value.fNumberOfDataWords;
+  fSamplePointer = value.fSamplePointer;
+  fSamples = value.fSamples;
   return *this;
 }
 

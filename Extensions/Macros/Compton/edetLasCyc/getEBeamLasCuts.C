@@ -1,6 +1,7 @@
 /*************************************************
  * Courtesy: Don Jones
  * modified by: Amrendra
+ * thanks Juan Carlos
  ************************************************ */
 #include <rootClass.h>
 #include "comptonRunConstants.h"
@@ -17,8 +18,9 @@
 
 Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
+  TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  Bool_t debug = 1;
   chain->ResetBranchAddresses();
-  Char_t textf[255],textwrite[255];
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0, bcm = 0 , comptQ = 0;
   Double_t beamMax, laserMax;
@@ -40,13 +42,12 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
-  sprintf(textf,"analOut/r%d_cutLas.txt",runnum);
-  ofstream outfileLas(Form("%s",textf));
-  printf("%s file created\n",textf);
 
-  sprintf(textf,"analOut/r%d_cutBeam.txt",runnum);
-  ofstream outfileBeam(Form("%s",textf));
-  printf("%s file created\n",textf);
+  ofstream outfileLas(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
+  if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
+
+  ofstream outfileBeam(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
+  if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
 
   TBranch *bLaser;
   TBranch *bBCM;
@@ -99,12 +100,14 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition
-      //insist > 10 in a row meet the isABeamTrip criterion
+      //insist > 100 in a row meet the isABeamTrip criterion
       q++;
       if(q>100) { ///beam is found off for over 100 consecutive entries (~ 100ms) 
         q = 0;
         o++; ///cutE array's even number index (corresponding to a beamTrip)
-        cutE.push_back(index-(PREV_N_ENTRIES+100)); ///register the entry# ~ 5s before this instance as a beam-trip
+	if (index >= (PREV_N_ENTRIES+100)) 
+	  cutE.push_back(index-(PREV_N_ENTRIES + 100)); ///register the entry# ~ 5s before this instance as a beam-trip
+        else cutE.push_back(index);
         prevTripDone = kFALSE; ///register that the trip is not recovered yet
       }
     }
@@ -126,24 +129,25 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     o++;
   }
   //print the beam trip cuts
-
+  if(debug) printf("going to write beam cut file\n");
   for(Int_t i=0;i<o;i++) {
-    //printf("cutE[%i]=%i\n",i,cutE.at(i));
-    sprintf(textwrite,"%d",cutE.at(i));
-    outfileBeam <<textwrite<<endl;
+    if(debug) printf("cutE[%i]=%i\n",i,cutE.at(i));
+    outfileBeam << cutE.at(i) <<endl;
   }
 
+  if(debug) printf("going to write cutL file\n");
   for(Int_t i=0;i<m;i++) {
-    sprintf(textwrite,"%d",cutL.at(i));
-    outfileLas <<textwrite<<endl;
+    if(debug) printf("cutL[%i]=%i\n",i,cutL.at(i));
+    outfileLas << cutL.at(i) <<endl;
   }
 
-  //chain->SetBranchStatus("*",1);//turn on all branches again
   nLasCycBeamTrips = o*500+m/2;
   return o*500+m/2;//nEntries for both arrays is encoded into return value
 }
 
 /* Comments**************************
+ * !The output file instead of going to the run's edet-subdirectory should be in the run 
+ * ..directory and should be used as a generic file used by both compton componets
  * the entry numbers in cutLas and cutEB demarcate the periods when the the laser
  *..and beam were ON and Good. This is unlike the previous version where the 
  *..demarcation was for beam Off and laser-off.
