@@ -175,6 +175,10 @@ sub suggest_better_time_intervals {
         reason	=> "The archiver finally things daylight savings time begin"
 			. " under the pre-2005 rules"
     },
+    {	start	=> "2012-03-26 14:10",
+        end	=> "2012-03-26 14:20",
+        reason	=> "Gaskell fiddled with the clock, the bcm read 21,000 uA",
+    },
   );
 
   foreach my $bad (@corrupt_time_intervals) {
