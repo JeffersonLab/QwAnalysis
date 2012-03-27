@@ -179,7 +179,13 @@ if ($timestamp_prev ne ""){
     print 
 	"$timestamp_prev $rightnow $ihwpmode_prev ",
 	join(" ",@helmag_prev),"\n";
-    HCdiffs_for_timerange($timestamp_prev,$rightnow, @diff_channels);
+    @pos_diffs = HCdiffs_for_timerange($timestamp_prev,$rightnow, @diff_channels);
+    ##  Call the magnet setting determination script with the @pos_diffs
+    ##  as parameters.  Depending on the retun, either open it as
+    ##  a file handle, or just as a system call.
+
+    ##  Send the new magnet settings via caput calls.
+    ##  Readback the magnet settings to verify that they took.
 }
 
 ### Parse this block after reaching the end of the input file
@@ -304,4 +310,8 @@ sub HCdiffs_for_timerange($$@){
 	}
 	print "\t",$channels[2*$dim],"\t",$val," +/- ",$err,"\n";
     };
+
+    ## We should return a vector of for values for X, XP, Y, YP
+    ## which will be passed to the magent setting determination script
+
 }
