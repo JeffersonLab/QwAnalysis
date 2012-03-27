@@ -53,6 +53,10 @@ INCLUDESDIR=""
 ## Placeholder for notice on the website
 FIRST100KMESSAGE=""
 
+## Which script to run. If none specified, all are assummed
+MACROS_TO_RUN=""
+ONLY_SPECIFIED_MACROS=kFALSE
+
 ################################################################################
 ## Check for parameters
 DOMACROS=1
@@ -67,6 +71,12 @@ do
 	  FIRST100K=kTRUE
 	  FIRST100KMESSAGE="(First 100k analysis)"
 	  ;;
+        ## This flag is to only run the specified macros
+      --macros=*)
+    ONLY_SPECIFIED_MACROS=kTRUE
+	  MACROS_TO_RUN=`echo $i | sed 's/--macros=//'`
+	  ;;
+
          ## This flag skips running the macros and regenerating the index page 
          ## if all you want to is to regenerate the run webpage
       --quick)
@@ -230,7 +240,18 @@ fi
 if [ ${DOMACROS} ==  1 ]
 then
     echo "Processing config files"
-    for config in `ls ${CONFIGDIR}/*.conf`
+    if [ ${ONLY_SPECIFIED_MACROS} == kFALSE ];
+    then
+      CONFIGS=`ls ${CONFIGDIR}/*.conf`
+    else
+      for config in ${MACROS_TO_RUN}
+      do
+        CONFIGS="${CONFIGS} `ls ${CONFIGDIR}/*${config}*.conf`"
+      done
+    fi
+
+    #for config in `ls ${CONFIGDIR}/*.conf`
+    for config in ${CONFIGS}
     do
         if [ -e "${config}.disable" ]
         then
