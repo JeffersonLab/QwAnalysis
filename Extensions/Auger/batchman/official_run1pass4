@@ -2,7 +2,7 @@
 umask 002
 
 export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
-export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_2.00
+export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_2.02
 . $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
 
 echo "### "
@@ -18,4 +18,4 @@ echo "###        '--rootfile-output mss:/mss/hallc/qweak/rootfiles/pass3'"
 echo "### "
 
 
-$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass4.sh --rootfile-stem QwPass4_ --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run1/rootfiles --options "--config official_run1pass4.conf" $@
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass4.sh --rootfile-stem QwPass4b_ --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run1/rootfiles --options "--config official_run1pass4b.conf" $@
