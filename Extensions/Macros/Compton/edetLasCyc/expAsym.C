@@ -62,6 +62,9 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
   Float_t erBCqNormLasCycSumSq[nPlanes][nStrips],weightedMeanNrBCqNormSum[nPlanes][nStrips],weightedMeanDrBCqNormSum[nPlanes][nStrips];
   Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
 
+  Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],weightedMeanDrBCqNormDiff[nPlanes][nStrips];//erBCqNormLasCycDiffSq[nPlanes][nStrips],
+  Float_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
+
   TString readEntry;
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
@@ -85,6 +88,9 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 
       weightedMeanNrBCqNormSum[p][s]=0.0,weightedMeanDrBCqNormSum[p][s]=0.0;
       stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
+
+      weightedMeanNrBCqNormDiff[p][s]=0.0,weightedMeanDrBCqNormDiff[p][s]=0.0;
+      stripAsymNr[p][s]=0.0,stripAsymNrEr[p][s]=0.0;
     }
   }
 
@@ -205,7 +211,7 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 
 	term1[p][s]=0.0,term2[p][s]=0.0,NplusOn_SqQplusOn[p][s]=0.0,NminusOn_SqQminusOn[p][s]=0.0,NplusOffL_SqQplusOffL[p][s]=0.0;
 	NminusOffL_SqQminusOffL[p][s]=0.0,NplusOffR_SqQplusOffR[p][s]=0.0,NminusOffR_SqQminusOffR[p][s]=0.0;
-	erBCqNormLasCycSumSq[p][s]=0.0,weightedMeanNrBCqNormSum[p][s]=0.0,weightedMeanDrBCqNormSum[p][s]=0.0;
+	erBCqNormLasCycSumSq[p][s]=0.0;//,erBCqNormLasCycDiffSq[p][s]=0.0;
       }
     }
 
@@ -433,9 +439,13 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 	      ///Error evaluation for SUM (in asymmetry)
 	      erBCqNormLasCycSumSq[p][s] = (NplusOn_SqQplusOn[p][s]+NminusOn_SqQminusOn[p][s]+NplusOffL_SqQplusOffL[p][s]+NminusOffL_SqQminusOffL[p][s]
 					    +NplusOffR_SqQplusOffR[p][s]+NminusOffR_SqQminusOffR[p][s]);
+
 	      if(erBCqNormLasCycSumSq[p][s]!=0.0) {
 		weightedMeanNrBCqNormSum[p][s] += BCqNormLasCycSum[p][s]/erBCqNormLasCycSumSq[p][s]; ///Numerator eqn 4.17(Bevington)
 		weightedMeanDrBCqNormSum[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
+		///The error for the difference and sum are same, hence reusing the variable
+		weightedMeanNrBCqNormDiff[p][s] += BCqNormLasCycDiff[p][s]/erBCqNormLasCycSumSq[p][s]; ///Numerator eqn 4.17(Bevington)
+		//weightedMeanDrBCqNormDiff[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
 	      }
 	      else cout<<"getting zero for erBCqNormLasCycSumSq"<<" in line"<<__LINE__<<endl;
 	    }
@@ -458,8 +468,12 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 	stripAsym_v2[p][s] = weightedMeanNrAsym_v2[p][s]/weightedMeanDrAsym_v2[p][s];
 	stripAsymEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrAsym_v2[p][s]);
 
+	stripAsymNr[p][s] = weightedMeanNrBCqNormDiff[p][s]/weightedMeanDrBCqNormSum[p][s];
+	//stripAsymNrEr[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormDiff[p][s]);
+
 	stripAsymDr[p][s] = weightedMeanNrBCqNormSum[p][s]/weightedMeanDrBCqNormSum[p][s];
 	stripAsymDrEr[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormSum[p][s]);
+	///the error in numerator and denominator are same, hence reevaluation is avoided
       }
       if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
     }
@@ -492,15 +506,16 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
     }
     else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values for version2(v2) data\n\n"<<endl;
     
-    outAsymComponents.open(Form("%s/%s/%sexpAsymDrP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    //outAsymComponents<<"strip\texpAsymNr\texpAsymDr\texpAsymDrEr"<<endl; ///If I want a header for the following text
     if(outAsymComponents.is_open()) {
-      cout<<Form("%s/%s/%sexpAsymDrP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      cout<<Form("%s/%s/%sexpAsymComponentsP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) {    
 	if (maskedStrips(p,s)) continue;
-	outAsymComponents<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s]);
+	outAsymComponents<<Form("%2.0f\t%f\t%f\t%f\n",(Float_t)s+1,stripAsymNr[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s]);
       }
       outAsymComponents.close();
-      cout<<Form("%s/%s/%sexpAsymDrP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      cout<<Form("%s/%s/%sexpAsymComponentsP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
     }
     else cout<<"\n***Alert: Couldn't open file for writing asymmetry components\n\n"<<endl;      
   }
