@@ -137,7 +137,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TF1* fitfunx = new TF1("fitfunx","pol1",fit_range[0],fit_range[1]);
   TF1* fitfuny = new TF1("fitfuny","pol1",fit_range[0],fit_range[1]);
 
-  Double_t current,current_check,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,charge_scale;
+  Double_t current,current_check,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen;
+  Double_t cal_emdxsen,cal_emdysen,mean_charge,charge_scale,cal_uslumi_sum_mean,cal_uslumi_sum_rms;
   TString cut_charge;
   TCanvas *c0 = new TCanvas("c0","c0",340,340,100,100);
   c0->cd();
@@ -158,6 +159,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   th->Draw("(asym_qwk_bcm7-asym_qwk_bcm8)*1e6>>bcmdd",Form("%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",s1,s2,s2),"goff");
   th->Draw("asym_qwk_charge*1e6>>abcm",Form("%s && asym_qwk_charge.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");
+  th->Draw("asym_uslumi_sum*1e6>>uslumi_sum_a",Form("%s && asym_uslumi_sum.%s",s1,s2),"goff");
   th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_targetX>>mdxsen",
 	   Form("%s && asym_qwk_mdallbars.%s && diff_qwk_targetX.%s",s1,s2,s2),"prof");
   GetHist("mdxsen")->Fit("fitfunx","E M R F Q","",-0.02,0.02);
@@ -182,6 +184,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   cal_mdysen  = fitfuny->GetParameter(1);
   cal_emdxsen = fitfunx->GetParError(1);
   cal_emdysen = fitfuny->GetParError(1);
+  cal_uslumi_sum_mean = GetHist("uslumi_sum_a")->GetMean();
+  cal_uslumi_sum_rms  = GetHist("uslumi_sum_a")->GetRMS();
 
   c0->Update();
 
@@ -1770,7 +1774,6 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   c17->Update(); c17->SaveAs(puslumisen);}
 
 
-
   /****************************************************************************/
   printf("%sSummary Table.%s\n",blue,normal);  
   printf(ssline);printf("%s|\t%sRun Number: %6d%s\t\t\t\t|%s\n",green,blue,gRunNumber,green,normal);
@@ -1778,6 +1781,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   printf(ssline);
   printf("%s|%sI                        \t%s|%suA    \t%s|%s%s%s      \t|%s\n",green,blue,green,blue,green,red,gCurrent.Data(),green,normal);
   printf("%s|%sMDALLBARS width          \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
+  printf("%s|%sUS Lumi Sum mean         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_uslumi_sum_mean,green,normal);
+  printf("%s|%sUS Lumi Sum width        \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_uslumi_sum_rms,green,normal);
   printf("%s|%sBCM78-ddif width         \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
   printf("%s|%sA_q mean                 \t%s|%sppm   \t%s|%s%2.2f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
   printf("%s|%sA_q width                \t%s|%sppm   \t%s|%s%2.1f%s        \t|%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
@@ -1835,6 +1840,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 	  << sslinen
 	  << Form("|I                        \t|uA    \t|%s      \t|\n",gCurrent.Data())
 	  << Form("|MDALLBARS width          \t|ppm   \t|%2.1f        \t|\n",cal_mdalla)
+	  << Form("|US Lumi Sum mean         \t|ppm   \t|%2.1f        \t|\n",cal_uslumi_sum_mean)
+	  << Form("|US Lumi Sum width        \t|ppm   \t|%2.1f        \t|\n",cal_uslumi_sum_rms)
 	  << Form("|BCM78-ddif width         \t|ppm   \t|%2.1f        \t|\n",cal_bcmdd)
 	  << Form("|A_q mean                 \t|ppm   \t|%2.2f        \t|\n",cal_abcmm)
 	  << Form("|A_q width                \t|ppm   \t|%2.1f        \t|\n",cal_abcm)
