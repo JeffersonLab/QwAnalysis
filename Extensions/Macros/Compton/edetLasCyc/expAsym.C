@@ -2,8 +2,8 @@
 ///Courtesy: Don Jones seeded the code 
 #include <rootClass.h>
 #include "getEBeamLasCuts.C"
-#include "maskedStrips.C"
 #include "comptonRunConstants.h"
+#include "maskedStrips.C"
 
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...

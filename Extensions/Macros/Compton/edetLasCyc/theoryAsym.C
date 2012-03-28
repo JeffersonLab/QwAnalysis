@@ -4,6 +4,7 @@
  */
 #include <rootClass.h>
 #include "comptonRunConstants.h"
+#include "maskedStrips.C"
 
 Double_t polynomial(Double_t *x, Double_t *par) {
   return par[0] + par[1]*x[0] + par[2]*x[0]*x[0] + par[3]*x[0]*x[0]*x[0];
@@ -16,12 +17,10 @@ void theoryAsym(Int_t comptEdge,Double_t par[]) //Float_t *calcAsym) //
   Bool_t debug=0;
   //Double_t par[4];
   Double_t xPrime[nPoints],rho[nPoints];
-  Float_t rhoStrip; 
-  Float_t calcAsym1;
-  Float_t xStrip,dsdrho1,dsdrho;  
-  Float_t thetabend = chicaneBend*pi/180; //(radians)
-  //  Float_t thetaprime = 10.39*pi/180; //bend angle for the max deflected electrons
+  Float_t rhoStrip,calcAsym1,xStrip,dsdrho1,dsdrho;  
   ofstream theoreticalAsym,QEDasym;
+
+  Float_t thetabend = chicaneBend*pi/180; //(radians)
   Float_t calcAsym[nStrips];
 
   Float_t re = alpha*hbarc/me;
@@ -78,10 +77,10 @@ void theoryAsym(Int_t comptEdge,Double_t par[]) //Float_t *calcAsym) //
 
   TCanvas *cTheoAsym = new TCanvas("theoAsym","Theoretical asymmetry",10,20,400,400);
   TGraph *grtheory = new TGraph(Form("QEDasym.txt"), "%lg %lg");
-  grtheory->GetXaxis()->SetTitle("dist compton scattered electrons(m)");
+  grtheory->GetXaxis()->SetTitle("dist from compton scattered electrons(m)");
   grtheory->GetYaxis()->SetTitle("#rho");
   grtheory->GetYaxis()->CenterTitle();
-  grtheory->SetTitle("rho to x");
+  grtheory->SetTitle("#rho to x");
   grtheory->SetMarkerStyle(20);
   grtheory->SetLineColor(2);
   grtheory->SetMarkerColor(2);
@@ -99,15 +98,21 @@ void theoryAsym(Int_t comptEdge,Double_t par[]) //Float_t *calcAsym) //
   else 
     cout<<"\ncouldn't open the theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<endl;
   ///on purpose this is dropped to the webDirectory
-  for(Int_t s =startStrip; s <=comptEdge; s++) { //!sure?
+  for(Int_t s =comptEdge; s >=startStrip; s--) { //this loop would simply stop at strip-1;notice that s:0::strip:1
+    if (maskedStrips(0,s)) continue;///I don't want to loop on plane here but I do need to skip the irrelevant strips
     xStrip = xPrime[0] - (comptEdge - s)*2E-4; ///xPrime[0] corresponds to Cedge distance
     rhoStrip = grtheory->Eval(xStrip);
-    if(rhoStrip>1.0) cout<<"**Alert: rho for strip "<<s<<" is greater than 1 !"<<endl;
+    //    if(rhoStrip<1.0) {
     dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // 2nd term of eqn 22
     dsdrho = 2*pi*re*re/100*a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22
     calcAsym1 = 1-rhoStrip*(1-a);
-    calcAsym[s]=(-1*(Int_t)IHWP_in)*((2*pi*re*re/100*a/dsdrho)*(1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)));
-    theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s+1,calcAsym[s]);
+    calcAsym[s]=(-1*IHWP)*((2*pi*re*re/100*a/dsdrho)*(1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)));
+    theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s+1,calcAsym[s]);//!notice the reverse order
+//     }
+//     else {
+//       cout<<"**Alert: rho for strip "<<s<<" is greater than 1 !"<<endl;
+//       break;
+//     }
   }
   theoreticalAsym.close();
   cTheoAsym->Update();
@@ -115,6 +120,7 @@ void theoryAsym(Int_t comptEdge,Double_t par[]) //Float_t *calcAsym) //
 
 /****************************
 !Comments
+ * notice that I am printing the strip numbers in theoryAsym file in human counts
  * ?should there be a s+1 in xStrip evaluation?, 
  *..this was added because otherwise the Cedge would be literally be taken as the true Cedge 
  *..even though it is so only in the C++ counting

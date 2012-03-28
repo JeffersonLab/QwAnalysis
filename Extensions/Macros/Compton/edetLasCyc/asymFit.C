@@ -13,13 +13,16 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips],Float_t stripA
   Float_t stripAsym[nPlanes][nStrips];
   Float_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
   ifstream theoAsym;
+  ofstream expTheoRatioFile;
   Double_t par[4];
 
   theoryAsym(Cedge,par);
   theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
   if (theoAsym.is_open()) {
-    for(Int_t s =startStrip ; s <Cedge; s++) {
-      theoAsym>>stripNum[s]>>calcAsym[s];
+    if(debug) cout<<"stripNum\t"<<"calcAsym"<<endl;
+    for(Int_t s =Cedge; s >startStrip; s--) {
+      if (maskedStrips(0,s)) continue;
+      theoAsym>>stripNum[s]>>calcAsym[s];//!the "-1" is put to keep consistency with all other arrays
       if(debug) cout<<stripNum[s]<<"\t"<<calcAsym[s]<<endl;
     }
   }
@@ -33,44 +36,22 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips],Float_t stripA
 
   expAsym(runnum,stripAsym,stripAsymEr,stripAsym_v2,stripAsymEr_v2);
   
-  TGraphErrors *grTheoryAsym, *grAsymPlane[nPlanes];
-  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,10,800,800);
-  cAsym->Divide(2,2);
-  
-  TLine *myline = new TLine(0,0,70,0);
-  myline->SetLineStyle(1);
-  
-  for (Int_t p =startPlane; p <endPlane; p++) {
-    cAsym->cd(p+1);
-    //grAsymPlane[p] = new TGraphErrors(endStrip,stripPlot,stripAsym[p],zero,stripAsymRMS[p]);
-    grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
-    grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
-    grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
-    grAsymPlane[p]->SetTitle(Form("Run: %d, Plane %d",runnum,p+1));
-    grAsymPlane[p]->SetMarkerStyle(20);
-    grAsymPlane[p]->SetLineColor(kRed+2);
-    grAsymPlane[p]->SetMarkerColor(kRed+2); ///Maroon
-    grAsymPlane[p]->Fit("fn2","R");
-    grAsymPlane[p]->Draw("AP");
-    myline->Draw();
-
-    grTheoryAsym = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge), "%lg %lg");
-    //grTheoryAsym = new TGraphErrors(endStrip,stripPlot,calcAsym,zero,zero);
-    grTheoryAsym->SetLineColor(4);
-    grTheoryAsym->Draw("L");    
-    cAsym->Update();
-  } 
   if(debug) cout<<"\nexpTheoRatio\tstripAsym\tcalcAsym"<<endl;
-
-  for (Int_t p =startPlane; p <endPlane; p++) {  
-    for (Int_t s =startStrip; s <= Cedge; s++) {  
-      if (maskedStrips(p,s)) continue;
-      expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
-      if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %e\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
-    }     
+  expTheoRatioFile.open(Form("%s/%s/%sexpTheoRatio.txt",pPath,webDirectory,filePrefix.Data()));
+  if (expTheoRatioFile.is_open()) {
+    cout<<"the file for ratio of experimental to theoretical asymmetry is created"<<endl;
+    for (Int_t p =startPlane; p <endPlane; p++) {  
+      for (Int_t s =startStrip; s <= Cedge; s++) {  //!calcAsym is assigned only upto Cedge
+	if (maskedStrips(p,s)) continue;
+	expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
+	expTheoRatioFile<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,expTheoRatio[p][s],stripAsymEr[p][s]);
+	//if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %e\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
+      }     
+    }
+    expTheoRatioFile.close();
   }
+  else cout<<"could not open a file to write expTheoRatio"<<endl;  
 }
-
 /*Comments
  *I'm currently including my rootClass.h and comptonRunConstants.h separately in every file
  *..there must be a way to do it non-repetatively.

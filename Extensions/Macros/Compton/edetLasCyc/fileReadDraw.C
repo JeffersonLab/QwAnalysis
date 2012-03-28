@@ -5,15 +5,19 @@ Int_t fileReadDraw(Int_t runnum)
 {
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   TGraphErrors *grCpp,*grCpp_v2,*grFort,*grDiffPWTL1_2,*grAsymDr,*grAsymNr;
+  TGraphErrors *grPolPlane[nPlanes];
+  TGraphErrors *grTheoryAsym, *grAsymPlane[nPlanes];
   ifstream in1, in2;
   TLegend *leg;
   TCanvas *c1 = new TCanvas("c1",Form("edet Asymmetry run:%d",runnum),10,10,1000,600);
   TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),30,30,1000,600);
   TCanvas *cAsymComponent = new TCanvas("cAsymDiff",Form("Nr and Dr of Asym for run:%d",runnum),30,30,1000,600);
+  TCanvas *cPol = new TCanvas("cPol","Pol.measured by each Strip",40,60,700,700); 
+  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",10,40,800,600);
   TLine *myline = new TLine(0,0,70,0);
   ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents;
   leg = new TLegend(0.1,0.7,0.4,0.9);
-  Float_t stripAsym[nStrips],stripAsymEr[nStrips],stripAsym_v2[nStrips],stripAsymEr_v2[nStrips];//,asymDiffPercent[nStrips];
+  Float_t stripAsym[nStrips],stripAsymEr[nStrips],stripAsym_v2[nStrips],stripAsymEr_v2[nStrips];
   Float_t stripNum[nStrips],asymDiff[nStrips],zero[nStrips];
   Float_t stripAsymDr[nStrips],stripAsymDrEr[nStrips];
   Float_t stripAsymNr[nStrips];//,stripAsymNrEr[nStrips];
@@ -39,8 +43,6 @@ Int_t fileReadDraw(Int_t runnum)
       if (debug1) cout<<"stripAsym\t"<<"stripAsym_v2\t"<<"stripAsymEr"<<endl;
       for(Int_t s =startStrip ; s <endStrip; s++) {
 	asymDiff[s] = (stripAsym[s]- stripAsym_v2[s]);
-	//if((stripAsym[s]>0.001)||(stripAsym[s]<-0.001)) asymDiffPercent[s] = asymDiff[s]/stripAsym[s];
-	//if (debug1) cout<<asymDiffPercent[s]<<"\t"<<stripAsymEr[s]<<endl;
       }
     }
     else cout<<"did not find "<<Form("%s/%s/%sexpAsymP1_v2.txt",pPath,webDirectory,filePrefix.Data())<<endl;
@@ -109,7 +111,7 @@ Int_t fileReadDraw(Int_t runnum)
   grCpp_v2->SetLineColor(kGreen);
   grCpp_v2->SetMarkerColor(kGreen);
   grCpp_v2->SetFillColor(0);
-  grCpp_v2->Draw("P");
+  if(v2processed) grCpp_v2->Draw("P");
 
   myline->SetLineStyle(1);
   myline->Draw();
@@ -134,6 +136,47 @@ Int_t fileReadDraw(Int_t runnum)
   leg->SetFillColor(0);
   leg->Draw();
   
+  // cPol->Divide(2,2);  
+  cPol->cd();
+  for (Int_t p =startPlane; p <endPlane; p++) { 
+    //cPol->cd(p+1);
+    grPolPlane[p]=new TGraphErrors(Form("%s/%s/%sexpTheoRatio.txt",pPath,webDirectory,filePrefix.Data()),"%lg %lg %lg");
+    grPolPlane[p]->GetXaxis()->SetTitle("strip number");
+    grPolPlane[p]->GetYaxis()->SetTitle("ratioExpTheory"); 
+    grPolPlane[p]->SetTitle(Form("Plane %d",p+1));      
+    grPolPlane[p]->SetMarkerStyle(20);
+    grPolPlane[p]->SetMarkerColor(kRed+2);
+    grPolPlane[p]->Draw("AP");  
+    grPolPlane[p]->SetMaximum(1.1);
+    grPolPlane[p]->SetMinimum(0.5);        
+  }
+  cPol->Update();
+
+  //  cAsym->Divide(2,2);
+  cAsym->cd();
+  for (Int_t p =startPlane; p <endPlane; p++) {
+    //    cAsym->cd(p+1);
+    //grAsymPlane[p] = new TGraphErrors(endStrip,stripPlot,stripAsym[p],zero,stripAsymRMS[p]);
+    grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+    grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
+    grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
+    grAsymPlane[p]->SetTitle(Form("Run: %d, Plane %d",runnum,p+1));
+    grAsymPlane[p]->SetMarkerStyle(20);
+    grAsymPlane[p]->SetLineColor(kRed+2);
+    grAsymPlane[p]->SetMarkerColor(kRed+2); ///Maroon
+    grAsymPlane[p]->Fit("fn2","R");
+    grAsymPlane[p]->SetMaximum(0.042);
+    grAsymPlane[p]->SetMinimum(-0.042);
+    grAsymPlane[p]->Draw("AP");
+    myline->Draw();
+
+    grTheoryAsym = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge), "%lg %lg");
+    //grTheoryAsym = new TGraphErrors(endStrip,stripPlot,calcAsym,zero,zero);
+    grTheoryAsym->SetLineColor(kBlue);
+    grTheoryAsym->Draw("L");    
+    cAsym->Update();
+  } 
+
   c1->SaveAs(Form("%s/%s/%sexpAsymP1.png",pPath,webDirectory,filePrefix.Data()));
   cDiff->SaveAs(Form("%s/%s/%sdiffexpAsymP1.png",pPath,webDirectory,filePrefix.Data()));
   cAsymComponent->SaveAs(Form("%s/%s/%sexpAsymComponentsP1.png",pPath,webDirectory,filePrefix.Data()));
