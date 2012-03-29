@@ -139,7 +139,8 @@ Int_t MakeSlug_lrb(
 //	const TString qwrootfiles = "/data/disk1/leacock/linRegBlue/lrb_rootfiles";
 //	const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
 //  const TString qwrootfiles = Form("/data/disk1/leacock/slugplots/25percent/lrb_links/%s",set);
-  const TString qwrootfiles = Form("/volatile/hallc/qweak/leacock/25percent/lrb_links/%s",set);
+//  const TString qwrootfiles = Form("/volatile/hallc/qweak/leacock/25percent/lrb_links/%s",set);
+const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression/lrb_rootfiles";
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
 		signal(SIGINT, sigint_handler);
@@ -148,7 +149,8 @@ Int_t MakeSlug_lrb(
 			pair<Int_t,Int_t> runlet = runletlist[filenumber-1];
 			runnumber = runlet.first;
 			runletnumber = runlet.second;
-			TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runlet.first,runlet.second);
+//			TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runlet.first,runlet.second);
+			TString rootfilename = qwrootfiles + "/" + Form("%s_%s_%i.%03i.root",set,qwstem.Data(),runlet.first,runlet.second);
 			file = TFile::Open(rootfilename);
 			if (file==0) {
 				printf("Warning: cannot open %s ... skipping.\n",rootfilename.Data());

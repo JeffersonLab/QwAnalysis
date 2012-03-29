@@ -3,17 +3,19 @@
 
 slug_num=$1
 #dir=/work/hallc/qweak/rakithab/QwAnalysis_trunk/Extensions/Macros/Parity/SlugPlots/run1pass4/
+#this is the source of regressed root files
+SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression/lrb_rootfiles"
 
 ###############
 #
 # first make links
 #
-./collect_lrb_links std
-./collect_lrb_links 5+1
-./collect_lrb_links set3
-./collect_lrb_links set4
-./collect_lrb_links set5
-./collect_lrb_links set6
+#./collect_lrb_links std
+#./collect_lrb_links 5+1
+#./collect_lrb_links set3
+#./collect_lrb_links set4
+#./collect_lrb_links set5
+#./collect_lrb_links set6
 #
 ###############
 
