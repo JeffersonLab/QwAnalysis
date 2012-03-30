@@ -51,8 +51,8 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
     p_edge=p_beam-kDummy;
     r_edge=p_edge/me*(hbarc/(2*xmuB*B_dipole));
     th_edge=asin((p_beam/p_edge)*sin(thetabend));
-    //    hprime = r_edge - lmag/tan(th_edge);
-    hprime = r_edge*(1-cos(th_edge));
+    hprime = r_edge - lmag/tan(th_edge);
+    //hprime = r_edge*(1-cos(th_edge));
     kprime=ldet*tan(th_edge);
     x2= kprime + hprime;
     if(x2>x1) {
@@ -87,7 +87,6 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
   theoreticalAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge));
   if (theoreticalAsym.is_open()) {
     cout<<"theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<" opened"<<endl;
-    //if(debug) cout<<"\ngamma\ta\t\tr\t\tk\trho\t\tCxSec\tAsym"<<endl;
     if(debug) cout<<"rhoStrip\txStrip\t\ts\tcalcAsym"<<endl;
     for(Int_t s =comptEdge; s >=startStrip; s--) { //this loop would simply stop at strip-1;notice that s:0::strip:1
       //if (maskedStrips(0,s)) continue;///I don't want to loop on plane here but I do need to skip the irrelevant strips

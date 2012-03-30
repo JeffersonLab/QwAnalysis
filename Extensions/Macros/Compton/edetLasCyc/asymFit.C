@@ -41,14 +41,15 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips],Float_t stripA
   for (Int_t p =startPlane; p <endPlane; p++) {  
     expTheoRatioFile.open(Form("%s/%s/%sexpTheoRatioP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if (expTheoRatioFile.is_open()) {
-      cout<<"the file for ratio of experimental to theoretical asymmetry is created"<<endl;
+      cout<<"created file for writing ratio of exp to theory asymmetry for plane "<<p+1<<endl;
       for (Int_t s =startStrip; s <= Cedge; s++) {  //!calcAsym is assigned only upto Cedge
 	if (maskedStrips(p,s)) continue;
 	expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
 	expTheoRatioFile<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,expTheoRatio[p][s],stripAsymEr[p][s]);
-	//if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %e\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
-      }     
+	if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %e\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
+      }
       expTheoRatioFile.close();
+      cout<<"filled successfully "<<Form("%s/%s/%sexpTheoRatioP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
     }
     else cout<<"could not open a file to write expTheoRatio"<<endl;  
   }

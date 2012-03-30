@@ -9,7 +9,7 @@ Int_t fileReadDraw(Int_t runnum)
   TGraphErrors *grPolPlane[nPlanes],*grAsymDr[nPlanes],*grB1L0[nPlanes],*grDiffPWTL1_2[nPlanes];
   TGraphErrors *grTheoryAsym, *grAsymPlane[nPlanes];
   ifstream in1, in2;
-  TLegend *leg;
+  TLegend *leg, *legYield;
   TCanvas *c1 = new TCanvas("c1",Form("edet Asymmetry run:%d",runnum),10,10,1000,600);
   TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),30,30,1000,600);
   TCanvas *cYield = new TCanvas("cYield",Form("Yield for run:%d",runnum),30,100,1000,900);
@@ -19,6 +19,7 @@ Int_t fileReadDraw(Int_t runnum)
   TLine *myline = new TLine(0,0,70,0);
   ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents;
   leg = new TLegend(0.1,0.7,0.4,0.9);
+  legYield = new TLegend(0.1,0.7,0.4,0.9);
 
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
   Float_t stripNum1[nPlanes][nStrips],stripNum2[nPlanes][nStrips],stripNum3[nPlanes][nStrips];
@@ -28,7 +29,7 @@ Int_t fileReadDraw(Int_t runnum)
   Float_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
 
   Bool_t pUsed[nPlanes]={0};//!not sure if this trick will work to initialize all elements with zero
-  Bool_t debug=1,debug1=0;
+  Bool_t debug=0,debug1=0;
   
   for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t s=startStrip; s<endStrip; s++) {
@@ -191,7 +192,7 @@ Int_t fileReadDraw(Int_t runnum)
   cPol->cd();
   for (Int_t p =startPlane; p <endPlane; p++) { 
     //cPol->cd(p+1);
-    grPolPlane[p]=new TGraphErrors(Form("%s/%s/%sexpTheoRatio.txt",pPath,webDirectory,filePrefix.Data()),"%lg %lg %lg");
+    grPolPlane[p]=new TGraphErrors(Form("%s/%s/%sexpTheoRatioP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
     grPolPlane[p]->GetXaxis()->SetTitle("strip number");
     grPolPlane[p]->GetYaxis()->SetTitle("ratioExpTheory"); 
     grPolPlane[p]->SetTitle(Form("Plane %d",p+1));      
@@ -231,6 +232,6 @@ Int_t fileReadDraw(Int_t runnum)
   c1->SaveAs(Form("%s/%s/%sexpAsymP1.png",pPath,webDirectory,filePrefix.Data()));
   cAsym->SaveAs(Form("%s/%s/%sexpTheoAsymP1.png",pPath,webDirectory,filePrefix.Data()));
   cDiff->SaveAs(Form("%s/%s/%sdiffexpAsymP1.png",pPath,webDirectory,filePrefix.Data()));
-  cYield->SaveAs(Form("%s/%s/%syield.png",pPath,webDirectory,filePrefix.Data()));
+  cYield->SaveAs(Form("%s/%s/%syieldAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
   return runnum;
 }
