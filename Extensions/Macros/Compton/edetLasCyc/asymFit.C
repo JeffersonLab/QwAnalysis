@@ -14,43 +14,44 @@ void asymFit(Int_t runnum, Float_t expTheoRatio[nPlanes][nStrips],Float_t stripA
   Float_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
   ifstream theoAsym;
   ofstream expTheoRatioFile;
-  Double_t par[4];
+  //  Double_t par[4];
 
-  theoryAsym(Cedge,par);
+//   theoryAsym(Cedge,par);
+  theoryAsym(Cedge);
   theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
   if (theoAsym.is_open()) {
     if(debug) cout<<"stripNum\t"<<"calcAsym"<<endl;
     for(Int_t s =Cedge; s >startStrip; s--) {
-      if (maskedStrips(0,s)) continue;
+      //      if (maskedStrips(0,s)) continue;
       theoAsym>>stripNum[s]>>calcAsym[s];//!the "-1" is put to keep consistency with all other arrays
       if(debug) cout<<stripNum[s]<<"\t"<<calcAsym[s]<<endl;
     }
   }
   else cout<<"\n***Error:Could not find the file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
 
-  printf("\nthe parameters received from theoretical fitting are par[0]:%f,par[1]:%f,par[2]:%f,par[3]:%f\n\n" ,par[0],par[1],par[2],par[3]);
-  TF1 *fn2 = new TF1("fn2",Form("[0] + [1]*(%f + %f*x + %f*x*x + %f*x*x*x)",par[0],par[1],par[2],par[3]),10,Cedge);
-  fn2->SetParameters(0.9,0);
-  fn2->SetParLimits(0,-1,1);
-  fn2->SetParLimits(1,2,-2);
+//   printf("\nthe parameters received from theoretical fitting are par[0]:%f,par[1]:%f,par[2]:%f,par[3]:%f\n\n" ,par[0],par[1],par[2],par[3]);
+//   TF1 *fn2 = new TF1("fn2",Form("[0] + [1]*(%f + %f*x + %f*x*x + %f*x*x*x)",par[0],par[1],par[2],par[3]),10,Cedge);
+//   fn2->SetParameters(0.9,0);
+//   fn2->SetParLimits(0,-1,1);
+//   fn2->SetParLimits(1,2,-2);
 
   expAsym(runnum,stripAsym,stripAsymEr,stripAsym_v2,stripAsymEr_v2);
   
   if(debug) cout<<"\nexpTheoRatio\tstripAsym\tcalcAsym"<<endl;
-  expTheoRatioFile.open(Form("%s/%s/%sexpTheoRatio.txt",pPath,webDirectory,filePrefix.Data()));
-  if (expTheoRatioFile.is_open()) {
-    cout<<"the file for ratio of experimental to theoretical asymmetry is created"<<endl;
-    for (Int_t p =startPlane; p <endPlane; p++) {  
+  for (Int_t p =startPlane; p <endPlane; p++) {  
+    expTheoRatioFile.open(Form("%s/%s/%sexpTheoRatioP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    if (expTheoRatioFile.is_open()) {
+      cout<<"the file for ratio of experimental to theoretical asymmetry is created"<<endl;
       for (Int_t s =startStrip; s <= Cedge; s++) {  //!calcAsym is assigned only upto Cedge
 	if (maskedStrips(p,s)) continue;
 	expTheoRatio[p][s]= stripAsym[p][s]/calcAsym[s];
 	expTheoRatioFile<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,expTheoRatio[p][s],stripAsymEr[p][s]);
 	//if(debug) printf("expTheoRatio[%d][%d]:%f = %f / %e\n",p,s,expTheoRatio[p][s],stripAsym[p][s],calcAsym[s]);
       }     
+      expTheoRatioFile.close();
     }
-    expTheoRatioFile.close();
+    else cout<<"could not open a file to write expTheoRatio"<<endl;  
   }
-  else cout<<"could not open a file to write expTheoRatio"<<endl;  
 }
 /*Comments
  *I'm currently including my rootClass.h and comptonRunConstants.h separately in every file

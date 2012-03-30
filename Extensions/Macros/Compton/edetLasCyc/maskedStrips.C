@@ -7,7 +7,7 @@
 Bool_t maskedStrips(Int_t plane,Int_t strip)
 {
   if(plane==0&&(strip==1||strip==5||strip==19)) return kTRUE;//skip masked strip of plane1
-  else if(plane==2&&(strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
+  else if(plane==2&&(strip==23||strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
   else if(plane==1&&(strip==11||strip==19)) return kTRUE;//skip masked strip of plane2
   else return kFALSE;
 }
@@ -17,3 +17,5 @@ Bool_t maskedStrips(Int_t plane,Int_t strip)
  *this code is entered in C++ counting, which starts from 0.
  *plane 4 is altogether ignored in this function for now
  ******************************/
+
+///run # 24519 onwards, I need to add strip 23 to the plane-3 mask

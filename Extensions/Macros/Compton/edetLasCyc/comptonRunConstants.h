@@ -24,12 +24,12 @@ const Int_t nPlanes = 4;
 const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
 const Double_t chicaneBend = 10.131; ///(degree)
 const Double_t ldet = 1.645; ///(m)
-const Double_t lmag = 1.25; ///(m)
+const Double_t lmag = 1.25; ///(m) //1.704;
 const Int_t minEntries = 8000; //Laser must be off for at least this many consecutive entries to be considered off.
 
 
 ///Run constants
-const Bool_t v2processed=kFALSE;
+const Bool_t v2processed=0;//kFALSE;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
 const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn///typical 160E3. 
@@ -44,7 +44,7 @@ const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
  const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 1;
+  const Int_t endPlane = 3;
 const Int_t Cedge = 53;///Compton-edge for the current run(counting from 0)
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
