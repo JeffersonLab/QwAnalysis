@@ -621,6 +621,7 @@ void QwModulation::PilferData()
 	    error[0]++;
 	    continue;
 	  }
+	  if(fNEvents > 3924) break;
 	  
 	  for(Int_t j = 0; j < fNDetector; j++){
 	    DetectorData[j].push_back(DetBranch[j][0]);
@@ -650,7 +651,7 @@ void QwModulation::PilferData()
 	    error[1]++;
 	    continue;
 	  }
-	  
+	  if(fNEvents > 3924) break;
 	  for(Int_t j = 0; j < fNDetector; j++){
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
@@ -677,7 +678,7 @@ void QwModulation::PilferData()
 	    error[2]++;
 	    continue;
 	  }
-	  
+	  if(fNEvents > 3924) break;
 	  for(Int_t j = 0; j < fNDetector; j++){
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
@@ -706,7 +707,7 @@ void QwModulation::PilferData()
 	    error[3]++;
 	    continue;
 	  }
-	  
+	  if(fNEvents > 3924) break;
 	  for(Int_t j = 0; j < fNDetector; j++){
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
@@ -735,7 +736,7 @@ void QwModulation::PilferData()
 	    error[4]++;
 	    continue;
 	  }
-	  
+	  if(fNEvents > 3924) break;
 	  for(Int_t j = 0; j < fNDetector; j++){
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
