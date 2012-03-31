@@ -18,6 +18,9 @@ const Float_t E = 1.159; //Beam energy (GeV)
 const Float_t lambda = 532E-9; //photon wavelength (nm)      
 const Float_t xgap = 0.007; //!min distance (m)
 
+const Double_t stripMin = 30.0;
+const Double_t stripMax = 50.0;
+
 //Hardware related constants
 const Int_t nStrips = 96;
 const Int_t nPlanes = 4;
@@ -45,7 +48,7 @@ const Int_t startStrip = 0;
  const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 3;
-const Int_t Cedge = 50;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge = 54;///Compton-edge for the current run(counting from 0)
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12

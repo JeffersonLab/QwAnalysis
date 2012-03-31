@@ -74,7 +74,7 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
 
-  ofstream outfileExpAsymP, outfileExpAsymP_v2,outAsymComponents;
+  ofstream outfileExpAsymP, outfileExpAsymP_v2,outfileYield,outfilelasOffBkgd;//outAsymComponents;
   ifstream infileLas, infileBeam;
 
   gStyle->SetOptFit(1);
@@ -533,18 +533,31 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
     }
     else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values for version2(v2) data\n\n"<<endl;
     
-    outAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    //outAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     //outAsymComponents<<"strip\texpAsymNr\texpAsymDr\texpAsymDrEr"<<endl; ///If I want a header for the following text
-    if(outAsymComponents.is_open()) {
-      cout<<Form("%s/%s/%sexpAsymComponentsP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      for (Int_t s =startStrip; s <endStrip;s++) {    
-	if (maskedStrips(p,s)) continue;
-	outAsymComponents<<Form("%2.0f\t%g\t%g\t%g\t%g\t%g\n",(Float_t)s+1,stripAsymNr[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s],qNormB1L0[p][s],qNormB1L0Er[p][s]);
+    //if(outAsymComponents.is_open()) {
+    if(outfileYield.is_open()) {
+      cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      if(outfilelasOffBkgd.is_open()) {
+	//cout<<Form("%s/%s/%sexpAsymComponentsP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+	cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+	for (Int_t s =startStrip; s <endStrip;s++) {    
+	  if (maskedStrips(p,s)) continue;
+	  //outAsymComponents<<Form("%2.0f\t%g\t%g\t%g\t%g\t%g\n",(Float_t)s+1,stripAsymNr[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s],qNormB1L0[p][s],qNormB1L0Er[p][s]);
+	  outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s]);
+	  outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
+	}
+	//outAsymComponents.close();
+	outfilelasOffBkgd.close();
+	cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+	//cout<<Form("%s/%s/%sexpAsymComponentsP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       }
-      outAsymComponents.close();
-      cout<<Form("%s/%s/%sexpAsymComponentsP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      outfileYield.close();
+      cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
     }
-    else cout<<"\n***Alert: Couldn't open file for writing asymmetry components\n\n"<<endl;      
+    else cout<<"\n***Alert: Couldn't open file for writing either Yield or laser off background\n\n"<<endl;      
   }
 
   //  delete mpsChain;

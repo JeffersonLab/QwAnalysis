@@ -96,11 +96,10 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
       dsdrho =((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22 (cross-section without 2*pi*re*re/100*a* factor)
       calcAsym1 = 1-rhoStrip*(1-a);//just a term in eqn 24
       calcAsym[s]=(-1*IHWP)*((1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)))/dsdrho;//eqn. 24
-      theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s+1,calcAsym[s]);//!notice the reverse order
-      //if(debug) printf("%5.1f\t%f\t%f\t%f\t%f\t%f\n",gamma,re,k,a,rhoStrip,calcAsym[s]);//!temp for print 
+      theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s,calcAsym[s]);//!notice the reverse order
       //if(debug) cout<<gamma<<"\t"<<re<<"\t"<<k<<"\t"<<a<<"\t"<<rhoStrip<<"\t"<<dsdrho<<"\t"<<calcAsym[s]<<endl;
       if(debug) cout<<rhoStrip<<"\t"<<xStrip<<"\t"<<s<<"\t"<<calcAsym[s]<<endl;
-    }//rho, distance, strip number, asymmetry,
+    }
     theoreticalAsym.close();
   }
   else cout<<"\ncouldn't open the theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<endl;
