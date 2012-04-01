@@ -750,44 +750,37 @@ void QwSIS3320_Channel::PrintInfo() const
   }
 }
 
-void QwSIS3320_Channel::CreateLogicalAccumulator( LogicalType_e type )
+/**
+ * Create a logical accumulator
+ */
+void QwSIS3320_Channel::AddLogicalAccumulator(
+    const TString name,
+    const std::vector<TString> accums,
+    const std::vector<Double_t> weights)
 {
-  if( fNumberOfAccumulators < 5 ) {
-    QwError << "Number of Accumulators too low to create logical"
-      << " accumulators." << QwLog::endl;
-    return;
+  // Create new logical accumulator with requested name
+  QwSIS3320_LogicalAccumulator localLogAccum(GetElementName() + "_accum" + name);
+
+  // Loop over all entries in this logical accumulator
+  for (size_t i = 0; i < accums.size(); i++) {
+
+    // Find the accumulator with the correct name
+    size_t j;
+    for (j = 0; j < fAccumulators.size(); j++) {
+      if (accums[i] == fAccumulators[j].GetElementName())
+        break;
+    }
+    // Not found
+    if (j == fAccumulators.size()) {
+      QwWarning << "Logical accumulator " << name << " has undefined components: " << QwLog::endl;
+      QwWarning << accums[i] << " could not be found." << QwLog::endl;
+      return;
+    }
+
+    // Add reference and weight
+    localLogAccum.AddAccumulatorReference(&(fAccumulators[j]),weights[i]);
   }
 
-  Bool_t found = kFALSE;
-  TString basename = GetElementName() + "_laccum";
-  QwSIS3320_LogicalAccumulator localLogAccum;
-  switch( type ) {
-    case kAccumLogical0M3:
-      basename += "0m3";
-      localLogAccum.AddAccumulatorReference(&(fAccumulators[0]),1.);
-      localLogAccum.AddAccumulatorReference(&(fAccumulators[3]),-1.);
-      found=kTRUE;
-      break;
-    case kAccumLogical1P2:
-      basename += "1p2";
-      localLogAccum.AddAccumulatorReference(&(fAccumulators[1]),1.);
-      localLogAccum.AddAccumulatorReference(&(fAccumulators[2]),1.);
-      found=kTRUE;
-      break;
-    case kAccumLogical1P2P3:
-      basename += "1p2p3";
-      localLogAccum.AddAccumulatorReference(&(fAccumulators[1]),1.);
-      localLogAccum.AddAccumulatorReference(&(fAccumulators[2]),1.);
-      localLogAccum.AddAccumulatorReference(&(fAccumulators[3]),1.);
-      found=kTRUE;
-      break;
-  }
-
-  if(found) {
-    localLogAccum.SetElementName(basename);
-    fLogicalAccumulators.push_back(localLogAccum);
-  } else {
-    QwError << "LogicalAccumulator of type="<<type<<" not found!"
-      << " Will not create Logical Accumulator";
-  }
+  // Add logical accumulator to the list
+  fLogicalAccumulators.push_back(localLogAccum);
 }

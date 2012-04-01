@@ -74,18 +74,14 @@ class QwSIS3320_Channel: public VQwDataElement, public MQwMockable {
       fAccumulatorTimingBefore6(source.fAccumulatorTimingBefore6),
       fAccumulatorTimingAfter6(source.fAccumulatorTimingAfter6),
       fAccumulators(source.fAccumulators),
-      fAccumulatorsRaw(source.fAccumulatorsRaw),
-      fLogicalAccumulators(source.fLogicalAccumulators)
+      fAccumulatorsRaw(source.fAccumulatorsRaw)
     { }
     virtual ~QwSIS3320_Channel() { };
 
-    enum LogicalType_e {
-      kAccumLogical0M3,
-      kAccumLogical1P2,
-      kAccumLogical1P2P3
-    };
-
-    void CreateLogicalAccumulator( LogicalType_e type );
+    void AddLogicalAccumulator(
+        const TString name,
+        const std::vector<TString> accums,
+        const std::vector<Double_t> weights);
 
     void  InitializeChannel(UInt_t channel, TString name);
     void  ClearEventData();
@@ -183,6 +179,7 @@ class QwSIS3320_Channel: public VQwDataElement, public MQwMockable {
     Int_t fAccumulatorTimingBefore6, fAccumulatorTimingAfter6;
     std::vector<QwSIS3320_Accumulator> fAccumulators;
     std::vector<QwSIS3320_Accumulator> fAccumulatorsRaw;
+    std::vector<QwSIS3320_LogicalAccumulator> fLogicalAccumulators;
 
     // Operation mode flags
     static const unsigned int MODE_ACCUM_EVENT;
@@ -194,10 +191,6 @@ class QwSIS3320_Channel: public VQwDataElement, public MQwMockable {
     static const unsigned int FORMAT_ACCUMULATOR;
     static const unsigned int FORMAT_LONG_WORD_SAMPLING;
     static const unsigned int FORMAT_SHORT_WORD_SAMPLING;
-
-    // Logical Accumulator Support
-    std::vector<QwSIS3320_LogicalAccumulator> fLogicalAccumulators;
-
 
 };
 
