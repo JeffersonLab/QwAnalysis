@@ -1,4 +1,9 @@
 #!/bin/bash
+
+#Test only in cdaq cluseter.
+#to run ./check_analysis_status slug_number
+#where slug_nuber is any run1 slug
+
 slug_num=$1
 
 sql_query="  select analysis.runlet_id, analysis.slope_calculation ,analysis.slope_correction,run.slug,runlet.run_number,runlet.segment_number from analysis, runlet, run where analysis.runlet_id=runlet.runlet_id and run.run_id=runlet.run_id and run.slug= ${slug_num} ; "
@@ -6,4 +11,6 @@ sql_query="  select analysis.runlet_id, analysis.slope_calculation ,analysis.slo
 rm -f analyzer_status_query.sql
 echo " ${sql_query} " > analyzer_status_query.sql
 
-mysql -u qweak -h qweakdb -p qw_run1_pass4b < analyzer_status_query.sql
+mysql -u qweak -h qweakdb -p qw_run1_pass4b  < analyzer_status_query.sql
+
+rm -f analyzer_status_query.sql
