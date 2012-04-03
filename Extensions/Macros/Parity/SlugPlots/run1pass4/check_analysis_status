@@ -6,4 +6,4 @@ sql_query="  select analysis.runlet_id, analysis.slope_calculation ,analysis.slo
 rm -f analyzer_status_query.sql
 echo " ${sql_query} " > analyzer_status_query.sql
 
-mysql -u qweak -h qweakdb -p qw_run1_pass4b < echo "${sql_query}"
+mysql -u qweak -h qweakdb -p qw_run1_pass4b < analyzer_status_query.sql
