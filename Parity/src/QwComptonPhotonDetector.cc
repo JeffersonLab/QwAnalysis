@@ -49,9 +49,15 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
   Int_t current_roc_id = -1; // current ROC id
   Int_t current_bank_id = -1; // current bank id
 
+  Int_t current_logical_accum = 0;
+  std::vector<TString> name;
+  std::vector<std::vector<TString> >  accums;
+  std::vector<std::vector<Double_t> > weights;
+
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();      // Remove everything after a comment character
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace
@@ -61,14 +67,41 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
     if (mapstr.HasVariablePair("=",varname,varvalue)) {
       // This is a declaration line.  Decode it.
       varname.ToLower();
-      UInt_t value = QwParameterFile::GetUInt(varvalue);
+
       if (varname == "roc") {
-        current_roc_id = value;
+        current_roc_id = QwParameterFile::GetUInt(varvalue);
         RegisterROCNumber(current_roc_id,0);
+
       } else if (varname == "bank") {
-        current_bank_id = value;
+        current_bank_id = QwParameterFile::GetUInt(varvalue);
         RegisterSubbank(current_bank_id);
         subbank = GetSubbankIndex(current_roc_id,current_bank_id);
+
+      } else if (varname == "begin") {
+        // Add new logical accumulator
+        name.resize(current_logical_accum+1);
+        accums.resize(current_logical_accum+1);
+        weights.resize(current_logical_accum+1);
+        // Read to end of this block
+        while(mapstr.ReadNextLine()) {
+          mapstr.TrimComment();      // Remove everything after a comment character
+          mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace
+          if (mapstr.LineIsEmpty())  continue;
+
+          // Loop over block
+          if (mapstr.HasVariablePair("=",varname,varvalue)) {
+            varname.ToLower();
+            if (varname == "end") {
+              current_logical_accum++;
+              break;
+            } else if (varname == "name") {
+              name[current_logical_accum] = varvalue;
+            }
+          } else {
+            accums[current_logical_accum].push_back(mapstr.GetTypedNextToken<TString>());
+            weights[current_logical_accum].push_back(mapstr.GetTypedNextToken<Double_t>());
+          }
+        }
       }
 
     } else {
@@ -120,10 +153,6 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fSamplingADC.push_back(QwSIS3320_Channel(channum, name));
           fSamplingADC.at(index).SetNumberOfAccumulators(6);
           fSamplingADC.at(index).InitializeChannel(channum, name);
-          // Now create the logical accumulators
-          fSamplingADC.at(index).CreateLogicalAccumulator(QwSIS3320_Channel::kAccumLogical0M3);
-          fSamplingADC.at(index).CreateLogicalAccumulator(QwSIS3320_Channel::kAccumLogical1P2);
-          fSamplingADC.at(index).CreateLogicalAccumulator(QwSIS3320_Channel::kAccumLogical1P2P3);
         }
 
       } else if (modtype == "V792") {
@@ -176,6 +205,13 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
     } // end of if for token line
   } // end of while over parameter file
+
+  // Now create the logical accumulators
+  for (size_t logical = 0; logical < name.size(); logical++) {
+    for (size_t adc = 0; adc < fSamplingADC.size(); adc++) {
+      fSamplingADC[adc].AddLogicalAccumulator(name[logical],accums[logical],weights[logical]);
+    }
+  }
 
   return 0;
 }

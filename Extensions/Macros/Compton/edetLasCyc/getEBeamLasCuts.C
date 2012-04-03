@@ -81,14 +81,14 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     else n=0; ///laser On begins
 
     if (n==minEntries) { ///laser has been off for minEntries/960 seconds continuously, hence consider it a valid laseroff
-      cutL.push_back(index-minEntries);
+      cutL.push_back(index-minEntries);//!the +1 is needed to take care of the fact that C++ counts "index" from 0, while 'minEntries' is compared only when 'n' goes all the way from 1 to minEntries.
       //printf("cutL[%d]=%d\n",m,cutL.back());///print begin of laser off entry
       flipperIsUp = kTRUE; ///laserOff state begins
       m++; ///cutLas array's even number index (corresponding to a laserOff)
     }
     if(flipperIsUp){ ///if the laser is known to be off check ...
       if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the end of run has been reached
-        cutL.push_back(index-1); ///record this as the end of laserOn cycle
+        cutL.push_back(index); ///record this as the end of laserOn cycle
 	//printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
         m++; ///cutLas array's odd number index (corresponding to a laserOn)
         flipperIsUp = kFALSE; ///laserOff state ends
@@ -102,7 +102,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       //to make sure it is a beam trip not a problem with acquisition
       //insist > 100 in a row meet the isABeamTrip criterion
       q++;
-      if(q>100) { ///beam is found off for over 100 consecutive entries (~ 100ms) 
+      if(q>=100) { ///beam is found off for over 100 consecutive entries (~ 100ms) 
         q = 0;
         o++; ///cutE array's even number index (corresponding to a beamTrip)
 	if (index >= (PREV_N_ENTRIES+100)) 

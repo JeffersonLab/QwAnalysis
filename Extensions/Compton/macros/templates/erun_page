@@ -39,6 +39,12 @@
 	<td></td><td>%%BCM17%%</td>
 </tr>
 <tr>
+	<td><a href="#laser_cycle">Laser Cycle Analysis</a></td>
+	<td></td><td></td>
+	<td></td><td></td>
+</tr>
+
+<tr>
 	<td><a href="run_%%RUNNUM%%.html">Photon Detector</a></td>
 	<td></td><td>Last Analysis: %%ANALYSISDATE%%</td>
 	<td></td><td>%%HWP%%</td>
@@ -50,6 +56,12 @@
 <p><center><img src="eDetHitsHistos_%%RUNNUM%%_accum.png"></center></p>
 <p><center><img src="eDetHitsHistos_%%RUNNUM%%_event.png"></center></p>
 <p><center><img src="eDetHitsHistos_%%RUNNUM%%_scalar.png"></center></p>
+
+<a name="laser_cycle"></a>
+<p><center><img src="edetLasCyc_%%RUNNUM%%_expAsymP1.png"></center></p>
+<center><h2>Electron Online Histograms<h2></center>
+<p><center><img src="edetLasCyc_%%RUNNUM%%_diffexpAsymP1.png"></center></p>
+<p><center><img src="edetLasCyc_%%RUNNUM%%_expAsymComponentsP1.png"></center></p>
 
 </body>
 </html>

@@ -58,6 +58,7 @@ class QwSIS3320_Accumulator: public VQwDataElement {
 
     void  ClearEventData() { fAccumulatorSum = 0; fNumberOfSamples = 0; };
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
+    void  ProcessEvent() { };
 
     const QwSIS3320_Accumulator operator/ (const Double_t &value) const;
     const QwSIS3320_Accumulator operator* (const Double_t &value) const;
