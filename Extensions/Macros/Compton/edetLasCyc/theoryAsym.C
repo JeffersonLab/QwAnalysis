@@ -18,7 +18,7 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
   //  Double_t par[4];
   Double_t xPrime[nPoints],rho[nPoints];
   Float_t rhoStrip,calcAsym1,xStrip,dsdrho1,dsdrho;  
-  ofstream theoreticalAsym,QEDasym;
+  ofstream theoreticalAsym,QEDasym,crossSection;
   Float_t k,re,gamma,R_bend,a,kprimemax,asymmax,rho0,k0prime,dx0prime,p_beam,r,h,kk,x1,kDummy;
   Float_t p_edge,r_edge,th_edge,hprime,kprime,x2;//,maxdist,rho;
 
@@ -85,6 +85,7 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
 //   printf("param[0]:%f,param[1]:%f,param[2]:%f\n",par[0],par[1],par[2]);
 
   theoreticalAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge));
+  crossSection.open(Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,comptEdge));
   if (theoreticalAsym.is_open()) {
     cout<<"theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<" opened"<<endl;
     if(debug) cout<<"rhoStrip\txStrip\t\ts\tcalcAsym"<<endl;
@@ -93,10 +94,11 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
       xStrip = xPrime[0] - (comptEdge - s)*2E-4; ///xPrime[0] corresponds to Cedge distance
       rhoStrip = grtheory->Eval(xStrip);
       dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // 2nd term of eqn 22
-      dsdrho =((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22 (cross-section without 2*pi*re*re/100*a* factor)
+      dsdrho =2*pi*re*re/a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22 (cross-section without 2*pi*re*re/100*a* factor)
       calcAsym1 = 1-rhoStrip*(1-a);//just a term in eqn 24
-      calcAsym[s]=(-1*IHWP)*((1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)))/dsdrho;//eqn. 24
+      calcAsym[s]=(-1*IHWP)*2*pi*re*re/a*((1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)))/dsdrho;//eqn. 24
       theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s,calcAsym[s]);//!notice the reverse order
+      crossSection<<Form("%2.0f\t%g\n",(Float_t)s,dsdrho);
       //if(debug) cout<<gamma<<"\t"<<re<<"\t"<<k<<"\t"<<a<<"\t"<<rhoStrip<<"\t"<<dsdrho<<"\t"<<calcAsym[s]<<endl;
       if(debug) cout<<rhoStrip<<"\t"<<xStrip<<"\t"<<s<<"\t"<<calcAsym[s]<<endl;
     }
