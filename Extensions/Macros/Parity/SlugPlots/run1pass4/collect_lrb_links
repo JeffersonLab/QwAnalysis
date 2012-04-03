@@ -1,9 +1,10 @@
 #!/bin/bash
 
 folder=$1
+scheme=$1
 
-SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4regression/${folder}"
-DEST="/volatile/hallc/qweak/rakithab/run1pass4/lrb_links/${folder}"
+SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression/lrb_rootfiles"
+#DEST="/volatile/hallc/qweak/rakithab/run1pass4/lrb_links/${folder}"
 
 
 echo "removing regression rootfile links"
@@ -13,14 +14,14 @@ rm -vf ${DEST}/*
 #then
 #echo "making regression rootfile links"
 
-arr=( $(find ${SRC} -type f -name reg_temp\*.root) )
+arr=( $(find ${SRC} -type f -name ${scheme}_reg_temp\*.root) )
 #echo ${#arr[@]}
-#echo ${arr[@]}
+echo ${arr[@]}
 
 for d in "${arr[@]}"; do
-  #echo ${d}
+  echo ${d}
   /bin/cp -suvf ${d} ${DEST}/  >/dev/null 2>&1
   #/bin/cp -suvf ${d} ${DEST}/
 done
 
-#fi
+#fi 

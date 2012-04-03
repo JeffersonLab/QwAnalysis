@@ -141,6 +141,20 @@ Int_t MakeSlug_lrb(
 //  const TString qwrootfiles = Form("/data/disk1/leacock/slugplots/25percent/lrb_links/%s",set);
 //  const TString qwrootfiles = Form("/volatile/hallc/qweak/leacock/25percent/lrb_links/%s",set);
 const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression/lrb_rootfiles";
+//check all the run.runlets are ready
+for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
+	TFile *file = 0;
+	pair<Int_t,Int_t> runlet = runletlist[filenumber-1];
+	runnumber = runlet.first;
+	runletnumber = runlet.second;
+	TString rootfilename = qwrootfiles + "/" + Form("%s_%s_%i.%03i.root",set,qwstem.Data(),runlet.first,runlet.second);
+	file = TFile::Open(rootfilename);
+	if (file==0) {
+		printf("Warning: cannot open %s ... Slug-is-not-ready!\n",rootfilename.Data());
+		exit;
+	}
+}
+
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
 		signal(SIGINT, sigint_handler);
