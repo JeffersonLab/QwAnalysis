@@ -19,7 +19,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   modulation->run.push_back(atoi(argv[1]));
   for(Int_t i = 0; i < (Int_t)modulation->run.size(); i++){
     modulation->run_number = modulation->run[i];
-    filename = Form("QwPass1_%d*.trees.root", modulation->run[i]);
+    filename = Form("QwPass*_%d*.trees.root", modulation->run[i]);
     modulation->LoadRootFile(filename, mps_tree);
     modulation->SetFileName(filename);
   }
@@ -53,7 +53,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   modulation->Init(hel_tree);
 
   for(Int_t i = 0; i < (Int_t)modulation->run.size(); i++){
-    filename = Form("QwPass1_%d*.trees.root", modulation->run[i]);
+    filename = Form("QwPass*_%d*.trees.root", modulation->run[i]);
     modulation->LoadRootFile(filename, hel_tree);
     modulation->SetFileName(filename);
   }
