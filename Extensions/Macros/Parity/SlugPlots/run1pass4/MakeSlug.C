@@ -128,7 +128,7 @@ Int_t MakeSlug(
 //	const TString qwstem = "Qweak";
 //	const TString qwstem = "reg_Qweak";
 
-const TString qwstem = "QwPass4";
+const TString qwstem = "QwPass4b";
 
 
 //	const TString qwrootfiles = "/home/leacock/linRegBlue/inel_rootfiles";
@@ -137,20 +137,6 @@ const TString qwstem = "QwPass4";
 //	const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
 
 const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
-
-//check all the run.runlets are ready
-for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
-	TFile *file = 0;
-	pair<Int_t,Int_t> runlet = runletlist[filenumber-1];
-	runnumber = runlet.first;
-	runletnumber = runlet.second;
-	TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.trees.root",runlet.first,runlet.second);
-	file = TFile::Open(rootfilename);
-	if (file==0) {
-		printf("Warning: cannot open %s ... Slug-is-not-ready!\n",rootfilename.Data());
-		exit;
-	}
-}
 
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
