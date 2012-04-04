@@ -19,6 +19,8 @@
 // root[2] projection("-330",1,0,-1,13654,7)
 // this will draw the projection of qualified R2 tracks back to z=-330 plane, where the pkg2 of R2 covers octant 7 this time.
 
+// UPDATE Feb 12 2012
+// remove the octant number from argument list. Now the octant number is deduced// from the given rum number.
 
 
 #include <cstring>
@@ -28,8 +30,10 @@
 
 const int multitracks=18;
 
-void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int run=8658,int oct=1,string suffix=""){
+void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int run=8658,string suffix=""){
 
+  // try to get the oct number from the run number
+  int oct=getOctNumber(run);
 
    //bool fDebug=false;
    //string folder= "/scratch/sxyang";
@@ -79,11 +83,13 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     TH1F* Utreeline_histo=new TH1F("ar in treeline x","ar in treeline u",100,0,0.3);
     TH1F* Vtreeline_histo=new TH1F("ar in treeline x","ar in treeline v",100,0,0.3);
     TH1F* Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",200,0,20);
-    TH1F* x_histo=new TH1F("x coll1 distribution","x coll1 distribution",200,-10,10);
+    TH1F* x_histo=new TH1F("x coll1 distribution","x coll1 distribution",160,-70,-30);
     TH1F* y_histo=new TH1F("y coll1 distriution","y coll1 distribution",200,0,20);
     TH1F* Plane_residual[12];
     for(int i=0;i<12;++i)
       Plane_residual[i]=new TH1F(Form("residual in plane%d",i+1),Form("residual in plane%d",i+1),100,-0.5,0.5);
+    TH2F* test_for_fun=new TH2F("a","a",140,0,70,100,0,0.12);
+
 
     QwEvent* fEvent=0;
     QwHit* hit=0;
@@ -104,30 +110,71 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     int md_1=(oct+4)%8;
     int md_2=oct;
     
-    TLeaf* tsp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
-    TLeaf* tsm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
-    TLeaf* tsp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
-    TLeaf* tsm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
+    TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
+    TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
+    TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
+    TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
    
     //chain->SetBranchAddress ( "events",&fEvent);
     
 
 
     // cuts
-      double mean_phioff_pkg1=-0.006526;
-      double mean_phioff_pkg2=-0.01667;
+    double mean_thetaoff_pkg1=1,sigma_thetaoff_pkg1=1;
+    double mean_thetaoff_pkg2=1,sigma_thetaoff_pkg2=1;
+    double mean_phioff_pkg1=1, sigma_phioff_pkg1=1;
+    double mean_phioff_pkg2=1,sigma_phioff_pkg2=1; 
+    bool optimization=false;
+    if(optimization==true){
+      TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
+      TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
+
+      TH1F* pkg1_phi=new TH1F("c","c",500,-1,1);
+      TH1F* pkg2_phi=new TH1F("d","d",500,-1,1);
+
+      TF1* f1=new TF1("f1","gaus",-1,1);
+      f1->SetParameters(1,-0.5,1);
+
+      TF1* f2=new TF1("f2","gaus",-1,1);
+      f2->SetParameters(1,-0.5,1);
+
+      TF1* f3=new TF1("f3","gaus",-1,1);
+      f1->SetParameters(1,-0.5,1);
+
+      TF1* f4=new TF1("f4","gaus",-1,1);
+      f1->SetParameters(1,-0.5,1);
+
       
-      double sigma_phioff_pkg1=0.0281;
-      double sigma_phioff_pkg2=0.02121;
+      event_tree->Project("a","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==1");
+      pkg1_theta->Fit("f1","QN0");
 
-      double mean_thetaoff_pkg1=-0.002897;
-      double sigma_thetaoff_pkg1=0.0031565;
+      event_tree->Project("b","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==2");
+      pkg2_theta->Fit("f2","QN0");
 
+      event_tree->Project("c","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==1");
+      pkg1_phi->Fit("f3","QN0");
 
-      double mean_thetaoff_pkg2=-2.12082e-02;
-      double sigma_thetaoff_pkg2=3.74405e-03;
+      event_tree->Project("d","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==2");
+      pkg2_phi->Fit("f4","QN0");
+      
+      mean_thetaoff_pkg1=f1->GetParameter(1);
+      sigma_thetaoff_pkg1=f1->GetParameter(2);
 
-     double width=25;
+      mean_thetaoff_pkg2=f2->GetParameter(1);
+      sigma_thetaoff_pkg2=f2->GetParameter(2);
+
+      mean_phioff_pkg1=f3->GetParameter(1);
+      sigma_phioff_pkg1=f3->GetParameter(2);
+
+      mean_phioff_pkg2=f4->GetParameter(1);
+      sigma_phioff_pkg2=f4->GetParameter(2);
+      
+    }
+    
+
+      //for(int i=0;i<3;++i)
+      //cout << "parameter[" << i << "]=" << f1->GetParameter(i) << endl;
+     double width=1000;
      double pkg1_phioff_lower=mean_phioff_pkg1-width*sigma_phioff_pkg1;
      double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
      double pkg2_phioff_lower=mean_phioff_pkg2-width*sigma_phioff_pkg2;
@@ -137,8 +184,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
      double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*sigma_thetaoff_pkg1;
      double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*sigma_thetaoff_pkg2;
      double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*sigma_thetaoff_pkg2;
-
-    int oct=0;
+  
     for(int i=start;i<end;++i){
 
       if(i%10000==0)
@@ -147,32 +193,38 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
       event_branch->GetEntry(i);
       maindet_branch->GetEntry(i);
        
-      double tsp_value_1=tsp_1->GetValue();
-      double tsm_value_1=tsm_1->GetValue();
-      double tsp_value_2=tsp_2->GetValue();
-      double tsm_value_2=tsm_2->GetValue();
+      double mdp_value_1=mdp_1->GetValue();
+      double mdm_value_1=mdm_1->GetValue();
+      double mdp_value_2=mdp_2->GetValue();
+      double mdm_value_2=mdm_2->GetValue();
       
       	int nhits=fEvent->GetNumberOfHits();
 	int valid_hits=0;
+	bool special_flag=false;
 	for(int j=0;j<nhits;++j){
 	  hit=fEvent->GetHit(j);
-	  if(hit->GetRegion() ==2 && hit->GetDriftDistance() >=0 && hit->GetHitNumber()==0 && hit->GetPackage() == pkg)
+	  
+	  if(hit->GetRegion() ==2 && hit->GetDriftDistance() >=0 && hit->GetHitNumber()==0 && hit->GetPackage() == pkg){
 	    ++valid_hits;
+	    //if(hit->GetPlane()==1 && hit->GetElement()==18)
+	    //  special_flag=true;
+	    //if(hit->GetPlane()==11 && hit->GetElement()==1)
+	    //  special_flag=true;
+	  }
 	}
-
 	// test if the md get hit
 	
 	if(pkg==1){
-	  if(tsm_value_1 <-1800 || tsm_value_1 > -1200 || tsp_value_1 < -1800 || tsp_value_1 > -1200)
+	  if(mdm_value_1 <-1800 || mdm_value_1 > -1200 || mdp_value_1 < -1800 || mdp_value_1 > -1200)
 	    continue;
 	}
 	else if(pkg==2){
-	  if(tsm_value_2 <-1800 || tsm_value_2 > -1200 || tsp_value_2 < -1800 || tsp_value_2 > -1200)
+	  if(mdm_value_2 <-1800 || mdm_value_2 > -1200 || mdp_value_2 < -1800 || mdp_value_2 > -1200)
 	    continue;
 	}
 	
 	
-      if(valid_hits>=multitracks) continue;
+      if(valid_hits>=multitracks || special_flag) continue;
       double ntracks=fEvent->GetNumberOfTracks();
       double npts=fEvent->GetNumberOfPartialTracks();
 
@@ -193,14 +245,14 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
         pt=fEvent->GetPartialTrack(j);
 	if(pt->GetRegion()!=2 || pt->GetPackage()!=pkg || pt->GetPackage()!=track->GetPackage()) continue;
 	if(oct==0)
-	  oct=pt->GetOctantNumber();
+	oct=pt->GetOctantNumber();
 	chi=pt->fChi;
         //double vertex_z=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
 	double vertex_z=track->fVertexZ;
 	double x=pt->fOffsetX+z*pt->fSlopeX;
 	double y=pt->fOffsetY+z*pt->fSlopeY;
-	//double x_tar=pt->fOffsetX+ds_target*pt->fSlopeX;
-	//double y_tar=pt->fOffsetY+ds_target*pt->fSlopeY;
+	double x_plane=pt->fOffsetX-341.700*pt->fSlopeX;
+	x_histo->Fill(x_plane);
 	x*=-1;
 	//x_tar*=-1;
 	//double r=sqrt(x_tar*x_tar+y_tar*y_tar);
@@ -211,7 +263,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	vertex->Fill(vertex_z);
 	projection->Fill(x,y);
 
-	x_histo->Fill(x);
+	//x_histo->Fill(x);
 	y_histo->Fill(y);
 	//projection_target->Fill(x_tar,y_tar);
 	//profile_target->Fill(x,y,chi);
@@ -219,6 +271,8 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	Utreeline_histo->Fill(pt->TResidual[3]);
 	Vtreeline_histo->Fill(pt->TResidual[4]);
 	Chi_histo->Fill(pt->fChi);
+	//if(x_plane<50 && x_plane>40)
+	test_for_fun->Fill(x_plane,track->fQ2);
 	for(int k=0;k<12;++k)
 	  if(pt->fSignedResidual[k]!=-10)
 	    Plane_residual[k]->Fill(pt->fSignedResidual[k]);
@@ -230,6 +284,16 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     cout << "oct: " << oct << endl;
     
     TCanvas* c1=new TCanvas("c","c",1000,600);
+    //test_for_fun->Draw();
+    /* 
+    c->Divide(2,2);
+    c->cd(1);
+    Xtreeline_histo->Draw();
+    c->cd(2);
+    Utreeline_histo->Draw();
+    c->cd(3);
+    Vtreeline_histo->Draw();
+    */
     
     TPad* spad1=new TPad("spad1","spad1",.61,.51,.99,.99);
     spad1->Draw();
@@ -240,6 +304,8 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     spad2->Draw();
     spad2->cd();
     Chi_histo->Draw();
+    //x_histo->Draw();
+    //test_for_fun->Draw();
     c1->cd();
     TPad* spad3=new TPad("spad3","spad3",.01,.01,.59,.99);
     spad3->Draw();
@@ -256,7 +322,10 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     double py[6];
     if(target=="coll1"){
      
+    
     double angle=oct==8? -135:-(3-oct)*45;
+    if(pkg==1)
+      angle+=180;
     double Sin=sin(angle*PI/180);
     double Cos=cos(angle*PI/180);
     double highy=18.46,middley=12.63,lowy=7.03;
@@ -295,7 +364,9 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     t6->Draw("same");
     }
     else if(target=="coll2"){
-       double angle=oct==8? -135:-(3-oct)*45;
+    double angle=oct==8? -135:-(3-oct)*45;
+    if(pkg==1)
+      angle+=180;
     double Sin=sin(angle*PI/180);
     double Cos=cos(angle*PI/180);
     double highy=53.7,middley=37.1,lowy=30.57;
@@ -333,7 +404,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     t5->Draw("same");
     t6->Draw("same");
     }
-
+    
     // TCanvas* c2=new TCanvas("c","c",800,800);
     // vertex->Draw();
     /*if(option==1){
@@ -470,6 +541,26 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     return;
 
  }
+
+
+int getOctNumber(int run){
+
+  if((run>=15025 && run <= 15036) || (run>=13671 && run<=13673) || (run>=8662 && run<=8666) ){
+    return 2;
+  }
+  else if((run>=15037 && run<=15084) || (run>=15111 && run<=15116) || (run>=13676 && run<=13680) || (run>=8668 && run<=8675)){
+    return 7;
+  }
+  else if ((run>=15085 && run<=15087) || (run>=13707 && run<=13708)){
+    return 6;
+  }
+  else if ((run>=15089 && run<= 15110) || (run>=13674 && run<=13675) || (run>=8676 && run<=8679)){
+    return 8;
+  }
+  else{
+    return 1;
+  }
+}
 
 
 
