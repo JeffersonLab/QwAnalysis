@@ -112,7 +112,7 @@ QwOptions::~QwOptions()
  * @param argc Number of arguments
  * @param argv[] Array of arguments
  */
-void QwOptions::SetCommandLine(int argc, char* argv[])
+void QwOptions::SetCommandLine(int argc, char* argv[], bool default_config_file)
 {
   // Copy command line options
   fArgc = argc;
@@ -127,7 +127,7 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
   fParsed = false;
 
   // Add default config file based on file name
-  if (fArgc > 0) {
+  if (fArgc > 0 && default_config_file) {
     std::string path = fArgv[0];
     QwDebug << "Invocation name: " << path << QwLog::endl;
     // Find file name from full path

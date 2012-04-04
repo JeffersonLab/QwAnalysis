@@ -185,7 +185,7 @@ class QwOptions {
     static void DefineOptions(QwOptions& options);
 
     /// \brief Set the command line arguments
-    void SetCommandLine(int argc, char* argv[]);
+    void SetCommandLine(int argc, char* argv[], bool default_config_file = true);
 
     /// \brief Set a configuration file
     void SetConfigFile(const std::string& configfile) {
