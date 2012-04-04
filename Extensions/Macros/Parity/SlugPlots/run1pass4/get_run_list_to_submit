@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#Test only in cdaq cluseter. To run,
+# Author: Rakitha Beminiwattha (rakithab@jlab.org)
+#Tested only in cdaq cluseter. To run pass the slug number,
 #./get_run_list_to_submit 118
 
 

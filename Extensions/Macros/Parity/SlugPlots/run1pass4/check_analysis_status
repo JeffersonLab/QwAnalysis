@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Author: Rakitha Beminiwattha (rakithab@jlab.org)
 #Test only in cdaq cluseter.
 #to run ./check_analysis_status slug_number
 #where slug_nuber is any run1 slug
