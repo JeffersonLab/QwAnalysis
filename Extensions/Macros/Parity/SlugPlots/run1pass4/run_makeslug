@@ -5,10 +5,10 @@ slug_num=$1
 #dir=/work/hallc/qweak/rakithab/QwAnalysis_trunk/Extensions/Macros/Parity/SlugPlots/run1pass4/
 #this is the source of regressed root files
 SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression/lrb_rootfiles"
-DST="/volatile/hallc/qweak/rakithab/run1pass4/slugs"
-#DST="/volatile/hallc/qweak/QwAnalysis/run1/pass4bslugs/slugs"
-#DST_Dbug="/volatile/hallc/qweak/QwAnalysis/run1/pass4bslugs/out_files"
-DST_Dbug="/volatile/hallc/qweak/rakithab/run1pass4/out_files"
+#DST="/volatile/hallc/qweak/rakithab/run1pass4/slugs"
+DST="/volatile/hallc/qweak/QwAnalysis/run1/pass4bslugs/slugs"
+DST_Dbug="/volatile/hallc/qweak/QwAnalysis/run1/pass4bslugs/out_files"
+#DST_Dbug="/volatile/hallc/qweak/rakithab/run1pass4/out_files"
 ###############
 #
 # first make links
@@ -42,7 +42,7 @@ DST_Dbug="/volatile/hallc/qweak/rakithab/run1pass4/out_files"
 #
 ################
 
-
+ 
 
 #need a check to see all the root files(regressed and unregressed) are available for all the runs in the slug file list before running the script
 

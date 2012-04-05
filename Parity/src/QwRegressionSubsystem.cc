@@ -195,7 +195,8 @@ void QwRegressionSubsystem::UpdateEventcutErrorFlag(UInt_t error) //return the e
 void QwRegressionSubsystem::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
   /// TODO:  Write QwRegressionSubsystem::UpdateEventcutErrorFlag
   if (Compare(ev_error)){
-    QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*> (ev_error);
+    //QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*> (ev_error);
+    
   }  
 };
 

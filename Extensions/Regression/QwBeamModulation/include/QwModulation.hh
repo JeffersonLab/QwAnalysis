@@ -36,7 +36,7 @@ private:
   Int_t fNModType;
 
   static const Int_t fNMaxMon = 6;
-  static const Int_t fNMaxDet = 30;
+  static const Int_t fNMaxDet = 35;
   static const Int_t fNMaxCoil = 6;
   static const Int_t fBranchSize = 13;
   static const Int_t fDeviceErrorCode = 6;
@@ -142,15 +142,15 @@ public :
   Double_t        ramp_block3_raw;
   Double_t        ramp_sequence_number;
 
-  Double_t        YieldCorrection[fNMaxDet];
+  Double_t        AsymmetryCorrection[fNMaxDet];
   Double_t        MonBranch[fNMaxMon][fBranchSize];  
   Double_t        DetBranch[fNMaxDet][fBranchSize];  
   Double_t        HMonBranch[fNMaxMon][fBranchSize];  
   Double_t        YMonBranch[fNMaxMon][fBranchSize];  
   Double_t        HDetBranch[fNMaxDet][fBranchSize];  
   Double_t        CoilBranch[fNMaxCoil][fBranchSize];
-  Double_t        DeviceYieldCorrection[fNMaxDet][fNMaxMon];
-  Double_t        AverageYieldCorrection[fNMaxDet][fNMaxMon];
+  Double_t        DeviceAsymmetryCorrection[fNMaxDet][fNMaxMon];
+  Double_t        AverageAsymmetryCorrection[fNMaxDet][fNMaxMon];
   Double_t        PositionDiffMean[fNMaxDet][fNMaxMon];
   Double_t        YieldSlope[fNMaxDet][fNMaxMon];
   Double_t        MonitorMean[fNMaxMon];
@@ -276,7 +276,7 @@ public :
   void     CalculateSlope(Int_t);
   void     MatrixFill();
   void     SetFileName(TString &);
-  void     ComputeYieldCorrections(); 
+  void     ComputeAsymmetryCorrections(); 
   void     ComputePositionMean(); 
   void     ReduceMatrix(Int_t);
   void     SetHuman(void);

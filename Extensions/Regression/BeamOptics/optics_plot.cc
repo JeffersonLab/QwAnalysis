@@ -9,11 +9,12 @@ Int_t main(Int_t argc, Char_t *argv[])
   //  TApplication suuperApp("App", &argc, argv);
 
   TMultiGraph *multi_graph = new TMultiGraph();
+  TMultiGraph *phase_graph = new TMultiGraph();
 
   TString filename;
   TString cut;
   TString file_stem = "QwPass1_";
-  TString pattern_name[5] = {"X", "Y", "E", "XP", "YP"};
+
   TString ramp_cut = "((ramp.block0 + ramp.block3) - (ramp.block1 + ramp.block2)) > -50 && ((ramp.block0 + ramp.block3) - (ramp.block1 + ramp.block2)) < 50";
   TString monitor[fNMonitors] = {"qwk_target","qwk_bpm3h09b","qwk_bpm3h09","qwk_bpm3h08","qwk_bpm3h07c","qwk_bpm3h07b",
 				 "qwk_bpm3h07a","qwk_bpm3h04","qwk_bpm3h02","qwk_bpm3c21","qwk_bpm3c20","qwk_bpm3p03a",
@@ -22,13 +23,18 @@ Int_t main(Int_t argc, Char_t *argv[])
   TString coord[2] = {"X","Y"};
   TString flag;
   TString scratch_dir;
+  TString pattern_name[5] = {"X", "Y", "E", "XP", "YP"};
+  TString pattern_name_single[5] = {"X1", "Y1", "E", "X2", "Y2"};
 
   Bool_t fVerbose = false;
+  Bool_t fSingle = false;
 
   TCanvas *canvas = new TCanvas("canvas", "canvas", 1200,600);
+  TCanvas *phase_c = new TCanvas("phase_c", "phase_c", 1200,600);
 
   Int_t run_number;
   Int_t counter = 0;
+  Int_t argvn = 0;
 
   Double_t amplitude[fNMonitors];
   Double_t error[fNMonitors];
@@ -38,19 +44,44 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   TChain *chain = new TChain("Mps_Tree");
 
-  TF1 *sine = new TF1("sine", "[0]+[1]*sin(( 1.571e-3)*x +[2])", 0, 4000);
+  TF1 *sine = new TF1("sine", "[0]+[1]*sin(( 2*3.141/360)*x +[2])", 10, 350);
 
   std::fstream monitor_position;
 
   run_number = atoi(argv[1]);
 
-  if(argv[2] != NULL){
-    flag = argv[2];
-    if(flag.CompareTo("--bpms", TString::kExact) == 0)
-      fVerbose = true;
-    std::cout << "Saving bpms option set to 'true'" <<std::endl;
-  }
+  gStyle->SetOptFit(0111);
+  gStyle->SetOptStat(111);
 
+  do{
+    flag = argv[argvn];
+
+    if(flag.CompareTo("--bpms", TString::kExact) == 0){
+      fVerbose = true;
+      flag.Clear();
+      std::cout << "Saving bpms option set to 'true'" <<std::endl;
+    }
+    if(flag.CompareTo("--single", TString::kExact) == 0){
+      fSingle = true;
+      flag.Clear();
+      std::cout << "Single Coil option set to 'true'" <<std::endl;
+    }
+    if(flag.CompareTo("--help", TString::kExact) == 0){
+      std::cout << "Usage:./optics_plot <run number> <options>\n" 
+		<< "\tOptions:\n" 
+		<< "\t\t--bpms :\tAllows you to save histograms of bpm response plots.\n\n"
+		<< "\t\t--single :\tAllows you to process single coil modulation assuming pattern numbers: 0-5"
+		<< std::endl;
+      flag.Clear();
+      exit(1);
+    }
+    argvn++;
+  } while(argv[argvn] != NULL);
+  
+  if(fSingle){
+    for(Int_t i = 0; i < 5; i++) pattern_name[i] = pattern_name_single[i];
+  }
+     
   filename = Form("%s%d.0*.trees.root", file_stem.Data(), run_number);
 
   if(argv[1] == NULL){
@@ -79,23 +110,28 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t k = 0; k < 2; k ++){
     for(Int_t j = 0; j < fCycles; j++){
 
-      // cut = Form("ErrorFlag == 0x4018080 && bm_pattern_number == %i && %s", j + 11, ramp_cut.Data());
-      cut = Form("ramp > 0 && bm_pattern_number == %i && %s", j + 11, ramp_cut.Data());
+      if(fSingle) 
+	cut = Form("ErrorFlag == 0x4018080 && bm_pattern_number == %i && %s", j, ramp_cut.Data());
+      else 
+	cut = Form("ErrorFlag == 0x4018080 && bm_pattern_number == %i && %s", j + 11, ramp_cut.Data());
+
       std::cout << cut << std::endl;
       
       for(Int_t i = 0; i < fNMonitors; i++){
 	canvas->cd();
-	TH2F* histo = new TH2F("histo", "histo", 400, 0., 4000., 1000, -1., 1.);
+
+	TH2F* histo = new TH2F("histo", "histo", 400, 0., 400., 1000, -1., 1.);
 	
-	chain->Draw(Form("%s%s:ramp>>histo", monitor[i].Data(), coord[k].Data()), cut, "prof");
+	chain->Draw(Form("%s%s:ramp/11.1>>histo", monitor[i].Data(), coord[k].Data()), cut, "prof");
 	histo = (TH2F *)gDirectory->Get("histo");
-	sine->SetParameters(histo->GetMean(), 0.150, 0.1);
-	sine->SetParLimits(2, 0, TMath::PiOver2() );
-	histo->Fit("sine","R");    
+	sine->SetParameters(histo->GetMean(), 0.150, TMath::Pi());
+	sine->SetParLimits(2, 0., TMath::Pi()*0.6 );
+	histo->Fit("sine","R B");    
 	amplitude[i] = sine->GetParameter(1);
+
+	phase[i] = (sine->GetParameter(2)*(180/TMath::Pi()));
 	error[i] = sine->GetParError(1);
-	phase[i] = sine->GetParameter(2);
-	std::cout << "VERBOSE: " << fVerbose << std::endl;
+
 	if(fVerbose == true){
 	  std::cout << "Check to see if histogram directory exist." << std::endl;
 	  if( (gSystem->OpenDirectory(Form("%s/plots/hist_%i", scratch_dir.Data(), run_number)))  == 0){
@@ -103,8 +139,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 	    gSystem->Exec(Form("mkdir %s/plots/hist_%i", scratch_dir.Data(), run_number));
 	  }
 
-	  canvas->SaveAs(Form("%s/plots/hist_%i/hist_%s%s_%i.png", scratch_dir.Data(), 
-			      run_number, monitor[i].Data(), pattern_name[i].Data(), j + 11));
+	  canvas->SaveAs(Form("%s/plots/hist_%i/hist_%s%s_%i.png", scratch_dir.Data(), run_number, monitor[i].Data(), pattern_name[j].Data(), j));
 	  std::cout << "Trying to write histogram....." << std::endl;
 	}
 
@@ -144,14 +179,46 @@ Int_t main(Int_t argc, Char_t *argv[])
       
       multi_graph->Add(baseline);
       multi_graph->Add(fit_optics);
-      multi_graph->SetMaximum( 0.3 );
-      multi_graph->SetMinimum(-0.3 );
+      multi_graph->SetMaximum( 0.5 );
+      multi_graph->SetMinimum(-0.5 );
       
       multi_graph->Draw("apl");
       multi_graph->GetXaxis()->SetTitle("Z beamline position(cm)");
-      multi_graph->GetYaxis()->SetTitle(Form( "BMod Position Offset %s (mm)  mod_type:%s", coord[k].Data(), pattern_name[j].Data()) );    
+      multi_graph->GetYaxis()->SetTitle(Form( "BMod Phase Offset %s (mm)  mod_type:%s", coord[k].Data(), pattern_name[j].Data()) );    
       canvas->Update();
       
+      //
+      // Phase Multi-graph
+      //
+
+      phase_c->cd();
+      TGraphErrors *phase_optics = new TGraphErrors( fNMonitors, bpm_z, phase, zeros, zeros);
+      
+      gPad->SetGridx();
+      gPad->SetGridy();
+      
+      baseline->SetMarkerStyle(7);
+      baseline->SetMarkerColor(1);
+      baseline->SetLineStyle(1);
+      phase_optics->SetMarkerStyle(24);
+      phase_optics->SetMarkerColor(2);
+      phase_optics->SetLineColor(0);    
+      phase_optics->SetLineStyle(3);    
+      
+      phase_graph->Add(baseline);
+      phase_graph->Add(phase_optics);
+      phase_graph->SetMaximum( 160. );
+      phase_graph->SetMinimum(-10. );
+      
+      phase_graph->Draw("apl");
+      phase_graph->GetXaxis()->SetTitle("Z beamline position(cm)");
+      phase_graph->GetYaxis()->SetTitle(Form( "BMod Position Offset %s (deg)  mod_type:%s", coord[k].Data(), pattern_name[j].Data()) );    
+      canvas->Update();
+
+
+      //
+      //
+      //
       monitor_position.close();
 
       if(gSystem->OpenDirectory(Form("%s/plots/run_%i", scratch_dir.Data(), run_number)) == 0){
@@ -160,10 +227,13 @@ Int_t main(Int_t argc, Char_t *argv[])
       }
       
       canvas->SaveAs(Form("plots/run_%i/coord_%s_pattern_%s.png", run_number, coord[k].Data(), pattern_name[j].Data()) );
-      
+      phase_c->SaveAs(Form("plots/run_%i/coord_%s_pattern_%s_phase.png", run_number, coord[k].Data(), pattern_name[j].Data()) );      
+
       baseline->Delete();
       fit_optics->Delete();
+      phase_optics->Delete();
       multi_graph->Clear();
+      phase_graph->Clear();
       canvas->Clear();
     }
   }

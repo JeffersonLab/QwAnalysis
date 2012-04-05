@@ -53,14 +53,14 @@ void QwEventRing::DefineOptions(QwOptions &options)
 void QwEventRing::ProcessOptions(QwOptions &options)
 {
   // Reads Event Ring parameters from cmd
-  Double_t fStability;
+  Double_t stability = 0.0;
   if (gQwOptions.HasValue("ring.size"))
     fRING_SIZE=gQwOptions.GetValue<int>("ring.size");
 
   if (gQwOptions.HasValue("ring.stability_cut"))
-    fStability=gQwOptions.GetValue<double>("ring.stability_cut");
+    stability=gQwOptions.GetValue<double>("ring.stability_cut");
 
-  if (fStability>0.0)
+  if (stability>0.0)
     bStability=kTRUE;
   else
     bStability=kFALSE;
