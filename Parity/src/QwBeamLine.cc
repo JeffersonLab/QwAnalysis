@@ -109,7 +109,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   std::vector<Double_t> fQWeight;
   std::vector<Double_t> fXWeight;
   std::vector<Double_t> fYWeight;
-  Double_t sumQweights;
+  Double_t sumQweights = 0.0;
 
   std::vector<QwBeamDetectorID> clock_needed_list;
 
@@ -149,6 +149,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    varname.ToLower();
 	    if (varname=="end"){
 	      // calculate the total weights of the charge
+	      sumQweights = 0.0;
 	      for(size_t i=0;i<fDeviceName.size();i++)
 		sumQweights+=fQWeight[i];
 	      combolistdecoded = kTRUE;
@@ -300,7 +301,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
       if(localBeamDetectorID.fIndex==-1){
 	Int_t index;
-	VQwDataElement* local_element;
+	VQwDataElement* local_element = NULL;
 
 	if(localBeamDetectorID.fTypeID == kQwHaloMonitor){
 	  index = AddToElementList(fHaloMonitor, localBeamDetectorID);
@@ -603,7 +604,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   Double_t devOffsetX = 0,devOffsetY = 0, devOffsetZ = 0;
   Double_t devSENfactor = 0, devAlphaX = 0, devAlphaY = 0;
   TString   rotation_stat;
-  VQwBPM * bpm;
+  VQwBPM * bpm = NULL;
 
   if(ldebug)std::cout<<"QwBeamLine::LoadGeometryParameters("<< mapfile<<")\n";
 
