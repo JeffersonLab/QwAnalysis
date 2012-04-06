@@ -16,10 +16,13 @@ Int_t main(Int_t argc, Char_t *argv[])
     exit(1);
   }
 
+//   TString test = argv[1];
+//   if(test.Contains("--Q", TString::kExact)) std::cout << "Charge!!!!" << std::endl;
+
   modulation->run.push_back(atoi(argv[1]));
   for(Int_t i = 0; i < (Int_t)modulation->run.size(); i++){
     modulation->run_number = modulation->run[i];
-    filename = Form("QwPass1_%d*.trees.root", modulation->run[i]);
+    filename = Form("QwPass*_%d*.trees.root", modulation->run[i]);
     modulation->LoadRootFile(filename, mps_tree);
     modulation->SetFileName(filename);
   }
@@ -53,14 +56,14 @@ Int_t main(Int_t argc, Char_t *argv[])
   modulation->Init(hel_tree);
 
   for(Int_t i = 0; i < (Int_t)modulation->run.size(); i++){
-    filename = Form("QwPass1_%d*.trees.root", modulation->run[i]);
+    filename = Form("QwPass*_%d*.trees.root", modulation->run[i]);
     modulation->LoadRootFile(filename, hel_tree);
     modulation->SetFileName(filename);
   }
   std::cout << "Setup Hell!" << std::endl;
   modulation->SetupHelBranchAddress();
   std::cout << "What!What! Corrections Bitches!" << std::endl;
-  modulation->ComputeYieldCorrections();
+  modulation->ComputeAsymmetryCorrections();
 
   return 0;
 
