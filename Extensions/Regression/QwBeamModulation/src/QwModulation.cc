@@ -309,7 +309,7 @@ void QwModulation::ComputePositionMean()
 {
 }
 
-void QwModulation::ComputeYieldCorrections()
+void QwModulation::ComputeAsymmetryCorrections()
 {
   //**************************************************************
   //
@@ -320,7 +320,7 @@ void QwModulation::ComputeYieldCorrections()
   //
   // This is used only when pulling in multiple runs
   //
-  //   TFile file(Form("$QWSCRATCH/bmod_tree_%i-%i.root", run.front(), run.back()),"update");
+  // TFile file(Form("$QWSCRATCH/bmod_tree_%i-%i.root", run.front(), run.back()),"update");
 
   TFile file(Form("$QW_ROOTFILES/bmod_tree_%i.root", run.front()),"update");
 
@@ -343,7 +343,7 @@ void QwModulation::ComputeYieldCorrections()
 
   for(Int_t i = 0; i < fNDetector; i++){
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &YieldCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("%s_Device_Error_Code", HDetectorList[i].Data()), &HDetBranch[i][fDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("correction_%s", DetectorList[i].Data()), &correction[i], Form("correction_%s/D", DetectorList[i].Data())); 
@@ -387,15 +387,10 @@ void QwModulation::ComputeYieldCorrections()
 	  if( (i % 100000) == 0 ){}
 	}
 
-//      Used when not normalizing dY/Y in earlier function (near human-readable)
-//
-// 	correction = temp_correction/yield_qwk_mdallbars_hw_sum;
-
    	correction[j] = temp_correction;                                  
 //   	correction = temp_correction + 0.0167297*asym_qwk_charge_hw_sum;
 
-	YieldCorrection[j] = HDetBranch[j][0] - correction[j];
-// 	mod_tree->Fill();
+	AsymmetryCorrection[j] = HDetBranch[j][0] - correction[j];
 	temp_correction = 0;
       }
       mod_tree->Fill();
@@ -978,7 +973,7 @@ void QwModulation::LoadRootFile(TString filename, TChain *tree)
   if(!found){
     filename = Form("Qweak_%d.*.trees.root", run_number);
     found = FileSearch(filename, tree);
-    std::cerr << "Couldn't find QwPass1_*.trees.root trying "
+    std::cerr << "Couldn't find QwPass<#>_*.trees.root trying "
 	      << filename
 	      << std::endl;
     if(!found){
@@ -998,6 +993,7 @@ void QwModulation::Write(){
   //
   //********************************************
 
+  gSystem->Exec("umask 002");
   gSystem->Exec(Form("rm -rf slopes_%i", run.front()));
   gSystem->Exec(Form("mkdir slopes_%i", run.front()));
   gSystem->Exec(Form("rm -rf regression_%i", run.front()));
