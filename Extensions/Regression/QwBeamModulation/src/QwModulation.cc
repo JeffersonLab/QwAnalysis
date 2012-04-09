@@ -480,7 +480,7 @@ void QwModulation::CalculateSlope(Int_t fModType)
   Double_t slope = 0;
   Double_t fPhase[5]={0.26, 0.26, 0.0, 1.08, 1.08};
 
-  if(fNEvents < 2){
+  if(fNEvents < 3){
     std::cout << red << "Error in run:: Number of good events too small, exiting." << normal << std::endl;
     return;
   }
@@ -514,7 +514,7 @@ void QwModulation::CalculateSlope(Int_t fModType)
 
       slope = sigma_dc/sigma_cc;
       sigma_slope = TMath::Sqrt((sigma_dd - ( (sigma_dc*sigma_dc)/sigma_cc) )/(sigma_cc*( fNEvents -2 )));
-      
+
       //
       // Load Yields in to make Yield Correction a little easier in the end.
       //
