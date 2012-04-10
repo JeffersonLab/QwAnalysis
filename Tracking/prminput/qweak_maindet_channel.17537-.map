@@ -1,0 +1,130 @@
+!
+! event mode main detector channel map
+ROC=4
+F1TDC_Bank=0x0401
+slot=6
+! module.type  module.num  chan.num, det.type, det.name
+  F1TDC, 6,  0, maindet, md1m_f1
+  F1TDC, 6,  2, maindet, md2m_f1
+  F1TDC, 6,  4, maindet, md3m_f1
+  F1TDC, 6,  6, maindet, md4m_f1
+  F1TDC, 6,  8, maindet, md5m_f1
+  F1TDC, 6, 10, maindet, md6m_f1
+  F1TDC, 6, 12, maindet, md7m_f1
+  F1TDC, 6, 14, maindet, md8m_f1
+  F1TDC, 6, 16, maindet, md1p_f1
+  F1TDC, 6, 18, maindet, md2p_f1
+  F1TDC, 6, 20, maindet, md3p_f1
+  F1TDC, 6, 22, maindet, md4p_f1
+  F1TDC, 6, 23, maindet, md_reftime_f1
+  F1TDC, 6, 24, maindet, md5p_f1
+  F1TDC, 6, 26, maindet, md6p_f1
+  F1TDC, 6, 28, maindet, md7p_f1
+  F1TDC, 6, 30, maindet, md8p_f1
+!  Pion detector channels
+  F1TDC, 6, 01, maindet, wilbur_f1
+  F1TDC, 6, 03, maindet, templeton_f1
+  F1TDC, 6, 05, maindet, fern_f1
+  F1TDC, 6, 07, maindet, avery_f1
+  F1TDC, 6, 09, maindet, zuckerman_f1
+
+!  F1TDC, 6, 32, maindet, r1_active_f1
+!
+!
+QDC_Bank=0x0402
+!QDC_Bank=0x7501
+slot=1
+!slot=16
+! module.type  module.num  chan.num, det.type, det.name
+  V792, 1,  0, maindet, md1m_adc
+  V792, 1,  1, maindet, md2m_adc
+  V792, 1,  2, maindet, md3m_adc
+  V792, 1,  3, maindet, md4m_adc
+  V792, 1,  4, maindet, md5m_adc
+  V792, 1,  5, maindet, md6m_adc
+  V792, 1,  6, maindet, md7m_adc
+  V792, 1,  7, maindet, md8m_adc
+  V792, 1,  8, maindet, md1p_adc
+  V792, 1,  9, maindet, md2p_adc
+  V792, 1, 10, maindet, md3p_adc
+  V792, 1, 11, maindet, md4p_adc
+  V792, 1, 12, maindet, md5p_adc
+  V792, 1, 13, maindet, md6p_adc
+  V792, 1, 14, maindet, md7p_adc
+  V792, 1, 15, maindet, md8p_adc
+!  Pion detector channels
+  V792, 1, 16, maindet, wilbur_adc
+  V792, 1, 17, maindet, templeton_adc
+  V792, 1, 18, maindet, fern_adc
+  V792, 1, 19, maindet, avery_adc
+  V792, 1, 20, maindet, zuckerman_adc
+!
+!
+! module.num counting from 0
+SCA_Bank=0x0403
+!
+! slot=2
+slot=9
+! module.type  module.num  chan.num, det.type, det.name
+  SIS3801, 0,  20, maindet, md1bar_sca
+  SIS3801, 0,  21, maindet, md2bar_sca
+  SIS3801, 0,  22, maindet, md3bar_sca
+  SIS3801, 0,  23, maindet, md4bar_sca
+  SIS3801, 0,  24, maindet, md5bar_sca
+  SIS3801, 0,  25, maindet, md6bar_sca
+  SIS3801, 0,  26, maindet, md7bar_sca
+  SIS3801, 0,  27, maindet, md8bar_sca
+
+slot=12
+! module.type  module.num  chan.num, det.type, det.name
+  SIS3801, 1,  0, maindet, md1m_sca
+  SIS3801, 1,  1, maindet, md2m_sca
+  SIS3801, 1,  2, maindet, md3m_sca
+  SIS3801, 1,  3, maindet, md4m_sca
+  SIS3801, 1,  4, maindet, md5m_sca
+  SIS3801, 1,  5, maindet, md6m_sca
+  SIS3801, 1,  6, maindet, md7m_sca
+  SIS3801, 1,  7, maindet, md8m_sca
+  SIS3801, 1,  8, maindet, md1p_sca
+  SIS3801, 1,  9, maindet, md2p_sca
+  SIS3801, 1, 10, maindet, md3p_sca
+  SIS3801, 1, 11, maindet, md4p_sca
+  SIS3801, 1, 12, maindet, md5p_sca
+  SIS3801, 1, 13, maindet, md6p_sca
+  SIS3801, 1, 14, maindet, md7p_sca
+  SIS3801, 1, 15, maindet, md8p_sca
+!  Pion detector channels
+  SIS3801, 1, 16, maindet, wilbur_sca
+  SIS3801, 1, 17, maindet, templeton_sca
+  SIS3801, 1, 18, maindet, fern_sca
+  SIS3801, 1, 19, maindet, avery_sca
+  SIS3801, 1, 20, maindet, zuckerman_sca
+!
+!
+!sca_bank=0x0403
+
+!END
+!
+!
+! Original map
+!
+!
+!ROC=1
+!
+!
+!slot=1
+!module=V792
+! channel, signalname
+!0,	quartz_adc
+!1,	trigg1_adc
+!2,	md_amp_adc
+!5,	trigg2_adc
+!
+!
+!slot=2
+!module=V775
+! channel, signalname
+!0,	triggertdc
+!3,	clock__tdc
+!16,	quartz_tdc
+!END
