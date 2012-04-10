@@ -16,7 +16,8 @@ QwModulation::QwModulation(TChain *tree):
   fXPModulation(1),fYPModulation(4), fNEvents(0),
   fReduceMatrix_x(0), fReduceMatrix_y(0), fReduceMatrix_xp(0),
   fReduceMatrix_yp(0), fReduceMatrix_e(0), fSensHumanReadable(0),
-  fNModType(5)  
+  fNModType(5), fXinit(false), fYinit(false), fEinit(false), 
+  fXPinit(false), fYPinit(false), fSingleCoil(false) 
 {
    Init(tree);
 }
@@ -309,20 +310,20 @@ void QwModulation::ComputePositionMean()
 {
 }
 
-void QwModulation::ComputeYieldCorrections()
+void QwModulation::ComputeAsymmetryCorrections()
 {
   //**************************************************************
   //
-  // Time to calculate some Corrections bitches!!!
+  // Time to calculate some Corrections 
   //
   //**************************************************************
 
   //
   // This is used only when pulling in multiple runs
   //
-  //   TFile file(Form("$QWSCRATCH/bmod_tree_%i-%i.root", run.front(), run.back()),"update");
+  // TFile file(Form("$QWSCRATCH/bmod_tree_%i-%i.root", run.front(), run.back()),"update");
 
-  TFile file(Form("$QW_ROOTFILES/bmod_tree_%i.root", run.front()),"update");
+  TFile file(Form("$QW_ROOTFILES/bmod_tree_%i.root", run.front()),"RECREATE");
 
   TTree *mod_tree = new TTree("Mod_Tree", "Modulation Analysis Results Tree");
 
@@ -343,7 +344,7 @@ void QwModulation::ComputeYieldCorrections()
 
   for(Int_t i = 0; i < fNDetector; i++){
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &YieldCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("%s_Device_Error_Code", HDetectorList[i].Data()), &HDetBranch[i][fDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("correction_%s", DetectorList[i].Data()), &correction[i], Form("correction_%s/D", DetectorList[i].Data())); 
@@ -387,15 +388,10 @@ void QwModulation::ComputeYieldCorrections()
 	  if( (i % 100000) == 0 ){}
 	}
 
-//      Used when not normalizing dY/Y in earlier function (near human-readable)
-//
-// 	correction = temp_correction/yield_qwk_mdallbars_hw_sum;
-
    	correction[j] = temp_correction;                                  
 //   	correction = temp_correction + 0.0167297*asym_qwk_charge_hw_sum;
 
-	YieldCorrection[j] = HDetBranch[j][0] - correction[j];
-// 	mod_tree->Fill();
+	AsymmetryCorrection[j] = HDetBranch[j][0] - correction[j];
 	temp_correction = 0;
       }
       mod_tree->Fill();
@@ -484,8 +480,7 @@ void QwModulation::CalculateSlope(Int_t fModType)
   Double_t slope = 0;
   Double_t fPhase[5]={0.26, 0.26, 0.0, 1.08, 1.08};
 
- 
-  if(fNEvents < 2){
+  if(fNEvents < 3){
     std::cout << red << "Error in run:: Number of good events too small, exiting." << normal << std::endl;
     return;
   }
@@ -519,7 +514,7 @@ void QwModulation::CalculateSlope(Int_t fModType)
 
       slope = sigma_dc/sigma_cc;
       sigma_slope = TMath::Sqrt((sigma_dd - ( (sigma_dc*sigma_dc)/sigma_cc) )/(sigma_cc*( fNEvents -2 )));
-      
+
       //
       // Load Yields in to make Yield Correction a little easier in the end.
       //
@@ -594,25 +589,38 @@ void QwModulation::SetFileName(TString & filename)
   return;
 }
 
+Int_t QwModulation::ConvertPatternNumber(Int_t global)
+{
+  Int_t key[16] = {0, 1, 2, 3, 4, 0, 0, 0, 0, 
+		   0, 0, 0, 1, 2, 3, 4};
+  if(global < 0) return(-1);
+  if(global < 11) fSingleCoil = true;
+
+  return(key[global]);
+}
+
 void QwModulation::PilferData()
 {
 
   Int_t fEvCounter = 0;
   Int_t error[5] = {0};
+  Int_t pattern = -1;
 
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
   std::cout << "Number of entries: " << nentries << std::endl;
 
-
   for(Long64_t i = 0; i < nentries; i++){
     LoadTree(i);
     if(i < 0) break;
     fChain->GetEntry(i);
 
+    if((i % 100000) == 0) std::cout << other << "processing: " << i << normal << std::endl;
+    pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
+
     if(fReduceMatrix_x != 1){
-      if(bm_pattern_number == 11 && ramp_hw_sum > 0 ){
+      if(pattern == 0 && ramp_hw_sum > 0 && i < nentries){
 	std::cout << "X Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -634,14 +642,15 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(bm_pattern_number == 11 && ramp_hw_sum > 0);
+	}while(pattern == 0 && ramp_hw_sum > 0 && i < nentries);
+
 	CalculateSlope(fXModulation);
 	fNEvents = 0;
       }
     }
 
     if(fReduceMatrix_y != 1){      
-      if(bm_pattern_number == 12 && ramp_hw_sum > 0 ){
+      if(pattern == 1 && ramp_hw_sum > 0 && i < nentries){
 	std::cout << "Y Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -662,13 +671,13 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(bm_pattern_number == 12 && ramp_hw_sum > 0);
+	}while(pattern == 1 && ramp_hw_sum > 0 && i < nentries);
 	CalculateSlope(fYModulation);
 	fNEvents = 0;
       }
     }
     if(fReduceMatrix_e != 1){    
-      if(bm_pattern_number == 13 && ramp_hw_sum > 0 ){
+      if(pattern == 2 && ramp_hw_sum > 0 && i < nentries){
 	std::cout << "E Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -690,14 +699,14 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(bm_pattern_number == 13 && ramp_hw_sum > 0);
+	}while(pattern == 2 && ramp_hw_sum > 0 && i < nentries);
 	CalculateSlope(fEModulation);
 	fNEvents = 0;
       }
     }
 
     if(fReduceMatrix_xp != 1){
-      if(bm_pattern_number == 14 && ramp_hw_sum > 0 ){
+      if(pattern == 3 && ramp_hw_sum > 0 && i < nentries){
 	std::cout << "XP Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -719,14 +728,14 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(bm_pattern_number == 14 && ramp_hw_sum > 0);
+	}while(pattern == 3 && ramp_hw_sum > 0 && i < nentries);
 	CalculateSlope(fXPModulation);
 	fNEvents = 0;
       }
     }
 
       if(fReduceMatrix_yp != 1){      
-	if(bm_pattern_number == 15 && ramp_hw_sum > 0 ){
+	if(pattern == 4 && ramp_hw_sum > 0 && i < nentries){
 	  std::cout << "YP Modulation found" << std::endl;
 	  do{
 	  fChain->GetEntry(i);
@@ -748,7 +757,7 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(bm_pattern_number == 15 && ramp_hw_sum > 0);
+	}while(pattern == 4 && ramp_hw_sum > 0 && i < nentries);
 	  CalculateSlope(fYPModulation);
 	  fNEvents = 0;
 	}
@@ -978,7 +987,7 @@ void QwModulation::LoadRootFile(TString filename, TChain *tree)
   if(!found){
     filename = Form("Qweak_%d.*.trees.root", run_number);
     found = FileSearch(filename, tree);
-    std::cerr << "Couldn't find QwPass1_*.trees.root trying "
+    std::cerr << "Couldn't find QwPass<#>_*.trees.root trying "
 	      << filename
 	      << std::endl;
     if(!found){
@@ -998,6 +1007,7 @@ void QwModulation::Write(){
   //
   //********************************************
 
+  gSystem->Exec("umask 002");
   gSystem->Exec(Form("rm -rf slopes_%i", run.front()));
   gSystem->Exec(Form("mkdir slopes_%i", run.front()));
   gSystem->Exec(Form("rm -rf regression_%i", run.front()));
@@ -1065,17 +1075,18 @@ void QwModulation::CleanFolders()
   return;
 }
 
-void QwModulation::SetFlags()
-{
+// void QwModulation::SetFlags()
+// {
 
-  fXinit  = false;
-  fYinit  = false;
-  fEinit  = false;
-  fXPinit = false;
-  fYPinit = false;
+//   fXinit  = false;
+//   fYinit  = false;
+//   fEinit  = false;
+//   fXPinit = false;
+//   fYPinit = false;
+//   fSingleCoil = false;
 
-  return;
-}
+//   return;
+// }
 
 void QwModulation::CheckFlags()
 {

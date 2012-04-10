@@ -30,7 +30,8 @@ Int_t main(Int_t argc, Char_t *argv[])
   TF1 *linear = new TF1("linear", "[0] + [1]*x", -1.0, 1.0);
 
   Int_t n = 1;
-  Int_t pNum[5] = {11, 14, 13, 12, 15};
+//   Int_t pNum[5] = {11, 14, 13, 12, 15};
+  Int_t pNum[5] = {0, 1, 2, 3, 4};
   Int_t entries;
   Int_t fResolution = 300;
 
@@ -126,7 +127,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   //********************************************
 
   for(Int_t i = 0; i < modulation->GetModNumber(); i++)
-    cut_mod[i] = Form(" (ErrorFlag == 0x4018080)  && yield_bm_pattern_number == %i", pNum[i]);
+    cut_mod[i] = Form("(ErrorFlag==0x4018080) && yield_bm_pattern_number==%i || yield_bm_pattern_number==%i", (pNum[i] + 11), pNum[i]);
   for(Int_t i = 0; i < modulation->GetModNumber(); i++)
     cut_nat[i] = Form(" (ErrorFlag == 0) ", pNum[i]);
 
@@ -435,7 +436,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
     TH2F *temp3 = new TH2F("temp3", "temp3", 150, -1.0, 1.0, 150, 160.0, 180.0);    
     mod_tree->Draw(Form("yield_qwk_charge:yield_%s>>temp3", modulation->MonitorList[i].Data()), 
-		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i", pNum[i]),"prof");
+		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i || yield_bm_pattern_number == %i", (pNum[i]+11), pNum[i]),"prof");
     temp3 = (TH2F *)gDirectory->Get("temp3");
     meanx = temp3->GetMean(1);
     meany = temp3->GetMean(2);
@@ -450,7 +451,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
     (modulation->ChargeAsymHistogram[i])->SetErrorOption("i");    
     mod_tree->Draw(Form("yield_qwk_charge:yield_%s>>prof_charge_asym_%i", modulation->MonitorList[i].Data(), pNum[i]), 
- 		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i", pNum[i]),"");
+ 		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i || yield_bm_pattern_number == %i", (pNum[i]+11), pNum[i]),"");
     
     modulation->ChargeAsymHistogram[i] = (TProfile *)gDirectory->Get(Form("prof_charge_asym_%i", pNum[i]));
     modulation->ChargeAsymHistogram[i]->SetAxisRange(meany - 2.0, meany + 2.0 , "Y");

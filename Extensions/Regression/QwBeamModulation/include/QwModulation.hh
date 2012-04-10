@@ -249,6 +249,7 @@ public :
   Bool_t fEinit;
   Bool_t fXPinit;
   Bool_t fYPinit;
+  Bool_t fSingleCoil;
 
   QwModulation(TChain *tree = 0);
   ~QwModulation();
@@ -257,6 +258,7 @@ public :
   Int_t    GetEntry(Long64_t entry);
   Int_t    ReadConfig(QwModulation *);
   Int_t    ErrorCodeCheck(TString);
+  Int_t    ConvertPatternNumber(Int_t);
 
   Long64_t LoadTree(Long64_t entry);
 
@@ -287,7 +289,7 @@ public :
   void     Write();
   void     Clean(void);
   void     CleanFolders(void);
-  void     SetFlags(void);
+//   void     SetFlags(void);
   void     CheckFlags(void);
 
   Bool_t   Notify();

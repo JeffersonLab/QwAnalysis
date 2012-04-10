@@ -1,0 +1,96 @@
+#!/bin/bash
+SRC_LRB="/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression/lrb_rootfiles"
+SRC="/volatile/hallc/qweak/QwAnalysis/run1/rootfiles"
+
+
+slug_num=$1
+
+run_list="`cat slug${slug_num}_goodruns_list.txt | awk '{print $1}' `"
+#run_list="`cat slug${slug_num}_goodruns_list.txt`"
+#runlet_list="`cat slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
+unreg_rootfile_status=0
+reg_rootfile_status=0
+for run in ${run_list[@]}
+do
+	runlet_list="`cat slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
+	#echo " $run"
+	for runlet in ${runlet_list[@]}
+	do
+	  #echo " `ls -l ${SRC}/QwPass4b_$run.*$runlet.root`"
+	  #arg_rootfile=`ls -l ${SRC}/QwPass4b_$run.*$runlet.root > /dev/null`
+#check the status of the last command #	  if [  $? == 0 ] 
+	  if [  `ls  ${SRC}/QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      unreg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/std_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/5+1_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/set3_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/set4_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/set5_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/set6_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/set7_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/set8_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+	  if [  `ls  ${SRC_LRB}/set9_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	  fi
+
+	done
+done
+
+if [ ${unreg_rootfile_status} -eq 1  ]
+then
+    echo "Unregressed rootfiles for the slug ${slug_num} are not ready "
+else
+    echo "Unregressed rootfiles for the slug ${slug_num} are ready "
+fi
+
+if [  ${reg_rootfile_status} -eq 1 ]
+then
+    echo "Regressed rootfiles for the slug ${slug_num} are not ready "
+else
+    echo "Regressed rootfiles for the slug ${slug_num} are ready "
+fi
+
+
+#	  if [  `ls  ${SRC}/QwPass4b_$run.*$runlet.root | wc -l ` -gt 0 ]
+#	      then
+#	      echo " unregressed root file exist:${SRC}/QwPass4b_$run.*$runlet.root "
+#	  else
+#	      echo " root file:${SRC}/QwPass4b_$run.*$runlet.root  does not exist "
+#	  fi
+
+#	  if [  `ls  ${SRC_LRB}/std_reg_QwPass4b_$run.*$runlet.root | wc -l ` -gt 0 ]
+#	      then
+#	      echo " STD regressed root file exist:${SRC}/std_reg_QwPass4b_$run.*$runlet.root "
+#	  else
+#	      echo " root file:${SRC}/std_reg_QwPass4b_$run.*$runlet.root  does not exist "
+#	  fi
+
+
+
