@@ -291,8 +291,20 @@ void QwOptions::Usage()
  */
 void QwOptions::Version()
 {
-  QwMessage << "QwAnalysis revision " << QWANA_SVN_REVISION << QwLog::endl;
-  QwMessage << QWANA_SVN_URL << QwLog::endl;
+  TString root_version = gROOT->GetVersion();
+  root_version += ", Date : ";
+  root_version += gROOT->GetVersionDate();
+  root_version += ", SVN : ";
+  root_version += gROOT->GetSvnRevision();
+  root_version += " ";
+  root_version += gROOT->GetSvnBranch();
+  
+
+  QwMessage << "\n Qweak Analysis Framework : " << fArgv[0] << QwLog::endl;
+  QwMessage << " * Revision: " << QWANA_SVN_REVISION << QwLog::endl;
+  QwMessage << " * URL: " << QWANA_SVN_URL << QwLog::endl;
+  QwMessage << " * Last Changed Rev: " << QWANA_SVN_LASTCHANGEDREVISION << QwLog::endl;
+  QwMessage << " * ROOT " << root_version << QwLog::endl;
 }
 
 
