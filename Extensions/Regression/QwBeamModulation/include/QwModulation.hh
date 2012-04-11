@@ -35,6 +35,12 @@ private:
   Int_t fSensHumanReadable;
   Int_t fNModType;
 
+  Int_t fXNevents;
+  Int_t fXPNevents;
+  Int_t fENevents;
+  Int_t fYNevents;
+  Int_t fYPNevents;
+
   static const Int_t fNMaxMon = 6;
   static const Int_t fNMaxDet = 35;
   static const Int_t fNMaxCoil = 6;
@@ -59,6 +65,11 @@ public :
   // Definitions for branches in the Mps_Tree
 
   Double_t        qwk_charge_hw_sum;
+  Double_t        qwk_charge_block0;
+  Double_t        qwk_charge_block1;
+  Double_t        qwk_charge_block2;
+  Double_t        qwk_charge_block3;
+  Double_t        qwk_charge_num_samples;
   Double_t        qwk_charge_Device_Error_Code;
   Double_t        bm_pattern_number;
   Double_t        event_number;
@@ -173,7 +184,13 @@ public :
   // Definitions for branches in the Hel_Tree
 
   Double_t        yield_bm_pattern_number;
-  Double_t        yield_qwk_charge;
+  Double_t        yield_qwk_charge_hw_sum;
+  Double_t        yield_qwk_charge_block0;
+  Double_t        yield_qwk_charge_block1;
+  Double_t        yield_qwk_charge_block2;
+  Double_t        yield_qwk_charge_block3;
+  Double_t        yield_qwk_charge_num_samples;
+  Double_t        yield_qwk_charge_Device_Error_Code;
   Double_t        mps_counter; 
   Double_t        yield_ramp_hw_sum;
   Double_t        yield_ramp_block0;
@@ -217,6 +234,7 @@ public :
   std::fstream config;
   std::fstream input;
   std::fstream slopes;
+  std::fstream diagnostic;
 
   FILE *regression;
 
