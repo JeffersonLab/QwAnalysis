@@ -9,23 +9,22 @@ Int_t main(Int_t argc, Char_t *argv[])
   TChain *mps_tree = new TChain("Mps_Tree");
 
   QwModulation *modulation = new QwModulation(mps_tree);
-  modulation->SetupMpsBranchAddress();
 
   if(argv[1] == NULL){
     modulation->PrintError("Error Loading:  no run number specified");
     exit(1);
   }
 
+  modulation->SetupMpsBranchAddress();
 //   TString test = argv[1];
 //   if(test.Contains("--Q", TString::kExact)) std::cout << "Charge!!!!" << std::endl;
 
-  modulation->run.push_back(atoi(argv[1]));
-  for(Int_t i = 0; i < (Int_t)modulation->run.size(); i++){
-    modulation->run_number = modulation->run[i];
-    filename = Form("QwPass*_%d*.trees.root", modulation->run[i]);
-    modulation->LoadRootFile(filename, mps_tree);
-    modulation->SetFileName(filename);
-  }
+  modulation->run_number = atoi(argv[1]);
+  modulation->GetOptions(argv);
+
+  filename = Form("QwPass*_%d*.trees.root", modulation->run_number);
+  modulation->LoadRootFile(filename, mps_tree);
+  modulation->SetFileName(filename);
 
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
 
@@ -55,11 +54,10 @@ Int_t main(Int_t argc, Char_t *argv[])
   TChain *hel_tree = new TChain("Hel_Tree");
   modulation->Init(hel_tree);
 
-  for(Int_t i = 0; i < (Int_t)modulation->run.size(); i++){
-    filename = Form("QwPass*_%d*.trees.root", modulation->run[i]);
-    modulation->LoadRootFile(filename, hel_tree);
-    modulation->SetFileName(filename);
-  }
+  filename = Form("QwPass*_%d*.trees.root", modulation->run_number);
+  modulation->LoadRootFile(filename, hel_tree);
+  modulation->SetFileName(filename);
+
   std::cout << "Setup Hell!" << std::endl;
   modulation->SetupHelBranchAddress();
   std::cout << "What!What! Corrections Bitches!" << std::endl;
