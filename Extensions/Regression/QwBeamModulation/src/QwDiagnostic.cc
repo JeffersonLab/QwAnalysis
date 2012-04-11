@@ -42,7 +42,7 @@ void QwDiagnostic::ReadSensitivities(void)
   char *token;
   Int_t n = -1;
 
-  sens_file.open(Form("slopes_%d/slopes.dat", run_number));
+  sens_file.open(Form("slopes_%d.dat", run_number));
   if(!sens_file.is_open()){
     std::cout << red << "Error opening slopes file" << normal << std::endl;
     exit(1);
@@ -87,12 +87,12 @@ void QwDiagnostic::Write(void){
 
   ReadSensitivities();
 
-  if( !IfExists( Form("regression_%i/regression.dat", run_number) ) ){
+  if( !IfExists( Form("regression_%i.dat", run_number) ) ){
     std::cout << red << "Error finding regression file.  Cleaning up directories..." << normal << std::endl;
     CleanFolders();
     exit(1);
   }
-  regression = fopen(Form("regression_%i/regression.dat", run_number), "a");
+  regression = fopen(Form("regression_%i.dat", run_number), "a");
 
   // Uncorrected Slopes during modulation
 

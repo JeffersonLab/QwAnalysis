@@ -16,8 +16,9 @@ QwModulation::QwModulation(TChain *tree):
   fXPModulation(1),fYPModulation(4), fNEvents(0),
   fReduceMatrix_x(0), fReduceMatrix_y(0), fReduceMatrix_xp(0),
   fReduceMatrix_yp(0), fReduceMatrix_e(0), fSensHumanReadable(0),
-  fNModType(5), fXinit(false), fYinit(false), fEinit(false), 
-  fXPinit(false), fYPinit(false), fSingleCoil(false) 
+  fNModType(5), fXNevents(0), fXPNevents(0), fENevents(0), 
+  fYNevents(0), fYPNevents(0),fXinit(false), fYinit(false), 
+  fEinit(false), fXPinit(false), fYPinit(false), fSingleCoil(false) 
 {
    Init(tree);
 }
@@ -59,8 +60,8 @@ void QwModulation::SetupMpsBranchAddress()
    fChain->SetBranchStatus("fgx1", 1);
    fChain->SetBranchStatus("fgx2", 1);
    fChain->SetBranchStatus("fge", 1);
-   fChain->SetBranchStatus("fgy1", 1);
    fChain->SetBranchStatus("fgy2", 1);
+   fChain->SetBranchStatus("fgy1", 1);
 
    fChain->SetBranchAddress("qwk_charge", &qwk_charge_hw_sum, &b_qwk_charge);
    fChain->SetBranchAddress("bm_pattern_number", &bm_pattern_number, &b_bm_pattern_number);
@@ -89,7 +90,7 @@ void QwModulation::SetupHelBranchAddress()
   fChain->SetBranchStatus("yield_qwk_charge", 1);
   fChain->SetBranchStatus("asym_qwk_charge", 1);
 
-  fChain->SetBranchAddress("yield_qwk_charge",&yield_qwk_charge,&b_yield_qwk_charge);
+  fChain->SetBranchAddress("yield_qwk_charge",&yield_qwk_charge_hw_sum ,&b_yield_qwk_charge);
   fChain->SetBranchAddress("yield_bm_pattern_number",&yield_bm_pattern_number,&b_yield_bm_pattern_number);
   fChain->SetBranchAddress("mps_counter",&mps_counter,&b_mps_counter);
   fChain->SetBranchAddress("yield_ramp",&yield_ramp_hw_sum,&b_yield_ramp);
@@ -200,19 +201,31 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 	code = 1;
       }
     }
+    if(qwk_charge_Device_Error_Code != 0){
+      code = 1;
+    }
+
     if( !((subblock > -50) && (subblock < 50)) )
       code = 1;
     if( (ramp_hw_sum > 0) && ((UInt_t)ErrorFlag != 0x4018080)  ){
+
 #ifdef __VERBOSE_ERRORS
+
       std::cout << red << "Mps Tree::Modulation ErrorFlag" << normal << std::endl;
+
 #endif
+
       code = 1;
     }
 
     if( (ramp_hw_sum < 0) && ((UInt_t)ErrorFlag != 0) ){
+
 #ifdef __VERBOSE_ERRORS
+
       std::cout << red << "Mps Tree::Natural Motion ErrorFlag" << normal << std::endl;
+
 #endif
+
       code = 1;
     }
 
@@ -232,7 +245,11 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
     }
     if( !((subblock > -50) && (subblock < 50)) )
       code = 1;
-    if(yield_qwk_mdallbars_Device_Error_Code != 0){
+//     if(yield_qwk_mdallbars_Device_Error_Code != 0){
+//       code = 1;
+//     }
+    
+    if(yield_qwk_charge_Device_Error_Code != 0){
       code = 1;
     }
   }
@@ -334,7 +351,7 @@ void QwModulation::ComputeAsymmetryCorrections()
 
   correction.resize(fNDetector);
   mod_tree->Branch("mps_counter", &mps_counter, "mps_counter/D"); 
-  mod_tree->Branch("yield_qwk_charge", &yield_qwk_charge, "yield_qwk_charge/D"); 
+  mod_tree->Branch("yield_qwk_charge", &yield_qwk_charge_hw_sum, "yield_qwk_charge/D"); 
   mod_tree->Branch("yield_bm_pattern_number", &yield_bm_pattern_number, "yield_bm_pattern_number/D"); 
   mod_tree->Branch("yield_ramp", &yield_ramp_hw_sum, "yield_ramp_hw_sum/D"); 
   mod_tree->Branch("ErrorFlag", &ErrorFlag, "ErrorFlag/D"); 
@@ -489,14 +506,24 @@ void QwModulation::CalculateSlope(Int_t fModType)
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" << CoilData[fModType].size() << std::endl;
     return;
   }
+   
+  for(Int_t det = 0; det < fNDetector; det++){
     
-    for(Int_t det = 0; det < fNDetector; det++){
-    
-      if(DetectorData[det].size() <= 0){
-	std::cout << "!!!!!!!!!!!!!!!!! Illegal Detector vector length:\t" << DetectorData[det].size() << std::endl;
-	return;
-      }
-    
+    if(DetectorData[det].size() <= 0){
+      std::cout << "!!!!!!!!!!!!!!!!! Illegal Detector vector length:\t" << DetectorData[det].size() << std::endl;
+      return;
+    }
+
+   //*******************************
+
+    if(fModType == fXModulation)  fXNevents += fNEvents;
+    if(fModType == fYModulation)  fYNevents += fNEvents;
+    if(fModType == fEModulation)  fENevents += fNEvents;
+    if(fModType == fXPModulation) fXPNevents += fNEvents;
+    if(fModType == fYPModulation) fYPNevents += fNEvents;
+
+    //*******************************
+   
       for(Int_t evNum = 0; evNum < fNEvents; evNum++) c_mean += TMath::Sin( (2*TMath::Pi()*((CoilData[fModType][evNum]-fRampPedestal))/(3754-fRampPedestal)) + fPhase[fModType]);
       c_mean /=fNEvents;
       
@@ -1007,14 +1034,17 @@ void QwModulation::Write(){
   //
   //********************************************
 
-  gSystem->Exec("umask 002");
-  gSystem->Exec(Form("rm -rf slopes_%i", run.front()));
-  gSystem->Exec(Form("mkdir slopes_%i", run.front()));
-  gSystem->Exec(Form("rm -rf regression_%i", run.front()));
-  gSystem->Exec(Form("mkdir regression_%i", run.front()));
+  gSystem->Exec("chmod 664");
+//   gSystem->Exec(Form("rm -rf slopes_%i", run.front()));
+//   gSystem->Exec(Form("mkdir slopes_%i", run.front()));
+//   gSystem->Exec(Form("rm -rf regression_%i", run.front()));
+//   gSystem->Exec(Form("mkdir regression_%i", run.front()));
+//   gSystem->Exec(Form("rm -rf diagnostic_%i", run.front()));
+//   gSystem->Exec(Form("mkdir diagnostic_%i", run.front()));
 
-  slopes.open(Form("slopes_%i/slopes.dat", run.front()) , fstream::out);
-  regression = fopen(Form("regression_%i/regression.dat", run.front()), "w");
+  slopes.open(Form("slopes_%i.dat", run.front()) , fstream::out);
+  regression = fopen(Form("regression_%i.dat", run.front()), "w");
+  diagnostic.open(Form("diagnostic_%i.dat", run.front()) , fstream::out);
 
   if( (slopes.is_open() && slopes.good()) ){
     for(Int_t i = 0; i < fNDetector; i++){
@@ -1032,6 +1062,14 @@ void QwModulation::Write(){
     exit(1);
   }
 
+  if( (diagnostic.is_open() && diagnostic.good()) ){
+    diagnostic << fXNevents  << std::endl;
+    diagnostic << fXPNevents << std::endl;
+    diagnostic << fENevents  << std::endl;
+    diagnostic << fYNevents  << std::endl;
+    diagnostic << fYPNevents << std::endl;
+    diagnostic << (fXNevents + fXPNevents + fENevents + fYNevents + fYPNevents) << std::endl;
+  }
   //***************************************************************
   // Write output file for regression - This will go into the DB.  
   // All that is included here is the slopes(and errors soon...),
@@ -1056,6 +1094,7 @@ void QwModulation::Write(){
 
   fclose(regression);
   slopes.close();
+  diagnostic.close();
   
   return;
 }
