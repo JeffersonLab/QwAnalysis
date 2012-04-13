@@ -1,0 +1,100 @@
+#!/usr/bin/perl -w
+#
+# Reads runlist and submits jobs ot the farm.
+#
+#
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Cwd;
+
+my $runs;
+my $verbose;
+my $help;
+my $name;
+my $dir;
+my $analyzer;
+my $pass4;
+
+my $result = GetOptions("runs=s"     => \$runs,
+			"verbose"    => \$verbose,
+			"analyzer"   => \$analyzer,
+			"pass4"      => \$pass4,
+			"help"       => \$help);
+
+if($help){
+    usage();
+}
+
+if(!$analyzer){
+    $analyzer = "/u/home/jhoskins/pass4b/QwAnalysis/";
+    print "using $analyzer to process data.";
+}
+my @range = GetRuns($runs);
+
+$name = getpwuid($<);
+if(!$pass4){
+    $dir = getcwd();
+}
+else{
+    $dir = "/u/home/jhoskins/pass4b/QwAnalysis/Extensions/Regression/QwBeamModulation";
+}
+
+foreach(@range){
+
+    my $output;
+
+    $output .= "PROJECT: qweak\n";
+    $output .= "TRACK: analysis\n";
+    $output .= "JOBNAME: qwbeammod\n";
+    $output .= "OS: Linux64\n";
+    $output .= "MEMORY: 1800 MB\n";
+    $output .= "COMMAND:sh $dir\/bmod.bash $_ $analyzer > bmod.out\n";
+    $output .= "OUTPUT_DATA: bmod.out\n";
+    $output .= "OUTPUT_TEMPLATE:$dir\/bmod.out\n";
+    $output .= "MAIL: $name\@jlab.org\n";
+
+    open(OUT, ">bmod.config") or die "Can't open file descriptor 'OUT': $!\n";
+    if($verbose){
+	print $output;
+    }
+    print OUT $output;
+    close(OUT);
+    system("jsub bmod.config");
+    undef $output;
+}
+
+
+sub GetRuns {
+    my $temp = $_[0];
+    my @run_range;
+
+    if($temp =~/[.\d]+\:[.\d]/){
+        @run_range = split(/\:/,$temp);
+	return @run_range;
+    }
+    elsif($temp =~ /^[.\d]+$/){
+	@run_range = $temp;
+	return @run_range;
+    }
+    elsif($temp =~ /,/){
+	@run_range = split(/,/, $temp);
+	return @run_range;
+    }
+    else{
+	die("You must specify a run range.  --help for more info");
+    }
+} 
+
+sub usage{
+    print "./qw_jsub_bm.pl <options>";
+    print "\n\t--runs <run range>     1234:4321 or 1234,5678 or 1234";
+    print "\n\t--analyzer             location of analyzer, ie. \$QWANALYSIS";
+    print "\n\t--verbose              more print messages." ;
+    print "\n\t--pass4                Use standard analyzer.  This is for pass4b, otherwise it uses working directory.";
+    print "\n\t--help                 help!\n";
+
+    exit;
+}
