@@ -1105,7 +1105,7 @@ void QwModulation::Write(){
   //
   //********************************************
 
-  gSystem->Exec("chmod 664");
+  gSystem->Exec("umask 002");
 
   slopes.open(Form("slopes_%i.dat", run_number) , fstream::out);
   regression = fopen(Form("regression_%i.dat", run_number), "w");
