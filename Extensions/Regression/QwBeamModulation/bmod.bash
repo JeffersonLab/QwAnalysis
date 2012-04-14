@@ -17,7 +17,7 @@ echo "using $QWANALYSIS for analyzer directory."
 cd $QWANALYSIS
 . $QWANALYSIS/SetupFiles/SET_ME_UP.bash
 
-exit
+#exit
 
 # ------------------------------------------------------------------- #
 # Here I am just setting up my local enviroment variables             #
