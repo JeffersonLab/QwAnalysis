@@ -7,15 +7,17 @@ umask 002
 
 USER=`whoami`
 
-QWANALYSIS=${2}
-
-if [ -n $QWANALYSIS ]; then
-    QWANALYSIS=/u/home/jhoskins/pass4b/QwAnalysis/
+if [ -n "$2" ]; then
+    export QWANALYSIS=${2}
+else
+    export QWANALYSIS=/u/home/jhoskins/pass4b/QwAnalysis/
 fi
 
 echo "using $QWANALYSIS for analyzer directory."
 cd $QWANALYSIS
 . $QWANALYSIS/SetupFiles/SET_ME_UP.bash
+
+exit
 
 # ------------------------------------------------------------------- #
 # Here I am just setting up my local enviroment variables             #
