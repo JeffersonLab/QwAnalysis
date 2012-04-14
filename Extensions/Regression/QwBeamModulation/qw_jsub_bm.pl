@@ -20,7 +20,7 @@ my $pass4;
 
 my $result = GetOptions("runs=s"     => \$runs,
 			"verbose"    => \$verbose,
-			"analyzer"   => \$analyzer,
+			"analyzer=s" => \$analyzer,
 			"pass4"      => \$pass4,
 			"help"       => \$help);
 
@@ -32,6 +32,9 @@ if(!$analyzer){
     $analyzer = "/u/home/jhoskins/pass4b/QwAnalysis/";
     print "using $analyzer to process data.";
 }
+
+print "using $analyzer to process data.";
+
 my @range = GetRuns($runs);
 
 $name = getpwuid($<);
