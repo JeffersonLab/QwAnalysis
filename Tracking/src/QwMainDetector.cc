@@ -1569,33 +1569,35 @@ void QwMainDetector::AddSoftwareMeantimeToHits(Bool_t option)
       md_mt_time  -> Print(local_debug);
 
       QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-          region, package, plane, direction, 
-          md_mt_time->GetSoftwareMeantimeHitElement()
-          );
+				  region, package, plane, direction, 
+				  md_mt_time->GetSoftwareMeantimeHitElement()
+				  );
       software_meantime_hit.SetTimens(md_mt_time->GetMeanTime());
       fTDCHits.push_back(software_meantime_hit);
-
+      
       QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-          region, package, plane, direction,
-          md_mt_time->GetSoftwarePositiveHitElement()
-          );
+				  region, package, plane, direction,
+				  md_mt_time->GetSoftwarePositiveHitElement()
+				  );
       software_positive_hit.SetTimens(md_mt_time->GetPositiveValue());
+      software_positive_hit.SetHitNumberR(md_mt_time->GetPositiveHitId());
       fTDCHits.push_back(software_positive_hit);
-
+      
       QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-          region, package, plane, direction, 
-          md_mt_time->GetSoftwareNegativeHitElement()
-          );
+				  region, package, plane, direction, 
+				  md_mt_time->GetSoftwareNegativeHitElement()
+				  );
       software_negative_hit.SetTimens(md_mt_time->GetNegativeValue());
+      software_negative_hit.SetHitNumberR(md_mt_time->GetNegativeHitId());
       fTDCHits.push_back(software_negative_hit);
-
+      
       QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-          region, package, plane, direction, 
-          md_mt_time->GetSoftwareSubtractHitElement()
-          );
+				  region, package, plane, direction, 
+				  md_mt_time->GetSoftwareSubtractHitElement()
+				  );
       software_subtract_hit.SetTimens(md_mt_time->GetSubtractTime());
       fTDCHits.push_back(software_subtract_hit);
-
+      
     }//end internal for "v_smt_idx"
 
   } //end external for "v_plane_idx"
