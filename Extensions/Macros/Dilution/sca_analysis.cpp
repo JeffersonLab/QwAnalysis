@@ -12,14 +12,17 @@
 #include <TH1F.h>
 #include <TStyle.h>
 
-void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, TString mycut = "") {
+void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minimum = 0.0, TString mycut = "") {
   gROOT->Reset();
   gROOT->SetStyle("Plain");
 
   //Set bcm calibration (good as of Oct 2011)
-  const TString bcm1 = "((sca_bcm1*1e-2)-250.34)/45.75"; 
-  const TString bcm2 = "((sca_bcm2*1e-2)-250.4)/44.92"; 
-  const TString bcm = "sca_bcm2>20e3"; 
+//  const TString bcm1 = "((sca_bcm1*1e-2)-250.34)/45.75";  //run1
+//  const TString bcm2 = "((sca_bcm2*1e-2)-250.4)/44.92";  //run1
+  const TString bcm1 = "((sca_bcm1*1e-2)-249.7)/43.46"; //run2
+  const TString bcm2 = "((sca_bcm2*1e-2)-249.9)/41.95"; //run2
+  const TString bcm = bcm1;
+  Int_t bcmoffset = 100*bcm_minimum;
 // const TString bcm = "sca_bcm2>0"; 
 
   TString cuts = mycut.IsNull() ? mycut : "&&"+mycut;
@@ -81,19 +84,30 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, TString mycut = ""
   std::cout <<"Drawing diagnostic plots...\n";
 
   TCanvas *diagnostics = new TCanvas("diagnostics");
-  diagnostics->Divide(3);
+  diagnostics->Divide(2,2);
 
   diagnostics->cd(1);
   gPad->SetLogy();
-  event_tree->Draw("sca_4MHz/4e6",Form("%s", cuts.Data()));
+  event_tree->Draw("sca_4MHz/4e6>>clock",Form("%s", cuts.Data()));
 
   diagnostics->cd(2);
   gPad->SetLogy();
-  event_tree->Draw("sca_bcm1",Form("%s>0 %s", bcm1.Data(), cuts.Data()));
+  event_tree->Draw(Form("%s>>h1", bcm1.Data()),Form("%s>0 %s", bcm1.Data(), cuts.Data()));
+  h1->Fit("gaus");
+  gPad->Modified();
 
   diagnostics->cd(3);
   gPad->SetLogy();
-  event_tree->Draw("sca_bcm2",Form("%s>0 %s ", bcm2.Data(), cuts.Data()));
+  event_tree->Draw(Form("%s>>h2", bcm2.Data()),Form("%s>0 %s ", bcm2.Data(), cuts.Data()));
+  h2->Fit("gaus");
+  gPad->Modified();
+
+  diagnostics->cd(4);
+  gPad->SetLogy();
+  event_tree->Draw(Form("%s>>h3", bcm1.Data()),Form("%s>%i/100 %s", bcm1.Data(), bcmoffset, cuts.Data()));
+  h3->Fit("gaus");
+  gPad->Modified();
+
 //diagnostic plots end
 
   //Let's just start with the allbars data
@@ -104,7 +118,7 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, TString mycut = ""
 
     md_can->cd(canvas[j]);
     gPad -> SetLogy();
-    event_tree->Draw(Form("1e-2*%s>>mdall_%i",mdall[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>0  %s",mdall[j].Data(), lowcut, highcut,bcm.Data(), cuts.Data()));
+    event_tree->Draw(Form("1e-2*%s>>mdall_%i",mdall[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100  %s",mdall[j].Data(), lowcut, highcut,bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("mdall_%i",j+1));
     std::cout <<mdall[j].Data() <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() <<std::endl;
     htmp->Fit("gaus");
@@ -121,7 +135,7 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, TString mycut = ""
 
     mdp_can->cd(canvas[j]);
     gPad -> SetLogy();
-    event_tree->Draw(Form("((1e-2)*%s)>>mdp_%i",mdp[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>0 %s",mdp[j].Data(), lowcut, highcut,bcm.Data(), cuts.Data()));
+    event_tree->Draw(Form("((1e-2)*%s)>>mdp_%i",mdp[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100 %s",mdp[j].Data(), lowcut, highcut,bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("mdp_%i",j+1));
     std::cout <<mdp[j].Data() <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() <<std::endl;
     htmp->Fit("gaus");
@@ -139,7 +153,7 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, TString mycut = ""
 
     mdm_can->cd(canvas[j]);
     gPad -> SetLogy();
-    event_tree->Draw(Form("((1e-2)*%s)>>mdm_%i",mdm[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>0  %s",mdm[j].Data(), lowcut, highcut, bcm.Data(), cuts.Data()));
+    event_tree->Draw(Form("((1e-2)*%s)>>mdm_%i",mdm[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100 %s",mdm[j].Data(), lowcut, highcut, bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("mdm_%i",j+1));
     std::cout <<mdm[j].Data() <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() <<std::endl;
     htmp->Fit("gaus");
@@ -156,7 +170,7 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, TString mycut = ""
   for (Int_t j=0; j<6; j++) {
     ts_can->cd(canvas_ts[j]);
     gPad -> SetLogy();
-    event_tree->Draw(Form("((1e-2)*%s)>>%s",trigscint[j].Data(),trigscint[j].Data()),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>0  %s",trigscint[j].Data(), lowcut, highcut, bcm.Data(), cuts.Data()));
+    event_tree->Draw(Form("((1e-2)*%s)>>%s",trigscint[j].Data(),trigscint[j].Data()),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100  %s",trigscint[j].Data(), lowcut, highcut, bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("%s",trigscint[j].Data()));
     std::cout <<Form("%s",trigscint[j].Data()) <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() << std::endl;
     htmp->Fit("gaus");
