@@ -773,7 +773,7 @@ sub submit_one_job($$$@) {
 	print "Ready to submit $command_file\n";
     } else {
 	print "Submitting $command_file\n";
-	my $rc=system("jsub","-xml","$command_file");
+	my $rc=system("/site/bin/jsub","-xml","$command_file");
     }
 }
 

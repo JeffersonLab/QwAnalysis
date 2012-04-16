@@ -12,7 +12,7 @@ if [[ ! -n "$WORKDIR" || ! -d $WORKDIR ]]; then
     exit
 fi
 
-linRegBluePath=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v5
+linRegBluePath=/u/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v5
 outputPath=/volatile/hallc/qweak/QwAnalysis/run2/pass1regression
 rootFileStem=QwPass1_
 dbName=qw_run2_pass1
