@@ -268,7 +268,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
     
     for(Int_t i = 0; i < fNMonitor; i++){
       if( (Int_t)MonBranch[i + 1][fDeviceErrorCode] != 0 ){
-	code = 1;
+ 	code = 1;
       }
     }
     for(Int_t i = 0; i < fNDetector; i++){

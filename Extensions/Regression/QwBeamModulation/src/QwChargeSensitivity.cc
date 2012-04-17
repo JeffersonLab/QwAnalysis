@@ -369,7 +369,7 @@ Bool_t QwChargeSensitivity::CheckFlags(void){
 void QwChargeSensitivity::Write()
 {
   
-  charge_sens = fopen( Form("charge_sensitivity_%d.dat", run_number),"w");
+  charge_sens = fopen( Form("config/charge_sensitivity_%d.dat", run_number),"w");
   std::cout << other << "Writing non-linearity file. " << run_number << normal << std::endl;
   
   if(IfExists(Form("config/charge_sensitivity_%d.dat", run_number)) ){

@@ -49,7 +49,16 @@ else
     exit
 fi
 
-./qwbeammod ${RUN_NUMBER}
+./qwcharge ${RUN_NUMBER}
+
+if [ $? -ne 0 ]; then
+    echo "There was and error in the completion of qwcharge"
+    exit
+fi
+
+mv -v charge_sensitivity_${RUN_NUMBER}.dat config/
+
+./qwbeammod ${RUN_NUMBER} --q
 
 if [ $? -ne 0 ]; then
     echo "There was and error in the completion of qwbeammod"
