@@ -73,19 +73,16 @@ then
     exit
 fi
 
-# -------------------------------------------
+echo Upload data to DB
+if [[ -n "$PERL5LIB" ]]; then
+    export PERL5LIB=${scriptPath}:${PERL5LIB}
+else
+    export PERL5LIB=${scriptPath}
+fi
+echo ${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
 
-#echo Upload data to DB
-#if [[ -n "$PERL5LIB" ]]; then
-#    export PERL5LIB=${scriptPath}:${PERL5LIB}
-#else
-#    export PERL5LIB=${scriptPath}
-#fi
-#echo ${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
+${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
 
-#${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
-
-# -------------------------------------------
 
 # echo "mv -v ${REGRESSION}/ ${ROOTFILE} ${SLOPES}/ ${FINAL_PATH}/"
 # mv -v ${REGRESSION}/ ${SLOPES}/ ${BMOD_OUT}/ ${FINAL_PATH}/
