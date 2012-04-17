@@ -46,7 +46,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   modulation->CalculateWeightedSlope();
   modulation->MatrixFill();
   
-  std::cout << "Casting Level 10 death on Mps_Tree!!!!" << std::endl;
+  std::cout << "Closing Mps_Tree" << std::endl;
   delete mps_tree;
   modulation->Clean();
 
@@ -58,9 +58,9 @@ Int_t main(Int_t argc, Char_t *argv[])
   modulation->LoadRootFile(filename, hel_tree);
   modulation->SetFileName(filename);
 
-  std::cout << "Setup Hell!" << std::endl;
+  std::cout << "Setting up Hel_Tree" << std::endl;
   modulation->SetupHelBranchAddress();
-  std::cout << "What!What! Corrections Bitches!" << std::endl;
+  std::cout << "Calculating Corrections" << std::endl;
   modulation->ComputeAsymmetryCorrections();
 
   return 0;
