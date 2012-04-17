@@ -10,20 +10,18 @@ Double_t polynomial(Double_t *x, Double_t *par) {
   return par[0] + par[1]*x[0] + par[2]*x[0]*x[0] + par[3]*x[0]*x[0]*x[0];
 }
 
-void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
+void theoryAsym(Int_t Cedge)//,Double_t par[]) //Float_t *calcAsym) //
 {
-  const Int_t nPoints=1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
   gStyle->SetOptFit(1);
   Bool_t debug=1;
   //  Double_t par[4];
   Double_t xPrime[nPoints],rho[nPoints];
   Float_t rhoStrip,calcAsym1,xStrip,dsdrho1,dsdrho;  
-  ofstream theoreticalAsym,QEDasym,crossSection;
-  Float_t k,re,gamma,R_bend,a,kprimemax,asymmax,rho0,k0prime,dx0prime,p_beam,r,h,kk,x1,kDummy;
-  Float_t p_edge,r_edge,th_edge,hprime,kprime,x2;//,maxdist,rho;
-
-  Float_t thetabend = chicaneBend*pi/180; //(radians)
   Float_t calcAsym[nStrips];
+  ofstream theoreticalAsym,QEDasym,crossSection;
+  Float_t k,re,gamma,R_bend,a,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kk,x1,kDummy;
+  Float_t p_edge,r_edge,th_edge,hprime,kprime,x2;//,maxdist,rho;
+  Float_t thetabend = chicaneBend*pi/180; //(radians)
 
   re = alpha*hbarc/me;
   gamma=E/me; //electron gamma, eqn.20
@@ -35,7 +33,7 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
 
   rho0=1/(1+a);
   k0prime=rho0*kprimemax;
-  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
+  //  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
 
   p_beam =sqrt(E*E - me*me);
   r =p_beam/me*(hbarc/(2*xmuB*B_dipole));
@@ -44,7 +42,7 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
   x1 =kk+h;
   kDummy = kprimemax; ///initiating 
  
-  QEDasym.open("QEDasym.txt"); //!I don't really need to write this to a file
+  QEDasym.open(Form("%s/%s/QEDasym.txt",pPath,webDirectory));
   for (Int_t i = 0; i <nPoints; i++) {//xPrime[nPoints],rho[nPoints];
     xPrime[i]=0.0; ///initialize
     rho[i]=0.0;
@@ -67,7 +65,7 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
   QEDasym.close();
 
   //TCanvas *cTheoAsym = new TCanvas("theoAsym","Theoretical asymmetry",10,20,400,400);
-  TGraph *grtheory = new TGraph(Form("QEDasym.txt"), "%lg %lg");
+  TGraph *grtheory = new TGraph(Form("%s/%s/QEDasym.txt",pPath,webDirectory), "%lg %lg");
   grtheory->GetXaxis()->SetTitle("dist from compton scattered electrons(m)");
   grtheory->GetYaxis()->SetTitle("#rho");
   grtheory->GetYaxis()->CenterTitle();
@@ -84,27 +82,29 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
 //   fitFcn->GetParameters(par);
 //   printf("param[0]:%f,param[1]:%f,param[2]:%f\n",par[0],par[1],par[2]);
 
-  theoreticalAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge));
-  crossSection.open(Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,comptEdge));
-  if (theoreticalAsym.is_open()) {
-    cout<<"theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<" opened"<<endl;
-    if(debug) cout<<"rhoStrip\txStrip\t\ts\tcalcAsym"<<endl;
-    for(Int_t s =comptEdge; s >=startStrip; s--) { //this loop would simply stop at strip-1;notice that s:0::strip:1
-      //if (maskedStrips(0,s)) continue;///I don't want to loop on plane here but I do need to skip the irrelevant strips
-      xStrip = xPrime[0] - (comptEdge - s)*2E-4; ///xPrime[0] corresponds to Cedge distance
+  theoreticalAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
+  crossSection.open(Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,Cedge));
+  if (theoreticalAsym.is_open() && crossSection.is_open()) {
+    cout<<"theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<" opened"<<endl;
+    cout<<"crossSection file "<<Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,Cedge)<<" opene\
+d"<<endl;
+    if(debug) cout<<";rhoStrip\txStrip\t\ts\tcalcAsym"<<endl;
+    for(Int_t s =Cedge; s >=startStrip; s--) { //this loop would simply stop at strip-1;notice that s:0::strip:1
+      //if (maskedStrips(0,s)) continue;///sure??!
+      xStrip = xPrime[0] - (Cedge - s)*stripWidth; ///xPrime[0] corresponds to Cedge distance
       rhoStrip = grtheory->Eval(xStrip);
       dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // 2nd term of eqn 22
-      dsdrho =2*pi*re*re/a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22 (cross-section without 2*pi*re*re/100*a* factor)
+      dsdrho =2*pi*re*re/a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22
       calcAsym1 = 1-rhoStrip*(1-a);//just a term in eqn 24
       calcAsym[s]=(-1*IHWP)*2*pi*re*re/a*((1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)))/dsdrho;//eqn. 24
-      theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s,calcAsym[s]);//!notice the reverse order
-      crossSection<<Form("%2.0f\t%g\n",(Float_t)s,dsdrho);
-      //if(debug) cout<<gamma<<"\t"<<re<<"\t"<<k<<"\t"<<a<<"\t"<<rhoStrip<<"\t"<<dsdrho<<"\t"<<calcAsym[s]<<endl;
+      theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s+1,calcAsym[s]);//!notice the reverse order
+      crossSection<<Form("%2.0f\t%g\n",(Float_t)s+1,dsdrho);
       if(debug) cout<<rhoStrip<<"\t"<<xStrip<<"\t"<<s<<"\t"<<calcAsym[s]<<endl;
     }
     theoreticalAsym.close();
-  }
-  else cout<<"\ncouldn't open the theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,comptEdge)<<endl;
+    crossSection.close();
+    }
+  else cout<<"\ncouldn't open the theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
   
   //cTheoAsym->Update();
 
@@ -120,8 +120,8 @@ void theoryAsym(Int_t comptEdge)//,Double_t par[]) //Float_t *calcAsym) //
     cout<<"\tMaximum (theoretical) asymmetry: "<<asymmax<<endl;
     cout<<"\n\tAsym Zero rho: "<<rho0<<endl;
     cout<<"\tAsym Zero Photon Energy: "<<k0prime<<"GeV"<<endl;
-    cout<<"\tAsym Zero e-displacement: "<<dx0prime*1000<<" mm"<<endl;
-    cout<<"\tcompton edge is on strip "<<comptEdge<<" at x="<<xPrime[0]<<endl;
+    //    cout<<"\tAsym Zero e-displacement: "<<dx0prime*1000<<" mm"<<endl;
+    cout<<"\tcompton edge is on strip "<<Cedge<<" at x="<<xPrime[0]<<endl;
     cout<<"\tx1= "<<x1<<" and x2="<<x2<<endl;
   }
 }
