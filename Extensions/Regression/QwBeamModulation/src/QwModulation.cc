@@ -342,12 +342,21 @@ void QwModulation::MatrixFill()
 
   CheckFlags();
 
+  diagnostic.open(Form("diagnostic_%i.dat", run_number) , fstream::out);
+
   for(Int_t j = 0; j < fNDetector; j++){
+    diagnostic << DetectorList[j] << std::endl;
     for(Int_t k = 0; k < fNModType; k++){
       AMatrix(j,k) = AvDetectorSlope[k][j];
       AMatrixE(j,k) = AvDetectorSlopeError[k][j];
+      if( (diagnostic.is_open() && diagnostic.good()) ){
+	diagnostic << AvDetectorSlope[k][j] << " +- " 
+		   << AvDetectorSlopeError[k][j] << " ";
+      }
     }
+    diagnostic << std::endl;
   }
+  diagnostic << std::endl;
   std::cout << "\t\t\t\t::A Matrix::"<< std::endl;
   AMatrix.Print("%11.10f");
 
@@ -361,7 +370,13 @@ void QwModulation::MatrixFill()
     for(Int_t k = 0; k < fNModType; k++){
       RMatrix(j,k) = AvMonitorSlope[k][j];
       RMatrixE(j,k) = AvMonitorSlopeError[k][j];
+
+      if( (diagnostic.is_open() && diagnostic.good()) ){
+	diagnostic << AvMonitorSlope[k][j] << " +- " 
+		   << AvMonitorSlopeError[k][j] << " ";
+      }
     }
+    diagnostic << std::endl;
   }
   std::cout << "\t\t\t\t::R Matrix:: " << std::endl;
   RMatrix.Print("%11.10f");
@@ -1109,7 +1124,6 @@ void QwModulation::Write(){
 
   slopes.open(Form("slopes_%i.dat", run_number) , fstream::out);
   regression = fopen(Form("regression_%i.dat", run_number), "w");
-  diagnostic.open(Form("diagnostic_%i.dat", run_number) , fstream::out);
 
   if( (slopes.is_open() && slopes.good()) ){
     for(Int_t i = 0; i < fNDetector; i++){
@@ -1128,6 +1142,7 @@ void QwModulation::Write(){
   }
 
   if( (diagnostic.is_open() && diagnostic.good()) ){
+    diagnostic << "\n#Failed events in x,xp,e,y,yp\n" << std::endl;
     diagnostic << fXNevents  << std::endl;
     diagnostic << fXPNevents << std::endl;
     diagnostic << fENevents  << std::endl;
