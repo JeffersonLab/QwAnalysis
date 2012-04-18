@@ -54,7 +54,7 @@ foreach(@range){
     $output .= "JOBNAME: qwbeammod\n";
     $output .= "OS: Linux64\n";
     $output .= "MEMORY: 1800 MB\n";
-    $output .= "COMMAND:sh $dir\/bmod.bash $_ $analyzer > bmod$_.out\n";
+    $output .= "COMMAND:sh $dir\/bmod_jsub.bash $_ $analyzer > bmod$_.out\n";
     $output .= "OUTPUT_DATA: bmod$_.out\n";
     $output .= "OUTPUT_TEMPLATE:$dir\/bmod$_.out\n";
     $output .= "MAIL: $name\@jlab.org\n";
