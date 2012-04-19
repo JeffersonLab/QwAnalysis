@@ -4,7 +4,7 @@
   <Track name="one_pass"/>
   <Name name="run_makeslug_0"/>
   <OS name="linux64"/>
-  <TimeLimit unit="minutes" time="600"/>
+  <TimeLimit unit="minutes" time="720"/>
   <DiskSpace space="10300" unit="MB"/>
   <Memory space="2048" unit="MB"/>
   <Command><![CDATA[

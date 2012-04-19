@@ -5,74 +5,92 @@ SRC="/volatile/hallc/qweak/QwAnalysis/run1/rootfiles"
 
 slug_num=$1
 
-run_list="`cat slug${slug_num}_goodruns_list.txt | awk '{print $1}' `"
-#run_list="`cat slug${slug_num}_goodruns_list.txt`"
-#runlet_list="`cat slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
+run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_2.02/Extensions/Macros/Parity/SlugPlots/run1pass4/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
+#run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_2.02/Extensions/Macros/Parity/SlugPlots/run1pass4/slug${slug_num}_goodruns_list.txt`"
+#runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_2.02/Extensions/Macros/Parity/SlugPlots/run1pass4/slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
 unreg_rootfile_status=0
 reg_rootfile_status=0
+run_num_done=0
 for run in ${run_list[@]}
 do
-	runlet_list="`cat slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
-	#echo " $run"
+	runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_2.02/Extensions/Macros/Parity/SlugPlots/run1pass4/slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
+	#echo "Run number  $run"
+	if [ ${run_num_done} -eq  ${run} ]
+	    then
+	    continue
+	fi
 	for runlet in ${runlet_list[@]}
 	do
+	  run_num_done=$run
+	  #echo "Checking  ${run}.$runlet"
 	  #echo " `ls -l ${SRC}/QwPass4b_$run.*$runlet.root`"
 	  #arg_rootfile=`ls -l ${SRC}/QwPass4b_$run.*$runlet.root > /dev/null`
 #check the status of the last command #	  if [  $? == 0 ] 
 	  if [  `ls  ${SRC}/QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      unreg_rootfile_status=1
+	      echo "${run}.$runlet:Unregressed root file  missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/std_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: std root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/5+1_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: 5+1 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set3_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set3 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set4_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set4 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set5_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set5 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set6_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set6 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set7_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set7 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set8_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set8 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set9_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set9 root file missing"
 	  fi
 
 	done
+
 done
 
 if [ ${unreg_rootfile_status} -eq 1  ]
 then
-    echo "Unregressed rootfiles for the slug ${slug_num} are not ready "
+    echo "Unregressed rootfiles for the slug ${slug_num} are not ready. Remove regression missing runlets from the slug${slug_num}_goodruns_list.txt"
 else
     echo "Unregressed rootfiles for the slug ${slug_num} are ready "
 fi
 
 if [  ${reg_rootfile_status} -eq 1 ]
 then
-    echo "Regressed rootfiles for the slug ${slug_num} are not ready "
+    echo "Regressed rootfiles for the slug ${slug_num} are not ready. Remove regression missing runlets from the slug${slug_num}_goodruns_list.txt"
 else
     echo "Regressed rootfiles for the slug ${slug_num} are ready "
 fi

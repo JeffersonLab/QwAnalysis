@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 # Author: Rakitha Beminiwattha (rakithab@jlab.org)
 #Test only in cdaq cluseter.
@@ -25,7 +25,7 @@ echo "Analysis Progress in the Slug: ${slug_num} "
 echo "========================================== "
 
 
-sql_query="  select analysis.runlet_id, analysis.slope_calculation ,analysis.slope_correction,run.slug,runlet.run_number,runlet.segment_number from analysis, runlet, run where analysis.runlet_id=runlet.runlet_id and run.run_id=runlet.run_id and run.slug= ${slug_num} ; "
+sql_query="  select run.slug, runlet.run_number, runlet.segment_number, analysis.slope_calculation ,analysis.slope_correction, analysis.runlet_id from analysis, runlet, run where analysis.runlet_id=runlet.runlet_id and run.run_id=runlet.run_id and run.slug= ${slug_num} order by runlet.run_number , runlet.segment_number; "
 
 
 echo " ${sql_query} " > analyzer_status_query.sql
