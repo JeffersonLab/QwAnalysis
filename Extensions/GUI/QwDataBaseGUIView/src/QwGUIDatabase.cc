@@ -282,11 +282,14 @@ const char   *QwGUIDatabase::RegressionVarsOn_8[N_REG_VARS_ON_8]={
   "wrt_diff_9_p_4X","wrt_diff_9_m_4X","wrt_diff_9_m_4Y","wrt_diff_9_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
 };
 
+const char   *QwGUIDatabase::RegressionVarsOn_9[N_REG_VARS_ON_9]={
+		"wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy","wrt_asym_charge", "wrt_asym_uslumi_sum"};
+
 // Regression types
 // To get the raw data from QwAnalysis that pass the standard event cuts use "raw(from rootfiles)"
 // To get the unregressed data that pass LinRegBlue event cuts use "off"
 const char *QwGUIDatabase::RegressionSchemes[N_REGRESSION_SCHEMES] = {
-  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","raw(from rootfiles)"
+  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","on_set9","raw(from rootfiles)"
 };
 
 
@@ -383,7 +386,7 @@ const char *QwGUIDatabase::Plots[N_Plots] =
     "Mean", "RMS", "Both"
   }; 
 
-/** good_for_types in the DB as of 12/13/2011
+/** good_for_types in the DB as of 23/04/2012
  +-------------+-----------------------+
  | good_for_id | type                  |
  +-------------+-----------------------+
@@ -406,6 +409,8 @@ const char *QwGUIDatabase::Plots[N_Plots] =
  |          17 | pockels_cell_off      |
  |          18 | n_to_delta            |
  |          19 | junk                  |
+ |          20 | scanner_on            |
+ |          21 | dis                   |
  +-------------+-----------------------+
 */
 
@@ -415,7 +420,7 @@ const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
   "centering_target","centering_plug","pedestals","transverse",
   "transverse_horizontal","daq_test","bcm_scan","bpm_scan",
   "ia_scan","pita_scan","rhwp_scan","background_studies",
-  "pockels_cell_off","n_to_delta","junk"
+  "pockels_cell_off","n_to_delta","junk","scanner_on","dis"
 };
 
 const char *QwGUIDatabase::X_axis[N_X_AXIS] =
@@ -431,7 +436,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dTabFrame           = NULL;
   dControlsFrame      = NULL;
   dQualityFrame	      = NULL;
-  dRunFrame	      = NULL;
+  dRunFrame	          = NULL;
   dCanvas             = NULL;  
   dTabLayout          = NULL;
   dCnvLayout          = NULL;
@@ -2752,6 +2757,23 @@ void QwGUIDatabase::RegressionTypeInfo(){
       T1->AddText("#bullet diff__bpm3c12X");       
       T1->AddText("#bullet asym_charge"); 
       gPad->Update();  
+
+    }
+    else if(regression_set == "on_set9"){
+      if(bfill_reg_iv){
+	for (Int_t i = 0; i < N_REG_VARS_ON_9; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_9[i], i);
+	  regression_ivs = RegressionVarsOn_9;
+	}
+      }
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");
+      T1->AddText("#bullet diff_targetXSlope");
+      T1->AddText("#bullet diff_targetYSlope");
+      T1->AddText("#bullet diff_energy");
+      T1->AddText("#bullet asym_charge");
+      T1->AddText("#bullet asym_uslumi_sum");
+      gPad->Update();
 
     }
   } 
