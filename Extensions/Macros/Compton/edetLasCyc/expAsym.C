@@ -10,8 +10,9 @@
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
  
-Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsym_v2[nPlanes][nStrips], Float_t stripAsymEr_v2[nPlanes][nStrips], Bool_t isFirst100k=kFALSE) //, Float_t stripAsymRMS[nPlanes][nStrips]
+Int_t expAsym(Int_t runnum, Bool_t isFirst100k=kFALSE)//, Float_t stripAsym[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips], Float_t stripAsym_v2[nPlanes][nStrips], Float_t stripAsymEr_v2[nPlanes][nStrips], Bool_t isFirst100k=kFALSE) //, Float_t stripAsymRMS[nPlanes][nStrips]
 {
+  cout<<"\nstarting into expAsym.C**************\n"<<endl;
   TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
@@ -43,6 +44,7 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
   //   Float_t qNormAcB1H0L0LLasCyc[nPlanes][nStrips], qNormAcB1H1L0RLasCyc[nPlanes][nStrips];
   //   Float_t BCqNormAcB1H1L1LasCyc[nPlanes][nStrips], BCqNormAcB1H0L1LasCyc[nPlanes][nStrips];//Background Corrected
   //   Float_t BCqNormLasCycSum[nPlanes][nStrips], BCqNormLasCycDiff[nPlanes][nStrips];
+  Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
   Float_t weightedMeanNrAsym[nPlanes][nStrips],weightedMeanDrAsym[nPlanes][nStrips];
   Float_t qNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips];
 
@@ -461,6 +463,8 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
 	}
       }
 	
+      Cedge = identifyCedgeforPlane(0,stripAsymEr);//!currently forcing first plane's value
+      
       outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       outfileYield.open(Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
@@ -484,6 +488,12 @@ Int_t expAsym(Int_t runnum, Float_t stripAsym[nPlanes][nStrips], Float_t stripAs
       } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values for version2(v2) data\n\n"<<endl;
     }//for(Int_t p = startPlane; p < endPlane; p++)
   } //if (v2processed)
+
+
+  //!!this currently would not work if the Cedge changes between planes
+  for(Int_t p = startPlane; p < endPlane; p++) {
+    Cedge = identifyCedgeforPlane(p,stripAsymEr);//!still in test mode
+  }
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);

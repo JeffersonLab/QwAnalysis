@@ -4,7 +4,8 @@
 
 Int_t fileReadDraw(Int_t runnum) 
 {
-  Bool_t asymDiffPlot=0,expAsymPlot=0,polPlanesPlot=1,yieldPlot=1,asymPlot=1;
+  cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
+  Bool_t asymDiffPlot=0,expAsymPlot=0,polPlanesPlot=0,yieldPlot=1,asymPlot=0;
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
   Bool_t debug=0,debug1=0;
   
@@ -14,7 +15,7 @@ Int_t fileReadDraw(Int_t runnum)
   TLegend *leg;
   //TCanvas *cAsymComponent = new TCanvas("cAsymDiff",Form("Nr and Dr of Asym for run:%d",runnum),30,30,1000,600);
   TLine *myline = new TLine(0,0,70,0);
-  ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents, theoAsym;
+  ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents;//, theoAsym;
   ofstream newTheoFile;
   TPaveText *pvTxt1 = new  TPaveText(0.75,0.84,0.98,1.0,"NDC");
   pvTxt1->SetShadowColor(0);
@@ -26,11 +27,6 @@ Int_t fileReadDraw(Int_t runnum)
 
   leg = new TLegend(0.1,0.7,0.4,0.9);
 
-  Float_t stripNum[nPlanes][endStrip], theoryAsym[nPlanes][endStrip];//I shouldn't need to have an index for planes!
-  char buffer[4096];
-  TString tokenize;
-  Int_t col = 2;      // number of columns to be read from file
-    
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
   Float_t stripNum1[nPlanes][nStrips],stripNum2[nPlanes][nStrips];
   Float_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
@@ -243,63 +239,21 @@ Int_t fileReadDraw(Int_t runnum)
     cPol->Update();
     cPol->SaveAs(Form("%s/%s/%sexpAsymPol.png",pPath,webDirectory,filePrefix.Data()));
   }
-  /*
-    Int_t count=Cedge;
-    theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
-    if (theoAsym.is_open()) {
-    if(debug) cout<<"stripNum\tcalcAsym"<<endl;
-    while(theoAsym.good()) {
-    theoAsym>>stripNum3[count]>>calcAsym[count];
-    //if(debug) cout<<stripNum3[count]<<"\t"<<calcAsym[count]<<endl;
-    count--;
-    }
-    theoAsym.close();
-    } 
-    else cout<<"\n***Error:Could not find the file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
-  */
-  Int_t dummyStrip=0;
-  for (Int_t p = startPlane; p <endPlane; p++) {
-    Cedge = identifyCedgeforPlane(p); 
-    theoAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
-    dummyStrip=0;
-    if (theoAsym.is_open()) {
-      theoAsym.getline(buffer,4096);                 
-      while (theoAsym.good()) {
-	if (buffer[0] != ';') {                            
-	  for (Int_t i = 0; i < col; i++) {                 
-	    if (0 == i) {
-	      tokenize = strtok(buffer, " \t");
-	      stripNum[p][dummyStrip] = tokenize.Atof();
-	      if(debug) printf("i:%d; line: %d,tok:%g\n",i,__LINE__,tokenize.Atof());
-	    } else {
-	      tokenize = strtok(NULL, " \t");
-	      theoryAsym[p][dummyStrip] = tokenize.Atof();
-	      if(debug) printf("i:%d; line: %d,tok:%g\n",i,__LINE__,tokenize.Atof());
-	    }
-	  }
-	  theoAsym.getline(buffer,4096);
-	  dummyStrip++;
-	}
-      }
-      theoAsym.close(); 
-    }
-    else cout<<"could not find the theoryAsym section file"<<endl;
-  }
 
-  Float_t polMultiplied[nPlanes][nStrips];
+//   Float_t polMultiplied[nPlanes][nStrips];
 
-  for (Int_t p =startPlane; p <endPlane; p++) {
-    Cedge = identifyCedgeforPlane(p); 
-    newTheoFile.open(Form("%s/%s/%smodTheoryFileP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    if (newTheoFile.is_open()) {
-      for (Int_t s = startStrip; s <=Cedge; s++) { //calcAsym exists only upto Cedge
-	if (maskedStrips(p,s)) continue;
-	polMultiplied[p][s] = polarization[p]*theoryAsym[p][s]; 
-	newTheoFile<<Form("%2.0f\t%f\n",(Float_t)s+1,polMultiplied[p][s]);
-      }
-      newTheoFile.close();
-    } else cout<<"could not open newTheoFile for plane "<<p+1<<endl;
-  }
+//   for (Int_t p =startPlane; p <endPlane; p++) {
+//     //    Cedge = identifyCedgeforPlane(p); 
+//     newTheoFile.open(Form("%s/%s/%smodTheoryFileP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+//     if (newTheoFile.is_open()) {
+//       for (Int_t s = startStrip; s <=Cedge; s++) { //calcAsym exists only upto Cedge
+// 	if (maskedStrips(p,s)) continue;
+// 	polMultiplied[p][s] = polarization[p]*theoryAsym[p][s]; 
+// 	newTheoFile<<Form("%2.0f\t%f\n",(Float_t)s+1,polMultiplied[p][s]);
+//       }
+//       newTheoFile.close();
+//     } else cout<<"could not open newTheoFile for plane "<<p+1<<endl;
+//   }
 
   if (asymPlot) {
     TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",50,50,1000,600);
@@ -322,9 +276,9 @@ Int_t fileReadDraw(Int_t runnum)
       grAsymPlane[p]->Draw("AP");
       myline->Draw();
       
-      // grTheoryAsym = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge), "%lg %lg");    
+      grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge), "%lg %lg");
       //grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/%smodTheoryFileP1.txt",pPath,webDirectory,filePrefix.Data()), "%lg %lg");     
-      grTheoryAsym[p] = new TGraphErrors(endStrip,stripNum[p],theoryAsym[p],zero[p],zero[p]);
+      //grTheoryAsym[p] = new TGraphErrors(dummyStrip,stripNum[p],theoryAsym[p],zero[p],zero[p]);
       grTheoryAsym[p]->SetLineColor(kBlue);
       grTheoryAsym[p]->SetLineWidth(3);
       grTheoryAsym[p]->SetFillColor(0);
@@ -333,7 +287,7 @@ Int_t fileReadDraw(Int_t runnum)
       cAsym->Update();
       leg->AddEntry(grAsymPlane[p],"experimental asymmetry","lpf");
       leg->AddEntry(grTheoryAsym[p],"theoretical asymmetry","lpf");
-      leg->AddEntry(myline,"zero line","l");
+      //      leg->AddEntry(myline,"zero line","l");
       leg->SetFillColor(0);
       leg->Draw();
     } 

@@ -6,10 +6,6 @@
 #include "comptonRunConstants.h"
 #include "maskedStrips.C"
 
-Double_t polynomial(Double_t *x, Double_t *par) {
-  return par[0] + par[1]*x[0] + par[2]*x[0]*x[0] + par[3]*x[0]*x[0]*x[0];
-}
-
 void theoryAsym(Int_t Cedge)//,Double_t par[]) //Float_t *calcAsym) //
 {
   gStyle->SetOptFit(1);
@@ -73,7 +69,7 @@ void theoryAsym(Int_t Cedge)//,Double_t par[]) //Float_t *calcAsym) //
   grtheory->SetMarkerStyle(20);
   grtheory->SetLineColor(2);
   grtheory->SetMarkerColor(2);
-  grtheory->Fit("pol3");
+  grtheory->Fit("pol3","0","goff");
   
 //   TF1 *fitFcn= new TF1("fitFcn",polynomial,dx0prime,xPrime[0],4); ///limiting my fit to be upto Cedge
 //   fitFcn->SetParameters(1,1,1,1);
@@ -89,9 +85,11 @@ void theoryAsym(Int_t Cedge)//,Double_t par[]) //Float_t *calcAsym) //
     cout<<"crossSection file "<<Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,Cedge)<<" opene\
 d"<<endl;
     if(debug) cout<<";rhoStrip\txStrip\t\ts\tcalcAsym"<<endl;
-    for(Int_t s =Cedge; s >=startStrip; s--) { //this loop would simply stop at strip-1;notice that s:0::strip:1
+    for(Int_t s =Cedge-1; s >=startStrip; s--) { //this loop would simply stop at strip-1;notice that s:0::strip:1
+      //!!the Cedge is in human counting hence '-1' is necessary
       //if (maskedStrips(0,s)) continue;///sure??!
-      xStrip = xPrime[0] - (Cedge - s)*stripWidth; ///xPrime[0] corresponds to Cedge distance
+      xStrip = xPrime[0] - whereInTheStrip - ((Cedge-1) - s)*stripWidth; ///xPrime[0] corresponds to Cedge distance //!!the Cedge is in human counting hence '-1' is necessary
+      //      xStrip = xCedge - (Cedge - s)*stripWidth; ///xPrime[0] corresponds to Cedge distance
       rhoStrip = grtheory->Eval(xStrip);
       dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // 2nd term of eqn 22
       dsdrho =2*pi*re*re/a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22
@@ -99,11 +97,11 @@ d"<<endl;
       calcAsym[s]=(-1*IHWP)*2*pi*re*re/a*((1-rhoStrip*(1+a))*(1-1/(calcAsym1*calcAsym1)))/dsdrho;//eqn. 24
       theoreticalAsym<<Form("%2.0f\t%f\n",(Float_t)s+1,calcAsym[s]);//!notice the reverse order
       crossSection<<Form("%2.0f\t%g\n",(Float_t)s+1,dsdrho);
-      if(debug) cout<<rhoStrip<<"\t"<<xStrip<<"\t"<<s<<"\t"<<calcAsym[s]<<endl;
+      if(debug) printf("%f\t%f\t%d\t%f\n",rhoStrip,xStrip,s+1,calcAsym[s]);
     }
     theoreticalAsym.close();
     crossSection.close();
-    }
+  }
   else cout<<"\ncouldn't open the theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
   
   //cTheoAsym->Update();
