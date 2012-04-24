@@ -2050,7 +2050,7 @@ void QwGUIDatabase::PlotDetector()
 	gPad->Update();
       }
       for (k=1;k<=row_size;k++) {
-    	label = (char*)(xval[k].c_str());
+    	label = (char*)(xval[k-1].c_str());
     	if(grp) (grp->GetXaxis())->SetBinLabel(k,label);
 	if(grp_rms) (grp_rms->GetXaxis())->SetBinLabel(k,label);
       }
