@@ -1,23 +1,8 @@
 //Script to plot the relevant adc spectra for a given set of dilution runs
 //Written by Josh Magee, thanks to Josh Hoskins. 2012-02-27
 
-//#include <iostream>
-//#include <iomanip>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <TROOT.h>
-//#include <TFile.h>
-//#include <TTree.h>
-//#include <TCanvas.h>
-//#include <TH1F.h>
-//#include <TH2F.h>
-//#include <TStyle.h>
-//#include <THStack.h>
-//#include "QwEvent.h"
-//#include "QwHit.h"
-//#include <vector>
 
-void twoHistoPlot( Int_t runNum ) {
+void coincidencePlot( Int_t runNum ) {
   gROOT -> Reset();
   gROOT -> SetStyle("Plain");
   /*
@@ -35,7 +20,7 @@ void twoHistoPlot( Int_t runNum ) {
   else {
     std::cout <<"Successfully opened ROOTFILE " <<file->GetName() <<endl;
   }
-
+/*
   TH2F* correlateHisto[7];
   for (Int_t n=0; n<7; n++) {
     correlateHisto[n] = new TH2F(Form("correlateHisto[%i]",n), Form("Hit #%i",n), 1600,-300,1300,1600,-300,1300);
@@ -43,8 +28,13 @@ void twoHistoPlot( Int_t runNum ) {
 
   TH1F* tsMinusMdHisto[7];
   for (Int_t n=0; n<7; n++) {
-    tsMinusMdHisto[n] = new TH1F(Form("tsMinusMdHisto[%i]",n), Form("Hit #%i",n), 1600,-300,1300);
+    tsMinusMdHisto[n] = new TH1F(Form("tsMinusMdHisto[%i]",n), Form("Hit #%i",n), 51,-19.5,30.5);
   }
+*/
+
+  TH1F* tsSoftwareMT = new TH1F("tsSoftwareMT","TS Software Meantime",1800,-400,1400);
+  TH1F* mdSoftwareMT = new TH1F("mdSoftwareMT","MD Software Meantime",1800,-400,1400);
+  TH1F* mdCuts       = new TH1F("mdCuts","Main Detector MT with TS Cut",1800,-400,1400);
 
 
   TTree*   event_tree  = (TTree*) file ->Get("event_tree");
@@ -85,7 +75,7 @@ void twoHistoPlot( Int_t runNum ) {
 
       Int_t ts_hitnum = 0;
       Int_t md_hitnum = 0;
-      Int_t hitnumber = 0;	//haven't figured out how to use yet...
+      Int_t hitnumber = 0;
 
       for (Int_t j=0; j<7; j++) {
         mdarray[j]=0;
@@ -93,7 +83,7 @@ void twoHistoPlot( Int_t runNum ) {
         tsMinusMd[j]=0;
       }
 
-      for (Int_t hit=0; hit<nhit; hit++) 
+      for (Int_t hit=0; hit<nhit; hit++)
 	{//;;;
 	  qwhit = qwevent->GetHit(hit);
 	  fregion = qwhit -> GetRegion();
@@ -118,72 +108,64 @@ void twoHistoPlot( Int_t runNum ) {
 //	if (num_entries % 100000 ) { std::cout <<"ts_mt: " <<ts_mt <<"\tmd_mt " <<md_mt <<"\ttshit: " <<tshit <<"\tmdhit: " <<mdhit<<endl; }
 
     for (Int_t k=0; k<7; k++) {
-      if(tsarray[k]!=0 && mdarray[k]!=0) correlateHisto[k]->Fill(tsarray[k],mdarray[k]);
-      if(tsarray[k]!=0 && mdarray[k]!=0) tsMinusMdHisto[k]->Fill(tsarray[k]-mdarray[k]);
+        if(tsarray[k]!=0) tsSoftwareMT->Fill(tsarray[k]);
+        if(mdarray[k]!=0) mdSoftwareMT->Fill(mdarray[k]);
+        if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts[k]->Fill(mdarray[k]);
+//      if(tsarray[k]!=0 && mdarray[k]!=0) correlateHisto[k]->Fill(tsarray[k],mdarray[k]);
+//      if(tsarray[k]!=0 && mdarray[k]!=0) tsMinusMdHisto[k]->Fill(tsarray[k]-mdarray[k]);
     }
 
     }//; end loop through num_entries
 
+  TCanvas *tsSoftwareCanvas = new TCanvas("tsSoftwareCanvas","title");
+  tsSoftwareMT->SetTitle("Trigger Scintillator Software Meantime");
+  tsSoftwareMT->GetXaxis()->SetTitle("Time (ns)");
+  gPad->SetLogy();
+  tsSoftwareMT->Draw();
+
+  TCanvas *mdSoftwareCanvas = new TCanvas("mdSoftwareCanvas","title");
+  mdSoftwareMT->SetTitle("Main Detector Software Meantime");
+  mdSoftwareMT->GetXaxis()->SetTitle("Time (ns)");
+  gPad->SetLogy();
+  mdSoftwareMT->Draw();
+  mdSoftwareMT->SetLineColor(2);
+  mdCuts->SetLineColor(4);
+  mdCuts->Draw("same");
+/*
+  TCanvas *mdCutsCanvas = new TCanvas("mdCutsCanvas","title");
+  mdCuts->SetTitle("Main Detector Meantime with TS Coincidence Condition");
+  mdCuts->GetXaxis()->SetTitle("Time (ns)");
+  gPad->SetLogy();
+  mdCuts->Draw();
+
   TCanvas* canvases[3];
   for (Int_t n=1; n<3; n++) {
     canvases[n] = new TCanvas(Form("c%i",n),"title");
+    correlateHisto[n] -> SetTitle(Form("TS meantime vs. MD meantime for Hit #%i",n));
+    correlateHisto[n] -> GetXaxis() -> SetTitle("MD Meantime (ns)");
+    correlateHisto[n] -> GetYaxis() -> SetTitle("TS Meantime (ns)");
     correlateHisto[n] -> Draw("colz");
+//    correlateHisto[n] -> Draw("prof");
   }
 
-  TCanvas* canvases[2];
-  for (Int_t n=1; n<2; n++) {
-    canvases[n] = new TCanvas(Form("d%i",n),"title");
-    tsMinusMdHisto[n] -> Draw();
+  TCanvas* minusCanvases[3];
+  for (Int_t n=1; n<3; n++) {
+    minusCanvases[n] = new TCanvas(Form("d%i",n),"title");
+    tsMinusMdHisto[n] -> SetTitle(Form("TS meantime -  MD meantime for Hit #%i",n));
+    tsMinusMdHisto[n] -> GetXaxis() -> SetTitle("Time (ns)");
+    tsMinusMdHisto[n] -> SetLineColor(4);
+    tsMinusMdHisto[n] -> SetFillColor(9);
+     tsMinusMdHisto[n] -> Draw();
   }
-
+*/
 
   for (Int_t n=4; n<=7; n++) {
     if (tsarray[n]!=0) std::cout <<"The TS has " << n <<"hits: make sure to plot them!\n";
     if (mdarray[n]!=0) std::cout <<"The MD has " << n <<"hits: make sure to plot them!\n";
   }
 
-  TCanvas *c4 = new TCanvas("c4","TS - MD MT");
-  tsMinusMdHisto[0] -> Draw();
+//  TCanvas *c4 = new TCanvas("c4","TS - MD MT");
+//  tsMinusMdHisto[0] -> Draw();
 
-//  TCanvas *c1 = new TCanvas("c1","title");
-//  histo1->Draw("prof");
-//  TCanvas *c2 = new TCanvas("c2","title2");
-//  histo2->Draw("prof");
 } //end function
 
-
-/*
-  {
-  TTree *etree = (TTree*) file->Get("event_tree");
-  TBranch* ev_branch   = etree->GetBranch("events");
-  QwHit*   qwhit       = 0;
-  
-  QwEvent* event = 0;
-
-  TH2F* histo = new TH2F("histo","title",1600,-300,1300,1600,-300,1300);
-
-  ev_branch->SetAddress(&event);
-
-  Long64_t localEntry  = 0;
-  for (Int_t entry =  0; entry < etree->GetEntries(); entry++) {
-  //printf("-1\n")	;
-  localEntry = event_tree->LoadTree(entry);
-  etree->GetEntry(localEntry);
-  //printf("0\n");
-  std::vector<QwHit*> hitlist = event->GetListOfHits();
-  printf("1\n");
-  Int_t mdhit = -1;
-  Int_t tshit = -1;
-  for (Int_t hit = 0; hit < hitlist.size(); hit++) {
-  if (hitlist[hit].fRegion == 4 && hitlist[hit].fPlane == 1 && histlist[hit].fElement == 3)
-  tshit = hit;
-  if (hitlist[hit].fRegion == 5 && hitlist[hit].fPlane == 1 && histlist[hit].fElement == 3)/
-  mdhit = hit;
-  }
-
-  if (tshit >= 0 && mdhit >= 0) {
-  histo->Fill(hitlist[mdhit].fTimeNs,hitlist[tshit].fTimeNs);
-  }
-  }
-  }
-*/
