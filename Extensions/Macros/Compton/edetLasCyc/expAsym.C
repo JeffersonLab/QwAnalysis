@@ -410,7 +410,16 @@ Int_t expAsym(Int_t runnum, Bool_t isFirst100k=kFALSE)//, Float_t stripAsym[nPla
     }
   }
   
+  Float_t activeStrips[nPlanes][nStrips];
   for(Int_t p = startPlane; p < endPlane; p++) { 
+    for (Int_t s =startStrip; s <endStrip;s++) { 
+      if (maskedStrips(p,s)) continue;
+      activeStrips[p][s]=s+1;//this is required to keep it consistent with the case of the stripNumber being read from a file
+    }
+  }
+
+  for(Int_t p = startPlane; p < endPlane; p++) { 
+    Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check
     outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     //outfileExpAsymP<<"strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
     outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
@@ -461,9 +470,7 @@ Int_t expAsym(Int_t runnum, Bool_t isFirst100k=kFALSE)//, Float_t stripAsym[nPla
 	  qNormB1L0_v2[p][s] = weightedMeanNrqNormB1L0_v2[p][s]/weightedMeanDrqNormB1L0_v2[p][s];
 	  qNormB1L0Er_v2[p][s] = TMath::Sqrt(1/weightedMeanDrqNormB1L0_v2[p][s]);
 	}
-      }
-	
-      Cedge = identifyCedgeforPlane(0,stripAsymEr);//!currently forcing first plane's value
+      }             
       
       outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       outfileYield.open(Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
@@ -491,10 +498,6 @@ Int_t expAsym(Int_t runnum, Bool_t isFirst100k=kFALSE)//, Float_t stripAsym[nPla
 
 
   //!!this currently would not work if the Cedge changes between planes
-  for(Int_t p = startPlane; p < endPlane; p++) {
-    Cedge = identifyCedgeforPlane(p,stripAsymEr);//!still in test mode
-  }
-
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  

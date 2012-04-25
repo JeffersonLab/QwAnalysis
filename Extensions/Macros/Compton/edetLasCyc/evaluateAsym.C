@@ -25,14 +25,14 @@ void evaluateAsym(Int_t AccumB1H1L1[nPlanes][nStrips],Int_t AccumB1H0L1[nPlanes]
       Float_t BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);
       Float_t BCqNormLasCycSum  = (BCqNormAcB1H1L1LasCyc + BCqNormAcB1H0L1LasCyc);
 
-      if (BCqNormLasCycSum <= 0.0 && s<=Cedge) {
-	//	printf("\n**Warning**:BCqNormLasCycSum[p%d][s%d] is %f in nCycle:%d\n",p,s,BCqNormLasCycSum,nCycle);
-	printf("note: AccumB1H1L1:%d, AccumB1H1L0R:%d, AccumB1H0L1:%d, AccumB1H0L0R:%d\n"
-	       ,AccumB1H1L1[p][s],AccumB1H1L0R[p][s],AccumB1H0L1[p][s],AccumB1H0L0R[p][s]);
-	//	printf("and comptQH1L1:%f, comptQH1L0R:%f, comptQH0L1:%f, comptQH0L0R:%f",
-	//	       comptQH1L1,comptQH1L0R,comptQH0L1,comptQH0L0R);
-      }
-      else {
+//       if (BCqNormLasCycSum <= 0.0 && s<=Cedge[p]) {//!the Cedge is not determined yet
+// 	//	printf("\n**Warning**:BCqNormLasCycSum[p%d][s%d] is %f in nCycle:%d\n",p,s,BCqNormLasCycSum,nCycle);
+// 	printf("note: AccumB1H1L1:%d, AccumB1H1L0R:%d, AccumB1H0L1:%d, AccumB1H0L0R:%d\n"
+// 	       ,AccumB1H1L1[p][s],AccumB1H1L0R[p][s],AccumB1H0L1[p][s],AccumB1H0L0R[p][s]);
+// 	//	printf("and comptQH1L1:%f, comptQH1L0R:%f, comptQH0L1:%f, comptQH0L0R:%f",
+// 	//	       comptQH1L1,comptQH1L0R,comptQH0L1,comptQH0L0R);
+//       }
+//       else {
 	Float_t qNormLasCycAsym = (BCqNormLasCycDiff / BCqNormLasCycSum);
 	      
 	///Evaluation of error on asymmetry; I've partitioned the evaluation in a way which avoids re-calculation
@@ -82,7 +82,7 @@ void evaluateAsym(Int_t AccumB1H1L1[nPlanes][nStrips],Int_t AccumB1H0L1[nPlanes]
 	  weightedMeanDrqNormB1L0[p][s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
 	}
 	else cout<<"**Alert: getting zero for erBCqNormLasCycSumSq"<<" in line"<<__LINE__<<endl;
-      }
+//       }
     }//for (Int_t s =startStrip; s <endStrip; s++) {	
   }///for (Int_t p =startPlane; p <endPlane; p++) {
 

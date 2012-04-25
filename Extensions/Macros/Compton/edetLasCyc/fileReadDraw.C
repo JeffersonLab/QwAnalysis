@@ -216,7 +216,7 @@ Int_t fileReadDraw(Int_t runnum)
     c1->SaveAs(Form("%s/%s/%sexpAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
-  TF1 *func = new TF1("func","pol0",stripMin,Cedge);//stripMax);
+  TF1 *func = new TF1("func","pol0",stripMin,Cedge[0]);//stripMax);
   if (polPlanesPlot) {
     TCanvas *cPol = new TCanvas("cPol","Pol.measured by each Strip",40,200,1000,900); 
     cPol->Divide(startPlane+1,endPlane);
@@ -276,7 +276,7 @@ Int_t fileReadDraw(Int_t runnum)
       grAsymPlane[p]->Draw("AP");
       myline->Draw();
       
-      grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge), "%lg %lg");
+      grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge[0]), "%lg %lg");
       //grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/%smodTheoryFileP1.txt",pPath,webDirectory,filePrefix.Data()), "%lg %lg");     
       //grTheoryAsym[p] = new TGraphErrors(dummyStrip,stripNum[p],theoryAsym[p],zero[p],zero[p]);
       grTheoryAsym[p]->SetLineColor(kBlue);

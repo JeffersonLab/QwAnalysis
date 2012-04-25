@@ -28,7 +28,7 @@ const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I 
 const Int_t nStrips = 96;
 const Int_t nPlanes = 4;
 const Float_t stripWidth = 2.0E-4;
-const Float_t whereInTheStrip = 1.0E-4;//0;//1.0E-4;
+const Float_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
 //const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
 const Double_t chicaneBend = 10.131; ///(degree)
 const Double_t ldet = 1.645; ///(m)
@@ -54,7 +54,7 @@ const Int_t startStrip = 0;
  const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
-Int_t Cedge;
+Int_t Cedge[nPlanes];
 const Int_t Cedge_p1 = 53;///Compton-edge for the current run(counting from 0)
 const Int_t Cedge_p2 = 53;///Compton-edge for the current run(counting from 0)
 const Int_t Cedge_p3 = 51;///Compton-edge for the current run(counting from 0)
