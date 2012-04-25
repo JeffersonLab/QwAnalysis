@@ -43,7 +43,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   DatabaseSubSystem       = NULL;
   DbSummarySubSystem	  = NULL;
-
+  DbCorrelatoinsSubSystem = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
@@ -131,9 +131,12 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   }
 
   if(!GetSubSystemPtr("Database Summary")){
-	  DbSummarySubSystem = new QwGUIDatabaseSummary(fClient->GetRoot(), this, dTab, "Database Summary", "QwGUIMain", dMWWidth-15, dMWHeight-180);
+    DbSummarySubSystem = new QwGUIDatabaseSummary(fClient->GetRoot(), this, dTab, "Database Summary", "QwGUIMain", dMWWidth-15, dMWHeight-180);
   }
-
+  
+  if(!GetSubSystemPtr("Database Correlations")){
+    DbCorrelatoinsSubSystem = new QwGUIDBCorrelations(fClient->GetRoot(), this, dTab, "Correlations", "QwGUIMain", dMWWidth-15, dMWHeight-180);
+  }
 
 
   SetSubSystemSegmentAdd(kFalse);
@@ -148,18 +151,12 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 QwGUIMain::~QwGUIMain()
 {
-//   delete MainDetSubSystem        ;
-//  delete ScannerSubSystem        ;
-//   delete BeamModulationSubSystem ;
-//   delete LumiDetSubSystem        ;
-//   delete InjectorSubSystem       ;
-  delete DatabaseSubSystem       ;
-  delete DbSummarySubSystem		 ;
-//   delete TrackFindingSubSystem   ;
-//   delete EventDisplaySubSystem   ;
+
+  delete DatabaseSubSystem;
+  delete DbSummarySubSystem;
+  delete DbCorrelatoinsSubSystem;
 
   delete dROOTFile             ;
-
   delete dSegmentEntry         ;
   delete dSegmentEntryLayout   ;
   delete dPrefixEntry          ;
@@ -204,17 +201,10 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
   dMenuFile = new TGPopupMenu(fClient->GetRoot());
-//   dMenuFile->AddEntry("O&pen ROOT file (Histo)...", M_ROOT_FILE_OPEN);
-//   dMenuFile->AddEntry("O&pen ROOT file (Event)...", M_ROOT_FILE_EVENT_OPEN);
-//   dMenuFile->AddEntry("C&lose ROOT file", M_ROOT_FILE_CLOSE);
-//   dMenuFile->AddSeparator();
   dMenuFile->AddEntry("Open (Database)...", M_DBASE_OPEN);
   dMenuFile->AddEntry("Close (Database)", M_DBASE_CLOSE);
   dMenuFile->AddSeparator();
-  //dMenuFile->AddEntry("Root File Browser", M_VIEW_BROWSER);
-  //dMenuFile->AddSeparator();
-  //dMenuFile->AddSeparator();
-  dMenuFile->AddEntry("E&xit", M_FILE_EXIT);
+   dMenuFile->AddEntry("E&xit", M_FILE_EXIT);
 
   dMenuTabs = new TGPopupMenu(fClient->GetRoot());
   dMenuTabs->AddEntry("View Log", M_VIEW_LOG);
@@ -249,7 +239,6 @@ void QwGUIMain::MakeUtilityLayout()
 
   dUtilityFrame = new TGHorizontalFrame(this,60,10);
 
-//   if(!dClArgs.realtime){
   dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
 				TGNumberFormat::kNESInteger,
 				TGNumberFormat::kNEANonNegative,
@@ -288,23 +277,11 @@ void QwGUIMain::MakeUtilityLayout()
   dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
   dPrefixEntry->Resize(100,20);
 
-//   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
-   dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-//   dUtilityFrame->AddFrame(dAddSegmentLabel,dAddSegmentLayout);
+  dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
   dAddSegmentCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Add Segments"),M_ADD_SEGMENT);
   dUtilityFrame->AddFrame(dAddSegmentCheckButton, dAddSegmentLayout);
   dAddSegmentCheckButton->Associate(this);
   dAddSegmentCheckButton->SetState(kButtonUp);
-
-  
-
-  //}
-
-//   if(dClArgs.realtime){
-//     const TGPicture *ipic =(TGPicture *)gClient->GetPicture("realtime.xpm");
-//     TGIcon *icon = new TGIcon(dUtilityFrame,ipic,500,40);
-//     dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
-//   }
 
   AddFrame(dUtilityFrame,dUtilityLayout);
 
@@ -367,12 +344,6 @@ void QwGUIMain::MakeLogTab()
   dLogEditFrame  = new TGHorizontalFrame(dLogTabFrame,10,10);
   dLogEdit = new TGTextEdit(dLogEditFrame, 10, 10, M_LOG_ENTRY, kSunkenFrame);
   dLogEdit->Associate(this);
-//   BindKey((const TGWindow*)dLogEdit,gVirtualX->KeysymToKeycode(kKey_Enter),kKey_Control);
-//  dLogEdit->AddInput(kKeyPressMask);
-
-//   BindKey((const TGWindow*)dLogEdit,gVirtualX->KeysymToKeycode(kKey_Enter),kKey_Control);
-//   gVirtualX->GrabKey(dLogEdit->GetId(), gVirtualX->KeysymToKeycode(kKey_Enter), kKey_Control, kTRUE);
-//   AddInput(kKeyPressMask);
 
   dLogEditFrame->AddFrame(dLogEdit,dLogEditLayout);
   dLogTabFrame->AddFrame(dLogEditFrame, dLogEditFrameLayout);
@@ -1113,7 +1084,6 @@ void QwGUIMain::CloseRootFile()
   }
 
   SetRootFileOpen(kFalse);
-//   dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
 
 }
 

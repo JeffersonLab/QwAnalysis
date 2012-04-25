@@ -34,6 +34,7 @@ OBJECTS       += QwGUIDatabaseSelectionDialog.o
 # OBJECTS       += QwGUIEventWindowSelectionDialog.o
 OBJECTS       += QwGUIDatabase.o
 OBJECTS       += QwGUIDatabaseSummary.o
+OBJECTS       += QwGUIDBCorrelations.o
 
 
 # Now append the object files that Don't require a CINT dictionary.
