@@ -1,5 +1,9 @@
-//Script to plot the relevant adc spectra for a given set of dilution runs
-//Written by Josh Magee, thanks to Josh Hoskins. 2012-02-27
+//This script correctly calculations the TS and MD meantimes and then
+//patches them together. Next version will also marry them correctly
+//based on hit times.
+//Written by Josh Magee, thanks to just about everybody else.
+//magee@jlab.org
+//April 26, 2012
 
 #include <iostream>
 #include <iomanip>
@@ -18,7 +22,7 @@
 
 class Tsmd {
   public:
-    Tsmd( Bool_t a=kFALSE, Bool_t b=kFALSE, Bool_t c=kFALSE, Bool_t d=kFALSE, Bool_t e=kFALSE);
+    Tsmd( Bool_t , Bool_t , Bool_t , Bool_t , Bool_t , Bool_t);
     void setArrays( void );
     void processEvent( TFile * );
     void processHits( Int_t , QwEvent * );
@@ -34,6 +38,7 @@ class Tsmd {
     Bool_t fCorrelationFlag;
     Bool_t fTsMinusMdFlag;
     Bool_t fMdWithCutsFlag;
+    Bool_t fOverlayFlag;
     Int_t mdarray[nhits];
     Int_t tsarray[nhits];
     TH2F *correlateHisto[nhits];
@@ -43,7 +48,14 @@ class Tsmd {
     TH1F *mdCuts;
 }; //end class definition
 
-void coincidencePlot( Int_t runNum ) {
+void coincidencePlot( Int_t runNum, 
+    Bool_t Overlay=kTRUE,
+    Bool_t TSmeantime=kFALSE, 
+    Bool_t MDmeantime=kFALSE, 
+    Bool_t Correlation=kFALSE,
+    Bool_t TsMdTimeDifference=kFALSE,
+    Bool_t CoincidenceCuts=kFALSE
+    ) {
   gROOT -> Reset();
   gROOT -> SetStyle("Plain");
 
@@ -51,21 +63,23 @@ void coincidencePlot( Int_t runNum ) {
 
   TFile *myFile = new TFile(filename);
   if ( !myFile->IsOpen() ) {
-    std::cout <<"Error opening ROOTFILE " << myFile->GetName() <<endl;
+    std::cout <<"Error opening ROOTFILE " << myFile->GetName() <<std::endl;
     return;
   }
   else {
-    std::cout <<"Successfully opened ROOTFILE " <<myFile->GetName() <<endl;
+    std::cout <<"Successfully opened ROOTFILE " <<myFile->GetName() <<std::endl;
   }
 
 // Tsmd billy( kFALSE, kFALSE, kFALSE, kFALSE, kFALSE);
- Tsmd billy( kFALSE, kFALSE, kFALSE, kFALSE, kTRUE);
+ Tsmd billy( Overlay, TSmeantime, MDmeantime, Correlation, TsMdTimeDifference, CoincidenceCuts);
  billy.processEvent( myFile );
  billy.plotHistos();
 
 } //end function
 
-Tsmd::Tsmd( Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF) {
+
+Tsmd::Tsmd( Bool_t overlay, Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF) {
+  fOverlayFlag = overlay;
   fTsSoftwareFlag = tsSoft;
   fMdSoftwareFlag = mdSoftFlag;
   fCorrelationFlag = correlFlag;
@@ -91,8 +105,8 @@ void Tsmd::createHistos( void ) {
   } // end fTsMinusMdFlag
 
   if (fTsSoftwareFlag) tsSoftwareMT = new TH1F("tsSoftwareMT","TS Software Meantime",1800,-400,1400);
-  if (fMdSoftwareFlag) mdSoftwareMT = new TH1F("mdSoftwareMT","MD Software Meantime",1800,-400,1400);
-  if (fMdWithCutsFlag) mdCuts = new TH1F("mdCuts","Main Detector MT with TS Cut",1800,-400,1400);
+  if (fMdSoftwareFlag || fOverlayFlag) mdSoftwareMT = new TH1F("mdSoftwareMT","MD Software Meantime",1800,-400,1400);
+  if (fMdWithCutsFlag || fOverlayFlag) mdCuts = new TH1F("mdCuts","Main Detector MT with TS Cut",1800,-400,1400);
 
 } //end definition createhistos
 
@@ -130,7 +144,7 @@ printf(" Total events %ld events process so far : %ld\n", num_entries, i);
       processHits( nhit, qwevent);
 //      highHitCheck();
    }//; end loop through num_entries
-  std::cout <<"Finishing processing events and filling histograms." <<endl;
+  std::cout <<"Finishing processing events and filling histograms." <<std::endl;
 }// end processEvents
 
 void Tsmd::processHits( Int_t nhit, QwEvent * qwevent ) {
@@ -163,13 +177,13 @@ void Tsmd::fillHistos() {
     }
   }
 
-  if (fMdSoftwareFlag) {
+  if (fMdSoftwareFlag || fOverlayFlag) {
     for (Int_t k=0; k<7; k++) {
       if(mdarray[k]!=0) mdSoftwareMT->Fill(mdarray[k]);
     }
   }
 
-  if (fMdWithCutsFlag) {
+  if (fMdWithCutsFlag || fOverlayFlag) {
     for (Int_t k=0; k<7; k++) {
       if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
     }
@@ -195,15 +209,26 @@ void Tsmd::highHitCheck( void ) {
 } //end definition highHitCheck
 
 void Tsmd::plotHistos( void ) {
-  std::cout <<"Producing plots now..." <<endl;
+  std::cout <<"Producing plots now..." <<std::endl;
 
   if (fTsSoftwareFlag) {
     TCanvas *tsSoftwareCanvas = new TCanvas("tsSoftwareCanvas","title");
-    tsSoftwareMT->SetTitle("Trigger ScInt_tillator Software Meantime");
+    tsSoftwareMT->SetTitle("Trigger Scintillator Software Meantime");
     tsSoftwareMT->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     tsSoftwareMT->Draw();
   } //end of fTsSoftware plots
+
+  if (fOverlayFlag) {
+    TCanvas *overlay = new TCanvas("overlay","Overlay plot");
+    mdSoftwareMT->SetTitle("Main Detector Software Meantime");
+    mdSoftwareMT->GetXaxis()->SetTitle("Time (ns)");
+    gPad->SetLogy();
+    mdSoftwareMT->SetLineColor(2);
+    mdSoftwareMT->Draw();
+    mdCuts->SetLineColor(4);
+    mdCuts->Draw("same");
+  } //end fOverlay section
 
   if (fMdSoftwareFlag) {
     TCanvas *mdSoftwareCanvas = new TCanvas("mdSoftwareCanvas","title");
@@ -221,7 +246,6 @@ void Tsmd::plotHistos( void ) {
     gPad->SetLogy();
     mdCuts->SetLineColor(4);
     mdCuts->Draw("same");
-    mdCuts->Draw();
   } //end fMdWithCutsFlag
 
   if (fCorrelationFlag) {
