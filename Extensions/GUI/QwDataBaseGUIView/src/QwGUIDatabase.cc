@@ -1997,19 +1997,71 @@ void QwGUIDatabase::PlotDetector()
       if(p>0)grp->Add(grp_suspect);
     }
    
-    TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.5f #pm %2.5f (stat)", 
-					  fit1->GetParameter(0), fit1->GetParError(0)), "p");
-    if(n>0) legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.5f #pm %2.5f (stat)", 
-					    fit2->GetParameter(0), fit2->GetParError(0)), "p");
-    if(k>0) legend->AddEntry(grp_out,Form("<OUT_R> = %2.5f #pm %2.5f (stat)", 
-					  fit3->GetParameter(0), fit3->GetParError(0)), "p");
-    if(l>0) legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.5f #pm %2.5f (stat)", 
-					    fit4->GetParameter(0), fit4->GetParError(0)), "p");
-    if(o>0) legend->AddEntry(grp_bad,Form("<BAD> = %2.5f #pm %2.5f (stat)", 
+    Double_t inR=0;  Double_t inRerr=0;
+    Double_t inL=0;  Double_t inLerr=0;
+    Double_t outR=0; Double_t outRerr=0;
+    Double_t outL=0; Double_t outLerr=0;
+
+    TLegend *legend = new TLegend(0.55,0.80,0.99,0.99,"","brNDC");
+    if(m>0){
+    	inR = fit1->GetParameter(0);
+    	inRerr = fit1->GetParError(0);
+    	legend->AddEntry(grp_in, Form("<IN_R>  = %2.5f #pm %2.5f (stat)", inR, inRerr), "p");
+    }
+    if(n>0){
+    	inL = fit2->GetParameter(0);
+    	inLerr = fit2->GetParError(0);
+    	legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.5f #pm %2.5f (stat)", inL, inLerr), "p");
+    }
+    if(k>0){
+    	outR = fit3->GetParameter(0);
+    	outRerr = fit3->GetParError(0);
+    	legend->AddEntry(grp_out,Form("<OUT_R> = %2.5f #pm %2.5f (stat)", outR, outRerr), "p");
+    }
+    if(l>0){
+    	outL = fit4->GetParameter(0);
+    	outLerr = fit4->GetParError(0);
+    	legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.5f #pm %2.5f (stat)", outL, outLerr), "p");
+    }
+    if(o>0){
+    	legend->AddEntry(grp_bad,Form("<BAD> = %2.5f #pm %2.5f (stat)",
 					  fit5->GetParameter(0), fit5->GetParError(0)), "p");
-    if(p>0) legend->AddEntry(grp_suspect,Form("<SUSPECT> = %2.5f #pm %2.5f (stat)", 
+    }
+    if(p>0){
+    	legend->AddEntry(grp_suspect,Form("<SUSPECT> = %2.5f #pm %2.5f (stat)",
 					      fit6->GetParameter(0), fit6->GetParError(0)), "p");
+    }
+
+
+    //PRINT OUT INFORMATION TO CONSOLE
+    if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
+		std::cout<<" "<<std::endl;
+		std::cout<<"############################################"<<std::endl;
+		std::cout<<" "<<std::endl;
+		std::cout<<"Fit Results for "<<title<<std::endl;
+
+		if(m>0 && k>0){
+			std::cout<<"in_R = "<<inR<<"  +/- "<<inRerr<<" ppm"<<std::endl;
+			std::cout<<"out_R = "<<outR<<" +/- "<<outRerr<<" ppm"<<std::endl;
+			std::cout<<"(IN+OUT)/2 = "<<(inR+outR)/2<<" +/- "<<sqrt(inRerr*inRerr+outRerr*outRerr)/2<<" ppm"<<std::endl;
+			std::cout<<"(OUT-IN)   = "<<
+					( outR/(outRerr*outRerr) - inR/(inRerr*inRerr) )/( 1/(outRerr*outRerr) + 1/(inRerr*inRerr))<<" +/- "<<
+					1/sqrt(1/(outRerr*outRerr)+1/(inRerr*inRerr))<<" ppm"<<std::endl;
+		}
+
+		if(n>0 && l>0){
+			std::cout<<"in_L = "<<inL<<"  +/- "<<inLerr<<" ppm"<<std::endl;
+			std::cout<<"out_L = "<<outL<<" +/- "<<outLerr<<" ppm"<<std::endl;
+			std::cout<<"(IN+OUT)/2 = "<<(inL+outL)/2<<" +/- "<<sqrt(inLerr*inLerr+outLerr*outLerr)/2<<" ppm"<<std::endl;
+			std::cout<<"(IN-OUT)   = "<<
+								( inL/(inLerr*inLerr) - outL/(outLerr*outLerr) )/( 1/(outLerr*outLerr) + 1/(inLerr*inLerr))<<" +/- "<<
+								1/sqrt(1/(inLerr*inLerr)+1/(outLerr*outLerr))<<" ppm"<<std::endl;
+		}
+		std::cout<<" "<<std::endl;
+		std::cout<<"############################################"<<std::endl;
+		std::cout<<" "<<std::endl;
+    }
+
     legend->SetFillColor(0);
 
     
