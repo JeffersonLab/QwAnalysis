@@ -1562,7 +1562,7 @@ void QwGUIDatabaseSummary::PlotDetector(Int_t ncan = 1, TCanvas *can = 0)
       grp_bad ->SetMarkerStyle(29);
       grp_bad ->SetMarkerColor(kBlack);
       grp_bad ->Fit("pol0");
-      fit5 = grp_out->GetFunction("pol0");
+      fit5 = grp_bad->GetFunction("pol0");
       fit5 -> SetLineColor(kBlack);
     }
 

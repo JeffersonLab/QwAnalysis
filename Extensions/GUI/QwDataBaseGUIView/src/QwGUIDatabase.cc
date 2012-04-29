@@ -619,9 +619,9 @@ void QwGUIDatabase::MakeLayout()
   dLabPlot            = new TGLabel(dControlsFrame, "Plot Type");
   dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
   dLabRunRange        = new TGLabel(dControlsFrame, "Run/Slug Range");
-  dRunFrame	      = new TGHorizontalFrame(dControlsFrame);
-  dNumStartRun        = new TGNumberEntry(dRunFrame, 13500, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
-  dNumStopRun         = new TGNumberEntry(dRunFrame, 16000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dRunFrame	      	  = new TGHorizontalFrame(dControlsFrame);
+  dNumStartRun        = new TGNumberEntry(dRunFrame, 18000, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dNumStopRun         = new TGNumberEntry(dRunFrame, 19000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dBtnSubmit          = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);  //dSlowControls       = new TGButtonGroup(dControlsFrame, "Slow Controls");
 
 
@@ -646,7 +646,14 @@ void QwGUIDatabase::MakeLayout()
   dCmbInstrument->AddEntry("LUMI Detector Sensitivities", ID_LUMI_SENS);
   dCmbInstrument->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulateDetectorComboBox()");
   dCmbInstrument->Select(dCmbInstrument->FindEntry("Main Detectors")->EntryId());
+
   dCmbProperty->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulateMeasurementComboBox()");
+
+
+  PopulateRegComboBox();
+  dCmbRegressionType->Select(0);
+
+  dCmbMeasurementType->Connect("Selected(Int_t)","QwGUIDatabase",this,"PopulateRegComboBox()");
 
   // Populate data blocks
   for (Int_t i = 0; i < N_SUBBLOCKS; i++) {
@@ -664,13 +671,6 @@ void QwGUIDatabase::MakeLayout()
   dCmbXAxis->AddEntry(X_axis[3],ID_X_TIME);
   dCmbXAxis->AddEntry(X_axis[4],ID_X_TIME_RUNLET);
   //dCmbXAxis->AddEntry(X_axis[5],ID_X_WEIN);
-
-  // Populate regression combo box
-  for (Int_t i = 0; i < N_REGRESSION_SCHEMES; i++) {
-    dCmbRegressionType->AddEntry(RegressionSchemes[i], i);
-  }
-  dCmbRegressionType->Connect("Selected(Int_t)","QwGUIDatabase", this, "RegressionTypeInfo()");
-  dCmbRegressionType->Select(1);
 
 
   // Populate good for list
@@ -942,7 +942,31 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
 }
 
 
+/********************************************
 
+Populate the X axis detector combo box
+
+****************************************** */
+
+void QwGUIDatabase::PopulateRegComboBox()
+{
+	dCmbRegressionType->RemoveAll();
+
+	if( (measurements[dCmbMeasurementType->GetSelected()]=="y")  ||
+	    (measurements[dCmbMeasurementType->GetSelected()]=="yp") ||
+		(measurements[dCmbMeasurementType->GetSelected()]=="yq") ){
+			dCmbRegressionType->AddEntry(RegressionSchemes[N_REGRESSION_SCHEMES-1],N_REGRESSION_SCHEMES-1);
+			dCmbRegressionType->Select(N_REGRESSION_SCHEMES-1);
+	}
+	else{
+		// Populate regression combo box normally
+		for (Int_t i = 0; i < N_REGRESSION_SCHEMES; i++) {
+		  dCmbRegressionType->AddEntry(RegressionSchemes[i], i);
+		}
+		dCmbRegressionType->Connect("Selected(Int_t)","QwGUIDatabase", this, "RegressionTypeInfo()");
+		dCmbRegressionType->Select(1);
+	}
+}
 
 
 /********************************************
@@ -1943,7 +1967,7 @@ void QwGUIDatabase::PlotDetector()
       grp_bad ->SetMarkerStyle(29);
       grp_bad ->SetMarkerColor(kBlack);
       grp_bad ->Fit("pol0");
-      fit5 = grp_out->GetFunction("pol0");
+      fit5 = grp_bad->GetFunction("pol0");
       fit5 -> SetLineColor(kBlack);
     }
 
@@ -2849,6 +2873,8 @@ void QwGUIDatabase::OnSubmitPushed()
 {
   ClearData();
   GetDataSelections();
+
+  std::cout<<RegressionSchemes[dCmbRegressionType->GetSelected()]<<std::endl;
 
   switch (dCmbInstrument->GetSelected()) {
   case ID_MD:

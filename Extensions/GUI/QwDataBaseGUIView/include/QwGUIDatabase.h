@@ -315,6 +315,7 @@ using std::vector;
   void                PopulateDetectorComboBox();
   void                PopulateMeasurementComboBox();
   void                PopulatePlotComboBox();
+  void				  PopulateRegComboBox();
   void                RegressionTypeInfo();
 
   ClassDef(QwGUIDatabase,0); 
