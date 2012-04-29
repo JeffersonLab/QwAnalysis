@@ -22,7 +22,7 @@
 
 class Tsmd {
   public:
-    Tsmd( Bool_t , Bool_t , Bool_t , Bool_t , Bool_t , Bool_t);
+    Tsmd( Int_t, Int_t, Bool_t , Bool_t , Bool_t , Bool_t , Bool_t , Bool_t);
     void setArrays( void );
     void processEvent( TFile * );
     void processHits( Int_t , QwEvent * );
@@ -39,16 +39,20 @@ class Tsmd {
     Bool_t fTsMinusMdFlag;
     Bool_t fMdWithCutsFlag;
     Bool_t fOverlayFlag;
-    Int_t mdarray[nhits];
-    Int_t tsarray[nhits];
-    TH2F *correlateHisto[nhits];
-    TH1F *tsMinusMdHisto[nhits];
-    TH1F *tsSoftwareMT;
-    TH1F *mdSoftwareMT;
-    TH1F *mdCuts;
+    Int_t  mdarray[nhits];
+    Int_t  tsarray[nhits];
+    Int_t  fMainDet;
+    Int_t  fTrigScint;
+    TH2F   *correlateHisto[nhits];
+    TH1F   *tsMinusMdHisto[nhits];
+    TH1F   *tsSoftwareMT;
+    TH1F   *mdSoftwareMT;
+    TH1F   *mdCuts;
 }; //end class definition
 
 void coincidencePlot( Int_t runNum, 
+    Int_t mainDet=1,
+    Int_t trigScint=2,
     Bool_t Overlay=kTRUE,
     Bool_t TSmeantime=kFALSE, 
     Bool_t MDmeantime=kFALSE, 
@@ -70,15 +74,17 @@ void coincidencePlot( Int_t runNum,
     std::cout <<"Successfully opened ROOTFILE " <<myFile->GetName() <<std::endl;
   }
 
-// Tsmd billy( kFALSE, kFALSE, kFALSE, kFALSE, kFALSE);
- Tsmd billy( Overlay, TSmeantime, MDmeantime, Correlation, TsMdTimeDifference, CoincidenceCuts);
- billy.processEvent( myFile );
- billy.plotHistos();
+  // Tsmd billy( kFALSE, kFALSE, kFALSE, kFALSE, kFALSE);
+  Tsmd billy( mainDet, trigScint, Overlay, TSmeantime, MDmeantime, Correlation, TsMdTimeDifference, CoincidenceCuts);
+  billy.processEvent( myFile );
+  billy.plotHistos();
 
 } //end function
 
 
-Tsmd::Tsmd( Bool_t overlay, Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF) {
+Tsmd::Tsmd( Int_t mainDet, Int_t trigScint, Bool_t overlay, Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF) {
+  fMainDet = mainDet;
+  fTrigScint = trigScint;
   fOverlayFlag = overlay;
   fTsSoftwareFlag = tsSoft;
   fMdSoftwareFlag = mdSoftFlag;
@@ -155,12 +161,12 @@ void Tsmd::processHits( Int_t nhit, QwEvent * qwevent ) {
     const Int_t fplane = qwhit -> GetPlane();
     const Int_t hitnumber = qwhit -> GetHitNumber();
 
-    if (fregion==4 && fplane==2 && felement==3)  {
+    if (fregion==4 && fplane==fTrigScint && felement==3)  {
       //   tsarray[ts_hitnum] = qwhit -> GetTimeNs();
       tsarray[hitnumber] = qwhit -> GetTimeNs();
       //	    std::cout <<"Event: " <<i <<"\tTS hit#: " <<ts_hitnum <<endl;
     }
-    if (fregion==5 && fplane==1 && felement==3) {
+    if (fregion==5 && fplane==fMainDet && felement==3) {
       //   mdarray[md_hitnum] = qwhit -> GetTimeNs();
       mdarray[hitnumber] = qwhit -> GetTimeNs();
       //   std::cout <<"Event: " <<i <<"\tMD hit#: " <<md_hitnum <<endl;
