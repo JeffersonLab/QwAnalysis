@@ -22,7 +22,7 @@
 
 class Tsmd {
   public:
-    Tsmd( Int_t, Int_t, Bool_t , Bool_t , Bool_t , Bool_t , Bool_t , Bool_t);
+    Tsmd( Int_t, Int_t, Int_t, Int_t, Bool_t , Bool_t , Bool_t , Bool_t , Bool_t , Bool_t);
     void setArrays( void );
     void processEvent( TFile * );
     void processHits( Int_t , QwEvent * );
@@ -41,6 +41,8 @@ class Tsmd {
     Bool_t fOverlayFlag;
     Int_t  mdarray[nhits];
     Int_t  tsarray[nhits];
+    Int_t  fEventLow;
+    Int_t  fEventHigh;
     Int_t  fMainDet;
     Int_t  fTrigScint;
     TH2F   *correlateHisto[nhits];
@@ -53,6 +55,8 @@ class Tsmd {
 void coincidencePlot( Int_t runNum, 
     Int_t mainDet=1,
     Int_t trigScint=2,
+    Int_t eventLow=0,
+    Int_t eventHigh=4000000,
     Bool_t Overlay=kTRUE,
     Bool_t TSmeantime=kFALSE, 
     Bool_t MDmeantime=kFALSE, 
@@ -75,15 +79,17 @@ void coincidencePlot( Int_t runNum,
   }
 
   // Tsmd billy( kFALSE, kFALSE, kFALSE, kFALSE, kFALSE);
-  Tsmd billy( mainDet, trigScint, Overlay, TSmeantime, MDmeantime, Correlation, TsMdTimeDifference, CoincidenceCuts);
+  Tsmd billy( mainDet, trigScint, eventLow, eventHigh, Overlay, TSmeantime, MDmeantime, Correlation, TsMdTimeDifference, CoincidenceCuts);
   billy.processEvent( myFile );
   billy.plotHistos();
 
 } //end function
 
 
-Tsmd::Tsmd( Int_t mainDet, Int_t trigScint, Bool_t overlay, Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF) {
+Tsmd::Tsmd( Int_t mainDet, Int_t trigScint, Int_t eventLow, Int_t eventHigh, Bool_t overlay, Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF) {
   fMainDet = mainDet;
+  fEventLow = eventLow;
+  fEventHigh = eventHigh;
   fTrigScint = trigScint;
   fOverlayFlag = overlay;
   fTsSoftwareFlag = tsSoft;
@@ -137,6 +143,7 @@ void Tsmd::processEvent( TFile *file ) {
 
   for (Long_t i=0; i<num_entries; i++)
     {//;
+      if (!(i>=fEventLow && i<=fEventHigh)) {continue;}
       localEntry = event_tree->LoadTree(i);
       event_tree->GetEntry(localEntry);
 
