@@ -2874,8 +2874,6 @@ void QwGUIDatabase::OnSubmitPushed()
   ClearData();
   GetDataSelections();
 
-  std::cout<<RegressionSchemes[dCmbRegressionType->GetSelected()]<<std::endl;
-
   switch (dCmbInstrument->GetSelected()) {
   case ID_MD:
     detector = DetectorCombos[dCmbDetector->GetSelected()];
