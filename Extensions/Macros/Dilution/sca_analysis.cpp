@@ -49,10 +49,33 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
 
 
   const TString trigscint [6] = {
-    "ts1mt_sca", "ts2mt_sca",
-    "ts1m_sca", "ts2m_sca",
-    "ts1p_sca", "ts2p_sca"
+    "ts1mt_sca", "ts1m_sca", "ts1p_sca",
+    "ts2mt_sca", "ts2m_sca", "ts2p_sca"
+      //     "ts1mt_sca", "ts2mt_sca",
+      //    "ts1m_sca", "ts2m_sca",
+      //    "ts1p_sca", "ts2p_sca"
   };
+
+  Double_t pArray [8];
+  Double_t mArray [8];
+  Double_t aArray [8];
+  
+  Double_t pArrayError [8];
+  Double_t mArrayError [8];
+  Double_t aArrayError [8];
+
+  for (Int_t i=0; i<8; i++) {
+    pArray[i] = 0;
+    mArray[i] = 0;
+    aArray[i] = 0;
+  }
+
+  Double_t tsArray[6];
+  Double_t tsArrayError[6];
+  for (Int_t i=0; i<6; i++) {
+    tsArray[i]=0;
+    tsArrayError[i]=0;
+  }
 
 
   const Int_t canvas [8] = {
@@ -60,7 +83,7 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
   };
 
   const Int_t canvas_ts [6] = {
-    1, 2, 3, 4, 5, 6
+    1, 3, 5, 2, 4, 6
   };
 
   Char_t filename[100];
@@ -125,6 +148,9 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
+    fit = htmp->GetFunction("gaus");
+    aArray[j] = fit->GetParameter(1);
+    aArrayError[j] = fit->GetParError(1);
   } //end mdallbars for loop
 
   //mdp plots here
@@ -142,7 +168,10 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
-  } //end mdp for loop
+    fit = htmp->GetFunction("gaus");
+    pArray[j] = fit->GetParameter(1);
+    pArrayError[j] = fit->GetParError(1);
+   } //end mdp for loop
 
 
   //mdm plots here
@@ -160,7 +189,10 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
-  } //end mdm for loop
+    fit = htmp->GetFunction("gaus");
+    mArray[j] = fit->GetParameter(1);
+    mArrayError[j] = fit->GetParError(1);
+   } //end mdm for loop
 
   //ts plots here
   std::cout <<"**The TS DATA**\n\n";
@@ -177,7 +209,19 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
+    fits = htmp->GetFunction("gaus");
+    tsArray[j] = fits->GetParameter(1);
+    tsArrayError[j] = fits->GetParError(1);
   } //end trigger scintillator loop
+
+  for (Int_t i=0; i<8; i++) {
+    std::cout <<aArray[i] <<", " <<aArrayError[i] <<", " <<mArray[i] <<", " <<mArrayError[i] <<", " <<pArray[i] <<", " <<pArrayError[i] <<endl;
+  }
+
+  for (Int_t i=1; i<7; i++) {
+    std::cout <<tsArray[i-1] <<", " <<tsArrayError[i-1] <<", ";
+   if (i%3==0)  std::cout <<endl;
+  }
 
 } // end sca_analysis function
 
