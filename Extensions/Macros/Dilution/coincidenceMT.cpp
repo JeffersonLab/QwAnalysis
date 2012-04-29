@@ -251,7 +251,7 @@ void Tsmd::plotHistos( void ) {
     mdCuts->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     mdCuts->SetLineColor(4);
-    mdCuts->Draw("same");
+    mdCuts->Draw("");
   } //end fMdWithCutsFlag
 
   if (fCorrelationFlag) {
