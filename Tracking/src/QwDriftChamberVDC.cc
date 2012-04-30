@@ -208,7 +208,8 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
   TString reference_name1 = "MasterTrigger";
   TString reference_name2 = "CopyMasterTrigger";
 
-  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=end; hit++ ) 
     {
 
       bank_index        =            hit  -> GetSubbankID();
@@ -1022,7 +1023,8 @@ void QwDriftChamberVDC::ClearEventData()
 {
   SetDataLoaded ( kFALSE );
   QwDetectorID this_det;
-  for ( std::vector<QwHit>::iterator hit1=fTDCHits.begin();hit1!=fTDCHits.end();hit1++ )
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for ( std::vector<QwHit>::iterator hit1=fTDCHits.begin();hit1!=end;hit1++ )
     {
       this_det = hit1->GetDetectorID();
     }
@@ -1217,7 +1219,8 @@ void  QwDriftChamberVDC::FillHistograms()
 
   Int_t plane_index = 0;
 
-  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=end; hit++ )
     {
 
       this_detid = hit->GetDetectorID();
@@ -1258,7 +1261,9 @@ void  QwDriftChamberVDC::FillHistograms()
   		    << QwLog::endl;
   	}
     }
-  for ( std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++ )
+
+  end=fWireHits.end();
+  for ( std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=end; hit1++ )
     {
 
       this_detid = hit1->GetDetectorID();
@@ -1431,7 +1436,8 @@ void QwDriftChamberVDC::UpdateHits()
   QwElectronicsID tmpElectronicsID;
 
   // processing the delay line starts....
-  for ( std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=fTDCHits.end();iter++ )
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for ( std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=end;iter++ )
     {
       //this for loop will Fill in the tdc hits data Int_to the corresponding delay line
       tmpElectronicsID = iter->GetElectronicsID();
@@ -1459,7 +1465,7 @@ void QwDriftChamberVDC::UpdateHits()
   EQwDetectorPackage package;
   EQwDirectionID direction;
 
-  for ( std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=fTDCHits.end();iter++ )
+  for ( std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=end;iter++ )
     {
       tmpElectronicsID = iter->GetElectronicsID();
       tmpCrate         = iter->GetSubbankID();

@@ -65,7 +65,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
    if(z<-500 && z>-600)
      projection=new TH2F("projection","projection",240,-30,30,240,-30,30);
    else if(z<-600)
-     projection=new TH2F("projection","projection",120,-15,15,120,-15,15);
+     projection=new TH2F("projection","projection",16,-2,2,16,-2,2);
    else if(z<-350)
      projection=new TH2F("projection","projection",480,-60,60,480,-60,60);
    else
@@ -88,7 +88,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     TH1F* Plane_residual[12];
     for(int i=0;i<12;++i)
       Plane_residual[i]=new TH1F(Form("residual in plane%d",i+1),Form("residual in plane%d",i+1),100,-0.5,0.5);
-    TH2F* test_for_fun=new TH2F("a","a",140,0,70,100,0,0.12);
+    TH2F* test_for_fun=new TH2F("Q2 vs position","Q2 vs position",80,30,70,100,0,0.12);
 
 
     QwEvent* fEvent=0;
@@ -206,20 +206,16 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	  
 	  if(hit->GetRegion() ==2 && hit->GetDriftDistance() >=0 && hit->GetHitNumber()==0 && hit->GetPackage() == pkg){
 	    ++valid_hits;
-	    //if(hit->GetPlane()==1 && hit->GetElement()==18)
-	    //  special_flag=true;
-	    //if(hit->GetPlane()==11 && hit->GetElement()==1)
-	    //  special_flag=true;
 	  }
 	}
 	// test if the md get hit
 	
 	if(pkg==1){
-	  if(mdm_value_1 <-1800 || mdm_value_1 > -1200 || mdp_value_1 < -1800 || mdp_value_1 > -1200)
+	  if(mdm_value_1 <-210 || mdm_value_1 > -150 || mdp_value_1 < -210 || mdp_value_1 > -150)
 	    continue;
 	}
 	else if(pkg==2){
-	  if(mdm_value_2 <-1800 || mdm_value_2 > -1200 || mdp_value_2 < -1800 || mdp_value_2 > -1200)
+	  if(mdm_value_2 <-210 || mdm_value_2 > -150 || mdp_value_2 < -210 || mdp_value_2 > -150)
 	    continue;
 	}
 	
@@ -261,7 +257,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	Directionthetaoff->Fill(track->fDirectionThetaoff,r);
 
 	vertex->Fill(vertex_z);
-	projection->Fill(x,y);
+	projection->Fill(x,y); 
 
 	//x_histo->Fill(x);
 	y_histo->Fill(y);
@@ -578,4 +574,73 @@ bool in_coll(double x,double y){
     return true;
   else
     return false;
+}
+
+void Draw_time(int pkg==1,int event_start=0,int event_end=-1,int run=8658,string suffix=""){
+  // try to get the oct number from the run number
+
+   //bool fDebug=false;
+   //string folder= "/scratch/sxyang";
+   string folder=gSystem->Getenv("QW_ROOTFILES");
+   ostringstream ss;
+   ss << folder << "/Qweak_";
+   ss << run << suffix;
+   ss << ".root";
+   string file_name=ss.str();
+   cout <<  file_name << endl;
+   TFile* file=new TFile(file_name.c_str());
+ 
+     
+    //TH2F* projection=new TH2F("projection","projection",240,-30,30,240,-30,30);
+    //TH2F* projection=new TH2F("projection","projection",240,-30,30,140,25,60);
+
+
+    QwEvent* fEvent=0;
+    QwHit* hit=0;
+
+    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
+    Int_t nevents=event_tree->GetEntries();
+    cout << "total events: " << nevents << endl;
+    
+    int start=(event_start==-1)? 0:event_start;
+    int end=(event_end==-1)? nevents:event_end;
+    event_tree->SetBranchStatus("events",1);
+    TBranch* event_branch=event_tree->GetBranch("events");
+    TBranch* maindet_branch=event_tree->GetBranch("maindet");
+    event_branch->SetAddress(&fEvent);
+  
+    TH1F* r2_time=new TH1F("r2 time","r2 time",150,-50,250);
+    TH1F* r3_time=new TH1F("r3 time","r3 time",200,-50,350);
+    TH1F* r2_distance=new TH1F("distance","distance",50,0,1);
+  
+  
+  
+    for(int i=start;i<end;++i){
+
+      if(i%10000==0)
+	cout << "events processed so far: " << i << endl;
+      
+      event_branch->GetEntry(i);
+  
+      int nhits=fEvent->GetNumberOfHits();
+      for(int j=0;j<nhits;++j){
+	hit=fEvent->GetHit(j);
+	if(hit->GetRegion()==2){
+	  r2_time->Fill(hit->GetTimeNs());
+	  if(hit->GetDriftDistance()!=-5)
+	    r2_distance->Fill(hit->GetDriftDistance());
+	}
+	else{
+	  r3_time->Fill(hit->GetTimeNs());
+	}
+      }
+    }
+
+    TCanvas* c=new TCanvas("c","c",800,600);
+    c->Divide(1,2);
+    c->cd(1);
+    r2_time->SetMinimum(0);
+    r2_time->Draw();
+    c->cd(2);
+    r2_distance->Draw();
 }

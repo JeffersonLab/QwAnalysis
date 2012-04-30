@@ -94,21 +94,12 @@ void QwHitPattern::SetHDCHitList(
 	const double detectorwidth,
 	QwHitContainer* hitlist)
 {
-  std::vector<int> check_dup;
-  std::vector<int>::iterator it;
+  QwHitContainer::iterator end=hitlist->end();
   for (QwHitContainer::iterator hit  = hitlist->begin();
-                                hit != hitlist->end(); ++hit){
-    if(hit->GetDriftDistance()<0) continue;
-    int index=32*hit->GetPlane()+hit->GetElement();
-    if(check_dup.size()==0){
-       check_dup.push_back(index);
-       SetHDCHit(detectorwidth, &(*hit));
-     }
-    else if(find(check_dup.begin(),check_dup.end(),index)==check_dup.end()){
-       check_dup.push_back(index);
-       SetHDCHit(detectorwidth, &(*hit));
-       }
-   }
+                                hit != end; ++hit){
+    if(hit->GetDriftDistance()<0 || hit->GetHitNumber()!=0) continue;
+    SetHDCHit(detectorwidth,&(*hit));
+  }
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
