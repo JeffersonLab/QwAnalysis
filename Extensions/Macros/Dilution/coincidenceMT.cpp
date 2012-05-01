@@ -203,9 +203,9 @@ void Tsmd::fillHistos() {
 
   if (fMdWithCutsFlag || fOverlayFlag) {
     for (Int_t k=0; k<7; k++) {
-      if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
-      if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-200 && mdarray[k]<=-160) mdCutsPeak->Fill(mdarray[k]);
-      if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=5 && mdarray[k]<=45) mdCutsAccidental->Fill(mdarray[k]);
+      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
+      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-200 && mdarray[k]<=-160) mdCutsPeak->Fill(mdarray[k]);
+      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=5 && mdarray[k]<=45) mdCutsAccidental->Fill(mdarray[k]);
     }
   }
   if (fCorrelationFlag) {
