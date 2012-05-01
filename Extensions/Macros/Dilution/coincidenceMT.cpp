@@ -50,6 +50,8 @@ class Tsmd {
     TH1F   *tsSoftwareMT;
     TH1F   *mdSoftwareMT;
     TH1F   *mdCuts;
+    TH1F   *mdCutsPeak;
+    TH1F   *mdCutsAccidental;
 }; //end class definition
 
 void coincidencePlot( Int_t runNum, 
@@ -58,11 +60,11 @@ void coincidencePlot( Int_t runNum,
     Int_t eventLow=0,
     Int_t eventHigh=4000000,
     Bool_t Overlay=kTRUE,
-    Bool_t TSmeantime=kFALSE, 
+    Bool_t TSmeantime=kTRUE, 
     Bool_t MDmeantime=kFALSE, 
     Bool_t Correlation=kFALSE,
     Bool_t TsMdTimeDifference=kFALSE,
-    Bool_t CoincidenceCuts=kFALSE
+    Bool_t CoincidenceCuts=kTRUE
     ) {
   gROOT -> Reset();
   gROOT -> SetStyle("Plain");
@@ -118,8 +120,11 @@ void Tsmd::createHistos( void ) {
 
   if (fTsSoftwareFlag) tsSoftwareMT = new TH1F("tsSoftwareMT","TS Software Meantime",1800,-400,1400);
   if (fMdSoftwareFlag || fOverlayFlag) mdSoftwareMT = new TH1F("mdSoftwareMT","MD Software Meantime",1800,-400,1400);
-  if (fMdWithCutsFlag || fOverlayFlag) mdCuts = new TH1F("mdCuts","Main Detector MT with TS Cut",1800,-400,1400);
-
+  if (fMdWithCutsFlag || fOverlayFlag) {
+    mdCuts = new TH1F("mdCuts","Main Detector MT with TS Cut",1800,-400,1400);
+    mdCutsPeak = new TH1F("mdCutsPeak","Main Detector MT with TS Cut",1800,-400,1400);
+    mdCutsAccidental = new TH1F("mdCutsAccidental","Main Detector MT with TS Cut",1800,-400,1400);
+  }
 } //end definition createhistos
 
 void Tsmd::setArrays ( void ) {
@@ -199,6 +204,8 @@ void Tsmd::fillHistos() {
   if (fMdWithCutsFlag || fOverlayFlag) {
     for (Int_t k=0; k<7; k++) {
       if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
+      if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-200 && mdarray[k]<=-160) mdCutsPeak->Fill(mdarray[k]);
+      if(tsarray[k]!=0 && tsarray[k]>-184 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=0 && mdarray[k]<=40) mdCutsAccidental->Fill(mdarray[k]);
     }
   }
   if (fCorrelationFlag) {
@@ -259,7 +266,21 @@ void Tsmd::plotHistos( void ) {
     gPad->SetLogy();
     mdCuts->SetLineColor(4);
     mdCuts->Draw("");
-  } //end fMdWithCutsFlag
+
+    TCanvas *peak = new TCanvas("peak","Main Detector Peak");
+    mdCutsPeak->SetTitle("Main Detector Peak");
+    mdCutsPeak->GetXaxis()->SetTitle("Time (ns)");
+    gPad->SetLogy();
+    mdCutsPeak->SetLineColor(2);
+    mdCutsPeak->Draw();
+
+    TCanvas *accident = new TCanvas("accident","Main Detector Accidentals");
+    mdCutsAccidental->SetTitle("Main Detector Accidentals");
+    mdCutsAccidental->GetXaxis()->SetTitle("Time (ns)");
+    gPad->SetLogy();
+    mdCutsAccidental->SetLineColor(2);
+    mdCutsAccidental->Draw();
+   } //end fMdWithCutsFlag
 
   if (fCorrelationFlag) {
     TCanvas* canvases[3];
