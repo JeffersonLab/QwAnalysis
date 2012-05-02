@@ -361,14 +361,14 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Print the event
     void Print(Option_t* option = "") const;
     
-    const Double_t GetPrimaryQ2()          const { return fPrimaryQ2;};
-    const Double_t GetCrossSectionWeight() const { return fCrossSectionWeight;};
-    const Double_t GetTotalEnergy()        const { return fTotalEnergy;};
-    const Double_t GetKineticEnergy()      const { return fKineticEnergy;};
-    const TVector3 GetVertexPosition()     const { return fVertexPosition;};
-    const TVector3 GetVertexMomentum()     const { return fVertexMomentum;};
-    const Double_t GetScatteringAngle()    const { return fScatteringAngle;};
-    const Double_t GetScatteringVertexZ()  const { return fScatteringVertexZ;};
+    Double_t GetPrimaryQ2()            const { return fPrimaryQ2;};
+    Double_t GetCrossSectionWeight()   const { return fCrossSectionWeight;};
+    Double_t GetTotalEnergy()          const { return fTotalEnergy;};
+    Double_t GetKineticEnergy()        const { return fKineticEnergy;};
+    const TVector3 GetVertexPosition() const { return fVertexPosition;};
+    const TVector3 GetVertexMomentum() const { return fVertexMomentum;};
+    Double_t GetScatteringAngle()      const { return fScatteringAngle;};
+    Double_t GetScatteringVertexZ()    const { return fScatteringVertexZ;};
 
   public:
 

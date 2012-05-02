@@ -37,21 +37,21 @@ class QwHitContainer: public std::list<QwHit>, public TObject {
   using QwHitArray::end;
 
 
-  void Clear(const Option_t* __attribute__((unused)) option = 0) {
+  void Clear(const Option_t* /*option*/ = 0) {
     this->QwHitArray::clear();
   };
 
   //append from a QwHit vector - rakitha (08/2008)
-  void Append(const QwHitContainer &list) {
-    this->insert(this->end(), list.begin(), list.end());
+  void Append(const QwHitContainer &mylist) {
+    this->insert(this->end(), mylist.begin(), mylist.end());
   };
 
-  void Append(const QwHitContainer* list) {
-    this->insert(this->end(), list->begin(), list->end());
+  void Append(const QwHitContainer* mylist) {
+    this->insert(this->end(), mylist->begin(), mylist->end());
   };
 
-  void Append(std::vector<QwHit> &list) {
-    this->insert(this->end(), list.begin(), list.end());
+  void Append(std::vector<QwHit> &mylist) {
+    this->insert(this->end(), mylist.begin(), mylist.end());
   };
 
 

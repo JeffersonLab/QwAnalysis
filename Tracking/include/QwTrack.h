@@ -70,7 +70,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     void PrintPartialTracks(Option_t *option = "") const;
 
 
-    void Print(const Option_t* option = 0) const {
+    void Print(const Option_t* /*option*/ = 0) const {
       if (!this) return;
       std::cout << std::endl;
     };
