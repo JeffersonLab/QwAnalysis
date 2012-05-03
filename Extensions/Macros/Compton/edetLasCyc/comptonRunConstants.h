@@ -17,8 +17,10 @@ const Float_t B_dipole = 0.544;///T
 const Float_t E = 1.159; //Beam energy (GeV)
 const Float_t lambda = 532E-9; //photon wavelength (nm)      
 //const Float_t xgap = 0.007; //!min distance (m)
-const Float_t xCedge = 0.01755;//I've substracted 0.1mm to reach center of strip //old value:0.0176654;
-
+const Float_t xCedge = 0.0176654;
+const Double_t param[4]= {-1.1403e-05, 58.9828, -139.527, 291.23};
+const Double_t a = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
+//const Double_t oneMinusA = 1 - a;
 const Double_t stripMin = 30.0;
 const Double_t stripMax = 50.0;
 
@@ -55,6 +57,11 @@ const Int_t startStrip = 0;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
 Int_t Cedge[nPlanes];
+Int_t tempCedge;
+Bool_t paramRead;
+Float_t k;
+Float_t gamma_my;
+
 const Int_t Cedge_p1 = 53;///Compton-edge for the current run(counting from 0)
 const Int_t Cedge_p2 = 53;///Compton-edge for the current run(counting from 0)
 const Int_t Cedge_p3 = 51;///Compton-edge for the current run(counting from 0)
