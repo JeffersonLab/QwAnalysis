@@ -249,7 +249,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	double y=pt->fOffsetY+z*pt->fSlopeY;
 	double x_plane=pt->fOffsetX-341.700*pt->fSlopeX;
 	x_histo->Fill(x_plane);
-	x*=-1;
+	//x*=-1;
 	//x_tar*=-1;
 	//double r=sqrt(x_tar*x_tar+y_tar*y_tar);
 	double r=sqrt(x*x+y*y);
@@ -257,6 +257,13 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	Directionthetaoff->Fill(track->fDirectionThetaoff,r);
 
 	vertex->Fill(vertex_z);
+
+        double X = x;
+        double Y = y;
+        double Theta = 45./180.*3.1415926*(oct-1);
+        x = X*cos(Theta) - Y*sin(Theta);
+        y = X*sin(Theta) + Y*cos(Theta);
+
 	projection->Fill(x,y); 
 
 	//x_histo->Fill(x);
@@ -308,24 +315,32 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     spad3->cd();
   
     gStyle->SetPalette(1);
-    projection->GetXaxis()->SetTitle("x axis:cm");
-    projection->GetYaxis()->SetTitle("y axis:cm");
+    projection->GetXaxis()->SetTitle("hit global x [cm]");
+    projection->GetYaxis()->SetTitle("hit global y [cm]");
     projection->Draw("colz");
     
     projection->SetTitle(Form("run %d: pkg%d projection to Z=%f",run,pkg,z));
     double PI=3.1415926;
     double px[6];
     double py[6];
-    if(target=="coll1"){
-     
-    
-    double angle=oct==8? -135:-(3-oct)*45;
+
+    double highy,highx,middley,middlex,lowy,lowx;
+    if(target=="coll1")
+    {
+      highy=18.46,middley=12.63,lowy=7.03;
+      highx=3.65,middlex=3.65,lowx=1.91;
+    } 
+    else if (target=="coll2") 
+    {
+      highy=53.7,middley=37.1,lowy=30.57;
+      highx=9.2,middlex=9.2,lowx=6.5;
+    }
+
+    double angle=oct==8? 135:(3-oct)*45;
     if(pkg==1)
       angle+=180;
     double Sin=sin(angle*PI/180);
     double Cos=cos(angle*PI/180);
-    double highy=18.46,middley=12.63,lowy=7.03;
-    double highx=3.65,middlex=3.65,lowx=1.91;
     
     px[0]=-Cos*highx+Sin*highy;
     py[0]=Sin*highx+Cos*highy;
@@ -340,6 +355,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     px[5]=Cos*middlex+Sin*middley;
     py[5]=-Sin*middlex+Cos*middley;
     
+
     TLine* t1=new TLine(px[0],py[0],px[1],py[1]);
     TLine* t2=new TLine(px[2],py[2],px[3],py[3]);
     TLine* t3=new TLine(px[0],py[0],px[4],py[4]);
@@ -358,48 +374,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     t4->Draw("same");
     t5->Draw("same");
     t6->Draw("same");
-    }
-    else if(target=="coll2"){
-    double angle=oct==8? -135:-(3-oct)*45;
-    if(pkg==1)
-      angle+=180;
-    double Sin=sin(angle*PI/180);
-    double Cos=cos(angle*PI/180);
-    double highy=53.7,middley=37.1,lowy=30.57;
-    double highx=9.2,middlex=9.2,lowx=6.5;
     
-    px[0]=-Cos*highx+Sin*highy;
-    py[0]=Sin*highx+Cos*highy;
-    px[1]=Cos*highx+Sin*highy;
-    py[1]=-Sin*highx+Cos*highy;
-    px[2]=-Cos*lowx+Sin*lowy;
-    py[2]=Sin*lowx+Cos*lowy;
-    px[3]=Cos*lowx+Sin*lowy;
-    py[3]=-Sin*lowx+Cos*lowy;
-    px[4]=-Cos*middlex+Sin*middley;
-    py[4]=Sin*middlex+Cos*middley;
-    px[5]=Cos*middlex+Sin*middley;
-    py[5]=-Sin*middlex+Cos*middley;
-    
-    TLine* t1=new TLine(px[0],py[0],px[1],py[1]);
-    TLine* t2=new TLine(px[2],py[2],px[3],py[3]);
-    TLine* t3=new TLine(px[0],py[0],px[4],py[4]);
-    TLine* t4=new TLine(px[1],py[1],px[5],py[5]);
-    TLine* t5=new TLine(px[4],py[4],px[2],py[2]);
-    TLine* t6=new TLine(px[5],py[5],px[3],py[3]);
-    t1->SetLineWidth(2);
-    t2->SetLineWidth(2);
-    t3->SetLineWidth(2);
-    t4->SetLineWidth(2);
-    t5->SetLineWidth(2);
-    t6->SetLineWidth(2);
-    t1->Draw("same");
-    t2->Draw("same");
-    t3->Draw("same");
-    t4->Draw("same");
-    t5->Draw("same");
-    t6->Draw("same");
-    }
     
     // TCanvas* c2=new TCanvas("c","c",800,800);
     // vertex->Draw();
