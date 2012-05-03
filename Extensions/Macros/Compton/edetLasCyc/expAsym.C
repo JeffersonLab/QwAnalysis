@@ -67,7 +67,7 @@ Int_t expAsym(Int_t runnum)
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
 
-  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd;//outAsymComponents;
+  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd,outAsymComponents;
   ifstream infileLas, infileBeam;
 
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
@@ -410,12 +410,13 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = startPlane; p < endPlane; p++) { 
     Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check
     outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
     outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     //outAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    //outfileYield<<";strip\texpAsymDr\texpAsymDrEr\texpAsymNr"<<endl;
+    //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
     //outAsymComponents<<";strip\texpAsymNr\texpAsymDr\texpAsymDrEr"<<endl; ///If I want a header for the following text
-    if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {//outAsymComponents.is_open()
+    if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open() && outAsymComponents.is_open()) {
       cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
@@ -423,9 +424,9 @@ Int_t expAsym(Int_t runnum)
       for (Int_t s =startStrip; s <endStrip;s++) { 
 	if (maskedStrips(p,s)) continue;
 	outfileExpAsymP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s]);
-	outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s]);
+	outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
 	outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
-	//outAsymComponents<<Form("%2.0f\t%g\t%g\t%g\t%g\t%g\n",(Float_t)s+1,stripAsymNr[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s],qNormB1L0[p][s],qNormB1L0Er[p][s]);
+	//	outAsymComponents<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymNr[p][s],stripAsymDrEr[p][s]);
       }
       outfileExpAsymP.close();
       outfileYield.close();
@@ -474,7 +475,6 @@ Int_t expAsym(Int_t runnum)
 	  outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr_v2[p][s],stripAsymDrEr_v2[p][s]);
 	  outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0_v2[p][s],qNormB1L0Er_v2[p][s]);
 	}
-	//outAsymComponents.close();
 	outfileExpAsymP.close();
 	cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
 	outfilelasOffBkgd.close();
