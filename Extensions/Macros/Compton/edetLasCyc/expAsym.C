@@ -67,7 +67,7 @@ Int_t expAsym(Int_t runnum)
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
 
-  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd,outAsymComponents;
+  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd;//,outAsymComponents;
   ifstream infileLas, infileBeam;
 
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
@@ -416,7 +416,7 @@ Int_t expAsym(Int_t runnum)
     //outfileYield<<";strip\texpAsymDr\texpAsymDrEr\texpAsymNr"<<endl;
     //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
     //outAsymComponents<<";strip\texpAsymNr\texpAsymDr\texpAsymDrEr"<<endl; ///If I want a header for the following text
-    if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open() && outAsymComponents.is_open()) {
+    if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
       cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
@@ -436,8 +436,7 @@ Int_t expAsym(Int_t runnum)
       cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       //cout<<Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-    }
-    else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
+    } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
   }
 
   if (v2processed) {

@@ -7,7 +7,7 @@ Int_t fileReadDraw(Int_t runnum)
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
   Bool_t asymDiffPlot=1,expAsymPlot=0,yieldPlot=1,asymPlot=0;
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
-  Bool_t debug=1,debug1=0;
+  Bool_t debug=0;//,debug1=0;
   
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   TGraphErrors *grDiffPWTL1_2[nPlanes];
@@ -29,7 +29,7 @@ Int_t fileReadDraw(Int_t runnum)
   leg = new TLegend(0.1,0.7,0.4,0.9);
   
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
-  Float_t stripNum[nPlanes][nStrips],stripNum2[nPlanes][nStrips];
+  Float_t stripNum[nPlanes][nStrips];//,stripNum2[nPlanes][nStrips];
   Float_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
   Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
   Float_t stripAsymNr[nPlanes][nStrips];//,stripAsymNrEr[nStrips];
@@ -111,6 +111,7 @@ Int_t fileReadDraw(Int_t runnum)
 
   if(asymDiffPlot) {
     Float_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
+    //Int_t dummyStrip[nPlanes];
     for(Int_t p =startPlane; p <endPlane; p++) {
       expAsymPWTL1.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       expAsymPWTL2.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));//only plane1 is used for v2 data
@@ -135,13 +136,18 @@ Int_t fileReadDraw(Int_t runnum)
     cDiff->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) { 
       cDiff->cd(p+1);
+      cDiff->GetPad(p+1)->SetGridx(1);
       grDiffPWTL1_2[p] = new TGraphErrors(endStrip,stripNum[p],asymDiff[p],zero[p],stripAsymEr[p]);//!the error needs correction
       grDiffPWTL1_2[p]->SetMarkerStyle(kOpenSquare);
-      grDiffPWTL1_2[p]->SetMarkerSize(0.5);
+      grDiffPWTL1_2[p]->SetMarkerSize(0.6);
+      grDiffPWTL1_2[p]->SetMarkerColor(kRed+2);
+      grDiffPWTL1_2[p]->SetLineColor(kRed+2);
       grDiffPWTL1_2[p]->GetXaxis()->SetTitle("strip number");
       grDiffPWTL1_2[p]->GetYaxis()->SetTitle("expAsym difference (PWTL1-PWTL2)");
       grDiffPWTL1_2[p]->SetMaximum(0.005);
       grDiffPWTL1_2[p]->SetMinimum(-0.005);
+      grDiffPWTL1_2[p]->GetXaxis()->SetLimits(1,65); 
+      grDiffPWTL1_2[p]->GetXaxis()->SetNdivisions(416, kFALSE);
       grDiffPWTL1_2[p]->SetTitle("Diff in exp-asymmetry due to different trigger width");
       grDiffPWTL1_2[p]->Draw("AP");
     }
