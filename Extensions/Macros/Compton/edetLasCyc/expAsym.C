@@ -401,9 +401,11 @@ Int_t expAsym(Int_t runnum)
   
   Float_t activeStrips[nPlanes][nStrips];
   for(Int_t p = startPlane; p < endPlane; p++) { 
+    Int_t skipMe = 0;
     for (Int_t s =startStrip; s <endStrip;s++) { 
       if (maskedStrips(p,s)) continue;
-      activeStrips[p][s]=s+1;//this is required to keep it consistent with the case of the stripNumber being read from a file
+      skipMe++;
+      activeStrips[p][skipMe]=s+1;//this is required to keep it consistent with the case of the stripNumber being read from a file
     }
   }
 

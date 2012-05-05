@@ -55,7 +55,7 @@ const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
  const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 1;
+  const Int_t endPlane = 3;
 Int_t Cedge[nPlanes];
 Int_t tempCedge;
 Bool_t paramRead;

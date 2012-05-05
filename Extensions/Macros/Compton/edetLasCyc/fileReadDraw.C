@@ -50,7 +50,7 @@ Int_t fileReadDraw(Int_t runnum)
   if(debug) cout<<"planes used: "<<pUsed[0]<<"\t"<<pUsed[1]<<"\t"<<pUsed[2]<<"\t"<<pUsed[3]<<endl;
 
   for(Int_t p =startPlane; p <endPlane; p++) {
-    expAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    expAsymComponents.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if(expAsymComponents.is_open()) {
       cout<<"Reading the yield and difference from PWTL1 for plane "<<p+1<<endl;
       if(debug) cout<<";stripNum\tstripAsymDr\tstripAsymDrEr\tstripAsymNr"<<endl;
@@ -60,14 +60,13 @@ Int_t fileReadDraw(Int_t runnum)
       }
       expAsymComponents.close();
     }
-    else cout<<"did not find "<<Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+    else cout<<"did not find "<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
   }
 
   if (yieldPlot) {
-    TCanvas *cYield = new TCanvas("cYield",Form("Yield for run:%d",runnum),30,100,900,600);
+    TCanvas *cYield = new TCanvas("cYield",Form("Yield for run:%d",runnum),70,70,1000,1000);
     TGraphErrors *grAsymDr[nPlanes],*grB1L0[nPlanes];
-    TLegend *legYield;
-    legYield = new TLegend(0.1,0.7,0.4,0.9);
+    TLegend *legYield[nPlanes];
 
     cYield->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) { 
@@ -99,10 +98,11 @@ Int_t fileReadDraw(Int_t runnum)
       grB1L0[p]->Draw("B");
       //grB1L0[p]->GetXaxis()->SetLimits(1,65); 
 
-      legYield->AddEntry(grAsymDr[p],"background corrected yield(Hz/uA)","lp");
-      legYield->AddEntry(grB1L0[p],"background(Hz/uA)","lp");
-      legYield->SetFillColor(0);
-      legYield->Draw();
+      legYield[p] = new TLegend(0.1,0.7,0.4,0.9);
+      legYield[p]->AddEntry(grAsymDr[p],"background corrected yield(Hz/uA)","lp");
+      legYield[p]->AddEntry(grB1L0[p],"background(Hz/uA)","lp");
+      legYield[p]->SetFillColor(0);
+      legYield[p]->Draw();
     }
     gPad->Update();
     cYield->Update();
@@ -132,7 +132,7 @@ Int_t fileReadDraw(Int_t runnum)
       else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
     }
 
-    TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),30,30,1000,600);
+    TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),1,1,1000,1000);
     cDiff->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) { 
       cDiff->cd(p+1);

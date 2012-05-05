@@ -80,9 +80,10 @@ void evaluateAsym(Int_t AccumB1H1L1[nPlanes][nStrips],Int_t AccumB1H0L1[nPlanes]
 	  //weightedMeanDrBCqNormDiff[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
 	  weightedMeanNrqNormB1L0[p][s] += qNormAcB1L0LasCyc/erqNormB1L0LasCycSq; //refer bevington
 	  weightedMeanDrqNormB1L0[p][s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
+	} else {
+	  printf("**Alert: getting zero for erBCqNormLasCycSumSq for plane:%d, strip:%d in line:%d\n",p+1,s+1,__LINE__);
+	  printf("AccumB1H1L1:%d, iCounterH1L1:%g\n",AccumB1H1L1[p][s],iCounterH1L1);
 	}
-	else cout<<"**Alert: getting zero for erBCqNormLasCycSumSq"<<" in line"<<__LINE__<<endl;
-//       }
     }//for (Int_t s =startStrip; s <endStrip; s++) {	
   }///for (Int_t p =startPlane; p <endPlane; p++) {
 

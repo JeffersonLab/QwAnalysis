@@ -8,7 +8,7 @@ Bool_t maskedStrips(Int_t plane,Int_t strip)
 {
   if(plane==0&&(strip==1||strip==5||strip==19)) return kTRUE;//skip masked strip of plane1
   else if(plane==2&&(strip==23||strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
-  else if(plane==1&&(strip==11||strip==19)) return kTRUE;//skip masked strip of plane2
+  else if(plane==1&&(strip==1||strip==11||strip==19)) return kTRUE;//skip masked strip of plane2
   else return kFALSE;
 }
 

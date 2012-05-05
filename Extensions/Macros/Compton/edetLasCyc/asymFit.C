@@ -46,14 +46,13 @@ void asymFit(Int_t runnum)
   Float_t stripNum[nPlanes][nStrips];
   Float_t stripAsym[nPlanes][nStrips], stripAsymEr[nPlanes][nStrips];   
 
-  TPaveText *pt = new TPaveText(0.6070517,0.8175396,0.9077077,0.910304,"brNDC");///x1,y1,x2,y2
+  TPaveText *pt[nPlanes];
+  TLegend *leg[nPlanes];
 
   printf("read in parameters are: %g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);  
 
   ifstream expAsymPWTL1;
   TLine *myline = new TLine(1,0,65,0);
-  TLegend *leg;
-  leg = new TLegend(0.101,0.8,0.4,0.9);
 
   ///Read the experimental asymmetry and errors from file (for PWTL1)
   for(Int_t p =startPlane; p <endPlane; p++) {
@@ -74,7 +73,7 @@ void asymFit(Int_t runnum)
 
   //  rhoToX();//! I don't need to call it everytime as long as beam-energy etc stays constant
 
-  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry and Strip number",50,50,900,600);
+  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry and Strip number",100,50,1000,1000);
   TGraphErrors *grAsymPlane[nPlanes];//, *grFittedTheo[nPlanes];
 
   cAsym->Divide(startPlane+1,endPlane); 
@@ -110,34 +109,37 @@ void asymFit(Int_t runnum)
     cout<<"starting to fit exp asym"<<endl;
     grAsymPlane[p]->Fit("polFit","0 R M E");
     cout<<"finished fitting exp asym"<<endl;
-    polFit->Draw("same");
+    polFit->DrawCopy("same");
     effStripWidth = polFit->GetParameter(0);
     effStripWidthEr = polFit->GetParError(0);
 
     pol = polFit->GetParameter(1);
     polEr = polFit->GetParError(1);
 
+    leg[p] = new TLegend(0.101,0.8,0.4,0.9);
+    leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","pe");///I just need the name
+    leg[p]->AddEntry("polFit","QED-Asymmetry fit to exp-Asymmetry","l");//"lpf");//
+    leg[p]->SetFillColor(0);
+    leg[p]->Draw();
+
+
+    pt[p] = new TPaveText(0.6070517,0.8175396,0.9077077,0.910304,"brNDC");///x1,y1,x2,y2
+    pt[p]->SetFillColor(19); 
+    pt[p]->SetTextSize(0.028); 
+    pt[p]->SetBorderSize(1);
+    pt[p]->SetTextAlign(12);
+    pt[p]->SetFillColor(-1);
+    pt[p]->SetShadowColor(-1);
+
+    pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth,effStripWidthEr));
+    pt[p]->AddText(Form("Polarization (%)       : %2.1f #pm %2.1f",pol*100.0,polEr*100.0));
+    pt[p]->Draw();
     myline->Draw();
-    leg->AddEntry(grAsymPlane[p],"experimental asymmetry","pe");
-    leg->AddEntry("polFit","QED-Asymmetry fit to exp-Asymmetry","l");//"lpf");//
-    leg->SetFillColor(0);
-    leg->Draw();
-
-    pt->SetFillColor(19); 
-    pt->SetTextSize(0.028); 
-    pt->SetBorderSize(1);
-    pt->SetTextAlign(12);
-    pt->SetFillColor(-1);
-    pt->SetShadowColor(-1);
-
-    pt->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth,effStripWidthEr));
-    pt->AddText(Form("Polarization (%)       : %2.1f #pm %2.1f",pol*100.0,polEr*100.0));
-    pt->Draw();
     gPad->Update();
-    //leg->AddEntry(myline,"zero line","l");
-    cAsym->Update(); 
-    cAsym->SaveAs(Form("%s/%s/%sasymFitP1.png",pPath,webDirectory,filePrefix.Data()));
+    //leg[p]->AddEntry(myline,"zero line","l");
+    //cAsym->Update(); 
   }
+  cAsym->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
