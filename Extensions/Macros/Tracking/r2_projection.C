@@ -258,11 +258,12 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 
 	vertex->Fill(vertex_z);
 
-        double X = x;
-        double Y = y;
-        double Theta = 45./180.*3.1415926*(oct-1);
-        x = X*cos(Theta) - Y*sin(Theta);
-        y = X*sin(Theta) + Y*cos(Theta);
+        // if (x,y) is in local coordinates:
+        //double X = x;
+        //double Y = y;
+        //double Theta = 45./180.*3.1415926*(oct-1);
+        //x = X*cos(Theta) - Y*sin(Theta);
+        //y = X*sin(Theta) + Y*cos(Theta);
 
 	projection->Fill(x,y); 
 
