@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
   timer.Start();
 
   /// Next, we create the tracking worker that will pull coordinate the tracking.
-  QwTrackingWorker *trackingworker = new QwTrackingWorker(geometry);
+  QwTrackingWorker *trackingworker = new QwTrackingWorker(gQwOptions, geometry);
   if (kDebug) trackingworker->SetDebugLevel(1);
 
   /// Stop timer

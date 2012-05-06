@@ -91,7 +91,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   ///  Start loop over all runs
-  QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     ///  Begin processing for the first run.
@@ -99,7 +98,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Set the current event number for parameter file lookup
     QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
-
 
     ///  Create an EPICS event
     QwEPICSEvent epics;
@@ -118,12 +116,12 @@ Int_t main(Int_t argc, Char_t* argv[])
     parity_detectors.ProcessOptions(gQwOptions);
 
     ///  Create the tracking worker
-    QwTrackingWorker *trackingworker = new QwTrackingWorker(geometry);
+    QwTrackingWorker *trackingworker = new QwTrackingWorker(gQwOptions, geometry);
 
 
 
     // Open the ROOT file
-    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
     //
@@ -269,26 +267,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (trackingworker) delete trackingworker; trackingworker = 0;
 
   } // end of loop over runs
-
-  QwMessage << QwLog::endl;
-  QwMessage << "Number of tracking objects still alive:" << QwLog::endl;
-  QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive()
-            << " (of " << QwEvent::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwEventHeader: "  << QwEventHeader::GetObjectsAlive()
-            << " (of " << QwEventHeader::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive()
-            << " (of " << QwHit::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive()
-            << " (of " << QwHitPattern::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive()
-            << " (of " << QwTrackingTreeLine::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive()
-            << " (of " << QwPartialTrack::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive()
-            << " (of " << QwTrack::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwBridge: "        << QwBridge::GetObjectsAlive()
-            << " (of " << QwBridge::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << QwLog::endl;
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;
 

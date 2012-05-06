@@ -57,7 +57,7 @@ class QwTrackingWorker {
     int R3Bad;
 
     /// \brief Default constructor with name
-    QwTrackingWorker(const QwGeometry& geometry);
+    QwTrackingWorker(QwOptions& options, const QwGeometry& geometry);
     /// \brief Destructor
     virtual ~QwTrackingWorker();
 
