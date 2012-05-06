@@ -137,7 +137,7 @@ void QwMagneticField::ProcessOptions(QwOptions& options)
   double default_current=options.GetValue<double>("QwMagneticField.current");
   // Check if it's a typical run or not
   if(default_current==8920){
-    double actual_current=LoadBeamProperty("beam_property.map");
+    double actual_current = LoadBeamProperty("beam_property.map");
     double bfil = actual_current
               / options.GetValue<double>("QwMagneticField.reference");
     SetScaleFactor(bfil);

@@ -62,7 +62,7 @@ class VQwBridgingMethod {
   virtual double CalculateVertex(const TVector3& point,const double angle) const;
 
   /// Calculate Kinetics
-  virtual void CalculateKinetics(const double vertex_z,const double angle,const double momentum,double* results);
+  virtual void CalculateKinematics(const double vertex_z,const double angle,const double momentum,double* results);
 
 
 }; // class VQwBridgingMethod
@@ -102,7 +102,7 @@ inline double VQwBridgingMethod::CalculateVertex(const TVector3& point,const dou
   return vertex_z;
 }
 
-inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double angle,const double energy,double* results)
+inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double angle, const double energy,double* results)
 {
 
   Double_t cos_theta = 0.0;

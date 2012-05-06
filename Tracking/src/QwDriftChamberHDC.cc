@@ -1057,26 +1057,21 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
 
 void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
 {
-
-  QwParameterFile mapstr ( ttod_map.Data() );
+  QwParameterFile mapstr(ttod_map.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   
-  Double_t t = 0.0;
-  Double_t d = 0.0;
-  
-  while ( mapstr.ReadNextLine() )
+  while (mapstr.ReadNextLine())
     {
-      mapstr.TrimComment ( '!' );
+      mapstr.TrimComment('!');
       mapstr.TrimWhitespace();
-      if ( mapstr.LineIsEmpty() ) continue;
+      if (mapstr.LineIsEmpty()) continue;
       
-      t= mapstr.GetTypedNextToken<Double_t>();
-      d = mapstr.GetTypedNextToken<Double_t>();
-      fTtoDNumbers.push_back ( d );
+      /* Double_t t = */ mapstr.GetTypedNextToken<Double_t>();
+      Double_t d = mapstr.GetTypedNextToken<Double_t>();
+      fTtoDNumbers.push_back(d);
     }
 
   mapstr.Close(); // Close the file (ifstream)
-  return;
 }
 
 
