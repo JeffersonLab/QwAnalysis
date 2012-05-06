@@ -63,7 +63,7 @@
 <center><h2>Electron Online Histograms<h2></center>
 <!-- <p><center><img src="edetLasCyc_%%RUNNUM%%_diffexpAsymP1.png"></center></p> -->
 <!-- <p><center><img src="edetLasCyc_%%RUNNUM%%_expAsymComponentsP1.png"></center></p> -->
-<p><center><img src="edetLasCyc_%%RUNNUM%%_asymFitP1.png"></center></p>
+<p><center><img src="edetLasCyc_%%RUNNUM%%_asymFitP.png"></center></p>
 <p><center><img src="edetLasCyc_%%RUNNUM%%_yieldAllPlanes.png"></center></p>
 
 </body>
