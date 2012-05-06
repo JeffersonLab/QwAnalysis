@@ -22,11 +22,6 @@
 #include <fstream>
 #include <cstdlib>
 
-// Statically defined option descriptions grouped by parser
-po::options_description QwOptions::fCommandLineOptions("Command line options");
-po::options_description QwOptions::fEnvironmentOptions("Environment options");
-po::options_description QwOptions::fConfigFileOptions("Config file options");
-
 // Globally defined instance of the options object
 QwOptions gQwOptions;
 
@@ -124,6 +119,7 @@ void QwOptions::SetCommandLine(int argc, char* argv[], bool default_config_file)
     QwDebug << " " << fArgv[i];
   }
   QwDebug << QwLog::endl;
+
   fParsed = false;
 
   // Add default config file based on file name
@@ -148,17 +144,17 @@ void QwOptions::SetCommandLine(int argc, char* argv[], bool default_config_file)
  * parsing at once.  This avoids having to try/catch every single option
  * description
  */
-void QwOptions::CombineOptions()
+po::options_description* QwOptions::CombineOptions()
 {
   // The options can be grouped by defining a vector fOptions of
   // options_description objects. Each entry can have a name and
   // will show up as a separate section in the usage information.
+  po::options_description* options = new po::options_description("options");
   for (size_t i = 0; i < fOptionBlockName.size(); i++) {
     // Right now every parser gets access to all options
-    fCommandLineOptions.add(*fOptionBlock.at(i));
-    fEnvironmentOptions.add(*fOptionBlock.at(i));
-    fConfigFileOptions.add(*fOptionBlock.at(i));
+    options->add(*fOptionBlock.at(i));
   }
+  return options;
 }
 
 /**
@@ -172,7 +168,9 @@ void QwOptions::ParseCommandLine()
   //  Boost versions starting with 1.33.00 allow unrecognized options to be
   //  passed through the parser.
   try {
-    po::store(po::command_line_parser(fArgc, fArgv).options(fCommandLineOptions).allow_unregistered().run(), fVariablesMap);
+    po::options_description* command_line_options = CombineOptions();
+    po::store(po::command_line_parser(fArgc, fArgv).options(*command_line_options).allow_unregistered().run(), fVariablesMap);
+    delete command_line_options;
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
     exit(10);
@@ -184,7 +182,9 @@ void QwOptions::ParseCommandLine()
   //  passed through the parser.
   try {
     //  Boost versions before 1.33.00 do not recognize "allow_unregistered".
-    po::store(po::command_line_parser(fArgc, fArgv).options(fCommandLineOptions).run(), fVariablesMap);
+    po::options_description* command_line_options = CombineOptions();
+    po::store(po::command_line_parser(fArgc, fArgv).options(*command_line_options).run(), fVariablesMap);
+    delete command_line_options;
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
     QwWarning << "All command line arguments may have been ignored!" << QwLog::endl;
@@ -228,11 +228,14 @@ void QwOptions::ParseCommandLine()
 void QwOptions::ParseEnvironment()
 {
   try {
-    po::store(po::parse_environment(fEnvironmentOptions, "Qw"), fVariablesMap);
+    po::options_description* environment_options = CombineOptions();
+    po::store(po::parse_environment(*environment_options, "Qw"), fVariablesMap);
+    delete environment_options;
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing environment variables" << QwLog::endl;
     exit(10);
   }
+  // Notify of new options
   po::notify(fVariablesMap);
 }
 
@@ -251,13 +254,17 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION >= 103500
       // Boost version after 1.35 have bool allow_unregistered = false in
       // their signature.  This allows for unknown options in the config file.
-      po::store(po::parse_config_file(configstream, fConfigFileOptions, true),
+      po::options_description* config_file_options = CombineOptions();
+      po::store(po::parse_config_file(configstream, *config_file_options, true),
 		fVariablesMap);
+      delete config_file_options;
 #else
       // Boost versions before 1.35 cannot handle files with unregistered
       // options.
-      po::store(po::parse_config_file(configstream, fConfigFileOptions),
+      po::options_description* config_file_options = CombineOptions();
+      po::store(po::parse_config_file(configstream, *config_file_options),
 		fVariablesMap);
+      delete config_file_options;
 #endif
     } catch (std::exception const& e) {
       QwWarning << e.what() << " while parsing configuration file "
@@ -267,6 +274,7 @@ void QwOptions::ParseConfigFile()
 #endif
       exit(10);
     }
+    // Notify of new options
     po::notify(fVariablesMap);
   }
 }

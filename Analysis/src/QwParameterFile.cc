@@ -129,6 +129,11 @@ QwParameterFile::QwParameterFile(const std::string& name)
       return;
     }
 
+    // Print file name of file that was used
+    QwMessage << "Parameter file: "
+              << QwColor(Qw::kGreen)  << file.string()
+              << QwColor(Qw::kNormal) << QwLog::endl;
+
     // Else, loop through search path and files
   } else {
 
@@ -183,6 +188,11 @@ QwParameterFile::QwParameterFile(const std::string& name)
       exit(-1);
       return;
     }
+
+    // Print file name of file that was used
+    QwMessage << "Parameter file: "
+              << QwColor(Qw::kGreen)  << best_path.string()
+              << QwColor(Qw::kNormal) << QwLog::endl;
   }
 }
 
