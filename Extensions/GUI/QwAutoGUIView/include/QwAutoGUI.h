@@ -16,18 +16,17 @@
 #include <unistd.h>
 
 
-/* struct ClineArgs { */
+struct ClineArgs {
 
-/*   int realtime; */
-/*   int checkmode; */
+  int remoterestart;
   
-/* }; */
+};
 
 class QwAutoGUI : public TGMainFrame {
 
 private:
 
-  /* ClineArgs dClArgs; */
+  ClineArgs dClArgs;
 
   Char_t dMiscbuffer[500];
   Char_t dMiscbuffer2[500];
@@ -40,7 +39,7 @@ private:
   void   GetFileInfo(const char *filename, int &run, int &segment);
 
 public:
-  QwAutoGUI(const TGWindow *p, /* ClineArgs, */ UInt_t w, UInt_t h);
+  QwAutoGUI(const TGWindow *p, ClineArgs, UInt_t w, UInt_t h);
   virtual ~QwAutoGUI();
   
   virtual void CloseWindow();
