@@ -10,22 +10,22 @@ USER=`whoami`
 if [ -n "$2" ]; then
     export QWANALYSIS=${2}
 else
-    export QWANALYSIS=/u/home/jhoskins/pass4b/QwAnalysis/
+    export QWANALYSIS=/u/home/jhoskins/QwAnalysis/
 fi
 
 echo "using $QWANALYSIS for analyzer directory."
 cd $QWANALYSIS
 . $QWANALYSIS/SetupFiles/SET_ME_UP.bash
 
-#exit
 
 # ------------------------------------------------------------------- #
 # Here I am just setting up my local enviroment variables             #
 # so that things work properly.                                       #
 # ------------------------------------------------------------------- #
 
-FINAL_PATH=/work/hallc/qweak/QwAnalysis/run1/bmod_regression/
-export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
+#FINAL_PATH=/work/hallc/qweak/QwAnalysis/run2/bmod_regression/
+FINAL_PATH=/volatile/hallc/qweak/jhoskins/run2/bmod_regression
+export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run2/rootfiles
 export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
 cd $QWANALYSIS/Extensions/Regression/QwBeamModulation
 

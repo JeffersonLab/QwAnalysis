@@ -10,26 +10,23 @@ use warnings;
 use Getopt::Long;
 use Cwd;
 
-my $runs;
-my $verbose;
-my $help;
-my $name;
-my $dir;
-my $analyzer;
-my $pass4;
+use vars qw($runs, $verbose,
+	    $help, $name, 
+	    $dir, $analyzer
+	    $pass4, $result);
 
-my $result = GetOptions("runs=s"     => \$runs,
-			"verbose"    => \$verbose,
-			"analyzer=s" => \$analyzer,
-			"pass4"      => \$pass4,
-			"help"       => \$help);
+$result = GetOptions("runs=s"     => \$runs,
+		     "verbose"    => \$verbose,
+		     "analyzer=s" => \$analyzer,
+		     "pass4"      => \$pass4,
+		     "help"       => \$help);
 
 if($help){
     usage();
 }
 
 if(!$analyzer){
-    $analyzer = "/u/home/jhoskins/pass4b/QwAnalysis/";
+    $analyzer = "/u/home/jhoskins/QwAnalysis/";
     print "using $analyzer to process data.";
 }
 
@@ -42,7 +39,7 @@ if(!$pass4){
     $dir = getcwd();
 }
 else{
-    $dir = "/u/home/jhoskins/pass4b/QwAnalysis/Extensions/Regression/QwBeamModulation";
+    $dir = "/u/home/jhoskins/QwAnalysis/Extensions/Regression/QwBeamModulation";
 }
 
 foreach(@range){
@@ -76,7 +73,11 @@ sub GetRuns {
 
     if($temp =~/[.\d]+\:[.\d]/){
         @run_range = split(/\:/,$temp);
-	return @run_range;
+	my @range_temp;
+
+	@range_temp = ($run_range[0] .. $run_range[-1]);
+
+	return @range_temp;
     }
     elsif($temp =~ /^[.\d]+$/){
 	@run_range = $temp;

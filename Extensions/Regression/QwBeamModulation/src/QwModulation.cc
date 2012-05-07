@@ -72,12 +72,6 @@ void QwModulation::ReadChargeSensitivity(){
       token = strtok(NULL, " ,");
     }
   }
-//   std::cout << red << "Charge Sensitivity:\t" << normal << std::endl;
-//   for(Int_t i = 0; i < (Int_t)ChargeSensitivity.size(); i++){
-//     std::cout << ChargeSensitivity[i] << "\t"
-// 	      << ChargeSensitivityError[i] << std::endl;
-//   }   
-
   charge_sens.close();
   return;
 
@@ -413,10 +407,6 @@ void QwModulation::MatrixFill()
   }
 }
 
-void QwModulation::ComputePositionMean()
-{
-}
-
 void QwModulation::ComputeAsymmetryCorrections()
 {
   //**************************************************************
@@ -425,10 +415,7 @@ void QwModulation::ComputeAsymmetryCorrections()
   //
   //**************************************************************
 
-  //
-  // This is used only when pulling in multiple runs
-  //
-  // TFile file(Form("$QWSCRATCH/bmod_tree_%i-%i.root", run.front(), run.back()),"update");
+
 
   TFile file(Form("$QW_ROOTFILES/bmod_tree_%i.root", run_number),"RECREATE");
 

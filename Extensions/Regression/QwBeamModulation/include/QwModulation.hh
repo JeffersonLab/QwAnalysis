@@ -303,7 +303,6 @@ public :
   void     MatrixFill();
   void     SetFileName(TString &);
   void     ComputeAsymmetryCorrections(); 
-  void     ComputePositionMean(); 
   void     ReduceMatrix(Int_t);
   void     SetHuman(void);
   void     SetupMpsBranchAddress(void); 

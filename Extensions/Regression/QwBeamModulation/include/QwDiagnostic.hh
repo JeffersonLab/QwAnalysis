@@ -106,7 +106,6 @@ public :
   void     Show(Long64_t entry = -1);  
   void     LoadRootFile(TString, TChain *);
   void     SetFileName(TString &);
-  void     LoadRunList(void);
   void     SetupHelBranchAddress(void); 
   void     Clean(void);
   void     BuildVectors(void);
