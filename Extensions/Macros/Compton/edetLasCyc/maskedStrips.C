@@ -32,6 +32,44 @@ Int_t identifyCedgeforPlane(Int_t p, Float_t activeStrip[nPlanes][nStrips], Floa
   return Cedge[p];
 }
 
+
+// Int_t identifyCedgeforPlane(Float_t stripAsymDr[nPlanes][nStrips], Float_t qNormB1L0[nPlanes][nStrips]) 
+// {
+//   // Bool_t debug=0;
+//   Float_t signalToBkgd[nPlanes][nStrips];
+
+//   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
+// //     for (Int_t s =startStrip; s <endStrip; s++) {
+// //       if (maskedStrips(p,s)) continue; 
+// //       signalToBkgd[p][s] = stripAsymDr[p][s] / qNormB1L0[p][s];//!careful, this is not a full-proof method
+// //       if(signalToBkgd[p][s] <= 0.4E-3) { //then asign the Cedge to the previous strip
+// // 	if (!maskedStrips(p,s-1)) Cedge[p]= (s);//!notice that the Cedge strip number is in human counting
+// // 	else if (!maskedStrips(p,s-2)) Cedge[p]= s-1;
+// // 	else Cedge[p]= s-2; //!this would fail if 2 consecutive strips are masked
+// // 	cout<<"\nCompton edge for plane "<<p+1<<" (auto)identified as strip #"<<s<<"\n"<<endl;
+// // 	return Cedge[p];
+// //       }
+//       //       if(signalToBkgd[p][s] - signalToBkgd[p][s-1]) <  {
+//       // 	if(signalToBkgd[p][s] < signalToBkgd[p][s-2]) {
+//       // 	  if(signalToBkgd[p][s] < signalToBkgd[p][s-2]) {//!this would fail if 2 consecutive strips are masked
+//       // 	    //if(signalToBkgd[p][s] < signalToBkgd[p][s-3]) {
+//       // 	    cout<<"Compton edge for plane "<<p+1<<" (auto)identified as strip #"<<s+1<<endl;
+//       // 	    Cedge[p]= (s+1);//!notice that the Cedge strip number is in human counting
+//       // 	    return Cedge[p];
+//       // 	  }
+//       // 	}
+//       //       }
+//       //     }
+//     if (p==0) Cedge[p] = Cedge_p1;
+//     else if (p==1) Cedge[p] = Cedge_p2;
+//     else if (p==2) Cedge[p] = Cedge_p3;
+//     cout<<"\n***Alert Compton edge for plane "<<p+1<<" could not be (auto) found but assigned as "<<Cedge[p]<<"***\n"<<endl;
+//     return Cedge[p];
+//   }
+//   cout<<"\n***Alert: compton edge unassigned\n"<<endl;
+//   return -1;
+// }
+
 void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some lines were commented for some quick work
 {
   Double_t param[4];

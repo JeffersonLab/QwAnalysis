@@ -62,9 +62,9 @@ Bool_t paramRead;
 Float_t k;
 Float_t gamma_my;
 
-const Int_t Cedge_p1 = 53;///Compton-edge for the current run(counting from 0)
-const Int_t Cedge_p2 = 53;///Compton-edge for the current run(counting from 0)
-const Int_t Cedge_p3 = 51;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge_p1 = 59;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge_p2 = 59;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge_p3 = 57;///Compton-edge for the current run(counting from 0)
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12

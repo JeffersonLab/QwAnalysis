@@ -61,13 +61,14 @@ Int_t expAsym(Int_t runnum)
 
   Float_t weightedMeanNrBCqNormSum_v2[nPlanes][nStrips],weightedMeanDrBCqNormSum_v2[nPlanes][nStrips],weightedMeanNrBCqNormDiff_v2[nPlanes][nStrips];
   Float_t weightedMeanNrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrBCqNormDiff_v2[nPlanes][nStrips];
+  Int_t totAccumB1H1L1[nPlanes][nStrips],totAccumB1H0L1[nPlanes][nStrips],totAccumB1H1L0[nPlanes][nStrips],totAccumB1H0L0[nPlanes][nStrips];//!for comparision for fortran tables
 
   TString readEntry;
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
 
-  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd;//,outAsymComponents;
+  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd,outfileRawCounts;//,outAsymComponents;
   ifstream infileLas, infileBeam;
 
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
@@ -85,6 +86,8 @@ Int_t expAsym(Int_t runnum)
 
       weightedMeanNrqNormB1L0[p][s]=0.0,weightedMeanDrqNormB1L0[p][s]=0.0;
       qNormB1L0[p][s]=0.0,qNormB1L0Er[p][s]=0.0;
+
+      totAccumB1H1L1[p][s]=0,totAccumB1H0L1[p][s]=0,totAccumB1H1L0[p][s]=0,totAccumB1H0L0[p][s]=0;//this would need initialization only once
     }
   }
   if(v2processed) {
@@ -367,6 +370,16 @@ Int_t expAsym(Int_t runnum)
 		 nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0R,nMpsB1H0L0R);
 	}
 
+	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
+	  for (Int_t s =startStrip; s <endStrip; s++) {        
+	    if (maskedStrips(p,s)) continue;
+	    totAccumB1H1L1[p][s] +=  AccumB1H1L1[p][s];
+	    totAccumB1H1L0[p][s] +=  AccumB1H1L0L[p][s] + AccumB1H1L0R[p][s];
+	    totAccumB1H0L1[p][s] +=  AccumB1H0L1[p][s];
+	    totAccumB1H0L0[p][s] +=  AccumB1H0L0L[p][s] + AccumB1H0L0R[p][s];
+	  }
+	}
+
 	evaluateAsym(AccumB1H1L1,AccumB1H0L1,AccumB1H1L0L,AccumB1H0L0L,AccumB1H1L0R,AccumB1H0L0R,iCounterH1L1,iCounterH0L1,iCounterH1L0L,iCounterH0L0L,iCounterH1L0R,iCounterH0L0R,laserOnOffRatioH1,laserOnOffRatioH0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0);
 
 	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H0L1_v2,AccumB1H1L0L_v2,AccumB1H0L0L_v2,AccumB1H1L0R_v2,AccumB1H0L0R_v2,iCounterH1L1,iCounterH0L1,iCounterH1L0L,iCounterH0L0L,iCounterH1L0R,iCounterH0L0R,laserOnOffRatioH1,laserOnOffRatioH0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2);
@@ -410,10 +423,11 @@ Int_t expAsym(Int_t runnum)
   }
 
   for(Int_t p = startPlane; p < endPlane; p++) { 
-    Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check
+    //Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check    
     outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outfileRawCounts.open(Form("%s/%s/%sRawCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     //outAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     //outfileYield<<";strip\texpAsymDr\texpAsymDrEr\texpAsymNr"<<endl;
     //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
@@ -422,21 +436,25 @@ Int_t expAsym(Int_t runnum)
       cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      cout<<Form("%s/%s/%sRawCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       //cout<<Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) { 
 	if (maskedStrips(p,s)) continue;
 	outfileExpAsymP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s]);
 	outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
 	outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
+	outfileRawCounts<<Form("%d\t%d\t%d\t%d\t%d\n",s+1,totAccumB1H1L1[p][s],totAccumB1H1L0[p][s],totAccumB1H0L1[p][s],totAccumB1H0L0[p][s]);
 	//	outAsymComponents<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymNr[p][s],stripAsymDrEr[p][s]);
       }
       outfileExpAsymP.close();
       outfileYield.close();
       outfilelasOffBkgd.close();
+      outfileRawCounts.close();
       //outAsymComponents.close();
       cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      cout<<Form("%s/%s/%sRawCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       //cout<<Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
     } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
   }

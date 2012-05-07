@@ -38,9 +38,11 @@ void asymFit(Int_t runnum)
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
   //gStyle->SetOptFit(0111); //!this eventually causes the macro to crash after a couple cycles
+  //gStyle->SetOptFit(1); //!this eventually causes the macro to crash after a couple cycles
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  Double_t pol, polEr, effStripWidth, effStripWidthEr;
+  Double_t pol, polEr, chiSq, effStripWidth, effStripWidthEr;
+  Int_t NDF;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=0;//, asymPlot=1;
   Float_t stripNum[nPlanes][nStrips];
@@ -66,6 +68,7 @@ void asymFit(Int_t runnum)
       }
       expAsymPWTL1.close();
       Cedge[p] = identifyCedgeforPlane(p,stripNum,stripAsymEr);//!still under check
+      
       if(debug) cout<<"Compton edge for plane "<<p+1<<" is "<<Cedge[p]<<endl;
     }
     else cout<<"\n*** Alert:did not find "<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
@@ -115,22 +118,23 @@ void asymFit(Int_t runnum)
 
     pol = polFit->GetParameter(1);
     polEr = polFit->GetParError(1);
-
+    chiSq = polFit->GetChisquare();
+    NDF = polFit->GetNDF();
+    
     leg[p] = new TLegend(0.101,0.8,0.4,0.9);
     leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","pe");///I just need the name
     leg[p]->AddEntry("polFit","QED-Asymmetry fit to exp-Asymmetry","l");//"lpf");//
     leg[p]->SetFillColor(0);
     leg[p]->Draw();
 
-
-    pt[p] = new TPaveText(0.6070517,0.8175396,0.9077077,0.910304,"brNDC");///x1,y1,x2,y2
-    pt[p]->SetFillColor(19); 
-    pt[p]->SetTextSize(0.028); 
+    pt[p] = new TPaveText(0.5092206,0.8119254,0.7294894,0.9957972,"brNDC");///x1,y1,x2,y2
+    pt[p]->SetTextSize(0.043);//0.028); 
     pt[p]->SetBorderSize(1);
     pt[p]->SetTextAlign(12);
     pt[p]->SetFillColor(-1);
     pt[p]->SetShadowColor(-1);
 
+    pt[p]->AddText(Form("chi Sq / ndf          : %f",chiSq/NDF));
     pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth,effStripWidthEr));
     pt[p]->AddText(Form("Polarization (%)       : %2.1f #pm %2.1f",pol*100.0,polEr*100.0));
     pt[p]->Draw();

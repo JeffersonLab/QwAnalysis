@@ -7,7 +7,6 @@ void evaluateAsym(Int_t AccumB1H1L1[nPlanes][nStrips],Int_t AccumB1H0L1[nPlanes]
 {
 
   Bool_t debug=0;
-
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {	  
       if (maskedStrips(p,s)) continue;
