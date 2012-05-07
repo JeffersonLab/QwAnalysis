@@ -83,9 +83,9 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   Bool_t USLUMISEN=kTRUE; 
   Bool_t BMODSEN=kTRUE;
   Bool_t BPM_EFAQ=kTRUE;
-//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kTRUE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
+//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
 //     Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kFALSE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
-//     Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
+//     Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kTRUE; Bool_t USLUMISEN=kTRUE;Bool_t BPM_EFAQ=kFALSE;
 //     Bool_t BMODSEN=kFALSE;
   
   //  UInt_t gRunNumber = 0;
@@ -201,7 +201,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TString mdbkg2[2] = {"pmtled","preamp"};
   TString allmd[NUM3] = {"all","even","odd"};
   TString lumi[NUM3] = {"sum","even","odd"};
-  TString uslumi[NUM1] = {"uslumi1","uslumi3","uslumi5","uslumi7","uslumi"};
+//   TString uslumi[NUM1] = {"uslumi1","uslumi3","uslumi5","uslumi7","uslumi"};
+  TString uslumi[NUM4] = {"uslumi1","uslumi3","uslumi7","uslumi"};
   TString bmod[NUM2] = {"ramp","fgx1","fgx2","fge","fgy1","fgy2"};
 
   char pcharge[255],pchargeasym[255],pchargeddasym[255],pbpmd[255],pmdyield[255],pmdasym[255],pmdallasym[255],pmdallsenx[255],pmdallseny[255],pdslumiyield[255],pdslumiasym[255],plumisenx[255],plumiseny[255],pmodulation[255],puslumi[255],puslumisen[255],pmdyieldvar[255],pmdbkg[255],psenbmod[255];
@@ -287,6 +288,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   int position14[6] = { 3, 4, 7, 8, 11, 12 };
   int position15[7] = { 1, 3, 4, 5, 6, 7, 8 };
   int position16[15] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+  int position17[4] = { 7, 2, 14, 8 };
+  int position18[4] = { 10, 5, 17, 11 };
 
   /****************************************************************************/
   char ycharge[255],cutycharge[255],acharge[255],cutacharge[255],ddcharge[255],cutddcharge[255],
@@ -1675,7 +1678,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   TH1* hyuslumis;
   TH1* hauslumis;
-  for ( int q=0; q<5; q++) {
+  for ( int q=0; q<4; q++) {
 
     sprintf(yuslumis,"yield_%s_sum>>hyusl%d",uslumi[q].Data(),q);
     sprintf(auslumis,"asym_%s_sum*1e6>>hausl%d",uslumi[q].Data(),q);
@@ -1686,7 +1689,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     sprintf(txyuslumi,"%s YIELD [V/uA]",uslumi[q].Data());
     sprintf(txauslumi,"%s ASYM [ppm]",uslumi[q].Data());
 
-    pad161->cd(position10[q]);
+    pad161->cd(position17[q]);
     th->Draw(yuslumis,cutyuslumis,"goff");
     hyuslumis = (TH1F *)gDirectory->Get(hyuslumi);
     hyuslumis->SetYTitle(tarbitrary);
@@ -1696,7 +1699,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
     gPad->Update();
 
-    pad161->cd(position11[q]);
+    pad161->cd(position18[q]);
     th->Draw(auslumis,cutauslumis,"goff");
     hauslumis = (TH1F *)gDirectory->Get(hauslumi);
     hauslumis->SetFillColor(kBlue-2);
@@ -1731,7 +1734,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   gStyle -> SetOptStat("e");
 
   int xn=0;
-  for ( int x=0; x<5; x++) {
+  for ( int x=0; x<4; x++) {
     xn = x +1;
 
     sprintf(auslumisenx,"asym_%s_sum*1e6:diff_qwk_targetX>>huslx%d",uslumi[x].Data(),x);
@@ -1742,8 +1745,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     sprintf(cutauslumiseny,"%s && asym_%s_sum.%s && diff_qwk_targetY.%s",s1,uslumi[x].Data(),s2,s2);
     sprintf(histously,"husly%d",x);
 
-    pad171->cd(position10[x]);
-    pad171->cd(position10[x])->SetGrid();
+    pad171->cd(position17[x]);
+    pad171->cd(position17[x])->SetGrid();
 
     th->Draw(auslumisenx,cutauslumisenx,"prof");
     TH1D *huslxf = (TH1D*)gDirectory->Get(histouslx);
@@ -1756,8 +1759,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     gPad->Modified();
     gPad->Update();
 
-    pad171->cd(position11[x]);
-    pad171->cd(position11[x])->SetGrid();
+    pad171->cd(position18[x]);
+    pad171->cd(position18[x])->SetGrid();
     // pad171->cd(position11[x])->SetFillColor(kGreen-10);
 
     th->Draw(auslumiseny,cutauslumiseny,"prof");
