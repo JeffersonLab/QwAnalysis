@@ -24,6 +24,7 @@
 !
 !   BCM1/2/5/6/7/8    Saturday, Nov 26 15:50:00 EDT 2011 bcm calibration using run 13844, 0-180 uA.
 !                     https://hallcweb.jlab.org/hclog/1111_archive/111126153445.html
+! Hall A bcm:ha_bcm   Mon Mar 05 13:28:44 EST 2012 Hclog: 257105  (rakitha - rakithab@jlab.org)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -125,10 +126,10 @@
   qwk_bcm6,          +113.163246,            +0.002302
   qwk_bcm7,           +46.393835,            +0.002223
   qwk_bcm8,          +119.565930,            +0.002151
-  qwk_bcmGL1      , -207.06,      0.002
-  qwk_bcmGL2      , -372.26,      0.002
+  qwk_bcmGL1      ,-225.1,        0.002138529
+  qwk_bcmGL2      ,-485.1,        0.00521286
   qwk_invert_tstable   , -541.714 	, 1.0
-  sca_habcm       , 260  , 0.0003132
+  sca_habcm, 5335.6, 0.00000121050
   qwk_linephase, 0, 1.0
   qwk_6v_battery    	0.0   , 0.00007629
 
