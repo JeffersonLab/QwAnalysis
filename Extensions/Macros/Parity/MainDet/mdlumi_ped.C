@@ -19,11 +19,11 @@ void mdlumi_ped(int run_num)
 //  chain.Add(Form("$QW_ROOTFILES/first100k_%i.root",run_num));
 //  chain.Add(Form("$QW_ROOTFILES/Qweak_%i.000.trees.root",run_num));
 
-  const TString lumi[15] = {
+  const TString lumi[14] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
   "qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8",
   "qwk_uslumi1neg","qwk_uslumi1pos","qwk_uslumi3neg","qwk_uslumi3pos",
-  "qwk_uslumi5neg","qwk_uslumi7neg","qwk_uslumi7pos"};
+  "qwk_uslumi7neg","qwk_uslumi7pos"};
 
   const TString md[16] = {
   "qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg",
@@ -94,7 +94,7 @@ void mdlumi_ped(int run_num)
       TCanvas *c_lumi = new TCanvas("lumi","lumi",1500,1100);
       c_lumi->Divide(4,4);
       TH1F *lumihst[15];
-      for (int i=0;i<15;i++)
+      for (int i=0;i<14;i++)
         {  
           c_lumi->cd(i+1);      
           lumihst[i] = new TH1F(Form("%h_%s",lumi[i].Data()),"",100,0,0);
