@@ -53,7 +53,7 @@
 #define N_CMB_READ        7
 #define N_TGTS           16
 #define N_GOODFOR_TYPES  21
-#define N_X_AXIS          6
+#define N_X_AXIS          7
 #define N_Plots           3
 #define N_REGRESSION_SCHEMES 11
 #define N_REG_VARS_ON     5
@@ -191,6 +191,7 @@ using std::vector;
 #endif
 
   void HistogramDetector();
+  void CreatePullPlot();
   void PlotDetector();
   TString GetYTitle(TString measurement_type, Int_t detector);
   TString GetTitle(TString measurement_type, TString device);

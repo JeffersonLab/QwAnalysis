@@ -13,13 +13,14 @@ using namespace std;
 
 // Parameters to plot in X axis
 enum EQwGUIDatabaseXAxisIDs {
-  ID_X_HISTO,
   ID_X_RUN,
   ID_X_SLUG,
-  ID_X_BEAM,
   ID_X_TIME,
   ID_X_TIME_RUNLET,
+  ID_X_HISTO,
+  ID_X_PULL_PLOT,
   ID_X_WEIN,
+  ID_X_BEAM,
   ID_TGT_X,
   ID_TGT_Y,
   ID_TGT_XSLOPE,
@@ -425,7 +426,7 @@ const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
 
 const char *QwGUIDatabase::X_axis[N_X_AXIS] =
 {
-  "Vs. Run Number","Vs. Slug","Runlet Histogram","Vs. Run start time","Vs. Runlet start time","Vs. Wein"
+  "Vs. Run Number","Vs. Slug","Vs. Run start time","Vs. Runlet start time","Vs. Wein","Runlet Histogram","Runlet Pull Plot"
 };
 
 
@@ -659,18 +660,23 @@ void QwGUIDatabase::MakeLayout()
   for (Int_t i = 0; i < N_SUBBLOCKS; i++) {
     dCmbSubblock->AddEntry(Subblocks[i], i);
   }
+  dCmbSubblock->Select(0);
+
   // Populate target combo box
   for (Int_t i = 0; i < N_TGTS; i++) {
     dCmbTargetType->AddEntry(Targets[i], i);
   }
+  dCmbTargetType->Select(1);
 
-  // Populate x-axis combo box
+
+  // Populate X axis box. For now we'll ignore the Wien option.
   dCmbXAxis->AddEntry(X_axis[0],ID_X_RUN);
   dCmbXAxis->AddEntry(X_axis[1],ID_X_SLUG);
-  dCmbXAxis->AddEntry(X_axis[2],ID_X_HISTO);
-  dCmbXAxis->AddEntry(X_axis[3],ID_X_TIME);
-  dCmbXAxis->AddEntry(X_axis[4],ID_X_TIME_RUNLET);
-  //dCmbXAxis->AddEntry(X_axis[5],ID_X_WEIN);
+  dCmbXAxis->AddEntry(X_axis[2],ID_X_TIME);
+  dCmbXAxis->AddEntry(X_axis[3],ID_X_TIME_RUNLET);
+  dCmbXAxis->AddEntry(X_axis[5],ID_X_HISTO);
+  dCmbXAxis->AddEntry(X_axis[6],ID_X_PULL_PLOT);
+  dCmbXAxis->Select(0);
 
 
   // Populate good for list
@@ -678,13 +684,10 @@ void QwGUIDatabase::MakeLayout()
     dBoxGoodFor->AddEntry(GoodForTypes[i],i+1);
   }
 
+  // Populate plot type
   for (Int_t k = 0; k < N_Plots; k++)
     dCmbPlotType->AddEntry(Plots[k], k);
-
-  dCmbSubblock->Select(0);
-  dCmbTargetType->Select(1);
   dCmbPlotType->Select(0);
-  dCmbXAxis->Select(1);
 
 
   dCmbXAxis           -> Resize(150,20);
@@ -1441,7 +1444,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 
   /*Runs vs Slugs vs Histograms*/
  
-  if(((dCmbXAxis->GetSelected()) == ID_X_RUN) || ((dCmbXAxis->GetSelected()) == ID_X_HISTO)) {
+  if(((dCmbXAxis->GetSelected()) == ID_X_RUN) || ((dCmbXAxis->GetSelected()) == ID_X_HISTO)|| ((dCmbXAxis->GetSelected()) == ID_X_PULL_PLOT)) {
     outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, (data.run_number+data.segment_number*0.01) AS x_value,";
     special_cuts += Form(" AND data.run_number >= %i  AND data.run_number <= %i ",index_first, index_last);
   }
@@ -1461,6 +1464,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
     outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms,runlet.start_time AS x_value,";
     special_cuts += Form(" AND runlet.runlet_id = data.runlet_id AND (data.run_number >= %i  AND data.run_number <= %i) AND runlet.start_time!='NULL' ",index_first, index_last);
   }
+
 
   querystring= MakeQuery(outputs,tables_used,table_links,special_cuts);
 
@@ -2222,9 +2226,9 @@ void QwGUIDatabase::HistogramDetector()
   gStyle->Reset();
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(1.0);
-  gStyle->SetTitleX(0.2);
-  gStyle->SetTitleW(0.6);
-  gStyle->SetTitleSize(0.07);
+  gStyle->SetTitleX(0.05);
+  gStyle->SetTitleW(0.5);
+  gStyle->SetTitleSize(0.05);
   gStyle->SetTitleOffset(2.2);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(0);
@@ -2370,9 +2374,9 @@ void QwGUIDatabase::HistogramDetector()
       h_in_R ->SetFillColor(kBlue);
       h_in_R ->SetMarkerColor(kBlue);
       h_in_R ->SetLineColor(kBlue);
-      h_in_R ->Fit("gaus");
-      fit1 = h_in_R->GetFunction("gaus");
-      fit1 -> SetLineColor(kBlue);
+      //h_in_R ->Fit("gaus");
+      //fit1 = h_in_R->GetFunction("gaus");
+      //fit1 -> SetLineColor(kBlue);
       hs->Add(h_in_R);
     }
     if(k>0){
@@ -2383,9 +2387,9 @@ void QwGUIDatabase::HistogramDetector()
       h_out_R ->SetMarkerColor(kRed);
       h_out_R ->SetMarkerColor(kRed);
       h_out_R ->SetLineColor(kRed);
-      h_out_R ->Fit("gaus");
-      fit2 = h_out_R->GetFunction("gaus");
-      fit2 -> SetLineColor(kRed);
+      //h_out_R ->Fit("gaus");
+      //fit2 = h_out_R->GetFunction("gaus");
+      //fit2 -> SetLineColor(kRed);
       hs->Add(h_out_R);
     }
     if(n>0){
@@ -2395,9 +2399,9 @@ void QwGUIDatabase::HistogramDetector()
       h_in_L ->SetFillColor(kOrange-2);
       h_in_L ->SetMarkerColor(kOrange-2);
       h_in_L ->SetLineColor(kOrange-2);
-      h_in_L ->Fit("gaus");
-      fit3 = h_in_L->GetFunction("gaus");
-      fit3 -> SetLineColor(kOrange-2);
+      //h_in_L ->Fit("gaus");
+      //fit3 = h_in_L->GetFunction("gaus");
+      // fit3 -> SetLineColor(kOrange-2);
       hs->Add(h_in_L);
    
     }
@@ -2408,9 +2412,9 @@ void QwGUIDatabase::HistogramDetector()
       h_out_L ->SetFillColor(kViolet);
       h_out_L ->SetMarkerColor(kViolet);
       h_out_L ->SetLineColor(kViolet);
-      h_out_L ->Fit("gaus");
-      fit4 = h_out_L->GetFunction("gaus");
-      fit4 -> SetLineColor(kViolet);
+      //h_out_L ->Fit("gaus");
+      //fit4 = h_out_L->GetFunction("gaus");
+      //fit4 -> SetLineColor(kViolet);
       hs->Add(h_out_L);
     }
     if(o>0){
@@ -2420,9 +2424,9 @@ void QwGUIDatabase::HistogramDetector()
       h_bad ->SetFillColor(kBlack);
       h_bad ->SetMarkerColor(kBlack);
       h_bad ->SetLineColor(kBlack);
-      h_bad ->Fit("gaus");
-      fit5 = h_bad->GetFunction("gaus");
-      fit5 -> SetLineColor(kBlack);
+      // h_bad ->Fit("gaus");
+      //fit5 = h_bad->GetFunction("gaus");
+      //fit5 -> SetLineColor(kBlack);
       hs->Add(h_bad);
     }
     if(p>0){
@@ -2432,26 +2436,26 @@ void QwGUIDatabase::HistogramDetector()
       h_suspect ->SetFillColor(kGreen);
       h_suspect ->SetMarkerColor(kGreen);
       h_suspect ->SetLineColor(kGreen);
-      h_suspect ->Fit("gaus");
-      fit6 = h_suspect->GetFunction("gaus");
-      fit6 -> SetLineColor(kGreen);
+      // h_suspect ->Fit("gaus");
+      //fit6 = h_suspect->GetFunction("gaus");
+      //fit6 -> SetLineColor(kGreen);
       hs->Add(h_suspect);
     }
 
 
-    TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R>  = %2.4f #pm %2.4f (stat)", 
-				  fit1->GetParameter(1), fit1->GetParError(1)), "p");
-    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> = %2.4f #pm %2.4f (stat)", 
-				  fit2->GetParameter(1), fit2->GetParError(1)), "p");
-    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L>  = %2.4f #pm %2.4f (stat)", 
-				  fit3->GetParameter(1), fit3->GetParError(1)), "p");
-    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> = %2.4f #pm %2.4f (stat)", 
-				  fit4->GetParameter(1), fit4->GetParError(1)), "p");
-    if(o>0) legend->AddEntry(h_bad,Form("<BAD> = %2.4f #pm %2.4f (stat)", 
-				  fit5->GetParameter(1), fit5->GetParError(1)), "p");
-    if(p>0) legend->AddEntry(h_suspect,Form("<SUSPECT> = %2.4f #pm %2.4f (stat)", 
-				  fit6->GetParameter(1), fit6->GetParError(1)), "p");
+    TLegend *legend = new TLegend(0.70,0.70,0.99,0.99,"","brNDC");
+    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R> : mean = %2.4f, rms = %2.4f", 
+					  h_in_R->GetMean(), h_in_R->GetMeanError()), "p");
+    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> : mean = %2.4f, rms = %2.4f", 
+					  h_out_R->GetMean(), h_out_R->GetMeanError()), "p");
+    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L> : mean = %2.4f, rms = %2.4f",
+					  h_in_L->GetMean(), h_in_L->GetMeanError()), "p");
+    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> : mean = %2.4f, rms = %2.4f ", 
+					  h_out_L->GetMean(), h_out_L->GetMeanError()), "p");
+    if(o>0) legend->AddEntry(h_bad,Form("<BAD> : mean = %2.4f, rms= %2.4f ",
+					h_bad->GetMean(), h_bad->GetMeanError()), "p"); 
+    if(p>0) legend->AddEntry(h_suspect,Form("<SUSPECT> : mean = %2.4f, rms = %2.4f ", 
+					    h_suspect->GetMean(), h_suspect->GetMeanError()), "p"); 
 
 
     legend->SetFillColor(0);
@@ -2479,12 +2483,9 @@ void QwGUIDatabase::HistogramDetector()
       mc->Update();
     }
 
-  
-//     if(m>0)fit1->Draw("same");
-//     if(k>0)fit2->Draw("same");
 
     if(plot.Contains("Mean") or plot.Contains("Both") ){  
-      y_title = "Averages of "+y_title; 
+      y_title = y_title; 
       hs->SetTitle(title);
       hs->GetYaxis()->SetTitleOffset(1.5);
       hs->GetXaxis()->SetTitleOffset(1.5);
@@ -2510,7 +2511,7 @@ void QwGUIDatabase::HistogramDetector()
       mc->Update();
     }
  
-    std::cout<<"QwGUI : Done!"<<std::endl;
+    std::cout<<"QwGUI : Histogramming Complete!"<<std::endl;
     
     
   }
@@ -2538,6 +2539,345 @@ void QwGUIDatabase::HistogramDetector()
   
 }
 
+/******************************************
+
+Create Pull plots
+
+*******************************************/
+void QwGUIDatabase::CreatePullPlot()
+{
+
+  Bool_t ldebug = kTRUE;
+  
+  TCanvas *mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->SetFillColor(0);
+
+  if(dDatabaseCont){
+
+    if(plot.Contains("Mean")){
+
+      
+      // First draw the histograms and get the mean.
+      HistogramDetector();
+
+      TString title   = GetTitle(measurement_type, device);
+
+      THStack *hs = new THStack("hs",title);
+      TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",1000,-5,5);
+      TH1F *h_in_R_pull = new TH1F("h_in_R_pull","",1000,-5,5);
+      TH1F *h_out_L_pull = new TH1F("h_out_L_pull","",1000,-5,5);
+      TH1F *h_out_R_pull = new TH1F("h_out_R_pull","",1000,-5,5);
+      TH1F *h_suspect_pull = new TH1F("h_suspect_pull","",1000,-5,5);
+      TH1F *h_bad_pull = new TH1F("h_bad_pull","",1000,-5,5);
+      
+      TH1F *h_in_L=NULL;
+      TH1F *h_in_R = NULL;
+      TH1F *h_out_L = NULL;
+      TH1F *h_out_R = NULL;
+      TH1F *h_suspect = NULL;
+      TH1F *h_bad = NULL;
+      
+      Double_t mean[6]={0,0,0,0,0,0};
+      
+      Int_t m = 0;
+      Int_t k = 0;
+      Int_t l = 0;
+      Int_t n = 0;
+      Int_t o = 0;
+      Int_t p = 0;
+      
+      // Get the mean value for the distributions
+      h_in_L=(TH1F*)(gDirectory->Get("h_in_L"));
+      h_in_R=(TH1F*)(gDirectory->Get("h_in_R"));
+      h_out_L=(TH1F*)(gDirectory->Get("h_out_L"));
+      h_out_R=(TH1F*)(gDirectory->Get("h_out_R"));
+      h_suspect=(TH1F*)(gDirectory->Get("h_suspect"));
+      h_bad=(TH1F*)(gDirectory->Get("h_bad"));
+      
+      if(h_in_L) mean[0] = h_in_L->GetMean();
+      if(h_in_R) mean[1] = h_in_R->GetMean();
+      if(h_out_L) mean[2] = h_out_L->GetMean();
+      if(h_out_R) mean[3] = h_out_R->GetMean();
+      if(h_suspect) mean[4] = h_suspect->GetMean();
+      if(h_bad) mean[5] = h_bad->GetMean();
+
+
+      for(Int_t i=0;i<6;i++)
+	std::cout<<mean[i]<<std::endl;
+
+
+      if(!(dCmbMeasurementType->IsEnabled())) measurement_type = "sensitivity";
+      //
+      // Query Database for Data
+      //
+      mysqlpp::StoreQueryResult read_data;
+      Int_t row_size;
+      read_data = QueryDetector();
+      row_size =  read_data.num_rows();
+      if(ldebug) std::cout<<" row_size="<<row_size<<"\n";
+    
+      //check for empty queries. If empty exit with error.
+      if(row_size == 0){
+      
+	std::cout  <<"There is no data for "<<measurement_type<<" of "<<device<<" in the given range!"<<std::endl;
+	return;
+      }
+
+      Float_t x = 0.0, xerr = 0.0;
+
+      std::cout<<"############################################\n";
+      std::cout<<"QwGUI : Collecting data.."<<std::endl;
+      std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
+      for (Int_t i = 0; i < row_size; ++i)
+	{
+	  if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
+	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
+	    xerr = (read_data[i]["error"])*1e6; // convert to  ppm/ nm
+	  } 
+	  else{
+	    x    = read_data[i]["value"];
+	    xerr = (read_data[i]["error"]);
+	  }
+
+
+
+
+	  // Now fill the mean values
+	  if(read_data[i]["run_quality_id"] == "1"){
+	    if(read_data[i]["slow_helicity_plate"] == "out") {
+	      if (read_data[i]["wien_reversal"]*1 == 1){
+		h_out_R_pull->Fill((x-mean[3])/xerr);
+		k++;
+	      } else {
+		h_out_L_pull->Fill((x-mean[2])/xerr);
+		l++;
+	      }
+	    
+	    }
+
+	    if(read_data[i]["slow_helicity_plate"] == "in") {
+	      if (read_data[i]["wien_reversal"]*1 == 1){
+		h_in_R_pull->Fill((x-mean[1])/xerr);
+		m++;
+	      } else {
+		h_in_L_pull->Fill((x-mean[0])/xerr);
+		// 	      std::cout<<"mean = "<<x<<std::endl;	  
+		// 	      std::cout<<"mean err = "<<xerr<<std::endl;	  
+		// 	      std::cout<<"pull "<<(x-mean[0])/xerr<<std::endl;
+		n++;
+
+	      }
+	    }
+	  }
+	
+	  if((read_data[i]["run_quality_id"] == "2")   | //or
+	     (read_data[i]["run_quality_id"] == "1,2") | //or
+	     (read_data[i]["run_quality_id"] == "2,3") ) { //all instances of bad
+	    h_bad_pull->Fill((x-mean[5])/xerr);
+	    o++;
+	  }
+
+	  if((read_data[i]["run_quality_id"] == "3") | //suspect or
+	     (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
+	    h_suspect_pull->Fill((x-mean[4])/xerr);
+	    p++;
+	  }
+	
+	}
+
+
+      // Check to make sure graph is not empty.
+      if(m==0 && k==0 && l==0 && n==0 && o==0 && p==0){
+	std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
+	exit(1);
+      }
+      else
+	std::cout<<"QwGUI : Moving on to draw the histogram"<<std::endl;
+    
+      TString y_title = GetYTitle(measurement_type, det_id);
+  
+
+      if(m>0){
+	//GROUP_IN_R
+	h_in_R_pull ->SetMarkerSize(1.0);
+	h_in_R_pull ->SetMarkerStyle(21);
+	h_in_R_pull ->SetFillColor(kBlue);
+	h_in_R_pull ->SetMarkerColor(kBlue);
+	h_in_R_pull ->SetLineColor(kBlue);
+	//h_in_R_pull ->Fit("gaus");
+	//fit1 = h_in_R_pull->GetFunction("gaus");
+	//fit1 -> SetLineColor(kBlue);
+	hs->Add(h_in_R_pull);
+      }
+      if(k>0){
+	//GROUP_OUT_R
+	h_out_R_pull ->SetMarkerSize(1.0);
+	h_out_R_pull ->SetMarkerStyle(21);
+	h_out_R_pull ->SetFillColor(kRed);
+	h_out_R_pull ->SetMarkerColor(kRed);
+	h_out_R_pull ->SetMarkerColor(kRed);
+	h_out_R_pull ->SetLineColor(kRed);
+	//h_out_R_pull ->Fit("gaus");
+	//fit2 = h_out_R_pull->GetFunction("gaus");
+	// fit2 -> SetLineColor(kRed);
+	hs->Add(h_out_R_pull);
+      }
+      if(n>0){
+	//GROUP_IN_L
+	h_in_L_pull ->SetMarkerSize(1.0);
+	h_in_L_pull ->SetMarkerStyle(21);
+	h_in_L_pull ->SetFillColor(kOrange-2);
+	h_in_L_pull ->SetMarkerColor(kOrange-2);
+	h_in_L_pull ->SetLineColor(kOrange-2);
+	// h_in_L_pull ->Fit("gaus");
+	//fit3 = h_in_L_pull->GetFunction("gaus");
+	//fit3 -> SetLineColor(kOrange-2);
+	hs->Add(h_in_L_pull);
+   
+      }
+      if(l>0){
+	//GROUP_OUT_L
+	h_out_L_pull ->SetMarkerSize(1.0);
+	h_out_L_pull ->SetMarkerStyle(21);
+	h_out_L_pull ->SetFillColor(kViolet);
+	h_out_L_pull ->SetMarkerColor(kViolet);
+	h_out_L_pull ->SetLineColor(kViolet);
+	// h_out_L_pull ->Fit("gaus");
+	//fit4 = h_out_L_pull->GetFunction("gaus");
+	//fit4 -> SetLineColor(kViolet);
+	hs->Add(h_out_L_pull);
+      }
+      if(o>0){
+	//GROUP_BAD
+	h_bad_pull ->SetMarkerSize(1.0);
+	h_bad_pull ->SetMarkerStyle(29);
+	h_bad_pull ->SetFillColor(kBlack);
+	h_bad_pull ->SetMarkerColor(kBlack);
+	h_bad_pull ->SetLineColor(kBlack);
+	// h_bad_pull ->Fit("gaus");
+	//fit5 = h_bad_pull->GetFunction("gaus");
+	//fit5 -> SetLineColor(kBlack);
+	hs->Add(h_bad_pull);
+      }
+      if(p>0){
+	//GROUP_SUSPECT
+	h_suspect_pull ->SetMarkerSize(1.0);
+	h_suspect_pull ->SetMarkerStyle(29);
+	h_suspect_pull ->SetFillColor(kGreen);
+	h_suspect_pull ->SetMarkerColor(kGreen);
+	h_suspect_pull ->SetLineColor(kGreen);
+	// h_suspect_pull ->Fit("gaus");
+	//fit6 = h_suspect_pull->GetFunction("gaus");
+	//fit6 -> SetLineColor(kGreen);
+	hs->Add(h_suspect_pull);
+      }
+
+
+      TLegend *legend = new TLegend(0.70,0.70,0.99,0.99,"","brNDC");
+
+      if(m>0) {
+	legend->AddEntry(h_in_R_pull, "<IN_R> pull", "p"); 
+	legend->AddEntry((TObject*)0, Form("[mean = %2.3f #pm %2.3f][rms = %2.3f #pm %2.3f] ", 
+					   h_in_R_pull->GetMean(), h_in_R_pull->GetMeanError()
+					   ,h_in_R_pull->GetRMS(),h_in_R_pull->GetRMSError()), "");
+	legend->AddEntry((TObject*)0, "", "");  
+      }
+      
+      if(k>0) 
+	{
+	  legend->AddEntry(h_out_R_pull, "<OUT_R> pull", "p"); 
+	  legend->AddEntry((TObject*)0,Form("[mean = %2.3f #pm %2.3f][rms = %2.3f #pm %2.3f]", 
+					    h_out_R_pull->GetMean(), h_out_R_pull->GetMeanError(),
+					    h_out_R_pull->GetRMS(), h_out_R_pull->GetRMSError()),"");
+	  legend->AddEntry((TObject*)0, "", "");  
+	}
+      if(n>0)
+	{
+	  legend->AddEntry(h_in_L_pull, "<IN_R> pull", "p"); 
+	  legend->AddEntry((TObject*)0, Form("[mean = %2.3f #pm %2.3f][rms = %2.3f #pm %2.3f]",
+					     h_in_L_pull->GetMean(), h_in_L_pull->GetMeanError(),
+					     h_in_L_pull->GetRMS(), h_in_L_pull->GetRMSError()), "");
+	  legend->AddEntry((TObject*)0, "", "");  
+	  
+	}
+      if(l>0) 
+	{
+	  legend->AddEntry(h_out_L_pull, "<OUT_L> pull", "p"); 
+	  legend->AddEntry((TObject*)0,Form("[mean = %2.3f #pm %2.3f][rms = %2.3f #pm %2.3f]", 
+					    h_out_L_pull->GetMean(), h_out_L_pull->GetMeanError(),
+					    h_out_L_pull->GetRMS(), h_out_L_pull->GetRMSError()), "");
+	  legend->AddEntry((TObject*)0, "", "");  
+	}
+      if(o>0) 
+	{
+	  legend->AddEntry(h_bad_pull, "<BAD> pull", "p"); 
+	  legend->AddEntry((TObject*)0,Form("[mean = %2.3f #pm %2.3f][rms = %2.3f #pm %2.3f]",
+					    h_bad_pull->GetMean(), h_bad_pull->GetMeanError(),
+					    h_bad_pull->GetRMS(), h_bad_pull->GetRMSError()), ""); 
+	  legend->AddEntry((TObject*)0, "", "");  
+	}
+      if(p>0)
+	{
+	  legend->AddEntry(h_suspect_pull, "<SUSPECT> pull", "p"); 
+	  legend->AddEntry((TObject*)0,Form("[mean = %2.3f #pm %2.3f][rms = %2.3f #pm %2.3f]", 
+					    h_suspect_pull->GetMean(), h_suspect_pull->GetMeanError(),
+					    h_suspect_pull->GetRMS(), h_suspect_pull->GetRMSError()), ""); 
+	  
+	}
+      
+      legend->SetFillColor(0);
+      
+      mc->cd();
+      hs->Draw();
+      legend->Draw("");
+      gPad->Update();
+      y_title = "Pull of "+y_title; 
+      hs->GetYaxis()->SetTitleOffset(1.5);
+      hs->GetXaxis()->SetTitleOffset(1.5);
+      hs->GetYaxis()->SetTitle("Runlets");
+      hs->GetXaxis()->SetTitle(y_title);
+      hs->GetYaxis()->SetTitleSize(0.03);
+      hs->GetXaxis()->SetTitleSize(0.03);
+      hs->GetYaxis()->CenterTitle();
+      mc->Modified();
+      mc->Update();
+    }
+    else{
+      mc->Clear();
+      TPaveText *T1 = new TPaveText(0.05,0.05,0.95,0.95,"ndc");
+      T1->SetTextAlign(12);
+      T1->SetTextSize(0.03);
+      T1->AddText("Pull plots are not implemented for RMS and BOTH options !");
+      T1->Draw();
+      mc->Modified();
+      mc->SetBorderMode(0);
+      mc->Update();
+    }
+  }
+  else{
+    TCanvas *mc = dCanvas->GetCanvas();
+    mc->Clear();
+    mc->SetFillColor(0);
+    //
+    mc->cd();
+    TLatex T1;
+    T1.SetTextAlign(12);
+    T1.SetTextSize(0.03);
+    T1.DrawLatex(0.1,0.8,"To execute the command, you need first to connect to the database !");
+    T1.DrawLatex(0.1,0.6,"To connect to the database:");
+    T1.DrawLatex(0.2,0.5,"#bullet Use the pull-down menu at the top left of the GUI (File)");
+    T1.DrawLatex(0.2,0.4,"#bullet Choose Open (Database)");      
+    T1.DrawLatex(0.2,0.3,"#bullet You can then resubmit your request.");      
+    
+    mc->Modified();
+    mc->SetBorderMode(0);
+    mc->Update();
+    
+  }
+  std::cout<<"QwGUI : Done!"<<std::endl;
+
+}
 
 /******************************************
 
@@ -2871,6 +3211,7 @@ Things to do when submit is pushed
 *******************************************/
 void QwGUIDatabase::OnSubmitPushed() 
 {
+
   ClearData();
   GetDataSelections();
 
@@ -2942,6 +3283,9 @@ void QwGUIDatabase::OnSubmitPushed()
       break;
     case ID_X_HISTO:
       HistogramDetector();
+      break;
+   case ID_X_PULL_PLOT:
+      CreatePullPlot();
       break;
     default:
       break;
