@@ -201,7 +201,7 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
 
       for(int j=0;j<ntracks;++j){
 	track=fEvent->GetTrack(j);
-	if(track->GetPackage()==1 && valid_hits_1 < multiple && mdm_value_1 >-1800 && mdm_value_1 < -1200 && mdp_value_1 > -1800 && mdp_value_1 < -1200){
+	if(track->GetPackage()==1 && valid_hits_1 < multiple && mdm_value_1 >-210 && mdm_value_1 < -150 && mdp_value_1 > -210 && mdp_value_1 < -150){
 	   if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper ){
 	  angle_1->Fill(track->fScatteringAngle);
 	  q2_1->Fill(track->fQ2);
@@ -210,7 +210,7 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
 	  q2->Fill(track->fQ2);
 	   }
 	}
-      	else if(track->GetPackage()==2 && valid_hits_2 < multiple && mdm_value_2 > -1800 && mdm_value_2 <-1200 && mdp_value_2 > -1800 && mdp_value_2 < -1200 ){
+      	else if(track->GetPackage()==2 && valid_hits_2 < multiple && mdm_value_2 > -210 && mdm_value_2 <-150 && mdp_value_2 > -210 && mdp_value_2 < -150 ){
 	  if(track->fDirectionPhioff>pkg2_phioff_lower && track->fDirectionPhioff<pkg2_phioff_upper && track->fDirectionThetaoff>pkg2_thetaoff_lower && track->fDirectionThetaoff<pkg2_thetaoff_upper){
 	angle_2->Fill(track->fScatteringAngle);
 	  q2_2->Fill(track->fQ2);
