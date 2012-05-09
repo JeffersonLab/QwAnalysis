@@ -20,12 +20,14 @@ Int_t identifyCedgeforPlane(Int_t p, Float_t activeStrip[nPlanes][nStrips], Floa
     //if (maskedStrips(p,s)) continue; //!careful, this is not a full-proof method
     //if (maskedStrips(p,s+1)) continue;
     if (stripAsymEr[p][s+1] >= 3.0*stripAsymEr[p][s]) { //!the factor of 3.0 is arbitrarily put now
-      cout<<"Compton edge for plane "<<p+1<<" (auto)identified as strip #"<<activeStrip[p][s]<<endl;
-      return (Int_t)activeStrip[p][s];//!notice that the Cedge strip number is in human counting
+      if (stripAsymEr[p][s+2] >= 3.0*stripAsymEr[p][s]) {
+	cout<<"Compton edge for plane "<<p+1<<" (auto)identified as strip #"<<activeStrip[p][s]<<endl;
+	return (Int_t)activeStrip[p][s];//!notice that the Cedge strip number is in human counting
+      }
     }
     else if (debug) printf("Cedge not found:compared %f and twice of %f for strip:%d\n",stripAsymEr[p][s+1],stripAsymEr[p][s],s);
   }
-  cout<<"***Alert Compton edge for plane "<<p+1<<" could not be (auto) found***"<<endl;
+  cout<<"\n***Alert Compton edge for plane "<<p+1<<" could not be (auto) found***\n"<<endl;
   if (p==0) Cedge[p] = Cedge_p1;
   else if (p==1) Cedge[p] = Cedge_p2;
   else if (p==2) Cedge[p] = Cedge_p3;

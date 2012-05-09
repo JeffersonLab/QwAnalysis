@@ -134,7 +134,6 @@ Int_t expAsym(Int_t runnum)
     return -1;
   }
 
-  
   infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
   infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
     
@@ -161,8 +160,7 @@ Int_t expAsym(Int_t runnum)
     }
     infileBeam.close();
     nBeamTrips = (cutEB.size())/2;
-  }
-  else {
+  } else {
     cout << "****:Atleast one of the Cut files missing"<<endl;
     cout<<"       hence executing the cut function****"<<endl;
     Int_t nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain,runnum);
@@ -241,7 +239,7 @@ Int_t expAsym(Int_t runnum)
       else if(cutLas.at(2*nCycle+3)<cutEB.at(2*nthBeamTrip)) beamOn=kTRUE;
       else { ///encountered "another" beam trip	
 	beamOn = kFALSE;  
-	nthBeamTrip++;          
+	nthBeamTrip++;
       }
     }
     else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
@@ -363,20 +361,20 @@ Int_t expAsym(Int_t runnum)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check comptQH0L1:%f,comptQH1L1:%f, comptQH0L0R:%f, comptQH1L0R:%f**\n",
 	       nCycle,comptQH0L1,comptQH1L1,comptQH0L0R,comptQH1L0R);
       else {
-	if(debug2) {
-	  printf("comptQB1H1L1:%f\tcomptQB1H0L1:%f\tcomptQB1H1L0R:%f\tcomptQB1H0L0R:%f\n",
-		 comptQH1L1,comptQH0L1,comptQH1L0R,comptQH0L0R);
-	  printf("nMpsB1H1L1:%d\tnMpsB1H0L1:%d\tnMpsB1H1L0R:%d\tnMpsB1H0L0R:%d\n",
-		 nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0R,nMpsB1H0L0R);
+	if(debug) {
+	  printf("iCounterH1L1:%f\t iCounterH0L1:%f\t iCounterH1L0:%f\t iCounterH0L0:%f\n",
+		 iCounterH1L1,iCounterH0L1,iCounterH1L0R+iCounterH1L0L,iCounterH0L0R+iCounterH0L0L);
+	  printf("nMpsB1H1L1:%d\tnMpsB1H0L1:%d\tnMpsB1H1L0:%d\tnMpsB1H0L0:%d\n",
+		 nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0R+nMpsB1H1L0L,nMpsB1H0L0R+nMpsB1H0L0R);
 	}
 
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s =startStrip; s <endStrip; s++) {        
 	    if (maskedStrips(p,s)) continue;
 	    totAccumB1H1L1[p][s] +=  AccumB1H1L1[p][s];
-	    totAccumB1H1L0[p][s] +=  AccumB1H1L0L[p][s] + AccumB1H1L0R[p][s];
+	    totAccumB1H1L0[p][s] +=  AccumB1H1L0L[p][s];// + AccumB1H1L0R[p][s];
 	    totAccumB1H0L1[p][s] +=  AccumB1H0L1[p][s];
-	    totAccumB1H0L0[p][s] +=  AccumB1H0L0L[p][s] + AccumB1H0L0R[p][s];
+	    totAccumB1H0L0[p][s] +=  AccumB1H0L0L[p][s];// + AccumB1H0L0R[p][s];
 	  }
 	}
 
@@ -386,7 +384,13 @@ Int_t expAsym(Int_t runnum)
 
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
+//     else if(!beamOn && noiseRun) {
+//       cout<<"\n***Important: this will be treated as a dedicated noise run***\n"<<endl;
+//       evaluateBkgd(AccumB1H1L1,AccumB1H0L1,AccumB1H1L0L,AccumB1H0L0L,AccumB1H1L0R,AccumB1H0L0R,nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0L,nMpsB1H1L0R,nMpsB1H0L0L,nMpsB1H0L0R);
+//       if(v2processed) evaluateAsym();
+//     }
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
+    
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
 
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  

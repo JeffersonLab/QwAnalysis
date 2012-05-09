@@ -23,8 +23,9 @@ const Double_t a = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will no
 //const Double_t oneMinusA = 1 - a;
 const Double_t stripMin = 30.0;
 const Double_t stripMax = 50.0;
-
+const Int_t bkgdRun=25289;
 const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
+Bool_t noiseRun = kFALSE;
 
 //Hardware related constants
 const Int_t nStrips = 96;
@@ -41,14 +42,18 @@ const Int_t minEntries = 8000; //Laser must be off for at least this many consec
 ///Run constants
 const Bool_t v2processed=1;  //kFALSE;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
-const Double_t beamFrac = 0.6;//90% of maximum beam to be considered as beamOn
-const Double_t laserFrac = 0.9;//90% of maximum beam to be considered as beamOn///typical 160E3. 
+const Double_t beamFracHi = 0.8;//this was for most of the auto-analysis of run2
+const Double_t beamFracLo = 0.2;//90% of maximum beam to be considered as beamOn
+//const Double_t laserFrac = 0.9;//this was the limit for full current reguarl running during run2.///typical 160E3. 
+const Double_t laserFracLo = 0.01;///typical laser off 2E3. 
+const Double_t laserFracHi = 0.9;//90% of maximum beam to be considered as laserOn///typical 150E3. 
 const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
 const Int_t PREV_N_ENTRIES = 5000;//# of mps's to wait after beam trip
 const Double_t ignoreBeamAbove = 195.0;
 //const Double_t ignoreLasPowAbove = 195.0;
 const Int_t IHWP=-1;///-1:in; 1:out
 const Double_t MpsRate = 960.02;
+const Double_t lowCurrentLimit = 65.0;
 
 //following numbers are all in C++ counting(start at 0)
 const Int_t mystr = 40; //a random strip for testing my script

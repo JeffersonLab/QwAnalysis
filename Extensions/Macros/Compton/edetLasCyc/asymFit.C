@@ -41,8 +41,8 @@ void asymFit(Int_t runnum)
   //gStyle->SetOptFit(1); //!this eventually causes the macro to crash after a couple cycles
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  Double_t pol, polEr, chiSq, effStripWidth, effStripWidthEr;
-  Int_t NDF;
+  Double_t pol[nPlanes], polEr[nPlanes], chiSq[nPlanes], effStripWidth[nPlanes], effStripWidthEr[nPlanes];
+  Int_t NDF[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=0;//, asymPlot=1;
   Float_t stripNum[nPlanes][nStrips];
@@ -54,6 +54,7 @@ void asymFit(Int_t runnum)
   printf("read in parameters are: %g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);  
 
   ifstream expAsymPWTL1;
+  ofstream polList;
   TLine *myline = new TLine(1,0,65,0);
 
   ///Read the experimental asymmetry and errors from file (for PWTL1)
@@ -80,6 +81,8 @@ void asymFit(Int_t runnum)
   TGraphErrors *grAsymPlane[nPlanes];//, *grFittedTheo[nPlanes];
 
   cAsym->Divide(startPlane+1,endPlane); 
+  polList.open(Form("%s/%s/%spol_%d.txt",pPath,webDirectory,filePrefix.Data(),runnum));
+  polList<<";plane\tpol\tpolEr\tchiSq\tNDF\tCedge"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
     cAsym->cd(p+1);  
     cAsym->GetPad(p+1)->SetGridx(1); 
@@ -113,14 +116,15 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]->Fit("polFit","0 R M E");
     cout<<"finished fitting exp asym"<<endl;
     polFit->DrawCopy("same");
-    effStripWidth = polFit->GetParameter(0);
-    effStripWidthEr = polFit->GetParError(0);
+    effStripWidth[p] = polFit->GetParameter(0);
+    effStripWidthEr[p] = polFit->GetParError(0);
 
-    pol = polFit->GetParameter(1);
-    polEr = polFit->GetParError(1);
-    chiSq = polFit->GetChisquare();
-    NDF = polFit->GetNDF();
-    
+    pol[p] = polFit->GetParameter(1);
+    polEr[p] = polFit->GetParError(1);
+    chiSq[p] = polFit->GetChisquare();
+    NDF[p] = polFit->GetNDF();
+    polList<<p+1<<"\t"<<pol[p]<<"\t"<<polEr[p]<<"\t"<<chiSq[p]<<"\t"<<NDF[p]<<"\t"<<Cedge[p]<<endl;
+
     leg[p] = new TLegend(0.101,0.8,0.4,0.9);
     leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","pe");///I just need the name
     leg[p]->AddEntry("polFit","QED-Asymmetry fit to exp-Asymmetry","l");//"lpf");//
@@ -134,15 +138,16 @@ void asymFit(Int_t runnum)
     pt[p]->SetFillColor(-1);
     pt[p]->SetShadowColor(-1);
 
-    pt[p]->AddText(Form("chi Sq / ndf          : %f",chiSq/NDF));
-    pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth,effStripWidthEr));
-    pt[p]->AddText(Form("Polarization (%)       : %2.1f #pm %2.1f",pol*100.0,polEr*100.0));
+    pt[p]->AddText(Form("chi Sq / ndf          : %f",chiSq[p]/NDF[p]));
+    pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
+    pt[p]->AddText(Form("Polarization (%)      : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
     pt[p]->Draw();
     myline->Draw();
     gPad->Update();
     //leg[p]->AddEntry(myline,"zero line","l");
     //cAsym->Update(); 
-  }
+  }//for (Int_t p =startPlane; p <endPlane; p++)
+  polList.close();
   cAsym->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
 
   tEnd = time(0);

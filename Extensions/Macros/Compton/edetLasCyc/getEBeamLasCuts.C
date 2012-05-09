@@ -43,6 +43,10 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
 
+  if(runnum==bkgdRun) noiseRun=kTRUE; ///this run has been set by user to be bkgd run
+  else if(beamMax <= 0.1) noiseRun=kTRUE; ///beam is less than 100 nA
+  else noiseRun=kFALSE; ///otherwise it is a regular run  
+
   ofstream outfileLas(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
   if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
 
@@ -60,8 +64,13 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   chain->SetBranchStatus("sca_bcm6",1);//turn on bcm branch
   chain->SetBranchStatus("compton_charge",1);//turn on charge branch
   chain->SetAutoDelete(kTRUE);
-  printf("Ebeam considered On if above %f.\n", beamFrac*beamMax);
 
+  if(beamMax > lowCurrentLimit) {
+    printf("Ebeam considered On if above %f and off below %f\n", beamFracHi*beamMax,beamFracLo*beamMax);
+  } else if(beamMax <= lowCurrentLimit) {
+    cout<<"for low current(less than 65 uA), Ebeam considered On if above "<<beamFracLo*beamMax<<endl;
+    cout<<" this is safe because we anyways charge normalize our counts\n"<<endl;
+  }
   for(Int_t index=0; index<nEntries;index++) {
     chain->GetEntry(index);
     bLaser = bBCM = bCharge = 0;
@@ -77,26 +86,34 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     comptQ = lCharge->GetValue();
 
     ////find laser off periods and record start and finish entries
-    if(laser<=laserFrac*laserMax) n++;///laser is off for n consecutive entries
-    else n=0; ///laser On begins
+    if(laser<=laserFracLo*laserMax) n++;///laser is off for n consecutive entries
+    else if (laser>=laserFracHi*laserMax) n=0; ///laser On begins (or continues to be on)
+    else continue; ///if the laser is higher than laserFracLo but lower than laserFracHi, ignore these entries
+    ///!it is particularly important to ignore these (lesser than high limit, higher than low limit) laser entries 
+    ///...because, we do not have a way of normalizing with the laser power as of now.
 
     if (n==minEntries) { ///laser has been off for minEntries/960 seconds continuously, hence consider it a valid laseroff
-      cutL.push_back(index-minEntries);//!the +1 is needed to take care of the fact that C++ counts "index" from 0, while 'minEntries' is compared only when 'n' goes all the way from 1 to minEntries.
+      cutL.push_back(index-minEntries);///demarcate the beginning of laserOff period
       //printf("cutL[%d]=%d\n",m,cutL.back());///print begin of laser off entry
       flipperIsUp = kTRUE; ///laserOff state begins
       m++; ///cutLas array's even number index (corresponding to a laserOff)
     }
     if(flipperIsUp){ ///if the laser is known to be off check ...
-      if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the end of run has been reached
+      if(n == 0 || index == nEntries) { ///if laser On has just begun OR the end of run has been reached
         cutL.push_back(index); ///record this as the end of laserOn cycle
 	//printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
         m++; ///cutLas array's odd number index (corresponding to a laserOn)
         flipperIsUp = kFALSE; ///laserOff state ends
       }
     }
-    ///    find and record electron beam off periods
-    rampIsDone = (bcm> (beamFrac*beamMax));
-    isABeamTrip = (bcm<= (beamFrac*beamMax));
+    ///find and record electron beam off periods
+    if(beamMax>65.0) {
+      rampIsDone = (bcm> (beamFracHi*beamMax));
+      isABeamTrip = (bcm<= (beamFracLo*beamMax));
+    } else {
+      rampIsDone = (bcm> (beamFracLo*beamMax));
+      isABeamTrip = (bcm<= (beamFracLo*beamMax));
+    }
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition
