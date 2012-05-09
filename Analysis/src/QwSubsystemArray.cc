@@ -689,7 +689,7 @@ Bool_t QwSubsystemArray::PublishByRequest(TString device_name){
     ListPublishedValues();
     status = kTRUE;
   } else if (not empty()) {
-    for (const_iterator subsys = begin(); subsys != end(); ++subsys)
+    for (iterator subsys = begin(); subsys != end(); ++subsys)
       {
         status = (*subsys)->PublishByRequest(device_name);
 	if (status) break;
