@@ -1,7 +1,10 @@
 
 // author: Siyuan Yang
-// this script is devoted to project the region3's partial track to the //plane of maindetector, trigger scintillator, scanner and z=0. Use the //project_root function only. To use that function, firstly you must put the //rootfile which contains the data under $QWSCRATCH directory and then type:
+// this script is devoted to project the region3's partial track to the //plane of maindetector, trigger scintillator, scanner and z=0. Use the //project_root function only. 
+// To use that function, firstly you must put the //rootfile which contains the data under $QWSCRATCH directory and then type:
 //project_root(command,package,runnumber,drawoption)
+//
+//
 //here are some examples:
 ///project_root("MD",1,6327): draws the plot for main detector projection map without weights for package 1 from run 6327
 ///project_root("TS_p+m",2,6327) draws the plot for trigger scintllator projection with weights adc_p+adc_m for package 2 from run 6327
@@ -21,7 +24,69 @@
 
 const double pe_convert[]={14.0141,16.6726,21.9799,38.5315,20.4254,20.3896,22.1042,22.3945,22.7986,30.0517,28.7274,25.3396,24.6273,16.0718,27.8305,12.3251};
 
-void GetData(int package=1,int run_number=6327)
+TCanvas *c;
+
+void md_profile(int octant, int runNumber) {
+  string detector = "MD_";
+  int package=0;
+  TLine *leftEdgeTop;
+  TLine *rightEdgeTop;
+  TLine *leftEdgeBottom;
+  TLine *rightEdgeBottom;
+
+  if (octant==1) {
+    package=1;
+    leftEdgeTop = new TLine(-352.754,-115,-352.724,115);
+    leftEdgeTop->SetLineWidth(2);
+    leftEdgeTop->SetLineColor(kRed);
+
+    rightEdgeTop = new TLine(-334.754,-115,-334.724,115);
+    rightEdgeTop->SetLineWidth(2);
+    rightEdgeTop->SetLineColor(kRed);
+
+    leftEdgeBottom = new TLine(-352.754,0,-352.724,1500);
+    leftEdgeBottom->SetLineWidth(2);
+    leftEdgeBottom->SetLineColor(kRed);
+
+    rightEdgeBottom = new TLine(-334.754,0,-334.724,1500);
+    rightEdgeBottom->SetLineWidth(2);
+    rightEdgeBottom->SetLineColor(kRed);
+  }
+  else if (octant==5) {
+    package=2;
+    leftEdgeTop = new TLine(335.074,-115,335.074,115);
+    leftEdgeTop->SetLineWidth(2);
+    leftEdgeTop->SetLineColor(kRed);
+
+    rightEdgeTop = new TLine(353.074,-115,353.074,115);
+    rightEdgeTop->SetLineWidth(2);
+    rightEdgeTop->SetLineColor(kRed);
+
+    leftEdgeBottom = new TLine(352.754,0,352.724,1500);
+    leftEdgeBottom->SetLineWidth(2);
+    leftEdgeBottom->SetLineColor(kRed);
+
+    rightEdgeBottom = new TLine(334.754,0,334.724,1500);
+    rightEdgeBottom->SetLineWidth(2);
+    rightEdgeBottom->SetLineColor(kRed);
+   }
+  else cout <<"This only works for octant 1/5 for now." <<endl;
+
+  project_root(detector,package,octant,runNumber);
+
+  c->cd(1);
+  leftEdgeTop->Draw("same");
+  rightEdgeTop->Draw("same");
+
+  c->cd(2);
+  leftEdgeBottom->Draw("same");
+  rightEdgeBottom->Draw("same");
+
+  c->Print(Form("rootfile_plots/run%i/md_profile_octant%i.png",runNumber,octant));
+
+} //end function MD_profile
+
+void GetData(int package=1,int run_number=18554)
 {
     string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QW_ROOTFILES" ),run_number );
     TFile *file = new TFile ( file_name.c_str() );
@@ -297,7 +362,7 @@ void project_root(string command="", int package=1,int md_number=1,int run_numbe
         }
     }
 
-  TCanvas* c=new TCanvas("c","c",10, 10, 800,800);
+  c = new TCanvas("c","c",10, 10, 800,800);
   c->Divide(1,2);
   gStyle->SetPalette(1);
   gStyle->SetMarkerStyle(2);
