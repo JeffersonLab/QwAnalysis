@@ -36,24 +36,25 @@ void md_profile(int octant, int runNumber) {
 
   if (octant==1) {
     package=1;
-    leftEdgeTop = new TLine(-352.754,-115,-352.724,115);
+    leftEdgeTop = new TLine(-342.754,-115,-342.724,115);
     leftEdgeTop->SetLineWidth(2);
     leftEdgeTop->SetLineColor(kRed);
 
-    rightEdgeTop = new TLine(-334.754,-115,-334.724,115);
+    rightEdgeTop = new TLine(-324.754,-115,-324.724,115);
     rightEdgeTop->SetLineWidth(2);
     rightEdgeTop->SetLineColor(kRed);
 
-    leftEdgeBottom = new TLine(-352.754,0,-352.724,1500);
+    leftEdgeBottom = new TLine(-342.754,0,-342.724,1700);
     leftEdgeBottom->SetLineWidth(2);
     leftEdgeBottom->SetLineColor(kRed);
 
-    rightEdgeBottom = new TLine(-334.754,0,-334.724,1500);
+    rightEdgeBottom = new TLine(-324.754,0,-324.724,1700);
     rightEdgeBottom->SetLineWidth(2);
     rightEdgeBottom->SetLineColor(kRed);
   }
   else if (octant==5) {
     package=2;
+    //need to correct these against DS aluminum
     leftEdgeTop = new TLine(335.074,-115,335.074,115);
     leftEdgeTop->SetLineWidth(2);
     leftEdgeTop->SetLineColor(kRed);
@@ -192,8 +193,9 @@ void project()
 void project_root(string command="", int package=1,int md_number=1,int run_number=6327,
 		  TString file_suffix="Qweak_")
 {
-
+//this z_pos was the original used. We believe it is 5 cm off now. 2012-05-09 JAM
   Double_t md_zpos[9] = {0.0, 581.665,  576.705, 577.020, 577.425, 582.515,  577.955, 577.885, 577.060};
+//  Double_t md_zpos[9] = {0.0, 576.665,  571.705, 572.020, 572.425, 577.515,  572.955, 572.885, 572.060};
 
   TString file_name = "";
   file_name += gSystem->Getenv ( "QW_ROOTFILES" );
