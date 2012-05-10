@@ -1739,10 +1739,10 @@ void QwGUIDatabaseSummary::PlotMD(){
 		   std::cout<<"Last 24 hours"<<std::endl;
 	       break;
 	  case ID_TS_WEEK:
-	  	   std::cout<<"Last 24 hours"<<std::endl;
+	  	   std::cout<<"Last Week"<<std::endl;
 	  	   break;
 	  case ID_TS_RUN:
-	  	   std::cout<<"Last 24 hours"<<std::endl;
+	  	   std::cout<<"Run to Date"<<std::endl;
 	  	   break;
 	  case ID_TS_CUSTOM:
 		  std::cout<<"Custom Run Range"<<std::endl;
@@ -1790,6 +1790,25 @@ void QwGUIDatabaseSummary::PlotDSLumi(){
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
 
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
+
 	for(Int_t j=0;j<2;j++){
 		for(Int_t i=0;i<3;i++){
 			detector = dlmSummaryDets[i];
@@ -1828,6 +1847,25 @@ void QwGUIDatabaseSummary::PlotUSLumi(){
 	x_axis            = dCmbXAxis->GetSelected();
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
+
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
 
 	for(Int_t j=0;j<2;j++){
 		for(Int_t i=0;i<1;i++){
@@ -1868,6 +1906,25 @@ void QwGUIDatabaseSummary::PlotBkgd(){
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
 
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
+
 	for(Int_t j=0;j<2;j++){
 		for(Int_t i=0;i<3;i++){
 			detector = bgSummaryDets[i];
@@ -1907,6 +1964,25 @@ void QwGUIDatabaseSummary::PlotBeamPos(){
 	detector 		  = "qwk_target";
 	plot			  = "Mean";
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
+
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
 
 	for(Int_t i=0;i<5;i++){
 		property = BLSummaryVars[i];
@@ -1956,6 +2032,25 @@ void QwGUIDatabaseSummary::PlotCharge(){
 	x_axis            = dCmbXAxis->GetSelected();
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property          = "";
+
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
 
 	detector = "qwk_charge";
 
