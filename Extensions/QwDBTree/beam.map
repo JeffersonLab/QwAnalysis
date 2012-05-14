@@ -1,0 +1,16 @@
+qwk_charge          a
+qwk_charge          yq
+qwk_energy          d
+qwk_targetX         d
+qwk_targetY         d
+qwk_targetXSlope    d
+qwk_targetYSlope    d
+qwk_bpm3c12X        d
+qwk_bcm5            d
+bpm_9_p_4X          d
+bpm_9_p_4Y          d
+bpm_9_m_4X          d
+bpm_9_m_4Y          d
+sca_halo3           y
+sca_halo4           y
+bcmdd78             d
