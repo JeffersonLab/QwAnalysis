@@ -28,7 +28,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
 {
     // open file and database connections
     // create the root tree
-    TFile *f = new TFile(Form("%s_tree.root",reg_type.Data()),"RECREATE");
+    TFile *f = new TFile(Form("/net/cdaq/cdaql5data/qweak/db_rootfiles/%s_tree.root",reg_type.Data()),"RECREATE");
 
     // create tree
     TTree *tree = new TTree("tree","treelibrated tree");
