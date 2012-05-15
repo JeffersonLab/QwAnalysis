@@ -161,7 +161,6 @@ TString QwBeamDet::query(void)
     query += "AND beam.measurement_type_id = \"" + measurement_id + "\"\n";
     query += "AND monitor.quantity = \""+ detector_name + "\";";
 
-    cout << query;
     return query;
 }
 
@@ -243,7 +242,6 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type)
 
     query += "ORDER BY runlet_id);\n";
 
-    cout << query;
     return query;
 }
 
