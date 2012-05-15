@@ -107,7 +107,14 @@ const char *QwGUIDatabase::DetectorCombos[N_DETECTORS] =
     "qwk_isourc",
     "qwk_preamp",
     "qwk_cagesr",
-
+    "md15_dipole",
+    "md26_dipole",
+    "md37_dipole",
+    "md48_dipole",
+    "mddipole_h",
+    "mddipole_v",
+    "mdallbarsavg",
+    "mdallpmtavg"
   };
 
 const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] = 
