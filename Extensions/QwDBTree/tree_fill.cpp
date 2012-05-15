@@ -31,7 +31,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
     TFile *f = new TFile(Form("/net/cdaq/cdaql5data/qweak/db_rootfiles/%s_tree.root",reg_type.Data()),"RECREATE");
 
     // create tree
-    TTree *tree = new TTree("tree","treelibrated tree");
+    TTree *tree = new TTree(reg_type,"treelibrated tree");
 
     // read in mapfile in preperation for querying db
     // read in the md map file
@@ -79,7 +79,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
     vector<QwBeamDet> beam_detectors; // mdallbars("qwk_mdallbars", db);
     for(Int_t i = 0; i < num_beams; i++)
     {
-        QwBeamDet temp_detector(beams.detector(i), beams.id_type(i), good_runlets, db);
+        QwBeamDet temp_detector(beams.detector(i), beams.id_type(i), reg_type, good_runlets, db);
         temp_detector.fill();
         beam_detectors.push_back(temp_detector);
     }

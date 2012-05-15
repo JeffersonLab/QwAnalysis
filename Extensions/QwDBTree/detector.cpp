@@ -79,7 +79,7 @@ TString QwMainDet::query(void)
     // figure out which temp table to use
     TString table;
     if(reg_type == "on_5+1")  table = "temp_table_on_5p1";
-    else if(reg_type == "off") table = "temp_table_unreg";
+    else if(reg_type == "off") table = "temp_table_unreg_on";
     else table = "temp_table_" + reg_type;
 
     TString query;
@@ -110,7 +110,7 @@ TString QwLumiDet::query(void)
     // figure out which temp table to use
     TString table;
     if(reg_type == "on_5+1")  table = "temp_table_on_5p1";
-    else if(reg_type == "off") table = "temp_table_unreg";
+    else if(reg_type == "off") table = "temp_table_unreg_on";
     else table = "temp_table_" + reg_type;
 
     TString query;
@@ -127,7 +127,6 @@ TString QwLumiDet::query(void)
 
     // lumi cuts
     query += "WHERE lumi_data.subblock = 0\n";
-    query += "AND value > 0\n";
     query += "AND lumi_data.measurement_type_id = \"a\"\n";
     query += "AND lumi_detector.quantity = \"" + detector_name +"\"\n";
 
@@ -139,16 +138,22 @@ TString QwLumiDet::query(void)
 // beam detectors
 TString QwBeamDet::query(void)
 {
+    // figure out which temp table to use
+    TString table;
+    if(reg_type == "on_5+1")  table = "temp_table_unreg_on_5p1";
+    else if(reg_type == "off") table = "temp_table_unreg_on";
+    else table = "temp_table_unreg_" + reg_type;
+
     TString query;
     query = "SELECT\n";
-    query += "DISTINCT temp_table_unreg.runlet_id\n";
+    query += "DISTINCT " + table + ".runlet_id\n";
     query += ", beam.value*1e6\n";
     query += ", beam.error*1e6\n";
     query += ", beam.n\n";
 
     // join tables to analysis
-    query += "FROM temp_table_unreg\n";
-    query += "JOIN beam ON temp_table_unreg.analysis_id = beam.analysis_id\n";
+    query += "FROM " + table + "\n";
+    query += "JOIN beam ON " + table + ".analysis_id = beam.analysis_id\n";
     query += "JOIN monitor ON beam.monitor_id = monitor.monitor_id\n";
 
     // beam cuts
@@ -156,6 +161,7 @@ TString QwBeamDet::query(void)
     query += "AND beam.measurement_type_id = \"" + measurement_id + "\"\n";
     query += "AND monitor.quantity = \""+ detector_name + "\";";
 
+    cout << query;
     return query;
 }
 
@@ -170,7 +176,7 @@ TString QwRunlet::runlet_query(void)
     query += ", slow_helicity_plate\n";
     query += ", passive_helicity_plate\n";
     query += ", wien_reversal\n";
-    query += "FROM temp_table_unreg;\n";
+    query += "FROM temp_table_unreg_offoff;\n";
 
     return query;
 }
@@ -206,10 +212,11 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type)
     return query;
 }
 
-TString QwRunlet::runlet_temp_table_unreg_create(void)
+TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type)
 {
     TString query;
-    query = "CREATE TEMPORARY TABLE temp_table_unreg AS(\n";
+    if(reg_type == "on_5+1") query = "CREATE TEMPORARY TABLE temp_table_unreg_on_5p1 AS(\n";
+    else query = "CREATE TEMPORARY TABLE temp_table_unreg_" + reg_type +  " AS(\n";
     query += "SELECT\n";
     query += "DISTINCT analysis.analysis_id\n";
     query += ", analysis.runlet_id\n";
@@ -227,13 +234,16 @@ TString QwRunlet::runlet_temp_table_unreg_create(void)
 
     // runlet and analysis level cuts
     query += "WHERE analysis.slope_correction = \"off\"\n";
-    query += "AND analysis.slope_calculation = \"off\"\n";
+    if(reg_type == "off") query += "AND analysis.slope_calculation = \"on\"\n";
+    else if(reg_type == "offoff") query += "AND analysis.slope_calculation = \"off\"\n";
+    else query += "AND analysis.slope_calculation = \"" + reg_type + "\"\n";
     query += "AND runlet.runlet_quality_id = 1\n";
     query += "AND(run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
     query += "AND slow_controls_settings.target_position = \"HYDROGEN-CELL\"\n";
 
     query += "ORDER BY runlet_id);\n";
 
+    cout << query;
     return query;
 }
 
@@ -247,7 +257,6 @@ void QwRunlet::fill(QwParse &reg_types)
     const Int_t num_regs = reg_types.num_detectors();
     for(Int_t i = 0; i < num_regs; i++)
     {
-        if(reg_types.detector(i) == "off") continue; 
         cout << reg_types.detector(i) << endl;
 
         query = runlet_temp_table_create(reg_types.detector(i));
@@ -258,9 +267,18 @@ void QwRunlet::fill(QwParse &reg_types)
             delete stmt;
         }
         else cout << "Failed to connect to the database while creating runlet temp table" << endl;
+        
+        query = runlet_temp_table_unreg_create(reg_types.detector(i));
+        stmt = db->Statement(query, 100);
+        if((db!=0) && db->IsConnected())
+        {
+            stmt->Process();
+            delete stmt;
+        }
+        else cout << "Failed to connect to the database while creating runlet unreg temp table" << endl;
     }
 
-    query = runlet_temp_table_unreg_create();
+    query = runlet_temp_table_unreg_create("offoff");
     stmt = db->Statement(query, 100);
     if((db!=0) && db->IsConnected())
     {
