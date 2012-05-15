@@ -31,7 +31,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
     TFile *f = new TFile(Form("/net/cdaq/cdaql5data/qweak/db_rootfiles/%s_tree.root",reg_type.Data()),"RECREATE");
 
     // create tree
-    TTree *tree = new TTree(reg_type,"treelibrated tree");
+    TTree *tree = new TTree("tree","treelibrated tree");
 
     // read in mapfile in preperation for querying db
     // read in the md map file
