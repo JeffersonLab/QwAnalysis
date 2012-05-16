@@ -83,9 +83,10 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromLine(QwP
 
   std::string tmpname = mapstr.GetTypedNextToken<std::string>();
   std::string tmptype = mapstr.GetTypedNextToken<std::string>();
-  if (tmptype != "TH1F" && tmptype != "TH2F"){
-    std::cerr << "QwHistogramHelper::GetHistParamsFromFile:  Unrecognized histogram type: "
-	      << tmptype << " (tmpname==" << tmpname <<")"<<  std::endl;
+  if (tmptype != "TH1F" && tmptype != "TH2F"
+   && tmptype != "TProfile" && tmptype != "TProfile2D"){
+    QwError << "QwHistogramHelper::GetHistParamsFromFile:  Unrecognized histogram type: "
+	      << tmptype << " (tmpname==" << tmpname <<")"<<  QwLog::endl;
   } else {
     tmpstruct.expression = tmpname;
     tmpstruct.name_title = tmpname;
@@ -95,6 +96,10 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromLine(QwP
     tmpstruct.x_max      = mapstr.GetTypedNextToken<Float_t>();
     if (tmptype == "TH2F") {
       tmpstruct.y_nbins  = mapstr.GetTypedNextToken<Int_t>();
+      tmpstruct.y_min    = mapstr.GetTypedNextToken<Float_t>();
+      tmpstruct.y_max    = mapstr.GetTypedNextToken<Float_t>();
+    } else if (tmptype == "TProfile") {
+      tmpstruct.y_nbins  = 0;
       tmpstruct.y_min    = mapstr.GetTypedNextToken<Float_t>();
       tmpstruct.y_max    = mapstr.GetTypedNextToken<Float_t>();
     } else {
@@ -541,7 +546,8 @@ TProfile* QwHistogramHelper::Construct1DProf(const QwHistogramHelper::HistParams
   h1 = new TProfile(params.name_title,
                 params.name_title,
                 params.x_nbins,
-                Double_t(params.x_min),Double_t(params.x_max));
+                Double_t(params.x_min),Double_t(params.x_max),
+                Double_t(params.y_min),Double_t(params.y_max));
   h1->SetXTitle(params.xtitle);
   h1->SetYTitle(params.ytitle);
   //  if(params.min!=fInvalidNumber) h1->SetMinimum(params.min);
@@ -563,7 +569,8 @@ TProfile2D* QwHistogramHelper::Construct2DProf(const QwHistogramHelper::HistPara
                 params.x_nbins,
                 Double_t(params.x_min),Double_t(params.x_max),
                 params.y_nbins,
-                Double_t(params.y_min),Double_t(params.y_max));
+                Double_t(params.y_min),Double_t(params.y_max),
+                Double_t(params.z_min),Double_t(params.z_max));
   h2->SetXTitle(params.xtitle);
   h2->SetYTitle(params.ytitle);
   //  if (params.min != fInvalidNumber) h2->SetMinimum(params.min);

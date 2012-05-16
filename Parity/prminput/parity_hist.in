@@ -26,21 +26,21 @@ hel_mps_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
 pat_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
 hel_pat_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
 userbit				TH1F	5 	-2.5	2.5 				Userbit 	Counts
-input_register			TH1F  12      -1.5	10.5				inputregister Events	
-output_register			TH1F  12      -1.5	10.5				outputregister Events	
+input_register			TH1F  12      -1.5	10.5				inputregister	Events	
+output_register			TH1F  12      -1.5	10.5				outputregister	Events	
 hel_cleandata			TH1F	5 	-2.5	2.5 				Cleandata	Counts
 hel_scandata1			TH1F	101 	-0.5	100.5 				Scandata1 	Counts
 hel_scandata2			TH1F	101 	-0.5	100.5 				Scandata2	Counts
 hel_scalerheader		TH1F	5 	-2.5	2.5 				ScalerHeader	Counts
 hel_scalercounter		TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
 hel_userbit			TH1F	5 	-2.5	2.5 				Userbit 	Counts
-hel_input_register		TH1F    12      -1.5	10.5				inputregister Events	
-hel_output_register		TH1F    12      -1.5	10.5				inputregister Events	
+hel_input_register		TH1F    12      -1.5	10.5				inputregister	Events
+hel_output_register		TH1F    12      -1.5	10.5				inputregister	Events
 
 
 
 ###  Beam modulation histograms
-bmod_.*				TH1F	360	0.0	360.0				Phase/deg	Position
+bmod_.*				TProfile	460	-100.0	360.0	-10.0	10.0	Phase/deg	Position
 
 
 ###  New MD yield histograms 
@@ -168,7 +168,7 @@ asym_qwk_uslumi...._hw	TH1F	10000	-0.2	0.2				Asymmetry	Events
 .*scanner_ref_posi_x		TH1F	2000	-60.0		60.0			X[cm]		Events
 .*scanner_ref_posi_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
 
-.*scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
+.*scanner_rate_map_.m 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 
 
 ###  Compton Electron histograms

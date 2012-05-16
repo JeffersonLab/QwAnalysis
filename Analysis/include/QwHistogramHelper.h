@@ -73,6 +73,9 @@ class QwHistogramHelper{
     Int_t y_nbins;
     Float_t y_min;
     Float_t y_max;
+    Int_t z_nbins;
+    Float_t z_min;
+    Float_t z_max;
     TString xtitle;
     TString ytitle;
     Float_t min;
