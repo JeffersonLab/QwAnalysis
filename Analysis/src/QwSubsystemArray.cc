@@ -384,14 +384,11 @@ void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
 //*****************************************************************
 void  QwSubsystemArray::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-  //std::cout<<" here in QwSubsystemArray::ConstructHistograms with prefix ="<<prefix<<"\n";
-
   if (!empty()) {
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       (*subsys)->ConstructHistograms(folder,prefix);
     }
   }
-  //std::cout<<"\n";
 }
 
 void  QwSubsystemArray::FillHistograms()
@@ -400,6 +397,16 @@ void  QwSubsystemArray::FillHistograms()
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillHistograms));
 }
 
+void  QwSubsystemArray::ShareHistograms(const QwSubsystemArray& source)
+{
+  if (!empty() && !source.empty()) {
+    if (this->size() == source.size()) {
+      for (size_t i = 0; i < source.size(); ++i) {
+        this->at(i)->ShareHistograms(source.at(i).get());
+      }
+    }
+  }
+}
 //*****************************************************************
 
 /**
@@ -694,6 +701,11 @@ Bool_t QwSubsystemArray::PublishByRequest(TString device_name){
         status = (*subsys)->PublishByRequest(device_name);
 	if (status) break;
       }
+    // Report failure to publish
+    if (! status) {
+      QwError << "QwSubsystemArray::PublishByRequest: Failed to publish channel name: "
+              << device_name << QwLog::endl;
+    }
   }
   return status;
 }
