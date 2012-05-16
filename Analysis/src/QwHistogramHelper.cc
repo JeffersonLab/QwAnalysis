@@ -441,6 +441,22 @@ TH1F* QwHistogramHelper::Construct1DHist(const TString& name_title)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
+TProfile2D* QwHistogramHelper::Construct2DProf(const TString& name_title)
+{
+  HistParams tmpstruct = GetHistParamsFromList(name_title);
+  return Construct2DProf(tmpstruct);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TProfile* QwHistogramHelper::Construct1DProf(const TString& name_title)
+{
+  HistParams tmpstruct = GetHistParamsFromList(name_title);
+  return Construct1DProf(tmpstruct);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
 TH2F* QwHistogramHelper::Construct2DHist(const std::string& inputfile, const TString& name_title)
 {
   HistParams tmpstruct = GetHistParamsFromFile(inputfile, name_title);
@@ -456,6 +472,23 @@ TH1F* QwHistogramHelper::Construct1DHist(const std::string& inputfile, const TSt
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
+
+TProfile2D* QwHistogramHelper::Construct2DProf(const std::string& inputfile, const TString& name_title)
+{
+  HistParams tmpstruct = GetHistParamsFromFile(inputfile, name_title);
+  return Construct2DProf(tmpstruct);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TProfile* QwHistogramHelper::Construct1DProf(const std::string& inputfile, const TString& name_title)
+{
+  HistParams tmpstruct = GetHistParamsFromFile(inputfile, name_title);
+  return Construct1DProf(tmpstruct);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
 TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HistParams &params)
 {
   TH1F* h1 = 0;
@@ -474,6 +507,8 @@ TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HistParams &pa
   return h1;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
 TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &params)
 {
   TH2F* h2 = 0;
@@ -482,6 +517,48 @@ TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &pa
   }
 
   h2 = new TH2F(params.name_title,
+                params.name_title,
+                params.x_nbins,
+                Double_t(params.x_min),Double_t(params.x_max),
+                params.y_nbins,
+                Double_t(params.y_min),Double_t(params.y_max));
+  h2->SetXTitle(params.xtitle);
+  h2->SetYTitle(params.ytitle);
+  //  if (params.min != fInvalidNumber) h2->SetMinimum(params.min);
+  //  if (params.max != fInvalidNumber) h2->SetMinimum(params.max);
+  return h2;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TProfile* QwHistogramHelper::Construct1DProf(const QwHistogramHelper::HistParams &params)
+{
+  TProfile* h1 = 0;
+  if (fTrimHistoEnable && params.name_title == fInvalidName) {
+    return h1;
+  }
+
+  h1 = new TProfile(params.name_title,
+                params.name_title,
+                params.x_nbins,
+                Double_t(params.x_min),Double_t(params.x_max));
+  h1->SetXTitle(params.xtitle);
+  h1->SetYTitle(params.ytitle);
+  //  if(params.min!=fInvalidNumber) h1->SetMinimum(params.min);
+  //  if(params.max!=fInvalidNumber) h1->SetMinimum(params.max);
+  return h1;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TProfile2D* QwHistogramHelper::Construct2DProf(const QwHistogramHelper::HistParams &params)
+{
+  TProfile2D* h2 = 0;
+  if (fTrimHistoEnable && params.name_title == fInvalidName) {
+    return h2;
+  }
+
+  h2 = new TProfile2D(params.name_title,
                 params.name_title,
                 params.x_nbins,
                 Double_t(params.x_min),Double_t(params.x_max),

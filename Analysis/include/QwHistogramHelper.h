@@ -11,6 +11,8 @@
 #include <TRegexp.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TProfile.h>
+#include <TProfile2D.h>
 
 #include "QwParameterFile.h"
 #include "QwOptions.h"
@@ -43,9 +45,13 @@ class QwHistogramHelper{
 
   TH1F* Construct1DHist(const TString& name_title);
   TH2F* Construct2DHist(const TString& name_title);
+  TProfile* Construct1DProf(const TString& name_title);
+  TProfile2D* Construct2DProf(const TString& name_title);
 
   TH1F* Construct1DHist(const std::string& inputfile, const TString& name_title);
   TH2F* Construct2DHist(const std::string& inputfile, const TString& name_title);
+  TProfile* Construct1DProf(const std::string& inputfile, const TString& name_title);
+  TProfile2D* Construct2DProf(const std::string& inputfile, const TString& name_title);
 
   Bool_t MatchDeviceParamsFromList(const std::string& devicename);
   Bool_t MatchVQWKElementFromList(const std::string& subsystemname,
@@ -117,6 +123,8 @@ class QwHistogramHelper{
   TH1F* Construct1DHist(const HistParams &params);
   TH2F* Construct2DHist(const HistParams &params);
 
+  TProfile* Construct1DProf(const HistParams &params);
+  TProfile2D* Construct2DProf(const HistParams &params);
   
   const HistParams GetHistParamsFromLine(QwParameterFile &mapstr);
 
