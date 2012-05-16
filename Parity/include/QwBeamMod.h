@@ -58,13 +58,21 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
         fgModTypeNames[i].ToLower();
       fFFB_holdoff_Counter=0;
       fFFB_Flag=kTRUE;
-      fBPMs.push_back("qwk_bpm3c12x");
-      fBPMs.push_back("qwk_bpm3c12y");
+      fRampChannelIndex = -1;
+      fPatternWordIndex = -1;
+
+      // TODO This should all go into LoadChannelMap
+      // Add names of channels
+      fBPMnames.push_back("qwk_bpm3c12X");
+      fBPMnames.push_back("qwk_bpm3c12Y");
+      // Resize local version of the BPMs
+      fBPMs.resize(fBPMnames.size());
     };
   /// Copy constructor
   QwBeamMod(const QwBeamMod& source)
   : VQwSubsystem(source),VQwSubsystemParity(source),
-    fModChannel(source.fModChannel),fWord(source.fWord),fBPMs(source.fBPMs)
+    fModChannel(source.fModChannel),fWord(source.fWord),
+    fBPMnames(source.fBPMnames),fBPMs(source.fBPMs)
   { }
   /// Virtual destructor
   virtual ~QwBeamMod() { };
@@ -98,7 +106,10 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 //  void  PrintDetectorID();
 
   void  ClearEventData();
+
   void  ProcessEvent();
+  void  ExchangeProcessedData();
+  void  ProcessEvent_2();
 
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+= (VQwSubsystem *value);
@@ -156,7 +167,10 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
  static const Bool_t bDEBUG=kFALSE;
 
  // List of BPMs
- std::vector<TString> fBPMs;
+ std::vector<TString> fBPMnames;
+ std::vector<QwVQWK_Channel> fBPMs;
+ Int_t fRampChannelIndex;
+ Int_t fPatternWordIndex;
 
 };
 

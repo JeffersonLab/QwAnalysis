@@ -118,6 +118,11 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	     fModChannel[fModChannel.size()-1].SetDefaultSampleSize(sample_size);
 	     localModChannelID.fIndex=fModChannel.size()-1;
 	     fModChannelID.push_back(localModChannelID);
+
+	     // Store reference to ramp channel
+	     if (localModChannelID.fmodulename == "ramp") {
+	       fRampChannelIndex = fModChannel.size() - 1;
+	     }
 	   }
 
 	   if(ldebug)
@@ -132,28 +137,6 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
           
 	 }
      
-       //       else if(modtype=="SCALER")wordsofar+=1;
-      //  else
-// 	 {
-// 	   std::cerr << "QwBeamMod<VQWK>::LoadChannelMap:  Unknown module type: "
-// 		     << modtype <<", the detector "<<namech<<" will not be decoded "
-// 		     << std::endl;
-// 	   lineok=kFALSE;
-// 	   continue;
-// 	 }
-
-       //      if(modtype=="SKIP"){
-       //	if (modnum<=0) wordsofar+=1;
-       //	else           wordsofar+=modnum;
-	//      }
-//       else if(modtype =="WORD" && dettype!="modulationdata")
-// 	{
-// 	  QwError << "QwBeamMod::LoadChannelMap:  Unknown detector type: "
-// 		  << dettype  << ", the detector " << namech << " will not be decoded "
-// 		  << QwLog::endl;
-// 	  lineok=kFALSE;
-// 	  continue;
-//	}
 
       if(modtype == "WORD")
 	{
@@ -171,6 +154,11 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	  //localword.fWordType=dettype; // FIXME dettype is undefined so commented this out
 	  fWord.push_back(localword);
 
+	  // Store reference to pattern number
+          if (localword.fWordName == "bm_pattern_number") {
+            fPatternWordIndex = fWord.size() - 1;
+          }
+
 	  if(namech=="ffb_status")//save the location of this word to access this later
 	    fFFB_Index=fWord.size()-1;
 
@@ -178,28 +166,6 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	  fWordsPerSubbank[currentsubbankindex].second = fWord.size();
 	  QwDebug << "--" << namech << "--" << fWord.size()-1 << QwLog::endl;
 
-	  // Notice that "namech" is in lower-case, so these checks
-	  // should all be in lower-case
-	  //	  switch (fHelicityDecodingMode)
-	  //{
-	  // case kHelUserbitMode :
-	  //  if(namech.Contains("userbit")) kUserbit=fWord.size()-1;
-	  //  if(namech.Contains("scalercounter")) kScalerCounter=fWord.size()-1;
-	  //  break;
-	  // case kHelInputRegisterMode :
-	  //    if(namech.Contains("input_register")) kInputRegister= fWord.size()-1;
-	  //    if(namech.Contains("mps_counter")) kMpsCounter= fWord.size()-1;
-	  //   if(namech.Contains("pat_counter")) kPatternCounter= fWord.size()-1;
-	  //   if(namech.Contains("pat_phase")) kPatternPhase= fWord.size()-1;
-	  //   break;
-	  // case kHelInputMollerMode :
-	  //   if(namech.Contains("mps_counter")) {
-	  //		kMpsCounter= fWord.size()-1;
-	  //  }
-	  //   if(namech.Contains("pat_counter")) {
-	  //	kPatternCounter = fWord.size()-1;
-		//	      }
- //	      break;
 	}
      }
   }
@@ -408,6 +374,9 @@ Int_t QwBeamMod::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 
   }
   lkDEBUG=kFALSE;
+
+  SetDataLoaded(kTRUE);
+
   return 0;
 }
 
@@ -470,19 +439,35 @@ UInt_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
 
 void  QwBeamMod::ProcessEvent()
 {
-
-  for(size_t i=0;i<fModChannel.size();i++){
-    fModChannel[i].ApplyHWChecks();//first apply HW checks and update HW  error flags. 
+  for (size_t i = 0; i < fModChannel.size(); i++) {
+    // First apply HW checks and update HW  error flags.
+    fModChannel[i].ApplyHWChecks();
     fModChannel[i].ProcessEvent();
   }
-  
-  return;
 }
 
+void  QwBeamMod::ExchangeProcessedData()
+{
+  // Make sure sizes are equal
+  if (fBPMnames.size() != fBPMs.size())
+    QwError << "QwBeamMod: Sizes of fBPMnames and fBPMs do not match!" << QwLog::endl;
+  // Loop over BPMs
+  for (size_t bpm = 0; bpm < fBPMnames.size(); bpm++) {
+    // Get references to external values
+    if (! RequestExternalValue(fBPMnames[bpm],&fBPMs[bpm]))
+      QwError << "QwBeamMod: RequestExternalValue for " << fBPMnames[bpm]
+              << " failed!" << QwLog::endl;
+  }
+}
+
+void  QwBeamMod::ProcessEvent_2()
+{
+  // Fill histograms here to bypass event cuts
+  FillHistograms();
+}
 
 Int_t QwBeamMod::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-
   return 0;
 }
 
@@ -678,25 +663,56 @@ Bool_t QwBeamMod::Compare(VQwSubsystem *value)
 
 void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
+  // Go to the specified folder
   if (folder != NULL) folder->cd();
 
+  // No histogram creation for asym, yield, diff, etc
+  if (prefix != "") return;
+
   TString basename;
-  for (size_t bpm = 0; bpm < fBPMs.size(); bpm++) {
-    basename = TString("bmod_") + prefix + fBPMs[bpm];
-    fHistograms.push_back(gQwHists.Construct1DProf(basename));
+  for (size_t bpm = 0; bpm < fBPMnames.size(); bpm++) {
+    // Find histogram with correct name
+    basename = TString("bmod_") + prefix + fBPMnames[bpm];
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_X"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_Y"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_E"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_XP"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_YP"));
   }
 }
 
 void  QwBeamMod::FillHistograms()
 {
+  // No data loaded
+  if (! HasDataLoaded()) return;
+
+  // No histograms defined
+  if (fHistograms.size() == 0) return;
+
+  // Do we have a ramp channel?
+  if (fRampChannelIndex < 0 || fRampChannelIndex > fModChannel.size()) return;
+
+  // Do we have a pattern word?
+  if (fPatternWordIndex < 0 || fPatternWordIndex > fWord.size()) return;
+
+  // Determine the ramp/phase
+  Double_t ramp = fModChannel[fRampChannelIndex].GetValue();
+
+  // Determine the pattern number
+  Int_t pattern = fWord[fPatternWordIndex].fValue - 11;
+
+  // Fill histograms for all BPMs and each of the modulation patterns
+  for (size_t bpm = 0; bpm < fBPMs.size(); bpm++) {
+
+    if (pattern >= 0 && pattern < 5)
+      fHistograms[5 * bpm + pattern]->Fill(ramp,fBPMs[bpm].GetValue());
+  }
 }
 
 void QwBeamMod::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   TString basename;
   
-  // std::cout << "ConstructBranchAndVector" << std::endl;
-
   for(size_t i = 0; i < fModChannel.size(); i++)
     fModChannel[i].ConstructBranchAndVector(tree, prefix, values);
 //   for (size_t i=0;i<fWord.size();i++)
@@ -781,13 +797,10 @@ void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 }
 
 
-
 void QwBeamMod::FillErrDB(QwParityDB *db, TString datatype)
 {
   return;
 }
-
-
 
 
 void QwBeamMod::WritePromptSummary(QwPromptSummary *ps, TString datatype)
