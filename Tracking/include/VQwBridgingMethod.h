@@ -107,8 +107,8 @@ inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double
 
   Double_t cos_theta = 0.0;
   cos_theta = cos(angle);
-  Double_t target_z_length= 35.0; // Target Length in cm
-  Double_t target_z_position= -652.0;
+  Double_t target_z_length= 34.35; // Target Length (cm)
+  Double_t target_z_position= -652.67; // Target center position (cm) in Z
   Double_t target_z_space[2] = {0.0};
 
   target_z_space[0] = target_z_position - 0.5*target_z_length;
@@ -133,12 +133,18 @@ inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double
   Double_t Mp = 938.272013*Qw::MeV;    // Mass of the Proton in MeV
   
   Double_t pre_loss = 22.0*Qw::MeV;
-  if(vertex_z < target_z_space[0])
-    pre_loss = 0.0 * Qw::MeV;
-  else if(vertex_z < target_z_space[1])
-    pre_loss *= (vertex_z - target_z_space[0])/target_z_length;
+  Double_t depth = vertex_z - target_z_space[0];
 
-    
+  if(vertex_z < target_z_space[0])
+    pre_loss = 0.05 * Qw::MeV;  
+  else if(vertex_z >= target_z_space[0] && vertex_z <= target_z_space[1])
+    //pre_loss *= (vertex_z - target_z_space[0])/target_z_length; // linear approximation
+    pre_loss = 0.05 + depth*0.6618 - 0.003462*depth*depth; // quadratic fit approximation
+  else
+    pre_loss = (18.7 + 3.9)*Qw::MeV;  // averaged total Eloss, downstream, including Al windows
+
+  // pre_loss = 10.0*Qw::MeV; // uncomment this line if using constant method, averaged whole target Eloss
+   
   //double PP = momentum + momentum_correction_MeV;
   //double P0 = Mp*PP/(Mp-PP*(1-cos_theta)); //pre-scattering energy
   //double Q2 = 2.0*Mp*(P0-PP);
