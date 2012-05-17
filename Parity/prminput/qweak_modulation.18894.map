@@ -1,0 +1,46 @@
+! As of 11/10/2011
+ROC=2
+Bank=0x0202
+!samples_size=480
+!for 960Hz
+sample_size=464  
+
+
+!
+! module.type, module.num  chan.num, det.type, det.name<not added yet>
+
+
+!ADC0, Slot 4, Serial Number 33, Address 0x80
+  VQWK, 0, 0,  FGX1
+  VQWK, 0, 1,  FGY1
+  VQWK, 0, 2,  FGX2
+  VQWK, 0, 3,  FGY2
+  VQWK, 0, 4,  FGE
+!  Moved ramp to next channel on 16May2012
+!   VQWK, 0, 5,  RAMP
+  VQWK, 0, 6,  RAMP
+
+
+!
+! module.type, module.num  chan.num, det.type, det.name
+
+ROC=0
+Bank=0x6101
+
+!
+! module.type, module.num  chan.num, det.type, det.name
+!
+WORD, 0,  0, in_reg
+WORD, 0,  0, ffb_status
+
+Bank=0x6106
+
+WORD, 0, 0,  bm_init
+WORD, 0, 0,  bm_pattern_number
+
+!
+!  The TRIG and LEM signals go through a V/F module to scalers in ROC=0.
+!  Their decoding ought to be added at some point.
+
+
+!ROC=0
