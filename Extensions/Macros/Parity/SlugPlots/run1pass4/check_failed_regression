@@ -6,7 +6,7 @@
 #./check_failed_regression 12119
 
 SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression"
-sets=(std 5+1 set3 set4 set5 set6 set7 set8 set9)
+sets=(std 5+1 set3 set4 set5 set6 set7 set8 set9 set10)
 
 run_num=$1
 
@@ -23,4 +23,5 @@ for lrbset in ${sets[*]}
   fi
 done
 
+echo "Please ignore set4 for runs after 11002"
 

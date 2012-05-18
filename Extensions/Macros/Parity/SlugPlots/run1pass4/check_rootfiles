@@ -26,7 +26,7 @@ do
 	  #echo " `ls -l ${SRC}/QwPass4b_$run.*$runlet.root`"
 	  #arg_rootfile=`ls -l ${SRC}/QwPass4b_$run.*$runlet.root > /dev/null`
 #check the status of the last command #	  if [  $? == 0 ] 
-	  if [  `ls  ${SRC}/QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC}/QwPass4b_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      unreg_rootfile_status=1
 	      echo "${run}.$runlet:Unregressed root file  missing"
@@ -48,8 +48,16 @@ do
 	  fi
 	  if [  `ls  ${SRC_LRB}/set4_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
-	      reg_rootfile_status=1
-	      echo "${run}.$runlet: set4 root file missing"
+#To skip set4 for run  > 11002
+	      if [ ${run} -le 11002 ]
+		  then
+		  reg_rootfile_status=1
+		  echo "${run}.$runlet: set4 root file missing"
+	      else
+		 echo "set4 is disabled for runs > 11002"
+	      fi
+	      #reg_rootfile_status=1
+	      #echo "${run}.$runlet: set4 root file missing"
 	  fi
 	  if [  `ls  ${SRC_LRB}/set5_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
 	      then
@@ -76,6 +84,12 @@ do
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set9 root file missing"
 	  fi
+	  if [  `ls  ${SRC_LRB}/set10_reg_QwPass4b_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set10 root file missing"
+	  fi
+
 
 	done
 
@@ -94,6 +108,9 @@ then
 else
     echo "Regressed rootfiles for the slug ${slug_num} are ready "
 fi
+
+echo "Please ignore set10 for runs before 11002"
+echo "Please ignore set4 for runs after 11002"
 
 
 #	  if [  `ls  ${SRC}/QwPass4b_$run.*$runlet.root | wc -l ` -gt 0 ]
