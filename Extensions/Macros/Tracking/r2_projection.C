@@ -30,7 +30,7 @@
 
 const int multitracks=18;
 
-void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int run=8658,string suffix=""){
+void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int run=8658,string prefix="", string suffix=""){
 
   // try to get the oct number from the run number
   int oct=getOctNumber(run);
@@ -40,6 +40,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
    string folder=gSystem->Getenv("QW_ROOTFILES");
    ostringstream ss;
    ss << folder << "/Qweak_";
+   ss << prefix ;
    ss << run << suffix;
    ss << ".root";
    string file_name=ss.str();

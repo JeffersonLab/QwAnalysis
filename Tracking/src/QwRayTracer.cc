@@ -139,6 +139,7 @@ int QwRayTracer::Bridge(
   double step = 1.0 * Qw::cm; // integration step size
   double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
+  double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
   Double_t p[2] = {0.0};
   Double_t x[2] = {0.0};
   Double_t y[2] = {0.0};
@@ -152,6 +153,7 @@ int QwRayTracer::Bridge(
   TVector3 start_direction = front->GetMomentumDirection();
   fScatteringAngle = start_direction.Theta();
   // Estimate initial momentum based on front track
+  //p[0]=p[1]= EstimateInitialMomentum(vertex_z,fScatteringAngle,fEnergy)/Qw::GeV;
   p[0] = p[1] = EstimateInitialMomentum(start_direction)/Qw::GeV;
 
   // Back track position and direction
@@ -260,7 +262,7 @@ int QwRayTracer::Bridge(
     }
     */
     double kinetics[3]={0.0};
-    double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
+    //double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
     CalculateKinematics(vertex_z,fScatteringAngle,fEnergy,kinetics);
     QwTrack* track = new QwTrack(front,back);
 

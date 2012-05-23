@@ -58,7 +58,7 @@ class VQwBridgingMethod {
 
   /// Estimate the momentum based only on the direction
   virtual double EstimateInitialMomentum(const TVector3& direction) const;
-
+  virtual double EstimateInitialMomentum(const double vertex_z,double angle,const double energy) const;
   virtual double CalculateVertex(const TVector3& point,const double angle) const;
 
   /// Calculate Kinetics
@@ -78,6 +78,38 @@ class VQwBridgingMethod {
  * @param direction Momentum direction (not necessarily normalized)
  * @return Initial momentum
  */
+inline double VQwBridgingMethod::EstimateInitialMomentum(const double vertex_z, double angle,const double energy) const{
+  
+  double cth=cos(angle);
+  double wp=938.272013*Qw::MeV;
+  // double e_loss=38.0*Qw::MeV;
+  double e_loss=50*Qw::MeV;
+  double e0=energy;
+  
+  double target_z_length= 34.35; // Target Length (cm)
+  double target_z_position= -652.67; // Target center position (cm) in Z
+  double target_z_space[2] = {0.0};
+
+  target_z_space[0] = target_z_position - 0.5*target_z_length;
+  target_z_space[1] = target_z_position + 0.5*target_z_length;
+  double pre_loss=0.0;
+  double depth = vertex_z - target_z_space[0];
+
+  if(vertex_z < target_z_space[0])
+    pre_loss = 0.05 * Qw::MeV;  
+  else if(vertex_z >= target_z_space[0] && vertex_z <= target_z_space[1])
+    //pre_loss *= (vertex_z - target_z_space[0])/target_z_length; // linear approximation
+    pre_loss = 0.05 + depth*0.6618 - 0.003462*depth*depth; // quadratic fit approximation
+  else
+    pre_loss = (18.7 + 3.9)*Qw::MeV;  // averaged total Eloss, downstream, including Al windows
+  
+  // Kinematics for elastic e+p scattering
+  //return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
+  e0-=pre_loss;
+  return e0/(1.0+e0/wp*(1-cth))-e_loss;
+ }
+
+
 inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& direction) const
 {
   double cth = direction.CosTheta(); // cos(theta) = uz/r, where ux,uy,uz form a unit vector
@@ -86,7 +118,7 @@ inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& directi
   // average value from the talk of David. A 
   // https://qweak.jlab.org/DocDB/0014/001429/001/Tracking_June2011.pdf
   double e_loss = 38.0  * Qw::MeV;    // target energy loss ~12 MeV
-  double pre_loss = 13.0 * Qw::MeV;
+  double pre_loss = 10.04 * Qw::MeV;
   // Kinematics for elastic e+p scattering
   //return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
   e0-=pre_loss;
@@ -132,7 +164,7 @@ inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double
   
   Double_t Mp = 938.272013*Qw::MeV;    // Mass of the Proton in MeV
   
-  Double_t pre_loss = 22.0*Qw::MeV;
+  Double_t pre_loss = 20.08*Qw::MeV;
   Double_t depth = vertex_z - target_z_space[0];
 
   if(vertex_z < target_z_space[0])

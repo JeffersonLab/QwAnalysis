@@ -592,6 +592,8 @@ void QwModulation::CalculateSlope(Int_t fModType)
     std::cout << red << "Error in run:: Number of good events too small, exiting." << normal << std::endl;
     return;
   }
+
+  std::cout << "Events to reg fit:\t" << fNEvents << std::endl;
   
   if(CoilData[fModType].size() <= 0){
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" << CoilData[fModType].size() << std::endl;
@@ -738,7 +740,7 @@ void QwModulation::PilferData()
     pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
 
     if(fReduceMatrix_x != 1){
-      if(pattern == 0 && ramp_hw_sum > 0 && i < nentries){
+      if(pattern == 0 && ramp_hw_sum > -50 && i < nentries){
 	std::cout << "X Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -748,7 +750,7 @@ void QwModulation::PilferData()
 	    continue;
 	  }
 	  if(fNEvents > 3924) break;
-	  
+
 	  for(Int_t j = 0; j < fNDetector; j++){
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
@@ -760,7 +762,7 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(pattern == 0 && ramp_hw_sum > 0 && i < nentries);
+	}while(pattern == 0 && ramp_hw_sum > -50 && i < nentries);
 
 	CalculateSlope(fXModulation);
 	fNEvents = 0;
@@ -768,7 +770,7 @@ void QwModulation::PilferData()
     }
 
     if(fReduceMatrix_y != 1){      
-      if(pattern == 1 && ramp_hw_sum > 0 && i < nentries){
+      if(pattern == 1 && ramp_hw_sum > -50 && i < nentries){
 	std::cout << "Y Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -789,13 +791,13 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(pattern == 1 && ramp_hw_sum > 0 && i < nentries);
+	}while(pattern == 1 && ramp_hw_sum > -50 && i < nentries);
 	CalculateSlope(fYModulation);
 	fNEvents = 0;
       }
     }
     if(fReduceMatrix_e != 1){    
-      if(pattern == 2 && ramp_hw_sum > 0 && i < nentries){
+      if(pattern == 2 && ramp_hw_sum > -50 && i < nentries){
 	std::cout << "E Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -817,14 +819,14 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(pattern == 2 && ramp_hw_sum > 0 && i < nentries);
+	}while(pattern == 2 && ramp_hw_sum > -50 && i < nentries);
 	CalculateSlope(fEModulation);
 	fNEvents = 0;
       }
     }
 
     if(fReduceMatrix_xp != 1){
-      if(pattern == 3 && ramp_hw_sum > 0 && i < nentries){
+      if(pattern == 3 && ramp_hw_sum > -50 && i < nentries){
 	std::cout << "XP Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
@@ -846,14 +848,14 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(pattern == 3 && ramp_hw_sum > 0 && i < nentries);
+	}while(pattern == 3 && ramp_hw_sum > -50 && i < nentries);
 	CalculateSlope(fXPModulation);
 	fNEvents = 0;
       }
     }
 
       if(fReduceMatrix_yp != 1){      
-	if(pattern == 4 && ramp_hw_sum > 0 && i < nentries){
+	if(pattern == 4 && ramp_hw_sum > -50 && i < nentries){
 	  std::cout << "YP Modulation found" << std::endl;
 	  do{
 	  fChain->GetEntry(i);
@@ -875,7 +877,7 @@ void QwModulation::PilferData()
 	  ++fEvCounter;
 	  ++fNEvents;
 	  ++i;
-	}while(pattern == 4 && ramp_hw_sum > 0 && i < nentries);
+	}while(pattern == 4 && ramp_hw_sum > -50 && i < nentries);
 	  CalculateSlope(fYPModulation);
 	  fNEvents = 0;
 	}
