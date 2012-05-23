@@ -190,9 +190,12 @@ if ($OutputPath =~ /none/i || $OutputPath =~ /null/i){
 	die("Unknown protocol in OutputPath: $OutputPath.  Exiting");
     } elsif ($protocol eq "file" ){
 	#  TODO:  Make sure the path is on the work disk...
-    }
-    if (! -d $path){
-	die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
+	if (! -d $path){
+	    die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
+	}
+    } elsif ($protocol eq "mss" ){
+	#  Don't bother checking the path, since MSS will create it if
+	#  it can.
     }
 } else {
     die("Unrecognized option for OutputPath: $OutputPath.  Exiting");
