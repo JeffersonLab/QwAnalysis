@@ -169,10 +169,19 @@ if ($opt_h){
 
 if (defined($opt_E) && $opt_E ne ""){
     $executable = $opt_E;
-    if (-e "$ENV{QW_BIN}/$opt_E") {
-	$executable = "$ENV{QW_BIN}/$opt_E";
-    } elsif (-e "$opt_E") {
+    if ($opt_E =~ "^/" && -e "$opt_E") {
+	#  Check for absolute path
 	$executable = $opt_E;
+    } elsif (-e "$ENV{QW_BIN}/$opt_E") {
+	#  Check for executable name within QW_BIN
+	$executable = "$ENV{QW_BIN}/$opt_E";
+    } elsif (-e "$original_cwd/$opt_E") {
+	#  Check for relative path 
+	chdir dirname $opt_E;
+	$executable = cwd();
+	$executable .= "/";
+	$executable .= basename $opt_E;
+	chdir $original_cwd;
     } else {
 	die("Neither $ENV{QW_BIN}/$opt_E or $executable are executable files.\n",
 	    "Exiting");
