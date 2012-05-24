@@ -680,10 +680,12 @@ sub create_xml_jobfile($$$@) {
 	"  setenv QWANALYSIS $analysis_directory\n",
 	"  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
 	"  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
-	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n",
-	"  echo $script_dir/update_cache_links.pl $CacheOptionList\n",
-	"  $script_dir/update_cache_links.pl $CacheOptionList\n";
-    $CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
+	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n";
+    if ("$CacheOptionList" ne ""){
+        $CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
+    } else {
+        $CacheOptionList = "-S \$WORKDIR";
+    }
     print JOBFILE
 	"  setenv QW_DATA      \$WORKDIR\n",
 	"  setenv QW_ROOTFILES \$WORKDIR\n",
@@ -717,6 +719,22 @@ sub create_xml_jobfile($$$@) {
 	    }
 	}
     }
+    if ($OutputPath ne "null"){
+	my ($protocol, $path) = split /:/, $OutputPath, 2;
+	if ($protocol eq "mss"){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start copying output files to at `date`\"\n";
+	    print JOBFILE
+		"  /site/bin/jput \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
+	} elsif ($protocol eq "file" ){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start copying output files to at `date`\"\n";
+	    print JOBFILE
+		"  cp -v \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
+	}
+    }
     print JOBFILE
 	"  echo \"Finished at `date`\"\n",
 	"]]></Command>\n";
@@ -724,13 +742,13 @@ sub create_xml_jobfile($$$@) {
     foreach $input_file (@infiles) {
 	print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
     }
-    if ($OutputPath ne "null"){
-	foreach $input_file (@infiles) {
-	    my $segment = sprintf "%03d", extract_segment($input_file);
-	    my $root_file = "$RootfileStem$runnumber.$segment.root";
-	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
-	}
-    }
+#    if ($OutputPath ne "null"){
+#	foreach $input_file (@infiles) {
+#	    my $segment = sprintf "%03d", extract_segment($input_file);
+#	    my $root_file = "$RootfileStem$runnumber.$segment.root";
+#	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
+#	}
+#    }
     
     print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.out\"/>\n";
     print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.err\"/>\n";
