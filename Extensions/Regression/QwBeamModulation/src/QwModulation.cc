@@ -312,15 +312,19 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 	code = 1;
       }
     }
-    if( !((subblock > -50) && (subblock < 50)) )
-      code = 1;
+//     if( !((subblock > -50) && (subblock < 50)) )
+//       code = 1;
 //     if(yield_qwk_mdallbars_Device_Error_Code != 0){
 //       code = 1;
 //     }
     
-    if(yield_qwk_charge_Device_Error_Code != 0){
+    if(yield_qwk_charge_hw_sum < 40){
       code = 1;
     }
+
+//     if(yield_qwk_charge_Device_Error_Code != 0){
+//       code = 1;
+//     }
   }
   
   return( code );
@@ -483,7 +487,8 @@ void QwModulation::ComputeAsymmetryCorrections()
     fChain->GetEntry(i);
     ++fEvCounter;
     
-    if( (ErrorCodeCheck("hel_tree") == 0 && yield_qwk_mdallbars_hw_sum != 0) ){
+//     if( (ErrorCodeCheck("hel_tree") == 0 && yield_qwk_mdallbars_hw_sum != 0) ){
+    if( (ErrorCodeCheck("hel_tree") == 0) ){
       for(Int_t j = 0; j < fNDetector; j++){
 	for(Int_t k = 0; k < fNMonitor; k++){
 	  temp_correction += YieldSlope[j][k]*HMonBranch[k][0];
