@@ -39,8 +39,10 @@ Int_t main(Int_t argc, Char_t *argv[])
   Double_t amplitude[fNMonitors];
   Double_t error[fNMonitors];
   Double_t phase[fNMonitors];
+  Double_t phase_error[fNMonitors];
   Double_t bpm_z[fNMonitors];
   Double_t zeros[fNMonitors];
+  Double_t mean = 0;
 
   TChain *chain = new TChain("Mps_Tree");
 
@@ -51,7 +53,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   run_number = atoi(argv[1]);
 
   gStyle->SetOptFit(0111);
-  gStyle->SetOptStat(111);
+  gStyle->SetOptStat(1111);
 
   do{
     flag = argv[argvn];
@@ -108,7 +110,9 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   // Loop over cycles
   for(Int_t k = 0; k < 2; k ++){
+//   for(Int_t k = 0; k < 1; k ++){
     for(Int_t j = 0; j < fCycles; j++){
+//     for(Int_t j = 0; j < 1; j++){
 
       if(fSingle) 
 	cut = Form("ErrorFlag == 0x4018080 && bm_pattern_number == %i && %s", j, ramp_cut.Data());
@@ -120,17 +124,34 @@ Int_t main(Int_t argc, Char_t *argv[])
       for(Int_t i = 0; i < fNMonitors; i++){
 	canvas->cd();
 
-	TH2F* histo = new TH2F("histo", "histo", 400, 0., 400., 1000, -1., 1.);
+	TH2F* histo = new TH2F("histo", "histo", 400, 0., 400., 1000, -2., 2.);
 	
 	chain->Draw(Form("%s%s:ramp/11.1>>histo", monitor[i].Data(), coord[k].Data()), cut, "prof");
 	histo = (TH2F *)gDirectory->Get("histo");
 	sine->SetParameters(histo->GetMean(), 0.150, TMath::Pi());
-	sine->SetParLimits(2, 0., TMath::Pi()*0.6 );
-	histo->Fit("sine","R B");    
-	amplitude[i] = sine->GetParameter(1);
+// 	sine->SetParLimits(2, 0., TMath::Pi()*0.5 );
+	sine->SetParLimits(2, 0., TMath::Pi()*2 );
 
-	phase[i] = (sine->GetParameter(2)*(180/TMath::Pi()));
+	mean = histo->GetMean(2);
+ 	histo->GetYaxis()->SetRangeUser(mean - 0.3, mean + 0.3);
+	histo->Fit("sine","R B");    
+ 
+	amplitude[i] = sine->GetParameter(1);
+	phase[i] = (sine->GetParameter(2))*(180/TMath::Pi());
+
+	// try some thing new //
+
+	if(phase[i] >= 180){
+	  phase[i] -= 180;
+	  amplitude[i] = -amplitude[i];
+	}
+	// end //
+
 	error[i] = sine->GetParError(1);
+	phase_error[i] = (sine->GetParError(2))*(180/TMath::Pi());
+	printf("\n%s\t%-5.5e +- %-5.5e\n", monitor[i].Data(), phase[i], phase_error[i]);
+	histo->Draw();
+	canvas->Update();
 
 	if(fVerbose == true){
 	  std::cout << "Check to see if histogram directory exist." << std::endl;
@@ -139,13 +160,13 @@ Int_t main(Int_t argc, Char_t *argv[])
 	    gSystem->Exec(Form("mkdir %s/plots/hist_%i", scratch_dir.Data(), run_number));
 	  }
 
-	  canvas->SaveAs(Form("%s/plots/hist_%i/hist_%s%s_%i.png", scratch_dir.Data(), run_number, monitor[i].Data(), pattern_name[j].Data(), j));
 	  std::cout << "Trying to write histogram....." << std::endl;
+	  canvas->SaveAs(Form("%s/plots/hist_%i/hist_%s%s_%i.png", scratch_dir.Data(), run_number, monitor[i].Data(), pattern_name[j].Data(), j));
 	}
 
 	histo->Delete();
       }
-      for(Int_t i = 0; i < fNMonitors; i++) printf("%s\t%-5.5e  %-5.5e\t%-5.5e\n", monitor[i].Data(), amplitude[i], error[i], phase[i]);
+      for(Int_t i = 0; i < fNMonitors; i++) printf("%s\t%-5.5e\t%-5.5e\t%-5.5e\t%-5.5e\n", monitor[i].Data(), amplitude[i], error[i], phase[i], phase_error[i]);
       
       
       monitor_position.open("config/z.txt", fstream::in);
@@ -169,20 +190,20 @@ Int_t main(Int_t argc, Char_t *argv[])
       gPad->SetGridx();
       gPad->SetGridy();
       
-      baseline->SetMarkerStyle(7);
+      baseline->SetMarkerStyle(6);
       baseline->SetMarkerColor(1);
-      baseline->SetLineStyle(1);
+      baseline->SetLineStyle(3);
       fit_optics->SetMarkerStyle(24);
       fit_optics->SetMarkerColor(2);
-      fit_optics->SetLineColor(0);    
-      fit_optics->SetLineStyle(3);    
+      fit_optics->SetLineColor(2);    
+      fit_optics->SetLineStyle(1);    
       
       multi_graph->Add(baseline);
       multi_graph->Add(fit_optics);
       multi_graph->SetMaximum( 0.5 );
       multi_graph->SetMinimum(-0.5 );
       
-      multi_graph->Draw("apl");
+      multi_graph->Draw("ap");
       multi_graph->GetXaxis()->SetTitle("Z beamline position(cm)");
       multi_graph->GetYaxis()->SetTitle(Form( "BMod Phase Offset %s (mm)  mod_type:%s", coord[k].Data(), pattern_name[j].Data()) );    
       canvas->Update();
@@ -192,25 +213,25 @@ Int_t main(Int_t argc, Char_t *argv[])
       //
 
       phase_c->cd();
-      TGraphErrors *phase_optics = new TGraphErrors( fNMonitors, bpm_z, phase, zeros, zeros);
+      TGraphErrors *phase_optics = new TGraphErrors( fNMonitors, bpm_z, phase, zeros, phase_error);
       
       gPad->SetGridx();
       gPad->SetGridy();
       
-      baseline->SetMarkerStyle(7);
+      baseline->SetMarkerStyle(6);
       baseline->SetMarkerColor(1);
-      baseline->SetLineStyle(1);
+      baseline->SetLineStyle(3);
       phase_optics->SetMarkerStyle(24);
       phase_optics->SetMarkerColor(2);
-      phase_optics->SetLineColor(0);    
-      phase_optics->SetLineStyle(3);    
+      phase_optics->SetLineColor(2);    
+      phase_optics->SetLineStyle(1);    
       
       phase_graph->Add(baseline);
       phase_graph->Add(phase_optics);
       phase_graph->SetMaximum( 160. );
       phase_graph->SetMinimum(-10. );
       
-      phase_graph->Draw("apl");
+      phase_graph->Draw("ap");
       phase_graph->GetXaxis()->SetTitle("Z beamline position(cm)");
       phase_graph->GetYaxis()->SetTitle(Form( "BMod Position Offset %s (deg)  mod_type:%s", coord[k].Data(), pattern_name[j].Data()) );    
       canvas->Update();

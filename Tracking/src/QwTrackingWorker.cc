@@ -117,7 +117,7 @@ using std::endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingWorker::QwTrackingWorker(const QwGeometry& geometry)
+QwTrackingWorker::QwTrackingWorker(QwOptions& options, const QwGeometry& geometry)
 {
   QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 
@@ -125,7 +125,7 @@ QwTrackingWorker::QwTrackingWorker(const QwGeometry& geometry)
   fDebug = 0;
 
   // Process options
-  ProcessOptions(gQwOptions);
+  ProcessOptions(options);
 
   // Store geometry
   SetGeometry(geometry);
@@ -190,8 +190,8 @@ QwTrackingWorker::QwTrackingWorker(const QwGeometry& geometry)
 
   // Process the options and set the respective flags in the modules
   fTreeSearch->SetShowMatchingPatterns(fShowMatchingPattern);
-  fTreeCombine->SetMaxRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxroad"));
-  fTreeCombine->SetMaxXRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxxroad"));
+  fTreeCombine->SetMaxRoad(options.GetValue<float>("QwTracking.R2.maxroad"));
+  fTreeCombine->SetMaxXRoad(options.GetValue<float>("QwTracking.R2.maxxroad"));
 
   QwDebug << "###### Leaving QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 }
@@ -210,6 +210,27 @@ QwTrackingWorker::~QwTrackingWorker ()
   if (fTreeCombine) delete fTreeCombine;
   if (fTreeSort)    delete fTreeSort;
   if (fTreeMatch)   delete fTreeMatch;
+
+  // Summary of tracking objects that are still alive
+  QwMessage << QwLog::endl;
+  QwMessage << "Number of tracking objects still alive:" << QwLog::endl;
+  QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive()
+            << " (of " << QwEvent::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwEventHeader: "  << QwEventHeader::GetObjectsAlive()
+            << " (of " << QwEventHeader::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive()
+            << " (of " << QwHit::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive()
+            << " (of " << QwHitPattern::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive()
+            << " (of " << QwTrackingTreeLine::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive()
+            << " (of " << QwPartialTrack::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive()
+            << " (of " << QwTrack::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwBridge: "        << QwBridge::GetObjectsAlive()
+            << " (of " << QwBridge::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << QwLog::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

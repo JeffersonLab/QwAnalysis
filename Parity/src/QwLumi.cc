@@ -753,42 +753,34 @@ Bool_t QwLumi::PublishInternalValues() const
 {
   // Publish variables
   Bool_t status = kTRUE;
-  
-  status = status && PublishInternalValue("uslumisum", "uslumisum", GetCombinedPMT("uslumi_sum")->GetChannel("uslumi_sum"));
-  
-  status = status && PublishInternalValue("qwk_uslumi1neg", "qwk_uslumi1neg", GetIntegrationPMT("qwk_uslumi1neg")->GetChannel("qwk_uslumi1neg"));
-  status = status && PublishInternalValue("qwk_uslumi1pos", "qwk_uslumi1pos", GetIntegrationPMT("qwk_uslumi1pos")->GetChannel("qwk_uslumi1pos"));
-  status = status && PublishInternalValue("qwk_uslumi3neg", "qwk_uslumi3neg", GetIntegrationPMT("qwk_uslumi3neg")->GetChannel("qwk_uslumi3neg"));
-  status = status && PublishInternalValue("qwk_uslumi3pos", "qwk_uslumi3pos", GetIntegrationPMT("qwk_uslumi3pos")->GetChannel("qwk_uslumi3pos"));
-  status = status && PublishInternalValue("qwk_uslumi5neg", "qwk_uslumi5neg", GetIntegrationPMT("qwk_uslumi5neg")->GetChannel("qwk_uslumi5neg"));
-  status = status && PublishInternalValue("qwk_uslumi5pos", "qwk_uslumi5pos", GetIntegrationPMT("qwk_uslumi5pos")->GetChannel("qwk_uslumi5pos"));
-  status = status && PublishInternalValue("qwk_uslumi7neg", "qwk_uslumi7neg", GetIntegrationPMT("qwk_uslumi7neg")->GetChannel("qwk_uslumi7neg"));
-  status = status && PublishInternalValue("qwk_uslumi7pos", "qwk_uslumi7pos", GetIntegrationPMT("qwk_uslumi7pos")->GetChannel("qwk_uslumi7pos"));
- 
-  status = status && PublishInternalValue("qwk_dslumi1", "qwk_dslumi1", GetIntegrationPMT("qwk_dslumi1")->GetChannel("qwk_dslumi1"));
-  status = status && PublishInternalValue("qwk_dslumi2", "qwk_dslumi2", GetIntegrationPMT("qwk_dslumi2")->GetChannel("qwk_dslumi2"));
-  status = status && PublishInternalValue("qwk_dslumi3", "qwk_dslumi3", GetIntegrationPMT("qwk_dslumi3")->GetChannel("qwk_dslumi3"));
-  status = status && PublishInternalValue("qwk_dslumi4", "qwk_dslumi4", GetIntegrationPMT("qwk_dslumi4")->GetChannel("qwk_dslumi4"));
-  status = status && PublishInternalValue("qwk_dslumi5", "qwk_dslumi5", GetIntegrationPMT("qwk_dslumi5")->GetChannel("qwk_dslumi5"));
-  status = status && PublishInternalValue("qwk_dslumi6", "qwk_dslumi6", GetIntegrationPMT("qwk_dslumi6")->GetChannel("qwk_dslumi6"));
-  status = status && PublishInternalValue("qwk_dslumi7", "qwk_dslumi7", GetIntegrationPMT("qwk_dslumi7")->GetChannel("qwk_dslumi7"));
-  status = status && PublishInternalValue("qwk_dslumi8", "qwk_dslumi8", GetIntegrationPMT("qwk_dslumi8")->GetChannel("qwk_dslumi8"));
 
-  status = status && PublishInternalValue("uslumi1_sum", "uslumi1_sum", GetCombinedPMT("uslumi1_sum")->GetChannel("uslumi1_sum"));
-  status = status && PublishInternalValue("uslumi3_sum", "uslumi3_sum", GetCombinedPMT("uslumi3_sum")->GetChannel("uslumi3_sum"));
-  status = status && PublishInternalValue("uslumi5_sum", "uslumi5_sum", GetCombinedPMT("uslumi5_sum")->GetChannel("uslumi5_sum"));
-  status = status && PublishInternalValue("uslumi7_sum", "uslumi7_sum", GetCombinedPMT("uslumi7_sum")->GetChannel("uslumi7_sum"));
+  //  Don't publish anything explicitly, use the PublishByRequest
+  //  mechanism instead.
   
-  status = status && PublishInternalValue("dslumi_odd", "dslumi_odd", GetCombinedPMT("dslumi_odd")->GetChannel("dslumi_odd"));
-  status = status && PublishInternalValue("dslumi_even", "dslumi_even", GetCombinedPMT("dslumi_even")->GetChannel("dslumi_even"));
-  status = status && PublishInternalValue("dslumi_sum", "dslumi_sum", GetCombinedPMT("dslumi_sum")->GetChannel("dslumi_sum"));
-
-
- 
   return status;
 }
 
-
+Bool_t QwLumi::PublishByRequest(TString device_name)
+{
+  Bool_t status = kFALSE;
+  for(size_t i=0;i<fLumiDetectorID.size();i++) {
+    if(device_name.CompareTo(fLumiDetectorID[i].fdetectorname)!=0) continue;
+    
+    if (fLumiDetectorID[i].fTypeID == kQwCombinedPMT){
+      status = PublishInternalValue(device_name, "published-by-request",
+				    fCombinedPMT[fLumiDetectorID[i].fIndex].GetChannel(device_name));
+    } else if (fLumiDetectorID[i].fTypeID == kQwIntegrationPMT) {
+      status = PublishInternalValue(device_name, "published-by-request",
+				    fIntegrationPMT[fLumiDetectorID[i].fIndex].GetChannel(device_name));
+    } else {
+      QwError << "Unknown channel name:  " << device_name << QwLog::endl;
+    }
+    break;
+  }
+  if (!status)  
+    QwError << "QwLumi::PublishByRequest:  Failed to publish channel name:  " << device_name << QwLog::endl;
+  return status;
+}
 
 //*****************************************************************
 Int_t QwLumi::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)

@@ -60,6 +60,19 @@
 <p><center><img src="auto_hdc_%%RUNNUM%%_q2.png"></center></p>
 <p><center><a href="auto_hdc_%%RUNNUM%%_q2.txt">Q2 Values</a></center></p>
 
+<a name="Chi"></a>
+<center><h2>Log(Chi) plots and values</h2></center>
+<p><center><img src="Chi_%%RUNNUM%%__chi.png"></center></p>
+<p><center><a href="Chi_%%RUNNUM%%_Chi.txt">Chi Values</a></center></p>
+<p><center><img src="Chi_%%RUNNUM%%__chi_vs_time.png"></center></p>
+
+<a name="Residual"></a>
+<center><h2>Residual value - Region 2</h2></center>
+<p><center><img src="Residual_%%RUNNUM%%_Residual_Package_1.png"></center></p>
+<p><center><img src="Residual_%%RUNNUM%%_Residual_Package_2.png"></center></p>
+<p><center><img src="Residual_%%RUNNUM%%_Residual_Both_Packages.png"></center></p>
+<p><center><a href="Residual_%%RUNNUM%%_Residual.txt">Residual Values</a></center></p>
+
 <a name="hdc"></a>
 <center><h2>Horizontal Drift Chamber Plots</h2></center>
 <p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png"></center></p>

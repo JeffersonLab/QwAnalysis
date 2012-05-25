@@ -177,6 +177,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Construct histograms
     historootfile->ConstructHistograms("mps_histo", ringoutput);
     historootfile->ConstructHistograms("hel_histo", helicitypattern);
+    detectors.ShareHistograms(ringoutput);
 
     //  Construct tree branches
     treerootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", ringoutput);

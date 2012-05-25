@@ -157,10 +157,10 @@ asym:qwk_dslumi8, 0.125
  
 #USLumi Asymmetry Average Detector
 [asym:@asym_uslumi_detavg]
-asym:qwk_uslumi1, 0.25 
-asym:qwk_uslumi3, 0.25 
-asym:qwk_uslumi5, 0.25 
-asym:qwk_uslumi7, 0.25
+asym:uslumi1_sum, 0.25 
+asym:uslumi3_sum, 0.25 
+asym:uslumi5_sum, 0.25 
+asym:uslumi7_sum, 0.25
 
 #USLumi Detector Asymmetries form Averaged Tube Asyms
 [asym:@asym_uslumi1_avg]
@@ -182,12 +182,12 @@ asym:qwk_uslumi7pos, 0.50
 
 #USLumi Dipoles
 [asym:@asym_uslumi15_dipole]
-asym:qwk_uslumi1_sum,  1
-asym:qwk_uslumi5_sum, -1
+asym:uslumi1_sum,  1
+asym:uslumi5_sum, -1
 
 [asym:@asym_uslumi37_dipole]
-asym:qwk_uslumi3_sum,  1
-asym:qwk_uslumi7_sum, -1
+asym:uslumi3_sum,  1
+asym:uslumi7_sum, -1
 
 #DSLumi Dipoles
 [asym:@asym_dslumi15_dipole]

@@ -33,10 +33,13 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   TString varname, varvalue,package, direction,dType;
   //  Int_t  chan;
   Int_t  plane, TotalWires,detectorId,region, DIRMODE;
-  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX=0,Det_originY=0,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
+   Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX=0,Det_originY=0,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,tilt;
+  Double_t Det_rcos=0, Det_rsin=0;
   Double_t ZPOS[5]={0};
   Double_t XPOS[5]={0};
   Double_t YPOS[5]={0};
+  Double_t W_rcos[5]={0.0};
+  Double_t W_rsin[5]={0.0};
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
@@ -92,8 +95,12 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
       WireSpace    = mapstr.GetTypedNextToken<Double_t>();
       FirstWire    = mapstr.GetTypedNextToken<Double_t>();
-      W_rcos       = mapstr.GetTypedNextToken<Double_t>();
-      W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+       for (Int_t i=0;i<5;i++){
+	W_rcos[i]      =  mapstr.GetTypedNextToken<Double_t>();
+      }
+      for (Int_t i=0;i<5;i++){
+	W_rsin[i]      =  mapstr.GetTypedNextToken<Double_t>();
+      }
       tilt         = mapstr.GetTypedNextToken<Double_t>();
       TotalWires   = mapstr.GetTypedNextToken<Int_t>();
       detectorId   = mapstr.GetTypedNextToken<Int_t>();
@@ -106,9 +113,11 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       if (oct == 7) oct=4;
       if (oct == 6) oct=5;
       Zpos = ZPOS[oct-1];
+      Det_rcos= W_rcos[oct-1];
+      Det_rsin= W_rsin[oct-1];
       Det_originX  = XPOS[oct-1];
       Det_originY  = YPOS[oct-1];
-      
+     
       
       QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
               << " Package "     << package << " Plane " << Zpos
@@ -135,7 +144,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 	        Det_originX, Det_originY,
 	        ActiveWidthX, ActiveWidthY, ActiveWidthZ,
 	        WireSpace, FirstWire,
-		W_rcos, W_rsin, tilt,
+		Det_rcos, Det_rsin, tilt,
 	        TotalWires,
 		detectorId);
 	    if(package=="u")
@@ -199,7 +208,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   TString reference_name1 = "MasterTrigger";
   TString reference_name2 = "CopyMasterTrigger";
 
-  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=end; hit++ ) 
     {
 
       bank_index        =            hit  -> GetSubbankID();
@@ -917,8 +927,8 @@ void  QwDriftChamberHDC::FillHistograms()
   Int_t plane   = 0;
   Int_t element = 0;
 
-
-  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=end; hit++) {
     
     this_detid = hit->GetDetectorID();
     plane      = this_detid.fPlane;
@@ -972,7 +982,8 @@ void  QwDriftChamberHDC::ClearEventData()
   SetDataLoaded(kFALSE);
   QwDetectorID this_det;
   //  Loop through fTDCHits, to decide which detector elements need to be cleared.
-  for (std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for (std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=end; hit1++) {
     this_det = hit1->GetDetectorID();
     fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
   }
@@ -998,8 +1009,8 @@ void QwDriftChamberHDC::UpdateHits()
   QwDetectorID local_id;
   QwDetectorInfo * local_info;
 
-  
-  for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=fTDCHits.end(); ++iter)
+  std::vector<QwHit>::iterator end=fTDCHits.end();
+  for(std::vector<QwHit>::iterator iter=fTDCHits.begin(); iter!=end; ++iter)
     {
 
       local_id   = iter->GetDetectorID();
@@ -1046,26 +1057,21 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
 
 void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
 {
-
-  QwParameterFile mapstr ( ttod_map.Data() );
+  QwParameterFile mapstr(ttod_map.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   
-  Double_t t = 0.0;
-  Double_t d = 0.0;
-  
-  while ( mapstr.ReadNextLine() )
+  while (mapstr.ReadNextLine())
     {
-      mapstr.TrimComment ( '!' );
+      mapstr.TrimComment('!');
       mapstr.TrimWhitespace();
-      if ( mapstr.LineIsEmpty() ) continue;
+      if (mapstr.LineIsEmpty()) continue;
       
-      t= mapstr.GetTypedNextToken<Double_t>();
-      d = mapstr.GetTypedNextToken<Double_t>();
-      fTtoDNumbers.push_back ( d );
+      /* Double_t t = */ mapstr.GetTypedNextToken<Double_t>();
+      Double_t d = mapstr.GetTypedNextToken<Double_t>();
+      fTtoDNumbers.push_back(d);
     }
 
   mapstr.Close(); // Close the file (ifstream)
-  return;
 }
 
 

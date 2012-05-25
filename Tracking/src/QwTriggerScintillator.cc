@@ -1563,6 +1563,7 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
 				      ts_mt_time->GetSoftwarePositiveHitElement()
 				      );
 	  software_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
+	  software_positive_hit.SetHitNumberR(ts_mt_time->GetPositiveHitId());
 	  fTDCHits.push_back(software_positive_hit);
 	  
 	  QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, 
@@ -1570,6 +1571,7 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
 				      ts_mt_time->GetSoftwareNegativeHitElement()
 				      );
 	  software_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
+	  software_negative_hit.SetHitNumberR(ts_mt_time->GetNegativeHitId());
 	  fTDCHits.push_back(software_negative_hit);
 	  
 	  QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, 

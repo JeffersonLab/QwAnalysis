@@ -58,11 +58,21 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
         fgModTypeNames[i].ToLower();
       fFFB_holdoff_Counter=0;
       fFFB_Flag=kTRUE;
+      fRampChannelIndex = -1;
+      fPatternWordIndex = -1;
+
+      // TODO This should all go into LoadChannelMap
+      // Add names of channels
+      fBPMnames.push_back("qwk_bpm3c12X");
+      fBPMnames.push_back("qwk_bpm3c12Y");
+      // Resize local version of the BPMs
+      fBPMs.resize(fBPMnames.size());
     };
   /// Copy constructor
   QwBeamMod(const QwBeamMod& source)
   : VQwSubsystem(source),VQwSubsystemParity(source),
-    fModChannel(source.fModChannel),fWord(source.fWord)
+    fModChannel(source.fModChannel),fWord(source.fWord),
+    fBPMnames(source.fBPMnames),fBPMs(source.fBPMs)
   { }
   /// Virtual destructor
   virtual ~QwBeamMod() { };
@@ -96,10 +106,10 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 //  void  PrintDetectorID();
 
   void  ClearEventData();
-  void  ProcessEvent();
 
-//  void RandomizeEventData(int helicity = 0);
-//  void EncodeEventData(std::vector<UInt_t> &buffer);
+  void  ProcessEvent();
+  void  ExchangeProcessedData();
+  void  ProcessEvent_2();
 
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+= (VQwSubsystem *value);
@@ -112,10 +122,6 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
 
   void Scale(Double_t factor);
-/*
-  void Calculate_Running_Average();
-  void Do_RunningSum();
-*/
 
   void CalculateRunningAverage();
   void PrintModChannelID();
@@ -144,10 +150,6 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
  Int_t fTreeArrayIndex; 						        // for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
 
 
- //std::vector <QwBCM> fBCM;
- //std::vector <QwCombinedBCM> fBCMCombo;
- //std::vector <QwCombinedBPM> fBPMCombo;
-
  std::vector <QwVQWK_Channel> fModChannel;
  std::vector <QwModChannelID> fModChannelID;
  std::vector <QwWord> fWord;
@@ -163,6 +165,12 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
  UInt_t fFFB_ErrorFlag;
  Bool_t fFFB_Flag;
  static const Bool_t bDEBUG=kFALSE;
+
+ // List of BPMs
+ std::vector<TString> fBPMnames;
+ std::vector<QwVQWK_Channel> fBPMs;
+ Int_t fRampChannelIndex;
+ Int_t fPatternWordIndex;
 
 };
 

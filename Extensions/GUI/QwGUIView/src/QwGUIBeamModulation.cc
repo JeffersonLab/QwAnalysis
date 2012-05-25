@@ -463,7 +463,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   gPad->SetGridx();
   gPad->SetGridy();
 
-  tree->Draw("qwk_targetX:0.09*ramp>>profx", cut + " && bm_pattern_number == 11");
+  tree->Draw("qwk_targetX:0.09*ramp>>profx", cut + " && bm_pattern_number == 11 || bm_pattern_number == 0");
   profx = (TProfile *)gDirectory->Get("profx");
   if(profx->GetEntries() == 0){
     profx->Delete();
@@ -495,7 +495,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   gPad->SetGridx();
   gPad->SetGridy();
 
-  tree->Draw("qwk_targetXSlope:0.09*ramp>>profxp", cut + " && bm_pattern_number == 14");
+  tree->Draw("qwk_targetXSlope:0.09*ramp>>profxp", cut + " && bm_pattern_number == 14  || bm_pattern_number == 3");
   profxp = (TProfile *)gDirectory->Get("profxp");
   if(profxp->GetEntries() == 0){
     profxp->Delete();
@@ -525,7 +525,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   }
 
   canvas->cd(3);
-  tree->Draw("qwk_targetY:0.09*ramp>>profy", cut + " && bm_pattern_number == 12");
+  tree->Draw("qwk_targetY:0.09*ramp>>profy", cut + " && bm_pattern_number == 12 || bm_pattern_number == 1");
   profy = (TProfile *)gDirectory->Get("profy");
   if(profy->GetEntries() == 0){
     profy->Delete();
@@ -560,7 +560,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   gPad->SetGridx();
   gPad->SetGridy();
 
-  tree->Draw("qwk_targetYSlope:0.09*ramp>>profyp", cut + " && bm_pattern_number == 15");
+  tree->Draw("qwk_targetYSlope:0.09*ramp>>profyp", cut + " && bm_pattern_number == 15 || bm_pattern_number == 4");
   profyp = (TProfile *)gDirectory->Get("profyp");
   if(profyp->GetEntries() == 0){
     profyp->Delete();
@@ -593,7 +593,7 @@ void QwGUIBeamModulation::PlotBPMResponse(void)
   gPad->SetGridx();
   gPad->SetGridy();
 
-  tree->Draw("qwk_bpm3c12X:0.09*ramp>>profe", cut + " && bm_pattern_number == 13");
+  tree->Draw("qwk_bpm3c12X:0.09*ramp>>profe", cut + " && bm_pattern_number == 13 || bm_pattern_number == 2");
   profyp = (TProfile *)gDirectory->Get("profe");
   if(profe->GetEntries() == 0){
     profe->Delete();

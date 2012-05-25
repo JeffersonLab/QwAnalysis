@@ -85,7 +85,10 @@ QwRayTracer::QwRayTracer()
   fSimFlag = 0;
   fMatchFlag = 0;
 
-  fEnergy=0.0;
+  fEnergy = 0.0;
+
+  // Load beam properties
+  LoadBeamProperty("beam_property.map");
 
   // Load magnetic field
   LoadMagneticFieldMap();
@@ -129,7 +132,6 @@ int QwRayTracer::Bridge(
 			const QwPartialTrack* back)
 {
   // Clear the list of tracks
-  LoadBeamProperty("beam_property.map");
   ClearListOfTracks();
 
   // Ray-tracing parameters
@@ -137,6 +139,7 @@ int QwRayTracer::Bridge(
   double step = 1.0 * Qw::cm; // integration step size
   double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
+  double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
   Double_t p[2] = {0.0};
   Double_t x[2] = {0.0};
   Double_t y[2] = {0.0};
@@ -150,6 +153,7 @@ int QwRayTracer::Bridge(
   TVector3 start_direction = front->GetMomentumDirection();
   fScatteringAngle = start_direction.Theta();
   // Estimate initial momentum based on front track
+  //p[0]=p[1]= EstimateInitialMomentum(vertex_z,fScatteringAngle,fEnergy)/Qw::GeV;
   p[0] = p[1] = EstimateInitialMomentum(start_direction)/Qw::GeV;
 
   // Back track position and direction
@@ -258,8 +262,8 @@ int QwRayTracer::Bridge(
     }
     */
     double kinetics[3]={0.0};
-    double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
-    CalculateKinetics(vertex_z,fScatteringAngle,fEnergy,kinetics);
+    //double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
+    CalculateKinematics(vertex_z,fScatteringAngle,fEnergy,kinetics);
     QwTrack* track = new QwTrack(front,back);
 
     track->fMomentum = kinetics[0] / Qw::GeV;
@@ -634,26 +638,23 @@ void QwRayTracer::GetBridgingResult(Double_t *buffer) {
 }
 
 
-  void QwRayTracer::LoadBeamProperty ( TString map )
+void QwRayTracer::LoadBeamProperty (TString map)
 {
-  QwParameterFile mapstr ( map.Data() );
+  QwParameterFile mapstr(map.Data());
   string varname, varvalue;
-   while ( mapstr.ReadNextLine() )
-    {
-      mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
-      mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-      if ( mapstr.LineIsEmpty() )  continue;
+  while (mapstr.ReadNextLine())
+  {
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
 
-      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ){
-	  //  This is a declaration line.  Decode it.
-	  //varname.ToLower();
-	  //UInt_t value = atol(varvalue.Data());
-	  if ( varname=="energy" )   //Beginning of detector information
-	    {
-	      fEnergy=atof(varvalue.c_str());
-	    }
+    if (mapstr.HasVariablePair("=",varname,varvalue)) {
+      //  This is a declaration line.  Decode it.
+      //varname.ToLower();
+      if (varname == "energy") {
+        fEnergy = atof(varvalue.c_str());
       }
     }
-   return;
+  }
 }
 

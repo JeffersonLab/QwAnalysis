@@ -73,7 +73,8 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   QwLumi(const QwLumi& source)
   : VQwSubsystem(source),VQwSubsystemParity(source),
     fIntegrationPMT(source.fIntegrationPMT),fCombinedPMT(source.fCombinedPMT),
-    fScalerPMT(source.fScalerPMT)
+    fScalerPMT(source.fScalerPMT),
+    fLumiDetectorID(source.fLumiDetectorID)
   { }
   /// Virtual destructor
   virtual ~QwLumi() { };
@@ -114,6 +115,7 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   void  ProcessEvent_2();
 
   Bool_t PublishInternalValues() const;
+  Bool_t PublishByRequest(TString device_name);
 
   void DoNormalization(Double_t factor=1.0);
 
@@ -166,8 +168,9 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
 
  std::vector <QwIntegrationPMT>      fIntegrationPMT;  
  std::vector <QwCombinedPMT>         fCombinedPMT;
- std::vector <QwLumiDetectorID>      fLumiDetectorID;
  std::vector <QwSIS3801D24_Channel>  fScalerPMT;
+
+ std::vector <QwLumiDetectorID>      fLumiDetectorID;
 
  protected:
    QwBeamCharge   fTargetCharge;

@@ -51,17 +51,21 @@
 </tr>
 </table>
 
+<a name="laser_cycle"></a>
+
+<p><center><img src="edetLasCyc_%%RUNNUM%%_expAsymP1.png"></center></p>
+<center><h2>Electron Online Graphs<h2></center>
+<p><center><img src="edetLasCyc_%%RUNNUM%%_asymFit.png"></center></p>
+<p><center><img src="edetLasCyc_%%RUNNUM%%_yieldAllPlanes.png"></center></p>
+<p><center><img src="edetLasCyc_%%RUNNUM%%_diffexpAsymP1.png"></center></p>
+<!-- <p><center><img src="edetLasCyc_%%RUNNUM%%_expAsymComponentsP1.png"></center></p> -->
+
 <a name="histos"></a>
 <center><h2>Electron Online Histograms<h2></center>
 <p><center><img src="eDetHitsHistos_%%RUNNUM%%_accum.png"></center></p>
 <p><center><img src="eDetHitsHistos_%%RUNNUM%%_event.png"></center></p>
 <p><center><img src="eDetHitsHistos_%%RUNNUM%%_scalar.png"></center></p>
 
-<a name="laser_cycle"></a>
-<p><center><img src="edetLasCyc_%%RUNNUM%%_expAsymP1.png"></center></p>
-<center><h2>Electron Online Histograms<h2></center>
-<p><center><img src="edetLasCyc_%%RUNNUM%%_diffexpAsymP1.png"></center></p>
-<p><center><img src="edetLasCyc_%%RUNNUM%%_expAsymComponentsP1.png"></center></p>
 
 </body>
 </html>

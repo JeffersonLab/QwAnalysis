@@ -37,6 +37,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.SetCommandLine(argc, argv, false);
   gQwOptions.ListConfigFiles();
 
+  ///  Define the command line options
+  DefineOptionsTracking(gQwOptions);
+
   /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
@@ -90,24 +93,24 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwMessage << "# Horizontal Drift Chamber" << QwLog::endl;
 
     QwMessage << "/HDC/SetFrontCenterPositionInX "
-        << hdc.front()->GetXPosition()
+        << (hdc.at(3)->GetXPosition() + hdc.at(2)->GetXPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/HDC/SetFrontCenterPositionInY "
-        << hdc.front()->GetYPosition()
+        << (hdc.at(3)->GetYPosition() + hdc.at(2)->GetYPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/HDC/SetFrontCenterPositionInZ "
-        << hdc.front()->GetZPosition()
+        << (hdc.at(3)->GetZPosition() + hdc.at(2)->GetZPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << QwLog::endl;
 
     QwMessage << "/HDC/SetBackCenterPositionInX "
-        << hdc.back()->GetXPosition()
+        << (hdc.at(10)->GetXPosition() + hdc.at(9)->GetXPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/HDC/SetBackCenterPositionInY "
-        << hdc.back()->GetYPosition()
+        << (hdc.at(10)->GetYPosition() + hdc.at(9)->GetYPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/HDC/SetBackCenterPositionInZ "
-        << hdc.back()->GetZPosition()
+        << (hdc.at(10)->GetZPosition() + hdc.at(9)->GetZPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << QwLog::endl;
   }
@@ -119,30 +122,30 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwMessage << "# Vertical Drift Chamber" << QwLog::endl;
 
     QwMessage << "/VDC/SetFrontCenterPositionInX "
-        << vdc.front()->GetXPosition()
+        << (vdc.at(1)->GetXPosition() + vdc.at(0)->GetXPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/VDC/SetFrontCenterPositionInY "
-        << vdc.front()->GetYPosition()
+        << (vdc.at(1)->GetYPosition() + vdc.at(0)->GetYPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/VDC/SetFrontCenterPositionInZ "
-        << vdc.front()->GetZPosition()
+        << (vdc.at(1)->GetZPosition() + vdc.at(0)->GetZPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/VDC/DriftCell/SetWireAngleFront "
-        << vdc.front()->GetElementAngleInDeg()
+        << vdc.at(1)->GetElementAngleInDeg()
         << " degree" << QwLog::endl;
     QwMessage << QwLog::endl;
 
     QwMessage << "/VDC/SetBackCenterPositionInX "
-        << vdc.back()->GetXPosition()
+        << (vdc.at(3)->GetXPosition() + vdc.at(2)->GetXPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/VDC/SetBackCenterPositionInY "
-        << vdc.back()->GetYPosition()
+        << (vdc.at(3)->GetYPosition() + vdc.at(2)->GetYPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/VDC/SetBackCenterPositionInZ "
-        << vdc.back()->GetZPosition()
+        << (vdc.at(3)->GetZPosition() + vdc.at(2)->GetZPosition()) / 2.0
         << " cm" << QwLog::endl;
     QwMessage << "/VDC/DriftCell/SetWireAngleBack "
-        << vdc.back()->GetElementAngleInDeg()
+        << vdc.at(3)->GetElementAngleInDeg()
         << " degree" << QwLog::endl;
     QwMessage << QwLog::endl;
   }

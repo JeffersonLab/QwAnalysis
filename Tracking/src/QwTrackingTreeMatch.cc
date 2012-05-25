@@ -116,8 +116,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   /// relative orientation, etc.
 
   // Get detector identification
-  QwDetectorInfo* frontdetector = frontlist->GetDetectorInfo();
-  QwDetectorInfo* backdetector  = backlist->GetDetectorInfo();
+  const QwDetectorInfo* frontdetector = frontlist->GetDetectorInfo();
+  const QwDetectorInfo* backdetector  = backlist->GetDetectorInfo();
 
   // Rotation of the detector planes in the xz plane around the y axis
   double cos_theta = frontdetector->GetDetectorRotationCos();

@@ -227,9 +227,20 @@ const char   *QwGUIDatabaseSummary::RegressionVarsOn_5[N_REG_VARS_ON_5]={
 const char   *QwGUIDatabaseSummary::RegressionVarsOn_6[N_REG_VARS_ON_6]={
   "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","diff_qwk_bpm3c12X","wrt_asym_charge"
 };
+const char   *QwGUIDatabaseSummary::RegressionVarsOn_7[N_REG_VARS_ON_7]={
+  "wrt_diff_9_p_4X","wrt_diff_9_m_4X","wrt_diff_9_m_4Y","wrt_diff_9_p_4Y","wrt_diff_bpm3c12X"
+};
+
+const char   *QwGUIDatabaseSummary::RegressionVarsOn_8[N_REG_VARS_ON_8]={
+  "wrt_diff_9_p_4X","wrt_diff_9_m_4X","wrt_diff_9_m_4Y","wrt_diff_9_p_4Y","wrt_diff_bpm3c12X","wrt_asym_charge"
+};
+
+const char   *QwGUIDatabaseSummary::RegressionVarsOn_9[N_REG_VARS_ON_9]={
+		"wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy","wrt_asym_charge", "wrt_asym_uslumi_sum"};
+
 
 const char *QwGUIDatabaseSummary::RegressionSchemes[N_REGRESSION_SCHEMES] = {
-  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6"
+		  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","on_set9","raw(from rootfiles)"
 };
 
 
@@ -308,7 +319,7 @@ const char *QwGUIDatabaseSummary::GoodForTypes[N_GOODFOR_TYPES] =
   "centering_target","centering_plug","pedestals","transverse",
   "transverse_horizontal","daq_test","bcm_scan","bpm_scan",
   "ia_scan","pita_scan","rhwp_scan","background_studies",
-  "pockels_cell_off","n_to_delta","junk"
+  "pockels_cell_off","n_to_delta","junk","scanner_on","dis"
 };
 
 
@@ -901,6 +912,7 @@ TString QwGUIDatabaseSummary::MakeQuery(TString outputs, TString tables_used, TS
 
   /*Get good_for cut information*/
   Bool_t good_for[N_GOODFOR_TYPES];
+  std::vector<Int_t> good_for_id;
   TList *selected_types = new TList;
   dBoxGoodFor->GetSelectedEntries(selected_types);
   TGTextLBEntry *entry;
@@ -915,8 +927,8 @@ TString QwGUIDatabaseSummary::MakeQuery(TString outputs, TString tables_used, TS
   }
 
   for(size_t i=0; i<N_GOODFOR_TYPES;i++){
-	  if(!good_for[i]){
-		  good_for_check = good_for_check + Form(" AND data.good_for_id NOT LIKE \"%%%d%%\"",i+1);
+	  if(good_for[i]){
+		  good_for_check = good_for_check + Form(" AND FIND_IN_SET('%i',data.good_for_id)",i+1);
 	  }
   }
 
@@ -1550,7 +1562,7 @@ void QwGUIDatabaseSummary::PlotDetector(Int_t ncan = 1, TCanvas *can = 0)
       grp_bad ->SetMarkerStyle(29);
       grp_bad ->SetMarkerColor(kBlack);
       grp_bad ->Fit("pol0");
-      fit5 = grp_out->GetFunction("pol0");
+      fit5 = grp_bad->GetFunction("pol0");
       fit5 -> SetLineColor(kBlack);
     }
 
@@ -1727,10 +1739,10 @@ void QwGUIDatabaseSummary::PlotMD(){
 		   std::cout<<"Last 24 hours"<<std::endl;
 	       break;
 	  case ID_TS_WEEK:
-	  	   std::cout<<"Last 24 hours"<<std::endl;
+	  	   std::cout<<"Last Week"<<std::endl;
 	  	   break;
 	  case ID_TS_RUN:
-	  	   std::cout<<"Last 24 hours"<<std::endl;
+	  	   std::cout<<"Run to Date"<<std::endl;
 	  	   break;
 	  case ID_TS_CUSTOM:
 		  std::cout<<"Custom Run Range"<<std::endl;
@@ -1778,6 +1790,25 @@ void QwGUIDatabaseSummary::PlotDSLumi(){
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
 
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
+
 	for(Int_t j=0;j<2;j++){
 		for(Int_t i=0;i<3;i++){
 			detector = dlmSummaryDets[i];
@@ -1816,6 +1847,25 @@ void QwGUIDatabaseSummary::PlotUSLumi(){
 	x_axis            = dCmbXAxis->GetSelected();
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
+
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
 
 	for(Int_t j=0;j<2;j++){
 		for(Int_t i=0;i<1;i++){
@@ -1856,6 +1906,25 @@ void QwGUIDatabaseSummary::PlotBkgd(){
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
 
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
+
 	for(Int_t j=0;j<2;j++){
 		for(Int_t i=0;i<3;i++){
 			detector = bgSummaryDets[i];
@@ -1895,6 +1964,25 @@ void QwGUIDatabaseSummary::PlotBeamPos(){
 	detector 		  = "qwk_target";
 	plot			  = "Mean";
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
+
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
 
 	for(Int_t i=0;i<5;i++){
 		property = BLSummaryVars[i];
@@ -1944,6 +2032,25 @@ void QwGUIDatabaseSummary::PlotCharge(){
 	x_axis            = dCmbXAxis->GetSelected();
 	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property          = "";
+
+	switch(dCmbTimeScale->GetSelected()){
+		  case ID_TS_24H:
+			   std::cout<<"Last 24 hours"<<std::endl;
+		       break;
+		  case ID_TS_WEEK:
+		  	   std::cout<<"Last Week"<<std::endl;
+		  	   break;
+		  case ID_TS_RUN:
+		  	   std::cout<<"Run to Date"<<std::endl;
+		  	   break;
+		  case ID_TS_CUSTOM:
+			  std::cout<<"Custom Run Range"<<std::endl;
+			  index_first       = dNumStartRun -> GetIntNumber();
+			  index_last        = dNumStopRun  -> GetIntNumber();
+		  	   break;
+		  default:
+			  break;
+		}
 
 	detector = "qwk_charge";
 
@@ -2436,118 +2543,7 @@ fill the different IVs in to the detector combo box
 *****************************************/
 
 void QwGUIDatabaseSummary::RegressionTypeInfo(){
-/*
-  Bool_t bfill_reg_iv = kFALSE;
-  TCanvas *mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->SetFillColor(0);
-  regression_ivs = NULL;
 
-  regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
-
-  TLatex T1;
-  T1.SetTextAlign(12);
-  T1.SetTextSize(0.03);
-
-  if(regression_set == "off")
-    T1.DrawLatex(0.1,0.8,"Selecting Unregressed data!");
-  if(bfill_reg_iv)
-    for (Int_t i = 0; i < N_REG_VARS_ON; i++){
-      dCmbProperty->AddEntry(RegressionVarsOn[i], i);
-      regression_ivs = RegressionVarsOn;
-    }
-  else{
-    T1.DrawLatex(0.1,0.8,"Selecting Regression that use IVs:");
-
-    if(regression_set == "on"){
-      if(bfill_reg_iv)
-	for (Int_t i = 0; i < N_REG_VARS_ON; i++){
-	  dCmbProperty->AddEntry(RegressionVarsOn[i], i);
-	  regression_ivs = RegressionVarsOn;
-	}
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_energy");
-
-    }
-    else if(regression_set == "on_5+1"){
-      if(bfill_reg_iv)
-	for (Int_t i = 0; i < N_REG_VARS_ON_5_1; i++){
-	  dCmbProperty->AddEntry(RegressionVarsOn_5_1[i], i);
-	  regression_ivs = RegressionVarsOn_5_1;
-	}
-
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_energy");
-      T1.DrawLatex(0.2,0.2,"#bullet asym_qwk_charge");
-
-    }
-    else if(regression_set == "on_set3"){
-      if(bfill_reg_iv)
-	for (Int_t i = 0; i < N_REG_VARS_ON_3; i++){
-	  dCmbProperty->AddEntry(RegressionVarsOn_3[i], i);
-	  regression_ivs = RegressionVarsOn_3;
-	}
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
-      T1.DrawLatex(0.2,0.2,"#bullet asym_qwk_charge");
-    }
-    else if(regression_set == "on_set4"){
-      if(bfill_reg_iv)
-	for (Int_t i = 0; i < N_REG_VARS_ON_4; i++){
-	  dCmbProperty->AddEntry(RegressionVarsOn_4[i], i);
-	  regression_ivs = RegressionVarsOn_4;
-	}
-      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
-      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
-      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
-      T1.DrawLatex(0.2,0.1,"#bullet asym_qwk_bcm5");
-    }
-    else if(regression_set == "on_set5"){
-      if(bfill_reg_iv)
-	for (Int_t i = 0; i < N_REG_VARS_ON_5; i++){
-	  dCmbProperty->AddEntry(RegressionVarsOn_5[i], i);
-	  regression_ivs = RegressionVarsOn_5;
-	}
-
-      T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");
-      T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");
-      T1.DrawLatex(0.2,0.4,"#bullet diff_bpm_9b_p_4Y=diff_qwk_bpm3h09bY+diff_qwk_bpm3h04Y");
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
-    }
-    else if(regression_set == "on_set6"){
-      if(bfill_reg_iv)
-	for (Int_t i = 0; i < N_REG_VARS_ON_6; i++){
-	  dCmbProperty->AddEntry(RegressionVarsOn_6[i], i);
-	  regression_ivs = RegressionVarsOn_6;
-	}
-
-      T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
-      T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");
-      T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");
-      T1.DrawLatex(0.2,0.4,"#bullet diff_bpm_9b_p_4Y=diff_qwk_bpm3h09bY+diff_qwk_bpm3h04Y");
-      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
-      T1.DrawLatex(0.2,0.3,"#bullet asym_qwk_charge");
-    }
-  }
-
-  if(bfill_reg_iv)
-    dCmbProperty->Select(0);
-
-  mc->Modified();
-  mc->Update();
-  */
 }
 
 

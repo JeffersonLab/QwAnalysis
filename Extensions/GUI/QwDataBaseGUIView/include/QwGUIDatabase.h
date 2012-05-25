@@ -35,7 +35,7 @@
  */
 //=============================================================================
 
-#define N_DETECTORS      43
+#define N_DETECTORS      51
 #define N_LUMIS          32
 #define N_BPMS           22
 #define N_BCMS           11
@@ -52,10 +52,10 @@
 #define N_BPM_READ        5
 #define N_CMB_READ        7
 #define N_TGTS           16
-#define N_GOODFOR_TYPES   19
-#define N_X_AXIS          6
-#define N_Plots          3
-#define N_REGRESSION_SCHEMES 10
+#define N_GOODFOR_TYPES  21
+#define N_X_AXIS          7
+#define N_Plots           3
+#define N_REGRESSION_SCHEMES 11
 #define N_REG_VARS_ON     5
 #define N_REG_VARS_ON_5_1 6
 #define N_REG_VARS_ON_3   6
@@ -64,6 +64,7 @@
 #define N_REG_VARS_ON_6   6
 #define N_REG_VARS_ON_7   6
 #define N_REG_VARS_ON_8   6
+#define N_REG_VARS_ON_9   7
 
 
 
@@ -190,6 +191,7 @@ using std::vector;
 #endif
 
   void HistogramDetector();
+  void CreatePullPlot();
   void PlotDetector();
   TString GetYTitle(TString measurement_type, Int_t detector);
   TString GetTitle(TString measurement_type, TString device);
@@ -244,6 +246,7 @@ using std::vector;
   static const char   *RegressionVarsOn_6[N_REG_VARS_ON_6];
   static const char   *RegressionVarsOn_7[N_REG_VARS_ON_7];
   static const char   *RegressionVarsOn_8[N_REG_VARS_ON_8];
+  static const char   *RegressionVarsOn_9[N_REG_VARS_ON_9];
 
   static const char   *RegressionSchemes[N_REGRESSION_SCHEMES];
 
@@ -313,6 +316,7 @@ using std::vector;
   void                PopulateDetectorComboBox();
   void                PopulateMeasurementComboBox();
   void                PopulatePlotComboBox();
+  void				  PopulateRegComboBox();
   void                RegressionTypeInfo();
 
   ClassDef(QwGUIDatabase,0); 

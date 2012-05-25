@@ -24,8 +24,8 @@ class MQwHistograms {
     /// Default constructor
     MQwHistograms() { }
     /// Copy constructor
-    MQwHistograms(const MQwHistograms& value)
-    : fHistograms(value.fHistograms) { }
+    MQwHistograms(const MQwHistograms& source)
+    : fHistograms(source.fHistograms) { }
     /// Virtual destructor
     virtual ~MQwHistograms() { }
 
@@ -50,6 +50,13 @@ class MQwHistograms {
     void AddHistogram(TH1* h) {
       fHistograms.push_back(TH1_ptr(h));
     }
+
+  public:
+    /// Share histogram pointers between objects
+    void ShareHistograms(const MQwHistograms* source) {
+      if (source) fHistograms = source->fHistograms;
+    }
+
 
 }; // class MQwHistograms
 

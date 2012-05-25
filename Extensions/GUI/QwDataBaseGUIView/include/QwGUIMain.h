@@ -67,7 +67,6 @@
 #include <TApplication.h>
 #include <TGClient.h>
 #include <TRandom.h>
-//#include <TGComboBox.h>
 #include "QwGUIComboBox.h"
 #include <TGNumberEntry.h>
 #include <TString.h>
@@ -78,7 +77,6 @@
 #include <TRootEmbeddedCanvas.h>
 #include <TGTextEntry.h>
 #include <TGTextEdit.h>
-/* #include <TGHorizontal3DLine.h> */
 #include <TGFileDialog.h>
 #include <RQ_OBJECT.h>
 #include <TMath.h>
@@ -86,20 +84,12 @@
 #include "KeySymbols.h"
 #include <TG3DLine.h>
 #include <TRootCanvas.h>
-/* #include <TProfile.h> */
-/* #include <TVirtualFFT.h> */
-/* #include "QwGUISubSystem.h" */
-/* #include "QwGUIDataWindow.h" */
-/* #include "RNumberEntryDialog.h" */
-/* #include "RMsgBox.h" */
-/* #include "QwGUIEventWindowSelectionDialog.h" */
-/* #include "TFrame.h" */
-/* #include "TPaveText.h" */
-/* #include "TLeaf.h" */
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
 #include "QwGUIDatabase.h"
 #include "QwGUIDatabaseSummary.h"
+#include "QwGUIDBCorrelations.h"
+
 #ifndef __CINT__
 
 #include "QwOptions.h"
@@ -121,16 +111,9 @@ class QwGUIMain : public TGMainFrame {
   TObjArray               SubSystemArray;
 
   //!Main detector sub system class
-/*   QwGUIMainDetector      *MainDetSubSystem; */
-/*   QwGUIScanner           *ScannerSubSystem; */
-/*   QwGUIBeamModulation    *BeamModulationSubSystem; */
-/*   QwGUILumiDetector      *LumiDetSubSystem; */
-/*   QwGUIInjector          *InjectorSubSystem; */
-/*   QwGUIHallCBeamline     *HallCBeamlineSubSystem; */
   QwGUIDatabase          *DatabaseSubSystem;
   QwGUIDatabaseSummary	 *DbSummarySubSystem;
-/*   QwGUITrackFinding      *TrackFindingSubSystem; */
-/*   QwGUIEventDisplay      *EventDisplaySubSystem; */
+  QwGUIDBCorrelations	 *DbCorrelatoinsSubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
 
@@ -160,7 +143,6 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                  dDatabaseOpen;
   Bool_t                  dLogFileOpen;
   Bool_t                  dRunOpen;
-/*   Bool_t                  dAllSegments; */
   Bool_t                  dAddSegments;
   Bool_t                  dEventMode;
   Bool_t                  dMainPlots;

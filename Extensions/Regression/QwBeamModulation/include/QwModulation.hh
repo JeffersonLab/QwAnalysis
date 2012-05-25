@@ -154,6 +154,7 @@ public :
   Double_t        ramp_sequence_number;
 
   Double_t        AsymmetryCorrection[fNMaxDet];
+  Double_t        AsymmetryCorrectionQ[fNMaxDet];
   Double_t        MonBranch[fNMaxMon][fBranchSize];  
   Double_t        DetBranch[fNMaxDet][fBranchSize];  
   Double_t        HMonBranch[fNMaxMon][fBranchSize];  
@@ -235,6 +236,7 @@ public :
   std::fstream input;
   std::fstream slopes;
   std::fstream diagnostic;
+  std::fstream charge_sens;  
 
   FILE *regression;
 
@@ -244,10 +246,11 @@ public :
   std::vector <TString> HMonitorList;
   std::vector <TString> YMonitorList;
 
-  std::vector <Int_t> run;
-
   std::vector <Double_t> sens;
   std::vector <Double_t> correction;
+  std::vector <Double_t> correction_charge;
+  std::vector <Double_t> ChargeSensitivity;
+  std::vector <Double_t> ChargeSensitivityError;
 
   std::vector < std::vector <Double_t> > CoilData;
   std::vector < std::vector <Double_t> > DetectorData;
@@ -268,6 +271,9 @@ public :
   Bool_t fXPinit;
   Bool_t fYPinit;
   Bool_t fSingleCoil;
+  Bool_t fCharge;
+
+  TString fChargeFile;
 
   QwModulation(TChain *tree = 0);
   ~QwModulation();
@@ -297,21 +303,22 @@ public :
   void     MatrixFill();
   void     SetFileName(TString &);
   void     ComputeAsymmetryCorrections(); 
-  void     ComputePositionMean(); 
   void     ReduceMatrix(Int_t);
   void     SetHuman(void);
-  void     LoadRunList(void);
   void     SetupMpsBranchAddress(void); 
   void     SetupHelBranchAddress(void); 
   void     PrintError(TString);
   void     Write();
   void     Clean(void);
   void     CleanFolders(void);
+  void     GetOptions(Char_t **);
 //   void     SetFlags(void);
   void     CheckFlags(void);
+  void     ReadChargeSensitivity();
 
   Bool_t   Notify();
   Bool_t   FileSearch(TString, TChain *);
+  Bool_t   IfExists(const char *);
   
 };
 

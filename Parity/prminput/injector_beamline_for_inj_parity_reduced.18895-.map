@@ -1,0 +1,71 @@
+! injector beamline map to be used with the inj_parity combined run type analysis.
+! The only difference between this and injtest_beamline.map is the disabling of variable publishing.
+! October 4th, 2011 B.Waidyawansa
+!
+ROC=31
+Bank=0x3102
+!same sample size for ADCs in a given bank
+sample_size=464
+!
+!
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+
+
+!ADC1
+    VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED
+    VQWK, 1, 1,  bpmstripline,  QWK_1I02XM,   UNROTATED
+    VQWK, 1, 2,  bpmstripline,  QWK_1I02YP,   UNROTATED
+    VQWK, 1, 3,  bpmstripline,  QWK_1I02YM,   UNROTATED
+    VQWK, 1, 4,  bpmstripline,  QWK_1I04XP,   UNROTATED
+    VQWK, 1, 5,  bpmstripline,  QWK_1I04XM,   UNROTATED
+    VQWK, 1, 6,  bpmstripline,  QWK_1I04YP,   UNROTATED
+    VQWK, 1, 7,  bpmstripline,  QWK_1I04YM,   UNROTATED
+
+
+!ADC2
+    VQWK, 2, 0,  bpmstripline,  QWK_1I06XP,   UNROTATED
+    VQWK, 2, 1,  bpmstripline,  QWK_1I06XM,   UNROTATED
+    VQWK, 2, 2,  bpmstripline,  QWK_1I06YP,   UNROTATED
+    VQWK, 2, 3,  bpmstripline,  QWK_1I06YM,   UNROTATED
+
+!ADC4
+    VQWK, 4, 4,  bpmstripline,  QWK_0L01XP
+    VQWK, 4, 5,  bpmstripline,  QWK_0L01XM
+    VQWK, 4, 6,  bpmstripline,  QWK_0L01YP
+    VQWK, 4, 7,  bpmstripline,  QWK_0L01YM
+
+!ADC6
+    VQWK, 6, 0,  bpmstripline,  QWK_0L04XP
+    VQWK, 6, 1,  bpmstripline,  QWK_0L04XM
+    VQWK, 6, 2,  bpmstripline,  QWK_0L04YP
+    VQWK, 6, 3,  bpmstripline,  QWK_0L04YM
+    VQWK, 6, 4,  bpmstripline,  QWK_0L05XP
+    VQWK, 6, 5,  bpmstripline,  QWK_0L05XM
+    VQWK, 6, 6,  bpmstripline,  QWK_0L05YP
+    VQWK, 6, 7,  bpmstripline,  QWK_0L05YM
+
+!ADC7
+    VQWK, 7, 0,  bpmstripline,  QWK_0L06XP
+    VQWK, 7, 1,  bpmstripline,  QWK_0L06XM
+    VQWK, 7, 2,  bpmstripline,  QWK_0L06YP
+    VQWK, 7, 3,  bpmstripline,  QWK_0L06YM
+
+!ADC8
+    VQWK, 8, 4,  bpmstripline,  QWK_0L09XP
+    VQWK, 8, 5,  bpmstripline,  QWK_0L09XM
+    VQWK, 8, 6,  bpmstripline,  QWK_0L09YP
+    VQWK, 8, 7,  bpmstripline,  QWK_0L09YM
+
+!ADC11
+!  The missing VQWK does not fill in zeroes, so by removing the 10th module
+!  we need to shift the 11th module to be the 10th.
+!  This happened on 16may2012.
+    VQWK, 10, 0,  bpmstripline,  QWK_0R06XP
+    VQWK, 10, 1,  bpmstripline,  QWK_0R06XM
+    VQWK, 10, 2,  bpmstripline,  QWK_0R06YP
+    VQWK, 10, 3,  bpmstripline,  QWK_0R06YM
+    VQWK, 10, 4,  bcm,  QWK_BCM0L02
+    VQWK, 10, 5,  bcm,  QWK_Batery6
+    VQWK, 10, 6,  bcm,  QWK_Batery7
+    VQWK, 10, 7,   bcm,  PhaseMonitor

@@ -24,7 +24,7 @@ BMOD_FILE_STEM="bmod_tree_"
 DIAGNOSTIC_STEM="_diagnostic"
 SLOPES_STEM="slopes_"
 HOST=`hostname`
-
+DIAGNOSTIC_OUT_STEM="diagnostic_"
 
 # ------------------------------------------------------------------- #
 #                                                                     #
@@ -50,9 +50,10 @@ then
 fi
 
 ROOTFILE=${QW_ROOTFILES}/${BMOD_FILE_STEM}${RUN_NUMBER}.root
-REGRESSION=${REG_STEM}${RUN_NUMBER}
+REGRESSION=${REG_STEM}${RUN_NUMBER}.dat
 BMOD_OUT=${BMOD_FILE_STEM}${RUN_NUMBER}.root${DIAGNOSTIC_STEM}
-SLOPES=${SLOPES_STEM}${RUN_NUMBER}
+SLOPES=${SLOPES_STEM}${RUN_NUMBER}.dat
+DIAGNOSTIC_OUT=${DIAGNOSTIC_OUT_STEM}${RUN_NUMBER}.dat
 
 echo "found :: $ROOTFILE"
 
@@ -76,11 +77,12 @@ if [[ -n "$PERL5LIB" ]]; then
 else
     export PERL5LIB=${scriptPath}
 fi
-echo ${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}/regression.dat ${SLOPES}/slopes.dat
-
-${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}/regression.dat ${SLOPES}/slopes.dat
+echo ${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
+${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
 
 # echo "mv -v ${REGRESSION}/ ${ROOTFILE} ${SLOPES}/ ${FINAL_PATH}/"
-chown -R cdaq:c-qweak ${REGRESSION}/ ${SLOPES}/ ${BMOD_OUT}/ $ROOTFILE 
-mv -v ${REGRESSION}/ ${SLOPES}/ ${BMOD_OUT}/ ${FINAL_PATH}/ 
+
+chown -R cdaq:c-qweak ${REGRESSION} ${SLOPES} ${BMOD_OUT} $ROOTFILE ${DIAGNOSTIC_OUT} 
+mv -v ${REGRESSION} ${SLOPES} ${BMOD_OUT} ${DIAGNOSTIC_OUT} ${FINAL_PATH}/ 
 mv -v $ROOTFILE /volatile/hallc/qweak/QwAnalysis/run2/rootfiles
+

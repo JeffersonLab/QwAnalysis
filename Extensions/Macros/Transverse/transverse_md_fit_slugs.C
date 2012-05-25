@@ -147,17 +147,20 @@ int main(Int_t argc,Char_t* argv[])
   std::cout<<"1. Liquid Hydrogen"<<std::endl;
   std::cout<<"2. 4% DS Al "<<std::endl;
   std::cout<<"3. 1.6% DS Carbon "<<std::endl;
-
   std::cin>>opt;
+
   std::cout<<"Enter data type:"<<std::endl;
   std::cout<<"1. Longitudinal"<<std::endl;
   std::cout<<"2. Vertical Transverse "<<std::endl;
   std::cout<<"3. Horizontal Transverse "<<std::endl;
   std::cin>>datopt;
+
   std::cout<<"Enter reaction type:"<<std::endl;
   std::cout<<"1. elastic"<<std::endl;
   std::cout<<"2. N->Delta "<<std::endl;
+  std::cout<<"3. DIS "<<std::endl;
   std::cin>>ropt;
+
   if(ropt==2){
     std::cout<<"Enter QTOR current:"<<std::endl;
     std::cout<<"1.6000 A "<<std::endl;
@@ -210,10 +213,18 @@ int main(Int_t argc,Char_t* argv[])
   if(ropt == 1){
     good_for = "(md_data_view.good_for_id = '3' or md_data_view.good_for_id = '1,"+good+"')";
     interaction = "elastic";
+    qtor_current=" (slow_controls_settings.qtor_current>8800 && slow_controls_settings.qtor_current<9000) ";
+    qtor_stem = "8901";
   }
   else if(ropt == 2){
     good_for = "(md_data_view.good_for_id = '"+good+",18')";
     interaction = "n-to-delta"; 
+  }
+  else if(ropt == 3){
+    good_for = "(md_data_view.good_for_id = '1,3,21')";
+    qtor_current=" (slow_controls_settings.qtor_current>8990 && slow_controls_settings.qtor_current<9010) ";
+    qtor_stem = "9000";
+    interaction = "dis"; 
   }
   else{
     std::cout<<"Unknown interaction type!"<<std::endl;
@@ -232,14 +243,6 @@ int main(Int_t argc,Char_t* argv[])
   else if(qtor_opt == 3){
     qtor_current=" (slow_controls_settings.qtor_current>7200 && slow_controls_settings.qtor_current<7400) ";
     qtor_stem = "7300";
-  }
-  else if(qtor_opt == 4){
-    qtor_current=" (slow_controls_settings.qtor_current>8800 && slow_controls_settings.qtor_current<9000) ";
-    qtor_stem = "8901";
-  }
-  else{
-    std::cout<<"Unknown QTOR current "<<std::endl;
-    exit(1);
   }
   
 
@@ -326,7 +329,8 @@ int main(Int_t argc,Char_t* argv[])
 
   //plot MD asymmetries
   TString title1;
-  if(datopt==2) title1= Form("%s (%s): Regressed averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2",targ.Data(),polar.Data());
+  if(datopt==1) title1= Form("%s (%s): Regressed averages of Main detector asymmetries. FIT = p0*cos(phi) - p2*sin(phi) + p3",targ.Data(),polar.Data());
+  else if(datopt==2) title1= Form("%s (%s): Regressed averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2",targ.Data(),polar.Data());
   else
     title1= Form("%s (%s): Regressed averages of Main detector asymmetries. FIT = p0*sin(phi + p1) + p2",targ.Data(),polar.Data());
 
@@ -479,11 +483,14 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   TPad* pad = (TPad*)(gPad->GetMother());
  
   // cos fit in
-  TF1 *cosfit_in;
-  if(datopt==2) cosfit_in = new TF1("cosfit_in","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
-  else cosfit_in = new TF1("cosfit_in","[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+  TF1 *fit_in;
+  if(datopt==1) {
+    fit_in = new TF1("fit_in","[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]",1,8);
+  }
+  else if(datopt==2) fit_in = new TF1("fit_in","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+  else fit_in = new TF1("fit_in","[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
 
-  cosfit_in->SetParameter(0,0);
+  fit_in->SetParameter(0,0);
   //cosfit_in->SetParLimits(99999,0,0);
   //cosfit_in->SetParameter(1,0);
   //cosfit_in->SetParLimits(1, -1, 179);
@@ -526,8 +533,8 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   grp_in ->SetMarkerSize(0.6);
   grp_in ->SetMarkerStyle(21);
   grp_in ->SetMarkerColor(kBlue);
-  grp_in->Fit("cosfit_in","B");
-  TF1* fit1 = grp_in->GetFunction("cosfit_in");
+  grp_in->Fit("fit_in","B");
+  TF1* fit1 = grp_in->GetFunction("fit_in");
   fit1->DrawCopy("same");
   fit1->SetLineColor(kBlue);
 
@@ -537,11 +544,13 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   grp_out ->SetMarkerStyle(21);
   grp_out ->SetMarkerColor(kRed);
 
-  TF1 *cosfit_out;
-  if(datopt==2) 
-    cosfit_out = new TF1("cosfit_out","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+  TF1 *fit_out;
+  if(datopt==1) 
+    fit_out = new TF1("fit_out","[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]",1,8);
+  else if(datopt==2) 
+    fit_out = new TF1("fit_out","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
   else
-    cosfit_out = new TF1("cosfit_out","[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
+    fit_out = new TF1("fit_out","[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
 
   /*Initialize this fit with the results from the previous fit*/
   //  cosfit_out->SetParameter(0,-1*(fit1->GetParameter(0)));
@@ -550,8 +559,8 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   //cosfit_out->SetParameter(1, fit1->GetParameter(1));
   //cosfit_out->SetParameter(2, -(fit1->GetParameter(2)));
 
-  grp_out->Fit("cosfit_out","B");
-  TF1* fit2 = grp_out->GetFunction("cosfit_out");
+  grp_out->Fit("fit_out","B");
+  TF1* fit2 = grp_out->GetFunction("fit_out");
   fit2->DrawCopy("same");
   fit2->SetLineColor(kRed);
 
@@ -607,7 +616,9 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   
   // Difference over the in and out half wave plate values
   TString title;
-  if(datopt==2) 
+  if(datopt==1) 
+    title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*cos(phi) -p1*sin(phi) +  p2";
+  else if(datopt==2) 
     title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*cos(phi + p1) + p2";
   else
     targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*sin(phi + p1) + p2";
@@ -637,9 +648,9 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   grp_diff ->SetMarkerSize(0.6);
   grp_diff ->SetMarkerStyle(21);
   grp_diff ->SetMarkerColor(kBlack-2);
-  grp_diff->Fit("cosfit_in","B");
+  grp_diff->Fit("fit_in","B");
  
-  TF1* fit4 = grp_diff->GetFunction("cosfit_in");
+  TF1* fit4 = grp_diff->GetFunction("fit_in");
   fit4->DrawCopy("same");
   fit4->SetLineColor(kMagenta+1);
 

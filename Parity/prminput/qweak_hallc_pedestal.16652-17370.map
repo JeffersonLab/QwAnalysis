@@ -1,28 +1,30 @@
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 
-! Filename : qweak_hallc_pedestal.9590-9694.map 
+! Filename : qweak_hallc_pedestal.11838-.map 
 !
 ! ** HallC BPM pedestals (per sample) obtained using Run 11956
 !
-! ** HallC BCM1/2 pedestals optimized for 145-160 uA Production Running
-!    Pedestals for BCM1/2 optimized to remove nonlinearities at 150 uA: 
-!               https://qweak.jlab.org/elog/Analysis+%26+Simulation/316
-!    No effort has been made to refit gain values for optimized pedestals
-!    21-May-2011 K.E. Myers 
+! ** HallC BCM pedestals and their gains obtained using Run 8370
+!//  8370-8394        BCM calibration RUN 8370 (*)
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101220200033.html
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221120541.html
+!//  8395-8396        BCM gain setting 3
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221042257.html
+!//                   only 8395, 8396 is junk
+!//
+!//
+!//  8397-            BCM gain setting 2 
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221061819.html
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062342.html
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html  
 !
-!  For BCM5/6         https://hallcweb.jlab.org/hclog/1101_archive/110120122054.html
-!    8966 -
-!         
-!   Thursday, January 20 13:12:51 EST 2011, jhlee
+!   BCM5/6            Wednesday, May  4 14:46:26 EDT 2011
+!                     https://hallcweb.jlab.org/hclog/1105_archive/110504104024.html 
 !
-!  For BCM1/2/5/6   https://hallcweb.jlab.org/hclog/1101_archive/110125222318.html
-!  		    Wednesday, January 26 09:00:19 EST 2011, jhlee
-!                   Ramesh confirmed the results is the better than run 8966,
-!                   thus, I simply use run 9723 
-!                   Wednesday, January 26 18:33:21 EST 2011, jhlee
-!  For BCM5/6       https://hallcweb.jlab.org/hclog/1102_archive/110201135618.html 
-!                   Wednesday, February  2 08:52:09 EST 2011, jhlee
-
+!   BCM1/2/5/6/7/8    Saturday, Nov 26 15:50:00 EDT 2011 bcm calibration using run 13844, 0-180 uA.
+!                     https://hallcweb.jlab.org/hclog/1111_archive/111126153445.html
+! Hall A bcm:ha_bcm   Mon Mar 05 13:28:44 EST 2012 Hclog: 257105  (rakitha - rakithab@jlab.org)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -118,15 +120,27 @@
   qwk_bpm3h09bXM   ,	3844.96 , 1.0
   qwk_bpm3h09bYP   ,	5128.03 , 1.0
   qwk_bpm3h09bYM   ,	4205.27 , 1.0
-  qwk_bcm1         , 905.939   , 0.00418347
-  qwk_bcm2         , 420.338  , 0.00448045
-  qwk_bcm5    	    ,7157.63,       0.00277382
-  qwk_bcm6    	    ,6314.41,       0.00462897
+  qwk_bcm1,          -197.599785,            +0.004342
+  qwk_bcm2,          -557.273210,            +0.004688
+  qwk_bcm5        ,-427.799,      0.00213436
+  qwk_bcm6        ,-409.644,      0.00222752
+  qwk_bcm7        ,-553.898,      0.00214255
+  qwk_bcm8        ,-494.289,      0.00207661
+  qwk_bcmGL1      ,-225.1,        0.002138529
+  qwk_bcmGL2      ,-485.1,        0.00521286
   qwk_invert_tstable   , -541.714 	, 1.0
-qwk_linephase, 0, 1.0
+  sca_habcm, 5335.6, 0.00000121050
+  qwk_linephase, 0, 1.0
+  qwk_6v_battery    	0.0   , 0.00007629
+
+!  Raster values should put it in units of volts
+  qwk_raster_x    	0.0   , 0.00007629
+  qwk_raster_y   	0.0   , 0.00007629
+  qwk_raster_sumxy	0.0   , 0.00007629
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   sca_4mhz         ,    0.0,     0.000000250
   sca_31MHz        ,    0.0,     0.0000000320641282565
-  sca_31mhzreturn        ,    0.0,     0.000000050
+  sca_20MHz        ,    0.0,     0.000000050

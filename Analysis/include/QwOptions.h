@@ -162,7 +162,8 @@ class QwOptions {
     /// \brief Add an option to a named block or create new block
     po::options_description_easy_init
     AddOptions(const std::string& blockname = "Specialized options") {
-      fParsed = false;
+      // Clear the parsed options
+      Clear();
       // Note: Would like to solve this with find_if(b,e,bind()) but no access to block name
       // Search for the block name if it exists
       for (size_t i = 0; i < fOptionBlockName.size(); i++)
@@ -209,6 +210,7 @@ class QwOptions {
 
     /// \brief List the configuration files
     void ListConfigFiles() {
+      QwMessage << "Config files:" << QwLog::endl;
       for (size_t i = 0; i < fConfigFiles.size(); i++)
         QwMessage << fConfigFiles.at(i) << QwLog::endl;
     };
@@ -216,7 +218,6 @@ class QwOptions {
 
     /// \brief Parse all sources of options
     void Parse() {
-      CombineOptions();
       ParseCommandLine();
       ParseEnvironment();
       ParseConfigFile();
@@ -273,7 +274,7 @@ class QwOptions {
   private:
 
     /// \brief Combine the various option description in one
-    void CombineOptions();
+    po::options_description* CombineOptions();
 
     /// \brief Parse the command line arguments
     void ParseCommandLine();
@@ -283,6 +284,12 @@ class QwOptions {
 
     /// \brief Parse the environment variables
     void ParseEnvironment();
+
+    /// \brief Clear the parsed variables
+    void Clear() {
+      //fVariablesMap.clear();
+      fParsed = false;
+    };
 
     /// \brief Configuration file
     std::vector<std::string> fConfigFiles;
@@ -303,10 +310,7 @@ class QwOptions {
     std::vector<po::options_description*> fOptionBlock;
     std::vector<std::string> fOptionBlockName;
 
-    // Options descriptions grouped by parser
-    static po::options_description fCommandLineOptions;
-    static po::options_description fEnvironmentOptions;
-    static po::options_description fConfigFileOptions;
+    // Options descriptions
     po::variables_map fVariablesMap;
 
     bool fParsed;

@@ -57,9 +57,9 @@ class VQwTrackingElement: public TObject {
     };
 
     /// \brief Get the detector info pointer
-    QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
+    const QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
     /// \brief Set the detector info pointer
-    void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
+    void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
 
     /// \brief Get the region
     EQwRegionID GetRegion() const { return fRegion; };
@@ -86,8 +86,11 @@ class VQwTrackingElement: public TObject {
     /// \brief Set the element number
     void SetElement(int element) { fElement = element; };
 
-    int GetOctantNumber() const {return fOctant;};
-    void SetOctantNumber(int octant) {fOctant=octant;};
+    /// \brief Get the octant number
+    int GetOctantNumber() const { return fOctant; };
+    /// \brief Set the octant number
+    void SetOctantNumber(int octant) { fOctant = octant; };
+
     /// \brief Copy the geometry info from another object
     void SetGeometryTo(const VQwTrackingElement& e) {
       fRegion = e.fRegion;
@@ -98,12 +101,12 @@ class VQwTrackingElement: public TObject {
       fOctant = e.fOctant;
     };
 
-  private:
+  protected:
 
     // This will stay empty until we have completely moved away from Det to the
     // QwDetectorInfo class for geometry propagation.  Then it will contain the
     // detector info of the first (not necessarily only) detector location.
-    QwDetectorInfo* pDetectorInfo; //!	///< Detector info pointer
+    const QwDetectorInfo* pDetectorInfo; //!	///< Detector info pointer
 
     // There is a lot of overlap with QwDetectorID here, but as long as there
     // are still int in QwDetectorInfo we should use the standard types here.

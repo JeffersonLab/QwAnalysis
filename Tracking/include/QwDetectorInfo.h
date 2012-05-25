@@ -65,12 +65,12 @@ class QwDetectorInfo: public TObject {
       SetZPosition(z);
     };
 
-    double GetPlaneOffset(){
+    double GetPlaneOffset() const {
       return fPlaneOffset;
     }
     
-    void SetPlaneOffset (double x){
-      fPlaneOffset=x;
+    void SetPlaneOffset (double x) {
+      fPlaneOffset = x;
     }
 
     // Get/set active flag

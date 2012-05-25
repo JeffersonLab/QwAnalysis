@@ -31,6 +31,7 @@
 [QwBeamMod]
  name = BeamMod
  map  = qweak_modulation.map
+ param = qweak_modulation_pedestal.map
  eventcut = qweak_bmod_eventcuts.in
 
 [QwIntegratedRaster]
