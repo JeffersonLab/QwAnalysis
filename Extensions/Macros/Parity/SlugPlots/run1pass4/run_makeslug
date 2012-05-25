@@ -59,6 +59,8 @@ argument6="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run1
 argument7="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass4_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set7.root\",\"set7\")"
 argument8="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass4_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set8.root\",\"set8\")"
 argument9="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass4_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set9.root\",\"set9\")"
+argument10="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass4_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set9.root\",\"set10\")"
+
  
 
 
@@ -74,6 +76,7 @@ root -n -q -b -l ${argument6} >${DST_Dbug}/slug${slug_num}_lrb_set6.out
 root -n -q -b -l ${argument7} >${DST_Dbug}/slug${slug_num}_lrb_set7.out
 root -n -q -b -l ${argument8} >${DST_Dbug}/slug${slug_num}_lrb_set8.out
 root -n -q -b -l ${argument9} >${DST_Dbug}/slug${slug_num}_lrb_set9.out
+root -n -q -b -l ${argument10} >${DST_Dbug}/slug${slug_num}_lrb_set10.out
 
 
 

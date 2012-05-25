@@ -1,0 +1,8 @@
+#  prompt summary
+#  /home/pking/Qweak/data_tracker/autoanalyzer/prompt_summary.sh
+#  BMod regression analysis
+$QWANALYSIS/Extensions/Regression/QwBeamModulation/bmod_r1p4.bash
+#  Sluglet production
+#  $QWANALYSIS/Extensions/Macros/Parity/SlugPlots/ppMakeSluglet_vol
+#  BMod optics
+# $QWANALYSIS/Extensions/Macros/Parity/beamModulation/bmod_optics
