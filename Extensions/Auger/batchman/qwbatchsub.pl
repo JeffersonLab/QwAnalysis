@@ -173,10 +173,19 @@ if ($opt_h){
 
 if (defined($opt_E) && $opt_E ne ""){
     $executable = $opt_E;
-    if (-e "$ENV{QW_BIN}/$opt_E") {
-	$executable = "$ENV{QW_BIN}/$opt_E";
-    } elsif (-e "$opt_E") {
+    if ($opt_E =~ "^/" && -e "$opt_E") {
+	#  Check for absolute path
 	$executable = $opt_E;
+    } elsif (-e "$ENV{QW_BIN}/$opt_E") {
+	#  Check for executable name within QW_BIN
+	$executable = "$ENV{QW_BIN}/$opt_E";
+    } elsif (-e "$original_cwd/$opt_E") {
+	#  Check for relative path 
+	chdir dirname $opt_E;
+	$executable = cwd();
+	$executable .= "/";
+	$executable .= basename $opt_E;
+	chdir $original_cwd;
     } else {
 	die("Neither $ENV{QW_BIN}/$opt_E or $executable are executable files.\n",
 	    "Exiting");
@@ -194,11 +203,13 @@ if ($OutputPath =~ /none/i || $OutputPath =~ /null/i){
 	die("Unknown protocol in OutputPath: $OutputPath.  Exiting");
     } elsif ($protocol eq "file" ){
 	#  TODO:  Make sure the path is on the work disk...
+	if (!$SkipCheckingPaths && ! -d $path){
+	    die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
+	}
+    } elsif ($protocol eq "mss" ){
+	#  Don't bother checking the path, since MSS will create it if
+	#  it can.
     }
-    if (!$SkipCheckingPaths && ! -d $path){
-	die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
-    }
-    $OutputPath = $path;
 } else {
     die("Unrecognized option for OutputPath: $OutputPath.  Exiting");
 }
@@ -683,9 +694,9 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
 	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n";
     if ("$CacheOptionList" ne ""){
-	$CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
+        $CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
     } else {
-	$CacheOptionList = "-S \$WORKDIR";
+        $CacheOptionList = "-S \$WORKDIR";
     }
     print JOBFILE
 	"  setenv QW_DATA      \$WORKDIR\n",
@@ -727,11 +738,20 @@ sub create_xml_jobfile($$$@) {
 	}
     }
     if ($OutputPath ne "null"){
-	print JOBFILE
-	    "  echo \"------\"\n",
-	    "  echo \"Start copying output files to at `date`\"\n";
-	print JOBFILE
-	    "  cp -v \$QW_ROOTFILES/$RootfileStem*.root $OutputPath/.\n";
+	my ($protocol, $path) = split /:/, $OutputPath, 2;
+	if ($protocol eq "mss"){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start copying output files to at `date`\"\n";
+	    print JOBFILE
+		"  /site/bin/jput \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
+	} elsif ($protocol eq "file" ){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start copying output files to at `date`\"\n";
+	    print JOBFILE
+		"  cp -v \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
+	}
     }
 
 
