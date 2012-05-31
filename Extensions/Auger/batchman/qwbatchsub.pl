@@ -262,7 +262,7 @@ if (! defined($SegmentRange) || $SegmentRange eq ""){
 
 ###  Some variables to hold disk size information.
 ###  Units are MB.
-$SpacePerInputfile = 10000  if (!defined($SpacePerInputfile) 
+$SpacePerInputfile = 11300  if (!defined($SpacePerInputfile) 
 				|| $SpacePerInputfile+0<=0);
 $ReserveSpace      = 3000   if (!defined($ReserveSpace) 
 				|| $ReserveSpace+0<=0);
