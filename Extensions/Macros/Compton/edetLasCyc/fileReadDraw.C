@@ -5,15 +5,12 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t asymDiffPlot=1,expAsymPlot=0,yieldPlot=1,asymPlot=0;
+  Bool_t asymDiffPlot=0,expAsymPlot=0,yieldPlot=1,asymPlot=0,asymComponents=1;
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
   Bool_t debug=0;//,debug1=0;
-  
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  TGraphErrors *grDiffPWTL1_2[nPlanes];
   ifstream in1, in2;
   TLegend *leg;
-  //TCanvas *cAsymComponent = new TCanvas("cAsymDiff",Form("Nr and Dr of Asym for run:%d",runnum),30,30,1000,600);
   TLine *myline = new TLine(0,0,70,0);
   ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents;//, theoAsym;
   ofstream newTheoFile;
@@ -27,19 +24,15 @@ Int_t fileReadDraw(Int_t runnum)
   //gROOT->ForceStyle();
 
   leg = new TLegend(0.1,0.7,0.4,0.9);
+  std::vector<std::vector <Double_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
   
-  Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
-  Float_t stripNum[nPlanes][nStrips];//,stripNum2[nPlanes][nStrips];
-  Float_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
-  Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
-  Float_t stripAsymNr[nPlanes][nStrips];//,stripAsymNrEr[nStrips];
-  Float_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
+  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
+  Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
+  Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
  
   for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t s=startStrip; s<endStrip; s++) {
       zero[p][s]=0;
-      stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
-      stripAsymNr[p][s]=0.0;//,stripAsymNrEr[p][s]=0.0;
       accumB1L0[p][s]=0.0,accumB1L0Er[p][s]=0.0;
     }
   }
@@ -52,15 +45,44 @@ Int_t fileReadDraw(Int_t runnum)
   for(Int_t p =startPlane; p <endPlane; p++) {
     expAsymComponents.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if(expAsymComponents.is_open()) {
+      if(p<=(Int_t)stripNum.size()) {
+	stripNum.resize(p+1),stripAsymDr.resize(p+1),stripAsymDrEr.resize(p+1),stripAsymNr.resize(p+1);
+      }
       cout<<"Reading the yield and difference from PWTL1 for plane "<<p+1<<endl;
-      if(debug) cout<<";stripNum\tstripAsymDr\tstripAsymDrEr\tstripAsymNr"<<endl;
-      for(Int_t s =startStrip ; s < endStrip; s++) {
-  	if (maskedStrips(p,s)) continue;
-  	expAsymComponents>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
+      if(debug) cout<<";\tstripNum\tstripAsymDr\tstripAsymDrEr\tstripAsymNr\n"<<endl;
+      while(expAsymComponents.good()) {
+	stripNum[p].push_back(0.0),stripAsymDr[p].push_back(0.0),stripAsymDrEr[p].push_back(0.0),stripAsymNr[p].push_back(0.0);
+	Int_t s=stripNum[p].size() - 1;
+	expAsymComponents>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
+	if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\t%f\n",p+1,s+1,stripNum[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
       }
       expAsymComponents.close();
     }
     else cout<<"did not find "<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+  }
+
+  if(asymComponents) {
+    TCanvas *cAsymComponent = new TCanvas("cAsymDiff",Form("Nr. of Asym for run:%d",runnum),30,30,1000,1000);
+    TGraphErrors *grAsymNr[nPlanes];
+    cAsymComponent->Divide(startPlane+1,endPlane);
+    for (Int_t p =startPlane; p <endPlane; p++) { 
+      cAsymComponent->GetPad(p+1)->SetGridx(1);
+      cAsymComponent->cd(p+1);
+      Int_t newSize=stripNum[p].size();
+      if(debug) cout<<"for plane "<<p+1<<" the no.of active strips is "<<newSize<<endl;
+      grAsymNr[p]= new TGraphErrors(newSize,stripNum[p].data(),stripAsymNr[p].data(),zero[p],stripAsymDrEr[p].data());
+      grAsymNr[p]->SetMarkerStyle(kOpenCircle);
+      grAsymNr[p]->SetMarkerSize(1);
+      grAsymNr[p]->SetLineColor(kGreen);
+      grAsymNr[p]->SetMarkerColor(kGreen);
+      grAsymNr[p]->SetFillColor(kGreen);
+      grAsymNr[p]->GetXaxis()->SetLimits(1,65); 
+      grAsymNr[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+      grAsymNr[p]->Draw("A P");
+    }
+    gPad->Update();
+    cAsymComponent->Update();
+    cAsymComponent->SaveAs(Form("%s/%s/%sasymNrAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if (yieldPlot) {
@@ -110,7 +132,7 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if(asymDiffPlot) {
-    Float_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
+    Double_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
     //Int_t dummyStrip[nPlanes];
     for(Int_t p =startPlane; p <endPlane; p++) {
       expAsymPWTL1.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
@@ -132,27 +154,29 @@ Int_t fileReadDraw(Int_t runnum)
       else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
     }
 
-    TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),1,1,1000,1000);
-    cDiff->Divide(startPlane+1,endPlane);
-    for (Int_t p =startPlane; p <endPlane; p++) { 
-      cDiff->cd(p+1);
-      cDiff->GetPad(p+1)->SetGridx(1);
-      grDiffPWTL1_2[p] = new TGraphErrors(endStrip,stripNum[p],asymDiff[p],zero[p],stripAsymEr[p]);//!the error needs correction
-      grDiffPWTL1_2[p]->SetMarkerStyle(kOpenSquare);
-      grDiffPWTL1_2[p]->SetMarkerSize(0.6);
-      grDiffPWTL1_2[p]->SetMarkerColor(kRed+2);
-      grDiffPWTL1_2[p]->SetLineColor(kRed+2);
-      grDiffPWTL1_2[p]->GetXaxis()->SetTitle("strip number");
-      grDiffPWTL1_2[p]->GetYaxis()->SetTitle("expAsym difference (PWTL1-PWTL2)");
-      grDiffPWTL1_2[p]->SetMaximum(0.005);
-      grDiffPWTL1_2[p]->SetMinimum(-0.005);
-      grDiffPWTL1_2[p]->GetXaxis()->SetLimits(1,65); 
-      grDiffPWTL1_2[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-      grDiffPWTL1_2[p]->SetTitle("Diff in exp-asymmetry due to different trigger width");
-      grDiffPWTL1_2[p]->Draw("AP");
-    }
-    cDiff->Update();
-    cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePrefix.Data()));
+//     TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),1,1,1000,1000);
+//     TGraphErrors *grDiffPWTL1_2[nPlanes];
+//     cDiff->Divide(startPlane+1,endPlane);
+//     for (Int_t p =startPlane; p <endPlane; p++) { 
+//       cDiff->cd(p+1);
+//       cDiff->GetPad(p+1)->SetGridx(1);
+//       //!!following line needs to be fixed in wake of the modified variable definition
+//       //grDiffPWTL1_2[p] = new TGraphErrors(endStrip,stripNum[p],asymDiff[p],zero[p],stripAsymEr[p]);//!the error needs correction
+//       grDiffPWTL1_2[p]->SetMarkerStyle(kOpenSquare);
+//       grDiffPWTL1_2[p]->SetMarkerSize(0.6);
+//       grDiffPWTL1_2[p]->SetMarkerColor(kRed+2);
+//       grDiffPWTL1_2[p]->SetLineColor(kRed+2);
+//       grDiffPWTL1_2[p]->GetXaxis()->SetTitle("strip number");
+//       grDiffPWTL1_2[p]->GetYaxis()->SetTitle("expAsym difference (PWTL1-PWTL2)");
+//       grDiffPWTL1_2[p]->SetMaximum(0.005);
+//       grDiffPWTL1_2[p]->SetMinimum(-0.005);
+//       grDiffPWTL1_2[p]->GetXaxis()->SetLimits(1,65); 
+//       grDiffPWTL1_2[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+//       grDiffPWTL1_2[p]->SetTitle("Diff in exp-asymmetry due to different trigger width");
+//       grDiffPWTL1_2[p]->Draw("AP");
+//     }
+//     cDiff->Update();
+//     cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if (expAsymPlot) {

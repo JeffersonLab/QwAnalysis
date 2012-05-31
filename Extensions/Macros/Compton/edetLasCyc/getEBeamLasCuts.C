@@ -11,13 +11,14 @@
 //*** array of values for starting and ending points of the laser off   ***//
 //*** periods. Even indices 0,2,4... are beginning points and odd       ***//
 //*** indices 1,3,5... are endpoints. Laser off entries are those that  ***//
-//*** have a value of 1 or less.The function returns the number of      ***//
+//*** have a value of 2000 or less.The function returns the number of      ***//
 //*** entries in the array. It also records electron beam off periods   ***//
 //*** in a similar fashion. It requires the Mps_Tree to be used.        ***//
 ///////////////////////////////////////////////////////////////////////////// 
 
 Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
+  cout<<"*** starting into getEBeamLasCuts.C ***"<<endl;
   TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug = 1;
   chain->ResetBranchAddresses();
@@ -39,12 +40,14 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   cout<<"laserMax = "<<laserMax<<endl;
 
   Int_t nLasCycBeamTrips;
-  Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
+  Int_t n = 0, m = 0, o = 0, p = 0, q = 0, lasOnCounter = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
 
-  if(runnum==bkgdRun) noiseRun=kTRUE; ///this run has been set by user to be bkgd run
-  else if(beamMax <= 0.1) noiseRun=kTRUE; ///beam is less than 100 nA
+  if ((runnum==bkgdRun)||(beamMax<=0.1)) {
+    noiseRun=kTRUE; 
+    cout<<"\n***Either THIS RUN is set to be bkgd run or beam is less than 100 nA\n"<<endl;
+  }
   else noiseRun=kFALSE; ///otherwise it is a regular run  
 
   ofstream outfileLas(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
@@ -86,21 +89,26 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     comptQ = lCharge->GetValue();
 
     ////find laser off periods and record start and finish entries
-    if(laser<=laserFracLo*laserMax) n++;///laser is off for n consecutive entries
-    else if (laser>=laserFracHi*laserMax) n=0; ///laser On begins (or continues to be on)
-    else continue; ///if the laser is higher than laserFracLo but lower than laserFracHi, ignore these entries
+    if(laser<=laserFracLo*laserMax) {
+      n++;///laser is off for n consecutive entries
+      lasOnCounter = 0;
+    } else if (laser>=laserFracHi*laserMax) {
+      lasOnCounter++;//an independent counter for how long laser has been on
+      n=0; ///laser On begins (or continues to be on)
+    } else continue; ///if the laser is higher than laserFracLo but lower than laserFracHi, ignore these entries
     ///!it is particularly important to ignore these (lesser than high limit, higher than low limit) laser entries 
     ///...because, we do not have a way of normalizing with the laser power as of now.
 
     if (n==minEntries) { ///laser has been off for minEntries/960 seconds continuously, hence consider it a valid laseroff
-      cutL.push_back(index-minEntries);///demarcate the beginning of laserOff period
+      cutL.push_back(index-minEntries+1);///demarcate the beginning of laserOff period
       //printf("cutL[%d]=%d\n",m,cutL.back());///print begin of laser off entry
-      flipperIsUp = kTRUE; ///laserOff state begins
+      flipperIsUp = kTRUE; ///laserOff state has begun
       m++; ///cutLas array's even number index (corresponding to a laserOff)
     }
     if(flipperIsUp){ ///if the laser is known to be off check ...
-      if(n == 0 || index == nEntries) { ///if laser On has just begun OR the end of run has been reached
-        cutL.push_back(index); ///record this as the end of laserOn cycle
+      //if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the (almost)end of run has been reached
+      if((lasOnCounter == minEntries) || (index == nEntries-1)) { ///if laser On has just begun OR the (almost)end of run has been reached
+        cutL.push_back(index-minEntries+1); ///record this as the end of laserOff cycle
 	//printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
         m++; ///cutLas array's odd number index (corresponding to a laserOn)
         flipperIsUp = kFALSE; ///laserOff state ends
@@ -111,8 +119,10 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       rampIsDone = (bcm> (beamFracHi*beamMax));
       isABeamTrip = (bcm<= (beamFracLo*beamMax));
     } else {
-      rampIsDone = (bcm> (beamFracLo*beamMax));
-      isABeamTrip = (bcm<= (beamFracLo*beamMax));
+//       rampIsDone = (bcm> (beamFracLo*beamMax));
+//       isABeamTrip = (bcm<= (beamFracLo*beamMax));
+      rampIsDone = (bcm> 1.0); //!temporarily only for the low current run
+      isABeamTrip = (bcm<= 1.0);//!temporarily only for the low current run
     }
 
     if(isABeamTrip && prevTripDone) {
@@ -122,7 +132,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       if(q>=100) { ///beam is found off for over 100 consecutive entries (~ 100ms) 
         q = 0;
         o++; ///cutE array's even number index (corresponding to a beamTrip)
-	if (index >= (PREV_N_ENTRIES+100)) 
+	if (index >= (PREV_N_ENTRIES+100))
 	  cutE.push_back(index-(PREV_N_ENTRIES + 100)); ///register the entry# ~ 5s before this instance as a beam-trip
         else cutE.push_back(index);
         prevTripDone = kFALSE; ///register that the trip is not recovered yet
@@ -163,11 +173,10 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 }
 
 /* Comments**************************
- * !The output file instead of going to the run's edet-subdirectory should be in the run 
- * ..directory and should be used as a generic file used by both compton componets
  * the entry numbers in cutLas and cutEB demarcate the periods when the the laser
- *..and beam were ON and Good. This is unlike the previous version where the 
- *..demarcation was for beam Off and laser-off.
+ *..and beam were OFF.
+ * Because the laser off period is being used for background evaluation and subtration
+ * ..it is necessary to ensure that the laser off is indeed pure laser off
  * we throw away about 2 seconds of data before the beamTrip is found
  * the laser on state doesn't have a check for how long it stays ON?
  ************************************/

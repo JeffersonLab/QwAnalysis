@@ -11,15 +11,19 @@
 
 void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
 {
-  if(first100k) return;
   cout<<"starting into edetLasCyc.C**************"<<endl;
-  //TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-
-  ofstream crossSection;    
-
+  gROOT->LoadMacro(" maskedStrips.C+g");
+  gROOT->LoadMacro(" getEBeamLasCuts.C+g");
+  gROOT->LoadMacro(" evaluateAsym.C+g");
+  gROOT->LoadMacro(" expAsym.C+g");
+  gROOT->LoadMacro(" asymFit.C+g");
+  gROOT->LoadMacro(" fileReadDraw.C+g");
+  gROOT->LoadMacro(" edetLasCyc.C+g");
+  if(first100k) return;
   expAsym(runnum);
 
-  asymFit(runnum);
-
-  fileReadDraw(runnum);  
+  if(!noiseRun) {
+    asymFit(runnum);
+    fileReadDraw(runnum);  
+  }
 }
