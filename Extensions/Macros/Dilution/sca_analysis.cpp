@@ -17,11 +17,12 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
   gROOT->SetStyle("Plain");
 
   //Set bcm calibration (good as of Oct 2011)
-//  const TString bcm1 = "((sca_bcm1*1e-2)-250.34)/45.75";  //run1
-//  const TString bcm2 = "((sca_bcm2*1e-2)-250.4)/44.92";  //run1
-  const TString bcm1 = "((sca_bcm1*1e-2)-249.7)/43.46"; //run2
-  const TString bcm2 = "((sca_bcm2*1e-2)-249.9)/41.95"; //run2
-  const TString bcm = bcm1;
+  const TString bcm1 = "((sca_bcm1*1e-2)-250.34)/45.75";  //run1
+  const TString bcm2 = "((sca_bcm2*1e-2)-250.4)/44.92";  //run1
+//  const TString bcm1 = "((sca_bcm1*1e-2)-249.7)/43.46"; //run2
+//  const TString bcm2 = "((sca_bcm2*1e-2)-249.9)/41.95"; //run2
+//  const TString bcm = bcm1;
+  const TString bcm = bcm2;
   Int_t bcmoffset = 100*bcm_minimum;
 // const TString bcm = "sca_bcm2>0"; 
 
@@ -115,19 +116,19 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
 
   diagnostics->cd(2);
   gPad->SetLogy();
-  event_tree->Draw(Form("%s>>h1", bcm1.Data()),Form("%s>0 %s", bcm1.Data(), cuts.Data()));
+  event_tree->Draw(Form("%s>>h1", bcm1.Data()),Form("%s>0 && CodaEventNumber>%i && CodaEventNumber<%i %s", bcm1.Data(), lowcut, highcut, cuts.Data()));
   h1->Fit("gaus");
   gPad->Modified();
 
   diagnostics->cd(3);
   gPad->SetLogy();
-  event_tree->Draw(Form("%s>>h2", bcm2.Data()),Form("%s>0 %s ", bcm2.Data(), cuts.Data()));
+  event_tree->Draw(Form("%s>>h2", bcm2.Data()),Form("%s>0 && CodaEventNumber>%i && CodaEventNumber<%i  %s", bcm2.Data(), lowcut, highcut, cuts.Data()));
   h2->Fit("gaus");
   gPad->Modified();
 
   diagnostics->cd(4);
   gPad->SetLogy();
-  event_tree->Draw(Form("%s>>h3", bcm1.Data()),Form("%s>%i/100 %s", bcm1.Data(), bcmoffset, cuts.Data()));
+  event_tree->Draw(Form("%s>>h3", bcm1.Data()),Form("%s>%i/100 && CodaEventNumber>%i && CodaEventNumber<%i %s", bcm1.Data(), bcmoffset, lowcut, highcut, cuts.Data()));
   h3->Fit("gaus");
   gPad->Modified();
 
