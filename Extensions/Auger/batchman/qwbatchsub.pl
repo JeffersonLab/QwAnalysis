@@ -273,7 +273,7 @@ if (! defined($SegmentRange) || $SegmentRange eq ""){
 
 ###  Some variables to hold disk size information.
 ###  Units are MB.
-$SpacePerInputfile = 10000  if (!defined($SpacePerInputfile) 
+$SpacePerInputfile = 11300  if (!defined($SpacePerInputfile) 
 				|| $SpacePerInputfile+0<=0);
 $ReserveSpace      = 3000   if (!defined($ReserveSpace) 
 				|| $ReserveSpace+0<=0);
@@ -667,12 +667,12 @@ sub create_xml_jobfile($$$@) {
     open(JOBFILE, ">$command_file") or die "$command_file: $!";
     print JOBFILE
 	"<Request>\n",
-	" <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"true\"/>\n",
+	" <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"false\"/>\n",
 	" <Project name=\"qweak\"/>\n",
 	" <Track name=\"$BatchQueue\"/>\n",
 	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
     my $memory=2048;
-    my $timelimit = 210*($#infiles+1);  # Allow 3.5 hrs per input file
+    my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
 	" <OS name=\"linux64\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",

@@ -45,7 +45,8 @@ $script_dir = cwd();
 chdir $original_cwd;
 # print STDOUT "In $script_dir\n";
 
-$scratch_directory  = $ENV{QWSCRATCH};
+$scratch_directory  = "/group/qweak/QwAnalysis/common/QwScratch";
+#$ENV{QWSCRATCH};
 crashout("The QWSCRATCH directory, $scratch_directory, does not exist.  Exiting")
     if (! -d $scratch_directory);
 
@@ -63,7 +64,8 @@ if ($#ARGV > -1){
     exit;
 }
 if ($opt_h){
-    displayusage();
+    print STDERR "pass4postprocessor.pl --runs <runnumbers> \n";
+  ##   displayusage();
     exit;
 }
 
@@ -183,8 +185,10 @@ sub create_xml_jobfile() {
 	"]]></Command>\n";
     
     print JOBFILE " <Job>\n";
-    print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/postproc_$runnumber.out\"/>\n";
-    print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/postproc_$runnumber.err\"/>\n";
+#    print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/postproc_$runnumber.out\"/>\n";
+#    print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/postproc_$runnumber.err\"/>\n";
+    print JOBFILE "  <Stdout dest=\"${scratch_directory}/work/postproc_$runnumber.out\"/>\n";
+    print JOBFILE "  <Stderr dest=\"${scratch_directory}/work/postproc_$runnumber.err\"/>\n";
     print JOBFILE " </Job>\n";
     print JOBFILE "</Request>\n";
     close JOBFILE;
