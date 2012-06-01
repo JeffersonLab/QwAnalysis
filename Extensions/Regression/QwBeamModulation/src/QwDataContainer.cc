@@ -22,7 +22,7 @@ QwDataContainer::QwDataContainer():fDBase(false), fRunRange(false), fNumberMonit
   fCorrection.resize(5);
   fAsymmetry.resize(5);
   fPositionDiff.resize(5);
-  fRMS.resize(5);
+  frms.resize(5);
 
   // There needs to be a conversion factor between the number read in for the ascii db and the qweakdb
 
@@ -113,6 +113,39 @@ void QwDataContainer::Close()
 void QwDataContainer::Print()
 {
   dbase.Print();
+}
+
+Double_t QwDataContainer::GetSlope()
+{
+  return(slope);
+}
+
+Double_t QwDataContainer::GetError()
+{
+  return(error);
+}
+
+Double_t QwDataContainer::GetChiNDF()
+{
+  return(chisquare_ndf);
+}
+
+void QwDataContainer::SetSlope(Double_t val)
+{
+  slope = val;
+  return;
+}
+
+void QwDataContainer::SetError(Double_t val)
+{
+  error = val;
+  return;
+}
+
+void QwDataContainer::SetChiNDF(Double_t val)
+{
+  chisquare_ndf = val;
+  return;
 }
 
 Double_t QwDataContainer::GetMaximum(TVectorD array)
@@ -225,7 +258,12 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("corrected", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
     fNumberMonitor = 1;
-    fMysqlQuery = Form("select md_data_view.run_number,value,error,n from analysis,md_data_view, slow_controls_settings, runlet as runlet0 where md_data_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_data_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_data_view.run_quality_id=1 and md_data_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' and md_data_view.run_number > %i && md_data_view.run_number < %i", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_data_view.run_number,value,error,n from analysis,md_data_view, slow_controls_settings, runlet as runlet0 where md_data_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_data_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_data_view.run_quality_id=1 and md_data_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' and md_data_view.run_number > %i && md_data_view.run_number < %i and error != 0", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+  }
+  if(type.CompareTo("uncorrected", TString::kExact) == 0){
+    dbase.fNumberColumns = 1;
+    fNumberMonitor = 1;
+    fMysqlQuery = Form("select run_number, value, error, n, segment_number from md_data_view, slow_controls_settings where md_data_view.runlet_id = slow_controls_settings.runlet_id and good_for_id = '1,3' and run_quality_id = '1' and beam_mode = 'nbm' and slope_calculation = 'off' and slope_correction ='off' and detector = '%s' and slow_helicity_plate = '%s' and target_position ='HYDROGEN-CELL'  and subblock = 0 and measurement_type ='a' and run_number > %i and run_number < %i and error != 0", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("runs", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
@@ -267,19 +305,19 @@ void QwDataContainer::CalculateAverage()
 
   Double_t wavg = 0;
   Double_t var = 0;
-
-  fAvCorrAsym.ResizeTo(1);
-  fAvRawAsym.ResizeTo(1);
-  fAvCorrError.ResizeTo(1);
-  fAvRawError.ResizeTo(1);
-
-  for(Int_t i = 0; i < fCorrAsym.GetNrows(); i++){
-    wavg += (fCorrAsym[i])/TMath::Power((fCorrError[i]),2);
-    var += TMath::Power(1/(fCorrError[i]),2);
+  
+  fAvAsym.ResizeTo(1);
+  fAvError.ResizeTo(1);
+  
+  for(Int_t i = 0; i < fAsym.GetNrows(); i++){
+    
+    wavg += (fAsym[i])/TMath::Power((fError[i]),2);
+    var += TMath::Power(1/(fError[i]),2);
   }
-  fAvCorrAsym[0] = wavg/var;
-  fAvCorrError[0] = TMath::Sqrt(1/var);
-
+  
+  fAvAsym[0] = wavg/var;
+  fAvError[0] = TMath::Sqrt(1/var);
+  
   wavg = 0;
   var = 0;
 
@@ -319,16 +357,75 @@ void QwDataContainer::FillDataVector(TString type)
     for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
 
       fRunNumber[i] = dbase.result[i][0];
-      fCorrAsym[i] = dbase.result[i][1];
-      fCorrError[i] = dbase.result[i][2];
+      fAsym[i] = dbase.result[i][1];
+      fError[i] =dbase.result[i][2];
       fNumberEntries[i] = dbase.result[i][3];
-      fCorrRMS[i] = fCorrError[i]*TMath::Sqrt(fNumberEntries[i]);
-
+      fRMS[i] = fError[i]*TMath::Sqrt(fNumberEntries[i]);
     }
   }
-  if(type.CompareTo("position", TString::kExact) == 0){
+
+  if(type.CompareTo("uncorrected", TString::kExact) == 0){
+    std::vector <Double_t> data;
+    std::vector <Double_t> error;
+
+    Double_t wavg = 0;
+    Double_t var = 0;
+
+    Int_t nentries = 0;
+
+    Bool_t finished = false;
+
     for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
 
+      ResizeDataElements(index + 1);	
+
+      fRunNumber[index] = dbase.result[i][0];
+      fNumberEntries[index] = nentries;
+      data.push_back(1e6*dbase.result[i][1]);
+      error.push_back(1e6*dbase.result[i][2]);
+      nentries += (Int_t)dbase.result[i][3];
+
+      //
+      // Peek ahead to see what is coming: If starting a new run --> compute average
+      //                                   If run is ending     -- > compute average
+      //
+      // Yeah I know this is may not the most clever way to do this but it works damn it!
+      //
+
+      if((i + 1) == (Int_t)dbase.result.num_rows()) finished = true;
+      else if((Int_t)dbase.result[i + 1][4] == 0 ) finished = true;
+
+      if(finished){
+	  
+	// ************************************************ //
+	// Calculate Error Weighted average for run
+	for(Int_t j = 0; j < (Int_t)data.size(); j++){
+	  if(error[j] != 0){	  
+	    wavg += (data[j])/TMath::Power((error[j]),2);
+	    var += TMath::Power(1/(error[j]),2);
+	  }
+	}
+	fAsym[index] = wavg/var;
+	fError[index] = TMath::Sqrt(1/var);
+	fRMS[index] = TMath::Sqrt(1/var)*TMath::Sqrt(nentries);
+
+	wavg = 0;
+	var = 0;
+	
+	// ************************************************ //
+	data.clear();
+	error.clear();
+	nentries = 0;
+	index++;
+	finished = false;
+      }
+    }
+    std::cout << "Finished filling!" << std::endl;
+    
+    if(type.CompareTo("position", TString::kExact) == 0){
+      for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
+	
+      }
     }
   }
 }
@@ -408,7 +505,7 @@ void QwDataContainer::GetDBAsymmetry(TString detector, TString ihwp, TString opt
   query = qtemp.Data();
 
   ResizeDataElements( QueryDB(query));
-  FillDataVector("corrected");
+  FillDataVector(option.Data());
   //  PlotSensitivities();
 }
 
@@ -442,8 +539,8 @@ void QwDataContainer::ReadDataFile(TString filename)
  	 >> fMonitor    >> fSensitivity[var_e][i]    >> fCorrection[var_e][i]
  	 >> fMonitor    >> fSensitivity[var_y][i]    >> fCorrection[var_y][i]
  	 >> fMonitor    >> fSensitivity[var_yp][i]   >> fCorrection[var_yp][i]
- 	 >> fAsymmetry[raw][i] >> fRMS[raw][i]   >> fTotalCorr[i]
- 	 >> temp        >> fAsymmetry[corr][i] >> fRMS[corr][i]; 
+ 	 >> fAsymmetry[raw][i] >> frms[raw][i]   >> fTotalCorr[i]
+ 	 >> temp        >> fAsymmetry[corr][i] >> frms[corr][i]; 
 
     fZero.Zero();
     i++;
@@ -482,7 +579,7 @@ void QwDataContainer::ResizeDataElements(Int_t size)
 
   fNumberLines = size;
   fRunNumber.ResizeTo(size);
-  std::cout << "Size " << size << std::endl;
+//   std::cout << "Size " << size << std::endl;
 
   for(Int_t i = 0; i < 5; i++){
     fSensitivity[i].ResizeTo(size);
@@ -490,14 +587,11 @@ void QwDataContainer::ResizeDataElements(Int_t size)
   }
   for(Int_t i = 0; i < 2; i++){
     fAsymmetry[i].ResizeTo(size);
-    fRMS[i].ResizeTo(size);
+    frms[i].ResizeTo(size);
   }
-  fRawAsym.ResizeTo(size);
-  fCorrAsym.ResizeTo(size);
-  fRawError.ResizeTo(size);
-  fCorrError.ResizeTo(size);
-  fRawRMS.ResizeTo(size);
-  fCorrRMS.ResizeTo(size);
+  fAsym.ResizeTo(size);
+  fError.ResizeTo(size);
+  fRMS.ResizeTo(size);
 
   fNumberEntries.ResizeTo(size);
   fTotalCorr.ResizeTo(size);
@@ -811,7 +905,7 @@ void QwDataContainer::PlotDetectorRMS()
   gPad->SetGridx();
   gPad->SetGridy();
 
-  TGraphErrors *raw_rms = new TGraphErrors(fRunNumber, fRMS[raw], fZero, fZero);
+  TGraphErrors *raw_rms = new TGraphErrors(fRunNumber, frms[raw], fZero, fZero);
 
   raw_rms->SetMarkerColor(4);
   raw_rms->SetMarkerSize(0.8);
@@ -824,7 +918,7 @@ void QwDataContainer::PlotDetectorRMS()
   Double_t max = GetMaximum(raw_rms->GetY());
   Double_t min = GetMinimum(raw_rms->GetY());
 
-  TGraphErrors *corr_rms   = new TGraphErrors(fRunNumber, fRMS[corr], fZero, fZero);
+  TGraphErrors *corr_rms   = new TGraphErrors(fRunNumber, frms[corr], fZero, fZero);
 
   corr_rms->SetMarkerColor(5);
   corr_rms->SetMarkerSize(0.8);

@@ -317,7 +317,10 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 //     if(yield_qwk_mdallbars_Device_Error_Code != 0){
 //       code = 1;
 //     }
-    
+
+    if( (UInt_t)ErrorFlag != 0)
+      code = 1;
+
     if(yield_qwk_charge_hw_sum < 40){
       code = 1;
     }

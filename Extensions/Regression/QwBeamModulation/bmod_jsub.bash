@@ -23,9 +23,14 @@ cd $QWANALYSIS
 # so that things work properly.                                       #
 # ------------------------------------------------------------------- #
 
+<<<<<<< .mine
+FINAL_PATH=/work/hallc/qweak/QwAnalysis/run1/bmod_regression/
+export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run2/rootfiles
+=======
 #FINAL_PATH=/work/hallc/qweak/QwAnalysis/run2/bmod_regression/
 FINAL_PATH=/volatile/hallc/qweak/jhoskins/run2/bmod_regression
 export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run2/rootfiles
+>>>>>>> .r4446
 export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
 cd $QWANALYSIS/Extensions/Regression/QwBeamModulation
 

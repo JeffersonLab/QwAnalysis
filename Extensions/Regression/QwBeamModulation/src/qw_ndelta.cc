@@ -9,30 +9,34 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   TApplication theApp("App", &argc, argv);
 
-  QwDataContainer data_in;
-  QwDataContainer data_out;
+  QwDataContainer raw_data_in;
+  QwDataContainer raw_data_out;
+  QwDataContainer corr_data_in;
+  QwDataContainer corr_data_out;
 
   QwPlotHelper sensx;
   QwPlotHelper asym;  
 
-  data_in.GetOptions(argv);
-  data_out.GetOptions(argv);
+  raw_data_in.GetOptions(argv);
+  raw_data_out.GetOptions(argv);
+  corr_data_in.GetOptions(argv);
+  corr_data_out.GetOptions(argv);
 
   std::cout << "Using database to build plots." << std::endl;
 
-//   data_in.GetDBSensitivities("qwk_mdallbars", "in", "sens");
-//   data_out.GetDBSensitivities("qwk_mdallbars", "out", "sens");  
-  data_in.GetDBAsymmetry("qwk_mdallbars", "in", "corrected");
-  data_out.GetDBAsymmetry("qwk_mdallbars", "out", "corrected");  
+  raw_data_in.GetDBAsymmetry("qwk_mdallbars", "in", "uncorrected");
+  raw_data_out.GetDBAsymmetry("qwk_mdallbars", "out", "uncorrected");  
+
+//   corr_data_in.SetRunRange(16000, 17000);
+//   corr_data_out.SetRunRange(16000, 17000);
+
+  corr_data_in.GetDBAsymmetry("qwk_mdallbars", "in", "corrected");
+  corr_data_out.GetDBAsymmetry("qwk_mdallbars", "out", "corrected");  
 
   std::cout << "Finished loading from database." << std::endl;
-//   sensx.SetPlotTitle("x sensitivities", "Run Number", "Sensitivity (ppm/mm)");
-//   sensx.InOutErrorPlotSens(data_in, data_out, QwDataContainer::var_x, "fit");
-
-  asym.SetPlotTitle("asymmetry", "Run Number", "Asymmetry (ppm)");
-  asym.InOutErrorPlotAsym(data_in, data_out, "fit");
-
-//    asym.InOutErrorPlotAvAsym(data_in, data_out, "");
+//   asym.SetPlotTitle("asymmetry", "Run Number", "Asymmetry (ppm)");
+//   asym.InOutErrorPlotAsym(corr_data_in, corr_data_out, "fit");
+  asym.InOutErrorPlotAvAsym(raw_data_in, raw_data_out, corr_data_in, corr_data_out, "fit");
 
   std::cout << "Done with analysis." << std::endl;
   

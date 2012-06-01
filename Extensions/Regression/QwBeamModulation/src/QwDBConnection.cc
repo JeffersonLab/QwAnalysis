@@ -12,7 +12,8 @@ QwDBConnection::QwDBConnection():Connection(false)
   fPortNumber = 0;
   fUser ="qweak";
   fDBaseServer ="qweakdb.jlab.org";
-  fDatabase = "qw_run2_pass1";
+//   fDatabase = "qw_run2_pass1";
+  fDatabase = "qw_run1_pass4b";
   fPass = "QweakQweak";
 
 
