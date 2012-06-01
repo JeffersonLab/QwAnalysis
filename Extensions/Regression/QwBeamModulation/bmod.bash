@@ -15,8 +15,8 @@ export QWSCRATCH=/home/cdaq/qweak/QwScratch
 export QWANALYSIS=/home/cdaq/qweak/QwAnalysis/devel
 . $QWANALYSIS/SetupFiles/SET_ME_UP.bash # >& /dev/null
 
-export QW_ROOTFILES=/home/cdaq/qweak/QwScratch/rootfiles
-
+#export QW_ROOTFILES=/home/cdaq/qweak/QwScratch/rootfiles
+export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run2/rootfiles/
 
 FINAL_PATH=/work/hallc/qweak/QwAnalysis/run2/bmod_regression
 REG_STEM="regression_"
@@ -71,14 +71,14 @@ then
     exit
 fi
 
-echo Upload data to DB
-if [[ -n "$PERL5LIB" ]]; then
-    export PERL5LIB=${scriptPath}:${PERL5LIB}
-else
-    export PERL5LIB=${scriptPath}
-fi
-echo ${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
-${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
+#echo Upload data to DB
+#if [[ -n "$PERL5LIB" ]]; then
+#    export PERL5LIB=${scriptPath}:${PERL5LIB}
+#else
+#    export PERL5LIB=${scriptPath}
+#fi
+#echo ${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
+#${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
 
 # echo "mv -v ${REGRESSION}/ ${ROOTFILE} ${SLOPES}/ ${FINAL_PATH}/"
 

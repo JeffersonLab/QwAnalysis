@@ -377,25 +377,6 @@ Int_t QwDiagnostic::ReadConfig(QwDiagnostic *meteor)
   return 0;
 }
 
-void QwDiagnostic::LoadRunList()
-{
-  Int_t temp;
-
-  input.open("config/run_list.txt", fstream::in);
-  if(!input.is_open()){
-    std::cout << "Could not open config/run_list.txt -- exiting" << std::endl;
-    CleanFolders();
-    exit(1);
-  }
-
-  while(input.good()){
-    input >> temp;
-    run.push_back(temp);
-  }
-  input.close();
-
-}
-
 Bool_t QwDiagnostic::FileSearch(TString filename, TChain *chain)
 {
 

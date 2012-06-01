@@ -10,6 +10,8 @@ DIAGNOSTIC_STEM="_diagnostic"
 SLOPES_STEM="slopes_"
 HOST=`hostname`
 
+umask 002
+
 echo "hostname is set to $HOST"
 
 if [ -n "$1" ]
@@ -40,14 +42,23 @@ fi
 if [ "$QW_ROOTFILES" ]; then
     echo "Rootfiles directory set to: $QW_ROOTFILES"
 elif [ "${HOST:0:5}" -eq "cdaql" ]; then
-    QW_ROOTFILES=/home/cdaq/qweak/QwScratch/rootfiles
+    QW_ROOTFILES=/work/hallc/qweak/QwAnalysis/run1/rootfiles/
     echo "\$QW_ROOTFILES set to $QW_ROOTFILES"
 else
     echo "You Must set the roofiles directory.  Exiting."
     exit
 fi
 
-./qwbeammod ${RUN_NUMBER}
+./qwcharge ${RUN_NUMBER}
+
+if [ $? -ne 0 ]; then
+    echo "There was and error in the completion of qwcharge"
+    exit
+fi
+
+mv -v charge_sensitivity_${RUN_NUMBER}.dat config/
+
+./qwbeammod ${RUN_NUMBER} --q
 
 if [ $? -ne 0 ]; then
     echo "There was and error in the completion of qwbeammod"
