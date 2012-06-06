@@ -18,7 +18,7 @@ void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
   gROOT->LoadMacro(" expAsym.C+g");
   gROOT->LoadMacro(" asymFit.C+g");
   gROOT->LoadMacro(" fileReadDraw.C+g");
-  gROOT->LoadMacro(" edetLasCyc.C+g");
+  //gROOT->LoadMacro(" edetLasCyc.C+g");
   if(first100k) return;
   expAsym(runnum);
 

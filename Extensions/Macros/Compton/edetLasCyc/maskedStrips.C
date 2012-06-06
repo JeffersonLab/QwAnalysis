@@ -4,21 +4,33 @@
 
 #include "comptonRunConstants.h"
 
-// Bool_t maskedStrips(Int_t plane,Int_t strip)
-// {
-//   if(plane==0&&(strip==1||strip==5||strip==19)) return kTRUE;//skip masked strip of plane1
-//   else if(plane==2&&(strip==23||strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
-//   else if(plane==2&&(strip==24||strip==33||strip==62)) return kTRUE;//temp...skip these strips of plane3
-//   else if(plane==1&&(strip==1||strip==11||strip==19)) return kTRUE;//skip masked strip of plane2
-//   else return kFALSE;
-// }
+///True for MCM calibration runs
 Bool_t maskedStrips(Int_t plane,Int_t strip)
 {
-  if(plane==0&&strip==1) return kTRUE;//skip masked strip of plane1
-  else if(plane==2&&(strip==38||strip==52)) return kTRUE;//skip masked strip of plane3
+  if(plane==0&&(strip==1)) return kTRUE;//skip masked strip of plane1
   else if(plane==1&&(strip==1||strip==11)) return kTRUE;//skip masked strip of plane2
+  else if(plane==2&&(strip==38||strip==52)) return kTRUE;//skip masked strip of plane3
+  //else if(plane==2&&(strip==24||strip==33||strip==62)) return kTRUE;//temp...skip these strips of plane3
   else return kFALSE;
 }
+
+///This was correct for the runs taken towards the end of run-2(eg. MCM calibration period)
+// Bool_t maskedStrips(Int_t plane,Int_t strip)
+// {
+//   if(plane==0&&strip==1) return kTRUE;//skip masked strip of plane1
+//   else if(plane==2&&(strip==38||strip==52)) return kTRUE;//skip masked strip of plane3
+//   else if(plane==1&&(strip==1||strip==11)) return kTRUE;//skip masked strip of plane2
+//   else return kFALSE;
+// }
+
+///This was true for early run2 (eg.24519)
+// Bool_t maskedStrips(Int_t plane,Int_t strip)
+// { ///planes as well as strip in C++ counting
+//   if(plane==0&& (strip==1 || strip==5 || strip==19)) return kTRUE;//skip masked strip of plane1
+//   else if(plane==1&& (strip==11)) return kTRUE;//skip masked strip of plane2
+//   else if(plane==2&& (strip==23 || strip==38 || strip==52 || strip==63)) return kTRUE;//skip masked strip of plane3
+//   else return kFALSE;
+// }
 
 
 // Int_t identifyCedgeforPlane(Int_t p, Float_t activeStrip[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips]) //!notice that the activeStrip variable expects to get a human count number
