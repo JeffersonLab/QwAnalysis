@@ -1,5 +1,6 @@
 ! The exclamation mark (!) is for comment in this file.
 !
+! 06-05-2012: Synced with current version used in the compton DAQ (jc2)
 ! 06-17-2011: added Qtor related 4 variables:  qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
 ! 07-08-2010: added "String" in more variables by identifying them using
 ! caget epicsVarName (e.g. caget QW_T_miA) in a machine where caget command can be issued.
@@ -346,6 +347,7 @@ IGL1I00DAC5	     	slow_controls_data    	   	!Horizontal Wien Electrode Voltage
 psub_aa_pos	     	slow_controls_data    	   	!Hall A Laser Attenuator (Hall A Laser Attenuator Setting) --
 IGL1I00OD16_16	     	polarized_source   	   	String !IHWP: Insertible Beam Half-wave plate Set(off=out)
 IGL1I00DI24_24M	    	polarized_source    	   	String	!Beam Half-wave plate Read(off=out) () --
+IGL1I00DIOFLRD	    	polarized_source    	   	String	!Secondary IHWP Set(off=out)
 psub_pl_pos	     	slow_controls_data    	   	!Rotating waveplate (Rotatable Half Wave Plate Setting) --
 IGLdac3:ao_7	     	slow_controls_data    	   	!IA Cell Setpoint  Hall A  				
 IGL1I00AI20	     	slow_controls_data    	   	!IA Cell Setpoint  Hall B
@@ -677,6 +679,9 @@ COLPOS7			slow_controls_data    	   	!Collimator Block 7
 !MQE3M02.S		slow_controls_data    	   	!Current Set (A)
 !The "result" indicates the result obtained from caget command.
 
+! Tungsten plug
+qw:tungstenplug         slow_controls_data              ! Tungsten plug (C)
+
 ! Added Qtor related 4 variables: qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
 
 qw:qt_mps_i_ground	slow_controls_data
@@ -725,65 +730,86 @@ qw:exitwindow           slow_controls_data               ! Exit window temp (C)
 rad45_p1                slow_controls_data               ! Gamma radiation monitor in Qweak detector shieldhouse
 rad45_p2                slow_controls_data               ! Neutron radiation monitor in Qweak detector shieldhouse
 
+! Beam energy measurements
+HALLC:p                 slow_controls_data               ! Hall C Tiefenback energy
+HALLA:p                 slow_controls_data               ! Hall A Tiefenback energy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! Compton Specific Variables:
+
 ! High-voltage voltage and current readback
-v_mon16_40		slow_controls_data
-v_mon16_41		slow_controls_data
-v_mon16_42		slow_controls_data
-v_mon16_43		slow_controls_data
-v_mon16_44		slow_controls_data
-v_mon16_45		slow_controls_data
-v_mon16_46		slow_controls_data
-v_mon16_47		slow_controls_data
-v_mon16_62		slow_controls_data
-v_mon16_63		slow_controls_data
-v_mon16_40		slow_controls_data
-i_mon16_41		slow_controls_data
-i_mon16_42		slow_controls_data
-i_mon16_43		slow_controls_data
-i_mon16_44		slow_controls_data
-i_mon16_45		slow_controls_data
-i_mon16_46		slow_controls_data
-i_mon16_47		slow_controls_data
-i_mon16_62		slow_controls_data
-i_mon16_63		slow_controls_data
+v_mon16_40              slow_controls_data    ! not used
+v_mon16_41              slow_controls_data    ! not used
+v_mon16_42              slow_controls_data    ! not used
+v_mon16_43              slow_controls_data    ! not used
+v_mon16_44              slow_controls_data    ! not used
+v_mon16_45              slow_controls_data    ! laser table scintillator
+v_mon16_46              slow_controls_data    ! laser table scintillator
+v_mon16_47              slow_controls_data    ! not used
+v_mon16_62              slow_controls_data    ! spare PhDet HV on same card
+v_mon16_63              slow_controls_data    ! Photon detector
+i_mon16_40              slow_controls_data    ! not used
+i_mon16_41              slow_controls_data    ! not used
+i_mon16_42              slow_controls_data    ! not used
+i_mon16_43              slow_controls_data    ! not used
+i_mon16_44              slow_controls_data    ! not used
+i_mon16_45              slow_controls_data    ! laser table scintillator
+i_mon16_46              slow_controls_data    ! laser table scintillator
+i_mon16_47              slow_controls_data    ! not used
+i_mon16_62              slow_controls_data    ! spare PhDet HV on same card
+i_mon16_63              slow_controls_data    ! Photon detector
 
 ! Vacuum in Compton region
-VCG3C18Tr		slow_controls_data
-VCG3C19Tr		slow_controls_data
-VCG3C20Tr		slow_controls_data
-VCG3P01Tr		slow_controls_data
-VCG3P02Tr		slow_controls_data
+VCG3C18Tr               slow_controls_data    ! Cold cathode gauge at 3C18
+VCG3C19Tr               slow_controls_data    ! Cold cathode gauge at 3C19
+VCG3C20Tr               slow_controls_data    ! Cold cathode gauge at 3C20
+VCG3P01Tr               slow_controls_data    ! Cold cathode gauge 1
+VCG3P02Tr               slow_controls_data    ! Cold cathode gauge on laser table
 
-! Magnet (?)
-MCP3P01			slow_controls_data
-MCP3P01M		slow_controls_data
+! Chicane Dipole Magnets
+MCP3P01                 slow_controls_data String    ! Dipole string set current
+MCP3P01M                slow_controls_data String    ! Dipole string measured current
 
 ! QDAC
-C1068_QDAC01		slow_controls_data
-C1068_QDAC07		slow_controls_data
-C1068_QDAC08		slow_controls_data
-C1068_QDAC09		slow_controls_data
-C1068_QDAC10		slow_controls_data
-C1068_QDAC11		slow_controls_data
-C1068_QDAC12		slow_controls_data
-C1068_QDAC13		slow_controls_data
-C1068_QDAC14		slow_controls_data
+C1068_QDAC01            slow_controls_data    ! Pockels Cell POS HV
+C1068_QDAC07            slow_controls_data    ! IA Cell Setpoint Hall A DAC 07 A0
+C1068_QDAC08            slow_controls_data    ! IA Cell Setpoint Hall A DAC 08 A1
+C1068_QDAC09            slow_controls_data    ! IA Cell Setpoint Hall A DAC 09 A2
+C1068_QDAC10            slow_controls_data    ! IA Cell Setpoint Hall A DAC 10 A3
+C1068_QDAC11            slow_controls_data    ! IA Cell Setpoint Hall A DAC 11 A0
+C1068_QDAC12            slow_controls_data    ! IA Cell Setpoint Hall A DAC 12 A1
+C1068_QDAC13            slow_controls_data    ! IA Cell Setpoint Hall A DAC 13 A2
+C1068_QDAC14            slow_controls_data    ! IA Cell Setpoint Hall A DAC 14 A3
 
 ! QPD
-cComptQPDL1H		slow_controls_data
-cComptQPDL1Pow		slow_controls_data
-cComptQPDL1V		slow_controls_data
-cComptQPDL2H		slow_controls_data
-cComptQPDL2Pow		slow_controls_data
-cComptQPDL2V		slow_controls_data
-cComptQPDL3H		slow_controls_data
-cComptQPDL3Pow		slow_controls_data
-cComptQPDL3V		slow_controls_data
-cComptQPDL4H		slow_controls_data
-cComptQPDL4Pow		slow_controls_data
-cComptQPDL4V		slow_controls_data
+cComptQPDL1H            slow_controls_data    ! QPD1 horizontal
+cComptQPDL1Pow          slow_controls_data    ! QPD1 power
+cComptQPDL1V            slow_controls_data    ! QPD1 vertical
+cComptQPDL2H            slow_controls_data    ! QPD2 horizontal
+cComptQPDL2Pow          slow_controls_data    ! QPD2 power
+cComptQPDL2V            slow_controls_data    ! QPD2 vertical
+cComptQPDL3H            slow_controls_data    ! QPD3 horizontal
+cComptQPDL3Pow          slow_controls_data    ! QPD3 power
+cComptQPDL3V            slow_controls_data    ! QPD3 vertical
+cComptQPDL4H            slow_controls_data    ! QPD4 horizontal
+cComptQPDL4Pow          slow_controls_data    ! QPD4 power
+cComptQPDL4V            slow_controls_data    ! QPD4 vertical
 
 ! Photon detector and background rate
-cComptPhotonRateNorm	slow_controls_data
-cComptScintRateNorm	slow_controls_data
+hcrate11                slow_controls_data   ! Upstream laser table scintillator
+hcrate14                slow_controls_data   ! Downstream laser table scintillator
+hcrate15                slow_controls_data   ! Photon Detector Rates
+cComptPhotonRateNorm    slow_controls_data   ! hcrate14 normalized to current
+cComptScintRateNorm     slow_controls_data   ! hcrate15 normalized to current
 
+! Electron Detector
+HCCEDPOS                slow_controls_data   ! Electron detector position
+hcrate8                 slow_controls_data   ! Electron detector encoder junk...
+cComptEdetPos           slow_controls_data   ! Electron detector position
+cComptEdetRatio         slow_controls_data   ! Electron detector position
+cComptEdetRef           slow_controls_data   ! Electron detector position
+
+! Laser
+hcrate10                slow_constrols_data   ! Laser Power as measured via leakage through mirror 6
+hcrate12                slow_constrols_data   ! cavity power (transmitted PD)
+hcrate16                slow_constrols_data   ! Reflected laser power
