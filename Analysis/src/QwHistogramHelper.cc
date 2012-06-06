@@ -548,10 +548,10 @@ TProfile* QwHistogramHelper::Construct1DProf(const QwHistogramHelper::HistParams
                 params.x_nbins,
                 Double_t(params.x_min),Double_t(params.x_max),
                 Double_t(params.y_min),Double_t(params.y_max));
+  h1->SetMinimum(params.y_min);
+  h1->SetMaximum(params.y_max);
   h1->SetXTitle(params.xtitle);
   h1->SetYTitle(params.ytitle);
-  //  if(params.min!=fInvalidNumber) h1->SetMinimum(params.min);
-  //  if(params.max!=fInvalidNumber) h1->SetMinimum(params.max);
   return h1;
 }
 
@@ -571,9 +571,9 @@ TProfile2D* QwHistogramHelper::Construct2DProf(const QwHistogramHelper::HistPara
                 params.y_nbins,
                 Double_t(params.y_min),Double_t(params.y_max),
                 Double_t(params.z_min),Double_t(params.z_max));
+  h2->SetMinimum(params.z_min);
+  h2->SetMaximum(params.z_max);
   h2->SetXTitle(params.xtitle);
   h2->SetYTitle(params.ytitle);
-  //  if (params.min != fInvalidNumber) h2->SetMinimum(params.min);
-  //  if (params.max != fInvalidNumber) h2->SetMinimum(params.max);
   return h2;
 }
