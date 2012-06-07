@@ -266,7 +266,7 @@ $SpacePerInputfile = 11300  if (!defined($SpacePerInputfile)
 				|| $SpacePerInputfile+0<=0);
 $ReserveSpace      = 3000   if (!defined($ReserveSpace) 
 				|| $ReserveSpace+0<=0);
-$MaxSpacePerJob    = 130000 if (!defined($MaxSpacePerJob) 
+$MaxSpacePerJob    = 123977 if (!defined($MaxSpacePerJob) 
 				|| $MaxSpacePerJob+0<=0);
 if (($SpacePerInputfile+$ReserveSpace)>$MaxSpacePerJob){
     die("*** The space needed per input file ($SpacePerInputfile MB) and as a reserve ($ReserveSpace MB) is too large for the maximum disk space permitted per farm job ($MaxSpacePerJob MB).\n",
