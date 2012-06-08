@@ -52,7 +52,8 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
   //string folder="/scratch/sxyang";
    string folder=gSystem->Getenv("QW_ROOTFILES");
    ostringstream ss;
-   ss << folder << "/tracking/";
+   ss << folder << "/";
+   //ss << folder << "/tracking/";
    ss << stem.Data();
    ss << run << suffix;
    ss << ".root";

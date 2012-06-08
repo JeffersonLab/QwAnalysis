@@ -3024,7 +3024,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	    if(!pt) continue;
 
 	    if(pt->fChi<best_chi){
-	    
+	      best_chi=pt->fChi;
+	      delete pt;
 	      if(best_pt){
 	       QwPartialTrack* temp=best_pt;
 	       delete temp;
@@ -3042,7 +3043,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	      best_tl[0]=wx;
 	      best_tl[1]=wu;
 	      best_tl[2]=wv; 
-	      best_chi=pt->fChi;
 	    }
 	    else{
 	      delete pt;
