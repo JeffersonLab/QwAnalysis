@@ -361,6 +361,13 @@ void  QwSubsystemArray::ProcessEvent()
   }
 }
 
+void  QwSubsystemArray::AtEndOfEventLoop()
+{
+  QwDebug << "QwSubsystemArray at end of event loop" << QwLog::endl;
+  if (!empty()) {
+    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::AtEndOfEventLoop));
+  }
+}
 
 //*****************************************************************
 void  QwSubsystemArray::RandomizeEventData(int helicity, double time)

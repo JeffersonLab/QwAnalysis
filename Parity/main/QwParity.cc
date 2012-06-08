@@ -316,6 +316,11 @@ Int_t main(Int_t argc, Char_t* argv[])
       } // detectors.ApplySingleEventCuts()
 
     } // end of loop over events
+    
+    //  Perform actions at the end of the event loop on the
+    //  detectors object, which ought to have handles for the
+    //  MPS based histograms.
+    detectors.AtEndOfEventLoop();
 
     QwMessage << "Number of events processed at end of run: "
               << eventbuffer.GetEventNumber() << QwLog::endl;

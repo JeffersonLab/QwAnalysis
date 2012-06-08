@@ -192,6 +192,10 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   virtual void  ProcessEvent_2() { };
 
 
+  /// \brief Perform actions at the end of the event loop
+  virtual void  AtEndOfEventLoop(){QwDebug << fSystemName << " at end of event loop" << QwLog::endl;};
+
+
   // Not all derived classes will have the following functions
   virtual void  RandomizeEventData(int helicity = 0, double time = 0.0) { };
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };

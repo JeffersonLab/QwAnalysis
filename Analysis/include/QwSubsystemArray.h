@@ -141,6 +141,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Process the decoded data in this event
   void  ProcessEvent();
 
+  /// \brief Perform actions at the end of the event loop
+  void  AtEndOfEventLoop();
 
  public:
 
