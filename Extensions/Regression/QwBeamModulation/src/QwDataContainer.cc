@@ -85,7 +85,9 @@ void QwDataContainer::GetOptions(Char_t **options)
       fOptions.push_back(options[i + 1]);
       std::string option (fOptions[i + 1].Data());
       index = option.find_first_of(":", 1);
-      fMysqlRunLower = atoi(option.substr(index - 5, 5).c_str());
+//       fMysqlRunLower = atoi(option.substr(index - 5, 5).c_str());
+      std::cout << "Index:\t" << index << std::endl;
+      fMysqlRunLower = atoi(option.substr(0, index - 1).c_str());
       fMysqlRunUpper = atoi(option.substr(index + 1, 5).c_str());
       fRunRange = true;
     }
