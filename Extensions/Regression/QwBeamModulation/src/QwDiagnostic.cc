@@ -156,7 +156,7 @@ void QwDiagnostic::Write(void){
   //      Slopes 
   //********************
 
-    /*
+
     for(Int_t k = 0; k < fNDetector; k++){  
 
     fprintf(slope_diagnostic, "#uncorrected slopes %s\n", DetectorList[k].Data());
@@ -192,7 +192,7 @@ void QwDiagnostic::Write(void){
     }
   }
 
-    */
+
   //******************** 
   //    corrections
   //********************
@@ -222,11 +222,11 @@ void QwDiagnostic::Write(void){
   //    charge asymmetry
   //***********************
 
-//   fprintf(charge_asym_diagnostic,"\n\n#monitor\t\t  mod type\t\t\t   Chi2NDF\n");
-//   for(Int_t i = 0; i < fNMonitor; i++){
-//     fprintf(charge_asym_diagnostic, "%-20s\t%-8.6e +- %-8.6e\t%-8.6e\n", MonitorList[i].Data(),
-// 	    ChargeAsym[i]->slope, ChargeAsym[i]->error, ChargeAsym[i]->ChiSquareNDF);
-//   }
+    fprintf(charge_asym_diagnostic,"\n\n#monitor\t\t  mod type\t\t\t   Chi2NDF\n");
+    for(Int_t i = 0; i < fNMonitor; i++){
+      fprintf(charge_asym_diagnostic, "%-20s\t%-8.6e +- %-8.6e\t%-8.6e\n", MonitorList[i].Data(),
+	      ChargeAsym[i]->slope, ChargeAsym[i]->error, ChargeAsym[i]->ChiSquareNDF);
+    }
 
   fclose(slope_diagnostic);
   fclose(correction);

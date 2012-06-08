@@ -272,6 +272,13 @@ TString QwDataContainer::BuildQuery(TString type)
 
   }
 
+  if(type.CompareTo("position", TString::kExact) == 0){
+    dbase.fNumberColumns = 4;
+    fNumberMonitor = 1;
+    fMysqlQuery = Form("select run_number, value, error, segment_number from beam_view,  slow_controls_settings where  beam_view.runlet_id=slow_controls_settings.runlet_id and target_position  = 'HYDROGEN-CELL' and slope_correction = 'off' and slope_calculation =  'off' and beam_mode = 'nbm' and good_for_id = '1,3' and run_quality_id =  '1' and measurement_type = 'd' and monitor = '%s' and slow_controls_settings.slow_helicity_plate = '%s' and subblock  = 0 and run_number > %i and run_number < %i", fMysqlMon.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+
+  }
+
   fMysqlQuery = SetBlackList(fMysqlQuery, type);
 
   //  std::cout << "Query:\t" << fMysqlQuery << std::endl;
@@ -284,6 +291,12 @@ TString QwDataContainer::SetBlackList(TString q_string, TString type)
 {
 
   if(type.CompareTo("sens", TString::kExact) == 0){
+
+    for(Int_t i = 0; i < (Int_t)fBlackList.size(); i++){
+      q_string += Form(" && md_slope_view.run_number != %i", fBlackList[i]);
+    }
+  }
+  if(type.CompareTo("sens_all", TString::kExact) == 0){
 
     for(Int_t i = 0; i < (Int_t)fBlackList.size(); i++){
       q_string += Form(" && md_slope_view.run_number != %i", fBlackList[i]);
@@ -359,7 +372,7 @@ void QwDataContainer::FillDataVector(TString type)
       fRunNumber[i] = dbase.result[i][0];
       fAsym[i] = dbase.result[i][1];
       fError[i] =dbase.result[i][2];
-      fNumberEntries[i] = dbase.result[i][3];
+     fNumberEntries[i] = dbase.result[i][3];
       fRMS[i] = fError[i]*TMath::Sqrt(fNumberEntries[i]);
     }
   }
@@ -423,10 +436,12 @@ void QwDataContainer::FillDataVector(TString type)
     std::cout << "Finished filling!" << std::endl;
     
     if(type.CompareTo("position", TString::kExact) == 0){
-      for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
-	
-      }
+
+
+
     }
+
+
   }
 }
 
@@ -628,7 +643,7 @@ void QwDataContainer::PlotSensitivities()
   sensx->GetYaxis()->SetTitleSize(0.02);
   sensx->GetXaxis()->SetTitleOffset(1.5);
   sensx->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensx);
+  //  ScaleTGraph(sensx);
   sensx->Draw("AP");
   sensx->Fit("line0", "");
 
@@ -651,7 +666,7 @@ void QwDataContainer::PlotSensitivities()
   sensxp->GetYaxis()->SetTitleSize(0.02);
   sensxp->GetXaxis()->SetTitleOffset(1.5);
   sensxp->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensxp);
+  //  ScaleTGraph(sensxp);
   sensxp->Draw("AP");
   sensxp->Fit("line0", "");
 
@@ -674,7 +689,7 @@ void QwDataContainer::PlotSensitivities()
   sense->GetYaxis()->SetTitleSize(0.02);
   sense->GetXaxis()->SetTitleOffset(1.5);
   sense->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sense);
+  //  ScaleTGraph(sense);
   //  sense->GetYaxis()->SetRangeUser(-20., 0.);
   sense->Draw("AP");
   sense->Fit("line0", "");
@@ -698,7 +713,7 @@ void QwDataContainer::PlotSensitivities()
   sensy->GetYaxis()->SetTitleSize(0.02);
   sensy->GetXaxis()->SetTitleOffset(1.5);
   sensy->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensy);
+  //  ScaleTGraph(sensy);
   sensy->Draw("AP");
   sensy->Fit("line0", "");
 
@@ -721,7 +736,7 @@ void QwDataContainer::PlotSensitivities()
   sensyp->GetYaxis()->SetTitleSize(0.02);
   sensyp->GetXaxis()->SetTitleOffset(1.5);
   sensyp->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensyp);
+  //  ScaleTGraph(sensyp);
   sensyp->Draw("AP");
   sensyp->Fit("line0", "");
 

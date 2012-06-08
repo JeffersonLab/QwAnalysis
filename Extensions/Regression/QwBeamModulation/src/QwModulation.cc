@@ -330,6 +330,24 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 //     }
   }
   
+  if( type.CompareTo("hel_tree_raw", TString::kIgnoreCase) == 0 ){
+    subblock = ((yield_ramp_block3+yield_ramp_block0)-(yield_ramp_block2+yield_ramp_block1));
+    
+    for(Int_t i = 0; i < fNMonitor; i++){
+      if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
+	code = 1;
+      }
+    }
+    for(Int_t i = 0; i < fNDetector; i++){
+      if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
+	code = 1;
+      }
+    }
+    if(yield_qwk_charge_hw_sum < 40){
+      code = 1;
+    }
+  }
+
   return( code );
 }
 
@@ -445,7 +463,9 @@ void QwModulation::ComputeAsymmetryCorrections()
 
   for(Int_t i = 0; i < fNDetector; i++){
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_%s",HDetectorList[i].Data()), &HDetBranch[i][0], Form("raw_%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("raw_corr_%s/D", HDetectorList[i].Data())); 
     if(fCharge){
       mod_tree->Branch(Form("corr_%s_charge", HDetectorList[i].Data()), &AsymmetryCorrectionQ[i], 
 		       Form("corr_%s_charge/D", HDetectorList[i].Data())); 
@@ -462,6 +482,7 @@ void QwModulation::ComputeAsymmetryCorrections()
   }
   for(Int_t j = 0; j < fNMonitor; j++){
     mod_tree->Branch(HMonitorList[j], &HMonBranch[j][0], Form("%s/D", HMonitorList[j].Data())); 
+    mod_tree->Branch(Form("raw_%s", HMonitorList[j].Data()), &HMonBranch[j][0], Form("raw_%s/D", HMonitorList[j].Data())); 
     mod_tree->Branch(Form("%s_Device_Error_Code", HMonitorList[j].Data()), &HMonBranch[j][fDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HMonitorList[j].Data())); 
 
@@ -491,6 +512,7 @@ void QwModulation::ComputeAsymmetryCorrections()
     ++fEvCounter;
     
 //     if( (ErrorCodeCheck("hel_tree") == 0 && yield_qwk_mdallbars_hw_sum != 0) ){
+
     if( (ErrorCodeCheck("hel_tree") == 0) ){
       for(Int_t j = 0; j < fNDetector; j++){
 	for(Int_t k = 0; k < fNMonitor; k++){
@@ -512,6 +534,27 @@ void QwModulation::ComputeAsymmetryCorrections()
       }
       mod_tree->Fill();
     }
+
+    //
+    // I need to fill these variables with the same cuts as above except w/o the cut on 
+    // ErrorFlag.  This is important to be sure that I can still get modulation data
+    // out ot plot.
+    //
+    else if( (ErrorCodeCheck("hel_tree_raw") == 0) ){
+      for(Int_t det = 0; det < fNDetector; det++){
+	mod_tree->GetBranch(Form("raw_%s", HDetectorList[det].Data()))->Fill();
+	mod_tree->GetBranch(Form("raw_corr_%s", HDetectorList[det].Data()))->Fill();
+      }
+      for(Int_t mon = 0; mon < fNMonitor; mon++)
+	mod_tree->GetBranch(Form("raw_%s", HMonitorList[mon].Data()))->Fill();
+
+      mod_tree->GetBranch("ErrorFlag")->Fill();
+      mod_tree->GetBranch("yield_bm_pattern_number")->Fill();
+      mod_tree->GetBranch("yield_ramp")->Fill();
+      mod_tree->GetBranch("mps_counter")->Fill();
+      mod_tree->GetBranch("asym_qwk_charge")->Fill();
+    }
+
     if( (i % 100000) == 0 )std::cout << "Processing:\t" << i << std::endl;
   }
 
@@ -740,6 +783,7 @@ void QwModulation::PilferData()
   std::cout << "Number of entries: " << nentries << std::endl;
 
   for(Long64_t i = 0; i < nentries; i++){
+
     LoadTree(i);
     if(i < 0) break;
     fChain->GetEntry(i);
