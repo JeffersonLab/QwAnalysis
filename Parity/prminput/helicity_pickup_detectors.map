@@ -1,0 +1,34 @@
+# This is the detector definition file to be used with run type
+# inj_parity (injector+parity).
+# May 18th 2012 B. Waidyawansa.
+
+
+# using the beamline class to analyze the helicity signal and the voltage signal
+# in roc2 as bcms
+[QwBeamLine]
+ name = HallCBeamLine
+ map = helicity_pickup.map
+# geom = qweak_beamline_geometry.map
+  param = qweak_hallc_pedestal.map
+#added to keep local cuts on BPMs - rakitha - 01/23/2012
+ eventcut = qweak_first100k_beamline_eventcuts.in
+
+
+[QwMainCerenkovDetector]
+ name = Main Detector
+ map = qweak_maindet.map
+ param = qweak_maindet_pedestal.map
+#added to keep local cuts on MD yields - rakitha - 01/23/2012
+ eventcut = qweak_first100k_maindet_eventcuts.in
+
+[QwLumi]
+ name = Lumi Detector
+ map = qweak_lumi.map
+ param = qweak_lumi_pedestal.map
+ eventcut = qweak_lumi_eventcuts.in
+
+[QwHelicity]
+ name = Helicity info
+ map = qweak_helicity.map
+
+
