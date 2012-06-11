@@ -1042,7 +1042,10 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor)
 
   char *token;
 
-  config.open("config/setup.config");
+  //  Specifically open the file for INPUT only (note that the
+  //  default behavior of "open" is to request both IN and OUT 
+  //  access.
+  config.open("config/setup.config", std::ios_base::in);
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
     exit(1);
