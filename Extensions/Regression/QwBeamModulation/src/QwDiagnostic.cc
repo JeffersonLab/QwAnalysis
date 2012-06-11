@@ -68,7 +68,6 @@ void QwDiagnostic::ReadSensitivities(void)
       }
     }
   }
-
   sens_file.close();
   
   return;
@@ -139,7 +138,7 @@ void QwDiagnostic::Write(void){
     total = 0;
     total_entries = 0;
   }
-  
+
   // Differences
 
 //     fprintf(regression, "\n# differences\n");
@@ -153,10 +152,11 @@ void QwDiagnostic::Write(void){
       fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", DetectorList[i].Data(), (Int_t)AsymEntries[i], AsymMean[i], AsymRMS[i]/TMath::Sqrt(AsymEntries[i]) );
     }
 
-
   //******************** 
   //      Slopes 
   //********************
+
+
     for(Int_t k = 0; k < fNDetector; k++){  
 
     fprintf(slope_diagnostic, "#uncorrected slopes %s\n", DetectorList[k].Data());
@@ -192,6 +192,7 @@ void QwDiagnostic::Write(void){
     }
   }
 
+
   //******************** 
   //    corrections
   //********************
@@ -221,11 +222,11 @@ void QwDiagnostic::Write(void){
   //    charge asymmetry
   //***********************
 
-  fprintf(charge_asym_diagnostic,"\n\n#monitor\t\t  mod type\t\t\t   Chi2NDF\n");
-  for(Int_t i = 0; i < fNMonitor; i++){
-    fprintf(charge_asym_diagnostic, "%-20s\t%-8.6e +- %-8.6e\t%-8.6e\n", MonitorList[i].Data(),
-	    ChargeAsym[i]->slope, ChargeAsym[i]->error, ChargeAsym[i]->ChiSquareNDF);
-  }
+    fprintf(charge_asym_diagnostic,"\n\n#monitor\t\t  mod type\t\t\t   Chi2NDF\n");
+    for(Int_t i = 0; i < fNMonitor; i++){
+      fprintf(charge_asym_diagnostic, "%-20s\t%-8.6e +- %-8.6e\t%-8.6e\n", MonitorList[i].Data(),
+	      ChargeAsym[i]->slope, ChargeAsym[i]->error, ChargeAsym[i]->ChiSquareNDF);
+    }
 
   fclose(slope_diagnostic);
   fclose(correction);

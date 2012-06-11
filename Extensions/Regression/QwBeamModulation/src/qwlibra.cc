@@ -96,28 +96,30 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
 
   std::cout << "Making histograms for Sensitivity Histograms." << std::endl;
+
+  
   for(Int_t j = 0; j < modulation->fNMonitor; j++){
     modulation->DiffHistogram.push_back(new TH1F(Form("hist_diff_%s", modulation->MonitorList[j].Data()),
 						 Form("hist_diff_%s", modulation->MonitorList[j].Data()), 1000, -range[j], range[j] ));
   }
-  for(Int_t j = 0; j < modulation->fNDetector; j++){
-    modulation->AsymHistogram.push_back(new TH1F(Form("hist_asym_%s", modulation->DetectorList[j].Data()),
-						 Form("hist_asym_%s", modulation->DetectorList[j].Data()), 2000, -1.e6, 1.e6 ));
-    modulation->RawAsymHistogram.push_back(new TH1F(Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()),
-						    Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()), 2000, -1.e6, 1.e6 ));
-  }
+//   for(Int_t j = 0; j < modulation->fNDetector; j++){
+//     modulation->AsymHistogram.push_back(new TH1F(Form("hist_asym_%s", modulation->DetectorList[j].Data()),
+// 						 Form("hist_asym_%s", modulation->DetectorList[j].Data()), 2000, -1.e6, 1.e6 ));
+//     modulation->RawAsymHistogram.push_back(new TH1F(Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()),
+// 						    Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()), 2000, -1.e6, 1.e6 ));
+//   }
 
-  for(Int_t i = 0; i < modulation->fNDetector; i++){
+//   for(Int_t i = 0; i < modulation->fNDetector; i++){
 
-      modulation->TotalCorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s", modulation->DetectorList[i].Data()),
-							      Form("hist_corr_%s", modulation->DetectorList[i].Data()),
-							      10000, -100.e-3, 100.e-3 ));
-    for(Int_t j = 0; j < modulation->fNMonitor; j++){
-      modulation->CorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
-							 Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
-							 50000, -corr_range[j], corr_range[j] ));
-    }
-  }
+//       modulation->TotalCorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s", modulation->DetectorList[i].Data()),
+// 							      Form("hist_corr_%s", modulation->DetectorList[i].Data()),
+// 							      10000, -100.e-3, 100.e-3 ));
+//     for(Int_t j = 0; j < modulation->fNMonitor; j++){
+//       modulation->CorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
+// 							 Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
+// 							 50000, -corr_range[j], corr_range[j] ));
+//     }
+// }
   canvas2->Divide(1,modulation->fNMonitor);
   canvas4->Divide(1,modulation->GetModNumber());
   canvas5->Divide(1,modulation->fNMonitor);
@@ -132,6 +134,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     cut_nat[i] = Form(" (ErrorFlag == 0) ", pNum[i]);
 
   std::cout << "Making Slope Correction Plots" << std::endl;
+  // Sensitivity plots
 
   for(Int_t k = 0; k < modulation->fNDetector; k++){
     canvas0->Divide(modulation->fNMonitor, modulation->GetModNumber());
@@ -147,12 +150,12 @@ Int_t main(Int_t argc, Char_t *argv[])
 	modulation->Slope[k][i].push_back(new QwData() );
 	modulation->SlopeCorr[k][i].push_back(new QwData() );
 
-	//*************************************
+	// ************************************* //
 	// Getting limits from temp histogram
-	//*************************************
+	// ************************************* //
 
 	TH2F *temp = new TH2F("temp", "temp", fResolution, -1.0, 1.0, fResolution, -1.0, 1.0);    
-	mod_tree->Draw(Form("asym_%s:diff_%s>>temp", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("raw_asym_%s:raw_diff_%s>>temp", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data()), cut_mod[j], "prof");
 
 	temp = (TH2F *)gDirectory->Get("temp");
@@ -176,10 +179,10 @@ Int_t main(Int_t argc, Char_t *argv[])
 	// ************************************
 	modulation->SensHistogram[i][j]->SetErrorOption("i");	
 	modulation->SensHistogram[i][j]->SetLineColor(12);	
-	mod_tree->Draw(Form("asym_%s:diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("raw_asym_%s:raw_diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()), cut_mod[j], "");
 	
-	std::cout << other << Form("asym_%s:diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
+	std::cout << other << Form("raw_asym_%s:raw_diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
 				   modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()) << " " <<  cut_mod[j] << normal << std::endl;
 	modulation->SensHistogram[i][j] = (TProfile *)gDirectory->Get(Form("hist_%i_%s_%s", j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data() ));
  	modulation->SensHistogram[i][j]->SetAxisRange(-0.0005, 0.0005, "Y");
@@ -210,9 +213,9 @@ Int_t main(Int_t argc, Char_t *argv[])
 	canvas0->Modified();
 
 
-	//**********************************************
+	// **********************************************
 	// Getting limits from temp histogram : part 2
-	//**********************************************
+	// **********************************************
 
 	canvas1->cd(n);
 	gPad->SetGridx();
@@ -220,7 +223,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
 	TH2F *temp2 = new TH2F("temp2", "temp2", fResolution, -1.0, 1.0, fResolution, -1.0, 1.0);    
 
-	mod_tree->Draw(Form("corr_asym_%s:diff_%s>>temp2", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("raw_corr_asym_%s:raw_diff_%s>>temp2", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data()), cut_mod[j], "prof");
 
 	temp2 = (TH2F *)gDirectory->Get("temp2");
@@ -231,10 +234,10 @@ Int_t main(Int_t argc, Char_t *argv[])
 	modulation->SensHistogramCorr[i][j]->SetErrorOption("i");	
 	modulation->SensHistogramCorr[i][j]->SetLineColor(12);	
 	
-	mod_tree->Draw(Form("corr_asym_%s:diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("raw_corr_asym_%s:raw_diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()), cut_mod[j], "prof");
 	
-	std::cout << other << Form("corr_asym_%s:diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data(), j, 
+	std::cout << other << Form("raw_corr_asym_%s:raw_diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data(), j, 
 				   modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()) << " " << cut_mod[j] << normal << std::endl;
 
 	modulation->SensHistogramCorr[i][j] = (TProfile *)gDirectory->Get(Form("corr_hist_%i_%s_%s", j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data() ));
@@ -275,6 +278,9 @@ Int_t main(Int_t argc, Char_t *argv[])
     n = 1;
   }
 
+  // end of sensitivity plots  
+
+
   for(Int_t i = 0; i < modulation->GetModNumber(); i++){
     modulation->DiffSlope.push_back(new QwData() );    
     
@@ -292,13 +298,39 @@ Int_t main(Int_t argc, Char_t *argv[])
   
   gStyle->SetOptStat(1111);
 
+  Double_t mean_temp = 0;
+  Double_t rms_temp = 0;
+
   for(Int_t k = 0; k < modulation->fNDetector; k++){
     canvas3->Divide(1,modulation->fNMonitor);
     
     for(Int_t i = 0; i < modulation->GetModNumber(); i++){
       modulation->Correction[k].push_back(new QwData() );    
-     
+    
       canvas3->cd(i + 1);
+
+      // *************************************** //    
+      // Added to resize histogram properly      //
+      // *************************************** //
+
+      TH1F *hist_temp = new TH1F("hist_temp", "hist_temp", 100000, -1.0, 1.0);
+
+      mod_tree->Draw(Form("corr_asym_%s_diff_%s>>hist_temp", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data()), correction_cut);
+      hist_temp = (TH1F *)gDirectory->Get("hist_temp");
+      mean_temp = hist_temp->GetMean(1);
+      rms_temp = hist_temp->GetRMS();
+
+      hist_temp->Delete();
+
+      // ******************************************** //
+      // histogram limits should be correct now.....  //
+      // ******************************************** //
+
+      modulation->CorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data()),
+							 Form("hist_corr_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data()),
+							 1000, mean_temp - 10*rms_temp, mean_temp + 10*rms_temp  ));
+
+
       mod_tree->Draw(Form("corr_asym_%s_diff_%s>>hist_corr_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data(),
 			  modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data()), correction_cut);
       modulation->CorrectionHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_corr_%s_%s", modulation->DetectorList[k].Data(), 
@@ -310,8 +342,8 @@ Int_t main(Int_t argc, Char_t *argv[])
       modulation->CorrectionHistogram[i]->GetYaxis()->SetTitle("Counts");
       modulation->CorrectionHistogram[i]->GetXaxis()->SetTitle("correction position/angle difference");
       // Try to refit the histogram to include the enormous widths of the lumis
-      Double_t rms = modulation->CorrectionHistogram[i]->GetRMS();
-      modulation->CorrectionHistogram[i]->SetAxisRange(-10*rms, 10*rms, "X");
+      //      Double_t rms = modulation->CorrectionHistogram[i]->GetRMS();
+      //      modulation->CorrectionHistogram[i]->SetAxisRange(-10*rms, 10*rms, "X");
       modulation->CorrectionHistogram[i]->Draw();
       canvas3->Update();
       canvas3->Modified();
@@ -324,6 +356,26 @@ Int_t main(Int_t argc, Char_t *argv[])
 
       modulation->TotalCorrection.push_back(new QwData() );    
      
+      // ************************************ //
+      // Added to resize histogram properly   //
+      // ************************************ //
+
+      TH1F *hist_temp = new TH1F("hist_temp", "hist_temp", 100000, -1.0, 1.0);
+
+      mod_tree->Draw(Form("correction_%s>>hist_temp", modulation->DetectorList[k].Data()), correction_cut);
+      hist_temp = (TH1F *)gDirectory->Get("hist_temp");
+      mean_temp = hist_temp->GetMean(1);
+      rms_temp = hist_temp->GetRMS();
+
+      hist_temp->Delete();
+
+      modulation->TotalCorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s", modulation->DetectorList[k].Data()),
+							      Form("hist_corr_%s", modulation->DetectorList[k].Data()),
+							      1000, mean_temp - 10*rms_temp, mean_temp + 10*rms_temp));
+      // ******************** // 
+      // Should be fine now   //
+      // ******************** //
+
       canvas8->cd();
       mod_tree->Draw(Form("correction_%s>>hist_corr_%s", modulation->DetectorList[k].Data(),
 			  modulation->DetectorList[k].Data()), correction_cut);
@@ -335,8 +387,8 @@ Int_t main(Int_t argc, Char_t *argv[])
       modulation->TotalCorrectionHistogram[k]->GetYaxis()->SetTitle("Counts");
       modulation->TotalCorrectionHistogram[k]->GetXaxis()->SetTitle("correction position/angle difference");
 
-      Double_t totalrms = modulation->TotalCorrectionHistogram[k]->GetRMS();
-      modulation->TotalCorrectionHistogram[k]->SetAxisRange(-10*totalrms, 10*totalrms, "X");
+      //      Double_t totalrms = modulation->TotalCorrectionHistogram[k]->GetRMS();
+      //      modulation->TotalCorrectionHistogram[k]->SetAxisRange(-10*totalrms, 10*totalrms, "X");
       (modulation->TotalCorrectionHistogram[k]->GetXaxis())->SetLabelSize(0.02);
       modulation->TotalCorrectionHistogram[k]->Draw();
       canvas8->Update();
@@ -425,6 +477,8 @@ Int_t main(Int_t argc, Char_t *argv[])
   //  End detector sensitivity to natural motion
 
 
+
+
   for(Int_t i = 0; i < modulation->GetModNumber(); i++){
     modulation->ChargeAsym.push_back(new QwData() );
     
@@ -434,46 +488,46 @@ Int_t main(Int_t argc, Char_t *argv[])
 
     //  Clean up the bins for proflile plots
 
-    TH2F *temp3 = new TH2F("temp3", "temp3", 150, -1.0, 1.0, 150, 160.0, 180.0);    
-    mod_tree->Draw(Form("yield_qwk_charge:yield_%s>>temp3", modulation->MonitorList[i].Data()), 
-		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i || yield_bm_pattern_number == %i", (pNum[i]+11), pNum[i]),"prof");
-    temp3 = (TH2F *)gDirectory->Get("temp3");
-    meanx = temp3->GetMean(1);
-    meany = temp3->GetMean(2);
-    temp3->Delete();
+     TH2F *temp3 = new TH2F("temp3", "temp3", 150, -1.0, 1.0, 150, 160.0, 180.0);    
+     mod_tree->Draw(Form("yield_qwk_charge:yield_%s>>temp3", modulation->MonitorList[i].Data()), 
+ 		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i || yield_bm_pattern_number == %i", (pNum[i]+11), pNum[i]),"prof");
+     temp3 = (TH2F *)gDirectory->Get("temp3");
+     meanx = temp3->GetMean(1);
+     meany = temp3->GetMean(2);
+     temp3->Delete();
 
     //***************************************
     //  Create TProfile and fill
     //***************************************
     
-    modulation->ChargeAsymHistogram.push_back(new TProfile(Form("prof_charge_asym_%i", pNum[i]), Form("prof_charge_asym_%i", pNum[i]), 
-							   150, (meanx - yield_range[i]), (meanx + yield_range[i]), 0.0, 180.0));
+     modulation->ChargeAsymHistogram.push_back(new TProfile(Form("prof_charge_asym_%i", pNum[i]), Form("prof_charge_asym_%i", pNum[i]), 
+ 							   150, (meanx - yield_range[i]), (meanx + yield_range[i]), 0.0, 180.0));
 
-    (modulation->ChargeAsymHistogram[i])->SetErrorOption("i");    
-    mod_tree->Draw(Form("yield_qwk_charge:yield_%s>>prof_charge_asym_%i", modulation->MonitorList[i].Data(), pNum[i]), 
- 		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i || yield_bm_pattern_number == %i", (pNum[i]+11), pNum[i]),"");
+     (modulation->ChargeAsymHistogram[i])->SetErrorOption("i");    
+     mod_tree->Draw(Form("yield_qwk_charge:yield_%s>>prof_charge_asym_%i", modulation->MonitorList[i].Data(), pNum[i]), 
+  		   Form("(ErrorFlag == 0x4018080) && yield_bm_pattern_number == %i || yield_bm_pattern_number == %i", (pNum[i]+11), pNum[i]),"");
     
-    modulation->ChargeAsymHistogram[i] = (TProfile *)gDirectory->Get(Form("prof_charge_asym_%i", pNum[i]));
-    modulation->ChargeAsymHistogram[i]->SetAxisRange(meany - 2.0, meany + 2.0 , "Y");
+     modulation->ChargeAsymHistogram[i] = (TProfile *)gDirectory->Get(Form("prof_charge_asym_%i", pNum[i]));
+     modulation->ChargeAsymHistogram[i]->SetAxisRange(meany - 2.0, meany + 2.0 , "Y");
 
-    //***************************************
+     //***************************************
     
-    linear->SetRange(meanx - fRange[i], meanx + fRange[i]);
+     linear->SetRange(meanx - fRange[i], meanx + fRange[i]);
     
-    linear->SetLineColor(2);
-    modulation->ChargeAsymHistogram[i]->GetYaxis()->SetTitle("Charge");
-    modulation->ChargeAsymHistogram[i]->GetXaxis()->SetTitle(Form("yield_%s", modulation->MonitorList[i].Data()) );
-    modulation->ChargeAsymHistogram[i]->SetTitle("Charge vs Monitor Yield");
-    modulation->ChargeAsymHistogram[i]->Draw("");
+     linear->SetLineColor(2);
+     modulation->ChargeAsymHistogram[i]->GetYaxis()->SetTitle("Charge");
+     modulation->ChargeAsymHistogram[i]->GetXaxis()->SetTitle(Form("yield_%s", modulation->MonitorList[i].Data()) );
+     modulation->ChargeAsymHistogram[i]->SetTitle("Charge vs Monitor Yield");
+     modulation->ChargeAsymHistogram[i]->Draw("");
     
-    modulation->ChargeAsymHistogram[i]->Fit("linear","R");
-    modulation->ChargeAsym[i]->slope = linear->GetParameter(1);
-    modulation->ChargeAsym[i]->error = linear->GetParError(1);
-    modulation->ChargeAsym[i]->ChiSquare = linear->GetChisquare();;
-    modulation->ChargeAsym[i]->NDF = linear->GetNDF();
-    modulation->ChargeAsym[i]->ChiSquareNDF = modulation->ChargeAsym[i]->ChiSquare/modulation->ChargeAsym[i]->NDF;
-    canvas4->Update();
-    canvas4->Modified();
+     modulation->ChargeAsymHistogram[i]->Fit("linear","R");
+     modulation->ChargeAsym[i]->slope = linear->GetParameter(1);
+     modulation->ChargeAsym[i]->error = linear->GetParError(1);
+     modulation->ChargeAsym[i]->ChiSquare = linear->GetChisquare();;
+     modulation->ChargeAsym[i]->NDF = linear->GetNDF();
+     modulation->ChargeAsym[i]->ChiSquareNDF = modulation->ChargeAsym[i]->ChiSquare/modulation->ChargeAsym[i]->NDF;
+     canvas4->Update();
+     canvas4->Modified();
     
   }
 
@@ -487,6 +541,19 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t i = 0; i < modulation->fNDetector; i++){
 
     canvas6->cd();
+
+    TH1F *hist_temp = new TH1F("hist_temp", "hist_temp", 10000, -1.0, 1.0);
+
+    mod_tree->Draw(Form("corr_asym_%s>>hist_temp", modulation->DetectorList[i].Data()), "ErrorFlag == 0");
+    hist_temp = (TH1F *)gDirectory->Get("hist_temp");
+    mean_temp = hist_temp->GetMean(1);
+    rms_temp = hist_temp->GetRMS();
+    
+    hist_temp->Delete();
+
+    modulation->AsymHistogram.push_back(new TH1F(Form("hist_asym_%s", modulation->DetectorList[i].Data()),
+						 Form("hist_asym_%s", modulation->DetectorList[i].Data()), 1000, mean_temp - 1e7*rms_temp, mean_temp + 1e7*rms_temp ));
+
     mod_tree->Draw(Form("1e6*corr_asym_%s>>hist_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
     modulation->AsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_asym_%s", modulation->DetectorList[i].Data()));
     modulation->AsymMean.push_back(modulation->AsymHistogram[i]->GetMean());
@@ -504,6 +571,19 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t i = 0; i < modulation->fNDetector; i++){
 
     canvas7->cd();
+
+    TH1F *hist_temp = new TH1F("hist_temp", "hist_temp", 100000, -1.0, 1.0);
+
+    mod_tree->Draw(Form("asym_%s>>hist_temp", modulation->DetectorList[i].Data()), "ErrorFlag == 0");
+    hist_temp = (TH1F *)gDirectory->Get("hist_temp");
+    mean_temp = hist_temp->GetMean(1);
+    rms_temp = hist_temp->GetRMS();
+    
+    hist_temp->Delete();
+
+    modulation->RawAsymHistogram.push_back(new TH1F(Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()),
+						    Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()), 1000, mean_temp - 1e7*rms_temp, mean_temp + 1e7*rms_temp ));
+
     mod_tree->Draw(Form("1e6*asym_%s>>hist_raw_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
     modulation->RawAsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()));
     modulation->RawAsymMean.push_back(modulation->RawAsymHistogram[i]->GetMean());
