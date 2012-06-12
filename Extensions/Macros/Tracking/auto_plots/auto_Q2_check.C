@@ -48,6 +48,7 @@
 #include <fstream>
 #include <iostream>
 
+// Threshold for defining the maximum number of allowed hits per event per package
 const int multiple=18;
 
 TString outputPrefix;
@@ -74,11 +75,11 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
 
   // changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly 
-   outputPrefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/auto_hdc_%d_",runnum,runnum);
+   outputPrefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
 
    // Create and load the chain
    TChain *event_tree = new TChain("event_tree");
-   event_tree->Add(Form("$QW_ROOTFILES/tracking/%s%d%s.root",stem.Data(),runnum,suffix.c_str()));
+   event_tree->Add(Form("$QW_ROOTFILES/%s%d%s.root",stem.Data(),runnum,suffix.c_str()));
 
 //try to get the oct number from the run number
   int oct=getOctNumber(event_tree);
@@ -86,7 +87,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
    // Configure root
    gStyle->SetPalette(1);
 
-
+   // Define our histograms
    TH1F* angle=new TH1F("Scattering Angle","ScatteringAngle",100,0,15);
    TH1F* q2=new TH1F("Q2","Q2",100,0,0.12);
    TH1F* angle_1=new TH1F("Scattering Angle in Package 1","ScatteringAngle in Package 1",100,0,15);
@@ -97,38 +98,44 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
    TH1F* special=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0.1,0.06);
    QwEvent* fEvent=0;
 
+   // How many events are in this rootfile?
    Int_t nevents=event_tree->GetEntries();
    cout << "total events: " << nevents << endl;
    int start=(event_start==-1)? 0:event_start;
    int end=(event_end==-1)? nevents:event_end;
 
    
-
+    // Now get a pointer to the branches so that we can loop through the tree
     event_tree->SetBranchStatus("events",1);
     TBranch* event_branch=event_tree->GetBranch("events");
     TBranch* maindet_branch=event_tree->GetBranch("maindet");
     TBranch* trig_branch=event_tree->GetBranch("trigscint");
     event_branch->SetAddress(&fEvent);
-    int md_1=(oct+4)%8;
-    int md_2=oct;
+
+    //get the octant numbers
+    int md_1=(oct+4)%8;  //package 1
+    int md_2=oct;    //package 2
+
     //TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_adc",md_1));
     //TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_adc",md_1));
     //TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_adc",md_2));
     //TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_adc",md_2));
-    
+
+    // Get appropriate leafs for main detectors    
     TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
     TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
     TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
     TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
 
           
-
+    // Temporayy histograms to stroe projection angles
       TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
       TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
 
       TH1F* pkg1_phi=new TH1F("c","c",500,-1,1);
       TH1F* pkg2_phi=new TH1F("d","d",500,-1,1);
 
+      // the fit function (guassian) for the angles projections
       TF1* f1=new TF1("f1","gaus",-1,1);
       f1->SetParameters(1,-0.5,1);
 
@@ -141,7 +148,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
       TF1* f4=new TF1("f4","gaus",-1,1);
       f1->SetParameters(1,-0.5,1);
 
-      
+      // Finally project them to the above histograms to extract mean angle
       event_tree->Project("a","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==1");
       pkg1_theta->Fit("f1","QN0");
 
@@ -169,6 +176,8 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
       //for(int i=0;i<3;++i)
       //cout << "parameter[" << i << "]=" << f1->GetParameter(i) << endl;
+
+     // Get the lower and upper limits up to 1 sigma around mean
      double width=1000;
      double pkg1_phioff_lower=mean_phioff_pkg1-width*sigma_phioff_pkg1;
      double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
@@ -182,6 +191,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
     
     for(int i=start;i<end;++i){
 
+      // Announce every 100000'th entry
       if(i%100000==0)
 	cout << "events processed so far: " << i << endl;
       
@@ -208,9 +218,11 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
      
       // extract Q2 and Scattering Angle
 
+        // extract Q2 and Scattering Angle for all tracks in this event
       	int nhits=fEvent->GetNumberOfHits();
 	int valid_hits_1=0,valid_hits_2=0;
 	for(int j=0;j<nhits;++j){
+          // Get pointer to j'th hit in entry i
 	  const QwHit* hit=fEvent->GetHit(j);
 	  if(hit->GetRegion() ==2 && hit->GetDriftDistance() >=0 && hit->GetHitNumber()==0){
 	    if(hit->GetPackage()==1)
@@ -222,9 +234,18 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	}
 
       for(int j=0;j<ntracks;++j){
+        // Get pointer to j'th hit in entry i
 	const QwTrack* track=fEvent->GetTrack(j);
-	if(track->GetPackage()==1 && valid_hits_1 < multiple && mdm_value_1 >-1800 && mdm_value_1 < -1200 && mdp_value_1 > -1800 && mdp_value_1 < -1200){
-	   if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper ){
+
+        // Check if it is a valid track for the corresponding package
+	if(track->GetPackage()==1 && valid_hits_1 < multiple && 
+	   mdm_value_1 >-210 && mdm_value_1 < -150 && 
+	   mdp_value_1 > -210 && mdp_value_1 < -150){
+
+	   if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper 
+	     && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper ){
+	  
+	  //Valid for package 1 Q^2 and angles, fill the histograms
 	  angle_1->Fill(track->fScatteringAngle);
 	  q2_1->Fill(track->fQ2);
 	  special->Fill(track->fQ2);
@@ -232,12 +253,18 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	  q2->Fill(track->fQ2);
 	   }
 	}
-      	else if(track->GetPackage()==2 && valid_hits_2 < multiple && mdm_value_2 > -1800 && mdm_value_2 <-1200 && mdp_value_2 > -1800 && mdp_value_2 < -1200 ){
-	  if(track->fDirectionPhioff>pkg2_phioff_lower && track->fDirectionPhioff<pkg2_phioff_upper && track->fDirectionThetaoff>pkg2_thetaoff_lower && track->fDirectionThetaoff<pkg2_thetaoff_upper){
-	angle_2->Fill(track->fScatteringAngle);
-	  q2_2->Fill(track->fQ2);
-	  angle->Fill(track->fScatteringAngle);
-	  q2->Fill(track->fQ2);
+      	else if(track->GetPackage()==2 && valid_hits_2 < multiple 
+                && mdm_value_2 > -210 && mdm_value_2 < -150 
+                && mdp_value_2 > -210 && mdp_value_2 < -150 ){
+	 
+	         if(track->fDirectionPhioff>pkg2_phioff_lower && track->fDirectionPhioff<pkg2_phioff_upper 
+		    && track->fDirectionThetaoff>pkg2_thetaoff_lower && track->fDirectionThetaoff<pkg2_thetaoff_upper){
+	  
+			//if valid for package 2 fill the Q^2 and angle  histograms
+			angle_2->Fill(track->fScatteringAngle);
+	  		q2_2->Fill(track->fQ2);
+	  		angle->Fill(track->fScatteringAngle);
+	  		q2->Fill(track->fQ2);
 	   }
 	}
       }
