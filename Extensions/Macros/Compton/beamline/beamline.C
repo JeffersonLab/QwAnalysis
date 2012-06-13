@@ -34,11 +34,11 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   }
 
   // Prepare the canvas
-  TCanvas *canvas = new TCanvas("BeamLineCanvas","Beam Line Canvas",800,2048);
-  canvas->Divide(1,9);
+  TCanvas *canvas = new TCanvas("BeamLineCanvas","Beam Line Canvas",800,2500);
+  canvas->Divide(1,10);
   canvas->SetFillColor(0);
   TCanvas *tmpCanvas = new TCanvas("TmpBeamLineCanvas","Beam Line Canvas",1024,1600);
-  tmpCanvas->Divide(1,9);
+  tmpCanvas->Divide(1,10);
 
   // Prepare the web url
   TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
@@ -62,16 +62,19 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   // Plot the BCM's
   TH2F *hBCM1 = new TH2F("hBCM1",
       "Current vs ps Counter;Mps Counter;Current ({\\mu}A)",
-      500,minMps,maxMps,500,0.,200.);
+      500,minMps,maxMps,500,0.,10.);
   TH2F *hBCM2 = new TH2F("hBCM2",
       "Current vs ps Counter;Mps Counter;Current ({\\mu}A)",
-      500,minMps,maxMps,500,0.,200.);
+      500,minMps,maxMps,500,0.,10.);
   TH2F *hBCM6 = new TH2F("hBCM6",
       "Current vs ps Counter;Mps Counter;Current ({\\mu}A)",
-      500,minMps,maxMps,500,0.,200.);
+      500,minMps,maxMps,500,0.,10.);
   TH2F *hComptonCharge = new TH2F("hComptonCharge",
       "Current vs ps Counter;Mps Counter;Current ({\\mu}A)",
-      500,minMps,maxMps,500,0.,200.);
+      500,minMps,maxMps,500,0.,10.);
+  TH2F *hBCMDiff6 = new TH2F("hBCMDiff6",
+      "BCM6 Assymmetry vs Mps Counter;Mps Counter;Asymmetry)",
+      500,minMps,maxMps,500,-0.05,0.05);
 
   // Now plot all the stuff out
   canvas->cd(9);
@@ -96,6 +99,16 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   hBCM2->Draw("same");
   hBCM6->Draw("same");
   hComptonCharge->Draw("same");
+
+  // BCM Differences
+  canvas->cd(10);
+  helChain->Draw("asym_sca_bcm6:mps_counter>>hBCMDiff6");
+  hBCMDiff6->SetMarkerColor(kGreen);
+  hBCMDiff6->SetStats(kFALSE);
+
+  TPad *pBCMDiff  = (TPad*)canvas->GetPad(10);
+  pBCMDiff->SetFillColor(0);
+  hBCMDiff6->Draw();
 
   // Save it!
   canvas->SaveAs(canvas1);
