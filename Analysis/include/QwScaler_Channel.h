@@ -28,7 +28,7 @@ class QwParameterFile;
 class VQwScaler_Channel: public VQwHardwareChannel, public MQwMockable {
 
 public:
-  static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex);
+  static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex, UInt_t header = 1);
   static void  PrintErrorCounterHead();
   static void  PrintErrorCounterTail();
 

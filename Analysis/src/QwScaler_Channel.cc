@@ -101,11 +101,10 @@ void VQwScaler_Channel::RandomizeEventData(int helicity, double time)
  *   @return   The number of words offset to the beginning of this
  *             scaler word from the beginning of the buffer.
  */
-Int_t VQwScaler_Channel::GetBufferOffset(Int_t scalerindex, Int_t wordindex)
+Int_t VQwScaler_Channel::GetBufferOffset(Int_t scalerindex, Int_t wordindex, UInt_t header)
 {
   Int_t offset = -1;
   Int_t kMaxWords = 32; // usually the scalers have 32 data words starting from 0
-  Int_t header = 1;
 
   if (scalerindex<0 ){
     QwError << "QwScaler_Channel::GetBufferOffset:  Invalid scaler index,"
@@ -118,7 +117,7 @@ Int_t VQwScaler_Channel::GetBufferOffset(Int_t scalerindex, Int_t wordindex)
 	    << ".  Must be in range [0," << kMaxWords << "]."
 	    << QwLog::endl;
   } else {
-    offset = (header + kMaxWords)*scalerindex + header +wordindex ;
+    offset = (header + kMaxWords)*scalerindex + header + wordindex ;
   }
   return offset;
 }

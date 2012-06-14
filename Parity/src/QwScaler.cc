@@ -66,6 +66,9 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
   std::vector<Name_to_Scaler_Map_t::iterator> norm_channel;
   std::vector<double> norm_factor;
 
+  // Include header for this scaler bank
+  UInt_t header = 1;
+
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
@@ -102,6 +105,12 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
         }
         QwMessage << "Normalization channel: " << channame << QwLog::endl;
         QwMessage << "Normalization factor: " << current_norm_factor << QwLog::endl;
+      } else if (varname == "header") {
+        // Header for this block of channels
+        header = value;
+        QwMessage << "Number of scaler header words: " << header << QwLog::endl;
+        if (header > 32)
+          QwError << "Is that really what you want?" << QwLog::endl;
       }
 
     } else {
@@ -117,9 +126,9 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
 
       UInt_t offset = 0;
       if (modtype == "SIS3801" || modtype == "SIS3801D24" || modtype == "SIS3801D32") {
-        offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
-      } else if (modtype == "SIS7200") {
-        offset = QwSIS3801D32_Channel::GetBufferOffset(modnum, channum);
+        offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum, header);
+      } else if (modtype == "STR7200") {
+        offset = QwSIS3801D32_Channel::GetBufferOffset(modnum, channum, header);
       } else {
         QwError << "Unrecognized module type " << modtype << QwLog::endl;
         continue;
@@ -145,6 +154,8 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
           scaler = new QwSIS3801D24_Channel(keyword);
         else if (modtype == "SIS3801D32")
           scaler = new QwSIS3801D32_Channel(keyword);
+        else if (modtype == "STR7200")
+          scaler = new QwSTR7200_Channel(keyword);
         else {
           QwError << "Unrecognized module type " << modtype << QwLog::endl;
           continue;
