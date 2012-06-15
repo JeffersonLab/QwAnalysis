@@ -116,10 +116,10 @@ cat ${TEMPLATES}/run_page > $RUNPAGE
 # End this run's page
 cat ${TEMPLATES}/footer_run >> $RUNPAGE
 ## Then make the substitutions to make it relevant
-sed -i -e "s|%%RUNNUM%%|$RUNNUM|" $RUNPAGE
-sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|"  $RUNPAGE
-sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|"  $RUNPAGE
-sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $RUNPAGE
+sed -i -e "s|%%RUNNUM%%|$RUNNUM|g" $RUNPAGE
+sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|g"  $RUNPAGE
+sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|g"  $RUNPAGE
+sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|g" $RUNPAGE
 
 
 ## Make links to other runs
