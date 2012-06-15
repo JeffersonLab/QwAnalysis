@@ -168,7 +168,7 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
       words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords) {
     fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
-    fValue     = fCalibrationFactor * (Double_t(fValue_Raw - fValue_Raw_Old) - fPedestal);
+    fValue     = fCalibrationFactor * (Double_t(fValue_Raw) - Double_t(fValue_Raw_Old) - fPedestal);
     words_read = fNumberOfDataWords;
 
     // Store old raw value for differential scalers
