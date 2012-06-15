@@ -21,6 +21,8 @@ const Bool_t VQwScaler_Channel::kDEBUG = kFALSE;
 void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave)
 {
   fNormChannelPtr = NULL;
+  fIsDifferentialScaler = false;
+
   SetElementName(name);
   SetDataToSave(datatosave);
   SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
@@ -29,6 +31,7 @@ void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave)
   //  Default mockdata parameters
   SetRandomEventParameters(300.0, 50.0);
 
+  fValue_Raw_Old = 0;
   fValue_Raw  = 0;
   fValue      = 0.0;
   fValueM2    = 0.0;
@@ -165,8 +168,15 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
       words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords) {
     fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
-    fValue     = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
+    fValue     = fCalibrationFactor * (Double_t(fValue_Raw - fValue_Raw_Old) - fPedestal);
     words_read = fNumberOfDataWords;
+
+    // Store old raw value for differential scalers
+    if (IsDifferentialScaler())
+      fValue_Raw_Old = fValue_Raw;
+    else
+      fValue_Raw_Old = 0;
+
   } else {
     //QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"<< QwLog::endl;
   }

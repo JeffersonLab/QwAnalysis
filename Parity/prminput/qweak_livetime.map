@@ -23,5 +23,8 @@ STR7200, 0, 15, TS0, sca_user4
 STR7200, 0, 16, TS0, sca_user5
 STR7200, 0, 17, TS0, sca_user6
 
-STR7200, 0, 18, TS0, sca_livetime
-STR7200, 0, 19, TS0, sca_totaltime
+STR7200, 0, 18, TS0, sca_event
+
+differential=1
+STR7200, 0, 19, TS0, sca_livetime
+STR7200, 0, 20, TS0, sca_totaltime

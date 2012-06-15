@@ -69,6 +69,9 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
   // Include header for this scaler bank
   UInt_t header = 1;
 
+  // By default the scalers are not differential
+  Bool_t differential = false;
+
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
@@ -111,6 +114,17 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
         QwMessage << "Number of scaler header words: " << header << QwLog::endl;
         if (header > 32)
           QwError << "Is that really what you want?" << QwLog::endl;
+      } else if (varname == "differential") {
+        // Differential scaler
+        try {
+          differential = lexical_cast<bool>(varvalue);
+        } catch (boost::bad_lexical_cast&) {
+          differential = false;
+        }
+        if (differential)
+          QwMessage << "Subsequent scalers will be differential." << QwLog::endl;
+        else
+          QwMessage << "Subsequent scalers will not be differential." << QwLog::endl;
       }
 
     } else {
@@ -160,6 +174,10 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
           QwError << "Unrecognized module type " << modtype << QwLog::endl;
           continue;
         }
+
+        // Differential scaler
+        scaler->SetDifferentialScaler(differential);
+
         // Register keyword to scaler channel
         fName_Map[keyword] = index;
         fSubbank_Map[subbank].at(modnum).at(channum) = index;

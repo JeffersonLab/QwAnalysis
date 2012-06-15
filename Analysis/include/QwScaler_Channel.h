@@ -59,7 +59,8 @@ public:
     //fNormChannelPtr(source.fNormChannelPtr);
     fClockNormalization(source.fClockNormalization),
     fNormChannelName(source.fNormChannelName),
-    fNeedsExternalClock(source.fNeedsExternalClock)
+    fNeedsExternalClock(source.fNeedsExternalClock),
+    fIsDifferentialScaler(source.fIsDifferentialScaler)
   { }
   virtual ~VQwScaler_Channel() { };
 
@@ -171,6 +172,10 @@ public:
   virtual void SetExternalClockPtr( const VQwHardwareChannel* clock) { fNormChannelPtr = clock; };
   virtual void SetExternalClockName( const std::string name) { fNormChannelName = name; };
 
+  // Differential scalers automatically subtract the previous value
+  virtual Bool_t IsDifferentialScaler() { return fIsDifferentialScaler; };
+  virtual void SetDifferentialScaler(Bool_t diff) { fIsDifferentialScaler = diff; };
+
   void ScaledAdd(Double_t scale, const VQwHardwareChannel *value);
 
 protected:
@@ -179,6 +184,7 @@ protected:
 protected:
   static const Bool_t kDEBUG;
 
+  UInt_t   fValue_Raw_Old;
   UInt_t   fValue_Raw;
   Double_t fValue;
   Double_t fValueM2;
@@ -186,7 +192,9 @@ protected:
   const VQwHardwareChannel *fNormChannelPtr;
   Double_t fClockNormalization;
   std::string fNormChannelName;
+
   Bool_t fNeedsExternalClock;
+  Bool_t fIsDifferentialScaler;
 
 
   Int_t fNumEvtsWithHWErrors;//counts the HW failed events
