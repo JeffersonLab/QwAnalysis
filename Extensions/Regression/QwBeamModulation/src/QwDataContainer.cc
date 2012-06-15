@@ -85,9 +85,9 @@ void QwDataContainer::GetOptions(Char_t **options)
       fOptions.push_back(options[i + 1]);
       std::string option (fOptions[i + 1].Data());
       index = option.find_first_of(":", 1);
-//       fMysqlRunLower = atoi(option.substr(index - 5, 5).c_str());
+      fMysqlRunLower = atoi(option.substr(index - 5, 5).c_str());
       std::cout << "Index:\t" << index << std::endl;
-      fMysqlRunLower = atoi(option.substr(0, index - 1).c_str());
+      //      fMysqlRunLower = atoi(option.substr(0, index).c_str());
       fMysqlRunUpper = atoi(option.substr(index + 1, 5).c_str());
       fRunRange = true;
     }
@@ -250,12 +250,12 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("sens", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' and md_slope_view.run_number > %i && md_slope_view.run_number < %i", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' md_slope_view.run_number > %i && md_slope_view.run_number < %i order by md_slope_view.run_number, md_slope_view.slope", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("sens_all", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id and md_slope_view.run_number > %i && md_slope_view.run_number < %i", fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id and md_slope_view.run_number > %i && md_slope_view.run_number < %i order by md_slope_view.run_number, md_slope_view.slope", fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("corrected", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
@@ -277,7 +277,7 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("position", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 1;
-    fMysqlQuery = Form("select run_number, value, error, segment_number from beam_view,  slow_controls_settings where  beam_view.runlet_id=slow_controls_settings.runlet_id and target_position  = 'HYDROGEN-CELL' and slope_correction = 'off' and slope_calculation =  'off' and beam_mode = 'nbm' and good_for_id = '1,3' and run_quality_id =  '1' and measurement_type = 'd' and monitor = '%s' and slow_controls_settings.slow_helicity_plate = '%s' and subblock  = 0 and run_number > %i and run_number < %i", fMysqlMon.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select run_number, value, error, segment_number from beam_view,  slow_controls_settings where  beam_view.runlet_id=slow_controls_settings.runlet_id and target_position  = 'HYDROGEN-CELL' and slope_correction = 'off' and slope_calculation =  'off' and beam_mode = 'nbm' and good_for_id = '1,3' and run_quality_id =  '1' and measurement_type = 'd' and monitor = '%s' and slow_controls_settings.slow_helicity_plate = '%s' and subblock  = 0 and run_number > %i and run_number < %i order by run_number", fMysqlMon.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
 
   }
 
@@ -352,6 +352,8 @@ void QwDataContainer::FillDataVector(TString type)
 {
   Int_t mod = 0;
   Int_t index = 0;
+  //  Int_t key[] = {2, 0, 1, 3, 4};
+
   
   Double_t fConvFactor[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
 
@@ -365,6 +367,9 @@ void QwDataContainer::FillDataVector(TString type)
 	}
       fRunNumber[index] = dbase.result[i][0];
       fSensitivity[mod][index] = fConvFactor[mod]*dbase.result[i][1];
+//       std::cout << "run#:\t"   << dbase.result[i][0] 
+// 		<< "\tsens:\t" << dbase.result[i][1] 
+// 		<< "\t" << mod << "\t" << i << std::endl;
       mod++;
     }
   }

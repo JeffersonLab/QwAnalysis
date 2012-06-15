@@ -17,8 +17,8 @@ QwModulation::QwModulation(TChain *tree):
   fReduceMatrix_x(0), fReduceMatrix_y(0), fReduceMatrix_xp(0),
   fReduceMatrix_yp(0), fReduceMatrix_e(0), fSensHumanReadable(0),
   fNModType(5), fXNevents(0), fXPNevents(0), fENevents(0), 
-  fYNevents(0), fYPNevents(0),fXinit(false), fYinit(false), 
-  fEinit(false), fXPinit(false), fYPinit(false), fSingleCoil(false) 
+  fYNevents(0), fYPNevents(0),fCurrentCut(40),fXinit(false), fYinit(false), 
+  fEinit(false), fXPinit(false), fYPinit(false), fSingleCoil(false)
 {
    Init(tree);
 }
@@ -106,6 +106,11 @@ void QwModulation::GetOptions(Char_t **options){
 	fCharge = false;
       }
     }
+    if(flag.CompareTo("--current-cut", TString::kExact) == 0){
+      flag.Clear();
+      fCurrentCut = atoi(options[i + 1]);
+      std::cout << other << "Setting current-cut to:\t" << fCurrentCut << normal << std::endl;
+    }
     if(flag.CompareTo("--help", TString::kExact) == 0){
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
       printf("Usage: ./qwbeammod <run_number> <options>");
@@ -116,6 +121,11 @@ void QwModulation::GetOptions(Char_t **options){
     }        
     i++;
   }
+}
+
+Int_t QwModulation::GetCurrentCut()
+{
+  return(fCurrentCut);
 }
 void QwModulation::SetupMpsBranchAddress()
 {
@@ -274,6 +284,10 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
       code = 1;
     }
 
+    if(qwk_charge_hw_sum < fCurrentCut){
+      code = 1;
+    }
+
     if( !((subblock > -50) && (subblock < 50)) )
       code = 1;
     if( (ramp_hw_sum > 0) && ((UInt_t)ErrorFlag != 0x4018080)  ){
@@ -321,7 +335,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
     if( (UInt_t)ErrorFlag != 0)
       code = 1;
 
-    if(yield_qwk_charge_hw_sum < 40){
+    if(yield_qwk_charge_hw_sum < fCurrentCut){
       code = 1;
     }
 
@@ -1042,10 +1056,7 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor)
 
   char *token;
 
-  //  Specifically open the file for INPUT only (note that the
-  //  default behavior of "open" is to request both IN and OUT 
-  //  access.
-  config.open("config/setup.config", std::ios_base::in);
+  config.open("config/setup.config");
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
     exit(1);
