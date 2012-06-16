@@ -71,6 +71,9 @@
 <p><center><img src="Residual_%%RUNNUM%%_Residual_Package_1.png"></center></p>
 <p><center><img src="Residual_%%RUNNUM%%_Residual_Package_2.png"></center></p>
 <p><center><img src="Residual_%%RUNNUM%%_Residual_Both_Packages.png"></center></p>
+<p><center><img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_1.png"> <img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_2.png"></center></p>
+
+
 <p><center><a href="Residual_%%RUNNUM%%_Residual.txt">Residual Values</a></center></p>
 
 <a name="hdc"></a>
@@ -78,14 +81,27 @@
 <p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png"></center></p>
 <p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_2.png"></center></p>
 
-<a name="vdc"></a>
+<a name="QwHits"></a>
+<center><h2>QwHits plots</h2></center>
+<p><center><img src="QwHitsInfo_%%RUNNUM%%_Region.png"></center></p>
+<p><center><img src="QwHitsInfo_%%RUNNUM%%_Package.png"></center></p>
+<p><center><img src="QwHitsInfo_%%RUNNUM%%_Direction.png"></center></p>
+<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_2.png"></center></p>
+<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_3.png"></center></p>
+<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_4.png"></center></p>
+<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_5.png"></center></p>
+
+<a name="OctantDetermination"></a>
+<center><h2>Octant Determination Plots</h2></center>
+<p><center><img src="OctantDetermination_%%RUNNUM%%_Main_Detector_vs_Trigger_Scint_Package_1.png"> <img 
+src="OctantDetermination_%%RUNNUM%%_Main_Detector_vs_Trigger_Scint_Package_2.png"></center></p>
+<p><center><img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Package_1.png"> <img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Package_2.png"></center></p>
+
+<a name="vdc"></a1>
 <center><h2>Vertical Drift Chamber Plots</h2></center>
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_package1.png"></center></p>
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_package2.png"></center></p>
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_ambig_package1.png"></center></p>
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_ambig_package2.png"></center></p>
-<p><center><img src="auto_vdc_%%RUNNUM%%_planes_hits.png"></center></p>
-<p><center><img src="auto_vdc_%%RUNNUM%%_planes_hit_ambigious.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_wires_package1.png"> <img src="auto_vdc_%%RUNNUM%%_wires_package2.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_wires_ambig_package1.png"> <img src="auto_vdc_%%RUNNUM%%_wires_ambig_package2.png"></center></p>
+<p><center><img src="auto_vdc_%%RUNNUM%%_planes_hits.png"> <img src="auto_vdc_%%RUNNUM%%_planes_hit_ambigious.png"></center></p>
 <p><center><img src="auto_vdc_%%RUNNUM%%_hit_number.png"></center></p>
 
 <a name="ts"></a>
