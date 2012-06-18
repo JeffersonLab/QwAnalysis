@@ -336,7 +336,7 @@ Int_t QwDiagnostic::ReadConfig(QwDiagnostic *meteor)
   char normal[] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
 
-  config.open("config/setup.config");
+  config.open("config/setup.config", std::ios_base::in);
 
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
