@@ -878,13 +878,13 @@ void  QwTriggerScintillator::ProcessEvent()
 void QwTriggerScintillator::DefineOptions ( QwOptions& options )
 {
   options.AddOptions()("enable-ts-software-meantime",
-		       po::value<Bool_t>()->default_bool_value(false),
+		       po::value<Bool_t>()->default_bool_value(true),
 		       "Create Software meantime for TS in QwHits" 
 		       );
   options.AddOptions()("set-ts-software-meantime-timewindow",
-		       po::value<Double_t>()->default_value(2000.0),
+		       po::value<Double_t>()->default_value(20.0),
 		       "TimeWindow (ns) for TS Software meantime"
-		       );
+		       );//max window is 2000 ns
   return;
 };
 

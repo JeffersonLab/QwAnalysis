@@ -974,13 +974,13 @@ void  QwMainDetector::ProcessEvent()
 void QwMainDetector::DefineOptions ( QwOptions& options )
 {
   options.AddOptions()("enable-md-software-meantime",
-		       po::value<Bool_t>()->default_bool_value(false),
+		       po::value<Bool_t>()->default_bool_value(true),
 		       "Create Software meantime for MD in QwHits" 
 		       );
   options.AddOptions()("set-md-software-meantime-timewindow",
-		       po::value<Double_t>()->default_value(2000.0),
+		       po::value<Double_t>()->default_value(50.0),
 		       "TimeWindow (ns) for MD Software meantime"
-		       );
+		       );//max window is 2000 ns
 
   return;
 };
