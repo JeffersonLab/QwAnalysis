@@ -98,6 +98,7 @@ treenode::~treenode()
  * Print the entire tree (descending all the way down)
  * \warning This will produce a lot of screen output!
  *
+ * @param recursive Flag to enable recursive calls
  * @param indent Indentation level (for recursive calls)
  */
 void treenode::Print(bool recursive, int indent)

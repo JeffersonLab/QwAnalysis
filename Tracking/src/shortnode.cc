@@ -61,7 +61,8 @@ shorttree* shortnode::GetTree(int i) const
 
 /**
  * Print some debugging information
- * @param indent Indentation level
+ * @param recursive Flag to enable recursive calls
+ * @param indent Indentation level (for recursive calls)
  */
 void shortnode::Print(bool recursive, int indent)
 {

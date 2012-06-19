@@ -15,10 +15,10 @@
  *  \date   Tuesday, September 14 23:04:36 EDT 2010
  */
 
-ClassImp(QwF1TDC)
-ClassImp(QwF1TDContainer)
-ClassImp(F1TDCReferenceSignal)
-ClassImp(F1TDCReferenceContainer)
+ClassImp(QwF1TDC);
+ClassImp(QwF1TDContainer);
+ClassImp(F1TDCReferenceSignal);
+ClassImp(F1TDCReferenceContainer);
 
 //
 //

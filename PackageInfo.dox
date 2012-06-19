@@ -17,9 +17,7 @@
 
     The Qweak analyzer framework consists of several components:
     - \ref QwAnalysis includes general analysis classes used by all packages listed below.
-    - \ref QwAnalysis_BL includes beamline instrumentation analysis classes.
-    - \ref QwAnalysis_ADC currently includes classes for all instrumentation
-           parity analysis, except beamline instrumentation.
+    - \ref QwParity includes all instrumentation classes for parity analysis.
     - \ref QwTracking includes all classes for tracking analysis.
     - \ref QwGUIMain includes all classes for the analysis GUI front-end.
 
@@ -37,7 +35,7 @@
     This global inheritance structure is represented in the following graph:
     \dot
     digraph example {
-      node [shape=round, fontname=Helvetica, fontsize=10];
+      node [shape=box, fontname=Helvetica, fontsize=10];
       VQwSubsystem [ label="VQwSubsystem" URL="\ref VQwSubsystem"];
       VQwSubsystemParity [ label="VQwSubsystemParity" URL="\ref VQwSubsystemParity"];
       VQwSubsystemTracking [ label="VQwSubsystemTracking" URL="\ref VQwSubsystemTracking"];

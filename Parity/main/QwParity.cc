@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwAnalysis.cc
+ \file QwParity.cc
 
  \brief main(...) function for the qwanalysis executable
 

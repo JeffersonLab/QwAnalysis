@@ -7,8 +7,8 @@
 
 #include "QwSoftwareMeantime.h"
 
-ClassImp(MeanTime)
-ClassImp(MeanTimeContainer)
+ClassImp(MeanTime);
+ClassImp(MeanTimeContainer);
 
 
 const Int_t MeanTime::fSoftwareMeantimeHitElementID = 3;

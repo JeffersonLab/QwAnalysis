@@ -1201,8 +1201,8 @@ void QwVQWK_Channel::DivideBy(const QwVQWK_Channel &denom)
  *
  * In the following formulas the moments \f$ M^1 \f$ and \f$ M^2 \f$ are defined
  * \f{eqnarray}
- *     M^1 & = & \frac{1}{n} \Sum^n y \\
- *     M^2 & = & \Sum^n (y - \mu)
+ *     M^1 & = & \frac{1}{n} \sum^n y \\
+ *     M^2 & = & \sum^n (y - \mu)
  * \f}
  *
  * Recurrence relations for the addition of a single event:

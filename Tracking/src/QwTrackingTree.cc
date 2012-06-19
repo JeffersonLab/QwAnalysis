@@ -130,11 +130,8 @@ void QwTrackingTree::PrintHashTable() const
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*------------------------------------------------------------------------*//*!
-
- \class QwTrackingTree
-
- \fn QwTrackingTree()
 
  \brief Initializes the search tree.
 
@@ -143,7 +140,6 @@ void QwTrackingTree::PrintHashTable() const
     for each case.
 
 *//*-------------------------------------------------------------------------*/
-
 QwTrackingTree::QwTrackingTree(unsigned int numlayers)
 : fNumPlanes(fNumLayers),fNumWires(fNumLayers)
 {
