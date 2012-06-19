@@ -203,14 +203,14 @@ void QwDataContainer::ScaleTGraph(TGraphErrors *tgraph)
   if(tgraph == NULL) return;
 
   if( max < 0){
-    max -= 0.6*max;
+    max -= 1.5*max;
   } else{
-    max += 0.6*max;
+    max += 1.5*max;
   }   
   if( min < 0){
-    min += 0.6*min;
+    min += 1.5*min;
   } else{
-    min -= 0.6*min;
+    min -= 1.5*min;
   }   
   tgraph->GetYaxis()->SetRangeUser(min, max);
   return;
@@ -250,40 +250,40 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("sens", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' md_slope_view.run_number > %i && md_slope_view.run_number < %i order by md_slope_view.run_number, md_slope_view.slope", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.run_quality_id != 4 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' md_slope_view.run_number > %i && md_slope_view.run_number < %i ", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("sens_all", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id and md_slope_view.run_number > %i && md_slope_view.run_number < %i order by md_slope_view.run_number, md_slope_view.slope", fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.run_quality_id != 4 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id and md_slope_view.run_number > %i && md_slope_view.run_number < %i", fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("corrected", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
     fNumberMonitor = 1;
-    fMysqlQuery = Form("select md_data_view.run_number,value,error,n from analysis,md_data_view, slow_controls_settings, runlet as runlet0 where md_data_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_data_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_data_view.run_quality_id=1 and md_data_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' and md_data_view.run_number > %i && md_data_view.run_number < %i and error != 0", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_data_view.run_number,value,error,n from analysis,md_data_view, slow_controls_settings, runlet as runlet0 where md_data_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_data_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_data_view.run_quality_id=1 and md_slope_view.run_quality_id != 4 and md_data_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' and md_data_view.run_number > %i && md_data_view.run_number < %i and error != 0", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("uncorrected", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
     fNumberMonitor = 1;
-    fMysqlQuery = Form("select run_number, value, error, n, segment_number from md_data_view, slow_controls_settings where md_data_view.runlet_id = slow_controls_settings.runlet_id and good_for_id = '1,3' and run_quality_id = '1' and beam_mode = 'nbm' and slope_calculation = 'off' and slope_correction ='off' and detector = '%s' and slow_helicity_plate = '%s' and target_position ='HYDROGEN-CELL'  and subblock = 0 and measurement_type ='a' and run_number > %i and run_number < %i and error != 0", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select run_number, value, error, n, segment_number from md_data_view, slow_controls_settings where md_data_view.runlet_id = slow_controls_settings.runlet_id and good_for_id = '1,3' and run_quality_id = '1' and md_slope_view.run_quality_id != 4 and beam_mode = 'nbm' and slope_calculation = 'off' and slope_correction ='off' and detector = '%s' and slow_helicity_plate = '%s' and target_position ='HYDROGEN-CELL'  and subblock = 0 and measurement_type ='a' and run_number > %i and run_number < %i and error != 0", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("runs", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
     fNumberMonitor = 1;
-    fMysqlQuery = Form("select distinct(run_number)from analysis,md_slope_view, slow_controls_settings where analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and run_quality_id=1 and good_for_id='1,3' and slow_controls_settings.slow_helicity_plate = '%s' and run_number > %i and run_number < %i", fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select distinct(run_number)from analysis,md_slope_view, slow_controls_settings where analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and run_quality_id=1 and md_slope_view.run_quality_id != 4 and good_for_id='1,3' and slow_controls_settings.slow_helicity_plate = '%s' and run_number > %i and run_number < %i", fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
 
   }
 
   if(type.CompareTo("position", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 1;
-    fMysqlQuery = Form("select run_number, value, error, segment_number from beam_view,  slow_controls_settings where  beam_view.runlet_id=slow_controls_settings.runlet_id and target_position  = 'HYDROGEN-CELL' and slope_correction = 'off' and slope_calculation =  'off' and beam_mode = 'nbm' and good_for_id = '1,3' and run_quality_id =  '1' and measurement_type = 'd' and monitor = '%s' and slow_controls_settings.slow_helicity_plate = '%s' and subblock  = 0 and run_number > %i and run_number < %i order by run_number", fMysqlMon.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select run_number, value, error, segment_number from beam_view,  slow_controls_settings where  beam_view.runlet_id=slow_controls_settings.runlet_id and target_position  = 'HYDROGEN-CELL' and slope_correction = 'off' and slope_calculation =  'off' and beam_mode = 'nbm' and good_for_id = '1,3' and run_quality_id =  '1' and md_slope_view.run_quality_id != 4 and measurement_type = 'd' and monitor = '%s' and slow_controls_settings.slow_helicity_plate = '%s' and subblock  = 0 and run_number > %i and run_number < %i order by run_number", fMysqlMon.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
 
   }
 
-  fMysqlQuery = SetBlackList(fMysqlQuery, type);
+  //  fMysqlQuery = SetBlackList(fMysqlQuery, type);
 
-  //  std::cout << "Query:\t" << fMysqlQuery << std::endl;
+  std::cout << "Query:\t" << fMysqlQuery << std::endl;
 
   return(fMysqlQuery);
 
@@ -297,12 +297,14 @@ TString QwDataContainer::SetBlackList(TString q_string, TString type)
     for(Int_t i = 0; i < (Int_t)fBlackList.size(); i++){
       q_string += Form(" && md_slope_view.run_number != %i", fBlackList[i]);
     }
+    q_string += " order by md_slope_view.run_number, md_slope_view.slope";
   }
   if(type.CompareTo("sens_all", TString::kExact) == 0){
 
     for(Int_t i = 0; i < (Int_t)fBlackList.size(); i++){
       q_string += Form(" && md_slope_view.run_number != %i", fBlackList[i]);
     }
+    q_string += " order by md_slope_view.run_number, md_slope_view.slope";
   }
   if(type.CompareTo("corrected", TString::kExact) == 0){
     
@@ -355,7 +357,8 @@ void QwDataContainer::FillDataVector(TString type)
   //  Int_t key[] = {2, 0, 1, 3, 4};
 
   
-  Double_t fConvFactor[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
+//   Double_t fConvFactor[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
+  Double_t fConvFactor[5] = {1.e6, 1.e6, 1., 1.e6, 1.};
 
   std::cout << "Filling data vector" << std::endl;
 
@@ -697,7 +700,7 @@ void QwDataContainer::PlotSensitivities()
   sense->GetXaxis()->SetTitleOffset(1.5);
   sense->GetYaxis()->SetTitleOffset(1.5);
   //  ScaleTGraph(sense);
-  //  sense->GetYaxis()->SetRangeUser(-20., 0.);
+  sense->GetYaxis()->SetRangeUser(-10., 0.);
   sense->Draw("AP");
   sense->Fit("line0", "");
 

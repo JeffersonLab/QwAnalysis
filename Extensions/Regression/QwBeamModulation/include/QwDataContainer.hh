@@ -26,7 +26,8 @@ private:
 
 public:
 
-  enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
+//   enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
+  enum variable_t {var_e, var_x, var_xp, var_y, var_yp};
   enum quality_t {raw, corr};
 
   std::vector <TVectorD> fSensitivity;
