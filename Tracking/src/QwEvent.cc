@@ -112,16 +112,10 @@ QwEvent::~QwEvent()
   
   // Loop over all allocated objects
   for (int i = 0; i < kNumPackages; ++i) {
+
     // Delete all those tracks
+    delete track[i];
     
-    QwTrack* t = track[i];
-    while (t) {
-      QwTrack* t_next = t->next;
-      delete t;
-      t = t_next;
-    }
-    
-   
     for (int j = 0; j < kNumRegions; ++j) {
       
       for (int k = 0; k < kNumTypes; ++k) {
@@ -171,21 +165,13 @@ void QwEvent::Reset(Option_t *option)
   ResetTracks(option);
 }
 
-void QwEvent::AddBridgingResult(double* buffer)
+void QwEvent::AddBridgingResult(const QwTrack* track)
 {
-    fPrimaryQ2 = buffer[12];
-    fKineticEnergy = buffer[10];
-    fScatteringAngle = buffer[13];
-    fScatteringVertexZ = buffer[14];
-
-}
-
-void QwEvent::AddBridgingResult(QwTrack* qwtrack){
-  fPrimaryQ2 = qwtrack->fQ2;
-  fKineticEnergy = qwtrack->fMomentum;
-  fTotalEnergy = qwtrack->fTotalEnergy;
-  fScatteringAngle=qwtrack->fScatteringAngle;
-  fScatteringVertexZ = qwtrack->fVertexZ;
+  fPrimaryQ2 = track->fQ2;
+  fKineticEnergy = track->fMomentum;
+  fTotalEnergy = track->fTotalEnergy;
+  fScatteringAngle=track->fScatteringAngle;
+  fScatteringVertexZ = track->fVertexZ;
 }
 
 // Print the event
@@ -227,7 +213,7 @@ QwHit* QwEvent::CreateNewHit()
 }
 
 // Add an existing QwHit
-void QwEvent::AddHit(QwHit* hit)
+void QwEvent::AddHit(const QwHit* hit)
 {
   #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
     QwHit* newhit = CreateNewHit();
@@ -293,11 +279,11 @@ void QwEvent::PrintHits(Option_t* option) const
 
 
 // Add the hits of a QwHitContainer to the TClonesArray
-void QwEvent::AddHitContainer(QwHitContainer* hitlist)
+void QwEvent::AddHitContainer(const QwHitContainer* hitlist)
 {
-  for (QwHitContainer::iterator hit = hitlist->begin();
+  for (QwHitContainer::const_iterator hit = hitlist->begin();
        hit != hitlist->end(); hit++) {
-    QwHit* p = &(*hit);
+    const QwHit* p = &(*hit);
     AddHit(p);
   }
 }
@@ -335,7 +321,7 @@ QwTrackingTreeLine* QwEvent::CreateNewTreeLine()
 }
 
 // Add an existing QwTreeLine
-void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
+void QwEvent::AddTreeLine(const QwTrackingTreeLine* treeline)
 {
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
     QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
@@ -349,9 +335,9 @@ void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
 }
 
 // Add a linked list of QwTreeLine's
-void QwEvent::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+void QwEvent::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
 {
-  for (QwTrackingTreeLine *treeline = treelinelist;
+  for (const QwTrackingTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next){
     if (treeline->IsValid()){
        AddTreeLine(treeline);
@@ -439,7 +425,7 @@ QwPartialTrack* QwEvent::CreateNewPartialTrack()
 }
 
 // Add an existing QwPartialTrack
-void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
+void QwEvent::AddPartialTrack(const QwPartialTrack* partialtrack)
 {
   #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
     QwPartialTrack* newpartialtrack = CreateNewPartialTrack();
@@ -453,9 +439,9 @@ void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
 }
 
 // Add a linked list of QwPartialTrack's
-void QwEvent::AddPartialTrackList(QwPartialTrack* partialtracklist)
+void QwEvent::AddPartialTrackList(const QwPartialTrack* partialtracklist)
 {
-  for (QwPartialTrack *partialtrack = partialtracklist;
+  for (const QwPartialTrack *partialtrack = partialtracklist;
          partialtrack; partialtrack =  partialtrack->next){
     if (partialtrack->IsValid())
       AddPartialTrack(partialtrack);
@@ -536,7 +522,7 @@ QwTrack* QwEvent::CreateNewTrack()
 }
 
 // Add an existing QwTrack
-void QwEvent::AddTrack(QwTrack* track)
+void QwEvent::AddTrack(const QwTrack* track)
 {
   #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
     QwTrack* newtrack = CreateNewTrack();
@@ -545,15 +531,6 @@ void QwEvent::AddTrack(QwTrack* track)
     fQwTracks.push_back(new QwTrack(track));
   #endif
   ++fNQwTracks;
-}
-
-// Add a linked list of QwTrack's
-void QwEvent::AddTrackList(QwTrack* tracklist)
-{
-  for (QwTrack *track = tracklist;
-         track; track =  track->next)
-    //if (track->IsValid()) // TODO
-      AddTrack(track);
 }
 
 // Add a vector of QwTracks

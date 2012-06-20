@@ -245,13 +245,13 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new hit
     QwHit* CreateNewHit();
     //! \brief Add an existing hit as a copy
-    void AddHit(QwHit* hit);
+    void AddHit(const QwHit* hit);
     //! \brief Clear the list of hits
     void ClearHits(Option_t *option = "");
     //! \brief Reset the list of hits
     void ResetHits(Option_t *option = "");
     //! \brief Add the hits in a hit container as a copy
-    void AddHitContainer(QwHitContainer* hitlist);
+    void AddHitContainer(const QwHitContainer* hitlist);
     //! \brief Get the list of hits as a hit container
     QwHitContainer* GetHitContainer();
     //! \brief Get the number of hits
@@ -274,9 +274,9 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new tree line
     QwTrackingTreeLine* CreateNewTreeLine();
     //! \brief Add an existing tree line as a copy
-    void AddTreeLine(QwTrackingTreeLine* treeline);
+    void AddTreeLine(const QwTrackingTreeLine* treeline);
     //! \brief Add a list of existing tree lines as a copy
-    void AddTreeLineList(QwTrackingTreeLine* treelinelist);
+    void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
     //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
     //! \brief Reset the list of tree lines
@@ -301,9 +301,9 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new partial track
     QwPartialTrack* CreateNewPartialTrack();
     //! \brief Add an existing partial track as a copy
-    void AddPartialTrack(QwPartialTrack* partialtrack);
+    void AddPartialTrack(const QwPartialTrack* partialtrack);
     //! \brief Add a list of existing partial tracks as a copy
-    void AddPartialTrackList(QwPartialTrack* partialtracklist);
+    void AddPartialTrackList(const QwPartialTrack* partialtracklist);
     //! \brief Add a list of existing partial tracks as a copy
     void AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtracklist);
     //! \brief Clear the list of partial tracks
@@ -330,9 +330,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new track
     QwTrack* CreateNewTrack();
     //! \brief Add an existing track as a copy
-    void AddTrack(QwTrack* partialtrack);
-    //! \brief Add a list of existing tracks as a copy
-    void AddTrackList(QwTrack* partialtracklist);
+    void AddTrack(const QwTrack* track);
     //! \brief Add a list of existing partial tracks as a copy
     void AddTrackList(const std::vector<QwTrack*>& tracklist);
     //! \brief Clear the list of tracks
@@ -354,38 +352,33 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void PrintTracks(Option_t* option = "") const;
     // @}
 
-    void AddBridgingResult(double*);
-
-    void AddBridgingResult(QwTrack*);
+    void AddBridgingResult(const QwTrack* track);
     
     //! \brief Print the event
     void Print(Option_t* option = "") const;
     
-    Double_t GetPrimaryQ2()            const { return fPrimaryQ2;};
-    Double_t GetCrossSectionWeight()   const { return fCrossSectionWeight;};
-    Double_t GetTotalEnergy()          const { return fTotalEnergy;};
-    Double_t GetKineticEnergy()        const { return fKineticEnergy;};
-    const TVector3 GetVertexPosition() const { return fVertexPosition;};
-    const TVector3 GetVertexMomentum() const { return fVertexMomentum;};
-    Double_t GetScatteringAngle()      const { return fScatteringAngle;};
-    Double_t GetScatteringVertexZ()    const { return fScatteringVertexZ;};
+    Double_t GetPrimaryQ2()             const { return fPrimaryQ2;};
+    Double_t GetCrossSectionWeight()    const { return fCrossSectionWeight;};
+    Double_t GetTotalEnergy()           const { return fTotalEnergy;};
+    Double_t GetKineticEnergy()         const { return fKineticEnergy;};
+    const TVector3& GetVertexPosition() const { return fVertexPosition;};
+    const TVector3& GetVertexMomentum() const { return fVertexMomentum;};
+    Double_t GetScatteringAngle()       const { return fScatteringAngle;};
+    Double_t GetScatteringVertexZ()     const { return fScatteringVertexZ;};
 
   public:
 
     /// \name Kinematic observables
     // @{
     double fPrimaryQ2;		///< Momentum transfer Q^2
-    double fCrossSectionWeight;
-    double fTotalEnergy;
-    double fKineticEnergy;
-    TVector3 fVertexPosition;
-    TVector3 fVertexMomentum;
-    double fScatteringAngle;
-    double fScatteringVertexZ;
+    double fCrossSectionWeight; ///< Cross section
+    double fTotalEnergy;        ///< Total energy
+    double fKineticEnergy;      ///< Kinetic energy
+    TVector3 fVertexPosition;   ///< Vertex position
+    TVector3 fVertexMomentum;   ///< Vertex momentum
+    double fScatteringAngle;    ///< Scattering angle
+    double fScatteringVertexZ;  ///< Scattering vertex z position
     // @}
-
-    /*! List of QwGEMCluster objects */
-    //    std::vector<QwGEMCluster*> fGEMClusters; //!
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
     QwTrackingTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
@@ -399,7 +392,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     /*! list of vertices in this event */
     //std::vector< QwVertex* > vertex; //!
 
-  ClassDef(QwEvent,1);
+  ClassDef(QwEvent,2);
 
 }; // class QwEvent
 
