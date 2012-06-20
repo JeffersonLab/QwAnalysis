@@ -99,8 +99,8 @@ mkdir -p ${LOGDIR}
 ## Create the web directory
 mkdir -p ${WEBDIR}/run_$RUNNUM
 
-ROOTFILE=`ls ${QW_ROOTFILES}/Qweak_$RUNNUM.*root`
-if [  -f $ROOTFILE ]
+ROOTFILE=`ls ${QW_ROOTFILES}/Qweak_$RUNNUM.*root | head -n 1`
+if [ -f $ROOTFILE ]
 then
     ROOTDATE=$(stat -c %y $ROOTFILE | cut -f1 -d".")
 fi
@@ -124,15 +124,14 @@ sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|g" $RUNPAGE
 
 ## Make links to other runs
 PREVRUN=$RUNNUM
-let "PREVRUN -= 1"
-PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
-PREVRUNLINK=run_$PREVRUN/run_$PREVRUN.html
+PREVRUNPAGE=$WEBDIR/not_there
 until [ -f $PREVRUNPAGE -o $PREVRUN -lt 1 ]
 do
     let "PREVRUN -= 1"
     PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
+    PREVRUNLINK=run_$PREVRUN/run_$PREVRUN.html
 done
-if [ $PREVRUN -gt 1 ]
+if [ -f $PREVRUNPAGE ]
 then
     echo "previous run: $PREVRUN $PREVRUNPAGE"
     sed -i -e "s|Previous Run|<a href=\"../$PREVRUNLINK\">Run $PREVRUN</a>|" $RUNPAGE
@@ -142,9 +141,13 @@ then
 fi
 
 NEXTRUN=$RUNNUM
-let "NEXTRUN += 1"
-NEXTRUNPAGE=$WEBDIR/run_$NEXTRUN/run_$NEXTRUN.html
-NEXTRUNLINK=run_$NEXTRUN/run_$NEXTRUN.html
+NEXTRUNPAGE=$WEBDIR/not_there
+until [ -f $NEXTRUNPAGE -o $NEXTRUN -gt 20000 ]
+do
+    let "NEXTRUN += 1"
+    NEXTRUNPAGE=$WEBDIR/run_$NEXTRUN/run_$NEXTRUN.html
+    NEXTRUNLINK=run_$NEXTRUN/run_$NEXTRUN.html
+done
 if [ -f $NEXTRUNPAGE ]
 then
     sed -i -e "s|Previous Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $NEXTRUNPAGE
