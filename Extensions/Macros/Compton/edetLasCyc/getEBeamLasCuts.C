@@ -131,7 +131,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   //print the beam trip cuts
   if(debug) printf("going to write beam cut file\n");
   for(Int_t i=0;i<o;i++) {
-    //if(debug) printf("cutE[%i]=%i\n",i,cutE.at(i));
+    if(debug) printf("cutE[%i]=%i\n",i,cutE.at(i));
     outfileBeam << cutE.at(i) <<endl;
   }
 

@@ -20,10 +20,11 @@ void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
   gROOT->LoadMacro(" fileReadDraw.C+g");
   //gROOT->LoadMacro(" edetLasCyc.C+g");
   if(first100k) return;
-  expAsym(runnum);
 
-  if(!noiseRun) {
+  Int_t asymReturn = expAsym(runnum);
+
+  if(asymReturn!=-1) {
     asymFit(runnum);
     fileReadDraw(runnum);  
-  }
+  } else cout <<"\n***expAsym.C failed so exiting\n"<<endl;
 }

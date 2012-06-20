@@ -7,9 +7,12 @@
 ///True for MCM calibration runs
 Bool_t maskedStrips(Int_t plane,Int_t strip)
 {
-  if(plane==0&&(strip==1)) return kTRUE;//skip masked strip of plane1
+  //if(plane==0&&(strip==1)) return kTRUE;//skip masked strip of plane1
+  if(plane==0&&(strip==5||strip==19)) return kTRUE;//skip masked strip of plane1
   else if(plane==1&&(strip==1||strip==11)) return kTRUE;//skip masked strip of plane2
-  else if(plane==2&&(strip==38||strip==52)) return kTRUE;//skip masked strip of plane3
+  //else if(plane==1&&(strip==5||strip==19)) return kTRUE;//skip masked strip of plane2
+  //else if(plane==2&&(strip==38||strip==52)) return kTRUE;//skip masked strip of plane3
+  else if(plane==2&&(strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
   //else if(plane==2&&(strip==24||strip==33||strip==62)) return kTRUE;//temp...skip these strips of plane3
   else return kFALSE;
 }
@@ -200,3 +203,8 @@ void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some 
  *For strip masking function run # 24519 onwards, I need to add strip 23 to the plane-3 mask
  ******************************/
 
+/*******************
+ *the maskedStrips routine should use the 'true' information
+ *from the subbank written at prestart, rather than this 
+ *current method of masking strips based on eyeballing the hits-spectra
+ *******************/

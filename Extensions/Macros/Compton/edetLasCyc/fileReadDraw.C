@@ -5,7 +5,7 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t asymDiffPlot=0,expAsymPlot=0,yieldPlot=1,asymPlot=0,asymComponents=0;
+  Bool_t asymDiffPlot=0,expAsymPlot=0,yieldPlot=1,asymPlot=0,asymComponents=1;
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
   Bool_t debug=0;//,debug1=0;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
