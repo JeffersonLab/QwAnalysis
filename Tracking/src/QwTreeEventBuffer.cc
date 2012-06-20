@@ -1007,6 +1007,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion1 (
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
   EQwDirectionID direction = detectorinfo->fDirection;
+  int octant = detectorinfo->fOctant;
   int plane = detectorinfo->fPlane;
   double offset = detectorinfo->GetElementOffset();
   double spacing = detectorinfo->GetElementSpacing();
@@ -1049,7 +1050,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion1 (
     if (strip <= 0 || strip > numberofelements) continue;
 
     // Create a new hit
-    QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, strip, 0);
+    QwHit* hit = new QwHit(0,0,0,0, region, package, octant, plane, direction, strip, 0);
     hit->SetDetectorInfo(detectorinfo);
 
     // Add hit to the list for this detector plane and delete local instance
@@ -1090,6 +1091,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
   EQwDirectionID direction = detectorinfo->fDirection;
+  int octant = detectorinfo->fOctant;
   int plane = detectorinfo->fPlane;
 
   // Detector geometry
@@ -1150,7 +1152,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   }
 
   // Create a new hit
-  QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, wire, 0);
+  QwHit* hit = new QwHit(0,0,0,0, region, package, octant, plane, direction, wire, 0);
   hit->SetDetectorInfo(detectorinfo);
   hit->SetDriftDistance(distance);
   hit->SetSpatialResolution(spacing);
@@ -1190,6 +1192,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
   EQwDirectionID direction = detectorinfo->fDirection;
+  int octant = detectorinfo->fOctant;
   int plane = detectorinfo->fPlane;
 
   // Detector geometry: wirespacing, width, central wire
@@ -1270,7 +1273,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
     if (distance > dz/2) continue;
 
     // Create a new hit
-    QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, wire, 0);
+    QwHit* hit = new QwHit(0,0,0,0, region, package, octant, plane, direction, wire, 0);
     hit->SetDriftDistance(distance);
     hit->SetDetectorInfo(detectorinfo);
 
@@ -1300,6 +1303,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
   EQwDirectionID direction = detectorinfo->fDirection;
+  int octant = detectorinfo->fOctant;
   int plane = detectorinfo->fPlane;
 
   // Detector geometry
@@ -1325,7 +1329,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
   yield = static_cast<int>((y_max - y_min) * (x - x_min) / (x_max - x_min) * (x - x_min) / (x_max - x_min) + y_min);
 
   // Create a new hit
-  hit = new QwHit(0,0,0,0, region, package, plane, direction, 1, 0);
+  hit = new QwHit(0,0,0,0, region, package, octant, plane, direction, 1, 0);
   hit->SetDetectorInfo(detectorinfo);
   hit->SetRawTime(yield);
 
@@ -1338,7 +1342,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
   yield = static_cast<int>((y_max - y_min) * (-x - x_min) / (x_max - x_min) * (-x - x_min) / (x_max - x_min) + y_min);
 
   // Create a new hit
-  hit = new QwHit(0,0,0,0, region, package, plane, direction, 2, 0);
+  hit = new QwHit(0,0,0,0, region, package, octant, plane, direction, 2, 0);
   hit->SetDetectorInfo(detectorinfo);
   hit->SetRawTime(yield);
 

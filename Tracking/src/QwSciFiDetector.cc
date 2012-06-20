@@ -901,6 +901,7 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     EQwDetectorPackage package = kPackageNull;
     EQwDirectionID direction   = kDirectionNull;
 
+    Int_t   octant  = 0;
     Int_t   plane   = 0; // fiber number (1357, 2,4,6,8)  for the fibers,  and  99 for the reference channel
     Int_t   element = 0; // fiber orient type (0 (both), 1(a), 2(b)) for the fibers, and  the module index for the reference channel
     TString name         = "";
@@ -917,9 +918,10 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
     element = fDetectorIDs.at(tdcindex).at(chan).fElement;
     package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+    octant  = fDetectorIDs.at(tdcindex).at(chan).fOctant;
     if(local_debug) {
       printf("bank_idx %d, slot %d, plane %d, element %d, package %d\n",
-	     bank_index, slot_num, (Int_t) plane, (Int_t) element, (Int_t) package);
+             bank_index, slot_num, (Int_t) plane, (Int_t) element, (Int_t) package);
     }
 
     if (plane == -1 or element == -1){
@@ -945,12 +947,13 @@ QwSciFiDetector::FillRawTDCWord (Int_t bank_index,
     			       bank_index, 
     			       slot_num, 
     			       chan, 
-    			       hitcnt, 
-    			       kRegionID1, 
-    			       package, 
-    			       plane,
-    			       direction, 
-    			       element, 
+                               hitcnt, 
+                               kRegionID1, 
+                               package, 
+                               octant,
+                               plane,
+                               direction, 
+                               element, 
     			       data
     			       )
     			 );

@@ -478,17 +478,15 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
   if (tdcindex not_eq -1) {
 
     Int_t hitcnt  = 0;
-    Int_t plane   = 0;
-    Int_t wire    = 0;
-    EQwDetectorPackage package = kPackageNull;
     EQwDirectionID direction   = kDirectionNull;
     
     fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, local_debug);
 
 
-    plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-    wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
-    package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
+    Int_t plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+    Int_t wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
+    EQwDetectorPackage package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
+    Int_t octant  = fTDCPtrs.at(tdcindex).at(chan).fOctant;
 
   
 
@@ -515,12 +513,13 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
 			       bank_index, 
 			       slot_num, 
 			       chan, 
-			       hitcnt, 
-			       kRegionID2, 
-			       package, 
-			       plane,
-			       direction, 
-			       wire, 
+                               hitcnt, 
+                               kRegionID2, 
+                               package, 
+                               octant,
+                               plane,
+                               direction, 
+                               wire, 
 			       data
 			       )
 			 );
@@ -546,14 +545,16 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
 
 
 Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, 
-						const EQwDetectorPackage package, 
-						const Int_t plane, 
-						const Int_t wire)
+                                                const EQwDetectorPackage package, 
+                                                const Int_t octant,
+                                                const Int_t plane, 
+                                                const Int_t wire)
 {
   if (plane == kReferenceChannelPlaneNumber ){
     LinkReferenceChannel(chan, plane, wire);
   } 
   else {
+    fTDCPtrs.at(fCurrentTDCIndex).at(chan).fOctant  = octant;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = package;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = wire;
@@ -701,25 +702,31 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
       //  Break this line into tokens to process it.
       chan    = mapstr.GetTypedNextToken<Int_t>();
       plane   = mapstr.GetTypedNextToken<Int_t>();
-      //	  wire    = mapstr.GetTypedNextToken<Int_t>();
+      //          wire    = mapstr.GetTypedNextToken<Int_t>();
       name    = mapstr.GetTypedNextToken<TString>();
+
+      Int_t octant = 0;
+      fR2Octant = gQwOptions.GetValue<int>("R2-octant");
+      if (package == kPackageUp)   octant = (fR2Octant + 4) % 8;
+      if (package == kPackageDown) octant =  fR2Octant;
+
       if(local_debug) {
-	printf("chan  %8d plan %4d  wire %12s\n", chan, plane, name.Data());
+        printf("chan  %8d plan %4d  wire %12s\n", chan, plane, name.Data());
       }
       if (plane==kReferenceChannelPlaneNumber) {
 	fF1RefContainer -> AddF1TDCReferenceSignal(new F1TDCReferenceSignal(fCurrentBankIndex, fCurrentSlot, chan, name));
 
-	if (name=="MasterTrigger" ) {
-	  wire = 0;
-	  BuildWireDataStructure(chan, package, plane, wire);
-	}
+        if (name=="MasterTrigger" ) {
+          wire = 0;
+          BuildWireDataStructure(chan, package, octant, plane, wire);
+        }
       }
       else {
-	wire = name.Atoi();
-	// VDC and HDC
-	BuildWireDataStructure(chan, package, plane, wire);
+        wire = name.Atoi();
+        // VDC and HDC
+        BuildWireDataStructure(chan, package, octant, plane, wire);
       }
-	  
+          
     } 
     else if (DIRMODE==1) {
       //this will decode the wire plane directions - Rakitha
@@ -782,17 +789,14 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 
 void QwDriftChamberHDC::DefineOptions ( QwOptions& options )
 {
-
   options.AddOptions() ("R2-octant",
 			po::value<int>()->default_value(1),
 			"MD Package 2 of R2 is in front of" );
-
 }
 
-void QwDriftChamberHDC::ProcessOptions ( QwOptions& options )
+void QwDriftChamberHDC::ProcessOptions (QwOptions& options)
 {
- 
-  fR2Octant=options.GetValue<int> ( "R2-octant" );
+  fR2Octant = options.GetValue<int>("R2-octant");
 }
 
 void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix)

@@ -70,12 +70,13 @@ QwHit::QwHit(const QwHit* that)
 QwHit::QwHit(Int_t bank_index,
 	     Int_t slot_num,
 	     Int_t chan,
-	     Int_t hitcount,
-	     EQwRegionID region,
-	     EQwDetectorPackage package,
-	     Int_t plane,
-	     EQwDirectionID direction,
-	     Int_t wire,
+             Int_t hitcount,
+             EQwRegionID region,
+             EQwDetectorPackage package,
+             Int_t octant,
+             Int_t plane,
+             EQwDirectionID direction,
+             Int_t wire,
 	     UInt_t rawdata)
 {
   // Initialize
@@ -89,6 +90,7 @@ QwHit::QwHit(Int_t bank_index,
 
   fRegion            = region;
   fPackage           = package;
+  fOctant            = octant;
   fDirection         = direction;
   fPlane             = plane;
   fElement           = wire;
@@ -311,7 +313,7 @@ void QwHit::Print(const Option_t* options) const
 
 const QwDetectorID QwHit::GetDetectorID() const
 {
-  return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
+  return QwDetectorID(fRegion,fPackage,fOctant,fPlane,fDirection,fElement);
 }
 
 

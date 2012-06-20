@@ -467,22 +467,18 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
   if ( tdcindex not_eq -1 )
     {
       Int_t hitCount = 1;
-      Int_t plane    = 0;
-      Int_t wire     = 0;
 
-      // somehow, R3 package is assigned with the very strange way
-      // it was kPackageUp instead of kPackageNull
-      //
-      EQwDetectorPackage package = kPackageNull;
+      /// \todo Should this direction be properly initialized by fTDCPtrs.at(tdcindex).at(chan).fDirection ?
       EQwDirectionID direction   = kDirectionNull;
 
       fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, false);
 
-      plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-      wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
+      Int_t octant  = fTDCPtrs.at(tdcindex).at(chan).fOctant;
+      Int_t plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+      Int_t wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
 
       // And this below line was missing.
-      package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
+      EQwDetectorPackage package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
       // But I did the correct way to assign the correct package in fTDCPtrs
       //  *** Break *** segmentation violation
       // due to FillHistograms()
@@ -538,12 +534,13 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 				     bank_index,
 				     slot_num,
 				     chan,
-				     hitCount,
-				     kRegionID3,
-				     package,
-				     plane,
-				     direction,
-				     wire,
+                                     hitCount,
+                                     kRegionID3,
+                                     package,
+                                     octant,
+                                     plane,
+                                     direction,
+                                     wire,
 				     data
 				     )
 			      );
@@ -557,9 +554,10 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
 
 Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan,
-						  const EQwDetectorPackage package,
-						  const Int_t plane,
-						  const Int_t wire )
+                                                  const EQwDetectorPackage package,
+                                                  const Int_t octant,
+                                                  const Int_t plane,
+                                                  const Int_t wire )
 {
 
   Int_t r3_wire_number_per_plane = 279;
@@ -578,6 +576,7 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan,
   //   }
   // else
   //   {
+  fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fOctant  = octant;
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = package;
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = wire;
@@ -820,7 +819,6 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
   std::vector<Double_t> tmpWindows;
   QwParameterFile mapstr ( mapfile.Data() );
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-  EQwDetectorPackage package = kPackageNull;
   EQwDirectionID   direction = kDirectionNull;
 
   std::string string_a;
@@ -899,29 +897,34 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
       dir      = mapstr.GetTypedNextToken<TString>();
       firstwire= mapstr.GetTypedNextToken<Int_t>();
 
-
+      Int_t octant = 0;
+      EQwDetectorPackage package = kPackageNull;
+      fR3Octant = gQwOptions.GetValue<Int_t>("R3-octant");
       if ( pknum=="u" )
-	{
-	  package=kPackageUp;
-	}
+        {
+          package = kPackageUp;
+          octant  = (fR3Octant + 4) % 8;
+        }
       else if ( pknum=="v" )
-	{
-	  package=kPackageDown;
-	}
+        {
+          package = kPackageDown;
+          octant  = fR3Octant;
+        }
 
-      BuildWireDataStructure ( channum,package,plnum,firstwire );
+      BuildWireDataStructure ( channum,package,octant,plnum,firstwire );
 
       if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == kFALSE )   //if this delay line has not been Filled in the data
-	{
+        {
 	  string_a = mapstr.GetTypedNextToken<std::string>();
 	  while ( string_a.size() !=0 )
 	    {
 	      tmpWindows.push_back ( atof ( string_a.c_str() ) );
-	      string_a = mapstr.GetTypedNextToken<std::string>();
-	    }
+              string_a = mapstr.GetTypedNextToken<std::string>();
+            }
 
-	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage = package;
-	  fDelayLineArray.at ( bpnum ).at ( lnnum ).fPlane   = plnum;
+          fDelayLineArray.at ( bpnum ).at ( lnnum ).fOctant  = octant;
+          fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage = package;
+          fDelayLineArray.at ( bpnum ).at ( lnnum ).fPlane   = plnum;
 
 	  if      ( dir == "u" ) direction = kDirectionU;
 	  else if ( dir == "v" ) direction = kDirectionV;
@@ -984,7 +987,7 @@ void QwDriftChamberVDC::ReadEvent ( TString& eventfile )
       channum = mapstr.GetTypedNextToken<Int_t>();
       signal  = mapstr.GetTypedNextToken<Double_t>();
       //std::cout << "signal is: " << signal << endl;
-      fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,direction,0, ( UInt_t ) signal ) );
+      fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,0,direction,0, ( UInt_t ) signal ) );
     }        //only know TDC information and time value
 
   mapstr.Close(); // Close the file (ifstream)
@@ -1022,12 +1025,6 @@ void QwDriftChamberVDC::ProcessEvent()
 void QwDriftChamberVDC::ClearEventData()
 {
   SetDataLoaded ( kFALSE );
-  QwDetectorID this_det;
-  std::vector<QwHit>::iterator end=fTDCHits.end();
-  for ( std::vector<QwHit>::iterator hit1=fTDCHits.begin();hit1!=end;hit1++ )
-    {
-      this_det = hit1->GetDetectorID();
-    }
 
   fTDCHits.clear();
   fWireHits.clear();
@@ -1421,7 +1418,6 @@ void QwDriftChamberVDC::UpdateHits()
   Int_t    tmpChan    = 0;
   Int_t    tmpbp      = 0;
   Int_t    tmpln      = 0;
-  Int_t    plane      = 0;
   Int_t    wire_hit   = 0;
   Int_t    mycount    = 0;
   
@@ -1462,9 +1458,6 @@ void QwDriftChamberVDC::UpdateHits()
       }
     }
 
-  EQwDetectorPackage package;
-  EQwDirectionID direction;
-
   for ( std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=end;iter++ )
     {
       tmpElectronicsID = iter->GetElectronicsID();
@@ -1479,12 +1472,13 @@ void QwDriftChamberVDC::UpdateHits()
       tmpbp  = fDelayLinePtrs.at ( tmpModule ).at ( tmpChan ).fBackPlane;
       tmpln  = fDelayLinePtrs.at ( tmpModule ).at ( tmpChan ).fLineNumber;
 
-      plane     = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPlane ;
-      package   = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPackage;
-      direction = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fDirection;
+      Int_t plane     = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPlane ;
+      Int_t octant    = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fOctant;
+      EQwDetectorPackage package = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPackage;
+      EQwDirectionID direction = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fDirection;
 
       // QwMessage << "QwDriftChamberVDC::ProcessEvent() :"
-      //  	  << " plane = "  << plane
+      //          << " plane = "  << plane
       //    	  << " direction = " << direction
       //    	  << " package = " << package
       // 	  << " roc = " << tmpROC
@@ -1534,12 +1528,12 @@ void QwDriftChamberVDC::UpdateHits()
 		  if ( tmpCrate==3 ) temp_Chan=tmpChan-channel_offset;
 		  else               temp_Chan=tmpChan;
 
-		  const QwDetectorInfo* local_info = fDetectorInfo.in(package).at(plane-1);
+                  const QwDetectorInfo* local_info = fDetectorInfo.in(package).at(plane-1);
 
-		  QwHit NewQwHit ( tmpCrate, tmpModule, temp_Chan, mycount, kRegionID3, package, plane, direction, wire_hit );
+                  QwHit NewQwHit ( tmpCrate, tmpModule, temp_Chan, mycount, kRegionID3, package, octant, plane, direction, wire_hit );
 
-		  NewQwHit.SetHitNumberR       ( order_R );
-		  NewQwHit.SetDetectorInfo     ( local_info );
+                  NewQwHit.SetHitNumberR       ( order_R );
+                  NewQwHit.SetDetectorInfo     ( local_info );
 		  NewQwHit.SetAmbiguityID      ( tmpAM, j );
 
 		  NewQwHit.SetTime             ( real_time_au );
@@ -1549,12 +1543,9 @@ void QwDriftChamberVDC::UpdateHits()
 
 		  fWireHits.push_back ( NewQwHit );
 		}
-	    }
-	}
+            }
+        }
     }
-
-
-  return;
 }
 
 

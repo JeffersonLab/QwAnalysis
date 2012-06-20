@@ -62,7 +62,7 @@ QwRayTracer::QwRayTracer()
   fBdlx = 0.0;
   fBdly = 0.0;
   fBdlz = 0.0;
-
+  
   fMomentum = 0.0;
   fScatteringAngle = 0.0;
   
@@ -128,8 +128,8 @@ bool QwRayTracer::LoadMagneticFieldMap()
  * @return Zero if successful, non-zero error code if failed
  */
 int QwRayTracer::Bridge(
-			const QwPartialTrack* front,
-			const QwPartialTrack* back)
+    const QwPartialTrack* front,
+    const QwPartialTrack* back)
 {
   // Clear the list of tracks
   ClearListOfTracks();
@@ -148,7 +148,7 @@ int QwRayTracer::Bridge(
 
   // Front track position and direction
   //TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
-  TVector3 start_position = front->GetPosition(-250 * Qw::cm);
+  TVector3 start_position  = front->GetPosition(-250 * Qw::cm);
   fStartPosition = start_position;
   TVector3 start_direction = front->GetMomentumDirection();
   fScatteringAngle = start_direction.Theta();
@@ -158,17 +158,17 @@ int QwRayTracer::Bridge(
 
   // Back track position and direction
   //TVector3 end_position = back->GetPosition(439.625 * Qw::cm);
-  TVector3 end_position = back->GetPosition(250.0 * Qw::cm);
+  TVector3 end_position  = back->GetPosition(250.0 * Qw::cm);
   TVector3 end_direction = back->GetMomentumDirection();
 
-  
+
   fPositionROff = end_position.Perp();
 
   TVector3 position, direction;
   position=start_position;
   direction=start_direction;
   IntegrateRK4(position, direction, p[0], end_position.Z(), step);
-  fPositionROff=position.Perp()-end_position.Perp();
+  fPositionROff = position.Perp() - end_position.Perp();
   int mode=0;
   
   int iterations = 0;
@@ -176,37 +176,37 @@ int QwRayTracer::Bridge(
     ++iterations;
 
     //std::cout << "iter:" << iterations << " fPositonROFF: " << fPositionROff << std::endl;
-    // p0 - dp
-    position = start_position;
-    direction = start_direction;
+      // p0 - dp
+      position = start_position;
+      direction = start_direction;
     if(mode==0){
     IntegrateRK4(position, direction, p[0] - dp, end_position.Z(), step);
-    x[0] = position.X();
-    y[0] = position.Y();
+      x[0] = position.X();
+      y[0] = position.Y();
 
-    // p0 + dp
-    position = start_position;
-    direction = start_direction;
+      // p0 + dp
+      position = start_position;
+      direction = start_direction;
     IntegrateRK4(position, direction, p[0] + dp, end_position.Z(), step);
-    x[1] = position.X();
-    y[1] = position.Y();
-    
-    // Calculate difference
-    r[0] = sqrt(x[0]*x[0] + y[0]*y[0]);
-    r[1] = sqrt(x[1]*x[1] + y[1]*y[1]);
+      x[1] = position.X();
+      y[1] = position.Y();
+
+      // Calculate difference
+      r[0] = sqrt(x[0]*x[0] + y[0]*y[0]);
+      r[1] = sqrt(x[1]*x[1] + y[1]*y[1]);
     }
 
     // Correction p1 = f(p0)
     if (r[0] != r[1]){
-      if(r[1]>end_position.Perp() || r[0]<end_position.Perp()){
-       p[1] = p[0] - dp * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
+      if(r[1] > end_position.Perp() || r[0] < end_position.Perp()){
+        p[1] = p[0] - dp * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
       }
       else{
-	mode=1;
-	if(fPositionROff<0)
-	  p[1]=p[0]-0.001;
-	else
-	  p[1]=p[0]+0.001;
+        mode = 1;
+        if(fPositionROff < 0)
+          p[1] = p[0] - 0.001;
+        else
+          p[1] = p[0] + 0.001;
       }
     }
 
@@ -245,19 +245,19 @@ int QwRayTracer::Bridge(
     /*
     if (fMomentum < 0.980 * Qw::GeV || fMomentum > 1.165 * Qw::GeV) {
       QwMessage << "Out of momentum range: determined momentum by shooting: "
-		<< fMomentum / Qw::GeV << " GeV" << std::endl;
+                << fMomentum / Qw::GeV << " GeV" << std::endl;
       return -1;
     }
-        
+
     if (fabs(fPositionPhiOff) > 10*Qw::deg) {
       QwMessage << "Out of position Phi-matching range: dPhi by shooting: "
-		<< fPositionPhiOff / Qw::deg << " deg" << std::endl;
+                << fPositionPhiOff / Qw::deg << " deg" << std::endl;
       return -1;
     }
-        
+
     if (fabs(fDirectionPhiOff) > 10*Qw::deg) {
       QwMessage << "Out of direction phi-matching range: dphi by shooting: "
-		<< fDirectionPhiOff / Qw::deg << " deg" << std::endl;
+                << fDirectionPhiOff / Qw::deg << " deg" << std::endl;
       return -1;
     }
     */
@@ -277,7 +277,7 @@ int QwRayTracer::Bridge(
     track->fDirectionPhioff = fDirectionPhiOff;
     // let r2 to determine the package
     track->SetPackage(front->GetPackage());
-
+    track->SetOctant(front->GetOctant());
 
     QwBridge* bridge = new QwBridge();
     track->fBridge = bridge;
@@ -336,12 +336,11 @@ int QwRayTracer::Bridge(
  */
 bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, double z_end, double step)
 {
-
-  r0[0]/=Qw::m;
-  r0[1]/=Qw::m;
-  r0[2]/=Qw::m;
-  z_end/=Qw::m;
-  step /=Qw::m;
+  r0[0] /= Qw::m;
+  r0[1] /= Qw::m;
+  r0[2] /= Qw::m;
+  z_end /= Qw::m;
+  step  /= Qw::m;
 
   // Local variables
   double xx[2],yy[2],zz[2];
@@ -407,9 +406,9 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
     vx = vx1 = uvx[0];
     vy = vy1 = uvy[0];
     vz = vz1 = uvz[0];
-    point1[0]=x*Qw::m;
-    point1[1]=y*Qw::m;
-    point1[2]=z*Qw::m;
+    point1[0] = x*Qw::m;
+    point1[1] = y*Qw::m;
+    point1[2] = z*Qw::m;
     fBfield->GetCartesianFieldValue(point1, bfield);
 
     // First approximation to the changes in the variables for step h (k1)
@@ -558,13 +557,13 @@ void QwRayTracer::PrintInfo() {
   std::cout<<" matched hit :    location (x,y,z) : "<<fHitPosition<<std::endl;
 
   std::cout<<"                         (R,PHI,Z) : ("<<fHitPosition.Perp()<<", "
-	   <<fHitPosition.Phi() / Qw::deg<<", "
-	   <<fHitPosition.Z()<<")"<<std::endl;
+           <<fHitPosition.Phi() / Qw::deg<<", "
+           <<fHitPosition.Z()<<")"<<std::endl;
 
   std::cout<<"              direction (ux,uy,uz) : "<<fHitDirection<<std::endl;
 
   std::cout<<"                       (theta,phi) : ("<<fHitDirection.Theta() / Qw::deg<<", "
-	   <<fHitDirection.Phi() / Qw::deg<<")"<<std::endl;
+           <<fHitDirection.Phi() / Qw::deg<<")"<<std::endl;
 
   std::cout<<"       error :            dR, dPHI : "<<fPositionROff<<", "<<fPositionPhiOff/Qw::deg<<" [cm,deg]"<<std::endl;
   std::cout<<"                      dtheta, dphi : "<<fDirectionThetaOff/Qw::deg<<", "<<fDirectionPhiOff/Qw::deg<<" [deg,deg]"<<std::endl;
