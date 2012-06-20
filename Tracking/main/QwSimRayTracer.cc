@@ -62,7 +62,7 @@ int main (int argc, char* argv[])
   QwBridgingTrackFilter* trackfilter = new QwBridgingTrackFilter();
 
   /// Create a lookup table bridging method
-  QwMatrixLookup* matrixlookup = new QwMatrixLookup();
+  QwMatrixLookup* matrixlookup = new QwMatrixLookup(gQwOptions);
   // Determine lookup table file from environment variables
   std::string trajmatrix = "";
   if (getenv("QW_LOOKUP"))
@@ -74,7 +74,7 @@ int main (int argc, char* argv[])
     QwError << "Could not load trajectory lookup table!" << QwLog::endl;
 
   /// Create a ray tracer bridging method
-  QwRayTracer* raytracer = new QwRayTracer();
+  QwRayTracer* raytracer = new QwRayTracer(gQwOptions);
 
   /// Load the simulated event file
   QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);

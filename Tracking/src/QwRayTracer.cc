@@ -35,7 +35,7 @@
 // Maximum number of iterations for Newton's method and Runge-Kutta method
 #define MAX_ITERATIONS_NEWTON 10
 #define MAX_ITERATIONS_RUNGEKUTTA 5000
-//#define PI 3.1415926
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwMagneticField* QwRayTracer::fBfield = 0;
@@ -57,7 +57,8 @@ inline ostream& operator<< (ostream& stream, const TVector3& v)
 /**
  * Constructor: set all member field to zero
  */
-QwRayTracer::QwRayTracer()
+QwRayTracer::QwRayTracer(QwOptions& options)
+: VQwBridgingMethod()
 {
   fBdlx = 0.0;
   fBdly = 0.0;
@@ -91,7 +92,7 @@ QwRayTracer::QwRayTracer()
   LoadBeamProperty("beam_property.map");
 
   // Load magnetic field
-  LoadMagneticFieldMap();
+  LoadMagneticFieldMap(options);
 }
 
 /**
@@ -99,27 +100,57 @@ QwRayTracer::QwRayTracer()
  */
 QwRayTracer::~QwRayTracer()
 {
-  // TODO Someone needs to delete the magnetic field!!!
-  QwMessage << "Don't forget to delete the magnetic field!" << QwLog::endl;
+  // Delete the magnetic field
+  delete fBfield;
 }
 
 /**
  * Load the magnetic field map
- * @param filename Filename
+ * @param options Options object
  * @return True if the field map was successfully loaded
  */
-bool QwRayTracer::LoadMagneticFieldMap()
+bool QwRayTracer::LoadMagneticFieldMap(QwOptions& options)
 {
   // If the field has already been loaded, return successfully
   if (fBfield) return true;
 
   // Otherwise reload the field map
-  fBfield = new QwMagneticField();
+  fBfield = new QwMagneticField(options);
 
   // Test magnetic field validity
   return fBfield->TestFieldMap();
 }
 
+/**
+ * Define command line and config file options
+ * @param options options object
+ */
+void QwRayTracer::DefineOptions(QwOptions& options)
+{
+  // Step size of Runge-Kutta method
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.step",
+      po::value<float>(0)->default_value(1.0),
+      "Runge-Kutta step size [cm]");
+  // Step size of Newton's method in momentum
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.momentum_step",
+      po::value<float>(0)->default_value(10.0),
+      "Newton's method momentum step [MeV]");
+  // Step size of Newton's method in position
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.position_resolution",
+      po::value<float>(0)->default_value(1.0),
+      "Newton's method position step [cm]");
+}
+
+/**
+ * Process command line and config file options
+ * @param options options object
+ */
+void QwRayTracer::ProcessOptions(QwOptions& options)
+{
+  fStep = Qw::cm * options.GetValue<float>("QwRayTracer.step");
+  fNewtonMomentumStepSize = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
+  fNewtonPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
+}
 
 /**
  * Bridge the front and back partial tracks using the ray-tracing technique

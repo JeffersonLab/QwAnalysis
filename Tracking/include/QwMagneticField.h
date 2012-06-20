@@ -60,7 +60,7 @@ class QwMagneticField  {
   public:
 
     /// \brief Default constructor
-    QwMagneticField(const bool suppress_read_field_map = false);
+    QwMagneticField(QwOptions& options, const bool suppress_read_field_map = false);
     /// \brief Virtual destructor
     virtual ~QwMagneticField();
 

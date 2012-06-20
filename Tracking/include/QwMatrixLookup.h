@@ -13,6 +13,7 @@
 #include <vector>
 
 // Qweak headers
+#include "QwOptions.h"
 #include "VQwBridgingMethod.h"
 
 // Forward declarations
@@ -28,7 +29,7 @@ class QwMatrixLookup: public VQwBridgingMethod {
   public:
 
     /// \brief Default constructor
-    QwMatrixLookup();
+    QwMatrixLookup(QwOptions& options);
     /// \brief Destructor
     virtual ~QwMatrixLookup();
 

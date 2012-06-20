@@ -86,6 +86,7 @@ QwTrack::~QwTrack()
 
 /**
  * Assignment operator
+ * @param track Original track
  */
 QwTrack& QwTrack::operator=(const QwTrack& that)
 {
@@ -132,12 +133,12 @@ void QwTrack::Initialize()
   fQ2=0.0,fW2=0.0,fNu=0.0;
   fVertexZ=0.0,fVertexR=0.0;
   fTheta=0.0,fPhi=0.0;
-  fScatteringAngle=0.0;
-  fChi=0.0;
-  fMomentum=0.0;
-  fTotalEnergy=0.0;
-  fXBj=0.0;
-  fY=0.0;
+  fScatteringAngle = 0.0;
+  fChi = 0.0;
+  fMomentum = 0.0;
+  fTotalEnergy = 0.0;
+  fXBj = 0.0;
+  fY = 0.0;
 
   // Initialize all pointers
   fBridge = 0;
@@ -146,6 +147,7 @@ void QwTrack::Initialize()
   beamvertex = 0;
   next = 0;
 }
+
 
 
 // Create a new QwPartialTrack
@@ -204,10 +206,10 @@ void QwTrack::PrintPartialTracks(Option_t *option) const
 {
   for (std::vector<QwPartialTrack*>::const_iterator partialtrack = fQwPartialTracks.begin();
        partialtrack != fQwPartialTracks.end(); partialtrack++) {
-    std::cout << **partialtrack << std::endl;
+    QwMessage  << **partialtrack << QwLog::endl;
     QwPartialTrack* tl = (*partialtrack)->next;
     while (tl) {
-      std::cout << *tl << std::endl;
+      QwMessage  << *tl << QwLog::endl;
       tl = tl->next;
     }
   }

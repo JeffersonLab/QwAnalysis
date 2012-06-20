@@ -41,7 +41,7 @@ inline ostream& operator<< (ostream& stream, const double v[3])
 /**
  * Default constructor with optional field map
  */
-QwMagneticField::QwMagneticField(const bool suppress_read_field_map)
+QwMagneticField::QwMagneticField(QwOptions& options, const bool suppress_read_field_map)
 {
   // Check number of field components
   if (value_n < 3) {
@@ -57,7 +57,7 @@ QwMagneticField::QwMagneticField(const bool suppress_read_field_map)
   SetRotation(0.0);
 
   // Process options
-  ProcessOptions(gQwOptions);
+  ProcessOptions(options);
 
   // Read field map
   if (! suppress_read_field_map) ReadFieldMap();

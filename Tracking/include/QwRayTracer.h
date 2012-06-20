@@ -32,6 +32,7 @@
 #include <TStopwatch.h>
 
 // Qweak headers
+#include "QwOptions.h"
 #include "VQwBridgingMethod.h"
 #include "QwPartialTrack.h"
 
@@ -47,13 +48,17 @@ class QwRayTracer: public VQwBridgingMethod {
   public:
 
     /// Default constructor
-    QwRayTracer();
+    QwRayTracer(QwOptions& options);
     /// Destructor
     virtual ~QwRayTracer();
 
-    static bool LoadMagneticFieldMap();
+    /// \brief Define command line and config file options
+    static void DefineOptions(QwOptions& options);
+    /// \brief Process command line and config file options
+    void ProcessOptions(QwOptions& options);
 
-    void GenerateLookUpTable();
+    /// \brief Load the magnetic field based on config file options
+    bool LoadMagneticFieldMap(QwOptions& options);
 
     Int_t Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
@@ -101,6 +106,14 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Magnetic field (static)
     static QwMagneticField *fBfield;
 
+    /// Runge-Kutta step size
+    double fStep;
+
+    /// Newton's method step size in position
+    double fNewtonPositionResolution;
+    /// Newton's method step size in momentum
+    double fNewtonMomentumStepSize;
+
     Double_t fBdlx; /// x component of the field integral
     Double_t fBdly; /// y component of the field integral
     Double_t fBdlz; /// z component of the field integral
@@ -134,6 +147,5 @@ class QwRayTracer: public VQwBridgingMethod {
     Double_t fEnergy;
 
 }; // class QwRayTracer
-
 
 #endif // __QWRAYTRACER_H__

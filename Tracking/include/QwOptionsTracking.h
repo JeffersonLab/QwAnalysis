@@ -24,6 +24,7 @@
 #include "QwMagneticField.h"
 #include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
+#include "QwRayTracer.h"
 
 
 void DefineOptionsTracking(QwOptions& options)
@@ -38,6 +39,7 @@ void DefineOptionsTracking(QwOptions& options)
   QwMagneticField::DefineOptions(options);
   QwTriggerScintillator::DefineOptions(options);
   QwMainDetector::DefineOptions(options);
+  QwRayTracer::DefineOptions(options);
 }
 
 #endif // QWOPTIONSTRACKING_H

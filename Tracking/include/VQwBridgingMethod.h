@@ -18,6 +18,7 @@
 // Qweak headers
 #include "QwUnits.h"
 #include "QwTrack.h"
+#include "QwParameterFile.h"
 
 // Forward declarations
 class QwPartialTrack;
@@ -59,7 +60,7 @@ class VQwBridgingMethod {
   /// Estimate the momentum based only on the direction
   virtual double EstimateInitialMomentum(const TVector3& direction) const;
   virtual double EstimateInitialMomentum(const double vertex_z,double angle,const double energy) const;
-  virtual double CalculateVertex(const TVector3& point,const double angle) const;
+  virtual double CalculateVertex(const TVector3& point, const double angle) const;
 
   /// Calculate Kinetics
   virtual void CalculateKinematics(const double vertex_z,const double angle,const double momentum,double* results);
@@ -81,18 +82,18 @@ class VQwBridgingMethod {
 inline double VQwBridgingMethod::EstimateInitialMomentum(const double vertex_z, double angle,const double energy) const{
   
   double cth=cos(angle);
-  double wp=938.272013*Qw::MeV;
+  double wp = 938.272013*Qw::MeV;
   // double e_loss=38.0*Qw::MeV;
-  double e_loss=50*Qw::MeV;
-  double e0=energy;
+  double e_loss = 50*Qw::MeV;
+  double e0 = energy;
   
-  double target_z_length= 34.35; // Target Length (cm)
-  double target_z_position= -652.67; // Target center position (cm) in Z
+  double target_z_length = 34.35; // Target Length (cm)
+  double target_z_position = -652.67; // Target center position (cm) in Z
   double target_z_space[2] = {0.0};
 
   target_z_space[0] = target_z_position - 0.5*target_z_length;
   target_z_space[1] = target_z_position + 0.5*target_z_length;
-  double pre_loss=0.0;
+  double pre_loss = 0.0;
   double depth = vertex_z - target_z_space[0];
 
   if(vertex_z < target_z_space[0])
@@ -105,9 +106,9 @@ inline double VQwBridgingMethod::EstimateInitialMomentum(const double vertex_z, 
   
   // Kinematics for elastic e+p scattering
   //return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
-  e0-=pre_loss;
-  return e0/(1.0+e0/wp*(1-cth))-e_loss;
- }
+  e0 -= pre_loss;
+  return e0 / (1.0 + e0/wp*(1-cth)) - e_loss;
+}
 
 
 inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& direction) const
@@ -127,7 +128,7 @@ inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& directi
 
 
 // vertex might be wrong
-inline double VQwBridgingMethod::CalculateVertex(const TVector3& point,const double angle) const
+inline double VQwBridgingMethod::CalculateVertex(const TVector3& point, const double angle) const
 {
   double vertex_z=0.0;
   vertex_z=point.Z()-sqrt(point.X()*point.X()+point.Y()*point.Y())/tan(angle);
@@ -185,11 +186,11 @@ inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double
   //Double_t P0=1157.5*Qw::MeV;
   Double_t P0=energy*Qw::MeV;
   P0-=pre_loss;
-  Double_t PP=Mp*P0/(Mp+P0*(1-cos_theta));
-  Double_t Q2=2.0*P0*PP*(1-cos_theta);
-  results[0]=PP;
-  results[1]=P0;
-  results[2]=Q2;
+  Double_t PP = Mp*P0/(Mp+P0*(1-cos_theta));
+  Double_t Q2 = 2.0*P0*PP*(1-cos_theta);
+  results[0] = PP;
+  results[1] = P0;
+  results[2] = Q2;
     
   return;
 

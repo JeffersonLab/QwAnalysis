@@ -27,7 +27,7 @@
 /**
  * Constructor
  */
-QwMatrixLookup::QwMatrixLookup()
+QwMatrixLookup::QwMatrixLookup(QwOptions& options)
 {
   // Set the front and back reference plane locations for which the track
   // parameters are stored in the trajectory matrix.
@@ -215,7 +215,7 @@ bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
   Double_t  direction_theta,direction_phi;
 
   // Load the ray tracer
-  QwRayTracer* raytracer = new QwRayTracer();
+  QwRayTracer* raytracer = new QwRayTracer(gQwOptions);
   // Get the boundaries of the magnetic field
   double magneticfield_min = -250.0 * Qw::cm;
   double magneticfield_max =  250.0 * Qw::cm;
@@ -323,8 +323,8 @@ bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
  * @return Zero if successful, non-zero error code if failed
  */
 int QwMatrixLookup::Bridge(
-	const QwPartialTrack* front,
-	const QwPartialTrack* back)
+        const QwPartialTrack* front,
+        const QwPartialTrack* back)
 {
 #if ! defined __ROOT_HAS_MATHMORE || ROOT_VERSION_CODE < ROOT_VERSION(5,18,0)
 

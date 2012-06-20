@@ -140,7 +140,7 @@ QwTrackingWorker::QwTrackingWorker(QwOptions& options, const QwGeometry& geometr
 
   // Initialize a lookup table bridging method
   if (! fDisableMomentum && ! fDisableMatrixLookup) {
-    fMatrixLookup = new QwMatrixLookup();
+    fMatrixLookup = new QwMatrixLookup(options);
     // Determine lookup table file from environment variables
     std::string trajmatrix = "";
     if (getenv("QW_LOOKUP"))
@@ -158,7 +158,7 @@ QwTrackingWorker::QwTrackingWorker(QwOptions& options, const QwGeometry& geometr
 
   // Initialize a ray tracer bridging method
   if (! fDisableMomentum && ! fDisableRayTracer) {
-    fRayTracer = new QwRayTracer();
+    fRayTracer = new QwRayTracer(options);
   // or set to null if disabled
   } else fRayTracer = 0;
 
@@ -946,7 +946,7 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Filter reasonable pairs
                 status = fBridgingTrackFilter->Filter(front, back);
-		status = 0;
+                status = 0;
                 //QwMessage << "Filter: " << status << QwLog::endl;
                 if (status != 0) {
                   QwMessage << "Tracks did not pass filter." << QwLog::endl;
@@ -971,7 +971,7 @@ void QwTrackingWorker::ProcessEvent (
                   //QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {
                     event->AddTrackList(fRayTracer->GetListOfTracks());
-		    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
+                    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
                     back = back->next;
                     continue;
                   }
@@ -1013,7 +1013,7 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Filter reasonable pairs
                 status = fBridgingTrackFilter->Filter(front, back);
-		status = 0;
+                status = 0;
                 //QwMessage << "Filter: " << status << QwLog::endl;
                 if (status != 0) {
                   QwMessage << "Tracks did not pass filter." << QwLog::endl;
@@ -1038,7 +1038,7 @@ void QwTrackingWorker::ProcessEvent (
                   //QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {
                     event->AddTrackList(fRayTracer->GetListOfTracks());
-		    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
+                    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
                     back = back->next;
                     continue;
                   }
@@ -1055,7 +1055,7 @@ void QwTrackingWorker::ProcessEvent (
 	    } // end of loop over front tracks
 
 	    } /* end of if*/
-	  }
+          }
        }
     }
 //   if (fDebug)
