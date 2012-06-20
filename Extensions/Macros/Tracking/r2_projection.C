@@ -242,7 +242,7 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
         pt=fEvent->GetPartialTrack(j);
 	if(pt->GetRegion()!=2 || pt->GetPackage()!=pkg || pt->GetPackage()!=track->GetPackage()) continue;
 	if(oct==0)
-	oct=pt->GetOctantNumber();
+	oct=pt->GetOctant();
 	chi=pt->fChi;
         //double vertex_z=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
 	double vertex_z=track->fVertexZ;

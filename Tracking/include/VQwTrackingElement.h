@@ -87,9 +87,9 @@ class VQwTrackingElement: public TObject {
     void SetElement(int element) { fElement = element; };
 
     /// \brief Get the octant number
-    int GetOctantNumber() const { return fOctant; };
+    int GetOctant() const { return fOctant; };
     /// \brief Set the octant number
-    void SetOctantNumber(int octant) { fOctant = octant; };
+    void SetOctant(int octant) { fOctant = octant; };
 
     /// \brief Copy the geometry info from another object
     void SetGeometryTo(const VQwTrackingElement& e) {

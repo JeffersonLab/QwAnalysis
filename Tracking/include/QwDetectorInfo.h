@@ -116,7 +116,7 @@ class QwDetectorInfo: public TObject {
     double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
     double GetElementAngleCos() const { return fElementAngleCos; };
     double GetElementAngleSin() const { return fElementAngleSin; };
-    int  GetOctantNumber() const {return fOctant;};
+    int  GetOctant() const {return fOctant;};
     void SetElementAngle(const double angle) {
       fElementAngle = angle;
       fElementAngleCos = std::cos(fElementAngle);
@@ -131,7 +131,7 @@ class QwDetectorInfo: public TObject {
     // Get/set number of elements
     int GetNumberOfElements() const { return fNumberOfElements; };
     void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
-    void SetOctantNumber(const int octant){fOctant=octant;};
+    void SetOctant(const int octant){fOctant=octant;};
     // Get/set detector rotation (in degrees)
     double GetDetectorRotation() const { return fDetectorRotation; };
     double GetDetectorRotationInRad() const { return fDetectorRotation; };

@@ -146,9 +146,9 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 					TotalWires,
 					detectorId);
 	      if(package=="u")
-		detector->SetOctantNumber((fR3Octant+4)%8);
+		detector->SetOctant((fR3Octant+4)%8);
 	      else
-		detector->SetOctantNumber(fR3Octant);
+		detector->SetOctant(fR3Octant);
 	      fDetectorInfo.push_back(detector);
 	    }
 	}

@@ -1399,7 +1399,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 				int wire = hit->GetElement();
 				int row = wire-treeline->fR3Offset;
 				if(oct==0 && hit->GetDetectorInfo()->fPackage==package){
-				  oct=hit->GetDetectorInfo()->GetOctantNumber();
+				  oct=hit->GetDetectorInfo()->GetOctant();
 				}
 				if (row < 0 || row > 7) continue;
 				double distance = hit->GetDriftDistance();
@@ -1424,7 +1424,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 // 			double x1 = ( treeline->a_beg - ( double ) bins/2 ) * dx + dx/2;
 // 			double x2 = ( treeline->b_end - ( double ) bins/2 ) * dx + dx/2;
 
-			treeline->SetOctantNumber(oct);
+			treeline->SetOctant(oct);
 			// Match the hits with the correct treeline
 			TlMatchHits (
 			    d1, d2, z1, z2,
@@ -1446,7 +1446,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	    //	    double r2 = back->GetYPosition();
 	    double z2 = back->GetZPosition();
 	    //double rcos = back->GetElementAngleCos();
-	    assert(front->GetOctantNumber()==back->GetOctantNumber());
+	    assert(front->GetOctant()==back->GetOctant());
 	    
 	    // We are looping over detectors with the same direction
 	    //	    double Dr = (r2 - r1);           // difference in r position
@@ -1477,7 +1477,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	        continue;
 	      }
 
-	      treeline->SetOctantNumber(front->GetOctantNumber());
+	      treeline->SetOctant(front->GetOctant());
 	      // Debug output
 	      QwDebug << *treeline << QwLog::endl;
 
@@ -2931,7 +2931,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 					// Set geometry identification
 					pt->SetRegion(region);
 					pt->SetPackage(package);
-					pt->SetOctantNumber(wu->GetOctantNumber());
+					pt->SetOctant(wu->GetOctant());
 					pt->RotateCoordinates();
                                         //Set 2 plane 0 treelines only
 					pt->SetAlone(nump0);
@@ -3020,7 +3020,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
 	      //QwPartialTrack *pt = TcTreeLineCombine ( wu, wv, wx, tlayer);
 	    QwPartialTrack *pt = TcTreeLineCombine ( wu, wv, wx, tlayer);
-	    pt->SetOctantNumber(wx->GetOctantNumber());
+	    pt->SetOctant(wx->GetOctant());
 	    if(!pt) continue;
 
 	    if(pt->fChi<best_chi){
@@ -3035,7 +3035,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	    
 	     best_pt->SetRegion(region);
              best_pt->SetPackage(package);
-	     best_pt->SetOctantNumber(wv->GetOctantNumber());
+	     best_pt->SetOctant(wv->GetOctant());
 	     best_pt->RotateCoordinates();
 
  
