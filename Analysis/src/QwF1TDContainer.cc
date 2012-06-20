@@ -2075,9 +2075,7 @@ F1TDCReferenceContainer::~F1TDCReferenceContainer()
 void 
 F1TDCReferenceContainer::AddF1TDCReferenceSignal(F1TDCReferenceSignal *in)
 {
-  Int_t pos = 0;
-
-  pos = fF1TDCReferenceSignalsList -> AddAtFree(in);
+  /* Int_t pos = */ fF1TDCReferenceSignalsList -> AddAtFree(in);
   //  printf("AddF1TDCReferenceSignal at pos %d\n", pos);
   std::cout << *in << std::endl;
   fNF1TDCReferenceSignals++;
