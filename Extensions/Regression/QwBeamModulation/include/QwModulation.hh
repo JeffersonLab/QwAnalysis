@@ -40,6 +40,7 @@ private:
   Int_t fENevents;
   Int_t fYNevents;
   Int_t fYPNevents;
+  Int_t fCurrentCut;
 
   static const Int_t fNMaxMon = 6;
   static const Int_t fNMaxDet = 35;
@@ -47,7 +48,6 @@ private:
   static const Int_t fBranchSize = 13;
   static const Int_t fDeviceErrorCode = 6;
   static const Int_t fError = 1;
-  static const Int_t fCurrentMin = 175;
   static const Int_t fRampPedestal = 128;
 
 public :
@@ -283,6 +283,7 @@ public :
   Int_t    ReadConfig(QwModulation *);
   Int_t    ErrorCodeCheck(TString);
   Int_t    ConvertPatternNumber(Int_t);
+  Int_t    GetCurrentCut();
 
   Long64_t LoadTree(Long64_t entry);
 
