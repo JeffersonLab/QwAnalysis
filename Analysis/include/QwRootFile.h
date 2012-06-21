@@ -84,6 +84,12 @@ class QwRootTree {
       fTree = new TTree(fName.c_str(), fDesc.c_str());
     }
 
+    /// Construct index from this tree to another tree
+    void ConstructIndexTo(QwRootTree* to) {
+      std::string name = "previous_entry_in_" + to->fName;
+      fTree->Branch(name.c_str(), &(to->fCurrentEvent));
+    }
+
     /// Construct the branches and vector for generic objects
     template < class T >
     void ConstructBranchAndVector(T& object) {
@@ -123,13 +129,15 @@ class QwRootTree {
 
     /// Fill the tree
     Int_t Fill() {
+      fCurrentEvent++;
+
       // Tree prescaling
       if (fNumEventsCycle > 0) {
-        fCurrentEvent++;
         fCurrentEvent %= fNumEventsCycle;
         if (fCurrentEvent > fNumEventsToSave)
           return 0;
       }
+
       // Fill the tree
       Int_t retval = fTree->Fill();
       // Check for errors
@@ -290,6 +298,8 @@ class QwRootFile {
     /// Is the map file active?
     Bool_t IsMapFile()  const { return (fMapFile); };
 
+    /// \brief Construct indices from one tree to another tree
+    void ConstructIndices(const std::string& from, const std::string& to, bool reverse = true);
 
     /// \brief Construct the tree branches of a generic object
     template < class T >
@@ -550,7 +560,29 @@ class QwRootFile {
     static const Int_t    kMaxMapFileSize;
 };
 
+/**
+ * Construct the indices from one tree to another tree, and optionally in reverse as well.
+ * @param from Name of tree where index will be created
+ * @param to Name of tree to which index will point
+ * @param reverse Flag to create indices in both direction
+ */
+inline void QwRootFile::ConstructIndices(const std::string& from, const std::string& to, bool reverse)
+{
+  // Return if we do not want this tree information
+  if (IsTreeDisabled(from)) return;
+  if (IsTreeDisabled(to)) return;
 
+  // If the trees are defined
+  if (fTreeByName.count(from) > 0 && fTreeByName.count(to) > 0) {
+
+    // Construct index from the first tree to the second tree
+    fTreeByName[from].front()->ConstructIndexTo(fTreeByName[to].front());
+
+    // Construct index from the second tree back to the first tree
+    if (reverse)
+      fTreeByName[to].front()->ConstructIndexTo(fTreeByName[from].front());
+  }
+}
 
 /**
  * Construct the tree branches of a generic object

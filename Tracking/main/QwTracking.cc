@@ -145,6 +145,9 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
       rootfile->ConstructTreeBranches("Mps_Tree", "QwParity Helicity-based Tree", parity_detectors);
       rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epics);
+      // Construct indices to get from one tree to the other
+      rootfile->ConstructIndices("event_tree","Slow_Tree");
+      rootfile->ConstructIndices("event_tree","Mps_Tree");
     }
 
     // Delete dummy event again
@@ -166,7 +169,17 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  First, do processing of non-physics events...
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epics);
-        epics.CalculateRunningValues();
+        if (epics.HasDataLoaded()) {
+
+          // Get magnetic field current
+          QwVerbose << "qw:qt_mps_i_set = "
+              << epics.GetDataValue("qw:qt_mps_i_set") << QwLog::endl;
+
+          epics.CalculateRunningValues();
+
+          rootfile->FillTreeBranches(epics);
+          rootfile->FillTree("Slow_Tree");
+        }
       }
 
       //  Send ROC configuration event data to the subsystem objects.
@@ -192,7 +205,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->FillTreeBranches(tracking_detectors);
       rootfile->FillTreeBranches(parity_detectors);
 
-
       // Fill the histograms for the subsystem objects.
       rootfile->FillHistograms(tracking_detectors);
       rootfile->FillHistograms(parity_detectors);
@@ -206,7 +218,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       // Assign the event header to the event
       event->SetEventHeader(header);
 
-
       // Create and fill hit list
       QwHitContainer* hitlist = new QwHitContainer();
       tracking_detectors.GetHitList(hitlist);
@@ -217,13 +228,13 @@ Int_t main(Int_t argc, Char_t* argv[])
       // and fill into the event
       event->AddHitContainer(hitlist);
 
-
       // Track reconstruction
       trackingworker->ProcessEvent(&tracking_detectors, event);
 
 
       // Fill the event tree
-      rootfile->FillTrees();
+      rootfile->FillTree("event_tree");
+      rootfile->FillTree("Mps_Tree");
 
       // Delete objects
       if (hitlist) delete hitlist; hitlist = 0;
