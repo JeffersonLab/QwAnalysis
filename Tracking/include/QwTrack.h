@@ -56,54 +56,53 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     /// Initialization
     void Initialize();
 
-
-    // Creating and adding partial tracks
+    ///@{
+    /// Creating and adding partial tracks
     QwPartialTrack* CreateNewPartialTrack();
     void AddPartialTrack(const QwPartialTrack* partialtrack);
     void AddPartialTrackList(const QwPartialTrack* partialtracklist);
     void AddPartialTrackList(const std::vector<QwPartialTrack*> &partialtracklist);
     void ClearPartialTracks(Option_t *option = "");
     void ResetPartialTracks(Option_t *option = "");
+    ///@}
     // Get the number of partial tracks
     Int_t GetNumberOfPartialTracks() const { return fNQwPartialTracks; };
     // Print the list of partial tracks
     void PrintPartialTracks(Option_t *option = "") const;
 
-
-    void Print(const Option_t* /*option*/ = 0) const {
-      if (!this) return;
-      std::cout << std::endl;
-    };
-
-    void SortBridgedTracks() { };
-
+    /// Output stream operator for tracks
     friend ostream& operator<< (ostream& stream, const QwTrack& t);
 
   public:
 
-    double fVertexZ, fVertexR;	/// Vertex position in longitudinal and transverse
-    double fTheta, fPhi;	/// theta and phi of track
+    //@{
+    /// Quantities determined from front partial track
+    double fPhi;                ///< Azimuthal angle phi of track at primary vertex
+    double fTheta;              ///< Polar angle theta of track at primary vertex
+    double fVertexZ;            ///< Primary vertex position in longitudinal direction
+    double fVertexR;            ///< Primary vertex position in transverse direction
+    //@}
 
-    double fChi;		/// combined chi square
-    double fMomentum;		/// spectrometer and calorimeter Energy
-    double fTotalEnergy;
-    double fScatteringAngle;
+    double fChi;                ///< Combined chi square
+    double fMomentum;           ///< Spectrometer momentum
+    double fTotalEnergy;        ///< Total energy of the track
+    double fScatteringAngle;    ///< Scattering angle
 
     double fPositionRoff,fPositionPhioff;    
     double fDirectionThetaoff,fDirectionPhioff;
 
-    double fXBj, fY, fQ2, fW2, fNu;	/// kinematics
+    double fXBj;                ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
+    double fQ2;                 ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
+    double fW2;                 ///< Invariant mass squared of the recoiling target system
+    double fNu;                 ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
+    double fY;                  ///< Fractional energy loss \f$ y = \nu / E \f$
 
-    QwBridge *fBridge;	//!	/// magnet matching information
+    QwBridge *fBridge;          ///< Magnet front-back matching information
 
-    QwPartialTrack *fFront;	//! front partial track (do not store)
-    QwPartialTrack *fBack;	//! back partial track (do not store)
+    QwPartialTrack *fFront;     ///< Front partial track
+    QwPartialTrack *fBack;      ///< Back partial track
 
-    QwVertex *beamvertex;	//! beam vertex (do not store)
-
-    QwTrack* next; //!
-
-  ClassDef(QwTrack,1);
+  ClassDef(QwTrack,2);
 
 }; // class QwTrack
 

@@ -86,11 +86,6 @@ QwRayTracer::QwRayTracer(QwOptions& options)
   fSimFlag = 0;
   fMatchFlag = 0;
 
-  fEnergy = 0.0;
-
-  // Load beam properties
-  LoadBeamProperty("beam_property.map");
-
   // Load magnetic field
   LoadMagneticFieldMap(options);
 }
@@ -156,14 +151,14 @@ void QwRayTracer::ProcessOptions(QwOptions& options)
  * Bridge the front and back partial tracks using the ray-tracing technique
  * @param front Front partial track
  * @param back Back partial track
- * @return Zero if successful, non-zero error code if failed
+ * @return List of reconstructed tracks
  */
-int QwRayTracer::Bridge(
+const QwTrack* QwRayTracer::Bridge(
     const QwPartialTrack* front,
     const QwPartialTrack* back)
 {
-  // Clear the list of tracks
-  ClearListOfTracks();
+  // No track found yet
+  QwTrack* track = 0;
 
   // Ray-tracing parameters
   double res = 1 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
@@ -184,7 +179,7 @@ int QwRayTracer::Bridge(
   TVector3 start_direction = front->GetMomentumDirection();
   fScatteringAngle = start_direction.Theta();
   // Estimate initial momentum based on front track
-  //p[0]=p[1]= EstimateInitialMomentum(vertex_z,fScatteringAngle,fEnergy)/Qw::GeV;
+  //p[0]=p[1]= EstimateInitialMomentum(vertex_z,fScatteringAngle,fBeamEnergy)/Qw::GeV;
   p[0] = p[1] = EstimateInitialMomentum(start_direction)/Qw::GeV;
 
   // Back track position and direction
@@ -292,15 +287,17 @@ int QwRayTracer::Bridge(
       return -1;
     }
     */
-    double kinetics[3]={0.0};
+    double kinematics[3]={0.0,0.0,0.0};
     //double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
-    CalculateKinematics(vertex_z,fScatteringAngle,fEnergy,kinetics);
-    QwTrack* track = new QwTrack(front,back);
 
-    track->fMomentum = kinetics[0] / Qw::GeV;
-    track->fTotalEnergy = kinetics[1] / Qw::GeV;
-    track->fQ2 = kinetics[2]/ (Qw::GeV * Qw::GeV);
-    track->fScatteringAngle = fScatteringAngle * Qw::rad2deg;//180 /PI;
+    CalculateKinematics(vertex_z,start_direction.Theta(),fBeamEnergy,kinematics);
+
+    track = new QwTrack(front,back);
+
+    track->fMomentum = kinematics[0] / Qw::GeV;
+    track->fTotalEnergy = kinematics[1] / Qw::GeV;
+    track->fQ2 = kinematics[2] / (Qw::GeV * Qw::GeV);
+    track->fScatteringAngle = start_direction.Theta() * Qw::rad2deg;//180 /PI;
     track->fVertexZ=vertex_z;
     track->fPositionRoff = fPositionROff;
     track->fPositionPhioff = fPositionPhiOff;
@@ -325,17 +322,13 @@ int QwRayTracer::Bridge(
 
     fListOfTracks.push_back(track);
 
-
-    fMatchFlag = 1;
-    return 0;
-
   } else {
 
     QwMessage << "Can't converge after " << iterations << " iterations." << QwLog::endl;
-    //QwMessage << "Hit at at " << fHitPosition * (1/Qw::cm) << " cm with momentum " << p[1]
-    //          << " GeV and direction " << fHitDirection << QwLog::endl;
-    return -1;
+
   }
+
+  return track;
 }
 
 
@@ -562,129 +555,3 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
 
   return true;
 }
-
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-QwBridge* QwRayTracer::GetBridgingInfo() {
-
-  QwBridge* bridgeinfo = new QwBridge();
-
-  bridgeinfo->xOff = fPositionXOff;
-  bridgeinfo->yOff = fPositionYOff;
-
-  // and something?
-
-  return bridgeinfo;
-
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwRayTracer::PrintInfo() {
-
-  std::cout<<std::endl<<"   Front/back bridging information"<<std::endl;
-  std::cout<<"====================================================================="<<std::endl;
-  std::cout<<" matched hit :    location (x,y,z) : "<<fHitPosition<<std::endl;
-
-  std::cout<<"                         (R,PHI,Z) : ("<<fHitPosition.Perp()<<", "
-           <<fHitPosition.Phi() / Qw::deg<<", "
-           <<fHitPosition.Z()<<")"<<std::endl;
-
-  std::cout<<"              direction (ux,uy,uz) : "<<fHitDirection<<std::endl;
-
-  std::cout<<"                       (theta,phi) : ("<<fHitDirection.Theta() / Qw::deg<<", "
-           <<fHitDirection.Phi() / Qw::deg<<")"<<std::endl;
-
-  std::cout<<"       error :            dR, dPHI : "<<fPositionROff<<", "<<fPositionPhiOff/Qw::deg<<" [cm,deg]"<<std::endl;
-  std::cout<<"                      dtheta, dphi : "<<fDirectionThetaOff/Qw::deg<<", "<<fDirectionPhiOff/Qw::deg<<" [deg,deg]"<<std::endl;
-
-  std::cout<<"                          momentum : "<<fMomentum / Qw::GeV << " GeV" << std::endl;
-  std::cout<<"====================================================================="<<std::endl<<std::endl;
-}
-
-
-
-void QwRayTracer::GetBridgingResult(Double_t *buffer) {
-
-  buffer[0] = fHitPosition.X();
-  buffer[1] = fHitPosition.Y();
-  buffer[2] = fHitPosition.Z();
-  buffer[3] = fHitDirection.X();
-  buffer[4] = fHitDirection.Y();
-  buffer[5] = fHitDirection.Z();
-
-  buffer[6] = fPositionROff;
-  buffer[7] = fPositionPhiOff;
-  buffer[8] = fDirectionThetaOff;
-  buffer[9] = fDirectionPhiOff;
-
-  // jpan: fMomentum is the determined momentum on the z=-250 cm plane.
-  // In order to get the scattered momentum (P') inside the target,
-  // we should use MC simulation to get the energy loss from scattering
-  // vertex to z=-250 cm plane as a correction. This correction should
-  // be added onto P' to get the final determined momentum.
-  // When the correct scattering angle is determined, it could be used for
-  // this purpose.
-
-  // test code for momentum correction
-  double vertex_z = fStartPosition.Z() - sqrt(fStartPosition.X()*fStartPosition.X()+fStartPosition.Y()*fStartPosition.Y())/tan(fScatteringAngle);
-  double length = 0.0;
-  if(vertex_z<(-650.0+35.0/2))
-    length = ((-650.0+35.0/2)-vertex_z)/cos(fScatteringAngle); //path length in target after scattering
-  double momentum_correction = (length/35.0)*48.0;  //assume 48 MeV total energy loss through the full target length
-    
-  momentum_correction = 24.0; // 32.0 * Qw::MeV;  // assume 32 MeV with multi-scattering, etc.
-    
-  double PP = fMomentum + momentum_correction;
-  buffer[10] = PP;
-
-  double Mp = 938.272013;    // Mass of the Proton in MeV
-    
-  double P0 = Mp*PP/(Mp-PP*(1-cos(fScatteringAngle))); //pre-scattering energy
-  double Q2 = 2.0*Mp*(P0-PP);
-  buffer[11] = P0;
-  buffer[12] = Q2;
-
-  buffer[13] = fScatteringAngle;
-  buffer[14] = vertex_z;
-    
-  buffer[15] = fMatchFlag;
-    
-  //std::cout<<"===========================\n";
-  //std::cout<<"eloss in target = "<<momentum_correction<< " MeV\n";
-  //std::cout<<"P0="<<P0<<" MeV,  P'="<<PP<<" MeV,  theta="<<fScatteringAngle/Qw::deg<<" deg,  Q2="<<Q2<<" (MeV/c)^2\n";
-    
-  // NOTE Had to comment the fPrimary variables as they are not read by anymore
-  //     buffer[37] = fPrimary_OriginVertexKineticEnergy;
-  //     buffer[38] = fPrimary_PrimaryQ2;
-
-  //     double MomentumOff = PP-fPrimary_OriginVertexKineticEnergy;
-  //     double Q2_Off = Q2-fPrimary_PrimaryQ2;
-  //     buffer[39] = MomentumOff;
-  //     buffer[40] = Q2_Off;
-  //     buffer[41] = fPrimary_CrossSectionWeight;
-
-}
-
-
-void QwRayTracer::LoadBeamProperty (TString map)
-{
-  QwParameterFile mapstr(map.Data());
-  string varname, varvalue;
-  while (mapstr.ReadNextLine())
-  {
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;
-
-    if (mapstr.HasVariablePair("=",varname,varvalue)) {
-      //  This is a declaration line.  Decode it.
-      //varname.ToLower();
-      if (varname == "energy") {
-        fEnergy = atof(varvalue.c_str());
-      }
-    }
-  }
-}
-

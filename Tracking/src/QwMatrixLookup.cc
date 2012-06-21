@@ -320,9 +320,9 @@ bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
  * Bridge the front and back partial tracks using the momentum look-up table
  * @param front Front partial track
  * @param back Back partial tracks
- * @return Zero if successful, non-zero error code if failed
+ * @return List of reconstructed tracks
  */
-int QwMatrixLookup::Bridge(
+const QwTrack* QwMatrixLookup::Bridge(
         const QwPartialTrack* front,
         const QwPartialTrack* back)
 {
@@ -333,11 +333,11 @@ int QwMatrixLookup::Bridge(
 
 #endif
 
-    // Return immediately if there is no look-up table
-    if (! fMatrix) return -1;
+    // No track found yet
+    QwTrack* track = 0;
 
-    // Clear the list of tracks
-    ClearListOfTracks();
+    // Return immediately if there is no look-up table
+    if (! fMatrix) return track;
 
 
     // Front track position and direction at the front reference plane
@@ -356,7 +356,7 @@ int QwMatrixLookup::Bridge(
         QwMessage << "front_position_r = " << front_position_r/Qw::cm << " cm" << QwLog::endl;
         QwMessage << "front_position_phi = " << front_position_phi/Qw::deg << " deg" << QwLog::endl;
         QwMessage << "This potential track is not listed in the table."<<QwLog::endl;
-        return -1;
+        return track;
     }
 
     // Back track position and direction at the back reference plane
@@ -396,7 +396,7 @@ int QwMatrixLookup::Bridge(
     if ( (iR.front() < actual_back_position_r) &&
          (iR.back()  > actual_back_position_r) ) {
         QwDebug << "No match in look-up table!" << QwLog::endl;
-        return -1;
+        return track;
     }
 
     // The hit is within the momentum limits, do interpolation for momentum
@@ -435,7 +435,7 @@ int QwMatrixLookup::Bridge(
     if (momentum < 0.98 * Qw::GeV || momentum > 1.165 * Qw::GeV) {
         QwMessage << "Out of momentum range: determined momentum by looking up table: "
                   << momentum/Qw::GeV << " GeV" << QwLog::endl;
-        return -1;
+        return track;
     }
 
     // Get the values in the table (and assign units)
@@ -468,10 +468,10 @@ int QwMatrixLookup::Bridge(
         QwMessage << "diff_position_phi = " << diff_position_phi/Qw::deg << " deg" << QwLog::endl;
         QwMessage << "diff_direction_phi = " << diff_direction_phi/Qw::deg << " deg" << QwLog::endl;
         QwMessage << "diff_direction_theta = " << diff_direction_theta/Qw::deg << " deg" << QwLog::endl;
-        return -1;
+        return track;
     }
 
-    QwTrack* track = new QwTrack(front,back);
+    track = new QwTrack(front,back);
     track->fMomentum = momentum;
 
     QwBridge* bridge = new QwBridge();
@@ -494,5 +494,5 @@ int QwMatrixLookup::Bridge(
                       // MatchFlag = 1; : matched by using shooting method
                       // MatchFlag = 2; : potential track is forced to match
 
-    return 0;
+    return track;
 }

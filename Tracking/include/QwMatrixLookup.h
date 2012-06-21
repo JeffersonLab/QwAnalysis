@@ -39,7 +39,7 @@ class QwMatrixLookup: public VQwBridgingMethod {
     bool WriteTrajMatrix(const std::string filename);
 
     /// \brief Bridge from the front to back partial track
-    int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
+    const QwTrack* Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
   private:
 

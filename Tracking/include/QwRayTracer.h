@@ -60,11 +60,8 @@ class QwRayTracer: public VQwBridgingMethod {
     /// \brief Load the magnetic field based on config file options
     bool LoadMagneticFieldMap(QwOptions& options);
 
-    Int_t Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
-
-    Int_t DoForcedBridging() {
-        return -1;
-    };
+    /// \brief Bridge from the front to back partial track
+    const QwTrack* Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
     /// \brief Integrate using the Runge-Kutta 4th order algorithm
     bool IntegrateRK4(TVector3& r0, TVector3& v0, const Double_t p0, Double_t z_end, Double_t step);

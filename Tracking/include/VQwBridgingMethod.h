@@ -33,14 +33,15 @@ class VQwBridgingMethod {
  public:
 
   /// Default constructor
-  VQwBridgingMethod() { };
+  VQwBridgingMethod()
+  : fBeamEnergy(0.0) {
+    // Load beam properties
+    LoadBeamProperty("beam_property.map");
+  };
   /// Destructor
   virtual ~VQwBridgingMethod() {
     ClearListOfTracks();
   };
-
-  /// \brief Bridge from the front to back partial track (pure virtual)
-  virtual int Bridge(const QwPartialTrack* front, const QwPartialTrack* back) = 0;
 
   /// Clear the list of tracks
   virtual void ClearListOfTracks() {
@@ -51,11 +52,21 @@ class VQwBridgingMethod {
   /// Get the list of tracks that was found
   virtual std::vector<QwTrack*> GetListOfTracks() const { return fListOfTracks; };
 
+
+  /// \brief Load the beam properties from a map file
+  void LoadBeamProperty(const TString& map);
+
+
+  /// \brief Bridge from the front to back partial track (pure virtual)
+  virtual const QwTrack* Bridge(const QwPartialTrack* front, const QwPartialTrack* back) = 0;
+
+
  protected:
 
   /// List of tracks that were found in this bridging attempt
   std::vector<QwTrack*> fListOfTracks;
 
+  Double_t fBeamEnergy; ///< Nominal beam energy
 
   /// Estimate the momentum based only on the direction
   virtual double EstimateInitialMomentum(const TVector3& direction) const;
@@ -70,18 +81,44 @@ class VQwBridgingMethod {
 
 
 /**
+ * Load the beam properties from a map file.
+ * @param map Name of map file
+ */
+inline void VQwBridgingMethod::LoadBeamProperty(const TString& map)
+{
+  QwParameterFile mapstr(map.Data());
+  while (mapstr.ReadNextLine())
+  {
+    mapstr.TrimComment();       // Remove everything after a comment character.
+    mapstr.TrimWhitespace();    // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+
+    TString varname, varvalue;
+    if (mapstr.HasVariablePair("=",varname,varvalue)) {
+      //  This is a declaration line.  Decode it.
+      varname.ToLower();
+      if (varname == "energy") {
+        fBeamEnergy = atof(varvalue.Data()) * Qw::MeV;
+      }
+    }
+  }
+}
+
+
+/**
  * Estimate the momentum based only on the direction
  *
  * The scattering angle theta of the track is used to calculate the momentum
- * from elastic scattering.  This function assumes a fixed beam energy of
- * 1.165 GeV.
+ * from elastic scattering.
  *
  * @param direction Momentum direction (not necessarily normalized)
  * @return Initial momentum
  */
-inline double VQwBridgingMethod::EstimateInitialMomentum(const double vertex_z, double angle,const double energy) const{
-  
-  double cth=cos(angle);
+inline double VQwBridgingMethod::EstimateInitialMomentum(
+    const double vertex_z,
+    const double angle,
+    const double energy) const
+{
   double wp = 938.272013*Qw::MeV;
   // double e_loss=38.0*Qw::MeV;
   double e_loss = 50*Qw::MeV;
@@ -107,6 +144,7 @@ inline double VQwBridgingMethod::EstimateInitialMomentum(const double vertex_z, 
   // Kinematics for elastic e+p scattering
   //return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
   e0 -= pre_loss;
+  double cth = cos(angle);
   return e0 / (1.0 + e0/wp*(1-cth)) - e_loss;
 }
 
@@ -137,7 +175,6 @@ inline double VQwBridgingMethod::CalculateVertex(const TVector3& point, const do
 
 inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double angle, const double energy,double* results)
 {
-
   Double_t cos_theta = 0.0;
   cos_theta = cos(angle);
   Double_t target_z_length= 34.35; // Target Length (cm)
@@ -147,7 +184,7 @@ inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double
   target_z_space[0] = target_z_position - 0.5*target_z_length;
   target_z_space[1] = target_z_position + 0.5*target_z_length;
 
-  Double_t momentum_correction_MeV = 0.0;
+  //Double_t momentum_correction_MeV = 0.0;
   // Double_t path_length_mm = 0.0;
 
   
@@ -160,7 +197,7 @@ inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double
   //
   //assume 48 MeV total energy loss through the full target length
     
-  momentum_correction_MeV = 24.0*Qw::MeV; // temp. turn off the momentum correction.
+  //momentum_correction_MeV = 24.0*Qw::MeV; // temp. turn off the momentum correction.
 
   
   Double_t Mp = 938.272013*Qw::MeV;    // Mass of the Proton in MeV
@@ -191,9 +228,6 @@ inline void VQwBridgingMethod::CalculateKinematics(const double vertex_z, double
   results[0] = PP;
   results[1] = P0;
   results[2] = Q2;
-    
-  return;
-
 }
 
 #endif // VQWBRIDGINGMETHOD_H

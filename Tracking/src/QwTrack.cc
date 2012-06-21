@@ -1,5 +1,5 @@
 #include "QwTrack.h"
-ClassImp(QwTrack)
+ClassImp(QwTrack);
 
 /**
  * Default constructor
@@ -12,6 +12,8 @@ QwTrack::QwTrack()
 
 /**
  * Constructor with front and back partial track
+ * @param front Front partial track
+ * @param back Back partial track
  */
 QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
 {
@@ -101,10 +103,10 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fScatteringAngle = that.fScatteringAngle;
 
   fXBj = that.fXBj;
-  fY = that.fY;
   fQ2 = that.fQ2;
   fW2 = that.fW2;
   fNu = that.fNu;
+  fY = that.fY;
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
@@ -127,7 +129,6 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
  */
 void QwTrack::Initialize()
 {
-
   // Initialize the memebers;
   
   fQ2=0.0,fW2=0.0,fNu=0.0;
@@ -144,8 +145,6 @@ void QwTrack::Initialize()
   fBridge = 0;
   fFront = 0;
   fBack = 0;
-  beamvertex = 0;
-  next = 0;
 }
 
 

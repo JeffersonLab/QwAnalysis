@@ -942,12 +942,9 @@ void QwTrackingWorker::ProcessEvent (
             while (front) {
               while (back) {
 
-                int status = 0;
-
                 // Filter reasonable pairs
-                status = fBridgingTrackFilter->Filter(front, back);
+                int status = fBridgingTrackFilter->Filter(front, back);
                 status = 0;
-                //QwMessage << "Filter: " << status << QwLog::endl;
                 if (status != 0) {
                   QwMessage << "Tracks did not pass filter." << QwLog::endl;
                   back = back->next;
@@ -956,10 +953,9 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Attempt to bridge tracks using lookup table
                 if (! fDisableMatrixLookup) {
-                  status = fMatrixLookup->Bridge(front, back);
-                  QwMessage << "Matrix lookup: " << status << QwLog::endl;
-                  if (status == 0) {
-                    event->AddTrackList(fMatrixLookup->GetListOfTracks());
+                  const QwTrack* track = fMatrixLookup->Bridge(front, back);
+                  if (track) {
+                    event->AddTrack(track);
                     back = back->next;
                     continue;
                   }
@@ -967,11 +963,10 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Attempt to bridge tracks using ray-tracing
                 if (! fDisableRayTracer) {
-                  status = fRayTracer->Bridge(front, back);
-                  //QwMessage << "Ray tracer: " << status << QwLog::endl;
-                  if (status == 0) {
-                    event->AddTrackList(fRayTracer->GetListOfTracks());
-                    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
+                  const QwTrack* track = fRayTracer->Bridge(front, back);
+                  if (track) {
+                    event->AddTrack(track);
+                    event->AddBridgingResult(track);
                     back = back->next;
                     continue;
                   }
@@ -1009,12 +1004,9 @@ void QwTrackingWorker::ProcessEvent (
             while (front) {
               while (back) {
 
-                int status = 0;
-
                 // Filter reasonable pairs
-                status = fBridgingTrackFilter->Filter(front, back);
+                int status = fBridgingTrackFilter->Filter(front, back);
                 status = 0;
-                //QwMessage << "Filter: " << status << QwLog::endl;
                 if (status != 0) {
                   QwMessage << "Tracks did not pass filter." << QwLog::endl;
                   back = back->next;
@@ -1023,10 +1015,9 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Attempt to bridge tracks using lookup table
                 if (! fDisableMatrixLookup) {
-                  status = fMatrixLookup->Bridge(front, back);
-                  QwMessage << "Matrix lookup: " << status << QwLog::endl;
-                  if (status == 0) {
-                    event->AddTrackList(fMatrixLookup->GetListOfTracks());
+                  const QwTrack* track = fMatrixLookup->Bridge(front, back);
+                  if (track) {
+                    event->AddTrack(track);
                     back = back->next;
                     continue;
                   }
@@ -1034,11 +1025,10 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Attempt to bridge tracks using ray-tracing
                 if (! fDisableRayTracer) {
-                  status = fRayTracer->Bridge(front, back);
-                  //QwMessage << "Ray tracer: " << status << QwLog::endl;
-                  if (status == 0) {
-                    event->AddTrackList(fRayTracer->GetListOfTracks());
-                    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
+                  const QwTrack* track = fRayTracer->Bridge(front, back);
+                  if (track) {
+                    event->AddTrack(track);
+                    event->AddBridgingResult(track);
                     back = back->next;
                     continue;
                   }
@@ -1058,11 +1048,6 @@ void QwTrackingWorker::ProcessEvent (
           }
        }
     }
-//   if (fDebug)
-//     cout<<"R2Good, R2Bad, R3Good, R3Bad: "<<R2Good<<" "<<R2Bad<<" "<<R3Good<<" "<<R3Bad<<endl;
-//     cout<<"Efficiency:     region 2  "<<float(R2Good)/(R2Good+R2Bad)*100.0
-//         <<"%,     region 3  "<<float(R3Good)/(R3Good+R3Bad)*100.0<<"%"<<endl;
-
 
     // Delete local objects
     delete hitlist;

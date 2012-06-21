@@ -119,27 +119,27 @@ int main (int argc, char* argv[])
 
           // Bridge using the lookup table
           timer.Start();
-          status = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          const QwTrack* track1 = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
           timer.Stop();
           CpuTime = timer.CpuTime();
           RealTime = timer.RealTime();
           timer.Reset();
-          if (status == 0) {
-            event->AddTrackList(matrixlookup->GetListOfTracks());
+          if (track1) {
+            event->AddTrack(track1);
             continue;
-          } else QwMessage << "Matrix lookup: " << status << QwLog::endl;
+          } else QwMessage << "Matrix lookup failed." << QwLog::endl;
 
           // Bridge using the ray tracer
           timer.Start();
-          status = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          const QwTrack* track2 = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
           timer.Stop();
           CpuTime = timer.CpuTime();
           RealTime = timer.RealTime();
           timer.Reset();
-          if (status == 0) {
-            event->AddTrackList(raytracer->GetListOfTracks());
+          if (track2) {
+            event->AddTrack(track2);
             continue;
-          } else QwMessage << "Ray tracer: " << status << QwLog::endl;
+          } else QwMessage << "Ray tracer failed." << QwLog::endl;
 
         } // end of back track loop
       } // end of front track loop
