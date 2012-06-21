@@ -162,6 +162,29 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->PrintDirs();
 
 
+    //  Loop until first EPICS event
+    QwMessage << "Finding first EPICS event" << QwLog::endl;
+    while (eventbuffer.GetNextEvent() == CODA_OK) {
+
+      //  First, do processing of non-physics events...
+      if (eventbuffer.IsEPICSEvent()) {
+        eventbuffer.FillEPICSData(epics);
+        if (epics.HasDataLoaded()) {
+
+          // Get magnetic field current
+          QwMessage << "qw:qt_mps_i_set = "
+              << epics.GetDataValue("qw:qt_mps_i_set")
+              << "A at event " << eventbuffer.GetEventNumber() << QwLog::endl;
+
+          break;
+        }
+      }
+    }
+
+    //  Rewind stream
+    QwMessage << "Rewinding stream" << QwLog::endl;
+    eventbuffer.ReOpenStream();
+
     //  Loop over events in this CODA file
     Int_t nevents           = 0;
     while (eventbuffer.GetNextEvent() == CODA_OK) {

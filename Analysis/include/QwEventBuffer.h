@@ -97,6 +97,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   const TString&  GetDataFile() const {return fDataFile;};
 
+  Int_t ReOpenStream();
 
   Int_t OpenDataFile(UInt_t current_run, Short_t seg);
   Int_t OpenDataFile(UInt_t current_run, const TString rw = "R");
