@@ -24,7 +24,6 @@ class QwHitContainer;
 class QwPartialTrack;
 class QwTrack;
 class QwEvent;
-class QwBridge;
 class QwBridgingTrackFilter;
 class QwMatrixLookup;
 class QwRayTracer;

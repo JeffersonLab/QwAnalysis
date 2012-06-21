@@ -40,7 +40,6 @@
 // Forward declarations
 class QwMagneticField;
 class QwPartialTrackParameter;
-class QwBridge;
 
 
 class QwRayTracer: public VQwBridgingMethod {
@@ -66,38 +65,6 @@ class QwRayTracer: public VQwBridgingMethod {
     /// \brief Integrate using the Runge-Kutta 4th order algorithm
     bool IntegrateRK4(TVector3& r0, TVector3& v0, const Double_t p0, Double_t z_end, Double_t step);
 
-    QwBridge* GetBridgingInfo();
-
-    Double_t GetMomentum() {
-        return fMomentum;
-    };
-
-    TVector3 GetHitPosition() {
-        return fHitPosition;
-    };
-    TVector3 GetHitDirection() {
-        return fHitDirection;
-    };
-
-    TVector3 GetFieldIntegral() {
-        return TVector3(fBdlx,fBdly,fBdlz);
-    };
-    Double_t GetFieldIntegralX() {
-        return fBdlx;
-    };
-    Double_t GetFieldIntegralY() {
-        return fBdly;
-    };
-    Double_t GetFieldIntegralZ() {
-        return fBdlz;
-    };
-
-    void PrintInfo();
-
-    void GetBridgingResult(Double_t *buffer);
-
-    void LoadBeamProperty(TString map);
-
   private:
 
     /// Magnetic field (static)
@@ -111,37 +78,10 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Newton's method step size in momentum
     double fNewtonMomentumStepSize;
 
-    Double_t fBdlx; /// x component of the field integral
-    Double_t fBdly; /// y component of the field integral
-    Double_t fBdlz; /// z component of the field integral
-
-    Double_t fMomentum;  /// electron momentum
-    Double_t fScatteringAngle;
-
-    TVector3 fStartPosition;
-    TVector3 fHitPosition;
-    TVector3 fHitDirection;
-
-    Double_t fPositionROff;
-    Double_t fPositionPhiOff;
-    Double_t fDirectionThetaOff;
-    Double_t fDirectionPhiOff;
-
-    Double_t fPositionXOff;
-    Double_t fPositionYOff;
-
-    Double_t fDirectionXOff;
-    Double_t fDirectionYOff;
-    Double_t fDirectionZOff;
-
-    Int_t fSimFlag;
-
-    Int_t fMatchFlag; // MatchFlag = -2 : cannot match
-                      // MatchFlag = -1 : potential track cannot pass through the filter
-                      // MatchFlag = 0; : matched with look-up table
-                      // MatchFlag = 1; : matched by using shooting method
-                      // MatchFlag = 2; : potential track is forced to match
-    Double_t fEnergy;
+    Double_t fBdl;  ///< scalar field integrals
+    Double_t fBdlx; ///< x component of the field integral
+    Double_t fBdly; ///< y component of the field integral
+    Double_t fBdlz; ///< z component of the field integral
 
 }; // class QwRayTracer
 

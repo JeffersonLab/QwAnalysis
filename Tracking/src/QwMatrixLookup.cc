@@ -474,17 +474,12 @@ const QwTrack* QwMatrixLookup::Bridge(
     track = new QwTrack(front,back);
     track->fMomentum = momentum;
 
-    QwBridge* bridge = new QwBridge();
-    track->fBridge = bridge;
-
-    bridge->fStartPosition = front_position;
-    bridge->fStartDirection = front_direction;
-    bridge->fEndPositionGoal = back_position;
-    bridge->fEndDirectionGoal = back_direction;
-    bridge->fEndPositionActual = actual_back_position;
-    bridge->fEndDirectionActual = actual_back_direction;
-
-    fListOfTracks.push_back(track);
+    track->fStartPosition = front_position;
+    track->fStartDirection = front_direction;
+    track->fEndPositionGoal = back_position;
+    track->fEndDirectionGoal = back_direction;
+    track->fEndPositionActual = actual_back_position;
+    track->fEndDirectionActual = actual_back_direction;
 
 
 

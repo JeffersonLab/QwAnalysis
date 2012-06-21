@@ -18,17 +18,6 @@
 
 
 /**
- * Method to print vectors conveniently
- * @param stream Output stream
- * @param v Vector
- * @return Output stream
- */
-inline ostream& operator<< (ostream& stream, const TVector3& v)
-{
-  return stream << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
-}
-
-/**
  * Main function
  * @param argc Number of arguments
  * @param argv[] List of arguments

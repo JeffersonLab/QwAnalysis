@@ -12,7 +12,6 @@
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "QwPartialTrack.h"
-#include "QwBridge.h"
 #include "QwVertex.h"
 
 /**
@@ -70,6 +69,18 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     // Print the list of partial tracks
     void PrintPartialTracks(Option_t *option = "") const;
 
+
+    /// Set magnetic field integral
+    void SetMagneticFieldIntegral(double bdl, double bdlx, double bdly, double bdlz) {
+      fBdl = bdl;
+      fBdlXYZ = TVector3(bdlx,bdly,bdlz);
+    }
+    /// Get magnetic field integral
+    const TVector3& GetMagneticFieldIntegral() const {
+      return fBdlXYZ;
+    }
+
+
     /// Output stream operator for tracks
     friend ostream& operator<< (ostream& stream, const QwTrack& t);
 
@@ -80,16 +91,51 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     double fPhi;                ///< Azimuthal angle phi of track at primary vertex
     double fTheta;              ///< Polar angle theta of track at primary vertex
     double fVertexZ;            ///< Primary vertex position in longitudinal direction
-    double fVertexR;            ///< Primary vertex position in transverse direction
+    double fVertexR;	        ///< Primary vertex position in transverse direction
     //@}
 
-    double fChi;                ///< Combined chi square
-    double fMomentum;           ///< Spectrometer momentum
+    double fChi;		///< Combined chi square
+    double fMomentum;		///< Spectrometer momentum
     double fTotalEnergy;        ///< Total energy of the track
     double fScatteringAngle;    ///< Scattering angle
 
-    double fPositionRoff,fPositionPhioff;    
-    double fDirectionThetaoff,fDirectionPhioff;
+    //@{
+    /// Matching of front and back track position and direction at matching plane
+    TVector3 fPositionDiff;     ///< Difference in position at matching plane
+    double fPositionXoff;       ///< Difference in X position at matching plane
+    double fPositionYoff;       ///< Difference in Y position at matching plane
+    double fPositionRoff;       ///< Difference in radial position at matching plane
+    double fPositionPhioff;     ///< Difference in azimuthal angle phi at matching plane
+    double fPositionThetaoff;   ///< Difference in polar angle theta at matching plane
+    TVector3 fDirectionDiff;    ///< Difference in momentum at matching plane
+    double fDirectionXoff;      ///< Difference in X momentum at matching plane
+    double fDirectionYoff;      ///< Difference in Y momentum at matching plane
+    double fDirectionZoff;      ///< Difference in Z momentum at matching plane
+    double fDirectionPhioff;    ///< Difference in momentum azimuthal angle at matching plane
+    double fDirectionThetaoff;  ///< Difference in momentum polar angle at matching plane
+    //@}
+
+    //@{
+    /// Position and direction before and after swimming
+    TVector3 fStartPosition;            ///< Start position of front track
+    TVector3 fStartDirection;           ///< Start direction of front track
+
+    TVector3 fEndPositionGoal;          ///< Goal position of back track
+    TVector3 fEndDirectionGoal;         ///< Goal direction of back track
+
+    TVector3 fEndPositionActual;        ///< Actual position of track at back plane
+    TVector3 fEndDirectionActual;       ///< Actual direction of track at back plane
+    //@}
+
+    //@{
+    /// Magnetic field integrals
+    double fBdl;        ///< Magnetic field integral along track
+    TVector3 fBdlXYZ;   ///< Magnetic field integral along track
+    //@}
+
+    double fE;                  ///< Energy of the incoming electron
+    double fEprime;             ///< Energy of the outgoing electron (== fMomentum)
+    double fPreScatteringEloss; ///< Pre-scattering target energy loss assuming LH2 target
 
     double fXBj;                ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
     double fQ2;                 ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
@@ -97,13 +143,25 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     double fNu;                 ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
     double fY;                  ///< Fractional energy loss \f$ y = \nu / E \f$
 
-    QwBridge *fBridge;          ///< Magnet front-back matching information
-
     QwPartialTrack *fFront;     ///< Front partial track
     QwPartialTrack *fBack;      ///< Back partial track
 
   ClassDef(QwTrack,2);
 
 }; // class QwTrack
+
+
+/**
+ * Method to print vectors conveniently
+ * @param stream Output stream
+ * @param v Vector
+ * @return Output stream
+ */
+inline ostream& operator<< (ostream& stream, const TVector3& v)
+{
+  stream << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
+  return stream;
+}
+
 
 #endif // QWTRACK_H

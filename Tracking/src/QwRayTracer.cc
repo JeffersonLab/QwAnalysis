@@ -27,13 +27,13 @@
 #include "QwUnits.h"
 #include "QwMagneticField.h"
 #include "QwTrack.h"
-#include "QwBridge.h"
 #include "QwRayTracer.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-// Maximum number of iterations for Newton's method and Runge-Kutta method
+// Maximum number of iterations for Newton's method
 #define MAX_ITERATIONS_NEWTON 10
+// Maximum number of iterations for Runge-Kutta method
 #define MAX_ITERATIONS_RUNGEKUTTA 5000
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -43,48 +43,18 @@ QwMagneticField* QwRayTracer::fBfield = 0;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
- * Method to print vectors conveniently
- * @param stream Output stream
- * @param v Vector
- * @return Output stream
- */
-inline ostream& operator<< (ostream& stream, const TVector3& v)
-{
-  stream << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
-  return stream;
-}
-
-/**
  * Constructor: set all member field to zero
  */
 QwRayTracer::QwRayTracer(QwOptions& options)
 : VQwBridgingMethod()
 {
+  fBdl = 0.0;
   fBdlx = 0.0;
   fBdly = 0.0;
   fBdlz = 0.0;
   
-  fMomentum = 0.0;
-  fScatteringAngle = 0.0;
-  
-  fStartPosition = TVector3(0.0,0.0,0.0);
-  fHitPosition   = TVector3(0.0,0.0,0.0);
-  fHitDirection  = TVector3(0.0,0.0,0.0);
-
-  fPositionROff = 0.0;
-  fPositionPhiOff = 0.0;
-  fDirectionThetaOff = 0.0;
-  fDirectionPhiOff = 0.0;
-
-  fPositionXOff = 0.0;
-  fPositionYOff = 0.0;
-
-  fDirectionXOff = 0.0;
-  fDirectionYOff = 0.0;
-  fDirectionZOff = 0.0;
- 
-  fSimFlag = 0;
-  fMatchFlag = 0;
+  // Process command line options
+  ProcessOptions(options);
 
   // Load magnetic field
   LoadMagneticFieldMap(options);
@@ -161,59 +131,53 @@ const QwTrack* QwRayTracer::Bridge(
   QwTrack* track = 0;
 
   // Ray-tracing parameters
-  double res = 1 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
-  double step = 1.0 * Qw::cm; // integration step size
   double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
-  double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
+  // Estimate target vertex position from front partial track
+  double vertex_z =
+     -(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY) /
+      (front->fSlopeX*front->fSlopeX  + front->fSlopeY*front->fSlopeY);
+
   Double_t p[2] = {0.0};
-  Double_t x[2] = {0.0};
-  Double_t y[2] = {0.0};
-  Double_t r[2] = {0.0};
-  //  double x0,y0,r0;
 
   // Front track position and direction
-  //TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
   TVector3 start_position  = front->GetPosition(-250 * Qw::cm);
-  fStartPosition = start_position;
   TVector3 start_direction = front->GetMomentumDirection();
-  fScatteringAngle = start_direction.Theta();
-  // Estimate initial momentum based on front track
-  //p[0]=p[1]= EstimateInitialMomentum(vertex_z,fScatteringAngle,fBeamEnergy)/Qw::GeV;
-  p[0] = p[1] = EstimateInitialMomentum(start_direction)/Qw::GeV;
 
   // Back track position and direction
-  //TVector3 end_position = back->GetPosition(439.625 * Qw::cm);
   TVector3 end_position  = back->GetPosition(250.0 * Qw::cm);
   TVector3 end_direction = back->GetMomentumDirection();
 
 
-  fPositionROff = end_position.Perp();
+  double positionRoff = end_position.Perp();
 
-  TVector3 position, direction;
-  position=start_position;
-  direction=start_direction;
-  IntegrateRK4(position, direction, p[0], end_position.Z(), step);
-  fPositionROff = position.Perp() - end_position.Perp();
-  int mode=0;
-  
+  TVector3 position = start_position;
+  TVector3 direction =  start_direction;
+  IntegrateRK4(position, direction, p[0], end_position.Z(), fStep);
+  positionRoff = position.Perp() - end_position.Perp();
+
+  int mode = 0;
   int iterations = 0;
-  while (fabs(fPositionROff) >= res && iterations < MAX_ITERATIONS_NEWTON) {
+  while (fabs(positionRoff) >= fNewtonPositionResolution
+      && iterations < MAX_ITERATIONS_NEWTON) {
     ++iterations;
 
-    //std::cout << "iter:" << iterations << " fPositonROFF: " << fPositionROff << std::endl;
+    Double_t r[2] = {0.0, 0.0};
+    if(mode==0){
+      Double_t x[2] = {0.0, 0.0};
+      Double_t y[2] = {0.0, 0.0};
+
       // p0 - dp
       position = start_position;
       direction = start_direction;
-    if(mode==0){
-    IntegrateRK4(position, direction, p[0] - dp, end_position.Z(), step);
+      IntegrateRK4(position, direction, p[0] - dp, end_position.Z(), fStep);
       x[0] = position.X();
       y[0] = position.Y();
 
       // p0 + dp
       position = start_position;
       direction = start_direction;
-    IntegrateRK4(position, direction, p[0] + dp, end_position.Z(), step);
+      IntegrateRK4(position, direction, p[0] + dp, end_position.Z(), fStep);
       x[1] = position.X();
       y[1] = position.Y();
 
@@ -224,49 +188,27 @@ const QwTrack* QwRayTracer::Bridge(
 
     // Correction p1 = f(p0)
     if (r[0] != r[1]){
-      if(r[1] > end_position.Perp() || r[0] < end_position.Perp()){
+      if (r[1] > end_position.Perp() || r[0] < end_position.Perp()) {
         p[1] = p[0] - dp * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
-      }
-      else{
+      } else {
         mode = 1;
-        if(fPositionROff < 0)
+        if (positionRoff < 0)
           p[1] = p[0] - 0.001;
         else
           p[1] = p[0] + 0.001;
       }
     }
 
-    //std::cout << "r0:" << r[0] << " r1: " << r[1] << std::endl;
-    //std::cout << "p0:" << p[0] << " p1: " << p[1] << " in mode " << mode << std::endl;
-
     // p1
     position = start_position;
     direction = start_direction;
-    IntegrateRK4(position, direction, p[1], end_position.Z(), step);
-    // x[0] = position.X();
-    // y[0] = position.Y();
-
-    // Store differences
-    fPositionXOff = position.X() - end_position.X();
-    fPositionYOff = position.Y() - end_position.Y();
-
-    fDirectionXOff = direction.X() - end_direction.X();
-    fDirectionYOff = direction.Y() - end_direction.Y();
-    fDirectionZOff = direction.Z() - end_direction.Z();
-
-    fPositionROff   = position.Perp() - end_position.Perp();
-    fPositionPhiOff = position.Phi()  - end_position.Phi();
-
-    fDirectionThetaOff = direction.Theta() - end_direction.Theta();
-    fDirectionPhiOff   = direction.Phi()   - end_direction.Phi();
+    IntegrateRK4(position, direction, p[1], end_position.Z(), fStep);
 
     p[0] = p[1];
   }
 
   if (iterations < MAX_ITERATIONS_NEWTON) {
 
-    fMomentum = p[1]*Qw::GeV;
-    //std::cout << "final fPositionROFF:" << fPositionROff << std::endl;
     //QwMessage << "Converged after " << iterations << " iterations." << QwLog::endl;
     /*
     if (fMomentum < 0.980 * Qw::GeV || fMomentum > 1.165 * Qw::GeV) {
@@ -287,7 +229,8 @@ const QwTrack* QwRayTracer::Bridge(
       return -1;
     }
     */
-    double kinematics[3]={0.0,0.0,0.0};
+
+    double kinematics[3] = {0.0,0.0,0.0};
     //double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
 
     CalculateKinematics(vertex_z,start_direction.Theta(),fBeamEnergy,kinematics);
@@ -297,32 +240,43 @@ const QwTrack* QwRayTracer::Bridge(
     track->fMomentum = kinematics[0] / Qw::GeV;
     track->fTotalEnergy = kinematics[1] / Qw::GeV;
     track->fQ2 = kinematics[2] / (Qw::GeV * Qw::GeV);
-    track->fScatteringAngle = start_direction.Theta() * Qw::rad2deg;//180 /PI;
-    track->fVertexZ=vertex_z;
-    track->fPositionRoff = fPositionROff;
-    track->fPositionPhioff = fPositionPhiOff;
-    track->fDirectionThetaoff = fDirectionThetaOff;
-    track->fDirectionPhioff = fDirectionPhiOff;
-    // let r2 to determine the package
+    track->fScatteringAngle = start_direction.Theta() * Qw::rad2deg;
+    track->fVertexZ = vertex_z;
+
+    // Let front partial track determine the package and octant
     track->SetPackage(front->GetPackage());
     track->SetOctant(front->GetOctant());
 
-    track->fChi = front->fChi + back->fChi;
+    // Chi2 is sum of front and back partial tracks
+    track->fChi = front->fChi + back->fChi
 
-    QwBridge* bridge = new QwBridge();
-    track->fBridge = bridge;
+    // Position differences at matching plane
+    TVector3 position_diff = position - end_position;
+    track->fPositionDiff = position_diff;
+    track->fPositionXoff = position_diff.X();
+    track->fPositionYoff = position_diff.Y();
+    track->fPositionRoff     = position.Perp()  - end_position.Perp();
+    track->fPositionPhioff   = position.Phi()   - end_position.Phi();
+    track->fPositionThetaoff = position.Theta() - end_position.Theta();
 
-    bridge->fStartPosition = start_position;
-    bridge->fStartDirection = start_direction;
-    bridge->fEndPositionGoal = end_position;
-    bridge->fEndDirectionGoal = end_direction;
-    bridge->fEndPositionActual = position;
-    bridge->fEndDirectionActual = direction;
+    // Direction differences at matching plane
+    TVector3 direction_diff = direction - end_direction;
+    track->fDirectionDiff = direction_diff;
+    track->fDirectionXoff = direction_diff.X();
+    track->fDirectionYoff = direction_diff.Y();
+    track->fDirectionZoff = direction_diff.Z();
+    track->fDirectionPhioff   = direction.Phi()   - end_direction.Phi();
+    track->fDirectionThetaoff = direction.Theta() - end_direction.Theta();
 
-    fHitPosition = position;
-    fHitDirection = direction;
+    track->fStartPosition = start_position;
+    track->fStartDirection = start_direction;
+    track->fEndPositionGoal = end_position;
+    track->fEndDirectionGoal = end_direction;
+    track->fEndPositionActual = position;
+    track->fEndDirectionActual = direction;
 
-    fListOfTracks.push_back(track);
+    // Magnetic field integrals
+    track->SetMagneticFieldIntegral(fBdl,fBdlx,fBdly,fBdlz);
 
   } else {
 
@@ -398,6 +352,9 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
 
   // Momentum
   double beta = -0.2998 / p0;
+
+  // Field integral
+  fBdl = 0.0;
   fBdlx = 0.0;
   fBdly = 0.0;
   fBdlz = 0.0;
@@ -441,9 +398,6 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
     dx1 = step * vx;
     dy1 = step * vy;
     dz1 = step * vz;
-    // dvx1 = step * beta * (vy * bz - vz * by);
-    // dvy1 = step * beta * (vz * bx - vx * bz);
-    // dvz1 = step * beta * (vx * by - vy * bx);
     dvx1 = beta * (dy1 * bz - dz1 * by);
     dvy1 = beta * (dz1 * bx - dx1 * bz);
     dvz1 = beta * (dx1 * by - dy1 * bx);
@@ -464,9 +418,6 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
     dx2 = step * vx;
     dy2 = step * vy;
     dz2 = step * vz;
-    // dvx2 = step * beta * (vy*bz - vz*by);
-    // dvy2 = step * beta * (vz*bx - vx*bz);
-    // dvz2 = step * beta * (vx*by - vy*bx);
     dvx2 = beta * (dy2*bz - dz2*by);
     dvy2 = beta * (dz2*bx - dx2*bz);
     dvz2 = beta * (dx2*by - dy2*bx);
@@ -488,9 +439,6 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
     dx3 = step * vx;
     dy3 = step * vy;
     dz3 = step * vz;
-    // dvx3 = step * beta * (vy*bz - vz*by);
-    // dvy3 = step * beta * (vz*bx - vx*bz);
-    // dvz3 = step * beta * (vx*by - vy*bx);
     dvx3 = beta * (dy3*bz - dz3*by);
     dvy3 = beta * (dz3*bx - dx3*bz);
     dvz3 = beta * (dx3*by - dy3*bx);
@@ -511,21 +459,16 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
     dx4 = step * vx;
     dy4 = step * vy;
     dz4 = step * vz;
-    // dvx4 = step * beta * (vy*bz - vz*by);
-    // dvy4 = step * beta * (vz*bx - vx*bz);
-    // dvz4 = step * beta * (vx*by - vy*bx);
     dvx4 = beta * (dy4*bz - dz4*by);
     dvy4 = beta * (dz4*bx - dx4*bz);
     dvz4 = beta * (dx4*by - dy4*bx);
 
     // Evaluate the path integral (B x dl)
-    // fBdlx += step * (vz*by - vy*bz);
-    // fBdly += step * (vx*bz - vz*bx);
-    // fBdlz += step * (vy*bx - vx*by);
+    fBdl += dx4 * bx + dy4 * by + dz4 * bz;
     fBdlx += (dz4*by - dy4*bz);
     fBdly += (dx4*bz - dz4*bx);
     fBdlz += (dy4*bx - dx4*by);
-    //std::cout<<"Bfield(x,y,z)"<<bx<<", "<<by<<", "<<bz<<"\n";
+
     // Final estimates of trajectory
     xx[1] = xx[0] + (dx1 + 2.0*dx2 + 2.0*dx3 + dx4) / 6.0;
     yy[1] = yy[0] + (dy1 + 2.0*dy2 + 2.0*dy3 + dy4) / 6.0;

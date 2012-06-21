@@ -81,8 +81,6 @@ QwTrack::~QwTrack()
   if (fFront) delete fFront;
   if (fBack)  delete fBack;
 
-  if (fBridge) delete fBridge;
-
   ClearPartialTracks();
 }
 
@@ -112,11 +110,6 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fMomentum = that.fMomentum;
    fTotalEnergy = that.fTotalEnergy;
 
-  fPositionRoff = that.fPositionRoff;
-  fPositionPhioff = that.fPositionPhioff;
-  fDirectionThetaoff = that.fDirectionThetaoff;
-  fDirectionPhioff = that.fDirectionPhioff;
-
   // Copy partial tracks
   ClearPartialTracks();
   AddPartialTrackList(that.fQwPartialTracks);
@@ -142,7 +135,6 @@ void QwTrack::Initialize()
   fY = 0.0;
 
   // Initialize all pointers
-  fBridge = 0;
   fFront = 0;
   fBack = 0;
 }
@@ -221,7 +213,11 @@ void QwTrack::PrintPartialTracks(Option_t *option) const
 ostream& operator<< (ostream& stream, const QwTrack& t)
 {
   stream << "track: ";
-  if (t.GetRegion() != kRegionIDNull)
+  if (t.GetRegion() != kRegionIDNull) {
     stream << "(" << t.GetRegion() << "/" << "?UD"[t.GetPackage()] << ") ";
+    stream << "Start: " << t.fStartPosition << "/" << t.fStartDirection << std::endl;
+    stream << "End (goal): " << t.fEndPositionGoal << "/" << t.fEndDirectionGoal << std::endl;
+    stream << "End (actual): " << t.fEndPositionActual << "/" << t.fEndDirectionActual << std::endl;
+  }
   return stream;
 }

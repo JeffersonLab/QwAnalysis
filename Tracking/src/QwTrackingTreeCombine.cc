@@ -29,7 +29,7 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwOptions.h"
-#include "QwHit.h"
+#include "QwHitContainer.h"
 #include "QwDetectorInfo.h"
 #include "QwTrackingTree.h"
 #include "QwTrackingTreeLine.h"

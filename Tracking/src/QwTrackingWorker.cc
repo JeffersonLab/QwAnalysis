@@ -91,9 +91,6 @@ using std::endl;
 #include "QwLog.h"
 #include "globals.h"
 
-// Qweak GEM cluster finding
-//#include "QwGEMClusterFinder.h"
-
 // Qweak tree search headers
 #include "QwHitPattern.h"
 #include "QwTrackingTree.h"
@@ -106,10 +103,12 @@ using std::endl;
 #include "QwTrackingTreeMatch.h"
 
 // Qweak track/event headers
+#include "QwHit.h"
+#include "QwHitContainer.h"
+#include "QwTrackingTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 #include "QwEvent.h"
-#include "QwBridge.h"
 #include "QwDetectorInfo.h"
 #include "QwBridgingTrackFilter.h"
 #include "QwRayTracer.h"
@@ -228,8 +227,6 @@ QwTrackingWorker::~QwTrackingWorker ()
             << " (of " << QwPartialTrack::GetObjectsCreated() << ")" << QwLog::endl;
   QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive()
             << " (of " << QwTrack::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwBridge: "        << QwBridge::GetObjectsAlive()
-            << " (of " << QwBridge::GetObjectsCreated() << ")" << QwLog::endl;
   QwMessage << QwLog::endl;
 }
 
@@ -956,6 +953,7 @@ void QwTrackingWorker::ProcessEvent (
                   const QwTrack* track = fMatrixLookup->Bridge(front, back);
                   if (track) {
                     event->AddTrack(track);
+                    delete track;
                     back = back->next;
                     continue;
                   }
@@ -966,7 +964,8 @@ void QwTrackingWorker::ProcessEvent (
                   const QwTrack* track = fRayTracer->Bridge(front, back);
                   if (track) {
                     event->AddTrack(track);
-                    event->AddBridgingResult(track);
+		    event->AddBridgingResult(track);
+                    delete track;
                     back = back->next;
                     continue;
                   }
@@ -1018,6 +1017,7 @@ void QwTrackingWorker::ProcessEvent (
                   const QwTrack* track = fMatrixLookup->Bridge(front, back);
                   if (track) {
                     event->AddTrack(track);
+                    delete track;
                     back = back->next;
                     continue;
                   }
@@ -1028,7 +1028,8 @@ void QwTrackingWorker::ProcessEvent (
                   const QwTrack* track = fRayTracer->Bridge(front, back);
                   if (track) {
                     event->AddTrack(track);
-                    event->AddBridgingResult(track);
+		    event->AddBridgingResult(track);
+                    delete track;
                     back = back->next;
                     continue;
                   }

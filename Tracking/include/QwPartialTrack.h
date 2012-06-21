@@ -22,7 +22,6 @@
 #include "QwTrackingTreeLine.h"
 #include "QwDetectorInfo.h"
 #include "QwGeometry.h"
-#include "QwBridge.h"
 
 // Forward declarations
 class QwVertex;
