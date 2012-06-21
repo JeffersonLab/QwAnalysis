@@ -307,6 +307,8 @@ const QwTrack* QwRayTracer::Bridge(
     track->SetPackage(front->GetPackage());
     track->SetOctant(front->GetOctant());
 
+    track->fChi = front->fChi + back->fChi;
+
     QwBridge* bridge = new QwBridge();
     track->fBridge = bridge;
 
