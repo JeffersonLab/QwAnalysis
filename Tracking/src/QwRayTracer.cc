@@ -248,7 +248,7 @@ const QwTrack* QwRayTracer::Bridge(
     track->SetOctant(front->GetOctant());
 
     // Chi2 is sum of front and back partial tracks
-    track->fChi = front->fChi + back->fChi
+    track->fChi = front->fChi + back->fChi;
 
     // Position differences at matching plane
     TVector3 position_diff = position - end_position;
