@@ -214,10 +214,6 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     GetEntry(fCurrentEntry++);
 
     // Assign the kinematic variables
-    fEvent->fPrimaryQ2 = fPrimary_PrimaryQ2;
-    fEvent->fCrossSectionWeight = fPrimary_CrossSectionWeight;
-    fEvent->fTotalEnergy = fPrimary_OriginVertexTotalEnergy;
-    fEvent->fKineticEnergy = fPrimary_OriginVertexKineticEnergy;
     fEvent->fVertexPosition =
       TVector3(fPrimary_OriginVertexPositionX,
                fPrimary_OriginVertexPositionY,

@@ -89,6 +89,8 @@ namespace Qw {
   static const double keV = 1.0e-3;
   static const double MeV = 1.0;
   static const double GeV = 1.0e3;
+  static const double MeV2 = 1.0;
+  static const double GeV2 = 1.0e6;
   //@}
 
   //@{
@@ -105,6 +107,11 @@ namespace Qw {
   static const double T = 1.0;
   static const double G = 0.0001;
   static const double kG = 1.0e3 * G;
+  //@}
+
+  //@{
+  /// Kinematic variables
+  static const double Mp = 938.272013 * Qw::MeV;        ///< Mass of the proton
   //@}
 
 } // namespace Qw

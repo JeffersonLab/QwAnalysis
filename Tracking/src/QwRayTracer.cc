@@ -112,9 +112,9 @@ void QwRayTracer::DefineOptions(QwOptions& options)
  */
 void QwRayTracer::ProcessOptions(QwOptions& options)
 {
-  fStep = Qw::cm * options.GetValue<float>("QwRayTracer.step");
-  fNewtonMomentumStepSize = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
-  fNewtonPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
+  fIntegrationStep = Qw::cm * options.GetValue<float>("QwRayTracer.step");
+  fMomentumStep = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
+  fPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
 }
 
 /**
@@ -130,15 +130,10 @@ const QwTrack* QwRayTracer::Bridge(
   // No track found yet
   QwTrack* track = 0;
 
-  // Ray-tracing parameters
-  double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
-
-  // Estimate target vertex position from front partial track
-  double vertex_z =
-     -(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY) /
-      (front->fSlopeX*front->fSlopeX  + front->fSlopeY*front->fSlopeY);
-
-  Double_t p[2] = {0.0};
+  // Estimate initial momentum from
+  Double_t momentum[2] = {0.0};
+  momentum[0] = EstimateInitialMomentum(front->GetMomentumDirection());
+  momentum[0] = 0;
 
   // Front track position and direction
   TVector3 start_position  = front->GetPosition(-250 * Qw::cm);
@@ -153,12 +148,12 @@ const QwTrack* QwRayTracer::Bridge(
 
   TVector3 position = start_position;
   TVector3 direction =  start_direction;
-  IntegrateRK4(position, direction, p[0], end_position.Z(), fStep);
+  IntegrateRK4(position, direction, momentum[0], end_position.Z(), fIntegrationStep);
   positionRoff = position.Perp() - end_position.Perp();
 
   int mode = 0;
   int iterations = 0;
-  while (fabs(positionRoff) >= fNewtonPositionResolution
+  while (fabs(positionRoff) >= fPositionResolution
       && iterations < MAX_ITERATIONS_NEWTON) {
     ++iterations;
 
@@ -167,17 +162,17 @@ const QwTrack* QwRayTracer::Bridge(
       Double_t x[2] = {0.0, 0.0};
       Double_t y[2] = {0.0, 0.0};
 
-      // p0 - dp
+      // momentum - dp
       position = start_position;
       direction = start_direction;
-      IntegrateRK4(position, direction, p[0] - dp, end_position.Z(), fStep);
+      IntegrateRK4(position, direction, momentum[0] - fMomentumStep, end_position.Z(), fIntegrationStep);
       x[0] = position.X();
       y[0] = position.Y();
 
-      // p0 + dp
+      // momentum + dp
       position = start_position;
       direction = start_direction;
-      IntegrateRK4(position, direction, p[0] + dp, end_position.Z(), fStep);
+      IntegrateRK4(position, direction, momentum[0] + fMomentumStep, end_position.Z(), fIntegrationStep);
       x[1] = position.X();
       y[1] = position.Y();
 
@@ -186,25 +181,25 @@ const QwTrack* QwRayTracer::Bridge(
       r[1] = sqrt(x[1]*x[1] + y[1]*y[1]);
     }
 
-    // Correction p1 = f(p0)
+    // Correction = f(momentum)
     if (r[0] != r[1]){
       if (r[1] > end_position.Perp() || r[0] < end_position.Perp()) {
-        p[1] = p[0] - dp * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
+        momentum[1] = momentum[0] - fMomentumStep * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
       } else {
         mode = 1;
         if (positionRoff < 0)
-          p[1] = p[0] - 0.001;
+          momentum[1] = momentum[0] - 0.001;
         else
-          p[1] = p[0] + 0.001;
+          momentum[1] = momentum[0] + 0.001;
       }
     }
 
     // p1
     position = start_position;
     direction = start_direction;
-    IntegrateRK4(position, direction, p[1], end_position.Z(), fStep);
+    IntegrateRK4(position, direction, momentum[1], end_position.Z(), fIntegrationStep);
 
-    p[0] = p[1];
+    momentum[0] = momentum[1];
   }
 
   if (iterations < MAX_ITERATIONS_NEWTON) {
@@ -230,18 +225,11 @@ const QwTrack* QwRayTracer::Bridge(
     }
     */
 
-    double kinematics[3] = {0.0,0.0,0.0};
-    //double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
-
-    CalculateKinematics(vertex_z,start_direction.Theta(),fBeamEnergy,kinematics);
-
+    // Create a new track
     track = new QwTrack(front,back);
 
-    track->fMomentum = kinematics[0] / Qw::GeV;
-    track->fTotalEnergy = kinematics[1] / Qw::GeV;
-    track->fQ2 = kinematics[2] / (Qw::GeV * Qw::GeV);
-    track->fScatteringAngle = start_direction.Theta() * Qw::rad2deg;
-    track->fVertexZ = vertex_z;
+    // Reconstructed momentum
+    track->fMomentum = momentum[0];
 
     // Let front partial track determine the package and octant
     track->SetPackage(front->GetPackage());
@@ -279,9 +267,7 @@ const QwTrack* QwRayTracer::Bridge(
     track->SetMagneticFieldIntegral(fBdl,fBdlx,fBdly,fBdlz);
 
   } else {
-
     QwMessage << "Can't converge after " << iterations << " iterations." << QwLog::endl;
-
   }
 
   return track;

@@ -71,12 +71,12 @@ class QwRayTracer: public VQwBridgingMethod {
     static QwMagneticField *fBfield;
 
     /// Runge-Kutta step size
-    double fStep;
+    double fIntegrationStep;
 
     /// Newton's method step size in position
-    double fNewtonPositionResolution;
+    double fPositionResolution;
     /// Newton's method step size in momentum
-    double fNewtonMomentumStepSize;
+    double fMomentumStep;
 
     Double_t fBdl;  ///< scalar field integrals
     Double_t fBdlx; ///< x component of the field integral

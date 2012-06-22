@@ -100,15 +100,8 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fPhi   = that.fPhi;
   fScatteringAngle = that.fScatteringAngle;
 
-  fXBj = that.fXBj;
-  fQ2 = that.fQ2;
-  fW2 = that.fW2;
-  fNu = that.fNu;
-  fY = that.fY;
-
   fChi = that.fChi;
   fMomentum = that.fMomentum;
-   fTotalEnergy = that.fTotalEnergy;
 
   // Copy partial tracks
   ClearPartialTracks();
@@ -122,17 +115,10 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
  */
 void QwTrack::Initialize()
 {
-  // Initialize the memebers;
-  
-  fQ2=0.0,fW2=0.0,fNu=0.0;
-  fVertexZ=0.0,fVertexR=0.0;
-  fTheta=0.0,fPhi=0.0;
+  // Initialize the members;
   fScatteringAngle = 0.0;
   fChi = 0.0;
   fMomentum = 0.0;
-  fTotalEnergy = 0.0;
-  fXBj = 0.0;
-  fY = 0.0;
 
   // Initialize all pointers
   fFront = 0;

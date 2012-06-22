@@ -22,7 +22,6 @@
 // Forward declarations
 class QwHit;
 class QwHitContainer;
-//class QwGEMCluster;
 class QwVertex;
 
 
@@ -234,6 +233,9 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
       fEventHeader = new QwEventHeader(*eventheader);
     };
 
+    /// \brief Calculate the energy loss in the hydrogen target
+    double EnergyLossHydrogen(const double vertex_z);
+
   public:
 
     // Housekeeping methods for lists
@@ -352,15 +354,12 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void PrintTracks(Option_t* option = "") const;
     // @}
 
-    void AddBridgingResult(const QwTrack* track);
+    /// \brief Calculate the kinematic variables for a given track
+    void CalculateKinematics(const QwTrack* track);
     
     //! \brief Print the event
     void Print(Option_t* option = "") const;
     
-    Double_t GetPrimaryQ2()             const { return fPrimaryQ2;};
-    Double_t GetCrossSectionWeight()    const { return fCrossSectionWeight;};
-    Double_t GetTotalEnergy()           const { return fTotalEnergy;};
-    Double_t GetKineticEnergy()         const { return fKineticEnergy;};
     const TVector3& GetVertexPosition() const { return fVertexPosition;};
     const TVector3& GetVertexMomentum() const { return fVertexMomentum;};
     Double_t GetScatteringAngle()       const { return fScatteringAngle;};
@@ -368,17 +367,61 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
   public:
 
-    /// \name Kinematic observables
-    // @{
-    double fPrimaryQ2;		///< Momentum transfer Q^2
-    double fCrossSectionWeight; ///< Cross section
-    double fTotalEnergy;        ///< Total energy
-    double fKineticEnergy;      ///< Kinetic energy
-    TVector3 fVertexPosition;   ///< Vertex position
-    TVector3 fVertexMomentum;   ///< Vertex momentum
+    /// \name Generic kinematic variables
+    //@{
+    double fBeamEnergy;         ///< Electron beam energy
+    double fHydrogenEnergyLoss; ///< Pre-scattering target energy loss assuming LH2 target
     double fScatteringAngle;    ///< Scattering angle
     double fScatteringVertexZ;  ///< Scattering vertex z position
+    double fScatteringVertexR;  ///< Scattering vertex radial distance
+    TVector3 fVertexPosition;   ///< Vertex position
+    TVector3 fVertexMomentum;   ///< Vertex momentum
+    //@}
+
+    /// \name General scattering variables
+    // @{
+    double fP0;                 ///< Incoming momentum \f$ p \f$
+    double fPp;                 ///< Outgoing momentum \f$ p^\prime \f$
+    double fQ2;                 ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
+    double fW2;                 ///< Invariant mass squared of the recoiling target system
+    double fNu;                 ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
+    double fX;                  ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
+    double fY;                  ///< Fractional energy loss \f$ y = \nu / E \f$
     // @}
+
+    /// \name General scattering variables with hydrogen energy loss
+    // @{
+    double fP0_Loss;            ///< Incoming momentum \f$ p \f$
+    double fPp_Loss;            ///< Outgoing momentum \f$ p^\prime \f$
+    double fQ2_Loss;            ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
+    double fW2_Loss;            ///< Invariant mass squared of the recoiling target system
+    double fNu_Loss;            ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
+    double fX_Loss;             ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
+    double fY_Loss;             ///< Fractional energy loss \f$ y = \nu / E \f$
+    // @}
+
+    /// \name Elastic scattering variables: elastic scattering is assumed!
+    // @{
+    double fElasticP0;                 ///< Incoming momentum \f$ p \f$
+    double fElasticPp;                 ///< Outgoing momentum \f$ p^\prime \f$
+    double fElasticQ2;                 ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
+    double fElasticW2;                 ///< Invariant mass squared of the recoiling target system
+    double fElasticNu;                 ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
+    double fElasticX;                  ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
+    double fElasticY;                  ///< Fractional energy loss \f$ y = \nu / E \f$
+    // @}
+
+    /// \name Elastic scattering variables with hydrogen energy loss: elastic scattering is assumed!
+    // @{
+    double fElasticP0_Loss;            ///< Incoming momentum \f$ p \f$
+    double fElasticPp_Loss;            ///< Outgoing momentum \f$ p^\prime \f$
+    double fElasticQ2_Loss;            ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
+    double fElasticW2_Loss;            ///< Invariant mass squared of the recoiling target system
+    double fElasticNu_Loss;            ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
+    double fElasticX_Loss;             ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
+    double fElasticY_Loss;             ///< Fractional energy loss \f$ y = \nu / E \f$
+    // @}
+
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
     QwTrackingTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!

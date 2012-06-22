@@ -964,7 +964,6 @@ void QwTrackingWorker::ProcessEvent (
                   const QwTrack* track = fRayTracer->Bridge(front, back);
                   if (track) {
                     event->AddTrack(track);
-		    event->AddBridgingResult(track);
                     delete track;
                     back = back->next;
                     continue;
@@ -1028,7 +1027,6 @@ void QwTrackingWorker::ProcessEvent (
                   const QwTrack* track = fRayTracer->Bridge(front, back);
                   if (track) {
                     event->AddTrack(track);
-		    event->AddBridgingResult(track);
                     delete track;
                     back = back->next;
                     continue;
@@ -1049,6 +1047,10 @@ void QwTrackingWorker::ProcessEvent (
           }
        }
     }
+
+    // Calculate kinematics
+    if (event->GetNumberOfTracks() > 0)
+      event->CalculateKinematics(event->GetTrack(0));
 
     // Delete local objects
     delete hitlist;

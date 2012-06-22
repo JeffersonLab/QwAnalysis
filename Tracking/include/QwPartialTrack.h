@@ -111,6 +111,14 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
       return GetMomentumDirection().Theta();
     };
 
+
+    /// \brief Get the vertex position
+    Double_t GetVertexZ() const {
+      return
+         -(fSlopeX * fOffsetX + fSlopeY * fOffsetY) /
+          (fSlopeX * fSlopeX  + fSlopeY * fSlopeY);
+    }
+
     /// \brief Smear the position
     QwPartialTrack& SmearPosition(const double sigma_x, const double sigma_y);
     /// \brief Smear the theta angle

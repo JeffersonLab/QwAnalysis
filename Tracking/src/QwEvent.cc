@@ -165,13 +165,130 @@ void QwEvent::Reset(Option_t *option)
   ResetTracks(option);
 }
 
-void QwEvent::AddBridgingResult(const QwTrack* track)
+
+/**
+ * Calculate the energy loss in the hydrogen target
+ *
+ * @param vertex_z Longitudinal position of vertex (absolute coordinates)
+ * @returns Energy loss
+ */
+double QwEvent::EnergyLossHydrogen(const double vertex_z)
 {
-  fPrimaryQ2 = track->fQ2;
-  fKineticEnergy = track->fMomentum;
-  fTotalEnergy = track->fTotalEnergy;
-  fScatteringAngle=track->fScatteringAngle;
-  fScatteringVertexZ = track->fVertexZ;
+  // Target parameters
+  double target_z_length = 34.35;       // Target Length (cm)
+  double target_z_position= -652.67;    // Target center position (cm) in Z
+  double target_z_front = target_z_position - 0.5 * target_z_length;
+  double target_z_back  = target_z_position + 0.5 * target_z_length;
+
+  // Energy loss in hydrogen target
+  double pre_loss = 0.0;
+  if (vertex_z < target_z_front) {
+    // Before target
+    pre_loss = 0.05 * Qw::MeV;
+
+  } else if (vertex_z >= target_z_front && vertex_z <= target_z_back) {
+    // Inside target
+    double depth = vertex_z - target_z_front;
+    //pre_loss = 20.08 * Qw::MeV * depth/target_z_length; // linear approximation
+    pre_loss = 0.05 + depth*0.6618 - 0.003462*depth*depth; // quadratic fit approximation
+
+  } else {
+    // After target
+    pre_loss = (18.7 + 3.9) * Qw::MeV;  // averaged total Eloss, downstream, including Al windows
+  }
+
+  return pre_loss;
+}
+
+
+/**
+ * Calculate the kinematic variables for a given track
+ *
+ * @param track Reconstructed track
+ */
+void QwEvent::CalculateKinematics(const QwTrack* track)
+{
+  if (! track) {
+    QwWarning << "QwEvent::CalculateKinematics: "
+        << "called with null track pointer." << QwLog::endl;
+    return;
+  }
+
+  if (! (track->fFront)) {
+    QwWarning << "QwEvent::CalculateKinematics: "
+        << "full track with null front track pointer." << QwLog::endl;
+    return;
+  }
+
+  // Beam energy
+  Double_t energy = fBeamEnergy;
+
+  // Longitudinal vertex in target from front partial track
+  Double_t vertex_z = track->fFront->GetVertexZ();
+  fVertexPosition = track->fFront->GetPosition(vertex_z);
+  fVertexMomentum = track->fFront->GetMomentumDirection() * track->fMomentum;
+  fScatteringVertexZ = fVertexPosition.Z() / Qw::cm;
+  fScatteringVertexR = fVertexPosition.Perp() / Qw::cm;
+
+  // Scattering angle from front partial track
+  Double_t theta = track->fFront->GetMomentumDirectionTheta();
+  Double_t cos_theta = cos(theta);
+  fScatteringAngle = theta / Qw::deg;
+
+  // Prescattering energy loss
+  Double_t pre_loss = EnergyLossHydrogen(vertex_z);
+  fHydrogenEnergyLoss = pre_loss;
+
+  // Mass of the proton
+  Double_t Mp = Qw::Mp;
+
+  // Generic scattering without energy loss
+  Double_t P0 = energy;
+  Double_t PP = track->fMomentum;
+  Double_t Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fP0 = P0 / Qw::GeV;
+  fPp = PP / Qw::GeV;
+  fQ2 = Q2 / Qw::GeV2;
+  fNu = (P0 - PP) / Qw::GeV;
+  fW2 = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
+  fX = fQ2 / (2.0 * Mp * fNu);
+  fY = fNu / fP0;
+
+  // Generic scattering with energy loss
+  P0 = energy - pre_loss;
+  PP = track->fMomentum;
+  Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fP0_Loss = P0 / Qw::GeV;
+  fPp_Loss = PP / Qw::GeV;
+  fQ2_Loss = Q2 / Qw::GeV2;
+  fNu_Loss = (P0 - PP) / Qw::GeV;
+  fW2_Loss = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
+  fX_Loss = fQ2 / (2.0 * Mp * fNu);
+  fY_Loss = fNu / fP0;
+
+  // Elastic scattering without energy loss
+  P0 = energy * Qw::MeV;
+  PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
+  Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fElasticP0 = P0 / Qw::GeV;
+  fElasticPp = PP / Qw::GeV;
+  fElasticQ2 = Q2 / Qw::GeV2;
+  fElasticNu = (P0 - PP) / Qw::GeV;
+  fElasticW2 = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
+  fElasticX = fQ2 / (2.0 * Mp * fNu);
+  fElasticY = fNu / fP0;
+
+  // Elastic scattering with energy loss
+  P0 = (energy - pre_loss) * Qw::MeV;
+  PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
+  Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fElasticP0_Loss = P0 / Qw::GeV;
+  fElasticPp_Loss = PP / Qw::GeV;
+  fElasticQ2_Loss = Q2 / Qw::GeV2;
+  fElasticNu_Loss = (P0 - PP) / Qw::GeV;
+  fElasticW2_Loss = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
+  fElasticX_Loss = fQ2 / (2.0 * Mp * fNu);
+  fElasticY_Loss = fNu / fP0;
 }
 
 // Print the event
@@ -180,10 +297,12 @@ void QwEvent::Print(Option_t* option) const
   // Event header
   //std::cout << *fEventHeader << std::endl;
   // Event kinematics
-  std::cout << "Q^2 = " << fPrimaryQ2 << " MeV/c^2" << std::endl;
+  std::cout << "P0 = " << fP0 << " GeV/c" << std::endl;
+  std::cout << "PP = " << fPp << " GeV/c" << std::endl;
+  std::cout << "Q^2 = " << fQ2 << " (GeV/c)^2" << std::endl;
 //  std::cout << "weight = " << fCrossSectionWeight << std::endl;
 //  std::cout << "energy = " << fTotalEnergy/Qw::MeV << " MeV" << std::endl;
-  std::cout << "K.E. = " << fKineticEnergy/Qw::MeV << " MeV" << std::endl;
+//  std::cout << "momentum = " << fMomentum / Qw::MeV << " MeV" << std::endl;
 //  std::cout << "vertex position = " << fVertexPosition.Z()/Qw::cm << " cm" << std::endl;
 //  std::cout << "vertex momentum = " << fVertexMomentum.Z()/Qw::MeV << " MeV" << std::endl;
 

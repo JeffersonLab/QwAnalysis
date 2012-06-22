@@ -94,9 +94,8 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     double fVertexR;	        ///< Primary vertex position in transverse direction
     //@}
 
-    double fChi;		///< Combined chi square
-    double fMomentum;		///< Spectrometer momentum
-    double fTotalEnergy;        ///< Total energy of the track
+    double fChi;                ///< Combined chi square
+    double fMomentum;           ///< Spectrometer momentum
     double fScatteringAngle;    ///< Scattering angle
 
     //@{
@@ -132,16 +131,6 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     double fBdl;        ///< Magnetic field integral along track
     TVector3 fBdlXYZ;   ///< Magnetic field integral along track
     //@}
-
-    double fE;                  ///< Energy of the incoming electron
-    double fEprime;             ///< Energy of the outgoing electron (== fMomentum)
-    double fPreScatteringEloss; ///< Pre-scattering target energy loss assuming LH2 target
-
-    double fXBj;                ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
-    double fQ2;                 ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
-    double fW2;                 ///< Invariant mass squared of the recoiling target system
-    double fNu;                 ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
-    double fY;                  ///< Fractional energy loss \f$ y = \nu / E \f$
 
     QwPartialTrack *fFront;     ///< Front partial track
     QwPartialTrack *fBack;      ///< Back partial track
