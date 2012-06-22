@@ -14,12 +14,12 @@ sca_4mhz, 0, 4e6
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Scaler BCM pedestals
 ! channel name, pedestal,gain
-!sca_bcm1 average residual: (0.274066 +/- 0.000654549)%
-sca_bcm1        248095,        0.000564627
-!sca_bcm2 average residual: (0.268208 +/- 0.000619287)%
-sca_bcm2        248326,        0.000613121
-!sca_bcm6 average residual: (0.184634 +/- 0.000500118)%
-sca_bcm6        247946,        0.000964912
+! Calibrations come from revision r4565 run 22617
+sca_bcm1        249960        0.000561638
+sca_bcm2        250069        0.000609775
+sca_bcm6        248869        0.00095799
+
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Scaler BPM pedestals
