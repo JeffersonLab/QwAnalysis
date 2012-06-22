@@ -172,9 +172,11 @@ Int_t main(Int_t argc, Char_t* argv[])
         if (epics.HasDataLoaded()) {
 
           // Get magnetic field current
-          QwMessage << "qw:qt_mps_i_set = "
-              << epics.GetDataValue("qw:qt_mps_i_set")
-              << "A at event " << eventbuffer.GetEventNumber() << QwLog::endl;
+          Double_t current = epics.GetDataValue("qw:qt_mps_i_set");
+          if (current > 0.0) {
+            QwMessage << "qw:qt_mps_i_set = " << current << "A " << QwLog::endl;
+            //trackingworker->SetMagneticFieldCurrent(current);
+          }
 
           break;
         }

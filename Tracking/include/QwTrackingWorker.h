@@ -15,6 +15,7 @@
 #include "QwTypes.h"
 #include "QwOptions.h"
 #include "QwGeometry.h"
+#include "QwRayTracer.h"
 
 // Forward declarations
 class QwSubsystemArrayTracking;
@@ -26,7 +27,6 @@ class QwTrack;
 class QwEvent;
 class QwBridgingTrackFilter;
 class QwMatrixLookup;
-class QwRayTracer;
 
 // Forward declarations (modules)
 class QwTrackingTreeSearch;
@@ -74,6 +74,11 @@ class QwTrackingWorker {
     const QwGeometry GetGeometry() const { return fGeometry; };
     /// \brief Set the geometry
     void SetGeometry(const QwGeometry& geometry) { fGeometry = geometry; };
+
+    /// Set the magnetic field current
+    void SetMagneticFieldCurrent(const double current) {
+      if (fRayTracer) fRayTracer->SetMagneticFieldCurrent(current);
+    }
 
     /// \brief Process the hit list and construct the event
     void ProcessEvent (const QwSubsystemArrayTracking *detectors, QwEvent *event);

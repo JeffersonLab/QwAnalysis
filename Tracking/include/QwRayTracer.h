@@ -35,11 +35,7 @@
 #include "QwOptions.h"
 #include "VQwBridgingMethod.h"
 #include "QwPartialTrack.h"
-
-
-// Forward declarations
-class QwMagneticField;
-class QwPartialTrackParameter;
+#include "QwMagneticField.h"
 
 
 class QwRayTracer: public VQwBridgingMethod {
@@ -58,6 +54,10 @@ class QwRayTracer: public VQwBridgingMethod {
 
     /// \brief Load the magnetic field based on config file options
     bool LoadMagneticFieldMap(QwOptions& options);
+    /// Set magnetic field current
+    void SetMagneticFieldCurrent(const double current) {
+      if (fBfield) fBfield->SetActualCurrent(current);
+    }
 
     /// \brief Bridge from the front to back partial track
     const QwTrack* Bridge(const QwPartialTrack* front, const QwPartialTrack* back);

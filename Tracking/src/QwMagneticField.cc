@@ -52,7 +52,8 @@ QwMagneticField::QwMagneticField(QwOptions& options, const bool suppress_read_fi
   fField = 0;
 
   // Initialize parameters
-  SetScaleFactor(1.0);
+  SetReferenceCurrent(8615.0);
+  SetActualCurrent(8615.0);
   SetTranslation(0.0);
   SetRotation(0.0);
 
@@ -133,20 +134,11 @@ void QwMagneticField::DefineOptions(QwOptions& options)
  */
 void QwMagneticField::ProcessOptions(QwOptions& options)
 {
-  // Scaling
-  double default_current=options.GetValue<double>("QwMagneticField.current");
-  // Check if it's a typical run or not
-  if(default_current==8920){
-    double actual_current = LoadBeamProperty("beam_property.map");
-    double bfil = actual_current
-              / options.GetValue<double>("QwMagneticField.reference");
-    SetScaleFactor(bfil);
-    }
-  else{
-    double bfil = options.GetValue<double>("QwMagneticField.current")
-              / options.GetValue<double>("QwMagneticField.reference");
-    SetScaleFactor(bfil);
-  }
+  // Field currents
+  SetActualCurrent(options.GetValue<double>("QwMagneticField.current"));
+  SetReferenceCurrent(options.GetValue<double>("QwMagneticField.reference"));
+  // Override if necessary
+  LoadBeamProperty("beam_property.map");
 
   // Translation and rotation
   double trans = Qw::cm  * options.GetValue<double>("QwMagneticField.trans");
@@ -462,26 +454,19 @@ void QwMagneticField::GetFieldValue(
 }
 
 
+void QwMagneticField::LoadBeamProperty(const TString & map) {
+  QwParameterFile mapstr(map.Data());
+  while (mapstr.ReadNextLine()) {
+    mapstr.TrimComment();       // Remove everything after a comment character.
+    mapstr.TrimWhitespace();    // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())
+      continue;
 
-double QwMagneticField::LoadBeamProperty (const TString & map )
-{
-
-  QwParameterFile mapstr ( map.Data() );
-  string varname, varvalue;
-   while ( mapstr.ReadNextLine() )
-    {
-      mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
-      mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-      if ( mapstr.LineIsEmpty() )  continue;
-
-      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ){
-	  //  This is a declaration line.  Decode it.
-	  //UInt_t value = atol(varvalue.Data());
-	  if ( varname=="QTOR" )   //Beginning of detector information
-	    {
-	       return atoi(varvalue.c_str());
-	    }
+    string varname, varvalue;
+    if (mapstr.HasVariablePair("=", varname, varvalue)) {
+      if (varname == "QTOR") {
+        SetActualCurrent(atof(varvalue.c_str()));
       }
     }
-   return -1;
+  }
 }
