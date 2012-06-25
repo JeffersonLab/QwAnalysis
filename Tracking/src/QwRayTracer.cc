@@ -52,7 +52,7 @@ QwRayTracer::QwRayTracer(QwOptions& options)
   fBdlx = 0.0;
   fBdly = 0.0;
   fBdlz = 0.0;
-  
+
   // Process command line options
   ProcessOptions(options);
 
@@ -124,8 +124,8 @@ void QwRayTracer::ProcessOptions(QwOptions& options)
  * @return List of reconstructed tracks
  */
 const QwTrack* QwRayTracer::Bridge(
-    const QwPartialTrack* front,
-    const QwPartialTrack* back)
+                        const QwPartialTrack* front,
+                        const QwPartialTrack* back)
 {
   // No track found yet
   QwTrack* track = 0;
@@ -133,25 +133,21 @@ const QwTrack* QwRayTracer::Bridge(
   // Estimate initial momentum from
   Double_t momentum[2] = {0.0};
   momentum[0] = EstimateInitialMomentum(front->GetMomentumDirection());
-  momentum[0] = 0;
 
   // Front track position and direction
-  TVector3 start_position  = front->GetPosition(-250 * Qw::cm);
+  TVector3 start_position = front->GetPosition(-250 * Qw::cm);
   TVector3 start_direction = front->GetMomentumDirection();
 
   // Back track position and direction
-  TVector3 end_position  = back->GetPosition(250.0 * Qw::cm);
+  TVector3 end_position = back->GetPosition(250.0 * Qw::cm);
   TVector3 end_direction = back->GetMomentumDirection();
-
-
-  double positionRoff = end_position.Perp();
 
   TVector3 position = start_position;
   TVector3 direction =  start_direction;
   IntegrateRK4(position, direction, momentum[0], end_position.Z(), fIntegrationStep);
-  positionRoff = position.Perp() - end_position.Perp();
+  double positionRoff = position.Perp() - end_position.Perp();
 
-  int mode = 0;
+  int mode=0;
   int iterations = 0;
   while (fabs(positionRoff) >= fPositionResolution
       && iterations < MAX_ITERATIONS_NEWTON) {
@@ -159,34 +155,26 @@ const QwTrack* QwRayTracer::Bridge(
 
     Double_t r[2] = {0.0, 0.0};
     if(mode==0){
-      Double_t x[2] = {0.0, 0.0};
-      Double_t y[2] = {0.0, 0.0};
 
       // momentum - dp
       position = start_position;
       direction = start_direction;
       IntegrateRK4(position, direction, momentum[0] - fMomentumStep, end_position.Z(), fIntegrationStep);
-      x[0] = position.X();
-      y[0] = position.Y();
+      r[0] = position.Perp();
 
       // momentum + dp
       position = start_position;
       direction = start_direction;
       IntegrateRK4(position, direction, momentum[0] + fMomentumStep, end_position.Z(), fIntegrationStep);
-      x[1] = position.X();
-      y[1] = position.Y();
-
-      // Calculate difference
-      r[0] = sqrt(x[0]*x[0] + y[0]*y[0]);
-      r[1] = sqrt(x[1]*x[1] + y[1]*y[1]);
+      r[1] = position.Perp();
     }
 
     // Correction = f(momentum)
     if (r[0] != r[1]){
-      if (r[1] > end_position.Perp() || r[0] < end_position.Perp()) {
+      if(r[1]>end_position.Perp() || r[0]<end_position.Perp()){
         momentum[1] = momentum[0] - fMomentumStep * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
       } else {
-        mode = 1;
+        mode=1;
         if (positionRoff < 0)
           momentum[1] = momentum[0] - 0.001;
         else
@@ -198,6 +186,7 @@ const QwTrack* QwRayTracer::Bridge(
     position = start_position;
     direction = start_direction;
     IntegrateRK4(position, direction, momentum[1], end_position.Z(), fIntegrationStep);
+    positionRoff = position.Perp() - end_position.Perp();
 
     momentum[0] = momentum[1];
   }
@@ -208,19 +197,19 @@ const QwTrack* QwRayTracer::Bridge(
     /*
     if (fMomentum < 0.980 * Qw::GeV || fMomentum > 1.165 * Qw::GeV) {
       QwMessage << "Out of momentum range: determined momentum by shooting: "
-                << fMomentum / Qw::GeV << " GeV" << std::endl;
+		<< fMomentum / Qw::GeV << " GeV" << std::endl;
       return -1;
     }
 
     if (fabs(fPositionPhiOff) > 10*Qw::deg) {
       QwMessage << "Out of position Phi-matching range: dPhi by shooting: "
-                << fPositionPhiOff / Qw::deg << " deg" << std::endl;
+		<< fPositionPhiOff / Qw::deg << " deg" << std::endl;
       return -1;
     }
 
     if (fabs(fDirectionPhiOff) > 10*Qw::deg) {
       QwMessage << "Out of direction phi-matching range: dphi by shooting: "
-                << fDirectionPhiOff / Qw::deg << " deg" << std::endl;
+		<< fDirectionPhiOff / Qw::deg << " deg" << std::endl;
       return -1;
     }
     */
@@ -300,8 +289,9 @@ const QwTrack* QwRayTracer::Bridge(
  * @param step Step size
  * @return True if the integration was successful
  */
-bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, double z_end, double step)
+bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, double p0, double z_end, double step)
 {
+  p0 /= Qw::GeV;
   r0[0] /= Qw::m;
   r0[1] /= Qw::m;
   r0[2] /= Qw::m;
@@ -337,7 +327,7 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
   double &bz = bfield[2];
 
   // Momentum
-  double beta = -0.2998 / p0;
+  double beta = - 0.299792 / p0;
 
   // Field integral
   fBdl = 0.0;
@@ -375,9 +365,9 @@ bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, dou
     vx = vx1 = uvx[0];
     vy = vy1 = uvy[0];
     vz = vz1 = uvz[0];
-    point1[0] = x*Qw::m;
-    point1[1] = y*Qw::m;
-    point1[2] = z*Qw::m;
+    point1[0]=x*Qw::m;
+    point1[1]=y*Qw::m;
+    point1[2]=z*Qw::m;
     fBfield->GetCartesianFieldValue(point1, bfield);
 
     // First approximation to the changes in the variables for step h (k1)

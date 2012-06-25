@@ -1,10 +1,12 @@
 #include "QwEvent.h"
-ClassImp(QwEvent)
-ClassImp(QwEventHeader)
+ClassImp(QwEvent);
+ClassImp(QwEventHeader);
+ClassImp(QwKinematics);
 
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
+#include "QwParameterFile.h"
 #include "QwHit.h"
 #include "QwHitContainer.h"
 #include "QwTrackingTreeLine.h"
@@ -26,7 +28,11 @@ ClassImp(QwEventHeader)
   TClonesArray* QwEvent::gQwTracks = 0;
 #endif
 
+// Initialize beam energy
+Double_t QwEvent::fBeamEnergy = 1.165 * Qw::GeV;
+
 QwEvent::QwEvent()
+: fPrimaryQ2(fKinElasticWithLoss.fQ2)
 {
   // Reset the event header
   fEventHeader = 0;
@@ -167,6 +173,32 @@ void QwEvent::Reset(Option_t *option)
 
 
 /**
+ * Load the beam properties from a map file.
+ * @param map Name of map file
+ */
+void QwEvent::LoadBeamProperty(const TString& map)
+{
+  QwParameterFile mapstr(map.Data());
+  while (mapstr.ReadNextLine())
+  {
+    mapstr.TrimComment();       // Remove everything after a comment character.
+    mapstr.TrimWhitespace();    // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+
+    TString varname, varvalue;
+    if (mapstr.HasVariablePair("=",varname,varvalue)) {
+      //  This is a declaration line.  Decode it.
+      varname.ToLower();
+      if (varname == "energy") {
+        fBeamEnergy = atof(varvalue.Data()) * Qw::MeV;
+        QwMessage << "Beam energy set to " << fBeamEnergy / Qw::GeV << " GeV" << QwLog::endl;
+      }
+    }
+  }
+}
+
+
+/**
  * Calculate the energy loss in the hydrogen target
  *
  * @param vertex_z Longitudinal position of vertex (absolute coordinates)
@@ -246,49 +278,49 @@ void QwEvent::CalculateKinematics(const QwTrack* track)
   Double_t P0 = energy;
   Double_t PP = track->fMomentum;
   Double_t Q2 = 2.0 * P0 * PP * (1 - cos_theta);
-  fP0 = P0 / Qw::GeV;
-  fPp = PP / Qw::GeV;
-  fQ2 = Q2 / Qw::GeV2;
-  fNu = (P0 - PP) / Qw::GeV;
-  fW2 = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
-  fX = fQ2 / (2.0 * Mp * fNu);
-  fY = fNu / fP0;
+  fKin.fP0 = P0 / Qw::GeV;
+  fKin.fPp = PP / Qw::GeV;
+  fKin.fQ2 = Q2 / Qw::GeV2;
+  fKin.fNu = (P0 - PP) / Qw::GeV;
+  fKin.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKin.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKin.fY = (P0 - PP) / P0;
 
   // Generic scattering with energy loss
   P0 = energy - pre_loss;
   PP = track->fMomentum;
   Q2 = 2.0 * P0 * PP * (1 - cos_theta);
-  fP0_Loss = P0 / Qw::GeV;
-  fPp_Loss = PP / Qw::GeV;
-  fQ2_Loss = Q2 / Qw::GeV2;
-  fNu_Loss = (P0 - PP) / Qw::GeV;
-  fW2_Loss = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
-  fX_Loss = fQ2 / (2.0 * Mp * fNu);
-  fY_Loss = fNu / fP0;
+  fKinWithLoss.fP0 = P0 / Qw::GeV;
+  fKinWithLoss.fPp = PP / Qw::GeV;
+  fKinWithLoss.fQ2 = Q2 / Qw::GeV2;
+  fKinWithLoss.fNu = (P0 - PP) / Qw::GeV;
+  fKinWithLoss.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinWithLoss.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinWithLoss.fY = (P0 - PP) / P0;
 
   // Elastic scattering without energy loss
   P0 = energy * Qw::MeV;
   PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
   Q2 = 2.0 * P0 * PP * (1 - cos_theta);
-  fElasticP0 = P0 / Qw::GeV;
-  fElasticPp = PP / Qw::GeV;
-  fElasticQ2 = Q2 / Qw::GeV2;
-  fElasticNu = (P0 - PP) / Qw::GeV;
-  fElasticW2 = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
-  fElasticX = fQ2 / (2.0 * Mp * fNu);
-  fElasticY = fNu / fP0;
+  fKinElastic.fP0 = P0 / Qw::GeV;
+  fKinElastic.fPp = PP / Qw::GeV;
+  fKinElastic.fQ2 = Q2 / Qw::GeV2;
+  fKinElastic.fNu = (P0 - PP) / Qw::GeV;
+  fKinElastic.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinElastic.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinElastic.fY = (P0 - PP) / P0;
 
   // Elastic scattering with energy loss
   P0 = (energy - pre_loss) * Qw::MeV;
   PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
   Q2 = 2.0 * P0 * PP * (1 - cos_theta);
-  fElasticP0_Loss = P0 / Qw::GeV;
-  fElasticPp_Loss = PP / Qw::GeV;
-  fElasticQ2_Loss = Q2 / Qw::GeV2;
-  fElasticNu_Loss = (P0 - PP) / Qw::GeV;
-  fElasticW2_Loss = (Mp * Mp + 2.0 * Mp * fNu - fQ2) / Qw::GeV2;
-  fElasticX_Loss = fQ2 / (2.0 * Mp * fNu);
-  fElasticY_Loss = fNu / fP0;
+  fKinElasticWithLoss.fP0 = P0 / Qw::GeV;
+  fKinElasticWithLoss.fPp = PP / Qw::GeV;
+  fKinElasticWithLoss.fQ2 = Q2 / Qw::GeV2;
+  fKinElasticWithLoss.fNu = (P0 - PP) / Qw::GeV;
+  fKinElasticWithLoss.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinElasticWithLoss.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinElasticWithLoss.fY = (P0 - PP) / P0;
 }
 
 // Print the event
@@ -297,9 +329,9 @@ void QwEvent::Print(Option_t* option) const
   // Event header
   //std::cout << *fEventHeader << std::endl;
   // Event kinematics
-  std::cout << "P0 = " << fP0 << " GeV/c" << std::endl;
-  std::cout << "PP = " << fPp << " GeV/c" << std::endl;
-  std::cout << "Q^2 = " << fQ2 << " (GeV/c)^2" << std::endl;
+  std::cout << "P0 = " << fKin.fP0 << " GeV/c" << std::endl;
+  std::cout << "PP = " << fKin.fPp << " GeV/c" << std::endl;
+  std::cout << "Q^2 = " << fKin.fQ2 << " (GeV/c)^2" << std::endl;
 //  std::cout << "weight = " << fCrossSectionWeight << std::endl;
 //  std::cout << "energy = " << fTotalEnergy/Qw::MeV << " MeV" << std::endl;
 //  std::cout << "momentum = " << fMomentum / Qw::MeV << " MeV" << std::endl;

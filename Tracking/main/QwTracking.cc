@@ -135,6 +135,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Create dummy event for branch creation (memory leak when using null)
     QwEvent* event = new QwEvent();
+    event->LoadBeamProperty("beam_property.map");
 
     if (not enablemapfile) {
       // Create the tracking object branches

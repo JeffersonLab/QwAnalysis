@@ -4,6 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class QwKinematics+;
 #pragma link C++ class QwEventHeader+;
 #pragma link C++ class QwEvent+;
 #pragma link C++ class vector<Int_t>+;

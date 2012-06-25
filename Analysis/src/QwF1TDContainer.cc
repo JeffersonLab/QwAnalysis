@@ -549,20 +549,20 @@ QwF1TDC::PrintChannelErrorCounter(Int_t channel)
 {
   TString system_name = this->GetF1SystemName();
   if(system_name.Contains("R2") || system_name.Contains("R3")){
-    std::cout << "System " << std::setw(4) << system_name
-	    << " QwF1TDC obj at " << this
-	    << *this
-	    << " CH " <<  std::setw(2) << channel
+    QwMessage << "System " << std::setw(4) << system_name
+            << " QwF1TDC obj at " << this
+            << *this
+            << " CH " <<  std::setw(2) << channel
 	    << " OFO " << this->GetOFO(channel)
 	    << " RLF " << this->GetRLF(channel)
 	    << " TFO " << this->GetTFO(channel)
 	    << " EMM " << this->GetEMM(channel)
 	    << " SEU " << this->GetSEU(channel)
 	    << " FDF " << this->GetFDF(channel)
-	    << " SYN " << this->GetSYN(channel)
-	    << " HFO " << this->GetHFO(channel)
-    //  	    << " S30 " << this->GetS30(channel)
-	    << std::endl;
+            << " SYN " << this->GetSYN(channel)
+            << " HFO " << this->GetHFO(channel)
+    //              << " S30 " << this->GetS30(channel)
+            << QwLog::endl;
   }
   return;
 }
@@ -572,10 +572,10 @@ QwF1TDC::PrintChannelErrorCounter(Int_t channel)
 void
 QwF1TDC::PrintErrorCounter()
 {
-  std::cout << "System " << this->GetF1SystemName()
-	    << " QwF1TDC object at " << this
-	    << *this
-	    << " " << std::endl;
+  QwVerbose << "System " << this->GetF1SystemName()
+            << " QwF1TDC object at " << this
+            << *this
+            << " " << QwLog::endl;
 
   Int_t i = 0;
 
@@ -591,10 +591,10 @@ QwF1TDC::PrintErrorCounter()
 void
 QwF1TDC::PrintTotalErrorCounter()
 {
-  std::cout << "System " << this->GetF1SystemName()
-	    << " QwF1TDC object at " << this
-	    << *this
-	    << " "
+  QwMessage << "System " << this->GetF1SystemName()
+            << " QwF1TDC object at " << this
+            << *this
+            << " "
 	    << " OFO " << this->GetTotalOFO()
 	    << " RLF " << this->GetTotalRLF()
 	    << " TFO " << this->GetTotalTFO()
@@ -602,10 +602,10 @@ QwF1TDC::PrintTotalErrorCounter()
 	    << " SEU " << this->GetTotalSEU()
 	    << " FDF " << this->GetTotalFDF()
 	    << " SYN " << this->GetTotalSYN()
-      	    << " RFM " << this->GetTotalRFM()
-	    << " HFO " << this->GetTotalHFO()
-    //  	    << " S30 " << this->GetTotalS30()
-	    << std::endl;
+            << " RFM " << this->GetTotalRFM()
+            << " HFO " << this->GetTotalHFO()
+    //              << " S30 " << this->GetTotalS30()
+            << QwLog::endl;
   return;
 }
 
@@ -1114,10 +1114,10 @@ QwF1TDContainer::SetSystemName(const TString name)
     }
   }
   else {
-    std::cout << "QwF1TDContainer::SetSystemName " 
-	      << fSystemName 
-	      << " is already registered."
-	      << std::endl;
+    QwWarning << "QwF1TDContainer::SetSystemName "
+              << fSystemName 
+              << " is already registered."
+              << QwLog::endl;
   }
   
   fError2DHist -> SetNameTitle(
@@ -1134,23 +1134,23 @@ QwF1TDContainer::Print(const Option_t* options) const
   Int_t size = 0; 
   size = this->GetSize();
 
-  std::cout << "\nQwF1TDContainer::Print() "
-	    << " QwF1TDContainer in System : "  
-	    << this->GetSystemName()
-	    << ", DetectorType " 
+  QwMessage << "\nQwF1TDContainer::Print() "
+            << " QwF1TDContainer in System : "  
+            << this->GetSystemName()
+            << ", DetectorType " 
 	    << this->GetDetectorType()
 	    << ", RegionType "   
-	    << this->GetRegion()
-	    << ", How many F1TDCs are : " 
-	    << size
-	    << std::endl;
+            << this->GetRegion()
+            << ", How many F1TDCs are : " 
+            << size
+            << QwLog::endl;
 
   TObjArrayIter next(fQwF1TDCList);
   TObject* obj;
   while ( (obj = next()) )
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
-      std::cout << "F1TDC object " << F1 << std::endl;
+      QwMessage << "F1TDC object " << F1 << QwLog::endl;
       F1 -> PrintF1TDCBuffer();
       F1 -> PrintF1TDCConfigure();
     }
@@ -1443,11 +1443,11 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   
 
   if(fLocalF1DecodeDebug) {
-    std::cout << "\n\n" << std::endl;
-    std::cout << GetSystemName()
-	      << " ROC " << roc_id
-	      << " num_words (buffer size) " << num_words
-	      << std::endl;
+    QwMessage << "\n\n" << QwLog::endl;
+    QwMessage << GetSystemName()
+              << " ROC " << roc_id
+              << " num_words (buffer size) " << num_words
+              << QwLog::endl;
   }
 
   Int_t subsystem_cnt = 0;

@@ -61,6 +61,7 @@ namespace Qw {
   static const double cm = 1.0;
   static const double mm = 0.1 * cm;
   static const double m = 1.0e2 * cm;
+  static const double km = 1.0e3 * m;
   // imperial
   static const double in = 2.54 * cm;
   static const double mil = 0.001 * in;
@@ -110,8 +111,9 @@ namespace Qw {
   //@}
 
   //@{
-  /// Kinematic variables
-  static const double Mp = 938.272013 * Qw::MeV;        ///< Mass of the proton
+  /// Physical constants
+  static const double c = 299792 * km / sec;    ///< Speed of light
+  static const double Mp = 938.272013 * MeV;    ///< Mass of the proton
   //@}
 
 } // namespace Qw
