@@ -56,7 +56,6 @@ void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i)
         type = "asym_";
 
     name = type + name;
-    cout << "THIS IS NAME:  " << name << endl;
     
     tree->Branch(name, &values[i], "value/D:err/D:rms/D:n/I");
 }
