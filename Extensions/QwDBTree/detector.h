@@ -23,6 +23,9 @@ class QwData
 class QwDetector
 {
     protected:
+        // measurement id for this detector
+        TString measurement_id;
+        // regression type for this detector
         TString reg_type;
         // name and regression type of detector in database
         TString detector_name;
@@ -43,8 +46,8 @@ class QwDetector
 
     public:
         // fuction to set the detector name
-        QwDetector(TString name, TString type, vector<Int_t> runlets, TSQLServer* db_pointer)
-        {detector_name = name; reg_type = type; good_runlets = runlets; db = db_pointer;};
+        QwDetector(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer)
+        {detector_name = name; measurement_id = id; reg_type = type; good_runlets = runlets; db = db_pointer;};
         void branch(TTree* tree, vector<QwData> &values, Int_t i);
         void fill();
         void get_data_for_runlet(Int_t runlet, QwData &value);
@@ -54,7 +57,7 @@ class QwMainDet : public QwDetector
 {
     public:
         // fuction to set the detector name
-        QwMainDet(TString name, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, type, runlets, db_pointer) {};
+        QwMainDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, id, type, runlets, db_pointer) {};
         TString query(void);
 };
 
@@ -62,20 +65,16 @@ class QwLumiDet : public QwDetector
 {
     public:
         // fuction to set the detector name
-        QwLumiDet(TString name, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, type, runlets, db_pointer) {};
+        QwLumiDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, id, type, runlets, db_pointer) {};
         TString query(void);
 };
 
 class QwBeamDet : public QwDetector
 {
-    private:
-        // measurement id for this detector
-        TString measurement_id;
-
     public:
         // fuction to set the detector name
-        QwBeamDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, type, runlets, db_pointer)
-    {measurement_id = id;};
+        QwBeamDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, id, type, runlets, db_pointer)
+    {};
         TString query(void);
 };
 

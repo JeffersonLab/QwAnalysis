@@ -5,6 +5,7 @@
 #include <TMath.h>
 #include "detector.h"
 #include "parse.h"
+#include "string.h"
 
 QwData::QwData(Double_t temp_value, Double_t temp_error, Long_t temp_n, Double_t temp_rms)
 {
@@ -24,7 +25,40 @@ void QwData::fill_empty(void)
 
 void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i)
 {
-    tree->Branch(detector_name, &values[i], "value/D:err/D:rms/D:n/I");
+    TString name;
+    string type;
+    string detector_str = detector_name.Data();
+    cout << detector_str << endl;
+    Int_t pos;
+
+    pos = detector_str.find("qwk_");
+    cout << pos << endl;
+
+    if (pos !=string::npos)
+    {
+        pos += 4;
+        name = detector_str.substr(pos);
+    }
+    else
+    {
+        name = detector_name;
+    }
+
+    if (measurement_id == "a")
+        type = "asym_";
+    else if (measurement_id == "d")
+        type = "diff_";
+    else if (measurement_id == "yq")
+        type = "yq_";
+    else if (measurement_id == "y")
+        type = "y_";
+    else
+        type = "asym_";
+
+    name = type + name;
+    cout << "THIS IS NAME:  " << name << endl;
+    
+    tree->Branch(name, &values[i], "value/D:err/D:rms/D:n/I");
 }
 
 void QwDetector::fill(void)
