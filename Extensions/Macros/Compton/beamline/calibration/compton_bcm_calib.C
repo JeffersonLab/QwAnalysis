@@ -1,5 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
+//  File: compton_bcm_calib.C
+//  Author(s):  Juan Carlos Cornejo <cornejo@jlab.org>
+//  Summary:    Compton scaler BCM calibration using a 4mhz clock and unser
+//  Revisions:
+//    * Tue Jun 26 2012 Juan Carlos Cornejo <cornejo@jlab.org>
+//    - Fixed percent residual plots, and added scaler error code cuts
 ///////////////////////////////////////////////////////////////////////////////
 
 // ROOT Includes
@@ -40,16 +45,18 @@ struct BCMData {
   }
 };
 
-void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
+void compton_bcm_calib(Int_t runNum,Double_t lowI=-1.00,Double_t highI=180.0)
 {
   // Define the beam cuts
   TCut beamCuts = Form("(unser>=%f&&unser<=%f)",lowI,highI);
 
-  // Fit and stat parameters
-  //gStyle->SetOptFit(1111);
-  //gStyle->SetOptStat(0000000);
-  //gStyle->SetStatH(0.1);
-  //gStyle->SetStatW(0.2);
+  // Define scaler error flag cuts
+  TCut errorFlagCuts[4] = {
+    "sca_bcm1.Device_Error_Code==0",
+    "sca_bcm2.Device_Error_Code==0",
+    "sca_bcm6.Device_Error_Code==0",
+    "sca_unser.Device_Error_Code==0",
+  };
 
   // Open up the rootfile
   TChain *chain = new TChain("Mps_Tree");
@@ -93,10 +100,9 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
   TCanvas *unserCanvas = new TCanvas("unserCanvas","unserCanvas",1200,800);
   unserCanvas->Divide(2,2);
   unserCanvas->cd(1);
-  TH2F *hUnserRaw = new TH2F("hUnserRaw",
+  /*TH2F *hUnserRaw = */(void) new TH2F("hUnserRaw",
       "Unser Frequency vs Mps Counter;Mps Counter;Frequency (Hz)",
       1111,0,chain->GetEntries(),1111,3e5,5e5);
-  (void)hUnserRaw; // Remove annoying unsed variable warning
   TH2F *hUnserRawGoodOn = new TH2F("hUnserRawGoodOn",
       "Unser Good Frequencies vs Mps Counter;Mps Counter;Frequency (Hz)",
       1111,0,chain->GetEntries(),1111,3e5,5e5);
@@ -108,26 +114,26 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
       1111,3e5,5e5);
   hUnserRawGoodOn->SetMarkerColor(3);
   hUnserRawGoodOff->SetMarkerColor(2);
-  TH2F *hUnserCalibrated = new TH2F("hUnserCalibrated",
+  /*TH2F *hUnserCalibrated =*/(void) new TH2F("hUnserCalibrated",
       "Unser Calibrated Current vs Mps Counter;Mps Counter;Unser (#muA)",
       1111,0,chain->GetEntries(),1111,-5.,200.);
-  chain->Draw("unser_raw:mps_counter>>hUnserRaw");
+  chain->Draw("unser_raw:mps_counter>>hUnserRaw",errorFlagCuts[3]);
   unserCanvas->cd(2);
   TCut beamOnCuts = 0;
   for(Int_t i = 0; i < (Int_t)beamOnCut.size(); i++ ) {
     beamOnCuts = beamOnCuts||beamOnCut[i];
   }
-  chain->Draw("unser_raw:mps_counter>>hUnserRawGoodOn",beamOnCuts);
+  chain->Draw("unser_raw:mps_counter>>hUnserRawGoodOn",beamOnCuts&&errorFlagCuts[3]);
   TCut beamOffCuts = 0;
   for(Int_t i = 0; i < (Int_t)beamOffCut.size(); i++ ) {
     beamOffCuts = beamOffCuts||beamOffCut[i];
   }
   chain->Draw("unser_raw:mps_counter>>hUnserRawGoodOff",
-      beamOffCuts,"SAME");
+      beamOffCuts&&errorFlagCuts[3],"SAME");
 
   unserCanvas->cd(3);
   hUnserRawPedestal->SetStats(kTRUE);
-  chain->Draw("unser_raw>>hUnserRawPedestal",beamOffCuts);
+  chain->Draw("unser_raw>>hUnserRawPedestal",beamOffCuts&&errorFlagCuts[3]);
   TSpectrum *sUnser = new TSpectrum(2); // 20 max peaks to return
   Int_t unserPeaksFound = 0;
   unserPeaksFound = sUnser->Search(hUnserRawPedestal,3,"noMarkov",0.05);
@@ -135,7 +141,7 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
   hUnserRawPedestal = new TH1F("hUnserRawPedestal",
       "Unser Raw Pedestal;Frequency (Hz)",
       1111,sUnser->GetPositionX()[0]*0.9,sUnser->GetPositionX()[0]*1.1);
-  chain->Draw("unser_raw>>hUnserRawPedestal",beamOffCuts);
+  chain->Draw("unser_raw>>hUnserRawPedestal",beamOffCuts&&errorFlagCuts[3]);
   Double_t unserPedestal = hUnserRawPedestal->GetMean();
   Double_t unserPedestalError = hUnserRawPedestal->GetRMS()/
     TMath::Sqrt(hUnserRawPedestal->GetEntries());
@@ -148,7 +154,8 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
   // unser is about +/- 0.2uA
   chain->SetAlias("unser",Form("(unser_raw-%f)*2.5e-3",unserPedestal));
   unserCanvas->cd(4);
-  chain->Draw("unser:mps_counter",(beamOffCuts||beamOnCuts)&&"(unser>=-1)");
+  chain->Draw("unser:mps_counter>>hUnserCalibrated",
+      (beamOffCuts||beamOnCuts)&&"(unser>=-1)"&&errorFlagCuts[3]);
   unserCanvas->SaveAs(Form("www/unser_calib_%d.png",runNum));
 
   /////////////////////////////////////////////////////////////////////////////
@@ -175,7 +182,6 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
 
   std::vector<BCMData> data[3];
   std::vector<BCMData> dataResC[3];
-  std::vector<BCMData> dataResP[3];
   Int_t bcms[3] = {1,2,6};
   Int_t bcm = 0;
   for(Int_t i = 0; i < 3; i++ ) {
@@ -185,10 +191,10 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
     for(Int_t j = 0; j < (Int_t)beamOnCut.size(); j++ ) {
       bcmTempCanvas->cd(1);
       chain->Draw(Form("bcm%d_raw>>hBCM%d_%d",bcm,bcm,j),
-        beamOnCut[j]&&beamCuts);
+        beamOnCut[j]&&beamCuts&&errorFlagCuts[i]&&errorFlagCuts[3]);
       bcmTempCanvas->cd(2);
       chain->Draw(Form("unser>>hUnser%d_%d",bcm,j),
-        beamOnCut[j]&&beamCuts);
+        beamOnCut[j]&&beamCuts&&errorFlagCuts[i]&&errorFlagCuts[3]);
       TH1F *hB = (TH1F*)gDirectory->Get(Form("hBCM%d_%d",bcm,j));
       TH1F *hU = (TH1F*)gDirectory->Get(Form("hUnser%d_%d",bcm,j));
       if(hB->GetEntries()>0&&hU->GetEntries()>0) {
@@ -240,33 +246,29 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
     for(Int_t j = 0; j < (Int_t)beamOnCut.size(); j++ ) {
       bcmTempCanvas->cd(1);
       chain->Draw(Form("bcm%d-unser>>hBCMRC%d_%d",bcm,bcm,j),
-        beamOnCut[j]&&beamCuts);
-      chain->Draw(Form("100*(bcm%d_raw-(unser/%f+%f))/bcm%d_raw>>hBCMRP%d_%d",
-            bcm,bcmCal[i],bcmPed[i],bcm,bcm,j),
-        beamOnCut[j]&&beamCuts);
+        beamOnCut[j]&&beamCuts&&errorFlagCuts[i]&&errorFlagCuts[3]);
       bcmTempCanvas->cd(2);
       TH1F *hC = (TH1F*)gDirectory->Get(Form("hBCMRC%d_%d",bcm,j));
-      TH1F *hP = (TH1F*)gDirectory->Get(Form("hBCMRP%d_%d",bcm,j));
-      if(hC->GetEntries()>0&&hP->GetEntries()>0) {
+      if(hC->GetEntries()>0) { //&&hP->GetEntries()>0) {
         dataResC[i].push_back(BCMData(
               hC->GetMean(),
-              hC->GetRMS()/TMath::Sqrt(hC->GetEntries()),0.,0.));
-        dataResP[i].push_back(BCMData(
-              hP->GetMean(),
-              hP->GetRMS()/TMath::Sqrt(hP->GetEntries()),0.,0.));
+              // Add the 0.2uA systematic uncertainty in quadrature to the unser
+              // statistical uncertainty
+              TMath::Sqrt(0.04+TMath::Power(
+              hC->GetRMS()/TMath::Sqrt(hC->GetEntries()),2.)),0.,0.));
       }
     }
     numData = dataResC[i].size();
     for(Int_t k = 0; k < numData; k++ ) {
       bcmResC[i][k] = dataResC[i][k].value;
       bcmResCErr[i][k] = dataResC[i][k].valueError;
-      bcmResP[i][k] = dataResP[i][k].value;
-      bcmResPErr[i][k] = dataResP[i][k].valueError;
+      bcmResP[i][k] = 100*bcmResC[i][k]/unser[i][k];
+      bcmResPErr[i][k] = 100*dataResC[i][k].valueError/unser[i][k];
     }
     bcmCanvas[i]->cd(2);
     bcmHResC[i] = new TH2F(Form("hResC%d",bcm),
         Form("BCM %d Fit Residuals;Unser (#muA);Residual (#muA)",
-          bcm),1001,0.,200.,1008,-0.5,0.5);
+          bcm),1001,0.,200.,1008,-1.0,1.0);
     bcmGraphResC[i] = new TGraphErrors(numData,unser[i],bcmResC[i],unserErr[i],
         bcmResCErr[i]);
     bcmHResC[i]->SetStats(kFALSE);
@@ -276,7 +278,7 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
     bcmCanvas[i]->cd(3);
     bcmHResP[i] = new TH2F(Form("hResP%d",bcm),
           Form("BCM %d Fit Residuals;Unser (#muA);Percent",
-          bcm),1001,0.,200.,1008,-0.5,0.5);
+          bcm),1001,0.,200.,1008,-1.5,1.5);
     bcmHResP[i]->Draw();
     bcmGraphResP[i] = new TGraphErrors(numData,unser[i],bcmResP[i],unserErr[i],
         bcmResPErr[i]);
@@ -287,17 +289,31 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
 
   ofstream out;
   out.open(Form("bcm_calibration_%d.map",runNum));
+  out << "sca_unser,        " << unserPedestal << ",        0.0025000"
+    << std::endl;
   for(Int_t i = 0; i < 3; i++ ) {
-    out << "sca_bcm" << bcms[i] << "        " << bcmPed[i] << "        "
+    out << "sca_bcm" << bcms[i] << ",        " << bcmPed[i] << ",        "
       << bcmCal[i] << std::endl;
-
-    std::cout << "sca_bcm" << bcms[i] << "        " << bcmPed[i] << "        "
+    std::cout << "sca_bcm" << bcms[i] << ",        " << bcmPed[i] << ",        "
       << bcmCal[i] << std::endl;
   }
+  std::cout << "sca_unser,        " << unserPedestal << ",        0.0025000"
+    << std::endl;
 
-  // We no longer need the temp canvas
+  // We don't need no stinking pointers!!
+  delete chain;
+  delete unserCanvas;
+  delete hUnserRawGoodOn;
+  delete hUnserRawGoodOff;
+  delete hUnserRawPedestal;
+  delete sUnser;
   delete bcmTempCanvas;
-
-  if(chain)
-    delete chain;
+  for(Int_t i = 0; i < 3; i++ ) {
+    delete bcmCanvas[i];
+    delete bcmGraphRaw[i];
+    delete bcmHResC[i];
+    delete bcmGraphResC[i];
+    delete bcmHResP[i];
+    delete bcmGraphResP[i];
+  }
 }
