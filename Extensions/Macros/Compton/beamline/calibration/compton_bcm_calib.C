@@ -148,7 +148,7 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
   // unser is about +/- 0.2uA
   chain->SetAlias("unser",Form("(unser_raw-%f)*2.5e-3",unserPedestal));
   unserCanvas->cd(4);
-  chain->Draw("unser:mps_counter",beamOffCuts||beamOnCuts);
+  chain->Draw("unser:mps_counter",(beamOffCuts||beamOnCuts)&&"(unser>=-1)");
   unserCanvas->SaveAs(Form("www/unser_calib_%d.png",runNum));
 
   /////////////////////////////////////////////////////////////////////////////
@@ -220,7 +220,7 @@ void compton_bcm_calib(Int_t runNum,Double_t lowI=5.00,Double_t highI=180.0)
     }
     // Alright, now make a graph out of them and extract those pedestals and
     // calibration factors!
-    bcmCanvas[i] = new TCanvas(Form("bcmCanvas%d",bcm),"BCM Calibration Canvas",600,12000);
+    bcmCanvas[i] = new TCanvas(Form("bcmCanvas%d",bcm),"BCM Calibration Canvas",600,1200);
     bcmCanvas[i]->Divide(1,3);
     bcmCanvas[i]->cd(1);
     bcmGraphRaw[i] = new TGraphErrors(numData,unser[i],bcmRaw[i],unserErr[i],
