@@ -94,14 +94,44 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 
   VQwTrackingElement::operator=(that);
 
+  fPhi   = that.fPhi;
+  fTheta = that.fTheta;
   fVertexZ = that.fVertexZ;
   fVertexR = that.fVertexR;
-  fTheta = that.fTheta;
-  fPhi   = that.fPhi;
   fScatteringAngle = that.fScatteringAngle;
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
+  fScatteringAngle = that.fScatteringAngle;
+
+  fPositionDiff = that.fPositionDiff;
+  fPositionXoff = that.fPositionXoff;
+  fPositionYoff = that.fPositionYoff;
+  fPositionRoff = that.fPositionRoff;
+  fPositionPhioff = that.fPositionPhioff;
+  fPositionThetaoff = that.fPositionThetaoff;
+
+  fDirectionDiff = that.fDirectionDiff;
+  fDirectionXoff = that.fDirectionXoff;
+  fDirectionYoff = that.fDirectionYoff;
+  fDirectionZoff = that.fDirectionZoff;
+  fDirectionPhioff = that.fDirectionPhioff;
+  fDirectionThetaoff = that.fDirectionThetaoff;
+
+  fStartPosition = that.fStartPosition;
+  fStartDirection = that.fStartDirection;
+
+  fEndPositionGoal = that.fEndPositionGoal;
+  fEndDirectionGoal = that.fEndDirectionGoal;
+
+  fEndPositionActual = that.fEndPositionActual;
+  fEndDirectionActual = that.fEndDirectionActual;
+
+  fEndPositionActualRK4 = that.fEndPositionActualRK4;
+  fEndDirectionActualRK4 = that.fEndDirectionActualRK4;
+
+  fEndPositionActualRKF45 = that.fEndPositionActualRKF45;
+  fEndDirectionActualRKF45 = that.fEndDirectionActualRKF45;
 
   // Copy partial tracks
   ClearPartialTracks();

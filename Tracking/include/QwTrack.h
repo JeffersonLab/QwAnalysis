@@ -125,11 +125,11 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     TVector3 fEndPositionActual;        ///< Actual position of track at back plane
     TVector3 fEndDirectionActual;       ///< Actual direction of track at back plane
 
-    TVector3 fEndPositionRK4;           ///< Actual position of track at back plane using Runge-Kutta 4th order
-    TVector3 fEndDirectionRK4;          ///< Actual direction of track at back plane using Runge-Kutta 4th order
+    TVector3 fEndPositionActualRK4;     ///< Actual position of track at back plane using Runge-Kutta 4th order
+    TVector3 fEndDirectionActualRK4;    ///< Actual direction of track at back plane using Runge-Kutta 4th order
 
-    TVector3 fEndPositionRKF45;         ///< Actual position of track at back plane using Runge-Kutta-Fehlberg
-    TVector3 fEndDirectionRKF45;        ///< Actual direction of track at back plane using Runge-Kutta-Fehlberg
+    TVector3 fEndPositionActualRKF45;   ///< Actual position of track at back plane using Runge-Kutta-Fehlberg
+    TVector3 fEndDirectionActualRKF45;  ///< Actual direction of track at back plane using Runge-Kutta-Fehlberg
     //@}
 
     //@{

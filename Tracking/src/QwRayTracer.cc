@@ -229,14 +229,15 @@ const QwTrack* QwRayTracer::Bridge(
     position = start_position;
     direction = start_direction;
     IntegrateRK(position, direction, momentum[0], end_position.Z(), 4, fIntegrationStep);
-    track->fEndPositionRK4 = position;
-    track->fEndDirectionRK4 = direction;
-    // Runge-Kutta-Fehlberg
+    track->fEndPositionActualRK4 = position;
+    track->fEndDirectionActualRK4 = direction;
+
+    // Runge-Kutta-Fehlberg 4th-5th order
     position = start_position;
     direction = start_direction;
     IntegrateRK(position, direction, momentum[0], end_position.Z(), 5, fIntegrationStep);
-    track->fEndPositionRKF45 = position;
-    track->fEndDirectionRKF45 = direction;
+    track->fEndPositionActualRKF45 = position;
+    track->fEndDirectionActualRKF45 = direction;
 
     // Let front partial track determine the package and octant
     track->SetPackage(front->GetPackage());
@@ -425,7 +426,8 @@ int QwRayTracer::IntegrateRK(
 
     // Last step to end up at z
     if (fabs(r_old[0].Z() - z) < h) {
-      h = z - r_old[0].Z();
+      TVector3 r_diff = (r_old[0].Z() - z) / v_old[0].Z() * v_old[0];
+      h = r_diff.Mag();
       last_iteration = true;
     }
 
