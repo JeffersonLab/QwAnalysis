@@ -69,10 +69,10 @@ namespace Qw {
 
   /// Time units: base unit is ms
   //@{
-  static const double ns = 1.0e-6;
-  static const double us = 1.0e-3;
   static const double ms = 1.0;
-  static const double sec = 1.0e3; // SI notation is s, but sec avoids ambiguity
+  static const double us = 1.0e-3 * ms;
+  static const double ns = 1.0e-6 * ms;
+  static const double sec = 1.0e3 * ms; // SI notation is s, but sec avoids ambiguity
   static const double min = 60.0 * sec;
   static const double hour = 60.0 * min;
   static const double day = 24.0 * hour;
@@ -87,11 +87,14 @@ namespace Qw {
 
   //@{
   /// Energy: base unit is MeV
+  static const double V = 1.0;
+  static const double e = 1.0e-6;
+  static const double eV = 1.0e-6;
   static const double keV = 1.0e-3;
   static const double MeV = 1.0;
   static const double GeV = 1.0e3;
-  static const double MeV2 = 1.0;
-  static const double GeV2 = 1.0e6;
+  static const double MeV2 = MeV * MeV;
+  static const double GeV2 = GeV * GeV;
   //@}
 
   //@{
@@ -105,14 +108,14 @@ namespace Qw {
 
   //@{
   /// Magnetic field: base unit is T
-  static const double T = 1.0;
-  static const double G = 0.0001;
+  static const double T = V * sec / (m * m);
+  static const double G = 1.0e-4 * T;
   static const double kG = 1.0e3 * G;
   //@}
 
   //@{
   /// Physical constants
-  static const double c = 299792 * km / sec;    ///< Speed of light
+  static const double c = 299792458. * m / sec;    ///< Speed of light
   static const double Mp = 938.272013 * MeV;    ///< Mass of the proton
   //@}
 

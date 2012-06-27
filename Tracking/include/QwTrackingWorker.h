@@ -75,6 +75,11 @@ class QwTrackingWorker {
     /// \brief Set the geometry
     void SetGeometry(const QwGeometry& geometry) { fGeometry = geometry; };
 
+    /// Get the magnetic field current
+    double GetMagneticFieldCurrent() const {
+      if (fRayTracer) return fRayTracer->GetMagneticFieldCurrent();
+      else return 0.0;
+    }
     /// Set the magnetic field current
     void SetMagneticFieldCurrent(const double current) {
       if (fRayTracer) fRayTracer->SetMagneticFieldCurrent(current);

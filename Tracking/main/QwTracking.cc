@@ -123,6 +123,44 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwTrackingWorker *trackingworker = new QwTrackingWorker(gQwOptions, geometry);
 
 
+    //  Loop until first EPICS event if no magnetic field is set
+    bool current_from_epics = false;
+    if (fabs(trackingworker->GetMagneticFieldCurrent()) < 100.0) {
+
+      QwMessage << "Finding first EPICS event" << QwLog::endl;
+      while (eventbuffer.GetNextEvent() == CODA_OK) {
+
+        //  First, do quick processing of non-physics events...
+        if (eventbuffer.IsEPICSEvent()) {
+          eventbuffer.FillEPICSData(epics);
+          if (epics.HasDataLoaded()) {
+
+            // Get magnetic field current
+            Double_t current = epics.GetDataValue("qw:qt_mps_i_set");
+            if (current > 0.0) {
+              QwMessage << "Setting magnetic field current to "
+                        << current << "A " << QwLog::endl;
+              trackingworker->SetMagneticFieldCurrent(current);
+              current_from_epics = true;
+            }
+            // and break out of this event loop
+            break;
+          }
+        }
+      }
+
+      //  Rewind stream
+      QwMessage << "Rewinding stream" << QwLog::endl;
+      eventbuffer.ReOpenStream();
+
+      //  Check whether we found the magnetic field
+      if (fabs(trackingworker->GetMagneticFieldCurrent()) < 100.0) {
+        QwError << "Error: no magnetic field specified and no EPICS events in range!"
+                << QwLog::endl;
+        return -1;
+      }
+    }
+
 
     // Open the ROOT file
     QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -163,31 +201,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->PrintDirs();
 
 
-    //  Loop until first EPICS event
-    QwMessage << "Finding first EPICS event" << QwLog::endl;
-    while (eventbuffer.GetNextEvent() == CODA_OK) {
-
-      //  First, do processing of non-physics events...
-      if (eventbuffer.IsEPICSEvent()) {
-        eventbuffer.FillEPICSData(epics);
-        if (epics.HasDataLoaded()) {
-
-          // Get magnetic field current
-          Double_t current = epics.GetDataValue("qw:qt_mps_i_set");
-          if (current > 0.0) {
-            QwMessage << "qw:qt_mps_i_set = " << current << "A " << QwLog::endl;
-            //trackingworker->SetMagneticFieldCurrent(current);
-          }
-
-          break;
-        }
-      }
-    }
-
-    //  Rewind stream
-    QwMessage << "Rewinding stream" << QwLog::endl;
-    eventbuffer.ReOpenStream();
-
     //  Loop over events in this CODA file
     Int_t nevents           = 0;
     while (eventbuffer.GetNextEvent() == CODA_OK) {
@@ -198,8 +211,12 @@ Int_t main(Int_t argc, Char_t* argv[])
         if (epics.HasDataLoaded()) {
 
           // Get magnetic field current
-          QwVerbose << "qw:qt_mps_i_set = "
-              << epics.GetDataValue("qw:qt_mps_i_set") << QwLog::endl;
+          Double_t current = epics.GetDataValue("qw:qt_mps_i_set");
+          if (current_from_epics && current > 0.0) {
+            QwMessage << "Setting magnetic field current to "
+                << current << "A " << QwLog::endl;
+            trackingworker->SetMagneticFieldCurrent(current);
+          }
 
           epics.CalculateRunningValues();
 

@@ -84,7 +84,7 @@ void QwMagneticField::DefineOptions(QwOptions& options)
      "Field map file");
 
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.current",po::value<double>()->default_value(8920.0),
+    ("QwMagneticField.current",po::value<double>()->default_value(0.0),
      "Actual current of run to analyze");
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.reference",po::value<double>()->default_value(8615.0),
@@ -355,7 +355,7 @@ bool QwMagneticField::ReadFieldMapStream(std::istream& input)
     if (! input.good()) continue;
 
     // Fix the units
-    r *= Qw::cm; z *= Qw::cm; phi *= Qw::deg; 
+    r *= Qw::cm; z *= Qw::cm; phi *= Qw::deg;
     bx *= Qw::kG; by *= Qw::kG; bz *= Qw::kG;
 
     // Correct for translation along z

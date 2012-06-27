@@ -88,7 +88,7 @@ class QwMagneticField  {
     }
     /// Get the actual current
     double GetActualCurrent() const
-    { return fActualCurrent; }
+      { return fActualCurrent; }
 
     /// Set the reference current
     void SetReferenceCurrent(const double current) {
@@ -149,6 +149,14 @@ class QwMagneticField  {
         QwWarning << "Number of field components should be 3 or 5." << QwLog::endl;
       }
     };
+
+    /// Get the cartesian components of the field value
+    void GetCartesianFieldValue(const TVector3& point, TVector3& field) const {
+      double point_xyz[3], field_xyz[3];
+      point.GetXYZ(point_xyz);
+      GetCartesianFieldValue(point_xyz, field_xyz);
+      field = TVector3(field_xyz);
+    }
 
     /// \brief Read a field map
     bool ReadFieldMap();
