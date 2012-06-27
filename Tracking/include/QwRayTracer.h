@@ -28,6 +28,8 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TVector3.h>
+#include <TVectorD.h>
+#include <TMatrixD.h>
 #include <TRandom3.h>
 #include <TStopwatch.h>
 
@@ -54,6 +56,12 @@ class QwRayTracer: public VQwBridgingMethod {
 
     /// \brief Load the magnetic field based on config file options
     bool LoadMagneticFieldMap(QwOptions& options);
+
+    /// Get magnetic field current
+    double GetMagneticFieldCurrent() const {
+      if (fBfield) return fBfield->GetActualCurrent();
+      else return 0.0;
+    }
     /// Set magnetic field current
     void SetMagneticFieldCurrent(const double current) {
       if (fBfield) fBfield->SetActualCurrent(current);
@@ -62,14 +70,33 @@ class QwRayTracer: public VQwBridgingMethod {
     /// \brief Bridge from the front to back partial track
     const QwTrack* Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
-    /// \brief Integrate using the Runge-Kutta 4th order algorithm
-    bool IntegrateRK4(TVector3& r0, TVector3& v0, Double_t p0, Double_t z_end, Double_t step);
+    /// \brief Runge-Kutta numerical integration by Butcher tableau
+    int IntegrateRK(
+        const TMatrixD& A,
+        const TMatrixD& b,
+        TVector3& r,
+        TVector3& v,
+        const double p,
+        const double z,
+        const double h,
+        const double epsilon);
+
+    /// \brief Runge-Kutta numerical integration
+    int IntegrateRK(
+        TVector3& r,
+        TVector3& v,
+        const double p,
+        const double z,
+        const int order,
+        const double h);
 
   private:
 
     /// Magnetic field (static)
     static QwMagneticField *fBfield;
 
+    /// Runge-Kutta method order
+    double fIntegrationOrder;
     /// Runge-Kutta step size
     double fIntegrationStep;
 

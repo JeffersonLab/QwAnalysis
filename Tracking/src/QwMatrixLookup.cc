@@ -268,7 +268,7 @@ bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
     position += direction * (magneticfield_min - fFrontRefPlane);
 
     // Raytrace with momentum p from front to back of magnetic field
-    raytracer->IntegrateRK4(position, direction, p, fBackRefPlane, step);
+    raytracer->IntegrateRK(position, direction, p, fBackRefPlane, 4, step);
 
     // Extend from the magnetic field boundary to the back reference plane
     position += direction * (fBackRefPlane - magneticfield_max);

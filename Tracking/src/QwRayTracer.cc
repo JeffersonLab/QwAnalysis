@@ -92,6 +92,10 @@ bool QwRayTracer::LoadMagneticFieldMap(QwOptions& options)
  */
 void QwRayTracer::DefineOptions(QwOptions& options)
 {
+  // Order of the Runge-Kutta method
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.order",
+      po::value<int>(0)->default_value(5),
+      "Runge-Kutta method order (higher than 4 implies adaptive step)");
   // Step size of Runge-Kutta method
   options.AddOptions("Momentum reconstruction")("QwRayTracer.step",
       po::value<float>(0)->default_value(1.0),
@@ -112,6 +116,7 @@ void QwRayTracer::DefineOptions(QwOptions& options)
  */
 void QwRayTracer::ProcessOptions(QwOptions& options)
 {
+  fIntegrationOrder = options.GetValue<int>("QwRayTracer.order");
   fIntegrationStep = Qw::cm * options.GetValue<float>("QwRayTracer.step");
   fMomentumStep = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
   fPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
@@ -144,7 +149,7 @@ const QwTrack* QwRayTracer::Bridge(
 
   TVector3 position = start_position;
   TVector3 direction =  start_direction;
-  IntegrateRK4(position, direction, momentum[0], end_position.Z(), fIntegrationStep);
+  IntegrateRK(position, direction, momentum[0], end_position.Z(), fIntegrationOrder, fIntegrationStep);
   double positionRoff = position.Perp() - end_position.Perp();
 
   int mode=0;
@@ -159,13 +164,13 @@ const QwTrack* QwRayTracer::Bridge(
       // momentum - dp
       position = start_position;
       direction = start_direction;
-      IntegrateRK4(position, direction, momentum[0] - fMomentumStep, end_position.Z(), fIntegrationStep);
+      IntegrateRK(position, direction, momentum[0] - fMomentumStep, end_position.Z(), fIntegrationOrder, fIntegrationStep);
       r[0] = position.Perp();
 
       // momentum + dp
       position = start_position;
       direction = start_direction;
-      IntegrateRK4(position, direction, momentum[0] + fMomentumStep, end_position.Z(), fIntegrationStep);
+      IntegrateRK(position, direction, momentum[0] + fMomentumStep, end_position.Z(), fIntegrationOrder, fIntegrationStep);
       r[1] = position.Perp();
     }
 
@@ -185,7 +190,7 @@ const QwTrack* QwRayTracer::Bridge(
     // p1
     position = start_position;
     direction = start_direction;
-    IntegrateRK4(position, direction, momentum[1], end_position.Z(), fIntegrationStep);
+    IntegrateRK(position, direction, momentum[1], end_position.Z(), fIntegrationOrder, fIntegrationStep);
     positionRoff = position.Perp() - end_position.Perp();
 
     momentum[0] = momentum[1];
@@ -218,7 +223,20 @@ const QwTrack* QwRayTracer::Bridge(
     track = new QwTrack(front,back);
 
     // Reconstructed momentum
-    track->fMomentum = momentum[0];
+    track->fMomentum = momentum[0] / Qw::GeV;
+
+    // Runge-Kutta 4th order
+    position = start_position;
+    direction = start_direction;
+    IntegrateRK(position, direction, momentum[0], end_position.Z(), 4, fIntegrationStep);
+    track->fEndPositionRK4 = position;
+    track->fEndDirectionRK4 = direction;
+    // Runge-Kutta-Fehlberg
+    position = start_position;
+    direction = start_direction;
+    IntegrateRK(position, direction, momentum[0], end_position.Z(), 5, fIntegrationStep);
+    track->fEndPositionRKF45 = position;
+    track->fEndDirectionRKF45 = direction;
 
     // Let front partial track determine the package and octant
     track->SetPackage(front->GetPackage());
@@ -263,11 +281,84 @@ const QwTrack* QwRayTracer::Bridge(
 }
 
 
+int QwRayTracer::IntegrateRK(TVector3& r, TVector3& v, const double p, const double z, const int order, const double h)
+{
+  // Tolerance per step
+  const double epsilon = 0.0000001;
+
+  if (order == 2) {
+    // Butcher tableau RK2
+    const int s = 2;
+    const double alpha = 0.5; // 0.5, 1.0, 1.5
+    // Define A
+    TMatrixD A(s,s);
+    A[1][0] = alpha;
+    // Define b
+    TMatrixD b(1,s);
+    b[0][0] = 1.0 - 1.0 / (2.0 * alpha);
+    b[0][1] = 1.0 / (2.0 * alpha);
+
+    return IntegrateRK(A, b, r, v, p, z, h, epsilon);
+  }
+
+  if (order == 4) {
+    // Butcher tableau RK4
+    const int s = 4;
+    // Define A
+    TMatrixD A(s,s);
+    A[1][0] = A[2][1] = 1.0 / 2.0;
+    A[3][2] = 1.0;
+    // Define b
+    TMatrixD b(1,s);
+    b[0][0] = b[0][3] = 1.0 / 6.0;
+    b[0][1] = b[0][2] = 1.0 / 3.0;
+
+    return IntegrateRK(A, b, r, v, p, z, h, epsilon);
+  }
+
+  if (order == 5) {
+    // Butcher tableau RKF5
+    const int s = 6;
+    // Define A
+    TMatrixD A(s,s);
+    A[1][0] = 1.0 / 4.0;
+    A[2][0] = 3.0 / 32.0;
+    A[2][1] = 9.0 / 32.0;
+    A[3][0] = 1932.0 / 2197.0;
+    A[3][1] = -7200.0 / 2197.0;
+    A[3][2] = 7296.0 / 2197.0;
+    A[4][0] = 439.0 / 216.0;
+    A[4][1] = -8.0;
+    A[4][2] = 3680.0 / 513.0;
+    A[4][3] = -845.0 / 4104.0;
+    A[5][0] = -8.0 / 27.0;
+    A[5][1] = 2.0;
+    A[5][2] = -3544.0 / 2565.0;
+    A[5][3] = 1859.0 / 4104.0;
+    A[5][4] = -11.0 / 40.0;
+    // Define b
+    TMatrixD b(2,s); b.Zero();
+    b[0][0] = 16.0 / 135.0;
+    b[0][2] = 6656.0 / 12825.0;
+    b[0][3] = 28561.0 / 56430.0;
+    b[0][4] = -9.0 / 50.0;
+    b[0][5] = 2.0 / 55.0;
+    b[1][0] = 25.0 / 216.0;
+    b[1][2] = 1408.0 / 2565.0;
+    b[1][3] = 2197.0 / 4104.0;
+    b[1][4] = -1.0 / 5.0;
+
+    return IntegrateRK(A, b, r, v, p, z, h, epsilon);
+  }
+
+  return false;
+}
+
 /**
- * Integrate using the Runge-Kutta 4th order algorithm
+ * Integrate using the Runge-Kutta algorithm
  *
- *  RK4 integration for trajectory and field integral.
- *  beta = qc/e = -0.2998 / E[GeV] [coul.(m/s)/j]
+ *  RK integration for trajectory and field integral.
+ *  beta = qc/E = -0.2998 / E[GeV] [coul.(m/s)/j]
  *              = -0.2998 / E[MeV] [coul.(mm/s)/j]
  *
  *  The coupled differential equations are :
@@ -282,197 +373,108 @@ const QwTrack* QwRayTracer::Bridge(
  *  If the endpoint is at upstream and startpoint is at downstream,
  *  the electron will swim backward
  *
- * @param r0 Initial position (reference to final position)
- * @param uv0 Initial momentum direction (reference to final direction)
- * @param p0 Initial momentum magnitude
- * @param z_end Final position
+ * @param A Runge-Kutta matrix
+ * @param b Weight vector (first row is lowest order)
+ * @param r Initial position (reference to final position)
+ * @param v Initial momentum direction (reference to final direction)
+ * @param p Initial momentum magnitude
+ * @param z Final position
  * @param step Step size
- * @return True if the integration was successful
+ * @param epsilon Allowed truncation error per step
+ * @return Number of iterations
  */
-bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, double p0, double z_end, double step)
+int QwRayTracer::IntegrateRK(
+    const TMatrixD& A,
+    const TMatrixD& b,
+    TVector3& r,
+    TVector3& v,
+    const double p,
+    const double z,
+    const double step,
+    const double epsilon)
 {
-  p0 /= Qw::GeV;
-  r0[0] /= Qw::m;
-  r0[1] /= Qw::m;
-  r0[2] /= Qw::m;
-  z_end /= Qw::m;
-  step  /= Qw::m;
+  // Order
+  const int s = A.GetNrows();
 
-  // Local variables
-  double xx[2],yy[2],zz[2];
-  double uvx[2],uvy[2],uvz[2];
-  double x1,y1,z1;
-  double vx,vy,vz,vx1,vy1,vz1;
-  double dx1,dy1,dz1;
-  double dx2,dy2,dz2;
-  double dx3,dy3,dz3;
-  double dx4,dy4,dz4;
-  double dvx1,dvy1,dvz1;
-  double dvx2,dvy2,dvz2;
-  double dvx3,dvy3,dvz3;
-  double dvx4,dvy4,dvz4;
+  // Adaptive step if q > 1
+  const int q = b.GetNrows();
+  const double h_min = 0.1 * Qw::cm;
+  const double h_max = 10.0 * Qw::cm;
+  double h = step;
 
-  double point1[3];
+  // Determine c
+  TVectorD c(s);
+  for (int i = 0; i < s; i++)
+    for (int j = 0; j < s; j++)
+      c[i] += A[i][j];
 
-  // Position vector and references to components
-  double point[3];
-  double &x = point[0];
-  double &y = point[1];
-  double &z = point[2];
+  // Beta factor
+  const double beta = - Qw::c * Qw::e / p;
 
-  // Magnetic field and references to components
-  double bfield[3];
-  double &bx = bfield[0];
-  double &by = bfield[1];
-  double &bz = bfield[2];
+  // Initial conditions
+  TVector3 r_new[2], r_old[2];
+  TVector3 v_new[2], v_old[2];
+  r_old[0] = r_old[1] = r;
+  v_old[0] = v_old[1] = v;
 
-  // Momentum
-  double beta = - 0.299792 / p0;
-
-  // Field integral
-  fBdl = 0.0;
-  fBdlx = 0.0;
-  fBdly = 0.0;
-  fBdlz = 0.0;
-
-  xx[0] = r0[0];
-  yy[0] = r0[1];
-  zz[0] = r0[2];
-
-  // Reverse coordinates for backward swimming
-  if (r0.Z() > z_end) {
-    xx[0] = -xx[0];
-    zz[0] = -zz[0];
-    uvx[0] =  uv0[0];
-    uvy[0] = -uv0[1];
-    uvz[0] =  uv0[2];
-    z_end = -z_end;
-  } else { // forward swimming
-    uvx[0] = uv0[0];
-    uvy[0] = uv0[1];
-    uvz[0] = uv0[2];
-  }
-
-  // Integration loop
+  // Loop
   int iterations = 0;
-  while (fabs(zz[0] - z_end) >= step && iterations < MAX_ITERATIONS_RUNGEKUTTA) {
+  bool last_iteration = false;
+  while (! last_iteration && iterations < MAX_ITERATIONS_RUNGEKUTTA) {
     iterations++;
 
-    // Values of the cordinates, unit vector and field at start of interval
-    x = x1 = xx[0];
-    y = y1 = yy[0];
-    z = z1 = zz[0];
-    vx = vx1 = uvx[0];
-    vy = vy1 = uvy[0];
-    vz = vz1 = uvz[0];
-    point1[0]=x*Qw::m;
-    point1[1]=y*Qw::m;
-    point1[2]=z*Qw::m;
-    fBfield->GetCartesianFieldValue(point1, bfield);
+    // Last step to end up at z
+    if (fabs(r_old[0].Z() - z) < h) {
+      h = z - r_old[0].Z();
+      last_iteration = true;
+    }
 
-    // First approximation to the changes in the variables for step h (k1)
-    dx1 = step * vx;
-    dy1 = step * vy;
-    dz1 = step * vz;
-    dvx1 = beta * (dy1 * bz - dz1 * by);
-    dvy1 = beta * (dz1 * bx - dx1 * bz);
-    dvz1 = beta * (dx1 * by - dy1 * bx);
+    // Determine k
+    TVector3 k_r[s];
+    TVector3 k_v[s];
+    TVector3 point, B;
+    for (int i = 0; i < s; i++) {
+      r_new[0] = r_old[0];
+      v_new[0] = v_old[0];
+      for (int j = 0; j < i; j++) {
+        r_new[0] += A[i][j] * k_r[j];
+        v_new[0] += A[i][j] * k_v[j];
+      }
+      fBfield->GetCartesianFieldValue(r_new[0], B);
 
-    // Next approximation to the values of the variables for step h/2
-    x = x1 + dx1 / 2.0;
-    y = y1 + dy1 / 2.0;
-    z = z1 + dz1 / 2.0;
-    vx = vx1 + dvx1 / 2.0;
-    vy = vy1 + dvy1 / 2.0;
-    vz = vz1 + dvz1 / 2.0;
-    point1[0]=x*Qw::m;
-    point1[1]=y*Qw::m;
-    point1[2]=z*Qw::m;
-    fBfield->GetCartesianFieldValue(point1, bfield);
+      k_r[i] = h * v_new[0];
+      k_v[i] = beta * k_r[i].Cross(B);
+    }
 
-    // Second approximation to the changes in the variables for step h (k2)
-    dx2 = step * vx;
-    dy2 = step * vy;
-    dz2 = step * vz;
-    dvx2 = beta * (dy2*bz - dz2*by);
-    dvy2 = beta * (dz2*bx - dx2*bz);
-    dvz2 = beta * (dx2*by - dy2*bx);
-    
+    // New values
+    for (int p = 0; p < q; p++) {
+      r_new[p] = r_old[p];
+      v_new[p] = v_old[p];
+      for (int i = 0; i < s; i++) {
+        r_new[p] += b[p][i] * k_r[i];
+        v_new[p] += b[p][i] * k_v[i];
+      }
 
-    // Next approximation to the values of the variables for step h/2
-    x = x1 + dx2 / 2.0;
-    y = y1 + dy2 / 2.0;
-    z = z1 + dz2 / 2.0;
-    vx = vx1 + dvx2 / 2.0;
-    vy = vy1 + dvy2 / 2.0;
-    vz = vz1 + dvz2 / 2.0;
-    point1[0]=x*Qw::m;
-    point1[1]=y*Qw::m;
-    point1[2]=z*Qw::m;
-    fBfield->GetCartesianFieldValue(point1, bfield);
+    }
 
-    // Third approximation to the changes in the variables for step h (k3)
-    dx3 = step * vx;
-    dy3 = step * vy;
-    dz3 = step * vz;
-    dvx3 = beta * (dy3*bz - dz3*by);
-    dvy3 = beta * (dz3*bx - dx3*bz);
-    dvz3 = beta * (dx3*by - dy3*bx);
+    // Adaptive step
+    if (q == 2) {
+      TVector3 r_diff = r_new[0] - r_new[1];
+      h = pow(epsilon * h / (2 * r_diff.Mag()), 0.25);
+      if (h < h_min) h = h_min;
+      if (h > h_max) h = h_max;
+    }
 
-    // Next approximation to the values of the variables for step h, not h/2
-    x = x1 + dx3;
-    y = y1 + dy3;
-    z = z1 + dz3;
-    vx = vx1 + dvx3;
-    vy = vy1 + dvy3;
-    vz = vz1 + dvz3;
-    point1[0]=x*Qw::m;
-    point1[1]=y*Qw::m;
-    point1[2]=z*Qw::m;
-    fBfield->GetCartesianFieldValue(point1, bfield);
+    // Take lowest order, that's the one for which the error is minimized
+    r_old[0] = r_old[1] = r_new[0];
+    v_old[0] = v_old[1] = v_new[0];
 
-    // Fourth approximation to the changes in the variables for step h (k4)
-    dx4 = step * vx;
-    dy4 = step * vy;
-    dz4 = step * vz;
-    dvx4 = beta * (dy4*bz - dz4*by);
-    dvy4 = beta * (dz4*bx - dx4*bz);
-    dvz4 = beta * (dx4*by - dy4*bx);
+  } // end of loop
 
-    // Evaluate the path integral (B x dl)
-    fBdl += dx4 * bx + dy4 * by + dz4 * bz;
-    fBdlx += (dz4*by - dy4*bz);
-    fBdly += (dx4*bz - dz4*bx);
-    fBdlz += (dy4*bx - dx4*by);
+  // Return arguments
+  r = r_new[0];
+  v = v_new[0];
 
-    // Final estimates of trajectory
-    xx[1] = xx[0] + (dx1 + 2.0*dx2 + 2.0*dx3 + dx4) / 6.0;
-    yy[1] = yy[0] + (dy1 + 2.0*dy2 + 2.0*dy3 + dy4) / 6.0;
-    zz[1] = zz[0] + (dz1 + 2.0*dz2 + 2.0*dz3 + dz4) / 6.0;
-    uvx[1] = uvx[0] + (dvx1 + 2.0*dvx2 + 2.0*dvx3 + dvx4) / 6.0;
-    uvy[1] = uvy[0] + (dvy1 + 2.0*dvy2 + 2.0*dvy3 + dvy4) / 6.0;
-    uvz[1] = uvz[0] + (dvz1 + 2.0*dvz2 + 2.0*dvz3 + dvz4) / 6.0;
-
-    // Starting point for next step
-    xx[0] = xx[1];
-    yy[0] = yy[1];
-    zz[0] = zz[1];
-    uvx[0] = uvx[1];
-    uvy[0] = uvy[1];
-    uvz[0] = uvz[1];
-
-  } // end of while loop
-
-    // Reverse coordinates for backward swimming
-  if (r0.Z() > z_end) {
-    xx[0] = -xx[0];
-    zz[0] = -zz[0];
-    uvy[0] = -uvy[0];
-  }
-
-  // Actual position of the track
-  r0 = TVector3(xx[0]*Qw::m, yy[0]*Qw::m, zz[0]*Qw::m);
-  uv0 = TVector3(uvx[0], uvy[0], uvz[0]);
-
-  return true;
+  if (iterations == MAX_ITERATIONS_RUNGEKUTTA) return -1;
+  else return iterations;
 }
