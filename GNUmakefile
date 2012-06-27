@@ -881,6 +881,15 @@ QwSVNVersion:
 		$(ECHO) "\`$(QWANA_VERSION_H)' is up to date"; \
 	fi;
 
+EXTENSIONS = Extensions/EventDisplay3D Extensions/GUI Extensions/Regression/QwBeamModulation
+
+extensions: $(EXTENSIONS)
+
+$(EXTENSIONS): .auxExeFiles
+	$(MAKE) -C $@
+
+.PHONY: extensions $(EXTENSIONS)
+
 ############################
 ############################
 # Specific clean targets :
@@ -952,5 +961,4 @@ distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.au
 
 .SUFFIXES :
 .SUFFIXES : $(SrcSuf) $(IncSuf) $(ObjSuf)
-
 
