@@ -2993,7 +2993,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	QwPartialTrack* best_pt=0;
 	QwTrackingTreeLine* best_tl[3]={0};
 	QwTrackingTreeLine* wu=uvl[kDirectionU];
-	QwPartialTrack* best_temp;
 	while(wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS){
 	  
 	  // Skip this treeline if it was no good

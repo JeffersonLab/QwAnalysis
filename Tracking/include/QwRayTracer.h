@@ -96,7 +96,7 @@ class QwRayTracer: public VQwBridgingMethod {
     static QwMagneticField *fBfield;
 
     /// Runge-Kutta method order
-    double fIntegrationOrder;
+    int fIntegrationOrder;
     /// Runge-Kutta step size
     double fIntegrationStep;
 
