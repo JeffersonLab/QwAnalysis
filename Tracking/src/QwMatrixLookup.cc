@@ -329,7 +329,7 @@ const QwTrack* QwMatrixLookup::Bridge(
 #if ! defined __ROOT_HAS_MATHMORE || ROOT_VERSION_CODE < ROOT_VERSION(5,18,0)
 
     // Return immediately if there is no support for ROOT::Math::Interpolator
-    return -1;
+    return 0;
 
 #endif
 

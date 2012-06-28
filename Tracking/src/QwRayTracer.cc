@@ -224,7 +224,7 @@ const QwTrack* QwRayTracer::Bridge(
     track = new QwTrack(front,back);
 
     // Reconstructed momentum
-    track->fMomentum = momentum[0] / Qw::GeV;
+    track->fMomentum = momentum[0];
     track->fIterationsNewton = iterations_newton;
     track->fIterationsRungeKutta = iterations_rungekutta;
 
