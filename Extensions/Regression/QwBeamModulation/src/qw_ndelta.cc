@@ -35,9 +35,9 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   std::cout << "Finished loading from database." << std::endl;
 //   asym.SetPlotTitle("asymmetry", "Run Number", "Asymmetry (ppm)");
-  asym.InOutErrorPlotAsym(corr_data_in, corr_data_out, "fit");
+//   asym.InOutErrorPlotAsym(corr_data_in, corr_data_out, "fit");
   //  asym.InOutErrorPlotAsym(raw_data_in, raw_data_out, "fit");
-  //  asym.InOutErrorPlotAvAsym(raw_data_in, raw_data_out, corr_data_in, corr_data_out, "fit");
+  asym.InOutErrorPlotAvAsym(raw_data_in, raw_data_out, corr_data_in, corr_data_out, "fit");
 
   std::cout << "Done with analysis." << std::endl;
   

@@ -71,7 +71,7 @@ MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
 
 
 
-ROOTLIBS   = $(shell root-config --libs )
+ROOTLIBS   = $(shell root-config --libs ) -lSpectrum
 ROOTGLIBS  = $(shell root-config --glibs)
 INCLUDES   = -I$(shell root-config --incdir) -Iinclude/ ${MYSQL_INC} ${MYSQLPP_INC}
 LIB        = ${MYSQL_LIBS} ${MYSQLPP_LIBS}
@@ -81,7 +81,7 @@ DEPS       = QwModulation.hh QwData.hh QwChargeSensitivity.hh QwDBConnection.hh 
 CFLAGS     = -O -Wall ${INCLUDES}
 MYSQL      = 
 
-all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta
+all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta ramp_pedestal
 
 %.o: %.cc
 	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 
@@ -95,6 +95,8 @@ qwcharge: ${SRC}/qwcharge.o ${SRC}/QwChargeSensitivity.o
 qwdbplot: ${SRC}/qwdbplot.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
 qw_ndelta: ${SRC}/qw_ndelta.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o ${SRC}/QwPlotHelper.o
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+ramp_pedestal: ${SRC}/ramp_pedestal.o 	
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
 
 clean: 

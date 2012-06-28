@@ -92,6 +92,14 @@ void QwModulation::GetOptions(Char_t **options){
       std::cout << other << "Setting up pseudo 5+1 analysis:\t" << fChargeFile << normal << std::endl;
       ReadChargeSensitivity();
     }    
+
+    if(flag.CompareTo("--file-stem", TString::kExact) == 0){
+      fFileStemInclude = true;
+      flag.Clear();
+      fFileStem = options[i + 1];
+      std::cout << other << "using external file stem:\t" << fFileStem << normal << std::endl;
+    }    
+
     if(flag.CompareTo("--c", TString::kExact) == 0){
       fCharge = true;
       flag.Clear();
@@ -365,6 +373,88 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
   return( code );
 }
 
+void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
+{
+  std::cout << "============================(Trying) to compute the damn errors!============================" << std::endl;
+  TMatrixD var(fNMonitor, fNModType);
+  TMatrixD temp(fNModType, fNMonitor);
+  TMatrixD Errorm(fNDetector, fNModType);  
+  TMatrixD Errord(fNDetector, fNModType);  
+  TMatrixD Error(fNDetector, fNModType);  
+
+//     for(Int_t i = 0; i < fNMonitor; i++){
+//       for(Int_t k = 0; k < fNModType; k++){
+// 	for(Int_t j = 0; j < fNModType; j++){
+//    	  temp(i, k) += TMath::Power(eA(i, j), 2)*TMath::Power(A(j, k), 2);
+// //  	  temp(i, k) += eA(i, j)*A(j, k);
+// 	}
+//       }
+//     }
+//        std::cout << "temp:\n" << std::endl;
+//        temp.Print();
+    
+    for(Int_t i = 0; i < fNMonitor; i++){
+      for(Int_t k = 0; k < fNModType; k++){
+	for(Int_t n = 0; n < fNModType; n++){
+	  for(Int_t j = 0; j < fNModType; j++){
+	    var(i, k) += TMath::Power(A(i, n), 2)*TMath::Power(eA(n, j), 2)*TMath::Power(A(j, k), 2);
+	    //   	  var(i, k) += TMath::Power(A(i, j)*temp(j, k), 2);
+	  }
+	}
+      }
+    }
+       
+//     std::cout << "\t::Error of Inverse Matrix::\n" << std::endl;
+//     var.Print();
+    
+//     std::cout << "Y:\n" << std::endl;
+//     Y.Print();
+
+    for(Int_t m = 0; m < fNDetector; m++){    
+
+      for(Int_t i = 0; i < fNMonitor; i++){
+	for(Int_t j = 0; j < fNModType; j++){
+ 	  Errorm(m, i) += var(j, i)*TMath::Power( Y(m, j),2);
+// 	  std::cout << TMath::Power( Y(m, j),2) << "*" << var(j, i) << " + ";
+	}
+// 	std::cout << std::endl;
+      }
+ 
+  
+//        std::cout << "\t::Error on sensitivity (part 1)::\n" << std::endl;
+       for(Int_t i = 0; i < fNModType; i++)
+         Errorm(m, i) = TMath::Sqrt(Errorm(m, i));
+//        Errorm.Print();
+    
+//        std::cout << "\t::A^-1::" << std::endl;
+//        A.Print();
+    
+//        std::cout << "\t::Error on Y::" << std::endl;
+//        eY.Print();
+       
+       for(Int_t i = 0; i < fNMonitor; i++){
+	 for(Int_t j = 0; j < fNModType; j++){
+	   Errord(m, i) += TMath::Power( A(j, i),2)*TMath::Power(eY(m, j) ,2);
+	 }
+       }
+    
+//        std::cout << "\t::Error on sensitivity (part 2)::\n" << std::endl;
+       for(Int_t i = 0; i < fNModType; i++)
+	 Errord(m,i) = TMath::Sqrt(Errord(m,i));
+       //       Errord.Print();
+    
+     for(Int_t i = 0; i < fNModType; i++){
+       Error(m, i) = TMath::Power(Errord(m, i), 2) + TMath::Power(Errorm(m, i), 2);
+       //       Error(m, i) = Errorm(m, i);
+       Error(m, i) = TMath::Sqrt(Error(m, i));
+     }
+
+    }
+    Errorm.Print();
+    Errord.Print();
+    Error.Print();
+}
+
 void QwModulation::MatrixFill()
 {
 
@@ -419,8 +509,9 @@ void QwModulation::MatrixFill()
   
   TMatrixD RMatrixInv = RMatrix;
   RMatrixInv.Invert(&determinant);
-
+  std::cout << "\t\t\t\t::R Matrix Inverse:: " << std::endl;
   RMatrixInv.Print("%11.10f");
+
   std::cout << determinant << std::endl;
   TMatrixD Identity(fNMonitor, fNMonitor);
   Identity.Mult(RMatrixInv, RMatrix);
@@ -431,6 +522,10 @@ void QwModulation::MatrixFill()
 
   std::cout << "\n\n\t\t\t\t::SMatrix::\n" << std::endl;
   SMatrix.Print();
+
+  ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
+
+  exit(1);
 
   for(Int_t i = 0; i < fNDetector; i++){
     for(Int_t j = 0; j < fNModType; j++){
@@ -797,6 +892,7 @@ void QwModulation::PilferData()
   std::cout << "Number of entries: " << nentries << std::endl;
 
   for(Long64_t i = 0; i < nentries; i++){
+//   for(Long64_t i = 0; i < 400000; i++){
 
     LoadTree(i);
     if(i < 0) break;

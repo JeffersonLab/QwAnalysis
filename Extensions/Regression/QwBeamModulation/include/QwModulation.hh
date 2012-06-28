@@ -272,8 +272,10 @@ public :
   Bool_t fYPinit;
   Bool_t fSingleCoil;
   Bool_t fCharge;
+  Bool_t fFileStemInclude;
 
   TString fChargeFile;
+  TString fFileStem;
 
   QwModulation(TChain *tree = 0);
   ~QwModulation();
@@ -302,6 +304,7 @@ public :
   void     CalculateWeightedSlope();
   void     CalculateSlope(Int_t);
   void     MatrixFill();
+  void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     SetFileName(TString &);
   void     ComputeAsymmetryCorrections(); 
   void     ReduceMatrix(Int_t);
