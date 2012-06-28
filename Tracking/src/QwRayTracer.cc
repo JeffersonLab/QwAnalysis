@@ -153,10 +153,11 @@ const QwTrack* QwRayTracer::Bridge(
   double positionRoff = position.Perp() - end_position.Perp();
 
   int mode=0;
-  int iterations = 0;
+  int iterations_newton = 0;
+  int iterations_rungekutta = 0;
   while (fabs(positionRoff) >= fPositionResolution
-      && iterations < MAX_ITERATIONS_NEWTON) {
-    ++iterations;
+      && iterations_newton < MAX_ITERATIONS_NEWTON) {
+    ++iterations_newton;
 
     Double_t r[2] = {0.0, 0.0};
     if(mode==0){
@@ -190,15 +191,15 @@ const QwTrack* QwRayTracer::Bridge(
     // p1
     position = start_position;
     direction = start_direction;
-    IntegrateRK(position, direction, momentum[1], end_position.Z(), fIntegrationOrder, fIntegrationStep);
+    iterations_rungekutta = IntegrateRK(position, direction, momentum[1], end_position.Z(), fIntegrationOrder, fIntegrationStep);
     positionRoff = position.Perp() - end_position.Perp();
 
     momentum[0] = momentum[1];
   }
 
-  if (iterations < MAX_ITERATIONS_NEWTON) {
+  if (iterations_newton < MAX_ITERATIONS_NEWTON) {
 
-    //QwMessage << "Converged after " << iterations << " iterations." << QwLog::endl;
+    //QwMessage << "Converged after " << iterations_newton << " iterations." << QwLog::endl;
     /*
     if (fMomentum < 0.980 * Qw::GeV || fMomentum > 1.165 * Qw::GeV) {
       QwMessage << "Out of momentum range: determined momentum by shooting: "
@@ -224,6 +225,8 @@ const QwTrack* QwRayTracer::Bridge(
 
     // Reconstructed momentum
     track->fMomentum = momentum[0] / Qw::GeV;
+    track->fIterationsNewton = iterations_newton;
+    track->fIterationsRungeKutta = iterations_rungekutta;
 
     // Runge-Kutta 4th order
     position = start_position;
@@ -275,7 +278,7 @@ const QwTrack* QwRayTracer::Bridge(
     track->SetMagneticFieldIntegral(fBdl,fBdlx,fBdly,fBdlz);
 
   } else {
-    QwMessage << "Can't converge after " << iterations << " iterations." << QwLog::endl;
+    QwMessage << "Can't converge after " << iterations_newton << " iterations." << QwLog::endl;
   }
 
   return track;

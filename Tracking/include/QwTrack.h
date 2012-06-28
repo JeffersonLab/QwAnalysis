@@ -98,6 +98,9 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     double fMomentum;           ///< Spectrometer momentum
     double fScatteringAngle;    ///< Scattering angle
 
+    int fIterationsNewton;      ///< Number of iterations in Newton's method
+    int fIterationsRungeKutta;  ///< Number of iterations in Runge-Kutta method
+
     //@{
     /// Matching of front and back track position and direction at matching plane
     TVector3 fPositionDiff;     ///< Difference in position at matching plane

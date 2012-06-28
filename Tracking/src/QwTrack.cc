@@ -104,6 +104,9 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fMomentum = that.fMomentum;
   fScatteringAngle = that.fScatteringAngle;
 
+  fIterationsNewton = that.fIterationsNewton;
+  fIterationsRungeKutta = that.fIterationsRungeKutta;
+
   fPositionDiff = that.fPositionDiff;
   fPositionXoff = that.fPositionXoff;
   fPositionYoff = that.fPositionYoff;
