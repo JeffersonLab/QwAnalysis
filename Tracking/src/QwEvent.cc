@@ -226,7 +226,7 @@ double QwEvent::EnergyLossHydrogen(const double vertex_z)
 
   } else {
     // After target
-    pre_loss = (18.7 + 3.9) * Qw::MeV;  // averaged total Eloss, downstream, including Al windows
+    pre_loss = 18.7 * Qw::MeV;  // averaged total Eloss, full target (excluding downstream Al window)
   }
 
   return pre_loss;
