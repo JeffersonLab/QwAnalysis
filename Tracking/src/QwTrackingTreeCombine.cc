@@ -224,13 +224,8 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 	double track_position = *xresult; // x is the x coordinate of the track in the plane
 	double odist = 0.0;
 	double minimum = resolution; // will keep track of minimum distance
-	double breakcut = 0;
 	double wirespacing = hitlist->begin()->GetDetectorInfo()->GetElementSpacing();
 
-	if ( hitlist->size() == 0 ) // ?
-		breakcut = wirespacing + resolution; // wirespacing + bin resolution
-
-	
 	// Loop over the hit list
 	QwHitContainer::iterator end=hitlist->end();
 	for ( QwHitContainer::iterator hit = hitlist->begin();
@@ -301,10 +296,6 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 
 		} // end of left/right ambiguity
 
-		// ? don't know what this cuts out
-		//if (distance < -breakcut)
-		//  break;
-
 	} // end of loop over hit list       
 	return ngood;
 }
@@ -371,11 +362,7 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 
 		} // end of left/right ambiguity
 
-		// ? don't know what this cuts out
-		//if (distance < -breakcut)
-		//  break;
-
-	} // end of loop over hit list       
+	} // end of loop over hit list
 	return ngood;
 }
 
@@ -953,7 +940,6 @@ bool QwTrackingTreeCombine::TlCheckForX (
         
 	QwGeometry planes(fGeometry.in(package).in(region).in(dir));
 	QwDetectorInfo* front_plane = 0;
-	QwDetectorInfo* back_plane = 0;
 	for (size_t plane = 0; plane < planes.size(); ++plane) {
 
 	  // Get subhitlist of hits in this detector
@@ -969,7 +955,6 @@ bool QwTrackingTreeCombine::TlCheckForX (
             startZ = thisZ;
           }
           // Store the z coordinates of last detector plane
-          back_plane = planes.at(plane);
           endZ = thisZ;
 
           // Skip inactive planes
@@ -1587,8 +1572,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	double r[4];		//factors of elements of the metric matrix A
 	//	double uvx;		//u,v,or x coordinate of the track at a location in z
 	double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
-	double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
-	double offset[kNumDirections],slope[kNumDirections];	//track fit parameters
 
 	// Initialize the matrices
 	double A[4][4];
@@ -1642,14 +1625,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	rCos[kDirectionV] = hits[hitv]->GetDetectorInfo()->GetElementAngleCos(); // cos theta x
 	rSin[kDirectionV] = hits[hitv]->GetDetectorInfo()->GetElementAngleSin(); // sin theta x
 
-	// Set the offsets for the u,v,x axes (why fabs?)
-        // why the offset for the x axes is 0?    
-	x0[kDirectionX] = 0;
-	x0[kDirectionU] = fabs ( uv2xy.fOffset[0] ) * uv2xy.fXY[0][0] + uv2xy.fWireSpacing;
-	x0[kDirectionV] = fabs ( uv2xy.fOffset[1] ) * uv2xy.fXY[1][0] + uv2xy.fWireSpacing;
-
 	// Calculate the metric matrix
-       
 	double dx_[12]={0.0};
 	double l[3]={0.0};
 	double h[3]={0.0};
@@ -1705,20 +1681,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
 	// Calculate the fit
 	M_A_times_b ( fit, cov, 4, 4, B ); // fit = matrix cov * vector B
-
-	// Transform the offsets from XY to XUV coordinates
-	offset[kDirectionX] = fit[0];
-	offset[kDirectionU] = uv2xy.xy2u ( fit[0], fit[2] );
-	offset[kDirectionU] = ( fit[0] + fabs ( uv2xy.fOffset[0] ) ) * uv2xy.fXY[0][0]
-	                      + fit[2] * uv2xy.fXY[0][1] + uv2xy.fWireSpacing;
-	offset[kDirectionV] = uv2xy.xy2v ( fit[0], fit[2] );
-	offset[kDirectionV] = ( fit[0] + fabs ( uv2xy.fOffset[1] ) ) * uv2xy.fXY[1][0]
-	                      + fit[2] * uv2xy.fXY[1][1] + uv2xy.fWireSpacing;
-
-	// Transform the slopes from XY to XUV coordinates
-	slope[kDirectionX] = fit[1];
-	slope[kDirectionU] = uv2xy.xy2mu ( fit[1], fit[3] );
-	slope[kDirectionV] = uv2xy.xy2mv ( fit[1], fit[3] );
 
 	// Calculate chi^2,rewrite
 	chi = 0.0;
@@ -1768,8 +1730,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	double r[4];		//factors of elements of the metric matrix A
 	//	double uvx;		//u,v,or x coordinate of the track at a location in z
 	double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
-	double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
-	double offset[kNumDirections],slope[kNumDirections];	//track fit parameters
 
 	// Initialize the matrices
 	double A[4][4];
@@ -1804,10 +1764,10 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	double angle = hits[hitu]->GetDetectorInfo()->GetElementAngle();
 	double offsetu = hits[hitu]->GetDetectorInfo()->GetElementOffset();
 	double offsetv = hits[hitv]->GetDetectorInfo()->GetElementOffset();
-	//        double offsetx = hits[0]->GetDetectorInfo()->GetElementOffset();       
+	//        double offsetx = hits[0]->GetDetectorInfo()->GetElementOffset();
 	double spacing = hits[hitu]->GetDetectorInfo()->GetElementSpacing();
 
-	
+
 	if ( angle < Qw::pi/2 ) angle = Qw::pi - angle; // angle for U is smaller than 90 deg
 	Uv2xy uv2xy ( Qw::pi/2 + angle, Qw::pi/2 + Qw::pi - angle );
 	uv2xy.SetOffset ( offsetu, offsetv );
@@ -1823,14 +1783,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	rCos[kDirectionV] = hits[hitv]->GetDetectorInfo()->GetElementAngleCos(); // cos theta x
 	rSin[kDirectionV] = hits[hitv]->GetDetectorInfo()->GetElementAngleSin(); // sin theta x
 
-	// Set the offsets for the u,v,x axes (why fabs?)
-        // why the offset for the x axes is 0?    
-	x0[kDirectionX] = 0;
-	x0[kDirectionU] = fabs ( uv2xy.fOffset[0] ) * uv2xy.fXY[0][0] + uv2xy.fWireSpacing;
-	x0[kDirectionV] = fabs ( uv2xy.fOffset[1] ) * uv2xy.fXY[1][0] + uv2xy.fWireSpacing;
-
 	// Calculate the metric matrix
-       
 	double dx_[12]={0.0};
 	double l[3]={0.0};
 	double h[3]={0.0};
@@ -1885,20 +1838,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	// Calculate the fit
 	M_A_times_b ( fit, cov, 4, 4, B ); // fit = matrix cov * vector B
 
-	// Transform the offsets from XY to XUV coordinates
-	offset[kDirectionX] = fit[0];
-	offset[kDirectionU] = uv2xy.xy2u ( fit[0], fit[2] );
-	offset[kDirectionU] = ( fit[0] + fabs ( uv2xy.fOffset[0] ) ) * uv2xy.fXY[0][0]
-	                      + fit[2] * uv2xy.fXY[0][1] + uv2xy.fWireSpacing;
-	offset[kDirectionV] = uv2xy.xy2v ( fit[0], fit[2] );
-	offset[kDirectionV] = ( fit[0] + fabs ( uv2xy.fOffset[1] ) ) * uv2xy.fXY[1][0]
-	                      + fit[2] * uv2xy.fXY[1][1] + uv2xy.fWireSpacing;
-
-	// Transform the slopes from XY to XUV coordinates
-	slope[kDirectionX] = fit[1];
-	slope[kDirectionU] = uv2xy.xy2mu ( fit[1], fit[3] );
-	slope[kDirectionV] = uv2xy.xy2mv ( fit[1], fit[3] );
-
 	// Calculate chi^2,rewrite
 	chi = 0.0;
 	std::pair<int,double> worst_case(0,-0.01);
@@ -1907,13 +1846,12 @@ int QwTrackingTreeCombine::r2_TrackFit (
 		EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
 		double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
 		double norm = 1.0 / ( resolution * resolution );
-		
 		double z=hits[i]->GetDetectorInfo()->GetZPosition();
 		double x=fit[0]+fit[1]*z;
 		double y=fit[2]+fit[3]*z;
 		x-=hits[i]->GetDetectorInfo()->GetXPosition();
 		y-=hits[i]->GetDetectorInfo()->GetYPosition();
-		
+
 		double dx=dx_[hits[i]->GetPlane()-1];
 
 		double wire_off=-0.5*spacing+hits[i]->GetDetectorInfo()->GetElementOffset();

@@ -78,8 +78,6 @@ int main (int argc, char* argv[])
     file->cd();
     TTree *tree = new TTree("tree", "Bridging");
 
-    Double_t CpuTime, RealTime;
-
     QwEvent* event = 0;
     tree->Branch("events", "QwEvent", &event);
 
@@ -110,8 +108,6 @@ int main (int argc, char* argv[])
           timer.Start();
           const QwTrack* track1 = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
           timer.Stop();
-          CpuTime = timer.CpuTime();
-          RealTime = timer.RealTime();
           timer.Reset();
           if (track1) {
             event->AddTrack(track1);
@@ -122,8 +118,6 @@ int main (int argc, char* argv[])
           timer.Start();
           const QwTrack* track2 = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
           timer.Stop();
-          CpuTime = timer.CpuTime();
-          RealTime = timer.RealTime();
           timer.Reset();
           if (track2) {
             event->AddTrack(track2);
