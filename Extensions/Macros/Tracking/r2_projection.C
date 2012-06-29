@@ -125,8 +125,8 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
     double mean_thetaoff_pkg2=1,sigma_thetaoff_pkg2=1;
     double mean_phioff_pkg1=1, sigma_phioff_pkg1=1;
     double mean_phioff_pkg2=1,sigma_phioff_pkg2=1; 
-    bool optimization=false;
-    if(optimization==true){
+    bool opt=false;
+    if(opt==true){
       TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
       TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
 
@@ -245,7 +245,8 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	oct=pt->GetOctant();
 	chi=pt->fChi;
         //double vertex_z=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
-	double vertex_z=track->fVertexZ;
+	//double vertex_z=track->fVertexZ;
+	double vertex_z=fEvent->GetScatteringVertexZ();
 	double x=pt->fOffsetX+z*pt->fSlopeX;
 	double y=pt->fOffsetY+z*pt->fSlopeY;
 	double x_plane=pt->fOffsetX-341.700*pt->fSlopeX;
@@ -277,7 +278,6 @@ void projection(string target,int pkg=1,int event_start=0,int event_end=-1,int r
 	Vtreeline_histo->Fill(pt->TResidual[4]);
 	Chi_histo->Fill(pt->fChi);
 	//if(x_plane<50 && x_plane>40)
-	test_for_fun->Fill(x_plane,track->fQ2);
 	for(int k=0;k<12;++k)
 	  if(pt->fSignedResidual[k]!=-10)
 	    Plane_residual[k]->Fill(pt->fSignedResidual[k]);

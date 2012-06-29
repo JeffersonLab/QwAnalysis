@@ -68,9 +68,9 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
    TH1F* q2_1=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0,0.12);
    TH1F* q2_2=new TH1F("Q2 distribution in Package 2","Q2 distribution in Package 2",100,0,0.12);
 
-   TH1F* special=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0.1,0.06);
    QwEvent* fEvent=0;
    QwTrack* track=0;
+   QwKinematics* kinematic=0;
    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
    
    //try to get the oct number from the run number
@@ -100,7 +100,14 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
     TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
     TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
 
-          
+    double mean_thetaoff_pkg1=1,sigma_thetaoff_pkg1=1;
+    double mean_thetaoff_pkg2=1,sigma_thetaoff_pkg2=1;
+    double mean_phioff_pkg1=1, sigma_phioff_pkg1=1;
+    double mean_phioff_pkg2=1,sigma_phioff_pkg2=1;       
+
+    bool opt=false;
+
+    if(opt){
 
       TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
       TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
@@ -133,22 +140,21 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
       event_tree->Project("d","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==2");
       pkg2_phi->Fit("f4","QN0");
       
-      double mean_thetaoff_pkg1=f1->GetParameter(1);
-      double sigma_thetaoff_pkg1=f1->GetParameter(2);
+      mean_thetaoff_pkg1=f1->GetParameter(1);
+      sigma_thetaoff_pkg1=f1->GetParameter(2);
 
-      double mean_thetaoff_pkg2=f2->GetParameter(1);
-      double sigma_thetaoff_pkg2=f2->GetParameter(2);
+      mean_thetaoff_pkg2=f2->GetParameter(1);
+      sigma_thetaoff_pkg2=f2->GetParameter(2);
 
-      double mean_phioff_pkg1=f3->GetParameter(1);
-      double sigma_phioff_pkg1=f3->GetParameter(2);
+      mean_phioff_pkg1=f3->GetParameter(1);
+      sigma_phioff_pkg1=f3->GetParameter(2);
 
-      double mean_phioff_pkg2=f4->GetParameter(1);
-      double sigma_phioff_pkg2=f4->GetParameter(2);
+      mean_phioff_pkg2=f4->GetParameter(1);
+      sigma_phioff_pkg2=f4->GetParameter(2);
       
+    }
 
-      //for(int i=0;i<3;++i)
-      //cout << "parameter[" << i << "]=" << f1->GetParameter(i) << endl;
-     double width=1000;
+     double width=3;
      double pkg1_phioff_lower=mean_phioff_pkg1-width*sigma_phioff_pkg1;
      double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
      double pkg2_phioff_lower=mean_phioff_pkg2-width*sigma_phioff_pkg2;
@@ -158,6 +164,7 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
      double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*sigma_thetaoff_pkg1;
      double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*sigma_thetaoff_pkg2;
      double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*sigma_thetaoff_pkg2;
+      
     
     for(int i=start;i<end;++i){
 
@@ -200,23 +207,25 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qw
 	  }
 	}
 
+	double angle_val=fEvent->GetScatteringAngle();
       for(int j=0;j<ntracks;++j){
 	track=fEvent->GetTrack(j);
 	if(track->GetPackage()==1 && valid_hits_1 < multiple && mdm_value_1 >-210 && mdm_value_1 < -150 && mdp_value_1 > -210 && mdp_value_1 < -150){
 	   if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper ){
-	  angle_1->Fill(track->fScatteringAngle);
-	  q2_1->Fill(track->fQ2);
-	  special->Fill(track->fQ2);
-	  angle->Fill(track->fScatteringAngle);
-	  q2->Fill(track->fQ2);
+	  double Q2_val=fEvent->fKinElasticWithLoss.fQ2;
+	  angle_1->Fill(angle_val);
+	  q2_1->Fill(Q2_val);
+	  angle->Fill(angle_val);
+	  q2->Fill(Q2_val);
 	   }
 	}
       	else if(track->GetPackage()==2 && valid_hits_2 < multiple && mdm_value_2 > -210 && mdm_value_2 <-150 && mdp_value_2 > -210 && mdp_value_2 < -150 ){
 	  if(track->fDirectionPhioff>pkg2_phioff_lower && track->fDirectionPhioff<pkg2_phioff_upper && track->fDirectionThetaoff>pkg2_thetaoff_lower && track->fDirectionThetaoff<pkg2_thetaoff_upper){
-	angle_2->Fill(track->fScatteringAngle);
-	  q2_2->Fill(track->fQ2);
-	  angle->Fill(track->fScatteringAngle);
-	  q2->Fill(track->fQ2);
+           double Q2_val=fEvent->fKinElasticWithLoss.fQ2;
+	  angle_2->Fill(angle_val);
+	  q2_2->Fill(Q2_val);
+	  angle->Fill(angle_val);
+	  q2->Fill(Q2_val);
 	   }
 	}
       }
