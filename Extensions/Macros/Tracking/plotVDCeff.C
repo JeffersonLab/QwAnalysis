@@ -1,4 +1,5 @@
-// Name  :   plotefficiency_5.C
+// Name: plotVDCeff.C
+// original Name:   plotefficiency_5.C
 // Author:   Peyton Rose
 // email :   pwrose@email.wm.edu
 // Date:    
@@ -7,6 +8,17 @@
 // Plots the five wire effiency of each wire, in each plane, in each package for the Region 3 drift chambers
 //
 //  
+// Modifed November 2011 by D.S. Armstrong:
+//    - updated name of tree to event_tree
+//    - changed file input naming scheme
+//    - checked that wires are hit by using -10000 as time value if not hit at all (was 0, which
+//      is no loner appropriate
+//    - added output of dead or very low efficiency wires to cout
+//
+// Modifed June 2012 by D.S. Armstrong
+//      - again changed file input naming scheme
+//      - changed to use new variable TimeNS (time in ns; fTime is no longer in ns)
+
 
 gROOT->Reset();
 
@@ -134,8 +146,8 @@ for(plane_i=0; plane_i <4; plane_i++)
       nfire2[plane_i][wire_i]=0;
 	  eff1[plane_i][wire_i]=0;
 	  eff2[plane_i][wire_i]=0;
-	  hit1[plane_i][wire_i]=0;
-	  hit2[plane_i][wire_i]=0;
+	  hit1[plane_i][wire_i]=-10000;
+	  hit2[plane_i][wire_i]=-10000;
 	  err1[plane_i][wire_i]=0;
 	  err2[plane_i][wire_i]=0;
 	  xerr[plane_i][wire_i]=0;
@@ -152,8 +164,8 @@ for(ev_i=start; ev_i<end; ev_i++) //iterate through all desired events in the ro
 	{
 		for(wire_i=0; wire_i<nwire;wire_i++)
 		{
-			hit1[plane_i][wire_i]=0;
-			hit2[plane_i][wire_i]=0;
+			hit1[plane_i][wire_i]=-10000;
+			hit2[plane_i][wire_i]=-10000;
 		}//for(wire_i)
 	}//for(plane_i)
 
@@ -173,7 +185,7 @@ for(ev_i=start; ev_i<end; ev_i++) //iterate through all desired events in the ro
 	    wire     = (Short_t) hit->GetElement();
 	    plane     = (Short_t) hit->GetPlane();
 		hitnum = (Short_t) hit->GetHitNumber();
-		tdc_time = (Double_t) hit->GetTime();
+		tdc_time = (Double_t) hit->GetTimeNs();
 		
 	if(region == 3 && hitnum == 0) // only valid for region 3, and for the first hit (per event) on each wire
 	{	
@@ -199,14 +211,28 @@ for(ev_i=start; ev_i<end; ev_i++) //iterate through all desired events in the ro
 	{
 		for(wire_i=2; wire_i<277; wire_i++) // count the number of triggers and the number of successful fires
 		{
-			if(hit1[plane_i][wire_i-1]!=0 && hit1[plane_i][wire_i-2]>hit1[plane_i][wire_i-1] && hit1[plane_i][wire_i+1]!=0 && hit1[plane_i][wire_i+2]>hit1[plane_i][wire_i+1])
+			if(hit1[plane_i][wire_i-1]!=-10000 && hit1[plane_i][wire_i-2]>hit1[plane_i][wire_i-1] && 
+hit1[plane_i][wire_i+1]!=-10000 && hit1[plane_i][wire_i+2]>hit1[plane_i][wire_i+1]
+			   && hit1[plane_i][wire_i-1] < 400 && hit1[plane_i][wire_i-1] > -10
+			   && hit1[plane_i][wire_i-2] < 400 && hit1[plane_i][wire_i-2] > -10
+                           && hit1[plane_i][wire_i+1] < 400 && hit1[plane_i][wire_i+1] > -10
+			   && hit1[plane_i][wire_i+2] < 400 && hit1[plane_i][wire_i+2] > -10
+			   ){
 				ntrig1[plane_i][wire_i]++;
-			if(hit1[plane_i][wire_i-1]!=0 && hit1[plane_i][wire_i-2]>hit1[plane_i][wire_i-1] && hit1[plane_i][wire_i+1]!=0 && hit1[plane_i][wire_i+2]>hit1[plane_i][wire_i+1] && hit1[plane_i][wire_i]!=0)
-				nfire1[plane_i][wire_i]++;
-			if(hit2[plane_i][wire_i-1]!=0 && hit2[plane_i][wire_i-2]>hit2[plane_i][wire_i-1] && hit2[plane_i][wire_i+1]!=0 && hit2[plane_i][wire_i+2]>hit2[plane_i][wire_i+1])
+				if (hit1[plane_i][wire_i] < 400 && hit1[plane_i][wire_i] > -10 ){
+				  nfire1[plane_i][wire_i]++;}
+			}
+			if(hit2[plane_i][wire_i-1]!=-10000 && hit2[plane_i][wire_i-2]>hit2[plane_i][wire_i-1] && 
+hit2[plane_i][wire_i+1]!=-10000 && hit2[plane_i][wire_i+2]>hit2[plane_i][wire_i+1]
+			   && hit2[plane_i][wire_i-1] < 400 && hit2[plane_i][wire_i-1] > -10
+			   && hit2[plane_i][wire_i-2] < 400 && hit2[plane_i][wire_i-2] > -10
+                           && hit2[plane_i][wire_i+1] < 400 && hit2[plane_i][wire_i+1] > -10
+			   && hit2[plane_i][wire_i+2] < 400 && hit2[plane_i][wire_i+2] > -10
+			   ){
 				ntrig2[plane_i][wire_i]++;
-			if(hit2[plane_i][wire_i-1]!=0 && hit2[plane_i][wire_i-2]>hit2[plane_i][wire_i-1] && hit2[plane_i][wire_i+1]!=0 && hit2[plane_i][wire_i+2]>hit2[plane_i][wire_i+1] && hit2[plane_i][wire_i]!=0)
-				nfire2[plane_i][wire_i]++;
+				if (hit2[plane_i][wire_i] < 400 && hit2[plane_i][wire_i] > -10 ){
+				  nfire2[plane_i][wire_i]++;}
+			}
 		}//for(wire)	
 	}//for(plane)
 
@@ -231,16 +257,21 @@ for(wire_i=0; wire_i<279; wire_i++)
 	if(ntrig1[plane_i][wire_i] != 0)
 	{
 		eff1[plane_i][wire_i]= 100*float(nfire1[plane_i][wire_i]) / float(ntrig1[plane_i][wire_i]);
+	if (eff1[plane_i][wire_i]>-1&&eff1[plane_i][wire_i]<10){
+	  cout << "Dead Wire # " << wire_i << " of package 1  and plane " << plane_i << " for tries = " << ntrig1[plane_i][wire_i] << "  efficiency = " << eff1[plane_i][wire_i] << " \n";}
+		//		cout << "Efficiency of wire " << wire_i << " of package 1  and plane " << plane_i << " for tries = " << ntrig1[plane_i][wire_i] << " is "  << eff1[plane_i][wire_i] << " \n";
 	} //if(ntrig1)
 	
 	else if (ntrig1[plane_i][wire_i] == 0)
 	{
 		eff1[plane_i][wire_i] = -10;
 	}//else if(ntrig1)
-	
+
 	if(ntrig2[plane_i][wire_i] != 0)
 	{
 	eff2[plane_i][wire_i]= 100*float(nfire2[plane_i][wire_i]) / float(ntrig2[plane_i][wire_i]);
+	if (eff2[plane_i][wire_i]>-1&&eff2[plane_i][wire_i]<10){
+	  cout << "Dead Wire # " << wire_i << " of package 2  and plane " << plane_i  << " for tries = " << ntrig2[plane_i][wire_i] << "   efficiency = " << eff2[plane_i][wire_i] << " \n";}
 	}//if(ntrig2)
 	
 	else if (ntrig2[plane_i][wire_i] == 0)
@@ -248,7 +279,7 @@ for(wire_i=0; wire_i<279; wire_i++)
 		eff2[plane_i][wire_i] = -10;
 	}//else if(ntrig2)
 }//for(wire)
-}//for(plane)
+}///for(plane)
 
 //calculate the error
 
@@ -371,14 +402,14 @@ terr = float((1/float(ttrig))*sqrt(float(ttrig)*teff*float(100-teff)));
 
 
 cout << "The 5-wire total plane efficiencies are: \n";
-cout << "Vader V-Plane: " << peff1[0] << " +/- " << perr1[0] << " %. \n";
-cout << "Vader U-Plane: " << peff1[1] << " +/- " << perr1[1] << " %. \n";
-cout << "Leia V-Plane: " << peff1[2] << " +/- " << perr1[2] << " %. \n";
-cout << "Leia U-Plane: " << peff1[3] << " +/- " << perr1[3] << " %. \n";
-cout << "Yoda V-Plane: " << peff2[0] << " +/- " << perr2[0] << " %. \n";
-cout << "Yoda U-Plane: " << peff2[1] << " +/- " << perr2[1] << " %. \n";
-cout << "Han V-Plane: " << peff2[2] << " +/- " << perr2[2] << " %. \n";
-cout << "Han U-Plane: " << peff2[3] << " +/- " << perr2[3] << " %. \n";
+cout << "Vader V-Plane: " << peff1[0] << " +/- " << perr1[0] << " %. tries: " << ptrig1[0] << " \n";
+cout << "Vader U-Plane: " << peff1[1] << " +/- " << perr1[1] << " %. tries: " << ptrig1[1] << "\n";
+cout << "Leia V-Plane: " << peff1[2] << " +/- " << perr1[2] << " %. tries: " << ptrig1[2] << "\n";
+cout << "Leia U-Plane: " << peff1[3] << " +/- " << perr1[3] << " %. tries: " << ptrig1[3] << "\n";
+cout << "Yoda V-Plane: " << peff2[0] << " +/- " << perr2[0] << " %. tries: " << ptrig2[0] << "\n";
+cout << "Yoda U-Plane: " << peff2[1] << " +/- " << perr2[1] << " %. tries: " << ptrig2[1] << "\n";
+cout << "Han V-Plane: " << peff2[2] << " +/- " << perr2[2] << " %. tries: " << ptrig2[2] << "\n";
+cout << "Han U-Plane: " << peff2[3] << " +/- " << perr2[3] << " %. tries: " << ptrig2[3] << "\n";
 
 cout << "The overall 5-wire efficiency is: " << teff << " +/- " << terr << " %. \n";
 
