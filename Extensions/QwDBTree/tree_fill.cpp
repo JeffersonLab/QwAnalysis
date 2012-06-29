@@ -21,6 +21,7 @@
 #include <TSQLStatement.h>
 #include <TSQLServer.h>
 #include <TMath.h>
+#include <string>
 #include "detector.h"
 #include "parse.h"
 
@@ -59,7 +60,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
     vector<QwMainDet> main_detectors; // mdallbars("qwk_mdallbars", db);
     for(Int_t i = 0; i < num_mds; i++)
     {
-        QwMainDet temp_detector(mds.detector(i), reg_type, good_runlets, db);
+        QwMainDet temp_detector(mds.detector(i), mds.id_type(i), reg_type, good_runlets, db);
         temp_detector.fill();
         main_detectors.push_back(temp_detector);
     }
@@ -69,7 +70,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
     vector<QwLumiDet> lumi_detectors;
     for(Int_t i = 0; i < num_lumis; i++)
     {
-        QwLumiDet temp_detector(lumis.detector(i), reg_type, good_runlets, db);
+        QwLumiDet temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, good_runlets, db);
         temp_detector.fill();
         lumi_detectors.push_back(temp_detector);
     }

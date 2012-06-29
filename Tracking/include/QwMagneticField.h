@@ -60,7 +60,7 @@ class QwMagneticField  {
   public:
 
     /// \brief Default constructor
-    QwMagneticField(const bool suppress_read_field_map = false);
+    QwMagneticField(QwOptions& options, const bool suppress_read_field_map = false);
     /// \brief Virtual destructor
     virtual ~QwMagneticField();
 
@@ -69,8 +69,10 @@ class QwMagneticField  {
     static void DefineOptions(QwOptions& options);
     /// \brief Process command line and config file options
     void ProcessOptions(QwOptions& options);
-    /// \load beam property
-    double LoadBeamProperty(const TString& map);
+
+    /// \brief Load beam property
+    void LoadBeamProperty(const TString& map);
+
     /// Set the filename
     void SetFilename(const std::string& filename)
       { fFilename = filename; };
@@ -78,13 +80,25 @@ class QwMagneticField  {
     const std::string GetFilename() const
       { return fFilename; };
 
+    /// Set the actual current
+    void SetActualCurrent(const double current) {
+      fActualCurrent = current;
+      if (fReferenceCurrent > 0.0)
+        fScaleFactor = fActualCurrent/fReferenceCurrent;
+    }
+    /// Get the actual current
+    double GetActualCurrent() const
+      { return fActualCurrent; }
 
-    /// Set the scale factor
-    void SetScaleFactor(const double scalefactor)
-      { fScaleFactor = scalefactor; };
-    /// Get the scale factor
-    double GetScaleFactor() const
-      { return fScaleFactor; };
+    /// Set the reference current
+    void SetReferenceCurrent(const double current) {
+      fReferenceCurrent = current;
+      if (fReferenceCurrent > 0.0)
+        fScaleFactor = fActualCurrent/fReferenceCurrent;
+    }
+    /// Get the reference current
+    double GetReferenceCurrent() const
+    { return fReferenceCurrent; }
 
     /// Set the field rotation around z (with QwUnits)
     void SetRotation(const double rotation) {
@@ -136,6 +150,14 @@ class QwMagneticField  {
       }
     };
 
+    /// Get the cartesian components of the field value
+    void GetCartesianFieldValue(const TVector3& point, TVector3& field) const {
+      double point_xyz[3], field_xyz[3];
+      point.GetXYZ(point_xyz);
+      GetCartesianFieldValue(point_xyz, field_xyz);
+      field = TVector3(field_xyz);
+    }
+
     /// \brief Read a field map
     bool ReadFieldMap();
     /// \brief Read a field map input file
@@ -186,6 +208,8 @@ class QwMagneticField  {
     std::vector<size_t> fWrap;
 
     /// Field scale factor
+    double fReferenceCurrent;
+    double fActualCurrent;
     double fScaleFactor;
 
     /// \brief Get the field value

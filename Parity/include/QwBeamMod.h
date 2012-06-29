@@ -66,7 +66,8 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
       fBPMnames.push_back("qwk_bpm3c12X");
       fBPMnames.push_back("qwk_bpm3c12Y");
       // Resize local version of the BPMs
-      fBPMs.resize(fBPMnames.size());
+      QwVQWK_Channel dummy("dummy");
+      fBPMs.resize(fBPMnames.size(),dummy);
     };
   /// Copy constructor
   QwBeamMod(const QwBeamMod& source)

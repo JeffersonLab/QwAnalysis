@@ -18,40 +18,48 @@
 #include <TStyle.h>
 #include <QwEvent.h>
 #include <QwHit.h>
+#include <TPaveText.h>
+#include <TPaveStats.h>
+#include <TChain.h>
 
 
 class Tsmd {
   public:
-    Tsmd( Int_t, Int_t, Int_t, Int_t, Bool_t , Bool_t , Bool_t , Bool_t , Bool_t , Bool_t);
+    Tsmd( Int_t, Int_t, Int_t, Int_t, Bool_t , Bool_t , Bool_t , Bool_t , Bool_t , Bool_t, Int_t);
     void setArrays( void );
     void processEvent( TFile * );
+//    void processEvent( TChain * );
     void processHits( Int_t , QwEvent * );
     void fillHistos( void );
     void createHistos( void );
     void plotHistos( void );
     void highHitCheck( void );
     static const Int_t nhits=7;
+//    void setSubTitle( void );
 
   private:
-    Bool_t fTsSoftwareFlag;
-    Bool_t fMdSoftwareFlag;
-    Bool_t fCorrelationFlag;
-    Bool_t fTsMinusMdFlag;
-    Bool_t fMdWithCutsFlag;
-    Bool_t fOverlayFlag;
-    Int_t  mdarray[nhits];
-    Int_t  tsarray[nhits];
-    Int_t  fEventLow;
-    Int_t  fEventHigh;
-    Int_t  fMainDet;
-    Int_t  fTrigScint;
-    TH2F   *correlateHisto[nhits];
-    TH1F   *tsMinusMdHisto[nhits];
-    TH1F   *tsSoftwareMT;
-    TH1F   *mdSoftwareMT;
-    TH1F   *mdCuts;
-    TH1F   *mdCutsPeak;
-    TH1F   *mdCutsAccidental;
+    Bool_t    fTsSoftwareFlag;
+    Bool_t    fMdSoftwareFlag;
+    Bool_t    fCorrelationFlag;
+    Bool_t    fTsMinusMdFlag;
+    Bool_t    fMdWithCutsFlag;
+    Bool_t    fOverlayFlag;
+    Bool_t    fSaveCanvas;
+    Int_t     mdarray[nhits];
+    Int_t     tsarray[nhits];
+    Int_t     fEventLow;
+    Int_t     fEventHigh;
+    Int_t     fMainDet;
+    Int_t     fTrigScint;
+    Int_t     fRunNum;
+    TPaveText *fSubTitle;
+    TH2F      *correlateHisto[nhits];
+    TH1F      *tsMinusMdHisto[nhits];
+    TH1F      *tsSoftwareMT;
+    TH1F      *mdSoftwareMT;
+    TH1F      *mdCuts;
+    TH1F      *mdCutsPeak;
+    TH1F      *mdCutsAccidental;
 }; //end class definition
 
 void coincidencePlot( Int_t runNum, 
@@ -59,15 +67,15 @@ void coincidencePlot( Int_t runNum,
     Int_t trigScint=2,
     Int_t eventLow=0,
     Int_t eventHigh=4000000,
-    Bool_t Overlay=kTRUE,
+    Bool_t Overlay=kTRUE, //kTRUE
     Bool_t TSmeantime=kTRUE, 
     Bool_t MDmeantime=kFALSE, 
     Bool_t Correlation=kFALSE,
     Bool_t TsMdTimeDifference=kFALSE,
-    Bool_t CoincidenceCuts=kTRUE
+    Bool_t CoincidenceCuts=kTRUE //kTRUE
     ) {
   gROOT -> Reset();
-  gROOT -> SetStyle("Plain");
+  gROOT -> SetStyle("Modern");
 
   TString filename = Form("Qweak_%i.root",runNum);
 
@@ -80,15 +88,18 @@ void coincidencePlot( Int_t runNum,
     std::cout <<"Successfully opened ROOTFILE " <<myFile->GetName() <<std::endl;
   }
 
+//  TChain *chain = new TChain("event_tree");
+//  chain->Add(Form("%i*.root",runNum));
   // Tsmd billy( kFALSE, kFALSE, kFALSE, kFALSE, kFALSE);
-  Tsmd billy( mainDet, trigScint, eventLow, eventHigh, Overlay, TSmeantime, MDmeantime, Correlation, TsMdTimeDifference, CoincidenceCuts);
+  Tsmd billy( mainDet, trigScint, eventLow, eventHigh, Overlay, TSmeantime, MDmeantime, Correlation, TsMdTimeDifference, CoincidenceCuts, runNum);
   billy.processEvent( myFile );
+//  billy.processEvent( chain );
   billy.plotHistos();
-
+  
 } //end function
 
 
-Tsmd::Tsmd( Int_t mainDet, Int_t trigScint, Int_t eventLow, Int_t eventHigh, Bool_t overlay, Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF) {
+Tsmd::Tsmd( Int_t mainDet, Int_t trigScint, Int_t eventLow, Int_t eventHigh, Bool_t overlay, Bool_t tsSoft, Bool_t mdSoftFlag, Bool_t correlFlag, Bool_t tsMinusMd, Bool_t mdCutsF, Int_t runNum) {
   fMainDet = mainDet;
   fEventLow = eventLow;
   fEventHigh = eventHigh;
@@ -99,10 +110,24 @@ Tsmd::Tsmd( Int_t mainDet, Int_t trigScint, Int_t eventLow, Int_t eventHigh, Boo
   fCorrelationFlag = correlFlag;
   fTsMinusMdFlag = tsMinusMd;
   fMdWithCutsFlag = mdCutsF;
+  fRunNum = runNum;
+  fSaveCanvas = kTRUE;
 
+//  setSubTitle();
   createHistos();
 } // end tsmd constructor
 
+/*void Tsmd::setSubTitle( void ) {
+  fSubTitle = new TPaveText(.005,55,.95,60);
+//  fSubTitle->SetX1NDC(0.1);
+//  fSubTitle->SetX2NDC(0.7);
+//  fSubTitle->SetY1NDC(0.6);
+//  fSubTitle->SetY2NDC(0.7);
+//  fSubTitle = new TPaveText(-600,100000,975,365000);
+  fSubTitle->UseCurrentStyle();
+  fSubTitle->AddText(Form("Run %i Octant %i",fRunNum,fMainDet));
+} //end setSubTitle
+*/
 void Tsmd::createHistos( void ) {
   //need to add Bool_tean logic
 
@@ -135,12 +160,15 @@ void Tsmd::setArrays ( void ) {
 } //end constructor definition
 
 void Tsmd::processEvent( TFile *file ) {
+//void Tsmd::processEvent( TChain *chain ) {
 
   TTree*   event_tree  = (TTree*) file ->Get("event_tree");
   TBranch* ev_branch   = event_tree->GetBranch("events");
+//  TBranch* ev_branch   = chain->GetBranch("events");
   QwEvent* qwevent     = 0;
 
   Long_t num_entries = event_tree->GetEntries();
+//  Long_t num_entries = chain->GetEntries();
   Long_t localEntry  = 0;
 
   ev_branch -> SetAddress(&qwevent);
@@ -151,6 +179,8 @@ void Tsmd::processEvent( TFile *file ) {
       if (!(i>=fEventLow && i<=fEventHigh)) {continue;}
       localEntry = event_tree->LoadTree(i);
       event_tree->GetEntry(localEntry);
+//      localEntry = chain->LoadTree(i);
+//      chain->GetEntry(localEntry);
 
       if(i % 1000 == 0) {
 printf(" Total events %ld events process so far : %ld\n", num_entries, i);
@@ -203,11 +233,13 @@ void Tsmd::fillHistos() {
 
   if (fMdWithCutsFlag || fOverlayFlag) {
     for (Int_t k=0; k<7; k++) {
+//previously, for nominal qtor in run 2 I use >-186
       if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
       if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-200 && mdarray[k]<=-160) mdCutsPeak->Fill(mdarray[k]);
       if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=5 && mdarray[k]<=45) mdCutsAccidental->Fill(mdarray[k]);
     }
   }
+
   if (fCorrelationFlag) {
     for (Int_t k=0; k<7; k++) {
       if(tsarray[k]!=0 && mdarray[k]!=0) correlateHisto[k]->Fill(tsarray[k],mdarray[k]);
@@ -233,62 +265,88 @@ void Tsmd::plotHistos( void ) {
 
   if (fTsSoftwareFlag) {
     TCanvas *tsSoftwareCanvas = new TCanvas("tsSoftwareCanvas","title");
-    tsSoftwareMT->SetTitle("Trigger Scintillator Software Meantime");
+    tsSoftwareMT->SetTitle(Form("Run %i Trigger Scintillator Software Meantime",fRunNum));
     tsSoftwareMT->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     tsSoftwareMT->Draw();
+    if (fSaveCanvas) tsSoftwareCanvas->Print(Form("rootfile_plots/run%i/trigscint_software_meantime_%i.png",fRunNum,fMainDet));
+//    fSubTitle->Draw();
+//    gPad->Update();
   } //end of fTsSoftware plots
 
   if (fOverlayFlag) {
     TCanvas *overlay = new TCanvas("overlay","Overlay plot");
-    mdSoftwareMT->SetTitle("Main Detector Software Meantime");
+    mdSoftwareMT->SetTitle(Form("Run %i Main Detector Software Meantime", fRunNum));
     mdSoftwareMT->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     mdSoftwareMT->SetLineColor(2);
     mdSoftwareMT->Draw();
+
     mdCuts->SetLineColor(4);
-    mdCuts->Draw("same");
+    mdCuts->Draw("sames");
+    gPad->Update();
+
+    TPaveStats *st1 = (TPaveStats*) mdSoftwareMT->GetListOfFunctions()->FindObject("stats");
+    st1->SetTextColor(2);
+    st1->SetX1NDC(0.78);
+    st1->SetX2NDC(0.98);
+    st1->SetY1NDC(0.78);
+    st1->SetY2NDC(0.94);
+
+    TPaveStats *st2 = (TPaveStats*) mdCuts->GetListOfFunctions()->FindObject("stats");
+    st2->SetTextColor(4);
+    st2->SetX1NDC(0.78);
+    st2->SetX2NDC(0.98);
+    st2->SetY1NDC(0.62);
+    st2->SetY2NDC(0.77);
+
+    if (fSaveCanvas) overlay->Print(Form("rootfile_plots/run%i/overlay_%i.png",fRunNum,fMainDet));
   } //end fOverlay section
 
   if (fMdSoftwareFlag) {
     TCanvas *mdSoftwareCanvas = new TCanvas("mdSoftwareCanvas","title");
-    mdSoftwareMT->SetTitle("Main Detector Software Meantime");
+    mdSoftwareMT->SetTitle(Form("Run %i Main Detector Software Meantime",fRunNum));
     mdSoftwareMT->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     mdSoftwareMT->SetLineColor(2);
     mdSoftwareMT->Draw();
+    if (fSaveCanvas) mdSoftwareCanvas->Print(Form("rootfile_plots/run%i/md_software_meantime_%i.png",fRunNum, fMainDet));
   } //end of fMdSoftware plots
 
   if (fMdWithCutsFlag) {
     TCanvas *mdCutsCanvas = new TCanvas("mdCutsCanvas","title");
-    mdCuts->SetTitle("Main Detector Meantime with TS Coincidence Condition");
+    mdCuts->SetTitle(Form("Run %i Main Detector Meantime with TS Coincidence Condition",fRunNum));
     mdCuts->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     mdCuts->SetLineColor(4);
     mdCuts->Draw("");
+    if (fSaveCanvas) mdCutsCanvas->Print(Form("rootfile_plots/run%i/cuts_%i.png",fRunNum,fMainDet));
 
     TCanvas *peak = new TCanvas("peak","Main Detector Peak");
-    mdCutsPeak->SetTitle("Main Detector Peak");
+    mdCutsPeak->SetTitle(Form("Run %i Main Detector Peak",fRunNum));
     mdCutsPeak->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     mdCutsPeak->SetLineColor(2);
     mdCutsPeak->Draw();
+    if (fSaveCanvas) peak->Print(Form("rootfile_plots/run%i/peak_%i.png",fRunNum, fMainDet));
 
     TCanvas *accident = new TCanvas("accident","Main Detector Accidentals");
-    mdCutsAccidental->SetTitle("Main Detector Accidentals");
+    mdCutsAccidental->SetTitle(Form("Run %i Main Detector Accidentals",fRunNum));
     mdCutsAccidental->GetXaxis()->SetTitle("Time (ns)");
     gPad->SetLogy();
     mdCutsAccidental->SetLineColor(2);
     mdCutsAccidental->Draw();
+    if (fSaveCanvas) accident->Print(Form("rootfile_plots/run%i/accidentals_%i.png",fRunNum,fMainDet));
    } //end fMdWithCutsFlag
 
   if (fCorrelationFlag) {
     TCanvas* canvases[3];
     for (Int_t n=1; n<3; n++) {
       canvases[n-1] = new TCanvas(Form("c%i",n),"title");
-      correlateHisto[n-1] -> SetTitle(Form("TS meantime vs. MD meantime for Hit #%i",n));
-      correlateHisto[n-1] -> GetXaxis() -> SetTitle("MD Meantime (ns)");
-      correlateHisto[n-1] -> GetYaxis() -> SetTitle("TS Meantime (ns)");
+      correlateHisto[n-1] -> SetTitle(Form("Run %i TS meantime vs. MD meantime for Hit #%i",fRunNum,n));
+      correlateHisto[n-1] -> GetXaxis() -> SetTitle("TS Meantime (ns)");
+      correlateHisto[n-1] -> GetYaxis() -> SetTitle("MD Meantime (ns)");
+      correlateHisto[n-1] -> SetStats(kFALSE);
       correlateHisto[n-1] -> Draw("colz");
       //    correlateHisto[n] -> Draw("prof");
     }
@@ -306,7 +364,7 @@ void Tsmd::plotHistos( void ) {
     TCanvas* minusCanvases[3];
     for (Int_t n=1; n<3; n++) {
       minusCanvases[n-1] = new TCanvas(Form("d%i",n),"title");
-      tsMinusMdHisto[n-1] -> SetTitle(Form("TS meantime -  MD meantime for Hit #%i",n));
+      tsMinusMdHisto[n-1] -> SetTitle(Form("Run %i TS meantime -  MD meantime for Hit #%i",fRunNum,n));
       tsMinusMdHisto[n-1] -> GetXaxis() -> SetTitle("Time (ns)");
       tsMinusMdHisto[n-1] -> SetLineColor(4);
       tsMinusMdHisto[n-1] -> SetFillColor(9);

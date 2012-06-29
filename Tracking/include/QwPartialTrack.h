@@ -22,7 +22,6 @@
 #include "QwTrackingTreeLine.h"
 #include "QwDetectorInfo.h"
 #include "QwGeometry.h"
-#include "QwBridge.h"
 
 // Forward declarations
 class QwVertex;
@@ -111,6 +110,14 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     Double_t GetMomentumDirectionTheta() const {
       return GetMomentumDirection().Theta();
     };
+
+
+    /// \brief Get the vertex position
+    Double_t GetVertexZ() const {
+      return
+         -(fSlopeX * fOffsetX + fSlopeY * fOffsetY) /
+          (fSlopeX * fSlopeX  + fSlopeY * fSlopeY);
+    }
 
     /// \brief Smear the position
     QwPartialTrack& SmearPosition(const double sigma_x, const double sigma_y);

@@ -1,0 +1,30 @@
+ROC=0
+Bank=0x6102
+
+header=0
+
+STR7200, 0,  0, TS0, sca_trig01
+STR7200, 0,  1, TS0, sca_trig02
+STR7200, 0,  2, TS0, sca_trig03
+STR7200, 0,  3, TS0, sca_trig04
+STR7200, 0,  4, TS0, sca_trig05
+STR7200, 0,  5, TS0, sca_trig06
+STR7200, 0,  6, TS0, sca_trig07
+STR7200, 0,  7, TS0, sca_trig08
+STR7200, 0,  8, TS0, sca_trig09
+STR7200, 0,  9, TS0, sca_trig10
+STR7200, 0, 10, TS0, sca_trig11
+STR7200, 0, 11, TS0, sca_trig12
+
+STR7200, 0, 12, TS0, sca_user1
+STR7200, 0, 13, TS0, sca_user2
+STR7200, 0, 14, TS0, sca_user3
+STR7200, 0, 15, TS0, sca_user4
+STR7200, 0, 16, TS0, sca_user5
+STR7200, 0, 17, TS0, sca_user6
+
+STR7200, 0, 18, TS0, sca_event
+
+differential=1
+STR7200, 0, 19, TS0, sca_livetime
+STR7200, 0, 20, TS0, sca_totaltime

@@ -4,28 +4,75 @@
 
 #include "comptonRunConstants.h"
 
+///True for MCM calibration runs
 Bool_t maskedStrips(Int_t plane,Int_t strip)
 {
-  if(plane==0&&(strip==1||strip==5||strip==19)) return kTRUE;//skip masked strip of plane1
-  else if(plane==2&&(strip==23||strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
-  else if(plane==1&&(strip==1||strip==11||strip==19)) return kTRUE;//skip masked strip of plane2
+  //if(plane==0&&(strip==1)) return kTRUE;//skip masked strip of plane1
+  if(plane==0&&(strip==5||strip==19)) return kTRUE;//skip masked strip of plane1
+  else if(plane==1&&(strip==1||strip==11)) return kTRUE;//skip masked strip of plane2
+  //else if(plane==1&&(strip==5||strip==19)) return kTRUE;//skip masked strip of plane2
+  //else if(plane==2&&(strip==38||strip==52)) return kTRUE;//skip masked strip of plane3
+  else if(plane==2&&(strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
+  //else if(plane==2&&(strip==24||strip==33||strip==62)) return kTRUE;//temp...skip these strips of plane3
   else return kFALSE;
 }
 
+///This was correct for the runs taken towards the end of run-2(eg. MCM calibration period)
+// Bool_t maskedStrips(Int_t plane,Int_t strip)
+// {
+//   if(plane==0&&strip==1) return kTRUE;//skip masked strip of plane1
+//   else if(plane==2&&(strip==38||strip==52)) return kTRUE;//skip masked strip of plane3
+//   else if(plane==1&&(strip==1||strip==11)) return kTRUE;//skip masked strip of plane2
+//   else return kFALSE;
+// }
 
-Int_t identifyCedgeforPlane(Int_t p, Float_t activeStrip[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips]) //!notice that the activeStrip variable expects to get a human count number
+///This was true for early run2 (eg.24519)
+// Bool_t maskedStrips(Int_t plane,Int_t strip)
+// { ///planes as well as strip in C++ counting
+//   if(plane==0&& (strip==1 || strip==5 || strip==19)) return kTRUE;//skip masked strip of plane1
+//   else if(plane==1&& (strip==11)) return kTRUE;//skip masked strip of plane2
+//   else if(plane==2&& (strip==23 || strip==38 || strip==52 || strip==63)) return kTRUE;//skip masked strip of plane3
+//   else return kFALSE;
+// }
+
+
+// Int_t identifyCedgeforPlane(Int_t p, Float_t activeStrip[nPlanes][nStrips], Float_t stripAsymEr[nPlanes][nStrips]) //!notice that the activeStrip variable expects to get a human count number
+// {
+//   Bool_t debug=0;
+//   for (Int_t s =startStrip; s <endStrip; s++) {
+//     //if (maskedStrips(p,s)) continue; //!careful, this is not a full-proof method
+//     //if (maskedStrips(p,s+1)) continue;
+//     if (stripAsymEr[p][s+1] >= 3.0*stripAsymEr[p][s]) { //!the factor of 3.0 is arbitrarily put now
+//       if (stripAsymEr[p][s+2] >= 3.0*stripAsymEr[p][s]) {
+// 	cout<<"Compton edge for plane "<<p+1<<" (auto)identified as strip #"<<activeStrip[p][s]<<endl;
+// 	return (Int_t)activeStrip[p][s];//!notice that the Cedge strip number is in human counting
+//       }
+//     }
+//     else if (debug) printf("Cedge not found:compared %f and twice of %f for strip:%d\n",stripAsymEr[p][s+1],stripAsymEr[p][s],s);
+//   }
+//   cout<<"\n***Alert Compton edge for plane "<<p+1<<" could not be (auto) found***\n"<<endl;
+//   if (p==0) Cedge[p] = Cedge_p1;
+//   else if (p==1) Cedge[p] = Cedge_p2;
+//   else if (p==2) Cedge[p] = Cedge_p3;
+//   return Cedge[p];
+// }
+
+
+Int_t identifyCedgeforPlane(Int_t p, Float_t activeStrip[nPlanes][nStrips], Float_t stripAsymDr[nPlanes][nStrips]) //!notice that the activeStrip variable expects to get a human count number
 {
-  Bool_t debug=0;
-  for (Int_t s =startStrip; s <endStrip; s++) {
-    //if (maskedStrips(p,s)) continue; //!careful, this is not a full-proof method
-    //if (maskedStrips(p,s+1)) continue;
-    if (stripAsymEr[p][s+1] >= 3.0*stripAsymEr[p][s]) { //!the factor of 3.0 is arbitrarily put now
-      if (stripAsymEr[p][s+2] >= 3.0*stripAsymEr[p][s]) {
-	cout<<"Compton edge for plane "<<p+1<<" (auto)identified as strip #"<<activeStrip[p][s]<<endl;
-	return (Int_t)activeStrip[p][s];//!notice that the Cedge strip number is in human counting
+  //Bool_t debug=0;
+  for (Int_t i =startStrip; i <endStrip-1; i++) { //!!still under testing
+    //!!this may crash if this does not find the edge while it has reached the end of activeStrip
+    //!this has two hard coded numbers, (1) assuming that the Cedge will be past strip 10
+    //!! (2) the difference in yield would be higher than 0.65E-3
+    Int_t s = (Int_t)activeStrip[p][i];
+    if(s==0) continue;
+    if(s > 10) {
+      if (((stripAsymDr[p][s] - stripAsymDr[p][s+1])>= 0.65E-3)) { 
+	//cout<<"Compton edge for plane "<<p+1<<" (auto)identified as strip # "<<(Int_t)activeStrip[p][s]<<endl;
+// 	return (Int_t)activeStrip[p][s];//!notice that the Cedge strip number is in human counting
       }
     }
-    else if (debug) printf("Cedge not found:compared %f and twice of %f for strip:%d\n",stripAsymEr[p][s+1],stripAsymEr[p][s],s);
   }
   cout<<"\n***Alert Compton edge for plane "<<p+1<<" could not be (auto) found***\n"<<endl;
   if (p==0) Cedge[p] = Cedge_p1;
@@ -33,6 +80,7 @@ Int_t identifyCedgeforPlane(Int_t p, Float_t activeStrip[nPlanes][nStrips], Floa
   else if (p==2) Cedge[p] = Cedge_p3;
   return Cedge[p];
 }
+
 
 
 // Int_t identifyCedgeforPlane(Float_t stripAsymDr[nPlanes][nStrips], Float_t qNormB1L0[nPlanes][nStrips]) 
@@ -155,3 +203,8 @@ void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some 
  *For strip masking function run # 24519 onwards, I need to add strip 23 to the plane-3 mask
  ******************************/
 
+/*******************
+ *the maskedStrips routine should use the 'true' information
+ *from the subbank written at prestart, rather than this 
+ *current method of masking strips based on eyeballing the hits-spectra
+ *******************/

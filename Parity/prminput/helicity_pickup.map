@@ -1,0 +1,30 @@
+! May18th 2012 B. Waidyawansa
+! Created to decode the helicity signal and the voltage signal
+! in helicity pickup study
+!
+!
+ROC=2
+Bank=0x0202
+!
+! same sample size for ADCs in a given bank
+!
+!for 960Hz
+sample_size=464  
+!sample_size=480
+!
+!
+!
+! module.type, module.num  chan.num, det.type, det.name<not added yet>
+
+
+!ADC0, Slot 4, Serial Number 33, Address 0x80
+  VQWK, 0, 0,  bcm,  FGX1
+  VQWK, 0, 1,  bcm,  FGY1
+  VQWK, 0, 2,  bcm,  FGX2
+  VQWK, 0, 3,  bcm,  FGY2
+  VQWK, 0, 4,  bcm,  FGE
+  VQWK, 0, 5,  bcm,  RAMP
+  VQWK, 0, 6,  bcm,  helicitypick
+  VQWK, 0, 7,  bcm,  battery
+
+!END

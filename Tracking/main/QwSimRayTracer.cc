@@ -18,17 +18,6 @@
 
 
 /**
- * Method to print vectors conveniently
- * @param stream Output stream
- * @param v Vector
- * @return Output stream
- */
-inline ostream& operator<< (ostream& stream, const TVector3& v)
-{
-  return stream << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
-}
-
-/**
  * Main function
  * @param argc Number of arguments
  * @param argv[] List of arguments
@@ -62,7 +51,7 @@ int main (int argc, char* argv[])
   QwBridgingTrackFilter* trackfilter = new QwBridgingTrackFilter();
 
   /// Create a lookup table bridging method
-  QwMatrixLookup* matrixlookup = new QwMatrixLookup();
+  QwMatrixLookup* matrixlookup = new QwMatrixLookup(gQwOptions);
   // Determine lookup table file from environment variables
   std::string trajmatrix = "";
   if (getenv("QW_LOOKUP"))
@@ -74,7 +63,7 @@ int main (int argc, char* argv[])
     QwError << "Could not load trajectory lookup table!" << QwLog::endl;
 
   /// Create a ray tracer bridging method
-  QwRayTracer* raytracer = new QwRayTracer();
+  QwRayTracer* raytracer = new QwRayTracer(gQwOptions);
 
   /// Load the simulated event file
   QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);
@@ -88,8 +77,6 @@ int main (int argc, char* argv[])
     TFile *file = new TFile(outputfilename, "RECREATE", "Bridging result");
     file->cd();
     TTree *tree = new TTree("tree", "Bridging");
-
-    Double_t CpuTime, RealTime;
 
     QwEvent* event = 0;
     tree->Branch("events", "QwEvent", &event);
@@ -119,27 +106,23 @@ int main (int argc, char* argv[])
 
           // Bridge using the lookup table
           timer.Start();
-          status = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          const QwTrack* track1 = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
           timer.Stop();
-          CpuTime = timer.CpuTime();
-          RealTime = timer.RealTime();
           timer.Reset();
-          if (status == 0) {
-            event->AddTrackList(matrixlookup->GetListOfTracks());
+          if (track1) {
+            event->AddTrack(track1);
             continue;
-          } else QwMessage << "Matrix lookup: " << status << QwLog::endl;
+          } else QwMessage << "Matrix lookup failed." << QwLog::endl;
 
           // Bridge using the ray tracer
           timer.Start();
-          status = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          const QwTrack* track2 = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
           timer.Stop();
-          CpuTime = timer.CpuTime();
-          RealTime = timer.RealTime();
           timer.Reset();
-          if (status == 0) {
-            event->AddTrackList(raytracer->GetListOfTracks());
+          if (track2) {
+            event->AddTrack(track2);
             continue;
-          } else QwMessage << "Ray tracer: " << status << QwLog::endl;
+          } else QwMessage << "Ray tracer failed." << QwLog::endl;
 
         } // end of back track loop
       } // end of front track loop

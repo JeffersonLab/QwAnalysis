@@ -123,6 +123,44 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwTrackingWorker *trackingworker = new QwTrackingWorker(gQwOptions, geometry);
 
 
+    //  Loop until first EPICS event if no magnetic field is set
+    bool current_from_epics = false;
+    if (fabs(trackingworker->GetMagneticFieldCurrent()) < 100.0) {
+
+      QwMessage << "Finding first EPICS event" << QwLog::endl;
+      while (eventbuffer.GetNextEvent() == CODA_OK) {
+
+        //  First, do quick processing of non-physics events...
+        if (eventbuffer.IsEPICSEvent()) {
+          eventbuffer.FillEPICSData(epics);
+          if (epics.HasDataLoaded()) {
+
+            // Get magnetic field current
+            Double_t current = epics.GetDataValue("qw:qt_mps_i_set");
+            if (current > 0.0) {
+              QwMessage << "Setting magnetic field current to "
+                        << current << "A " << QwLog::endl;
+              trackingworker->SetMagneticFieldCurrent(current);
+              current_from_epics = true;
+            }
+            // and break out of this event loop
+            break;
+          }
+        }
+      }
+
+      //  Rewind stream
+      QwMessage << "Rewinding stream" << QwLog::endl;
+      eventbuffer.ReOpenStream();
+
+      //  Check whether we found the magnetic field
+      if (fabs(trackingworker->GetMagneticFieldCurrent()) < 100.0) {
+        QwError << "Error: no magnetic field specified and no EPICS events in range!"
+                << QwLog::endl;
+        return -1;
+      }
+    }
+
 
     // Open the ROOT file
     QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -135,6 +173,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Create dummy event for branch creation (memory leak when using null)
     QwEvent* event = new QwEvent();
+    event->LoadBeamProperty("beam_property.map");
 
     if (not enablemapfile) {
       // Create the tracking object branches
@@ -143,8 +182,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Create the subsystem branches
       rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
-      rootfile->ConstructTreeBranches("Mps_Tree", "QwTracking Event-based Tree", parity_detectors);
+      rootfile->ConstructTreeBranches("Mps_Tree", "QwParity Helicity-based Tree", parity_detectors);
       rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epics);
+      // Construct indices to get from one tree to the other
+      rootfile->ConstructIndices("event_tree","Slow_Tree");
+      rootfile->ConstructIndices("event_tree","Mps_Tree");
     }
 
     // Delete dummy event again
@@ -166,7 +208,21 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  First, do processing of non-physics events...
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epics);
-        epics.CalculateRunningValues();
+        if (epics.HasDataLoaded()) {
+
+          // Get magnetic field current
+          Double_t current = epics.GetDataValue("qw:qt_mps_i_set");
+          if (current_from_epics && current > 0.0) {
+            QwMessage << "Setting magnetic field current to "
+                << current << "A " << QwLog::endl;
+            trackingworker->SetMagneticFieldCurrent(current);
+          }
+
+          epics.CalculateRunningValues();
+
+          rootfile->FillTreeBranches(epics);
+          rootfile->FillTree("Slow_Tree");
+        }
       }
 
       //  Send ROC configuration event data to the subsystem objects.
@@ -192,7 +248,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->FillTreeBranches(tracking_detectors);
       rootfile->FillTreeBranches(parity_detectors);
 
-
       // Fill the histograms for the subsystem objects.
       rootfile->FillHistograms(tracking_detectors);
       rootfile->FillHistograms(parity_detectors);
@@ -206,7 +261,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       // Assign the event header to the event
       event->SetEventHeader(header);
 
-
       // Create and fill hit list
       QwHitContainer* hitlist = new QwHitContainer();
       tracking_detectors.GetHitList(hitlist);
@@ -217,13 +271,13 @@ Int_t main(Int_t argc, Char_t* argv[])
       // and fill into the event
       event->AddHitContainer(hitlist);
 
-
       // Track reconstruction
       trackingworker->ProcessEvent(&tracking_detectors, event);
 
 
       // Fill the event tree
-      rootfile->FillTrees();
+      rootfile->FillTree("event_tree");
+      rootfile->FillTree("Mps_Tree");
 
       // Delete objects
       if (hitlist) delete hitlist; hitlist = 0;

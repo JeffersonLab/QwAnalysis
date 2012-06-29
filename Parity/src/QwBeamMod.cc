@@ -704,7 +704,7 @@ void  QwBeamMod::FillHistograms()
   // Fill histograms for all BPMs and each of the modulation patterns
   for (size_t bpm = 0; bpm < fBPMs.size(); bpm++) {
 
-    if (pattern >= 0 && pattern < 5)
+    if (pattern >= 0 && pattern < 5 && ramp > 0)
       fHistograms[5 * bpm + pattern]->Fill(ramp,fBPMs[bpm].GetValue());
   }
 }

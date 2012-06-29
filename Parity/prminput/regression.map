@@ -125,7 +125,7 @@ asym:qwk_md5neg, 0.0625
 asym:qwk_md6neg, 0.0625
 asym:qwk_md7neg, 0.0625
 asym:qwk_md8neg, 0.0625
-asym:qwk_md1neg, 0.0625
+asym:qwk_md1pos, 0.0625
 asym:qwk_md2pos, 0.0625
 asym:qwk_md3pos, 0.0625
 asym:qwk_md4pos, 0.0625

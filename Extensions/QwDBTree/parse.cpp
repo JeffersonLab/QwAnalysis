@@ -18,7 +18,11 @@ void QwParse::parse(void)
             // this is okay
             getline(f,buffer);
             if(buffer == "") continue;
-            if(buffer.find(" ") == string::npos) detectors.push_back(buffer);
+            if(buffer.find(" ") == string::npos) 
+            {
+                detectors.push_back(buffer);
+                type.push_back("a");
+            }
             else
             {
                 detectors.push_back(buffer.substr(0, buffer.find(" ")));

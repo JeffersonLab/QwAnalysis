@@ -13,6 +13,7 @@
 #include <vector>
 
 // Qweak headers
+#include "QwOptions.h"
 #include "VQwBridgingMethod.h"
 
 // Forward declarations
@@ -28,7 +29,7 @@ class QwMatrixLookup: public VQwBridgingMethod {
   public:
 
     /// \brief Default constructor
-    QwMatrixLookup();
+    QwMatrixLookup(QwOptions& options);
     /// \brief Destructor
     virtual ~QwMatrixLookup();
 
@@ -38,7 +39,7 @@ class QwMatrixLookup: public VQwBridgingMethod {
     bool WriteTrajMatrix(const std::string filename);
 
     /// \brief Bridge from the front to back partial track
-    int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
+    const QwTrack* Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
   private:
 

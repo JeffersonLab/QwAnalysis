@@ -1808,18 +1808,14 @@ void QwScanner::FillRawTDCWord (Int_t bank_index,
   
     Int_t hitcnt  = 0;
 
-    EQwDetectorPackage package = kPackageNull;
     EQwDirectionID direction   = kDirectionNull;
-
-    Int_t   plane   = 0; 
-    Int_t   element = 0; 
     TString name         = "";
- 
 
 
-    plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
-    element = fDetectorIDs.at(tdcindex).at(chan).fElement;
-    package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+    Int_t plane         = fDetectorIDs.at(tdcindex).at(chan).fPlane;
+    Int_t element       = fDetectorIDs.at(tdcindex).at(chan).fElement;
+    EQwDetectorPackage package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+    Int_t octant        = fDetectorIDs.at(tdcindex).at(chan).fOctant;
 
   
     if(local_debug) {
@@ -1879,12 +1875,13 @@ void QwScanner::FillRawTDCWord (Int_t bank_index,
     			       bank_index, 
     			       slot_num, 
     			       chan, 
-    			       hitcnt, 
-    			       kRegionIDScanner, 
-    			       package, 
-    			       plane,
-    			       direction, 
-    			       element, 
+                               hitcnt, 
+                               kRegionIDScanner, 
+                               package, 
+                               octant,
+                               plane,
+                               direction, 
+                               element, 
     			       data
     			       )
     			 );

@@ -40,7 +40,7 @@ hel_output_register		TH1F    12      -1.5	10.5				inputregister	Events
 
 
 ###  Beam modulation histograms
-bmod_.*				TProfile	460	-100.0	360.0	-10.0	10.0	Phase/deg	Position
+bmod_.*				TProfile	370	-5.0	365.0	-2.0	2.0	Phase/deg	Position
 
 
 ###  New MD yield histograms 

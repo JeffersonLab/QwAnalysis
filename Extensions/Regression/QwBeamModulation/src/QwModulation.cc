@@ -17,8 +17,8 @@ QwModulation::QwModulation(TChain *tree):
   fReduceMatrix_x(0), fReduceMatrix_y(0), fReduceMatrix_xp(0),
   fReduceMatrix_yp(0), fReduceMatrix_e(0), fSensHumanReadable(0),
   fNModType(5), fXNevents(0), fXPNevents(0), fENevents(0), 
-  fYNevents(0), fYPNevents(0),fXinit(false), fYinit(false), 
-  fEinit(false), fXPinit(false), fYPinit(false), fSingleCoil(false) 
+  fYNevents(0), fYPNevents(0),fCurrentCut(40),fXinit(false), fYinit(false), 
+  fEinit(false), fXPinit(false), fYPinit(false), fSingleCoil(false)
 {
    Init(tree);
 }
@@ -92,6 +92,14 @@ void QwModulation::GetOptions(Char_t **options){
       std::cout << other << "Setting up pseudo 5+1 analysis:\t" << fChargeFile << normal << std::endl;
       ReadChargeSensitivity();
     }    
+
+    if(flag.CompareTo("--file-stem", TString::kExact) == 0){
+      fFileStemInclude = true;
+      flag.Clear();
+      fFileStem = options[i + 1];
+      std::cout << other << "using external file stem:\t" << fFileStem << normal << std::endl;
+    }    
+
     if(flag.CompareTo("--c", TString::kExact) == 0){
       fCharge = true;
       flag.Clear();
@@ -106,6 +114,11 @@ void QwModulation::GetOptions(Char_t **options){
 	fCharge = false;
       }
     }
+    if(flag.CompareTo("--current-cut", TString::kExact) == 0){
+      flag.Clear();
+      fCurrentCut = atoi(options[i + 1]);
+      std::cout << other << "Setting current-cut to:\t" << fCurrentCut << normal << std::endl;
+    }
     if(flag.CompareTo("--help", TString::kExact) == 0){
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
       printf("Usage: ./qwbeammod <run_number> <options>");
@@ -116,6 +129,11 @@ void QwModulation::GetOptions(Char_t **options){
     }        
     i++;
   }
+}
+
+Int_t QwModulation::GetCurrentCut()
+{
+  return(fCurrentCut);
 }
 void QwModulation::SetupMpsBranchAddress()
 {
@@ -274,6 +292,10 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
       code = 1;
     }
 
+    if(qwk_charge_hw_sum < fCurrentCut){
+      code = 1;
+    }
+
     if( !((subblock > -50) && (subblock < 50)) )
       code = 1;
     if( (ramp_hw_sum > 0) && ((UInt_t)ErrorFlag != 0x4018080)  ){
@@ -312,18 +334,125 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 	code = 1;
       }
     }
-    if( !((subblock > -50) && (subblock < 50)) )
-      code = 1;
+//     if( !((subblock > -50) && (subblock < 50)) )
+//       code = 1;
 //     if(yield_qwk_mdallbars_Device_Error_Code != 0){
 //       code = 1;
 //     }
+
+    if( (UInt_t)ErrorFlag != 0)
+      code = 1;
+
+    if(yield_qwk_charge_hw_sum < fCurrentCut){
+      code = 1;
+    }
+
+//     if(yield_qwk_charge_Device_Error_Code != 0){
+//       code = 1;
+//     }
+  }
+  
+  if( type.CompareTo("hel_tree_raw", TString::kIgnoreCase) == 0 ){
+    subblock = ((yield_ramp_block3+yield_ramp_block0)-(yield_ramp_block2+yield_ramp_block1));
     
-    if(yield_qwk_charge_Device_Error_Code != 0){
+    for(Int_t i = 0; i < fNMonitor; i++){
+      if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
+	code = 1;
+      }
+    }
+    for(Int_t i = 0; i < fNDetector; i++){
+      if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
+	code = 1;
+      }
+    }
+    if(yield_qwk_charge_hw_sum < 40){
       code = 1;
     }
   }
-  
+
   return( code );
+}
+
+void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
+{
+  std::cout << "============================(Trying) to compute the damn errors!============================" << std::endl;
+  TMatrixD var(fNMonitor, fNModType);
+  TMatrixD temp(fNModType, fNMonitor);
+  TMatrixD Errorm(fNDetector, fNModType);  
+  TMatrixD Errord(fNDetector, fNModType);  
+  TMatrixD Error(fNDetector, fNModType);  
+
+//     for(Int_t i = 0; i < fNMonitor; i++){
+//       for(Int_t k = 0; k < fNModType; k++){
+// 	for(Int_t j = 0; j < fNModType; j++){
+//    	  temp(i, k) += TMath::Power(eA(i, j), 2)*TMath::Power(A(j, k), 2);
+// //  	  temp(i, k) += eA(i, j)*A(j, k);
+// 	}
+//       }
+//     }
+//        std::cout << "temp:\n" << std::endl;
+//        temp.Print();
+    
+    for(Int_t i = 0; i < fNMonitor; i++){
+      for(Int_t k = 0; k < fNModType; k++){
+	for(Int_t n = 0; n < fNModType; n++){
+	  for(Int_t j = 0; j < fNModType; j++){
+	    var(i, k) += TMath::Power(A(i, n), 2)*TMath::Power(eA(n, j), 2)*TMath::Power(A(j, k), 2);
+	    //   	  var(i, k) += TMath::Power(A(i, j)*temp(j, k), 2);
+	  }
+	}
+      }
+    }
+       
+//     std::cout << "\t::Error of Inverse Matrix::\n" << std::endl;
+//     var.Print();
+    
+//     std::cout << "Y:\n" << std::endl;
+//     Y.Print();
+
+    for(Int_t m = 0; m < fNDetector; m++){    
+
+      for(Int_t i = 0; i < fNMonitor; i++){
+	for(Int_t j = 0; j < fNModType; j++){
+ 	  Errorm(m, i) += var(j, i)*TMath::Power( Y(m, j),2);
+// 	  std::cout << TMath::Power( Y(m, j),2) << "*" << var(j, i) << " + ";
+	}
+// 	std::cout << std::endl;
+      }
+ 
+  
+//        std::cout << "\t::Error on sensitivity (part 1)::\n" << std::endl;
+       for(Int_t i = 0; i < fNModType; i++)
+         Errorm(m, i) = TMath::Sqrt(Errorm(m, i));
+//        Errorm.Print();
+    
+//        std::cout << "\t::A^-1::" << std::endl;
+//        A.Print();
+    
+//        std::cout << "\t::Error on Y::" << std::endl;
+//        eY.Print();
+       
+       for(Int_t i = 0; i < fNMonitor; i++){
+	 for(Int_t j = 0; j < fNModType; j++){
+	   Errord(m, i) += TMath::Power( A(j, i),2)*TMath::Power(eY(m, j) ,2);
+	 }
+       }
+    
+//        std::cout << "\t::Error on sensitivity (part 2)::\n" << std::endl;
+       for(Int_t i = 0; i < fNModType; i++)
+	 Errord(m,i) = TMath::Sqrt(Errord(m,i));
+       //       Errord.Print();
+    
+     for(Int_t i = 0; i < fNModType; i++){
+       Error(m, i) = TMath::Power(Errord(m, i), 2) + TMath::Power(Errorm(m, i), 2);
+       //       Error(m, i) = Errorm(m, i);
+       Error(m, i) = TMath::Sqrt(Error(m, i));
+     }
+
+    }
+    Errorm.Print();
+    Errord.Print();
+    Error.Print();
 }
 
 void QwModulation::MatrixFill()
@@ -380,8 +509,9 @@ void QwModulation::MatrixFill()
   
   TMatrixD RMatrixInv = RMatrix;
   RMatrixInv.Invert(&determinant);
-
+  std::cout << "\t\t\t\t::R Matrix Inverse:: " << std::endl;
   RMatrixInv.Print("%11.10f");
+
   std::cout << determinant << std::endl;
   TMatrixD Identity(fNMonitor, fNMonitor);
   Identity.Mult(RMatrixInv, RMatrix);
@@ -392,6 +522,10 @@ void QwModulation::MatrixFill()
 
   std::cout << "\n\n\t\t\t\t::SMatrix::\n" << std::endl;
   SMatrix.Print();
+
+  ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
+
+  exit(1);
 
   for(Int_t i = 0; i < fNDetector; i++){
     for(Int_t j = 0; j < fNModType; j++){
@@ -438,7 +572,9 @@ void QwModulation::ComputeAsymmetryCorrections()
 
   for(Int_t i = 0; i < fNDetector; i++){
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_%s",HDetectorList[i].Data()), &HDetBranch[i][0], Form("raw_%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("raw_corr_%s/D", HDetectorList[i].Data())); 
     if(fCharge){
       mod_tree->Branch(Form("corr_%s_charge", HDetectorList[i].Data()), &AsymmetryCorrectionQ[i], 
 		       Form("corr_%s_charge/D", HDetectorList[i].Data())); 
@@ -455,6 +591,7 @@ void QwModulation::ComputeAsymmetryCorrections()
   }
   for(Int_t j = 0; j < fNMonitor; j++){
     mod_tree->Branch(HMonitorList[j], &HMonBranch[j][0], Form("%s/D", HMonitorList[j].Data())); 
+    mod_tree->Branch(Form("raw_%s", HMonitorList[j].Data()), &HMonBranch[j][0], Form("raw_%s/D", HMonitorList[j].Data())); 
     mod_tree->Branch(Form("%s_Device_Error_Code", HMonitorList[j].Data()), &HMonBranch[j][fDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HMonitorList[j].Data())); 
 
@@ -483,7 +620,9 @@ void QwModulation::ComputeAsymmetryCorrections()
     fChain->GetEntry(i);
     ++fEvCounter;
     
-    if( (ErrorCodeCheck("hel_tree") == 0 && yield_qwk_mdallbars_hw_sum != 0) ){
+//     if( (ErrorCodeCheck("hel_tree") == 0 && yield_qwk_mdallbars_hw_sum != 0) ){
+
+    if( (ErrorCodeCheck("hel_tree") == 0) ){
       for(Int_t j = 0; j < fNDetector; j++){
 	for(Int_t k = 0; k < fNMonitor; k++){
 	  temp_correction += YieldSlope[j][k]*HMonBranch[k][0];
@@ -504,6 +643,27 @@ void QwModulation::ComputeAsymmetryCorrections()
       }
       mod_tree->Fill();
     }
+
+    //
+    // I need to fill these variables with the same cuts as above except w/o the cut on 
+    // ErrorFlag.  This is important to be sure that I can still get modulation data
+    // out ot plot.
+    //
+    else if( (ErrorCodeCheck("hel_tree_raw") == 0) ){
+      for(Int_t det = 0; det < fNDetector; det++){
+	mod_tree->GetBranch(Form("raw_%s", HDetectorList[det].Data()))->Fill();
+	mod_tree->GetBranch(Form("raw_corr_%s", HDetectorList[det].Data()))->Fill();
+      }
+      for(Int_t mon = 0; mon < fNMonitor; mon++)
+	mod_tree->GetBranch(Form("raw_%s", HMonitorList[mon].Data()))->Fill();
+
+      mod_tree->GetBranch("ErrorFlag")->Fill();
+      mod_tree->GetBranch("yield_bm_pattern_number")->Fill();
+      mod_tree->GetBranch("yield_ramp")->Fill();
+      mod_tree->GetBranch("mps_counter")->Fill();
+      mod_tree->GetBranch("asym_qwk_charge")->Fill();
+    }
+
     if( (i % 100000) == 0 )std::cout << "Processing:\t" << i << std::endl;
   }
 
@@ -732,6 +892,8 @@ void QwModulation::PilferData()
   std::cout << "Number of entries: " << nentries << std::endl;
 
   for(Long64_t i = 0; i < nentries; i++){
+//   for(Long64_t i = 0; i < 400000; i++){
+
     LoadTree(i);
     if(i < 0) break;
     fChain->GetEntry(i);
@@ -990,7 +1152,7 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor)
 
   char *token;
 
-  config.open("config/setup.config");
+  config.open("config/setup.config", std::ios_base::in);
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
     exit(1);

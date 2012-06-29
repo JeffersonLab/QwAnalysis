@@ -38,7 +38,7 @@ TTree* serialize (const char* tree_name, TString branch_list) {
 }
 
 TTree* serialize (TTree* tree, TString branch_list) {
-  if (!tree) return 0;
+  if (!tree) {cout << __LINE__ << "\n"; return 0; }
 
   /*
    * branch_list is a list of whitespace-separated branch names.
@@ -46,17 +46,17 @@ TTree* serialize (TTree* tree, TString branch_list) {
   // This TObjArray must be deleted when we are done with it.
   TObjArray* toaBranchList = branch_list.Tokenize(" ");
   int nbranch = toaBranchList->GetEntries();
-  if (!nbranch) return 0;
+  if (!nbranch) {cout << __LINE__ << "\n"; return 0; }
 
   /*
    * Set up the trees for copying.
    */
   tree->SetBranchStatus("*",0);
   TFile* file = new TFile(Form("%s_serial.root", tree->GetName()), "recreate");
-  if (!file->IsOpen()) return 0;
+  if (!file->IsOpen()) {cout << __LINE__ << "\n"; return 0; }
   TTree* serial = new TTree(Form("%s_serial", tree->GetName()),
 			    Form("%s_serial", tree->GetName()));
-  if (!serial) return 0;
+  if (!serial) {cout << __LINE__ << "\n"; return 0; }
 
   /*
    * Set up data variables for reading from the old tree and writing
@@ -78,6 +78,17 @@ TTree* serialize (TTree* tree, TString branch_list) {
   serial->Branch("mpsb",&mpsb,"mpsb/D");
   serial->Branch("time",&time,"time/D");
 
+  double cleandata, scandata1, scandata2; // data from green monster
+  tree->SetBranchStatus("cleandata",1);
+  tree->SetBranchAddress("cleandata",&cleandata);
+  tree->SetBranchStatus("scandata1",1);
+  tree->SetBranchAddress("scandata1",&scandata1);
+  tree->SetBranchStatus("scandata2",1);
+  tree->SetBranchAddress("scandata2",&scandata2);
+  serial->Branch("cleandata",&cleandata,"cleandata/D");
+  serial->Branch("scandata1",&scandata1,"scandata1/D");
+  serial->Branch("scandata2",&scandata2,"scandata2/D");
+
   /*
    * Set up the branches in the old and new trees.
    *
@@ -97,11 +108,11 @@ TTree* serialize (TTree* tree, TString branch_list) {
     TString branchname = ((TObjString*)toaBranchList->At(b))->GetString();
     tree->SetBranchStatus(branchname, 1);
     TBranch* branch = tree->GetBranch(branchname);
-    if (!branch) return 0;
+    if (!branch) {cout << __LINE__ << "\n"; return 0; }
 
     // How many leaves?  Make sure there's space to read them all in.
     leaves[b] = new double[ branch->GetNleaves() ];
-    if (!leaves[b]) return 0;
+    if (!leaves[b]) {cout << __LINE__ << "\n"; return 0; }
 
     // Okay, now we can set up the data addresses.
     tree->SetBranchAddress(branchname, leaves[b]);
@@ -118,13 +129,19 @@ TTree* serialize (TTree* tree, TString branch_list) {
       if (leaves_to_serialize[0] == leaflist->At(l)->GetName()) break;
     }
     lts_offset[b] = l;
-    if (l == branch->GetNleaves()) return 0; // oops, leaf not found.
+    if (l == branch->GetNleaves()) {
+      cout << "error at " << __LINE__ << ": "
+	   << "branch \"" << branch->GetName() << "\" "
+	   << "has no leaves to serialize"
+	   << "\n";
+      return 0;
+    }
     for (l=0; l < blocks_to_serialize; ++l) {
       if (leaves_to_serialize[l] !=
 	  leaflist->At(lts_offset[b] + l)->GetName()) {
 	// The data we want aren't consecutive.  When this happens,
 	// write code to deal with it.  For now, bail out.
-	return 0;
+	{cout << __LINE__ << "\n"; return 0; }
       }
     }
   }

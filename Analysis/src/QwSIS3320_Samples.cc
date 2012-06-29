@@ -15,7 +15,7 @@
  */
 
 #include "QwSIS3320_Samples.h"
-ClassImp(QwSIS3320_Samples)
+ClassImp(QwSIS3320_Samples);
 
 // System headers
 #include <numeric>

@@ -520,7 +520,7 @@ void QwPartialTrack::RotateCoordinates(){
   y1=fOffsetY+fSlopeY*z1;
   x2=fOffsetX+fSlopeX*z2;
   y2=fOffsetY+fSlopeY*z2;
-  int oct=GetOctantNumber();
+  int oct=GetOctant();
   double rotate=oct==8? 135: (3-oct)*45;
   double Cos=cos(rotate*PI/180);
   double Sin=sin(rotate*PI/180);

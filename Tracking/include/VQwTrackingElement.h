@@ -41,12 +41,12 @@ class VQwTrackingElement: public TObject {
     /// \brief Default constructor
     VQwTrackingElement()
     : pDetectorInfo(0),
-      fRegion(kRegionIDNull), fPackage(kPackageNull),
-      fDirection(kDirectionNull), fPlane(0), fElement(0) {fOctant=0; };
+      fRegion(kRegionIDNull), fPackage(kPackageNull), fOctant(0),
+      fDirection(kDirectionNull), fPlane(0), fElement(0) { };
     VQwTrackingElement(const VQwTrackingElement& that)
     : TObject(that),
-      fRegion(that.fRegion), fPackage(that.fPackage),
-      fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) ,fOctant(that.fOctant){};
+      fRegion(that.fRegion), fPackage(that.fPackage), fOctant(that.fOctant),
+      fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) { };
     /// \brief Virtual destructor
     virtual ~VQwTrackingElement() {};
 
@@ -71,6 +71,11 @@ class VQwTrackingElement: public TObject {
     /// \brief Set the package
     void SetPackage(EQwDetectorPackage package) { fPackage = package; };
 
+    /// \brief Get the octant number
+    int GetOctant() const { return fOctant; };
+    /// \brief Set the octant number
+    void SetOctant(int octant) { fOctant = octant; };
+
     /// \brief Get the direction
     EQwDirectionID GetDirection() const { return fDirection; };
     /// \brief Set the direction
@@ -86,19 +91,14 @@ class VQwTrackingElement: public TObject {
     /// \brief Set the element number
     void SetElement(int element) { fElement = element; };
 
-    /// \brief Get the octant number
-    int GetOctantNumber() const { return fOctant; };
-    /// \brief Set the octant number
-    void SetOctantNumber(int octant) { fOctant = octant; };
-
     /// \brief Copy the geometry info from another object
     void SetGeometryTo(const VQwTrackingElement& e) {
       fRegion = e.fRegion;
       fPackage = e.fPackage;
+      fOctant = e.fOctant;
       fDirection = e.fDirection;
       fPlane = e.fPlane;
       fElement = e.fElement;
-      fOctant = e.fOctant;
     };
 
   protected:
@@ -110,12 +110,12 @@ class VQwTrackingElement: public TObject {
 
     // There is a lot of overlap with QwDetectorID here, but as long as there
     // are still int in QwDetectorInfo we should use the standard types here.
-    EQwRegionID fRegion;		///< Region
-    EQwDetectorPackage fPackage;	///< Package
-    EQwDirectionID fDirection;		///< Direction
-    int fPlane;				///< Plane number
-    int fElement;			///< Element number
-    int fOctant;                        ///< Octant information;
+    EQwRegionID fRegion;                ///< Region
+    EQwDetectorPackage fPackage;        ///< Package
+    int fOctant;                        ///< Octant number
+    EQwDirectionID fDirection;          ///< Direction
+    int fPlane;                         ///< Plane number
+    int fElement;                       ///< Element number
 
   ClassDef(VQwTrackingElement,1);
 

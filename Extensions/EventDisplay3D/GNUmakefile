@@ -573,10 +573,9 @@ qweventdisplay3d: $(MYDICTOBJFILES) main/QwEventDisplay3D.o $(MYOBJFILES)
 	@$(ECHO) "Making Executable QwEventDisplay3D" $@
 	${LINKER} ${CFLAGS}  ${filter-out %.a %.so dictionaries, $^}  ${LDFLAGS} ${LIBS} -o  $@   
 
-config: clean.auxfiles 
-	@$(ECHO) "Cleaning old auxilary files"
+.auxDictFiles:
+	#Find the files that require directories built
 	@mkdir -p dictionary
-#Find the files that require directories built
 	@$(ECHO) "Will build dictionary files for:"
 	@for file in $(MYSRCFILES);\
 	do \
@@ -589,7 +588,7 @@ config: clean.auxfiles
 	done
 	@touch .auxDictFiles
 
-dictionary: config .auxDictFiles 
+dictionary: .auxDictFiles 
 	@$(ECHO) "################################### Building Dictionary Files"
 	@for file in `cat .auxDictFiles`; \
 	do \
@@ -617,9 +616,11 @@ src/%.o: src/%.cc include/%.h
 	@$(ECHO) "Building source files"
 
 clean: clean.auxfiles
+	@$(ECHO) "Cleaning old binary files"
 	$(RM) -rf *.o */*.o core qweventdisplay3d *~ */*~ dictionary/*
 
 clean.auxfiles:
+	@$(ECHO) "Cleaning old auxilary files"
 	$(RM) -rf .auxDictFiles .auxSrcFiles .EXES
 
 ############################
@@ -628,7 +629,7 @@ clean.auxfiles:
 ############################
 ############################
 
-.PHONY : all clean.auxfiles config all
+.PHONY : all clean.auxfiles all
 
 .SUFFIXES :
 .SUFFIXES : $(SrcSuf) $(IncSuf) $(ObjSuf)

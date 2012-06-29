@@ -22,7 +22,6 @@
 // Forward declarations
 class QwHit;
 class QwHitContainer;
-//class QwGEMCluster;
 class QwVertex;
 
 
@@ -118,6 +117,29 @@ inline ostream& operator<< (ostream& stream, const QwEventHeader& h) {
   stream << "event " << h.fEventNumber << ":";
   return stream;
 }
+
+
+/**
+ * \class QwKinematics
+ * \ingroup QwTracking
+ *
+ * \brief Kinematic variables
+ *
+ */
+class QwKinematics: public TObject {
+  public:
+    virtual ~QwKinematics() { };
+
+    double fP0;     ///< Incoming momentum \f$ p \f$
+    double fPp;     ///< Outgoing momentum \f$ p^\prime \f$
+    double fQ2;     ///< Four-momentum transfer squared \f$ Q^2 = - q \cdot q \f$
+    double fW2;     ///< Invariant mass squared of the recoiling target system
+    double fNu;     ///< Energy loss of the electron \f$ \nu = E - E' = q \cdot p / M \f$
+    double fX;      ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
+    double fY;      ///< Fractional energy loss \f$ y = \nu / E \f$
+
+  ClassDef(QwKinematics,1);
+};
 
 
 /**
@@ -234,6 +256,13 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
       fEventHeader = new QwEventHeader(*eventheader);
     };
 
+
+    /// \brief Load the beam properties from a map file
+    void LoadBeamProperty(const TString& map);
+
+    /// \brief Calculate the energy loss in the hydrogen target
+    double EnergyLossHydrogen(const double vertex_z);
+
   public:
 
     // Housekeeping methods for lists
@@ -245,13 +274,13 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new hit
     QwHit* CreateNewHit();
     //! \brief Add an existing hit as a copy
-    void AddHit(QwHit* hit);
+    void AddHit(const QwHit* hit);
     //! \brief Clear the list of hits
     void ClearHits(Option_t *option = "");
     //! \brief Reset the list of hits
     void ResetHits(Option_t *option = "");
     //! \brief Add the hits in a hit container as a copy
-    void AddHitContainer(QwHitContainer* hitlist);
+    void AddHitContainer(const QwHitContainer* hitlist);
     //! \brief Get the list of hits as a hit container
     QwHitContainer* GetHitContainer();
     //! \brief Get the number of hits
@@ -274,9 +303,9 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new tree line
     QwTrackingTreeLine* CreateNewTreeLine();
     //! \brief Add an existing tree line as a copy
-    void AddTreeLine(QwTrackingTreeLine* treeline);
+    void AddTreeLine(const QwTrackingTreeLine* treeline);
     //! \brief Add a list of existing tree lines as a copy
-    void AddTreeLineList(QwTrackingTreeLine* treelinelist);
+    void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
     //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
     //! \brief Reset the list of tree lines
@@ -301,9 +330,9 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new partial track
     QwPartialTrack* CreateNewPartialTrack();
     //! \brief Add an existing partial track as a copy
-    void AddPartialTrack(QwPartialTrack* partialtrack);
+    void AddPartialTrack(const QwPartialTrack* partialtrack);
     //! \brief Add a list of existing partial tracks as a copy
-    void AddPartialTrackList(QwPartialTrack* partialtracklist);
+    void AddPartialTrackList(const QwPartialTrack* partialtracklist);
     //! \brief Add a list of existing partial tracks as a copy
     void AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtracklist);
     //! \brief Clear the list of partial tracks
@@ -330,9 +359,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Create a new track
     QwTrack* CreateNewTrack();
     //! \brief Add an existing track as a copy
-    void AddTrack(QwTrack* partialtrack);
-    //! \brief Add a list of existing tracks as a copy
-    void AddTrackList(QwTrack* partialtracklist);
+    void AddTrack(const QwTrack* track);
     //! \brief Add a list of existing partial tracks as a copy
     void AddTrackList(const std::vector<QwTrack*>& tracklist);
     //! \brief Clear the list of tracks
@@ -354,38 +381,41 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void PrintTracks(Option_t* option = "") const;
     // @}
 
-    void AddBridgingResult(double*);
-
-    void AddBridgingResult(QwTrack*);
+    /// \brief Calculate the kinematic variables for a given track
+    void CalculateKinematics(const QwTrack* track);
     
     //! \brief Print the event
     void Print(Option_t* option = "") const;
     
-    Double_t GetPrimaryQ2()            const { return fPrimaryQ2;};
-    Double_t GetCrossSectionWeight()   const { return fCrossSectionWeight;};
-    Double_t GetTotalEnergy()          const { return fTotalEnergy;};
-    Double_t GetKineticEnergy()        const { return fKineticEnergy;};
-    const TVector3 GetVertexPosition() const { return fVertexPosition;};
-    const TVector3 GetVertexMomentum() const { return fVertexMomentum;};
-    Double_t GetScatteringAngle()      const { return fScatteringAngle;};
-    Double_t GetScatteringVertexZ()    const { return fScatteringVertexZ;};
+    const TVector3& GetVertexPosition() const { return fVertexPosition;};
+    const TVector3& GetVertexMomentum() const { return fVertexMomentum;};
+    Double_t GetScatteringAngle()       const { return fScatteringAngle;};
+    Double_t GetScatteringVertexZ()     const { return fScatteringVertexZ;};
 
   public:
 
-    /// \name Kinematic observables
-    // @{
-    double fPrimaryQ2;		///< Momentum transfer Q^2
-    double fCrossSectionWeight;
-    double fTotalEnergy;
-    double fKineticEnergy;
-    TVector3 fVertexPosition;
-    TVector3 fVertexMomentum;
-    double fScatteringAngle;
-    double fScatteringVertexZ;
-    // @}
+    static double fBeamEnergy;  ///< Electron beam energy
 
-    /*! List of QwGEMCluster objects */
-    //    std::vector<QwGEMCluster*> fGEMClusters; //!
+    /// \name Generic kinematic variables
+    //@{
+    double fHydrogenEnergyLoss; ///< Pre-scattering target energy loss assuming LH2 target
+    double fScatteringAngle;    ///< Scattering angle
+    double fScatteringVertexZ;  ///< Scattering vertex z position
+    double fScatteringVertexR;  ///< Scattering vertex radial distance
+    TVector3 fVertexPosition;   ///< Vertex position
+    TVector3 fVertexMomentum;   ///< Vertex momentum
+    //@}
+
+    /// \name Kinematics under various assumptions
+    //@{
+    QwKinematics fKin;                    ///< Inclusive scattering
+    QwKinematics fKinWithLoss;            ///< Scattering with hydrogen energy loss
+    QwKinematics fKinElastic;             ///< Scattering assuming elastic reaction
+    QwKinematics fKinElasticWithLoss;     ///< Scattering assuming elastic reaction and hydrogen energy loss
+    //@}
+
+    ///< Momentum transfer Q^2 assuming elastic scattering with hydrogen energy loss
+    Double_t& fPrimaryQ2;
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
     QwTrackingTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
@@ -399,7 +429,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     /*! list of vertices in this event */
     //std::vector< QwVertex* > vertex; //!
 
-  ClassDef(QwEvent,1);
+  ClassDef(QwEvent,3);
 
 }; // class QwEvent
 

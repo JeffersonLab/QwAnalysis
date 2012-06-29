@@ -1,5 +1,5 @@
 #include "QwHitRootContainer.h"
-ClassImp(QwHitRootContainer)
+ClassImp(QwHitRootContainer);
 
 // Initialize the static list of QwHits
 TClonesArray *QwHitRootContainer::gQwHits = 0;

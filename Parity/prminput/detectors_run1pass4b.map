@@ -1,0 +1,53 @@
+# This is an example of a detector definition file.
+
+[QwBeamLine]
+ name = HallCBeamLine
+ map = qweak_hallc_beamline.map
+ geom = qweak_beamline_geometry.map
+ param = qweak_hallc_pedestal.map
+ eventcut = qweak_beamline_eventcuts.in
+
+#[QwBeamLine]
+# name = Injector
+# map = injector_beamline_for_inj_parity_reduced.map
+# geom = injector_beamline_geometry.map
+# eventcut = qweak_injector_beamline_eventcuts.in
+# param = injtest_pedestal.map
+
+[QwMainCerenkovDetector]
+ name = Main Detector
+ map = qweak_maindet.map
+ param = qweak_maindet_pedestal.map
+ eventcut = qweak_maindet_eventcuts.in
+
+[QwLumi]
+ name = Lumi Detector
+ map = qweak_lumi.map
+ param = qweak_lumi_pedestal.map
+ eventcut = qweak_lumi_eventcuts.in
+
+[QwHelicity]
+ name = Helicity info
+ map = qweak_helicity.map
+
+#[QwScanner]
+# name = Focal Plane Scanner
+# map = qweak_scanner_channel.map
+# param = qweak_scanner_parameter.map
+
+[QwBeamMod]
+ name = BeamMod
+ map  = qweak_modulation.map
+ eventcut = qweak_bmod_eventcuts.in
+
+[QwIntegratedRaster]
+#  The integrated raster uses the same maps as
+#  the beamline subsystem.
+#  This is deliberate; it will only pick up the
+#  detector_type=raster channels.
+ name = IntegratedRaster
+ map = qweak_hallc_beamline.map
+ geom = qweak_beamline_geometry.map
+ param = qweak_hallc_pedestal.map
+ eventcut = qweak_beamline_eventcuts.in
+

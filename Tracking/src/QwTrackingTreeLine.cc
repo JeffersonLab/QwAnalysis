@@ -258,7 +258,7 @@ double QwTrackingTreeLine::GetChiWeight ()
     weight = (double) (fNumHits + fNumMiss + 1)
                     / (fNumHits - fNumMiss + 1);
   else {
-    std::cerr << "miss = " << fNumMiss << ", hits = " << fNumHits << std::endl;
+    QwMessage << "miss = " << fNumMiss << ", hits = " << fNumHits << QwLog::endl;
     return 100000.0; // This is bad...
   }
   return weight * fChi;

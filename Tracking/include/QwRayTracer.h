@@ -28,18 +28,16 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TVector3.h>
+#include <TVectorD.h>
+#include <TMatrixD.h>
 #include <TRandom3.h>
 #include <TStopwatch.h>
 
 // Qweak headers
+#include "QwOptions.h"
 #include "VQwBridgingMethod.h"
 #include "QwPartialTrack.h"
-
-
-// Forward declarations
-class QwMagneticField;
-class QwPartialTrackParameter;
-class QwBridge;
+#include "QwMagneticField.h"
 
 
 class QwRayTracer: public VQwBridgingMethod {
@@ -47,93 +45,71 @@ class QwRayTracer: public VQwBridgingMethod {
   public:
 
     /// Default constructor
-    QwRayTracer();
+    QwRayTracer(QwOptions& options);
     /// Destructor
     virtual ~QwRayTracer();
 
-    static bool LoadMagneticFieldMap();
+    /// \brief Define command line and config file options
+    static void DefineOptions(QwOptions& options);
+    /// \brief Process command line and config file options
+    void ProcessOptions(QwOptions& options);
 
-    void GenerateLookUpTable();
+    /// \brief Load the magnetic field based on config file options
+    bool LoadMagneticFieldMap(QwOptions& options);
 
-    Int_t Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
+    /// Get magnetic field current
+    double GetMagneticFieldCurrent() const {
+      if (fBfield) return fBfield->GetActualCurrent();
+      else return 0.0;
+    }
+    /// Set magnetic field current
+    void SetMagneticFieldCurrent(const double current) {
+      if (fBfield) fBfield->SetActualCurrent(current);
+    }
 
-    Int_t DoForcedBridging() {
-        return -1;
-    };
+    /// \brief Bridge from the front to back partial track
+    const QwTrack* Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
-    /// \brief Integrate using the Runge-Kutta 4th order algorithm
-    bool IntegrateRK4(TVector3& r0, TVector3& v0, const Double_t p0, Double_t z_end, Double_t step);
+    /// \brief Runge-Kutta numerical integration by Butcher tableau
+    int IntegrateRK(
+        const TMatrixD& A,
+        const TMatrixD& b,
+        TVector3& r,
+        TVector3& v,
+        const double p,
+        const double z,
+        const double h,
+        const double epsilon);
 
-    QwBridge* GetBridgingInfo();
-
-    Double_t GetMomentum() {
-        return fMomentum;
-    };
-
-    TVector3 GetHitPosition() {
-        return fHitPosition;
-    };
-    TVector3 GetHitDirection() {
-        return fHitDirection;
-    };
-
-    TVector3 GetFieldIntegral() {
-        return TVector3(fBdlx,fBdly,fBdlz);
-    };
-    Double_t GetFieldIntegralX() {
-        return fBdlx;
-    };
-    Double_t GetFieldIntegralY() {
-        return fBdly;
-    };
-    Double_t GetFieldIntegralZ() {
-        return fBdlz;
-    };
-
-    void PrintInfo();
-
-    void GetBridgingResult(Double_t *buffer);
-
-    void LoadBeamProperty(TString map);
+    /// \brief Runge-Kutta numerical integration
+    int IntegrateRK(
+        TVector3& r,
+        TVector3& v,
+        const double p,
+        const double z,
+        const int order,
+        const double h);
 
   private:
 
     /// Magnetic field (static)
     static QwMagneticField *fBfield;
 
-    Double_t fBdlx; /// x component of the field integral
-    Double_t fBdly; /// y component of the field integral
-    Double_t fBdlz; /// z component of the field integral
+    /// Runge-Kutta method order
+    int fIntegrationOrder;
+    /// Runge-Kutta step size
+    double fIntegrationStep;
 
-    Double_t fMomentum;  /// electron momentum
-    Double_t fScatteringAngle;
+    /// Newton's method step size in position
+    double fPositionResolution;
+    /// Newton's method step size in momentum
+    double fMomentumStep;
 
-    TVector3 fStartPosition;
-    TVector3 fHitPosition;
-    TVector3 fHitDirection;
-
-    Double_t fPositionROff;
-    Double_t fPositionPhiOff;
-    Double_t fDirectionThetaOff;
-    Double_t fDirectionPhiOff;
-
-    Double_t fPositionXOff;
-    Double_t fPositionYOff;
-
-    Double_t fDirectionXOff;
-    Double_t fDirectionYOff;
-    Double_t fDirectionZOff;
-
-    Int_t fSimFlag;
-
-    Int_t fMatchFlag; // MatchFlag = -2 : cannot match
-                      // MatchFlag = -1 : potential track cannot pass through the filter
-                      // MatchFlag = 0; : matched with look-up table
-                      // MatchFlag = 1; : matched by using shooting method
-                      // MatchFlag = 2; : potential track is forced to match
-    Double_t fEnergy;
+    Double_t fBdl;  ///< scalar field integrals
+    Double_t fBdlx; ///< x component of the field integral
+    Double_t fBdly; ///< y component of the field integral
+    Double_t fBdlz; ///< z component of the field integral
 
 }; // class QwRayTracer
-
 
 #endif // __QWRAYTRACER_H__

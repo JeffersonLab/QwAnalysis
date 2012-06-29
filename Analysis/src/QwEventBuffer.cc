@@ -269,6 +269,24 @@ TString QwEventBuffer::GetRunLabel() const
   return runlabel;
 }
 
+Int_t QwEventBuffer::ReOpenStream()
+{
+  Int_t status = CODA_ERROR;
+  if (fOnline) {
+    // Online stream
+    status = OpenETStream(fETHostname, fETSession, 0, fETStationName);
+  } else {
+    // Offline data file
+    if (fRunIsSegmented)
+      // Segmented
+      status = OpenNextSegment();
+    else
+      // Not segmented
+      status = OpenDataFile(fCurrentRun);
+  }
+  return status;
+}
+
 Int_t QwEventBuffer::OpenNextStream()
 {
   Int_t status = CODA_ERROR;

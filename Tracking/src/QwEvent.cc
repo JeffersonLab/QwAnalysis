@@ -1,10 +1,12 @@
 #include "QwEvent.h"
-ClassImp(QwEvent)
-ClassImp(QwEventHeader)
+ClassImp(QwEvent);
+ClassImp(QwEventHeader);
+ClassImp(QwKinematics);
 
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
+#include "QwParameterFile.h"
 #include "QwHit.h"
 #include "QwHitContainer.h"
 #include "QwTrackingTreeLine.h"
@@ -26,7 +28,11 @@ ClassImp(QwEventHeader)
   TClonesArray* QwEvent::gQwTracks = 0;
 #endif
 
+// Initialize beam energy
+Double_t QwEvent::fBeamEnergy = 1.165 * Qw::GeV;
+
 QwEvent::QwEvent()
+: fPrimaryQ2(fKinElasticWithLoss.fQ2)
 {
   // Reset the event header
   fEventHeader = 0;
@@ -112,16 +118,10 @@ QwEvent::~QwEvent()
   
   // Loop over all allocated objects
   for (int i = 0; i < kNumPackages; ++i) {
+
     // Delete all those tracks
+    delete track[i];
     
-    QwTrack* t = track[i];
-    while (t) {
-      QwTrack* t_next = t->next;
-      delete t;
-      t = t_next;
-    }
-    
-   
     for (int j = 0; j < kNumRegions; ++j) {
       
       for (int k = 0; k < kNumTypes; ++k) {
@@ -171,21 +171,156 @@ void QwEvent::Reset(Option_t *option)
   ResetTracks(option);
 }
 
-void QwEvent::AddBridgingResult(double* buffer)
-{
-    fPrimaryQ2 = buffer[12];
-    fKineticEnergy = buffer[10];
-    fScatteringAngle = buffer[13];
-    fScatteringVertexZ = buffer[14];
 
+/**
+ * Load the beam properties from a map file.
+ * @param map Name of map file
+ */
+void QwEvent::LoadBeamProperty(const TString& map)
+{
+  QwParameterFile mapstr(map.Data());
+  while (mapstr.ReadNextLine())
+  {
+    mapstr.TrimComment();       // Remove everything after a comment character.
+    mapstr.TrimWhitespace();    // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+
+    TString varname, varvalue;
+    if (mapstr.HasVariablePair("=",varname,varvalue)) {
+      //  This is a declaration line.  Decode it.
+      varname.ToLower();
+      if (varname == "energy") {
+        fBeamEnergy = atof(varvalue.Data()) * Qw::MeV;
+        QwMessage << "Beam energy set to " << fBeamEnergy / Qw::GeV << " GeV" << QwLog::endl;
+      }
+    }
+  }
 }
 
-void QwEvent::AddBridgingResult(QwTrack* qwtrack){
-  fPrimaryQ2 = qwtrack->fQ2;
-  fKineticEnergy = qwtrack->fMomentum;
-  fTotalEnergy = qwtrack->fTotalEnergy;
-  fScatteringAngle=qwtrack->fScatteringAngle;
-  fScatteringVertexZ = qwtrack->fVertexZ;
+
+/**
+ * Calculate the energy loss in the hydrogen target
+ *
+ * @param vertex_z Longitudinal position of vertex (absolute coordinates)
+ * @returns Energy loss
+ */
+double QwEvent::EnergyLossHydrogen(const double vertex_z)
+{
+  // Target parameters
+  double target_z_length = 34.35;       // Target Length (cm)
+  double target_z_position= -652.67;    // Target center position (cm) in Z
+  double target_z_front = target_z_position - 0.5 * target_z_length;
+  double target_z_back  = target_z_position + 0.5 * target_z_length;
+
+  // Energy loss in hydrogen target
+  double pre_loss = 0.0;
+  if (vertex_z < target_z_front) {
+    // Before target
+    pre_loss = 0.05 * Qw::MeV;
+
+  } else if (vertex_z >= target_z_front && vertex_z <= target_z_back) {
+    // Inside target
+    double depth = vertex_z - target_z_front;
+    //pre_loss = 20.08 * Qw::MeV * depth/target_z_length; // linear approximation
+    pre_loss = 0.05 + depth*0.6618 - 0.003462*depth*depth; // quadratic fit approximation
+
+  } else {
+    // After target
+    pre_loss = 18.7 * Qw::MeV;  // averaged total Eloss, full target (excluding downstream Al window)
+  }
+
+  return pre_loss;
+}
+
+
+/**
+ * Calculate the kinematic variables for a given track
+ *
+ * @param track Reconstructed track
+ */
+void QwEvent::CalculateKinematics(const QwTrack* track)
+{
+  if (! track) {
+    QwWarning << "QwEvent::CalculateKinematics: "
+        << "called with null track pointer." << QwLog::endl;
+    return;
+  }
+
+  if (! (track->fFront)) {
+    QwWarning << "QwEvent::CalculateKinematics: "
+        << "full track with null front track pointer." << QwLog::endl;
+    return;
+  }
+
+  // Beam energy
+  Double_t energy = fBeamEnergy;
+
+  // Longitudinal vertex in target from front partial track
+  Double_t vertex_z = track->fFront->GetVertexZ();
+  fVertexPosition = track->fFront->GetPosition(vertex_z);
+  fVertexMomentum = track->fFront->GetMomentumDirection() * track->fMomentum;
+  fScatteringVertexZ = fVertexPosition.Z() / Qw::cm;
+  fScatteringVertexR = fVertexPosition.Perp() / Qw::cm;
+
+  // Scattering angle from front partial track
+  Double_t theta = track->fFront->GetMomentumDirectionTheta();
+  Double_t cos_theta = cos(theta);
+  fScatteringAngle = theta / Qw::deg;
+
+  // Prescattering energy loss
+  Double_t pre_loss = EnergyLossHydrogen(vertex_z);
+  fHydrogenEnergyLoss = pre_loss;
+
+  // Mass of the proton
+  Double_t Mp = Qw::Mp;
+
+  // Generic scattering without energy loss
+  Double_t P0 = energy;
+  Double_t PP = track->fMomentum;
+  Double_t Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fKin.fP0 = P0 / Qw::GeV;
+  fKin.fPp = PP / Qw::GeV;
+  fKin.fQ2 = Q2 / Qw::GeV2;
+  fKin.fNu = (P0 - PP) / Qw::GeV;
+  fKin.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKin.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKin.fY = (P0 - PP) / P0;
+
+  // Generic scattering with energy loss
+  P0 = energy - pre_loss;
+  PP = track->fMomentum;
+  Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fKinWithLoss.fP0 = P0 / Qw::GeV;
+  fKinWithLoss.fPp = PP / Qw::GeV;
+  fKinWithLoss.fQ2 = Q2 / Qw::GeV2;
+  fKinWithLoss.fNu = (P0 - PP) / Qw::GeV;
+  fKinWithLoss.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinWithLoss.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinWithLoss.fY = (P0 - PP) / P0;
+
+  // Elastic scattering without energy loss
+  P0 = energy * Qw::MeV;
+  PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
+  Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fKinElastic.fP0 = P0 / Qw::GeV;
+  fKinElastic.fPp = PP / Qw::GeV;
+  fKinElastic.fQ2 = Q2 / Qw::GeV2;
+  fKinElastic.fNu = (P0 - PP) / Qw::GeV;
+  fKinElastic.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinElastic.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinElastic.fY = (P0 - PP) / P0;
+
+  // Elastic scattering with energy loss
+  P0 = (energy - pre_loss) * Qw::MeV;
+  PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
+  Q2 = 2.0 * P0 * PP * (1 - cos_theta);
+  fKinElasticWithLoss.fP0 = P0 / Qw::GeV;
+  fKinElasticWithLoss.fPp = PP / Qw::GeV;
+  fKinElasticWithLoss.fQ2 = Q2 / Qw::GeV2;
+  fKinElasticWithLoss.fNu = (P0 - PP) / Qw::GeV;
+  fKinElasticWithLoss.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinElasticWithLoss.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinElasticWithLoss.fY = (P0 - PP) / P0;
 }
 
 // Print the event
@@ -194,10 +329,12 @@ void QwEvent::Print(Option_t* option) const
   // Event header
   //std::cout << *fEventHeader << std::endl;
   // Event kinematics
-  std::cout << "Q^2 = " << fPrimaryQ2 << " MeV/c^2" << std::endl;
+  std::cout << "P0 = " << fKin.fP0 << " GeV/c" << std::endl;
+  std::cout << "PP = " << fKin.fPp << " GeV/c" << std::endl;
+  std::cout << "Q^2 = " << fKin.fQ2 << " (GeV/c)^2" << std::endl;
 //  std::cout << "weight = " << fCrossSectionWeight << std::endl;
 //  std::cout << "energy = " << fTotalEnergy/Qw::MeV << " MeV" << std::endl;
-  std::cout << "K.E. = " << fKineticEnergy/Qw::MeV << " MeV" << std::endl;
+//  std::cout << "momentum = " << fMomentum / Qw::MeV << " MeV" << std::endl;
 //  std::cout << "vertex position = " << fVertexPosition.Z()/Qw::cm << " cm" << std::endl;
 //  std::cout << "vertex momentum = " << fVertexMomentum.Z()/Qw::MeV << " MeV" << std::endl;
 
@@ -227,7 +364,7 @@ QwHit* QwEvent::CreateNewHit()
 }
 
 // Add an existing QwHit
-void QwEvent::AddHit(QwHit* hit)
+void QwEvent::AddHit(const QwHit* hit)
 {
   #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
     QwHit* newhit = CreateNewHit();
@@ -293,11 +430,11 @@ void QwEvent::PrintHits(Option_t* option) const
 
 
 // Add the hits of a QwHitContainer to the TClonesArray
-void QwEvent::AddHitContainer(QwHitContainer* hitlist)
+void QwEvent::AddHitContainer(const QwHitContainer* hitlist)
 {
-  for (QwHitContainer::iterator hit = hitlist->begin();
+  for (QwHitContainer::const_iterator hit = hitlist->begin();
        hit != hitlist->end(); hit++) {
-    QwHit* p = &(*hit);
+    const QwHit* p = &(*hit);
     AddHit(p);
   }
 }
@@ -335,7 +472,7 @@ QwTrackingTreeLine* QwEvent::CreateNewTreeLine()
 }
 
 // Add an existing QwTreeLine
-void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
+void QwEvent::AddTreeLine(const QwTrackingTreeLine* treeline)
 {
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
     QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
@@ -349,9 +486,9 @@ void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
 }
 
 // Add a linked list of QwTreeLine's
-void QwEvent::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+void QwEvent::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
 {
-  for (QwTrackingTreeLine *treeline = treelinelist;
+  for (const QwTrackingTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next){
     if (treeline->IsValid()){
        AddTreeLine(treeline);
@@ -439,7 +576,7 @@ QwPartialTrack* QwEvent::CreateNewPartialTrack()
 }
 
 // Add an existing QwPartialTrack
-void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
+void QwEvent::AddPartialTrack(const QwPartialTrack* partialtrack)
 {
   #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
     QwPartialTrack* newpartialtrack = CreateNewPartialTrack();
@@ -453,9 +590,9 @@ void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
 }
 
 // Add a linked list of QwPartialTrack's
-void QwEvent::AddPartialTrackList(QwPartialTrack* partialtracklist)
+void QwEvent::AddPartialTrackList(const QwPartialTrack* partialtracklist)
 {
-  for (QwPartialTrack *partialtrack = partialtracklist;
+  for (const QwPartialTrack *partialtrack = partialtracklist;
          partialtrack; partialtrack =  partialtrack->next){
     if (partialtrack->IsValid())
       AddPartialTrack(partialtrack);
@@ -536,7 +673,7 @@ QwTrack* QwEvent::CreateNewTrack()
 }
 
 // Add an existing QwTrack
-void QwEvent::AddTrack(QwTrack* track)
+void QwEvent::AddTrack(const QwTrack* track)
 {
   #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
     QwTrack* newtrack = CreateNewTrack();
@@ -545,15 +682,6 @@ void QwEvent::AddTrack(QwTrack* track)
     fQwTracks.push_back(new QwTrack(track));
   #endif
   ++fNQwTracks;
-}
-
-// Add a linked list of QwTrack's
-void QwEvent::AddTrackList(QwTrack* tracklist)
-{
-  for (QwTrack *track = tracklist;
-         track; track =  track->next)
-    //if (track->IsValid()) // TODO
-      AddTrack(track);
 }
 
 // Add a vector of QwTracks

@@ -878,13 +878,13 @@ void  QwTriggerScintillator::ProcessEvent()
 void QwTriggerScintillator::DefineOptions ( QwOptions& options )
 {
   options.AddOptions()("enable-ts-software-meantime",
-		       po::value<Bool_t>()->default_bool_value(false),
+		       po::value<Bool_t>()->default_bool_value(true),
 		       "Create Software meantime for TS in QwHits" 
 		       );
   options.AddOptions()("set-ts-software-meantime-timewindow",
-		       po::value<Double_t>()->default_value(2000.0),
+		       po::value<Double_t>()->default_value(20.0),
 		       "TimeWindow (ns) for TS Software meantime"
-		       );
+		       );//max window is 2000 ns
   return;
 };
 
@@ -1177,18 +1177,18 @@ void  QwTriggerScintillator::FillRawTDCWord (Int_t bank_index,
     // }
     Int_t hitcnt  = 0;
 
-    EQwDetectorPackage package = kPackageNull;
     EQwDirectionID direction   = kDirectionNull;
 
-    Int_t   plane   = 0; // ts2 plane 2, ts1 is plane 1
-    Int_t   element = 0; // mt is element 0, p is element 1, and m is element 2
     TString name         = "";
  
     fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, local_debug);
 
-    plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
-    element = fDetectorIDs.at(tdcindex).at(chan).fElement;
-    package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+    // ts2 plane 2, ts1 is plane 1
+    Int_t plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
+    // mt is element 0, p is element 1, and m is element 2
+    Int_t element = fDetectorIDs.at(tdcindex).at(chan).fElement;
+    EQwDetectorPackage package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+    Int_t octant  = fDetectorIDs.at(tdcindex).at(chan).fOctant;
 
     if(local_debug) {
       printf("bank_idx %d, slot %d, plane %d, element %d, package %d\n",
@@ -1231,12 +1231,13 @@ void  QwTriggerScintillator::FillRawTDCWord (Int_t bank_index,
     			       bank_index, 
     			       slot_num, 
     			       chan, 
-    			       hitcnt, 
-    			       kRegionIDTrig, 
-    			       package, 
-    			       plane,
-    			       direction, 
-    			       element, 
+                               hitcnt, 
+                               kRegionIDTrig, 
+                               package, 
+                               octant,
+                               plane,
+                               direction, 
+                               element, 
     			       data
     			       )
     			 );
@@ -1489,6 +1490,7 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
 
   Long64_t           ev_num    = 0;
   Int_t              plane     = 0;
+  Int_t              octant    = 0;
   Int_t              element   = 0;
   Int_t              hitnumber = 0;
   Double_t           timens    = 0.0;
@@ -1549,36 +1551,36 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
       for (Int_t v_smt_idx=0; v_smt_idx < fSoftwareMeantimeContainer[v_plane_idx]->SoftwareMTSize(); v_smt_idx++ )
 	{
 	  ts_mt_time = fSoftwareMeantimeContainer[v_plane_idx]->GetMeanTimeObject(v_smt_idx);
-	  ts_mt_time -> Print(local_debug);
+          ts_mt_time -> Print(local_debug);
 
-	  QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				      region, package, plane, direction, 
-				      ts_mt_time->GetSoftwareMeantimeHitElement()
-				      );
-	  software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
-	  fTDCHits.push_back(software_meantime_hit);
-	  
-	  QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				      region, package, plane, direction, 
-				      ts_mt_time->GetSoftwarePositiveHitElement()
-				      );
-	  software_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
+          QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+                                      region, package, octant, plane, direction,
+                                      ts_mt_time->GetSoftwareMeantimeHitElement()
+                                      );
+          software_meantime_hit.SetTimens(ts_mt_time->GetMeanTime());
+          fTDCHits.push_back(software_meantime_hit);
+          
+          QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+                                      region, package, octant, plane, direction,
+                                      ts_mt_time->GetSoftwarePositiveHitElement()
+                                      );
+          software_positive_hit.SetTimens(ts_mt_time->GetPositiveValue());
 	  software_positive_hit.SetHitNumberR(ts_mt_time->GetPositiveHitId());
-	  fTDCHits.push_back(software_positive_hit);
-	  
-	  QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				      region, package, plane, direction, 
-				      ts_mt_time->GetSoftwareNegativeHitElement()
-				      );
-	  software_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
+          fTDCHits.push_back(software_positive_hit);
+          
+          QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+                                      region, package, octant, plane, direction,
+                                      ts_mt_time->GetSoftwareNegativeHitElement()
+                                      );
+          software_negative_hit.SetTimens(ts_mt_time->GetNegativeValue());
 	  software_negative_hit.SetHitNumberR(ts_mt_time->GetNegativeHitId());
-	  fTDCHits.push_back(software_negative_hit);
-	  
-	  QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				      region, package, plane, direction, 
-				      ts_mt_time->GetSoftwareSubtractHitElement()
-				      );
-	  software_subtract_hit.SetTimens(ts_mt_time->GetSubtractTime());
+          fTDCHits.push_back(software_negative_hit);
+          
+          QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, 
+                                      region, package, octant, plane, direction,
+                                      ts_mt_time->GetSoftwareSubtractHitElement()
+                                      );
+          software_subtract_hit.SetTimens(ts_mt_time->GetSubtractTime());
 	  fTDCHits.push_back(software_subtract_hit);
 	}
     }

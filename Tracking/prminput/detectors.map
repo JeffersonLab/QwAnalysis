@@ -52,3 +52,8 @@ geom = qweak_new.geo
 [QwScaler]
  name = Scaler
  map = qweak_scaler.map
+
+[QwScaler]
+ name = Trigger Livetime Scalers
+ map = qweak_livetime.map
+

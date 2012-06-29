@@ -4,7 +4,7 @@
 #include <TDatime.h>
 #include <TDirectory.h>
 #include <iostream>
-#include <cmath>
+#include <limits>
 
 /*
  * running_rms.C
@@ -31,23 +31,44 @@ TTree* running_rms(TTree* serial, TString branchname, TString leafname,
 
 TTree* running_rms(TTree* serial, TString branchname,
 		   int nsample = 3, int leaf = 0) {
-  if (nsample<3) return 0;
+  if (nsample<3) { cout << __LINE__ << "\n"; return 0; }
 
   if (!gDirectory->IsWritable()) {
     std::cerr << "Error: current directory '" << gDirectory->GetName()
 	      << "' is not writeable.\n";
-    return 0;
+    { cout << __LINE__ << "\n"; return 0; }
   }
+
+  /*
+   * What will we call the new tree when we make it?
+   */
+  TString new_treename = Form("rms%d_%s", nsample, branchname.Data());
 
   /*
    * Find the value we want in the tree.
    */
   TBranch* b = serial->GetBranch(branchname);
-  if (!b) return 0;
-  if (b->GetNleaves() <= leaf) return 0; // not enough leaves on this branch
+  if (!b) {
+    // hmmm, maybe the branch is known by an alias.
+    TList* loa = serial->GetListOfAliases();
+    if (!loa) { cout << __LINE__ << "\n"; return 0; } // nope, no aliases
+    for (int i = 0; i < loa->GetEntries(); ++i) {
+      TString aliasname = loa->At(i)->GetName();
+      TString aliastarget = loa->At(i)->GetTitle();
+      if (aliasname == branchname) {
+	branchname = aliastarget;
+	b = serial->GetBranch(branchname);
+	break;
+      }
+    }
+    if (!b) { cout << __LINE__ << "\n"; return 0; } // nope, not found
+  }
+  if (b->GetNleaves() <= leaf)
+    { cout << __LINE__ << "\n"; return 0; } // not enough leaves on this branch
   double data[ b->GetNleaves() ];
   double *x = &(data[leaf]);
   serial->SetBranchAddress(branchname, data);
+
 
   /*
    * A circular buffer to do the statistics.
@@ -57,8 +78,8 @@ TTree* running_rms(TTree* serial, TString branchname,
   /*
    * Contain the statistics in this new, friendable tree.
    */
-  TTree* v = new TTree(Form("rms%d_%s", nsample, branchname.Data()),"");
-  if (!v) return 0;
+  TTree* v = new TTree(new_treename.Data(),new_treename.Data());
+  if (!v) { cout << __LINE__ << "\n"; return 0; }
   if (leaf) {
     TObjArray* list = b->GetListOfLeaves();
     v->SetName( Form("%s_%s", v->GetName(), list->At(leaf)->GetName()) );
@@ -68,7 +89,7 @@ TTree* running_rms(TTree* serial, TString branchname,
   if (! (v->Branch("mean", &mean, "mean/D")
 	 && v->Branch("std", &std, "std/D")
 	 && v->Branch("diff", &diff, "diff/D")
-	 ) ) return 0;
+	 ) ) { cout << __LINE__ << "\n"; return 0; }
 
   /*
    * Do the processing.
@@ -80,7 +101,7 @@ TTree* running_rms(TTree* serial, TString branchname,
 
   // This many entries at start and end have incomplete statistics.
   int oneside = (nsample-1)/2;
-  mean = std = diff = nan(0);
+  mean = std = diff = std::numeric_limits<double>::quiet_NaN();
   for (int i=0; i<oneside; ++i) v->Fill();
 
   // Fill the buffer
@@ -109,7 +130,7 @@ TTree* running_rms(TTree* serial, TString branchname,
   } while (serial->GetEntry(current++));
 
   // Make the trees the same size
-  mean = std = diff = nan(0);
+  mean = std = diff = std::numeric_limits<double>::quiet_NaN();
   while (v->GetEntries() < serial->GetEntries()) v->Fill();
 
   /*

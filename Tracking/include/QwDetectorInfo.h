@@ -33,7 +33,7 @@ class QwDetectorInfo: public TObject {
     /// Default constructor
     QwDetectorInfo(): fIsActive(true),fTree(0) { };
 
-      void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
+    void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
 
     // Get/set spatial resolution
     double GetSpatialResolution() const { return fSpatialResolution; };
@@ -59,6 +59,8 @@ class QwDetectorInfo: public TObject {
       fDetectorOriginY = y;
     };
 
+    void SetOctant(const int octant) { fOctant = octant;};
+    int  GetOctant() const {return fOctant; };
 
     void SetXYZPosition(const double x, const double y, const double z) {
       SetXYPosition(x,y);
@@ -116,7 +118,6 @@ class QwDetectorInfo: public TObject {
     double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
     double GetElementAngleCos() const { return fElementAngleCos; };
     double GetElementAngleSin() const { return fElementAngleSin; };
-    int  GetOctantNumber() const {return fOctant;};
     void SetElementAngle(const double angle) {
       fElementAngle = angle;
       fElementAngleCos = std::cos(fElementAngle);
@@ -131,7 +132,6 @@ class QwDetectorInfo: public TObject {
     // Get/set number of elements
     int GetNumberOfElements() const { return fNumberOfElements; };
     void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
-    void SetOctantNumber(const int octant){fOctant=octant;};
     // Get/set detector rotation (in degrees)
     double GetDetectorRotation() const { return fDetectorRotation; };
     double GetDetectorRotationInRad() const { return fDetectorRotation; };

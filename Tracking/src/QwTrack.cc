@@ -1,5 +1,5 @@
 #include "QwTrack.h"
-ClassImp(QwTrack)
+ClassImp(QwTrack);
 
 /**
  * Default constructor
@@ -12,6 +12,8 @@ QwTrack::QwTrack()
 
 /**
  * Constructor with front and back partial track
+ * @param front Front partial track
+ * @param back Back partial track
  */
 QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
 {
@@ -79,13 +81,12 @@ QwTrack::~QwTrack()
   if (fFront) delete fFront;
   if (fBack)  delete fBack;
 
-  if (fBridge) delete fBridge;
-
   ClearPartialTracks();
 }
 
 /**
  * Assignment operator
+ * @param track Original track
  */
 QwTrack& QwTrack::operator=(const QwTrack& that)
 {
@@ -93,26 +94,47 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 
   VQwTrackingElement::operator=(that);
 
+  fPhi   = that.fPhi;
+  fTheta = that.fTheta;
   fVertexZ = that.fVertexZ;
   fVertexR = that.fVertexR;
-  fTheta = that.fTheta;
-  fPhi   = that.fPhi;
   fScatteringAngle = that.fScatteringAngle;
-
-  fXBj = that.fXBj;
-  fY = that.fY;
-  fQ2 = that.fQ2;
-  fW2 = that.fW2;
-  fNu = that.fNu;
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
-   fTotalEnergy = that.fTotalEnergy;
+  fScatteringAngle = that.fScatteringAngle;
 
+  fIterationsNewton = that.fIterationsNewton;
+  fIterationsRungeKutta = that.fIterationsRungeKutta;
+
+  fPositionDiff = that.fPositionDiff;
+  fPositionXoff = that.fPositionXoff;
+  fPositionYoff = that.fPositionYoff;
   fPositionRoff = that.fPositionRoff;
   fPositionPhioff = that.fPositionPhioff;
-  fDirectionThetaoff = that.fDirectionThetaoff;
+  fPositionThetaoff = that.fPositionThetaoff;
+
+  fDirectionDiff = that.fDirectionDiff;
+  fDirectionXoff = that.fDirectionXoff;
+  fDirectionYoff = that.fDirectionYoff;
+  fDirectionZoff = that.fDirectionZoff;
   fDirectionPhioff = that.fDirectionPhioff;
+  fDirectionThetaoff = that.fDirectionThetaoff;
+
+  fStartPosition = that.fStartPosition;
+  fStartDirection = that.fStartDirection;
+
+  fEndPositionGoal = that.fEndPositionGoal;
+  fEndDirectionGoal = that.fEndDirectionGoal;
+
+  fEndPositionActual = that.fEndPositionActual;
+  fEndDirectionActual = that.fEndDirectionActual;
+
+  fEndPositionActualRK4 = that.fEndPositionActualRK4;
+  fEndDirectionActualRK4 = that.fEndDirectionActualRK4;
+
+  fEndPositionActualRKF45 = that.fEndPositionActualRKF45;
+  fEndDirectionActualRKF45 = that.fEndDirectionActualRKF45;
 
   // Copy partial tracks
   ClearPartialTracks();
@@ -126,26 +148,16 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
  */
 void QwTrack::Initialize()
 {
-
-  // Initialize the memebers;
-  
-  fQ2=0.0,fW2=0.0,fNu=0.0;
-  fVertexZ=0.0,fVertexR=0.0;
-  fTheta=0.0,fPhi=0.0;
-  fScatteringAngle=0.0;
-  fChi=0.0;
-  fMomentum=0.0;
-  fTotalEnergy=0.0;
-  fXBj=0.0;
-  fY=0.0;
+  // Initialize the members;
+  fScatteringAngle = 0.0;
+  fChi = 0.0;
+  fMomentum = 0.0;
 
   // Initialize all pointers
-  fBridge = 0;
   fFront = 0;
   fBack = 0;
-  beamvertex = 0;
-  next = 0;
 }
+
 
 
 // Create a new QwPartialTrack
@@ -204,10 +216,10 @@ void QwTrack::PrintPartialTracks(Option_t *option) const
 {
   for (std::vector<QwPartialTrack*>::const_iterator partialtrack = fQwPartialTracks.begin();
        partialtrack != fQwPartialTracks.end(); partialtrack++) {
-    std::cout << **partialtrack << std::endl;
+    QwMessage  << **partialtrack << QwLog::endl;
     QwPartialTrack* tl = (*partialtrack)->next;
     while (tl) {
-      std::cout << *tl << std::endl;
+      QwMessage  << *tl << QwLog::endl;
       tl = tl->next;
     }
   }
@@ -220,7 +232,11 @@ void QwTrack::PrintPartialTracks(Option_t *option) const
 ostream& operator<< (ostream& stream, const QwTrack& t)
 {
   stream << "track: ";
-  if (t.GetRegion() != kRegionIDNull)
+  if (t.GetRegion() != kRegionIDNull) {
     stream << "(" << t.GetRegion() << "/" << "?UD"[t.GetPackage()] << ") ";
+    stream << "Start: " << t.fStartPosition << "/" << t.fStartDirection << std::endl;
+    stream << "End (goal): " << t.fEndPositionGoal << "/" << t.fEndDirectionGoal << std::endl;
+    stream << "End (actual): " << t.fEndPositionActual << "/" << t.fEndDirectionActual << std::endl;
+  }
   return stream;
 }

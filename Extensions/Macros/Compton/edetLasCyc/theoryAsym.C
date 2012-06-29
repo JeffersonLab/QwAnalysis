@@ -6,10 +6,10 @@
 #include "comptonRunConstants.h"
 #include "maskedStrips.C"
 
-void theoryAsym(Int_t Cedge[nPlanes])//,Double_t par[]) //Float_t *calcAsym) //
+void theoryAsym(Int_t Cedge)//,Double_t par[]) //Float_t *calcAsym) //
 {
   gStyle->SetOptFit(1);
-  Bool_t debug=0;
+  Bool_t debug=1;
   //  Double_t par[4];
   Double_t xPrime[nPoints],rho[nPoints];
   Float_t rhoStrip,calcAsym1,xStrip,dsdrho1,dsdrho;  
@@ -78,19 +78,18 @@ void theoryAsym(Int_t Cedge[nPlanes])//,Double_t par[]) //Float_t *calcAsym) //
 //   fitFcn->GetParameters(par);
 //   printf("param[0]:%f,param[1]:%f,param[2]:%f\n",par[0],par[1],par[2]);
 
-  for(Int_t p =startPlane; p <endPlane; p++) {
-    if ((Cedge[p] = Cedge[p-1]) && (p>startPlane)) continue;///to avoid reworking same calculation
-    theoreticalAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge[p]));
-    crossSection.open(Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,Cedge[p]));
+  //for(Int_t p =startPlane; p <endPlane; p++) {
+    theoreticalAsym.open(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge));
+    crossSection.open(Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,Cedge));
     if (theoreticalAsym.is_open() && crossSection.is_open()) {
-      cout<<"theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge[p])<<" opened"<<endl;
-      cout<<"crossSection file "<<Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,Cedge[p])<<" opene\
+      cout<<"theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<" opened"<<endl;
+      cout<<"crossSection file "<<Form("%s/%s/crossSectionForCedge_%d.txt",pPath,webDirectory,Cedge)<<" opene\
 d"<<endl;
       if(debug) cout<<";rhoStrip\txStrip\t\ts\tcalcAsym"<<endl;
-      for(Int_t s =startStrip; s <Cedge[p]; s++) { //this loop would simply stop at strip-1;notice that s:0::strip:1
+      for(Int_t s =startStrip; s <Cedge; s++) { //this loop would simply stop at strip-1;notice that s:0::strip:1
 	//!!the Cedge is in human counting hence '-1' is necessary
-	if (maskedStrips(p,s)) continue;///sure??!
-	xStrip = xPrime[0] - whereInTheStrip - ((Cedge[p]-1) - s)*stripWidth; ///xPrime[0] corresponds to Cedge distance //!!the Cedge is in human counting hence '-1' is necessary
+	//if (maskedStrips(p,s)) continue;///sure??!
+	xStrip = xPrime[0] - whereInTheStrip - ((Cedge-1) - s)*stripWidth; ///xPrime[0] corresponds to Cedge distance //!!the Cedge is in human counting hence '-1' is necessary
 	rhoStrip = grtheory->Eval(xStrip);
 	dsdrho1 = (1-rhoStrip*(1+a))/(1-rhoStrip*(1-a)); // 2nd term of eqn 22
 	dsdrho =2*pi*re*re/a*((rhoStrip*rhoStrip*(1-a)*(1-a)/(1-rhoStrip*(1-a)))+1+dsdrho1*dsdrho1);//eqn. 22
@@ -103,10 +102,10 @@ d"<<endl;
       theoreticalAsym.close();
       crossSection.close();
     } else {
-      cout<<"\n*** Error: couldn't open theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge[p])<<endl;
+      cout<<"\n*** Error: couldn't open theoretical asymmetry file "<<Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge)<<endl;
       return;
     }
-  }
+    //}
   //cTheoAsym->Update();
 
   if(debug) {
@@ -122,7 +121,7 @@ d"<<endl;
     cout<<"\n\tAsym Zero rho: "<<rho0<<endl;
     cout<<"\tAsym Zero Photon Energy: "<<k0prime<<"GeV"<<endl;
     //    cout<<"\tAsym Zero e-displacement: "<<dx0prime*1000<<" mm"<<endl;
-    cout<<"\tFor plane-1 compton edge is on strip "<<Cedge[0]<<" at x="<<xPrime[0]<<endl;
+    cout<<"\tFor plane-1 compton edge is on strip "<<Cedge<<" at x="<<xPrime[0]<<endl;
     cout<<"\tx1= "<<x1<<" and x2="<<x2<<endl;
   }
 }

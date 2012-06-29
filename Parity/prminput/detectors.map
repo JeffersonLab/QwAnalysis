@@ -28,6 +28,10 @@
  map = qweak_scanner_channel.map
  param = qweak_scanner_parameter.map
 
+[QwScaler]
+ name = Trigger Livetime Scalers
+ map = qweak_livetime.map
+
 [QwBeamMod]
  name = BeamMod
  map  = qweak_modulation.map

@@ -178,27 +178,27 @@ cat ${TEMPLATES}/erun_page > $ERUNPAGE
 cat ${TEMPLATES}/footer_run >> $RUNPAGE
 cat ${TEMPLATES}/footer_run >> $ERUNPAGE
 ## Then make the substitutions to make it relevant
-sed -i -e "s|%%RUNNUM%%|$RUNNUM|" $RUNPAGE
-sed -i -e "s|%%STARTDATE%%|$STARTDATE|"  $RUNPAGE
-sed -i -e "s|%%ENDDATE%%|$ENDDATE|"  $RUNPAGE
-sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|"  $RUNPAGE
-sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|"  $RUNPAGE
-sed -i -e "s|%%BCM01%%|$BCM1VAL|"  $RUNPAGE
-sed -i -e "s|%%BCM02%%|$BCM2VAL|"  $RUNPAGE
-sed -i -e "s|%%BCM17%%|$BCM17VAL|"  $RUNPAGE
-sed -i -e "s|%%HWP%%|$HWPVAL|"  $RUNPAGE
-sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $RUNPAGE
+sed -i -e "s|%%RUNNUM%%|$RUNNUM|g" $RUNPAGE
+sed -i -e "s|%%STARTDATE%%|$STARTDATE|g"  $RUNPAGE
+sed -i -e "s|%%ENDDATE%%|$ENDDATE|g"  $RUNPAGE
+sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|g"  $RUNPAGE
+sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|g"  $RUNPAGE
+sed -i -e "s|%%BCM01%%|$BCM1VAL|g"  $RUNPAGE
+sed -i -e "s|%%BCM02%%|$BCM2VAL|g"  $RUNPAGE
+sed -i -e "s|%%BCM17%%|$BCM17VAL|g"  $RUNPAGE
+sed -i -e "s|%%HWP%%|$HWPVAL|g"  $RUNPAGE
+sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|g" $RUNPAGE
 
-sed -i -e "s|%%RUNNUM%%|$RUNNUM|" $ERUNPAGE
-sed -i -e "s|%%STARTDATE%%|$STARTDATE|"  $ERUNPAGE
-sed -i -e "s|%%ENDDATE%%|$ENDDATE|"  $ERUNPAGE
-sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|"  $ERUNPAGE
-sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|"  $ERUNPAGE
-sed -i -e "s|%%BCM01%%|$BCM1VAL|"  $ERUNPAGE
-sed -i -e "s|%%BCM02%%|$BCM2VAL|"  $ERUNPAGE
-sed -i -e "s|%%BCM17%%|$BCM17VAL|"  $ERUNPAGE
-sed -i -e "s|%%HWP%%|$HWPVAL|"  $ERUNPAGE
-sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|" $ERUNPAGE
+sed -i -e "s|%%RUNNUM%%|$RUNNUM|g" $ERUNPAGE
+sed -i -e "s|%%STARTDATE%%|$STARTDATE|g"  $ERUNPAGE
+sed -i -e "s|%%ENDDATE%%|$ENDDATE|g"  $ERUNPAGE
+sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|g"  $ERUNPAGE
+sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|g"  $ERUNPAGE
+sed -i -e "s|%%BCM01%%|$BCM1VAL|g"  $ERUNPAGE
+sed -i -e "s|%%BCM02%%|$BCM2VAL|g"  $ERUNPAGE
+sed -i -e "s|%%BCM17%%|$BCM17VAL|g"  $ERUNPAGE
+sed -i -e "s|%%HWP%%|$HWPVAL|g"  $ERUNPAGE
+sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|g" $ERUNPAGE
 
 #Make links to other pages
 PREVRUN=$RUNNUM

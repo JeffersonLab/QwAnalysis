@@ -88,19 +88,19 @@ event_tree->Draw("events.fQwHits.fDistance>>dV","events.fQwHits.fRegion==2&&even
 c1.cd(4);
 
 //draw the drift time in the x plane
-event_tree->Draw("events.fQwHits.fTime>>tX","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==1&&events.fQwHits.fPlane%3==1");
+event_tree->Draw("events.fQwHits.fTimeNs>>tX","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==1&&events.fQwHits.fPlane%3==1");
 
 //select pad 5
 c1.cd(5);
 
 //draw the drift time in the u plane
-event_tree->Draw("events.fQwHits.fTime>>tU","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==1&&events.fQwHits.fPlane%3==2");
+event_tree->Draw("events.fQwHits.fTimeNs>>tU","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==1&&events.fQwHits.fPlane%3==2");
 
 //select pad 6
 c1.cd(6);
 
 //draw the drift time in the v plane
-event_tree->Draw("events.fQwHits.fTime>>tV","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==1&&events.fQwHits.fPlane%3==0");
+event_tree->Draw("events.fQwHits.fTimeNs>>tV","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==1&&events.fQwHits.fPlane%3==0");
 
 //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 c1.SaveAs(Prefix+"Package_1.png");
@@ -156,19 +156,19 @@ event_tree->Draw("events.fQwHits.fDistance>>dV2","events.fQwHits.fRegion==2&&eve
 c2.cd(4);
 
 //draw the drift time in the x plane
-event_tree->Draw("events.fQwHits.fTime>>tX2","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==2&&events.fQwHits.fPlane%3==1");
+event_tree->Draw("events.fQwHits.fTimeNs>>tX2","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==2&&events.fQwHits.fPlane%3==1");
 
 //select pad 5
 c2.cd(5);
 
 //draw the drift time in the u plane
-event_tree->Draw("events.fQwHits.fTime>>tU2","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==2&&events.fQwHits.fPlane%3==2");
+event_tree->Draw("events.fQwHits.fTimeNs>>tU2","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==2&&events.fQwHits.fPlane%3==2");
 
 //select pad 6
 c2.cd(6);
 
 //draw the drift time in the v plane
-event_tree->Draw("events.fQwHits.fTime>>tV2","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==2&&events.fQwHits.fPlane%3==0");
+event_tree->Draw("events.fQwHits.fTimeNs>>tV2","events.fQwHits.fRegion==2&&events.fQwHits.fPackage==2&&events.fQwHits.fPlane%3==0");
 
 
 //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory

@@ -9,19 +9,17 @@
 !! Pedestal should be zero! Change only if you
 !! know what you are doing!!!
 ! channel name, pedestal=0, frequency
-sca_1mhz, 0, 0.000001000
-sca_4mhz, 0, 0.000000250
+sca_4mhz, 0, 4e6
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Scaler BCM pedestals
 ! channel name, pedestal,gain
-!sca_bcm1,       +254839.349670,            +0.000533
-!sca_bcm2,       +256100.881965,            +0.000577
-!sca_bcm6,       +253376.982010,            +0.000994
+! Calibrations come from revision r4565 run 22617
+sca_bcm1        249960        0.000561638
+sca_bcm2        250069        0.000609775
+sca_bcm6        248869        0.00095799
 
-sca_bcm1,       +304500,            +0.000444
-sca_bcm2,       +304500,            +0.000444
-sca_bcm6,       +304500,            +0.000784
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Scaler BPM pedestals

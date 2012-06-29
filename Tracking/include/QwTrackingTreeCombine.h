@@ -166,16 +166,6 @@ class QwTrackingTreeCombine {
     /// Maximum number of missed wires in region 3
     int fMaxMissedWires;
 
-    // The following is largely useless (or at least the use is not understood).
-    // Only chi_hashinsert is ever called, but never anything is searched in the
-    // hash table...
-    chi_hash *hasharr[HASHSIZE];
-
-    int chi_hashval (int n, QwHit **hit);
-    void chi_hashclear ();
-    void chi_hashinsert (QwHit **hits, int n, double slope, double xshift, double cov[3], double chi);
-    int chi_hashfind (QwHit **hits, int n, double *slope, double *xshift, double cov[3], double *chi);
-
 }; // class QwTrackingTreeCombine
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

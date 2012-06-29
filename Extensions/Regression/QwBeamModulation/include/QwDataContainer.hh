@@ -20,16 +20,21 @@ private:
 
   QwDBConnection dbase;
 
+  Double_t slope;
+  Double_t error;
+  Double_t chisquare_ndf;
+
 public:
 
-  enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
+//   enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
+  enum variable_t {var_e, var_x, var_xp, var_y, var_yp};
   enum quality_t {raw, corr};
 
   std::vector <TVectorD> fSensitivity;
   std::vector <TVectorD> fCorrection;
   std::vector <TVectorD> fAsymmetry;
   std::vector <TVectorD> fPositionDiff;
-  std::vector <TVectorD> fRMS;
+  std::vector <TVectorD> frms;
 
   TVectorD fRunNumber;
   TVectorD fAvSensx;
@@ -44,23 +49,14 @@ public:
   TVectorD fCorry;
   TVectorD fCorryp;
 
-  TVectorD fAvRawAsym;
-  TVectorD fAvCorrAsym;
-
-  TVectorD fRawAsym;
-  TVectorD fCorrAsym;
+  TVectorD fAvAsym;
+  TVectorD fAsym;
 
   TVectorD fNumberEntries;
 
-  TVectorD fRawRMS;
-  TVectorD fCorrRMS;
-
-  TVectorD fRawError;
-  TVectorD fCorrError;
-
-  TVectorD fAvRawError;
-  TVectorD fAvCorrError;
-
+  TVectorD fRMS;
+  TVectorD fError;
+  TVectorD fAvError;
   TVectorD fTotalCorr;
   TVectorD fZero;
   TVectorD fWienNumber;
@@ -112,6 +108,9 @@ public:
   void SetSlope(TString);
   void SetIHWP(TString);
   void SetMonitor(TString);
+  void SetSlope(Double_t);
+  void SetError(Double_t);
+  void SetChiNDF(Double_t);
   void Print(void);
   void Close(void);
   void ConnectDB(void);
@@ -126,6 +125,10 @@ public:
   Double_t GetMinimum(TVectorD);
   Double_t GetMaximum(Double_t *);
   Double_t GetMinimum(Double_t *);
+  Double_t GetSlope(void);
+  Double_t GetError(void);
+  Double_t GetChiNDF(void);
+
 
   //  TVectorD push_back(Double_t);
 

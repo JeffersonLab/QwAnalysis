@@ -59,8 +59,10 @@ use vars qw($original_cwd $executable $script_dir $BaseMSSDir
 	    %good_segs $first_seg $last_seg
 	    @good_runs $goodrunfile 
 	    $runnumber $input_file @input_files $command_file
-	    $RunPostProcess $RunletPostProcess
+	    @RunPostProcess @RunletPostProcess
 	    $SpacePerInputfile $ReserveSpace $MaxSpacePerJob
+	    $MaxFilesPerJob
+	    $SkipCheckingPaths
 	    $InputfilesPerJob
 	    );
 
@@ -119,15 +121,17 @@ my $ret = GetOptions("help|usage|h"       => \$opt_h,
 		     "cacheoptions|C=s"   => \$CacheOptionList,
 		     "rootfile-stem|R=s"  => \$RootfileStem,
 		     "rootfile-output=s"  => \$OutputPath,
-		     "post-run=s"         => \$RunPostProcess,
-		     "post-runlet=s"      => \$RunletPostProcess,
+		     "post-run=s"         => \@RunPostProcess,
+		     "post-runlet=s"      => \@RunletPostProcess,
 		     #  The next three options are "hidden" in the
 		     #  sense that we deliberately do not include
 		     #  them in the usage.
 		     #  They are expert level options only.
+		     "max-files-per-job=i"=> \$MaxFilesPerJob,
 		     "job-maxspace=i"     => \$MaxSpacePerJob,
 		     "job-reservespace=i" => \$ReserveSpace,
-		     "job-spaceperfile=i" => \$SpacePerInputfile
+		     "job-spaceperfile=i" => \$SpacePerInputfile,
+		     "skip-checking-paths" => \$SkipCheckingPaths
 		     );
 #  Deal with some fatal errors while handling the options.
 die("Invalid commandline options.  Exiting") if (!$ret);
@@ -199,7 +203,7 @@ if ($OutputPath =~ /none/i || $OutputPath =~ /null/i){
 	die("Unknown protocol in OutputPath: $OutputPath.  Exiting");
     } elsif ($protocol eq "file" ){
 	#  TODO:  Make sure the path is on the work disk...
-	if (! -d $path){
+	if (!$SkipCheckingPaths && ! -d $path){
 	    die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
 	}
     } elsif ($protocol eq "mss" ){
@@ -269,7 +273,7 @@ if (! defined($SegmentRange) || $SegmentRange eq ""){
 
 ###  Some variables to hold disk size information.
 ###  Units are MB.
-$SpacePerInputfile = 10000  if (!defined($SpacePerInputfile) 
+$SpacePerInputfile = 11300  if (!defined($SpacePerInputfile) 
 				|| $SpacePerInputfile+0<=0);
 $ReserveSpace      = 3000   if (!defined($ReserveSpace) 
 				|| $ReserveSpace+0<=0);
@@ -280,14 +284,21 @@ if (($SpacePerInputfile+$ReserveSpace)>$MaxSpacePerJob){
 	"*** This is a major problem; contact an expert to investigate this!!!\n",
 	"Exiting");
 }
+
 #  The restriction on input files per job only applies if we need
 #  to split the job.  If a job with more than InputfilesPerJob files
 #  can fit into the MaxSpacePerJob, it will go through as one job.
 $InputfilesPerJob = int(($MaxSpacePerJob-$ReserveSpace)
 			/$SpacePerInputfile);
-if ($InputfilesPerJob>5) {
-    #  Round to a multiple of five, because I like multiples of five.
-    $InputfilesPerJob = int($InputfilesPerJob/5) * 5;
+if (defined($MaxFilesPerJob) && $MaxFilesPerJob+0>0
+    && $MaxFilesPerJob<=$InputfilesPerJob) {
+    $MaxSpacePerJob = $SpacePerInputfile*$MaxFilesPerJob + $ReserveSpace;
+    $InputfilesPerJob = $MaxFilesPerJob
+} else {
+    if ($InputfilesPerJob>5) {
+	#  Round to a multiple of five, because I like multiples of five.
+	$InputfilesPerJob = int($InputfilesPerJob/5) * 5;
+    }
 }
 if ($InputfilesPerJob<=0) {
     die("*** The space needed per input file ($SpacePerInputfile MB) and as a reserve ($ReserveSpace MB) is too large for the maximum disk space permitted per farm job ($MaxSpacePerJob MB).\n",
@@ -656,14 +667,15 @@ sub create_xml_jobfile($$$@) {
     open(JOBFILE, ">$command_file") or die "$command_file: $!";
     print JOBFILE
 	"<Request>\n",
-	" <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"true\"/>\n",
+	" <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"false\"/>\n",
 	" <Project name=\"qweak\"/>\n",
 	" <Track name=\"$BatchQueue\"/>\n",
 	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
     my $memory=2048;
+    my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
 	" <OS name=\"linux64\"/>\n",
-	" <TimeLimit unit=\"minutes\" time=\"4000\"/>\n",
+	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
 	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
 	" <Memory space=\"$memory\" unit=\"MB\"/>\n";
     print JOBFILE
@@ -699,23 +711,29 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"Started at `date`\"\n",
 	"  echo $executable -r $runnumber $optionlist\n",
 	"  $executable -r $runnumber $optionlist\n",
+	"  chmod g+w \$QW_ROOTFILES/*.root\n",
 	"  ls -al \$QW_ROOTFILES\n";
-    if ($RunPostProcess){
-	print JOBFILE
-	    "  echo \"------\"\n",
-	    "  echo \"Start run based post-processor script at `date`\"\n",
-	    "  $RunPostProcess $runnumber\n";
+    my $postprocess;
+    foreach $postprocess (@RunPostProcess){
+	if ($postprocess){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start run based post-processor script $postprocess at `date`\"\n",
+		"  $postprocess $runnumber\n";
+	}
     }
-    if ($RunletPostProcess){
-	print JOBFILE
-	    "  echo \"------\"\n",
-	    "  echo \"Start runlet based post-processor scripts at `date`\"\n";
-	foreach $input_file (@infiles) {
-	    my $segment = undef;
-	    if ($input_file =~ m/.*\.([0-9]+)$/) {
-		$segment = sprintf " %03d",$1;
-		print JOBFILE
-		    "  $RunletPostProcess $runnumber $segment\n";
+    foreach $postprocess (@RunletPostProcess){
+	if ($postprocess){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start runlet based post-processor script $postprocess at `date`\"\n";
+	    foreach $input_file (@infiles) {
+		my $segment = undef;
+		if ($input_file =~ m/.*\.([0-9]+)$/) {
+		    $segment = sprintf " %03d",$1;
+		    print JOBFILE
+			"  $postprocess $runnumber $segment\n";
+		}
 	    }
 	}
     }
@@ -735,6 +753,9 @@ sub create_xml_jobfile($$$@) {
 		"  cp -v \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
 	}
     }
+
+
+
     print JOBFILE
 	"  echo \"Finished at `date`\"\n",
 	"]]></Command>\n";
@@ -742,13 +763,13 @@ sub create_xml_jobfile($$$@) {
     foreach $input_file (@infiles) {
 	print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
     }
-#    if ($OutputPath ne "null"){
-#	foreach $input_file (@infiles) {
-#	    my $segment = sprintf "%03d", extract_segment($input_file);
-#	    my $root_file = "$RootfileStem$runnumber.$segment.root";
-#	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
-#	}
-#    }
+    #    if ($OutputPath ne "null"){
+    #	foreach $input_file (@infiles) {
+    #	    my $segment = sprintf "%03d", extract_segment($input_file);
+    #	    my $root_file = "$RootfileStem$runnumber.$segment.root";
+    #	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
+    #	}
+    #    }
     
     print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.out\"/>\n";
     print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.err\"/>\n";
@@ -872,11 +893,13 @@ sub displayusage {
     }
     print STDERR
 	"\t--post-run <path of the run-based postprocessing script>\n",
-	"\t\tThis flag specifies the post processing script to be \n",
+	"\t\tThis option may appear multiple times on the commandline.\n\n",
+	"\t\tThis flag specifies a post processing script to be \n",
 	"\t\texecuted once per run.\n",
 	"\t\tIt will be called as: <script> <run_number>\n",
 	"\t--post-runlet <path to runlet-based postprocessing script>\n",
-	"\t\tThis flag specifies the post processing script to be \n",
+	"\t\tThis option may appear multiple times on the commandline.\n\n",
+	"\t\tThis flag specifies a post processing script to be \n",
 	"\t\texecuted once for each run segment.\n",
 	"\t\tIt will be called as: <script> <run_number> <segment>\n";
 

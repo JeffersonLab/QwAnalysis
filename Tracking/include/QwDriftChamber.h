@@ -99,7 +99,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
   virtual Int_t AddChannelDefinition() = 0;
-  virtual Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)=0;
+  virtual Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t octant, const Int_t plane, const Int_t wire)=0;
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
 
   using VQwSubsystem::ConstructHistograms;

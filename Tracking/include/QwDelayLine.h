@@ -31,14 +31,15 @@ using std::vector;
 class QwDelayLine
 {
  public:
-  QwDelayLine():fPackage(kPackageNull),fPlane(-1),fDirection(kDirectionNull),fFirstWire(-1),Fill(false),Processed(false),Ambiguous(-1) {};
-  QwDelayLine(const Int_t pk,const Int_t pl,const Int_t dir,const Int_t firstwire):fPackage((EQwDetectorPackage)pk),fPlane(pl),fDirection((EQwDirectionID)dir),fFirstWire(firstwire),Fill(false),Processed(false),Ambiguous(false){};
+  QwDelayLine():fPackage(kPackageNull),fOctant(-1),fPlane(-1),fDirection(kDirectionNull),fFirstWire(-1),Fill(false),Processed(false),Ambiguous(-1) {};
+  QwDelayLine(const Int_t pk,const Int_t oct,const Int_t pl,const Int_t dir,const Int_t firstwire):fPackage((EQwDetectorPackage)pk),fOctant(oct),fPlane(pl),fDirection((EQwDirectionID)dir),fFirstWire(firstwire),Fill(false),Processed(false),Ambiguous(false){};
 
   virtual ~QwDelayLine();
   //Int_t fPackage;
   //Int_t fPlane;
   //Int_t fDirection;
   EQwDetectorPackage fPackage;
+  Int_t fOctant;
   Int_t fPlane;
   EQwDirectionID fDirection;
   Int_t fFirstWire;

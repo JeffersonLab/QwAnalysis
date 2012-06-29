@@ -974,13 +974,13 @@ void  QwMainDetector::ProcessEvent()
 void QwMainDetector::DefineOptions ( QwOptions& options )
 {
   options.AddOptions()("enable-md-software-meantime",
-		       po::value<Bool_t>()->default_bool_value(false),
+		       po::value<Bool_t>()->default_bool_value(true),
 		       "Create Software meantime for MD in QwHits" 
 		       );
   options.AddOptions()("set-md-software-meantime-timewindow",
-		       po::value<Double_t>()->default_value(2000.0),
+		       po::value<Double_t>()->default_value(50.0),
 		       "TimeWindow (ns) for MD Software meantime"
-		       );
+		       );//max window is 2000 ns
 
   return;
 };
@@ -1287,19 +1287,19 @@ void  QwMainDetector::FillRawTDCWord (Int_t bank_index,
   
     Int_t hitcnt  = 0;
 
-    EQwDetectorPackage package = kPackageNull;
     EQwDirectionID direction   = kDirectionNull;
 
-    Int_t   plane   = 0; // MD1(8) plane 1(8)
-    Int_t   element = 0; // p is element 1, and m is element 2
     TString name         = "";
  
 
     fF1RefContainer->SetReferenceSignal(bank_index, slot_num, chan, data, local_debug);
   
-    plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
-    element = fDetectorIDs.at(tdcindex).at(chan).fElement;
-    package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
+    // MD1(8) plane 1(8)
+    Int_t plane   = fDetectorIDs.at(tdcindex).at(chan).fPlane;
+    // p is element 1, and m is element 2
+    Int_t element = fDetectorIDs.at(tdcindex).at(chan).fElement;
+    Int_t octant  = fDetectorIDs.at(tdcindex).at(chan).fOctant;
+    EQwDetectorPackage package = fDetectorIDs.at(tdcindex).at(chan).fPackage;
 
   
     if(local_debug) {
@@ -1359,12 +1359,13 @@ void  QwMainDetector::FillRawTDCWord (Int_t bank_index,
     			       bank_index, 
     			       slot_num, 
     			       chan, 
-    			       hitcnt, 
-    			       kRegionIDCer, 
-    			       package, 
-    			       plane,
-    			       direction, 
-    			       element, 
+                               hitcnt, 
+                               kRegionIDCer, 
+                               package, 
+                               octant,
+                               plane,
+                               direction, 
+                               element, 
     			       data
     			       )
     			 );
@@ -1503,6 +1504,7 @@ void QwMainDetector::AddSoftwareMeantimeToHits(Bool_t option)
   Long64_t             ev_num    = 0;
   Int_t                plane     = 0;
   Int_t                element   = 0;
+  Int_t                octant    = 0;
   Int_t                hitnumber = 0;
   Double_t             timens   = 0.0;
 
@@ -1569,32 +1571,32 @@ void QwMainDetector::AddSoftwareMeantimeToHits(Bool_t option)
       md_mt_time  -> Print(local_debug);
 
       QwHit software_meantime_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				  region, package, plane, direction, 
-				  md_mt_time->GetSoftwareMeantimeHitElement()
-				  );
+                                  region, package, octant, plane, direction,
+                                  md_mt_time->GetSoftwareMeantimeHitElement()
+                                  );
       software_meantime_hit.SetTimens(md_mt_time->GetMeanTime());
       fTDCHits.push_back(software_meantime_hit);
       
       QwHit software_positive_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				  region, package, plane, direction,
-				  md_mt_time->GetSoftwarePositiveHitElement()
-				  );
+                                  region, package, octant, plane, direction,
+                                  md_mt_time->GetSoftwarePositiveHitElement()
+                                  );
       software_positive_hit.SetTimens(md_mt_time->GetPositiveValue());
       software_positive_hit.SetHitNumberR(md_mt_time->GetPositiveHitId());
       fTDCHits.push_back(software_positive_hit);
       
       QwHit software_negative_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				  region, package, plane, direction, 
-				  md_mt_time->GetSoftwareNegativeHitElement()
-				  );
+                                  region, package, octant, plane, direction,
+                                  md_mt_time->GetSoftwareNegativeHitElement()
+                                  );
       software_negative_hit.SetTimens(md_mt_time->GetNegativeValue());
       software_negative_hit.SetHitNumberR(md_mt_time->GetNegativeHitId());
       fTDCHits.push_back(software_negative_hit);
       
       QwHit software_subtract_hit(bank_index, slot_num, chan_num, v_smt_idx, 
-				  region, package, plane, direction, 
-				  md_mt_time->GetSoftwareSubtractHitElement()
-				  );
+                                  region, package, octant, plane, direction,
+                                  md_mt_time->GetSoftwareSubtractHitElement()
+                                  );
       software_subtract_hit.SetTimens(md_mt_time->GetSubtractTime());
       fTDCHits.push_back(software_subtract_hit);
       
