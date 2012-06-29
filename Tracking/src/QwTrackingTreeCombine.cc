@@ -66,101 +66,6 @@ QwTrackingTreeCombine::~QwTrackingTreeCombine ()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::chi_hashval ( int n, QwHit **hit )
-{
-	double hash = 389.0; // WTF IS THIS?!?
-	for ( int i = 0; i < n; i++ )
-	{
-		hash *= hit[i]->GetDriftPosition();
-	}
-	return ( ( ( * ( unsigned* ) & hash )        & HASHMASK ) ^
-	         ( ( ( * ( unsigned* ) & hash ) >> 22 ) & HASHMASK ) ) ;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*! Clear the hash array */
-void QwTrackingTreeCombine::chi_hashclear()
-{
-	memset ( hasharr, 0, sizeof ( hasharr ) );
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwTrackingTreeCombine::chi_hashinsert (
-    QwHit **hits,
-    int n,
-    double slope,
-    double xshift,
-    double cov[3],
-    double chi )
-{
-	int val = chi_hashval ( n, hits ), i;
-
-	chi_hash *new_chi_hash = new chi_hash;
-
-	if ( new_chi_hash )
-	{
-		new_chi_hash->next = hasharr[val];
-		hasharr[val] = new_chi_hash;
-		new_chi_hash->cx = xshift;
-		new_chi_hash->mx = slope;
-		new_chi_hash->cov[0] = cov[0];
-		new_chi_hash->cov[1] = cov[1];
-		new_chi_hash->cov[2] = cov[2];
-		new_chi_hash->chi    = chi;
-		new_chi_hash->hits   = n;
-		for ( i = 0; i < n; i++ )
-		{
-			new_chi_hash->hit[i] = hits[i]->GetDriftPosition();
-		}
-	}
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-int QwTrackingTreeCombine::chi_hashfind (
-    QwHit **hits,
-    int n,
-    double *slope,
-    double *xshift,
-    double cov[3],
-    double *chi )
-{
-	int val = chi_hashval ( n, hits );
-
-	chi_hash *new_chi_hash = new chi_hash;
-
-	for ( new_chi_hash = hasharr[val]; new_chi_hash;
-	        new_chi_hash = new_chi_hash->next )
-	{
-		if ( ! new_chi_hash->hits ) break;
-		if ( new_chi_hash->hits == n )
-		{
-			int i;
-			for ( i = 0; i < n; i++ )
-			{
-				if ( new_chi_hash->hit[i] != hits[i]->GetDriftPosition() )
-				{
-					break;
-				}
-			}
-			if ( i == n )  		/* HIT! */
-			{
-				*xshift = new_chi_hash->cx;
-				*slope  = new_chi_hash->mx;
-				cov[0]  = new_chi_hash->cov[0];
-				cov[1]  = new_chi_hash->cov[1];
-				cov[2]  = new_chi_hash->cov[2];
-				*chi    = new_chi_hash->chi;
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
 /**
  * Determines whether the left or right drift distance assignment is closer to
  * the supplied coordinate for hits in region 3.
@@ -1355,8 +1260,6 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     int dlayer,
     double width )
 {
-	chi_hashclear();
-
 	switch (region) {
 	  /* Region 3 */
 	  case kRegionID3: {
@@ -2784,9 +2687,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	std::vector<QwPartialTrack*> parttracklist;
 
 	//	int in_acceptance = 0;
-
-	chi_hashclear();
-
 
     switch (region) {
 

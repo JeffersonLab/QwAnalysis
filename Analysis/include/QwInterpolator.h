@@ -56,6 +56,8 @@ class QwInterpolator {
     QwInterpolator(const unsigned int ndim = 1) {
       SetDimensions(ndim);
       SetInterpolationMethod(kMultiLinear);
+      f_cell_index = new unsigned int[fNDim];
+      f_cell_local = new double[fNDim];
     };
     /// Constructor with minimum, maximum, and step size
     QwInterpolator(const std::vector<coord_t>& min,
@@ -64,14 +66,21 @@ class QwInterpolator {
       SetDimensions(min.size());
       SetInterpolationMethod(kMultiLinear);
       SetMinimumMaximumStep(min,max,step);
+      f_cell_index = new unsigned int[fNDim];
+      f_cell_local = new double[fNDim];
     };
     /// Constructor with file name
     QwInterpolator(const std::string& filename) {
       ReadBinaryFile(filename);
       SetInterpolationMethod(kMultiLinear);
+      f_cell_index = new unsigned int[fNDim];
+      f_cell_local = new double[fNDim];
     };
     /// Destructor
-    virtual ~QwInterpolator() { };
+    virtual ~QwInterpolator() {
+      delete[] f_cell_index;
+      delete[] f_cell_local;
+    };
 
   private: // private member fields
 
@@ -103,6 +112,12 @@ class QwInterpolator {
     unsigned int fCurrentEntries;
     /// Maximum number of values
     unsigned int fMaximumEntries;
+
+    /// Pre-allocated cell index
+    unsigned int* f_cell_index;
+    /// Pre-allocated local coordinates
+    double* f_cell_local;
+
 
     /// Interpolation method
     EQwInterpolationMethod fInterpolationMethod;
@@ -207,22 +222,20 @@ class QwInterpolator {
       }
       // Loop over all entries
       value_t value[value_n];
-      unsigned int* cell_index = new unsigned int[fNDim];
       for (unsigned int linear_index = 0; linear_index < fMaximumEntries; linear_index++) {
-        Cell(linear_index,cell_index);
-        total[cell_index[dim]]++;
+        Cell(linear_index,f_cell_index);
+        total[f_cell_index[dim]]++;
         if (Get(linear_index,value) && value[0] != 0)
-          cover[cell_index[dim]]++; // non-zero field
+          cover[f_cell_index[dim]]++; // non-zero field
       }
       // Print coverage
       coord_t* coord = new coord_t[fNDim];
       for (size_t i = 0; i < fSize[dim]; i++) {
-        cell_index[dim] = i;
-        Coord(cell_index,coord);
+        f_cell_index[dim] = i;
+        Coord(f_cell_index,coord);
         mycout << "bin " << i << ", coord " << coord[dim] << ": "
             << double(cover[i]) / double(total[i]) * 100 << "%"<< myendl;
       }
-      delete[] cell_index;
       delete[] coord;
       delete[] cover;
       delete[] total;
@@ -249,9 +262,8 @@ class QwInterpolator {
     };
     /// Set a set of values at a coordinate (false if not possible)
     bool Set(const coord_t* coord, const value_t* value) {
-      unsigned int* cell_index = new unsigned int[fNDim];
-      Nearest(coord, cell_index); // nearest cell
-      if (! Check(cell_index)) return false; // out of bounds
+      Nearest(coord, f_cell_index); // nearest cell
+      if (! Check(f_cell_index)) return false; // out of bounds
       bool status = true;
       bool written = false;
       unsigned int linear_index;
@@ -259,17 +271,17 @@ class QwInterpolator {
         // skip dimensions that are not wrapped around
         if (fWrap[dim] == 0) continue;
         // FIXME only one wrapping coordinate correctly supported in Set()
-        if ((cell_index[dim] < fWrap[dim]) ||
-            (fSize[dim] - cell_index[dim] - 1 < fWrap[dim])) {
+        if ((f_cell_index[dim] < fWrap[dim]) ||
+            (fSize[dim] - f_cell_index[dim] - 1 < fWrap[dim])) {
           // there are equivalent grid points
           for (size_t wrap = 0; wrap < fWrap[dim]; wrap++) {
             // at the minimum
-            cell_index[dim] = wrap;
-            linear_index = Index(cell_index);
+            f_cell_index[dim] = wrap;
+            linear_index = Index(f_cell_index);
             status &= Set(linear_index, value);
             // at the maximum
-            cell_index[dim] = fSize[dim] - wrap - 1;
-            linear_index = Index(cell_index);
+            f_cell_index[dim] = fSize[dim] - wrap - 1;
+            linear_index = Index(f_cell_index);
             status &= Set(linear_index, value);
             // set flag
             written = true;
@@ -278,10 +290,9 @@ class QwInterpolator {
       }
       if (not written) {
         // this is an unambiguous grid point
-        linear_index = Index(cell_index);
+        linear_index = Index(f_cell_index);
         status &= Set(linear_index, value);
       }
-      delete[] cell_index;
       return status;
     };
 
@@ -393,11 +404,8 @@ class QwInterpolator {
     // @{
     /// Return the linearized index based on the point coordinates (unchecked)
     unsigned int Index(const coord_t* coord) const {
-      unsigned int* cell_index = new unsigned int[fNDim];
-      Cell(coord, cell_index);
-      unsigned int index = Index(cell_index);
-      delete[] cell_index;
-      return index;
+      Cell(coord, f_cell_index);
+      return Index(f_cell_index);
     };
 
     /// \brief Return the linearized index based on the cell indices (unchecked)
@@ -424,12 +432,10 @@ class QwInterpolator {
 
     /// Return the cell index closest to the coordinate (could be above) (unchecked)
     void Nearest(const coord_t* coord, unsigned int* cell_index) const {
-      double* cell_local = new double[fNDim];
-      Cell(coord, cell_index, cell_local);
+      Cell(coord, cell_index, f_cell_local);
       // Loop over all dimensions and add one if larger than 0.5
       for (unsigned int dim = 0; dim < fNDim; dim++)
-        if (cell_local[dim] > 0.5) cell_index[dim]++;
-      delete[] cell_local;
+        if (f_cell_local[dim] > 0.5) cell_index[dim]++;
     };
 
     /// \brief Linear interpolation (unchecked)
@@ -476,26 +482,22 @@ inline bool QwInterpolator<value_t,value_n>::Linear(
 	value_t* value) const
 {
   // Get cell and local normalized coordinates
-  unsigned int* cell_index = new unsigned int[fNDim];
-  double* cell_local = new double[fNDim];
-  Cell(coord, cell_index, cell_local);
+  Cell(coord, f_cell_index, f_cell_local);
   // Initialize to zero
   for (unsigned int i = 0; i < value_n; i++) value[i] = 0.0;
   // Calculate the interpolated value
   // by summing the 2^fNDim = 1 << fNDim neighbor points (1U is unsigned one)
   for (unsigned int offset = 0; offset < (1U << fNDim); offset++) {
     value_t neighbor[value_n];
-    if (! Get(Index(cell_index,offset), neighbor)) return false;
+    if (! Get(Index(f_cell_index,offset), neighbor)) return false;
     // ... with appropriate weighting factors (1 - cell_local or cell_local)
     double fac = 1.0;
     for (unsigned int dim = 0; dim < fNDim; dim++)
-      fac *= ((offset >> dim) & 0x1)? cell_local[dim] : (1 - cell_local[dim]);
+      fac *= ((offset >> dim) & 0x1)? f_cell_local[dim] : (1 - f_cell_local[dim]);
     // ... for all vector components
     for (unsigned int i = 0; i < value_n; i++)
       value[i] += fac * neighbor[i];
   }
-  delete[] cell_index;
-  delete[] cell_local;
   return true;
 }
 
@@ -510,11 +512,8 @@ inline bool QwInterpolator<value_t,value_n>::NearestNeighbor(
 	value_t* value) const
 {
   // Get nearest cell
-  unsigned int* cell_index = new unsigned int[fNDim];
-  Nearest(coord, cell_index);
-  bool status = Get(Index(cell_index), value);
-  delete[] cell_index;
-  return status;
+  Nearest(coord, f_cell_index);
+  return Get(Index(f_cell_index), value);
 }
 
 /**
@@ -652,9 +651,7 @@ inline void QwInterpolator<value_t,value_n>::Cell(
 	unsigned int* cell_index) const
 {
   // Get cell index and ignore local coordinates
-  double* cell_local = new double[fNDim];
-  Cell(coord, cell_index, cell_local);
-  delete[] cell_local;
+  Cell(coord, cell_index, f_cell_local);
 }
 
 /**
@@ -698,10 +695,8 @@ inline void QwInterpolator<value_t,value_n>::Coord(
 	const unsigned int linear_index,
 	coord_t* coord) const
 {
-  unsigned int* cell_index = new unsigned int[fNDim];
-  Cell(linear_index,cell_index);
-  Coord(cell_index,coord);
-  delete[] cell_index;
+  Cell(linear_index,f_cell_index);
+  Coord(f_cell_index,coord);
 }
 
 /**
