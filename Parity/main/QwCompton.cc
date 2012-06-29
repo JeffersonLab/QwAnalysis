@@ -179,6 +179,9 @@ int main(int argc, char* argv[])
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstAsymmetry(),"asym_");
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstDifference(),"diff_");
     rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
+    // Construct indices to get from one tree to the other
+    rootfile->ConstructIndices("Mps_Tree","Slow_Tree");
+    rootfile->ConstructIndices("Hel_Tree","Slow_Tree");
 
     // Summarize the ROOT file structure
     rootfile->PrintTrees();
