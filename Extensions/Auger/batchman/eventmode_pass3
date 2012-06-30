@@ -2,7 +2,7 @@
 umask 002
 
 export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
-export QWANALYSIS= /group/qweak/QwAnalysis/Linux/QwAnalysis_TrackingPass3
+export QWANALYSIS=/group/qweak/QwAnalysis/Linux/QwAnalysis_TrackingPass3
 . $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
 
 $QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl -e qwtracking \
