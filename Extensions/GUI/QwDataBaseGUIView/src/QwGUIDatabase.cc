@@ -1097,10 +1097,10 @@ void QwGUIDatabase::PlotGraphs()
     mc->cd(ind+1);
     gPad->SetBottomMargin(0.2);
     ((TGraph*)obj)->Draw("ap");
-
     leg = (TLegend*)LegendArray.At(ind);
     if(leg!=NULL) leg->Draw("");
     ind++;
+    gPad->Update();
     obj = next();
   }
   mc->Modified();
@@ -1504,10 +1504,11 @@ void QwGUIDatabase::PlotDetector()
   // histo parameters
   gDirectory->Delete();
   gStyle->Reset();
+  gStyle->SetOptTitle(1);
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(1.0);
-  gStyle->SetTitleX(0.2);
-  gStyle->SetTitleW(0.6);
+  gStyle->SetTitleX(0.1);
+  gStyle->SetTitleW(0.4);
   gStyle->SetTitleSize(0.07);
   gStyle->SetTitleOffset(2.2);
   gStyle->SetTitleBorderSize(0);
@@ -1999,18 +2000,7 @@ void QwGUIDatabase::PlotDetector()
       fit6 -> SetLineColor(kGreen);
     }
     
-    //Make RMS graph with all events
-
-    if(plot.Contains("RMS")) grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
-
-    // Multigraph for the mean values
-    if(plot.Contains("Mean")) grp = new TMultiGraph();
-
-    if(plot.Contains("Both")){
-      grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
-      grp = new TMultiGraph();
-    }
-    
+    // Get titles for X, Y and graphs
     TString y_title = GetYTitle(measurement_type, det_id);
     TString title   = GetTitle(measurement_type, device);
     TString x_title;
@@ -2022,7 +2012,21 @@ void QwGUIDatabase::PlotDetector()
 	else
 	  if(x_axis == ID_X_SLUG)x_title = "Slug Number";
 	  else x_title = "";
+
+
+
+    //Make RMS graph with all events
+    if(plot.Contains("RMS")) grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
+
+    // Multigraph for the mean values
+    if(plot.Contains("Mean")) grp = new TMultiGraph("grp",title);
+
+    if(plot.Contains("Both")){
+      grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
+      grp = new TMultiGraph("grp",title);
+    }
     
+   
     if(grp){
       if(m>0)grp->Add(grp_in);
       if(k>0)grp->Add(grp_out);
@@ -2105,7 +2109,12 @@ void QwGUIDatabase::PlotDetector()
     PlotGraphs();
     char * label;
 
-    // format axis to display time
+    // redraw rms graph
+    if(grp_rms)grp_rms->Draw("ab");
+    //by default PlotGraphs() draws graphs in "ap" format. 
+    //So to get the bars, we have to redraw the rms graph.
+ 
+   // format axis to display time
     if(x_axis == ID_X_TIME or x_axis == ID_X_TIME_RUNLET){
       if(grp){
 	grp->GetXaxis()->SetTimeDisplay(1);
@@ -2116,7 +2125,6 @@ void QwGUIDatabase::PlotDetector()
 	grp->GetXaxis()->Draw();
       }
       if(grp_rms) {
-	grp_rms->Draw("ab"); // by default PlotGraphs() draws graphs in "ap" format. So to get the bars, we have to redraw the rms graph.
  	grp_rms->GetXaxis()->SetTimeDisplay(1);
 	grp_rms->GetXaxis()->SetTimeOffset(0,"gmt");
 	grp_rms->GetXaxis()->SetLabelOffset(0.03); 
@@ -2131,7 +2139,6 @@ void QwGUIDatabase::PlotDetector()
       // set the alphanumeric labels for runlets
       if(grp) grp->GetXaxis()->Set(row_size, 0, row_size-1); // rebin
       if(grp_rms) {
-	grp_rms->Draw("ab");
 	grp_rms->GetXaxis()->Set(row_size, 0, row_size-1);
 	gPad->SetBottomMargin(0.2);
 	gPad->Update();
@@ -2141,11 +2148,11 @@ void QwGUIDatabase::PlotDetector()
     	if(grp) (grp->GetXaxis())->SetBinLabel(k,label);
 	if(grp_rms) (grp_rms->GetXaxis())->SetBinLabel(k,label);
       }
-    } else{
-      if(grp_rms)
-	grp_rms->Draw("ab");
     }
-    // For WEIN and SLUG we can just use the values we read.
+    else{
+      // do nothing
+      // For WEIN and SLUG we can just use the values we read.
+    }
 
     // set titles for mean value graph
     if(grp){
@@ -2153,6 +2160,7 @@ void QwGUIDatabase::PlotDetector()
       grp->GetYaxis()->SetTitle(y_title);
       grp->GetXaxis()->SetTitle(x_title);
       grp->GetYaxis()->CenterTitle();
+      gPad->Update();
     }
  
     // set titles for rms value graph
@@ -2161,6 +2169,7 @@ void QwGUIDatabase::PlotDetector()
       grp_rms->GetYaxis()->SetTitle(y_title);
       grp_rms->GetXaxis()->SetTitle(x_title);
       grp_rms->GetYaxis()->CenterTitle();
+      gPad->Update();
     }   
 
     if(plot.Contains("Both")){
@@ -2910,11 +2919,10 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
       if(property.Contains("Slope")){ //angles
 	ytitle  = "Beam Angle Differences(#murad)";
       }
-      else
-	ytitle  = "Beam Position Differences (nm)";
+      ytitle  = "Beam Position Differences (nm)";
     }
     else if (det_id == ID_BCM_DD){
-      	ytitle = "BCM Double Difference (ppm)";
+      ytitle = "BCM Double Difference (ppm)";
     }
     else
       ytitle = "Beam Position Differences (nm)";
@@ -2966,22 +2974,37 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
     case ID_X_SLUG:
       xaxis = "vs Slug";
     case ID_X_HISTO:
+    case ID_X_PULL_PLOT:
       xaxis = "";
       break;
     default:
       break;
     }
-  if (measurement_type == "y") 
-    title = Form("%s Yield ",device.Data());
-  if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
-    title = Form("%s Asymmetry ",device.Data());
-  if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" )
-    title = Form("%s Beam Position Difference vs Runlet Number",device.Data());
-  if (measurement_type == "yq")
-    title = Form("%s Current ",device.Data());
-  if (measurement_type == "yp")
-    title = Form("%s Beam Position ",device.Data());
+//   if (measurement_type == "y")
+//     title = Form("%s Yield ",device.Data());
+//   if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
+//     title = Form("%s Asymmetry ",device.Data());
+//   if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" ){
+//     if (det_id == ID_E_CAL) title  =  Form("%s Asymmetry",device.Data());
+//     else if (det_id == ID_CMB_BPM ){
+//       if(property.Contains("Slope")){ //angles
+// 	title  =  Form("%s Beam Angle differe",device.Data());
+//       }
+//       ytitle  = "Beam Position Differences (nm)";
+//     }
+//     else if (det_id == ID_BCM_DD){
+//       ytitle = "BCM Double Difference (ppm)";
+//     }
+//     else
+//       ytitle = "Beam Position Differences (nm)";
+//     title = Form("%s Beam Position Difference vs Runlet Number",device.Data());
+//   }
+//   if (measurement_type == "yq")
+//     title = Form("%s Current ",device.Data());
+//   if (measurement_type == "yp")
+//     title = Form("%s Beam Position ",device.Data());
 
+  title = Form("%s %s ",device.Data(),xaxis.Data());
   title+=xaxis;
   
   return title;
