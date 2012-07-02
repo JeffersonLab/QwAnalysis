@@ -1233,6 +1233,7 @@ void QwVQWK_Channel::DivideBy(const QwVQWK_Channel &denom)
 /**
  * Accumulate the running moments M1 and M2
  * @param value Object (single event or accumulated) to add to running moments
+ * @param count Number of good events in value
  */
 void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value, Int_t count)
 {

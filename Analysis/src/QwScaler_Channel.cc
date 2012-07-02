@@ -99,8 +99,9 @@ void VQwScaler_Channel::RandomizeEventData(int helicity, double time)
 
 /*!  Static member function to return the word offset within a data buffer
  *   given the module number index and the channel number index.
- *   @param moduleindex   Scaler index within this buffer; counts from 1
- *   @param channelindex  word index within this scaler; counts from 1
+ *   @param scalerindex   Scaler index within this buffer; counts from 1
+ *   @param wordindex  Word index within this scaler; counts from 1
+ *   @param header  Number of header words; normally is 1
  *   @return   The number of words offset to the beginning of this
  *             scaler word from the beginning of the buffer.
  */

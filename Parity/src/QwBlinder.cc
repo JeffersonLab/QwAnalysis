@@ -502,7 +502,7 @@ void  QwBlinder::WriteFinalValuesToDB(QwParityDB* db)
 
 /**
  * Generate a set of test values of similar size as measured asymmetries
- * @param barestring Seed string
+ * @param n Number of test values
  */
 void QwBlinder::InitTestValues(const int n)
 {

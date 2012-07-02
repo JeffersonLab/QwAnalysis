@@ -1218,7 +1218,7 @@ void QwMainCerenkovDetector::Blind(const QwBlinder *blinder)
 /**
  * Blind the difference using the yield
  * @param blinder Blinder
- * @param yield Corresponding yield
+ * @param subsys Subsystem
  */
 void QwMainCerenkovDetector::Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys)
 {

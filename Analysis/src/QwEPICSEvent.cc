@@ -433,45 +433,45 @@ void QwEPICSEvent::SetDefaultAutogainList(std::vector<std::string>& input_list)
 }
 
 
-int QwEPICSEvent::SetDataValue(const string& tag, const Double_t value, int event)
+int QwEPICSEvent::SetDataValue(const string& tag, const Double_t value, const int event)
 {
   Int_t tagindex = FindIndex(tag);
   return (SetDataValue(tagindex, value, event));
 }
 
-int QwEPICSEvent::SetDataValue(const string& tag, const string& value, int event)
+int QwEPICSEvent::SetDataValue(const string& tag, const string& value, const int event)
 {
   Int_t tagindex = FindIndex(tag);
   return (SetDataValue(tagindex, value, event));
 }
 
-int QwEPICSEvent::SetDataValue(Int_t tagindex, const Double_t value, int event)
+int QwEPICSEvent::SetDataValue(const Int_t index, const Double_t value, const int event)
 {
-  if (tagindex == kEPICS_Error) return kEPICS_Error;
-  if (tagindex < 0)             return kEPICS_Error;
+  if (index == kEPICS_Error) return kEPICS_Error;
+  if (index < 0)             return kEPICS_Error;
 
   if (value != kInvalidEPICSData) {
-    fEPICSDataEvent[tagindex].EventNumber = event;
-    fEPICSDataEvent[tagindex].Value       = value;
-    fEPICSDataEvent[tagindex].StringValue = "";
-    fEPICSDataEvent[tagindex].Filled      = kTRUE;
+    fEPICSDataEvent[index].EventNumber = event;
+    fEPICSDataEvent[index].Value       = value;
+    fEPICSDataEvent[index].StringValue = "";
+    fEPICSDataEvent[index].Filled      = kTRUE;
     return 0;
   }
   return kEPICS_Error;
 }
 
-int QwEPICSEvent::SetDataValue(Int_t tagindex, const string& value, int event)
+int QwEPICSEvent::SetDataValue(const Int_t index, const string& value, const int event)
 {
-  if (tagindex == kEPICS_Error) return kEPICS_Error;
-  if (tagindex < 0)             return kEPICS_Error;
+  if (index == kEPICS_Error) return kEPICS_Error;
+  if (index < 0)             return kEPICS_Error;
 
   Double_t tmpvalue = kInvalidEPICSData;
-  switch (fEPICSVariableType[tagindex]) {
+  switch (fEPICSVariableType[index]) {
   case kEPICSString:
-    fEPICSDataEvent[tagindex].EventNumber = event;
-    fEPICSDataEvent[tagindex].Value       = 0.0;
-    fEPICSDataEvent[tagindex].StringValue = value;
-    fEPICSDataEvent[tagindex].Filled      = kTRUE;
+    fEPICSDataEvent[index].EventNumber = event;
+    fEPICSDataEvent[index].Value       = 0.0;
+    fEPICSDataEvent[index].StringValue = value;
+    fEPICSDataEvent[index].Filled      = kTRUE;
     return 0;
     break;
 
@@ -479,14 +479,14 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, const string& value, int event)
     if (IsNumber(value)) {
       tmpvalue = Double_t(atof(value.c_str()));
     }
-    return SetDataValue(tagindex, tmpvalue, event);
+    return SetDataValue(index, tmpvalue, event);
     break;
 
   case kEPICSInt:
     if(IsNumber(value)) {
       tmpvalue = Double_t(atol(value.c_str()));
     }
-    return SetDataValue(tagindex, tmpvalue, event);
+    return SetDataValue(index, tmpvalue, event);
     break;
   }
 

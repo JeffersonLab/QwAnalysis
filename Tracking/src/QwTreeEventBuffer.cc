@@ -443,7 +443,6 @@ std::vector<QwPartialTrack*> QwTreeEventBuffer::GetPartialTracks(EQwRegionID reg
 
 /**
  * Get the hit list
- * @param eventnumber Event number
  * @param resolution_effects Flag to enable resolution effects (default is true)
  * @return Hit list
  */
@@ -989,8 +988,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       phi strips that are activated.
 
  @param detectorinfo Detector information
- @param x X coordinate of the track in the wire plane
- @param y Y coordinate of the track in the wire plane
+ @param x_local X coordinate of the track in the wire plane
+ @param y_local Y coordinate of the track in the wire plane
+ @param resolution_effects Flag to enable resolution smearing
  @return Pointer to the created hit object (needs to be deleted by caller)
 
 */
@@ -1074,7 +1074,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion1 (
  @param detectorinfo Detector information
  @param x X coordinate of the track in the wire plane
  @param y Y coordinate of the track in the wire plane
-
+ @param resolution_effects Flag to enable resolution smearing
  @return Pointer to the created hit object (needs to be deleted by caller)
 
 */
@@ -1174,7 +1174,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
  @param y Y coordinate of the track in the wire plane
  @param mx X slope of the track through the wire plane
  @param my Y slope of the track through the wire plane
-
+ @param resolution_effects Flag to enable resolution smearing
  @return Standard list of hit objects
 
 */
@@ -1286,8 +1286,8 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 /*! Cerenkov and trigger scintillator hit position determination
 
  @param detectorinfo Detector information
- @param x X coordinate of the track in the wire plane
- @param y Y coordinate of the track in the wire plane
+ @param x_local X coordinate of the track in the wire plane
+ @param y_local Y coordinate of the track in the wire plane
  @return Pointer to the created hit object (needs to be deleted by caller)
 
 */

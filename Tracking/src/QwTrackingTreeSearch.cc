@@ -774,6 +774,7 @@ int QwTrackingTreeSearch::TsSetPoint (
  * @param newa
  * @param front
  * @param back
+ * @param offset
  * @param treelinelist Pointer to the linked list of treelines
  * @return 0 if no such tree line exists, 1 otherwise
  */

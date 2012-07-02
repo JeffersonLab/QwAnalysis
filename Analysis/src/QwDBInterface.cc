@@ -82,7 +82,7 @@ T QwDBInterface::TypedDBClone()
 
 
 /// Specifications of the templated function
-/// template <class T> inline T QwDBInterface::TypedDBClone();
+/// template \verbatim<class T>\endverbatim inline T QwDBInterface::TypedDBClone();
 template<> QwParitySSQLS::md_data
 QwDBInterface::TypedDBClone<QwParitySSQLS::md_data>() {
   QwParitySSQLS::md_data row(0);

@@ -128,14 +128,14 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
     }
 
     // Output stream operator
-    friend std::ostream& operator<< (std::ostream& stream, const QwGeometry& det);
+    friend std::ostream& operator<< (std::ostream& stream, const QwGeometry& detectors);
 
 };
 
 /**
  * Output stream operator
  * @param stream Output stream
- * @param det Detector geometry object
+ * @param detectors Detector geometry object
  * @return Output stream
  */
 inline std::ostream& operator<< (std::ostream& stream, const QwGeometry& detectors)

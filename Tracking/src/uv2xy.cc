@@ -55,8 +55,8 @@ Uv2xy::Uv2xy(const double angleU)
 /**
  * Create a coordinate transformation helper object based on two angles.
  *
- * @param angleUdeg Angle (in radians) of the U axis
- * @param angleVdeg Angle (in radians) of the V axis
+ * @param angleUrad Angle (in radians) of the U axis
+ * @param angleVrad Angle (in radians) of the V axis
  */
 Uv2xy::Uv2xy(const double angleUrad, const double angleVrad)
 {

@@ -24,6 +24,8 @@
 #include "mysql++.h"
 #include "ssqls.h"
 
+// Exclude from doxygen processing because of numerous warnings
+/// @cond PARITY_SSQLS
 namespace QwParitySSQLS {
 
 
@@ -84,6 +86,7 @@ namespace QwParitySSQLS {
     sql_create_4(bf_test, 1, 2 , mysqlpp::sql_int_unsigned, bf_test_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::Null<mysqlpp::sql_int_unsigned>, test_number, mysqlpp::Null<mysqlpp::sql_float>, test_value) 
   
     }
+/// @endcond
 
 #if (__GNUC__ == 4) && (__GNUC_MINOR__ > 5)
 #  pragma GCC diagnostic pop

@@ -5,8 +5,8 @@
 
  \brief Example code for the event display routines
 
- \edited by Wouter Deconinck; MIT
- \edited by Derek Jones; The George Washington University; dwjones@jlab.org
+ \author Wouter Deconinck; MIT
+ \author Derek Jones; The George Washington University; dwjones@jlab.org
 
 *//*-------------------------------------------------------------------------*/
 //

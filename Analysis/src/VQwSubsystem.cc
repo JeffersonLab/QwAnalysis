@@ -130,7 +130,7 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
  * Set the parent of this subsystem to the specified parent array.  A subsystem
  * can have multiple parents, but that is not recommended.
  *
- * @param subsystemarray Parent array
+ * @param parent Parent array
  */
 void VQwSubsystem::SetParent(QwSubsystemArray* parent)
 {
@@ -207,6 +207,7 @@ Bool_t VQwSubsystem::RequestExternalValue(
  * Publish a variable name to the subsystem array
  * @param name Name of the variable
  * @param desc Description of the variable
+ * @param value Channel to publish
  * @return True if the variable could be published, false otherwise
  */
 Bool_t VQwSubsystem::PublishInternalValue(

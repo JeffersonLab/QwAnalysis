@@ -44,7 +44,7 @@ class QwParameterFile;
  *
  * \dot
  * digraph example {
- *   node [shape=round, fontname=Helvetica, fontsize=10];
+ *   node [shape=box, fontname=Helvetica, fontsize=10];
  *   VQwSubsystem [ label="VQwSubsystem" URL="\ref VQwSubsystem"];
  *   VQwSubsystemParity [ label="VQwSubsystemParity" URL="\ref VQwSubsystemParity"];
  *   VQwSubsystemTracking [ label="VQwSubsystemTracking" URL="\ref VQwSubsystemTracking"];

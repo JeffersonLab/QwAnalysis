@@ -43,7 +43,7 @@ void V_Print (const double *v, const double *w, const int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double UNorm (double *A, const int n, int m)
+ \fn double UNorm (const double *A, int n, const int m)
 
  \brief Calculates the least upper bound norm
 
@@ -435,7 +435,7 @@ double *M_InvertPos (double *B, const int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double *M_A_times_b (double *y, double *A, const int n, int m, double *b)
+ \fn double *M_A_times_b (double *y, const double *A, const int n, const int m, const double *b)
 
  \brief Calculates y[n] = A[n,m] * b[m], with dimensions indicated
 

@@ -24,7 +24,7 @@
 using std::vector;
 
 /**
-	@author siyuan yang <sxyang@linux-ehar>
+	@author siyuan yang sxyang@linux-ehar
 */
 ///
 /// \ingroup QwTracking

@@ -586,7 +586,10 @@ inline void QwRootFile::ConstructIndices(const std::string& from, const std::str
 
 /**
  * Construct the tree branches of a generic object
- * @param @param object Subsystem array
+ * @param name Name for tree
+ * @param desc Description for tree
+ * @param object Subsystem array
+ * @param prefix Prefix for the tree
  */
 template < class T >
 void QwRootFile::ConstructTreeBranches(
@@ -643,6 +646,7 @@ void QwRootFile::ConstructTreeBranches(
 
 /**
  * Fill the tree branches of a generic object by name
+ * @param name Name for tree
  * @param object Subsystem array
  */
 template < class T >
@@ -690,6 +694,7 @@ void QwRootFile::FillTreeBranches(
 
 /**
  * Construct the histogram of a generic object
+ * @param name Name for histogram directory
  * @param object Subsystem array
  */
 template < class T >

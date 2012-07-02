@@ -41,7 +41,7 @@ class VQwHardwareChannel;
  *
  * \dot
  * digraph example {
- *   node [shape=round, fontname=Helvetica, fontsize=10];
+ *   node [shape=box, fontname=Helvetica, fontsize=10];
  *   VQwDataElement [ label="VQwDataElement" URL="\ref VQwDataElement"];
  *   QwVQWK_Channel [ label="QwVQWK_Channel" URL="\ref QwVQWK_Channel"];
  *   VQwDataElement -> QwVQWK_Channel;

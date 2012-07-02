@@ -3,7 +3,7 @@
 
  \class QwTrackingTreeCombine
 
- \briefCombines track segments and performs line fitting.
+ \brief  Combines track segments and performs line fitting.
 
  \author Burnham Stokes
  \date   7/30/08
@@ -765,15 +765,29 @@ bool QwTrackingTreeCombine::InAcceptance (
  we determine the chi^2 for all possible hit permutations.  The hit combination
  with the best chi^2 is stored in the treeline structure.
 
+ @param x1 position at first plane
+ @param x2 position at last plane
+ @param dx1 uncertainty at first plane
+ @param dx2 uncertainty at last plane
+ @param Dx offset between first and last planes
+ @param z1 reference z coordinate
+ @param Dz distance between first and last planes
+ @param treeline treeline to operate on
+ @param hitlist hit list
+ @param dlayer
+ @param tlayer
+ @param iteration
+ @param stay_tuned
+ @param width
 *//*-------------------------------------------------------------------------*/
 bool QwTrackingTreeCombine::TlCheckForX (
-    double x1,  double x2,	///< position at first and last planes
-    double dx1, double dx2,	///< uncertainty at first and last planes
-    double Dx,		///< offset between first and last planes
-    double z1,		///< reference z coordinate
-    double Dz,		///< distance between first and last planes
-    QwTrackingTreeLine *treeline,	///< treeline to operate on
-    QwHitContainer *hitlist,	///< hits list
+    double x1,  double x2,
+    double dx1, double dx2,
+    double Dx,
+    double z1,
+    double Dz,
+    QwTrackingTreeLine *treeline,
+    QwHitContainer *hitlist,
     int dlayer,
     int tlayer,
     int iteration,
@@ -1106,8 +1120,10 @@ OUTPUT : the best hits are added to treeline's hit list and treeline's
 	line parameters are set.
 --------------------------------*/
 int QwTrackingTreeCombine::TlMatchHits (
-    double x1, double x2,	///< x coordinates at first/last wire (i.e. distances)
-    double z1, double z2,	///< z coordinates of first/last wire (i.e. wire number)
+    double x1,	///< x coordinates at first wire (i.e. distances)
+    double x2,	///< x coordinates at last wire (i.e. distances)
+    double z1,	///< z coordinates of first wire (i.e. wire number
+    double z2,	///< z coordinates of last wire (i.e. wire number)
     QwTrackingTreeLine *treeline,	///< determined treeline
     QwHitContainer *hitlist,	///< hit list
     int tlayers )		///< number of tree layers

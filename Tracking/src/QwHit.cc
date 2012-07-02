@@ -23,7 +23,7 @@ QwHit::QwHit()
 
 /**
  * Copy-constructor with object argument
- * @param hit Hit object
+ * @param that Hit object
  */
 QwHit::QwHit(const QwHit &that)
 : VQwTrackingElement(that)
@@ -38,7 +38,7 @@ QwHit::QwHit(const QwHit &that)
 
 /**
  * Copy-constructor with pointer argument
- * @param hit Pointer to a hit
+ * @param that Pointer to a hit
  */
 QwHit::QwHit(const QwHit* that)
 : VQwTrackingElement(*that)
@@ -62,10 +62,11 @@ QwHit::QwHit(const QwHit* that)
  * @param hitcount Hit number
  * @param region Region
  * @param package Package
+ * @param octant Octant number
  * @param plane Plane number
  * @param direction Element direction
  * @param wire Element number
- * @param data Data block
+ * @param rawdata Data block
  */
 QwHit::QwHit(Int_t bank_index,
 	     Int_t slot_num,

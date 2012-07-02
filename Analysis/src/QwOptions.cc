@@ -106,6 +106,7 @@ QwOptions::~QwOptions()
  * for later parsing.
  * @param argc Number of arguments
  * @param argv[] Array of arguments
+ * @param default_config_file Flag to enable default config file named by executable
  */
 void QwOptions::SetCommandLine(int argc, char* argv[], bool default_config_file)
 {

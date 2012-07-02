@@ -67,7 +67,7 @@ QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
 
 /**
  * Fill the subsystem array with the contents of a map file
- * @param filename Map file
+ * @param detectors Map file
  */
 void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detectors)
 {
@@ -691,7 +691,7 @@ Bool_t QwSubsystemArray::PublishInternalValue(
 
 /**
  * Try to publish an internal variable matching the submitted name
- * @param name Name of the desired published variable
+ * @param device_name Name of the desired published variable
  * @return True if the variable could be published, false if not published
  */
 Bool_t QwSubsystemArray::PublishByRequest(TString device_name){

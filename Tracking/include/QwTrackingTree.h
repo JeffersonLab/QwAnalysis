@@ -78,15 +78,15 @@ class QwTrackingTree: public VQwTrackingElement {
     void SetGeometry(const QwGeometry& geometry) { fGeometry = geometry; };
 
     int consistent (
-	treenode *tst,
+	treenode *testnode,
 	int level,
 	QwDetectorInfo* detector);
-    treenode* existent (treenode *tst, int hash);
+    treenode* existent (treenode *node, int hash);
     treenode* nodeexists (nodenode *nd, treenode *tr);
 
     /// \brief Recursively generate the treesearch pattern database
     void marklin (
-	treenode *node,
+	treenode *father,
 	int level,
 	QwDetectorInfo* detector);
 
@@ -102,7 +102,7 @@ class QwTrackingTree: public VQwTrackingElement {
 	int levels,
 	int tlayers,
 	double rwidth,
-	bool regenerate);
+	bool skipreading);
 
     QwTrackingTreeRegion* inittree (
 	const string& filename,
@@ -154,7 +154,7 @@ class QwTrackingTree: public VQwTrackingElement {
     /// \brief Recursive method for pulling in the concise treesearch search database
     int _writetree (treenode *tn, FILE *fp, int32_t tlayers);
     /// \brief Recursive method to read the concise treesearch database from disk
-    int _readtree  (FILE *f, shorttree *stb, shortnode **father, int32_t tlayers);
+    int _readtree  (FILE *file, shorttree *stb, shortnode **father, int32_t tlayers);
     /// \brief Recursive method to initialize and generate the treesearch database
     treenode* _inittree (
 	int32_t tlayer,

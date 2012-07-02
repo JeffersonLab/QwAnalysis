@@ -89,7 +89,7 @@ class QwTrackingTreeSearch {
     /// \brief Search for the tree lines consistent with the hit pattern
     QwTrackingTreeLine* SearchTreeLines (QwTrackingTreeRegion *searchtree,
 		char *pattern[16], int *hashpat[16],
-		int maxlevel, int numwires, int tlayer);
+		int maxlevel, int numwires, int numlayers);
 
 
   private:

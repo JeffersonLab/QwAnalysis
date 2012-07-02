@@ -37,7 +37,7 @@ QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
 
 /**
  * Copy constructor by reference
- * @param track Original track
+ * @param that Original track
  */
 QwTrack::QwTrack(const QwTrack& that)
 : VQwTrackingElement(that)
@@ -54,7 +54,7 @@ QwTrack::QwTrack(const QwTrack& that)
 
 /**
  * Copy constructor from pointer
- * @param track Original track
+ * @param that Original track
  */
 QwTrack::QwTrack(const QwTrack* that)
 : VQwTrackingElement(*that)
@@ -86,7 +86,7 @@ QwTrack::~QwTrack()
 
 /**
  * Assignment operator
- * @param track Original track
+ * @param that Original track
  */
 QwTrack& QwTrack::operator=(const QwTrack& that)
 {

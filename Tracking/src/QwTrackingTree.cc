@@ -207,10 +207,7 @@ QwTrackingTree::~QwTrackingTree ()
  *
  * @param testnode
  * @param level
- * @param package
- * @param type
- * @param region
- * @param dir
+ * @param detector
  * @return
  */
 int QwTrackingTree::consistent(
@@ -549,10 +546,7 @@ treenode* QwTrackingTree::nodeexists (nodenode* node, treenode* tr)
  *
  * @param father Father node
  * @param level Level of precision
- * @param package Detector package
- * @param type Detector type
- * @param region Detector region
- * @param dir Detector direction
+ * @param detector Detector info
  */
 void QwTrackingTree::marklin (
 	treenode* father,

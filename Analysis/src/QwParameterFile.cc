@@ -199,7 +199,7 @@ QwParameterFile::QwParameterFile(const std::string& name)
 
 /**
  * Open a file at the specified location
- * @param path Path to file to be opened
+ * @param file Path to file to be opened
  * @return False if the file could not be opened
  */
 bool QwParameterFile::OpenFile(const bfs::path& file)
@@ -731,6 +731,7 @@ QwParameterFile* QwParameterFile::ReadNextSection(TString &secname, const bool k
 /**
  * Read the lines of the next module
  * @param secname Name of the next module (returns)
+ * @param keep_header Flag to keep header of module
  * @return Pointer to the parameter stream of the next module
  */
 QwParameterFile* QwParameterFile::ReadNextModule(std::string &secname, const bool keep_header)
