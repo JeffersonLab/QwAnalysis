@@ -628,8 +628,8 @@ void QwGUIDatabase::MakeLayout()
   dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
   dLabRunRange        = new TGLabel(dControlsFrame, "Run/Slug Range");
   dRunFrame	      	  = new TGHorizontalFrame(dControlsFrame);
-  dNumStartRun        = new TGNumberEntry(dRunFrame, 18000, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
-  dNumStopRun         = new TGNumberEntry(dRunFrame, 19000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dNumStartRun        = new TGNumberEntry(dRunFrame, 9594, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dNumStopRun         = new TGNumberEntry(dRunFrame, 9812, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dBtnSubmit          = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);  //dSlowControls       = new TGButtonGroup(dControlsFrame, "Slow Controls");
 
 
@@ -2580,12 +2580,12 @@ void QwGUIDatabase::CreatePullPlot()
       TString title   = GetTitle(measurement_type, device);
 
       THStack *hs = new THStack("hs",title);
-      TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",1000,-5,5);
-      TH1F *h_in_R_pull = new TH1F("h_in_R_pull","",1000,-5,5);
-      TH1F *h_out_L_pull = new TH1F("h_out_L_pull","",1000,-5,5);
-      TH1F *h_out_R_pull = new TH1F("h_out_R_pull","",1000,-5,5);
-      TH1F *h_suspect_pull = new TH1F("h_suspect_pull","",1000,-5,5);
-      TH1F *h_bad_pull = new TH1F("h_bad_pull","",1000,-5,5);
+      TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",100,-5,5);
+      TH1F *h_in_R_pull = new TH1F("h_in_R_pull","",100,-5,5);
+      TH1F *h_out_L_pull = new TH1F("h_out_L_pull","",100,-5,5);
+      TH1F *h_out_R_pull = new TH1F("h_out_R_pull","",100,-5,5);
+      TH1F *h_suspect_pull = new TH1F("h_suspect_pull","",100,-5,5);
+      TH1F *h_bad_pull = new TH1F("h_bad_pull","",100,-5,5);
       
       TH1F *h_in_L=NULL;
       TH1F *h_in_R = NULL;
