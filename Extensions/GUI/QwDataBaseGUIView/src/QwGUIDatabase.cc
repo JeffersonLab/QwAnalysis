@@ -2580,12 +2580,13 @@ void QwGUIDatabase::CreatePullPlot()
       TString title   = GetTitle(measurement_type, device);
 
       THStack *hs = new THStack("hs",title);
-      TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",100,-5,5);
-      TH1F *h_in_R_pull = new TH1F("h_in_R_pull","",100,-5,5);
-      TH1F *h_out_L_pull = new TH1F("h_out_L_pull","",100,-5,5);
-      TH1F *h_out_R_pull = new TH1F("h_out_R_pull","",100,-5,5);
-      TH1F *h_suspect_pull = new TH1F("h_suspect_pull","",100,-5,5);
-      TH1F *h_bad_pull = new TH1F("h_bad_pull","",100,-5,5);
+      //TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",1000,-5,5);
+      TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",100,0,0);
+      TH1F *h_in_R_pull = new TH1F("h_in_R_pull","",100,0,0);
+      TH1F *h_out_L_pull = new TH1F("h_out_L_pull","",100,0,0);
+      TH1F *h_out_R_pull = new TH1F("h_out_R_pull","",100,0,0);
+      TH1F *h_suspect_pull = new TH1F("h_suspect_pull","",100,0,0);
+      TH1F *h_bad_pull = new TH1F("h_bad_pull","",100,0,0);
       
       TH1F *h_in_L=NULL;
       TH1F *h_in_R = NULL;
