@@ -14,7 +14,7 @@ graph of the octant that was fed to the analyzer for the package of the canvas.
 
 Entry Conditions: the run number, bool for first 100k
 Date: 06-13-2012
-Modified:
+Modified: 60-29-2012
 Assisted By: Wouter Deconinck
 *********************************************************/
 
@@ -40,7 +40,7 @@ void OctantDetermination(int runnum, bool is100k)
 	for (int pkg = 1; pkg <= 2; pkg++)
 	{
 		//Create the canvas
-		TCanvas c1 ("c1", Form("Octant Determination - for Package %d",pkg), 900,900);
+		TCanvas c1 ("c1", Form("Octant Determination - for Package %d",pkg), 600,600);
 
 		//divide the canvas
 		c1.Divide(3,3);
@@ -66,33 +66,43 @@ void OctantDetermination(int runnum, bool is100k)
 		c1.SaveAs(Prefix+Form("Main_Detector_vs_Trigger_Scint_Package_%d.png",pkg));
 	}
 
-	for (int pkg2 = 1; pkg2 <= 2; pkg2++)
+	for (int reg = 2 ; reg<=3 ;reg ++) 
 	{
-        	//Create the canvas
-        	TCanvas c2("c2", Form("Main detector signal for each oct for Package %d",pkg2), 900,900);
 
-        	//divide the canvas
-        	c2.Divide(3,3);
+		for (int pkg2 = 1; pkg2 <= 2; pkg2++)
+		{
+        		//Create the canvas
+        		TCanvas c2("c2", Form("Main detector signal for each oct for Region %d Package %d", reg, pkg2), 600,600);
 
-		//for the first 4 octant draw what is wanted the main dectctor bar singnals vs trigger scintllator signals
-        	for (int oct3 = 1; oct3 <=8; oct3 ++)
-        	{
-                	//select the pad we want to draw on
-                	c2.cd(octant_to_pad[oct3]);
+        		//divide the canvas
+        		c2.Divide(3,3);
 
-                	//draw what I want - the oct depenece from main detector info
-                	chain->Draw(Form("maindet.md%dm_adc+maindet.md%dp_adc",oct3, oct3), Form("events.fQwTreeLines.fPackage== %d",pkg2));
+			//for the first 4 octant draw what is wanted the main dectctor bar singnals vs trigger scintllator signals
+        		for (int oct3 = 1; oct3 <=8; oct3 ++)
+        		{
+                		//select the pad we want to draw on
+                		c2.cd(octant_to_pad[oct3]);
 
-        	}
+                		//draw what I want - the oct depenece from main detector info
+                		//the use of qoutes here in the second and third line of this command is 
+				//because the qoutes signify the closing of a string which is needed in 
+				//wrapping commands
+				chain->Draw(Form("maindet.md%dm_adc+maindet.md%dp_adc",oct3, oct3), 
+                                            Form("events.fQwTreeLines.fRegion==%d" 
+                                            "&& events.fQwTreeLines.fPackage== %d",reg, pkg2));
 
-		//selesct the center pad that we want to draw on
-                c2.cd(5);
+        		}
 
-                // draw what we want the fQwHits.fOctant for region 3 and the package we are in
-                chain->Draw("events.fQwTreeLines.fOctant",Form("events.fQwTreeLines.fPackage==%d && events.fQwTreeLines.fRegion==3", pkg2));
+			//selesct the center pad that we want to draw on
+                	c2.cd(5);
 
-        	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-       		c2.SaveAs(Prefix+Form("Main_Detector_Package_%d.png",pkg2));
-	}	
+                	// draw what we want the fQwHits.fOctant for region 3 and the package we are in
+                	chain->Draw("events.fQwTreeLines.fOctant",Form("events.fQwTreeLines.fPackage==%d && events.fQwTreeLines.fRegion==%d", pkg2, reg));
+
+        		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
+       			c2.SaveAs(Prefix+Form("Main_Detector_Region_%d_Package_%d.png", reg, pkg2));
+		}	
+
+	}
 
 }

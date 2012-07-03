@@ -14,7 +14,7 @@ v - 3,6,9,12 or fPlane%3==0
 
 Entry Conditions: the run number, bool for first 100k
 Date: 02-24-2012
-Modified:02-26-2012
+Modified:06-29-2012
 Assisted By: Juan Carlos
 *********************************************************/
 
@@ -38,7 +38,7 @@ Prefix = Form("$QWSCRATCH/tracking/www/run_%d/drift_distance_and_time_%d_",runnu
 
 
 //Create the canvas
-TCanvas c1("c1", "Drift Distance and Drift Time for Package 1", 900,1000);
+TCanvas c1("c1", "Drift Distance and Drift Time for Package 1", 600,700);
 
 //divide the canvas
 c1.Divide(3,2);
@@ -106,7 +106,7 @@ event_tree->Draw("events.fQwHits.fTimeNs>>tV","events.fQwHits.fRegion==2&&events
 c1.SaveAs(Prefix+"Package_1.png");
 
 //Create the canvas - for package 2
-TCanvas c2("c2", "Drift Distance and Drift Time for Package 2", 900,1000);
+TCanvas c2("c2", "Drift Distance and Drift Time for Package 2", 600,700);
 
 //divide the canvas
 c2.Divide(3,2);

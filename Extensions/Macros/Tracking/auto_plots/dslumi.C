@@ -9,7 +9,7 @@ To graph the sum of all 8 dslumi rates vs. time on one canvas
 
 Entry Conditions: the run number, bool for first 100k
 Date: 02-07-2012
-Modified:
+Modified: 06-29-2012
 Assisted By: Juan Carlos
 *********************************************************/
 
@@ -143,7 +143,7 @@ void dslumi_sum_vs_time(TChain* Mps_Tree)
 {
 
 //Create a canvas
-TCanvas c3 ( "c3", "dslumi rate sum vs. mps counter", 900, 900);
+TCanvas c3 ( "c3", "dslumi rate sum vs. mps counter", 900, 500);
 
 //Graph the sum lumi rate vs time - 
 Mps_Tree->Draw("(sca_dslumi1.value+sca_dslumi2.value+sca_dslumi3.value+sca_dslumi4.value+sca_dslumi5.value+sca_dslumi6.value+sca_dslumi7.value+sca_dslumi8.value):mps_counter");

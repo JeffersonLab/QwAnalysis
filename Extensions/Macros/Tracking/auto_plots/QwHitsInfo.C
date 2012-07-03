@@ -6,7 +6,7 @@ fQwHits.fDirection,  fQwHits.fElement split by fRegion and fPackage, for the tra
 
 Entry Conditions: the run number, bool for first 100k
 Date: 06-13-2012
-Modified:
+Modified:6-29-2012
 Assisted By: Wouter Deconinck 
 *********************************************************/
 
@@ -20,7 +20,7 @@ void QwHits_Region (TChain * event_tree);
 void QwHits_Package (TChain * event_tree);
 void QwHits_Direction (TChain * event_tree);
 void QwHits_Element (TChain * event_tree);
-
+void NQwTracks (TChain * event_tree);
 
 void QwHitsInfo (int runnum, bool is100k)
 {
@@ -41,6 +41,8 @@ void QwHitsInfo (int runnum, bool is100k)
 	QwHits_Direction (chain);
 
 	QwHits_Element (chain);
+
+	NQwTracks (chain);
 
 	return;
 
@@ -72,13 +74,13 @@ void QwHits_Region (TChain * event_tree)
 {
 
 	//Create the canvas
-	TCanvas c1("c1", "QwHits by Region - regardless of package", 900,600);
+	TCanvas c1("c1", "QwHits by Region - regardless of package", 500,400);
 
 /* edit if want to sperate into packages form region the skeleton is here
 	c1.Divide(2,0);
 
 	//create and size a vector of TH1D histograms so I can loop
-	//Region 2 is on the left and region 2 is on the right 
+	//Region 1 is on the left and region 2 is on the right 
 	std::vector<TH1D*> h;
 	h.resize(2);
 
@@ -129,7 +131,7 @@ void QwHits_Package (TChain * event_tree)
 {
 
 	//Create the canvas
-	TCanvas c2("c2", "QwHits by Package - regadless of region", 900,600);
+	TCanvas c2("c2", "QwHits by Package - regadless of region", 500,400);
 
 /*edit if want to sperate into packages form region the skeleton is here
 	c2.Divide(2,0);
@@ -192,7 +194,7 @@ void QwHits_Direction (TChain * event_tree)
 {
 
 	//Create the canvas
-	TCanvas c3("c3", "QwHits by Dircetion - in Region 2", 900,600);
+	TCanvas c3("c3", "QwHits by Dircetion - in Region 2", 500,400);
 
 /*edit if want to sperate into packages form region the skeleton is here
 
@@ -253,7 +255,7 @@ void QwHits_Element (TChain * event_tree)
 	for (int r = 2; r <=3; r++)
 	{
 		//Create the canvas
-		TCanvas c4("c4", Form("QwHits by Element - in Region %d",r), 900,600);
+		TCanvas c4("c4", Form("QwHits by Element - in Region %d",r), 500,400);
 
 		c4.Divide(2,0);
 
@@ -281,7 +283,7 @@ void QwHits_Element (TChain * event_tree)
 	for (int r2 = 4 ; r2<= 5; r2++)
 	{
 		//Create the canvas
-		TCanvas c5("c5", Form("QwHits by Element - in Region %d",r2), 900,600);
+		TCanvas c5("c5", Form("QwHits by Element - in Region %d",r2), 500,400);
 
 		//create and size a vector of TH1D histograms so I can loop
 		//Package 1 is on the left and package 2 is on the right
@@ -299,6 +301,33 @@ void QwHits_Element (TChain * event_tree)
 	}
 
 	return;
+
+}
+
+/***********************************************************
+Function:NQwTracks
+Purpose: To graph a histogram of the log of events.fNQwTracks
+
+Entry Conditions: TChain - event_tree
+Global: Prefix - the prefix for the output file
+Called By: QwHitsinfo
+Date: 06-13-2012
+Modified:
+*********************************************************/
+
+void NQwTracks (TChain * event_tree)
+{
+
+        //Create the canvas and set y axis log scale
+        TCanvas c4("c4", "Log of events.fNQwTracks", 500,400);
+	c4.SetLogy();
+
+        event_tree->Draw("events.fNQwTracks");
+
+        //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
+        c4.SaveAs(Prefix+"fNQwTracks.png");
+
+        return;
 
 }
 
