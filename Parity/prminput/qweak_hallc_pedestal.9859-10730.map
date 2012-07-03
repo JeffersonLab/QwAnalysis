@@ -1,8 +1,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 
-! Filename : qweak_hallc_pedestal.9590-9694.map 
+! Filename : qweak_hallc_pedestal.9695-10730.map 
 !
-! ** HallC BPM pedestals (per sample) obtained using Run 11956
+! ** HallC BPM pedestals (per sample) obtained using Run 11956 
 !
 ! ** HallC BCM1/2 pedestals optimized for 145-160 uA Production Running
 !    Pedestals for BCM1/2 optimized to remove nonlinearities at 150 uA: 
@@ -20,8 +20,9 @@
 !                   Ramesh confirmed the results is the better than run 8966,
 !                   thus, I simply use run 9723 
 !                   Wednesday, January 26 18:33:21 EST 2011, jhlee
-!  For BCM5/6       https://hallcweb.jlab.org/hclog/1102_archive/110201135618.html 
-!                   Wednesday, February  2 08:52:09 EST 2011, jhlee
+!
+!  For BCM5/6       Friday, February  4 16:10:37 EST 2011,jhlee
+!                   https://hallcweb.jlab.org/hclog/1102_archive/110204144852.html
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
@@ -120,8 +121,8 @@
   qwk_bpm3h09bYM   ,	4205.27 , 1.0
   qwk_bcm1         , 905.939   , 0.00418347
   qwk_bcm2         , 420.338  , 0.00448045
-  qwk_bcm5    	    ,7157.63,       0.00277382
-  qwk_bcm6    	    ,6314.41,       0.00462897
+  qwk_bcm5        ,5863.41,       0.00147343
+  qwk_bcm6        ,6830.93,       0.00161937
   qwk_invert_tstable   , -541.714 	, 1.0
 qwk_linephase, 0, 1.0
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
