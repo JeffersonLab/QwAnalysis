@@ -60,27 +60,21 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
       fFFB_Flag=kTRUE;
       fRampChannelIndex = -1;
       fPatternWordIndex = -1;
-
-      // TODO This should all go into LoadChannelMap
-      // Add names of channels
-      fBPMnames.push_back("qwk_bpm3c12X");
-      fBPMnames.push_back("qwk_bpm3c12Y");
-      // Resize local version of the BPMs
-      QwVQWK_Channel dummy("dummy");
-      fBPMs.resize(fBPMnames.size(),dummy);
     };
   /// Copy constructor
   QwBeamMod(const QwBeamMod& source)
   : VQwSubsystem(source),VQwSubsystemParity(source),
     fModChannel(source.fModChannel),fWord(source.fWord),
-    fBPMnames(source.fBPMnames),fBPMs(source.fBPMs)
+    fMonitorNames(source.fMonitorNames),fMonitors(source.fMonitors)
   { }
   /// Virtual destructor
   virtual ~QwBeamMod() { };
 
- std::vector<TString> fgModTypeNames;
+  std::vector<TString> fgModTypeNames;
   /* derived from VQwSubsystem */
-  void ProcessOptions(QwOptions &options);//Handle command line options
+
+  //Handle command line options
+  void ProcessOptions(QwOptions &options);
   void AccumulateRunningSum(VQwSubsystem*);
   //remove one entry from the running sums for devices
   void DeaccumulateRunningSum(VQwSubsystem* value){
@@ -167,9 +161,10 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
  Bool_t fFFB_Flag;
  static const Bool_t bDEBUG=kFALSE;
 
- // List of BPMs
- std::vector<TString> fBPMnames;
- std::vector<QwVQWK_Channel> fBPMs;
+ // List of monitor channels
+ std::vector<TString> fMonitorNames;
+ std::vector<QwVQWK_Channel> fMonitors;
+
  Int_t fRampChannelIndex;
  Int_t fPatternWordIndex;
 

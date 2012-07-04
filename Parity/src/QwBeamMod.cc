@@ -34,153 +34,159 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
   Int_t sample_size=0;
-  //  Int_t index=0;
-  //  Bool_t combolistdecoded;
 
-  //added for QwWord
-
-  // fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
-
-
-  //Default value for random seed is 30 bits
-  //BIT24=kFALSE;
-  //BIT30=kTRUE;
-
-  //end QwWord part one
-
+  TString varname, varvalue;
 
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-  while (mapstr.ReadNextLine())
+  mapstr.EnableGreediness();
+  mapstr.SetCommentChars("!");
+  while (mapstr.ReadNextLine() && mapstr.SkipSection("Monitors"))
   {
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;
+    UInt_t value = 0;
+    if (mapstr.PopValue("roc",value)) {
+      currentrocread = value;
+      RegisterROCNumber(value,0);
+      fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
+    }
+    if (mapstr.PopValue("bank",value)) {
+      currentbankread = value;
+      RegisterSubbank(value);
+      fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
+      //    std::cout<<"bank " <<  currentbankread <<std::endl;
+    }
+    if (mapstr.PopValue("sample_size",value)) {
+      sample_size = value;
+    }
 
-    TString varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue))
-    { //  This is a declaration line.  Decode it.
+    {
+      //  This is a declaration line.  Decode it.
       varname.ToLower();
-      UInt_t value = QwParameterFile::GetUInt(varvalue);
+      QwWarning << "QwBeamMod::LoadChannelMap: Unrecognized declaration "
+          << varname << " = " << varvalue << QwLog::endl;
 
-      if (varname=="roc")
-	{
-	  currentrocread=value;
-	  RegisterROCNumber(value,0);
-	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
-	}
-      else if (varname=="bank")
-	{
-	  currentbankread=value;
-	  RegisterSubbank(value);
-	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
-	  //	std::cout<<"bank " <<  currentbankread <<std::endl;
-	}
-      else if (varname=="sample_size")
-	{
-	  sample_size=value;
-	}
-   }
-   else
-     {
-       Bool_t lineok=kTRUE;
-       //  Break this line into tokens to process it.
-       TString modtype = mapstr.GetTypedNextToken<TString>();	// module type
-       /* Int_t modnum    = */ mapstr.GetTypedNextToken<Int_t>();	//slot number
-       /* Int_t channum   = */ mapstr.GetTypedNextToken<Int_t>();	//channel number
-       //	TString dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
-       //	dettype.ToLower();
-       TString namech  = mapstr.GetTypedNextToken<TString>();  //name of the detector
-       namech.ToLower();
-       TString keyword = mapstr.GetTypedNextToken<TString>();
-       keyword.ToLower();
+    } else {
+      Bool_t lineok=kTRUE;
+      //  Break this line into tokens to process it.
+      TString modtype = mapstr.GetTypedNextToken<TString>();	// module type
+      /* Int_t modnum    = */ mapstr.GetTypedNextToken<Int_t>();	//slot number
+      /* Int_t channum   = */ mapstr.GetTypedNextToken<Int_t>();	//channel number
+      //	TString dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
+      //	dettype.ToLower();
+      TString namech  = mapstr.GetTypedNextToken<TString>();  //name of the detector
+      namech.ToLower();
+      TString keyword = mapstr.GetTypedNextToken<TString>();
+      keyword.ToLower();
 
 
-       if (currentsubbankindex != GetSubbankIndex(currentrocread,currentbankread))
-	  {
-	    currentsubbankindex = GetSubbankIndex(currentrocread,currentbankread);
-	    wordsofar = 0;
-	  }
+      if (currentsubbankindex != GetSubbankIndex(currentrocread,currentbankread))
+      {
+        currentsubbankindex = GetSubbankIndex(currentrocread,currentbankread);
+        wordsofar = 0;
+      }
 
 
-       QwModChannelID localModChannelID(currentsubbankindex, wordsofar,namech, modtype, this);
+      QwModChannelID localModChannelID(currentsubbankindex, wordsofar,namech, modtype, this);
 
 
-       if(modtype=="VQWK")
-	 {
-	   wordsofar+=6;
-	   
-	   if (lineok){
-	     QwVQWK_Channel localchan;
-	     localchan.InitializeChannel(GetSubsystemName(),"QwBeamMod",localModChannelID.fmodulename,"raw");
-	     fModChannel.push_back(localchan);
-	     fModChannel[fModChannel.size()-1].SetDefaultSampleSize(sample_size);
-	     localModChannelID.fIndex=fModChannel.size()-1;
-	     fModChannelID.push_back(localModChannelID);
+      if(modtype=="VQWK")
+      {
+        wordsofar+=6;
 
-	     // Store reference to ramp channel
-	     if (localModChannelID.fmodulename == "ramp") {
-	       fRampChannelIndex = fModChannel.size() - 1;
-	     }
-	   }
+        if (lineok){
+          QwVQWK_Channel localchan;
+          localchan.InitializeChannel(GetSubsystemName(),"QwBeamMod",localModChannelID.fmodulename,"raw");
+          fModChannel.push_back(localchan);
+          fModChannel[fModChannel.size()-1].SetDefaultSampleSize(sample_size);
+          localModChannelID.fIndex=fModChannel.size()-1;
+          fModChannelID.push_back(localModChannelID);
 
-	   if(ldebug)
-	     {
-	       localModChannelID.Print();
-	       std::cout<<"line ok=";
-	       if(lineok) std::cout<<"TRUE"<<std::endl;
-	       else
-		 std::cout<<"FALSE"<<std::endl;
-	     }
+          // Store reference to ramp channel
+          if (localModChannelID.fmodulename == "ramp") {
+            fRampChannelIndex = fModChannel.size() - 1;
+          }
+        }
 
-          
-	 }
-     
+        if(ldebug)
+        {
+          localModChannelID.Print();
+          std::cout<<"line ok=";
+          if(lineok) std::cout<<"TRUE"<<std::endl;
+          else std::cout<<"FALSE"<<std::endl;
+        }
+      }
+
 
       if(modtype == "WORD")
-	{
-	  //  std::cout << "Decoding QwWord :: " << namech << std::endl;
+      {
+        //  std::cout << "Decoding QwWord :: " << namech << std::endl;
 
 
-	  QwWord localword;
-	  localword.fSubbankIndex=currentsubbankindex;
-	  localword.fWordInSubbank=wordsofar;
-	  wordsofar+=1;
-	  // I assume that one data = one word here. But it is not always the case, for
-	  // example the triumf adc gives 6 words per channel
-	  localword.fModuleType=modtype;
-	  localword.fWordName=namech;
-	  //localword.fWordType=dettype; // FIXME dettype is undefined so commented this out
-	  fWord.push_back(localword);
+        QwWord localword;
+        localword.fSubbankIndex=currentsubbankindex;
+        localword.fWordInSubbank=wordsofar;
+        wordsofar+=1;
+        // I assume that one data = one word here. But it is not always the case, for
+        // example the triumf adc gives 6 words per channel
+        localword.fModuleType=modtype;
+        localword.fWordName=namech;
+        //localword.fWordType=dettype; // FIXME dettype is undefined so commented this out
+        fWord.push_back(localword);
 
-	  // Store reference to pattern number
-          if (localword.fWordName == "bm_pattern_number") {
-            fPatternWordIndex = fWord.size() - 1;
-          }
+        // Store reference to pattern number
+        if (localword.fWordName == "bm_pattern_number") {
+          fPatternWordIndex = fWord.size() - 1;
+        }
 
-	  if(namech=="ffb_status")//save the location of this word to access this later
-	    fFFB_Index=fWord.size()-1;
+        if(namech=="ffb_status")//save the location of this word to access this later
+          fFFB_Index=fWord.size()-1;
 
 
-	  fWordsPerSubbank[currentsubbankindex].second = fWord.size();
-	  QwDebug << "--" << namech << "--" << fWord.size()-1 << QwLog::endl;
+        fWordsPerSubbank[currentsubbankindex].second = fWord.size();
+        QwDebug << "--" << namech << "--" << fWord.size()-1 << QwLog::endl;
 
-	}
-     }
+      }
+    }
+  }
+  if(ldebug)
+  {
+    std::cout<<"Done with Load map channel \n";
+    for(size_t i=0;i<fModChannelID.size();i++)
+      fModChannelID[i].Print();
+
+    for(size_t i=0;i<fWord.size();i++)
+      fWord[i].PrintID();
   }
 
-  if(ldebug)
-    {
-      std::cout<<"Done with Load map channel \n";
-      for(size_t i=0;i<fModChannelID.size();i++)
-	fModChannelID[i].Print();
 
-      for(size_t i=0;i<fWord.size();i++)
-	fWord[i].PrintID();
-      //      std::cout << " kUserbit=" << kUserbit << "\n";
+  // Now load the variables to monitor
+  mapstr.RewindToFileStart();
+  while (QwParameterFile *section = mapstr.ReadNextSection(varvalue)) {
+    if (varvalue == "Monitors") {
+      fMonitorNames.clear();
+      while (section->ReadNextLine()) {
+        section->TrimComment();         // Remove everything after a comment character
+        section->TrimWhitespace();      // Get rid of leading and trailing spaces
+        varvalue = section->GetTypedNextToken<TString>();
+        if (varvalue.Length() > 0) {
+          // Add names of monitor channels
+          fMonitorNames.push_back(varvalue);
+        }
+      }
     }
-  ldebug=kFALSE;
+    delete section;
+  }
+  // Resize local version of the BPMs
+  QwVQWK_Channel dummy("dummy");
+  fMonitors.resize(fMonitorNames.size(),dummy);
+  // Debug output
+  if (ldebug) {
+    QwMessage << "Done with loading monitor channels:" << QwLog::endl;
+    for (size_t i = 0; i < fMonitorNames.size(); i++)
+      QwMessage << fMonitorNames[i] << QwLog::endl;
+  }
 
   return 0;
 }
@@ -449,13 +455,13 @@ void  QwBeamMod::ProcessEvent()
 void  QwBeamMod::ExchangeProcessedData()
 {
   // Make sure sizes are equal
-  if (fBPMnames.size() != fBPMs.size())
+  if (fMonitorNames.size() != fMonitors.size())
     QwError << "QwBeamMod: Sizes of fBPMnames and fBPMs do not match!" << QwLog::endl;
   // Loop over BPMs
-  for (size_t bpm = 0; bpm < fBPMnames.size(); bpm++) {
+  for (size_t bpm = 0; bpm < fMonitorNames.size(); bpm++) {
     // Get references to external values
-    if (! RequestExternalValue(fBPMnames[bpm],&fBPMs[bpm]))
-      QwError << "QwBeamMod: RequestExternalValue for " << fBPMnames[bpm]
+    if (! RequestExternalValue(fMonitorNames[bpm],&fMonitors[bpm]))
+      QwError << "QwBeamMod: RequestExternalValue for " << fMonitorNames[bpm]
               << " failed!" << QwLog::endl;
   }
 }
@@ -670,15 +676,30 @@ void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
   if (prefix != "") return;
 
   TString basename;
-  for (size_t bpm = 0; bpm < fBPMnames.size(); bpm++) {
+  for (size_t bpm = 0; bpm < fMonitorNames.size(); bpm++) {
     // Find histogram with correct name
-    basename = TString("bmod_") + prefix + fBPMnames[bpm];
+    basename = TString("bmod_") + prefix + fMonitorNames[bpm];
     fHistograms.push_back(gQwHists.Construct1DProf(basename + "_X"));
     fHistograms.push_back(gQwHists.Construct1DProf(basename + "_Y"));
     fHistograms.push_back(gQwHists.Construct1DProf(basename + "_E"));
     fHistograms.push_back(gQwHists.Construct1DProf(basename + "_XP"));
     fHistograms.push_back(gQwHists.Construct1DProf(basename + "_YP"));
   }
+
+  // Beam modulation correlations
+  for (size_t chan = 0; chan < fModChannel.size(); chan++) {
+    // Find histogram with correct name
+    basename = TString("bmod_") + prefix + fModChannel[chan].GetElementName();
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_X"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_Y"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_E"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_XP"));
+    fHistograms.push_back(gQwHists.Construct1DProf(basename + "_YP"));
+  }
+
+  // Beam modulation channels
+  //for (size_t i = 0; i < fModChannel.size(); i++)
+  //  fModChannel[i].ConstructHistograms(folder,prefix);
 }
 
 void  QwBeamMod::FillHistograms()
@@ -689,24 +710,31 @@ void  QwBeamMod::FillHistograms()
   // No histograms defined
   if (fHistograms.size() == 0) return;
 
+  // Beam modulation channels
+  //for (size_t i = 0; i < fModChannel.size(); i++)
+  //  fModChannel[i].FillHistograms();
+
   // Do we have a ramp channel?
-  if (fRampChannelIndex < 0 || fRampChannelIndex > fModChannel.size()) return;
+  if (fRampChannelIndex < 0 || fRampChannelIndex > Int_t(fModChannel.size())) return;
 
   // Do we have a pattern word?
-  if (fPatternWordIndex < 0 || fPatternWordIndex > fWord.size()) return;
+  if (fPatternWordIndex < 0 || fPatternWordIndex > Int_t(fWord.size())) return;
 
   // Determine the ramp/phase
   Double_t ramp = fModChannel[fRampChannelIndex].GetValue();
+  if (ramp < 0) return;
 
   // Determine the pattern number
   Int_t pattern = fWord[fPatternWordIndex].fValue - 11;
+  if (pattern < 0 || pattern > 4) return;
 
   // Fill histograms for all BPMs and each of the modulation patterns
-  for (size_t bpm = 0; bpm < fBPMs.size(); bpm++) {
+  for (size_t bpm = 0; bpm < fMonitors.size(); bpm++)
+    fHistograms[5 * bpm + pattern]->Fill(ramp,fMonitors[bpm].GetValue());
 
-    if (pattern >= 0 && pattern < 5 && ramp > 0)
-      fHistograms[5 * bpm + pattern]->Fill(ramp,fBPMs[bpm].GetValue());
-  }
+  // Beam modulation correlations
+  for (size_t chan = 0; chan < fModChannel.size(); chan++)
+    fHistograms[5 * (fMonitors.size() + chan) + pattern]->Fill(ramp,fModChannel[chan].GetValue());
 }
 
 void QwBeamMod::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
@@ -731,11 +759,10 @@ void QwBeamMod::FillTreeVector(std::vector<Double_t> &values) const
 {
   size_t index = fTreeArrayIndex;
 
-  for(size_t i = 0; i < fModChannel.size(); i++)
+  for (size_t i = 0; i < fModChannel.size(); i++)
     fModChannel[i].FillTreeVector(values);
-  for (size_t i=0; i<fWord.size(); i++){
-	values[index++] = fWord[i].fValue;
-  }
+  for (size_t i = 0; i < fWord.size(); i++)
+    values[index++] = fWord[i].fValue;
 }
 
 

@@ -39,3 +39,9 @@ Bank=0x6106
 
 WORD, 0, 0,  bm_init
 WORD, 0, 0,  bm_pattern_number
+
+
+[Monitors]
+qwk_bpm3c12X
+qwk_bpm3c12Y
+

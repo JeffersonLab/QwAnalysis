@@ -44,3 +44,21 @@ Bank=0x6106
 
 WORD, 0, 0,  bm_init
 WORD, 0, 0,  bm_pattern_number
+
+
+[Monitors]
+qwk_bpm3h07aX
+qwk_bpm3h07aY
+qwk_bpm3h07bX
+qwk_bpm3h07bY
+qwk_bpm3h07cX
+qwk_bpm3h07cY
+qwk_bpm3h09X
+qwk_bpm3h09Y
+qwk_bpm3h09bX
+qwk_bpm3h09bY
+qwk_bpm3c12X
+qwk_bpm3c12Y
+qwk_bcm1
+qwk_bcm2
+
