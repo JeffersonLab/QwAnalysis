@@ -41,6 +41,8 @@ private:
   Int_t fYNevents;
   Int_t fYPNevents;
   Int_t fCurrentCut;
+  Int_t fLowerSegment;
+  Int_t fUpperSegment;
 
   static const Int_t fNMaxMon = 6;
   static const Int_t fNMaxDet = 35;
@@ -165,6 +167,7 @@ public :
   Double_t        AverageAsymmetryCorrection[fNMaxDet][fNMaxMon];
   Double_t        PositionDiffMean[fNMaxDet][fNMaxMon];
   Double_t        YieldSlope[fNMaxDet][fNMaxMon];
+  Double_t        YieldSlopeError[fNMaxDet][fNMaxMon];
   Double_t        MonitorMean[fNMaxMon];
   Double_t        DetectorMean[fNMaxDet];
 
@@ -272,10 +275,10 @@ public :
   Bool_t fYPinit;
   Bool_t fSingleCoil;
   Bool_t fCharge;
-  Bool_t fFileStemInclude;
+  Bool_t fFileSegmentInclude;
 
   TString fChargeFile;
-  TString fFileStem;
+  TString fFileSegment;
 
   QwModulation(TChain *tree = 0);
   ~QwModulation();

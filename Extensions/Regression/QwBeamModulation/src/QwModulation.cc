@@ -93,11 +93,19 @@ void QwModulation::GetOptions(Char_t **options){
       ReadChargeSensitivity();
     }    
 
-    if(flag.CompareTo("--file-stem", TString::kExact) == 0){
-      fFileStemInclude = true;
+    if(flag.CompareTo("--file-segment", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      fFileSegmentInclude = true;
+
       flag.Clear();
-      fFileStem = options[i + 1];
-      std::cout << other << "using external file stem:\t" << fFileStem << normal << std::endl;
+      fFileSegment = options[i + 1];
+      Int_t index = option.find_first_of(":");
+      fLowerSegment = atoi(option.substr(0, index).c_str());
+      fUpperSegment = atoi(option.substr(index + 1, option.length()-index).c_str());
+
+      std::cout << other << "Processing file segments:\t" 
+		<< fLowerSegment << ":" 
+		<< fUpperSegment << normal << std::endl;
     }    
 
     if(flag.CompareTo("--c", TString::kExact) == 0){
@@ -447,6 +455,7 @@ void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD e
        Error(m, i) = TMath::Power(Errord(m, i), 2) + TMath::Power(Errorm(m, i), 2);
        //       Error(m, i) = Errorm(m, i);
        Error(m, i) = TMath::Sqrt(Error(m, i));
+       YieldSlopeError[m][i] = Error(m, i);
      }
 
     }
@@ -523,16 +532,14 @@ void QwModulation::MatrixFill()
   std::cout << "\n\n\t\t\t\t::SMatrix::\n" << std::endl;
   SMatrix.Print();
 
-  ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
-
-  exit(1);
+  //  ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
 
   for(Int_t i = 0; i < fNDetector; i++){
     for(Int_t j = 0; j < fNModType; j++){
       YieldSlope[i][j] = SMatrix(i,j);
     }
   }
-//   exit(1);
+  // exit(1);
   Write();
 
   if(fSensHumanReadable == 1){
@@ -892,7 +899,7 @@ void QwModulation::PilferData()
   std::cout << "Number of entries: " << nentries << std::endl;
 
   for(Long64_t i = 0; i < nentries; i++){
-//   for(Long64_t i = 0; i < 400000; i++){
+//  for(Long64_t i = 0; i < 400000; i++){
 
     LoadTree(i);
     if(i < 0) break;
@@ -1222,6 +1229,17 @@ Bool_t QwModulation::FileSearch(TString filename, TChain *chain)
 
   file_directory = gSystem->Getenv("QW_ROOTFILES");
 
+  if(fFileSegmentInclude){
+    for(Int_t i = fLowerSegment; i <= fUpperSegment; i++){
+      filename = Form("QwPass*_%d.seg%d.root", run_number, i);
+      std::cout << other << "Adding:: " 
+		<< filename << normal << std::endl;
+      if(!(chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()))) ){
+	std::cout << red << "Error chaining segment:\t%s" << filename << normal << std::endl;
+        exit(1);
+      }
+    }
+  }
   c_status = chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()));
   std::cout << "Trying to open :: "
             << Form("%s/%s",file_directory.Data(), filename.Data())
@@ -1273,6 +1291,8 @@ void QwModulation::Write(){
 
   gSystem->Exec("umask 002");
 
+  //  slopes.open(Form("slopes/slopes_%i.dat", run_number) , fstream::out);
+
   slopes.open(Form("slopes_%i.dat", run_number) , fstream::out);
   regression = fopen(Form("regression_%i.dat", run_number), "w");
 
@@ -1280,6 +1300,8 @@ void QwModulation::Write(){
     for(Int_t i = 0; i < fNDetector; i++){
       slopes << "det " << DetectorList[i] << std::endl;
       for(Int_t j = 0; j < fNModType; j++){
+// 	slopes << YieldSlope[i][j] << "\t"
+// 	       << YieldSlopeError[i][j] << std::endl;
 	slopes << YieldSlope[i][j] << std::endl;
       }
     }
@@ -1301,11 +1323,14 @@ void QwModulation::Write(){
     diagnostic << fYPNevents << std::endl;
     diagnostic << (fXNevents + fXPNevents + fENevents + fYNevents + fYPNevents) << std::endl;
   }
+
+
   //***************************************************************
   // Write output file for regression - This will go into the DB.  
   // All that is included here is the slopes(and errors soon...),
   // qwlibra must be run to get other run info.
   //***************************************************************
+
   fprintf(regression, "#run=%i\tevents=%i\n",run_number, fNumberEvents);
   if( regression != NULL ){
     for(Int_t i = 0; i < fNDetector; i++){

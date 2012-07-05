@@ -22,6 +22,9 @@ Int_t main(Int_t argc, Char_t *argv[])
   modulation->run_number = atoi(argv[1]);
   modulation->GetOptions(argv);
 
+  // This is the default filename format.  If doing a segment analysis
+  // it is changes in QwModulation::FileSearch()
+
   filename = Form("QwPass*_%d*.trees.root", modulation->run_number);
   modulation->LoadRootFile(filename, mps_tree);
   modulation->SetFileName(filename);
