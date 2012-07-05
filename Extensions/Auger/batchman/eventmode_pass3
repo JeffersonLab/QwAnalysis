@@ -8,5 +8,4 @@ export QWANALYSIS=/group/qweak/QwAnalysis/Linux/QwAnalysis_TrackingPass3
 $QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl -e qwtracking \
    --rootfile-output mss:/mss/hallc/qweak/misc/tracking_rootfiles/pass3 \
    --options "--add-config eventmode_pass3.conf --add-config peiqing_2011.conf" \
-   --post-run $QWANALYSIS/Extensions/Tracking/macros/process_run.sh \
    $@
