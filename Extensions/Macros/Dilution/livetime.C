@@ -22,10 +22,6 @@ void livetime( Int_t runNum, Int_t lowcut=0, Int_t highcut=4e6, TString mycut = 
   gROOT->Reset();
   gROOT->SetStyle("Modern");
 
-  TString eventcut = Form("CodaEventType==1 && CodaEventNumber>%i && CodaEventNumber<%i",lowcut,highcut);
-
-  TString cuts = mycut.IsNull() ? "&&" + eventcut :"&&"+ eventcut + "&&"+mycut;
-
   //open the filename
   Char_t filename[100];
   sprintf(filename, "QweakNew_%i.root", runNum);
@@ -37,8 +33,17 @@ void livetime( Int_t runNum, Int_t lowcut=0, Int_t highcut=4e6, TString mycut = 
   }
   std::cout <<"Successfully opened ROOTFILE " <<filename <<".\n" <<std::endl;
 
+  //grab TTrees, set variables, and cuts
   TTree *mps_tree = (TTree*) file->Get("Mps_Tree");
   mps_tree->SetAlias("aRatio","sca_livetime.value/sca_totaltime.value");
+
+  TTree *event_tree = (TTree*) file->Get("event_tree");
+  Long_t num_entries = event_tree->GetEntries();
+
+  highcut = num_entries<highcut ? num_entries : highcut;
+
+  TString eventcut = Form("CodaEventType==1 && CodaEventNumber>%i && CodaEventNumber<%i",lowcut,highcut);
+  TString cuts = mycut.IsNull() ? "&&" + eventcut :"&&"+ eventcut + "&&"+mycut;
 
   //create histograms 
   TH1F *live = new TH1F("live","title",400,-200e3,200e3);
