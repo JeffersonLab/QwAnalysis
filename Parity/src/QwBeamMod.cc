@@ -176,12 +176,28 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
         section->TrimComment();         // Remove everything after a comment character
         section->TrimWhitespace();      // Get rid of leading and trailing spaces
         varvalue = section->GetTypedNextToken<TString>();
-	bpm_z    = section->GetTypedNextToken<Double_t>();
+// 	bpm_z    = section->GetTypedNextToken<Double_t>();
 	if (varvalue.Length() > 0) {
           // Add names of monitor channels for each degree of freedom
-          fMonitorNames.push_back(Form("%sX",varvalue.Data()));
-          fMonitorNames.push_back(Form("%sY",varvalue.Data()));
-	  fBPMPosition.push_back(bpm_z);
+	  //
+	  //
+	  // Consider whether or not the input monitor is a bpm or not.  This should
+	  // allow for usage of monitors other than bpms, .eg bcm{1,2}, lumi, pmtonl,..ect.
+	  //
+
+	  if(varvalue.Contains("qwk_bpm", TString::kExact)){
+	    fMonitorNames.push_back(Form("%sX",varvalue.Data()));
+	    fMonitorNames.push_back(Form("%sY",varvalue.Data()));
+	  }
+	  else if(varvalue.Contains("target", TString::kExact)){
+	    fMonitorNames.push_back(Form("%sX",varvalue.Data()));
+	    fMonitorNames.push_back(Form("%sY",varvalue.Data()));
+	  }
+	  else{
+	    fMonitorNames.push_back(varvalue);
+	  }
+
+// 	  fBPMPosition.push_back(bpm_z);
 
         }
       }
@@ -760,7 +776,7 @@ void  QwBeamMod::FillHistograms()
   Double_t ramp_block    = ramp_block_41 - ramp_block_32;  
 
   for (size_t bpm = 0; bpm < fMonitors.size(); bpm++){
-    if( ramp_block > 50.0 && ramp_block < -50.0 ){
+    if( ramp_block < 50.0 && ramp_block > -50.0 ){
       fHistograms[5 * bpm + pattern]->Fill(ramp,fMonitors[bpm].GetValue());
     }
   }
@@ -848,6 +864,8 @@ void QwBeamMod::AnalyzeOpticsPlots()
       fPhaseError[bpm][pattern] = sine->GetParError(2);
     }
   }
+  delete canvas;
+  delete sine;
 }
 
 void QwBeamMod::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)

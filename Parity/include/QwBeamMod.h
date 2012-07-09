@@ -69,9 +69,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
     fBPMPosition(source.fBPMPosition)
   { }
   /// Virtual destructor
-  virtual ~QwBeamMod() {
-    ClearVectors();
-  };
+  virtual ~QwBeamMod() {};
 
   std::vector<TString> fgModTypeNames;
   /* derived from VQwSubsystem */

@@ -42,6 +42,30 @@ WORD, 0, 0,  bm_pattern_number
 
 
 [Monitors]
-qwk_bpm3c12X
-qwk_bpm3c12Y
+qwk_target
+qwk_bpm3h09b
+qwk_bpm3h09
+qwk_bpm3h08
+qwk_bpm3h07c
+qwk_bpm3h07b
+qwk_bpm3h07a
+qwk_bpm3h04
+qwk_bpm3h02
+qwk_bpm3c21
+qwk_bpm3c20
+qwk_bpm3p03a
+qwk_bpm3p02b
+qwk_bpm3p02a
+qwk_bpm3c19
+qwk_bpm3c18
+qwk_bpm3c17
+qwk_bpm3c16
+qwk_bpm3c14
+qwk_bpm3c12
+qwk_bpm3c11
+qwk_bpm3c08
+qwk_bpm3c07a
+qwk_bpm3c07
+qwk_bcm1
+qwk_bcm2
 
