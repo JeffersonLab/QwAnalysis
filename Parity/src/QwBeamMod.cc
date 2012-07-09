@@ -16,6 +16,11 @@
 #include "QwParameterFile.h"
 #include "QwHistogramHelper.h"
 
+// Root plotting headers
+#include "TCanvas.h"
+#include "TF1.h"
+#include "TMath.h"
+
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwBeamMod);
 
@@ -160,7 +165,8 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
       fWord[i].PrintID();
   }
 
-
+  Double_t bpm_z = 0;
+  
   // Now load the variables to monitor
   mapstr.RewindToFileStart();
   while (QwParameterFile *section = mapstr.ReadNextSection(varvalue)) {
@@ -170,9 +176,13 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
         section->TrimComment();         // Remove everything after a comment character
         section->TrimWhitespace();      // Get rid of leading and trailing spaces
         varvalue = section->GetTypedNextToken<TString>();
-        if (varvalue.Length() > 0) {
-          // Add names of monitor channels
-          fMonitorNames.push_back(varvalue);
+	bpm_z    = section->GetTypedNextToken<Double_t>();
+	if (varvalue.Length() > 0) {
+          // Add names of monitor channels for each degree of freedom
+          fMonitorNames.push_back(Form("%sX",varvalue.Data()));
+          fMonitorNames.push_back(Form("%sY",varvalue.Data()));
+	  fBPMPosition.push_back(bpm_z);
+
         }
       }
     }
@@ -181,6 +191,8 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
   // Resize local version of the BPMs
   QwVQWK_Channel dummy("dummy");
   fMonitors.resize(fMonitorNames.size(),dummy);
+  ResizeOpticsDataContainers(fMonitorNames.size());
+
   // Debug output
   if (ldebug) {
     QwMessage << "Done with loading monitor channels:" << QwLog::endl;
@@ -724,17 +736,118 @@ void  QwBeamMod::FillHistograms()
   Double_t ramp = fModChannel[fRampChannelIndex].GetValue();
   if (ramp < 0) return;
 
-  // Determine the pattern number
-  Int_t pattern = fWord[fPatternWordIndex].fValue - 11;
+  // Determine the pattern number -- the pattern number for single coil is
+  // between [0, 4] so we need to check for this.
+  Int_t pattern = -1;
+  
+  if(fWord[fPatternWordIndex].fValue < 11 && fWord[fPatternWordIndex].fValue > 0)
+    pattern = fWord[fPatternWordIndex].fValue;
+  else
+    pattern = fWord[fPatternWordIndex].fValue - 11;
+  
   if (pattern < 0 || pattern > 4) return;
 
   // Fill histograms for all BPMs and each of the modulation patterns
-  for (size_t bpm = 0; bpm < fMonitors.size(); bpm++)
-    fHistograms[5 * bpm + pattern]->Fill(ramp,fMonitors[bpm].GetValue());
+  //
+  // Due to the the way the ADC averages the ramp signal we want to filter
+  // out events at the edged of the signal.
+  //
+  // Seperated the ramp cut here because it is ridiculously long... 
+  //
 
+  Double_t ramp_block_41 = fModChannel[fRampChannelIndex].GetValue(4) + fModChannel[fRampChannelIndex].GetValue(1); 
+  Double_t ramp_block_32 = fModChannel[fRampChannelIndex].GetValue(3) + fModChannel[fRampChannelIndex].GetValue(2);
+  Double_t ramp_block    = ramp_block_41 - ramp_block_32;  
+
+  for (size_t bpm = 0; bpm < fMonitors.size(); bpm++){
+    if( ramp_block > 50.0 && ramp_block < -50.0 ){
+      fHistograms[5 * bpm + pattern]->Fill(ramp,fMonitors[bpm].GetValue());
+    }
+  }
+  
   // Beam modulation correlations
   for (size_t chan = 0; chan < fModChannel.size(); chan++)
     fHistograms[5 * (fMonitors.size() + chan) + pattern]->Fill(ramp,fModChannel[chan].GetValue());
+
+}
+
+void QwBeamMod::AtEndOfEventLoop()
+{
+
+  AnalyzeOpticsPlots();
+
+}
+
+void QwBeamMod::ClearVectors()
+{
+    fOffset.clear();
+    fAmplitude.clear();
+    fPhase.clear();
+    fOffsetError.clear();
+    fAmplitudeError.clear();
+    fPhaseError.clear();
+    
+}
+
+void QwBeamMod::ResizeOpticsDataContainers(Int_t size)
+{
+  fOffset.resize(size);
+  fAmplitude.resize(size);
+  fPhase.resize(size);
+  fOffsetError.resize(size);
+  fAmplitudeError.resize(size);
+  fPhaseError.resize(size);
+
+  for(Int_t i = 0; i < size; i++){
+    fOffset[i].resize(fNumberPatterns);
+    fAmplitude[i].resize(fNumberPatterns);
+    fPhase[i].resize(fNumberPatterns);
+    fOffsetError[i].resize(fNumberPatterns);
+    fAmplitudeError[i].resize(fNumberPatterns);
+    fPhaseError[i].resize(fNumberPatterns);
+  }
+}
+
+void QwBeamMod::AnalyzeOpticsPlots()
+{
+  //   How to get the run info:
+  //   UInt_t runnum = this->GetParent()->GetCodaRunNumber();
+  //   UInt_t segnum = this->GetParent()->GetCodaSegmentNumber();
+
+  TF1 *sine = new TF1("sine", "[0] + [1]*sin((3.141/180)*x + [2])", 40 , 350);
+
+  TCanvas *canvas = new TCanvas("canvas", "canvas", 5);
+
+  Double_t mean;
+  Double_t amplitude;
+  Double_t phase;
+
+  canvas->cd();
+  for(size_t bpm = 0; bpm < fMonitors.size(); bpm++){
+
+    for(size_t pattern = 0; pattern < 5; pattern++){
+      
+      sine->SetParameters(fHistograms[5*bpm + pattern]->GetMean(), 0.10, 0);
+      sine->SetLineColor(2);
+      sine->SetParLimits(2, 0., TMath::Pi()*2 );
+      fHistograms[5*bpm + pattern]->Fit("sine","R B");
+      
+      mean = sine->GetParameter(0);
+      amplitude = sine->GetParameter(1);
+      phase = sine->GetParameter(2);
+      
+      if(phase >= 180){
+	phase -= 180;
+	amplitude = -amplitude;
+      }
+      fOffset[bpm][pattern] = sine->GetParameter(0);
+      fAmplitude[bpm][pattern] = sine->GetParameter(1);
+      fPhase[bpm][pattern] = sine->GetParameter(2);
+      fOffsetError[bpm][pattern] = sine->GetParError(0);
+      fAmplitudeError[bpm][pattern] = sine->GetParError(1);
+      fPhaseError[bpm][pattern] = sine->GetParError(2);
+    }
+  }
 }
 
 void QwBeamMod::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)

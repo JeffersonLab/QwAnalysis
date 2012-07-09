@@ -47,18 +47,27 @@ WORD, 0, 0,  bm_pattern_number
 
 
 [Monitors]
-qwk_bpm3h07aX
-qwk_bpm3h07aY
-qwk_bpm3h07bX
-qwk_bpm3h07bY
-qwk_bpm3h07cX
-qwk_bpm3h07cY
-qwk_bpm3h09X
-qwk_bpm3h09Y
-qwk_bpm3h09bX
-qwk_bpm3h09bY
-qwk_bpm3c12X
-qwk_bpm3c12Y
-qwk_bcm1
-qwk_bcm2
-
+qwk_target	0.0
+qwk_bpm3h09b   -138.0
+qwk_bpm3h09    -393.6
+qwk_bpm3h08    -516.3
+qwk_bpm3h07c   -842.0
+qwk_bpm3h07b   -937.6
+qwk_bpm3h07a   -1033.3
+qwk_bpm3h04    -1910.7
+qwk_bpm3h02    -2158.6
+qwk_bpm3c21    -3052.3
+qwk_bpm3c20    -3188.1
+qwk_bpm3p03a   -3544.7
+qwk_bpm3p02b   -3813.7
+qwk_bpm3p02a   -3952.7
+qwk_bpm3c19    -4581.7
+qwk_bpm3c18    -4712.8
+qwk_bpm3c17    -4892.34
+qwk_bpm3c16    -5201.29
+qwk_bpm3c14    -6241.37
+qwk_bpm3c12    -7281.29
+qwk_bpm3c11    -7801.37
+qwk_bpm3c08    -9361.37
+qwk_bpm3c07a   -9570.71
+qwk_bpm3c07    -9971.37

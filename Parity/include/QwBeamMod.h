@@ -65,10 +65,13 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   QwBeamMod(const QwBeamMod& source)
   : VQwSubsystem(source),VQwSubsystemParity(source),
     fModChannel(source.fModChannel),fWord(source.fWord),
-    fMonitorNames(source.fMonitorNames),fMonitors(source.fMonitors)
+    fMonitorNames(source.fMonitorNames),fMonitors(source.fMonitors),
+    fBPMPosition(source.fBPMPosition)
   { }
   /// Virtual destructor
-  virtual ~QwBeamMod() { };
+  virtual ~QwBeamMod() {
+    ClearVectors();
+  };
 
   std::vector<TString> fgModTypeNames;
   /* derived from VQwSubsystem */
@@ -139,6 +142,11 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 
   void Print();
 
+  void AtEndOfEventLoop();
+  void AnalyzeOpticsPlots();
+  void ResizeOpticsDataContainers(Int_t);
+  void ClearVectors();
+
  protected:
  Int_t GetDetectorTypeID(TString name);
  Int_t GetDetectorIndex(Int_t TypeID, TString name);    // when the type and the name is passed the detector index from appropriate vector will be returned
@@ -161,9 +169,21 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
  Bool_t fFFB_Flag;
  static const Bool_t bDEBUG=kFALSE;
 
+ static const Int_t fNumberPatterns = 5;
+
  // List of monitor channels
+
  std::vector<TString> fMonitorNames;
  std::vector<QwVQWK_Channel> fMonitors;
+ std::vector<Double_t> fBPMPosition;
+
+ std::vector <std::vector <Double_t> > fAmplitude;
+ std::vector <std::vector <Double_t> > fOffset;
+ std::vector <std::vector <Double_t> > fPhase;
+
+ std::vector <std::vector <Double_t> > fAmplitudeError;
+ std::vector <std::vector <Double_t> > fOffsetError;
+ std::vector <std::vector <Double_t> > fPhaseError;
 
  Int_t fRampChannelIndex;
  Int_t fPatternWordIndex;
