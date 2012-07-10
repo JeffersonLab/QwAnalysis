@@ -36,6 +36,7 @@ class VQwHardwareChannel: public VQwDataElement {
 public:
   VQwHardwareChannel();
   VQwHardwareChannel(const VQwHardwareChannel& value);
+  VQwHardwareChannel(const VQwHardwareChannel& value, VQwDataElement::EDataToSave datatosave);
   virtual ~VQwHardwareChannel() { };
 
   /*! \brief Get the number of data words in this data element */
@@ -168,6 +169,11 @@ public:
       fDataToSave = kDerived;
     else
       fDataToSave = kRaw; // wdc, added default fall-through
+  }
+  /*! \brief Set the flag indicating if raw or derived values are
+   *         in this data element */
+  void SetDataToSave(VQwDataElement::EDataToSave datatosave) {
+    fDataToSave = datatosave;
   }
 
   /*! \brief Checks that the requested element is in range, to be

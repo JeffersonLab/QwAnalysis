@@ -31,6 +31,32 @@ asym:qwk_bcm6, -1
 asym:qwk_bcm5, 1
 asym:qwk_bcm6, -1
 
+[asym:@bpmdd_charge_3c12]
+asym:qwk_bpm3c12_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h04]
+asym:qwk_bpm3h04_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h07a]
+asym:qwk_bpm3h07a_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h07b]
+asym:qwk_bpm3h07b_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h07c]
+asym:qwk_bpm3h07c_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h09]
+asym:qwk_bpm3h09_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h09b]
+asym:qwk_bpm3h09b_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_targetcharge]
+asym:qwk_target_EffectiveCharge, 1
+asym:qwk_charge, -1
+
+
 # MD Dipoles
 [asym:@asym_md15dipole]
 asym:qwk_md1barsum, 1

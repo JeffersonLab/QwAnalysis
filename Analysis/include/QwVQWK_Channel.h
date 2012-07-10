@@ -59,6 +59,22 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     InitializeChannel(name, datatosave);
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
+  QwVQWK_Channel(const QwVQWK_Channel& value): 
+    VQwHardwareChannel(value), MQwMockable(value),
+    fBlocksPerEvent(value.fBlocksPerEvent),
+    fNumberOfSamples_map(value.fNumberOfSamples_map),
+    fSaturationABSLimit(value.fSaturationABSLimit)
+  {
+    *this = value;
+  };
+  QwVQWK_Channel(const QwVQWK_Channel& value, VQwDataElement::EDataToSave datatosave):
+    VQwHardwareChannel(value,datatosave), MQwMockable(value),
+    fBlocksPerEvent(value.fBlocksPerEvent),
+    fNumberOfSamples_map(value.fNumberOfSamples_map),
+    fSaturationABSLimit(value.fSaturationABSLimit)
+  {
+    *this = value;
+  };
   virtual ~QwVQWK_Channel() { };
 
   /// \brief Initialize the fields in this object

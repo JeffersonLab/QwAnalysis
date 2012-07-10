@@ -93,7 +93,7 @@ QwRegression::QwRegression(const QwRegression &source):
     for (size_t i = 0; i < this->fDependentVar.size(); i++) {
       const QwVQWK_Channel* vqwk = dynamic_cast<const QwVQWK_Channel*>(source.fDependentVar[i].second);
       this->fDependentVar[i].first = NULL;
-      this->fDependentVar[i].second = new QwVQWK_Channel(*vqwk);
+      this->fDependentVar[i].second = new QwVQWK_Channel(*vqwk, VQwDataElement::kDerived);
       fDependentVarType[i] = source.fDependentVarType[i];
     }
 }
@@ -259,14 +259,14 @@ Int_t QwRegression::ConnectChannels(
         vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
         name = vqwk->GetElementName().Data();
         name.insert(0, reg);
-        new_vqwk = new QwVQWK_Channel(*vqwk);
+        new_vqwk = new QwVQWK_Channel(*vqwk, VQwDataElement::kDerived);
         new_vqwk->SetElementName(name);
     }
 
     // alias
     if(fDependentName.at(dv).at(0) == '@'){
         QwMessage << "dv: " << name << QwLog::endl;
-        new_vqwk = new QwVQWK_Channel(name);
+        new_vqwk = new QwVQWK_Channel(name, VQwDataElement::kDerived);
     }
     // defined type
     else if(dv_ptr!=NULL){
@@ -366,14 +366,14 @@ Int_t QwRegression::ConnectChannels(
         vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
         name = vqwk->GetElementName().Data();
         name.insert(0, reg);
-        new_vqwk = new QwVQWK_Channel(*vqwk);
+        new_vqwk = new QwVQWK_Channel(*vqwk, VQwDataElement::kDerived);
         new_vqwk->SetElementName(name);
     }
 
     // alias
     if(fDependentName.at(dv).at(0) == '@'){
         QwMessage << "dv: " << name << QwLog::endl;
-        new_vqwk = new QwVQWK_Channel(name);
+        new_vqwk = new QwVQWK_Channel(name, VQwDataElement::kDerived);
     }
     // defined type
     else if(dv_ptr!=NULL){
@@ -456,14 +456,14 @@ Int_t QwRegression::ConnectChannels(QwSubsystemArrayParity& event)
     } else {
       if(fDependentName.at(dv).at(0) == '@' ){
         name = fDependentName.at(dv).substr(1,fDependentName.at(dv).length());
-        new_vqwk = new QwVQWK_Channel(name);
+        new_vqwk = new QwVQWK_Channel(name, VQwDataElement::kDerived);
       } else {
         dv_ptr = event.ReturnInternalValueForFriends(fDependentName.at(dv));
 
 	vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
         name = vqwk->GetElementName().Data();
         name.insert(0,reg);
-        new_vqwk = new QwVQWK_Channel(*vqwk);
+        new_vqwk = new QwVQWK_Channel(*vqwk, VQwDataElement::kDerived);
         new_vqwk->SetElementName(name);
       }
     }

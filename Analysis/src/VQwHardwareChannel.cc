@@ -33,6 +33,24 @@ VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value)
 {
 }
 
+VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value, VQwDataElement::EDataToSave datatosave)
+  :VQwDataElement(value),
+   fNumberOfDataWords(value.fNumberOfDataWords),
+   fNumberOfSubElements(value.fNumberOfSubElements),
+   fDataToSave(datatosave),
+   fTreeArrayIndex(value.fTreeArrayIndex),
+   fTreeArrayNumEntries(value.fTreeArrayNumEntries),
+   fPedestal(value.fPedestal),
+   fCalibrationFactor(value.fCalibrationFactor),
+   kFoundPedestal(value.kFoundPedestal),
+   kFoundGain(value.kFoundGain),
+   bEVENTCUTMODE(value.bEVENTCUTMODE),
+   fULimit(value.fULimit),
+   fLLimit(value.fLLimit),
+   fStability(value.fStability)
+{
+}
+
 UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
 {
   // return the error flag
