@@ -27,12 +27,12 @@
   echo "------"
   echo "Started at `date`"
   echo \
-  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN%
-  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN%
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% %OTHER%
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% %OTHER%
   echo "Finished at `date`"
 ]]></Command>
  <Job>
-  <Input src="mss:/mss/hallc/qweak/misc/tracking_rootfiles/pass2/Qweak_%RUN%.root" dest="Qweak_%RUN%.root"/>
+  <Input src="mss:/mss/hallc/qweak/misc/tracking_rootfiles/pass3/Qweak_%RUN%.root" dest="Qweak_%RUN%.root"/>
   <Stdout dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.out"/>
   <Stderr dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.err"/>
  </Job>
