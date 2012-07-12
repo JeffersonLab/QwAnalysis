@@ -31,8 +31,8 @@ hostname
 setenv QWSCRATCH $ENV{'QWSCRATCH'}
 setenv QWANALYSIS $ENV{'QWANALYSIS'}
 source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh
-setenv QW_ROOTFILES `pwd`
-\$QWANALYSIS/bin/qwroot -b -q \$QWANALYSIS/Extension/Macros/Compton/linearity/make_phdet_linearity_rootfile.C+g\\\($run,$foundAt,$mult,-1,kTRUE\\\)
+setenv QW_ROOTFILES .
+\$QWANALYSIS/bin/qwroot -b -q \$QWANALYSIS/Extension/Macros/Compton/linearity/make_phdet_linearity_rootfile.C+g\\\($run,$foundAt,$mult,-1,kFALSE\\\)
 jobstat | grep $user
   ]]></Command>
   <Memory space="512" unit="MB"/>
