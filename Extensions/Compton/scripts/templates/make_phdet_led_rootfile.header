@@ -14,15 +14,4 @@ setenv QW_ROOTFILES `pwd`
 $QWANALYSIS/bin/qwroot $QWANALYSIS/Extension/Macros/Compton/linearity/make_phdet_linearity_rootfile.C+g\(%run%,%foundat%,%multiplicity%,%end%\)
 jobstat | grep %USER%
   ]]></Command>
-
-  <List name="segment">%segments%</List>
   <Job>
-    <ForEach list="segment">
-      <Input src="mss:/mss/hallc/qweak/polarimetry/rootfiles/Compton_Pass1_%run%.$(segment).root" dest="Compton_Pass1_%run%.$(segment).root"/>
-    </ForEach>
-    <Output src="Compton_LED_%run%.root" dest="%QWSCRATCH%/rootfiles/Compton_LED_%run%.root"/>
-    <Stdout dest="%QWSCRATCH%/jobs/compton_make_led_pass2_%run%.out"/>
-    <Stderr dest="%QWSCRATCH%/jobs/compton_make_led_pass2_%run%.err"/>
-  </Job>
-
-</Request>

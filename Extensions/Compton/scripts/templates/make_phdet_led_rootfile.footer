@@ -1,0 +1,8 @@
+      <Input src="mss:/mss/hallc/qweak/polarimetry/rootfiles/Compton_Pass1_%run%.$(segment).root" dest="Compton_Pass1_%run%.$(segment).root"/>
+    </ForEach>
+    <Output src="Compton_LED_%run%.root" dest="%QWSCRATCH%/rootfiles/Compton_LED_%run%.root"/>
+    <Stdout dest="%QWSCRATCH%/jobs/compton_make_led_pass2_%run%.out"/>
+    <Stderr dest="%QWSCRATCH%/jobs/compton_make_led_pass2_%run%.err"/>
+  </Job>
+
+</Request>
