@@ -116,7 +116,7 @@ void make_phdet_linearity_rootfile(Int_t runnum = 25305,
   led_t tree_led[4];
 
   TString inFile;
-  if(!useCache) {
+  if(!useCache)
     inFile = Form("$QW_ROOTFILES/Compton_Pass1_%d*.*.root",runnum);
   else
     inFile = Form("$QW_ROOTFILES_CACHE/Compton_Pass1_%d*.*.root",runnum);
@@ -124,7 +124,8 @@ void make_phdet_linearity_rootfile(Int_t runnum = 25305,
   TString outFile = Form("$QW_ROOTFILES/Compton_LED_%d.root",runnum);
 
   TChain *chain = new TChain("Mps_Tree");
-  chain->Add(inFile);
+  std::cout << "Added " << chain->Add(inFile) << " rootfiles: " << inFile << std::endl;
+  //chain->Add(inFile);
   TFile file(outFile,"RECREATE");
   std::cout << outFile.Data() << std::endl;
   TTree *led_tree = new TTree("LED_Tree","LED Tree");
