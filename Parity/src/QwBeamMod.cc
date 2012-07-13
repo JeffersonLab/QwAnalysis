@@ -15,6 +15,9 @@
 #include "QwLog.h"
 #include "QwParameterFile.h"
 #include "QwHistogramHelper.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Root plotting headers
 #include "TCanvas.h"
@@ -802,6 +805,8 @@ void QwBeamMod::ClearVectors()
     fOffsetError.clear();
     fAmplitudeError.clear();
     fPhaseError.clear();
+    fChisquare.clear();
+    fNFitPoints.clear();
     
 }
 
@@ -813,6 +818,8 @@ void QwBeamMod::ResizeOpticsDataContainers(Int_t size)
   fOffsetError.resize(size);
   fAmplitudeError.resize(size);
   fPhaseError.resize(size);
+  fChisquare.resize(size);
+  fNFitPoints.resize(size);
 
   for(Int_t i = 0; i < size; i++){
     fOffset[i].resize(fNumberPatterns);
@@ -821,6 +828,8 @@ void QwBeamMod::ResizeOpticsDataContainers(Int_t size)
     fOffsetError[i].resize(fNumberPatterns);
     fAmplitudeError[i].resize(fNumberPatterns);
     fPhaseError[i].resize(fNumberPatterns);
+    fChisquare[i].resize(fNumberPatterns);
+    fNFitPoints[i].resize(fNumberPatterns);
   }
 }
 
@@ -862,6 +871,8 @@ void QwBeamMod::AnalyzeOpticsPlots()
       fOffsetError[bpm][pattern] = sine->GetParError(0);
       fAmplitudeError[bpm][pattern] = sine->GetParError(1);
       fPhaseError[bpm][pattern] = sine->GetParError(2);
+      fChisquare[bpm][pattern] = sine->GetChisquare();
+      fNFitPoints[bpm][pattern] = sine->GetNumberFitPoints();
     }
   }
   delete canvas;
@@ -951,6 +962,56 @@ void  QwModChannelID::Print()
 //*****************************************************************
 void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 {
+  Bool_t local_print_flag = false;
+
+  if(local_print_flag) {
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "            QwBeamMod::FillDB                       " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  std::vector<QwParitySSQLS::beam_optics> entrylist;
+
+  QwParitySSQLS::beam_optics row;
+
+  UInt_t analysis_id = db->GetAnalysisID();
+
+  for(size_t bpm = 0; bpm < fMonitors.size(); bpm++){
+    for(size_t pattern = 0; pattern < 5; pattern++){
+      row.analysis_id = analysis_id;
+      row.monitor_id = db->GetMonitorID(fMonitorNames[bpm].Data());
+      row.modulation_type_id = pattern;
+      row.n = fNFitPoints[bpm][pattern];
+      row.offset = fOffset[bpm][pattern];
+      row.amplitude = fAmplitude[bpm][pattern];
+      row.phase = fPhase[bpm][pattern];
+      row.o_error = fOffsetError[bpm][pattern];
+      row.a_error = fAmplitudeError[bpm][pattern];
+      row.p_error = fPhaseError[bpm][pattern];
+      row.gof_para = fChisquare[bpm][pattern];
+
+      entrylist.push_back(row);
+    }
+  }
+
+  if(local_print_flag) {
+    QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size()
+              << QwColor(Qw::kNormal) << QwLog::endl;
+  }
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwBeamMod::FillDB :: Nothing to insert in database." << QwLog::endl;
+  }
+  db->Disconnect();
+
   return;
 }
 

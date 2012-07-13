@@ -183,6 +183,9 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
  std::vector <std::vector <Double_t> > fOffsetError;
  std::vector <std::vector <Double_t> > fPhaseError;
 
+ std::vector <std::vector <Double_t> > fChisquare;
+ std::vector <std::vector <Double_t> > fNFitPoints;
+
  Int_t fRampChannelIndex;
  Int_t fPatternWordIndex;
 

@@ -85,6 +85,10 @@ namespace QwParitySSQLS {
   
     sql_create_4(bf_test, 1, 2 , mysqlpp::sql_int_unsigned, bf_test_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::Null<mysqlpp::sql_int_unsigned>, test_number, mysqlpp::Null<mysqlpp::sql_float>, test_value) 
   
+    sql_create_2(modulation_type, 1, 2 , mysqlpp::sql_int_unsigned, modulation_type_id, mysqlpp::Null<mysqlpp::sql_text>, type) 
+  
+    sql_create_12(beam_optics, 1, 2 , mysqlpp::sql_int_unsigned, beam_optics_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, monitor_id, mysqlpp::sql_int_unsigned, modulation_type_id, mysqlpp::sql_int_unsigned, n, mysqlpp::sql_float, amplitude, mysqlpp::sql_float, phase, mysqlpp::sql_float, offset, mysqlpp::sql_float, a_error, mysqlpp::sql_float, p_error, mysqlpp::sql_float, o_error, mysqlpp::sql_float, gof_para) 
+  
     }
 /// @endcond
 
