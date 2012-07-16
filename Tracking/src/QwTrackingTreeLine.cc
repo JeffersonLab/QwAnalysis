@@ -225,7 +225,7 @@ void QwTrackingTreeLine::AddHitContainer(QwHitContainer* hitlist)
 }
 
 // Get the hits from the TClonesArray to a QwHitContainer
-QwHit* QwTrackingTreeLine::GetHit(int i)
+const QwHit* QwTrackingTreeLine::GetHit(int i) const
 {
   if (fNQwHits == 0 ||  i >= fNQwHits)
     return 0;
@@ -234,7 +234,7 @@ QwHit* QwTrackingTreeLine::GetHit(int i)
 }
 
 // Get the hits from the TClonesArray to a QwHitContainer
-QwHitContainer* QwTrackingTreeLine::GetHitContainer()
+const QwHitContainer* QwTrackingTreeLine::GetHitContainer() const
 {
   QwHitContainer* hitlist = new QwHitContainer();
   for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();

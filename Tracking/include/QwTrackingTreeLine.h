@@ -113,9 +113,9 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; }
     //! \brief Get a specific hit
-    QwHit* GetHit(int i = 0);
+    const QwHit* GetHit(int i = 0) const;
     //! \brief Get the hits as a hit container
-    QwHitContainer* GetHitContainer();
+    const QwHitContainer* GetHitContainer() const;
     //! \brief Clear the list of hits without deleting
     void ClearHits();
     //! \brief Delete the hits in the list
