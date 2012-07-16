@@ -80,6 +80,10 @@ do
 	  DOMACROS=0
 	  DOINDEXING=0
 	  ;;
+      --index)
+	  DOMACROS=0
+	  DOINDEXING=1
+	  ;;
       [0-9]*)
          RUNNUM=$i
          ;;
@@ -146,7 +150,6 @@ do
 done
 if [ -f $PREVRUNPAGE ]
 then
-    echo "previous run: $PREVRUN $PREVRUNPAGE"
     sed -i -e "s|Previous Run|<a href=\"../$PREVRUNLINK\">Run $PREVRUN</a>|" $RUNPAGE
     sed -i -e "s|Next Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $PREVRUNPAGE
     sed -i -e "s|<!--prev|<a href=\"../$PREVRUNLINK|" $RUNPAGE

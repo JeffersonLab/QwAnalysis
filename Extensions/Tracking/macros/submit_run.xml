@@ -1,5 +1,5 @@
 <Request>
- <Email email="%USER%@jlab.org" request="false" job="true"/>
+ <Email email="%USER%@jlab.org" request="false" job="false"/>
  <Project name="qweak"/>
  <Track name="one_pass"/>
  <Name name="Qweak_%RUN%"/>
