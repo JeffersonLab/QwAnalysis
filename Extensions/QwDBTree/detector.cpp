@@ -28,11 +28,9 @@ void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i)
     TString name;
     string type;
     string detector_str = detector_name.Data();
-    cout << detector_str << endl;
     Int_t pos;
 
     pos = detector_str.find("qwk_");
-    cout << pos << endl;
 
     if (pos !=string::npos)
     {
@@ -111,7 +109,8 @@ TString QwMainDet::query(void)
 {
     // figure out which temp table to use
     TString table;
-    if(reg_type == "on_5+1")  table = "temp_table_on_5p1";
+    if(measurement_id == "y") table = "temp_table_unreg_offoff";
+    else if(reg_type == "on_5+1") table = "temp_table_on_5p1";
     else if(reg_type == "off") table = "temp_table_unreg_on";
     else table = "temp_table_" + reg_type;
 
@@ -129,7 +128,7 @@ TString QwMainDet::query(void)
 
     // md cuts
     query += "WHERE md_data.subblock = 0\n";
-    query += "AND md_data.measurement_type_id = \"a\"\n";
+    query += "AND md_data.measurement_type_id = \"" + measurement_id + "\"\n";
     query += "AND main_detector.quantity = \"" + detector_name + "\"\n";
 
     query += "ORDER BY runlet_id;\n";
@@ -142,7 +141,8 @@ TString QwLumiDet::query(void)
 {
     // figure out which temp table to use
     TString table;
-    if(reg_type == "on_5+1")  table = "temp_table_on_5p1";
+    if(measurement_id == "y") table = "temp_table_unreg_offoff";
+    else if(reg_type == "on_5+1") table = "temp_table_on_5p1";
     else if(reg_type == "off") table = "temp_table_unreg_on";
     else table = "temp_table_" + reg_type;
 
@@ -160,7 +160,7 @@ TString QwLumiDet::query(void)
 
     // lumi cuts
     query += "WHERE lumi_data.subblock = 0\n";
-    query += "AND lumi_data.measurement_type_id = \"a\"\n";
+    query += "AND lumi_data.measurement_type_id = \"" + measurement_id + "\"\n";
     query += "AND lumi_detector.quantity = \"" + detector_name +"\"\n";
 
     query += "ORDER BY runlet_id;\n";
