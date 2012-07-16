@@ -85,7 +85,7 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
     Bool_t SingleEventCuts();
     Bool_t ApplySingleEventCuts();
 
-    Int_t GetEventcutErrorCounters();
+    void PrintErrorCounters() const;
     UInt_t GetEventcutErrorFlag();
     //update the same error flag in the classes belong to the subsystem.
     void UpdateEventcutErrorFlag(UInt_t errorflag){

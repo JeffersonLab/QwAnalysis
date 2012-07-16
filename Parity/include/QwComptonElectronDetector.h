@@ -77,7 +77,7 @@ class QwComptonElectronDetector:
 
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
-    Int_t GetEventcutErrorCounters() { return 0; };
+    void PrintErrorCounters() const { };
     UInt_t GetEventcutErrorFlag() { return 0; };
     //update the same error flag in the classes belong to the subsystem.
     void UpdateEventcutErrorFlag(UInt_t errorflag){

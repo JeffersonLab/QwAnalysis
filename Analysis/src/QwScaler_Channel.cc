@@ -61,12 +61,6 @@ void VQwScaler_Channel::InitializeChannel(TString subsystem, TString instrumentt
   SetModuleType(instrumenttype);
 }
 
-/********************************************************/
-Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
-
-  return 1;
-}
-
 void VQwScaler_Channel::ClearEventData()
 {
   fValue_Raw   = 0;
@@ -699,7 +693,7 @@ void VQwScaler_Channel::CalculateRunningAverage()
 
 }
 
-void  VQwScaler_Channel::ReportErrorCounters(){
+void  VQwScaler_Channel::PrintErrorCounters() const{
     if (fNumEvtsWithHWErrors>0)
       QwMessage << "QwScaler_Channel " << GetElementName()
 		<< " had " << fNumEvtsWithHWErrors

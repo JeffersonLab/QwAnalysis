@@ -503,21 +503,14 @@ Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
 
 
 
-Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
-
-
-  VQwSubsystemParity *subsys_parity;
-
-
+void QwSubsystemArrayParity::PrintErrorCounters() const{// report number of events failed due to HW and event cut faliure
+  const VQwSubsystemParity *subsys_parity;
   if (!empty()){
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      subsys_parity->GetEventcutErrorCounters();
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<const VQwSubsystemParity*>((subsys)->get());
+      subsys_parity->PrintErrorCounters();
     }
   }
-
-
-  return 1;
 }
 
 void QwSubsystemArrayParity::UpdateEventcutErrorFlag(UInt_t errorflag){

@@ -53,9 +53,8 @@ Bool_t QwHaloMonitor::ApplySingleEventCuts()
 }
 
 
-Int_t QwHaloMonitor::GetEventcutErrorCounters()
+void QwHaloMonitor::PrintErrorCounters() const
 {// report number of events failed due to HW and event cut faliure
-  return 1;
 }
 
 void QwHaloMonitor::UpdateEventcutErrorFlag(QwHaloMonitor *ev_error){

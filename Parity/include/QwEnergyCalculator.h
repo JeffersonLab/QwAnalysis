@@ -71,7 +71,7 @@ class QwEnergyCalculator : public VQwDataElement{
       bEVENTCUTMODE=bcuts;
       fEnergyChange.SetEventCutMode(bcuts);
     }
-    Int_t   GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
+    void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
     UInt_t   GetEventcutErrorFlag(){//return the error flag
       return fEnergyChange.GetEventcutErrorFlag();
     }

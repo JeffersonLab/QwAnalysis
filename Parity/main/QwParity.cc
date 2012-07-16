@@ -370,7 +370,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Print the event cut error summary for each subsystem
     if (gQwOptions.GetValue<bool>("print-errorcounters")) {
       QwMessage << " ------------ error counters ------------------ " << QwLog::endl;
-      detectors.GetEventcutErrorCounters();
+      detectors.PrintErrorCounters();
     }
     
     if (gQwOptions.GetValue<bool>("write-promptsummary")) {

@@ -237,13 +237,6 @@ void QwVQWK_Channel::LoadChannelParameters(QwParameterFile &paramfile){
 };
 
 
-/********************************************************/
-Int_t QwVQWK_Channel::GetEventcutErrorCounters()
-{// report number of events failed due to HW and event cut failure
-  ReportErrorCounters();//print the summary
-  return 1;
-}
-
 void QwVQWK_Channel::ClearEventData()
 {
   for (Int_t i = 0; i < fBlocksPerEvent; i++) {
@@ -1566,7 +1559,7 @@ void  QwVQWK_Channel::PrintErrorCounterTail()
   return;
 }
 
-void  QwVQWK_Channel::ReportErrorCounters()
+void  QwVQWK_Channel::PrintErrorCounters() const
 {
   TString message;
   if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fErrorCount_ZeroHW || fErrorCount_HWSat || fNumEvtsWithEventCutsRejected) {

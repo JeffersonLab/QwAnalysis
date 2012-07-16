@@ -395,17 +395,16 @@ Bool_t QwIntegratedRaster::ApplySingleEventCuts(){
 
 
 //*****************************************************************
-Int_t QwIntegratedRaster::GetEventcutErrorCounters()
+void QwIntegratedRaster::PrintErrorCounters() const
 {
   //inherited from the VQwSubsystemParity; this will display the error summary
   QwMessage<<"*********QwIntegratedRaster Error Summary****************"<<QwLog::endl;
   QwVQWK_Channel::PrintErrorCounterHead();
   for(size_t i=0;i<fIntegratedRasterChannel.size();i++){
     //std::cout<<"  IntegratedRasterChannel ["<<i<<"] "<<std::endl;
-    fIntegratedRasterChannel[i].GetEventcutErrorCounters();
+    fIntegratedRasterChannel[i].PrintErrorCounters();
   }
   QwVQWK_Channel::PrintErrorCounterTail();
-  return 1;
 }
 
 

@@ -146,18 +146,16 @@ Bool_t QwCombinedBPM<T>::ApplyHWChecks()
 
 
 template<typename T>
-Int_t QwCombinedBPM<T>::GetEventcutErrorCounters()
+void QwCombinedBPM<T>::PrintErrorCounters() const
 {
   for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
-    fAbsPos[axis].GetEventcutErrorCounters();
-    fSlope[axis].GetEventcutErrorCounters();
-    fIntercept[axis].GetEventcutErrorCounters();
-    fMinimumChiSquare[axis].GetEventcutErrorCounters();
+    fAbsPos[axis].PrintErrorCounters();
+    fSlope[axis].PrintErrorCounters();
+    fIntercept[axis].PrintErrorCounters();
+    fMinimumChiSquare[axis].PrintErrorCounters();
   }
 
-  fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
+  fEffectiveCharge.PrintErrorCounters();
 }
 
 template<typename T>

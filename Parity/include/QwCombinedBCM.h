@@ -63,7 +63,7 @@ class QwCombinedBCM : public QwBCM<T> {
       TString datatosave);
 
   // No reporting of error counters
-  void ReportErrorCounters() { };
+  void PrintErrorCounters() { };
 
   void  ProcessEvent();
 
@@ -73,7 +73,7 @@ class QwCombinedBCM : public QwBCM<T> {
 
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   /*
-  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
+  void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fCombined_bcm.GetEventcutErrorFlag();
   }

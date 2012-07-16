@@ -97,9 +97,8 @@ class QwScanner:
     {
       return kTRUE;
     };
-    Int_t GetEventcutErrorCounters()
+    void PrintErrorCounters() const
     {
-      return 0;
     };
     Bool_t CheckRunningAverages(Bool_t )
     {

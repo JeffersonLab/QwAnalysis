@@ -63,12 +63,6 @@ void QwCombinedPMT::ClearEventData()
 }
 
 
-void QwCombinedPMT::ReportErrorCounters()
-{
-
-}
-
-
 void QwCombinedPMT::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
 
@@ -163,10 +157,9 @@ void QwCombinedPMT::SetDefaultSampleSize(Int_t sample_size)
 }
 
 // report number of events failed due to HW and event cut faliure
-Int_t QwCombinedPMT::GetEventcutErrorCounters()
+void QwCombinedPMT::PrintErrorCounters() const
 {
-  fSumADC.GetEventcutErrorCounters();
-  return 1;
+  fSumADC.PrintErrorCounters();
 }
 
 /********************************************************/

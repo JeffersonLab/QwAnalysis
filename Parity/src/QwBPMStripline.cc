@@ -120,18 +120,16 @@ Bool_t QwBPMStripline<T>::ApplyHWChecks()
 
 
 template<typename T>
-Int_t QwBPMStripline<T>::GetEventcutErrorCounters()
+void QwBPMStripline<T>::PrintErrorCounters() const
 {
   Short_t i=0;
 
-  for(i=0;i<4;i++) fWire[i].GetEventcutErrorCounters();
+  for(i=0;i<4;i++) fWire[i].PrintErrorCounters();
   for(i=kXAxis;i<kNumAxes;i++) {
-    fRelPos[i].GetEventcutErrorCounters();
-    fAbsPos[i].GetEventcutErrorCounters();
+    fRelPos[i].PrintErrorCounters();
+    fAbsPos[i].PrintErrorCounters();
   }
-  fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
+  fEffectiveCharge.PrintErrorCounters();
 }
 
 template<typename T>

@@ -72,6 +72,8 @@ class QwPMT_Channel: public VQwDataElement {
 
   void PrintValue() const;
   void PrintInfo() const;
+  void PrintErrorCounters() const {};
+
 
  protected:
 

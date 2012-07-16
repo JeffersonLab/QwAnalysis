@@ -130,9 +130,8 @@ Bool_t QwClock<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwClock<T>::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
-  fClock.GetEventcutErrorCounters();
-  return 1;
+void QwClock<T>::PrintErrorCounters() const{// report number of events failed due to HW and event cut faliure
+  fClock.PrintErrorCounters();
 }
 
 

@@ -45,7 +45,7 @@ class QwRaster: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwRast
 
    Int_t LoadEventCuts(TString filename) { return 0; };
    Bool_t ApplySingleEventCuts() { return kTRUE; };
-   Int_t GetEventcutErrorCounters() { return 0; };
+   void PrintErrorCounters() const {};
    Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
   /*  Member functions derived from VQwSubsystem. */

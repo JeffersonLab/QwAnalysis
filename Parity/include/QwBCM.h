@@ -82,7 +82,7 @@ class QwBCM : public VQwBCM {
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
+  void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fBeamCurrent.GetEventcutErrorFlag();
   }
@@ -159,8 +159,6 @@ class QwBCM : public VQwBCM {
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
-
   std::vector<QwDBInterface> GetDBEntry();
   std::vector<QwErrDBInterface> GetErrDBEntry();
 
@@ -177,10 +175,6 @@ class QwBCM : public VQwBCM {
 /////
  private:
   
-  Double_t GetAverage()        {return fBeamCurrent.GetValue();};
-  Double_t GetAverageError()   {return fBeamCurrent.GetValueError();};
-
-
 };
 
 

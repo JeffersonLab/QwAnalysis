@@ -633,21 +633,20 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 
 
 //*****************************************************************
-Int_t QwLumi::GetEventcutErrorCounters()
+void QwLumi::PrintErrorCounters() const
 {
   //inherited from the VQwSubsystemParity; this will display the error summary
   QwMessage<<"*********QwLumi Error Summary****************"<<QwLog::endl;
   QwVQWK_Channel::PrintErrorCounterHead();
   for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
-    fIntegrationPMT[i].GetEventcutErrorCounters();
+    fIntegrationPMT[i].PrintErrorCounters();
   }
   for(size_t i=0;i<fCombinedPMT.size();i++){
     //std::cout<<"  CombinedPMT ["<<i<<"] "<<std::endl;
-    fCombinedPMT[i].GetEventcutErrorCounters();
+    fCombinedPMT[i].PrintErrorCounters();
   }
   QwVQWK_Channel::PrintErrorCounterTail();
-  return 1;
 }
 
 

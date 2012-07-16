@@ -64,7 +64,7 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
+  void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fTriumf_ADC.GetEventcutErrorFlag();
   }
@@ -104,10 +104,6 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-
-  Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
-  UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
   std::vector<QwDBInterface>    GetDBEntry();
   std::vector<QwErrDBInterface> GetErrDBEntry();

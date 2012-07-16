@@ -82,7 +82,7 @@ class VQwBPM : public VQwDataElement {
     return fErrorFlag;
     };
   */
-  //  virtual Int_t   GetEventcutErrorCounters() = 0;
+  //  virtual void PrintErrorCounters() const = 0;
 
 /*   Bool_t  ApplySingleEventCuts(); */
   void    SetSingleEventCuts(TString, Double_t, Double_t);
@@ -183,9 +183,8 @@ class VQwBPM : public VQwDataElement {
     std::cerr << "GetAbsolutePosition() is not implemented!!\n";
   }
   virtual void SetEventCutMode(Int_t bcuts) = 0;
-  virtual Int_t GetEventcutErrorCounters() {// report number of events failed due to HW and event cut faliure
-    std::cerr << "GetEventcutErrorCounters() is not implemented!!\n";
-    return 0;
+  virtual void PrintErrorCounters() const {// report number of events failed due to HW and event cut faliure
+    std::cerr << "PrintErrorCounters() is not implemented!!\n";
   }
   virtual Bool_t ApplySingleEventCuts() = 0;//Check for good events by stting limits on the devices readings
   virtual void ProcessEvent() = 0;

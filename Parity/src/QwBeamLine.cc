@@ -1246,52 +1246,51 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
 
 
 //*****************************************************************//
-Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
+void QwBeamLine::PrintErrorCounters() const{//inherited from the VQwSubsystemParity; this will display the error summary
 
   QwMessage<<"*********QwBeamLine Error Summary****************"<<QwLog::endl;
   QwVQWK_Channel::PrintErrorCounterHead();
 
   for(size_t i=0;i<fClock.size();i++){
-    fClock[i].get()->GetEventcutErrorCounters();
+    fClock[i].get()->PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fBCM.size();i++){
-    fBCM[i].get()->GetEventcutErrorCounters();
+    fBCM[i].get()->PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fHaloMonitor.size();i++){
-    fHaloMonitor[i].GetEventcutErrorCounters();
+    fHaloMonitor[i].PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fStripline.size();i++){
-    fStripline[i].get()->GetEventcutErrorCounters();
+    fStripline[i].get()->PrintErrorCounters();
     printf("\n");
   }
   for(size_t i=0;i<fQPD.size();i++){
-    fQPD[i].GetEventcutErrorCounters();
+    fQPD[i].PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fLinearArray.size();i++){
-    fLinearArray[i].GetEventcutErrorCounters();
+    fLinearArray[i].PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fCavity.size();i++){
-    fCavity[i].GetEventcutErrorCounters();
+    fCavity[i].PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fBCMCombo.size();i++){
-    fBCMCombo[i].get()->GetEventcutErrorCounters();
+    fBCMCombo[i].get()->PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fBPMCombo.size();i++){
-    fBPMCombo[i].get()->GetEventcutErrorCounters();
+    fBPMCombo[i].get()->PrintErrorCounters();
   }
   printf("\n");
   for(size_t i=0;i<fECalculator.size();i++){
-    fECalculator[i].GetEventcutErrorCounters();
+    fECalculator[i].PrintErrorCounters();
   }
   QwVQWK_Channel::PrintErrorCounterTail();
-  return 1;
 }
 
 //*****************************************************************//

@@ -173,9 +173,9 @@ Bool_t QwBCM<T>::ApplySingleEventCuts()
 /********************************************************/
 
 template<typename T>
-Int_t QwBCM<T>::GetEventcutErrorCounters()
+void QwBCM<T>::PrintErrorCounters() const
 {// report number of events failed due to HW and event cut faliure
-  return fBeamCurrent.GetEventcutErrorCounters();
+  fBeamCurrent.PrintErrorCounters();
 }
 
 /********************************************************/

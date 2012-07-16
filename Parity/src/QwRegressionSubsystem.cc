@@ -250,10 +250,8 @@ Bool_t QwRegressionSubsystem::ApplySingleEventCuts()
   return true;
 }
 
-Int_t QwRegressionSubsystem::GetEventcutErrorCounters()
+void QwRegressionSubsystem::PrintErrorCounters() const
 {
-  return 4;
-  
 }
 
 UInt_t QwRegressionSubsystem::GetEventcutErrorFlag()

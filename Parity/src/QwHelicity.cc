@@ -400,7 +400,7 @@ Bool_t QwHelicity::ApplySingleEventCuts(){
   return kTRUE;
 }
 
-Int_t QwHelicity::GetEventcutErrorCounters(){
+void QwHelicity::PrintErrorCounters() const{
   // report number of events failed due to HW and event cut faliure
   QwMessage << "\n*********QwHelicity Error Summary****************"
 	    << QwLog::endl;
@@ -425,7 +425,6 @@ Int_t QwHelicity::GetEventcutErrorCounters(){
 	    << QwLog::endl;
   QwMessage <<"---------------------------------------------------\n"
 	    << QwLog::endl;
-  return 1;
 }
 
 UInt_t QwHelicity::GetEventcutErrorFlag(){//return the error flag

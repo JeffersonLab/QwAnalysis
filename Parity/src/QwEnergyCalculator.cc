@@ -120,10 +120,9 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 }
 
 
-Int_t QwEnergyCalculator::GetEventcutErrorCounters(){
+void QwEnergyCalculator::PrintErrorCounters() const{
   // report number of events failed due to HW and event cut faliure
-  fEnergyChange.GetEventcutErrorCounters();
-  return 1;
+  fEnergyChange.PrintErrorCounters();
 }
 
 void QwEnergyCalculator::UpdateEventcutErrorFlag(QwEnergyCalculator *ev_error){

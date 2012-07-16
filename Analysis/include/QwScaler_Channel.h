@@ -79,7 +79,6 @@ public:
 
   void  ClearEventData();
 
-  void ReportErrorCounters();//This will display the error summary for each device
   void UpdateHWErrorCount(){//Update error counter for HW faliure
     fNumEvtsWithHWErrors++;
   };
@@ -100,7 +99,6 @@ public:
   Double_t GetValue(size_t element) const      { return fValue; };
   Double_t GetValueM2(size_t element) const    { return fValueM2; };
   Double_t GetValueError(size_t element) const { return fValueError; };
-  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
   void AssignScaledValue(const VQwScaler_Channel &value, Double_t scale);
@@ -134,7 +132,7 @@ public:
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
 
   /// report number of events failed due to HW and event cut failure
-  Int_t GetEventcutErrorCounters();
+  void PrintErrorCounters() const;
 
 //   UInt_t GetDeviceErrorCode(){//return the device error code
 //     return fDeviceErrorCode;

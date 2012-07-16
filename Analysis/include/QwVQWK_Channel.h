@@ -93,9 +93,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   
   void  ClearEventData();
 
-  void ReportErrorCounters();//This will display the error summary for each device
-
-
   void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
 
   }
@@ -174,7 +171,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /*Event cut related routines*/
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel
-  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
+  void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
 
   void SetVQWKSaturationLimt(Double_t sat_volts=8.5){//Set the absolute staturation limit in volts.
     fSaturationABSLimit=sat_volts;
@@ -232,10 +229,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   void PrintValue() const;
   void PrintInfo() const;
 
-  Double_t GetAverage()      const { return fHardwareBlockSum; };
-  Double_t GetAverageError() const { return fHardwareBlockSumError; };
-
-
   /// \brief Blind this channel as an asymmetry
   void Blind(const QwBlinder *blinder);
   /// \brief Blind this channel as a difference
@@ -265,7 +258,6 @@ private:
   Int_t GetRawBlockValue(size_t blocknum) const {return GetRawValue(blocknum+1);};
   Int_t GetRawHardwareSum() const       { return GetRawValue(0);};
   Int_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
-
 
  private:
   static const Bool_t kDEBUG;

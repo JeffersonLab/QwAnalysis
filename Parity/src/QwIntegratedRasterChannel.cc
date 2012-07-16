@@ -206,9 +206,8 @@ Bool_t QwIntegratedRasterChannel<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwIntegratedRasterChannel<T>::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
-  fTriumf_ADC.GetEventcutErrorCounters();
-  return 1;
+void QwIntegratedRasterChannel<T>::PrintErrorCounters() const{// report number of events failed due to HW and event cut faliure
+  fTriumf_ADC.PrintErrorCounters();
 }
 
 

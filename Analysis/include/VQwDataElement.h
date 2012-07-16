@@ -139,7 +139,7 @@ class VQwDataElement: public MQwHistograms {
   /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   virtual void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){std::cerr << "SetSingleEventCuts not defined!" << std::endl; };
   /*! \brief report number of events failed due to HW and event cut failure */
-  virtual Int_t GetEventcutErrorCounters() { return 0; };
+  virtual void PrintErrorCounters() const {};
 
   /*! \brief return the error flag on this channel/device*/
   virtual UInt_t GetEventcutErrorFlag(){return fErrorFlag;};

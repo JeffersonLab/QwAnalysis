@@ -500,9 +500,8 @@ Bool_t QwScaler::ApplySingleEventCuts()
   return true;
 }
 
-Int_t QwScaler::GetEventcutErrorCounters()
+void QwScaler::PrintErrorCounters() const
 {
-  return 0;
 }
 
 UInt_t QwScaler::GetEventcutErrorFlag()

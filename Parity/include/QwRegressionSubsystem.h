@@ -122,7 +122,7 @@ class QwRegressionSubsystem: public VQwSubsystemParity,
       void ProcessEvent(){};
 
       Bool_t ApplySingleEventCuts();
-      Int_t GetEventcutErrorCounters();
+      void PrintErrorCounters() const;
       UInt_t GetEventcutErrorFlag();
 
 

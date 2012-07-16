@@ -353,16 +353,15 @@ Bool_t QwMollerDetector::ApplySingleEventCuts(){
   return test;
 }
 
-Int_t QwMollerDetector::GetEventcutErrorCounters(){
+void QwMollerDetector::PrintErrorCounters() const{
   std::cout << "***************QwMoller Error Summary****************" << std::endl;
   for (size_t i = 0; i < fSTR7200_Channel.size(); i++){
     for (size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
-      fSTR7200_Channel[i][j].ReportErrorCounters();
+      fSTR7200_Channel[i][j].PrintErrorCounters();
     }
   }
   std::cout << "total failed events: " << fQwMollerErrorCount << std::endl;
   std::cout << "************End QwMoller Error Summary***************" << std::endl;
-  return 0;
 }
 
 UInt_t QwMollerDetector::GetEventcutErrorFlag(){

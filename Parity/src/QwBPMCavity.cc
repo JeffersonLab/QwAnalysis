@@ -105,18 +105,16 @@ Bool_t QwBPMCavity::ApplyHWChecks()
 }
 
 
-Int_t QwBPMCavity::GetEventcutErrorCounters()
+void QwBPMCavity::PrintErrorCounters() const
 {
   Short_t i=0;
 
   for(i=0;i<2;i++) {
-    fWire[i].GetEventcutErrorCounters();
-    fRelPos[i].GetEventcutErrorCounters();
-    fAbsPos[i].GetEventcutErrorCounters();
+    fWire[i].PrintErrorCounters();
+    fRelPos[i].PrintErrorCounters();
+    fAbsPos[i].PrintErrorCounters();
   }
-  fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
+  fEffectiveCharge.PrintErrorCounters();
 }
 
 UInt_t QwBPMCavity::GetEventcutErrorFlag()

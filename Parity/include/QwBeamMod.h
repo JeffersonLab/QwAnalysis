@@ -88,7 +88,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliures
+  void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
   //update the same error flag in the classes belong to the subsystem.
   void UpdateEventcutErrorFlag(UInt_t errorflag){

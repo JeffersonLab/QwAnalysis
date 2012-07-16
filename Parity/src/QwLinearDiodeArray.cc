@@ -107,17 +107,14 @@ Bool_t QwLinearDiodeArray::ApplyHWChecks()
 }
 
 
-Int_t QwLinearDiodeArray::GetEventcutErrorCounters()
+void QwLinearDiodeArray::PrintErrorCounters() const
 {
   size_t i=0;
-
-  for(i=0;i<8;i++) fPhotodiode[i].GetEventcutErrorCounters();
+  for(i=0;i<8;i++) fPhotodiode[i].PrintErrorCounters();
   for(i=kXAxis;i<kNumAxes;i++) {
-    fRelPos[i].GetEventcutErrorCounters();
+    fRelPos[i].PrintErrorCounters();
   }
-  fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
+  fEffectiveCharge.PrintErrorCounters();
 }
 
 UInt_t QwLinearDiodeArray::GetEventcutErrorFlag()

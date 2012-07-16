@@ -67,8 +67,8 @@ void QwIntegrationPMT::ClearEventData()
   return;
 }
 /********************************************************/
-void QwIntegrationPMT::ReportErrorCounters(){
-  fTriumf_ADC.ReportErrorCounters();
+void QwIntegrationPMT::PrintErrorCounters(){
+  fTriumf_ADC.PrintErrorCounters();
 }
 /********************************************************/
 void QwIntegrationPMT::UseExternalRandomVariable()
@@ -203,9 +203,8 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 
 /********************************************************/
 
-Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events failed due to HW and event cut faliure
-  fTriumf_ADC.GetEventcutErrorCounters();
-  return 1;
+void QwIntegrationPMT::PrintErrorCounters() const{// report number of events failed due to HW and event cut faliure
+  fTriumf_ADC.PrintErrorCounters();
 }
 
 /********************************************************/

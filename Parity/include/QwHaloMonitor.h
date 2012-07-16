@@ -61,7 +61,7 @@ class  QwHaloMonitor : public VQwDataElement{
 
 
 
-  void  ReportErrorCounters();//This will display the error summary for each device
+  void  PrintErrorCounters();//This will display the error summary for each device
   void  UpdateHWErrorCount();//Update error counter for HW faliure
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
@@ -91,7 +91,7 @@ class  QwHaloMonitor : public VQwDataElement{
 
   void UpdateEventcutErrorFlag(QwHaloMonitor *ev_error);
 
-  Int_t  GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
+  void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   Bool_t ApplyHWChecks();
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
     fHalo_Counter.SetSingleEventCuts(errorflag,min,max,stability);

@@ -121,20 +121,16 @@ Bool_t QwQPD::ApplyHWChecks()
 }
 
 
-Int_t QwQPD::GetEventcutErrorCounters()
+void QwQPD::PrintErrorCounters() const
 {
   Short_t i=0;
-
   for(i=0;i<4;i++) 
-    fPhotodiode[i].GetEventcutErrorCounters();
-
+    fPhotodiode[i].PrintErrorCounters();
   for(i=kXAxis;i<kNumAxes;i++) {
-    fRelPos[i].GetEventcutErrorCounters();
-    fAbsPos[i].GetEventcutErrorCounters();
+    fRelPos[i].PrintErrorCounters();
+    fAbsPos[i].PrintErrorCounters();
   }
-
-  fEffectiveCharge.GetEventcutErrorCounters();
-  return 1;
+  fEffectiveCharge.PrintErrorCounters();
 }
 
 UInt_t QwQPD::GetEventcutErrorFlag()
