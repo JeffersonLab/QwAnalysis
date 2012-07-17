@@ -5,7 +5,7 @@ Bank=0x3102
 !for 30Hz (33.3ms) uncomment the next line and set vqwksamples=4161 in DAQ config tool
 !sample_size=16644
 !for 30Hz (33.2ms) uncomment the next line and set vqwksamples=4130 in DAQ config tool
-!sample_size=16520
+!sample_size=16520 
 !for 120Hz uncomment the next line
 !sample_size=4000
 !for 240Hz uncomment the next line
@@ -131,14 +131,14 @@ sample_size=464
 !    VQWK, 10, 7,  bpmstripline,  QWK_0R05YM
 
 !ADC11
-!    VQWK, 11, 0,  bpmstripline,  QWK_0R06XP
-!    VQWK, 11, 1,  bpmstripline,  QWK_0R06XM
-!    VQWK, 11, 2,  bpmstripline,  QWK_0R06YP
-!    VQWK, 11, 3,  bpmstripline,  QWK_0R06YM
-    VQWK, 11, 4,  bcm,  QWK_BCM0L02
-!    VQWK, 11, 5,  bcm,  QWK_Batery6
-!    VQWK, 11, 6,  bcm,  QWK_Batery7
-    VQWK, 11, 7,   bcm,  PhaseMonitor
+!    VQWK, 10, 0,  bpmstripline,  QWK_0R06XP
+!    VQWK, 10, 1,  bpmstripline,  QWK_0R06XM
+!    VQWK, 10, 2,  bpmstripline,  QWK_0R06YP
+!    VQWK, 10, 3,  bpmstripline,  QWK_0R06YM
+    VQWK, 10, 4,  bcm,  QWK_BCM0L02
+!    VQWK, 10, 5,  bcm,  QWK_Batery6
+!    VQWK, 10, 6,  bcm,  QWK_Batery7
+    VQWK, 10, 7,   bcm,  PhaseMonitor
 
 
 [PUBLISH]

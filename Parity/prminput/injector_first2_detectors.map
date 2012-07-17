@@ -2,7 +2,7 @@
 
 [QwBeamLine]
  name = Injector
- map = injtest_beamline.30Hz.map
+ map = injector_first2_beamline.map
  geom = injector_beamline_geometry.map
  eventcut = injtest_beamline_eventcuts.in
  param = injtest_pedestal.map

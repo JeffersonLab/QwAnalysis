@@ -2,41 +2,31 @@
 ROC=31
 Bank=0x3102
 !same sample size for ADCs in a given bank
-!for 30Hz (33.3ms) uncomment the next line and set vqwksamples=4161 in DAQ config tool
-!sample_size=16644
-!for 30Hz (33.2ms) uncomment the next line and set vqwksamples=4130 in DAQ config tool
-!sample_size=16520
-!for 120Hz uncomment the next line
-!sample_size=4000
-!for 240Hz uncomment the next line
-!sample_size=1940
-!for 960Hz uncomment the next line and set vqwksamples=116 in DAQ config tool
 sample_size=464
-
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
 
 !ADC0
-    VQWK, 0, 0,  qpd,  QWK_QPDBR
-    VQWK, 0, 1,  qpd,  QWK_QPDTR
-    VQWK, 0, 2,  qpd,  QWK_QPDBL
-    VQWK, 0, 3,  qpd,  QWK_QPDTL
-!    VQWK, 0, 4,  qpd,  QWK_LINAR5
-!    VQWK, 0, 5,  qpd,  QWK_LINAR6
-!    VQWK, 0, 6,  qpd,  QWK_LINAR7
-!    VQWK, 0, 7,  qpd,  QWK_LINAR8
+    VQWK, 0, 0,  bpmstripline,  QWK_0I01XP
+    VQWK, 0, 1,  bpmstripline,  QWK_0I01XM
+    VQWK, 0, 2,  bpmstripline,  QWK_0I01YP
+    VQWK, 0, 3,  bpmstripline,  QWK_0I01YM
+    VQWK, 0, 4,  bpmstripline,  QWK_0I01AXP
+    VQWK, 0, 5,  bpmstripline,  QWK_0I01AXM
+    VQWK, 0, 6,  bpmstripline,  QWK_0I01AYP
+    VQWK, 0, 7,  bpmstripline,  QWK_0I01AYM
 
 !ADC1
-!    VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED
-!    VQWK, 1, 1,  bpmstripline,  QWK_1I02XM,   UNROTATED
-!    VQWK, 1, 2,  bpmstripline,  QWK_1I02YP,   UNROTATED
-!    VQWK, 1, 3,  bpmstripline,  QWK_1I02YM,   UNROTATED
-!    VQWK, 1, 4,  bpmstripline,  QWK_1I04XP,   UNROTATED
-!    VQWK, 1, 5,  bpmstripline,  QWK_1I04XM,   UNROTATED
-!    VQWK, 1, 6,  bpmstripline,  QWK_1I04YP,   UNROTATED
-!    VQWK, 1, 7,  bpmstripline,  QWK_1I04YM,   UNROTATED
+    VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED
+    VQWK, 1, 1,  bpmstripline,  QWK_1I02XM,   UNROTATED
+    VQWK, 1, 2,  bpmstripline,  QWK_1I02YP,   UNROTATED
+    VQWK, 1, 3,  bpmstripline,  QWK_1I02YM,   UNROTATED
+    VQWK, 1, 4,  bpmstripline,  QWK_1I04XP,   UNROTATED
+    VQWK, 1, 5,  bpmstripline,  QWK_1I04XM,   UNROTATED
+    VQWK, 1, 6,  bpmstripline,  QWK_1I04YP,   UNROTATED
+    VQWK, 1, 7,  bpmstripline,  QWK_1I04YM,   UNROTATED
 
 
 !ADC2
@@ -50,7 +40,7 @@ sample_size=464
 !    VQWK, 2, 7,  bpmstripline,  QWK_0I02YM,   UNROTATED
 
 !ADC3
- !   VQWK, 3, 0,  bpmstripline,  QWK_0I02AXP,   UNROTATED
+!    VQWK, 3, 0,  bpmstripline,  QWK_0I02AXP,   UNROTATED
 !    VQWK, 3, 1,  bpmstripline,  QWK_0I02AXM,   UNROTATED
 !    VQWK, 3, 2,  bpmstripline,  QWK_0I02AYP,   UNROTATED
 !    VQWK, 3, 3,  bpmstripline,  QWK_0I02AYM,   UNROTATED
@@ -120,7 +110,7 @@ sample_size=464
 !    VQWK, 9, 6,  bpmstripline,  QWK_0R03YP
 !    VQWK, 9, 7,  bpmstripline,  QWK_0R03YM
 
-!ADC10
+ADC10
 !    VQWK, 10, 0,  bpmstripline,  QWK_0R04XP
 !    VQWK, 10, 1,  bpmstripline,  QWK_0R04XM
 !    VQWK, 10, 2,  bpmstripline,  QWK_0R04YP
@@ -136,8 +126,8 @@ sample_size=464
 !    VQWK, 11, 2,  bpmstripline,  QWK_0R06YP
 !    VQWK, 11, 3,  bpmstripline,  QWK_0R06YM
     VQWK, 11, 4,  bcm,  QWK_BCM0L02
-!    VQWK, 11, 5,  bcm,  QWK_Batery6
-!    VQWK, 11, 6,  bcm,  QWK_Batery7
+    VQWK, 11, 5,  bcm,  QWK_Batery6
+    VQWK, 11, 6,  bcm,  QWK_Batery7
     VQWK, 11, 7,   bcm,  PhaseMonitor
 
 
