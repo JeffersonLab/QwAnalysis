@@ -117,8 +117,16 @@ TString QwMainDet::query(void)
     TString query;
     query = "SELECT\n";
     query += "DISTINCT runlet_id\n";
-    query += ", md_data.value*1e6\n";
-    query += ", md_data.error*1e6\n";
+    if(measurement_id == "a" || measurement_id == "d")
+    {
+        query += ", md_data.value*1e6\n";
+        query += ", md_data.error*1e6\n";
+    }
+    else
+    {
+        query += ", md_data.value\n";
+        query += ", md_data.error\n";
+    }
     query += ", md_data.n\n";
 
     // join tables to analysis
@@ -149,8 +157,16 @@ TString QwLumiDet::query(void)
     TString query;
     query = "SELECT\n";
     query += "DISTINCT runlet_id\n";
-    query += ", lumi_data.value*1e6\n";
-    query += ", lumi_data.error*1e6\n";
+    if(measurement_id == "a" || measurement_id == "d")
+    {
+        query += ", lumi_data.value*1e6\n";
+        query += ", lumi_data.error*1e6\n";
+    }
+    else
+    {
+        query += ", lumi_data.value\n";
+        query += ", lumi_data.error\n";
+    }
     query += ", lumi_data.n\n";
 
     // join tables to analysis
@@ -180,8 +196,16 @@ TString QwBeamDet::query(void)
     TString query;
     query = "SELECT\n";
     query += "DISTINCT " + table + ".runlet_id\n";
-    query += ", beam.value*1e6\n";
-    query += ", beam.error*1e6\n";
+    if(measurement_id == "a" || measurement_id == "d")
+    {
+        query += ", beam.value*1e6\n";
+        query += ", beam.error*1e6\n";
+    }
+    else
+    {
+        query += ", beam.value\n";
+        query += ", beam.error\n";
+    }
     query += ", beam.n\n";
 
     // join tables to analysis

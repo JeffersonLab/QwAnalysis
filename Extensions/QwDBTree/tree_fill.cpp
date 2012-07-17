@@ -150,12 +150,17 @@ int main(Int_t argc, Char_t* argv[])
         if(0 == strcmp("--mapdir", argv[i])) mapdir = argv[i+1];
         if(0 == strcmp("--outdir", argv[i])) outdir = argv[i+1];
     }
+
+    cout << "host = " << host << endl;
+    cout << "mapdir = " << mapdir << endl;
+    cout << "outdir = " << outdir << endl;
+    cout << "db = " << db_name << endl;
     // open connection to qweakdb.jlab.org
     TSQLServer *db;
     db = TSQLServer::Connect(Form("mysql://%s/%s",host.Data(),db_name.Data()),"qweak", "QweakQweak");
 
     // read in the md map file
-    QwParse reg_types("reg.map");
+    QwParse reg_types(Form("%sreg.map",mapdir.Data()));
     reg_types.parse();
     
     // get the filled runlet object (which will also generate temp tables for ALL trees to use)
