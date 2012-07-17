@@ -30,7 +30,7 @@ RMS/sqrt(N)
 
 Entry Conditions: the run number, bool for first 100k
 Date: 03-28-2012
-Modified:06-14-2012
+Modified:07-17-2012
 Assisted By:Juan Carlos Cornejo and Wouter Deconinck
 *********************************************************/
 
@@ -38,6 +38,8 @@ Assisted By:Juan Carlos Cornejo and Wouter Deconinck
 
 #include "TSystem.h"
 #include <TGraphErrors.h>
+#include "QwEvent.h"
+#include "QwHit.h"
 
 #include <fstream>
 #include <iostream>
@@ -74,15 +76,14 @@ void Residual(int runnum, bool is100k)
 		h[q].resize(12);
 	}
 
+	//create and size a vector of TH1D histograms so I can loop again :)
+	//package on is on the left and package two is on the right
+	std::vector<TH1D*> h2;
+	h2.resize(2);
+
 
 	for (int pkg =1; pkg<=2; pkg++)
 	{
-
-		//Create the canvas
-		TCanvas c1("c1", Form("Residual values - Package %d",pkg), 1000,900);
-
-		//divide the canvas
-		c1.Divide(6,2);
 
 		for (int i = 1; i<=12; i++)
 		{
@@ -90,6 +91,8 @@ void Residual(int runnum, bool is100k)
 			//when in Form command one can NOT have %d -1 that will not return a number, instead it will think of that as a string so one must do there 
 			//subraction (math)  after the "" part of the Form command where the diget, or whatever is passed.
 			h[pkg - 1][i-1]= new TH1D (Form("h[%d][%d]",pkg - 1,i - 1),Form("Residual - Package %d - Plane %d",pkg,i),30,-0.5,0.5);
+	                h[pkg - 1][i-1]->GetYaxis()->SetTitle("Frequency");
+        	        h[pkg - 1][i-1]->GetXaxis()->SetTitle(Form("Residual for plane %d",i));
 	
 			if(i%3==1)
 				{	
@@ -106,16 +109,90 @@ void Residual(int runnum, bool is100k)
 						}
 	
 
-			c1.cd(i);
-
-		event_tree->Draw(Form("events.fQwTreeLines.fQwHits.fDriftPosition-events.fQwTreeLines.fQwHits.fTrackPosition>>h[%d][%d]",pkg - 1,i - 
-1),Form("events.fQwTreeLines.fQwHits.fRegion==2&&events.fQwTreeLines.fQwHits.fPackage==%d&&events.fQwTreeLines.fQwHits.fPlane==%d",pkg,i));
+//		event_tree->Draw(Form("events.fQwTreeLines.fQwHits.fDriftPosition-events.fQwTreeLines.fQwHits.fTrackPosition>>h[%d][%d]",pkg - 1,i - 
+//           1),Form("events.fQwTreeLines.fQwHits.fRegion==2&&events.fQwTreeLines.fQwHits.fPackage==%d&&events.fQwTreeLines.fQwHits.fPlane==%d",pkg,i));
 
 		}
 
-		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-		c1.SaveAs(Prefix+Form("Residual_Package_%d.png",pkg));
+		//define the histograms 1 through 2 - one for each package
+		h2[pkg - 1]= new TH1D (Form("h2[%d]",pkg -1 ),Form("Residual - Package %d - All Planes",pkg),30,-0.5,0.5);
+                h2[pkg - 1]->GetXaxis()->SetTitle(Form("Residual for package %d",pkg));
+                h2[pkg - 1]->GetYaxis()->SetTitle("Frequency");
+
+
 	}
+
+//Now go through the tree to fill the histogram on an event buy event base
+	//label an event
+	QwEvent* fEvent=0;
+
+   	// How many events are in this rootfile?
+   	Int_t nevents=event_tree->GetEntries();
+
+	// Now get a pointer to the branches so that we can loop through the tree
+    	event_tree->SetBranchStatus("events",1);
+    	TBranch* event_branch=event_tree->GetBranch("events");
+	//set the brach address	
+	event_branch->SetAddress(&fEvent);
+
+	for (int i = 0; i < nevents; i++)
+	{
+		event_tree->GetEntry(i);		
+
+		//get number of treelines
+		int ntreelines = fEvent->GetNumberOfTreeLines();
+		
+		for (int t = 0; t < ntreelines ; t++)
+		{
+
+			//set pointer to treeline
+			const QwTreeLine* treeline=fEvent->GetTreeLine(t);
+
+			//get number of hits for this event
+			int nhits=treeline->GetNumberOfHits();
+
+			for (int j = 0; j < nhits ; j++)
+			{
+				//set pointer to hit
+				const QwHit* hit=treeline->GetHit(j);
+
+				if (hit->GetRegion()==2)
+				{
+					if (hit->GetPackage()==1)
+					{
+						h2[0]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
+						h[0][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
+					}
+					if (hit->GetPackage()==2)
+					{
+						h2[1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
+						h[1][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
+					}
+				}
+			}
+		}
+	}
+
+	for (int pkg1 = 1 ; pkg1 <3 ; pkg1++)
+	{
+		//Create the canvas
+		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 1000,900);
+
+		//divide the canvas
+		c1.Divide(6,2);
+		
+		for (int plane = 1 ; plane < 13; plane ++)
+		{
+			c1.cd(plane);
+		
+			h[pkg1-1][plane -1]->Draw();//Look closer at this - not drawing the first 3 planes
+		}
+
+		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
+		c1.SaveAs(Prefix+Form("Residual_Package_%d.png",pkg1));
+
+	}
+
 
 /**************
 Create graph of the mean values of the REsidual in each plane (in each package) with errors being the RMS
@@ -200,21 +277,15 @@ RMS/sqrt(N)
 
 	c2.Divide(2,0);
 
-	//create and size a vector of TH1D histograms so I can loop again :)
-	//package on is on the left and package two is on the right
-	std::vector<TH1D*> h2;
-	h2.resize(2);
-
 	for (int j = 1; j<=2; j++)
 	{
 
-		//define the histograms 1 through 2 - one for each package
-		h2[j - 1]= new TH1D (Form("h2[%d]",j -1 ),Form("Residual - Package %d - All Planes",j),30,-0.5,0.5);
-	
 		c2.cd(j);
 
-		event_tree->Draw(Form("events.fQwTreeLines.fQwHits.fDriftPosition-events.fQwTreeLines.fQwHits.fTrackPosition>>h2[%d]",j - 
-1),Form("events.fQwTreeLines.fQwHits.fRegion==2&&events.fQwTreeLines.fQwHits.fPackage==%d",j));
+		h2[j - 1]->Draw();
+
+//		event_tree->Draw(Form("events.fQwTreeLines.fQwHits.fDriftPosition-events.fQwTreeLines.fQwHits.fTrackPosition>>h2[%d]",j - 
+// 		   1),Form("events.fQwTreeLines.fQwHits.fRegion==2&&events.fQwTreeLines.fQwHits.fPackage==%d",j));
 
 	}
 

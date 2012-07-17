@@ -2,13 +2,19 @@
 Programmer: Valerie Gray
 Purpose: To graph the QTOR currnt as a function of time.
 
+Also print out the Qtor currnet to a txt file
+
 Entry Conditions: the run number, bool for first 100k
 Date: 06-28-2012
-Modified: 06-30-2012
-Assisted By:
+Modified: 07-12-2012
+Assisted By: Wouter Deconinck
 *********************************************************/
-
+#include "TSystem.h"
 #include "auto_shared_includes.h"
+#include "TH2D.h"
+
+#include <fstream>
+#include <iostream>
 
 //define a prefix for all the output files - global don't need to pass
 TString Prefix;
@@ -23,18 +29,44 @@ void QtorCurrent(int runnum, bool is100k)
 	chain->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/QTOR_%d_",runnum, runnum);
+	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/QTOR_%d_",runnum, runnum);
 
-	//Create a canvas
-	TCanvas c1( "c1", "QTOR current vs. Event", 1000, 400);
+	//Create a canvas and histogram
+	TCanvas c1( "c1", "QTOR current vs. Time (as Event Number)", 1000, 400);
+	TH2D* h = new TH2D ("h","QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
+	h->GetYaxis()->SetTitle("QTOR current (A)");
+	h->GetXaxis()->SetTitle("Time (as Entry Number)");
+	h->SetMarkerStyle(3);
 
-	//Here the "L" draws a line through the point on the graph
+	//Here the "L" draws a line through the point on the graph <-want
+	//the "C" conects the dots smoothly
 	//one needs to place "" in the second place of the draw command (the cuts) part so that 
-	//root recognizes that that the L is not a cut but a draw option and then root :)s
-	chain->Draw("qw_qt_mps_i_set:Entry$","" ,"L");
+	//root recognizes that that the L is not a cut but a draw option and then root :)
+	chain->Draw("qw_qt_mps_i_set:Entry$>>h","" ,"L");
+
+	h->Draw("L"); //for some reason ROOT refused to actually draw this line
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"current_vs_time.png");
+
+	//write down the QTOR current in a file 
+
+	//print to file 
+	//this file and evrything related to it is fout
+	std::ofstream fout;
+
+	//open file
+	// open file with outputPrefix+q2.txt which will store the output of the vlaues 
+	//to a file in a easy way that should be able to be read back into a program if 
+	//needed
+	fout.open(Prefix+"QTOR_Current.txt");
+	if (!fout.is_open()) cout << "File not opened" << endl;
+	//Prefix will inculed run number which we need.
+	
+	fout << h->GetMean(2) << endl;
+
+	//close the file
+	fout.close();
 
 	return;
 }

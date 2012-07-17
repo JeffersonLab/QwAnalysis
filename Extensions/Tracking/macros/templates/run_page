@@ -73,12 +73,14 @@ From left to right the layout is such that, there is the total package (in black
 the U plane (in blue) and the V plane (in green) of the package which is being ploted.
 Below these plots is a text file that has the mean Chi value for all of these and the error.  
 The direction is refenced by number where 0 == total package, 1 == X plane, 3 == U plane, and 4 == V plane.  <br>
-The third plot log(Chi) values vs time in in region 2 for package 1 (across the top and package 2 across the bottom.
-From left to right the order is total package, X plane, U plane, V plane.
 </p></center>
 <p><center><img src="Chi_%%RUNNUM%%__chi.png"></center></p>
 <p><center><a href="Chi_%%RUNNUM%%_Chi.txt">Chi Values</a></center></p>
+<!-- 
+<center><p> The third plot log(Chi) values vs time in in region 2 for package 1 (across the top and package 2 across the bottom.
+From left to right the order is total package, X plane, U plane, V plane.</p><center>
 <p><center><img src="Chi_%%RUNNUM%%__chi_vs_time.png"></center></p>
+-->
 
 <a name="Residual"></a>
 <center><h2>Residual value - Region 2</h2></center>
@@ -220,3 +222,13 @@ Graphs all 4 dslumi rates ratios vs. time on one canvas
 Graphs the QTOR current vs event number.
 </p><center>
 <p><center><img src="QTOR_%%RUNNUM%%_current_vs_time.png"></center></p>
+
+<a name="NumTracks"></a>
+<center><h2>Number of Good Events in Various Categories</h2></center>
+<center><p>
+Graph the number of events in this run and the number of good events for 
+Hits, Treelines, Partial Tracks, and Tracks.
+Goal of this is to try and see where we are loosing about 90% of good tracks.
+</p><center>
+<p><center><img src="%%RUNNUM%%_NTracks.png"></center></p>
+

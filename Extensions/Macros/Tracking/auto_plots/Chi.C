@@ -5,22 +5,26 @@ Purpose: To output all the graphs of log (chi) and  log(Chi) values vs time in i
 Each canvas is set up so that going across it is all planes (black), X (Red),U(Blue),V(Green) and Drift Distance is on the top and Drift Time is on the Bottom.
 
 The first canvas is the log of Chi values for the whole package or the each wire direction.
-The second canvas is the log of Chi values vs time (CodaEventNumber) for the whole package or the each wrie direction.
+The second canvas is the log of Chi values vs time (fEvent->fEventHeader->fEventNumber) for the whole package or the each wrie direction.
 
 Plane numbers 
 x - fDirection==1
 u - fDirection==3
 v - fDirection==4
 
+NOTE the time plots are comment out as of now, we can add them later if we can use them later
+Right now they don't seam to tell us anything
+
 Entry Conditions: the run number, bool for first 100k
 Date: 03-22-2012
-Modified:03-30-2012
+Modified:06-06-2012
 Assisted By: Juan Carlos Cornejo and Wouter Deconinck
 *********************************************************/
 
 #include "auto_shared_includes.h"
 #include "TH2D.h"
 
+#include "QwEvent.h"
 #include "TSystem.h"
 
 #include <fstream>
@@ -33,293 +37,254 @@ TString Prefix;
 void Chi(int runnum, bool is100k)
 {
 
-// changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly
-//deifne the prefix as the directory that the files will be outputed to
-Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/Chi_%d_",runnum,runnum);
+	// changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly
+	//deifne the prefix as the directory that the files will be outputed to
+	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/Chi_%d_",runnum,runnum);
 
-// groups root files for a run together
-TChain* event_tree = new TChain ("event_tree");
+	// groups root files for a run together
+	TChain* event_tree = new TChain ("event_tree");
 
-//add the root files to the chain the event_tree branches
-event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
+	//add the root files to the chain the event_tree branches
+	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
+	//Create the canvas
+	TCanvas c1("c1", "log(Chi) - Package 1 across top, Package 2 across bottom", 900,1000);
 
-//Create the canvas
-TCanvas c1("c1", "log(Chi) - Package 1 across top, Package 2 across bottom", 900,1000);
+	//divide the canvas
+	c1.Divide(4,2);	
 
-//divide the canvas
-c1.Divide(4,2);
+	//Create the canvas this canvas is for the chi vs time plots
+//	TCanvas c3("c3", "log(Chi) vs time - Package 1 across top, Package 2 across bottom", 900,1000);
 
-//defines the 4 chi histograms for package 1
-TH1D* c = new TH1D ("c","log(Chi) - Package 1",30,0.01,5.0);
-TH1D* cX = new TH1D ("cX","X plane log(Chi) - Package 1",30,0.01,5.0);
-TH1D* cU = new TH1D ("cU","U plane log(Chi) - Package 1",30,0.01,5.0);
-TH1D* cV = new TH1D ("cV","V plane log(Chi) - Package 1",30,0.01,5.0);
-
-//set the x-axis (the Chi axis) to the log scale _ sets for the whole canvas
-
-//set line colors of all the histograms
-cX->SetLineColor(2);
-cU->SetLineColor(4);
-cV->SetLineColor(8);
-
-//defines the 4 chi histograms for package 2
-TH1D* c2 = new TH1D ("c2","log(Chi) - Package 2",30,0.01,5.0);
-TH1D* cX2 = new TH1D ("cX2","X plane log(Chi) - Package 2",30,0.01,5.0);
-TH1D* cU2 = new TH1D ("cU2","U plane log(Chi) - Package 2",30,0.01,5.0);
-TH1D* cV2 = new TH1D ("cV2","V plane log(Chi) - Package 2",30,0.01,5.0);
-
-//set line colors of all the histograms
-cX2->SetLineColor(2);
-cU2->SetLineColor(4);
-cV2->SetLineColor(8);
-
-//start with graphing the Chi for package 1  - they go across the top
-//select pad 1
-c1.cd(1);
-
-//draw the Chi in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>c","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1");
-
-//select pad 2
-c1.cd(2);
-
-//draw the Chi in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>cX","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1&&events.fQwTreeLines.fDirection==1");
-
-//select pad 3
-c1.cd(3);
-
-//draw the chi in the u plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>cU","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1&&events.fQwTreeLines.fDirection==3");
-
-//select pad 4
-c1.cd(4);
-
-//draw the chi in the v plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>cV","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1&&events.fQwTreeLines.fDirection==4");
+	//divide the canvas
+//	c3.Divide(4,2);
 
 
-//Now let's graph the chi for Package 2 - they go across the bottom
-//select pad 5
-c1.cd(5);
+	//create a vector of vectors of TH1D histogram pointer
+	std::vector< vector<TH1D*> > c;
+	//Size of c
+	c.resize(2);
 
-//draw the Chi in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>c2","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2");
+	//size each the c[i] vector
+	//going from q = 0 till q<h.size() allows for changing the size of h easly without hunting it down elsewhere in the code, and makes sure that one is not outside 
+	//of the range of h ever.  NOTE: will get a warning about the c.size() not being a signed varable as it is awarnign it can be ignored, other wise one can through 
+	//in absolute value
+	for(size_t q = 0; q < c.size(); q++)
+	{
+		c[q].resize(4);
+	}
 
-//select pad 6
-c1.cd(6);
+	//Defin the Plane names
+	TString Plane [4] = {"All Planes" , "X plane", "U plane", "V plane"};
 
-//draw the Chi in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>cX2","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2&&events.fQwTreeLines.fDirection==1");
+	//Let's define the histograms
+	for (int pkg = 1; pkg <= 2; pkg ++)
+	{
+		for (int plane = 0; plane < 4; plane ++)
+		{
+			c[pkg - 1][plane]= new TH1D (Form("c[%d][%d]",pkg - 1,plane),Plane[plane] + Form(" log(Chi)- Package %d",pkg),30,0.01,5.0);
+			c[pkg - 1][plane]->GetYaxis()->SetTitle("frequency");
+        		c[pkg - 1][plane]->GetXaxis()->SetTitle("log(Chi)");		
+		}
 
-//select pad 7
-c1.cd(7);
+		//set line colors of all the histograms
+		c[pkg - 1][1]->SetLineColor(2);
+		c[pkg - 1][2]->SetLineColor(4);
+		c[pkg - 1][3]->SetLineColor(8);
 
-//draw the chi in the u plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>cU2","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2&&events.fQwTreeLines.fDirection==3");
+	} 
+	//create a vector of vectors of TH1D histogram pointer
+//	std::vector< vector<TH2D*> > h;
+	//Size of c
+//	h.resize(2);
 
-//select pad 8
-c1.cd(8);
+	//size each the c[i] vector
+	//going from q = 0 till q<h.size() allows for changing the size of h easly without hunting it down elsewhere in the code, and makes sure that one is not outside 
+	//of the range of h ever.  NOTE: will get a warning about the c.size() not being a signed varable as it is awarnign it can be ignored, other wise one can through 
+	//in absolute value
+//	for(size_t q = 0; q < c.size(); q++)
+//	{
+//		h[q].resize(4);
+//	}
 
-//draw the chi in the v plane
-event_tree->Draw("log(events.fQwTreeLines.fChi)>>cV2","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2&&events.fQwTreeLines.fDirection==4");
+	//Let's define the histograms
+//	for (int pkg = 1; pkg <= 2; pkg ++)
+//	{
+//		for (int plane = 0; plane <4; plane ++)
+//		{
+//			//autpomatic binning by making the hig bin lower then the low bin 
+//			h[pkg - 1][plane]= new TH2D (Form("c[%d][%d]",pkg - 1,plane),Plane[plane] + Form(" log(Chi) vs. Time - Package %d",pkg),30,1,0,60,0.01,10.0);
+//			h[pkg - 1][plane]->GetYaxis()->SetTitle("time");
+//        		h[pkg - 1][plane]->GetXaxis()->SetTitle("log(Chi)");		
+//
+//		}
+//
+//		//set line colors of all the histograms
+//		h[pkg - 1][1]->SetLineColor(2);
+//		h[pkg - 1][2]->SetLineColor(4);
+//		h[pkg - 1][3]->SetLineColor(8);
+//
+//	} 
 
-//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-c1.SaveAs(Prefix+"_chi.png");
 
-//write the stats about chi to a file
+//start with looping over all the events and putting them in the correct histogram 
+	
+	//figure out how many evernts are in the rootfile so I know how long to have my loop go for
+        Int_t nevents=event_tree->GetEntries();
 
-//print to file 
-//this file and evrything related to it is fout
-std::ofstream fout;
+        //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
+        QwEvent* fEvent = 0;
+
+        //Now I have to get a pointer to the events branch to loop through
+
+        //Start by setting the event_tree branch to be on
+        event_tree->SetBranchStatus("events",1);
+
+        //now get the event branch of the event_tree branch and call it event_branch creativly
+        TBranch* event_branch=event_tree->GetBranch("events");
+        event_branch->SetAddress(&fEvent);
+
+	//Loop through this and fill all the graphs at once
+
+	for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
+	{
+		//Get the ith entry form the event tree
+		event_branch->GetEntry(i);
+
+		//get the number of Treelines
+		int nTreeLines = fEvent->GetNumberOfTreeLines();
+
+		// now let's loop through the tree lines and fill all the above histograms
+		for (int t = 0; t < nTreeLines; t++)
+		{
+			 const QwTrackingTreeLine* treeline = fEvent->GetTreeLine(t);
+	
+			//Start making the cuts needed to fill the histogram
+
+			//PACKAGE 1 for Region 2
+			if (treeline->fRegion==2&&treeline->fPackage==1)
+			{
+				c[0][0]->Fill(log(treeline->fChi));
+//				h[0][0]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				if (treeline->fDirection==1)
+				{	
+					c[0][1]->Fill(log(treeline->fChi));
+//					h[0][1]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				}
+				if (treeline->fDirection==3)
+				{	
+					c[0][2]->Fill(log(treeline->fChi));
+//					h[0][3]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				}
+				if (treeline->fDirection==4)
+				{	
+					c[0][3]->Fill(log(treeline->fChi));
+//					h[0][3]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				}
+			}
+
+			//PACKAGE 2 for REGION 2	
+			if (treeline->fRegion==2&&treeline->fPackage==2)
+			{
+				c[1][0]->Fill(log(treeline->fChi));
+//				h[1][0]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				if (treeline->fDirection==1)
+				{	
+					c[1][1]->Fill(log(treeline->fChi));	
+//					h[1][1]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				}
+				if (treeline->fDirection==3)
+				{	
+					c[1][2]->Fill(log(treeline->fChi));	
+//					h[1][2]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				}
+				if (treeline->fDirection==4)
+				{	
+					c[1][3]->Fill(log(treeline->fChi));
+//					h[1][3]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
+				}
+			}
+		}
+	}
+
+	//Draw these histograms - all, x ,u,v across and package 1 on top and package 2 on the bottom
+	c1.cd(1);
+	c[0][0]->Draw();
+	c1.cd(2);
+	c[0][1]->Draw();
+	c1.cd(3);
+	c[0][2]->Draw();
+	c1.cd(4);
+	c[0][3]->Draw();
+	c1.cd(5);
+	c[1][0]->Draw();
+	c1.cd(6);
+	c[1][1]->Draw();
+	c1.cd(7);
+	c[1][2]->Draw();
+	c1.cd(8);
+	c[1][3]->Draw();
+
+	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
+	c1.SaveAs(Prefix+"_chi.png");
+
+
+	//Draw the time histograms - all, x ,u,v across and package 1 on top and package 2 on the bottom
+//	c3.cd(1);
+//	h[0][0]->Draw();
+//	c3.cd(2);
+//	h[0][1]->Draw();
+//	c3.cd(3);
+//	h[0][2]->Draw();
+//	c3.cd(4);
+//	h[0][3]->Draw();
+//	c3.cd(5);
+//	h[1][0]->Draw();
+//	c3.cd(6);
+//	h[1][1]->Draw();
+//	c3.cd(7);
+//	h[1][2]->Draw();
+//	c3.cd(8);
+//	h[1][3]->Draw();
+
+	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
+//	c3.SaveAs(Prefix+"_chi_vs_time.png");
+
+	//write the stats about chi to a file
+
+	//print to file 
+	//this file and evrything related to it is fout
+	std::ofstream fout;
     
-//open file
-// open file with outputPrefix+q2.txt which will store the output of the vlaues to a file in a easy way that should be able to be read back into a program if needed
-fout.open(Prefix+"Chi.txt");
-if (!fout.is_open()) cout << "File not opened" << endl;
+	//open file
+	// open file with outputPrefix+q2.txt which will store the output of the vlaues to a file in a easy way that should be able to be read back into a program if needed	
+	fout.open(Prefix+"Chi.txt");
+	if (!fout.is_open()) cout << "File not opened" << endl;	
     
-//outputPrefix will inculed run number which we need.
+	//outputPrefix will inculed run number which we need.
     
-//Name what each coulmn is.
-//Note direction is 0 - all planes, 1 - the X planes, 3 - U planes, 4 - V planes
-//Error is the RMS.sqrt(N)
-fout << "What \t Run \t pkg \t DIR \t Value \t Error" <<endl; 
-fout << "Chi \t " << runnum << "\t 1 \t 0 \t" << setprecision(5) << c->GetMean() << "\t" << setprecision(4) << c->GetRMS()/sqrt(c->GetEntries()) << endl;
+	//Name what each coulmn is.
+	//Note direction is 0 - all planes, 1 - the X planes, 3 - U planes, 4 - V planes
+	//Error is the RMS.sqrt(N)
+	fout << "What \t Run \t pkg \t DIR \t Value \t Error" <<endl; 
+	fout << "Chi \t " << runnum << "\t 1 \t 0 \t" << setprecision(5) << c[0][0]->GetMean() << "\t" << setprecision(4) << c[0][0]->GetRMS()/sqrt(c[0][0]->GetEntries()) << endl;
 
-fout << "Chi \t " << runnum << "\t 1 \t 1 \t" << setprecision(5) << cX->GetMean() << "\t" << setprecision(4) << cX->GetRMS()/sqrt(cX->GetEntries()) << endl;
+	fout << "Chi \t " << runnum << "\t 1 \t 1 \t" << setprecision(5) << c[0][1]->GetMean() << "\t" << setprecision(4) << c[0][1]->GetRMS()/sqrt(c[0][1]->GetEntries()) << endl;
 
-fout << "Chi \t " << runnum << "\t 1 \t 3 \t" << setprecision(5) << cU->GetMean() << "\t" << setprecision(4) << cU->GetRMS()/sqrt(cU->GetEntries()) << endl;
+	fout << "Chi \t " << runnum << "\t 1 \t 3 \t" << setprecision(5) << c[0][2]->GetMean() << "\t" << setprecision(4) << c[0][2]->GetRMS()/sqrt(c[0][2]->GetEntries()) << endl;
 
-fout << "Chi \t " << runnum << "\t 1 \t 4 \t" << setprecision(5) << cV->GetMean() << "\t" << setprecision(4) << cV->GetRMS()/sqrt(cV->GetEntries()) << endl;
+	fout << "Chi \t " << runnum << "\t 1 \t 4 \t" << setprecision(5) << c[0][3]->GetMean() << "\t" << setprecision(4) << c[0][3]->GetRMS()/sqrt(c[0][3]->GetEntries()) << endl;
 
-fout << "Chi \t " << runnum << "\t 2 \t 0 \t" << setprecision(5) << c2->GetMean() << "\t" << setprecision(4) << c2->GetRMS()/sqrt(c2->GetEntries()) << endl;
+	fout << "Chi \t " << runnum << "\t 2 \t 0 \t" << setprecision(5) << c[1][0]->GetMean() << "\t" << setprecision(4) << c[1][0]->GetRMS()/sqrt(c[1][0]->GetEntries()) << endl;
 
-fout << "Chi \t " << runnum << "\t 2 \t 1 \t" << setprecision(5) << cX2->GetMean() << "\t" << setprecision(4) << cX2->GetRMS()/sqrt(cX2->GetEntries()) << endl;
+	fout << "Chi \t " << runnum << "\t 2 \t 1 \t" << setprecision(5) << c[1][1]->GetMean() << "\t" << setprecision(4) << c[1][1]->GetRMS()/sqrt(c[1][1]->GetEntries()) << endl;
 
-fout << "Chi \t " << runnum << "\t 2 \t 3 \t" << setprecision(5) << cU2->GetMean() << "\t" << setprecision(4) << cU2->GetRMS()/sqrt(cU2->GetEntries()) << endl;
+	fout << "Chi \t " << runnum << "\t 2 \t 3 \t" << setprecision(5) << c[1][2]->GetMean() << "\t" << setprecision(4) << c[1][2]->GetRMS()/sqrt(c[1][2]->GetEntries()) << endl;
 
-fout << "Chi \t " << runnum << "\t 2 \t 4 \t" << setprecision(5) << cV2->GetMean() << "\t" << setprecision(4) << cV2->GetRMS()/sqrt(cV2->GetEntries()) << endl;
+	fout << "Chi \t " << runnum << "\t 2 \t 4 \t" << setprecision(5) << c[1][3]->GetMean() << "\t" << setprecision(4) << c[1][3]->GetRMS()/sqrt(c[1][3]->GetEntries()) << endl;
 
-//close the file
-fout.close();
-
-
-//Create the canvas this canvas is for the chi vs time plots
-TCanvas c3("c3", "log(Chi) vs time - Package 1 across top, Package 2 across bottom", 900,1000);
-
-//divide the canvas
-c3.Divide(4,2);
-
-
-//start with graphing the Chi for package 1  - they go across the top
-//select pad 1
-c3.cd(1);
-
-//draw the Chi vs time in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>h(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1");
-
-//get a pointer to the histogram I defined above form root 
-TH2D* h = (TH2D*)gDirectory->Get("h");
-
-//set the titile to said histogram
-h->SetTitle("log(Chi) vs time - Package 1");
-
-//redraw h
-h->Draw();
-
-
-//select pad 2
-c3.cd(2);
-
-//draw the Chi vs time in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>hX(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1&&events.fQwTreeLines.fDirection==1");
-
-//get a pointer to the histogram I defined above form root
-TH2D* hX = (TH2D*)gDirectory->Get("hX");
-
-//set the titile to said histogram
-hX->SetTitle("X Plane - log(Chi) vs time - Package 1");
-
-//Set the line color of this histogram
-hX->SetLineColor(2);
-
-//redraw hX
-hX->Draw();
-
-
-//select pad 3
-c3.cd(3);
-
-//draw the chi vs time in the u plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>hU(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1&&events.fQwTreeLines.fDirection==3");
-
-//get a pointer to the histogram I defined above form root
-TH2D* hU = (TH2D*)gDirectory->Get("hU");
-
-//set the titile to said histogram
-hU->SetTitle("U Plane - log(Chi) vs time - Package 1");
-
-//Set the line color of this histogram
-hU->SetLineColor(4);
-
-//redraw hU
-hU->Draw();
-
-
-//select pad 4
-c3.cd(4);
-
-//draw the chi vs time in the v plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>hV(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==1&&events.fQwTreeLines.fDirection==4");
-
-//get a pointer to the histogram I defined above form root
-TH2D* hV = (TH2D*)gDirectory->Get("hV");
-
-//set the titile to said histogram
-hV->SetTitle("V Plane - log(Chi) vs time - Package 1");
-
-//Set the line color of this histogram
-hV->SetLineColor(8);
-
-//redraw hV
-hV->Draw();
-
-
-//Now let's graph the chi for Package 2 - they go across the bottom
-//select pad 5
-c3.cd(5);
-
-//draw the Chi vs time in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>h2(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2");
-
-//get a pointer to the histogram I defined above form root 
-TH2D* h2 = (TH2D*)gDirectory->Get("h2");
-
-//set the titile to said histogram
-h2->SetTitle("log(Chi) vs time - Package 2");
-
-//redraw h2
-h2->Draw();
-
-
-//select pad 6
-c3.cd(6);
-
-//draw the Chi vs time in the x plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>hX2(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2&&events.fQwTreeLines.fDirection==1");
-
-//get a pointer to the histogram I defined above form root
-TH2D* hX2 = (TH2D*)gDirectory->Get("hX2");
-
-//set the titile to said histogram
-hX2->SetTitle("X Plane - log(Chi) vs time - Package 2");
-
-//Set the line color of this histogram
-hX2->SetLineColor(2);
-
-//redraw hX2
-hX2->Draw();
-
-//select pad 7
-c3.cd(7);
-
-//draw the chi vs time in the u plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>hU2(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2&&events.fQwTreeLines.fDirection==3");
-
-//get a pointer to the histogram I defined above form root
-TH2D* hU2 = (TH2D*)gDirectory->Get("hU2");
-
-//set the titile to said histogram
-hU2->SetTitle("U Plane - log(Chi) vs time - Package 2");
-
-//Set the line color of this histogram
-hU2->SetLineColor(4);
-
-//redraw hU
-hU2->Draw();
-
-//select pad 8
-c3.cd(8);
-
-//draw the chi vs time in the v plane
-event_tree->Draw("log(events.fQwTreeLines.fChi):CodaEventNumber>>hV2(,,,60,0.01,10.0)","events.fQwTreeLines.fRegion==2&&events.fQwTreeLines.fPackage==2&&events.fQwTreeLines.fDirection==4");
-
-//get a pointer to the histogram I defined above form root
-TH2D* hV2 = (TH2D*)gDirectory->Get("hV2");
-
-//set the titile to said histogram
-hV2->SetTitle("V Plane - log(Chi) vs time - Package 2");
-
-//Set the line color of this histogram
-hV2->SetLineColor(8);
-
-//redraw hV
-hV2->Draw();
-
-
-//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-c3.SaveAs(Prefix+"_chi_vs_time.png");
+	//close the file
+	fout.close();
 
 return;
 
