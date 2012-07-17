@@ -25,28 +25,29 @@
 #include "detector.h"
 #include "parse.h"
 
-int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
+int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir)
 {
     // open file and database connections
     // create the root tree
-    TFile *f = new TFile(Form("/net/cdaq/cdaql5data/qweak/db_rootfiles/%s_tree.root",reg_type.Data()),"RECREATE");
+    TFile *f = new TFile(Form("%s%s_tree.root",outdir.Data(),reg_type.Data()),"RECREATE");
 
     // create tree
     TTree *tree = new TTree("tree","treelibrated tree");
 
     // read in mapfile in preperation for querying db
     // read in the md map file
-    QwParse mds("md.map");
+    cout << Form("%smd.map",mapdir.Data()) << endl;
+    QwParse mds(Form("%smd.map",mapdir.Data()));
     mds.parse();
     const Int_t num_mds = mds.num_detectors();
 
     // read in the lumi map file
-    QwParse lumis("lumi.map");
+    QwParse lumis(Form("%slumi.map",mapdir.Data()));
     lumis.parse();
     const Int_t num_lumis = lumis.num_detectors();
 
     // read in the beam map file
-    QwParse beams("beam.map");
+    QwParse beams(Form("%sbeam.map",mapdir.Data()));
     beams.parse();
     const Int_t num_beams = beams.num_detectors();
 
@@ -134,11 +135,24 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets)
     return 0;
 }
 
-int main(void)
+int main(Int_t argc, Char_t* argv[])
 {
+    // defaults
+    TString host = "127.0.0.1";
+    TString mapdir = "";
+    TString outdir = "";
+    TString db_name = "qw_run1_pass4b";
+    // parse command line options
+    for(Int_t i = 1; i < argc; i++)
+    {
+        if(0 == strcmp("--host", argv[i])) host = argv[i+1];
+        if(0 == strcmp("--db", argv[i])) db_name = argv[i+1];
+        if(0 == strcmp("--mapdir", argv[i])) mapdir = argv[i+1];
+        if(0 == strcmp("--outdir", argv[i])) outdir = argv[i+1];
+    }
     // open connection to qweakdb.jlab.org
     TSQLServer *db;
-    db = TSQLServer::Connect("mysql://127.0.0.1/qw_run2_pass1","qweak", "QweakQweak");
+    db = TSQLServer::Connect(Form("mysql://%s/%s",host.Data(),db_name.Data()),"qweak", "QweakQweak");
 
     // read in the md map file
     QwParse reg_types("reg.map");
@@ -151,7 +165,7 @@ int main(void)
     const Int_t num_regs = reg_types.num_detectors();
     for(Int_t i = 0; i < num_regs; i++)
     {
-        tree_fill(reg_types.detector(i), db, runlets);
+        tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir);
     }
 
     db->Close();

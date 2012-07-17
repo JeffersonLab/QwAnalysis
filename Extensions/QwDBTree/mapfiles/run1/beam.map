@@ -1,0 +1,11 @@
+qwk_charge          d
+qwk_energy          d
+qwk_targetX         d
+qwk_targetY         d
+qwk_targetXSlope    d
+qwk_targetYSlope    d
+qwk_bcm1            a
+qwk_bcm2            a
+qwk_bcm5            a
+bcmdd12             d
+bcmdd15             d
