@@ -47,9 +47,9 @@ void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i)
     else if (measurement_id == "d")
         type = "diff_";
     else if (measurement_id == "yq")
-        type = "yq_";
+        type = "charge_";
     else if (measurement_id == "y")
-        type = "y_";
+        type = "yield_";
     else
         type = "asym_";
 
@@ -109,7 +109,7 @@ TString QwMainDet::query(void)
 {
     // figure out which temp table to use
     TString table;
-    if(measurement_id == "y") table = "temp_table_unreg_offoff";
+    if(reg_type == "offoff") table = "temp_table_unreg_offoff";
     else if(reg_type == "on_5+1") table = "temp_table_on_5p1";
     else if(reg_type == "off") table = "temp_table_unreg_on";
     else table = "temp_table_" + reg_type;
@@ -149,7 +149,7 @@ TString QwLumiDet::query(void)
 {
     // figure out which temp table to use
     TString table;
-    if(measurement_id == "y") table = "temp_table_unreg_offoff";
+    if(reg_type == "offoff") table = "temp_table_unreg_offoff";
     else if(reg_type == "on_5+1") table = "temp_table_on_5p1";
     else if(reg_type == "off") table = "temp_table_unreg_on";
     else table = "temp_table_" + reg_type;
@@ -189,7 +189,8 @@ TString QwBeamDet::query(void)
 {
     // figure out which temp table to use
     TString table;
-    if(reg_type == "on_5+1")  table = "temp_table_unreg_on_5p1";
+    if(reg_type == "offoff") table = "temp_table_unreg_offoff";
+    else if(reg_type == "on_5+1")  table = "temp_table_unreg_on_5p1";
     else if(reg_type == "off") table = "temp_table_unreg_on";
     else table = "temp_table_unreg_" + reg_type;
 
@@ -333,14 +334,14 @@ void QwRunlet::fill(QwParse &reg_types)
         else cout << "Failed to connect to the database while creating runlet unreg temp table" << endl;
     }
 
-    query = runlet_temp_table_unreg_create("offoff");
-    stmt = db->Statement(query, 100);
-    if((db!=0) && db->IsConnected())
-    {
-        stmt->Process();
-        delete stmt;
-    }
-    else cout << "Failed to connect to the database while creating runlet unreg temp table" << endl;
+    //query = runlet_temp_table_unreg_create("offoff");
+    //stmt = db->Statement(query, 100);
+    //if((db!=0) && db->IsConnected())
+    //{
+    //    stmt->Process();
+    //    delete stmt;
+    //}
+    //else cout << "Failed to connect to the database while creating runlet unreg temp table" << endl;
 
     cout << "querying runlet data" << endl;
     query = runlet_query();
