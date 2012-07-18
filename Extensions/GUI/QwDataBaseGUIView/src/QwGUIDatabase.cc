@@ -495,6 +495,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   x_axis = 0;
   subblock = 0;
   measurements = NULL;
+  reg_iv="";
 
 
 
@@ -1353,7 +1354,7 @@ Function to query Y vs X data
 mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 {
   Bool_t ldebug = kTRUE;
-  TString reg_iv;
+  //TString reg_iv;
 
   dDatabaseCont->Connect();
 
@@ -3005,8 +3006,14 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
 //   if (measurement_type == "yp")
 //     title = Form("%s Beam Position ",device.Data());
 
-  title = Form("%s %s ",device.Data(),xaxis.Data());
-  title+=xaxis;
+  if(det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
+      title = Form("%s %s %s ",device.Data(),xaxis.Data(),reg_iv.Data());
+      title+=xaxis;
+  }
+  else {
+      title = Form("%s %s ",device.Data(),xaxis.Data());
+      title+=xaxis;
+  }
   
   return title;
 }

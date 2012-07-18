@@ -172,6 +172,7 @@ using std::vector;
   TString detector;
   TString property;
   TString regression_set;
+  TString reg_iv;
 
   const char **measurements;
   const char **regression_ivs;
