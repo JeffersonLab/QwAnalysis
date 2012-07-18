@@ -3,22 +3,22 @@
 
 #include "QwOptions.h"
 
-void ProcessEventDisplay3DOptions(QwOptions *options)
+void DefineOptionsEventDisplay3D(QwOptions &options)
 {
-  options->AddOptions()
-    ("run,i", po::value<int>(), "Run number");
-  options->AddOptions()
-    ("rotate,i", po::value<int>(), "Package Rotation");
-  options->AddOptions()
+  /* Define general options */
+  QwOptions::DefineOptions(options);
+
+  /* Define event display options */
+  options.AddOptions()
     ("disable-drawTracks,b", po::value<bool>()->zero_tokens(),
      "Disable drawing tracks");
-  options->AddOptions()
+  options.AddOptions()
     ("disable-drawTreeLines,b", po::value<bool>()->zero_tokens(),
      "Disable drawing treelines");
-  options->AddOptions()
+  options.AddOptions()
     ("showAllRegion3,b", po::value<bool>()->zero_tokens(),
      "Show all Region 3 Wires");
-  options->AddOptions()
+  options.AddOptions()
     ("showAllRegion2,b", po::value<bool>()->zero_tokens(),
      "Show all Region 2 Wires");
 }

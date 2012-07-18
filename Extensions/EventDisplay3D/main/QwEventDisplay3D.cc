@@ -47,17 +47,15 @@ int main (int argc, char* argv[])
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
+  // Define the options
+  DefineOptionsEventDisplay3D(gQwOptions);
+
   // Process the options
-  std::cout << "About to process arguments:\n\n\n\n\n";
   gQwOptions.SetCommandLine(argc, argv);
   gQwLog.ProcessOptions(&gQwOptions);
-  ProcessEventDisplay3DOptions(&gQwOptions);
 
   // Create a QwEventDisplay application
   QwEventDisplay3D* display = new QwEventDisplay3D(gClient->GetRoot(),1200,800);
-
-  // Get the rotation from the command line (defaults to zero if not present)
-  display->SetRotation(gQwOptions.GetValue<int>("rotate"));
 
   // Display the tracks? treelines?
   display->SetDrawTracks(!gQwOptions.GetValue<bool>("disable-drawTracks"));
@@ -68,11 +66,8 @@ int main (int argc, char* argv[])
   display->SetShowAllRegion2(gQwOptions.GetValue<bool>("showAllRegion2"));
 
   // If the user passes the right parameter, open up that file
-  if(gQwOptions.GetValue<int>("run")>0)
-     display->OpenRoot(gQwOptions.GetValue<int>("run"));
-
-  // Because this gets old real fast, this is only temporary
-  //display->OpenRoot(8658);
+  if (gQwOptions.GetIntValuePair("run").first > 0)
+     display->OpenRoot(gQwOptions.GetIntValuePair("run").first);
 
   // Now run this application
   display->RedrawViews();

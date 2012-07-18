@@ -5,10 +5,6 @@
 // authors: Juan Carlos Cornejo, The College of William & Mary, cornejo@jlab.org
 //          Zach Addison, MIT, zaddison@mit.edu (Region II display)
 
-// Standard Libraries
-#include <stdlib.h>
-#include <iostream>
-
 // ROOT includes
 #include <TRootBrowser.h>
 #include <RQ_OBJECT.h>
@@ -55,12 +51,9 @@
 #include <TGeoMedium.h>
 #include <TGeoVolume.h>
 
-// Qweak Includes
-#include <QwHitContainer.h>
-#include <QwEvent.h>
-#include <QwLog.h>
-#include <QwPartialTrack.h>
-#include <QwTrackingTreeLine.h>
+// Forward declarations
+class QwEvent;
+class QwHitContainer;
 
 class QwEventDisplay3D : public TGMainFrame {
 RQ_OBJECT("QwEventDisplay3D")
@@ -85,8 +78,8 @@ private:
 
   // Event trees and the like
   TTree *fTree;
-  QwHitContainer *fHitContainer;
-  QwEvent *fEvent;
+  QwHitContainer *fHitContainer; //!
+  QwEvent *fEvent;               //!
   Long64_t fNumberOfEvents;
   Long64_t fCurrentEvent;
 
@@ -162,11 +155,7 @@ private:
   // Enumerated menu options
   enum EventDisplayMenu_e {
       kOpenRootFile,
-      kRotateM90,
-      kRotateM45,
-      kRotate0,
-      kRotateP45,
-      kRotateP90,
+      kToggleShowTreeLines,
       kToggleShowTracks,
       kToggleShowAllRegion3,
       kToggleShowAllRegion2
@@ -246,7 +235,7 @@ public:
    ~QwEventDisplay3D();
    void Init();
    void RedrawViews(Bool_t det = kTRUE, Bool_t tracks = kFALSE);
-   void SetRotation(Double_t phi);
+   void SetRotation(int package, int octant);
 
    // SLOTS
    /**

@@ -583,7 +583,6 @@ qweventdisplay3d: $(MYDICTOBJFILES) main/QwEventDisplay3D.o $(MYOBJFILES)
 	then \
 	$(ECHO) "	$$file";\
 	$(ECHO) $$file >> .auxDictFiles; \
-	$(ROOTCINT) -f dictionary/`basename $$file` -c $(INCFLAGS) include/`basename $$file .cc`.h; \
 	fi \
 	done
 	@touch .auxDictFiles
@@ -592,7 +591,8 @@ dictionary: .auxDictFiles
 	@$(ECHO) "################################### Building Dictionary Files"
 	@for file in `cat .auxDictFiles`; \
 	do \
-	$(ECHO) `basename $$file .cc`;\
+	$(ECHO) `basename $$file .cc`; \
+	$(ECHO) $(ROOTCINT) -f dictionary/`basename $$file` -c $(INCFLAGS) include/`basename $$file .cc`.h; \
 	$(ROOTCINT) -f dictionary/`basename $$file` -c $(INCFLAGS) include/`basename $$file .cc`.h; \
 	done
 	@$(ECHO) "################################### Success! (dictionaries)"

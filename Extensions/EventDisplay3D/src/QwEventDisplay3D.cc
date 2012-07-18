@@ -1,6 +1,13 @@
 #include "QwEventDisplay3D.h"
-#include "QwParameterFile.h"
 ClassImp(QwEventDisplay3D);
+
+// Qweak Includes
+#include <QwHitContainer.h>
+#include <QwEvent.h>
+#include <QwLog.h>
+#include <QwPartialTrack.h>
+#include <QwTrackingTreeLine.h>
+#include "QwParameterFile.h"
 
 // ROOT Includes
 
@@ -453,11 +460,7 @@ void QwEventDisplay3D::InitGUI()
    // Add a new menu bar
    fMenu = new TGPopupMenu(gClient->GetRoot());
    fMenu->AddEntry("&Open ROOT File",kOpenRootFile);
-   fMenu->AddEntry("Rotate to -90",kRotateM90);
-   fMenu->AddEntry("Rotate to -45",kRotateM45);
-   fMenu->AddEntry("Rotate to 0",  kRotate0);
-   fMenu->AddEntry("Rotate to 45", kRotateP45);
-   fMenu->AddEntry("Rotate to 90", kRotateP90);
+   fMenu->AddEntry("Toggle Show Tree Lines", kToggleShowTreeLines);
    fMenu->AddEntry("Toggle Show Tracks", kToggleShowTracks);
    fMenu->AddEntry("Toggle Show All Region 2", kToggleShowAllRegion2);
    fMenu->AddEntry("Toggle Show All Region 3", kToggleShowAllRegion3);
@@ -631,7 +634,7 @@ void QwEventDisplay3D::DisplayEvent()
    // Define a series of place holders for the information we will extract
    // off the trees
    Int_t region;
-   Int_t package =-1, plane=-1, wire=-1;
+   Int_t package =-1, octant=-1, plane=-1, wire=-1;
    Double_t direction = -1;
    Int_t numberOfHits = 0;
    Bool_t ambiguousR3Wire = kFALSE;
@@ -675,27 +678,23 @@ void QwEventDisplay3D::DisplayEvent()
       // Now loop through the hit container to extract all information about
       // all hits in his event (accross _all_ regions)
       fHitContainer = fEvent->GetHitContainer();
-      QwHitContainer::iterator it =
-         fHitContainer->begin();
-      Int_t j = 0;
+      QwHitContainer::iterator it = fHitContainer->begin();
       while ( it != fHitContainer->end() ) {
-         j++;
          region = (*it).GetRegion();
          direction = (*it).GetDirection();
          package = (*it).GetPackage();
          plane = (*it).GetPlane();
          wire = (*it).GetElement();
+         octant = (*it).GetOctant();
          ambiguousR3Wire = (Bool_t)(*it).AmbiguousElement();
          if (kDebug) {
-            std::cout << "---Hit: " << j << "\n";
-            std::cout << "Region: " << region << "\n";
-            std::cout << "Direction: " << direction << "\n";
-            std::cout << "Package: " << package << "\n";
-            std::cout << "Plane: " << plane << "\n";
-            std::cout << "Wire: " << wire << "\n";
-            if(ambiguousR3Wire)
-               std::cout << "--Ambiguous Wire--\n";
+            std::cout << "--- " << (*it) << std::endl;
+            if (ambiguousR3Wire)
+               std::cout << "--Ambiguous Wire--" << std::endl;
          }
+
+         // Set the correct rotation
+         SetRotation(package,octant);
 
          // Now light up the respective labels to indicate hits
          switch( region ) {
@@ -753,9 +752,7 @@ void QwEventDisplay3D::DisplayEvent()
            if( partialTrack && partialTrack->GetRegion() == kRegionID2)
               sign = -1;
 
-           Double_t track_rotation_angle = fPackageAngle;
-           if ( package == 1 )
-             track_rotation_angle = _180DEG_ + fPackageAngle;
+           Double_t track_rotation_angle = fPackageAngle + _90DEG_;
 
            if( partialTrack->IsValid() ) {
               std::cout << "Region: " << partialTrack->GetRegion() << "\n";
@@ -778,18 +775,18 @@ void QwEventDisplay3D::DisplayEvent()
               }
               std::cout << "\n";
 
-              track->fV.Set(RotateXonZ(partialTrack->fOffsetX*-1.,
+              track->fV.Set(RotateXonZ(partialTrack->fOffsetX,
                     partialTrack->fOffsetY,track_rotation_angle),
-                  RotateYonZ(partialTrack->fOffsetX*-1.,partialTrack->fOffsetY,
+                  RotateYonZ(partialTrack->fOffsetX,partialTrack->fOffsetY,
                     track_rotation_angle),0.);
               // The components of this vector are represented only by ratios
               // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
               // proper ratios compared to z. Let z = 1 for simplicity
               std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
                  partialTrack->fSlopeY << "," << sign*1. << ")\n";
-              track->fP.Set(RotateXonZ(partialTrack->fSlopeX*(-1*sign),
+              track->fP.Set(RotateXonZ(partialTrack->fSlopeX*sign,
                   partialTrack->fSlopeY*sign,track_rotation_angle),
-                RotateYonZ(partialTrack->fSlopeX*(-1*sign),
+                RotateYonZ(partialTrack->fSlopeX*sign,
                   partialTrack->fSlopeY*sign,track_rotation_angle),sign);
 
               // The technical details of drawing the track
@@ -1753,28 +1750,8 @@ void QwEventDisplay3D::MenuEvent(Int_t menuID)
       case kOpenRootFile:
          OpenRootFile();
          break;
-      case kRotateM90:
-         SetRotation(-90.);
-         RedrawViews();
-         DisplayEvent();
-         break;
-      case kRotateM45:
-         SetRotation(-45.);
-         RedrawViews();
-         DisplayEvent();
-         break;
-      case kRotate0:
-         SetRotation(0.);
-         RedrawViews();
-         DisplayEvent();
-         break;
-      case kRotateP45:
-         SetRotation(45.);
-         RedrawViews();
-         DisplayEvent();
-         break;
-      case kRotateP90:
-         SetRotation(90.);
+      case kToggleShowTreeLines:
+         SetDrawTreeLines(!fDrawTreeLines);
          RedrawViews();
          DisplayEvent();
          break;
@@ -1900,7 +1877,7 @@ Double_t QwEventDisplay3D::RotateYonZ(Double_t x, Double_t y, Double_t angle)
    return x*TMath::Sin(angle)+y*TMath::Cos(angle);
 }
 
-void QwEventDisplay3D::SetRotation( Double_t phi )
+void QwEventDisplay3D::SetRotation(int package, int octant)
 {
    //! This defines the rotation of the tracking system. Where the octant for
    //! package (1,2) or (up,down) are:
@@ -1913,29 +1890,30 @@ void QwEventDisplay3D::SetRotation( Double_t phi )
    //! assuming phi = +90deg, and then rotated from there by a given
    //! fPackageAngle. From there, if the package is 1, it is translated
    //! towards its correct side.
-   fDetectorPhi = phi;
    fPreviousRotation = fPackageAngle*_TO_DEG_;
-   if ( phi > 90  || phi < -90 )
-     QwError << "VDC's are unable to rotate to angles larger than 90degrees. "
-      << "Ignoring rotation!" << QwLog::endl;
-   switch( (int)phi ) {
-      case -90:
-         fPackageAngle = -_180DEG_;
-         break;
-      case -45:
-         fPackageAngle = -1*_135DEG_;
-         break;
-      case 90:
-         fPackageAngle = 0;
-         break;
-      case 45:
-         fPackageAngle = -1*_45DEG_;
-         break;
-      case 0:
-      default:
+
+   switch(octant) {
+      case 7:
          fPackageAngle = -1*_90DEG_;
          break;
+      case 8:
+         fPackageAngle = -1*_45DEG_;
+         break;
+      case 1:
+         fPackageAngle = 0;
+         break;
+      case 2:
+         fPackageAngle = _45DEG_;
+         break;
+      case 3:
+         fPackageAngle = _90DEG_;
+         break;
+      default:
+         fPackageAngle = 0;
+         break;
    }
+   fPackageAngle -= _90DEG_;
+
 
    fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
    fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
@@ -1946,9 +1924,6 @@ void QwEventDisplay3D::SetRotation( Double_t phi )
    fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_236")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
    fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_237")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
    fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_238")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
-
-   //std::cout << "Initialized the run with rotation of coordinate system to to "
-      //<< phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";
 }
 
 
@@ -1957,7 +1932,7 @@ void QwEventDisplay3D::ReadDriftChamberGeometry()
   // This is pretty much all copied from QwDriftChamberHDC.cc with special
   // modifications to work for us :)
 
-  TString varname, varvalue,package, direction,dType;
+  TString varname, varvalue,package, direction,dType, name, type;
   Int_t  plane, planeR3Up=0,planeR3Down=0,planeR2Up=0,planeR2Down=0;
   Int_t  TotalWires,detectorId,region, DIRMODE,package_num;
   Int_t uProcess = 0,vProcess = 0,xProcess = 0;
@@ -1968,22 +1943,40 @@ void QwEventDisplay3D::ReadDriftChamberGeometry()
 
   QwParameterFile mapstr("qweak_new.geo");
   while (mapstr.ReadNextLine()){
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;
+    mapstr.TrimComment();       // Remove everything after a comment character.
+    mapstr.TrimWhitespace();    // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty()) continue;
 
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
       //UInt_t value = atol(varvalue.Data());
       if (varname=="name"){//Beginning of detector information
+        name = varvalue;
 	DIRMODE=1;
       }
     } else if (DIRMODE==1){
       //  Break this line into tokens to process it.
-      varvalue     = mapstr.GetTypedNextToken<TString>();//this is the sType
-      Zpos         = mapstr.GetTypedNextToken<Double_t>();
-      rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+      type     = mapstr.GetTypedNextToken<TString>();//this is the sType
+      if (type == "drift") {
+        Zpos         = mapstr.GetTypedNextToken<Double_t>();
+        Zpos         = mapstr.GetTypedNextToken<Double_t>();
+        Zpos         = mapstr.GetTypedNextToken<Double_t>();
+        Zpos         = mapstr.GetTypedNextToken<Double_t>();
+        Zpos         = mapstr.GetTypedNextToken<Double_t>();
+        if (name == "HDC") {
+          rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+        } else {
+          rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+          rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+          rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+          rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+          rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+        }
+      } else {
+        Zpos         = mapstr.GetTypedNextToken<Double_t>();
+        rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+      }
       sp_res       = mapstr.GetTypedNextToken<Double_t>();
       track_res    = mapstr.GetTypedNextToken<Double_t>();
       slope_match  = mapstr.GetTypedNextToken<Double_t>();
@@ -1991,20 +1984,54 @@ void QwEventDisplay3D::ReadDriftChamberGeometry()
       region       = mapstr.GetTypedNextToken<Int_t>();
       dType        = mapstr.GetTypedNextToken<TString>();
       direction    = mapstr.GetTypedNextToken<TString>();
-      Det_originX  = mapstr.GetTypedNextToken<Double_t>();
-      Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+      if (type == "drift") {
+        Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+      } else
+        Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+      if (type == "drift") {
+        Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+        Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+      } else
+        Det_originY  = mapstr.GetTypedNextToken<Double_t>();
       ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
       ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
       ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
       WireSpace    = mapstr.GetTypedNextToken<Double_t>();
       FirstWire    = mapstr.GetTypedNextToken<Double_t>();
-      W_rcos       = mapstr.GetTypedNextToken<Double_t>();
-      W_rsin       = mapstr.GetTypedNextToken<Double_t>();
-      tilt         = mapstr.GetTypedNextToken<Double_t>();
+      if (type == "drift" && name == "HDC") {
+        W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+        W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+        W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+        W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+        W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+        W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+        W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+        W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+        W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+        W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+      } else {
+        W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+        W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+      }
+      if (type == "drift" && name != "HDC") {
+        tilt         = mapstr.GetTypedNextToken<Double_t>();
+        tilt         = mapstr.GetTypedNextToken<Double_t>();
+        tilt         = mapstr.GetTypedNextToken<Double_t>();
+        tilt         = mapstr.GetTypedNextToken<Double_t>();
+        tilt         = mapstr.GetTypedNextToken<Double_t>();
+      } else
+        tilt         = mapstr.GetTypedNextToken<Double_t>();
       TotalWires   = mapstr.GetTypedNextToken<Int_t>();
       detectorId   = mapstr.GetTypedNextToken<Int_t>();
 
-      QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
+      QwDebug << " HDC : Detector ID " << detectorId << " " << type
               << " Package "     << package << " Plane " << Zpos
               << " Region "      << region << QwLog::endl;
 
