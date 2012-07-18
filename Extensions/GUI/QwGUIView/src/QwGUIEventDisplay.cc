@@ -1159,15 +1159,15 @@ int QwGUIEventDisplay::DrawEvent(){  // Draws event data into display
   //GATHER WIRE HIT DATA--------------------------------------------------//
 
   // Region 1 hits
-  QwHitContainer* Hits_R1r = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionR);
-  QwHitContainer* Hits_R1y = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionY);
+  QwHitContainer* Hits_R1r = fHitList->GetSubList_Dir(kRegionID1, kPackage1, kDirectionR);
+  QwHitContainer* Hits_R1y = fHitList->GetSubList_Dir(kRegionID1, kPackage1, kDirectionY);
   // Region 2 hits
-  QwHitContainer* Hits_R2x = fHitList->GetSubList_Dir(kRegionID2, kPackageUp, kDirectionX);
-  QwHitContainer* Hits_R2u = fHitList->GetSubList_Dir(kRegionID2, kPackageUp, kDirectionU);
-  QwHitContainer* Hits_R2v = fHitList->GetSubList_Dir(kRegionID2, kPackageUp, kDirectionV);
+  QwHitContainer* Hits_R2x = fHitList->GetSubList_Dir(kRegionID2, kPackage1, kDirectionX);
+  QwHitContainer* Hits_R2u = fHitList->GetSubList_Dir(kRegionID2, kPackage1, kDirectionU);
+  QwHitContainer* Hits_R2v = fHitList->GetSubList_Dir(kRegionID2, kPackage1, kDirectionV);
   // Region 3 hits
-  QwHitContainer* Hits_R3u = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionU);
-  QwHitContainer* Hits_R3v = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionV);
+  QwHitContainer* Hits_R3u = fHitList->GetSubList_Dir(kRegionID3, kPackage1, kDirectionU);
+  QwHitContainer* Hits_R3v = fHitList->GetSubList_Dir(kRegionID3, kPackage1, kDirectionV);
   
   // DRAWING WIRE HITS--------------------------------------------------//
   // Three types of wires to draw--full length, left of full length, and right of full length

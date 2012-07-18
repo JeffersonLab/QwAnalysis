@@ -174,16 +174,16 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
     }
 
   QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
-	    << fDetectorInfo.in(kPackageUp).size()
+	    << fDetectorInfo.in(kPackage1).size()
 	    << ", "
 	    << "kPackagDown "
-	    << fDetectorInfo.in(kPackageDown).size()
+	    << fDetectorInfo.in(kPackage2).size()
 	    << QwLog::endl;
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
   plane = 1;
-  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackage1);
   for (size_t i = 0; i < detector_info_up.size(); i++)
     {
       detector_info_up.at(i)->fPlane = plane++;
@@ -193,7 +193,7 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
     }
 
   plane = 1;
-  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackage2);
   for (size_t i = 0; i < detector_info_down.size(); i++)
     {
       detector_info_down.at(i)->fPlane = plane++;
@@ -377,82 +377,82 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 	      if (name=="md1m_f1") {
 		ts_chan_num_to_plane    = 1;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md2m_f1") {
 		ts_chan_num_to_plane    = 2;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else if (name=="md3m_f1") {
 		ts_chan_num_to_plane    = 3;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md4m_f1") {
 		ts_chan_num_to_plane    = 4;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else if (name=="md5m_f1") {
 		ts_chan_num_to_plane    = 5;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md6m_f1") {
 		ts_chan_num_to_plane    = 6;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else if (name=="md7m_f1") {
 		ts_chan_num_to_plane    = 7;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md8m_f1") {
 		ts_chan_num_to_plane    = 8;
 		ts_chan_type_to_element = 2;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else if (name=="md1p_f1") {
 		ts_chan_num_to_plane    = 1;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md2p_f1") {
 		ts_chan_num_to_plane    = 2;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else if (name=="md3p_f1") {
 		ts_chan_num_to_plane    = 3;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md4p_f1") {
 		ts_chan_num_to_plane    = 4;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else if (name=="md5p_f1") {
 		ts_chan_num_to_plane    = 5;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md6p_f1") {
 		ts_chan_num_to_plane    = 6;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else if (name=="md7p_f1") {
 		ts_chan_num_to_plane    = 7;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageUp;
+		package                 = kPackage1;
 	      }
 	      else if (name=="md8p_f1") {
 		ts_chan_num_to_plane    = 8;
 		ts_chan_type_to_element = 1;
-		package                 = kPackageDown;
+		package                 = kPackage2;
 	      }
 	      else {
 		ts_chan_num_to_plane    = -1;
@@ -1549,10 +1549,10 @@ void QwMainDetector::AddSoftwareMeantimeToHits(Bool_t option)
   for (v_plane_idx=0; v_plane_idx<kMaxNumberOfQwHitPlane; v_plane_idx++)
   {
     if(v_plane_idx%2 ==0) {
-      package = kPackageUp;
+      package = kPackage1;
       } // end if
     else if  (v_plane_idx%2 ==1) {
-      package = kPackageDown;
+      package = kPackage2;
     } //end else if
     else {
       break;

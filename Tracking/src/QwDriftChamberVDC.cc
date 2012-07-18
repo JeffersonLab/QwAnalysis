@@ -155,16 +155,16 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
     }
 
   QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
-	    << fDetectorInfo.in(kPackageUp).size()
+	    << fDetectorInfo.in(kPackage1).size()
 	    << ", "
 	    << "kPackagDown "
-	    << fDetectorInfo.in(kPackageDown).size()
+	    << fDetectorInfo.in(kPackage2).size()
 	    << QwLog::endl;
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
   plane = 1;
-  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackage1);
   for (size_t i = 0; i < detector_info_up.size(); i++)
     {
       detector_info_up.at(i)->fPlane = plane++;
@@ -174,7 +174,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
     }
 
   plane = 1;
-  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackage2);
   for (size_t i = 0; i < detector_info_down.size(); i++)
     {
       detector_info_down.at(i)->fPlane = plane++;
@@ -229,10 +229,10 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
       // I don't know ..
       // Friday, February 17 14:01:12 EST 2012, jhlee
 
-      if (package == kPackageUp) { // Up is 1
+      if (package == kPackage1) { // Up is 1
 	reference_name1 = "TrigScintPkg1";
       }
-      else if (package == kPackageDown) {// Down is 2
+      else if (package == kPackage2) {// Down is 2
 	reference_name1 = "TrigScintPkg2";
       }
       else {
@@ -902,12 +902,12 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
       fR3Octant = gQwOptions.GetValue<Int_t>("R3-octant");
       if ( pknum=="u" )
         {
-          package = kPackageUp;
+          package = kPackage1;
           octant  = (fR3Octant + 4) % 8;
         }
       else if ( pknum=="v" )
         {
-          package = kPackageDown;
+          package = kPackage2;
           octant  = fR3Octant;
         }
 
@@ -1212,7 +1212,7 @@ void  QwDriftChamberVDC::FillHistograms()
 
   Int_t plane = 0;
   Int_t element = 0;
-  EQwDetectorPackage package = kPackageUp; // this is weird..... 
+  EQwDetectorPackage package = kPackage1; // this is weird..... 
 
   Int_t plane_index = 0;
 

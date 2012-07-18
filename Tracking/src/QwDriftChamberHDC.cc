@@ -159,16 +159,16 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   }
 
   QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
-      << fDetectorInfo.in(kPackageUp).size()
+      << fDetectorInfo.in(kPackage1).size()
       << ", "
       << "kPackagDown "
-      << fDetectorInfo.in(kPackageDown).size()
+      << fDetectorInfo.in(kPackage2).size()
       << QwLog::endl;
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
   plane = 1;
-  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackage1);
   for (size_t i = 0; i < detector_info_up.size(); i++)
   {
     detector_info_up.at(i)->fPlane = plane++;
@@ -178,7 +178,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   }
 
   plane = 1;
-  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackage2);
   for (size_t i = 0; i < detector_info_down.size(); i++)
   {
     detector_info_down.at(i)->fPlane = plane++;
@@ -707,8 +707,8 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 
       Int_t octant = 0;
       fR2Octant = gQwOptions.GetValue<int>("R2-octant");
-      if (package == kPackageUp)   octant = (fR2Octant + 4) % 8;
-      if (package == kPackageDown) octant =  fR2Octant;
+      if (package == kPackage1)   octant = (fR2Octant + 4) % 8;
+      if (package == kPackage2) octant =  fR2Octant;
 
       if(local_debug) {
         printf("chan  %8d plan %4d  wire %12s\n", chan, plane, name.Data());

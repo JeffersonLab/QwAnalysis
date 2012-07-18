@@ -68,7 +68,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwMessage << "--------------------" << QwLog::endl;
 
   // Trigger scintillator
-  QwGeometry trigscint = geometry.in(kPackageUp).in(kRegionIDTrig);
+  QwGeometry trigscint = geometry.in(kPackage1).in(kRegionIDTrig);
   if (trigscint.size() > 0) {
     QwMessage << "# Trigger Scintillator" << QwLog::endl;
     QwMessage << "/TriggerScintillator/SetCenterPositionInX "
@@ -88,7 +88,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   // HDC
-  QwGeometry hdc = geometry.in(kPackageUp).in(kRegionID2);
+  QwGeometry hdc = geometry.in(kPackage1).in(kRegionID2);
   if (hdc.size() > 0) {
     QwMessage << "# Horizontal Drift Chamber" << QwLog::endl;
 
@@ -117,7 +117,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   // VDC
-  QwGeometry vdc = geometry.in(kPackageUp).in(kRegionID3);
+  QwGeometry vdc = geometry.in(kPackage1).in(kRegionID3);
   if (vdc.size() > 0) {
     QwMessage << "# Vertical Drift Chamber" << QwLog::endl;
 

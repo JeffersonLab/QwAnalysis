@@ -157,16 +157,16 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   }
 
   QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
-      << fDetectorInfo.in(kPackageUp).size()
+      << fDetectorInfo.in(kPackage1).size()
       << ", "
       << "kPackagDown "
-      << fDetectorInfo.in(kPackageDown).size()
+      << fDetectorInfo.in(kPackage2).size()
       << QwLog::endl;
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
   plane = 1;
-  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackage1);
   for (size_t i = 0; i < detector_info_up.size(); i++)
   {
     detector_info_up.at(i)->fPlane = plane++;
@@ -176,7 +176,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   }
 
   plane = 1;
-  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackage2);
   for (size_t i = 0; i < detector_info_down.size(); i++)
   {
     detector_info_down.at(i)->fPlane = plane++;
@@ -333,32 +333,32 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile)
 	    if (name=="ts2m_f1") {
 	      ts_chan_num_to_plane    = 2;
 	      ts_chan_type_to_element = 2;
-	      package = kPackageDown;
+	      package = kPackage2;
 	    }
 	    else if (name=="ts2p_f1") {
 	      ts_chan_num_to_plane    = 2;
 	      ts_chan_type_to_element = 1;
-	      package = kPackageDown;
+	      package = kPackage2;
 	    }
 	    else if (name=="ts2mt_f1") {
 	      ts_chan_num_to_plane    = 2;
 	      ts_chan_type_to_element = 0;
-	      package = kPackageDown;
+	      package = kPackage2;
 	    }
 	    else if (name=="ts1m_f1") {
 	      ts_chan_num_to_plane    = 1;
 	      ts_chan_type_to_element = 2;
-	      package = kPackageUp;
+	      package = kPackage1;
 	    }
 	    else if (name=="ts1p_f1") {
 	      ts_chan_num_to_plane    = 1;
 	      ts_chan_type_to_element = 1;
-	      package = kPackageUp;
+	      package = kPackage1;
 	    }
 	    else if (name=="ts1mt_f1") {
 	      ts_chan_num_to_plane    = 1;
 	      ts_chan_type_to_element = 0;	      
-	      package = kPackageUp;
+	      package = kPackage1;
 
 	    }
 	    else {
@@ -1533,10 +1533,10 @@ void QwTriggerScintillator::AddSoftwareMeantimeToHits(Bool_t option)
     {
    
       if(v_plane_idx == 0) {
-	package = kPackageUp;
+	package = kPackage1;
       }
       else if (v_plane_idx ==1){
-	package = kPackageDown;
+	package = kPackage2;
       }
       else {
 	break;

@@ -1926,7 +1926,7 @@ int QwTrackingTreeCombine::r3_TrackFit (
 	// Hard coded values to be updated
 	double uvshift=2.54;
 	
-	if(hits[0]->GetDetectorInfo()->fPackage==kPackageUp)
+	if(hits[0]->GetDetectorInfo()->fPackage==kPackage1)
 	  	perp=39.3679;
 	else
 	  	perp=39.2835;

@@ -337,8 +337,8 @@ void QwTrackingWorker::ProcessOptions(QwOptions& options)
 void QwTrackingWorker::InitTree(const QwGeometry& geometry)
 {
   // Loop over packages
-  for (EQwDetectorPackage package = kPackageUp;
-      package <= kPackageDown; package++) {
+  for (EQwDetectorPackage package = kPackage1;
+      package <= kPackage2; package++) {
     // Loop over regions
     for (EQwRegionID region = kRegionID2;
         region <= kRegionID3; region++) {
@@ -461,14 +461,14 @@ void QwTrackingWorker::ProcessEvent (
     // Normally only two of these will generate actual tracks,
     // since there are only two tracking packages for the eight
     // possible positions
-    for (EQwDetectorPackage package  = kPackageUp;
-            package <= kPackageDown; package++) {
+    for (EQwDetectorPackage package  = kPackage1;
+            package <= kPackage2; package++) {
         QwDebug << "[QwTrackingWorker::ProcessHits] Package: " << package << QwLog::endl;
 
         // Currently assume that only the up and down octants contain the tracking
         // detectors.  When rotation is included, this will have to be modified to
         // take into account that the tracking detectors are in different octants.
-        if (package != kPackageUp && package != kPackageDown) continue;
+        if (package != kPackage1 && package != kPackage2) continue;
 
         /// Find the region 1 clusters in this package
 	//      QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
@@ -985,10 +985,10 @@ void QwTrackingWorker::ProcessEvent (
     } /* end of loop over the detector packages */
 
     if(fMismatchPkg && !fDisableMomentum){
-       for (EQwDetectorPackage R3package = kPackageUp;
-	    R3package <= kPackageDown; R3package++) {
-	  for (EQwDetectorPackage R2package = kPackageUp;
-	       R2package <= kPackageDown; R2package++) {
+       for (EQwDetectorPackage R3package = kPackage1;
+	    R3package <= kPackage2; R3package++) {
+	  for (EQwDetectorPackage R2package = kPackage1;
+	       R2package <= kPackage2; R2package++) {
 	     if (R3package!=R2package && event->fPartialTrack[R2package][kRegionID2][kTypeDriftHDC]
                 && event->fPartialTrack[R3package][kRegionID3][kTypeDriftVDC]) {
 

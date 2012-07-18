@@ -76,10 +76,10 @@ void QwDetectorInfo::SetDetectorInfo (
 
   // Package
   if (spackage == "u"){
-    fPackage = kPackageUp;
+    fPackage = kPackage1;
   }
   else if (spackage == "d"){
-    fPackage = kPackageDown;
+    fPackage = kPackage2;
   }
 
   // Region
