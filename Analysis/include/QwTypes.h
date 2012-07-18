@@ -38,8 +38,8 @@ inline std::ostream& operator<< (std::ostream& stream, const EQwDirectionID& i) 
 // Currently up and down are considered two packages.
 enum EQwDetectorPackage {
   kPackageNull = 0,
-  kPackageUp,
-  kPackageDown,
+  kPackage1,
+  kPackage2,
   kNumPackages
 };
 // NOTE: Packages will be defined with respect to the *fixed magnet octants*.
@@ -47,7 +47,7 @@ enum EQwDetectorPackage {
 // one package will be identified as kPackageUpLeft (name?), and the other
 // package as kPackageDownRight. (wdc, based on discussion with pking)
 inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorPackage& i) {
-  stream << "?ud#"[i]; return stream;
+  stream << "?12#"[i]; return stream;
 }
 
 enum EQwDetectorType {

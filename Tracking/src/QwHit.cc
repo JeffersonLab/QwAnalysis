@@ -284,9 +284,10 @@ Bool_t QwHit::operator<(const QwHit& obj)
 ostream& operator<< (ostream& stream, const QwHit& hit)
 {
   stream << "hit: ";
-  stream << "package "   << "?UD"[hit.fPackage] << ", ";
+  stream << "package "   << hit.fPackage << ", ";
+  stream << "octant "    << hit.fOctant << ", ";
   stream << "region "    << hit.fRegion << ", ";
-  stream << "dir "       << "?xyuvrf"[hit.fDirection] << ", ";
+  stream << "dir "       << hit.fDirection << ", ";
   stream << "plane "     << hit.fPlane;
 
   if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
