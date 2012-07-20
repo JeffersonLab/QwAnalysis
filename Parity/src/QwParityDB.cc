@@ -87,7 +87,7 @@ class StoreErrorCodeID {
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwParityDB::QwParityDB() : QwDatabase("01", "03", "0000")
+QwParityDB::QwParityDB() : QwDatabase("01", "04", "0000")
 {
   QwDebug << "Greetings from QwParityDB simple constructor." << QwLog::endl;
   // Initialize member fields
@@ -105,7 +105,7 @@ QwParityDB::QwParityDB() : QwDatabase("01", "03", "0000")
  *  the QwOptions object.
  * @param options  The QwOptions object.
  */
-QwParityDB::QwParityDB(QwOptions &options) : QwDatabase(options, "01", "03", "0000")
+QwParityDB::QwParityDB(QwOptions &options) : QwDatabase(options, "01", "04", "0000")
 {
   QwDebug << "Greetings from QwParityDB extended constructor." << QwLog::endl;
 
