@@ -959,13 +959,13 @@ void  QwModChannelID::Print()
 }
 
 //*****************************************************************
-void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
+void QwBeamMod::FillDB_MPS(QwParityDB *db, TString datatype)
 {
   Bool_t local_print_flag = false;
 
   if(local_print_flag) {
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-    QwMessage << "            QwBeamMod::FillDB                       " << QwLog::endl;
+    QwMessage << "            QwBeamMod::FillDB_MPS                       " << QwLog::endl;
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
 
@@ -977,6 +977,9 @@ void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 
   for(size_t bpm = 0; bpm < fMonitors.size(); bpm++){
     for(size_t pattern = 0; pattern < 5; pattern++){
+      //  Explicitly zero the beam optics ID to ensure a non-sensical default
+      //  is not picked up.
+      row.beam_optics_id = 0;
       row.analysis_id = analysis_id;
       row.monitor_id = db->GetMonitorID(fMonitorNames[bpm].Data());
       row.modulation_type_id = pattern;
@@ -1007,13 +1010,17 @@ void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
     query.execute();
   }
   else {
-    QwMessage << "QwBeamMod::FillDB :: Nothing to insert in database." << QwLog::endl;
+    QwMessage << "QwBeamMod::FillDB_MPS :: Nothing to insert in database." << QwLog::endl;
   }
   db->Disconnect();
 
   return;
 }
 
+void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
+{
+  return;
+}
 
 void QwBeamMod::FillErrDB(QwParityDB *db, TString datatype)
 {

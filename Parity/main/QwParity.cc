@@ -389,6 +389,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.FillErrDB(&database);
       epicsevent.FillDB(&database);
       running_regression.FillDB(&database,"asymmetry");
+      detectors.FillDB_MPS(&database, "optics");
     }
     
   

@@ -51,7 +51,9 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// Default destructor
     virtual ~VQwSubsystemParity() { };
 
-
+    /// \brief Fill the database with MPS-based variables
+    ///        Note that most subsystems don't need to do this.
+    virtual void FillDB_MPS(QwParityDB *db, TString type) {};
     /// \brief Fill the database
     virtual void FillDB(QwParityDB *db, TString type) { };
     virtual void FillErrDB(QwParityDB *db, TString type) { };

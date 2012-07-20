@@ -56,6 +56,9 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Fill the histograms for this subsystem
     void FillHistograms();
 
+    /// \brief Fill the database with MPS-based variables
+    ///        Note that most subsystems don't need to do this.
+    void FillDB_MPS(QwParityDB *db, TString type);
     /// \brief Fill the database
     void FillDB(QwParityDB *db, TString type);
     void FillErrDB(QwParityDB *db, TString type);
