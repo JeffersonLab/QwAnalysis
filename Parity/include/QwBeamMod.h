@@ -88,14 +88,12 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
+  void IncrementErrorCounters();
   void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
-  //update the same error flag in the classes belong to the subsystem.
-  void UpdateEventcutErrorFlag(UInt_t errorflag){
-  }
+
   //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
-  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
-  };
+  void UpdateErrorFlag(const VQwSubsystem *ev_error);
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -185,7 +183,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
  std::vector <std::vector <Double_t> > fPhaseError;
 
  std::vector <std::vector <Double_t> > fChisquare;
- std::vector <std::vector <Double_t> > fNFitPoints;
+ std::vector <std::vector <Int_t> > fNFitPoints;
 
  Int_t fRampChannelIndex;
  Int_t fPatternWordIndex;

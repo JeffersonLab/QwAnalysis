@@ -142,15 +142,20 @@ class VQwDataElement: public MQwHistograms {
   virtual void PrintErrorCounters() const {};
 
   /*! \brief return the error flag on this channel/device*/
-  virtual UInt_t GetEventcutErrorFlag(){return fErrorFlag;};
- /*! \brief update the error flag on this channel/device*/
-  virtual void UpdateEventcutErrorFlag(UInt_t errorflag){
-    fErrorFlag|=errorflag;
+  virtual UInt_t GetEventcutErrorFlag(){
+    //first condition check for global/local status and second condition check to see non-zero HW error codes
+    if (((fErrorConfigFlag & kGlobalCut) == kGlobalCut) && (fErrorFlag)>0){
+      // we care only about global cuts
+      //std::cout<<"fErrorFlag "<<(fErrorFlag & kGlobalCut)<<std::endl;
+      return fErrorFlag+fErrorConfigFlag;//pass the error codes and configuration codes
+    }
+    return 0;
   }
 
-  virtual UInt_t GetErrorCode() const {return (fErrorFlag);}; 
-  virtual void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
-
+  /// \brief Update the error flag based on the error flags of internally
+  ///        contained objects
+  ///        Return paramter is the "Eventcut Error Flag".
+  virtual UInt_t UpdateErrorFlag() {return GetEventcutErrorFlag();};
 
   // These are related to those hardware channels that need to normalize
   // to an external clock
@@ -196,6 +201,10 @@ class VQwDataElement: public MQwHistograms {
     }
     return *this;
   }
+
+  //  The most basic version of UpdateErrorFlag, which should get hidden
+  //  by all the derived class versions.
+  virtual void UpdateErrorFlag(const UInt_t& error){fErrorFlag |= (error);};
 
  protected:
   TString fElementName; ///< Name of this data element

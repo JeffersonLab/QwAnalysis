@@ -67,13 +67,14 @@ public:
 
   virtual void SetDefaultSampleSize(Int_t sample_size) = 0;
   virtual void SetEventCutMode(Int_t bcuts) = 0;
-  virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
-  virtual void UpdateEventcutErrorFlag(VQwBCM *ev_error) = 0;
+  virtual UInt_t UpdateErrorFlag(){return this->GetEventcutErrorFlag();};
+  virtual void UpdateErrorFlag(const VQwBCM *ev_error) = 0;
   virtual void SetPedestal(Double_t ped) = 0;
   virtual void SetCalibrationFactor(Double_t calib) = 0;
   virtual void RandomizeEventData(int helicity, double time) = 0;
   virtual void EncodeEventData(std::vector<UInt_t> &buffer) = 0;
   virtual Bool_t ApplySingleEventCuts() = 0;//Check for good events by stting limits on the devices readings
+  virtual void IncrementErrorCounters() = 0;
   virtual void  ProcessEvent() = 0;
   virtual void Scale(Double_t factor) = 0;
   virtual void CalculateRunningAverage() = 0;

@@ -93,10 +93,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   
   void  ClearEventData();
 
-  void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
-
-  }
-
   /// Internally generate random event data
   void  RandomizeEventData(int helicity = 0.0, double time = 0.0);
 
@@ -184,8 +180,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
-  void UpdateErrorCounters(UInt_t error_flag);//update counters based on the flag passed to it
-    
+  void IncrementErrorCounters();//update the error counters based on the internal fErrorFlag
   
   /*End*/
 

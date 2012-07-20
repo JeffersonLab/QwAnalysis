@@ -54,12 +54,10 @@ Bool_t QwHaloMonitor::ApplySingleEventCuts()
 
 
 void QwHaloMonitor::PrintErrorCounters() const
-{// report number of events failed due to HW and event cut faliure
+{
+  fHalo_Counter.PrintErrorCounters();
 }
 
-void QwHaloMonitor::UpdateEventcutErrorFlag(QwHaloMonitor *ev_error){
-  
-}
 
 QwHaloMonitor& QwHaloMonitor::operator= (const QwHaloMonitor &value)
 {

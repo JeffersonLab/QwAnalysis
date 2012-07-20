@@ -500,6 +500,10 @@ Bool_t QwScaler::ApplySingleEventCuts()
   return true;
 }
 
+void QwScaler::IncrementErrorCounters()
+{
+}
+
 void QwScaler::PrintErrorCounters() const
 {
 }

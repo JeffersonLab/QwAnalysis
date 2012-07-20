@@ -64,9 +64,14 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  void IncrementErrorCounters(){fTriumf_ADC.IncrementErrorCounters();};
   void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fTriumf_ADC.GetEventcutErrorFlag();
+  }
+  UInt_t UpdateErrorFlag() {return GetEventcutErrorFlag();};
+  void UpdateErrorFlag(const QwIntegratedRasterChannel *ev_error){
+    return fTriumf_ADC.UpdateErrorFlag(ev_error->fTriumf_ADC);
   }
 
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size

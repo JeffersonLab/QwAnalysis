@@ -39,6 +39,8 @@ public:
   VQwHardwareChannel(const VQwHardwareChannel& value, VQwDataElement::EDataToSave datatosave);
   virtual ~VQwHardwareChannel() { };
 
+  using VQwDataElement::UpdateErrorFlag;
+
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
 
@@ -64,13 +66,6 @@ public:
     } 
     return width;
   };
-
-  UInt_t GetErrorCode() const {
-    if (fErrorFlag>0)
-      return fErrorFlag;
-    return 0;
-  }; 
-  void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
 
   virtual void  ClearEventData(){
     VQwDataElement::ClearEventData();
@@ -105,11 +100,9 @@ public:
 
   Double_t GetStabilityLimit() const { return fStability;};
 
-
- 
-  /*! \brief return the error flag on this channel/device*/
-  UInt_t GetEventcutErrorFlag();
-
+  UInt_t UpdateErrorFlag() {return GetEventcutErrorFlag();};
+  void UpdateErrorFlag(const VQwHardwareChannel& elem){fErrorFlag |= elem.fErrorFlag;};
+  virtual UInt_t GetErrorCode() const {return (fErrorFlag);}; 
 
   virtual void CalculateRunningAverage() = 0;
 //   virtual void AccumulateRunningSum(const VQwHardwareChannel *value) = 0;

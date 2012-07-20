@@ -163,15 +163,24 @@ void QwCombinedPMT::PrintErrorCounters() const
 }
 
 /********************************************************/
-void QwCombinedPMT::UpdateEventcutErrorFlag(QwCombinedPMT *ev_error){
+UInt_t QwCombinedPMT::UpdateErrorFlag()
+{
+  for (size_t i=0;i<fElement.size();i++) {
+    fSumADC.UpdateErrorFlag(fElement[i]);
+  }
+  return GetEventcutErrorFlag();
+}
+
+/********************************************************/
+void QwCombinedPMT::UpdateErrorFlag(const QwCombinedPMT *ev_error){
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwCombinedPMT::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwCombinedPMT::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-	fSumADC.UpdateEventcutErrorFlag(&(ev_error->fSumADC));//the routine GetErrorCode() return the error flag unconditionally
+	fSumADC.UpdateErrorFlag(&(ev_error->fSumADC));
       }
     } else {
-      TString loc="Standard exception from QwCombinedPMT::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwCombinedPMT::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());

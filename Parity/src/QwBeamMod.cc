@@ -168,8 +168,6 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
       fWord[i].PrintID();
   }
 
-  Double_t bpm_z = 0;
-  
   // Now load the variables to monitor
   mapstr.RewindToFileStart();
   while (QwParameterFile *section = mapstr.ReadNextSection(varvalue)) {
@@ -179,7 +177,6 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
         section->TrimComment();         // Remove everything after a comment character
         section->TrimWhitespace();      // Get rid of leading and trailing spaces
         varvalue = section->GetTypedNextToken<TString>();
-// 	bpm_z    = section->GetTypedNextToken<Double_t>();
 	if (varvalue.Length() > 0) {
           // Add names of monitor channels for each degree of freedom
 	  //
@@ -199,9 +196,6 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	  else{
 	    fMonitorNames.push_back(varvalue);
 	  }
-
-// 	  fBPMPosition.push_back(bpm_z);
-
         }
       }
     }
@@ -449,6 +443,13 @@ Bool_t QwBeamMod::ApplySingleEventCuts(){
 
 }
 
+void QwBeamMod::IncrementErrorCounters()
+{
+  for(size_t i=0;i<fModChannel.size();i++){
+    fModChannel[i].IncrementErrorCounters();
+  }
+}
+
 void QwBeamMod::PrintErrorCounters() const{//inherited from the VQwSubsystemParity; this will display the error summary
 
   std::cout<<"*********QwBeamMod Error Summary****************"<<std::endl;
@@ -459,6 +460,14 @@ void QwBeamMod::PrintErrorCounters() const{//inherited from the VQwSubsystemPari
   QwVQWK_Channel::PrintErrorCounterTail();
 }
 
+void QwBeamMod::UpdateErrorFlag(const VQwSubsystem *ev_error)
+{
+  const QwBeamMod* input = dynamic_cast<const QwBeamMod*> (ev_error);
+
+  for(size_t i=0;i<fModChannel.size();i++){
+    fModChannel[i].UpdateErrorFlag(input->fModChannel[i]);
+  }
+}
 
 UInt_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
   UInt_t ErrorFlag;
@@ -846,32 +855,54 @@ void QwBeamMod::AnalyzeOpticsPlots()
   Double_t amplitude;
   Double_t phase;
 
+  ResizeOpticsDataContainers(fMonitorNames.size());
+
   canvas->cd();
   for(size_t bpm = 0; bpm < fMonitors.size(); bpm++){
 
     for(size_t pattern = 0; pattern < 5; pattern++){
-      
-      sine->SetParameters(fHistograms[5*bpm + pattern]->GetMean(), 0.10, 0);
-      sine->SetLineColor(2);
-      sine->SetParLimits(2, 0., TMath::Pi()*2 );
-      fHistograms[5*bpm + pattern]->Fit("sine","R B");
-      
-      mean = sine->GetParameter(0);
-      amplitude = sine->GetParameter(1);
-      phase = sine->GetParameter(2);
-      
-      if(phase >= 180){
-	phase -= 180;
-	amplitude = -amplitude;
+      //  Only do the fits if there are more than three entries.
+      if (fHistograms[5*bpm + pattern]->GetEntries()>3){
+	sine->SetParameters(fHistograms[5*bpm + pattern]->GetMean(), 0.10, 0);
+	sine->SetLineColor(2);
+	sine->SetParLimits(2, TMath::Pi()*-1, TMath::Pi()*2 );
+	fHistograms[5*bpm + pattern]->Fit("sine","R B");
+	
+	mean = sine->GetParameter(0);
+	amplitude = sine->GetParameter(1);
+	phase = sine->GetParameter(2) * TMath::RadToDeg();
+	
+	if(phase >= 180){
+	  phase -= 180;
+	  amplitude = -amplitude;
+	} else if (phase < 0){
+	  phase += 180;
+	  amplitude = -amplitude;
+	} 
+	fOffset[bpm][pattern] = sine->GetParameter(0);
+	fAmplitude[bpm][pattern] = amplitude;
+	fPhase[bpm][pattern] = phase;
+	fOffsetError[bpm][pattern] = sine->GetParError(0);
+	fAmplitudeError[bpm][pattern] = sine->GetParError(1);
+	fPhaseError[bpm][pattern] = sine->GetParError(2);
+	fChisquare[bpm][pattern] = sine->GetChisquare();
+	fNFitPoints[bpm][pattern] = sine->GetNumberFitPoints();
+      } else {
+	QwDebug << "QwBeamMod can't fit [" << bpm << "][" << pattern
+		<< "] because there are only " 
+		<< fHistograms[5*bpm + pattern]->GetEntries()
+		<< " entries, and we need at least 3."
+		<< QwLog::endl;
+	//  No events in this histogram.  Zero-out the fit results
+	fOffset[bpm][pattern]         = 0.0;
+	fAmplitude[bpm][pattern]      = 0.0;
+	fPhase[bpm][pattern]          = 0.0;
+	fOffsetError[bpm][pattern]    = 0.0;
+	fAmplitudeError[bpm][pattern] = 0.0;
+	fPhaseError[bpm][pattern]     = 0.0;
+	fChisquare[bpm][pattern]      = 0.0;
+	fNFitPoints[bpm][pattern]     = 0;
       }
-      fOffset[bpm][pattern] = sine->GetParameter(0);
-      fAmplitude[bpm][pattern] = sine->GetParameter(1);
-      fPhase[bpm][pattern] = sine->GetParameter(2);
-      fOffsetError[bpm][pattern] = sine->GetParError(0);
-      fAmplitudeError[bpm][pattern] = sine->GetParError(1);
-      fPhaseError[bpm][pattern] = sine->GetParError(2);
-      fChisquare[bpm][pattern] = sine->GetChisquare();
-      fNFitPoints[bpm][pattern] = sine->GetNumberFitPoints();
     }
   }
   delete canvas;

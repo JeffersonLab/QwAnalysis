@@ -104,6 +104,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Apply the single event cuts
     Bool_t ApplySingleEventCuts();
+    /// \brief Update the data elements' error counters based on their
+    ///        internal error flags.
+    void IncrementErrorCounters();
+
     /// \brief Report the number of events failed due to HW and event cut failures
     void PrintErrorCounters() const;
     /// \brief Return the error flag to the main routine
@@ -112,12 +116,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     };
 
     /// \brief Update the error flag internally from all the subsystems
-    void UpdateEventcutErrorFlag();
+    void UpdateErrorFlag();
 
-    /// \brief update the same error flag for all the channels in the subsystem array
-    void UpdateEventcutErrorFlag(UInt_t errorflag);
     /// \brief update the error flag for each channel in the subsystem array with the corresponding value in the ev_error subsystem array
-    void UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_error);
+    void UpdateErrorFlag(const QwSubsystemArrayParity& ev_error);
 
 
     /// \brief Print value of all channels

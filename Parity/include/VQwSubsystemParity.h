@@ -81,12 +81,18 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual Bool_t ApplySingleEventCuts() = 0;
     /// \brief Report the number of events failed due to HW and event cut failures
     virtual void PrintErrorCounters() const = 0;
+    /// \brief Increment the error counters
+    virtual void IncrementErrorCounters() = 0;
+
     /// \brief Return the error flag to the top level routines related to stability checks and ErrorFlag updates
     virtual UInt_t GetEventcutErrorFlag() = 0;
-    /// \brief update the error flag in the subsystem level from the top level routines related to stability checks. This will set the same errorflag to all the channels
-    virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
+    /// \brief Uses the error flags of contained data elements to update
+    ///        Returns the error flag to the top level routines related 
+    ///        to stability checks and ErrorFlag updates
+    virtual UInt_t UpdateErrorFlag(){return GetEventcutErrorFlag();};
+
     /// \brief update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
-    virtual void UpdateEventcutErrorFlag(VQwSubsystem *ev_error) = 0;
+    virtual void UpdateErrorFlag(const VQwSubsystem *ev_error) = 0;
 
 
     /// \brief Blind the asymmetry of this subsystem

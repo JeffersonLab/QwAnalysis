@@ -104,6 +104,17 @@ Bool_t QwBPMCavity::ApplyHWChecks()
   return eventokay;
 }
 
+void QwBPMCavity::IncrementErrorCounters()
+{
+  Short_t i=0;
+
+  for(i=0;i<2;i++) {
+    fWire[i].IncrementErrorCounters();
+    fRelPos[i].IncrementErrorCounters();
+    fAbsPos[i].IncrementErrorCounters();
+  }
+  fEffectiveCharge.IncrementErrorCounters();
+}
 
 void QwBPMCavity::PrintErrorCounters() const
 {
@@ -131,6 +142,25 @@ UInt_t QwBPMCavity::GetEventcutErrorFlag()
   return error;
 }
 
+UInt_t QwBPMCavity::UpdateErrorFlag()
+{
+  Short_t i=0;
+  UInt_t error1=0;
+  UInt_t error2=0;  
+  for(i=0;i<2;i++) {
+    error1|=fWire[i].GetErrorCode();
+    error2|=fWire[i].GetEventcutErrorFlag();
+  }
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateErrorFlag(error1);
+    fAbsPos[i].UpdateErrorFlag(error1);
+    error2|=fRelPos[i].GetEventcutErrorFlag();
+    error2|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+  fEffectiveCharge.UpdateErrorFlag(error1);
+  error2|=fEffectiveCharge.GetEventcutErrorFlag();
+  return error2;
+}
 
 Bool_t QwBPMCavity::ApplySingleEventCuts()
 {
@@ -154,7 +184,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     error_code |= fWire[i].GetErrorCode();//this to be updated in the rel and abp pos channels
   }
   for(i=kXAxis;i<kNumAxes;i++){
-    //fRelPos[i].UpdateErrorCode(error_code); //No need
+    //fRelPos[i].UpdateErrorFlag(error_code); //No need
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -168,7 +198,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   }
 
   for(i=kXAxis;i<kNumAxes;i++){
-    //fAbsPos[i].UpdateErrorCode(error_code);
+    //fAbsPos[i].UpdateErrorFlag(error_code);
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -182,7 +212,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
-  //fEffectiveCharge.UpdateErrorCode(error_code);//No need
+  //fEffectiveCharge.UpdateErrorFlag(error_code);//No need
   if (fEffectiveCharge.ApplySingleEventCuts()){
     status&=kTRUE;
   }
@@ -278,39 +308,24 @@ void QwBPMCavity::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t 
 
 */
 
-void QwBPMCavity::UpdateEventcutErrorFlag(const UInt_t error){
+void QwBPMCavity::UpdateErrorFlag(const VQwBPM *ev_error){
   Short_t i=0;
-  for(i=0;i<2;i++) fWire[i].UpdateEventcutErrorFlag(error);
-  for(i=kXAxis;i<kNumAxes;i++) {
-    fRelPos[i].UpdateEventcutErrorFlag(error);
-    fAbsPos[i].UpdateEventcutErrorFlag(error);
-  }
-  fEffectiveCharge.UpdateEventcutErrorFlag(error);
-};
-
-void QwBPMCavity::UpdateEventcutErrorFlag(VQwBPM *ev_error){
-  Short_t i=0;
-  VQwDataElement *value_data;
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwBPMStripline::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwBPMStripline::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-        QwBPMCavity* value_bpm = dynamic_cast<QwBPMCavity* >(ev_error);
+        const QwBPMCavity* value_bpm = dynamic_cast<const QwBPMCavity* >(ev_error);
 	for(i=0;i<2;i++){
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fWire[i]));
-	  fWire[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  fWire[i].UpdateErrorFlag(value_bpm->fWire[i]);
 	}
 	for(i=kXAxis;i<kNumAxes;i++) {
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
-	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
-	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  fRelPos[i].UpdateErrorFlag(value_bpm->fRelPos[i]);
+	  fAbsPos[i].UpdateErrorFlag(value_bpm->fAbsPos[i]);
 	}
-	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
-	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	fEffectiveCharge.UpdateErrorFlag(value_bpm->fEffectiveCharge);
       }
     } else {
-      TString loc="Standard exception from QwBPMCavity::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwBPMCavity::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());

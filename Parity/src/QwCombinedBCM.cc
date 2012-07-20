@@ -103,7 +103,7 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts()
   //  have had ApplySingleEventCuts run on them already.
   
   for (size_t i=0;i<fElement.size();i++){
-    this->fBeamCurrent.UpdateErrorCode(fElement.at(i)->fBeamCurrent.GetErrorCode());
+    this->fBeamCurrent.UpdateErrorFlag(fElement.at(i)->fBeamCurrent.GetErrorCode());
   }
   
 
@@ -111,22 +111,30 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts()
   return QwBCM<T>::ApplySingleEventCuts();
 }
 
+template<typename T>
+UInt_t QwCombinedBCM<T>::UpdateErrorFlag(){
+  for (size_t i=0;i<fElement.size();i++){
+    this->fBeamCurrent.UpdateErrorFlag(fElement.at(i)->fBeamCurrent.GetErrorCode());
+  }
+  return this->fBeamCurrent.GetEventcutErrorFlag();
+}
+
 
 /********************************************************/
 /*
 template<typename T>
-void QwCombinedBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
+void QwCombinedBCM<T>::UpdateErrorFlag(const VQwBCM *ev_error){
     
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwCombinedBCM::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwCombinedBCM::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
         QwCombinedBCM<T>* value_bcm = dynamic_cast<QwCombinedBCM<T>* >(ev_error);
 	VQwDataElement *value_data = dynamic_cast<VQwDataElement *>(&(value_bcm->fBeamCurrent));
-	fBeamCurrent.UpdateEventcutErrorFlag(value_data->GetErrorCode());//the routine GetErrorCode() return the error flag + configuration flag unconditionally
+	fBeamCurrent.UpdateErrorFlag(value_data->GetErrorCode());//the routine GetErrorCode() return the error flag + configuration flag unconditionally
       }
     } else {
-      TString loc="Standard exception from QwCombinedBCM::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwCombinedBCM::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());
@@ -135,7 +143,7 @@ void QwCombinedBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
     std::cerr<< e.what()<<std::endl;
   }  
     
-    QwBCM<T>::UpdateEventcutErrorFlag(ev_error);
+    QwBCM<T>::UpdateErrorFlag(const ev_error);
 };
 */
 

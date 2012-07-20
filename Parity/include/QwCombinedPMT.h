@@ -82,16 +82,12 @@ class QwCombinedPMT : public VQwDataElement {
     return fSumADC.GetEventcutErrorFlag();
   }
 
-  void UpdateEventcutErrorFlag(UInt_t errorflag){
-    fSumADC.UpdateEventcutErrorFlag(errorflag);
-  };
+  void IncrementErrorCounters(){
+    fSumADC.IncrementErrorCounters();
+  }
 
-
-  void UpdateEventcutErrorFlag(QwCombinedPMT *ev_error);
-
-  UInt_t GetErrorCode() const {return (fSumADC.GetErrorCode());}; 
-  void UpdateErrorCode(const UInt_t& error){fSumADC.UpdateErrorCode(error);};
- 
+  UInt_t UpdateErrorFlag();
+  void   UpdateErrorFlag(const QwCombinedPMT *ev_error);
 
   void PrintInfo() const;
   void PrintValue() const;

@@ -250,6 +250,8 @@ Int_t main(Int_t argc, Char_t* argv[])
         // Check to see ring is ready
         if (eventring.IsReady()) {
 	  ringoutput = eventring.pop();
+	  ringoutput.IncrementErrorCounters();
+
 
 	  // Accumulate the running sum to calculate the event based running average
 	  runningsum.AccumulateRunningSum(ringoutput);
@@ -370,7 +372,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Print the event cut error summary for each subsystem
     if (gQwOptions.GetValue<bool>("print-errorcounters")) {
       QwMessage << " ------------ error counters ------------------ " << QwLog::endl;
-      detectors.PrintErrorCounters();
+      ringoutput.PrintErrorCounters();
     }
     
     if (gQwOptions.GetValue<bool>("write-promptsummary")) {

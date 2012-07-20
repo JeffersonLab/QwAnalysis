@@ -395,6 +395,13 @@ Bool_t QwIntegratedRaster::ApplySingleEventCuts(){
 
 
 //*****************************************************************
+void  QwIntegratedRaster::IncrementErrorCounters()
+{
+  for (size_t i = 0; i < fIntegratedRasterChannel.size();  i++)
+    fIntegratedRasterChannel[i].IncrementErrorCounters();
+}
+
+//*****************************************************************
 void QwIntegratedRaster::PrintErrorCounters() const
 {
   //inherited from the VQwSubsystemParity; this will display the error summary

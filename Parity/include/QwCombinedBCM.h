@@ -62,9 +62,6 @@ class QwCombinedBCM : public QwBCM<T> {
   void  InitializeChannel(TString subsystem, TString name, TString type,
       TString datatosave);
 
-  // No reporting of error counters
-  void PrintErrorCounters() { };
-
   void  ProcessEvent();
 
   Bool_t ApplyHWChecks(){
@@ -72,33 +69,10 @@ class QwCombinedBCM : public QwBCM<T> {
   };
 
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  /*
-  void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
-  UInt_t GetEventcutErrorFlag(){//return the error flag
-    return fCombined_bcm.GetEventcutErrorFlag();
-  }
 
-  void UpdateEventcutErrorFlag(UInt_t errorflag){
-    fCombined_bcm.UpdateEventcutErrorFlag(errorflag);
-  };
-
-  void UpdateEventcutErrorFlag(VQwBCM *ev_error);
-
-  UInt_t GetErrorCode() const {return (fBeamCurrent.GetErrorCode());}; 
-  void UpdateErrorCode(const UInt_t& error){fBeamCurrent.UpdateErrorCode(error);};
+  UInt_t UpdateErrorFlag();
 
 
-  Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
-  */
-  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  /*
-  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
-  void SetDefaultSampleSize(Int_t sample_size);
-  void SetEventCutMode(Int_t bcuts){
-    bEVENTCUTMODE=bcuts;
-    fBeamCurrent.SetEventCutMode(bcuts);
-  }
-  */
   // Implementation of Parent class's virtual operators
   VQwBCM& operator=  (const VQwBCM &value);
   QwCombinedBCM& operator=  (const QwCombinedBCM &value);

@@ -505,10 +505,24 @@ Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
   else
     status = kTRUE;
 
- return status;
+  //  Propagate all error codes to derived objects in the subsystems.
+  UpdateErrorFlag();
+
+  return status;
 }
 
 
+
+void QwSubsystemArrayParity::IncrementErrorCounters()
+{
+  VQwSubsystemParity *subsys_parity;
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      subsys_parity->IncrementErrorCounters();
+    }
+  }
+}
 
 
 void QwSubsystemArrayParity::PrintErrorCounters() const{// report number of events failed due to HW and event cut faliure
@@ -521,27 +535,12 @@ void QwSubsystemArrayParity::PrintErrorCounters() const{// report number of even
   }
 }
 
-void QwSubsystemArrayParity::UpdateEventcutErrorFlag(UInt_t errorflag){
-  VQwSubsystemParity *subsys_parity;
-  if ((errorflag & kGlobalCut) == kGlobalCut)//check to see any global errors exist 
-    fErrorFlag|=errorflag; //then only update the global error falg
-
-
-  if (!empty()){
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      //Update the error flag of the parity subsystem
-      subsys_parity->UpdateEventcutErrorFlag(errorflag);
-    }
-  }
-}
-
-void QwSubsystemArrayParity::UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_error){
+void QwSubsystemArrayParity::UpdateErrorFlag(const QwSubsystemArrayParity& ev_error){
   Bool_t localdebug=kFALSE;//kTRUE;
-  if(localdebug)  std::cout<<"QwSubsystemArrayParity::UpdateEventcutErrorFlag \n";
+  if(localdebug)  std::cout<<"QwSubsystemArrayParity::UpdateErrorFlag \n";
   if (!ev_error.empty()){
     if (this->size() == ev_error.size()){
-      this->fErrorFlag=ev_error.fErrorFlag;
+      this->fErrorFlag |= ev_error.fErrorFlag;
       for(size_t i=0;i<ev_error.size();i++){
 	if (ev_error.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the source or the destination subsystem
@@ -550,13 +549,13 @@ void QwSubsystemArrayParity::UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_
 	  VQwSubsystemParity *ptr1 =
 	    dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
 	  if (typeid(*ptr1)==typeid(*(ev_error.at(i).get()))){
-	    if(localdebug) std::cout<<" here in QwSubsystemArrayParity::UpdateEventcutErrorFlag types mach \n";
+	    if(localdebug) std::cout<<" here in QwSubsystemArrayParity::UpdateErrorFlag types mach \n";
 	    //*(ptr1) = ev_error.at(i).get();//when =operator is used
 	    //pass the correct subsystem to update the errorflags at subsystem to devices to channel levels
-	    ptr1->UpdateEventcutErrorFlag(ev_error.at(i).get());
+	    ptr1->UpdateErrorFlag(ev_error.at(i).get());
 	  } else {
 	    //  Subsystems don't match
-	      QwError << " QwSubsystemArrayParity::UpdateEventcutErrorFlag types do not mach" << QwLog::endl;
+	      QwError << " QwSubsystemArrayParity::UpdateErrorFlag types do not mach" << QwLog::endl;
 	      QwError << " typeid(ptr1)=" << typeid(*ptr1).name()
                       << " but typeid(*(ev_error.at(i).get()))=" << typeid(*(ev_error.at(i).get())).name()
                       << QwLog::endl;
@@ -572,7 +571,7 @@ void QwSubsystemArrayParity::UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_
 };
 
 
-void QwSubsystemArrayParity::UpdateEventcutErrorFlag() { 
+void QwSubsystemArrayParity::UpdateErrorFlag() { 
   //this routine will refresh the global error flag after stability cut check
   //by default at the ApplySingleEventCuts routine fErrorFlag is updated properly and a const GetEventcutErrorFlag() routine 
   //returns the fErrorFlag value
@@ -583,7 +582,7 @@ void QwSubsystemArrayParity::UpdateEventcutErrorFlag() {
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
       //Update the error flag of the parity subsystem
-      fErrorFlag|=subsys_parity->GetEventcutErrorFlag();
+      fErrorFlag|=subsys_parity->UpdateErrorFlag();
     }
   }
 }

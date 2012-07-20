@@ -71,13 +71,12 @@ class QwMainCerenkovDetector:
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  void IncrementErrorCounters();
   void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag();//return the error flag
-  //update the same error flag in the classes belong to the subsystem.
-  void UpdateEventcutErrorFlag(UInt_t errorflag);
 
   //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
-  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error);
+  void UpdateErrorFlag(const VQwSubsystem *ev_error);
 
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);

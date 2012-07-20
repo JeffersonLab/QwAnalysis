@@ -104,11 +104,12 @@ class QwBPMStripline : public VQwBPM {
   /*   /\*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel *\/ */
   //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
+  void IncrementErrorCounters();
   void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   UInt_t  GetEventcutErrorFlag();
+  UInt_t  UpdateErrorFlag();
 
-  void UpdateEventcutErrorFlag(const UInt_t error);
-  void UpdateEventcutErrorFlag(VQwBPM *ev_error);
+  void UpdateErrorFlag(const VQwBPM *ev_error);
 
 
   void    SetDefaultSampleSize(Int_t sample_size);

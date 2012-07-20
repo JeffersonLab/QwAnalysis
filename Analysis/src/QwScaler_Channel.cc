@@ -642,6 +642,18 @@ Bool_t VQwScaler_Channel::ApplySingleEventCuts()
   return status;  
 }
 
+void VQwScaler_Channel::IncrementErrorCounters()
+{
+  if ( (kErrorFlag_ZeroHW &  fErrorFlag)==kErrorFlag_ZeroHW){
+    fNumEvtsWithHWErrors++; //increment the hw error counter
+  }
+  if ( ((kErrorFlag_EventCut_L &  fErrorFlag)==kErrorFlag_EventCut_L) 
+       || ((kErrorFlag_EventCut_U &  fErrorFlag)==kErrorFlag_EventCut_U)){
+    fNumEvtsWithEventCutsRejected++; //increment the event cut error counter
+  }
+}
+
+
 void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value, Int_t count)
 {
   // Moment calculations

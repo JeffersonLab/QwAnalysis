@@ -632,6 +632,16 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 }
 
 
+void QwLumi::IncrementErrorCounters()
+{
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
+    fIntegrationPMT[i].IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    fCombinedPMT[i].IncrementErrorCounters();
+  }
+}
+
 //*****************************************************************
 void QwLumi::PrintErrorCounters() const
 {
@@ -663,25 +673,16 @@ UInt_t QwLumi::GetEventcutErrorFlag(){//return the error flag
   return ErrorFlag;
 }
 
-void QwLumi::UpdateEventcutErrorFlag(UInt_t error) //return the error flag
-{
-  for(size_t i=0;i<fIntegrationPMT.size();i++){
-    fIntegrationPMT[i].UpdateEventcutErrorFlag(error);
-  }
-  for(size_t i=0;i<fCombinedPMT.size();i++){
-    fCombinedPMT[i].UpdateEventcutErrorFlag(error);
-  }
-}
-
-void QwLumi::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
-  if (Compare(ev_error)){
-    QwLumi * input = dynamic_cast<QwLumi *> (ev_error);
+void QwLumi::UpdateErrorFlag(const VQwSubsystem *ev_error){
+  VQwSubsystem* tmp = const_cast<VQwSubsystem*>(ev_error);
+  if(Compare(tmp)){
+    const QwLumi * input = dynamic_cast<const QwLumi *> (ev_error);
 
     for (size_t i=0;i<input->fIntegrationPMT.size();i++)
-      (this->fIntegrationPMT[i]).UpdateEventcutErrorFlag(&(input->fIntegrationPMT[i]));
+      (this->fIntegrationPMT[i]).UpdateErrorFlag(&(input->fIntegrationPMT[i]));
     
     for (size_t i=0;i<input->fCombinedPMT.size();i++)
-      (this->fCombinedPMT[i]).UpdateEventcutErrorFlag(&(input->fCombinedPMT[i]));
+      (this->fCombinedPMT[i]).UpdateErrorFlag(&(input->fCombinedPMT[i]));
   }  
 };
 

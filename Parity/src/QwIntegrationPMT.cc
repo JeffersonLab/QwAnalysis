@@ -208,15 +208,15 @@ void QwIntegrationPMT::PrintErrorCounters() const{// report number of events fai
 }
 
 /********************************************************/
-void QwIntegrationPMT::UpdateEventcutErrorFlag(QwIntegrationPMT*ev_error){
+void QwIntegrationPMT::UpdateErrorFlag(const QwIntegrationPMT* ev_error){
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwIntegrationPMT::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwIntegrationPMT::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-	fTriumf_ADC.UpdateEventcutErrorFlag(ev_error->GetErrorCode());//the routine GetErrorCode() return the error flag unconditionally
+	fTriumf_ADC.UpdateErrorFlag(ev_error->fTriumf_ADC);
       }
     } else {
-      TString loc="Standard exception from QwIntegrationPMT::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwIntegrationPMT::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());

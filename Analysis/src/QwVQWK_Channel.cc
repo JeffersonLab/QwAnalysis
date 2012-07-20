@@ -128,23 +128,25 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 
 
 /********************************************************/
-void QwVQWK_Channel::UpdateErrorCounters(UInt_t error_flag){
-  if ( (kErrorFlag_sample &  error_flag)==kErrorFlag_sample)
+void QwVQWK_Channel::IncrementErrorCounters(){
+  if ( (kErrorFlag_sample &  fErrorFlag)==kErrorFlag_sample)
     fErrorCount_sample++; //increment the hw error counter
-  if ( (kErrorFlag_SW_HW &  error_flag)==kErrorFlag_SW_HW)
+  if ( (kErrorFlag_SW_HW &  fErrorFlag)==kErrorFlag_SW_HW)
     fErrorCount_SW_HW++; //increment the hw error counter
-  if ( (kErrorFlag_Sequence &  error_flag)==kErrorFlag_Sequence)
+  if ( (kErrorFlag_Sequence &  fErrorFlag)==kErrorFlag_Sequence)
     fErrorCount_Sequence++; //increment the hw error counter
-  if ( (kErrorFlag_SameHW &  error_flag)==kErrorFlag_SameHW)
+  if ( (kErrorFlag_SameHW &  fErrorFlag)==kErrorFlag_SameHW)
     fErrorCount_SameHW++; //increment the hw error counter
-  if ( (kErrorFlag_ZeroHW &  error_flag)==kErrorFlag_ZeroHW)
+  if ( (kErrorFlag_ZeroHW &  fErrorFlag)==kErrorFlag_ZeroHW)
     fErrorCount_ZeroHW++; //increment the hw error counter
-  if ( (kErrorFlag_VQWK_Sat &  error_flag)==kErrorFlag_VQWK_Sat)
+  if ( (kErrorFlag_VQWK_Sat &  fErrorFlag)==kErrorFlag_VQWK_Sat)
     fErrorCount_HWSat++; //increment the hw saturation error counter
-  if ( ((kErrorFlag_EventCut_L &  error_flag)==kErrorFlag_EventCut_L) || ((kErrorFlag_EventCut_U &  error_flag)==kErrorFlag_EventCut_U))
+  if ( ((kErrorFlag_EventCut_L &  fErrorFlag)==kErrorFlag_EventCut_L) 
+       || ((kErrorFlag_EventCut_U &  fErrorFlag)==kErrorFlag_EventCut_U)){
     fNumEvtsWithEventCutsRejected++; //increment the event cut error counter
-  
+  }
 }
+
 /********************************************************/
 
 void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
@@ -1520,7 +1522,6 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
       status=kFALSE;
     }
 
-    UpdateErrorCounters(fErrorFlag);//update the event cut/HW  error count
     if (bEVENTCUTMODE==3){
       status=kTRUE; //Update the event cut fail flag but pass the event.
     }
@@ -1531,7 +1532,6 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
     status=kTRUE;
     //fErrorFlag=0;//we need to keep the device error codes 
   }
-
 
   return status;
 }

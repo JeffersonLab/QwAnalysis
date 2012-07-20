@@ -105,7 +105,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
       error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
     }
   }
-  //fEnergyChange.UpdateErrorCode(error_code);//No need to do this. error codes are ORed when energy is calculated
+  //fEnergyChange.UpdateErrorFlag(error_code);//No need to do this. error codes are ORed when energy is calculated
 
   if (fEnergyChange.ApplySingleEventCuts()){
     status=kTRUE;
@@ -119,14 +119,34 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 
 }
 
+void QwEnergyCalculator::IncrementErrorCounters()
+{
+  fEnergyChange.IncrementErrorCounters();
+}
+
 
 void QwEnergyCalculator::PrintErrorCounters() const{
   // report number of events failed due to HW and event cut faliure
   fEnergyChange.PrintErrorCounters();
 }
 
-void QwEnergyCalculator::UpdateEventcutErrorFlag(QwEnergyCalculator *ev_error){
-  fEnergyChange.UpdateEventcutErrorFlag(ev_error->GetErrorCode());
+UInt_t QwEnergyCalculator::UpdateErrorFlag()
+{
+  UInt_t error_code = 0;
+  for(UInt_t i = 0; i<fProperty.size(); i++){
+    if(fProperty[i].Contains("targetbeamangle")){
+      error_code |= ((QwCombinedBPM<QwVQWK_Channel>*)fDevice[i])->fSlope[0].GetErrorCode();
+    } else {
+      error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
+    }
+  }
+  fEnergyChange.UpdateErrorFlag(error_code);
+  return fEnergyChange.GetEventcutErrorFlag();
+}
+
+
+void QwEnergyCalculator::UpdateErrorFlag(const QwEnergyCalculator *ev_error){
+  fEnergyChange.UpdateErrorFlag(ev_error->fEnergyChange);
 };
 
 

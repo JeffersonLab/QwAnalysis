@@ -91,6 +91,9 @@ class QwIntegrationPMT : public VQwDataElement{
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  void IncrementErrorCounters(){
+    fTriumf_ADC.IncrementErrorCounters();
+  }
   void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   Int_t SetSingleEventCuts(Double_t, Double_t);//set two limts
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
@@ -99,17 +102,9 @@ class QwIntegrationPMT : public VQwDataElement{
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fTriumf_ADC.GetEventcutErrorFlag();
   }
-  void UpdateEventcutErrorFlag(UInt_t errorflag){
-    fTriumf_ADC.UpdateEventcutErrorFlag(errorflag);
-  };
 
-
-  void UpdateEventcutErrorFlag(QwIntegrationPMT *ev_error);
-
-  UInt_t GetErrorCode() const {return (fTriumf_ADC.GetErrorCode());}; 
-  void UpdateErrorCode(const UInt_t& error){fTriumf_ADC.UpdateErrorCode(error);};
-
- 
+  UInt_t UpdateErrorFlag() {return GetEventcutErrorFlag();};
+  void UpdateErrorFlag(const QwIntegrationPMT *ev_error);
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;

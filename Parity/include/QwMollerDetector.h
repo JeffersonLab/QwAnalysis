@@ -112,13 +112,12 @@ class QwMollerDetector:
     void  CalculateRunningAverage();
     Int_t LoadEventCuts(TString filename);
     Bool_t  ApplySingleEventCuts();
+    void IncrementErrorCounters() {};
     void PrintErrorCounters() const;
     UInt_t GetEventcutErrorFlag();
-    //update the same error flag in the classes belong to the subsystem.
-    void UpdateEventcutErrorFlag(UInt_t errorflag){
-    }
+
     //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
-    void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+    void UpdateErrorFlag(const VQwSubsystem *ev_error){
     };
 
     using VQwSubsystem::ConstructBranchAndVector;

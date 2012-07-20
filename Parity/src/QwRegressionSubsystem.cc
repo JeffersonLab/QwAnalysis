@@ -185,19 +185,16 @@ void QwRegressionSubsystem::ConstructBranch(TTree *tree, TString & prefix, QwPar
 };
 
 
-
-
-void QwRegressionSubsystem::UpdateEventcutErrorFlag(UInt_t error) //return the error flag
+void QwRegressionSubsystem::IncrementErrorCounters()
 {
-  /// TODO:  Write QwRegressionSubsystem::UpdateEventcutErrorFlag
+  /// TODO:  Write QwRegressionSubsystem::IncrementErrorCounters
 }
 
-void QwRegressionSubsystem::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
-  /// TODO:  Write QwRegressionSubsystem::UpdateEventcutErrorFlag
-  if (Compare(ev_error)){
-    //QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*> (ev_error);
-    
-  }  
+void QwRegressionSubsystem::UpdateErrorFlag(const VQwSubsystem *ev_error){
+  /// TODO:  Write QwRegressionSubsystem::UpdateErrorFlag
+  //if (Compare(ev_error)){
+  //QwRegressionSubsystem* input = dynamic_cast<QwRegressionSubsystem*> (ev_error);
+  //}  
 };
 
 

@@ -400,6 +400,11 @@ Bool_t QwHelicity::ApplySingleEventCuts(){
   return kTRUE;
 }
 
+void QwHelicity::IncrementErrorCounters()
+{
+  /// TODO:  Implement  QwHelicity::IncrementErrorCounters()
+}
+
 void QwHelicity::PrintErrorCounters() const{
   // report number of events failed due to HW and event cut faliure
   QwMessage << "\n*********QwHelicity Error Summary****************"

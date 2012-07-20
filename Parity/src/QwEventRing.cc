@@ -102,10 +102,10 @@ void QwEventRing::push(QwSubsystemArrayParity &event)
 	//When fRollingAvg.GetEventcutErrorFlag() is called the fErrorFlag of the subsystemarrayparity object will be updated with any global
 	//stability cut faliures
 	*/
-	fRollingAvg.UpdateEventcutErrorFlag(); //to update the global error code in the fRollingAvg
+	fRollingAvg.UpdateErrorFlag(); //to update the global error code in the fRollingAvg
 	for(Int_t i=0;i<fRING_SIZE;i++){
-	  fEvent_Ring[i].UpdateEventcutErrorFlag(fRollingAvg);
-	  fEvent_Ring[i].UpdateEventcutErrorFlag();
+	  fEvent_Ring[i].UpdateErrorFlag(fRollingAvg);
+	  fEvent_Ring[i].UpdateErrorFlag();
 	}
 	
       }

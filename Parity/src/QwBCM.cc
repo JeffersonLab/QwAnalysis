@@ -173,6 +173,12 @@ Bool_t QwBCM<T>::ApplySingleEventCuts()
 /********************************************************/
 
 template<typename T>
+void QwBCM<T>::IncrementErrorCounters()
+{// report number of events failed due to HW and event cut faliure
+  fBeamCurrent.IncrementErrorCounters();
+}
+
+template<typename T>
 void QwBCM<T>::PrintErrorCounters() const
 {// report number of events failed due to HW and event cut faliure
   fBeamCurrent.PrintErrorCounters();
@@ -180,17 +186,16 @@ void QwBCM<T>::PrintErrorCounters() const
 
 /********************************************************/
 template<typename T>
-void QwBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
+void QwBCM<T>::UpdateErrorFlag(const VQwBCM *ev_error){
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwBCM::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwBCM::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-        QwBCM<T>* value_bcm = dynamic_cast<QwBCM<T>* >(ev_error);
-	VQwDataElement *value_data = dynamic_cast<VQwDataElement *>(&(value_bcm->fBeamCurrent));
-	fBeamCurrent.UpdateEventcutErrorFlag(value_data->GetErrorCode());//the routine GetErrorCode() return the error flag unconditionally
+        const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(ev_error);
+	fBeamCurrent.UpdateErrorFlag(value_bcm->fBeamCurrent);
       }
     } else {
-      TString loc="Standard exception from QwBCM::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwBCM::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());

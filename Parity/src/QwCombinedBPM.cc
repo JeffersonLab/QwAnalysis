@@ -146,6 +146,19 @@ Bool_t QwCombinedBPM<T>::ApplyHWChecks()
 
 
 template<typename T>
+void QwCombinedBPM<T>::IncrementErrorCounters()
+{
+  for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
+    fAbsPos[axis].IncrementErrorCounters();
+    fSlope[axis].IncrementErrorCounters();
+    fIntercept[axis].IncrementErrorCounters();
+    fMinimumChiSquare[axis].IncrementErrorCounters();
+  }
+
+  fEffectiveCharge.IncrementErrorCounters();
+}
+
+template<typename T>
 void QwCombinedBPM<T>::PrintErrorCounters() const
 {
   for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
@@ -202,7 +215,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 
   //Event cuts for  X & Y slopes
   for(axis=kXAxis;axis<kNumAxes;axis++){
-    fSlope[axis].UpdateErrorCode(pos_error[axis]);
+    fSlope[axis].UpdateErrorFlag(pos_error[axis]);
     if (fSlope[axis].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -216,7 +229,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 
   //Event cuts for  X & Y intercepts
   for(axis=kXAxis;axis<kNumAxes;axis++){
-    fIntercept[axis].UpdateErrorCode(pos_error[axis]);
+    fIntercept[axis].UpdateErrorFlag(pos_error[axis]);
     if (fIntercept[axis].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -231,7 +244,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 
   //Event cuts for  X & Y minimum chi square
   for(axis=kXAxis;axis<kNumAxes;axis++){
-    fMinimumChiSquare[axis].UpdateErrorCode(pos_error[axis]);
+    fMinimumChiSquare[axis].UpdateErrorFlag(pos_error[axis]);
     if (fMinimumChiSquare[axis].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -246,7 +259,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 
   //Event cuts for  X & Y positions
   for(axis=kXAxis;axis<kNumAxes;axis++){
-    fAbsPos[axis].UpdateErrorCode(pos_error[axis]);
+    fAbsPos[axis].UpdateErrorFlag(pos_error[axis]);
     if (fAbsPos[axis].ApplySingleEventCuts()){ 
       status&=kTRUE;
     }
@@ -261,7 +274,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
-  fEffectiveCharge.UpdateErrorCode(charge_error);
+  fEffectiveCharge.UpdateErrorFlag(charge_error);
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -274,6 +287,46 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 
   return status;
 }
+
+template<typename T>
+UInt_t QwCombinedBPM<T>::UpdateErrorFlag()
+{
+  Int_t axis=0;
+  UInt_t charge_error;
+  UInt_t pos_error[2];
+  charge_error = 0;
+  pos_error[kXAxis]=0;
+  pos_error[kYAxis]=0;
+  for(size_t i=0;i<fElement.size();i++){
+    //To update the event cut faliures in individual BPM devices
+    charge_error      |= fElement[i]->GetEffectiveCharge()->GetErrorCode();
+    pos_error[kXAxis] |= fElement[i]->GetPosition(kXAxis)->GetErrorCode();
+    pos_error[kYAxis] |= fElement[i]->GetPosition(kYAxis)->GetErrorCode();
+  }
+
+  //Event cuts for  X & Y slopes
+  for(axis=kXAxis;axis<kNumAxes;axis++){
+    fIntercept[axis].UpdateErrorFlag(pos_error[axis]);
+    fSlope[axis].UpdateErrorFlag(pos_error[axis]);
+    fMinimumChiSquare[axis].UpdateErrorFlag(pos_error[axis]);
+    fAbsPos[axis].UpdateErrorFlag(pos_error[axis]);
+
+    //Get the Event cut error flag for SlopeX/Y
+    fErrorFlag|=fSlope[axis].GetEventcutErrorFlag();
+    fErrorFlag|=fIntercept[axis].GetEventcutErrorFlag();
+    fErrorFlag|=fMinimumChiSquare[axis].GetEventcutErrorFlag();
+    fErrorFlag|=fAbsPos[axis].GetEventcutErrorFlag();
+
+  }
+
+  //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorFlag(charge_error);
+  //Get the Event cut error flag for EffectiveCharge
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
+
+  return fErrorFlag;
+}
+
 
 template<typename T>
 VQwHardwareChannel* QwCombinedBPM<T>::GetSubelementByName(TString ch_name)
@@ -382,43 +435,23 @@ void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Doub
 */
 
 template<typename T>
-void QwCombinedBPM<T>::UpdateEventcutErrorFlag(const UInt_t error){
+void QwCombinedBPM<T>::UpdateErrorFlag(const VQwBPM *ev_error){
   Short_t i=0;
-
-  for(i=kXAxis;i<kNumAxes;i++) {
-    fAbsPos[i].UpdateEventcutErrorFlag(error);
-    fSlope[i].UpdateEventcutErrorFlag(error);
-    fIntercept[i].UpdateEventcutErrorFlag(error);
-     fMinimumChiSquare[i].UpdateEventcutErrorFlag(error);
-  }
-  
-  fEffectiveCharge.UpdateEventcutErrorFlag(error);
-  
-};
-template<typename T>
-void QwCombinedBPM<T>::UpdateEventcutErrorFlag(VQwBPM *ev_error){
-  Short_t i=0;
-  VQwDataElement *value_data;
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwBPMStripline::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwBPMStripline::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-        QwCombinedBPM<T>* value_bpm = dynamic_cast<QwCombinedBPM<T>* >(ev_error);
-      for(i=kXAxis;i<kNumAxes;i++) {
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
-	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fSlope[i]));
-	  fSlope[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fIntercept[i]));
-	  fIntercept[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fMinimumChiSquare[i]));
-	  fMinimumChiSquare[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+        const QwCombinedBPM<T>* value_bpm = dynamic_cast<const QwCombinedBPM<T>* >(ev_error);
+	for(i=kXAxis;i<kNumAxes;i++) {
+	  fAbsPos[i].UpdateErrorFlag(value_bpm->fAbsPos[i]);
+	  fSlope[i].UpdateErrorFlag(value_bpm->fSlope[i]);
+	  fIntercept[i].UpdateErrorFlag(value_bpm->fIntercept[i]);
+	  fMinimumChiSquare[i].UpdateErrorFlag(value_bpm->fMinimumChiSquare[i]);
 	}
-	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
-	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	fEffectiveCharge.UpdateErrorFlag(value_bpm->fEffectiveCharge);
       }
     } else {
-      TString loc="Standard exception from QwCombinedBPM::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwCombinedBPM::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());

@@ -1294,6 +1294,41 @@ void QwBeamLine::PrintErrorCounters() const{//inherited from the VQwSubsystemPar
 }
 
 //*****************************************************************//
+void QwBeamLine::IncrementErrorCounters()
+{
+  for(size_t i=0;i<fClock.size();i++){
+    fClock[i].get()->IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fBCM.size();i++){
+    fBCM[i].get()->IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fHaloMonitor.size();i++){
+    fHaloMonitor[i].IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fStripline.size();i++){
+    fStripline[i].get()->IncrementErrorCounters();
+    }
+  for(size_t i=0;i<fQPD.size();i++){
+    fQPD[i].IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fLinearArray.size();i++){
+    fLinearArray[i].IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fCavity.size();i++){
+    fCavity[i].IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fBCMCombo.size();i++){
+    fBCMCombo[i].get()->IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fBPMCombo.size();i++){
+    fBPMCombo[i].get()->IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fECalculator.size();i++){
+    fECalculator[i].IncrementErrorCounters();
+  }
+}
+
+//*****************************************************************//
 UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   UInt_t ErrorFlag;
   UInt_t ErrorFlagtmp;
@@ -1329,62 +1364,71 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 }
 
 //*****************************************************************//
-void QwBeamLine::UpdateEventcutErrorFlag(UInt_t errorflag){
-       /*
-      for(size_t i=0;i<input->fClock.size();i++)
-	*(this->fClock[i].get())=*(input->fClock[i].get());
-	*/
-      for(size_t i=0;i<fStripline.size();i++)
-	(this->fStripline[i].get())->UpdateEventcutErrorFlag(errorflag);      
-      for(size_t i=0;i<fQPD.size();i++)
-	(this->fQPD[i]).UpdateEventcutErrorFlag(errorflag);
-      for(size_t i=0;i<fLinearArray.size();i++)
-	(this->fLinearArray[i]).UpdateEventcutErrorFlag(errorflag);
-      for(size_t i=0;i<fCavity.size();i++)
-	(this->fCavity[i]).UpdateEventcutErrorFlag(errorflag);      
-      for(size_t i=0;i<fBCM.size();i++)
-	(this->fBCM[i].get())->UpdateEventcutErrorFlag(errorflag);
-      for(size_t i=0;i<fBCMCombo.size();i++)
-	(this->fBCMCombo[i].get())->UpdateEventcutErrorFlag(errorflag);
-      for(size_t i=0;i<fBPMCombo.size();i++)
-	(this->fBPMCombo[i].get())->UpdateEventcutErrorFlag(errorflag);
-      for(size_t i=0;i<fECalculator.size();i++)
-	(this->fECalculator[i]).UpdateEventcutErrorFlag(errorflag);
-      for(size_t i=0;i<fHaloMonitor.size();i++)
-	(this->fHaloMonitor[i]).UpdateEventcutErrorFlag(errorflag);
+UInt_t QwBeamLine::UpdateErrorFlag(){//return the error flag
+  UInt_t ErrorFlag;
+  UInt_t ErrorFlagtmp;
+  ErrorFlag=0;
+  for(size_t i=0;i<fBCM.size();i++){
+    ErrorFlagtmp = fBCM[i].get()->UpdateErrorFlag();
+    ErrorFlag |=ErrorFlagtmp;    
+  }
+  for(size_t i=0;i<fStripline.size();i++){
+    ErrorFlag |= fStripline[i].get()->UpdateErrorFlag();        
+  }
+  for(size_t i=0;i<fQPD.size();i++){
+    ErrorFlag |= fQPD[i].UpdateErrorFlag();
+  }  
+  for(size_t i=0;i<fLinearArray.size();i++){
+    ErrorFlag |= fLinearArray[i].UpdateErrorFlag();
+  }
+  for(size_t i=0;i<fCavity.size();i++){
+    ErrorFlag |= fCavity[i].UpdateErrorFlag();
+  }  
+  for(size_t i=0;i<fBCMCombo.size();i++){
+    ErrorFlag |= fBCMCombo[i].get()->UpdateErrorFlag();
+  }  
+  for(size_t i=0;i<fBPMCombo.size();i++){
+    ErrorFlag |= fBPMCombo[i].get()->UpdateErrorFlag();
+  }  
+  for(size_t i=0;i<fECalculator.size();i++){
+    ErrorFlag |= fECalculator[i].UpdateErrorFlag();
+  }
+
+  return ErrorFlag;
 
 }
 
 //*****************************************************************//
-void QwBeamLine::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
-  if(Compare(ev_error))
+void QwBeamLine::UpdateErrorFlag(const VQwSubsystem *ev_error){
+  VQwSubsystem* tmp = const_cast<VQwSubsystem*>(ev_error);
+  if(Compare(tmp))
     {
 
-      QwBeamLine* input = dynamic_cast<QwBeamLine*>(ev_error);
+      const QwBeamLine* input = dynamic_cast<const QwBeamLine*>(ev_error);
 
        /*
       for(size_t i=0;i<input->fClock.size();i++)
 	*(this->fClock[i].get())=*(input->fClock[i].get());
 	*/
       for(size_t i=0;i<input->fStripline.size();i++)
-	(this->fStripline[i].get())->UpdateEventcutErrorFlag(input->fStripline[i].get());      
+	(this->fStripline[i].get())->UpdateErrorFlag(input->fStripline[i].get());      
       for(size_t i=0;i<input->fQPD.size();i++)
-	(this->fQPD[i]).UpdateEventcutErrorFlag(&(input->fQPD[i]));
+	(this->fQPD[i]).UpdateErrorFlag(&(input->fQPD[i]));
       for(size_t i=0;i<input->fLinearArray.size();i++)
-	(this->fLinearArray[i]).UpdateEventcutErrorFlag(&(input->fLinearArray[i]));
+	(this->fLinearArray[i]).UpdateErrorFlag(&(input->fLinearArray[i]));
       for(size_t i=0;i<input->fCavity.size();i++)
-	(this->fCavity[i]).UpdateEventcutErrorFlag(&(input->fCavity[i]));      
+	(this->fCavity[i]).UpdateErrorFlag(&(input->fCavity[i]));      
       for(size_t i=0;i<input->fBCM.size();i++){
-	(this->fBCM[i].get())->UpdateEventcutErrorFlag(input->fBCM[i].get());
+	(this->fBCM[i].get())->UpdateErrorFlag(input->fBCM[i].get());
       } 	
       for(size_t i=0;i<input->fBCMCombo.size();i++)
-	(this->fBCMCombo[i].get())->UpdateEventcutErrorFlag(input->fBCMCombo[i].get()); //*(this->fBCMCombo[i].get())=*(input->fBCMCombo[i].get());     
+	(this->fBCMCombo[i].get())->UpdateErrorFlag(input->fBCMCombo[i].get()); //*(this->fBCMCombo[i].get())=*(input->fBCMCombo[i].get());     
       for(size_t i=0;i<input->fBPMCombo.size();i++)
-	(this->fBPMCombo[i].get())->UpdateEventcutErrorFlag(input->fBPMCombo[i].get()); //=*(input->fBPMCombo[i].get());      
+	(this->fBPMCombo[i].get())->UpdateErrorFlag(input->fBPMCombo[i].get()); //=*(input->fBPMCombo[i].get());      
       for(size_t i=0;i<input->fECalculator.size();i++)
-	(this->fECalculator[i]).UpdateEventcutErrorFlag(&(input->fECalculator[i]));
+	(this->fECalculator[i]).UpdateErrorFlag(&(input->fECalculator[i]));
       for(size_t i=0;i<input->fHaloMonitor.size();i++)
-	(this->fHaloMonitor[i]).UpdateEventcutErrorFlag(&(input->fHaloMonitor[i]));
+	(this->fHaloMonitor[i]).UpdateErrorFlag(&(input->fHaloMonitor[i]));
       
       
 

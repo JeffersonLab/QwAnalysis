@@ -79,14 +79,6 @@ public:
 
   void  ClearEventData();
 
-  void UpdateHWErrorCount(){//Update error counter for HW faliure
-    fNumEvtsWithHWErrors++;
-  };
-
-  void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
-    fNumEvtsWithEventCutsRejected++;
-  };
-
   void  RandomizeEventData(int helicity = 0, double time = 0.0);
   void  SetEventData(Double_t value);
 
@@ -130,6 +122,8 @@ public:
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
+
+  void IncrementErrorCounters();
 
   /// report number of events failed due to HW and event cut failure
   void PrintErrorCounters() const;

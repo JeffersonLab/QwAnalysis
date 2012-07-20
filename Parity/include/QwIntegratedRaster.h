@@ -83,14 +83,13 @@ class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneab
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
+  void IncrementErrorCounters();
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
-  //update the same error flag in the classes belong to the subsystem.
-  void UpdateEventcutErrorFlag(UInt_t errorflag){
-  }
+
   //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
-  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  void UpdateErrorFlag(const VQwSubsystem *ev_error){
   };
 
   void AccumulateRunningSum(VQwSubsystem* value);

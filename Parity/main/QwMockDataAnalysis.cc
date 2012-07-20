@@ -164,6 +164,7 @@ int main(int argc, char* argv[])
 
       // Process this events
       detectors.ProcessEvent();
+      detectors.IncrementErrorCounters();
 
       // Helicity pattern
       if (bHelicity)

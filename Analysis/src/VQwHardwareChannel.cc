@@ -51,17 +51,6 @@ VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value, VQwDataE
 {
 }
 
-UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
-{
-  // return the error flag
-  //first condition check for global/local status and second condition check to see non-zero HW error codes
-  if (((fErrorConfigFlag & kGlobalCut) == kGlobalCut) && (fErrorFlag)>0){
-    // we care only about global cuts
-    //std::cout<<"fErrorFlag "<<(fErrorFlag & kGlobalCut)<<std::endl;
-    return fErrorFlag+fErrorConfigFlag;//pass the error codes and configuration codes
-  }
-  return 0;
-};
 
 void VQwHardwareChannel::SetSingleEventCuts(Double_t min, Double_t max)
 {

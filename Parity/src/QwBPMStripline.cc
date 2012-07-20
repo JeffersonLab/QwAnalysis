@@ -120,6 +120,19 @@ Bool_t QwBPMStripline<T>::ApplyHWChecks()
 
 
 template<typename T>
+void QwBPMStripline<T>::IncrementErrorCounters()
+{
+  Short_t i=0;
+
+  for(i=0;i<4;i++) fWire[i].IncrementErrorCounters();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].IncrementErrorCounters();
+    fAbsPos[i].IncrementErrorCounters();
+  }
+  fEffectiveCharge.IncrementErrorCounters();
+}
+
+template<typename T>
 void QwBPMStripline<T>::PrintErrorCounters() const
 {
   Short_t i=0;
@@ -144,44 +157,49 @@ UInt_t QwBPMStripline<T>::GetEventcutErrorFlag(){
   error|=fEffectiveCharge.GetEventcutErrorFlag();  
 
   return error;
-};
+}
 
 template<typename T>
-void QwBPMStripline<T>::UpdateEventcutErrorFlag(const UInt_t error){
+UInt_t QwBPMStripline<T>::UpdateErrorFlag()
+{
   Short_t i=0;
-
-  for(i=0;i<4;i++) fWire[i].UpdateEventcutErrorFlag(error);
-  for(i=kXAxis;i<kNumAxes;i++) {
-    fRelPos[i].UpdateEventcutErrorFlag(error);
-    fAbsPos[i].UpdateEventcutErrorFlag(error);
+  UInt_t error1=0;
+  UInt_t error2=0;
+  for(i=0;i<4;i++){
+    error1 |= fWire[i].GetErrorCode();
+    error2 |= fWire[i].GetEventcutErrorFlag();
   }
-  fEffectiveCharge.UpdateEventcutErrorFlag(error);
-  
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateErrorFlag(error1);
+    fAbsPos[i].UpdateErrorFlag(error1);
+    error2|=fRelPos[i].GetEventcutErrorFlag();
+    error2|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+  fEffectiveCharge.UpdateErrorFlag(error1);
+  error2|=fEffectiveCharge.GetEventcutErrorFlag();
+  return error2;
 };
+
+
 template<typename T>
-void QwBPMStripline<T>::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+void QwBPMStripline<T>::UpdateErrorFlag(const VQwBPM *ev_error){
   Short_t i=0;
-  VQwDataElement *value_data;
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwBPMStripline::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwBPMStripline::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-        QwBPMStripline<T>* value_bpm = dynamic_cast<QwBPMStripline<T>* >(ev_error);
+        const QwBPMStripline<T>* value_bpm = dynamic_cast<const QwBPMStripline<T>* >(ev_error);
 	for(i=0;i<4;i++){
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fWire[i]));
-	  fWire[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  fWire[i].UpdateErrorFlag(value_bpm->fWire[i]);
 	}
 	for(i=kXAxis;i<kNumAxes;i++) {
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
-	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
-	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  fRelPos[i].UpdateErrorFlag(value_bpm->fRelPos[i]);
+	  fAbsPos[i].UpdateErrorFlag(value_bpm->fAbsPos[i]); 
 	}
-	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
-	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	fEffectiveCharge.UpdateErrorFlag(value_bpm->fEffectiveCharge); 
       }
     } else {
-      TString loc="Standard exception from QwBPMStripline::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwBPMStripline::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());
@@ -219,12 +237,12 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
   //Get the rex/abs Y event cut  error flag from ym and yp
   element_error_code[kYAxis] = GetSubelementByName("ym")->GetErrorCode() | GetSubelementByName("yp")->GetErrorCode();
   //Update the error flags for rel and abs positions
-  fRelPos[kXAxis].UpdateErrorCode(element_error_code[kXAxis]);
-  fRelPos[kYAxis].UpdateErrorCode(element_error_code[kYAxis]);
-  fAbsPos[kXAxis].UpdateErrorCode(element_error_code[kXAxis]);
-  fAbsPos[kYAxis].UpdateErrorCode(element_error_code[kYAxis]);
+  fRelPos[kXAxis].UpdateErrorFlag(element_error_code[kXAxis]);
+  fRelPos[kYAxis].UpdateErrorFlag(element_error_code[kYAxis]);
+  fAbsPos[kXAxis].UpdateErrorFlag(element_error_code[kXAxis]);
+  fAbsPos[kYAxis].UpdateErrorFlag(element_error_code[kYAxis]);
   //update the sum of error flags of all wires to the charge element
-  fEffectiveCharge.UpdateErrorCode(element_error_code[kXAxis]|element_error_code[kYAxis]);
+  fEffectiveCharge.UpdateErrorFlag(element_error_code[kXAxis]|element_error_code[kYAxis]);
 
   
 

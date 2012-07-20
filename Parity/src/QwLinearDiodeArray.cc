@@ -106,6 +106,15 @@ Bool_t QwLinearDiodeArray::ApplyHWChecks()
   return eventokay;
 }
 
+void QwLinearDiodeArray::IncrementErrorCounters()
+{
+  size_t i=0;
+  for(i=0;i<8;i++) fPhotodiode[i].IncrementErrorCounters();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].IncrementErrorCounters();
+  }
+  fEffectiveCharge.IncrementErrorCounters();
+}
 
 void QwLinearDiodeArray::PrintErrorCounters() const
 {
@@ -130,6 +139,23 @@ UInt_t QwLinearDiodeArray::GetEventcutErrorFlag()
   return error;
 }
 
+UInt_t QwLinearDiodeArray::UpdateErrorFlag()
+{
+  size_t i=0;
+  UInt_t error1=0;
+  UInt_t error2=0;  
+  for(i=0;i<8;i++){
+    error1|=fPhotodiode[i].GetErrorCode();
+    error2|=fPhotodiode[i].GetEventcutErrorFlag();
+  }
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateErrorFlag(error1);
+    error2|=fRelPos[i].GetEventcutErrorFlag();
+  }
+  fEffectiveCharge.UpdateErrorFlag(error1);
+  error2|=fEffectiveCharge.GetEventcutErrorFlag();
+  return error2;
+}
 
 Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 {
@@ -151,7 +177,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the event cut failed error code from the channels/wires error codes
+    fRelPos[i].UpdateErrorFlag(fErrorFlag);//To update the event cut failed error code from the channels/wires error codes
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -165,7 +191,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
-  fEffectiveCharge.UpdateErrorCode(fErrorFlag);//To update the eff-charge error code from the channels/wires event cut error codes
+  fEffectiveCharge.UpdateErrorFlag(fErrorFlag);//To update the eff-charge error code from the channels/wires event cut error codes
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -230,38 +256,23 @@ void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Do
 }
 */
 
-void QwLinearDiodeArray::UpdateEventcutErrorFlag(const UInt_t error){
+void QwLinearDiodeArray::UpdateErrorFlag(const VQwBPM *ev_error){
   Short_t i=0;
-
-  for(i=0;i<8;i++) fPhotodiode[i].UpdateEventcutErrorFlag(error);
-  for(i=kXAxis;i<kNumAxes;i++) {
-    fRelPos[i].UpdateEventcutErrorFlag(error);
-  }
-  fEffectiveCharge.UpdateEventcutErrorFlag(error);
-  
-};
-
-void QwLinearDiodeArray::UpdateEventcutErrorFlag(VQwBPM *ev_error){
-  Short_t i=0;
-  VQwDataElement *value_data;
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwQPD::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwQPD::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-        QwLinearDiodeArray* value_bpm = dynamic_cast<QwLinearDiodeArray* >(ev_error);
+        const QwLinearDiodeArray* value_bpm = dynamic_cast<const QwLinearDiodeArray* >(ev_error);
 	for(i=0;i<4;i++){
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fPhotodiode[i]));
-	  fPhotodiode[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  fPhotodiode[i].UpdateErrorFlag(value_bpm->fPhotodiode[i]);
 	}
 	for(i=kXAxis;i<kNumAxes;i++) {
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
-	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  fRelPos[i].UpdateErrorFlag(value_bpm->fRelPos[i]);
 	}
-	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
-	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	fEffectiveCharge.UpdateErrorFlag(value_bpm->fEffectiveCharge);
       }
     } else {
-      TString loc="Standard exception from QwLinearDiodeArray::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwLinearDiodeArray::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());

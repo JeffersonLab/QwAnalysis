@@ -191,6 +191,7 @@ int main(int argc, char* argv[])
       eventbuffer.FillSubsystemData(detectors);
 
       detectors.ProcessEvent();
+      detectors.IncrementErrorCounters();
 
       /// Helicity pattern
       helicitypattern.LoadEventData(detectors);

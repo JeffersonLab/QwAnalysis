@@ -120,6 +120,17 @@ Bool_t QwQPD::ApplyHWChecks()
   return eventokay;
 }
 
+void QwQPD::IncrementErrorCounters()
+{
+  Short_t i=0;
+  for(i=0;i<4;i++) 
+    fPhotodiode[i].IncrementErrorCounters();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].IncrementErrorCounters();
+    fAbsPos[i].IncrementErrorCounters();
+  }
+  fEffectiveCharge.IncrementErrorCounters();
+}
 
 void QwQPD::PrintErrorCounters() const
 {
@@ -149,6 +160,26 @@ UInt_t QwQPD::GetEventcutErrorFlag()
   return error;
 }
 
+UInt_t QwQPD::UpdateErrorFlag()
+{
+  Short_t i=0;
+  UInt_t error1=0;
+  UInt_t error2=0;
+  for(i=0;i<4;i++){
+    error1|=fPhotodiode[i].GetErrorCode();
+    error2|=fPhotodiode[i].GetEventcutErrorFlag();
+  }
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateErrorFlag(error1);
+    fAbsPos[i].UpdateErrorFlag(error1);
+    error2|=fRelPos[i].GetEventcutErrorFlag();
+    error2|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+  fEffectiveCharge.UpdateErrorFlag(error1);
+  error2|=fEffectiveCharge.GetEventcutErrorFlag();
+  return error2;
+}
+
 Bool_t QwQPD::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
@@ -168,15 +199,15 @@ Bool_t QwQPD::ApplySingleEventCuts()
   }
 
   for(i=0;i<2;i++){
-    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
+    fRelPos[i].UpdateErrorFlag(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fRelPos[i].ApplySingleEventCuts();
     fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
 
-    fAbsPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
+    fAbsPos[i].UpdateErrorFlag(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fAbsPos[i].ApplySingleEventCuts();
     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
-  fEffectiveCharge.UpdateErrorCode(fErrorFlag);// To update the eff-charge error code from the channels/wires event cut error codes
+  fEffectiveCharge.UpdateErrorFlag(fErrorFlag);// To update the eff-charge error code from the channels/wires event cut error codes
   status &= fEffectiveCharge.ApplySingleEventCuts();
   fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
   
@@ -294,41 +325,24 @@ void QwQPD::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, 
 
 */
 
-void QwQPD::UpdateEventcutErrorFlag(const UInt_t error){
+void QwQPD::UpdateErrorFlag(const VQwBPM *ev_error){
   Short_t i=0;
-
-  for(i=0;i<4;i++) fPhotodiode[i].UpdateEventcutErrorFlag(error);
-  for(i=kXAxis;i<kNumAxes;i++) {
-    fRelPos[i].UpdateEventcutErrorFlag(error);
-    fAbsPos[i].UpdateEventcutErrorFlag(error);
-  }
-  fEffectiveCharge.UpdateEventcutErrorFlag(error);
-  
-};
-
-void QwQPD::UpdateEventcutErrorFlag(VQwBPM *ev_error){
-  Short_t i=0;
-  VQwDataElement *value_data;
   try {
     if(typeid(*ev_error)==typeid(*this)) {
-      // std::cout<<" Here in QwQPD::UpdateEventcutErrorFlag \n";
+      // std::cout<<" Here in QwQPD::UpdateErrorFlag \n";
       if (this->GetElementName()!="") {
-        QwQPD* value_bpm = dynamic_cast<QwQPD* >(ev_error);
+        const QwQPD* value_bpm = dynamic_cast<const QwQPD* >(ev_error);
 	for(i=0;i<4;i++){
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fPhotodiode[i]));
-	  fPhotodiode[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  fPhotodiode[i].UpdateErrorFlag(value_bpm->fPhotodiode[i]);
 	}
 	for(i=kXAxis;i<kNumAxes;i++) {
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
-	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
-	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
-	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  fRelPos[i].UpdateErrorFlag(value_bpm->fRelPos[i]);
+	  fAbsPos[i].UpdateErrorFlag(value_bpm->fAbsPos[i]);
 	}
-	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
-	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	fEffectiveCharge.UpdateErrorFlag(value_bpm->fEffectiveCharge);
       }
     } else {
-      TString loc="Standard exception from QwQPD::UpdateEventcutErrorFlag :"+
+      TString loc="Standard exception from QwQPD::UpdateErrorFlag :"+
         ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
         +"same type";
       throw std::invalid_argument(loc.Data());

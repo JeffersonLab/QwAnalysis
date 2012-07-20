@@ -87,8 +87,8 @@ class VQwBPM : public VQwDataElement {
 /*   Bool_t  ApplySingleEventCuts(); */
   void    SetSingleEventCuts(TString, Double_t, Double_t);
   void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t);
-  virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
-  virtual void UpdateEventcutErrorFlag(VQwBPM *ev_error) = 0;
+  virtual UInt_t UpdateErrorFlag() = 0;
+  virtual void UpdateErrorFlag(const VQwBPM *ev_error) = 0;
 
 
 /*   void Sum(VQwBPM &value1, VQwBPM &value2); */
@@ -187,6 +187,7 @@ class VQwBPM : public VQwDataElement {
     std::cerr << "PrintErrorCounters() is not implemented!!\n";
   }
   virtual Bool_t ApplySingleEventCuts() = 0;//Check for good events by stting limits on the devices readings
+  virtual void IncrementErrorCounters() = 0;
   virtual void ProcessEvent() = 0;
 
   // These only applies to a combined BPM

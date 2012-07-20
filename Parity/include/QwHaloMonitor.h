@@ -83,13 +83,13 @@ class  QwHaloMonitor : public VQwDataElement{
   void CalculateRunningAverage();
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
+  void IncrementErrorCounters(){fHalo_Counter.IncrementErrorCounters();};
   UInt_t GetEventcutErrorFlag(){return fHalo_Counter.GetEventcutErrorFlag();};
-  void UpdateEventcutErrorFlag(UInt_t errorflag){
-    fHalo_Counter.UpdateEventcutErrorFlag(errorflag);
+
+  UInt_t UpdateErrorFlag() {return GetEventcutErrorFlag();};
+  void UpdateErrorFlag(const QwHaloMonitor *ev_error){
+    fHalo_Counter.UpdateErrorFlag(ev_error->fHalo_Counter);
   };
-
-
-  void UpdateEventcutErrorFlag(QwHaloMonitor *ev_error);
 
   void PrintErrorCounters() const;// report number of events failed due to HW and event cut faliure
   Bool_t ApplyHWChecks();

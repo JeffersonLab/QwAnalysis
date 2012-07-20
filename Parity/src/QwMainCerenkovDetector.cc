@@ -742,6 +742,16 @@ UInt_t QwMainCerenkovDetector::GetEventcutErrorFlag() //return the error flag
   return ErrorFlag;
 }
 
+void QwMainCerenkovDetector::IncrementErrorCounters()
+{
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
+    fIntegrationPMT[i].IncrementErrorCounters();
+  }
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    fCombinedPMT[i].IncrementErrorCounters();
+  }
+}
+
 //inherited from the VQwSubsystemParity; this will display the error summary
 void QwMainCerenkovDetector::PrintErrorCounters() const
 {
@@ -758,26 +768,17 @@ void QwMainCerenkovDetector::PrintErrorCounters() const
   QwVQWK_Channel::PrintErrorCounterTail();
 }
 
-void QwMainCerenkovDetector::UpdateEventcutErrorFlag(UInt_t error) //return the error flag
-{
-  for(size_t i=0;i<fIntegrationPMT.size();i++){
-    fIntegrationPMT[i].UpdateEventcutErrorFlag(error);
+void QwMainCerenkovDetector::UpdateErrorFlag(const VQwSubsystem *ev_error){
+  VQwSubsystem* tmp = const_cast<VQwSubsystem*>(ev_error);
+  if(Compare(tmp)){
+    const QwMainCerenkovDetector* input = dynamic_cast<const QwMainCerenkovDetector*> (ev_error);
+
+    for (size_t i=0;i<input->fIntegrationPMT.size();i++)
+      this->fIntegrationPMT[i].UpdateErrorFlag(&(input->fIntegrationPMT[i]));
+    
+    for (size_t i=0;i<input->fCombinedPMT.size();i++)
+      this->fCombinedPMT[i].UpdateErrorFlag(&(input->fCombinedPMT[i]));
   }
-  for(size_t i=0;i<fCombinedPMT.size();i++){
-    fCombinedPMT[i].UpdateEventcutErrorFlag(error);
-  }
-}
-
-void QwMainCerenkovDetector::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
-  if (Compare(ev_error)){
-      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (ev_error);
-
-      for (size_t i=0;i<input->fIntegrationPMT.size();i++)
-        (this->fIntegrationPMT[i]).UpdateEventcutErrorFlag(&(input->fIntegrationPMT[i]));
-
-      for (size_t i=0;i<input->fCombinedPMT.size();i++)
-        (this->fCombinedPMT[i]).UpdateEventcutErrorFlag(&(input->fCombinedPMT[i]));
-    }  
 };
 
 
