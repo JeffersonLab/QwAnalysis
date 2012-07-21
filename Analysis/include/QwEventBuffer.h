@@ -254,6 +254,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
  protected:
   UInt_t     fNumPhysicsEvents;
+  UInt_t     fStartingPhysicsEvent;
 
 };
 

@@ -184,7 +184,7 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
 
 void QwEventBuffer::PrintRunTimes()
 {
-  UInt_t nevents = fNumPhysicsEvents;
+  UInt_t nevents = fNumPhysicsEvents - fStartingPhysicsEvent;
   if (nevents==0) nevents=1;
   QwMessage << QwLog::endl
 	    << "Analysis of run " << GetRunNumber() << QwLog::endl
@@ -272,6 +272,9 @@ TString QwEventBuffer::GetRunLabel() const
 Int_t QwEventBuffer::ReOpenStream()
 {
   Int_t status = CODA_ERROR;
+  //  Reset the physics event counter
+  fNumPhysicsEvents = fStartingPhysicsEvent;
+
   if (fOnline) {
     // Online stream
     status = OpenETStream(fETHostname, fETSession, 0, fETStationName);
@@ -324,6 +327,8 @@ Int_t QwEventBuffer::OpenNextStream()
     }
 
   }
+  //  Grab the starting event counter
+  fStartingPhysicsEvent = fNumPhysicsEvents;
   //  Start the timers.
   fRunTimer.Reset();
   fRunTimer.Start();

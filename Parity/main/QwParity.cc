@@ -203,6 +203,24 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Load the blinder seed from the database for this runlet.
     helicitypattern.UpdateBlinder(&database);
 
+    //  Find the first EPICS event and try to initialize
+    //  the blinder.
+    QwMessage << "Finding first EPICS event" << QwLog::endl;
+    while (eventbuffer.GetNextEvent() == CODA_OK) {
+      if (eventbuffer.IsEPICSEvent()) {
+	eventbuffer.FillEPICSData(epicsevent);
+	if (epicsevent.HasDataLoaded()) {
+	  helicitypattern.UpdateBlinder(epicsevent);
+	  // and break out of this event loop
+	  break;
+	}
+      }
+    }
+    epicsevent.ResetCounters();
+    //  Rewind stream
+    QwMessage << "Rewinding stream" << QwLog::endl;
+    eventbuffer.ReOpenStream();
+
     ///  Start loop over events
     while (eventbuffer.GetNextEvent() == CODA_OK) {
 
