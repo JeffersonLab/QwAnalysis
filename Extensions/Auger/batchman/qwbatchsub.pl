@@ -131,7 +131,8 @@ my $ret = GetOptions("help|usage|h"       => \$opt_h,
 		     "job-maxspace=i"     => \$MaxSpacePerJob,
 		     "job-reservespace=i" => \$ReserveSpace,
 		     "job-spaceperfile=i" => \$SpacePerInputfile,
-		     "skip-checking-paths" => \$SkipCheckingPaths
+		     "skip-checking-paths" => \$SkipCheckingPaths,
+		     "job-maxmemory=i"    => \$MaxMemoryPerJob
 		     );
 #  Deal with some fatal errors while handling the options.
 die("Invalid commandline options.  Exiting") if (!$ret);
@@ -141,6 +142,8 @@ die("The value for job-reservespace must be greater than zero.  Exiting")
     if (defined($ReserveSpace) && $ReserveSpace+0<=0);
 die("The value for job-spaceperfile must be greater than zero.  Exiting")
     if (defined($SpacePerInputfile) && $SpacePerInputfile+0<=0);
+die("The value for job-maxmemory must be greater than zero.  Exiting")
+    if (defined($MaxMemoryPerJob) && $MaxMemoryPerJob+0<=0);
 
 #  Set up some default values.
 $BaseMSSDir = "/mss/hallc/qweak" if (!defined($BaseMSSDir) || $BaseMSSDir eq "");
@@ -273,6 +276,9 @@ if (! defined($SegmentRange) || $SegmentRange eq ""){
 
 ###  Some variables to hold disk size information.
 ###  Units are MB.
+$MaxMemoryPerJob   = 4096   if (!defined($MaxMemoryPerJob) 
+				|| $MaxMemoryPerJob+0<=0);
+
 $SpacePerInputfile = 11300  if (!defined($SpacePerInputfile) 
 				|| $SpacePerInputfile+0<=0);
 $ReserveSpace      = 3000   if (!defined($ReserveSpace) 
@@ -617,7 +623,7 @@ sub create_old_jobfile($$$@) {
     print JOBFILE  
 	"SINGLE_JOB\n",
 	"INPUT_FILES: @infiles\n",
-	"MEMORY: 2048 MB\n",
+	"MEMORY:     $MaxMemoryPerJob MB\n",
 	"DISK_SPACE: $diskspace MB\n",
 	### "OTHER_FILES: ....\n",
 	"TOWORK\n",
@@ -671,13 +677,12 @@ sub create_xml_jobfile($$$@) {
 	" <Project name=\"qweak\"/>\n",
 	" <Track name=\"$BatchQueue\"/>\n",
 	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
-    my $memory=2048;
     my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
 	" <OS name=\"linux64\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
 	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
-	" <Memory space=\"$memory\" unit=\"MB\"/>\n";
+	" <Memory space=\"$MaxMemoryPerJob\" unit=\"MB\"/>\n";
     print JOBFILE
 	" <Command><![CDATA[\n",
 	"  set nonomatch\n",
