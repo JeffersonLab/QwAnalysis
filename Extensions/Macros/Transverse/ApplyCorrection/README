@@ -1,0 +1,8 @@
+07/20/2012 B.Waidywawansa
+
+------------------
+correct_bars.C 
+==================
+This macro connects to a given data base and fits the data for the given run range option and extracts the magnitude of the azimuthal modulation and then corrects each bar to remove that effect.
+
+The saved plot showes the corrected and uncorrected asymmetries and fits.
