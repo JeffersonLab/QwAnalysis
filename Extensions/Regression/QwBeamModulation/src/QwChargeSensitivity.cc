@@ -314,7 +314,7 @@ Int_t QwChargeSensitivity::ReadConfig(QwChargeSensitivity *charge_sens)
   char *token;
   TString temp;
 
-  config.open("config/setup.config");
+  config.open("config/setup.config", std::ios_base::in);
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
     exit(1);
