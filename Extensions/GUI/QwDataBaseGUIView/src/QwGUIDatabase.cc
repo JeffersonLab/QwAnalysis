@@ -2289,13 +2289,13 @@ void QwGUIDatabase::HistogramDetector()
 
 
     THStack *hs = new THStack("hs","");
-    TH1F *h_in_L = new TH1F("h_in_L","",1000,-10,10);
-    TH1F *h_in_R = new TH1F("h_in_R","",1000,-10,10);
-    TH1F *h_out_L = new TH1F("h_out_L","",1000,-10,10);
-    TH1F *h_out_R = new TH1F("h_out_R","",1000,-10,10);
-    TH1F *h_suspect = new TH1F("h_suspect","",1000,-10,10);
-    TH1F *h_bad = new TH1F("h_bad","",1000,-10,10);
-    TH1F *h_rms = new TH1F("h_rms","",1000,-500,500);
+    TH1F *h_in_L = new TH1F("h_in_L","",1000,0,0);
+    TH1F *h_in_R = new TH1F("h_in_R","",1000,0,0);
+    TH1F *h_out_L = new TH1F("h_out_L","",1000,0,0);
+    TH1F *h_out_R = new TH1F("h_out_R","",1000,0,0);
+    TH1F *h_suspect = new TH1F("h_suspect","",1000,0,0);
+    TH1F *h_bad = new TH1F("h_bad","",1000,0,0);
+    TH1F *h_rms = new TH1F("h_rms","",1000,0,0);
 
 
     TF1* fit1 = NULL;
@@ -2581,7 +2581,7 @@ void QwGUIDatabase::CreatePullPlot()
       TString title   = GetTitle(measurement_type, device);
 
       THStack *hs = new THStack("hs",title);
-      //TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",1000,-5,5);
+      // setting histo limist to 0,0 auto adjusts the histogram range
       TH1F *h_in_L_pull = new TH1F("h_in_L_pull","",100,0,0);
       TH1F *h_in_R_pull = new TH1F("h_in_R_pull","",100,0,0);
       TH1F *h_out_L_pull = new TH1F("h_out_L_pull","",100,0,0);
@@ -2713,7 +2713,6 @@ void QwGUIDatabase::CreatePullPlot()
       else
 	std::cout<<"QwGUI : Moving on to draw the histogram"<<std::endl;
     
-      TString y_title = GetYTitle(measurement_type, det_id);
   
 
       if(m>0){
@@ -2850,11 +2849,10 @@ void QwGUIDatabase::CreatePullPlot()
       hs->Draw();
       legend->Draw("");
       gPad->Update();
-      y_title = "Pull of "+y_title; 
       hs->GetYaxis()->SetTitleOffset(1.5);
       hs->GetXaxis()->SetTitleOffset(1.5);
       hs->GetYaxis()->SetTitle("Runlets");
-      hs->GetXaxis()->SetTitle(y_title);
+      hs->GetXaxis()->SetTitle("Pull");
       hs->GetYaxis()->SetTitleSize(0.03);
       hs->GetXaxis()->SetTitleSize(0.03);
       hs->GetYaxis()->CenterTitle();
