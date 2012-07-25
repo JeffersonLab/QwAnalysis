@@ -21,26 +21,128 @@
 //   updated Jan 31 2012 (jc2): Code clean up to make it work with the web
 //        auto plotter
 
+//  updated July 25, 2012 changed the scrpit so that it goes through the tree only once
+//  made the 3 functions each into 3 (so there is a total of 9 functions
+//  one "old" function is now an initl_????? function which is passed nothing and initllizes all the 
+//  histograms, an fill_??? function witch gets passed a hit from the an event in the
+//  rootfile and looks at that this the nesscary critera and fills any necssary histgrams 
+//  based on those cuts, and a plot_???? function which is passed nothing and then plots 
+//  the histograms created and filled in the corresponding fuctions to a canvas and 
+//  saves them.  For all of these functions the global are the historgrams.
+//  this was done by Wouter Deconinck and Valerie Gray to save time as now the scrpit only
+//  goes through the event_tree once and  now the each website page can be created a bit faster :)
+
 #include "auto_shared_includes.h"
+
+#include "QwHit.h"
+#include "QwEvent.h"
 
 TString outputPrefix;
 
+//define some (other come later) the needed histograms for the script as globals
+TH1F* h_wires_hit_1=NULL;
+TH1F* h_wires_hit_2=NULL;
+TH1F* h_wires_hit_3=NULL;
+TH1F* h_wires_hit_4=NULL;
+TH1F* h_wires_hit_5=NULL;
+TH1F* h_wires_hit_6=NULL;
+TH1F* h_wires_hit_7=NULL;
+TH1F* h_wires_hit_8=NULL;
 
-void plot_planes(TChain *event_tree){
+TH1F* h_wires_amb_1=NULL;
+TH1F* h_wires_amb_2=NULL;
+TH1F* h_wires_amb_3=NULL;
+TH1F* h_wires_amb_4=NULL;
+TH1F* h_wires_amb_5=NULL;
+TH1F* h_wires_amb_6=NULL;
+TH1F* h_wires_amb_7=NULL;
+TH1F* h_wires_amb_8=NULL;
 
-  TCanvas *wires_c = new TCanvas("wires_c","Vader and Leia (Package 1)    Wires Hit",-20,0,450,450);
-  TH1F* h_wires_hit_1=NULL;
-  TH1F* h_wires_hit_2=NULL;
-  TH1F* h_wires_hit_3=NULL;
-  TH1F* h_wires_hit_4=NULL;
+TH1F* h_planes_hit_1=NULL;
+TH1F* h_planes_hit_2=NULL;
+TH1F* h_planes_am_hit_1=NULL;
+TH1F* h_planes_am_hit_2=NULL;
+
+void init_planes()
+{
   h_wires_hit_1= new TH1F("h_wires_hit_1", "Vader wire hits  V-Plane ", 280, 0.5, 280.5);
   h_wires_hit_2= new TH1F("h_wires_hit_2", "Vader wire hits  U-Plane ", 280, 0.5, 280.5);
   h_wires_hit_3= new TH1F("h_wires_hit_3", "Leia wire hits  V-Plane ", 280, 0.5, 280.5);
   h_wires_hit_4= new TH1F("h_wires_hit_4", "Leia wire hits U-Plane ", 280, 0.5, 280.5);
-  event_tree->Draw("fElement>>h_wires_hit_1","fRegion==3&&fPackage==1&&fPlane==1","Q");
-  event_tree->Draw("fElement>>h_wires_hit_2","fRegion==3&&fPackage==1&&fPlane==2","Q");
-  event_tree->Draw("fElement>>h_wires_hit_3","fRegion==3&&fPackage==1&&fPlane==3","Q");
-  event_tree->Draw("fElement>>h_wires_hit_4","fRegion==3&&fPackage==1&&fPlane==4","Q");
+  h_wires_hit_5= new TH1F("h_wires_hit_5", "Yoda wire hits  V-Plane ", 280, 0.5, 280.5);
+  h_wires_hit_6= new TH1F("h_wires_hit_6", "Yoda wire hits  U-Plane ", 280, 0.5, 280.5);
+  h_wires_hit_7= new TH1F("h_wires_hit_7", "Han wire hits  V-Plane ", 280, 0.5, 280.5);
+  h_wires_hit_8= new TH1F("h_wires_hit_8", "Han wire hits U-Plane ", 280, 0.5, 280.5);
+
+  h_wires_amb_1= new TH1F("h_wires_amb_1", "Vader ambiguous hits V-Plane", 280, 0.5, 280.5);
+  h_wires_amb_2= new TH1F("h_wires_amb_2", "Vader ambiguous hits  U-Plane", 280, 0.5, 280.5);
+  h_wires_amb_3= new TH1F("h_wires_amb_3", "Leia ambiguous hits  V-Plane", 280, 0.5, 280.5);
+  h_wires_amb_4= new TH1F("h_wires_amb_4", "Leia ambiguous hits  U-Plane", 280, 0.5, 280.5);
+  h_wires_amb_5= new TH1F("h_wires_amb_5", "Yoda ambiguous hits  V-Plane", 280, 0.5, 280.5);
+  h_wires_amb_6= new TH1F("h_wires_amb_6", "Yoda ambiguous hits  U-Plane", 280, 0.5, 280.5);
+  h_wires_amb_7= new TH1F("h_wires_amb_7", "Han ambiguous hits  V-Plane", 280, 0.5, 280.5);
+  h_wires_amb_8= new TH1F("h_wires_amb_8", "Han ambiguous hits  U-Plane", 280, 0.5, 280.5);
+
+  h_planes_hit_1= new TH1F("h_planes_hit_1", "VDC Planes Hit  Package 1", 6, 0, 6);
+  h_planes_hit_2= new TH1F("h_planes_hit_2", "VDC Planes Hit  Package 2", 6, 0, 6);
+
+  h_planes_am_hit_1= new TH1F("h_planes_am_hit_1", "VDC Planes Ambiguous Hits  Package 1", 6, 0, 6);
+  h_planes_am_hit_2= new TH1F("h_planes_am_hit_2", "VDC Planes Ambiguous Hits  Package 2", 6, 0, 6);
+}
+
+void fill_planes(const QwHit* hit)
+{
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==1)
+    h_wires_hit_1->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==2)
+    h_wires_hit_2->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==3)
+    h_wires_hit_3->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==4)
+    h_wires_hit_4->Fill(hit->fElement);
+
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==1)
+    h_wires_hit_5->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==2)
+    h_wires_hit_6->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==3)
+    h_wires_hit_7->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==4)
+    h_wires_hit_8->Fill(hit->fElement);
+
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==1&&hit->fAmbiguousElement==1)
+    h_wires_amb_1->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==2&&hit->fAmbiguousElement==1)
+    h_wires_amb_2->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==3&&hit->fAmbiguousElement==1)
+    h_wires_amb_3->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==4&&hit->fAmbiguousElement==1)
+    h_wires_amb_4->Fill(hit->fElement);
+
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==1&&hit->fAmbiguousElement==1)
+    h_wires_amb_5->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==2&&hit->fAmbiguousElement==1)
+    h_wires_amb_6->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==3&&hit->fAmbiguousElement==1)
+    h_wires_amb_7->Fill(hit->fElement);
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==4&&hit->fAmbiguousElement==1)
+    h_wires_amb_8->Fill(hit->fElement);
+
+  if (hit->fRegion==3&&hit->fPackage==1)
+    h_planes_hit_1->Fill(hit->fPlane);
+  if (hit->fRegion==3&&hit->fPackage==2)
+    h_planes_hit_2->Fill(hit->fPlane);
+
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fAmbiguousElement==1)
+    h_planes_am_hit_1->Fill(hit->fPlane);
+  if (hit->fRegion==3&&hit->fPackage==1&&hit->fAmbiguousElement==2)
+    h_planes_am_hit_2->Fill(hit->fPlane);
+}
+
+
+void plot_planes()
+{
+  TCanvas *wires_c = new TCanvas("wires_c","Vader and Leia (Package 1)    Wires Hit",-20,0,450,450);
   h_wires_hit_1 -> SetLineColor(2);
   h_wires_hit_1 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_hit_2 -> SetLineColor(2);
@@ -50,9 +152,7 @@ void plot_planes(TChain *event_tree){
   h_wires_hit_4 -> SetLineColor(4);
   h_wires_hit_4 -> GetXaxis()-> SetTitle("Wire #    Plane 4");
 
-
   gStyle->SetOptStat(1111);
-
   wires_c->Clear();
   wires_c->Divide(2,2);
   wires_c->cd(1);
@@ -68,18 +168,6 @@ void plot_planes(TChain *event_tree){
 // -----------------------------------------------------------------------------
 
   TCanvas *wires_c2 = new TCanvas("wires_c2","Yoda and Han (Package 2)    Wires Hit",500,0,450,450);
-  TH1F* h_wires_hit_5=NULL;
-  TH1F* h_wires_hit_6=NULL;
-  TH1F* h_wires_hit_7=NULL;
-  TH1F* h_wires_hit_8=NULL;
-  h_wires_hit_5= new TH1F("h_wires_hit_5", "Yoda wire hits  V-Plane ", 280, 0.5, 280.5);
-  h_wires_hit_6= new TH1F("h_wires_hit_6", "Yoda wire hits  U-Plane ", 280, 0.5, 280.5);
-  h_wires_hit_7= new TH1F("h_wires_hit_7", "Han wire hits  V-Plane ", 280, 0.5, 280.5);
-  h_wires_hit_8= new TH1F("h_wires_hit_8", "Han wire hits U-Plane ", 280, 0.5, 280.5);
-  event_tree->Draw("fElement>>h_wires_hit_5","fRegion==3&&fPackage==2&&fPlane==1","Q");
-  event_tree->Draw("fElement>>h_wires_hit_6","fRegion==3&&fPackage==2&&fPlane==2","Q");
-  event_tree->Draw("fElement>>h_wires_hit_7","fRegion==3&&fPackage==2&&fPlane==3","Q");
-  event_tree->Draw("fElement>>h_wires_hit_8","fRegion==3&&fPackage==2&&fPlane==4","Q");
   h_wires_hit_5 -> SetLineColor(3);
   h_wires_hit_5 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_hit_6 -> SetLineColor(3);
@@ -105,19 +193,6 @@ void plot_planes(TChain *event_tree){
 // -----------------------------------------------------------------------------
 
   TCanvas *ambig_c = new TCanvas("ambig_c","Vader and Lei (Package 1)    Ambiguous Wires",-20,500,450,450);
-
-  TH1F* h_wires_amb_1=NULL;
-  TH1F* h_wires_amb_2=NULL;
-  TH1F* h_wires_amb_3=NULL;
-  TH1F* h_wires_amb_4=NULL;
-  h_wires_amb_1= new TH1F("h_wires_amb_1", "Vader ambiguous hits V-Plane", 280, 0.5, 280.5);
-  h_wires_amb_2= new TH1F("h_wires_amb_2", "Vader ambiguous hits  U-Plane", 280, 0.5, 280.5);
-  h_wires_amb_3= new TH1F("h_wires_amb_3", "Leia ambiguous hits  V-Plane", 280, 0.5, 280.5);
-  h_wires_amb_4= new TH1F("h_wires_amb_4", "Leia ambiguous hits  U-Plane", 280, 0.5, 280.5);
-  event_tree->Draw("fElement>>h_wires_amb_1","fRegion==3&&fPackage==1&&fPlane==1&&fAmbiguousElement==1","Q");
-  event_tree->Draw("fElement>>h_wires_amb_2","fRegion==3&&fPackage==1&&fPlane==2&&fAmbiguousElement==1","Q");
-  event_tree->Draw("fElement>>h_wires_amb_3","fRegion==3&&fPackage==1&&fPlane==3&&fAmbiguousElement==1","Q");
-  event_tree->Draw("fElement>>h_wires_amb_4","fRegion==3&&fPackage==1&&fPlane==4&&fAmbiguousElement==1","Q");
   h_wires_amb_1 -> SetLineColor(3);
   h_wires_amb_1 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_amb_2 -> SetLineColor(3);
@@ -143,19 +218,6 @@ void plot_planes(TChain *event_tree){
 // -----------------------------------------------------------------------------
 
   TCanvas *ambig_c2 = new TCanvas("ambig_c2","Yoda and Han (Package 2)    Ambiguous Wires",-500,500,450,450);
-
-  TH1F* h_wires_amb_5=NULL;
-  TH1F* h_wires_amb_6=NULL;
-  TH1F* h_wires_amb_7=NULL;
-  TH1F* h_wires_amb_8=NULL;
-  h_wires_amb_5= new TH1F("h_wires_amb_5", "Yoda ambiguous hits  V-Plane", 280, 0.5, 280.5);
-  h_wires_amb_6= new TH1F("h_wires_amb_6", "Yoda ambiguous hits  U-Plane", 280, 0.5, 280.5);
-  h_wires_amb_7= new TH1F("h_wires_amb_7", "Han ambiguous hits  V-Plane", 280, 0.5, 280.5);
-  h_wires_amb_8= new TH1F("h_wires_amb_8", "Han ambiguous hits  U-Plane", 280, 0.5, 280.5);
-  event_tree->Draw("fElement>>h_wires_amb_5","fRegion==3&&fPackage==2&&fPlane==1&&fAmbiguousElement==1","Q");
-  event_tree->Draw("fElement>>h_wires_amb_6","fRegion==3&&fPackage==2&&fPlane==2&&fAmbiguousElement==1","Q");
-  event_tree->Draw("fElement>>h_wires_amb_7","fRegion==3&&fPackage==2&&fPlane==3&&fAmbiguousElement==1","Q");
-  event_tree->Draw("fElement>>h_wires_amb_8","fRegion==3&&fPackage==2&&fPlane==4&&fAmbiguousElement==1","Q");
   h_wires_amb_5 -> SetLineColor(3);
   h_wires_amb_5 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_amb_6 -> SetLineColor(3);
@@ -180,74 +242,74 @@ void plot_planes(TChain *event_tree){
   
 // -----------------------------------------------------------------------------
 
- TCanvas *planes_c = new TCanvas("planes_c","VDC   Planes with Hits",900,0,350,350);
- TH1F* h_planes_hit_1=NULL;
- TH1F* h_planes_hit_2=NULL;
- h_planes_hit_1= new TH1F("h_planes_hit_1", "VDC Planes Hit  Package 1", 6, 0, 6);
- h_planes_hit_2= new TH1F("h_planes_hit_2", "VDC Planes Hit  Package 2", 6, 0, 6);
- event_tree->Draw("fPlane>>h_planes_hit_1","fRegion==3&&fPackage==1","Q");
- event_tree->Draw("fPlane>>h_planes_hit_2","fRegion==3&&fPackage==2","Q");
- h_planes_hit_1 -> SetLineColor(7);
- h_planes_hit_1 -> SetFillColor(7);
- h_planes_hit_1 -> GetXaxis()-> SetTitle("Plane");
- h_planes_hit_2 -> SetLineColor(8);
- h_planes_hit_2 -> SetFillColor(8);
- h_planes_hit_2 -> GetXaxis()-> SetTitle("Plane");
+  TCanvas *planes_c = new TCanvas("planes_c","VDC   Planes with Hits",900,0,350,350);
+  h_planes_hit_1 -> SetLineColor(7);
+  h_planes_hit_1 -> SetFillColor(7);
+  h_planes_hit_1 -> GetXaxis()-> SetTitle("Plane");
+  h_planes_hit_2 -> SetLineColor(8);
+  h_planes_hit_2 -> SetFillColor(8);
+  h_planes_hit_2 -> GetXaxis()-> SetTitle("Plane");
 
- gStyle->SetOptStat(1111);
- planes_c->Clear();
- planes_c->Divide(1,2);
- planes_c->cd(1);
- h_planes_hit_1->Draw();
- planes_c->cd(2);
- h_planes_hit_2->Draw();
- planes_c->SaveAs(outputPrefix+"planes_hits.png");
+  gStyle->SetOptStat(1111);
+  planes_c->Clear();
+  planes_c->Divide(1,2);
+  planes_c->cd(1);
+  h_planes_hit_1->Draw();
+  planes_c->cd(2);
+  h_planes_hit_2->Draw();
+  planes_c->SaveAs(outputPrefix+"planes_hits.png");
 
 // -----------------------------------------------------------------------------
 
- TCanvas *am_planes_c = new TCanvas("am_planes_c","VDC   Planes with Ambiguous Hits",900,400,350,350);
- TH1F* h_planes_am_hit_1=NULL;
- TH1F* h_planes_am_hit_2=NULL;
- h_planes_am_hit_1= new TH1F("h_planes_am_hit_1", "VDC Planes Ambiguous Hits  Package 1", 6, 0, 6);
- h_planes_am_hit_2= new TH1F("h_planes_am_hit_2", "VDC Planes Ambiguous Hits  Package 2", 6, 0, 6);
- event_tree->Draw("fPlane>>h_planes_am_hit_1","fRegion==3&&fPackage==1&&fAmbiguousElement==1","Q");
- event_tree->Draw("fPlane>>h_planes_am_hit_2","fRegion==3&&fPackage==2&&fAmbiguousElement==1","Q");
- h_planes_am_hit_1 -> SetLineColor(7);
- h_planes_am_hit_1 -> SetFillColor(7);
- h_planes_am_hit_1 -> GetXaxis()-> SetTitle("Plane");
- h_planes_am_hit_2 -> SetLineColor(8);
- h_planes_am_hit_2 -> SetFillColor(8);
- h_planes_am_hit_2 -> GetXaxis()-> SetTitle("Plane");
+  TCanvas *am_planes_c = new TCanvas("am_planes_c","VDC   Planes with Ambiguous Hits",900,400,350,350);
+  h_planes_am_hit_1 -> SetLineColor(7);
+  h_planes_am_hit_1 -> SetFillColor(7);
+  h_planes_am_hit_1 -> GetXaxis()-> SetTitle("Plane");
+  h_planes_am_hit_2 -> SetLineColor(8);
+  h_planes_am_hit_2 -> SetFillColor(8);
+  h_planes_am_hit_2 -> GetXaxis()-> SetTitle("Plane");
 
- gStyle->SetOptStat(1111);
- am_planes_c->Clear();
- am_planes_c->Divide(1,2);
- am_planes_c->cd(1);
- h_planes_am_hit_1->Draw();
- am_planes_c->cd(2);
- h_planes_am_hit_2->Draw();
- am_planes_c->SaveAs(outputPrefix+"planes_hit_ambigious.png");
+  gStyle->SetOptStat(1111);
+  am_planes_c->Clear();
+  am_planes_c->Divide(1,2);
+  am_planes_c->cd(1);
+  h_planes_am_hit_1->Draw();
+  am_planes_c->cd(2);
+  h_planes_am_hit_2->Draw();
+  am_planes_c->SaveAs(outputPrefix+"planes_hit_ambigious.png");
 
 }
 
 // -----------------------------------------------------------------------------
 
-void plot_delaylines(TChain *event_tree){
+TH1F* h_delay_line_1=NULL;
+TH1F* h_delay_line_2=NULL;
+TH1F* h_delay_line_3=NULL;
+TH1F* h_delay_line_4=NULL;
 
-  TCanvas *delaylines_c = new TCanvas("delaylines_c"," Delay Line hits",-20,0,450,450);
-
-  TH1F* h_delay_line_1=NULL;
-  TH1F* h_delay_line_2=NULL;
-  TH1F* h_delay_line_3=NULL;
-  TH1F* h_delay_line_4=NULL;
+void init_delaylines()
+{
   h_delay_line_1= new TH1F("h_delay_line_1", "MUX crate 1 (Vader) delay lines", 33, 0, 66);
   h_delay_line_2= new TH1F("h_delay_line_2", "MUX crate 2 (Leia) delay lines", 33,  0, 66);
   h_delay_line_3= new TH1F("h_delay_line_3", "MUX crate 3 (Yoda) delay lines", 33, 0, 66);
   h_delay_line_4= new TH1F("h_delay_line_4", "MUX crate 4 (Han) delay lines", 33, 0, 66);
-  event_tree->Draw("fChannel>>h_delay_line_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fChannel>>h_delay_line_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fChannel>>h_delay_line_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fChannel>>h_delay_line_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+}
+
+void fill_delaylines(const QwHit* hit)
+{
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
+    h_delay_line_1->Fill(hit->fChannel);
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
+    h_delay_line_2->Fill(hit->fChannel);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
+    h_delay_line_3->Fill(hit->fChannel);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
+    h_delay_line_4->Fill(hit->fChannel);
+}
+
+void plot_delaylines()
+{
+  TCanvas *delaylines_c = new TCanvas("delaylines_c"," Delay Line hits",-20,0,450,450);
   h_delay_line_1 -> SetLineColor(2);
   h_delay_line_1 -> SetFillColor(2);
   h_delay_line_1 -> GetXaxis()-> SetTitle("TDC Channel");
@@ -278,23 +340,17 @@ void plot_delaylines(TChain *event_tree){
 
 // -----------------------------------------------------------------------------
 
-void plot_times(TChain *event_tree){
+TH1F* h_time_1=NULL;
+TH1F* h_time_2=NULL;
+TH1F* h_time_3=NULL;
+TH1F* h_time_4=NULL;
+TH1F* h_time_5=NULL;
+TH1F* h_time_6=NULL;
+TH1F* h_time_7=NULL;
+TH1F* h_time_8=NULL;
 
-  gROOT->Reset();
-
-  TCanvas *times_c = new TCanvas("times_c","Drift Times for VDCs",0,50,1000,500);
-
-  // should be fancy and use histo copies here
-
-  TH1F* h_time_1=NULL;
-  TH1F* h_time_2=NULL;
-  TH1F* h_time_3=NULL;
-  TH1F* h_time_4=NULL;
-  TH1F* h_time_5=NULL;
-  TH1F* h_time_6=NULL;
-  TH1F* h_time_7=NULL;
-  TH1F* h_time_8=NULL;
-  
+void init_times()
+{
   h_time_1= new TH1F("h_time_1", "Vader Drift Time", 250,-100, 500);
   h_time_2= new TH1F("h_time_2", "Leia Drift Time", 250, -100, 500);
   h_time_3= new TH1F("h_time_3", "Yoda Drift Time", 250, -100, 500);
@@ -303,15 +359,31 @@ void plot_times(TChain *event_tree){
   h_time_6= new TH1F("h_time_6", "Leia Drift Time", 250, -300, 1300);
   h_time_7= new TH1F("h_time_7", "Yoda Drift Time", 250, -300, 1300);
   h_time_8= new TH1F("h_time_8", "Han Drift Time", 250, -300, 1300);
+}
 
-  event_tree->Draw("fTimeNs>>h_time_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTimeNs>>h_time_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fTimeNs>>h_time_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTimeNs>>h_time_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fTimeNs>>h_time_5","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTimeNs>>h_time_6","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fTimeNs>>h_time_7","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fTimeNs>>h_time_8","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+void fill_times(const QwHit* hit)
+{
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
+    h_time_1->Fill(hit->fTimeNs);
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
+    h_time_2->Fill(hit->fTimeNs);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
+    h_time_3->Fill(hit->fTimeNs);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
+    h_time_4->Fill(hit->fTimeNs);
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
+    h_time_5->Fill(hit->fTimeNs);
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
+    h_time_6->Fill(hit->fTimeNs);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
+    h_time_7->Fill(hit->fTimeNs);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
+    h_time_8->Fill(hit->fTimeNs);
+}
+
+void plot_times()
+{
+  TCanvas *times_c = new TCanvas("times_c","Drift Times for VDCs",0,50,1000,500);
   h_time_1 -> SetLineColor(2);
   h_time_1 -> GetXaxis()-> SetTitle("Drift Time   (ns)  Vader");
   h_time_2 -> SetLineColor(4);
@@ -358,23 +430,34 @@ void plot_times(TChain *event_tree){
 
 // ----------------------------------------------------------------------------
 
-void plot_hitnumber(TChain *event_tree){
+TH1F* h_nhits_1=NULL;
+TH1F* h_nhits_2=NULL;
+TH1F* h_nhits_3=NULL;
+TH1F* h_nhits_4=NULL;
 
-  gROOT->Reset();
-
-  TCanvas *nhits_c = new TCanvas("nhits_c"," VDC Hit Multiplicity (hits/wire in an event)",-20,0,450,450);
-  TH1F* h_nhits_1=NULL;
-  TH1F* h_nhits_2=NULL;
-  TH1F* h_nhits_3=NULL;
-  TH1F* h_nhits_4=NULL;
+void init_hitnumber()
+{
   h_nhits_1= new TH1F("h_nhits_1", "Hit Multiplicity (Vader) ", 12, 0, 12);
   h_nhits_2= new TH1F("h_nhits_2", "Hit Multiplicity (Leia) ", 12,  0, 12);
   h_nhits_3= new TH1F("h_nhits_3", "Hit Multiplicity (Yoda) ", 12, 0, 12);
   h_nhits_4= new TH1F("h_nhits_4", "Hit Multiplicity (Han) ", 12, 0, 12);
-  event_tree->Draw("fHitNumber>>h_nhits_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fHitNumber>>h_nhits_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  event_tree->Draw("fHitNumber>>h_nhits_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  event_tree->Draw("fHitNumber>>h_nhits_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+}
+
+void fill_hitnumber(const QwHit* hit)
+{
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
+    h_nhits_1->Fill(hit->fHitNumber);
+  if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
+    h_nhits_2->Fill(hit->fHitNumber);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
+    h_nhits_3->Fill(hit->fHitNumber);
+  if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
+    h_nhits_4->Fill(hit->fHitNumber);
+}
+
+void plot_hitnumber()
+{
+  TCanvas *nhits_c = new TCanvas("nhits_c"," VDC Hit Multiplicity (hits/wire in an event)",-20,0,450,450);
   h_nhits_1 -> SetLineColor(2);
   h_nhits_1 -> SetFillColor(2);
   h_nhits_1 -> GetXaxis()-> SetTitle("Number of Hits");
@@ -417,9 +500,34 @@ void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
   // Configure root
   gStyle->SetPalette(1);
 
+//These are the functions which initllize the histograms for the different type of plots one is making
+  init_planes();
+  init_delaylines();
+  init_times();
+  init_hitnumber();
 
-  plot_planes(chain);
-  plot_delaylines(chain);
-  plot_times(chain);
-  plot_hitnumber(chain);
+  // Event loop
+  QwEvent* event = 0;
+  chain->SetBranchStatus("events",1);
+  chain->SetBranchAddress("events",&event);
+  for (int i = 0; i < chain->GetEntries(); i++) {
+    if (i%10000 == 0) cout << "Processing event " << i << "..." << endl;
+    chain->GetEntry(i);
+
+    for (int j = 0; j < event->GetNumberOfHits(); j++) {
+      const QwHit* hit = event->GetHit(j);
+      //these are the funcitons that fill the histgrams with data, each being passed a hit
+      fill_planes(hit);
+      fill_delaylines(hit);
+      fill_times(hit);
+      fill_hitnumber(hit);
+    }
+
+  }
+
+  //these histograms are the ones the plot the histrogram that are defined and created above
+  plot_planes();
+  plot_delaylines();
+  plot_times();
+  plot_hitnumber();
 }
