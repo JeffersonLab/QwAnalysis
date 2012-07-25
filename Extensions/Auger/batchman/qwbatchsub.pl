@@ -62,6 +62,7 @@ use vars qw($original_cwd $executable $script_dir $BaseMSSDir
 	    @RunPostProcess @RunletPostProcess
 	    $SpacePerInputfile $ReserveSpace $MaxSpacePerJob
 	    $MaxFilesPerJob
+	    $MaxMemoryPerJob
 	    $SkipCheckingPaths
 	    $InputfilesPerJob
 	    );
