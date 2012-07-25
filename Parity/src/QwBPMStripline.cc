@@ -155,7 +155,6 @@ UInt_t QwBPMStripline<T>::GetEventcutErrorFlag(){
     error|=fAbsPos[i].GetEventcutErrorFlag();
   }
   error|=fEffectiveCharge.GetEventcutErrorFlag();  
-
   return error;
 }
 
@@ -215,7 +214,6 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
-  fErrorFlag=0;
 
   UInt_t element_error_code[2];
   //Event cuts for four wires
@@ -227,9 +225,6 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //Get the Event cut error flag for wires
-    fErrorFlag|=fWire[i].GetEventcutErrorFlag();
-
   }
 
   //Get the rex/abs X event cut error flag from xm and xp
@@ -255,9 +250,6 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-
-    //Get the Event cut error flag for RelX/Y
-    fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
   }
 
   for(i=kXAxis;i<kNumAxes;i++){
@@ -268,8 +260,6 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //Get the Event cut error flag for AbsX/Y
-    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
 
   //Event cuts for four wire sum (EffectiveCharge) are already ORed when EffectiveCharge is calculated
@@ -280,11 +270,7 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //Get the Event cut error flag for EffectiveCharge
-  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
-
   return status;
-
 }
 
 template<typename T>

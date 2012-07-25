@@ -77,22 +77,12 @@ class VQwBPM : public VQwDataElement {
   void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   void   SetRotation(Double_t);
   void   SetRotationOff();
-  /*
-  UInt_t  GetEventcutErrorFlag(){//return the error flag
-    return fErrorFlag;
-    };
-  */
-  //  virtual void PrintErrorCounters() const = 0;
 
-/*   Bool_t  ApplySingleEventCuts(); */
   void    SetSingleEventCuts(TString, Double_t, Double_t);
   void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t);
   virtual UInt_t UpdateErrorFlag() = 0;
   virtual void UpdateErrorFlag(const VQwBPM *ev_error) = 0;
 
-
-/*   void Sum(VQwBPM &value1, VQwBPM &value2); */
-/*   void Difference(VQwBPM &value1, VQwBPM &value2); */
   virtual void Scale(Double_t factor) {
     std::cerr << "Scale for VQwBPM not implemented!\n";
   }

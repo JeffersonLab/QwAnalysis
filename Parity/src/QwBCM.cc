@@ -165,8 +165,6 @@ Bool_t QwBCM<T>::ApplySingleEventCuts()
   } else {
     status &= kFALSE;
   }
-  fErrorFlag |= fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
-
   return status;
 }
 

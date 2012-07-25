@@ -24,9 +24,6 @@ const TString  VQwBPM::kAxisLabel[2]={"X","Y"};
 
 void  VQwBPM::InitializeChannel(TString name)
 { 
-  //  bEVENTCUTMODE    = false;
-  //  fDeviceErrorCode = 0;
-  fErrorFlag=0;
   Short_t i = 0; 
 
   for(i=0;i<3;i++) fPositionCenter[i] = 0.0;
@@ -96,41 +93,6 @@ void VQwBPM::SetGains(TString pos, Double_t value){
   if(pos.Contains("X")) fGains[0] = value;
   if(pos.Contains("Y")) fGains[1] = value;
 }
-
-
-
-// Bool_t VQwBPM::ApplySingleEventCuts()
-// {
-//   Bool_t status=kTRUE;
-//   Short_t i=0;
-//   fErrorFlag=0;
- //   //Event cuts for Absolute X & Y
-//   for(i=kXAxis;i<kNumAxes;i++){
-//     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
-//       status&=kTRUE;
-//     }
-//     else{
-//       status&=kFALSE;
-//       if (bDEBUG) std::cout<<" Abs X event cut failed ";
-//     }
-//     //Get the Event cut error flag for AbsX/Y
-//     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
-//   }
-//  //Event cuts for four wire sum (EffectiveCharge)
-//   if (fEffectiveCharge_base->ApplySingleEventCuts()){ 
-//       status&=kTRUE;
-//   }
-//   else{
-//     status&=kFALSE;
-//     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
-//   }
-//   //Get the Event cut error flag for EffectiveCharge
-//   fErrorFlag|=fEffectiveCharge_base->GetEventcutErrorFlag();
-
-
-//   return status;
-  
-// }
 
 void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {

@@ -167,7 +167,6 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   Bool_t status=kTRUE;
   Int_t i=0;
   UInt_t error_code = 0;
-  fErrorFlag=0;
   //Event cuts for X & Y
   for(i=0;i<2;i++){
 
@@ -178,13 +177,10 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-
-    //Get the Event cut error flag for RelX/Y
-    fErrorFlag |=fWire[i].GetEventcutErrorFlag();
     error_code |= fWire[i].GetErrorCode();//this to be updated in the rel and abp pos channels
   }
   for(i=kXAxis;i<kNumAxes;i++){
-    //fRelPos[i].UpdateErrorFlag(error_code); //No need
+    fRelPos[i].UpdateErrorFlag(error_code);
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -192,13 +188,10 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-
-    //Get the Event cut error flag for RelX/Y
-    fErrorFlag |=fRelPos[i].GetEventcutErrorFlag();
   }
 
   for(i=kXAxis;i<kNumAxes;i++){
-    //fAbsPos[i].UpdateErrorFlag(error_code);
+    fAbsPos[i].UpdateErrorFlag(error_code);
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -206,13 +199,10 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //Get the Event cut error flag for AbsX/Y
-    fErrorFlag |=fAbsPos[i].GetEventcutErrorFlag();
-
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
-  //fEffectiveCharge.UpdateErrorFlag(error_code);//No need
+  fEffectiveCharge.UpdateErrorFlag(error_code);
   if (fEffectiveCharge.ApplySingleEventCuts()){
     status&=kTRUE;
   }
@@ -220,12 +210,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //Get the Event cut error flag for EffectiveCharge
-  fErrorFlag |=fEffectiveCharge.GetEventcutErrorFlag();
-
-
   return status;
-
 }
 
 VQwHardwareChannel* QwBPMCavity::GetSubelementByName(TString ch_name)

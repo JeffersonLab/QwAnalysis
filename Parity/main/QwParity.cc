@@ -117,9 +117,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     detectors.ListPublishedValues();
 
     /// Create event-based linear regression subsystem
-    TString name = "MpsRegression";
-    QwRegressionSubsystem regress_sub(gQwOptions, detectors, name);
-    detectors.push_back(regress_sub.GetSharedPointerToStaticObject());
+    //    TString name = "MpsRegression";
+    //    QwRegressionSubsystem regress_sub(gQwOptions, detectors, name);
+    //    detectors.push_back(regress_sub.GetSharedPointerToStaticObject());
     
     ///  Create the helicity pattern
     QwHelicityPattern helicitypattern(detectors);
@@ -259,8 +259,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
 	
-	// TEST 
- 	regress_sub.LinearRegression();
+	//	// TEST 
+	// 	regress_sub.LinearRegression();
 
         // Add event to the ring
         eventring.push(detectors);
@@ -340,7 +340,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Perform actions at the end of the event loop on the
     //  detectors object, which ought to have handles for the
     //  MPS based histograms.
-    detectors.AtEndOfEventLoop();
+    ringoutput.AtEndOfEventLoop();
 
     QwMessage << "Number of events processed at end of run: "
               << eventbuffer.GetEventNumber() << QwLog::endl;
@@ -409,7 +409,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.FillErrDB(&database);
       epicsevent.FillDB(&database);
       running_regression.FillDB(&database,"asymmetry");
-      detectors.FillDB_MPS(&database, "optics");
+      ringoutput.FillDB_MPS(&database, "optics");
     }
     
   

@@ -183,7 +183,6 @@ UInt_t QwCombinedBPM<T>::GetEventcutErrorFlag()
   }
 
   error|=fEffectiveCharge.GetEventcutErrorFlag();
-
   return error;
 }
 
@@ -194,7 +193,6 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t axis=0;
-  fErrorFlag=0;
   UInt_t charge_error;
   UInt_t pos_error[2];
   charge_error = 0;
@@ -223,8 +221,6 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" X Slope event cut failed ";
     }
-    //Get the Event cut error flag for SlopeX/Y
-    fErrorFlag|=fSlope[axis].GetEventcutErrorFlag();
   }
 
   //Event cuts for  X & Y intercepts
@@ -237,8 +233,6 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" X Intercept event cut failed ";
     }
-    //Get the Event cut error flag for intercept X/Y
-    fErrorFlag|=fIntercept[axis].GetEventcutErrorFlag();
   }
 
 
@@ -252,8 +246,6 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" X Intercept event cut failed ";
     }
-    //Get the Event cut error flag for min chi square X/Y
-    fErrorFlag|=fMinimumChiSquare[axis].GetEventcutErrorFlag();
   }
 
 
@@ -267,10 +259,6 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //Get the Event cut error flag for AbsX/Y
-    fErrorFlag|=fAbsPos[axis].GetEventcutErrorFlag();
-    //if (fAbsPos[i].GetElementName()=="qwk_targetX")
-    //std::cout<<" Abs X event cut "<<fAbsPos[i].GetEventcutErrorFlag()<<std::endl;
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
@@ -282,8 +270,6 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //Get the Event cut error flag for EffectiveCharge
-  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
   return status;
 }
@@ -297,6 +283,9 @@ UInt_t QwCombinedBPM<T>::UpdateErrorFlag()
   charge_error = 0;
   pos_error[kXAxis]=0;
   pos_error[kYAxis]=0;
+
+  UInt_t error = 0;
+  
   for(size_t i=0;i<fElement.size();i++){
     //To update the event cut faliures in individual BPM devices
     charge_error      |= fElement[i]->GetEffectiveCharge()->GetErrorCode();
@@ -312,19 +301,19 @@ UInt_t QwCombinedBPM<T>::UpdateErrorFlag()
     fAbsPos[axis].UpdateErrorFlag(pos_error[axis]);
 
     //Get the Event cut error flag for SlopeX/Y
-    fErrorFlag|=fSlope[axis].GetEventcutErrorFlag();
-    fErrorFlag|=fIntercept[axis].GetEventcutErrorFlag();
-    fErrorFlag|=fMinimumChiSquare[axis].GetEventcutErrorFlag();
-    fErrorFlag|=fAbsPos[axis].GetEventcutErrorFlag();
+    error|=fSlope[axis].GetEventcutErrorFlag();
+    error|=fIntercept[axis].GetEventcutErrorFlag();
+    error|=fMinimumChiSquare[axis].GetEventcutErrorFlag();
+    error|=fAbsPos[axis].GetEventcutErrorFlag();
 
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
   fEffectiveCharge.UpdateErrorFlag(charge_error);
   //Get the Event cut error flag for EffectiveCharge
-  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
 
-  return fErrorFlag;
+  return error;
 }
 
 

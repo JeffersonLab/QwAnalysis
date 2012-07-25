@@ -120,11 +120,7 @@ Bool_t QwClock<T>::ApplySingleEventCuts(){
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fClock.GetValue();
     status&=kFALSE;
   }
-  fErrorFlag |=fClock.GetEventcutErrorFlag();//retrun the error flag for event cuts
-
-
   return status;
-
 }
 
 /********************************************************/

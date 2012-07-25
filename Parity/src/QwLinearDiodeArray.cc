@@ -161,7 +161,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   size_t i=0;
-  fErrorFlag=0;
+  UInt_t error_code = 0;
   //Event cuts for four wires
   for(i=0;i<8;i++){
     if (fPhotodiode[i].ApplySingleEventCuts()){ 
@@ -172,12 +172,12 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
       if (bDEBUG) std::cout<<" array ["<<i<<"] event cut failed ";
     }
     //Get the Event cut error flag for wires
-    fErrorFlag|=fPhotodiode[i].GetEventcutErrorFlag();
+    error_code|=fPhotodiode[i].GetErrorCode();
   }
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-    fRelPos[i].UpdateErrorFlag(fErrorFlag);//To update the event cut failed error code from the channels/wires error codes
+    fRelPos[i].UpdateErrorFlag(error_code);//To update the event cut failed error code from the channels/wires error codes
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -185,13 +185,10 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-
-    //Get the Event cut error flag for RelX/Y
-    fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
-  fEffectiveCharge.UpdateErrorFlag(fErrorFlag);//To update the eff-charge error code from the channels/wires event cut error codes
+  fEffectiveCharge.UpdateErrorFlag(error_code);//To update the eff-charge error code from the channels/wires event cut error codes
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -199,12 +196,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //Get the Event cut error flag for EffectiveCharge
-  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
-
-
   return status;
-
 }
 
 

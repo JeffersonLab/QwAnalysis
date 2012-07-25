@@ -113,10 +113,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
   else{
     status&=kFALSE;
   }
-  fErrorFlag|=fEnergyChange.GetEventcutErrorFlag();//retrun the error flag for event cuts
-
   return status;
-
 }
 
 void QwEnergyCalculator::IncrementErrorCounters()

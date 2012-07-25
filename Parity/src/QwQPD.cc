@@ -184,7 +184,7 @@ Bool_t QwQPD::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
-  fErrorFlag=0;
+  UInt_t error_code = 0;
   //Event cuts for four pads
   for(i=0;i<4;i++){
     if (fPhotodiode[i].ApplySingleEventCuts()){ //for RelX
@@ -195,24 +195,20 @@ Bool_t QwQPD::ApplySingleEventCuts()
       if (bDEBUG) std::cout<<" single pad "<<fPhotodiode[i].GetElementName()<<" event cut failed ";
     }
     //Get the Event cut error flag for the pads
-    fErrorFlag|=fPhotodiode[i].GetEventcutErrorFlag();
+    error_code|=fPhotodiode[i].GetErrorCode();
   }
 
   for(i=0;i<2;i++){
-    fRelPos[i].UpdateErrorFlag(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
+    fRelPos[i].UpdateErrorFlag(error_code);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fRelPos[i].ApplySingleEventCuts();
-    fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
 
-    fAbsPos[i].UpdateErrorFlag(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
+    fAbsPos[i].UpdateErrorFlag(error_code);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fAbsPos[i].ApplySingleEventCuts();
-    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
-  fEffectiveCharge.UpdateErrorFlag(fErrorFlag);// To update the eff-charge error code from the channels/wires event cut error codes
+  fEffectiveCharge.UpdateErrorFlag(error_code);// To update the eff-charge error code from the channels/wires event cut error codes
   status &= fEffectiveCharge.ApplySingleEventCuts();
-  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
   
   return status;
-
 }
 
 VQwHardwareChannel* QwQPD::GetSubelementByName(TString ch_name)
