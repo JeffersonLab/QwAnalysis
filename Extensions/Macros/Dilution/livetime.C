@@ -24,7 +24,8 @@ void livetime( Int_t runNum, Int_t lowcut=0, Int_t highcut=4e6, TString mycut = 
 
   //open the filename
   Char_t filename[100];
-  sprintf(filename, "QweakNew_%i.root", runNum);
+//  sprintf(filename, "QweakNew_%i.root", runNum);
+  sprintf(filename, "Qweak_%i.root", runNum);
   //  sprintf(filename, "Qweak_%i.000.trees.root", runNum);
   TFile *file = new TFile(filename);
   if ( !file->IsOpen() ) {
@@ -50,23 +51,25 @@ void livetime( Int_t runNum, Int_t lowcut=0, Int_t highcut=4e6, TString mycut = 
   TH1F *total = new TH1F("total","title",400,-200e3,200e3);
   TH1F *ratio = new TH1F("ratio","title",300,0.65,0.95);
   TH2F *ratioTime = new TH2F("ratioTime","title",1000,lowcut,highcut,300,0.70,1.00);
+  TH2F *compare = new TH2F("compare","title",140,-60e3,100e3,140,-60e3,100e3);
+
 
   TCanvas *c1 = new TCanvas("c1");
   c1->cd();
   gPad->SetLogy();
   mps_tree->Draw("sca_livetime.value>>live",Form("sca_livetime.value!=0 %s",cuts.Data()));
-  live->SetTitle(Form("Run %i: Livetime {events>%i && events<%i}",runNum,lowcut,highcut));
+  live->SetTitle(Form("Run %i: Livetime scaler clock {events>%i && events<%i}",runNum,lowcut,highcut));
   live->GetXaxis()->SetTitle("sca_livetime (counts)");
-  live->SetMarkerColor(kBlue+2);
+  live->SetLineColor(kBlue+2);
   live->Draw();
 
   TCanvas *c2 = new TCanvas("c2");
   c2->cd();
   gPad->SetLogy();
   mps_tree->Draw("sca_totaltime.value>>total",Form("sca_totaltime.value!=0 %s",cuts.Data()));
-  total->SetTitle(Form("Run %i: Totaltime {events>%i && events<%i}",runNum,lowcut,highcut));
+  total->SetTitle(Form("Run %i: Totaltime scaler {events>%i && events<%i}",runNum,lowcut,highcut));
   total->GetXaxis()->SetTitle("sca_totaltime (counts)");
-  total->SetMarkerColor(kBlue+2);
+  total->SetLineColor(kBlue+2);
   total->Draw();
 
   TCanvas *c3 = new TCanvas("c3");
@@ -74,7 +77,7 @@ void livetime( Int_t runNum, Int_t lowcut=0, Int_t highcut=4e6, TString mycut = 
   mps_tree->Draw("aRatio>>ratio",Form("sca_totaltime.value!=0 && sca_livetime.value!=0 && aRatio<1.0 && aRatio>0.65 %s",cuts.Data()));
   ratio->SetTitle(Form("Run %i: Livetime/Total time {events>%i && events<%i}",runNum,lowcut,highcut));
   ratio->GetXaxis()->SetTitle("Calculated livetime(unitless)");
-  ratio->SetMarkerColor(kBlue+2);
+  ratio->SetLineColor(kBlue+2);
   ratio->Draw();
 
   TCanvas *c4 = new TCanvas("c4");
@@ -85,6 +88,32 @@ void livetime( Int_t runNum, Int_t lowcut=0, Int_t highcut=4e6, TString mycut = 
   ratioTime->GetYaxis()->SetTitle("Calculated livetime (unitless)");
   ratioTime->SetMarkerColor(kBlue+2);
   ratioTime->Draw();
+
+  //copy a few hists for fun
+  TH1F *live2  = (TH1F*) live->Clone("live2");
+  TH1F *total2 = (TH1F*) total->Clone("total2");
+
+  TCanvas *c5 = new TCanvas("c5");
+  c5->cd();
+  gPad->SetLogy();
+  live2->GetXaxis()->SetTitle("crappy");
+  live2->SetLineColor(kBlue+2);
+  live2->Draw();
+  total2->SetLineColor(kRed);
+  total2->Draw("sames");
+  gPad->Update();
+
+  TCanvas *c6 = new TCanvas("c6");
+  c6->cd();
+  compare->SetStats(0);
+  mps_tree->Draw("sca_livetime.value:sca_totaltime.value>>compare",
+      Form("sca_livetime.value!=0 && sca_totaltime.value!=0 %s",cuts.Data()));
+  compare->SetTitle(Form("Run %i: Livetime scalers vs. Totaltime scalers \
+        {events>%i && events <%i}",runNum,lowcut,highcut));
+  compare->GetXaxis()->SetTitle("sca_totaltime");
+  compare->GetYaxis()->SetTitle("sca_livetime");
+  compare->SetMarkerColor(kRed);
+  compare->Draw("colz");
 
 
 } //end livetime function
