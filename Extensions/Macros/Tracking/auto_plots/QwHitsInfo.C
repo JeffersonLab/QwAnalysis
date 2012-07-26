@@ -6,11 +6,14 @@ fQwHits.fDirection,  fQwHits.fElement split by fRegion and fPackage, for the tra
 
 Entry Conditions: the run number, bool for first 100k
 Date: 06-13-2012
-Modified:6-29-2012
+Modified:7-7-2012
 Assisted By: Wouter Deconinck 
 *********************************************************/
 
 #include "auto_shared_includes.h"
+
+#include "QwEvent.h"
+#include "QwHit.h"
 
 //define a prefix for all the output files - global don't need to pass
 TString Prefix;
@@ -67,14 +70,16 @@ Entry Conditions: TChain - event_tree
 Global: Prefix - the prefix for the output file
 Called By: QwHitsinfo
 Date: 06-13-2012
-Modified:
+Modified:7-9-2012
 *********************************************************/
 
 void QwHits_Region (TChain * event_tree)
 {
-
 	//Create the canvas
 	TCanvas c1("c1", "QwHits by Region - regardless of package", 500,400);
+
+	//define the histogram
+	TH1D* h = new TH1D ("h","QwHits - Region",7,1.0,0.0);
 
 /* edit if want to sperate into packages form region the skeleton is here
 	c1.Divide(2,0);
@@ -97,13 +102,49 @@ void QwHits_Region (TChain * event_tree)
 	}
 */
 
-	event_tree->Draw("events.fQwHits.fRegion");
+//start with looping over all the events and putting them in the correct histogram 
+
+        //figure out how many evernts are in the rootfile so I know how long to have my loop go for
+        Int_t nevents=event_tree->GetEntries();
+
+        //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
+        QwEvent* fEvent = 0;
+
+        //Now I have to get a pointer to the events branch to loop through
+
+        //Start by setting the event_tree branch to be on
+        event_tree->SetBranchStatus("events",1);
+
+        //now get the event branch of the event_tree branch and call it event_branch creativly
+        TBranch* event_branch=event_tree->GetBranch("events");
+        event_branch->SetAddress(&fEvent);
+
+        for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
+        {
+                //Get the ith entry form the event tree
+                event_branch->GetEntry(i);
+
+                //get the number of Hits
+                int nHits = fEvent->GetNumberOfHits();
+
+                // now let's loop through the tree lines and fill all the above histograms
+                for (int t = 0; t < nHits; t++)
+		{
+			// Get pointer to t'th hit in entry i
+			 const QwHit* hit=fEvent->GetHit(t);
+			
+			h->Fill(hit->GetRegion());
+		}
+
+	}
+//	event_tree->Draw("events.fQwHits.fRegion");
+
+	h->Draw();
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"Region.png");
 
 	return;
-
 }
 
 /***********************************************************
@@ -124,7 +165,7 @@ Entry Conditions: TChain - event_tree
 Global: Prefix - the prefix for the output file
 Called By: QwHitsInfo
 Date: 06-13-2012
-Modified:
+Modified:7-9-2012
 *********************************************************/
 
 void QwHits_Package (TChain * event_tree)
@@ -132,6 +173,9 @@ void QwHits_Package (TChain * event_tree)
 
 	//Create the canvas
 	TCanvas c2("c2", "QwHits by Package - regadless of region", 500,400);
+
+	//define the histogram
+	TH1D* h2 = new TH1D ("h2","QwHits - Package",4,1.0,0.0);
 
 /*edit if want to sperate into packages form region the skeleton is here
 	c2.Divide(2,0);
@@ -154,13 +198,48 @@ void QwHits_Package (TChain * event_tree)
 	}
 */
 
-	event_tree->Draw("events.fQwHits.fPackage");
+//start with looping over all the events and putting them in the correct histogram 
+
+        //figure out how many evernts are in the rootfile so I know how long to have my loop go for
+        Int_t nevents=event_tree->GetEntries();
+
+        //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
+        QwEvent* fEvent = 0;
+
+        //Now I have to get a pointer to the events branch to loop through
+
+        //Start by setting the event_tree branch to be on
+        event_tree->SetBranchStatus("events",1);
+
+        //now get the event branch of the event_tree branch and call it event_branch creativly
+        TBranch* event_branch=event_tree->GetBranch("events");
+        event_branch->SetAddress(&fEvent);
+
+        for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
+        {
+                //Get the ith entry form the event tree
+                event_branch->GetEntry(i);
+
+                //get the number of Hits
+                int nHits = fEvent->GetNumberOfHits();
+
+                // now let's loop through the tree lines and fill all the above histograms
+                for (int t = 0; t < nHits; t++)
+		{
+			// Get pointer to j'th hit in entry i
+			 const QwHit* hit=fEvent->GetHit(t);
+			
+			h2->Fill(hit->GetPackage());
+		}
+
+	}
+//	event_tree->Draw("events.fQwHits.fPackage");
+	h2->Draw();
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c2.SaveAs(Prefix+"Package.png");
 
 	return;
-
 }
 
 /***********************************************************
@@ -187,14 +266,16 @@ Entry Conditions: TChain - event_tree
 Global: Prefix - the prefix for the output file
 Called By: QwHitsinfo
 Date: 06-13-2012
-Modified:
+Modified: 07-09-2012
 *********************************************************/
 
 void QwHits_Direction (TChain * event_tree)
 {
-
 	//Create the canvas
 	TCanvas c3("c3", "QwHits by Dircetion - in Region 2", 500,400);
+
+	//define the histogram
+	TH1D* h3 = new TH1D ("h3","QwHits - Direction",7,1.0,0.0);
 
 /*edit if want to sperate into packages form region the skeleton is here
 
@@ -217,10 +298,44 @@ void QwHits_Direction (TChain * event_tree)
 
 	}
 */
+//start with looping over all the events and putting them in the correct histogram 
 
-	//Directions (left to right (X,Y,U,V,R,phi,left,right))
+        //figure out how many evernts are in the rootfile so I know how long to have my loop go for
+        Int_t nevents=event_tree->GetEntries();
 
-	event_tree->Draw("events.fQwHits.fDirection");
+        //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
+        QwEvent* fEvent = 0;
+
+        //Now I have to get a pointer to the events branch to loop through
+
+        //Start by setting the event_tree branch to be on
+        event_tree->SetBranchStatus("events",1);
+
+        //now get the event branch of the event_tree branch and call it event_branch creativly
+        TBranch* event_branch=event_tree->GetBranch("events");
+        event_branch->SetAddress(&fEvent);
+
+        for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
+        {
+                //Get the ith entry form the event tree
+                event_branch->GetEntry(i);
+
+                //get the number of Hits
+                int nHits = fEvent->GetNumberOfHits();
+
+                // now let's loop through the tree lines and fill all the above histograms
+                for (int t = 0; t < nHits; t++)
+		{
+			// Get pointer to j'th hit in entry i
+			 const QwHit* hit=fEvent->GetHit(t);
+			
+			//Directions (left to right (X,Y,U,V,R,phi,left,right))
+			h3->Fill(hit->GetDirection());
+		}
+	}
+
+//	event_tree->Draw("events.fQwHits.fDirection");
+	h3->Draw();
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c3.SaveAs(Prefix+"Direction.png");
@@ -246,11 +361,104 @@ Entry Conditions: TChain - event_tree
 Global: Prefix - the prefix for the output file
 Called By: QwHitsinfo
 Date: 06-13-2012
-Modified:
+Modified:07-09-2012
 *********************************************************/
 
 void QwHits_Element (TChain * event_tree)
 {
+
+	//create and size a vector of TH1D histograms so I can loop 
+	//This is for region 2 and 3
+	std::vector < vector<TH1D*> > h4;
+	h4.resize(4);
+
+	for (int q = 0 ; q < 4 ; q++)
+	{
+		h4[q].resize(3);
+		for (int w = 0 ; w < 3; w++)
+		{
+	        	//define the histograms 1 through 4 - one for each plain and on for the all of them
+       		 	h4[q][w]= new TH1D (Form("h[%d][%d]",q,w),Form("QwHits - Element for Region %d, Package %d",q,w),30,1.0,0.0);
+			//h4[region][package]
+		}
+	}
+
+	//create and size a vector of TH1D histograms so I can loop
+	std::vector<TH1D*> h5;
+	h5.resize(2);
+
+	for(int e = 0 ; e < 2 ; e++)
+	{ 
+        	//define the histograms 1 through 4 - one for each plain and on for the all of them
+        	h5[e]= new TH1D (Form("h[%d]",e ),Form("QwHits - Element for Region %d",e + 4),30,1,0);
+	}
+
+//start with looping over all the events and putting them in the correct histogram 
+
+        //figure out how many evernts are in the rootfile so I know how long to have my loop go for
+        Int_t nevents=event_tree->GetEntries();
+
+        //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
+        QwEvent* fEvent = 0;
+
+        //Now I have to get a pointer to the events branch to loop through
+
+        //Start by setting the event_tree branch to be on
+        event_tree->SetBranchStatus("events",1);
+
+        //now get the event branch of the event_tree branch and call it event_branch creativly
+        TBranch* event_branch=event_tree->GetBranch("events");
+        event_branch->SetAddress(&fEvent);
+
+        for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
+        {
+                //Get the ith entry form the event tree
+                event_branch->GetEntry(i);
+
+                //get the number of Hits
+                int nHits = fEvent->GetNumberOfHits();
+
+                // now let's loop through the hits and fill all the above histograms
+                for (int t = 0; t < nHits; t++)
+		{
+			// Get pointer to j'th hit in entry i
+			 const QwHit* hit=fEvent->GetHit(t);
+			
+			if(hit->GetRegion()==2)
+			{
+				if(hit->GetPackage()==1)
+				{
+					//h4[region][package]
+					h4[2][1]->Fill(hit->GetElement());
+				}else if (hit->GetPackage()==2)
+					{
+						h4[2][2]->Fill(hit->GetElement());
+					}
+			}
+
+			if(hit->GetRegion()==3)
+			{
+				if(hit->GetPackage()==1)
+				{
+					//h4[region][package]
+					h4[3][1]->Fill(hit->GetElement());
+				}else if (hit->GetPackage()==2)
+					{
+						h4[3][2]->Fill(hit->GetElement());
+					}
+			}
+
+			if(hit->GetRegion()==4)
+			{
+				h5[0]->Fill(hit->GetElement());
+			}
+
+			if(hit->GetRegion()==5)
+			{
+				h5[1]->Fill(hit->GetElement());
+			}
+		}
+	}
 
 	for (int r = 2; r <=3; r++)
 	{
@@ -259,21 +467,12 @@ void QwHits_Element (TChain * event_tree)
 
 		c4.Divide(2,0);
 
-		//create and size a vector of TH1D histograms so I can loop
-		//Package 2 is on the left and region 2 is on the right
-		std::vector<TH1D*> h4;
-		h4.resize(2);
-
 		for (int pkg = 1; pkg <=2; pkg++)
 		{
 
-	        	//define the histograms 1 through 4 - one for each plain and on for the all of them
-       		 	h4[pkg - 1]= new TH1D (Form("h[%d]",pkg -1 ),Form("QwHits - Element for Region %d, Package %d",r,pkg),30,-0.5,0.5);
-
         		c4.cd(pkg);
-	
-			event_tree->Draw("events.fQwHits.fElement",Form("events.fQwHits.fRegion==%d && events.fQwHits.fPackage==%d",r, pkg));
-
+			h4[r][pkg]->Draw();	
+//			event_tree->Draw("events.fQwHits.fElement",Form("events.fQwHits.fRegion==%d && events.fQwHits.fPackage==%d",r, pkg));
 		}
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
@@ -285,19 +484,12 @@ void QwHits_Element (TChain * event_tree)
 		//Create the canvas
 		TCanvas c5("c5", Form("QwHits by Element - in Region %d",r2), 500,400);
 
-		//create and size a vector of TH1D histograms so I can loop
-		//Package 1 is on the left and package 2 is on the right
-		std::vector<TH1D*> h5;
-		h5.resize(3);
+		h5[r2 - 4]->Draw();
 
-        	//define the histograms 1 through 4 - one for each plain and on for the all of them
-        	h5[r2 - 4]= new TH1D (Form("h[%d]",r2 -4 ),Form("QwHits - Element for Region %d",r2),30,-0.5,0.5);
-
-        	event_tree->Draw("events.fQwHits.fElement",Form("events.fQwHits.fRegion==%d",r2));
+//        	event_tree->Draw("events.fQwHits.fElement",Form("events.fQwHits.fRegion==%d",r2));
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 		c5.SaveAs(Prefix+Form("Elements_Region_%d.png",r2));
-
 	}
 
 	return;
@@ -318,11 +510,41 @@ Modified:
 void NQwTracks (TChain * event_tree)
 {
 
+	//define the histogram
+	TH1D* h6 = new TH1D ("h6","NQwTracks",7,1.0,0.0);
+
+//start with looping over all the events and putting them in the correct histogram 
+
+        //figure out how many evernts are in the rootfile so I know how long to have my loop go for
+        Int_t nevents=event_tree->GetEntries();
+
+        //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
+        QwEvent* fEvent = 0;
+
+        //Now I have to get a pointer to the events branch to loop through
+
+        //Start by setting the event_tree branch to be on
+        event_tree->SetBranchStatus("events",1);
+
+        //now get the event branch of the event_tree branch and call it event_branch creativly
+        TBranch* event_branch=event_tree->GetBranch("events");
+        event_branch->SetAddress(&fEvent);
+
+        for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
+        {
+                //Get the ith entry form the event tree
+                event_branch->GetEntry(i);
+		
+		h6->Fill(fEvent->GetNQwTracks());	
+	}
+
         //Create the canvas and set y axis log scale
         TCanvas c4("c4", "Log of events.fNQwTracks", 500,400);
 	c4.SetLogy();
 
-        event_tree->Draw("events.fNQwTracks");
+	h6->Draw();
+
+//        event_tree->Draw("events.fNQwTracks");
 
         //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
         c4.SaveAs(Prefix+"fNQwTracks.png");
