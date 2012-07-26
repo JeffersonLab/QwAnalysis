@@ -18,7 +18,9 @@ Assisted By: Juan Carlos Cornejo and Wouter Deconinck
 *********************************************************/
 
 #include "auto_shared_includes.h"
+#include "TLeaf.h"
 #include "TH2D.h"
+#include <iostream>
 
 //define a prefix for all the output files - global don't need to pass
 TString Prefix;
@@ -44,7 +46,7 @@ void dslumi(int runnum, bool is100k)
 	//create a vector of 2-D histograms of size 9 and define it
         std::vector<TH2D*> h;
 	h.resize(9);
-	for (int j =0; j<9;j++)
+	for (size_t j = 1; j<h.size();j++)
 	{
 		h[j]= new TH2D (Form("h[%d]",j),Form("dslumi %d rate vs time",j),300,1,0,30,1,0);
 	        h[j]->GetYaxis()->SetTitle(Form("dslumi %d rate",j));
@@ -53,7 +55,7 @@ void dslumi(int runnum, bool is100k)
 	//create a vector of 2-D histograms of size 9 and define it
         std::vector<TH2D*>  h2;
 	h2.resize(5);
-	for (int j =0; j<5;j++)
+	for (size_t j = 1; j<h2.size();j++)
 	{
 		h2[j]= new TH2D (Form("h2[%d]",j),Form("sca_dslumi%d.value/sca_dslumi%d.value vs time",j,j+4),30,1.0,0.0,30,1.0,0.0);
 	        h2[j]->GetYaxis()->SetTitle(Form("dslumi %d rate/dslumi %d rate",j,j+4));
@@ -77,56 +79,57 @@ void dslumi(int runnum, bool is100k)
 	Double_t mps_counter;
 	Double_t CodaEventType;
 	Double_t CodaEventNumber;
-	std::vector<Double_t> dslumi;  //[octant]
+	std::vector<TLeaf*> dslumi;  //[octant]
 	dslumi.resize(9);
 
 	 //selects the leaf that we are going to need
 	Mps_Tree->SetBranchAddress("mps_counter",&mps_counter);
 	Mps_Tree->SetBranchAddress("CodaEventType",&CodaEventType);
 	Mps_Tree->SetBranchAddress("CodaEventNumber",&CodaEventNumber);
-	for (int u = 1; u < 9; u++)
+	for (size_t u = 1; u < dslumi.size(); u++)
 	{
-		Mps_Tree->SetBranchAddress(Form("sca_dslumi%d",u),&(dslumi[u]));
+		TBranch* branch = Mps_Tree->GetBranch(Form("sca_dslumi%d",u));
+		dslumi[u] = branch->GetLeaf("value");
 	}
 
         //Loop through this and fill all the graphs at once
-
         for (int i = 0; i < nevents ; i++) 
         {
                 //Get the ith entry form the event tree
 		Mps_Tree->GetEntry(i);
 		if (CodaEventType != 1) continue;
 
-//		cout << mps_counter << ": " << dslumi[1] << endl;
+		//cout << mps_counter << ": " << dslumi[1] << endl;
 	
 		//Fill histograms
-		for (int q = 1; q < 9; q++)
+		for (size_t q = 1; q < dslumi.size(); q++)
 		{
-			h[q]->Fill(mps_counter,dslumi[q]);
+			h[q]->Fill(mps_counter,dslumi[q]->GetValue());
 		} 
 
-		for (int q = 1; q <5; q++)
+		for (size_t q = 1; q < 5; q++)
 		{
-			h2[q]->Fill(mps_counter,dslumi[q]/dslumi[q+4]);
+			h2[q]->Fill(mps_counter,dslumi[q]->GetValue()/dslumi[q+4]->GetValue());
 		}
 
 		//Fill histogram
-		h3->Fill(mps_counter,dslumi[1]+dslumi[2]+dslumi[3]+dslumi[4]
-			+dslumi[5]+dslumi[6]+dslumi[7]+dslumi[8]);
+		h3->Fill(mps_counter,dslumi[1]->GetValue()+dslumi[2]->GetValue()+dslumi[3]->GetValue()+dslumi[4]->GetValue()
+			+dslumi[5]->GetValue()+dslumi[6]->GetValue()+dslumi[7]->GetValue()+dslumi[8]->GetValue());
 		
 	}
 
+
 	//Create a canvas
-	TCanvas c1( "c1", "dslumi rate vs. mps counter", 900, 1000);
+	TCanvas* c1 = new TCanvas( "c1", "dslumi rate vs. mps counter", 900, 1000);
 
 	//Divide that canvas into 8 rows and 1 columns
-	c1.Divide(1,8);
+	c1->Divide(1,8);
 
 	//loop over all 8 dslumis and put each graph in a differnt pad
 	for (int i = 1; i <=8; i++)
 		{
 			//select pad i
-	  		c1.cd(i);
+	  		c1->cd(i);
 
 		  	//Graph the ith lumi rate vs time
 		  	/*Form("sca_dslumi%d.value:mps_counter",i) - a function to 
@@ -141,19 +144,22 @@ void dslumi(int runnum, bool is100k)
 		}
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-	c1.SaveAs(Prefix+"vs_time.png");
+	c1->SaveAs(Prefix+"vs_time.png");
+
+	delete c1;
+
 
 	//Create a canvas
-	TCanvas c2 ( "c2", "dslumi ratios vs. mps counter", 900, 800);
+	TCanvas* c2 = new TCanvas ( "c2", "dslumi ratios vs. mps counter", 900, 800);
 
 	//Divide that canvas into 8 rows and 1 columns
-	c2.Divide(1,4);
+	c2->Divide(1,4);
 
 	for(int i =1; i<=4;i++)
 		{
 
 	   		//select pad i
-	   		c2.cd(i);
+	   		c2->cd(i);
 
 		   	//Graph the i th dslumi rate/(i+4)th dslumi rate vs time 
 		   	/*Form("sca_dslumi%d.value/sca_dslumi%d.value:mps_counter",i,i+4) - a function to 
@@ -167,10 +173,13 @@ void dslumi(int runnum, bool is100k)
 		}
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-	c2.SaveAs(Prefix+"ratios_vs_time.png");
+	c2->SaveAs(Prefix+"ratios_vs_time.png");
+
+	delete c2;
+
 
 	//Create a canvas
-	TCanvas c3 ( "c3", "dslumi rate sum vs. mps counter", 400, 500);
+	TCanvas* c3 = new TCanvas ( "c3", "dslumi rate sum vs. mps counter", 400, 500);
 
 	//Graph the sum lumi rate vs time - 
 //	Mps_Tree->Draw("(sca_dslumi1.value+sca_dslumi2.value+sca_dslumi3.value+sca_dslumi4.value+sca_dslumi5.value+sca_dslumi6.value+sca_dslumi7.value+sca_dslumi8.value):mps_counter");
@@ -180,15 +189,18 @@ void dslumi(int runnum, bool is100k)
 	//cout <<"I printed " << endl;
 
 	//save the canvas as a png file - right now it goes to the rootfile directory
-	c3.SaveAs(Prefix+"sum_vs_time.png");
+	c3->SaveAs(Prefix+"sum_vs_time.png");
+
+	delete c3;
 
 
-	for (int i = 0 ; i <= 8 ; i++) 
+	for (size_t i = 0 ; i < h.size() ; i++) 
 	{
 		delete h[i];
 		h[i] = 0;
 	}
-	for (int i = 0 ; i <= 4 ; i++) 
+
+	for (size_t i = 0 ; i < h2.size() ; i++) 
 	{
 		delete h2[i];
 		h2[i] = 0;
@@ -197,7 +209,6 @@ void dslumi(int runnum, bool is100k)
 	delete h3;
 
 	delete Mps_Tree;
-
 
 //	dslumi_vs_time(chain);
 

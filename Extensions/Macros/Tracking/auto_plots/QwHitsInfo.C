@@ -79,7 +79,7 @@ void QwHits_Region (TChain * event_tree)
 	TCanvas c1("c1", "QwHits by Region - regardless of package", 500,400);
 
 	//define the histogram
-	TH1D* h = new TH1D ("h","QwHits - Region",7,1.0,0.0);
+	TH1D* h = new TH1D ("h","QwHits - Region",7,0.0,7.0);
 
 /* edit if want to sperate into packages form region the skeleton is here
 	c1.Divide(2,0);
@@ -172,10 +172,10 @@ void QwHits_Package (TChain * event_tree)
 {
 
 	//Create the canvas
-	TCanvas c2("c2", "QwHits by Package - regadless of region", 500,400);
+	TCanvas c2("c2", "QwHits by Package - regardless of region", 500,400);
 
 	//define the histogram
-	TH1D* h2 = new TH1D ("h2","QwHits - Package",4,1.0,0.0);
+	TH1D* h2 = new TH1D ("h2","QwHits - Package",3,0.0,3.0);
 
 /*edit if want to sperate into packages form region the skeleton is here
 	c2.Divide(2,0);
@@ -275,7 +275,7 @@ void QwHits_Direction (TChain * event_tree)
 	TCanvas c3("c3", "QwHits by Dircetion - in Region 2", 500,400);
 
 	//define the histogram
-	TH1D* h3 = new TH1D ("h3","QwHits - Direction",7,1.0,0.0);
+	TH1D* h3 = new TH1D ("h3","QwHits - Direction",5,0.0,5.0);
 
 /*edit if want to sperate into packages form region the skeleton is here
 
@@ -390,7 +390,7 @@ void QwHits_Element (TChain * event_tree)
 	for(int e = 0 ; e < 2 ; e++)
 	{ 
         	//define the histograms 1 through 4 - one for each plain and on for the all of them
-        	h5[e]= new TH1D (Form("h[%d]",e ),Form("QwHits - Element for Region %d",e + 4),30,1,0);
+        	h5[e]= new TH1D (Form("h[%d]",e ),Form("QwHits - Element for Region %d",e + 4),7,0.0,7.0);
 	}
 
 //start with looping over all the events and putting them in the correct histogram 
@@ -511,7 +511,7 @@ void NQwTracks (TChain * event_tree)
 {
 
 	//define the histogram
-	TH1D* h6 = new TH1D ("h6","NQwTracks",7,1.0,0.0);
+	TH1D* h6 = new TH1D ("h6","NQwTracks",10,0.0,10.0);
 
 //start with looping over all the events and putting them in the correct histogram 
 
@@ -535,7 +535,7 @@ void NQwTracks (TChain * event_tree)
                 //Get the ith entry form the event tree
                 event_branch->GetEntry(i);
 		
-		h6->Fill(fEvent->GetNQwTracks());	
+		h6->Fill(fEvent->GetNumberOfTracks());
 	}
 
         //Create the canvas and set y axis log scale

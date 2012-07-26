@@ -146,28 +146,21 @@ void Residual(int runnum, bool is100k)
 		{
 
 			//set pointer to treeline
-			const QwTreeLine* treeline=fEvent->GetTreeLine(t);
+			const QwTreeLine* const_treeline = fEvent->GetTreeLine(t);
 
 			//get number of hits for this event
-			int nhits=treeline->GetNumberOfHits();
+			int nhits = const_treeline->GetNumberOfHits();
 
 			for (int j = 0; j < nhits ; j++)
 			{
 				//set pointer to hit
-				const QwHit* hit=treeline->GetHit(j);
+				QwTreeLine* treeline = const_cast<QwTrackingTreeLine*>(const_treeline);
+				const QwHit* hit = treeline->GetHit(j);
 
 				if (hit->GetRegion()==2)
 				{
-					if (hit->GetPackage()==1)
-					{
-						h2[0]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
-						h[0][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
-					}
-					if (hit->GetPackage()==2)
-					{
-						h2[1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
-						h[1][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
-					}
+					h2[hit->GetPackage() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
+					h[hit->GetPackage() - 1][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
 				}
 			}
 		}
@@ -311,22 +304,18 @@ RMS/sqrt(N)
 	//Error is the RMS.sqrt(N)
 
 	fout << "What \t Run \t pkg \t Plane \t Value \t Error" <<endl; 
-	fout << "Resd. \t " << runnum << "\t 1 \t 0 \t" << setprecision(5) << h2[0]->GetMean() << "\t" << setprecision(4) << h2[0]->GetRMS()/sqrt(h2[0]->GetEntries()) << 
-endl;
+	fout << "Resd. \t " << runnum << "\t 1 \t 0 \t" << setprecision(5) << h2[0]->GetMean() << "\t" << setprecision(4) << h2[0]->GetRMS()/sqrt(h2[0]->GetEntries()) << endl;
 
 	for (int k = 1; k<=12; k++)
 	{
-		fout << "Resd. \t " << runnum <<"\t 1 \t " << k << " \t" << setprecision(5) << h[0][k - 1]->GetMean() << "\t" << setprecision(4) << h[0][k - 
-1]->GetRMS()/sqrt(h[0][k - 1]->GetEntries()) << endl;
+		fout << "Resd. \t " << runnum <<"\t 1 \t " << k << " \t" << setprecision(5) << h[0][k - 1]->GetMean() << "\t" << setprecision(4) << h[0][k - 1]->GetRMS()/sqrt(h[0][k - 1]->GetEntries()) << endl;
 	}
 
-	fout << "Resd. \t " << runnum << "\t 2 \t 0 \t" << setprecision(5) << h2[1]->GetMean() << "\t" << setprecision(4) << h2[1]->GetRMS()/sqrt(h2[1]->GetEntries()) << 
-endl;
+	fout << "Resd. \t " << runnum << "\t 2 \t 0 \t" << setprecision(5) << h2[1]->GetMean() << "\t" << setprecision(4) << h2[1]->GetRMS()/sqrt(h2[1]->GetEntries()) << endl;
 
 	for (int m = 1; m<=12; m++)
 	{
-		fout << "Resd. \t " << runnum <<"\t 2 \t " << m << " \t" << setprecision(5) << h[1][m - 1]->GetMean() << "\t" << setprecision(4) << h[1][m - 
-1]->GetRMS()/sqrt(h[1][m - 1]->GetEntries()) << endl;
+		fout << "Resd. \t " << runnum <<"\t 2 \t " << m << " \t" << setprecision(5) << h[1][m - 1]->GetMean() << "\t" << setprecision(4) << h[1][m - 1]->GetRMS()/sqrt(h[1][m - 1]->GetEntries()) << endl;
 	}
 
 	//close the file

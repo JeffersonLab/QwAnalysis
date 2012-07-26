@@ -60,7 +60,7 @@ int getOctNumber(TChain* event_tree){
 
 TH1F* h = new TH1F("h","Region 3, Package 2 Octant number",9,-0.5,8.5);
 
-event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==3&&events.fQwPartialTracks.fPackage==2");
+event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==3&&events.fQwPartialTracks.fPackage==2","GOFF",1000);
 
 //get the mean of histgram h made above, this returns a double value that is the trunkated to interger which is the region 3 pacakge 2 octant number
 
@@ -86,7 +86,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
    int oct=getOctNumber(event_tree);
    if (oct == 0 || oct > 8) {
      cout << "octant not valid!" << endl;
-     return;
+     oct = 1;
    }
 
    // Configure root
@@ -135,11 +135,11 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
           
     // Temporayy histograms to stroe projection angles
-      TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
-      TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
+      TH1F* pkg1_theta=new TH1F("pkg1_theta","pkg1_theta",500,-1,1);
+      TH1F* pkg2_theta=new TH1F("pkg2_theta","pkg2_theta",500,-1,1);
 
-      TH1F* pkg1_phi=new TH1F("c","c",500,-1,1);
-      TH1F* pkg2_phi=new TH1F("d","d",500,-1,1);
+      TH1F* pkg1_phi=new TH1F("pkg1_phi","pkg1_phi",500,-1,1);
+      TH1F* pkg2_phi=new TH1F("pkg2_phi","pkg2_phi",500,-1,1);
 
       // the fit function (guassian) for the angles projections
       TF1* f1=new TF1("f1","gaus",-1,1);
@@ -155,16 +155,16 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
       f4->SetParameters(1,-0.5,1);
 
       // Finally project them to the above histograms to extract mean angle
-      event_tree->Project("a","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==1");
+      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg1_theta","events.fQwTracks.fPackage==1","GOFF",10000);
       pkg1_theta->Fit("f1","QN0");
 
-      event_tree->Project("b","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==2");
+      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg2_theta","events.fQwTracks.fPackage==2","GOFF",10000);
       pkg2_theta->Fit("f2","QN0");
 
-      event_tree->Project("c","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==1");
+      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg1_phi","events.fQwTracks.fPackage==1","GOFF",10000);
       pkg1_phi->Fit("f3","QN0");
 
-      event_tree->Project("d","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==2");
+      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg2_phi","events.fQwTracks.fPackage==2","GOFF",10000);
       pkg2_phi->Fit("f4","QN0");
       
       double mean_thetaoff_pkg1=f1->GetParameter(1);
