@@ -158,7 +158,7 @@ bpmstripline, 	qwk_bpm3h09,    YM,		10000,  61900,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   XP,		10000,  64260,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   XM,		10000,  60150,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   YP,		10000,  59030,	 l,	 0
-bpmstripline, 	qwk_bpm3h09b,   YM,             10000,  76200,       l,      0
+bpmstripline, 	qwk_bpm3h09b,   YM,             10000,  76200,   l,      0
 
 
 
