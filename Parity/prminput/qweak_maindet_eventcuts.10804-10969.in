@@ -1,0 +1,87 @@
+!This file contains MD  event cut properties last updated 11/15/2010 based on the run 6297
+
+
+!Global switch to turn ON and OFF eventcut check
+!Available settings
+!To turn OFF all checks
+!EVENTCUTS = 0 
+!To turn OFF event cuts and perform only HW checks
+!EVENTCUTS = 1
+!To turn do both event cuts and HW checks
+!EVENTCUTS = 2
+!To turn do both event cuts and HW checks and only flag event cut failed events
+EVENTCUTS = 3
+!***************************************************
+!IMPORTANT
+!---------
+!Make sure when puting tabs in the map file entries, always put ", " before inserting a tab. 
+!Otherwise the routine QwParameterFile::GetNextToken(", ") will extract the entry with the tab character.
+
+
+!device_type, device_name, lower limit, upper limit, local(l)/global(g), stability percentage
+
+!New MD yield cuts added by Rakitha (rakithab@jlab.org)
+combinationpmt, qwk_md1barsum, 0 ,	0.05, g, 0.0001
+combinationpmt, qwk_md7barsum, 0 ,	0.05, g, 0.0001
+
+!  Single PMTs
+!--------
+integrationpmt  qwk_md1neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md2neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md3neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md4neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md5neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md6neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md7neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md8neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md1pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md2pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md3pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md4pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md5pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md6pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md7pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md8pos	       -1000000  1000000  g  0
+integrationpmt  qwk_md9neg	       -1000000  1000000  g  0
+integrationpmt  qwk_md9pos	       -1000000  1000000  g  0
+
+!  Auxillary signals
+!--------
+integrationpmt  qwk_pmtled	       -1000000  1000000  g  0
+integrationpmt  qwk_pmtonl	       -1000000  1000000  g  0
+!  integrationpmt  qwk_pmtltg	       -1000000  1000000  g  0
+!  integrationpmt  qwk_isourc	       -1000000  1000000  g  0
+!  integrationpmt  qwk_preamp	       -1000000  1000000  g  0
+!  integrationpmt  qwk_cagesr	       -1000000  1000000  g  0
+
+!  Combinations
+!--------
+!!!  See above for: qwk_md1barsum
+combinationpmt  qwk_md2barsum	       -1000000  1000000  g  0
+combinationpmt  qwk_md3barsum	       -1000000  1000000  g  0
+combinationpmt  qwk_md4barsum	       -1000000  1000000  g  0
+combinationpmt  qwk_md5barsum	       -1000000  1000000  g  0
+combinationpmt  qwk_md6barsum	       -1000000  1000000  g  0
+!!!  See above for: qwk_md7barsum
+combinationpmt  qwk_md8barsum	       -1000000  1000000  g  0
+combinationpmt  qwk_md9barsum	       -1000000  1000000  g  0
+!
+combinationpmt  qwk_mdoddbars	       -1000000  1000000  g  0
+combinationpmt  qwk_mdevenbars	       -1000000  1000000  g  0
+combinationpmt  qwk_mdallbars	       -1000000  1000000  g  0
+
+!  Some examples:
+!--------
+! integrationpmt, qwk_md1neg, 1275 ,	1000000, l, 0
+! integrationpmt, qwk_md1neg, 0 ,	1000000, l, 1
+! combinationpmt, qwk_md2barsum, 1021 ,	1000000, l, 0
+! combinationpmt, qwk_md2barsum, 0 ,	1000000, g, 0.0001
+
+
+!Comments
+!--------
+!Devices that are not in the list are not subjected event cut checks
+!All devices  will be tested for HW checks.
+!
+
+
