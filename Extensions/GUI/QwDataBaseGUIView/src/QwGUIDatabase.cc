@@ -2461,18 +2461,18 @@ void QwGUIDatabase::HistogramDetector()
 
 
     TLegend *legend = new TLegend(0.70,0.70,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R> : mean = %2.4f, rms = %2.4f", 
-					  h_in_R->GetMean(), h_in_R->GetMeanError()), "p");
-    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> : mean = %2.4f, rms = %2.4f", 
-					  h_out_R->GetMean(), h_out_R->GetMeanError()), "p");
-    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L> : mean = %2.4f, rms = %2.4f",
-					  h_in_L->GetMean(), h_in_L->GetMeanError()), "p");
-    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> : mean = %2.4f, rms = %2.4f ", 
-					  h_out_L->GetMean(), h_out_L->GetMeanError()), "p");
-    if(o>0) legend->AddEntry(h_bad,Form("<BAD> : mean = %2.4f, rms= %2.4f ",
-					h_bad->GetMean(), h_bad->GetMeanError()), "p"); 
-    if(p>0) legend->AddEntry(h_suspect,Form("<SUSPECT> : mean = %2.4f, rms = %2.4f ", 
-					    h_suspect->GetMean(), h_suspect->GetMeanError()), "p"); 
+    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R> : mean = %2.4f #pm %2.4f ppm; rms = %2.4f ppm", 
+					  h_in_R->GetMean(), h_in_R->GetMeanError(),h_in_R->GetRMS()), "p");
+    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> : mean = %2.4f #pm %2.4f ppm; rms = %2.4f ppm", 
+					  h_out_R->GetMean(), h_out_R->GetMeanError(),h_out_R->GetRMS()), "p");
+    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L> : mean = %2.4f #pm %2.4f ppm; rms = %2.4f ppm",
+					  h_in_L->GetMean(), h_in_L->GetMeanError(),h_in_L->GetRMS()), "p");
+    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> : mean = %2.4f #pm %2.4f ppm; rms = %2.4f ppm ", 
+					  h_out_L->GetMean(), h_out_L->GetMeanError(),h_out_L->GetRMS()), "p");
+    if(o>0) legend->AddEntry(h_bad,Form("<BAD> : mean = %2.4f #pm %2.4f ppm; rms = %2.4f ppm ",
+					h_bad->GetMean(), h_bad->GetMeanError(),h_bad->GetRMS()), "p"); 
+    if(p>0) legend->AddEntry(h_suspect,Form("<SUSPECT> : mean = %2.4f #pm %2.4f ppm; rms = %2.4f ppm ", 
+					    h_suspect->GetMean(), h_suspect->GetMeanError(),h_suspect->GetRMS()), "p"); 
 
 
     legend->SetFillColor(0);
