@@ -79,6 +79,7 @@ asym:qwk_md7barsum, 0.125
 asym:qwk_md8barsum, 0.125
 
 # MD Asymmetry Average PMT
+# 07-31-2012 Buddhini changed md1neg to md1pos in the negative bar list. This will be only effective in the run1 transverse runs since we have already finished pass4b for the rest of run1 data.
 [asym:@asym_mdallpmtavg]
 asym:qwk_md1neg, 0.0625
 asym:qwk_md2neg, 0.0625
@@ -88,7 +89,7 @@ asym:qwk_md5neg, 0.0625
 asym:qwk_md6neg, 0.0625
 asym:qwk_md7neg, 0.0625
 asym:qwk_md8neg, 0.0625
-asym:qwk_md1neg, 0.0625
+asym:qwk_md1pos, 0.0625
 asym:qwk_md2pos, 0.0625
 asym:qwk_md3pos, 0.0625
 asym:qwk_md4pos, 0.0625
