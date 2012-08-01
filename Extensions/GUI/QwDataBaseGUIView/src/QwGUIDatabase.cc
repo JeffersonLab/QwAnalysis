@@ -835,7 +835,7 @@ void QwGUIDatabase::PopulateDetectorComboBox()
   }
 
   if (dCmbInstrument->GetSelected() == ID_BCM_DD) {
-    dCmbRegressionType->SetEnabled(kFALSE);
+    //dCmbRegressionType->SetEnabled(kFALSE);
     for (Int_t i = 0; i < N_BCM_DD; i++) {
       dCmbDetector->AddEntry(BCMDoubleDifferences[i], i);
     }
