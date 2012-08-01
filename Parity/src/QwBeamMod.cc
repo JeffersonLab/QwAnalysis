@@ -786,16 +786,19 @@ void  QwBeamMod::FillHistograms()
   Double_t ramp_block_32 = fModChannel[fRampChannelIndex].GetValue(3) + fModChannel[fRampChannelIndex].GetValue(2);
   Double_t ramp_block    = ramp_block_41 - ramp_block_32;  
 
-  for (size_t bpm = 0; bpm < fMonitors.size(); bpm++){
-    if( ramp_block < 50.0 && ramp_block > -50.0 ){
+  //  Require the difference between the block1/4 average and 
+  //  the block2/3 average to be within 5 degrees.
+  //  In run 9636, the distribution of ramp_block has a sigma of 0.5 degrees.
+  if( ramp_block < 5.0 && ramp_block > -5.0 ){
+    for (size_t bpm = 0; bpm < fMonitors.size(); bpm++){
       fHistograms[5 * bpm + pattern]->Fill(ramp,fMonitors[bpm].GetValue());
     }
-  }
   
-  // Beam modulation correlations
-  for (size_t chan = 0; chan < fModChannel.size(); chan++)
-    fHistograms[5 * (fMonitors.size() + chan) + pattern]->Fill(ramp,fModChannel[chan].GetValue());
-
+    // Beam modulation correlations
+    for (size_t chan = 0; chan < fModChannel.size(); chan++){
+      fHistograms[5 * (fMonitors.size() + chan) + pattern]->Fill(ramp,fModChannel[chan].GetValue());
+    }
+  }
 }
 
 void QwBeamMod::AtEndOfEventLoop()
@@ -847,7 +850,7 @@ void QwBeamMod::AnalyzeOpticsPlots()
   //   UInt_t runnum = this->GetParent()->GetCodaRunNumber();
   //   UInt_t segnum = this->GetParent()->GetCodaSegmentNumber();
 
-  TF1 *sine = new TF1("sine", "[0] + [1]*sin((3.141/180)*x + [2])", 40 , 350);
+  TF1 *sine = new TF1("sine", "[0] + [1]*sin(TMath::DegToRad()*x + [2])", 20 , 340);
 
   TCanvas *canvas = new TCanvas("canvas", "canvas", 5);
 
