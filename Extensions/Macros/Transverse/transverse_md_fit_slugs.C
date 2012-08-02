@@ -90,7 +90,8 @@ TString database_stem="run2_pass1";
 std::ofstream Myfile;    
 
 TText *t1;
-TString target, polar,targ, goodfor, reg_set;
+TString target, polar,targ;
+TString reg_set = "on_5+1"; //default
 
 Int_t opt =1;
 Int_t datopt = 1;
@@ -129,12 +130,20 @@ Double_t errin[8] ={0.0};
 Double_t valueout[8] ={0.0};
 Double_t errout[8] ={0.0};
 
+Double_t valuesum[8]={0.0};
+Double_t errorsum[8]={0.0};
+Double_t valuediff[8]={0.0};
+Double_t errordiff[8]={0.0};
+
 
 TString get_query(TString detector, TString measurement, TString ihwp);
 void get_octant_data(TString devicelist[],TString ihwp, Double_t value[], Double_t error[]);
-void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[]);
-void get_opposite_octant_average(Double_t valuesin[],Double_t errorsin[],
-				 Double_t valuesout[],Double_t errorsout[]);
+void plot_octant(Double_t valuesin[],Double_t errorsin[],
+		 Double_t valuesout[],Double_t errorsout[],
+		 Double_t *valuesum, Double_t *errorsum,
+		 Double_t *valuediff, Double_t *errodiff);
+void get_opposite_octant_average( Double_t valuesum[],Double_t errorsum[],
+				  Double_t valuediff[],Double_t errordiff[]);  
 
 int main(Int_t argc,Char_t* argv[])
 {
@@ -170,7 +179,12 @@ int main(Int_t argc,Char_t* argv[])
   }
 
 
-  if(argc>1) database = argv[1];
+  if(argc<2) database = argv[1];
+  else if(argc<3){
+    database = argv[1];
+    reg_set  = argv[2];
+
+  }
 
   // select the target
   if(opt == 1){
@@ -211,7 +225,7 @@ int main(Int_t argc,Char_t* argv[])
   
   // Select the interaction
   if(ropt == 1){
-    good_for = "(md_data_view.good_for_id = '3' or md_data_view.good_for_id = '1,"+good+"')";
+    good_for = "(md_data_view.good_for_id = '9' or md_data_view.good_for_id = '1,"+good+"')";
     interaction = "elastic";
     qtor_current=" (slow_controls_settings.qtor_current>8800 && slow_controls_settings.qtor_current<9000) ";
     qtor_stem = "8901";
@@ -246,7 +260,7 @@ int main(Int_t argc,Char_t* argv[])
   }
   
 
-  std::cout<<"Getting slug averages of main detectors"<<std::endl;
+  std::cout<<"Getting slug averages of main detectors regressed with "<<reg_set<<std::endl;
   TApplication theApp("App",&argc,argv);
  
   // Fit and stat parameters
@@ -289,10 +303,7 @@ int main(Int_t argc,Char_t* argv[])
   std::cout<<" Connecting to "<<Form("mysql://qweakdb.jlab.org/%s",database.Data())<<std::endl;
   db = TSQLServer::Connect(Form("mysql://qweakdb.jlab.org/%s",database.Data()),"qweak", "QweakQweak");
 
-  // regression set
-  reg_set="on_5+1";
-
-  if(db){
+   if(db){
     printf("Database server info : %s\n", db->ServerInfo());
   }
   else
@@ -358,7 +369,7 @@ int main(Int_t argc,Char_t* argv[])
 
   get_octant_data(quartz_bar_SUM,"out", value1,  err1);
   get_octant_data(quartz_bar_SUM,"in",  value11, err11);
-  plot_octant(value11,err11,value1,err1);
+  plot_octant(value11,err11,value1,err1,valuesum,errorsum,valuediff, errordiff);
   gPad->Update();
 
 
@@ -368,7 +379,7 @@ int main(Int_t argc,Char_t* argv[])
   Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database_stem+".C");
 
   // Calculate sum of opposite octants
-  get_opposite_octant_average(value11,err11,value1,err1);
+  get_opposite_octant_average(valuesum,errorsum,valuediff,errordiff);
 
   Myfile.close();
 
@@ -414,7 +425,7 @@ TString get_query(TString detector, TString measurement, TString ihwp){
     +datatable+".measurement_type = 'a' AND target_position = '"+target+"' AND "
     +regression+" AND "+run_quality+" AND "
     +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "
-    +datatable+".error != 0 and run_number>16000 and "+qtor_current+"; ";
+    +datatable+".error != 0 and "+qtor_current+"; ";
 
   if(ldebug) std::cout<<query<<std::endl;
 
@@ -459,19 +470,18 @@ void get_octant_data(TString devicelist[],TString ihwp, Double_t value[], Double
 
 //***************************************************
 //***************************************************
-//         Plor octant multi graph                   
+//         Plot octant multi graph                   
 //***************************************************
 //***************************************************
 
-void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[])  
+void plot_octant(Double_t valuesin[],Double_t errorsin[],
+		 Double_t valuesout[],Double_t errorsout[],
+		 Double_t *valuesum, Double_t *errorsum,
+		 Double_t *valuediff, Double_t *errodiff
+		 )  
 {
 
-  const int k =8;
-  Double_t valuesum[k];
-  Double_t valueerror[k];
-  Double_t valuediff[k];
-  Double_t errordiff[k];
-  
+  const int k =8;  
   Double_t x[k];
   Double_t errx[k];
   
@@ -504,10 +514,10 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   Myfile<<"IN+OUT "<<std::endl;
   for(Int_t i =0;i<k;i++){
     valuesum[i]=(valuesin[i]+valuesout[i])/2.0;
-    valueerror[i]= (sqrt(pow(errorsin[i],2)+pow(errorsout[i],2)))/2.0;
+    errorsum[i]= (sqrt(pow(errorsin[i],2)+pow(errorsout[i],2)))/2.0;
     Myfile<<"Valuein = "<<valuesin[i]<<" Errorin = "<< errorsin[i]<<std::endl;
     Myfile<<"Valueout = "<<valuesout[i]<<" Errorout = "<< errorsout[i]<<std::endl;
-    Myfile<<"Value (IN+OUT)/2= "<<valuesum[i]<<" Error (IN+OUT)/2= "<< valueerror[i]<<std::endl;
+    Myfile<<"Value (IN+OUT)/2= "<<valuesum[i]<<" Error (IN+OUT)/2= "<< errorsum[i]<<std::endl;
   }
   std::cout<<"######################\n"<<std::endl;
 
@@ -565,7 +575,7 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
   fit2->SetLineColor(kRed);
 
   // Draw IN+OUT values
-  TGraphErrors* grp_sum  = new TGraphErrors(k,x,valuesum,errx,valueerror);
+  TGraphErrors* grp_sum  = new TGraphErrors(k,x,valuesum,errx,errorsum);
   grp_sum ->SetMarkerSize(0.6);
   grp_sum ->SetMarkerStyle(21);
   grp_sum ->SetMarkerColor(kGreen-2);
@@ -690,16 +700,10 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
 //***************************************************
 //***************************************************
 
-void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
-				 Double_t valuesout[],Double_t errorsout[])  
+void get_opposite_octant_average( Double_t valuesum[],Double_t errorsum[],
+				  Double_t valuediff[],Double_t errordiff[])  
 {
   Bool_t ldebug = false;
-
-  Double_t valuesum[8];
-  Double_t errorsum[8];
-
-  Double_t valuediff[8];
-  Double_t errordiff[8];
   
   Double_t valuesumopp[4];
   Double_t errorsumopp[4];  
@@ -715,16 +719,16 @@ void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
 
   if(ldebug) printf("Summing over the opposite octants of MD\n");
 
-  // Calculated weighted average for in-out and in+out
-  for(Int_t i =0;i<8;i++){
-    valuesum[i]=valuesin[i]+valuesout[i];
-    errorsum[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
+//   // Calculated weighted average for in-out and in+out
+//   for(Int_t i =0;i<8;i++){
+//     valuesum[i]=valuesin[i]+valuesout[i];
+//     errorsum[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
 
-    valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
-    errordiff[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
-    Myfile<<"Value diff from opp oc = "<<valuediff[i]<<" Error sum = "<< errordiff[i]<<std::endl;
+//     valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
+//     errordiff[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
+//     Myfile<<"Value diff from opp oc = "<<valuediff[i]<<" Error sum = "<< errordiff[i]<<std::endl;
 
-  }
+//   }
 
   // Sum and difference of the opposite octants.
   // Sum is normal average.
@@ -733,9 +737,11 @@ void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
   Myfile<<"\n##############################"<<std::endl;
   Myfile<<"Sum and difference of opposite octants "<<std::endl;
   for(Int_t i =0;i<4;i++){
-    valuesumopp[i]= valuesum[i]+valuesum[i+4];
+    valuesumopp[i]= valuesum[i]-valuesum[i+4];
+    std::cout<<"1 : "<<valuesum[i]<<"2 : "<<valuesum[i+4]<<std::endl;
+    std::cout<<"sum "<<valuesumopp[i]<<std::endl;
     errorsumopp[i]= sqrt(pow(errorsum[i],2)+pow(errorsum[i+4],2));
-    valuediffopp[i]=valuediff[i]+valuediff[i+4];
+    valuediffopp[i]=valuediff[i]-valuediff[i+4];
     errordiffopp[i]=sqrt(pow(errordiff[i],2)+pow(errordiff[i+4],2));   
 
     Myfile<<"Value sum = "<<valuesumopp[i]<<" Error sum = "<< errorsumopp[i]<<std::endl;
@@ -792,9 +798,9 @@ void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
   grp->Draw("AP");
 
   grp->SetTitle("");
-  grp->GetXaxis()->SetTitle("Octant+opposite Octant");
+  grp->GetXaxis()->SetTitle("Octant-opposite Octant");
   grp->GetXaxis()->CenterTitle();
-  grp->GetYaxis()->SetTitle("MD Opposite Octant AVG Asymmetry (ppm)");
+  grp->GetYaxis()->SetTitle("Asymmetry Difference (ppm)");
   grp->GetYaxis()->CenterTitle();
   grp->GetYaxis()->SetTitleSize(0.03);
   grp->GetYaxis()->SetTitleOffset(0.8);
