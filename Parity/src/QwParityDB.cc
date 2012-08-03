@@ -254,6 +254,10 @@ UInt_t QwParityDB::SetRunID(QwEventBuffer& qwevt)
       row.end_time        = mysqlpp::DateTime(qwevt.GetEndUnixTime());
       row.n_mps = 0;
       row.n_qrt	= 0;
+      // Set following quantities to 9999 as "uninitialized value".  DTS 8/3/2012
+      row.slug = 9999;
+      row.wien_slug = 9999;
+      row.injector_slug = 9999;
 //    row.n_mps=10; // This works
       //    row.start_time = mysqlpp::null; // This works
       //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
