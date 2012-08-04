@@ -64,8 +64,8 @@ slug_average_fits : slug_average_fits.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 
-slug_average_fits_regressed :slug_avrage_fits_regressed.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<	
+#slug_average_fits_regressed :slug_avrage_fits_regressed.o
+#	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<	
 
 slug_average_fits_regressed_run_range :slug_average_fits_regressed_run_range.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
@@ -88,8 +88,8 @@ fits_unregressed_run_range : fits_unregressed_run_range.o
 slug_average_fits_unregressed :slug_average_fits_unregressed.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-slug_average_fits_regressed :slug_avrage_fits_regressed.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+#slug_average_fits_regressed :slug_avrage_fits_regressed.o
+#	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 sim_15_effect :sim_15_effect.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
