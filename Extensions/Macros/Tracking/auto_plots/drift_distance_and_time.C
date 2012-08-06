@@ -113,39 +113,39 @@ void drift_distance_and_time(int runnum, bool is100k)
 	tV2->GetYaxis()->SetTitle("frequency");
 	tV2->GetXaxis()->SetTitle("Drift Time");
 
-//start with looping over all the events and putting them in the correct histogram 
-        
-        //figure out how many evernts are in the rootfile so I know how long to have my loop go for
-        Int_t nevents=event_tree->GetEntries();
+	//start with looping over all the events and putting them in the correct histogram 
 
-        //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
-        QwEvent* fEvent = 0;
-        
-        //Now I have to get a pointer to the events branch to loop through
+	//figure out how many evernts are in the rootfile so I know how long to have my loop go for
+	Int_t nevents=event_tree->GetEntries();
 
-        //Start by setting the event_tree branch to be on
-        event_tree->SetBranchStatus("events",1);
+	//To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
+	QwEvent* fEvent = 0;
+	
+	//Now I have to get a pointer to the events branch to loop through
 
-        //now get the event branch of the event_tree branch and call it event_branch creativly
-        TBranch* event_branch=event_tree->GetBranch("events");
-        event_branch->SetAddress(&fEvent);
+	//Start by setting the event_tree branch to be on
+	event_tree->SetBranchStatus("events",1);
 
-        //Loop through this and fill all the graphs at once
+	//now get the event branch of the event_tree branch and call it event_branch creativly
+	TBranch* event_branch=event_tree->GetBranch("events");
+	event_branch->SetAddress(&fEvent);
 
-        for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
-        {
+	//Loop through this and fill all the graphs at once
+
+	for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
+	{
 		 //Get the ith entry form the event tree
-                event_branch->GetEntry(i);
+		event_branch->GetEntry(i);
 
-                //get the number of Hits
-                int nHits = fEvent->GetNumberOfHits();
+		//get the number of Hits
+		int nHits = fEvent->GetNumberOfHits();
 
-              // now let's loop through the tree lines and fill all the above histograms
-                for (int t = 0; t < nHits; t++)
-                {
+	      // now let's loop through the tree lines and fill all the above histograms
+		for (int t = 0; t < nHits; t++)
+		{
 			const QwHit* hit = fEvent->GetHit(t);
 
-                        //Start making the cuts needed to fill the histogram
+			//Start making the cuts needed to fill the histogram
 			if (hit->GetRegion()==2)
 			{
 				if (hit->GetPackage()==1)
@@ -158,22 +158,21 @@ void drift_distance_and_time(int runnum, bool is100k)
 						break;
 					}
 					case 2:
-                                  	{
-                                                dU->Fill(hit->GetDriftDistance());
+				  	{
+						dU->Fill(hit->GetDriftDistance());
 						tU->Fill(hit->GetTime());
 						break;
 					}
 					case 0:
-                                        {
-                                                dV->Fill(hit->GetDriftDistance());
+					{
+						dV->Fill(hit->GetDriftDistance());
 						tV->Fill(hit->GetTime());
 						break;
-                                        }
+					}
 					default:break;
 					}
-				}
-			}else if (hit->GetPackage()==2)
-                                {
+				} else if (hit->GetPackage()==2)
+				{
 					switch (hit->GetPlane() % 3) {
 					case 1:
 					{
@@ -182,22 +181,23 @@ void drift_distance_and_time(int runnum, bool is100k)
 						break;
 					}
 					case 2:
-                                  	{
-                                                dU2->Fill(hit->GetDriftDistance());
+				  	{
+						dU2->Fill(hit->GetDriftDistance());
 						tU2->Fill(hit->GetTime());
 						break;
 					}
 					case 0:
-                                        {
-                                                dV2->Fill(hit->GetDriftDistance());
+					{
+						dV2->Fill(hit->GetDriftDistance());
 						tV2->Fill(hit->GetTime());
 						break;
-                                        }
+					}
 					default:break;
 					}
 
-                                }
+				}
 
+			}
 
 		}
 
