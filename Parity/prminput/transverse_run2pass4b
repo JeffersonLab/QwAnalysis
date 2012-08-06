@@ -1,0 +1,26 @@
+#
+#  Configuration file for the official transverse run2 pass4b replay
+# 
+# 08-06-2012 B. Waidyawansa. Coppied from official_run1_pass4b.conf
+
+rootfile-stem         = QwPass4b_
+enable-alternateasym  = true
+
+detectors = detectors_run1pass4b.map
+# enable-tree-trim = yes
+# tree-trim-file  = tree_trim_reduced.in
+
+disable-burst-tree    = true
+enable-regression     = true
+
+[QwDatabase]
+dbserver    = qweakdb
+dbname      = qw_run2_pass4b
+dbusername  = qwreplay
+dbpassword  = replay
+dbport      = 0
+accesslevel = RW
+
+[QwParityDB]
+# disable-analysis-check = true
+
