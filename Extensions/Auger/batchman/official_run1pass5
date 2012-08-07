@@ -18,4 +18,4 @@ echo "###        '--rootfile-output mss:/mss/hallc/qweak/rootfiles/pass3'"
 echo "### "
 
 
-$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass5beta.sh --rootfile-stem QwPass5beta_ --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run1/rootfiles --options "--config official_run1pass5beta.conf" $@
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --max-files-per-job 6 --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass5.sh --rootfile-stem QwPass5_ --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run1/rootfiles --options "--config official_run1pass5.conf" $@
