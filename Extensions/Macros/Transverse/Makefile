@@ -3,7 +3,6 @@
 #
 # April 25, 2000 	 E. Beise, modify to work with Alpha DUX4.0
 # March 16, 2010         B. Waidyawansa, modify to work for bpm_bcm_calibration.0
-# July 19,  2012         Nuruzzaman to include my version of analysis
 
 ObjSuf        = o
 SrcSuf        = C
@@ -19,8 +18,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := nurTransverseMD 
-
+EXE :=  md_sensitivity_correlations md_sensitivity_pull_plot md_sensitivity_distribution compare_md_bkgd transverse_bkgdetectors_fit transverse_md_sensitivities transverse_lumi_fit_slugs transverse_md_fit_slugs transverse_compare_reg_schemes sim_15_effect_on_correction md_correlation_plots 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
 	CXX           = g++ 
@@ -38,11 +36,22 @@ EXE := nurTransverseMD
 
 all:  $(EXE)
 	@echo "---------------------> $(EXE) done <---------------------- "
+compare_md_bkgd: compare_md_bkgd.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-# transverse_md_sensitivities :transverse_md_sensitivities.o
-# 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+md_sensitivity_correlations: md_sensitivity_correlations.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-nurTransverseMD :nurTransverseMD.o
+md_sensitivity_distribution: md_sensitivity_distribution.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+md_sensitivity_pull_plot: md_sensitivity_pull_plot.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+transverse_bkgdetectors_fit: transverse_bkgdetectors_fit.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+transverse_md_sensitivities :transverse_md_sensitivities.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 transverse_md_fit_slugs :transverse_md_fit_slugs.o
