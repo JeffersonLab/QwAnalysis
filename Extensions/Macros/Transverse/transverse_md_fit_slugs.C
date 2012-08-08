@@ -42,6 +42,9 @@
                                   Changes to formatting.
 				  Added a check for NULL results.
 				  Added opposite bar difference in addition to sums.
+  2012-07-08 B.Waidyawansa        Added PMT based fits. 
+                                  Added image saving as.eps 
+  2012-08-08 B.Waidyawansa        Added	an option to draw B&W plots.			  
 ******************************************************************************************************/
 
 using namespace std;
@@ -83,6 +86,7 @@ using namespace std;
 #include <TSQLRow.h>
 #include <TSQLStatement.h>
 #include <TText.h>
+#include <TLatex.h>
 
 
 TString quartz_bar_SUM[8]=
@@ -98,17 +102,19 @@ TString positive_pmt[8]=
    ,"qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos"};
 
 
+Bool_t barsums = true;
 
 // DB and default settings
 TSQLServer *db;
-TString database="qw_run1_pass4b";
+TString database;
+TString reg_set = "on_5+1"; //default
+Bool_t plot_colors = true;
+TString color = "color";
 
 // txt file to store values
 std::ofstream Myfile;    
 
-TText *t1;
 TString target, polar,targ;
-TString reg_set = "on_5+1"; //default
 
 // Default data selection options
 Int_t target_opt = 1; // Hydrogen 
@@ -130,10 +136,32 @@ Double_t errin[8] ={0.0};
 Double_t valueout[8] ={0.0};
 Double_t errout[8] ={0.0};
 
+Double_t posvaluein[8] ={0.0};
+Double_t poserrin[8] ={0.0};
+Double_t posvalueout[8] ={0.0};
+Double_t poserrout[8] ={0.0};
+
+Double_t negvaluein[8] ={0.0};
+Double_t negerrin[8] ={0.0};
+Double_t negvalueout[8] ={0.0};
+Double_t negerrout[8] ={0.0};
+
+
 Double_t valuefalse[8]={0.0};
 Double_t errorfalse[8]={0.0};
 Double_t valuephys[8]={0.0};
 Double_t errorphys[8]={0.0};
+
+
+Double_t negvaluefalse[8]={0.0};
+Double_t negerrorfalse[8]={0.0};
+Double_t negvaluephys[8]={0.0};
+Double_t negerrorphys[8]={0.0};
+Double_t posvaluefalse[8]={0.0};
+Double_t poserrorfalse[8]={0.0};
+Double_t posvaluephys[8]={0.0};
+Double_t poserrorphys[8]={0.0};
+
 
 
 TString get_query(TString detector, TString measurement, TString ihwp);
@@ -141,7 +169,9 @@ void get_octant_data(TString devicelist[],TString ihwp, Double_t value[], Double
 void plot_octant(Double_t valuesin[],Double_t errorsin[],
 		 Double_t valuesout[],Double_t errorsout[],
 		 Double_t valuesum[], Double_t errorsum[],
-		 Double_t valuediff[], Double_t errodiff[]);
+		 Double_t valuediff[], Double_t errodiff[],
+		 TString detector
+		 );
 void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
 				  Double_t v_in_m_out[],Double_t e_in_m_out[]);
 
@@ -150,10 +180,24 @@ int main(Int_t argc,Char_t* argv[])
 
 
   // Handle command line inputs for DB and.or regression type
-  if(argc<3 and argc>1) database = argv[1];
-  else if(argc<4 and argc>2){
+
+  if(argc==2) database = argv[1];
+  else if(argc==3){
     database = argv[1];
     reg_set  = argv[2];
+  } 
+  else if(argc==4){
+    database = argv[1];
+    reg_set  = argv[2];
+    plot_colors =  atoi(argv[3]);
+  }
+  else {
+    std::cout<<"Proper usage of this program is"<<std::endl;
+    std::cout<<"./transverse_md_fit_slugs <db> [regression set] [color/B&W]"<<std::endl;
+    std::cout<<"     db             : database name. e.g qw_run1_pass2"<<std::endl;
+    std::cout<<"     regression_set : regression set out of on,on_5+1,on_set3, etc. Default os on_5+1"<<std::endl;
+    std::cout<<"     color/b&w      : Color of the plots. Defauls it color(1). Use 0 to get B&W plots"<<std::endl;
+    exit(1);
   }
 
   //connect to the data base
@@ -166,6 +210,7 @@ int main(Int_t argc,Char_t* argv[])
   else
     exit(1);
   
+  if(!plot_colors) color="bnw";
 
   std::cout<<"###############################################"<<std::endl;
   std::cout<<" \nSlug averages of Main Detector Asymmetries \n"<<std::endl;
@@ -300,7 +345,7 @@ int main(Int_t argc,Char_t* argv[])
  
   // Fit and stat parameters
   gStyle->SetOptFit(1111);
-  gStyle->SetOptStat(0000000);
+  gStyle->SetOptStat(0);
   gStyle->SetStatY(0.99);
   gStyle->SetStatX(0.99);
   gStyle->SetStatW(0.15);
@@ -343,6 +388,12 @@ int main(Int_t argc,Char_t* argv[])
   gDirectory->Delete("*");
 
 
+
+  //************************
+  // Draw barsum plots
+  //************************
+
+
  //Set canvas parameters
   TString title1;
   if(pol_opt==1) 
@@ -351,7 +402,7 @@ int main(Int_t argc,Char_t* argv[])
   else
     title1= Form("%s (%s): Averages of regressed main detector asymmetries. FIT = A_{H}*sin(#phi + #phi_{0}) + C",targ.Data(),polar.Data());
 
-  TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,500);
+  TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,2000,1000);
   Canvas1->Draw();
   Canvas1->cd();
 
@@ -364,8 +415,8 @@ int main(Int_t argc,Char_t* argv[])
 
   pad1->cd();
   TString text = Form(title1);
-  TText*t1 = new TText(0.06,0.3,text);
-  t1->SetTextSize(0.6);
+  TLatex*t1 = new TLatex(0.06,0.3,text);
+  t1->SetTextSize(0.5);
   t1->SetTextFont(132);
 
   t1->Draw();
@@ -377,14 +428,16 @@ int main(Int_t argc,Char_t* argv[])
 
   get_octant_data(quartz_bar_SUM,"out", valuein,  errin);
   get_octant_data(quartz_bar_SUM,"in",  valueout, errout);
-  plot_octant(valueout,errout,valuein,errin,valuefalse,errorfalse,valuephys, errorphys);
+  plot_octant(valueout,errout,valuein,errin,valuefalse,errorfalse,valuephys, errorphys,"Barsum");
   gPad->Update();
 
-
+  if(!plot_colors) Canvas1->SetGrayscale();
+  Canvas1->Modified();
   Canvas1->Update();
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+".png");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+".svg");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+".C");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".png");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".svg");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".C");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".eps");
 
   // Calculate sum of opposite octants
   
@@ -392,6 +445,64 @@ int main(Int_t argc,Char_t* argv[])
     std::cout<<valuefalse[i]<<std::endl;
 
   get_opposite_octant_average(valuefalse,errorfalse,valuephys,errorphys);
+  
+  //************************
+  // Draw PMT plots 
+  //************************
+
+  barsums = false;
+
+  if(pol_opt==1) 
+    title1 = Form("%s (%s): Averages of regressd PMT asymmetries. FIT = A_{V}*cos(phi) - A_{H}*sin(#phi) + C",targ.Data(),polar.Data());
+  else if(pol_opt==2) title1= Form("%s (%s): Averages of regressed PMT asymmetries. FIT = A_{V}*cos(#phi + #phi_{0}) + C",targ.Data(),polar.Data());
+  else
+    title1= Form("%s (%s): Averages of regressed PMT asymmetries. FIT = A_{H}*sin(#phi + #phi_{0}) + C",targ.Data(),polar.Data());
+
+  TCanvas * Canvas2 = new TCanvas("canvas2", title1,0,0,2000,1000);
+  Canvas2->Draw();
+  Canvas2->cd();
+ 
+  TPad*pad11 = new TPad("pad11","pad11",0.005,0.935,0.995,0.995);
+  TPad*pad22 = new TPad("pad22","pad22",0.005,0.005,0.995,0.945);
+  pad11->SetFillColor(0);
+  pad22->SetFillColor(0);
+  pad11->Draw();
+  pad22->Draw();
+
+  pad11->cd();
+  TLatex*t2 = new TLatex(0.06,0.3,title1);
+  t2->SetTextSize(0.4);
+  t2->SetTextFont(132);
+  t2->Draw();
+
+  pad22->cd();
+  pad22->Divide(1,2);
+  pad22->cd(1);
+
+
+  Myfile << "\n !======================================="<<std::endl;
+  Myfile << " ! Positive PMT error weighted averages "<<std::endl;
+  Myfile << " !========================================"<<std::endl;
+  get_octant_data(negative_pmt,"out", negvaluein,  negerrin);
+  get_octant_data(negative_pmt,"in",  negvalueout, negerrout);
+  plot_octant(negvalueout,negerrout,negvaluein,negerrin,negvaluefalse,negerrorfalse,negvaluephys, negerrorphys,"Neg. PMT");
+
+  Myfile << "\n !======================================="<<std::endl;
+  Myfile << " ! Negative PMT error weighted averages "<<std::endl;
+  Myfile << " !========================================"<<std::endl;
+
+  pad22->cd(2);
+  get_octant_data(positive_pmt,"out", posvaluein,  poserrin);
+  get_octant_data(positive_pmt,"in",  posvalueout, poserrout);
+  plot_octant(posvalueout,poserrout,posvaluein,poserrin,posvaluefalse,poserrorfalse,posvaluephys, poserrorphys,"Pos. PMT");
+
+  if(!plot_colors) Canvas2->SetGrayscale();
+  Canvas2->Modified();
+  Canvas2->Update();
+  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".png");
+  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".svg");
+  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".C");
+  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".eps");
 
   Myfile.close();
 
@@ -500,9 +611,12 @@ void get_octant_data(TString devicelist[],TString ihwp, Double_t value[], Double
 void plot_octant(Double_t valuesin[],Double_t errorsin[],
 		 Double_t valuesout[],Double_t errorsout[],
 		 Double_t valuesum[], Double_t errorsum[],
-		 Double_t valuediff[], Double_t errordiff[]
+		 Double_t valuediff[], Double_t errordiff[],
+		 TString detector
 		 )  
 {
+
+  gStyle->SetOptFit(1111);
 
   const int k =8;  
   Double_t x[k];
@@ -564,21 +678,21 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],
   TF1 *fit_in;
   if(pol_opt==1) {
     fit_in = new TF1("fit_in","[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]",1,8);
-    fit_in->SetParName(0,"A_{V}^{in}");
-    fit_in->SetParName(1,"A_{H}^{in}");
-    fit_in->SetParName(2,"C^{in}");
+    fit_in->SetParName(0,"A_{V}^{IN}");
+    fit_in->SetParName(1,"A_{H}^{IN}");
+    fit_in->SetParName(2,"C^{IN}");
   }
   else if(pol_opt==2) {
     fit_in = new TF1("fit_in","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
-    fit_in->SetParName(0,"A_{V}^{in}");
-    fit_in->SetParName(1,"#phi_{0}^{in}");
-    fit_in->SetParName(2,"C^{in}");
+    fit_in->SetParName(0,"A_{V}^{IN}");
+    fit_in->SetParName(1,"#phi_{0}^{IN}");
+    fit_in->SetParName(2,"C^{IN}");
   }
   else {
     fit_in = new TF1("fit_in","[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
-    fit_in->SetParName(0,"A_{H}^{in}");
-    fit_in->SetParName(1,"#phi_{0}^{in}");
-    fit_in->SetParName(2,"C^{in}");
+    fit_in->SetParName(0,"A_{H}^{IN}");
+    fit_in->SetParName(1,"#phi_{0}^{IN}");
+    fit_in->SetParName(2,"C^{IN}");
   }
 
   // Initialize IN fit
@@ -604,155 +718,169 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],
     fit_out->SetParName(2,"C^{IN}");
   }
 
+  // Create a multigraph
+  TMultiGraph * grp = new TMultiGraph();
 
   // Draw IN values
   TGraphErrors* grp_in  = new TGraphErrors(k,x,valuesin,errx,errorsin);
-  grp_in ->SetMarkerSize(0.8);
+  grp_in ->SetMarkerSize(1.0);
   grp_in ->SetMarkerStyle(21);
   grp_in ->SetMarkerColor(kBlue);
-  grp_in->Fit("fit_in","B");
+  grp_in->Fit("fit_in","Q+");
   TF1* fit1 = grp_in->GetFunction("fit_in");
   fit1->DrawCopy("same");
   fit1->SetLineColor(kBlue);
   fit1->SetLineWidth(2);
   fit1->SetLineStyle(5);
+  grp->Add(grp_in);
 
   // Draw OUT values
   TGraphErrors* grp_out  = new TGraphErrors(k,x,valuesout,errx,errorsout);
-  grp_out ->SetMarkerSize(0.8);
+  grp_out ->SetMarkerSize(1.0);
   grp_out ->SetMarkerStyle(23);
   grp_out ->SetMarkerColor(kRed);
-
-
-  grp_out->Fit("fit_out","B");
+  grp_out->Fit("fit_out","Q+");
   TF1* fit2 = grp_out->GetFunction("fit_out");
   fit2->DrawCopy("same");
   fit2->SetLineColor(kRed);
   fit2->SetLineWidth(2);
   fit2->SetLineStyle(5);
+  grp->Add(grp_out);
 
   // Draw IN+OUT values
   TGraphErrors* grp_sum  = new TGraphErrors(k,x,valuesum,errx,errorsum);
-  grp_sum ->SetMarkerSize(0.6);
+  grp_sum ->SetMarkerSize(1.0);
   grp_sum ->SetMarkerStyle(20);
   grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum ->Fit("pol0","B");
+  grp_sum ->Fit("pol0","Q+");
   TF1* fit3 = grp_sum->GetFunction("pol0");
   fit3->DrawCopy("same");
-  fit3->SetLineColor(kGreen-2);
+  fit3->SetLineColor(kGreen+3);
   fit3->SetParName(0,"C^{(in+out)/2}");
   fit3->SetLineWidth(3);
   fit3->SetLineStyle(3);
- 
-  TMultiGraph * grp = new TMultiGraph();
-  grp->Add(grp_in);
-  grp->Add(grp_out);
   grp->Add(grp_sum);
+
   grp->Draw("AP");
   grp->SetTitle("");
   grp->GetXaxis()->SetTitle("Octant Number");
   grp->GetXaxis()->CenterTitle();
-  grp->GetYaxis()->SetTitle("Asymmetry (ppm)");
+  grp->GetYaxis()->SetTitle(Form("%s Asymmetry (ppm)",detector.Data()));
   grp->GetYaxis()->CenterTitle();
+  pad->Update();
+
+  TPaveStats *stats1 = (TPaveStats*)(grp_in->GetListOfFunctions())->FindObject("stats");
+  TPaveStats *stats2 = (TPaveStats*)(grp_out->GetListOfFunctions())->FindObject("stats");
+  TPaveStats *stats3 = (TPaveStats*)(grp_sum->GetListOfFunctions())->FindObject("stats");
+  std::cout<<"eherere6\n";
+
+  stats1->SetTextColor(kBlue);
+  stats1->SetFillColor(kWhite); 
+  
+  stats2->SetTextColor(kRed);
+  stats2->SetFillColor(kWhite); 
+  
+  stats3->SetTextColor(kGreen+3);
+  stats3->SetFillColor(kWhite); 
+  
+  stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
+  stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
+  stats3->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
+
 
   TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
-  legend->AddEntry(grp_in, "IHWP-IN", "p");
-  legend->AddEntry(grp_out, "IHWP-OUT", "p");
+  legend->AddEntry(grp_in, "IN", "p");
+  legend->AddEntry(grp_out, "OUT", "p");
   legend->AddEntry(grp_sum, "(IN+OUT)/2", "p");
   legend->SetTextFont(132);
   legend->SetFillColor(0);
   legend->Draw("");
 
-  TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
-  TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
-  TPaveStats *stats3 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
 
-  stats1->SetTextColor(kBlue);
-  stats1->SetFillColor(kWhite); 
+  // Only for barsums
+  if(barsums){
+    
+    // Difference over the in and out half wave plate values
+    TString title;
+    
+    if(pol_opt==1) 
+      title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*cos(phi) -p1*sin(phi) +  p2";
+    else if(pol_opt==2) 
+      title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*cos(phi + p1) + p2";
+    else
+      title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*sin(phi + p1) + p2";
+    
+    TCanvas * Canvas11 = new TCanvas("canvas11",title,0,0,2000,1000);
+    Canvas11->Draw();
+    Canvas11->cd();
+    
+    TPad*pad11 = new TPad("pad11","pad11",0.005,0.935,0.995,0.995);
+    TPad*pad22 = new TPad("pad22","pad22",0.005,0.005,0.995,0.945);
+    pad11->SetFillColor(0);
+    pad11->Draw();
+    pad22->Draw();
+    
+    
+    pad11->cd();
+    TString text = Form(title);
+    TLatex*t1 = new TLatex(0.06,0.3,text);
+    t1->SetTextSize(0.6);
+    t1->SetTextFont(132);
+    t1->Draw();
+    
+    pad22->cd();
+    pad22->SetFillColor(0);
+    
+    // Draw In-Out
+    pad22->SetRightMargin(0.08);
+    
+    TGraphErrors* grp_diff  = new TGraphErrors(k,x,valuediff,errx,errordiff);
+    grp_diff ->SetMarkerSize(1.0);
+    grp_diff ->SetMarkerStyle(21);
+    grp_diff ->SetMarkerColor(kBlack-2);
+    grp_diff->Fit("fit_in","B");
+    
+    TF1* fit4 = grp_diff->GetFunction("fit_in");
+    fit4->DrawCopy("same");
+    fit4->SetLineColor(kMagenta+1);
+    fit4->SetLineWidth(3);
+    fit4->SetLineStyle(5);
+    
+    TMultiGraph * grp1 = new TMultiGraph();
+    grp1->Add(grp_diff);
+    grp1->Draw("AP");
+    
+    grp1->SetTitle("");
+    grp1->GetXaxis()->SetTitle("Octant");
+    grp1->GetXaxis()->CenterTitle();
+    grp1->GetYaxis()->SetTitle("Asymmetry (ppm)");
+    grp1->GetYaxis()->CenterTitle();
+    
+    
+    TPaveStats *stats11 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
+    stats11->SetTextColor(kBlack);
+    stats11->SetFillColor(kWhite);
+    stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
+    
+    if(pol_opt == 3){
+      stats11->SetX1NDC(0.1); 
+      stats11->SetX2NDC(0.29); 
+      stats11->SetY1NDC(0.7);
+      stats11->SetY2NDC(0.95);  
+    }
 
-  stats2->SetTextColor(kRed);
-  stats2->SetFillColor(kWhite); 
- 
-  stats3->SetTextColor(kGreen-2);
-  stats3->SetFillColor(kWhite); 
+    if(!plot_colors) Canvas11->SetGrayscale();
+    Canvas11-> Modified();
+    Canvas11-> Update();
 
-  stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
-  stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
-  stats3->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
-
-  pad->Update();
-  
-  // Difference over the in and out half wave plate values
-  TString title;
-  if(pol_opt==1) 
-    title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*cos(phi) -p1*sin(phi) +  p2";
-  else if(pol_opt==2) 
-    title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*cos(phi + p1) + p2";
-  else
-    title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = p0*sin(phi + p1) + p2";
-
-  TCanvas * Canvas11 = new TCanvas("canvas11",title,0,0,1000,500);
-  Canvas11->Draw();
-  Canvas11->cd();
-
-  TPad*pad11 = new TPad("pad11","pad11",0.005,0.935,0.995,0.995);
-  TPad*pad22 = new TPad("pad22","pad22",0.005,0.005,0.995,0.945);
-  pad11->SetFillColor(0);
-  pad11->Draw();
-  pad22->Draw();
-  
-
-  pad11->cd();
-  TString text = Form(title);
-  TText*t1 = new TText(0.06,0.3,text);
-  t1->SetTextSize(0.8);
-  t1->SetTextFont(132);
-  t1->Draw();
-
-  pad22->cd();
-  pad22->SetFillColor(0);
-
-  // Draw In-Out
-  pad22->SetRightMargin(0.08);
-
-  TGraphErrors* grp_diff  = new TGraphErrors(k,x,valuediff,errx,errordiff);
-  grp_diff ->SetMarkerSize(0.6);
-  grp_diff ->SetMarkerStyle(21);
-  grp_diff ->SetMarkerColor(kBlack-2);
-  grp_diff->Fit("fit_in","B");
- 
-  TF1* fit4 = grp_diff->GetFunction("fit_in");
-  fit4->DrawCopy("same");
-  fit4->SetLineColor(kMagenta+1);
-  fit4->SetLineWidth(3);
-  fit4->SetLineStyle(5);
-
-  TMultiGraph * grp1 = new TMultiGraph();
-  grp1->Add(grp_diff);
-  grp1->Draw("AP");
-
-  grp1->SetTitle("");
-  grp1->GetXaxis()->SetTitle("Octant");
-  grp1->GetXaxis()->CenterTitle();
-  grp1->GetYaxis()->SetTitle("Asymmetry (ppm)");
-  grp1->GetYaxis()->CenterTitle();
-
-
-  TPaveStats *stats11 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
-  stats11->SetTextColor(kBlack);
-  stats11->SetFillColor(kWhite);
-  stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
- 
-  if(pol_opt == 3){
-    stats11->SetX1NDC(0.1); 
-    stats11->SetX2NDC(0.29); 
-    stats11->SetY1NDC(0.7);
-    stats11->SetY2NDC(0.95);  
+    Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".png");
+    Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".svg");
+    Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".C");
+    Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".epa");
+    
+    
   }
-  Canvas11-> Update();
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+".png");
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+".svg");
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+".C");
+
 
 }
 
@@ -770,10 +898,7 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
 {
   Bool_t ldebug = false;
   
-  gStyle->SetOptStat(0);
   gStyle->SetOptFit(0);
-  gStyle->SetPadRightMargin(0.08);
-  gStyle->SetPadLeftMargin(0.08);
 
 
   Double_t valuesum_in_p_out[4]={0};
@@ -846,7 +971,7 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
 
 
   pad1->cd();
-  TText*t1 = new TText(0.06,0.3,title1);
+  TLatex*t1 = new TLatex(0.06,0.3,title1);
   t1->SetTextSize(0.5);
   t1->SetTextFont(132);
   t1->Draw();
@@ -854,6 +979,7 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
 
   pad2->Divide(1,2);
   pad2->cd(1);
+  gPad->SetRightMargin(0.08);
 
   TGraphErrors* grp_sum_in_p_out  = new TGraphErrors(4,x,valuesum_in_p_out,errx,errorsum_in_p_out);
   grp_sum_in_p_out  ->SetMarkerSize(1.2);
@@ -867,7 +993,7 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
 
   TGraphErrors* grp_sum_in_m_out   = new TGraphErrors(4,x,valuesum_in_m_out ,errx,errorsum_in_m_out );
   grp_sum_in_m_out ->SetMarkerSize(1.2);
-  grp_sum_in_m_out ->SetMarkerStyle(21);
+  grp_sum_in_m_out ->SetMarkerStyle(22);
   grp_sum_in_m_out ->SetMarkerColor(kMagenta+1);
   grp_sum_in_m_out->Fit("pol0");
   TF1* fit2 = grp_sum_in_m_out->GetFunction("pol0");
@@ -895,6 +1021,7 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
   legend->Draw("");
 
   pad2->cd(2);
+  gPad->SetRightMargin(0.08);
 
   TGraphErrors* grp_diff_in_p_out  = new TGraphErrors(4,x,valuediff_in_p_out,errx,errordiff_in_p_out);
   grp_diff_in_p_out  ->SetMarkerSize(1.2);
@@ -909,7 +1036,7 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
 
   TGraphErrors* grp_diff_in_m_out   = new TGraphErrors(4,x,valuediff_in_m_out ,errx,errordiff_in_m_out );
   grp_diff_in_m_out ->SetMarkerSize(1.2);
-  grp_diff_in_m_out ->SetMarkerStyle(21);
+  grp_diff_in_m_out ->SetMarkerStyle(22);
   grp_diff_in_m_out ->SetMarkerColor(kMagenta+1);
  
   TMultiGraph * grp_diff = new TMultiGraph();
@@ -933,11 +1060,17 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
   legend1->Draw("");
 
 
-
+  if(!plot_colors) Canvas1->SetGrayscale();
+  Canvas1->Modified();
   Canvas1-> Update();
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"+reg_set+"_"+database+".png");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"+reg_set+"_"+database+".svg");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"+reg_set+"_"+database+".C");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
+		 +reg_set+"_"+database+"_"+color+".png");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
+		 +reg_set+"_"+database+"_"+color+".svg");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
+		 +reg_set+"_"+database+"_"+color+".C");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
+		 +reg_set+"_"+database+"_"+color+".eps");
   
 }
 
