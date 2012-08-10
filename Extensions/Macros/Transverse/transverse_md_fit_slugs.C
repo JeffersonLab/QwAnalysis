@@ -1228,6 +1228,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_pos_in ->SetMarkerSize(0.8);
   grp_pos_in ->SetMarkerStyle(25);
   grp_pos_in ->SetMarkerColor(kBlue);
+  grp_pos_in-> RemovePoint(1);
   grp_pos_in->Fit("fit_in","Q+");
   TF1* fit1 = grp_pos_in->GetFunction("fit_in");
   fit1->DrawCopy("same");
@@ -1253,6 +1254,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_neg_in ->SetMarkerSize(0.8);
   grp_neg_in ->SetMarkerStyle(21);
   grp_neg_in ->SetMarkerColor(kBlue);
+  grp_neg_in-> RemovePoint(1);
   grp_neg_in->Fit("fit_in","Q+");
   TF1* fit2 = grp_neg_in->GetFunction("fit_in");
   fit2->DrawCopy("same");
@@ -1281,6 +1283,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_pos_out ->SetMarkerSize(0.8);
   grp_pos_out ->SetMarkerStyle(25);
   grp_pos_out ->SetMarkerColor(kRed);
+  grp_pos_out-> RemovePoint(1);
   grp_pos_out->Fit("fit_out","Q+");
   TF1* fit3 = grp_pos_out->GetFunction("fit_out");
   fit3->DrawCopy("same");
@@ -1306,6 +1309,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_neg_out ->SetMarkerSize(0.8);
   grp_neg_out ->SetMarkerStyle(21);
   grp_neg_out ->SetMarkerColor(kRed);
+  grp_neg_out-> RemovePoint(1);
   grp_neg_out->Fit("fit_out","Q+");
   TF1* fit4 = grp_neg_out->GetFunction("fit_out");
   fit4->DrawCopy("same");
@@ -1373,13 +1377,18 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   stats4->SetX1NDC(0.8); stats4->SetX2NDC(0.99); stats4->SetY1NDC(0.03);stats4->SetY2NDC(0.27);
 
 
-  TLegend *legend = new TLegend(0.08,0.85,0.4,0.99,"","brNDC");
-  legend->SetNColumns(2);
+  TLegend *legend = new TLegend(0.08,0.85,0.77,0.99,"","brNDC");
+  legend->SetNColumns(4);
   legend->SetBorderSize(1);
-  legend->AddEntry(fit1, "Positive PMT IN", "l");
-  legend->AddEntry(fit2, "Negative PMT IN", "l");
-  legend->AddEntry(fit3, "Positive PMT OUT", "l");
-  legend->AddEntry(fit4, "Negative PMT OUT", "l");
+  legend->AddEntry(grp_pos_in, "Positive PMT IN", "p");
+  legend->AddEntry(grp_neg_in, "Negative PMT IN", "p");
+  legend->AddEntry(grp_pos_out, "Positive PMT OUT", "p");
+  legend->AddEntry(grp_neg_out, "Negative PMT OUT", "p");
+  legend->AddEntry(fit1, "Positive PMT IN fit", "l");
+  legend->AddEntry(fit2, "Negative PMT IN fit", "l");
+  legend->AddEntry(fit3, "Positive PMT OUT fit", "l");
+  legend->AddEntry(fit4, "Negative PMT OUT fit", "l");
+
   legend->SetTextFont(132);
   legend->SetFillColor(0);
   legend->Draw("");
@@ -1393,6 +1402,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_pos_sum ->SetMarkerSize(0.6);
   grp_pos_sum ->SetMarkerStyle(25);
   grp_pos_sum ->SetMarkerColor(kGreen+3);
+  grp_pos_sum-> RemovePoint(1);
   grp_pos_sum ->Fit("pol0","Q+");
   TF1* fit5 = grp_pos_sum->GetFunction("pol0");
   fit5->DrawCopy("same");
@@ -1406,6 +1416,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_neg_sum ->SetMarkerSize(0.8);
   grp_neg_sum ->SetMarkerStyle(21);
   grp_neg_sum ->SetMarkerColor(kGreen+3);
+  grp_neg_sum-> RemovePoint(1);
   grp_neg_sum ->Fit("pol0","Q+");
   TF1* fit6 = grp_neg_sum->GetFunction("pol0");
   fit6->DrawCopy("same");
@@ -1446,8 +1457,10 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   TLegend *legend1 = new TLegend(0.08,0.83,0.5,0.97,"","brNDC");
   legend1->SetNColumns(2);
   legend1->SetBorderSize(1);
-  legend1->AddEntry(fit5, "Positive PMT (IN+OUT)/2", "l");
-  legend1->AddEntry(fit6, "Negative PMT (IN+OUT)/2", "l");
+  legend1->AddEntry(grp_pos_sum, "Positive PMT (IN+OUT)/2", "p");
+  legend1->AddEntry(grp_neg_sum, "Negative PMT (IN+OUT)/2", "p");
+  legend1->AddEntry(fit5, "Positive PMT fit", "l");
+  legend1->AddEntry(fit6, "Negative PMT fit", "l");
 
   legend1->SetTextFont(132);
   legend1->SetFillColor(0);
@@ -1487,6 +1500,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_pos_diff ->SetMarkerSize(1.2);
   grp_pos_diff ->SetMarkerStyle(22);
   grp_pos_diff ->SetMarkerColor(kBlack);
+  grp_pos_diff-> RemovePoint(1);
   grp_pos_diff ->Fit("fit_in","Q+");
   TF1* fit7 = grp_pos_diff->GetFunction("fit_in");
   fit7->DrawCopy("same");
@@ -1512,6 +1526,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_neg_diff ->SetMarkerSize(1.0);
   grp_neg_diff ->SetMarkerStyle(20);
   grp_neg_diff ->SetMarkerColor(kBlack);
+  grp_neg_diff ->RemovePoint(1);
   grp_neg_diff ->Fit("fit_in","Q+");
   TF1* fit8 = grp_neg_diff->GetFunction("fit_in");
   fit8->DrawCopy("same");
@@ -1538,6 +1553,7 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   grp_barsum ->SetMarkerSize(1.0);
   grp_barsum ->SetMarkerStyle(25);
   grp_barsum ->SetMarkerColor(kBlack);
+  grp_barsum ->RemovePoint(1);
   grp_barsum ->Fit("fit_in","Q+");
   TF1* fit9 =  grp_barsum->GetFunction("fit_in");
   fit9->DrawCopy("same");
@@ -1588,9 +1604,12 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   TLegend *legend11 = new TLegend(0.08,0.83,0.78,0.95,"","brNDC");
   legend11->SetNColumns(3);
   legend11->SetBorderSize(1);
-  legend11->AddEntry(fit7, "Positive PMT AVG(IN-OUT)", "l");
-  legend11->AddEntry(fit8, "Negative PMT AVG(IN-OUT)", "l");
-  legend11->AddEntry(fit9, "Barsum AVG(IN-OUT)", "l");
+  legend11->AddEntry(grp_pos_diff, "Positive PMT AVG(IN-OUT)", "p");
+  legend11->AddEntry(grp_neg_diff, "Negative PMT AVG(IN-OUT)", "p");
+  legend11->AddEntry(grp_barsum, "Barsum AVG(IN-OUT)", "p");
+  legend11->AddEntry(fit7, "Positive PMT fit", "l");
+  legend11->AddEntry(fit8, "Negative PMT fit", "l");
+  legend11->AddEntry(fit9, "Barsum fit", "l");
 
   legend11->SetTextFont(132);
   legend11->SetFillColor(0);
