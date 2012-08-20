@@ -24,6 +24,12 @@
 // example: Tracking_Cut(-1,10000,18522)
 //
 //---------------------------------------------------------------
+//
+// update log:
+//
+// jpan, Fri Aug 10 01:53:25 EDT 2012
+// removed the default 3 sigma cut on direction_theta_off and direction_phi_off
+// 
 
 #include <iostream>
 #include <iomanip>
@@ -32,8 +38,8 @@
 bool reverse_run = false;
 
 // cut enable flags
-bool enable_multiplicity_cut     = true;
-bool enable_tdc_cut              = true;
+bool enable_multiplicity_cut     = false;
+bool enable_tdc_cut              = false;
 bool enable_adc_cut              = false;
 bool enable_scattering_angle_cut = false;
 bool enable_vertex_z_cut         = false;
@@ -63,8 +69,8 @@ double vertex_z_cut_max = -625;
 double vertex_r_cut_min = 0;
 double vertex_r_cut_max = 1;
 
-double bending_angle_position_theta_cut_min = -0.003; //-0.001
-double bending_angle_position_theta_cut_max = 0.003; // 0.001
+double bending_angle_position_theta_cut_min = -0.003; //-0.003
+double bending_angle_position_theta_cut_max = 0.003; // 0.003
 double bending_angle_position_phi_cut_min   = -1.0; 
 double bending_angle_position_phi_cut_max   = 1.0;
 
@@ -301,70 +307,6 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TLeaf* mdp_tdc_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
     TLeaf* mdm_tdc_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
 
-    double mean_thetaoff_pkg1=1,sigma_thetaoff_pkg1=1;
-    double mean_thetaoff_pkg2=1,sigma_thetaoff_pkg2=1;
-    double mean_phioff_pkg1=1, sigma_phioff_pkg1=1;
-    double mean_phioff_pkg2=1,sigma_phioff_pkg2=1;
-
-    bool opt=false;
-
-    if(opt){
-          
-      TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
-      TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
-
-      TH1F* pkg1_phi=new TH1F("c","c",500,-1,1);
-      TH1F* pkg2_phi=new TH1F("d","d",500,-1,1);
-
-      TF1* f1=new TF1("f1","gaus",-1,1);
-      f1->SetParameters(1,-0.5,1);
-
-      TF1* f2=new TF1("f2","gaus",-1,1);
-      f2->SetParameters(1,-0.5,1);
-
-      TF1* f3=new TF1("f3","gaus",-1,1);
-      f1->SetParameters(1,-0.5,1);
-
-      TF1* f4=new TF1("f4","gaus",-1,1);
-      f1->SetParameters(1,-0.5,1);
-
-      
-      event_tree->Project("a","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==1");
-      pkg1_theta->Fit("f1","QN0");
-
-      event_tree->Project("b","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==2");
-      pkg2_theta->Fit("f2","QN0");
-
-      event_tree->Project("c","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==1");
-      pkg1_phi->Fit("f3","QN0");
-
-      event_tree->Project("d","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==2");
-      pkg2_phi->Fit("f4","QN0");
-      
-      double mean_thetaoff_pkg1=f1->GetParameter(1);
-      double sigma_thetaoff_pkg1=f1->GetParameter(2);
-
-      double mean_thetaoff_pkg2=f2->GetParameter(1);
-      double sigma_thetaoff_pkg2=f2->GetParameter(2);
-
-      double mean_phioff_pkg1=f3->GetParameter(1);
-      double sigma_phioff_pkg1=f3->GetParameter(2);
-
-      double mean_phioff_pkg2=f4->GetParameter(1);
-      double sigma_phioff_pkg2=f4->GetParameter(2);
-      
-     }
-
-     double width=3;
-     double pkg1_phioff_lower=mean_phioff_pkg1-width*sigma_phioff_pkg1;
-     double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
-     double pkg2_phioff_lower=mean_phioff_pkg2-width*sigma_phioff_pkg2;
-     double pkg2_phioff_upper=mean_phioff_pkg2+width*sigma_phioff_pkg2;
-
-     double pkg1_thetaoff_lower=mean_thetaoff_pkg1-width*sigma_thetaoff_pkg1;
-     double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*sigma_thetaoff_pkg1;
-     double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*sigma_thetaoff_pkg2;
-     double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*sigma_thetaoff_pkg2;
 
     // histograms
     TH2F* hit_dist1 = new TH2F("hit_dist1",Form("Run %d, Hits Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
@@ -376,12 +318,12 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TH1F* q2_1 = new TH1F("q2_1",Form("Run %d, Q2 Distribution in Package 1, Oct %d",run,md_1),400,0,0.08);
     TH1F* q2_2 = new TH1F("q2_2",Form("Run %d, Q2 Distribution in Package 2, Oct %d",run,md_2),400,0,0.08);
     
-    for(int i=start;i<end;++i)  // start to loop over all events
+    for(int i=start;i<end;i++)  // start to loop over all events
     {
 
       if(i%100000==0)
 	cout << "events processed so far: " << i << endl;
-      
+
       event_branch->GetEntry(i);
       maindet_branch->GetEntry(i);
       trig_branch->GetEntry(i);
@@ -465,15 +407,15 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
               else if(pkg==2)
                    dz = md_zpos[oct];
 
-               xoffset = pt->fOffsetX;
-               yoffset = pt->fOffsetY;
-               xslope  = pt->fSlopeX;
-               yslope  = pt->fSlopeY;
-               x       = xoffset+xslope*dz;
-               y       = yoffset+yslope*dz;
+              xoffset = pt->fOffsetX;
+              yoffset = pt->fOffsetY;
+              xslope  = pt->fSlopeX;
+              yslope  = pt->fSlopeY;
+              x       = xoffset+xslope*dz;
+              y       = yoffset+yslope*dz;
 
               if(debug) 
-                 cout<<"event#"<<i<<", pkg"<<pkg<<", pt#"<<num_p<<": hit at ("<<x<<","<<y<<")"<<endl;
+                  cout<<"event#"<<i<<", pkg"<<pkg<<", pt#"<<num_p<<": hit at ("<<x<<","<<y<<")"<<endl;
 
               global2local(&x,&y,oct,pkg);
 
@@ -502,7 +444,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
          continue;
 
 
-      for(int j=0;j<ntracks;++j)
+      for(int j=0;j<ntracks; j++) // TODO: what shall we do with multiple tracks? 
       {
 	track=fEvent->GetTrack(j);
         int package = track->GetPackage();
@@ -514,21 +456,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       double direction_theta_off = track->fDirectionThetaoff;
       double direction_phi_off = track->fDirectionPhioff;
  
-       // at least, applying a 3 sigma boundary cut 
-       if(package==1)
-       {
-          if( direction_phi_off<pkg1_phioff_lower || direction_phi_off>pkg1_phioff_upper ||
-              direction_theta_off<pkg1_thetaoff_lower || direction_theta_off>pkg1_thetaoff_upper )
-               continue;
-       }
-       else if (package==2)
-       {
-          if( direction_phi_off<pkg2_phioff_lower || direction_phi_off>pkg2_phioff_upper ||
-              direction_theta_off<pkg2_thetaoff_lower || direction_theta_off>pkg2_thetaoff_upper )
-               continue;
-       }
 
-       // further mathching angle cuts
+       // mathching angle cuts
 
         if(enable_direction_theta_cut)
         {
