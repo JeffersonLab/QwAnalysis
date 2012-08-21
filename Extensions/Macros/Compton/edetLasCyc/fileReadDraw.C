@@ -5,14 +5,18 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t asymDiffPlot=0,expAsymPlot=0,yieldPlot=1,asymPlot=0,asymComponents=1;
+  Bool_t asymDiffPlot=1;
+  Bool_t yieldPlot=1;
+  Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
+  Bool_t asymComponents=1;
+  Bool_t scalerPlot=1;
+
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
   Bool_t debug=0;//,debug1=0;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   ifstream in1, in2;
-  TLegend *leg;
   TLine *myline = new TLine(0,0,70,0);
-  ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents;//, theoAsym;
+  ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents, scalerRates;
   ofstream newTheoFile;
   TPaveText *pvTxt1 = new  TPaveText(0.75,0.84,0.98,1.0,"NDC");
   pvTxt1->SetShadowColor(0);
@@ -23,9 +27,9 @@ Int_t fileReadDraw(Int_t runnum)
   TGaxis::SetMaxDigits(2);
   //gROOT->ForceStyle();
 
-  leg = new TLegend(0.1,0.7,0.4,0.9);
   std::vector<std::vector <Double_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
-  
+  std::vector<std::vector <Double_t> > stripNum2,scalerB1L1,scalerB1L0;
+
   Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
   Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
   Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
@@ -41,6 +45,65 @@ Int_t fileReadDraw(Int_t runnum)
     pUsed[p]=kTRUE;
   }
   if(debug) cout<<"planes used: "<<pUsed[0]<<"\t"<<pUsed[1]<<"\t"<<pUsed[2]<<"\t"<<pUsed[3]<<endl;
+
+  if(scalerPlot) {
+    TCanvas *cNoise = new TCanvas("cNoise",Form("scalers for run:%d",runnum),30,30,900,900);
+    TGraph *grScalerLasOn[nPlanes],*grScalerLasOff[nPlanes];
+    TLegend *legScaler[nPlanes];
+
+    cNoise->Divide(startPlane+1,endPlane);
+
+    for(Int_t p =startPlane; p <endPlane; p++) {
+      scalerRates.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      if(scalerRates.is_open()) {
+	if(p>=(Int_t)stripNum2.size()) {
+	  stripNum2.resize(p+1),scalerB1L1.resize(p+1),scalerB1L0.resize(p+1);
+	}
+	cout<<"Reading the Scaler rate file for plane "<<p+1<<endl;
+	if(debug) cout<<";\tstripNum\tlasOnScalerCounts\tlasOffScalerCounts"<<endl;
+	while(scalerRates.good()) {
+	  stripNum2[p].push_back(0.0),scalerB1L1[p].push_back(0.0),scalerB1L0[p].push_back(0.0);
+	  Int_t s=stripNum2[p].size() - 1;
+	  scalerRates>>stripNum2[p][s]>>scalerB1L1[p][s]>>scalerB1L0[p][s];
+	  if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\n",p+1,s+1,stripNum2[p][s],scalerB1L1[p][s],scalerB1L0[p][s]);
+	}
+	scalerRates.close();
+      }
+      else cout<<"did not find "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+
+      cNoise->GetPad(p+1)->SetGridx(1);
+      cNoise->cd(p+1);
+      Int_t newSize=stripNum2[p].size();
+      //if(debug) cout<<"for plane "<<p+1<<" the no.of active strips is "<<newSize<<endl;
+      grScalerLasOn[p] = new TGraph(newSize,stripNum2[p].data(),scalerB1L1[p].data());
+      grScalerLasOn[p]->SetMarkerStyle(kFullCircle);
+      grScalerLasOn[p]->SetMarkerSize(1);
+      grScalerLasOn[p]->SetLineColor(kGreen);
+      grScalerLasOn[p]->SetMarkerColor(kGreen);
+      grScalerLasOn[p]->SetFillColor(kGreen);
+      grScalerLasOn[p]->GetXaxis()->SetTitle("strip number");
+      grScalerLasOn[p]->GetYaxis()->SetTitle("time normalized scaler(Hz)");
+
+      grScalerLasOn[p]->GetXaxis()->SetLimits(1,65); 
+      grScalerLasOn[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+      grScalerLasOn[p]->Draw("A P");
+
+      grScalerLasOff[p]= new TGraph(newSize,stripNum2[p].data(),scalerB1L0[p].data());
+      grScalerLasOff[p]->SetMarkerStyle(kOpenCircle);
+      grScalerLasOff[p]->SetMarkerColor(kBlue);
+      grScalerLasOff[p]->Draw("P");
+    
+      legScaler[p] = new TLegend(0.1,0.7,0.4,0.9);
+      legScaler[p]->AddEntry(grScalerLasOn[p],"laser on scaler(Hz)","p");
+      legScaler[p]->AddEntry(grScalerLasOff[p],"laser off scaler(Hz)","p");
+      legScaler[p]->SetFillColor(0);
+      legScaler[p]->Draw();
+    }
+    gPad->Update();
+    cNoise->Update();
+    cNoise->SaveAs(Form("%s/%s/%stNormScaler.png",pPath,webDirectory,filePrefix.Data()));
+  }
+
 
   for(Int_t p =startPlane; p <endPlane; p++) {
     expAsymComponents.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
@@ -179,64 +242,18 @@ Int_t fileReadDraw(Int_t runnum)
 //     cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
-  if (expAsymPlot) {
-    TCanvas *c1 = new TCanvas("c1",Form("edet Asymmetry run:%d",runnum),10,10,1000,600);
-    TGraphErrors *grCpp,*grFort;
-    c1->Divide(startPlane+1,endPlane);
-    for (Int_t p =startPlane; p <endPlane; p++) { 
-      grCpp = new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
-      grCpp->GetXaxis()->SetTitle("strip number");
-      grCpp->GetYaxis()->SetTitle("asymmetry");
-      grCpp->SetTitle("exp asym");
-      grCpp->SetMaximum(0.05);
-      grCpp->SetMinimum(-0.05);
-      grCpp->SetMarkerStyle(kFullCircle);
-      grCpp->SetLineColor(kRed);
-      grCpp->SetMarkerColor(kRed);
-      grCpp->SetFillColor(0);
-      grCpp->Draw("AP");
-    }
-
-    if(v2processed) {
-      TGraphErrors *grCpp_v2;
-      grCpp_v2 = new TGraphErrors(Form("%s/%s/%sexpAsymP1_v2.txt",pPath,webDirectory,filePrefix.Data()), "%lg %lg %lg");
-      grCpp_v2->SetMarkerStyle(kFullCircle);
-      grCpp_v2->SetLineColor(kGreen);
-      grCpp_v2->SetMarkerColor(kGreen);
-      grCpp_v2->SetFillColor(0);
-      grCpp_v2->Draw("P");
-    }
-    myline->SetLineStyle(1);
-    myline->Draw();
-
-    fortranOutP1.open(Form("%d-plane-1-nc.output",runnum));
-    if(fortranOutP1.is_open()) {
-      cout<<"found runlet based raw asymmetry file"<<endl;
-      grFort = new TGraphErrors(Form("%d-plane-1.output",runnum), "%lg %lg %lg");
-      grFort->SetMarkerColor(4);
-      grFort->SetMarkerStyle(24);
-      grFort->SetFillColor(0);
-      grFort->SetLineColor(4);
-      grFort->Draw("P");
-      // leg->AddEntry(grFort,"runlet based eDet Asymmetry","lpf");
-      fortranOutP1.close();
-    }
-    else cout<<"corresponding fortran file for run "<<runnum<<" doesn't exist"<<endl;
-  
-    c1->SaveAs(Form("%s/%s/%sexpAsym.png",pPath,webDirectory,filePrefix.Data()));
-  }
-
   if (asymPlot) {
+    TLegend *leg;
+    leg = new TLegend(0.1,0.7,0.4,0.9);
     TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",50,50,1000,600);
-    TGraphErrors *grTheoryAsym[nPlanes], *grAsymPlane[nPlanes];
+    TGraphErrors *grTheoryAsym[nPlanes], *grAsymPlane[nPlanes],*grFort;
     cAsym->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) {
-      //for (Int_t p =0; p <1; p++) {
       cAsym->cd(p+1);
       grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
       grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
-      grAsymPlane[p]->SetTitle(Form("experimental asymmetry"));//Run: %d, Plane %d",runnum,p+1));
+      grAsymPlane[p]->SetTitle(Form("experimental asymmetry"));
       grAsymPlane[p]->SetMarkerStyle(kFullCircle);
       grAsymPlane[p]->SetLineColor(kRed);
       grAsymPlane[p]->SetFillColor(0);
@@ -245,8 +262,20 @@ Int_t fileReadDraw(Int_t runnum)
       grAsymPlane[p]->SetMaximum(0.042);
       grAsymPlane[p]->SetMinimum(-0.042);
       grAsymPlane[p]->Draw("AP");
+
+      myline->SetLineStyle(1);
       myline->Draw();
       
+      if(v2processed) {
+	TGraphErrors *grCpp_v2[nPlanes];
+	grCpp_v2[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
+	grCpp_v2[p]->SetMarkerStyle(kFullCircle);
+	grCpp_v2[p]->SetLineColor(kGreen);
+	grCpp_v2[p]->SetMarkerColor(kGreen);
+	grCpp_v2[p]->SetFillColor(0);
+	grCpp_v2[p]->Draw("P");
+      }
+
       grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge[0]), "%lg %lg");
       //grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/%smodTheoryFileP1.txt",pPath,webDirectory,filePrefix.Data()), "%lg %lg");     
       //grTheoryAsym[p] = new TGraphErrors(dummyStrip,stripNum[p],theoryAsym[p],zero[p],zero[p]);
@@ -258,10 +287,23 @@ Int_t fileReadDraw(Int_t runnum)
       cAsym->Update();
       leg->AddEntry(grAsymPlane[p],"experimental asymmetry","lpf");
       leg->AddEntry(grTheoryAsym[p],"theoretical asymmetry","lpf");
-      //      leg->AddEntry(myline,"zero line","l");
+      //leg->AddEntry(myline,"zero line","l");
       leg->SetFillColor(0);
+ 
+      fortranOutP1.open(Form("%d-plane-1-nc.output",runnum));
+      if(fortranOutP1.is_open()) {
+	cout<<"found runlet based raw asymmetry file"<<endl;
+	grFort = new TGraphErrors(Form("%d-plane-1.output",runnum), "%lg %lg %lg");
+	grFort->SetMarkerColor(4);
+	grFort->SetMarkerStyle(24);
+	grFort->SetFillColor(0);
+	grFort->SetLineColor(4);
+	grFort->Draw("P");
+	leg->AddEntry(grFort,"runlet based eDet Asymmetry","lpf");
+	fortranOutP1.close();
+      } else cout<<"corresponding fortran file for run "<<runnum<<" doesn't exist"<<endl;
       leg->Draw();
-    } 
+    }
 
     cAsym->Update();
     cAsym->SaveAs(Form("%s/%s/%sexpTheoAsym.png",pPath,webDirectory,filePrefix.Data()));

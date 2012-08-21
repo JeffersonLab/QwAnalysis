@@ -16,7 +16,8 @@ Int_t expAsym(Int_t runnum)
   TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  const Bool_t debug = 1, debug1 = 1, debug2 = 0;
+  const Bool_t debug = 1, debug1 = 0, debug2 = 0;
+  const Bool_t lasCycPrint=0;//!if accum & scaler counts are needed for every laser cycle
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
@@ -28,7 +29,13 @@ Int_t expAsym(Int_t runnum)
   Int_t missedLasEntries=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
   Int_t AccumB1H0L1[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
   Int_t AccumB1H0L0[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips];
-
+//   Int_t EventB1H0L1[nPlanes][nStrips],EventB1H1L1[nPlanes][nStrips];
+//   Int_t EventB1H0L0[nPlanes][nStrips],EventB1H1L0[nPlanes][nStrips];
+  Int_t ScalerB1H0L1[nPlanes][nStrips],ScalerB1H1L1[nPlanes][nStrips];
+  Int_t ScalerB1H0L0[nPlanes][nStrips],ScalerB1H1L0[nPlanes][nStrips];
+  Int_t ScalerB1L0[nPlanes][nStrips],ScalerB1L1[nPlanes][nStrips]; 
+  Double_t normScalerB1L1[nPlanes][nStrips],normScalerB1L0[nPlanes][nStrips];
+  Double_t bRawScaler[nPlanes][nStrips];
   Double_t comptQH1L1=0.0, comptQH0L1=0.0;
   Double_t comptQH1L0=0.0, comptQH0L0=0.0;
   Double_t lasPow[3], helicity, bcm[3];//, time_nano[3];
@@ -62,8 +69,10 @@ Int_t expAsym(Int_t runnum)
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
-
-  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd,fortranCheck;
+  ofstream lasCycExpAsym,lasCycYield;
+  ofstream lasCycScaler[nPlanes][nStrips],lasCycAccum[nPlanes][nStrips];
+//  fstream lasCycScaler,lasCycAccum;//to write files every laserCycle
+  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
   ifstream infileLas, infileBeam;
 
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
@@ -83,6 +92,7 @@ Int_t expAsym(Int_t runnum)
       qNormB1L0[p][s]=0.0,qNormB1L0Er[p][s]=0.0;
 
       totAccumB1H1L1[p][s]=0,totAccumB1H0L1[p][s]=0,totAccumB1H1L0[p][s]=0,totAccumB1H0L0[p][s]=0;
+      normScalerB1L1[p][s]=0.0,normScalerB1L0[p][s]=0.0;
     }
   }
   if(v2processed) {
@@ -113,8 +123,8 @@ Int_t expAsym(Int_t runnum)
     }
   }
 
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
-  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
+  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
   printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
 
   if(!chainExists){//delete chains and exit if files do not exist
@@ -137,7 +147,7 @@ Int_t expAsym(Int_t runnum)
       }
     }
     infileLas.close();
-    nLasCycles = (cutLas.size() - 2)/2;//!?what does '-2' do
+    nLasCycles = (cutLas.size() - 2)/2;
     //nLasCycles = (cutLas.size())/2;
 
     while (infileBeam.good()) {
@@ -187,9 +197,23 @@ Int_t expAsym(Int_t runnum)
 
   for(Int_t p = 0; p <nPlanes; p++) {      
     mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
+    mpsChain->SetBranchAddress(Form("p%dRawV1495Scaler",p+1),&bRawScaler[p]);
     if(v2processed) mpsChain->SetBranchAddress(Form("p%dRawAc_v2",p+1),&bRawAccum_v2[p]);
   }//the branch for each plane is named from 1 to 4
   
+  if(lasCycPrint) {
+    for(Int_t p = startPlane; p <endPlane; p++) {      
+      for(Int_t s =startStrip; s <endStrip; s++) {
+	if (maskedStrips(p,s)) continue;    
+	lasCycAccum[p][s].open(Form("%s/%s/run_%d/lasCyc/lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,p+1,s+1));
+	lasCycScaler[p][s].open(Form("%s/%s/run_%d/lasCyc/lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,p+1,s+1));
+	//if(debug) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/lasCycAccumP%dS%2.0d.txt",pPath,webDirectory,runnum,p+1,(Float_t)s+1)<<endl;
+	if(debug) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/lasCycAccumP%dS%d.txt"
+					,pPath,webDirectory,runnum,p+1,s+1)<<endl;
+      }
+    }
+  }
+
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
     if (debug) cout<<"\nStarting nCycle:"<<nCycle<<" and resetting all nCycle variables"<<endl;
     ///since this is the beginning of a new Laser cycle, and all Laser cycle based variables 
@@ -197,10 +221,10 @@ Int_t expAsym(Int_t runnum)
     nMpsB1H1L1= 0, nMpsB1H0L1= 0, nMpsB1H1L0= 0, nMpsB1H0L0= 0, missedLasEntries=0; 
     comptQH1L1= 0.0, comptQH0L1= 0.0, comptQH1L0= 0.0, comptQH0L0= 0.0;
 
-    //lasPowB1H1= 0.0, lasPowB1H0= 0.0;
     for(Int_t p = startPlane; p <nPlanes; p++) {      
       for(Int_t s = startStrip; s <endStrip; s++) {
 	AccumB1H0L0[p][s] =0, AccumB1H1L0[p][s] =0, AccumB1H0L1[p][s] =0, AccumB1H1L1[p][s] =0;
+	ScalerB1H0L0[p][s] =0, ScalerB1H1L0[p][s] =0, ScalerB1H0L1[p][s] =0, ScalerB1H1L1[p][s] =0;
  	qNormLasCycAsym[p][s]= 0.0,LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0;
 	if(v2processed) {
 	  AccumB1H0L0_v2[p][s] =0, AccumB1H1L0_v2[p][s] =0, AccumB1H0L1_v2[p][s] =0, AccumB1H1L1_v2[p][s] =0;
@@ -231,6 +255,7 @@ Int_t expAsym(Int_t runnum)
       
     if(debug) cout<<"Will analyze from entry # "<<cutLas.at(2*nCycle)<<" to entry # "<<cutLas.at(2*nCycle+2)<<endl;
 
+
     for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
       //loop over laser cycle periods taking one LasOff state and the following laserOn state
       if(debug && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
@@ -246,10 +271,11 @@ Int_t expAsym(Int_t runnum)
 	if (h ==0 && l ==0) {
 	  nMpsB1H0L0++;
 	  comptQH0L0 += bcm[0];
-	  for(Int_t p = startPlane; p <endPlane; p++) {      	
+	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
+	      ScalerB1H0L0[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0]; // /lasPow[0];
 	      if(v2processed) AccumB1H0L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0]; // /lasPow[0];
 	    }
 	  }
@@ -261,6 +287,7 @@ Int_t expAsym(Int_t runnum)
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
+	      ScalerB1H0L1[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0]; // /lasPow[0];
 	      if(v2processed) AccumB1H0L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0]; // /lasPow[0];
 	    }	  
 	  }
@@ -271,6 +298,7 @@ Int_t expAsym(Int_t runnum)
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0];// /lasPow[0];
+	      ScalerB1H1L0[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0];// /lasPow[0];
 	      if(v2processed) AccumB1H1L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0];// /lasPow[0];
 	    }
 	  }
@@ -282,13 +310,14 @@ Int_t expAsym(Int_t runnum)
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
 	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0];// /lasPow[0];
+	      ScalerB1H1L1[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0];// /lasPow[0];
 	      if(v2processed) AccumB1H1L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0];// /lasPow[0];
 	    }
 	  }
 	}
       }///if (beamOn)
     }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
-    if(debug) cout<<"Had to skip "<<missedLasEntries<<" entries in this laser cycle"<<endl;
+    if(debug) cout<<"ignored "<<missedLasEntries<<" entries in this lasCycle"<<endl;
 
     //after having filled the above vectors based on laser and beam periods, find asymmetry
     if (beamOn) {
@@ -304,20 +333,11 @@ Int_t expAsym(Int_t runnum)
       totMpsB1H0L1 += nMpsB1H0L1;
       totMpsB1H0L0 += nMpsB1H0L0;
 
-      if(debug) cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<" laserOnOffRatioH1: "<<laserOnOffRatioH1<<endl;
-      if (debug1) cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
       if (nMpsB1H0L1<= 0||nMpsB1H1L1<= 0||nMpsB1H0L0<= 0||nMpsB1H1L0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nMpsB1H0L1:%d,nMpsB1H1L1:%d, nMpsB1H0L0:%d, nMpsB1H1L0:%d",nCycle,nMpsB1H0L1,nMpsB1H1L1,nMpsB1H0L0,nMpsB1H1L0);
       else if (comptQH0L1<= 0||comptQH1L1<= 0||comptQH0L0<= 0||comptQH1L0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check comptQH0L1:%f,comptQH1L1:%f, comptQH0L0:%f, comptQH1L0:%f**\n",nCycle,comptQH0L1,comptQH1L1,comptQH0L0,comptQH1L0);
       else {
-	if(debug) {
-	  printf("comptQH1L1:%f\t comptQH0L1:%f\t comptQH1L0:%f\t comptQH0L0:%f\n",
-		 comptQH1L1,comptQH0L1,comptQH1L0,comptQH0L0);
-	  printf("nMpsB1H1L1:%d\tnMpsB1H0L1:%d\tnMpsB1H1L0:%d\tnMpsB1H0L0:%d\n",
-		 nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0,nMpsB1H0L0);
-	}
-	
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s = startStrip; s < endStrip; s++) {
 	    if (maskedStrips(p,s)) continue;
@@ -325,13 +345,37 @@ Int_t expAsym(Int_t runnum)
 	    newAccumB1H1L0[p][s] = AccumB1H1L0[p][s]; // - nMpsB1H1L0 *lasOffNoiseRate[p][s];
 	    newAccumB1H0L1[p][s] = AccumB1H0L1[p][s]; // - nMpsB1H0L1 *lasOnNoiseRate[p][s];
 	    newAccumB1H0L0[p][s] = AccumB1H0L0[p][s]; // - nMpsB1H0L0 *lasOffNoiseRate[p][s];
-	    totAccumB1H1L1[p][s] +=  AccumB1H1L1[p][s];
-	    totAccumB1H1L0[p][s] +=  AccumB1H1L0[p][s];
-	    totAccumB1H0L1[p][s] +=  AccumB1H0L1[p][s];
-	    totAccumB1H0L0[p][s] +=  AccumB1H0L0[p][s];
+	    totAccumB1H1L1[p][s] += AccumB1H1L1[p][s];
+	    totAccumB1H1L0[p][s] += AccumB1H1L0[p][s];
+	    totAccumB1H0L1[p][s] += AccumB1H0L1[p][s];
+	    totAccumB1H0L0[p][s] += AccumB1H0L0[p][s];
+	    ScalerB1L1[p][s] += (ScalerB1H1L1[p][s]+ScalerB1H0L1[p][s]);///(Double_t)(nMpsB1H1L1+nMpsB1H0L1);
+	    ScalerB1L0[p][s] += (ScalerB1H1L0[p][s]+ScalerB1H0L0[p][s]);///(Double_t)(nMpsB1H1L0+nMpsB1H0L0);
  	  }
  	}
 	
+	if(lasCycPrint==1) {
+	  if(debug1) cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<" laserOnOffRatioH1: "<<laserOnOffRatioH1<<endl;
+	  if(debug1) {
+	    cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
+	    printf("comptQH1L1: %f\t comptQH0L1: %f\t comptQH1L0: %f\t comptQH0L0: %f\n",comptQH1L1,comptQH0L1,comptQH1L0,comptQH0L0);
+	    printf("nMpsB1H1L1: %d\tnMpsB1H0L1: %d\tnMpsB1H1L0: %d\tnMpsB1H0L0: %d\n",nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0,nMpsB1H0L0);
+	  }
+	  for(Int_t p = startPlane; p < endPlane; p++) {
+	    for (Int_t s =startStrip; s <endStrip;s++) {
+	      if (maskedStrips(p,s)) continue;
+	      if (lasCycAccum[p][s].is_open() && lasCycScaler[p][s].is_open()) {
+		  lasCycAccum[p][s]<<Form("%d\t%f\t%f\t%f\t%f\n",nCycle+1,AccumB1H0L0[p][s]/(Float_t)nMpsB1H0L0,
+					  AccumB1H0L1[p][s]/(Float_t)nMpsB1H0L1,AccumB1H1L0[p][s]/(Float_t)nMpsB1H1L0,
+					  AccumB1H1L1[p][s]/(Float_t)nMpsB1H1L1);
+		  lasCycScaler[p][s]<<Form("%d\t%f\t%f\t%f\t%f\n",nCycle+1,
+					   (Float_t)ScalerB1H0L0[p][s]/nMpsB1H0L0,(Float_t)ScalerB1H0L1[p][s]/nMpsB1H0L1,
+					   (Float_t)ScalerB1H1L0[p][s]/nMpsB1H1L0,(Float_t)ScalerB1H1L1[p][s]/nMpsB1H1L1);
+	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;    
+	    }
+	  }
+	}
+
 	evaluateAsym(newAccumB1H1L1,newAccumB1H1L0,newAccumB1H0L1,newAccumB1H0L0,comptQH1L1,comptQH1L0,comptQH0L1,comptQH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0);
 	if(v2processed) evaluateAsym(newAccumB1H1L1_v2,newAccumB1H1L0_v2,newAccumB1H0L1_v2,newAccumB1H0L0_v2,comptQH1L1,comptQH1L0,comptQH0L1,comptQH0L0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2);
       }///sanity check of being non-zero for filled laser cycle variables
@@ -339,118 +383,140 @@ Int_t expAsym(Int_t runnum)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
 
-    for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington
-      for (Int_t s =startStrip; s <endStrip; s++) {        
-	if (maskedStrips(p,s)) continue;
-	if(weightedMeanDrAsym[p][s]==0.0) cout<<"stand. deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
-	else {
-	  stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
- 	  if (weightedMeanDrAsym[p][s]<0.0) stripAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrAsym[p][s]));
- 	  else stripAsymEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrAsym[p][s]);
-
-	  stripAsymNr[p][s] = weightedMeanNrBCqNormDiff[p][s]/weightedMeanDrBCqNormSum[p][s];
-	  //stripAsymNrEr[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormDiff[p][s]);
-
-	  stripAsymDr[p][s] = weightedMeanNrBCqNormSum[p][s]/weightedMeanDrBCqNormSum[p][s];
- 	  if (weightedMeanDrBCqNormSum[p][s]<0.0) stripAsymDrEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrBCqNormSum[p][s]));
- 	  else stripAsymDrEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrBCqNormSum[p][s]);
-	  ///the error in numerator and denominator are same, hence reevaluation is avoided
-
-	  qNormB1L0[p][s] = weightedMeanNrqNormB1L0[p][s]/weightedMeanDrqNormB1L0[p][s];///pure Beam background
-	  if (weightedMeanDrqNormB1L0[p][s]<0.0) qNormB1L0Er[p][s] = TMath::Sqrt(-1.0/weightedMeanDrqNormB1L0[p][s]);
-	  else qNormB1L0Er[p][s] = TMath::Sqrt(1.0/weightedMeanDrqNormB1L0[p][s]);
-	}
-	if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
-      }
+  for(Int_t p = 0; p <nPlanes; p++) {      
+    for(Int_t s =startStrip; s <endStrip; s++) {
+      if (maskedStrips(p,s)) continue;    
+      lasCycAccum[p][s].close();
+      lasCycScaler[p][s].close();
     }
+  }
+
+  for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington
+    for (Int_t s =startStrip; s <endStrip; s++) {        
+      if (maskedStrips(p,s)) continue;
+      if(weightedMeanDrAsym[p][s]==0.0) cout<<"stand. deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
+      else {
+	stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
+	if (weightedMeanDrAsym[p][s]<0.0) stripAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrAsym[p][s]));//!!shouldn't need to do this
+	else stripAsymEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrAsym[p][s]);
+
+	stripAsymNr[p][s] = weightedMeanNrBCqNormDiff[p][s]/weightedMeanDrBCqNormSum[p][s];
+	//stripAsymNrEr[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormDiff[p][s]);
+
+	stripAsymDr[p][s] = weightedMeanNrBCqNormSum[p][s]/weightedMeanDrBCqNormSum[p][s];
+	if (weightedMeanDrBCqNormSum[p][s]<0.0) stripAsymDrEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrBCqNormSum[p][s]));
+	else stripAsymDrEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrBCqNormSum[p][s]);
+	///the error in numerator and denominator are same, hence reevaluation is avoided
+
+	qNormB1L0[p][s] = weightedMeanNrqNormB1L0[p][s]/weightedMeanDrqNormB1L0[p][s];///pure Beam background
+	if (weightedMeanDrqNormB1L0[p][s]<0.0) qNormB1L0Er[p][s] = TMath::Sqrt(-1.0/weightedMeanDrqNormB1L0[p][s]);
+	else qNormB1L0Er[p][s] = TMath::Sqrt(1.0/weightedMeanDrqNormB1L0[p][s]);
+      }
+      if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
+    }
+  }
   
-    for(Int_t p = startPlane; p < endPlane; p++) { 
-      //Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check    
-      outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      fortranCheck.open(Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
-	cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	fortranCheck<<totMpsB1H1L1<<"\t"<<totMpsB1H1L0<<"\t"<<totMpsB1H0L1<<"\t"<<totMpsB1H0L0<<"\t"<<totMpsB1H1L1+totMpsB1H1L0+totMpsB1H0L1+totMpsB1H0L0<<endl;
-	fortranCheck<<totQH1L1<<"\t"<<totQH1L0<<"\t"<<totQH0L1<<"\t"<<totQH0L0<<"\t"<<totQH1L1+totQH1L0+totQH0L1+totQH0L0<<endl;
+  for(Int_t p = startPlane; p < endPlane; p++) { 
+    for (Int_t s =startStrip; s <endStrip; s++) {        
+      if (maskedStrips(p,s)) continue;
+      normScalerB1L1[p][s] = ScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
+      normScalerB1L0[p][s] = ScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
+    }
+  }
+
+  for(Int_t p = startPlane; p < endPlane; p++) { 
+    //Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check    
+    outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    fortranCheck.open(Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outScaler.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
+      cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      cout<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      fortranCheck<<totMpsB1H1L1<<"\t"<<totMpsB1H1L0<<"\t"<<totMpsB1H0L1<<"\t"<<totMpsB1H0L0<<"\t"<<totMpsB1H1L1+totMpsB1H1L0+totMpsB1H0L1+totMpsB1H0L0<<endl;
+      fortranCheck<<totQH1L1<<"\t"<<totQH1L0<<"\t"<<totQH0L1<<"\t"<<totQH0L0<<"\t"<<totQH1L1+totQH1L0+totQH0L1+totQH0L0<<endl;
+
       //outAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       //outfileYield<<";strip\texpAsymDr\texpAsymDrEr\texpAsymNr"<<endl;
       //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
-	Bool_t firstOne=kTRUE;
-	for (Int_t s =startStrip; s <endStrip;s++) { 
-	  if (maskedStrips(p,s)) continue;
+      Bool_t firstOne=kTRUE;
+      for (Int_t s =startStrip; s <endStrip;s++) { 
+	if (maskedStrips(p,s)) continue;
+	if(!firstOne) {
+	  outfileExpAsymP<<"\n";
+	  outfileYield<<"\n";
+	  outfilelasOffBkgd<<"\n";
+	  fortranCheck<<"\n";
+	  outScaler<<"\n";
+	}
+	firstOne =kFALSE;
+	outfileExpAsymP<<Form("%2.0f\t%f\t%f",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s]);
+	outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
+	outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
+	fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totAccumB1H1L1[p][s],totAccumB1H1L0[p][s],totAccumB1H0L1[p][s],totAccumB1H0L0[p][s]);
+	outScaler<<Form("%d\t%g\t%g",s+1,normScalerB1L1[p][s],normScalerB1L0[p][s]);
+      }
+      outfileExpAsymP.close();
+      outfileYield.close();
+      outfilelasOffBkgd.close();
+      fortranCheck.close();
+      outScaler.close();
+      cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      cout<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+    } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
+  }
 
-	  if(!firstOne) {
-	    outfileExpAsymP<<"\n";
-	    outfileYield<<"\n";
-	    outfilelasOffBkgd<<"\n";
-	    fortranCheck<<"\n";
-	  }
-	  firstOne =kFALSE;
-	  outfileExpAsymP<<Form("%2.0f\t%f\t%f",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s]);
-	  outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
-	  outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
-	  fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totAccumB1H1L1[p][s],totAccumB1H1L0[p][s],totAccumB1H0L1[p][s],totAccumB1H0L0[p][s]);
+  if (v2processed) {
+    for (Int_t p =startPlane; p <endPlane; p++) {	  	  
+      for (Int_t s =startStrip; s <endStrip; s++) {        
+	if (maskedStrips(p,s)) continue;
+	if(weightedMeanDrAsym_v2[p][s]<=0.0) cout<<"st.deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
+	else if(weightedMeanNrAsym[p][s]==0.0) cout<<"asym for strip "<<s<<" in plane "<<p<<" is zero"<<endl;
+	else {
+	  stripAsym_v2[p][s] = weightedMeanNrAsym_v2[p][s]/weightedMeanDrAsym_v2[p][s];
+	  stripAsymEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrAsym_v2[p][s]);
+	    
+	  stripAsymNr_v2[p][s] = weightedMeanNrBCqNormDiff_v2[p][s]/weightedMeanDrBCqNormSum_v2[p][s];
+	  //stripAsymNrEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormDiff_v2[p][s]);
+	    
+	  stripAsymDr_v2[p][s] = weightedMeanNrBCqNormSum_v2[p][s]/weightedMeanDrBCqNormSum_v2[p][s];
+	  stripAsymDrEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormSum_v2[p][s]);
+	  ///the error in numerator and denominator are same, hence reevaluation is avoided
+	    
+	  qNormB1L0_v2[p][s] = weightedMeanNrqNormB1L0_v2[p][s]/weightedMeanDrqNormB1L0_v2[p][s];
+	  qNormB1L0Er_v2[p][s] = TMath::Sqrt(1/weightedMeanDrqNormB1L0_v2[p][s]);
+	}
+      }             
+      
+      outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      outfileYield.open(Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
+	cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+	cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+	cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+	for (Int_t s =startStrip; s <endStrip;s++) {    
+	  if (maskedStrips(p,s)) continue;
+	  outfileExpAsymP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsym_v2[p][s],stripAsymEr_v2[p][s]);
+	  outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr_v2[p][s],stripAsymDrEr_v2[p][s]);
+	  outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0_v2[p][s],qNormB1L0Er_v2[p][s]);
 	}
 	outfileExpAsymP.close();
-	outfileYield.close();
+	cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
 	outfilelasOffBkgd.close();
-	fortranCheck.close();
-	cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
-    }
-
-    if (v2processed) {
-      for (Int_t p =startPlane; p <endPlane; p++) {	  	  
-	for (Int_t s =startStrip; s <endStrip; s++) {        
-	  if (maskedStrips(p,s)) continue;
-	  if(weightedMeanDrAsym_v2[p][s]<=0.0) cout<<"st.deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
-	  else if(weightedMeanNrAsym[p][s]==0.0) cout<<"asym for strip "<<s<<" in plane "<<p<<" is zero"<<endl;
-	  else {
-	    stripAsym_v2[p][s] = weightedMeanNrAsym_v2[p][s]/weightedMeanDrAsym_v2[p][s];
-	    stripAsymEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrAsym_v2[p][s]);
-	    
-	    stripAsymNr_v2[p][s] = weightedMeanNrBCqNormDiff_v2[p][s]/weightedMeanDrBCqNormSum_v2[p][s];
-	    //stripAsymNrEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormDiff_v2[p][s]);
-	    
-	    stripAsymDr_v2[p][s] = weightedMeanNrBCqNormSum_v2[p][s]/weightedMeanDrBCqNormSum_v2[p][s];
-	    stripAsymDrEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormSum_v2[p][s]);
-	    ///the error in numerator and denominator are same, hence reevaluation is avoided
-	    
-	    qNormB1L0_v2[p][s] = weightedMeanNrqNormB1L0_v2[p][s]/weightedMeanDrqNormB1L0_v2[p][s];
-	    qNormB1L0Er_v2[p][s] = TMath::Sqrt(1/weightedMeanDrqNormB1L0_v2[p][s]);
-	  }
-	}             
-      
-	outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-	outfileYield.open(Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-	outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-	if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
-	  cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	  cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	  cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	  for (Int_t s =startStrip; s <endStrip;s++) {    
-	    if (maskedStrips(p,s)) continue;
-	    outfileExpAsymP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsym_v2[p][s],stripAsymEr_v2[p][s]);
-	    outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr_v2[p][s],stripAsymDrEr_v2[p][s]);
-	    outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0_v2[p][s],qNormB1L0Er_v2[p][s]);
-	  }
-	  outfileExpAsymP.close();
-	  cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	  outfilelasOffBkgd.close();
-	  cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	  outfileYield.close();
-	  cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	} else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values for version2(v2) data\n\n"<<endl;
-      }//for(Int_t p = startPlane; p < endPlane; p++)
-    } //if (v2processed)  
+	cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+	outfileYield.close();
+	cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values for version2(v2) data\n\n"<<endl;
+    }//for(Int_t p = startPlane; p < endPlane; p++)
+  } //if (v2processed)  
 
   //!!this currently would not work if the Cedge changes between planes
   tEnd = time(0);

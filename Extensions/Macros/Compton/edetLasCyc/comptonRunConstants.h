@@ -60,9 +60,9 @@ const Double_t lowCurrentLimit = 65.0;
 //following numbers are all in C++ counting(start at 0)
 const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
- const Int_t endStrip = 64;
+const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 3;
+  const Int_t endPlane = 1;
 const Int_t masked[3]={3,3,4};///no.of masked strips in the 3 active planes
 
 Int_t Cedge[nPlanes];
@@ -71,9 +71,9 @@ Bool_t paramRead;
 Float_t k;
 Float_t gamma_my;
 
-const Int_t Cedge_p1 = 50;///Compton-edge for the current run(counting from 0)
-const Int_t Cedge_p2 = 50;///Compton-edge for the current run(counting from 0)
-const Int_t Cedge_p3 = 50;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge_p1 = 60;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge_p2 = 59;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge_p3 = 59;///Compton-edge for the current run(counting from 0)
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12

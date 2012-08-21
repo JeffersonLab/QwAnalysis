@@ -100,7 +100,7 @@ void asymFit(Int_t runnum)
   TGraphErrors *grAsymPlane[nPlanes];//, *grFittedTheo[nPlanes];
 
   cAsym->Divide(startPlane+1,endPlane); 
-  polList.open(Form("%s/%s/%spol_%d.txt",pPath,webDirectory,filePrefix.Data(),runnum));
+  polList.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
   polList<<";plane\tpol\tpolEr\tchiSq\tNDF\tCedge"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
     cAsym->cd(p+1);  
@@ -170,7 +170,6 @@ void asymFit(Int_t runnum)
     pt[p]->Draw();
     myline->Draw();
     gPad->Update();
-    //leg[p]->AddEntry(myline,"zero line","l");
     //cAsym->Update(); 
   }//for (Int_t p =startPlane; p <endPlane; p++)
   polList.close();
