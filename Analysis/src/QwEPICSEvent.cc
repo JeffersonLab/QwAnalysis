@@ -433,7 +433,7 @@ void QwEPICSEvent::SetDefaultAutogainList(std::vector<std::string>& input_list)
 }
 
 
-int QwEPICSEvent::SetDataValue(const string& tag, const Double_t value, const int event)
+int QwEPICSEvent::SetDataValue(const string& tag, const double value, const int event)
 {
   Int_t tagindex = FindIndex(tag);
   return (SetDataValue(tagindex, value, event));
@@ -445,7 +445,7 @@ int QwEPICSEvent::SetDataValue(const string& tag, const string& value, const int
   return (SetDataValue(tagindex, value, event));
 }
 
-int QwEPICSEvent::SetDataValue(const Int_t index, const Double_t value, const int event)
+int QwEPICSEvent::SetDataValue(int index, const double value, const int event)
 {
   if (index == kEPICS_Error) return kEPICS_Error;
   if (index < 0)             return kEPICS_Error;
@@ -460,7 +460,7 @@ int QwEPICSEvent::SetDataValue(const Int_t index, const Double_t value, const in
   return kEPICS_Error;
 }
 
-int QwEPICSEvent::SetDataValue(const Int_t index, const string& value, const int event)
+int QwEPICSEvent::SetDataValue(int index, const string& value, const int event)
 {
   if (index == kEPICS_Error) return kEPICS_Error;
   if (index < 0)             return kEPICS_Error;

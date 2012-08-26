@@ -60,10 +60,10 @@ class QwEPICSEvent
   TString  GetDataString(const string& tag) const;
 
 
-  int SetDataValue(const string& tag, const Double_t value, const int event);
+  int SetDataValue(const string& tag, const double value, const int event);
   int SetDataValue(const string& tag, const string& value, const int event);
-  int SetDataValue(const Int_t index,  const Double_t value, const int event);
-  int SetDataValue(const Int_t index,  const string& value, const int event);
+  int SetDataValue(int index, const double value, const int event);
+  int SetDataValue(int index, const string& value, const int event);
 
   Bool_t HasDataLoaded() const { return fIsDataLoaded; };
 

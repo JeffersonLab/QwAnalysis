@@ -45,10 +45,8 @@
 class QwDatabase: private mysqlpp::Connection {
   public:
 
-    QwDatabase(const string major="00", const string minor="00", const
-        string point="0000"); //!< Simple constructor
-    QwDatabase(QwOptions &options, const string major="00", 
-        const string minor="00", const string point="0000"); //!< Constructor with QwOptions object
+    QwDatabase(const string &major = "00", const string &minor = "00", const string &point = "0000"); //!< Simple constructor
+    QwDatabase(QwOptions &options, const string &major = "00", const string &minor = "00", const string &point = "0000"); //!< Constructor with QwOptions object
 
     virtual ~QwDatabase(); //!< Destructor
 

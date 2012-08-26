@@ -28,7 +28,7 @@ sql_create_6(db_schema, 1, 2
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwDatabase::QwDatabase(const string major, const string minor, const string point) : Connection(), kValidVersionMajor(major), kValidVersionMinor(minor), kValidVersionPoint(point)
+QwDatabase::QwDatabase(const string &major, const string &minor, const string &point) : Connection(), kValidVersionMajor(major), kValidVersionMinor(minor), kValidVersionPoint(point)
 {
   QwDebug << "Greetings from QwDatabase simple constructor." << QwLog::endl;
 
@@ -46,8 +46,11 @@ QwDatabase::QwDatabase(const string major, const string minor, const string poin
 /*! The constructor initializes member fields using the values in
  *  the QwOptions object.
  * @param options  The QwOptions object.
+ * @param major Major version number
+ * @param minor Minor version number
+ * @param point Point revision number
  */
-QwDatabase::QwDatabase(QwOptions &options, const string major, const string minor, const string point) : Connection(), kValidVersionMajor(major), kValidVersionMinor(minor), kValidVersionPoint(point)
+QwDatabase::QwDatabase(QwOptions &options, const string &major, const string &minor, const string &point) : Connection(), kValidVersionMajor(major), kValidVersionMinor(minor), kValidVersionPoint(point)
 {
   QwDebug << "Greetings from QwDatabase extended constructor." << QwLog::endl;
 

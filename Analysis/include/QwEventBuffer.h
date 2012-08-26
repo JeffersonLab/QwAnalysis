@@ -264,9 +264,9 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
   ///  The classes for which this template can be specialized
   ///  must have the following three methods defined:
   ///
-  ///  - Bool_t \verbatim<class T>\endverbatim::CanUseThisEventType(const UInt_t event_type);
-  ///  - Bool_t \verbatim<class T>\endverbatim::ClearEventData(const UInt_t event_type);
-  ///  - Int_t  \verbatim<class T>\endverbatim::ProcessBuffer(const UInt_t event_type,
+  ///  - Bool_t T::CanUseThisEventType(const UInt_t event_type);
+  ///  - Bool_t T::ClearEventData(const UInt_t event_type);
+  ///  - Int_t  T::ProcessBuffer(const UInt_t event_type,
   ///       const UInt_t roc_id, const UInt_t bank_id, 
   ///       const UInt_t banktype, UInt_t* buffer, UInt_t num_words);
   ///
