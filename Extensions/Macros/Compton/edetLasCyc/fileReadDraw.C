@@ -5,17 +5,18 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t asymDiffPlot=1;
-  Bool_t yieldPlot=1;
+  Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
+  Bool_t yieldPlot=0;
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
-  Bool_t asymComponents=1;
-  Bool_t scalerPlot=1;
+  Bool_t asymComponents=0;
+  Bool_t scalerPlot=0;
+  Bool_t lasWisePlot=1;//plot quantities against on laser-cycle 
 
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
   Bool_t debug=0;//,debug1=0;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  ifstream in1, in2;
   TLine *myline = new TLine(0,0,70,0);
+  ifstream in1, in2;
   ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents, scalerRates;
   ofstream newTheoFile;
   TPaveText *pvTxt1 = new  TPaveText(0.75,0.84,0.98,1.0,"NDC");
@@ -47,7 +48,7 @@ Int_t fileReadDraw(Int_t runnum)
   if(debug) cout<<"planes used: "<<pUsed[0]<<"\t"<<pUsed[1]<<"\t"<<pUsed[2]<<"\t"<<pUsed[3]<<endl;
 
   if(scalerPlot) {
-    TCanvas *cNoise = new TCanvas("cNoise",Form("scalers for run:%d",runnum),30,30,900,900);
+    TCanvas *cNoise = new TCanvas("cNoise",Form("scalers for run:%d",runnum),30,30,1000,420*endPlane);
     TGraph *grScalerLasOn[nPlanes],*grScalerLasOff[nPlanes];
     TLegend *legScaler[nPlanes];
 
@@ -93,7 +94,7 @@ Int_t fileReadDraw(Int_t runnum)
       grScalerLasOff[p]->SetMarkerColor(kBlue);
       grScalerLasOff[p]->Draw("P");
     
-      legScaler[p] = new TLegend(0.1,0.7,0.4,0.9);
+      legScaler[p] = new TLegend(0.1,0.7,0.35,0.9);//x1,y1,x2,y2
       legScaler[p]->AddEntry(grScalerLasOn[p],"laser on scaler(Hz)","p");
       legScaler[p]->AddEntry(grScalerLasOff[p],"laser off scaler(Hz)","p");
       legScaler[p]->SetFillColor(0);
@@ -125,7 +126,7 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if(asymComponents) {
-    TCanvas *cAsymComponent = new TCanvas("cAsymDiff",Form("Nr. of Asym for run:%d",runnum),30,30,1000,1000);
+    TCanvas *cAsymComponent = new TCanvas("cAsymDiff",Form("Nr. of Asym for run:%d",runnum),30,30,1000,420*endPlane);
     TGraphErrors *grAsymNr[nPlanes];
     cAsymComponent->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) { 
@@ -149,7 +150,7 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if (yieldPlot) {
-    TCanvas *cYield = new TCanvas("cYield",Form("Yield for run:%d",runnum),70,70,1000,1300);
+    TCanvas *cYield = new TCanvas("cYield",Form("Yield for run:%d",runnum),70,70,1000,420*endPlane);
     TGraphErrors *grAsymDr[nPlanes],*grB1L0[nPlanes];
     TLegend *legYield[nPlanes];
 
@@ -217,35 +218,35 @@ Int_t fileReadDraw(Int_t runnum)
       else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
     }
 
-//     TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),1,1,1000,1000);
-//     TGraphErrors *grDiffPWTL1_2[nPlanes];
-//     cDiff->Divide(startPlane+1,endPlane);
-//     for (Int_t p =startPlane; p <endPlane; p++) { 
-//       cDiff->cd(p+1);
-//       cDiff->GetPad(p+1)->SetGridx(1);
-//       //!!following line needs to be fixed in wake of the modified variable definition
-//       //grDiffPWTL1_2[p] = new TGraphErrors(endStrip,stripNum[p],asymDiff[p],zero[p],stripAsymEr[p]);//!the error needs correction
-//       grDiffPWTL1_2[p]->SetMarkerStyle(kOpenSquare);
-//       grDiffPWTL1_2[p]->SetMarkerSize(0.6);
-//       grDiffPWTL1_2[p]->SetMarkerColor(kRed+2);
-//       grDiffPWTL1_2[p]->SetLineColor(kRed+2);
-//       grDiffPWTL1_2[p]->GetXaxis()->SetTitle("strip number");
-//       grDiffPWTL1_2[p]->GetYaxis()->SetTitle("expAsym difference (PWTL1-PWTL2)");
-//       grDiffPWTL1_2[p]->SetMaximum(0.005);
-//       grDiffPWTL1_2[p]->SetMinimum(-0.005);
-//       grDiffPWTL1_2[p]->GetXaxis()->SetLimits(1,65); 
-//       grDiffPWTL1_2[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-//       grDiffPWTL1_2[p]->SetTitle("Diff in exp-asymmetry due to different trigger width");
-//       grDiffPWTL1_2[p]->Draw("AP");
-//     }
-//     cDiff->Update();
-//     cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePrefix.Data()));
+    TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),1,1,1000,420*endPlane);
+    TGraphErrors *grDiffPWTL1_2[nPlanes];
+    cDiff->Divide(startPlane+1,endPlane);
+    for (Int_t p =startPlane; p <endPlane; p++) { 
+      cDiff->cd(p+1);
+      cDiff->GetPad(p+1)->SetGridx(1);
+      //!!following line needs to be fixed in wake of the modified variable definition
+      grDiffPWTL1_2[p] = new TGraphErrors(endStrip,stripNum[p].data(),asymDiff[p],zero[p],stripAsymEr[p]);
+      grDiffPWTL1_2[p]->SetMarkerStyle(kOpenSquare);
+      grDiffPWTL1_2[p]->SetMarkerSize(0.6);
+      grDiffPWTL1_2[p]->SetMarkerColor(kRed+2);
+      grDiffPWTL1_2[p]->SetLineColor(kRed+2);
+      grDiffPWTL1_2[p]->GetXaxis()->SetTitle("strip number");
+      grDiffPWTL1_2[p]->GetYaxis()->SetTitle("expAsym difference (PWTL1-PWTL2)");
+      grDiffPWTL1_2[p]->SetMaximum(0.005);
+      grDiffPWTL1_2[p]->SetMinimum(-0.005);
+      grDiffPWTL1_2[p]->GetXaxis()->SetLimits(1,65); 
+      grDiffPWTL1_2[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+      grDiffPWTL1_2[p]->SetTitle("Diff in exp-asymmetry due to different trigger width");
+      grDiffPWTL1_2[p]->Draw("AP");
+    }
+    cDiff->Update();
+    cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if (asymPlot) {
     TLegend *leg;
     leg = new TLegend(0.1,0.7,0.4,0.9);
-    TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",50,50,1000,600);
+    TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",50,50,1000,420*endPlane);
     TGraphErrors *grTheoryAsym[nPlanes], *grAsymPlane[nPlanes],*grFort;
     cAsym->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) {
@@ -308,5 +309,40 @@ Int_t fileReadDraw(Int_t runnum)
     cAsym->Update();
     cAsym->SaveAs(Form("%s/%s/%sexpTheoAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
+
+  if(lasWisePlot) {
+    TCanvas *cNoise1 = new TCanvas("cNoise1",Form("Noise per strip"),0,0,1200,1200);
+    TCanvas *cNoise2 = new TCanvas("cNoise2",Form("Noise per strip"),20,10,1200,1200);
+    TCanvas *cNoise3 = new TCanvas("cNoise3",Form("Noise per strip"),40,20,1200,1200);
+    TCanvas *cNoise4 = new TCanvas("cNoise4",Form("Noise per strip"),80,30,1200,1200);
+    //cNoise->Divide((Int_t)endStrip/2,(Int_t)endStrip/2);
+    cNoise1->Divide(4,4);
+    cNoise2->Divide(4,4);
+    cNoise3->Divide(4,4);
+    cNoise4->Divide(4,4);
+
+    for(Int_t s=0;s<endStrip;s++) {
+      if (maskedStrips(0,s)) continue; //currently only for plane 1
+      TGraphErrors *check = new TGraphErrors(Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),1,s+1),"%lg %lg");
+      if(s>=0 && s<16) cNoise1->cd(s+1);
+      if(s>=16 && s<32) cNoise2->cd(s-16+1);
+      if(s>=32 && s<48) cNoise3->cd(s-32+1);
+      if(s>=48 && s<64) cNoise4->cd(s-48+1);
+
+      check->SetTitle(Form("Strip %d",s+1));
+      check->SetMarkerStyle(kFullCircle);
+      check->SetMarkerColor(kRed);
+      check->SetLineColor(kRed);
+      check->SetLineWidth(2);
+      //   check->GetXaxis()->SetTitle("beam current");
+      //   check->GetYaxis()->SetTitle("charge normalized scaler counts(Hz/uA)");
+      check->GetXaxis()->SetTitle("laser Cycle (#)");
+      check->GetYaxis()->SetTitle("normalized accum counts");
+      check->GetYaxis()->SetTitleOffset(1.2);
+      check->GetYaxis()->SetLabelSize(0.03);
+      check->Draw("AP");
+    }
+  }
+
   return runnum;
 }

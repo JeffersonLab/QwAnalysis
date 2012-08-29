@@ -50,6 +50,7 @@ void asymFit(Int_t runnum)
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
   //gStyle->SetOptFit(0111); //!this eventually causes the macro to crash after a couple cycles
   //gStyle->SetOptFit(1); //!this eventually causes the macro to crash after a couple cycles
+  //gStyle->SetOptStat(1);
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
@@ -96,7 +97,7 @@ void asymFit(Int_t runnum)
   ///Read the experimental asymmetry and errors from file (for PWTL1)
   //  rhoToX();//! I don't need to call it everytime as long as beam-energy etc stays constant
 
-  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry and Strip number",100,50,1000,1300);
+  TCanvas *cAsym = new TCanvas("cAsym","Asymmetry and Strip number",100,50,1000,420*endPlane);
   TGraphErrors *grAsymPlane[nPlanes];//, *grFittedTheo[nPlanes];
 
   cAsym->Divide(startPlane+1,endPlane); 

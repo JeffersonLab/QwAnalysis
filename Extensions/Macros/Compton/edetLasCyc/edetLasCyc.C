@@ -14,9 +14,12 @@ void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
   cout<<"starting into edetLasCyc.C**************"<<endl;
   gROOT->LoadMacro(" maskedStrips.C+g");
   gROOT->LoadMacro(" getEBeamLasCuts.C+g");
+  //gROOT->LoadMacro(" evaluateAsym_r4409.C+g");
   gROOT->LoadMacro(" evaluateAsym.C+g");
-  gROOT->LoadMacro(" expAsym.C+g");
-  gROOT->LoadMacro(" asymFit.C+g");
+  //gROOT->LoadMacro(" expAsym_r4409.C+g");
+  gROOT->LoadMacro(" expAsym.C+g");//!temporarily
+  //gROOT->LoadMacro(" asymFit_r4409.C+g");
+  gROOT->LoadMacro(" asymFit.C+g");//!temporarily
   gROOT->LoadMacro(" fileReadDraw.C+g");
   //gROOT->LoadMacro(" edetLasCyc.C+g");
   if(first100k) return;

@@ -71,7 +71,7 @@ Bool_t paramRead;
 Float_t k;
 Float_t gamma_my;
 
-const Int_t Cedge_p1 = 60;///Compton-edge for the current run(counting from 0)
+const Int_t Cedge_p1 = 59;///Compton-edge for the current run(counting from 0)
 const Int_t Cedge_p2 = 59;///Compton-edge for the current run(counting from 0)
 const Int_t Cedge_p3 = 59;///Compton-edge for the current run(counting from 0)
 

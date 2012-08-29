@@ -17,7 +17,7 @@ Int_t expAsym(Int_t runnum)
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   const Bool_t debug = 1, debug1 = 0, debug2 = 0;
-  const Bool_t lasCycPrint=0;//!if accum & scaler counts are needed for every laser cycle
+  const Bool_t lasCycPrint=1;//!if accum & scaler counts are needed for every laser cycle
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
@@ -33,7 +33,7 @@ Int_t expAsym(Int_t runnum)
 //   Int_t EventB1H0L0[nPlanes][nStrips],EventB1H1L0[nPlanes][nStrips];
   Int_t ScalerB1H0L1[nPlanes][nStrips],ScalerB1H1L1[nPlanes][nStrips];
   Int_t ScalerB1H0L0[nPlanes][nStrips],ScalerB1H1L0[nPlanes][nStrips];
-  Int_t ScalerB1L0[nPlanes][nStrips],ScalerB1L1[nPlanes][nStrips]; 
+  Int_t totScalerB1L0[nPlanes][nStrips],totScalerB1L1[nPlanes][nStrips]; 
   Double_t normScalerB1L1[nPlanes][nStrips],normScalerB1L0[nPlanes][nStrips];
   Double_t bRawScaler[nPlanes][nStrips];
   Double_t comptQH1L1=0.0, comptQH0L1=0.0;
@@ -201,15 +201,16 @@ Int_t expAsym(Int_t runnum)
     if(v2processed) mpsChain->SetBranchAddress(Form("p%dRawAc_v2",p+1),&bRawAccum_v2[p]);
   }//the branch for each plane is named from 1 to 4
   
+  ///I need to open the lasCyc dependent files separately here since at every nCycle I update this file with a new entry
+  ///..it should be opened before I enter the nCycle loop, and close them after coming out of the nCycle loop.
+
   if(lasCycPrint) {
     for(Int_t p = startPlane; p <endPlane; p++) {      
       for(Int_t s =startStrip; s <endStrip; s++) {
 	if (maskedStrips(p,s)) continue;    
-	lasCycAccum[p][s].open(Form("%s/%s/run_%d/lasCyc/lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,p+1,s+1));
-	lasCycScaler[p][s].open(Form("%s/%s/run_%d/lasCyc/lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,p+1,s+1));
-	//if(debug) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/lasCycAccumP%dS%2.0d.txt",pPath,webDirectory,runnum,p+1,(Float_t)s+1)<<endl;
-	if(debug) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/lasCycAccumP%dS%d.txt"
-					,pPath,webDirectory,runnum,p+1,s+1)<<endl;
+	lasCycAccum[p][s].open(Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
+	lasCycScaler[p][s].open(Form("%s/%s/%slasCycScalerP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
+	if(debug) cout<<"opened "<<Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1)<<endl;
       }
     }
   }
@@ -349,15 +350,16 @@ Int_t expAsym(Int_t runnum)
 	    totAccumB1H1L0[p][s] += AccumB1H1L0[p][s];
 	    totAccumB1H0L1[p][s] += AccumB1H0L1[p][s];
 	    totAccumB1H0L0[p][s] += AccumB1H0L0[p][s];
-	    ScalerB1L1[p][s] += (ScalerB1H1L1[p][s]+ScalerB1H0L1[p][s]);///(Double_t)(nMpsB1H1L1+nMpsB1H0L1);
-	    ScalerB1L0[p][s] += (ScalerB1H1L0[p][s]+ScalerB1H0L0[p][s]);///(Double_t)(nMpsB1H1L0+nMpsB1H0L0);
+	    totScalerB1L1[p][s] += (ScalerB1H1L1[p][s]+ScalerB1H0L1[p][s]);///(Double_t)(nMpsB1H1L1+nMpsB1H0L1);
+	    totScalerB1L0[p][s] += (ScalerB1H1L0[p][s]+ScalerB1H0L0[p][s]);///(Double_t)(nMpsB1H1L0+nMpsB1H0L0);
  	  }
  	}
 	
-	if(lasCycPrint==1) {
-	  if(debug1) cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<" laserOnOffRatioH1: "<<laserOnOffRatioH1<<endl;
+	if(lasCycPrint) {
 	  if(debug1) {
 	    cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
+	    cout<<"printing variables on a per-laser-cycle basis"<<endl;
+	    cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<" laserOnOffRatioH1: "<<laserOnOffRatioH1<<endl;
 	    printf("comptQH1L1: %f\t comptQH0L1: %f\t comptQH1L0: %f\t comptQH0L0: %f\n",comptQH1L1,comptQH0L1,comptQH1L0,comptQH0L0);
 	    printf("nMpsB1H1L1: %d\tnMpsB1H0L1: %d\tnMpsB1H1L0: %d\tnMpsB1H0L0: %d\n",nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0,nMpsB1H0L0);
 	  }
@@ -419,8 +421,8 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = startPlane; p < endPlane; p++) { 
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (maskedStrips(p,s)) continue;
-      normScalerB1L1[p][s] = ScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
-      normScalerB1L0[p][s] = ScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
+      normScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
+      normScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
     }
   }
 
