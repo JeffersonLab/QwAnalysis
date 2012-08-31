@@ -28,4 +28,8 @@ dslumi4_dslumi8_sum
 dslumi_odd
 dslumi_even
 dslumi_sum
+dslumidipole_h
 dslumidipole_v
+uslumi_pmtavg
+dslumi_pmtavg
+uslumi_detavg

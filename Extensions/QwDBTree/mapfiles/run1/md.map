@@ -17,6 +17,8 @@ qwk_md4_qwk_md8
 qwk_mdoddbars
 qwk_mdevenbars
 qwk_mdallbars
+mdallbarsavg
+mdallpmtavg
 qwk_md9barsum
 dd_mdeven_odd
 dd_md15_37
