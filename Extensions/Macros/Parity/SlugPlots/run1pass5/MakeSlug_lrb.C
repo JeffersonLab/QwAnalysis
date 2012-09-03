@@ -132,7 +132,7 @@ Int_t MakeSlug_lrb(
 //	const TString qwstem = "reg_HallA_charge_2sig_Qweak";
 //	const TString qwstem = "reg_HallA_nocharge_Qweak";
 
-  const TString qwstem = "QwPass5"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
+  const TString qwstem = "reg_QwPass5"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
 
 //  const TString qwrootfiles = "/home/leacock/linRegBlue/inel_rootfiles";
 //	const TString qwrootfiles = "/home/leacock/scratch/rootfiles";
