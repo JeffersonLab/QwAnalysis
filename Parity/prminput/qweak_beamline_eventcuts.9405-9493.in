@@ -8,7 +8,7 @@
 !03/20/2012 B. Waidyawansa : Updated the lower limits of BPM wires to 10000 (corresponding to 0.7V) from 0.
 !                            The operating range of a BPM is typically 2-3V so anything below that can be considered as 
 !                            junk readings. 
-!09/03/2012 W. Deconinck:    Disabled global event cut on 3h07b ABSx/
+!09/03/2012 W. Deconinck:    Disabled global event cut on 3h07b ABSx/y
 !
 !*********************************************************************************************
 !Global switch to turn ON and OFF eventcut check
@@ -40,7 +40,7 @@ EVENTCUTS = 3
 !***************************************************		
 !for combined bcm devices (tested with injector run 924)
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-combinedbcm, qwk_charge,  	 15,    500,  g,   2
+combinedbcm, qwk_charge,  	100,    500,  g,   2
 
 
 !***************************************************
