@@ -25,7 +25,6 @@
   1. Longitudinal
   2. Vertical Transverse (deafult)
   3. Horizontal Transverse
-  4. Horizontal+Vertical Transverse Combined
   2
   Enter reaction type (Just Hit ENTER to choose default):
   1. elastic
@@ -80,7 +79,8 @@ TSQLServer *db;
 TString database="qw_run2_pass1";
 TString database_stem="run2_pass1";
 
-std::ofstream Myfile;    
+std::ofstream Myfile;
+std::ofstream Myfile2;
 
 TText *t1;
 TString target, polar,targ, goodfor, reg_set, reg_calc;
@@ -168,7 +168,6 @@ int main(Int_t argc,Char_t* argv[])
   std::cout<<Form("1. Longitudinal")<<std::endl;
   std::cout<<Form("2. %sVertical Transverse (deafult)%s",blue,normal)<<std::endl;
   std::cout<<Form("3. Horizontal Transverse ")<<std::endl;
-  std::cout<<Form("4. Combined H & V Transverse ")<<std::endl;
   //   std::cin>>datopt;
   std::string input_datopt;
   std::getline( std::cin, input_datopt );
@@ -320,6 +319,18 @@ int main(Int_t argc,Char_t* argv[])
     qtor_stem = "7300";
   }
   
+
+  // Get current directory
+  TString currentDir  =  gSystem->pwd();
+  // Make plots directory
+  gSystem->mkdir("dirPlot");
+
+  time_t rawtime;
+  struct tm * timeinfo;
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+//   printf ( "%sThe current date/time is: %s%s%s",blue,red,asctime(timeinfo),normal);
+
   std::cout<<Form("Getting slug averages of main detectors")<<std::endl;
   TApplication theApp("App",&argc,argv);
  
@@ -447,11 +458,15 @@ int main(Int_t argc,Char_t* argv[])
   }
 
   // Open a txt file to store data
-  Char_t  textfile[400];
-  sprintf(textfile,"%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_values_%s.txt"
+  Char_t  textfile[400],textfile2[400];
+  sprintf(textfile,"dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_values_%s.txt"
+	  ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
+	  ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data()); 
+  sprintf(textfile2,"dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_%s.txt"
 	  ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
 	  ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data()); 
   Myfile.open(textfile);
+  Myfile2.open(textfile2);
 
 
   // Fit function to show 
@@ -492,7 +507,11 @@ int main(Int_t argc,Char_t* argv[])
 
 
   Myfile << Form(" \n#================================================================")<<std::endl;
-  Myfile << Form("# Analysis conditions: ")<<std::endl;
+  Myfile << Form("# User = %s, Host = %s, Home Directory = %s \n# Current Directory = %s",
+		 getenv("USER"), getenv("HOST"), getenv("HOME"),getenv("PWD"))<<std::endl;
+  Myfile << Form("# Date and time of analysis: %s#",asctime(timeinfo))<<std::endl;
+  Myfile << Form("# ")<<std::endl;
+  Myfile << Form("# +++++++++++++++++++:: Analysis conditions ::+++++++++++++++++++ ")<<std::endl;
   Myfile << Form("# ")<<std::endl;
   Myfile << Form("# %s\t Device: MD-%s\t QTOR: %s A",interaction.Data(),deviceName.Data(),qtor_stem.Data())<<std::endl;
   Myfile << Form("# Target: %s\t Polarization: %s",target.Data(),polar.Data())<<std::endl;
@@ -504,7 +523,7 @@ int main(Int_t argc,Char_t* argv[])
   plot_octant(value11,err11,value1,err1);
   gPad->Update();
 
-  TString saveSummaryPlot = Form("%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_plots_%s"
+  TString saveSummaryPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_plots_%s"
 				 ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
 				 ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
 
@@ -519,8 +538,8 @@ int main(Int_t argc,Char_t* argv[])
   get_opposite_octant_average(value11,err11,value1,err1);
 
   Myfile.close();
-
-std::cout<<Form("Done plotting fits \n");
+  printf("\n%sDone with everything. Do CTRL+C to exit%s\n",red,normal);
+  //  std::cout<<Form("Done plotting fits \n");
   db->Close();
   delete db;
 
@@ -670,9 +689,13 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Do
     Myfile<<Form("  %d\t %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f"
 		 ,i+1,valuesin[i],errorsin[i],valuesout[i],errorsout[i],valuesum[i],valueerror[i],valuediff[i],errordiff[i])<<endl;
 
+    Myfile2<<Form("%d\t %4.4f %4.4f %4.4f %4.4f"
+		 ,i+1,valuesin[i],errorsin[i],valuesout[i],errorsout[i])<<endl;
+
 
   }
 std::cout<<Form("######################\n")<<std::endl;
+ Myfile2.close();
 
   //Take the weighted difference in the IHWP in and out half wave plate values.
   //Here from IN+OUT ~ 0 we know that IN and OUT are a measurement of the same thing
@@ -979,7 +1002,7 @@ std::cout<<Form("######################\n")<<std::endl;
   stats11->SetFillColor(kWhite); 
   stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
 
-  TString saveInOutPlot = Form("%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_plots_%s"
+  TString saveInOutPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_plots_%s"
 			       ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
 			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
 
@@ -1182,7 +1205,7 @@ void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
   }
   grp->Draw("P");
 
-  TString saveOppositeOctantPlot = Form("%s_%s_%s_%s_MD_%s_regression_%s_%s_opposite_octant_plots_%s"
+  TString saveOppositeOctantPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_opposite_octant_plots_%s"
 			       ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
 			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
 
@@ -1192,8 +1215,6 @@ void get_opposite_octant_average( Double_t valuesin[],Double_t errorsin[],
   Canvas22->Print(saveOppositeOctantPlot+".svg");
   Canvas22->Print(saveOppositeOctantPlot+".C");
   }
-
-
 
 }
 

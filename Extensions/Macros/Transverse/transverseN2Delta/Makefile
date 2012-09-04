@@ -1,9 +1,7 @@
-# Makefile for bpm_bcm_calibration.cc  Code
+# Makefile for transverseN2Delta  analysis
 # (modified version of $(ROOTSYS)/test/Makefile)
 #
-# April 25, 2000 	 E. Beise, modify to work with Alpha DUX4.0
-# March 16, 2010         B. Waidyawansa, modify to work for bpm_bcm_calibration.0
-# July 19,  2012         Nuruzzaman to include my version of analysis
+# August 04,  2012         Nuruzzaman
 
 ObjSuf        = o
 SrcSuf        = C
@@ -19,7 +17,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := nurTransverseMD 
+EXE := nurTransverseMD plotTransverseN2Delta
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -39,75 +37,17 @@ EXE := nurTransverseMD
 all:  $(EXE)
 	@echo "---------------------> $(EXE) done <---------------------- "
 
-# transverse_md_sensitivities :transverse_md_sensitivities.o
-# 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 nurTransverseMD :nurTransverseMD.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-transverse_md_fit_slugs :transverse_md_fit_slugs.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-transverse_lumi_fit_slugs :transverse_lumi_fit_slugs.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-transverse_compare_reg_schemes :transverse_compare_reg_schemes.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-md_correlation_plots : md_correlations.o 
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-100k_transverse_fit : 100k_transverse_fit.o 
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-slug_average_fits : slug_average_fits.o 
+plotTransverseN2Delta :plotTransverseN2Delta.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 
-#slug_average_fits_regressed :slug_avrage_fits_regressed.o
-#	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<	
+# plotTransverseN2Delta : plotTransverseN2Delta.o%: %.C
+#         $(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
 
-slug_average_fits_regressed_run_range :slug_average_fits_regressed_run_range.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-Regressed_lumi : Regressed_LUMI.o 
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-slug_summmary : slug_summary.o 
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-unregressed_slug_plots : unregressed_slug_plots.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-compare_regressed_unregressed : compare_regressed_unregressed.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-fits_unregressed_run_range : fits_unregressed_run_range.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-slug_average_fits_unregressed :slug_average_fits_unregressed.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-#slug_average_fits_regressed :slug_avrage_fits_regressed.o
-#	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-sim_15_effect :sim_15_effect.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-sim_15_effect_on_correction :sim_15_effect_on_correction.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-draw_correlations_runlets : draw_correlations_runlets.o
-
-%: %.C
-	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
-
-%.o: %.C
-	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
-
-
-#depend .depend : $(SRCS)
-#	$(CXX) $(CXXFLAGS) -M $(MAIN)  >./.depend
 
 clean:
 	@rm -rf *.o
