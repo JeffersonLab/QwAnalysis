@@ -210,8 +210,14 @@ Int_t expAsym(Int_t runnum)
 	if (maskedStrips(p,s)) continue;    
 	lasCycAccum[p][s].open(Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
 	lasCycScaler[p][s].open(Form("%s/%s/%slasCycScalerP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
-	if(debug) cout<<"opened "<<Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1)<<endl;
+	if(debug1) cout<<"opened "<<Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1)<<endl;
       }
+    }
+  }
+  Bool_t firstlinelasPrint[nPlanes][nStrips];
+  for(Int_t p = startPlane; p <endPlane; p++) {      
+    for(Int_t s =startStrip; s <endStrip; s++) {
+      firstlinelasPrint[p][s] = kTRUE;///this needs to be '1' for every new file
     }
   }
 
@@ -333,6 +339,10 @@ Int_t expAsym(Int_t runnum)
       totMpsB1H1L0 += nMpsB1H1L0;
       totMpsB1H0L1 += nMpsB1H0L1;
       totMpsB1H0L0 += nMpsB1H0L0;
+      Double_t qLasCycH1L1 = comptQH1L1 /MpsRate;//*tB1H1L1;//this really gives total-charge for this laser cycle
+      Double_t qLasCycH0L1 = comptQH0L1 /MpsRate;//*tB1H0L1;
+      Double_t qLasCycH1L0 = comptQH1L0 /MpsRate;//*tB1H1L0;
+      Double_t qLasCycH0L0 = comptQH0L0 /MpsRate;//*tB1H0L0;
 
       if (nMpsB1H0L1<= 0||nMpsB1H1L1<= 0||nMpsB1H0L0<= 0||nMpsB1H1L0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nMpsB1H0L1:%d,nMpsB1H1L1:%d, nMpsB1H0L0:%d, nMpsB1H1L0:%d",nCycle,nMpsB1H0L1,nMpsB1H1L1,nMpsB1H0L0,nMpsB1H1L0);
@@ -354,7 +364,6 @@ Int_t expAsym(Int_t runnum)
 	    totScalerB1L0[p][s] += (ScalerB1H1L0[p][s]+ScalerB1H0L0[p][s]);///(Double_t)(nMpsB1H1L0+nMpsB1H0L0);
  	  }
  	}
-	
 	if(lasCycPrint) {
 	  if(debug1) {
 	    cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
@@ -366,13 +375,18 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p < endPlane; p++) {
 	    for (Int_t s =startStrip; s <endStrip;s++) {
 	      if (maskedStrips(p,s)) continue;
+	      if(!firstlinelasPrint[p][s]) {
+		lasCycAccum[p][s]<<"\n";
+		lasCycScaler[p][s]<<"\n";
+	      }
+	      firstlinelasPrint[p][s] =kFALSE;
 	      if (lasCycAccum[p][s].is_open() && lasCycScaler[p][s].is_open()) {
-		  lasCycAccum[p][s]<<Form("%d\t%f\t%f\t%f\t%f\n",nCycle+1,AccumB1H0L0[p][s]/(Float_t)nMpsB1H0L0,
-					  AccumB1H0L1[p][s]/(Float_t)nMpsB1H0L1,AccumB1H1L0[p][s]/(Float_t)nMpsB1H1L0,
-					  AccumB1H1L1[p][s]/(Float_t)nMpsB1H1L1);
-		  lasCycScaler[p][s]<<Form("%d\t%f\t%f\t%f\t%f\n",nCycle+1,
-					   (Float_t)ScalerB1H0L0[p][s]/nMpsB1H0L0,(Float_t)ScalerB1H0L1[p][s]/nMpsB1H0L1,
-					   (Float_t)ScalerB1H1L0[p][s]/nMpsB1H1L0,(Float_t)ScalerB1H1L1[p][s]/nMpsB1H1L1);
+		lasCycAccum[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
+					  AccumB1H0L0[p][s]/qLasCycH0L0,AccumB1H0L1[p][s]/qLasCycH0L1,
+					  AccumB1H1L0[p][s]/qLasCycH1L0,AccumB1H1L1[p][s]/qLasCycH1L1);
+		  lasCycScaler[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
+					   ScalerB1H0L0[p][s]/qLasCycH0L0,ScalerB1H0L1[p][s]/qLasCycH0L1,
+					   ScalerB1H1L0[p][s]/qLasCycH1L0,ScalerB1H1L1[p][s]/qLasCycH1L1);
 	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;    
 	    }
 	  }

@@ -10,14 +10,15 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
   Bool_t asymComponents=0;
   Bool_t scalerPlot=0;
-  Bool_t lasWisePlot=1;//plot quantities against on laser-cycle 
+  Bool_t lasWisePlotAc=1;//plot quantities against on laser-cycle 
+  Bool_t lasWisePlotSc=1;//plot quantities against on laser-cycle 
 
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
-  Bool_t debug=0;//,debug1=0;
+  Bool_t debug=1,debug1=0;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   TLine *myline = new TLine(0,0,70,0);
   ifstream in1, in2;
-  ifstream fortranOutP1, expAsymPWTL1, expAsymPWTL2, expAsymComponents, scalerRates;
+  ifstream fortranOutP1,expAsymPWTL1,expAsymPWTL2,expAsymComponents,scalerRates,lasCycAccum,lasCycScaler;
   ofstream newTheoFile;
   TPaveText *pvTxt1 = new  TPaveText(0.75,0.84,0.98,1.0,"NDC");
   pvTxt1->SetShadowColor(0);
@@ -25,16 +26,21 @@ Int_t fileReadDraw(Int_t runnum)
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
-  TGaxis::SetMaxDigits(2);
+  //TGaxis::SetMaxDigits(2);
   //gROOT->ForceStyle();
 
-  std::vector<std::vector <Double_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
-  std::vector<std::vector <Double_t> > stripNum2,scalerB1L1,scalerB1L0;
+  std::vector<std::vector <Float_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
+  std::vector<std::vector <Float_t> > stripNum2,scalerB1L1,scalerB1L0;
 
-  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
-  Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
-  Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
- 
+  Float_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
+  Float_t qNormAccumB1H0L0[nPlanes][nStrips][100],qNormAccumB1H0L1[nPlanes][nStrips][100],qNormAccumB1H1L0[nPlanes][nStrips][100],qNormAccumB1H1L1[nPlanes][nStrips][100];
+  Float_t qNormScalerB1H0L0[nPlanes][nStrips][100],qNormScalerB1H0L1[nPlanes][nStrips][100],qNormScalerB1H1L0[nPlanes][nStrips][100],qNormScalerB1H1L1[nPlanes][nStrips][100];
+  Float_t qNormAccumB1L0[nPlanes][nStrips][100],qNormScalerB1L0[nPlanes][nStrips][100];
+
+  Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
+  Float_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
+  Float_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
+
   for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t s=startStrip; s<endStrip; s++) {
       zero[p][s]=0;
@@ -113,12 +119,12 @@ Int_t fileReadDraw(Int_t runnum)
 	stripNum.resize(p+1),stripAsymDr.resize(p+1),stripAsymDrEr.resize(p+1),stripAsymNr.resize(p+1);
       }
       cout<<"Reading the yield and difference from PWTL1 for plane "<<p+1<<endl;
-      if(debug) cout<<";\tstripNum\tstripAsymDr\tstripAsymDrEr\tstripAsymNr\n"<<endl;
+      if(debug1) cout<<";\tstripNum\tstripAsymDr\tstripAsymDrEr\tstripAsymNr\n"<<endl;
       while(expAsymComponents.good()) {
 	stripNum[p].push_back(0.0),stripAsymDr[p].push_back(0.0),stripAsymDrEr[p].push_back(0.0),stripAsymNr[p].push_back(0.0);
 	Int_t s=stripNum[p].size() - 1;
 	expAsymComponents>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
-	if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\t%f\n",p+1,s+1,stripNum[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
+	if(debug1) printf("[%d][%d]:%2.0f\t%f\t%f\t%f\n",p+1,s+1,stripNum[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
       }
       expAsymComponents.close();
     }
@@ -310,39 +316,112 @@ Int_t fileReadDraw(Int_t runnum)
     cAsym->SaveAs(Form("%s/%s/%sexpTheoAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
-  if(lasWisePlot) {
-    TCanvas *cNoise1 = new TCanvas("cNoise1",Form("Noise per strip"),0,0,1200,1200);
-    TCanvas *cNoise2 = new TCanvas("cNoise2",Form("Noise per strip"),20,10,1200,1200);
-    TCanvas *cNoise3 = new TCanvas("cNoise3",Form("Noise per strip"),40,20,1200,1200);
-    TCanvas *cNoise4 = new TCanvas("cNoise4",Form("Noise per strip"),80,30,1200,1200);
-    //cNoise->Divide((Int_t)endStrip/2,(Int_t)endStrip/2);
-    cNoise1->Divide(4,4);
-    cNoise2->Divide(4,4);
-    cNoise3->Divide(4,4);
-    cNoise4->Divide(4,4);
+  if(lasWisePlotAc) {
+    TGraph *lasCycPlot[endStrip];
+    TCanvas *cAccumLC1 = new TCanvas("cAccumLC1",Form("accum counts per laser cycle for strips 01-16"),0,0,1200,1200);
+    TCanvas *cAccumLC2 = new TCanvas("cAccumLC2",Form("accum counts per laser cycle for strips 17-32"),20,10,1200,1200);
+    TCanvas *cAccumLC3 = new TCanvas("cAccumLC3",Form("accum counts per laser cycle for strips 33-48"),40,20,1200,1200);
+    TCanvas *cAccumLC4 = new TCanvas("cAccumLC4",Form("accum counts per laser cycle for strips 49-64"),60,30,1200,1200);
 
-    for(Int_t s=0;s<endStrip;s++) {
-      if (maskedStrips(0,s)) continue; //currently only for plane 1
-      TGraphErrors *check = new TGraphErrors(Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),1,s+1),"%lg %lg");
-      if(s>=0 && s<16) cNoise1->cd(s+1);
-      if(s>=16 && s<32) cNoise2->cd(s-16+1);
-      if(s>=32 && s<48) cNoise3->cd(s-32+1);
-      if(s>=48 && s<64) cNoise4->cd(s-48+1);
+    cAccumLC1->Divide(4,4);
+    cAccumLC2->Divide(4,4);
+    cAccumLC3->Divide(4,4);
+    cAccumLC4->Divide(4,4);
 
-      check->SetTitle(Form("Strip %d",s+1));
-      check->SetMarkerStyle(kFullCircle);
-      check->SetMarkerColor(kRed);
-      check->SetLineColor(kRed);
-      check->SetLineWidth(2);
-      //   check->GetXaxis()->SetTitle("beam current");
-      //   check->GetYaxis()->SetTitle("charge normalized scaler counts(Hz/uA)");
-      check->GetXaxis()->SetTitle("laser Cycle (#)");
-      check->GetYaxis()->SetTitle("normalized accum counts");
-      check->GetYaxis()->SetTitleOffset(1.2);
-      check->GetYaxis()->SetLabelSize(0.03);
-      check->Draw("AP");
+    for(Int_t p =startPlane; p <endPlane; p++) {
+      for(Int_t s=startStrip;s<endStrip;s++) { 
+	if (maskedStrips(p,s)) continue; //currently only for plane 1	
+ 	lasCycAccum.open(Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
+	Int_t nLasCycles=0;
+	while(lasCycAccum.good()) {
+	  lasCycAccum>>nCycle[nLasCycles]>>qNormAccumB1H0L0[p][s][nLasCycles]>>qNormAccumB1H0L1[p][s][nLasCycles]>>qNormAccumB1H1L0[p][s][nLasCycles]>>qNormAccumB1H1L1[p][s][nLasCycles];
+
+	  qNormAccumB1L0[p][s][nLasCycles] = (qNormAccumB1H0L0[p][s][nLasCycles]+qNormAccumB1H1L0[p][s][nLasCycles])/2;
+	  if(debug1) printf("%f\t%f\t%f\t%f\n",nCycle[nLasCycles],qNormAccumB1H0L0[p][s][nLasCycles],qNormAccumB1H1L0[p][s][nLasCycles],qNormAccumB1L0[p][s][nLasCycles]);
+	  nLasCycles=nLasCycles+1;
+	}
+	lasCycAccum.close();
+
+	lasCycPlot[s] = new TGraph(nLasCycles,nCycle,qNormAccumB1L0[p][s]);
+	if(s>=0 && s<16)  cAccumLC1->cd(s+1);
+	if(s>=16 && s<32) cAccumLC2->cd(s-16+1);
+	if(s>=32 && s<48) cAccumLC3->cd(s-32+1);
+	if(s>=48 && s<64) cAccumLC4->cd(s-48+1);
+	lasCycPlot[s]->SetTitle(Form("Strip %d",s+1));
+	lasCycPlot[s]->SetMarkerStyle(kFullCircle);
+	lasCycPlot[s]->SetMarkerColor(kRed);
+	lasCycPlot[s]->SetLineColor(kRed);
+	lasCycPlot[s]->SetLineWidth(2);
+	lasCycPlot[s]->GetXaxis()->SetTitle("laser Cycle (#)");
+	lasCycPlot[s]->GetYaxis()->SetTitle("charge normalized accum counts (Hz/uA)");
+	lasCycPlot[s]->GetYaxis()->SetTitleOffset(1.2);
+	lasCycPlot[s]->GetYaxis()->SetLabelSize(0.03);
+	lasCycPlot[s]->Draw("AP");
+      }
+    cAccumLC1->Update();
+    cAccumLC2->Update();
+    cAccumLC3->Update();
+    cAccumLC4->Update();
+    cAccumLC1->SaveAs(Form("%s/%s/%slasCycAccum1.png",pPath,webDirectory,filePrefix.Data()));
+    cAccumLC2->SaveAs(Form("%s/%s/%slasCycAccum2.png",pPath,webDirectory,filePrefix.Data()));
+    cAccumLC3->SaveAs(Form("%s/%s/%slasCycAccum3.png",pPath,webDirectory,filePrefix.Data()));
+    cAccumLC4->SaveAs(Form("%s/%s/%slasCycAccum4.png",pPath,webDirectory,filePrefix.Data()));
+
     }
   }
 
+
+  if(lasWisePlotSc) {
+    TGraph *lasCycPlotSc[endStrip];
+    TCanvas *cScalerLC1 = new TCanvas("cScalerLC1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1200,1200);
+    TCanvas *cScalerLC2 = new TCanvas("cScalerLC2",Form("scaler counts per laser cycle for strips 17-32"),20,10,1200,1200);
+    TCanvas *cScalerLC3 = new TCanvas("cScalerLC3",Form("scaler counts per laser cycle for strips 33-48"),40,20,1200,1200);
+    TCanvas *cScalerLC4 = new TCanvas("cScalerLC4",Form("scaler counts per laser cycle for strips 49-64"),60,30,1200,1200);
+    
+    cScalerLC1->Divide(4,4);
+    cScalerLC2->Divide(4,4);
+    cScalerLC3->Divide(4,4);
+    cScalerLC4->Divide(4,4);
+
+    for(Int_t p =startPlane; p <endPlane; p++) {
+      for(Int_t s=startStrip;s<endStrip;s++) { 
+	if (maskedStrips(p,s)) continue; //currently only for plane 1	
+ 	lasCycScaler.open(Form("%s/%s/%slasCycScalerP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
+	Int_t nLasCycles=0;
+	while(lasCycScaler.good()) {
+	  lasCycScaler>>nCycle[nLasCycles]>>qNormScalerB1H0L0[p][s][nLasCycles]>>qNormScalerB1H0L1[p][s][nLasCycles]>>qNormScalerB1H1L0[p][s][nLasCycles]>>qNormScalerB1H1L1[p][s][nLasCycles];
+	  qNormScalerB1L0[p][s][nLasCycles] = (qNormScalerB1H0L0[p][s][nLasCycles]+qNormScalerB1H1L0[p][s][nLasCycles])/2;
+	  nLasCycles=nLasCycles+1;
+	}
+	lasCycScaler.close();
+	lasCycPlotSc[s]= new TGraph(nLasCycles,nCycle,qNormScalerB1L0[p][s]);
+
+	if(s>=0 && s<16)  cScalerLC1->cd(s+1);
+	if(s>=16 && s<32) cScalerLC2->cd(s-16+1);
+	if(s>=32 && s<48) cScalerLC3->cd(s-32+1);
+	if(s>=48 && s<64) cScalerLC4->cd(s-48+1);
+
+	lasCycPlotSc[s]->SetTitle(Form("Strip %d",s+1));
+	lasCycPlotSc[s]->SetMarkerStyle(kFullCircle);
+	lasCycPlotSc[s]->SetMarkerColor(kRed);
+	lasCycPlotSc[s]->SetLineColor(kRed);
+	lasCycPlotSc[s]->SetLineWidth(2);
+	lasCycPlotSc[s]->GetXaxis()->SetTitle("laser Cycle (#)");
+	lasCycPlotSc[s]->GetYaxis()->SetTitle("charge normalized accum counts (Hz/uA)");
+	lasCycPlotSc[s]->GetYaxis()->SetTitleOffset(1.2);
+	lasCycPlotSc[s]->GetYaxis()->SetLabelSize(0.03);
+	lasCycPlotSc[s]->Draw("AP");
+      }
+    cScalerLC1->Update();
+    cScalerLC2->Update();
+    cScalerLC3->Update();
+    cScalerLC4->Update();
+    cScalerLC1->SaveAs(Form("%s/%s/%slasCycScaler1.png",pPath,webDirectory,filePrefix.Data()));
+    cScalerLC2->SaveAs(Form("%s/%s/%slasCycScaler2.png",pPath,webDirectory,filePrefix.Data()));
+    cScalerLC3->SaveAs(Form("%s/%s/%slasCycScaler3.png",pPath,webDirectory,filePrefix.Data()));
+    cScalerLC4->SaveAs(Form("%s/%s/%slasCycScaler4.png",pPath,webDirectory,filePrefix.Data()));
+
+    }
+  }
   return runnum;
 }
