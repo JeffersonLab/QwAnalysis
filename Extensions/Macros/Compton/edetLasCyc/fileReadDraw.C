@@ -10,8 +10,9 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
   Bool_t asymComponents=0;
   Bool_t scalerPlot=0;
-  Bool_t lasWisePlotAc=1;//plot quantities against on laser-cycle 
-  Bool_t lasWisePlotSc=1;//plot quantities against on laser-cycle 
+  Bool_t lasWisePlotAc=0;//plot quantities against on laser-cycle 
+  Bool_t lasWisePlotSc=0;//plot quantities against on laser-cycle 
+  Bool_t vsBeam=1;//plots quantities againt beam current variations
 
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
   Bool_t debug=1,debug1=0;
@@ -358,18 +359,17 @@ Int_t fileReadDraw(Int_t runnum)
 	lasCycPlot[s]->GetYaxis()->SetLabelSize(0.03);
 	lasCycPlot[s]->Draw("AP");
       }
-    cAccumLC1->Update();
-    cAccumLC2->Update();
-    cAccumLC3->Update();
-    cAccumLC4->Update();
-    cAccumLC1->SaveAs(Form("%s/%s/%slasCycAccum1.png",pPath,webDirectory,filePrefix.Data()));
-    cAccumLC2->SaveAs(Form("%s/%s/%slasCycAccum2.png",pPath,webDirectory,filePrefix.Data()));
-    cAccumLC3->SaveAs(Form("%s/%s/%slasCycAccum3.png",pPath,webDirectory,filePrefix.Data()));
-    cAccumLC4->SaveAs(Form("%s/%s/%slasCycAccum4.png",pPath,webDirectory,filePrefix.Data()));
+      cAccumLC1->Update();
+      cAccumLC2->Update();
+      cAccumLC3->Update();
+      cAccumLC4->Update();
+      cAccumLC1->SaveAs(Form("%s/%s/%slasCycAccum1.png",pPath,webDirectory,filePrefix.Data()));
+      cAccumLC2->SaveAs(Form("%s/%s/%slasCycAccum2.png",pPath,webDirectory,filePrefix.Data()));
+      cAccumLC3->SaveAs(Form("%s/%s/%slasCycAccum3.png",pPath,webDirectory,filePrefix.Data()));
+      cAccumLC4->SaveAs(Form("%s/%s/%slasCycAccum4.png",pPath,webDirectory,filePrefix.Data()));
 
     }
   }
-
 
   if(lasWisePlotSc) {
     TGraph *lasCycPlotSc[endStrip];
@@ -390,7 +390,7 @@ Int_t fileReadDraw(Int_t runnum)
 	Int_t nLasCycles=0;
 	while(lasCycScaler.good()) {
 	  lasCycScaler>>nCycle[nLasCycles]>>qNormScalerB1H0L0[p][s][nLasCycles]>>qNormScalerB1H0L1[p][s][nLasCycles]>>qNormScalerB1H1L0[p][s][nLasCycles]>>qNormScalerB1H1L1[p][s][nLasCycles];
-	  qNormScalerB1L0[p][s][nLasCycles] = (qNormScalerB1H0L0[p][s][nLasCycles]+qNormScalerB1H1L0[p][s][nLasCycles])/2;
+	  qNormScalerB1L0[p][s][nLasCycles] = (qNormScalerB1H0L0[p][s][nLasCycles]+qNormScalerB1H1L0[p][s][nLasCycles])/2;//!ideally not correct, this addition should be charge weigthed
 	  nLasCycles=nLasCycles+1;
 	}
 	lasCycScaler.close();
@@ -412,16 +412,110 @@ Int_t fileReadDraw(Int_t runnum)
 	lasCycPlotSc[s]->GetYaxis()->SetLabelSize(0.03);
 	lasCycPlotSc[s]->Draw("AP");
       }
-    cScalerLC1->Update();
-    cScalerLC2->Update();
-    cScalerLC3->Update();
-    cScalerLC4->Update();
-    cScalerLC1->SaveAs(Form("%s/%s/%slasCycScaler1.png",pPath,webDirectory,filePrefix.Data()));
-    cScalerLC2->SaveAs(Form("%s/%s/%slasCycScaler2.png",pPath,webDirectory,filePrefix.Data()));
-    cScalerLC3->SaveAs(Form("%s/%s/%slasCycScaler3.png",pPath,webDirectory,filePrefix.Data()));
-    cScalerLC4->SaveAs(Form("%s/%s/%slasCycScaler4.png",pPath,webDirectory,filePrefix.Data()));
-
+      cScalerLC1->Update();
+      cScalerLC2->Update();
+      cScalerLC3->Update();
+      cScalerLC4->Update();
+      cScalerLC1->SaveAs(Form("%s/%s/%slasCycScaler1.png",pPath,webDirectory,filePrefix.Data()));
+      cScalerLC2->SaveAs(Form("%s/%s/%slasCycScaler2.png",pPath,webDirectory,filePrefix.Data()));
+      cScalerLC3->SaveAs(Form("%s/%s/%slasCycScaler3.png",pPath,webDirectory,filePrefix.Data()));
+      cScalerLC4->SaveAs(Form("%s/%s/%slasCycScaler4.png",pPath,webDirectory,filePrefix.Data()));
     }
+  }
+
+  if(vsBeam) {
+    TGraphErrors *ScalerVsBeam[endStrip]; 
+    TCanvas *cScalVsBeam1 = new TCanvas("cScalVsBeam1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1200,1000);
+    TCanvas *cScalVsBeam2 = new TCanvas("cScalVsBeam2",Form("scaler counts per laser cycle for strips 17-32"),20,10,1200,1000);
+    TCanvas *cScalVsBeam3 = new TCanvas("cScalVsBeam3",Form("scaler counts per laser cycle for strips 33-48"),40,20,1200,1000);
+    TCanvas *cScalVsBeam4 = new TCanvas("cScalVsBeam4",Form("scaler counts per laser cycle for strips 49-64"),60,30,1200,1000);
+    
+    cScalVsBeam1->Divide(4,4);
+    cScalVsBeam2->Divide(4,4);
+    cScalVsBeam3->Divide(4,4);
+    cScalVsBeam4->Divide(4,4);
+
+    ifstream infilelasOffBkgd,scalerRate;
+    const Int_t numb=6;
+    Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
+    //Int_t runlist[numb]={23142,23148,23154,25032,25029,23168};
+    Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
+    /*run  : beam***********
+     *23142 :  30uA, 
+     *23148 :  50uA, 
+     *23151 : 100uA, yield does not make sense
+     *23152 : 150uA, yield doesn't make sense
+     *23153 : 150uA, yield doesn't make sense
+     *23154 :  60uA,
+     *23168 : 180uA,
+     *25029 : 110uA,
+     *25032 :  90uA
+     ***************/
+
+    Double_t stripNumber[nStrips][numb],stripBkgdYield[nStrips][numb],stripBkgdYieldEr[nStrips][numb];
+    //Double_t lasOnScal,lasOffScal;
+    Double_t stripAsymDr[nStrips][numb],stripAsymDrEr[nStrips][numb],zero[numb];
+    //Double_t lasOnScaler[numb],lasOffScaler[numb];
+
+
+    for(Int_t n=0; n<numb; n++) {        
+      TString filePrefix= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
+      for(Int_t p =startPlane; p <endPlane; p++) {
+	infilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+	//scalerRate.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+	if(debug1)cout<<"opening file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+	//if(debug1)cout<<"opening file "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+	if(infilelasOffBkgd.is_open()) {
+	  //if(scalerRate.is_open()) {
+	  Int_t strip=0;
+	  while(infilelasOffBkgd.good()) {
+	    infilelasOffBkgd>>stripNumber[strip][n]>>stripBkgdYield[strip][n]>>stripBkgdYieldEr[strip][n];
+	    strip = strip +1;
+	  }
+	  infilelasOffBkgd.close();
+	  //scalerRate.close();
+	  //}
+	  if(debug1)cout<<"closing file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;     
+	} else {
+	  if(debug)cout<<"did not find "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+	  return -1;
+	}
+      }
+      zero[n] = 0.0;
+    }
+    
+    //TF1 *bkgdFit = new TF1("bkgdFit","[0] + [1]/beamI");///two parameter fit
+    for(Int_t s=startStrip;s<endStrip;s++) {
+      //!the masked strips are not taken care of properly here
+      ScalerVsBeam[s] = new TGraphErrors(numb,beamI,stripBkgdYield[s],zero,stripBkgdYieldEr[s]);
+	
+      if(s>= 0 && s<16) cScalVsBeam1->cd(s+1);
+      if(s>=16 && s<32) cScalVsBeam2->cd(s-16+1);
+      if(s>=32 && s<48) cScalVsBeam3->cd(s-32+1);
+      if(s>=48 && s<64) cScalVsBeam4->cd(s-48+1);
+      
+      ScalerVsBeam[s]->SetTitle(Form("Strip %d",s+1));
+      ScalerVsBeam[s]->SetMarkerStyle(kFullCircle);
+      ScalerVsBeam[s]->SetMarkerColor(kRed);
+      ScalerVsBeam[s]->SetLineColor(kRed);
+      ScalerVsBeam[s]->SetLineWidth(2);
+      ScalerVsBeam[s]->GetXaxis()->SetTitle("beam current (uA)");
+      ScalerVsBeam[s]->GetYaxis()->SetTitle("qNorm (bkgd) accum counts (Hz/uA)");
+      ScalerVsBeam[s]->GetYaxis()->SetTitleOffset(1.2);
+      ScalerVsBeam[s]->GetYaxis()->SetLabelSize(0.03);
+      //cScalVsBeam1->GetPad(2)->SetGridx(1); 
+      ScalerVsBeam[s]->Draw("AP");
+    }
+    
+    gPad->Update();
+    cScalVsBeam1->Update();
+    cScalVsBeam2->Update();
+    cScalVsBeam3->Update();
+    cScalVsBeam4->Update();
+    cScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix.Data()));
+    cScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix.Data()));
+    cScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix.Data()));
+    cScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix.Data()));
   }
   return runnum;
 }
