@@ -56,6 +56,8 @@ bool enable_hit_position_y_cut   = false;
 // cut values
 const int multiple=18;
 
+const double twopi = 2.0 * 3.1415927;
+
 int tdc_cut_min[2] = {-210,-210}; //tdc cuts for package {1, 2}
 int tdc_cut_max[2] = {-150,-150};
 
@@ -218,7 +220,9 @@ bool  bending_angle_direction_theta_cut(double val)
 
 bool  bending_angle_direction_phi_cut(double val)
 {
-  if(val> bending_angle_direction_phi_cut_min && val< bending_angle_direction_phi_cut_max)
+  if(val         > bending_angle_direction_phi_cut_min && val         < bending_angle_direction_phi_cut_max
+  || val + twopi > bending_angle_direction_phi_cut_min && val + twopi < bending_angle_direction_phi_cut_max
+  || val - twopi > bending_angle_direction_phi_cut_min && val - twopi < bending_angle_direction_phi_cut_max)
     return true;
   else
   {
