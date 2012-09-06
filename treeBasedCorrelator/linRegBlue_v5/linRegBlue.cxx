@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
   //printf("mmm,%s,%p\n",runSegList,strstr(runSegList,"."));
   if ( strstr(runSegList,".")<=0) { // just 1 run segment
     runName=Form("%d.%03d",runNo,atoi(runSegList));
-    treeInpFile=eve.inpPath+runName+".root";
+    treeInpFile=eve.inpPath+runName+".trees.root";
     printf("Open to read  =%s=\n",treeInpFile.Data());
     chain->Add(treeInpFile);
   } else {
@@ -153,8 +153,10 @@ int main(int argc, char *argv[]) {
 
 
   // filter events with custom cut.
-  TString cutFormula="ErrorFlag==0"; // apply general pattern QA cut
- 
+  TString cutFormula = TString("ErrorFlag==") + eve.errorMask; // apply general pattern QA cut
+
+  std::cout << "cutFormula:\t " << cutFormula << std::endl; 
+
   if(eve.cutFormula.Sizeof()>1) {
     printf("Main: filter events with custom cut: name=%s  formula='%s'\n",eve.cutName.Data(), eve.cutFormula.Data());
     cutFormula+="&&"+eve.cutFormula;
