@@ -29,7 +29,13 @@
 //
 // jpan, Fri Aug 10 01:53:25 EDT 2012
 // removed the default 3 sigma cut on direction_theta_off and direction_phi_off
-// 
+//
+// jpan, Fri Sep  7 11:40:04 CDT 2012
+// added in a function global2local_phi() to convert global azimuthal angles (-pi, pi)
+// to local azimuthal angles. Now, direction_phi_off and position_phi_off are not taken
+// from rootfile directly. Instead, they are calculated from "Actual Phi - Goal Phi"
+// based on local azimuthal angles. This is to avoid the split of hit distributions on
+// main bar when applying cuts on direction_phi_off and position_phi_off
 
 #include <iostream>
 #include <iomanip>
@@ -38,8 +44,8 @@
 bool reverse_run = false;
 
 // cut enable flags
-bool enable_multiplicity_cut     = false;
-bool enable_tdc_cut              = false;
+bool enable_multiplicity_cut     = true;
+bool enable_tdc_cut              = true;
 bool enable_adc_cut              = false;
 bool enable_scattering_angle_cut = false;
 bool enable_vertex_z_cut         = false;
@@ -47,7 +53,7 @@ bool enable_vertex_r_cut         = false;
 bool enable_position_theta_cut   = false;
 bool enable_position_phi_cut     = false;
 bool enable_direction_theta_cut  = false;
-bool enable_direction_phi_cut    = false;
+bool enable_direction_phi_cut    = true;
 bool enable_position_r_off_cut   = false;
 bool enable_hit_position_x_cut   = false;
 bool enable_hit_position_y_cut   = false;
@@ -71,15 +77,15 @@ double vertex_z_cut_max = -625;
 double vertex_r_cut_min = 0;
 double vertex_r_cut_max = 1;
 
-double bending_angle_position_theta_cut_min = -0.003; //-0.003
-double bending_angle_position_theta_cut_max = 0.003; // 0.003
-double bending_angle_position_phi_cut_min   = -1.0; 
-double bending_angle_position_phi_cut_max   = 1.0;
+double bending_angle_position_theta_cut_min = -0.003; // -0.003
+double bending_angle_position_theta_cut_max =  0.003; //  0.003
+double bending_angle_position_phi_cut_min   = -1.0;   // -1.0
+double bending_angle_position_phi_cut_max   =  1.0;   //  1.0
 
 double bending_angle_direction_theta_cut_min = -0.4; // -0.4;
-double bending_angle_direction_theta_cut_max = 0.4; // 0.4; 
-double bending_angle_direction_phi_cut_min   = -2.0; //-2.0;
-double bending_angle_direction_phi_cut_max   = 2.0; //2.0;
+double bending_angle_direction_theta_cut_max =  0.4; //  0.4; 
+double bending_angle_direction_phi_cut_min   = -2.0; // -2.0;
+double bending_angle_direction_phi_cut_max   =  2.0; //  2.0;
 
 double position_r_off_cut_min = -1.0;
 double position_r_off_cut_max = 1.0;
@@ -220,9 +226,10 @@ bool  bending_angle_direction_theta_cut(double val)
 
 bool  bending_angle_direction_phi_cut(double val)
 {
-  if(val         > bending_angle_direction_phi_cut_min && val         < bending_angle_direction_phi_cut_max
-  || val + twopi > bending_angle_direction_phi_cut_min && val + twopi < bending_angle_direction_phi_cut_max
-  || val - twopi > bending_angle_direction_phi_cut_min && val - twopi < bending_angle_direction_phi_cut_max)
+//  if(val         > bending_angle_direction_phi_cut_min && val         < bending_angle_direction_phi_cut_max
+//  || val + twopi > bending_angle_direction_phi_cut_min && val + twopi < bending_angle_direction_phi_cut_max
+//  || val - twopi > bending_angle_direction_phi_cut_min && val - twopi < bending_angle_direction_phi_cut_max)
+  if(val > bending_angle_direction_phi_cut_min && val < bending_angle_direction_phi_cut_max)
     return true;
   else
   {
@@ -458,8 +465,16 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       //----------------------
         
       double direction_theta_off = track->fDirectionThetaoff;
-      double direction_phi_off = track->fDirectionPhioff;
+      double position_theta_off = track->fPositionThetaoff;
  
+      double phi[4];
+      phi[0] = global2local_phi(track->fEndDirectionActual.Phi(), oct, package);
+      phi[1] = global2local_phi(track->fEndDirectionGoal.Phi(), oct,package);
+      phi[2] = global2local_phi(track->fEndPositionActual.Phi(), oct,package);
+      phi[3] = global2local_phi(track->fEndPositionGoal.Phi(), oct,package);
+      
+      double direction_phi_off = phi[0]-phi[1];
+      double position_phi_off = phi[2]-phi[3];
 
        // mathching angle cuts
 
@@ -477,13 +492,13 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
         if(enable_position_theta_cut)
         {
-           if(! bending_angle_position_theta_cut(track->fPositionThetaoff))
+           if(! bending_angle_position_theta_cut(position_theta_off))
                 continue;
         }
 
         if(enable_position_phi_cut)
         {
-           if(! bending_angle_position_phi_cut(track->fPositionPhioff))
+           if(! bending_angle_position_phi_cut(position_phi_off))
                 continue;
         }
 
@@ -688,5 +703,24 @@ void global2local(double* x, double* y, int oct, int pkg)
 
    if(debug)
       cout<<"("<<*x<<","<<*y<<")"<<endl;
+}
+
+void global2local_phi(double phi, int oct, int pkg)
+{
+   double pi = 3.1415927;
+   if(reverse_run)
+       oct = (oct+4)%8;
+   if(pkg==1)
+       oct = (oct+4)%8;
+   if(debug)
+       cout<<"-->rotated oct"<<oct<<" - "<<phi*180.0/pi<<" deg to ";
+
+   double offset = (oct-1)*pi/4.0;
+   if(phi<-pi/16.0)
+      phi = phi+2.0*pi;
+   phi = phi - offset;
+
+   if(debug)
+      cout<<phi*180.0/pi<<" deg"<<endl;
 }
 
