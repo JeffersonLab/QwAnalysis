@@ -37,6 +37,11 @@
 // based on local azimuthal angles. This is to avoid the split of hit distributions on
 // main bar when applying cuts on direction_phi_off and position_phi_off
 
+// jpan, Mon Sep 10 12:24:23 CDT 2012
+// fixed bugs in global2local_phi()
+// added more histograms to plot the distributions of additional variables, including
+// vertex_z, vertex_r, P0, pp, Eloss_vs_vertex_z, direction_phi_off, position_phi_off
+
 #include <iostream>
 #include <iomanip>
 
@@ -53,7 +58,7 @@ bool enable_vertex_r_cut         = false;
 bool enable_position_theta_cut   = false;
 bool enable_position_phi_cut     = false;
 bool enable_direction_theta_cut  = false;
-bool enable_direction_phi_cut    = true;
+bool enable_direction_phi_cut    = false;
 bool enable_position_r_off_cut   = false;
 bool enable_hit_position_x_cut   = false;
 bool enable_hit_position_y_cut   = false;
@@ -226,9 +231,6 @@ bool  bending_angle_direction_theta_cut(double val)
 
 bool  bending_angle_direction_phi_cut(double val)
 {
-//  if(val         > bending_angle_direction_phi_cut_min && val         < bending_angle_direction_phi_cut_max
-//  || val + twopi > bending_angle_direction_phi_cut_min && val + twopi < bending_angle_direction_phi_cut_max
-//  || val - twopi > bending_angle_direction_phi_cut_min && val - twopi < bending_angle_direction_phi_cut_max)
   if(val > bending_angle_direction_phi_cut_min && val < bending_angle_direction_phi_cut_max)
     return true;
   else
@@ -290,6 +292,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
    QwPartialTrack* pt=0;
    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
 
+   //define canvas for drawing histograms
    TCanvas* c=new TCanvas("c","Q2 and scattering angle distributions",800,800);
 
    //Get the oct number
@@ -319,7 +322,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TLeaf* mdm_tdc_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
 
 
-    // histograms
+    // define histograms
     TH2F* hit_dist1 = new TH2F("hit_dist1",Form("Run %d, Hits Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
     TH2F* hit_dist2 = new TH2F("hit_dist2",Form("Run %d, Hits Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
     TH1F* angle = new TH1F("theta",Form("Run %d, Scattering Angle Distribution, Oct %d + %d",run,md_1,md_2),400,3,14);
@@ -328,7 +331,45 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TH1F* angle_2 = new TH1F("theta_2",Form("Run %d, Scattering Angle in Package 2, Oct %d",run,md_2),400,3,14);
     TH1F* q2_1 = new TH1F("q2_1",Form("Run %d, Q2 Distribution in Package 1, Oct %d",run,md_1),400,0,0.08);
     TH1F* q2_2 = new TH1F("q2_2",Form("Run %d, Q2 Distribution in Package 2, Oct %d",run,md_2),400,0,0.08);
-    
+
+    //define extra histograms
+    TH1F* histo_vertex_r[3];
+    histo_vertex_r[0] = new TH1F("histo_vertex_r[0]",Form("Run %d, Vertex R, Oct %d + %d",run,md_1,md_2),400,0,70);
+    histo_vertex_r[1] = new TH1F("histo_vertex_r[1]",Form("Run %d, Vertex R in Package 1, Oct %d",run,md_1),400,0,70);
+    histo_vertex_r[2] = new TH1F("histo_vertex_r[2]",Form("Run %d, Vertex R in Package 2, Oct %d",run,md_2),400,0,70);
+
+    TH1F* histo_vertex_z[3];        
+    histo_vertex_z[0] = new TH1F("histo_vertex_z[0]",Form("Run %d, Vertex Z, Oct %d + %d",run,md_1,md_2),400,-1500,-1);
+    histo_vertex_z[1] = new TH1F("histo_vertex_z[1]",Form("Run %d, Vertex Z in Package 1, Oct %d",run,md_1),400,-1500,-1);
+    histo_vertex_z[2] = new TH1F("histo_vertex_z[2]",Form("Run %d, Vertex Z in Package 2, Oct %d",run,md_2),400,-1500,-1);
+
+    TH1F* histo_p0[3];
+    histo_p0[0] = new TH1F("histo_p0[0]",Form("Run %d, P0, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
+    histo_p0[1] = new TH1F("histo_p0[1]",Form("Run %d, P0, Package 1, Oct %d",run,md_1),400,1.0,1.2);
+    histo_p0[2] = new TH1F("histo_p0[2]",Form("Run %d, P0, Package 2, Oct %d",run,md_2),400,1.0,1.2);
+
+    TH1F* histo_pp[3];
+    histo_pp[0] = new TH1F("histo_pp[0]",Form("Run %d, Pp, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
+    histo_pp[1] = new TH1F("histo_pp[1]",Form("Run %d, Pp, Package 1, Oct %d",run,md_1),400,1.0,1.2);
+    histo_pp[2] = new TH1F("histo_pp[2]",Form("Run %d, Pp, Package 2, Oct %d",run,md_2),400,1.0,1.2);
+
+    TH2F* eloss_vs_verz[3];
+    eloss_vs_verz[0] = new TH2F("eloss_vs_verx[0]",Form("Run %d, Eloss vs. vertex Z, Oct %d + %d",run,md_1,md_2),400,-680,-620,400,0,24);
+    eloss_vs_verz[1] = new TH2F("eloss_vs_verx[1]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_1),400,-680,-620,400,0,24);
+    eloss_vs_verz[2] = new TH2F("eloss_vs_verx[2]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_1),400,-680,-620,400,0,24);
+
+    TH1F* histo_direction_phi_off[3];
+    histo_direction_phi_off[0] = new TH1F("histo_direction_phi_off[0]",Form("Run %d, Direction_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-2,2);
+    histo_direction_phi_off[1] = new TH1F("histo_direction_phi_off[1]",Form("Run %d, Direction_Phi_Off, Package 1, Oct %d",run,md_1),400,-2,2);
+    histo_direction_phi_off[2] = new TH1F("histo_direction_phi_off[2]",Form("Run %d, Direction_Phi_Off, Package 2, Oct %d",run,md_2),400,-2,2);
+
+    TH1F* histo_position_phi_off[3];
+    histo_position_phi_off[0] = new TH1F("histo_position_phi_off[0]",Form("Run %d, Position_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-1,1);
+    histo_position_phi_off[1] = new TH1F("histo_position_phi_off[1]",Form("Run %d, Position_Phi_Off, Package 1, Oct %d",run,md_1),400,-1,1);
+    histo_position_phi_off[2] = new TH1F("histo_position_phi_off[2]",Form("Run %d, Position_Phi_Off, Package 2, Oct %d",run,md_2),400,-1,1);
+
+
+   // Fetch events from tree
     for(int i=start;i<end;i++)  // start to loop over all events
     {
 
@@ -476,6 +517,12 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       double direction_phi_off = phi[0]-phi[1];
       double position_phi_off = phi[2]-phi[3];
 
+      if(debug)
+      {
+        cout<<"direction_phi_off = "<<direction_phi_off<<endl;
+        cout<<"position_phi_off = "<<position_phi_off<<endl;
+      }
+
        // mathching angle cuts
 
         if(enable_direction_theta_cut)
@@ -580,6 +627,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
            }
         }
 
+      // obtain additional parameters
+      double Eloss  = fEvent->fHydrogenEnergyLoss;
+      double P0_val = fEvent->fKinElasticWithLoss.fP0;
+      double Pp_val = fEvent->fKinElasticWithLoss.fPp;
+
       //----------------------
       // fill histograms
       //----------------------
@@ -591,6 +643,25 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 angle->Fill(angle_val);
                 q2->Fill(Q2_val);
                 hit_dist1->Fill(y,x);
+
+                // fill additional histograms
+                histo_vertex_r[0]->Fill(vertex_r);
+                histo_vertex_r[1]->Fill(vertex_r);
+                histo_vertex_z[0]->Fill(vertex_z);
+                histo_vertex_z[1]->Fill(vertex_z);
+
+                histo_p0[0]->Fill(P0_val);
+                histo_p0[1]->Fill(P0_val);
+                histo_pp[0]->Fill(Pp_val);
+                histo_pp[1]->Fill(Pp_val);
+
+                eloss_vs_verz[0]->Fill(vertex_z,Eloss);
+                eloss_vs_verz[1]->Fill(vertex_z,Eloss);
+
+                histo_direction_phi_off[0]->Fill(direction_phi_off);
+                histo_direction_phi_off[1]->Fill(direction_phi_off);
+                histo_position_phi_off[0]->Fill(position_phi_off);
+                histo_position_phi_off[1]->Fill(position_phi_off);
 	   }
          else if(package==2 ) 
            {
@@ -599,6 +670,25 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 angle->Fill(angle_val);
                 q2->Fill(Q2_val);
                 hit_dist2->Fill(y,x);
+
+                // fill additional histograms
+                histo_vertex_r[0]->Fill(vertex_r);
+                histo_vertex_r[2]->Fill(vertex_r);
+                histo_vertex_z[0]->Fill(vertex_z);
+                histo_vertex_z[2]->Fill(vertex_z);
+
+                histo_p0[0]->Fill(P0_val);
+                histo_p0[2]->Fill(P0_val);
+                histo_pp[0]->Fill(Pp_val);
+                histo_pp[2]->Fill(Pp_val);
+
+                eloss_vs_verz[0]->Fill(vertex_z,Eloss);
+                eloss_vs_verz[2]->Fill(vertex_z,Eloss);
+
+                histo_direction_phi_off[0]->Fill(direction_phi_off);
+                histo_direction_phi_off[2]->Fill(direction_phi_off);
+                histo_position_phi_off[0]->Fill(position_phi_off);
+                histo_position_phi_off[2]->Fill(position_phi_off);
 	   }
 
       } // end of loop over tracks
@@ -635,6 +725,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     // Draw histograms
     gStyle->SetPalette(1);
     c->Clear();   
+
+    // canvas 0
     c->Divide(2,4);
     
     c->cd(1);
@@ -671,6 +763,119 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     q2->Draw();
     q2->GetXaxis()->SetTitle("Q2 [(GeV/c)^2]");
 
+    // draw additional plots
+
+    // canvas 1
+    TCanvas* c1=new TCanvas("c1","scattering vertex distributions",800,600);
+    c1->Divide(2,2);
+   
+    c1->cd(1);
+    c1_1->SetLogy();
+    histo_vertex_z[1]->Draw();
+    histo_vertex_z[1]->GetXaxis()->SetTitle("Vertex Z [cm]");
+
+    c1->cd(3);
+    c1_3->SetLogy();
+    histo_vertex_z[2]->Draw();
+    histo_vertex_z[2]->GetXaxis()->SetTitle("Vertex Z [cm]");
+
+    //c1->cd(5);
+    //c1_5->SetLogy();
+    //histo_vertex_z[0]->Draw();
+    //histo_vertex_z[0]->GetXaxis()->SetTitle("Vertex Z [cm]");
+
+    c1->cd(2);
+    c1_2->SetLogy();
+    histo_vertex_r[1]->Draw();
+    histo_vertex_r[1]->GetXaxis()->SetTitle("Vertex R [cm]");
+
+    c1->cd(4);
+    c1_4->SetLogy();
+    histo_vertex_r[2]->Draw();
+    histo_vertex_r[2]->GetXaxis()->SetTitle("Vertex R [cm]");
+
+    //c1->cd(6);
+    //c1_6->SetLogy();
+    //histo_vertex_r[0]->Draw();
+    //histo_vertex_r[0]->GetXaxis()->SetTitle("Vertex R [cm]");
+
+    // canvas 2
+    TCanvas* c2=new TCanvas("c2","momentum distributions",800,800);
+    c2->Divide(2,3);
+
+    c2->cd(1);
+    //c2_1->SetLogy();
+    histo_p0[1]->Draw();
+    histo_p0[1]->GetXaxis()->SetTitle("P0 [GeV]");
+
+    c2->cd(3);
+    //c2_3->SetLogy();
+    histo_p0[2]->Draw();
+    histo_p0[2]->GetXaxis()->SetTitle("P0 [GeV]");
+
+    //c2->cd(5);
+    //c2_5->SetLogy();
+    //histo_p0[0]->Draw();
+    //histo_p0[0]->GetXaxis()->SetTitle("P0 [GeV]");
+
+    c2->cd(2);
+    //c2_2->SetLogy();
+    histo_pp[1]->Draw();
+    histo_pp[1]->GetXaxis()->SetTitle("Pp [GeV]");
+
+    c2->cd(4);
+    //c2_4->SetLogy();
+    histo_pp[2]->Draw();
+    histo_pp[2]->GetXaxis()->SetTitle("Pp [GeV]");
+
+    //c2->cd(6);
+    //c2_6->SetLogy();
+    //histo_pp[0]->Draw();
+    //histo_pp[0]->GetXaxis()->SetTitle("Pp [GeV]");
+
+    c2->cd(5);
+    eloss_vs_verz[1]->Draw();
+    eloss_vs_verz[1]->GetXaxis()->SetTitle("Vertex Z [cm]");
+    eloss_vs_verz[1]->GetYaxis()->SetTitle("Eloss [MeV]");
+
+    c2->cd(6);
+    eloss_vs_verz[2]->Draw();
+    eloss_vs_verz[2]->GetXaxis()->SetTitle("Vertex Z [cm]");
+    eloss_vs_verz[2]->GetYaxis()->SetTitle("Eloss [MeV]");
+
+    TCanvas* c3=new TCanvas("c3","azimuthal angle residuals",800,800);
+    c3->Divide(2,3);
+
+    c3->cd(1);
+    c3_1->SetLogy();
+    histo_direction_phi_off[1]->Draw();
+    histo_direction_phi_off[1]->GetXaxis()->SetTitle("direction_phi_off [rad]");
+
+    c3->cd(3);
+    c3_3->SetLogy();
+    histo_direction_phi_off[2]->Draw();
+    histo_direction_phi_off[2]->GetXaxis()->SetTitle("direction_phi_off [rad]");
+
+    c3->cd(5);
+    c3_5->SetLogy();
+    histo_direction_phi_off[0]->Draw();
+    histo_direction_phi_off[0]->GetXaxis()->SetTitle("direction_phi_off [rad]");
+
+    c3->cd(2);
+    c3_2->SetLogy();
+    histo_position_phi_off[1]->Draw();
+    histo_position_phi_off[1]->GetXaxis()->SetTitle("position_phi_off [rad]");
+
+    c3->cd(4);
+    c3_4->SetLogy();
+    histo_position_phi_off[2]->Draw();
+    histo_position_phi_off[2]->GetXaxis()->SetTitle("position_phi_off [rad]");
+
+    c3->cd(6);
+    c3_6->SetLogy();
+    histo_position_phi_off[0]->Draw();
+    histo_position_phi_off[0]->GetXaxis()->SetTitle("position_phi_off [rad]");
+
     return;
 
  }
@@ -705,22 +910,24 @@ void global2local(double* x, double* y, int oct, int pkg)
       cout<<"("<<*x<<","<<*y<<")"<<endl;
 }
 
-void global2local_phi(double phi, int oct, int pkg)
+double global2local_phi(double phi, int octant, int pkg)
 {
    double pi = 3.1415927;
    if(reverse_run)
-       oct = (oct+4)%8;
+       octant = (octant+4)%8;
    if(pkg==1)
-       oct = (oct+4)%8;
+       octant = (octant+4)%8;
    if(debug)
-       cout<<"-->rotated oct"<<oct<<" - "<<phi*180.0/pi<<" deg to ";
+       cout<<"-->rotated oct"<<octant<<" phi angle from "<<phi*180.0/pi<<" deg to ";
 
-   double offset = (oct-1)*pi/4.0;
-   if(phi<-pi/16.0)
+   double offset = (octant-1)*pi/4.0;
+   if(phi<-(2.0*pi)/16.0)
       phi = phi+2.0*pi;
    phi = phi - offset;
 
    if(debug)
       cout<<phi*180.0/pi<<" deg"<<endl;
+
+   return phi;
 }
 
