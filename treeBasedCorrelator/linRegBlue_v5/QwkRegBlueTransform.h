@@ -69,6 +69,7 @@ class QwkRegBlueTransform {
   void finish();
 
   TString errorMask;
+  int  minEvents;
   
 };
 

@@ -24,7 +24,8 @@ using namespace std;
 #include "QwkRegBlueTree.h"
 // use only double
 
-int parMinEve=5000;
+// int parMinEve=5000;
+// int parMinEve = 4000;
 
 int main(int argc, char *argv[]) {
   int mxEve=500;
@@ -105,7 +106,7 @@ int main(int argc, char *argv[]) {
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
   printf("#totEve %d\n",nEve);
-  if(nEve <parMinEve) {
+  if(nEve <eve.minEvents) {
     printf("aborting linear regerssion due to small # of events\n");
     printf("#abort JB1 nEve=%d\n",nEve);
     exit(1);
@@ -228,7 +229,7 @@ int main(int argc, char *argv[]) {
   float rate=1.*ie/(t2-t1);
   float nMnts=(t2-t1)/60.;
   printf("sorting done, elapsed rate=%.1f Hz, tot %.1f minutes\n",rate,nMnts);
-  if(seenEve <parMinEve) {
+  if(seenEve <eve.minEvents) {
     printf("aborting linear regerssion due to small # of events\n");
     printf("#abort JB2 seenEve=%d\n",seenEve);
     eve.finish();
