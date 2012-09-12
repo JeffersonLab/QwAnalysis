@@ -28,6 +28,8 @@ using namespace std;
 //========================
 //========================
 QwkRegBlueTransform::QwkRegBlueTransform(const char *core) {
+  errorMask = "0";
+  minEvents = 5000;
   myName=core;
   cutName="none"; cutFormula="";
   inpPath="fixPath-in-config-file";
@@ -336,6 +338,18 @@ QwkRegBlueTransform::harvestNames(FILE *fp) {
 	cutName=name;
 	cutFormula=formula;
 	assert(ret==2);
+	continue;
+      }
+      if (strstr(buf, "errorMask")){
+	char errorcut[225];
+	sscanf(buf+9, "%s", errorcut);
+	errorMask.Replace(0, sizeof(errorcut), errorcut);
+	std::cout << "errorMask now set to:\t" << errorMask << std::endl;
+	continue;
+      }
+     if (strstr(buf, "minEvents")){
+	sscanf(buf+9, "%d", &minEvents);
+	std::cout << "Minimum events now set to:\t" << minEvents << std::endl;
 	continue;
       }
       if (strstr(buf, "inpPath")){

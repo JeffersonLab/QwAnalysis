@@ -24,7 +24,8 @@ using namespace std;
 #include "QwkRegBlueTree.h"
 // use only double
 
-int parMinEve=5000;
+// int parMinEve=5000;
+// int parMinEve = 4000;
 
 int main(int argc, char *argv[]) {
   int mxEve=500;
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
   //printf("mmm,%s,%p\n",runSegList,strstr(runSegList,"."));
   if ( strstr(runSegList,".")<=0) { // just 1 run segment
     runName=Form("%d.%03d",runNo,atoi(runSegList));
-    treeInpFile=eve.inpPath+runName+".root";
+    treeInpFile=eve.inpPath+runName+".trees.root";
     printf("Open to read  =%s=\n",treeInpFile.Data());
     chain->Add(treeInpFile);
     chain_reg->Add(treeInpFile);
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]) {
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
   printf("#totEve %d\n",nEve);
-  if(nEve <parMinEve) {
+  if(nEve <eve.minEvents) {
     printf("aborting linear regerssion due to small # of events\n");
     printf("#abort JB1 nEve=%d\n",nEve);
     exit(1);
@@ -157,8 +158,10 @@ int main(int argc, char *argv[]) {
 
 
   // filter events with custom cut.
-  TString cutFormula="ErrorFlag==0"; // apply general pattern QA cut
- 
+  TString cutFormula = TString("ErrorFlag==") + eve.errorMask; // apply general pattern QA cut
+
+  std::cout << "cutFormula:\t " << cutFormula << std::endl; 
+
   if(eve.cutFormula.Sizeof()>1) {
     printf("Main: filter events with custom cut: name=%s  formula='%s'\n",eve.cutName.Data(), eve.cutFormula.Data());
     cutFormula+="&&"+eve.cutFormula;
@@ -230,7 +233,7 @@ int main(int argc, char *argv[]) {
   float rate=1.*ie/(t2-t1);
   float nMnts=(t2-t1)/60.;
   printf("sorting done, elapsed rate=%.1f Hz, tot %.1f minutes\n",rate,nMnts);
-  if(seenEve <parMinEve) {
+  if(seenEve <eve.minEvents) {
     printf("aborting linear regerssion due to small # of events\n");
     printf("#abort JB2 seenEve=%d\n",seenEve);
     eve.finish();
