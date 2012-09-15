@@ -4,15 +4,21 @@ Purpose: To output graph of interst when it comes to light weighting.
 
 Plots:
 - light yield vs. position on bar (in cm)
-- Q2 vs position on bar (both graph and table)
-- Scattering angle  vs position on bar (both graph and table)
+- Q2 vs position on bar
+- Scattering angle  vs position on bar 
 - Q2 w/ light weighting w/o pedestal
 - Q2 w/o light weighitng
 - Q2 w/ light wieghitn and pedestal
 
+there are two text file which this outputs one with how thw Q2 changes
+with the different cuts, where the Q2 in in m(GeV)^2, and the other is
+the depenedce of Q2, light yield, and scattering angle on the bar - 
+for this one Q2 is in GeV^2, light yeild is in ADC units, and 
+scatting angle is in degrees.
+
 Entry Conditions: the run number, bool for first 100k
 Date: 09-12-2012
-Modified:09-14-2012
+Modified:09-15-2012
 Assisted By: Wouter Deconinck
 *********************************************************/
 
@@ -161,7 +167,7 @@ void LightWeighting (int runnum, bool is100k)
 
   //Loop through this and fill all the graphs at once
 
-  for (int i = 0; i < nevents && i < 10000; i++)
+  for (int i = 0; i < nevents; i++)
   {
     //Get the ith entry form the event tree
     event_branch->GetEntry(i);
@@ -216,12 +222,12 @@ void LightWeighting (int runnum, bool is100k)
 	//create a vector of vectors of TH1D histogram pointer
 	//lw = light weighting
 	//p = pedestal
-  TCanvas* c_q2_proj = new TCanvas ("c_q2_proj","Q2 vs. position on bar", 500,400);
-  TCanvas* c_lw_proj = new TCanvas ("c_lw_proj","Light yield vs. position on bar", 500,400);
-  TCanvas* c_sa_proj = new TCanvas ("c_sa_proj","Scattering Angle vs. position on bar", 500,400);
-  TCanvas* c_q2_lw = new TCanvas ("c_q2_lw", "Q2 with light wieghting and no pedestal", 500,400);
-  TCanvas* c_q2 = new TCanvas ("c_q2", "Q2", 500,400);
-  TCanvas* c_q2_lw_p = new TCanvas ("c_q2_lw_p","Q2 value with light wieghting and pedestal", 500,400);
+  TCanvas* c_q2_proj = new TCanvas ("c_q2_proj","Q2 vs. position on bar", 700,800);
+  TCanvas* c_lw_proj = new TCanvas ("c_lw_proj","Light yield vs. position on bar", 700,800);
+  TCanvas* c_sa_proj = new TCanvas ("c_sa_proj","Scattering Angle vs. position on bar", 700,800);
+  TCanvas* c_q2_lw = new TCanvas ("c_q2_lw", "Q2 with light wieghting and no pedestal", 700,800);
+  TCanvas* c_q2 = new TCanvas ("c_q2", "Q2", 700,800);
+  TCanvas* c_q2_lw_p = new TCanvas ("c_q2_lw_p","Q2 value with light wieghting and pedestal", 700,800);
 
 	//divide all the canvases so that pkg one and two are next to each other
 	c_q2_proj->Divide(0,2);
@@ -273,6 +279,7 @@ void LightWeighting (int runnum, bool is100k)
 	//print to file 
   //this file and evrything related to it is fout
   std::ofstream fout;
+	std::ofstream fout2;
     
   //open file
   // open file with outputPrefix+q2.txt which will store the output of the vlaues to a file in a easy way that should be able to be read back into a program if needed
@@ -282,7 +289,7 @@ void LightWeighting (int runnum, bool is100k)
 	//Name what each coulmn is Note Package 0 is the compination of package 1 and package 2
 	fout << "Run \t Oct \t bar pos. \t # Tracks \t Q2 \t Q2 Error \t light yield \t LT Error \t scat. angle \t SA Error" <<endl;
 
-//some way to loop over all of this
+	//some way to loop over all of this
 	for (size_t pkg = 1; pkg < h_q2.size(); pkg++)
 	{    
 		for (int bin = 0; bin < bin_size; bin++)
@@ -296,6 +303,26 @@ void LightWeighting (int runnum, bool is100k)
 	}
 	//close the file
 	fout.close();
+
+  //open file
+  // open file with outputPrefix+q2.txt which will store the output of the vlaues to a file in a easy way that should be able to be read back into a program if needed
+  fout2.open(Prefix+"Q2_with_cuts.txt");
+  if (!fout2.is_open()) cout << "File not opened" << endl;
+
+	//Name what each coulmn is Note Package 0 is the compination of package 1 and package 2
+	fout2 << "Run \t Oct \t  Q2 \t Q2 Error \t LW Q2 \t LW Q2 Error \t LW & P Q2 \t LW & P Q2 Error " <<endl;
+
+	//some way to loop over all of this
+	for (size_t pkg = 1; pkg < h_q2.size(); pkg++)
+	{    
+			fout2 << runnum << " \t " << oct[pkg] << " \t " << 
+					std::setprecision(5) << 1000*h_q2[pkg]->GetMean() << " \t " << std::setprecision(4) << 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2[pkg]->GetEntries()) << " \t "  <<
+					std::setprecision(5) << 1000*h_q2_lw[pkg]->GetMean() << " \t " << std::setprecision(4) << 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2_lw[pkg]->GetEntries()) << " \t "  <<
+					std::setprecision(5) << 1000*h_q2_lw_p[pkg]->GetMean() << " \t " << std::setprecision(4) << 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2_lw_p[pkg]->GetEntries()) << endl;
+
+	}
+	//close the file
+	fout2.close();
     
 }
 
