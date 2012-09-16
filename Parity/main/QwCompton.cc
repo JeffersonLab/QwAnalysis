@@ -238,10 +238,10 @@ int main(int argc, char* argv[])
           ringoutput = eventring.pop();
 
           // Fill the histograms
-          rootfile->FillHistograms(detectors);
+          rootfile->FillHistograms(ringoutput);
 
           // Fill the tree
-          rootfile->FillTreeBranches(detectors);
+          rootfile->FillTreeBranches(ringoutput);
           rootfile->FillTree("Mps_Tree");
 
 
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
           //  Maybe instead of here, it should be done as soon as we've picked up an
           //  event, instead of waiting to build a complete pattern.
 
-          if (detectors.CheckForEndOfBurst()){
+          if (ringoutput.CheckForEndOfBurst()){
             //  Do the burst versions of
             helicitypattern.CalculateRunningAverage();
             // Maybe we need to clear the burst sums also
