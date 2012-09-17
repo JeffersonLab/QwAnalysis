@@ -42,6 +42,12 @@
 // added more histograms to plot the distributions of additional variables, including
 // vertex_z, vertex_r, P0, pp, Eloss_vs_vertex_z, direction_phi_off, position_phi_off
 
+// jpan, Sun Sep 16 13:53:03 EDT 2012
+// Create an output root file to save resulting histograms and plots.
+// The output file is automatically saved and named with its run number and analysis
+// sequence number. Run conditions, such as cut values, are displayed and saved in a
+// canvas for later reteieving. Analysis summary info is saved as well.
+
 #include <iostream>
 #include <iomanip>
 
@@ -89,8 +95,8 @@ double bending_angle_position_phi_cut_max   =  1.0;   //  1.0
 
 double bending_angle_direction_theta_cut_min = -0.4; // -0.4;
 double bending_angle_direction_theta_cut_max =  0.4; //  0.4; 
-double bending_angle_direction_phi_cut_min   = -2.0; // -2.0;
-double bending_angle_direction_phi_cut_max   =  2.0; //  2.0;
+double bending_angle_direction_phi_cut_min   = -0.2; // -2.0;
+double bending_angle_direction_phi_cut_max   =  0.2; //  2.0;
 
 double position_r_off_cut_min = -1.0;
 double position_r_off_cut_max = 1.0;
@@ -293,7 +299,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
 
    //define canvas for drawing histograms
-   TCanvas* c=new TCanvas("c","Q2 and scattering angle distributions",800,800);
+   TCanvas* c0=new TCanvas("c0","Q2 and scattering angle distributions",800,800);
 
    //Get the oct number
    int oct=getOctNumber(event_tree);
@@ -356,7 +362,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TH2F* eloss_vs_verz[3];
     eloss_vs_verz[0] = new TH2F("eloss_vs_verx[0]",Form("Run %d, Eloss vs. vertex Z, Oct %d + %d",run,md_1,md_2),400,-680,-620,400,0,24);
     eloss_vs_verz[1] = new TH2F("eloss_vs_verx[1]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_1),400,-680,-620,400,0,24);
-    eloss_vs_verz[2] = new TH2F("eloss_vs_verx[2]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_1),400,-680,-620,400,0,24);
+    eloss_vs_verz[2] = new TH2F("eloss_vs_verx[2]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_2),400,-680,-620,400,0,24);
 
     TH1F* histo_direction_phi_off[3];
     histo_direction_phi_off[0] = new TH1F("histo_direction_phi_off[0]",Form("Run %d, Direction_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-2,2);
@@ -722,44 +728,60 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       cout << "pkg2: " <<  setprecision(5) << q2_2->GetMean() << " +/- " <<  setprecision(3) << q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << " (GeV/c)^2"<<endl<<endl;
     }
  
+    // Save data to a text file
+    // Data format (columns, tab separated):
+    //
+    // (1) run number  (2) total events  (3) tdc_cut_min[0]  (4) tdc_cut_max[0]  (5) tdc_cut_min[1]
+    // (6) tdc_cut_max[1]  (7) num_pe_cut  (8) scattering_angle_cut_min  (9) scattering_angle_cut_max  
+    // (10) vertex_z_cut_min  (11) vertex_z_cut_max  (12) vertex_r_cut_min (13) vertex_r_cut_max
+    // (14) bending_angle_position_theta_cut_min  (15) bending_angle_position_theta_cut_max
+    // (16) bending_angle_position_phi_cut_min  (17) bending_angle_position_phi_cut_max
+    // (18) bending_angle_direction_theta_cut_min  (19) bending_angle_direction_theta_cut_max
+    // (20) bending_angle_direction_phi_cut_min  (21) bending_angle_direction_phi_cut_max
+    // (22) position_r_off_cut_min  (23) position_r_off_cut_max  (24) hit_position_x_cut_min
+    // (25) hit_position_x_cut_max (26) hit_position_y_cut_min  (27) hit_position_y_cut_max
+    // (28) 
+
+
+
     // Draw histograms
     gStyle->SetPalette(1);
-    c->Clear();   
+    c0->Clear();   
 
     // canvas 0
-    c->Divide(2,4);
+    c0->Divide(2,4);
     
-    c->cd(1);
+    c0->cd(1);
     hit_dist1->Draw("colz");
     hit_dist1->GetXaxis()->SetTitle("Y [cm]");
     hit_dist1->GetYaxis()->SetTitle("X [cm]");
 
-    c->cd(2);
+    c0->cd(2);
     hit_dist2->Draw("colz");
     hit_dist2->GetXaxis()->SetTitle("Y [cm]");
     hit_dist2->GetYaxis()->SetTitle("X [cm]");
 
-    c->cd(3);
+    c0->cd(3);
     angle_1->Draw();
     angle_1->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
-    c->cd(4);
+    c0->cd(4);
     q2_1->Draw();
     q2_1->GetXaxis()->SetTitle("Q2 [(GeV/c)^2]");
     
-     c->cd(5);
+    c0->cd(5);
     angle_2->Draw();
     angle_2->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
-    c->cd(6);
+    c0->cd(6);
     q2_2->Draw();
     q2_2->GetXaxis()->SetTitle("Q2 [(GeV/c)^2]");
     
-    c->cd(7);
+    c0->cd(7);
     angle->Draw();
     angle->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
-    c->cd(8);
+    c0->cd(8);
     q2->Draw();
     q2->GetXaxis()->SetTitle("Q2 [(GeV/c)^2]");
 
@@ -875,6 +897,146 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c3_6->SetLogy();
     histo_position_phi_off[0]->Draw();
     histo_position_phi_off[0]->GetXaxis()->SetTitle("position_phi_off [rad]");
+
+    TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
+    TPaveText *condition_txt = new TPaveText(0.05,0.05,0.95,0.95);
+    condition_txt->SetTextSize(0.025);
+    condition_txt->AddText("Run Conditions:");
+    //condition_txt->AddLine(.0,.5,1.,.5);
+    condition_txt->SetTextAlign(12);
+    condition_txt->AddText(Form("Run# %d, total events :%d, processed event# %d to %d",run, nevents,start,end));
+ 
+   if(enable_tdc_cut){
+      condition_txt->AddText(Form("package 1: tdc_cut_min[0]=%d, tdc_cut_max[0]=%d",tdc_cut_min[0], tdc_cut_max[0]));
+      condition_txt->AddText(Form("package 2: tdc_cut_min[1]=%d, tdc_cut_max[1]=%d",tdc_cut_min[1],tdc_cut_max[1]));
+    }
+    if(enable_adc_cut){
+      condition_txt->AddText(Form("num_pe_cut=%f",num_pe_cut));
+    }
+    if(enable_scattering_angle_cut){
+      condition_txt->AddText(Form("scattering_angle_cut_min=%f, scattering_angle_cut_max=%f",scattering_angle_cut_min, scattering_angle_cut_max));
+    }
+    if(enable_vertex_z_cut){
+      condition_txt->AddText(Form("vertex_z_cut_min=%f, vertex_z_cut_max=%f", vertex_z_cut_min,vertex_z_cut_max));
+    }
+    if(enable_vertex_r_cut){
+      condition_txt->AddText(Form("vertex_r_cut_min=%f, vertex_r_cut_max=%f", vertex_r_cut_min,vertex_r_cut_max));
+    }
+    if(enable_position_theta_cut){
+      condition_txt->AddText(Form("position_theta_cut_min=%f, position_theta_cut_max=%f",bending_angle_position_theta_cut_min,bending_angle_position_theta_cut_max));
+    }
+    if(enable_position_phi_cut){
+      condition_txt->AddText(Form("position_phi_cut_min=%f, position_phi_cut_max=%f",bending_angle_position_phi_cut_min,bending_angle_position_phi_cut_max));
+    }
+    if(enable_direction_theta_cut){
+      condition_txt->AddText(Form("direction_theta_cut_min=%f, direction_theta_cut_max=%f",bending_angle_direction_theta_cut_min,bending_angle_direction_theta_cut_max));
+    }
+    if(enable_direction_phi_cut){
+      condition_txt->AddText(Form("direction_phi_cut_min=%f, direction_phi_cut_max=%f",bending_angle_direction_phi_cut_min,bending_angle_direction_phi_cut_max));
+    }
+    if(enable_position_r_off_cut){
+      condition_txt->AddText(Form("position_r_off_cut_min=%f, position_r_off_cut_max=%f",position_r_off_cut_min,position_r_off_cut_max));
+    }
+    if(enable_hit_position_x_cut){
+      condition_txt->AddText(Form("hit_position_x_cut_min=%f, hit_position_x_cut_max=%f", hit_position_x_cut_min, hit_position_x_cut_max));
+    }
+    if(enable_hit_position_y_cut){
+      condition_txt->AddText(Form("hit_position_y_cut_min=%f, hit_position_y_cut_max=%f", hit_position_y_cut_min, hit_position_y_cut_max));
+    }
+    condition_txt->Draw();
+
+    TCanvas* run_summary=new TCanvas("run_summary","Tracking Cut Run Summary",800,800);
+    TPaveText *summary_txt = new TPaveText(0.05,0.05,0.95,0.95);
+    summary_txt->SetTextSize(0.025);
+    summary_txt->AddText("Run Summary:");
+    summary_txt->SetTextAlign(12);
+    summary_txt->AddText(Form("Run# %d, total events :%d, processed event# %d to %d",run, nevents,start,end));
+    summary_txt->AddText(Form("number of tracks: %d (pkg1), %d (pkg2)", angle_1->GetEntries(), angle_2->GetEntries()));
+    if(angle->GetEntries()!=0){
+      summary_txt->AddText(Form("scattering angle: %f +/- %f deg (all)", angle->GetMean(), angle->GetRMS()/sqrt(angle->GetEntries())));
+      if(angle_1->GetEntries()!=0){
+        summary_txt->AddText(Form("\t\t %f +/- %f deg (pkg1)", angle_1->GetMean(), angle_1->GetRMS()/sqrt(angle->GetEntries())));
+      }
+      if(angle_2->GetEntries()!=0){
+        summary_txt->AddText(Form("\t\t %f +/- %f deg (pkg2)", angle_2->GetMean(), angle_2->GetRMS()/sqrt(angle->GetEntries())));
+      }
+    }
+
+    if(q2->GetEntries()) {
+      summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (all)",q2->GetMean(),q2->GetRMS()/sqrt(q2->GetEntries())));
+      if(q2_1->GetEntries()!=0) {
+        summary_txt->AddText(Form("\t    %f +/- %f (GeV/c)^2 (pkg1)",q2_1->GetMean(),q2_1->GetRMS()/sqrt(q2_1->GetEntries())));
+      }
+      if(q2_2->GetEntries()!=0) {
+        summary_txt->AddText(Form("\t    %f +/- %f (GeV/c)^2 (pkg2)",q2_2->GetMean(),q2_2->GetRMS()/sqrt(q2_2->GetEntries())));
+      }
+    }
+    summary_txt->Draw();
+    
+    //////////////////////////////////////
+    // Save histograms to a file
+    //////////////////////////////////////
+
+    int sequence_num;
+    TFile *hist_file; 
+
+    for(sequence_num = 0; sequence_num <200; sequence_num++)
+    {
+      hist_file = new TFile(Form("TCRun_%d_%d.root",run,sequence_num),"READ");
+      if(hist_file->IsZombie())
+      {
+        hist_file = new TFile(Form("TCRun_%d_%d.root",run,sequence_num),"CREATE");
+        cout<<"Craeted output data file TCRun_"<<run<<"_"<<sequence_num<<".root"<<endl;
+        break;
+      }
+      else
+        hist_file->Close();
+    }
+
+    // save canvas
+    run_condition->Write();
+    run_summary->Write();
+    c0->Write();
+    c1->Write();
+    c2->Write();
+    c3->Write();
+
+    //save histograms
+    hit_dist1->Write();
+    hit_dist2->Write();
+    angle->Write();
+    angle_1->Write();
+    angle_2->Write();
+    q2->Write();
+    q2_1->Write();
+    q2_2->Write();
+
+    for(int i=0;i<2;i++)
+    {
+        histo_vertex_z[i]->Write();
+        histo_vertex_r[i]->Write();
+        histo_p0[i]->Write();
+        histo_pp[i]->Write();
+        eloss_vs_verz[i]->Write();
+        histo_direction_phi_off[i]->Write();
+        histo_position_phi_off[i]->Write();
+    }
+
+    hist_file->Close();
+
+    // Save data to a text file
+    // Data format (columns, tab separated):
+    //
+    // (1) run number  (2) total events  (3) tdc_cut_min[0]  (4) tdc_cut_max[0]  (5) tdc_cut_min[1]
+    // (6) tdc_cut_max[1]  (7) num_pe_cut  (8) scattering_angle_cut_min  (9) scattering_angle_cut_max  
+    // (10) vertex_z_cut_min  (11) vertex_z_cut_max  (12) vertex_r_cut_min (13) vertex_r_cut_max
+    // (14) bending_angle_position_theta_cut_min  (15) bending_angle_position_theta_cut_max
+    // (16) bending_angle_position_phi_cut_min  (17) bending_angle_position_phi_cut_max
+    // (18) bending_angle_direction_theta_cut_min  (19) bending_angle_direction_theta_cut_max
+    // (20) bending_angle_direction_phi_cut_min  (21) bending_angle_direction_phi_cut_max
+    // (22) position_r_off_cut_min  (23) position_r_off_cut_max  (24) hit_position_x_cut_min
+    // (25) hit_position_x_cut_max (26) hit_position_y_cut_min  (27) hit_position_y_cut_max
+    // (28) 
 
     return;
 
