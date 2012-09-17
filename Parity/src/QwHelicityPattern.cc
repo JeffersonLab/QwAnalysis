@@ -412,6 +412,11 @@ void  QwHelicityPattern::CalculateAsymmetry()
     if (! fIgnoreHelicity){
       //  Only blind the difference if we're using the real helicity.
       fBlinder.Blind(fDifference,fYield);
+      //  Update the global error code in fDifference, and use it
+      //  to update the errors in fYield, in case blinder errors
+      //  can propagate to the global error.
+      fDifference.UpdateErrorFlag();
+      fYield.UpdateErrorFlag(fDifference);
     }
     fAsymmetry.Ratio(fDifference,fYield);
 
