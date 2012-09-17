@@ -46,7 +46,12 @@
 // Create an output root file to save resulting histograms and plots.
 // The output file is automatically saved and named with its run number and analysis
 // sequence number. Run conditions, such as cut values, are displayed and saved in a
-// canvas for later reteieving. Analysis summary info is saved as well.
+// canvas for later reteieving. Analysis summary is saved as well.
+
+// jpan, Mon Sep 17 17:19:10 CDT 2012
+// Extract main detector pedestals using a new function getQdcPedestal() to 
+// replace hard-coded pedestal values. Plot light-weighted Q2 distributions and
+// compared them with Q2 distributions.
 
 #include <iostream>
 #include <iomanip>
@@ -95,8 +100,8 @@ double bending_angle_position_phi_cut_max   =  1.0;   //  1.0
 
 double bending_angle_direction_theta_cut_min = -0.4; // -0.4;
 double bending_angle_direction_theta_cut_max =  0.4; //  0.4; 
-double bending_angle_direction_phi_cut_min   = -0.2; // -2.0;
-double bending_angle_direction_phi_cut_max   =  0.2; //  2.0;
+double bending_angle_direction_phi_cut_min   = -2.0; // -2.0;
+double bending_angle_direction_phi_cut_max   =  2.0; //  2.0;
 
 double position_r_off_cut_min = -1.0;
 double position_r_off_cut_max = 1.0;
@@ -303,6 +308,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
    //Get the oct number
    int oct=getOctNumber(event_tree);
+   getQdcPedestal(event_tree);
    
    Int_t nevents=event_tree->GetEntries();
    cout << "total events: " << nevents << endl;
@@ -339,6 +345,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TH1F* q2_2 = new TH1F("q2_2",Form("Run %d, Q2 Distribution in Package 2, Oct %d",run,md_2),400,0,0.08);
 
     //define extra histograms
+    TH1F* light_weighted_q2[3];
+    light_weighted_q2[0] = new TH1F("light_weighted_q2[0]",Form("Run %d, Light-weighted Q2 Distribution, Oct %d + %d",run,md_1,md_2),400,0,0.08);
+    light_weighted_q2[1] = new TH1F("light_weighted_q2[1]",Form("Run %d, Light-weighted Q2 Distribution in Package 1, Oct %d",run,md_1),400,0,0.08);
+    light_weighted_q2[2] = new TH1F("light_weighted_q2[2]",Form("Run %d, Light-weighted Q2 Distribution in Package 2, Oct %d",run,md_2),400,0,0.08);
+
     TH1F* histo_vertex_r[3];
     histo_vertex_r[0] = new TH1F("histo_vertex_r[0]",Form("Run %d, Vertex R, Oct %d + %d",run,md_1,md_2),400,0,70);
     histo_vertex_r[1] = new TH1F("histo_vertex_r[1]",Form("Run %d, Vertex R in Package 1, Oct %d",run,md_1),400,0,70);
@@ -651,6 +662,12 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 hit_dist1->Fill(y,x);
 
                 // fill additional histograms
+                double mdm_num_pe = (mdm_adc_value_1-MDm_Pedestal[md_1])/MDm_SinglePE[md_1];
+                double mdp_num_pe = (mdp_adc_value_1-MDp_Pedestal[md_1])/MDp_SinglePE[md_1];
+                double total_num_pe = mdm_num_pe+mdp_num_pe;
+                light_weighted_q2[0]->Fill(Q2_val,total_num_pe);
+                light_weighted_q2[1]->Fill(Q2_val,total_num_pe);
+
                 histo_vertex_r[0]->Fill(vertex_r);
                 histo_vertex_r[1]->Fill(vertex_r);
                 histo_vertex_z[0]->Fill(vertex_z);
@@ -678,6 +695,12 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 hit_dist2->Fill(y,x);
 
                 // fill additional histograms
+                double mdm_num_pe = (mdm_adc_value_2-MDm_Pedestal[md_2])/MDm_SinglePE[md_2];
+                double mdp_num_pe = (mdp_adc_value_2-MDp_Pedestal[md_2])/MDp_SinglePE[md_2];
+                double total_num_pe = mdm_num_pe+mdp_num_pe;
+                light_weighted_q2[0]->Fill(Q2_val,total_num_pe);
+                light_weighted_q2[2]->Fill(Q2_val,total_num_pe);
+
                 histo_vertex_r[0]->Fill(vertex_r);
                 histo_vertex_r[2]->Fill(vertex_r);
                 histo_vertex_z[0]->Fill(vertex_z);
@@ -728,6 +751,17 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       cout << "pkg2: " <<  setprecision(5) << q2_2->GetMean() << " +/- " <<  setprecision(3) << q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << " (GeV/c)^2"<<endl<<endl;
     }
  
+    cout << "\nLight-weighted Q2: " << endl;
+    if(light_weighted_q2[0]->GetEntries()) {
+      cout << "all : " <<  setprecision(5) << light_weighted_q2[0]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[0]->GetRMS()/sqrt(light_weighted_q2[0]->GetEntries()) << " (GeV/c)^2"<<endl;
+    }
+    if(light_weighted_q2[1]->GetEntries()!=0) {
+      cout << "pkg1: " <<  setprecision(5) << light_weighted_q2[1]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[1]->GetRMS()/sqrt(light_weighted_q2[1]->GetEntries()) << " (GeV/c)^2"<<endl;
+    }
+    if(light_weighted_q2[2]->GetEntries()!=0) {
+      cout << "pkg2: " <<  setprecision(5) << light_weighted_q2[2]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[2]->GetRMS()/sqrt(light_weighted_q2[2]->GetEntries()) << " (GeV/c)^2"<<endl<<endl;
+    }
+
     // Save data to a text file
     // Data format (columns, tab separated):
     //
@@ -766,24 +800,48 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     angle_1->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
     c0->cd(4);
+    double SumOfWeights = q2_1->GetSumOfWeights();
+    if(SumOfWeights!=0)
+       q2_1->Scale(1.0/SumOfWeights);
+    SumOfWeights = light_weighted_q2[1]->GetSumOfWeights();
+    if(SumOfWeights!=0)
+       light_weighted_q2[1]->Scale(1.0/SumOfWeights);
     q2_1->Draw();
     q2_1->GetXaxis()->SetTitle("Q2 [(GeV/c)^2]");
+    light_weighted_q2[1]->SetLineColor(kRed);
+    light_weighted_q2[1]->Draw("sames");
     
     c0->cd(5);
     angle_2->Draw();
     angle_2->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
     c0->cd(6);
+    SumOfWeights = q2_2->GetSumOfWeights();
+    if(SumOfWeights!=0)
+       q2_2->Scale(1.0/SumOfWeights);
+    SumOfWeights = light_weighted_q2[2]->GetSumOfWeights();
+    if(SumOfWeights!=0)
+       light_weighted_q2[2]->Scale(1.0/SumOfWeights);
     q2_2->Draw();
     q2_2->GetXaxis()->SetTitle("Q2 [(GeV/c)^2]");
+    light_weighted_q2[2]->SetLineColor(kRed);
+    light_weighted_q2[2]->Draw("sames");
     
     c0->cd(7);
     angle->Draw();
     angle->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
     c0->cd(8);
+    SumOfWeights = q2->GetSumOfWeights();
+    if(SumOfWeights!=0)
+       q2->Scale(1.0/SumOfWeights);
+    SumOfWeights = light_weighted_q2[0]->GetSumOfWeights();
+    if(SumOfWeights!=0)
+       light_weighted_q2[0]->Scale(1.0/SumOfWeights);
     q2->Draw();
     q2->GetXaxis()->SetTitle("Q2 [(GeV/c)^2]");
+    light_weighted_q2[0]->SetLineColor(kRed);
+    light_weighted_q2[0]->Draw("sames");
 
     // draw additional plots
 
@@ -951,26 +1009,44 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     summary_txt->AddText("Run Summary:");
     summary_txt->SetTextAlign(12);
     summary_txt->AddText(Form("Run# %d, total events :%d, processed event# %d to %d",run, nevents,start,end));
-    summary_txt->AddText(Form("number of tracks: %d (pkg1), %d (pkg2)", angle_1->GetEntries(), angle_2->GetEntries()));
-    if(angle->GetEntries()!=0){
+
+    int num_tracks = angle->GetEntries();
+    int num_tracks1 = angle_1->GetEntries();
+    int num_tracks2 = angle_2->GetEntries();
+    if(num_tracks!=0)
+    {
+      summary_txt->AddText(Form("number of tracks: %d (all), %d (pkg1), %d (pkg2)", num_tracks, num_tracks1, num_tracks2));
       summary_txt->AddText(Form("scattering angle: %f +/- %f deg (all)", angle->GetMean(), angle->GetRMS()/sqrt(angle->GetEntries())));
-      if(angle_1->GetEntries()!=0){
-        summary_txt->AddText(Form("\t\t %f +/- %f deg (pkg1)", angle_1->GetMean(), angle_1->GetRMS()/sqrt(angle->GetEntries())));
+      if(num_tracks1!=0){
+        summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg1)", angle_1->GetMean(), angle_1->GetRMS()/sqrt(angle_1->GetEntries())));
       }
-      if(angle_2->GetEntries()!=0){
-        summary_txt->AddText(Form("\t\t %f +/- %f deg (pkg2)", angle_2->GetMean(), angle_2->GetRMS()/sqrt(angle->GetEntries())));
+      if(num_tracks2!=0){
+        summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg2)", angle_2->GetMean(), angle_2->GetRMS()/sqrt(angle_2->GetEntries())));
       }
     }
 
-    if(q2->GetEntries()) {
+    if(q2->GetEntries()) 
+    {
       summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (all)",q2->GetMean(),q2->GetRMS()/sqrt(q2->GetEntries())));
       if(q2_1->GetEntries()!=0) {
-        summary_txt->AddText(Form("\t    %f +/- %f (GeV/c)^2 (pkg1)",q2_1->GetMean(),q2_1->GetRMS()/sqrt(q2_1->GetEntries())));
+        summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg1)",q2_1->GetMean(),q2_1->GetRMS()/sqrt(q2_1->GetEntries())));
       }
       if(q2_2->GetEntries()!=0) {
-        summary_txt->AddText(Form("\t    %f +/- %f (GeV/c)^2 (pkg2)",q2_2->GetMean(),q2_2->GetRMS()/sqrt(q2_2->GetEntries())));
+        summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg2)",q2_2->GetMean(),q2_2->GetRMS()/sqrt(q2_2->GetEntries())));
       }
     }
+
+    if(light_weighted_q2[0]->GetEntries()) 
+    {
+      summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (all)",light_weighted_q2[0]->GetMean(),light_weighted_q2[0]->GetRMS()/sqrt(light_weighted_q2[0]->GetEntries())));
+      if(light_weighted_q2[1]->GetEntries()!=0) {
+        summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg1)",light_weighted_q2[1]->GetMean(),light_weighted_q2[1]->GetRMS()/sqrt(light_weighted_q2[1]->GetEntries())));
+      }
+      if(light_weighted_q2[2]->GetEntries()!=0) {
+        summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg2)",light_weighted_q2[2]->GetMean(),light_weighted_q2[2]->GetRMS()/sqrt(light_weighted_q2[2]->GetEntries())));
+      }
+    }
+
     summary_txt->Draw();
     
     //////////////////////////////////////
@@ -1013,6 +1089,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
     for(int i=0;i<2;i++)
     {
+        light_weighted_q2[i]->Write();
         histo_vertex_z[i]->Write();
         histo_vertex_r[i]->Write();
         histo_p0[i]->Write();
@@ -1091,5 +1168,30 @@ double global2local_phi(double phi, int octant, int pkg)
       cout<<phi*180.0/pi<<" deg"<<endl;
 
    return phi;
+}
+
+void getQdcPedestal(TTree* event_tree)
+{
+   for(int ii=1; ii<=8; ii++)
+   {
+      event_tree->Draw(Form("md%dm_adc>>m_adc",ii));
+      event_tree->Draw(Form("md%dp_adc>>p_adc",ii));
+
+      TF1 g_m("g_m","gaus", 1, 350);
+      TF1 g_p("g_p","gaus", 1, 350);
+      g_m.SetParameters(1e6,200,10);
+      g_p.SetParameters(1e6,200,10);
+
+      m_adc->Fit("g_m","R");
+      p_adc->Fit("g_p","R");
+
+      MDm_Pedestal[ii] = g_m.GetParameter(1);
+      MDp_Pedestal[ii] = g_p.GetParameter(1);
+    }
+
+    cout<<"\nMain detector pedestals (minus, plus):"<<endl;
+    for(int jj=1;jj<=8;jj++)
+         cout<<"MD"<<jj<<"    "<<MDm_Pedestal[jj]<<"\t"<<MDp_Pedestal[jj]<<endl;
+    cout<<endl;   
 }
 
