@@ -53,6 +53,11 @@
 // replace hard-coded pedestal values. Plot light-weighted Q2 distributions and
 // compared them with Q2 distributions.
 
+// jpan, Tue Sep 18 12:24:56 CDT 2012
+// Added in 2D distribution plots of light, Q2 and light-weighted Q2,
+// added in the plots for direction_theta_off and position_theta_off
+// changed the unit from [rad] to [degree] for phi_off and theta_off
+
 #include <iostream>
 #include <iomanip>
 
@@ -78,7 +83,7 @@ bool enable_hit_position_y_cut   = false;
 // cut values
 const int multiple=18;
 
-const double twopi = 2.0 * 3.1415927;
+const double degree = 3.1415927/180.0;
 
 int tdc_cut_min[2] = {-210,-210}; //tdc cuts for package {1, 2}
 int tdc_cut_max[2] = {-150,-150};
@@ -93,15 +98,15 @@ double vertex_z_cut_max = -625;
 double vertex_r_cut_min = 0;
 double vertex_r_cut_max = 1;
 
-double bending_angle_position_theta_cut_min = -0.003; // -0.003
-double bending_angle_position_theta_cut_max =  0.003; //  0.003
-double bending_angle_position_phi_cut_min   = -1.0;   // -1.0
-double bending_angle_position_phi_cut_max   =  1.0;   //  1.0
+double bending_angle_position_theta_cut_min = -0.2 *degree;   // -0.2 deg
+double bending_angle_position_theta_cut_max =  0.2 *degree;   //  0.2 deg
+double bending_angle_position_phi_cut_min   = -60.0 *degree;  // -60.0 deg
+double bending_angle_position_phi_cut_max   =  60.0 *degree;  //  60.0 deg
 
-double bending_angle_direction_theta_cut_min = -0.4; // -0.4;
-double bending_angle_direction_theta_cut_max =  0.4; //  0.4; 
-double bending_angle_direction_phi_cut_min   = -2.0; // -2.0;
-double bending_angle_direction_phi_cut_max   =  2.0; //  2.0;
+double bending_angle_direction_theta_cut_min = -23.0 *degree;  // -23.0 deg
+double bending_angle_direction_theta_cut_max =  23.0 *degree;  //  23.0 deg
+double bending_angle_direction_phi_cut_min   = -115.0 *degree; // -115.0 deg
+double bending_angle_direction_phi_cut_max   =  115.0 *degree; //  115.0 deg
 
 double position_r_off_cut_min = -1.0;
 double position_r_off_cut_max = 1.0;
@@ -376,15 +381,31 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     eloss_vs_verz[2] = new TH2F("eloss_vs_verx[2]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_2),400,-680,-620,400,0,24);
 
     TH1F* histo_direction_phi_off[3];
-    histo_direction_phi_off[0] = new TH1F("histo_direction_phi_off[0]",Form("Run %d, Direction_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-2,2);
-    histo_direction_phi_off[1] = new TH1F("histo_direction_phi_off[1]",Form("Run %d, Direction_Phi_Off, Package 1, Oct %d",run,md_1),400,-2,2);
-    histo_direction_phi_off[2] = new TH1F("histo_direction_phi_off[2]",Form("Run %d, Direction_Phi_Off, Package 2, Oct %d",run,md_2),400,-2,2);
+    histo_direction_phi_off[0] = new TH1F("histo_direction_phi_off[0]",Form("Run %d, Direction_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-2/degree,2/degree);
+    histo_direction_phi_off[1] = new TH1F("histo_direction_phi_off[1]",Form("Run %d, Direction_Phi_Off, Package 1, Oct %d",run,md_1),400,-2/degree,2/degree);
+    histo_direction_phi_off[2] = new TH1F("histo_direction_phi_off[2]",Form("Run %d, Direction_Phi_Off, Package 2, Oct %d",run,md_2),400,-2/degree,2/degree);
 
     TH1F* histo_position_phi_off[3];
-    histo_position_phi_off[0] = new TH1F("histo_position_phi_off[0]",Form("Run %d, Position_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-1,1);
-    histo_position_phi_off[1] = new TH1F("histo_position_phi_off[1]",Form("Run %d, Position_Phi_Off, Package 1, Oct %d",run,md_1),400,-1,1);
-    histo_position_phi_off[2] = new TH1F("histo_position_phi_off[2]",Form("Run %d, Position_Phi_Off, Package 2, Oct %d",run,md_2),400,-1,1);
+    histo_position_phi_off[0] = new TH1F("histo_position_phi_off[0]",Form("Run %d, Position_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-1/degree,1/degree);
+    histo_position_phi_off[1] = new TH1F("histo_position_phi_off[1]",Form("Run %d, Position_Phi_Off, Package 1, Oct %d",run,md_1),400,-1/degree,1/degree);
+    histo_position_phi_off[2] = new TH1F("histo_position_phi_off[2]",Form("Run %d, Position_Phi_Off, Package 2, Oct %d",run,md_2),400,-1/degree,1/degree);
 
+    TH1F* histo_direction_theta_off[3];
+    histo_direction_theta_off[0] = new TH1F("histo_direction_theta_off[0]",Form("Run %d, Direction_Theta_Off, Oct %d + %d",run,md_1,md_2),400,-0.4/degree,0.4/degree);
+    histo_direction_theta_off[1] = new TH1F("histo_direction_theta_off[1]",Form("Run %d, Direction_Theta_Off, Package 1, Oct %d",run,md_1),400,-0.4/degree,0.4/degree);
+    histo_direction_theta_off[2] = new TH1F("histo_direction_theta_off[2]",Form("Run %d, Direction_Theta_Off, Package 2, Oct %d",run,md_2),400,-0.4/degree,0.4/degree);
+
+    TH1F* histo_position_theta_off[3];
+    histo_position_theta_off[0] = new TH1F("histo_position_theta_off[0]",Form("Run %d, Position_Theta_Off, Oct %d + %d",run,md_1,md_2),400,-0.003/degree,0.003/degree);
+    histo_position_theta_off[1] = new TH1F("histo_position_theta_off[1]",Form("Run %d, Position_Theta_Off, Package 1, Oct %d",run,md_1),400,-0.003/degree,0.003/degree);
+    histo_position_theta_off[2] = new TH1F("histo_position_theta_off[2]",Form("Run %d, Position_Theta_Off, Package 2, Oct %d",run,md_2),400,-0.003/degree,0.003/degree);
+
+    TProfile2D* q2_dist1 = new TProfile2D("q2_dist1",Form("Run %d, Q2 Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
+    TProfile2D* q2_dist2 = new TProfile2D("q2_dist2",Form("Run %d, Q2 Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
+    TProfile2D* light_dist1 = new TProfile2D("light_dist1",Form("Run %d, Light Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
+    TProfile2D* light_dist2 = new TProfile2D("light_dist2",Form("Run %d, light Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
+    TProfile2D* weighted_q2_dist1 = new TProfile2D("weighted_q2_dist1",Form("Run %d, Light-weighted Q2 Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
+    TProfile2D* weighted_q2_dist2 = new TProfile2D("weighted_q2_dist2",Form("Run %d, Light-weighted Q2 Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
 
    // Fetch events from tree
     for(int i=start;i<end;i++)  // start to loop over all events
@@ -681,10 +702,19 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 eloss_vs_verz[0]->Fill(vertex_z,Eloss);
                 eloss_vs_verz[1]->Fill(vertex_z,Eloss);
 
-                histo_direction_phi_off[0]->Fill(direction_phi_off);
-                histo_direction_phi_off[1]->Fill(direction_phi_off);
-                histo_position_phi_off[0]->Fill(position_phi_off);
-                histo_position_phi_off[1]->Fill(position_phi_off);
+                histo_direction_phi_off[0]->Fill(direction_phi_off/degree);
+                histo_direction_phi_off[1]->Fill(direction_phi_off/degree);
+                histo_position_phi_off[0]->Fill(position_phi_off/degree);
+                histo_position_phi_off[1]->Fill(position_phi_off/degree);
+
+                histo_direction_theta_off[0]->Fill(direction_theta_off/degree);
+                histo_direction_theta_off[1]->Fill(direction_theta_off/degree);
+                histo_position_theta_off[0]->Fill(position_theta_off/degree);
+                histo_position_theta_off[1]->Fill(position_theta_off/degree);
+
+                q2_dist1->Fill(y,x,Q2_val);
+                light_dist1->Fill(y,x,total_num_pe);
+                weighted_q2_dist1->Fill(y,x,Q2_val*total_num_pe);
 	   }
          else if(package==2 ) 
            {
@@ -714,10 +744,19 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 eloss_vs_verz[0]->Fill(vertex_z,Eloss);
                 eloss_vs_verz[2]->Fill(vertex_z,Eloss);
 
-                histo_direction_phi_off[0]->Fill(direction_phi_off);
-                histo_direction_phi_off[2]->Fill(direction_phi_off);
-                histo_position_phi_off[0]->Fill(position_phi_off);
-                histo_position_phi_off[2]->Fill(position_phi_off);
+                histo_direction_phi_off[0]->Fill(direction_phi_off/degree);
+                histo_direction_phi_off[2]->Fill(direction_phi_off/degree);
+                histo_position_phi_off[0]->Fill(position_phi_off/degree);
+                histo_position_phi_off[2]->Fill(position_phi_off/degree);
+
+                histo_direction_theta_off[0]->Fill(direction_theta_off/degree);
+                histo_direction_theta_off[2]->Fill(direction_theta_off/degree);
+                histo_position_theta_off[0]->Fill(position_theta_off/degree);
+                histo_position_theta_off[2]->Fill(position_theta_off/degree);
+
+                q2_dist2->Fill(y,x,Q2_val);
+                light_dist2->Fill(y,x,total_num_pe);
+                weighted_q2_dist2->Fill(y,x,Q2_val*total_num_pe);
 	   }
 
       } // end of loop over tracks
@@ -783,23 +822,13 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c0->Clear();   
 
     // canvas 0
-    c0->Divide(2,4);
-    
+    c0->Divide(2,3);
+
     c0->cd(1);
-    hit_dist1->Draw("colz");
-    hit_dist1->GetXaxis()->SetTitle("Y [cm]");
-    hit_dist1->GetYaxis()->SetTitle("X [cm]");
-
-    c0->cd(2);
-    hit_dist2->Draw("colz");
-    hit_dist2->GetXaxis()->SetTitle("Y [cm]");
-    hit_dist2->GetYaxis()->SetTitle("X [cm]");
-
-    c0->cd(3);
     angle_1->Draw();
     angle_1->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
-    c0->cd(4);
+    c0->cd(2);
     double SumOfWeights = q2_1->GetSumOfWeights();
     if(SumOfWeights!=0)
        q2_1->Scale(1.0/SumOfWeights);
@@ -811,11 +840,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     light_weighted_q2[1]->SetLineColor(kRed);
     light_weighted_q2[1]->Draw("sames");
     
-    c0->cd(5);
+    c0->cd(3);
     angle_2->Draw();
     angle_2->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
-    c0->cd(6);
+    c0->cd(4);
     SumOfWeights = q2_2->GetSumOfWeights();
     if(SumOfWeights!=0)
        q2_2->Scale(1.0/SumOfWeights);
@@ -827,11 +856,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     light_weighted_q2[2]->SetLineColor(kRed);
     light_weighted_q2[2]->Draw("sames");
     
-    c0->cd(7);
+    c0->cd(5);
     angle->Draw();
     angle->GetXaxis()->SetTitle("Scattering Angle [degree]");
 
-    c0->cd(8);
+    c0->cd(6);
     SumOfWeights = q2->GetSumOfWeights();
     if(SumOfWeights!=0)
        q2->Scale(1.0/SumOfWeights);
@@ -923,39 +952,119 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     eloss_vs_verz[2]->GetXaxis()->SetTitle("Vertex Z [cm]");
     eloss_vs_verz[2]->GetYaxis()->SetTitle("Eloss [MeV]");
 
+    // canvas 3
     TCanvas* c3=new TCanvas("c3","azimuthal angle residuals",800,800);
     c3->Divide(2,3);
 
     c3->cd(1);
     c3_1->SetLogy();
     histo_direction_phi_off[1]->Draw();
-    histo_direction_phi_off[1]->GetXaxis()->SetTitle("direction_phi_off [rad]");
+    histo_direction_phi_off[1]->GetXaxis()->SetTitle("direction_phi_off [deg]");
 
     c3->cd(3);
     c3_3->SetLogy();
     histo_direction_phi_off[2]->Draw();
-    histo_direction_phi_off[2]->GetXaxis()->SetTitle("direction_phi_off [rad]");
+    histo_direction_phi_off[2]->GetXaxis()->SetTitle("direction_phi_off [deg]");
 
     c3->cd(5);
     c3_5->SetLogy();
     histo_direction_phi_off[0]->Draw();
-    histo_direction_phi_off[0]->GetXaxis()->SetTitle("direction_phi_off [rad]");
+    histo_direction_phi_off[0]->GetXaxis()->SetTitle("direction_phi_off [deg]");
 
     c3->cd(2);
     c3_2->SetLogy();
     histo_position_phi_off[1]->Draw();
-    histo_position_phi_off[1]->GetXaxis()->SetTitle("position_phi_off [rad]");
+    histo_position_phi_off[1]->GetXaxis()->SetTitle("position_phi_off [deg]");
 
     c3->cd(4);
     c3_4->SetLogy();
     histo_position_phi_off[2]->Draw();
-    histo_position_phi_off[2]->GetXaxis()->SetTitle("position_phi_off [rad]");
+    histo_position_phi_off[2]->GetXaxis()->SetTitle("position_phi_off [deg]");
 
     c3->cd(6);
     c3_6->SetLogy();
     histo_position_phi_off[0]->Draw();
-    histo_position_phi_off[0]->GetXaxis()->SetTitle("position_phi_off [rad]");
+    histo_position_phi_off[0]->GetXaxis()->SetTitle("position_phi_off [deg]");
 
+    // canvas 4
+    TCanvas* c4=new TCanvas("c4","radial angle residuals",800,800);
+    c4->Divide(2,3);
+
+    c4->cd(1);
+    c4_1->SetLogy();
+    histo_direction_theta_off[1]->Draw();
+    histo_direction_theta_off[1]->GetXaxis()->SetTitle("direction_theta_off [deg]");
+
+    c4->cd(3);
+    c4_3->SetLogy();
+    histo_direction_theta_off[2]->Draw();
+    histo_direction_theta_off[2]->GetXaxis()->SetTitle("direction_theta_off [deg]");
+
+    c4->cd(5);
+    c4_5->SetLogy();
+    histo_direction_theta_off[0]->Draw();
+    histo_direction_theta_off[0]->GetXaxis()->SetTitle("direction_theta_off [deg]");
+
+    c4->cd(2);
+    c4_2->SetLogy();
+    histo_position_theta_off[1]->Draw();
+    histo_position_theta_off[1]->GetXaxis()->SetTitle("position_theta_off [deg]");
+
+    c4->cd(4);
+    c4_4->SetLogy();
+    histo_position_theta_off[2]->Draw();
+    histo_position_theta_off[2]->GetXaxis()->SetTitle("position_theta_off [deg]");
+
+    c4->cd(6);
+    c4_6->SetLogy();
+    histo_position_theta_off[0]->Draw();
+    histo_position_theta_off[0]->GetXaxis()->SetTitle("position_theta_off [deg]");
+
+    // canvas 5
+    TCanvas* c5=new TCanvas("c5","2D distributions of hits, #PE and Q2",800,800);
+    c5->Divide(2,4);
+
+    c5->cd(1);
+    hit_dist1->Draw("colz");
+    hit_dist1->GetXaxis()->SetTitle("Y [cm]");
+    hit_dist1->GetYaxis()->SetTitle("X [cm]");
+
+    c5->cd(2);
+    hit_dist2->Draw("colz");
+    hit_dist2->GetXaxis()->SetTitle("Y [cm]");
+    hit_dist2->GetYaxis()->SetTitle("X [cm]");
+
+    c5->cd(3);
+    light_dist1->Draw("colz");
+    light_dist1->GetXaxis()->SetTitle("Y [cm]");
+    light_dist1->GetYaxis()->SetTitle("X [cm]");
+
+    c5->cd(4);
+    light_dist2->Draw("colz");
+    light_dist2->GetXaxis()->SetTitle("Y [cm]");
+    light_dist2->GetYaxis()->SetTitle("X [cm]");
+
+    c5->cd(5);
+    q2_dist1->Draw("colz");
+    q2_dist1->GetXaxis()->SetTitle("Y [cm]");
+    q2_dist1->GetYaxis()->SetTitle("X [cm]");
+    
+    c5->cd(6);
+    q2_dist2->Draw("colz");
+    q2_dist2->GetXaxis()->SetTitle("Y [cm]");
+    q2_dist2->GetYaxis()->SetTitle("X [cm]");
+
+    c5->cd(7);
+    weighted_q2_dist1->Draw("colz");
+    weighted_q2_dist1->GetXaxis()->SetTitle("Y [cm]");
+    weighted_q2_dist1->GetYaxis()->SetTitle("X [cm]");
+    
+    c5->cd(8);
+    weighted_q2_dist2->Draw("colz");
+    weighted_q2_dist2->GetXaxis()->SetTitle("Y [cm]");
+    weighted_q2_dist2->GetYaxis()->SetTitle("X [cm]");
+
+    // output runs conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
     TPaveText *condition_txt = new TPaveText(0.05,0.05,0.95,0.95);
     condition_txt->SetTextSize(0.025);
@@ -1076,6 +1185,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c1->Write();
     c2->Write();
     c3->Write();
+    c4->Write();
+    c5->Write();
 
     //save histograms
     hit_dist1->Write();
@@ -1097,7 +1208,16 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         eloss_vs_verz[i]->Write();
         histo_direction_phi_off[i]->Write();
         histo_position_phi_off[i]->Write();
+        histo_direction_theta_off[i]->Write();
+        histo_position_theta_off[i]->Write();
     }
+
+    light_dist1->Write();
+    light_dist2->Write();
+    q2_dist1->Write();
+    q2_dist2->Write();
+    weighted_q2_dist1->Write();
+    weighted_q2_dist2->Write();
 
     hist_file->Close();
 
