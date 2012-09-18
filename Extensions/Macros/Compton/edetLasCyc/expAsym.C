@@ -38,12 +38,14 @@ Int_t expAsym(Int_t runnum)
   Double_t bRawScaler[nPlanes][nStrips];
   Double_t comptQH1L1=0.0, comptQH0L1=0.0;
   Double_t comptQH1L0=0.0, comptQH0L0=0.0;
-  Double_t lasPow[3], helicity, bcm[3];//, time_nano[3];
+  Double_t lasPow[3], helicity, bcm[3],bpm_3c20X[2];
+  Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips], bRawAccum_v2[nPlanes][nStrips];
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
   Float_t weightedMeanNrAsym[nPlanes][nStrips],weightedMeanDrAsym[nPlanes][nStrips];
   Float_t qNormLasCycAsym[nPlanes][nStrips], LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips];
+  Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;//!as of now not tracking the las-off status
 
   Int_t AccumB1H0L1_v2[nPlanes][nStrips],AccumB1H1L1_v2[nPlanes][nStrips];
   Int_t AccumB1H0L0_v2[nPlanes][nStrips],AccumB1H1L0_v2[nPlanes][nStrips];
@@ -70,7 +72,7 @@ Int_t expAsym(Int_t runnum)
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
   ofstream lasCycExpAsym,lasCycYield;
-  ofstream lasCycScaler[nPlanes][nStrips],lasCycAccum[nPlanes][nStrips];
+  ofstream lasCycScaler[nPlanes][nStrips],lasCycAccum[nPlanes][nStrips],lasCycBCM,lasCycLasPow;
 //  fstream lasCycScaler,lasCycAccum;//to write files every laserCycle
   ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
   ifstream infileLas, infileBeam;
@@ -185,14 +187,32 @@ Int_t expAsym(Int_t runnum)
   mpsChain->SetBranchStatus("actual_helicity",1);
   mpsChain->SetBranchStatus("sca_laser_PowT",1);
   mpsChain->SetBranchStatus("sca_bcm6",1);
+  mpsChain->SetBranchStatus("sca_bpm_3p02aY",1); 
+  mpsChain->SetBranchStatus("sca_bpm_3p02aX",1); 
+  mpsChain->SetBranchStatus("sca_bpm_3p02bY",1); 
+  mpsChain->SetBranchStatus("sca_bpm_3p02bX",1); 
+  mpsChain->SetBranchStatus("sca_bpm_3p03aY",1); 
+  mpsChain->SetBranchStatus("sca_bpm_3p03aX",1);
+  mpsChain->SetBranchStatus("sca_bpm_3c20Y",1);
+  mpsChain->SetBranchStatus("sca_bpm_3c20X",1);
   mpsChain->SetBranchStatus("p*RawAc",1);
   mpsChain->SetBranchStatus("p*RawEv",1);
   mpsChain->SetBranchStatus("p*RawV1495Scaler",1);
+
   mpsChain->SetBranchAddress("event_number",&event_number);
   mpsChain->SetBranchAddress("pattern_number",&pattern_number);
   mpsChain->SetBranchAddress("actual_helicity",&helicity);
   mpsChain->SetBranchAddress("sca_laser_PowT",&lasPow);
   mpsChain->SetBranchAddress("sca_bcm6",&bcm);
+  mpsChain->SetBranchAddress("sca_bpm_3p02aX",&bpm_3p02aX);
+  mpsChain->SetBranchAddress("sca_bpm_3p02aY",&bpm_3p02aY);
+  mpsChain->SetBranchAddress("sca_bpm_3p02bX",&bpm_3p02bX);
+  mpsChain->SetBranchAddress("sca_bpm_3p02bY",&bpm_3p02bY);
+  mpsChain->SetBranchAddress("sca_bpm_3p03aX",&bpm_3p03aX);
+  mpsChain->SetBranchAddress("sca_bpm_3p03aY",&bpm_3p03aY);
+  mpsChain->SetBranchAddress("sca_bpm_3c20X",&bpm_3c20X);
+
+
   if(v2processed) mpsChain->SetBranchStatus("p*RawAc_v2",1);
 
   for(Int_t p = 0; p <nPlanes; p++) {      
@@ -213,8 +233,11 @@ Int_t expAsym(Int_t runnum)
 	if(debug1) cout<<"opened "<<Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1)<<endl;
       }
     }
+    lasCycBCM.open(Form("%s/%s/%slasCycBcmAvg.txt",pPath,webDirectory,filePrefix.Data()));
+    lasCycLasPow.open(Form("%s/%s/%slasCycAvgLasPow.txt",pPath,webDirectory,filePrefix.Data()));
   }
-  Bool_t firstlinelasPrint[nPlanes][nStrips];
+
+  Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
   for(Int_t p = startPlane; p <endPlane; p++) {      
     for(Int_t s =startStrip; s <endStrip; s++) {
       firstlinelasPrint[p][s] = kTRUE;///this needs to be '1' for every new file
@@ -227,7 +250,7 @@ Int_t expAsym(Int_t runnum)
     ///..are already assigned to a permanent variable reset the LasCyc based variables
     nMpsB1H1L1= 0, nMpsB1H0L1= 0, nMpsB1H1L0= 0, nMpsB1H0L0= 0, missedLasEntries=0; 
     comptQH1L1= 0.0, comptQH0L1= 0.0, comptQH1L0= 0.0, comptQH0L0= 0.0;
-
+    lasPowB1H1L1= 0.0, lasPowB1H0L0=0.0,lasPowB1H0L1= 0.0, lasPowB1H1L0=0.0;
     for(Int_t p = startPlane; p <nPlanes; p++) {      
       for(Int_t s = startStrip; s <endStrip; s++) {
 	AccumB1H0L0[p][s] =0, AccumB1H1L0[p][s] =0, AccumB1H0L1[p][s] =0, AccumB1H1L1[p][s] =0;
@@ -278,47 +301,49 @@ Int_t expAsym(Int_t runnum)
 	if (h ==0 && l ==0) {
 	  nMpsB1H0L0++;
 	  comptQH0L0 += bcm[0];
+	  lasPowB1H0L0 += lasPow[0];
 	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
-	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
-	      ScalerB1H0L0[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0]; // /lasPow[0];
-	      if(v2processed) AccumB1H0L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0]; // /lasPow[0];
+	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];
+	      ScalerB1H0L0[p][s] += (Int_t)bRawScaler[p][s];
+	      if(v2processed) AccumB1H0L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
 	    }
 	  }
 	} else if (h ==0 && l==1) {////the elseif statement helps avoid overhead in each entry
 	  nMpsB1H0L1++;
 	  comptQH0L1 += bcm[0];
-	  //lasPowB1H0 += lasPow[0];
+	  lasPowB1H0L1 += lasPow[0];
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
-	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0]; // /lasPow[0];
-	      ScalerB1H0L1[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0]; // /lasPow[0];
-	      if(v2processed) AccumB1H0L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0]; // /lasPow[0];
+	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];
+	      ScalerB1H0L1[p][s] += (Int_t)bRawScaler[p][s];
+	      if(v2processed) AccumB1H0L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
 	    }	  
 	  }
 	} else if (h ==1 && l==0) {
 	  nMpsB1H1L0++;
 	  comptQH1L0 += bcm[0];
-	  for(Int_t p = startPlane; p <endPlane; p++) {      	
+	  lasPowB1H1L0 += lasPow[0];
+	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
-	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0];// /lasPow[0];
-	      ScalerB1H1L0[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0];// /lasPow[0];
-	      if(v2processed) AccumB1H1L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0];// /lasPow[0];
+	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];
+	      ScalerB1H1L0[p][s] += (Int_t)bRawScaler[p][s];
+	      if(v2processed) AccumB1H1L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
 	    }
 	  }
 	} else if (h ==1 && l==1) {
 	  nMpsB1H1L1++;
 	  comptQH1L1 += bcm[0];
-	  //lasPowB1H1 += lasPow[0];
+	  lasPowB1H1L1 += lasPow[0];
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (maskedStrips(p,s)) continue;
-	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];// / bcm[0];// /lasPow[0];
-	      ScalerB1H1L1[p][s] += (Int_t)bRawScaler[p][s];// / bcm[0];// /lasPow[0];
-	      if(v2processed) AccumB1H1L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];// / bcm[0];// /lasPow[0];
+	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];
+	      ScalerB1H1L1[p][s] += (Int_t)bRawScaler[p][s];
+	      if(v2processed) AccumB1H1L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
 	    }
 	  }
 	}
@@ -372,6 +397,11 @@ Int_t expAsym(Int_t runnum)
 	    printf("comptQH1L1: %f\t comptQH0L1: %f\t comptQH1L0: %f\t comptQH0L0: %f\n",comptQH1L1,comptQH0L1,comptQH1L0,comptQH0L0);
 	    printf("nMpsB1H1L1: %d\tnMpsB1H0L1: %d\tnMpsB1H1L0: %d\tnMpsB1H0L0: %d\n",nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0,nMpsB1H0L0);
 	  }
+	  if (!firstLineLasCyc) {
+	    lasCycBCM<<"\n";
+	    lasCycLasPow<<"\n";
+	  }
+	  firstLineLasCyc = kFALSE;
 	  for(Int_t p = startPlane; p < endPlane; p++) {
 	    for (Int_t s =startStrip; s <endStrip;s++) {
 	      if (maskedStrips(p,s)) continue;
@@ -382,14 +412,17 @@ Int_t expAsym(Int_t runnum)
 	      firstlinelasPrint[p][s] =kFALSE;
 	      if (lasCycAccum[p][s].is_open() && lasCycScaler[p][s].is_open()) {
 		lasCycAccum[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
-					  AccumB1H0L0[p][s]/qLasCycH0L0,AccumB1H0L1[p][s]/qLasCycH0L1,
-					  AccumB1H1L0[p][s]/qLasCycH1L0,AccumB1H1L1[p][s]/qLasCycH1L1);
-		  lasCycScaler[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
-					   ScalerB1H0L0[p][s]/qLasCycH0L0,ScalerB1H0L1[p][s]/qLasCycH0L1,
-					   ScalerB1H1L0[p][s]/qLasCycH1L0,ScalerB1H1L1[p][s]/qLasCycH1L1);
+					AccumB1H0L0[p][s]/qLasCycH0L0,AccumB1H0L1[p][s]/qLasCycH0L1,
+					AccumB1H1L0[p][s]/qLasCycH1L0,AccumB1H1L1[p][s]/qLasCycH1L1);
+		lasCycScaler[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
+					 ScalerB1H0L0[p][s]/qLasCycH0L0,ScalerB1H0L1[p][s]/qLasCycH0L1,
+					 ScalerB1H1L0[p][s]/qLasCycH1L0,ScalerB1H1L1[p][s]/qLasCycH1L1);		
 	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;    
 	    }
 	  }
+	  lasCycBCM<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,comptQH0L0/nMpsB1H0L0
+			  ,comptQH0L1/nMpsB1H0L1,comptQH1L0/nMpsB1H1L0,comptQH1L1/nMpsB1H1L1);
+	  lasCycLasPow<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,lasPowB1H0L0/nMpsB1H0L0,lasPowB1H0L1/nMpsB1H0L1,lasPowB1H1L0/nMpsB1H1L0,lasPowB1H1L1/nMpsB1H1L1);
 	}
 
 	evaluateAsym(newAccumB1H1L1,newAccumB1H1L0,newAccumB1H0L1,newAccumB1H0L0,comptQH1L1,comptQH1L0,comptQH0L1,comptQH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0);
@@ -406,6 +439,8 @@ Int_t expAsym(Int_t runnum)
       lasCycScaler[p][s].close();
     }
   }
+  lasCycBCM.close();
+  lasCycLasPow.close();
 
   for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington
     for (Int_t s =startStrip; s <endStrip; s++) {        
@@ -535,6 +570,31 @@ Int_t expAsym(Int_t runnum)
   } //if (v2processed)  
 
   //!!this currently would not work if the Cedge changes between planes
+
+  TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,1200);
+  cStability->Divide(3,3);
+  cStability->cd(1);
+  mpsChain->Draw("sca_bpm_3c20Y:event_number");
+  cStability->cd(2);
+  mpsChain->Draw("sca_bpm_3p02aY:event_number");
+  cStability->cd(3);
+  mpsChain->Draw("sca_bpm_3p02bY:event_number");
+  cStability->cd(4);
+  mpsChain->Draw("sca_bpm_3p03aY:event_number");
+  cStability->cd(5);
+  mpsChain->Draw("sca_bpm_3c20X:event_number");
+  cStability->cd(6);
+  mpsChain->Draw("sca_bpm_3p02aX:event_number");
+  cStability->cd(7);
+  mpsChain->Draw("sca_bpm_3p02bX:event_number");
+  cStability->cd(8);
+  mpsChain->Draw("sca_bpm_3p03aX:event_number");
+  cStability->cd(9);
+  mpsChain->Draw("sca_laser_PowT:event_number");
+
+  cStability->Update();
+  cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));
+  
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  

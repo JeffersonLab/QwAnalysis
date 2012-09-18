@@ -12,6 +12,8 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t scalerPlot=0;
   Bool_t lasWisePlotAc=0;//plot quantities against on laser-cycle 
   Bool_t lasWisePlotSc=0;//plot quantities against on laser-cycle 
+  Bool_t lasWisePlotBcm=1;//plot quantities against on laser-cycle 
+  Bool_t lasWisePlotLasPow=1;
   Bool_t vsBeam=1;//plots quantities againt beam current variations
 
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
@@ -367,8 +369,97 @@ Int_t fileReadDraw(Int_t runnum)
       cAccumLC2->SaveAs(Form("%s/%s/%slasCycAccum2.png",pPath,webDirectory,filePrefix.Data()));
       cAccumLC3->SaveAs(Form("%s/%s/%slasCycAccum3.png",pPath,webDirectory,filePrefix.Data()));
       cAccumLC4->SaveAs(Form("%s/%s/%slasCycAccum4.png",pPath,webDirectory,filePrefix.Data()));
-
     }
+  }
+
+  if(lasWisePlotBcm) {
+    TGraph *lasCycBCML1,*lasCycBCML0,*lasCycBCM;
+    TCanvas *cLasCycBCM = new TCanvas("cLasCycBCM","Beam stability laser cycle",50,50,800,900);
+    ifstream lasWiseBCM;
+    Float_t bcmH0L0[200],bcmH0L1[200],bcmH1L0[200],bcmH1L1[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
+    Float_t bcmL0[200],bcmL1[200],bcm[200];
+    lasWiseBCM.open(Form("%s/%s/%slasCycBcmAvg.txt",pPath,webDirectory,filePrefix.Data()));
+    Int_t nLasCycles=0;
+    while(lasWiseBCM.good()) {
+      lasWiseBCM>>nCycle[nLasCycles]>>bcmH0L0[nLasCycles]>>bcmH0L1[nLasCycles]>>bcmH1L0[nLasCycles]>>bcmH1L1[nLasCycles];
+      bcmL0[nLasCycles] = (bcmH0L0[nLasCycles]+bcmH1L0[nLasCycles])/2;//!ideally not correct, this addition should be charge weigthed
+      bcmL1[nLasCycles] = (bcmH0L1[nLasCycles]+bcmH1L1[nLasCycles])/2;//!ideally not correct, this addition should be charge weigthed
+      bcm[nLasCycles] = (bcmL0[nLasCycles]+bcmL1[nLasCycles])/2;//!ideally not correct, this addition should be charge weigthed
+      nLasCycles=nLasCycles+1;
+    }
+    lasWiseBCM.close();
+    cLasCycBCM->Divide(1,2);
+    cLasCycBCM->cd(1);
+    lasCycBCML1= new TGraph(nLasCycles,nCycle,bcmL1);
+    lasCycBCML1->SetTitle(Form(" BCM for run %d",runnum));
+    lasCycBCML1->SetMarkerStyle(kFullCircle);
+    lasCycBCML1->SetMarkerColor(kGreen);
+    lasCycBCML1->SetLineWidth(2);
+    lasCycBCML1->GetXaxis()->SetTitle("laser Cycle (#)");
+    lasCycBCML1->GetYaxis()->SetTitle("beam (uA)");
+    lasCycBCML1->GetYaxis()->SetLabelSize(0.03);
+    lasCycBCML1->Draw("AP");
+
+    lasCycBCML0= new TGraph(nLasCycles,nCycle,bcmL0);
+    //lasCycBCML0->SetTitle(Form("las-off BCM for run %d",runnum));
+    lasCycBCML0->SetMarkerStyle(kOpenCircle);
+    lasCycBCML0->SetMarkerColor(kBlue);
+    lasCycBCML0->SetLineWidth(2);
+    lasCycBCML0->GetYaxis()->SetLabelSize(0.03);
+    lasCycBCML0->Draw("P");
+
+    cLasCycBCM->cd(2);
+    lasCycBCM= new TGraph(nLasCycles,nCycle,bcm);
+    lasCycBCM->SetTitle(Form("BCM for run %d",runnum));
+    lasCycBCM->SetMarkerStyle(kFullCircle);
+    lasCycBCM->SetMarkerColor(kRed  );
+    lasCycBCM->SetLineWidth(2);
+    lasCycBCM->GetXaxis()->SetTitle("laser Cycle (#)");
+    lasCycBCM->GetYaxis()->SetTitle("beam (uA)");
+    lasCycBCM->GetYaxis()->SetLabelSize(0.03);
+    lasCycBCM->Draw("AP");
+
+    cLasCycBCM->Update();
+    cLasCycBCM->SaveAs(Form("%s/%s/%slasCycBCM.png",pPath,webDirectory,filePrefix.Data()));
+  }
+
+  if(lasWisePlotLasPow) {
+    TGraph *lasCycLasPowL0,*lasCycLasPowL1;
+    TCanvas *cLasCycPow = new TCanvas("cLasCycPow","Laser Power stability",0,0,600,400);
+    ifstream lasWisePow;
+    Float_t lasPowB1H0L0[200],lasPowB1H1L0[200],lasPowB1L0[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
+    Float_t lasPowB1H0L1[200],lasPowB1H1L1[200],lasPowB1L1[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
+    lasWisePow.open(Form("%s/%s/%slasCycAvgLasPow.txt",pPath,webDirectory,filePrefix.Data()));
+    Int_t nLasCycles=0;
+    while(lasWisePow.good()) {
+      lasWisePow>>nCycle[nLasCycles]>>lasPowB1H0L0[nLasCycles]>>lasPowB1H0L1[nLasCycles]>>lasPowB1H1L0[nLasCycles]>>lasPowB1H1L1[nLasCycles];
+      lasPowB1L0[nLasCycles] = (lasPowB1H0L0[nLasCycles] + lasPowB1H1L0[nLasCycles])/2;
+      lasPowB1L1[nLasCycles] = (lasPowB1H0L1[nLasCycles] + lasPowB1H1L1[nLasCycles])/2;
+      nLasCycles=nLasCycles+1;
+    }
+    lasWisePow.close();
+    cLasCycPow->Divide(1,2);
+    cLasCycPow->cd(2);
+    lasCycLasPowL0= new TGraph(nLasCycles,nCycle,lasPowB1L0);
+    lasCycLasPowL0->SetTitle(Form("Laser Power for run %d",runnum));
+    lasCycLasPowL0->SetMarkerStyle(kOpenCircle);
+    lasCycLasPowL0->SetMarkerColor(kGreen);
+    lasCycLasPowL0->GetXaxis()->SetTitle("laser Cycle (#)");
+    lasCycLasPowL0->GetYaxis()->SetTitle("laser Power (a.u)");
+    lasCycLasPowL0->GetYaxis()->SetLabelSize(0.03);
+    lasCycLasPowL0->Draw("AP");
+
+    cLasCycPow->cd(1);
+    lasCycLasPowL1= new TGraph(nLasCycles,nCycle,lasPowB1L1);
+    lasCycLasPowL1->SetMarkerStyle(kFullCircle);
+    lasCycLasPowL1->SetMarkerColor(kGreen);
+    lasCycLasPowL1->GetXaxis()->SetTitle("laser Cycle (#)");
+    lasCycLasPowL1->GetYaxis()->SetTitle("laser Power (a.u)");
+    lasCycLasPowL1->GetYaxis()->SetLabelSize(0.03);
+    lasCycLasPowL1->Draw("AP");
+
+    cLasCycPow->Update();
+    cLasCycPow->SaveAs(Form("%s/%s/%slasCycLasPow.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if(lasWisePlotSc) {
@@ -396,7 +487,7 @@ Int_t fileReadDraw(Int_t runnum)
 	lasCycScaler.close();
 	lasCycPlotSc[s]= new TGraph(nLasCycles,nCycle,qNormScalerB1L0[p][s]);
 
-	if(s>=0 && s<16)  cScalerLC1->cd(s+1);
+	if(s>= 0 && s<16) cScalerLC1->cd(s+1);
 	if(s>=16 && s<32) cScalerLC2->cd(s-16+1);
 	if(s>=32 && s<48) cScalerLC3->cd(s-32+1);
 	if(s>=48 && s<64) cScalerLC4->cd(s-48+1);
@@ -424,6 +515,7 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if(vsBeam) {
+    gStyle->SetOptFit(1);
     TGraphErrors *ScalerVsBeam[endStrip]; 
     TCanvas *cScalVsBeam1 = new TCanvas("cScalVsBeam1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1200,1000);
     TCanvas *cScalVsBeam2 = new TCanvas("cScalVsBeam2",Form("scaler counts per laser cycle for strips 17-32"),20,10,1200,1000);
@@ -438,7 +530,6 @@ Int_t fileReadDraw(Int_t runnum)
     ifstream infilelasOffBkgd,scalerRate;
     const Int_t numb=6;
     Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
-    //Int_t runlist[numb]={23142,23148,23154,25032,25029,23168};
     Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
     /*run  : beam***********
      *23142 :  30uA, 
@@ -452,29 +543,20 @@ Int_t fileReadDraw(Int_t runnum)
      *25032 :  90uA
      ***************/
 
-    Double_t stripNumber[nStrips][numb],stripBkgdYield[nStrips][numb],stripBkgdYieldEr[nStrips][numb];
-    //Double_t lasOnScal,lasOffScal;
-    Double_t stripAsymDr[nStrips][numb],stripAsymDrEr[nStrips][numb],zero[numb];
-    //Double_t lasOnScaler[numb],lasOffScaler[numb];
-
+    Double_t stripNumber[nStrips][numb],stripBkgdYield[nStrips][numb],stripBkgdYieldEr[nStrips][numb],zero[numb];
 
     for(Int_t n=0; n<numb; n++) {        
       TString filePrefix= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
 	infilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-	//scalerRate.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
 	if(debug1)cout<<"opening file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
-	//if(debug1)cout<<"opening file "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 	if(infilelasOffBkgd.is_open()) {
-	  //if(scalerRate.is_open()) {
 	  Int_t strip=0;
 	  while(infilelasOffBkgd.good()) {
 	    infilelasOffBkgd>>stripNumber[strip][n]>>stripBkgdYield[strip][n]>>stripBkgdYieldEr[strip][n];
 	    strip = strip +1;
 	  }
 	  infilelasOffBkgd.close();
-	  //scalerRate.close();
-	  //}
 	  if(debug1)cout<<"closing file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;     
 	} else {
 	  if(debug)cout<<"did not find "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
@@ -484,7 +566,11 @@ Int_t fileReadDraw(Int_t runnum)
       zero[n] = 0.0;
     }
     
-    //TF1 *bkgdFit = new TF1("bkgdFit","[0] + [1]/beamI");///two parameter fit
+    TF1 *bkgdFit = new TF1("bkgdFit","[0] + [1]/x",25,105);//specifying current range to fit
+    bkgdFit->SetParameters(-0.1,20);//,0.5);
+    //bkgdFit->SetParLimits(0,0.2,2.0);///allowing the strip width to be either 20% or 200% of its real pitch    
+    //bkgdFit->SetParLimits(1,-1.0,1.0);///allowing polarization to be -100% to +100%
+
     for(Int_t s=startStrip;s<endStrip;s++) {
       //!the masked strips are not taken care of properly here
       ScalerVsBeam[s] = new TGraphErrors(numb,beamI,stripBkgdYield[s],zero,stripBkgdYieldEr[s]);
@@ -496,6 +582,7 @@ Int_t fileReadDraw(Int_t runnum)
       
       ScalerVsBeam[s]->SetTitle(Form("Strip %d",s+1));
       ScalerVsBeam[s]->SetMarkerStyle(kFullCircle);
+      ScalerVsBeam[s]->SetMarkerSize(1);
       ScalerVsBeam[s]->SetMarkerColor(kRed);
       ScalerVsBeam[s]->SetLineColor(kRed);
       ScalerVsBeam[s]->SetLineWidth(2);
@@ -504,7 +591,8 @@ Int_t fileReadDraw(Int_t runnum)
       ScalerVsBeam[s]->GetYaxis()->SetTitleOffset(1.2);
       ScalerVsBeam[s]->GetYaxis()->SetLabelSize(0.03);
       //cScalVsBeam1->GetPad(2)->SetGridx(1); 
-      ScalerVsBeam[s]->Draw("AP");
+      ScalerVsBeam[s]->Draw("APE");
+      ScalerVsBeam[s]->Fit("bkgdFit","R");
     }
     
     gPad->Update();
