@@ -2,8 +2,10 @@ CXXFLAGS = $(shell root-config --cflags --glibs)
 LIBS = $(shell root-config --glibs)
 
 SRCS := \
+	main.cpp \
 	tree_fill.cpp \
 	detector.cpp \
+	runlet.cpp \
 	parse.cpp \
 	detector.h \
 	parse.h
