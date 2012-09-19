@@ -2543,26 +2543,26 @@ void QwTreeEventBuffer::AttachBranches()
 
 
   /// Attach to the cerenkov branches
-  fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
-		&fCerenkov_Detector_HasBeenHit);
-  fTree->SetBranchAddress("Cerenkov.Detector.NbOfHits",
-		&fCerenkov_Detector_NbOfHits);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
-		&fCerenkov_Detector_HitLocalPositionX);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
-		&fCerenkov_Detector_HitLocalPositionY);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionZ",
-		&fCerenkov_Detector_HitLocalPositionZ);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionX",
-		&fCerenkov_Detector_HitLocalExitPositionX);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionY",
-		&fCerenkov_Detector_HitLocalExitPositionY);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionZ",
-		&fCerenkov_Detector_HitLocalExitPositionZ);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionX",
-		&fCerenkov_Detector_HitGlobalPositionX);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionY",
-		&fCerenkov_Detector_HitGlobalPositionY);
-  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionZ",
-		&fCerenkov_Detector_HitGlobalPositionZ);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
+//		&fCerenkov_Detector_HasBeenHit);
+//  fTree->SetBranchAddress("Cerenkov.Detector.NbOfHits",
+//		&fCerenkov_Detector_NbOfHits);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
+//		&fCerenkov_Detector_HitLocalPositionX);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
+//		&fCerenkov_Detector_HitLocalPositionY);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionZ",
+//		&fCerenkov_Detector_HitLocalPositionZ);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionX",
+//		&fCerenkov_Detector_HitLocalExitPositionX);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionY",
+//		&fCerenkov_Detector_HitLocalExitPositionY);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionZ",
+//		&fCerenkov_Detector_HitLocalExitPositionZ);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionX",
+//		&fCerenkov_Detector_HitGlobalPositionX);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionY",
+//		&fCerenkov_Detector_HitGlobalPositionY);
+//  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionZ",
+//		&fCerenkov_Detector_HitGlobalPositionZ);
 }
