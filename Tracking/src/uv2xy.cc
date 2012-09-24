@@ -121,7 +121,7 @@ void Uv2xy::InitializeRotationMatrices()
   }
   // Note: det should be +1 or -1
   if (det < 0.0) {
-    QwWarning << "uv2xy transformation from right- to left-handed system." << QwLog::endl;
+    QwVerbose << "uv2xy transformation from right- to left-handed system." << QwLog::endl;
   }
 }
 
