@@ -139,7 +139,7 @@ Int_t expAsym(Int_t runnum)
   infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
     
   if (infileLas.is_open() && infileBeam.is_open()) {
-    cout<<"Found the cutLas and cutEB file in "<<Form("%s/%s",pPath,webDirectory)<<" directory."<<endl;
+    cout<<"Found the cutLas and cutEB file in "<<Form("%s/%s/run_%d/",pPath,webDirectory,runnum)<<" directory."<<endl;
     while (infileLas.good()) {
       infileLas >> readEntry; //read the contents of the line in a string first
       if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
@@ -225,20 +225,23 @@ Int_t expAsym(Int_t runnum)
   ///..it should be opened before I enter the nCycle loop, and close them after coming out of the nCycle loop.
 
   if(lasCycPrint) {
-    for(Int_t p = startPlane; p <endPlane; p++) {      
+    gSystem->mkdir(Form("%s/%s/run_%d/lasCyc",pPath,webDirectory,runnum));    
+
+    for(Int_t p = startPlane; p <endPlane; p++) {
       for(Int_t s =startStrip; s <endStrip; s++) {
 	if (maskedStrips(p,s)) continue;    
-	lasCycAccum[p][s].open(Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
-	lasCycScaler[p][s].open(Form("%s/%s/%slasCycScalerP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1));
-	if(debug1) cout<<"opened "<<Form("%s/%s/%slasCycAccumP%dS%d.txt",pPath,webDirectory,filePrefix.Data(),p+1,s+1)<<endl;
+	///lasCyc based files go into a special folder named lasCyc
+	lasCycAccum[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+	lasCycScaler[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+	if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
       }
     }
-    lasCycBCM.open(Form("%s/%s/%slasCycBcmAvg.txt",pPath,webDirectory,filePrefix.Data()));
-    lasCycLasPow.open(Form("%s/%s/%slasCycAvgLasPow.txt",pPath,webDirectory,filePrefix.Data()));
+    lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
+    lasCycLasPow.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));
   }
 
   Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
-  for(Int_t p = startPlane; p <endPlane; p++) {      
+  for(Int_t p = startPlane; p <endPlane; p++) {
     for(Int_t s =startStrip; s <endStrip; s++) {
       firstlinelasPrint[p][s] = kTRUE;///this needs to be '1' for every new file
     }
@@ -571,10 +574,10 @@ Int_t expAsym(Int_t runnum)
 
   //!!this currently would not work if the Cedge changes between planes
 
-  TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,1200);
+  TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
   cStability->Divide(3,3);
   cStability->cd(1);
-  mpsChain->Draw("sca_bpm_3c20Y:event_number");
+  mpsChain->Draw("sca_bcm6:event_number");
   cStability->cd(2);
   mpsChain->Draw("sca_bpm_3p02aY:event_number");
   cStability->cd(3);
@@ -582,7 +585,8 @@ Int_t expAsym(Int_t runnum)
   cStability->cd(4);
   mpsChain->Draw("sca_bpm_3p03aY:event_number");
   cStability->cd(5);
-  mpsChain->Draw("sca_bpm_3c20X:event_number");
+  mpsChain->Draw("sca_bpm_3c20Y:event_number");
+  //mpsChain->Draw("sca_bpm_3c20X:event_number");
   cStability->cd(6);
   mpsChain->Draw("sca_bpm_3p02aX:event_number");
   cStability->cd(7);
