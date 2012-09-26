@@ -25,7 +25,7 @@ const Double_t stripMin = 30.0;
 const Double_t stripMax = 50.0;
 const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
-const Int_t bkgdRun=25289;///!this is temporarily hard-coded
+const Double_t qNormBkgdSubSignalLow = 35.0;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
 
 //Hardware related constants
 const Int_t nStrips = 96;

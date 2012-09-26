@@ -33,22 +33,21 @@ Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)
 
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
-  Double_t xStrip = xCedge - (tempCedge - (*thisStrip))*stripWidth*par[0];
-  //Double_t xStrip = xCedge - (par[0] - (*thisStrip))*stripWidth*par[1];
-  //Double_t xStrip = xCedge - (tempCedge - par[2] - (*thisStrip))*stripWidth*par[0];
+  //Double_t xStrip = xCedge - (tempCedge - (*thisStrip))*stripWidth*par[0];//for two parameter fit
+  //Double_t xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
+  Double_t xStrip = xCedge - (par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge itself
   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
   Double_t rhoPlus = 1-rhoStrip*(1+a);
   Double_t rhoMinus = 1-rhoStrip*(1 - a);//just a term in eqn 24
   Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a)); // 2nd term of eqn 22
   Double_t dsdrho =((rhoStrip*(1 - a)*rhoStrip*(1 - a)/rhoMinus)+1+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a
   //Double_t calcAsym=(par[0]*(-1*IHWP)*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//eqn.24,without factor 2*pi*(re^2)/a
-  return (par[1]*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//calcAsym;
+  return (par[2]*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//calcAsym;
 }
 
 void asymFit(Int_t runnum)
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
-  //gStyle->SetOptFit(0111); //!this eventually causes the macro to crash after a couple cycles
   //gStyle->SetOptFit(1); //!this eventually causes the macro to crash after a couple cycles
   //gStyle->SetOptStat(1);
   gStyle->SetPalette(1);
@@ -57,7 +56,7 @@ void asymFit(Int_t runnum)
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   Double_t pol[nPlanes],polEr[nPlanes],chiSq[nPlanes],effStripWidth[nPlanes],effStripWidthEr[nPlanes];
-  //Double_t offset[nPlanes],offsetEr[nPlanes];
+  Double_t offset[nPlanes],offsetEr[nPlanes];
   Int_t NDF[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=0,debug1=0;//, asymPlot=1;
@@ -100,10 +99,10 @@ void asymFit(Int_t runnum)
   for(Int_t p =startPlane; p <endPlane; p++) {
     Bool_t trueEdge = 1;
     for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
-      if (tNormScBkgdSubSigB1[p][s] < 10.0) { //!'10.0' is arbitrarily chosen by observing how this numb may vary
+      if (tNormScBkgdSubSigB1[p][s] < qNormBkgdSubSignalLow) { //!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how this numb may vary
 	Int_t leftStrips = numbGoodStrips[p] - (Int_t)activeStrip[p][s];
 	for(Int_t st =0; st <leftStrips;st++) {
-	  if (tNormScBkgdSubSigB1[p][s+st]  >= 10.0) trueEdge = 0;	      
+	  if (tNormScBkgdSubSigB1[p][s+st]  >= qNormBkgdSubSignalLow) trueEdge = 0;	      
 	}
 	if (trueEdge) {
 	  Cedge[p]=(Int_t)activeStrip[p][s] - 1;//!this can be left as a float after changing the base assignement of Cedge
@@ -142,29 +141,31 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]->GetXaxis()->SetNdivisions(416, kFALSE);
     grAsymPlane[p]->Draw("AP");  
     tempCedge = Cedge[p];///this should be equated just before the declaration of TF1
-    TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],2);///two parameter fit
-    polFit->SetParameters(1.0,0.85);//,0.5);
+    TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],3);///two parameter fit
+    //polFit->SetParameters(1.0,0.85);
+    polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from the generic Cedge
     //polFit->SetParLimits(0,1.021,1.021);//fixing the strip width to 1.021
     polFit->SetParLimits(0,0.2,2.0);///allowing the strip width to be either 20% or 200% of its real pitch    
-    polFit->SetParLimits(1,-1.0,1.0);///allowing polarization to be -100% to +100%
+    polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
+    //polFit->SetParLimits(1,tempCedge-3.0,tempCedge+2.0);///allowing compton edge to vary by -3 strips to upto +2 strips
+    polFit->SetParLimits(2,-1.1,1.1);///allowing polarization to be -100% to +100%
 
-    //polFit->SetParNames("effStrip","polarization");//,"edgeOffset");
-    polFit->SetParNames("effStrip","polarization");
+    polFit->SetParNames("effStrip","comptonEdge","polarization");
     polFit->SetLineColor(kBlue);
 
-    cout<<"starting to fit exp asym"<<endl;
+    if(debug) cout<<"starting to fit exp asym"<<endl;
     grAsymPlane[p]->Fit("polFit","0 R M E");
     //grAsymPlane[p]->Fit("polFit","0 M E");//this makes a significant difference in p3 pol value!
-    cout<<"finished fitting exp asym"<<endl;
+    if(debug1) cout<<"finished fitting exp asym"<<endl;
     polFit->DrawCopy("same");
     effStripWidth[p] = polFit->GetParameter(0);
     effStripWidthEr[p] = polFit->GetParError(0);
 
-    pol[p] = polFit->GetParameter(1);
-    polEr[p] = polFit->GetParError(1);
+    offset[p] = polFit->GetParameter(1);
+    offsetEr[p] = polFit->GetParError(1);
 
-//     offset[p] = polFit->GetParameter(2);
-//     offsetEr[p] = polFit->GetParError(2);
+    pol[p] = polFit->GetParameter(2);
+    polEr[p] = polFit->GetParError(2);
 
     chiSq[p] = polFit->GetChisquare();
     NDF[p] = polFit->GetNDF();
@@ -186,8 +187,9 @@ void asymFit(Int_t runnum)
 
     pt[p]->AddText(Form("chi Sq / ndf          : %f",chiSq[p]/NDF[p]));
     pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
+    //pt[p]->AddText(Form("Compton Edge          : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
+    pt[p]->AddText(Form("Compton Edge          : %f #pm %f",offset[p],offsetEr[p]));
     pt[p]->AddText(Form("Polarization (%)      : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
-    //pt[p]->AddText(Form("Compton Edge Offset   : %f #pm %f",offset[p],offsetEr[p]));
     pt[p]->Draw();
     myline->Draw();
     gPad->Update();
