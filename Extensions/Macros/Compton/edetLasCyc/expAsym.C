@@ -34,7 +34,7 @@ Int_t expAsym(Int_t runnum)
   Int_t ScalerB1H0L1[nPlanes][nStrips],ScalerB1H1L1[nPlanes][nStrips];
   Int_t ScalerB1H0L0[nPlanes][nStrips],ScalerB1H1L0[nPlanes][nStrips];
   Int_t totScalerB1L0[nPlanes][nStrips],totScalerB1L1[nPlanes][nStrips]; 
-  Double_t normScalerB1L1[nPlanes][nStrips],normScalerB1L0[nPlanes][nStrips];
+  Double_t tNormScalerB1L1[nPlanes][nStrips],tNormScalerB1L0[nPlanes][nStrips];
   Double_t bRawScaler[nPlanes][nStrips];
   Double_t comptQH1L1=0.0, comptQH0L1=0.0;
   Double_t comptQH1L0=0.0, comptQH0L0=0.0;
@@ -94,7 +94,7 @@ Int_t expAsym(Int_t runnum)
       qNormB1L0[p][s]=0.0,qNormB1L0Er[p][s]=0.0;
 
       totAccumB1H1L1[p][s]=0,totAccumB1H0L1[p][s]=0,totAccumB1H1L0[p][s]=0,totAccumB1H0L0[p][s]=0;
-      normScalerB1L1[p][s]=0.0,normScalerB1L0[p][s]=0.0;
+      tNormScalerB1L1[p][s]=0.0,tNormScalerB1L0[p][s]=0.0;
     }
   }
   if(v2processed) {
@@ -473,11 +473,11 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = startPlane; p < endPlane; p++) { 
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (maskedStrips(p,s)) continue;
-      normScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
-      normScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
+      tNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
+      tNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
     }
   }
-
+  
   for(Int_t p = startPlane; p < endPlane; p++) { 
     //Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check    
     outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
@@ -512,7 +512,7 @@ Int_t expAsym(Int_t runnum)
 	outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
 	outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
 	fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totAccumB1H1L1[p][s],totAccumB1H1L0[p][s],totAccumB1H0L1[p][s],totAccumB1H0L0[p][s]);
-	outScaler<<Form("%d\t%g\t%g",s+1,normScalerB1L1[p][s],normScalerB1L0[p][s]);
+	outScaler<<Form("%d\t%g\t%g",s+1,tNormScalerB1L1[p][s],tNormScalerB1L0[p][s]);
       }
       outfileExpAsymP.close();
       outfileYield.close();

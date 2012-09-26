@@ -60,38 +60,58 @@ void asymFit(Int_t runnum)
   //Double_t offset[nPlanes],offsetEr[nPlanes];
   Int_t NDF[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=0;//, asymPlot=1;
-  Float_t stripNum[nPlanes][nStrips];
-  Float_t stripAsymDr[nPlanes][nStrips], stripAsymNr[nPlanes][nStrips], stripAsymDrEr[nPlanes][nStrips];   
+  Bool_t debug=0,debug1=0;//, asymPlot=1;
+  //Float_t stripNum[nPlanes][nStrips];
+  //Float_t stripAsymDr[nPlanes][nStrips], stripAsymNr[nPlanes][nStrips], stripAsymDrEr[nPlanes][nStrips];   
 
   TPaveText *pt[nPlanes];
   TLegend *leg[nPlanes];
 
   printf("read in parameters are: %g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);  
 
-  ifstream infileYield;// expAsymPWTL1,
+  ifstream infileScaler;// expAsymPWTL1,
   ofstream polList;
   TLine *myline = new TLine(1,0,65,0);
 
+  Double_t tNormScBkgdSubSigB1[nPlanes][nStrips];
+  std::vector<std::vector <Float_t> > activeStrip,tNormScB1L1,tNormScB1L0;
+  Int_t numbGoodStrips[nPlanes]={0};
+  ///Note: the 's' in this section of the routine does not necessarily represent strip number
   for(Int_t p =startPlane; p <endPlane; p++) {
-    infileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    if(infileYield.is_open()) {
-      cout<<"Reading the Yield corresponding to Plane "<<p+1<<endl;
-      if(debug) cout<<"stripNum\t"<<"Yield\t"<<"YieldEr"<<endl;
-      for(Int_t s =startStrip ; s < endStrip; s++) {
-	if (maskedStrips(p,s)) {
-	  stripAsymDr[p][s]=0.0;
-	  stripAsymDrEr[p][s]=0.0;
-	  stripAsymNr[p][s]=0.0;
-	}
-	else infileYield>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
-	if(debug) cout<<stripNum[p][s]<<"\t"<<stripAsymDr[p][s]<<"\t"<<stripAsymDrEr[p][s]<<"\t"<<stripAsymNr[p][s]<<endl;
+    infileScaler.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    if(infileScaler.is_open()) {
+      if(p>=(Int_t)activeStrip.size()) {
+	activeStrip.resize(p+1),tNormScB1L1.resize(p+1),tNormScB1L0.resize(p+1);
       }
-      infileYield.close();
-      Cedge[p] = identifyCedgeforPlane(p,stripNum,stripAsymDr);//!still under check      
-      cout<<"Compton edge for plane "<<p+1<<" is "<<Cedge[p]<<endl;
+      if(debug) cout<<"Reading the tNormScaler corresponding to Plane "<<p+1<<endl;
+      if(debug1) cout<<"activeStrip\t"<<"tNormScalerLasOn\t"<<"tNormScalerLasOff"<<endl;
+      while(infileScaler.good()) {
+	activeStrip[p].push_back(0.0),tNormScB1L1[p].push_back(0.0),tNormScB1L0[p].push_back(0.0);
+	Int_t s=activeStrip[p].size() - 1;
+	infileScaler>>activeStrip[p][s]>>tNormScB1L1[p][s]>>tNormScB1L0[p][s];
+	tNormScBkgdSubSigB1[p][s] = tNormScB1L1[p][s] - tNormScB1L0[p][s];
+	if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\n",p+1,s+1,activeStrip[p][s],tNormScB1L1[p][s],tNormScB1L0[p][s]);
+	numbGoodStrips[p]++;//counts in human counting
+      }
+      infileScaler.close();
+    } else cout<<"\n*** Alert:couldn't find "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" needed to generically locate Compton edge"<<endl;
+  }
+
+  for(Int_t p =startPlane; p <endPlane; p++) {
+    Bool_t trueEdge = 1;
+    for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
+      if (tNormScBkgdSubSigB1[p][s] < 10.0) { //!'10.0' is arbitrarily chosen by observing how this numb may vary
+	Int_t leftStrips = numbGoodStrips[p] - (Int_t)activeStrip[p][s];
+	for(Int_t st =0; st <leftStrips;st++) {
+	  if (tNormScBkgdSubSigB1[p][s+st]  >= 10.0) trueEdge = 0;	      
+	}
+	if (trueEdge) {
+	  Cedge[p]=(Int_t)activeStrip[p][s] - 1;//!this can be left as a float after changing the base assignement of Cedge
+	  cout<<"Compton edge for plane "<<p+1<<" is "<<Cedge[p]<<"\n"<<endl;
+	  break;
+	} else cout<<"**** Alert: the generic Cedge determination mechanism didn't work for run # "<<runnum<<endl;
+      } else if(s>=numbGoodStrips[p]) cout<<"*** Something unusual in Cedge determination for run # "<<runnum<<endl;
     }
-    else cout<<"\n*** Alert:did not find "<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
   }
 
   ///Read the experimental asymmetry and errors from file (for PWTL1)
@@ -112,7 +132,7 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]->SetTitle("experimental asymmetry");//Run: %d, Plane %d",runnum,p+1))
     grAsymPlane[p]->GetXaxis()->CenterTitle();
     grAsymPlane[p]->GetYaxis()->CenterTitle();
-    grAsymPlane[p]->SetMarkerStyle(kFullCircle); 
+    grAsymPlane[p]->SetMarkerStyle(kFullCircle);
     grAsymPlane[p]->SetLineColor(kRed);
     grAsymPlane[p]->SetFillColor(0);   
     grAsymPlane[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
