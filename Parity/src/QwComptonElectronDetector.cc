@@ -14,7 +14,7 @@
  * Also, Angular distribution of the tracks is added.
  *
  * \A. Narayan 
-****************************************************/
+ ****************************************************/
 
 /*****************************************************
  * The QwComptonElectronDetector class is defined as a parity subsystem that
@@ -22,9 +22,7 @@
  * It reads in a channel map and pedestal file, and defines the histograms
  * and output trees.
  *****************/
-
 #include "QwComptonElectronDetector.h"
-
 #include "QwSubsystemArrayParity.h"
 #include "MQwCodaControlEvent.h"
 
@@ -40,27 +38,18 @@
 #include <sstream>
 #include <math.h>
 
-using namespace std;
-Int_t notGood=0,debug=0;//!temporary 
 // Qweak headers
 #include "QwLog.h"
 #include "QwHistogramHelper.h"
 
+using namespace std;
+
+// Ugly, should go inside functions, seems undefined for running sum
+Int_t notGood=0,myrun;
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwComptonElectronDetector);
-/* (in header file)
-// Assign static const member fields
-const Int_t QwComptonElectronDetector::NModules = 3;///number of slave modules
-const Int_t QwComptonElectronDetector::NPlanes = 4;///number of diamond detector planes
-const Int_t QwComptonElectronDetector::StripsPerModule = 32;///number of strips in each v1495 slave module
-const Int_t QwComptonElectronDetector::StripsPerPlane = 96;///total number of strips in each detecor
-*/
 
-const Int_t numberofWordPerEv = 5;
-
-// Ugly, should go inside functions, seems undefined for running sum
-Int_t myrun;
 
 /*****************************************************************
  * Load the channel map
@@ -106,8 +95,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       Int_t plane     = mapstr.GetTypedNextToken<Int_t>();
       Int_t stripnum  = mapstr.GetTypedNextToken<Int_t>();
       //  Push a new record into the element array
- 	if(debug) printf("line:%d",__LINE__);
-     if (modtype == "V1495") {
+      if (modtype == "V1495") {
 	if (dettype == "eaccum") {
           // Register data channel type
           fMapping[currentsubbankindex] = kV1495Accum;
@@ -192,8 +180,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	}
       } // end of switch (modtype)
     } // end of if for token line
-  } // end of while over parameter file
-  
+  } // end of while over parameter file  
   return 0;
 }
 
@@ -219,16 +206,8 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
       /* Double_t varcal = */ mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
     }
   } // end of loop reading all lines of the pedestal file
-
   return 0;
 }
-
-//Boot CheckForEndOfBurst()
-//{
-//  Test the value of the laser power thing and retun true if it has changed
-//  return false otherwise.
-//};
-
 
 /**
  * Process the event buffer for this subsystem
@@ -241,21 +220,18 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
 //*****************************************************************
 Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+  const Int_t numberofWordPerEv = 5;
   UInt_t words_read = 0;
   UInt_t bitwise_mask = 0;
   div_t div_output;
-  //  UInt_t accum_count = 0;
+  UInt_t accum_count = 0;
   // Get the subbank index (or -1 when no match)
   Int_t subbank = GetSubbankIndex(roc_id, bank_id);
-	if(debug) printf("line:%d\n",__LINE__);
   if (subbank >= 0 && num_words > 0) {
-	if(debug) printf("line:%d\n",__LINE__);
-
     //  We want to process this ROC.  Begin looping through the data.
     switch (fMapping[subbank]) {
     case kV1495Accum:
-      {	if(debug) printf("line:%d",__LINE__);
-
+      {	
 	for (Int_t k = 0; k < NModules; k++) {
 	  if (fSubbankIndex[1][k]==subbank) {
 	    // sub-bank 0x0204, accum mode data from strips 0-31 of planes 1 thru 4
@@ -263,19 +239,20 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 
 	      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
 		Int_t j = k*StripsPerModule+i;
-		/*		accum_count = (buffer[i] & 0xff000000) >> 24;
-		  if (accum_count != 255)fStripsRaw[0][j] = accum_count;
-		  accum_count = (buffer[i] & 0x00ff0000) >> 16;
-		  if (accum_count != 255)fStripsRaw[1][j] = accum_count;
-		  accum_count = (buffer[i] & 0x0000ff00) >> 8;
-		  if (accum_count != 255)fStripsRaw[2][j] = accum_count;
-		  accum_count = (buffer[i] & 0x000000ff);
-		  if (accum_count != 255)fStripsRaw[3][j] = accum_count;
+		accum_count = (buffer[i] & 0xff000000) >> 24;
+		if (accum_count < 5)fStripsRaw[0][j] = accum_count;
+		accum_count = (buffer[i] & 0x00ff0000) >> 16;
+		if (accum_count < 5)fStripsRaw[1][j] = accum_count;
+		accum_count = (buffer[i] & 0x0000ff00) >> 8;
+		if (accum_count < 5)fStripsRaw[2][j] = accum_count;
+		accum_count = (buffer[i] & 0x000000ff);
+		if (accum_count < 5)fStripsRaw[3][j] = accum_count;
+		
+		/*fStripsRaw[0][j] = (buffer[i] & 0xff000000) >> 24;
+		  fStripsRaw[1][j] = (buffer[i] & 0x00ff0000) >> 16;
+		  fStripsRaw[2][j] = (buffer[i] & 0x0000ff00) >> 8;
+		  fStripsRaw[3][j] = (buffer[i] & 0x000000ff);
 		*/
-		fStripsRaw[0][j] = (buffer[i] & 0xff000000) >> 24;
-		fStripsRaw[1][j] = (buffer[i] & 0x00ff0000) >> 16;
-		fStripsRaw[2][j] = (buffer[i] & 0x0000ff00) >> 8;
-		fStripsRaw[3][j] = (buffer[i] & 0x000000ff);
 		words_read++;
 	      }
 	    }
@@ -294,8 +271,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
       }
       
     case kV1495Single:
-      {	if(debug) printf("line:%d",__LINE__);
-
+      {	
 	for (Int_t jj = 0; jj < NModules; jj++) {
 	  if (fSubbankIndex[0][jj]==subbank) {
 	    if (num_words > 0) {
@@ -347,13 +323,11 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 	    }
 	  }
 	}
-	//	}
 	break;
       }///end of case V1495Singles
       
     case kV1495Scaler:
-      {	if(debug) printf("line:%d",__LINE__);
-
+      {
 	for (Int_t k = 0; k < NModules; k++) {
 	  if (fSubbankIndex[2][k]==subbank) {
 	    // sub-bank 0x020A, V1495 SCALER data from strips 0-31 of planes 1 thru 4
@@ -384,8 +358,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
       }
      
     case kV1495Accum_v2:
-      {	if(debug) printf("line:%d",__LINE__);
-
+      {	
 	for (Int_t k = 0; k < NModules; k++) {
 	  if (fSubbankIndex[3][k]==subbank) {
 	    // sub-bank 0x020D, accum mode V2 data from strips 0-31 of planes 1 thru 4
@@ -619,7 +592,6 @@ void  QwComptonElectronDetector::ProcessEvent()
 	      }
 	  }
       }
-
        
     edet_tr_angle=atan((bestplane1-bestplane3)*200*0.0001/2);
     edet_angle=edet_tr_angle*180/3.141592;           
@@ -705,113 +677,12 @@ void  QwComptonElectronDetector::ProcessEvent()
        
     edet_angle=atan((bestplane1-bestplane3)*200*0.0001/2);
     edet_angle=edet_angle*180/3.141592; 
-       
-       
  
     if(bestfita < 10 && edet_TotalNumberTracks < 5) {
       //         QwOut << eve << " " << fStripsEvBest1 << " " << fStripsEvBest2 << "  " << fStripsEvBest3 << " " << edet_x2 << " " << edet_angle << QwLog::endl;
     }
  
   }
-
-  //////////////////
-  ///  eff start ///
-  //////////////////
-
-  ///////////////////////
-  // * PLANE 1 START * //
-  ///////////////////////
-  // 
-  //      if(det2eff.size()==1 && det3eff.size() ==1 && det1eff.size() < 2 ) {
-  //       det2eff[0]=det2eff[0]-2;
-  // 	
-  // 	if(det1eff.size() == 0) { 
-  //       QwOut << eve << " 1 " << " 100 " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
-  // 	} 
-  // 	
-  // 	if(det1eff.size() == 1 ) {
-  // 	 edet_angle=atan((det1eff[0]-det3eff[0])*200*0.0001/2);
-  // 	 edet_angle=edet_angle*180/3.141592; 
-  // 	   
-  // 	 if(edet_angle > 1) {
-  // 	  det1eff[0]=det1eff[0]-2;	
-  // 	   }
-  //
-  // 	   if(edet_angle < 1) {
-  // 	  det1eff[0]=det1eff[0]-1;     
-  // 	   }
-  //       QwOut << eve << " 1 " << det1eff[0] << " " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
-  // 	}	
-  //      }
-  //
-  ///////////////////////
-  // * PLANE 2 START * //
-  ///////////////////////
-  // 
-  // 	if(det1eff.size()==1 && det3eff.size() ==1 && det2eff.size() < 2 ) {
-  // 	
-  //       edet_angle=atan((det1eff[0]-det3eff[0])*200*0.0001/2);
-  //       edet_angle=edet_angle*180/3.141592; 
-  // 	 
-  // 	if(edet_angle > 1) {
-  // 	 det1eff[0]=det1eff[0]-2;     
-  // 	}
-  //
-  // 	if(edet_angle < 1) {
-  // 	 det1eff[0]=det1eff[0]-1;     
-  // 	}      
-  //	
-  // 	if(det2eff.size() == 0) { 
-  // 	   QwOut << eve << " 2 " << det1eff[0] << " 100 " << det3eff[0] << QwLog::endl;
-  // 	} 
-  // 	
-  // 	if(det2eff.size() == 1 ) { 
-  // 	 det2eff[0]=det2eff[0]-2;	
-  // 	   QwOut << eve << " 2 " << det1eff[0] << " " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
-  // 	}	
-  // 	}
-  //
-  ///////////////////////
-  // * PLANE 3 START * //
-  ///////////////////////
-  //  
-  //       if(det1eff.size()==1 && det2eff.size()==1 && det3eff.size() < 2 ) {
-  //       
-  // 	det2eff[0]=det2eff[0]-2;
-  //       
-  // 	edet_angle=atan((det1eff[0]-det2eff[0])*200*0.0001/2);
-  // 	edet_angle=edet_angle*180/3.141592; 
-  //
-  //       if(edet_angle > 1) {
-  // 	det1eff[0]=det1eff[0]-2;     
-  //       }
-  //
-  //       if(edet_angle < 1) {
-  // 	det1eff[0]=det1eff[0]-1;     
-  //       }      
-  //
-  //       
-  //       if(det3eff.size() == 0) { 
-  // 	QwOut << eve << " 3 " << det1eff[0] << " " << det2eff[0] << " 100 " << QwLog::endl;
-  //       } 
-  //       
-  //       
-  //       if(det3eff.size() == 1 ) { 
-  // 	QwOut << eve << " 3 " << det1eff[0] << " " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
-  //       }       
-  //
-  //       }
-  //
-  //
-  ////////////////
-  /// eff stop ///
-  ////////////////
-
-  /////////////   
-  // For GUI //
-  /////////////
-
-  //QwOut << eve << " " << bestplane1 << " " << bestplane2 << " " << bestplane3 << " " << bestfita << " " << track << " " << edet_angle << QwLog::endl;
    
   if(use_gui==1) {
     gui.close();    
@@ -840,8 +711,10 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
 }
 
 /**
- * Check whether this is a good event
- * @return True if the event is good
+ * Check whether this is a good event @return True if the event is good
+ * !! The definition of 'good event' for the following function is that
+ * it should have information for every strip (4planes x 96strips = 384)
+ * I can't see why is this useful
  */
 //*****************************************************************
 Bool_t QwComptonElectronDetector::IsGoodEvent()
@@ -906,10 +779,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
 	// static double edet_acum_sum[4][96];
 	//	    edet_acum_sum[i][j]=fStripsRaw[i][j]+edet_acum_sum[i][j];
 	//	    QwOut << " TEST2 =  "  << " i = " << i << " j = " << j << " " << fStripsRaw[i][j] << " " << edet_acum_sum[i][j] << QwLog::endl;	  
-	//            fStripsRaw[i][j]=0;
-	    
-	    
-	    
+	//            fStripsRaw[i][j]=0;	    
         this->fStripsRaw[i][j] += input->fStripsRaw[i][j];     
       
       }
@@ -978,8 +848,7 @@ void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 	}	     
       }
     }
-  }  
-
+  }
 }
 
 void QwComptonElectronDetector::Scale(Double_t factor)
@@ -1024,7 +893,7 @@ void  QwComptonElectronDetector::CalculateRunningAverage()
 {
   if (fGoodEventCount <= 0) {
     Scale(0);
-    QwOut << " Scale = 0" << QwLog::endl;
+    //QwOut << " Scale = 0" << QwLog::endl;
   } else {
     Scale(1.0/fGoodEventCount);
     QwOut << " Good Events =  "  << " " << fGoodEventCount << QwLog::endl;
@@ -1047,7 +916,6 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   //  Go into subdirectory if it exists
   TDirectory* eDetfolder = folder->GetDirectory("Compton_Electron");
   if (eDetfolder == 0) eDetfolder = folder->mkdir("Compton_Electron");
-	if(debug) printf("line:%d",__LINE__);
 
   //  Now create the histograms.
   TString basename = prefix + GetSubsystemName();
@@ -1086,7 +954,6 @@ void  QwComptonElectronDetector::FillHistograms()
   //  edet_cut_on_ntracks=2;
   edet_cut_on_x2=7;
   edet_cut_on_ntracks=5;
-  	if(debug) printf("line:%d",__LINE__);
 
   for (Int_t i = 0; i < NPlanes; i++) {
     Int_t ii = 5*i;
@@ -1140,7 +1007,6 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 {
   //  SetHistoTreeSave(prefix);
   fTreeArrayIndex = values.size();
-	if(debug) printf("line:%d",__LINE__);
 
   for (Int_t i = 0; i < NPlanes; i++) {
     //!!iteration of this loop from '1' instead of '0' is for Qweak run-1 when the first plane was inactive
@@ -1200,16 +1066,16 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
 
   ///The 'values' should be filled in exactly the same order in which they were created above
   /// ...below we follow the pattern as in Notice-2
-    for (Int_t i = 0; i < NPlanes; i++) {
-      for (Int_t j = 0; j < StripsPerPlane; j++)
-	values[index++] = fStripsRawEv[i][j];/// Event Raw
-      for (Int_t j = 0; j < StripsPerPlane; j++)
-	values[index++] = fStripsRaw[i][j];/// Accum Raw
-      for (Int_t j = 0; j < StripsPerPlane; j++)
-	values[index++] = fStripsRaw_v2[i][j];/// Accum Raw
-      for (Int_t j = 0; j < StripsPerPlane; j++)
-	values[index++] = fStripsRawScal[i][j];/// v1495 Scaler Raw
-    }
+  for (Int_t i = 0; i < NPlanes; i++) {
+    for (Int_t j = 0; j < StripsPerPlane; j++)
+      values[index++] = fStripsRawEv[i][j];/// Event Raw
+    for (Int_t j = 0; j < StripsPerPlane; j++)
+      values[index++] = fStripsRaw[i][j];/// Accum Raw
+    for (Int_t j = 0; j < StripsPerPlane; j++)
+      values[index++] = fStripsRaw_v2[i][j];/// Accum Raw
+    for (Int_t j = 0; j < StripsPerPlane; j++)
+      values[index++] = fStripsRawScal[i][j];/// v1495 Scaler Raw
+  }
 }
 
 /**
@@ -1300,3 +1166,10 @@ void  QwComptonElectronDetector::PrintValue() const
   myfile.close();  
   return;
 }
+/**********
+ *The condition that accum_count < 5 is there to ensure that spurious noise 
+ *..events do not infiltrate the analyzed data. '5' already implies 5kHz per strip.
+ *..since the overall Compton rate is 100kHz (integrated over all strips), with 50
+ *..active strips, one can expect an average rate of 2kHz.
+ *I should ideally be throwing out the entire event(MPS) if one strip shows spurious data
+ *********/
