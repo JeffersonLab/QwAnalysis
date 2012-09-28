@@ -479,7 +479,6 @@ Int_t expAsym(Int_t runnum)
   }
   
   for(Int_t p = startPlane; p < endPlane; p++) { 
-    //Cedge[p] = identifyCedgeforPlane(p,activeStrips,stripAsymEr);//!still under check    
     outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));

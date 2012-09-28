@@ -34,10 +34,10 @@ const Float_t stripWidth = 2.0E-4;
 const Float_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
 //const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
 const Double_t chicaneBend = 10.131; ///(degree)
-const Double_t ldet = 1.645; ///(m)
-const Double_t lmag = 1.25; ///(m) //1.704;
+const Double_t ldet = 1.645; ///z-distance of detector from the end of 3rd magnet(m)
+const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
 const Int_t minEntries = 5000; //Laser must be (off) for at least this many consecutive entries to be considered (off)
-
+const Double_t th_det = 10.3;//angle at which the diamond detector is inclined towards the beam (deg)
 ///Run constants
 const Bool_t v2processed=0;  //kFALSE;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!

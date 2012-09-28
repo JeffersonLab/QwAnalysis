@@ -36,6 +36,8 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   //Double_t xStrip = xCedge - (tempCedge - (*thisStrip))*stripWidth*par[0];//for two parameter fit
   //Double_t xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
   Double_t xStrip = xCedge - (par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge itself
+  //Double_t xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
+
   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
   Double_t rhoPlus = 1-rhoStrip*(1+a);
   Double_t rhoMinus = 1-rhoStrip*(1 - a);//just a term in eqn 24
@@ -59,16 +61,14 @@ void asymFit(Int_t runnum)
   Double_t offset[nPlanes],offsetEr[nPlanes];
   Int_t NDF[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=0,debug1=0;//, asymPlot=1;
-  //Float_t stripNum[nPlanes][nStrips];
-  //Float_t stripAsymDr[nPlanes][nStrips], stripAsymNr[nPlanes][nStrips], stripAsymDrEr[nPlanes][nStrips];   
+  Bool_t debug=0,debug1=0;
 
   TPaveText *pt[nPlanes];
   TLegend *leg[nPlanes];
 
   printf("read in parameters are: %g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);  
 
-  ifstream infileScaler;// expAsymPWTL1,
+  ifstream infileScaler;
   ofstream polList;
   TLine *myline = new TLine(1,0,65,0);
 
@@ -113,8 +113,7 @@ void asymFit(Int_t runnum)
     }
   }
 
-  ///Read the experimental asymmetry and errors from file (for PWTL1)
-  //  rhoToX();//! I don't need to call it everytime as long as beam-energy etc stays constant
+  //rhoToX();//! I don't need to call it everytime as long as beam-energy etc stays constant
 
   TCanvas *cAsym = new TCanvas("cAsym","Asymmetry and Strip number",100,50,1000,420*endPlane);
   TGraphErrors *grAsymPlane[nPlanes];//, *grFittedTheo[nPlanes];
@@ -142,12 +141,11 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]->Draw("AP");  
     tempCedge = Cedge[p];///this should be equated just before the declaration of TF1
     TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],3);///two parameter fit
-    //polFit->SetParameters(1.0,0.85);
     polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from the generic Cedge
     //polFit->SetParLimits(0,1.021,1.021);//fixing the strip width to 1.021
     polFit->SetParLimits(0,0.2,2.0);///allowing the strip width to be either 20% or 200% of its real pitch    
-    polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
-    //polFit->SetParLimits(1,tempCedge-3.0,tempCedge+2.0);///allowing compton edge to vary by -3 strips to upto +2 strips
+    //polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
+    polFit->SetParLimits(1,tempCedge-3.0,tempCedge+2.0);///allowing compton edge to vary by -3 strips to upto +2 strips
     polFit->SetParLimits(2,-1.1,1.1);///allowing polarization to be -100% to +100%
 
     polFit->SetParNames("effStrip","comptonEdge","polarization");
