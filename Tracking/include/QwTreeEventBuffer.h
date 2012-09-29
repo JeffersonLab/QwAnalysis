@@ -28,9 +28,9 @@ using std::vector;
 #include "QwGeometry.h"
 
 // Definition of the reference detectors (## is concatenation)
-#define REGION1_DETECTOR(var) fRegion1_ChamberFront_WirePlane_ ## var
-#define REGION2_DETECTOR(var) fRegion2_ChamberFront_WirePlane1_ ## var
-#define REGION3_DETECTOR(var) fRegion3_ChamberFront_WirePlaneU_ ## var
+#define REGION1_DETECTOR(chamber,var) fRegion1_Chamber ## chamber ## _WirePlane_ ## var
+#define REGION2_DETECTOR(chamber,plane,var) fRegion2_Chamber ## chamber ## _WirePlane ## plane ## _ ## var
+#define REGION3_DETECTOR(chamber,plane,var) fRegion3_Chamber ## chamber ## _WirePlane ## plane ## _ ## var
 
 // Forward declarations
 class QwDetectorInfo;
@@ -91,6 +91,10 @@ class QwTreeEventBuffer
     unsigned int GetNextEvent();
     /// \brief Read the specified event
     unsigned int GetSpecificEvent(const int eventnumber);
+
+
+    /// \brief Create the hit list for this entry
+    QwHitContainer* CreateHitList(const bool resolution_effects = true) const;
 
 
     /// \brief Get the full event
@@ -156,9 +160,6 @@ class QwTreeEventBuffer
 
     /// \name Create hit at from the track position (x,y) and track momentum (mx,my)
     // @{
-
-    /// \brief Create the hit list for this entry
-    QwHitContainer* CreateHitList(const bool resolution_effects = true) const;
 
     /// \brief Create a set of hits for one track in region 1
     std::vector<QwHit> CreateHitRegion1(

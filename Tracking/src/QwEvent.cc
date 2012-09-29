@@ -496,6 +496,14 @@ void QwEvent::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
   }	
 }
 
+// Add a vector of QwTreeLine's
+void QwEvent::AddTreeLineList(const std::vector<QwTrackingTreeLine*>& treelinelist)
+{
+  for (size_t i = 0; i < treelinelist.size(); i++)
+    if (treelinelist[i]->IsValid())
+      AddTreeLine(treelinelist[i]);
+}
+
 // Clear the local TClonesArray of tree lines
 void QwEvent::ClearTreeLines(Option_t *option)
 {

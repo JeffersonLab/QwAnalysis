@@ -8,7 +8,7 @@
  This example illustrates the use of the QwTreeEventBuffer class.  It loads
  the file Tracking/prminput/QweakSim.root, which was produced with a 3-fold
  trigger in QweakSimG4 (hits in all of HDC, VDC-front, and VDC-back).  For
- every event a QwHitContainer is filled, which is then printed to std::cout.
+ every event a QwHitContainer is filled, which is then printed to QwMessage.
 
 *//*-------------------------------------------------------------------------*/
 
@@ -44,19 +44,13 @@
 #include <TStopwatch.h>
 void PrintInfo(TStopwatch& timer)
 {
-  std::cout << "CPU time used:  "  << timer.CpuTime() << " s"
-	    << std::endl
+  QwMessage << "CPU time used:  "  << timer.CpuTime() << " s"
+	    << QwLog::endl
 	    << "Real time used: " << timer.RealTime() << " s"
-	    << std::endl << std::endl;
+	    << QwLog::endl << QwLog::endl;
   return;
 }
 
-
-// Debug level
-static const bool kDebug = false;
-// ROOT file output
-static const bool kTree = true;
-static const bool kHisto = true;
 
 int main (int argc, char* argv[])
 {
@@ -90,7 +84,6 @@ int main (int argc, char* argv[])
 
   /// Next, we create the tracking worker that will pull coordinate the tracking.
   QwTrackingWorker *trackingworker = new QwTrackingWorker(gQwOptions, geometry);
-  if (kDebug) trackingworker->SetDebugLevel(1);
 
   /// Stop timer
   timer.Stop();
@@ -105,29 +98,24 @@ int main (int argc, char* argv[])
   ///  Start loop over all runs
   while (treebuffer->OpenNextFile() == 0) {
 
-    // Create dummy event for branch creation (memory leak when using null)
+    // Create dummy events for branch creation (memory leak when using null)
     QwEvent* event = new QwEvent();
+    QwEvent* original = new QwEvent();
 
     // Open ROOT file
     TFile* file = 0;
-    TTree* hit_tree = 0;
     TTree* event_tree = 0;
-    QwHitRootContainer* roothitlist = new QwHitRootContainer();
-    if (kHisto || kTree) {
-      file = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/QwSim_%d.root",
-                       treebuffer->GetRunNumber()), "RECREATE",
-                       "QWeak ROOT file with simulated event");
-      file->cd();
-    }
-    if (kTree) {
-      hit_tree = new TTree("hit_tree", "QwTracking Hit-based Tree");
-      hit_tree->Branch("hits", "QwHitRootContainer", &roothitlist);
-      event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
-      event_tree->Branch("events", "QwEvent", &event);
-    }
+    file = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/QwSim_%d.root",
+                     treebuffer->GetRunNumber()), "RECREATE",
+                     "QWeak ROOT file with simulated event");
+    file->cd();
+    event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
+    event_tree->Branch("events", "QwEvent", &event);
+    event_tree->Branch("originals", "QwEvent", &original);
 
-    // Delete dummy event again
+    // Delete dummy events again
     delete event; event = 0;
+    delete original; original = 0;
 
     /// Start timer
     timer.Reset();
@@ -137,48 +125,54 @@ int main (int argc, char* argv[])
     Int_t nevents = 0;
     while (treebuffer->GetNextEvent() == 0) {
 
-      /// Create a new event structure
+      /// Create the event header with the run and event number
+      QwEventHeader header(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
+
+
+      /// Create the original event
+      /// \todo Original event is created in QwTreeEventBuffer already: should just use that
+      original = new QwEvent();
+      original->SetEventHeader(header);
+      /// Add hits without resolution smearing
+      QwHitContainer* exacthitlist = treebuffer->CreateHitList(false);
+      original->AddHitContainer(exacthitlist);
+      delete exacthitlist;
+      /// Add exact treelines and tracks
+      original->AddTreeLineList(treebuffer->GetTreeLines(kRegionID2));
+      original->AddTreeLineList(treebuffer->GetTreeLines(kRegionID3));
+      original->AddPartialTrackList(treebuffer->GetPartialTracks(kRegionID2));
+      original->AddPartialTrackList(treebuffer->GetPartialTracks(kRegionID3));
+
+
+      /// Create the to-be-reconstructed event
       event = new QwEvent();
-
-      // Create the event header with the run and event number
-      QwEventHeader* header =
-          new QwEventHeader(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
-
-      // Assign the event header
       event->SetEventHeader(header);
 
-
-      /// Read the hit list from the event buffer
-      QwHitContainer* hitlist = treebuffer->GetHitContainer();
-      roothitlist->Convert(hitlist);
-
-      // and fill into the event
-      event->AddHitContainer(hitlist);
+      /// Add hits with resolution smearing
+      QwHitContainer* smearedhitlist = treebuffer->CreateHitList(true);
+      event->AddHitContainer(smearedhitlist);
+      delete smearedhitlist;
 
 
-      /// We process the hit list through the tracking worker and get a new
-      /// QwEvent object back.
+      /// We process the hit list through the tracking worker
       trackingworker->ProcessEvent(detectors, event);
 
 
       // Fill the tree
-      if (kTree) {
-        hit_tree->Fill();
-        event_tree->Fill();
-      }
+      event_tree->Fill();
 
 
       // Event has been processed
       nevents++;
 
       // Delete the hit lists and reconstructed event
-      delete hitlist;
+      delete original;
       delete event;
 
     } // end of loop over events
 
     QwMessage << "Number of events processed at end of run: "
-              << treebuffer->GetEventNumber() << std::endl;
+              << treebuffer->GetEventNumber() << QwLog::endl;
 
 
     /// Stop timer
@@ -186,25 +180,17 @@ int main (int argc, char* argv[])
     // Print timer info
     PrintInfo(timer);
 
-    // Delete the ROOT hit list
-    delete roothitlist;
-
-    std::cout << "Number of good partial tracks found: "
-              << trackingworker->ngood << std::endl;
-    std::cout << "Region 2: "
-              << trackingworker->R2Good << std::endl;
-    std::cout << "Region 3: "
-              << trackingworker->R3Good << std::endl;
-
-    // Print results
-    //if (kDebug) tree->Print();
+    QwMessage << "Number of good partial tracks found: "
+              << trackingworker->ngood << QwLog::endl;
+    QwMessage << "Region 2: "
+              << trackingworker->R2Good << QwLog::endl;
+    QwMessage << "Region 3: "
+              << trackingworker->R3Good << QwLog::endl;
 
     // Write and close file
-    if (kTree || kHisto) {
-      file->Write();
-      file->Close();
-      delete file;
-    }
+    file->Write();
+    file->Close();
+    delete file;
 
     // Close input file
     treebuffer->CloseFile();

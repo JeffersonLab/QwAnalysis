@@ -306,6 +306,8 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void AddTreeLine(const QwTrackingTreeLine* treeline);
     //! \brief Add a list of existing tree lines as a copy
     void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
+    //! \brief Add a list of existing tree lines as a copy
+    void AddTreeLineList(const std::vector<QwTrackingTreeLine*>& treelinelist);
     //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
     //! \brief Reset the list of tree lines
