@@ -53,10 +53,17 @@
 // replace hard-coded pedestal values. Plot light-weighted Q2 distributions and
 // compared them with Q2 distributions.
 
-// jpan, Tue Sep 18 12:24:56 CDT 2012
+// jpan, Wed Sep 19 09:38:16 CDT 2012
 // Added in 2D distribution plots of light, Q2 and light-weighted Q2,
-// added in the plots for direction_theta_off and position_theta_off
-// changed the unit from [rad] to [degree] for phi_off and theta_off
+// added in the plots for direction_theta_off and position_theta_off,
+// changed the unit from [rad] to [degree] for phi_off and theta_off,
+
+// jpan, Mon Oct  1 12:08:07 CDT 2012
+// added in #pe and tdc spectra, as well as #pe vs. tdc plots; added in vertex info to
+// run summary table; specify the theta_off/phi_off cuts by its mean and rms, and 
+// assign different cut values to the two packages; added in default 0.5 pe cut on 
+// both PMTs; added in TDC threshold condition so that TDC cuts are applied only when
+// #PE yields are larger than the threshold values of both PMTs.
 
 #include <iostream>
 #include <iomanip>
@@ -67,7 +74,7 @@ bool reverse_run = false;
 // cut enable flags
 bool enable_multiplicity_cut     = true;
 bool enable_tdc_cut              = true;
-bool enable_adc_cut              = false;
+bool enable_adc_cut              = true;
 bool enable_scattering_angle_cut = false;
 bool enable_vertex_z_cut         = false;
 bool enable_vertex_r_cut         = false;
@@ -84,11 +91,12 @@ bool enable_hit_position_y_cut   = false;
 const int multiple=18;
 
 const double degree = 3.1415927/180.0;
+const double TDC_threhold = 3.0;  // TDC cut threshold value ~ 3PE
 
 int tdc_cut_min[2] = {-210,-210}; //tdc cuts for package {1, 2}
 int tdc_cut_max[2] = {-150,-150};
 
-double num_pe_cut = 0.5;
+double num_pe_cut = 1.0;
 
 double scattering_angle_cut_min = 3.0;
 double scattering_angle_cut_max = 13.0;
@@ -98,15 +106,63 @@ double vertex_z_cut_max = -625;
 double vertex_r_cut_min = 0;
 double vertex_r_cut_max = 1;
 
-double bending_angle_position_theta_cut_min = -0.2 *degree;   // -0.2 deg
-double bending_angle_position_theta_cut_max =  0.2 *degree;   //  0.2 deg
-double bending_angle_position_phi_cut_min   = -60.0 *degree;  // -60.0 deg
-double bending_angle_position_phi_cut_max   =  60.0 *degree;  //  60.0 deg
+double num_of_sigma_position_theta_cut = 3.0;
+double num_of_sigma_direction_theta_cut = 3.0;
+double num_of_sigma_position_phi_cut = 3.0;
+double num_of_sigma_direction_phi_cut = 3.0;
 
-double bending_angle_direction_theta_cut_min = -23.0 *degree;  // -23.0 deg
-double bending_angle_direction_theta_cut_max =  23.0 *degree;  //  23.0 deg
-double bending_angle_direction_phi_cut_min   = -115.0 *degree; // -115.0 deg
-double bending_angle_direction_phi_cut_max   =  115.0 *degree; //  115.0 deg
+double position_theta_cut_mean1 = -0.00817 *degree;
+double position_theta_cut_rms1  = 0.05676 *degree;
+
+double position_theta_cut_mean2 = 0.01732 *degree;
+double position_theta_cut_rms2  = 0.03833 *degree;
+
+double position_phi_cut_mean1 = 0.8026 *degree;
+double position_phi_cut_rms1  = 1.716 *degree;
+
+double position_phi_cut_mean2 = 0.07375 *degree;
+double position_phi_cut_rms2  = 1.804 *degree;
+
+double direction_theta_cut_mean1 = -0.264 *degree;
+double direction_theta_cut_rms1  =  0.7198 *degree;
+
+double direction_theta_cut_mean2 = -1.241 *degree;
+double direction_theta_cut_rms2  =  0.7598 *degree;
+
+double direction_phi_cut_mean1 = -0.4044 *degree;
+double direction_phi_cut_rms1  =  2.859 *degree;
+
+double direction_phi_cut_mean2 = -1.784 *degree;
+double direction_phi_cut_rms2  =  2.483 *degree;
+
+double bending_angle_position_theta_cut_min[2];
+double bending_angle_position_theta_cut_max[2];
+double bending_angle_position_phi_cut_min[2];
+double bending_angle_position_phi_cut_max[2];
+double bending_angle_direction_theta_cut_min[2];
+double bending_angle_direction_theta_cut_max[2];
+double bending_angle_direction_phi_cut_min[2];
+double bending_angle_direction_phi_cut_max[2];
+
+bending_angle_position_theta_cut_min[0] = position_theta_cut_mean1-num_of_sigma_position_theta_cut*position_theta_cut_rms1; 
+bending_angle_position_theta_cut_max[0] = position_theta_cut_mean1+num_of_sigma_position_theta_cut*position_theta_cut_rms1; 
+bending_angle_position_phi_cut_min[0] = position_phi_cut_mean1-num_of_sigma_position_phi_cut*position_phi_cut_rms1; 
+bending_angle_position_phi_cut_max[0] = position_phi_cut_mean1+num_of_sigma_position_phi_cut*position_phi_cut_rms1;
+
+bending_angle_direction_theta_cut_min[0] = direction_theta_cut_mean1-num_of_sigma_direction_theta_cut*direction_theta_cut_rms1; 
+bending_angle_direction_theta_cut_max[0] = direction_theta_cut_mean1+num_of_sigma_direction_theta_cut*direction_theta_cut_rms1; 
+bending_angle_direction_phi_cut_min[0] = direction_phi_cut_mean1-num_of_sigma_direction_phi_cut*direction_phi_cut_rms1; 
+bending_angle_direction_phi_cut_max[0] = direction_phi_cut_mean1+num_of_sigma_direction_phi_cut*direction_phi_cut_rms1; 
+
+bending_angle_position_theta_cut_min[1] = position_theta_cut_mean2-num_of_sigma_position_theta_cut*position_theta_cut_rms2; 
+bending_angle_position_theta_cut_max[1] = position_theta_cut_mean2+num_of_sigma_position_theta_cut*position_theta_cut_rms2; 
+bending_angle_position_phi_cut_min[1] = position_phi_cut_mean2-num_of_sigma_position_phi_cut*position_phi_cut_rms2; 
+bending_angle_position_phi_cut_max[1] = position_phi_cut_mean2+num_of_sigma_position_phi_cut*position_phi_cut_rms2;
+
+bending_angle_direction_theta_cut_min[1] = direction_theta_cut_mean2-num_of_sigma_direction_theta_cut*direction_theta_cut_rms2; 
+bending_angle_direction_theta_cut_max[1] = direction_theta_cut_mean2+num_of_sigma_direction_theta_cut*direction_theta_cut_rms2; 
+bending_angle_direction_phi_cut_min[1] = direction_phi_cut_mean2-num_of_sigma_direction_phi_cut*direction_phi_cut_rms2; 
+bending_angle_direction_phi_cut_max[1] = direction_phi_cut_mean2+num_of_sigma_direction_phi_cut*direction_phi_cut_rms2;
 
 double position_r_off_cut_min = -1.0;
 double position_r_off_cut_max = 1.0;
@@ -160,9 +216,9 @@ bool light_yield_cut(double mdm_adc_value, double mdp_adc_value, int md_num)
 {
   double mdm_num_pe = (mdm_adc_value-MDm_Pedestal[md_num])/MDm_SinglePE[md_num];
   double mdp_num_pe = (mdp_adc_value-MDp_Pedestal[md_num])/MDp_SinglePE[md_num];
-  if(mdm_num_pe >num_pe_cut)
-     return true;
-  else if (mdp_num_pe >num_pe_cut)
+
+  double pe_min = 0.5;
+  if ((mdm_num_pe>pe_min) && (mdp_num_pe>pe_min) && ( (mdm_num_pe+mdp_num_pe)>num_pe_cut) )
      return true;
   else
     {
@@ -209,9 +265,9 @@ bool  vertex_r_cut(double val)
   }
 }
 
-bool  bending_angle_position_theta_cut(double val)
+bool  bending_angle_position_theta_cut(double val, int p)
 {
-  if(val> bending_angle_position_theta_cut_min && val< bending_angle_position_theta_cut_max)
+  if(val> bending_angle_position_theta_cut_min[p-1] && val< bending_angle_position_theta_cut_max[p-1])
     return true;
   else
   {
@@ -221,9 +277,9 @@ bool  bending_angle_position_theta_cut(double val)
   }
 }
 
-bool  bending_angle_position_phi_cut(double val)
+bool  bending_angle_position_phi_cut(double val, int p)
 {
-  if(val> bending_angle_position_phi_cut_min && val< bending_angle_position_phi_cut_max)
+  if(val> bending_angle_position_phi_cut_min[p-1] && val< bending_angle_position_phi_cut_max[p-1])
     return true;
   else
   {
@@ -233,9 +289,9 @@ bool  bending_angle_position_phi_cut(double val)
   }
 }
 
-bool  bending_angle_direction_theta_cut(double val)
+bool  bending_angle_direction_theta_cut(double val, int p)
 {
-  if(val> bending_angle_direction_theta_cut_min && val< bending_angle_direction_theta_cut_max)
+  if(val> bending_angle_direction_theta_cut_min[p-1] && val< bending_angle_direction_theta_cut_max[p-1])
     return true;
   else
   {
@@ -245,9 +301,9 @@ bool  bending_angle_direction_theta_cut(double val)
   }
 }
 
-bool  bending_angle_direction_phi_cut(double val)
+bool  bending_angle_direction_phi_cut(double val, int p)
 {
-  if(val > bending_angle_direction_phi_cut_min && val < bending_angle_direction_phi_cut_max)
+  if(val > bending_angle_direction_phi_cut_min[p-1] && val < bending_angle_direction_phi_cut_max[p-1])
     return true;
   else
   {
@@ -399,6 +455,25 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     histo_position_theta_off[0] = new TH1F("histo_position_theta_off[0]",Form("Run %d, Position_Theta_Off, Oct %d + %d",run,md_1,md_2),400,-0.003/degree,0.003/degree);
     histo_position_theta_off[1] = new TH1F("histo_position_theta_off[1]",Form("Run %d, Position_Theta_Off, Package 1, Oct %d",run,md_1),400,-0.003/degree,0.003/degree);
     histo_position_theta_off[2] = new TH1F("histo_position_theta_off[2]",Form("Run %d, Position_Theta_Off, Package 2, Oct %d",run,md_2),400,-0.003/degree,0.003/degree);
+
+    TH1F* histo_md1_pe[3];
+    histo_md1_pe[0] = new TH1F("histo_md1_pe[0]",Form("Run %d, Total #PE, Oct %d",run,md_1),500,0,500);
+    histo_md1_pe[1] = new TH1F("histo_md1_pe[1]",Form("Run %d, MD%d-  #PE, Oct %d",run,md_1,md_1),500,0,250);
+    histo_md1_pe[2] = new TH1F("histo_md1_pe[2]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_1,md_1),500,0,250);
+    TH1F* histo_md2_pe[3];
+    histo_md2_pe[0] = new TH1F("histo_md2_pe[0]",Form("Run %d, Total #PE, Oct %d",run,md_2),500,0,500);
+    histo_md2_pe[1] = new TH1F("histo_md2_pe[1]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_2,md_2),500,0,250);
+    histo_md2_pe[2] = new TH1F("histo_md2_pe[2]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_2,md_2),500,0,250);
+
+    TH1F* histo_tdc1m = new TH1F("histo_tdc1m",Form("Run %d, TDC -, Oct %d",run,md_1),500,-350,0);
+    TH1F* histo_tdc1p = new TH1F("histo_tdc1p",Form("Run %d, TDC +, Oct %d",run,md_1),500,-350,0);
+    TH1F* histo_tdc2m = new TH1F("histo_tdc2m",Form("Run %d, TDC -, Oct %d",run,md_2),500,-350,0);
+    TH1F* histo_tdc2p = new TH1F("histo_tdc2p",Form("Run %d, TDC +, Oct %d",run,md_2),500,-350,0);
+
+    TH2F* pe_vs_tdc_1m = new TH2F("pe_vs_tdc_1m",Form("Run %d, #PE vs. TDC -, Oct %d",run,md_1),500,-350,0,500,0,250);
+    TH2F* pe_vs_tdc_1p = new TH2F("pe_vs_tdc_1p",Form("Run %d, #PE vs. TDC +, Oct %d",run,md_1),500,-350,0,500,0,250);
+    TH2F* pe_vs_tdc_2m = new TH2F("pe_vs_tdc_2m",Form("Run %d, #PE vs. TDC -, Oct %d",run,md_2),500,-350,0,500,0,250);
+    TH2F* pe_vs_tdc_2p = new TH2F("pe_vs_tdc_2p",Form("Run %d, #PE vs. TDC +, Oct %d",run,md_2),500,-350,0,500,0,250);
 
     TProfile2D* q2_dist1 = new TProfile2D("q2_dist1",Form("Run %d, Q2 Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
     TProfile2D* q2_dist2 = new TProfile2D("q2_dist2",Form("Run %d, Q2 Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
@@ -565,25 +640,25 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
         if(enable_direction_theta_cut)
         {
-           if(! bending_angle_direction_theta_cut(direction_theta_off))
+           if(! bending_angle_direction_theta_cut(direction_theta_off,package))
                 continue;
         }
 
         if(enable_direction_phi_cut)
         {
-           if(! bending_angle_direction_phi_cut(direction_phi_off))
+           if(! bending_angle_direction_phi_cut(direction_phi_off,package))
                 continue;
         }
 
         if(enable_position_theta_cut)
         {
-           if(! bending_angle_position_theta_cut(position_theta_off))
+           if(! bending_angle_position_theta_cut(position_theta_off,package))
                 continue;
         }
 
         if(enable_position_phi_cut)
         {
-           if(! bending_angle_position_phi_cut(position_phi_off))
+           if(! bending_angle_position_phi_cut(position_phi_off,package))
                 continue;
         }
 
@@ -607,8 +682,13 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         {
            if(enable_tdc_cut)
            {
-              if(! tdc_cut(mdm_tdc_value_1, mdp_tdc_value_1,package))
-                 continue;
+              double mdm_num_pe = (mdm_adc_value_1-MDm_Pedestal[md_1])/MDm_SinglePE[md_1];
+              double mdp_num_pe = (mdp_adc_value_1-MDp_Pedestal[md_1])/MDp_SinglePE[md_1];
+              if(mdm_num_pe>TDC_threhold && mdp_num_pe>TDC_threhold)
+              {
+                 if(! tdc_cut(mdm_tdc_value_1, mdp_tdc_value_1,package))
+                    continue;
+              }
            }
         }
 
@@ -616,8 +696,13 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         {
            if(enable_tdc_cut)
            {
-              if(! tdc_cut(mdm_tdc_value_2, mdp_tdc_value_2,package))
-                 continue;
+              double mdm_num_pe = (mdm_adc_value_2-MDm_Pedestal[md_2])/MDm_SinglePE[md_2];
+              double mdp_num_pe = (mdp_adc_value_2-MDp_Pedestal[md_2])/MDp_SinglePE[md_2];
+              if(mdm_num_pe>TDC_threhold && mdp_num_pe>TDC_threhold)
+              {
+                 if(! tdc_cut(mdm_tdc_value_2, mdp_tdc_value_2,package))
+                    continue;
+              }
            }
         } 
 
@@ -712,6 +797,15 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 histo_position_theta_off[0]->Fill(position_theta_off/degree);
                 histo_position_theta_off[1]->Fill(position_theta_off/degree);
 
+                histo_md1_pe[0]->Fill(total_num_pe);
+                histo_md1_pe[1]->Fill(mdm_num_pe);
+                histo_md1_pe[2]->Fill(mdp_num_pe);
+
+                histo_tdc1m->Fill(mdm_tdc_value_1);
+                histo_tdc1p->Fill(mdp_tdc_value_1);
+                pe_vs_tdc_1m->Fill(mdm_tdc_value_1,mdm_num_pe);
+                pe_vs_tdc_1p->Fill(mdp_tdc_value_1,mdp_num_pe);
+
                 q2_dist1->Fill(y,x,Q2_val);
                 light_dist1->Fill(y,x,total_num_pe);
                 weighted_q2_dist1->Fill(y,x,Q2_val*total_num_pe);
@@ -753,6 +847,15 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 histo_direction_theta_off[2]->Fill(direction_theta_off/degree);
                 histo_position_theta_off[0]->Fill(position_theta_off/degree);
                 histo_position_theta_off[2]->Fill(position_theta_off/degree);
+
+                histo_md2_pe[0]->Fill(total_num_pe);
+                histo_md2_pe[1]->Fill(mdm_num_pe);
+                histo_md2_pe[2]->Fill(mdp_num_pe);
+
+                histo_tdc2m->Fill(mdm_tdc_value_2);
+                histo_tdc2p->Fill(mdp_tdc_value_2);
+                pe_vs_tdc_2m->Fill(mdm_tdc_value_2,mdm_num_pe);
+                pe_vs_tdc_2p->Fill(mdp_tdc_value_2,mdp_num_pe);
 
                 q2_dist2->Fill(y,x,Q2_val);
                 light_dist2->Fill(y,x,total_num_pe);
@@ -1021,48 +1124,126 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     histo_position_theta_off[0]->GetXaxis()->SetTitle("position_theta_off [deg]");
 
     // canvas 5
-    TCanvas* c5=new TCanvas("c5","2D distributions of hits, #PE and Q2",800,800);
-    c5->Divide(2,4);
+    TCanvas* c5=new TCanvas("c5","MD light yield",800,800);
+    c5->Divide(2,3);
 
     c5->cd(1);
+    histo_md1_pe[0]->Draw();
+    histo_md1_pe[0]->GetXaxis()->SetTitle("#PE");
+    histo_md1_pe[0]->GetYaxis()->SetTitle("counts");
+
+    c5->cd(2);
+    histo_md2_pe[0]->Draw();
+    histo_md2_pe[0]->GetXaxis()->SetTitle("#PE");
+    histo_md2_pe[0]->GetYaxis()->SetTitle("counts");
+
+    c5->cd(3);
+    histo_md1_pe[1]->Draw();
+    histo_md1_pe[1]->GetXaxis()->SetTitle("#PE");
+    histo_md1_pe[1]->GetYaxis()->SetTitle("counts");
+
+    c5->cd(4);
+    histo_md2_pe[1]->Draw();
+    histo_md2_pe[1]->GetXaxis()->SetTitle("#PE");
+    histo_md2_pe[1]->GetYaxis()->SetTitle("counts");
+
+    c5->cd(5);
+    histo_md1_pe[2]->Draw();
+    histo_md1_pe[2]->GetXaxis()->SetTitle("#PE");
+    histo_md1_pe[2]->GetYaxis()->SetTitle("counts");
+
+    c5->cd(6);
+    histo_md2_pe[2]->Draw();
+    histo_md2_pe[2]->GetXaxis()->SetTitle("#PE");
+    histo_md2_pe[2]->GetYaxis()->SetTitle("counts");
+
+    // canvas 6
+    TCanvas* c6=new TCanvas("c6","2D distributions of hits, #PE and Q2",800,800);
+    c6->Divide(2,4);
+
+    c6->cd(1);
     hit_dist1->Draw("colz");
     hit_dist1->GetXaxis()->SetTitle("Y [cm]");
     hit_dist1->GetYaxis()->SetTitle("X [cm]");
 
-    c5->cd(2);
+    c6->cd(2);
     hit_dist2->Draw("colz");
     hit_dist2->GetXaxis()->SetTitle("Y [cm]");
     hit_dist2->GetYaxis()->SetTitle("X [cm]");
 
-    c5->cd(3);
+    c6->cd(3);
     light_dist1->Draw("colz");
     light_dist1->GetXaxis()->SetTitle("Y [cm]");
     light_dist1->GetYaxis()->SetTitle("X [cm]");
 
-    c5->cd(4);
+    c6->cd(4);
     light_dist2->Draw("colz");
     light_dist2->GetXaxis()->SetTitle("Y [cm]");
     light_dist2->GetYaxis()->SetTitle("X [cm]");
 
-    c5->cd(5);
+    c6->cd(5);
     q2_dist1->Draw("colz");
     q2_dist1->GetXaxis()->SetTitle("Y [cm]");
     q2_dist1->GetYaxis()->SetTitle("X [cm]");
     
-    c5->cd(6);
+    c6->cd(6);
     q2_dist2->Draw("colz");
     q2_dist2->GetXaxis()->SetTitle("Y [cm]");
     q2_dist2->GetYaxis()->SetTitle("X [cm]");
 
-    c5->cd(7);
+    c6->cd(7);
     weighted_q2_dist1->Draw("colz");
     weighted_q2_dist1->GetXaxis()->SetTitle("Y [cm]");
     weighted_q2_dist1->GetYaxis()->SetTitle("X [cm]");
     
-    c5->cd(8);
+    c6->cd(8);
     weighted_q2_dist2->Draw("colz");
     weighted_q2_dist2->GetXaxis()->SetTitle("Y [cm]");
     weighted_q2_dist2->GetYaxis()->SetTitle("X [cm]");
+
+    // canvas 7
+    TCanvas* c7=new TCanvas("c7","TDC spectra",800,800);
+    c7->Divide(2,4);
+
+    c7->cd(1);
+    histo_tdc1m->Draw();
+    histo_tdc1m->GetXaxis()->SetTitle("tdc");
+    histo_tdc1m->GetYaxis()->SetTitle("counts");
+
+    c7->cd(2);
+    histo_tdc2m->Draw();
+    histo_tdc2m->GetXaxis()->SetTitle("tdc");
+    histo_tdc2m->GetYaxis()->SetTitle("counts");
+
+    c7->cd(3);
+    histo_tdc1p->Draw();
+    histo_tdc1p->GetXaxis()->SetTitle("tdc");
+    histo_tdc1p->GetYaxis()->SetTitle("counts");
+
+    c7->cd(4);
+    histo_tdc2p->Draw();
+    histo_tdc2p->GetXaxis()->SetTitle("tdc");
+    histo_tdc2p->GetYaxis()->SetTitle("counts");
+
+    c7->cd(5);
+    pe_vs_tdc_1m->Draw();
+    pe_vs_tdc_1m->GetXaxis()->SetTitle("tdc");
+    pe_vs_tdc_1m->GetYaxis()->SetTitle("#PE");
+
+    c7->cd(6);
+    pe_vs_tdc_2m->Draw();
+    pe_vs_tdc_2m->GetXaxis()->SetTitle("tdc");
+    pe_vs_tdc_2m->GetYaxis()->SetTitle("#PE");
+
+    c7->cd(7);
+    pe_vs_tdc_1p->Draw();
+    pe_vs_tdc_1p->GetXaxis()->SetTitle("tdc");
+    pe_vs_tdc_1p->GetYaxis()->SetTitle("#PE");
+
+    c7->cd(8);
+    pe_vs_tdc_2p->Draw();
+    pe_vs_tdc_2p->GetXaxis()->SetTitle("tdc");
+    pe_vs_tdc_2p->GetYaxis()->SetTitle("#PE");
 
     // output runs conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
@@ -1089,17 +1270,33 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     if(enable_vertex_r_cut){
       condition_txt->AddText(Form("vertex_r_cut_min=%f, vertex_r_cut_max=%f", vertex_r_cut_min,vertex_r_cut_max));
     }
-    if(enable_position_theta_cut){
-      condition_txt->AddText(Form("position_theta_cut_min=%f, position_theta_cut_max=%f",bending_angle_position_theta_cut_min,bending_angle_position_theta_cut_max));
+    if(enable_position_theta_cut)
+    {
+      for(int pp=0; pp<2; pp++)
+          condition_txt->AddText(Form("position_theta_cut_min%d=%f, position_theta_cut_max%d=%f",
+                            pp,bending_angle_position_theta_cut_min[pp]/degree,
+                            pp,bending_angle_position_theta_cut_max[pp]/degree));
     }
-    if(enable_position_phi_cut){
-      condition_txt->AddText(Form("position_phi_cut_min=%f, position_phi_cut_max=%f",bending_angle_position_phi_cut_min,bending_angle_position_phi_cut_max));
+    if(enable_position_phi_cut)
+    {
+      for(int pp=0; pp<2; pp++)
+          condition_txt->AddText(Form("position_phi_cut_min%d=%f, position_phi_cut_max%d=%f",
+                            pp,bending_angle_position_phi_cut_min[pp]/degree,
+                            pp,bending_angle_position_phi_cut_max[pp]/degree));
     }
-    if(enable_direction_theta_cut){
-      condition_txt->AddText(Form("direction_theta_cut_min=%f, direction_theta_cut_max=%f",bending_angle_direction_theta_cut_min,bending_angle_direction_theta_cut_max));
+    if(enable_direction_theta_cut)
+    {
+      for(int pp=0; pp<2; pp++)
+          condition_txt->AddText(Form("direction_theta_cut_min%d=%f, direction_theta_cut_max%d=%f",
+                            pp,bending_angle_direction_theta_cut_min[pp]/degree,
+                            pp,bending_angle_direction_theta_cut_max[pp]/degree));
     }
-    if(enable_direction_phi_cut){
-      condition_txt->AddText(Form("direction_phi_cut_min=%f, direction_phi_cut_max=%f",bending_angle_direction_phi_cut_min,bending_angle_direction_phi_cut_max));
+    if(enable_direction_phi_cut)
+    {
+      for(int pp=0; pp<2; pp++)
+          condition_txt->AddText(Form("direction_phi_cut_min%d=%f, direction_phi_cut_max%d=%f",
+                            pp,bending_angle_direction_phi_cut_min[pp]/degree,
+                            pp,bending_angle_direction_phi_cut_max[pp]/degree));
     }
     if(enable_position_r_off_cut){
       condition_txt->AddText(Form("position_r_off_cut_min=%f, position_r_off_cut_max=%f",position_r_off_cut_min,position_r_off_cut_max));
@@ -1114,7 +1311,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
     TCanvas* run_summary=new TCanvas("run_summary","Tracking Cut Run Summary",800,800);
     TPaveText *summary_txt = new TPaveText(0.05,0.05,0.95,0.95);
-    summary_txt->SetTextSize(0.025);
+    summary_txt->SetTextSize(0.015);
     summary_txt->AddText("Run Summary:");
     summary_txt->SetTextAlign(12);
     summary_txt->AddText(Form("Run# %d, total events :%d, processed event# %d to %d",run, nevents,start,end));
@@ -1124,35 +1321,73 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     int num_tracks2 = angle_2->GetEntries();
     if(num_tracks!=0)
     {
-      summary_txt->AddText(Form("number of tracks: %d (all), %d (pkg1), %d (pkg2)", num_tracks, num_tracks1, num_tracks2));
-      summary_txt->AddText(Form("scattering angle: %f +/- %f deg (all)", angle->GetMean(), angle->GetRMS()/sqrt(angle->GetEntries())));
-      if(num_tracks1!=0){
-        summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg1)", angle_1->GetMean(), angle_1->GetRMS()/sqrt(angle_1->GetEntries())));
+      summary_txt->AddText(Form("number of tracks: %d (all), %d (pkg1), %d (pkg2)", 
+                           num_tracks, num_tracks1, num_tracks2));
+      summary_txt->AddText(Form("scattering angle: %f +/- %f deg (all)", 
+                           angle->GetMean(), angle->GetRMS()/sqrt(angle->GetEntries())));
+      if(num_tracks1!=0)
+      {
+        summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg1)", 
+                             angle_1->GetMean(), angle_1->GetRMS()/sqrt(angle_1->GetEntries())));
       }
-      if(num_tracks2!=0){
-        summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg2)", angle_2->GetMean(), angle_2->GetRMS()/sqrt(angle_2->GetEntries())));
+      if(num_tracks2!=0)
+      {
+        summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg2)", 
+                             angle_2->GetMean(), angle_2->GetRMS()/sqrt(angle_2->GetEntries())));
+      }
+    }
+
+    if(num_tracks!=0)
+    {
+      summary_txt->AddText(Form("vertex z: %f +/- %f(rms) cm,  vertex r: %f +/- %f(rms) cm  (all)", 
+                           histo_vertex_z[0]->GetMean(), histo_vertex_z[0]->GetRMS(), 
+                           histo_vertex_r[0]->GetMean(), histo_vertex_r[0]->GetRMS() ));
+      if(num_tracks1!=0)
+      {
+         summary_txt->AddText(Form("vertex z: %f +/- %f(rms) cm,  vertex r: %f +/- %f(rms) cm  (pkg1)", 
+                              histo_vertex_z[1]->GetMean(), histo_vertex_z[1]->GetRMS(), 
+                              histo_vertex_r[1]->GetMean(), histo_vertex_r[1]->GetRMS() ));
+      }
+      if(num_tracks2!=0)
+      {
+         summary_txt->AddText(Form("vertex z: %f +/- %f(rms) cm,  vertex r: %f +/- %f(rms) cm  (pkg1)",
+                              histo_vertex_z[2]->GetMean(), histo_vertex_z[2]->GetRMS(),
+                              histo_vertex_r[2]->GetMean(), histo_vertex_r[2]->GetRMS() ));
       }
     }
 
     if(q2->GetEntries()) 
     {
-      summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (all)",q2->GetMean(),q2->GetRMS()/sqrt(q2->GetEntries())));
-      if(q2_1->GetEntries()!=0) {
-        summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg1)",q2_1->GetMean(),q2_1->GetRMS()/sqrt(q2_1->GetEntries())));
+      summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (all)",
+                           q2->GetMean(),q2->GetRMS()/sqrt(q2->GetEntries())));
+      if(q2_1->GetEntries()!=0) 
+      {
+         summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg1)",
+                              q2_1->GetMean(),q2_1->GetRMS()/sqrt(q2_1->GetEntries())));
       }
-      if(q2_2->GetEntries()!=0) {
-        summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg2)",q2_2->GetMean(),q2_2->GetRMS()/sqrt(q2_2->GetEntries())));
+      if(q2_2->GetEntries()!=0) 
+      {
+         summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg2)",
+                              q2_2->GetMean(),q2_2->GetRMS()/sqrt(q2_2->GetEntries())));
       }
     }
 
     if(light_weighted_q2[0]->GetEntries()) 
     {
-      summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (all)",light_weighted_q2[0]->GetMean(),light_weighted_q2[0]->GetRMS()/sqrt(light_weighted_q2[0]->GetEntries())));
-      if(light_weighted_q2[1]->GetEntries()!=0) {
-        summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg1)",light_weighted_q2[1]->GetMean(),light_weighted_q2[1]->GetRMS()/sqrt(light_weighted_q2[1]->GetEntries())));
+      summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (all)",
+                           light_weighted_q2[0]->GetMean(),
+                           light_weighted_q2[0]->GetRMS()/sqrt(light_weighted_q2[0]->GetEntries())));
+      if(light_weighted_q2[1]->GetEntries()!=0) 
+      {
+         summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg1)",
+                              light_weighted_q2[1]->GetMean(),
+                              light_weighted_q2[1]->GetRMS()/sqrt(light_weighted_q2[1]->GetEntries())));
       }
-      if(light_weighted_q2[2]->GetEntries()!=0) {
-        summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg2)",light_weighted_q2[2]->GetMean(),light_weighted_q2[2]->GetRMS()/sqrt(light_weighted_q2[2]->GetEntries())));
+      if(light_weighted_q2[2]->GetEntries()!=0) 
+      {
+         summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg2)",
+                              light_weighted_q2[2]->GetMean(),
+                              light_weighted_q2[2]->GetRMS()/sqrt(light_weighted_q2[2]->GetEntries())));
       }
     }
 
@@ -1171,7 +1406,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       if(hist_file->IsZombie())
       {
         hist_file = new TFile(Form("TCRun_%d_%d.root",run,sequence_num),"CREATE");
-        cout<<"Craeted output data file TCRun_"<<run<<"_"<<sequence_num<<".root"<<endl;
+        cout<<"Created output data file TCRun_"<<run<<"_"<<sequence_num<<".root"<<endl;
         break;
       }
       else
@@ -1187,6 +1422,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c3->Write();
     c4->Write();
     c5->Write();
+    c6->Write();
+    c7->Write();
 
     //save histograms
     hit_dist1->Write();
@@ -1210,7 +1447,18 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         histo_position_phi_off[i]->Write();
         histo_direction_theta_off[i]->Write();
         histo_position_theta_off[i]->Write();
+        histo_md1_pe[i]->Write();
+        histo_md2_pe[i]->Write();
     }
+
+    histo_tdc1m->Write();
+    histo_tdc1p->Write();
+    histo_tdc2m->Write();
+    histo_tdc2p->Write();
+    pe_vs_tdc_1m->Write();
+    pe_vs_tdc_1p->Write();
+    pe_vs_tdc_2m->Write();
+    pe_vs_tdc_2p->Write();
 
     light_dist1->Write();
     light_dist2->Write();
