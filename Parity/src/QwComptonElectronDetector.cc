@@ -102,7 +102,8 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
           fdettype = 1;
 	  ///the assignment of fdettype is arbitrarily made but is honoured subsequently
 	  ///due to the numbers assigned for fdettype, the first index of vector 'fSubbankIndex' holds data
-	  ///in the order:: 0:esingle; 1:eaccum; 2:escalers
+	  ///in the order:: 0:esingle; 1:eaccum; 2:escalers; 3:eaccum_v2; 4:eDAQ_info
+	  ///the assignment of fdettype carries the signature of which bank was created first and not which should have appeared first
  	  if (fdettype >= (Int_t) fSubbankIndex.size())
 	    fSubbankIndex.resize(fdettype+1);
           if (modnum >= fSubbankIndex[fdettype].size()) {
@@ -172,6 +173,18 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	    fStripsEv.resize(plane);
 	  if (stripnum >= (Int_t) fStripsEv[plane-1].size())
             fStripsEv[plane-1].push_back(0);
+	} 
+
+	else if (dettype == "eDAQ_info") {
+          // Register data channel type
+          fMapping[currentsubbankindex] = kV1495DAQinfo;
+          fdettype = 4;
+ 	  if (fdettype >= (Int_t) fSubbankIndex.size())
+	    fSubbankIndex.resize(fdettype+1);
+          if (modnum >= fSubbankIndex[fdettype].size()) {
+            fSubbankIndex[fdettype].push_back(modnum);
+            fSubbankIndex[fdettype][modnum] = currentsubbankindex;
+          }
 	} // end of switch (dettype)
 
 	else {
@@ -225,11 +238,44 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   UInt_t bitwise_mask = 0;
   div_t div_output;
   UInt_t accum_count = 0;
+  UInt_t slave_header,firmwareRevision,portAmask,portBmask,portDmask,portEmask,widthInfo,trigInfo;
   // Get the subbank index (or -1 when no match)
   Int_t subbank = GetSubbankIndex(roc_id, bank_id);
   if (subbank >= 0 && num_words > 0) {
     //  We want to process this ROC.  Begin looping through the data.
     switch (fMapping[subbank]) {
+    case kV1495DAQinfo:
+      {
+	for (Int_t k = 0; k < NModules; k++) {
+	  if (fSubbankIndex[4][k]==subbank) {
+	    // sub-bank 0x0207, eDAQinfo for this slave board for all planes and strips
+	    if (num_words > 0) { //!?this has already been checked in this function. remove this if?JC
+	      ///the total number of words in this subbank is fixed at 8 always, though the meaning carried by a word has
+	      ///..changed during different revisions (may need fine tuning later!)
+	      slave_header = buffer[0];///expect this to be always BX000000 for slaveX
+	      firmwareRevision = buffer[1];
+	      portAmask = buffer[2];
+	      portBmask = buffer[3];
+	      portDmask = buffer[4];
+	      portEmask = buffer[5];
+	      widthInfo = buffer[6];
+	      trigInfo = buffer[7];
+	      words_read++;   
+	    }
+	    if (num_words != words_read) {
+	      QwError << "QwComptonElectronDetector: There were "
+		      << num_words - words_read
+		      << " leftover words after decoding everything we recognize in accum data"
+		      << std::hex
+		      << " in ROC " << roc_id << ", bank " << bank_id << "."
+		      << std::dec
+		      << QwLog::endl;
+	    }
+	  }
+	} // for (Int_t k = 0; k < NModules; k++) 
+	break;
+      }
+      
     case kV1495Accum:
       {	
 	for (Int_t k = 0; k < NModules; k++) {
@@ -240,6 +286,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 	      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
 		Int_t j = k*StripsPerModule+i;
 		accum_count = (buffer[i] & 0xff000000) >> 24;
+		//!what value is assigned to fStripsRaw[][] when the accum_counts is greater than 5?
 		if (accum_count < 5)fStripsRaw[0][j] = accum_count;
 		accum_count = (buffer[i] & 0x00ff0000) >> 16;
 		if (accum_count < 5)fStripsRaw[1][j] = accum_count;
@@ -363,7 +410,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 	  if (fSubbankIndex[3][k]==subbank) {
 	    // sub-bank 0x020D, accum mode V2 data from strips 0-31 of planes 1 thru 4
 	    if (num_words > 0) { //!?this has already been checked in this function. remove this if?
-
+	      //!the condition that total no.of counts be less than '5' is not executed for v2 data(just to see this side for the story, if needed)
 	      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
 		Int_t j = k*StripsPerModule+i;
 		fStripsRaw_v2[0][j] = (buffer[i] & 0xff000000) >> 24;

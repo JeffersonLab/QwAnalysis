@@ -1466,137 +1466,16 @@ V1495,	       	1,    253,	eaccum_v2,	compton_e,   4,   61
 V1495,	       	1,    254,	eaccum_v2,	compton_e,   4,   62
 V1495,	       	1,    255,	eaccum_v2,	compton_e,   4,   63
 
+!note that we never took data with version2 slave 3, so no subbank for it
 
-Bank=0x020F
-!V1495 slave 3, electron version 2 accum mode, this bank doesn't really exist
-! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
-V1495,	       	2,    256,	eaccum_v2,	compton_e,   1,   64
-V1495,	       	2,    257,	eaccum_v2,	compton_e,   1,   65
-V1495,	       	2,    258,	eaccum_v2,	compton_e,   1,   66
-V1495,	       	2,    259,	eaccum_v2,	compton_e,   1,   67
-V1495,	       	2,    260,	eaccum_v2,	compton_e,   1,   68
-V1495,	       	2,    261,	eaccum_v2,	compton_e,   1,   69
-V1495,	       	2,    262,	eaccum_v2,	compton_e,   1,   70
-V1495,	       	2,    263,	eaccum_v2,	compton_e,   1,   71
-V1495,	       	2,    264,	eaccum_v2,	compton_e,   1,   72
-V1495,	       	2,    265,	eaccum_v2,	compton_e,   1,   73
-V1495,	       	2,    266,	eaccum_v2,	compton_e,   1,   74
-V1495,	       	2,    267,	eaccum_v2,	compton_e,   1,   75
-V1495,	       	2,    268,	eaccum_v2,	compton_e,   1,   76
-V1495,	       	2,    269,	eaccum_v2,	compton_e,   1,   77
-V1495,	       	2,    270,	eaccum_v2,	compton_e,   1,   78
-V1495,	       	2,    271,	eaccum_v2,	compton_e,   1,   79
-V1495,	       	2,    272,	eaccum_v2,	compton_e,   1,   80
-V1495,	       	2,    273,	eaccum_v2,	compton_e,   1,   81
-V1495,	       	2,    274,	eaccum_v2,	compton_e,   1,   82
-V1495,	       	2,    275,	eaccum_v2,	compton_e,   1,   83
-V1495,	       	2,    276,	eaccum_v2,	compton_e,   1,   84
-V1495,	       	2,    277,	eaccum_v2,	compton_e,   1,   85
-V1495,	       	2,    278,	eaccum_v2,	compton_e,   1,   86
-V1495,	       	2,    279,	eaccum_v2,	compton_e,   1,   87
-V1495,	       	2,    280,	eaccum_v2,	compton_e,   1,   88
-V1495,	       	2,    281,	eaccum_v2,	compton_e,   1,   89
-V1495,	       	2,    282,	eaccum_v2,	compton_e,   1,   90
-V1495,	       	2,    283,	eaccum_v2,	compton_e,   1,   91
-V1495,	       	2,    284,	eaccum_v2,	compton_e,   1,   92
-V1495,	       	2,    285,	eaccum_v2,	compton_e,   1,   93
-V1495,	       	2,    286,	eaccum_v2,	compton_e,   1,   94
-V1495,	       	2,    287,	eaccum_v2,	compton_e,   1,   95
-V1495,	       	2,    288,	eaccum_v2,	compton_e,   2,   64
-V1495,	       	2,    289,	eaccum_v2,	compton_e,   2,   65
-V1495,	       	2,    290,	eaccum_v2,	compton_e,   2,   66
-V1495,	       	2,    291,	eaccum_v2,	compton_e,   2,   67
-V1495,	       	2,    292,	eaccum_v2,	compton_e,   2,   68
-V1495,	       	2,    293,	eaccum_v2,	compton_e,   2,   69
-V1495,	       	2,    294,	eaccum_v2,	compton_e,   2,   70
-V1495,	       	2,    295,	eaccum_v2,	compton_e,   2,   71
-V1495,	       	2,    296,	eaccum_v2,	compton_e,   2,   72
-V1495,	       	2,    297,	eaccum_v2,	compton_e,   2,   73
-V1495,	       	2,    298,	eaccum_v2,	compton_e,   2,   74
-V1495,	       	2,    299,	eaccum_v2,	compton_e,   2,   75
-V1495,	       	2,    301,	eaccum_v2,	compton_e,   2,   76
-V1495,	       	2,    302,	eaccum_v2,	compton_e,   2,   77
-V1495,	       	2,    303,	eaccum_v2,	compton_e,   2,   78
-V1495,	       	2,    304,	eaccum_v2,	compton_e,   2,   79
-V1495,	       	2,    305,	eaccum_v2,	compton_e,   2,   80
-V1495,	       	2,    306,	eaccum_v2,	compton_e,   2,   81
-V1495,	       	2,    307,	eaccum_v2,	compton_e,   2,   82
-V1495,	       	2,    308,	eaccum_v2,	compton_e,   2,   83
-V1495,	       	2,    309,	eaccum_v2,	compton_e,   2,   84
-V1495,	       	2,    310,	eaccum_v2,	compton_e,   2,   85
-V1495,	       	2,    311,	eaccum_v2,	compton_e,   2,   86
-V1495,	       	2,    312,	eaccum_v2,	compton_e,   2,   87
-V1495,	       	2,    313,	eaccum_v2,	compton_e,   2,   88
-V1495,	       	2,    314,	eaccum_v2,	compton_e,   2,   89
-V1495,	       	2,    315,	eaccum_v2,	compton_e,   2,   90
-V1495,	       	2,    316,	eaccum_v2,	compton_e,   2,   91
-V1495,	       	2,    317,	eaccum_v2,	compton_e,   2,   92
-V1495,	       	2,    318,	eaccum_v2,	compton_e,   2,   93
-V1495,	       	2,    319,	eaccum_v2,	compton_e,   2,   94
-V1495,	       	2,    320,	eaccum_v2,	compton_e,   2,   95
-V1495,	       	2,    321,	eaccum_v2,	compton_e,   3,   64
-V1495,	       	2,    322,	eaccum_v2,	compton_e,   3,   65
-V1495,	       	2,    323,	eaccum_v2,	compton_e,   3,   66
-V1495,	       	2,    324,	eaccum_v2,	compton_e,   3,   67
-V1495,	       	2,    325,	eaccum_v2,	compton_e,   3,   68
-V1495,	       	2,    326,	eaccum_v2,	compton_e,   3,   69
-V1495,	       	2,    327,	eaccum_v2,	compton_e,   3,   70
-V1495,	       	2,    328,	eaccum_v2,	compton_e,   3,   71
-V1495,	       	2,    329,	eaccum_v2,	compton_e,   3,   72
-V1495,	       	2,    330,	eaccum_v2,	compton_e,   3,   73
-V1495,	       	2,    331,	eaccum_v2,	compton_e,   3,   74
-V1495,	       	2,    332,	eaccum_v2,	compton_e,   3,   75
-V1495,	       	2,    333,	eaccum_v2,	compton_e,   3,   76
-V1495,	       	2,    334,	eaccum_v2,	compton_e,   3,   77
-V1495,	       	2,    335,	eaccum_v2,	compton_e,   3,   78
-V1495,	       	2,    336,	eaccum_v2,	compton_e,   3,   79
-V1495,	       	2,    337,	eaccum_v2,	compton_e,   3,   80
-V1495,	       	2,    338,	eaccum_v2,	compton_e,   3,   81
-V1495,	       	2,    339,	eaccum_v2,	compton_e,   3,   82
-V1495,	       	2,    340,	eaccum_v2,	compton_e,   3,   83
-V1495,	        2,    341,	eaccum_v2,	compton_e,   3,   84
-V1495,	       	2,    342,	eaccum_v2,	compton_e,   3,   85
-V1495,	       	2,    343,	eaccum_v2,	compton_e,   3,   86
-V1495,	       	2,    344,	eaccum_v2,	compton_e,   3,   87
-V1495,	       	2,    345,	eaccum_v2,	compton_e,   3,   88
-V1495,	       	2,    346,	eaccum_v2,	compton_e,   3,   89
-V1495,	       	2,    347,	eaccum_v2,	compton_e,   3,   90
-V1495,	       	2,    348,	eaccum_v2,	compton_e,   3,   91
-V1495,	       	2,    349,	eaccum_v2,	compton_e,   3,   92
-V1495,	       	2,    350,	eaccum_v2,	compton_e,   3,   93
-V1495,	       	2,    351,	eaccum_v2,	compton_e,   3,   94
-V1495,	       	2,    352,	eaccum_v2,	compton_e,   3,   95
-V1495,	       	2,    353,	eaccum_v2,	compton_e,   4,   64
-V1495,	       	2,    354,	eaccum_v2,	compton_e,   4,   65
-V1495,	       	2,    355,	eaccum_v2,	compton_e,   4,   66
-V1495,	       	2,    356,	eaccum_v2,	compton_e,   4,   67
-V1495,	       	2,    357,	eaccum_v2,	compton_e,   4,   68
-V1495,	       	2,    358,	eaccum_v2,	compton_e,   4,   69
-V1495,	       	2,    359,	eaccum_v2,	compton_e,   4,   70
-V1495,	       	2,    360,	eaccum_v2,	compton_e,   4,   71
-V1495,	       	2,    361,	eaccum_v2,	compton_e,   4,   72
-V1495,	       	2,    362,	eaccum_v2,	compton_e,   4,   73
-V1495,	       	2,    363,	eaccum_v2,	compton_e,   4,   74
-V1495,	       	2,    364,	eaccum_v2,	compton_e,   4,   75
-V1495,	       	2,    365,	eaccum_v2,	compton_e,   4,   76
-V1495,	       	2,    366,	eaccum_v2,	compton_e,   4,   77
-V1495,	       	2,    367,	eaccum_v2,	compton_e,   4,   78
-V1495,	       	2,    368,	eaccum_v2,	compton_e,   4,   79
-V1495,	       	2,    369,	eaccum_v2,	compton_e,   4,   80
-V1495,	       	2,    370,	eaccum_v2,	compton_e,   4,   81
-V1495,	       	2,    371,	eaccum_v2,	compton_e,   4,   82
-V1495,	       	2,    372	eaccum_v2,	compton_e,   4,   83
-V1495,	       	2,    373,	eaccum_v2,	compton_e,   4,   84
-V1495,	       	2,    374,	eaccum_v2,	compton_e,   4,   85
-V1495,	       	2,    375,	eaccum_v2,	compton_e,   4,   86
-V1495,	       	2,    376,	eaccum_v2,	compton_e,   4,   87
-V1495,	       	2,    377,	eaccum_v2,	compton_e,   4,   88
-V1495,	       	2,    378,	eaccum_v2,	compton_e,   4,   89
-V1495,	       	2,    379,	eaccum_v2,	compton_e,   4,   90
-V1495,	       	2,    380	eaccum_v2,	compton_e,   4,   91
-V1495,	       	2,    381,	eaccum_v2,	compton_e,   4,   92
-V1495,	       	2,    382,	eaccum_v2,	compton_e,   4,   93
-V1495,	       	2,    383,	eaccum_v2,	compton_e,   4,   94
-V1495,	       	2,    384,	eaccum_v2,	compton_e,   4,   95
+Bank=0x0207
+!V1495 slave 1, edet DAQ settings info saved once per run
+! module.type, module.num,  det.type,	det.name
+V1495,	       	1,    eDAQ_info,	compton_e
+
+Bank=0x0208
+!V1495 slave 2, edet DAQ settings info saved once per run
+! module.type, module.num,  det.type,	det.name
+V1495,	       	2,    eDAQ_info,	compton_e
 
 ! End of ROC2 map

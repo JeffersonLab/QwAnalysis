@@ -175,7 +175,7 @@ class QwComptonElectronDetector:
     Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Accum_v2, kV1495Single, kV1495Scaler};
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Accum_v2, kV1495Single, kV1495Scaler, kV1495DAQinfo};
     std::map< Int_t, ChannelType_t > fMapping;
 
         // Assign static const member fields
