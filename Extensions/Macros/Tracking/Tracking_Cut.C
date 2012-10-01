@@ -65,6 +65,11 @@
 // both PMTs; added in TDC threshold condition so that TDC cuts are applied only when
 // #PE yields are larger than the threshold values of both PMTs.
 
+// jpan, Mon Oct  1 16:18:47 CDT 2012
+// added in Q2/#PE/light-weighted_Q2 vs X plots to show these distributions along the bar;
+// put limits on number of events to speed up the extraction of main detector pedestals;
+// fixed small bugs in text of run summary table and histogram title of #pe distributions; 
+
 #include <iostream>
 #include <iomanip>
 
@@ -366,15 +371,15 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
    //define canvas for drawing histograms
    TCanvas* c0=new TCanvas("c0","Q2 and scattering angle distributions",800,800);
-
-   //Get the oct number
-   int oct=getOctNumber(event_tree);
-   getQdcPedestal(event_tree);
    
    Int_t nevents=event_tree->GetEntries();
    cout << "total events: " << nevents << endl;
    int start=(event_start==-1)? 0:event_start;
    int end=(event_end==-1)? nevents:event_end;
+
+   //Get the oct number and main detector pedestals
+   int oct=getOctNumber(event_tree);
+   getQdcPedestal(event_tree,start,end);
 
     event_tree->SetBranchStatus("events",1);
     TBranch* event_branch=event_tree->GetBranch("events");
@@ -462,7 +467,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     histo_md1_pe[2] = new TH1F("histo_md1_pe[2]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_1,md_1),500,0,250);
     TH1F* histo_md2_pe[3];
     histo_md2_pe[0] = new TH1F("histo_md2_pe[0]",Form("Run %d, Total #PE, Oct %d",run,md_2),500,0,500);
-    histo_md2_pe[1] = new TH1F("histo_md2_pe[1]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_2,md_2),500,0,250);
+    histo_md2_pe[1] = new TH1F("histo_md2_pe[1]",Form("Run %d, MD%d-  #PE, Oct %d",run,md_2,md_2),500,0,250);
     histo_md2_pe[2] = new TH1F("histo_md2_pe[2]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_2,md_2),500,0,250);
 
     TH1F* histo_tdc1m = new TH1F("histo_tdc1m",Form("Run %d, TDC -, Oct %d",run,md_1),500,-350,0);
@@ -481,6 +486,13 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TProfile2D* light_dist2 = new TProfile2D("light_dist2",Form("Run %d, light Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
     TProfile2D* weighted_q2_dist1 = new TProfile2D("weighted_q2_dist1",Form("Run %d, Light-weighted Q2 Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
     TProfile2D* weighted_q2_dist2 = new TProfile2D("weighted_q2_dist2",Form("Run %d, Light-weighted Q2 Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
+
+    TProfile* q2_vs_x1 = new TProfile("q2_vs_x1",Form("Run %d, Q2 vs. X in Oct %d",run,md_1),480,-120,120);
+    TProfile* q2_vs_x2 = new TProfile("q2_vs_x2",Form("Run %d, Q2 vs. X in Oct %d",run,md_2),480,-120,120);
+    TProfile* light_vs_x1 = new TProfile("light_vs_x1",Form("Run %d, Light vs. X in Oct %d",run,md_1),480,-120,120);
+    TProfile* light_vs_x2 = new TProfile("light_vs_x2",Form("Run %d, light vs. X in Oct %d",run,md_2),480,-120,120);
+    TProfile* weighted_q2_vs_x1 = new TProfile("weighted_q2_vs_x1",Form("Run %d, Light-weighted Q2 vs. X in Oct %d",run,md_1),480,-120,120);
+    TProfile* weighted_q2_vs_x2 = new TProfile("weighted_q2_vs_x2",Form("Run %d, Light-weighted Q2 vs. X in Oct %d",run,md_2),480,-120,120);
 
    // Fetch events from tree
     for(int i=start;i<end;i++)  // start to loop over all events
@@ -809,6 +821,10 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 q2_dist1->Fill(y,x,Q2_val);
                 light_dist1->Fill(y,x,total_num_pe);
                 weighted_q2_dist1->Fill(y,x,Q2_val*total_num_pe);
+
+                q2_vs_x1->Fill(y,Q2_val);
+                light_vs_x1->Fill(y,total_num_pe);
+                weighted_q2_vs_x1->Fill(y,Q2_val,total_num_pe);
 	   }
          else if(package==2 ) 
            {
@@ -860,6 +876,10 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 q2_dist2->Fill(y,x,Q2_val);
                 light_dist2->Fill(y,x,total_num_pe);
                 weighted_q2_dist2->Fill(y,x,Q2_val*total_num_pe);
+
+                q2_vs_x2->Fill(y,Q2_val);
+                light_vs_x2->Fill(y,total_num_pe);
+                weighted_q2_vs_x2->Fill(y,Q2_val,total_num_pe);
 	   }
 
       } // end of loop over tracks
@@ -1245,6 +1265,40 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     pe_vs_tdc_2p->GetXaxis()->SetTitle("tdc");
     pe_vs_tdc_2p->GetYaxis()->SetTitle("#PE");
 
+    // canvas 8
+    TCanvas* c8=new TCanvas("c8","1D distributions of #PE and Q2",800,600);
+    c8->Divide(2,3);
+
+    c8->cd(1);
+    light_vs_x1->Draw();
+    light_vs_x1->GetYaxis()->SetTitle("#PE");
+    light_vs_x1->GetXaxis()->SetTitle("X [cm]");
+
+    c8->cd(2);
+    light_vs_x2->Draw();
+    light_vs_x2->GetYaxis()->SetTitle("#PE");
+    light_vs_x2->GetXaxis()->SetTitle("X [cm]");
+
+    c8->cd(3);
+    q2_vs_x1->Draw();
+    q2_vs_x1->GetYaxis()->SetTitle("Q2 [GeV/c^2]");
+    q2_vs_x1->GetXaxis()->SetTitle("X [cm]");
+
+    c8->cd(4);
+    q2_vs_x2->Draw();
+    q2_vs_x2->GetYaxis()->SetTitle("Q2 [GeV/c^2]");
+    q2_vs_x2->GetXaxis()->SetTitle("X [cm]");
+
+    c8->cd(5);
+    weighted_q2_vs_x1->Draw("colz");
+    weighted_q2_vs_x1->GetYaxis()->SetTitle("Q2 [GeV/c^2]");
+    weighted_q2_vs_x1->GetXaxis()->SetTitle("X [cm]");
+
+    c8->cd(6);
+    weighted_q2_vs_x2->Draw();
+    weighted_q2_vs_x2->GetYaxis()->SetTitle("Q2 [GeV/c^2]");
+    weighted_q2_vs_x2->GetXaxis()->SetTitle("X [cm]");
+
     // output runs conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
     TPaveText *condition_txt = new TPaveText(0.05,0.05,0.95,0.95);
@@ -1350,7 +1404,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       }
       if(num_tracks2!=0)
       {
-         summary_txt->AddText(Form("vertex z: %f +/- %f(rms) cm,  vertex r: %f +/- %f(rms) cm  (pkg1)",
+         summary_txt->AddText(Form("vertex z: %f +/- %f(rms) cm,  vertex r: %f +/- %f(rms) cm  (pkg2)",
                               histo_vertex_z[2]->GetMean(), histo_vertex_z[2]->GetRMS(),
                               histo_vertex_r[2]->GetMean(), histo_vertex_r[2]->GetRMS() ));
       }
@@ -1424,6 +1478,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c5->Write();
     c6->Write();
     c7->Write();
+    c8->Write();
 
     //save histograms
     hit_dist1->Write();
@@ -1466,6 +1521,13 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     q2_dist2->Write();
     weighted_q2_dist1->Write();
     weighted_q2_dist2->Write();
+
+    light_vs_x1->Write();
+    light_vs_x2->Write();
+    q2_vs_x1->Write();
+    q2_vs_x2->Write();
+    weighted_q2_vs_x1->Write();
+    weighted_q2_vs_x2->Write();
 
     hist_file->Close();
 
@@ -1538,17 +1600,19 @@ double global2local_phi(double phi, int octant, int pkg)
    return phi;
 }
 
-void getQdcPedestal(TTree* event_tree)
+void getQdcPedestal(TTree* event_tree, int evt_start, int evt_end)
 {
    for(int ii=1; ii<=8; ii++)
    {
-      event_tree->Draw(Form("md%dm_adc>>m_adc",ii));
-      event_tree->Draw(Form("md%dp_adc>>p_adc",ii));
+      event_tree->Draw(Form("md%dm_adc>>m_adc",ii),
+                       Form("CodaEventNumber>=%d && CodaEventNumber<=%d",evt_start,evt_end));
+      event_tree->Draw(Form("md%dp_adc>>p_adc",ii),
+                       Form("CodaEventNumber>=%d && CodaEventNumber<=%d",evt_start,evt_end));
 
       TF1 g_m("g_m","gaus", 1, 350);
       TF1 g_p("g_p","gaus", 1, 350);
-      g_m.SetParameters(1e6,200,10);
-      g_p.SetParameters(1e6,200,10);
+      //g_m.SetParameters(1e6,200,10);
+      //g_p.SetParameters(1e6,200,10);
 
       m_adc->Fit("g_m","R");
       p_adc->Fit("g_p","R");
