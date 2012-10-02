@@ -70,6 +70,10 @@
 // put limits on number of events to speed up the extraction of main detector pedestals;
 // fixed small bugs in text of run summary table and histogram title of #pe distributions; 
 
+// jpan, Tue Oct  2 10:38:42 CDT 2012
+// Made the recontructed momentum (the momentum determined by matching tracks through
+// B-field) plots available in the output and added in a cut for this parameter.
+ 
 #include <iostream>
 #include <iomanip>
 
@@ -90,7 +94,7 @@ bool enable_direction_phi_cut    = false;
 bool enable_position_r_off_cut   = false;
 bool enable_hit_position_x_cut   = false;
 bool enable_hit_position_y_cut   = false;
-
+bool enable_momentum_cut         = false;
 
 // cut values
 const int multiple=18;
@@ -176,6 +180,9 @@ double hit_position_x_cut_min = (344-9.0) -10.0; // add in 10 cm margin
 double hit_position_x_cut_max = (344+9.0) +10.0;
 double hit_position_y_cut_min = -120;
 double hit_position_y_cut_max = 120;
+
+double momentum_min = 0.0;
+double momentum_max = 2000.0;  // unit: MeV
 
 // parameters
 
@@ -266,6 +273,18 @@ bool  vertex_r_cut(double val)
   {
     if(debug)
        cout<<"rejected, vertex_r_cut, vertex_r="<<val<<endl;
+    return false;
+  }
+}
+
+bool  momentum_cut(double val)
+{
+  if(val> momentum_min && val< momentum_max)
+    return true;
+  else
+  {
+    if(debug)
+       cout<<"rejected, momentum_cut, momentum="<<val<<endl;
     return false;
   }
 }
@@ -425,6 +444,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     histo_vertex_z[0] = new TH1F("histo_vertex_z[0]",Form("Run %d, Vertex Z, Oct %d + %d",run,md_1,md_2),400,-1500,-1);
     histo_vertex_z[1] = new TH1F("histo_vertex_z[1]",Form("Run %d, Vertex Z in Package 1, Oct %d",run,md_1),400,-1500,-1);
     histo_vertex_z[2] = new TH1F("histo_vertex_z[2]",Form("Run %d, Vertex Z in Package 2, Oct %d",run,md_2),400,-1500,-1);
+
+    TH1F* histo_momentum[3];
+    histo_momentum[0] = new TH1F("histo_momentum[0]",Form("Run %d, Reconstructed Momentum, Oct %d + %d",run,md_1,md_2),500,0,2000);
+    histo_momentum[1] = new TH1F("histo_momentum[1]",Form("Run %d, Reconstructed Momentum in Package 1, Oct %d",run,md_1),500,0,2000);
+    histo_momentum[2] = new TH1F("histo_momentum[2]",Form("Run %d, Reconstructed Momentum in Package 2, Oct %d",run,md_2),500,0,2000);
 
     TH1F* histo_p0[3];
     histo_p0[0] = new TH1F("histo_p0[0]",Form("Run %d, P0, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
@@ -685,6 +709,16 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 continue;
         }
 
+      //----------------------------
+      // reconstructed momentum cut
+      //----------------------------
+
+      double momentum = track->fMomentum;
+      if(enable_momentum_cut)
+        {
+           if(! momentum_cut(momentum))
+               continue;
+        }
 
       //----------------------
       // TDC cut
@@ -791,6 +825,9 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 histo_vertex_z[0]->Fill(vertex_z);
                 histo_vertex_z[1]->Fill(vertex_z);
 
+                histo_momentum[0]->Fill(momentum);
+                histo_momentum[1]->Fill(momentum);
+
                 histo_p0[0]->Fill(P0_val);
                 histo_p0[1]->Fill(P0_val);
                 histo_pp[0]->Fill(Pp_val);
@@ -845,6 +882,9 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 histo_vertex_r[2]->Fill(vertex_r);
                 histo_vertex_z[0]->Fill(vertex_z);
                 histo_vertex_z[2]->Fill(vertex_z);
+
+                histo_momentum[0]->Fill(momentum);
+                histo_momentum[2]->Fill(momentum);
 
                 histo_p0[0]->Fill(P0_val);
                 histo_p0[2]->Fill(P0_val);
@@ -1299,7 +1339,23 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     weighted_q2_vs_x2->GetYaxis()->SetTitle("Q2 [GeV/c^2]");
     weighted_q2_vs_x2->GetXaxis()->SetTitle("X [cm]");
 
-    // output runs conditions
+    // canvas 9
+    TCanvas* c9=new TCanvas("c9","Reconstructed Momentum Distributions",600,800);
+    c9->Divide(1,3);
+
+    c9->cd(1);
+    histo_momentum[0]->Draw();
+    histo_momentum[0]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
+
+    c9->cd(2);
+    histo_momentum[1]->Draw();
+    histo_momentum[1]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
+
+    c9->cd(3);
+    histo_momentum[2]->Draw();
+    histo_momentum[2]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
+
+    // canvas for run conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
     TPaveText *condition_txt = new TPaveText(0.05,0.05,0.95,0.95);
     condition_txt->SetTextSize(0.025);
