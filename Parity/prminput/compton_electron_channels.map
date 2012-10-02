@@ -1,7 +1,3 @@
-ROC=0
-Bank=0x0207
-! Master V1495 board
-
 ROC=2
 Bank=0x0201
 !V1495 slave 1, electron single event mode
@@ -1471,11 +1467,11 @@ V1495,	       	1,    255,	eaccum_v2,	compton_e,   4,   63
 Bank=0x0207
 !V1495 slave 1, edet DAQ settings info saved once per run
 ! module.type, module.num,  det.type,	det.name
-V1495,	       	1,    eDAQ_info,	compton_e
+V1495,	       	0,    1,	eDAQ_info,	compton_e,	1,	0
 
 Bank=0x0208
 !V1495 slave 2, edet DAQ settings info saved once per run
 ! module.type, module.num,  det.type,	det.name
-V1495,	       	2,    eDAQ_info,	compton_e
+V1495,	       	1,    1,	eDAQ_info,	compton_e,	1,	0
 
 ! End of ROC2 map

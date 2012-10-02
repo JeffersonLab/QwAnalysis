@@ -246,9 +246,11 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
     switch (fMapping[subbank]) {
     case kV1495DAQinfo:
       {
+	//ofstream outDAQinfo;
+	//outDAQinfo.open("$QW_ROOTFILES/QwComptEDetDAQinfo.txt");//!?this may not work in ifarm analysis
 	for (Int_t k = 0; k < NModules; k++) {
 	  if (fSubbankIndex[4][k]==subbank) {
-	    // sub-bank 0x0207, eDAQinfo for this slave board for all planes and strips
+	    // sub-bank 0x207 & 0x208, eDAQinfo for this slave board for all planes and strips
 	    if (num_words > 0) { //!?this has already been checked in this function. remove this if?JC
 	      ///the total number of words in this subbank is fixed at 8 always, though the meaning carried by a word has
 	      ///..changed during different revisions (may need fine tuning later!)
@@ -261,6 +263,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 	      widthInfo = buffer[6];
 	      trigInfo = buffer[7];
 	      words_read++;   
+	      //outDAQinfo<<"slave"<<k+1<<"\t"<<portAmask<<"\t"<<portBmask<<"\t"<<portDmask<<"\t"<<portEmask<<"\t"<<widthInfo<<"\t"<<trigInfo;
 	    }
 	    if (num_words != words_read) {
 	      QwError << "QwComptonElectronDetector: There were "
@@ -270,8 +273,9 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 		      << " in ROC " << roc_id << ", bank " << bank_id << "."
 		      << std::dec
 		      << QwLog::endl;
-	    }
+	    }	    
 	  }
+	  //outDAQinfo.close();
 	} // for (Int_t k = 0; k < NModules; k++) 
 	break;
       }
