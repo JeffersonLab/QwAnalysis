@@ -42,10 +42,10 @@ QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
 : fDetectorInfo(detector_info)
 {
   // Initialize
-  fCurrentRun = -1;
+  fCurrentRunNumber = -1;
   fRunRange.first = -1;
   fRunRange.second = 0;
-  fCurrentEvent = -1;
+  fCurrentEventNumber = -1;
   fEventRange.first = -1;
   fEventRange.second = 0;
 
@@ -66,6 +66,16 @@ QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
  */
 QwTreeEventBuffer::~QwTreeEventBuffer()
 {
+  // Delete previous event
+  if (fCurrentEvent) {
+    delete fCurrentEvent;
+    fCurrentEvent = 0;
+  }
+  // Delete previous original event
+  if (fOriginalEvent) {
+    delete fOriginalEvent;
+    fOriginalEvent = 0;
+  }
 }
 
 
@@ -87,14 +97,14 @@ void QwTreeEventBuffer::ProcessOptions(QwOptions &options)
 unsigned int QwTreeEventBuffer::OpenNextFile()
 {
   // Get the run number
-  if (fCurrentRun == -1)
-    fCurrentRun = fRunRange.first - 1;
+  if (fCurrentRunNumber == -1)
+    fCurrentRunNumber = fRunRange.first - 1;
 
   // Find the next run number
   unsigned int status = 1;
-  while (status != 0 && fCurrentRun < fRunRange.second) {
+  while (status != 0 && fCurrentRunNumber < fRunRange.second) {
     // Next run
-    fCurrentRun++;
+    fCurrentRunNumber++;
     // Open the file
     status = OpenFile();
   }
@@ -109,7 +119,7 @@ unsigned int QwTreeEventBuffer::OpenNextFile()
 unsigned int QwTreeEventBuffer::OpenFile()
 {
   // Determine the file name
-  TString filename = Form(getenv_safe_TString("QW_DATA") + "/QwSim_%d.root", fCurrentRun);
+  TString filename = Form(getenv_safe_TString("QW_DATA") + "/QwSim_%d.root", fCurrentRunNumber);
 
   // Open ROOT file
   fFile = new TFile (filename);
@@ -131,8 +141,8 @@ unsigned int QwTreeEventBuffer::OpenFile()
   QwVerbose << "Entries in event file: " << GetNumberOfEntries() << QwLog::endl;
 
   // Reset event and entry numbers
-  fCurrentEvent = -1;
-  fCurrentEntry = -1;
+  fCurrentEventNumber = -1;
+  fCurrentEntryNumber = -1;
 
   // Attach branches to the tree vectors
   AttachBranches();
@@ -163,19 +173,19 @@ unsigned int QwTreeEventBuffer::CloseFile()
 unsigned int QwTreeEventBuffer::GetNextEvent()
 {
   // Find next event number in requested range
-  do fCurrentEvent++; while (fCurrentEvent < fEventRange.first);
+  do fCurrentEventNumber++; while (fCurrentEventNumber < fEventRange.first);
   // But make sure it is not past the end of the range
-  if (fCurrentEvent > fEventRange.second) return 1;
+  if (fCurrentEventNumber > fEventRange.second) return 1;
 
   //  Progress meter (this should probably produce less output in production)
-  if (fCurrentEvent > 0 && fCurrentEvent % 1000 == 0) {
-    QwMessage << "Processing event " << fCurrentEvent << QwLog::endl;
-  } else if (fCurrentEvent > 0 && fCurrentEvent % 100 == 0) {
-    QwVerbose << "Processing event " << fCurrentEvent << QwLog::endl;
+  if (fCurrentEventNumber > 0 && fCurrentEventNumber % 1000 == 0) {
+    QwMessage << "Processing event " << fCurrentEventNumber << QwLog::endl;
+  } else if (fCurrentEventNumber > 0 && fCurrentEventNumber % 100 == 0) {
+    QwVerbose << "Processing event " << fCurrentEventNumber << QwLog::endl;
   }
 
   // Read the next event
-  return GetSpecificEvent(fCurrentEvent);
+  return GetSpecificEvent(fCurrentEventNumber);
 }
 
 
@@ -186,60 +196,84 @@ unsigned int QwTreeEventBuffer::GetNextEvent()
 unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
 {
   // Delete previous event
-  if (fEvent) {
-    delete fEvent;
-    fEvent = 0;
+  if (fCurrentEvent) {
+    delete fCurrentEvent;
+    fCurrentEvent = 0;
+  }
+  // Delete previous original event
+  if (fOriginalEvent) {
+    delete fOriginalEvent;
+    fOriginalEvent = 0;
   }
 
+
   // Assign the current event and entry number
-  fCurrentEvent = eventnumber;
-  fCurrentEntry = eventnumber * fEntriesPerEvent;
+  fCurrentEventNumber = eventnumber;
+  fCurrentEntryNumber = eventnumber * fNumberOfEntriesPerEvent;
 
   // Check the event number
-  if ((fCurrentEvent < fEventRange.first)
-   || (fCurrentEvent > fEventRange.second))
+  if ((fCurrentEventNumber < fEventRange.first)
+   || (fCurrentEventNumber > fEventRange.second))
     return 1;
-  if (fCurrentEvent >= GetNumberOfEvents())
+  if (fCurrentEventNumber >= GetNumberOfEvents())
     return 1;
-  if (fCurrentEntry >= GetNumberOfEntries())
+  if (fCurrentEntryNumber >= GetNumberOfEntries())
     return 1;
 
-  // Create a new event
-  fEvent = new QwEvent();
 
-  while (fCurrentEntry / fEntriesPerEvent == fCurrentEvent
-      && fCurrentEntry < fNumberOfEntries) {
+  /// Create the event header with the run and event number
+  QwEventHeader header(fCurrentRunNumber,fCurrentEventNumber);
+
+  /// Create a new event
+  fCurrentEvent = new QwEvent();
+  fCurrentEvent->SetEventHeader(header);
+  fOriginalEvent = new QwEvent();
+  fOriginalEvent->SetEventHeader(header);
+
+  // Stack entries to form event
+  while (fCurrentEntryNumber / fNumberOfEntriesPerEvent == fCurrentEventNumber
+      && fCurrentEntryNumber < fNumberOfEntries) {
 
     // Get the next entry from the ROOT tree
-    GetEntry(fCurrentEntry++);
+    GetEntry(fCurrentEntryNumber++);
+
+    // Add the smeared hit list
+    QwHitContainer* smearedhitlist = CreateHitList(true);
+    fCurrentEvent->AddHitContainer(smearedhitlist);
+    delete smearedhitlist;
+
+    // Add the original hit list
+    QwHitContainer* originalhitlist = CreateHitList(false);
+    fOriginalEvent->AddHitContainer(originalhitlist);
+    delete originalhitlist;
 
     // Assign the kinematic variables
-    fEvent->fVertexPosition =
+    fOriginalEvent->fVertexPosition =
       TVector3(fPrimary_OriginVertexPositionX,
                fPrimary_OriginVertexPositionY,
                fPrimary_OriginVertexPositionZ);
-    fEvent->fVertexMomentum =
+    fOriginalEvent->fVertexMomentum =
       TVector3(fPrimary_OriginVertexMomentumDirectionX,
                fPrimary_OriginVertexMomentumDirectionY,
                fPrimary_OriginVertexMomentumDirectionZ);
 
-    // Add the hit list
-    QwHitContainer* hitlist = CreateHitList();
-    fEvent->AddHitContainer(hitlist);
-    delete hitlist;
-
     // Add the tree lines
-    //fEvent->AddTreeLineList(GetTreeLines(kRegionID2,kDirectionX));
-    //fEvent->AddTreeLineList(GetTreeLines(kRegionID2,kDirectionU));
-    //fEvent->AddTreeLineList(GetTreeLines(kRegionID2,kDirectionV));
-    //fEvent->AddTreeLineList(GetTreeLines(kRegionID3,kDirectionU,1));
-    //fEvent->AddTreeLineList(GetTreeLines(kRegionID3,kDirectionV,2));
-    //fEvent->AddTreeLineList(GetTreeLines(kRegionID3,kDirectionU,3));
-    //fEvent->AddTreeLineList(GetTreeLines(kRegionID3,kDirectionV,4));
+    std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
+    treelinelist = CreateTreeLines(kRegionID2);
+    for (size_t i = 0; i < treelinelist.size(); i++)
+      fOriginalEvent->AddTreeLine(treelinelist[i].get());
+    treelinelist = CreateTreeLines(kRegionID3);
+    for (size_t i = 0; i < treelinelist.size(); i++)
+      fOriginalEvent->AddTreeLine(treelinelist[i].get());
 
     // Add the partial tracks
-    fEvent->AddPartialTrackList(GetPartialTracks(kRegionID2));
-    fEvent->AddPartialTrackList(GetPartialTracks(kRegionID3));
+    std::vector<boost::shared_ptr<QwPartialTrack> > partialtracklist;
+    partialtracklist = CreatePartialTracks(kRegionID2);
+    for (size_t i = 0; i < partialtracklist.size(); i++)
+      fOriginalEvent->AddPartialTrack(partialtracklist[i].get());
+    partialtracklist = CreatePartialTracks(kRegionID3);
+    for (size_t i = 0; i < partialtracklist.size(); i++)
+      fOriginalEvent->AddPartialTrack(partialtracklist[i].get());
 
   } // end of loop over entries
 
@@ -258,24 +292,10 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
   fTree->GetEntry(entry);
 
   // Region 1
-  //fTree->GetBranch("Region1.ChamberFront.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region1.ChamberBack.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
   fRegion1_HasBeenHit = fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit == 5 &&
                         fRegion1_ChamberBack_WirePlane_PlaneHasBeenHit  == 5;
 
   // Region 2
-  //fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberBack.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberBack.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberBack.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
   fRegion2_HasBeenHit = fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
                         fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit == 5 &&
                         fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit == 5 &&
@@ -290,10 +310,6 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
                         fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit  == 5;
 
   // Region 3
-  //fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(entry);
-  //fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(entry);
   fRegion3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
                         fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
                         fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
@@ -354,7 +370,7 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
  */
 QwHitContainer* QwTreeEventBuffer::GetHitContainer() const
 {
-  return fEvent->GetHitContainer();
+  return fCurrentEvent->GetHitContainer();
 }
 
 
@@ -363,19 +379,12 @@ QwHitContainer* QwTreeEventBuffer::GetHitContainer() const
  * @param region Region of the tree lines
  * @return Vector of tree lines
  */
-std::vector<QwTrackingTreeLine*> QwTreeEventBuffer::GetTreeLines(EQwRegionID region) const
+std::vector<boost::shared_ptr<QwTrackingTreeLine> > QwTreeEventBuffer::CreateTreeLines(EQwRegionID region) const
 {
   // List of tree lines
-  std::vector<QwTrackingTreeLine*> treelinelist;
+  std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
 
   /// \todo Recreate tree lines from simulated hits in QwTreeEventBuffer
-  switch (region) {
-  case kRegionID2:
-    break;
-  default:
-    QwError << "Region not supported!" << QwLog::endl;
-    break;
-  }
 
   return treelinelist;
 }
@@ -386,11 +395,11 @@ std::vector<QwTrackingTreeLine*> QwTreeEventBuffer::GetTreeLines(EQwRegionID reg
  * @param region Region of the partial track
  * @return Vector of partial tracks
  */
-std::vector<QwPartialTrack*> QwTreeEventBuffer::GetPartialTracks(EQwRegionID region) const
+std::vector<boost::shared_ptr<QwPartialTrack> > QwTreeEventBuffer::CreatePartialTracks(EQwRegionID region) const
 {
   // List of position and momentum, and of partial tracks
   std::vector<TVector3> position, momentum;
-  std::vector<QwPartialTrack*> partialtracklist;
+  std::vector<boost::shared_ptr<QwPartialTrack> > partialtracklist;
 
   // Depending on the region, get the position and momentum at the reference
   // detector defined in the header file.
@@ -442,7 +451,7 @@ std::vector<QwPartialTrack*> QwTreeEventBuffer::GetPartialTracks(EQwRegionID reg
   for (size_t hit = 0; hit < position.size(); hit++) {
     QwPartialTrack* partialtrack = new QwPartialTrack(position.at(hit), momentum.at(hit));
     partialtrack->SetRegion(region);
-    partialtracklist.push_back(partialtrack);
+    partialtracklist.push_back(boost::shared_ptr<QwPartialTrack>(partialtrack));
   }
 
   // Return the list of partial tracks
@@ -458,6 +467,9 @@ std::vector<QwPartialTrack*> QwTreeEventBuffer::GetPartialTracks(EQwRegionID reg
 QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) const
 {
   QwDebug << "Calling QwTreeEventBuffer::GetHitList ()" << QwLog::endl;
+
+  // Flag to set hit numbers to non-zero values
+  const bool set_hit_numbers = false;
 
   // Create the hit list
   int hitcounter = 0;
@@ -493,7 +505,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       double y = -xLocalMC;
       std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
       // Add the hit to the hit list (it is copied)
       hitlist->Append(hits);
     }
@@ -514,7 +528,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       double y = -xLocalMC;
       std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
       // Add the hit to the hit list (it is copied)
       hitlist->Append(hits);
     }
@@ -538,7 +554,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
         // Set the hit number
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         // Add the hit to the hit list (it is copied) and delete local instance
         hitlist->push_back(*hit);
         delete hit;
@@ -561,7 +577,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -583,7 +599,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -605,7 +621,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -627,7 +643,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -649,7 +665,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -672,7 +688,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -694,7 +710,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -716,7 +732,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -738,7 +754,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -760,7 +776,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -782,7 +798,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
-        hit->SetHitNumber(hitcounter++);
+        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
         delete hit;
       }
@@ -861,7 +877,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -906,7 +924,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -952,7 +972,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -997,7 +1019,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -1022,7 +1046,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       std::vector<QwHit> hits = CreateHitCerenkov(detectorinfo,x,y);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -1047,7 +1073,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       std::vector<QwHit> hits = CreateHitCerenkov(detectorinfo,x,y);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      for (size_t i = 0; i < hits.size(); i++)
+        if (set_hit_numbers)
+          hits[i].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -1106,7 +1134,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion1 (
   std::vector<QwHit> hits;
 
   // Determine the strip range that was hit
-  // TODO The effects of the resolution are hard-coded and cannot be disabled.
+  // TODO The effects of the resolution are hard-coded and cannot be disabled. Who cares? GEMs are dead!
   int strip1 = 0;
   int strip2 = 0;
   switch (direction) {

@@ -85,20 +85,20 @@ int main (int argc, char* argv[])
     while (treebuffer->GetNextEvent() == 0) {
 
       /// Get the generated event
-      event = treebuffer->GetEvent();
+      event = treebuffer->GetCurrentEvent();
       QwEventHeader header(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
       event->SetEventHeader(header);
 
       /// Get the partial tracks in the front and back region
-      std::vector<QwPartialTrack*> tracks_r2 = treebuffer->GetPartialTracks(kRegionID2);
-      std::vector<QwPartialTrack*> tracks_r3 = treebuffer->GetPartialTracks(kRegionID3);
+      std::vector<boost::shared_ptr<QwPartialTrack> > tracks_r2 = treebuffer->CreatePartialTracks(kRegionID2);
+      std::vector<boost::shared_ptr<QwPartialTrack> > tracks_r3 = treebuffer->CreatePartialTracks(kRegionID3);
 
       // Process the partial tracks in region 2 and region 3
       for (size_t i = 0; i < tracks_r2.size(); i++) {
         for (size_t j = 0; j < tracks_r3.size(); j++) {
 
           // Filter tracks based on parameters (TODO filter should go somewhere else)
-          int status = trackfilter->Filter(tracks_r2.at(i), tracks_r3.at(j));
+          int status = trackfilter->Filter(tracks_r2.at(i).get(), tracks_r3.at(j).get());
           if (status != 0) {
             QwMessage << "Track did not pass filter." << QwLog::endl;
             continue;
@@ -106,7 +106,7 @@ int main (int argc, char* argv[])
 
           // Bridge using the lookup table
           timer.Start();
-          const QwTrack* track1 = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          const QwTrack* track1 = matrixlookup->Bridge(tracks_r2.at(i).get(), tracks_r3.at(j).get());
           timer.Stop();
           timer.Reset();
           if (track1) {
@@ -116,7 +116,7 @@ int main (int argc, char* argv[])
 
           // Bridge using the ray tracer
           timer.Start();
-          const QwTrack* track2 = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          const QwTrack* track2 = raytracer->Bridge(tracks_r2.at(i).get(), tracks_r3.at(j).get());
           timer.Stop();
           timer.Reset();
           if (track2) {

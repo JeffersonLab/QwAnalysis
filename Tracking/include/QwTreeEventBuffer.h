@@ -16,6 +16,7 @@ using std::vector;
 
 // Boost math library for random number generation
 #include <boost/random.hpp>
+#include <boost/shared_ptr.hpp>
 
 // ROOT headers
 #include "TROOT.h"
@@ -66,18 +67,18 @@ class QwTreeEventBuffer
 
     /// Set the number of entries per event
     void SetEntriesPerEvent(const unsigned int n) {
-      fEntriesPerEvent = n;
-      fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
+      fNumberOfEntriesPerEvent = n;
+      fNumberOfEvents = fNumberOfEntries / fNumberOfEntriesPerEvent;
     };
     /// Get the number of entries per event
-    int GetEntriesPerEvent() const { return fEntriesPerEvent; };
+    int GetEntriesPerEvent() const { return fNumberOfEntriesPerEvent; };
     /// Get the number of events in the run
     int GetNumberOfEvents() const { return fNumberOfEvents; };
 
     /// Get the current run number
-    int GetRunNumber() const { return fCurrentRun; };
+    int GetRunNumber() const { return fCurrentRunNumber; };
     /// Get the current event number
-    int GetEventNumber() const { return fCurrentEvent; };
+    int GetEventNumber() const { return fCurrentEventNumber; };
 
 
     /// \brief Open the next event file
@@ -97,17 +98,20 @@ class QwTreeEventBuffer
     QwHitContainer* CreateHitList(const bool resolution_effects = true) const;
 
 
-    /// \brief Get the full event
-    QwEvent* GetEvent() const { return fEvent; };
+    /// \brief Get the current event
+    QwEvent* GetCurrentEvent() const { return fCurrentEvent; };
+
+    /// \brief Get the original event
+    QwEvent* GetOriginalEvent() const { return fOriginalEvent; };
 
     /// \brief Get the hit list
     QwHitContainer* GetHitContainer() const;
 
     /// \brief Get the tree lines
-    std::vector<QwTrackingTreeLine*> GetTreeLines(EQwRegionID region) const;
+    std::vector<boost::shared_ptr<QwTrackingTreeLine> > CreateTreeLines(EQwRegionID region) const;
 
     /// \brief Get the partial tracks
-    std::vector<QwPartialTrack*> GetPartialTracks(EQwRegionID region) const;
+    std::vector<boost::shared_ptr<QwPartialTrack> > CreatePartialTracks(EQwRegionID region) const;
 
 
   private:
@@ -119,13 +123,13 @@ class QwTreeEventBuffer
     TFile* fFile;	///< ROOT file
     TTree* fTree;	///< ROOT tree
 
-    int fCurrentRun;		///< Current run number
-    int fCurrentEntry;		///< Current entry number
-    int fCurrentEvent;		///< Current event number
+    int fCurrentRunNumber;		  ///< Current run number
+    int fCurrentEntryNumber;		///< Current entry number
+    int fCurrentEventNumber;		///< Current event number
 
     int fNumberOfEntries;	///< Number of entries in the tree
     int fNumberOfEvents;	///< Number of events in the tree (after combining entries)
-    int fEntriesPerEvent;	///< Number of entries to combine for each event
+    int fNumberOfEntriesPerEvent;	///< Number of entries to combine for each event (stacking)
 
     std::pair<int, int> fRunRange;	///< Requested run range
     std::pair<int, int> fEventRange;	///< Requested event range
@@ -133,7 +137,7 @@ class QwTreeEventBuffer
     /// Get the number of entries in the loaded run
     void SetNumberOfEntries(const unsigned int n) {
       fNumberOfEntries = n;
-      fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
+      fNumberOfEvents = fNumberOfEntries / fNumberOfEntriesPerEvent;
     };
     /// Get the number of entries in the loaded run
     int GetNumberOfEntries() const { return fNumberOfEntries; };
@@ -142,9 +146,11 @@ class QwTreeEventBuffer
     void GetEntry(const unsigned int entry);
 
 
-    /// The current event
-    QwEvent* fEvent;
+    /// The event to be reconstructed
+    QwEvent* fCurrentEvent;
 
+    /// The original event from simulation
+    QwEvent* fOriginalEvent;
 
     /// List of detector info objects (geometry information)
     const QwGeometry fDetectorInfo;

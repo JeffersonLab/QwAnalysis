@@ -125,38 +125,16 @@ int main (int argc, char* argv[])
     Int_t nevents = 0;
     while (treebuffer->GetNextEvent() == 0) {
 
-      /// Create the event header with the run and event number
-      QwEventHeader header(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
-
 
       /// Create the original event
-      /// \todo Original event is created in QwTreeEventBuffer already: should just use that
-      original = new QwEvent();
-      original->SetEventHeader(header);
-      /// Add hits without resolution smearing
-      QwHitContainer* exacthitlist = treebuffer->CreateHitList(false);
-      original->AddHitContainer(exacthitlist);
-      delete exacthitlist;
-      /// Add exact treelines and tracks
-      original->AddTreeLineList(treebuffer->GetTreeLines(kRegionID2));
-      original->AddTreeLineList(treebuffer->GetTreeLines(kRegionID3));
-      original->AddPartialTrackList(treebuffer->GetPartialTracks(kRegionID2));
-      original->AddPartialTrackList(treebuffer->GetPartialTracks(kRegionID3));
+      original = treebuffer->GetOriginalEvent();
 
 
       /// Create the to-be-reconstructed event
-      event = new QwEvent();
-      event->SetEventHeader(header);
-
-      /// Add hits with resolution smearing
-      QwHitContainer* smearedhitlist = treebuffer->CreateHitList(true);
-      event->AddHitContainer(smearedhitlist);
-      delete smearedhitlist;
-
+      event = treebuffer->GetCurrentEvent();
 
       /// We process the hit list through the tracking worker
       trackingworker->ProcessEvent(detectors, event);
-
 
       // Fill the tree
       event_tree->Fill();
@@ -164,10 +142,6 @@ int main (int argc, char* argv[])
 
       // Event has been processed
       nevents++;
-
-      // Delete the hit lists and reconstructed event
-      delete original;
-      delete event;
 
     } // end of loop over events
 
