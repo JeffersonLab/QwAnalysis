@@ -73,6 +73,11 @@
 // jpan, Tue Oct  2 10:38:42 CDT 2012
 // Made the recontructed momentum (the momentum determined by matching tracks through
 // B-field) plots available in the output and added in a cut for this parameter.
+
+// jpan, Wed Oct  3 10:22:48 CDT 2012
+// Enabled auto-selection of single PE calibration for different periods of tracking runs
+// added in function to find out the parameters of matching angle residuals automatically
+// instead of finding and filling in these parameters manually.
  
 #include <iostream>
 #include <iomanip>
@@ -88,13 +93,13 @@ bool enable_scattering_angle_cut = false;
 bool enable_vertex_z_cut         = false;
 bool enable_vertex_r_cut         = false;
 bool enable_position_theta_cut   = false;
-bool enable_position_phi_cut     = false;
-bool enable_direction_theta_cut  = false;
-bool enable_direction_phi_cut    = false;
+bool enable_position_phi_cut     = true;
+bool enable_direction_theta_cut  = true;
+bool enable_direction_phi_cut    = true;
 bool enable_position_r_off_cut   = false;
 bool enable_hit_position_x_cut   = false;
 bool enable_hit_position_y_cut   = false;
-bool enable_momentum_cut         = false;
+bool enable_momentum_cut         = true;
 
 // cut values
 const int multiple=18;
@@ -105,7 +110,7 @@ const double TDC_threhold = 3.0;  // TDC cut threshold value ~ 3PE
 int tdc_cut_min[2] = {-210,-210}; //tdc cuts for package {1, 2}
 int tdc_cut_max[2] = {-150,-150};
 
-double num_pe_cut = 1.0;
+double num_pe_cut = 3.0;
 
 double scattering_angle_cut_min = 3.0;
 double scattering_angle_cut_max = 13.0;
@@ -120,29 +125,14 @@ double num_of_sigma_direction_theta_cut = 3.0;
 double num_of_sigma_position_phi_cut = 3.0;
 double num_of_sigma_direction_phi_cut = 3.0;
 
-double position_theta_cut_mean1 = -0.00817 *degree;
-double position_theta_cut_rms1  = 0.05676 *degree;
-
-double position_theta_cut_mean2 = 0.01732 *degree;
-double position_theta_cut_rms2  = 0.03833 *degree;
-
-double position_phi_cut_mean1 = 0.8026 *degree;
-double position_phi_cut_rms1  = 1.716 *degree;
-
-double position_phi_cut_mean2 = 0.07375 *degree;
-double position_phi_cut_rms2  = 1.804 *degree;
-
-double direction_theta_cut_mean1 = -0.264 *degree;
-double direction_theta_cut_rms1  =  0.7198 *degree;
-
-double direction_theta_cut_mean2 = -1.241 *degree;
-double direction_theta_cut_rms2  =  0.7598 *degree;
-
-double direction_phi_cut_mean1 = -0.4044 *degree;
-double direction_phi_cut_rms1  =  2.859 *degree;
-
-double direction_phi_cut_mean2 = -1.784 *degree;
-double direction_phi_cut_rms2  =  2.483 *degree;
+double position_theta_cut_mean1, position_theta_cut_rms1;
+double position_theta_cut_mean2, position_theta_cut_rms2;
+double position_phi_cut_mean1, position_phi_cut_rms1;
+double position_phi_cut_mean2, position_phi_cut_rms2;
+double direction_theta_cut_mean1, direction_theta_cut_rms1;
+double direction_theta_cut_mean2, direction_theta_cut_rms2;
+double direction_phi_cut_mean1, direction_phi_cut_rms1;
+double direction_phi_cut_mean2, direction_phi_cut_rms2;
 
 double bending_angle_position_theta_cut_min[2];
 double bending_angle_position_theta_cut_max[2];
@@ -152,26 +142,6 @@ double bending_angle_direction_theta_cut_min[2];
 double bending_angle_direction_theta_cut_max[2];
 double bending_angle_direction_phi_cut_min[2];
 double bending_angle_direction_phi_cut_max[2];
-
-bending_angle_position_theta_cut_min[0] = position_theta_cut_mean1-num_of_sigma_position_theta_cut*position_theta_cut_rms1; 
-bending_angle_position_theta_cut_max[0] = position_theta_cut_mean1+num_of_sigma_position_theta_cut*position_theta_cut_rms1; 
-bending_angle_position_phi_cut_min[0] = position_phi_cut_mean1-num_of_sigma_position_phi_cut*position_phi_cut_rms1; 
-bending_angle_position_phi_cut_max[0] = position_phi_cut_mean1+num_of_sigma_position_phi_cut*position_phi_cut_rms1;
-
-bending_angle_direction_theta_cut_min[0] = direction_theta_cut_mean1-num_of_sigma_direction_theta_cut*direction_theta_cut_rms1; 
-bending_angle_direction_theta_cut_max[0] = direction_theta_cut_mean1+num_of_sigma_direction_theta_cut*direction_theta_cut_rms1; 
-bending_angle_direction_phi_cut_min[0] = direction_phi_cut_mean1-num_of_sigma_direction_phi_cut*direction_phi_cut_rms1; 
-bending_angle_direction_phi_cut_max[0] = direction_phi_cut_mean1+num_of_sigma_direction_phi_cut*direction_phi_cut_rms1; 
-
-bending_angle_position_theta_cut_min[1] = position_theta_cut_mean2-num_of_sigma_position_theta_cut*position_theta_cut_rms2; 
-bending_angle_position_theta_cut_max[1] = position_theta_cut_mean2+num_of_sigma_position_theta_cut*position_theta_cut_rms2; 
-bending_angle_position_phi_cut_min[1] = position_phi_cut_mean2-num_of_sigma_position_phi_cut*position_phi_cut_rms2; 
-bending_angle_position_phi_cut_max[1] = position_phi_cut_mean2+num_of_sigma_position_phi_cut*position_phi_cut_rms2;
-
-bending_angle_direction_theta_cut_min[1] = direction_theta_cut_mean2-num_of_sigma_direction_theta_cut*direction_theta_cut_rms2; 
-bending_angle_direction_theta_cut_max[1] = direction_theta_cut_mean2+num_of_sigma_direction_theta_cut*direction_theta_cut_rms2; 
-bending_angle_direction_phi_cut_min[1] = direction_phi_cut_mean2-num_of_sigma_direction_phi_cut*direction_phi_cut_rms2; 
-bending_angle_direction_phi_cut_max[1] = direction_phi_cut_mean2+num_of_sigma_direction_phi_cut*direction_phi_cut_rms2;
 
 double position_r_off_cut_min = -1.0;
 double position_r_off_cut_max = 1.0;
@@ -191,8 +161,31 @@ int MDm_Pedestal[]={0,230,190,250,225,272,192,270,193};
 int MDp_Pedestal[]={0,195,190,240,176,197,211,245,250};
 
 // main detector single PE calibration
-double MDm_SinglePE[]={0,12.4,11.2,12.9,21.0,12.0,13.3,14.7,11.9}; //(Calibration: March 14, 2011)
-double MDp_SinglePE[]={0,17.0,15.8,13.8,18.5,17.9,18.6,16.4,11.4};
+//
+// Calibration: October 5, 2010
+//14.0	22.0	20.4	22.1	22.8	28.7	24.6	27.8
+//16.7	38.5	20.4	22.4	30.1	25.3	16.1	12.3
+//
+// Calibration: November 2, 2010
+//11.9	18.4	20.7	16.9	20.4	25.1	16.4	24.9
+//18.2	37.9	19.0	22.8	28.0	25.9	29.2	12.2
+//
+// Calibration: March 14, 2011
+//12.4	11.2	12.9	21.0	12.0	13.3	14.7	11.9
+//17.0	15.8	13.8	18.5	17.9	18.6	16.4	11.4
+
+// 2 rows for 3 calibration periods, using averages of calibration 1 & 2 for period 0
+// using calibration 3 for period 1. 9 columns, col 1- 8 for 8 detectors
+double MDm_SinglePE[2][9]={
+    0.0, 13.0, 20.2, 20.6, 19.5, 21.6, 26.9, 20.5, 26.4.
+    0.0, 12.4, 11.2, 12.9, 21.0, 12.0, 13.3, 14.7, 11.9};
+
+double MDp_SinglePE[2][9]={
+    0.0, 17.5, 38.2, 19.7, 22.6, 29.1, 26.6, 22.7, 12.3,
+    0.0, 17.0, 15.8, 13.8, 18.5, 17.9, 18.6, 16.4, 11.4};
+
+int tracking_period; // period 0: run <=11871 (before Jan 2011),
+                     // period 1: run>=13653 (Nov 2011 to May 2012)
 
 // main detector z location
 double md_zpos[9] = {0.0, 581.665,  576.705, 577.020, 577.425, 582.515,  577.955, 577.885, 577.060};
@@ -226,8 +219,8 @@ bool tdc_cut(double val1, double val2, int pkg)
 // has #PE value larger than threshold. 
 bool light_yield_cut(double mdm_adc_value, double mdp_adc_value, int md_num)
 {
-  double mdm_num_pe = (mdm_adc_value-MDm_Pedestal[md_num])/MDm_SinglePE[md_num];
-  double mdp_num_pe = (mdp_adc_value-MDp_Pedestal[md_num])/MDp_SinglePE[md_num];
+  double mdm_num_pe = (mdm_adc_value-MDm_Pedestal[md_num])/MDm_SinglePE[tracking_period][md_num];
+  double mdp_num_pe = (mdp_adc_value-MDp_Pedestal[md_num])/MDp_SinglePE[tracking_period][md_num];
 
   double pe_min = 0.5;
   if ((mdm_num_pe>pe_min) && (mdp_num_pe>pe_min) && ( (mdm_num_pe+mdp_num_pe)>num_pe_cut) )
@@ -396,9 +389,18 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
    int start=(event_start==-1)? 0:event_start;
    int end=(event_end==-1)? nevents:event_end;
 
+   //Find the run period according run number
+   if(run<=11871)
+      tracking_period = 0;
+   else
+      tracking_period = 1; 
+
    //Get the oct number and main detector pedestals
    int oct=getOctNumber(event_tree);
    getQdcPedestal(event_tree,start,end);
+
+   //Get parameters of matching angle residuals
+   getMatchingAngles(event_tree,start,end);
 
     event_tree->SetBranchStatus("events",1);
     TBranch* event_branch=event_tree->GetBranch("events");
@@ -728,8 +730,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         {
            if(enable_tdc_cut)
            {
-              double mdm_num_pe = (mdm_adc_value_1-MDm_Pedestal[md_1])/MDm_SinglePE[md_1];
-              double mdp_num_pe = (mdp_adc_value_1-MDp_Pedestal[md_1])/MDp_SinglePE[md_1];
+              double mdm_num_pe = (mdm_adc_value_1-MDm_Pedestal[md_1])/MDm_SinglePE[tracking_period][md_1];
+              double mdp_num_pe = (mdp_adc_value_1-MDp_Pedestal[md_1])/MDp_SinglePE[tracking_period][md_1];
               if(mdm_num_pe>TDC_threhold && mdp_num_pe>TDC_threhold)
               {
                  if(! tdc_cut(mdm_tdc_value_1, mdp_tdc_value_1,package))
@@ -742,8 +744,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         {
            if(enable_tdc_cut)
            {
-              double mdm_num_pe = (mdm_adc_value_2-MDm_Pedestal[md_2])/MDm_SinglePE[md_2];
-              double mdp_num_pe = (mdp_adc_value_2-MDp_Pedestal[md_2])/MDp_SinglePE[md_2];
+              double mdm_num_pe = (mdm_adc_value_2-MDm_Pedestal[md_2])/MDm_SinglePE[tracking_period][md_2];
+              double mdp_num_pe = (mdp_adc_value_2-MDp_Pedestal[md_2])/MDp_SinglePE[tracking_period][md_2];
               if(mdm_num_pe>TDC_threhold && mdp_num_pe>TDC_threhold)
               {
                  if(! tdc_cut(mdm_tdc_value_2, mdp_tdc_value_2,package))
@@ -814,8 +816,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 hit_dist1->Fill(y,x);
 
                 // fill additional histograms
-                double mdm_num_pe = (mdm_adc_value_1-MDm_Pedestal[md_1])/MDm_SinglePE[md_1];
-                double mdp_num_pe = (mdp_adc_value_1-MDp_Pedestal[md_1])/MDp_SinglePE[md_1];
+                double mdm_num_pe = (mdm_adc_value_1-MDm_Pedestal[md_1])/MDm_SinglePE[tracking_period][md_1];
+                double mdp_num_pe = (mdp_adc_value_1-MDp_Pedestal[md_1])/MDp_SinglePE[tracking_period][md_1];
                 double total_num_pe = mdm_num_pe+mdp_num_pe;
                 light_weighted_q2[0]->Fill(Q2_val,total_num_pe);
                 light_weighted_q2[1]->Fill(Q2_val,total_num_pe);
@@ -872,8 +874,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 hit_dist2->Fill(y,x);
 
                 // fill additional histograms
-                double mdm_num_pe = (mdm_adc_value_2-MDm_Pedestal[md_2])/MDm_SinglePE[md_2];
-                double mdp_num_pe = (mdp_adc_value_2-MDp_Pedestal[md_2])/MDp_SinglePE[md_2];
+                double mdm_num_pe = (mdm_adc_value_2-MDm_Pedestal[md_2])/MDm_SinglePE[tracking_period][md_2];
+                double mdp_num_pe = (mdp_adc_value_2-MDp_Pedestal[md_2])/MDp_SinglePE[tracking_period][md_2];
                 double total_num_pe = mdm_num_pe+mdp_num_pe;
                 light_weighted_q2[0]->Fill(Q2_val,total_num_pe);
                 light_weighted_q2[2]->Fill(Q2_val,total_num_pe);
@@ -1681,5 +1683,118 @@ void getQdcPedestal(TTree* event_tree, int evt_start, int evt_end)
     for(int jj=1;jj<=8;jj++)
          cout<<"MD"<<jj<<"    "<<MDm_Pedestal[jj]<<"\t"<<MDp_Pedestal[jj]<<endl;
     cout<<endl;   
+}
+
+void getMatchingAngles(TTree* event_tree, int evt_start, int evt_end)
+{
+   TH1F* dir_theta = new TH1F("dir_theta","dir_theta",500, -5*degree, 5*degree);
+   TH1F* dir_phi   = new TH1F("dir_phi","dir_phi",500, -15*degree, 15*degree);
+   TH1F* pos_theta = new TH1F("pos_theta","dir_theta",500, -2*degree, 2*degree);
+   TH1F* pos_phi   = new TH1F("pos_phi","pos_phi",500, -15*degree, 15*degree);
+
+   for(int ipkg=1;ipkg<=2;ipkg++) 
+   {
+      event_tree->Draw("fQwTracks.fDirectionThetaoff>>dir_theta",
+                    Form("CodaEventNumber>=%d && CodaEventNumber<=%d && events.fQwPartialTracks.fPackage==%d",
+                    evt_start,evt_end,ipkg));
+
+      event_tree->Draw("fQwTracks.fDirectionPhioff>>dir_phi",
+                    Form("CodaEventNumber>=%d && CodaEventNumber<=%d && fQwTracks.fDirectionPhioff<3.14159/2.0 && fQwTracks.fDirectionPhioff>-3.14159/2.0 && events.fQwPartialTracks.fPackage==%d", evt_start,evt_end,ipkg));
+
+      event_tree->Draw("fQwTracks.fPositionThetaoff>>pos_theta",
+                    Form("CodaEventNumber>=%d && CodaEventNumber<=%d && events.fQwPartialTracks.fPackage==%d", evt_start,evt_end,ipkg));
+
+      event_tree->Draw("fQwTracks.fPositionPhioff>>pos_phi",
+                    Form("CodaEventNumber>=%d && CodaEventNumber<=%d && fQwTracks.fPositionPhioff<3.14159/2.0 && fQwTracks.fPositionPhioff>-3.14159/2.0 && events.fQwPartialTracks.fPackage==%d", evt_start,evt_end,ipkg));
+
+
+      if(ipkg == 1)
+      {
+         position_theta_cut_mean1 = pos_theta->GetMean();
+         position_theta_cut_rms1  = pos_theta->GetRMS();
+
+         position_phi_cut_mean1 = pos_phi->GetMean();
+         position_phi_cut_rms1  = pos_phi->GetRMS();
+
+         direction_theta_cut_mean1 = dir_theta->GetMean();
+         direction_theta_cut_rms1  = dir_theta->GetRMS();
+
+         direction_phi_cut_mean1 = dir_phi->GetMean();
+         direction_phi_cut_rms1  = dir_phi->GetRMS();
+
+         cout<<"\nParameters of matching angle residuals in package 1:\n"<<endl;
+         cout<<"position_theta_cut_mean1 = "<<position_theta_cut_mean1/degree<<" deg"<<endl;
+         cout<<"position_theta_cut_rms1  = "<<position_theta_cut_rms1/degree <<" deg"<<endl;
+         cout<<"position_phi_cut_mean1   = "<<position_phi_cut_mean1/degree<<" deg"<<endl;
+         cout<<"position_phi_cut_rms1    = "<<position_phi_cut_rms1/degree <<" deg"<<endl;
+         cout<<"direction_theta_cut_mean1= "<<direction_theta_cut_mean1/degree<<" deg"<<endl;
+         cout<<"direction_theta_cut_rms1 = "<<direction_theta_cut_rms1/degree <<" deg"<<endl;
+         cout<<"direction_phi_cut_mean1  = "<<direction_phi_cut_mean1/degree<<" deg"<<endl;
+         cout<<"direction_phi_cut_rms1   = "<<direction_phi_cut_rms1/degree <<" deg"<<endl;
+      }
+      else
+      {
+         position_theta_cut_mean2 = pos_theta->GetMean();
+         position_theta_cut_rms2  = pos_theta->GetRMS();
+
+         position_phi_cut_mean2 = pos_phi->GetMean();
+         position_phi_cut_rms2  = pos_phi->GetRMS();
+
+         direction_theta_cut_mean2 = dir_theta->GetMean();
+         direction_theta_cut_rms2  = dir_theta->GetRMS();
+
+         direction_phi_cut_mean2 = dir_phi->GetMean();
+         direction_phi_cut_rms2  = dir_phi->GetRMS();
+
+         cout<<"\nParameters of matching angle residuals in package 2:\n"<<endl;
+         cout<<"position_theta_cut_mean2 = "<<position_theta_cut_mean2/degree<<" deg"<<endl;
+         cout<<"position_theta_cut_rms2  = "<<position_theta_cut_rms2/degree <<" deg"<<endl;
+         cout<<"position_phi_cut_mean2   = "<<position_phi_cut_mean2/degree<<" deg"<<endl;
+         cout<<"position_phi_cut_rms2    = "<<position_phi_cut_rms2/degree <<" deg"<<endl;
+         cout<<"direction_theta_cut_mean2= "<<direction_theta_cut_mean2/degree<<" deg"<<endl;
+         cout<<"direction_theta_cut_rms2 = "<<direction_theta_cut_rms2/degree <<" deg"<<endl;
+         cout<<"direction_phi_cut_mean2  = "<<direction_phi_cut_mean2/degree<<" deg"<<endl;
+         cout<<"direction_phi_cut_rms2   = "<<direction_phi_cut_rms2/degree <<" deg"<<endl;
+      }
+   }
+
+   cout<<endl;
+
+   bending_angle_position_theta_cut_min[0] = 
+      position_theta_cut_mean1-num_of_sigma_position_theta_cut*position_theta_cut_rms1;
+   bending_angle_position_theta_cut_max[0] =
+       position_theta_cut_mean1+num_of_sigma_position_theta_cut*position_theta_cut_rms1;
+   bending_angle_position_phi_cut_min[0] =
+       position_phi_cut_mean1-num_of_sigma_position_phi_cut*position_phi_cut_rms1;
+   bending_angle_position_phi_cut_max[0] =
+       position_phi_cut_mean1+num_of_sigma_position_phi_cut*position_phi_cut_rms1;
+
+   bending_angle_direction_theta_cut_min[0] =
+       direction_theta_cut_mean1-num_of_sigma_direction_theta_cut*direction_theta_cut_rms1;
+   bending_angle_direction_theta_cut_max[0] =
+       direction_theta_cut_mean1+num_of_sigma_direction_theta_cut*direction_theta_cut_rms1;
+   bending_angle_direction_phi_cut_min[0] =
+       direction_phi_cut_mean1-num_of_sigma_direction_phi_cut*direction_phi_cut_rms1;
+   bending_angle_direction_phi_cut_max[0] =
+       direction_phi_cut_mean1+num_of_sigma_direction_phi_cut*direction_phi_cut_rms1;
+
+   bending_angle_position_theta_cut_min[1] =
+       position_theta_cut_mean2-num_of_sigma_position_theta_cut*position_theta_cut_rms2;
+   bending_angle_position_theta_cut_max[1] =
+       position_theta_cut_mean2+num_of_sigma_position_theta_cut*position_theta_cut_rms2;
+   bending_angle_position_phi_cut_min[1] =
+       position_phi_cut_mean2-num_of_sigma_position_phi_cut*position_phi_cut_rms2;
+   bending_angle_position_phi_cut_max[1] =
+       position_phi_cut_mean2+num_of_sigma_position_phi_cut*position_phi_cut_rms2;
+
+   bending_angle_direction_theta_cut_min[1] =
+       direction_theta_cut_mean2-num_of_sigma_direction_theta_cut*direction_theta_cut_rms2;
+   bending_angle_direction_theta_cut_max[1] =
+       direction_theta_cut_mean2+num_of_sigma_direction_theta_cut*direction_theta_cut_rms2;
+   bending_angle_direction_phi_cut_min[1] =
+       direction_phi_cut_mean2-num_of_sigma_direction_phi_cut*direction_phi_cut_rms2;
+   bending_angle_direction_phi_cut_max[1] =
+       direction_phi_cut_mean2+num_of_sigma_direction_phi_cut*direction_phi_cut_rms2;
+   
 }
 
