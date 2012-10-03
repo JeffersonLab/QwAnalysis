@@ -187,8 +187,9 @@ int main(Int_t argc,Char_t* argv[])
   /*connect to the data base*/
   //db = TSQLServer::Connect("mysql://localhost.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
   // db = TSQLServer::Connect("mysql://127.0.0.1/qw_run1_pass3","qweak", "QweakQweak");
-  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-
+  //db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  // db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run2_pass1","qweak", "QweakQweak");
+  db = TSQLServer::Connect("mysql://127.0.0.1/qw_run2_pass1","qweak", "QweakQweak");
 
   if(db)
     printf("Server info: %s\n", db->ServerInfo());
@@ -369,7 +370,6 @@ TString data_query(TString device,Int_t run,TString ihwp){
     +run_cut+" AND "+regression+" AND "+run_quality+" AND "
     +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "
     +datatable+".error != 0; ";
-
   if(ldebug) std::cout<<query<<std::endl;
   return query;
 }

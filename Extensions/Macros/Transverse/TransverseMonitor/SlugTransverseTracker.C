@@ -3,24 +3,27 @@ Author: B. P. Waidyawansa
 Data : September 20th 2011.
 
 This script is used to track the changes in the transverse polarization X, Y components
-within the given slug range
+within the given slug range.
+./slug_transverse_tracker <start>  <end> <db (optional)>  <print (optional)>
+
 Inputs (required) : Start slug, end slug (slug range) 
+       (optional) : Data base. Default is qw_run1_pass4b
        (optional) : Turn on the drawing of individual fits by inserting 1.
 
 e.g  ./slug_transverse_tracker 42 51  
 To print the individual plots for the slugs,
-     ./slug_transevrse_tracker 42 51  1
+     ./slug_transevrse_tracker 42 51  qw_run1_pass2
 
 Output : Plot of % horizontal transerverse (p1*100)  vs slug number and plot of % vertical transerverse (p0*100)  vs slug number 
-         for the fit of A = -4.75{ p0 cos(phi) - p1 sin(phi)} + p2.
+         for the fit of A = -4.80{ p0 cos(phi) - p1 sin(phi)} + p2.from pass4
          and
          *.txt file with the p0, p1  values with their errors and the minimum chi-square
          for each slug.
-         transverse_in_slugs_*_*.png
-         transverse_in_slugs_*_*.txt
+         *_transverse_in_slugs_*_*.png
+         *_transverse_in_slugs_*_*.txt
 
          When the plot slug option is selected, those plots will also be saved in 
-         transverse_in_slug_*_plot.png
+         *_transverse_in_slug_*_plot.png
          
 ****************************************************************/
 
@@ -66,7 +69,7 @@ TSQLServer *db;
 Int_t slug_first = 0;
 Int_t slug_last = 0;
 Int_t end_slug = 0;
-
+TString database = "qw_run1_pass4b";
 
 TVectorD x_i;
 TVectorD xerr_i;
@@ -177,18 +180,23 @@ int main(Int_t argc,Char_t* argv[])
   gDirectory->Delete("*");
 
   /*Process command line arguments*/
-  if(argc == 4){
+  if(argc == 5){
     slug_first = atoi(argv[1]);
     slug_last = atoi(argv[2]);
-    if(atoi(argv[3])== 1) draw_slugs = true;
+    database = argv[3];
+    if(atoi(argv[4])== 1) draw_slugs = true;
     else {
-      std::cout<<"Undefined option "<<argv[3]<<std::endl;
+      std::cout<<"Undefined option "<<argv[4]<<std::endl;
     }
+  } else if(argc==4){
+    slug_first = atoi(argv[1]);
+    slug_last = atoi(argv[2]);
+    database = argv[3];
   } else if(argc==3){
     slug_first = atoi(argv[1]);
     slug_last = atoi(argv[2]);
   } else {
-    std::cout<<"The correct syntax is ./slug_transverse_tracker [firstslug(required)] [lastslug(required)] [draw_slugs(optional): 1 ]"<<std::endl;
+    std::cout<<"The correct syntax is ./slug_transverse_tracker [firstslug(required)] [lastslug(required)] [database(optional)] [draw_slugs(optional): 1 ]"<<std::endl;
     exit(1);
   }
 
@@ -206,10 +214,7 @@ int main(Int_t argc,Char_t* argv[])
 
   
   /*connect to the data base*/
-  //db = TSQLServer::Connect("mysql://localhost.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-  db = TSQLServer::Connect("mysql://127.0.0.1/qw_run2_pass1","qweak", "QweakQweak");
-  //db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-  // db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  db = TSQLServer::Connect(Form("mysql://127.0.0.1/%s",database.Data()),"qweak", "QweakQweak");
 
 
   if(db)
@@ -233,7 +238,7 @@ int main(Int_t argc,Char_t* argv[])
   Myfile <<"# date of analysis ="<<ctime(&theTime)<<std::endl;
   Myfile <<"# slug range "<<slug_first<<" to "<<slug_last<<std::endl;
   Myfile <<"# Following are the phase results from fit to runlet average regressed MD asymmetry vs octant "<<std::endl;
-  Myfile <<"# Fit : A = -4.74*{ P_V*cos(phi) + P_H*sin(phi) }+ p2"<<std::endl;
+  Myfile <<"# Fit : A = -4.80*{ P_V*cos(phi) + P_H*sin(phi) }+ p2"<<std::endl;
   Myfile <<"#  "<<std::endl;
 
 
@@ -376,7 +381,7 @@ int main(Int_t argc,Char_t* argv[])
     
     /*Draw p1 values*/
     /*Create a canvas*/
-    TString fit = "-4.74*( P_{V}*cos#phi -  P_{H}*sin#phi ) + constant";
+    TString fit = "-4.80*( P_{V}*cos#phi -  P_{H}*sin#phi ) + constant";
     TString title = Form("Variation of transverse polarization in slugs %i to %i from fit %s",
 			 slug_first,slug_last,fit.Data());
     TCanvas * Canvas = new TCanvas("canvas", title,0,0,1000,800);
@@ -406,8 +411,8 @@ int main(Int_t argc,Char_t* argv[])
 
     Canvas->Modified();
     Canvas->Update();
-    Canvas->Print(Form("transverse_in_slugs_%i_%i.png",slug_first,slug_last));
-    Canvas->Print(Form("transverse_in_slugs_%i_%i.C",slug_first,slug_last));
+    Canvas->Print(Form("%s_transverse_in_slugs_%i_%i.png",database.Data(),slug_first,slug_last));
+    Canvas->Print(Form("%s_transverse_in_slugs_%i_%i.C",database.Data(),slug_first,slug_last));
     Myfile.close();
 
   }
@@ -442,7 +447,7 @@ TString data_query(TString device,Int_t slug,TString ihwp){
   TString good_for =  Form("(%s.good_for_id = '1' or %s.good_for_id = '1,3')",
 			      datatable.Data(),datatable.Data());
 
-  TString regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = 'on' ",
+  TString regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = 'on_5+1' ",
 			    datatable.Data(),datatable.Data()); 
 
   /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
@@ -452,7 +457,7 @@ TString data_query(TString device,Int_t slug,TString ihwp){
     +datatable+".measurement_type = 'a' AND target_position = 'HYDROGEN-CELL' AND "
     +slug_cut+" AND "+regression+" AND "+run_quality+" AND "
     +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "
-    +datatable+".error* SQRT("+datatable+".n) < 0.000700 AND "
+    +datatable+".error* SQRT("+datatable+".n) < 0.000800 AND "
     +datatable+".error != 0; ";
 
   if(ldebug) std::cout<<query<<std::endl;
@@ -519,7 +524,7 @@ void fit_octants_data(TString devicelist[],Int_t slug, TString ihwp,
      if fo some reason, changing the IHWP has changed the verticle to horizontal transverse
      or vise versa.
   */
-  TF1 * cosfit = new TF1("cosfit","(-4.75)*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
+  TF1 * cosfit = new TF1("cosfit","(-4.80)*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
 
 
   /*Without loss of generality, I picked IHWP IN as the first fit. So then I need to
@@ -537,7 +542,7 @@ void fit_octants_data(TString devicelist[],Int_t slug, TString ihwp,
 
     /*To draw individual slug plots*/
     if(draw_slugs){
-      TString fit = "-4.74*( P_{V}*cos#phi -  P_{H}*sin#phi ) + constant";
+      TString fit = "-4.80*( P_{V}*cos#phi -  P_{H}*sin#phi ) + constant";
       TString title = Form("Variation of transverse polarization in slug %i. Fit %s",
 			   slug_first,fit.Data());
       Canvas1 = new TCanvas("canvas1", title,0,0,800,500);
@@ -591,7 +596,7 @@ void fit_octants_data(TString devicelist[],Int_t slug, TString ihwp,
     /*To draw individual slug plots*/
     if(draw_slugs){
       Canvas1->Update();
-      Canvas1->Print(Form("transverse_in_slug_%i_plot.png",slug));
+      Canvas1->Print(Form("%s_transverse_in_slug_%i_plot.png",database.Data(),slug));
     }
     delete fit1;
     delete grp1;

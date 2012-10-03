@@ -18,7 +18,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := remove_transverse remove_h_transverse run_transverse_tracker slug_transverse_tracker transverse_monitor run_phase_tracker transverse_fit_db slug_phase_tracker transverse_monitor_fixed_phase
+EXE := transverse_monitor_sum_runs remove_transverse get_pure_transverse run_transverse_tracker slug_transverse_tracker transverse_monitor run_phase_tracker transverse_fit_db slug_phase_tracker transverse_monitor_fixed_phase
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -63,6 +63,12 @@ remove_h_transverse:remove_horizontal_transverse.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 remove_transverse:remove_transverse.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+get_pure_transverse::remove_constant_term.C
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+transverse_monitor_sum_runs::transverse_monitor_sum_runs.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 %: %.C

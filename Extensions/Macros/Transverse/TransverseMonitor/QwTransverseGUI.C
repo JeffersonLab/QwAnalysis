@@ -41,7 +41,10 @@ enum QwTransverseGUIIdentificator {
   BA_PLOT,
   BA_EXIT,
   N_START,
-  N_END
+  N_END,
+  TAB1,
+  TAB2,
+  TAB3
 };
 
 QwTransverseGUI::QwTransverseGUI()
@@ -159,6 +162,17 @@ QwTransverseGUI::QwTransverseGUI()
   fTab2Canvas->AdoptCanvas(cTab2Canvas);
   fTab2Frame->AddFrame(fTab2Canvas, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
 
+  // container of "Tab3"
+  fTab3Frame = fMainTab->AddTab("Variation of P_T and P_V");
+  fTab3Frame->SetLayoutManager(new TGVerticalLayout(fTab3Frame));
+  
+  // embedded canvas
+  fTab3Canvas = new TRootEmbeddedCanvas(0,fTab3Frame,818,728 );
+  Int_t wfTab3Canvas = fTab3Canvas->GetCanvasWindowId();
+  TCanvas *cTab3Canvas = new TCanvas("mc1", 10, 10, wfTab3Canvas);
+  fTab3Canvas->AdoptCanvas(cTab3Canvas);
+  fTab3Frame->AddFrame(fTab3Canvas, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+
   fMainTab->SetTab(0);
 
   fMainTab->Resize(fMainTab->GetDefaultSize());
@@ -201,9 +215,15 @@ Bool_t QwTransverseGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t)
 	  slug_last  = dStartSlug->GetIntNumber();
 	  break;
 	}
+    case kCM_TAB:
+  //     switch(parm1)
+// 	{
+      std::cout<<tab id<<std::endl; 
+// 	}
+
     default:
       break;
-    }
+    }	
   default:
     break;
   }
@@ -302,10 +322,16 @@ void QwTransverseGUI::MainFunction()
   TCanvas *mc2        = NULL;
   mc2 = fTab2Canvas->GetCanvas();
   mc2->Clear();
-  std::cout<<"here!"<<std::endl;
   plot_n_fit_data(4, "pol0",  oppvaluesin,opperrorsin, oppvaluesout,opperrorsout);
   mc2->Update();
   mc2->Print(Form("transverse_monitor_slugs_opposite_%i_%i_plots.png",slug_first,slug_last));
+
+
+  /*Plot variation over slugs*/
+  TCanvas *mc3        = NULL;
+  mc3 = fTab3Canvas->GetCanvas();
+  mc3->Clear();
+  plot_pv_ph_in_slugs();
 
   std::cout<<"Done! \n";
   db->Close();
@@ -681,4 +707,323 @@ void QwTransverseGUI::plot_n_fit_data(const Int_t size, TString fit,
 
   pad->Modified();
   pad->Update();
+}
+
+
+void QwTransverseGUI::plot_pv_ph_in_slugs(){
+
+  TVectorD x_i;
+  TVectorD xerr_i;
+  TVectorD x_o;
+  TVectorD xerr_o;
+  TVectorD p0_i;
+  TVectorD p0_ie;
+  TVectorD p0_o;
+  TVectorD p0_oe;
+  TVectorD p1_i;
+  TVectorD p1_ie;
+  TVectorD p1_o;
+  TVectorD p1_oe;
+  Double_t fit_value0;
+  Double_t fit_error0;
+  Double_t fit_value1;
+  Double_t fit_error1;
+  Double_t get_p0;
+  Double_t set_p0=0.0;
+  Double_t get_p1=0.0;
+  Double_t set_p1=0.0;
+  Double_t get_p2=0.0;
+  Double_t set_p2=0.0;
+  Double_t dummy=0;
+  Int_t ki =0;
+  Int_t ko =0;
+
+  for(Int_t i=slug_first;i<slug_last+1;i++){
+    fit_octants_data(quartz_bar_sum,i,"in",set_p0, &get_p0,set_p1, &get_p1,set_p2, &get_p2,
+		     &fit_value0,&fit_error0,&fit_value1,&fit_error1);
+    
+    if(fit_value0 == 0 && fit_error0 == 0 && fit_value1 == 0 && fit_error1 == 0) {
+      /*do nothing. The slug number is not in the selected list*/
+    } else {
+      x_i.ResizeTo(ki+1);    x_i.operator()(ki)=i;
+      xerr_i.ResizeTo(ki+1); xerr_i.operator()(ki)=0.0;
+      p0_i.ResizeTo(ki+1);   p0_i.operator()(ki)=fit_value0*100;
+      p0_ie.ResizeTo(ki+1);  p0_ie.operator()(ki)=fit_error0*100;
+      p1_i.ResizeTo(ki+1);   p1_i.operator()(ki)=fit_value1*100;
+      p1_ie.ResizeTo(ki+1);  p1_ie.operator()(ki)=fit_error1*100;
+
+      ki++;
+    }
+    fit_value0 = 0.0; 
+    fit_error0 = 0.0;
+    fit_value1 = 0.0;
+    fit_error1 = 0.0;
+
+    fit_octants_data(quartz_bar_sum,i,"out",get_p0,&dummy,get_p1,&dummy,get_p2,&dummy,
+		     &fit_value0,&fit_error0,&fit_value1,&fit_error1);
+
+    if(fit_value0 == 0 && fit_error0 == 0 && fit_value1 == 0 && fit_error1 == 0) {
+      /*do nothing. The slug number is not in the selected list*/
+    } else {
+      x_o.ResizeTo(ko+1);    x_o.operator()(ko)=i;
+      xerr_o.ResizeTo(ko+1); xerr_o.operator()(ko)=0.0;
+      p0_o.ResizeTo(ko+1);   p0_o.operator()(ko)=fit_value0*100;
+      p0_oe.ResizeTo(ko+1);  p0_oe.operator()(ko)=fit_error0*100;
+      p1_o.ResizeTo(ko+1);   p1_o.operator()(ko)=fit_value1*100;
+      p1_oe.ResizeTo(ko+1);  p1_oe.operator()(ko)=fit_error1*100;
+      ko++;
+    }
+  }
+ 
+  if(ko==0 && ki==0) {std::cout<<"No data!"<<std::endl;
+    TString text2 = "Unable to find regressed values for the given slug range.";
+    TText*t2 = new TText(0.06,0.5,text2);
+    t2->SetTextSize(0.05);
+    t2->Draw();
+  }
+  else{
+    
+    /*Draw p1 values*/
+    /*Create a canvas*/
+    TString fit = "-4.74*( P_{V}*cos#phi -  P_{H}*sin#phi ) + constant";
+    TString title = Form("Variation of transverse polarization in slugs %i to %i from fit %s",
+			 slug_first,slug_last,fit.Data());
+
+    TPad* pad = (TPad*)(gPad->GetMother());
+    pad->cd();
+    
+    TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
+    TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
+    pad1->SetFillColor(20);
+    pad1->Draw();
+    pad2->Draw();
+    
+    
+    pad1->cd();
+    TLatex*t1 = new TLatex(0.1,0.5,title);
+    t1->SetTextSize(0.4);
+    t1->Draw();
+    
+    pad2->cd();
+    pad2->Divide(1,2);
+
+    pad2->cd(1);
+    draw_plots(p0_i, p0_o,p0_ie, p0_oe, x_i, xerr_i,x_o, xerr_o,ko,ki,"Y");
+
+    pad2->cd(2);
+    draw_plots(p1_i, p1_o,p1_ie, p1_oe, x_i, xerr_i,x_o, xerr_o,ko,ki,"X");
+ 
+    pad->Modified();
+    pad->Update();
+    pad->Print(Form("transverse_in_slugs_%i_%i.png",slug_first,slug_last));
+    pad->Print(Form("transverse_in_slugs_%i_%i.C",slug_first,slug_last));
+
+  }
+}
+
+/*A function to get data from the database for the octants, fit them using the 
+  transverse fit and output P_V and P_H*/
+void  QwTransverseGUI::fit_octants_data(TString devicelist[],Int_t slug, TString ihwp, 
+					Double_t set_p0, Double_t *get_p0, 
+					Double_t set_p1, Double_t *get_p1,
+					Double_t set_p2, Double_t *get_p2,
+					Double_t *fit_value0,Double_t *fit_error0,
+					Double_t *fit_value1,Double_t *fit_error1){
+  
+  Bool_t ldebug = false;
+  Bool_t empty  = false;
+  TString query;
+  TSQLStatement* stmt = NULL;
+  Double_t value[8];
+  Double_t error[8];
+  Double_t x[8];
+  Double_t xerr[8];
+
+ /*set X location and clear the other arrays*/
+  for(Int_t i =0;i<8;i++){
+    x[i]         = i+1;
+    xerr[i]      = 0.0;
+    value[i]     = 0.0;
+    error[i]     = 0.0;
+  }
+  std::cout<<"Extracting average asymmetries from slug "<<slug<<std::endl;
+  for(Int_t i=0 ; i<8 ;i++){
+    if(ldebug) printf("Getting data for %10s ", devicelist[i].Data());
+    
+    query = data_query(Form("%s",devicelist[i].Data()),slug,ihwp);
+    
+    stmt = db->Statement(query,100);
+    if(!stmt)  {
+      db->Close();
+      exit(1);
+    }
+    /* process statement */
+    if (stmt->Process()) {
+      /* store result of statement in buffer*/
+      stmt->StoreResult();
+      while (stmt->NextResultRow()) {
+	value[i] = (Double_t)(stmt->GetDouble(0))*1e6; // convert to  ppm
+	error[i] = (Double_t)(stmt->GetDouble(1))*1e6; // ppm
+	if(ldebug) printf(" value = %3.3f +- %3.3f [ppm]\n", value[i], error[i]);
+	if((error[i]==0) or (stmt->IsNull(0))) {
+	  empty = true;
+	  break;
+	}
+      }
+    }
+    delete stmt;    
+  }
+
+  /* Now fit the results if they are not empty */
+  /* Define the cosine fit. Use the p0, p1 and p2 for initialization and limits of this fit.
+     We dont't want the phase to change with the IHWP. The sign of the amplitude is the onlything
+     that should change with IHWP. But we will allow a +-90 degree leverage for the phase to see 
+     if fo some reason, changing the IHWP has changed the verticle to horizontal transverse
+     or vise versa.
+  */
+  TF1 * cosfit = new TF1("cosfit","(-4.75)*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
+
+
+  /*Without loss of generality, I picked IHWP IN as the first fit. So then I need to
+    use the results from that case to initialize IHWP OUT case. Since I use the same function 
+    in both cases, I have to use and if statement to check the ihwp state.*/
+  if(ihwp == "out"){
+    cosfit->SetParameter(2,-set_p2);
+    cosfit->SetParameter(0,set_p0);
+    cosfit->SetParameter(1,set_p1);
+  } 
+
+
+  if(!empty){
+    if(ldebug) std::cout<<"Fit data"<<std::endl;
+    
+
+    TGraphErrors* grp1  = new TGraphErrors(8,x,value,xerr,error);
+    grp1->Fit("cosfit","QVLEM");
+    TF1* fit1 = grp1->GetFunction("cosfit");
+    if(fit1==NULL){
+      std::cout<<"Empty fit."<<std::endl;
+    } else {
+      
+      /*Get the fit parameters from the IHWP IN fit to initialize IHWP OUT case*/
+      if(ihwp == "in") {
+	*get_p0 = fit1->GetParameter(0);
+	*get_p2 = fit1->GetParameter(1);
+	*get_p1 = fit1->GetParameter(2);
+      }
+      
+      *fit_value0 = fit1->GetParameter(0); //p0
+      *fit_error0 = fit1->GetParError(0); //p0 error
+      *fit_value1 = fit1->GetParameter(1); //p1
+      *fit_error1 = fit1->GetParError(1); //p1 error
+
+      if(ldebug) {
+	std::cout<<"p0 =" <<*fit_value0<< "+-" <<*fit_error0
+		 <<" p1 =" <<*fit_value1<< "+-" <<*fit_error1 << std::endl;
+      }
+      
+    }
+  }
+
+}
+
+
+
+ void  QwTransverseGUI::draw_plots(TVectorD value_in, TVectorD value_out,
+		 TVectorD error_in, TVectorD error_out, 
+		 TVectorD valuex_in, TVectorD errorx_in, 
+		 TVectorD valuex_out, TVectorD errorx_out, 
+		 Int_t ko, Int_t ki, TString type){
+
+
+
+   TString title;
+   TString ytitle;
+
+   if(type == "X") {
+     title = "P_{H}";
+     ytitle = "P_{H} (%)";
+   }
+   if(type == "Y") {
+     title = "P_{V}";
+     ytitle = "P_{V} (%)";
+   }
+
+
+   TMultiGraph * grp = new TMultiGraph();
+   TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
+   TGraphErrors* grp_out = NULL;
+   TGraphErrors* grp_in = NULL;
+   TPaveStats *stats1;
+   TPaveStats *stats2;
+   
+
+   if(ko!=0){
+      grp_out  = new TGraphErrors(valuex_out,value_out,errorx_out,error_out);
+      grp_out ->SetMarkerSize(0.8);
+      grp_out ->SetMarkerStyle(21);
+      grp_out ->SetMarkerColor(kRed);
+      grp_out ->SetLineColor(kRed);
+      grp_out ->Fit("pol0");
+      TF1* fit1 = grp_out->GetFunction("pol0");
+      fit1->SetParNames(title);
+      if(fit1==NULL) {
+	std::cout<<"Fit is empty for OUT data"<<std::endl;
+	exit(1);
+      }
+      fit1->DrawCopy("same");
+      fit1->SetLineColor(kRed);
+      fit1->SetLineStyle(2);
+      grp->Add(grp_out);
+      legend->AddEntry(grp_out, "IHWP-OUT", "p");
+    
+
+    if(ki!=0){
+      grp_in  = new TGraphErrors(valuex_in,value_in,errorx_in,error_in);
+      grp_in ->SetMarkerSize(0.8);
+      grp_in ->SetMarkerStyle(21);
+      grp_in ->SetMarkerColor(kBlue);
+      grp_in ->SetLineColor(kBlue);
+      grp_in ->Fit("pol0");    
+      TF1* fit2 = grp_in->GetFunction("pol0");
+      fit2->SetParNames(title);
+
+      if(fit2==NULL) {
+	std::cout<<"Fit is empty for IN data"<<std::endl;
+	exit(1);
+      }
+      fit2->DrawCopy("same");
+      fit2->SetLineColor(kBlue);
+      fit2->SetLineStyle(2);
+      grp->Add(grp_in);
+      legend->AddEntry(grp_in, "IHWP-IN", "p");
+    }
+
+    if(ko!=0 or ki!=0) {
+
+      grp->Draw("AP");
+      grp->GetXaxis()->SetTitle("slug number");
+      grp->GetYaxis()->SetTitle(ytitle);
+      grp->GetYaxis()->CenterTitle();
+      grp->GetXaxis()->CenterTitle();
+      legend->SetFillColor(0);
+      legend->Draw();
+     }
+
+    if(ki!=0){
+      stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
+      stats1->SetTextColor(kBlue);
+      stats1->SetFillColor(kWhite); 
+      stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); 
+      stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
+    }
+
+    if(ko!=0){
+      stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
+      stats2->SetTextColor(kRed);
+      stats2->SetFillColor(kWhite); 
+      stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); 
+      stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
+    }
+   }
 }

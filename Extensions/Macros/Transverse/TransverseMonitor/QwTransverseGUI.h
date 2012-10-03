@@ -140,12 +140,14 @@
 #include <TPaveStats.h>
 #include <TApplication.h>
 #include <stdio.h>
+#include <TLatex.h>
+#include <math.h>
 
 class QwTransverseGUI : public TGMainFrame {
 
  private:
   TGMainFrame      *fMainFrame;
-  TGCompositeFrame *fCompositeFrame,*fTab1Frame,*fTab2Frame;
+  TGCompositeFrame *fCompositeFrame,*fTab1Frame,*fTab2Frame,*fTab3Frame;
   TGFont           *ufont;         // will reflect user font changes 
   TGGC             *uGC;           // will reflect user GC changes
   ULong_t           ucolor;        // will reflect user color changes
@@ -154,7 +156,7 @@ class QwTransverseGUI : public TGMainFrame {
   TGTextButton     *fTButtonPlot, *fTButtonExit;
   TGVertical3DLine *fVertical3DLine;
   TGTab            *fMainTab;
-  TRootEmbeddedCanvas *fTab1Canvas,*fTab2Canvas;
+  TRootEmbeddedCanvas *fTab1Canvas,*fTab2Canvas,*fTab3Canvas;
   TGNumberEntry    *dStartSlug,*dEndSlug;
   TSQLServer *db;
 
@@ -186,13 +188,22 @@ public:
   TString get_sum_query(TString device,TString ihwp);
   void    get_data(TString devicelist[],Int_t size,TString ihwp,
 		   Double_t value[],Double_t error[]);
-/*   void    get_device_data(TString device,TString ihwp,TString wien,Int_t slug_last,TVectorD* value, */
-/* 			  TVectorD*error,TVectorD* runlets); */
-/*   TString runletbased_query(TString device,TString ihwp,TString wien,Int_t slug_last); */
-//  void    plot_md_data(TString device, Int_t slug_last);
   void    plot_n_fit_data(Int_t size, TString fit, Double_t valuein[],Double_t errorin[], 
 		       Double_t valueout[],Double_t errorout[]);
-  
+  void    fit_octants_data(TString devicelist[],Int_t slug, TString ihwp, 
+			   Double_t set_p0, Double_t *get_p0, 
+			   Double_t set_p1, Double_t *get_p1,
+			   Double_t set_p2, Double_t *get_p2,
+			   Double_t *fit_value0,Double_t *fit_error0,
+			   Double_t *fit_value1,Double_t *fit_error1);
+
+  void plot_pv_ph_in_slugs();
+  void  draw_plots(TVectorD value_in, TVectorD value_out,
+		   TVectorD error_in, TVectorD error_out, 
+		   TVectorD valuex_in, TVectorD errorx_in, 
+		   TVectorD valuex_out, TVectorD errorx_out, 
+		   Int_t ko, Int_t ki, TString type);
+
   ClassDef(QwTransverseGUI, 0);
   
 };
