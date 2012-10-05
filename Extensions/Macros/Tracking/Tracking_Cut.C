@@ -177,12 +177,13 @@ int MDp_Pedestal[]={0,195,190,240,176,197,211,245,250};
 // 2 rows for 3 calibration periods, using averages of calibration 1 & 2 for period 0
 // using calibration 3 for period 1. 9 columns, col 1- 8 for 8 detectors
 double MDm_SinglePE[2][9]={
-    0.0, 13.0, 20.2, 20.6, 19.5, 21.6, 26.9, 20.5, 26.4.
-    0.0, 12.4, 11.2, 12.9, 21.0, 12.0, 13.3, 14.7, 11.9};
+    0.0, 13.0, 20.2, 20.6, 19.5, 21.6, 26.9, 20.5, 26.4,  // period 0
+    0.0, 12.4, 11.2, 12.9, 21.0, 12.0, 13.3, 14.7, 11.9}; // period 1
 
 double MDp_SinglePE[2][9]={
-    0.0, 17.5, 38.2, 19.7, 22.6, 29.1, 26.6, 22.7, 12.3,
-    0.0, 17.0, 15.8, 13.8, 18.5, 17.9, 18.6, 16.4, 11.4};
+    0.0, 17.5, 38.2, 19.7, 22.6, 29.1, 26.6, 22.7, 12.3,  // period 0
+    0.0, 17.0, 15.8, 13.8, 18.5, 17.9, 18.6, 16.4, 11.4}; // period 1
+
 
 int tracking_period; // period 0: run <=11871 (before Jan 2011),
                      // period 1: run>=13653 (Nov 2011 to May 2012)
@@ -394,6 +395,19 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       tracking_period = 0;
    else
       tracking_period = 1; 
+
+   cout<<"\nSingle PE calibration for tracking period "<<tracking_period<<":"<<endl<<endl;
+   cout<<"MD#\t1\t2\t3\t4\t5\t6\t7\t8"<<endl<<"minus";
+   for(int kk=1;kk<=8;kk++)
+   {
+      cout<<"\t"<<MDm_SinglePE[tracking_period][kk];
+   }
+   cout<<endl<<"plus";
+   for(int kk=1;kk<=8;kk++)
+   {
+      cout<<"\t"<<MDp_SinglePE[tracking_period][kk];
+   }
+   cout<<endl<<endl;
 
    //Get the oct number and main detector pedestals
    int oct=getOctNumber(event_tree);
@@ -956,7 +970,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     }
  
     cout << "\nLight-weighted Q2: " << endl;
-    if(light_weighted_q2[0]->GetEntries()) {
+    if(light_weighted_q2[0]->GetEntries()!=0) {
       cout << "all : " <<  setprecision(5) << light_weighted_q2[0]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[0]->GetRMS()/sqrt(light_weighted_q2[0]->GetEntries()) << " (GeV/c)^2"<<endl;
     }
     if(light_weighted_q2[1]->GetEntries()!=0) {
@@ -1537,6 +1551,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c6->Write();
     c7->Write();
     c8->Write();
+    c9->Write();
 
     //save histograms
     hit_dist1->Write();
@@ -1562,6 +1577,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         histo_position_theta_off[i]->Write();
         histo_md1_pe[i]->Write();
         histo_md2_pe[i]->Write();
+        histo_momentum[i]->Write();
     }
 
     histo_tdc1m->Write();
@@ -1609,8 +1625,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
 //----------------------------------------------------------------
 
-int getOctNumber(TTree* event_tree){
-
+int getOctNumber(TTree* event_tree)
+{
   event_tree->Draw("events.fQwPartialTracks.fOctant>>R2_Oct",
                    "events.fQwPartialTracks.fRegion==2 && events.fQwPartialTracks.fPackage==2");
 
