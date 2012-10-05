@@ -38,7 +38,22 @@ class QwComptonElectronDetector:
   public:
 
     /// Constructor with name
-    QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name) { };
+    QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name) {
+      fStripsRaw.resize(NPlanes);
+      fStripsRaw_v2.resize(NPlanes);
+      fStrips.resize(NPlanes);
+      fStripsRawEv.resize(NPlanes);
+      fStripsEv.resize(NPlanes);
+      fStripsRawScal.resize(NPlanes);
+      for (size_t i = 0; i < NPlanes; i++) {
+        fStripsRaw[i].resize(StripsPerPlane);
+        fStripsRaw_v2[i].resize(StripsPerPlane);
+        fStrips[i].resize(StripsPerPlane);
+        fStripsRawEv[i].resize(StripsPerPlane);
+        fStripsEv[i].resize(StripsPerPlane);
+        fStripsRawScal[i].resize(StripsPerPlane);
+      }
+    };
     /// Copy constructor
     QwComptonElectronDetector(const QwComptonElectronDetector& source)
     : VQwSubsystem(source),VQwSubsystemParity(source),
