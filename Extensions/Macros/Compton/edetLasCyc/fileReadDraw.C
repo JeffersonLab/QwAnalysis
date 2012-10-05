@@ -10,15 +10,15 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
   Bool_t asymComponents=0;
   Bool_t scalerPlot=1;
-  Bool_t lasWisePlotAc=1;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotSc=1;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotBcm=1;//plot quantities against laser-cycle 
   Bool_t lasWisePlotLasPow=1;
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
   Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
 
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
-  Bool_t debug=0,debug1=0,debug2=1;
+  Bool_t debug=0,debug1=0,debug2=0;
   const Int_t maxLasCycles=100;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   TLine *myline = new TLine(0,0,70,0);
@@ -35,7 +35,7 @@ Int_t fileReadDraw(Int_t runnum)
   //gROOT->ForceStyle();
 
   std::vector<std::vector <Float_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
-  std::vector<std::vector <Float_t> > stripNum2,scalerB1L1,scalerB1L0;
+  std::vector<std::vector <Float_t> > stripNum2,scalerB1L1,scalerB1L0,bkgdSubscalerB1;
 
   Float_t qNormAccumB1H0L0[nPlanes][nStrips][100],qNormAccumB1H0L1[nPlanes][nStrips][100],qNormAccumB1H1L0[nPlanes][nStrips][100],qNormAccumB1H1L1[nPlanes][nStrips][100];
   Float_t qNormAccumB1L0[nPlanes][nStrips][100],qNormScalerB1L0[nPlanes][nStrips][100];
@@ -59,23 +59,24 @@ Int_t fileReadDraw(Int_t runnum)
   if(scalerPlot) {
     ///these plots are not biased by what I think are the masked strips
     TCanvas *cNoise = new TCanvas("cNoise",Form("scalers for run:%d",runnum),30,30,1000,420*endPlane);
-    TGraph *grScalerLasOn[nPlanes],*grScalerLasOff[nPlanes];
+    TGraph *grScalerLasOn[nPlanes],*grScalerLasOff[nPlanes],*grScalerBkgdSub[nPlanes];
     TLegend *legScaler[nPlanes];
-
+    TMultiGraph *grScalerLasCyc[nPlanes];
     cNoise->Divide(startPlane+1,endPlane);
 
     for(Int_t p =startPlane; p <endPlane; p++) {
       scalerRates.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(scalerRates.is_open()) {
 	if(p>=(Int_t)stripNum2.size()) {
-	  stripNum2.resize(p+1),scalerB1L1.resize(p+1),scalerB1L0.resize(p+1);
+	  stripNum2.resize(p+1),scalerB1L1.resize(p+1),scalerB1L0.resize(p+1),bkgdSubscalerB1.resize(p+1);
 	}
 	cout<<"Reading the Scaler rate file for plane "<<p+1<<endl;
 	if(debug) cout<<";\tstripNum\tlasOnScalerCounts\tlasOffScalerCounts"<<endl;
 	while(scalerRates.good()) {
-	  stripNum2[p].push_back(0.0),scalerB1L1[p].push_back(0.0),scalerB1L0[p].push_back(0.0);
+	  stripNum2[p].push_back(0.0),scalerB1L1[p].push_back(0.0),scalerB1L0[p].push_back(0.0),bkgdSubscalerB1[p].push_back(0.0);
 	  Int_t s=stripNum2[p].size() - 1;
 	  scalerRates>>stripNum2[p][s]>>scalerB1L1[p][s]>>scalerB1L0[p][s];
+	  bkgdSubscalerB1[p][s] = scalerB1L1[p][s] - scalerB1L0[p][s];
 	  if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\n",p+1,s+1,stripNum2[p][s],scalerB1L1[p][s],scalerB1L0[p][s]);
 	}
 	scalerRates.close();
@@ -92,21 +93,32 @@ Int_t fileReadDraw(Int_t runnum)
       grScalerLasOn[p]->SetLineColor(kGreen);
       grScalerLasOn[p]->SetMarkerColor(kGreen);
       grScalerLasOn[p]->SetFillColor(kGreen);
-      grScalerLasOn[p]->GetXaxis()->SetTitle("strip number");
-      grScalerLasOn[p]->GetYaxis()->SetTitle("time normalized scaler(Hz)");
-
-      grScalerLasOn[p]->GetXaxis()->SetLimits(1,65); 
-      grScalerLasOn[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-      grScalerLasOn[p]->Draw("A P");
 
       grScalerLasOff[p]= new TGraph(newSize,stripNum2[p].data(),scalerB1L0[p].data());
       grScalerLasOff[p]->SetMarkerStyle(kOpenCircle);
       grScalerLasOff[p]->SetMarkerColor(kBlue);
-      grScalerLasOff[p]->Draw("P");
+      grScalerLasOff[p]->SetMarkerSize(1);
+
+      grScalerBkgdSub[p]= new TGraph(newSize,stripNum2[p].data(),bkgdSubscalerB1[p].data());
+      grScalerBkgdSub[p]->SetMarkerStyle(kFullDotLarge);
+      grScalerBkgdSub[p]->SetMarkerColor(kRed);
+      grScalerBkgdSub[p]->SetMarkerSize(1.1);
+
+      grScalerLasCyc[p] = new TMultiGraph();
+      grScalerLasCyc[p]->Add(grScalerLasOff[p]);
+      grScalerLasCyc[p]->Add(grScalerLasOn[p]);
+      grScalerLasCyc[p]->Add(grScalerBkgdSub[p]);
+      grScalerLasCyc[p]->SetTitle(Form("Scaler counts for run %d",runnum));
+      grScalerLasCyc[p]->Draw("AP");
+      grScalerLasCyc[p]->GetXaxis()->SetTitle("strip number");
+      grScalerLasCyc[p]->GetYaxis()->SetTitle("time normalized Scalers(Hz)");
+      grScalerLasCyc[p]->GetXaxis()->SetLimits(1,65); 
+      grScalerLasCyc[p]->GetXaxis()->SetNdivisions(416, kFALSE);
     
-      legScaler[p] = new TLegend(0.1,0.7,0.35,0.9);//x1,y1,x2,y2
+      legScaler[p] = new TLegend(0.6,0.85,0.9,0.97);//(0.1,0.7,0.35,0.9);//x1,y1,x2,y2
       legScaler[p]->AddEntry(grScalerLasOn[p],"laser on scaler(Hz)","p");
       legScaler[p]->AddEntry(grScalerLasOff[p],"laser off scaler(Hz)","p");
+      legScaler[p]->AddEntry(grScalerBkgdSub[p],"lasOn-lasOff counts(Hz)","p");
       legScaler[p]->SetFillColor(0);
       legScaler[p]->Draw();
     }
@@ -163,6 +175,7 @@ Int_t fileReadDraw(Int_t runnum)
     TCanvas *cYield = new TCanvas("cYield",Form("Yield for run:%d",runnum),70,70,1000,420*endPlane);
     TGraphErrors *grAsymDr[nPlanes],*grB1L0[nPlanes];
     TLegend *legYield[nPlanes];
+    TMultiGraph *grAsymDrAll[nPlanes];
 
     cYield->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) { 
@@ -174,13 +187,7 @@ Int_t fileReadDraw(Int_t runnum)
       grAsymDr[p]->SetLineColor(kGreen);
       grAsymDr[p]->SetMarkerColor(kGreen);
       grAsymDr[p]->SetFillColor(kGreen);
-      grAsymDr[p]->SetTitle(Form("Plane %d background corrected yield(Hz/uA)",p+1));
-      grAsymDr[p]->GetXaxis()->SetTitle("strip number");
-      grAsymDr[p]->GetYaxis()->SetTitle("charge normalized yield (Hz/uA)");
-      //grAsymDr[p]->GetYaxis()->SetTitleOffset(1.3);
-      grAsymDr[p]->GetXaxis()->SetLimits(1,65); 
-      grAsymDr[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-      grAsymDr[p]->Draw("A B");
+      //grAsymDr[p]->SetTitle(Form("Plane %d background corrected yield(Hz/uA)",p+1));
       //TAxis *xaxis1= grAsymDr[p]->GetXaxis();
       //xaxis1->SetLimits(1,65);
 
@@ -190,10 +197,19 @@ Int_t fileReadDraw(Int_t runnum)
       grB1L0[p]->SetMarkerSize(1);
       grB1L0[p]->SetMarkerColor(kBlue);
       grB1L0[p]->SetFillColor(kBlue);
-      grB1L0[p]->SetTitle("background(Hz/uA)");
-      grB1L0[p]->Draw("B");
-      //grB1L0[p]->GetXaxis()->SetLimits(1,65); 
+      //grB1L0[p]->SetTitle("background(Hz/uA)");
 
+      grAsymDrAll[p] = new TMultiGraph();
+      grAsymDrAll[p]->Add(grAsymDr[p]);
+      grAsymDrAll[p]->Add(grB1L0[p]);
+      grAsymDrAll[p]->SetTitle(Form("Yield for run %d",runnum));
+      grAsymDrAll[p]->Draw("AP");//for some reason!:Tmultigraph wants the axis settings to come after having drawn the graph
+      grAsymDrAll[p]->GetXaxis()->SetTitle("strip number");
+      grAsymDrAll[p]->GetYaxis()->SetTitle("charge normalized accum counts (Hz/uA)");
+      grAsymDrAll[p]->GetYaxis()->SetLabelSize(0.03);
+      grAsymDrAll[p]->GetXaxis()->SetLimits(1,65); 
+      grAsymDrAll[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+      
       legYield[p] = new TLegend(0.1,0.7,0.4,0.9);
       legYield[p]->AddEntry(grAsymDr[p],"background corrected yield(Hz/uA)","lp");
       legYield[p]->AddEntry(grB1L0[p],"background(Hz/uA)","lp");
@@ -377,7 +393,8 @@ Int_t fileReadDraw(Int_t runnum)
 
   if(lasWisePlotBcm) {
     TGraph *lasCycBCML1,*lasCycBCML0,*lasCycBCM;
-    TCanvas *cLasCycBCM = new TCanvas("cLasCycBCM","Beam stability laser cycle",50,50,800,900);
+    TCanvas *cLasCycBCM = new TCanvas("cLasCycBCM","Beam stability laser cycle",50,50,700,800);
+    TLegend *legBCM[2];
     ifstream lasWiseBCM;
     Float_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
     Float_t bcmH0L0[200],bcmH0L1[200],bcmH1L0[200],bcmH1L1[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
@@ -395,26 +412,33 @@ Int_t fileReadDraw(Int_t runnum)
     cLasCycBCM->Divide(1,2);
     cLasCycBCM->cd(1);
     lasCycBCML1= new TGraph(nLasCycles,nCycle,bcmL1);
-    lasCycBCML1->SetTitle(Form(" BCM for run %d",runnum));
     lasCycBCML1->SetMarkerStyle(kFullCircle);
     lasCycBCML1->SetMarkerColor(kGreen);
-    lasCycBCML1->SetLineWidth(2);
-    lasCycBCML1->GetXaxis()->SetTitle("laser Cycle (#)");
-    lasCycBCML1->GetYaxis()->SetTitle("beam (uA)");
-    lasCycBCML1->GetYaxis()->SetLabelSize(0.03);
-    lasCycBCML1->Draw("AP");
 
     lasCycBCML0= new TGraph(nLasCycles,nCycle,bcmL0);
     //lasCycBCML0->SetTitle(Form("las-off BCM for run %d",runnum));
     lasCycBCML0->SetMarkerStyle(kOpenCircle);
     lasCycBCML0->SetMarkerColor(kBlue);
-    lasCycBCML0->SetLineWidth(2);
-    lasCycBCML0->GetYaxis()->SetLabelSize(0.03);
-    lasCycBCML0->Draw("P");
+    //lasCycBCML0->SetLineWidth(2);
+
+    TMultiGraph *lasCycBCMall = new TMultiGraph();
+    lasCycBCMall->Add(lasCycBCML1);
+    lasCycBCMall->Add(lasCycBCML0);
+    lasCycBCMall->SetTitle(Form("BCM for run %d",runnum));
+    lasCycBCMall->Draw("AP");
+    lasCycBCMall->GetXaxis()->SetTitle("laser Cycle");
+    lasCycBCMall->GetYaxis()->SetTitle("beam (uA)");
+    lasCycBCMall->GetYaxis()->SetLabelSize(0.03);
+
+    legBCM[0] = new TLegend(0.6,0.85,0.9,0.95);//x1,y1,x2,y2//(0.1,0.7,0.4,0.9)
+    legBCM[0]->AddEntry(lasCycBCML0,"Laser off BCM per laser cycle","p");
+    legBCM[0]->AddEntry(lasCycBCML1,"Laser on BCM per laser cycle","p");
+    legBCM[0]->SetFillColor(0);
+    legBCM[0]->Draw();
 
     cLasCycBCM->cd(2);
     lasCycBCM= new TGraph(nLasCycles,nCycle,bcm);
-    lasCycBCM->SetTitle(Form("BCM for run %d",runnum));
+    lasCycBCM->SetTitle(Form("BCM per laser cycle for run %d",runnum));
     lasCycBCM->SetMarkerStyle(kFullCircle);
     lasCycBCM->SetMarkerColor(kRed  );
     lasCycBCM->SetLineWidth(2);
@@ -422,6 +446,10 @@ Int_t fileReadDraw(Int_t runnum)
     lasCycBCM->GetYaxis()->SetTitle("beam (uA)");
     lasCycBCM->GetYaxis()->SetLabelSize(0.03);
     lasCycBCM->Draw("AP");
+    //legBCM[1] = new TLegend(0.7,0.83,0.9,0.94);//x1,y1,x2,y2//(0.1,0.7,0.4,0.9)
+    //legBCM[1]->AddEntry(lasCycBCM,"BCM per laser cycle","p");
+    //legBCM[1]->SetFillColor(0);
+    //legBCM[1]->Draw();
 
     cLasCycBCM->Update();
     cLasCycBCM->SaveAs(Form("%s/%s/%slasCycBCM.png",pPath,webDirectory,filePrefix.Data()));
@@ -443,25 +471,27 @@ Int_t fileReadDraw(Int_t runnum)
       nLasCycles=nLasCycles+1;
     }
     lasWisePow.close();
-    cLasCycPow->Divide(1,2);
-    cLasCycPow->cd(2);
+    //cLasCycPow->Divide(1,2);
+    //cLasCycPow->cd(1);
     lasCycLasPowL0= new TGraph(nLasCycles,nCycle,lasPowB1L0);
     lasCycLasPowL0->SetTitle(Form("Laser Power for run %d",runnum));
     lasCycLasPowL0->SetMarkerStyle(kOpenCircle);
-    lasCycLasPowL0->SetMarkerColor(kGreen);
+    lasCycLasPowL0->SetMarkerColor(kBlue);
     lasCycLasPowL0->GetXaxis()->SetTitle("laser Cycle (#)");
     lasCycLasPowL0->GetYaxis()->SetTitle("laser Power (a.u)");
-    lasCycLasPowL0->GetYaxis()->SetLabelSize(0.03);
-    lasCycLasPowL0->Draw("AP");
 
-    cLasCycPow->cd(1);
+    //cLasCycPow->cd(1);
     lasCycLasPowL1= new TGraph(nLasCycles,nCycle,lasPowB1L1);
     lasCycLasPowL1->SetMarkerStyle(kFullCircle);
     lasCycLasPowL1->SetMarkerColor(kGreen);
-    lasCycLasPowL1->GetXaxis()->SetTitle("laser Cycle (#)");
-    lasCycLasPowL1->GetYaxis()->SetTitle("laser Power (a.u)");
-    lasCycLasPowL1->GetYaxis()->SetLabelSize(0.03);
-    lasCycLasPowL1->Draw("AP");
+
+    TMultiGraph *lasCycLasPow = new TMultiGraph();
+    lasCycLasPow->Add(lasCycLasPowL0);
+    lasCycLasPow->Add(lasCycLasPowL1);
+    lasCycLasPow->Draw("AP");
+    lasCycLasPow->GetXaxis()->SetTitle("laser Cycle (#)");
+    lasCycLasPow->GetYaxis()->SetTitle("laser Power (a.u)");
+    lasCycLasPow->GetYaxis()->SetLabelSize(0.03);
 
     cLasCycPow->Update();
     cLasCycPow->SaveAs(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycLasPow.png",pPath,webDirectory,filePrefix.Data()));
@@ -624,18 +654,20 @@ Int_t fileReadDraw(Int_t runnum)
   }
   
   if(bkgdSubVsBeam) {
-    gStyle->SetOptFit(1);
+    gStyle->SetOptFit(0);
+    gStyle->SetOptStat(0);
     Float_t nCycle[maxLasCycles];//arbitrarily set to 100 which certainly will be larger than nLasCycles
     const Int_t numb=6;
     ifstream scalerRate;
     ofstream bkgdSubCountsFit;
-    TGraphErrors *bkgdSubScalVsBeam[nPlanes][nStrips];
+    TGraphErrors *bkgdSubScalVsBeam[nPlanes][nStrips],*ScalVsBeamL1[nPlanes][nStrips],*ScalVsBeamL0[nPlanes][nStrips];
 
     Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
-    Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
+    //Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
+    Double_t beamI[numb]={34,54,64,103,152,180};//!assumed 1-to-1 matching between runlist and beamI array
     Double_t qNormScalerB1H0L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H0L1[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L1[nPlanes][nStrips][maxLasCycles];
     Double_t qNormScalerB1L1[nPlanes][nStrips][maxLasCycles],qNormScalerB1L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1[nPlanes][nStrips][maxLasCycles];
-    Double_t qNormScB1[nPlanes][nStrips][numb];
+    Double_t qNormScB1[nPlanes][nStrips][numb],qNormScL1[nPlanes][nStrips][numb],qNormScL0[nPlanes][nStrips][numb];
     Double_t zero[numb];
     Double_t p0,p1,NDF,chiSq,p1Er,p0Er;
     /*run  : beam***********
@@ -660,8 +692,8 @@ Int_t fileReadDraw(Int_t runnum)
 	    Int_t nLasCycles=0;
 	    while(scalerRate.good()) {
 	      scalerRate>>nCycle[nLasCycles]>>qNormScalerB1H0L0[p][s][nLasCycles]>>qNormScalerB1H0L1[p][s][nLasCycles]>>qNormScalerB1H1L0[p][s][nLasCycles]>>qNormScalerB1H1L1[p][s][nLasCycles];
-	      qNormScalerB1L1[p][s][nLasCycles] = (qNormScalerB1H0L1[p][s][nLasCycles]);//+qNormScalerB1H1L1[p][s][nLasCycles])/2;//!ideally this addition should be charge weigthed
-	      qNormScalerB1L0[p][s][nLasCycles] = (qNormScalerB1H0L0[p][s][nLasCycles]);//+qNormScalerB1H1L0[p][s][nLasCycles])/2;//!ideally this addition should be charge weigthed
+	      qNormScalerB1L1[p][s][nLasCycles] = (qNormScalerB1H0L1[p][s][nLasCycles]+qNormScalerB1H1L1[p][s][nLasCycles])/2;//!ideally this addition should be charge weigthed
+	      qNormScalerB1L0[p][s][nLasCycles] = (qNormScalerB1H0L0[p][s][nLasCycles]+qNormScalerB1H1L0[p][s][nLasCycles])/2;//!ideally this addition should be charge weigthed
 	      qNormScalerB1[p][s][nLasCycles] = qNormScalerB1L1[p][s][nLasCycles] - qNormScalerB1L0[p][s][nLasCycles];
 	      nLasCycles=nLasCycles+1;
 	    }
@@ -672,34 +704,38 @@ Int_t fileReadDraw(Int_t runnum)
 	    return -1;
 	  }
 	}
-      }
-      //!intend to use a chosen nCycle for a given run for the evaluation
-      switch (n) {
-      case 0:
-	chosenCyc = 1;//run 23142
-	break;
-      case 1:
-	chosenCyc = 6;//run 23148
-	break;
-      case 2:
-	chosenCyc = 7;//run 23154
-	break;
-      case 3:
-	chosenCyc = 12;//run 23151
-	break;
-      case 4:
-	chosenCyc = 3;//run 23152
-	break;
-      case 5:
-	chosenCyc = 8;//run 23168
-	break;
-      }
-      for(Int_t p =startPlane; p <endPlane; p++) {//!!this is currently valid for only plane 1
-	for(Int_t s=startStrip;s<endStrip;s++) {
-	  qNormScB1[p][s][n] = qNormScalerB1[p][s][chosenCyc-1];//!note that only one laser cycle is used
+      
+	//!intend to use a chosen nCycle for a given run for the evaluation
+	switch (n) {
+	case 0:
+	  chosenCyc = 14;//run 23142 //34.5uA
+	  break;
+	case 1:
+	  chosenCyc = 9;//run 23148 //54.1uA
+	  break;
+	case 2:
+	  chosenCyc = 9;//run 23154  //64.2uA
+	  break;
+	case 3:
+	  chosenCyc = 12;//run 23151//103.7uA
+	  break;
+	case 4:
+	  chosenCyc = 4;//run 23152 //152.4uA
+	  break;
+	case 5:
+	  chosenCyc = 8;//run 23168 //180.7uA
+	  break;
 	}
+	for(Int_t p =startPlane; p <endPlane; p++) {//!!this is currently valid for only plane 1
+	  for(Int_t s=startStrip;s<endStrip;s++) {
+	    qNormScB1[p][s][n] = qNormScalerB1[p][s][chosenCyc-1];//!note that only one laser cycle is used
+	    qNormScL1[p][s][n] = qNormScalerB1L1[p][s][chosenCyc-1];//!note that only one laser cycle is used
+	    qNormScL0[p][s][n] = qNormScalerB1L0[p][s][chosenCyc-1];//!note that only one laser cycle is used
+	  }
+	}
+	zero[n] = 0.0;
       }
-      zero[n] = 0.0;
+      cout<<"selected laser cycle "<<chosenCyc<<" for run: "<<runlist[n]<<endl;
     }
     
     TF1 *bkgdFit = new TF1("bkgdFit","[0] + [1]/x",25,105);//specifying current range to fit
@@ -707,7 +743,9 @@ Int_t fileReadDraw(Int_t runnum)
     bkgdSubCountsFit.open(Form("%s/%s/bkgdSubCountsFit.txt",pPath,webDirectory));
     if(debug) bkgdSubCountsFit<<";strip\tp0\tp0Er\tp1\tp1Er\tchiSq\tNDF"<<endl;
     
-    TCanvas *cBkgdSubScalVsBeam1 = new TCanvas("cBkgdSubScalVsBeam1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1200,1000);
+    //TCanvas *cScalVsBeamSet1 = new TCanvas("cScalVsBeamB1L1H1Set1",Form("LasOn scalers per laser cycle :strips 01-16"),0,0,1200,1000);
+    //TCanvas *cScalVsBeamB1L0H1Set1 = new TCanvas("cScalVsBeamB1L0H1Set1",Form("LasOff scalers per laser cycle:strips 01-16"),0,0,1200,1000);
+    TCanvas *cBkgdSubScalVsBeam1 = new TCanvas("cBkgdSubScalVsBeam1",Form("Bkgd subtracted scalers per laser cycle for strips 01-16"),0,0,1200,1000);
     //TCanvas *cBkgdSubScalVsBeam2 = new TCanvas("cBkgdSubScalVsBeam2",Form("scaler counts per laser cycle for strips 17-32"),20,10,1200,1000);
     //TCanvas *cBkgdSubScalVsBeam3 = new TCanvas("cBkgdSubScalVsBeam3",Form("scaler counts per laser cycle for strips 33-48"),40,20,1200,1000);
     //TCanvas *cBkgdSubScalVsBeam4 = new TCanvas("cBkgdSubScalVsBeam4",Form("scaler counts per laser cycle for strips 49-64"),60,30,1200,1000);
@@ -721,6 +759,8 @@ Int_t fileReadDraw(Int_t runnum)
       for(Int_t s=startStrip;s<endStrip;s++) {
 	//!the masked strips are not taken care of properly here
 	bkgdSubScalVsBeam[p][s] = new TGraphErrors(numb,beamI,qNormScB1[p][s],zero,zero);
+	ScalVsBeamL1[p][s] = new TGraphErrors(numb,beamI,qNormScL1[p][s],zero,zero);
+	ScalVsBeamL0[p][s] = new TGraphErrors(numb,beamI,qNormScL0[p][s],zero,zero);
       
 	if(s>= 0 && s<16) cBkgdSubScalVsBeam1->cd(s+1);
 	//if(s>=16 && s<32) cBkgdSubScalVsBeam2->cd(s-16+1);
@@ -737,9 +777,16 @@ Int_t fileReadDraw(Int_t runnum)
 	bkgdSubScalVsBeam[p][s]->GetYaxis()->SetTitle("charge normalized bkgd sub scaler counts (Hz/uA)");
 	bkgdSubScalVsBeam[p][s]->GetYaxis()->SetTitleOffset(1.2); 
 	bkgdSubScalVsBeam[p][s]->GetYaxis()->SetLabelSize(0.03);
-	//cBkgdSubScalVsBeam1->GetPad(2)->SetGridx(1); 
-	bkgdSubScalVsBeam[p][s]->Draw("APE");
-	bkgdSubScalVsBeam[p][s]->Fit("bkgdFit","R M E");
+	//bkgdSubScalVsBeam[p][s]->Draw("APE");
+	bkgdSubScalVsBeam[p][s]->Fit("bkgdFit","0R");//ME
+
+	ScalVsBeamL1[p][s]->SetMarkerStyle(kFullCircle);
+	ScalVsBeamL1[p][s]->SetMarkerColor(kGreen);
+	ScalVsBeamL0[p][s]->SetMarkerStyle(kOpenCircle);
+	ScalVsBeamL0[p][s]->SetMarkerColor(kBlue);
+	ScalVsBeamL1[p][s]->Draw("AP");	
+	ScalVsBeamL0[p][s]->Draw("P");
+
 	p0 = bkgdFit->GetParameter(0);
 	p0Er = bkgdFit->GetParError(0);
 	p1 = bkgdFit->GetParameter(1);
@@ -749,8 +796,7 @@ Int_t fileReadDraw(Int_t runnum)
 	bkgdSubCountsFit<<s+1<<"\t"<<p0<<"\t"<<p0Er<<p1<<"\t"<<p1Er<<"\t"<<chiSq<<"\t"<<NDF<<endl;     
       }
       bkgdSubCountsFit.close();
-      gPad->Update();
-      cBkgdSubScalVsBeam1->Update();
+      //cBkgdSubScalVsBeam1->Update();
       //     cBkgdSubScalVsBeam2->Update();
       //     cBkgdSubScalVsBeam3->Update();
       //     cBkgdSubScalVsBeam4->Update();
