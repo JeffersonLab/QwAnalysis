@@ -15,7 +15,6 @@ const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
 const Int_t  QwVQWK_Channel::kWordsPerChannel = 6;
 const Int_t  QwVQWK_Channel::kMaxChannels     = 8;
 
-
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
  *   The base factor is roughly 76 uV per count, and zero counts corresponds
@@ -202,7 +201,7 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fErrorCount_ZeroHW     = 0;
   fErrorCount_HWSat      = 0;
 
-
+  fRunningSum            = 0;
 
   fADC_Same_NumEvt       = 0;
   fSequenceNo_Prev       = 0;
@@ -1232,6 +1231,12 @@ void QwVQWK_Channel::DivideBy(const QwVQWK_Channel &denom)
  */
 void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value, Int_t count)
 {
+  // Store pointer to running sum
+  if (value.fRunningSum == 0) {
+    QwVQWK_Channel* vqwk = const_cast<QwVQWK_Channel*>(&value);
+    vqwk->fRunningSum = this;
+  }
+
   // Moment calculations
   Bool_t berror=kTRUE;//only needed for deaccumulation (stability check purposes)
 
