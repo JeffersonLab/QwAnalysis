@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     detectors.ShareHistograms(ringoutput);
 
     //  Construct tree branches
-    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
+    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", ringoutput);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstYield(),"yield_");
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstAsymmetry(),"asym_");
