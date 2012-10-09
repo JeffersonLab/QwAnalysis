@@ -169,8 +169,9 @@ int main(int argc, char* argv[])
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
     rootfile->WriteParamFileList("mapfiles", detectors);
     //  Construct histograms
-    rootfile->ConstructHistograms("mps_histo", detectors);
+    rootfile->ConstructHistograms("mps_histo", ringoutput);
     rootfile->ConstructHistograms("hel_histo", helicitypattern);
+    detectors.ShareHistograms(ringoutput);
 
     //  Construct tree branches
     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
