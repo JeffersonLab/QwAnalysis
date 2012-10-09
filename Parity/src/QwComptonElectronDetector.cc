@@ -810,6 +810,7 @@ void QwComptonElectronDetector::ClearEventData()
 VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
+    VQwSubsystem::operator=(value);
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
@@ -986,17 +987,18 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   }
 
   TString histname = Form("Compton_eDet_Evt_Best_Plane1");
-  fHistograms.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
   histname = Form("Compton_eDet_Evt_Best_Plane2");
-  fHistograms.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
   histname = Form("Compton_eDet_Evt_Best_Plane3");
-  fHistograms.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
   histname = Form("Compton_eDet_Evt_Best_x2");
-  fHistograms.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
   histname = Form("Compton_eDet_Evt_NTracks");
-  fHistograms.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
   histname = Form("Compton_eDet_Evt_Track_Angle");
-  fHistograms.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
+
 }
 
 void  QwComptonElectronDetector::FillHistograms()
