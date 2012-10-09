@@ -814,11 +814,6 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
         this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
-        if(input->fHistograms.size()>0) {
-        	for(Int_t ii = 0; ii < 5; ii++ ) {
-        		this->fHistograms.push_back(input->fHistograms[i+ii]);
-        	}
-        }
       }
     }
   }
@@ -968,6 +963,7 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
 {/// not adding the version-2 accum data to the histograms, only interested in adding it to tree
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
+
   //  Go into subdirectory if it exists
   TDirectory* eDetfolder = folder->GetDirectory("Compton_Electron");
   if (eDetfolder == 0) eDetfolder = folder->mkdir("Compton_Electron");
