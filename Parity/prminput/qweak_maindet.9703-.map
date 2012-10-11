@@ -65,6 +65,6 @@ sample_size=464
   VPMT, 13, 8, CombinationPMT, qwk_mdoddbars, qwk_md1neg, qwk_md1pos, qwk_md3neg, qwk_md3pos, qwk_md5neg, qwk_md5pos, qwk_md7neg, qwk_md7pos, 25.7898130238556, 26.1604788414047, 22.1025736236727, 41.7983314106101, 25.917210064171, 21.3877208816874, 29.8326685620355, 25.5872268563533
   VPMT, 14, 8, CombinationPMT, qwk_mdevenbars, qwk_md2neg, qwk_md2pos, qwk_md4neg, qwk_md4pos, qwk_md6neg, qwk_md6pos, qwk_md8neg, qwk_md8pos, 36.0585157593743, 22.0166357699878, 38.0015732651332, 24.7686607089781, 24.9405168672716, 28.9658608364182, 24.3657592857909, 21.4353541870749
   VPMT, 15, 16, CombinationPMT, qwk_mdallbars, qwk_md1neg, qwk_md1pos, qwk_md2neg, qwk_md2pos, qwk_md3neg, qwk_md3pos, qwk_md4neg, qwk_md4pos, qwk_md5neg, qwk_md5pos, qwk_md6neg, qwk_md6pos, qwk_md7neg, qwk_md7pos, qwk_md8neg, qwk_md8pos, 25.7898130238556, 26.1604788414047, 36.0585157593743, 22.0166357699878, 22.1025736236727, 41.7983314106101, 38.0015732651332, 24.7686607089781, 25.917210064171, 21.3877208816874, 24.9405168672716, 28.9658608364182, 29.8326685620355, 25.5872268563533, 24.3657592857909, 21.4353541870749
-  VPMT, 16, 2, CombinationPMT, qwk_md9barsum, qwk_md9pos, qwk_md9neg, 591.299617429148, 246.394630568211
+  VPMT, 16, 2, CombinationPMT, qwk_md9barsum, qwk_md9pos, qwk_md9neg, 591.299617429148, 246.394630568211 NOT_BLINDABLE
 !
 !END
