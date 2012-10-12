@@ -20,7 +20,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 MYOS := $(subst -,,$(shell uname))
 
 
-EXE := promptsummary get_from_runs
+EXE := promptsummary get_from_runs compute_LH2_asym
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -48,6 +48,10 @@ promptsummary : QwPromptSummary.o
 
 get_from_runs : read_run_range.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+compute_LH2_asym : compute_LH2_asym.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
 
 SarahsCoolBPMScript : SarahsCoolBPMScript.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
