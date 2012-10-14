@@ -25,7 +25,7 @@ const Double_t stripMin = 30.0;
 const Double_t stripMax = 50.0;
 const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
-const Double_t qNormBkgdSubSignalLow = 35.0;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
+const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
 
 //Hardware related constants
 const Int_t nStrips = 96;
@@ -60,7 +60,7 @@ const Double_t lowCurrentLimit = 65.0;
 //following numbers are all in C++ counting(start at 0)
 const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
-const Int_t endStrip = 16;
+const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
 const Int_t masked[3]={3,3,4};///no.of masked strips in the 3 active planes

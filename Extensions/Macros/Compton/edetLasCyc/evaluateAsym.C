@@ -2,17 +2,17 @@
 #include "comptonRunConstants.h"
 #include "maskedStrips.C"
 
-void evaluateAsym(Float_t newAccumB1H1L1[nPlanes][nStrips],Float_t newAccumB1H1L0[nPlanes][nStrips],Float_t newAccumB1H0L1[nPlanes][nStrips],Float_t newAccumB1H0L0[nPlanes][nStrips],Float_t bcmLasCycH1L1,Float_t bcmLasCycH1L0,Float_t bcmLasCycH0L1,Float_t bcmLasCycH0L0,Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips])
+void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nPlanes][nStrips],Int_t newAccumB1H0L1[nPlanes][nStrips],Int_t newAccumB1H0L0[nPlanes][nStrips],Float_t bcmLasCycH1L1,Float_t bcmLasCycH1L0,Float_t bcmLasCycH0L1,Float_t bcmLasCycH0L0,Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips])
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug=0;
 //   Int_t tLasOn = nMpsB1H1L1 + nMpsB1H0L1;
 //   Int_t tLasOff= nMpsB1H1L0 + nMpsB1H0L0;
   
-  Float_t qLasCycH1L1 = bcmLasCycH1L1 /MpsRate;//*tB1H1L1;//this really gives total-charge for this laser cycle
-  Float_t qLasCycH0L1 = bcmLasCycH0L1 /MpsRate;//*tB1H0L1;
-  Float_t qLasCycH1L0 = bcmLasCycH1L0 /MpsRate;//*tB1H1L0;
-  Float_t qLasCycH0L0 = bcmLasCycH0L0 /MpsRate;//*tB1H0L0;
+  Float_t qLasCycH1L1 = bcmLasCycH1L1 /MpsRate;//this really gives total-charge for this laser cycle
+  Float_t qLasCycH0L1 = bcmLasCycH0L1 /MpsRate;
+  Float_t qLasCycH1L0 = bcmLasCycH1L0 /MpsRate;
+  Float_t qLasCycH0L0 = bcmLasCycH0L0 /MpsRate;
 
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {	  
@@ -76,9 +76,9 @@ void evaluateAsym(Float_t newAccumB1H1L1[nPlanes][nStrips],Float_t newAccumB1H1L
 	//weightedMeanDrBCqNormDiff[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
 	weightedMeanNrqNormB1L0[p][s] += qNormAcB1L0LasCyc/erqNormB1L0LasCycSq; //refer bevington
 	weightedMeanDrqNormB1L0[p][s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
-      } else {
+      } else if(debug) {
 	printf("**Alert: getting non-positive erBCqNormLasCycSumSq for plane:%d, strip:%d in line:%d\n",p+1,s+1,__LINE__);
-	printf("newAccumB1H1L1:%g, bcmLasCycH1L1:%g\n",newAccumB1H1L1[p][s],bcmLasCycH1L1);
+	printf("newAccumB1H1L1:%d, bcmLasCycH1L1:%g\n",newAccumB1H1L1[p][s],bcmLasCycH1L1);
 	printf("NplusOn_SqQplusOn:%g, NminusOn_SqQminusOn:%g, NplusOff_SqQplusOff:%g, NminusOff_SqQminusOff:%g,\n"
 	       ,NplusOn_SqQplusOn,NminusOn_SqQminusOn,NplusOff_SqQplusOff,NminusOff_SqQminusOff);
       }

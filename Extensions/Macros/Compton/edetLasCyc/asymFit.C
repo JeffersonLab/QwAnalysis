@@ -83,14 +83,14 @@ void asymFit(Int_t runnum)
 	activeStrip.resize(p+1),tNormScB1L1.resize(p+1),tNormScB1L0.resize(p+1);
       }
       if(debug) cout<<"Reading the tNormScaler corresponding to Plane "<<p+1<<endl;
-      if(debug1) cout<<"activeStrip\t"<<"tNormScalerLasOn\t"<<"tNormScalerLasOff"<<endl;
+      if(debug1) cout<<"p\ts\tbkgdSubScaler\tactiveStrip\t"<<"tNormScL1\t"<<"tNormScL0\t"<<"(L1-L0)/L1"<<endl;
       while(infileScaler.good()) {
 	activeStrip[p].push_back(0.0),tNormScB1L1[p].push_back(0.0),tNormScB1L0[p].push_back(0.0);
-	Int_t s=activeStrip[p].size() - 1;
-	infileScaler>>activeStrip[p][s]>>tNormScB1L1[p][s]>>tNormScB1L0[p][s];
+	Int_t s=activeStrip[p].size() - 1;///this 's' does not represent the actual strip number
+	infileScaler>>activeStrip[p][s]>>tNormScB1L1[p][s]>>tNormScB1L0[p][s];///the content of the 'activeStrip' vector contains the true strip number
 	tNormScBkgdSubSigB1[p][s] = tNormScB1L1[p][s] - tNormScB1L0[p][s];
-	if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\n",p+1,s+1,activeStrip[p][s],tNormScB1L1[p][s],tNormScB1L0[p][s]);
-	numbGoodStrips[p]++;//counts in human counting
+	if(debug1) printf("%d\t%d\t%f\t%2.0f\t%f\t%f\t%f\n",p+1,s+1,tNormScBkgdSubSigB1[p][s],activeStrip[p][s],tNormScB1L1[p][s],tNormScB1L0[p][s],tNormScBkgdSubSigB1[p][s]/tNormScB1L1[p][s]);
+	numbGoodStrips[p]++;//counts in human counting ///this is basically =activeStrip[p].size()
       }
       infileScaler.close();
     } else cout<<"\n*** Alert:couldn't find "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" needed to generically locate Compton edge"<<endl;
@@ -99,10 +99,15 @@ void asymFit(Int_t runnum)
   for(Int_t p =startPlane; p <endPlane; p++) {
     Bool_t trueEdge = 1;
     for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
-      if (tNormScBkgdSubSigB1[p][s] < qNormBkgdSubSignalLow) { //!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how this numb may vary
-	Int_t leftStrips = numbGoodStrips[p] - (Int_t)activeStrip[p][s];
-	for(Int_t st =0; st <leftStrips;st++) {
-	  if (tNormScBkgdSubSigB1[p][s+st]  >= qNormBkgdSubSignalLow) trueEdge = 0;	      
+      if (tNormScBkgdSubSigB1[p][s]/tNormScB1L1[p][s] < qNormBkgdSubScalToSigRatioLow) { //!'qNormBkgdSubScalToSigRatioLow' is arbitrarily chosen at 10% 
+	Int_t probableEdge = (Int_t)activeStrip[p][s]-1; ///since the above condition is fulfiled after crossing Cedge
+	if(debug1) cout<<"probable Cedge : "<<probableEdge<<endl;
+	Int_t leftStrips = numbGoodStrips[p] - probableEdge;
+	for(Int_t st =1; st <=leftStrips;st++) {///starting to check next strip onwards
+	  if (tNormScBkgdSubSigB1[p][s+st]/tNormScB1L1[p][s+st]  >= qNormBkgdSubScalToSigRatioLow) trueEdge = 0;
+	  ///on purpose the requirement for reconsidering the selected comptonEdge is a little more strict.
+	  ///this method of comparision auto-rejects the cases when the bkgd subtracted counts are negative
+	  if(debug1) printf("tNormScBkgdSubSigB1[%d][%d]:%f, leftStrips:%d, trueEdge:%d\n",p+1,s+1+st+1,tNormScBkgdSubSigB1[p][s+st+1],leftStrips,trueEdge);
 	}
 	if (trueEdge) {
 	  Cedge[p]=(Int_t)activeStrip[p][s] - 1;//!this can be left as a float after changing the base assignement of Cedge
@@ -127,7 +132,7 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
     grAsymPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");   
-    grAsymPlane[p]->SetTitle("experimental asymmetry");//Run: %d, Plane %d",runnum,p+1))
+    grAsymPlane[p]->SetTitle(Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
     grAsymPlane[p]->GetXaxis()->CenterTitle();
     grAsymPlane[p]->GetYaxis()->CenterTitle();
     grAsymPlane[p]->SetMarkerStyle(kFullCircle);
@@ -145,8 +150,8 @@ void asymFit(Int_t runnum)
     //polFit->SetParLimits(0,1.021,1.021);//fixing the strip width to 1.021
     polFit->SetParLimits(0,0.2,2.0);///allowing the strip width to be either 20% or 200% of its real pitch    
     //polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
-    polFit->SetParLimits(1,tempCedge-3.0,tempCedge+2.0);///allowing compton edge to vary by -3 strips to upto +2 strips
-    polFit->SetParLimits(2,-1.1,1.1);///allowing polarization to be -100% to +100%
+    polFit->SetParLimits(1,tempCedge-0.5,tempCedge+0.5);///allowing compton edge to vary by -3 strips to upto +2 strips
+    polFit->SetParLimits(2,-1.1,1.1);///allowing polarization to be - 110% to +110%
 
     polFit->SetParNames("effStrip","comptonEdge","polarization");
     polFit->SetLineColor(kBlue);
@@ -202,5 +207,6 @@ void asymFit(Int_t runnum)
 }
 
 /*Comments
+ *The acceptance limit for the ratio of the background subtracted Signal over Signal is set at 10%
  *stripNum is a 2D array so as to hold the different set of strips that may be unmasked
  */
