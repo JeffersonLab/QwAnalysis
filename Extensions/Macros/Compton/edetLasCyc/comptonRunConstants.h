@@ -60,7 +60,7 @@ const Double_t lowCurrentLimit = 65.0;
 //following numbers are all in C++ counting(start at 0)
 const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
-const Int_t endStrip = 64;
+const Int_t endStrip = 16;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
 const Int_t masked[3]={3,3,4};///no.of masked strips in the 3 active planes

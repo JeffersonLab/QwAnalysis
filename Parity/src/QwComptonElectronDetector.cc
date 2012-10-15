@@ -173,19 +173,24 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	    fStripsEv.resize(plane);
 	  if (stripnum >= (Int_t) fStripsEv[plane-1].size())
             fStripsEv[plane-1].push_back(0);
-	} 
-
-	else if (dettype == "eDAQ_info") {
-          // Register data channel type
-          fMapping[currentsubbankindex] = kV1495DAQinfo;
-          fdettype = 4;
- 	  if (fdettype >= (Int_t) fSubbankIndex.size())
-	    fSubbankIndex.resize(fdettype+1);
-          if (modnum >= fSubbankIndex[fdettype].size()) {
-            fSubbankIndex[fdettype].push_back(modnum);
-            fSubbankIndex[fdettype][modnum] = currentsubbankindex;
-          }
 	} // end of switch (dettype)
+
+// 	else if (dettype == "eDAQ_info") {
+//           // Register data channel type
+//           fMapping[currentsubbankindex] = kV1495DAQinfo;
+//           fdettype = 4;
+//  	  if (fdettype >= (Int_t) fSubbankIndex.size())
+// 	    fSubbankIndex.resize(fdettype+1);
+//           if (modnum >= fSubbankIndex[fdettype].size()) {
+//             fSubbankIndex[fdettype].push_back(modnum);
+//             fSubbankIndex[fdettype][modnum] = currentsubbankindex;
+//           }
+// 	  //!I'm putting it for consistency with above, but should not be needed since the header file does this job already (check which of the two methods is more standard and remove the other method; (same needed for other 6 vectors above!?)
+// 	  if (modnum >= fDAQinfo.size())
+// 	    fDAQinfo.resize(modnum+1);
+// 	  if (NInfoWords >= (Int_t) fDAQinfo.size()) 
+// 	    fDAQinfo.resize(NInfoWords);
+// 	} 
 
 	else {
 	  notGood=notGood+1;
@@ -238,48 +243,11 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   UInt_t bitwise_mask = 0;
   div_t div_output;
   UInt_t accum_count = 0;
-  UInt_t slave_header,firmwareRevision,portAmask,portBmask,portDmask,portEmask,widthInfo,trigInfo;
   // Get the subbank index (or -1 when no match)
   Int_t subbank = GetSubbankIndex(roc_id, bank_id);
   if (subbank >= 0 && num_words > 0) {
     //  We want to process this ROC.  Begin looping through the data.
     switch (fMapping[subbank]) {
-    case kV1495DAQinfo:
-      {
-	//ofstream outDAQinfo;
-	//outDAQinfo.open("$QW_ROOTFILES/QwComptEDetDAQinfo.txt");//!?this may not work in ifarm analysis
-	for (Int_t k = 0; k < NModules; k++) {
-	  if (fSubbankIndex[4][k]==subbank) {
-	    // sub-bank 0x207 & 0x208, eDAQinfo for this slave board for all planes and strips
-	    if (num_words > 0) { //!?this has already been checked in this function. remove this if?JC
-	      ///the total number of words in this subbank is fixed at 8 always, though the meaning carried by a word has
-	      ///..changed during different revisions (may need fine tuning later!)
-	      slave_header = buffer[0];///expect this to be always BX000000 for slaveX
-	      firmwareRevision = buffer[1];
-	      portAmask = buffer[2];
-	      portBmask = buffer[3];
-	      portDmask = buffer[4];
-	      portEmask = buffer[5];
-	      widthInfo = buffer[6];
-	      trigInfo = buffer[7];
-	      words_read++;   
-	      //outDAQinfo<<"slave"<<k+1<<"\t"<<portAmask<<"\t"<<portBmask<<"\t"<<portDmask<<"\t"<<portEmask<<"\t"<<widthInfo<<"\t"<<trigInfo;
-	    }
-	    if (num_words != words_read) {
-	      QwError << "QwComptonElectronDetector: There were "
-		      << num_words - words_read
-		      << " leftover words after decoding everything we recognize in accum data"
-		      << std::hex
-		      << " in ROC " << roc_id << ", bank " << bank_id << "."
-		      << std::dec
-		      << QwLog::endl;
-	    }	    
-	  }
-	  //outDAQinfo.close();
-	} // for (Int_t k = 0; k < NModules; k++) 
-	break;
-      }
-      
     case kV1495Accum:
       {	
 	for (Int_t k = 0; k < NModules; k++) {
@@ -758,6 +726,61 @@ void  QwComptonElectronDetector::ProcessEvent()
 //*****************************************************************
 Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+  //  QwMessage << std::hex << "roc = " << roc_id << ", bank = " <<bank_id << ":" << "num words: "<<num_words<<QwLog::endl;
+//   printf("\n\n\n%f",num_words);
+//   for (size_t i = 0; i < num_words; i++) {
+//     QwMessage << std::hex << buffer[i] << " ";
+//   }
+//   QwMessage << QwLog::endl;
+
+  // sub-bank 0x207 & 0x208, eDAQinfo for this slave board for all planes and strips
+  ///the total number of words in these subbanks was fixed at 8, though the meaning carried by a word has
+  ///..changed during different revisions (may need fine tuning later!)
+  
+  Int_t subBankiterate = bank_id==0x207 ? 0 : 32;
+  
+
+//   for (Int_t i = 0; i < NInfoWords; i++) {
+//     fDAQinfo[i] = buffer[i];
+//   }
+
+  slave_header.push_back(buffer[0]);///expect this to be always BX000000 for slaveX
+  firmwareRevision.push_back(buffer[1]);
+  portAmask.push_back(buffer[2]);
+  portBmask.push_back(buffer[3]);
+  portDmask.push_back(buffer[4]);
+  portEmask.push_back(buffer[5]);
+  widthInfo.push_back(buffer[6]);
+  trigInfo.push_back (buffer[7]);
+
+  UInt_t bitwise_mask=0;
+  for (Int_t s = 0; s < StripsPerModule; s++) {
+    bitwise_mask = (0x1 << s);
+    fPlane1Mask[s+subBankiterate] = ((portAmask.back() & bitwise_mask) >> s);
+  }
+
+   for (Int_t s = 0; s < StripsPerModule; s++) {
+     bitwise_mask = (0x1 << s);
+    fPlane2Mask[s+subBankiterate] = ((portBmask.back() & bitwise_mask) >> s);
+   }
+
+   for (Int_t s = 0; s < StripsPerModule; s++) {
+     bitwise_mask = (0x1 << s);
+    fPlane3Mask[s+subBankiterate] = ((portDmask.back() & bitwise_mask) >> s);
+   }
+
+   for (Int_t s = 0; s < StripsPerModule; s++) {
+     bitwise_mask = (0x1 << s);
+    fPlane4Mask[s+subBankiterate] = ((portEmask.back() & bitwise_mask) >> s);
+   }
+
+  //QwOut<< std::hex<<slave_header.back()<<"\t"<<firmwareRevision.back()<<"\t"<<portAmask.back()<<"\t"<<portBmask.back()<<"\t"<<portDmask.back()<<"\t"<<portEmask.back()<<"\t"<<widthInfo.back()<<"\t"<<trigInfo.back()<<endl;
+  cout<<"\n\n"<<endl;
+  cout<<"size of fPlane1Mask is: "<<fPlane1Mask.size()<<endl;
+  cout<<"size of fPlane2Mask is: "<<fPlane2Mask.size()<<endl;
+  cout<<"subBankiterate is "<<subBankiterate<<"\n\n"<<endl;
+  subBankiterate = subBankiterate + 32;//when this process is called 2nd time,
+
   return 0;
 }
 
@@ -815,8 +838,26 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
         this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
+        this->fStripsRawEv[i][j] = input->fStripsRawEv[i][j];
+        this->fStripsRawScal[i][j] = input->fStripsRawScal[i][j];
+        this->fStripsRaw_v2[i][j] = input->fStripsRaw_v2[i][j];
       }
     }
+
+     //cout<<"\n\nfPlane1Mask.size is "<<fPlane1Mask.size()<<"\n\n"<<endl;
+      this->fPlane1Mask.resize(input->fPlane1Mask.size());
+      this->fPlane2Mask.resize(input->fPlane2Mask.size());
+      this->fPlane3Mask.resize(input->fPlane3Mask.size());
+      this->fPlane4Mask.resize(input->fPlane4Mask.size());
+      for (UInt_t j = 0; j < input->fPlane1Mask.size(); j++)
+        this->fPlane1Mask[j] = input->fPlane1Mask[j];
+     //cout<<"\n\nfPlane1Mask.size is "<<fPlane1Mask.size()<<"\n\n"<<endl;
+      for (Int_t j = 0; j < input->fPlane2Mask.size(); j++)
+        this->fPlane2Mask[j] = input->fPlane2Mask[j];
+      for (Int_t j = 0; j < input->fPlane3Mask.size(); j++)
+        this->fPlane3Mask[j] = input->fPlane3Mask[j];
+      for (Int_t j = 0; j < input->fPlane4Mask.size(); j++)
+        this->fPlane4Mask[j] = input->fPlane4Mask[j];
   }
   return *this;
 }
@@ -827,13 +868,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
-
-	// static double edet_acum_sum[4][96];
-	//	    edet_acum_sum[i][j]=fStripsRaw[i][j]+edet_acum_sum[i][j];
-	//	    QwOut << " TEST2 =  "  << " i = " << i << " j = " << j << " " << fStripsRaw[i][j] << " " << edet_acum_sum[i][j] << QwLog::endl;	  
-	//            fStripsRaw[i][j]=0;	    
-        this->fStripsRaw[i][j] += input->fStripsRaw[i][j];     
-      
+        this->fStripsRaw[i][j] += input->fStripsRaw[i][j];      
       }
     }
   }
@@ -943,14 +978,13 @@ void  QwComptonElectronDetector::AccumulateRunningSum(VQwSubsystem* value)
 
 void  QwComptonElectronDetector::CalculateRunningAverage()
 {
-  if (fGoodEventCount <= 0) {
-    Scale(0);
-    //QwOut << " Scale = 0" << QwLog::endl;
-  } else {
-    Scale(1.0/fGoodEventCount);
-    QwOut << " Good Events =  "  << " " << fGoodEventCount << QwLog::endl;
-
-  }
+   if (fGoodEventCount <= 0) { 
+     Scale(0);
+     //QwOut << " Scale = 0" << QwLog::endl;
+   } else {
+     Scale(1.0/fGoodEventCount);
+     //QwOut << " Good Events =  "  << " " << fGoodEventCount << QwLog::endl;
+   }
 }
 
 
@@ -1108,7 +1142,22 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
     valnames.Remove(0,1); // remove first ':' character
     tree->Branch(basename, valstart+1, valnames);
   }
-  ///Notice-2: the pattern that for every plane the branch is created for all 3 datatyes of data before 
+
+
+  /// v1495 DAQ info for this slave//!?needs to be checked 
+  //for (Int_t i = 0; i < 1; i++) {
+  for (UInt_t i = 0; i < NPlanes; i++) {
+    TString basename = prefix + Form("v1495InfoPlane%d",i+1);
+    TString valnames = "";
+    Double_t* valstart = &(values.back());
+    for (Int_t j = 0; j < StripsPerPlane; j++) {
+      valnames += TString(":") + prefix + Form("p%ds%dMask",i+1,j+1) + "/D";
+      values.push_back(0.0);
+    }
+    valnames.Remove(0,1); // remove first ':' character
+    tree->Branch(basename, valstart+1, valnames);
+  }
+  ///Notice-2: the pattern that for every plane the branch is created for all different types of data before 
   ///...creating the same for the next plane
 }
 
@@ -1129,6 +1178,20 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
     for (Int_t j = 0; j < StripsPerPlane; j++)
       values[index++] = fStripsRawScal[i][j];/// v1495 Scaler Raw
   }
+  //cout<<"\n\noperational line is: "<<__LINE__<<" fPlane1Mask.size():"<<fPlane1Mask.size()<<"\n\n"<<endl;
+   for (UInt_t j = 0; j < StripsPerPlane; j++) {
+//     cout<<"\n\noperational line is: "<<__LINE__<<" strip #:"<<j<<endl;
+     values[index++] = fPlane1Mask.at(j);/// v1495 plane 1 mask info
+   }
+//   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
+   for (UInt_t j = 0; j < fPlane2Mask.size(); j++)
+     values[index++] = fPlane2Mask.at(j);/// v1495 plane 2 mask info
+//   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
+   for (UInt_t j = 0; j < fPlane3Mask.size(); j++)
+     values[index++] = fPlane3Mask.at(j);/// v1495 plane 3 mask info
+//   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
+   for (UInt_t j = 0; j < fPlane4Mask.size(); j++)
+     values[index++] = fPlane4Mask.at(j);/// v1495 plane 4 mask info
 }
 
 /**

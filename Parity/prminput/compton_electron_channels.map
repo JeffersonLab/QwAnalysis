@@ -1466,12 +1466,12 @@ V1495,	       	1,    255,	eaccum_v2,	compton_e,   4,   63
 
 Bank=0x0207
 !V1495 slave 1, edet DAQ settings info saved once per run
-! module.type, module.num,  det.type,	det.name
-V1495,	       	0,    1,	eDAQ_info,	compton_e,	1,	0
+! module.type, module.num,	channel.num	det.type,	det.name
+V1495,	       	0,    0,	eDAQ_info,	compton_e
 
 Bank=0x0208
 !V1495 slave 2, edet DAQ settings info saved once per run
-! module.type, module.num,  det.type,	det.name
-V1495,	       	1,    1,	eDAQ_info,	compton_e,	1,	0
+! module.type, module.num,	channel.num	det.type,	det.name
+V1495,	       	1,    1,	eDAQ_info,	compton_e
 
 ! End of ROC2 map

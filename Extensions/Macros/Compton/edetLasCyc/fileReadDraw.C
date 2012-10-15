@@ -791,6 +791,7 @@ Int_t fileReadDraw(Int_t runnum)
 	ScalVsBeam[p][s]->Add(ScalVsBeamL1[p][s]);
 	ScalVsBeam[p][s]->Add(bkgdSubScalVsBeam[p][s]);
 	ScalVsBeam[p][s]->Draw("AP");
+	ScalVsBeam[p][s]->SetTitle(Form("strip %d",s+1));
 	ScalVsBeam[p][s]->GetXaxis()->SetTitle("beam current(uA)");
 	ScalVsBeam[p][s]->GetYaxis()->SetTitle("scalers (Hz/uA)");
 	//ScalVsBeam[p][s]->GetYaxis()->SetLabelSize(0.03);

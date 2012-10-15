@@ -122,8 +122,8 @@ Int_t expAsym(Int_t runnum)
     }
   }
 
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
-  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
+  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
   printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
 
   if(!chainExists){//delete chains and exit if files do not exist
