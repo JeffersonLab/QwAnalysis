@@ -1,0 +1,38 @@
+#!/bin/bash 
+
+# Author: Rakitha Beminiwattha (rakithab@jlab.org)
+#Test only in cdaq cluseter.
+#to run ./check_analysis_status slug_number
+#where slug_nuber is any run1 slug
+
+slug_num=$1
+
+echo "All the runlets in the Slug: ${slug_num} "
+echo "======================================== "
+
+
+sql_query="  select runlet.run_number,segment_number from runlet, run  where run.run_id=runlet.run_id  and runlet.full_run='false' and slug= ${slug_num} ; "
+
+rm -f analyzer_status_query.sql
+
+echo " ${sql_query} " > analyzer_status_query.sql
+
+mysql -u qweak -h qweakdb -p qw_run1_pass4b  < analyzer_status_query.sql
+
+rm -f analyzer_status_query.sql
+
+echo "Analysis Progress in the Slug: ${slug_num} "
+echo "========================================== "
+
+
+sql_query="  select run.slug, runlet.run_number, runlet.segment_number, analysis.slope_calculation ,analysis.slope_correction, analysis.runlet_id from analysis, runlet, run where analysis.runlet_id=runlet.runlet_id and run.run_id=runlet.run_id and run.slug= ${slug_num} order by runlet.run_number , runlet.segment_number; "
+
+
+echo " ${sql_query} " > analyzer_status_query.sql
+
+mysql -u qweak -h qweakdb -p qw_run1_pass4b  < analyzer_status_query.sql
+
+rm -f analyzer_status_query.sql
+
+
+
