@@ -1,0 +1,18 @@
+--- blueReg_set7.conf	2012-09-05 10:58:21.820303408 -0400
++++ blueReg_set7.conf.new	2012-09-05 10:59:28.888337680 -0400
+@@ -20,7 +20,6 @@
+ alias bcmDD67=asym_qwk_bcm6-asym_qwk_bcm7
+ alias bcmDD68=asym_qwk_bcm6-asym_qwk_bcm8
+ alias bcmDD78=asym_qwk_bcm7-asym_qwk_bcm8
+-alias bpmDD9_9b=asym_qwk_bpm3h09_EffectiveCharge-asym_qwk_bpm3h09b_EffectiveCharge
+ alias asym_DD_MDeven_odd=asym_qwk_mdevenbars-asym_qwk_mdoddbars
+ alias asym_DD_MD15_37=asym_qwk_md1_qwk_md5-asym_qwk_md3_qwk_md7
+ alias asym_DD_MD26_48=asym_qwk_md2_qwk_md6-asym_qwk_md4_qwk_md8
+@@ -109,7 +108,6 @@
+ dv bcmDD67
+ dv bcmDD68
+ dv bcmDD78
+-dv bpmDD9_9b
+ dv asym_DD_MDeven_odd
+ dv asym_DD_MD15_37
+ dv asym_DD_MD26_48
