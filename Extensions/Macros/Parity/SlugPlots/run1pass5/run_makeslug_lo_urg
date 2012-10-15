@@ -1,0 +1,34 @@
+#!/bin/bash
+# Author: Rakitha Beminiwattha (rakithab@jlab.org) 
+# 08-07-2012
+
+#This scrip wiil only generate unregressed(urg) slug rootfiles with runlets filed the regression (left over runlets)
+#The script also read slug${slug_num}_loruns_list.txt format runlet list file
+
+slug_num=$1
+#this is the source of regressed root files
+SRC="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
+DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
+
+#DST_Dbug="/volatile/hallc/qweak/rakithab/run1pass4/out_files"
+
+
+################
+#
+# check that all runlets exist for all slugs
+#
+# taking care of this when making the goodrun lists
+#
+################
+
+ 
+
+
+argument="MakeSlug.C+(\"slug${slug_num}_loruns_list.txt\",\"leaflist_run1pass5_unreg.txt\",\"${DST}/slug${slug_num}_urg.root\")"
+
+root -n -q -b -l ${argument} >${DST_Dbug}/slug${slug_num}_urg.out
+
+
+
+
