@@ -3,6 +3,8 @@ actual_pattern_polarity	actual_pattern_polarity
 actual_previous_pattern_polarity	actual_previous_pattern_polarity
 delayed_pattern_polarity	delayed_pattern_polarity
 ramp.hw_sum	ramp
+mps_counter	mps_counter
+bm_pattern_number	bm_pattern_numer
 qwk_charge.hw_sum	qwk_charge
 qwk_bcm1.hw_sum	qwk_bcm1
 qwk_bcm2.hw_sum	qwk_bcm2
