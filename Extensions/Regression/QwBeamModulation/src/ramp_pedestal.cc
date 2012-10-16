@@ -18,19 +18,27 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   TSpectrum *spectrum = new TSpectrum(3,1);
 
-  TApplication theApp("App", &argc, argv);
+//   TApplication theApp("App", &argc, argv);
   TCanvas *canvas = new TCanvas("canvas", "canvas", 5);
 
   std::fstream pedestal;
+  std::fstream pedestal_run;
 
-  pedestal.open("ramp.pedestal", std::ios_base::out | std::ios_base::app);
+
+  run_number = atoi(argv[1]);
+
+  pedestal.open("pedestal/ramp.pedestal", std::ios_base::out | std::ios_base::app);
+  pedestal_run.open(Form("pedestal/ramp_%i.pedestal", run_number), std::ios_base::out | std::ios_base::app);
 
   if(!pedestal.is_open()){
     std::cout << "Error opening output file." << std::endl;
     exit(1);
   }
-  run_number = atoi(argv[1]);
+
+//   filename = Form("slug%i.root", run_number);
+//   filename = Form("QwPass5beta_%i*.trees.root", run_number);
   filename = Form("QwPass*_%i*.trees.root", run_number);
+//   filename = Form("bmod_tree_%i.root", run_number);
 
   TChain *mps_tree = new TChain("Mps_Tree");
 
@@ -38,12 +46,18 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   std::cout << "Processing...." << std::endl;
 
-  TH1F *histo = new TH1F("histo","histo", 800, -500.,4200);
+  TH1F *histo = new TH1F("histo","histo", 2000, -500.,4200);
   canvas->cd();
   gPad->SetLogy();
 
   mps_tree->Draw("ramp>>histo","ErrorFlag == 0x4018080 || ErrorFlag == 0");
   histo = (TH1F *)gDirectory->Get("histo");
+
+  if(histo->GetEntries() < 1){
+    std::cout << "Null histogram: cancelling." << std::endl;
+    exit(1);
+  }
+
   histo->Draw();
 
   std::cout << "Finding peaks...." << std::endl;
@@ -55,14 +69,48 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t i = 0; i < nfound; i++){
     std::cout << "peak:\t" << xposition[i] << std::endl;
   }
-  pedestal << run_number   << "\t" 
-	   << xposition[0] << "\t" 
-	   << xposition[1] << std::endl;
-  pedestal.close();
+
+  // If there is only one peak switch the values
+  Float_t temp = 0;
+
+  if(nfound == 1){
+    std::cout << "Only one peak found: switching printing position." << std::endl;
+
+    temp = xposition[0];
+    xposition[0] = xposition[1];
+    xposition[1] = temp;
+  }
+
+  // If there are more than 2 peaks something is likely wrong with the run.
+
+  if(nfound > 2){
+    std::cout << "There was a problem with this run: Too many peaks found." << std::endl;
+    canvas->SaveAs(Form("pedestal/macro/failed_ramp_pedestal_%i.C", run_number));
+    exit(1);
+  }
+
+  if(xposition[0] > xposition[1]){
+
+    temp = xposition[0];
+    xposition[0] = xposition[1];
+    xposition[1] = temp;
+  }
+
+//   pedestal << run_number   << "\t" 
+// 	   << xposition[0] << "\t" 
+// 	   << xposition[1] << std::endl;
+//   pedestal_run << run_number   << "\t" 
+// 	       << xposition[0] << "\t" 
+// 	       << xposition[1] << std::endl;
+  
+//   pedestal.close();
+//   pedestal_run.close();
+
+  canvas->SaveAs(Form("pedestal/macro/ramp_pedestal_%i.C", run_number));
 
   std::cout << "Finished" << std::endl;
 
-  theApp.Run();
+//   theApp.Run();
 
   return 0;
 }

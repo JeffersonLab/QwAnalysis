@@ -37,6 +37,7 @@ public :
   TChain          *fChain;
 
   TString         fFileName;
+  TString         output;
 
   Int_t           fCurrent;
   Int_t           fNDetector;  

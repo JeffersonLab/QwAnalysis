@@ -42,7 +42,7 @@ void QwDiagnostic::ReadSensitivities(void)
   char *token;
   Int_t n = -1;
 
-  sens_file.open(Form("slopes_%d.dat", run_number));
+  sens_file.open(Form("%s/slopes/slopes_%d.dat", output.Data(), run_number));
   if(!sens_file.is_open()){
     std::cout << red << "Error opening slopes file" << normal << std::endl;
     exit(1);
@@ -75,9 +75,9 @@ void QwDiagnostic::ReadSensitivities(void)
 
 void QwDiagnostic::Write(void){
 
-  slope_diagnostic = fopen(Form("%s_diagnostic/slope_diagnostic.txt", fFileName.Data()),"w");
-  correction = fopen(Form("%s_diagnostic/correction.txt", fFileName.Data()), "w");  
-  charge_asym_diagnostic = fopen(Form("%s_diagnostic/charge_asym_diagnostic.txt", fFileName.Data()), "w");  
+  slope_diagnostic = fopen(Form("%s/diagnostics/%s_diagnostic/slope_diagnostic.txt", output.Data(), fFileName.Data()),"w");
+  correction = fopen(Form("%s/diagnostics/%s_diagnostic/correction.txt", output.Data(),  fFileName.Data()), "w");  
+  charge_asym_diagnostic = fopen(Form("%s/diagnostics/%s_diagnostic/charge_asym_diagnostic.txt", output.Data(), fFileName.Data()), "w");  
 
   //***************************************************** 
   //  Write to DB file - This file should exist already,
@@ -86,12 +86,12 @@ void QwDiagnostic::Write(void){
 
   ReadSensitivities();
 
-  if( !IfExists( Form("regression_%i.dat", run_number) ) ){
+  if( !IfExists( Form("%s/regression/regression_%i.dat", output.Data(), run_number) ) ){
     std::cout << red << "Error finding regression file.  Cleaning up directories..." << normal << std::endl;
     CleanFolders();
     exit(1);
   }
-  regression = fopen(Form("regression_%i.dat", run_number), "a");
+  regression = fopen(Form("%s/regression/regression_%i.dat", output.Data(), run_number), "a");
 
   // Uncorrected Slopes during modulation
 
@@ -384,11 +384,18 @@ Bool_t QwDiagnostic::FileSearch(TString filename, TChain *chain)
   TString file_directory;
   Bool_t c_status = kFALSE;
 
-  file_directory = gSystem->Getenv("QW_ROOTFILES");
+  //  file_directory = gSystem->Getenv("QW_ROOTFILES");
 
-  c_status = chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()));
+  output = gSystem->Getenv("BMOD_OUT");
+  if(!gSystem->OpenDirectory(output)){
+    PrintError("Cannot open output directory.\n");
+    PrintError("Directory needs to be set as env variable and contain:\n\t slopes/ \n\t regression/ \n\t diagnostics/ \n\t rootfiles/"); 
+    exit(1);
+  }
+
+  c_status = chain->Add(Form("%s/rootfiles/%s", output.Data(), filename.Data()));
   std::cout << "Trying to open :: "
-            << Form("%s/%s",file_directory.Data(), filename.Data())
+            << Form("%s/rootfiles/%s", output.Data(), filename.Data())
             << std::endl;
 
   if(c_status){
@@ -438,7 +445,7 @@ void QwDiagnostic::PrintError(TString error){
 
 void QwDiagnostic::CleanFolders()
 {
-  gSystem->Exec(Form("rm -rf %s_diagnostic", fFileName.Data()));
+  gSystem->Exec(Form("rm -rf %s/diagnostics/%s_diagnostic", output.Data(), fFileName.Data()));
   return;
 }
 

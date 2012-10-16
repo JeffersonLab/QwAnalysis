@@ -52,6 +52,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   char other[] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
   char normal[] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
+
   gStyle->SetOptFit(01011);
   gStyle->SetOptStat("nemm");
 
@@ -71,8 +72,8 @@ Int_t main(Int_t argc, Char_t *argv[])
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
   modulation->ReadConfig(modulation);
 
-  gSystem->Exec(Form("rm -rf %s_diagnostic", filename.Data()));
-  gSystem->Exec(Form("mkdir %s_diagnostic", filename.Data()));
+  gSystem->Exec(Form("rm -rf %s/diagnostics/%s_diagnostic", modulation->output.Data(), filename.Data()));
+  gSystem->Exec(Form("mkdir %s/diagnostics/%s_diagnostic", modulation->output.Data(), filename.Data()));
 
   // ******************************************************************** //
   // Build a proper cut string for the corrections plots.  This should    //
@@ -270,8 +271,8 @@ Int_t main(Int_t argc, Char_t *argv[])
 	n++;
 							      }
       }
-    canvas0->SaveAs( Form("%s_diagnostic/uncorrected_%s_sens_slopes.pdf", filename.Data(), modulation->DetectorList[k].Data()) );
-    canvas1->SaveAs( Form("%s_diagnostic/corrected_%s_sens_slopes.pdf",   filename.Data(), modulation->DetectorList[k].Data()) );
+    canvas0->SaveAs( Form("%s/diagnostics/%s_diagnostic/uncorrected_%s_sens_slopes.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[k].Data()) );
+    canvas1->SaveAs( Form("%s/diagnostics/%s_diagnostic/corrected_%s_sens_slopes.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[k].Data()) );
 
     canvas0->Clear();
     canvas1->Clear();
@@ -349,7 +350,7 @@ Int_t main(Int_t argc, Char_t *argv[])
       canvas3->Modified();
 
     }
-    canvas3->SaveAs( Form("%s_diagnostic/corrections_%s.pdf", filename.Data(), modulation->DetectorList[k].Data()) );
+    canvas3->SaveAs( Form("%s/diagnostics/%s_diagnostic/corrections_%s.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[k].Data()) );
     canvas3->Clear();
 
     // Get total correction to each detector
@@ -394,7 +395,7 @@ Int_t main(Int_t argc, Char_t *argv[])
       canvas8->Update();
       canvas8->Modified();
 
-      canvas8->SaveAs( Form("%s_diagnostic/total_correction_%s.pdf", filename.Data(), modulation->DetectorList[k].Data()) );
+      canvas8->SaveAs( Form("%s/diagnostics/%s_diagnostic/total_correction_%s.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[k].Data()) );
       canvas8->Clear();
   }
 
@@ -470,7 +471,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 	n++;
 
     }
-    canvas5->SaveAs( Form("%s_diagnostic/correction_natural_motion_%s.pdf", filename.Data(), modulation->DetectorList[i].Data()) );
+    canvas5->SaveAs( Form("%s/diagnostics/%s_diagnostic/correction_natural_motion_%s.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[i].Data()) );
     canvas5->Clear();
   }
 
@@ -531,8 +532,8 @@ Int_t main(Int_t argc, Char_t *argv[])
     
   }
 
-  canvas2->SaveAs( Form("%s_diagnostic/position_differences.pdf", filename.Data()) );
-  canvas4->SaveAs( Form("%s_diagnostic/charge_asym.pdf", filename.Data()) );
+  canvas2->SaveAs( Form("%s/diagnostics/%s_diagnostic/position_differences.pdf", modulation->output.Data(), filename.Data()) );
+  canvas4->SaveAs( Form("%s/diagnostics/%s_diagnostic/charge_asym.pdf", modulation->output.Data(), filename.Data()) );
 
   //**********************************************
   // Mean Asymmetry and Width
@@ -564,7 +565,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     canvas6->Update();
     canvas6->Modified();
 
-    canvas6->SaveAs( Form("%s_diagnostic/corrected_asym_%s.pdf", filename.Data(), modulation->DetectorList[i].Data()) );
+    canvas6->SaveAs( Form("%s/diagnostics/%s_diagnostic/corrected_asym_%s.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[i].Data()) );
     canvas6->Clear();
   }
   
@@ -593,7 +594,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     canvas7->Update();
     canvas7->Modified();
 
-    canvas7->SaveAs( Form("%s_diagnostic/uncorrected_asym_%s.pdf", filename.Data(), modulation->DetectorList[i].Data()) );
+    canvas7->SaveAs( Form("%s/diagnostics/%s_diagnostic/uncorrected_asym_%s.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[i].Data()) );
     canvas7->Clear();
 
   }

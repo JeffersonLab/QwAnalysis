@@ -81,12 +81,12 @@ DEPS       = QwModulation.hh QwData.hh QwChargeSensitivity.hh QwDBConnection.hh 
 CFLAGS     = -O -Wall ${INCLUDES}
 MYSQL      = 
 
-all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta ramp_pedestal
+all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta ramp_pedestal asymmetry_plotter qwslug qwcorrelation qwregrun
 
 %.o: %.cc
 	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 
 
-qwbeammod : qwbeammod.o ${SRC}/QwModulation.o
+qwbeammod : ${SRC}/qwbeammod.o ${SRC}/QwModulation.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
 qwlibra : ${SRC}/qwlibra.o ${SRC}/QwData.o ${SRC}/QwDiagnostic.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
@@ -98,7 +98,14 @@ qw_ndelta: ${SRC}/qw_ndelta.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o $
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
 ramp_pedestal: ${SRC}/ramp_pedestal.o 	
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
-
+asymmetry_plotter: ${SRC}/asymmetry_plotter.o 	
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+qwslug: ${SRC}/qwslug.o ${SRC}/QwSlug.o 	
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+qwcorrelation: ${SRC}/qwcorrelation.o ${SRC}/QwSlug.o 	
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+qwregrun: ${SRC}/qwregrun.o ${SRC}/QwSlug.o 	
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
 clean: 
-	rm -f *.o ~* src/*.o src/~* qwbeammod qwlibra qwcharge qwdbplot qw_ndelta
+	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ qwbeammod qwlibra qwcharge qwdbplot qw_ndelta asymmetry_plotter qwslug qwcorrelation qwregrun ramp_pedestal
 
