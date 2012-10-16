@@ -852,12 +852,13 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
       for (UInt_t j = 0; j < input->fPlane1Mask.size(); j++)
         this->fPlane1Mask[j] = input->fPlane1Mask[j];
      //cout<<"\n\nfPlane1Mask.size is "<<fPlane1Mask.size()<<"\n\n"<<endl;
-      for (Int_t j = 0; j < input->fPlane2Mask.size(); j++)
+      for (UInt_t j = 0; j < input->fPlane2Mask.size(); j++)
         this->fPlane2Mask[j] = input->fPlane2Mask[j];
-      for (Int_t j = 0; j < input->fPlane3Mask.size(); j++)
+      for (UInt_t j = 0; j < input->fPlane3Mask.size(); j++)
         this->fPlane3Mask[j] = input->fPlane3Mask[j];
-      for (Int_t j = 0; j < input->fPlane4Mask.size(); j++)
+      for (UInt_t j = 0; j < input->fPlane4Mask.size(); j++)
         this->fPlane4Mask[j] = input->fPlane4Mask[j];
+      this->fIsConfigOnly = input->fIsConfigOnly;
   }
   return *this;
 }
@@ -1095,6 +1096,24 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
   //  SetHistoTreeSave(prefix);
   fTreeArrayIndex = values.size();
 
+  if(prefix=="conf") {
+    fIsConfigOnly = kTRUE;
+    /// v1495 DAQ info for this slave//!?needs to be checked 
+    //for (Int_t i = 0; i < 1; i++) {
+    for (Int_t i = 0; i < NPlanes; i++) {
+      TString basename = Form("v1495InfoPlane%d",i+1);
+      TString valnames = "";
+      Double_t* valstart = &(values.back());
+      for (Int_t j = 0; j < StripsPerPlane; j++) {
+        valnames += TString(":") + Form("p%ds%dMask",i+1,j+1) + "/D";
+        values.push_back(0.0);
+      }
+      valnames.Remove(0,1); // remove first ':' character
+      tree->Branch(basename, valstart+1, valnames);
+    }
+    return;
+  }
+
   for (Int_t i = 0; i < NPlanes; i++) {
     //!!iteration of this loop from '1' instead of '0' is for Qweak run-1 when the first plane was inactive
     /// Note that currently the plane number in these tree-leafs correspond to the C++ counting(from 0)
@@ -1144,19 +1163,6 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
   }
 
 
-  /// v1495 DAQ info for this slave//!?needs to be checked 
-  //for (Int_t i = 0; i < 1; i++) {
-  for (UInt_t i = 0; i < NPlanes; i++) {
-    TString basename = prefix + Form("v1495InfoPlane%d",i+1);
-    TString valnames = "";
-    Double_t* valstart = &(values.back());
-    for (Int_t j = 0; j < StripsPerPlane; j++) {
-      valnames += TString(":") + prefix + Form("p%ds%dMask",i+1,j+1) + "/D";
-      values.push_back(0.0);
-    }
-    valnames.Remove(0,1); // remove first ':' character
-    tree->Branch(basename, valstart+1, valnames);
-  }
   ///Notice-2: the pattern that for every plane the branch is created for all different types of data before 
   ///...creating the same for the next plane
 }
@@ -1165,6 +1171,23 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
 {
   ///The 'values' needs to be a Double_t due to the inner structure in the hierarchy 
   size_t index = fTreeArrayIndex;
+
+  if(fIsConfigOnly) {
+    for (UInt_t j = 0; j < fPlane1Mask.size(); j++) {
+      //     cout<<"\n\noperational line is: "<<__LINE__<<" strip #:"<<j<<endl;
+      values[index++] = fPlane1Mask.at(j);/// v1495 plane 1 mask info
+    }
+    //   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
+    for (UInt_t j = 0; j < fPlane2Mask.size(); j++)
+      values[index++] = fPlane2Mask.at(j);/// v1495 plane 2 mask info
+    //   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
+    for (UInt_t j = 0; j < fPlane3Mask.size(); j++)
+      values[index++] = fPlane3Mask.at(j);/// v1495 plane 3 mask info
+    //   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
+    for (UInt_t j = 0; j < fPlane4Mask.size(); j++)
+      values[index++] = fPlane4Mask.at(j);/// v1495 plane 4 mask info
+    return;
+  }
 
   ///The 'values' should be filled in exactly the same order in which they were created above
   /// ...below we follow the pattern as in Notice-2
@@ -1179,19 +1202,6 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
       values[index++] = fStripsRawScal[i][j];/// v1495 Scaler Raw
   }
   //cout<<"\n\noperational line is: "<<__LINE__<<" fPlane1Mask.size():"<<fPlane1Mask.size()<<"\n\n"<<endl;
-   for (UInt_t j = 0; j < StripsPerPlane; j++) {
-//     cout<<"\n\noperational line is: "<<__LINE__<<" strip #:"<<j<<endl;
-     values[index++] = fPlane1Mask.at(j);/// v1495 plane 1 mask info
-   }
-//   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
-   for (UInt_t j = 0; j < fPlane2Mask.size(); j++)
-     values[index++] = fPlane2Mask.at(j);/// v1495 plane 2 mask info
-//   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
-   for (UInt_t j = 0; j < fPlane3Mask.size(); j++)
-     values[index++] = fPlane3Mask.at(j);/// v1495 plane 3 mask info
-//   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
-   for (UInt_t j = 0; j < fPlane4Mask.size(); j++)
-     values[index++] = fPlane4Mask.at(j);/// v1495 plane 4 mask info
 }
 
 /**

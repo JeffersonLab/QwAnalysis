@@ -38,7 +38,8 @@ class QwComptonElectronDetector:
   public:
 
     /// Constructor with name
-    QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name) {
+    QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name),
+      fIsConfigOnly(kFALSE) {
       fStripsRaw.resize(NPlanes);
       fStripsRaw_v2.resize(NPlanes);
       fStrips.resize(NPlanes);
@@ -201,6 +202,7 @@ class QwComptonElectronDetector:
     Int_t eff23;
     Int_t effall;
     Double_t effedet;
+    Bool_t fIsConfigOnly;
    
     Int_t fGoodEventCount;
 

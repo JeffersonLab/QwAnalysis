@@ -163,6 +163,9 @@ int main(int argc, char* argv[])
     //  events which pass through the ring.
     QwSubsystemArrayParity ringoutput(detectors);
 
+    // Create a configuration options output
+    QwSubsystemArrayParity configoutput(detectors);
+
 
     //  Open the ROOT file
     QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -180,9 +183,12 @@ int main(int argc, char* argv[])
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstAsymmetry(),"asym_");
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstDifference(),"diff_");
     rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
+    rootfile->ConstructTreeBranches("Config_Tree","Configuration Tree",configoutput,"conf");
     // Construct indices to get from one tree to the other
     rootfile->ConstructIndices("Mps_Tree","Slow_Tree");
     rootfile->ConstructIndices("Hel_Tree","Slow_Tree");
+    rootfile->ConstructIndices("Mps_Tree","Config_Tree");
+    rootfile->ConstructIndices("Hel_Tree","Config_Tree");
 
     // Summarize the ROOT file structure
     rootfile->PrintTrees();
@@ -200,7 +206,7 @@ int main(int argc, char* argv[])
       // First, do processing of non-physics events...
       if (eventbuffer.IsROCConfigurationEvent()) {
         // Send ROC configuration event data to the subsystem objects.
-        eventbuffer.FillSubsystemConfigurationData(detectors);
+        eventbuffer.FillSubsystemConfigurationData(configoutput);
       }
 
       //  Secondly, process EPICS events
@@ -310,6 +316,8 @@ int main(int argc, char* argv[])
       }
 
     } // end of loop over events
+    rootfile->FillTreeBranches(configoutput);
+    rootfile->FillTree("Config_Tree");
 
     QwMessage << "Last event processed: "
               << eventbuffer.GetEventNumber() << QwLog::endl;
