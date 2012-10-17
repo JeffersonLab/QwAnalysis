@@ -14,10 +14,10 @@ sca_4mhz, 0, 4e6
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Scaler BCM pedestals
 ! channel name, pedestal,gain
-! Low current calibrations provided by Dave G. Moller ELOG 110
-sca_bcm1, 249618, 0.000023023862
-sca_bcm2, 249814, 0.000023850695
-sca_bcm6, 249504, 0.000030162364
+! Calibrations come from revision r4565 run 22617
+sca_bcm1,       249960,       0.000561638
+sca_bcm2,       250069,       0.000609775
+sca_bcm6,       248869,       0.00095799
 
 
 
