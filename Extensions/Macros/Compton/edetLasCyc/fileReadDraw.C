@@ -7,14 +7,14 @@ Int_t fileReadDraw(Int_t runnum)
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
   Bool_t bkgdAsym = 1;
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
-  Bool_t yieldPlot=1;
+  Bool_t yieldPlot=0;
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
   Bool_t asymComponents=1;
   Bool_t scalerPlot=1;
   Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotBcm=1;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotLasPow=1;
+  Bool_t lasWisePlotBcm=0;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotLasPow=0;
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
   Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
 
@@ -91,7 +91,7 @@ Int_t fileReadDraw(Int_t runnum)
       legbkgdAsym[p]->Draw();
     }
     cbkgdAsym->Update();
-    cbkgdAsym->SaveAs(Form("%s/%s/%sbkgdAsymAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
+    cbkgdAsym->SaveAs(Form("%s/%s/%sbkgdAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if(scalerPlot) {
@@ -225,9 +225,6 @@ Int_t fileReadDraw(Int_t runnum)
       grAsymDr[p]->SetLineColor(kGreen);
       grAsymDr[p]->SetMarkerColor(kGreen);
       grAsymDr[p]->SetFillColor(kGreen);
-      //grAsymDr[p]->SetTitle(Form("Plane %d background corrected yield(Hz/uA)",p+1));
-      //TAxis *xaxis1= grAsymDr[p]->GetXaxis();
-      //xaxis1->SetLimits(1,65);
 
       grB1L0[p] = new TGraphErrors(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grB1L0[p]->SetLineColor(kBlue);
@@ -235,7 +232,6 @@ Int_t fileReadDraw(Int_t runnum)
       grB1L0[p]->SetMarkerSize(1);
       grB1L0[p]->SetMarkerColor(kBlue);
       grB1L0[p]->SetFillColor(kBlue);
-      //grB1L0[p]->SetTitle("background(Hz/uA)");
 
       grAsymDrAll[p] = new TMultiGraph();
       grAsymDrAll[p]->Add(grAsymDr[p]);
@@ -323,7 +319,6 @@ Int_t fileReadDraw(Int_t runnum)
       grAsymPlane[p]->SetLineColor(kRed);
       grAsymPlane[p]->SetFillColor(0);
       grAsymPlane[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
-      //grAsymPlane[p]->Fit("fn2","R");
       grAsymPlane[p]->SetMaximum(0.042);
       grAsymPlane[p]->SetMinimum(-0.042);
       grAsymPlane[p]->Draw("AP");
@@ -342,8 +337,6 @@ Int_t fileReadDraw(Int_t runnum)
       }
 
       grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge[0]), "%lg %lg");
-      //grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/%smodTheoryFileP1.txt",pPath,webDirectory,filePrefix.Data()), "%lg %lg");     
-      //grTheoryAsym[p] = new TGraphErrors(dummyStrip,stripNum[p],theoryAsym[p],zero[p],zero[p]);
       grTheoryAsym[p]->SetLineColor(kBlue);
       grTheoryAsym[p]->SetLineWidth(3);
       grTheoryAsym[p]->SetFillColor(0);

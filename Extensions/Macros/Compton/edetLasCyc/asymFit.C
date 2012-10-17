@@ -23,12 +23,12 @@
 
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//to fit the cross section
 {///parCx[1]: to be found Cedge
-  Double_t xStrip = xCedge - (parCx[0] - (*thisStrip))*stripWidth;//*parCx[0];
+  Double_t xStrip = xCedge - (parCx[1] - (*thisStrip))*stripWidth*parCx[0];
   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
   Double_t rhoPlus = 1-rhoStrip*(1+a);
   Double_t rhoMinus = 1-rhoStrip*(1 - a);//just a term in eqn 24
   Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a)); // 2nd term of eqn 22
-  return (parCx[1]*((rhoStrip*(1 - a)*rhoStrip*(1 - a)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a
+  return (parCx[2]*((rhoStrip*(1 - a)*rhoStrip*(1 - a)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a
 }
 
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
@@ -64,11 +64,11 @@ void asymFit(Int_t runnum)
   Bool_t debug=0,debug1=0,debug2=0;
 
   TPaveText *pt[nPlanes];
-  TLegend *leg[nPlanes];
+  TLegend *leg[nPlanes],*legYield[nPlanes];
 
   printf("read in parameters are: %g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);  
 
-  ifstream infileScaler, expAsymPWTL1;
+  ifstream infileScaler, expAsymPWTL1, infileYield;
   ofstream polList;
   TLine *myline = new TLine(1,0,65,0);
 
@@ -122,11 +122,12 @@ void asymFit(Int_t runnum)
 
   //rhoToX();//! I don't need to call it everytime as long as beam-energy etc stays constant
 
-  TCanvas *cAsym[nPlanes];
-  TGraphErrors *grAsymPlane[nPlanes];//, *grFittedTheo[nPlanes];
-  TGraphErrors *grResiduals[nPlanes];//, *grFittedTheo[nPlanes];
+  TCanvas *cAsym[nPlanes],*cYield[nPlanes];
+  TGraphErrors *grAsymPlane[nPlanes],*grYieldPlane[nPlanes],*grResiduals[nPlanes],*grB1L0[nPlanes];
+  TMultiGraph *grAsymDrAll[nPlanes];
 
-  Float_t stripNum[nPlanes][nStrips],stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];;
+  Float_t stripNum[nPlanes][nStrips],stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
+  Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips],stripAsymNr[nPlanes][nStrips];
   Float_t fitResidue[nPlanes][nStrips];
   Float_t zero[nStrips];//,stripCount[nStrips]
 
@@ -153,7 +154,7 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]->GetXaxis()->SetNdivisions(416, kFALSE);
     grAsymPlane[p]->Draw("AP");  
     tempCedge = Cedge[p];///this should be equated just before the declaration of TF1
-    TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],3);///two parameter fit
+    TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],3);///3 parameter fit
     polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from the generic Cedge
     //polFit->SetParLimits(0,1.021,1.021);//fixing the strip width to 1.021
     polFit->SetParLimits(0,0.2,2.0);///allowing the strip width to be either 20% or 200% of its real pitch    
@@ -208,6 +209,7 @@ void asymFit(Int_t runnum)
     ///determining the residue of the above fit
     for (Int_t s = startStrip; s < endStrip; s++) {//ensure that all variables gets initiated by zero
       stripNum[p][s]=0.0,stripAsym[p][s]=0.0,stripAsymEr[p][s]=0.0;
+      stripAsymDr[p][s]=0.0,stripAsymNr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
       zero[s] = 0.0;
     }
 
@@ -244,6 +246,68 @@ void asymFit(Int_t runnum)
     grResiduals[p]->Draw("AP");
 
     cAsym[p]->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
+
+    infileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    if(infileYield.is_open()) {
+      if(debug2) cout<<"Reading the Yield corresponding to Plane "<<p+1<<endl;
+      if(debug2) cout<<"stripNum\t"<<"stripYield\t"<<"stripYieldEr"<<endl;
+      for(Int_t s =startStrip ; s < endStrip; s++) {
+	if (maskedStrips(p,s)) continue;
+	infileYield>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
+	if(debug2) cout<<stripNum[p][s]<<"\t"<<stripAsymDr[p][s]<<"\t"<<stripAsymDrEr[p][s]<<endl;
+      }
+      infileYield.close();
+    }
+    else cout<<"did not find the Yield file "<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+    
+    cYield[p] = new TCanvas(Form("cYieldP%d",p+1),"detector yield",100,100,1000,500);
+    grYieldPlane[p]=new TGraphErrors(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
+    grYieldPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
+    grYieldPlane[p]->GetYaxis()->SetTitle("yield (Hz/uA)");   
+    grYieldPlane[p]->SetTitle(Form("detector yield Run: %d, Plane %d",runnum,p+1));
+    grYieldPlane[p]->GetXaxis()->CenterTitle();
+    grYieldPlane[p]->GetYaxis()->CenterTitle();
+    grYieldPlane[p]->SetMarkerStyle(kOpenCircle);
+    grYieldPlane[p]->SetLineColor(kRed);
+    grYieldPlane[p]->SetFillColor(0);   
+    grYieldPlane[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
+    grYieldPlane[p]->GetXaxis()->SetLimits(1,65); 
+    grYieldPlane[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+    //grYieldPlane[p]->Draw("AP");  
+    TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,Cedge[p]-1,3);///two parameter fit
+    crossSecFit->SetParameters(Cedge[p],10.0);//begin the fitting from the generic Cedge
+
+    crossSecFit->SetLineColor(kRed+2);
+    grYieldPlane[p]->Fit("crossSecFit","R M E");
+
+    grB1L0[p] = new TGraphErrors(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+    grB1L0[p]->SetLineColor(kBlue);
+    grB1L0[p]->SetMarkerStyle(kFullSquare);
+    grB1L0[p]->SetMarkerSize(1);
+    grB1L0[p]->SetMarkerColor(kBlue);
+    grB1L0[p]->SetFillColor(kBlue);
+
+    grAsymDrAll[p] = new TMultiGraph();
+    grAsymDrAll[p]->Add(grYieldPlane[p]);
+    grAsymDrAll[p]->Add(grB1L0[p]);
+    //crossSecFit->DrawCopy("same");
+
+    grAsymDrAll[p]->SetTitle(Form("Yield for run %d",runnum));
+    grAsymDrAll[p]->Draw("AP");//for some reason!:Tmultigraph wants the axis settings to come after having drawn the graph
+    grAsymDrAll[p]->GetXaxis()->SetTitle("strip number");
+    grAsymDrAll[p]->GetYaxis()->SetTitle("charge normalized accum counts (Hz/uA)");
+    grAsymDrAll[p]->GetYaxis()->SetLabelSize(0.03);
+    grAsymDrAll[p]->GetXaxis()->SetLimits(1,65); 
+    grAsymDrAll[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+
+    legYield[p] = new TLegend(0.101,0.75,0.44,0.9);
+    legYield[p]->AddEntry(grYieldPlane[p],"background corrected detector yield","lpe");
+    legYield[p]->AddEntry("crossSecFit","theoretical cross-section","l");
+    legYield[p]->AddEntry(grB1L0[p],"background(Hz/uA)","lpe");
+    legYield[p]->SetFillColor(0);
+    legYield[p]->Draw();
+    cYield[p]->SaveAs(Form("%s/%s/%sYieldFit.png",pPath,webDirectory,filePrefix.Data()));
+
   }//for (Int_t p =startPlane; p <endPlane; p++)
   polList.close();
 
