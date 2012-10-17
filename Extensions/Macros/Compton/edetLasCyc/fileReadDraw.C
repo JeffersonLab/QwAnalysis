@@ -15,10 +15,10 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t lasWisePlotBcm=1;//plot quantities against laser-cycle 
   Bool_t lasWisePlotLasPow=1;
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
-  Bool_t bkgdSubVsBeam=1;//plots background subtracted compton rates against diff. beam currents
+  Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
 
   Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
-  Bool_t debug=0,debug1=0,debug2=1;
+  Bool_t debug=0,debug1=0,debug2=0;
   const Int_t maxLasCycles=100;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   TLine *myline = new TLine(0,0,70,0);
@@ -654,8 +654,6 @@ Int_t fileReadDraw(Int_t runnum)
   }
   
   if(bkgdSubVsBeam) {
-    //gStyle->SetOptFit(0);
-    //gStyle->SetOptStat(0);
     Float_t nCycle[maxLasCycles];//arbitrarily set to 100 which certainly will be larger than nLasCycles
     const Int_t numb=6;
     ifstream scalerRate;
@@ -749,15 +747,15 @@ Int_t fileReadDraw(Int_t runnum)
     
     //TCanvas *cScalVsBeamSet1 = new TCanvas("cScalVsBeamB1L1H1Set1",Form("LasOn scalers per laser cycle :strips 01-16"),0,0,1200,1000);
     //TCanvas *cScalVsBeamB1L0H1Set1 = new TCanvas("cScalVsBeamB1L0H1Set1",Form("LasOff scalers per laser cycle:strips 01-16"),0,0,1200,1000);
-    TCanvas *cBkgdSubScalVsBeam1 = new TCanvas("cBkgdSubScalVsBeam1",Form("Bkgd subtracted scalers per laser cycle for strips 01-16"),0,0,1200,1000);
-    //TCanvas *cBkgdSubScalVsBeam2 = new TCanvas("cBkgdSubScalVsBeam2",Form("scaler counts per laser cycle for strips 17-32"),20,10,1200,1000);
-    //TCanvas *cBkgdSubScalVsBeam3 = new TCanvas("cBkgdSubScalVsBeam3",Form("scaler counts per laser cycle for strips 33-48"),40,20,1200,1000);
-    //TCanvas *cBkgdSubScalVsBeam4 = new TCanvas("cBkgdSubScalVsBeam4",Form("scaler counts per laser cycle for strips 49-64"),60,30,1200,1000);
+    TCanvas *cBkgdSubScalVsBeam1 = new TCanvas("cBkgdSubScalVsBeam1",Form("Bkgd subtracted scalers per lasCyc for strips 01-16"),0,0,1200,1000);
+    TCanvas *cBkgdSubScalVsBeam2 = new TCanvas("cBkgdSubScalVsBeam2",Form("Bkgd subtracted scalers for  17-32"),20,10,1200,1000);
+    TCanvas *cBkgdSubScalVsBeam3 = new TCanvas("cBkgdSubScalVsBeam3",Form("Bkgd subtracted scalers for  33-48"),40,20,1200,1000);
+    TCanvas *cBkgdSubScalVsBeam4 = new TCanvas("cBkgdSubScalVsBeam4",Form("Bkgd subtracted scalers for  49-64"),60,30,1200,1000);
     
-    cBkgdSubScalVsBeam1->Divide(3,3);
-    //cBkgdSubScalVsBeam2->Divide(4,4);
-    //cBkgdSubScalVsBeam3->Divide(4,4);
-    //cBkgdSubScalVsBeam4->Divide(4,4);
+    cBkgdSubScalVsBeam1->Divide(4,4);
+    cBkgdSubScalVsBeam2->Divide(4,4);
+    cBkgdSubScalVsBeam3->Divide(4,4);
+    cBkgdSubScalVsBeam4->Divide(4,4);
     
     for(Int_t p =startPlane; p <endPlane; p++) {//!!this is currently valid for only plane 1
       for(Int_t s=startStrip;s<endStrip;s++) {
@@ -767,9 +765,9 @@ Int_t fileReadDraw(Int_t runnum)
 	ScalVsBeamL0[p][s] = new TGraphErrors(numb,beamI,qNormScL0[p][s],zero,zero);
       
 	if(s>= 0 && s<16) cBkgdSubScalVsBeam1->cd(s+1);
-	//if(s>=16 && s<32) cBkgdSubScalVsBeam2->cd(s-16+1);
-	//if(s>=32 && s<48) cBkgdSubScalVsBeam3->cd(s-32+1);
-	//if(s>=48 && s<64) cBkgdSubScalVsBeam4->cd(s-48+1);
+	if(s>=16 && s<32) cBkgdSubScalVsBeam2->cd(s-16+1);
+	if(s>=32 && s<48) cBkgdSubScalVsBeam3->cd(s-32+1);
+	if(s>=48 && s<64) cBkgdSubScalVsBeam4->cd(s-48+1);
       
 	bkgdSubScalVsBeam[p][s]->SetTitle(Form("Strip %d",s+1));
 	bkgdSubScalVsBeam[p][s]->SetMarkerStyle(kFullCircle);
@@ -812,14 +810,10 @@ Int_t fileReadDraw(Int_t runnum)
 	bkgdSubCountsFit<<s+1<<"\t"<<p0<<"\t"<<p0Er<<p1<<"\t"<<p1Er<<"\t"<<chiSq<<"\t"<<NDF<<endl;     
       }
       bkgdSubCountsFit.close();
-      //cBkgdSubScalVsBeam1->Update();
-      //     cBkgdSubScalVsBeam2->Update();
-      //     cBkgdSubScalVsBeam3->Update();
-      //     cBkgdSubScalVsBeam4->Update();
       cBkgdSubScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix.Data()));
-      //     cBkgdSubScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix.Data()));
-      //     cBkgdSubScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix.Data()));
-      //     cBkgdSubScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix.Data()));
+      cBkgdSubScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix.Data()));
+      cBkgdSubScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix.Data()));
+      cBkgdSubScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix.Data()));
     }
   }
   return runnum;

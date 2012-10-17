@@ -122,9 +122,10 @@ Int_t expAsym(Int_t runnum)
     }
   }
 
-  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
-  printf("Attached %d files to chain for Run # %d\n",chainExists,runnum);
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.000.root",runnum));//for !! temp myQwAnalyisis output
+  cout<<"Attached "<<chainExists<<" files to chain for Run # "<<runnum<<endl;
 
   if(!chainExists){//delete chains and exit if files do not exist
     cout<<"\n\n***Error: The analyzed Root file for run "<<runnum<<" does not exist***\n\n"<<endl;
@@ -181,6 +182,8 @@ Int_t expAsym(Int_t runnum)
   
   mpsChain->ResetBranchAddresses();//!? should it be here?
   mpsChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
+  mpsChain->SetBranchStatus("event_number",1);
+  mpsChain->SetBranchStatus("pattern_number",1);
   mpsChain->SetBranchStatus("actual_helicity",1);
   mpsChain->SetBranchStatus("sca_laser_PowT",1);
   mpsChain->SetBranchStatus("sca_bcm6",1);
