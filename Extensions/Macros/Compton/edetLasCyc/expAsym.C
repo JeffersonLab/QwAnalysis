@@ -41,23 +41,27 @@ Int_t expAsym(Int_t runnum)
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips], bRawAccum_v2[nPlanes][nStrips];
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
+  Float_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips],bkgdAsym_v2[nPlanes][nStrips],bkgdAsymEr_v2[nPlanes][nStrips];
   Float_t weightedMeanNrAsym[nPlanes][nStrips],weightedMeanDrAsym[nPlanes][nStrips];
+  Float_t weightedMeanNrAsym_v2[nPlanes][nStrips],weightedMeanDrAsym_v2[nPlanes][nStrips];
+  Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],weightedMeanDrBkgdAsym[nPlanes][nStrips];
+  Float_t weightedMeanNrBkgdAsym_v2[nPlanes][nStrips],weightedMeanDrBkgdAsym_v2[nPlanes][nStrips];
+  Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],weightedMeanDrBCqNormSum[nPlanes][nStrips];
+  Float_t weightedMeanNrBCqNormSum_v2[nPlanes][nStrips],weightedMeanDrBCqNormSum_v2[nPlanes][nStrips],weightedMeanNrBCqNormDiff_v2[nPlanes][nStrips];
+  Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],weightedMeanDrBCqNormDiff[nPlanes][nStrips];
+  Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],weightedMeanDrqNormB1L0[nPlanes][nStrips],qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
+  Float_t weightedMeanNrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrBCqNormDiff_v2[nPlanes][nStrips];
+
   Float_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips];
   Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;//!as of now not tracking the las-off status
 
   Int_t AccumB1H0L1_v2[nPlanes][nStrips],AccumB1H1L1_v2[nPlanes][nStrips];
   Int_t AccumB1H0L0_v2[nPlanes][nStrips],AccumB1H1L0_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrAsym_v2[nPlanes][nStrips],weightedMeanDrAsym_v2[nPlanes][nStrips];
   Float_t LasCycAsymEr_v2[nPlanes][nStrips],LasCycAsymErSqr_v2[nPlanes][nStrips];
   Float_t stripAsymDr_v2[nPlanes][nStrips],stripAsymNr_v2[nPlanes][nStrips],qNormB1L0_v2[nPlanes][nStrips];
   Float_t stripAsymDrEr_v2[nPlanes][nStrips],stripAsymNrEr_v2[nPlanes][nStrips],qNormB1L0Er_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrBCqNormSum_v2[nPlanes][nStrips],weightedMeanDrBCqNormSum_v2[nPlanes][nStrips],weightedMeanNrBCqNormDiff_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrBCqNormDiff_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],weightedMeanDrBCqNormSum[nPlanes][nStrips];
   Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
-  Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],weightedMeanDrBCqNormDiff[nPlanes][nStrips];
   Float_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
-  Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],weightedMeanDrqNormB1L0[nPlanes][nStrips],qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
   Int_t totAccumB1H1L1[nPlanes][nStrips],totAccumB1H0L1[nPlanes][nStrips],totAccumB1H1L0[nPlanes][nStrips],totAccumB1H0L0[nPlanes][nStrips];//!for comparision for fortran tables
   Double_t totIH1L1=0.0,totIH1L0=0.0,totIH0L1=0.0,totIH0L0=0.0;
   Int_t totMpsB1H1L1=0,totMpsB1H1L0=0,totMpsB1H0L1=0,totMpsB1H0L0=0;
@@ -68,7 +72,7 @@ Int_t expAsym(Int_t runnum)
   vector<Int_t>cutEB;//arrays of cuts for electron beam
   ofstream lasCycExpAsym,lasCycYield;
   ofstream lasCycScaler[nPlanes][nStrips],lasCycAccum[nPlanes][nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
-  ofstream outfileExpAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
+  ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
   ifstream infileLas, infileBeam;
 
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
@@ -78,7 +82,9 @@ Int_t expAsym(Int_t runnum)
     for(Int_t s =startStrip; s <endStrip; s++) {
       //if (maskedStrips(p,s)) continue;    
       weightedMeanNrAsym[p][s]=0.0,weightedMeanDrAsym[p][s]=0.0;
+      weightedMeanNrBkgdAsym[p][s]=0.0,weightedMeanDrBkgdAsym[p][s]=0.0;
       stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0;
+      bkgdAsym[p][s]= 0.0,bkgdAsymEr[p][s]= 0.0;
 
       weightedMeanNrBCqNormSum[p][s]=0.0,weightedMeanDrBCqNormSum[p][s]=0.0;
       stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
@@ -98,7 +104,9 @@ Int_t expAsym(Int_t runnum)
     for(Int_t p = startPlane; p <endPlane; p++) {      	
       for(Int_t s =startStrip; s <endStrip; s++) {	
 	weightedMeanNrAsym_v2[p][s]=0.0,weightedMeanDrAsym_v2[p][s]=0.0;
+	weightedMeanNrBkgdAsym_v2[p][s]=0.0,weightedMeanDrBkgdAsym_v2[p][s]=0.0;
 	stripAsym_v2[p][s]= 0.0,stripAsymEr_v2[p][s]= 0.0;
+	bkgdAsym_v2[p][s]= 0.0,bkgdAsymEr_v2[p][s]= 0.0;
 	
 	weightedMeanNrBCqNormSum_v2[p][s]=0.0,weightedMeanDrBCqNormSum_v2[p][s]=0.0;
 	stripAsymDr_v2[p][s]=0.0,stripAsymDrEr_v2[p][s]=0.0;
@@ -423,8 +431,8 @@ Int_t expAsym(Int_t runnum)
 	  lasCycLasPow<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,lasPowB1H0L0/nMpsB1H0L0,lasPowB1H0L1/nMpsB1H0L1,lasPowB1H1L0/nMpsB1H1L0,lasPowB1H1L1/nMpsB1H1L1);
 	}
 
-	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0);
-	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2);
+	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0,weightedMeanNrBkgdAsym,weightedMeanDrBkgdAsym);
+	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2,weightedMeanNrBkgdAsym_v2,weightedMeanDrBkgdAsym_v2);
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
     else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
@@ -460,7 +468,13 @@ Int_t expAsym(Int_t runnum)
 	qNormB1L0[p][s] = weightedMeanNrqNormB1L0[p][s]/weightedMeanDrqNormB1L0[p][s];///pure Beam background
 	if (weightedMeanDrqNormB1L0[p][s]<0.0) qNormB1L0Er[p][s] = TMath::Sqrt(-1.0/weightedMeanDrqNormB1L0[p][s]);
 	else qNormB1L0Er[p][s] = TMath::Sqrt(1.0/weightedMeanDrqNormB1L0[p][s]);
-      }
+ 
+	bkgdAsym[p][s] = weightedMeanNrBkgdAsym[p][s]/weightedMeanDrBkgdAsym[p][s];
+	if (weightedMeanDrBkgdAsym[p][s]<0.0) bkgdAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrBkgdAsym[p][s]));//!!shouldn't need to do this
+	else bkgdAsymEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrBkgdAsym[p][s]);
+
+
+     }
       if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
     }
   }
@@ -475,12 +489,14 @@ Int_t expAsym(Int_t runnum)
   
   for(Int_t p = startPlane; p < endPlane; p++) { 
     outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outfileBkgdAsymP.open(Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     fortranCheck.open(Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outScaler.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
       cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      cout<<Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
@@ -496,6 +512,7 @@ Int_t expAsym(Int_t runnum)
 	if (maskedStrips(p,s)) continue;
 	if(!firstOne) {
 	  outfileExpAsymP<<"\n";
+	  outfileBkgdAsymP<<"\n";
 	  outfileYield<<"\n";
 	  outfilelasOffBkgd<<"\n";
 	  fortranCheck<<"\n";
@@ -503,17 +520,20 @@ Int_t expAsym(Int_t runnum)
 	}
 	firstOne =kFALSE;
 	outfileExpAsymP<<Form("%2.0f\t%f\t%f",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s]);
+	outfileBkgdAsymP<<Form("%2.0f\t%f\t%f",(Float_t)s+1,bkgdAsym[p][s],bkgdAsymEr[p][s]);
 	outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
 	outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
 	fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totAccumB1H1L1[p][s],totAccumB1H1L0[p][s],totAccumB1H0L1[p][s],totAccumB1H0L0[p][s]);
 	outScaler<<Form("%d\t%g\t%g",s+1,tNormScalerB1L1[p][s],tNormScalerB1L0[p][s]);
       }
       outfileExpAsymP.close();
+      outfileBkgdAsymP.close();
       outfileYield.close();
       outfilelasOffBkgd.close();
       fortranCheck.close();
       outScaler.close();
       cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      cout<<Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
       cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;

@@ -5,6 +5,7 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
+  Bool_t bkgdAsym = 1;
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=1;
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
@@ -55,6 +56,43 @@ Int_t fileReadDraw(Int_t runnum)
     pUsed[p]=kTRUE;
   }
   if(debug) cout<<"planes used: "<<pUsed[0]<<"\t"<<pUsed[1]<<"\t"<<pUsed[2]<<"\t"<<pUsed[3]<<endl;
+
+  if (bkgdAsym) {
+    TCanvas *cbkgdAsym = new TCanvas("cbkgdAsym",Form("bkgdAsym for run:%d",runnum),70,70,1000,420*endPlane);
+    TGraphErrors *grB1L0[nPlanes];
+    TLegend *legbkgdAsym[nPlanes];
+
+    cbkgdAsym->Divide(startPlane+1,endPlane);
+    for (Int_t p =startPlane; p <endPlane; p++) { 
+      cbkgdAsym->GetPad(p+1)->SetGridx(1);
+      cbkgdAsym->cd(p+1);
+
+      grB1L0[p] = new TGraphErrors(Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grB1L0[p]->SetLineColor(kBlue);
+      grB1L0[p]->SetMarkerStyle(kFullSquare);
+      grB1L0[p]->SetMarkerSize(1);
+      grB1L0[p]->SetMarkerColor(kBlue);
+      grB1L0[p]->SetFillColor(kBlue);
+      grB1L0[p]->SetTitle("laser off asymmetry");
+      grB1L0[p]->SetTitle(Form("bkgdAsym for run %d",runnum));
+      grB1L0[p]->Draw("AP");//for some reason!:Tmultigraph wants the axis settings to come after having drawn the graph
+      grB1L0[p]->GetXaxis()->SetTitle("strip number");
+      grB1L0[p]->GetYaxis()->SetTitle("background asymmetry");
+      grB1L0[p]->SetMaximum(0.048); //this limit is the same as the residuals
+      grB1L0[p]->SetMinimum(-0.048);
+
+      grB1L0[p]->GetYaxis()->SetLabelSize(0.03);
+      grB1L0[p]->GetXaxis()->SetLimits(1,65); 
+      grB1L0[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+      
+      legbkgdAsym[p] = new TLegend(0.1,0.8,0.3,0.9);
+      legbkgdAsym[p]->AddEntry(grB1L0[p],"background asymmetry","lp");
+      legbkgdAsym[p]->SetFillColor(0);
+      legbkgdAsym[p]->Draw();
+    }
+    cbkgdAsym->Update();
+    cbkgdAsym->SaveAs(Form("%s/%s/%sbkgdAsymAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
+  }
 
   if(scalerPlot) {
     ///these plots are not biased by what I think are the masked strips
