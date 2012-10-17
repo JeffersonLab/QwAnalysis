@@ -55,10 +55,11 @@
 !   default AlphaX/AlphaY = 1.0
 !
 ! device type,  device_name,    Xoffset,  Yoffset,  Zoffset,  BSEN factor,  AlpaX,      AlpaY,    rotation
-bpmstripline,   sca_bpm_3p02a,  -1.0,     -0.7,     109212.0, 1.0,          0.982250,   0.986716, rotation=0.
-bpmstripline,   sca_bpm_3p02b,   0.2,      0.1,     110602.0, 1.0,          1.000000,   1.000000, rotation=29.05
-bpmstripline,   sca_bpm_3p03a,   0.6,     -0.7,     113292.0, 1.0,          0.909295,   1.006700,
-bpmstripline,   sca_bpm_3c20,    0.2,      0.1,     116858.0, 1.0,          0.904796,   0.995870,
+! See PhDet ELOG 246 for these values (they come from Pete/EPICS)
+bpmstripline,   sca_bpm_3p02a,   0.0,     0.0,     109212.0, 1.0,          0.982332,   0.981035, rotation=0.
+bpmstripline,   sca_bpm_3p02b,   0.0,     0.0,     110602.0, 1.0,          0.969537,   1.033020, rotation=29.05
+bpmstripline,   sca_bpm_3p03a,   0.0,     0.0,     113292.0, 1.0,          0.909295,   1.006700,
+!bpmstripline,   sca_bpm_3c20,    0.0,     0.0,     116858.0, 1.0,          0.904796,   0.995870,
 
 !! Since BPM 3P02A is disabled in this combo, changed the Zoffset to BPM 3P02B's location
 !combinedbpm,    compton_bpm,     0.0,      0.0,     110602.0, 1.0,          1.0,        1.0,
