@@ -11,12 +11,15 @@
 #include <TCanvas.h>
 #include <TH1F.h>
 #include <TStyle.h>
+#include <TMath.h>
 
 void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minimum = 0.0, TString mycut = "") {
   gROOT->Reset();
   gROOT->SetStyle("Plain");
 
   //Set bcm calibration (good as of Oct 2011)
+//  const TString bcm1 = "((sca_bcm1*1e-3)-250.34)/45.75";  //run1 1 Hz mps
+//  const TString bcm2 = "((sca_bcm2*1e-3)-250.4)/44.92";  //run1 1 Hz mps
   const TString bcm1 = "((sca_bcm1*1e-2)-250.34)/45.75";  //run1
   const TString bcm2 = "((sca_bcm2*1e-2)-250.4)/44.92";  //run1
 //  const TString bcm1 = "((sca_bcm1*1e-2)-249.7)/43.46"; //run2
@@ -69,6 +72,9 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     pArray[i] = 0;
     mArray[i] = 0;
     aArray[i] = 0;
+    pArrayError[i] = 0;
+    mArrayError[i] = 0;
+    aArrayError[i] = 0;
   }
 
   Double_t tsArray[6];
@@ -90,7 +96,10 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
   Char_t filename[100];
 
   //open the filename
-  sprintf(filename, "Qweak_%i.root", runNum);
+//  sprintf(filename, "Qweak_%i.root", runNum);
+//  sprintf(filename, "QweakMay11_%i.root", runNum);
+  sprintf(filename, "QweakMarchGas11_%i.root", runNum);
+//  sprintf(filename, "QweakNew_%i.root", runNum);
 //  sprintf(filename, "Qweak_%i.000.trees.root", runNum);
   TFile *file = new TFile(filename);
   if ( !file->IsOpen() ) {
@@ -145,13 +154,15 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     event_tree->Draw(Form("1e-2*%s>>mdall_%i",mdall[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100  %s",mdall[j].Data(), lowcut, highcut,bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("mdall_%i",j+1));
     std::cout <<mdall[j].Data() <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() <<std::endl;
-    htmp->Fit("gaus");
+    aArray[j] = htmp->GetMean();
+    aArrayError[j] = double(htmp->GetRMS()/sqrt( htmp->GetEntries() ) );
+//    htmp->Fit("gaus");
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
-    fit = htmp->GetFunction("gaus");
-    aArray[j] = fit->GetParameter(1);
-    aArrayError[j] = fit->GetParError(1);
+//    fit = htmp->GetFunction("gaus");
+//    aArray[j] = fit->GetParameter(1);
+//    aArrayError[j] = fit->GetParError(1);
   } //end mdallbars for loop
 
   //mdp plots here
@@ -165,13 +176,15 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     event_tree->Draw(Form("((1e-2)*%s)>>mdp_%i",mdp[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100 %s",mdp[j].Data(), lowcut, highcut,bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("mdp_%i",j+1));
     std::cout <<mdp[j].Data() <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() <<std::endl;
-    htmp->Fit("gaus");
+    pArray[j] = htmp->GetMean();
+    pArrayError[j] = double(htmp->GetRMS()/sqrt( htmp->GetEntries() ) );
+//    htmp->Fit("gaus");
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
-    fit = htmp->GetFunction("gaus");
-    pArray[j] = fit->GetParameter(1);
-    pArrayError[j] = fit->GetParError(1);
+//    fit = htmp->GetFunction("gaus");
+//    pArray[j] = fit->GetParameter(1);
+//    pArrayError[j] = fit->GetParError(1);
    } //end mdp for loop
 
 
@@ -186,13 +199,15 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     event_tree->Draw(Form("((1e-2)*%s)>>mdm_%i",mdm[j].Data(),j+1),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100 %s",mdm[j].Data(), lowcut, highcut, bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("mdm_%i",j+1));
     std::cout <<mdm[j].Data() <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() <<std::endl;
-    htmp->Fit("gaus");
+    mArray[j] = htmp->GetMean();
+    mArrayError[j] = double(htmp->GetRMS()/sqrt( htmp->GetEntries() ) );
+//    htmp->Fit("gaus");
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
-    fit = htmp->GetFunction("gaus");
-    mArray[j] = fit->GetParameter(1);
-    mArrayError[j] = fit->GetParError(1);
+//    fit = htmp->GetFunction("gaus");
+//    mArray[j] = fit->GetParameter(1);
+//    mArrayError[j] = fit->GetParError(1);
    } //end mdm for loop
 
   //ts plots here
@@ -206,13 +221,15 @@ void sca_analysis( Int_t runNum, Int_t lowcut, Int_t highcut, Double_t bcm_minim
     event_tree->Draw(Form("((1e-2)*%s)>>%s",trigscint[j].Data(),trigscint[j].Data()),Form("%s!=0 && CodaEventNumber>%i && CodaEventNumber<%i && %s>%i/100  %s",trigscint[j].Data(), lowcut, highcut, bcm.Data(), bcmoffset, cuts.Data()));
     TH1F *htmp = (TH1F*) gPad->GetPrimitive(Form("%s",trigscint[j].Data()));
     std::cout <<Form("%s",trigscint[j].Data()) <<" " <<htmp->GetMean() <<" " <<htmp->GetRMS() << std::endl;
-    htmp->Fit("gaus");
+    tsArray[j] = htmp->GetMean();
+    tsArrayError[j] = double(htmp->GetRMS()/sqrt( htmp->GetEntries() ) );
+//    htmp->Fit("gaus");
     std::cout <<"\n";
     gPad->Modified();
     gPad->Update();
-    fits = htmp->GetFunction("gaus");
-    tsArray[j] = fits->GetParameter(1);
-    tsArrayError[j] = fits->GetParError(1);
+//    fits = htmp->GetFunction("gaus");
+//    tsArray[j] = fits->GetParameter(1);
+//    tsArrayError[j] = fits->GetParError(1);
   } //end trigger scintillator loop
 
   for (Int_t i=0; i<8; i++) {

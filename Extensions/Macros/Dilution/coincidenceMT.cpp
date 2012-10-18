@@ -77,7 +77,10 @@ void coincidencePlot( Int_t runNum,
   gROOT -> Reset();
   gROOT -> SetStyle("Modern");
 
-  TString filename = Form("Qweak_%i.root",runNum);
+//  TString filename = Form("QweakNew_%i.root",runNum);
+    TString filename = Form("Qweak_%i.root",runNum);
+//  TString filename = Form("QweakMarch11_%i.root",runNum);
+//  TString filename = Form("QweakMarchGas11_%i.root",runNum);
 
   TFile *myFile = new TFile(filename);
   if ( !myFile->IsOpen() ) {
@@ -112,6 +115,7 @@ Tsmd::Tsmd( Int_t mainDet, Int_t trigScint, Int_t eventLow, Int_t eventHigh, Boo
   fMdWithCutsFlag = mdCutsF;
   fRunNum = runNum;
   fSaveCanvas = kTRUE;
+//  fSaveCanvas = kFALSE;
 
 //  setSubTitle();
   createHistos();
@@ -233,10 +237,18 @@ void Tsmd::fillHistos() {
 
   if (fMdWithCutsFlag || fOverlayFlag) {
     for (Int_t k=0; k<7; k++) {
-//previously, for nominal qtor in run 2 I use >-186
-      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
-      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-200 && mdarray[k]<=-160) mdCutsPeak->Fill(mdarray[k]);
-      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=5 && mdarray[k]<=45) mdCutsAccidental->Fill(mdarray[k]);
+//Run 1
+//      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
+//      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-200 && mdarray[k]<=-160) mdCutsPeak->Fill(mdarray[k]);
+//      if(tsarray[k]!=0 && tsarray[k]>-186 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=5 && mdarray[k]<=45) mdCutsAccidental->Fill(mdarray[k]);
+//Run 1 N->Delta
+      if(tsarray[k]!=0 && tsarray[k]>-190 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
+      if(tsarray[k]!=0 && tsarray[k]>-190 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-210 && mdarray[k]<=-150) mdCutsPeak->Fill(mdarray[k]);
+      if(tsarray[k]!=0 && tsarray[k]>-190 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=5 && mdarray[k]<=65) mdCutsAccidental->Fill(mdarray[k]);
+//run 2
+//      if(tsarray[k]!=0 && tsarray[k]>-190 && tsarray[k]<-178 && mdarray[k]!=0) mdCuts->Fill(mdarray[k]);
+//      if(tsarray[k]!=0 && tsarray[k]>-190 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-220 && mdarray[k]<=-160) mdCutsPeak->Fill(mdarray[k]);
+//      if(tsarray[k]!=0 && tsarray[k]>-190 && tsarray[k]<-178 && mdarray[k]!=0 && mdarray[k]>=-40 && mdarray[k]<=20) mdCutsAccidental->Fill(mdarray[k]);
     }
   }
 

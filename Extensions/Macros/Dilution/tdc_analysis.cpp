@@ -17,7 +17,7 @@
 
 void tdc_analysis( Int_t runNum, Int_t tsLow=-2000, Int_t tsHigh=2000, Int_t mdLow=-2000, Int_t mdHigh=2000, TString mycut="" ) {
   gROOT->Reset();
-  gROOT->SetStyle("Plain");
+  gROOT->SetStyle("Modern");
 
   TString cuts = mycut.IsNull() ? mycut : "&&"+mycut;
 
@@ -144,7 +144,7 @@ void tdc_analysis( Int_t runNum, Int_t tsLow=-2000, Int_t tsHigh=2000, Int_t mdL
 
 void tdc_prelim (Int_t runNum, TString mycut = "") {
   gROOT->Reset();
-  gROOT->SetStyle("Plain");
+  gROOT->SetStyle("Modern");
 
   TString cuts = mycut.IsNull() ? mycut : "&&"+mycut;
 
