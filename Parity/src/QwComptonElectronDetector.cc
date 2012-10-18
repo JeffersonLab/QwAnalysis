@@ -726,23 +726,11 @@ void  QwComptonElectronDetector::ProcessEvent()
 //*****************************************************************
 Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  //  QwMessage << std::hex << "roc = " << roc_id << ", bank = " <<bank_id << ":" << "num words: "<<num_words<<QwLog::endl;
-//   printf("\n\n\n%f",num_words);
-//   for (size_t i = 0; i < num_words; i++) {
-//     QwMessage << std::hex << buffer[i] << " ";
-//   }
-//   QwMessage << QwLog::endl;
-
   // sub-bank 0x207 & 0x208, eDAQinfo for this slave board for all planes and strips
   ///the total number of words in these subbanks was fixed at 8, though the meaning carried by a word has
   ///..changed during different revisions (may need fine tuning later!)
   
   Int_t subBankiterate = bank_id==0x207 ? 0 : 32;
-  
-
-//   for (Int_t i = 0; i < NInfoWords; i++) {
-//     fDAQinfo[i] = buffer[i];
-//   }
 
   slave_header.push_back(buffer[0]);///expect this to be always BX000000 for slaveX
   firmwareRevision.push_back(buffer[1]);
@@ -773,15 +761,12 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
      bitwise_mask = (0x1 << s);
     fPlane4Mask[s+subBankiterate] = ((portEmask.back() & bitwise_mask) >> s);
    }
+   
+   //Rejection Width(16 bits) | Accum trigger condition(8 bits) | Event trigger condition(8 bits)
+   //trigInfo
 
-  //QwOut<< std::hex<<slave_header.back()<<"\t"<<firmwareRevision.back()<<"\t"<<portAmask.back()<<"\t"<<portBmask.back()<<"\t"<<portDmask.back()<<"\t"<<portEmask.back()<<"\t"<<widthInfo.back()<<"\t"<<trigInfo.back()<<endl;
-  cout<<"\n\n"<<endl;
-  cout<<"size of fPlane1Mask is: "<<fPlane1Mask.size()<<endl;
-  cout<<"size of fPlane2Mask is: "<<fPlane2Mask.size()<<endl;
-  cout<<"subBankiterate is "<<subBankiterate<<"\n\n"<<endl;
-  subBankiterate = subBankiterate + 32;//when this process is called 2nd time,
-
-  return 0;
+   subBankiterate = subBankiterate + 32;//when this process is called 2nd time,     
+   return 0;
 }
 
 /**
@@ -843,22 +828,21 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
         this->fStripsRaw_v2[i][j] = input->fStripsRaw_v2[i][j];
       }
     }
+    this->fPlane1Mask.resize(input->fPlane1Mask.size());
+    this->fPlane2Mask.resize(input->fPlane2Mask.size());
+    this->fPlane3Mask.resize(input->fPlane3Mask.size());
+    this->fPlane4Mask.resize(input->fPlane4Mask.size());
+    
+    for (UInt_t j = 0; j < input->fPlane1Mask.size(); j++)
+      this->fPlane1Mask[j] = input->fPlane1Mask[j];
+    for (UInt_t j = 0; j < input->fPlane2Mask.size(); j++)
+      this->fPlane2Mask[j] = input->fPlane2Mask[j];
+    for (UInt_t j = 0; j < input->fPlane3Mask.size(); j++)
+      this->fPlane3Mask[j] = input->fPlane3Mask[j];
+    for (UInt_t j = 0; j < input->fPlane4Mask.size(); j++)
+      this->fPlane4Mask[j] = input->fPlane4Mask[j];
 
-     //cout<<"\n\nfPlane1Mask.size is "<<fPlane1Mask.size()<<"\n\n"<<endl;
-      this->fPlane1Mask.resize(input->fPlane1Mask.size());
-      this->fPlane2Mask.resize(input->fPlane2Mask.size());
-      this->fPlane3Mask.resize(input->fPlane3Mask.size());
-      this->fPlane4Mask.resize(input->fPlane4Mask.size());
-      for (UInt_t j = 0; j < input->fPlane1Mask.size(); j++)
-        this->fPlane1Mask[j] = input->fPlane1Mask[j];
-     //cout<<"\n\nfPlane1Mask.size is "<<fPlane1Mask.size()<<"\n\n"<<endl;
-      for (UInt_t j = 0; j < input->fPlane2Mask.size(); j++)
-        this->fPlane2Mask[j] = input->fPlane2Mask[j];
-      for (UInt_t j = 0; j < input->fPlane3Mask.size(); j++)
-        this->fPlane3Mask[j] = input->fPlane3Mask[j];
-      for (UInt_t j = 0; j < input->fPlane4Mask.size(); j++)
-        this->fPlane4Mask[j] = input->fPlane4Mask[j];
-      this->fIsConfigOnly = input->fIsConfigOnly;
+    this->fIsConfigOnly = input->fIsConfigOnly;
   }
   return *this;
 }
@@ -1173,17 +1157,12 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
   size_t index = fTreeArrayIndex;
 
   if(fIsConfigOnly) {
-    for (UInt_t j = 0; j < fPlane1Mask.size(); j++) {
-      //     cout<<"\n\noperational line is: "<<__LINE__<<" strip #:"<<j<<endl;
+    for (UInt_t j = 0; j < fPlane1Mask.size(); j++)
       values[index++] = fPlane1Mask.at(j);/// v1495 plane 1 mask info
-    }
-    //   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
     for (UInt_t j = 0; j < fPlane2Mask.size(); j++)
       values[index++] = fPlane2Mask.at(j);/// v1495 plane 2 mask info
-    //   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
     for (UInt_t j = 0; j < fPlane3Mask.size(); j++)
       values[index++] = fPlane3Mask.at(j);/// v1495 plane 3 mask info
-    //   cout<<"\n\noperational line is: "<<__LINE__<<"\n\n"<<endl;
     for (UInt_t j = 0; j < fPlane4Mask.size(); j++)
       values[index++] = fPlane4Mask.at(j);/// v1495 plane 4 mask info
     return;
@@ -1201,7 +1180,6 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
     for (Int_t j = 0; j < StripsPerPlane; j++)
       values[index++] = fStripsRawScal[i][j];/// v1495 Scaler Raw
   }
-  //cout<<"\n\noperational line is: "<<__LINE__<<" fPlane1Mask.size():"<<fPlane1Mask.size()<<"\n\n"<<endl;
 }
 
 /**
