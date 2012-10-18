@@ -9,7 +9,8 @@
 !! Pedestal should be zero! Change only if you
 !! know what you are doing!!!
 ! channel name, pedestal=0, frequency
-sca_4mhz, 0, 4e6
+!sca_4mhz, 0, 4e6
+sca_4mhz, 0, 2.5e-7
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Scaler BCM pedestals
