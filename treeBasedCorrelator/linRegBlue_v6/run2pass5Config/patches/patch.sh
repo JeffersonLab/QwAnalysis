@@ -44,6 +44,15 @@ do
     patch $dest/run2pass5_17019-30/$file < al-30.patch
 done
 
+cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_no_3h09b-md9neg
+cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_no_3h09b-md9negpos
+
+for file in `ls $dest/run2pass5`
+do
+    patch $dest/run2pass5_no_3h09b-md9neg/$file < md9neg.patch
+    patch $dest/run2pass5_no_3h09b-md9negpos/$file < md9negpos.patch
+done
+
 # clean up .svns lurking around
 find $dest | grep .svn | xargs rm -rf
 # clean up after patch

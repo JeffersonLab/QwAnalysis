@@ -24,22 +24,40 @@ scriptPath=`dirname $0`
 confDir="${scriptPath}/run2pass5"
 # post mortem 3h09b
 if [ $run -ge 14487 ] ; then
-    confDir="${scriptPath}/run2pass5_no_3h09b"
+    # transverse Al/C data
+    # 16067-16072
+    # 16106-16124
+    # 16144-16151
+    # 16160-16161
+    # transverse md9neg saturation
+    # 16129-16131
+    # 16152-16157
+    # #transverse md9neg/pos saturation
+    # 16132-16137
+    if [ $run -ge 16067 -a $run -le 16072 ] ; then
+        confDir="${scriptPath}/run2pass5_no_3h09b-30"
+    elif [ $run -ge 16106 -a $run -le 16124 ] ; then
+        confDir="${scriptPath}/run2pass5_no_3h09b-30"
+    elif [ $run -ge 16144 -a $run -le 16151 ] ; then
+        confDir="${scriptPath}/run2pass5_no_3h09b-30"
+    elif [ $run -ge 16160 -a $run -le 16161 ] ; then
+        confDir="${scriptPath}/run2pass5_no_3h09b-30"
+    elif [ $run -ge 16129 -a $run -le 16131 ] ; then
+        confDir="${scriptPath}/run2pass5_no_3h09b-md9neg"
+    elif [ $run -ge 16152 -a $run -le 16157 ] ; then
+        confDir="${scriptPath}/run2pass5_no_3h09b-md9neg"
+    elif [ $run -ge 16132 -a $run -le 16137 ] ; then
+        confDir="${scriptPath}/run2pass5_no_3h09b-md9negpos"
+    else
+        confDir="${scriptPath}/run2pass5_no_3h09b"
+    fi
 fi
 # post mortem uslumi5pos
 if [ $run -ge 17019 ] ; then
     confDir="${scriptPath}/run2pass5_17019"
 fi
-# transverse Al/C data
-# 16067-16072
-# 16106-16124
-# 16144-16151
-# 16160-16161
-# transverse md9neg saturation
-# 16129-16131
-# 16152-16157
-# #transverse md9neg/pos saturation
-# 16132-16137
+
+echo $confDir
 
 if [[ "$configSuffix" == "" || "$configSuffix" == "std" ]] ; then
     set_option=""
