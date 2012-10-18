@@ -20,14 +20,26 @@ fi
 
 scriptPath=`dirname $0`
 
+# normal replay
 confDir="${scriptPath}/run2pass5"
+# post mortem 3h09b
 if [ $run -ge 14487 ] ; then
     confDir="${scriptPath}/run2pass5_no_3h09b"
 fi
+# post mortem uslumi5pos
 if [ $run -ge 17019 ] ; then
     confDir="${scriptPath}/run2pass5_17019"
 fi
-
+# transverse Al/C data
+# 16067-16072
+# 16106-16124
+# 16144-16151
+# 16160-16161
+# transverse md9neg saturation
+# 16129-16131
+# 16152-16157
+# #transverse md9neg/pos saturation
+# 16132-16137
 
 if [[ "$configSuffix" == "" || "$configSuffix" == "std" ]] ; then
     set_option=""
