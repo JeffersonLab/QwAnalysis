@@ -126,7 +126,7 @@ void QwDiagnostic::Write(void){
   for(Int_t k = 0; k < fNDetector; k++){
     fprintf(regression, "\n# corrections %s\n", DetectorList[k].Data());
     for(Int_t i = 0; i < fNMonitor; i++){
-      fprintf(regression, "%s :%d: %-5.5e : %-5.5e \n", MonitorList[i].Data(), Correction[k][i]->entries, Correction[k][i]->slope, Correction[k][i]->GetError());
+      fprintf(regression, "%s :%d: %-5.5e : %-5.5e \n", MonitorList[i].Data(), Correction[k][i]->entries, Correction[k][i]->slope, Correction[k][i]->error);
 //       total += Correction[k][i]->slope;
 //       rms += TMath::Power( Correction[k][i]->GetRMS(), 2);
 //       total_entries += Correction[k][i]->entries;

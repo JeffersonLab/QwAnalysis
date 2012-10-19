@@ -16,7 +16,7 @@ QwModulation::QwModulation(TChain *tree):
   fXPModulation(1),fYPModulation(4), fNEvents(0),
   fReduceMatrix_x(0), fReduceMatrix_y(0), fReduceMatrix_xp(0),
   fReduceMatrix_yp(0), fReduceMatrix_e(0), fSensHumanReadable(0),
-  fNModType(5), fPedestal(-50), fXNevents(0), fXPNevents(0), 
+  fNModType(5), fPedestal(0), fXNevents(0), fXPNevents(0), 
   fENevents(0),fYNevents(0), fYPNevents(0),fCurrentCut(40),
   fXinit(false), fYinit(false), fEinit(false), fXPinit(false), 
   fYPinit(false), fSingleCoil(false), fRunNumberSet(false), 
@@ -325,31 +325,32 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 {
 
   Double_t subblock = 0;
-  Int_t code = 0;
+
+  Int_t bmodErrorFlag = 0;
 
   if( type.CompareTo("mps_tree", TString::kIgnoreCase) == 0 ){
     subblock = ((ramp_block3+ramp_block0)-(ramp_block2+ramp_block1));
     
     for(Int_t i = 0; i < fNMonitor; i++){
       if( (Int_t)MonBranch[i + 1][fDeviceErrorCode] != 0 ){
- 	code = 1;
+ 	bmodErrorFlag = 1;
       }
     }
     for(Int_t i = 0; i < fNDetector; i++){
       if( (Int_t)DetBranch[i][fDeviceErrorCode] != 0){
-	code = 1;
+	bmodErrorFlag = 1;
       }
     }
     if(qwk_charge_Device_Error_Code != 0){
-      code = 1;
+      bmodErrorFlag = 1;
     }
 
     if(qwk_charge_hw_sum < fCurrentCut){
-      code = 1;
+      bmodErrorFlag = 1;
     }
 
     if( !((subblock > -50) && (subblock < 50)) )
-      code = 1;
+      bmodErrorFlag = 1;
     if( (ramp_hw_sum > fPedestal) && ((UInt_t)ErrorFlag != 0x4018080)  ){
 
 #ifdef __VERBOSE_ERRORS
@@ -358,7 +359,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 
 #endif
 
-      code = 1;
+      bmodErrorFlag = 1;
     }
 
     if( (ramp_hw_sum < fPedestal) && ((UInt_t)ErrorFlag != 0) ){
@@ -369,7 +370,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 
 #endif
 
-      code = 1;
+      bmodErrorFlag = 1;
     }
 
   }
@@ -378,55 +379,33 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
     
     for(Int_t i = 0; i < fNMonitor; i++){
       if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
-	code = 1;
+	bmodErrorFlag = 1;
       }
     }
     for(Int_t i = 0; i < fNDetector; i++){
       if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
-	code = 1;
+	bmodErrorFlag = 1;
       }
     }
 //     if( !((subblock > -50) && (subblock < 50)) )
-//       code = 1;
+//       bmodErrorFlag = 1;
 //     if(yield_qwk_mdallbars_Device_Error_Code != 0){
-//       code = 1;
+//       bmodErrorFlag = 1;
 //     }
 
-    if( (UInt_t)ErrorFlag != 0 ){
-      if( (UInt_t)ErrorFlag == 0x4018080 )
-	code = 0;
-      else
-	code = 1;
+    if( ((UInt_t)ErrorFlag != 0) && ((UInt_t)ErrorFlag != 67207296) ){
+//     if( ((UInt_t)ErrorFlag != 0) ){
+      bmodErrorFlag = 1;
     }
     
     if(yield_qwk_charge_hw_sum < fCurrentCut){
-      code = 1;
+      bmodErrorFlag = 1;
     }
 
-//     if(yield_qwk_charge_Device_Error_Code != 0){
-//       code = 1;
-//     }
+
   }
   
-  if( type.CompareTo("hel_tree_raw", TString::kIgnoreCase) == 0 ){
-    subblock = ((yield_ramp_block3+yield_ramp_block0)-(yield_ramp_block2+yield_ramp_block1));
-    
-    for(Int_t i = 0; i < fNMonitor; i++){
-      if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
-	code = 1;
-      }
-    }
-    for(Int_t i = 0; i < fNDetector; i++){
-      if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
-	code = 1;
-      }
-    }
-    if(yield_qwk_charge_hw_sum < fCurrentCut){
-      code = 1;
-    }
-  }
-
-  return( code );
+  return( bmodErrorFlag );
 }
 
 void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
@@ -665,27 +644,6 @@ void QwModulation::ComputeAsymmetryCorrections()
       mod_tree->Fill();
     }
 
-    //
-    // I need to fill these variables with the same cuts as above except w/o the cut on 
-    // ErrorFlag.  This is important to be sure that I can still get modulation data
-    // out to plot.
-    //
-    /*
-    else if( (ErrorCodeCheck("hel_tree_raw") == 0) ){
-      for(Int_t det = 0; det < fNDetector; det++){
-	mod_tree->GetBranch(Form("raw_%s", HDetectorList[det].Data()))->Fill();
-	mod_tree->GetBranch(Form("raw_corr_%s", HDetectorList[det].Data()))->Fill();
-      }
-      for(Int_t mon = 0; mon < fNMonitor; mon++)
-	mod_tree->GetBranch(Form("raw_%s", HMonitorList[mon].Data()))->Fill();
-
-      mod_tree->GetBranch("ErrorFlag")->Fill();
-      mod_tree->GetBranch("yield_bm_pattern_number")->Fill();
-      mod_tree->GetBranch("yield_ramp")->Fill();
-      mod_tree->GetBranch("mps_counter")->Fill();
-      mod_tree->GetBranch("asym_qwk_charge")->Fill();
-    }
-    */
     if( (i % 100000) == 0 )std::cout << "Processing:\t" << i << std::endl;
   }
 
@@ -1174,10 +1132,10 @@ void QwModulation::SetPhaseValues(Double_t *val)
 {
 
   phase.resize(5);
-  std::cout << other << "Default phase information:\t" << normal << std::endl;
+//   std::cout << other << "Default phase information:\t" << normal << std::endl;
   for(Int_t i = 0; i < fNModType; i++){
     phase[i] = val[i];
-    std::cout << other << phase[i] << normal << std::endl;
+//     std::cout << other << phase[i] << normal << std::endl;
   }
 
   return;
