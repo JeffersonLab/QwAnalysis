@@ -10,22 +10,27 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   QwModulation *modulation = new QwModulation(mps_tree);
 
-  if(argv[1] == NULL){
-    modulation->PrintError("Error Loading:  no run number specified");
+  modulation->output = gSystem->Getenv("BMOD_OUT");
+  if(!gSystem->OpenDirectory(modulation->output)){
+    modulation->PrintError("Cannot open output directory.\n");
+    modulation->PrintError("Directory needs to be set as env variable and contain:\n\t slopes/ \n\t regression/ \n\t diagnostics/ \n\t rootfiles/"); 
     exit(1);
   }
 
-  modulation->SetupMpsBranchAddress();
-//   TString test = argv[1];
-//   if(test.Contains("--Q", TString::kExact)) std::cout << "Charge!!!!" << std::endl;
-
-  modulation->run_number = atoi(argv[1]);
   modulation->GetOptions(argv);
+
+  if( !(modulation->fRunNumberSet) ){
+    modulation->PrintError("Error Loading:  no run number specified");
+    exit(1);
+  }
+  modulation->SetupMpsBranchAddress();
 
   // This is the default filename format.  If doing a segment analysis
   // it is changes in QwModulation::FileSearch()
 
-  filename = Form("QwPass*_%d*.trees.root", modulation->run_number);
+  //  filename = Form("QwPass*_%d*.trees.root", modulation->run_number);
+
+  filename = Form("%s_%d*.trees.root", modulation->fFileStem.Data(), modulation->run_number);
   modulation->LoadRootFile(filename, mps_tree);
   modulation->SetFileName(filename);
 
