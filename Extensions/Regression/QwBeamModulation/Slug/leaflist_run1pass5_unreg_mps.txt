@@ -1,8 +1,10 @@
 ErrorFlag	ErrorFlag
-actual_pattern_polarity	actual_pattern_polarity
-actual_previous_pattern_polarity	actual_previous_pattern_polarity
-delayed_pattern_polarity	delayed_pattern_polarity
 ramp.hw_sum	ramp
+fgx1.hw_sum	fgx1
+fgx2.hw_sum	fgx2
+fgy1.hw_sum	fgy1
+fgy2.hw_sum	fgy2
+fge.hw_sum	fge
 mps_counter	mps_counter
 bm_pattern_number	bm_pattern_numer
 qwk_charge.hw_sum	qwk_charge
@@ -53,10 +55,6 @@ qwk_md9pos.hw_sum	qwk_md9pos
 qwk_pmtonl.hw_sum	qwk_pmtonl
 qwk_pmtltg.hw_sum	qwk_pmtltg
 qwk_pmtled.hw_sum	qwk_pmtled
-qwk_isourc.hw_sum	qwk_isourc
-qwk_cagesr.hw_sum	qwk_cagesr
-qwk_preamp.hw_sum	qwk_preamp
-qwk_linephase.hw_sum	qwk_linephase
 qwk_raster_x.hw_sum	qwk_raster_x
 qwk_raster_y.hw_sum	qwk_raster_y
 qwk_raster_sumxy.hw_sum	qwk_raster_sumxy
@@ -142,11 +140,6 @@ qwk_md8pos.Device_Error_Code	qwk_md8pos_Device_Error_Code
 qwk_md9pos.Device_Error_Code	qwk_md9pos_Device_Error_Code
 qwk_pmtonl.Device_Error_Code	qwk_pmtonl_Device_Error_Code
 qwk_pmtltg.Device_Error_Code	qwk_pmtltg_Device_Error_Code
-qwk_pmtled.Device_Error_Code	qwk_pmtled_Device_Error_Code
-qwk_isourc.Device_Error_Code	qwk_isourc_Device_Error_Code
-qwk_cagesr.Device_Error_Code	qwk_cagesr_Device_Error_Code
-qwk_preamp.Device_Error_Code	qwk_preamp_Device_Error_Code
-qwk_linephase.Device_Error_Code	qwk_linephase_Device_Error_Code
 qwk_raster_x.Device_Error_Code	qwk_raster_x_Device_Error_Code
 qwk_raster_y.Device_Error_Code	qwk_raster_y_Device_Error_Code
 qwk_raster_sumxy.Device_Error_Code	qwk_raster_sumxy_Device_Error_Code

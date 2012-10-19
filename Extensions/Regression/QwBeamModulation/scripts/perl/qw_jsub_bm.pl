@@ -12,13 +12,13 @@ use Cwd;
 
 use vars qw($runs, $verbose,
 	    $help, $name, 
-	    $dir, $analyzer
-	    $pass4, $result);
+	    $dir, $analyzer,
+	    $result);
 
-$result = GetOptions("runs=s"     => \$runs,
+$result = GetOptions("run=s"     => \$run,
+		     "runlets=s" => \$runlets
 		     "verbose"    => \$verbose,
 		     "analyzer=s" => \$analyzer,
-		     "pass4"      => \$pass4,
 		     "help"       => \$help);
 
 if($help){
@@ -26,78 +26,75 @@ if($help){
 }
 
 if(!$analyzer){
-    $analyzer = "/u/home/jhoskins/QwAnalysis/";
+    $analyzer = "/u/home/jhoskins/linRegBlue_v5";
     print "using $analyzer to process data.";
 }
 
 print "using $analyzer to process data.";
 
-my @range = GetRuns($runs);
+my @range = GetRuns($runlets);
 
 $name = getpwuid($<);
-if(!$pass4){
-    $dir = getcwd();
-}
+
 else{
-    $dir = "/u/home/jhoskins/QwAnalysis/Extensions/Regression/QwBeamModulation";
+    $dir = "/u/home/jhoskins/linRegBlue_v5";
 }
 
 foreach(@range){
 
     my $output;
 
-    $output .= "PROJECT: qweak\n";
+    $output .= "PROJECT: lrb_bmod\n";
     $output .= "TRACK: analysis\n";
-    $output .= "JOBNAME: qwbeammod\n";
+    $output .= "JOBNAME: qwlrbbmod\n";
     $output .= "OS: Linux64\n";
     $output .= "MEMORY: 1800 MB\n";
-    $output .= "COMMAND:sh $dir\/bmod_jsub.bash $_ $analyzer > bmod$_.out\n";
-    $output .= "OUTPUT_DATA: bmod$_.out\n";
-    $output .= "OUTPUT_TEMPLATE:$dir\/bmod$_.out\n";
+    $output .= "COMMAND:sh $dir\/lrb_bmod_jsub.bash $run $_ $analyzer > lrb_bmod$_.out\n";
+    $output .= "OUTPUT_DATA: lrb_bmod$_.out\n";
+    $output .= "OUTPUT_TEMPLATE:$dir\/lrb_bmod$_.out\n";
     $output .= "MAIL: $name\@jlab.org\n";
 
-    open(OUT, ">bmod.config") or die "Can't open file descriptor 'OUT': $!\n";
+    open(OUT, ">lrb_bmod.config") or die "Can't open file descriptor 'OUT': $!\n";
     if($verbose){
 	print $output;
     }
     print OUT $output;
     close(OUT);
-    system("jsub bmod.config");
+#    system("jsub lrb_bmod.config");
     undef $output;
 }
 
 
 sub GetRuns {
     my $temp = $_[0];
-    my @run_range;
+    my @runlet_range;
 
     if($temp =~/[.\d]+\:[.\d]/){
-        @run_range = split(/\:/,$temp);
+        @runlet_range = split(/\:/,$temp);
 	my @range_temp;
 
-	@range_temp = ($run_range[0] .. $run_range[-1]);
+	@range_temp = ($runlet_range[0] .. $runlet_range[-1]);
 
 	return @range_temp;
     }
     elsif($temp =~ /^[.\d]+$/){
-	@run_range = $temp;
-	return @run_range;
+	@runlet_range = $temp;
+	return @runlet_range;
     }
     elsif($temp =~ /,/){
-	@run_range = split(/,/, $temp);
-	return @run_range;
+	@runlet_range = split(/,/, $temp);
+	return @runlet_range;
     }
     else{
-	die("You must specify a run range.  --help for more info");
+	die("You must specify a runlet range.  --help for more info");
     }
 } 
 
 sub usage{
     print "./qw_jsub_bm.pl <options>";
-    print "\n\t--runs <run range>     1234:4321 or 1234,5678 or 1234";
+    print "\n\t--runlets <run range>     1234:4321 or 1234,5678 or 1234";
     print "\n\t--analyzer             location of analyzer, ie. \$QWANALYSIS";
     print "\n\t--verbose              more print messages." ;
-    print "\n\t--pass4                Use standard analyzer.  This is for pass4b, otherwise it uses working directory.";
     print "\n\t--help                 help!\n";
 
     exit;

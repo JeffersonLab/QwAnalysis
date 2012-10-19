@@ -5,8 +5,8 @@
 
 slug_num=$1
 
-DST="/u/home/jhoskins/QwAnalysis_trunk/Extensions/Regression/QwBeamModulation/Slug"
-DST_Dbug="/u/home/jhoskins/QwBeamModulation/slug"
+DST="/u/home/jhoskins/QwAnalysis/Extensions/Regression/QwBeamModulation/Slug"
+#DST_Dbug="/u/home/jhoskins/QwBeamModulation/slug"
 
 argument="MakeSlug.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/slug${slug_num}.root\")"
 
