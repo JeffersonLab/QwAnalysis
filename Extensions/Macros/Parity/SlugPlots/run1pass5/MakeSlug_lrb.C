@@ -141,8 +141,7 @@ Int_t MakeSlug_lrb(
 //  const TString qwrootfiles = Form("/data/disk1/leacock/slugplots/25percent/lrb_links/%s",set);
 //  const TString qwrootfiles = Form("/volatile/hallc/qweak/leacock/25percent/lrb_links/%s",set);
 
-//const TString qwrootfiles = "/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
-const TString qwrootfiles = "/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfiles/"; //for pass5 redo of slug34 - smacewan 09-25-12
+  const TString qwrootfiles = "/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
 		signal(SIGINT, sigint_handler);

@@ -11,7 +11,7 @@ SRC="/volatile/hallc/qweak/QwAnalysis/run1/rootfiles"
 
 slug_num=$1
 
-run_list="`cat /volatile/hallc/qweak/smacewan/run1pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
+run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
 #run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt`"
 #runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
 unreg_rootfile_status=0
