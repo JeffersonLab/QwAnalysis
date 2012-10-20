@@ -51,6 +51,14 @@ class QwComptonElectronDetector:
       fPlane2Mask.resize(StripsPerPlane);
       fPlane3Mask.resize(StripsPerPlane);
       fPlane4Mask.resize(StripsPerPlane);
+      fEvTrig.resize(NModules);
+      fAcTrig.resize(NModules);
+      fMinWidth.resize(NModules);
+      fFirmwareRevision.resize(NModules);
+      fPWTL.resize(NModules);
+      fPWTL2.resize(NModules);
+      fHoldOff.resize(NModules);
+      fPipelineDelay.resize(NModules);
       for (Int_t i = 0; i < NPlanes; i++) {
         fStripsRaw[i].resize(StripsPerPlane);
         fStripsRaw_v2[i].resize(StripsPerPlane);
@@ -59,9 +67,6 @@ class QwComptonElectronDetector:
         fStripsEv[i].resize(StripsPerPlane);
         fStripsRawScal[i].resize(StripsPerPlane);
       }
-      //!!for (Int_t k = 0; k < NModules; k++) {
-      //!!fDAQinfo.resize(NInfoWords);
-	//!!}
     };
     /// Copy constructor
     QwComptonElectronDetector(const QwComptonElectronDetector& source)
@@ -73,7 +78,15 @@ class QwComptonElectronDetector:
       fPlane1Mask(source.fPlane1Mask),
       fPlane2Mask(source.fPlane2Mask),
       fPlane3Mask(source.fPlane3Mask),
-      fPlane4Mask(source.fPlane4Mask)
+      fPlane4Mask(source.fPlane4Mask),
+      fEvTrig(source.fEvTrig),
+      fAcTrig(source.fAcTrig),
+      fMinWidth(source.fMinWidth),
+      fFirmwareRevision(source.fFirmwareRevision),
+      fPWTL(source.fPWTL),
+      fPWTL2(source.fPWTL2),
+      fHoldOff(source.fHoldOff),
+      fPipelineDelay(source.fPipelineDelay)
    { }
     /// Virtual destructor
     virtual ~QwComptonElectronDetector() { };
@@ -169,7 +182,8 @@ class QwComptonElectronDetector:
     std::vector< std::vector <Int_t> >fDAQinfo;
     std::vector <UInt_t> slave_header,firmwareRevision,portAmask,portBmask,portDmask,portEmask,widthInfo,trigInfo;
 
-    std::vector <UInt_t> fPlane1Mask, fPlane2Mask, fPlane3Mask, fPlane4Mask;
+    std::vector <UInt_t> fPlane1Mask,fPlane2Mask,fPlane3Mask,fPlane4Mask,fEvTrig,fAcTrig,fMinWidth;
+    std::vector <UInt_t> fFirmwareRevision,fPWTL,fPWTL2,fHoldOff,fPipelineDelay;
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
     //   array_type fStripsRaw(boost::extents[NPlanes][StripsPerPlane]);
@@ -207,11 +221,11 @@ class QwComptonElectronDetector:
     Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Accum_v2, kV1495Single, kV1495Scaler, kV1495DAQinfo};
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Accum_v2, kV1495Single, kV1495Scaler};
     std::map< Int_t, ChannelType_t > fMapping;
 
         // Assign static const member fields
-    static const Int_t NModules = 3;///number of slave modules(!!change to 2?)
+    static const Int_t NModules = 2;///number of slave modules(!!change to 2?)
     static const Int_t NPlanes = 4;///number of diamond detector planes
     static const Int_t StripsPerModule = 32;///number of strips in each v1495 slave module
     static const Int_t StripsPerPlane = 64;//96;///total number of strips in each detecor
