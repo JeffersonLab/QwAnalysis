@@ -1387,7 +1387,7 @@ void QwModulation::Write(){
   if( regression != NULL ){
     for(Int_t i = 0; i < fNDetector; i++){
       for(Int_t j = 0; j < fNModType; j++){
-	fprintf(regression, "%s/%s : %i : %e %e\n", DetectorList[i].Data(), MonitorList[j].Data(),
+	fprintf(regression, "%s/%s : %i : %e : %e\n", DetectorList[i].Data(), MonitorList[j].Data(),
 		j, YieldSlope[i][j], YieldSlopeError[i][j]);
       }
     }

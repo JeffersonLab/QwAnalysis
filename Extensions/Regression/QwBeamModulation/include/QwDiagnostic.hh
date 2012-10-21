@@ -68,6 +68,7 @@ public :
   std::vector <Double_t> RawAsymRMS;
 
   std::vector < std::vector <Double_t> > Sens;
+  std::vector < std::vector <Double_t> > SensError;
 
   std::vector <TH1F *>  DiffHistogram;
   std::vector <TH1F *>  AsymHistogram;

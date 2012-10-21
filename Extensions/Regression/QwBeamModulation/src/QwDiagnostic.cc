@@ -49,22 +49,26 @@ void QwDiagnostic::ReadSensitivities(void)
   }
 
   Sens.resize(fNDetector);
+  SensError.resize(fNDetector);
 
   while(sens_file.good()){
     getline(sens_file, line);
     token = new char[line.size() + 1];
     strcpy(token, line.c_str());
-    token = strtok(token, " ,");
+    token = strtok(token, " ,\t");
     while(token){
       if(strncmp(token, "det", 1) == 0){
-	token = strtok(NULL, " ,");
+	token = strtok(NULL, " ,\t");
 	n++;
-	token = strtok(NULL, " ,");
+	token = strtok(NULL, " ,\t");
       }
       else{
-	if(n > -1)
+	if(n > -1){
           Sens[n].push_back(atof(token) );
-        token = strtok(NULL, " ,");
+ 	  token = strtok(NULL, " ,\t");
+	  SensError[n].push_back(atof(token) );
+	}
+        token = strtok(NULL, " ,\t");
       }
     }
   }
