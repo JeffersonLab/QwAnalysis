@@ -24,25 +24,12 @@ scriptPath=`dirname $0`
 confDir="${scriptPath}/run2pass5"
 # post mortem 3h09b
 if [ $run -ge 14487 ] ; then
-    # transverse Al/C data
-    # 16067-16072
-    # 16106-16124
-    # 16144-16151
-    # 16160-16161
     # transverse md9neg saturation
     # 16129-16131
     # 16152-16157
     # #transverse md9neg/pos saturation
     # 16132-16137
-    if [ $run -ge 16067 -a $run -le 16072 ] ; then
-        confDir="${scriptPath}/run2pass5_no_3h09b-30"
-    elif [ $run -ge 16106 -a $run -le 16124 ] ; then
-        confDir="${scriptPath}/run2pass5_no_3h09b-30"
-    elif [ $run -ge 16144 -a $run -le 16151 ] ; then
-        confDir="${scriptPath}/run2pass5_no_3h09b-30"
-    elif [ $run -ge 16160 -a $run -le 16161 ] ; then
-        confDir="${scriptPath}/run2pass5_no_3h09b-30"
-    elif [ $run -ge 16129 -a $run -le 16131 ] ; then
+    if [ $run -ge 16129 -a $run -le 16131 ] ; then
         confDir="${scriptPath}/run2pass5_no_3h09b-md9neg"
     elif [ $run -ge 16152 -a $run -le 16157 ] ; then
         confDir="${scriptPath}/run2pass5_no_3h09b-md9neg"
@@ -126,7 +113,7 @@ chmod u+rw,g+rws out
 
 #.......................................
 echo regPass5 started ...
-time ${scriptPath}/linRegBlue  ${run} ${seg} ${mxEve} >& ${logPath}/logS1
+time ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve} >& ${logPath}/logS1
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass5 for run ${run}.${seg}
@@ -155,8 +142,8 @@ fi
 
 #.......................................
 echo regPass2 started 
-echo ${scriptPath}/linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile}
-time ${scriptPath}/linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile} >& ${logPath}/logS2
+echo ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile}
+time ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile} >& ${logPath}/logS2
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass2 for run ${run}.${seg}
    chgrp -R ${myown}  out

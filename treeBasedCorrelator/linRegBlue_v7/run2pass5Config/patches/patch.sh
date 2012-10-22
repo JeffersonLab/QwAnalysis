@@ -33,17 +33,6 @@ do
     patch $dest/run2pass5_17019/$file < 17019.patch
 done
 
-cp -r $source $dest/run2pass5-30
-cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_no_3h09b-30
-cp -r $dest/run2pass5_17019 $dest/run2pass5_17019-30
-
-for file in `ls $dest/run2pass5`
-do
-    patch $dest/run2pass5-30/$file < al-30.patch
-    patch $dest/run2pass5_no_3h09b/$file < al-30.patch
-    patch $dest/run2pass5_17019-30/$file < al-30.patch
-done
-
 cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_no_3h09b-md9neg
 cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_no_3h09b-md9negpos
 
