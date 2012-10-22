@@ -720,12 +720,15 @@ sub create_xml_jobfile($$$@) {
 	"  chmod g+w \$QW_ROOTFILES/*.root\n",
 	"  ls -al \$QW_ROOTFILES\n";
     my $postprocess;
+    my $segment_range = -1;
+    $segment_range = $segmentlist if (defined($segmentlist)
+				      && $segmentlist ne "");
     foreach $postprocess (@RunPostProcess){
 	if ($postprocess){
 	    print JOBFILE
 		"  echo \"------\"\n",
 		"  echo \"Start run based post-processor script $postprocess at `date`\"\n",
-		"  $postprocess $runnumber\n";
+		"  $postprocess $runnumber $segment_range\n";
 	}
     }
     foreach $postprocess (@RunletPostProcess){
