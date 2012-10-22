@@ -1,0 +1,11 @@
+--- blueReg_std.conf	2012-10-18 15:23:59.357343789 -0400
++++ blueReg_std.conf.new	2012-10-18 15:24:17.372407157 -0400
+@@ -2,7 +2,7 @@
+ #inpPath /home/cdaq/qweak/QwScratch/rootfiles/QwPass1_   : on cdaql5
+ inpPath /group/qweak/QwAnalysis/common/QwScratch/rootfiles/QwPass3_ :  pass3 production
+ 
+-customcut  janCut1 yield_qwk_charge.hw_sum>40
++customcut  janCut1 yield_qwk_charge.hw_sum>30
+ #
+ #.... place aliases before use as IVs or DVs
+ alias bcmDD12=asym_qwk_bcm1-asym_qwk_bcm2

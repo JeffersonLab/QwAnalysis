@@ -1,0 +1,10 @@
+--- blueReg_std.conf	2012-09-05 11:16:05.059306721 -0400
++++ blueReg_std.conf.new	2012-09-05 11:23:18.140301666 -0400
+@@ -76,7 +76,6 @@
+ dv asym_qwk_uslumi3neg
+ dv asym_qwk_uslumi3pos
+ dv asym_qwk_uslumi5neg
+-dv asym_qwk_uslumi5pos
+ dv asym_qwk_uslumi7neg
+ dv asym_qwk_uslumi7pos
+ # aux adde on Geb 19, 2011

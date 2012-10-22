@@ -1,0 +1,12 @@
+--- blueReg_std.conf	2012-10-18 16:38:01.153423402 -0400
++++ blueReg_std.conf.new	2012-10-18 16:59:51.591341107 -0400
+@@ -96,9 +96,6 @@
+ dv asym_qwk_uslumi7neg
+ dv asym_qwk_uslumi7pos
+ # aux adde on Geb 19, 2011
+-dv asym_qwk_md9neg
+-dv asym_qwk_md9pos
+-dv asym_qwk_md9barsum
+ dv asym_qwk_pmtonl
+ dv asym_qwk_pmtltg
+ ###  beam current DVs
