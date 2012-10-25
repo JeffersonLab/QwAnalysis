@@ -28,12 +28,13 @@ struct runletSort{
 
 
 
-Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootfilename="0",TString qwrootfiles="0", TString qwstem="",TString suffix="0")
+Int_t MakeSluglet(Int_t runnum=0, TString leaflistfilename="0", TString slugrootfilename="0",TString qwrootfiles="0", TString qwstem="",TString suffix="0")
 {
 	TStopwatch timer;
-	if (runnum==0 ||  leaflistfilename == "0" ||  slugrootfilename == "0" || qwstem== "") {
+	if (runnum==0 || leaflistfilename == "0" || slugrootfilename == "0" || qwstem== "") {
 		printf("Usage:\n\t.x MakeSlug(runnum, leaflistfilename, slugrootfilename, qwstem)\n\n");
 		printf("Where: runnum = \n");
+		printf("       segnum = \n");
 		printf("       leaflistfilename = \n");
 		printf("       slugrootfilename = \n");
 		printf("       qwrootfiles = \n");
@@ -47,6 +48,7 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 //        const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
 	if(debug2==1){
 	std::cout<<"Fetching list of files from "<<qwrootfiles<<std::endl;
 	}
@@ -106,13 +108,10 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 	TTree *slug = new TTree("slug", "Slug tree");
 
 	//Read in leaf names
-	//const Int_t baseleaves=1;
-	const Int_t maxleaves=1500;
+	const Int_t maxleaves=1000;
 	Double_t slugleafvalue[maxleaves]={0};
-//	Double_t runinputleafvalue[maxleaves];
 	TLeaf* inputleaves[maxleaves]={0};
 	Double_t ErrorFlag=-1e6;
-//	Int_t ErrorFlag =0;
 	Int_t islugevnum =0;
 	Double_t slugeventnumber=0, runnumber=0, runletnumber=0;
 	char fullleafnamelist[maxleaves][255], branchnamelist[maxleaves][255];
@@ -129,12 +128,11 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 	if (leaflistFile == NULL) printf("Error opening file %s\n",leaflistfilename.Data());
 	else printf("Opened %s\n",leaflistfilename.Data());
 	// First put the base leaves into the slug tree
-	//branches[0] = 
 	slug->Branch("pattnum", &slugeventnumber);
 	slug->Branch("run", &runnumber);
 	slug->Branch("runlet", &runletnumber);
 	// Next put the list of leaves into the slug tree
-	counter=0;
+	counter=0; --smacewan
 	while ( ! feof (leaflistFile2) ) {
 		fscanf (leaflistFile2, "%s %s", dummy[counter], dummy2[counter]);
 		counter++;
@@ -150,7 +148,6 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 			sprintf(modfullleafnamelist[i],"%s",tmpstr->Data());
                         branches[i] = slug->Branch(newleafnamelist[i], &slugleafvalue[i]);
 			if (debug>1) {
-				//printf("%s  %s,  ",fullleafnamelist[i],branchnamelist[i]);
 				cout << Form("%s   %s",fullleafnamelist[i],branchnamelist[i]);
 			}
 		}
@@ -159,9 +156,6 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 	Int_t numinputleaves = counter-1;
 	fclose (leaflistFile);
 	printf("\nRead %i leaf names\n",numinputleaves);
-// 	for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
-// 		printf("%s  %s\n",fullleafnamelist[leafnumber-1],branchnamelist[leafnumber-1]);
-// 	}
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
 		signal(SIGINT, sigint_handler);
 		if (!globalEXIT) { 		// Allow ctrl-C escape 
@@ -184,7 +178,6 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 
 				if (debug>0) printf("run %.0f, runlet %03.0f\n",runnumber,runletnumber);
 				TTree *tree = (TTree*)gROOT->FindObject("Hel_Tree");
-				//TTree *tree = (TTree*)gROOT->FindObject("reg");
 				Double_t bcmforcuts=0, previousbcm=0;
 				Int_t bcmarrpt=0;
 				// **** Only enable the important branches
@@ -192,25 +185,14 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 				tree->SetBranchStatus("ErrorFlag",1);				
 				tree->SetBranchAddress("ErrorFlag",	&ErrorFlag);
 				for (Int_t leafnumber=1; leafnumber<numinputleaves; leafnumber++) {
-//					tree->SetBranchStatus(Form("%s*",branchnamelist[leafnumber-1]),1);				
 					tree->SetBranchStatus(Form("%s",branchnamelist[leafnumber-1]),1);
-					//tree->SetBranchStatus(Form("%s",fullleafnamelist[leafnumber-1]),1);
 					inputleaves[leafnumber-1] = (TLeaf*) tree->GetLeaf(modfullleafnamelist[leafnumber-1]);
-                                        //inputleaves[leafnumber-1] = (TLeaf*) tree->GetLeaf(fullleafnamelist[leafnumber-1]);
-// 					tree->SetBranchAddress(branchnamelist[leafnumber-1], 
-// 										   &runinputleafvalue[leafnumber-1]);
 					if (strcmp(branchnamelist[leafnumber-1],"yield_qwk_bcm1")==0) {
-//						bcmarrpt = leafnumber-1;
-// 						printf("Found a bcm to use for the cuts: %s at array point %i\n",
-// 							   branchnamelist[leafnumber-1],bcmarrpt);
 						printf("Found a bcm to use for the cuts: %s at array point %i\n",
 							   branchnamelist[leafnumber-1],bcmarrpt);
 					} else {
 						if (debug>3) printf("not the bcm\n") ;
 					}
-// 					if (debug>1) printf("Associated leaf %i  %s with %p\n",leafnumber-1,
-// 										branchnamelist[leafnumber-1], 
-// 										&runinputleafvalue[leafnumber-1]);
 					if (debug>1) printf("Associated leaf %i  %s with %p\n",leafnumber-1,
 										modfullleafnamelist[leafnumber-1], 
 										inputleaves[leafnumber-1]);
@@ -222,31 +204,10 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 				Int_t nentries = tree->GetEntries();
 				printf("There are %i entries in the tree.\n",nentries);
 				for (Int_t jentry=0; jentry<nentries; jentry++) {
-					tree->GetEntry(jentry);
-					// calculate cuts
-// 					bcmforcuts = runinputleafvalue[bcmarrpt];
-// 					if (bcmforcuts<40) {
-// 						cutevent=1;
-// 						if (debug>1) printf("bcm %.1f  ",bcmforcuts);
-// 						numcutbcm++;
-// 					}
-// 					if (fabs(previousbcm-bcmforcuts)>1.0) {
-// 						cutevent=1;
-// 						if (debug>1) printf("dbcm %.1f %.1f  ",previousbcm,bcmforcuts);
-// 						numcutburp++;
-// 					}
-// 					if (int(ErrorFlag)!=0) {
-// 						cutevent=1;
-// 						if (debug>1) printf("e%.1f ",ErrorFlag);
-//  						numcuterr++;
-// 					}
-					if (!cutevent) { // apply cuts
 						slugeventnumber++;
 						for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
-//							slugleafvalue[leafnumber-1]=runinputleafvalue[leafnumber-1];
 							if (inputleaves[leafnumber-1]) {
 								slugleafvalue[leafnumber-1]=inputleaves[leafnumber-1]->GetValue();
-                                                                //if (slugeventnumber==1000) cout<<fullleafnamelist[leafnumber-1]<<"   "<<inputleaves[leafnumber-1]->GetValue()*1e6<<endl;
 							} else {
 								slugleafvalue[leafnumber-1] = -1e6;
 							}
@@ -259,19 +220,16 @@ Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0", TString slugrootf
 					}
 					previousbcm = bcmforcuts;
 					cutevent = 0;
-// 					printf("cut %i below current events and/or %i burp events\n",numcutbcm,numcutburp);
-// 					printf("cut %i from ErrorFlag\n",numcuterr);
 					numcutbcm=numcutburp=numcuterr=0;
 				}
 			}
 		}
-	}
+//	}--closing file loop
 	slugrootfile->Write(0,TObject::kOverwrite);
 	timer.Print();
 	Double_t fillTime = timer.CpuTime();
 	printf("Time: %f s per file, %f ms per event\n",fillTime/numfiles,fillTime/slugeventnumber*1000);
 	islugevnum = (int) (slugeventnumber+0.1);
-//	return slugeventnumber;
 	return islugevnum;
 
 }

@@ -9,7 +9,8 @@
 # ./run_makesluglet RUNNUM
 
 PATH_TO_SCRIPT=`dirname $0`
-SLUG_NUM=$1
+RUN_NUM=$1
+SEG_NUM=$2
 
 SRC=\"/cache/mss/hallc/qweak/rootfiles/pass5/\"
 SRC_lrb=\"/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfiles/\"
@@ -26,37 +27,39 @@ SUFFIX=\"trees\"
 #SUFFIX=\"0\" ## use this line for NO suffix
 SUFFIX_lrb=\"0\" 
 
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+arg="$PATH_TO_SCRIPT/MakeSluglet_runlet.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}.root\",$SRC,\"QwPass5\",$SUFFIX)"
 
 #----------------------------------------------------------------------------------------------
+##Uncomment these lines to enable regressed sluglet file argument creation
 
-arg="$PATH_TO_SCRIPT/MakeSluglet.C+(${SLUG_NUM},$LEAFLIST,\"${DST}/sluglet${SLUG_NUM}.root\",$SRC,\"QwPass5\",$SUFFIX)"
-
-arg1="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_std.root\",$SRC_lrb,\"std_reg_QwPass5\",$SUFFIX_lrb)"
-arg2="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_5+1.root\",$SRC_lrb,\"5+1_reg_QwPass5\",$SUFFIX_lrb)"
-arg3="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set3.root\",$SRC_lrb,\"set3_reg_QwPass5\",$SUFFIX_lrb)"
-arg4="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set4.root\",$SRC_lrb,\"set4_reg_QwPass5\",$SUFFIX_lrb)"
-arg5="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set5.root\",$SRC_lrb,\"set5_reg_QwPass5\",$SUFFIX_lrb)"
-arg6="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set6.root\",$SRC_lrb,\"set6_reg_QwPass5\",$SUFFIX_lrb)"
-arg7="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set7.root\",$SRC_lrb,\"set7_reg_QwPass5\",$SUFFIX_lrb)"
-arg8="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set8.root\",$SRC_lrb,\"set8_reg_QwPass5\",$SUFFIX_lrb)"
-arg9="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set9.root\",$SRC_lrb,\"set9_reg_QwPass5\",$SUFFIX_lrb)"
-arg10="$PATH_TO_SCRIPT/MakeSluglet_lrb.C+(${SLUG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${SLUG_NUM}_lrb_set10.root\",$SRC_lrb,\"set10_reg_QwPass5\",$SUFFIX_lrb)"
+#arg1="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_std.root\",$SRC_lrb,\"std_reg_QwPass5\",$SUFFIX_lrb)"
+#arg2="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_5+1.root\",$SRC_lrb,\"5+1_reg_QwPass5\",$SUFFIX_lrb)"
+#arg3="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set3.root\",$SRC_lrb,\"set3_reg_QwPass5\",$SUFFIX_lrb)"
+#arg4="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set4.root\",$SRC_lrb,\"set4_reg_QwPass5\",$SUFFIX_lrb)"
+#arg5="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set5.root\",$SRC_lrb,\"set5_reg_QwPass5\",$SUFFIX_lrb)"
+#arg6="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set6.root\",$SRC_lrb,\"set6_reg_QwPass5\",$SUFFIX_lrb)"
+#arg7="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set7.root\",$SRC_lrb,\"set7_reg_QwPass5\",$SUFFIX_lrb)"
+#arg8="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set8.root\",$SRC_lrb,\"set8_reg_QwPass5\",$SUFFIX_lrb)"
+#arg9="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set9.root\",$SRC_lrb,\"set9_reg_QwPass5\",$SUFFIX_lrb)"
+#arg10="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set10.root\",$SRC_lrb,\"set10_reg_QwPass5\",$SUFFIX_lrb)"
 
 
 #----------------------------------------------------------------------------------------------
-root -n -q -b -l ${arg} >${DST_Dbug}/slug${SLUG_NUM}.out
+root -n -q -b -l ${arg} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}.out
 
-root -n -q -b -l ${arg1} >${DST_Dbug}/slug${SLUG_NUM}_std.out
-root -n -q -b -l ${arg2} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg3} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg4} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg5} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg6} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg7} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg8} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg9} >${DST_Dbug}/slug${slug_num}.out
-root -n -q -b -l ${arg10} >${DST_Dbug}/slug${slug_num}.out
+#----------------------------------------------------------------------------------------------
+##Uncomment these lines to enable regressed sluglet file creation
 
-
-
-
+#root -n -q -b -l ${arg1} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_std.out
+#root -n -q -b -l ${arg2} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_5+1.out
+#root -n -q -b -l ${arg3} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set3.out
+#root -n -q -b -l ${arg4} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set4.out
+#root -n -q -b -l ${arg5} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set5.out
+#root -n -q -b -l ${arg6} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set6.out
+#root -n -q -b -l ${arg7} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set7.out
+#root -n -q -b -l ${arg8} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set8.out
+#root -n -q -b -l ${arg9} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set9.out
+#root -n -q -b -l ${arg10} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set10.out
