@@ -43,10 +43,19 @@ public :
   Int_t           fNDetector;  
   Int_t           fNMonitor;
   Int_t           run_number;
+  Int_t           fLowerSegment;
+  Int_t           fUpperSegment;
 
   static const char red[8];
   static const char other[8];
   static const char normal[8];
+
+  TString fFileSegment;
+  TString fSetStem;
+
+  Bool_t fRunNumberSet;
+  Bool_t fFileSegmentInclude;
+  Bool_t fSetStemInclude;
 
   std::fstream config;
   std::fstream input;
@@ -106,6 +115,7 @@ public :
   void     Init(TChain *tree);
   void     Scan(QwDiagnostic *);
   void     Show(Long64_t entry = -1);  
+  void     GetOptions(Char_t **);
   void     LoadRootFile(TString, TChain *);
   void     SetFileName(TString &);
   void     SetupHelBranchAddress(void); 

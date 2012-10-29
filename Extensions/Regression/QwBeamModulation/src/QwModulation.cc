@@ -20,7 +20,8 @@ QwModulation::QwModulation(TChain *tree):
   fENevents(0),fYNevents(0), fYPNevents(0),fCurrentCut(40),
   fXinit(false), fYinit(false), fEinit(false), fXPinit(false), 
   fYPinit(false), fSingleCoil(false), fRunNumberSet(false), 
-  fPhaseConfig(false), fFileSegment(""), fFileStem("QwPass*") 
+  fPhaseConfig(false), fFileSegment(""), fFileStem("QwPass*"),
+  fSetStem("std") 
 {
    Init(tree);
 }
@@ -104,7 +105,7 @@ void QwModulation::GetOptions(Char_t **options){
       fPhaseConfig = true;
       ReadPhaseConfig(options[i + 1]);
       std::cout << other << "Setting external phase values:\t" 
-		<< normal << std::endl;
+		<< options[i + 1] << normal << std::endl;
     }    
 
     if(flag.CompareTo("--charge-sens", TString::kExact) == 0){
@@ -132,13 +133,23 @@ void QwModulation::GetOptions(Char_t **options){
 
     if(flag.CompareTo("--file-stem", TString::kExact) == 0){
       std::string option(options[i+1]);
-      fFileStem = true;
 
       flag.Clear();
       fFileStem = options[i + 1];
 
       std::cout << other << "Setting file stem to:\t" 
 		<< fFileStem << ":" 
+		<< normal << std::endl;
+    }    
+
+    if(flag.CompareTo("--set-stem", TString::kExact) == 0){
+      std::string option(options[i+1]);
+
+      flag.Clear();
+      fSetStem = options[i + 1];
+
+      std::cout << other << "Setting set stem to:\t" 
+		<< fSetStem << ":" 
 		<< normal << std::endl;
     }    
 
@@ -467,7 +478,7 @@ void QwModulation::MatrixFill()
 
   CheckFlags();
 
-  diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i.dat", output.Data(), fFileSegment.Data(), run_number) , fstream::out);
+  diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()) , fstream::out);
 
   for(Int_t j = 0; j < fNDetector; j++){
     diagnostic << DetectorList[j] << std::endl;
@@ -548,7 +559,7 @@ void QwModulation::ComputeAsymmetryCorrections()
   //
   //**************************************************************
 
-  TFile file(Form("%s/rootfiles/bmod_tree%s_%i.root", output.Data(), fFileSegment.Data(), run_number),"RECREATE");
+  TFile file(Form("%s/rootfiles/bmod_tree%s_%i.%s.root", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()),"RECREATE");
 
   TTree *mod_tree = new TTree("Mod_Tree", "Modulation Analysis Results Tree");
 
@@ -1346,8 +1357,8 @@ void QwModulation::Write(){
 
   gSystem->Exec("umask 002");
 
-  slopes.open(Form("%s/slopes/slopes%s_%i.dat", output.Data(), fFileSegment.Data(), run_number) , fstream::out);
-  regression = fopen(Form("%s/regression/regression%s_%i.dat", output.Data(), fFileSegment.Data(), run_number), "w");
+  slopes.open(Form("%s/slopes/slopes%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()) , fstream::out);
+  regression = fopen(Form("%s/regression/regression%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()), "w");
 
   if( (slopes.is_open() && slopes.good()) ){
     for(Int_t i = 0; i < fNDetector; i++){

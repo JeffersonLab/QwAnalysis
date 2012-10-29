@@ -284,6 +284,7 @@ public :
   TString fChargeFile;
   TString fFileSegment;
   TString fFileStem;
+  TString fSetStem;
   TString output;
 
   QwModulation(TChain *tree = 0);

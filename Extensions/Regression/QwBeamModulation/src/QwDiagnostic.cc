@@ -14,7 +14,8 @@ const char QwDiagnostic::normal[8] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 QwDiagnostic::QwDiagnostic(TChain *tree):
   kXModulation(0),kYModulation(3),kEModulation(2),
   kXPModulation(1),kYPModulation(4), fNEvents(0),
-  fNModType(5)
+  fNModType(5),   fFileSegment(""), fSetStem("std"), fRunNumberSet(false), 
+  fFileSegmentInclude(false), fSetStemInclude(false)
 {
    Init(tree);
 }
@@ -42,7 +43,13 @@ void QwDiagnostic::ReadSensitivities(void)
   char *token;
   Int_t n = -1;
 
-  sens_file.open(Form("%s/slopes/slopes_%d.dat", output.Data(), run_number));
+  if(fFileSegmentInclude){
+    sens_file.open(Form("%s/slopes/slopes%s_%d.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()));
+    std::cout << Form("%s/slopes/slopes%s_%d.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()) << std::endl;
+  }
+  else
+    sens_file.open(Form("%s/slopes/slopes_%d.%s.dat", output.Data(), run_number, fSetStem.Data()));
+
   if(!sens_file.is_open()){
     std::cout << red << "Error opening slopes file" << normal << std::endl;
     exit(1);
@@ -79,9 +86,10 @@ void QwDiagnostic::ReadSensitivities(void)
 
 void QwDiagnostic::Write(void){
 
-  slope_diagnostic = fopen(Form("%s/diagnostics/%s_diagnostic/slope_diagnostic.txt", output.Data(), fFileName.Data()),"w");
-  correction = fopen(Form("%s/diagnostics/%s_diagnostic/correction.txt", output.Data(),  fFileName.Data()), "w");  
-  charge_asym_diagnostic = fopen(Form("%s/diagnostics/%s_diagnostic/charge_asym_diagnostic.txt", output.Data(), fFileName.Data()), "w");  
+  slope_diagnostic = fopen(Form("%s/diagnostics/%s_diagnostic/slope_diagnostic.%s.txt", output.Data(), fFileName.Data(), fSetStem.Data()),"w");
+  correction = fopen(Form("%s/diagnostics/%s_diagnostic/correction.%s.txt", output.Data(),  fFileName.Data(), fSetStem.Data()), "w");  
+  charge_asym_diagnostic = fopen(Form("%s/diagnostics/%s_diagnostic/charge_asym_diagnostic.%s.txt", 
+				      output.Data(), fFileName.Data(), fSetStem.Data()), "w");  
 
   //***************************************************** 
   //  Write to DB file - This file should exist already,
@@ -90,12 +98,12 @@ void QwDiagnostic::Write(void){
 
   ReadSensitivities();
 
-  if( !IfExists( Form("%s/regression/regression_%i.dat", output.Data(), run_number) ) ){
+  if( !IfExists( Form("%s/regression/regression%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()) ) ){
     std::cout << red << "Error finding regression file.  Cleaning up directories..." << normal << std::endl;
     CleanFolders();
     exit(1);
   }
-  regression = fopen(Form("%s/regression/regression_%i.dat", output.Data(), run_number), "a");
+  regression = fopen(Form("%s/regression/regression%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()), "a");
 
   // Uncorrected Slopes during modulation
 
@@ -382,6 +390,54 @@ Int_t QwDiagnostic::ReadConfig(QwDiagnostic *meteor)
   return 0;
 }
 
+void QwDiagnostic::GetOptions(Char_t **options){
+  Int_t i = 0;
+
+  TString flag;
+
+  while(options[i] != NULL){
+    flag = options[i];
+
+    if(flag.CompareTo("--run", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      fRunNumberSet = true;
+      run_number = atoi(options[i + 1]);
+
+      std::cout << other << "Processing run number:\t" 
+		<< run_number
+		<< normal << std::endl;
+    }    
+
+    if(flag.CompareTo("--set-stem", TString::kExact) == 0){
+      std::string option(options[i+1]);
+
+      flag.Clear();
+      fSetStem = options[i + 1];
+
+      std::cout << other << "Setting set stem to:\t" 
+		<< fSetStem << ":" 
+		<< normal << std::endl;
+    }    
+
+    if(flag.CompareTo("--file-segment", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      fFileSegmentInclude = true;
+
+      flag.Clear();
+      fFileSegment = options[i + 1];
+      Int_t index = option.find_first_of(":");
+      fLowerSegment = atoi(option.substr(0, index).c_str());
+      fUpperSegment = atoi(option.substr(index + 1, option.length()-index).c_str());
+
+      std::cout << other << "Processing file segments:\t" 
+		<< fLowerSegment << ":" 
+		<< fUpperSegment << normal << std::endl;
+    }
+    i++;
+  }
+}
+
 Bool_t QwDiagnostic::FileSearch(TString filename, TChain *chain)
 {
 
@@ -423,19 +479,19 @@ void QwDiagnostic::LoadRootFile(TString filename, TChain *tree)
 {
   Bool_t found = FileSearch(filename, tree);
   
-  if(!found){
-    filename = Form("Qweak_%d*.root", run_number);
-    found = FileSearch(filename, tree);
-    std::cerr << "Couldn't find QwPass1_*.root trying "
-	      << filename
-	      << std::endl;
+//   if(!found){
+//     filename = Form("Qweak_%d*.root", run_number);
+//     found = FileSearch(filename, tree);
+//     std::cerr << "Couldn't find QwPass1_*.root trying "
+// 	      << filename
+// 	      << std::endl;
     if(!found){
       std::cerr << "Unable to locate requested file :: "
 		<< filename
 		<< std::endl;
       exit(1);
     }
-  }
+//   }
 }
 
 Int_t QwDiagnostic::GetModNumber(){return fNModType;}

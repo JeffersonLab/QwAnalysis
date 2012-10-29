@@ -30,7 +30,6 @@ Int_t main(Int_t argc, Char_t *argv[])
   TF1 *linear = new TF1("linear", "[0] + [1]*x", -1.0, 1.0);
 
   Int_t n = 1;
-//   Int_t pNum[5] = {11, 14, 13, 12, 15};
   Int_t pNum[5] = {0, 1, 2, 3, 4};
   Int_t entries;
   Int_t fResolution = 300;
@@ -42,9 +41,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   Double_t yield_range[5] = {0.5, 0.02e-3, 0.5, 0.3, 0.02e-3};
   Double_t fRange[5] = {0.15, 0.0035e-3, 0.3, 0.12, 0.003e-3};
   Double_t fRangeDiff[5] = {0.12, 3.2e-6, 0.14, 0.12, 2.2e-6};
-//   Double_t corr_range[5] = {50.e-3, 50.6e-3, 50.e-3, 50.e-3, 50.e-3};
-//   Double_t corr_range[5] = {0.1, 0.1, 0.1, 0.1, 0.1};
-  Double_t corr_range[5] = {1., 1., 1., 1., 1.};
+  //  Double_t corr_range[5] = {1., 1., 1., 1., 1.};
 
   QwDiagnostic *modulation = new QwDiagnostic(mod_tree);
 
@@ -56,16 +53,26 @@ Int_t main(Int_t argc, Char_t *argv[])
   gStyle->SetOptFit(01011);
   gStyle->SetOptStat("nemm");
 
-  if(argv[1] == NULL){
+  modulation->GetOptions(argv);
+  if(!(modulation->fRunNumberSet)){
     std::cout << red << "No run number specified :: exiting" 
 	      << normal << std::endl;
     exit(1);
   }
+//   if(argv[1] == NULL){
+//     std::cout << red << "No run number specified :: exiting" 
+// 	      << normal << std::endl;
+//     exit(1);
+//   }
 
-  modulation->run_number = atoi(argv[1]);
-  filename = Form("bmod_tree_%i.root", modulation->run_number);
+//   modulation->run_number = atoi(argv[1]);
+  if(modulation->fFileSegmentInclude)
+    filename = Form("bmod_tree%s_%i.%s.root", modulation->fFileSegment.Data(), modulation->run_number, modulation->fSetStem.Data());
+  else
+    filename = Form("bmod_tree_%i.%s.root", modulation->run_number, modulation->fSetStem.Data());
 
   std::cout << "Generating diagnostics for run." << std::endl;
+
   modulation->LoadRootFile(filename, mod_tree);
   modulation->SetFileName(filename);
     
@@ -271,8 +278,10 @@ Int_t main(Int_t argc, Char_t *argv[])
 	n++;
 							      }
       }
-    canvas0->SaveAs( Form("%s/diagnostics/%s_diagnostic/uncorrected_%s_sens_slopes.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[k].Data()) );
-    canvas1->SaveAs( Form("%s/diagnostics/%s_diagnostic/corrected_%s_sens_slopes.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[k].Data()) );
+    canvas0->SaveAs( Form("%s/diagnostics/%s_diagnostic/uncorrected_%s_sens_slopes.pdf", modulation->output.Data(), 
+			  filename.Data(), modulation->DetectorList[k].Data()) );
+    canvas1->SaveAs( Form("%s/diagnostics/%s_diagnostic/corrected_%s_sens_slopes.pdf", modulation->output.Data(), 
+			  filename.Data(), modulation->DetectorList[k].Data()) );
 
     canvas0->Clear();
     canvas1->Clear();
@@ -395,7 +404,7 @@ Int_t main(Int_t argc, Char_t *argv[])
       canvas8->Update();
       canvas8->Modified();
 
-      canvas8->SaveAs( Form("%s/diagnostics/%s_diagnostic/total_correction_%s.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[k].Data()) );
+      canvas8->SaveAs( Form("%s/diagnostics/%s_diagnostic%s/total_correction_%s.pdf", modulation->output.Data(), filename.Data(), modulation->fFileSegment.Data(), modulation->DetectorList[k].Data()) );
       canvas8->Clear();
   }
 
@@ -471,7 +480,8 @@ Int_t main(Int_t argc, Char_t *argv[])
 	n++;
 
     }
-    canvas5->SaveAs( Form("%s/diagnostics/%s_diagnostic/correction_natural_motion_%s.pdf", modulation->output.Data(), filename.Data(), modulation->DetectorList[i].Data()) );
+    canvas5->SaveAs( Form("%s/diagnostics/%s_diagnostic/correction_natural_motion_%s.pdf", 
+			  modulation->output.Data(), filename.Data(), modulation->DetectorList[i].Data()) );
     canvas5->Clear();
   }
 
@@ -533,7 +543,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
 
   canvas2->SaveAs( Form("%s/diagnostics/%s_diagnostic/position_differences.pdf", modulation->output.Data(), filename.Data()) );
-  canvas4->SaveAs( Form("%s/diagnostics/%s_diagnostic/charge_asym.pdf", modulation->output.Data(), filename.Data()) );
+  canvas4->SaveAs( Form("%s/diagnostics/%s_diagnostic/charge_asym.pdf", modulation->output.Data(), modulation->fFileSegment.Data()) );
 
   //**********************************************
   // Mean Asymmetry and Width

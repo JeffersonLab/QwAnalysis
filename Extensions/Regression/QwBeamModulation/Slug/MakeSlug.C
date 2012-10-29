@@ -33,7 +33,7 @@ Int_t MakeSlug(
 	}
 	const Int_t debug = 1;
 
-	const TString qwstem = "QwPass4b";
+	const TString qwstem = "QwPass5";
 	const TString qwrootfiles = "/scratch/jhoskins/scratch/rootfiles";
 
 	//Read in file names

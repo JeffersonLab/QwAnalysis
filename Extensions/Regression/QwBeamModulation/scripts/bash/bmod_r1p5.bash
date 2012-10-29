@@ -83,6 +83,7 @@ if [[ "$options" =~ "--run" ]]; then
     if [ -n "$run_number" ]
     then
 	echo "run_number is $run_number"
+        libra_options=" --runs "$run_number
     else
 	echo "Run number must be included"
 	exit
@@ -131,6 +132,7 @@ if [[ "$options" =~ "--file-segment" ]]; then
     if [ -n "$segment" ]
     then
 	echo "File segments listed as: $segment"
+	libra_options=$libra_options" --file-segment "$segment
     else
 	echo "Segment range must be included for the --file-segment option"
 	exit
@@ -171,7 +173,7 @@ echo "searching for :: $ROOTFILE"
 
 if [ -f "${ROOTFILE}" ]
 then
-    $scriptPath/qwlibra $run_number
+    $scriptPath/qwlibra $libra_options --set-stem ${set}
 else
     echo "There was a problem in the output files of qwbeammod."
     exit
