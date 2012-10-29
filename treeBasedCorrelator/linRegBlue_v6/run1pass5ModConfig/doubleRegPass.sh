@@ -59,7 +59,7 @@ fi
 
 #.......................................
 echo regPass2 started 
-time ./linRegBlue  $run $seg $mxEve  blueReg.conf $slopeFile # >& $logPath/logS2
+time ./linRegBlue  $run $seg $mxEve  blueReg_full.conf $slopeFile # >& $logPath/logS2
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass2 for run $run.$seg
