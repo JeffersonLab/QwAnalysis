@@ -13,11 +13,12 @@ scriptPath=`pwd`
 
 dbName="qw_run1_pass5"
 
-export QWSCRATCH=/scratch/jhoskins/scratch
-export QWANALYSIS=/u/home/jhoskins/QwAnalysis_trunk
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/
 . $QWANALYSIS/SetupFiles/SET_ME_UP.bash # >& /dev/null
 
-export QW_ROOTFILES=/scratch/jhoskins/scratch/rootfiles
+export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
+#export QW_ROOTFILES=/scratch/jhoskins/scratch/rootfiles
 #export BMOD_OUT=`pwd`/output
 
 export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run1/pass5regression/bmod_regression/output
@@ -67,7 +68,7 @@ else
     fi
 fi
 
-if [ ! -n $run_number ]; then
+if [ -z $run_number ]; then
     echo "Need to specify run number."
     exit
 else
@@ -75,19 +76,17 @@ else
     libra_options=" --run $run_number "
 fi
 
-if [ ! -n $fseg ]; then
-    echo "Need to specify segment range."
-    exit
+if [ -z $fseg ]; then
+    segment=""
+    echo "Processing full set of segments."
+elif [ $fseg == "-1" ]; then
+    segment=""
+    echo "Processing full set of segments."
 else
-    if [ $fseg == "-1" ]; then
-	segment=""
-	echo "Processing full set of segments."
-    else
-	segment=$(echo $fseg |perl -n -e 'if($_ =~ /.*([0-9]+\:[0-9]+).*/){print $1;}')
-	echo "Run segments to process --> "$segment
-	options="$options --file-segment $segment"
-	libra_options="$options --file-segment $segment"
-    fi
+    segment=$(echo $fseg |perl -n -e 'if($_ =~ /.*([0-9]+\:[0-9]+).*/){print $1;}')
+    echo "Run segments to process --> "$segment
+    options="$options --file-segment $segment"
+    libra_options="$options --file-segment $segment"
 fi
 
 options=${options}${file_stem}${ramp_pedestal}
