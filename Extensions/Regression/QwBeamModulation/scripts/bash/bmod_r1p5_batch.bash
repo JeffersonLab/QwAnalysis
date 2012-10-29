@@ -92,7 +92,7 @@ fi
 
 options=${options}${file_stem}${ramp_pedestal}
 
-for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config" # "${config_dir}/phase_set3.config" "${config_dir}/phase_set4.config"
+for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config" "${config_dir}/phase_set3.config" "${config_dir}/phase_set4.config"
   do
 
   echo "$options --phase-config $config "
