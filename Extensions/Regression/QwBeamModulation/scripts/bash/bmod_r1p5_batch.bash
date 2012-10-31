@@ -11,7 +11,7 @@ cd $scriptPath/../../
 
 scriptPath=`pwd`
 
-dbName="qw_run1_pass5"
+dbName="qw_test_20120720"
 
 export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
 export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/
