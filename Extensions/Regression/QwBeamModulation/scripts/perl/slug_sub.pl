@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 #
+# Perl script to submit MPS tree MakeSlug script
+#
+# -- Joshua Hoskins
 #
 
 use strict;
@@ -24,7 +27,7 @@ if($help){
 }
 
 if(!$slug){
-    print "Need to specify slug number to submit.";
+    print "Need to specify slug number to submit.\n";
     usage();
     exit;
 }
@@ -40,17 +43,17 @@ if($verbose){
 system("jsub", "-xml", "$jobxml");
 
 sub usage{
-    print "options for the script are as follows:";
-    print "--slug <slug number>    # specify slug number";
-    print "--verbose               # Print out more information.";
-    print "--help                  # Print this menu";
+    print "Options for the script are as follows:\n";
+    print "--slug <slug number>    # Specify slug number.\n";
+    print "--verbose               # Print out more information.\n";
+    print "--help                  # Print this menu.\n";
 }
 
 sub create_job_xml{
     my $job = "make_slug.xml";
     my $name = getpwuid($<);
 
-    open(XML, ">$job") or die "Couldn't open job submission file.";
+    open(XML, ">$job") or die "Couldn't open job submission file.\n";
 
 print XML     
     "<Request>\n",
