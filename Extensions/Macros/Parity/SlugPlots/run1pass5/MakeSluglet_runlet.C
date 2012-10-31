@@ -45,58 +45,6 @@ Int_t MakeSluglet_runlet(Int_t runnum=0, Int_t segnum=0, TString leaflistfilenam
 	const Int_t debug=1;
 	const Int_t debug2=1;
 	
-//        const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-	if(debug2==1){
-	std::cout<<"Fetching list of files from "<<qwrootfiles<<std::endl;
-	}
-
-	std::vector<std::pair<Int_t,Int_t> > runletlist; //store pairs of (run, runlet)
-
-	TString filename;
-	TString filenameformat;
-	if(suffix!="0"){
-		std::cout<<"Found suffix"<<std::endl;
-		filenameformat = Form("%s_%i.[0-9][0-9][0-9].%s.root",qwstem.Data(),runnum,suffix.Data()); //to only pick out right rootfile types
-	}
-	else{
-		filenameformat = Form("%s_%i.[0-9][0-9][0-9].root",qwstem.Data(),runnum); //to only pick out right rootfile types
-	}
-	TString runletformat = "\\.([0-9]{3})\\."; //regex string to match ONLY the runlet number
-	Int_t counter=0;
-	void *dir = gSystem->OpenDirectory(qwrootfiles);
-
-	if(dir){
-	  std::cout<<"Opened up directory to look for filenames"<<std::endl;
-	  TPRegexp re(filenameformat);
-	  TPRegexp seg(runletformat);
-
-	  while((filename = gSystem->GetDirEntry(dir))!=""){
-		if(!strcmp(filename,".") || !strcmp(filename,"..") || !strcmp(filename,""))continue; //skip directories .  and .. just in case
-		if(debug2==1){std::cout<<"Checking file '"<<filename<<"'"<<std::endl;}
-		if(filename.Index(re) != kNPOS){ //check if filename is appropriate
-			if(debug2==1){std::cout<<"Found a match"<<std::endl;}
-				TObjArray *tmp = seg.MatchS(filename); //returns an object array containing the matches. 0th entry is the full character array match, 1 is just the match, etc.
-			const TString subStr = ((TObjString *)tmp->At(1))->GetString(); //grab the runlet number
-			runletlist.push_back(pair<Int_t,Int_t>(runnum,atoi(subStr)));
-			counter++;
-        	}
-	  }
-	}
-	Int_t numfiles = counter;
-	
-	std::sort(runletlist.begin(), runletlist.end(), runletSort());
-	
-	if(debug2==1){
-		std::cout<<"Finished getting file list"<<std::endl;
-	}
-
-
-*///--smacewan editted out for changes to make script run on individual runlets
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,117 +111,78 @@ Int_t MakeSluglet_runlet(Int_t runnum=0, Int_t segnum=0, TString leaflistfilenam
 	Int_t numinputleaves = counter-1;
 	fclose (leaflistFile);
 	printf("\nRead %i leaf names\n",numinputleaves);
-// 	for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
-// 		printf("%s  %s\n",fullleafnamelist[leafnumber-1],branchnamelist[leafnumber-1]);
-// 	}
-//	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
-		signal(SIGINT, sigint_handler);
-		if (!globalEXIT) { 		// Allow ctrl-C escape 
-			TFile *file = 0;
-			//pair<Int_t,Int_t> runlet = runletlist[filenumber-1];
-			//runnumber = runlet.first;
-			runnumber=runnum;
-			//runletnumber = runlet.second;
-			runletnumber=segnum;
-			TString rootfilename;
-			if(suffix=="0"){
-			//rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runlet.first,runlet.second);
-			rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runnum,segnum);
-			}
-			else{
-			//rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.%s.root",runlet.first,runlet.second,suffix.Data());
-			rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.%s.root",runnum,segnum,suffix.Data());
-			}
-			file = TFile::Open(rootfilename);
-			if (file==0) {
-				printf("Warning: cannot open %s ... skipping.\n",rootfilename.Data());
-			} else {
-				//printf("Opened %3i: %s\n",filenumber,rootfilename.Data());
-				printf("Opened: %s\n",rootfilename.Data());
+	//signal(SIGINT, sigint_handler); 
+	if (!globalEXIT) { 		// Allow ctrl-C escape 
+		TFile *file = 0;
+		runnumber=runnum;
+		runletnumber=segnum;
+		TString rootfilename;
+		if(suffix=="0"){
+		rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runnum,segnum);
+		}
+		else{
+		rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.%s.root",runnum,segnum,suffix.Data());
+		}
+		file = TFile::Open(rootfilename);
+		if (file==0) {
+			printf("Warning: cannot open %s ... skipping.\n",rootfilename.Data());
+		} else {
+			printf("Opened: %s\n",rootfilename.Data());
+			if (debug>0) printf("run %.0f, runlet %03.0f\n",runnumber,runletnumber);
+			TTree *tree = (TTree*)gROOT->FindObject("Hel_Tree");
+			
+			//Friend in Hel_Tree_Reg to get first-pass regression products
+			tree->AddFriend("Hel_Tree_Reg");
 
-				if (debug>0) printf("run %.0f, runlet %03.0f\n",runnumber,runletnumber);
-				TTree *tree = (TTree*)gROOT->FindObject("Hel_Tree");
-				//TTree *tree = (TTree*)gROOT->FindObject("reg");
-				Double_t bcmforcuts=0, previousbcm=0;
-				Int_t bcmarrpt=0;
-				// **** Only enable the important branches
-				tree->SetBranchStatus("*",0); // disable all branches
-				tree->SetBranchStatus("ErrorFlag",1);				
-				tree->SetBranchAddress("ErrorFlag",	&ErrorFlag);
-				for (Int_t leafnumber=1; leafnumber<numinputleaves; leafnumber++) {
-//					tree->SetBranchStatus(Form("%s*",branchnamelist[leafnumber-1]),1);				
-					tree->SetBranchStatus(Form("%s",branchnamelist[leafnumber-1]),1);
-					//tree->SetBranchStatus(Form("%s",fullleafnamelist[leafnumber-1]),1);
-					inputleaves[leafnumber-1] = (TLeaf*) tree->GetLeaf(modfullleafnamelist[leafnumber-1]);
-                                        //inputleaves[leafnumber-1] = (TLeaf*) tree->GetLeaf(fullleafnamelist[leafnumber-1]);
-// 					tree->SetBranchAddress(branchnamelist[leafnumber-1], 
-// 										   &runinputleafvalue[leafnumber-1]);
-					if (strcmp(branchnamelist[leafnumber-1],"yield_qwk_bcm1")==0) {
-//						bcmarrpt = leafnumber-1;
-// 						printf("Found a bcm to use for the cuts: %s at array point %i\n",
-// 							   branchnamelist[leafnumber-1],bcmarrpt);
-						printf("Found a bcm to use for the cuts: %s at array point %i\n",
-							   branchnamelist[leafnumber-1],bcmarrpt);
-					} else {
-						if (debug>3) printf("not the bcm\n") ;
-					}
-// 					if (debug>1) printf("Associated leaf %i  %s with %p\n",leafnumber-1,
-// 										branchnamelist[leafnumber-1], 
-// 										&runinputleafvalue[leafnumber-1]);
-					if (debug>1) printf("Associated leaf %i  %s with %p\n",leafnumber-1,
-										modfullleafnamelist[leafnumber-1], 
-										inputleaves[leafnumber-1]);
+			Double_t bcmforcuts=0, previousbcm=0;
+			Int_t bcmarrpt=0;
+			// **** Only enable the important branches
+			tree->SetBranchStatus("*",0); // disable all branches
+			tree->SetBranchStatus("ErrorFlag",1);				
+			tree->SetBranchAddress("ErrorFlag",	&ErrorFlag);
+			for (Int_t leafnumber=1; leafnumber<numinputleaves; leafnumber++) {
+				tree->SetBranchStatus(Form("%s",branchnamelist[leafnumber-1]),1);
+				inputleaves[leafnumber-1] = (TLeaf*) tree->GetLeaf(modfullleafnamelist[leafnumber-1]);
+				if (strcmp(branchnamelist[leafnumber-1],"yield_qwk_bcm1")==0) {
+					printf("Found a bcm to use for the cuts: %s at array point %i\n",
+						   branchnamelist[leafnumber-1],bcmarrpt);
+				} else {
+					if (debug>3) printf("not the bcm\n") ;
 				}
+				if (debug>1) printf("Associated leaf %i  %s with %p\n",leafnumber-1,
+									modfullleafnamelist[leafnumber-1], 
+									inputleaves[leafnumber-1]);
+			}
 
-				Bool_t cutevent=0;
-				Int_t numcutbcm=0, numcutburp=0, numcuterr=0;
-				//Step through the tree
-				Int_t nentries = tree->GetEntries();
-				printf("There are %i entries in the tree.\n",nentries);
-				for (Int_t jentry=0; jentry<nentries; jentry++) {
-					tree->GetEntry(jentry);
-					// calculate cuts
-// 					bcmforcuts = runinputleafvalue[bcmarrpt];
-// 					if (bcmforcuts<40) {
-// 						cutevent=1;
-// 						if (debug>1) printf("bcm %.1f  ",bcmforcuts);
-// 						numcutbcm++;
-// 					}
-// 					if (fabs(previousbcm-bcmforcuts)>1.0) {
-// 						cutevent=1;
-// 						if (debug>1) printf("dbcm %.1f %.1f  ",previousbcm,bcmforcuts);
-// 						numcutburp++;
-// 					}
-// 					if (int(ErrorFlag)!=0) {
-// 						cutevent=1;
-// 						if (debug>1) printf("e%.1f ",ErrorFlag);
-//  						numcuterr++;
-// 					}
-					if (!cutevent) { // apply cuts
-						slugeventnumber++;
-						for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
-//							slugleafvalue[leafnumber-1]=runinputleafvalue[leafnumber-1];
-							if (inputleaves[leafnumber-1]) {
-								slugleafvalue[leafnumber-1]=inputleaves[leafnumber-1]->GetValue();
-                                                                //if (slugeventnumber==1000) cout<<fullleafnamelist[leafnumber-1]<<"   "<<inputleaves[leafnumber-1]->GetValue()*1e6<<endl;
-							} else {
-								slugleafvalue[leafnumber-1] = -1e6;
-							}
-							if (debug > 1 && jentry<10) 
-								printf("%i %10f  \t",leafnumber-1,
-									   slugleafvalue[leafnumber-1]);//,runinputleafvalue[leafnumber-1]);
+			Bool_t cutevent=0;
+			Int_t numcutbcm=0, numcutburp=0, numcuterr=0;
+			//Step through the tree
+			Int_t nentries = tree->GetEntries();
+			printf("There are %i entries in the tree.\n",nentries);
+			for (Int_t jentry=0; jentry<nentries; jentry++) {
+				tree->GetEntry(jentry);
+				if (!cutevent) { // apply cuts
+					slugeventnumber++;
+					for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
+//						slugleafvalue[leafnumber-1]=runinputleafvalue[leafnumber-1];
+						if (inputleaves[leafnumber-1]) {
+							slugleafvalue[leafnumber-1]=inputleaves[leafnumber-1]->GetValue();
+						} else {
+							slugleafvalue[leafnumber-1] = -1e6;
 						}
-						if (debug > 1 && jentry<10) printf("\n");
-						slug->Fill();
+						if (debug > 1 && jentry<10) 
+							printf("%i %10f  \t",leafnumber-1,
+								   slugleafvalue[leafnumber-1]);//,runinputleafvalue[leafnumber-1]);
 					}
-					previousbcm = bcmforcuts;
-					cutevent = 0;
-// 					printf("cut %i below current events and/or %i burp events\n",numcutbcm,numcutburp);
-// 					printf("cut %i from ErrorFlag\n",numcuterr);
-					numcutbcm=numcutburp=numcuterr=0;
+					if (debug > 1 && jentry<10) printf("\n");
+					slug->Fill();
 				}
+				previousbcm = bcmforcuts;
+				cutevent = 0;
+				numcutbcm=numcutburp=numcuterr=0;
 			}
 		}
+	}
 //	}--closing file loop
 	slugrootfile->Write(0,TObject::kOverwrite);
 	timer.Print();
