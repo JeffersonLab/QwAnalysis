@@ -180,7 +180,7 @@ Int_t expAsym(Int_t runnum)
     ////fourth digit of return value of getEBeamLasCuts
   }
   
-  if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
+  if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",(Int_t)cutEB.size(),(Int_t)cutLas.size());
 
   Int_t nEntries = mpsChain->GetEntries();
   printf("This chain has %i entries.\n", nEntries);

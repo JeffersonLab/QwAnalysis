@@ -533,7 +533,7 @@ Int_t fileReadDraw(Int_t runnum)
     lasCycLasPow->GetYaxis()->SetLabelSize(0.03);
 
     cLasCycPow->Update();
-    cLasCycPow->SaveAs(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycLasPow.png",pPath,webDirectory,filePrefix.Data()));
+    cLasCycPow->SaveAs(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycLasPow.png",pPath,webDirectory,runnum,runnum));
   }
 
   if(lasWisePlotSc) {

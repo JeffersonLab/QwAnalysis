@@ -43,7 +43,7 @@ Bool_t maskedStrips(Int_t plane,Int_t strip)
 
 void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some lines were commented for some quick work
 {
-  Double_t param[4];
+  //Double_t param[4];
   Double_t xPrime[nPoints],rho[nPoints];
   ofstream QEDasym,paramOutFile;//,energyDisp;
   Float_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kk,x1,kDummy;//k,gamma,a

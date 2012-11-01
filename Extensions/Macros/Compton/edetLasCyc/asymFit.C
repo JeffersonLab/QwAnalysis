@@ -259,7 +259,7 @@ void asymFit(Int_t runnum)
     pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
     //pt[p]->AddText(Form("Compton Edge          : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
     pt[p]->AddText(Form("Compton Edge          : %2.2f #pm %2.2f",offset[p],offsetEr[p]));
-    pt[p]->AddText(Form("Polarization (%)      : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
+    pt[p]->AddText(Form("Polarization [%]      : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
     pt[p]->Draw();
     myline->Draw();
     //gPad->Update();
