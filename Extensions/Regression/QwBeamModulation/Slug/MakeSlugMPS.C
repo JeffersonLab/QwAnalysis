@@ -19,7 +19,6 @@
 Bool_t globalEXIT;
 
 const TString qwstem = "QwPass4b";
-const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
 
 Bool_t FileSearch(TString, TChain *, 
 				  Bool_t fSegInclude = false, 
@@ -38,7 +37,7 @@ void sigint_handler(int);
 
 Int_t MakeSlugMPS(
 	Int_t run_number = -1,
-	TString runlets = "",
+	TString runlets = "-1",
 	TString leaflistfilename = "",
 	TString slugrootfilename = "")
 {
@@ -51,19 +50,29 @@ Int_t MakeSlugMPS(
 		printf("Usage:\n\t.x MakeSlug(run_number, leaflistfilename, slugrootfilename)\n\n");
 		exit(1);
 	}
-	if(runlets){
-		std::string option(runlets);
+	if(runlets.CompareTo("", TString::kExact) != 0){
+		if(runlets.CompareTo("-1", TString::kExact) == 0){
+			fSegInclude = false;
+			std::cout << "Processing all runlets.\n" << std::endl;
+		} 
+		else{
+			std::string option(runlets);
 
-		Int_t index = option.find_first_of(":");
-		Int_t tmp1 = index + 1;                // Using tmp# variables here is absolutely ridiculous, 
-		Int_t tmp2 = option.size() - index;    // but CInt doesn't seem to want it any other way...
- 		fLowerSegment = atoi( option.substr(0, index).c_str() );
- 		fUpperSegment = atoi( option.substr(tmp1, tmp2).c_str() );
-		fSegInclude = true;
+			Int_t index = option.find_first_of(":");
+			Int_t tmp1 = index + 1;                // Using tmp# variables here is absolutely ridiculous, 
+			Int_t tmp2 = option.size() - index;    // but CInt doesn't seem to want it any other way...
+			fLowerSegment = atoi( option.substr(0, index).c_str() );
+			fUpperSegment = atoi( option.substr(tmp1, tmp2).c_str() );
+			fSegInclude = true;
 
-		std::cout << "Runlet range specified to be:\t" 
-				  << fLowerSegment << "-"
-				  << fUpperSegment << std::endl;
+			std::cout << "Runlet range specified to be:\t" 
+					  << fLowerSegment << "-"
+					  << fUpperSegment << std::endl;
+		}
+	}
+	else{
+		std::cerr << "Runlet argument is invalid.  You should probably fix that...." << std::endl;
+		exit(1);
 	}
 
 	const Int_t debug = 1;
@@ -127,7 +136,6 @@ Int_t MakeSlugMPS(
  			tmpstr->ReplaceAll(".","/");
 			sprintf(modfullleafnamelist[i],"%s",tmpstr->Data());
 			branches[i] = slug->Branch(newleafnamelist[i], &slugleafvalue[i]);
-			std::cout << newleafnamelist[i] << " <==> " << i << std::endl;
 		}
 		else printf("Warning: maxleaves of %i exceeded\n",maxleaves);
 	}
@@ -155,7 +163,9 @@ Int_t MakeSlugMPS(
 			TString rootfilename = Form("%s_%d*.trees.root", qwstem.Data(), run_number);
 			LoadRootFile(rootfilename, tree);
 		}
-		
+
+		return -1;
+
 		Double_t bcmforcuts = 0; 
 		Double_t previousbcm = 0;
 		

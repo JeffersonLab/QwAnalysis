@@ -34,7 +34,6 @@ Int_t MakeSlug(
 	const Int_t debug = 1;
 
 	const TString qwstem = "QwPass5";
-// 	const TString qwrootfiles = "/scratch/jhoskins/scratch/rootfiles";
 	const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
 
 	//Read in file names

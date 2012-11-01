@@ -5,17 +5,27 @@
 run=$1
 runlet=$2
 
-#DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/mps_slug"
-DST=`pwd`
-LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"
-#DST_Dbug="/u/home/jhoskins/QwBeamModulation/slug"
+if [ -z $run ]; then
+    echo "Must specify run number."
+    exit
+fi
 
-#argument="MakeSlugMPS.C+($slug_num, \"$runlet\", \"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/run${slug_num}.root\")"
-argument="MakeSlugMPS.C+(${run},\"${runlet}\",\"leaflist_run1pass5_unreg_mps.txt\",\"mps_only_${run}.root\")"
+if [ -z $runlet ]; then
+    echo "Must specify runlet range. Example: 0:4"
+    exit
+fi
+
+export QW_ROOTFILES=/work/hallc/qweak/QwAnalysis/run1/rootfiles
+
+DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/mps_slug"
+LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
+
+argument="MakeSlugMPS.C++(${run},\"${runlet}\",\"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/mps_only_${run}.root\")"
 
 echo "root -n -q -b -l ${argument}"
 
-root -n -q -l -b ${argument} #>${DST_Dbug}/slug${slug_num}.out
+root -n -q -l -b ${argument} >${DST_Dbug}/run_makeslug_mps_${run}_${runlet}.out
 
 
 

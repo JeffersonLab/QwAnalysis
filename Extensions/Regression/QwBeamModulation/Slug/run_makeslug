@@ -5,7 +5,7 @@
 
 slug_num=$1
 
-DST="/u/home/jhoskins/QwAnalysis/Extensions/Regression/QwBeamModulation/Slug"
+DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/mps_slug"
 LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"
 #DST_Dbug="/u/home/jhoskins/QwBeamModulation/slug"
 
