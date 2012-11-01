@@ -1,0 +1,21 @@
+#!/bin/bash
+# Author: Joshua Hoskins (jhoskins@jlab.org) 
+# 08-07-2012
+
+run=$1
+runlet=$2
+
+#DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/mps_slug"
+DST=`pwd`
+LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"
+#DST_Dbug="/u/home/jhoskins/QwBeamModulation/slug"
+
+#argument="MakeSlugMPS.C+($slug_num, \"$runlet\", \"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/run${slug_num}.root\")"
+argument="MakeSlugMPS.C+(${run},\"${runlet}\",\"leaflist_run1pass5_unreg_mps.txt\",\"mps_only_${run}.root\")"
+
+echo "root -n -q -b -l ${argument}"
+
+root -n -q -l -b ${argument} #>${DST_Dbug}/slug${slug_num}.out
+
+
+
