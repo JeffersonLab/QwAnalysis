@@ -26,11 +26,15 @@ do
     fi
 done
 
-cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_17019
+cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_no_uslumi5pos
+cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_18006-18030
+cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_18587-18675
 
-for file in `ls $dest/run2pass5_17019`
+for file in `ls $dest/run2pass5`
 do
-    patch $dest/run2pass5_17019/$file < 17019.patch
+    patch $dest/run2pass5_no_uslumi5pos/$file < no_uslumi5pos.patch
+    patch $dest/run2pass5_18006-18030/$file < 18006-18030.patch
+    patch $dest/run2pass5_18587-18675/$file < 18587-18675.patch
 done
 
 cp -r $dest/run2pass5_no_3h09b $dest/run2pass5_no_3h09b-md9neg

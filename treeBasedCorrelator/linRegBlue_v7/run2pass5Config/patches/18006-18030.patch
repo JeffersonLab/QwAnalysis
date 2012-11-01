@@ -1,0 +1,14 @@
+--- blueReg_5+1.conf	2012-11-01 13:46:16.961845881 -0400
++++ blueReg_5+1.conf.new	2012-11-01 14:01:59.940865791 -0400
+@@ -89,11 +89,9 @@
+ dv asym_qwk_dslumi7
+ dv asym_qwk_dslumi8
+ dv asym_qwk_uslumi1neg
+-dv asym_qwk_uslumi1pos
+ dv asym_qwk_uslumi3neg
+ dv asym_qwk_uslumi3pos
+ dv asym_qwk_uslumi5neg
+-dv asym_qwk_uslumi5pos
+ dv asym_qwk_uslumi7neg
+ dv asym_qwk_uslumi7pos
+ # aux adde on Geb 19, 2011

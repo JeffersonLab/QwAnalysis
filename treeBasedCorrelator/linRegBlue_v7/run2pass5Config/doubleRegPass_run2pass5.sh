@@ -40,8 +40,24 @@ if [ $run -ge 14487 ] ; then
     fi
 fi
 # post mortem uslumi5pos
-if [ $run -ge 17019 ] ; then
-    confDir="${scriptPath}/run2pass5_17019"
+if [ $run -ge 17019 -a $run -le 18005 ] ; then
+    confDir="${scriptPath}/run2pass5_no_uslumi5pos"
+fi
+
+if [ $run -ge 18006 -a $run -le 18030 ] ; then
+    confDir="${scriptPath}/run2pass5_18006-18030"
+fi
+
+if [ $run -ge 18031 -a $run -le 18586 ] ; then
+    confDir="${scriptPath}/run2pass5_no_uslumi5pos"
+fi
+
+if [ $run -ge 18587 -a $run -le 18675 ] ; then
+    confDir="${scriptPath}/run2pass5_18587-18675"
+fi
+
+if [ $run -ge 18676 ] ; then
+    confDir="${scriptPath}/run2pass5_no_uslumi5pos"
 fi
 
 echo $confDir
