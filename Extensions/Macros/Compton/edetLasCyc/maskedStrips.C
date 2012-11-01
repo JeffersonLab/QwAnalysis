@@ -56,10 +56,10 @@ void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some 
   R_bend = (gamma_my*hbarc)/(2.0*xmuB*B_dipole);
   k =2*pi*hbarc/(lambda); // incident photon energy (GeV)
 //   a =1/(1+4*k*gamma_my/me); // eqn.15 
-  kprimemax=4*a*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
-  asymmax=(1-a)*(1+a)/(1+a*a);
+  kprimemax=4*a_const*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
+  asymmax=(1-a_const)*(1+a_const)/(1+a_const*a_const);
 
-  rho0=1/(1+a);
+  rho0=1/(1+a_const);
   k0prime=rho0*kprimemax;
   //  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
 

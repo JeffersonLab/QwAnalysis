@@ -344,7 +344,7 @@ Int_t fileReadDraw(Int_t runnum)
 	grCpp_v2[p]->Draw("P");
       }
 
-      grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,Cedge[0]), "%lg %lg");
+      grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,(Int_t)Cedge[p]), "%lg %lg");
       grTheoryAsym[p]->SetLineColor(kBlue);
       grTheoryAsym[p]->SetLineWidth(3);
       grTheoryAsym[p]->SetFillColor(0);
@@ -599,8 +599,9 @@ Int_t fileReadDraw(Int_t runnum)
     ifstream infilelasOffBkgd,scalerRate;
     const Int_t numb=6;
     Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
-    Double_t stripNumber[nStrips][numb],stripBkgdYield[nStrips][numb],stripBkgdYieldEr[nStrips][numb],zero[numb];
+    Double_t stripNumber[nStrips][numb],stripBkgdYield[nStrips][numb],stripBkgdYieldEr[nStrips][numb],zero1[numb];
     Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
+    TString filePrefix2;
     Double_t p0,p1,NDF,chiSq,p1Er,p0Er;
     /*run  : beam***********
      *23142 :  30uA, 
@@ -615,10 +616,10 @@ Int_t fileReadDraw(Int_t runnum)
      ***************/
 
     for(Int_t n=0; n<numb; n++) {        
-      TString filePrefix= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
+      filePrefix2= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
-	infilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-	if(debug1)cout<<"opening file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+	infilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1));
+	if(debug1)cout<<"opening file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
 	if(infilelasOffBkgd.is_open()) {
 	  Int_t strip=0;
 	  while(infilelasOffBkgd.good()) {
@@ -626,13 +627,13 @@ Int_t fileReadDraw(Int_t runnum)
 	    strip = strip +1;
 	  }
 	  infilelasOffBkgd.close();
-	  if(debug1)cout<<"closing file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;     
+	  if(debug1)cout<<"closing file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;     
 	} else {
-	  if(debug)cout<<"did not find "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+	  if(debug)cout<<"did not find "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
 	  return -1;
 	}
       }
-      zero[n] = 0.0;
+      zero1[n] = 0.0;
     }
     
     TF1 *bkgdFit = new TF1("bkgdFit","[0] + [1]/x",25,105);//specifying current range to fit
@@ -652,7 +653,7 @@ Int_t fileReadDraw(Int_t runnum)
     
     for(Int_t s=startStrip;s<endStrip;s++) {
       //!the masked strips are not taken care of properly here
-      ScalerVsBeam[s] = new TGraphErrors(numb,beamI,stripBkgdYield[s],zero,stripBkgdYieldEr[s]);
+      ScalerVsBeam[s] = new TGraphErrors(numb,beamI,stripBkgdYield[s],zero1,stripBkgdYieldEr[s]);
       
       if(s>= 0 && s<16) cScalVsBeam1->cd(s+1);
       //       if(s>=16 && s<32) cScalVsBeam2->cd(s-16+1);
@@ -686,10 +687,10 @@ Int_t fileReadDraw(Int_t runnum)
     //     cScalVsBeam2->Update();
     //     cScalVsBeam3->Update();
     //     cScalVsBeam4->Update();
-    cScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix.Data()));
-    //     cScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix.Data()));
-    //     cScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix.Data()));
-    //     cScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix.Data()));
+    cScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix2.Data()));
+    //     cScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix2.Data()));
+    //     cScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix2.Data()));
+    //     cScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix2.Data()));
   }
   
   if(bkgdSubVsBeam) {
@@ -701,12 +702,13 @@ Int_t fileReadDraw(Int_t runnum)
     TMultiGraph *ScalVsBeam[endPlane][endStrip];
     TLegend *legScVsBeam[endPlane][endStrip];
     Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
+    TString filePrefix3;
     //Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
     Double_t beamI[numb]={34,54,64,103,152,180};//!assumed 1-to-1 matching between runlist and beamI array
     Double_t qNormScalerB1H0L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H0L1[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L1[nPlanes][nStrips][maxLasCycles];
     Double_t qNormScalerB1L1[nPlanes][nStrips][maxLasCycles],qNormScalerB1L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1[nPlanes][nStrips][maxLasCycles];
     Double_t qNormScB1[nPlanes][nStrips][numb],qNormScL1[nPlanes][nStrips][numb],qNormScL0[nPlanes][nStrips][numb];
-    Double_t zero[numb];
+    Double_t zero2[numb];
     Double_t p0,p1,NDF,chiSq,p1Er,p0Er;
     /*run  : beam***********
      *23142 :  30uA, 
@@ -721,7 +723,7 @@ Int_t fileReadDraw(Int_t runnum)
      ***************/
     Int_t chosenCyc=0;///in human counting
     for(Int_t n=0; n<numb; n++) {        
-      TString filePrefix= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
+      filePrefix3= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
 	for(Int_t s=startStrip;s<endStrip;s++) {
 	  if (maskedStrips(p,s)) continue; //!!currently only for plane 1	
@@ -766,16 +768,16 @@ Int_t fileReadDraw(Int_t runnum)
 	}
 	cout<<"selected laser cycle "<<chosenCyc<<" for run: "<<runlist[n]<<endl;
 	if(debug2)printf("qNormScB1\tqNormScL1\tqNormScL0\tnumber for chosenCyc#\n");
-	for(Int_t p =startPlane; p <endPlane; p++) {//!!this is currently valid for only plane 1
+	for(Int_t pl =startPlane; pl <endPlane; pl++) {//!!this is currently valid for only plane 1
 	  for(Int_t s=startStrip;s<endStrip;s++) {
-	    if (maskedStrips(p,s)) continue; //!!currently only for plane 1	
-	    qNormScB1[p][s][n] = qNormScalerB1[p][s][chosenCyc-1];//!note that only one laser cycle is used
-	    qNormScL1[p][s][n] = qNormScalerB1L1[p][s][chosenCyc-1];//!note that only one laser cycle is used
-	    qNormScL0[p][s][n] = qNormScalerB1L0[p][s][chosenCyc-1];//!note that only one laser cycle is used
-	    if(debug2)printf("%f\t%f\t%f\t%d\t%d\n",qNormScB1[p][s][n],qNormScL1[p][s][n],qNormScL0[p][s][n],n,chosenCyc);
+	    if (maskedStrips(pl,s)) continue; //!!currently only for plane 1	
+	    qNormScB1[pl][s][n] = qNormScalerB1[pl][s][chosenCyc-1];//!note that only one laser cycle is used
+	    qNormScL1[pl][s][n] = qNormScalerB1L1[pl][s][chosenCyc-1];//!note that only one laser cycle is used
+	    qNormScL0[pl][s][n] = qNormScalerB1L0[pl][s][chosenCyc-1];//!note that only one laser cycle is used
+	    if(debug2)printf("%f\t%f\t%f\t%d\t%d\n",qNormScB1[pl][s][n],qNormScL1[pl][s][n],qNormScL0[pl][s][n],n,chosenCyc);
 	  }
 	}
-	zero[n] = 0.0;
+	zero2[n] = 0.0;
       }
     }
     
@@ -799,9 +801,9 @@ Int_t fileReadDraw(Int_t runnum)
     for(Int_t p =startPlane; p <endPlane; p++) {//!!this is currently valid for only plane 1
       for(Int_t s=startStrip;s<endStrip;s++) {
 	//!the masked strips are not taken care of properly here
-	bkgdSubScalVsBeam[p][s] = new TGraphErrors(numb,beamI,qNormScB1[p][s],zero,zero);
-	ScalVsBeamL1[p][s] = new TGraphErrors(numb,beamI,qNormScL1[p][s],zero,zero);
-	ScalVsBeamL0[p][s] = new TGraphErrors(numb,beamI,qNormScL0[p][s],zero,zero);
+	bkgdSubScalVsBeam[p][s] = new TGraphErrors(numb,beamI,qNormScB1[p][s],zero2,zero2);
+	ScalVsBeamL1[p][s] = new TGraphErrors(numb,beamI,qNormScL1[p][s],zero2,zero2);
+	ScalVsBeamL0[p][s] = new TGraphErrors(numb,beamI,qNormScL0[p][s],zero2,zero2);
       
 	if(s>= 0 && s<16) cBkgdSubScalVsBeam1->cd(s+1);
 	if(s>=16 && s<32) cBkgdSubScalVsBeam2->cd(s-16+1);
@@ -849,10 +851,10 @@ Int_t fileReadDraw(Int_t runnum)
 	bkgdSubCountsFit<<s+1<<"\t"<<p0<<"\t"<<p0Er<<p1<<"\t"<<p1Er<<"\t"<<chiSq<<"\t"<<NDF<<endl;     
       }
       bkgdSubCountsFit.close();
-      cBkgdSubScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix.Data()));
-      cBkgdSubScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix.Data()));
-      cBkgdSubScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix.Data()));
-      cBkgdSubScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix.Data()));
+      cBkgdSubScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix3.Data()));
+      cBkgdSubScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix3.Data()));
+      cBkgdSubScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix3.Data()));
+      cBkgdSubScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix3.Data()));
     }
   }
   return runnum;

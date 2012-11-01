@@ -5,7 +5,6 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
 #include "asymFit.C"
-#include "theoryAsym.C"
 //#include "expAsym.C"
 #include "fileReadDraw.C"
 

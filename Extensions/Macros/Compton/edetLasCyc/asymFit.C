@@ -35,10 +35,10 @@
  {///parCx[1]: to be found Cedge
    Double_t xStrip = xCedge - (parCx[1] - (*thisStrip))*stripWidth*parCx[0];
    Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
-   Double_t rhoPlus = 1-rhoStrip*(1+a);
-   Double_t rhoMinus = 1-rhoStrip*(1 - a);//just a term in eqn 24
-   Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a)); // 2nd term of eqn 22
-   return (parCx[2]*((rhoStrip*(1 - a)*rhoStrip*(1 - a)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a
+   Double_t rhoPlus = 1-rhoStrip*(1+a_const);
+   Double_t rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
+   Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
+   return (parCx[2]*((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a_const
  }
 
 /////2 parameter method
@@ -48,10 +48,10 @@
 //   //Double_t xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
 //   //Double_t xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
 //   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
-//   Double_t rhoPlus = 1-rhoStrip*(1 + a);
-//   Double_t rhoMinus = 1-rhoStrip*(1 - a);//just a term in eqn 24
+//   Double_t rhoPlus = 1-rhoStrip*(1 + a_const);
+//   Double_t rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
 //   Double_t dsdrho1 = rhoPlus/rhoMinus;// 2nd term of eqn 22
-//   Double_t dsdrho =((rhoStrip*(1 - a)*rhoStrip*(1 - a)/rhoMinus)+1+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a
+//   Double_t dsdrho =((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a_const
 //   //Double_t calcAsym=(par[0]*(-1*IHWP)*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//eqn.24,without factor 2*pi*(re^2)/a
 //   return (par[1]*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//calcAsym;
 // }
@@ -64,10 +64,10 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   //Double_t xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
 
   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
-  Double_t rhoPlus = 1-rhoStrip*(1+a);
-  Double_t rhoMinus = 1-rhoStrip*(1 - a);//just a term in eqn 24
-  Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a)); // 2nd term of eqn 22
-  Double_t dsdrho =((rhoStrip*(1 - a)*rhoStrip*(1 - a)/rhoMinus)+1+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a
+  Double_t rhoPlus = 1-rhoStrip*(1+a_const);
+  Double_t rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
+  Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
+  Double_t dsdrho =((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a_const
   //Double_t calcAsym=(par[0]*(-1*IHWP)*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//eqn.24,without factor 2*pi*(re^2)/a
   return (par[2]*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//calcAsym;
 }
@@ -259,7 +259,7 @@ void asymFit(Int_t runnum)
     pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
     //pt[p]->AddText(Form("Compton Edge          : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
     pt[p]->AddText(Form("Compton Edge          : %2.2f #pm %2.2f",offset[p],offsetEr[p]));
-    pt[p]->AddText(Form("Polarization [%]      : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
+    pt[p]->AddText(Form("Polarization          : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
     pt[p]->Draw();
     myline->Draw();
     //gPad->Update();

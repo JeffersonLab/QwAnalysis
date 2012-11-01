@@ -525,12 +525,12 @@ void QwComptonElectronDetector::ClearEventData()
     }
   }
   
-  fStripsEvBest1 = 1000000;
-  fStripsEvBest2 = 1000000;
-  fStripsEvBest3 = 1000000;
-  edet_x2 = 1000000; 
-  edet_TotalNumberTracks = 1000000;
-  edet_angle = 1000000;
+  // fStripsEvBest1 = 1000000;
+  // fStripsEvBest2 = 1000000;
+  // fStripsEvBest3 = 1000000;
+  // edet_x2 = 1000000; 
+  // edet_TotalNumberTracks = 1000000;
+  // edet_angle = 1000000;
    
   fGoodEventCount = 0;
 }
@@ -542,8 +542,9 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
     VQwSubsystem::operator=(value);
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     for (Int_t i = 0; i < NPlanes; i++){
-      for (Int_t j = 0; j < StripsPerPlane; j++){
+      for (Int_t j = 0; j < StripsPerPlane; j++) {
         this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
+        this->fStrips[i][j] = input->fStrips[i][j];
         this->fStripsRawEv[i][j] = input->fStripsRawEv[i][j];
         this->fStripsRawScal[i][j] = input->fStripsRawScal[i][j];
         this->fStripsRaw_v2[i][j] = input->fStripsRaw_v2[i][j];
@@ -605,6 +606,10 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
         this->fStripsRaw[i][j] += input->fStripsRaw[i][j];      
+	//this->fStrips[i][j] += input->fStrips[i][j];
+        this->fStripsRawEv[i][j] += input->fStripsRawEv[i][j];
+        this->fStripsRawScal[i][j] += input->fStripsRawScal[i][j];
+        this->fStripsRaw_v2[i][j] += input->fStripsRaw_v2[i][j];
       }
     }
   }
@@ -616,9 +621,13 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     for (Int_t i = 0; i < NPlanes; i++){
-      for (Int_t j = 0; j < StripsPerPlane; j++){
+      for (Int_t j = 0; j < StripsPerPlane; j++) {
         this->fStripsRaw[i][j] -= input->fStripsRaw[i][j];
-      }
+	//this->fStrips[i][j] -= input->fStrips[i][j];
+        this->fStripsRawEv[i][j] -= input->fStripsRawEv[i][j];
+        this->fStripsRawScal[i][j] -= input->fStripsRawScal[i][j];
+        this->fStripsRaw_v2[i][j] -= input->fStripsRaw_v2[i][j];
+       }
     }
   }
   return *this;
@@ -631,12 +640,15 @@ VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
         this->fStripsRaw[i][j] *= input->fStripsRaw[i][j];
-      }
+	//this->fStrips[i][j] *= input->fStrips[i][j];
+        this->fStripsRawEv[i][j] *= input->fStripsRawEv[i][j];
+        this->fStripsRawScal[i][j] *= input->fStripsRawScal[i][j];
+        this->fStripsRaw_v2[i][j] *= input->fStripsRaw_v2[i][j];
+       }
     }
   }
   return *this;
 }
-
 
 void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
@@ -654,7 +666,6 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
   }
 }
 
-
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
   if (Compare(numer) && Compare(denom)) {
@@ -665,6 +676,10 @@ void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
       for (Int_t j = 0; j < StripsPerPlane; j++){        
 	if(indenom->fStripsRaw[i][j] > 0) {
           fStripsRaw[i][j] =(innumer->fStripsRaw[i][j]/indenom->fStripsRaw[i][j]);
+          //fStrips[i][j] =(innumer->fStrips[i][j]/indenom->fStrips[i][j]);
+          fStripsRawEv[i][j] =(innumer->fStripsRawEv[i][j]/indenom->fStripsRawEv[i][j]);
+          fStripsRawScal[i][j] =(innumer->fStripsRawScal[i][j]/indenom->fStripsRawScal[i][j]);
+          fStripsRaw_v2[i][j] =(innumer->fStripsRaw_v2[i][j]/indenom->fStripsRaw_v2[i][j]);
 	}	  
 	else {
 	  this->fStripsRaw[i][j]=0;
@@ -679,6 +694,10 @@ void QwComptonElectronDetector::Scale(Double_t factor)
   for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
       this->fStripsRaw[i][j] *= static_cast<int>(factor);
+      this->fStrips[i][j] *= static_cast<int>(factor);
+      this->fStripsRawEv[i][j] *= static_cast<int>(factor);
+      this->fStripsRawScal[i][j] *= static_cast<int>(factor);
+      this->fStripsRaw_v2[i][j] *= static_cast<int>(factor);
       // TODO !!converting Double to Int (ok now) may not be okay later!
     }
   }
@@ -696,6 +715,18 @@ Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
   } else {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     if (input->fStripsRaw.size() != fStripsRaw.size()) {
+      result = kFALSE;
+    }
+    // if (input->fStrips.size() != fStrips.size()) {
+    //   result = kFALSE;
+    // }
+    if (input->fStripsRawEv.size() != fStripsRawEv.size()) {
+      result = kFALSE;
+    }
+    if (input->fStripsRawScal.size() != fStripsRawScal.size()) {
+      result = kFALSE;
+    }
+    if (input->fStripsRaw_v2.size() != fStripsRaw_v2.size()) {
       result = kFALSE;
     }
   }
@@ -743,7 +774,7 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   for (Int_t i=0; i<NPlanes; i++){
     TString histname = Form("Compton_eDet_Accum_Raw_Plane%d",i+1);
     fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//1st histogram
-    histname = Form("Compton_eDet_Accum_Plane%d",i+1);
+    histname = Form("Compton_eDet_Accum_v2_Plane%d",i+1);
     fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Evt_Raw_Plane%d",i+1);
     fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//3rd histogram
