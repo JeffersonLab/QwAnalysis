@@ -228,7 +228,7 @@ class QwComptonElectronDetector:
     static const Int_t NModules = 2;///number of slave modules(!!change to 2?)
     static const Int_t NPlanes = 4;///number of diamond detector planes
     static const Int_t StripsPerModule = 32;///number of strips in each v1495 slave module
-    static const Int_t StripsPerPlane = 64;//96;///total number of strips in each detecor
+    static const Int_t StripsPerPlane = 64;///total number of strips in each detecor
     static const Int_t NInfoWords = 8;///in the CRL structure, we had used 8 words to store per slave
 };
 

@@ -21,7 +21,7 @@ DEBUG := -g -O0
 # Add -O0 if you find that the compiler optimizes
 # away some of the variables you are interested in.
 
-#OPTIM  := -O
+OPTIM  := -O
 # Default, safe, optimization flag understood by most compliers. Set
 # optmization flag(s) in the architecture dependent sections instead.
 

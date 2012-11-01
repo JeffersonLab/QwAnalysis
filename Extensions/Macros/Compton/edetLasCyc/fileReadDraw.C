@@ -9,8 +9,8 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=0;
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
-  Bool_t asymComponents=1;
-  Bool_t scalerPlot=1;
+  Bool_t asymComponents=0;
+  Bool_t scalerPlot=0;
   Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotBcm=0;//plot quantities against laser-cycle 
@@ -58,6 +58,7 @@ Int_t fileReadDraw(Int_t runnum)
   if(debug) cout<<"planes used: "<<pUsed[0]<<"\t"<<pUsed[1]<<"\t"<<pUsed[2]<<"\t"<<pUsed[3]<<endl;
 
   if (bkgdAsym) {
+    gStyle->SetOptFit(1);
     TCanvas *cbkgdAsym = new TCanvas("cbkgdAsym",Form("bkgdAsym for run:%d",runnum),70,70,1000,420*endPlane);
     TGraphErrors *grB1L0[nPlanes];
     TLegend *legbkgdAsym[nPlanes];
@@ -77,21 +78,28 @@ Int_t fileReadDraw(Int_t runnum)
       grB1L0[p]->SetTitle(Form("bkgdAsym for run %d",runnum));
       grB1L0[p]->Draw("AP");//for some reason!:Tmultigraph wants the axis settings to come after having drawn the graph
       grB1L0[p]->GetXaxis()->SetTitle("strip number");
+      grB1L0[p]->GetXaxis()->SetTitleOffset(1.2);
       grB1L0[p]->GetYaxis()->SetTitle("background asymmetry");
+      grB1L0[p]->GetYaxis()->SetTitleOffset(1.2);
       grB1L0[p]->SetMaximum(0.048); //this limit is the same as the residuals
       grB1L0[p]->SetMinimum(-0.048);
 
-      grB1L0[p]->GetYaxis()->SetLabelSize(0.03);
+      grB1L0[p]->GetXaxis()->SetLabelSize(0.06);
+      grB1L0[p]->GetYaxis()->SetLabelSize(0.06);
       grB1L0[p]->GetXaxis()->SetLimits(1,65); 
       grB1L0[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-      
-      legbkgdAsym[p] = new TLegend(0.1,0.8,0.3,0.9);
+      grB1L0[p]->Fit("pol0");
+//       TLine *myline = new TLine(1,0,65,0);
+//       myline->Draw();
+      legbkgdAsym[p] = new TLegend(0.1,0.75,0.35,0.9);
       legbkgdAsym[p]->AddEntry(grB1L0[p],"background asymmetry","lp");
+      legbkgdAsym[p]->AddEntry("pol0","linear fit","l");
       legbkgdAsym[p]->SetFillColor(0);
       legbkgdAsym[p]->Draw();
     }
     cbkgdAsym->Update();
     cbkgdAsym->SaveAs(Form("%s/%s/%sbkgdAsym.png",pPath,webDirectory,filePrefix.Data()));
+    gStyle->SetOptFit(0);
   }
 
   if(scalerPlot) {

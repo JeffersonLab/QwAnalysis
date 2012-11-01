@@ -89,7 +89,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       //  Break this line into tokens to process it.
       TString modtype = mapstr.GetTypedNextToken<TString>();
       UInt_t modnum   = mapstr.GetTypedNextToken<UInt_t>();
-      /* UInt_t channum = */ mapstr.GetTypedNextToken<UInt_t>(); /* unused */
+      UInt_t channum = mapstr.GetTypedNextToken<UInt_t>(); /* unused */
       TString dettype = mapstr.GetTypedNextToken<TString>();
       TString name    = mapstr.GetTypedNextToken<TString>();
       Int_t plane     = mapstr.GetTypedNextToken<Int_t>();
@@ -756,9 +756,6 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
 
 void  QwComptonElectronDetector::FillHistograms()
 {
-  edet_cut_on_x2=7;
-  edet_cut_on_ntracks=5;
-
   for (Int_t i = 0; i < NPlanes; i++) {
     Int_t ii = 5*i;
     //apology for the hardcoding; had to do so in keeping with DaveG's philosophy of least change.
