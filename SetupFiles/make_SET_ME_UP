@@ -30,7 +30,16 @@ export QWANALYSIS=`echo $local_path | sed 's/\/SetupFiles//'`
 
 ### ... 64-bit
 if [[ "`uname -m`" == "x86_64" ]]; then
-  lib=lib64
+### But it seems ubuntu is weird, and does not have a lib64 anymore
+  if [ -e /etc/lsb-release ]; then
+    if [ `awk -F= '/DISTRIB_RELEASE/ { print $2}' /etc/lsb-release` > 10 ]; then
+      lib=lib
+    else
+      lib=lib64
+    fi
+  else
+    lib=lib64
+   fi
 else
   lib=lib
 fi
@@ -106,6 +115,7 @@ search=(
     /usr/local/${lib}/mysql
     /opt/local/${lib}/mysql5/mysql
     /usr/${lib}
+    /usr/${lib}/x86_64-linux-gnu
     )
 export MYSQL_LIB_DIR=$(first_path_with_file $libname "${MYSQL_LIB_DIR}" "${search[@]}")
 report_status MYSQL_LIB_DIR ${MYSQL_LIB_DIR}
