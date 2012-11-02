@@ -170,19 +170,19 @@ if [ $? -ne 0 ] ; then
 fi
 
 #.......................................
-#echo Prepare data for DB upload
+echo Prepare data for DB upload
 
-#root -b -q ${scriptPath}/prCsvRecordTwo.C'('${run}.${seg}',"out/")'
-#
-#if [ $? -eq 0 ] ; then 
-#    echo Upload data to DB
-#    if [[ -n "$PERL5LIB" ]]; then
-#	export PERL5LIB=${scriptPath}:${PERL5LIB}
-#    else
-#	export PERL5LIB=${scriptPath}
-#    fi
-#    ${scriptPath}/upload_linreg_data.pl -u qwreplay -n qweakdb -d ${dbName} ${set_option} -prf  ${scriptPath} out/blueR${run}.${seg}_DBrecord.txt
-#fi
+root -b -q ${scriptPath}/prCsvRecordTwo.C'('${run}.${seg}',"out/")'
+
+if [ $? -eq 0 ] ; then 
+    echo Upload data to DB
+    if [[ -n "$PERL5LIB" ]]; then
+	export PERL5LIB=${scriptPath}:${PERL5LIB}
+    else
+	export PERL5LIB=${scriptPath}
+    fi
+    ${scriptPath}/upload_linreg_data.pl -u qwreplay -n qweakdb -d ${dbName} ${set_option} -prf  ${scriptPath} out/blueR${run}.${seg}_DBrecord.txt
+fi
 
 
 #.......................................
