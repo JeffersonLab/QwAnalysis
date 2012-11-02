@@ -205,7 +205,7 @@ asym:qwk_uslumi1pos, 0.125
 asym:qwk_uslumi3neg, 0.125 
 asym:qwk_uslumi3pos, 0.125 
 asym:qwk_uslumi5neg, 0.125 
-asym:qwk_uslumi5pos, 0.125 
+asym:qwk_uslumi5neg, 0.125 
 asym:qwk_uslumi7neg, 0.125 
 asym:qwk_uslumi7pos, 0.125
 
@@ -237,7 +237,7 @@ asym:qwk_uslumi3pos, 0.50
 
 [asym:@asym_uslumi5_avg]
 asym:qwk_uslumi5neg, 0.50
-asym:qwk_uslumi5pos, 0.50
+asym:qwk_uslumi5neg, 0.50
 
 [asym:@asym_uslumi7_avg]
 asym:qwk_uslumi7neg, 0.50
