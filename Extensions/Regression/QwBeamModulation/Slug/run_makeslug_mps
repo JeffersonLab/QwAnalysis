@@ -15,17 +15,22 @@ if [ -z $runlet ]; then
     exit
 fi
 
+if [ $runlet == "-1" ]; then
+    echo "Runlet set to full."
+    range="full"
+fi
+
 export QW_ROOTFILES=/work/hallc/qweak/QwAnalysis/run1/rootfiles
 
 DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/mps_slug"
 LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"
 DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
 
-argument="MakeSlugMPS.C++(${run},\"${runlet}\",\"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/mps_only_${run}.root\")"
+argument="MakeSlugMPS.C++(${run},\"${runlet}\",\"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/mps_only_${run}_${range}.root\")"
 
 echo "root -n -q -b -l ${argument}"
 
-root -n -q -l -b ${argument} >${DST_Dbug}/run_makeslug_mps_${run}_${runlet}.out
+root -n -q -l -b ${argument} >${DST_Dbug}/run_makeslug_mps_${run}_${range}.out
 
 
 
