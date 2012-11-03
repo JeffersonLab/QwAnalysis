@@ -466,6 +466,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     histo_momentum[1] = new TH1F("histo_momentum[1]",Form("Run %d, Reconstructed Momentum in Package 1, Oct %d",run,md_1),500,0,2000);
     histo_momentum[2] = new TH1F("histo_momentum[2]",Form("Run %d, Reconstructed Momentum in Package 2, Oct %d",run,md_2),500,0,2000);
 
+    TH2F* q2_vs_momentum[3];
+    q2_vs_momentum[0] = new TH2F("q2_vs_momentum[0]",Form("Run %d, Q2 vs Reconstructed Momentum, Oct %d + %d",run,md_1,md_2),500,0,2000,400,0,0.08);
+    q2_vs_momentum[1] = new TH2F("q2_vs_momentum[1]",Form("Run %d, Q2 vs Reconstructed Momentum in Package 1, Oct %d",run,md_1),500,0,2000,400,0,0.08);
+    q2_vs_momentum[2] = new TH2F("q2_vs_momentum[2]",Form("Run %d, Q2 vs Reconstructed Momentum in Package 2, Oct %d",run,md_2),500,0,2000,400,0,0.08);
+
     TH1F* histo_p0[3];
     histo_p0[0] = new TH1F("histo_p0[0]",Form("Run %d, P0, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
     histo_p0[1] = new TH1F("histo_p0[1]",Form("Run %d, P0, Package 1, Oct %d",run,md_1),400,1.0,1.2);
@@ -844,6 +849,9 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 histo_momentum[0]->Fill(momentum);
                 histo_momentum[1]->Fill(momentum);
 
+                q2_vs_momentum[0]->Fill(momentum,Q2_val);
+                q2_vs_momentum[1]->Fill(momentum,Q2_val);
+
                 histo_p0[0]->Fill(P0_val);
                 histo_p0[1]->Fill(P0_val);
                 histo_pp[0]->Fill(Pp_val);
@@ -901,6 +909,9 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
                 histo_momentum[0]->Fill(momentum);
                 histo_momentum[2]->Fill(momentum);
+
+                q2_vs_momentum[0]->Fill(momentum,Q2_val);
+                q2_vs_momentum[2]->Fill(momentum,Q2_val);
 
                 histo_p0[0]->Fill(P0_val);
                 histo_p0[2]->Fill(P0_val);
@@ -1356,20 +1367,35 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     weighted_q2_vs_x2->GetXaxis()->SetTitle("X [cm]");
 
     // canvas 9
-    TCanvas* c9=new TCanvas("c9","Reconstructed Momentum Distributions",600,800);
-    c9->Divide(1,3);
+    TCanvas* c9=new TCanvas("c9","Reconstructed Momentum Distributions",1000,800);
+    c9->Divide(2,3);
 
     c9->cd(1);
     histo_momentum[0]->Draw();
     histo_momentum[0]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
 
-    c9->cd(2);
+    c9->cd(3);
     histo_momentum[1]->Draw();
     histo_momentum[1]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
 
-    c9->cd(3);
+    c9->cd(5);
     histo_momentum[2]->Draw();
     histo_momentum[2]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
+
+    c9->cd(2);
+    q2_vs_momentum[0]->Draw();
+    q2_vs_momentum[0]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
+    q2_vs_momentum[0]->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}] [MeV]");
+
+    c9->cd(4);
+    q2_vs_momentum[1]->Draw();
+    q2_vs_momentum[1]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
+    q2_vs_momentum[1]->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}] [MeV]");
+
+    c9->cd(6);
+    q2_vs_momentum[2]->Draw();
+    q2_vs_momentum[2]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
+    q2_vs_momentum[2]->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}] [MeV]");
 
     // canvas for run conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
