@@ -224,7 +224,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   UInt_t words_read = 0;
   UInt_t bitwise_mask = 0;
   div_t div_output;
-  UInt_t accum_count = 0;
+  //UInt_t accum_count = 0;
   // Get the subbank index (or -1 when no match)
   Int_t subbank = GetSubbankIndex(roc_id, bank_id);
   if (subbank >= 0 && num_words > 0) {
@@ -239,21 +239,20 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 
 	      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
 		Int_t j = k*StripsPerModule+i;
-		accum_count = (buffer[i] & 0xff000000) >> 24;
-		//!what value is assigned to fStripsRaw[][] when the accum_counts is greater than 5?
-		if (accum_count < 5)fStripsRaw[0][j] = accum_count;
-		accum_count = (buffer[i] & 0x00ff0000) >> 16;
-		if (accum_count < 5)fStripsRaw[1][j] = accum_count;
-		accum_count = (buffer[i] & 0x0000ff00) >> 8;
-		if (accum_count < 5)fStripsRaw[2][j] = accum_count;
-		accum_count = (buffer[i] & 0x000000ff);
-		if (accum_count < 5)fStripsRaw[3][j] = accum_count;
+		// accum_count = (buffer[i] & 0xff000000) >> 24;
+		// //!what value is assigned to fStripsRaw[][] when the accum_counts is greater than 5?
+		// if (accum_count < 5)fStripsRaw[0][j] = accum_count;
+		// accum_count = (buffer[i] & 0x00ff0000) >> 16;
+		// if (accum_count < 5)fStripsRaw[1][j] = accum_count;
+		// accum_count = (buffer[i] & 0x0000ff00) >> 8;
+		// if (accum_count < 5)fStripsRaw[2][j] = accum_count;
+		// accum_count = (buffer[i] & 0x000000ff);
+		// if (accum_count < 5)fStripsRaw[3][j] = accum_count;
 		
-		/*fStripsRaw[0][j] = (buffer[i] & 0xff000000) >> 24;
-		  fStripsRaw[1][j] = (buffer[i] & 0x00ff0000) >> 16;
-		  fStripsRaw[2][j] = (buffer[i] & 0x0000ff00) >> 8;
-		  fStripsRaw[3][j] = (buffer[i] & 0x000000ff);
-		*/
+		fStripsRaw[0][j] = (buffer[i] & 0xff000000) >> 24;
+		fStripsRaw[1][j] = (buffer[i] & 0x00ff0000) >> 16;
+		fStripsRaw[2][j] = (buffer[i] & 0x0000ff00) >> 8;
+		fStripsRaw[3][j] = (buffer[i] & 0x000000ff);
 		words_read++;
 	      }
 	    }
