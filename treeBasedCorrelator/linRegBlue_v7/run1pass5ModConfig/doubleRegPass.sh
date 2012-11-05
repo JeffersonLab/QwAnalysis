@@ -3,6 +3,9 @@
 run=$1
 iseg=$2
 
+
+src_dir=`pwd`/..
+
 logPath='./out/'
 mxEve=2223344
 
@@ -35,7 +38,8 @@ mkdir out
 #.......................................
 echo -n regPass1 started ...
 date
-time ./linRegBlue  $run $seg $mxEve blueReg_bmod.conf >& $logPath/logS1
+time 
+$src_dir/linRegBlue  $run $seg $mxEve blueReg_bmod.conf >& $logPath/logS1
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass1 for run $run.$seg
@@ -59,7 +63,7 @@ fi
 
 #.......................................
 echo regPass2 started 
-time ./linRegBlue  $run $seg $mxEve  blueReg.conf $slopeFile # >& $logPath/logS2
+time $src_dir/linRegBlue  $run $seg $mxEve  blueReg_full.conf $slopeFile  >& $logPath/logS2
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass2 for run $run.$seg
