@@ -5,7 +5,7 @@
 # To run in cdaql5 or ifarm
 #./check_failed_regression 12119
 
-SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression"
+SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass5regression"
 sets=(std 5+1 set3 set4 set5 set6 set7 set8 set9 set10)
 
 run_num=$1

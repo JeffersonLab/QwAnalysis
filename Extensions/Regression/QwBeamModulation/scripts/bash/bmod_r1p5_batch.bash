@@ -26,7 +26,7 @@ export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run1/pass5regression/bmod_regression/o
 run_number=$1
 fseg=$2
 
-file_stem=" --file-stem QwPass4b "
+file_stem=" --file-stem QwPass5 "
 ramp_pedestal=" --ramp-pedestal 0 "
 config_dir="config"
 

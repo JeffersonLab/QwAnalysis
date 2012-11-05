@@ -20,7 +20,7 @@ if [ $runlet == "-1" ]; then
     range="full"
 fi
 
-export QW_ROOTFILES=/work/hallc/qweak/QwAnalysis/run1/rootfiles
+export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
 
 DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/mps_slug"
 LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"

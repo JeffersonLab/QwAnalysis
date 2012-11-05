@@ -124,19 +124,12 @@ Int_t MakeSlug(
 // 	for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
 // 		printf("%s  %s\n",fullleafnamelist[leafnumber-1],branchnamelist[leafnumber-1]);
 // 	}
-//	const TString qwstem = "QwPass1";
-//	const TString qwstem = "Qweak";
-//	const TString qwstem = "reg_Qweak";
+	
+	//const TString qwstem = "QwPass5"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
+	const TString qwstem = "Sluglet"; //for pass5 sluglets - smacewan (smacewan@jlab.org) 11-05-2012
 
-	const TString qwstem = "QwPass5"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
-
-
-//	const TString qwrootfiles = "/home/leacock/linRegBlue/inel_rootfiles";
-//  const TString qwrootfiles = "/home/leacock/scratch/rootfiles";
-//  const TString qwrootfiles = "/home/leacock/QwAnalysis/Extensions/Regression/HallA/postpan/ROOTfiles";
-//	const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
-
-const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
+	//const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
+	const TString qwrootfiles = "/work/hallc/qweak/QwAnalysis/run1/pass5slugs";
 
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
@@ -146,7 +139,8 @@ const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
 			pair<Int_t,Int_t> runlet = runletlist[filenumber-1];
 			runnumber = runlet.first;
 			runletnumber = runlet.second;
-			TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.trees.root",runlet.first,runlet.second);
+			//TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.trees.root",runlet.first,runlet.second);
+			TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i_%03i.root",runlet.first,runlet.second);
 			file = TFile::Open(rootfilename);
 			if (file==0) {
 				printf("Warning: cannot open %s ... skipping.\n",rootfilename.Data());
@@ -154,7 +148,8 @@ const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
 				printf("Opened %3i: %s\n",filenumber,rootfilename.Data());
 
 				if (debug>0) printf("run %.0f, runlet %03.0f\n",runnumber,runletnumber);
-				TTree *tree = (TTree*)gROOT->FindObject("Hel_Tree");
+				TTree *tree = (TTree*)gROOT->FindObject("slug");
+				//TTree *tree = (TTree*)gROOT->FindObject("Hel_Tree");
 				//TTree *tree = (TTree*)gROOT->FindObject("reg");
 				Double_t bcmforcuts=0, previousbcm=0;
 				Int_t bcmarrpt=0;
