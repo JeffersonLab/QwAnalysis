@@ -1,0 +1,25 @@
+<Request>
+  <Email email="jhoskins@jlab.org" request="false" job="true"/>
+  <Project name="qweak"/>
+  <Track name="one_pass"/>
+  <Name name="run_makeslug_0"/>
+  <OS name="linux64"/>
+  <TimeLimit unit="minutes" time="720"/>
+  <DiskSpace space="10300" unit="MB"/>
+  <Memory space="2048" unit="MB"/>
+  <Command><![CDATA[
+date
+whoami
+hostname
+cd /u/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/Extensions/Regression/QwBeamModulation/Slug
+/u/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/Extensions/Regression/QwBeamModulation/Slug/run_makeslug 0
+jobstat | grep jhoskins
+  ]]></Command>
+
+  <Job>
+    <Stdout dest="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files/bmod_r1p5_makeslug_0.out"/>
+    <Stderr dest="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files/bmod_r1p5_makeslug_0.err"/>
+  </Job>
+
+</Request>
+

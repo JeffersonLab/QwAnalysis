@@ -6,7 +6,7 @@
 
 This macro calculates the residual transverse polarization in the beam using AVG(IN-OUT) from consecative
 slugs and creates a .txt file with PV and PH for a given Wien. 
-
+Consecative IN, OUT slugs are read from a input text file store in the parent directory names wien*.txt (* = number).
 To run this do:
 ./residual_transverse_distributions <wien> <database (optiona)>
  
@@ -15,8 +15,8 @@ To run this macro on the wien0.txt slugs do
 ./residual_transverse_distributions 0 
 
 The default database is qw_run2_pass1. 
-
- 
+The extracted residual polarization values are stored in a text file of the form:e.g.
+ wien1_elastic_8901_longitudinal_HYDROGEN-CELL_residual_distributions_on_5+1_from_run2_pass1.txt
 
 */
 
@@ -55,7 +55,6 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetPadRightMargin(0.22);
   gStyle->SetPadLeftMargin(0.08);
 
-  
   // histo parameters
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(1.0);
@@ -78,6 +77,7 @@ int main(Int_t argc,Char_t* argv[])
 
   //Delete all the objects stored in the current directory memmory
   gDirectory->Delete("*");
+  gROOT->SetBatch(true);
 
   std::cout<<"###############################################"<<std::endl;
   std::cout<<" \nResidual transverse distributions         \n"<<std::endl;
@@ -91,6 +91,7 @@ int main(Int_t argc,Char_t* argv[])
   else if (argc>1)
     wien_number = argv[1];
   else if (argc==1){
+    std::cout<<"Proper usage is /residual_transverse_distributions <wien number> <data base(optional)>"<<std::endl;
     std::cout<<"Please enter the wien number to use the appropriate .txt input file with slug numbers"<<std::endl;
     exit(1);
   }
@@ -153,6 +154,7 @@ int main(Int_t argc,Char_t* argv[])
     exit(1);
   }
 
+
   // select reaction
   std::cout<<"Enter reaction type: (default is elastic)"<<std::endl;
   std::cout<<"1. elastic"<<std::endl;
@@ -179,7 +181,6 @@ int main(Int_t argc,Char_t* argv[])
     std::cout<<"Unknown interaction type!"<<std::endl;
     exit(1);
   }
-
 
   // for N->delta. select QTOR current
   if(ropt==2){
@@ -217,7 +218,7 @@ int main(Int_t argc,Char_t* argv[])
 	  ,wien_number.Data(),interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_set.Data(),database_stem.Data()); 
   MyfileRes.open(textfile);
   MyfileRes<<"Fit results from uncorrected data: [0]cos(phi)-[1]sin(phi)+[2]"<<std::endl;
-  MyfileRes<<" in \t out \t Pv\t  error Pv\t Ph\t error Ph\t C\t error C \t min. chi square"<<std::endl;
+  MyfileRes<<" in \t out \t patterns\t Pv\t  error Pv\t \t min. chi square Ph\t error Ph \t min. chi square C\t error C "<<std::endl;
 
   // Open the txt file to store IN, OUT, AVG(IN-OUT) values
   sprintf(textfile,"wien%s_%s_%s_%s_%s_asymmetries_%s_from_%s.txt"
@@ -240,7 +241,6 @@ int main(Int_t argc,Char_t* argv[])
   db->Close();
   delete db;
 
-  theApp.Run();
   return(1);
 }
 
@@ -294,6 +294,7 @@ void get_residual_polarization(Double_t in_slug, Double_t out_slug){
   Double_t in_out[8]={0};
   Double_t in_out_err[8]={0};
   Double_t fit[5]={0};
+  Double_t tot_patterns=0;
 
   for(Int_t i =0;i<8;i++){
     x[i] = i+1;   
@@ -315,16 +316,32 @@ void get_residual_polarization(Double_t in_slug, Double_t out_slug){
     //Take the weighted difference in the IHWP in and out half wave plate values.
     //Here, from IN+OUT ~ 0 we know that IN and OUT are a measurement of the same thing
     //so we can take the weighted error difference when we take IN-OUT.
-    
-    Myfile<<"! IN-OUT "<<std::endl;
-    for(Int_t i =0;i<8;i++){
-      in_out[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
-      in_out_err[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
-      Myfile<<"Value IN-OUT = "<<setw(10)<<in_out[i]<<" +-  "<<setw(10)<<in_out_err[i]<<std::endl;
+    TString text;
+
+    // even Wiens are Right flipped. So to get physics we should take OUT-IN 
+    if(atoi(wien_number)%2==0){
+      Myfile<<"! Even/Right flipped wien "<<wien_number<<" : OUT-IN "<<std::endl;
+      text = Form(" AVG(OUT-IN) of in slug %f and out slug %f", in_slug, out_slug);
+      for(Int_t i =0;i<8;i++){
+	in_out[i]=((valuesout[i]/pow(errorsout[i],2)) - (valuesin[i]/pow(errorsin[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
+	in_out_err[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
+	Myfile<<"Value OUT-IN = "<<setw(10)<<in_out[i]<<" +-  "<<setw(10)<<in_out_err[i]<<std::endl;
+      }
     }
+    else{
+      text = Form(" AVG(IN-OUT) of in slug %f and out slug %f", in_slug, out_slug);
+      Myfile<<"! Odd/Left flipped wien "<<wien_number<<" : IN-OUT "<<std::endl;
+      text = Form(" AVG(IN-OUT) of in slug %f and out slug %f", in_slug, out_slug);
+      for(Int_t i =0;i<8;i++){
+	in_out[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
+	in_out_err[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
+	Myfile<<"Value IN-OUT = "<<setw(10)<<in_out[i]<<" +-  "<<setw(10)<<in_out_err[i]<<std::endl;
+      }
+    }
+    
     // Create canvas
     TCanvas * c = new TCanvas("c","",0,0,1000,500);
-    c->Draw();
+    c->Draw("goff");
     c->cd();
     
     TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
@@ -334,7 +351,6 @@ void get_residual_polarization(Double_t in_slug, Double_t out_slug){
     pad2->Draw();
     
     pad1->cd();
-    TString text = Form(" AVG(IN-OUT) of in slug %f and out slug %f", in_slug, out_slug);
     std::cout<<text<<std::endl;
     TText*t = new TText(0.06,0.3,text);
     t->SetTextSize(0.7);
@@ -361,12 +377,17 @@ void get_residual_polarization(Double_t in_slug, Double_t out_slug){
     fit[3]=fit_temp->GetParError(1);
     fit[4]=fit_temp->GetParameter(2);
     fit[5]=fit_temp->GetParError(2);
-    MyfileRes<<setw(5)<<in_slug<<", "<<setw(5)<<out_slug<<", "
+
+    // Get total number of patterns from the two ihwp states
+    tot_patterns= get_patterns(in_slug,out_slug);
+
+    MyfileRes<<setw(5)<<in_slug<<", "<<setw(5)<<out_slug<<", "<<fixed<<tot_patterns<<", "
 	     <<setw(10)<<fit[0]<<", "<<setw(10)<<fit[1]<<", "
 	     <<setw(10)<<fit[2]<<", "<<setw(10)<<fit[3]<<", "
 	     <<setw(10)<<fit[4]<<", "<<setw(10)<<fit[5]<<", "
 	     <<setw(10)<<(fit_temp->GetChisquare() /fit_temp->GetNDF())<<std::endl;
     
+
     TMultiGraph * grp = new TMultiGraph();
     grp ->Add(grp_in_out);
     grp ->Draw("AP");
@@ -398,3 +419,21 @@ void get_residual_polarization(Double_t in_slug, Double_t out_slug){
 }
 
 
+//***************************************************
+//***************************************************
+//    Get number of patterns in the two slugs                
+//***************************************************
+//***************************************************
+
+Double_t get_patterns(Double_t in_slug, Double_t out_slug){
+
+  Double_t n_in  = 0;
+  Double_t n_out = 0;
+  Double_t n_tot = 0;
+
+  n_in  = get_patterns("qwk_mdallbars", "a", "in", in_slug);
+  n_out = get_patterns("qwk_mdallbars", "a", "out", out_slug);
+  n_tot =n_in+n_out;
+
+  return n_tot;
+}

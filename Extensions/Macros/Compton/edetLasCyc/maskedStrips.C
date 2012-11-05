@@ -13,28 +13,39 @@
 // }
 
 ///True for beam current variation runs[run# 23142 - 23168]
-Bool_t maskedStrips(Int_t plane,Int_t strip)
-{
-  if(plane==0&&(strip==5||strip==19||strip==62)) return kTRUE;//skip masked strip of plane1
-  else if(plane==1&&(strip==1||strip==11)) return kTRUE;//skip masked strip of plane2
-  else if(plane==2&&(strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
-  else return kFALSE;
-}
+// Bool_t maskedStrips(Int_t plane,Int_t strip)
+// {
+//   if(plane==0&&(strip==5||strip==19||strip==62)) return kTRUE;//skip masked strip of plane1
+//   else if(plane==1&&(strip==1||strip==11)) return kTRUE;//skip masked strip of plane2
+//   else if(plane==2&&(strip==38||strip==52||strip==63)) return kTRUE;//skip masked strip of plane3
+//   else return kFALSE;
+// }
 
-///This was true for early run2 (eg.24519)
+// ///This was true for early run2 (eg.24519)
 // Bool_t maskedStrips(Int_t plane,Int_t strip)
 // { ///planes as well as strip in C++ counting
 //   if(plane==0&& (strip==1 || strip==5 || strip==19)) return kTRUE;//skip masked strip of plane1
 //   else if(plane==1&& (strip==11)) return kTRUE;//skip masked strip of plane2
 //   else if(plane==2&& (strip==23 || strip==38 || strip==52 || strip==63)) return kTRUE;//skip masked strip of plane3
+//   else if(plane==3) return kTRUE;
 //   else return kFALSE;
 // }
 
+///This was true for early run2 (eg.24519)
+Bool_t maskedStrips(Int_t plane,Int_t strip)
+{ ///planes as well as strip in C++ counting
+  if(plane==0&& (strip==1 || strip==5 || strip==19)) return kTRUE;//skip masked strip of plane1
+  else if(plane==1&& (strip==11 || strip==1)) return kTRUE;//skip masked strip of plane2
+  else if(plane==2&& (strip==23 || strip==38 || strip==52 || strip==63)) return kTRUE;//skip masked strip of plane3
+  else if(plane==3) return kTRUE;
+  else return kFALSE;
+}
+
 void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some lines were commented for some quick work
 {
-  Double_t param[4];
+  //Double_t param[4];
   Double_t xPrime[nPoints],rho[nPoints];
-  ofstream QEDasym,paramOutFile;
+  ofstream QEDasym,paramOutFile;//,energyDisp;
   Float_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kk,x1,kDummy;//k,gamma,a
   Float_t p_edge,r_edge,th_edge,hprime,kprime,x2;//,maxdist,rho;
   Float_t thetabend = chicaneBend*pi/180; //(radians)
@@ -45,20 +56,21 @@ void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some 
   R_bend = (gamma_my*hbarc)/(2.0*xmuB*B_dipole);
   k =2*pi*hbarc/(lambda); // incident photon energy (GeV)
 //   a =1/(1+4*k*gamma_my/me); // eqn.15 
-  kprimemax=4*a*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
-  asymmax=(1-a)*(1+a)/(1+a*a);
+  kprimemax=4*a_const*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
+  asymmax=(1-a_const)*(1+a_const)/(1+a_const*a_const);
 
-  rho0=1/(1+a);
+  rho0=1/(1+a_const);
   k0prime=rho0*kprimemax;
   //  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
 
   p_beam =sqrt(E*E - me*me);
-  r =p_beam/me*(hbarc/(2*xmuB*B_dipole));//!?
+  r =p_beam/me*(hbarc/(2*xmuB*B_dipole));///radius of curvature of electrons due to dipole-3.
   h = r - lmag/tan(thetabend);
   kk =ldet*tan(thetabend);
-  x1 =(kk+h)*cos(det_angle);
+  x1 =(kk+h);
   kDummy = kprimemax; ///initiating 
- 
+
+  //energyDisp.open(Form("%s/%s/energyDisplacement.txt",pPath,webDirectory));
   QEDasym.open(Form("%s/%s/QEDasym.txt",pPath,webDirectory));
   for (Int_t i = 0; i <nPoints; i++) {//xPrime[nPoints],rho[nPoints];
     xPrime[i]=0.0; ///initialize
@@ -69,20 +81,22 @@ void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some 
     hprime = r_edge - lmag/tan(th_edge);
     //hprime = r_edge*(1-cos(th_edge));
     kprime=ldet*tan(th_edge);
-    x2= (kprime + hprime)*cos(det_angle);
+    x2= (kprime + hprime);
     if(x2>x1) {
-      xPrime[i]=(x2-x1);
+      xPrime[i]=(x2-x1)*cos(det_angle);
       rho[i]=kDummy/kprimemax;
       kDummy=kDummy-0.00005;
-      if(QEDasym.is_open())
+      if(QEDasym.is_open()) {
 	QEDasym<<xPrime[i]<<"\t"<<rho[i]<<endl;
-    }
+	//energyDisp<<xPrime[i]<<"\t"<<p_edge<<endl;
+      }
+    }    
     else break;
   }
   QEDasym.close();
-
-  TCanvas *cTheoAsym = new TCanvas("theoAsym","Theoretical asymmetry",10,20,400,400);
-  cTheoAsym->cd();
+  //energyDisp.close();
+  //TCanvas *cTheoAsym = new TCanvas("theoAsym","Theoretical asymmetry",10,20,400,400);
+  //cTheoAsym->cd();
   TGraph *grtheory = new TGraph(Form("%s/%s/QEDasym.txt",pPath,webDirectory), "%lg %lg");
   grtheory->GetXaxis()->SetTitle("dist from compton scattered electrons(m)");
   grtheory->GetYaxis()->SetTitle("#rho");
@@ -95,11 +109,12 @@ void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some 
   TF1 *fn0 = new TF1("fn0","pol3");
   grtheory->Fit("fn0","0");//,"0","goff");
   fn0->GetParameters(param);
-  grtheory->Draw("AP");
-  fn0->Draw("same");
+  //grtheory->Draw("AP");
+  //fn0->Draw("same");
 
   paramOutFile.open(Form("%s/%s/paramFile.txt",pPath,webDirectory));
   if(paramOutFile.is_open()) {
+    cout<<"\nthe parameters for rho to X fitting are: "<<endl;
     paramOutFile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
   }
   paramOutFile.close();

@@ -89,7 +89,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       //  Break this line into tokens to process it.
       TString modtype = mapstr.GetTypedNextToken<TString>();
       UInt_t modnum   = mapstr.GetTypedNextToken<UInt_t>();
-      /* UInt_t channum = */ mapstr.GetTypedNextToken<UInt_t>(); /* unused */
+      UInt_t channum = mapstr.GetTypedNextToken<UInt_t>(); /* unused */
       TString dettype = mapstr.GetTypedNextToken<TString>();
       TString name    = mapstr.GetTypedNextToken<TString>();
       Int_t plane     = mapstr.GetTypedNextToken<Int_t>();
@@ -174,24 +174,6 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	  if (stripnum >= (Int_t) fStripsEv[plane-1].size())
             fStripsEv[plane-1].push_back(0);
 	} // end of switch (dettype)
-
-// 	else if (dettype == "eDAQ_info") {
-//           // Register data channel type
-//           fMapping[currentsubbankindex] = kV1495DAQinfo;
-//           fdettype = 4;
-//  	  if (fdettype >= (Int_t) fSubbankIndex.size())
-// 	    fSubbankIndex.resize(fdettype+1);
-//           if (modnum >= fSubbankIndex[fdettype].size()) {
-//             fSubbankIndex[fdettype].push_back(modnum);
-//             fSubbankIndex[fdettype][modnum] = currentsubbankindex;
-//           }
-// 	  //!I'm putting it for consistency with above, but should not be needed since the header file does this job already (check which of the two methods is more standard and remove the other method; (same needed for other 6 vectors above!?)
-// 	  if (modnum >= fDAQinfo.size())
-// 	    fDAQinfo.resize(modnum+1);
-// 	  if (NInfoWords >= (Int_t) fDAQinfo.size()) 
-// 	    fDAQinfo.resize(NInfoWords);
-// 	} 
-
 	else {
 	  notGood=notGood+1;
 	  cout<<"***found an undefined data type "<<notGood<<" times"<<endl;
@@ -242,7 +224,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   UInt_t words_read = 0;
   UInt_t bitwise_mask = 0;
   div_t div_output;
-  UInt_t accum_count = 0;
+  //UInt_t accum_count = 0;
   // Get the subbank index (or -1 when no match)
   Int_t subbank = GetSubbankIndex(roc_id, bank_id);
   if (subbank >= 0 && num_words > 0) {
@@ -257,21 +239,20 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 
 	      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
 		Int_t j = k*StripsPerModule+i;
-		accum_count = (buffer[i] & 0xff000000) >> 24;
-		//!what value is assigned to fStripsRaw[][] when the accum_counts is greater than 5?
-		if (accum_count < 5)fStripsRaw[0][j] = accum_count;
-		accum_count = (buffer[i] & 0x00ff0000) >> 16;
-		if (accum_count < 5)fStripsRaw[1][j] = accum_count;
-		accum_count = (buffer[i] & 0x0000ff00) >> 8;
-		if (accum_count < 5)fStripsRaw[2][j] = accum_count;
-		accum_count = (buffer[i] & 0x000000ff);
-		if (accum_count < 5)fStripsRaw[3][j] = accum_count;
+		// accum_count = (buffer[i] & 0xff000000) >> 24;
+		// //!what value is assigned to fStripsRaw[][] when the accum_counts is greater than 5?
+		// if (accum_count < 5)fStripsRaw[0][j] = accum_count;
+		// accum_count = (buffer[i] & 0x00ff0000) >> 16;
+		// if (accum_count < 5)fStripsRaw[1][j] = accum_count;
+		// accum_count = (buffer[i] & 0x0000ff00) >> 8;
+		// if (accum_count < 5)fStripsRaw[2][j] = accum_count;
+		// accum_count = (buffer[i] & 0x000000ff);
+		// if (accum_count < 5)fStripsRaw[3][j] = accum_count;
 		
-		/*fStripsRaw[0][j] = (buffer[i] & 0xff000000) >> 24;
-		  fStripsRaw[1][j] = (buffer[i] & 0x00ff0000) >> 16;
-		  fStripsRaw[2][j] = (buffer[i] & 0x0000ff00) >> 8;
-		  fStripsRaw[3][j] = (buffer[i] & 0x000000ff);
-		*/
+		fStripsRaw[0][j] = (buffer[i] & 0xff000000) >> 24;
+		fStripsRaw[1][j] = (buffer[i] & 0x00ff0000) >> 16;
+		fStripsRaw[2][j] = (buffer[i] & 0x0000ff00) >> 8;
+		fStripsRaw[3][j] = (buffer[i] & 0x000000ff);
 		words_read++;
 	      }
 	    }
@@ -429,289 +410,7 @@ Bool_t QwComptonElectronDetector::SingleEventCuts()
 //*****************************************************************
 void  QwComptonElectronDetector::ProcessEvent()
 {
-  
-  Int_t fCalibrationFactor = 1;
-  Int_t fOffset = 0;
-  int pas1 =0;
-  int pas2 =0;
-  int pas3 =0;
-  int trig=0;
-  int eve;
-  int track=0;
-  ofstream gui;
-  vector<int> det0, det1, det2, det3;
-  vector<int> det0eff, det1eff, det2eff, det3eff;
-  double bestfita=1000000;
-  int besttrack;
-  int bestplane1=1000000;
-  int bestplane2=1000000;
-  int bestplane3=1000000;
-  int besty1=1000000;
-  int besty2=1000000 ;
-  int besty3=1000000; 
-  double edet_tr_angle=1000000; 
-  
-  int use_gui=0;
-  int test_print=0;
-  int print_fit=0;
-
-  // EVENT MODE = 0
-  // ACUMM MODE = 1
-  int runmode = 1;
-   
-  myrun = this->GetParent()->GetCodaRunNumber();
-  eve=this->GetParent()->GetCodaEventNumber();
-  //   QwOut << "Run End Time: = " << GetEndTime() << QwLog::endl;
-
- 
-  if(use_gui==1) { 
-    gui.open ("data.detector");    
-    gui << eve << endl;
-    gui << "1" << endl;
-  }
-   
-  if(test_print==1) QwOut << "------------------------- " << QwLog::endl;
-
-  for (Int_t i = 0; i < NPlanes; i++){
-    for (Int_t j = 0; j < StripsPerPlane; j++){
-      fStrips[i][j] = (fStripsRaw[i][j] - fOffset)*fCalibrationFactor;
-      fStripsEv[i][j] = (fStripsRawEv[i][j] - fOffset)*fCalibrationFactor;
-  
-      if(test_print==1) {
-	if(fStripsEv[i][j]>0) {
-	  QwOut << i << " " << j << QwLog::endl;
-	}
-      }
-
-      //no 0 Detector , YET
-
-
-      // for efficiency study only start
-      //      if(i==1 && fStripsEv[1][j] > 0) det1eff.push_back(j); 
-      //      if(i==2 && fStripsEv[2][j] > 0) det2eff.push_back(j); 
-      //      if(i==3 && fStripsEv[3][j] > 0) det3eff.push_back(j); 
-      // for efficiency study only stop
-
-
-      //////////////////
-      // 1st Detector //
-      //////////////////
-  
-      if(i==1 && fStripsEv[1][j] > 0) {
-        if(use_gui==1 && pas1==0) gui << i+1 ;
-        if(pas1==0) trig++;
-	//	det1.push_back(j-2);
-	det1.push_back(j);
-        if(use_gui==1) gui << " " << j+1-(0) ;
-        pas1=1;
-      } 
-         
-      //////////////////
-      // 2nd Detector //
-      //////////////////
-
-      if(i==2 && pas1==1 && fStripsEv[2][j] > 0) {
-        if(use_gui==1 && pas2==0) gui << " " << endl;
-        if(use_gui==1 && pas2==0) gui << i+1 ;
-        if(pas2==0) trig++;
-	//	det2.push_back(j-2);
-	det2.push_back(j);
-        if(use_gui==1) gui << " " << j+1-(0) ;
-	pas2=1;
-      }	 
-
-      //////////////////     
-      // 3rd Detector //
-      //////////////////
-
-      if(i==3 && pas1==1 && pas2==1 && fStripsEv[3][j] > 0) {
-        if(use_gui==1 && pas3==0) gui << " " << endl;
-        if(use_gui==1 && pas3==0) gui << i+1 ;
-        if(pas3==0) trig++;
-	det3.push_back(j);
-        if(use_gui==1) gui << " " << j+1 ;
-	pas3=1;
-      }	 
-       
-    }
-  }
-
-  ////////////////////////////////////////
-  // Creating Tracks and X2 Calculation //
-  ////////////////////////////////////////
-
-  if(trig != 3 && runmode == 0) {
-    QwOut << "Event = " << eve << " Does not Have 3/3 Hits " << QwLog::endl;
-    QwOut << det1.size() << " " << det2.size() << " " << det3.size() << QwLog::endl;
-    if(det1.size() > 0) QwOut << det1[0] << QwLog::endl;
-    if(det2.size() > 0) QwOut << det2[0] << QwLog::endl;
-    if(det3.size() > 0) QwOut << det3[0] << QwLog::endl;
-  }
- 
-  if(trig==3 && runmode == 0) {
-  
-    for(size_t i=0; i<det1.size(); i++)
-      {
-	for(size_t j=0; j<det2.size(); j++)
-	  {
-	    for(size_t k=0; k<det3.size(); k++)
-	      {
-  	  
-		track++;
-		if(print_fit==1) QwOut << det1[i] << " " << det2[j] << " " << det3[k] << QwLog::endl;      
-	  
-		double s1 = 0;
-		double sx = 0;
-		double sxx = 0;
-		double sy = 0;
-		double sxy = 0;
-		double syy = 0;
-		double x[3] = {690,710,730};
-		int d[3] = {det1[i],det2[j],det3[k]};
-		double error = 2;          
- 	   	    	  
-		for(Int_t t=0; t<3; t++)
-		  {
-		    s1 += 1/(error*error);
-		    sx += x[t]/(error*error);
-		    sxx += pow(x[t]/error, 2);
-		    sy += (60+4*d[t])/pow(error,2);
-		    sxy += x[t]*(60+4*d[t])/pow(error,2);
-		    syy += pow((60+4*d[t])/error,2);
-		    //->	       sy += (d[t])/pow(error,2);
-		    //->	       sxy += x[t]*d[t]/pow(error,2);
-		    //->	       syy += pow((d[t])/error,2);
-		  }
-
-		double ddd = s1*sxx - sx*sx;
-		double a = (1/ddd)*(sxx*sy - sx*sxy);
-		double b = (1/ddd)*(s1*sxy - sx*sy);
-
-		double fita = 0;
-	        for(Int_t t=0; t<3; t++)
-		  {
-		    double y = 60+4*d[t];
-		    //->		  double y = d[t];
-		    double fitaCorrd = a + x[t]*b;
-		    fita += pow((y - fitaCorrd)/error, 2);		
-		  }
-	       
-	        if(fita<bestfita)
-		  {
-		    bestfita = fita;
-		    besttrack = track;
-		    bestplane1 = d[0];
-		    bestplane2 = d[1];
-		    bestplane3 = d[2];
-		    besty1 = 60+4*d[0];
-		    besty2 = 60+4*d[1];
-		    besty3 = 60+4*d[2];
-		  }
-
-	      }
-	  }
-      }
-       
-    edet_tr_angle=atan((bestplane1-bestplane3)*200*0.0001/2);
-    edet_angle=edet_tr_angle*180/3.141592;           
-       
-    edet_TotalNumberTracks=track;
-    edet_x2=bestfita;
-     
-    if(print_fit==1) {
-      QwOut << " Best Chi2 = " << bestfita << " and Best Track is = " << besttrack << QwLog::endl;  
-      QwOut << " Best Hit in Plane1 = " << bestplane1 << " with Coord = " << besty1 << QwLog::endl; 
-      QwOut << " Best Hit in Plane2 = " << bestplane2 << " with Coord = " << besty2 << QwLog::endl; 
-      QwOut << " Best Hit in Plane3 = " << bestplane3 << " with Coord = " << besty3 << QwLog::endl; 
-      QwOut << " Track Angle is     = " << edet_angle << QwLog::endl; 
-    }
-	 
-    fStripsEvBest1=bestplane1;
-    fStripsEvBest2=bestplane2;
-    fStripsEvBest3=bestplane3;
-
-
-    //////////////////////////
-    /// Offset Corrections ///
-    //////////////////////////
-
-    if(edet_angle > 1) {
-      bestplane2=bestplane2-2;
-      bestplane1=bestplane1-2;      
-    }
-
-    if(edet_angle < 1) {
-      bestplane2=bestplane2-2;
-      bestplane1=bestplane1-1;      
-    }
-      
-
-    //       if(bestplane2 != bestplane3) bestplane2=bestplane2+1;
-
-    ////////////////////////////////
-    /// Re-Calculation of the X2 ///
-    ////////////////////////////////
-
-    double s1 = 0;
-    double sx = 0;
-    double sxx = 0;
-    double sy = 0;
-    double sxy = 0;
-    double syy = 0;
-    double x[3] = {690,710,730};
-    double error = 2;          
-    int dc[3] = {bestplane1,bestplane2,bestplane3};
-
-    for(Int_t t=0; t<3; t++)
-      {
-	s1 += 1/(error*error);
-	sx += x[t]/(error*error);
-	sxx += pow(x[t]/error, 2);
-	sy += (60+4*dc[t])/pow(error,2);
-	sxy += x[t]*(60+4*dc[t])/pow(error,2);
-	syy += pow((60+4*dc[t])/error,2);
-      }
-
-    double ddd = s1*sxx - sx*sx;
-    double a = (1/ddd)*(sxx*sy - sx*sxy);
-    double b = (1/ddd)*(s1*sxy - sx*sy);
-
-    double fita = 0;
-    for(Int_t t=0; t<3; t++)
-      {
-	double y = 60+4*dc[t];
-	double fitaCorrd = a + x[t]*b;
-	fita += pow((y - fitaCorrd)/error, 2);		 
-      }
- 
-    edet_x2=fita;
-         
-    ///////////////////////////////////
-    /// Re-Calculation of the Angle ///
-    ///////////////////////////////////
-
-    fStripsEvBest1=bestplane1;
-    fStripsEvBest2=bestplane2;
-    fStripsEvBest3=bestplane3;
-       
-    edet_angle=atan((bestplane1-bestplane3)*200*0.0001/2);
-    edet_angle=edet_angle*180/3.141592; 
- 
-    if(bestfita < 10 && edet_TotalNumberTracks < 5) {
-      //         QwOut << eve << " " << fStripsEvBest1 << " " << fStripsEvBest2 << "  " << fStripsEvBest3 << " " << edet_x2 << " " << edet_angle << QwLog::endl;
-    }
- 
-  }
-   
-  if(use_gui==1) {
-    gui.close();    
-    QwOut << " Number of Planes Fired = " << trig << " Total Number of Tracks = " << track << QwLog::endl;
-    if(trig==3) {
-      QwOut << " Continue ? " << QwLog::endl;
-      getchar();
-    } 
-  }
-    
+  //this was not being used till revision 4846 so is being removed
   return;
 }
 
@@ -729,8 +428,20 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
   // sub-bank 0x207 & 0x208, eDAQinfo for this slave board for all planes and strips
   ///the total number of words in these subbanks was fixed at 8, though the meaning carried by a word has
   ///..changed during different revisions (may need fine tuning later!)
+
+  ///Based on the last edited firmware, the data structure of the DAQ info bank is:
+  // Identifier beginning word
+  // Firmware Revision Number
+  // A mask
+  // B mask
+  // D mask
+  // E mask
+  // PWTL(8 bits) | PWDL(8 bits) | HOLDOFF(8 bits) | PL_Delay(8 bits)
+  //Rejection Width(16 bits) | Accum trigger condition(8 bits) | Event trigger condition(8 bits)
+  ///This will not be the same for all runs in even run 2, leave apart run 1
   
   Int_t subBankiterate = bank_id==0x207 ? 0 : 32;
+  Int_t subBankmodule = bank_id==0x207 ? 0 : 1;
 
   slave_header.push_back(buffer[0]);///expect this to be always BX000000 for slaveX
   firmwareRevision.push_back(buffer[1]);
@@ -762,8 +473,17 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
     fPlane4Mask[s+subBankiterate] = ((portEmask.back() & bitwise_mask) >> s);
    }
    
-   //Rejection Width(16 bits) | Accum trigger condition(8 bits) | Event trigger condition(8 bits)
-   //trigInfo
+   fFirmwareRevision[subBankmodule] = firmwareRevision.back();
+   
+   fPWTL[subBankmodule]          =(widthInfo.back() & 0xff000000) >> 24;
+   fPWTL2[subBankmodule]         =(widthInfo.back() & 0x00ff0000) >> 16;
+   fHoldOff[subBankmodule]       =(widthInfo.back() & 0x0000ff00) >> 8;
+   fPipelineDelay[subBankmodule] =(widthInfo.back() & 0x000000ff);
+   
+
+   fMinWidth[subBankmodule] = (trigInfo.back() & 0x00ff0000) >> 16;
+   fAcTrig[subBankmodule]   = (trigInfo.back() & 0x0000ff00) >> 8;
+   fEvTrig[subBankmodule]   = (trigInfo.back() & 0x000000ff);
 
    subBankiterate = subBankiterate + 32;//when this process is called 2nd time,     
    return 0;
@@ -804,12 +524,12 @@ void QwComptonElectronDetector::ClearEventData()
     }
   }
   
-  fStripsEvBest1 = 1000000;
-  fStripsEvBest2 = 1000000;
-  fStripsEvBest3 = 1000000;
-  edet_x2 = 1000000; 
-  edet_TotalNumberTracks = 1000000;
-  edet_angle = 1000000;
+  // fStripsEvBest1 = 1000000;
+  // fStripsEvBest2 = 1000000;
+  // fStripsEvBest3 = 1000000;
+  // edet_x2 = 1000000; 
+  // edet_TotalNumberTracks = 1000000;
+  // edet_angle = 1000000;
    
   fGoodEventCount = 0;
 }
@@ -821,8 +541,9 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
     VQwSubsystem::operator=(value);
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     for (Int_t i = 0; i < NPlanes; i++){
-      for (Int_t j = 0; j < StripsPerPlane; j++){
+      for (Int_t j = 0; j < StripsPerPlane; j++) {
         this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
+        this->fStrips[i][j] = input->fStrips[i][j];
         this->fStripsRawEv[i][j] = input->fStripsRawEv[i][j];
         this->fStripsRawScal[i][j] = input->fStripsRawScal[i][j];
         this->fStripsRaw_v2[i][j] = input->fStripsRaw_v2[i][j];
@@ -832,7 +553,15 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
     this->fPlane2Mask.resize(input->fPlane2Mask.size());
     this->fPlane3Mask.resize(input->fPlane3Mask.size());
     this->fPlane4Mask.resize(input->fPlane4Mask.size());
-    
+    this->fEvTrig.resize(input->fEvTrig.size());
+    this->fAcTrig.resize(input->fAcTrig.size());
+    this->fMinWidth.resize(input->fMinWidth.size());
+    this->fFirmwareRevision.resize(input->fFirmwareRevision.size());
+    this->fPWTL.resize(input->fPWTL.size());
+    this->fPWTL2.resize(input->fPWTL2.size());
+    this->fHoldOff.resize(input->fHoldOff.size());
+    this->fPipelineDelay.resize(input->fPipelineDelay.size());
+
     for (UInt_t j = 0; j < input->fPlane1Mask.size(); j++)
       this->fPlane1Mask[j] = input->fPlane1Mask[j];
     for (UInt_t j = 0; j < input->fPlane2Mask.size(); j++)
@@ -842,6 +571,28 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
     for (UInt_t j = 0; j < input->fPlane4Mask.size(); j++)
       this->fPlane4Mask[j] = input->fPlane4Mask[j];
 
+    for (UInt_t j = 0; j < input->fFirmwareRevision.size(); j++)
+      this->fFirmwareRevision[j] = input->fFirmwareRevision[j];
+
+    for (UInt_t j = 0; j < input->fPWTL.size(); j++)
+      this->fPWTL[j] = input->fPWTL[j];
+
+    for (UInt_t j = 0; j < input->fPWTL2.size(); j++)
+      this->fPWTL2[j] = input->fPWTL2[j];
+
+    for (UInt_t j = 0; j < input->fHoldOff.size(); j++)
+      this->fHoldOff[j] = input->fHoldOff[j];
+
+    for (UInt_t j = 0; j < input->fPipelineDelay.size(); j++)
+      this->fPipelineDelay[j] = input->fPipelineDelay[j];
+
+    for (UInt_t j = 0; j < input->fEvTrig.size(); j++)
+      this->fEvTrig[j] = input->fEvTrig[j];
+    for (UInt_t j = 0; j < input->fAcTrig.size(); j++)
+      this->fAcTrig[j] = input->fAcTrig[j];
+    for (UInt_t j = 0; j < input->fMinWidth.size(); j++)
+      this->fMinWidth[j] = input->fMinWidth[j];
+    
     this->fIsConfigOnly = input->fIsConfigOnly;
   }
   return *this;
@@ -854,6 +605,10 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
         this->fStripsRaw[i][j] += input->fStripsRaw[i][j];      
+	//this->fStrips[i][j] += input->fStrips[i][j];
+        this->fStripsRawEv[i][j] += input->fStripsRawEv[i][j];
+        this->fStripsRawScal[i][j] += input->fStripsRawScal[i][j];
+        this->fStripsRaw_v2[i][j] += input->fStripsRaw_v2[i][j];
       }
     }
   }
@@ -865,9 +620,13 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     for (Int_t i = 0; i < NPlanes; i++){
-      for (Int_t j = 0; j < StripsPerPlane; j++){
+      for (Int_t j = 0; j < StripsPerPlane; j++) {
         this->fStripsRaw[i][j] -= input->fStripsRaw[i][j];
-      }
+	//this->fStrips[i][j] -= input->fStrips[i][j];
+        this->fStripsRawEv[i][j] -= input->fStripsRawEv[i][j];
+        this->fStripsRawScal[i][j] -= input->fStripsRawScal[i][j];
+        this->fStripsRaw_v2[i][j] -= input->fStripsRaw_v2[i][j];
+       }
     }
   }
   return *this;
@@ -880,12 +639,15 @@ VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
         this->fStripsRaw[i][j] *= input->fStripsRaw[i][j];
-      }
+	//this->fStrips[i][j] *= input->fStrips[i][j];
+        this->fStripsRawEv[i][j] *= input->fStripsRawEv[i][j];
+        this->fStripsRawScal[i][j] *= input->fStripsRawScal[i][j];
+        this->fStripsRaw_v2[i][j] *= input->fStripsRaw_v2[i][j];
+       }
     }
   }
   return *this;
 }
-
 
 void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
@@ -903,9 +665,8 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
   }
 }
 
-
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
-{//!?what does this do?
+{
   if (Compare(numer) && Compare(denom)) {
     QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
     QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
@@ -914,6 +675,10 @@ void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
       for (Int_t j = 0; j < StripsPerPlane; j++){        
 	if(indenom->fStripsRaw[i][j] > 0) {
           fStripsRaw[i][j] =(innumer->fStripsRaw[i][j]/indenom->fStripsRaw[i][j]);
+          //fStrips[i][j] =(innumer->fStrips[i][j]/indenom->fStrips[i][j]);
+          fStripsRawEv[i][j] =(innumer->fStripsRawEv[i][j]/indenom->fStripsRawEv[i][j]);
+          fStripsRawScal[i][j] =(innumer->fStripsRawScal[i][j]/indenom->fStripsRawScal[i][j]);
+          fStripsRaw_v2[i][j] =(innumer->fStripsRaw_v2[i][j]/indenom->fStripsRaw_v2[i][j]);
 	}	  
 	else {
 	  this->fStripsRaw[i][j]=0;
@@ -928,6 +693,10 @@ void QwComptonElectronDetector::Scale(Double_t factor)
   for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
       this->fStripsRaw[i][j] *= static_cast<int>(factor);
+      this->fStrips[i][j] *= static_cast<int>(factor);
+      this->fStripsRawEv[i][j] *= static_cast<int>(factor);
+      this->fStripsRawScal[i][j] *= static_cast<int>(factor);
+      this->fStripsRaw_v2[i][j] *= static_cast<int>(factor);
       // TODO !!converting Double to Int (ok now) may not be okay later!
     }
   }
@@ -947,6 +716,18 @@ Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
     if (input->fStripsRaw.size() != fStripsRaw.size()) {
       result = kFALSE;
     }
+    // if (input->fStrips.size() != fStrips.size()) {
+    //   result = kFALSE;
+    // }
+    if (input->fStripsRawEv.size() != fStripsRawEv.size()) {
+      result = kFALSE;
+    }
+    if (input->fStripsRawScal.size() != fStripsRawScal.size()) {
+      result = kFALSE;
+    }
+    if (input->fStripsRaw_v2.size() != fStripsRaw_v2.size()) {
+      result = kFALSE;
+    }
   }
   return result;
 }
@@ -957,7 +738,6 @@ void  QwComptonElectronDetector::AccumulateRunningSum(VQwSubsystem* value)
     // Optional event selection...
     fGoodEventCount++;
     *this  += value;
-    //    QwOut << " 1 "  << QwLog::endl;
   }
 }
 
@@ -965,10 +745,8 @@ void  QwComptonElectronDetector::CalculateRunningAverage()
 {
    if (fGoodEventCount <= 0) { 
      Scale(0);
-     //QwOut << " Scale = 0" << QwLog::endl;
    } else {
      Scale(1.0/fGoodEventCount);
-     //QwOut << " Good Events =  "  << " " << fGoodEventCount << QwLog::endl;
    }
 }
 
@@ -995,7 +773,7 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   for (Int_t i=0; i<NPlanes; i++){
     TString histname = Form("Compton_eDet_Accum_Raw_Plane%d",i+1);
     fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//1st histogram
-    histname = Form("Compton_eDet_Accum_Plane%d",i+1);
+    histname = Form("Compton_eDet_Accum_v2_Plane%d",i+1);
     fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Evt_Raw_Plane%d",i+1);
     fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//3rd histogram
@@ -1004,29 +782,10 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
     histname = Form("Compton_eDet_Scal_Raw_Plane%d",i+1);
     fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//5th histogram
   }
-
-  TString histname = Form("Compton_eDet_Evt_Best_Plane1");
-  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
-  histname = Form("Compton_eDet_Evt_Best_Plane2");
-  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
-  histname = Form("Compton_eDet_Evt_Best_Plane3");
-  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
-  histname = Form("Compton_eDet_Evt_Best_x2");
-  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
-  histname = Form("Compton_eDet_Evt_NTracks");
-  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
-  histname = Form("Compton_eDet_Evt_Track_Angle");
-  fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
-
 }
 
 void  QwComptonElectronDetector::FillHistograms()
 {
-  //  edet_cut_on_x2=7;
-  //  edet_cut_on_ntracks=2;
-  edet_cut_on_x2=7;
-  edet_cut_on_ntracks=5;
-
   for (Int_t i = 0; i < NPlanes; i++) {
     Int_t ii = 5*i;
     //apology for the hardcoding; had to do so in keeping with DaveG's philosophy of least change.
@@ -1062,17 +821,6 @@ void  QwComptonElectronDetector::FillHistograms()
       }
     }
   }
-
-  if(edet_x2 < edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
-    //  if(edet_x2 == edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
-    //Incrementing the following histograms based on the above increase in the 1D histos used
-    fHistograms[20]->Fill(fStripsEvBest1); // fHistograms[16]->Fill(fStripsEvBest1); 
-    fHistograms[21]->Fill(fStripsEvBest2); // fHistograms[17]->Fill(fStripsEvBest2); 
-    fHistograms[22]->Fill(fStripsEvBest3); // fHistograms[18]->Fill(fStripsEvBest3);
-  }  
-  fHistograms[23]->Fill(edet_x2); // fHistograms[19]->Fill(edet_x2); 
-  fHistograms[24]->Fill(edet_TotalNumberTracks); // fHistograms[20]->Fill(edet_TotalNumberTracks); 
-  fHistograms[25]->Fill(edet_angle); //  fHistograms[21]->Fill(edet_angle); 
 }
 
 void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -1082,8 +830,7 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 
   if(prefix=="conf") {
     fIsConfigOnly = kTRUE;
-    /// v1495 DAQ info for this slave//!?needs to be checked 
-    //for (Int_t i = 0; i < 1; i++) {
+    /// v1495 DAQ info for this slave
     for (Int_t i = 0; i < NPlanes; i++) {
       TString basename = Form("v1495InfoPlane%d",i+1);
       TString valnames = "";
@@ -1094,6 +841,55 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
       }
       valnames.Remove(0,1); // remove first ':' character
       tree->Branch(basename, valstart+1, valnames);
+    }
+
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_acTrig",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
+    }
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_evTrig",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
+    }
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_minWidth",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
+    }
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_firmWareRevision",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
+    }
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_PWTL",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
+    }
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_PWTL2",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
+    }
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_HoldOff",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
+    }
+    for (Int_t k = 0; k < NModules; k++) {
+      TString basename = Form("slave%d_PipelineDelay",k+1);
+      Double_t* valstart = &(values.back());     
+      values.push_back(0.0);
+      tree->Branch(basename, valstart+1);
     }
     return;
   }
@@ -1145,8 +941,6 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
     valnames.Remove(0,1); // remove first ':' character
     tree->Branch(basename, valstart+1, valnames);
   }
-
-
   ///Notice-2: the pattern that for every plane the branch is created for all different types of data before 
   ///...creating the same for the next plane
 }
@@ -1154,6 +948,8 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
   ///The 'values' needs to be a Double_t due to the inner structure in the hierarchy 
+  ///The 'values' should be filled in exactly the same order in which they were created above
+  /// ...below we follow the pattern as in Notice-2
   size_t index = fTreeArrayIndex;
 
   if(fIsConfigOnly) {
@@ -1165,11 +961,34 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
       values[index++] = fPlane3Mask.at(j);/// v1495 plane 3 mask info
     for (UInt_t j = 0; j < fPlane4Mask.size(); j++)
       values[index++] = fPlane4Mask.at(j);/// v1495 plane 4 mask info
+
+    for (UInt_t j = 0; j < fAcTrig.size(); j++) {//!following vectors have same size hence this cheating allowed
+      values[index++] = fAcTrig.at(j);/// v1495 accum trigger info
+    }
+    for (UInt_t j = 0; j < fEvTrig.size(); j++) {//!following vectors have same size hence this cheating allowed
+      values[index++] = fEvTrig.at(j);/// v1495 event trigger info
+    }
+    for (UInt_t j = 0; j < fMinWidth.size(); j++) {//!following vectors have same size hence this cheating allowed
+       values[index++] = fMinWidth.at(j);/// v1495 minimum width info
+    }    
+    for (UInt_t j = 0; j < fFirmwareRevision.size(); j++) {//!following vectors have same size hence this cheating allowed
+      values[index++] = fFirmwareRevision.at(j);/// v1495 event trigger info
+    }
+    for (UInt_t j = 0; j < fPWTL.size(); j++) {//!following vectors have same size hence this cheating allowed
+      values[index++] = fPWTL.at(j);/// v1495 event trigger info
+    }
+    for (UInt_t j = 0; j < fPWTL2.size(); j++) {//!following vectors have same size hence this cheating allowed
+      values[index++] = fPWTL2.at(j);/// v1495 event trigger info
+    }
+    for (UInt_t j = 0; j < fHoldOff.size(); j++) {//!following vectors have same size hence this cheating allowed
+      values[index++] = fHoldOff.at(j);/// v1495 event trigger info
+    }
+    for (UInt_t j = 0; j < fPipelineDelay.size(); j++) {//!following vectors have same size hence this cheating allowed
+      values[index++] = fPipelineDelay.at(j);/// v1495 event trigger info
+    }
     return;
   }
 
-  ///The 'values' should be filled in exactly the same order in which they were created above
-  /// ...below we follow the pattern as in Notice-2
   for (Int_t i = 0; i < NPlanes; i++) {
     for (Int_t j = 0; j < StripsPerPlane; j++)
       values[index++] = fStripsRawEv[i][j];/// Event Raw
@@ -1261,12 +1080,7 @@ void  QwComptonElectronDetector::PrintValue() const
   for (Int_t j=0; j<StripsPerPlane; j++) {
     myfile <<  j << " " << fGoodEventCount*fStripsRaw[0][j] << " " << fGoodEventCount*fStripsRaw[1][j] << " " <<
       fGoodEventCount*fStripsRaw[2][j] << " " << fGoodEventCount*fStripsRaw[3][j] << endl;
-    
-    //      QwOut << " " << 3 << " " << j << " " << edet_acum_sum[3][j] << QwLog::endl; 
   }
-  
-  //   myfile << endl;
-
   myfile.close();  
   return;
 }

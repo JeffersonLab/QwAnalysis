@@ -78,6 +78,8 @@ Bool_t QwMainCerenkovDetector::PublishInternalValues() const
   status = status && PublishInternalValue("qwk_md7pos", "qwk_md7pos", GetIntegrationPMT("qwk_md7pos")->GetChannel("qwk_md7pos"));
   status = status && PublishInternalValue("qwk_md8neg", "qwk_md8neg", GetIntegrationPMT("qwk_md8neg")->GetChannel("qwk_md8neg"));
   status = status && PublishInternalValue("qwk_md8pos", "qwk_md8pos", GetIntegrationPMT("qwk_md8pos")->GetChannel("qwk_md8pos"));
+  status = status && PublishInternalValue("qwk_md9neg", "qwk_md9neg", GetIntegrationPMT("qwk_md9neg")->GetChannel("qwk_md9neg"));
+  status = status && PublishInternalValue("qwk_md9pos", "qwk_md9pos", GetIntegrationPMT("qwk_md9pos")->GetChannel("qwk_md9pos"));
 
   status = status && PublishInternalValue("qwk_md1barsum","qwk_md1barsum", GetCombinedPMT("qwk_md1barsum")->GetChannel("qwk_md1barsum"));
   status = status && PublishInternalValue("qwk_md2barsum","qwk_md2barsum", GetCombinedPMT("qwk_md2barsum")->GetChannel("qwk_md2barsum"));

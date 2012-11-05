@@ -5,8 +5,8 @@ fgx2.hw_sum	fgx2
 fgy1.hw_sum	fgy1
 fgy2.hw_sum	fgy2
 fge.hw_sum	fge
+bm_pattern_number	bm_pattern_number
 mps_counter	mps_counter
-bm_pattern_number	bm_pattern_numer
 qwk_charge.hw_sum	qwk_charge
 qwk_bcm1.hw_sum	qwk_bcm1
 qwk_bcm2.hw_sum	qwk_bcm2
@@ -167,5 +167,3 @@ qwk_uslumi1pos.Device_Error_Code	qwk_uslumi1pos_Device_Error_Code
 qwk_uslumi3pos.Device_Error_Code	qwk_uslumi3pos_Device_Error_Code
 qwk_uslumi5pos.Device_Error_Code	qwk_uslumi5pos_Device_Error_Code
 qwk_uslumi7pos.Device_Error_Code	qwk_uslumi7pos_Device_Error_Code
-
-

@@ -41,13 +41,21 @@
 #include <TMath.h>
 #include <string.h>
 
+TString query_regressed(TString datatable, TString detector, TString measurement, TString ihwp, Double_t slug_number);
 TString get_query(TString detector, TString measurement, TString ihwp, Double_t slug_number);
 Bool_t get_octant_data(TString devicelist[],TString ihwp,Double_t slug_number, 
 		     Double_t value[], Double_t error[]);
 void fit_and_correct();
 void get_residual_polarization(Double_t in_slug, Double_t out_slug);
 void read_slug_numbers(TString filename);
- 
+Double_t get_patterns(TString detector, TString measurement, TString ihwp, Double_t slug_number);
+Double_t get_patterns(Double_t in_slug, Double_t out_slug);
+
+// hcb list
+TString hcb[6]=
+  {"qwk_charge","qwk_targetX","qwk_targetY","qwk_targetXSlope","qwk_targetYSlope",
+   "qwk_energy"};
+
 
 // detector list
 TString quartz_barsum[8]=

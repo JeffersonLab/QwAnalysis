@@ -129,10 +129,10 @@ Int_t expAsym(Int_t runnum)
       activeStrips[p][skipMe]=s+1;//this is required to keep it consistent with the case of the stripNumber being read from a file
     }
   }
-
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for Run2
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for pass1
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass2_%d.*.root",runnum));//for pass2
   chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.000.root",runnum));//for !! temp myQwAnalyisis output
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.000.root",runnum));//!test analysis for first runlet myQwAnalyisis output
   cout<<"Attached "<<chainExists<<" files to chain for Run # "<<runnum<<endl;
 
   if(!chainExists){//delete chains and exit if files do not exist
@@ -180,7 +180,7 @@ Int_t expAsym(Int_t runnum)
     ////fourth digit of return value of getEBeamLasCuts
   }
   
-  if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",cutEB.size(),cutLas.size());
+  if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",(Int_t)cutEB.size(),(Int_t)cutLas.size());
 
   Int_t nEntries = mpsChain->GetEntries();
   printf("This chain has %i entries.\n", nEntries);

@@ -41,32 +41,26 @@ hel_output_register   TH1F    12      -1.5  10.5        inputregister Events
  
 ###  Compton Electron histograms
 
-.*Compton_eDet_Accum_Raw_Plane1	TH1F	96   0.5	96.5	Strips	Hits
-.*Compton_eDet_Accum_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Raw_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Scal_Raw_Plane1	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Accum_Raw_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Accum_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Raw_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Scal_Raw_Plane2	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Accum_Raw_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Accum_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Raw_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Scal_Raw_Plane3	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Accum_Raw_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Accum_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Raw_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Scal_Raw_Plane4	TH1F	96   0.5  	96.5	Strips	Hits
-.*Compton_eDet_Evt_Best_Plane1  TH1F    96   0.5	96.5	Strips  Hits
-.*Compton_eDet_Evt_Best_Plane2  TH1F    96   0.5	96.5	Strips  Hits
-.*Compton_eDet_Evt_Best_Plane3  TH1F    96   0.5	96.5	Strips  Hits
-.*Compton_eDet_Evt_Best_x2      TH1F    20     0	50	x2      Tracks
-.*Compton_eDet_Evt_NTracks      TH1F    20     0	25	Tracks  NTracks
-.*Compton_eDet_Evt_Track_Angle  TH1F    12  -5.5	5.5	Tracks  Angle
+.*Compton_eDet_Accum_Raw_Plane1	TH1F	64   0.5	64.5	Strips	Hits
+.*Compton_eDet_Accum_v2_Plane1	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane1	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Plane1	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane1	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Accum_Raw_Plane2	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Accum_v2_Plane2	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane2	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Plane2	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane2	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Accum_Raw_Plane3	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Accum_v2_Plane3	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane3	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Plane3	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane3	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Accum_Raw_Plane4	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Accum_v2_Plane4	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Raw_Plane4	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Evt_Plane4	TH1F	64   0.5  	64.5	Strips	Hits
+.*Compton_eDet_Scal_Raw_Plane4	TH1F	64   0.5  	64.5	Strips	Hits
  
 .*sca_edet.*			TH1F	100	0	4e3	Counts	Events
 

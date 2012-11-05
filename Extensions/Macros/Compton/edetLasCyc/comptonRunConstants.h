@@ -16,11 +16,9 @@ const Float_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
 const Float_t B_dipole = 0.544;///T
 const Float_t E = 1.159; //Beam energy (GeV)
 const Float_t lambda = 532E-9; //photon wavelength (nm)      
-//const Float_t xgap = 0.007; //!min distance (m)
 const Float_t xCedge = 0.0176654;
-const Double_t param[4]= {-1.1403e-05, 58.9828, -139.527, 291.23};
-const Double_t a = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
-//const Double_t oneMinusA = 1 - a;
+Double_t param[4];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
+const Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
 const Double_t stripMin = 30.0;
 const Double_t stripMax = 50.0;
 const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
@@ -28,7 +26,7 @@ Bool_t noiseRun = 0;//kFALSE;
 const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
 
 //Hardware related constants
-const Int_t nStrips = 96;
+const Int_t nStrips = 64;//96;
 const Int_t nPlanes = 4;
 const Float_t stripWidth = 2.0E-4;
 const Float_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
@@ -37,9 +35,9 @@ const Double_t chicaneBend = 10.131; ///(degree)
 const Double_t ldet = 1.645; ///z-distance of detector from the end of 3rd magnet(m)
 const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
 const Int_t minEntries = 5000; //Laser must be (off) for at least this many consecutive entries to be considered (off)
-const Double_t th_det = 10.3;//angle at which the diamond detector is inclined towards the beam (deg)
+const Double_t th_det = 10.08;//based on elog399; 10.3;//angle at which the diamond detector is inclined towards the beam (deg)
 ///Run constants
-const Bool_t v2processed=0;  //kFALSE;
+const Bool_t v2processed=1;  //kFALSE;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t acceptLasPow = 120000;
 /* const Double_t beamFracHi = 0.78;//this was for most of the auto-analysis of run2 */
@@ -58,11 +56,11 @@ const Double_t MpsRate = 960.015;
 const Double_t lowCurrentLimit = 65.0;
 
 //following numbers are all in C++ counting(start at 0)
-const Int_t mystr = 40; //a random strip for testing my script
+//const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 1;
+  const Int_t endPlane = 3;
 const Int_t masked[3]={3,3,4};///no.of masked strips in the 3 active planes
 
 Double_t Cedge[nPlanes];
@@ -71,9 +69,9 @@ Bool_t paramRead;
 Float_t k;
 Float_t gamma_my;
 
-const Int_t Cedge_p1 = 59;///Compton-edge for the current run(counting from 0)
-const Int_t Cedge_p2 = 59;///Compton-edge for the current run(counting from 0)
-const Int_t Cedge_p3 = 59;///Compton-edge for the current run(counting from 0)
+/* const Int_t Cedge_p1 = 59;///Compton-edge for the current run(counting from 0) */
+/* const Int_t Cedge_p2 = 59;///Compton-edge for the current run(counting from 0) */
+/* const Int_t Cedge_p3 = 59;///Compton-edge for the current run(counting from 0) */
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12

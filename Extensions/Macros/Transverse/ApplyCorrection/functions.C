@@ -9,6 +9,46 @@
 #include "functions.h"
 using namespace std;
 
+//***************************************************
+//***************************************************
+//         make general database query              
+//***************************************************
+//***************************************************
+
+TString query_regressed(TString datatable, TString detector, TString measurement, TString ihwp, Double_t slug_number){
+
+  
+  Bool_t ldebug = true;
+
+
+  TString output = " sum( distinct("+datatable+".value/(POWER("
+    +datatable+".error,2))))/sum( distinct(1/(POWER("
+    +datatable+".error,2)))), SQRT(1/SUM(distinct(1/(POWER("
+    +datatable+".error,2))))), sum("+datatable+".n) ";
+
+  
+  TString run_quality =  Form("(%s.run_quality_id = '1') ",
+			   datatable.Data());
+
+  TString regression = Form("%s.slope_calculation = '%s' and %s.slope_correction = 'off' ",
+			    datatable.Data(),reg_set.Data(),datatable.Data()); 
+
+  TString slug_cut =  Form("%s.slug = %f",datatable.Data(),slug_number);
+
+  /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
+    TString query =" SELECT " +output+ " FROM "+datatable+", slow_controls_settings WHERE "
+    +datatable+".runlet_id =  slow_controls_settings.runlet_id AND "
+    +datatable+".monitor = '"+detector+"' AND "+datatable+".subblock = 0 AND "
+    +datatable+".measurement_type = '"+measurement+"' AND target_position = '"+target+"' AND "
+    +regression+" AND "+run_quality+" AND "
+    +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "+slug_cut+" AND "
+    +datatable+".error != 0 and "+qtor_current+"; ";
+
+    if(ldebug) std::cout<<"\n"<<query<<std::endl;
+
+
+  return query;
+}
 
 //***************************************************
 //***************************************************
@@ -26,7 +66,8 @@ TString get_query(TString detector, TString measurement, TString ihwp, Double_t 
   TString output = " sum( distinct("+datatable+".value/(POWER("
     +datatable+".error,2))))/sum( distinct(1/(POWER("
     +datatable+".error,2)))), SQRT(1/SUM(distinct(1/(POWER("
-    +datatable+".error,2)))))";
+    +datatable+".error,2))))), sum("+datatable+".n) ";
+
   
   TString run_quality =  Form("(%s.run_quality_id = '1') ",
 			   datatable.Data());
@@ -51,6 +92,66 @@ TString get_query(TString detector, TString measurement, TString ihwp, Double_t 
   return query;
 }
 
+
+//***************************************************
+//***************************************************
+//         get number of patterns from mdallbars                 
+//***************************************************
+//***************************************************
+
+Double_t get_patterns(TString detector, TString measurement, TString ihwp, Double_t slug_number){
+
+ 
+  Bool_t ldebug = false;
+  Bool_t status = true;
+
+  TString datatable= "md_data_view";
+  Double_t patterns=0;
+
+  
+  TString output = "sum("+datatable+".n)";  
+  TString run_quality =  Form("(%s.run_quality_id = '1') ",datatable.Data());
+  TString regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = '%s' ",datatable.Data(),datatable.Data(),reg_set.Data()); 
+  TString slug_cut =  Form("%s.slug = %f",datatable.Data(),slug_number);
+  
+  /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
+  TString query =" SELECT " +output+ " FROM "+datatable+", slow_controls_settings WHERE "
+    +datatable+".runlet_id =  slow_controls_settings.runlet_id AND "
+    +datatable+".detector = '"+detector+"' AND "+datatable+".subblock = 0 AND "
+    +datatable+".measurement_type = 'a' AND target_position = '"+target+"' AND "
+    +regression+" AND "+run_quality+" AND "
+    +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "+slug_cut+" AND "
+    +datatable+".error != 0 and "+qtor_current+"; ";
+  
+  if(ldebug) std::cout<<query<<std::endl;
+  
+  TSQLStatement* stmt = db->Statement(query,100);
+  if(!stmt)  {
+    db->Close();
+    exit(1);
+  }
+  // process statement
+  if (stmt->Process()) {
+    // store result of statement in buffer
+    stmt->StoreResult();
+    
+    while (stmt->NextResultRow()) {
+      if(stmt->IsNull(0)){
+	std::cout<<"# of events are NULL skipping this slug.."<<slug_number<<std::endl;
+	Myfile<<"# of events are NULL skipping this slug.."<<slug_number<<std::endl;
+	status= false;
+	return status;
+      }else{
+	patterns = (Double_t)(stmt->GetDouble(0));
+	if(ldebug) printf(" Slug = %f Patterns = %f\n", slug_number,patterns);
+	Myfile<<setw(10)<<"mdallabrs "<<" ihwp "<<setw(4)<<ihwp
+	      <<setw(5)<<" patterns in mdallbars ="<<setw(10)<<patterns<<std::endl;
+      }
+    }
+    delete stmt;    
+  }
+  return patterns;
+}
 
 //***************************************************
 //***************************************************
@@ -96,6 +197,57 @@ Bool_t get_octant_data(TString devicelist[],TString ihwp, Double_t slug_number,
 	    Myfile<<setw(10)<<devicelist[i]<<" ihwp "<<setw(4)<<ihwp
 		  <<setw(5)<<" value ="<<setw(10)<<value[i]
 		<<" +- "<<setw(10)<<error[i]<<std::endl;
+	  }
+	}
+      }
+      delete stmt;    
+  }
+  return status;
+}
+
+//***************************************************
+//***************************************************
+//         get data for parameter                 
+//***************************************************
+//***************************************************
+
+
+Bool_t get_data(TString devicelist[],TString measurements[], TString ihwp, Double_t slug_number, 
+		     Double_t value[], Double_t error[])
+{
+  Bool_t ldebug = false;
+  Bool_t status = false;
+
+  Int_t k = 6;
+  for(Int_t i=1 ; i<3 ;i++){
+    if(ldebug) {
+      printf("Getting data for %20s ihwp %5s ", devicelist[i].Data(), ihwp.Data());
+    }
+    TString query = query_regressed("beam_view",devicelist[i],measurements[i],ihwp, slug_number);
+    TSQLStatement* stmt = db->Statement(query,100);
+    if(!stmt)  {
+      db->Close();
+      exit(1);
+    }
+       // process statement
+      if (stmt->Process()) {
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	while (stmt->NextResultRow()) {
+	  if(stmt->IsNull(0)){
+	    std::cout<<"Value is NULL skipping this slug.."<<slug_number<<std::endl;
+	    Myfile<<"Value is NULL skipping this slug.."<<slug_number<<std::endl;
+	    status= false;
+	    return status;
+	  }else{
+	    value[i] = (Double_t)(stmt->GetDouble(0))*1e6; // convert to  ppm/nm
+	    error[i] = (Double_t)(stmt->GetDouble(1))*1e6; // ppm/nm
+	    if(value[i]==NULL){
+	      std::cout<<"Value is NULL and error is NULL; Probably wrong IHWP status. exiting.."<<std::endl;
+	      exit(1);
+	    }
+	    if(ldebug) printf(" value = %16.8lf +- %10.8lf [ppm]\n", value[i], error[i]);
 	  }
 	}
       }

@@ -102,7 +102,7 @@ void QwRayTracer::DefineOptions(QwOptions& options)
       "Runge-Kutta step size [cm]");
   // Step size of Newton's method in momentum
   options.AddOptions("Momentum reconstruction")("QwRayTracer.momentum_step",
-      po::value<float>(0)->default_value(10.0),
+      po::value<float>(0)->default_value(30.0),
       "Newton's method momentum step [MeV]");
   // Step size of Newton's method in position
   options.AddOptions("Momentum reconstruction")("QwRayTracer.position_resolution",
@@ -144,7 +144,7 @@ const QwTrack* QwRayTracer::Bridge(
   TVector3 start_direction = front->GetMomentumDirection();
 
   // Back track position and direction
-  TVector3 end_position = back->GetPosition(250.0 * Qw::cm);
+  TVector3 end_position = back->GetPosition(580.0 * Qw::cm);
   TVector3 end_direction = back->GetMomentumDirection();
 
   TVector3 position = start_position;
@@ -155,6 +155,9 @@ const QwTrack* QwRayTracer::Bridge(
   int mode=0;
   int iterations_newton = 0;
   int iterations_rungekutta = 0;
+
+  //std::cout<<"---"<<std::endl;
+
   while (fabs(positionRoff) >= fPositionResolution
       && iterations_newton < MAX_ITERATIONS_NEWTON) {
     ++iterations_newton;
@@ -175,17 +178,26 @@ const QwTrack* QwRayTracer::Bridge(
       r[1] = position.Perp();
     }
 
+    //std::cout<<"iteration "<<iterations_newton<<": Delta_P="<<fMomentumStep<<", r="<<end_position.Perp()<<", r[0]="<<r[0]<<", r[1]="<<r[1]<<std::endl;
     // Correction = f(momentum)
     if (r[0] != r[1]){
-      if(r[1]>end_position.Perp() || r[0]<end_position.Perp()){
+ //     if(r[1]>end_position.Perp() || r[0]<end_position.Perp())
+      {
         momentum[1] = momentum[0] - fMomentumStep * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
-      } else {
+        //std::cout<<"mode 0: momentum[0]="<<momentum[0]<<", momentum[1]="<<momentum[1]<<std::endl;
+      }
+/*      
+      else 
+      {
         mode=1;
         if (positionRoff < 0)
           momentum[1] = momentum[0] - 0.001;
         else
           momentum[1] = momentum[0] + 0.001;
+
+        std::cout<<"mode 1: momentum[0]="<<momentum[0]<<", momentum[1]="<<momentum[1]<<std::endl;
       }
+*/      
     }
 
     // p1
@@ -241,6 +253,8 @@ const QwTrack* QwRayTracer::Bridge(
     IntegrateRK(position, direction, momentum[0], end_position.Z(), 5, fIntegrationStep);
     track->fEndPositionActualRKF45 = position;
     track->fEndDirectionActualRKF45 = direction;
+
+    //std::cout<<"radial position of end point: "<<position.Perp()<<", momentum: "<<momentum[0]<<std::endl;
 
     // Let front partial track determine the package and octant
     track->SetPackage(front->GetPackage());
