@@ -78,6 +78,10 @@
 // Enabled auto-selection of single PE calibration for different periods of tracking runs
 // added in function to find out the parameters of matching angle residuals automatically
 // instead of finding and filling in these parameters manually.
+
+// jpan, Mon Nov  5 10:07:04 CST 2012
+// Added Q2 vs. reconstructed momentum correlation plots and radial distributions of Q2,
+// light, and light-weighted Q2 as requested by D. Mack.
  
 #include <iostream>
 #include <iomanip>
@@ -532,12 +536,19 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TProfile2D* weighted_q2_dist1 = new TProfile2D("weighted_q2_dist1",Form("Run %d, Light-weighted Q2 Distribution in Oct %d",run,md_1),480,-120,120,100,310,360);
     TProfile2D* weighted_q2_dist2 = new TProfile2D("weighted_q2_dist2",Form("Run %d, Light-weighted Q2 Distribution in Oct %d",run,md_2),480,-120,120,100,310,360);
 
-    TProfile* q2_vs_x1 = new TProfile("q2_vs_x1",Form("Run %d, Q2 vs. X in Oct %d",run,md_1),480,-120,120);
-    TProfile* q2_vs_x2 = new TProfile("q2_vs_x2",Form("Run %d, Q2 vs. X in Oct %d",run,md_2),480,-120,120);
-    TProfile* light_vs_x1 = new TProfile("light_vs_x1",Form("Run %d, Light vs. X in Oct %d",run,md_1),480,-120,120);
-    TProfile* light_vs_x2 = new TProfile("light_vs_x2",Form("Run %d, light vs. X in Oct %d",run,md_2),480,-120,120);
-    TProfile* weighted_q2_vs_x1 = new TProfile("weighted_q2_vs_x1",Form("Run %d, Light-weighted Q2 vs. X in Oct %d",run,md_1),480,-120,120);
-    TProfile* weighted_q2_vs_x2 = new TProfile("weighted_q2_vs_x2",Form("Run %d, Light-weighted Q2 vs. X in Oct %d",run,md_2),480,-120,120);
+    TProfile* q2_vs_x1 = new TProfile("q2_vs_x1",Form("Run %d, Q2 vs. X in Oct %d",run,md_1),240,-120,120);
+    TProfile* q2_vs_x2 = new TProfile("q2_vs_x2",Form("Run %d, Q2 vs. X in Oct %d",run,md_2),240,-120,120);
+    TProfile* light_vs_x1 = new TProfile("light_vs_x1",Form("Run %d, Light vs. X in Oct %d",run,md_1),240,-120,120);
+    TProfile* light_vs_x2 = new TProfile("light_vs_x2",Form("Run %d, light vs. X in Oct %d",run,md_2),240,-120,120);
+    TProfile* weighted_q2_vs_x1 = new TProfile("weighted_q2_vs_x1",Form("Run %d, Light-weighted Q2 vs. X in Oct %d",run,md_1),240,-120,120);
+    TProfile* weighted_q2_vs_x2 = new TProfile("weighted_q2_vs_x2",Form("Run %d, Light-weighted Q2 vs. X in Oct %d",run,md_2),240,-120,120);
+
+    TProfile* q2_vs_y1 = new TProfile("q2_vs_y1",Form("Run %d, Q2 vs. Y in Oct %d",run,md_1),120,335-20,335+20);
+    TProfile* q2_vs_y2 = new TProfile("q2_vs_y2",Form("Run %d, Q2 vs. Y in Oct %d",run,md_2),120,335-20,335+20);
+    TProfile* light_vs_y1 = new TProfile("light_vs_y1",Form("Run %d, Light vs. Y in Oct %d",run,md_1),120,335-20,335+20);
+    TProfile* light_vs_y2 = new TProfile("light_vs_y2",Form("Run %d, light vs. Y in Oct %d",run,md_2),120,335-20,335+20);
+    TProfile* weighted_q2_vs_y1 = new TProfile("weighted_q2_vs_y1",Form("Run %d, Light-weighted Q2 vs. Y in Oct %d",run,md_1),120,335-20,335+20);
+    TProfile* weighted_q2_vs_y2 = new TProfile("weighted_q2_vs_y2",Form("Run %d, Light-weighted Q2 vs. Y in Oct %d",run,md_2),120,335-20,335+20);
 
    // Fetch events from tree
     for(int i=start;i<end;i++)  // start to loop over all events
@@ -886,6 +897,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 q2_vs_x1->Fill(y,Q2_val);
                 light_vs_x1->Fill(y,total_num_pe);
                 weighted_q2_vs_x1->Fill(y,Q2_val,total_num_pe);
+
+                q2_vs_y1->Fill(x,Q2_val);
+                light_vs_y1->Fill(x,total_num_pe);
+                weighted_q2_vs_y1->Fill(x,Q2_val,total_num_pe);
+
 	   }
          else if(package==2 ) 
            {
@@ -947,6 +963,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 q2_vs_x2->Fill(y,Q2_val);
                 light_vs_x2->Fill(y,total_num_pe);
                 weighted_q2_vs_x2->Fill(y,Q2_val,total_num_pe);
+
+                q2_vs_y2->Fill(x,Q2_val);
+                light_vs_y2->Fill(x,total_num_pe);
+                weighted_q2_vs_y2->Fill(x,Q2_val,total_num_pe);
+
 	   }
 
       } // end of loop over tracks
@@ -1367,32 +1388,66 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     weighted_q2_vs_x2->GetXaxis()->SetTitle("X [cm]");
 
     // canvas 9
-    TCanvas* c9=new TCanvas("c9","Reconstructed Momentum Distributions",1000,800);
+    TCanvas* c9=new TCanvas("c9","1D distributions of #PE and Q2",800,600);
     c9->Divide(2,3);
 
     c9->cd(1);
+    light_vs_y1->Draw();
+    light_vs_y1->GetYaxis()->SetTitle("#PE");
+    light_vs_y1->GetXaxis()->SetTitle("Y [cm]");
+
+    c9->cd(2);
+    light_vs_y2->Draw();
+    light_vs_y2->GetYaxis()->SetTitle("#PE");
+    light_vs_y2->GetXaxis()->SetTitle("Y [cm]");
+
+    c9->cd(3);
+    q2_vs_y1->Draw();
+    q2_vs_y1->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}]");
+    q2_vs_y1->GetXaxis()->SetTitle("Y [cm]");
+
+    c9->cd(4);
+    q2_vs_y2->Draw();
+    q2_vs_y2->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}]");
+    q2_vs_y2->GetXaxis()->SetTitle("Y [cm]");
+
+    c9->cd(5);
+    weighted_q2_vs_y1->Draw("colz");
+    weighted_q2_vs_y1->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}]");
+    weighted_q2_vs_y1->GetXaxis()->SetTitle("Y [cm]");
+
+    c9->cd(6);
+    weighted_q2_vs_y2->Draw();
+    weighted_q2_vs_y2->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}]");
+    weighted_q2_vs_y2->GetXaxis()->SetTitle("Y [cm]");
+
+    // canvas 10
+    TCanvas* c10=new TCanvas("c10","Reconstructed Momentum Distributions",1000,800);
+    c10->Divide(2,3);
+
+    c10->cd(1);
     histo_momentum[0]->Draw();
     histo_momentum[0]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
 
-    c9->cd(3);
+    c10->cd(3);
     histo_momentum[1]->Draw();
     histo_momentum[1]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
 
-    c9->cd(5);
+    c10->cd(5);
     histo_momentum[2]->Draw();
     histo_momentum[2]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
 
-    c9->cd(2);
+    c10->cd(2);
     q2_vs_momentum[0]->Draw();
     q2_vs_momentum[0]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
     q2_vs_momentum[0]->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}] [MeV]");
 
-    c9->cd(4);
+    c10->cd(4);
     q2_vs_momentum[1]->Draw();
     q2_vs_momentum[1]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
     q2_vs_momentum[1]->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}] [MeV]");
 
-    c9->cd(6);
+    c10->cd(6);
     q2_vs_momentum[2]->Draw();
     q2_vs_momentum[2]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
     q2_vs_momentum[2]->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}] [MeV]");
@@ -1578,6 +1633,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c7->Write();
     c8->Write();
     c9->Write();
+    c10->Write();
 
     //save histograms
     hit_dist1->Write();
@@ -1604,6 +1660,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         histo_md1_pe[i]->Write();
         histo_md2_pe[i]->Write();
         histo_momentum[i]->Write();
+        q2_vs_momentum[i]->Write();
     }
 
     histo_tdc1m->Write();
@@ -1628,6 +1685,13 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     q2_vs_x2->Write();
     weighted_q2_vs_x1->Write();
     weighted_q2_vs_x2->Write();
+
+    light_vs_y1->Write();
+    light_vs_y2->Write();
+    q2_vs_y1->Write();
+    q2_vs_y2->Write();
+    weighted_q2_vs_y1->Write();
+    weighted_q2_vs_y2->Write();
 
     hist_file->Close();
 
