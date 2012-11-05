@@ -6,3 +6,56 @@ correct_bars.C
 This macro connects to a given data base and fits the data for the given run range option and extracts the magnitude of the azimuthal modulation and then corrects each bar to remove that effect.
 
 The saved plot showes the corrected and uncorrected asymmetries and fits.
+
+11/05/2012 B.Waidyawansa
+------------------
+trans_leakage.C
+==================
+This macro calculate the leakage of transverse asymmetry in to PV asymmetry, given residual transverse polarization and 
+leakge at 100% transverse
+
+Leakage at 100% transverse C_v = 0.008 +- 0.072 ppm
+                           C_h = 0.004 +- 0.064 ppm
+
+
+Leakage is defined as leakage_long = |C_v*P_v|+|C_h*P_h|
+error on leakage = sqrt( (P_v*dC_v)^2+(C_v*dP_v)^2 + (P_h*dC_h)^2 + (C_h*dP_h)^2  )
+
+
+------------------
+ResidualTransvsersDistributions.C
+==================
+This macro calculates the residual transverse polarization in the beam using AVG(IN-OUT) from consecative
+slugs and creates a .txt file with PV and PH for a given Wien. 
+Consecative IN, OUT slugs are read from a input text file store in the parent directory names wien*.txt (* = number).
+To run this do:
+./residual_transverse_distributions <wien> <database (optiona)>
+ 
+wien represents the textfile that contains the list of IN and OUT slugs. For e.g. wien0.txt.
+To run this macro on the wien0.txt slugs do
+./residual_transverse_distributions 0 
+
+The default database is qw_run2_pass1. 
+
+The extracted residual polarization values are stored in a text file of the form:e.g.
+ wien1_elastic_8901_longitudinal_HYDROGEN-CELL_residual_distributions_on_5+1_from_run2_pass1.txt
+
+------------------
+DrawResTransFromFile.C
+==================
+
+A Macro to draw transverse correction histograms using inputs from the text file output of ResidualTransvsersDistributions.C
+(need to adjust the format a bit before using it though)
+To run.
+.L DrawTCorrectionHistoFromFile.C+g
+ DrawWtdHistograms(filename) {to draw histograms weighted by good number of patterns in mdallbars}
+or
+ DrawUWtdHistograms(filename) {to draw histograms unweighted}
+
+ *filename* is the name of the text file containint the information.
+The txt file should have the following format:
+    in slug, out slug, entries,Pv, dPv, Ph,dPh, C, dC, reduced chi square
+
+As a first attempt, only Pv, Ph, reduced chi-square and the correction histograms are drawn.
+
+Correction is calculated based on the equations in elog https://qweak.jlab.org/elog/Analysis+%26+Simulation/758
