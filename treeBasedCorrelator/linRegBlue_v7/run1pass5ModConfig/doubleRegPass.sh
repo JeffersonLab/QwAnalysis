@@ -6,7 +6,8 @@ iseg=$2
 
 src_dir=`pwd`/..
 
-logPath='./out/'
+#logPath='./out/'
+logPath='/work/hallc/qweak/QwAnalysis/run1/pass5regression/bmod_regression/lrb_bmod/out/'
 mxEve=2223344
 
 seg=00$iseg
