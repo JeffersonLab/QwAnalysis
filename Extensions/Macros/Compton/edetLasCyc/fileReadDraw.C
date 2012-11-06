@@ -1,6 +1,6 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
-#include "maskedStrips.C"
+#include "rhoToX.C"
 
 Int_t fileReadDraw(Int_t runnum) 
 {
@@ -39,7 +39,7 @@ Int_t fileReadDraw(Int_t runnum)
   std::vector<std::vector <Float_t> > stripNum2,scalerB1L1,scalerB1L0,bkgdSubscalerB1;
 
   Float_t qNormAccumB1H0L0[nPlanes][nStrips][100],qNormAccumB1H0L1[nPlanes][nStrips][100],qNormAccumB1H1L0[nPlanes][nStrips][100],qNormAccumB1H1L1[nPlanes][nStrips][100];
-  Float_t qNormAccumB1L0[nPlanes][nStrips][100],qNormScalerB1L0[nPlanes][nStrips][100];
+  Float_t qNormAccumB1L0[nPlanes][nStrips][100];//,qNormScalerB1L0[nPlanes][nStrips][100];
 
   Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
   Float_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
@@ -274,7 +274,7 @@ Int_t fileReadDraw(Int_t runnum)
 	cout<<"Reading the expAsym corresponding to PWTL2 for Plane "<<p+1<<endl;
 	if(debug) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsym_v2\t"<<"asymDiff"<<endl;
 	for(Int_t s =startStrip ; s < endStrip; s++) {
-	  if (maskedStrips(p,s)) continue;
+	  if (!mask[p][s]) continue;
 	  expAsymPWTL1>>stripNum[p][s]>>stripAsym[p][s]>>stripAsymEr[p][s];
 	  expAsymPWTL2>>stripNum[p][s]>>stripAsym_v2[p][s]>>stripAsymEr_v2[p][s];
 	  asymDiff[p][s] = (stripAsym[p][s]- stripAsym_v2[p][s]);
@@ -391,7 +391,7 @@ Int_t fileReadDraw(Int_t runnum)
 
     for(Int_t p =startPlane; p <endPlane; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
-	if (maskedStrips(p,s)) continue; //currently only for plane 1	
+	if (!mask[p][s]) continue; //currently only for plane 1	
  	lasCycAccum.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
 	Int_t nLasCycles=0;
 	if(lasCycAccum.is_open()) {
@@ -541,6 +541,7 @@ Int_t fileReadDraw(Int_t runnum)
     Float_t qNormScalerB1H0L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H0L1[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L1[nPlanes][nStrips][maxLasCycles];
     TGraph *lasCycPlotSc[endStrip];
     TCanvas *cScalerLC1 = new TCanvas("cScalerLC1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1200,1200);
+    Double_t qNormScalerB1L0[nPlanes][nStrips][maxLasCycles];
 //     TCanvas *cScalerLC2 = new TCanvas("cScalerLC2",Form("scaler counts per laser cycle for strips 17-32"),20,10,1200,1200);
 //     TCanvas *cScalerLC3 = new TCanvas("cScalerLC3",Form("scaler counts per laser cycle for strips 33-48"),40,20,1200,1200);
 //     TCanvas *cScalerLC4 = new TCanvas("cScalerLC4",Form("scaler counts per laser cycle for strips 49-64"),60,30,1200,1200);
@@ -552,7 +553,7 @@ Int_t fileReadDraw(Int_t runnum)
 
     for(Int_t p =startPlane; p <endPlane; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
-	if (maskedStrips(p,s)) continue; //currently only for plane 1	
+	if (!mask[p][s]) continue; //currently only for plane 1	
  	lasCycScaler.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
 	Int_t nLasCycles=0;
 	if(lasCycScaler.is_open()) {
@@ -726,7 +727,7 @@ Int_t fileReadDraw(Int_t runnum)
       filePrefix3= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
 	for(Int_t s=startStrip;s<endStrip;s++) {
-	  if (maskedStrips(p,s)) continue; //!!currently only for plane 1	
+	  if (!mask[p][s]) continue; //!!currently only for plane 1	
 	  scalerRate.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1));
 	  if (scalerRate.is_open()) {
 	    Int_t nLasCycles=0;
@@ -770,7 +771,7 @@ Int_t fileReadDraw(Int_t runnum)
 	if(debug2)printf("qNormScB1\tqNormScL1\tqNormScL0\tnumber for chosenCyc#\n");
 	for(Int_t pl =startPlane; pl <endPlane; pl++) {//!!this is currently valid for only plane 1
 	  for(Int_t s=startStrip;s<endStrip;s++) {
-	    if (maskedStrips(pl,s)) continue; //!!currently only for plane 1	
+	    if (!mask[pl][s]) continue; 
 	    qNormScB1[pl][s][n] = qNormScalerB1[pl][s][chosenCyc-1];//!note that only one laser cycle is used
 	    qNormScL1[pl][s][n] = qNormScalerB1L1[pl][s][chosenCyc-1];//!note that only one laser cycle is used
 	    qNormScL0[pl][s][n] = qNormScalerB1L0[pl][s][chosenCyc-1];//!note that only one laser cycle is used

@@ -6,7 +6,7 @@
 #include <rootClass.h>
 #include "expAsym.C"
 #include "comptonRunConstants.h"
-#include "maskedStrips.C"
+#include "rhoToX.C"
 
 // Double_t theoryAsym(Double_t strip)
 // {
@@ -276,7 +276,7 @@ void asymFit(Int_t runnum)
       if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
       if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
       for(Int_t s =startStrip ; s < endStrip; s++) {
-	if (maskedStrips(p,s)) continue;
+	if (!mask[p][s]) continue;
 	expAsymPWTL1>>stripNum[p][s]>>stripAsym[p][s]>>stripAsymEr[p][s];
 	if(debug2) cout<<stripNum[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<endl;
       }
@@ -285,7 +285,7 @@ void asymFit(Int_t runnum)
     else cout<<"did not find the expAsym file "<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
     
     for (Int_t s = startStrip; s < endStrip; s++) {
-      if (maskedStrips(p,s)) continue;
+      if (!mask[p][s]) continue;
       fitResidue[p][s] = stripAsym[p][s] - polFit->Eval(s+1);
     }
 
@@ -308,7 +308,7 @@ void asymFit(Int_t runnum)
       if(debug2) cout<<"Reading the Yield corresponding to Plane "<<p+1<<endl;
       if(debug2) cout<<"stripNum\t"<<"stripYield\t"<<"stripYieldEr"<<endl;
       for(Int_t s =startStrip ; s < endStrip; s++) {
-	if (maskedStrips(p,s)) continue;
+	if (!mask[p][s]) continue;
 	infileYield>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
 	if(debug2) cout<<stripNum[p][s]<<"\t"<<stripAsymDr[p][s]<<"\t"<<stripAsymDrEr[p][s]<<endl;
       }

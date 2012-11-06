@@ -28,6 +28,7 @@ const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' i
 //Hardware related constants
 const Int_t nStrips = 64;//96;
 const Int_t nPlanes = 4;
+const Int_t nModules = 2;//number of slave boards
 const Float_t stripWidth = 2.0E-4;
 const Float_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
 //const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
@@ -37,7 +38,7 @@ const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
 const Int_t minEntries = 5000; //Laser must be (off) for at least this many consecutive entries to be considered (off)
 const Double_t th_det = 10.08;//based on elog399; 10.3;//angle at which the diamond detector is inclined towards the beam (deg)
 ///Run constants
-const Bool_t v2processed=1;  //kFALSE;
+const Bool_t v2processed=0;  //kFALSE;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t acceptLasPow = 120000;
 /* const Double_t beamFracHi = 0.78;//this was for most of the auto-analysis of run2 */
@@ -51,16 +52,14 @@ const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
 const Int_t PREV_N_ENTRIES = 5000;//# of mps's to wait after beam trip
 const Double_t ignoreBeamAbove = 195.0;
 //const Double_t ignoreLasPowAbove = 195.0;
-const Int_t IHWP=-1;///-1:in; 1:out
 const Double_t MpsRate = 960.015;
 const Double_t lowCurrentLimit = 65.0;
 
 //following numbers are all in C++ counting(start at 0)
-//const Int_t mystr = 40; //a random strip for testing my script
 const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 3;
+  const Int_t endPlane = 1;
 const Int_t masked[3]={3,3,4};///no.of masked strips in the 3 active planes
 
 Double_t Cedge[nPlanes];
@@ -68,6 +67,10 @@ Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;
 Float_t k;
 Float_t gamma_my;
+
+Int_t mask[nPlanes][nStrips];  
+Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
+ 
 
 /* const Int_t Cedge_p1 = 59;///Compton-edge for the current run(counting from 0) */
 /* const Int_t Cedge_p2 = 59;///Compton-edge for the current run(counting from 0) */
