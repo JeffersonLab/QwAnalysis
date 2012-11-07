@@ -1,0 +1,70 @@
+!
+!
+!
+ROC=2
+Bank=0x0202
+!
+! same sample size for ADCs in a given bank
+!
+!for 960Hz
+sample_size=464  
+!sample_size=480
+!
+!
+!
+! physical module/channel
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 2, 0,  IntegrationPMT,  qwk_md1neg
+  VQWK, 2, 1,  IntegrationPMT,  qwk_md2neg
+  VQWK, 2, 2,  IntegrationPMT,  qwk_md3neg
+  VQWK, 2, 3,  IntegrationPMT,  qwk_md4neg
+  VQWK, 2, 4,  IntegrationPMT,  qwk_md5neg
+  VQWK, 2, 5,  IntegrationPMT,  qwk_md6neg
+  VQWK, 2, 6,  IntegrationPMT,  qwk_md7neg
+  VQWK, 2, 7,  IntegrationPMT,  qwk_md8neg
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 3, 0,  IntegrationPMT,  qwk_md1pos
+  VQWK, 3, 1,  IntegrationPMT,  qwk_md2pos
+  VQWK, 3, 2,  IntegrationPMT,  qwk_md3pos
+  VQWK, 3, 3,  IntegrationPMT,  qwk_md4pos
+  VQWK, 3, 4,  IntegrationPMT,  qwk_md5pos
+  VQWK, 3, 5,  IntegrationPMT,  qwk_md6pos
+  VQWK, 3, 6,  IntegrationPMT,  qwk_md7pos
+  VQWK, 3, 7,  IntegrationPMT,  qwk_md8pos
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 4, 0,  IntegrationPMT,  qwk_PMTLED,		NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 4, 1,  IntegrationPMT,  qwk_PMTONL,		NOT_BLINDABLE
+  VQWK, 4, 2,  IntegrationPMT,  qwk_PMTLTG,		NOT_BLINDABLE
+  VQWK, 4, 3,  IntegrationPMT,  qwk_md9neg,		NOT_BLINDABLE
+  VQWK, 4, 4,  IntegrationPMT,  qwk_md9pos,		NOT_BLINDABLE
+  VQWK, 4, 5,  IntegrationPMT,  qwk_ISourc,		NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 4, 6,  IntegrationPMT,  qwk_Preamp,		NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 4, 7,  IntegrationPMT,  qwk_CageSr,		NOT_BLINDABLE,  NOT_NORMALIZABLE
+!
+!
+!
+! "virtual" channels for PMT combination, it supports any combination of physical channels
+! when naming the DetName, do not use arithmetic and logic operators, such as +,-, &, and so on
+!
+! ModuleType, Chan#, NumberOfCombinedChan's, DetType, DetName, PhysicalChanNames, WeightNumbers,
+  VPMT, 1, 2, CombinationPMT, qwk_md1barsum, qwk_md1pos, qwk_md1neg, 66.9904538603249, 67.4140639220154
+  VPMT, 2, 2, CombinationPMT, qwk_md2barsum, qwk_md2pos, qwk_md2neg, 59.2441629688435, 95.8469515877048
+  VPMT, 3, 2, CombinationPMT, qwk_md3barsum, qwk_md3pos, qwk_md3neg, 109.85848030567, 61.8612822606587
+  VPMT, 4, 2, CombinationPMT, qwk_md4barsum, qwk_md4pos, qwk_md4neg, 70.6005280919501, 105.929285845941
+  VPMT, 5, 2, CombinationPMT, qwk_md5barsum, qwk_md5pos, qwk_md5neg, 59.039893255873, 74.8094229949204
+  VPMT, 6, 2, CombinationPMT, qwk_md6barsum, qwk_md6pos, qwk_md6neg, 80.0448251020571, 68.474859455351
+  VPMT, 7, 2, CombinationPMT, qwk_md7barsum, qwk_md7pos, qwk_md7neg, 69.6378830083566, 81.8123062070997
+  VPMT, 8, 2, CombinationPMT, qwk_md8barsum, qwk_md8pos, qwk_md8neg, 60.5873336120351, 65.6892112039519
+ VPMT, 9, 4, CombinationPMT, qwk_md1_qwk_md5, qwk_md1pos, qwk_md1neg, qwk_md5pos, qwk_md5neg, 66.9904538603249, 67.4140639220154, 59.039893255873, 74.8094229949204
+  VPMT, 10, 4, CombinationPMT, qwk_md2_qwk_md6, qwk_md2pos, qwk_md2neg, qwk_md6pos, qwk_md6neg, 59.2441629688435, 95.8469515877048, 80.0448251020571, 68.474859455351
+  VPMT, 11, 4, CombinationPMT, qwk_md3_qwk_md7, qwk_md3pos, qwk_md3neg, qwk_md7pos, qwk_md7neg, 109.85848030567, 61.8612822606587, 69.6378830083566, 81.8123062070997
+  VPMT, 12, 4, CombinationPMT, qwk_md4_qwk_md8, qwk_md4pos, qwk_md4neg, qwk_md8pos, qwk_md8neg, 70.6005280919501, 105.929285845941, 60.5873336120351, 65.6892112039519
+  VPMT, 13, 8, CombinationPMT, qwk_mdoddbars, qwk_md1neg, qwk_md1pos, qwk_md3neg, qwk_md3pos, qwk_md5neg, qwk_md5pos, qwk_md7neg, qwk_md7pos, 67.4140639220154, 66.9904538603249, 61.8612822606587, 109.85848030567, 74.8094229949204, 59.039893255873, 81.8123062070997, 69.6378830083566
+  VPMT, 14, 8, CombinationPMT, qwk_mdevenbars, qwk_md2neg, qwk_md2pos, qwk_md4neg, qwk_md4pos, qwk_md6neg, qwk_md6pos, qwk_md8neg, qwk_md8pos, 95.8469515877048, 59.2441629688435, 105.929285845941, 70.6005280919501, 68.474859455351, 80.0448251020571, 65.6892112039519, 60.5873336120351
+  VPMT, 15, 16, CombinationPMT, qwk_mdallbars, qwk_md1neg, qwk_md1pos, qwk_md2neg, qwk_md2pos, qwk_md3neg, qwk_md3pos, qwk_md4neg, qwk_md4pos, qwk_md5neg, qwk_md5pos, qwk_md6neg, qwk_md6pos, qwk_md7neg, qwk_md7pos, qwk_md8neg, qwk_md8pos, 67.4140639220154, 66.9904538603249, 95.8469515877048, 59.2441629688435, 61.8612822606587, 109.85848030567, 105.929285845941, 70.6005280919501, 74.8094229949204, 59.039893255873, 68.474859455351, 80.0448251020571, 81.8123062070997, 69.6378830083566, 65.6892112039519, 60.5873336120351
+  VPMT, 16, 2, CombinationPMT, qwk_md9barsum, qwk_md9pos, qwk_md9neg, 369.960673180441, 107.474184700835, NOT_BLINDABLE
+!
+!END
