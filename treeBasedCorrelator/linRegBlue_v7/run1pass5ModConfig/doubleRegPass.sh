@@ -3,11 +3,11 @@
 run=$1
 iseg=$2
 
-
-src_dir=`pwd`/..
+scriptPath=`dirname $0`
+src_dir=${scriptPath}/..
 
 #logPath='./out/'
-logPath='/work/hallc/qweak/QwAnalysis/run1/pass5regression/bmod_regression/lrb_bmod/out/'
+logPath='/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/lrb_bmod/out'
 mxEve=2223344
 
 seg=00$iseg
@@ -87,7 +87,6 @@ if [ $? -ne 0 ] ; then
    echo abandon this run
    exit
 fi
-
 
 #mv out $destDir
 date
