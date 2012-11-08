@@ -164,7 +164,6 @@ Int_t MakeSlugMPS(
 			LoadRootFile(rootfilename, tree);
 		}
 
-		return -1;
 
 		Double_t bcmforcuts = 0; 
 		Double_t previousbcm = 0;

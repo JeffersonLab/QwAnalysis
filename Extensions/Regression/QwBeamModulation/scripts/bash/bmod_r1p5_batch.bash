@@ -13,21 +13,21 @@ scriptPath=`pwd`
 
 dbName="qw_test_20120720"
 
-export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
-export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/
-. $QWANALYSIS/SetupFiles/SET_ME_UP.bash # >& /dev/null
+#export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+#export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/
+#. $QWANALYSIS/SetupFiles/SET_ME_UP.bash # >& /dev/null
 
-export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
-#export QW_ROOTFILES=/scratch/jhoskins/scratch/rootfiles
-#export BMOD_OUT=`pwd`/output
+#export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
 
-export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run1/pass5regression/bmod_regression/output
+echo "QW_ROOTFILES=$QW_ROOTFILES"
+
+export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/output/
 
 run_number=$1
 fseg=$2
 
 file_stem=" --file-stem QwPass5 "
-ramp_pedestal=" --ramp-pedestal 0 "
+ramp_pedestal=" --ramp-pedestal 10 "
 config_dir="config"
 
 #
@@ -158,8 +158,8 @@ if [[ -n "$PERL5LIB" ]]; then
 else
     export PERL5LIB=${scriptPath}
 fi
-echo ${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath} ${REGRESSION}
+echo ${scriptPath}/script/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/script/bash/ ${REGRESSION}
 
-${scriptPath}/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath} ${REGRESSION}
+${scriptPath}/script/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath}/script/bash/ ${REGRESSION}
 
 done 

@@ -12,9 +12,12 @@ PATH_TO_SCRIPT=`dirname $0`
 RUN_NUM=$1
 SEG_NUM=$2
 
-SRC=\"/cache/mss/hallc/qweak/rootfiles/pass5/\"
+#SRC=\"/cache/mss/hallc/qweak/rootfiles/pass5/\"
+SRC=\"$QW_ROOTFILES/\"
 SRC_lrb=\"/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfiles/\"
 
+#DST="/volatile/hallc/qweak/smacewan/pass5prep"
+#DST_lrb="/volatile/hallc/qweak/smacewan/pass5prep"
 DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
 DST_lrb="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
 

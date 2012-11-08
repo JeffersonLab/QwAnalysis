@@ -5,6 +5,8 @@
 run=$1
 runlet=$2
 
+scriptPath=`dirname $0`
+
 if [ -z $run ]; then
     echo "Must specify run number."
     exit
@@ -18,19 +20,22 @@ fi
 if [ $runlet == "-1" ]; then
     echo "Runlet set to full."
     range="full"
+else
+    range=$runlet
 fi
 
-export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
+
+#export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
 
 DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/mps_slug"
 LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"
 DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
 
-argument="MakeSlugMPS.C++(${run},\"${runlet}\",\"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/mps_only_${run}_${range}.root\")"
+argument="${scriptPath}/MakeSlugMPS.C+(${run},\"${runlet}\",\"leaflist_run1pass5_unreg_mps.txt\",\"${DST}/mps_only_${run}_${range}.root\")"
 
-echo "root -n -q -b -l ${argument}"
+echo "${scriptPath}/root -n -q -b -l ${argument}"
 
-root -n -q -l -b ${argument} >${DST_Dbug}/run_makeslug_mps_${run}_${range}.out
+${scriptPath}/root -n -q -l -b ${argument} #> ${DST_Dbug}/run_makeslug_mps_${run}_${range}.out
 
 
 

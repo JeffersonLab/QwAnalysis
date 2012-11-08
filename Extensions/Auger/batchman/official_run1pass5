@@ -23,6 +23,7 @@ $QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --max-files-per-job 6 \
     --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/Slug/run_makeslug_mps \
     --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass5.sh \
     --post-runlet $QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5/run_makesluglet \
+    --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass5_bmod.sh \
     --rootfile-stem QwPass5_ \
     --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run1/rootfiles \
     --options "--config official_run1pass5.conf --QwDatabase.dbname qw_test_20120720" $@
