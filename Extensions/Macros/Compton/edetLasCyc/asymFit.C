@@ -201,7 +201,7 @@ void asymFit(Int_t runnum)
     chiSq[p] = polFit->GetChisquare();
     NDF[p] = polFit->GetNDF();
 
-    polList<<runnum<<"\t"<<pol[p]<<"\t"<<polEr[p]<<"\t"<<chiSq[p]<<"\t"<<NDF[p]<<"\t"<<Cedge[p]<<"\t"<<p+1<<endl;
+    polList<<runnum<<"\t"<<pol[p]*100<<"\t"<<polEr[p]*100<<"\t"<<chiSq[p]<<"\t"<<NDF[p]<<"\t"<<Cedge[p]<<"\t"<<p+1<<endl;
     cout<<"wrote the polarization relevant values to file "<<endl;
     leg[p] = new TLegend(0.101,0.8,0.4,0.9);
     leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","lpe");///I just need the name
