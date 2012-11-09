@@ -13,10 +13,6 @@ scriptPath=`pwd`
 
 dbName="qw_test_20120720"
 
-#export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
-#export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/
-#. $QWANALYSIS/SetupFiles/SET_ME_UP.bash # >& /dev/null
-
 #export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
 
 echo "QW_ROOTFILES=$QW_ROOTFILES"
@@ -100,10 +96,10 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
   echo "Read $set to be."
 
-  REG_STEM="regression${fseg}_"
-  BMOD_FILE_STEM="bmod_tree${fseg}_"
+  REG_STEM="regression${segment}_"
+  BMOD_FILE_STEM="bmod_tree${segment}_"
   DIAGNOSTIC_STEM="_diagnostic"
-  SLOPES_STEM="slopes${fseg}_"
+  SLOPES_STEM="slopes${segment}_"
   HOST=`hostname`
   
   echo "hostname is set to $HOST"
