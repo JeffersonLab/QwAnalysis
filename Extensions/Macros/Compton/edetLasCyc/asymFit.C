@@ -147,19 +147,20 @@ void asymFit(Int_t runnum)
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tplane"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
     cAsym->cd(p+1);  
-    //cAsym[p]->Modified();
     cAsym->GetPad(p+1)->SetGridx(1);
     grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
     grAsymPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");   
     grAsymPlane[p]->SetTitle();//Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
     grAsymPlane[p]->GetXaxis()->CenterTitle();
+    grAsymPlane[p]->GetXaxis()->SetLabelSize(0.06);
+    grAsymPlane[p]->GetXaxis()->SetTitleOffset(1.15);
+    grAsymPlane[p]->GetXaxis()->SetTitleSize(0.045);
+
     grAsymPlane[p]->GetYaxis()->CenterTitle();
     grAsymPlane[p]->GetYaxis()->SetLabelSize(0.06);
-    grAsymPlane[p]->GetXaxis()->SetLabelSize(0.06);
-    grAsymPlane[p]->GetXaxis()->SetTitleOffset(1.3);
-    grAsymPlane[p]->GetYaxis()->SetTitleOffset(1.3);
-    grAsymPlane[p]->GetXaxis()->SetTitleSize(0.5);
+    grAsymPlane[p]->GetYaxis()->SetTitleOffset(0.8);
+    grAsymPlane[p]->GetYaxis()->SetTitleSize(0.06);
 
     grAsymPlane[p]->SetMarkerStyle(kFullCircle);
     grAsymPlane[p]->SetLineColor(kRed);
@@ -170,9 +171,7 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]->GetXaxis()->SetLimits(1,65); 
     grAsymPlane[p]->GetXaxis()->SetNdivisions(416, kFALSE);
 
-    //cAsym->SetGridx(1); 
     grAsymPlane[p]->Draw("AP");  
-    //cAsym->Update();
     tempCedge = Cedge[p];///this should be equated before the declaration of TF1
 
     ///3 parameter fit
