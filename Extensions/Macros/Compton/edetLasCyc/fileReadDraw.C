@@ -7,14 +7,14 @@ Int_t fileReadDraw(Int_t runnum)
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
   Bool_t bkgdAsym = 1;
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
-  Bool_t yieldPlot=0;
+  Bool_t yieldPlot=1;
   Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
-  Bool_t asymComponents=0;
-  Bool_t scalerPlot=0;
-  Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotBcm=0;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotLasPow=0;
+  Bool_t asymComponents=1;
+  Bool_t scalerPlot=1;
+  Bool_t lasWisePlotAc=1;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotSc=1;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotBcm=1;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotLasPow=1;
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
   Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
 
@@ -485,10 +485,10 @@ Int_t fileReadDraw(Int_t runnum)
     lasCycBCM->GetYaxis()->SetTitle("beam (uA)");
     lasCycBCM->GetYaxis()->SetLabelSize(0.03);
     lasCycBCM->Draw("AP");
-    //legBCM[1] = new TLegend(0.7,0.83,0.9,0.94);//x1,y1,x2,y2//(0.1,0.7,0.4,0.9)
-    //legBCM[1]->AddEntry(lasCycBCM,"BCM per laser cycle","p");
-    //legBCM[1]->SetFillColor(0);
-    //legBCM[1]->Draw();
+    legBCM[1] = new TLegend(0.7,0.83,0.9,0.94);//x1,y1,x2,y2//(0.1,0.7,0.4,0.9)
+    legBCM[1]->AddEntry(lasCycBCM,"avg BCM per laser cycle","p");
+    legBCM[1]->SetFillColor(0);
+    legBCM[1]->Draw();
 
     cLasCycBCM->Update();
     cLasCycBCM->SaveAs(Form("%s/%s/%slasCycBCM.png",pPath,webDirectory,filePrefix.Data()));

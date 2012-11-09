@@ -43,10 +43,11 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
 
-  ofstream outfileLas(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
+  ofstream outfileLas,outfileBeam;
+  outfileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
   if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
 
-  ofstream outfileBeam(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
+  outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
   if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
 
   TBranch *bLaser;
@@ -78,7 +79,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 
     ////find laser off periods and record start and finish entries
     if(laser<=laserFrac*laserMax) n++;///laser is off for n consecutive entries
-    else n=0; ///laser On begins
+    else if((laser<maxLasPow)&&(laser>=0.0)) n=0; ///laser On begins ///the additional if ensures that the laser readback is not non-sensical
 
     if (n==minEntries) { ///laser has been off for minEntries/960 seconds continuously, hence consider it a valid laseroff
       cutL.push_back(index-minEntries+1);//!the +1 is needed to take care of the fact that C++ counts "index" from 0, while 'minEntries' is compared only when 'n' goes all the way from 1 to minEntries.
@@ -95,8 +96,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       }
     }
     ///    find and record electron beam off periods
-    rampIsDone = (bcm> (beamFrac*beamMax));
-    isABeamTrip = (bcm<= (beamFrac*beamMax));
+    rampIsDone = (bcm> (beamFrac*beamMax) && (bcm <200.0));
+    isABeamTrip = (bcm<= (beamFrac*beamMax) && (bcm >0.0));
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition

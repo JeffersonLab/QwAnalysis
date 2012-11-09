@@ -23,7 +23,8 @@ const Double_t stripMin = 30.0;
 const Double_t stripMax = 50.0;
 const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
-const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
+//const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
+const Double_t qNormBkgdSubSigToBkgdRatioLow = 1.0;//0.80;//!this is arbitrarily chosen by observing how it may vary
 
 //Hardware related constants
 const Int_t nStrips = 64;//96;
@@ -40,7 +41,8 @@ const Double_t th_det = 10.08;//based on elog399; 10.3;//angle at which the diam
 ///Run constants
 const Bool_t v2processed=0;  //kFALSE;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
-const Double_t acceptLasPow = 120000;
+const Double_t acceptLasPow = 120000;//typical values of sca_laser_PowT ~ 160k when On
+const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
 /* const Double_t beamFracHi = 0.78;//this was for most of the auto-analysis of run2 */
 /* const Double_t beamFracLo = 0.2;//90% of maximum beam to be considered as beamOn */
 const Double_t beamFrac = 0.6;//!temp
@@ -59,7 +61,7 @@ const Double_t lowCurrentLimit = 65.0;
 const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 1;
+  const Int_t endPlane = 3;
 const Int_t masked[3]={3,3,4};///no.of masked strips in the 3 active planes
 
 Double_t Cedge[nPlanes];

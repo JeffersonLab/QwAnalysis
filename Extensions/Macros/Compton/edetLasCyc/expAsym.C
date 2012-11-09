@@ -130,9 +130,8 @@ Int_t expAsym(Int_t runnum)
     }
   }
   //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for pass1
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass2_%d.*.root",runnum));//for pass2
-  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.000.root",runnum));//!test analysis for first runlet myQwAnalyisis output
+  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass2_%d.*.root",runnum));//for pass2
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
   cout<<"Attached "<<chainExists<<" files to chain for Run # "<<runnum<<endl;
 
   if(!chainExists){//delete chains and exit if files do not exist
@@ -591,7 +590,7 @@ Int_t expAsym(Int_t runnum)
     TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
     cStability->Divide(3,3);
     cStability->cd(1);
-    mpsChain->Draw("sca_bcm6:event_number");
+    mpsChain->Draw("sca_bcm6:event_number","sca_bcm6 < 200");
     cStability->cd(2);
     mpsChain->Draw("sca_bpm_3p02aY:event_number");
     cStability->cd(3);
@@ -608,7 +607,7 @@ Int_t expAsym(Int_t runnum)
     cStability->cd(8);
     mpsChain->Draw("sca_bpm_3p03aX:event_number");
     cStability->cd(9);
-    mpsChain->Draw("sca_laser_PowT:event_number");
+    mpsChain->Draw("sca_laser_PowT:event_number","sca_laser_PowT<180000");
 
     cStability->Update();
     cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));
