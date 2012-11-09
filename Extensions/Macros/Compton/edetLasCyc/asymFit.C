@@ -58,7 +58,7 @@ void asymFit(Int_t runnum)
   Double_t offset[nPlanes],offsetEr[nPlanes];
   Int_t NDF[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=0,debug1=1,debug2=0;
+  Bool_t debug=0,debug1=0,debug2=0;
   ifstream paramfile;
   TPaveText *pt[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
@@ -144,7 +144,7 @@ void asymFit(Int_t runnum)
   Float_t zero[nStrips];
 
   polList.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
-  polList<<";runnum\tpol\tpolEr\tchiSq\tNDF\tCedge\tplane"<<endl;
+  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tplane"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
     cAsym->cd(p+1);  
     //cAsym[p]->Modified();
@@ -201,7 +201,7 @@ void asymFit(Int_t runnum)
     chiSq[p] = polFit->GetChisquare();
     NDF[p] = polFit->GetNDF();
 
-    polList<<runnum<<"\t"<<pol[p]*100<<"\t"<<polEr[p]*100<<"\t"<<chiSq[p]<<"\t"<<NDF[p]<<"\t"<<Cedge[p]<<"\t"<<p+1<<endl;
+    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.3f\t%d\t%2.2f\t%d\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],Cedge[p],p+1);
     cout<<"wrote the polarization relevant values to file "<<endl;
     leg[p] = new TLegend(0.101,0.8,0.4,0.9);
     leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","lpe");///I just need the name
