@@ -15,13 +15,15 @@ fi
 linRegBluePath=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v7/run1pass5ModConfig
 outputPath=/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/lrb_bmod
 rootFileStem=QwPass5_
-dbName=qw_test_20120720
 
-ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $QW_ROOTFILES/${rootFileStem}$run.$seg.root 
+#dbName=qw_test_20120720
 
-  echo $linRegBluePath/doubleRegPass.sh $run $seg 
-  $linRegBluePath/doubleRegPass.sh $run $seg 
+echo "Linking rootfiles to inPath: ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $outputPath/${rootFileStem}$run.$seg.trees.root "
+ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $outputPath/${rootFileStem}$run.$seg.trees.root 
 
-if [[ -L $QW_ROOTFILES/${rootFileStem}$run.$seg.root ]] ; then
-    rm -r $QW_ROOTFILES/${rootFileStem}$run.$seg.root
+echo $linRegBluePath/doubleRegPass.sh $run $seg $outputPath
+$linRegBluePath/doubleRegPass.sh $run $seg $outputPath
+
+if [[ -L $outputPath/${rootFileStem}$run.$seg.trees.root ]] ; then
+    rm -r $outputPath/${rootFileStem}$run.$seg.trees.root
 fi
