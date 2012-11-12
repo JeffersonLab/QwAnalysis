@@ -16,11 +16,9 @@ const Float_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
 const Float_t B_dipole = 0.544;///T
 const Float_t E = 1.159; //Beam energy (GeV)
 const Float_t lambda = 532E-9; //photon wavelength (nm)      
-const Float_t xCedge = 0.0176654;
+Float_t xCedge;
 Double_t param[4];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
 const Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
-const Double_t stripMin = 30.0;
-const Double_t stripMax = 50.0;
 const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
 //const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
@@ -30,16 +28,17 @@ const Double_t qNormBkgdSubSigToBkgdRatioLow = 1.0;//0.80;//!this is arbitrarily
 const Int_t nStrips = 64;//96;
 const Int_t nPlanes = 4;
 const Int_t nModules = 2;//number of slave boards
-const Float_t stripWidth = 2.0E-4;
+const Float_t stripWidth = 2.0E-4;//(m) SI unit
 const Float_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
 //const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
-const Double_t chicaneBend = 10.131; ///(degree)
-const Double_t ldet = 1.645; ///z-distance of detector from the end of 3rd magnet(m)
+//const Double_t chicaneBend = 10.131; ///(degree)
 const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
 const Int_t minEntries = 5000; //Laser must be (off) for at least this many consecutive entries to be considered (off)
 const Double_t th_det = 10.08;//based on elog399; 10.3;//angle at which the diamond detector is inclined towards the beam (deg)
+const Double_t ldet[nPlanes] = {1.69792,1.70823,1.71855,1.72886};//1.645,; ///survey provided longitudinal distance of det-bottom from edge of 3rd dipole
+
 ///Run constants
-const Bool_t v2processed=0;  //kFALSE;
+const Bool_t v2processed=0;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t acceptLasPow = 120000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
@@ -62,7 +61,6 @@ const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 3;
-const Int_t masked[3]={3,3,4};///no.of masked strips in the 3 active planes
 
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !

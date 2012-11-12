@@ -5,15 +5,19 @@
 
 void infoDAQ(Int_t runnum)
 {
-  Bool_t debug=0;
+  Bool_t debug=0,autoDebug=1;
   Double_t bMask[nPlanes][nStrips];
+  const Int_t errFlag=100;
+  Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
+
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
   //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
-
+  ofstream infoDAQthisRun,debugInfoDAQ;
   //should put a check if the file was not opened successfully 
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_%i.000.root",runnum));//ensure to read in only the first runlet
   TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2_%i.000.root",runnum));//ensure to read in only the first runlet
   TTree *configTree = (TTree*)file->Get("Config_Tree");
+  TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   configTree->ResetBranchAddresses();
   configTree->SetBranchStatus("*",1); 
  
@@ -51,12 +55,44 @@ void infoDAQ(Int_t runnum)
     bPipelineDelaySlave[m]= (Int_t)bPipelineDelaySlave[m];
   }
 
-  if(debug){
+  if(debug) {
     for(Int_t p = startPlane; p <endPlane; p++) {
       for(Int_t s =startStrip; s <12; s++) {
 	cout<<Form("p%ds%dMask ",p+1,s+1)<<mask[p][s]<<endl;
       }
     }
+  }
+  ///Note: "100" is being used an an error flag in this case to alert that the values were different between two slaves
+  acTrig = acTrigSlave[0]==acTrigSlave[1] ? acTrigSlave[1] : errFlag;
+  evTrig = evTrigSlave[0]==evTrigSlave[1] ? evTrigSlave[1] : errFlag;
+  minWidth = minWidthSlave[0]==minWidthSlave[1] ? minWidthSlave[1] : errFlag;
+  firmwareRev = firmwareRevSlave[0]==firmwareRevSlave[1] ? firmwareRevSlave[1] : errFlag;
+  pwtl1 = pwtlSlave[0]==pwtlSlave[1] ? pwtlSlave[1] :errFlag;
+  pwtl2 = pwtl2Slave[0]==pwtl2Slave[1] ? pwtl2Slave[1] :errFlag;
+  holdOff = holdOffSlave[0]==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
+  pipelineDelay = bPipelineDelaySlave[0]==bPipelineDelaySlave[1] ? bPipelineDelaySlave[1] : errFlag;
+  // holdOff = holdOffSlave[0];//==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
+  // pipelineDelay = bPipelineDelaySlave[0];//==bPipelineDelaySlave[1] ? bPipelineDelaySlave[1] : errFlag;
+ 
+  if ((acTrig==errFlag)||(evTrig==errFlag)||(minWidth==errFlag)||(firmwareRev==errFlag)||(pwtl1==errFlag)||(pwtl2==errFlag)||(holdOff==errFlag)||(pipelineDelay==errFlag)) autoDebug=1;
+
+  if(autoDebug) {
+    debugInfoDAQ.open(Form("%s/%s/%sdebugInfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
+    debugInfoDAQ<<";module\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
+    for(Int_t m = 0; m <nModules; m++) {
+      debugInfoDAQ<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",m,acTrigSlave[m],evTrigSlave[m],minWidthSlave[m],firmwareRevSlave[m],pwtlSlave[m],pwtl2Slave[m],holdOffSlave[m],pipelineDelaySlave[m]);
+    }
+    debugInfoDAQ.close();
+  }
+
+  infoDAQthisRun.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
+  infoDAQthisRun<<";runnum\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
+  infoDAQthisRun<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
+  infoDAQthisRun.close();
+
+  if(debug) {
+    cout<<";runnum\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
+    cout<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay);
   }
 }
 #endif

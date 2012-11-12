@@ -9,31 +9,22 @@
 #include "rhoToX.C"
 #include "infoDAQ.C"
 
-// Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//2 param fit for cross section
-// {///parCx[1]: to be found Cedge
-//   Double_t xStrip = xCedge - (tempCedge - (*thisStrip))*stripWidth*parCx[0];
-//   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
-//   Double_t rhoPlus = 1-rhoStrip*(1+a);
-//   Double_t rhoMinus = 1-rhoStrip*(1 - a);//just a term in eqn 24
-//   Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a)); // 2nd term of eqn 22
-//   return (parCx[1]*((rhoStrip*(1 - a)*rhoStrip*(1 - a)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a
-// }
-
- Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
- {///parCx[1]: to be found Cedge
-   Double_t xStrip = xCedge - (parCx[1] - (*thisStrip))*stripWidth*parCx[0];
-   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
-   Double_t rhoPlus = 1-rhoStrip*(1+a_const);
-   Double_t rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
-   Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
-   return (parCx[2]*((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a_const
- }
+Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
+{///parCx[1]: to be found Cedge
+  Double_t xStrip = xCedge - (parCx[1] - (*thisStrip))*stripWidth*parCx[0];
+  Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
+  Double_t rhoPlus = 1-rhoStrip*(1+a_const);
+  Double_t rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
+  Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
+  return (parCx[2]*((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a_const
+}
 
 ///3 parameter method
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
   //Double_t xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
-  Double_t xStrip = xCedge - (par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge itself
+  //Double_t xStrip = xCedge +0.5*stripWidth - (par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge itself
+  Double_t xStrip = xCedge +0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
   //Double_t xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
 
   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
@@ -48,7 +39,7 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 void asymFit(Int_t runnum)
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
-  //gStyle->SetOptStat(1);
+  gStyle->SetOptFit(0);
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
@@ -56,19 +47,14 @@ void asymFit(Int_t runnum)
   div_t div_output;
   Double_t pol[nPlanes],polEr[nPlanes],chiSq[nPlanes],effStripWidth[nPlanes],effStripWidthEr[nPlanes];
   Double_t offset[nPlanes],offsetEr[nPlanes];
-  Int_t NDF[nPlanes];
+  Int_t NDF[nPlanes],resFitNDF[nPlanes];
+  Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=0,debug1=0,debug2=0;
   ifstream paramfile;
-  TPaveText *pt[nPlanes];
+  TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
 
-  rhoToX();//! I don't need to call it everytime as long as beam-energy etc stays constant
-  paramfile.open(Form("%s/%s/paramFile.txt",pPath,webDirectory));
-  cout<<"reading in the rho to X fitting parameters, they were:" <<endl;
-  paramfile>>param[0]>>param[1]>>param[2]>>param[3];
-  paramfile.close();
-  printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
   infoDAQ(runnum);
 
   ifstream infileScaler, expAsymPWTL1, infileYield;
@@ -125,13 +111,13 @@ void asymFit(Int_t runnum)
       } else if(s==numbGoodStrips[p]-1) cout<<"**** Alert:*** Something unusual in Cedge determination for run # "<<runnum<<" Did not find Cedge till last strip"<<endl;
     }
   }
-
+ 
   TCanvas *cAsym,*cYield,*cResidual;
   TGraphErrors *grAsymPlane[nPlanes],*grYieldPlane[nPlanes],*grResiduals[nPlanes],*grB1L0[nPlanes];
   TMultiGraph *grAsymDrAll[nPlanes];
 
   cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300*endPlane);
-  cResidual = new TCanvas("cResidual","residual (Asymmetry - Fit)",10,500,1000,300*endPlane);
+  cResidual = new TCanvas("cResidual","residual (Asymmetry - Fit)",10,500,900,300*endPlane);
   cYield = new TCanvas("cYield","detector yield",300,200,1000,300*endPlane);
 
   cAsym->Divide(1,endPlane); 
@@ -146,6 +132,14 @@ void asymFit(Int_t runnum)
   polList.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tplane"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
+ 
+    xCedge = rhoToX(p); ///this function should be called after determining the Cedge
+    paramfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,p+1));
+    cout<<"reading in the rho to X fitting parameters for plane "<<p+1<<", they were:" <<endl;
+    paramfile>>param[0]>>param[1]>>param[2]>>param[3];
+    paramfile.close();
+    printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
+  
     cAsym->cd(p+1);  
     cAsym->GetPad(p+1)->SetGridx(1);
     grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
@@ -173,6 +167,8 @@ void asymFit(Int_t runnum)
 
     grAsymPlane[p]->Draw("AP");  
     tempCedge = Cedge[p];///this should be equated before the declaration of TF1
+    TF1 *linearFit = new TF1("linearFit", "pol0",1,Cedge[p]);
+    linearFit->SetLineColor(kRed);
 
     ///3 parameter fit
     TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],3);
@@ -200,26 +196,27 @@ void asymFit(Int_t runnum)
     chiSq[p] = polFit->GetChisquare();
     NDF[p] = polFit->GetNDF();
 
-    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.3f\t%d\t%2.2f\t%d\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],Cedge[p],p+1);
-    cout<<"wrote the polarization relevant values to file "<<endl;
+    if(debug) cout<<"wrote the polarization relevant values to file "<<endl;
+    polList<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
+    if(debug) cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
     leg[p] = new TLegend(0.101,0.8,0.4,0.9);
     leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","lpe");///I just need the name
     leg[p]->AddEntry("polFit","QED-Asymmetry fit to exp-Asymmetry","l");//"lpf");//
     leg[p]->SetFillColor(0);
     leg[p]->Draw();
 
-    pt[p] = new TPaveText(0.5092206,0.8119254,0.84894,0.9957972,"brNDC");///x1,y1,x2,y2
-    pt[p]->SetTextSize(0.043);//0.028); 
+    pt[p] = new TPaveText(0.42,0.77,0.61,0.96,"brNDC");///x1,y1,x2,y2
+    pt[p]->SetTextSize(0.048);//0.028); 
     pt[p]->SetBorderSize(1);
     pt[p]->SetTextAlign(12);
     pt[p]->SetFillColor(-1);
     pt[p]->SetShadowColor(-1);
 
-    pt[p]->AddText(Form("chi Sq / ndf          : %f",chiSq[p]/NDF[p]));
-    pt[p]->AddText(Form("effective strip width : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
-    //pt[p]->AddText(Form("Compton Edge          : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
-    pt[p]->AddText(Form("Compton Edge          : %2.2f #pm %2.2f",offset[p],offsetEr[p]));
-    pt[p]->AddText(Form("Polarization          : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
+    pt[p]->AddText(Form("chi Sq / ndf       : %f",chiSq[p]/NDF[p]));
+    pt[p]->AddText(Form("eff. strip width  : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
+    //pt[p]->AddText(Form("Compton Edge      : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
+    pt[p]->AddText(Form("Compton Edge : %2.2f #pm %2.2f",offset[p],offsetEr[p]));
+    pt[p]->AddText(Form("Polarization      : %2.1f #pm %2.1f",pol[p]*100.0,polEr[p]*100.0));
     pt[p]->Draw();
     myline->Draw();
  
@@ -244,25 +241,42 @@ void asymFit(Int_t runnum)
     else cout<<"did not find the expAsym file "<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
     if(debug2) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
-    for (Int_t s = startStrip; s < endStrip; s++) {
+    for (Int_t s = startStrip; s <= Cedge[p]; s++) {
       if (!mask[p][s]) continue;
       fitResidue[p][s] = stripAsym[p][s] - polFit->Eval(s+1);
       if(debug2) cout<<fitResidue[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<polFit->Eval(s+1)<<endl;
     }
 
     cResidual->cd(p+1);  
-    grResiduals[p]=new TGraphErrors(endStrip,stripNum[p],fitResidue[p],zero,stripAsymEr[p]);
+    cResidual->GetPad(p+1)->SetGridx(1);
+    grResiduals[p]=new TGraphErrors(Cedge[p],stripNum[p],fitResidue[p],zero,stripAsymEr[p]);
     grResiduals[p]->SetMarkerStyle(kOpenCircle);
-    grResiduals[p]->SetMaximum(0.03); 
-    grResiduals[p]->SetMinimum(-0.03);
-    grResiduals[p]->GetXaxis()->SetLimits(1,65); 
-    grResiduals[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+    grResiduals[p]->SetMaximum(0.024);/// half of asymmetry axis 
+    grResiduals[p]->SetMinimum(-0.024);/// half of asymmetry axis 
+    grResiduals[p]->GetXaxis()->SetLimits(1,Cedge[p]); 
+    //grResiduals[p]->GetXaxis()->SetNdivisions(416, kFALSE);
     grResiduals[p]->SetTitle("Residuals");
     grResiduals[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
     grResiduals[p]->GetYaxis()->SetTitle("asymmetry - Fit");
     grResiduals[p]->GetXaxis()->CenterTitle();
     grResiduals[p]->GetYaxis()->CenterTitle();
     grResiduals[p]->Draw("AP");
+    grResiduals[p]->Fit(linearFit,"RE");
+ 
+    resFit[p] = linearFit->GetParameter(0);
+    resFitEr[p] = linearFit->GetParError(0);
+    chiSqResidue[p] = linearFit->GetChisquare();
+    resFitNDF[p] = linearFit->GetNDF();
+
+    ptRes[p] = new TPaveText(0.67,0.67,0.9,0.9,"brNDC");///x1,y1,x2,y2
+    ptRes[p]->SetTextSize(0.048);//0.028); 
+    ptRes[p]->SetBorderSize(1);
+    ptRes[p]->SetTextAlign(12);
+    ptRes[p]->SetFillColor(0);
+    ptRes[p]->SetShadowColor(-1);
+    ptRes[p]->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqResidue[p],resFitNDF[p]));
+    ptRes[p]->AddText(Form("linear fit    : %f #pm %f",resFit[p],resFitEr[p]));
+    ptRes[p]->Draw();
 
     infileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if(infileYield.is_open()) {
@@ -276,7 +290,7 @@ void asymFit(Int_t runnum)
       infileYield.close();
     }
     else cout<<"did not find the Yield file "<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
-    
+     
     cYield->cd(p+1);
     grYieldPlane[p]=new TGraphErrors(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
     grYieldPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
@@ -331,9 +345,9 @@ void asymFit(Int_t runnum)
   }//for (Int_t p =startPlane; p <endPlane; p++)
   polList.close();
 
-  cAsym->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
-  cResidual->SaveAs(Form("%s/%s/%sasymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
-  cYield->SaveAs(Form("%s/%s/%sYieldFit.png",pPath,webDirectory,filePrefix.Data()));
+  // cAsym->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
+  // cResidual->SaveAs(Form("%s/%s/%sasymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
+  // cYield->SaveAs(Form("%s/%s/%sYieldFit.png",pPath,webDirectory,filePrefix.Data()));
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);

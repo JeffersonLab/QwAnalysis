@@ -2,64 +2,77 @@
 #define __RHOTOX_F
 
 #include "comptonRunConstants.h"
-
-void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some lines were commented for some quick work
+///This function ought to be called after auto-determination of compton edge was successful
+Double_t rhoToX(Int_t plane)
 {
-  //Double_t param[4];
-  Double_t xPrime[nPoints],rho[nPoints];
-  ofstream QEDasym,paramOutFile;//,energyDisp;
-  Float_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kk,x1,kDummy;//k,gamma,a
-  Float_t p_edge,r_edge,th_edge,hprime,kprime,x2;//,maxdist,rho;
-  Float_t thetabend = chicaneBend*pi/180; //(radians)
-  Float_t det_angle = th_det*3.1416/180;//(radians)
+  Bool_t debug=0;
+  Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
+  ofstream QEDasym;
+  Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kDummy;//k,gamma,a
+  Double_t kk,x1,kprime,x2,CedgeToDetBot,zdrift;//CedgeToDetBot[nPlanes];  zdrift[nPlanes];
+  Double_t p_edge,r_edge,th_edge,hprime;
+  Double_t thetabend = asin(0.3*B_dipole*lmag/E);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
+  Double_t det_angle = th_det*pi/180;//(radians)
+ 
+  CedgeToDetBot = (Cedge[plane] + 4)*stripWidth + 0.5*stripWidth;///elog 399
+  zdrift = ldet[plane] - CedgeToDetBot*sin(det_angle);
+  if(debug)cout<<Form("%f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge[plane],stripWidth,stripWidth);
 
   re = alpha*hbarc/me;
   gamma_my=E/me; //electron gamma, eqn.20
   R_bend = (gamma_my*hbarc)/(2.0*xmuB*B_dipole);
   k =2*pi*hbarc/(lambda); // incident photon energy (GeV)
-//   a =1/(1+4*k*gamma_my/me); // eqn.15 
+  //   a_const =1/(1+4*k*gamma_my/me); // eqn.15 
   kprimemax=4*a_const*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
   asymmax=(1-a_const)*(1+a_const)/(1+a_const*a_const);
-
   rho0=1/(1+a_const);
   k0prime=rho0*kprimemax;
+  Double_t th_prime = asin(0.3*B_dipole*lmag/(E+k-kprimemax));
   //  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
 
-  p_beam =sqrt(E*E - me*me);
-  r =p_beam/me*(hbarc/(2*xmuB*B_dipole));///radius of curvature of electrons due to dipole-3.
-  h = r - lmag/tan(thetabend);
-  kk =ldet*tan(thetabend);
-  x1 =(kk+h);
+  p_beam =sqrt(E*E - me*me);///momentum of beam electrons
+  r =(p_beam/me)*(hbarc/(2*xmuB*B_dipole));///radius of curvature of beam due to dipole-3.
+  h = r*(1 - cos(thetabend));//better way of getting the above
+  kk =zdrift*tan(thetabend);
+  x1 =(kk + h);
   kDummy = kprimemax; ///initiating 
 
-  //energyDisp.open(Form("%s/%s/energyDisplacement.txt",pPath,webDirectory));
-  QEDasym.open(Form("%s/%s/QEDasym.txt",pPath,webDirectory));
-  for (Int_t i = 0; i <nPoints; i++) {//xPrime[nPoints],rho[nPoints];
-    xPrime[i]=0.0; ///initialize
-    rho[i]=0.0;
-    p_edge=p_beam-kDummy;
-    r_edge=(p_edge/me)*(hbarc/(2*xmuB*B_dipole));
-    th_edge=asin((p_beam/p_edge)*sin(thetabend));
-    hprime = r_edge - lmag/tan(th_edge);
-    //hprime = r_edge*(1-cos(th_edge));
-    kprime=ldet*tan(th_edge);
-    x2= (kprime + hprime);
-    if(x2>x1) {
-      xPrime[i]=(x2-x1)*cos(det_angle);
-      rho[i]=kDummy/kprimemax;
-      kDummy=kDummy-0.00005;
-      if(QEDasym.is_open()) {
-	QEDasym<<xPrime[i]<<"\t"<<rho[i]<<endl;
-	//energyDisp<<xPrime[i]<<"\t"<<p_edge<<endl;
-      }
-    }    
-    else break;
+  Double_t r_dummy,th_dummy,x1_new,x2_new;
+  x1_new= R_bend*(1-cos(thetabend))+(ldet[plane] + CedgeToDetBot*tan(det_angle))*tan(thetabend);
+
+  QEDasym.open(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane+1));
+  for (Int_t i = 1; i <=nPoints; i++) {//xPrime[nPoints],rho[nPoints];
+    rho[i] = (Double_t)i/nPoints;
+    kDummy = rho[i]*kprimemax;
+    p_edge = p_beam-kDummy;//momentum of Cedge electrons//independent of Cedge or plane#
+    r_dummy = (p_edge/me)*(hbarc/(2*xmuB*B_dipole)); //!still to change
+    th_dummy = asin(0.3*B_dipole*lmag/(E+k-kDummy));
+
+    x2_new = r_dummy*(1-cos(th_dummy))+
+      (ldet[plane] + CedgeToDetBot*((Double_t)(nPoints-i)/nPoints)
+       *tan(det_angle))*tan(th_dummy); // max displacement (m)
+      
+    xPrime[i] = (x2_new - x1_new)/cos(det_angle);
+
+    dsdx_0[i]=((1.0-rho[i]*(1.0+a_const))/(1.0-rho[i]*(1.0-a_const)));
+    dsdx[i] = 2*pi*re*re/100.0*a_const*(rho[i]*rho[i]*(1-a_const)*(1-a_const)/(1-rho[i]*(1.0-a_const))+1.0+(dsdx_0[i] *dsdx_0[i]));
+    asym[i] = 2*pi*re*re/100.0*a_const/dsdx[i]*(1-rho[i]*(1+a_const))*(1.0-1.0/(pow((1.0-rho[i]*(1.0-a_const)),2))) ;
+    if(QEDasym.is_open()) {
+      QEDasym<<xPrime[i]<<"\t"<<rho[i]<<"\t"<<asym[i]<<"\t"<<dsdx[i]<<"\t"<<x2_new<<endl;
+    } else cout<<"**Alert: couldn't open file to write QEDasym**\n"<<endl;
   }
+
   QEDasym.close();
-  //energyDisp.close();
-  //TCanvas *cTheoAsym = new TCanvas("theoAsym","Theoretical asymmetry",10,20,400,400);
-  //cTheoAsym->cd();
-  TGraph *grtheory = new TGraph(Form("%s/%s/QEDasym.txt",pPath,webDirectory), "%lg %lg");
+  xCedge = xPrime[nPoints]; ///'xCedge' is used in determining QED asym, hence this should be evaluated before calling the function to fit theoretical asym
+
+  if(debug) {
+    cout<<"\nplane: "<<plane<<", CedgeToDetBot[p]: "<<CedgeToDetBot<<", zdrift[p]: "<<zdrift<<", xCedge:"<<xCedge<<"\n"<<endl;
+    printf("\nR_bend:%f, thetabend:%f, r:%f\n",R_bend,thetabend*180/3.1415,r);
+    cout<<"th_prime: "<<th_prime*180/3.1415<<endl;
+    TCanvas *cQED = new TCanvas("cQED","fit for QED parameter",10,10,300,300);
+    cQED->cd();
+  }
+  TGraph *grtheory = new TGraph(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane+1), "%lg %lg");
   grtheory->GetXaxis()->SetTitle("dist from compton scattered electrons(m)");
   grtheory->GetYaxis()->SetTitle("#rho");
   grtheory->GetYaxis()->CenterTitle();
@@ -71,16 +84,25 @@ void rhoToX()//Double_t param[4]) //!this function as of now, may not work,some 
   TF1 *fn0 = new TF1("fn0","pol3");
   grtheory->Fit("fn0","0");//,"0","goff");
   fn0->GetParameters(param);
-  //grtheory->Draw("AP");
-  //fn0->Draw("same");
-
-  paramOutFile.open(Form("%s/%s/paramFile.txt",pPath,webDirectory));
-  if(paramOutFile.is_open()) {
-    cout<<"\nthe parameters for rho to X fitting are: "<<endl;
-    paramOutFile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
+  if(debug) {
+    grtheory->Draw("AP");
+    fn0->Draw("same");
   }
-  paramOutFile.close();
-  //  return *param;
-}
 
+  if(debug) cout<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
+  cout<<"trying to open "<<Form("%s/%s/paramFileP%d.txt",pPath,webDirectory,plane+1)<<endl;
+  cout<<"line: "<<__LINE__<<endl;
+
+  ofstream checkfile;
+  checkfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane+1));
+   if(checkfile.is_open()) {
+     cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane+1<<endl;
+     checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
+   } else cout<<"**Alert: couldn't open file to write QED fit parameters**\n"<<endl;
+  checkfile.close();
+  return xCedge;
+}
+/*Comment: Both plane and compton edge independently affect the rho-to-x conversion 
+ *.. hence they both need to be passed on to this function
+ */
 #endif

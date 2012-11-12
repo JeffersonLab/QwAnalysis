@@ -6,7 +6,7 @@ Int_t fileReadDraw(Int_t runnum)
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
   Bool_t bkgdAsym = 1;
-  Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
+  Bool_t asymDiffPlot=1;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=1;
   Bool_t compareRunLetLaserWise=0;//plots expAsym and compares with the corresponding runlet based asymmetries. against theoretical asym, not needed when asymFit.C is plotting it
   Bool_t asymComponents=0;
@@ -18,10 +18,11 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
   Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
 
-  Bool_t pUsed[nPlanes]={0};//!will this trick work to initialize all elements with zero?
-  Bool_t debug=0,debug1=0,debug2=0;
+  Bool_t debug=1,debug1=0,debug2=0;
   const Int_t maxLasCycles=100;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  TF1 *linearFit = new TF1("linearFit", "pol0");
+  linearFit->SetLineColor(kBlue);
   TLine *myline = new TLine(0,0,70,0);
   ifstream in1, in2;
   ifstream fortranOutP1,expAsymPWTL1,expAsymPWTL2,expAsymComponents,scalerRates,lasCycScaler;
@@ -32,9 +33,6 @@ Int_t fileReadDraw(Int_t runnum)
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
-  //TGaxis::SetMaxDigits(2);
-  //gROOT->ForceStyle();
-
   std::vector<std::vector <Double_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
   std::vector<std::vector <Double_t> > stripNum2,scalerB1L1,scalerB1L0,bkgdSubscalerB1;
 
@@ -51,11 +49,6 @@ Int_t fileReadDraw(Int_t runnum)
       accumB1L0[p][s]=0.0,accumB1L0Er[p][s]=0.0;
     }
   }
-
-  for(Int_t p =startPlane; p <endPlane; p++) {
-    pUsed[p]=kTRUE;
-  }
-  if(debug) cout<<"planes used: "<<pUsed[0]<<"\t"<<pUsed[1]<<"\t"<<pUsed[2]<<"\t"<<pUsed[3]<<endl;
 
   if (bkgdAsym) {
     gStyle->SetOptFit(1);
@@ -88,12 +81,10 @@ Int_t fileReadDraw(Int_t runnum)
       grB1L0[p]->GetYaxis()->SetLabelSize(0.06);
       grB1L0[p]->GetXaxis()->SetLimits(1,65); 
       grB1L0[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-      grB1L0[p]->Fit("pol0");
-//       TLine *myline = new TLine(1,0,65,0);
-//       myline->Draw();
+      grB1L0[p]->Fit(linearFit);
       legbkgdAsym[p] = new TLegend(0.1,0.75,0.35,0.9);
       legbkgdAsym[p]->AddEntry(grB1L0[p],"background asymmetry","lp");
-      legbkgdAsym[p]->AddEntry("pol0","linear fit","l");
+      legbkgdAsym[p]->AddEntry("linearFit","linear fit","l");
       legbkgdAsym[p]->SetFillColor(0);
       legbkgdAsym[p]->Draw();
     }
@@ -114,25 +105,30 @@ Int_t fileReadDraw(Int_t runnum)
       scalerRates.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(scalerRates.is_open()) {
 	if(p>=(Int_t)stripNum2.size()) {
-	  stripNum2.resize(p+1),scalerB1L1.resize(p+1),scalerB1L0.resize(p+1),bkgdSubscalerB1.resize(p+1);
+	  stripNum2.resize(p+1);
+	  scalerB1L1.resize(p+1);
+	  scalerB1L0.resize(p+1);
+	  bkgdSubscalerB1.resize(p+1);
 	}
 	cout<<"Reading the Scaler rate file for plane "<<p+1<<endl;
 	if(debug) cout<<";\tstripNum\tlasOnScalerCounts\tlasOffScalerCounts"<<endl;
 	while(scalerRates.good()) {
-	  stripNum2[p].push_back(0.0),scalerB1L1[p].push_back(0.0),scalerB1L0[p].push_back(0.0),bkgdSubscalerB1[p].push_back(0.0);
+	  stripNum2[p].push_back(0.0);
+	  scalerB1L1[p].push_back(0.0);
+	  scalerB1L0[p].push_back(0.0);
+	  bkgdSubscalerB1[p].push_back(0.0);
 	  Int_t s=stripNum2[p].size() - 1;
 	  scalerRates>>stripNum2[p][s]>>scalerB1L1[p][s]>>scalerB1L0[p][s];
 	  bkgdSubscalerB1[p][s] = scalerB1L1[p][s] - scalerB1L0[p][s];
 	  if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\n",p+1,s+1,stripNum2[p][s],scalerB1L1[p][s],scalerB1L0[p][s]);
 	}
 	scalerRates.close();
-      }
-      else cout<<"did not find "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      } else cout<<"did not find "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
       cNoise->GetPad(p+1)->SetGridx(1);
       cNoise->cd(p+1);
       Int_t newSize=stripNum2[p].size();
-      //if(debug) cout<<"for plane "<<p+1<<" the no.of active strips is "<<newSize<<endl;
+      if(debug) cout<<"for plane "<<p+1<<" the no.of active strips is "<<newSize<<endl;
       grScalerLasOn[p] = new TGraph(newSize,stripNum2[p].data(),scalerB1L1[p].data());
       grScalerLasOn[p]->SetMarkerStyle(kFullCircle);
       grScalerLasOn[p]->SetMarkerSize(1);
