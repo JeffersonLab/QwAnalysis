@@ -8,13 +8,13 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t bkgdAsym = 1;
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=1;
-  Bool_t asymPlot=0;//plots expAsym against theoretical asym, not needed when asymFit.C is plotting it
-  Bool_t asymComponents=1;
-  Bool_t scalerPlot=1;
-  Bool_t lasWisePlotAc=1;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotSc=1;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotBcm=1;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotLasPow=1;
+  Bool_t compareRunLetLaserWise=0;//plots expAsym and compares with the corresponding runlet based asymmetries. against theoretical asym, not needed when asymFit.C is plotting it
+  Bool_t asymComponents=0;
+  Bool_t scalerPlot=0;
+  Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotBcm=0;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotLasPow=0;
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
   Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
 
@@ -35,15 +35,15 @@ Int_t fileReadDraw(Int_t runnum)
   //TGaxis::SetMaxDigits(2);
   //gROOT->ForceStyle();
 
-  std::vector<std::vector <Float_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
-  std::vector<std::vector <Float_t> > stripNum2,scalerB1L1,scalerB1L0,bkgdSubscalerB1;
+  std::vector<std::vector <Double_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
+  std::vector<std::vector <Double_t> > stripNum2,scalerB1L1,scalerB1L0,bkgdSubscalerB1;
 
-  Float_t qNormAccumB1H0L0[nPlanes][nStrips][100],qNormAccumB1H0L1[nPlanes][nStrips][100],qNormAccumB1H1L0[nPlanes][nStrips][100],qNormAccumB1H1L1[nPlanes][nStrips][100];
-  Float_t qNormAccumB1L0[nPlanes][nStrips][100];//,qNormScalerB1L0[nPlanes][nStrips][100];
+  Double_t qNormAccumB1H0L0[nPlanes][nStrips][100],qNormAccumB1H0L1[nPlanes][nStrips][100],qNormAccumB1H1L0[nPlanes][nStrips][100],qNormAccumB1H1L1[nPlanes][nStrips][100];
+  Double_t qNormAccumB1L0[nPlanes][nStrips][100];//,qNormScalerB1L0[nPlanes][nStrips][100];
 
-  Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
-  Float_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
-  Float_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
+  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
+  Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
+  Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
 
   for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t s=startStrip; s<endStrip; s++) {
@@ -311,73 +311,92 @@ Int_t fileReadDraw(Int_t runnum)
     cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
-  if (asymPlot) {
+  if (compareRunLetLaserWise) {
     TLegend *leg;
     leg = new TLegend(0.1,0.7,0.4,0.9);
-    TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",50,50,1000,420*endPlane);
-    TGraphErrors *grTheoryAsym[nPlanes], *grAsymPlane[nPlanes],*grFort;
-    cAsym->Divide(startPlane+1,endPlane);
-    for (Int_t p =startPlane; p <endPlane; p++) {
-      cAsym->cd(p+1);
+    TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",50,50,1000,800);
+    TGraphErrors *grDiff[nPlanes], *grAsymPlane[nPlanes],*grFort;
+    ifstream lasCycAsymP1;
+    Double_t stripAsym_v2[nPlanes][nStrips],stripNum2[nPlanes][nStrips],stripAsym2[nPlanes][nStrips],asymDiff2[nPlanes][nStrips];
+    Double_t stripAsymEr_v2[nPlanes][nStrips],stripAsymEr2[nPlanes][nStrips];
+    Int_t size=0;
+
+    cAsym->Divide(1,2);//(startPlane+1,endPlane);
+    for (Int_t p = startPlane; p <endPlane; p++) {
+      cAsym->cd(1);//(p+1);
+      lasCycAsymP1.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
       grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
-      grAsymPlane[p]->SetTitle(Form("experimental asymmetry"));
+      grAsymPlane[p]->SetTitle(Form("comparing experimental asymmetry"));
       grAsymPlane[p]->SetMarkerStyle(kFullCircle);
       grAsymPlane[p]->SetLineColor(kRed);
       grAsymPlane[p]->SetFillColor(0);
       grAsymPlane[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
       grAsymPlane[p]->SetMaximum(0.042);
       grAsymPlane[p]->SetMinimum(-0.042);
+      grAsymPlane[p]->GetXaxis()->SetTitleSize(0.06);
+      grAsymPlane[p]->GetXaxis()->SetTitleOffset(0.8);
+      grAsymPlane[p]->GetXaxis()->SetLabelSize(0.06);
+      grAsymPlane[p]->GetYaxis()->SetTitleSize(0.06);
+      grAsymPlane[p]->GetYaxis()->SetTitleOffset(0.7);
+      grAsymPlane[p]->GetYaxis()->SetLabelSize(0.06);
       grAsymPlane[p]->Draw("AP");
 
       myline->SetLineStyle(1);
-      myline->Draw();
-      
-      if(v2processed) {
-	TGraphErrors *grCpp_v2[nPlanes];
-	grCpp_v2[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
-	grCpp_v2[p]->SetMarkerStyle(kFullCircle);
-	grCpp_v2[p]->SetLineColor(kGreen);
-	grCpp_v2[p]->SetMarkerColor(kGreen);
-	grCpp_v2[p]->SetFillColor(0);
-	grCpp_v2[p]->Draw("P");
-      }
-
-      grTheoryAsym[p] = new TGraphErrors(Form("%s/%s/theoryAsymForCedge_%d.txt",pPath,webDirectory,(Int_t)Cedge[p]), "%lg %lg");
-      grTheoryAsym[p]->SetLineColor(kBlue);
-      grTheoryAsym[p]->SetLineWidth(3);
-      grTheoryAsym[p]->SetFillColor(0);
-      grTheoryAsym[p]->SetTitle("theoretical asymmetry");
-      grTheoryAsym[p]->Draw("L");    
-      cAsym->Update();
+      myline->Draw();    
       leg->AddEntry(grAsymPlane[p],"experimental asymmetry","lpf");
-      leg->AddEntry(grTheoryAsym[p],"theoretical asymmetry","lpf");
-      //leg->AddEntry(myline,"zero line","l");
       leg->SetFillColor(0);
  
-      fortranOutP1.open(Form("%d-plane-1-nc.output",runnum));
+      fortranOutP1.open("/home/narayan/acquired/vladas/run.24519");
       if(fortranOutP1.is_open()) {
 	cout<<"found runlet based raw asymmetry file"<<endl;
-	grFort = new TGraphErrors(Form("%d-plane-1.output",runnum), "%lg %lg %lg");
+	grFort = new TGraphErrors("/home/narayan/acquired/vladas/run.24519", "%lg %lg %lg");
 	grFort->SetMarkerColor(4);
 	grFort->SetMarkerStyle(24);
 	grFort->SetFillColor(0);
 	grFort->SetLineColor(4);
 	grFort->Draw("P");
 	leg->AddEntry(grFort,"runlet based eDet Asymmetry","lpf");
-	fortranOutP1.close();
       } else cout<<"corresponding fortran file for run "<<runnum<<" doesn't exist"<<endl;
       leg->Draw();
-    }
 
+      cAsym->cd(2);//to plot the residuals
+      if(lasCycAsymP1.is_open() && fortranOutP1.is_open()) {
+	if(debug) cout<<"stripNum\t"<<"asymLaserWise\t"<<"asymRunLet\t"<<"asymDiff"<<endl;
+	  while(1) {
+	    lasCycAsymP1>>stripNum2[p][size]>>stripAsym2[p][size]>>stripAsymEr2[p][size];
+	    fortranOutP1>>stripNum2[p][size]>>stripAsym_v2[p][size]>>stripAsymEr_v2[p][size];
+	    asymDiff2[p][size] = (stripAsym2[p][size]- stripAsym_v2[p][size]);
+	    if(debug) cout<<stripNum2[p][size]<<"\t"<<stripAsym2[p][size]<<"\t"<<stripAsym_v2[p][size]<<"\t"<<asymDiff[p][size]<<endl;
+	    size++;
+	    if(lasCycAsymP1.eof()) break;
+	}
+	lasCycAsymP1.close();
+	fortranOutP1.close();
+      } else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      cout<<"size is "<<size<<endl;
+      grDiff[p] = new TGraphErrors(size,stripNum2[p],asymDiff2[p],zero[p],stripAsymEr2[p]);
+      grDiff[p]->GetXaxis()->SetTitle("strip number");
+      grDiff[p]->GetYaxis()->SetTitle("(LaserWise - RunletBased Asym)");
+      grDiff[p]->SetTitle(Form("difference of experimental asymmetry"));
+      grDiff[p]->SetMaximum(0.042);
+      grDiff[p]->SetMinimum(-0.042);
+      grDiff[p]->GetXaxis()->SetTitleSize(0.06);
+      grDiff[p]->GetXaxis()->SetTitleOffset(0.8);
+      grDiff[p]->GetXaxis()->SetLabelSize(0.06);
+      grDiff[p]->GetYaxis()->SetTitleSize(0.06);
+      grDiff[p]->GetYaxis()->SetTitleOffset(0.7);
+      grDiff[p]->GetYaxis()->SetLabelSize(0.06);
+      grDiff[p]->Draw("AP");
+    }
     cAsym->Update();
-    cAsym->SaveAs(Form("%s/%s/%sexpTheoAsym.png",pPath,webDirectory,filePrefix.Data()));
+    cAsym->SaveAs(Form("%s/%s/%scompareLaserToRunLetAsym.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if(lasWisePlotAc) {
     ifstream lasCycAccum;
-    Float_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
+    Double_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
     TGraph *lasCycPlot[endStrip];
     TCanvas *cAccumLC1 = new TCanvas("cAccumLC1",Form("accum counts per laser cycle for strips 01-16"),0,0,1200,1200);
     //TCanvas *cAccumLC2 = new TCanvas("cAccumLC2",Form("accum counts per laser cycle for strips 17-32"),20,10,1200,1200);
@@ -435,9 +454,9 @@ Int_t fileReadDraw(Int_t runnum)
     TCanvas *cLasCycBCM = new TCanvas("cLasCycBCM","Beam stability laser cycle",50,50,700,800);
     TLegend *legBCM[2];
     ifstream lasWiseBCM;
-    Float_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
-    Float_t bcmH0L0[200],bcmH0L1[200],bcmH1L0[200],bcmH1L1[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
-    Float_t bcmL0[200],bcmL1[200],bcm[200];
+    Double_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
+    Double_t bcmH0L0[200],bcmH0L1[200],bcmH1L0[200],bcmH1L1[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
+    Double_t bcmL0[200],bcmL1[200],bcm[200];
     lasWiseBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
     Int_t nLasCycles=0;
     while(lasWiseBCM.good()) {
@@ -498,9 +517,9 @@ Int_t fileReadDraw(Int_t runnum)
     TGraph *lasCycLasPowL0,*lasCycLasPowL1;
     TCanvas *cLasCycPow = new TCanvas("cLasCycPow","Laser Power stability",0,0,600,400);
     ifstream lasWisePow;
-    Float_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
-    Float_t lasPowB1H0L0[200],lasPowB1H1L0[200],lasPowB1L0[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
-    Float_t lasPowB1H0L1[200],lasPowB1H1L1[200],lasPowB1L1[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
+    Double_t nCycle[100];//arbitrarily set to 100 which certainly will be larger than nLasCycles
+    Double_t lasPowB1H0L0[200],lasPowB1H1L0[200],lasPowB1L0[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
+    Double_t lasPowB1H0L1[200],lasPowB1H1L1[200],lasPowB1L1[200];//!this implicitly puts a limitation on the no.of laser cycles it can handle
     lasWisePow.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));
     Int_t nLasCycles=0;
     while(lasWisePow.good()) {
@@ -537,8 +556,8 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if(lasWisePlotSc) {
-    Float_t nCycle[maxLasCycles];//arbitrarily set to 100 which certainly will be larger than nLasCycles
-    Float_t qNormScalerB1H0L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H0L1[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L1[nPlanes][nStrips][maxLasCycles];
+    Double_t nCycle[maxLasCycles];//arbitrarily set to 100 which certainly will be larger than nLasCycles
+    Double_t qNormScalerB1H0L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H0L1[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L0[nPlanes][nStrips][maxLasCycles],qNormScalerB1H1L1[nPlanes][nStrips][maxLasCycles];
     TGraph *lasCycPlotSc[endStrip];
     TCanvas *cScalerLC1 = new TCanvas("cScalerLC1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1200,1200);
     Double_t qNormScalerB1L0[nPlanes][nStrips][maxLasCycles];
@@ -695,7 +714,7 @@ Int_t fileReadDraw(Int_t runnum)
   }
   
   if(bkgdSubVsBeam) {
-    Float_t nCycle[maxLasCycles];//arbitrarily set to 100 which certainly will be larger than nLasCycles
+    Double_t nCycle[maxLasCycles];//arbitrarily set to 100 which certainly will be larger than nLasCycles
     const Int_t numb=6;
     ifstream scalerRate;
     ofstream bkgdSubCountsFit;
