@@ -750,7 +750,7 @@ sub create_xml_jobfile($$$@) {
 		"  echo \"------\"\n",
 		"  echo \"Start copying output files to at `date`\"\n";
 	    print JOBFILE
-		"  /site/bin/jput \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
+		"  /site/bin/jput \$QW_ROOTFILES/$RootfileStem*.root $path/\n";
 	} elsif ($protocol eq "file" ){
 	    print JOBFILE
 		"  echo \"------\"\n",
