@@ -19,7 +19,7 @@ const Float_t lambda = 532E-9; //photon wavelength (nm)
 Float_t xCedge;
 Double_t param[4];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
 const Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
-const Int_t nPoints = 1000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
+const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
 //const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
 const Double_t qNormBkgdSubSigToBkgdRatioLow = 1.0;//0.80;//!this is arbitrarily chosen by observing how it may vary
@@ -60,7 +60,7 @@ const Double_t lowCurrentLimit = 65.0;
 const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 3;
+  const Int_t endPlane = 1;
 
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !

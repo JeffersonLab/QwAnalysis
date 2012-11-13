@@ -23,7 +23,6 @@ Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
   //Double_t xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
-  //Double_t xStrip = xCedge +0.5*stripWidth - (par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge itself
   Double_t xStrip = xCedge +0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
   //Double_t xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
 

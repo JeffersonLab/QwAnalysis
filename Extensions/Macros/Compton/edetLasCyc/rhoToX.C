@@ -8,9 +8,8 @@ Double_t rhoToX(Int_t plane)
   Bool_t debug=0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
-  Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kDummy;//k,gamma,a
-  Double_t kk,x1,kprime,x2,CedgeToDetBot,zdrift;//CedgeToDetBot[nPlanes];  zdrift[nPlanes];
-  Double_t p_edge,r_edge,th_edge,hprime;
+  Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kDummy;
+  Double_t kk,x1,CedgeToDetBot,zdrift;
   Double_t thetabend = asin(0.3*B_dipole*lmag/E);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)
  
@@ -41,11 +40,10 @@ Double_t rhoToX(Int_t plane)
   x1_new= R_bend*(1-cos(thetabend))+(ldet[plane] + CedgeToDetBot*tan(det_angle))*tan(thetabend);
 
   QEDasym.open(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane+1));
-  for (Int_t i = 1; i <=nPoints; i++) {//xPrime[nPoints],rho[nPoints];
+  for (Int_t i = 1; i <=nPoints; i++) {
     rho[i] = (Double_t)i/nPoints;
     kDummy = rho[i]*kprimemax;
-    p_edge = p_beam-kDummy;//momentum of Cedge electrons//independent of Cedge or plane#
-    r_dummy = (p_edge/me)*(hbarc/(2*xmuB*B_dipole)); //!still to change
+    r_dummy = ((E-kDummy+k)/me)*(hbarc/(2*xmuB*B_dipole)); //!still to change
     th_dummy = asin(0.3*B_dipole*lmag/(E+k-kDummy));
 
     x2_new = r_dummy*(1-cos(th_dummy))+
@@ -58,12 +56,12 @@ Double_t rhoToX(Int_t plane)
     dsdx[i] = 2*pi*re*re/100.0*a_const*(rho[i]*rho[i]*(1-a_const)*(1-a_const)/(1-rho[i]*(1.0-a_const))+1.0+(dsdx_0[i] *dsdx_0[i]));
     asym[i] = 2*pi*re*re/100.0*a_const/dsdx[i]*(1-rho[i]*(1+a_const))*(1.0-1.0/(pow((1.0-rho[i]*(1.0-a_const)),2))) ;
     if(QEDasym.is_open()) {
-      QEDasym<<xPrime[i]<<"\t"<<rho[i]<<"\t"<<asym[i]<<"\t"<<dsdx[i]<<"\t"<<x2_new<<endl;
+      QEDasym<<xPrime[i]<<"\t"<<rho[i]<<"\t"<<asym[i]<<"\t"<<dsdx[i]<<"\t"<<endl;
     } else cout<<"**Alert: couldn't open file to write QEDasym**\n"<<endl;
   }
 
   QEDasym.close();
-  xCedge = xPrime[nPoints]; ///'xCedge' is used in determining QED asym, hence this should be evaluated before calling the function to fit theoretical asym
+  xCedge = xPrime[nPoints-1]; ///'xCedge' is used in determining QED asym, hence this should be evaluated before calling the function to fit theoretical asym
 
   if(debug) {
     cout<<"\nplane: "<<plane<<", CedgeToDetBot[p]: "<<CedgeToDetBot<<", zdrift[p]: "<<zdrift<<", xCedge:"<<xCedge<<"\n"<<endl;
@@ -88,10 +86,6 @@ Double_t rhoToX(Int_t plane)
     grtheory->Draw("AP");
     fn0->Draw("same");
   }
-
-  if(debug) cout<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
-  cout<<"trying to open "<<Form("%s/%s/paramFileP%d.txt",pPath,webDirectory,plane+1)<<endl;
-  cout<<"line: "<<__LINE__<<endl;
 
   ofstream checkfile;
   checkfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane+1));
