@@ -14,7 +14,7 @@ SEG_NUM=$2
 
 #SRC=\"/cache/mss/hallc/qweak/rootfiles/pass5/\"
 SRC=\"$QW_ROOTFILES/\"
-SRC_lrb=\"/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfiles/\"
+SRC_lrb=\"/work/hallc/qweak/Qwanalysis/run1/pass5regression/lrb_rootfiles/\"
 
 #DST="/volatile/hallc/qweak/smacewan/pass5prep"
 #DST_lrb="/volatile/hallc/qweak/smacewan/pass5prep"
