@@ -344,9 +344,9 @@ void asymFit(Int_t runnum)
   }//for (Int_t p =startPlane; p <endPlane; p++)
   polList.close();
 
-  // cAsym->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
-  // cResidual->SaveAs(Form("%s/%s/%sasymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
-  // cYield->SaveAs(Form("%s/%s/%sYieldFit.png",pPath,webDirectory,filePrefix.Data()));
+  cAsym->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
+  cResidual->SaveAs(Form("%s/%s/%sasymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
+  cYield->SaveAs(Form("%s/%s/%sYieldFit.png",pPath,webDirectory,filePrefix.Data()));
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);

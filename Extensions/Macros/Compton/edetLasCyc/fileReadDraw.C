@@ -18,7 +18,7 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
   Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
 
-  Bool_t debug=1,debug1=0,debug2=0;
+  Bool_t debug=0,debug1=0,debug2=0;
   const Int_t maxLasCycles=100;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   TF1 *linearFit = new TF1("linearFit", "pol0");
@@ -34,7 +34,6 @@ Int_t fileReadDraw(Int_t runnum)
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
   std::vector<std::vector <Double_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
-  std::vector<std::vector <Double_t> > stripNum2,scalerB1L1,scalerB1L0,bkgdSubscalerB1;
 
   Double_t qNormAccumB1H0L0[nPlanes][nStrips][100],qNormAccumB1H0L1[nPlanes][nStrips][100],qNormAccumB1H1L0[nPlanes][nStrips][100],qNormAccumB1H1L1[nPlanes][nStrips][100];
   Double_t qNormAccumB1L0[nPlanes][nStrips][100];//,qNormScalerB1L0[nPlanes][nStrips][100];
@@ -93,7 +92,8 @@ Int_t fileReadDraw(Int_t runnum)
     gStyle->SetOptFit(0);
   }
 
-  if(scalerPlot) {
+  if(scalerPlot) { 
+    std::vector<std::vector <Double_t> > stripNum2,scalerB1L1,scalerB1L0,bkgdSubscalerB1;
     ///these plots are not biased by what I think are the masked strips
     TCanvas *cNoise = new TCanvas("cNoise",Form("scalers for run:%d",runnum),30,30,1000,420*endPlane);
     TGraph *grScalerLasOn[nPlanes],*grScalerLasOff[nPlanes],*grScalerBkgdSub[nPlanes];
