@@ -60,7 +60,7 @@ const Double_t lowCurrentLimit = 65.0;
 const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 1;
+  const Int_t endPlane = 3;
 
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !

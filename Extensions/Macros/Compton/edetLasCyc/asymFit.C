@@ -38,7 +38,7 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 void asymFit(Int_t runnum)
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
-  gStyle->SetOptFit(0);
+  //gStyle->SetOptFit(0);
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
@@ -49,7 +49,7 @@ void asymFit(Int_t runnum)
   Int_t NDF[nPlanes],resFitNDF[nPlanes];
   Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=0,debug1=0,debug2=0;
+  Bool_t debug=1,debug1=0,debug2=0,polSign;
   ifstream paramfile;
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
@@ -129,7 +129,7 @@ void asymFit(Int_t runnum)
   Float_t zero[nStrips];
 
   polList.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
-  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tplane"<<endl;
+  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
  
     xCedge = rhoToX(p); ///this function should be called after determining the Cedge
@@ -146,13 +146,13 @@ void asymFit(Int_t runnum)
     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");   
     grAsymPlane[p]->SetTitle();//Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
     grAsymPlane[p]->GetXaxis()->CenterTitle();
-    grAsymPlane[p]->GetXaxis()->SetLabelSize(0.06);
-    grAsymPlane[p]->GetXaxis()->SetTitleOffset(1.15);
-    grAsymPlane[p]->GetXaxis()->SetTitleSize(0.045);
+    grAsymPlane[p]->GetXaxis()->SetLabelSize(0.07);
+    grAsymPlane[p]->GetXaxis()->SetTitleOffset(1.18);
+    grAsymPlane[p]->GetXaxis()->SetTitleSize(0.05);
 
     grAsymPlane[p]->GetYaxis()->CenterTitle();
     grAsymPlane[p]->GetYaxis()->SetLabelSize(0.06);
-    grAsymPlane[p]->GetYaxis()->SetTitleOffset(0.8);
+    grAsymPlane[p]->GetYaxis()->SetTitleOffset(0.6);
     grAsymPlane[p]->GetYaxis()->SetTitleSize(0.06);
 
     grAsymPlane[p]->SetMarkerStyle(kFullCircle);
@@ -196,22 +196,27 @@ void asymFit(Int_t runnum)
     NDF[p] = polFit->GetNDF();
 
     if(debug) cout<<"wrote the polarization relevant values to file "<<endl;
-    polList<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
+    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
     if(debug) cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
-    leg[p] = new TLegend(0.101,0.8,0.4,0.9);
+
+    leg[p] = new TLegend(0.101,0.75,0.43,0.9);
     leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","lpe");///I just need the name
-    leg[p]->AddEntry("polFit","QED-Asymmetry fit to exp-Asymmetry","l");//"lpf");//
+    leg[p]->AddEntry("polFit","QED asymmetry fit to exp. asymmetry","l");//"lpf");//
     leg[p]->SetFillColor(0);
     leg[p]->Draw();
 
-    pt[p] = new TPaveText(0.42,0.77,0.61,0.96,"brNDC");///x1,y1,x2,y2
-    pt[p]->SetTextSize(0.048);//0.028); 
+    polSign = pol[p] > 0 ? 1 : 0;
+    if (polSign) pt[p] = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
+    else  pt[p] = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
+    cout<<"polSign is: "<<polSign<<endl;
+
+    pt[p]->SetTextSize(0.060);//0.028); 
     pt[p]->SetBorderSize(1);
     pt[p]->SetTextAlign(12);
     pt[p]->SetFillColor(-1);
     pt[p]->SetShadowColor(-1);
 
-    pt[p]->AddText(Form("chi Sq / ndf       : %f",chiSq[p]/NDF[p]));
+    pt[p]->AddText(Form("chi Sq / ndf       : %.3f",chiSq[p]/NDF[p]));
     pt[p]->AddText(Form("eff. strip width  : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
     //pt[p]->AddText(Form("Compton Edge      : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
     pt[p]->AddText(Form("Compton Edge : %2.2f #pm %2.2f",offset[p],offsetEr[p]));

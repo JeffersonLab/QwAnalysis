@@ -50,10 +50,14 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if (bkgdAsym) {
+    ofstream bkgdAsymFit;
     gStyle->SetOptFit(1);
     TCanvas *cbkgdAsym = new TCanvas("cbkgdAsym",Form("bkgdAsym for run:%d",runnum),70,70,1000,420*endPlane);
     TGraphErrors *grB1L0[nPlanes];
     TLegend *legbkgdAsym[nPlanes];
+    Double_t bkgdAsymVal[nPlanes], bkgdAsymValEr[nPlanes],bkgdAsymFitChiSqr[nPlanes],bkgdAsymNDF[nPlanes];
+    bkgdAsymFit.open(Form("%s/%s/%sbkgdAsymFitInfo.txt",pPath,webDirectory,filePrefix.Data()));
+    bkgdAsymFit<<Form(";plane\tbkgdAsymVal\tbkgdAsymValEr\tbkgdAsymFit-ChiSqr/NDF")<<endl;
 
     cbkgdAsym->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) { 
@@ -81,13 +85,21 @@ Int_t fileReadDraw(Int_t runnum)
       grB1L0[p]->GetXaxis()->SetLimits(1,65); 
       grB1L0[p]->GetXaxis()->SetNdivisions(416, kFALSE);
       grB1L0[p]->Fit(linearFit);
+
+      bkgdAsymVal[p] = linearFit->GetParameter(0);
+      bkgdAsymValEr[p] = linearFit->GetParError(0);
+      bkgdAsymFitChiSqr[p] = linearFit->GetChisquare();
+      bkgdAsymNDF[p] = linearFit->GetNDF();
+      bkgdAsymFit<<Form("%1.0f\t%f\t%f\t%f\n",(Float_t)p+1,bkgdAsymVal[p],bkgdAsymValEr[p],bkgdAsymFitChiSqr[p]/bkgdAsymNDF[p]);
+
       legbkgdAsym[p] = new TLegend(0.1,0.75,0.35,0.9);
       legbkgdAsym[p]->AddEntry(grB1L0[p],"background asymmetry","lp");
       legbkgdAsym[p]->AddEntry("linearFit","linear fit","l");
       legbkgdAsym[p]->SetFillColor(0);
       legbkgdAsym[p]->Draw();
     }
-    cbkgdAsym->Update();
+    bkgdAsymFit.close();
+    cbkgdAsym->Update();    
     cbkgdAsym->SaveAs(Form("%s/%s/%sbkgdAsym.png",pPath,webDirectory,filePrefix.Data()));
     gStyle->SetOptFit(0);
   }
