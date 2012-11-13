@@ -24,7 +24,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0, bcm = 0 , comptQ = 0;
   Double_t beamMax, laserMax;
-
+  
   TH1D *hBeam = new TH1D("hBeam","dummy",100,0,220);//typical value of maximum beam current
   TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,180000);//typical value of maximum laser power
 
@@ -43,12 +43,16 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
 
-  ofstream outfileLas,outfileBeam;
+  ofstream outfileLas,outfileBeam,infoBeamLas;
   outfileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
   if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
 
   outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
   if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
+
+  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePrefix.Data()));
+  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
+  infoBeamLas<<";runnum\tbeamMax\tnBeamTrips\tlasMax\tnLasCycles\tnEntries"<<endl;
 
   TBranch *bLaser;
   TBranch *bBCM;
@@ -142,6 +146,10 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     outfileLas << cutL.at(i) <<endl;
   }
 
+  infoBeamLas<<Form("%5.0f\t%.2f\t%.0f\t%.2f\t%f.0\t%.0f\n",(Float_t)runnum,beamMax,(Float_t)o,laserMax,((Float_t)cutL.size()-2.0)/2,(Float_t)nEntries);
+  outfileLas.close();
+  outfileBeam.close();
+  infoBeamLas.close();
   nLasCycBeamTrips = o*500+m/2;
   return o*500+m/2;//nEntries for both arrays is encoded into return value
 }

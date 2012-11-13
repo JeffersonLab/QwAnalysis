@@ -11,7 +11,6 @@ void infoDAQ(Int_t runnum)
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
-  Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
   //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
   ofstream infoDAQthisRun,debugInfoDAQ;
   //should put a check if the file was not opened successfully 
@@ -72,8 +71,6 @@ void infoDAQ(Int_t runnum)
   pwtl2 = pwtl2Slave[0]==pwtl2Slave[1] ? pwtl2Slave[1] :errFlag;
   holdOff = holdOffSlave[0]==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
   pipelineDelay = pipelineDelaySlave[0]==pipelineDelaySlave[1] ? pipelineDelaySlave[1] : errFlag;
-  // holdOff = holdOffSlave[0];//==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
-  // pipelineDelay = bPipelineDelaySlave[0];//==bPipelineDelaySlave[1] ? bPipelineDelaySlave[1] : errFlag;
  
   if ((acTrig==errFlag)||(evTrig==errFlag)||(minWidth==errFlag)||(firmwareRev==errFlag)||(pwtl1==errFlag)||(pwtl2==errFlag)||(holdOff==errFlag)||(pipelineDelay==errFlag)) autoDebug=1;
 
