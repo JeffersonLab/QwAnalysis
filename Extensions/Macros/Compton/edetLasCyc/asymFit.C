@@ -253,7 +253,7 @@ void asymFit(Int_t runnum)
 
     cResidual->cd(p+1);  
     cResidual->GetPad(p+1)->SetGridx(1);
-    grResiduals[p]=new TGraphErrors(Cedge[p],stripNum[p],fitResidue[p],zero,stripAsymEr[p]);
+    grResiduals[p]=new TGraphErrors((Int_t)Cedge[p],stripNum[p],fitResidue[p],zero,stripAsymEr[p]);
     grResiduals[p]->SetMarkerStyle(kOpenCircle);
     grResiduals[p]->SetMaximum(0.024);/// half of asymmetry axis 
     grResiduals[p]->SetMinimum(-0.024);/// half of asymmetry axis 
