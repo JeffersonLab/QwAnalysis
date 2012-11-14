@@ -5,20 +5,25 @@ Int_t polRunRange(Int_t run1, Int_t run2)
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
-  const Int_t runBegin = 22659, runEnd = 25546;
-  const Int_t numbRuns = runEnd - runBegin - 1110;//temporarily added to avoid the excluded runs by vladas
+  const Int_t runBegin = 23200, runEnd = 24150;//runBegin = 22659, runEnd = 25546;
+  const Int_t numbRuns = runEnd - runBegin;// - 1110;//temporarily added to avoid the excluded runs by vladas
   ifstream poltext,polRunlet,polLasCyc;
   ofstream polAll;
   TString dum1,dum2,dum3,dum4,dum5,dum6,dum7,dum8,dum9,dum10;
   Bool_t debug=0,debug1=0,debug2=0,kPlsPrint=0;
-  Bool_t bPolCompare=0,bPolErCompare=0,bCedgeCompare=1;
+  Bool_t bPolCompare=1,bPolErCompare=1,bCedgeCompare=1,bChiSqrCompare=1;
   Int_t runRange = run2-run1+1;
   Int_t count1=0;
   TH1D *hPolEr = new TH1D("polEr laser Cycle", "polarization error laser cycle analysis", numbRuns, 0, 0.1);
   TH1D *hRunletPolEr = new TH1D("polEr runlet based", "polarization error runlet based analysis", numbRuns, 0, 0.1);
+  TH1D *hPolDiff = new TH1D("diff. in pol%", "difference in polarization between the two analysis", numbRuns, 0, 0.1);
   hPolEr->SetBit(TH1::kCanRebin);
   hRunletPolEr->SetBit(TH1::kCanRebin);
+  hPolDiff->SetBit(TH1::kCanRebin);
 
+  Double_t lasCycPol[runRange],lasCycPolEr[runRange],lasCycChiSq[runRange],lasCycComptEdge[runRange],lasCycEffStrip[runRange];
+  Double_t lasCycEffStripEr[runRange],lasCycPlane[runRange],lasCycRunnum[runRange];
+  Int_t count2=0;
   //polAll.open(Form("%s/%s/polList_%d_%d.txt",pPath,webDirectory,run1,run2)); 100% disk space full
   //polAll.open(Form("$MYLOCAL/polList_%d_%d.txt",run1,run2));
   polAll.open(Form("/w/hallc/qweak/narayan/polList_%d_%d.txt",run1,run2));
@@ -51,9 +56,6 @@ Int_t polRunRange(Int_t run1, Int_t run2)
   polAll.close();
 
   polLasCyc.open(Form("/w/hallc/qweak/narayan/polList_%d_%d.txt",run1,run2));
-  Double_t lasCycPol[runRange],lasCycPolEr[runRange],lasCycChiSq[runRange],lasCycComptEdge[runRange],lasCycEffStrip[runRange];
-  Double_t lasCycEffStripEr[runRange],lasCycPlane[runRange],lasCycRunnum[runRange];
-  Int_t count2=0;
   if(polLasCyc.is_open()) { //this is available only for plane 1
     //    for (Int_t r=0; r<runRange; r++) {
     while(polLasCyc.good()) {// break;
@@ -63,25 +65,32 @@ Int_t polRunRange(Int_t run1, Int_t run2)
       count2++;//by placing the counter here, I avoid its extraneous addition at the end
     }
     polLasCyc.close();
-      //    }
+    //    }
   } else cout<<"*** Alert: could not open lasCyc based file /w/hallc/qweak/narayan/polList_* "<<endl;
 
-  polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletFCEPolRun2.txt");
+  //polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletFCEPolRun2.txt");
+  polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletPol_23200_24150.txt");
   Double_t runletPol[numbRuns]={0.0},runletPolEr[numbRuns]={0.0},runletChiSq[numbRuns],runletComptEdge[numbRuns],runletEffStrip[numbRuns];
   Double_t runletEffStripEr[numbRuns],runletPlane[numbRuns],zero[numbRuns]={0},runletRunnum[numbRuns]={},IHWP[numbRuns];
-
+  Int_t count3=0;
   if(polRunlet.is_open()) { //this is available only for plane 1
-    for (Int_t r=0; r<numbRuns; r++) {
-      polRunlet>>runletRunnum[r]>>runletPol[r]>>runletPolEr[r]>>runletComptEdge[r]>>runletChiSq[r]>>runletPlane[r]>>IHWP[r]>>runletEffStrip[r]>>runletEffStripEr[r];
-      if(debug1) cout<<runletRunnum[r]<<"\t"<<runletPol[r]<<"\t"<<runletPolEr[r]<<endl;
+    //    for (Int_t r=0; r<numbRuns; r++) {
+    while(polRunlet.good()) {
+      polRunlet>>runletRunnum[count3]>>runletPol[count3]>>runletPolEr[count3]>>runletComptEdge[count3]>>runletChiSq[count3]>>runletPlane[count3]>>IHWP[count3]>>runletEffStrip[count3]>>runletEffStripEr[count3];
+      if(debug1) cout<<runletRunnum[count3]<<"\t"<<runletPol[count3]<<"\t"<<runletPolEr[count3]<<endl;
+      if(polRunlet.eof()) break;
+      count3++;
     }
+    polRunlet.close();
+    //    }
   } else cout<<"*** Alert: could not open runlet based pol.txt file ~/acquired/vladas/modFiles/runletFCEPolRun2.txt"<<endl;
-  polRunlet.close();
 
   if(bPolCompare) {
-    TCanvas *polAvgP1 = new TCanvas("polAvgP1","Avg Polarization Plane 1",10,10,1000,500);
-    // polAvgP1->Divide(1,2);
-    // polAvgP1->cd(1);
+    TCanvas *polAvgP1 = new TCanvas("polAvgP1","Avg Polarization Plane 1",10,10,1000,900);
+    TCanvas *cpolDiff = new TCanvas("cpolDiff","difference in evaluated Polarization",10,10,600,600);
+    Double_t polDiff[runRange];
+    polAvgP1->Divide(1,2);
+    polAvgP1->cd(1);
     TGraphErrors *grPolPlane1,*grRunletPolP1;
     grPolPlane1 = new TGraphErrors(Form("/w/hallc/qweak/narayan/polList_%d_%d.txt",run1,run2),"%lg %lg %lg");
     //grRunletPolP1 = new TGraphErrors(Form("~/acquired/vladas/modFiles/runletPol_22659_23001.txt"),"%lg %lg %lg");
@@ -91,8 +100,8 @@ Int_t polRunRange(Int_t run1, Int_t run2)
     //bCedge1 = new TBox(run1,60,run2,96);
     //bCedge2 = new TBox(24062,60,24400,96);
     //bCedge3 = new TBox(24062,60,24400,96);
-    //polAvgP1->GetPad(1)->SetGridx(1);
-    polAvgP1->SetGridx(1);
+    polAvgP1->GetPad(1)->SetGridx(1);
+    //polAvgP1->SetGridx(1);
     grPolPlane1->SetMarkerStyle(kOpenCircle);
     grPolPlane1->SetMarkerColor(kBlue);
     grPolPlane1->SetLineColor(kBlue);
@@ -117,8 +126,6 @@ Int_t polRunRange(Int_t run1, Int_t run2)
     //bCedge1->SetLineColor(kBlue); 
     //bCedge1->Draw("0 l");
 
-    //polAvgP1->cd(2);
-    //polAvgP1->GetPad(2)->SetGridx(1);
     grRunletPolP1->SetMarkerStyle(kOpenCircle);
     grRunletPolP1->SetMarkerColor(kRed);
     grRunletPolP1->SetLineColor(kRed);
@@ -130,8 +137,40 @@ Int_t polRunRange(Int_t run1, Int_t run2)
     // grRunletPolP1->Draw("AP");
     grRunletPolP1->Draw("P");
 
+    Double_t check=0.0;
+    polAvgP1->cd(2);
+    polAvgP1->GetPad(2)->SetGridx(1);
+    for(Int_t r=0; r<count2; r++) {
+      polDiff[r]= 12.0;
+      check = lasCycRunnum[r];
+      for(Int_t r2=0; r2<count3; r2++) {
+	if(check == runletRunnum[r2]) { 
+	  polDiff[r]= (lasCycPol[r] - runletPol[r2]);
+	  break;
+	}
+      }
+    }
+
+    TGraph *grPolDiff = new TGraph(count2,lasCycRunnum,polDiff);
+    grPolDiff->SetMarkerStyle(kOpenCircle);
+    grPolDiff->SetMarkerColor(kBlack);
+    grPolDiff->Draw("AP");
+    grPolDiff->SetTitle();
+    grPolDiff->GetXaxis()->SetLimits(run1+5,run2+5); 
+    grPolDiff->GetXaxis()->SetTitleSize(0.05);
+    grPolDiff->GetYaxis()->SetTitleSize(0.05);
+    grPolDiff->GetXaxis()->SetTitle("run number");
+    grPolDiff->GetYaxis()->SetTitle("difference in polarization");
+   
+    cpolDiff->cd();
+    for(Int_t r=0; r<count2; r++) {
+      if(polDiff[r] != 12.0) hPolDiff->Fill(polDiff[r]);
+    }
+    hPolDiff->SetLineColor(kBlack);
+    hPolDiff->Draw("H");
+    cpolDiff->SaveAs(Form("/w/hallc/qweak/narayan/polDiff_%d_%d.png",run1,run2));
     //polAvgP1->SaveAs(Form("%s/%s/pol_%d_%d.png",pPath,webDirectory,run1,run2));
-    polAvgP1->SaveAs(Form("/w/hallc/qweak/narayan/pol_%d_%d.png",run1,run2));
+    polAvgP1->SaveAs(Form("/w/hallc/qweak/narayan/polCompare_%d_%d.png",run1,run2));
   }
 
   if(bPolErCompare) {
@@ -170,21 +209,22 @@ Int_t polRunRange(Int_t run1, Int_t run2)
     grCedge->GetXaxis()->SetTitle("Run number");
     grCedge->GetYaxis()->SetTitle("Compton edge (strip number)");
     grCedge->SetMarkerColor(kBlue);
-    grCedge->SetLineColor(kBlue);
+    Double_t markSize = grCedge->GetMarkerSize();
+    cout<<"markSize "<<markSize<<endl;
     grCedge->Draw("AP");
     Double_t runletCedgeInRange[runRange];
-    Int_t count3=0;
+    Int_t count4=0;
     for (Int_t r=0; r<numbRuns; r++) {
       if((runletRunnum[r] >= run1) && (runletRunnum[r] <= run2)) {
-	count3++;
-	runletCedgeInRange[count3] = runletComptEdge[r];
+	count4++;
+	runletCedgeInRange[count4] = runletComptEdge[r];
       }
     }
     //cComptEdge->cd(2);
-    TGraph *grRunletCedge = new TGraph(count3,lasCycRunnum,runletCedgeInRange);
-    grRunletCedge->SetMarkerStyle(kOpenSquare);//(kFullSquare);
+    TGraph *grRunletCedge = new TGraph(count4,lasCycRunnum,runletCedgeInRange);
+    grRunletCedge->SetMarkerStyle(kFullSquare);//(kFullSquare);
     grRunletCedge->SetMarkerColor(kRed);
-    grRunletCedge->SetLineColor(kRed);
+    grRunletCedge->SetMarkerSize(0.8);
     grRunletCedge->Draw("P");
 
     legCedge->AddEntry(grCedge,"laser Cycle evaluation","p");
@@ -194,5 +234,42 @@ Int_t polRunRange(Int_t run1, Int_t run2)
 
     cComptEdge->SaveAs(Form("/w/hallc/qweak/narayan/comptEdge_%d_%d.png",run1,run2));
   }
+
+
+  if(bChiSqrCompare) {
+    TCanvas *cChiSqr = new TCanvas("cChiSqr","Chi-sqr / ndf",10,10,1000,500);
+    TGraphErrors *grChiSqr = new TGraphErrors(count2,lasCycRunnum,lasCycChiSq);
+    TLegend *legCedge= new TLegend(0.101,0.75,0.43,0.9);;
+
+    grChiSqr->SetTitle();
+    grChiSqr->SetMarkerStyle(kOpenCircle);
+    grChiSqr->SetTitle("chiSqr/ndf in asymmetry fit by laser Cyc evaluation");
+    grChiSqr->GetXaxis()->SetTitle("Run number");
+    grChiSqr->GetYaxis()->SetTitle("chiSqr / ndf");
+    grChiSqr->SetMarkerColor(kBlue);
+    grChiSqr->SetLineColor(kBlue);
+    grChiSqr->Draw("AP");
+    Double_t runletChiSqrInRange[runRange];
+    Int_t count4=0;
+    for (Int_t r=0; r<numbRuns; r++) {
+      if((runletRunnum[r] >= run1) && (runletRunnum[r] <= run2)) {
+	count4++;
+	runletChiSqrInRange[count4] = runletChiSq[r];
+      }
+    }
+    TGraph *grRunletChiSqr = new TGraph(count4,lasCycRunnum,runletChiSqrInRange);
+    grRunletChiSqr->SetMarkerStyle(kOpenCircle);
+    grRunletChiSqr->SetMarkerColor(kRed);
+    grRunletChiSqr->SetLineColor(kRed);
+    grRunletChiSqr->Draw("P");
+
+    legCedge->AddEntry(grChiSqr,"laser Cycle evaluation","p");
+    legCedge->AddEntry(grRunletChiSqr,"runlet based evaluation","p");
+    legCedge->SetFillColor(0);
+    legCedge->Draw();
+
+    cChiSqr->SaveAs(Form("/w/hallc/qweak/narayan/chiSqr_%d_%d.png",run1,run2));
+  }
   return (run2 - run1+1);//the number of runs processed
 }
+
