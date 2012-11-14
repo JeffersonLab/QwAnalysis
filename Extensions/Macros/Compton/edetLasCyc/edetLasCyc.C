@@ -11,6 +11,12 @@
 void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
 {
   cout<<"starting into edetLasCyc.C**************"<<endl;
+  gStyle->SetOptFit(0);
+  gStyle->SetOptStat(0);
+  gStyle->SetPalette(1);
+  gStyle->SetPadBorderSize(3);
+  gStyle->SetFrameLineWidth(3);
+
   gROOT->LoadMacro(" rhoToX.C+g");
   gROOT->LoadMacro(" infoDAQ.C+g");
   gROOT->LoadMacro(" getEBeamLasCuts.C+g");
