@@ -1,11 +1,15 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
-Int_t polRunRange(Int_t run1, Int_t run2)
+//Int_t polRunRange(Int_t run1=23220, Int_t run2=23515)
+Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
 {
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
-  const Int_t runBegin = 23200, runEnd = 24150;//runBegin = 22659, runEnd = 25546;
+  ///lets focus on the region between 23220 to 23530;
+  //const Int_t runBegin = 23200, runEnd = 24150;//runBegin = 22659, runEnd = 25546;
+  //const Int_t runBegin = 23220, runEnd = 23514;//runBegin = 22659, runEnd = 25546;
+  const Int_t runBegin = 23220, runEnd = 23530;//runBegin = 22659, runEnd = 25546;
   const Int_t numbRuns = runEnd - runBegin;// - 1110;//temporarily added to avoid the excluded runs by vladas
   ifstream poltext,polRunlet,polLasCyc;
   ofstream polAll;
@@ -69,7 +73,7 @@ Int_t polRunRange(Int_t run1, Int_t run2)
   } else cout<<"*** Alert: could not open lasCyc based file /w/hallc/qweak/narayan/polList_* "<<endl;
 
   //polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletFCEPolRun2.txt");
-  polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletPol_23200_24150.txt");
+  polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletPol_23220_23530.txt");
   Double_t runletPol[numbRuns]={0.0},runletPolEr[numbRuns]={0.0},runletChiSq[numbRuns],runletComptEdge[numbRuns],runletEffStrip[numbRuns];
   Double_t runletEffStripEr[numbRuns],runletPlane[numbRuns],zero[numbRuns]={0},runletRunnum[numbRuns]={},IHWP[numbRuns];
   Int_t count3=0;
@@ -158,6 +162,9 @@ Int_t polRunRange(Int_t run1, Int_t run2)
     grPolDiff->SetTitle();
     grPolDiff->GetXaxis()->SetLimits(run1+5,run2+5); 
     grPolDiff->GetXaxis()->SetTitleSize(0.05);
+    grPolDiff->SetMaximum(3.2); 
+    grPolDiff->SetMinimum(-3.2);
+
     grPolDiff->GetYaxis()->SetTitleSize(0.05);
     grPolDiff->GetXaxis()->SetTitle("run number");
     grPolDiff->GetYaxis()->SetTitle("difference in polarization");
@@ -200,17 +207,32 @@ Int_t polRunRange(Int_t run1, Int_t run2)
     TCanvas *cComptEdge = new TCanvas("cComptEdge","Compton edge",10,10,1000,500);
     //cComptEdge->Divide(1,2);
     //cComptEdge->cd(1);
-    TGraphErrors *grCedge = new TGraphErrors(count2,lasCycRunnum,lasCycComptEdge);
+    //TGraphErrors *grCedge = new TGraphErrors(count2,lasCycRunnum,lasCycComptEdge);
     TLegend *legCedge= new TLegend(0.101,0.75,0.43,0.9);;
+    cout<<" numbRuns:"<<numbRuns<<", count1:"<<count1<<", count2:"<<count2<<", count3:"<<count3<<endl;
 
+    ofstream fCedgeRunlet,fCedgeLasCyc;
+    fCedgeRunlet.open("CedgeRunlet_run1_run2.txt");
+    for (Int_t r=0; r<count3; r++) {
+      fCedgeRunlet<<Form("%5.0f\t%2.2f\n",runletRunnum[r],runletComptEdge[r]);
+    }
+    fCedgeRunlet.close();
+
+    fCedgeLasCyc.open("CedgeLasCyc_run1_run2.txt");
+    for (Int_t r=0; r<count2; r++) {
+      fCedgeLasCyc<<Form("%5.0f\t%2.2f\n",lasCycRunnum[r],lasCycComptEdge[r]);
+    }
+    fCedgeLasCyc.close();
+
+    TGraph *grCedge = new TGraph("CedgeLasCyc_run1_run2.txt","%lg %lg");
+    cComptEdge->SetGridx(1);
     grCedge->SetTitle();
     grCedge->SetMarkerStyle(kOpenSquare);
     grCedge->SetTitle("Compton edge found by signal over noise comparition");
     grCedge->GetXaxis()->SetTitle("Run number");
     grCedge->GetYaxis()->SetTitle("Compton edge (strip number)");
+    grCedge->GetXaxis()->SetLimits(run1+5,run2+5); 
     grCedge->SetMarkerColor(kBlue);
-    Double_t markSize = grCedge->GetMarkerSize();
-    cout<<"markSize "<<markSize<<endl;
     grCedge->Draw("AP");
     Double_t runletCedgeInRange[runRange];
     Int_t count4=0;
@@ -221,10 +243,11 @@ Int_t polRunRange(Int_t run1, Int_t run2)
       }
     }
     //cComptEdge->cd(2);
-    TGraph *grRunletCedge = new TGraph(count4,lasCycRunnum,runletCedgeInRange);
+    //TGraph *grRunletCedge = new TGraph(count4,lasCycRunnum,runletCedgeInRange);
+    TGraph *grRunletCedge = new TGraph("CedgeRunlet_run1_run2.txt","%lg %lg");
     grRunletCedge->SetMarkerStyle(kFullSquare);//(kFullSquare);
     grRunletCedge->SetMarkerColor(kRed);
-    grRunletCedge->SetMarkerSize(0.8);
+    grRunletCedge->SetMarkerSize(0.7);
     grRunletCedge->Draw("P");
 
     legCedge->AddEntry(grCedge,"laser Cycle evaluation","p");
@@ -239,8 +262,8 @@ Int_t polRunRange(Int_t run1, Int_t run2)
   if(bChiSqrCompare) {
     TCanvas *cChiSqr = new TCanvas("cChiSqr","Chi-sqr / ndf",10,10,1000,500);
     TGraphErrors *grChiSqr = new TGraphErrors(count2,lasCycRunnum,lasCycChiSq);
-    TLegend *legCedge= new TLegend(0.101,0.75,0.43,0.9);;
-
+    TLegend *legCedge= new TLegend(0.6,0.75,0.9,0.9);;
+    cChiSqr->SetGridx(1);
     grChiSqr->SetTitle();
     grChiSqr->SetMarkerStyle(kOpenCircle);
     grChiSqr->SetTitle("chiSqr/ndf in asymmetry fit by laser Cyc evaluation");
@@ -248,6 +271,7 @@ Int_t polRunRange(Int_t run1, Int_t run2)
     grChiSqr->GetYaxis()->SetTitle("chiSqr / ndf");
     grChiSqr->SetMarkerColor(kBlue);
     grChiSqr->SetLineColor(kBlue);
+    grChiSqr->GetXaxis()->SetLimits(run1+5,run2+5); 
     grChiSqr->Draw("AP");
     Double_t runletChiSqrInRange[runRange];
     Int_t count4=0;
