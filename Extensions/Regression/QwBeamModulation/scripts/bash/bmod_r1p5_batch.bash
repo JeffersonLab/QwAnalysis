@@ -11,16 +11,19 @@ cd $scriptPath/../../
 
 scriptPath=`pwd`
 
-dbName="qw_test_20120720"
+#dbName="qw_test_20120720"
+dbName="qw_run1_pass5"
 
 #export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
 
 echo "QW_ROOTFILES=$QW_ROOTFILES"
 
-export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/output/
+export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/output
 
 run_number=$1
 fseg=$2
+
+log=/w/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/output/out_files
 
 file_stem=" --file-stem QwPass5 "
 ramp_pedestal=" --ramp-pedestal 10 "
@@ -58,6 +61,9 @@ else
 	exit
     elif !(mkdir -m 755 -p "$SCRATCH/output/diagnostics"); then
 	echo "Cannot create directory $SCRATCH/output/diagnostics"
+	exit
+    elif !(mkdir -m 755 -p "$SCRATCH/output/out_files"); then
+	echo "Cannot create directory $SCRATCH/output/out_files"
 	exit
     else
 	echo "Directories created."
@@ -116,7 +122,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
       echo "Set directories are set up."
   fi
  
-  $scriptPath/qwbeammod ${options} --set-stem $set
+  $scriptPath/qwbeammod ${options} --set-stem $set &> qwbeammod_${run}_${fseg}.out
   
   if [ $? -ne 0 ]; then
       echo "There was and error in the completion of qwbeammod"
@@ -127,7 +133,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
   echo "searching for :: $ROOTFILE"
   
   if [ -f "${ROOTFILE}" ]; then
-      $scriptPath/qwlibra $libra_options --set-stem ${set}
+      $scriptPath/qwlibra $libra_options --set-stem ${set} &> qwlibra_${run}_${fseg}.out
   else
       echo "There was a problem in the output files of qwbeammod."
       exit
@@ -140,7 +146,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
   mv -v ${BMOD_OUT}/regression/${REG_STEM}${run_number}.${set}.dat ${BMOD_OUT}/regression/$set
   mv -v ${BMOD_OUT}/diagnostics/${BMOD_FILE_STEM}${run_number}.${set}.root${DIAGNOSTIC_STEM} ${BMOD_OUT}/diagnostics/$set
-  mv -v ${BMOD_OUT}/diagnostics/${BMOD_FILE_STEM}${run_number}.${set}.dat ${BMOD_OUT}/diagnostics/$set
+#  mv -v ${BMOD_OUT}/diagnostics/${BMOD_FILE_STEM}${run_number}.${set}.dat ${BMOD_OUT}/diagnostics/$set
   mv -v ${BMOD_OUT}/slopes/${SLOPES_STEM}${run_number}.${set}.dat ${BMOD_OUT}/slopes/$set/${SLOPES_STEM}${run_number}.${set}.dat
   mv -v ${BMOD_OUT}/rootfiles/${BMOD_FILE_STEM}${run_number}.${set}.root ${BMOD_OUT}/rootfiles/$set/${BMOD_FILE_STEM}${run_number}.${set}.root
 
@@ -150,12 +156,12 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
   
 echo Upload data to DB
 if [[ -n "$PERL5LIB" ]]; then
-    export PERL5LIB=${scriptPath}:${PERL5LIB}
+    export PERL5LIB=${scriptPath/scripts/bash}:${PERL5LIB}
 else
-    export PERL5LIB=${scriptPath}
+    export PERL5LIB=${scriptPath/scripts/bash}
 fi
-echo ${scriptPath}/script/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/script/bash/ ${REGRESSION}
+echo ${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/scripts/bash/ ${REGRESSION}
 
-${scriptPath}/script/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath}/script/bash/ ${REGRESSION}
+${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath}/scripts/bash/ ${REGRESSION}
 
 done 
