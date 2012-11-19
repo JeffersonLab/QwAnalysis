@@ -193,7 +193,8 @@ int tracking_period; // period 0: run <=11871 (before Jan 2011),
                      // period 1: run>=13653 (Nov 2011 to May 2012)
 
 // main detector z location
-double md_zpos[9] = {0.0, 581.665,  576.705, 577.020, 577.425, 582.515,  577.955, 577.885, 577.060};
+//double md_zpos[9] = {0.0, 581.665, 576.705, 577.020, 577.425, 582.515, 577.955, 577.885, 577.060};
+double md_zpos[9] = {0.0, 577.410, 577.415, 577.710, 578.080, 578.240, 578.615, 578.515, 577.730};//MD survey data on Oct 2012
 
 // set debug flag to false to disable printing debug info
 bool debug = false;
@@ -451,73 +452,73 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
     //define extra histograms
     TH1F* light_weighted_q2[3];
-    light_weighted_q2[0] = new TH1F("light_weighted_q2[0]",Form("Run %d, Light-weighted Q2 Distribution, Oct %d + %d",run,md_1,md_2),400,0,0.08);
-    light_weighted_q2[1] = new TH1F("light_weighted_q2[1]",Form("Run %d, Light-weighted Q2 Distribution in Package 1, Oct %d",run,md_1),400,0,0.08);
-    light_weighted_q2[2] = new TH1F("light_weighted_q2[2]",Form("Run %d, Light-weighted Q2 Distribution in Package 2, Oct %d",run,md_2),400,0,0.08);
+    light_weighted_q2[0] = new TH1F("light_weighted_q2_all",Form("Run %d, Light-weighted Q2 Distribution, Oct %d + %d",run,md_1,md_2),400,0,0.08);
+    light_weighted_q2[1] = new TH1F("light_weighted_q2_p1",Form("Run %d, Light-weighted Q2 Distribution in Package 1, Oct %d",run,md_1),400,0,0.08);
+    light_weighted_q2[2] = new TH1F("light_weighted_q2_p2",Form("Run %d, Light-weighted Q2 Distribution in Package 2, Oct %d",run,md_2),400,0,0.08);
 
     TH1F* histo_vertex_r[3];
-    histo_vertex_r[0] = new TH1F("histo_vertex_r[0]",Form("Run %d, Vertex R, Oct %d + %d",run,md_1,md_2),400,0,70);
-    histo_vertex_r[1] = new TH1F("histo_vertex_r[1]",Form("Run %d, Vertex R in Package 1, Oct %d",run,md_1),400,0,70);
-    histo_vertex_r[2] = new TH1F("histo_vertex_r[2]",Form("Run %d, Vertex R in Package 2, Oct %d",run,md_2),400,0,70);
+    histo_vertex_r[0] = new TH1F("histo_vertex_r_all",Form("Run %d, Vertex R, Oct %d + %d",run,md_1,md_2),8000,0,70);
+    histo_vertex_r[1] = new TH1F("histo_vertex_r_p1",Form("Run %d, Vertex R in Package 1, Oct %d",run,md_1),8000,0,70);
+    histo_vertex_r[2] = new TH1F("histo_vertex_r_p2",Form("Run %d, Vertex R in Package 2, Oct %d",run,md_2),8000,0,70);
 
     TH1F* histo_vertex_z[3];        
-    histo_vertex_z[0] = new TH1F("histo_vertex_z[0]",Form("Run %d, Vertex Z, Oct %d + %d",run,md_1,md_2),400,-1500,-1);
-    histo_vertex_z[1] = new TH1F("histo_vertex_z[1]",Form("Run %d, Vertex Z in Package 1, Oct %d",run,md_1),400,-1500,-1);
-    histo_vertex_z[2] = new TH1F("histo_vertex_z[2]",Form("Run %d, Vertex Z in Package 2, Oct %d",run,md_2),400,-1500,-1);
+    histo_vertex_z[0] = new TH1F("histo_vertex_z_all",Form("Run %d, Vertex Z, Oct %d + %d",run,md_1,md_2),8000,-1500,-1);
+    histo_vertex_z[1] = new TH1F("histo_vertex_z_p1",Form("Run %d, Vertex Z in Package 1, Oct %d",run,md_1),8000,-1500,-1);
+    histo_vertex_z[2] = new TH1F("histo_vertex_z_p2",Form("Run %d, Vertex Z in Package 2, Oct %d",run,md_2),8000,-1500,-1);
 
     TH1F* histo_momentum[3];
-    histo_momentum[0] = new TH1F("histo_momentum[0]",Form("Run %d, Reconstructed Momentum, Oct %d + %d",run,md_1,md_2),500,0,2000);
-    histo_momentum[1] = new TH1F("histo_momentum[1]",Form("Run %d, Reconstructed Momentum in Package 1, Oct %d",run,md_1),500,0,2000);
-    histo_momentum[2] = new TH1F("histo_momentum[2]",Form("Run %d, Reconstructed Momentum in Package 2, Oct %d",run,md_2),500,0,2000);
+    histo_momentum[0] = new TH1F("histo_momentum_all",Form("Run %d, Reconstructed Momentum, Oct %d + %d",run,md_1,md_2),8000,0,2000);
+    histo_momentum[1] = new TH1F("histo_momentum_p1",Form("Run %d, Reconstructed Momentum in Package 1, Oct %d",run,md_1),8000,0,2000);
+    histo_momentum[2] = new TH1F("histo_momentum_p2",Form("Run %d, Reconstructed Momentum in Package 2, Oct %d",run,md_2),8000,0,2000);
 
     TH2F* q2_vs_momentum[3];
-    q2_vs_momentum[0] = new TH2F("q2_vs_momentum[0]",Form("Run %d, Q2 vs Reconstructed Momentum, Oct %d + %d",run,md_1,md_2),500,0,2000,400,0,0.08);
-    q2_vs_momentum[1] = new TH2F("q2_vs_momentum[1]",Form("Run %d, Q2 vs Reconstructed Momentum in Package 1, Oct %d",run,md_1),500,0,2000,400,0,0.08);
-    q2_vs_momentum[2] = new TH2F("q2_vs_momentum[2]",Form("Run %d, Q2 vs Reconstructed Momentum in Package 2, Oct %d",run,md_2),500,0,2000,400,0,0.08);
+    q2_vs_momentum[0] = new TH2F("q2_vs_momentum_all",Form("Run %d, Q2 vs Reconstructed Momentum, Oct %d + %d",run,md_1,md_2),8000,0,2000,400,0,0.08);
+    q2_vs_momentum[1] = new TH2F("q2_vs_momentum_p1",Form("Run %d, Q2 vs Reconstructed Momentum in Package 1, Oct %d",run,md_1),8000,0,2000,400,0,0.08);
+    q2_vs_momentum[2] = new TH2F("q2_vs_momentum_p2",Form("Run %d, Q2 vs Reconstructed Momentum in Package 2, Oct %d",run,md_2),8000,0,2000,400,0,0.08);
 
     TH1F* histo_p0[3];
-    histo_p0[0] = new TH1F("histo_p0[0]",Form("Run %d, P0, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
-    histo_p0[1] = new TH1F("histo_p0[1]",Form("Run %d, P0, Package 1, Oct %d",run,md_1),400,1.0,1.2);
-    histo_p0[2] = new TH1F("histo_p0[2]",Form("Run %d, P0, Package 2, Oct %d",run,md_2),400,1.0,1.2);
+    histo_p0[0] = new TH1F("histo_P0_all",Form("Run %d, P0, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
+    histo_p0[1] = new TH1F("histo_P0_p1",Form("Run %d, P0, Package 1, Oct %d",run,md_1),400,1.0,1.2);
+    histo_p0[2] = new TH1F("histo_P0_p2",Form("Run %d, P0, Package 2, Oct %d",run,md_2),400,1.0,1.2);
 
     TH1F* histo_pp[3];
-    histo_pp[0] = new TH1F("histo_pp[0]",Form("Run %d, Pp, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
-    histo_pp[1] = new TH1F("histo_pp[1]",Form("Run %d, Pp, Package 1, Oct %d",run,md_1),400,1.0,1.2);
-    histo_pp[2] = new TH1F("histo_pp[2]",Form("Run %d, Pp, Package 2, Oct %d",run,md_2),400,1.0,1.2);
+    histo_pp[0] = new TH1F("histo_Pp[0]_all",Form("Run %d, Pp, Oct %d + %d",run,md_1,md_2),400,1.0,1.2);
+    histo_pp[1] = new TH1F("histo_Pp[1]_p1",Form("Run %d, Pp, Package 1, Oct %d",run,md_1),400,1.0,1.2);
+    histo_pp[2] = new TH1F("histo_Pp[2]_p2",Form("Run %d, Pp, Package 2, Oct %d",run,md_2),400,1.0,1.2);
 
     TH2F* eloss_vs_verz[3];
-    eloss_vs_verz[0] = new TH2F("eloss_vs_verx[0]",Form("Run %d, Eloss vs. vertex Z, Oct %d + %d",run,md_1,md_2),400,-680,-620,400,0,24);
-    eloss_vs_verz[1] = new TH2F("eloss_vs_verx[1]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_1),400,-680,-620,400,0,24);
-    eloss_vs_verz[2] = new TH2F("eloss_vs_verx[2]",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_2),400,-680,-620,400,0,24);
+    eloss_vs_verz[0] = new TH2F("eloss_vs_verx_all",Form("Run %d, Eloss vs. vertex Z, Oct %d + %d",run,md_1,md_2),400,-680,-620,400,0,24);
+    eloss_vs_verz[1] = new TH2F("eloss_vs_verx_p1",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_1),400,-680,-620,400,0,24);
+    eloss_vs_verz[2] = new TH2F("eloss_vs_verx_p2",Form("Run %d, Eloss vs. vertex Z in Oct %d",run,md_2),400,-680,-620,400,0,24);
 
     TH1F* histo_direction_phi_off[3];
-    histo_direction_phi_off[0] = new TH1F("histo_direction_phi_off[0]",Form("Run %d, Direction_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-2/degree,2/degree);
-    histo_direction_phi_off[1] = new TH1F("histo_direction_phi_off[1]",Form("Run %d, Direction_Phi_Off, Package 1, Oct %d",run,md_1),400,-2/degree,2/degree);
-    histo_direction_phi_off[2] = new TH1F("histo_direction_phi_off[2]",Form("Run %d, Direction_Phi_Off, Package 2, Oct %d",run,md_2),400,-2/degree,2/degree);
+    histo_direction_phi_off[0] = new TH1F("histo_direction_phi_off_all",Form("Run %d, Direction_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-2/degree,2/degree);
+    histo_direction_phi_off[1] = new TH1F("histo_direction_phi_off_p1",Form("Run %d, Direction_Phi_Off, Package 1, Oct %d",run,md_1),400,-2/degree,2/degree);
+    histo_direction_phi_off[2] = new TH1F("histo_direction_phi_off_p2",Form("Run %d, Direction_Phi_Off, Package 2, Oct %d",run,md_2),400,-2/degree,2/degree);
 
     TH1F* histo_position_phi_off[3];
-    histo_position_phi_off[0] = new TH1F("histo_position_phi_off[0]",Form("Run %d, Position_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-1/degree,1/degree);
-    histo_position_phi_off[1] = new TH1F("histo_position_phi_off[1]",Form("Run %d, Position_Phi_Off, Package 1, Oct %d",run,md_1),400,-1/degree,1/degree);
-    histo_position_phi_off[2] = new TH1F("histo_position_phi_off[2]",Form("Run %d, Position_Phi_Off, Package 2, Oct %d",run,md_2),400,-1/degree,1/degree);
+    histo_position_phi_off[0] = new TH1F("histo_position_phi_off_all",Form("Run %d, Position_Phi_Off, Oct %d + %d",run,md_1,md_2),400,-1/degree,1/degree);
+    histo_position_phi_off[1] = new TH1F("histo_position_phi_off_p1",Form("Run %d, Position_Phi_Off, Package 1, Oct %d",run,md_1),400,-1/degree,1/degree);
+    histo_position_phi_off[2] = new TH1F("histo_position_phi_off_p2",Form("Run %d, Position_Phi_Off, Package 2, Oct %d",run,md_2),400,-1/degree,1/degree);
 
     TH1F* histo_direction_theta_off[3];
-    histo_direction_theta_off[0] = new TH1F("histo_direction_theta_off[0]",Form("Run %d, Direction_Theta_Off, Oct %d + %d",run,md_1,md_2),400,-0.4/degree,0.4/degree);
-    histo_direction_theta_off[1] = new TH1F("histo_direction_theta_off[1]",Form("Run %d, Direction_Theta_Off, Package 1, Oct %d",run,md_1),400,-0.4/degree,0.4/degree);
-    histo_direction_theta_off[2] = new TH1F("histo_direction_theta_off[2]",Form("Run %d, Direction_Theta_Off, Package 2, Oct %d",run,md_2),400,-0.4/degree,0.4/degree);
+    histo_direction_theta_off[0] = new TH1F("histo_direction_theta_off_all",Form("Run %d, Direction_Theta_Off, Oct %d + %d",run,md_1,md_2),400,-0.4/degree,0.4/degree);
+    histo_direction_theta_off[1] = new TH1F("histo_direction_theta_off_p1",Form("Run %d, Direction_Theta_Off, Package 1, Oct %d",run,md_1),400,-0.4/degree,0.4/degree);
+    histo_direction_theta_off[2] = new TH1F("histo_direction_theta_off_p2",Form("Run %d, Direction_Theta_Off, Package 2, Oct %d",run,md_2),400,-0.4/degree,0.4/degree);
 
     TH1F* histo_position_theta_off[3];
-    histo_position_theta_off[0] = new TH1F("histo_position_theta_off[0]",Form("Run %d, Position_Theta_Off, Oct %d + %d",run,md_1,md_2),400,-0.003/degree,0.003/degree);
-    histo_position_theta_off[1] = new TH1F("histo_position_theta_off[1]",Form("Run %d, Position_Theta_Off, Package 1, Oct %d",run,md_1),400,-0.003/degree,0.003/degree);
-    histo_position_theta_off[2] = new TH1F("histo_position_theta_off[2]",Form("Run %d, Position_Theta_Off, Package 2, Oct %d",run,md_2),400,-0.003/degree,0.003/degree);
+    histo_position_theta_off[0] = new TH1F("histo_position_theta_off_all",Form("Run %d, Position_Theta_Off, Oct %d + %d",run,md_1,md_2),400,-0.003/degree,0.003/degree);
+    histo_position_theta_off[1] = new TH1F("histo_position_theta_off_p1",Form("Run %d, Position_Theta_Off, Package 1, Oct %d",run,md_1),400,-0.003/degree,0.003/degree);
+    histo_position_theta_off[2] = new TH1F("histo_position_theta_off_p2",Form("Run %d, Position_Theta_Off, Package 2, Oct %d",run,md_2),400,-0.003/degree,0.003/degree);
 
     TH1F* histo_md1_pe[3];
-    histo_md1_pe[0] = new TH1F("histo_md1_pe[0]",Form("Run %d, Total #PE, Oct %d",run,md_1),500,0,500);
-    histo_md1_pe[1] = new TH1F("histo_md1_pe[1]",Form("Run %d, MD%d-  #PE, Oct %d",run,md_1,md_1),500,0,250);
-    histo_md1_pe[2] = new TH1F("histo_md1_pe[2]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_1,md_1),500,0,250);
+    histo_md1_pe[0] = new TH1F("histo_md1_pe_tot",Form("Run %d, Total #PE, Oct %d",run,md_1),500,0,500);
+    histo_md1_pe[1] = new TH1F("histo_md1m_pe",Form("Run %d, MD%d-  #PE, Oct %d",run,md_1,md_1),500,0,250);
+    histo_md1_pe[2] = new TH1F("histo_md1p_pe",Form("Run %d, MD%d+  #PE, Oct %d",run,md_1,md_1),500,0,250);
     TH1F* histo_md2_pe[3];
-    histo_md2_pe[0] = new TH1F("histo_md2_pe[0]",Form("Run %d, Total #PE, Oct %d",run,md_2),500,0,500);
-    histo_md2_pe[1] = new TH1F("histo_md2_pe[1]",Form("Run %d, MD%d-  #PE, Oct %d",run,md_2,md_2),500,0,250);
-    histo_md2_pe[2] = new TH1F("histo_md2_pe[2]",Form("Run %d, MD%d+  #PE, Oct %d",run,md_2,md_2),500,0,250);
+    histo_md2_pe[0] = new TH1F("histo_md2_pe_tot",Form("Run %d, Total #PE, Oct %d",run,md_2),500,0,500);
+    histo_md2_pe[1] = new TH1F("histo_md2m_pe",Form("Run %d, MD%d-  #PE, Oct %d",run,md_2,md_2),500,0,250);
+    histo_md2_pe[2] = new TH1F("histo_md2p_pe",Form("Run %d, MD%d+  #PE, Oct %d",run,md_2,md_2),500,0,250);
 
     TH1F* histo_tdc1m = new TH1F("histo_tdc1m",Form("Run %d, TDC -, Oct %d",run,md_1),500,-350,0);
     TH1F* histo_tdc1p = new TH1F("histo_tdc1p",Form("Run %d, TDC +, Oct %d",run,md_1),500,-350,0);
@@ -1645,7 +1646,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     q2_1->Write();
     q2_2->Write();
 
-    for(int i=0;i<2;i++)
+    for(int i=0;i<=2;i++)
     {
         light_weighted_q2[i]->Write();
         histo_vertex_z[i]->Write();

@@ -3,7 +3,7 @@
 #include <rootClass.h>
 #include "getEBeamLasCuts.C"
 #include "comptonRunConstants.h"
-#include "maskedStrips.C"
+#include "rhoToX.C"
 #include "evaluateAsym.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
@@ -53,7 +53,7 @@ Int_t expAsym(Int_t runnum)
   Float_t weightedMeanNrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrBCqNormDiff_v2[nPlanes][nStrips];
 
   Float_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips];
-  Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;//!as of now not tracking the las-off status
+  Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;
 
   Int_t AccumB1H0L1_v2[nPlanes][nStrips],AccumB1H1L1_v2[nPlanes][nStrips];
   Int_t AccumB1H0L0_v2[nPlanes][nStrips],AccumB1H1L0_v2[nPlanes][nStrips];
@@ -80,7 +80,7 @@ Int_t expAsym(Int_t runnum)
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
   for(Int_t p = startPlane; p <endPlane; p++) {      	
     for(Int_t s =startStrip; s <endStrip; s++) {
-      //if (maskedStrips(p,s)) continue;    
+      //if (!mask[p][s]) continue;    
       weightedMeanNrAsym[p][s]=0.0,weightedMeanDrAsym[p][s]=0.0;
       weightedMeanNrBkgdAsym[p][s]=0.0,weightedMeanDrBkgdAsym[p][s]=0.0;
       stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0;
@@ -124,15 +124,14 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = startPlane; p < endPlane; p++) { 
     Int_t skipMe = 0;
     for (Int_t s =startStrip; s <endStrip;s++) { 
-      if (maskedStrips(p,s)) continue;
+      if (!mask[p][s]) continue;
       skipMe++;
       activeStrips[p][skipMe]=s+1;//this is required to keep it consistent with the case of the stripNumber being read from a file
     }
   }
   //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for pass1
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass2_%d.*.root",runnum));//for pass2
-  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
-  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.000.root",runnum));//!test analysis for first runlet myQwAnalyisis output
+  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass2_%d.*.root",runnum));//for pass2
+  //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
   cout<<"Attached "<<chainExists<<" files to chain for Run # "<<runnum<<endl;
 
   if(!chainExists){//delete chains and exit if files do not exist
@@ -236,7 +235,7 @@ Int_t expAsym(Int_t runnum)
 
     for(Int_t p = startPlane; p <endPlane; p++) {
       for(Int_t s =startStrip; s <endStrip; s++) {
-	if (maskedStrips(p,s)) continue;    
+	if (!mask[p][s]) continue;    
 	///lasCyc based files go into a special folder named lasCyc
 	lasCycAccum[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
 	lasCycScaler[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
@@ -313,7 +312,7 @@ Int_t expAsym(Int_t runnum)
 	  lasPowB1H0L0 += lasPow[0];
 	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (maskedStrips(p,s)) continue;
+	      if (!mask[p][s]) continue;
 	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];
 	      ScalerB1H0L0[p][s] += (Int_t)bRawScaler[p][s];
 	      if(v2processed) AccumB1H0L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
@@ -325,7 +324,7 @@ Int_t expAsym(Int_t runnum)
 	  lasPowB1H0L1 += lasPow[0];
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (maskedStrips(p,s)) continue;
+	      if (!mask[p][s]) continue;
 	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];
 	      ScalerB1H0L1[p][s] += (Int_t)bRawScaler[p][s];
 	      if(v2processed) AccumB1H0L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
@@ -337,7 +336,7 @@ Int_t expAsym(Int_t runnum)
 	  lasPowB1H1L0 += lasPow[0];
 	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (maskedStrips(p,s)) continue;
+	      if (!mask[p][s]) continue;
 	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];
 	      ScalerB1H1L0[p][s] += (Int_t)bRawScaler[p][s];
 	      if(v2processed) AccumB1H1L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
@@ -349,7 +348,7 @@ Int_t expAsym(Int_t runnum)
 	  lasPowB1H1L1 += lasPow[0];
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (maskedStrips(p,s)) continue;
+	      if (!mask[p][s]) continue;
 	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];
 	      ScalerB1H1L1[p][s] += (Int_t)bRawScaler[p][s];
 	      if(v2processed) AccumB1H1L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
@@ -385,7 +384,7 @@ Int_t expAsym(Int_t runnum)
       else {
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s = startStrip; s < endStrip; s++) {
-	    if (maskedStrips(p,s)) continue;
+	    if (!mask[p][s]) continue;
 	    totAccumB1H1L1[p][s] += AccumB1H1L1[p][s];
 	    totAccumB1H1L0[p][s] += AccumB1H1L0[p][s];
 	    totAccumB1H0L1[p][s] += AccumB1H0L1[p][s];
@@ -410,7 +409,7 @@ Int_t expAsym(Int_t runnum)
 	  firstLineLasCyc = kFALSE;
 	  for(Int_t p = startPlane; p < endPlane; p++) {
 	    for (Int_t s =startStrip; s <endStrip;s++) {
-	      if (maskedStrips(p,s)) continue;
+	      if (!mask[p][s]) continue;
 	      if(!firstlinelasPrint[p][s]) {
 		lasCycAccum[p][s]<<"\n";
 		lasCycScaler[p][s]<<"\n";
@@ -440,7 +439,7 @@ Int_t expAsym(Int_t runnum)
 
   for(Int_t p = 0; p <nPlanes; p++) {      
     for(Int_t s =startStrip; s <endStrip; s++) {
-      if (maskedStrips(p,s)) continue;    
+      if (!mask[p][s]) continue;    
       lasCycAccum[p][s].close();
       lasCycScaler[p][s].close();
     }
@@ -450,7 +449,7 @@ Int_t expAsym(Int_t runnum)
 
   for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington
     for (Int_t s =startStrip; s <endStrip; s++) {        
-      if (maskedStrips(p,s)) continue;
+      if (!mask[p][s]) continue;
       if(weightedMeanDrAsym[p][s]==0.0) cout<<"stand. deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
       else {
 	stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
@@ -481,7 +480,7 @@ Int_t expAsym(Int_t runnum)
   
   for(Int_t p = startPlane; p < endPlane; p++) { 
     for (Int_t s =startStrip; s <endStrip; s++) {        
-      if (maskedStrips(p,s)) continue;
+      if (!mask[p][s]) continue;
       tNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
       tNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
    }
@@ -509,7 +508,7 @@ Int_t expAsym(Int_t runnum)
       //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
       Bool_t firstOne=kTRUE;
       for (Int_t s =startStrip; s <endStrip;s++) { 
-	if (maskedStrips(p,s)) continue;
+	if (!mask[p][s]) continue;
 	if(!firstOne) {
 	  outfileExpAsymP<<"\n";
 	  outfileBkgdAsymP<<"\n";
@@ -544,7 +543,7 @@ Int_t expAsym(Int_t runnum)
   if (v2processed) {
     for (Int_t p =startPlane; p <endPlane; p++) {	  	  
       for (Int_t s =startStrip; s <endStrip; s++) {        
-	if (maskedStrips(p,s)) continue;
+	if (!mask[p][s]) continue;
 	if(weightedMeanDrAsym_v2[p][s]<=0.0) cout<<"st.deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
 	else if(weightedMeanNrAsym[p][s]==0.0) cout<<"asym for strip "<<s<<" in plane "<<p<<" is zero"<<endl;
 	else {
@@ -571,7 +570,7 @@ Int_t expAsym(Int_t runnum)
 	cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
 	cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
 	for (Int_t s =startStrip; s <endStrip;s++) {    
-	  if (maskedStrips(p,s)) continue;
+	  if (!mask[p][s]) continue;
 	  outfileExpAsymP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsym_v2[p][s],stripAsymEr_v2[p][s]);
 	  outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr_v2[p][s],stripAsymDrEr_v2[p][s]);
 	  outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0_v2[p][s],qNormB1L0Er_v2[p][s]);
@@ -587,32 +586,32 @@ Int_t expAsym(Int_t runnum)
   } //if (v2processed)  
 
   //!!this currently would not work if the Cedge changes between planes
+  if(debug1) {
+    TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
+    cStability->Divide(3,3);
+    cStability->cd(1);
+    mpsChain->Draw("sca_bcm6:event_number","sca_bcm6 < 200");
+    cStability->cd(2);
+    mpsChain->Draw("sca_bpm_3p02aY:event_number");
+    cStability->cd(3);
+    mpsChain->Draw("sca_bpm_3p02bY:event_number");
+    cStability->cd(4);
+    mpsChain->Draw("sca_bpm_3p03aY:event_number");
+    cStability->cd(5);
+    mpsChain->Draw("sca_bpm_3c20Y:event_number");
+    //mpsChain->Draw("sca_bpm_3c20X:event_number");
+    cStability->cd(6);
+    mpsChain->Draw("sca_bpm_3p02aX:event_number");
+    cStability->cd(7);
+    mpsChain->Draw("sca_bpm_3p02bX:event_number");
+    cStability->cd(8);
+    mpsChain->Draw("sca_bpm_3p03aX:event_number");
+    cStability->cd(9);
+    mpsChain->Draw("sca_laser_PowT:event_number","sca_laser_PowT<180000");
 
-  TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
-  cStability->Divide(3,3);
-  cStability->cd(1);
-  mpsChain->Draw("sca_bcm6:event_number");
-  cStability->cd(2);
-  mpsChain->Draw("sca_bpm_3p02aY:event_number");
-  cStability->cd(3);
-  mpsChain->Draw("sca_bpm_3p02bY:event_number");
-  cStability->cd(4);
-  mpsChain->Draw("sca_bpm_3p03aY:event_number");
-  cStability->cd(5);
-  mpsChain->Draw("sca_bpm_3c20Y:event_number");
-  //mpsChain->Draw("sca_bpm_3c20X:event_number");
-  cStability->cd(6);
-  mpsChain->Draw("sca_bpm_3p02aX:event_number");
-  cStability->cd(7);
-  mpsChain->Draw("sca_bpm_3p02bX:event_number");
-  cStability->cd(8);
-  mpsChain->Draw("sca_bpm_3p03aX:event_number");
-  cStability->cd(9);
-  mpsChain->Draw("sca_laser_PowT:event_number");
-
-  cStability->Update();
-  cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));
-  
+    cStability->Update();
+    cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));
+  }
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  

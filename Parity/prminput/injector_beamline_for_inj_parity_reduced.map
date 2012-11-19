@@ -1,7 +1,9 @@
 ! injector beamline map to be used with the inj_parity combined run type analysis.
 ! The only difference between this and injtest_beamline.map is the disabling of variable publishing.
 ! October 4th, 2011 B.Waidyawansa
-!
+! 
+! November 19th , 2012 B.Waidyawanas Added 0i02a and 0i05 for pass5 on manolis request
+
 ROC=31
 Bank=0x3102
 !same sample size for ADCs in a given bank
@@ -28,6 +30,16 @@ sample_size=464
     VQWK, 2, 1,  bpmstripline,  QWK_1I06XM,   UNROTATED
     VQWK, 2, 2,  bpmstripline,  QWK_1I06YP,   UNROTATED
     VQWK, 2, 3,  bpmstripline,  QWK_1I06YM,   UNROTATED
+
+!ADC3
+    VQWK, 3, 0,  bpmstripline,  QWK_0I02AXP,   UNROTATED
+    VQWK, 3, 1,  bpmstripline,  QWK_0I02AXM,   UNROTATED
+    VQWK, 3, 2,  bpmstripline,  QWK_0I02AYP,   UNROTATED
+    VQWK, 3, 3,  bpmstripline,  QWK_0I02AYM,   UNROTATED
+    VQWK, 3, 4,  bpmstripline,  QWK_0I05XP,   UNROTATED
+    VQWK, 3, 5,  bpmstripline,  QWK_0I05XM,   UNROTATED
+    VQWK, 3, 6,  bpmstripline,  QWK_0I05YP,   UNROTATED
+    VQWK, 3, 7,  bpmstripline,  QWK_0I05YM,   UNROTATED
 
 !ADC4
     VQWK, 4, 4,  bpmstripline,  QWK_0L01XP

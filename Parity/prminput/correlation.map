@@ -1,18 +1,3 @@
 asym:qwk_bcm1,asym:qwk_bcm2
 asym:qwk_bcm1,asym:qwk_bcm5
-
-[currents]
-asym:qwk_bcm1
-asym:qwk_bcm5
-asym:qwk_bcm6
-asym:qwk_bcm7
-
-[main detectors]
-asym:qwk_md1barsum
-asym:qwk_md2barsum
-asym:qwk_md3barsum
-asym:qwk_md4barsum
-asym:qwk_md5barsum
-asym:qwk_md6barsum
-asym:qwk_md7barsum
-asym:qwk_md8barsum
+asym:qwk_md1pos,diff:qwk_targetX

@@ -1,6 +1,6 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
-#include "maskedStrips.C"
+#include "rhoToX.C"
 
 void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nPlanes][nStrips],Int_t newAccumB1H0L1[nPlanes][nStrips],Int_t newAccumB1H0L0[nPlanes][nStrips],Float_t bcmLasCycH1L1,Float_t bcmLasCycH1L0,Float_t bcmLasCycH0L1,Float_t bcmLasCycH0L0,Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Float_t weightedMeanDrBkgdAsym[nPlanes][nStrips])
 {
@@ -16,7 +16,7 @@ void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nP
 
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {	  
-      if (maskedStrips(p,s)) continue;
+      if (!mask[p][s]) continue;
       Float_t qNormAcB1H1L1LasCyc = newAccumB1H1L1[p][s] /qLasCycH1L1;
       Float_t qNormAcB1H1L0LasCyc = newAccumB1H1L0[p][s] /qLasCycH1L0;
       Float_t qNormAcB1H0L1LasCyc = newAccumB1H0L1[p][s] /qLasCycH0L1;

@@ -64,7 +64,18 @@ enum EQwGUIDatabaseWidgetIDs {
 
 const char *QwGUIDatabase::DetectorCombos[N_DETECTORS] = 
   {
-    "qwk_mdallbars",
+	"mdallpmtavg",
+	"mdallbarsavg",
+	"md1pmtavg",
+	"md2pmtavg",
+	"md3pmtavg",
+	"md4pmtavg",
+	"md5pmtavg",
+	"md6pmtavg",
+	"md7pmtavg",
+	"md8pmtavg",
+	"md9pmtavg",
+	"qwk_mdallbars",
     "qwk_mdoddbars",
     "qwk_mdevenbars",
     "qwk_md1barsum",
@@ -112,9 +123,7 @@ const char *QwGUIDatabase::DetectorCombos[N_DETECTORS] =
     "md37_dipole",
     "md48_dipole",
     "mddipole_h",
-    "mddipole_v",
-    "mdallbarsavg",
-    "mdallpmtavg"
+    "mddipole_v"
   };
 
 const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] = 
