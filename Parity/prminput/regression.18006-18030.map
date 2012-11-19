@@ -110,24 +110,23 @@ asym:qwk_md7barsum, -1
 asym:qwk_md4barsum, 1
 asym:qwk_md8barsum, -1
 
-#0.1667 = 1/6
-#0.2357 = (sqrt2)/6
+#0.17678 = 1/4 * 1/sqrt(2)
+#0.25 =  1/4
 [asym:@asym_mddipole_h]
-asym:qwk_md1barsum,  0.1667
-asym:qwk_md2barsum,  0.2357
-asym:qwk_md4barsum, -0.2357
-asym:qwk_md5barsum, -0.1667
-asym:qwk_md6barsum, -0.2357
-asym:qwk_md8barsum,  0.2357
+asym:qwk_md1barsum,  0.25
+asym:qwk_md2barsum,  0.17678
+asym:qwk_md4barsum, -0.17678
+asym:qwk_md5barsum, -0.25
+asym:qwk_md6barsum, -0.17678
+asym:qwk_md8barsum,  0.17678
 
 [asym:@asym_mddipole_v]
-asym:qwk_md2barsum,  0.2357
-asym:qwk_md3barsum,  0.1667
-asym:qwk_md4barsum,  0.2357
-asym:qwk_md6barsum, -0.2357
-asym:qwk_md7barsum, -0.1667
-asym:qwk_md8barsum, -0.2357
-
+asym:qwk_md2barsum,  0.17678
+asym:qwk_md3barsum,  0.25
+asym:qwk_md4barsum,  0.17678
+asym:qwk_md6barsum, -0.17678
+asym:qwk_md7barsum, -0.25
+asym:qwk_md8barsum, -0.17678
 
 # MD Asymmetry Average
 [asym:@asym_mdallbarsavg]
