@@ -37,6 +37,7 @@
 #include "TMinuit.h"
 #include "TLatex.h"
 #include <algorithm>
+#include <set>
 using namespace std;
 
 char red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };

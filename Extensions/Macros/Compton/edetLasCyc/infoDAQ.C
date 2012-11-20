@@ -6,14 +6,14 @@
 void infoDAQ(Int_t runnum)
 {
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
-  Bool_t debug=0,autoDebug=1;
+  Bool_t debug=1,autoDebug=1;
   Double_t bMask[nPlanes][nStrips];
   const Int_t errFlag=100;
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
   //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
-  ofstream infoDAQthisRun,debugInfoDAQ;
+  ofstream infoDAQthisRun,debugInfoDAQ,infoStripMask;
   //should put a check if the file was not opened successfully 
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_%i.000.root",runnum));//ensure to read in only the first runlet
   TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2_%i.000.root",runnum));//ensure to read in only the first runlet
@@ -44,6 +44,21 @@ void infoDAQ(Int_t runnum)
       mask[p][s] = (Int_t)bMask[p][s];
     }
   }
+  
+  infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePrefix.Data()));
+  infoStripMask<<";plane\tmaskedStrips:";
+  for(Int_t p = startPlane; p <endPlane; p++) {
+    infoStripMask<<"\n"<<p+1<<"\t";
+    for(Int_t s =startStrip; s <endStrip; s++) {
+      if (mask[p][s] == 0) {
+	infoStripMask<<s+1<<"\t";
+	//skipStrip.insert(s+1); //idea of declaraing it as a 'set' did not work
+	skipStrip.push_back(s+1);//notice that the strip#s are pushed in as human count #s
+	if(debug) cout<<blue<<"masked strip "<<s+1<<normal<<endl;
+      }
+    }
+  }
+  infoStripMask.close();
 
   for(Int_t m = 0; m <nModules; m++) {
     acTrigSlave[m]=(Int_t)bAcTrigSlave[m];  
@@ -56,13 +71,6 @@ void infoDAQ(Int_t runnum)
     pipelineDelaySlave[m] = (Int_t)bPipelineDelaySlave[m];
   }
 
-  if(debug) {
-    for(Int_t p = startPlane; p <endPlane; p++) {
-      for(Int_t s =startStrip; s <12; s++) {
-	cout<<Form("p%ds%dMask ",p+1,s+1)<<mask[p][s]<<endl;
-      }
-    }
-  }
   ///Note: "100" is being used an an error flag in this case to alert that the values were different between two slaves
   acTrig = acTrigSlave[0]==acTrigSlave[1] ? acTrigSlave[1] : errFlag;
   evTrig = evTrigSlave[0]==evTrigSlave[1] ? evTrigSlave[1] : errFlag;
@@ -89,20 +97,26 @@ void infoDAQ(Int_t runnum)
   infoDAQthisRun<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
   infoDAQthisRun.close();
 
-  skipStrip.resize(nPlanes);
-  /*Choosing how to skip a strip that was not masked in DAQ:
-   *I can look at the asymmetry numerator and visually look for outliers
-   *I can look at the asymmetry fit residuals and visually identify outliers
-   *As of now, the above two methods do not seem to be in agreement for some choices
-   */
-  ///strips in plane1 that were not masked in DAQ but need to be ignored
-  skipStrip[0].push_back(2);//plane # in C++, strip# in human counts
-  skipStrip[1].push_back(2);//plane # in C++, strip# in human counts
-  skipStrip[1].push_back(35);//plane # in C++, strip# in human counts
-  skipStrip[1].push_back(39);//plane # in C++, strip# in human counts
-  skipStrip[2].push_back(2);//plane # in C++, strip# in human counts
-  //skipStrip[2].push_back(35);//plane # in C++, strip# in human counts
-  skipStrip[2].push_back(40);//plane # in C++, strip# in human counts
+  // skipStrip.resize(nPlanes);
+  // /*Choosing how to skip a strip that was not masked in DAQ:
+  //  *I can look at the asymmetry numerator and visually look for outliers
+  //  *I can look at the asymmetry fit residuals and visually identify outliers
+  //  *As of now, the above two methods do not seem to be in agreement for some choices
+  //  */
+  // ///strips in plane1 that were not masked in DAQ but need to be ignored
+  // //!this list may need to become dependent on run-ranges because some strips starting growing bad slowly
+  // //!some part of the bias in the evaluation may be coming from the symmetry in the trigger generation. This symmetry gets biased by masking one strip in a plane while leaving it unmasked in another plane. 
+  // //!remember: if one QWAD channel 
+  // skipStrip[0].push_back(1);//plane # in C++, strip# in human counts
+  // skipStrip[0].push_back(2);//plane # in C++, strip# in human counts
+  // skipStrip[0].push_back(12);//plane # in C++, strip# in human counts
+  // skipStrip[1].push_back(2);//plane # in C++, strip# in human counts
+  // skipStrip[1].push_back(35);//plane # in C++, strip# in human counts
+  // skipStrip[1].push_back(39);//plane # in C++, strip# in human counts
+  // skipStrip[2].push_back(2);//plane # in C++, strip# in human counts
+  // skipStrip[2].push_back(12);//plane # in C++, strip# in human counts
+  // //skipStrip[2].push_back(35);//plane # in C++, strip# in human counts
+  // skipStrip[2].push_back(40);//plane # in C++, strip# in human counts
 
   if(debug) {
     cout<<";runnum\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;

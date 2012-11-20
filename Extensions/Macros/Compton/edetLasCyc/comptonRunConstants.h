@@ -72,17 +72,14 @@ Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
 Bool_t mask[nPlanes][nStrips];  
 Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
 
-std::vector < std::vector <Int_t> > skipStrip;
-std::vector <Int_t> stripsSkippedThisPlane;
+std::vector <Int_t> skipStrip; //a list of strips across different planes to be masked (!trying a new idea)
 std::vector<Int_t>::iterator itStrip;
+/* set<Int_t> skipStrip; */
+/* set<Int_t>::iterator itStrip; */
 
-/* std::set <int> stripsSkippedThisPlane; */
-/* std::set <int>::iterator itStrip; */
+//used in asymFit's fit function evaluation:
+Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;
 
-/* typename vector<T>::const_iterator p  */
-/* const_iterator crazyStripPointer; */
-
-//Int_t *crazyStripPointer;
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64

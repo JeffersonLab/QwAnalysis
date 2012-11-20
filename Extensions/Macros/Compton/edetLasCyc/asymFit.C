@@ -11,39 +11,39 @@
 
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
 {///parCx[1]: to be found Cedge
-  itStrip = find(stripsSkippedThisPlane.begin(),stripsSkippedThisPlane.end(),*thisStrip);
-  if(itStrip != stripsSkippedThisPlane.end()) {
+  itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
+  if(itStrip != skipStrip.end()) {
     TF1::RejectPoint();
     return 0;
   }
-  Double_t xStrip = xCedge - (parCx[1] - (*thisStrip))*stripWidth*parCx[0];
-  Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
-  Double_t rhoPlus = 1-rhoStrip*(1+a_const);
-  Double_t rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
-  Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
+  xStrip = xCedge - (parCx[1] - (*thisStrip))*stripWidth*parCx[0];
+  rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
+  rhoPlus = 1-rhoStrip*(1+a_const);
+  rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
+  dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
   return (parCx[2]*((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a_const
 }
 
 ///3 parameter method
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
-  itStrip = find(stripsSkippedThisPlane.begin(),stripsSkippedThisPlane.end(),*thisStrip);
-  //itStrip = stripsSkippedThisPlane.find(*thisStrip); //for some reason the std::set did not work !
-  if(itStrip != stripsSkippedThisPlane.end()) {
+  //itStrip = skipStrip.find(*thisStrip); //for some reason the std::set did not work !
+  itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
+  if(itStrip != skipStrip.end() || *thisStrip == 1) {
     cout<<red<<"ignored strip: "<<*thisStrip<<normal<<endl;
     TF1::RejectPoint();
     return 0;
   }
-  //Double_t xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
-  Double_t xStrip = xCedge +0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
-  //Double_t xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as actual position inside Cedge strip
-  //Double_t xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
+  //xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
+  //xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as actual position inside Cedge strip
+  //xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
+  xStrip = xCedge +0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
 
-  Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
-  Double_t rhoPlus = 1-rhoStrip*(1+a_const);
-  Double_t rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
-  Double_t dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
-  Double_t dsdrho =((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a_const
+  rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
+  rhoPlus = 1-rhoStrip*(1+a_const);
+  rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
+  dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
+  dsdrho =((rhoStrip*(1 - a_const)*rhoStrip*(1 - a_const)/rhoMinus)+1+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a_const
   //Double_t calcAsym=(par[0]*(-1*IHWP)*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//eqn.24,without factor 2*pi*(re^2)/a
   return (par[2]*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//calcAsym;
 }
@@ -150,8 +150,7 @@ void asymFit(Int_t runnum)
     cout<<"reading in the rho to X fitting parameters for plane "<<p+1<<", they were:" <<endl;
     paramfile>>param[0]>>param[1]>>param[2]>>param[3];
     paramfile.close();
-    printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
-    stripsSkippedThisPlane = skipStrip[p];//copying the strips to be masked for this plane
+    if(debug) printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
     
     cAsym->cd(p+1);  
     cAsym->GetPad(p+1)->SetGridx(1);
@@ -325,11 +324,6 @@ void asymFit(Int_t runnum)
     grYieldPlane[p]->SetMarkerColor(kGreen); ///kRed+2 = Maroon
     grYieldPlane[p]->GetXaxis()->SetLimits(1,65); 
     grYieldPlane[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-    
-    /////2 parameter fit for cross section
-    //TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,Cedge[p]-1,2);///three parameter fit
-    //crossSecFit->SetParameters(1,20.0);//begin the fitting from the generic Cedge
-    //crossSecFit->SetParLimits(0,0.2,2.0);
     
     ///3 parameter fit for cross section
     TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,Cedge[p]-1,3);///three parameter fit
