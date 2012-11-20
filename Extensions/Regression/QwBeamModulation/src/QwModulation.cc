@@ -586,9 +586,9 @@ void QwModulation::ComputeAsymmetryCorrections()
 
   for(Int_t i = 0; i < fNDetector; i++){
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
-//     mod_tree->Branch(Form("raw_%s",HDetectorList[i].Data()), &HDetBranch[i][0], Form("raw_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_%s",HDetectorList[i].Data()), &HDetBranch[i][0], Form("raw_%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
-//     mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("raw_corr_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("raw_corr_%s/D", HDetectorList[i].Data())); 
     if(fCharge){
       mod_tree->Branch(Form("corr_%s_charge", HDetectorList[i].Data()), &AsymmetryCorrectionQ[i], 
 		       Form("corr_%s_charge/D", HDetectorList[i].Data())); 

@@ -1,0 +1,119 @@
+#include "headers.h"
+#include "QwModulation.hh"
+#include "TLeaf.h"
+
+Int_t main(Int_t argc, Char_t *argv[])
+{
+
+  TString filename;
+
+  TChain *mod_tree = new TChain("Mod_Tree");
+
+  QwModulation *modulation = new QwModulation(mod_tree);
+
+  FILE *regression;
+
+  modulation->output = gSystem->Getenv("BMOD_OUT");
+  if(!gSystem->OpenDirectory(modulation->output)){
+    modulation->PrintError("Cannot open output directory.\n");
+    modulation->PrintError("Directory needs to be set as env variable and contain:\n\t slopes/ \n\t regression/ \n\t diagnostics/ \n\t rootfiles/"); 
+    exit(1);
+  }
+  
+  modulation->GetOptions(argv);
+
+  if( !(modulation->fRunNumberSet) ){
+    modulation->PrintError("Error Loading:  no run number specified");
+    exit(1);
+  }
+  filename = Form("bmod_tree%s_%d.%s.root", modulation->fFileSegment.Data(), modulation->run_number, modulation->fSetStem.Data());
+  std::cout << Form("%s/rootfiles/%s/%s",modulation->output.Data(), modulation->fSetStem.Data(), filename.Data())  << std::endl;
+  mod_tree->Add(Form("%s/rootfiles/%s/%s",modulation->output.Data(), modulation->fSetStem.Data(), filename.Data()));
+
+  regression = fopen(Form("%s/regression/%s/regression%s_%i.%s.dat", modulation->output.Data(), modulation->fSetStem.Data(),
+			  modulation->fFileSegment.Data(), modulation->run_number, modulation->fSetStem.Data()), "a");
+  if(regression == NULL){
+    std::cerr << "Failure to open regression file." << std::endl;
+    exit(1);
+  }
+  
+
+  std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
+
+  modulation->ReadConfig(modulation);
+  modulation->fNumberEvents = mod_tree->GetEntries();
+
+  std::cout << "Number of entries: " << modulation->fNumberEvents << std::endl;
+
+  Double_t ErrorFlag;
+  TBranch *b_ErrorFlag;
+
+  std::vector <Double_t> leaf_value(modulation->fNDetector);
+  std::vector <TBranch *> b_leaf_value(modulation->fNDetector);
+  std::vector <TH1F *> mod_hist(modulation->fNDetector);
+  std::vector <TH1F *> nbm_hist(modulation->fNDetector);
+  
+  mod_tree->SetBranchStatus("*", 0);     
+  mod_tree->SetBranchStatus("ErrorFlag", 1);   
+  mod_tree->SetBranchAddress("ErrorFlag", &ErrorFlag, &b_ErrorFlag);
+  
+  for(Int_t det = 0; det < modulation->fNDetector; det++){
+    mod_tree->SetBranchStatus(Form("corr_asym_%s", modulation->DetectorList[det].Data()), 1);   
+    mod_tree->SetBranchAddress(Form("corr_asym_%s", modulation->DetectorList[det].Data()), 
+			       &leaf_value[det], &b_leaf_value[det]);   
+    mod_hist[det] = new TH1F(Form("hist_%", modulation->DetectorList[det].Data()),
+			     Form("hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
+    nbm_hist[det] = new TH1F(Form("nbm_hist_%", modulation->DetectorList[det].Data()),
+			     Form("nbm_hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
+  }
+
+  for(Long64_t i = 0; i < modulation->fNumberEvents; i++){
+//   for(Long64_t i = 0; i < 2; i++){
+
+    modulation->LoadTree(i);
+    if(i < 0) break;
+    modulation->fChain->GetEntry(i);
+    
+    if((i % 100000) == 0) std::cout << "processing: " << i << std::endl;
+    
+    if((UInt_t)ErrorFlag == 0x4018080){
+      for(Int_t det = 0; det < modulation->fNDetector; det++){
+	mod_hist[det]->Fill(leaf_value[det]);      
+      }
+    }
+    if(ErrorFlag == 0){
+      for(Int_t det = 0; det < modulation->fNDetector; det++){
+	nbm_hist[det]->Fill(leaf_value[det]);      
+      }
+    }
+  }
+
+  for(Int_t det = 0; det < modulation->fNDetector; det++){
+//     std::cout << "Mean mod:\t" << modulation->DetectorList[det].Data() 
+//  	      << "  " << mod_hist[det]->GetMean() 
+//  	      << "\tMean nbm:\t" << modulation->DetectorList[det].Data() 
+//  	      << "  " << nbm_hist[det]->GetMean()
+//  	      << std::endl;
+  }
+  std::cout << modulation->fNDetector << std::endl;
+  std::cout << "Closing Mod_Tree" << std::endl;
+
+  fprintf(regression, "\n# cp corrected asymmetry \n");
+  for(Int_t det = 0; det < modulation->fNDetector; det++){
+    fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->DetectorList[det].Data(), 
+	    (Int_t)(modulation->fNumberEvents), mod_hist[det]->GetMean(), 
+	    (mod_hist[det]->GetRMS())/TMath::Sqrt(modulation->fNumberEvents) );
+  }
+  
+  fprintf(regression, "\n# nbm corrected asymmetry \n");
+  for(Int_t det = 0; det < modulation->fNDetector; det++){
+    fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->DetectorList[det].Data(), 
+	    (Int_t)(modulation->fNumberEvents), nbm_hist[det]->GetMean(),
+	    (nbm_hist[det]->GetRMS())/TMath::Sqrt(modulation->fNumberEvents) );
+  }
+
+  delete mod_tree;
+
+  return 0;
+
+}
