@@ -146,14 +146,18 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
   mv -v ${BMOD_OUT}/regression/${REG_STEM}${run_number}.${set}.dat ${BMOD_OUT}/regression/$set
   mv -v ${BMOD_OUT}/diagnostics/${BMOD_FILE_STEM}${run_number}.${set}.root${DIAGNOSTIC_STEM} ${BMOD_OUT}/diagnostics/$set
-#  mv -v ${BMOD_OUT}/diagnostics/${BMOD_FILE_STEM}${run_number}.${set}.dat ${BMOD_OUT}/diagnostics/$set
   mv -v ${BMOD_OUT}/slopes/${SLOPES_STEM}${run_number}.${set}.dat ${BMOD_OUT}/slopes/$set/${SLOPES_STEM}${run_number}.${set}.dat
   mv -v ${BMOD_OUT}/rootfiles/${BMOD_FILE_STEM}${run_number}.${set}.root ${BMOD_OUT}/rootfiles/$set/${BMOD_FILE_STEM}${run_number}.${set}.root
 
   REGRESSION=${BMOD_OUT}/regression/$set/${REG_STEM}${run_number}.${set}.dat
-#  DIAGNOSTIC=${BMOD_OUT}/diagnostics/$set/${BMOD_FILE_STEM}${run_number}.${set}.root${DIAGNOSTIC_STEM}
-#  SLOPES=${BMOD_OUT}/slopes/$set/${SLOPES_STEM}${run_number}.${set}.dat  
-  
+
+  if [ -f "${ROOTFILE}" ]; then
+      $scriptPath/qwasymsplitter $libra_options --set-stem ${set} &> qwasymsplitter_${run}_${fseg}.out
+  else
+      echo "There was a problem in the starting qwasymsplitter."
+      exit
+  fi
+
 echo Upload data to DB
 if [[ -n "$PERL5LIB" ]]; then
     export PERL5LIB=${scriptPath/scripts/bash}:${PERL5LIB}
