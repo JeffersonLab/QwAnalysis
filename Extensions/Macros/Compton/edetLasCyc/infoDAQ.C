@@ -5,6 +5,7 @@
 
 void infoDAQ(Int_t runnum)
 {
+  maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
   Bool_t debug=0,autoDebug=1;
   Double_t bMask[nPlanes][nStrips];
   const Int_t errFlag=100;
@@ -49,10 +50,10 @@ void infoDAQ(Int_t runnum)
     evTrigSlave[m]        = (Int_t)bEvTrigSlave[m];
     minWidthSlave[m]      = (Int_t)bMinWidthSlave[m];
     firmwareRevSlave[m]   = (Int_t)bFirmwareRevSlave[m];
-    pwtlSlave[m]	      = (Int_t)bPWTLSlave[m];
-    pwtl2Slave[m]	      = (Int_t)bPWTL2Slave[m];
-    holdOffSlave[m]	      = (Int_t)bHoldOffSlave[m];
-    pipelineDelaySlave[m]= (Int_t)bPipelineDelaySlave[m];
+    pwtlSlave[m]          = (Int_t)bPWTLSlave[m];
+    pwtl2Slave[m]         = (Int_t)bPWTL2Slave[m];
+    holdOffSlave[m]       = (Int_t)bHoldOffSlave[m];
+    pipelineDelaySlave[m] = (Int_t)bPipelineDelaySlave[m];
   }
 
   if(debug) {
@@ -88,9 +89,37 @@ void infoDAQ(Int_t runnum)
   infoDAQthisRun<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
   infoDAQthisRun.close();
 
+  skipStrip.resize(nPlanes);
+  /*Choosing how to skip a strip that was not masked in DAQ:
+   *I can look at the asymmetry numerator and visually look for outliers
+   *I can look at the asymmetry fit residuals and visually identify outliers
+   *As of now, the above two methods do not seem to be in agreement for some choices
+   */
+  ///strips in plane1 that were not masked in DAQ but need to be ignored
+  skipStrip[0].push_back(2);//plane # in C++, strip# in human counts
+  skipStrip[1].push_back(2);//plane # in C++, strip# in human counts
+  skipStrip[1].push_back(35);//plane # in C++, strip# in human counts
+  skipStrip[1].push_back(39);//plane # in C++, strip# in human counts
+  skipStrip[2].push_back(2);//plane # in C++, strip# in human counts
+  //skipStrip[2].push_back(35);//plane # in C++, strip# in human counts
+  skipStrip[2].push_back(40);//plane # in C++, strip# in human counts
+
   if(debug) {
     cout<<";runnum\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
     cout<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay);
   }
 }
+
+/***********************
+ *Instead of going through the skipStrip mechanism of ignoring a strip, 
+ *why not simply modify the mask[p][s] with this additional information of the 
+ *strips that I think should be masked off ? 
+ *For:we may miss the possibility of understanding this behaviour of strips getting noisy, 
+ * eg: the time scale on which this is happening or the possibility of seeing the time scale 
+ * of the strip's behaviour of slowing getting noisy. 
+ * Also, For an ongoing analysis, I should have an eye on the things that I choose to not contribute to polarization. 
+ *Against: everytime we show this plot to a non-Compton group, we would be asked the reason
+ * to remove a strip just because it was not in line with the result that we were anticipating. 
+ *************************/
+
 #endif

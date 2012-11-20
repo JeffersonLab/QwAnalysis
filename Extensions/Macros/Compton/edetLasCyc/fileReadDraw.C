@@ -41,6 +41,7 @@ Int_t fileReadDraw(Int_t runnum)
   Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
   Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
   Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
+  if(!maskSet) infoDAQ(runnum);
 
   for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t s=startStrip; s<endStrip; s++) {
@@ -330,7 +331,8 @@ Int_t fileReadDraw(Int_t runnum)
     Int_t size=0;
 
     cAsym->Divide(1,2);//(startPlane+1,endPlane);
-    for (Int_t p = startPlane; p <endPlane; p++) {
+    //for (Int_t p = startPlane; p <endPlane; p++) {
+    for (Int_t p = 0; p <1; p++) {
       cAsym->cd(1);//(p+1);
       lasCycAsymP1.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
@@ -388,8 +390,8 @@ Int_t fileReadDraw(Int_t runnum)
       grDiff[p]->GetXaxis()->SetTitle("strip number");
       grDiff[p]->GetYaxis()->SetTitle("(LaserWise - RunletBased Asym)");
       grDiff[p]->SetTitle(Form("difference of experimental asymmetry"));
-      grDiff[p]->SetMaximum(0.042);
-      grDiff[p]->SetMinimum(-0.042);
+      grDiff[p]->SetMaximum(0.005);
+      grDiff[p]->SetMinimum(-0.005);
       grDiff[p]->GetXaxis()->SetTitleSize(0.06);
       grDiff[p]->GetXaxis()->SetTitleOffset(0.8);
       grDiff[p]->GetXaxis()->SetLabelSize(0.06);
@@ -416,7 +418,8 @@ Int_t fileReadDraw(Int_t runnum)
     //cAccumLC3->Divide(4,4);
     //cAccumLC4->Divide(4,4);
 
-    for(Int_t p =startPlane; p <endPlane; p++) {
+    //for(Int_t p =startPlane; p <endPlane; p++) {
+    for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
 	if (!mask[p][s]) continue; //currently only for plane 1	
  	lasCycAccum.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
@@ -578,7 +581,8 @@ Int_t fileReadDraw(Int_t runnum)
 //     cScalerLC3->Divide(4,4);
 //     cScalerLC4->Divide(4,4);
 
-    for(Int_t p =startPlane; p <endPlane; p++) {
+    //for(Int_t p =startPlane; p <endPlane; p++) {
+    for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
 	if (!mask[p][s]) continue; //currently only for plane 1	
  	lasCycScaler.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));

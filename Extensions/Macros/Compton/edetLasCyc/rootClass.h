@@ -36,7 +36,13 @@
 #include <TMultiGraph.h>
 #include "TMinuit.h"
 #include "TLatex.h"
-
+#include <algorithm>
 using namespace std;
+
+char red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
+char green[] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
+char blue[] = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+char magenta[] = { 0x1b, '[', '1', ';', '3', '5', 'm', 0 };
+char normal[] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
 #endif

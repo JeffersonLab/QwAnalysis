@@ -11,6 +11,11 @@
 
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
 {///parCx[1]: to be found Cedge
+  itStrip = find(stripsSkippedThisPlane.begin(),stripsSkippedThisPlane.end(),*thisStrip);
+  if(itStrip != stripsSkippedThisPlane.end()) {
+    TF1::RejectPoint();
+    return 0;
+  }
   Double_t xStrip = xCedge - (parCx[1] - (*thisStrip))*stripWidth*parCx[0];
   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
   Double_t rhoPlus = 1-rhoStrip*(1+a_const);
@@ -22,8 +27,16 @@ Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for
 ///3 parameter method
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
+  itStrip = find(stripsSkippedThisPlane.begin(),stripsSkippedThisPlane.end(),*thisStrip);
+  //itStrip = stripsSkippedThisPlane.find(*thisStrip); //for some reason the std::set did not work !
+  if(itStrip != stripsSkippedThisPlane.end()) {
+    cout<<red<<"ignored strip: "<<*thisStrip<<normal<<endl;
+    TF1::RejectPoint();
+    return 0;
+  }
   //Double_t xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
   Double_t xStrip = xCedge +0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
+  //Double_t xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as actual position inside Cedge strip
   //Double_t xStrip = xCedge - par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting
 
   Double_t rhoStrip = (param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]);
@@ -49,12 +62,12 @@ void asymFit(Int_t runnum)
   Int_t NDF[nPlanes],resFitNDF[nPlanes];
   Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=1,debug1=0,debug2=0,polSign;
+  Bool_t debug=0,debug1=0,debug2=0,polSign;
   ifstream paramfile;
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
 
-  infoDAQ(runnum);
+  if(!maskSet) infoDAQ(runnum);
 
   ifstream infileScaler, expAsymPWTL1, infileYield;
   ofstream polList;
@@ -138,7 +151,8 @@ void asymFit(Int_t runnum)
     paramfile>>param[0]>>param[1]>>param[2]>>param[3];
     paramfile.close();
     printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
-  
+    stripsSkippedThisPlane = skipStrip[p];//copying the strips to be masked for this plane
+    
     cAsym->cd(p+1);  
     cAsym->GetPad(p+1)->SetGridx(1);
     grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
@@ -171,12 +185,16 @@ void asymFit(Int_t runnum)
 
     ///3 parameter fit
     TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],3);
-    polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from the generic Cedge
+    //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
+    polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
+    //polFit->SetParameters(1.0,0.0001,0.85);//2nd parameter as Compton edge internal position
+    
     //polFit->SetParLimits(0,1.021,1.021);//fixing the strip width to 1.021
     polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch    
     polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
-    //polFit->SetParLimits(1,tempCedge-0.50,tempCedge+0.50);///allowing compton edge to vary by -3 strips to upto +2 strips
+    //polFit->SetParLimits(1,tempCedge-1.50,tempCedge+1.50);///allowing compton edge to vary by -3 strips to upto +2 strips
     polFit->SetParLimits(2,-1.0,1.0);///allowing polarization to be - 110% to +110%
+
     polFit->SetParNames("effStrip","comptonEdge","polarization");
     polFit->SetLineColor(kBlue);
     if(debug) cout<<"starting to fit exp asym"<<endl;
@@ -208,7 +226,7 @@ void asymFit(Int_t runnum)
     polSign = pol[p] > 0 ? 1 : 0;
     if (polSign) pt[p] = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
     else  pt[p] = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
-    cout<<"polSign is: "<<polSign<<endl;
+    if(debug) cout<<"polSign is: "<<polSign<<endl;
 
     pt[p]->SetTextSize(0.060);//0.028); 
     pt[p]->SetBorderSize(1);
@@ -255,11 +273,11 @@ void asymFit(Int_t runnum)
     cResidual->GetPad(p+1)->SetGridx(1);
     grResiduals[p]=new TGraphErrors((Int_t)Cedge[p],stripNum[p],fitResidue[p],zero,stripAsymEr[p]);
     grResiduals[p]->SetMarkerStyle(kOpenCircle);
-    grResiduals[p]->SetMaximum(0.024);/// half of asymmetry axis 
-    grResiduals[p]->SetMinimum(-0.024);/// half of asymmetry axis 
+    grResiduals[p]->SetMaximum(0.012);/// half of asymmetry axis 
+    grResiduals[p]->SetMinimum(-0.012);/// half of asymmetry axis 
     grResiduals[p]->GetXaxis()->SetLimits(1,Cedge[p]); 
     //grResiduals[p]->GetXaxis()->SetNdivisions(416, kFALSE);
-    grResiduals[p]->SetTitle("Residuals");
+    grResiduals[p]->SetTitle(Form("Asymmetry Fit Residuals, Plane %d",p+1));
     grResiduals[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
     grResiduals[p]->GetYaxis()->SetTitle("asymmetry - Fit");
     grResiduals[p]->GetXaxis()->CenterTitle();

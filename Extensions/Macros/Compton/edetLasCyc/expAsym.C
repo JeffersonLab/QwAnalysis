@@ -5,6 +5,7 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 #include "evaluateAsym.C"
+#include "infoDAQ.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
@@ -76,7 +77,8 @@ Int_t expAsym(Int_t runnum)
   ifstream infileLas, infileBeam;
 
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
-
+  
+  if(!maskSet) infoDAQ(runnum); //if the masks are not set yet, call the function to set it
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
   for(Int_t p = startPlane; p <endPlane; p++) {      	
     for(Int_t s =startStrip; s <endStrip; s++) {
@@ -450,7 +452,7 @@ Int_t expAsym(Int_t runnum)
   for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (!mask[p][s]) continue;
-      if(weightedMeanDrAsym[p][s]==0.0) cout<<"stand. deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
+      if(weightedMeanDrAsym[p][s]<=0.0) cout<<"stand. deviation in weighted Mean Asym is non-positive for p"<<p<<" s"<<s<<endl;
       else {
 	stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
 	if (weightedMeanDrAsym[p][s]<0.0) stripAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrAsym[p][s]));//!!shouldn't need to do this
@@ -471,9 +473,7 @@ Int_t expAsym(Int_t runnum)
 	bkgdAsym[p][s] = weightedMeanNrBkgdAsym[p][s]/weightedMeanDrBkgdAsym[p][s];
 	if (weightedMeanDrBkgdAsym[p][s]<0.0) bkgdAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrBkgdAsym[p][s]));//!!shouldn't need to do this
 	else bkgdAsymEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrBkgdAsym[p][s]);
-
-
-     }
+      }
       if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
     }
   }
@@ -483,7 +483,7 @@ Int_t expAsym(Int_t runnum)
       if (!mask[p][s]) continue;
       tNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
       tNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
-   }
+    }
   }
   
   for(Int_t p = startPlane; p < endPlane; p++) { 

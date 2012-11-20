@@ -68,14 +68,21 @@ Bool_t paramRead;
 Float_t k;
 Float_t gamma_my;
 
-Int_t mask[nPlanes][nStrips];  
+Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
+Bool_t mask[nPlanes][nStrips];  
 Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
- 
 
-/* const Int_t Cedge_p1 = 59;///Compton-edge for the current run(counting from 0) */
-/* const Int_t Cedge_p2 = 59;///Compton-edge for the current run(counting from 0) */
-/* const Int_t Cedge_p3 = 59;///Compton-edge for the current run(counting from 0) */
+std::vector < std::vector <Int_t> > skipStrip;
+std::vector <Int_t> stripsSkippedThisPlane;
+std::vector<Int_t>::iterator itStrip;
 
+/* std::set <int> stripsSkippedThisPlane; */
+/* std::set <int>::iterator itStrip; */
+
+/* typename vector<T>::const_iterator p  */
+/* const_iterator crazyStripPointer; */
+
+//Int_t *crazyStripPointer;
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64
