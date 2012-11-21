@@ -139,12 +139,18 @@ const QwTrack* QwRayTracer::Bridge(
   Double_t momentum[2] = {0.0};
   momentum[0] = EstimateInitialMomentum(front->GetMomentumDirection());
 
+  // Start iteration from a smaller momentum than initial guess
+  if(momentum[0] > 0.50 * Qw::GeV)
+      momentum[0] = momentum[0] - 0.30 * Qw::GeV;
+  else
+      momentum[0] = 0.20 * Qw::GeV;
+
   // Front track position and direction
   TVector3 start_position = front->GetPosition(-250 * Qw::cm);
   TVector3 start_direction = front->GetMomentumDirection();
 
   // Back track position and direction
-  TVector3 end_position = back->GetPosition(580.0 * Qw::cm);
+  TVector3 end_position = back->GetPosition(577.0 * Qw::cm);
   TVector3 end_direction = back->GetMomentumDirection();
 
   TVector3 position = start_position;
