@@ -59,6 +59,10 @@ void infoDAQ(Int_t runnum)
     }
   }
   infoStripMask.close();
+  ///list all those strips that you want in the list for in case it was not already a part of the above created vector
+  skipStrip.push_back(2);//notice that the strip number pushed is in human counts
+  skipStrip.push_back(10);//notice that the strip number pushed is in human counts
+  cout<<red<<"apart from strips masked in DAQ, am ignoring strip # 2 & 10 accross all planes"<<normal<<endl;//!update this with above list
 
   for(Int_t m = 0; m <nModules; m++) {
     acTrigSlave[m]=(Int_t)bAcTrigSlave[m];  
@@ -93,38 +97,25 @@ void infoDAQ(Int_t runnum)
   }
 
   infoDAQthisRun.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
-  infoDAQthisRun<<";runnum\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
+  infoDAQthisRun<<";runnum\tacTrig\tevTrig\tminW\tfirmware\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
   infoDAQthisRun<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
   infoDAQthisRun.close();
 
-  // skipStrip.resize(nPlanes);
-  // /*Choosing how to skip a strip that was not masked in DAQ:
-  //  *I can look at the asymmetry numerator and visually look for outliers
-  //  *I can look at the asymmetry fit residuals and visually identify outliers
-  //  *As of now, the above two methods do not seem to be in agreement for some choices
-  //  */
-  // ///strips in plane1 that were not masked in DAQ but need to be ignored
-  // //!this list may need to become dependent on run-ranges because some strips starting growing bad slowly
-  // //!some part of the bias in the evaluation may be coming from the symmetry in the trigger generation. This symmetry gets biased by masking one strip in a plane while leaving it unmasked in another plane. 
-  // //!remember: if one QWAD channel 
-  // skipStrip[0].push_back(1);//plane # in C++, strip# in human counts
-  // skipStrip[0].push_back(2);//plane # in C++, strip# in human counts
-  // skipStrip[0].push_back(12);//plane # in C++, strip# in human counts
-  // skipStrip[1].push_back(2);//plane # in C++, strip# in human counts
-  // skipStrip[1].push_back(35);//plane # in C++, strip# in human counts
-  // skipStrip[1].push_back(39);//plane # in C++, strip# in human counts
-  // skipStrip[2].push_back(2);//plane # in C++, strip# in human counts
-  // skipStrip[2].push_back(12);//plane # in C++, strip# in human counts
-  // //skipStrip[2].push_back(35);//plane # in C++, strip# in human counts
-  // skipStrip[2].push_back(40);//plane # in C++, strip# in human counts
-
   if(debug) {
-    cout<<";runnum\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
+    cout<<";runnum\tacTrig\tevTrig\tminW\tfirmware\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
     cout<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay);
   }
 }
 
 /***********************
+ Choosing how to skip a strip that was not masked in DAQ:
+ *I can look at the asymmetry numerator and visually look for outliers
+ *I can look at the asymmetry fit residuals and visually identify outliers
+ *As of now, the above two methods do not seem to be in agreement for some choices
+ **this list may need to become dependent on run-ranges because some strips started growing bad with time
+ **some part of the bias in the evaluation may be coming from the symmetry in the trigger generation. 
+ **This symmetry gets biased by masking one strip in a plane while leaving it unmasked in another plane. 
+ 
  *Instead of going through the skipStrip mechanism of ignoring a strip, 
  *why not simply modify the mask[p][s] with this additional information of the 
  *strips that I think should be masked off ? 

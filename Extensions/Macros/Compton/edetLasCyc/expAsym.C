@@ -34,7 +34,7 @@ Int_t expAsym(Int_t runnum)
   Int_t ScalerB1H0L1[nPlanes][nStrips],ScalerB1H1L1[nPlanes][nStrips];
   Int_t ScalerB1H0L0[nPlanes][nStrips],ScalerB1H1L0[nPlanes][nStrips];
   Int_t totScalerB1L0[nPlanes][nStrips],totScalerB1L1[nPlanes][nStrips]; 
-  Double_t tNormScalerB1L1[nPlanes][nStrips],tNormScalerB1L0[nPlanes][nStrips];
+  Double_t qNormScalerB1L1[nPlanes][nStrips],qNormScalerB1L0[nPlanes][nStrips];
   Double_t bRawScaler[nPlanes][nStrips];
   Double_t comptIH1L1=0.0, comptIH0L1=0.0,comptIH1L0=0.0,comptIH0L0=0.0;
   Double_t lasPow[3], helicity, bcm[3],bpm_3c20X[2];
@@ -99,7 +99,7 @@ Int_t expAsym(Int_t runnum)
 
       totAccumB1H1L1[p][s]=0,totAccumB1H0L1[p][s]=0,totAccumB1H1L0[p][s]=0,totAccumB1H0L0[p][s]=0;
       totScalerB1L1[p][s]=0,totScalerB1L0[p][s]=0,
-      tNormScalerB1L1[p][s]=0.0,tNormScalerB1L0[p][s]=0.0;
+      qNormScalerB1L1[p][s]=0.0,qNormScalerB1L0[p][s]=0.0;
     }
   }
   if(v2processed) {
@@ -256,7 +256,7 @@ Int_t expAsym(Int_t runnum)
   }
 
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-    if (debug) cout<<"\nStarting nCycle:"<<nCycle<<" and resetting all nCycle variables"<<endl;
+    if (debug) cout<<"\nStarting nCycle:"<<nCycle+1<<" and resetting all nCycle variables"<<endl;
     ///since this is the beginning of a new Laser cycle, and all Laser cycle based variables 
     ///..are already assigned to a permanent variable reset the LasCyc based variables
     nMpsB1H1L1= 0, nMpsB1H0L1= 0, nMpsB1H1L0= 0, nMpsB1H0L0= 0, missedLasEntries=0; 
@@ -283,11 +283,16 @@ Int_t expAsym(Int_t runnum)
 	  beamOn = kFALSE;
 	  nthBeamTrip++;          ///encountered the first beam trip
 	}
-      } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip-1)) beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
-      else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
-      else { ///encountered "another" beam trip	
+      } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
+	beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
+	if(debug1) cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl;
+      } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
+	beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
+	if(debug1) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl;
+      } else { ///encountered "another" beam trip	
 	beamOn = kFALSE;  
 	nthBeamTrip++;
+	cout<<"encountered another beam trip"<<endl;
       }
     } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
       if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
@@ -298,7 +303,7 @@ Int_t expAsym(Int_t runnum)
 
     for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
       //loop over laser cycle periods taking one LasOff state and the following laserOn state
-      if(debug && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
+      if(debug1 && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
 
       if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<minLasPow) l= 0; ///laser off zone
       else if((i >=cutLas.at(2*nCycle+1)) && (i <=cutLas.at(2*nCycle+2)) && (lasPow[0] > acceptLasPow)) l =1;///laser on zone
@@ -359,7 +364,7 @@ Int_t expAsym(Int_t runnum)
 	}
       }///if (beamOn)
     }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
-    if(debug) cout<<"ignored "<<missedLasEntries<<" entries in this lasCycle"<<endl;
+    if(debug) cout<<"had to ignore "<<(missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100<<" % entries in this lasCycle"<<endl;
 
     //after having filled the above vectors based on laser and beam periods, find asymmetry
     if (beamOn) {
@@ -481,8 +486,10 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = startPlane; p < endPlane; p++) { 
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (!mask[p][s]) continue;
-      tNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
-      tNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
+      // tNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
+      // tNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
+      qNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totIH1L1 + totIH0L1)/MpsRate);//charge normalized
+      qNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totIH1L0 + totIH0L0)/MpsRate);//charge normalized
     }
   }
   
@@ -523,7 +530,7 @@ Int_t expAsym(Int_t runnum)
 	outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
 	outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
 	fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totAccumB1H1L1[p][s],totAccumB1H1L0[p][s],totAccumB1H0L1[p][s],totAccumB1H0L0[p][s]);
-	outScaler<<Form("%d\t%g\t%g",s+1,tNormScalerB1L1[p][s],tNormScalerB1L0[p][s]);
+	outScaler<<Form("%d\t%g\t%g",s+1,qNormScalerB1L1[p][s],qNormScalerB1L0[p][s]);
       }
       outfileExpAsymP.close();
       outfileBkgdAsymP.close();

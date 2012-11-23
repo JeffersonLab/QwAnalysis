@@ -1,18 +1,18 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
-
+#include "infoDAQ.C"
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
   Bool_t bkgdAsym = 1;
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
-  Bool_t yieldPlot=1;
+  Bool_t yieldPlot=0;//now the asymFit.C plots this already
   Bool_t compareRunLetLaserWise=0;//plots expAsym and compares with the corresponding runlet based asymmetries. against theoretical asym, not needed when asymFit.C is plotting it
   Bool_t asymComponents=1;
   Bool_t scalerPlot=1;
-  Bool_t lasWisePlotAc=1;//plot quantities against laser-cycle 
-  Bool_t lasWisePlotSc=1;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
+  Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotBcm=1;//plot quantities against laser-cycle 
   Bool_t lasWisePlotLasPow=1;
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
@@ -179,7 +179,7 @@ Int_t fileReadDraw(Int_t runnum)
     }
     gPad->Update();
     cNoise->Update();
-    cNoise->SaveAs(Form("%s/%s/%stNormScaler.png",pPath,webDirectory,filePrefix.Data()));
+    cNoise->SaveAs(Form("%s/%s/%sqNormScaler.png",pPath,webDirectory,filePrefix.Data()));
   }
 
 
@@ -227,15 +227,15 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if (yieldPlot) {
-    TCanvas *cYield = new TCanvas("cYield",Form("Yield for run:%d",runnum),70,70,1000,420*endPlane);
+    TCanvas *cAsymDr = new TCanvas("cAsymDr",Form("Yield for run:%d",runnum),70,70,1000,420*endPlane);
     TGraphErrors *grAsymDr[nPlanes],*grB1L0[nPlanes];
     TLegend *legYield[nPlanes];
     TMultiGraph *grAsymDrAll[nPlanes];
 
-    cYield->Divide(startPlane+1,endPlane);
+    cAsymDr->Divide(startPlane+1,endPlane);
     for (Int_t p =startPlane; p <endPlane; p++) { 
-      cYield->GetPad(p+1)->SetGridx(1);
-      cYield->cd(p+1);
+      cAsymDr->GetPad(p+1)->SetGridx(1);
+      cAsymDr->cd(p+1);
       grAsymDr[p] = new TGraphErrors(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grAsymDr[p]->SetMarkerStyle(kFullCircle);
       grAsymDr[p]->SetMarkerSize(1);
@@ -268,8 +268,8 @@ Int_t fileReadDraw(Int_t runnum)
       legYield[p]->Draw();
     }
     gPad->Update();
-    cYield->Update();
-    cYield->SaveAs(Form("%s/%s/%syieldAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
+    cAsymDr->Update();
+    cAsymDr->SaveAs(Form("%s/%s/%syieldAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if(asymDiffPlot) {
@@ -472,8 +472,8 @@ Int_t fileReadDraw(Int_t runnum)
     Int_t nLasCycles=0;
     while(lasWiseBCM.good()) {
       lasWiseBCM>>nCycle[nLasCycles]>>bcmH0L0[nLasCycles]>>bcmH0L1[nLasCycles]>>bcmH1L0[nLasCycles]>>bcmH1L1[nLasCycles];
-      bcmL0[nLasCycles] = (bcmH0L0[nLasCycles]+bcmH1L0[nLasCycles])/2;//!ideally not correct, this addition should be charge weigthed
-      bcmL1[nLasCycles] = (bcmH0L1[nLasCycles]+bcmH1L1[nLasCycles])/2;//!ideally not correct, this addition should be charge weigthed
+      bcmL0[nLasCycles] = (bcmH0L0[nLasCycles]+bcmH1L0[nLasCycles])/2;//!ideally this addition should be charge weigthed
+      bcmL1[nLasCycles] = (bcmH0L1[nLasCycles]+bcmH1L1[nLasCycles])/2;//!ideally this addition should be charge weigthed
       bcm[nLasCycles] = (bcmL0[nLasCycles]+bcmL1[nLasCycles])/2;//!ideally not correct, this addition should be charge weigthed
       nLasCycles=nLasCycles+1;
     }
@@ -613,15 +613,15 @@ Int_t fileReadDraw(Int_t runnum)
 	lasCycPlotSc[s]->GetYaxis()->SetLabelSize(0.03);
 	lasCycPlotSc[s]->Draw("AP");
       }
-      cScalerLC1->Update();
-//       cScalerLC2->Update();
-//       cScalerLC3->Update();
-//       cScalerLC4->Update();
-      cScalerLC1->SaveAs(Form("%s/%s/%slasCycScaler1.png",pPath,webDirectory,filePrefix.Data()));
-//       cScalerLC2->SaveAs(Form("%s/%s/%slasCycScaler2.png",pPath,webDirectory,filePrefix.Data()));
-//       cScalerLC3->SaveAs(Form("%s/%s/%slasCycScaler3.png",pPath,webDirectory,filePrefix.Data()));
-//       cScalerLC4->SaveAs(Form("%s/%s/%slasCycScaler4.png",pPath,webDirectory,filePrefix.Data()));
     }
+    cScalerLC1->Update();
+    //cScalerLC2->Update();
+    //cScalerLC3->Update();
+    //cScalerLC4->Update();
+    cScalerLC1->SaveAs(Form("%s/%s/%slasCycScaler1.png",pPath,webDirectory,filePrefix.Data()));
+    //cScalerLC2->SaveAs(Form("%s/%s/%slasCycScaler2.png",pPath,webDirectory,filePrefix.Data()));
+    //cScalerLC3->SaveAs(Form("%s/%s/%slasCycScaler3.png",pPath,webDirectory,filePrefix.Data()));
+    //cScalerLC4->SaveAs(Form("%s/%s/%slasCycScaler4.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if(bkgdVsBeam) {

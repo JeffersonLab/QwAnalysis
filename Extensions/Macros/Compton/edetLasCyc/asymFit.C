@@ -73,26 +73,26 @@ void asymFit(Int_t runnum)
   ofstream polList;
   TLine *myline = new TLine(1,0,65,0);
 
-  Double_t tNormScBkgdSubSigB1[nPlanes][nStrips];
-  std::vector<std::vector <Float_t> > activeStrip,tNormScB1L1,tNormScB1L0;
+  Double_t qNormScBkgdSubSigB1[nPlanes][nStrips];
+  std::vector<std::vector <Float_t> > activeStrip,qNormScB1L1,qNormScB1L0;
   Int_t numbGoodStrips[nPlanes]={0};
   ///Note: the 's' in this section of the routine does not necessarily represent strip number
   for(Int_t p =startPlane; p <endPlane; p++) {
     infileScaler.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if(infileScaler.is_open()) {
       if(p>=(Int_t)activeStrip.size()) {
-	activeStrip.resize(p+1),tNormScB1L1.resize(p+1),tNormScB1L0.resize(p+1);
+	activeStrip.resize(p+1),qNormScB1L1.resize(p+1),qNormScB1L0.resize(p+1);
       }
-      if(debug) cout<<"Reading the tNormScaler corresponding to Plane "<<p+1<<endl;
-      if(debug1) cout<<"\np\ts\tbkgdSubScal\tactiveStr\t"<<"tNormScL1\t"<<"tNormScL0\t"<<"(L1-L0)/L1\t"<<"(L1-L0)/L0"<<endl;
+      if(debug) cout<<"Reading the qNormScaler corresponding to Plane "<<p+1<<endl;
+      if(debug1) cout<<"\np\ts\tbkgdSubScal\tactiveStr\t"<<"qNormScL1\t"<<"qNormScL0\t"<<"(L1-L0)/L1\t"<<"(L1-L0)/L0"<<endl;
       while(infileScaler.good()) {
 	activeStrip[p].push_back(0.0);
-	tNormScB1L1[p].push_back(0.0);
-	tNormScB1L0[p].push_back(0.0);
+	qNormScB1L1[p].push_back(0.0);
+	qNormScB1L0[p].push_back(0.0);
 	Int_t s=activeStrip[p].size() - 1;///this 's' does not represent the actual strip number
-	infileScaler>>activeStrip[p][s]>>tNormScB1L1[p][s]>>tNormScB1L0[p][s];///the content of the 'activeStrip' vector contains the true strip # in human counting
-	tNormScBkgdSubSigB1[p][s] = tNormScB1L1[p][s] - tNormScB1L0[p][s];
-	if(debug1) printf("%d\t%d\t%f\t%2.0f\t%f\t%f\t%f\t%f\n",p+1,s+1,tNormScBkgdSubSigB1[p][s],activeStrip[p][s],tNormScB1L1[p][s],tNormScB1L0[p][s],tNormScBkgdSubSigB1[p][s]/tNormScB1L1[p][s],tNormScBkgdSubSigB1[p][s]/tNormScB1L0[p][s]);
+	infileScaler>>activeStrip[p][s]>>qNormScB1L1[p][s]>>qNormScB1L0[p][s];///the content of the 'activeStrip' vector contains the true strip # in human counting
+	qNormScBkgdSubSigB1[p][s] = qNormScB1L1[p][s] - qNormScB1L0[p][s];
+	if(debug1) printf("%d\t%d\t%f\t%2.0f\t%f\t%f\t%f\t%f\n",p+1,s+1,qNormScBkgdSubSigB1[p][s],activeStrip[p][s],qNormScB1L1[p][s],qNormScB1L0[p][s],qNormScBkgdSubSigB1[p][s]/qNormScB1L1[p][s],qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s]);
 	numbGoodStrips[p]++;//counts in human counting ///this is basically =activeStrip[p].size()
       }
       infileScaler.close();
@@ -104,16 +104,18 @@ void asymFit(Int_t runnum)
     Bool_t trueEdge = 0;
     cout<<"looking for generic compton edge for plane "<<p+1<<endl; 
     for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
-      if (tNormScBkgdSubSigB1[p][s]/tNormScB1L0[p][s] < qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=1  
+      if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=0.3 !the ratio on LHS is not qNorm, its tNorm!
+      //if (qNormScB1L1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=0.3 !the ratio on LHS is not qNorm, its tNorm!
 	trueEdge = 1;
 	Float_t probableEdge = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
 	cout<<"probable Cedge : "<<probableEdge<<endl;
 	Int_t leftStrips = numbGoodStrips[p] - (Int_t)probableEdge;
 	for(Int_t st =1; st <=leftStrips;st++) {///starting to check next strip onwards
-	  if (tNormScBkgdSubSigB1[p][s+st]/tNormScB1L0[p][s+st]  >= qNormBkgdSubSigToBkgdRatioLow) trueEdge = 0;
+	  if (qNormScBkgdSubSigB1[p][s+st]/qNormScB1L0[p][s+st]  >= qNormBkgdSubSigToBkgdRatioLow) trueEdge = 0;
+	  //if (qNormScB1L1[p][s+st]/qNormScB1L0[p][s+st]  >= qNormBkgdSubSigToBkgdRatioLow) trueEdge = 0;
 	  ///on purpose the requirement for reconsidering the selected comptonEdge is a little more strict.
 	  ///this method of comparision auto-rejects the cases when the bkgd subtracted counts are negative
-	  if(debug2) printf("tNormScBkgdSubSigB1[%d][%d]:%f, leftStrips:%d, trueEdge:%d\n",p+1,s+1+st+1,tNormScBkgdSubSigB1[p][s+st+1],leftStrips,trueEdge);
+	  if(debug2) printf("qNormScBkgdSubSigB1[%d][%d]:%f, leftStrips:%d, trueEdge:%d\n",p+1,s+1+st+1,qNormScBkgdSubSigB1[p][s+st+1],leftStrips,trueEdge);
 	}
 	if (trueEdge) {
 	  Cedge[p]= probableEdge;
@@ -183,14 +185,14 @@ void asymFit(Int_t runnum)
     linearFit->SetLineColor(kRed);
 
     ///3 parameter fit
-    TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p],3);
+    TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+1,Cedge[p]+0.5,3);
     //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
-    polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
+    polFit->SetParameters(1.0,tempCedge+0.5,0.85);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
     //polFit->SetParameters(1.0,0.0001,0.85);//2nd parameter as Compton edge internal position
     
     //polFit->SetParLimits(0,1.021,1.021);//fixing the strip width to 1.021
     polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch    
-    polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
+    polFit->SetParLimits(1,tempCedge+0.5,tempCedge+0.5);///fixed compton edge
     //polFit->SetParLimits(1,tempCedge-1.50,tempCedge+1.50);///allowing compton edge to vary by -3 strips to upto +2 strips
     polFit->SetParLimits(2,-1.0,1.0);///allowing polarization to be - 110% to +110%
 
@@ -313,6 +315,7 @@ void asymFit(Int_t runnum)
     else cout<<"did not find the Yield file "<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
      
     cYield->cd(p+1);
+    cYield->GetPad(p+1)->SetGridx(1);
     grYieldPlane[p]=new TGraphErrors(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
     grYieldPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
     grYieldPlane[p]->GetYaxis()->SetTitle("yield (Hz/uA)");   
@@ -373,6 +376,11 @@ void asymFit(Int_t runnum)
 /*Comments
  *In auto determination of Compton edge, I'm using (L1 - L0)/L0 instead of (L1 - L0)/L1 
  *..because in the latter both Nr and Dr reduce at the Compton edge, hence the former should be more pronounced
- *The acceptance limit for the ratio of the background subtracted Signal over Signal is set at 10%
- *stripNum is a 2D array so as to hold the different set of strips that may be unmasked
+ *the use of qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow ; is a better comparision
+ *..for identifying compton edge compared to qNormScB1L1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow
+ *..since the former puts the magnitude of signal-over-bkgd in the perspective of the background; while the later 
+ *..simply does a numerical comparision of the signal-over-bkgd.
+ 
+*The acceptance limit for the ratio of the background subtracted Signal over Signal is set at 10%
+ *StripNum is a 2D array so as to hold the different set of strips that may be unmasked
  */

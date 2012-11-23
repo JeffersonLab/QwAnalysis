@@ -22,7 +22,10 @@ const Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this w
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
 //const Double_t qNormBkgdSubScalToSigRatioLow = 0.10;//!'qNormBkgdSubSignalLow' is arbitrarily chosen by observing how it may vary
-const Double_t qNormBkgdSubSigToBkgdRatioLow = 1.0;//0.80;//!this is arbitrarily chosen by observing how it may vary
+const Double_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chosen by observing how it may vary
+               /*Ideally this ratio could be safely left >0.0, but due to noise induced deadtime, 
+		*..I may have to be forgiving 
+		*Once I find a mechanism to fit the Cedge, I won't need to be nosy about this choice */
 
 //Hardware related constants
 const Int_t nStrips = 64;//96;
