@@ -2,10 +2,12 @@
 
 thumbdir=thumbs
 thumbsize=150
-thumbopts="-resize ${thumbsizex}${thumbsize}x${thumbsizex}${thumbsize}"
+thumbtype=png
+thumbopts="-resize ${thumbsize}x${thumbsize}"
 normdir=normal
 normsize=450
-normopts="-resize ${normsizex}${normsize}x${normsizex}${normsize}"
+normtype=png
+normopts="-resize ${normsize}x${normsize}"
 fulldir=full
 formatdir=format
 formats="png jpg"
@@ -47,7 +49,7 @@ footer=footer.html
 indexfile=index.html
 
 # Filter of items to consider
-filter="[jp][pn]g"
+filter="\(jpg\|png\|eps\)"
 
 # File with sidebar categories
 sidebarfile=sidebar.html
@@ -147,20 +149,22 @@ process_file () {
 	local prev=$2
 	local next=$3
 
-	local itemframe=`echo $item | sed -e "s/$filter/html/"`
-	local prevframe=`echo $prev | sed -e "s/$filter/html/"`
-	local nextframe=`echo $next | sed -e "s/$filter/html/"`
+	local itemframe=`echo $item | sed "s/$filter/html/"`
+	local prevframe=`echo $prev | sed "s/$filter/html/"`
+	local nextframe=`echo $next | sed "s/$filter/html/"`
 
 	# Do some processing on this item
-	if [ ! -e "$thumbdir/$item" ] ; then
+	thumbitem="${item/.*/}.$thumbtype"
+	normitem="${item/.*/}.$normtype"
+	if [ ! -e "$thumbdir/$thumbitem" ] ; then
 		# Autorotate jpg files
 		if [ `hash exifautotran 2>/dev/null` ] ; then
 			exifautotran "$fulldir/$item"
 		fi
 
 		# Convert in other sizes
-		convert "$fulldir/$item" $thumbopts "$thumbdir/$item"
-		convert "$fulldir/$item" $normopts "$normdir/$item"
+		convert "$fulldir/$item" $thumbopts "$thumbdir/$thumbitem"
+		convert "$fulldir/$item" $normopts "$normdir/$normitem"
 
 		# Convert to other formats
 		for format in $formats ; do
@@ -215,7 +219,7 @@ END
 
 <p align="center">
  <a href="$baseweb/$section/$fulldir/$item">
-  <img src="$baseweb/$section/$normdir/$item" width="450px">
+  <img src="$baseweb/$section/$normdir/${item/.*/}.$normtype" width="450px">
  </a>
 </p>
 END
@@ -332,14 +336,15 @@ process_files_in_dir () {
 		echo "   $Itemname: $item ($prev ... X ... $next)"
 
 		# Copy/link original
-		ln -sf "$file" "$fulldir/$item"
+		if [ -L "$fulldir/$item" ] ; then rm "$fulldir/$item" ; fi
+		cp -f "$file" "$fulldir/$item"
 
 		process_file "$item" "$prev" "$next"
 
-		local itemframe=`echo $item | sed -e "s/$filter/html/"`
+		local itemframe=`echo $item | sed "s/$filter/html/"`
 		{
 			echo "    <a href=\"$itemframe\">"
-			echo "      <img src=\"$thumbdir/$item\" border=\"0\">"
+			echo "      <img src=\"$thumbdir/${item/.*/}.$thumbtype\" border=\"0\">"
 			echo "    </a><a href=\"$item\">&nbsp;</a>"
 		} >> "$indexfile".new
 
@@ -422,3 +427,5 @@ process_dir "."
 
 echo "Note: the sidebars will only be correct after a second pass."
 
+chmod -R g+rw ${basedir}
+chmod -R g-s  ${basedir}
