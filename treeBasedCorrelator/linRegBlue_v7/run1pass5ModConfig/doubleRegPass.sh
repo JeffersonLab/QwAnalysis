@@ -1,4 +1,4 @@
-#!/bin/sh
+grep #!/bin/sh
 
 run=$1
 iseg=$2
@@ -7,8 +7,8 @@ outputPath=$3
 scriptPath=`dirname $0`
 src_dir=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v7
 
-#logPath='./out/'
-logPath='/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/lrb_bmod/out'
+logPath='./out/'
+#logPath='/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/lrb_bmod/out'
 mxEve=2223344
 
 seg=$iseg
