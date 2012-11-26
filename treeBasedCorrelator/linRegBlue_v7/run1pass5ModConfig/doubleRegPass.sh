@@ -1,4 +1,4 @@
-grep #!/bin/sh
+#!/bin/sh
 
 run=$1
 iseg=$2
@@ -15,7 +15,8 @@ seg=$iseg
 #if [ $iseg -ge 10 ]; then seg=0$iseg; fi
 
 echo doubleRegPass  run.seg=$run.$seg
-destDir=treeX/regR$run.$seg
+# destDir=treeX/regR$run.$seg
+destDir=$outputPath/lrb_bmod_${run}.${seg}
 
 if [ $# -ne 3 ] ; then
    echo provide run +segemnt output directory
@@ -81,11 +82,6 @@ fi
 #.......................................
 echo regPass2 successful destDir=$destDir ....
 
-#mkdir $outputPath/lrb_bmod_$run_$seg
-
-echo "copying out to $outputPath/lrb_bmod_$run_$seg"
-mv -vf out $outputPath/lrb_bmod_$run_$seg
-
 #.......................................
 #echo generate txt file for DB upload
 
@@ -96,6 +92,18 @@ mv -vf out $outputPath/lrb_bmod_$run_$seg
 #   echo abandon this run
 #   exit
 #fi
+
+echo "copying out to $destDir"
+mv -vf out $destDir
+
+#  Move the regressed rootfile to the lrb_rootfiles directory if it exists
+if  [ -d  ${outputPath}/../lrb_rootfiles ] ; then
+    arr=$(find ${destDir} -type f -name reg_\*.root)
+    for d in "${arr[@]}"; do
+        mv -v ${d} ${outPath}/../lrb_rootfiles/`basename ${d}`
+    done
+fi
+
 
 #mv out $destDir
 date
