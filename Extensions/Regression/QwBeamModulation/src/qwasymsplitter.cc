@@ -68,7 +68,6 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
 
   for(Long64_t i = 0; i < modulation->fNumberEvents; i++){
-//   for(Long64_t i = 0; i < 2; i++){
 
     modulation->LoadTree(i);
     if(i < 0) break;
@@ -101,15 +100,15 @@ Int_t main(Int_t argc, Char_t *argv[])
   fprintf(regression, "\n# cp corrected asymmetry \n");
   for(Int_t det = 0; det < modulation->fNDetector; det++){
     fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->DetectorList[det].Data(), 
-	    (Int_t)(modulation->fNumberEvents), mod_hist[det]->GetMean(), 
-	    (mod_hist[det]->GetRMS())/TMath::Sqrt(modulation->fNumberEvents) );
+	    (Int_t)(mod_hist[det]->GetEntries()), mod_hist[det]->GetMean(), 
+	    (mod_hist[det]->GetRMS())/TMath::Sqrt(mod_hist[det]->GetEntries()) );
   }
   
   fprintf(regression, "\n# nbm corrected asymmetry \n");
   for(Int_t det = 0; det < modulation->fNDetector; det++){
     fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->DetectorList[det].Data(), 
-	    (Int_t)(modulation->fNumberEvents), nbm_hist[det]->GetMean(),
-	    (nbm_hist[det]->GetRMS())/TMath::Sqrt(modulation->fNumberEvents) );
+	    (Int_t)(nbm_hist[det]->GetEntries()), nbm_hist[det]->GetMean(),
+	    (nbm_hist[det]->GetRMS())/TMath::Sqrt(nbm_hist[det]->GetEntries()) );
   }
 
   delete mod_tree;

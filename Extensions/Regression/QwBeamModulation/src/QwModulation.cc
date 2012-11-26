@@ -421,7 +421,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 
 void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
 {
-  std::cout << "============================(Trying) to compute the damn errors!============================" << std::endl;
+  //  std::cout << "============================(Trying) to compute the damn errors!============================" << std::endl;
   TMatrixD var(fNMonitor, fNModType);
   TMatrixD temp(fNModType, fNMonitor);
   TMatrixD Errorm(fNDetector, fNModType);  
@@ -624,6 +624,7 @@ void QwModulation::ComputeAsymmetryCorrections()
 
   if(fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
+  Long64_t event_counter = 0;
 
   std::cout << other << "Entries in Hel_Tree:\t" 
 	    << nentries << normal << std::endl;
@@ -653,10 +654,13 @@ void QwModulation::ComputeAsymmetryCorrections()
 	temp_correction = 0;
       }
       mod_tree->Fill();
+      event_counter++;
     }
 
     if( (i % 100000) == 0 )std::cout << "Processing:\t" << i << std::endl;
   }
+
+  fNumberEvents = event_counter;
 
   file.Write();
   file.Close();
@@ -1296,8 +1300,10 @@ Bool_t QwModulation::FileSearch(TString filename, TChain *chain)
   file_directory = gSystem->Getenv("QW_ROOTFILES");
 
   if(fFileSegmentInclude){
+    c_status = true;
+
     for(Int_t i = fLowerSegment; i <= fUpperSegment; i++){
-      filename = Form("%s_%d.*%d.trees.root", fFileStem.Data(), run_number, i);
+      filename = Form("%s_%d.%0.3d.trees.root", fFileStem.Data(), run_number, i);
       std::cout << other << "Adding:: " 
 		<< filename << normal << std::endl;
       if(!(chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()))) ){
@@ -1306,10 +1312,12 @@ Bool_t QwModulation::FileSearch(TString filename, TChain *chain)
       }
     }
   }
-  c_status = chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()));
-  std::cout << "Trying to open :: "
-            << Form("%s/%s",file_directory.Data(), filename.Data())
-            << std::endl;
+  else{
+    c_status = chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()));
+    std::cout << "Trying to open :: "
+	      << Form("%s/%s",file_directory.Data(), filename.Data())
+	      << std::endl;
+  }
 
   if(c_status){
     TString chain_name = chain->GetName();
