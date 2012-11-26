@@ -158,11 +158,14 @@ void QwDiagnostic::Write(void){
 //       fprintf(regression, "%s :%d: %-5.5e : %-5.5e \n", MonitorList[i].Data(), DiffSlope[i]->entries, DiffSlope[i]->slope, DiffSlope[i]->GetRMS());
 //     }
 
-    // Corrected Asymmetry
-    fprintf(regression, "\n# corrected asymmetry \n");
-    for(Int_t i = 0; i < fNDetector; i++){
-      fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", DetectorList[i].Data(), (Int_t)AsymEntries[i], AsymMean[i], AsymRMS[i]/TMath::Sqrt(AsymEntries[i]) );
-    }
+//
+// This is only need for writing the corrected asymmetry of the full data set.  Currently we split between nbm and bm.
+//
+//     // Corrected Asymmetry
+//     fprintf(regression, "\n# corrected asymmetry \n");
+//     for(Int_t i = 0; i < fNDetector; i++){
+//       fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", DetectorList[i].Data(), (Int_t)AsymEntries[i], AsymMean[i], AsymRMS[i]/TMath::Sqrt(AsymEntries[i]) );
+//     }
 
   //******************** 
   //      Slopes 

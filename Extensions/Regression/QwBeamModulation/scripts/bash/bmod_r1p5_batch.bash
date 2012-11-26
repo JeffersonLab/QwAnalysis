@@ -122,7 +122,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
       echo "Set directories are set up."
   fi
  
-  $scriptPath/qwbeammod ${options} --set-stem $set &> qwbeammod_${run}_${fseg}.out
+  $scriptPath/qwbeammod ${options} --set-stem $set &> $log/qwbeammod${fseg}_${run_number}.out
   
   if [ $? -ne 0 ]; then
       echo "There was and error in the completion of qwbeammod"
@@ -133,7 +133,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
   echo "searching for :: $ROOTFILE"
   
   if [ -f "${ROOTFILE}" ]; then
-      $scriptPath/qwlibra $libra_options --set-stem ${set} &> qwlibra_${run}_${fseg}.out
+      $scriptPath/qwlibra $libra_options --set-stem ${set} &> $log/qwlibra${fseg}_${run_number}.out
   else
       echo "There was a problem in the output files of qwbeammod."
       exit
@@ -151,18 +151,14 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
   REGRESSION=${BMOD_OUT}/regression/$set/${REG_STEM}${run_number}.${set}.dat
 
-  if [ -f "${ROOTFILE}" ]; then
-      $scriptPath/qwasymsplitter $libra_options --set-stem ${set} &> qwasymsplitter_${run}_${fseg}.out
-  else
-      echo "There was a problem in the starting qwasymsplitter."
-      exit
-  fi
+  $scriptPath/qwasymsplitter $libra_options --set-stem ${set} &> $log/qwasymsplitter${fseg}_${run_number}.out
+
 
 echo Upload data to DB
 if [[ -n "$PERL5LIB" ]]; then
-    export PERL5LIB=${scriptPath/scripts/bash}:${PERL5LIB}
+    export PERL5LIB=${scriptPath}/scripts/bash:${PERL5LIB}
 else
-    export PERL5LIB=${scriptPath/scripts/bash}
+    export PERL5LIB=${scriptPath}/scripts/bash
 fi
 echo ${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/scripts/bash/ ${REGRESSION}
 
