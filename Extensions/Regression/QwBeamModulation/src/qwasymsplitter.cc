@@ -49,9 +49,14 @@ Int_t main(Int_t argc, Char_t *argv[])
   TBranch *b_ErrorFlag;
 
   std::vector <Double_t> leaf_value(modulation->fNDetector);
+  std::vector <Double_t> raw_leaf_value(modulation->fNDetector);
+
   std::vector <TBranch *> b_leaf_value(modulation->fNDetector);
+  std::vector <TBranch *> b_raw_leaf_value(modulation->fNDetector);
+
   std::vector <TH1F *> mod_hist(modulation->fNDetector);
   std::vector <TH1F *> nbm_hist(modulation->fNDetector);
+  std::vector <TH1F *> raw_hist(modulation->fNDetector);
   
   mod_tree->SetBranchStatus("*", 0);     
   mod_tree->SetBranchStatus("ErrorFlag", 1);   
@@ -59,12 +64,19 @@ Int_t main(Int_t argc, Char_t *argv[])
   
   for(Int_t det = 0; det < modulation->fNDetector; det++){
     mod_tree->SetBranchStatus(Form("corr_asym_%s", modulation->DetectorList[det].Data()), 1);   
+    mod_tree->SetBranchStatus(Form("asym_%s", modulation->DetectorList[det].Data()), 1);   
+
     mod_tree->SetBranchAddress(Form("corr_asym_%s", modulation->DetectorList[det].Data()), 
 			       &leaf_value[det], &b_leaf_value[det]);   
+    mod_tree->SetBranchAddress(Form("asym_%s", modulation->DetectorList[det].Data()), 
+			       &raw_leaf_value[det], &b_raw_leaf_value[det]);   
+
     mod_hist[det] = new TH1F(Form("hist_%", modulation->DetectorList[det].Data()),
 			     Form("hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
     nbm_hist[det] = new TH1F(Form("nbm_hist_%", modulation->DetectorList[det].Data()),
 			     Form("nbm_hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
+    raw_hist[det] = new TH1F(Form("raw_hist_%", modulation->DetectorList[det].Data()),
+			     Form("raw_hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
   }
 
   for(Long64_t i = 0; i < modulation->fNumberEvents; i++){
@@ -78,6 +90,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     if((UInt_t)ErrorFlag == 0x4018080){
       for(Int_t det = 0; det < modulation->fNDetector; det++){
 	mod_hist[det]->Fill(leaf_value[det]);      
+	raw_hist[det]->Fill(raw_leaf_value[det]);      
       }
     }
     if(ErrorFlag == 0){
@@ -87,13 +100,6 @@ Int_t main(Int_t argc, Char_t *argv[])
     }
   }
 
-  for(Int_t det = 0; det < modulation->fNDetector; det++){
-//     std::cout << "Mean mod:\t" << modulation->DetectorList[det].Data() 
-//  	      << "  " << mod_hist[det]->GetMean() 
-//  	      << "\tMean nbm:\t" << modulation->DetectorList[det].Data() 
-//  	      << "  " << nbm_hist[det]->GetMean()
-//  	      << std::endl;
-  }
   std::cout << modulation->fNDetector << std::endl;
   std::cout << "Closing Mod_Tree" << std::endl;
 
@@ -109,6 +115,13 @@ Int_t main(Int_t argc, Char_t *argv[])
     fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->DetectorList[det].Data(), 
 	    (Int_t)(nbm_hist[det]->GetEntries()), nbm_hist[det]->GetMean(),
 	    (nbm_hist[det]->GetRMS())/TMath::Sqrt(nbm_hist[det]->GetEntries()) );
+  }
+
+  fprintf(regression, "\n# cp raw asymmetry \n");
+  for(Int_t det = 0; det < modulation->fNDetector; det++){
+    fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->DetectorList[det].Data(), 
+	    (Int_t)(raw_hist[det]->GetEntries()), raw_hist[det]->GetMean(),
+	    (raw_hist[det]->GetRMS())/TMath::Sqrt(raw_hist[det]->GetEntries()) );
   }
 
   delete mod_tree;
