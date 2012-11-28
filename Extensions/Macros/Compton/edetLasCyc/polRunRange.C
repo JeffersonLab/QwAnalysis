@@ -133,12 +133,6 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
     grRunletPolP1->SetMarkerStyle(kOpenCircle);
     grRunletPolP1->SetMarkerColor(kRed);
     grRunletPolP1->SetLineColor(kRed);
-    // grRunletPolP1->SetFillColor(0);
-    // grRunletPolP1->SetTitle("Compton electron detector: Runlet based analysis");
-    // grRunletPolP1->GetXaxis()->SetLimits(run1+5,run2+5); 
-    // grRunletPolP1->GetXaxis()->SetTitle("Run number");
-    // grRunletPolP1->GetYaxis()->SetTitle("polarization (%)");
-    // grRunletPolP1->Draw("AP");
     grRunletPolP1->Draw("P");
 
     Double_t check=0.0;
@@ -224,16 +218,11 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
     }
     fCedgeLasCyc.close();
 
-    TGraph *grCedge = new TGraph("CedgeLasCyc_run1_run2.txt","%lg %lg");
+    TGraph *grLasCycCedge = new TGraph("CedgeLasCyc_run1_run2.txt","%lg %lg");
     cComptEdge->SetGridx(1);
-    grCedge->SetTitle();
-    grCedge->SetMarkerStyle(kOpenSquare);
-    grCedge->SetTitle("Compton edge found by signal over noise comparition");
-    grCedge->GetXaxis()->SetTitle("Run number");
-    grCedge->GetYaxis()->SetTitle("Compton edge (strip number)");
-    grCedge->GetXaxis()->SetLimits(run1+5,run2+5); 
-    grCedge->SetMarkerColor(kBlue);
-    grCedge->Draw("AP");
+    grLasCycCedge->SetTitle();
+    grLasCycCedge->SetMarkerStyle(kOpenSquare);
+    grLasCycCedge->SetMarkerColor(kBlue);
     Double_t runletCedgeInRange[runRange];
     Int_t count4=0;
     for (Int_t r=0; r<numbRuns; r++) {
@@ -242,15 +231,22 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
 	runletCedgeInRange[count4] = runletComptEdge[r];
       }
     }
-    //cComptEdge->cd(2);
     //TGraph *grRunletCedge = new TGraph(count4,lasCycRunnum,runletCedgeInRange);
     TGraph *grRunletCedge = new TGraph("CedgeRunlet_run1_run2.txt","%lg %lg");
     grRunletCedge->SetMarkerStyle(kFullSquare);//(kFullSquare);
     grRunletCedge->SetMarkerColor(kRed);
     grRunletCedge->SetMarkerSize(0.7);
-    grRunletCedge->Draw("P");
 
-    legCedge->AddEntry(grCedge,"laser Cycle evaluation","p");
+    TMultiGraph *grCedge = new TMultiGraph();
+    grCedge->Add(grRunletCedge);
+    grCedge->Add(grLasCycCedge);
+    grCedge->Draw("AP");
+    grCedge->SetTitle("Compton edge found by signal over noise comparition");
+    grCedge->GetXaxis()->SetTitle("Run number");
+    grCedge->GetYaxis()->SetTitle("Compton edge (strip number)");
+    grCedge->GetXaxis()->SetLimits(run1+5,run2+5); 
+
+    legCedge->AddEntry(grLasCycCedge,"laser Cycle evaluation","p");
     legCedge->AddEntry(grRunletCedge,"runlet based evaluation","p");
     legCedge->SetFillColor(0);
     legCedge->Draw();
