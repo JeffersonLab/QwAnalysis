@@ -16,12 +16,10 @@ QwModulation::QwModulation(TChain *tree):
   fXPModulation(1),fYPModulation(4), fNEvents(0),
   fReduceMatrix_x(0), fReduceMatrix_y(0), fReduceMatrix_xp(0),
   fReduceMatrix_yp(0), fReduceMatrix_e(0), fSensHumanReadable(0),
-  fNModType(5), fPedestal(0), fXNevents(0), fXPNevents(0), 
-  fENevents(0),fYNevents(0), fYPNevents(0),fCurrentCut(40),
+  fNModType(5), fPedestal(0), fNModEvents(0), fCurrentCut(40), 
   fXinit(false), fYinit(false), fEinit(false), fXPinit(false), 
   fYPinit(false), fSingleCoil(false), fRunNumberSet(false), 
-  fPhaseConfig(false), fFileSegment(""), fFileStem("QwPass*"),
-  fSetStem("std") 
+  fPhaseConfig(false),fFileSegment(""), fFileStem("QwPass*"), fSetStem("std") 
 {
    Init(tree);
 }
@@ -624,7 +622,8 @@ void QwModulation::ComputeAsymmetryCorrections()
 
   if(fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
-  Long64_t event_counter = 0;
+
+  Int_t event_counter = 0;
 
   std::cout << other << "Entries in Hel_Tree:\t" 
 	    << nentries << normal << std::endl;
@@ -659,8 +658,6 @@ void QwModulation::ComputeAsymmetryCorrections()
 
     if( (i % 100000) == 0 )std::cout << "Processing:\t" << i << std::endl;
   }
-
-  fNumberEvents = event_counter;
 
   file.Write();
   file.Close();
@@ -757,6 +754,10 @@ void QwModulation::CalculateSlope(Int_t fNModType)
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" << CoilData[fNModType].size() << std::endl;
     return;
   }
+
+  //*******************************
+  ModulationEvents[fNModType] += fNEvents;
+  //*******************************
    
   for(Int_t det = 0; det < fNDetector; det++){
     
@@ -765,16 +766,7 @@ void QwModulation::CalculateSlope(Int_t fNModType)
       return;
     }
 
-   //*******************************
-
-    if(fNModType == fXModulation)  fXNevents += fNEvents;
-    if(fNModType == fYModulation)  fYNevents += fNEvents;
-    if(fNModType == fEModulation)  fENevents += fNEvents;
-    if(fNModType == fXPModulation) fXPNevents += fNEvents;
-    if(fNModType == fYPModulation) fYPNevents += fNEvents;
-
-    //*******************************
-   
+  
     for(Int_t evNum = 0; evNum < fNEvents; evNum++) c_mean += TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType]);
       c_mean /=fNEvents;
       
@@ -1247,15 +1239,25 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor)
        	// Here the extra strtok(NULL, " .,") keeps scanning for next token
 
        	token = strtok(NULL, " .,"); 
-       	std::cout << other << "\t\tMonitor is: " << token << normal << std::endl;
-	meteor->MonitorList.push_back(token); 
-       }
+	if( !(fChain->GetBranch(token)) ){
+	  std::cout << other << token << ": Branch doesn't exist." << normal << std::endl;
+	}
+	else{
+	  std::cout << other << "\t\tMonitor is: " << token << normal << std::endl;
+	  meteor->MonitorList.push_back(token); 
+	}
+      }
       if(strcmp("det", token) == 0){
        	// Here the extra strtok(NULL, " .,") keeps scanning for next token
-
        	token = strtok(NULL, " .,"); 
-       	std::cout << other << "\t\tDetector is: " << token << normal << std::endl; 
-	meteor->DetectorList.push_back(token);
+	
+	if( !(fChain->GetBranch(token)) ){
+	  std::cout << other << token << ": Branch doesn't exist." << normal << std::endl;
+	}
+	else{
+	  std::cout << other << "\t\tDetector is: " << token << normal << std::endl; 
+	  meteor->DetectorList.push_back(token);
+	}
       }
       else 
        	token = strtok(NULL, " .,"); 
@@ -1386,13 +1388,12 @@ void QwModulation::Write(){
   }
 
   if( (diagnostic.is_open() && diagnostic.good()) ){
-    diagnostic << "\n#Failed events in x,xp,e,y,yp\n" << std::endl;
-    diagnostic << fXNevents  << std::endl;
-    diagnostic << fXPNevents << std::endl;
-    diagnostic << fENevents  << std::endl;
-    diagnostic << fYNevents  << std::endl;
-    diagnostic << fYPNevents << std::endl;
-    diagnostic << (fXNevents + fXPNevents + fENevents + fYNevents + fYPNevents) << std::endl;
+    diagnostic << "\n#Modulation events in x,xp,e,y,yp\n" << std::endl;
+    for(Int_t i = 0; i < fNModType; i++){
+      diagnostic << ModulationEvents[i]  << std::endl;
+      fNModEvents += ModulationEvents[i];
+    }
+    diagnostic << fNModEvents << std::endl;
   }
 
 
@@ -1402,12 +1403,12 @@ void QwModulation::Write(){
   // qwlibra must be run to get other run info.
   //***************************************************************
 
-  fprintf(regression, "#run=%i\tevents=%i\n",run_number, fNumberEvents);
+  fprintf(regression, "#run=%i\tevents=%i\n", run_number, fNModEvents);
   if( regression != NULL ){
     for(Int_t i = 0; i < fNDetector; i++){
       for(Int_t j = 0; j < fNModType; j++){
-	fprintf(regression, "%s/%s : %i : %e : %e\n", DetectorList[i].Data(), MonitorList[j].Data(),
-		j, YieldSlope[i][j], YieldSlopeError[i][j]);
+	fprintf(regression, "%s/%s : %i : %i : %e : %e\n", DetectorList[i].Data(), MonitorList[j].Data(), 
+		ModulationEvents[j], j, YieldSlope[i][j], YieldSlopeError[i][j]);
       }
     }
   }
@@ -1440,19 +1441,6 @@ void QwModulation::CleanFolders()
 
   return;
 }
-
-// void QwModulation::SetFlags()
-// {
-
-//   fXinit  = false;
-//   fYinit  = false;
-//   fEinit  = false;
-//   fXPinit = false;
-//   fYPinit = false;
-//   fSingleCoil = false;
-
-//   return;
-// }
 
 void QwModulation::CheckFlags()
 {
