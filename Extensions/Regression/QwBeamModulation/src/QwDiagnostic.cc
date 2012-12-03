@@ -366,20 +366,29 @@ Int_t QwDiagnostic::ReadConfig(QwDiagnostic *meteor)
     token = strtok(token, " ,.");
     while(token){
       if(strcmp("mon", token) == 0){
-
        	// Here the extra strtok(NULL, " .,") keeps scanning for next token
+	token = strtok(NULL, " .,"); 
 
-       	token = strtok(NULL, " .,"); 
-       	std::cout << red << "\t\tMonitor is: " << token << normal << std::endl;
-	meteor->MonitorList.push_back(token); 
-       }
+	if( !(fChain->GetBranch(Form("diff_%s", token))) ){
+	  std::cout << red << token << ": Branch doesn't exist." << normal << std::endl;
+	}
+	else{
+	  std::cout << other << "\t\tMonitor is: " << token << normal << std::endl;
+	  meteor->MonitorList.push_back(token); 
+	}
+      }
       if(strcmp("det", token) == 0){
 
        	// Here the extra strtok(NULL, " .,") keeps scanning for next token
-
        	token = strtok(NULL, " .,"); 
-       	std::cout << red << "\t\tDetector is: " << token << normal << std::endl; 
-	meteor->DetectorList.push_back(token);
+
+	if( !(fChain->GetBranch(Form("asym_%s", token))) ){
+	  std::cout << red << token << ": Branch doesn't exist." << normal << std::endl;
+	}
+	else{
+	  std::cout << other << "\t\tDetector is: " << token << normal << std::endl; 
+	  meteor->DetectorList.push_back(token);
+	}
       }
       else 
        	token = strtok(NULL, " .,"); 

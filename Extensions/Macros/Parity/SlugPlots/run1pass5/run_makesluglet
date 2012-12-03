@@ -18,10 +18,10 @@ SRC_lrb=\"/work/hallc/qweak/Qwanalysis/run1/pass5regression/lrb_rootfiles/\"
 
 #DST="/volatile/hallc/qweak/smacewan/pass5prep"
 #DST_lrb="/volatile/hallc/qweak/smacewan/pass5prep"
-DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
+DST="/work/hallc/qweak/QwAnalysis/run1/pass5_slugs"
 DST_lrb="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
 
-DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5_slugs/out_files"
 
 LEAFLIST=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5/leaflist_run1pass5_unreg.txt\"
 LEAFLIST_lrb=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5/leaflist_run1pass5_lrb_reg.txt\"
@@ -51,18 +51,18 @@ arg="$PATH_TO_SCRIPT/MakeSluglet_runlet.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST,\"${D
 
 
 #----------------------------------------------------------------------------------------------
-root -n -q -b -l ${arg} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}.out
+root -n -q -b -l ${arg} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}.out
 
 #----------------------------------------------------------------------------------------------
 ##Uncomment these lines to enable regressed sluglet file creation
 
-#root -n -q -b -l ${arg1} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_std.out
-#root -n -q -b -l ${arg2} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_5+1.out
-#root -n -q -b -l ${arg3} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set3.out
-#root -n -q -b -l ${arg4} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set4.out
-#root -n -q -b -l ${arg5} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set5.out
-#root -n -q -b -l ${arg6} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set6.out
-#root -n -q -b -l ${arg7} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set7.out
-#root -n -q -b -l ${arg8} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set8.out
-#root -n -q -b -l ${arg9} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set9.out
-#root -n -q -b -l ${arg10} >${DST_Dbug}/slug${RUN_NUM}_${SEG_NUM}_set10.out
+#root -n -q -b -l ${arg1} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_std.out
+#root -n -q -b -l ${arg2} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_5+1.out
+#root -n -q -b -l ${arg3} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set3.out
+#root -n -q -b -l ${arg4} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set4.out
+#root -n -q -b -l ${arg5} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set5.out
+#root -n -q -b -l ${arg6} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set6.out
+#root -n -q -b -l ${arg7} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set7.out
+#root -n -q -b -l ${arg8} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set8.out
+#root -n -q -b -l ${arg9} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set9.out
+#root -n -q -b -l ${arg10} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set10.out
