@@ -75,11 +75,13 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
   //polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletFCEPolRun2.txt");
   polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletPol_23220_23530.txt");
   Double_t runletPol[numbRuns]={0.0},runletPolEr[numbRuns]={0.0},runletChiSq[numbRuns],runletComptEdge[numbRuns],runletEffStrip[numbRuns];
-  Double_t runletEffStripEr[numbRuns],runletPlane[numbRuns],zero[numbRuns]={0},runletRunnum[numbRuns]={},IHWP[numbRuns];
+  Double_t runletEffStripEr[numbRuns],runletPlane[numbRuns],zero[numbRuns]={0},IHWP[numbRuns];//runletRunnum[numbRuns]={},
+  std::vector <Double_t> runletRunnum;
   Int_t count3=0;
   if(polRunlet.is_open()) { //this is available only for plane 1
     //    for (Int_t r=0; r<numbRuns; r++) {
     while(polRunlet.good()) {
+      runletRunnum.push_back(0.0);
       polRunlet>>runletRunnum[count3]>>runletPol[count3]>>runletPolEr[count3]>>runletComptEdge[count3]>>runletChiSq[count3]>>runletPlane[count3]>>IHWP[count3]>>runletEffStrip[count3]>>runletEffStripEr[count3];
       if(debug1) cout<<runletRunnum[count3]<<"\t"<<runletPol[count3]<<"\t"<<runletPolEr[count3]<<endl;
       if(polRunlet.eof()) break;
@@ -98,7 +100,7 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
     TGraphErrors *grPolPlane1,*grRunletPolP1;
     grPolPlane1 = new TGraphErrors(Form("/w/hallc/qweak/narayan/polList_%d_%d.txt",run1,run2),"%lg %lg %lg");
     //grRunletPolP1 = new TGraphErrors(Form("~/acquired/vladas/modFiles/runletPol_22659_23001.txt"),"%lg %lg %lg");
-    grRunletPolP1 = new TGraphErrors(numbRuns,runletRunnum,runletPol,zero,runletPolEr);
+    grRunletPolP1 = new TGraphErrors(numbRuns,runletRunnum.data(),runletPol,zero,runletPolEr);
 
     //TBox *bCedge1;//,*bCedge2,*bCedge3;
     //bCedge1 = new TBox(run1,60,run2,96);
