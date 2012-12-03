@@ -290,7 +290,7 @@ public :
 
   Int_t    Cut(Long64_t entry);
   Int_t    GetEntry(Long64_t entry);
-  Int_t    ReadConfig(QwModulation *);
+  Int_t    ReadConfig(QwModulation *, TString opt = "");
   Int_t    ReadPhaseConfig(Char_t *);
   Int_t    ErrorCodeCheck(TString);
   Int_t    ConvertPatternNumber(Int_t);

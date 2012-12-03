@@ -122,7 +122,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
       echo "Set directories are set up."
   fi
  
-  $scriptPath/qwbeammod ${options} --set-stem $set &> $log/qwbeammod${fseg}_${run_number}.out
+  $scriptPath/qwbeammod ${options} --set-stem $set &>> $log/qwbeammod${fseg}_${run_number}.out
   
   if [ $? -ne 0 ]; then
       echo "There was and error in the completion of qwbeammod"
@@ -133,7 +133,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
   echo "searching for :: $ROOTFILE"
   
   if [ -f "${ROOTFILE}" ]; then
-      $scriptPath/qwlibra $libra_options --set-stem ${set} &> $log/qwlibra${fseg}_${run_number}.out
+      $scriptPath/qwlibra $libra_options --set-stem ${set} &>> $log/qwlibra${fseg}_${run_number}.out
   else
       echo "There was a problem in the output files of qwbeammod."
       exit
@@ -151,7 +151,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
   REGRESSION=${BMOD_OUT}/regression/$set/${REG_STEM}${run_number}.${set}.dat
 
-  $scriptPath/qwasymsplitter $libra_options --set-stem ${set} &> $log/qwasymsplitter${fseg}_${run_number}.out
+  $scriptPath/qwasymsplitter $libra_options --set-stem ${set} &>> $log/qwasymsplitter${fseg}_${run_number}.out
 
 
 echo Upload data to DB

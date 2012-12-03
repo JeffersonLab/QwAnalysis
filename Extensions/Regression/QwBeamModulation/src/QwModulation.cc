@@ -1217,12 +1217,24 @@ Int_t QwModulation::ReadPhaseConfig(Char_t *file)
   return 0;
 }
 
-Int_t QwModulation::ReadConfig(QwModulation *meteor)
+Int_t QwModulation::ReadConfig(QwModulation *meteor, TString opt)
 {
   std::string line;
 
   char *token;
 
+  TString mon_prefix;
+  TString det_prefix;
+
+  if(opt.CompareTo("bmod", TString::kExact) == 0){
+    mon_prefix = "diff_";
+    det_prefix = "asym_"; 
+  }
+  else{
+    mon_prefix = "";
+    det_prefix = ""; 
+  }
+  
   config.open("config/setup.config", std::ios_base::in);
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
@@ -1239,7 +1251,7 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor)
        	// Here the extra strtok(NULL, " .,") keeps scanning for next token
 
        	token = strtok(NULL, " .,"); 
-	if( !(fChain->GetBranch(token)) ){
+	if( !(fChain->GetBranch(Form("%s%s", mon_prefix.Data(), token))) ){
 	  std::cout << other << token << ": Branch doesn't exist." << normal << std::endl;
 	}
 	else{
@@ -1251,7 +1263,7 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor)
        	// Here the extra strtok(NULL, " .,") keeps scanning for next token
        	token = strtok(NULL, " .,"); 
 	
-	if( !(fChain->GetBranch(token)) ){
+	if( !(fChain->GetBranch(Form("%s%s", det_prefix.Data(), token))) ){
 	  std::cout << other << token << ": Branch doesn't exist." << normal << std::endl;
 	}
 	else{
