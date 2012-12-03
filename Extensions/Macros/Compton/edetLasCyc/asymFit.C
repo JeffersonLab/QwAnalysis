@@ -74,7 +74,7 @@ void asymFit(Int_t runnum)
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
 
-  if(!maskSet) infoDAQ(runnum);
+  if (!kVladas_data && (!maskSet)) infoDAQ(runnum);
 
   ifstream infileScaler, expAsymPWTL1, infileYield;
   ofstream polList;
@@ -147,7 +147,7 @@ void asymFit(Int_t runnum)
   polList.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
-    xCedge = rhoToX(p); ///this function should be called after determining the Cedge
+    if (!kVladas_meth) xCedge = rhoToX(p); ///this function should be called after determining the Cedge
 
     paramfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,p+1));
     cout<<"reading in the rho to X fitting parameters for plane "<<p+1<<", they were:" <<endl;
