@@ -12,7 +12,7 @@ if [[ ! -n "$WORKDIR" || ! -d $WORKDIR ]]; then
     exit
 fi
 
-linRegBluePath=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v7/run1pass5ModConfig
+linRegBluePath=$QWANALYSIS/../linRegBlue_v7/run1pass5ModConfig
 outputPath=/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/lrb_bmod
 rootFileStem=QwPass5_
 
