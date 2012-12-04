@@ -1317,7 +1317,7 @@ Bool_t QwModulation::FileSearch(TString filename, TChain *chain)
     c_status = true;
 
     for(Int_t i = fLowerSegment; i <= fUpperSegment; i++){
-      filename = Form("%s_%d.%0.3d.trees.root", fFileStem.Data(), run_number, i);
+      filename = Form("%s_%d.%03d.trees.root", fFileStem.Data(), run_number, i);
       std::cout << other << "Adding:: " 
 		<< filename << normal << std::endl;
       if(!(chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()))) ){

@@ -45,23 +45,36 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   std::cout << "Number of entries: " << modulation->fNumberEvents << std::endl;
 
+  Double_t bpm_limit[5] = {1.0, 1.0e-5, 1.0, 1.0, 1.0e-5};
   Double_t ErrorFlag;
+
   TBranch *b_ErrorFlag;
 
   std::vector <Double_t> leaf_value(modulation->fNDetector);
   std::vector <Double_t> raw_leaf_value(modulation->fNDetector);
+  std::vector <Double_t> bpm_leaf_value(modulation->fNDetector);
 
   std::vector <TBranch *> b_leaf_value(modulation->fNDetector);
   std::vector <TBranch *> b_raw_leaf_value(modulation->fNDetector);
+  std::vector <TBranch *> b_bpm_leaf_value(modulation->fNMonitor);
 
   std::vector <TH1F *> mod_hist(modulation->fNDetector);
   std::vector <TH1F *> nbm_hist(modulation->fNDetector);
   std::vector <TH1F *> raw_hist(modulation->fNDetector);
+  std::vector <TH1F *> bpm_hist(modulation->fNMonitor);
   
   mod_tree->SetBranchStatus("*", 0);     
   mod_tree->SetBranchStatus("ErrorFlag", 1);   
   mod_tree->SetBranchAddress("ErrorFlag", &ErrorFlag, &b_ErrorFlag);
-  
+
+  for(Int_t mon = 0; mon < modulation->fNMonitor; mon++){
+    mod_tree->SetBranchStatus(Form("diff_%s", modulation->MonitorList[mon].Data()), 1);   
+    mod_tree->SetBranchAddress(Form("diff_%s", modulation->MonitorList[mon].Data()), 
+			       &bpm_leaf_value[mon], &b_bpm_leaf_value[mon]);   
+    bpm_hist[mon] = new TH1F(Form("hist_%s", modulation->MonitorList[mon].Data()),
+			     Form("hist_%s", modulation->MonitorList[mon].Data()), 10000, -bpm_limit[mon], bpm_limit[mon]);
+  }  
+
   for(Int_t det = 0; det < modulation->fNDetector; det++){
     mod_tree->SetBranchStatus(Form("corr_asym_%s", modulation->DetectorList[det].Data()), 1);   
     mod_tree->SetBranchStatus(Form("asym_%s", modulation->DetectorList[det].Data()), 1);   
@@ -71,12 +84,12 @@ Int_t main(Int_t argc, Char_t *argv[])
     mod_tree->SetBranchAddress(Form("asym_%s", modulation->DetectorList[det].Data()), 
 			       &raw_leaf_value[det], &b_raw_leaf_value[det]);   
 
-    mod_hist[det] = new TH1F(Form("hist_%", modulation->DetectorList[det].Data()),
-			     Form("hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
-    nbm_hist[det] = new TH1F(Form("nbm_hist_%", modulation->DetectorList[det].Data()),
-			     Form("nbm_hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
-    raw_hist[det] = new TH1F(Form("raw_hist_%", modulation->DetectorList[det].Data()),
-			     Form("raw_hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e2);
+    mod_hist[det] = new TH1F(Form("hist_%s", modulation->DetectorList[det].Data()),
+			     Form("hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e-2);
+    nbm_hist[det] = new TH1F(Form("nbm_hist_%s", modulation->DetectorList[det].Data()),
+			     Form("nbm_hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e-2);
+    raw_hist[det] = new TH1F(Form("raw_hist_%s", modulation->DetectorList[det].Data()),
+			     Form("raw_hist_%s", modulation->DetectorList[det].Data()), 10000, -1e-2, 1e-2);
   }
 
   for(Long64_t i = 0; i < modulation->fNumberEvents; i++){
@@ -91,6 +104,9 @@ Int_t main(Int_t argc, Char_t *argv[])
       for(Int_t det = 0; det < modulation->fNDetector; det++){
 	mod_hist[det]->Fill(leaf_value[det]);      
 	raw_hist[det]->Fill(raw_leaf_value[det]);      
+      }
+      for(Int_t mon = 0; mon < modulation->fNMonitor; mon++){
+	bpm_hist[mon]->Fill(bpm_leaf_value[mon]);
       }
     }
     if(ErrorFlag == 0){
@@ -109,7 +125,13 @@ Int_t main(Int_t argc, Char_t *argv[])
 	    (Int_t)(mod_hist[det]->GetEntries()), mod_hist[det]->GetMean(), 
 	    (mod_hist[det]->GetRMS())/TMath::Sqrt(mod_hist[det]->GetEntries()) );
   }
-  
+  fprintf(regression, "\n# cp bpm differences \n");
+  for(Int_t mon = 0; mon < modulation->fNMonitor; mon++){
+    fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->MonitorList[mon].Data(), 
+	    (Int_t)(bpm_hist[mon]->GetEntries()), bpm_hist[mon]->GetMean(), 
+	    (bpm_hist[mon]->GetRMS())/TMath::Sqrt(bpm_hist[mon]->GetEntries()) );
+  }  
+
   fprintf(regression, "\n# nbm corrected asymmetry \n");
   for(Int_t det = 0; det < modulation->fNDetector; det++){
     fprintf(regression, "%s :%d:%-5.5e : %-5.5e \n", modulation->DetectorList[det].Data(), 

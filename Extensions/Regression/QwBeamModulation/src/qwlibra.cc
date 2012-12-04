@@ -139,7 +139,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t i = 0; i < modulation->GetModNumber(); i++)
     cut_mod[i] = Form("(ErrorFlag==0x4018080) && yield_bm_pattern_number==%i || yield_bm_pattern_number==%i", (pNum[i] + 11), pNum[i]);
   for(Int_t i = 0; i < modulation->GetModNumber(); i++)
-    cut_nat[i] = Form(" (ErrorFlag == 0) ", pNum[i]);
+    cut_nat[i] = " (ErrorFlag == 0) ";
 
   std::cout << "Making Slope Correction Plots" << std::endl;
   // Sensitivity plots
