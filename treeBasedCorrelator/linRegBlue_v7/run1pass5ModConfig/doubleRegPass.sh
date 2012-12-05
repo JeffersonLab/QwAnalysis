@@ -5,7 +5,6 @@ iseg=$2
 outputPath=$3
 
 scriptPath=`dirname $0`
-src_dir=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v7
 
 logPath='./out/'
 #logPath='/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/lrb_bmod/out'
@@ -46,7 +45,7 @@ fi
 echo -n regPass1 started ...
 date
 time 
-$src_dir/linRegBlue  $run $seg $mxEve $scriptPath/blueReg_bmod.conf >& $logPath/logS1_${run}_${seg}
+${scriptPath}/../linRegBlue  $run $seg $mxEve $scriptPath/blueReg_bmod.conf >& $logPath/logS1_${run}_${seg}
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass1 for run $run.$seg
@@ -70,7 +69,7 @@ fi
 
 #.......................................
 echo regPass2 started 
-time $src_dir/linRegBlue  $run $seg $mxEve  $scriptPath/blueReg_full.conf $slopeFile  >& $logPath/logS2_${run}_${seg}
+time ${scriptPath}/../linRegBlue  $run $seg $mxEve  $scriptPath/blueReg_full.conf $slopeFile  >& $logPath/logS2_${run}_${seg}
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass2 for run $run.$seg
