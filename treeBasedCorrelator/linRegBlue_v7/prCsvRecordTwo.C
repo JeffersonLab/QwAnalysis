@@ -1,16 +1,28 @@
 #include <iostream>
-vector <TString> ivName, dvName;
-vector <double> dvYield, dvYieldRms; 
-vector <double> ivYield, ivYieldRms; 
+#include <vector>
+#include <TString.h>
+#include <TMatrixD.h>
+#include <TFile.h>
+#include <TH1.h>
+
+std::vector <TString> ivName, dvName;
+std::vector <double> dvYield, dvYieldRms; 
+std::vector <double> ivYield, ivYieldRms; 
 double run_seg=1111.222;
 TString inpPath="FIXmE1";
 double avrCurr_uA=-1, rmsCurr_uA=-2,pattSum=-2,sumCharge_mC=-3;
-TMatrixD *   Mslopes=0, *MsigSlopes=0, 
+TMatrixD *Mslopes=0, *MsigSlopes=0, 
   *MDVsigReg=0,  *MDVsigUnreg=0,  
   *MDVmeanReg=0, *MDVmeanUnreg=0,
   *MIVsig=0, *MIVcov=0, *MIVmean=0;
 
-prCsvRecordTwo( double run_seg0=7214.001, TString inpPath0="sort7100+/", TString outPath="out/") {
+void printDBrecord(FILE *fd);
+void readDVrmsReg();
+void readSlopes();
+void fetchNamesAnd();
+
+
+void prCsvRecordTwo( double run_seg0=7214.001, TString inpPath0="sort7100+/", TString outPath="out/") {
   run_seg=run_seg0;
   inpPath=inpPath0;
 
@@ -23,7 +35,7 @@ prCsvRecordTwo( double run_seg0=7214.001, TString inpPath0="sort7100+/", TString
  
   int iv=0;
   for(int dv=0;dv<dvYield.size(); dv+=5) {
-    printf("dv=%d %s  yield=%f  sl(iv=0)=%f  rms=%f\n",dv, dvName[dv].Data(), dvYield[dv],Mslopes(iv,dv), MDVsigReg(dv,0));
+    printf("dv=%d %s  yield=%f  sl(iv=0)=%f  rms=%f\n",dv, dvName[dv].Data(), dvYield[dv],(*Mslopes)(iv,dv), (*MDVsigReg)(dv,0));
   }
 
   int doLabel=0;
@@ -65,14 +77,14 @@ void printDBrecord(FILE *fd){
   if(mask&0x4) {    fprintf(fd,"#section:0x4:regressed %d asym DVs:X---------------\n",dvName.size());
     for(int dv=0;dv<dvName.size(); dv++) {
       TString name=dvName[dv];
-      fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,MDVmeanReg(dv,0)*ppm,MDVsigReg(dv,0)*ppm/sqN);
+      fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,(*MDVmeanReg)(dv,0)*ppm,(*MDVsigReg)(dv,0)*ppm/sqN);
     }
   }
 
   if(mask&0x8) {    fprintf(fd,"#section:0x8:unregressed %d asym DVs:X--------------\n",dvName.size());
     for(int dv=0;dv<dvName.size(); dv++) {
       TString name=dvName[dv];
-      fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,MDVmeanUnreg(dv,0)*ppm,MDVsigUnreg(dv,0)*ppm/sqN);
+      fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,(*MDVmeanUnreg)(dv,0)*ppm,(*MDVsigUnreg)(dv,0)*ppm/sqN);
     }
   }
 
@@ -81,7 +93,7 @@ void printDBrecord(FILE *fd){
       TString nameDV=dvName[dv];
       for(int iv=0;iv<ivName.size(); iv++) {
 	TString nameIV=ivName[iv];
-	fprintf(fd,"%s/%s:%g:%g:%g\n",nameDV.Data(),nameIV.Data(),pattSum,Mslopes(iv,dv),MsigSlopes(iv,dv));
+	fprintf(fd,"%s/%s:%g:%g:%g\n",nameDV.Data(),nameIV.Data(),pattSum,(*Mslopes)(iv,dv),(*MsigSlopes)(iv,dv));
       }
     }
   }
@@ -90,7 +102,7 @@ void printDBrecord(FILE *fd){
   if(mask&0x20) {    fprintf(fd,"#section:0x20: %d diff  IVs:X---------------\n",ivName.size());
     for(int iv=0;iv<ivName.size(); iv++) {
       TString nameIV=ivName[iv];
-      fprintf(fd,"%s:%g:%g:%g\n",nameIV.Data(),pattSum,MIVmean(iv,0)*ppm,MIVsig(iv,0)*ppm/sqN);
+      fprintf(fd,"%s:%g:%g:%g\n",nameIV.Data(),pattSum,(*MIVmean)(iv,0)*ppm,(*MIVsig)(iv,0)*ppm/sqN);
     }
   }
   
@@ -99,7 +111,7 @@ void printDBrecord(FILE *fd){
       TString nameIV1=ivName[iv];
       for(int jv=iv+1;jv<ivName.size(); jv++) {
 	TString nameIV2=ivName[jv];
-	fprintf(fd,"%s:%s:%g:%g:X\n",nameIV1.Data(),nameIV2.Data(),pattSum,MIVcov(iv,jv));
+	fprintf(fd,"%s:%s:%g:%g:X\n",nameIV1.Data(),nameIV2.Data(),pattSum,(*MIVcov)(iv,jv));
       }
     }
   }
@@ -192,7 +204,7 @@ void fetchNamesAnd() {
   //..... AND more ....
 
   // .... total charge, average current
-  hBcm=(TH1D*) hFile->Get("inpBcm1"); assert(hBcm);
+  TH1 *hBcm=(TH1D*) hFile->Get("inpBcm1"); assert(hBcm);
   avrCurr_uA=hBcm->GetMean();
   rmsCurr_uA=hBcm->GetRMS();
   pattSum=hBcm->GetEntries();
