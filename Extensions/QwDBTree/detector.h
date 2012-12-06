@@ -3,78 +3,75 @@
 #include <TTree.h>
 #include <Riostream.h>
 #include <TSQLServer.h>
+#include "parse.h"
 
-class QwData
-{
+/* Class to store data for branching. */
+class QwData {
     private:
-        // vector used to fill branch
+        /* Data to go into the tree */
         Double_t value;
         Double_t error;
         Double_t rms;
         Long_t n;
 
     public:
-        // method to fill vector
-        QwData() {};
-        QwData(Double_t temp_value, Double_t temp_error, Long_t temp_n, Double_t temp_rms);
+        /* Overloaded constructer */
+        QwData(void);
+        QwData(Double_t, Double_t, Long_t, Double_t);
         void fill_empty(void);
 };
 
-class QwDetector
-{
-    protected:
-        // measurement id for this detector
-        TString measurement_id;
-        // regression type for this detector
-        TString reg_type;
-        // name and regression type of detector in database
-        TString detector_name;
-        // pointer to database
-        TSQLServer *db;
+/* QwDetector class, from which specific detectors inherit. */
+class QwDetector {
+    public:
+        QwDetector(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
+        void branch(TTree*, vector<QwData>&, Int_t);
+        void fill(void);
+        void get_data_for_runlet(Int_t runlet, QwData&);
 
-        // runlet data
-        // runlets for this detector
+    protected:
+        /* Measurement for this detector. */
+        TString measurement_id;
+        /* Regression type for this detector. */
+        TString reg_type;
+        /* Name and regression type of detector in database. */
+        TString detector_name;
+        /* Pointer to database */
+        TSQLServer *db;
+        /* Bool governing run averages */
+        Bool_t runavg;
+
+        /* runlets for this detector, mapped to number of runlet in tree */
         map<Int_t, Int_t> runlet_id;
-        // total runlets
+        /* number of runlets for this detector */
         vector<Int_t> good_runlets;
 
-        // data
+        /* QwData vector for this detector. This fills the tree. */
         vector<QwData> data;
 
-        // virtual method to query db
-        virtual TString query(void) =0;
-
-    public:
-        // fuction to set the detector name
-        QwDetector(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer)
-        {detector_name = name; measurement_id = id; reg_type = type; good_runlets = runlets; db = db_pointer;};
-        void branch(TTree* tree, vector<QwData> &values, Int_t i);
-        void fill();
-        void get_data_for_runlet(Int_t runlet, QwData &value);
+        /*
+         * Virtual method to query db.
+         *
+         * FIXME: = 0. wat r u doing. = 0. stawp.
+         */
+        virtual TString query(void) = 0;
 };
 
-class QwMainDet : public QwDetector
-{
+class QwMainDet: public QwDetector {
     public:
-        // fuction to set the detector name
-        QwMainDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, id, type, runlets, db_pointer) {};
+        QwMainDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
         TString query(void);
 };
 
-class QwLumiDet : public QwDetector
-{
+class QwLumiDet : public QwDetector {
     public:
-        // fuction to set the detector name
-        QwLumiDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, id, type, runlets, db_pointer) {};
+        QwLumiDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
         TString query(void);
 };
 
-class QwBeamDet : public QwDetector
-{
+class QwBeamDet : public QwDetector {
     public:
-        // fuction to set the detector name
-        QwBeamDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer) : QwDetector(name, id, type, runlets, db_pointer)
-    {};
+        QwBeamDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
         TString query(void);
 };
 

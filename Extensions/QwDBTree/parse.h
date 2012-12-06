@@ -2,22 +2,22 @@
 #define PARSE_H
 #include <Riostream.h>
 
-class QwParse
-{
-    private:
-        // mapfile for parsing
-        TString mapfile;
-        // detector name and type (corresponding to MySQL)
-        vector<TString> detectors;
-        vector<TString> type;
+/* Class for reading in mapfiles and storing the data. */
+class QwParse {
     public:
-        QwParse(TString filename) {mapfile = filename;};
+        QwParse(void);
+        QwParse(TString);
         void parse(void);
         Int_t num_detectors(void);
-        TString detector(Int_t num);
-        TString id_type(Int_t num);
+        TString detector(Int_t);
+        TString id_type(Int_t);
+        vector<TString> ret_detector();
+    private:
+        /* Path to mapfile. */
+        TString mapfile;
+        /* Detector name and type (corresponding to MySQL) */
+        vector<TString> detectors;
+        vector<TString> type;
 };
-
-vector<TString> parse(TString mapfile);
 
 #endif
