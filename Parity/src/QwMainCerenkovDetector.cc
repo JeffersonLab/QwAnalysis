@@ -59,6 +59,10 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
  */
 Bool_t QwMainCerenkovDetector::PublishInternalValues() const
 {
+  // I am running on data without these channels.
+  // rsm 2012-09-06
+  return kTRUE;
+
   // Publish variables
   Bool_t status = kTRUE;
 
