@@ -1,0 +1,4 @@
+[QwMainCerenkovDetector]
+ name = Main Detector
+ map = eeltest_maindet.map
+ param = eeltest_maindet_pedestal.map

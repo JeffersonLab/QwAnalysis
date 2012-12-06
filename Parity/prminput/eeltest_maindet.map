@@ -1,0 +1,13 @@
+ROC=1
+Bank=0x0902
+sample_size=464
+
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 0, 0,  IntegrationPMT,  qwk_chan00,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 1,  IntegrationPMT,  qwk_chan01,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 2,  IntegrationPMT,  qwk_chan02,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 3,  IntegrationPMT,  qwk_chan03,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 4,  IntegrationPMT,  qwk_chan04,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 5,  IntegrationPMT,  qwk_chan05,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 6,  IntegrationPMT,  qwk_chan06,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 7,  IntegrationPMT,  qwk_chan07,    NOT_BLINDABLE,  NOT_NORMALIZABLE
