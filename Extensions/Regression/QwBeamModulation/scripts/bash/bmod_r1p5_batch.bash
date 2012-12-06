@@ -156,9 +156,9 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
 echo Upload data to DB
 if [[ -n "$PERL5LIB" ]]; then
-    export PERL5LIB=${scriptPath}/scripts/bash:${PERL5LIB}
+    export PERL5LIB=${scriptPath}/scripts/bash:${PERL5LIB}:/apps/perl/lib
 else
-    export PERL5LIB=${scriptPath}/scripts/bash
+    export PERL5LIB=${scriptPath}/scripts/bash:/apps/perl/lib
 fi
 echo ${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/scripts/bash/ ${REGRESSION}
 
