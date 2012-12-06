@@ -16,7 +16,7 @@ my @searchpaths = (`pwd`, $ENV{QW_DATA});
 ## Add other useful defalut paths here, whitespace-separated
 push @searchpaths, qw[
 	/home/cdaq/qweak/QwScratch
-	/home/cdaq/qweak/scratch/rawdata
+	/home/cdaq/scratch/rawdata
 	/cache/mss/hallc/qweak/raw
   ];
 
