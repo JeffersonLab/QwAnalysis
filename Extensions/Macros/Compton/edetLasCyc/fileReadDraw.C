@@ -2,6 +2,7 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 #include "infoDAQ.C"
+
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
@@ -21,8 +22,6 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t debug=0,debug1=0,debug2=0;
   const Int_t maxLasCycles=100;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  TF1 *linearFit = new TF1("linearFit", "pol0");
-  linearFit->SetLineColor(kBlue);
   TLine *myline = new TLine(0,0,70,0);
   ifstream in1, in2;
   ifstream fortranOutP1,expAsymPWTL1,expAsymPWTL2,expAsymComponents,scalerRates,lasCycScaler;
@@ -53,6 +52,9 @@ Int_t fileReadDraw(Int_t runnum)
   if (bkgdAsym) {
     ofstream bkgdAsymFit;
     gStyle->SetOptFit(1);
+    TF1 *linearFit = new TF1("linearFit", "pol0");
+    linearFit->SetLineColor(kBlue);
+
     TCanvas *cbkgdAsym = new TCanvas("cbkgdAsym",Form("bkgdAsym for run:%d",runnum),70,70,1000,420*endPlane);
     TGraphErrors *grB1L0[nPlanes];
     TLegend *legbkgdAsym[nPlanes];
@@ -166,7 +168,7 @@ Int_t fileReadDraw(Int_t runnum)
       grScalerLasCyc[p]->SetTitle(Form("Scaler counts for run %d",runnum));
       grScalerLasCyc[p]->Draw("AP");
       grScalerLasCyc[p]->GetXaxis()->SetTitle("strip number");
-      grScalerLasCyc[p]->GetYaxis()->SetTitle("time normalized Scalers(Hz)");
+      grScalerLasCyc[p]->GetYaxis()->SetTitle("charge normalized Scalers(Hz)");
       grScalerLasCyc[p]->GetXaxis()->SetLimits(1,65); 
       grScalerLasCyc[p]->GetXaxis()->SetNdivisions(416, kFALSE);
     
@@ -212,6 +214,9 @@ Int_t fileReadDraw(Int_t runnum)
       Int_t newSize=stripNum[p].size();
       if(debug) cout<<"for plane "<<p+1<<" the no.of active strips is "<<newSize<<endl;
       grAsymNr[p]= new TGraphErrors(newSize,stripNum[p].data(),stripAsymNr[p].data(),zero[p],stripAsymDrEr[p].data());
+      grAsymNr[p]->SetTitle(Form("asymmetry numerator, run %d",runnum));
+      grAsymNr[p]->GetXaxis()->SetTitle("strip number");
+      grAsymNr[p]->GetYaxis()->SetTitle("numerator of asym (a.u)");
       grAsymNr[p]->SetMarkerStyle(kOpenCircle);
       grAsymNr[p]->SetMarkerSize(1);
       grAsymNr[p]->SetLineColor(kGreen);
@@ -327,8 +332,10 @@ Int_t fileReadDraw(Int_t runnum)
     TGraphErrors *grDiff[nPlanes], *grAsymPlane[nPlanes],*grFort;
     ifstream lasCycAsymP1;
     Double_t stripAsym_v2[nPlanes][nStrips],stripNum2[nPlanes][nStrips],stripAsym2[nPlanes][nStrips],asymDiff2[nPlanes][nStrips];
-    Double_t stripAsymEr_v2[nPlanes][nStrips],stripAsymEr2[nPlanes][nStrips];
+    Double_t stripAsymEr_v2[nPlanes][nStrips],stripAsymEr2[nPlanes][nStrips],totalEr[nPlanes][nStrips];
     Int_t size=0;
+    TF1 *linearFit = new TF1("linearFit", "pol0",1,55);//!for this run, the Cedge is 55, hardcoded
+    gStyle->SetOptFit(1);
 
     cAsym->Divide(1,2);//(startPlane+1,endPlane);
     //for (Int_t p = startPlane; p <endPlane; p++) {
@@ -340,9 +347,9 @@ Int_t fileReadDraw(Int_t runnum)
       grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
       grAsymPlane[p]->SetTitle(Form("comparing experimental asymmetry"));
       grAsymPlane[p]->SetMarkerStyle(kFullCircle);
-      grAsymPlane[p]->SetLineColor(kRed);
+      grAsymPlane[p]->SetLineColor(kBlue);
       grAsymPlane[p]->SetFillColor(0);
-      grAsymPlane[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
+      grAsymPlane[p]->SetMarkerColor(kBlue); ///kRed+2 = Maroon
       grAsymPlane[p]->SetMaximum(0.042);
       grAsymPlane[p]->SetMinimum(-0.042);
       grAsymPlane[p]->GetXaxis()->SetTitleSize(0.06);
@@ -362,10 +369,10 @@ Int_t fileReadDraw(Int_t runnum)
       if(fortranOutP1.is_open()) {
 	cout<<"found runlet based raw asymmetry file"<<endl;
 	grFort = new TGraphErrors("/home/narayan/acquired/vladas/run.24519", "%lg %lg %lg");
-	grFort->SetMarkerColor(4);
+	grFort->SetMarkerColor(kRed);
 	grFort->SetMarkerStyle(24);
 	grFort->SetFillColor(0);
-	grFort->SetLineColor(4);
+	grFort->SetLineColor(kRed);
 	grFort->Draw("P");
 	leg->AddEntry(grFort,"runlet based eDet Asymmetry","lpf");
       } else cout<<"corresponding fortran file for run "<<runnum<<" doesn't exist"<<endl;
@@ -378,6 +385,7 @@ Int_t fileReadDraw(Int_t runnum)
 	    lasCycAsymP1>>stripNum2[p][size]>>stripAsym2[p][size]>>stripAsymEr2[p][size];
 	    fortranOutP1>>stripNum2[p][size]>>stripAsym_v2[p][size]>>stripAsymEr_v2[p][size];
 	    asymDiff2[p][size] = (stripAsym2[p][size]- stripAsym_v2[p][size]);
+	    totalEr[p][size] = stripAsymEr2[p][size] + stripAsymEr_v2[p][size];
 	    if(debug) cout<<stripNum2[p][size]<<"\t"<<stripAsym2[p][size]<<"\t"<<stripAsym_v2[p][size]<<"\t"<<asymDiff[p][size]<<endl;
 	    size++;
 	    if(lasCycAsymP1.eof()) break;
@@ -386,22 +394,54 @@ Int_t fileReadDraw(Int_t runnum)
 	fortranOutP1.close();
       } else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
       cout<<"size is "<<size<<endl;
-      grDiff[p] = new TGraphErrors(size,stripNum2[p],asymDiff2[p],zero[p],stripAsymEr2[p]);
+      grDiff[p] = new TGraphErrors(size,stripNum2[p],asymDiff2[p],zero[p],totalEr[p]);
       grDiff[p]->GetXaxis()->SetTitle("strip number");
       grDiff[p]->GetYaxis()->SetTitle("(LaserWise - RunletBased Asym)");
       grDiff[p]->SetTitle(Form("difference of experimental asymmetry"));
       grDiff[p]->SetMaximum(0.005);
       grDiff[p]->SetMinimum(-0.005);
+      grDiff[p]->Fit(linearFit,"ER");
       grDiff[p]->GetXaxis()->SetTitleSize(0.06);
       grDiff[p]->GetXaxis()->SetTitleOffset(0.8);
       grDiff[p]->GetXaxis()->SetLabelSize(0.06);
       grDiff[p]->GetYaxis()->SetTitleSize(0.06);
-      grDiff[p]->GetYaxis()->SetTitleOffset(0.7);
+      grDiff[p]->GetYaxis()->SetTitleOffset(0.8);
       grDiff[p]->GetYaxis()->SetLabelSize(0.06);
       grDiff[p]->Draw("AP");
     }
     cAsym->Update();
+    gStyle->SetOptFit(0);
     cAsym->SaveAs(Form("%s/%s/%scompareLaserToRunLetAsym.png",pPath,webDirectory,filePrefix.Data()));
+
+    TCanvas *cPolErr = new TCanvas("cPolErr","polarization error",10,10,600,600);
+    TPad *pPolErr = new TPad("pPolErr","pPolErr",0,0,0.99,0.99);
+    pPolErr->Draw();
+    pPolErr->cd();
+    TH1D *hPolEr = new TH1D("polEr laser Cycle", "pol error comparision for run 24519", size, 0, 0.0001);
+    TH1D *hRunletPolEr = new TH1D("polEr runlet based", "polarization error comparision", size, 0, 0.0001);
+    hPolEr->SetBit(TH1::kCanRebin);
+    hRunletPolEr->SetBit(TH1::kCanRebin);
+    for(Int_t s=startStrip; s<size && stripNum2[0][s]<=55; s++) {//!plotting only upto Cedge
+      hPolEr->Fill(stripAsymEr2[0][s]);
+      hRunletPolEr->Fill(stripAsymEr_v2[0][s]);      
+    }
+    hPolEr->GetXaxis()->SetNdivisions(5,4,0);
+    hPolEr->SetLineColor(kBlue);
+    hPolEr->Draw("H");
+    pPolErr->Update();
+    TPaveStats *ps1 = (TPaveStats*)hPolEr->GetListOfFunctions()->FindObject("stats");
+    ps1->SetX1NDC(0.60); ps1->SetX2NDC(0.90); ps1->SetY1NDC(0.75);ps1->SetY2NDC(0.90);
+    ps1->SetTextColor(kBlue);
+    
+    hRunletPolEr->SetLineColor(kRed);
+    hRunletPolEr->Draw("H,sames"); ///!note the added 's' in the sames; that forces both the stat boxes to be drawn
+    pPolErr->Update();
+    TPaveStats *ps2 = (TPaveStats*)hRunletPolEr->GetListOfFunctions()->FindObject("stats");
+    ps2->SetX1NDC(0.60); ps2->SetX2NDC(0.90); ps2->SetY1NDC(0.55); ps2->SetY2NDC(0.70);
+    ps2->SetTextColor(kRed);
+    pPolErr->Modified();
+
+    cPolErr->SaveAs(Form("%s/%s/%scompareError.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if(lasWisePlotAc) {
@@ -563,7 +603,7 @@ Int_t fileReadDraw(Int_t runnum)
     lasCycLasPow->GetYaxis()->SetLabelSize(0.03);
 
     cLasCycPow->Update();
-    cLasCycPow->SaveAs(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycLasPow.png",pPath,webDirectory,runnum,runnum));
+    cLasCycPow->SaveAs(Form("%s/%s/run_%d/edetLasCyc_%d_lasCycLasPow.png",pPath,webDirectory,runnum,runnum));
   }
 
   if(lasWisePlotSc) {

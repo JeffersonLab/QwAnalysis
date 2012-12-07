@@ -283,7 +283,7 @@ Int_t expAsym(Int_t runnum)
 	  beamOn = kFALSE;
 	  nthBeamTrip++;          ///encountered the first beam trip
 	}
-      } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
+      } else if(cutLas.at(2*nCycle+2)<=cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
 	beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
 	if(debug1) cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl;
       } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
@@ -292,7 +292,7 @@ Int_t expAsym(Int_t runnum)
       } else { ///encountered "another" beam trip	
 	beamOn = kFALSE;  
 	nthBeamTrip++;
-	cout<<"encountered another beam trip"<<endl;
+	cout<<"encountered a new beam trip in lasCyc: "<<nCycle+1<<endl;
       }
     } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
       if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
