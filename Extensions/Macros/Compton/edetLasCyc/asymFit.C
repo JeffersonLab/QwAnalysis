@@ -4,7 +4,6 @@
 #endif
 
 #include <rootClass.h>
-#include "expAsym.C"
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 #include "infoDAQ.C"
@@ -42,9 +41,9 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   xStrip = xCedge - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
   rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3];
   } else {  //!Vladas's numbers
-  xStrip = 17.315 - 0.2*(par[1] - (*thisStrip))*par[0]; //for 2nd parameter as Cedge itself
-  rhoStrip = 2.81648E-06 + xStrip*0.0602395 + xStrip*xStrip*0.000148674 + xStrip*xStrip*xStrip*1.84876E-07 + xStrip*xStrip*xStrip*xStrip*1.05068E-08 + xStrip*xStrip*xStrip*xStrip*xStrip*(-2.537E-10);
-  //cout<<red<<(*thisStrip)<<"\t"<<xStrip<<"\t"<<rhoStrip<<normal<<endl;
+    xStrip = 17.315 - 0.2*(par[1] - (*thisStrip))*par[0]; //for 2nd parameter as Cedge itself
+    rhoStrip = 2.81648E-06 + xStrip*0.0602395 + xStrip*xStrip*(-0.000148674) + xStrip*xStrip*xStrip*1.84876E-07 + xStrip*xStrip*xStrip*xStrip*1.05068E-08 + xStrip*xStrip*xStrip*xStrip*xStrip*(-2.537E-10);
+    //cout<<red<<(*thisStrip)<<"\t"<<xStrip<<"\t"<<rhoStrip<<normal<<endl;
   }
   rhoPlus = 1-rhoStrip*(1+a_const);
   rhoMinus = 1-rhoStrip*(1 - a_const);//just a term in eqn 24
@@ -112,7 +111,6 @@ void asymFit(Int_t runnum)
     cout<<"looking for generic compton edge for plane "<<p+1<<endl; 
     for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
       if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=0.3 !the ratio on LHS is not qNorm, its tNorm!
-	//if (qNormScB1L1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=0.3 !the ratio on LHS is not qNorm, its tNorm!
 	trueEdge = 1;
 	Float_t probableEdge = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
 	cout<<"probable Cedge : "<<probableEdge<<endl;
@@ -159,6 +157,7 @@ void asymFit(Int_t runnum)
     cAsym->GetPad(p+1)->SetGridx(1);
 
     if(kVladas_data) grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/run.24519","%lg %lg %lg");  
+    //grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
     else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
 
     grAsymPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
@@ -204,9 +203,7 @@ void asymFit(Int_t runnum)
     polFit->SetLineColor(kBlue);
     if(debug1) cout<<"starting to fit exp asym"<<endl;
     cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
-    if(!kVladas_meth) grAsymPlane[p]->Fit("polFit","0 M R E");
-    else grAsymPlane[p]->Fit("polFit","0 E");   //!Vladas
-    //grAsymPlane[p]->Fit("polFit","0 M E");//this makes a significant difference in p3 pol value!
+    grAsymPlane[p]->Fit("polFit","0 R M E");
     if(debug1) cout<<"finished fitting exp asym"<<endl;
     polFit->DrawCopy("same");
     offset[p] = polFit->GetParameter(1);
@@ -298,7 +295,7 @@ void asymFit(Int_t runnum)
       grResiduals[p]->GetXaxis()->CenterTitle();
       grResiduals[p]->GetYaxis()->CenterTitle();
       grResiduals[p]->Draw("AP");
-      grResiduals[p]->Fit(linearFit,"RE");
+      grResiduals[p]->Fit(linearFit,"REq");//q:quiet mode
  
       resFit[p] = linearFit->GetParameter(0);
       resFitEr[p] = linearFit->GetParError(0);
@@ -360,7 +357,7 @@ void asymFit(Int_t runnum)
 	crossSecFit->SetParLimits(0,0.2,2.0);
 	crossSecFit->SetParLimits(1,Cedge[p],Cedge[p]); //effectively fixing the Compton edge    
 	crossSecFit->SetLineColor(kRed);
-	grYieldPlane[p]->Fit("crossSecFit","0 R M E");
+	grYieldPlane[p]->Fit("crossSecFit","0 R M E q");
       }
       grB1L0[p] = new TGraphErrors(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grB1L0[p]->SetLineColor(kBlue);

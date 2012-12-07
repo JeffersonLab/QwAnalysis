@@ -5,7 +5,7 @@
 ///This function ought to be called after auto-determination of compton edge was successful
 Double_t rhoToX(Int_t plane)
 {
-  Bool_t debug=1;
+  Bool_t debug=0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
   Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kDummy;

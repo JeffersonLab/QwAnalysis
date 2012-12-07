@@ -2,7 +2,7 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 
-void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nPlanes][nStrips],Int_t newAccumB1H0L1[nPlanes][nStrips],Int_t newAccumB1H0L0[nPlanes][nStrips],Float_t bcmLasCycH1L1,Float_t bcmLasCycH1L0,Float_t bcmLasCycH0L1,Float_t bcmLasCycH0L0,Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Float_t weightedMeanDrBkgdAsym[nPlanes][nStrips])
+void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nPlanes][nStrips],Int_t newAccumB1H0L1[nPlanes][nStrips],Int_t newAccumB1H0L0[nPlanes][nStrips],Float_t bcmLasCycH1L1,Float_t bcmLasCycH1L0,Float_t bcmLasCycH0L1,Float_t bcmLasCycH0L0,Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Float_t weightedMeanDrBkgdAsym[nPlanes][nStrips],Float_t qNormLasCycAsym[nPlanes][nStrips],Float_t LasCycAsymErSqr[nPlanes][nStrips])
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug=0;
@@ -27,11 +27,11 @@ void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nP
       //Float_t BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);//I should use this variable without explicit background correction because in difference, this is automatically taken care
       Float_t BCqNormLasCycDiff = (qNormAcB1H1L1LasCyc - qNormAcB1H0L1LasCyc);
       Float_t BCqNormLasCycSum  = (BCqNormAcB1H1L1LasCyc + BCqNormAcB1H0L1LasCyc);
-      Float_t qNormLasCycAsym = (BCqNormLasCycDiff / BCqNormLasCycSum);
+      qNormLasCycAsym[p][s] = (BCqNormLasCycDiff / BCqNormLasCycSum);
 
       ///Evaluation of error on asymmetry; partitioned the evaluation in a way which avoids re-calculation
-      Float_t term1 = (1-qNormLasCycAsym)/BCqNormLasCycSum;
-      Float_t term2 = (1+qNormLasCycAsym)/BCqNormLasCycSum;
+      Float_t term1 = (1-qNormLasCycAsym[p][s])/BCqNormLasCycSum;
+      Float_t term2 = (1+qNormLasCycAsym[p][s])/BCqNormLasCycSum;
       Float_t NplusOn_SqQplusOn    = qNormAcB1H1L1LasCyc /qLasCycH1L1;
       Float_t NminusOn_SqQminusOn  = qNormAcB1H0L1LasCyc /qLasCycH0L1;
       Float_t NplusOff_SqQplusOff  = qNormAcB1H1L0LasCyc /qLasCycH1L0;
@@ -43,7 +43,7 @@ void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nP
       Float_t errB1H1L0 = pow(term1,2) * NplusOff_SqQplusOff;
       Float_t errB1H0L0 = pow(term2,2) * NminusOff_SqQminusOff; 
 
-      Float_t LasCycAsymErSqr = (errB1H1L1 + errB1H0L1 + errB1H1L0 + errB1H0L0);
+      LasCycAsymErSqr[p][s] = (errB1H1L1 + errB1H0L1 + errB1H1L0 + errB1H0L0);
 
       ///adding asymmetry evaluation for laser off data
       Float_t qNormAcBkgdAsymNr = qNormAcB1H1L0LasCyc - qNormAcB1H0L0LasCyc;
@@ -58,15 +58,15 @@ void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nP
       
 
       if (debug) {
-	printf("***qNormLasCycAsym[%d][%d]= %g +/- %g)\n",p,s,qNormLasCycAsym,LasCycAsymErSqr);
+	printf("***qNormLasCycAsym[p][s][%d][%d]= %g +/- %g)\n",p,s,qNormLasCycAsym[p][s],LasCycAsymErSqr[p][s]);
 	printf("*********formed by normalized BC (%g -/+ %g) \n", BCqNormLasCycDiff,BCqNormLasCycSum);
 	//printf("newAccumB1H1L1[%d][%d]: %f\tnewAccumB1H0L1: %f\tnewAccumB1H1L0: %f\tnewAccumB1H0L0: %f\n",
 	//      p,s,newAccumB1H1L1[p][s],newAccumB1H0L1[p][s],newAccumB1H1L0[p][s],newAccumB1H0L0[p][s]);
       }
-      if (LasCycAsymErSqr >0.0) {///eqn 4.17(Bevington)
-	weightedMeanNrAsym[p][s] += qNormLasCycAsym/LasCycAsymErSqr; ///Numerator 
-	weightedMeanDrAsym[p][s] += 1.0/LasCycAsymErSqr; ///Denominator 
-	if (debug) printf("*****adding %g(1/asymSq) to weightedMeanDrAsym making it: %f\n",1.0/LasCycAsymErSqr,weightedMeanDrAsym[p][s]);
+      if (LasCycAsymErSqr[p][s] >0.0) {///eqn 4.17(Bevington)
+	weightedMeanNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
+	weightedMeanDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator 
+	if (debug) printf("*****adding %g(1/asymSq) to weightedMeanDrAsym making it: %f\n",1.0/LasCycAsymErSqr[p][s],weightedMeanDrAsym[p][s]);
       } else {
 	cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? It gives non-positive Asym Er"<<endl;
 	printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);

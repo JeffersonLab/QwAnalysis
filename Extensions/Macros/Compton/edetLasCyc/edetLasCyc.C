@@ -5,7 +5,7 @@
 #include "comptonRunConstants.h"
 #include "asymFit.C"
 #include "infoDAQ.C"
-//#include "expAsym.C"
+#include "expAsym.C"
 #include "fileReadDraw.C"
 
 void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)

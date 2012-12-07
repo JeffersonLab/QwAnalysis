@@ -16,8 +16,8 @@ Int_t expAsym(Int_t runnum)
   TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  const Bool_t debug = 1, debug1 = 0, debug2 = 0;
-  const Bool_t lasCycPrint=1;//!if accum & scaler counts are needed for every laser cycle
+  const Bool_t debug = 1, debug1 = 1, debug2 = 0;
+  const Bool_t lasCycPrint=1;//!if accum, scaler counts and asym are needed for every laser cycle
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0;
   Int_t h = 0, l = 0;//helicity, lasOn tracking variables
@@ -53,12 +53,12 @@ Int_t expAsym(Int_t runnum)
   Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],weightedMeanDrqNormB1L0[nPlanes][nStrips],qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
   Float_t weightedMeanNrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrBCqNormDiff_v2[nPlanes][nStrips];
 
-  Float_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips];
+  Float_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips],qNormLasCycAsym[nPlanes][nStrips];
   Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;
 
   Int_t AccumB1H0L1_v2[nPlanes][nStrips],AccumB1H1L1_v2[nPlanes][nStrips];
   Int_t AccumB1H0L0_v2[nPlanes][nStrips],AccumB1H1L0_v2[nPlanes][nStrips];
-  Float_t LasCycAsymEr_v2[nPlanes][nStrips],LasCycAsymErSqr_v2[nPlanes][nStrips];
+  Float_t LasCycAsymEr_v2[nPlanes][nStrips],LasCycAsymErSqr_v2[nPlanes][nStrips],qNormLasCycAsym_v2[nPlanes][nStrips];
   Float_t stripAsymDr_v2[nPlanes][nStrips],stripAsymNr_v2[nPlanes][nStrips],qNormB1L0_v2[nPlanes][nStrips];
   Float_t stripAsymDrEr_v2[nPlanes][nStrips],stripAsymNrEr_v2[nPlanes][nStrips],qNormB1L0Er_v2[nPlanes][nStrips];
   Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
@@ -75,6 +75,7 @@ Int_t expAsym(Int_t runnum)
   ofstream lasCycScaler[nPlanes][nStrips],lasCycAccum[nPlanes][nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
   ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
   ifstream infileLas, infileBeam;
+  ofstream outAsymLasCyc[nPlanes][nStrips];
 
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
   
@@ -241,8 +242,11 @@ Int_t expAsym(Int_t runnum)
 	///lasCyc based files go into a special folder named lasCyc
 	lasCycAccum[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
 	lasCycScaler[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
-      }
+	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+	///Lets open the files for writing asymmetries in the beamOn loop repeatedly
+  	outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+    }
     }
     lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
     lasCycLasPow.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));
@@ -266,14 +270,17 @@ Int_t expAsym(Int_t runnum)
       for(Int_t s = startStrip; s <endStrip; s++) {
 	AccumB1H0L0[p][s] =0, AccumB1H1L0[p][s] =0, AccumB1H0L1[p][s] =0, AccumB1H1L1[p][s] =0;
 	ScalerB1H0L0[p][s] =0, ScalerB1H1L0[p][s] =0, ScalerB1H0L1[p][s] =0, ScalerB1H1L1[p][s] =0;
- 	LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0;
+ 	LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0,qNormLasCycAsym[p][s]=0.0;
 	if(v2processed) {
 	  AccumB1H0L0_v2[p][s] =0, AccumB1H1L0_v2[p][s] =0, AccumB1H0L1_v2[p][s] =0, AccumB1H1L1_v2[p][s] =0;
-	  LasCycAsymEr_v2[p][s]= 0.0,LasCycAsymErSqr_v2[p][s]= 0.0;
+	  LasCycAsymEr_v2[p][s]= 0.0,LasCycAsymErSqr_v2[p][s]= 0.0,qNormLasCycAsym_v2[p][s]=0.0;
 	}
       }
     }
-
+    // if(nCycle==17) {
+    //   cout<<"\n"<<red<<"skipping laser cycle # "<<nCycle+1<<normal<<endl;
+    //   continue;
+    // }
     if(noiseRun) beamOn = kFALSE; //this Bool_t variable will be appropriately set by looking at the max current in this run in getEBeamLasCuts.C
     else if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
     else if(nthBeamTrip < nBeamTrips) {  ///yes, we do have beamtrip(s)
@@ -283,7 +290,7 @@ Int_t expAsym(Int_t runnum)
 	  beamOn = kFALSE;
 	  nthBeamTrip++;          ///encountered the first beam trip
 	}
-      } else if(cutLas.at(2*nCycle+2)<=cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
+      } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
 	beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
 	if(debug1) cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl;
       } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
@@ -364,9 +371,9 @@ Int_t expAsym(Int_t runnum)
 	}
       }///if (beamOn)
     }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
-    if(debug) cout<<"had to ignore "<<(missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100<<" % entries in this lasCycle"<<endl;
+    if(debug) cout<<"had to ignore "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
 
-    //after having filled the above vectors based on laser and beam periods, find asymmetry
+    //after having filled the above vectors based on laser and beam periods, find asymmetry for this laser cycle
     if (beamOn) {
       goodCycles++;
       Float_t laserOnOffRatioH1 = (Float_t)nMpsB1H1L1/nMpsB1H1L0;
@@ -401,9 +408,11 @@ Int_t expAsym(Int_t runnum)
 	    //if(debug) printf("s:%d\t%d\t%d\t%d\n",s+1,totScalerB1L0[p][s],ScalerB1H1L0[p][s],ScalerB1H0L0[p][s]);
  	  }
  	}
+	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0,weightedMeanNrBkgdAsym,weightedMeanDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2,weightedMeanNrBkgdAsym_v2,weightedMeanDrBkgdAsym_v2,qNormLasCycAsym_v2,LasCycAsymErSqr_v2);//!check if the qNormLasCycAsym variable needs to have _v2
 	if(lasCycPrint) {
 	  if(debug1) {
-	    cout<<"the Laser Cycle: "<<nCycle<<" has 'beamOn': "<<beamOn<<endl;
+	    cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
 	    cout<<"printing variables on a per-laser-cycle basis"<<endl;
 	    cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<" laserOnOffRatioH1: "<<laserOnOffRatioH1<<endl;
 	    printf("comptIH1L1: %f\t comptIH0L1: %f\t comptIH1L0: %f\t comptIH0L0: %f\n",comptIH1L1,comptIH0L1,comptIH1L0,comptIH0L0);
@@ -420,6 +429,7 @@ Int_t expAsym(Int_t runnum)
 	      if(!firstlinelasPrint[p][s]) {
 		lasCycAccum[p][s]<<"\n";
 		lasCycScaler[p][s]<<"\n";
+		outAsymLasCyc[p][s]<<"\n";
 	      }
 	      firstlinelasPrint[p][s] =kFALSE;
 	      if (lasCycAccum[p][s].is_open() && lasCycScaler[p][s].is_open()) {
@@ -429,19 +439,19 @@ Int_t expAsym(Int_t runnum)
 		lasCycScaler[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
 					 ScalerB1H0L0[p][s]/qLasCycH0L0,ScalerB1H0L1[p][s]/qLasCycH0L1,
 					 ScalerB1H1L0[p][s]/qLasCycH1L0,ScalerB1H1L1[p][s]/qLasCycH1L1);		
-	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;    
+	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
+	      if (outAsymLasCyc[p][s].is_open()) {
+		outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Float_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
+	      } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
 	    }
 	  }
 	  lasCycBCM<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,comptIH0L0/nMpsB1H0L0
 			  ,comptIH0L1/nMpsB1H0L1,comptIH1L0/nMpsB1H1L0,comptIH1L1/nMpsB1H1L1);
 	  lasCycLasPow<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,lasPowB1H0L0/nMpsB1H0L0,lasPowB1H0L1/nMpsB1H0L1,lasPowB1H1L0/nMpsB1H1L0,lasPowB1H1L1/nMpsB1H1L1);
 	}
-
-	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0,weightedMeanNrBkgdAsym,weightedMeanDrBkgdAsym);
-	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2,weightedMeanNrBkgdAsym_v2,weightedMeanDrBkgdAsym_v2);
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
-    else cout<<"this LasCyc(nCycle:"<<nCycle<<") had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
+    else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
 
   for(Int_t p = 0; p <nPlanes; p++) {      
@@ -449,6 +459,7 @@ Int_t expAsym(Int_t runnum)
       if (!mask[p][s]) continue;    
       lasCycAccum[p][s].close();
       lasCycScaler[p][s].close();
+      outAsymLasCyc[p][s].close();
     }
   }
   lasCycBCM.close();
