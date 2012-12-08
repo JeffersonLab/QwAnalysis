@@ -19,7 +19,7 @@ dbName=qw_run1_pass5
 
 ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $QW_ROOTFILES/${rootFileStem}$run.$seg.root 
 
-for setName in "std" "5+1" "set3" "set4" "set5" "set6" "set7" "set8" "set9" "set10"
+for setName in "std" "5+1" "set3" "set4" "set5" "set6" "set7" "set8" "set9" "set10" "set11"
 do
   echo $linRegBluePath/doubleRegPass_run1pass5.sh $run $seg $outputPath/$setName $WORKDIR ${rootFileStem} $dbName $setName
   $linRegBluePath/doubleRegPass_run1pass5.sh $run $seg $outputPath/$setName $WORKDIR ${rootFileStem} $dbName $setName
