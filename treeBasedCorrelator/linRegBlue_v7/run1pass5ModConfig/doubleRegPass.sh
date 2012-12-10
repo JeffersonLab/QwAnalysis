@@ -96,10 +96,10 @@ echo "copying out to $destDir"
 mv -vf out $destDir
 
 #  Move the regressed rootfile to the lrb_rootfiles directory if it exists
-if  [ -d  ${outputPath}/../lrb_rootfiles ] ; then
+if  [ -d  ${outputPath}/lrb_rootfiles ] ; then
     arr=$(find ${destDir} -type f -name reg_\*.root)
     for d in "${arr[@]}"; do
-        mv -v ${d} ${outPath}/../lrb_rootfiles/`basename ${d}`
+        mv -v ${d} ${outPath}/lrb_rootfiles/`basename ${d}`
     done
 fi
 

@@ -8,9 +8,7 @@ dbName=$6
 configSuffix=$7
 
 #  File permission variable.
-# TESTING FIX
-#myown="c-qweak"
-myown="enp"
+myown="c-qweak"
 myperm="u+rw,g+rw"
 
 if [ $# -ne 7 ] ; then
