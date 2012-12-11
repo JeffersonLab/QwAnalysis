@@ -6,7 +6,7 @@
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
 const char *webDirectory= "www";
-
+TString filePrefix;
 //Asymmetry calculation constants 
 const Float_t pi=3.141592;
 const Float_t hbarc=0.197E-15;/// GeV.m
@@ -22,7 +22,7 @@ Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will no
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
 const Double_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chosen by observing how it may vary
-               /*Ideally this ratio could be safely left >1.0, but due to some form of deadtime, 
+               /*Ideally this ratio could be safely left >0.0, but due to some form of deadtime, 
 		*..I may have to be forgiving 
 		*Once I find a mechanism to fit the Cedge, I won't need to be nosy about this choice */
 
@@ -40,7 +40,7 @@ const Double_t th_det = 10.08;//based on elog399; 10.3;//angle at which the diam
 const Double_t ldet[nPlanes] = {1.69792,1.70823,1.71855,1.72886};//1.645,; ///survey provided longitudinal distance of det-bottom from edge of 3rd dipole
 
 ///Run constants
-const Bool_t v2processed=0;
+const Bool_t v2processed=1;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t acceptLasPow = 120000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
@@ -81,6 +81,16 @@ std::vector<Int_t>::iterator itStrip;
 
 //used in asymFit's fit function evaluation:
 Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;
+
+///Declaration of regular variables to be used in the macro
+Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];//,stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
+Float_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];//,bkgdAsym_v2[nPlanes][nStrips],bkgdAsymEr_v2[nPlanes][nStrips];
+Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
+Float_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
+Float_t qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
+/* Double_t qNormScalerB1L1[nPlanes][nStrips],qNormScalerB1L0[nPlanes][nStrips]; */
+/* Double_t qNormAccumB1L1[nPlanes][nStrips],qNormAccumB1L0[nPlanes][nStrips]; */
+Double_t qNormCountsB1L0[nPlanes][nStrips],qNormCountsB1L1[nPlanes][nStrips];
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12

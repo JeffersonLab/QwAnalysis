@@ -3,7 +3,7 @@
 
 #include "comptonRunConstants.h"
 
-Double_t weightedMean(Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Float_t weightedMeanDrBkgdAsym[nPlanes][nStrips],Float_t stripAsym[nPlanes][nStrips],Float_t stripAsymEr[nPlanes][nStrips],Float_t stripAsymNr[nPlanes][nStrips],Float_t stripAsymDr[nPlanes][nStrips],Float_t stripAsymDrEr[nPlanes][nStrips],Float_t qNormB1L0[nPlanes][nStrips], Float_t qNormB1L0Er[nPlanes][nStrips],Float_t bkgdAsym[nPlanes][nStrips],Float_t bkgdAsymEr[nPlanes][nStrips])
+Double_t weightedMean(Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Float_t weightedMeanDrBkgdAsym[nPlanes][nStrips])
 {
   Bool_t debug=0;
   for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington

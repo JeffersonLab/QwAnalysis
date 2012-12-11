@@ -7,6 +7,8 @@
 #include "evaluateAsym.C"
 #include "infoDAQ.C"
 #include "weightedMean.C"
+#include "writeToFile.C"
+#include "qNormVariables.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
@@ -14,7 +16,7 @@
 Int_t expAsym(Int_t runnum)
 {
   cout<<"\nstarting into expAsym.C**************\n"<<endl;
-  TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   const Bool_t debug = 1, debug1 = 0, debug2 = 0;
@@ -34,25 +36,22 @@ Int_t expAsym(Int_t runnum)
   //   Int_t EventB1H0L0[nPlanes][nStrips],EventB1H1L0[nPlanes][nStrips];
   Int_t ScalerB1H0L1[nPlanes][nStrips],ScalerB1H1L1[nPlanes][nStrips];
   Int_t ScalerB1H0L0[nPlanes][nStrips],ScalerB1H1L0[nPlanes][nStrips];
-  Int_t totScalerB1L0[nPlanes][nStrips],totScalerB1L1[nPlanes][nStrips]; 
-  Double_t qNormScalerB1L1[nPlanes][nStrips],qNormScalerB1L0[nPlanes][nStrips];
+  Int_t totScalerB1H0L0[nPlanes][nStrips],totScalerB1H0L1[nPlanes][nStrips],totScalerB1H1L0[nPlanes][nStrips],totScalerB1H1L1[nPlanes][nStrips];
   Double_t bRawScaler[nPlanes][nStrips];
   Double_t comptIH1L1=0.0, comptIH0L1=0.0,comptIH1L0=0.0,comptIH0L0=0.0;
   Double_t lasPow[3], helicity, bcm[3],bpm_3c20X[2];
   Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2];
   Double_t pattern_number, event_number;
   Double_t bRawAccum[nPlanes][nStrips], bRawAccum_v2[nPlanes][nStrips];
-  Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips],stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
-  Float_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips],bkgdAsym_v2[nPlanes][nStrips],bkgdAsymEr_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrAsym[nPlanes][nStrips],weightedMeanDrAsym[nPlanes][nStrips];
-  Float_t weightedMeanNrAsym_v2[nPlanes][nStrips],weightedMeanDrAsym_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],weightedMeanDrBkgdAsym[nPlanes][nStrips];
-  Float_t weightedMeanNrBkgdAsym_v2[nPlanes][nStrips],weightedMeanDrBkgdAsym_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],weightedMeanDrBCqNormSum[nPlanes][nStrips];
-  Float_t weightedMeanNrBCqNormSum_v2[nPlanes][nStrips],weightedMeanDrBCqNormSum_v2[nPlanes][nStrips],weightedMeanNrBCqNormDiff_v2[nPlanes][nStrips];
-  Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],weightedMeanDrBCqNormDiff[nPlanes][nStrips];
-  Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],weightedMeanDrqNormB1L0[nPlanes][nStrips],qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
-  Float_t weightedMeanNrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrqNormB1L0_v2[nPlanes][nStrips],weightedMeanDrBCqNormDiff_v2[nPlanes][nStrips];
+  Float_t wmAcNrAsym[nPlanes][nStrips],wmAcDrAsym[nPlanes][nStrips];
+  Float_t wmAcNrAsym_v2[nPlanes][nStrips],wmAcDrAsym_v2[nPlanes][nStrips];
+  Float_t wmAcNrBkgdAsym[nPlanes][nStrips],wmAcDrBkgdAsym[nPlanes][nStrips];
+  Float_t wmAcNrBkgdAsym_v2[nPlanes][nStrips],wmAcDrBkgdAsym_v2[nPlanes][nStrips];
+  Float_t wmAcNrBCqNormSum[nPlanes][nStrips],wmAcDrBCqNormSum[nPlanes][nStrips];
+  Float_t wmAcNrBCqNormSum_v2[nPlanes][nStrips],wmAcDrBCqNormSum_v2[nPlanes][nStrips],wmAcNrBCqNormDiff_v2[nPlanes][nStrips];
+  Float_t wmAcNrBCqNormDiff[nPlanes][nStrips],wmAcDrBCqNormDiff[nPlanes][nStrips];
+  Float_t wmAcNrqNormB1L0[nPlanes][nStrips],wmAcDrqNormB1L0[nPlanes][nStrips];
+  Float_t wmAcNrqNormB1L0_v2[nPlanes][nStrips],wmAcDrqNormB1L0_v2[nPlanes][nStrips],wmAcDrBCqNormDiff_v2[nPlanes][nStrips];
 
   Float_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips],qNormLasCycAsym[nPlanes][nStrips];
   Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;
@@ -62,14 +61,12 @@ Int_t expAsym(Int_t runnum)
   Float_t LasCycAsymEr_v2[nPlanes][nStrips],LasCycAsymErSqr_v2[nPlanes][nStrips],qNormLasCycAsym_v2[nPlanes][nStrips];
   Float_t stripAsymDr_v2[nPlanes][nStrips],stripAsymNr_v2[nPlanes][nStrips],qNormB1L0_v2[nPlanes][nStrips];
   Float_t stripAsymDrEr_v2[nPlanes][nStrips],stripAsymNrEr_v2[nPlanes][nStrips],qNormB1L0Er_v2[nPlanes][nStrips];
-  Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
-  Float_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
   Int_t totAccumB1H1L1[nPlanes][nStrips],totAccumB1H0L1[nPlanes][nStrips],totAccumB1H1L0[nPlanes][nStrips],totAccumB1H0L0[nPlanes][nStrips];//!for comparision for fortran tables
   Double_t totIH1L1=0.0,totIH1L0=0.0,totIH0L1=0.0,totIH0L0=0.0;
   Int_t totMpsB1H1L1=0,totMpsB1H1L0=0,totMpsB1H0L1=0,totMpsB1H0L0=0;
   Float_t wmScNrAsym[nPlanes][nStrips],wmScDrAsym[nPlanes][nStrips],wmScNrBCqNormSum[nPlanes][nStrips],wmScDrBCqNormSum[nPlanes][nStrips],wmScNrBCqNormDiff[nPlanes][nStrips],wmScNrqNormB1L0[nPlanes][nStrips],wmScDrqNormB1L0[nPlanes][nStrips],wmScNrBkgdAsym[nPlanes][nStrips],wmScDrBkgdAsym[nPlanes][nStrips];
 
-  TString readEntry;
+  TString readEntry,dataType;
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
@@ -86,40 +83,39 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = startPlane; p <endPlane; p++) {      	
     for(Int_t s =startStrip; s <endStrip; s++) {
       //if (!mask[p][s]) continue;    
-      weightedMeanNrAsym[p][s]=0.0,weightedMeanDrAsym[p][s]=0.0;
-      weightedMeanNrBkgdAsym[p][s]=0.0,weightedMeanDrBkgdAsym[p][s]=0.0;
+      wmAcNrAsym[p][s]=0.0,wmAcDrAsym[p][s]=0.0;
+      wmAcNrBkgdAsym[p][s]=0.0,wmAcDrBkgdAsym[p][s]=0.0;
+ 
       stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0;
       bkgdAsym[p][s]= 0.0,bkgdAsymEr[p][s]= 0.0;
 
-      weightedMeanNrBCqNormSum[p][s]=0.0,weightedMeanDrBCqNormSum[p][s]=0.0;
+      wmAcNrBCqNormSum[p][s]=0.0,wmAcDrBCqNormSum[p][s]=0.0;
       stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
 
-      weightedMeanNrBCqNormDiff[p][s]=0.0,weightedMeanDrBCqNormDiff[p][s]=0.0;
+      wmAcNrBCqNormDiff[p][s]=0.0,wmAcDrBCqNormDiff[p][s]=0.0;
       stripAsymNr[p][s]=0.0,stripAsymNrEr[p][s]=0.0;
 
-      weightedMeanNrqNormB1L0[p][s]=0.0,weightedMeanDrqNormB1L0[p][s]=0.0;
+      wmAcNrqNormB1L0[p][s]=0.0,wmAcDrqNormB1L0[p][s]=0.0;
       qNormB1L0[p][s]=0.0,qNormB1L0Er[p][s]=0.0;
 
       totAccumB1H1L1[p][s]=0,totAccumB1H0L1[p][s]=0,totAccumB1H1L0[p][s]=0,totAccumB1H0L0[p][s]=0;
-      totScalerB1L1[p][s]=0,totScalerB1L0[p][s]=0,
-	qNormScalerB1L1[p][s]=0.0,qNormScalerB1L0[p][s]=0.0;
+      totScalerB1H0L0[p][s]=0,totScalerB1H0L1[p][s]=0,totScalerB1H1L0[p][s]=0,totScalerB1H1L1[p][s]=0;
+      qNormCountsB1L1[p][s]=0.0,qNormCountsB1L0[p][s]=0.0;
     }
   }
   if(v2processed) {
     for(Int_t p = startPlane; p <endPlane; p++) {      	
       for(Int_t s =startStrip; s <endStrip; s++) {	
-	weightedMeanNrAsym_v2[p][s]=0.0,weightedMeanDrAsym_v2[p][s]=0.0;
-	weightedMeanNrBkgdAsym_v2[p][s]=0.0,weightedMeanDrBkgdAsym_v2[p][s]=0.0;
-	stripAsym_v2[p][s]= 0.0,stripAsymEr_v2[p][s]= 0.0;
-	bkgdAsym_v2[p][s]= 0.0,bkgdAsymEr_v2[p][s]= 0.0;
+	wmAcNrAsym_v2[p][s]=0.0,wmAcDrAsym_v2[p][s]=0.0;
+	wmAcNrBkgdAsym_v2[p][s]=0.0,wmAcDrBkgdAsym_v2[p][s]=0.0;
 	
-	weightedMeanNrBCqNormSum_v2[p][s]=0.0,weightedMeanDrBCqNormSum_v2[p][s]=0.0;
+	wmAcNrBCqNormSum_v2[p][s]=0.0,wmAcDrBCqNormSum_v2[p][s]=0.0;
 	stripAsymDr_v2[p][s]=0.0,stripAsymDrEr_v2[p][s]=0.0;
 	
-	weightedMeanNrBCqNormDiff_v2[p][s]=0.0,weightedMeanDrBCqNormDiff_v2[p][s]=0.0;
+	wmAcNrBCqNormDiff_v2[p][s]=0.0,wmAcDrBCqNormDiff_v2[p][s]=0.0;
 	stripAsymNr_v2[p][s]=0.0,stripAsymNrEr_v2[p][s]=0.0;
 	
-	weightedMeanNrqNormB1L0_v2[p][s]=0.0,weightedMeanDrqNormB1L0_v2[p][s]=0.0;
+	wmAcNrqNormB1L0_v2[p][s]=0.0,wmAcDrqNormB1L0_v2[p][s]=0.0;
 	qNormB1L0_v2[p][s]=0.0,qNormB1L0Er_v2[p][s]=0.0;
       }
     }
@@ -405,13 +401,15 @@ Int_t expAsym(Int_t runnum)
 	    totAccumB1H1L0[p][s] += AccumB1H1L0[p][s];
 	    totAccumB1H0L1[p][s] += AccumB1H0L1[p][s];
 	    totAccumB1H0L0[p][s] += AccumB1H0L0[p][s];
-	    totScalerB1L1[p][s] += (ScalerB1H1L1[p][s]+ScalerB1H0L1[p][s]);///(Double_t)(nMpsB1H1L1+nMpsB1H0L1);
-	    totScalerB1L0[p][s] += (ScalerB1H1L0[p][s]+ScalerB1H0L0[p][s]);///(Double_t)(nMpsB1H1L0+nMpsB1H0L0);
-	    //if(debug) printf("s:%d\t%d\t%d\t%d\n",s+1,totScalerB1L0[p][s],ScalerB1H1L0[p][s],ScalerB1H0L0[p][s]);
+	    totScalerB1H1L1[p][s] += ScalerB1H1L1[p][s];
+	    totScalerB1H1L0[p][s] += ScalerB1H1L0[p][s];
+	    totScalerB1H0L1[p][s] += ScalerB1H0L1[p][s];
+	    totScalerB1H0L0[p][s] += ScalerB1H0L0[p][s];
+	    //if(debug) printf("s:%d\t%d\t%d\t%d\t%d\t%d\n",s+1,ScalerB1H0L0[p][s],ScalerB1H0L1[p][s],ScalerB1H1L0[p][s],ScalerB1H1L1[p][s]);
  	  }
  	}
-	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0,weightedMeanNrBkgdAsym,weightedMeanDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
-	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2,weightedMeanNrBkgdAsym_v2,weightedMeanDrBkgdAsym_v2,qNormLasCycAsym_v2,LasCycAsymErSqr_v2);//!check if the qNormLasCycAsym variable needs to have _v2
+	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym,wmAcDrAsym,wmAcNrBCqNormSum,wmAcDrBCqNormSum,wmAcNrBCqNormDiff,wmAcNrqNormB1L0,wmAcDrqNormB1L0,wmAcNrBkgdAsym,wmAcDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym_v2,wmAcDrAsym_v2,wmAcNrBCqNormSum_v2,wmAcDrBCqNormSum_v2,wmAcNrBCqNormDiff_v2,wmAcNrqNormB1L0_v2,wmAcDrqNormB1L0_v2,wmAcNrBkgdAsym_v2,wmAcDrBkgdAsym_v2,qNormLasCycAsym_v2,LasCycAsymErSqr_v2);//!check if the qNormLasCycAsym variable needs to have _v2
 	///evaluating asymmetries corresponding to scalers
 	evaluateAsym(ScalerB1H1L1,ScalerB1H1L0,ScalerB1H0L1,ScalerB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmScNrAsym,wmScDrAsym,wmScNrBCqNormSum,wmScDrBCqNormSum,wmScNrBCqNormDiff,wmScNrqNormB1L0,wmScDrqNormB1L0,wmScNrBkgdAsym,wmScDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
 
@@ -470,113 +468,23 @@ Int_t expAsym(Int_t runnum)
   lasCycBCM.close();
   lasCycLasPow.close();
 
-  for(Int_t p = startPlane; p < endPlane; p++) { 
-    for (Int_t s =startStrip; s <endStrip; s++) {        
-      if (!mask[p][s]) continue;
-      qNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totIH1L1 + totIH0L1)/MpsRate);//charge normalized
-      qNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totIH1L0 + totIH0L0)/MpsRate);//charge normalized
-    }
-  }
-  
-  weightedMean( weightedMeanNrAsym, weightedMeanDrAsym, weightedMeanNrBCqNormSum, weightedMeanDrBCqNormSum, weightedMeanNrBCqNormDiff, weightedMeanNrqNormB1L0, weightedMeanDrqNormB1L0, weightedMeanNrBkgdAsym, weightedMeanDrBkgdAsym, stripAsym, stripAsymEr, stripAsymNr, stripAsymDr, stripAsymDrEr, qNormB1L0,  qNormB1L0Er, bkgdAsym, bkgdAsymEr);
-
-  ///evaluating asymmetry from scaler data
-  Float_t stripAsymSc[nPlanes][nStrips], stripAsymErSc[nPlanes][nStrips], stripAsymNrSc[nPlanes][nStrips], stripAsymDrSc[nPlanes][nStrips], stripAsymDrErSc[nPlanes][nStrips], qNormB1L0Sc[nPlanes][nStrips], qNormB1L0ErSc[nPlanes][nStrips], bkgdAsymSc[nPlanes][nStrips], bkgdAsymErSc[nPlanes][nStrips];  
-
-  weightedMean( wmScNrAsym, wmScDrAsym, wmScNrBCqNormSum, wmScDrBCqNormSum, wmScNrBCqNormDiff, wmScNrqNormB1L0, wmScDrqNormB1L0, wmScNrBkgdAsym, wmScDrBkgdAsym, stripAsymSc, stripAsymErSc, stripAsymNrSc, stripAsymDrSc, stripAsymDrErSc, qNormB1L0Sc,  qNormB1L0ErSc, bkgdAsymSc, bkgdAsymErSc);
-
-  for(Int_t p = startPlane; p < endPlane; p++) { 
-    outAsymScP.open(Form("%s/%s/%sexpAsymScP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    if (outAsymScP.is_open()) {
-      cout<<Form("%s/%s/%sexpAsymScP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      for (Int_t s =startStrip; s <endStrip;s++) { 
-	if (!mask[p][s]) continue;
-	outAsymScP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsymSc[p][s],stripAsymErSc[p][s]);
-      }
-      outAsymScP.close();
-    } else cout<<"couldn't open file to write Scalers derived asymmetries"<<endl;
-  }
-
-  for(Int_t p = startPlane; p < endPlane; p++) { 
-    outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outfileBkgdAsymP.open(Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    fortranCheck.open(Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outScaler.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
-      cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      fortranCheck<<totMpsB1H1L1<<"\t"<<totMpsB1H1L0<<"\t"<<totMpsB1H0L1<<"\t"<<totMpsB1H0L0<<"\t"<<totMpsB1H1L1+totMpsB1H1L0+totMpsB1H0L1+totMpsB1H0L0<<endl;
-      fortranCheck<<totIH1L1<<"\t"<<totIH1L0<<"\t"<<totIH0L1<<"\t"<<totIH0L0<<"\t"<<totIH1L1+totIH1L0+totIH0L1+totIH0L0<<endl;
-
-      //outAsymComponents.open(Form("%s/%s/%sexpAsymComponentsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      //outfileYield<<";strip\texpAsymDr\texpAsymDrEr\texpAsymNr"<<endl;
-      //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
-      Bool_t firstOne=kTRUE;
-      for (Int_t s =startStrip; s <endStrip;s++) { 
-	if (!mask[p][s]) continue;
-	if(!firstOne) {
-	  outfileExpAsymP<<"\n";
-	  outfileBkgdAsymP<<"\n";
-	  outfileYield<<"\n";
-	  outfilelasOffBkgd<<"\n";
-	  fortranCheck<<"\n";
-	  outScaler<<"\n";
-	}
-	firstOne =kFALSE;
-	outfileExpAsymP<<Form("%2.0f\t%f\t%f",(Float_t)s+1,stripAsym[p][s],stripAsymEr[p][s]);
-	outfileBkgdAsymP<<Form("%2.0f\t%f\t%f",(Float_t)s+1,bkgdAsym[p][s],bkgdAsymEr[p][s]);
-	outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Float_t)s+1,stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
-	outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Float_t)s+1,qNormB1L0[p][s],qNormB1L0Er[p][s]);
-	fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totAccumB1H1L1[p][s],totAccumB1H1L0[p][s],totAccumB1H0L1[p][s],totAccumB1H0L0[p][s]);
-	outScaler<<Form("%d\t%g\t%g",s+1,qNormScalerB1L1[p][s],qNormScalerB1L0[p][s]);
-      }
-      outfileExpAsymP.close();
-      outfileBkgdAsymP.close();
-      outfileYield.close();
-      outfilelasOffBkgd.close();
-      fortranCheck.close();
-      outScaler.close();
-      cout<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sfortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-    } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
-  }
+  dataType = "Ac";
+  weightedMean(wmAcNrAsym, wmAcDrAsym, wmAcNrBCqNormSum, wmAcDrBCqNormSum, wmAcNrBCqNormDiff, wmAcNrqNormB1L0, wmAcDrqNormB1L0, wmAcNrBkgdAsym, wmAcDrBkgdAsym);
+  qNormVariables(totScalerB1H0L0,totScalerB1H0L1,totScalerB1H1L0,totScalerB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
+  writeToFile(dataType,runnum);
 
   if (v2processed) {
-    weightedMean(weightedMeanNrAsym_v2, weightedMeanDrAsym_v2, weightedMeanNrBCqNormSum_v2, weightedMeanDrBCqNormSum_v2, weightedMeanNrBCqNormDiff_v2, weightedMeanNrqNormB1L0_v2, weightedMeanDrqNormB1L0_v2, weightedMeanNrBkgdAsym_v2, weightedMeanDrBkgdAsym_v2, stripAsym_v2, stripAsymEr_v2, stripAsymNr_v2, stripAsymDr_v2, stripAsymDrEr_v2, qNormB1L0_v2,  qNormB1L0Er_v2, bkgdAsym_v2, bkgdAsymEr_v2);
-
-    for (Int_t p =startPlane; p <endPlane; p++) {	  	      
-      outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      outfileYield.open(Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      if (outfileExpAsymP.is_open() && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
-	cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-	for (Int_t s =startStrip; s <endStrip;s++) {    
-	  if (!mask[p][s]) continue;
-	  outfileExpAsymP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsym_v2[p][s],stripAsymEr_v2[p][s]);
-	  outfileYield<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,stripAsymDr_v2[p][s],stripAsymDrEr_v2[p][s]);
-	  outfilelasOffBkgd<<Form("%2.0f\t%g\t%g\n",(Float_t)s+1,qNormB1L0_v2[p][s],qNormB1L0Er_v2[p][s]);
-	}
-	outfileExpAsymP.close();
-	cout<<Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	outfilelasOffBkgd.close();
-	cout<<Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-	outfileYield.close();
-	cout<<Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values for version2(v2) data\n\n"<<endl;
-    }//for(Int_t p = startPlane; p < endPlane; p++)
+    dataType = "AcV2";
+    weightedMean(wmAcNrAsym_v2, wmAcDrAsym_v2, wmAcNrBCqNormSum_v2, wmAcDrBCqNormSum_v2, wmAcNrBCqNormDiff_v2, wmAcNrqNormB1L0_v2, wmAcDrqNormB1L0_v2, wmAcNrBkgdAsym_v2, wmAcDrBkgdAsym_v2);
+    //notice that now the variables to be written by the writeToFile command has been updated
+    writeToFile(dataType,runnum);
   } //if (v2processed)  
+  
+  ///evaluating asymmetry from scaler data
+  dataType = "Sc";
+  weightedMean(wmScNrAsym, wmScDrAsym, wmScNrBCqNormSum, wmScDrBCqNormSum, wmScNrBCqNormDiff, wmScNrqNormB1L0, wmScDrqNormB1L0, wmScNrBkgdAsym, wmScDrBkgdAsym);
+  qNormVariables(totAccumB1H0L0,totAccumB1H0L1,totAccumB1H1L0,totAccumB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
+  writeToFile(dataType,runnum);
 
   //!!this currently would not work if the Cedge changes between planes
   if(debug1) {
@@ -628,6 +536,7 @@ Comments:
 * B1: beam on; H1: helicity plus; L1: laser on; and vice versa
 * qNormXXX: charge normalized quantity; tNormXXX: time normalized quantity
 * BC: Backgraound Corrected.
+* wm: weightedMean, Ac: Accum, Sc: Scaler, Ev: Event
 * each Laser cycle consitutes of one laser Off and one laser On period.
 * ..it begins with a Laser Off period and ends with the (just)next laser On period.
 * If we get too many missedEntries,check 'acceptLasPow' and 'minLasPow' variables

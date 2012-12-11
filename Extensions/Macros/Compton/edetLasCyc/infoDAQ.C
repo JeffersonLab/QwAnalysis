@@ -20,7 +20,7 @@ void infoDAQ(Int_t runnum)
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_%i.000.root",runnum));//ensure to read in only the first runlet
   TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2_%i.000.root",runnum));//ensure to read in only the first runlet
   TTree *configTree = (TTree*)file->Get("Config_Tree");
-  TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   configTree->ResetBranchAddresses();
   configTree->SetBranchStatus("*",1); 
  

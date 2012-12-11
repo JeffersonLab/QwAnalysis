@@ -66,7 +66,7 @@ void asymFit(Int_t runnum)
   Double_t offset[nPlanes],offsetEr[nPlanes];
   Int_t NDF[nPlanes],resFitNDF[nPlanes];
   Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
-  TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=1,debug1=0,debug2=0;
   Bool_t polSign,kYieldFit=0,kYield=0,kResidual=0;
   ifstream paramfile;
@@ -84,7 +84,7 @@ void asymFit(Int_t runnum)
   Int_t numbGoodStrips[nPlanes]={0};
   ///Note: the 's' in this section of the routine does not necessarily represent strip number
   for(Int_t p =startPlane; p <endPlane; p++) {
-    infileScaler.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    infileScaler.open(Form("%s/%s/%sAcQnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if(infileScaler.is_open()) {
       if(p>=(Int_t)activeStrip.size()) {
 	activeStrip.resize(p+1),qNormScB1L1.resize(p+1),qNormScB1L0.resize(p+1);
@@ -102,7 +102,7 @@ void asymFit(Int_t runnum)
 	numbGoodStrips[p]++;//counts in human counting ///this is basically =activeStrip[p].size()
       }
       infileScaler.close();
-    } else cout<<"\n*** Alert:couldn't find "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" needed to generically locate Compton edge"<<endl;
+    } else cout<<"\n*** Alert:couldn't find "<<Form("%s/%s/%sAcQnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" needed to generically locate Compton edge"<<endl;
   }
 
   ///start finding the generic compton edge 
@@ -110,7 +110,7 @@ void asymFit(Int_t runnum)
     Bool_t trueEdge = 0;
     cout<<"looking for generic compton edge for plane "<<p+1<<endl; 
     for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
-      if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=0.3 !the ratio on LHS is not qNorm, its tNorm!
+      if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=5.0 
 	trueEdge = 1;
 	Float_t probableEdge = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
 	cout<<"probable Cedge : "<<probableEdge<<endl;
@@ -137,12 +137,12 @@ void asymFit(Int_t runnum)
   cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300*endPlane);
   cAsym->Divide(1,endPlane); 
 
-  Float_t stripNum[nPlanes][nStrips],stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
-  Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips],stripAsymNr[nPlanes][nStrips];
+  Float_t stripNum[nPlanes][nStrips];//,stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
+  //Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips],stripAsymNr[nPlanes][nStrips];
   Float_t fitResidue[nPlanes][nStrips];
   Float_t zero[nStrips];
 
-  polList.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
+  polList.open(Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePrefix.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
     if (!kVladas_meth) xCedge = rhoToX(p); ///this function should be called after determining the Cedge
@@ -158,7 +158,7 @@ void asymFit(Int_t runnum)
 
     if(kVladas_data) grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/run.24519","%lg %lg %lg");  
     //grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
-    else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
+    else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
     //else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymScP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
 
     grAsymPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
@@ -263,7 +263,7 @@ void asymFit(Int_t runnum)
 	stripAsymDr[p][s]=0.0,stripAsymNr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
 	zero[s] = 0.0;
       }
-      expAsymPWTL1.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      expAsymPWTL1.open(Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(expAsymPWTL1.is_open()) {
 	if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
 	if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
@@ -274,7 +274,7 @@ void asymFit(Int_t runnum)
 	}
 	expAsymPWTL1.close();
       }
-      else cout<<"did not find the expAsym file "<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      else cout<<"did not find the expAsym file "<<Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
       if(debug2) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
       for (Int_t s = startStrip; s <= Cedge[p]; s++) {
@@ -313,7 +313,7 @@ void asymFit(Int_t runnum)
       ptRes[p]->AddText(Form("linear fit    : %f #pm %f",resFit[p],resFitEr[p]));
       ptRes[p]->Draw();
     }//for (Int_t p =startPlane; p <endPlane; p++)
-    cResidual->SaveAs(Form("%s/%s/%sasymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
+    cResidual->SaveAs(Form("%s/%s/%sAcAsymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
   }
 
   if (kYield) { ///determine yield
@@ -324,7 +324,7 @@ void asymFit(Int_t runnum)
     cYield->Divide(1,endPlane); 
 
     for (Int_t p =startPlane; p <endPlane; p++) {
-      infileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      infileYield.open(Form("%s/%s/%sAcYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(infileYield.is_open()) {
 	if(debug2) cout<<"Reading the Yield corresponding to Plane "<<p+1<<endl;
 	if(debug2) cout<<"stripNum\t"<<"stripYield\t"<<"stripYieldEr"<<endl;
@@ -335,11 +335,11 @@ void asymFit(Int_t runnum)
 	}
 	infileYield.close();
       }
-      else cout<<"did not find the Yield file "<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      else cout<<"did not find the Yield file "<<Form("%s/%s/%sAcYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
      
       cYield->cd(p+1);
       cYield->GetPad(p+1)->SetGridx(1);
-      grYieldPlane[p]=new TGraphErrors(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
+      grYieldPlane[p]=new TGraphErrors(Form("%s/%s/%sAcYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
       grYieldPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
       grYieldPlane[p]->GetYaxis()->SetTitle("yield (Hz/uA)");   
       grYieldPlane[p]->SetTitle(Form("detector yield Run: %d, Plane %d",runnum,p+1));
@@ -360,7 +360,7 @@ void asymFit(Int_t runnum)
 	crossSecFit->SetLineColor(kRed);
 	grYieldPlane[p]->Fit("crossSecFit","0 R M E q");
       }
-      grB1L0[p] = new TGraphErrors(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grB1L0[p] = new TGraphErrors(Form("%s/%s/%sAcLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grB1L0[p]->SetLineColor(kBlue);
       grB1L0[p]->SetMarkerColor(kBlue);
       grB1L0[p]->SetFillColor(kBlue);
@@ -385,7 +385,7 @@ void asymFit(Int_t runnum)
       legYield[p]->SetFillColor(0);
       legYield[p]->Draw();
     }//for (Int_t p =startPlane; p <endPlane; p++)
-    cYield->SaveAs(Form("%s/%s/%sYieldFit.png",pPath,webDirectory,filePrefix.Data()));
+    cYield->SaveAs(Form("%s/%s/%sAcYieldFit.png",pPath,webDirectory,filePrefix.Data()));
   }
   polList.close();
 
@@ -393,7 +393,7 @@ void asymFit(Int_t runnum)
   if(kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sasymFit_runletData_anMeth.png",pPath,webDirectory,filePrefix.Data()));
   else if(kVladas_data && kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sasymFit_runletData_vtMeth.png",pPath,webDirectory,filePrefix.Data()));
   else if(!kVladas_data && kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sasymFit_vtMeth.png",pPath,webDirectory,filePrefix.Data()));
-  else if(!kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sasymFit.png",pPath,webDirectory,filePrefix.Data()));
+  else if(!kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sAcAsymFit.png",pPath,webDirectory,filePrefix.Data()));
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);

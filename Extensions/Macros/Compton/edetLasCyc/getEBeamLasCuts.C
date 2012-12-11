@@ -18,7 +18,7 @@
 
 Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
-  TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug = 1;
   chain->ResetBranchAddresses();
   Int_t nEntries = chain->GetEntries();

@@ -6,7 +6,7 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t bkgdAsym = 1;
+  Bool_t kBkgdAsym = 1;
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=0;//now the asymFit.C plots this already
   Bool_t compareRunLetLaserWise=0;//plots expAsym and compares with the corresponding runlet based asymmetries. against theoretical asym, not needed when asymFit.C is plotting it
@@ -21,7 +21,7 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t asymLasCyc=1;//plots the experimental asymmetery against laser cycle for a given strip
   Bool_t debug=0,debug1=0,debug2=0;
   const Int_t maxLasCycles=100;
-  TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   TLine *myline = new TLine(1,0,64,0);
   ifstream in1, in2;
   ifstream fortranOutP1,expAsymPWTL1,expAsymPWTL2,expAsymComponents,scalerRates,lasCycScaler;
@@ -32,12 +32,11 @@ Int_t fileReadDraw(Int_t runnum)
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
-  std::vector<std::vector <Double_t> > stripNum,stripAsymNr,stripAsymDr,stripAsymDrEr;
+  std::vector<std::vector <Double_t> > stripNum,strAsymNr,strAsymDr,strAsymDrEr;
 
   Double_t qNormAccumB1H0L0[nPlanes][nStrips][100],qNormAccumB1H0L1[nPlanes][nStrips][100],qNormAccumB1H1L0[nPlanes][nStrips][100],qNormAccumB1H1L1[nPlanes][nStrips][100];
   Double_t qNormAccumB1L0[nPlanes][nStrips][100];//,qNormScalerB1L0[nPlanes][nStrips][100];
 
-  Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
   Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
   Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
   if(!maskSet) infoDAQ(runnum);
@@ -49,7 +48,7 @@ Int_t fileReadDraw(Int_t runnum)
     }
   }
 
-  if (bkgdAsym) {
+  if (kBkgdAsym) {
     ofstream bkgdAsymFit;
     gStyle->SetOptFit(1);
     TF1 *linearFit = new TF1("linearFit", "pol0");
@@ -59,7 +58,7 @@ Int_t fileReadDraw(Int_t runnum)
     TGraphErrors *grB1L0[nPlanes];
     TLegend *legbkgdAsym[nPlanes];
     Double_t bkgdAsymVal[nPlanes], bkgdAsymValEr[nPlanes],bkgdAsymFitChiSqr[nPlanes],bkgdAsymNDF[nPlanes];
-    bkgdAsymFit.open(Form("%s/%s/%sbkgdAsymFitInfo.txt",pPath,webDirectory,filePrefix.Data()));
+    bkgdAsymFit.open(Form("%s/%s/%sAcBkgdAsymFitInfo.txt",pPath,webDirectory,filePrefix.Data()));
     bkgdAsymFit<<Form(";plane\tbkgdAsymVal\tbkgdAsymValEr\tbkgdAsymFit-ChiSqr/NDF")<<endl;
 
     cbkgdAsym->Divide(startPlane+1,endPlane);
@@ -67,7 +66,7 @@ Int_t fileReadDraw(Int_t runnum)
       cbkgdAsym->GetPad(p+1)->SetGridx(1);
       cbkgdAsym->cd(p+1);
 
-      grB1L0[p] = new TGraphErrors(Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grB1L0[p] = new TGraphErrors(Form("%s/%s/%sAcBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grB1L0[p]->SetLineColor(kBlue);
       grB1L0[p]->SetMarkerStyle(kFullSquare);
       grB1L0[p]->SetMarkerSize(1);
@@ -117,7 +116,7 @@ Int_t fileReadDraw(Int_t runnum)
     cNoise->Divide(startPlane+1,endPlane);
 
     for(Int_t p =startPlane; p <endPlane; p++) {
-      scalerRates.open(Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      scalerRates.open(Form("%s/%s/%sScQnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(scalerRates.is_open()) {
 	if(p>=(Int_t)stripNum2.size()) {
 	  stripNum2.resize(p+1);
@@ -138,7 +137,7 @@ Int_t fileReadDraw(Int_t runnum)
 	  if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\n",p+1,s+1,stripNum2[p][s],scalerB1L1[p][s],scalerB1L0[p][s]);
 	}
 	scalerRates.close();
-      } else cout<<"did not find "<<Form("%s/%s/%soutScalerP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      } else cout<<"did not find "<<Form("%s/%s/%sScQnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
       cNoise->GetPad(p+1)->SetGridx(1);
       cNoise->cd(p+1);
@@ -186,22 +185,22 @@ Int_t fileReadDraw(Int_t runnum)
 
 
   for(Int_t p =startPlane; p <endPlane; p++) {
-    expAsymComponents.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    expAsymComponents.open(Form("%s/%s/%sAcYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if(expAsymComponents.is_open()) {
       if(p<=(Int_t)stripNum.size()) {
-	stripNum.resize(p+1),stripAsymDr.resize(p+1),stripAsymDrEr.resize(p+1),stripAsymNr.resize(p+1);
+	stripNum.resize(p+1),strAsymDr.resize(p+1),strAsymDrEr.resize(p+1),strAsymNr.resize(p+1);
       }
       cout<<"Reading the yield and difference from PWTL1 for plane "<<p+1<<endl;
-      if(debug1) cout<<";\tstripNum\tstripAsymDr\tstripAsymDrEr\tstripAsymNr\n"<<endl;
+      if(debug1) cout<<";\tstripNum\tstrAsymDr\tstrAsymDrEr\tstrAsymNr\n"<<endl;
       while(expAsymComponents.good()) {
-	stripNum[p].push_back(0.0),stripAsymDr[p].push_back(0.0),stripAsymDrEr[p].push_back(0.0),stripAsymNr[p].push_back(0.0);
+	stripNum[p].push_back(0.0),strAsymDr[p].push_back(0.0),strAsymDrEr[p].push_back(0.0),strAsymNr[p].push_back(0.0);
 	Int_t s=stripNum[p].size() - 1;
-	expAsymComponents>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
-	if(debug1) printf("[%d][%d]:%2.0f\t%f\t%f\t%f\n",p+1,s+1,stripNum[p][s],stripAsymDr[p][s],stripAsymDrEr[p][s],stripAsymNr[p][s]);
+	expAsymComponents>>stripNum[p][s]>>strAsymDr[p][s]>>strAsymDrEr[p][s]>>strAsymNr[p][s];
+	if(debug1) printf("[%d][%d]:%2.0f\t%f\t%f\t%f\n",p+1,s+1,stripNum[p][s],strAsymDr[p][s],strAsymDrEr[p][s],strAsymNr[p][s]);
       }
       expAsymComponents.close();
     }
-    else cout<<"did not find "<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+    else cout<<"did not find "<<Form("%s/%s/%sAcYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
   }
 
   if(asymComponents) {
@@ -213,7 +212,7 @@ Int_t fileReadDraw(Int_t runnum)
       cAsymComponent->cd(p+1);
       Int_t newSize=stripNum[p].size();
       if(debug) cout<<"for plane "<<p+1<<" the no.of active strips is "<<newSize<<endl;
-      grAsymNr[p]= new TGraphErrors(newSize,stripNum[p].data(),stripAsymNr[p].data(),zero[p],stripAsymDrEr[p].data());
+      grAsymNr[p]= new TGraphErrors(newSize,stripNum[p].data(),strAsymNr[p].data(),zero[p],strAsymDrEr[p].data());
       grAsymNr[p]->SetTitle(Form("asymmetry numerator, run %d",runnum));
       grAsymNr[p]->GetXaxis()->SetTitle("strip number");
       grAsymNr[p]->GetYaxis()->SetTitle("numerator of asym (a.u)");
@@ -241,14 +240,14 @@ Int_t fileReadDraw(Int_t runnum)
     for (Int_t p =startPlane; p <endPlane; p++) { 
       cAsymDr->GetPad(p+1)->SetGridx(1);
       cAsymDr->cd(p+1);
-      grAsymDr[p] = new TGraphErrors(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grAsymDr[p] = new TGraphErrors(Form("%s/%s/%sAcYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grAsymDr[p]->SetMarkerStyle(kFullCircle);
       grAsymDr[p]->SetMarkerSize(1);
       grAsymDr[p]->SetLineColor(kGreen);
       grAsymDr[p]->SetMarkerColor(kGreen);
       grAsymDr[p]->SetFillColor(kGreen);
 
-      grB1L0[p] = new TGraphErrors(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grB1L0[p] = new TGraphErrors(Form("%s/%s/%sAcLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grB1L0[p]->SetLineColor(kBlue);
       grB1L0[p]->SetMarkerStyle(kFullSquare);
       grB1L0[p]->SetMarkerSize(1);
@@ -278,26 +277,27 @@ Int_t fileReadDraw(Int_t runnum)
   }
 
   if(asymDiffPlot) {
+    Double_t stripAsym_v1[nPlanes][nStrips],stripAsymEr_v1[nPlanes][nStrips];
     Double_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
     //Int_t dummyStrip[nPlanes];
     for(Int_t p =startPlane; p <endPlane; p++) {
-      expAsymPWTL1.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      expAsymPWTL2.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));//only plane1 is used for v2 data
+      expAsymPWTL1.open(Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      expAsymPWTL2.open(Form("%s/%s/%sAcV2ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));//only plane1 is used for v2 data
       if(expAsymPWTL1.is_open() && expAsymPWTL2.is_open()) {
 	cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
 	cout<<"Reading the expAsym corresponding to PWTL2 for Plane "<<p+1<<endl;
-	if(debug) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsym_v2\t"<<"asymDiff"<<endl;
+	if(debug) cout<<"stripNum\t"<<"stripAsym_v1\t"<<"stripAsym_v2\t"<<"asymDiff"<<endl;
 	for(Int_t s =startStrip ; s < endStrip; s++) {
 	  if (!mask[p][s]) continue;
-	  expAsymPWTL1>>stripNum[p][s]>>stripAsym[p][s]>>stripAsymEr[p][s];
+	  expAsymPWTL1>>stripNum[p][s]>>stripAsym_v1[p][s]>>stripAsymEr_v1[p][s];
 	  expAsymPWTL2>>stripNum[p][s]>>stripAsym_v2[p][s]>>stripAsymEr_v2[p][s];
-	  asymDiff[p][s] = (stripAsym[p][s]- stripAsym_v2[p][s]);
-	  if(debug) cout<<stripNum[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsym_v2[p][s]<<"\t"<<asymDiff[p][s]<<endl;
+	  asymDiff[p][s] = (stripAsym_v1[p][s]- stripAsym_v2[p][s]);
+	  if(debug) cout<<stripNum[p][s]<<"\t"<<stripAsym_v1[p][s]<<"\t"<<stripAsym_v2[p][s]<<"\t"<<asymDiff[p][s]<<endl;
 	}
 	expAsymPWTL1.close();
 	expAsymPWTL2.close();
       }
-      else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
     }
 
     TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),1,1,1000,420*endPlane);
@@ -307,7 +307,7 @@ Int_t fileReadDraw(Int_t runnum)
       cDiff->cd(p+1);
       cDiff->GetPad(p+1)->SetGridx(1);
       //!!following line needs to be fixed in wake of the modified variable definition
-      grDiffPWTL1_2[p] = new TGraphErrors(endStrip,stripNum[p].data(),asymDiff[p],zero[p],stripAsymEr[p]);
+      grDiffPWTL1_2[p] = new TGraphErrors(endStrip,stripNum[p].data(),asymDiff[p],zero[p],stripAsymEr_v1[p]);
       grDiffPWTL1_2[p]->SetMarkerStyle(kOpenSquare);
       grDiffPWTL1_2[p]->SetMarkerSize(0.6);
       grDiffPWTL1_2[p]->SetMarkerColor(kRed+2);
@@ -342,8 +342,8 @@ Int_t fileReadDraw(Int_t runnum)
     for (Int_t p = 0; p <1; p++) {
       cAsym->cd(1);//(p+1);
       cAsym->GetPad(1)->SetGridx(1); 
-      lasCycAsymP1.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      lasCycAsymP1.open(Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
       grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
       grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
       grAsymPlane[p]->SetTitle(Form("comparing experimental asymmetry"));
@@ -398,7 +398,7 @@ Int_t fileReadDraw(Int_t runnum)
 	}
 	lasCycAsymP1.close();
 	fortranOutP1.close();
-      } else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      } else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
       cout<<"size is "<<size<<endl;
       grDiff[p] = new TGraphErrors(size,stripNum2[p],asymDiff2[p],zero[p],stripAsymEr2[p]);
       grDiff[p]->GetXaxis()->SetTitle("strip number");
@@ -720,8 +720,8 @@ Int_t fileReadDraw(Int_t runnum)
     for(Int_t n=0; n<numb; n++) {        
       filePrefix2= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
-	infilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1));
-	if(debug1)cout<<"opening file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
+	infilelasOffBkgd.open(Form("%s/%s/%sAcLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1));
+	if(debug1)cout<<"opening file "<<Form("%s/%s/%sAcLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
 	if(infilelasOffBkgd.is_open()) {
 	  Int_t strip=0;
 	  while(infilelasOffBkgd.good()) {
@@ -729,9 +729,9 @@ Int_t fileReadDraw(Int_t runnum)
 	    strip = strip +1;
 	  }
 	  infilelasOffBkgd.close();
-	  if(debug1)cout<<"closing file "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;     
+	  if(debug1)cout<<"closing file "<<Form("%s/%s/%sAcLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;     
 	} else {
-	  if(debug)cout<<"did not find "<<Form("%s/%s/%slasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
+	  if(debug)cout<<"did not find "<<Form("%s/%s/%sAcLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
 	  return -1;
 	}
       }
