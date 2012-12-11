@@ -1340,10 +1340,12 @@ Bool_t QwModulation::FileSearch(TString filename, TChain *chain)
     TChainElement *chain_element = NULL;
 
     while((chain_element = (TChainElement*)next())){
-      std::cout << "Adding :: "
-		<< filename
-		<< " to data chain"
-		<< std::endl;
+      if(!fFileSegmentInclude){
+	std::cout << "Adding :: "
+		  << filename
+		  << " to data chain"
+		  << std::endl;
+      }
     }
   } 
     return c_status;
