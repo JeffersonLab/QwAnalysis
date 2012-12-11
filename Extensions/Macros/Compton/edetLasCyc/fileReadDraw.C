@@ -6,12 +6,12 @@
 Int_t fileReadDraw(Int_t runnum) 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t bkgdAsym = 0;
+  Bool_t bkgdAsym = 1;
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=0;//now the asymFit.C plots this already
   Bool_t compareRunLetLaserWise=0;//plots expAsym and compares with the corresponding runlet based asymmetries. against theoretical asym, not needed when asymFit.C is plotting it
-  Bool_t asymComponents=0;
-  Bool_t scalerPlot=0;
+  Bool_t asymComponents=1;
+  Bool_t scalerPlot=1;
   Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotBcm=0;//plot quantities against laser-cycle 
@@ -22,7 +22,7 @@ Int_t fileReadDraw(Int_t runnum)
   Bool_t debug=0,debug1=0,debug2=0;
   const Int_t maxLasCycles=100;
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  TLine *myline = new TLine(0,0,70,0);
+  TLine *myline = new TLine(1,0,64,0);
   ifstream in1, in2;
   ifstream fortranOutP1,expAsymPWTL1,expAsymPWTL2,expAsymComponents,scalerRates,lasCycScaler;
   ofstream newTheoFile;
@@ -385,15 +385,16 @@ Int_t fileReadDraw(Int_t runnum)
       cAsym->GetPad(2)->SetGridx(1); 
       if(lasCycAsymP1.is_open() && fortranOutP1.is_open()) {
 	if(debug) cout<<"str#\t"<<"asymLasCyc\t"<<"asymRunLet\t"<<"asymDiff\t"<<"asymRatio"<<endl;
-	  while(1) {
-	    lasCycAsymP1>>stripNum2[p][size]>>stripAsym2[p][size]>>stripAsymEr2[p][size];
-	    fortranOutP1>>stripNum2[p][size]>>stripAsym_v2[p][size]>>stripAsymEr_v2[p][size];
-	    asymDiff2[p][size] = (stripAsym2[p][size]- stripAsym_v2[p][size]);
-	    asymRatio[p][size] = (stripAsym2[p][size]/ stripAsym_v2[p][size]);
-	    asymRatioEr[p][size] = (stripAsym_v2[p][size]*stripAsymEr2[p][size] - stripAsym2[p][size]*stripAsymEr_v2[p][size])/pow(stripAsym_v2[p][size],2);
-	    if(debug) cout<<stripNum2[p][size]<<"\t"<<stripAsym2[p][size]<<"\t"<<stripAsym_v2[p][size]<<"\t"<<asymDiff2[p][size]<<"\t"<<asymRatio[p][size]<<endl;
-	    size++;
-	    if(lasCycAsymP1.eof()) break;
+	while(1) {
+	  lasCycAsymP1>>stripNum2[p][size]>>stripAsym2[p][size]>>stripAsymEr2[p][size];
+	  fortranOutP1>>stripNum2[p][size]>>stripAsym_v2[p][size]>>stripAsymEr_v2[p][size];
+	  asymDiff2[p][size] = (stripAsym2[p][size]- stripAsym_v2[p][size]);
+	  asymRatio[p][size] = (stripAsym2[p][size]/ stripAsym_v2[p][size]);
+	  //asymRatioEr[p][size] = (stripAsym_v2[p][size]*stripAsymEr2[p][size] - stripAsym2[p][size]*stripAsymEr_v2[p][size])/pow(stripAsym_v2[p][size],2);
+	  asymRatioEr[p][size] = stripAsymEr2[p][size]/ stripAsym_v2[p][size];
+	  if(debug) cout<<stripNum2[p][size]<<"\t"<<stripAsym2[p][size]<<"\t"<<stripAsym_v2[p][size]<<"\t"<<asymDiff2[p][size]<<"\t"<<asymRatio[p][size]<<endl;
+	  size++;
+	  if(lasCycAsymP1.eof()) break;
 	}
 	lasCycAsymP1.close();
 	fortranOutP1.close();

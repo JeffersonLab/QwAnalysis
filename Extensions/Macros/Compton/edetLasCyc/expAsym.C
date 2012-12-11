@@ -6,6 +6,7 @@
 #include "rhoToX.C"
 #include "evaluateAsym.C"
 #include "infoDAQ.C"
+#include "weightedMean.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
@@ -16,7 +17,7 @@ Int_t expAsym(Int_t runnum)
   TString filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  const Bool_t debug = 1, debug1 = 1, debug2 = 0;
+  const Bool_t debug = 1, debug1 = 0, debug2 = 0;
   const Bool_t lasCycPrint=1;//!if accum, scaler counts and asym are needed for every laser cycle
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0;
@@ -29,8 +30,8 @@ Int_t expAsym(Int_t runnum)
   Int_t missedLasEntries=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
   Int_t AccumB1H0L1[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
   Int_t AccumB1H0L0[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips];
-//   Int_t EventB1H0L1[nPlanes][nStrips],EventB1H1L1[nPlanes][nStrips];
-//   Int_t EventB1H0L0[nPlanes][nStrips],EventB1H1L0[nPlanes][nStrips];
+  //   Int_t EventB1H0L1[nPlanes][nStrips],EventB1H1L1[nPlanes][nStrips];
+  //   Int_t EventB1H0L0[nPlanes][nStrips],EventB1H1L0[nPlanes][nStrips];
   Int_t ScalerB1H0L1[nPlanes][nStrips],ScalerB1H1L1[nPlanes][nStrips];
   Int_t ScalerB1H0L0[nPlanes][nStrips],ScalerB1H1L0[nPlanes][nStrips];
   Int_t totScalerB1L0[nPlanes][nStrips],totScalerB1L1[nPlanes][nStrips]; 
@@ -66,6 +67,7 @@ Int_t expAsym(Int_t runnum)
   Int_t totAccumB1H1L1[nPlanes][nStrips],totAccumB1H0L1[nPlanes][nStrips],totAccumB1H1L0[nPlanes][nStrips],totAccumB1H0L0[nPlanes][nStrips];//!for comparision for fortran tables
   Double_t totIH1L1=0.0,totIH1L0=0.0,totIH0L1=0.0,totIH0L0=0.0;
   Int_t totMpsB1H1L1=0,totMpsB1H1L0=0,totMpsB1H0L1=0,totMpsB1H0L0=0;
+  Float_t wmScNrAsym[nPlanes][nStrips],wmScDrAsym[nPlanes][nStrips],wmScNrBCqNormSum[nPlanes][nStrips],wmScDrBCqNormSum[nPlanes][nStrips],wmScNrBCqNormDiff[nPlanes][nStrips],wmScNrqNormB1L0[nPlanes][nStrips],wmScDrqNormB1L0[nPlanes][nStrips],wmScNrBkgdAsym[nPlanes][nStrips],wmScDrBkgdAsym[nPlanes][nStrips];
 
   TString readEntry;
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
@@ -76,7 +78,7 @@ Int_t expAsym(Int_t runnum)
   ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
   ifstream infileLas, infileBeam;
   ofstream outAsymLasCyc[nPlanes][nStrips];
-
+  ofstream outAsymScP;
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
   
   if(!maskSet) infoDAQ(runnum); //if the masks are not set yet, call the function to set it
@@ -100,7 +102,7 @@ Int_t expAsym(Int_t runnum)
 
       totAccumB1H1L1[p][s]=0,totAccumB1H0L1[p][s]=0,totAccumB1H1L0[p][s]=0,totAccumB1H0L0[p][s]=0;
       totScalerB1L1[p][s]=0,totScalerB1L0[p][s]=0,
-      qNormScalerB1L1[p][s]=0.0,qNormScalerB1L0[p][s]=0.0;
+	qNormScalerB1L1[p][s]=0.0,qNormScalerB1L0[p][s]=0.0;
     }
   }
   if(v2processed) {
@@ -246,7 +248,7 @@ Int_t expAsym(Int_t runnum)
 	///Lets open the files for writing asymmetries in the beamOn loop repeatedly
   	outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
 	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
-    }
+      }
     }
     lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
     lasCycLasPow.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));
@@ -410,6 +412,9 @@ Int_t expAsym(Int_t runnum)
  	}
 	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym,weightedMeanDrAsym,weightedMeanNrBCqNormSum,weightedMeanDrBCqNormSum,weightedMeanNrBCqNormDiff,weightedMeanNrqNormB1L0,weightedMeanDrqNormB1L0,weightedMeanNrBkgdAsym,weightedMeanDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
 	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,weightedMeanNrAsym_v2,weightedMeanDrAsym_v2,weightedMeanNrBCqNormSum_v2,weightedMeanDrBCqNormSum_v2,weightedMeanNrBCqNormDiff_v2,weightedMeanNrqNormB1L0_v2,weightedMeanDrqNormB1L0_v2,weightedMeanNrBkgdAsym_v2,weightedMeanDrBkgdAsym_v2,qNormLasCycAsym_v2,LasCycAsymErSqr_v2);//!check if the qNormLasCycAsym variable needs to have _v2
+	///evaluating asymmetries corresponding to scalers
+	evaluateAsym(ScalerB1H1L1,ScalerB1H1L0,ScalerB1H0L1,ScalerB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmScNrAsym,wmScDrAsym,wmScNrBCqNormSum,wmScDrBCqNormSum,wmScNrBCqNormDiff,wmScNrqNormB1L0,wmScDrqNormB1L0,wmScNrBkgdAsym,wmScDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+
 	if(lasCycPrint) {
 	  if(debug1) {
 	    cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
@@ -465,45 +470,33 @@ Int_t expAsym(Int_t runnum)
   lasCycBCM.close();
   lasCycLasPow.close();
 
-  for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington
-    for (Int_t s =startStrip; s <endStrip; s++) {        
-      if (!mask[p][s]) continue;
-      if(weightedMeanDrAsym[p][s]<=0.0) cout<<"stand. deviation in weighted Mean Asym is non-positive for p"<<p<<" s"<<s<<endl;
-      else {
-	stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
-	if (weightedMeanDrAsym[p][s]<0.0) stripAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrAsym[p][s]));//!!shouldn't need to do this
-	else stripAsymEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrAsym[p][s]);
-
-	stripAsymNr[p][s] = weightedMeanNrBCqNormDiff[p][s]/weightedMeanDrBCqNormSum[p][s];
-	//stripAsymNrEr[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormDiff[p][s]);
-
-	stripAsymDr[p][s] = weightedMeanNrBCqNormSum[p][s]/weightedMeanDrBCqNormSum[p][s];
-	if (weightedMeanDrBCqNormSum[p][s]<0.0) stripAsymDrEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrBCqNormSum[p][s]));
-	else stripAsymDrEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrBCqNormSum[p][s]);
-	///the error in numerator and denominator are same, hence reevaluation is avoided
-
-	qNormB1L0[p][s] = weightedMeanNrqNormB1L0[p][s]/weightedMeanDrqNormB1L0[p][s];///pure Beam background
-	if (weightedMeanDrqNormB1L0[p][s]<0.0) qNormB1L0Er[p][s] = TMath::Sqrt(-1.0/weightedMeanDrqNormB1L0[p][s]);
-	else qNormB1L0Er[p][s] = TMath::Sqrt(1.0/weightedMeanDrqNormB1L0[p][s]);
- 
-	bkgdAsym[p][s] = weightedMeanNrBkgdAsym[p][s]/weightedMeanDrBkgdAsym[p][s];
-	if (weightedMeanDrBkgdAsym[p][s]<0.0) bkgdAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrBkgdAsym[p][s]));//!!shouldn't need to do this
-	else bkgdAsymEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrBkgdAsym[p][s]);
-      }
-      if(debug2) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
-    }
-  }
-  
   for(Int_t p = startPlane; p < endPlane; p++) { 
     for (Int_t s =startStrip; s <endStrip; s++) {        
       if (!mask[p][s]) continue;
-      // tNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totMpsB1H1L1 + totMpsB1H0L1)/MpsRate);//time normalized
-      // tNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totMpsB1H1L0 + totMpsB1H0L0)/MpsRate);//time normalized
       qNormScalerB1L1[p][s] = totScalerB1L1[p][s]/((Double_t)(totIH1L1 + totIH0L1)/MpsRate);//charge normalized
       qNormScalerB1L0[p][s] = totScalerB1L0[p][s]/((Double_t)(totIH1L0 + totIH0L0)/MpsRate);//charge normalized
     }
   }
   
+  weightedMean( weightedMeanNrAsym, weightedMeanDrAsym, weightedMeanNrBCqNormSum, weightedMeanDrBCqNormSum, weightedMeanNrBCqNormDiff, weightedMeanNrqNormB1L0, weightedMeanDrqNormB1L0, weightedMeanNrBkgdAsym, weightedMeanDrBkgdAsym, stripAsym, stripAsymEr, stripAsymNr, stripAsymDr, stripAsymDrEr, qNormB1L0,  qNormB1L0Er, bkgdAsym, bkgdAsymEr);
+
+  ///evaluating asymmetry from scaler data
+  Float_t stripAsymSc[nPlanes][nStrips], stripAsymErSc[nPlanes][nStrips], stripAsymNrSc[nPlanes][nStrips], stripAsymDrSc[nPlanes][nStrips], stripAsymDrErSc[nPlanes][nStrips], qNormB1L0Sc[nPlanes][nStrips], qNormB1L0ErSc[nPlanes][nStrips], bkgdAsymSc[nPlanes][nStrips], bkgdAsymErSc[nPlanes][nStrips];  
+
+  weightedMean( wmScNrAsym, wmScDrAsym, wmScNrBCqNormSum, wmScDrBCqNormSum, wmScNrBCqNormDiff, wmScNrqNormB1L0, wmScDrqNormB1L0, wmScNrBkgdAsym, wmScDrBkgdAsym, stripAsymSc, stripAsymErSc, stripAsymNrSc, stripAsymDrSc, stripAsymDrErSc, qNormB1L0Sc,  qNormB1L0ErSc, bkgdAsymSc, bkgdAsymErSc);
+
+  for(Int_t p = startPlane; p < endPlane; p++) { 
+    outAsymScP.open(Form("%s/%s/%sexpAsymScP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    if (outAsymScP.is_open()) {
+      cout<<Form("%s/%s/%sexpAsymScP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      for (Int_t s =startStrip; s <endStrip;s++) { 
+	if (!mask[p][s]) continue;
+	outAsymScP<<Form("%2.0f\t%f\t%f\n",(Float_t)s+1,stripAsymSc[p][s],stripAsymErSc[p][s]);
+      }
+      outAsymScP.close();
+    } else cout<<"couldn't open file to write Scalers derived asymmetries"<<endl;
+  }
+
   for(Int_t p = startPlane; p < endPlane; p++) { 
     outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outfileBkgdAsymP.open(Form("%s/%s/%sbkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
@@ -559,27 +552,9 @@ Int_t expAsym(Int_t runnum)
   }
 
   if (v2processed) {
-    for (Int_t p =startPlane; p <endPlane; p++) {	  	  
-      for (Int_t s =startStrip; s <endStrip; s++) {        
-	if (!mask[p][s]) continue;
-	if(weightedMeanDrAsym_v2[p][s]<=0.0) cout<<"st.deviation in weighted Mean Asym is ZERO for p"<<p<<" s"<<s<<endl;
-	else if(weightedMeanNrAsym[p][s]==0.0) cout<<"asym for strip "<<s<<" in plane "<<p<<" is zero"<<endl;
-	else {
-	  stripAsym_v2[p][s] = weightedMeanNrAsym_v2[p][s]/weightedMeanDrAsym_v2[p][s];
-	  stripAsymEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrAsym_v2[p][s]);
-	    
-	  stripAsymNr_v2[p][s] = weightedMeanNrBCqNormDiff_v2[p][s]/weightedMeanDrBCqNormSum_v2[p][s];
-	  //stripAsymNrEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormDiff_v2[p][s]);
-	    
-	  stripAsymDr_v2[p][s] = weightedMeanNrBCqNormSum_v2[p][s]/weightedMeanDrBCqNormSum_v2[p][s];
-	  stripAsymDrEr_v2[p][s] = TMath::Sqrt(1/weightedMeanDrBCqNormSum_v2[p][s]);
-	  ///the error in numerator and denominator are same, hence reevaluation is avoided
-	    
-	  qNormB1L0_v2[p][s] = weightedMeanNrqNormB1L0_v2[p][s]/weightedMeanDrqNormB1L0_v2[p][s];
-	  qNormB1L0Er_v2[p][s] = TMath::Sqrt(1/weightedMeanDrqNormB1L0_v2[p][s]);
-	}
-      }             
-      
+    weightedMean(weightedMeanNrAsym_v2, weightedMeanDrAsym_v2, weightedMeanNrBCqNormSum_v2, weightedMeanDrBCqNormSum_v2, weightedMeanNrBCqNormDiff_v2, weightedMeanNrqNormB1L0_v2, weightedMeanDrqNormB1L0_v2, weightedMeanNrBkgdAsym_v2, weightedMeanDrBkgdAsym_v2, stripAsym_v2, stripAsymEr_v2, stripAsymNr_v2, stripAsymDr_v2, stripAsymDrEr_v2, qNormB1L0_v2,  qNormB1L0Er_v2, bkgdAsym_v2, bkgdAsymEr_v2);
+
+    for (Int_t p =startPlane; p <endPlane; p++) {	  	      
       outfileExpAsymP.open(Form("%s/%s/%sexpAsymP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       outfileYield.open(Form("%s/%s/%sYieldP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       outfilelasOffBkgd.open(Form("%s/%s/%slasOffBkgdP%d_v2.txt",pPath,webDirectory,filePrefix.Data(),p+1));

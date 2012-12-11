@@ -67,7 +67,7 @@ void asymFit(Int_t runnum)
   Int_t NDF[nPlanes],resFitNDF[nPlanes];
   Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   TString filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=1,debug1=1,debug2=0;
+  Bool_t debug=1,debug1=0,debug2=0;
   Bool_t polSign,kYieldFit=0,kYield=0,kResidual=0;
   ifstream paramfile;
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
@@ -159,6 +159,7 @@ void asymFit(Int_t runnum)
     if(kVladas_data) grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/run.24519","%lg %lg %lg");  
     //grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
     else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
+    //else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%sexpAsymScP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
 
     grAsymPlane[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");   
