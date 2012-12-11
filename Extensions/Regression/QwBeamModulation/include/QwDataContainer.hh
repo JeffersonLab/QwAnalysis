@@ -27,10 +27,11 @@ private:
 public:
 
 //   enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
-  enum variable_t {var_e, var_x, var_xp, var_y, var_yp};
+  enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
   enum quality_t {raw, corr};
 
   std::vector <TVectorD> fSensitivity;
+  std::vector <TVectorD> fSensitivityError;
   std::vector <TVectorD> fCorrection;
   std::vector <TVectorD> fAsymmetry;
   std::vector <TVectorD> fPositionDiff;
@@ -70,6 +71,7 @@ public:
   TString  fMysqlIHWP;
   TString  fMysqlMon;
   TString  fMysqlQuery;
+  TString  fMysqlSlopeCorr;
 
   Bool_t   fDBase;
   Bool_t   fRunRange;
@@ -105,6 +107,7 @@ public:
   void FillDataVector(Int_t);
   void SetRunRange(Int_t, Int_t);
   void SetDetector(TString);
+  void SetSlopeCorrection(TString);
   void SetSlope(TString);
   void SetIHWP(TString);
   void SetMonitor(TString);

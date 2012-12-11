@@ -19,6 +19,7 @@ QwDataContainer::QwDataContainer():fDBase(false), fRunRange(false), fNumberMonit
   // Initialize Data arrays
 
   fSensitivity.resize(5);
+  fSensitivityError.resize(5);
   fCorrection.resize(5);
   fAsymmetry.resize(5);
   fPositionDiff.resize(5);
@@ -74,30 +75,46 @@ void QwDataContainer::GetOptions(Char_t **options)
 {
   Int_t i = 0;
   size_t index = 0;
+  TString flag;
+
+  std::cout << "Getting options..." << std::endl;
 
   while(options[i] != NULL){
-    fOptions.push_back(options[i]);
-    std::string option (fOptions[i].Data());
-    
-    if(fOptions[i].CompareTo("--database", TString::kExact) == 0) fDBase = true;
+    flag = options[i];
+    fOptions.push_back(flag);
+//     std::cout << "option:\t" << flag <<  std::endl;    
 
-    if(option.compare(0, 6, "--runs") == 0){
-      fOptions.push_back(options[i + 1]);
-      std::string option (fOptions[i + 1].Data());
+    if(flag.CompareTo("--database", TString::kExact) == 0) fDBase = true;
+
+
+    if(flag.CompareTo("--runs", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
       index = option.find_first_of(":", 1);
       fMysqlRunLower = atoi(option.substr(index - 5, 5).c_str());
-      std::cout << "Index:\t" << index << std::endl;
-      //      fMysqlRunLower = atoi(option.substr(0, index).c_str());
+//       std::cout << "Index:\t" << index << std::endl;
+      //       fMysqlRunLower = atoi(optionr.substr(0, index).c_str());
       fMysqlRunUpper = atoi(option.substr(index + 1, 5).c_str());
       fRunRange = true;
+
     }
 
-    if(option.compare(0, 10, "--detector") == 0){
-      fOptions.push_back(options[i + 1]);
-      SetDetector(fOptions.back());
+    if(flag.CompareTo("--set-stem", TString::kExact) == 0){
+      flag.Clear();
+      std::cout << "Set: " << options[i+1] << std::endl;
+      SetSlopeCorrection(options[i+1]);
     }
-    i++;
+
+    if(flag.CompareTo("--detector", TString::kExact) == 0){
+      flag.Clear();
+      std::cout << "Detector: " << options[i+1] << std::endl;
+      SetDetector(options[i+1]);
+    }
+
+   i++;
   }
+
+  std::cout << "Finished getting options..." << std::endl;
 
   return;
 }
@@ -222,6 +239,11 @@ void QwDataContainer::SetDetector(TString detector)
   fDetector = detector;
 }
 
+void QwDataContainer::SetSlopeCorrection(TString set)
+{
+  fMysqlSlopeCorr = set;
+}
+
 void QwDataContainer::SetSlope(TString slope)
 {
   fMysqlSlope = slope;
@@ -250,12 +272,12 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("sens", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' md_slope_view.run_number > %i && md_slope_view.run_number < %i ", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' md_slope_view.run_number > %i && md_slope_view.run_number < %i ", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("sens_all", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id and md_slope_view.run_number > %i && md_slope_view.run_number < %i", fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number, md_slope_view.segment_number, value, error, slope, slow_controls_settings.slow_helicity_plate  from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && md_slope_view.run_number > %i && md_slope_view.run_number < %i; ", fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("corrected", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
@@ -281,9 +303,9 @@ TString QwDataContainer::BuildQuery(TString type)
 
   }
 
-  fMysqlQuery = SetBlackList(fMysqlQuery, type);
-
-  //  std::cout << "Query:\t" << fMysqlQuery << std::endl;
+//   fMysqlQuery = SetBlackList(fMysqlQuery, type);
+  
+  std::cout << "Query:\t" << fMysqlQuery << std::endl;
 
   return(fMysqlQuery);
 
@@ -353,12 +375,13 @@ void QwDataContainer::CalculateAverage()
 void QwDataContainer::FillDataVector(TString type)
 {
   Int_t mod = 0;
-  Int_t index = 0;
-  //  Int_t key[] = {2, 0, 1, 3, 4};
 
-  
-//   Double_t fConvFactor[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
-  Double_t fConvFactor[5] = {1.e6, 1.e6, 1., 1.e6, 1.};
+  Int_t index = 0;
+
+  Double_t fConvFactor[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
+
+  enum {run, segment, value, error, slope, ihwp};
+  enum {X, XP, E, Y, YP}; 
 
   std::cout << "Filling data vector" << std::endl;
 
@@ -368,11 +391,39 @@ void QwDataContainer::FillDataVector(TString type)
 	mod = 0;
 	index++;
 	}
-      fRunNumber[index] = dbase.result[i][0];
-      fSensitivity[mod][index] = fConvFactor[mod]*dbase.result[i][1];
-//       std::cout << "run#:\t"   << dbase.result[i][0] 
-// 		<< "\tsens:\t" << dbase.result[i][1] 
-// 		<< "\t" << mod << "\t" << i << std::endl;
+      fRunNumber[index] = (Double_t)dbase.result[i][run] + (Double_t)(0.01*dbase.result[i][segment]);
+      printf("Run Number: %03.3f   ", fRunNumber[index]);
+      std::string slopewrt(dbase.result[i][slope]);
+      if(slopewrt.compare("wrt_diff_targetX") == 0){
+	fSensitivity[X][index] = fConvFactor[X]*dbase.result[i][value];
+	fSensitivityError[X][index] = fConvFactor[X]*dbase.result[i][error];
+	std::cout << fSensitivity[X][index] << " " 
+		  << fSensitivityError[X][index] << std::endl;
+      }
+      if(slopewrt.compare("wrt_diff_targetXSlope") == 0){
+ 	fSensitivity[XP][index] = fConvFactor[XP]*dbase.result[i][value];
+ 	fSensitivityError[XP][index] = fConvFactor[XP]*dbase.result[i][error];
+	std::cout << fSensitivity[XP][index] << " " 
+		  << fSensitivityError[XP][index] << std::endl;
+      }
+      if(slopewrt.compare("wrt_diff_bpm3c12X") == 0){
+ 	fSensitivity[E][index] = fConvFactor[E]*dbase.result[i][value];
+ 	fSensitivityError[E][index] = fConvFactor[E]*dbase.result[i][error];
+	std::cout << fSensitivity[E][index] << " " 
+		  << fSensitivityError[E][index] << std::endl;
+      }
+      if(slopewrt.compare("wrt_diff_targetY") == 0){
+ 	fSensitivity[Y][index] = fConvFactor[Y]*dbase.result[i][value];
+ 	fSensitivityError[Y][index] = fConvFactor[Y]*dbase.result[i][error];
+	std::cout << fSensitivity[Y][index] << " " 
+		  << fSensitivityError[Y][index] << std::endl;
+      }
+      if(slopewrt.compare("wrt_diff_targetYSlope") == 0){
+ 	fSensitivity[YP][index] = fConvFactor[YP]*dbase.result[i][value];
+ 	fSensitivityError[YP][index] = fConvFactor[YP]*dbase.result[i][error];
+	std::cout << fSensitivity[YP][index] << " " 
+		  << fSensitivityError[YP][index] << std::endl;
+      }
       mod++;
     }
   }
@@ -382,7 +433,7 @@ void QwDataContainer::FillDataVector(TString type)
       fRunNumber[i] = dbase.result[i][0];
       fAsym[i] = dbase.result[i][1];
       fError[i] =dbase.result[i][2];
-     fNumberEntries[i] = dbase.result[i][3];
+      fNumberEntries[i] = dbase.result[i][3];
       fRMS[i] = fError[i]*TMath::Sqrt(fNumberEntries[i]);
     }
   }
@@ -446,12 +497,7 @@ void QwDataContainer::FillDataVector(TString type)
     std::cout << "Finished filling!" << std::endl;
     
     if(type.CompareTo("position", TString::kExact) == 0){
-
-
-
     }
-
-
   }
 }
 
@@ -459,8 +505,8 @@ void QwDataContainer::FillDataVector(Int_t mod_type)
 {
 
   for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
-    fRunNumber[i] = dbase.result[i][0];
-    fSensitivity[mod_type][i] = dbase.result[i][1];
+    fRunNumber[i] = (Double_t)dbase.result[i][0] + (Double_t)dbase.result[i][1];
+    fSensitivity[mod_type][i] = dbase.result[i][4];
   }
 }
 
@@ -479,11 +525,10 @@ void QwDataContainer::PlotDBSensitivities()
   SetDetector("qwk_mdallbars");
   SetIHWP("in");
   qtemp = BuildQuery("sens_all");
-
   query = qtemp.Data();
-
   ResizeDataElements( QueryDB(query)/fNumberMonitor );
   FillDataVector("sens_all");
+  std::cout << "Entering PlotSensitivites()" << std::endl;
   PlotSensitivities();
 
 }
@@ -608,6 +653,7 @@ void QwDataContainer::ResizeDataElements(Int_t size)
 
   for(Int_t i = 0; i < 5; i++){
     fSensitivity[i].ResizeTo(size);
+    fSensitivityError[i].ResizeTo(size);
     fCorrection[i].ResizeTo(size);
   }
   for(Int_t i = 0; i < 2; i++){
@@ -626,10 +672,8 @@ void QwDataContainer::ResizeDataElements(Int_t size)
 
 void QwDataContainer::PlotSensitivities()
 {
-
-  TF1 *line0 = new TF1("line0", "[0]", 0, 1);
-
   TCanvas *canvas0 = new TCanvas("canvas0", "canvas0", 1200, 800);
+  TF1 *line0 = new TF1("line0", "[0]", 0, 1);
 
   canvas0->Divide(3,2);
   canvas0->cd(1);
@@ -639,12 +683,11 @@ void QwDataContainer::PlotSensitivities()
 
   gStyle->SetOptFit(1110);
   
-  TGraphErrors *sensx = new TGraphErrors(fRunNumber, fSensitivity[var_x], fZero, fZero);
-
+  TGraphErrors *sensx = new TGraphErrors(fRunNumber, fSensitivity[var_x], fZero, fSensitivityError[var_x]);
   sensx->SetMarkerColor(4);
-  sensx->SetMarkerSize(0.8);
+  sensx->SetMarkerSize(0.6);
   sensx->SetMarkerStyle(21);
-  sensx->SetTitle("X Sensitivities versus Run");
+  sensx->SetTitle(Form("X Sensitivity vs Run:%s", fMysqlSlopeCorr.Data()));
   sensx->GetXaxis()->SetTitle("Run number ");
   sensx->GetYaxis()->SetTitle("Sensitivity (per mm)");
   sensx->GetXaxis()->SetLabelSize(0.02);
@@ -662,12 +705,12 @@ void QwDataContainer::PlotSensitivities()
   gPad->SetGridx();
   gPad->SetGridy();
 
-  TGraphErrors *sensxp = new TGraphErrors(fRunNumber, fSensitivity[var_xp], fZero, fZero);
+  TGraphErrors *sensxp = new TGraphErrors(fRunNumber, fSensitivity[var_xp], fZero, fSensitivityError[var_xp]);
 
   sensxp->SetMarkerColor(5);
-  sensxp->SetMarkerSize(0.8);
+  sensxp->SetMarkerSize(0.6);
   sensxp->SetMarkerStyle(21);
-  sensxp->SetTitle("XP Sensitivities versus Run");
+  sensxp->SetTitle(Form("XP Sensitivities vs Run:%s", fMysqlSlopeCorr.Data()));
   sensxp->GetXaxis()->SetTitle("Run number ");
   sensxp->GetYaxis()->SetTitle("Sensitivity (per urad)");
   sensxp->GetXaxis()->SetLabelSize(0.02);
@@ -685,12 +728,12 @@ void QwDataContainer::PlotSensitivities()
   gPad->SetGridx();
   gPad->SetGridy();
 
-  TGraphErrors *sense = new TGraphErrors(fRunNumber, 0.0041*fSensitivity[var_e], fZero, fZero);
+  TGraphErrors *sense = new TGraphErrors(fRunNumber, 0.0041*fSensitivity[var_e], fZero, 0.0041*fSensitivityError[var_e]);
 
   sense->SetMarkerColor(6);
-  sense->SetMarkerSize(0.8);
+  sense->SetMarkerSize(0.6);
   sense->SetMarkerStyle(21);
-  sense->SetTitle("E Sensitivities versus Run");
+  sense->SetTitle(Form("E Sensitivities vs Run:%s", fMysqlSlopeCorr.Data()));
   sense->GetXaxis()->SetTitle("Run number ");
   sense->GetYaxis()->SetTitle("Sensitivity (per mm)");
   sense->GetXaxis()->SetLabelSize(0.02);
@@ -699,7 +742,7 @@ void QwDataContainer::PlotSensitivities()
   sense->GetYaxis()->SetTitleSize(0.02);
   sense->GetXaxis()->SetTitleOffset(1.5);
   sense->GetYaxis()->SetTitleOffset(1.5);
-  //  ScaleTGraph(sense);
+  ScaleTGraph(sense);
   sense->GetYaxis()->SetRangeUser(-10., 0.);
   sense->Draw("AP");
   sense->Fit("line0", "");
@@ -709,12 +752,12 @@ void QwDataContainer::PlotSensitivities()
   gPad->SetGridx();
   gPad->SetGridy();
 
-  TGraphErrors *sensy = new TGraphErrors(fRunNumber, fSensitivity[var_y], fZero, fZero);
+  TGraphErrors *sensy = new TGraphErrors(fRunNumber, fSensitivity[var_y], fZero, fSensitivityError[var_y]);
 
   sensy->SetMarkerColor(7);
-  sensy->SetMarkerSize(0.8);
+  sensy->SetMarkerSize(0.6);
   sensy->SetMarkerStyle(21);
-  sensy->SetTitle("Y Sensitivities versus Run");
+  sensy->SetTitle(Form("Y Sensitivities vs Run:%s", fMysqlSlopeCorr.Data()));
   sensy->GetXaxis()->SetTitle("Run number ");
   sensy->GetYaxis()->SetTitle("Sensitivity (per mm)");
   sensy->GetXaxis()->SetLabelSize(0.02);
@@ -723,7 +766,7 @@ void QwDataContainer::PlotSensitivities()
   sensy->GetYaxis()->SetTitleSize(0.02);
   sensy->GetXaxis()->SetTitleOffset(1.5);
   sensy->GetYaxis()->SetTitleOffset(1.5);
-  //  ScaleTGraph(sensy);
+  ScaleTGraph(sensy);
   sensy->GetYaxis()->SetRangeUser(-3000., 3000.);
   sensy->Draw("AP");
   sensy->Fit("line0", "");
@@ -733,12 +776,12 @@ void QwDataContainer::PlotSensitivities()
   gPad->SetGridx();
   gPad->SetGridy();
 
-  TGraphErrors *sensyp = new TGraphErrors(fRunNumber, fSensitivity[var_yp], fZero, fZero);
+  TGraphErrors *sensyp = new TGraphErrors(fRunNumber, fSensitivity[var_yp], fZero, fSensitivityError[var_yp]);
 
   sensyp->SetMarkerColor(8);
-  sensyp->SetMarkerSize(0.8);
+  sensyp->SetMarkerSize(0.6);
   sensyp->SetMarkerStyle(21);
-  sensyp->SetTitle("YP Sensitivities versus Run");
+  sensyp->SetTitle(Form("YP Sensitivities vs Run:%s", fMysqlSlopeCorr.Data()));
   sensyp->GetXaxis()->SetTitle("Run number ");
   sensyp->GetYaxis()->SetTitle("Sensitivity (per urad)");
   sensyp->GetXaxis()->SetLabelSize(0.02);
@@ -747,12 +790,14 @@ void QwDataContainer::PlotSensitivities()
   sensyp->GetYaxis()->SetTitleSize(0.02);
   sensyp->GetXaxis()->SetTitleOffset(1.5);
   sensyp->GetYaxis()->SetTitleOffset(1.5);
-  //  ScaleTGraph(sensyp);
+  ScaleTGraph(sensyp);
   sensyp->GetYaxis()->SetRangeUser(-200., 200.);
   sensyp->Draw("AP");
   sensyp->Fit("line0", "");
 
-  canvas0->SaveAs(Form("%s_sensitivities.pdf", fDetector.Data()));
+  canvas0->SaveAs(Form("%s_sensitivities_%s.pdf", fDetector.Data(), fMysqlSlopeCorr.Data()));
+  canvas0->SaveAs(Form("%s_sensitivities_%s.C", fDetector.Data(), fMysqlSlopeCorr.Data()));
+  canvas0->SaveAs(Form("%s_sensitivities_%s.png", fDetector.Data(), fMysqlSlopeCorr.Data()));
 
   //  delete line0;
   //  delete canvas0;
