@@ -1,0 +1,38 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!  input file for decoding the helicity subsystem
+!!  Of note in this file:
+!!  HelicityDecodingMode : will tell which mode of decoding is in use
+!!  			 : for now it can be  InputRegisterMode, UserbitMode
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!INPUT REGISTER MODE!
+HelicityDecodingMode=InputRegisterMode
+
+
+!The size of pattern. toggle = 2, quartets = 4, octets = 8.
+PatternPhase=4
+!Helicity bit pattern (lowest bit = earliest window)
+PatternBits=0x69
+
+!seed size is either 24 bit or 30 bit. default is 30 bit
+!RandSeedBits=24
+RandSeedBits=30
+
+ROC=1
+Bank=0x0904
+
+!
+! module.type, module.num  chan.num, det.type, det.name
+!
+WORD, 0,  0, helicitydata,  input_register
+WORD, 0,  0, helicitydata,  output_register
+WORD, 0,  0, helicitydata,  MPS_counter
+WORD, 0,  0, helicitydata,  PAT_counter
+WORD, 0,  0, helicitydata,  PAT_phase
+SKIP 9
+WORD, 0,  0, helicitydata,  cleandata
+WORD, 0,  0, helicitydata,  scandata1
+WORD, 0,  0, helicitydata,  scandata2
+SKIP 1
+!END
+  
