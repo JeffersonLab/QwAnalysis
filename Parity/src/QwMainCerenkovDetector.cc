@@ -251,7 +251,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 	  //          localMainDetID.fWordInSubbank=wordsofar;
           if (modtype=="VQWK"){
 	    Int_t offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
-	    if (offset>0){
+	    if (offset>=0){
 	      localMainDetID.fWordInSubbank = wordsofar + offset;
 	    }
 	  }
@@ -808,6 +808,11 @@ void  QwMainCerenkovDetector::ProcessEvent()
  */
 void  QwMainCerenkovDetector::ExchangeProcessedData()
 {
+  //  HACK for the eeltest setup; 2012-12-12
+  //  return early so we don't to any of this
+  return;
+
+
   //QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData "<< QwLog::endl;
   bIsExchangedDataValid = kTRUE;
   if (bNormalization){
@@ -926,6 +931,11 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 
 void  QwMainCerenkovDetector::ProcessEvent_2()
 {
+  //  HACK for the eeltest setup; 2012-12-12
+  //  return early so we don't to any of this
+  return;
+
+
   if (bIsExchangedDataValid)
     {
       //data is valid, process it
