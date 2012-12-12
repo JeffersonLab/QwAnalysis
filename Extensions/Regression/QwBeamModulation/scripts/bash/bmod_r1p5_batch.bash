@@ -122,7 +122,7 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
   echo "$scriptPath/qwbeammod ${options} --phase-config ${scriptPath}/${config} --set-stem ${set}"
 
-  $scriptPath/qwbeammod ${options} --phase-config ${scriptPath}/${config} --set-stem ${set} #>> ${log}/qwbeammod${fseg}_${run_number}.out 2>&1
+  $scriptPath/qwbeammod ${options} --phase-config ${scriptPath}/${config} --set-stem ${set} >> ${log}/qwbeammod${fseg}_${run_number}.out 2>&1
   
   if [ $? -ne 0 ]; then
       echo "There was and error in the completion of qwbeammod"
@@ -154,14 +154,14 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
   $scriptPath/qwasymsplitter $libra_options --set-stem ${set} >> ${log}/qwasymsplitter${fseg}_${run_number}.out 2>&1
 
 
-#echo Upload data to DB
-#if [[ -n "$PERL5LIB" ]]; then
-#    export PERL5LIB=${scriptPath}/scripts/bash:${PERL5LIB}
-#else
-#    export PERL5LIB=${scriptPath}/scripts/bash
-#fi
-#echo ${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/scripts/bash/ ${REGRESSION}
+echo Upload data to DB
+if [[ -n "$PERL5LIB" ]]; then
+    export PERL5LIB=${scriptPath}/scripts/bash:${PERL5LIB}
+else
+    export PERL5LIB=${scriptPath}/scripts/bash
+fi
+echo ${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/scripts/bash/ ${REGRESSION}
 
-#${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath}/scripts/bash/ ${REGRESSION}
+${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf  ${scriptPath}/scripts/bash/ ${REGRESSION}
 
 done 
