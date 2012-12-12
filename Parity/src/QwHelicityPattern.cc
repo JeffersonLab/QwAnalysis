@@ -419,6 +419,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
       fYield.UpdateErrorFlag(fDifference);
     }
     fAsymmetry.Ratio(fDifference,fYield);
+    fAsymmetry.IncrementErrorCounters();
 
     /*
       With additional two asymmetry calculations
@@ -830,9 +831,8 @@ void QwHelicityPattern::FillDB(QwParityDB *db)
 
 void QwHelicityPattern::FillErrDB(QwParityDB *db)
 {
-  // fBlinder.FillDB(db,"");
-
-  fRunningAsymmetry.FillErrDB(db, "asymmetry");
+  fBlinder.FillErrDB(db,"");
+  fAsymmetry.FillErrDB(db, "");
   return;
 };
 

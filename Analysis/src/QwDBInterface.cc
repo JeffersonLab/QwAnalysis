@@ -184,5 +184,14 @@ QwErrDBInterface::TypedDBClone<QwParitySSQLS::beam_errors>() {
 };
 
 
+template<> QwParitySSQLS::general_errors
+QwErrDBInterface::TypedDBClone<QwParitySSQLS::general_errors>() {
+  QwParitySSQLS::general_errors row(0);
+  row.analysis_id         = fAnalysisId;
+  row.error_code_id       = fErrorCodeId;
+  row.n                   = fN;
+  return row;
+};
+
 
 
