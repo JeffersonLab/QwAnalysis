@@ -16,10 +16,8 @@ if [ $# -ne 7 ] ; then
    exit
 fi
 
-scriptPath=`dirname $0`
-
 # normal replay
-confDir="${scriptPath}/run2pass5"
+confDir="run2pass5"
 # post mortem 3h09b
 if [ $run -ge 14487 ] ; then
     # transverse md9neg saturation
@@ -28,34 +26,34 @@ if [ $run -ge 14487 ] ; then
     # #transverse md9neg/pos saturation
     # 16132-16137
     if [ $run -ge 16129 -a $run -le 16131 ] ; then
-        confDir="${scriptPath}/run2pass5_no_3h09b-md9neg"
+        confDir="run2pass5_no_3h09b-md9neg"
     elif [ $run -ge 16152 -a $run -le 16157 ] ; then
-        confDir="${scriptPath}/run2pass5_no_3h09b-md9neg"
+        confDir="run2pass5_no_3h09b-md9neg"
     elif [ $run -ge 16132 -a $run -le 16137 ] ; then
-        confDir="${scriptPath}/run2pass5_no_3h09b-md9negpos"
+        confDir="run2pass5_no_3h09b-md9negpos"
     else
-        confDir="${scriptPath}/run2pass5_no_3h09b"
+        confDir="run2pass5_no_3h09b"
     fi
 fi
 # post mortem uslumi5pos
 if [ $run -ge 17019 -a $run -le 18005 ] ; then
-    confDir="${scriptPath}/run2pass5_no_uslumi5pos"
+    confDir="run2pass5_no_uslumi5pos"
 fi
 
 if [ $run -ge 18006 -a $run -le 18030 ] ; then
-    confDir="${scriptPath}/run2pass5_18006-18030"
+    confDir="run2pass5_18006-18030"
 fi
 
 if [ $run -ge 18031 -a $run -le 18586 ] ; then
-    confDir="${scriptPath}/run2pass5_no_uslumi5pos"
+    confDir="run2pass5_no_uslumi5pos"
 fi
 
 if [ $run -ge 18587 -a $run -le 18675 ] ; then
-    confDir="${scriptPath}/run2pass5_18587-18675"
+    confDir="run2pass5_18587-18675"
 fi
 
 if [ $run -ge 18676 ] ; then
-    confDir="${scriptPath}/run2pass5_no_uslumi5pos"
+    confDir="run2pass5_no_uslumi5pos"
 fi
 
 echo $confDir
@@ -72,6 +70,9 @@ if [ ! -f ${confDir}/${confFile} ] ; then
    echo "Abandon this pass of linRegBlue."   
    exit
 fi
+
+
+
 
 if [ -d ${workPath} ] ; then
     echo '$1=="inpPath"{$2="'${workPath}\/${rootFileStem}'" ; print}; $1!="inpPath" {print}' > ${workPath}/tmp.awk
@@ -125,6 +126,8 @@ chgrp ${myown}  out
 chmod u+rw,g+rws out
 
 
+scriptPath=`dirname $0`
+
 #.......................................
 echo regPass5 started ...
 time ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve} >& ${logPath}/logS1
@@ -170,16 +173,16 @@ fi
 #.......................................
 echo Prepare data for DB upload
 
-root -b -q ${scriptPath}/prCsvRecordTwo.C'('${run}.${seg}',"out/")'
+root -b -q ${scriptPath}/../prCsvRecordTwo.C'('${run}.${seg}',"out/")'
 
 if [ $? -eq 0 ] ; then 
     echo Upload data to DB
     if [[ -n "$PERL5LIB" ]]; then
-	export PERL5LIB=${scriptPath}:${PERL5LIB}
+	export PERL5LIB=${scriptPath}/..:${PERL5LIB}
     else
-	export PERL5LIB=${scriptPath}
+	export PERL5LIB=${scriptPath}/..
     fi
-    ${scriptPath}/upload_linreg_data.pl -u qwreplay -n qweakdb -d ${dbName} ${set_option} -prf  ${scriptPath} out/blueR${run}.${seg}_DBrecord.txt
+    ${scriptPath}/../upload_linreg_data.pl -u qwreplay -n qweakdb -d ${dbName} ${set_option} -prf  ${scriptPath}/../. out/blueR${run}.${seg}_DBrecord.txt
 fi
 
 
