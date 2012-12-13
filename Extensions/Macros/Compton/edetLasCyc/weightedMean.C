@@ -3,7 +3,7 @@
 
 #include "comptonRunConstants.h"
 
-Double_t weightedMean(Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Float_t weightedMeanDrBkgdAsym[nPlanes][nStrips])
+Double_t weightedMean(Double_t weightedMeanNrAsym[nPlanes][nStrips],Double_t weightedMeanDrAsym[nPlanes][nStrips],Double_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Double_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Double_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Double_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Double_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Double_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Double_t weightedMeanDrBkgdAsym[nPlanes][nStrips])
 {
   Bool_t debug=0;
   for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington

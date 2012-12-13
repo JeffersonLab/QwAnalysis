@@ -8,20 +8,20 @@ const char *pPath = getenv("QWSCRATCH");
 const char *webDirectory= "www";
 TString filePrefix;
 //Asymmetry calculation constants 
-const Float_t pi=3.141592;
-const Float_t hbarc=0.197E-15;/// GeV.m
-const Float_t alpha=0.00729927; ///=1.0/137.0;
-const Float_t me=0.000511;///GeV
-const Float_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
-const Float_t B_dipole = 0.544;///T
-const Float_t E = 1.159; //Beam energy (GeV)
-const Float_t lambda = 532E-9; //photon wavelength (nm)      
-Float_t xCedge;
+const Double_t pi=3.141592;
+const Double_t hbarc=0.197E-15;/// GeV.m
+const Double_t alpha=0.00729927; ///=1.0/137.0;
+const Double_t me=0.000511;///GeV
+const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
+const Double_t B_dipole = 0.544;///T
+const Double_t E = 1.159; //Beam energy (GeV)
+const Double_t lambda = 532E-9; //photon wavelength (nm)      
+Double_t xCedge;
 Double_t param[4];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
 Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
-Float_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chosen by observing how it may vary
+Double_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chosen by observing how it may vary
                /*Ideally this ratio could be safely left >0.0, but due to some form of deadtime, 
 		*..I may have to be forgiving 
 		*Once I find a mechanism to fit the Cedge, I won't need to be nosy about this choice */
@@ -30,9 +30,9 @@ Float_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chose
 const Int_t nStrips = 64;//96;
 const Int_t nPlanes = 4;
 const Int_t nModules = 2;//number of slave boards
-const Float_t stripWidth = 2.0E-4;//(m) SI unit
-const Float_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
-//const Float_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
+const Double_t stripWidth = 2.0E-4;//(m) SI unit
+const Double_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
+//const Double_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
 //const Double_t chicaneBend = 10.131; ///(degree)
 const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
 const Int_t minEntries = 5000; //Laser must be (off) for at least this many consecutive entries to be considered (off)
@@ -67,8 +67,8 @@ const Int_t startPlane = 0;
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;
-Float_t k;
-Float_t gamma_my;
+Double_t k;
+Double_t gamma_my;
 
 Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
 Bool_t mask[nPlanes][nStrips];  
@@ -83,11 +83,11 @@ std::vector<Int_t>::iterator itStrip;
 Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;
 
 ///Declaration of regular variables to be used in the macro
-Float_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];//,stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
-Float_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];//,bkgdAsym_v2[nPlanes][nStrips],bkgdAsymEr_v2[nPlanes][nStrips];
-Float_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
-Float_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
-Float_t qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
+Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];//,stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
+Double_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];//,bkgdAsym_v2[nPlanes][nStrips],bkgdAsymEr_v2[nPlanes][nStrips];
+Double_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
+Double_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
+Double_t qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
 /* Double_t qNormScalerB1L1[nPlanes][nStrips],qNormScalerB1L0[nPlanes][nStrips]; */
 /* Double_t qNormAccumB1L1[nPlanes][nStrips],qNormAccumB1L0[nPlanes][nStrips]; */
 Double_t qNormCountsB1L0[nPlanes][nStrips],qNormCountsB1L1[nPlanes][nStrips];

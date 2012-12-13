@@ -12,10 +12,10 @@
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
- 
-Int_t expAsym(Int_t runnum)
+
+Int_t expAsym(Int_t runnum, TString dataType="Ac")
 {
-  cout<<"\nstarting into expAsym.C**************\n"<<endl;
+  cout<<"\nstarting into expAsym.C**************with dataType: "<<dataType<<"\n"<<endl;
   filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
@@ -30,67 +30,38 @@ Int_t expAsym(Int_t runnum)
 
   Int_t entry=0; ///integer assitant in reading entry from a file
   Int_t missedLasEntries=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
-  Int_t AcB1H0L1[nPlanes][nStrips],AcB1H1L1[nPlanes][nStrips];
-  Int_t AcB1H0L0[nPlanes][nStrips],AcB1H1L0[nPlanes][nStrips];
-  Int_t EvB1H0L1[nPlanes][nStrips],EvB1H1L1[nPlanes][nStrips];
-  Int_t EvB1H0L0[nPlanes][nStrips],EvB1H1L0[nPlanes][nStrips];
-  Int_t ScB1H0L1[nPlanes][nStrips],ScB1H1L1[nPlanes][nStrips];
-  Int_t ScB1H0L0[nPlanes][nStrips],ScB1H1L0[nPlanes][nStrips];
-  Double_t bRawEv[nPlanes][nStrips],bRawSc[nPlanes][nStrips],bRawAc[nPlanes][nStrips], bRawAc_v2[nPlanes][nStrips];
+  Int_t CountsB1H0L1[nPlanes][nStrips],CountsB1H1L1[nPlanes][nStrips];
+  Int_t CountsB1H0L0[nPlanes][nStrips],CountsB1H1L0[nPlanes][nStrips];
+  Double_t bRawCounts[nPlanes][nStrips];
 
   Double_t comptIH1L1=0.0, comptIH0L1=0.0,comptIH1L0=0.0,comptIH0L0=0.0;
   Double_t lasPow[3], helicity, bcm[3],bpm_3c20X[2];
   Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2];
   Double_t pattern_number, event_number;
 
-  Float_t wmEvNrAsym[nPlanes][nStrips],wmEvDrAsym[nPlanes][nStrips];
-  Float_t wmEvNrBkgdAsym[nPlanes][nStrips],wmEvDrBkgdAsym[nPlanes][nStrips];
-  Float_t wmEvNrBCqNormSum[nPlanes][nStrips],wmEvDrBCqNormSum[nPlanes][nStrips];
-  Float_t wmEvNrBCqNormDiff[nPlanes][nStrips];
-  Float_t wmEvNrqNormB1L0[nPlanes][nStrips],wmEvDrqNormB1L0[nPlanes][nStrips];
+  Double_t wmCountsNrAsym[nPlanes][nStrips],wmCountsDrAsym[nPlanes][nStrips];
+  Double_t wmCountsNrBkgdAsym[nPlanes][nStrips],wmCountsDrBkgdAsym[nPlanes][nStrips];
+  Double_t wmCountsNrBCqNormSum[nPlanes][nStrips],wmCountsDrBCqNormSum[nPlanes][nStrips];
+  Double_t wmCountsNrBCqNormDiff[nPlanes][nStrips];
+  Double_t wmCountsNrqNormB1L0[nPlanes][nStrips],wmCountsDrqNormB1L0[nPlanes][nStrips];
+  
+  Double_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips],qNormLasCycAsym[nPlanes][nStrips];
+  Double_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;
 
-  Float_t wmAcNrAsym[nPlanes][nStrips],wmAcDrAsym[nPlanes][nStrips];
-  Float_t wmAcNrBkgdAsym[nPlanes][nStrips],wmAcDrBkgdAsym[nPlanes][nStrips];
-  Float_t wmAcNrBCqNormSum[nPlanes][nStrips],wmAcDrBCqNormSum[nPlanes][nStrips];
-  Float_t wmAcNrBCqNormDiff[nPlanes][nStrips];
-  Float_t wmAcNrqNormB1L0[nPlanes][nStrips],wmAcDrqNormB1L0[nPlanes][nStrips];
-
-  Float_t wmAcNrAsym_v2[nPlanes][nStrips],wmAcDrAsym_v2[nPlanes][nStrips];
-  Float_t wmAcNrBkgdAsym_v2[nPlanes][nStrips],wmAcDrBkgdAsym_v2[nPlanes][nStrips];
-  Float_t wmAcNrBCqNormSum_v2[nPlanes][nStrips],wmAcDrBCqNormSum_v2[nPlanes][nStrips];
-  Float_t wmAcNrBCqNormDiff_v2[nPlanes][nStrips];
-  Float_t wmAcNrqNormB1L0_v2[nPlanes][nStrips],wmAcDrqNormB1L0_v2[nPlanes][nStrips];
-
-  Float_t wmScNrAsym[nPlanes][nStrips],wmScDrAsym[nPlanes][nStrips];
-  Float_t wmScNrBCqNormSum[nPlanes][nStrips],wmScDrBCqNormSum[nPlanes][nStrips];
-  Float_t wmScNrBCqNormDiff[nPlanes][nStrips],wmScNrqNormB1L0[nPlanes][nStrips];
-  Float_t wmScDrqNormB1L0[nPlanes][nStrips],wmScNrBkgdAsym[nPlanes][nStrips],wmScDrBkgdAsym[nPlanes][nStrips];
-
-  Float_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips],qNormLasCycAsym[nPlanes][nStrips];
-  Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;
-
-  Int_t AcB1H0L1_v2[nPlanes][nStrips],AcB1H1L1_v2[nPlanes][nStrips];
-  Int_t AcB1H0L0_v2[nPlanes][nStrips],AcB1H1L0_v2[nPlanes][nStrips];
-  Float_t LasCycAsymEr_v2[nPlanes][nStrips],LasCycAsymErSqr_v2[nPlanes][nStrips],qNormLasCycAsym_v2[nPlanes][nStrips];
-  Float_t stripAsymDr_v2[nPlanes][nStrips],stripAsymNr_v2[nPlanes][nStrips],qNormB1L0_v2[nPlanes][nStrips];
-  Float_t stripAsymDrEr_v2[nPlanes][nStrips],stripAsymNrEr_v2[nPlanes][nStrips],qNormB1L0Er_v2[nPlanes][nStrips];
-  Int_t totEvB1H1L1[nPlanes][nStrips],totEvB1H0L1[nPlanes][nStrips],totEvB1H1L0[nPlanes][nStrips],totEvB1H0L0[nPlanes][nStrips];
-  Int_t totAcB1H1L1[nPlanes][nStrips],totAcB1H0L1[nPlanes][nStrips],totAcB1H1L0[nPlanes][nStrips],totAcB1H0L0[nPlanes][nStrips];
-  Int_t totScB1H0L0[nPlanes][nStrips],totScB1H0L1[nPlanes][nStrips],totScB1H1L0[nPlanes][nStrips],totScB1H1L1[nPlanes][nStrips];
+  Int_t totCountsB1H1L1[nPlanes][nStrips],totCountsB1H0L1[nPlanes][nStrips],totCountsB1H1L0[nPlanes][nStrips],totCountsB1H0L0[nPlanes][nStrips];
 
   Double_t totIH1L1=0.0,totIH1L0=0.0,totIH0L1=0.0,totIH0L0=0.0;
   Int_t totMpsB1H1L1=0,totMpsB1H1L0=0,totMpsB1H0L1=0,totMpsB1H0L0=0;
 
-  TString readEntry,dataType;
+  TString readEntry;
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
   ofstream lasCycExpAsym,lasCycYield;
-  ofstream lasCycSc[nPlanes][nStrips],lasCycAc[nPlanes][nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
-  ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
+  ofstream lasCycCounts[nPlanes][nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
+  ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck;
   ifstream infileLas, infileBeam;
   ofstream outAsymLasCyc[nPlanes][nStrips];
-  ofstream outAsymScP;
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
   
   if(!maskSet) infoDAQ(runnum); //if the masks are not set yet, call the function to set it
@@ -98,56 +69,25 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = startPlane; p <endPlane; p++) {      	
     for(Int_t s =startStrip; s <endStrip; s++) {
       //if (!mask[p][s]) continue;    
-      wmAcNrAsym[p][s]=0.0,wmAcDrAsym[p][s]=0.0;
-      wmAcNrBkgdAsym[p][s]=0.0,wmAcDrBkgdAsym[p][s]=0.0;
+      wmCountsNrAsym[p][s]=0.0,wmCountsDrAsym[p][s]=0.0;
+      wmCountsNrBkgdAsym[p][s]=0.0,wmCountsDrBkgdAsym[p][s]=0.0;
  
       stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0;
       bkgdAsym[p][s]= 0.0,bkgdAsymEr[p][s]= 0.0;
 
-      wmAcNrBCqNormSum[p][s]=0.0,wmAcDrBCqNormSum[p][s]=0.0;
+      wmCountsNrBCqNormSum[p][s]=0.0,wmCountsDrBCqNormSum[p][s]=0.0;
       stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
 
-      wmAcNrBCqNormDiff[p][s]=0.0;
+      wmCountsNrBCqNormDiff[p][s]=0.0;
       stripAsymNr[p][s]=0.0,stripAsymNrEr[p][s]=0.0;
 
-      wmAcNrqNormB1L0[p][s]=0.0,wmAcDrqNormB1L0[p][s]=0.0;
+      wmCountsNrqNormB1L0[p][s]=0.0,wmCountsDrqNormB1L0[p][s]=0.0;
       qNormB1L0[p][s]=0.0,qNormB1L0Er[p][s]=0.0;
 
-      totEvB1H1L1[p][s]=0,totEvB1H0L1[p][s]=0,totEvB1H1L0[p][s]=0,totEvB1H0L0[p][s]=0;
-      totAcB1H1L1[p][s]=0,totAcB1H0L1[p][s]=0,totAcB1H1L0[p][s]=0,totAcB1H0L0[p][s]=0;
-      totScB1H0L0[p][s]=0,totScB1H0L1[p][s]=0,totScB1H1L0[p][s]=0,totScB1H1L1[p][s]=0;
+      totCountsB1H1L1[p][s]=0,totCountsB1H0L1[p][s]=0,totCountsB1H1L0[p][s]=0,totCountsB1H0L0[p][s]=0;
       qNormCountsB1L1[p][s]=0.0,qNormCountsB1L0[p][s]=0.0;
 
-      wmScNrAsym[p][s]=0.0,wmScDrAsym[p][s]=0.0;
-      wmScNrBkgdAsym[p][s]=0.0,wmScDrBkgdAsym[p][s]=0.0;
-      wmScNrqNormB1L0[p][s]=0.0;
-      wmScNrBCqNormSum[p][s]=0.0,wmScDrBCqNormSum[p][s]=0.0;
-      wmScNrBCqNormDiff[p][s]=0.0,wmScDrqNormB1L0[p][s]=0.0;
-
-      wmEvNrAsym[p][s]=0.0,wmEvDrAsym[p][s]=0.0;
-      wmEvNrBkgdAsym[p][s]=0.0,wmEvDrBkgdAsym[p][s]=0.0;
-      wmEvNrqNormB1L0[p][s]=0.0;
-      wmEvNrBCqNormSum[p][s]=0.0,wmEvDrBCqNormSum[p][s]=0.0;
-      wmEvNrBCqNormDiff[p][s]=0.0,wmEvDrqNormB1L0[p][s]=0.0;
-
       qNormLasCycAsym[p][s]=0.0,LasCycAsymErSqr[p][s]=0.0;
-    }
-  }
-  if(v2processed) {
-    for(Int_t p = startPlane; p <endPlane; p++) {      	
-      for(Int_t s =startStrip; s <endStrip; s++) {	
-	wmAcNrAsym_v2[p][s]=0.0,wmAcDrAsym_v2[p][s]=0.0;
-	wmAcNrBkgdAsym_v2[p][s]=0.0,wmAcDrBkgdAsym_v2[p][s]=0.0;
-	
-	wmAcNrBCqNormSum_v2[p][s]=0.0,wmAcDrBCqNormSum_v2[p][s]=0.0;
-	stripAsymDr_v2[p][s]=0.0,stripAsymDrEr_v2[p][s]=0.0;
-	
-	wmAcNrBCqNormDiff_v2[p][s]=0.0;//,wmAcDrBCqNormDiff_v2[p][s]=0.0;
-	stripAsymNr_v2[p][s]=0.0,stripAsymNrEr_v2[p][s]=0.0;
-	
-	wmAcNrqNormB1L0_v2[p][s]=0.0,wmAcDrqNormB1L0_v2[p][s]=0.0;
-	qNormB1L0_v2[p][s]=0.0,qNormB1L0Er_v2[p][s]=0.0;
-      }
     }
   }
 
@@ -180,7 +120,7 @@ Int_t expAsym(Int_t runnum)
       infileLas >> readEntry; //read the contents of the line in a string first
       if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
 	entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
-	if (debug) printf("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
+	if (debug) cout<<Form("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
 	cutLas.push_back(entry);
       }
     }
@@ -192,7 +132,7 @@ Int_t expAsym(Int_t runnum)
       infileBeam >> readEntry;
       if (readEntry.IsDigit()) {
 	entry = readEntry.Atoi();
-	if (debug) printf("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
+	if (debug) cout<<Form("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
 	cutEB.push_back(entry);
       }
     }
@@ -202,7 +142,7 @@ Int_t expAsym(Int_t runnum)
     cout << "****:Atleast one of the Cut files missing"<<endl;
     cout<<"       hence executing the cut function****"<<endl;
     Int_t nLasCycBeamTrips = getEBeamLasCuts(cutLas, cutEB, mpsChain,runnum);
-    if (debug) printf("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
+    if (debug) cout<<Form("nLasCycBeamTrips: %d\n",nLasCycBeamTrips);
     //nLasCycles = (cutLas.size())/2;
     nLasCycles = nLasCycBeamTrips%1000 - 1;//!?why is this superior than above
     ////first two digits of return value of getEBeamLasCuts
@@ -210,13 +150,12 @@ Int_t expAsym(Int_t runnum)
     ////fourth digit of return value of getEBeamLasCuts
   }
   
-  if (debug) printf("cutEB.size:%d,cutLas.size:%d\n",(Int_t)cutEB.size(),(Int_t)cutLas.size());
+  if (debug) cout<<Form("cutEB.size:%d,cutLas.size:%d\n",(Int_t)cutEB.size(),(Int_t)cutLas.size());
 
   Int_t nEntries = mpsChain->GetEntries();
-  printf("This chain has %i entries.\n", nEntries);
-
+  cout<<blue<<"This chain has "<<nEntries<<" entries"<<endl;
   cout<<"nbeamTrips="<<nBeamTrips<<endl;
-  cout<<"nLasCycles="<<nLasCycles<<endl;
+  cout<<"nLasCycles="<<nLasCycles<<normal<<endl;
   
   mpsChain->ResetBranchAddresses();//!? should it be here?
   mpsChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
@@ -233,9 +172,28 @@ Int_t expAsym(Int_t runnum)
   mpsChain->SetBranchStatus("sca_bpm_3p03aX",1);
   mpsChain->SetBranchStatus("sca_bpm_3c20Y",1);
   mpsChain->SetBranchStatus("sca_bpm_3c20X",1);
-  mpsChain->SetBranchStatus("p*RawEv",1);
-  mpsChain->SetBranchStatus("p*RawAc",1);
-  mpsChain->SetBranchStatus("p*RawV1495Scaler",1);
+  if (dataType == "Ev") {
+    mpsChain->SetBranchStatus("p*RawEv",1);
+    for(Int_t p = 0; p <nPlanes; p++) {      
+      mpsChain->SetBranchAddress(Form("p%dRawEv",p+1),&bRawCounts[p]);
+    }
+  } else if (dataType == "Sc") {
+    mpsChain->SetBranchStatus("p*RawV1495Scaler",1);
+    for(Int_t p = 0; p <nPlanes; p++) {      
+      mpsChain->SetBranchAddress(Form("p%dRawV1495Scaler",p+1),&bRawCounts[p]);
+    }
+  } else if(dataType == "AcV2") {
+    mpsChain->SetBranchStatus("p*RawAc_v2",1);//!there is ambiguity in this
+    for(Int_t p = 0; p <nPlanes; p++) {      
+      if(v2processed) mpsChain->SetBranchAddress(Form("p%dRawAc_v2",p+1),&bRawCounts[p]);
+      else cout<<blue<<"the v2processed flag is turned off"<<endl;
+    }
+  } else if(dataType == "Ac") {
+    mpsChain->SetBranchStatus("p*RawAc",1);
+    for(Int_t p = 0; p <nPlanes; p++) {      
+      mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawCounts[p]);
+    }//the branch for each plane is named from 1 to 4
+  } else cout<<red<<"dataType not defined clearly"<<normal<<endl;
 
   mpsChain->SetBranchAddress("event_number",&event_number);
   mpsChain->SetBranchAddress("pattern_number",&pattern_number);
@@ -250,14 +208,7 @@ Int_t expAsym(Int_t runnum)
   mpsChain->SetBranchAddress("sca_bpm_3p03aY",&bpm_3p03aY);
   mpsChain->SetBranchAddress("sca_bpm_3c20X",&bpm_3c20X);
 
-  if(v2processed) mpsChain->SetBranchStatus("p*RawAc_v2",1);
 
-  for(Int_t p = 0; p <nPlanes; p++) {      
-    mpsChain->SetBranchAddress(Form("p%dRawEv",p+1),&bRawEv[p]);
-    mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAc[p]);
-    mpsChain->SetBranchAddress(Form("p%dRawV1495Scaler",p+1),&bRawSc[p]);
-    if(v2processed) mpsChain->SetBranchAddress(Form("p%dRawAc_v2",p+1),&bRawAc_v2[p]);
-  }//the branch for each plane is named from 1 to 4
   
   ///I need to open the lasCyc dependent files separately here since at every nCycle I update this file with a new entry
   ///..it should be opened before I enter the nCycle loop, and close them after coming out of the nCycle loop.
@@ -269,12 +220,11 @@ Int_t expAsym(Int_t runnum)
       for(Int_t s =startStrip; s <endStrip; s++) {
 	if (!mask[p][s]) continue;    
 	///lasCyc based files go into a special folder named lasCyc
-	lasCycAc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAcP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	lasCycSc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAcP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+	lasCycCounts[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
 	///Lets open the files for writing asymmetries in the beamOn loop repeatedly
-  	outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+  	outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
       }
     }
     lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
@@ -297,14 +247,8 @@ Int_t expAsym(Int_t runnum)
     lasPowB1H1L1= 0.0, lasPowB1H0L0=0.0,lasPowB1H0L1= 0.0, lasPowB1H1L0=0.0;
     for(Int_t p = startPlane; p <nPlanes; p++) {      
       for(Int_t s = startStrip; s <endStrip; s++) {
-	EvB1H0L0[p][s] =0, EvB1H1L0[p][s] =0, EvB1H0L1[p][s] =0, EvB1H1L1[p][s] =0;
-	AcB1H0L0[p][s] =0, AcB1H1L0[p][s] =0, AcB1H0L1[p][s] =0, AcB1H1L1[p][s] =0;
-	ScB1H0L0[p][s] =0, ScB1H1L0[p][s] =0, ScB1H0L1[p][s] =0, ScB1H1L1[p][s] =0;
+	CountsB1H0L0[p][s] =0, CountsB1H1L0[p][s] =0, CountsB1H0L1[p][s] =0, CountsB1H1L1[p][s] =0;
  	LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0,qNormLasCycAsym[p][s]=0.0;
-	if(v2processed) {
-	  AcB1H0L0_v2[p][s] =0, AcB1H1L0_v2[p][s] =0, AcB1H0L1_v2[p][s] =0, AcB1H1L1_v2[p][s] =0;
-	  LasCycAsymEr_v2[p][s]= 0.0,LasCycAsymErSqr_v2[p][s]= 0.0,qNormLasCycAsym_v2[p][s]=0.0;
-	}
       }
     }
     // if(nCycle==17) {
@@ -357,10 +301,7 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      EvB1H0L0[p][s] += (Int_t)bRawEv[p][s];
-	      AcB1H0L0[p][s] += (Int_t)bRawAc[p][s];
-	      ScB1H0L0[p][s] += (Int_t)bRawSc[p][s];
-	      if(v2processed) AcB1H0L0_v2[p][s] += (Int_t)bRawAc_v2[p][s];
+	      CountsB1H0L0[p][s] += (Int_t)bRawCounts[p][s];
 	    }
 	  }
 	} else if (h ==0 && l==1) {////the elseif statement helps avoid overhead in each entry
@@ -370,10 +311,7 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      EvB1H0L1[p][s] += (Int_t)bRawEv[p][s];
-	      AcB1H0L1[p][s] += (Int_t)bRawAc[p][s];
-	      ScB1H0L1[p][s] += (Int_t)bRawSc[p][s];
-	      if(v2processed) AcB1H0L1_v2[p][s] += (Int_t)bRawAc_v2[p][s];
+	      CountsB1H0L1[p][s] += (Int_t)bRawCounts[p][s];
 	    }	  
 	  }
 	} else if (h ==1 && l==0) {
@@ -383,10 +321,7 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      EvB1H1L0[p][s] += (Int_t)bRawEv[p][s];
-	      AcB1H1L0[p][s] += (Int_t)bRawAc[p][s];
-	      ScB1H1L0[p][s] += (Int_t)bRawSc[p][s];
-	      if(v2processed) AcB1H1L0_v2[p][s] += (Int_t)bRawAc_v2[p][s];
+	      CountsB1H1L0[p][s] += (Int_t)bRawCounts[p][s];
 	    }
 	  }
 	} else if (h ==1 && l==1) {
@@ -396,10 +331,7 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      EvB1H1L1[p][s] += (Int_t)bRawEv[p][s];
-	      AcB1H1L1[p][s] += (Int_t)bRawAc[p][s];
-	      ScB1H1L1[p][s] += (Int_t)bRawSc[p][s];
-	      if(v2processed) AcB1H1L1_v2[p][s] += (Int_t)bRawAc_v2[p][s];
+	      CountsB1H1L1[p][s] += (Int_t)bRawCounts[p][s];
 	    }
 	  }
 	}
@@ -410,8 +342,8 @@ Int_t expAsym(Int_t runnum)
     //after having filled the above vectors based on laser and beam periods, find asymmetry for this laser cycle
     if (beamOn) {
       goodCycles++;
-      Float_t laserOnOffRatioH1 = (Float_t)nMpsB1H1L1/nMpsB1H1L0;
-      Float_t laserOnOffRatioH0 = (Float_t)nMpsB1H0L1/nMpsB1H0L0;
+      Double_t laserOnOffRatioH1 = (Double_t)nMpsB1H1L1/nMpsB1H1L0;
+      Double_t laserOnOffRatioH0 = (Double_t)nMpsB1H0L1/nMpsB1H0L0;
       totIH1L1 += comptIH1L1;
       totIH1L0 += comptIH1L0;
       totIH0L1 += comptIH0L1;
@@ -433,33 +365,22 @@ Int_t expAsym(Int_t runnum)
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s = startStrip; s < endStrip; s++) {
 	    if (!mask[p][s]) continue;
-	    totEvB1H1L1[p][s] += EvB1H1L1[p][s];
-	    totEvB1H1L0[p][s] += EvB1H1L0[p][s];
-	    totEvB1H0L1[p][s] += EvB1H0L1[p][s];
-	    totEvB1H0L0[p][s] += EvB1H0L0[p][s];
-	    totAcB1H1L1[p][s] += AcB1H1L1[p][s];
-	    totAcB1H1L0[p][s] += AcB1H1L0[p][s];
-	    totAcB1H0L1[p][s] += AcB1H0L1[p][s];
-	    totAcB1H0L0[p][s] += AcB1H0L0[p][s];
-	    totScB1H1L1[p][s] += ScB1H1L1[p][s];
-	    totScB1H1L0[p][s] += ScB1H1L0[p][s];
-	    totScB1H0L1[p][s] += ScB1H0L1[p][s];
-	    totScB1H0L0[p][s] += ScB1H0L0[p][s];
-	    if(debug1) printf("s:%d\t%d\t%d\t%d\t%d\n",s+1,EvB1H0L0[p][s],EvB1H0L1[p][s],EvB1H1L0[p][s],EvB1H1L1[p][s]);
+	    totCountsB1H1L1[p][s] += CountsB1H1L1[p][s];
+	    totCountsB1H1L0[p][s] += CountsB1H1L0[p][s];
+	    totCountsB1H0L1[p][s] += CountsB1H0L1[p][s];
+	    totCountsB1H0L0[p][s] += CountsB1H0L0[p][s];
+	    //if(debug1) printf("s:%d\t%d\t%d\t%d\t%d\n",s+1,CountsB1H0L0[p][s],CountsB1H0L1[p][s],CountsB1H1L0[p][s],CountsB1H1L1[p][s]);
  	  }
  	}
-	evaluateAsym(AcB1H1L1,AcB1H1L0,AcB1H0L1,AcB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym,wmAcDrAsym,wmAcNrBCqNormSum,wmAcDrBCqNormSum,wmAcNrBCqNormDiff,wmAcNrqNormB1L0,wmAcDrqNormB1L0,wmAcNrBkgdAsym,wmAcDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
-
-	///evaluating asymmetries corresponding to v2 accum data
-	if(v2processed) evaluateAsym(AcB1H1L1_v2,AcB1H1L0_v2,AcB1H0L1_v2,AcB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym_v2,wmAcDrAsym_v2,wmAcNrBCqNormSum_v2,wmAcDrBCqNormSum_v2,wmAcNrBCqNormDiff_v2,wmAcNrqNormB1L0_v2,wmAcDrqNormB1L0_v2,wmAcNrBkgdAsym_v2,wmAcDrBkgdAsym_v2,qNormLasCycAsym_v2,LasCycAsymErSqr_v2);
+	evaluateAsym(CountsB1H1L1,CountsB1H1L0,CountsB1H0L1,CountsB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmCountsNrAsym,wmCountsDrAsym,wmCountsNrBCqNormSum,wmCountsDrBCqNormSum,wmCountsNrBCqNormDiff,wmCountsNrqNormB1L0,wmCountsDrqNormB1L0,wmCountsNrBkgdAsym,wmCountsDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
 
 	if(lasCycPrint) {
 	  if(debug1) {
 	    cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
 	    cout<<"printing variables on a per-laser-cycle basis"<<endl;
 	    cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<" laserOnOffRatioH1: "<<laserOnOffRatioH1<<endl;
-	    printf("comptIH1L1: %f\t comptIH0L1: %f\t comptIH1L0: %f\t comptIH0L0: %f\n",comptIH1L1,comptIH0L1,comptIH1L0,comptIH0L0);
-	    printf("nMpsB1H1L1: %d\tnMpsB1H0L1: %d\tnMpsB1H1L0: %d\tnMpsB1H0L0: %d\n",nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0,nMpsB1H0L0);
+	    cout<<Form("comptIH1L1: %f\t comptIH0L1: %f\t comptIH1L0: %f\t comptIH0L0: %f",comptIH1L1,comptIH0L1,comptIH1L0,comptIH0L0)<<endl;
+	    cout<<Form("nMpsB1H1L1: %d\tnMpsB1H0L1: %d\tnMpsB1H1L0: %d\tnMpsB1H0L0: %d",nMpsB1H1L1,nMpsB1H0L1,nMpsB1H1L0,nMpsB1H0L0)<<endl;
 	  }
 	  if (!firstLineLasCyc) {
 	    lasCycBCM<<"\n";
@@ -470,35 +391,24 @@ Int_t expAsym(Int_t runnum)
 	    for (Int_t s =startStrip; s <endStrip;s++) {
 	      if (!mask[p][s]) continue;
 	      if(!firstlinelasPrint[p][s]) {
-		lasCycAc[p][s]<<"\n";
-		lasCycSc[p][s]<<"\n";
+		lasCycCounts[p][s]<<"\n";
 		outAsymLasCyc[p][s]<<"\n";
 	      }
 	      firstlinelasPrint[p][s] =kFALSE;
-	      if (lasCycAc[p][s].is_open() && lasCycSc[p][s].is_open()) {
-		lasCycAc[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
-					AcB1H0L0[p][s]/qLasCycH0L0,AcB1H0L1[p][s]/qLasCycH0L1,
-					AcB1H1L0[p][s]/qLasCycH1L0,AcB1H1L1[p][s]/qLasCycH1L1);
-		lasCycSc[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
-					 ScB1H0L0[p][s]/qLasCycH0L0,ScB1H0L1[p][s]/qLasCycH0L1,
-					 ScB1H1L0[p][s]/qLasCycH1L0,ScB1H1L1[p][s]/qLasCycH1L1);		
+	      if (lasCycCounts[p][s].is_open()) {
+		lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Double_t)nCycle+1,
+					CountsB1H0L0[p][s]/qLasCycH0L0,CountsB1H0L1[p][s]/qLasCycH0L1,
+					CountsB1H1L0[p][s]/qLasCycH1L0,CountsB1H1L1[p][s]/qLasCycH1L1);
 	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
 	      if (outAsymLasCyc[p][s].is_open()) {
-		outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Float_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
+		outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
 	      } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
 	    }
 	  }
-	  lasCycBCM<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,comptIH0L0/nMpsB1H0L0
+	  lasCycBCM<<Form("%2.0f\t%f\t%f\t%f\t%f",(Double_t)nCycle+1,comptIH0L0/nMpsB1H0L0
 			  ,comptIH0L1/nMpsB1H0L1,comptIH1L0/nMpsB1H1L0,comptIH1L1/nMpsB1H1L1);
-	  lasCycLasPow<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,lasPowB1H0L0/nMpsB1H0L0,lasPowB1H0L1/nMpsB1H0L1,lasPowB1H1L0/nMpsB1H1L0,lasPowB1H1L1/nMpsB1H1L1);
+	  lasCycLasPow<<Form("%2.0f\t%f\t%f\t%f\t%f",(Double_t)nCycle+1,lasPowB1H0L0/nMpsB1H0L0,lasPowB1H0L1/nMpsB1H0L1,lasPowB1H1L0/nMpsB1H1L0,lasPowB1H1L1/nMpsB1H1L1);
 	}
-
-	///evaluating asymmetries corresponding to scaler mode data
-	evaluateAsym(ScB1H1L1,ScB1H1L0,ScB1H0L1,ScB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmScNrAsym,wmScDrAsym,wmScNrBCqNormSum,wmScDrBCqNormSum,wmScNrBCqNormDiff,wmScNrqNormB1L0,wmScDrqNormB1L0,wmScNrBkgdAsym,wmScDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
-
-	///evaluating asymmetries corresponding to event mode data
-	evaluateAsym(EvB1H1L1,EvB1H1L0,EvB1H0L1,EvB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmEvNrAsym,wmEvDrAsym,wmEvNrBCqNormSum,wmEvDrBCqNormSum,wmEvNrBCqNormDiff,wmEvNrqNormB1L0,wmEvDrqNormB1L0,wmEvNrBkgdAsym,wmEvDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
-
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
     else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
@@ -507,39 +417,17 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = 0; p <nPlanes; p++) {      
     for(Int_t s =startStrip; s <endStrip; s++) {
       if (!mask[p][s]) continue;    
-      lasCycAc[p][s].close();
-      lasCycSc[p][s].close();
+      lasCycCounts[p][s].close();
       outAsymLasCyc[p][s].close();
     }
   }
   lasCycBCM.close();
   lasCycLasPow.close();
 
-  dataType = "Ev";
-  cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
-  weightedMean(wmEvNrAsym, wmEvDrAsym, wmEvNrBCqNormSum, wmEvDrBCqNormSum, wmEvNrBCqNormDiff, wmEvNrqNormB1L0, wmEvDrqNormB1L0, wmEvNrBkgdAsym, wmEvDrBkgdAsym);
-  qNormVariables(totEvB1H0L0,totEvB1H0L1,totEvB1H1L0,totEvB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
-  writeToFile(runnum,dataType);
+  cout<<red<<"the dataType is set to :"<<dataType<<normal<<endl;
   //notice that the variables to be written by the writeToFile command is updated after every call of weightedMean() function
-
-  dataType = "Ac";
-  cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
-  weightedMean(wmAcNrAsym, wmAcDrAsym, wmAcNrBCqNormSum, wmAcDrBCqNormSum, wmAcNrBCqNormDiff, wmAcNrqNormB1L0, wmAcDrqNormB1L0, wmAcNrBkgdAsym, wmAcDrBkgdAsym);
-  qNormVariables(totAcB1H0L0,totAcB1H0L1,totAcB1H1L0,totAcB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
-  writeToFile(runnum,dataType);
-
-  if (v2processed) {
-    dataType = "AcV2";
-    cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
-    weightedMean(wmAcNrAsym_v2, wmAcDrAsym_v2, wmAcNrBCqNormSum_v2, wmAcDrBCqNormSum_v2, wmAcNrBCqNormDiff_v2, wmAcNrqNormB1L0_v2, wmAcDrqNormB1L0_v2, wmAcNrBkgdAsym_v2, wmAcDrBkgdAsym_v2);
-    writeToFile(runnum,dataType);
-  } //if (v2processed)  
-  
-  ///evaluating asymmetry from scaler data
-  dataType = "Sc";
-  cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
-  weightedMean(wmScNrAsym, wmScDrAsym, wmScNrBCqNormSum, wmScDrBCqNormSum, wmScNrBCqNormDiff, wmScNrqNormB1L0, wmScDrqNormB1L0, wmScNrBkgdAsym, wmScDrBkgdAsym);
-  qNormVariables(totScB1H0L0,totScB1H0L1,totScB1H1L0,totScB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
+  weightedMean(wmCountsNrAsym, wmCountsDrAsym, wmCountsNrBCqNormSum, wmCountsDrBCqNormSum, wmCountsNrBCqNormDiff, wmCountsNrqNormB1L0, wmCountsDrqNormB1L0, wmCountsNrBkgdAsym, wmCountsDrBkgdAsym);
+  qNormVariables(totCountsB1H0L0,totCountsB1H0L1,totCountsB1H1L0,totCountsB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
   writeToFile(runnum,dataType);
 
   //!!this currently would not work if the Cedge changes between planes
@@ -579,7 +467,7 @@ Int_t expAsym(Int_t runnum)
 * While rejecting an event due to Laser/Beam, reject the entire quartet
 * If I figure out a way to normalize by laserPower then I can relax 
 *..the condition of laserPower being 90% of maximum for the laser entries to be accepted.
-* plot qNormAcB1H1L0LasCyc and qNormAcB1H0L0LasCyc against
+* plot qNormAcB1H1L0LasCyc and qNormCountsB1H0L0LasCyc against
 *..strip numbers to watch the helicity correlated beam-background
 * evaluate asymmetry per pattern_number and see its behaviour
 * ensure efficient evaluation of beamtrips

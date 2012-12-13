@@ -86,7 +86,7 @@ void asymFit(Int_t runnum,TString dataType="Ac")
   TLine *myline = new TLine(1,0,65,0);
   TF1 *polFit,*linearFit;
   Double_t qNormScBkgdSubSigB1[nPlanes][nStrips];
-  std::vector<std::vector <Float_t> > activeStrip,qNormScB1L1,qNormScB1L0;
+  std::vector<std::vector <Double_t> > activeStrip,qNormScB1L1,qNormScB1L0;
   Int_t numbGoodStrips[nPlanes]={0};
 
   if(dataType == "Sc") qNormBkgdSubSigToBkgdRatioLow=1.25;
@@ -123,7 +123,7 @@ void asymFit(Int_t runnum,TString dataType="Ac")
     for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
       if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=5.0 
 	trueEdge = 1;
-	Float_t probableEdge = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
+	Double_t probableEdge = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
 	cout<<"probable Cedge : "<<probableEdge<<endl;
 	Int_t leftStrips = numbGoodStrips[p] - (Int_t)probableEdge;
 	for(Int_t st =1; st <=leftStrips;st++) {///starting to check next strip onwards
@@ -145,8 +145,8 @@ void asymFit(Int_t runnum,TString dataType="Ac")
   cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300*endPlane);
   cAsym->Divide(1,endPlane); 
 
-  Float_t stripNum[nPlanes][nStrips], fitResidue[nPlanes][nStrips];
-  Float_t zero[nStrips];
+  Double_t stripNum[nPlanes][nStrips], fitResidue[nPlanes][nStrips];
+  Double_t zero[nStrips];
 
   polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePrefix.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane"<<endl;
@@ -214,10 +214,10 @@ void asymFit(Int_t runnum,TString dataType="Ac")
     NDF[p] = polFit->GetNDF();
 
     if(debug) cout<<"\nwrote the polarization relevant values to file "<<endl;
-    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
+    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n",(Double_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
     if(debug) {
       cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStripWidth effStripWidthEr plane");
-      cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Float_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);      
+      cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Double_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);      
     }
     leg[p] = new TLegend(0.101,0.75,0.43,0.9);
     leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","lpe");///I just need the name
