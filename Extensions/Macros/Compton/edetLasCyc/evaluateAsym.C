@@ -2,10 +2,10 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 
-void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nPlanes][nStrips],Int_t newAccumB1H0L1[nPlanes][nStrips],Int_t newAccumB1H0L0[nPlanes][nStrips],Float_t bcmLasCycH1L1,Float_t bcmLasCycH1L0,Float_t bcmLasCycH0L1,Float_t bcmLasCycH0L0,Float_t weightedMeanNrAsym[nPlanes][nStrips],Float_t weightedMeanDrAsym[nPlanes][nStrips],Float_t weightedMeanNrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanDrBCqNormSum[nPlanes][nStrips],Float_t weightedMeanNrBCqNormDiff[nPlanes][nStrips],Float_t weightedMeanNrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanDrqNormB1L0[nPlanes][nStrips],Float_t weightedMeanNrBkgdAsym[nPlanes][nStrips],Float_t weightedMeanDrBkgdAsym[nPlanes][nStrips],Float_t qNormLasCycAsym[nPlanes][nStrips],Float_t LasCycAsymErSqr[nPlanes][nStrips])
+void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nPlanes][nStrips],Int_t newAccumB1H0L1[nPlanes][nStrips],Int_t newAccumB1H0L0[nPlanes][nStrips],Float_t bcmLasCycH1L1,Float_t bcmLasCycH1L0,Float_t bcmLasCycH0L1,Float_t bcmLasCycH0L0,Float_t wmNrAsym[nPlanes][nStrips],Float_t wmDrAsym[nPlanes][nStrips],Float_t wmNrBCqNormSum[nPlanes][nStrips],Float_t wmDrBCqNormSum[nPlanes][nStrips],Float_t wmNrBCqNormDiff[nPlanes][nStrips],Float_t wmNrqNormB1L0[nPlanes][nStrips],Float_t wmDrqNormB1L0[nPlanes][nStrips],Float_t wmNrBkgdAsym[nPlanes][nStrips],Float_t wmDrBkgdAsym[nPlanes][nStrips],Float_t qNormLasCycAsym[nPlanes][nStrips],Float_t LasCycAsymErSqr[nPlanes][nStrips])
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
-  const Bool_t debug=0;
+  const Bool_t debug=0,debug1=1;
 //   Int_t tLasOn = nMpsB1H1L1 + nMpsB1H0L1;
 //   Int_t tLasOff= nMpsB1H1L0 + nMpsB1H0L0;
 
@@ -57,16 +57,15 @@ void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nP
       Float_t bkgdAsymErSqr = errBkgdAsymH1 + errBkgdAsymH0;
       
 
-      if (debug) {
-	printf("***qNormLasCycAsym[p][s][%d][%d]= %g +/- %g)\n",p,s,qNormLasCycAsym[p][s],LasCycAsymErSqr[p][s]);
-	printf("*********formed by normalized BC (%g -/+ %g) \n", BCqNormLasCycDiff,BCqNormLasCycSum);
-	//printf("newAccumB1H1L1[%d][%d]: %f\tnewAccumB1H0L1: %f\tnewAccumB1H1L0: %f\tnewAccumB1H0L0: %f\n",
-	//      p,s,newAccumB1H1L1[p][s],newAccumB1H0L1[p][s],newAccumB1H1L0[p][s],newAccumB1H0L0[p][s]);
+      if (debug1) {
+	//printf("***qNormLasCycAsym[p][s][%d][%d]= %g +/- %g)\n",p,s,qNormLasCycAsym[p][s],LasCycAsymErSqr[p][s]);
+	//printf("*********formed by normalized BC (%g -/+ %g) \n", BCqNormLasCycDiff,BCqNormLasCycSum);
+	//printf("counts[%d][%d]: %d\t%d\t%d\t%d\n",p,s,newAccumB1H1L1[p][s],newAccumB1H1L0[p][s],newAccumB1H0L1[p][s],newAccumB1H0L0[p][s]);
       }
       if (LasCycAsymErSqr[p][s] >0.0) {///eqn 4.17(Bevington)
-	weightedMeanNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
-	weightedMeanDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator 
-	if (debug) printf("*****adding %g(1/asymSq) to weightedMeanDrAsym making it: %f\n",1.0/LasCycAsymErSqr[p][s],weightedMeanDrAsym[p][s]);
+	wmNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
+	wmDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator 
+	if (debug) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/LasCycAsymErSqr[p][s],wmDrAsym[p][s]);
       } else {
 	cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? It gives non-positive Asym Er"<<endl;
 	printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);
@@ -80,9 +79,9 @@ void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nP
 
       ///addition of bkgdAsym term over various laser cycles
       if (bkgdAsymErSqr > 0.0) {///eqn 4.17(Bevington)
-	weightedMeanNrBkgdAsym[p][s] += qNormAcBkgdAsym/bkgdAsymErSqr; ///Numerator 
-	weightedMeanDrBkgdAsym[p][s] += 1.0/bkgdAsymErSqr; ///Denominator 
-	if (debug) printf("*****adding %g(1/bkgdAsymSq) to weightedMeanDrBkgdAsym making it: %f\n",1.0/bkgdAsymErSqr,weightedMeanDrBkgdAsym[p][s]);
+	wmNrBkgdAsym[p][s] += qNormAcBkgdAsym/bkgdAsymErSqr; ///Numerator 
+	wmDrBkgdAsym[p][s] += 1.0/bkgdAsymErSqr; ///Denominator 
+	if (debug) printf("*****adding %g(1/bkgdAsymSq) to wmDrBkgdAsym making it: %f\n",1.0/bkgdAsymErSqr,wmDrBkgdAsym[p][s]);
       } else {
 	cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? the bkgdAsymEr is non-positive"<<endl;
 	printf("errBkgdAsymH1:%f, errBkgdAsymH1:%f\n",errBkgdAsymH1,errBkgdAsymH0);
@@ -90,14 +89,14 @@ void evaluateAsym(Int_t newAccumB1H1L1[nPlanes][nStrips],Int_t newAccumB1H1L0[nP
 
 
       if (erBCqNormLasCycSumSq >0.0) {
-	weightedMeanNrBCqNormSum[p][s] += BCqNormLasCycSum/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
-	weightedMeanDrBCqNormSum[p][s] += 1.0/erBCqNormLasCycSumSq; ///Denominator eqn 4.17(Bevington)
+	wmNrBCqNormSum[p][s] += BCqNormLasCycSum/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
+	wmDrBCqNormSum[p][s] += 1.0/erBCqNormLasCycSumSq; ///Denominator eqn 4.17(Bevington)
 	///The error for the difference and sum are same, hence reusing the variable
-	weightedMeanNrBCqNormDiff[p][s] += BCqNormLasCycDiff/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
-	//weightedMeanDrBCqNormDiff[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
-	weightedMeanNrqNormB1L0[p][s] += qNormAcBkgdAsymDr/erqNormB1L0LasCycSq; //refer bevington
-	weightedMeanDrqNormB1L0[p][s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
-      } else if(debug) {
+	wmNrBCqNormDiff[p][s] += BCqNormLasCycDiff/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
+	//wmDrBCqNormDiff[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
+	wmNrqNormB1L0[p][s] += qNormAcBkgdAsymDr/erqNormB1L0LasCycSq; //refer bevington
+	wmDrqNormB1L0[p][s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
+      } else {
 	printf("**Alert: getting non-positive erBCqNormLasCycSumSq for plane:%d, strip:%d in line:%d\n",p+1,s+1,__LINE__);
 	printf("newAccumB1H1L1:%d, bcmLasCycH1L1:%g\n",newAccumB1H1L1[p][s],bcmLasCycH1L1);
 	printf("NplusOn_SqQplusOn:%g, NminusOn_SqQminusOn:%g, NplusOff_SqQplusOff:%g, NminusOff_SqQminusOff:%g,\n"

@@ -37,7 +37,7 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
   for (Int_t r=run1; r<=run2; r++) {
     Double_t absPol[nPlanes],pol[nPlanes]={0.0},polEr[nPlanes]={0.0},chiSq[nPlanes],comptEdge[nPlanes],comptEdgeEr[nPlanes],effStrip[nPlanes],effStripEr[nPlanes];
     Int_t plane[nPlanes],NDF[nPlanes],runnum[nPlanes]; 
-    TString filePrefix= Form("run_%d/edetLasCyc_%d_",r,r);
+    filePrefix= Form("run_%d/edetLasCyc_%d_",r,r);
     poltext.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
     if(poltext.is_open()) {
       if(debug) cout<<"opened file "<<Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data())<<endl;

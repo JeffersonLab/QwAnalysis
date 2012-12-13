@@ -30,48 +30,63 @@ Int_t expAsym(Int_t runnum)
 
   Int_t entry=0; ///integer assitant in reading entry from a file
   Int_t missedLasEntries=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
-  Int_t AccumB1H0L1[nPlanes][nStrips],AccumB1H1L1[nPlanes][nStrips];
-  Int_t AccumB1H0L0[nPlanes][nStrips],AccumB1H1L0[nPlanes][nStrips];
-  //   Int_t EventB1H0L1[nPlanes][nStrips],EventB1H1L1[nPlanes][nStrips];
-  //   Int_t EventB1H0L0[nPlanes][nStrips],EventB1H1L0[nPlanes][nStrips];
-  Int_t ScalerB1H0L1[nPlanes][nStrips],ScalerB1H1L1[nPlanes][nStrips];
-  Int_t ScalerB1H0L0[nPlanes][nStrips],ScalerB1H1L0[nPlanes][nStrips];
-  Int_t totScalerB1H0L0[nPlanes][nStrips],totScalerB1H0L1[nPlanes][nStrips],totScalerB1H1L0[nPlanes][nStrips],totScalerB1H1L1[nPlanes][nStrips];
-  Double_t bRawScaler[nPlanes][nStrips];
+  Int_t AcB1H0L1[nPlanes][nStrips],AcB1H1L1[nPlanes][nStrips];
+  Int_t AcB1H0L0[nPlanes][nStrips],AcB1H1L0[nPlanes][nStrips];
+  Int_t EvB1H0L1[nPlanes][nStrips],EvB1H1L1[nPlanes][nStrips];
+  Int_t EvB1H0L0[nPlanes][nStrips],EvB1H1L0[nPlanes][nStrips];
+  Int_t ScB1H0L1[nPlanes][nStrips],ScB1H1L1[nPlanes][nStrips];
+  Int_t ScB1H0L0[nPlanes][nStrips],ScB1H1L0[nPlanes][nStrips];
+  Double_t bRawEv[nPlanes][nStrips],bRawSc[nPlanes][nStrips],bRawAc[nPlanes][nStrips], bRawAc_v2[nPlanes][nStrips];
+
   Double_t comptIH1L1=0.0, comptIH0L1=0.0,comptIH1L0=0.0,comptIH0L0=0.0;
   Double_t lasPow[3], helicity, bcm[3],bpm_3c20X[2];
   Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2];
   Double_t pattern_number, event_number;
-  Double_t bRawAccum[nPlanes][nStrips], bRawAccum_v2[nPlanes][nStrips];
+
+  Float_t wmEvNrAsym[nPlanes][nStrips],wmEvDrAsym[nPlanes][nStrips];
+  Float_t wmEvNrBkgdAsym[nPlanes][nStrips],wmEvDrBkgdAsym[nPlanes][nStrips];
+  Float_t wmEvNrBCqNormSum[nPlanes][nStrips],wmEvDrBCqNormSum[nPlanes][nStrips];
+  Float_t wmEvNrBCqNormDiff[nPlanes][nStrips];
+  Float_t wmEvNrqNormB1L0[nPlanes][nStrips],wmEvDrqNormB1L0[nPlanes][nStrips];
+
   Float_t wmAcNrAsym[nPlanes][nStrips],wmAcDrAsym[nPlanes][nStrips];
-  Float_t wmAcNrAsym_v2[nPlanes][nStrips],wmAcDrAsym_v2[nPlanes][nStrips];
   Float_t wmAcNrBkgdAsym[nPlanes][nStrips],wmAcDrBkgdAsym[nPlanes][nStrips];
-  Float_t wmAcNrBkgdAsym_v2[nPlanes][nStrips],wmAcDrBkgdAsym_v2[nPlanes][nStrips];
   Float_t wmAcNrBCqNormSum[nPlanes][nStrips],wmAcDrBCqNormSum[nPlanes][nStrips];
-  Float_t wmAcNrBCqNormSum_v2[nPlanes][nStrips],wmAcDrBCqNormSum_v2[nPlanes][nStrips],wmAcNrBCqNormDiff_v2[nPlanes][nStrips];
-  Float_t wmAcNrBCqNormDiff[nPlanes][nStrips],wmAcDrBCqNormDiff[nPlanes][nStrips];
+  Float_t wmAcNrBCqNormDiff[nPlanes][nStrips];
   Float_t wmAcNrqNormB1L0[nPlanes][nStrips],wmAcDrqNormB1L0[nPlanes][nStrips];
-  Float_t wmAcNrqNormB1L0_v2[nPlanes][nStrips],wmAcDrqNormB1L0_v2[nPlanes][nStrips],wmAcDrBCqNormDiff_v2[nPlanes][nStrips];
+
+  Float_t wmAcNrAsym_v2[nPlanes][nStrips],wmAcDrAsym_v2[nPlanes][nStrips];
+  Float_t wmAcNrBkgdAsym_v2[nPlanes][nStrips],wmAcDrBkgdAsym_v2[nPlanes][nStrips];
+  Float_t wmAcNrBCqNormSum_v2[nPlanes][nStrips],wmAcDrBCqNormSum_v2[nPlanes][nStrips];
+  Float_t wmAcNrBCqNormDiff_v2[nPlanes][nStrips];
+  Float_t wmAcNrqNormB1L0_v2[nPlanes][nStrips],wmAcDrqNormB1L0_v2[nPlanes][nStrips];
+
+  Float_t wmScNrAsym[nPlanes][nStrips],wmScDrAsym[nPlanes][nStrips];
+  Float_t wmScNrBCqNormSum[nPlanes][nStrips],wmScDrBCqNormSum[nPlanes][nStrips];
+  Float_t wmScNrBCqNormDiff[nPlanes][nStrips],wmScNrqNormB1L0[nPlanes][nStrips];
+  Float_t wmScDrqNormB1L0[nPlanes][nStrips],wmScNrBkgdAsym[nPlanes][nStrips],wmScDrBkgdAsym[nPlanes][nStrips];
 
   Float_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips],qNormLasCycAsym[nPlanes][nStrips];
   Float_t lasPowB1H0L0,lasPowB1H1L0,lasPowB1H0L1,lasPowB1H1L1;
 
-  Int_t AccumB1H0L1_v2[nPlanes][nStrips],AccumB1H1L1_v2[nPlanes][nStrips];
-  Int_t AccumB1H0L0_v2[nPlanes][nStrips],AccumB1H1L0_v2[nPlanes][nStrips];
+  Int_t AcB1H0L1_v2[nPlanes][nStrips],AcB1H1L1_v2[nPlanes][nStrips];
+  Int_t AcB1H0L0_v2[nPlanes][nStrips],AcB1H1L0_v2[nPlanes][nStrips];
   Float_t LasCycAsymEr_v2[nPlanes][nStrips],LasCycAsymErSqr_v2[nPlanes][nStrips],qNormLasCycAsym_v2[nPlanes][nStrips];
   Float_t stripAsymDr_v2[nPlanes][nStrips],stripAsymNr_v2[nPlanes][nStrips],qNormB1L0_v2[nPlanes][nStrips];
   Float_t stripAsymDrEr_v2[nPlanes][nStrips],stripAsymNrEr_v2[nPlanes][nStrips],qNormB1L0Er_v2[nPlanes][nStrips];
-  Int_t totAccumB1H1L1[nPlanes][nStrips],totAccumB1H0L1[nPlanes][nStrips],totAccumB1H1L0[nPlanes][nStrips],totAccumB1H0L0[nPlanes][nStrips];//!for comparision for fortran tables
+  Int_t totEvB1H1L1[nPlanes][nStrips],totEvB1H0L1[nPlanes][nStrips],totEvB1H1L0[nPlanes][nStrips],totEvB1H0L0[nPlanes][nStrips];
+  Int_t totAcB1H1L1[nPlanes][nStrips],totAcB1H0L1[nPlanes][nStrips],totAcB1H1L0[nPlanes][nStrips],totAcB1H0L0[nPlanes][nStrips];
+  Int_t totScB1H0L0[nPlanes][nStrips],totScB1H0L1[nPlanes][nStrips],totScB1H1L0[nPlanes][nStrips],totScB1H1L1[nPlanes][nStrips];
+
   Double_t totIH1L1=0.0,totIH1L0=0.0,totIH0L1=0.0,totIH0L0=0.0;
   Int_t totMpsB1H1L1=0,totMpsB1H1L0=0,totMpsB1H0L1=0,totMpsB1H0L0=0;
-  Float_t wmScNrAsym[nPlanes][nStrips],wmScDrAsym[nPlanes][nStrips],wmScNrBCqNormSum[nPlanes][nStrips],wmScDrBCqNormSum[nPlanes][nStrips],wmScNrBCqNormDiff[nPlanes][nStrips],wmScNrqNormB1L0[nPlanes][nStrips],wmScDrqNormB1L0[nPlanes][nStrips],wmScNrBkgdAsym[nPlanes][nStrips],wmScDrBkgdAsym[nPlanes][nStrips];
 
   TString readEntry,dataType;
   TChain *mpsChain = new TChain("Mps_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
   ofstream lasCycExpAsym,lasCycYield;
-  ofstream lasCycScaler[nPlanes][nStrips],lasCycAccum[nPlanes][nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
+  ofstream lasCycSc[nPlanes][nStrips],lasCycAc[nPlanes][nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
   ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler;
   ifstream infileLas, infileBeam;
   ofstream outAsymLasCyc[nPlanes][nStrips];
@@ -92,15 +107,30 @@ Int_t expAsym(Int_t runnum)
       wmAcNrBCqNormSum[p][s]=0.0,wmAcDrBCqNormSum[p][s]=0.0;
       stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
 
-      wmAcNrBCqNormDiff[p][s]=0.0,wmAcDrBCqNormDiff[p][s]=0.0;
+      wmAcNrBCqNormDiff[p][s]=0.0;
       stripAsymNr[p][s]=0.0,stripAsymNrEr[p][s]=0.0;
 
       wmAcNrqNormB1L0[p][s]=0.0,wmAcDrqNormB1L0[p][s]=0.0;
       qNormB1L0[p][s]=0.0,qNormB1L0Er[p][s]=0.0;
 
-      totAccumB1H1L1[p][s]=0,totAccumB1H0L1[p][s]=0,totAccumB1H1L0[p][s]=0,totAccumB1H0L0[p][s]=0;
-      totScalerB1H0L0[p][s]=0,totScalerB1H0L1[p][s]=0,totScalerB1H1L0[p][s]=0,totScalerB1H1L1[p][s]=0;
+      totEvB1H1L1[p][s]=0,totEvB1H0L1[p][s]=0,totEvB1H1L0[p][s]=0,totEvB1H0L0[p][s]=0;
+      totAcB1H1L1[p][s]=0,totAcB1H0L1[p][s]=0,totAcB1H1L0[p][s]=0,totAcB1H0L0[p][s]=0;
+      totScB1H0L0[p][s]=0,totScB1H0L1[p][s]=0,totScB1H1L0[p][s]=0,totScB1H1L1[p][s]=0;
       qNormCountsB1L1[p][s]=0.0,qNormCountsB1L0[p][s]=0.0;
+
+      wmScNrAsym[p][s]=0.0,wmScDrAsym[p][s]=0.0;
+      wmScNrBkgdAsym[p][s]=0.0,wmScDrBkgdAsym[p][s]=0.0;
+      wmScNrqNormB1L0[p][s]=0.0;
+      wmScNrBCqNormSum[p][s]=0.0,wmScDrBCqNormSum[p][s]=0.0;
+      wmScNrBCqNormDiff[p][s]=0.0,wmScDrqNormB1L0[p][s]=0.0;
+
+      wmEvNrAsym[p][s]=0.0,wmEvDrAsym[p][s]=0.0;
+      wmEvNrBkgdAsym[p][s]=0.0,wmEvDrBkgdAsym[p][s]=0.0;
+      wmEvNrqNormB1L0[p][s]=0.0;
+      wmEvNrBCqNormSum[p][s]=0.0,wmEvDrBCqNormSum[p][s]=0.0;
+      wmEvNrBCqNormDiff[p][s]=0.0,wmEvDrqNormB1L0[p][s]=0.0;
+
+      qNormLasCycAsym[p][s]=0.0,LasCycAsymErSqr[p][s]=0.0;
     }
   }
   if(v2processed) {
@@ -112,7 +142,7 @@ Int_t expAsym(Int_t runnum)
 	wmAcNrBCqNormSum_v2[p][s]=0.0,wmAcDrBCqNormSum_v2[p][s]=0.0;
 	stripAsymDr_v2[p][s]=0.0,stripAsymDrEr_v2[p][s]=0.0;
 	
-	wmAcNrBCqNormDiff_v2[p][s]=0.0,wmAcDrBCqNormDiff_v2[p][s]=0.0;
+	wmAcNrBCqNormDiff_v2[p][s]=0.0;//,wmAcDrBCqNormDiff_v2[p][s]=0.0;
 	stripAsymNr_v2[p][s]=0.0,stripAsymNrEr_v2[p][s]=0.0;
 	
 	wmAcNrqNormB1L0_v2[p][s]=0.0,wmAcDrqNormB1L0_v2[p][s]=0.0;
@@ -203,8 +233,8 @@ Int_t expAsym(Int_t runnum)
   mpsChain->SetBranchStatus("sca_bpm_3p03aX",1);
   mpsChain->SetBranchStatus("sca_bpm_3c20Y",1);
   mpsChain->SetBranchStatus("sca_bpm_3c20X",1);
-  mpsChain->SetBranchStatus("p*RawAc",1);
   mpsChain->SetBranchStatus("p*RawEv",1);
+  mpsChain->SetBranchStatus("p*RawAc",1);
   mpsChain->SetBranchStatus("p*RawV1495Scaler",1);
 
   mpsChain->SetBranchAddress("event_number",&event_number);
@@ -223,9 +253,10 @@ Int_t expAsym(Int_t runnum)
   if(v2processed) mpsChain->SetBranchStatus("p*RawAc_v2",1);
 
   for(Int_t p = 0; p <nPlanes; p++) {      
-    mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAccum[p]);
-    mpsChain->SetBranchAddress(Form("p%dRawV1495Scaler",p+1),&bRawScaler[p]);
-    if(v2processed) mpsChain->SetBranchAddress(Form("p%dRawAc_v2",p+1),&bRawAccum_v2[p]);
+    mpsChain->SetBranchAddress(Form("p%dRawEv",p+1),&bRawEv[p]);
+    mpsChain->SetBranchAddress(Form("p%dRawAc",p+1),&bRawAc[p]);
+    mpsChain->SetBranchAddress(Form("p%dRawV1495Scaler",p+1),&bRawSc[p]);
+    if(v2processed) mpsChain->SetBranchAddress(Form("p%dRawAc_v2",p+1),&bRawAc_v2[p]);
   }//the branch for each plane is named from 1 to 4
   
   ///I need to open the lasCyc dependent files separately here since at every nCycle I update this file with a new entry
@@ -238,9 +269,9 @@ Int_t expAsym(Int_t runnum)
       for(Int_t s =startStrip; s <endStrip; s++) {
 	if (!mask[p][s]) continue;    
 	///lasCyc based files go into a special folder named lasCyc
-	lasCycAccum[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	lasCycScaler[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAccumP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+	lasCycAc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAcP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+	lasCycSc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAcP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
 	///Lets open the files for writing asymmetries in the beamOn loop repeatedly
   	outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
 	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_asymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
@@ -266,11 +297,12 @@ Int_t expAsym(Int_t runnum)
     lasPowB1H1L1= 0.0, lasPowB1H0L0=0.0,lasPowB1H0L1= 0.0, lasPowB1H1L0=0.0;
     for(Int_t p = startPlane; p <nPlanes; p++) {      
       for(Int_t s = startStrip; s <endStrip; s++) {
-	AccumB1H0L0[p][s] =0, AccumB1H1L0[p][s] =0, AccumB1H0L1[p][s] =0, AccumB1H1L1[p][s] =0;
-	ScalerB1H0L0[p][s] =0, ScalerB1H1L0[p][s] =0, ScalerB1H0L1[p][s] =0, ScalerB1H1L1[p][s] =0;
+	EvB1H0L0[p][s] =0, EvB1H1L0[p][s] =0, EvB1H0L1[p][s] =0, EvB1H1L1[p][s] =0;
+	AcB1H0L0[p][s] =0, AcB1H1L0[p][s] =0, AcB1H0L1[p][s] =0, AcB1H1L1[p][s] =0;
+	ScB1H0L0[p][s] =0, ScB1H1L0[p][s] =0, ScB1H0L1[p][s] =0, ScB1H1L1[p][s] =0;
  	LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0,qNormLasCycAsym[p][s]=0.0;
 	if(v2processed) {
-	  AccumB1H0L0_v2[p][s] =0, AccumB1H1L0_v2[p][s] =0, AccumB1H0L1_v2[p][s] =0, AccumB1H1L1_v2[p][s] =0;
+	  AcB1H0L0_v2[p][s] =0, AcB1H1L0_v2[p][s] =0, AcB1H0L1_v2[p][s] =0, AcB1H1L1_v2[p][s] =0;
 	  LasCycAsymEr_v2[p][s]= 0.0,LasCycAsymErSqr_v2[p][s]= 0.0,qNormLasCycAsym_v2[p][s]=0.0;
 	}
       }
@@ -325,9 +357,10 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      AccumB1H0L0[p][s] += (Int_t)bRawAccum[p][s];
-	      ScalerB1H0L0[p][s] += (Int_t)bRawScaler[p][s];
-	      if(v2processed) AccumB1H0L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
+	      EvB1H0L0[p][s] += (Int_t)bRawEv[p][s];
+	      AcB1H0L0[p][s] += (Int_t)bRawAc[p][s];
+	      ScB1H0L0[p][s] += (Int_t)bRawSc[p][s];
+	      if(v2processed) AcB1H0L0_v2[p][s] += (Int_t)bRawAc_v2[p][s];
 	    }
 	  }
 	} else if (h ==0 && l==1) {////the elseif statement helps avoid overhead in each entry
@@ -337,9 +370,10 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      AccumB1H0L1[p][s] += (Int_t)bRawAccum[p][s];
-	      ScalerB1H0L1[p][s] += (Int_t)bRawScaler[p][s];
-	      if(v2processed) AccumB1H0L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
+	      EvB1H0L1[p][s] += (Int_t)bRawEv[p][s];
+	      AcB1H0L1[p][s] += (Int_t)bRawAc[p][s];
+	      ScB1H0L1[p][s] += (Int_t)bRawSc[p][s];
+	      if(v2processed) AcB1H0L1_v2[p][s] += (Int_t)bRawAc_v2[p][s];
 	    }	  
 	  }
 	} else if (h ==1 && l==0) {
@@ -349,9 +383,10 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      AccumB1H1L0[p][s] += (Int_t)bRawAccum[p][s];
-	      ScalerB1H1L0[p][s] += (Int_t)bRawScaler[p][s];
-	      if(v2processed) AccumB1H1L0_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
+	      EvB1H1L0[p][s] += (Int_t)bRawEv[p][s];
+	      AcB1H1L0[p][s] += (Int_t)bRawAc[p][s];
+	      ScB1H1L0[p][s] += (Int_t)bRawSc[p][s];
+	      if(v2processed) AcB1H1L0_v2[p][s] += (Int_t)bRawAc_v2[p][s];
 	    }
 	  }
 	} else if (h ==1 && l==1) {
@@ -361,9 +396,10 @@ Int_t expAsym(Int_t runnum)
 	  for(Int_t p = startPlane; p <endPlane; p++) {      	
 	    for(Int_t s =startStrip; s <endStrip; s++) {
 	      if (!mask[p][s]) continue;
-	      AccumB1H1L1[p][s] += (Int_t)bRawAccum[p][s];
-	      ScalerB1H1L1[p][s] += (Int_t)bRawScaler[p][s];
-	      if(v2processed) AccumB1H1L1_v2[p][s] += (Int_t)bRawAccum_v2[p][s];
+	      EvB1H1L1[p][s] += (Int_t)bRawEv[p][s];
+	      AcB1H1L1[p][s] += (Int_t)bRawAc[p][s];
+	      ScB1H1L1[p][s] += (Int_t)bRawSc[p][s];
+	      if(v2processed) AcB1H1L1_v2[p][s] += (Int_t)bRawAc_v2[p][s];
 	    }
 	  }
 	}
@@ -397,21 +433,25 @@ Int_t expAsym(Int_t runnum)
 	for (Int_t p =startPlane; p <endPlane; p++) {	  	  
 	  for (Int_t s = startStrip; s < endStrip; s++) {
 	    if (!mask[p][s]) continue;
-	    totAccumB1H1L1[p][s] += AccumB1H1L1[p][s];
-	    totAccumB1H1L0[p][s] += AccumB1H1L0[p][s];
-	    totAccumB1H0L1[p][s] += AccumB1H0L1[p][s];
-	    totAccumB1H0L0[p][s] += AccumB1H0L0[p][s];
-	    totScalerB1H1L1[p][s] += ScalerB1H1L1[p][s];
-	    totScalerB1H1L0[p][s] += ScalerB1H1L0[p][s];
-	    totScalerB1H0L1[p][s] += ScalerB1H0L1[p][s];
-	    totScalerB1H0L0[p][s] += ScalerB1H0L0[p][s];
-	    //if(debug) printf("s:%d\t%d\t%d\t%d\t%d\t%d\n",s+1,ScalerB1H0L0[p][s],ScalerB1H0L1[p][s],ScalerB1H1L0[p][s],ScalerB1H1L1[p][s]);
+	    totEvB1H1L1[p][s] += EvB1H1L1[p][s];
+	    totEvB1H1L0[p][s] += EvB1H1L0[p][s];
+	    totEvB1H0L1[p][s] += EvB1H0L1[p][s];
+	    totEvB1H0L0[p][s] += EvB1H0L0[p][s];
+	    totAcB1H1L1[p][s] += AcB1H1L1[p][s];
+	    totAcB1H1L0[p][s] += AcB1H1L0[p][s];
+	    totAcB1H0L1[p][s] += AcB1H0L1[p][s];
+	    totAcB1H0L0[p][s] += AcB1H0L0[p][s];
+	    totScB1H1L1[p][s] += ScB1H1L1[p][s];
+	    totScB1H1L0[p][s] += ScB1H1L0[p][s];
+	    totScB1H0L1[p][s] += ScB1H0L1[p][s];
+	    totScB1H0L0[p][s] += ScB1H0L0[p][s];
+	    if(debug1) printf("s:%d\t%d\t%d\t%d\t%d\n",s+1,EvB1H0L0[p][s],EvB1H0L1[p][s],EvB1H1L0[p][s],EvB1H1L1[p][s]);
  	  }
  	}
-	evaluateAsym(AccumB1H1L1,AccumB1H1L0,AccumB1H0L1,AccumB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym,wmAcDrAsym,wmAcNrBCqNormSum,wmAcDrBCqNormSum,wmAcNrBCqNormDiff,wmAcNrqNormB1L0,wmAcDrqNormB1L0,wmAcNrBkgdAsym,wmAcDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
-	if(v2processed) evaluateAsym(AccumB1H1L1_v2,AccumB1H1L0_v2,AccumB1H0L1_v2,AccumB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym_v2,wmAcDrAsym_v2,wmAcNrBCqNormSum_v2,wmAcDrBCqNormSum_v2,wmAcNrBCqNormDiff_v2,wmAcNrqNormB1L0_v2,wmAcDrqNormB1L0_v2,wmAcNrBkgdAsym_v2,wmAcDrBkgdAsym_v2,qNormLasCycAsym_v2,LasCycAsymErSqr_v2);//!check if the qNormLasCycAsym variable needs to have _v2
-	///evaluating asymmetries corresponding to scalers
-	evaluateAsym(ScalerB1H1L1,ScalerB1H1L0,ScalerB1H0L1,ScalerB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmScNrAsym,wmScDrAsym,wmScNrBCqNormSum,wmScDrBCqNormSum,wmScNrBCqNormDiff,wmScNrqNormB1L0,wmScDrqNormB1L0,wmScNrBkgdAsym,wmScDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+	evaluateAsym(AcB1H1L1,AcB1H1L0,AcB1H0L1,AcB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym,wmAcDrAsym,wmAcNrBCqNormSum,wmAcDrBCqNormSum,wmAcNrBCqNormDiff,wmAcNrqNormB1L0,wmAcDrqNormB1L0,wmAcNrBkgdAsym,wmAcDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+
+	///evaluating asymmetries corresponding to v2 accum data
+	if(v2processed) evaluateAsym(AcB1H1L1_v2,AcB1H1L0_v2,AcB1H0L1_v2,AcB1H0L0_v2,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmAcNrAsym_v2,wmAcDrAsym_v2,wmAcNrBCqNormSum_v2,wmAcDrBCqNormSum_v2,wmAcNrBCqNormDiff_v2,wmAcNrqNormB1L0_v2,wmAcDrqNormB1L0_v2,wmAcNrBkgdAsym_v2,wmAcDrBkgdAsym_v2,qNormLasCycAsym_v2,LasCycAsymErSqr_v2);
 
 	if(lasCycPrint) {
 	  if(debug1) {
@@ -430,18 +470,18 @@ Int_t expAsym(Int_t runnum)
 	    for (Int_t s =startStrip; s <endStrip;s++) {
 	      if (!mask[p][s]) continue;
 	      if(!firstlinelasPrint[p][s]) {
-		lasCycAccum[p][s]<<"\n";
-		lasCycScaler[p][s]<<"\n";
+		lasCycAc[p][s]<<"\n";
+		lasCycSc[p][s]<<"\n";
 		outAsymLasCyc[p][s]<<"\n";
 	      }
 	      firstlinelasPrint[p][s] =kFALSE;
-	      if (lasCycAccum[p][s].is_open() && lasCycScaler[p][s].is_open()) {
-		lasCycAccum[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
-					AccumB1H0L0[p][s]/qLasCycH0L0,AccumB1H0L1[p][s]/qLasCycH0L1,
-					AccumB1H1L0[p][s]/qLasCycH1L0,AccumB1H1L1[p][s]/qLasCycH1L1);
-		lasCycScaler[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
-					 ScalerB1H0L0[p][s]/qLasCycH0L0,ScalerB1H0L1[p][s]/qLasCycH0L1,
-					 ScalerB1H1L0[p][s]/qLasCycH1L0,ScalerB1H1L1[p][s]/qLasCycH1L1);		
+	      if (lasCycAc[p][s].is_open() && lasCycSc[p][s].is_open()) {
+		lasCycAc[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
+					AcB1H0L0[p][s]/qLasCycH0L0,AcB1H0L1[p][s]/qLasCycH0L1,
+					AcB1H1L0[p][s]/qLasCycH1L0,AcB1H1L1[p][s]/qLasCycH1L1);
+		lasCycSc[p][s]<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,
+					 ScB1H0L0[p][s]/qLasCycH0L0,ScB1H0L1[p][s]/qLasCycH0L1,
+					 ScB1H1L0[p][s]/qLasCycH1L0,ScB1H1L1[p][s]/qLasCycH1L1);		
 	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
 	      if (outAsymLasCyc[p][s].is_open()) {
 		outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Float_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
@@ -452,6 +492,13 @@ Int_t expAsym(Int_t runnum)
 			  ,comptIH0L1/nMpsB1H0L1,comptIH1L0/nMpsB1H1L0,comptIH1L1/nMpsB1H1L1);
 	  lasCycLasPow<<Form("%2.0f\t%f\t%f\t%f\t%f",(Float_t)nCycle+1,lasPowB1H0L0/nMpsB1H0L0,lasPowB1H0L1/nMpsB1H0L1,lasPowB1H1L0/nMpsB1H1L0,lasPowB1H1L1/nMpsB1H1L1);
 	}
+
+	///evaluating asymmetries corresponding to scaler mode data
+	evaluateAsym(ScB1H1L1,ScB1H1L0,ScB1H0L1,ScB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmScNrAsym,wmScDrAsym,wmScNrBCqNormSum,wmScDrBCqNormSum,wmScNrBCqNormDiff,wmScNrqNormB1L0,wmScDrqNormB1L0,wmScNrBkgdAsym,wmScDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+
+	///evaluating asymmetries corresponding to event mode data
+	evaluateAsym(EvB1H1L1,EvB1H1L0,EvB1H0L1,EvB1H0L0,comptIH1L1,comptIH1L0,comptIH0L1,comptIH0L0,wmEvNrAsym,wmEvDrAsym,wmEvNrBCqNormSum,wmEvDrBCqNormSum,wmEvNrBCqNormDiff,wmEvNrqNormB1L0,wmEvDrqNormB1L0,wmEvNrBkgdAsym,wmEvDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
     else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
@@ -460,31 +507,40 @@ Int_t expAsym(Int_t runnum)
   for(Int_t p = 0; p <nPlanes; p++) {      
     for(Int_t s =startStrip; s <endStrip; s++) {
       if (!mask[p][s]) continue;    
-      lasCycAccum[p][s].close();
-      lasCycScaler[p][s].close();
+      lasCycAc[p][s].close();
+      lasCycSc[p][s].close();
       outAsymLasCyc[p][s].close();
     }
   }
   lasCycBCM.close();
   lasCycLasPow.close();
 
+  dataType = "Ev";
+  cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
+  weightedMean(wmEvNrAsym, wmEvDrAsym, wmEvNrBCqNormSum, wmEvDrBCqNormSum, wmEvNrBCqNormDiff, wmEvNrqNormB1L0, wmEvDrqNormB1L0, wmEvNrBkgdAsym, wmEvDrBkgdAsym);
+  qNormVariables(totEvB1H0L0,totEvB1H0L1,totEvB1H1L0,totEvB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
+  writeToFile(runnum,dataType);
+  //notice that the variables to be written by the writeToFile command is updated after every call of weightedMean() function
+
   dataType = "Ac";
+  cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
   weightedMean(wmAcNrAsym, wmAcDrAsym, wmAcNrBCqNormSum, wmAcDrBCqNormSum, wmAcNrBCqNormDiff, wmAcNrqNormB1L0, wmAcDrqNormB1L0, wmAcNrBkgdAsym, wmAcDrBkgdAsym);
-  qNormVariables(totScalerB1H0L0,totScalerB1H0L1,totScalerB1H1L0,totScalerB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
-  writeToFile(dataType,runnum);
+  qNormVariables(totAcB1H0L0,totAcB1H0L1,totAcB1H1L0,totAcB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
+  writeToFile(runnum,dataType);
 
   if (v2processed) {
     dataType = "AcV2";
+    cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
     weightedMean(wmAcNrAsym_v2, wmAcDrAsym_v2, wmAcNrBCqNormSum_v2, wmAcDrBCqNormSum_v2, wmAcNrBCqNormDiff_v2, wmAcNrqNormB1L0_v2, wmAcDrqNormB1L0_v2, wmAcNrBkgdAsym_v2, wmAcDrBkgdAsym_v2);
-    //notice that now the variables to be written by the writeToFile command has been updated
-    writeToFile(dataType,runnum);
+    writeToFile(runnum,dataType);
   } //if (v2processed)  
   
   ///evaluating asymmetry from scaler data
   dataType = "Sc";
+  cout<<red<<"setting the dataType:"<<dataType<<normal<<endl;
   weightedMean(wmScNrAsym, wmScDrAsym, wmScNrBCqNormSum, wmScDrBCqNormSum, wmScNrBCqNormDiff, wmScNrqNormB1L0, wmScDrqNormB1L0, wmScNrBkgdAsym, wmScDrBkgdAsym);
-  qNormVariables(totAccumB1H0L0,totAccumB1H0L1,totAccumB1H1L0,totAccumB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
-  writeToFile(dataType,runnum);
+  qNormVariables(totScB1H0L0,totScB1H0L1,totScB1H1L0,totScB1H1L1,totIH0L0,totIH0L1,totIH1L0,totIH1L1);
+  writeToFile(runnum,dataType);
 
   //!!this currently would not work if the Cedge changes between planes
   if(debug1) {

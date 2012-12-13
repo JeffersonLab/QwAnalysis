@@ -21,7 +21,7 @@ Double_t param[4];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param 
 Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
-const Double_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chosen by observing how it may vary
+Float_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chosen by observing how it may vary
                /*Ideally this ratio could be safely left >0.0, but due to some form of deadtime, 
 		*..I may have to be forgiving 
 		*Once I find a mechanism to fit the Cedge, I won't need to be nosy about this choice */
@@ -40,7 +40,7 @@ const Double_t th_det = 10.08;//based on elog399; 10.3;//angle at which the diam
 const Double_t ldet[nPlanes] = {1.69792,1.70823,1.71855,1.72886};//1.645,; ///survey provided longitudinal distance of det-bottom from edge of 3rd dipole
 
 ///Run constants
-const Bool_t v2processed=1;
+const Bool_t v2processed=0;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t acceptLasPow = 120000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
