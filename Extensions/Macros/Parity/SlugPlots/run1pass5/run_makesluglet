@@ -33,7 +33,7 @@ SUFFIX_lrb=\"0\"
 #----------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------
-arg="$PATH_TO_SCRIPT/MakeSluglet_runlet.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}.root\",$SRC,\"QwPass5\",$SUFFIX)"
+arg="$PATH_TO_SCRIPT/MakeSluglet_runlet.C+(\"${RUN_NUM}\",\"${SEG_NUM}\",$LEAFLIST,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}.root\",$SRC,\"QwPass5\",$SUFFIX)"
 
 #----------------------------------------------------------------------------------------------
 ##Uncomment these lines to enable regressed sluglet file argument creation
