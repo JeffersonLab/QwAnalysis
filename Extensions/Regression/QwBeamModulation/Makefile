@@ -81,7 +81,7 @@ DEPS       = QwModulation.hh QwData.hh QwChargeSensitivity.hh QwDBConnection.hh 
 CFLAGS     = -O -Wall ${INCLUDES}
 MYSQL      = 
 
-all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwasymsplitter qwresidual
+all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwasymsplitter qwresidual qwdboptics
 
 %.o: %.cc
 	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 
@@ -93,6 +93,8 @@ qwlibra : ${SRC}/qwlibra.o ${SRC}/QwData.o ${SRC}/QwDiagnostic.o
 qwcharge: ${SRC}/qwcharge.o ${SRC}/QwChargeSensitivity.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
 qwdbplot: ${SRC}/qwdbplot.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+qwdboptics: ${SRC}/qwdboptics.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
 qw_ndelta: ${SRC}/qw_ndelta.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o ${SRC}/QwPlotHelper.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
@@ -111,5 +113,5 @@ qwasymsplitter: ${SRC}/qwasymsplitter.o ${SRC}/QwModulation.o
 qwresidual : ${SRC}/qwresidual.o ${SRC}/QwModulation.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}	
 clean: 
-	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwslug qwcorrelation qwregrun qwasymsplitter qwresidual
+	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwslug qwcorrelation qwregrun qwasymsplitter qwresidual qwdboptics
 

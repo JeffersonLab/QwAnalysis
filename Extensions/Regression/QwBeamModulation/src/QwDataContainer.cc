@@ -9,7 +9,9 @@
 
 #ifdef QwDataContainer_cxx
 
-QwDataContainer::QwDataContainer():fDBase(false), fRunRange(false), fNumberMonitor(1) 
+QwDataContainer::QwDataContainer():fDBase(false), fRunRange(false), fModType(false),
+				   fSegmentNumber(false), fMysqlSetStem(false), 
+				   fMysqlSetDet(false), fNumberMonitor(1) 
 {
 
   // Establish a connection to the database through QwDBConnection
@@ -27,7 +29,7 @@ QwDataContainer::QwDataContainer():fDBase(false), fRunRange(false), fNumberMonit
 
   // There needs to be a conversion factor between the number read in for the ascii db and the qweakdb
 
-  GetBlackList();
+//   GetBlackList();
 
 }
 
@@ -77,15 +79,25 @@ void QwDataContainer::GetOptions(Char_t **options)
   size_t index = 0;
   TString flag;
 
-  std::cout << "Getting options..." << std::endl;
-
   while(options[i] != NULL){
     flag = options[i];
-    fOptions.push_back(flag);
-//     std::cout << "option:\t" << flag <<  std::endl;    
+    fOptions.push_back(options[i]);
 
-    if(flag.CompareTo("--database", TString::kExact) == 0) fDBase = true;
+    if(fOptions[i].CompareTo("--database", TString::kExact) == 0) fDBase = true;
 
+    if(flag.CompareTo("--run") == 0){
+      fRunRange = true;
+      flag.Clear();
+      fOptions.push_back(options[i + 1]);
+      SetRunRange(atoi(fOptions.back()));
+    }
+
+    if(flag.CompareTo("--segment", TString::kExact) == 0){
+      fSegmentNumber = true;
+      flag.Clear();
+      fOptions.push_back(options[i + 1]);
+      SetSegNumber(atoi(fOptions.back()));
+    }
 
     if(flag.CompareTo("--runs", TString::kExact) == 0){
       std::string option(options[i+1]);
@@ -98,7 +110,6 @@ void QwDataContainer::GetOptions(Char_t **options)
       fRunRange = true;
 
     }
-
     if(flag.CompareTo("--set-stem", TString::kExact) == 0){
       flag.Clear();
       std::cout << "Set: " << options[i+1] << std::endl;
@@ -106,15 +117,18 @@ void QwDataContainer::GetOptions(Char_t **options)
     }
 
     if(flag.CompareTo("--detector", TString::kExact) == 0){
-      flag.Clear();
-      std::cout << "Detector: " << options[i+1] << std::endl;
-      SetDetector(options[i+1]);
+      fOptions.push_back(options[i + 1]);
+      SetDetector(fOptions.back());
     }
 
-   i++;
+    if(flag.CompareTo("--modulation-type", TString::kExact) == 0){
+      std::cout << options[i] << std::endl;
+      fOptions.push_back(options[i + 1]);
+      SetModulationType(fOptions.back());
+      fModType = true;
+    }
+    i++;
   }
-
-  std::cout << "Finished getting options..." << std::endl;
 
   return;
 }
@@ -217,6 +231,8 @@ void QwDataContainer::ScaleTGraph(TGraphErrors *tgraph)
   Double_t max = GetMaximum(tgraph->GetY());
   Double_t min = GetMinimum(tgraph->GetY());
 
+  std::cout << max << " " << min << std::endl;
+
   if(tgraph == NULL) return;
 
   if( max < 0){
@@ -235,12 +251,14 @@ void QwDataContainer::ScaleTGraph(TGraphErrors *tgraph)
 
 void QwDataContainer::SetDetector(TString detector)
 {
+  fMysqlSetDet = true;
   fMysqlDet = detector;
   fDetector = detector;
 }
 
 void QwDataContainer::SetSlopeCorrection(TString set)
 {
+  fMysqlSetStem = true;
   fMysqlSlopeCorr = set;
 }
 
@@ -259,10 +277,25 @@ void QwDataContainer::SetMonitor(TString monitor)
   fMysqlMon = monitor;
 }
 
+void QwDataContainer::SetModulationType(TString modulation)
+{
+  fModulationType = modulation;
+}
+
 void QwDataContainer::SetRunRange(Int_t lower, Int_t upper)
 {
-  fMysqlRunLower = lower;
-  fMysqlRunUpper = upper;
+    fMysqlRunLower = lower;
+    fMysqlRunUpper = upper;
+}
+
+void QwDataContainer::SetRunRange(Int_t run)
+{
+    fMysqlRunNumber = run;
+}
+
+void QwDataContainer::SetSegNumber(Int_t segment)
+{
+    fMysqlSegNumber = segment;
 }
 
 TString QwDataContainer::BuildQuery(TString type)
@@ -272,12 +305,18 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("sens", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' md_slope_view.run_number > %i && md_slope_view.run_number < %i ", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number ,value,error,slope from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis .beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && slow_controls_settings.slow_helicity_plate = '%s' md_slope_view.run_number > %i && md_slope_view.run_number < %i ", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
+
   if(type.CompareTo("sens_all", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
     fMysqlQuery = Form("select md_slope_view.run_number, md_slope_view.segment_number, value, error, slope, slow_controls_settings.slow_helicity_plate  from analysis,md_slope_view, slow_controls_settings, runlet as runlet0 where md_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && md_slope_view.run_number > %i && md_slope_view.run_number < %i; ", fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+  }
+  if(type.CompareTo("sens_all_lumi", TString::kExact) == 0){
+    dbase.fNumberColumns = 4;
+    fNumberMonitor = 5;
+    fMysqlQuery = Form("select lumi_slope_view.run_number, lumi_slope_view.segment_number, value, error, slope, slow_controls_settings.slow_helicity_plate  from analysis,lumi_slope_view, slow_controls_settings, runlet as runlet0 where lumi_slope_view.run_number=runlet0.run_number && runlet0.segment_number=0 && analysis.analysis_id=lumi_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and lumi_slope_view.run_quality_id=1 and lumi_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && lumi_slope_view.run_number > %i && lumi_slope_view.run_number < %i; ", fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("corrected", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
@@ -300,15 +339,59 @@ TString QwDataContainer::BuildQuery(TString type)
     dbase.fNumberColumns = 4;
     fNumberMonitor = 1;
     fMysqlQuery = Form("select run_number, value, error, segment_number from beam_view,  slow_controls_settings where  beam_view.runlet_id=slow_controls_settings.runlet_id and target_position  = 'HYDROGEN-CELL' and slope_correction = 'off' and slope_calculation =  'off' and beam_mode = 'nbm' and good_for_id = '1,3' and run_quality_id =  '1' and measurement_type = 'd' and monitor = '%s' and slow_controls_settings.slow_helicity_plate = '%s' and subblock  = 0 and run_number > %i and run_number < %i order by run_number, segment_number", fMysqlMon.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
-
+  }
+  if(type.CompareTo("optics", TString::kExact) == 0){
+    dbase.fNumberColumns = 2;
+    fNumberMonitor = 1;
+    fMysqlQuery = Form("select amplitude, a_error from beam_optics_view where beam_mode = 'nbm' and slope_calculation='off' and monitor='%sX' and modulation_type='%s' and run_number=%i and segment_number = %i", fMysqlMon.Data(), fModulationType.Data(), fMysqlRunNumber, fMysqlSegNumber);
   }
 
 //   fMysqlQuery = SetBlackList(fMysqlQuery, type);
-  
+
   std::cout << "Query:\t" << fMysqlQuery << std::endl;
 
   return(fMysqlQuery);
 
+}
+
+void QwDataContainer::ReadMonitorList()
+{
+
+  std::ifstream monitor_list;
+  std::string line;
+
+  char *token;
+
+  monitor_list.open("config/beamline.config");
+  if(!monitor_list.is_open()){
+    std::cout << "Error opening config file" << std::endl;
+    exit(1);
+  }
+
+  while(monitor_list.good()){
+    getline(monitor_list, line);
+    token = new char[line.size() + 1];
+    strcpy(token, line.c_str());
+    token = strtok(token, " ,.");
+    while(token){
+      if(strcmp("mon", token) == 0){
+       	// Here the extra strtok(NULL, " .,") keeps scanning for next token
+	
+       	token = strtok(NULL, " .,"); 
+	fMonitorList.push_back(token); 
+
+// 	std::cout << "Monitor:\t" << token << std::endl;
+       	token = strtok(NULL, " .,");
+// 	std::cout << "BPM index:\t" << token << std::endl;
+	fMonitorIndexMap.insert(std::pair<TString, Int_t>(fMonitorList.back(), atoi(token))); 
+       	token = strtok(NULL, " .,");
+// 	std::cout << "Z position :\t" << token << std::endl;
+	fMonitorPositionMap.insert(std::pair<TString, Double_t>(fMonitorList.back(), atol(token)));
+      }
+      else 
+	token = strtok(NULL, " .,"); 
+    }
+  }
 }
 
 TString QwDataContainer::SetBlackList(TString q_string, TString type)
@@ -372,12 +455,25 @@ void QwDataContainer::CalculateAverage()
 // 	    << std::endl;
 }
 
+Int_t QwDataContainer::GetMonitorIndex(TString bpm)
+{
+  
+  return(fMonitorIndexMap.find(bpm)->second);
+  
+}
+
+Double_t QwDataContainer::GetMonitorPosition(TString bpm)
+{
+  std::cout << "Monitor: "<< bpm << " " << fMonitorPositionMap.find(bpm)->second << std::endl;
+  return(fMonitorPositionMap.find(bpm)->second);
+  
+}
+
 void QwDataContainer::FillDataVector(TString type)
 {
   Int_t mod = 0;
-
   Int_t index = 0;
-
+  
   Double_t fConvFactor[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
 
   enum {run, segment, value, error, slope, ihwp};
@@ -392,41 +488,45 @@ void QwDataContainer::FillDataVector(TString type)
 	index++;
 	}
       fRunNumber[index] = (Double_t)dbase.result[i][run] + (Double_t)(0.01*dbase.result[i][segment]);
-      printf("Run Number: %03.3f   ", fRunNumber[index]);
+
       std::string slopewrt(dbase.result[i][slope]);
       if(slopewrt.compare("wrt_diff_targetX") == 0){
 	fSensitivity[X][index] = fConvFactor[X]*dbase.result[i][value];
 	fSensitivityError[X][index] = fConvFactor[X]*dbase.result[i][error];
-	std::cout << fSensitivity[X][index] << " " 
-		  << fSensitivityError[X][index] << std::endl;
       }
       if(slopewrt.compare("wrt_diff_targetXSlope") == 0){
  	fSensitivity[XP][index] = fConvFactor[XP]*dbase.result[i][value];
  	fSensitivityError[XP][index] = fConvFactor[XP]*dbase.result[i][error];
-	std::cout << fSensitivity[XP][index] << " " 
-		  << fSensitivityError[XP][index] << std::endl;
       }
       if(slopewrt.compare("wrt_diff_bpm3c12X") == 0){
  	fSensitivity[E][index] = fConvFactor[E]*dbase.result[i][value];
  	fSensitivityError[E][index] = fConvFactor[E]*dbase.result[i][error];
-	std::cout << fSensitivity[E][index] << " " 
-		  << fSensitivityError[E][index] << std::endl;
       }
       if(slopewrt.compare("wrt_diff_targetY") == 0){
  	fSensitivity[Y][index] = fConvFactor[Y]*dbase.result[i][value];
  	fSensitivityError[Y][index] = fConvFactor[Y]*dbase.result[i][error];
-	std::cout << fSensitivity[Y][index] << " " 
-		  << fSensitivityError[Y][index] << std::endl;
       }
       if(slopewrt.compare("wrt_diff_targetYSlope") == 0){
  	fSensitivity[YP][index] = fConvFactor[YP]*dbase.result[i][value];
  	fSensitivityError[YP][index] = fConvFactor[YP]*dbase.result[i][error];
-	std::cout << fSensitivity[YP][index] << " " 
-		  << fSensitivityError[YP][index] << std::endl;
       }
       mod++;
     }
   }
+
+  if(type.CompareTo("optics", TString::kExact) == 0){
+    for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
+      index = GetMonitorIndex(fMysqlMon);
+      fAmplitude[index] = dbase.result[i][0];
+      fAmplitudeError[index] = dbase.result[i][1];
+      fMonitorPosition[index] = GetMonitorPosition(fMysqlMon);
+      //      std::cout << index << " "
+      //  		<< fMonitorPosition[index] << " " 
+      //  		<< fAmplitude[index] << " +- "
+      //  		<< fAmplitudeError[index] << std::endl;
+    }
+  }
+
   if(type.CompareTo("corrected", TString::kExact) == 0){
     for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
 
@@ -497,7 +597,12 @@ void QwDataContainer::FillDataVector(TString type)
     std::cout << "Finished filling!" << std::endl;
     
     if(type.CompareTo("position", TString::kExact) == 0){
+
+
+
     }
+
+
   }
 }
 
@@ -505,9 +610,89 @@ void QwDataContainer::FillDataVector(Int_t mod_type)
 {
 
   for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
-    fRunNumber[i] = (Double_t)dbase.result[i][0] + (Double_t)dbase.result[i][1];
-    fSensitivity[mod_type][i] = dbase.result[i][4];
+    fRunNumber[i] = dbase.result[i][0];
+    fSensitivity[mod_type][i] = dbase.result[i][1];
   }
+}
+
+void QwDataContainer::PlotDBOptics()
+{
+  TString qtemp;
+
+  const char *query;
+
+  if(!fRunRange){
+    std::cerr << "Must specify run range!" << std::endl;
+    exit(1);
+  }
+
+  if(!fSegmentNumber){
+    std::cerr << "Must specify segment number.  Use --segment <segment #>" << std::endl;
+    exit(1);
+  }
+  if(!fModType){
+    std::cerr << "Must specify modulation type.  Use --modulation-type <modtype>" 
+	      << "\t Where modtype:\n"
+	      << "\tx1 = X  modulation\n"
+	      << "\tx2 = XP modulation\n" 
+	      << "\te =  E  modulation\n" 
+	      << "\ty1 = Y  modulation\n" 
+	      << "\tx1 = YP modulation\n" << std::endl;
+    exit(1);
+  }
+
+  std::cout << "Setting run number..." << std::endl;
+  SetRunRange(fMysqlRunNumber);
+  std::cout << "Reading Monitor List..." << std::endl;
+  ReadMonitorList();
+
+  fAmplitude.ResizeTo(fMonitorList.size());
+  fAmplitudeError.ResizeTo(fMonitorList.size());
+  fMonitorPosition.ResizeTo(fMonitorList.size());
+  fZero.ResizeTo(fMonitorList.size());
+  fZero.Zero();
+
+  for(Int_t i = 0; i < (Int_t)fMonitorList.size(); i++){
+    SetMonitor(fMonitorList[i]);
+    qtemp = BuildQuery("optics");
+    query = qtemp.Data();
+    if(QueryDB(query) == 0){
+      std::cerr << "No results returned." << std::endl;
+      exit(1);
+    }
+    
+    FillDataVector("optics");
+    PlotBeamlineOptics();
+  }
+  exit(1);
+}
+
+void QwDataContainer::PlotBeamlineOptics()
+{
+
+  TCanvas *canvas = new TCanvas("canvas", "canvas", 1150, 800);
+  canvas->cd();
+
+  gPad->SetGridx();
+  gPad->SetGridy();
+
+  TGraphErrors *tgraph = new TGraphErrors(fMonitorPosition, fAmplitude, fZero, fAmplitudeError);
+  tgraph->SetMarkerColor(4);
+  tgraph->SetMarkerSize(0.8);
+  tgraph->SetMarkerStyle(24);
+  tgraph->SetTitle(Form("Beamline Plot: %s", fModulationType.Data()));
+  tgraph->GetXaxis()->SetTitle("Z(cm) ");
+  tgraph->GetYaxis()->SetTitle("Response Amplitude(mm)");
+  tgraph->GetXaxis()->SetLabelSize(0.02);
+  tgraph->GetYaxis()->SetLabelSize(0.02);
+  tgraph->GetXaxis()->SetTitleSize(0.02);
+  tgraph->GetYaxis()->SetTitleSize(0.02);
+  tgraph->GetXaxis()->SetTitleOffset(1.5);
+  tgraph->GetYaxis()->SetTitleOffset(1.5);
+  tgraph->GetYaxis()->SetRangeUser(-0.5, 0.5);
+  tgraph->Draw("AP");
+
+  canvas->SaveAs(Form("beamline_optics_%s_%d.%03d.C", fModulationType.Data(), fMysqlRunNumber, fMysqlSegNumber));
 }
 
 void QwDataContainer::PlotDBSensitivities()
@@ -515,6 +700,7 @@ void QwDataContainer::PlotDBSensitivities()
   TString qtemp;
 
   const char *query;
+  Int_t query_result = 0;
 
   if(!fRunRange){
     std::cout << "Must specify run range!" << std::endl;
@@ -522,11 +708,28 @@ void QwDataContainer::PlotDBSensitivities()
   }
 
   SetRunRange(fMysqlRunLower, fMysqlRunUpper);
-  SetDetector("qwk_mdallbars");
-  SetIHWP("in");
-  qtemp = BuildQuery("sens_all");
+
+  if(!fMysqlSetStem){
+    std::cerr << "Need to specify modulation set. Use --set-stem <set>" << std::endl;
+    exit(1);
+  }
+  if(!fMysqlSetDet){
+    std::cerr << "Must set detector. Use --detector <detector>" << std::endl;
+    exit(1);
+  }
+
+  if(fMysqlDet.Contains("lumi", TString::kExact)){
+    qtemp = BuildQuery("sens_all_lumi");
+  }
+  else{
+    qtemp = BuildQuery("sens_all");
+  }
   query = qtemp.Data();
-  ResizeDataElements( QueryDB(query)/fNumberMonitor );
+  if((query_result = QueryDB(query)) == 0){
+    std::cerr << "No results returned." << std::endl;
+    exit(1);
+  }
+  ResizeDataElements( query_result/fNumberMonitor );
   FillDataVector("sens_all");
   std::cout << "Entering PlotSensitivites()" << std::endl;
   PlotSensitivities();
