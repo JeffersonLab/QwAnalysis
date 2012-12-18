@@ -4,6 +4,8 @@
 const Int_t fNMonitors = 24;
 const Int_t fCycles = 5;
 
+Double_t GetAmplitudeSign(Double_t, Double_t, Double_t, Double_t);
+
 Int_t main(Int_t argc, Char_t *argv[])
 {
   //  TApplication suuperApp("App", &argc, argv);
@@ -13,7 +15,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   TString filename;
   TString cut;
-  TString file_stem = "QwPass1_";
+  TString file_stem = "QwPass5_";
 
   TString ramp_cut = "((ramp.block0 + ramp.block3) - (ramp.block1 + ramp.block2)) > -50 && ((ramp.block0 + ramp.block3) - (ramp.block1 + ramp.block2)) < 50";
   TString monitor[fNMonitors] = {"qwk_target","qwk_bpm3h09b","qwk_bpm3h09","qwk_bpm3h08","qwk_bpm3h07c","qwk_bpm3h07b",
@@ -43,10 +45,12 @@ Int_t main(Int_t argc, Char_t *argv[])
   Double_t bpm_z[fNMonitors];
   Double_t zeros[fNMonitors];
   Double_t mean = 0;
+  Double_t upper = 350;
+  Double_t lower = 10;
 
   TChain *chain = new TChain("Mps_Tree");
 
-  TF1 *sine = new TF1("sine", "[0]+[1]*sin(( 2*3.141/360)*x +[2])", 10, 350);
+  TF1 *sine = new TF1("sine", "[0]+[1]*sin(0.01745*x +[2])", lower, upper);
 
   std::fstream monitor_position;
 
@@ -126,7 +130,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
 	TH2F* histo = new TH2F("histo", "histo", 400, 0., 400., 1000, -2., 2.);
 	
-	chain->Draw(Form("%s%s:ramp/11.1>>histo", monitor[i].Data(), coord[k].Data()), cut, "prof");
+	chain->Draw(Form("%s%s:ramp>>histo", monitor[i].Data(), coord[k].Data()), cut, "prof");
 	histo = (TH2F *)gDirectory->Get("histo");
 	sine->SetParameters(histo->GetMean(), 0.150, TMath::Pi());
 // 	sine->SetParLimits(2, 0., TMath::Pi()*0.5 );
@@ -136,15 +140,20 @@ Int_t main(Int_t argc, Char_t *argv[])
  	histo->GetYaxis()->SetRangeUser(mean - 0.3, mean + 0.3);
 	histo->Fit("sine","R B");    
  
-	amplitude[i] = sine->GetParameter(1);
+	amplitude[i] = TMath::Abs(sine->GetParameter(1));
 	phase[i] = (sine->GetParameter(2))*(180/TMath::Pi());
 
 	// try some thing new //
 
 	if(phase[i] >= 180){
 	  phase[i] -= 180;
-	  amplitude[i] = -amplitude[i];
+// 	  amplitude[i] = -amplitude[i];
 	}
+
+	amplitude[i] *= GetAmplitudeSign(sine->Derivative(lower), 
+					 sine->Derivative2(lower), 
+					 sine->Derivative3(lower), 
+					 sine->GetParameter(lower));
 	// end //
 
 	error[i] = sine->GetParError(1);
@@ -264,4 +273,28 @@ Int_t main(Int_t argc, Char_t *argv[])
   
   //  suuperApp.Run();
   return 0;
+}
+
+Double_t GetAmplitudeSign(Double_t d1, Double_t d2, Double_t d3, Double_t fmean)
+{
+
+  Double_t sign = 0.0;
+
+  if(d1 > 0.0 && d2 < 0.0)          sign =  1.0;
+  else if(d1 == 0.0 && fmean > 0.0) sign =  1.0;
+  else if(d1 < 0.0 && d2 < 0.0)     sign =  1.0;
+
+  else if(d1 < 0.0 && d3 < 0)       sign =  1.0;
+
+  else if(d1 < 0.0 && d2 > 0.0)     sign = -1.0;
+  else if(d1 == 0.0 && fmean < 0.0) sign = -1.0;
+  else if(d1 > 0.0 && d2 > 0.0)     sign = -1.0;
+
+  else if(d1 < 0.0 && d3 > 0)       sign = -1.0;
+
+  else
+    sign = 1.0;
+
+  return(sign);
+
 }
