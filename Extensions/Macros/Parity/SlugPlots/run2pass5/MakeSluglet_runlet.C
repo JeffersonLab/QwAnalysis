@@ -28,8 +28,12 @@ struct runletSort{
 
 
 
-Int_t MakeSluglet_runlet(Int_t runnum=0, Int_t segnum=0, TString leaflistfilename="0", TString slugrootfilename="0",TString qwrootfiles="0", TString qwstem="",TString suffix="0")
+Int_t MakeSluglet_runlet(TString runnum_t="0", TString segnum_t="0", TString leaflistfilename="0", TString slugrootfilename="0",TString qwrootfiles="0", TString qwstem="",TString suffix="0")
 {
+
+	Int_t runnum=atoi(runnum_t);
+	Int_t segnum=atoi(segnum_t);
+
 	TStopwatch timer;
 	if (runnum==0 || leaflistfilename == "0" || slugrootfilename == "0" || qwstem== "") {
 		printf("Usage:\n\t.x MakeSlug(runnum, leaflistfilename, slugrootfilename, qwstem)\n\n");
