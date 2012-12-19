@@ -899,7 +899,7 @@ void QwDataContainer::PlotSensitivities()
   sensx->GetYaxis()->SetTitleSize(0.02);
   sensx->GetXaxis()->SetTitleOffset(1.5);
   sensx->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensx);
+//   ScaleTGraph(sensx);
   sensx->Draw("AP");
   sensx->Fit("line0", "");
 
@@ -922,7 +922,7 @@ void QwDataContainer::PlotSensitivities()
   sensxp->GetYaxis()->SetTitleSize(0.02);
   sensxp->GetXaxis()->SetTitleOffset(1.5);
   sensxp->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensxp);
+//   ScaleTGraph(sensxp);
   sensxp->Draw("AP");
   sensxp->Fit("line0", "");
 
@@ -945,8 +945,8 @@ void QwDataContainer::PlotSensitivities()
   sense->GetYaxis()->SetTitleSize(0.02);
   sense->GetXaxis()->SetTitleOffset(1.5);
   sense->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sense);
-  sense->GetYaxis()->SetRangeUser(-10., 0.);
+//   ScaleTGraph(sense);
+//   sense->GetYaxis()->SetRangeUser(-10., 0.);
   sense->Draw("AP");
   sense->Fit("line0", "");
 
@@ -969,8 +969,8 @@ void QwDataContainer::PlotSensitivities()
   sensy->GetYaxis()->SetTitleSize(0.02);
   sensy->GetXaxis()->SetTitleOffset(1.5);
   sensy->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensy);
-  sensy->GetYaxis()->SetRangeUser(-3000., 3000.);
+//   ScaleTGraph(sensy);
+//   sensy->GetYaxis()->SetRangeUser(-3000., 3000.);
   sensy->Draw("AP");
   sensy->Fit("line0", "");
 
@@ -993,8 +993,8 @@ void QwDataContainer::PlotSensitivities()
   sensyp->GetYaxis()->SetTitleSize(0.02);
   sensyp->GetXaxis()->SetTitleOffset(1.5);
   sensyp->GetYaxis()->SetTitleOffset(1.5);
-  ScaleTGraph(sensyp);
-  sensyp->GetYaxis()->SetRangeUser(-200., 200.);
+//   ScaleTGraph(sensyp);
+//   sensyp->GetYaxis()->SetRangeUser(-200., 200.);
   sensyp->Draw("AP");
   sensyp->Fit("line0", "");
 
