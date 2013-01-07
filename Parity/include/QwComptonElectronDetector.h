@@ -170,16 +170,16 @@ class QwComptonElectronDetector:
 
     /// 1st dimension:NPlanes;2nd dimension: NStrips;
     /// List of V1495 accumulation mode strips    
-    std::vector< std::vector <Int_t> > fStrips;
-    std::vector< std::vector <Int_t> > fStripsRaw;
+    std::vector< std::vector <Double_t> > fStrips;
+    std::vector< std::vector <Double_t> > fStripsRaw;
     /// List of V1495 single event mode strips
-    std::vector< std::vector <Int_t> > fStripsEv;
-    std::vector< std::vector <Int_t> > fStripsRawEv; 
+    std::vector< std::vector <Double_t> > fStripsEv;
+    std::vector< std::vector <Double_t> > fStripsRawEv; 
     /// List of V1495 scaler counts
-    std::vector< std::vector <Int_t> > fStripsRawScal;
-    std::vector< std::vector <Int_t> > fStripsRaw_v2;
+    std::vector< std::vector <Double_t> > fStripsRawScal;
+    std::vector< std::vector <Double_t> > fStripsRaw_v2;
     /// to read in the DAQ info configuration subbank
-    std::vector< std::vector <Int_t> >fDAQinfo;
+    std::vector< std::vector <Double_t> >fDAQinfo;
     std::vector <UInt_t> slave_header,firmwareRevision,portAmask,portBmask,portDmask,portEmask,widthInfo,trigInfo;
 
     std::vector <UInt_t> fPlane1Mask,fPlane2Mask,fPlane3Mask,fPlane4Mask,fEvTrig,fAcTrig,fMinWidth;
@@ -194,7 +194,7 @@ class QwComptonElectronDetector:
    *  inside the ConstructHistograms()
    */
 
-  std::vector<Int_t> fComptonElectronVector;
+  std::vector<Double_t> fComptonElectronVector;
 
 
   private:

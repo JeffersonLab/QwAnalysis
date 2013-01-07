@@ -303,7 +303,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 		    evHitMap[m][i][k] = (buffer[bufferIndex] & bitwise_mask) >> j;
 		  }
 		  words_read++;
-		}
+		}	
 		//Int_t ExtraWord = buffer[NPlanes*(m+1)];//diagnostic word, ignore warning, unused currently
 		words_read++;
 	      }
@@ -459,35 +459,35 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
     fPlane1Mask[s+subBankiterate] = ((portAmask.back() & bitwise_mask) >> s);
   }
 
-   for (Int_t s = 0; s < StripsPerModule; s++) {
-     bitwise_mask = (0x1 << s);
+  for (Int_t s = 0; s < StripsPerModule; s++) {
+    bitwise_mask = (0x1 << s);
     fPlane2Mask[s+subBankiterate] = ((portBmask.back() & bitwise_mask) >> s);
-   }
+  }
 
-   for (Int_t s = 0; s < StripsPerModule; s++) {
-     bitwise_mask = (0x1 << s);
+  for (Int_t s = 0; s < StripsPerModule; s++) {
+    bitwise_mask = (0x1 << s);
     fPlane3Mask[s+subBankiterate] = ((portDmask.back() & bitwise_mask) >> s);
-   }
+  }
 
-   for (Int_t s = 0; s < StripsPerModule; s++) {
-     bitwise_mask = (0x1 << s);
+  for (Int_t s = 0; s < StripsPerModule; s++) {
+    bitwise_mask = (0x1 << s);
     fPlane4Mask[s+subBankiterate] = ((portEmask.back() & bitwise_mask) >> s);
-   }
+  }
    
-   fFirmwareRevision[subBankmodule] = firmwareRevision.back();
+  fFirmwareRevision[subBankmodule] = firmwareRevision.back();
    
-   fPWTL[subBankmodule]          =(widthInfo.back() & 0xff000000) >> 24;
-   fPWTL2[subBankmodule]         =(widthInfo.back() & 0x00ff0000) >> 16;
-   fHoldOff[subBankmodule]       =(widthInfo.back() & 0x0000ff00) >> 8;
-   fPipelineDelay[subBankmodule] =(widthInfo.back() & 0x000000ff);
+  fPWTL[subBankmodule]          =(widthInfo.back() & 0xff000000) >> 24;
+  fPWTL2[subBankmodule]         =(widthInfo.back() & 0x00ff0000) >> 16;
+  fHoldOff[subBankmodule]       =(widthInfo.back() & 0x0000ff00) >> 8;
+  fPipelineDelay[subBankmodule] =(widthInfo.back() & 0x000000ff);
    
 
-   fMinWidth[subBankmodule] = (trigInfo.back() & 0x00ff0000) >> 16;
-   fAcTrig[subBankmodule]   = (trigInfo.back() & 0x0000ff00) >> 8;
-   fEvTrig[subBankmodule]   = (trigInfo.back() & 0x000000ff);
+  fMinWidth[subBankmodule] = (trigInfo.back() & 0x00ff0000) >> 16;
+  fAcTrig[subBankmodule]   = (trigInfo.back() & 0x0000ff00) >> 8;
+  fEvTrig[subBankmodule]   = (trigInfo.back() & 0x000000ff);
 
-   subBankiterate = subBankiterate + 32;//when this process is called 2nd time,     
-   return 0;
+  subBankiterate = subBankiterate + 32;//when this process is called 2nd time,     
+  return 0;
 }
 
 /**
@@ -627,7 +627,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
         this->fStripsRawEv[i][j] -= input->fStripsRawEv[i][j];
         this->fStripsRawScal[i][j] -= input->fStripsRawScal[i][j];
         this->fStripsRaw_v2[i][j] -= input->fStripsRaw_v2[i][j];
-       }
+      }
     }
   }
   return *this;
@@ -644,7 +644,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
         this->fStripsRawEv[i][j] *= input->fStripsRawEv[i][j];
         this->fStripsRawScal[i][j] *= input->fStripsRawScal[i][j];
         this->fStripsRaw_v2[i][j] *= input->fStripsRaw_v2[i][j];
-       }
+      }
     }
   }
   return *this;
@@ -693,11 +693,11 @@ void QwComptonElectronDetector::Scale(Double_t factor)
 {
   for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
-      this->fStripsRaw[i][j] *= static_cast<int>(factor);
-      this->fStrips[i][j] *= static_cast<int>(factor);
-      this->fStripsRawEv[i][j] *= static_cast<int>(factor);
-      this->fStripsRawScal[i][j] *= static_cast<int>(factor);
-      this->fStripsRaw_v2[i][j] *= static_cast<int>(factor);
+      this->fStripsRaw[i][j] *= static_cast<double>(factor);
+      this->fStrips[i][j] *= static_cast<double>(factor);
+      this->fStripsRawEv[i][j] *= static_cast<double>(factor);
+      this->fStripsRawScal[i][j] *= static_cast<double>(factor);
+      this->fStripsRaw_v2[i][j] *= static_cast<double>(factor);
       // TODO !!converting Double to Int (ok now) may not be okay later!
     }
   }
@@ -744,11 +744,11 @@ void  QwComptonElectronDetector::AccumulateRunningSum(VQwSubsystem* value)
 
 void  QwComptonElectronDetector::CalculateRunningAverage()
 {
-   if (fGoodEventCount <= 0) { 
-     Scale(0);
-   } else {
-     Scale(1.0/fGoodEventCount);
-   }
+  if (fGoodEventCount <= 0) { 
+    Scale(0);
+  } else {
+    Scale(1.0/fGoodEventCount);
+  }
 }
 
 
@@ -970,7 +970,7 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
       values[index++] = fEvTrig.at(j);/// v1495 event trigger info
     }
     for (UInt_t j = 0; j < fMinWidth.size(); j++) {//!following vectors have same size hence this cheating allowed
-       values[index++] = fMinWidth.at(j);/// v1495 minimum width info
+      values[index++] = fMinWidth.at(j);/// v1495 minimum width info
     }    
     for (UInt_t j = 0; j < fFirmwareRevision.size(); j++) {//!following vectors have same size hence this cheating allowed
       values[index++] = fFirmwareRevision.at(j);/// v1495 event trigger info
@@ -991,7 +991,7 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
   }
 
   for (Int_t i = 0; i < NPlanes; i++) {
-	for (Int_t j = 0; j < StripsPerPlane; j++)
+    for (Int_t j = 0; j < StripsPerPlane; j++)
       values[index++] = fStripsRawEv[i][j];/// Event Raw
     for (Int_t j = 0; j < StripsPerPlane; j++)
       values[index++] = fStripsRaw[i][j];/// Accum Raw
