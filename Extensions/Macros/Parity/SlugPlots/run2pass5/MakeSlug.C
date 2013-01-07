@@ -136,7 +136,7 @@ Int_t MakeSlug(
 //  const TString qwrootfiles = "/home/leacock/QwAnalysis/Extensions/Regression/HallA/postpan/ROOTfiles";
 //	const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
 
-const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
+const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run2/rootfiles";
 
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {

@@ -5,21 +5,21 @@
 # 08-07-2012
 # This will check for missing raw/regression runlets for a given slug number
 
-SRC_LRB="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
-SRC="/volatile/hallc/qweak/QwAnalysis/run1/rootfiles"
+SRC_LRB="/work/hallc/qweak/QwAnalysis/run2/pass5regression/lrb_rootfiles"
+SRC="/volatile/hallc/qweak/QwAnalysis/run2/rootfiles"
 
 
 slug_num=$1
 
-run_list="`cat /volatile/hallc/qweak/smacewan/run1pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
-#run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt`"
-#runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
+run_list="`cat /volatile/hallc/qweak/smacewan/run2pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
+#run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run2pass5/slug${slug_num}_goodruns_list.txt`"
+#runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run2pass5/slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
 unreg_rootfile_status=0
 reg_rootfile_status=0
 run_num_done=0
 for run in ${run_list[@]}
 do
-	runlet_list="`cat /volatile/hallc/qweak/smacewan/run1pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
+	runlet_list="`cat /volatile/hallc/qweak/smacewan/run2pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
 	#echo "Run number  $run"
 	if [ ${run_num_done} -eq  ${run} ]
 	    then

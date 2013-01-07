@@ -11,14 +11,14 @@
 date
 whoami
 hostname
-cd /volatile/hallc/qweak/smacewan/run1pass5/
-/volatile/hallc/qweak/smacewan/run1pass5/run_makeslug 0
+cd /volatile/hallc/qweak/smacewan/run2pass5/
+/volatile/hallc/qweak/smacewan/run2pass5/run_makeslug 0
 jobstat | grep smacewan
   ]]></Command>
 
   <Job>
-    <Stdout dest="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files/run_makeslug_0.out"/>
-    <Stderr dest="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files/run_makeslug_0.err"/>
+    <Stdout dest="/work/hallc/qweak/QwAnalysis/run2/pass5slugs/out_files/run_makeslug_0.out"/>
+    <Stderr dest="/work/hallc/qweak/QwAnalysis/run2/pass5slugs/out_files/run_makeslug_0.err"/>
   </Job>
 
 </Request>

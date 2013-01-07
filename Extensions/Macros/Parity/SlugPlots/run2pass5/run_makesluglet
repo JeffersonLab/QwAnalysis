@@ -2,7 +2,7 @@
 #
 # ppMakeSluglet - smacewan nov 2011
 # run_makesluglet - smacewan oct 2012, renamed to this to conform with previous naming convention
-# run2pass5/run_makesluglet - buddhini december 2012, coppied from run1pass5/run_nakesluglet and moddified for run2pass5.
+# run2pass5/run_makesluglet - buddhini december 2012, coppied from run2pass5/run_nakesluglet and moddified for run2pass5.
 #
 # A wrapper script for the MakeSluglet.C script used to make a single Sluglet ROOTfile out of a single runs' segments.
 # 
@@ -24,8 +24,8 @@ DST_lrb="/work/hallc/qweak/QwAnalysis/run2/pass5regression/lrb_rootfiles"
 
 DST_Dbug="/work/hallc/qweak/QwAnalysis/run2/pass5_slugs/out_files"
 
-LEAFLIST=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5/leaflist_run2pass5_unreg.txt\"
-LEAFLIST_lrb=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5/leaflist_run2pass5_lrb_reg.txt\"
+LEAFLIST=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run2pass5/leaflist_run2pass5_unreg.txt\"
+LEAFLIST_lrb=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run2pass5/leaflist_run2pass5_lrb_reg.txt\"
 
 SUFFIX=\"trees\"
 #SUFFIX=\"0\" ## use this line for NO suffix
