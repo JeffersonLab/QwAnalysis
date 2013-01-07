@@ -89,7 +89,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       //  Break this line into tokens to process it.
       TString modtype = mapstr.GetTypedNextToken<TString>();
       UInt_t modnum   = mapstr.GetTypedNextToken<UInt_t>();
-      UInt_t channum = mapstr.GetTypedNextToken<UInt_t>(); /* unused */
+      UInt_t channum = mapstr.GetTypedNextToken<UInt_t>(); //if commented, 'dettype' is not evaluated properly.
       TString dettype = mapstr.GetTypedNextToken<TString>();
       TString name    = mapstr.GetTypedNextToken<TString>();
       Int_t plane     = mapstr.GetTypedNextToken<Int_t>();
@@ -177,6 +177,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	else {
 	  notGood=notGood+1;
 	  cout<<"***found an undefined data type "<<notGood<<" times"<<endl;
+	  cout<<"dettype: "<<dettype<<endl;
 	}
       } // end of switch (modtype)
     } // end of if for token line
@@ -391,7 +392,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
     default:
       {
 	QwError << "QwComptonElectronDetector: Unknown data channel type for ROC " 
-		<< roc_id << ", bank " << bank_id << QwLog::endl;
+		<< roc_id << ", bank 0x" <<std::hex<<bank_id << std::dec<<QwLog::endl;
 	break;
       }
     }
@@ -990,7 +991,7 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
   }
 
   for (Int_t i = 0; i < NPlanes; i++) {
-    for (Int_t j = 0; j < StripsPerPlane; j++)
+	for (Int_t j = 0; j < StripsPerPlane; j++)
       values[index++] = fStripsRawEv[i][j];/// Event Raw
     for (Int_t j = 0; j < StripsPerPlane; j++)
       values[index++] = fStripsRaw[i][j];/// Accum Raw
