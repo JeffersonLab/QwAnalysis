@@ -47,7 +47,10 @@ create table if not exists slow_controls_settings (
   run_id INT UNSIGNED,
   ihwp_1 char(3),
   ihwp_2 char(3),
-  laser_pol_direction char(5)
+  laser_pol_direction char(5),
+  wien_v float,
+  wien_h float,
+  wien_phi float
 );
 
 create table if not exists slow_controls_data (
