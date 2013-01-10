@@ -1,3 +1,10 @@
+create table if not exists pass_info (
+  name TEXT,
+  start_time DATETIME,
+  end_time DATETIME,
+  comment TEXT
+);
+
 create table if not exists good_for (
   good_for_id INTEGER PRIMARY KEY ASC,
   type TEXT
