@@ -79,6 +79,7 @@ public:
   TString  fMysqlQuery;
   TString  fMysqlSlopeCorr;
   TString  fModulationType;
+  TString  fMysqlBeamMode;
 
   Bool_t   fDBase;
   Bool_t   fRunRange;
