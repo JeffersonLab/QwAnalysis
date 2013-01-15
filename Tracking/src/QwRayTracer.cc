@@ -106,7 +106,7 @@ void QwRayTracer::DefineOptions(QwOptions& options)
       "Newton's method momentum step [MeV]");
   // Step size of Newton's method in position
   options.AddOptions("Momentum reconstruction")("QwRayTracer.position_resolution",
-      po::value<float>(0)->default_value(1.0),
+      po::value<float>(0)->default_value(0.3),
       "Newton's method position step [cm]");
 }
 
@@ -139,11 +139,16 @@ const QwTrack* QwRayTracer::Bridge(
   Double_t momentum[2] = {0.0};
   momentum[0] = EstimateInitialMomentum(front->GetMomentumDirection());
 
-  // Start iteration from a smaller momentum than initial guess
-  if(momentum[0] > 0.50 * Qw::GeV)
-      momentum[0] = momentum[0] - 0.30 * Qw::GeV;
-  else
-      momentum[0] = 0.20 * Qw::GeV;
+  // Start iteration from a smaller momentum than initial guess,
+  // to avoid the gap in the momentum spectrum
+  // if(momentum[0] > 0.50 * Qw::GeV)
+  //     momentum[0] = momentum[0] - 0.30 * Qw::GeV;
+  // else
+  //     momentum[0] = 0.20 * Qw::GeV;
+
+  // Start iteration from a higher momentum limit (1.250 GeV)
+  // as suggested by David Armstrong, to avoid possible bias
+  momentum[0] = 1.250 * Qw::GeV;
 
   // Front track position and direction
   TVector3 start_position = front->GetPosition(-250 * Qw::cm);
