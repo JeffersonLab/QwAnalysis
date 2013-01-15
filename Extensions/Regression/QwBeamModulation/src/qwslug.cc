@@ -1,4 +1,4 @@
-#include "../include/headers.h"
+ #include "../include/headers.h"
 #include "QwSlug.hh"
 #include "QwDataContainer.hh"
 #include "QwPlotHelper.hh"
@@ -14,42 +14,6 @@ Int_t main(Int_t argc, Char_t *argv[])
   QwSlug *slug = new QwSlug(slug_tree);
 
   Int_t slug_number = 0;
-
-// mdall
-//   Double_t sens[5] = {-0.001501, 77.79, -0.001439, 90.25e-6, 5.832};
-//   Double_t error[5] = {0.00002025, 1.056, 7.5146e-6, 27.48e-6, 1.084};
-
-// md1barsum
-//  Double_t sens[5] = {-0.007246, 50.23, -0.001531, -12.79e-6, 3.23};
-//  Double_t error[5] = {0.00007591, 3.31, 6.341e-6, 53.99e-6, 2.20};
-
-// md2barsum
-//   Double_t sens[5] = {-6410e-6, 27.99, -0.0010722, 4520e-6, 34.15};
-//   Double_t error[5] = {80.22e-6, 3.39, 6.44e-6, 58.35e-6, 2.19};
-
-// md3barsum
-//   Double_t sens[5] = {-0.001589, 68.46, -0.001290, 5817e-6, 38.82};
-//   Double_t error[5] = {0.00005215, 2.39, 7.0731e-6, 63.86e-6, 2.28};
-
-// md4barsum
-//   Double_t sens[5] = {2127e-6, 118, -0.001629, 3411e-6, 28.85};
-//   Double_t error[5] = {68.83e-6, 3.63, 9.37e-6, 61.12e-6, 2.69};
-
-// md5barsum
-//   Double_t sens[5] = {4290e-6, 120.2, -1570e-6, 44.57e-6, 7.99};
-//   Double_t error[5] = {59.5e-6, 3.18, 7.8e-6, 67.31e-6, 2.56};
-
-// md6barsum
-//   Double_t sens[5] = {2599e-6, 120.1, -1636.6e-6, -2977e-6, 25.19};
-//   Double_t error[5] = {72.65e-6, 3.6, 8.78e-6, 56.45e-6, 2.29};
-
-// md7barsum
-//   Double_t sens[5] = {-729.9e-6, 80.7, -0.0013878, -5367e-6, -30.08};
-//   Double_t error[5] = {63.5e-6, 2.76, 7.0731e-6, 65.56e-6, 2.56};
-
-// md8barsum
-//   Double_t sens[5] = {-5210e-6, 41.3, -1314e-6, -3951e-6, -16.07};
-//   Double_t error[5] = {73.15e-6, 3.02, 7.83e-6, 51.51e-6, 2.33};
 
   TString file_directory;
 
