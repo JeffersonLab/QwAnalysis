@@ -710,6 +710,9 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
 	"  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
 	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n";
+    print JOBFILE
+	"  setenv QWSTATUS \$QWSCRATCH/work/run_$runnumber$suffix\_$timestamp.stat\n",
+	"  echo \"QWSTATUS:   \" \$QWSTATUS\n";
     if ("$CacheOptionList" ne ""){
         $CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
     } else {
@@ -722,14 +725,14 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"QW_ROOTFILES: \" \$QW_ROOTFILES\n",
 	"  echo $script_dir/update_cache_links.pl $CacheOptionList\n",
 	"  $script_dir/update_cache_links.pl $CacheOptionList\n",
-	"  ls -al \$QW_DATA\n";
+	"  ls -al \$QW_DATA | tee -a \$QWSTATUS\n";
     print JOBFILE
-	"  echo \"------\"\n",
-	"  echo \"Started at `date`\"\n",
-	"  echo $executable -r $runnumber $optionlist\n",
+	"  echo \"------\" | tee -a \$QWSTATUS\n",
+	"  echo \"Started at `date`\" | tee -a \$QWSTATUS\n",
+	"  echo $executable -r $runnumber $optionlist | tee -a \$QWSTATUS\n",
 	"  $executable -r $runnumber $optionlist\n",
 	"  chmod g+w \$QW_ROOTFILES/*.root\n",
-	"  ls -al \$QW_ROOTFILES\n";
+	"  ls -al \$QW_ROOTFILES | tee -a \$QWSTATUS\n";
     my $postprocess;
     my $segment_range = -1;
     $segment_range = $segmentlist if (defined($segmentlist)
@@ -737,16 +740,16 @@ sub create_xml_jobfile($$$@) {
     foreach $postprocess (@RunPostProcess){
 	if ($postprocess){
 	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start run based post-processor script $postprocess at `date`\"\n",
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start run based post-processor script $postprocess at `date`\" | tee -a \$QWSTATUS\n",
 		"  $postprocess $runnumber $segment_range\n";
 	}
     }
     foreach $postprocess (@RunletPostProcess){
 	if ($postprocess){
 	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start runlet based post-processor script $postprocess at `date`\"\n";
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start runlet based post-processor script $postprocess at `date`\" | tee -a \$QWSTATUS\n";
 	    foreach $input_file (@infiles) {
 		my $segment = undef;
 		if ($input_file =~ m/.*\.([0-9]+)$/) {
@@ -761,14 +764,14 @@ sub create_xml_jobfile($$$@) {
 	my ($protocol, $path) = split /:/, $OutputPath, 2;
 	if ($protocol eq "mss"){
 	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start copying output files to at `date`\"\n";
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start copying output files to at `date`\" | tee -a \$QWSTATUS\n";
 	    print JOBFILE
 		"  /site/bin/jput \$QW_ROOTFILES/$RootfileStem*.root $path/\n";
 	} elsif ($protocol eq "file" ){
 	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start copying output files to at `date`\"\n";
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start copying output files to at `date`\" | tee -a \$QWSTATUS\n";
 	    print JOBFILE
 		"  cp -v \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
 	}
@@ -777,15 +780,15 @@ sub create_xml_jobfile($$$@) {
     foreach $postprocess (@EndOfJobProcess){
         if ($postprocess){
             print JOBFILE
-                "  echo \"------\"\n",
-                "  echo \"Start end-of-job post-processor script $postprocess at `date`\"\n",
+                "  echo \"------\" | tee -a \$QWSTATUS\n",
+                "  echo \"Start end-of-job post-processor script $postprocess at `date`\" | tee -a \$QWSTATUS\n",
                 "  $postprocess $runnumber $segment_range\n";
         }
     }
 
 
     print JOBFILE
-	"  echo \"Finished at `date`\"\n",
+	"  echo \"Finished at `date`\" | tee -a \$QWSTATUS\n",
 	"]]></Command>\n";
     print JOBFILE " <Job>\n";
     foreach $input_file (@infiles) {
