@@ -32,11 +32,7 @@ create table if not exists run (
 create table if not exists laser_cycle (
   laser_cycle_id INTEGER PRIMARY KEY ASC,
   run_id INT UNSIGNED,
-  cycle_number INT UNSIGNED,
-  start_hel INT UNSIGNED,
-  end_hel INT UNSIGNED,
-  start_mps INT UNSIGNED,
-  end_mps INT UNSIGNED
+  cycle_number INT UNSIGNED
 );
 
 create table if not exists slow_control_detector (
