@@ -16,8 +16,6 @@ include_directories(${ROOT_INCLUDE_DIR})
 find_package(QwAnalysis REQUIRED)
 include_directories(${QWANALYSIS_INCLUDE_DIR})
 
-
-
 # Find SQLite3
 find_package(Sqlite3 REQUIRED)
 include_directories(${SQLITE3_INCLUDE_DIRS})
