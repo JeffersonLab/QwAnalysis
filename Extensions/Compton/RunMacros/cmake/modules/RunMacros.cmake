@@ -1,24 +1,22 @@
-# Require at least cmake 2.6.0
-cmake_minimum_required(VERSION 2.6.0 FATAL_ERROR)
-
-# Name of this project
-project(RunMacros_Project)
-
 # Add the project include directory and put all source files in my_project_sources
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-file(GLOB my_project_sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
-file(GLOB my_project_headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
+set( RunMacros_Dir "$ENV{QWANALYSIS}/Extensions/Compton/RunMacros")
+include_directories(${RunMacros_Dir}/include)
+file(GLOB my_project_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+file(GLOB my_project_headers ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 # Local path for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+set(CMAKE_MODULE_PATH
+  "${RunMacros_Dir}/cmake/modules")
 
 # Load ROOT and setup include directory
 find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
 
-# Load QWANALYSIS and include directories
+# Load QwAnalysis and setup include directory
 find_package(QwAnalysis REQUIRED)
 include_directories(${QWANALYSIS_INCLUDE_DIR})
+
+
 
 # Find SQLite3
 find_package(Sqlite3 REQUIRED)
@@ -35,9 +33,9 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIR})
 
-# Add the target executables
-add_executable(RunMacros RunMacros.cc ${my_project_sources} ${my_project_headers})
+# Finally, add the library
+add_library(${PROJECT_NAME} SHARED ${my_project_sources})
+target_link_libraries(${PROJECT_NAME})
 
-# Link the ROOT libraries
-target_link_libraries(RunMacros ${ROOT_LIBRARIES} ${SQLITE3_LIBRARIES}
-  ${QWANALYSIS_LIBRARIES} ${Boost_LIBRARIES})
+# Install the damn library in the shared libraries directory
+INSTALL(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${RunMacros_Dir}/macros.d/)
