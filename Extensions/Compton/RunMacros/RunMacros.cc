@@ -11,9 +11,11 @@ namespace po = boost::program_options;
 #include <iterator>
 #include <cstdlib>
 #include <fstream>
+#include <dlfcn.h>
 
 // Local includes
 #include "ComptonSession.h"
+#include "VComptonMacro.h"
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +25,8 @@ int main(int argc, char *argv[])
   TString db_file;
   Bool_t find_cycles = kTRUE;
   TString pass;
+  std::vector<std::string> macros;
+  TString macros_path;
 
   // Generic command line options
   po::options_description generic("Generic options");
@@ -37,6 +41,8 @@ int main(int argc, char *argv[])
     ("db-file",po::value<std::string>(),"database file name")
     ("with-db-cycles","uses the laser cycle definitions already in the database")
     ("pass,p",po::value<std::string>(),"pass prefix (i.e. Pass2b)")
+    ("macros,m",po::value<std::vector<std::string> >(),"ordered list of macros to process")
+    ("macros-path",po::value<std::string>(),"path to shared macros")
     ;
 
   // Finally, add them to boost
@@ -69,7 +75,6 @@ int main(int argc, char *argv[])
     std::cout << "NOTICE: Did not find configuration file." << std::endl;
   }
 
-
   // Process help
   if(vm.count("help")) {
     std::cout << generic << "\n";
@@ -101,9 +106,24 @@ int main(int argc, char *argv[])
     pass = vm["pass"].as<std::string>();
   }
 
+  // What macros should we process?
+  if(!vm.count("macros")){
+    std::cerr << "No macros will be parsed" << std::endl;
+  } else {
+    macros = vm["macros"].as< std::vector<std::string> >();
+  }
+
   // Should we find new cycles?
   if(vm.count("with-db-cycles")) {
     find_cycles = kFALSE;
+  }
+
+  // Process macro library dir
+  if(vm.count("macros-path")) {
+    macros_path = vm["macros-path"].as<std::string>();
+  } else { // Default hard coded path!
+    macros_path = TString(std::getenv("QWANALYSIS"))
+      +"/Extensions/Compton/RunMacros/macros.d";
   }
 
   // Create a session to handle the run
@@ -112,6 +132,36 @@ int main(int argc, char *argv[])
     session->FindLaserCycles();
   } else {
     session->LaserCyclesFromDB();
+  }
+
+  // Setup the VComptonMacro API
+  typedef VComptonMacro* create_t();
+  typedef void destroy_t(VComptonMacro*);
+
+  // Finally, process the dynamic macros
+  for(std::vector<std::string>::iterator it = macros.begin();
+      it != macros.end(); ++it) {
+    void *handle;
+    TString library=macros_path+Form("/lib%s.so",(*it).c_str());
+    handle = dlopen(library.Data(),RTLD_NOW);
+    if(!handle) {
+      std::cout << "WARNING: Cannot find library file for " << *it
+        << " at " << library.Data()
+        << "\t\tSkipping!" << std::endl;
+    } else {
+      std::cout << "Processing macro: " << *it << std::endl;
+      create_t* create=(create_t*)dlsym(handle,"create");
+      destroy_t* destroy=(destroy_t*)dlsym(handle,"destroy");
+      if(!create || !destroy) {
+        std::cout << "ERROR: Cannot process " << *it
+          << "\t -- " << dlerror() << std::endl;
+      }
+
+      VComptonMacro* m = create();
+      m->init(session);
+      m->run();
+      destroy(m);
+    }
   }
 
   // Cleanup
