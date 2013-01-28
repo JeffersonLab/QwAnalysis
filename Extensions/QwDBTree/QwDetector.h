@@ -1,25 +1,9 @@
-#ifndef DETECTOR_H
-#define DETECTOR_H
+#ifndef QWDETECTOR_H
+#define QWDETECTOR_H
 #include <TTree.h>
 #include <Riostream.h>
 #include <TSQLServer.h>
-#include "parse.h"
-
-/* Class to store data for branching. */
-class QwData {
-    private:
-        /* Data to go into the tree */
-        Double_t value;
-        Double_t error;
-        Double_t rms;
-        Long_t n;
-
-    public:
-        /* Overloaded constructer */
-        QwData(void);
-        QwData(Double_t, Double_t, Long_t, Double_t);
-        void fill_empty(void);
-};
+#include "QwData.h"
 
 /* QwDetector class, from which specific detectors inherit. */
 class QwDetector {
@@ -55,24 +39,6 @@ class QwDetector {
          * FIXME: = 0. wat r u doing. = 0. stawp.
          */
         virtual TString query(void) = 0;
-};
-
-class QwMainDet: public QwDetector {
-    public:
-        QwMainDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
-        TString query(void);
-};
-
-class QwLumiDet : public QwDetector {
-    public:
-        QwLumiDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
-        TString query(void);
-};
-
-class QwBeamDet : public QwDetector {
-    public:
-        QwBeamDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
-        TString query(void);
 };
 
 #endif
