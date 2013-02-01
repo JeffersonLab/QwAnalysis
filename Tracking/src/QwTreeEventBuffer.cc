@@ -257,7 +257,17 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
                fPrimary_OriginVertexMomentumDirectionY,
                fPrimary_OriginVertexMomentumDirectionZ);
 
-    // Add the tree lines
+    // jpan: new assignment
+    fOriginalEvent->fScatteringVertexZ =  fPrimary_OriginVertexPositionZ;
+    fOriginalEvent->fScatteringVertexR =  
+        sqrt(fPrimary_OriginVertexPositionX*fPrimary_OriginVertexPositionX
+           + fPrimary_OriginVertexPositionY*fPrimary_OriginVertexPositionY);
+    fOriginalEvent->fPrimaryQ2 = fPrimary_PrimaryQ2;
+    fOriginalEvent->fScatteringAngle = fPrimary_OriginVertexThetaAngle;
+    fOriginalEvent->fCrossSection = fPrimary_CrossSection;
+    fOriginalEvent->fPreScatteringEnergy = fPrimary_PreScatteringKineticEnergy;     
+    fOriginalEvent->fOriginVertexEnergy =  fPrimary_OriginVertexKineticEnergy;
+
     std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
     treelinelist = CreateTreeLines(kRegionID2);
     for (size_t i = 0; i < treelinelist.size(); i++)
@@ -2085,6 +2095,13 @@ void QwTreeEventBuffer::AttachBranches()
 		&fPrimary_OriginVertexMomentumDirectionY);
   fTree->SetBranchAddress("Primary.OriginVertexMomentumDirectionZ",
 		&fPrimary_OriginVertexMomentumDirectionZ);
+
+  fTree->SetBranchAddress("Primary.CrossSection",
+                &fPrimary_CrossSection);
+  fTree->SetBranchAddress("Primary.OriginVertexThetaAngle",
+                &fPrimary_OriginVertexThetaAngle);
+  fTree->SetBranchAddress("Primary.PreScatteringKineticEnergy",
+                &fPrimary_PreScatteringKineticEnergy);
 
   /// Attach to the region 1 branches
   // Region1 WirePlane

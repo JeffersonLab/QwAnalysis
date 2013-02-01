@@ -404,6 +404,9 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     double fScatteringAngle;    ///< Scattering angle
     double fScatteringVertexZ;  ///< Scattering vertex z position
     double fScatteringVertexR;  ///< Scattering vertex radial distance
+    double fCrossSection;
+    double fPreScatteringEnergy;
+    double fOriginVertexEnergy;
     TVector3 fVertexPosition;   ///< Vertex position
     TVector3 fVertexMomentum;   ///< Vertex momentum
     //@}

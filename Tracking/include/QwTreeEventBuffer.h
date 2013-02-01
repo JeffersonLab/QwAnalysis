@@ -199,7 +199,12 @@ class QwTreeEventBuffer
 
     // Primary
     Float_t fPrimary_PrimaryQ2;
+    Float_t fPrimary_CrossSection;
     Float_t fPrimary_CrossSectionWeight;
+    Float_t fPrimary_OriginVertexThetaAngle;
+    Float_t fPrimary_OriginVertexPhiAngle;
+    Float_t fPrimary_PreScatteringKineticEnergy;
+
     Float_t fPrimary_OriginVertexPositionX;
     Float_t fPrimary_OriginVertexPositionY;
     Float_t fPrimary_OriginVertexPositionZ;
