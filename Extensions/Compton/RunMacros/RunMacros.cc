@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
   TString pass;
   std::vector<std::string> macros;
   TString macros_path;
+  TString web_dir;
 
   // Generic command line options
   po::options_description generic("Generic options");
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
     ("pass,p",po::value<std::string>(),"pass prefix (i.e. Pass2b)")
     ("macros,m",po::value<std::vector<std::string> >(),"ordered list of macros to process")
     ("macros-path",po::value<std::string>(),"path to shared macros")
+    ("web-dir",po::value<std::string>(),"path web directory")
     ;
 
   // Finally, add them to boost
@@ -126,8 +128,20 @@ int main(int argc, char *argv[])
       +"/Extensions/Compton/RunMacros/macros.d";
   }
 
+  // Process mandatory web dir
+  if(!vm.count("web-dir")) {
+    std::cerr << "Must specify web directory!" << std::endl;
+    return 1;
+  } else {
+    web_dir = vm["web-dir"].as<std::string>();
+  }
+
   // Create a session to handle the run
   ComptonSession *session = new ComptonSession(runnumber,db_file,pass);
+  if(!session->SetWebDir(web_dir)) {
+    std::cerr << "Web directory path not accessible!" << std::endl;
+    return -1;
+  }
   if(find_cycles) {
     session->FindLaserCycles();
   } else {
