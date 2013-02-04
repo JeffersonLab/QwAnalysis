@@ -38,6 +38,10 @@ protected:
     return prefix(Compton::TREE_TYPE_t(type));
   }
 
+  TString GetStorageDir() {
+    return fSession->StorageDir();
+  }
+
   TString prefix(Compton::TREE_TYPE_t type) {
     switch(type) {
       case Compton::HEL_TREE_TYPE:
