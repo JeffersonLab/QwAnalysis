@@ -88,7 +88,7 @@ create table if not exists analysis (
 );
 
 create table if not exists measurement_type (
-  measurement_type_id INTEGER_PRIMARY_KEY ASC,
+  measurement_type_id INTEGER PRIMARY KEY ASC,
   units TEXT,
   title TEXT
 );
