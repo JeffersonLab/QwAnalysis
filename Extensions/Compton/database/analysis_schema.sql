@@ -107,6 +107,7 @@ create table if not exists electron_data (
 create table if not exists photon_data (
   photon_data_id INTEGER PRIMARY KEY ASC,
   analysis_id INT UNSIGNED,
+  monitor_id INT UNSIGNED,
   measurement_type_id INT,
   n INT UNSIGNED,
   value float,
