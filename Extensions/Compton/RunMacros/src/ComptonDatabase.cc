@@ -170,3 +170,18 @@ Int_t ComptonDatabase::StoreBeam(Int_t anaID,Int_t monID,Int_t measID,
   return sqlite3_last_insert_rowid(fDB);
 }
 
+Int_t ComptonDatabase::StorePhoton(Int_t anaID,Int_t monID,Int_t measID,
+    Int_t n,Double_t v,Double_t e)
+{
+  Int_t rc;
+  sqlite3_stmt *stmt;
+  rc = sqlite3_prepare_v2(fDB,
+      Form("INSERT INTO photon_data(analysis_id,monitor_id,measurement_type_id,"
+        "n,value,error) values(%d,%d,%d,%d,%f,%f);",
+        anaID,monID,measID,n,v,e),
+      -1,&stmt,NULL);
+  rc = sqlite3_step(stmt);
+  rc = sqlite3_finalize(stmt);
+  return sqlite3_last_insert_rowid(fDB);
+}
+

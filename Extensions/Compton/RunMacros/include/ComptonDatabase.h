@@ -44,6 +44,9 @@ public:
   Int_t StoreBeam(Int_t anaID,Int_t monID,Int_t measID,Int_t n,Double_t v,
       Double_t e);
 
+  Int_t StorePhoton(Int_t anaID,Int_t monID,Int_t measID,Int_t n,Double_t v,
+      Double_t e);
+
 private:
   // Database handler
   sqlite3 *fDB;

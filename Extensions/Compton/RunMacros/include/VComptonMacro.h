@@ -58,6 +58,13 @@ protected:
       TString measure, Int_t cycle, Int_t laser_state,Int_t entries,
       Double_t val, Double_t err);
 
+  void DBStorePhoton(Int_t tree, TString monitor,
+      TString measure, Int_t cycle, Int_t laser_state,Int_t entries,
+      Double_t val, Double_t err);
+
+
+
+
   void SetName(TString name) {
     fName = name;
   }
