@@ -892,7 +892,7 @@ void Snapshots::run()
 	realtime = timer.RealTime();
 	
 	//TString logdir = TString(getenv("QWSCRATCH")) + Form("/www/run_%i/",runnum());
-  TString logdir = GetStorageDir();
+  TString logdir = GetStorageDir()+"/";
 
 	TString logfilename = logdir + "stepthru_mps_time.log";
 	std::cout << "Writing time log to " << logfilename << std::endl;
