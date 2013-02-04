@@ -82,6 +82,7 @@ public:
   ~ComptonSession();
 
   Bool_t SetWebDir(TString webdir);
+  Bool_t SetStorageDir(TString webdir);
 
   /*
    *  \brief Find and store laser cycles in database
@@ -101,6 +102,11 @@ public:
     return fWebDir;
   }
 
+
+  TString StorageDir() {
+    return fStorageDir;
+  }
+
   ComptonDatabase* db() {
     return fDB;
   }
@@ -118,7 +124,8 @@ private:
   Int_t fHelID; // ID number in database
   Int_t fMpsID; // ID number in database
   ComptonDatabase *fDB;
-  TString fWebDir;
+  TString fWebDir;  // Directory for output of images
+  TString fStorageDir; // Directory for larger file/data storage
 
   Compton::LaserCycles fLaserCycles[2]; // For the number of trees
 

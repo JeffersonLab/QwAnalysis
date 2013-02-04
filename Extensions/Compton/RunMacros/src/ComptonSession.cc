@@ -167,3 +167,13 @@ Bool_t ComptonSession::SetWebDir(TString dir)
   // But if it doesn't exist, try to create it first!
   return boost::filesystem::create_directories(fWebDir.Data());
 }
+
+Bool_t ComptonSession::SetStorageDir(TString dir)
+{
+  fStorageDir = dir+Form("/run_%d",fRunNumber);
+  if(boost::filesystem::exists(fStorageDir.Data()))
+    return kTRUE; // Already exists, so don't create it
+
+  // But if it doesn't exist, try to create it first!
+  return boost::filesystem::create_directories(fStorageDir.Data());
+}

@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
   std::vector<std::string> macros;
   TString macros_path;
   TString web_dir;
+  TString storage_dir;
 
   // Generic command line options
   po::options_description generic("Generic options");
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
     ("macros,m",po::value<std::vector<std::string> >(),"ordered list of macros to process")
     ("macros-path",po::value<std::string>(),"path to shared macros")
     ("web-dir",po::value<std::string>(),"path web directory")
+    ("storage-dir",po::value<std::string>(),"path storage directory")
     ;
 
   // Finally, add them to boost
@@ -136,10 +138,24 @@ int main(int argc, char *argv[])
     web_dir = vm["web-dir"].as<std::string>();
   }
 
+  // Process mandatory storage dir
+  if(!vm.count("storage-dir")) {
+    std::cerr << "Must specify storage directory!" << std::endl;
+    return 1;
+  } else {
+    storage_dir = vm["storage-dir"].as<std::string>();
+  }
+
+
+
   // Create a session to handle the run
   ComptonSession *session = new ComptonSession(runnumber,db_file,pass);
   if(!session->SetWebDir(web_dir)) {
     std::cerr << "Web directory path not accessible!" << std::endl;
+    return -1;
+  }
+  if(!session->SetStorageDir(storage_dir)) {
+    std::cerr << "Storage directory path not accessible!" << std::endl;
     return -1;
   }
   if(find_cycles) {
