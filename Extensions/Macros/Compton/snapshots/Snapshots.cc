@@ -1,3 +1,5 @@
+#include "Snapshots.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -47,13 +49,22 @@
 // log file at $QWSCRATCH/log/snapshot_23507.log
 //qwroot -l -b -q '/home/cdaq/compton/QwAnalysis/Extensions/Compton/macros/utils/run_macro.C("snapshots/snapshots.C","snapshots","snapshots",23507,kTRUE,kTRUE)'
 
-void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents = 0)
+//void snapshots(Int_t runnum() = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents = 0)
+
+void Snapshots::init( ComptonSession* session ) {
+  VComptonMacro::init(session);
+  VComptonMacro::SetName("Snapshots");
+}
+
+void Snapshots::run()
 {
-	if (runnumber==0) {
-		printf("\n\nUseage:\n\t .x stepthru_mps.C(runnumber, [first100k, [maxevents]])\n");
-		printf("\t .x stepthru_mps_DEVEL.C(runnumber, [first100k, [maxevents]])\n\n");
+  /* removed, no longer needed (?) (jc2)
+	if (runnum()==0) {
+		printf("\n\nUseage:\n\t .x stepthru_mps.C(runnum(), [first100k, [maxevents]])\n");
+		printf("\t .x stepthru_mps_DEVEL.C(runnum(), [first100k, [maxevents]])\n\n");
 		return;
 	}
+  */
 	// **********
 	// **** Start the timer
 	TStopwatch timer;
@@ -68,14 +79,18 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 //	const Int_t numstrips = 64;
 	//Int_t multcutincl = 2;
 
-	TString rootoutdir  = TString(getenv("QW_ROOTFILES")) + "/summary/";
+  TString rootoutdir = GetStorageDir() + "/summary/";
+	//TString rootoutdir  = TString(getenv("QW_ROOTFILES")) + "/summary/";
 	gSystem->mkdir(rootoutdir.Data(),kTRUE);
-	TString rootoutname = rootoutdir + Form("Compton_NewSummary_%i.root",runnumber);
+	TString rootoutname = rootoutdir + Form("Compton_NewSummary_%i.root",runnum());
 	TFile*  rootoutfile = TFile::Open(rootoutname,"RECREATE");
 
-	TChain *Mps_Chain = getMpsChain(runnumber,isFirst100k);
+	//TChain *Mps_Chain = getMpsChain(runnum(),isFirst100k);
+  TChain *Mps_Chain = chain(0);
+
 
 	Int_t nentries = Mps_Chain->GetEntries();
+  Int_t maxevents = nentries;
 	printf("There are %i entries\n",nentries);
 	if (maxevents > 0) {
 		nentries=std::min(maxevents+offsetentry,nentries);
@@ -155,7 +170,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				//std::cout << std::endl;
 			}
 			Int_t temprun = atoi(params[0]);
-			if (temprun > 20000 && temprun <= runnumber) {
+			if (temprun > 20000 && temprun <= runnum()) {
 				// i_ = atoi(a_);
 				i_run = atoi(params[0]);
 				integnbins = atoi(params[1]);	
@@ -686,7 +701,7 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 					samp_minpos_val = sampled_events->at(0).GetMinIndex();
 					// samp_pedestal;// = sampled_events->at(0).GetPedestal();
 					samp_integral_val = sampled_events->at(0).GetSum();
-					samp_pointer = sampled_events->at(0).fSamplePointer;
+					samp_pointer = sampled_events->at(0).GetSamplePointer();
 					TGraph* thegraph = sampled_events->at(0).GetGraph();
 					char sampname[255], samptitle[255];
 					thegraph->GetPoint(1,xgpos,samp_ped1);
@@ -843,14 +858,21 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 							samp_bcm6->Fill(bcm6[0],type); 
 							if (actual_helicity==0) {
 								samp_max_hel0->Fill(samp_max_val,type);
-								samp_yieldVSsubint_hel0->Fill(samp_integral_val,fadc_compton_accum0[0]);
+							// (jc2) : Had to add an extra parameter, as it seems
+							// ROOT changed the API of TH3 to make Fill(double,double)
+							// be protected now.
+
+								samp_yieldVSsubint_hel0->Fill(samp_integral_val,fadc_compton_accum0[0],1.0);
 								samp_bcm1_hel0->Fill(bcm1[0]);
 								samp_bcm2_hel0->Fill(bcm2[0]);
 								samp_bcm6_hel0->Fill(bcm6[0]); 
 							} else {
 								if (actual_helicity==1) {
 									samp_max_hel1->Fill(samp_max_val,type);
-									samp_yieldVSsubint_hel1->Fill(samp_integral_val,fadc_compton_accum0[0]);
+									// (jc2) : Had to add an extra parameter, as it seems
+									// ROOT changed the API of TH3 to make Fill(double,double)
+                  							// be protected now.
+									samp_yieldVSsubint_hel1->Fill(samp_integral_val,fadc_compton_accum0[0],1.0);
 									samp_bcm1_hel1->Fill(bcm1[0]);
 									samp_bcm2_hel1->Fill(bcm2[0]);
 									samp_bcm6_hel1->Fill(bcm6[0]);
@@ -869,7 +891,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	cputime = timer.CpuTime();
 	realtime = timer.RealTime();
 	
-	TString logdir = TString(getenv("QWSCRATCH")) + Form("/www/run_%i/",runnumber);
+	//TString logdir = TString(getenv("QWSCRATCH")) + Form("/www/run_%i/",runnum());
+  TString logdir = GetStorageDir();
+
 	TString logfilename = logdir + "stepthru_mps_time.log";
 	std::cout << "Writing time log to " << logfilename << std::endl;
 	time_t rawtime;
@@ -931,8 +955,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	
 	TString outtextfilename_ped;
 	TString outtextfilename_width;
-	TString webdir = kWebDirectory+ Form("/run_%i/",runnumber);
-	gSystem->mkdir(webdir.Data(),kTRUE);
+	//TString webdir = kWebDirectory+ Form("/run_%i/",runnum());
+  TString webdir = GetStorageDir();
+	//gSystem->mkdir(webdir.Data(),kTRUE);
 	outtextfilename_ped = webdir + "pedestalfit.txt";
 
 	gROOT->SetStyle("Plain");
@@ -975,10 +1000,10 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	TPad *c_waveforms_laserON;
 	TVirtualPad *padp;
 	if (do_waveforms) {
-		waveforms_laserON = new TCanvas("waveforms_laserON", Form("waveforms %i",runnumber), 
+		waveforms_laserON = new TCanvas("waveforms_laserON", Form("waveforms %i",runnum()), 
 										canvasxoff,0,canvaswidth,canvasheight);
 		waveforms_laserON->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 7: Laser ON snapshots", runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 7: Laser ON snapshots", runnum()));
 		c_waveforms_laserON = new TPad("c_waveforms_laserON","c_waveforms_laserON",0,0,1,1.0-textspace);
 		c_waveforms_laserON->Draw();
 		c_waveforms_laserON->Divide(6,6,0.001,0.001);
@@ -995,16 +1020,17 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				//graph1->SetTitleSize(0.07);
 			}
 		}
-		waveforms_laserON->Print(webdir + "waveforms_laserON.png");
+		//waveforms_laserON->Print(webdir + "waveforms_laserON.png");
+    SaveToWeb(waveforms_laserON,"waveforms_laserON");
 	}
 
 	TCanvas *waveforms_big;
 	TPad *c_waveforms_big;
 	if (do_waveforms) {
-		waveforms_big = new TCanvas("waveforms_big", Form("waveforms %i",runnumber), 
+		waveforms_big = new TCanvas("waveforms_big", Form("waveforms %i",runnum()), 
 										canvasxoff,0,canvaswidth,canvasheight);
 		waveforms_big->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 10: BIG snapshots (max > 3000)", runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 10: BIG snapshots (max > 3000)", runnum()));
 		c_waveforms_big = new TPad("c_waveforms_big","c_waveforms_big",0,0,1,1.0-textspace);
 		c_waveforms_big->Draw();
 		c_waveforms_big->Divide(6,6,0.001,0.001);
@@ -1021,16 +1047,17 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				//graph1->SetTitleSize(0.07);
 			}
 		}
-		waveforms_big->Print(webdir + "waveforms_big.png");
+		//waveforms_big->Print(webdir + "waveforms_big.png");
+    SaveToWeb(waveforms_big,"waveforms_big");
 	}
 
 	TCanvas *waveforms_laserOFF;
 	TPad *c_waveforms_laserOFF;    
 	if (do_waveforms) {
-		waveforms_laserOFF = new TCanvas("waveforms_laserOFF", Form("waveforms %i",runnumber), 
+		waveforms_laserOFF = new TCanvas("waveforms_laserOFF", Form("waveforms %i",runnum()), 
 										 canvasxoff,0,canvaswidth,canvasheight);
 		waveforms_laserOFF->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 8: Laser OFF snapshots", runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 8: Laser OFF snapshots", runnum()));
 		c_waveforms_laserOFF = new TPad("c_waveforms_laserOFF","c_waveforms_laserOFF",0,0,1,1.0-textspace);
 		c_waveforms_laserOFF->Draw();
 		c_waveforms_laserOFF->Divide(6,6,0.001,0.001);
@@ -1048,16 +1075,17 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				padp->SetMargin(0.15,0.02,0.1,0.1);
 			}
 		}
-		waveforms_laserOFF->Print(webdir + "waveforms_laserOFF.png");
+		//waveforms_laserOFF->Print(webdir + "waveforms_laserOFF.png");
+    SaveToWeb(waveforms_laserOFF,"waveforms_laserOFF");
 	}
 
 	TCanvas *waveforms_beamOFF;
 	TPad *c_waveforms_beamOFF;    
 	if (do_waveforms) {
-		waveforms_beamOFF = new TCanvas("waveforms_beamOFF", Form("waveforms %i",runnumber), 
+		waveforms_beamOFF = new TCanvas("waveforms_beamOFF", Form("waveforms %i",runnum()), 
 										canvasxoff,0,canvaswidth,canvasheight);
 		waveforms_beamOFF->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 9: Beam OFF snapshots", runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 9: Beam OFF snapshots", runnum()));
 		c_waveforms_beamOFF = new TPad("c_waveforms_beamOFF","c_waveforms_beamOFF",0,0,1,1.0-textspace);
 		c_waveforms_beamOFF->Draw();
 		c_waveforms_beamOFF->Divide(6,6,0.001,0.001);
@@ -1074,7 +1102,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 				padp->SetMargin(0.15,0.02,0.1,0.1);
 			}
 		}
-		waveforms_beamOFF->Print(webdir + "waveforms_beamOFF.png");
+		//waveforms_beamOFF->Print(webdir + "waveforms_beamOFF.png");
+    SaveToWeb(waveforms_beamOFF,"waveforms_beamOFF");
 	}
 
 
@@ -1082,9 +1111,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	TCanvas *mps;
 	TPad *c_mps;
 	if (do_mps) {
-		mps = new TCanvas("mps", Form("mps %i",runnumber),canvasxoff,0,canvaswidth,canvasheight);
+		mps = new TCanvas("mps", Form("mps %i",runnum()),canvasxoff,0,canvaswidth,canvasheight);
 		mps->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 1: MPS tree general",runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 1: MPS tree general",runnum()));
 		c_mps = new TPad("c_mps","c_mps",0,0,1,1.0-textspace);
 		c_mps->Draw();
 		c_mps->Divide(1,5,0.001,0.001);
@@ -1110,7 +1139,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 
 		//cerr << "time 3\n" << endl;
 		gPad->SetMargin(0.06,0.02,0.1,0.1);
-		mps->Print(webdir + "mps_summary.png");
+		//mps->Print(webdir + "mps_summary.png");
+    SaveToWeb(mps,"mps_summary");
 	}
 
 	Bool_t dobeamoffsamps = num_beamon_laseron + num_beamon_laseroff < num_beamoff;
@@ -1118,10 +1148,10 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
  	TCanvas *samples_correl;
  	TPad *c_samples_correl;
 	if (do_samples_correl) {
-		samples_correl = new TCanvas("samples_correl", Form("samples_correl %i",runnumber),
+		samples_correl = new TCanvas("samples_correl", Form("samples_correl %i",runnum()),
 									 canvasxoff,0,canvaswidth,canvasheight*5./3);
 		samples_correl->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 2: Snapshot general",runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 2: Snapshot general",runnum()));
 		c_samples_correl = new TPad("c_samples_correl","c_samples_correl",0,0,1,1.0-textspace);
 		c_samples_correl->Draw();
 		c_samples_correl->Divide(3,5,0.001,0.001);
@@ -1192,17 +1222,18 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		outtextfilename_width = webdir + "width_32diff.txt";
 		drawALLtypeTH1(accum0_diff_32,1,"",1,outtextfilename_width);
 
-		samples_correl->Print(webdir + "samples_correl.png");
+		//samples_correl->Print(webdir + "samples_correl.png");
+    SaveToWeb(samples_correl,"samples_correl");
 	}
 
 
 // 	TCanvas *samples_correl;
 // 	TPad *c_samples_correl;
 // 	if (do_samples_correl) {
-// 		samples_correl = new TCanvas("samples_correl", Form("samples_correl %i",runnumber),
+// 		samples_correl = new TCanvas("samples_correl", Form("samples_correl %i",runnum()),
 // 									 canvasxoff,0,canvaswidth,canvasheight);
 // 		samples_correl->cd();
-// 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 2: Snapshot general",runnumber));
+// 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 2: Snapshot general",runnum()));
 // 		c_samples_correl = new TPad("c_samples_correl","c_samples_correl",0,0,1,1.0-textspace);
 // 		c_samples_correl->Draw();
 // 		c_samples_correl->Divide(3,3,0.001,0.001);
@@ -1238,10 +1269,10 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 	TPad *c_samples_pedestal;
 	if (do_samples_pedestal) {
 		samples_pedestal = new TCanvas("samples_pedestal",
-									   Form("samples_pedestal %i",runnumber),
+									   Form("samples_pedestal %i",runnum()),
 									   canvasxoff,0,canvaswidth,canvasheight);
 		samples_pedestal->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 3: Snapshot timing",runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 3: Snapshot timing",runnum()));
 		c_samples_pedestal = new TPad("c_samples_pedestal","c_samples_pedestal",0,0,1,1.0-textspace);
 		c_samples_pedestal->Draw();
 		c_samples_pedestal->Divide(3,3,0.001,0.001);
@@ -1281,16 +1312,17 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 // 		c_samples_pedestal->cd(16);
 // 		draw1typeTH2(samp_pedVSpedpp,4,0,"laser flash");
 
-		samples_pedestal->Print(webdir + "samples_ped.png");
+		//samples_pedestal->Print(webdir + "samples_ped.png");
+    SaveToWeb(samples_pedestal,"samples_ped");
 	}
 
 	TCanvas *samples_pedcorr;
 	TPad *c_samples_pedcorr;
 	if (do_samples_pedcorr) {
-		samples_pedcorr = new TCanvas("samples_pedcorr", Form("samples_pedcorr %i",runnumber),
+		samples_pedcorr = new TCanvas("samples_pedcorr", Form("samples_pedcorr %i",runnum()),
 									  canvasxoff,0,canvaswidth,canvasheight);
 		samples_pedcorr->cd();
-		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 4: Pedestal correction analysis",runnumber));
+		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 4: Pedestal correction analysis",runnum()));
 		c_samples_pedcorr = new TPad("c_samples_pedcorr","c_samples_pedcorr",0,0,1,1.0-textspace);
 		c_samples_pedcorr->Draw();
 		c_samples_pedcorr->Divide(3,3,0.001,0.001);
@@ -1310,7 +1342,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		projectALLtypeTH1(samp_pedVSyield);
  		c_samples_pedcorr->cd(8);
 		projectALLtypeTH1andfit(samp_pedVSyield,1,"",0,10,outtextfilename_ped.Data());  //rebin here
-		samples_pedcorr->Print(webdir + "samples_pedcorr.png");
+		//samples_pedcorr->Print(webdir + "samples_pedcorr.png");
+    SaveToWeb(samples_pedcorr,"samples_pedcorr");
 	}
 
 /*
@@ -1408,9 +1441,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		if (!do_pedcorrection) {
 			printf("Need to calculate pedestals to plot this stuff\n");
 		} else {
-			samples = new TCanvas("samples", Form("samples %i",runnumber), canvasxoff,0,canvaswidth,canvasheight*2);
+			samples = new TCanvas("samples", Form("samples %i",runnum()), canvasxoff,0,canvaswidth,canvasheight*2);
 			samples->cd();
-			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 5: Max and Integral", runnumber));
+			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 5: Max and Integral", runnum()));
 			c_samples = new TPad("c_samples","c_samples",0,0,1,1.0-textspace);
 			c_samples->Draw();
 			c_samples->Divide(2,6,0.001,0.001);
@@ -1494,7 +1527,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 //     samp_laserON_hel0_pedcorr_subintproj->Rebin(10);
 //     samp_laserON_hel0_pedcorr_subintproj->Draw();
 //     //    samp_laserON_hel1_pedcorr_subintproj-
-			samples->Print(webdir + "samples_summary.png");
+			//samples->Print(webdir + "samples_summary.png");
+      SaveToWeb(samples,"samples_summary");
 		}
 	}
 
@@ -1507,9 +1541,9 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 		if (!do_pedcorrection) {
 			printf("Need to calculate pedestals to plot this stuff\n");
 		} else {
-			maxandint = new TCanvas("maxandint", Form("maxandint %i",runnumber), canvasxoff,0,canvaswidth,canvasheight*4/3);
+			maxandint = new TCanvas("maxandint", Form("maxandint %i",runnum()), canvasxoff,0,canvaswidth,canvasheight*4/3);
 			maxandint->cd();
-			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Max and Integral", runnumber));
+			text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Max and Integral", runnum()));
 			c_maxandint = new TPad("c_maxandint","c_maxandint",0,0,1,1.0-textspace);
 			c_maxandint->Draw();
 			c_maxandint->Divide(3,4,0.001,0.001);
@@ -1564,7 +1598,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
 			samp_timingintVSmax->GetYaxis()->SetRangeUser(0,intnormintminchan+bigintoffset);
 			draw1typeTH2(samp_timingintVSmax,-3,0,"",1,0,0);
 
-			maxandint->Print(webdir + "samples_maxandint.png");
+			//maxandint->Print(webdir + "samples_maxandint.png");
+      SaveToWeb(maxandint,"samples_maxandint");
 		}
 	}
 
@@ -1574,10 +1609,10 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
  	TCanvas *samples_asymmetry;
  	TPad *c_samples_asymmetry;
  	if (do_samples_asymmetry) {
-		samples_asymmetry = new TCanvas("samples_asymmetry", Form("samples_asymmetry %i",runnumber),
+		samples_asymmetry = new TCanvas("samples_asymmetry", Form("samples_asymmetry %i",runnum()),
 										canvasxoff,0,canvaswidth,canvasheight);
  		samples_asymmetry->cd();
- 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 6: Asymmetry analysis",runnumber));
+ 		text.DrawLatex(0.5,1-(textspace/2.),Form("Run %i, Page 6: Asymmetry analysis",runnum()));
 		c_samples_asymmetry = new TPad("c_samples_asymmetry","c_samples_asymmetry",0,0,1,1.0-textspace);
 		c_samples_asymmetry->Draw();
 		c_samples_asymmetry->Divide(3,3,0.001,0.001);
@@ -1655,7 +1690,8 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
  		asym_bksub->Draw();
 		asym_bksub->GetXaxis()->SetRangeUser(0,maxnormintminchan);
 
-		samples_asymmetry->Print(webdir + "samples_asymmetry.png");
+		//samples_asymmetry->Print(webdir + "samples_asymmetry.png");
+    SaveToWeb(samples_asymmetry,"samples_assymmetry");
 	}
 
 
@@ -1674,4 +1710,15 @@ void snapshots(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE, Int_t maxevents
  * tab-width: 4
  * End:
  */
- 
+
+// Define functions with c symbols (create/destroy instances)·
+extern "C" Snapshots* create()
+{
+  return new Snapshots();
+}
+
+
+extern "C" void destroy( Snapshots *accum )
+{
+  delete accum;
+}
