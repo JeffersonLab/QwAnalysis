@@ -271,20 +271,20 @@ void Accum::run()
 
   //TString www = Form("/u/group/hallc/www/hallcweb/html/compton/photonsummary"
   //		     "/run2/pass1/run_%d/",runnum());
-  TString www = Form("/home/cornejo/public_html/pass2_test/run_%d",runnum());
+  //TString www = Form("/home/cornejo/public_html/pass2_test/run_%d",runnum());
   //TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum());
-  gSystem->mkdir(www,true);
-  gSystem->mkdir(www,true);
-  TString canvas1 = www + "accum0_plots.png";
-  TString canvas2 = www + "accum0_asymm.png";
-  TString canvas3 = www + "accum0_yieldvspatnum.png";
-  TString canvas4;
+  //gSystem->mkdir(www,true);
+  //gSystem->mkdir(www,true);
+  //TString canvas1 = www + "accum0_plots.png";
+  //TString canvas2 = www + "accum0_asymm.png";
+  //TString canvas3 = www + "accum0_yieldvspatnum.png";
+  //TString canvas4;
   Bool_t beamTripInLasCycle = kFALSE;
 
 
   // File for storing stats.
-  TString stats =  www + "accum0_stats.txt";
-  FILE *polstats = fopen(stats.Data(),"w");
+  //TString stats =  www + "accum0_stats.txt";
+  //FILE *polstats = fopen(stats.Data(),"w");
 
  
   //////////////////////////////////////////////////////////
@@ -677,8 +677,10 @@ void Accum::run()
       leg->SetFillColor(0);
       leg->SetShadowColor(0);
       leg->Draw();
-      canvas4 = Form("~/users/jonesdc/compton_runs/misc/lasCycle%i.png", i);
-      ctemp->Print(canvas4);
+      //canvas4 = Form("~/users/jonesdc/compton_runs/misc/lasCycle%i.png", i);
+      // (jc2): Disabled this printout for now. I'm sure it must have
+      // been only a testing thing
+      //ctemp->Print(canvas4);
     }
     printf("btCnt=%d\n", btCnt);
 
@@ -1141,10 +1143,10 @@ void Accum::run()
   hAsymm->SetTitle("Accumulator_0 Asymmetry (Difference/YieldAboveBackground)");
   n = 0;
   numEnt = 0;
-  fprintf(polstats,"#CutNum\t Asymm\t\t AsymmErr \tNumEnt\t YieldAbvBkgd  "
-	  " YAbvBkgdErr  \t Background\t BkgdErr \t AvgLasPow\t ScaLasOn"
-	  " \t ScaLasOff\t MeanPosX\t MeanPosY\t DiffLasOn\t DiffLasOnErr\t"
-	  "DiffLasOnRMS\t DiffLasOff\t DiffLasOffErr\t DiffLasOffRMS\n"); 
+//  fprintf(polstats,"#CutNum\t Asymm\t\t AsymmErr \tNumEnt\t YieldAbvBkgd  "
+//	  " YAbvBkgdErr  \t Background\t BkgdErr \t AvgLasPow\t ScaLasOn"
+//	  " \t ScaLasOff\t MeanPosX\t MeanPosY\t DiffLasOn\t DiffLasOnErr\t"
+//	  "DiffLasOnRMS\t DiffLasOff\t DiffLasOffErr\t DiffLasOffRMS\n"); 
   //TCanvas *ctemp = new TCanvas("ctemp","ctemp",0,0,600,400);
   for(Int_t i=0; i*2<nCuts-2; i++){
     TH1D *hTempD = new TH1D("hTempD","hTempD",300,-3,3);
@@ -1220,13 +1222,24 @@ void Accum::run()
       meanPosX = hPosXtmp->GetMean();
       delete hPosXtmp;
 
-      fprintf(polstats,"%d\t%12.5e\t%9.2e\t%d\t%12.5e\t%9.2e\t%12.5e\t%9.2e\t"
-	               "%12.5e\t%12.5e\t%12.5e\t%12.5e\t%12.5e\t%12.5e\t%9.2e"
-	      "\t%9.2e\t%12.5e\t%9.2e\t%9.2e\n",
-	      i,asymm[i], asymmErr[i], numEnt,
-	      yldAbvBkgd[i], yldAbvBkgdErr[i],bkgMean[i], bkgErr[i],lasAvgPow,
-	      scaLasOnRate,scaLasOffRate, meanPosX, meanPosY, diffOn[n], 
-	      diffOnErr[n], diffOnRMS[n],diffOff[n], diffOffErr[n], diffOffRMS[n]);
+      // Save to the Database (jc2)
+      //printf("%d\t%12.5e\t%9.2e\t%d\t%12.5e\t%9.2e\t%12.5e\t%9.2e\t"
+	    //           "%12.5e\t%12.5e\t%12.5e\t%12.5e\t%12.5e\t%12.5e\t%9.2e"
+	    //  "\t%9.2e\t%12.5e\t%9.2e\t%9.2e\n",
+	    //  i,asymm[i], asymmErr[i], numEnt,
+	    //  yldAbvBkgd[i], yldAbvBkgdErr[i],bkgMean[i], bkgErr[i],lasAvgPow,
+	    //  scaLasOnRate,scaLasOffRate, meanPosX, meanPosY, diffOn[n], 
+	    //  diffOnErr[n], diffOnRMS[n],diffOff[n], diffOffErr[n], diffOffRMS[n]);
+      DBStorePhoton(1,"accum0","Asymmetry",i,2,numEnt,asymm[i],asymmErr[i]);
+      DBStorePhoton(1,"accum0","BackgroundSubtracted",i,
+          2,numEnt,yldAbvBkgd[i],yldAbvBkgdErr[i]);
+      DBStorePhoton(1,"accum0","Background",i,2,numEnt,bkgMean[i],
+          bkgErr[i]);
+      DBStorePhoton(1,"accum0","LaserPower",i,2,numEnt,lasAvgPow,0.0);
+      DBStorePhoton(1,"accum0","DiffBackgroundSubtracted",i,2,numEnt,
+          diffOn[n],diffOnErr[n]);
+      DBStorePhoton(1,"accum0","DiffBackground",i,2,numEnt,
+          diffOff[n],diffOffErr[n]);
       hAsymm->Add(hTempD);
       cutNum[n] = i;
       errorY[n] = asymmErr[i];
@@ -1265,7 +1278,7 @@ void Accum::run()
   pt->SetShadowColor(-1);
   gPad->Update();
 
-  fclose(polstats);
+  //fclose(polstats);
 
   TCanvas *c2 = new TCanvas("c2","c2",900,0,530,380);
   TGraphErrors *gr = new TGraphErrors(n,cutNum,mean,errorX,errorY);
@@ -1289,16 +1302,16 @@ void Accum::run()
   st4->SetX2NDC(0.99); //new x end position 
   st4->Draw();
   gPad->Update();
-  c2->Print(canvas2);
-  std::cout<<canvas1<<std::endl;
+  SaveToWeb(c2,"asymm");
+  //std::cout<<canvas1<<std::endl;
 }
   //Save canvases to file.
   std::cout<<"Saving to web directory."<<std::endl;
 
-  c1->Print(canvas1);
-  c3->Print(canvas3);
-  std::cout<<canvas1<<std::endl;
-  std::cout<<canvas3<<std::endl;
+  SaveToWeb(c1,"plots");
+  SaveToWeb(c3,"yieldvspatnum");
+  //std::cout<<canvas1<<std::endl;
+  //std::cout<<canvas3<<std::endl;
   printf("\n\n\nRun %d completed.\n\n\n",runnum());
   //  cutLas.clear();
   //if (kTRUE){
