@@ -1,0 +1,12 @@
+#!/bin/bash
+umask 002
+
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=/group/qweak/QwAnalysis/Linux/QwAnalysis_TrackingPass3
+. $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
+
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl -e qwtracking \
+   --post-run $QWANALYSIS/Extensions/Tracking/macros/process_run.sh \
+   --rootfile-output mss:/mss/hallc/qweak/rootfiles/tracking_pass3b \
+   --options "--add-config eventmode_pass3.conf --add-config peiqing_2011.conf" \
+   $@
