@@ -11,6 +11,8 @@ public:
   void init( ComptonSession* );
   void run();
 
+  ~BeamLine();
+
   // Some useful styles/settings
   static Style_t fStyles[3];
   static Color_t fColors[3];

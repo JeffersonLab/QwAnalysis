@@ -47,7 +47,9 @@ void BeamLine::init(ComptonSession *session)
 
 void BeamLine::run()
 {
+  std::cout << "Processing BCMs..." << std::endl;
   ProcessBCMs();
+  std::cout << "Processing BPMs..." << std::endl;
   ProcessBPMs();
 }
 
@@ -122,6 +124,10 @@ void BeamLine::ProcessBCMs()
         avgDE[bcm]+=1./(tE*tE);
         DBStoreBeam(1,Form("bcm%d",bcms[bcm]),
             "DiffCurrent",cycle,state,tN,tV,tE);
+
+        // Be nice and ask root to delete these old histograms
+        gDirectory->Delete(histName.Data());
+        gDirectory->Delete(histDName.Data());
       }
     }
   }
@@ -178,6 +184,41 @@ void BeamLine::ProcessBCMs()
   }
 
   SaveToWeb(fCanvasBCM,"bcms");
+
+  // Cleanup before leaving
+  for(Int_t type = 0; type < 2; type++ ) {
+    for(Int_t bcm = 0; bcm < 3; bcm++ ) {
+      for(Int_t state = 0; state < 2; state++ ) {
+        c[type][bcm][state].clear();
+        cE[type][bcm][state].clear();
+
+        dC[type][bcm][state].clear();
+        dCE[type][bcm][state].clear();
+
+        if(hBCMS[state][bcm]) {
+          //hBCMS[state][bcm]->Reset();
+          delete hBCMS[state][bcm];
+          hBCMS[state][bcm] = 0;
+        }
+        if(graphBCMSD[state][bcm]) {
+          delete graphBCMSD[state][bcm];
+          graphBCMSD[state][bcm] = 0;
+        }
+
+
+      }
+      if(hBCMSD[bcm]) {
+        //hBCMSD[state]->Reset();
+        delete hBCMSD[bcm];
+        hBCMSD[bcm] = 0;
+      }
+    }
+  }
+  for(Int_t state = 0 ; state < 2; state++ ) {
+    n[state].clear();
+    nE[state].clear();
+  }
+
 }
 
 void BeamLine::ProcessBPMs()
@@ -262,6 +303,10 @@ void BeamLine::ProcessBPMs()
           avgDE[bpm]+=1/(tE*tE);
           DBStoreBeam(1,Form("%s%s",bpms[bpm].Data(),axisName[axis].Data()),
             "DiffDistance",cycle,state,tN,tV,tE);
+
+          // Cleanup these temporary histograms
+          gDirectory->Delete(histName.Data());
+          gDirectory->Delete(histDName.Data());
         }
       }
     }
@@ -320,6 +365,37 @@ void BeamLine::ProcessBPMs()
 
     SaveToWeb(fCanvasBPM[axis],Form("bpms%s",axisName[axis].Data()));
   }
+
+  for(Int_t type = 0; type < 2; type++ ) {
+    for(Int_t axis = 0; axis < 2; axis++ ) {
+      for(Int_t bpm = 0; bpm < 3; bpm++ ) {
+        for(Int_t state = 0; state < 2; state++) {
+          p[type][bpm][axis][state].clear();
+          pE[type][bpm][axis][state].clear();
+          dP[type][bpm][axis][state].clear();
+          dPE[type][bpm][axis][state].clear();
+
+        }
+        if(hBPMS[type][bpm][axis]) {
+          delete hBPMS[type][bpm][axis];
+          hBPMS[type][bpm][axis] = 0;
+        }
+        if(graphBPMSD[type][bpm][axis]) {
+          delete graphBPMSD[type][bpm][axis];
+          graphBPMSD[type][bpm][axis] = 0;
+        }
+        if(hBPMSD[bpm][axis]) {
+          delete hBPMSD[bpm][axis];
+          hBPMSD[bpm][axis] = 0;
+        }
+      }
+    }
+  }
+
+  for(Int_t state = 0; state < 2; state++ ) {
+    n[state].clear();
+    nE[state].clear();
+  }
 }
 
 
@@ -348,6 +424,19 @@ void BeamLine::H2SetStyle(TH2F *hist, Int_t color)
   hist->SetMarkerColor(color);
   hist->SetStats(0);
 
+}
+
+
+BeamLine::~BeamLine()
+{
+  if (fCanvasTemp)
+    delete fCanvasTemp;
+  if (fCanvasBCM)
+    delete fCanvasBCM;
+  if(fCanvasBPM[0])
+    delete fCanvasBPM[0];
+  if(fCanvasBPM[1])
+    delete fCanvasBPM[1];
 }
 
 // Define functions with c symbols (create/destroy instances)
