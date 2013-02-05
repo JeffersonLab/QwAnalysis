@@ -191,6 +191,7 @@ int main(int argc, char *argv[])
       m->init(session);
       m->run();
       destroy(m);
+      std::cout << "Finished with macro: " << *it << std::endl;
     }
   }
 
