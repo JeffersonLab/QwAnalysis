@@ -364,10 +364,8 @@ void BeamLine::ProcessBPMs()
     }
 
     SaveToWeb(fCanvasBPM[axis],Form("bpms%s",axisName[axis].Data()));
-  }
 
-  for(Int_t type = 0; type < 2; type++ ) {
-    for(Int_t axis = 0; axis < 2; axis++ ) {
+    for(Int_t type = 0; type < 2; type++ ) {
       for(Int_t bpm = 0; bpm < 3; bpm++ ) {
         for(Int_t state = 0; state < 2; state++) {
           p[type][bpm][axis][state].clear();
@@ -390,12 +388,13 @@ void BeamLine::ProcessBPMs()
         }
       }
     }
+
+    for(Int_t state = 0; state < 2; state++ ) {
+      n[state].clear();
+      nE[state].clear();
+    }
   }
 
-  for(Int_t state = 0; state < 2; state++ ) {
-    n[state].clear();
-    nE[state].clear();
-  }
 }
 
 
