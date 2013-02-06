@@ -3,7 +3,7 @@
  <Project name="qweak"/>
  <Track name="one_pass"/>
  <Name name="Qweak_%RUN%"/>
- <OS name="linux64"/>
+ <OS name="centos62"/>
  <TimeLimit unit="minutes" time="4000"/>
  <DiskSpace space="13000" unit="MB"/>
  <Memory space="2048" unit="MB"/>
@@ -32,7 +32,7 @@
   echo "Finished at `date`"
 ]]></Command>
  <Job>
-  <Input src="mss:/mss/hallc/qweak/misc/tracking_rootfiles/pass2/Qweak_%RUN%.root" dest="Qweak_%RUN%.root"/>
+  <Input src="mss:/mss/hallc/qweak/rootfiles/tracking_pass4/Qweak_%RUN%.root" dest="Qweak_%RUN%.root"/>
   <Stdout dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.out"/>
   <Stderr dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.err"/>
  </Job>
