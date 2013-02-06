@@ -681,6 +681,8 @@ void Accum::run()
       // (jc2): Disabled this printout for now. I'm sure it must have
       // been only a testing thing
       //ctemp->Print(canvas4);
+      // (jc2): Done with hLocked?
+      delete hLocked;
     }
     printf("btCnt=%d\n", btCnt);
 
@@ -746,9 +748,12 @@ void Accum::run()
   TH1F *h = (TH1F*)gDirectory->Get("h");
   if(h->GetEntries()==0){
     printf("\n\nNo useful events in Run %d.\n\n\n",runnum());
-    hbcm->TH2F::~TH2F();
-    h->TH1F::~TH1F();
-    c1->TCanvas::Destructor();
+    //hbcm->TH2F::~TH2F();
+    delete hbcm;
+    //h->TH1F::~TH1F();
+    delete h;
+    //c1->TCanvas::Destructor();
+    delete c1;
     cutLas.clear();
     cutLas.clear();
     return;
@@ -905,6 +910,7 @@ void Accum::run()
   diffY = hBinY - lBinY;
   lBinY -= 0.1*diffY;
   lBinY = TMath::Max(lBinY,-10.0);
+  delete h2;
   TH2F *hOn2 = new TH2F("hOn2","hOn2", 2000, lBinX, hBinX, 2000, lBinY, hBinY);
   TH2F *hOff2 = new TH2F("hOff2","hOff2", 2000, lBinX, hBinX, 2000, lBinY, hBinY);
   TH2F *hOff3 = new TH2F("hOff3","hOff3", 2000, lBinX, hBinX, 2000, lBinY, hBinY);
@@ -1023,7 +1029,7 @@ void Accum::run()
   h = (TH1F*)gDirectory->Get("h");
   hBinX =  h->GetMean() + h->GetRMS()*3;
   lBinX =  h->GetMean() - h->GetRMS()*3;
-  h->TH1F::~TH1F();
+  delete h;
 
   helChain->Draw(Form("diff_fadc_compton_accum0.hw_sum*2>>h(100,%e,%e)",
 		      lBinX, hBinX), Form("yield_sca_laser_PowT>%e", 
@@ -1035,6 +1041,7 @@ void Accum::run()
     lBinX =  h->GetMean() - h->GetRMS()*7;
     h->TH1F::~TH1F();
   }
+  delete h;
   //std::cout<<"\nhBinx="<<hBinX<<",  lBinX="<<lBinX<<"\n"<<std::endl;
   TH1F *hDiffOn = new TH1F("hDiffOn","hDiffOn",300, lBinX, hBinX);
   TH1F *hDiffOff = new TH1F("hDiffOff", "hDiffOff", 300, lBinX, hBinX); 
@@ -1282,7 +1289,8 @@ void Accum::run()
 
   TCanvas *c2 = new TCanvas("c2","c2",900,0,530,380);
   TGraphErrors *gr = new TGraphErrors(n,cutNum,mean,errorX,errorY);
-  TPaveStats *st4 = new TPaveStats();
+  // (jc2): Why do we create a new one when we just ignore it later?
+  TPaveStats *st4;// = new TPaveStats();
 
   if(n!=0){
   c2->SetLeftMargin(0.14);
@@ -1314,8 +1322,52 @@ void Accum::run()
   //std::cout<<canvas3<<std::endl;
   printf("\n\n\nRun %d completed.\n\n\n",runnum());
   //  cutLas.clear();
-  //if (kTRUE){
-  if (kFALSE){
+  if (kTRUE){
+    delete hBeamOff;
+    delete hbcm;
+    if(hbcmOn)
+      delete hbcmOn;
+    delete hPosAvgY;
+    delete hYieldOn;
+    delete hYieldOff;
+    delete hPow;
+    delete hPosX;
+    delete hPosY;
+    delete hPLow;
+    delete hPUnsd;
+    delete hOn;
+    delete hOff;
+    delete hOff2;
+    delete hOff3;
+    delete hDiffOn;
+    delete hDiffOff;
+    delete hAsymm;
+    delete pt;
+    delete pt1;
+    delete pt2;
+    delete pt3;
+    delete gr;
+    delete legend1;
+    delete legend2;
+    delete legend3;
+    delete c1;
+    delete c2;
+    delete c3;
+    if(hTempOn)
+      delete hTempOn;
+    if(hTempOff)
+      delete hTempOff;
+    if(hTemp0)
+      delete hTemp0;
+
+    helChain = 0; // Should not be deleted because they are not ours to control
+    mpsChain = 0;
+
+    // At this point, we also seem to have created a lot of histograms
+    // that we left in Root's main Directory. Let's clean those up too.
+    gDirectory->Delete("hLocked");
+
+    /*
     hBeamOff->TH2F::~TH2F();
     hbcm->TH2F::~TH2F();
     hYieldOn->TH1F::~TH1F();
@@ -1344,6 +1396,7 @@ void Accum::run()
     c1->TCanvas::Destructor();
     c2->TCanvas::Destructor();
     c3->TCanvas::Destructor();
+    */
 
     /*    gDirectory->Delete("hbcm");
     gDirectory->Delete("hPow");
