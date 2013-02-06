@@ -1,0 +1,18 @@
+#!/bin/bash
+# Author: Joshua Hoskins (jhoskins@jlab.org) 
+# 08-07-2012
+# 01-26-2013 Coppied from run_makeslug for run2. This was required because of the different directories used by run2 and run1.
+
+
+slug_num=$1
+
+DST="/work/hallc/qweak/QwAnalysis/run2/pass5slugs/mps_slug"
+LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run2pass5/"
+#DST_Dbug="/u/home/jhoskins/QwBeamModulation/slug"
+
+argument="MakeSlug.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run2pass5_unreg_mps.txt\",\"${DST}/slug${slug_num}.root\")"
+
+root -n -q -b -l ${argument} #>${DST_Dbug}/slug${slug_num}.out
+
+
+

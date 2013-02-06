@@ -110,8 +110,10 @@ Int_t MakeSlugMPS(
 	leaflistFile = fopen (leaflistfilename.Data(), "r");
 	leaflistFile2 = fopen (leaflistfilename.Data(), "r");
 
-	if (!leaflistFile) 
-		printf("Error opening file %s\n", leaflistfilename.Data());
+	if (!leaflistFile) {
+ 		printf("Error opening file %s\n", leaflistfilename.Data());
+		exit(1);
+	}
 	else 
 		printf("Opened %s\n", leaflistfilename.Data());
 	
