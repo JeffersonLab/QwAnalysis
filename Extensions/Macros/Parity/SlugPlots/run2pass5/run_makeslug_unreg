@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author: Rakitha Beminiwattha (rakithab@jlab.org) 
 # 08-07-2012
-
+# 01-25-2013 Buddhini : Added set11
 
 slug_num=$1
 #this is the source of regressed root files
@@ -39,7 +39,7 @@ argument7="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run2
 argument8="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run2pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set8.root\",\"set8\")"
 argument9="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run2pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set9.root\",\"set9\")"
 argument10="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run2pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set10.root\",\"set10\")"
-
+argument11="MakeSlug_lrb.C+(\"slug${slug_num}_goodruns_list.txt\",\"leaflist_run2pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set11.root\",\"set11\")"
  
 
 
@@ -56,6 +56,7 @@ root -n -q -b -l ${argument} >${DST_Dbug}/slug${slug_num}_unreg.out
 #root -n -q -b -l ${argument8} >${DST_Dbug}/slug${slug_num}_lrb_set8.out
 #root -n -q -b -l ${argument9} >${DST_Dbug}/slug${slug_num}_lrb_set9.out
 #root -n -q -b -l ${argument10} >${DST_Dbug}/slug${slug_num}_lrb_set10.out
+#root -n -q -b -l ${argument11} >${DST_Dbug}/slug${slug_num}_lrb_set11.out
 
 
 

@@ -129,8 +129,7 @@ Int_t MakeSlug(
 	const TString qwstem = "sluglet"; //for pass5 sluglets - smacewan (smacewan@jlab.org) 11-05-2012
 
 	//const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/rootfiles";
-	const TString qwrootfiles = "/work/hallc/qweak/QwAnalysis/run1/pass5slugs";
-
+	const TString qwrootfiles = "/volatile/hallc/qweak/QwAnalysis/run1/pass5_slugs";
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
 		signal(SIGINT, sigint_handler);

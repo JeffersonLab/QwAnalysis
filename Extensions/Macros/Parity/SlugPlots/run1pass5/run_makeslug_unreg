@@ -7,8 +7,8 @@
 slug_num=$1
 #this is the source of regressed root files
 SRC="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
-DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
-DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
+DST="/volatile/hallc/qweak/QwAnalysis/run1/pass5_slugs/"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5_slugs/out_files"
 
 
 ################
@@ -21,7 +21,8 @@ DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
  
 argument="MakeSlug.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_sluglet.txt\",\"${DST}/slug${slug_num}.root\")"
 
-root -n -q -b -l ${argument} >${DST_Dbug}/slug${slug_num}.out
+echo root -n -q -b -l ${argument} 
+#>${DST_Dbug}/slug${slug_num}.out
 
 
 

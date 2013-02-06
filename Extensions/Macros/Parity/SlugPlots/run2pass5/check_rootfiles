@@ -4,6 +4,7 @@
 # Author: Rakitha Beminiwattha (rakithab@jlab.org) 
 # 08-07-2012
 # This will check for missing raw/regression runlets for a given slug number
+# 01-25-2013 Buddhini : updated to add set11.
 
 SRC_LRB="/work/hallc/qweak/QwAnalysis/run2/pass5regression/lrb_rootfiles"
 SRC="/volatile/hallc/qweak/QwAnalysis/run2/rootfiles"
@@ -86,6 +87,11 @@ do
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set10 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set11_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set11 root file missing"
 	  fi
 
 
