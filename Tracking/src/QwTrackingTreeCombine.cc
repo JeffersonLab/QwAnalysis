@@ -2281,6 +2281,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	pt->fTreeLine[kDirectionU] = wu;
 	pt->fTreeLine[kDirectionV] = wv;
 
+	pt->AddTreeLine(wu);
+	pt->AddTreeLine(wv);
+
 	return pt;
 }
 
@@ -2409,6 +2412,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	pt->fTreeLine[kDirectionU] = wu;
 	pt->fTreeLine[kDirectionV] = wv;
 
+	pt->AddTreeLine(wu);
+	pt->AddTreeLine(wv);
+
 	return pt;
 }
 
@@ -2530,6 +2536,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	pt->fNumHits = wu->fNumHits + wv->fNumHits + wx->fNumHits;
 
 	// Store tree lines info
+	pt->AddTreeLine(wx);
+	pt->AddTreeLine(wu);
+	pt->AddTreeLine(wv);
 	
 	pt->TSlope[kDirectionX]=wx->fSlope;
 	pt->TSlope[kDirectionU]=wu->fSlope;
@@ -2642,6 +2651,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	pt->fNumHits = wu->fNumHits + wv->fNumHits + wx->fNumHits;
 
 	// Store tree lines info
+	pt->AddTreeLine(wx);
+	pt->AddTreeLine(wu);
+	pt->AddTreeLine(wv);
 	
 	pt->TSlope[kDirectionX]=wx->fSlope;
 	pt->TSlope[kDirectionU]=wu->fSlope;

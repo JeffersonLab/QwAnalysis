@@ -72,6 +72,8 @@ QwPartialTrack::QwPartialTrack(const QwPartialTrack* that)
  */
 QwPartialTrack::~QwPartialTrack()
 {
+  // Clear the partial track
+  Clear();
 
   /* for (int i = 0; i < kNumDirections; i++){
     if(fTreeLine[i])

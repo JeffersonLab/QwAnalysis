@@ -79,17 +79,29 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     void Clear(Option_t *option = "");
     void Reset(Option_t *option = "");
 
-    // Creating and adding tree lines
+    //! \name Creating, adding, and getting tree lines
+    // @{
+    //! Create a new tree line
     QwTrackingTreeLine* CreateNewTreeLine();
+    //! Add an existing tree line as a copy
     void AddTreeLine(const QwTrackingTreeLine* treeline);
+    //! \brief Add a linked list of existing tree lines as a copy
     void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
+    //! \brief Add a standard vector of existing tree lines as a copy
     void AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist);
+    //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
+    //! \brief Reset the list of tree lines
     void ResetTreeLines(Option_t *option = "");
-    // Get the number of partial tracks
+    //! \brief Get the number of tree lines
     Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
-    // Print the list of tree lines
+    //! \brief Get the list of tree lines
+    const std::vector<QwTrackingTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
+    //! \brief Get the specified tree line
+    const QwTrackingTreeLine* GetTreeLine(const int tl) const { return fQwTreeLines.at(tl); };
+    //! \brief Print the list of tree lines
     void PrintTreeLines(Option_t *option = "") const;
+    // @}
 
     // Get the weighted chi squared
     double GetChiWeight () const;
@@ -148,10 +160,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     //! Only 2 Treelines in Plane 0
     int GetAlone() const { return fAlone; }
    
-    // Tree lines
-    QwTrackingTreeLine* GetTreeLine(const EQwDirectionID dir) {
-      return fTreeLine[dir];
-    }
+    //! Rotate coordinates to right octant
     void RotateCoordinates();
 
   public: // members

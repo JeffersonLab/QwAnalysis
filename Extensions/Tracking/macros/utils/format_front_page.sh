@@ -19,26 +19,16 @@ DETECTOR=$6
 ## Configurations
 BASEDIR=${QWANALYSIS}/Extensions/Tracking/macros
 RUNLIST=${WEBPAGE}/_runlist_frontpage
-RUNLISTTEMP=${WEBPAGE}/_runlist_frontpage_temp
-ISINFILE=`grep ${RUNNUM} ${RUNLISTTEMP}`
+RUNLISTTEMP=`mktemp ${RUNLIST}.XXXXXX`
 ################################################################################
-## Check if an entry is already there
-cp ${RUNLIST} ${RUNLISTTEMP}
-if [ "${ISINFILE}x" != "x" ]; then
-   # Just remove the kTRUE label if it's there
-   sed -i "s|${RUNNUM}.kTRUE|${RUNNUM}|" -- ${RUNLISTTEMP}
-   cp ${RUNLISTTEMP} ${RUNLIST}
-else
-   ## Enter this runlist
-   if [ ${FIRST100K} == kTRUE ]; then
-      echo "${RUNNUM}.kTRUE" >>  ${RUNLISTTEMP}
-   else
-      echo "${RUNNUM}" >> ${RUNLISTTEMP}
-   fi
-
+## Add all existing website directories to run list
+for run in ${WEBPAGE}/run_* ; do
+   basename ${run} | cut -d_ -f2
    ## Sort the list (because it loves to get unsorted)
-   sort -nru ${RUNLISTTEMP} > ${RUNLIST}
-fi
+done | sort -nru > ${RUNLISTTEMP}
+
+## Move is more 'atomic' than long output redirects
+mv ${RUNLISTTEMP} ${RUNLIST}
 
 ## Prepare the website
 echo "<!-- Runs -->" > ${WEBPAGE}/_front_page_runs.html
