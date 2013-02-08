@@ -6,6 +6,9 @@ contact rakithab@jlab.org
 Calculate the acceptance corrected tree level asymmetry. Input parameters are hard coded. 
 compile and execute after changing input parameters.
 This code can also generate a bar chart with breakdown of corrections but by default routine call for this is commented out.
+
+Feb  3 16:52:02 EST 2013 by rakithab@jlab.org
+Modified to include detector acceptance correction in to all the calculations. Previously, I simply converted acceptance averaged asymmetry to acceptance corrected asymmetry by using this correction. After this, errors and individual corrections have detector acceptance correction properly included.
 */
 
 
@@ -77,11 +80,11 @@ Double_t dEM_Rad_C = 0.0050;
 
 //acceptance correction
 Double_t AccCorr = 0.980;
-Double_t dAccCorr = 0.0;
+Double_t dAccCorr = 0.010;
 
-//EM+Det_bias correction
-Double_t DetCorr_p_EM_Rad_C;
-Double_t dDetCorr_p_EM_Rad_C;
+//EM+Det_bias+acceptance correction
+Double_t Exp_Bias_C;
+Double_t dExp_Bias_C;
 
 //Bacground Asymmetries and dilutions
 
@@ -104,9 +107,10 @@ Double_t asymmetry_correction_DetCorr; //effective Det. bias correction ppm
 Double_t pdDetCorr;//Det. bias correction partial error on final asymmetry ppm
 Double_t asymmetry_correction_EM_Rad_C; //effective EM raidiative correction ppm
 Double_t pdEM_Rad_C;//EM raidiative correction partial error on final asymmetry ppm
-Double_t asymmetry_correction_DetCorr_p_EM_Rad_C; //effective EM rad + det. bias correction  ppm
-Double_t pdDetCorr_p_EM_Rad_C;//EM rad + det. bias correction partial error on final asymmetry ppm
-
+Double_t asymmetry_correction_Acc_C; //effective acceptance correction ppm
+Double_t pdAcc_C;//acceptance correction partial error on final asymmetry ppm
+Double_t asymmetry_correction_Exp_Bias_C; //effective exp. bias correction  ppm
+Double_t pdExp_Bias_C;//Exp. bias correction partial error on final asymmetry ppm
 
 Double_t asymmetry_correction_b[bkg_count];//correction from bkg contribution on final asymmetry
 Double_t pdb[bkg_count];//bkg contribution (asymmetry+dilution) error on final asymmetry
@@ -184,13 +188,15 @@ int main(Int_t argc,Char_t* argv[])
   EM_Rad_C = 1.0100;
   dEM_Rad_C = 0.5*TMath::Abs(1.-EM_Rad_C);//50% relative uncertainty for now
 
-  //EM+Det_bias correction
-  DetCorr_p_EM_Rad_C = DetCorr * EM_Rad_C;
-  dDetCorr_p_EM_Rad_C = TMath::Sqrt( TMath::Power(dDetCorr,2) + TMath::Power(dEM_Rad_C,2) );
 
   //acceptance correction
   AccCorr = 0.980;
-  dAccCorr = 0.005;
+  dAccCorr = 0.5*TMath::Abs(1.- AccCorr);//50% relative uncertainty for now
+
+  //experimental bias correction
+  Exp_Bias_C = DetCorr * EM_Rad_C * AccCorr;
+  dExp_Bias_C = TMath::Sqrt( TMath::Power(dDetCorr,2) + TMath::Power(dEM_Rad_C,2) );
+
 
   //b1: Bkg 1 Al windows
   Ab[0]  =  1.7581;// ppm   
@@ -201,9 +207,10 @@ int main(Int_t argc,Char_t* argv[])
   //b2: QTOR transport channel neutrals
   Ab[1]  =  0.000;//  ppm
   dAb[1] =  0.2000;//  ppm   
-  fb[1]  =  0.0100;
-  dfb[1] =  0.0055;// 
-
+  //fb[1]  =  0.0100;
+  //dfb[1] =  0.0055;// 
+  fb[1]  =  0.0019;//updated results
+  dfb[1] =  0.0019;//
   //b3: Beamline bkg neutrals with W shutters installed
   Ab[2]  =  -5.500;//  ppm
   dAb[2] =  11.500;//  ppm   
@@ -260,11 +267,11 @@ void printInputs(){//Print all the input values
   printf("\n EM radiative correction factor and error \n");
   printf("EM_Rad_C = %3.4f +/- %3.4f \n",EM_Rad_C,dEM_Rad_C);
 
-  printf("\n Detector Bias + EM radiative Correction and Error \n");
-  printf("DetCorr_p_EM_Rad_C = %3.4f +/- %3.4f \n",DetCorr_p_EM_Rad_C,dDetCorr_p_EM_Rad_C);
+  printf("\n Acceptance correction factor \n");
+  printf("AccCorr = %3.4f +/- %3.4f \n",AccCorr,dAccCorr);
 
-  printf("\n Acceptance correction ratio, R_AccCorr \n");
-  printf("R_AccCorr = %3.4f +/- %3.4f \n",AccCorr,dAccCorr);
+  printf("\n Experimenta Bias Corrections: EM radiative Correction, light weighting, acceptance correction and Error \n");
+  printf("Exp_Bias_C = %3.4f +/- %3.4f \n",Exp_Bias_C,dExp_Bias_C);
 
 
 
@@ -293,21 +300,21 @@ void computeSignalAsymmetryPartialErrors(){//compute the partial error contribut
 
   dA_signal_stat=0;//final asymmetry systematic error
   dA_signal_syst=0;
-  pdA_msr_stat = DetCorr_p_EM_Rad_C * 1/P * 1/(1 - f_total) * dAmsr_stat;//measured asymmetry partial stat error on final asymmetry
+  pdA_msr_stat = Exp_Bias_C * 1/P * 1/(1 - f_total) * dAmsr_stat;//measured asymmetry partial stat error on final asymmetry
   //Final statistic error
   dA_signal_stat = pdA_msr_stat;
   printf("%20s = %3.4f ppm\n","dA_msr_stat",dA_signal_stat);  
 
  
 
-  pdA_msr_syst = DetCorr_p_EM_Rad_C * 1/P * 1/(1 - f_total) * dAmsr_syst;//measured asymmetry partial syst error on final asymmetry
+  pdA_msr_syst = Exp_Bias_C * 1/P * 1/(1 - f_total) * dAmsr_syst;//measured asymmetry partial syst error on final asymmetry
   printf("%20s = %3.4f ppm \n","dA_msr_syst",pdA_msr_syst); 
 
   dA_signal_syst += TMath::Power(pdA_msr_syst,2);//add all the syst. error contributions quadratically
 
   pdA_msr      = TMath::Sqrt( TMath::Power(pdA_msr_stat,2) +  TMath::Power(pdA_msr_syst,2));//measured asymmetry partial error on final asymmetry
 
-  pdP = DetCorr_p_EM_Rad_C * -1 * A_msr * 1/(1 - f_total) * 1/TMath::Power(P,2) * dP;//polarization partial error on final asymmetry
+  pdP = Exp_Bias_C * -1 * A_msr * 1/(1 - f_total) * 1/TMath::Power(P,2) * dP;//polarization partial error on final asymmetry
   printf("%20s = %3.4f ppm  \n","pdP",pdP); 
 
   dA_signal_syst += TMath::Power(pdP,2);//add all the syst. error contributions quadratically
@@ -318,13 +325,15 @@ void computeSignalAsymmetryPartialErrors(){//compute the partial error contribut
   for (Int_t i=0;i<bkg_count;i++)
     A_signal -= Ab[i]*fb[i]/(1 - f_total);
 
-  pdDetCorr = TMath::Abs(dDetCorr * EM_Rad_C * A_signal);
+  pdDetCorr = TMath::Abs(dDetCorr * AccCorr * EM_Rad_C * A_signal);
   printf("%20s = %3.4f ppm  \n","pdDetCorr",pdDetCorr); 
-  pdEM_Rad_C = TMath::Abs(dEM_Rad_C * DetCorr * A_signal);
+  pdEM_Rad_C = TMath::Abs(dEM_Rad_C * AccCorr * DetCorr * A_signal);
   printf("%20s = %3.4f ppm  \n","pdEM_Rad_C",pdEM_Rad_C);
-  pdDetCorr_p_EM_Rad_C = TMath::Sqrt( TMath::Power(pdDetCorr,2) + TMath::Power(pdEM_Rad_C,2) );//Total partial error on EM + Det. bias correction
+  pdAcc_C = TMath::Abs(dAccCorr * EM_Rad_C * DetCorr * A_signal);
+  printf("%20s = %3.4f ppm  \n","pdAcc_C",pdAcc_C);
+  pdExp_Bias_C = TMath::Sqrt( TMath::Power(pdDetCorr,2) + TMath::Power(pdEM_Rad_C,2) + TMath::Power(pdAcc_C,2));//Total partial error on exp. bias correction
 
-  dA_signal_syst += TMath::Power(pdDetCorr,2) + TMath::Power(pdEM_Rad_C,2);
+  dA_signal_syst += TMath::Power(pdDetCorr,2) + TMath::Power(pdEM_Rad_C,2) + TMath::Power(pdAcc_C,2);
 
   for (Int_t i=0,j=1,k=2,l=3;i<bkg_count;i++,j=(i+1)%4,k=(i+2)%4,l=(i+3)%4){
     //printf("%i %i %i %i \n",i,j,k,l);//checking permutations for 4 backgrounds
@@ -336,8 +345,8 @@ void computeSignalAsymmetryPartialErrors(){//compute the partial error contribut
       2 3 0 1
       3 0 1 2
      */
-    pdAb[i] = DetCorr_p_EM_Rad_C * fb[i]/(1 - f_total) * dAb[i]; //bkg asymmetry partial error on final asymmetry
-    pdfb[i] = DetCorr_p_EM_Rad_C * ( A_msr/P + ( -1 +  fb[j] +  fb[k] + fb[l] )*Ab[i] - Ab[j]*fb[j] - Ab[k]*fb[k] - Ab[l]*fb[l]) * dfb[i] * 1/TMath::Power(( 1 - f_total),2);//bkg dilution partial error on final asymmetry
+    pdAb[i] = Exp_Bias_C * fb[i]/(1 - f_total) * dAb[i]; //bkg asymmetry partial error on final asymmetry
+    pdfb[i] = Exp_Bias_C * ( A_msr/P + ( -1 +  fb[j] +  fb[k] + fb[l] )*Ab[i] - Ab[j]*fb[j] - Ab[k]*fb[k] - Ab[l]*fb[l]) * dfb[i] * 1/TMath::Power(( 1 - f_total),2);//bkg dilution partial error on final asymmetry
     printf("\n %50s \n",bkg_type[i]);
     printf("%10s pdAb[%i] = %3.4f ppm  \n","",i+1,TMath::Abs(pdAb[i])); 
     printf("%10s pdfb[%i] = %3.4f ppm  \n","",i+1,TMath::Abs(pdfb[i])); 
@@ -363,15 +372,11 @@ void computeSignalAsymmetry(){ //compute the final corrected asymmetry
     A_signal -= Ab[i]*fb[i]/(1 - f_total);
 
   //Detector Bias + EM radiative Corrections
-  A_signal = DetCorr_p_EM_Rad_C * A_signal;
+  A_signal = Exp_Bias_C * A_signal;
 
-  printf("\n********Final Acceptance Averaged Asymmetry***************\n");
-  printf("<A_signal(Q^2)> =%6.4f +/- %6.4f (stat) +/- %6.4f (syst) ppm \n",A_signal,dA_signal_stat,dA_signal_syst);
-  printf("Blinding correction has subtracted  %f ppm. \n",BlindingSign*BlindingFactor);
-  printf("************************************************\n");
-
-  printf("\n********Final Acceptance Corrected Asymmetry***************\n");
-  printf("A_signal<(Q^2)> =%6.4f +/- %6.4f (stat) +/- %6.4f (syst) ppm \n",A_signal*AccCorr,dA_signal_stat*AccCorr,dA_signal_syst*AccCorr);
+  printf("\n********Final Acceptance  Corrected Asymmetry***************\n");
+  printf("A_signal(<Q^2>) =%6.4f +/- %6.4f (stat) +/- %6.4f (syst) ppm \n",A_signal,dA_signal_stat,dA_signal_syst);
+  printf("A_signal(<Q^2>) =%6.4f +/- %6.4f ppm \n",A_signal,TMath::Sqrt(TMath::Power(dA_signal_stat,2)+TMath::Power(dA_signal_syst,2)));
   printf("Blinding correction has subtracted  %f ppm. \n",BlindingSign*BlindingFactor);
   printf("************************************************\n");
 
@@ -388,28 +393,35 @@ void computeMeasuredAsymmetryCorrections(){//compute the breakdown of correction
   printf("\n");
   printf("************************************************\n");
   printf("Breakdown of Corrections:\n");
-  asymmetry_correction_P = DetCorr_p_EM_Rad_C * (A_msr/P -  A_msr)/(1 - f_total);//effective polarization correction on A_msr ppm
-  printf("%50s = %6.4f +/- %6.4f ppm \n","Effective Polarization Correction",asymmetry_correction_P,pdP);
+  asymmetry_correction_P = Exp_Bias_C * (A_msr/P -  A_msr)/(1 - f_total);//effective polarization correction on A_msr ppm
+  printf("%50s = %+6.4f +/- %6.4f ppm \n","Effective Polarization Correction",asymmetry_correction_P,pdP);
 
   asymmetry_total_correction = asymmetry_correction_P;//Add to the total Correction
   dA_asymmetry_correction += TMath::Power(pdP,2);//Polarization Correction error added quadratically
   for (Int_t i=0;i<bkg_count;i++){
-    asymmetry_correction_b[i] = DetCorr_p_EM_Rad_C * -1 * Ab[i]*fb[i]/(1 - f_total);
+    asymmetry_correction_b[i] = Exp_Bias_C * -1 * Ab[i]*fb[i]/(1 - f_total);
     asymmetry_total_correction += asymmetry_correction_b[i];
     dA_asymmetry_correction += TMath::Power(pdb[i],2);//add the error contributions quadratically
     
-    printf("%50s = %6.4f +/- %6.4f ppm \n",bkg_type[i],asymmetry_correction_b[i],pdb[i]);
+    printf("%50s = %+6.4f +/- %6.4f ppm \n",bkg_type[i],asymmetry_correction_b[i],pdb[i]);
   }
-  asymmetry_correction_DetCorr_p_EM_Rad_C = DetCorr_p_EM_Rad_C * A_msr/(1 - f_total) - A_msr;//effective EM rad + det. bias correction  on A_msr ppm
-  asymmetry_total_correction += asymmetry_correction_DetCorr_p_EM_Rad_C;
-  dA_asymmetry_correction += TMath::Power(pdDetCorr_p_EM_Rad_C,2);
-  printf("%50s = %6.4f +/- %6.4f ppm \n","Effective EM rad. plus Det. bias  Correction",asymmetry_correction_DetCorr_p_EM_Rad_C,pdDetCorr_p_EM_Rad_C);
+  asymmetry_correction_Exp_Bias_C = Exp_Bias_C * A_msr/(1 - f_total) - A_msr;//effective Exp. bias correction  on A_msr ppm
+  asymmetry_total_correction += asymmetry_correction_Exp_Bias_C;
+  dA_asymmetry_correction += TMath::Power(pdExp_Bias_C,2);
+  printf("%50s = %+6.4f +/- %6.4f ppm \n","Exp. bias  Corrections",asymmetry_correction_Exp_Bias_C,pdExp_Bias_C);
 
 
   dA_total_asymmetry_correction=TMath::Sqrt(dA_asymmetry_correction);
   printf("************************************************\n");
-  printf("%50s = %6.4f +/- %6.4f ppm \n","Total Correction to A_msr",asymmetry_total_correction,dA_total_asymmetry_correction);
+  printf("%50s = %+6.4f +/- %6.4f ppm \n","Total Correction to A_msr",asymmetry_total_correction,dA_total_asymmetry_correction);
   printf("************************************************\n");
+  /*
+    A_msr        = -0.2046 +/- 0.0305 (stat) +/- 0.0129 (syst)  ppm
+    Total Correction to A_msr = -0.0771 +/- 0.0256 ppm
+    A_msr + Total Correction to A_msr = -0.2817 ppm
+    A_signal(<Q^2>) =-0.2812 +/- 0.0351 (stat) +/- 0.0296 (syst) ppm 
+    The difference is the blinder (-0.2817 - (-0.2812) = 0.0005 ppm)
+   */
 };
 
 void ComputeAsymmetryCorrections(){//Plot A_msr, all it's corrections and A-signal
@@ -445,8 +457,8 @@ void PlotAsymmetryCorrections(){//Plot A_msr, all it's corrections and A-signal
   dd_ey[8]=pdb[2];
   dd_y[9]=asymmetry_correction_b[3];
   dd_ey[9]=pdb[3];
-  dd_y[10]=asymmetry_correction_DetCorr_p_EM_Rad_C;
-  dd_ey[10]=pdDetCorr_p_EM_Rad_C;
+  dd_y[10]=asymmetry_correction_Exp_Bias_C;
+  dd_ey[10]=pdExp_Bias_C;
   dd_y[11]=A_signal;
   dd_ey[11]=TMath::Sqrt(TMath::Power(dA_signal_stat,2) + TMath::Power(dA_signal_syst,2));
 
