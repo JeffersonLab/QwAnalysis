@@ -9,6 +9,9 @@ This code can also generate a bar chart with breakdown of corrections but by def
 
 Feb  3 16:52:02 EST 2013 by rakithab@jlab.org
 Modified to include detector acceptance correction in to all the calculations. Previously, I simply converted acceptance averaged asymmetry to acceptance corrected asymmetry by using this correction. After this, errors and individual corrections have detector acceptance correction properly included.
+
+Fri Feb  8 15:26:04 EST 2013 by rakithab@jlab.org
+Update to the neutral background dilution from the most recent analysis. I also included separate correction terms for det. bias, EM rad corrections and acceptance corrections
 */
 
 
@@ -207,8 +210,6 @@ int main(Int_t argc,Char_t* argv[])
   //b2: QTOR transport channel neutrals
   Ab[1]  =  0.000;//  ppm
   dAb[1] =  0.2000;//  ppm   
-  //fb[1]  =  0.0100;
-  //dfb[1] =  0.0055;// 
   fb[1]  =  0.0019;//updated results
   dfb[1] =  0.0019;//
   //b3: Beamline bkg neutrals with W shutters installed
