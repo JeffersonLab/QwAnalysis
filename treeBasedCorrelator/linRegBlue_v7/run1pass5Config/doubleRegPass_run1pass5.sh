@@ -68,6 +68,8 @@ if [ $run -ge 9442  -a  $run -le 11701 ] ; then
 	confDir="run1pass5_bcm-cut-15"	
     elif [ $run -ge 11694  -a  $run -le 11701 ] ; then
 	confDir="run1pass5_bcm-cut-15"
+    elif [ $run -ge 11190 -a $run -le 11229 ] ; then
+    confDir="run1pass5_uslumi7pos"
     elif [ $run -ge 11002 ] ; then
 	confDir="run1pass5_11002"
 	#The Lumi7 saturation period 11230 - 11304
@@ -95,7 +97,6 @@ else
     #  the preceeding conditional cascades.
     echo "Keep confDir set to $confDir"
 fi
-
 
 scriptPath=`dirname $0`
 
