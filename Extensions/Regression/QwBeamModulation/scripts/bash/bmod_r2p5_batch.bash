@@ -14,16 +14,16 @@ scriptPath=`pwd`
 #dbName="qw_test_20120720"
 dbName="qw_run2_pass5"
 
-#export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
+#export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run2/rootfiles
 
 echo "QW_ROOTFILES=$QW_ROOTFILES"
 
-export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/output
+export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run2/pass5_bmod_regression/output
 
 run_number=$1
 fseg=$2
 
-log=/w/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/output/out_files
+log=/w/hallc/qweak/QwAnalysis/run2/pass5_bmod_regression/output/out_files
 
 file_stem=" --file-stem QwPass5 "
 ramp_pedestal=" --ramp-pedestal 10 "
@@ -122,8 +122,10 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
       echo "Set directories are set up."
   fi
  
-  $scriptPath/qwbeammod ${options} --set-stem ${set} >> ${log}/qwbeammod${fseg}_${run_number}.out 2>&1
-  
+  echo "$scriptPath/qwbeammod ${options} --phase-config ${scriptPath}/${config} --set-stem ${set}"
+
+  $scriptPath/qwbeammod ${options} --phase-config ${scriptPath}/${config} --set-stem ${set} >> ${log}/qwbeammod${fseg}_${run_number}.out 2>&1
+ 
   if [ $? -ne 0 ]; then
       echo "There was and error in the completion of qwbeammod"
       exit
@@ -156,9 +158,9 @@ for config in "${config_dir}/phase_set1.config" "${config_dir}/phase_set2.config
 
 echo Upload data to DB
 if [[ -n "$PERL5LIB" ]]; then
-    export PERL5LIB=${scriptPath}/scripts/bash:${PERL5LIB}:/apps/perl/lib
+    export PERL5LIB=${scriptPath}/scripts/bash:${PERL5LIB}
 else
-    export PERL5LIB=${scriptPath}/scripts/bash:/apps/perl/lib
+    export PERL5LIB=${scriptPath}/scripts/bash
 fi
 echo ${scriptPath}/scripts/bash/upload_beammod_data.pl -u qwreplay -n qweakdb -d ${dbName} -prf ${scriptPath}/scripts/bash/ ${REGRESSION}
 

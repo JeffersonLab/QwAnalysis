@@ -15,7 +15,7 @@ export QWANALYSIS=`echo $scriptPath | sed 's/Extensions\/Auger\/batchman//'`
 $QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --max-files-per-job 5 \
     --job-maxmemory 3000 \
     --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/scripts/bash/bmod_r2p5_batch.bash  \
-    --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/Slug/run_makeslug_mps \
+    --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/Slug/run2_makeslug_mps \
     --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run2pass5.sh \
     --post-runlet $QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run2pass5/run_makesluglet \
     --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run2pass5_bmod.sh \
