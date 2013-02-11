@@ -302,11 +302,17 @@ const char   *QwGUIDatabase::RegressionVarsOn_8[N_REG_VARS_ON_8]={
 const char   *QwGUIDatabase::RegressionVarsOn_9[N_REG_VARS_ON_9]={
 		"wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy","wrt_asym_charge", "wrt_asym_uslumi_sum"};
 
+const char   *QwGUIDatabase::RegressionVarsOn_10[N_REG_VARS_ON_10]={
+		"wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy","wrt_asym_bcm6"};
+
+const char   *QwGUIDatabase::RegressionVarsOn_11[N_REG_VARS_ON_11]={
+		"wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_bpm3c12X"};
+
 // Regression types
 // To get the raw data from QwAnalysis that pass the standard event cuts use "raw(from rootfiles)"
 // To get the unregressed data that pass LinRegBlue event cuts use "off"
 const char *QwGUIDatabase::RegressionSchemes[N_REGRESSION_SCHEMES] = {
-  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","on_set9","raw(from rootfiles)"
+  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","on_set9","on_set10","on_set11","raw(from rootfiles)"
 };
 
 

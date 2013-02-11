@@ -55,7 +55,7 @@
 #define N_GOODFOR_TYPES  21
 #define N_X_AXIS          7
 #define N_Plots           3
-#define N_REGRESSION_SCHEMES 11
+#define N_REGRESSION_SCHEMES 13
 #define N_REG_VARS_ON     5
 #define N_REG_VARS_ON_5_1 6
 #define N_REG_VARS_ON_3   6
@@ -65,6 +65,8 @@
 #define N_REG_VARS_ON_7   6
 #define N_REG_VARS_ON_8   6
 #define N_REG_VARS_ON_9   7
+#define N_REG_VARS_ON_10  6
+#define N_REG_VARS_ON_10  5
 
 
 
