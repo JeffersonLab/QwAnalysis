@@ -81,16 +81,25 @@ fi
 #.......................................
 echo regPass2 successful destDir=$destDir ....
 
-#.......................................
-#echo generate txt file for DB upload
 
-#root -b -q prCsvRecordTwo.C'('${run}.${seg}',"out/")'
-#if [ $? -ne 0 ] ; then 
-#   echo failed reg-pass2 for run $run.$seg
-#   mv out out-regAbort3-$run.$seg
-#   echo abandon this run
-#   exit
-#fi
+#.......................................
+dbName=qw_run1_pass5
+echo Prepare data for DB upload
+
+root -b -q ${scriptPath}/../prCsvRecordTwo.C'('${run}.${seg}',"out/")'
+
+if [ $? -eq 0 ] ; then 
+    echo Upload data to DB
+    if [[ -n "$PERL5LIB" ]]; then
+        export PERL5LIB=${scriptPath}/..:${PERL5LIB}
+    else
+        export PERL5LIB=${scriptPath}/..
+    fi
+    ${scriptPath}/../upload_linreg_data.pl -u qwreplay -n qweakdb -d ${dbName} -s bmod_lrb_1  -prf  ${scriptPath}/../. out/blueR${run}.${seg}_DBrecord.txt
+fi
+
+
+#.......................................
 
 echo "copying out to $destDir"
 mv -vf out $destDir
@@ -99,7 +108,7 @@ mv -vf out $destDir
 if  [ -d  ${outputPath}/lrb_rootfiles ] ; then
     arr=$(find ${destDir} -type f -name reg_\*.root)
     for d in "${arr[@]}"; do
-        mv -v ${d} ${outPath}/lrb_rootfiles/`basename ${d}`
+        mv -v ${d} ${outputPath}/lrb_rootfiles/`basename ${d}`
     done
 fi
 

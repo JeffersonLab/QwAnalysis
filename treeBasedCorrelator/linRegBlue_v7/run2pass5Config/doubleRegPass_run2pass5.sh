@@ -7,6 +7,9 @@ rootFileStem=$5
 dbName=$6
 configSuffix=$7
 
+#  First, set the scriptPath variable.
+scriptPath=`dirname $0`
+
 #  File permission variable.
 myown="c-qweak"
 myperm="u+rw,g+rw"
@@ -22,12 +25,12 @@ confDir="run2pass5"
 if [ $run -ge 14487 ] ; then
     # transverse md9neg saturation
     # 16129-16131
-    # 16152-16157
+    # 16152-16158
     # #transverse md9neg/pos saturation
     # 16132-16137
     if [ $run -ge 16129 -a $run -le 16131 ] ; then
         confDir="run2pass5_no_3h09b-md9neg"
-    elif [ $run -ge 16152 -a $run -le 16157 ] ; then
+    elif [ $run -ge 16152 -a $run -le 16158 ] ; then
         confDir="run2pass5_no_3h09b-md9neg"
     elif [ $run -ge 16132 -a $run -le 16137 ] ; then
         confDir="run2pass5_no_3h09b-md9negpos"
@@ -35,6 +38,7 @@ if [ $run -ge 14487 ] ; then
         confDir="run2pass5_no_3h09b"
     fi
 fi
+# Sets used below inaddition don't have 3h09b.
 # post mortem uslumi5pos
 if [ $run -ge 17019 -a $run -le 18005 ] ; then
     confDir="run2pass5_no_uslumi5pos"
@@ -65,8 +69,8 @@ else
     set_option="-s $configSuffix"
     confFile="blueReg_$configSuffix.conf"
 fi
-if [ ! -f ${confDir}/${confFile} ] ; then
-   echo "Configuration file ${confDir}/${confFile} doesn't exist."
+if [ ! -f  ${scriptPath}/${confDir}/${confFile} ] ; then
+   echo "Configuration file  ${scriptPath}/${confDir}/${confFile} doesn't exist."
    echo "Abandon this pass of linRegBlue."   
    exit
 fi
@@ -76,7 +80,7 @@ fi
 
 if [ -d ${workPath} ] ; then
     echo '$1=="inpPath"{$2="'${workPath}\/${rootFileStem}'" ; print}; $1!="inpPath" {print}' > ${workPath}/tmp.awk
-    awk -f ${workPath}/tmp.awk ${confDir}/${confFile} > ${workPath}/blueReg.conf
+    awk -f ${workPath}/tmp.awk  ${scriptPath}/${confDir}/${confFile} > ${workPath}/blueReg.conf
 else
     echo The directory ${workPath} does not exist.
     exit
@@ -126,7 +130,6 @@ chgrp ${myown}  out
 chmod u+rw,g+rws out
 
 
-scriptPath=`dirname $0`
 
 #.......................................
 echo regPass5 started ...
