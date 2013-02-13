@@ -66,7 +66,7 @@
 #define N_REG_VARS_ON_8   6
 #define N_REG_VARS_ON_9   7
 #define N_REG_VARS_ON_10  6
-#define N_REG_VARS_ON_10  5
+#define N_REG_VARS_ON_11  5
 
 
 
@@ -250,6 +250,8 @@ using std::vector;
   static const char   *RegressionVarsOn_7[N_REG_VARS_ON_7];
   static const char   *RegressionVarsOn_8[N_REG_VARS_ON_8];
   static const char   *RegressionVarsOn_9[N_REG_VARS_ON_9];
+  static const char   *RegressionVarsOn_10[N_REG_VARS_ON_10];
+  static const char   *RegressionVarsOn_11[N_REG_VARS_ON_11];
 
   static const char   *RegressionSchemes[N_REGRESSION_SCHEMES];
 
