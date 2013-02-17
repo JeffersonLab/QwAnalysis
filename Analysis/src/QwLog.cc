@@ -11,6 +11,9 @@
 // System headers
 #include <fstream>
 
+// Boost headers
+#include <boost/regex.hpp>
+
 // Qweak headers
 #include "QwColor.h"
 #include "QwOptions.h"
@@ -119,12 +122,11 @@ void QwLog::ProcessOptions(QwOptions* options)
   fPrintFunctionSignature = options->GetValue<bool>("QwLog.print-signature");
 
   // Set the list of regular expressions for functions to debug
-  std::vector<std::string> debugFunctionRegexString = options->GetValueVector<std::string>("QwLog.debug-function");
-  if (debugFunctionRegexString.size() > 0)
+  fDebugFunctionRegexString = options->GetValueVector<std::string>("QwLog.debug-function");
+  if (fDebugFunctionRegexString.size() > 0)
     std::cout << "Debug regex list:" << std::endl;
-  for (size_t i = 0; i < debugFunctionRegexString.size(); i++) {
-    fDebugFunctionRegex.push_back(boost::regex(debugFunctionRegexString.at(i)));
-    std::cout << fDebugFunctionRegex.back() << std::endl;
+  for (size_t i = 0; i < fDebugFunctionRegexString.size(); i++) {
+    std::cout << fDebugFunctionRegexString.back() << std::endl;
   }
 }
 
@@ -138,9 +140,10 @@ bool QwLog::IsDebugFunction(const string func_sig)
   if (fIsDebugFunction.find(func_sig) == fIsDebugFunction.end()) {
     // Look through all regexes
     fIsDebugFunction[func_sig] = false;
-    for (size_t i = 0; i < fDebugFunctionRegex.size(); i++) {
+    for (size_t i = 0; i < fDebugFunctionRegexString.size(); i++) {
       // When we find a match, cache it and break out
-      if (boost::regex_match(func_sig, fDebugFunctionRegex.at(i))) {
+      boost::regex regex(fDebugFunctionRegexString.at(i));
+      if (boost::regex_match(func_sig, regex)) {
         fIsDebugFunction[func_sig] = true;
         break;
       }

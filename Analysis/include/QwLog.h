@@ -16,9 +16,6 @@
 #include <vector>
 using std::string;
 
-// Boost headers
-#include <boost/regex.hpp>
-
 // Qweak headers
 #include "QwTypes.h"
 #include "QwColor.h"
@@ -187,7 +184,7 @@ class QwLog : public std::ostream {
 
     //! List of regular expressions for functions that will have increased log level
     std::map<std::string,bool> fIsDebugFunction;
-    std::vector<boost::regex> fDebugFunctionRegex;
+    std::vector<std::string> fDebugFunctionRegexString;
 
     //! Flag to disable color
     bool fUseColor;
