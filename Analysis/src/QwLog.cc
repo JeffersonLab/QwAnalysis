@@ -42,7 +42,6 @@ QwLog::QwLog()
 
   fUseColor = true;
 
-  fPrintFunctionName = false;
   fPrintFunctionSignature = false;
 }
 
@@ -83,12 +82,12 @@ void QwLog::DefineOptions(QwOptions* options)
   options->AddOptions("Logging options")("QwLog.loglevel-screen",
                 po::value<int>()->default_value(kMessage),
                 "log level for screen output");
-  options->AddOptions("Logging options")("QwLog.print-function",
-                po::value<bool>()->default_bool_value(false),
-                "print function on error or warning");
   options->AddOptions("Logging options")("QwLog.print-signature",
                 po::value<bool>()->default_bool_value(false),
                 "print signature on error or warning");
+  options->AddOptions("Logging options")("QwLog.debug-function",
+                po::value< std::vector<string> >()->multitoken(),
+                "print debugging output of function with signatures satisfying the specified regex");
 }
 
 
@@ -117,10 +116,38 @@ void QwLog::ProcessOptions(QwOptions* options)
   SetScreenColor(options->GetValue<bool>("QwLog.color"));
 
   // Set the flags for function name and signature printing
-  fPrintFunctionName      = options->GetValue<bool>("QwLog.print-function");
   fPrintFunctionSignature = options->GetValue<bool>("QwLog.print-signature");
+
+  // Set the list of regular expressions for functions to debug
+  std::vector<std::string> debugFunctionRegexString = options->GetValueVector<std::string>("QwLog.debug-function");
+  if (debugFunctionRegexString.size() > 0)
+    std::cout << "Debug regex list:" << std::endl;
+  for (size_t i = 0; i < debugFunctionRegexString.size(); i++) {
+    fDebugFunctionRegex.push_back(boost::regex(debugFunctionRegexString.at(i)));
+    std::cout << fDebugFunctionRegex.back() << std::endl;
+  }
 }
 
+
+/*!
+ *  Determine whether the function name matches a specified list of regular expressions
+ */
+bool QwLog::IsDebugFunction(const string func_sig)
+{
+  // If not in our cached list
+  if (fIsDebugFunction.find(func_sig) == fIsDebugFunction.end()) {
+    // Look through all regexes
+    fIsDebugFunction[func_sig] = false;
+    for (size_t i = 0; i < fDebugFunctionRegex.size(); i++) {
+      // When we find a match, cache it and break out
+      if (boost::regex_match(func_sig, fDebugFunctionRegex.at(i))) {
+        fIsDebugFunction[func_sig] = true;
+        break;
+      }
+    }
+  }
+  return fIsDebugFunction[func_sig];
+}
 
 /*! Initialize the log file with name 'name'
  */
@@ -161,10 +188,13 @@ void QwLog::SetFileThreshold(int thr)
  */
 QwLog& QwLog::operator()(
   const QwLogLevel level,
-  const std::string func_sig,
-  const std::string func_name)
+  const std::string func_sig)
 {
+  // Set the log level of this sink
   fLogLevel = level;
+
+  // Override log level of this sink when in a debugged function
+  if (IsDebugFunction(func_sig)) fLogLevel = QwLog::kAlways;
 
   if (fScreen && fLogLevel <= fScreenThreshold) {
     if (fScreenAtNewLine) {
@@ -177,8 +207,6 @@ QwLog& QwLog::operator()(
         }
         if (fPrintFunctionSignature)
           *(fScreen) << "Error (in " << func_sig << "): ";
-        else if (fPrintFunctionName)
-          *(fScreen) << "Error (in " << func_name << "): ";
         else
           *(fScreen) << "Error: ";
         break;
@@ -189,8 +217,6 @@ QwLog& QwLog::operator()(
         }
         if (fPrintFunctionSignature)
           *(fScreen) << "Warning (in " << func_sig << "): ";
-        else if (fPrintFunctionName)
-          *(fScreen) << "Warning (in " << func_name << "): ";
         else
           *(fScreen) << "Warning: ";
         if (fUseColor) {
