@@ -98,11 +98,9 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fTheta = that.fTheta;
   fVertexZ = that.fVertexZ;
   fVertexR = that.fVertexR;
-  fScatteringAngle = that.fScatteringAngle;
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
-  fScatteringAngle = that.fScatteringAngle;
 
   fIterationsNewton = that.fIterationsNewton;
   fIterationsRungeKutta = that.fIterationsRungeKutta;
@@ -149,7 +147,6 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 void QwTrack::Initialize()
 {
   // Initialize the members;
-  fScatteringAngle = 0.0;
   fChi = 0.0;
   fMomentum = 0.0;
 

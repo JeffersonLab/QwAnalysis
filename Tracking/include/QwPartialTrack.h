@@ -172,7 +172,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     // Results of the fit to the hits
     Double_t fChi;		///< combined chi square
-    Double_t fCov[4][4];		///< covariance matrix
+    Double_t fCov[4][4];	///< covariance matrix
 
     // record the slope and offset from each treeline,modified 4/26/11
     Double_t TSlope[kNumDirections];
@@ -200,6 +200,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     double pR3hit[3];           ///< x-y-z position at R3
     double uvR3hit[3];          ///< direction at R3
 
+    // TODO remove QwPartialTrack::next
     QwPartialTrack *next; //!	///< linked list (not saved)
 
     int fAlone;                /// number of Plane 0 Treelines

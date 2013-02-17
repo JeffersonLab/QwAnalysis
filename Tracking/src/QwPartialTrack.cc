@@ -205,7 +205,7 @@ double QwPartialTrack::CalculateAverageResidual()
   int numTreeLines = 0;
   double sumResiduals = 0.0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    for (QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
+    for (const QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
          treeline = treeline->next) {
       if (treeline->IsUsed()) {
         numTreeLines++;
