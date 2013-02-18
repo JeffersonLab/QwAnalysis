@@ -143,7 +143,7 @@ class QwTreeEventBuffer
     int GetNumberOfEntries() const { return fNumberOfEntries; };
 
     /// \brief Read the specified entry from the tree
-    void GetEntry(const unsigned int entry);
+    bool GetEntry(const unsigned int entry);
 
 
     /// The event to be reconstructed
@@ -528,8 +528,10 @@ class QwTreeEventBuffer
 
     // Cerenkov
     Bool_t fCerenkov_HasBeenHit;
+    Bool_t fCerenkov_Light;
     Int_t fCerenkov_Detector_HasBeenHit;
     Int_t fCerenkov_Detector_NbOfHits;
+    Int_t fCerenkov_PMT_PMTTotalNbOfHits;
     Float_t fCerenkov_Detector_HitLocalPositionX;
     Float_t fCerenkov_Detector_HitLocalPositionY;
     Float_t fCerenkov_Detector_HitLocalPositionZ;

@@ -210,6 +210,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
   // Assign the current event and entry number
   fCurrentEventNumber = eventnumber;
   fCurrentEntryNumber = eventnumber * fNumberOfEntriesPerEvent;
+  int num_of_valid_track = 0;
 
   // Check the event number
   if ((fCurrentEventNumber < fEventRange.first)
@@ -235,8 +236,12 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
       && fCurrentEntryNumber < fNumberOfEntries) {
 
     // Get the next entry from the ROOT tree
-    GetEntry(fCurrentEntryNumber++);
+    if(GetEntry(fCurrentEntryNumber++)==false)
+        continue;
 
+    //count as a valid track if 3-folder coincidence is satisfied
+    num_of_valid_track++;
+    
     // Add the smeared hit list
     QwHitContainer* smearedhitlist = CreateHitList(true);
     fCurrentEvent->AddHitContainer(smearedhitlist);
@@ -295,7 +300,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
  * Read the specified entry from the tree
  * @param entry Entry to read from ROOT tree
  */
-void QwTreeEventBuffer::GetEntry(const unsigned int entry)
+bool QwTreeEventBuffer::GetEntry(const unsigned int entry)
 {
   // Read event
   QwVerbose << "Reading entry " << entry << QwLog::endl;
@@ -333,11 +338,16 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
   fTree->GetBranch("Cerenkov.Detector.HasBeenHit")->GetEntry(entry);
   fCerenkov_HasBeenHit = (fCerenkov_Detector_HasBeenHit == 5);
 
+  fTree->GetBranch("Cerenkov.PMT.PMTTotalNbOfHits")->GetEntry(entry);
+  fCerenkov_Light = (fCerenkov_PMT_PMTTotalNbOfHits >0);
+
   // Coincidence for avoiding match empty nodes
-  if (fRegion1_HasBeenHit && fRegion2_HasBeenHit && fRegion3_HasBeenHit) {
+  if (fRegion2_HasBeenHit && fRegion3_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light) {
     fTree->GetEntry(entry);
+
   } else {
     QwDebug << "Skipped event with missing hits: " << entry << QwLog::endl;
+    return false;
   }
 
   // Print info
@@ -370,6 +380,8 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
 
   QwDebug << "Cerenkov: "
           << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
+
+  return true;
 }
 
 
@@ -2048,6 +2060,7 @@ void QwTreeEventBuffer::ClearVectors()
 
   fCerenkov_Detector_HasBeenHit = 0;
   fCerenkov_Detector_NbOfHits = 0;
+  fCerenkov_PMT_PMTTotalNbOfHits = 0;
   fCerenkov_Detector_HitLocalPositionX = 0.0;
   fCerenkov_Detector_HitLocalPositionY = 0.0;
   fCerenkov_Detector_HitLocalPositionZ = 0.0;
@@ -2672,10 +2685,12 @@ void QwTreeEventBuffer::AttachBranches()
 
 
   /// Attach to the cerenkov branches
-//  fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
-//		&fCerenkov_Detector_HasBeenHit);
+  fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
+		&fCerenkov_Detector_HasBeenHit);
 //  fTree->SetBranchAddress("Cerenkov.Detector.NbOfHits",
 //		&fCerenkov_Detector_NbOfHits);
+  fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfHits",
+                &fCerenkov_PMT_PMTTotalNbOfHits);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
 //		&fCerenkov_Detector_HitLocalPositionX);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
