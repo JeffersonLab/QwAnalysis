@@ -100,8 +100,10 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       }
     }
     ///    find and record electron beam off periods
-    rampIsDone = (bcm> (beamFrac*beamMax) && (bcm <200.0));
-    isABeamTrip = (bcm<= (beamFrac*beamMax) && (bcm >0.0));
+    // rampIsDone = (bcm> (beamFrac*beamMax) && (bcm <200.0));
+    // isABeamTrip = (bcm<= (beamFrac*beamMax) && (bcm >0.0));
+    rampIsDone = (bcm> 50.0 && (bcm <200.0));//!?this is to make the comparision equivalent to that by Vladas
+    isABeamTrip = (bcm<= 20.0 && (bcm >0.0));
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition

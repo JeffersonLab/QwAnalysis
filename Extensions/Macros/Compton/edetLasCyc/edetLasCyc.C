@@ -27,10 +27,10 @@ void edetLasCyc(Int_t runnum, TString dataType="Ac", Bool_t first100k=kFALSE)
   if(first100k) return;
 
   infoDAQ(runnum); //!add a method to verify that config tree was successfully read
-  Int_t asymReturn = expAsym(runnum);
+  Int_t asymReturn = expAsym(runnum,dataType);
 
   if(asymReturn!=-1) {
-    asymFit(runnum);
+    asymFit(runnum,dataType);
     //fileReadDraw(runnum);  ///This function uses the output from different dataTypes together, hence should not be called while executing single dataType
   } else cout <<"\n***expAsym.C failed so exiting\n"<<endl;
 }

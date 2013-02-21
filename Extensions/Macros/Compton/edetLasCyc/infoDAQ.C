@@ -18,7 +18,7 @@ void infoDAQ(Int_t runnum)
   ofstream infoDAQthisRun,debugInfoDAQ,infoStripMask;
   //should put a check if the file was not opened successfully 
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_%i.000.root",runnum));//ensure to read in only the first runlet
-  TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2_%i.000.root",runnum));//ensure to read in only the first runlet
+  TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%i.000.root",runnum));//ensure to read in only the first runlet
   TTree *configTree = (TTree*)file->Get("Config_Tree");
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   configTree->ResetBranchAddresses();
