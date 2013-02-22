@@ -23,12 +23,15 @@ fi
 confDir="run2pass5"
 # post mortem 3h09b
 if [ $run -ge 14487 ] ; then
+    # pmtltg and pmtonl had wideband preamps and are disabled as a DV
+    if [ $run -ge 14889 -a $run -le 15592 ] ; then
+        confDir="run2pass5_no_3h09b-pmt"
     # transverse md9neg saturation
     # 16129-16131
     # 16152-16158
     # #transverse md9neg/pos saturation
     # 16132-16137
-    if [ $run -ge 16129 -a $run -le 16131 ] ; then
+    elif [ $run -ge 16129 -a $run -le 16131 ] ; then
         confDir="run2pass5_no_3h09b-md9neg"
     elif [ $run -ge 16152 -a $run -le 16158 ] ; then
         confDir="run2pass5_no_3h09b-md9neg"
