@@ -606,11 +606,11 @@ void QwEPICSEvent::ReportEPICSData() const
   Double_t sigma    = 0.0;
 
 
-  ofstream output;
+  std::ofstream output;
   TString theEPICSDataFile;
   theEPICSDataFile =  getenv("QW_TMP");
   theEPICSDataFile += "/QwEPICSData.txt";// puts QwEPICSData.txt in  QwAnalysis_DB_01.00.0000/scratch/tmp/ diretory.
-  output.open(theEPICSDataFile,ofstream::out);
+  output.open(theEPICSDataFile,std::ofstream::out);
 
   if (output.is_open()) {
 

@@ -108,7 +108,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     void Print(const Option_t* options = 0) const;
     void PrintValid();
-    friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt);
+    friend std::ostream& operator<< (std::ostream& stream, const QwPartialTrack& pt);
 
     /// \brief Return the vertex at position z
     const TVector3 GetPosition(const double z) const;

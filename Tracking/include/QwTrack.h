@@ -82,7 +82,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
 
     /// Output stream operator for tracks
-    friend ostream& operator<< (ostream& stream, const QwTrack& t);
+    friend std::ostream& operator<< (std::ostream& stream, const QwTrack& t);
 
   public:
 
@@ -154,7 +154,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
  * @param v Vector
  * @return Output stream
  */
-inline ostream& operator<< (ostream& stream, const TVector3& v)
+inline std::ostream& operator<< (std::ostream& stream, const TVector3& v)
 {
   stream << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
   return stream;

@@ -132,7 +132,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     void PrintValid();
 
     //! \brief Output stream operator
-    friend ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl);
+    friend std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl);
 
     //! \name Positions and resolutions in wire planes
     // @{

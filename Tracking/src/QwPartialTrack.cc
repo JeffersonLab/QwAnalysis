@@ -319,7 +319,7 @@ void QwPartialTrack::PrintValid()
 /**
  * Output stream operator overloading
  */
-ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
+std::ostream& operator<< (std::ostream& stream, const QwPartialTrack& pt)
 {
   stream << "pt: ";
   if (pt.GetRegion() != kRegionIDNull)

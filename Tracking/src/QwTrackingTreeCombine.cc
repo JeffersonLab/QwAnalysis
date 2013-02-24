@@ -2290,7 +2290,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
   double m,b;
   double uv2xy[2][2];//2 by 2 projection matrix
 
-  ofstream gnu3;
+  std::ofstream gnu3;
 
   gnu3.open ( "gnu3.dat" );
 

@@ -114,7 +114,7 @@ class QwHistogramHelper{
     };
 
     /// Output stream operator overload
-    friend ostream& operator<< (ostream& stream, const HistParams& h) {
+    friend std::ostream& operator<< (std::ostream& stream, const HistParams& h) {
       stream << h.type << " " << h.name_title
              << " x (" << h.xtitle << "): " << h.x_min << " -- " << h.x_max << " (" << h.x_nbins << " bins), "
              << " y (" << h.ytitle << "): " << h.y_min << " -- " << h.y_max << " (" << h.y_nbins << " bins)";

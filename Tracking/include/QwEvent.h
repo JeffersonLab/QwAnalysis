@@ -106,13 +106,13 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
     EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
 
     /// \brief Output stream operator
-    friend ostream& operator<< (ostream& stream, const QwEventHeader& h);
+    friend std::ostream& operator<< (std::ostream& stream, const QwEventHeader& h);
 
   ClassDef(QwEventHeader,1);
 };
 
 /// Output stream operator
-inline ostream& operator<< (ostream& stream, const QwEventHeader& h) {
+inline std::ostream& operator<< (std::ostream& stream, const QwEventHeader& h) {
   stream << "Run " << h.fRunNumber << ", ";
   stream << "event " << h.fEventNumber << ":";
   return stream;

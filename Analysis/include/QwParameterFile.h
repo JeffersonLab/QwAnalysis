@@ -184,7 +184,7 @@ class QwParameterFile {
       return ReadNextModule(dummy, keep_header);
     };
 
-    friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
+    friend std::ostream& operator<< (std::ostream& stream, const QwParameterFile& file);
 
 
     const TString GetParamFilename() {return fBestParamFileName;};

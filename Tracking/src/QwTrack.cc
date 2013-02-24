@@ -226,7 +226,7 @@ void QwTrack::PrintPartialTracks(Option_t *option) const
 /**
  * Output stream operator overloading
  */
-ostream& operator<< (ostream& stream, const QwTrack& t)
+std::ostream& operator<< (std::ostream& stream, const QwTrack& t)
 {
   stream << "track: ";
   if (t.GetRegion() != kRegionIDNull) {

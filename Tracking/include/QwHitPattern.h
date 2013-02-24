@@ -137,7 +137,7 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
     unsigned char* fPattern;		//!	/// Hit pattern
     unsigned int*  fPatternHash;	//!	/// Hash of the hit pattern
 
-  friend ostream& operator<< (ostream& stream, const QwHitPattern& hitpattern);
+  friend std::ostream& operator<< (std::ostream& stream, const QwHitPattern& hitpattern);
 
   ClassDef(QwHitPattern,1);
 
