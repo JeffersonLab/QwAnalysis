@@ -128,3 +128,12 @@ create table if not exists monitor (
   monitor_id INTEGER PRIMARY KEY ASC,
   title TEXT
 );
+
+create table if not exists slug (
+  slug_id INTEGER PRIMARY KEY ASC,
+  ihwp1 char(3),
+  ihwp2 char(3),
+  laser char(3),
+  wien char(3)
+  number INTEGER
+);

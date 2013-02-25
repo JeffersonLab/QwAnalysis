@@ -37,3 +37,10 @@ INSERT INTO monitor(title) values("3p03aY");
 
 /** Setup Photon Elements **/
 INSERT INTO monitor(title) values("accum0");
+
+/** Setup the Goodfor **/
+INSERT INTO good_for(type) values("junk");
+INSERT INTO good_for(type) values("qrt");
+INSERT INTO good_for(type) values("mps");
+INSERT INTO good_for(type) values("both");
+INSERT INTO good_for(type) values("transverse");
