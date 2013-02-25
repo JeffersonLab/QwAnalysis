@@ -175,9 +175,9 @@ int main(int argc, char *argv[])
     TString library=macros_path+Form("/lib%s.so",(*it).c_str());
     handle = dlopen(library.Data(),RTLD_NOW);
     if(!handle) {
-      std::cout << "WARNING: Cannot find library file for " << *it
+      std::cout << "WARNING: Error processing library " << *it
         << " at " << library.Data()
-        << "\t\tSkipping!" << std::endl;
+        << "<<\t with error" << dlerror() << "\tSkipping!" << std::endl;
     } else {
       std::cout << "Processing macro: " << *it << std::endl;
       create_t* create=(create_t*)dlsym(handle,"create");
