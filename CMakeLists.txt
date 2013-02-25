@@ -22,6 +22,19 @@ file(GLOB my_project_headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/include/*.h
   )
 
+# EVIO library
+file(GLOB my_evio_headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/evio/include/THaCoda*.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/evio/include/evio.h
+  )
+file(GLOB my_evio_sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/evio/src/THaCoda*.C
+  ${CMAKE_CURRENT_SOURCE_DIR}/evio/src/evio.C
+  ${CMAKE_CURRENT_SOURCE_DIR}/evio/src/swap_util.C
+  )
+add_library(evio SHARED ${my_evio_sources})
+target_link_libraries(evio)
+
 # Exclude those trouble maker files that are not included by default
 file(GLOB to_remove ${CMAKE_CURRENT_SOURCE_DIR}/Analysis/src/QwOmnivore.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/Parity/src/QwCorrelation.cc)
@@ -36,17 +49,17 @@ find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
 
 # Load MYSQLPP
-find_package( MYSQLPP REQUIRED)
+find_package(MYSQLPP REQUIRED)
 include_directories(${MYSQLPP_INCLUDE_DIR})
 
 # Find Boost libraries
 # Though, there seems to be a bug in version 2.8 of CMake's boost
 # finding process. As such, we'll disable it for version 2.8
-if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} EQUAL 2.8)
-  SET( Boost_NO_BOOST_CMAKE ON )
-endif(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} EQUAL 2.8)
+#if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} EQUAL 2.8)
+#  SET( Boost_NO_BOOST_CMAKE ON )
+#endif(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} EQUAL 2.8)
 
-#find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Boost COMPONENTS program_options filesystem system regex REQUIRED)
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIR})
@@ -55,8 +68,8 @@ link_directories(${Boost_LIBRARY_DIR})
 add_library(QwAnalysis SHARED ${my_project_sources})
 
 # Link the ROOT libraries
-#target_link_libraries(QwAnalysis ${ROOT_LIBRARIES} ${MYSQLPP_LIBRARIES}
-#  ${Boost_LIBRARIES})
+target_link_libraries(QwAnalysis evio ${ROOT_LIBRARIES} ${MYSQLPP_LIBRARIES}
+  ${Boost_LIBRARIES})
 
 # Add the target executables
 file(GLOB exefiles "${CMAKE_SOURCE_DIR}/Parity/main/*.cc"
@@ -69,6 +82,6 @@ foreach( file ${exefiles} )
   string( TOLOWER ${filename} filelower )
   add_executable( ${filelower} ${file} )
   target_link_libraries(${filelower} ${ROOT_LIBRARIES} ${MYSQLPP_LIBRARIES}
-    ${Boost_LIBRARIES} QwAnalysis)
+    ${Boost_LIBRARIES} QwAnalysis evio)
 endforeach()
 
