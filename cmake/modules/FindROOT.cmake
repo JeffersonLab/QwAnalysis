@@ -21,7 +21,6 @@ ENDIF(NOT ROOT_FIND_QUIETLY)
 
 
 SET(ROOT_CONFIG_SEARCHPATH
-  /usr/bin
   ${SIMPATH}/tools/root/bin
   $ENV{ROOTSYS}/bin
 )
@@ -134,17 +133,18 @@ IF (ROOT_FOUND)
 
   # Look for sub components
   FOREACH(component ${ROOT_FIND_COMPONENTS})
-    FIND_LIBRARY( _root_subcomponent ${component}
-      PATHS
-      ${ROOT_LIBRARY_DIR}
+    #MESSAGE( "Looking for ${component} through ${ROOT_LIBRARY_DIR} ${_root_subcomponent_${component}}" )
+    FIND_LIBRARY( _root_subcomponent_${component} NAMES ${component}
+      HINTS ${ROOT_LIBRARY_DIR}
       )
-    IF( _root_subcomponent )
-      SET( ROOT_LIBRARIES ${ROOT_LIBRARIES} ${_root_subcomponent} )
-    ELSE( _root_subcomponent )
+    IF( _root_subcomponent_${component} )
+      SET( ROOT_LIBRARIES ${ROOT_LIBRARIES} ${_root_subcomponent_${component}} )
+      #MESSAGE( "Found ${component} at ${_root_subcomponent_${component}} " )
+    ELSE( _root_subcomponent_${component} )
       IF(ROOT_FIND_REQUIRED)
         MESSAGE( FATAL_ERROR "Did not find root library ${component}." )
       ENDIF(ROOT_FIND_REQUIRED)
-    ENDIF( _root_subcomponent)
+    ENDIF( _root_subcomponent_${component})
 
   ENDFOREACH()
 
