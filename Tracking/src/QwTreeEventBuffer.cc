@@ -3066,14 +3066,22 @@ void QwTreeEventBuffer::PrintStatInfo(int r2good=0,int r3good=0, int ngoodtracks
 
     QwMessage << "\nNumber of bridged tracks: "<< ngoodtracks << QwLog::endl;
     
-    QwMessage << "\nRegion 2 partial track finding efficiency: " 
-              <<(float)r2good/QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks*100<<" \%"<<QwLog::endl;
-    QwMessage << "Region 3 partial track finding efficiency: " 
-              <<(float)r3good/QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks*100<<" \%"<<QwLog::endl;
+    if (QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks>0)
+      QwMessage << "\nRegion 2 partial track finding efficiency: " 
+                << r2good<<"/"<<QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks<<" = "
+                <<(float)r2good/QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks*100<<" \%"<<QwLog::endl;
+    if (QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks>0)
+      QwMessage << "Region 3 partial track finding efficiency: " 
+                << r3good<<"/"<<QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks<<" = "
+                <<(float)r3good/QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks*100<<" \%"<<QwLog::endl;
 
-    QwMessage << "Bridging efficiency: " 
-              <<(float)ngoodtracks/TMath::Min(r2good,r3good)*100<<" \%"<<QwLog::endl;
-    QwMessage << "Overall efficiency : " 
-              <<(float)ngoodtracks/QwTreeEventBuffer::fNumOfSimulated_ValidTracks*100<<" \%"<<QwLog::endl;
+    if (TMath::Min(r2good,r3good)>0)
+      QwMessage << "Bridging efficiency: " 
+                << ngoodtracks<<"/"<<TMath::Min(r2good,r3good)<<" = "
+                <<(float)ngoodtracks/TMath::Min(r2good,r3good)*100<<" \%"<<QwLog::endl;
+    if (QwTreeEventBuffer::fNumOfSimulated_ValidTracks>0)
+      QwMessage << "Overall efficiency : " 
+                << ngoodtracks<<"/"<<QwTreeEventBuffer::fNumOfSimulated_ValidTracks<<" = "
+                <<(float)ngoodtracks/QwTreeEventBuffer::fNumOfSimulated_ValidTracks*100<<" \%"<<QwLog::endl;
 
 }
