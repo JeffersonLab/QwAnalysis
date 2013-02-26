@@ -95,7 +95,7 @@ class QwTreeEventBuffer
 
 
     /// \brief Create the hit list for this entry
-    QwHitContainer* CreateHitList(const bool resolution_effects = true) const;
+    QwHitContainer* CreateHitList(const bool resolution_effects = true, bool r2_hit=false, bool r3_hit=false) const;
 
 
     /// \brief Get the current event
@@ -113,9 +113,22 @@ class QwTreeEventBuffer
     /// \brief Get the partial tracks
     std::vector<boost::shared_ptr<QwPartialTrack> > CreatePartialTracks(EQwRegionID region) const;
 
+    ///\brief Print statistical information
+    void PrintStatInfo(int r2good,int r3good, int ngoodtracks);
 
   private:
 
+    /// Set track counters
+    static int fNumOfSimulated_ValidTracks;
+    static int fNumOfSimulated_R2_PartialTracks;
+    static int fNumOfSimulated_R2_TS_MD_Tracks;
+    static int fNumOfSimulated_R3_TS_MD_Tracks;
+    static int fNumOfSimulated_R3_PartialTracks;
+    static int fNumOfSimulated_R2_R3_Tracks;
+    static int fNumOfSimulated_TS_Tracks;
+    static int fNumOfSimulated_MD_Tracks;
+    static int fNumOfSimulated_TS_MD_Tracks;
+    
     // Randomness provider and distribution for resolution effects
     boost::mt19937 fRandomnessGenerator; // Mersenne twister
     boost::normal_distribution<double> fNormalDistribution;
@@ -143,7 +156,7 @@ class QwTreeEventBuffer
     int GetNumberOfEntries() const { return fNumberOfEntries; };
 
     /// \brief Read the specified entry from the tree
-    bool GetEntry(const unsigned int entry);
+    bool GetEntry(const unsigned int entry, bool* r2_hit=false, bool* r3_hit=false);
 
 
     /// The event to be reconstructed
@@ -192,7 +205,6 @@ class QwTreeEventBuffer
       const double x, const double y) const;
 
     // @}
-
 
     /// \name Branch vectors
     // @{
@@ -529,6 +541,7 @@ class QwTreeEventBuffer
     // Cerenkov
     Bool_t fCerenkov_HasBeenHit;
     Bool_t fCerenkov_Light;
+    vector <Int_t> fCerenkov_Detector_DetectorID;
     Int_t fCerenkov_Detector_HasBeenHit;
     Int_t fCerenkov_Detector_NbOfHits;
     Int_t fCerenkov_PMT_PMTTotalNbOfHits;
