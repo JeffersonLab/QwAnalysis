@@ -3048,16 +3048,17 @@ int QwTreeEventBuffer::fNumOfSimulated_TS_MD_Tracks;
 
 void QwTreeEventBuffer::PrintStatInfo(int r2good=0,int r3good=0, int ngoodtracks=0)
 {
-    QwMessage<<"\nfNumOfSimulated_MD_Tracks        = "<<QwTreeEventBuffer::fNumOfSimulated_MD_Tracks<<QwLog::endl;
-    QwMessage<<"fNumOfSimulated_TS_Tracks        = "<< QwTreeEventBuffer::fNumOfSimulated_TS_Tracks<<QwLog::endl;
-    QwMessage<<"fNumOfSimulated_TS_MD_Tracks     = "<<QwTreeEventBuffer::fNumOfSimulated_TS_MD_Tracks<<"\n"<<QwLog::endl;   
+    QwMessage<<"\nNumber of Geant4-simulated tracks:"<<QwLog::endl;
+    QwMessage<<"Hit MD:                "<<QwTreeEventBuffer::fNumOfSimulated_MD_Tracks<<QwLog::endl;
+    QwMessage<<"Hit TS:                "<< QwTreeEventBuffer::fNumOfSimulated_TS_Tracks<<QwLog::endl;
+    QwMessage<<"Hit TS & MD:           "<<QwTreeEventBuffer::fNumOfSimulated_TS_MD_Tracks<<QwLog::endl;   
 
-    QwMessage<<"fNumOfSimulated_R2_Tracks        = "<<QwTreeEventBuffer::fNumOfSimulated_R2_PartialTracks<<QwLog::endl;
-    QwMessage<<"fNumOfSimulated_R2_TS_MD_Tracks  = "<<QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks<<QwLog::endl;
-    QwMessage<<"fNumOfSimulated_R3_Tracks        = "<<QwTreeEventBuffer::fNumOfSimulated_R3_PartialTracks<<QwLog::endl;
-    QwMessage<<"fNumOfSimulated_R3_TS_MD_Tracks  = "<<QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks<<"\n"<<QwLog::endl;
+    QwMessage<<"Hit R2:                "<<QwTreeEventBuffer::fNumOfSimulated_R2_PartialTracks<<QwLog::endl;
+    QwMessage<<"Hit R2 & TS & MD:      "<<QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks<<QwLog::endl;
+    QwMessage<<"Hit R3:                "<<QwTreeEventBuffer::fNumOfSimulated_R3_PartialTracks<<QwLog::endl;
+    QwMessage<<"Hit R3 & TS & MD:      "<<QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks<<QwLog::endl;
 
-    QwMessage<<"fNumOfSimulated_ValidTracks      = "<<QwTreeEventBuffer::fNumOfSimulated_ValidTracks<<"\n"<<QwLog::endl;
+    QwMessage<<"Hit R2 & R3 & TS & MD: "<<QwTreeEventBuffer::fNumOfSimulated_ValidTracks<<"\n"<<QwLog::endl;
 
     QwMessage << "Number of good partial tracks found: "<< r2good+r3good << QwLog::endl;
     QwMessage << "Region 2: " << r2good << QwLog::endl;
