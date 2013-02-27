@@ -8,13 +8,12 @@
 SRC="/work/hallc/qweak/QwAnalysis/run2/pass5regression"
 sets=(std 5+1 set3 set4 set5 set6 set7 set8 set9 set10)
 
+run_num=$1
 if [ $run_num -ge 14487 ] 
 then
     echo "Run is greater than 14486, repressing sets 5 and 6"
     sets=(std 5+1 set3 set4 set7 set8 set9 set10)
 fi
-
-run_num=$1
 
 for lrbset in ${sets[*]}
   do
