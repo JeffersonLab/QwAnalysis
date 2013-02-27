@@ -767,15 +767,15 @@ void QwModulation::CalculateSlope(Int_t fNModType)
     }
 
   
-    for(Int_t evNum = 0; evNum < fNEvents; evNum++) c_mean += TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType]);
+    for(Int_t evNum = 0; evNum < fNEvents; evNum++) c_mean += TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] + phase[fNModType]);
       c_mean /=fNEvents;
       
       for(Int_t evNum = 0; evNum < fNEvents; evNum++) d_mean += DetectorData[det][evNum];
       d_mean /=fNEvents;
 
       for(Int_t evNum = 0; evNum < fNEvents; evNum++){
-	sigma_cc += (TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean)*(TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean);
-	sigma_dc += (DetectorData[det][evNum] - d_mean)*(TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean);
+	sigma_cc += (TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean)*(TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean);
+	sigma_dc += (DetectorData[det][evNum] - d_mean)*(TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean);
 	sigma_dd += (DetectorData[det][evNum] - d_mean)*(DetectorData[det][evNum] - d_mean);
 
 	// Clear instances after computation
@@ -810,15 +810,15 @@ void QwModulation::CalculateSlope(Int_t fNModType)
 	std::cout << "!!!!!!!!!!!!!!!!! Illegal Monitor vector length:\t" << MonitorData[mon].size() << std::endl;
 	return;
       }
-      for(Int_t evNum = 0; evNum < fNEvents; evNum++) c_mean += TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType] );
+      for(Int_t evNum = 0; evNum < fNEvents; evNum++) c_mean += TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] + phase[fNModType] );
       c_mean /=fNEvents;
       
       for(Int_t evNum = 0; evNum < fNEvents; evNum++) d_mean += MonitorData[mon][evNum];
       d_mean /=fNEvents;
   
       for(Int_t evNum = 0; evNum < fNEvents; evNum++){
-	sigma_cc += (TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean)*(TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] +phase[fNModType] ) - c_mean);
-	sigma_dc += (MonitorData[mon][evNum] - d_mean)*(TMath::Sin( (TMath::Pi()/180)*0.091548*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean);
+	sigma_cc += (TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean)*(TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] +phase[fNModType] ) - c_mean);
+	sigma_dc += (MonitorData[mon][evNum] - d_mean)*(TMath::Sin( (TMath::Pi()/180)*CoilData[fNModType][evNum] + phase[fNModType] ) - c_mean);
 	sigma_dd += (MonitorData[mon][evNum] - d_mean)*(MonitorData[mon][evNum] - d_mean);
 	// Clear instances after computation
 	MonitorData[mon].clear();
