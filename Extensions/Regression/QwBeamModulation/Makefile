@@ -81,7 +81,7 @@ DEPS       = QwModulation.hh QwData.hh QwChargeSensitivity.hh QwDBConnection.hh 
 CFLAGS     = -O -Wall ${INCLUDES}
 MYSQL      = 
 
-all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta ramp_pedestal asymmetry_plotter qwslug qwcorrelation qwregrun
+all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwasymsplitter qwresidual qwdboptics 
 
 %.o: %.cc
 	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 
@@ -93,6 +93,8 @@ qwlibra : ${SRC}/qwlibra.o ${SRC}/QwData.o ${SRC}/QwDiagnostic.o
 qwcharge: ${SRC}/qwcharge.o ${SRC}/QwChargeSensitivity.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
 qwdbplot: ${SRC}/qwdbplot.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+qwdboptics: ${SRC}/qwdboptics.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
 qw_ndelta: ${SRC}/qw_ndelta.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o ${SRC}/QwPlotHelper.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
@@ -106,6 +108,20 @@ qwcorrelation: ${SRC}/qwcorrelation.o ${SRC}/QwSlug.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
 qwregrun: ${SRC}/qwregrun.o ${SRC}/QwSlug.o 	
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+qwasymsplitter: ${SRC}/qwasymsplitter.o ${SRC}/QwModulation.o 	
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}
+qwresidual : ${SRC}/qwresidual.o ${SRC}/QwModulation.o
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}	
+qwbpmplot: ${SRC}/qwbpmplot.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
+qwdetplot: ${SRC}/qwdetplot.o ${SRC}/QwDBConnection.o ${SRC}/QwDataContainer.o
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
+qwfileplot: ${SRC}/qwfileplot.o ${SRC}/QwDataFile.o 
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
+qwfilemplot: ${SRC}/qwfilemplot.o ${SRC}/QwDataFile.o 
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
+qwnormal: ${SRC}/qwnormal.o ${SRC}/QwModulation.o 
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
 clean: 
-	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ qwbeammod qwlibra qwcharge qwdbplot qw_ndelta asymmetry_plotter qwslug qwcorrelation qwregrun ramp_pedestal
+	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwslug qwcorrelation qwregrun qwasymsplitter qwresidual qwdboptics
 

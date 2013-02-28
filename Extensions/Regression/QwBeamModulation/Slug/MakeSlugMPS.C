@@ -18,7 +18,7 @@
 
 Bool_t globalEXIT;
 
-const TString qwstem = "QwPass4b";
+const TString qwstem = "QwPass5";
 
 Bool_t FileSearch(TString, TChain *, 
 				  Bool_t fSegInclude = false, 
@@ -164,7 +164,6 @@ Int_t MakeSlugMPS(
 			LoadRootFile(rootfilename, tree);
 		}
 
-		return -1;
 
 		Double_t bcmforcuts = 0; 
 		Double_t previousbcm = 0;

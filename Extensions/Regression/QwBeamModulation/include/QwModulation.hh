@@ -36,18 +36,14 @@ private:
   Int_t fNModType;
   Int_t fPedestal;
 
-  Int_t fXNevents;
-  Int_t fXPNevents;
-  Int_t fENevents;
-  Int_t fYNevents;
-  Int_t fYPNevents;
+  Int_t fNModEvents;
   Int_t fCurrentCut;
   Int_t fLowerSegment;
   Int_t fUpperSegment;
 
   static const Int_t fNMaxMon = 6;
   static const Int_t fNMaxDet = 35;
-  static const Int_t fNMaxCoil = 6;
+  static const Int_t fNMaxCoil = 5;
   static const Int_t fBranchSize = 13;
   static const Int_t fDeviceErrorCode = 6;
   static const Int_t fError = 1;
@@ -172,6 +168,8 @@ public :
   Double_t        MonitorMean[fNMaxMon];
   Double_t        DetectorMean[fNMaxDet];
 
+  Int_t        ModulationEvents[fNMaxCoil];
+
   Double_t        qwk_targetX_hw_sum;
 
   TBranch        *b_qwk_charge;    
@@ -292,7 +290,7 @@ public :
 
   Int_t    Cut(Long64_t entry);
   Int_t    GetEntry(Long64_t entry);
-  Int_t    ReadConfig(QwModulation *);
+  Int_t    ReadConfig(QwModulation *, TString opt = "");
   Int_t    ReadPhaseConfig(Char_t *);
   Int_t    ErrorCodeCheck(TString);
   Int_t    ConvertPatternNumber(Int_t);

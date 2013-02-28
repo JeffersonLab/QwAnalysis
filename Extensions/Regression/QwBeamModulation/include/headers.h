@@ -29,4 +29,7 @@
 #include "TGraphErrors.h"
 #include "TProfile.h"
 #include <vector>
+#include <map>
+#include <utility>
+#include "TMultiGraph.h"
 #endif

@@ -11,6 +11,8 @@
 #include "headers.h"
 #include "QwDBConnection.hh"
 #include "QwData.hh"
+#include <map>
+#include <utility>
 
 class QwDataContainer: public QwDBConnection {
 
@@ -26,15 +28,17 @@ private:
 
 public:
 
-//   enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
-  enum variable_t {var_e, var_x, var_xp, var_y, var_yp};
+  enum variable_t {var_x, var_xp, var_e, var_y, var_yp};
   enum quality_t {raw, corr};
 
   std::vector <TVectorD> fSensitivity;
+  std::vector <TVectorD> fSensitivityError;
   std::vector <TVectorD> fCorrection;
   std::vector <TVectorD> fAsymmetry;
   std::vector <TVectorD> fPositionDiff;
   std::vector <TVectorD> frms;
+
+  std::vector <TString> fMonitorList;
 
   TVectorD fRunNumber;
   TVectorD fAvSensx;
@@ -61,6 +65,9 @@ public:
   TVectorD fZero;
   TVectorD fWienNumber;
 
+  TVectorD fAmplitude;
+  TVectorD fAmplitudeError;
+  TVectorD fMonitorPosition;
 
   TString  fMonitor;
   TString  fDetector;
@@ -70,17 +77,28 @@ public:
   TString  fMysqlIHWP;
   TString  fMysqlMon;
   TString  fMysqlQuery;
+  TString  fMysqlSlopeCorr;
+  TString  fModulationType;
+  TString  fMysqlBeamMode;
 
   Bool_t   fDBase;
   Bool_t   fRunRange;
+  Bool_t   fModType;
+  Bool_t   fSegmentNumber;
+  Bool_t   fMysqlSetStem;
+  Bool_t   fMysqlSetDet;
+
   Int_t    fNumberLines;
   Int_t    fMysqlRunUpper;
   Int_t    fMysqlRunLower;
-
+  Int_t    fMysqlRunNumber;
+  Int_t    fMysqlSegNumber;
 
   Int_t    entries;
   Int_t    fNumberMonitor;
 
+  std::multimap<TString, Int_t> fMonitorIndexMap;
+  std::multimap<TString, Double_t> fMonitorPositionMap;
 
   std::vector <TString> fOptions;
   std::vector <Int_t>   fBlackList;
@@ -89,22 +107,29 @@ public:
   ~QwDataContainer();
 
   void ReadDataFile(TString);
+  void ReadMonitorList();
   void ResizeDataElements(Int_t);
   void SetFileName(TString);
   void ScaleTGraph(TGraphErrors *);
   void PlotSensitivities(void);
+  void PlotBeamlineOptics();
   void PlotCorrections(void);
   void PlotDetectorRMS(void);
   void CalculateAverage(void);
   void GetOptions(Char_t **);
   void PlotDBSensitivities(void);
+  void PlotDBOptics(void);
   void GetDBSensitivities(TString, TString, TString);
   void GetDBAsymmetry(TString, TString, TString);
   void GetBlackList(void);
   void FillDataVector(TString);
   void FillDataVector(Int_t);
   void SetRunRange(Int_t, Int_t);
+  void SetRunRange(Int_t);
+  void SetSegNumber(Int_t);
   void SetDetector(TString);
+  void SetSlopeCorrection(TString);
+  void SetModulationType(TString);
   void SetSlope(TString);
   void SetIHWP(TString);
   void SetMonitor(TString);
@@ -118,13 +143,16 @@ public:
   TString  SetBlackList(TString, TString);
   TString  BuildQuery(TString);
 
+  Int_t GetMonitorIndex(TString);
   Int_t GetFileSize(TString);
   Int_t QueryDB(const char* db=0);
-
+  Int_t FillDBRunList(void);
+  
   Double_t GetMaximum(TVectorD);
   Double_t GetMinimum(TVectorD);
   Double_t GetMaximum(Double_t *);
   Double_t GetMinimum(Double_t *);
+  Double_t GetMonitorPosition(TString);
   Double_t GetSlope(void);
   Double_t GetError(void);
   Double_t GetChiNDF(void);

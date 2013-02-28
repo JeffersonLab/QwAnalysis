@@ -36,10 +36,10 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
 
-  modulation->ReadConfig(modulation);
+  modulation->ReadConfig(modulation, "");
 
   modulation->Scan(modulation);
-  modulation->fNumberEvents = mps_tree->GetEntries();
+//   modulation->fNumberEvents = mps_tree->GetEntries();
 
   std::cout << "Finished scanning data -- building relevant data vectors" << std::endl;
   modulation->BuildDetectorData();
