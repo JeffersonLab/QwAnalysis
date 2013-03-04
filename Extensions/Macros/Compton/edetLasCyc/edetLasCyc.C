@@ -5,10 +5,10 @@
 #include "comptonRunConstants.h"
 #include "asymFit.C"
 #include "infoDAQ.C"
-//#include "expAsym.C"
+#include "expAsym.C"
 #include "fileReadDraw.C"
 
-void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
+void edetLasCyc(Int_t runnum, TString dataType="Ac", Bool_t first100k=kFALSE)
 {
   cout<<"starting into edetLasCyc.C**************"<<endl;
   gStyle->SetOptFit(0);
@@ -20,14 +20,10 @@ void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
   gROOT->LoadMacro(" rhoToX.C+g");
   gROOT->LoadMacro(" infoDAQ.C+g");
   gROOT->LoadMacro(" getEBeamLasCuts.C+g");
-  //gROOT->LoadMacro(" evaluateAsym_r4409.C+g");
   gROOT->LoadMacro(" evaluateAsym.C+g");
-  //gROOT->LoadMacro(" expAsym_r4409.C+g");
   gROOT->LoadMacro(" expAsym.C+g");
-  //gROOT->LoadMacro(" asymFit_r4409.C+g");
   gROOT->LoadMacro(" asymFit.C+g");
   gROOT->LoadMacro(" fileReadDraw.C+g");
-  //gROOT->LoadMacro(" edetLasCyc.C+g");
   if(first100k) return;
 
   infoDAQ(runnum); //!add a method to verify that config tree was successfully read
@@ -35,6 +31,6 @@ void edetLasCyc(Int_t runnum, Bool_t first100k=kFALSE)
 
   if(asymReturn!=-1) {
     asymFit(runnum);
-    fileReadDraw(runnum);  
+    //fileReadDraw(runnum);  ///This function uses the output from different dataTypes together, hence should not be called while executing single dataType
   } else cout <<"\n***expAsym.C failed so exiting\n"<<endl;
 }

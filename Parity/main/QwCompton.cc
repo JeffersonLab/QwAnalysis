@@ -231,9 +231,6 @@ int main(int argc, char* argv[])
       // Process this events
       detectors.ProcessEvent();
 
-      // Add event to the ring
-      eventring.push(detectors);
-
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
 

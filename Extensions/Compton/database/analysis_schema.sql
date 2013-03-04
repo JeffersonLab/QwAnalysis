@@ -1,3 +1,10 @@
+create table if not exists pass_info (
+  name TEXT,
+  start_time DATETIME,
+  end_time DATETIME,
+  comment TEXT
+);
+
 create table if not exists good_for (
   good_for_id INTEGER PRIMARY KEY ASC,
   type TEXT
@@ -25,7 +32,11 @@ create table if not exists run (
 create table if not exists laser_cycle (
   laser_cycle_id INTEGER PRIMARY KEY ASC,
   run_id INT UNSIGNED,
-  cycle_number INT UNSIGNED
+  cycle_number INT UNSIGNED,
+  start_hel INT UNSIGNED,
+  end_hel INT UNSIGNED,
+  start_mps INT UNSIGNED,
+  end_mps INT UNSIGNED
 );
 
 create table if not exists slow_control_detector (
@@ -40,7 +51,10 @@ create table if not exists slow_controls_settings (
   run_id INT UNSIGNED,
   ihwp_1 char(3),
   ihwp_2 char(3),
-  laser_pol_direction char(5)
+  laser_pol_direction char(5),
+  wien_v float,
+  wien_h float,
+  wien_phi float
 );
 
 create table if not exists slow_controls_data (

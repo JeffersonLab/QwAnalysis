@@ -4,5 +4,6 @@
 #include "detector.h"
 #include "runlet.h"
 
-int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir);
+/* Definition of the tree_fill function. */
+int tree_fill(TString, TSQLServer*, QwRunlet&, TString, TString, Bool_t);
 #endif

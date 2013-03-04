@@ -37,7 +37,7 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
   for (Int_t r=run1; r<=run2; r++) {
     Double_t absPol[nPlanes],pol[nPlanes]={0.0},polEr[nPlanes]={0.0},chiSq[nPlanes],comptEdge[nPlanes],comptEdgeEr[nPlanes],effStrip[nPlanes],effStripEr[nPlanes];
     Int_t plane[nPlanes],NDF[nPlanes],runnum[nPlanes]; 
-    TString filePrefix= Form("run_%d/edetLasCyc_%d_",r,r);
+    filePrefix= Form("run_%d/edetLasCyc_%d_",r,r);
     poltext.open(Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data()));
     if(poltext.is_open()) {
       if(debug) cout<<"opened file "<<Form("%s/%s/%spol.txt",pPath,webDirectory,filePrefix.Data())<<endl;
@@ -75,11 +75,13 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
   //polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletFCEPolRun2.txt");
   polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletPol_23220_23530.txt");
   Double_t runletPol[numbRuns]={0.0},runletPolEr[numbRuns]={0.0},runletChiSq[numbRuns],runletComptEdge[numbRuns],runletEffStrip[numbRuns];
-  Double_t runletEffStripEr[numbRuns],runletPlane[numbRuns],zero[numbRuns]={0},runletRunnum[numbRuns]={},IHWP[numbRuns];
+  Double_t runletEffStripEr[numbRuns],runletPlane[numbRuns],zero[numbRuns]={0},IHWP[numbRuns];//runletRunnum[numbRuns]={},
+  std::vector <Double_t> runletRunnum;
   Int_t count3=0;
   if(polRunlet.is_open()) { //this is available only for plane 1
     //    for (Int_t r=0; r<numbRuns; r++) {
     while(polRunlet.good()) {
+      runletRunnum.push_back(0.0);
       polRunlet>>runletRunnum[count3]>>runletPol[count3]>>runletPolEr[count3]>>runletComptEdge[count3]>>runletChiSq[count3]>>runletPlane[count3]>>IHWP[count3]>>runletEffStrip[count3]>>runletEffStripEr[count3];
       if(debug1) cout<<runletRunnum[count3]<<"\t"<<runletPol[count3]<<"\t"<<runletPolEr[count3]<<endl;
       if(polRunlet.eof()) break;
@@ -98,7 +100,7 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
     TGraphErrors *grPolPlane1,*grRunletPolP1;
     grPolPlane1 = new TGraphErrors(Form("/w/hallc/qweak/narayan/polList_%d_%d.txt",run1,run2),"%lg %lg %lg");
     //grRunletPolP1 = new TGraphErrors(Form("~/acquired/vladas/modFiles/runletPol_22659_23001.txt"),"%lg %lg %lg");
-    grRunletPolP1 = new TGraphErrors(numbRuns,runletRunnum,runletPol,zero,runletPolEr);
+    grRunletPolP1 = new TGraphErrors(numbRuns,runletRunnum.data(),runletPol,zero,runletPolEr);
 
     //TBox *bCedge1;//,*bCedge2,*bCedge3;
     //bCedge1 = new TBox(run1,60,run2,96);
@@ -133,12 +135,6 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
     grRunletPolP1->SetMarkerStyle(kOpenCircle);
     grRunletPolP1->SetMarkerColor(kRed);
     grRunletPolP1->SetLineColor(kRed);
-    // grRunletPolP1->SetFillColor(0);
-    // grRunletPolP1->SetTitle("Compton electron detector: Runlet based analysis");
-    // grRunletPolP1->GetXaxis()->SetLimits(run1+5,run2+5); 
-    // grRunletPolP1->GetXaxis()->SetTitle("Run number");
-    // grRunletPolP1->GetYaxis()->SetTitle("polarization (%)");
-    // grRunletPolP1->Draw("AP");
     grRunletPolP1->Draw("P");
 
     Double_t check=0.0;
@@ -224,16 +220,11 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
     }
     fCedgeLasCyc.close();
 
-    TGraph *grCedge = new TGraph("CedgeLasCyc_run1_run2.txt","%lg %lg");
+    TGraph *grLasCycCedge = new TGraph("CedgeLasCyc_run1_run2.txt","%lg %lg");
     cComptEdge->SetGridx(1);
-    grCedge->SetTitle();
-    grCedge->SetMarkerStyle(kOpenSquare);
-    grCedge->SetTitle("Compton edge found by signal over noise comparition");
-    grCedge->GetXaxis()->SetTitle("Run number");
-    grCedge->GetYaxis()->SetTitle("Compton edge (strip number)");
-    grCedge->GetXaxis()->SetLimits(run1+5,run2+5); 
-    grCedge->SetMarkerColor(kBlue);
-    grCedge->Draw("AP");
+    grLasCycCedge->SetTitle();
+    grLasCycCedge->SetMarkerStyle(kOpenSquare);
+    grLasCycCedge->SetMarkerColor(kBlue);
     Double_t runletCedgeInRange[runRange];
     Int_t count4=0;
     for (Int_t r=0; r<numbRuns; r++) {
@@ -242,15 +233,22 @@ Int_t polRunRange(Int_t run1=23220, Int_t run2=23530)
 	runletCedgeInRange[count4] = runletComptEdge[r];
       }
     }
-    //cComptEdge->cd(2);
     //TGraph *grRunletCedge = new TGraph(count4,lasCycRunnum,runletCedgeInRange);
     TGraph *grRunletCedge = new TGraph("CedgeRunlet_run1_run2.txt","%lg %lg");
     grRunletCedge->SetMarkerStyle(kFullSquare);//(kFullSquare);
     grRunletCedge->SetMarkerColor(kRed);
     grRunletCedge->SetMarkerSize(0.7);
-    grRunletCedge->Draw("P");
 
-    legCedge->AddEntry(grCedge,"laser Cycle evaluation","p");
+    TMultiGraph *grCedge = new TMultiGraph();
+    grCedge->Add(grRunletCedge);
+    grCedge->Add(grLasCycCedge);
+    grCedge->Draw("AP");
+    grCedge->SetTitle("Compton edge found by signal over noise comparition");
+    grCedge->GetXaxis()->SetTitle("Run number");
+    grCedge->GetYaxis()->SetTitle("Compton edge (strip number)");
+    grCedge->GetXaxis()->SetLimits(run1+5,run2+5); 
+
+    legCedge->AddEntry(grLasCycCedge,"laser Cycle evaluation","p");
     legCedge->AddEntry(grRunletCedge,"runlet based evaluation","p");
     legCedge->SetFillColor(0);
     legCedge->Draw();

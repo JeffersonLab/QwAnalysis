@@ -5,9 +5,8 @@ SRCS := \
 	main.cpp \
 	tree_fill.cpp \
 	detector.cpp \
-	runlet.cpp \
 	parse.cpp \
-	detector.h \
+	runlet.cpp \
 	parse.h
 
 OFILES := $(addsuffix .o,$(basename $(SRCS)))
@@ -19,10 +18,10 @@ all: tree_fill
 	@echo "Running this will create massive database load, and is done automatically once per day."
 
 tree_fill: $(OFILES)
-		g++ $(CXXFLAGS) -o $@ $^ $(LIBS)
+		g++ -Wall -ggdb $(CXXFLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.cpp
-		g++ -c $(CXXFLAGS) -o $@ $^
+		g++ -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
 
 clean:
 	rm -f tree_fill *.o
