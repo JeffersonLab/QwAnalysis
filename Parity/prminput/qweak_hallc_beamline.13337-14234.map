@@ -208,11 +208,7 @@ Bank=0x6103
 begin=combinedbcm
 name=qwk_charge
 !name	   type	 wieght
-  qwk_bcm1,  bcm, 1.0
-  qwk_bcm2,  bcm, 1.0
-!  qwk_bcm5,  bcm, 1.0
-
-
+  qwk_bcm8,  bcm, 1.0
 end=combinedbcm
 
 begin=combinedbpm
