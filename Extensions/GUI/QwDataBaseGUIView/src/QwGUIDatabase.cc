@@ -308,11 +308,15 @@ const char   *QwGUIDatabase::RegressionVarsOn_10[N_REG_VARS_ON_10]={
 const char   *QwGUIDatabase::RegressionVarsOn_11[N_REG_VARS_ON_11]={
 		"wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_bpm3c12X"};
 
+const char   *QwGUIDatabase::RegressionVarsOn_12[N_REG_VARS_ON_12]={
+		"wrt_diff_target_plus4X","wrt_diff_target_plus4Y","wrt_diff_target_plus4XSlope","wrt_diff_target_plus4YSlope","wrt_diff_bpm3c12X"};
+
 // Regression types
 // To get the raw data from QwAnalysis that pass the standard event cuts use "raw(from rootfiles)"
 // To get the unregressed data that pass LinRegBlue event cuts use "off"
 const char *QwGUIDatabase::RegressionSchemes[N_REGRESSION_SCHEMES] = {
-  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7","on_set8","on_set9","on_set10","on_set11","raw(from rootfiles)"
+  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6","on_set7",
+  	  "on_set8","on_set9","on_set10","on_set11","on_set12","raw(from rootfiles)"
 };
 
 
@@ -3240,6 +3244,52 @@ void QwGUIDatabase::RegressionTypeInfo(){
       T1->AddText("#bullet diff_energy");
       T1->AddText("#bullet asym_charge");
       T1->AddText("#bullet asym_uslumi_sum");
+      gPad->Update();
+
+    }
+    else if(regression_set == "on_set10"){
+      if(bfill_reg_iv){
+	for (Int_t i = 0; i < N_REG_VARS_ON_10; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_10[i], i);
+	  regression_ivs = RegressionVarsOn_10;
+	}
+      }
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");
+      T1->AddText("#bullet diff_targetXSlope");
+      T1->AddText("#bullet diff_targetYSlope");
+      T1->AddText("#bullet diff_energy");
+      T1->AddText("#bullet asym_bcm6");
+      gPad->Update();
+
+    }
+    else if(regression_set == "on_set11"){
+      if(bfill_reg_iv){
+	for (Int_t i = 0; i < N_REG_VARS_ON_11; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_11[i], i);
+	  regression_ivs = RegressionVarsOn_11;
+	}
+      }
+      T1->AddText("#bullet diff_targetX");
+      T1->AddText("#bullet diff_targetY");
+      T1->AddText("#bullet diff_targetXSlope");
+      T1->AddText("#bullet diff_targetYSlope");
+      T1->AddText("#bullet diff_qwk_bpm3c12X");
+      gPad->Update();
+
+    }
+    else if(regression_set == "on_set12"){
+      if(bfill_reg_iv){
+	for (Int_t i = 0; i < N_REG_VARS_ON_12; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_12[i], i);
+	  regression_ivs = RegressionVarsOn_12;
+	}
+      }
+      T1->AddText("#bullet diff_target_plus4X");
+      T1->AddText("#bullet diff_target_plus4Y");
+      T1->AddText("#bullet diff_target_plus4XSlope");
+      T1->AddText("#bullet diff_target_plus4YSlope");
+      T1->AddText("#bullet diff_qwk_bpm3c12X");
       gPad->Update();
 
     }
