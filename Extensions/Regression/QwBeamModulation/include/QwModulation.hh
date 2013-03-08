@@ -15,7 +15,6 @@
 #include <TFile.h>
 #include <fstream>
 #include "TMatrixD.h"
-#include "QwMpsOnly.hh"
 
 class QwModulation {
 

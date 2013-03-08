@@ -1,5 +1,6 @@
 #include "headers.h"
 #include "QwModulation.hh"
+#include "QwMpsOnly.hh"
 
 Int_t main(Int_t argc, Char_t *argv[])
 {
@@ -23,7 +24,6 @@ Int_t main(Int_t argc, Char_t *argv[])
     modulation->PrintError("Error Loading:  no run number specified");
     exit(1);
   }
-  modulation->SetupMpsBranchAddress();
 
   // This is the default filename format.  If doing a segment analysis
   // it is changes in QwModulation::FileSearch()
@@ -33,12 +33,13 @@ Int_t main(Int_t argc, Char_t *argv[])
   filename = Form("%s_%d*.trees.root", modulation->fFileStem.Data(), modulation->run_number);
   modulation->LoadRootFile(filename, mps_tree);
   modulation->SetFileName(filename);
+  modulation->SetupMpsBranchAddress();
 
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
 
-  modulation->ReadConfig(modulation, "");
+  modulation->ReadConfig("");
 
-  modulation->Scan(modulation);
+  modulation->Scan();
 //   modulation->fNumberEvents = mps_tree->GetEntries();
 
   std::cout << "Finished scanning data -- building relevant data vectors" << std::endl;

@@ -1,6 +1,5 @@
 #define QwModulation_cxx
 #include "../include/QwModulation.hh"
-#include "../include/QwMpsOnly.hh"
 #include "../include/headers.h"
 #include <TH2.h>
 #include <TStyle.h>
@@ -364,6 +363,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 
     if( !((subblock > -50) && (subblock < 50)) )
       bmodErrorFlag = 1;
+
     if( (ramp_hw_sum > fPedestal) && ((UInt_t)ErrorFlag != 0x4018080)  ){
 
 #ifdef __VERBOSE_ERRORS
@@ -400,9 +400,10 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 	bmodErrorFlag = 1;
       }
     }
+
 //     if( !((subblock > -50) && (subblock < 50)) )
 //       bmodErrorFlag = 1;
-//     if(yield_qwk_mdallbars_Device_Error_Code != 0){
+    //     if(yield_qwk_mdallbars_Device_Error_Code != 0){
 //       bmodErrorFlag = 1;
 //     }
 
@@ -803,6 +804,11 @@ void QwModulation::CalculateSlope(Int_t fNModType)
 	 DetectorSlope[fNModType][det].push_back(slope/( TMath::Abs(d_mean) ));
 	 DetectorSlopeError[fNModType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
       }
+
+      if(fNModType == 0){
+	std::cout << "Slope: " << slope/( TMath::Abs(d_mean) ) << " +- "
+		  << sigma_slope/( TMath::Abs(d_mean) ) << std::endl;
+      }
       
       c_mean = 0;
       d_mean = 0;
@@ -903,6 +909,8 @@ void QwModulation::PilferData()
 	std::cout << "X Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
+ 	  pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
+
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[0]++;
@@ -933,6 +941,7 @@ void QwModulation::PilferData()
 	std::cout << "Y Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
+ 	  pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
 	  
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
@@ -960,6 +969,7 @@ void QwModulation::PilferData()
 	std::cout << "E Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
+ 	  pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
 	  
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
@@ -989,7 +999,8 @@ void QwModulation::PilferData()
 	std::cout << "XP Modulation found" << std::endl;
 	do{
 	  fChain->GetEntry(i);
-	  
+ 	  pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
+
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
 	    error[3]++;
@@ -1018,6 +1029,7 @@ void QwModulation::PilferData()
 	  std::cout << "YP Modulation found" << std::endl;
 	  do{
 	  fChain->GetEntry(i);
+ 	  pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
 
 	  if( (ErrorCodeCheck("mps_tree") != 0) ){
 	    ++i;
