@@ -15,8 +15,8 @@ use vars qw($runs, $verbose,
 	    $dir, $analyzer,
 	    $result);
 
-$result = GetOptions("run=s"     => \$run,
-		     "runlets=s" => \$runlets
+$result = GetOptions("runs=s"     => \$runs,
+		     "runlets=s"  => \$runlets
 		     "verbose"    => \$verbose,
 		     "analyzer=s" => \$analyzer,
 		     "help"       => \$help);

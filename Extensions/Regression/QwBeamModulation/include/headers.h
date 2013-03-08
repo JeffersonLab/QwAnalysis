@@ -31,4 +31,5 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include "TMultiGraph.h"
 #endif

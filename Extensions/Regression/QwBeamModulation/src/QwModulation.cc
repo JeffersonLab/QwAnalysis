@@ -1,5 +1,6 @@
 #define QwModulation_cxx
 #include "../include/QwModulation.hh"
+#include "../include/QwMpsOnly.hh"
 #include "../include/headers.h"
 #include <TH2.h>
 #include <TStyle.h>
@@ -11,6 +12,8 @@ const char QwModulation::red[8] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
 const char QwModulation::other[8] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
 const char QwModulation::normal[8] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
+const Double_t fUnitConvert[5] = {1., 1.e6, 1., 1., 1.e6};
+
 QwModulation::QwModulation(TChain *tree):
   fXModulation(0),fYModulation(3),fEModulation(2),
   fXPModulation(1),fYPModulation(4), fNEvents(0),
@@ -21,7 +24,7 @@ QwModulation::QwModulation(TChain *tree):
   fYPinit(false), fSingleCoil(false), fRunNumberSet(false), 
   fPhaseConfig(false),fFileSegment(""), fFileStem("QwPass*"), fSetStem("std") 
 {
-   Init(tree);
+  Init(tree);
 }
 
 QwModulation::~QwModulation()
@@ -196,6 +199,7 @@ Int_t QwModulation::GetCurrentCut()
 {
   return(fCurrentCut);
 }
+
 void QwModulation::SetupMpsBranchAddress()
 {
 
@@ -419,6 +423,8 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 
 void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
 {
+
+//   Double_t conversion[] = {1., 1.e6, 1., 1., 1.e6};
   //  std::cout << "============================(Trying) to compute the damn errors!============================" << std::endl;
   TMatrixD var(fNMonitor, fNModType);
   TMatrixD temp(fNModType, fNMonitor);
@@ -457,7 +463,7 @@ void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD e
     
      for(Int_t i = 0; i < fNModType; i++){
        Error(m, i) = TMath::Power(Errord(m, i), 2) + TMath::Power(Errorm(m, i), 2);
-       Error(m, i) = TMath::Sqrt(Error(m, i));
+       Error(m, i) = TMath::Sqrt(Error(m, i))*fUnitConvert[i];
        YieldSlopeError[m][i] = Error(m, i);
      }
 
@@ -521,8 +527,9 @@ void QwModulation::MatrixFill()
   TMatrixD RMatrixInv = RMatrix;
   RMatrixInv.Invert(&determinant);
   std::cout << "\t\t\t\t::R Matrix Inverse:: " << std::endl;
+  
   RMatrixInv.Print("%11.10f");
-
+  
   std::cout << determinant << std::endl;
   TMatrixD Identity(fNMonitor, fNMonitor);
   Identity.Mult(RMatrixInv, RMatrix);
@@ -532,15 +539,16 @@ void QwModulation::MatrixFill()
   SMatrix.Mult(AMatrix, RMatrixInv);
 
   std::cout << "\n\n\t\t\t\t::SMatrix::\n" << std::endl;
-  SMatrix.Print();
-
-  ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
 
   for(Int_t i = 0; i < fNDetector; i++){
     for(Int_t j = 0; j < fNModType; j++){
+      SMatrix(i,j) *= fUnitConvert[j];
       YieldSlope[i][j] = SMatrix(i,j);
     }
   }
+  SMatrix.Print();
+  ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
+
   Write();
 
   if(fSensHumanReadable == 1){
@@ -882,7 +890,7 @@ void QwModulation::PilferData()
   std::cout << "Number of entries: " << nentries << std::endl;
 
   for(Long64_t i = 0; i < nentries; i++){
-
+    
     LoadTree(i);
     if(i < 0) break;
     fChain->GetEntry(i);
@@ -906,7 +914,7 @@ void QwModulation::PilferData()
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
 	  for(Int_t j = 0; j < fNMonitor; j++){
-	    MonitorData[j].push_back(MonBranch[j+1][0]);
+	    MonitorData[j].push_back(fUnitConvert[j]*MonBranch[j+1][0]);
 	  }
 	  
 	  CoilData[fXModulation].push_back(ramp_hw_sum);
@@ -936,7 +944,7 @@ void QwModulation::PilferData()
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
 	  for(Int_t j = 0; j < fNMonitor; j++){
-	    MonitorData[j].push_back(MonBranch[j+1][0]);
+	    MonitorData[j].push_back(fUnitConvert[j]*MonBranch[j+1][0]);
 	  }
 	  CoilData[fYModulation].push_back(ramp_hw_sum);
 	  ++fEvCounter;
@@ -963,7 +971,7 @@ void QwModulation::PilferData()
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
 	  for(Int_t j = 0; j < fNMonitor; j++){
-	    MonitorData[j].push_back(MonBranch[j+1][0]);
+	    MonitorData[j].push_back(fUnitConvert[j]*MonBranch[j+1][0]);
 	  }
 	  
 	  CoilData[fEModulation].push_back(ramp_hw_sum);
@@ -992,7 +1000,7 @@ void QwModulation::PilferData()
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
 	  for(Int_t j = 0; j < fNMonitor; j++){
-	    MonitorData[j].push_back(MonBranch[j+1][0]);
+	    MonitorData[j].push_back(fUnitConvert[j]*MonBranch[j+1][0]);
 	  }
 	  
 	  CoilData[fXPModulation].push_back(ramp_hw_sum);
@@ -1021,7 +1029,7 @@ void QwModulation::PilferData()
 	    DetectorData[j].push_back(DetBranch[j][0]);
 	  }
 	  for(Int_t j = 0; j < fNMonitor; j++){
-	    MonitorData[j].push_back(MonBranch[j+1][0]);
+	    MonitorData[j].push_back(fUnitConvert[j]*MonBranch[j+1][0]);
 	  }
 	  
 	  CoilData[fYPModulation].push_back(ramp_hw_sum);
@@ -1217,7 +1225,7 @@ Int_t QwModulation::ReadPhaseConfig(Char_t *file)
   return 0;
 }
 
-Int_t QwModulation::ReadConfig(QwModulation *meteor, TString opt)
+Int_t QwModulation::ReadConfig(TString opt)
 {
   std::string line;
 
@@ -1256,7 +1264,7 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor, TString opt)
 	}
 	else{
 	  std::cout << other << "\t\tMonitor is: " << token << normal << std::endl;
-	  meteor->MonitorList.push_back(token); 
+	  this->MonitorList.push_back(token); 
 	}
       }
       if(strcmp("det", token) == 0){
@@ -1268,7 +1276,7 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor, TString opt)
 	}
 	else{
 	  std::cout << other << "\t\tDetector is: " << token << normal << std::endl; 
-	  meteor->DetectorList.push_back(token);
+	  this->DetectorList.push_back(token);
 	}
       }
       else 
@@ -1292,7 +1300,7 @@ Int_t QwModulation::ReadConfig(QwModulation *meteor, TString opt)
   return 0;
 }
 
-void QwModulation::Scan(QwModulation *meteor)
+void QwModulation::Scan()
 {
                                
    for(Int_t i = 0; i < (Int_t)fNDetector; i++){

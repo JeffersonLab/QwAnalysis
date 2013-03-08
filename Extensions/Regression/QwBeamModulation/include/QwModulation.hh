@@ -15,6 +15,7 @@
 #include <TFile.h>
 #include <fstream>
 #include "TMatrixD.h"
+#include "QwMpsOnly.hh"
 
 class QwModulation {
 
@@ -290,7 +291,7 @@ public :
 
   Int_t    Cut(Long64_t entry);
   Int_t    GetEntry(Long64_t entry);
-  Int_t    ReadConfig(QwModulation *, TString opt = "");
+  Int_t    ReadConfig(TString opt = "");
   Int_t    ReadPhaseConfig(Char_t *);
   Int_t    ErrorCodeCheck(TString);
   Int_t    ConvertPatternNumber(Int_t);
@@ -299,7 +300,7 @@ public :
   Long64_t LoadTree(Long64_t entry);
 
   void     Init(TChain *tree);
-  void     Scan(QwModulation *);
+  void     Scan(void);
   void     PilferData();
   void     Show(Long64_t entry = -1);  
   void     LoadRootFile(TString, TChain *);

@@ -146,7 +146,8 @@ public:
   Int_t GetMonitorIndex(TString);
   Int_t GetFileSize(TString);
   Int_t QueryDB(const char* db=0);
-
+  Int_t FillDBRunList(void);
+  
   Double_t GetMaximum(TVectorD);
   Double_t GetMinimum(TVectorD);
   Double_t GetMaximum(Double_t *);

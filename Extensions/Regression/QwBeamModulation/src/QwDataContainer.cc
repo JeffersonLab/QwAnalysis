@@ -107,6 +107,7 @@ void QwDataContainer::GetOptions(Char_t **options)
 //       std::cout << "Index:\t" << index << std::endl;
       fMysqlRunLower = atoi(option.substr(0, index).c_str());
       fMysqlRunUpper = atoi(option.substr(index + 1, (index + 1) - option.length()).c_str());
+      std::cout << "RunRange:\t" << fMysqlRunLower << ":" << fMysqlRunUpper << std::endl;
       fRunRange = true;
 
     }
@@ -342,11 +343,10 @@ TString QwDataContainer::BuildQuery(TString type)
     fNumberMonitor = 1;
     fMysqlQuery = Form("select run_number, value, error, n, segment_number from md_data_view, slow_controls_settings where md_data_view.runlet_id = slow_controls_settings.runlet_id and good_for_id = '1,3' and run_quality_id = '1' and beam_mode = 'nbm' and slope_calculation = 'off' and slope_correction ='off' and detector = '%s' and slow_helicity_plate = '%s' and target_position ='HYDROGEN-CELL'  and subblock = 0 and measurement_type ='a' and run_number >= %i and run_number <= %i and error != 0", fMysqlDet.Data(), fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
-  if(type.CompareTo("runs", TString::kExact) == 0){
+ if(type.CompareTo("runs", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
     fNumberMonitor = 1;
-    fMysqlQuery = Form("select distinct(run_number)from analysis,md_slope_view, slow_controls_settings where analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp' and analysis.slope_calculation='off' and analysis.slope_correction='on' and run_quality_id=1 and good_for_id='1,3' and slow_controls_settings.slow_helicity_plate = '%s' and run_number >= %i and run_number <= %i", fMysqlIHWP.Data(), fMysqlRunLower, fMysqlRunUpper);
-
+    fMysqlQuery = Form("select distinct(run_number) from analysis, md_slope_view where analysis.slope_calculation='%s' and analysis.slope_correction='off' and analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='%s' and run_quality_id=1 and good_for_id='1,3' and run_number >= %i and run_number <= %i", fMysqlSlopeCorr.Data(), fMysqlBeamMode.Data(), fMysqlRunLower, fMysqlRunUpper);
   }
 
   if(type.CompareTo("position", TString::kExact) == 0){
@@ -483,6 +483,41 @@ Double_t QwDataContainer::GetMonitorPosition(TString bpm)
   
 }
 
+Int_t QwDataContainer::FillDBRunList()
+{
+  
+  TString qtemp;
+  
+  const char *query;
+  Int_t query_result = 0;
+  
+  enum {run, segment};
+
+  if(!fRunRange){
+    std::cerr << "Run range not specified: Try again." << std::endl;
+    exit(1);
+  }
+  SetRunRange(fMysqlRunLower, fMysqlRunUpper);
+  
+  if(!fMysqlSetStem){
+    std::cerr << "Need to specify modulation set. Use --set-stem <set>" << std::endl;
+    exit(1);
+  }
+  
+  query = BuildQuery("runs").Data();
+  if((query_result = QueryDB(query)) == 0){
+    std::cerr << "No results returned." << std::endl;
+    exit(1);
+  }
+  fRunNumber.ResizeTo(query_result);
+  for(Int_t i = 0; i < (Int_t)dbase.result.num_rows(); i++){
+    fRunNumber[i] = (Double_t)dbase.result[i][run];
+    //     fSegmentNumber[i] = (Double_t)(0.01*dbase.result[i][segment]);
+  }
+  
+  return(query_result);
+}
+
 void QwDataContainer::FillDataVector(TString type)
 {
   Int_t mod = 0;
@@ -506,27 +541,33 @@ void QwDataContainer::FillDataVector(TString type)
       std::string slopewrt(dbase.result[i][slope]);
       if(slopewrt.compare("wrt_diff_targetX") == 0){
 	fSensitivity[X][index] = fConvFactor[X]*dbase.result[i][value];
-	fSensitivityError[X][index] = fConvFactor[X]*dbase.result[i][error];
+ 	fSensitivityError[X][index] = fConvFactor[X]*dbase.result[i][error];
+//  	fSensitivityError[X][index] = 0;
       }
       if(slopewrt.compare("wrt_diff_targetXSlope") == 0){
  	fSensitivity[XP][index] = fConvFactor[XP]*dbase.result[i][value];
- 	fSensitivityError[XP][index] = fConvFactor[XP]*dbase.result[i][error];
+  	fSensitivityError[XP][index] = fConvFactor[XP]*dbase.result[i][error];
+// 	fSensitivityError[XP][index] = 0;
       }
       if(slopewrt.compare("wrt_diff_bpm3c12X") == 0){
  	fSensitivity[E][index] = 0.0041*fConvFactor[E]*dbase.result[i][value];
- 	fSensitivityError[E][index] = 0.0041*fConvFactor[E]*dbase.result[i][error];
+  	fSensitivityError[E][index] = 0.0041*fConvFactor[E]*dbase.result[i][error];
+// 	fSensitivityError[E][index] = 0;
       }
       if(slopewrt.compare("wrt_diff_energy") == 0){
- 	fSensitivity[E][index] = dbase.result[i][value];
- 	fSensitivityError[E][index] = dbase.result[i][error];
+//  	fSensitivity[E][index] = dbase.result[i][value];
+  	fSensitivityError[E][index] = dbase.result[i][error];
+	fSensitivityError[E][index] = 0;
       }
       if(slopewrt.compare("wrt_diff_targetY") == 0){
  	fSensitivity[Y][index] = fConvFactor[Y]*dbase.result[i][value];
- 	fSensitivityError[Y][index] = fConvFactor[Y]*dbase.result[i][error];
+  	fSensitivityError[Y][index] = fConvFactor[Y]*dbase.result[i][error];
+// 	fSensitivityError[Y][index] = 0;
       }
       if(slopewrt.compare("wrt_diff_targetYSlope") == 0){
  	fSensitivity[YP][index] = fConvFactor[YP]*dbase.result[i][value];
- 	fSensitivityError[YP][index] = fConvFactor[YP]*dbase.result[i][error];
+  	fSensitivityError[YP][index] = fConvFactor[YP]*dbase.result[i][error];
+// 	fSensitivityError[YP][index] = 0;
       }
       mod++;
     }
@@ -721,7 +762,7 @@ void QwDataContainer::PlotDBSensitivities()
   Int_t query_result = 0;
 
   if(!fRunRange){
-    std::cout << "Must specify run range!" << std::endl;
+    std::cerr << "Must specify run range!" << std::endl;
     exit(1);
   }
 
@@ -893,7 +934,7 @@ void QwDataContainer::ResizeDataElements(Int_t size)
 
 void QwDataContainer::PlotSensitivities()
 {
-  TCanvas *canvas0 = new TCanvas("canvas0", "canvas0", 1200, 800);
+  TCanvas *canvas0 = new TCanvas("canvas0", "canvas0", 1200, 720);
   TF1 *line0 = new TF1("line0", "[0]", 0, 1);
 
   canvas0->Divide(3,2);
