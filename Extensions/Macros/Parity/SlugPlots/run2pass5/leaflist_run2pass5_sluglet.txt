@@ -2,6 +2,7 @@ ErrorFlag	ErrorFlag
 actual_pattern_polarity	actual_pattern_polarity
 actual_previous_pattern_polarity	actual_previous_pattern_polarity
 delayed_pattern_polarity	delayed_pattern_polarity
+yield_bm_pattern_number yield_bm_pattern_number
 yield_ramp	yield_ramp
 yield_qwk_charge	yield_qwk_charge
 yield_qwk_bcm1	yield_qwk_bcm1
