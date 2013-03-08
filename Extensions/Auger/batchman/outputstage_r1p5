@@ -1,0 +1,9 @@
+#!/bin/bash
+run=$1
+seg=$2
+RootfileStem=QwPass5_
+OutputPath=/mss/hallc/qweak/rootfiles/pass5/
+
+scriptPath=`dirname $0`
+
+$scriptPath/rootfile_sorter.sh $run $seg $RootfileStem $OutputPath

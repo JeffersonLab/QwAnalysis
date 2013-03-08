@@ -7,9 +7,9 @@
 
 slug_num=$1
 #this is the source of regressed root files
-SRC="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
-DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
-DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
+SRC="/work/hallc/qweak/QwAnalysis/run2/pass5regression/lrb_rootfiles"
+DST="/work/hallc/qweak/QwAnalysis/run2/pass5slugs"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run2/pass5slugs/out_files"
 
 #DST_Dbug="/volatile/hallc/qweak/rakithab/run1pass4/out_files"
 
@@ -25,7 +25,7 @@ DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
  
 
 
-argument="MakeSlug.C+(\"slug${slug_num}_loruns_list.txt\",\"leaflist_run1pass5_unreg.txt\",\"${DST}/slug${slug_num}_urg.root\")"
+argument="MakeSlug.C+(\"slug${slug_num}_loruns_list.txt\",\"leaflist_run2pass5_unreg.txt\",\"${DST}/slug${slug_num}_urg.root\")"
 
 root -n -q -b -l ${argument} >${DST_Dbug}/slug${slug_num}_urg.out
 

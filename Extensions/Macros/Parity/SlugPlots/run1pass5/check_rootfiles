@@ -1,17 +1,18 @@
 #!/bin/bash
 
 
-# Author: Rakitha Beminiwattha (rakithab@jlab.org) 
+# Author: Rakitha Beminiwattha (rakithab@jlab.org)
+# Edited by: Scott MacEwan (smacewan@jlab.org) 11-13-12 
 # 08-07-2012
 # This will check for missing raw/regression runlets for a given slug number
 
 SRC_LRB="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
-SRC="/volatile/hallc/qweak/QwAnalysis/run1/rootfiles"
+SRC="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
 
 
 slug_num=$1
 
-run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
+run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/runlists/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
 #run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt`"
 #runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
 unreg_rootfile_status=0
@@ -19,7 +20,7 @@ reg_rootfile_status=0
 run_num_done=0
 for run in ${run_list[@]}
 do
-	runlet_list="`cat /volatile/hallc/qweak/smacewan/run1pass5/slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
+	runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/runlists/slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
 	#echo "Run number  $run"
 	if [ ${run_num_done} -eq  ${run} ]
 	    then
@@ -37,52 +38,55 @@ do
 	      unreg_rootfile_status=1
 	      echo "${run}.$runlet:Unregressed root file  missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/std_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  #pass5 lrb_rootfiles now have .trees. suffix all lines below have .trees. added in as of 11-13-12 --smacewan
+	  #if [  `ls  ${SRC_LRB}/std_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ] 
+
+	  if [  `ls  ${SRC_LRB}/std_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: std root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/5+1_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/5+1_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: 5+1 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set3_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set3_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set3 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set4_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set4_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set4 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set5_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set5_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set5 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set6_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set6_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set6 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set7_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set7_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set7 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set8_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set8_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set8 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set9_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set9_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set9 root file missing"
 	  fi
-	  if [  `ls  ${SRC_LRB}/set10_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ]
+	  if [  `ls  ${SRC_LRB}/set10_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
 	      then
 	      reg_rootfile_status=1
 	      echo "${run}.$runlet: set10 root file missing"

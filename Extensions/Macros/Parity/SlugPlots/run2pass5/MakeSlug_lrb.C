@@ -125,24 +125,10 @@ Int_t MakeSlug_lrb(
 // 	for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
 // 		printf("%s  %s\n",fullleafnamelist[leafnumber-1],branchnamelist[leafnumber-1]);
 // 	}
-//	const TString qwstem = "QwPass1";
-//	const TString qwstem = "Qweak";
-//	const TString qwstem = "reg_Qweak";
-//      const TString qwstem = "reg_HallA_charge_d_0_Qweak";
-//	const TString qwstem = "reg_HallA_charge_2sig_Qweak";
-//	const TString qwstem = "reg_HallA_nocharge_Qweak";
-
   const TString qwstem = "reg_QwPass5"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
 
-//  const TString qwrootfiles = "/home/leacock/linRegBlue/inel_rootfiles";
-//	const TString qwrootfiles = "/home/leacock/scratch/rootfiles";
-//	const TString qwrootfiles = "/data/disk1/leacock/linRegBlue/lrb_rootfiles";
-//	const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
-//  const TString qwrootfiles = Form("/data/disk1/leacock/slugplots/25percent/lrb_links/%s",set);
-//  const TString qwrootfiles = Form("/volatile/hallc/qweak/leacock/25percent/lrb_links/%s",set);
 
-//const TString qwrootfiles = "/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
-const TString qwrootfiles = "/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfiles/"; //for pass5 redo of slug34 - smacewan 09-25-12
+  const TString qwrootfiles = "/work/hallc/qweak/QwAnalysis/run2/pass5regression/lrb_rootfiles"; //for pass5 - rakitha (rakithab@jalb.org) 08-07-2012
 
 	for (Int_t filenumber=1; filenumber<=numfiles; filenumber++) {
 		signal(SIGINT, sigint_handler);
@@ -152,7 +138,7 @@ const TString qwrootfiles = "/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfile
 			runnumber = runlet.first;
 			runletnumber = runlet.second;
 //			TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runlet.first,runlet.second);
-			TString rootfilename = qwrootfiles + "/" + Form("%s_%s_%i.%03i.root",set,qwstem.Data(),runlet.first,runlet.second);
+			TString rootfilename = qwrootfiles + "/" + Form("%s_%s_%i.%03i.trees.root",set,qwstem.Data(),runlet.first,runlet.second);
 			file = TFile::Open(rootfilename);
 			if (file==0) {
 				printf("Warning: cannot open %s ... skipping.\n",rootfilename.Data());
@@ -166,28 +152,13 @@ const TString qwrootfiles = "/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfile
 				//Int_t bcmarrpt=0;
 				// **** Only enable the important branches
 				tree->SetBranchStatus("*",0); // disable all branches
-//				tree->SetBranchStatus("ok_cut",1);
-//				tree->SetBranchAddress("ok_cut",	&ErrorFlag);
 				for (Int_t leafnumber=1; leafnumber<numinputleaves; leafnumber++) {
-//					tree->SetBranchStatus(Form("%s*",branchnamelist[leafnumber-1]),1);				
-//					tree->SetBranchStatus(Form("%s",branchnamelist[leafnumber-1]),1);
 					tree->SetBranchStatus(Form("%s",fullleafnamelist[leafnumber-1]),1);
-					//inputleaves[leafnumber-1] = (TLeaf*) tree->GetLeaf(modfullleafnamelist[leafnumber-1]);
                                         inputleaves[leafnumber-1] = (TLeaf*) tree->GetLeaf(fullleafnamelist[leafnumber-1]);
-// 					tree->SetBranchAddress(branchnamelist[leafnumber-1], 
-// 										   &runinputleafvalue[leafnumber-1]);
 					if (strcmp(branchnamelist[leafnumber-1],"yield_qwk_bcm1")==0) {
-//						bcmarrpt = leafnumber-1;
-// 						printf("Found a bcm to use for the cuts: %s at array point %i\n",
-// 							   branchnamelist[leafnumber-1],bcmarrpt);
-//						printf("Found a bcm to use for the cuts: %s at array point %i\n",
-//							   branchnamelist[leafnumber-1],bcmarrpt);
 					} else {
 						if (debug>3) printf("not the bcm\n") ;
 					}
-// 					if (debug>1) printf("Associated leaf %i  %s with %p\n",leafnumber-1,
-// 										branchnamelist[leafnumber-1], 
-// 										&runinputleafvalue[leafnumber-1]);
 					if (debug>1) printf("Associated leaf %i  %s with %p\n",leafnumber-1,
 										modfullleafnamelist[leafnumber-1], 
 										inputleaves[leafnumber-1]);
@@ -200,30 +171,11 @@ const TString qwrootfiles = "/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfile
 				printf("There are %i entries in the tree.\n",nentries);
 				for (Int_t jentry=0; jentry<nentries; jentry++) {
 					tree->GetEntry(jentry);
-					// calculate cuts
-// 					bcmforcuts = runinputleafvalue[bcmarrpt];
-// 					if (bcmforcuts<40) {
-// 						cutevent=1;
-// 						if (debug>1) printf("bcm %.1f  ",bcmforcuts);
-// 						numcutbcm++;
-// 					}
-// 					if (fabs(previousbcm-bcmforcuts)>1.0) {
-// 						cutevent=1;
-// 						if (debug>1) printf("dbcm %.1f %.1f  ",previousbcm,bcmforcuts);
-// 						numcutburp++;
-// 					}
-// 					if (int(ErrorFlag)!=0) {
-// 						cutevent=1;
-// 						if (debug>1) printf("e%.1f ",ErrorFlag);
-//  						numcuterr++;
-// 					}
 					if (!cutevent) { // apply cuts
 						slugeventnumber++;
 						for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
-//							slugleafvalue[leafnumber-1]=runinputleafvalue[leafnumber-1];
 							if (inputleaves[leafnumber-1]) {
 								slugleafvalue[leafnumber-1]=inputleaves[leafnumber-1]->GetValue();
-                                                                //if (slugeventnumber==1000) cout<<fullleafnamelist[leafnumber-1]<<"   "<<inputleaves[leafnumber-1]->GetValue()*1e6<<endl;
 							} else {
 								slugleafvalue[leafnumber-1] = -1e6;
 							}
@@ -236,8 +188,6 @@ const TString qwrootfiles = "/cache/mss/hallc/qweak/rootfiles/pass5/lrb_rootfile
 					}
 					previousbcm = bcmforcuts;
 					cutevent = 0;
-// 					printf("cut %i below current events and/or %i burp events\n",numcutbcm,numcutburp);
-// 					printf("cut %i from ErrorFlag\n",numcuterr);
 					numcutbcm=numcutburp=numcuterr=0;
 				}
 			}

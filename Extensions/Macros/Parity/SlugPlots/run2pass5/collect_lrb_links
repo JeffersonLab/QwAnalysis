@@ -3,7 +3,7 @@
 folder=$1
 scheme=$1
 
-SRC="/volatile/hallc/qweak/QwAnalysis/run1/pass4bregression/lrb_rootfiles"
+SRC="/volatile/hallc/qweak/QwAnalysis/run2/pass5regression/lrb_rootfiles"
 #DEST="/volatile/hallc/qweak/rakithab/run1pass4/lrb_links/${folder}"
 
 

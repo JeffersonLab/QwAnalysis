@@ -81,7 +81,7 @@ DEPS       = QwModulation.hh QwData.hh QwChargeSensitivity.hh QwDBConnection.hh 
 CFLAGS     = -O -Wall ${INCLUDES}
 MYSQL      = 
 
-all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwasymsplitter qwresidual qwdboptics 
+all: qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwasymsplitter qwresidual qwdboptics
 
 %.o: %.cc
 	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 

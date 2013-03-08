@@ -1,0 +1,337 @@
+# Rules for this file
+# - no repeating dependent variables in the same section
+#   (probably also not in different sections, come to think of it)
+#
+# - Alias names start with "@" after the "asym" or "diff" prefix.
+#   They should also be all lower case.
+#
+
+# Double differences
+[asym:@bcmdd12]
+asym:qwk_bcm1, 1
+asym:qwk_bcm2, -1
+
+[asym:@bcmdd15]
+asym:qwk_bcm1, 1
+asym:qwk_bcm5, -1
+
+[asym:@bcmdd16]
+asym:qwk_bcm1, 1
+asym:qwk_bcm6, -1
+
+[asym:@bcmdd17]
+asym:qwk_bcm1, 1
+asym:qwk_bcm7, -1
+
+[asym:@bcmdd18]
+asym:qwk_bcm1, 1
+asym:qwk_bcm8, -1
+
+[asym:@bcmdd25]
+asym:qwk_bcm2, 1
+asym:qwk_bcm5, -1
+
+[asym:@bcmdd26]
+asym:qwk_bcm2, 1
+asym:qwk_bcm6, -1
+
+[asym:@bcmdd27]
+asym:qwk_bcm2, 1
+asym:qwk_bcm7, -1
+
+[asym:@bcmdd28]
+asym:qwk_bcm2, 1
+asym:qwk_bcm8, -1
+
+[asym:@bcmdd56]
+asym:qwk_bcm5, 1
+asym:qwk_bcm6, -1
+
+[asym:@bcmdd57]
+asym:qwk_bcm5, 1
+asym:qwk_bcm7, -1
+
+[asym:@bcmdd58]
+asym:qwk_bcm5, 1
+asym:qwk_bcm8, -1
+
+[asym:@bcmdd67]
+asym:qwk_bcm6, 1
+asym:qwk_bcm7, -1
+
+[asym:@bcmdd68]
+asym:qwk_bcm6, 1
+asym:qwk_bcm8, -1
+
+[asym:@bcmdd78]
+asym:qwk_bcm7, 1
+asym:qwk_bcm8, -1
+
+[asym:@bpmdd_charge_3c12]
+asym:qwk_bpm3c12_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h04]
+asym:qwk_bpm3h04_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h07a]
+asym:qwk_bpm3h07a_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h07b]
+asym:qwk_bpm3h07b_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h07c]
+asym:qwk_bpm3h07c_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h09]
+asym:qwk_bpm3h09_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_3h09b]
+asym:qwk_bpm3h09b_EffectiveCharge, 1
+asym:qwk_charge, -1
+[asym:@bpmdd_charge_targetcharge]
+asym:qwk_target_EffectiveCharge, 1
+asym:qwk_charge, -1
+
+
+# MD Dipoles
+[asym:@asym_md15dipole]
+asym:qwk_md1barsum, 1
+asym:qwk_md5barsum, -1
+
+[asym:@asym_md26dipole]
+asym:qwk_md2barsum, 1
+asym:qwk_md6barsum, -1
+
+[asym:@asym_md37dipole]
+asym:qwk_md3barsum, 1
+asym:qwk_md7barsum, -1
+
+[asym:@asym_md48dipole]
+asym:qwk_md4barsum, 1
+asym:qwk_md8barsum, -1
+
+#0.17678 = 1/4 * 1/sqrt(2)
+#0.25 =  1/4
+[asym:@asym_mddipole_h]
+asym:qwk_md1barsum,  0.25
+asym:qwk_md2barsum,  0.17678
+asym:qwk_md4barsum, -0.17678
+asym:qwk_md5barsum, -0.25
+asym:qwk_md6barsum, -0.17678
+asym:qwk_md8barsum,  0.17678
+
+[asym:@asym_mddipole_v]
+asym:qwk_md2barsum,  0.17678
+asym:qwk_md3barsum,  0.25
+asym:qwk_md4barsum,  0.17678
+asym:qwk_md6barsum, -0.17678
+asym:qwk_md7barsum, -0.25
+asym:qwk_md8barsum, -0.17678
+
+[asym:@asym_mdallbarsavg]
+asym:qwk_md1barsum, 0.125
+asym:qwk_md2barsum, 0.125
+asym:qwk_md3barsum, 0.125
+asym:qwk_md4barsum, 0.125
+asym:qwk_md5barsum, 0.125
+asym:qwk_md6barsum, 0.125
+asym:qwk_md7barsum, 0.125
+asym:qwk_md8barsum, 0.125
+
+# MD Asymmetry Average PMT
+[asym:@asym_mdallpmtavg]
+asym:qwk_md1neg, 0.0625
+asym:qwk_md2neg, 0.0625
+asym:qwk_md3neg, 0.0625
+asym:qwk_md4neg, 0.0625
+asym:qwk_md5neg, 0.0625
+asym:qwk_md6neg, 0.0625
+asym:qwk_md7neg, 0.0625
+asym:qwk_md8neg, 0.0625
+asym:qwk_md1pos, 0.0625
+asym:qwk_md2pos, 0.0625
+asym:qwk_md3pos, 0.0625
+asym:qwk_md4pos, 0.0625
+asym:qwk_md5pos, 0.0625
+asym:qwk_md6pos, 0.0625
+asym:qwk_md7pos, 0.0625
+asym:qwk_md8pos, 0.0625
+
+# MD Barsum pmt averages
+
+[asym:@asym_md1pmtavg]
+asym:qwk_md1neg, 0.50
+asym:qwk_md1pos, 0.50
+
+[asym:@asym_md2pmtavg]
+asym:qwk_md2neg, 0.50
+asym:qwk_md2pos, 0.50
+
+[asym:@asym_md3pmtavg]
+asym:qwk_md3neg, 0.50
+asym:qwk_md3pos, 0.50
+
+[asym:@asym_md4pmtavg]
+asym:qwk_md4neg, 0.50
+asym:qwk_md4pos, 0.50
+
+[asym:@asym_md5pmtavg]
+asym:qwk_md5neg, 0.50
+asym:qwk_md5pos, 0.50
+
+[asym:@asym_md6pmtavg]
+asym:qwk_md6neg, 0.50
+asym:qwk_md6pos, 0.50
+
+[asym:@asym_md7pmtavg]
+asym:qwk_md7neg, 0.50
+asym:qwk_md7pos, 0.50
+
+[asym:@asym_md8pmtavg]
+asym:qwk_md8neg, 0.50
+asym:qwk_md8pos, 0.50
+
+[asym:@asym_md9pmtavg]
+asym:qwk_md9neg, 0.50
+asym:qwk_md9pos, 0.50
+
+
+#Lumi Asymmetery Average PMT
+[asym:@asym_uslumi_pmtavg]
+asym:qwk_uslumi1neg, 0.125 
+asym:qwk_uslumi1pos, 0.125 
+asym:qwk_uslumi3neg, 0.125 
+asym:qwk_uslumi3pos, 0.125 
+asym:qwk_uslumi5neg, 0.125 
+asym:qwk_uslumi5neg, 0.125 
+asym:qwk_uslumi7neg, 0.125 
+asym:qwk_uslumi7pos, 0.125
+
+[asym:@asym_dslumi_pmtavg]
+asym:qwk_dslumi1, 0.125 
+asym:qwk_dslumi2, 0.125 
+asym:qwk_dslumi3, 0.125 
+asym:qwk_dslumi4, 0.125 
+asym:qwk_dslumi5, 0.125 
+asym:qwk_dslumi6, 0.125 
+asym:qwk_dslumi7, 0.125 
+asym:qwk_dslumi8, 0.125
+ 
+#USLumi Asymmetry Average Detector
+[asym:@asym_uslumi_detavg]
+asym:uslumi1_sum, 0.25 
+asym:uslumi3_sum, 0.25 
+asym:uslumi5_sum, 0.25 
+asym:uslumi7_sum, 0.25
+
+#USLumi Detector Asymmetries form Averaged Tube Asyms
+[asym:@asym_uslumi1_avg]
+asym:qwk_uslumi1neg, 0.50
+asym:qwk_uslumi1pos, 0.50
+ 
+[asym:@asym_uslumi3_avg]
+asym:qwk_uslumi3neg, 0.50
+asym:qwk_uslumi3pos, 0.50
+
+[asym:@asym_uslumi5_avg]
+asym:qwk_uslumi5neg, 0.50
+asym:qwk_uslumi5neg, 0.50
+
+[asym:@asym_uslumi7_avg]
+asym:qwk_uslumi7neg, 0.50
+asym:qwk_uslumi7pos, 0.50
+
+
+#USLumi Dipoles
+[asym:@asym_uslumi15_dipole]
+asym:uslumi1_sum,  1
+asym:uslumi5_sum, -1
+
+[asym:@asym_uslumi37_dipole]
+asym:uslumi3_sum,  1
+asym:uslumi7_sum, -1
+
+#DSLumi Dipoles
+[asym:@asym_dslumi15_dipole]
+asym:qwk_dslumi1,  1
+asym:qwk_dslumi5, -1
+
+[asym:@asym_dslumi26_dipole]
+asym:qwk_dslumi2,  1
+asym:qwk_dslumi6, -1
+
+[asym:@asym_dslumi37_dipole]
+asym:qwk_dslumi3,  1
+asym:qwk_dslumi7, -1
+
+[asym:@asym_dslumi48_dipole]
+asym:qwk_dslumi4,  1
+asym:qwk_dslumi8, -1
+
+#0.1667 = 1/6
+#0.2357 = (sqrt2)/6
+[asym:@asym_dslumidipole_h]
+asym:qwk_dslumi1,  0.1667
+asym:qwk_dslumi2,  0.2357
+asym:qwk_dslumi4, -0.2357
+asym:qwk_dslumi5, -0.1667
+asym:qwk_dslumi6, -0.2357
+asym:qwk_dslumi8,  0.2357
+
+[asym:@asym_dslumidipole_v]
+asym:qwk_dslumi2,  0.2357
+asym:qwk_dslumi3,  0.1667
+asym:qwk_dslumi4,  0.2357
+asym:qwk_dslumi6, -0.2357
+asym:qwk_dslumi7, -0.1667
+asym:qwk_dslumi8, -0.2357
+
+
+#####
+#####  Some examples, all commented out.
+#####
+
+## This is a simple case:
+##  two dependent variables
+##  two independent variables
+#[asym:qwk_md1neg, asym:qwk_md1pos]
+#diff:x_targ, 0.0, -0.0
+#diff:y_targ, 0.0, -0.0
+#
+##  four independent variables
+##  asymmetry for dependent variables
+#[asym:qwk_md2neg, asym:qwk_md2pos]
+#diff:x_targ, 0.11, -0.11
+#diff:y_targ, 0.12, -0.12
+#diff:xp_targ, 0.10, -0.10
+#diff:yp_targ, 0.09, -0.09
+#
+##  four dependent variables
+#[asym:qwk_md3neg, asym:qwk_md3pos, asym:qwk_md4neg, asym:qwk_md4pos]
+#diff:x_targ, 0.11, -0.11, 0.11, -0.11
+#diff:y_targ, 0.12, -0.12, 0.12, -0.12
+#diff:xp_targ, 0.10, -0.10, 0.10, -0.10
+#diff:yp_targ, 0.09, -0.09, 0.09, -0.09
+#
+##  eight dependent variables
+#[asym:qwk_md5neg, asym:qwk_md5pos, asym:qwk_md6neg, asym:qwk_md6pos, asym:qwk_md7neg, asym:qwk_md7pos, asym:qwk_md8neg, asym:qwk_md8pos]
+#diff:x_targ, 0.11, -0.11, 0.11, -0.11, 0.11, -0.11, 0.11, -0.11
+#diff:y_targ, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12
+#diff:xp_targ, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10
+#diff:yp_targ, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09
+#
+## This is an event case:
+##  two dependent variables
+##  two independent variables
+##
+## Currently disabled because of how we write ROOT trees
+##
+#[mps:qwk_md1neg, mps:qwk_md1pos]
+#mps:x_targ, 1.11, -5.11
+#mps:y_targ, 1.12, -1.12
+#
+#[mps:qwk_md2neg, mps:qwk_md2pos]
+#mps:x_targ,  0.11, -0.11
+#mps:y_targ,  0.12, -0.12
+#mps:xp_targ, 0.10, -0.10
+#mps:yp_targ, 0.09, -0.09

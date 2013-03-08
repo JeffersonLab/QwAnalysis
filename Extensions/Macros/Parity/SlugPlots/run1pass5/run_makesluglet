@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# ppMakeSluglet - smacewan nov 2011
+# run_makesluglet - smacewan oct 2012, renamed to this to conform with previous naming convention
+#
+# A wrapper script for the MakeSluglet.C script used to make a single Sluglet ROOTfile out of a single runs' segments.
+# 
+# evoke by:
+# ./run_makesluglet RUNNUM
+
+PATH_TO_SCRIPT=`dirname $0`
+RUN_NUM=$1
+SEG_NUM=$2
+
+#SRC=\"/cache/mss/hallc/qweak/rootfiles/pass5/\"
+SRC=\"$QW_ROOTFILES/\"
+SRC_lrb=\"/work/hallc/qweak/Qwanalysis/run1/pass5regression/lrb_rootfiles/\"
+
+#DST="/volatile/hallc/qweak/smacewan/pass5prep"
+#DST_lrb="/volatile/hallc/qweak/smacewan/pass5prep"
+DST="/work/hallc/qweak/QwAnalysis/run1/pass5_slugs"
+DST_lrb="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
+
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5_slugs/out_files"
+
+LEAFLIST=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5/leaflist_run1pass5_unreg.txt\"
+LEAFLIST_lrb=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5/leaflist_run1pass5_lrb_reg.txt\"
+
+SUFFIX=\"trees\"
+#SUFFIX=\"0\" ## use this line for NO suffix
+SUFFIX_lrb=\"0\" 
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+arg="$PATH_TO_SCRIPT/MakeSluglet_runlet.C+(\"${RUN_NUM}\",\"${SEG_NUM}\",$LEAFLIST,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}.root\",$SRC,\"QwPass5\",$SUFFIX)"
+
+#----------------------------------------------------------------------------------------------
+##Uncomment these lines to enable regressed sluglet file argument creation
+
+#arg1="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_std.root\",$SRC_lrb,\"std_reg_QwPass5\",$SUFFIX_lrb)"
+#arg2="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_5+1.root\",$SRC_lrb,\"5+1_reg_QwPass5\",$SUFFIX_lrb)"
+#arg3="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set3.root\",$SRC_lrb,\"set3_reg_QwPass5\",$SUFFIX_lrb)"
+#arg4="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set4.root\",$SRC_lrb,\"set4_reg_QwPass5\",$SUFFIX_lrb)"
+#arg5="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set5.root\",$SRC_lrb,\"set5_reg_QwPass5\",$SUFFIX_lrb)"
+#arg6="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set6.root\",$SRC_lrb,\"set6_reg_QwPass5\",$SUFFIX_lrb)"
+#arg7="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set7.root\",$SRC_lrb,\"set7_reg_QwPass5\",$SUFFIX_lrb)"
+#arg8="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set8.root\",$SRC_lrb,\"set8_reg_QwPass5\",$SUFFIX_lrb)"
+#arg9="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set9.root\",$SRC_lrb,\"set9_reg_QwPass5\",$SUFFIX_lrb)"
+#arg10="$PATH_TO_SCRIPT/MakeSluglet_runlet_lrb.C+(${RUN_NUM},${SEG_NUM},$LEAFLIST_lrb,\"${DST}/sluglet${RUN_NUM}_${SEG_NUM}_lrb_set10.root\",$SRC_lrb,\"set10_reg_QwPass5\",$SUFFIX_lrb)"
+
+
+#----------------------------------------------------------------------------------------------
+root -n -q -b -l ${arg} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}.out
+
+#----------------------------------------------------------------------------------------------
+##Uncomment these lines to enable regressed sluglet file creation
+
+#root -n -q -b -l ${arg1} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_std.out
+#root -n -q -b -l ${arg2} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_5+1.out
+#root -n -q -b -l ${arg3} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set3.out
+#root -n -q -b -l ${arg4} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set4.out
+#root -n -q -b -l ${arg5} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set5.out
+#root -n -q -b -l ${arg6} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set6.out
+#root -n -q -b -l ${arg7} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set7.out
+#root -n -q -b -l ${arg8} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set8.out
+#root -n -q -b -l ${arg9} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set9.out
+#root -n -q -b -l ${arg10} >${DST_Dbug}/sluglet${RUN_NUM}_${SEG_NUM}_set10.out

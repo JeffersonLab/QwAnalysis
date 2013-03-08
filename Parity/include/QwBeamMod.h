@@ -144,6 +144,8 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   void ResizeOpticsDataContainers(Int_t);
   void ClearVectors();
 
+  Double_t GetAmplitudeSign(Double_t, Double_t, Double_t, Double_t);
+
  protected:
  Int_t GetDetectorTypeID(TString name);
  Int_t GetDetectorIndex(Int_t TypeID, TString name);    // when the type and the name is passed the detector index from appropriate vector will be returned
