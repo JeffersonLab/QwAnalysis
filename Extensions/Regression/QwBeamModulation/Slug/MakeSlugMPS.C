@@ -46,6 +46,11 @@ Int_t MakeSlugMPS(
 	Bool_t fSegInclude = false;
 
 	TStopwatch timer;
+	std::cout << "Input option: " << run_number << " "
+			  << runlets << " " 
+			  << leaflistfilename << " "
+			  << slugrootfilename << std::endl;
+
 	if (run_number == -1 ||  !leaflistfilename ||  !slugrootfilename) {
 		printf("Usage:\n\t.x MakeSlug(run_number, leaflistfilename, slugrootfilename)\n\n");
 		exit(1);
@@ -214,7 +219,7 @@ Int_t MakeSlugMPS(
 						slugleafvalue[leafnumber] = tree->GetLeaf(modfullleafnamelist[leafnumber])->GetValue();
  					} 
 					else {
-   						slugleafvalue[leafnumber-1] = -1e6;
+   		// 				slugleafvalue[leafnumber-1] = -1e6;
  					}
 				}
 				slug->Fill();
@@ -252,21 +257,24 @@ Bool_t FileSearch(TString filename, TChain *chain, Bool_t fSegInclude, Int_t fLo
   file_directory = gSystem->Getenv("QW_ROOTFILES");
 
   if(fSegInclude){
-    for(Int_t i = fLowerSegment; i <= fUpperSegment; i++){
-		filename = Form("%s_%d.*%d.trees.root", qwstem.Data(), run_number, i);
-		std::cout << "Adding:: " 
-				  << filename << std::endl;
-
-		if(!(chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()))) ){
-			std::cout << "Error chaining segment:\t" << filename << std::endl;
-			exit(1);
-		}
-    }
+	  c_status = true;
+	  for(Int_t i = fLowerSegment; i <= fUpperSegment; i++){
+		  filename = Form("%s_%d.%03d.trees.root", qwstem.Data(), run_number, i);
+ 		  std::cout << "Adding:: " 
+ 					<< filename << std::endl;
+		  
+		  if(!(chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()))) ){
+			  std::cout << "Error chaining segment:\t" << filename << std::endl;
+			  exit(1);
+		  }
+	  }
   }
-  c_status = chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()));
-  std::cout << "Trying to open :: "
-            << Form("%s/%s",file_directory.Data(), filename.Data())
-            << std::endl;
+  else{
+	  c_status = chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()));
+	  std::cout << "Trying to open :: "
+				<< Form("%s/%s",file_directory.Data(), filename.Data())
+				<< std::endl;
+  }
 
   if(c_status){
     TString chain_name = chain->GetName();
@@ -275,10 +283,10 @@ Bool_t FileSearch(TString filename, TChain *chain, Bool_t fSegInclude, Int_t fLo
     TChainElement *chain_element = NULL;
 
     while( (chain_element = (TChainElement*)next()) ){
-		std::cout << "Adding :: "
-				  << filename
-				  << " to data chain"
-				  << std::endl;
+// 		std::cout << "Adding :: "
+// 				  << filename
+// 				  << " to data chain"
+// 				  << std::endl;
     }
   } 
     return c_status;
