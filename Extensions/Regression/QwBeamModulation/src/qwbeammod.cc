@@ -1,6 +1,5 @@
 #include "headers.h"
 #include "QwModulation.hh"
-#include "QwMpsOnly.hh"
 
 Int_t main(Int_t argc, Char_t *argv[])
 {
