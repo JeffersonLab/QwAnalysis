@@ -3,6 +3,8 @@
 !**************************************************************************
 !As of 11/10/2011 
 !
+! 2/1/2013 M. McHugh : Created new target BPM containing 3h04  
+!
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
@@ -219,6 +221,18 @@ name=qwk_target
  QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
  QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
 ! QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
+!New qwk_target including 3h04
+begin=combinedbpm
+name=qwk_target_plus4	
+! name           type          q      x          y    
+  QWK_BPM3H04,   bpmstripline, 1.0,   1.0,   1.0
+  QWK_BPM3H07A,  bpmstripline, 1.0,   1.0,   1.0 
+  QWK_BPM3H07B,  bpmstripline, 1.0,   1.0,   1.0
+  QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
+  QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
+!  QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
 
 
