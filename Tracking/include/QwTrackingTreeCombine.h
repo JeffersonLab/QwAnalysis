@@ -150,7 +150,8 @@ class QwTrackingTreeCombine {
     int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual);
     int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual, bool opt);
     int r3_TrackFit_deprecated  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
-    int r3_TrackFit (const int num, QwHit **hhits,double *fit,double *cov,double&chi,double *parameter);
+    QwPartialTrack* r3_TrackFit (const int num, QwHit **hits,
+        QwTrackingTreeLine *wu, QwTrackingTreeLine *wv);
 
   private:
 

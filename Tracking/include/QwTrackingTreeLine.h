@@ -113,9 +113,9 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; }
     //! \brief Get a specific hit
-    QwHit* GetHit(int i = 0);
+    const QwHit* GetHit(int i = 0) const;
     //! \brief Get the hits as a hit container
-    QwHitContainer* GetHitContainer();
+    const QwHitContainer* GetHitContainer() const;
     //! \brief Clear the list of hits without deleting
     void ClearHits();
     //! \brief Delete the hits in the list
@@ -132,7 +132,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     void PrintValid();
 
     //! \brief Output stream operator
-    friend ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl);
+    friend std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl);
 
     //! \name Positions and resolutions in wire planes
     // @{

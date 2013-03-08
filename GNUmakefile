@@ -323,10 +323,10 @@ endif
 #  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
   # If multi-threaded libraries exist, use them instead of single threaded libraries
-  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt -lboost_regex-mt
 else
   # Otherwise use the single threaded libraries
-  BOOST_LIBS += -lboost_filesystem -lboost_program_options
+  BOOST_LIBS += -lboost_filesystem -lboost_program_options -lboost_regex
 endif
 
 #  Before boost::filesystem 1.35.0 the system functionality is inside filesystem

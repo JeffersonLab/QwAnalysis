@@ -1,8 +1,9 @@
-#include "TROOT.h"
+#include <TROOT.h>
 #include <Riostream.h>
 #include <TSQLServer.h>
 #include "tree_fill.h"
-#include "detector.h"
+#include "QwDetector.h"
+#include "QwData.h"
 #include "parse.h"
 #include "runlet.h"
 

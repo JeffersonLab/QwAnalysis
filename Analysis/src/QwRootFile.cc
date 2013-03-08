@@ -7,7 +7,7 @@
 
 std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
 
-const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
+const Long64_t QwRootFile::kMaxTreeSize = 100000000000LL;
 //const Int_t QwRootFile::kMaxMapFileSize = 0x20000000; // 512 MiB
 const Int_t QwRootFile::kMaxMapFileSize = 0x10000000; // 256 MiB
 

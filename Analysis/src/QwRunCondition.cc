@@ -155,7 +155,7 @@ QwRunCondition::GetROCFlags()
   Bool_t local_debug = false;
   TString flags;
 
-  ifstream flag_file;
+  std::ifstream flag_file;
   flag_file.clear();
   
   fROCFlagFileName.Insert(0, "/home/cdaq/qweak/Settings/");

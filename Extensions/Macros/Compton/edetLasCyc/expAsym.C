@@ -101,7 +101,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     }
   }
   //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass1_%d.*.root",runnum));//for pass1
-  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass2_%d.*.root",runnum));//for pass2
+  chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_Pass2b_%d.*.root",runnum));//for pass2b
   //chainExists = mpsChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
   cout<<"Attached "<<chainExists<<" files to chain for Run # "<<runnum<<endl;
 

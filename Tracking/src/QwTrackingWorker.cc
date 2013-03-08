@@ -170,6 +170,7 @@ QwTrackingWorker::QwTrackingWorker(QwOptions& options, const QwGeometry& geometr
   R3Good = 0;
   R3Bad = 0;
 
+  nbridged = 0;
 
   // Initialize the tracking modules
   // Tracking functionality is provided by these four sub-blocks.
@@ -1049,8 +1050,11 @@ void QwTrackingWorker::ProcessEvent (
     }
 
     // Calculate kinematics
-    if (event->GetNumberOfTracks() > 0)
+    int num_of_bridged = event->GetNumberOfTracks();
+    if ( num_of_bridged > 0) {
+      nbridged += num_of_bridged;
       event->CalculateKinematics(event->GetTrack(0));
+    }
 
     // Delete local objects
     delete hitlist;

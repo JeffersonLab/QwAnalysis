@@ -766,7 +766,7 @@ std::string QwParameterFile::GetNextToken(const std::string& separatorchars)
   return tmpstring;
 }
 
-ostream& operator<< (ostream& stream, const QwParameterFile& file)
+std::ostream& operator<< (std::ostream& stream, const QwParameterFile& file)
 {
   /// \todo TODO (wdc) operator<< on QwParameterFile requires RewindToFileStart
   std::string line;

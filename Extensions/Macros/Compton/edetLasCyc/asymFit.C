@@ -79,7 +79,7 @@ void asymFit(Int_t runnum,TString dataType="Ac")
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
 
-  if (!kVladas_data && (!maskSet)) infoDAQ(runnum);
+  if (!maskSet) infoDAQ(runnum);
 
   ifstream infileScaler, expAsymPWTL1, infileYield;
   ofstream polList;
@@ -180,7 +180,7 @@ void asymFit(Int_t runnum,TString dataType="Ac")
 
     grAsymPlane[p]->Draw("AP");  
     tempCedge = Cedge[p];//-0.5;///this should be equated before the declaration of TF1
-    linearFit = new TF1("linearFit", "pol0",1,tempCedge);
+    linearFit = new TF1("linearFit", "pol0",startStrip+1,tempCedge);
     linearFit->SetLineColor(kRed);
 
     ///3 parameter fit
@@ -258,7 +258,8 @@ void asymFit(Int_t runnum,TString dataType="Ac")
 	stripAsymDr[p][s]=0.0,stripAsymNr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
 	zero[s] = 0.0;
       }
-      expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      if(kVladas_data) expAsymPWTL1.open("/home/narayan/acquired/vladas/run.24519");
+      else expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(expAsymPWTL1.is_open()) {
 	if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
 	if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;

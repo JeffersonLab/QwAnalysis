@@ -286,9 +286,9 @@ void QwHitPattern::_SetPoints (
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
- * Stream the hit pattern to an ostream.
+ * Stream the hit pattern to an std::ostream.
  */
-ostream& operator<< (ostream& stream, const QwHitPattern& hitpattern)
+std::ostream& operator<< (std::ostream& stream, const QwHitPattern& hitpattern)
 {
   for (unsigned int bin = 0; bin < hitpattern.fBins - 1; bin++) {
     if (hitpattern.fPattern[bin] == 1)

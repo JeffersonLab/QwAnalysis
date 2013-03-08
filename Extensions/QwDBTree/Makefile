@@ -4,7 +4,11 @@ LIBS = $(shell root-config --glibs)
 SRCS := \
 	main.cpp \
 	tree_fill.cpp \
-	detector.cpp \
+	QwBeamDet.cpp \
+	QwData.cpp \
+	QwDetector.cpp \
+	QwLumiDet.cpp \
+	QwMainDet.cpp \
 	parse.cpp \
 	runlet.cpp \
 	parse.h

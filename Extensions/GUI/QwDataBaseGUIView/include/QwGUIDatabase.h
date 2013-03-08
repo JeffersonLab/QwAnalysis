@@ -55,7 +55,7 @@
 #define N_GOODFOR_TYPES  21
 #define N_X_AXIS          7
 #define N_Plots           3
-#define N_REGRESSION_SCHEMES 11
+#define N_REGRESSION_SCHEMES 14
 #define N_REG_VARS_ON     5
 #define N_REG_VARS_ON_5_1 6
 #define N_REG_VARS_ON_3   6
@@ -65,7 +65,9 @@
 #define N_REG_VARS_ON_7   6
 #define N_REG_VARS_ON_8   6
 #define N_REG_VARS_ON_9   7
-
+#define N_REG_VARS_ON_10  6
+#define N_REG_VARS_ON_11  5
+#define N_REG_VARS_ON_12  5
 
 
 
@@ -248,6 +250,9 @@ using std::vector;
   static const char   *RegressionVarsOn_7[N_REG_VARS_ON_7];
   static const char   *RegressionVarsOn_8[N_REG_VARS_ON_8];
   static const char   *RegressionVarsOn_9[N_REG_VARS_ON_9];
+  static const char   *RegressionVarsOn_10[N_REG_VARS_ON_10];
+  static const char   *RegressionVarsOn_11[N_REG_VARS_ON_11];
+  static const char   *RegressionVarsOn_12[N_REG_VARS_ON_12];
 
   static const char   *RegressionSchemes[N_REGRESSION_SCHEMES];
 

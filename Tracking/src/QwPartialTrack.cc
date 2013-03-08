@@ -72,6 +72,8 @@ QwPartialTrack::QwPartialTrack(const QwPartialTrack* that)
  */
 QwPartialTrack::~QwPartialTrack()
 {
+  // Clear the partial track
+  Clear();
 
   /* for (int i = 0; i < kNumDirections; i++){
     if(fTreeLine[i])
@@ -203,7 +205,7 @@ double QwPartialTrack::CalculateAverageResidual()
   int numTreeLines = 0;
   double sumResiduals = 0.0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    for (QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
+    for (const QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
          treeline = treeline->next) {
       if (treeline->IsUsed()) {
         numTreeLines++;
@@ -317,7 +319,7 @@ void QwPartialTrack::PrintValid()
 /**
  * Output stream operator overloading
  */
-ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
+std::ostream& operator<< (std::ostream& stream, const QwPartialTrack& pt)
 {
   stream << "pt: ";
   if (pt.GetRegion() != kRegionIDNull)

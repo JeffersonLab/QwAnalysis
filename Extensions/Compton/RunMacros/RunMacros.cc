@@ -27,6 +27,8 @@ int main(int argc, char *argv[])
   TString pass;
   std::vector<std::string> macros;
   TString macros_path;
+  TString web_dir;
+  TString storage_dir;
 
   // Generic command line options
   po::options_description generic("Generic options");
@@ -43,6 +45,8 @@ int main(int argc, char *argv[])
     ("pass,p",po::value<std::string>(),"pass prefix (i.e. Pass2b)")
     ("macros,m",po::value<std::vector<std::string> >(),"ordered list of macros to process")
     ("macros-path",po::value<std::string>(),"path to shared macros")
+    ("web-dir",po::value<std::string>(),"path web directory")
+    ("storage-dir",po::value<std::string>(),"path storage directory")
     ;
 
   // Finally, add them to boost
@@ -126,8 +130,34 @@ int main(int argc, char *argv[])
       +"/Extensions/Compton/RunMacros/macros.d";
   }
 
+  // Process mandatory web dir
+  if(!vm.count("web-dir")) {
+    std::cerr << "Must specify web directory!" << std::endl;
+    return 1;
+  } else {
+    web_dir = vm["web-dir"].as<std::string>();
+  }
+
+  // Process mandatory storage dir
+  if(!vm.count("storage-dir")) {
+    std::cerr << "Must specify storage directory!" << std::endl;
+    return 1;
+  } else {
+    storage_dir = vm["storage-dir"].as<std::string>();
+  }
+
+
+
   // Create a session to handle the run
   ComptonSession *session = new ComptonSession(runnumber,db_file,pass);
+  if(!session->SetWebDir(web_dir)) {
+    std::cerr << "Web directory path not accessible!" << std::endl;
+    return -1;
+  }
+  if(!session->SetStorageDir(storage_dir)) {
+    std::cerr << "Storage directory path not accessible!" << std::endl;
+    return -1;
+  }
   if(find_cycles) {
     session->FindLaserCycles();
   } else {
@@ -145,9 +175,9 @@ int main(int argc, char *argv[])
     TString library=macros_path+Form("/lib%s.so",(*it).c_str());
     handle = dlopen(library.Data(),RTLD_NOW);
     if(!handle) {
-      std::cout << "WARNING: Cannot find library file for " << *it
+      std::cout << "WARNING: Error processing library " << *it
         << " at " << library.Data()
-        << "\t\tSkipping!" << std::endl;
+        << "<<\t with error" << dlerror() << "\tSkipping!" << std::endl;
     } else {
       std::cout << "Processing macro: " << *it << std::endl;
       create_t* create=(create_t*)dlsym(handle,"create");
@@ -161,6 +191,7 @@ int main(int argc, char *argv[])
       m->init(session);
       m->run();
       destroy(m);
+      std::cout << "Finished with macro: " << *it << std::endl;
     }
   }
 

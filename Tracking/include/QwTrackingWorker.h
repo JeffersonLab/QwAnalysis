@@ -54,6 +54,8 @@ class QwTrackingWorker {
     int R2Bad;
     int R3Good;
     int R3Bad;
+    
+    int nbridged;      ///< number of beidged tracks
 
     /// \brief Default constructor with name
     QwTrackingWorker(QwOptions& options, const QwGeometry& geometry);

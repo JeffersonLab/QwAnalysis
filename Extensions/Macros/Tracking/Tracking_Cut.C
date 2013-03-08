@@ -82,6 +82,11 @@
 // jpan, Mon Nov  5 10:07:04 CST 2012
 // Added Q2 vs. reconstructed momentum correlation plots and radial distributions of Q2,
 // light, and light-weighted Q2 as requested by D. Mack.
+
+// jpan, Mon Feb 11 10:02:27 CST 2013
+// Added in the track projection to collimator, to display the hits distribution in the 
+// downstream surface of collimator 2. Also added in the hit distribution in downstream 
+// target window and vertex (x,y,z) distribution in the target region.
  
 #include <iostream>
 #include <iomanip>
@@ -451,6 +456,36 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TH1F* q2_2 = new TH1F("q2_2",Form("Run %d, Q2 Distribution in Package 2, Oct %d",run,md_2),400,0,0.08);
 
     //define extra histograms
+    TH2F*  r2_proj[3];
+    r2_proj[0] = new TH2F("r2_proj",Form("Run %d, Hits Distribution Collimator in Oct %d + %d",run,md_1,md_2),480,-60,60,400,-60,60);
+    r2_proj[1] = new TH2F("r2_proj_1",Form("Run %d, Pkg1 Hits Distribution Collimator in Oct %d",run,md_1),480,-60,60,400,-60,60);
+    r2_proj[2] = new TH2F("r2_proj_2",Form("Run %d, Pkg2 Hits Distribution Collimator in Oct %d",run,md_2),480,-60,60,400,-60,60);
+
+    TH3F*  vertex_dist[3];
+    vertex_dist[0] = new TH3F("vertex_dist",Form("Run %d, Vertex Distribution (pkg1+pkg2), Oct %d + %d",run,md_1,md_2),200,-750,-550,100,-10,10,100,-10,10);
+    vertex_dist[1] = new TH3F("vertex_dist_1",Form("Run %d, Vertex Distribution (pkg1), Oct %d",run,md_1),200,-750,-550,100,-10,10,100,-10,10);
+    vertex_dist[2] = new TH3F("vertex_dist_2",Form("Run %d, Vertex Distribution (pkg2), Oct %d",run,md_2),200,-750,-550,100,-10,10,100,-10,10);
+
+    TH2F*  vertex_2D[3];
+    vertex_2D[0] = new TH2F("vertex_2D_xy",Form("Run %d, Vertex Distribution (pkg1+pkg2), Oct %d + %d",run,md_1,md_2),240,-3,3,240,-3,3);
+    vertex_2D[1] = new TH2F("vertex_2D_xy_1",Form("Run %d, Vertex Distribution (pkg1), Oct %d",run,md_1),240,-3,3,240,-3,3);
+    vertex_2D[2] = new TH2F("vertex_2D_xy_2",Form("Run %d, Vertex Distribution (pkg2), Oct %d",run,md_2),240,-3,3,240,-3,3);
+
+    TH2F*  vertex_2D_xz[3];
+    vertex_2D_xz[0] = new TH2F("vertex_2D_xz",Form("Run %d, Vertex Distribution (pkg1+pkg2), Oct %d + %d",run,md_1,md_2),400,-750,-550,240,-3,3);
+    vertex_2D_xz[1] = new TH2F("vertex_2D_xz_1",Form("Run %d, Vertex Distribution (pkg1), Oct %d",run,md_1),400,-750,-550,240,-3,3);
+    vertex_2D_xz[2] = new TH2F("vertex_2D_xz_2",Form("Run %d, Vertex Distribution (pkg2), Oct %d",run,md_2),400,-750,-550,240,-3,3);
+
+    TH2F*  vertex_2D_yz[3];
+    vertex_2D_yz[0] = new TH2F("vertex_2D_yz",Form("Run %d, Vertex Distribution (pkg1+pkg2), Oct %d + %d",run,md_1,md_2),400,-750,-550,240,-3,3);
+    vertex_2D_yz[1] = new TH2F("vertex_2D_yz_1",Form("Run %d, Vertex Distribution (pkg1), Oct %d",run,md_1),400,-750,-550,240,-3,3);
+    vertex_2D_yz[2] = new TH2F("vertex_2D_yz_2",Form("Run %d, Vertex Distribution (pkg2), Oct %d",run,md_2),400,-750,-550,240,-3,3);
+
+    TH2F*  hit_tgt_window[3];
+    hit_tgt_window[0] = new TH2F("hit_tgt_window",Form("Run %d, Hit Distribution (pkg1+pkg2) in Downstream Target Window, Oct %d + %d",run,md_1,md_2),400,-10,10,400,-10,10);
+    hit_tgt_window[1] = new TH2F("hit_tgt_window_1",Form("Run %d, Hit Distribution (pkg1) in Downstream Target Window, Oct %d",run,md_1),400,-10,10,400,-10,10);
+    hit_tgt_window[2] = new TH2F("hit_tgt_window_2",Form("Run %d, Hit Distribution (pkg2) in Downstream Target Window, Oct %d",run,md_2),400,-10,10,400,-10,10);
+
     TH1F* light_weighted_q2[3];
     light_weighted_q2[0] = new TH1F("light_weighted_q2_all",Form("Run %d, Light-weighted Q2 Distribution, Oct %d + %d",run,md_1,md_2),400,0,0.08);
     light_weighted_q2[1] = new TH1F("light_weighted_q2_p1",Form("Run %d, Light-weighted Q2 Distribution in Package 1, Oct %d",run,md_1),400,0,0.08);
@@ -629,16 +664,22 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       double dz = 577.5;
       double xoffset,yoffset,xslope,yslope;
       double x=0, y=0;
-      bool hit_position_cut = true;
-      for (int num_p=0; num_p< fEvent->GetNumberOfPartialTracks();num_p++)
-        {
-          pt=fEvent->GetPartialTrack(num_p);
-          if (pt->GetRegion()==3) 
+      double r2_x=0, r2_y=0;
+      double tgt_win_x=0, tgt_win_y=0;
+      double vertex_x=0,vertex_y=0;
+
+      for(int j=0;j<ntracks; j++) // TODO: what shall we do with multiple tracks? 
+      {
+
+          track=fEvent->GetTrack(j);
+          int R2_pkg, R3_pkg; 
+          pt = track->fBack;
+          if (pt->GetRegion()==3)
             {
-              int pkg = pt->GetPackage();
-              if(pkg==1)
+              R3_pkg = pt->GetPackage();
+              if(R3_pkg==1)
                    dz = md_zpos[(oct+4)%8];
-              else if(pkg==2)
+              else if(R3_pkg==2)
                    dz = md_zpos[oct];
 
               xoffset = pt->fOffsetX;
@@ -648,40 +689,54 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
               x       = xoffset+xslope*dz;
               y       = yoffset+yslope*dz;
 
-              if(debug) 
-                  cout<<"event#"<<i<<", pkg"<<pkg<<", pt#"<<num_p<<": hit at ("<<x<<","<<y<<")"<<endl;
+              if(debug)
+                  cout<<"event#"<<i<<", pkg"<<pkg<<", hit at ("<<x<<","<<y<<")"<<endl;
 
-              global2local(&x,&y,oct,pkg);
+              global2local(&x,&y,oct,R3_pkg);
 
               if(enable_hit_position_x_cut)
               {
                  if(! hit_position_x_cut(x))
-                 {
-                   hit_position_cut = false;
                    continue;
-                 }
               }
 
               if(enable_hit_position_y_cut)
               {
                  if(! hit_position_y_cut(y))
-                 {
-                   hit_position_cut = false;
                    continue;
-                 }
               }
-
             }
-         }
 
-      if(! hit_position_cut)
-         continue;
-
-
-      for(int j=0;j<ntracks; j++) // TODO: what shall we do with multiple tracks? 
+      pt = track->fFront;
+      if(pt->GetRegion()==2)
       {
-	track=fEvent->GetTrack(j);
-        int package = track->GetPackage();
+          R2_pkg = pt->GetPackage();
+          double collimator2_z=-370.719;
+          double tgt_downstream_window_z = -635.0;
+          double r2_xoffset = pt->fOffsetX;
+          double r2_yoffset = pt->fOffsetY;
+          double r2_xslope  = pt->fSlopeX;
+          double r2_yslope  = pt->fSlopeY;
+          r2_x = r2_xoffset+r2_xslope*collimator2_z;
+          r2_y = r2_yoffset+r2_yslope*collimator2_z;
+
+          vertex_x = r2_xoffset+r2_xslope*vertex_z;
+          vertex_y = r2_yoffset+r2_yslope*vertex_z;
+
+          tgt_win_x = r2_xoffset+r2_xslope*tgt_downstream_window_z;
+          tgt_win_y = r2_yoffset+r2_yslope*tgt_downstream_window_z;
+      }
+
+      int package = track->GetPackage();
+      if(!reverse_run)
+      {
+        if(R2_pkg!=package || R3_pkg!=package)
+          {
+             cout<<"Warning: unmatched packages, R2, R3, track pkg="
+                 <<R2_pkg<<", "<<R3_pkg<<", "<<package<<endl;
+             continue;
+          }
+      }
 
       //----------------------
       // bending angle cut
@@ -886,6 +941,23 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 histo_md1_pe[1]->Fill(mdm_num_pe);
                 histo_md1_pe[2]->Fill(mdp_num_pe);
 
+                r2_proj[0]->Fill(r2_x,r2_y);
+                r2_proj[1]->Fill(r2_x,r2_y);
+
+                vertex_dist[0]->Fill(vertex_z,vertex_x,vertex_y);
+                vertex_dist[1]->Fill(vertex_z,vertex_x,vertex_y);
+
+                vertex_2D[0]->Fill(vertex_x,vertex_y);
+                vertex_2D[1]->Fill(vertex_x,vertex_y);
+
+                vertex_2D_xz[0]->Fill(vertex_z,vertex_x);
+                vertex_2D_xz[1]->Fill(vertex_z,vertex_x);
+                vertex_2D_yz[0]->Fill(vertex_z,vertex_y);
+                vertex_2D_yz[1]->Fill(vertex_z,vertex_y);
+
+                hit_tgt_window[0]->Fill(tgt_win_x,tgt_win_y);
+                hit_tgt_window[1]->Fill(tgt_win_x,tgt_win_y);
+
                 histo_tdc1m->Fill(mdm_tdc_value_1);
                 histo_tdc1p->Fill(mdp_tdc_value_1);
                 pe_vs_tdc_1m->Fill(mdm_tdc_value_1,mdm_num_pe);
@@ -951,6 +1023,23 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 histo_md2_pe[0]->Fill(total_num_pe);
                 histo_md2_pe[1]->Fill(mdm_num_pe);
                 histo_md2_pe[2]->Fill(mdp_num_pe);
+
+                r2_proj[0]->Fill(r2_x,r2_y);
+                r2_proj[2]->Fill(r2_x,r2_y);
+
+                vertex_dist[0]->Fill(vertex_z,vertex_x,vertex_y);
+                vertex_dist[2]->Fill(vertex_z,vertex_x,vertex_y);
+
+                vertex_2D[0]->Fill(vertex_x,vertex_y);
+                vertex_2D[2]->Fill(vertex_x,vertex_y);
+
+                vertex_2D_xz[0]->Fill(vertex_z,vertex_x);
+                vertex_2D_xz[2]->Fill(vertex_z,vertex_x);
+                vertex_2D_yz[0]->Fill(vertex_z,vertex_y);
+                vertex_2D_yz[2]->Fill(vertex_z,vertex_y);
+
+                hit_tgt_window[0]->Fill(tgt_win_x,tgt_win_y);
+                hit_tgt_window[2]->Fill(tgt_win_x,tgt_win_y);
 
                 histo_tdc2m->Fill(mdm_tdc_value_2);
                 histo_tdc2p->Fill(mdp_tdc_value_2);
@@ -1453,6 +1542,121 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     q2_vs_momentum[2]->GetXaxis()->SetTitle("Reconstructed Momentum [MeV]");
     q2_vs_momentum[2]->GetYaxis()->SetTitle("Q^{2} [GeV/c^{2}] [MeV]");
 
+    // canvas 11
+    TCanvas* c11=new TCanvas("c11","Track Projection: Hit Distributions in Collimator and Target",1200,800);
+    c11->Divide(3,2);
+
+    c11->cd(1);
+    r2_proj[0]->Draw("colz");
+    r2_proj[0]->GetXaxis()->SetTitle("x [cm]");
+    r2_proj[0]->GetYaxis()->SetTitle("y [cm]");
+    Draw_Collimator2_Frame(md_1);
+    Draw_Collimator2_Frame(md_2);
+
+    c11->cd(2);
+    r2_proj[1]->Draw("colz");
+    r2_proj[1]->GetXaxis()->SetTitle("x [cm]");
+    r2_proj[1]->GetYaxis()->SetTitle("y [cm]");
+    Draw_Collimator2_Frame(md_1);
+
+    c11->cd(3);
+    r2_proj[2]->Draw("colz");
+    r2_proj[2]->GetXaxis()->SetTitle("x [cm]");
+    r2_proj[2]->GetYaxis()->SetTitle("y [cm]");
+    Draw_Collimator2_Frame(md_2);
+
+    c11->cd(4);
+    hit_tgt_window[0]->Draw("colz");
+    hit_tgt_window[0]->GetXaxis()->SetTitle("x [cm]");
+    hit_tgt_window[0]->GetYaxis()->SetTitle("y [cm]");
+    Draw_Raster();
+
+    c11->cd(5);
+    hit_tgt_window[1]->Draw("colz");
+    hit_tgt_window[1]->GetXaxis()->SetTitle("x [cm]");
+    hit_tgt_window[1]->GetYaxis()->SetTitle("y [cm]");
+    Draw_Raster();
+
+    c11->cd(6);
+    hit_tgt_window[2]->Draw("colz");
+    hit_tgt_window[2]->GetXaxis()->SetTitle("x [cm]");
+    hit_tgt_window[2]->GetYaxis()->SetTitle("y [cm]");
+    Draw_Raster();
+
+    // canvas 12
+    TCanvas* c12=new TCanvas("c12","Vertex X-Y & 3D Distributions in Target",1200,800);
+    c12->Divide(3,2);
+
+    c12->cd(1);
+    vertex_2D[0]->Draw("colz");
+    vertex_2D[0]->GetXaxis()->SetTitle("vertex x [cm]");
+    vertex_2D[0]->GetYaxis()->SetTitle("vertex y [cm]");
+    Draw_Raster();
+
+    c12->cd(2);
+    vertex_2D[1]->Draw("colz");
+    vertex_2D[1]->GetXaxis()->SetTitle("vertex x [cm]");
+    vertex_2D[1]->GetYaxis()->SetTitle("vertex y [cm]");
+    Draw_Raster();
+
+    c12->cd(3);
+    vertex_2D[2]->Draw("colz");
+    vertex_2D[2]->GetXaxis()->SetTitle("vertex x [cm]");
+    vertex_2D[2]->GetYaxis()->SetTitle("vertex y [cm]");
+    Draw_Raster();
+
+    c12->cd(4);
+    vertex_dist[0]->Draw();
+    vertex_dist[0]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_dist[0]->GetYaxis()->SetTitle("vertex x [cm]");
+    vertex_dist[0]->GetZaxis()->SetTitle("vertex y [cm]");
+
+    c12->cd(5);
+    vertex_dist[1]->Draw();
+    vertex_dist[1]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_dist[1]->GetYaxis()->SetTitle("vertex x [cm]");
+    vertex_dist[1]->GetZaxis()->SetTitle("vertex y [cm]");
+
+    c12->cd(6);
+    vertex_dist[2]->Draw();
+    vertex_dist[2]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_dist[2]->GetYaxis()->SetTitle("vertex x [cm]");
+    vertex_dist[2]->GetZaxis()->SetTitle("vertex y [cm]");
+
+    // canvas 13
+    TCanvas* c13=new TCanvas("c13","Vertex X-Z & Y-Z Distributions in Target",1200,800);
+    c13->Divide(3,2);
+
+    c13->cd(1);
+    vertex_2D_xz[0]->Draw("colz");
+    vertex_2D_xz[0]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_2D_xz[0]->GetYaxis()->SetTitle("vertex x [cm]");
+
+    c13->cd(2);
+    vertex_2D_xz[1]->Draw("colz");
+    vertex_2D_xz[1]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_2D_xz[1]->GetYaxis()->SetTitle("vertex x [cm]");
+
+    c13->cd(3);
+    vertex_2D_xz[2]->Draw("colz");
+    vertex_2D_xz[2]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_2D_xz[2]->GetYaxis()->SetTitle("vertex x [cm]");
+
+    c13->cd(4);
+    vertex_2D_yz[0]->Draw("colz");
+    vertex_2D_yz[0]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_2D_yz[0]->GetYaxis()->SetTitle("vertex y [cm]");
+
+    c13->cd(5);
+    vertex_2D_yz[1]->Draw("colz");
+    vertex_2D_yz[1]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_2D_yz[1]->GetYaxis()->SetTitle("vertex y [cm]");
+
+    c13->cd(6);
+    vertex_2D_yz[2]->Draw("colz");
+    vertex_2D_yz[2]->GetXaxis()->SetTitle("vertex z [cm]");
+    vertex_2D_yz[2]->GetYaxis()->SetTitle("vertex y [cm]");
+
     // canvas for run conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
     TPaveText *condition_txt = new TPaveText(0.05,0.05,0.95,0.95);
@@ -1635,6 +1839,9 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c8->Write();
     c9->Write();
     c10->Write();
+    c11->Write();
+    c12->Write();
+    c13->Write();
 
     //save histograms
     hit_dist1->Write();
@@ -1662,6 +1869,12 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         histo_md2_pe[i]->Write();
         histo_momentum[i]->Write();
         q2_vs_momentum[i]->Write();
+        r2_proj[i]->Write();
+        vertex_dist[i]->Write();
+        vertex_2D[i]->Write();
+        vertex_2D_xz[i]->Write();
+        vertex_2D_yz[i]->Write();
+        hit_tgt_window[i]->Write();
     }
 
     histo_tdc1m->Write();
@@ -1695,20 +1908,6 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     weighted_q2_vs_y2->Write();
 
     hist_file->Close();
-
-    // Save data to a text file
-    // Data format (columns, tab separated):
-    //
-    // (1) run number  (2) total events  (3) tdc_cut_min[0]  (4) tdc_cut_max[0]  (5) tdc_cut_min[1]
-    // (6) tdc_cut_max[1]  (7) num_pe_cut  (8) scattering_angle_cut_min  (9) scattering_angle_cut_max  
-    // (10) vertex_z_cut_min  (11) vertex_z_cut_max  (12) vertex_r_cut_min (13) vertex_r_cut_max
-    // (14) bending_angle_position_theta_cut_min  (15) bending_angle_position_theta_cut_max
-    // (16) bending_angle_position_phi_cut_min  (17) bending_angle_position_phi_cut_max
-    // (18) bending_angle_direction_theta_cut_min  (19) bending_angle_direction_theta_cut_max
-    // (20) bending_angle_direction_phi_cut_min  (21) bending_angle_direction_phi_cut_max
-    // (22) position_r_off_cut_min  (23) position_r_off_cut_max  (24) hit_position_x_cut_min
-    // (25) hit_position_x_cut_max (26) hit_position_y_cut_min  (27) hit_position_y_cut_max
-    // (28) 
 
     return;
 
@@ -1905,3 +2104,83 @@ void getMatchingAngles(TTree* event_tree, int evt_start, int evt_end)
    
 }
 
+void Draw_Collimator2_Frame(int Octant=1)
+{
+    double PI=3.1415926;
+    double px[6];
+    double py[6];
+
+    double highy,highx,middley,middlex,lowy,lowx;
+    highy=53.7,middley=37.1,lowy=30.57;
+    highx=9.2,middlex=9.2,lowx=6.5;
+
+    double angle;
+    if(Octant==8)
+      angle=135.0;
+    else
+      angle = (3-Octant)*45;
+
+    double Sin=sin(angle*PI/180);
+    double Cos=cos(angle*PI/180);
+
+    px[0]=-Cos*highx+Sin*highy;
+    py[0]=Sin*highx+Cos*highy;
+    px[1]=Cos*highx+Sin*highy;
+    py[1]=-Sin*highx+Cos*highy;
+    px[2]=-Cos*lowx+Sin*lowy;
+    py[2]=Sin*lowx+Cos*lowy;
+    px[3]=Cos*lowx+Sin*lowy;
+    py[3]=-Sin*lowx+Cos*lowy;
+    px[4]=-Cos*middlex+Sin*middley;
+    py[4]=Sin*middlex+Cos*middley;
+    px[5]=Cos*middlex+Sin*middley;
+    py[5]=-Sin*middlex+Cos*middley;
+
+
+    TLine* t1=new TLine(px[0],py[0],px[1],py[1]);
+    TLine* t2=new TLine(px[2],py[2],px[3],py[3]);
+    TLine* t3=new TLine(px[0],py[0],px[4],py[4]);
+    TLine* t4=new TLine(px[1],py[1],px[5],py[5]);
+    TLine* t5=new TLine(px[4],py[4],px[2],py[2]);
+    TLine* t6=new TLine(px[5],py[5],px[3],py[3]);
+    t1->SetLineWidth(1);
+    t2->SetLineWidth(1);
+    t3->SetLineWidth(1);
+    t4->SetLineWidth(1);
+    t5->SetLineWidth(1);
+    t6->SetLineWidth(1);
+    t1->Draw("same");
+    t2->Draw("same");
+    t3->Draw("same");
+    t4->Draw("same");
+    t5->Draw("same");
+    t6->Draw("same");
+}
+
+void Draw_Raster()
+{
+    double px[4];
+    double py[4];
+
+    px[0]=-0.2;
+    py[0]=-0.2;
+    px[1]= 0.2;
+    py[1]=-0.2;
+    px[2]= 0.2;
+    py[2]= 0.2;
+    px[3]=-0.2;
+    py[3]= 0.2;
+
+    TLine* t1=new TLine(px[0],py[0],px[1],py[1]);
+    TLine* t2=new TLine(px[1],py[1],px[2],py[2]);
+    TLine* t3=new TLine(px[2],py[2],px[3],py[3]);
+    TLine* t4=new TLine(px[3],py[3],px[0],py[0]);
+    t1->SetLineWidth(1);
+    t2->SetLineWidth(1);
+    t3->SetLineWidth(1);
+    t4->SetLineWidth(1);
+    t1->Draw("same");
+    t2->Draw("same");
+    t3->Draw("same");
+    t4->Draw("same");
+}

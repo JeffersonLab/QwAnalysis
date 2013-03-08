@@ -1,0 +1,13 @@
+#!/bin/bash
+umask 002
+
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS6.2-x86_64/QwAnalysis_TrackingPass4
+. $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
+
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl -e qwtracking \
+   --post-run $QWANALYSIS/Extensions/Tracking/macros/process_run.sh \
+   --rootfile-output mss:/mss/hallc/qweak/rootfiles/tracking_pass4 \
+   --options "--add-config eventmode_pass4.conf --add-config peiqing_2011.conf" \
+   $@
+

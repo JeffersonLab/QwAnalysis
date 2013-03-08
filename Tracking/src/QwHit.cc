@@ -281,7 +281,7 @@ Bool_t QwHit::operator<(const QwHit& obj)
  * @param hit Hit object
  * @return Output stream
  */
-ostream& operator<< (ostream& stream, const QwHit& hit)
+std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
 {
   stream << "hit: ";
   stream << "package "   << hit.fPackage << ", ";

@@ -4,7 +4,7 @@
 #include <TSQLServer.h>
 #include <TMath.h>
 #include "runlet.h"
-#include "detector.h"
+#include "QwDetector.h"
 #include "parse.h"
 
 /* QwRunlet constructor. */

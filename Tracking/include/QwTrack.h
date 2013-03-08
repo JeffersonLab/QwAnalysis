@@ -82,7 +82,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
 
     /// Output stream operator for tracks
-    friend ostream& operator<< (ostream& stream, const QwTrack& t);
+    friend std::ostream& operator<< (std::ostream& stream, const QwTrack& t);
 
   public:
 
@@ -94,9 +94,8 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     double fVertexR;	        ///< Primary vertex position in transverse direction
     //@}
 
-    double fChi;                ///< Combined chi square
+    double fChi;                ///< Combined chi, i.e. the sum of the chi for front and back partial track
     double fMomentum;           ///< Spectrometer momentum
-    double fScatteringAngle;    ///< Scattering angle
 
     int fIterationsNewton;      ///< Number of iterations in Newton's method
     int fIterationsRungeKutta;  ///< Number of iterations in Runge-Kutta method
@@ -144,7 +143,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     QwPartialTrack *fFront;     ///< Front partial track
     QwPartialTrack *fBack;      ///< Back partial track
 
-  ClassDef(QwTrack,2);
+  ClassDef(QwTrack,3);
 
 }; // class QwTrack
 
@@ -155,7 +154,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
  * @param v Vector
  * @return Output stream
  */
-inline ostream& operator<< (ostream& stream, const TVector3& v)
+inline std::ostream& operator<< (std::ostream& stream, const TVector3& v)
 {
   stream << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
   return stream;

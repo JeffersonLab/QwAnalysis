@@ -1,7 +1,7 @@
 #ifndef TREE_FILL_H
 #define TREE_FILL_H
 #include <TROOT.h>
-#include "detector.h"
+#include "QwDetector.h"
 #include "runlet.h"
 
 /* Definition of the tree_fill function. */

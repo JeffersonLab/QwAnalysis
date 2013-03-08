@@ -68,7 +68,7 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   //! \brief Ordering operator
   Bool_t operator< (const QwHit& hit);
   //! \brief Output stream operator
-  friend ostream& operator<< (ostream& stream, const QwHit& hit);
+  friend std::ostream& operator<< (std::ostream& stream, const QwHit& hit);
 
   //! \brief Print debugging information
   void Print(const Option_t* options = 0) const;

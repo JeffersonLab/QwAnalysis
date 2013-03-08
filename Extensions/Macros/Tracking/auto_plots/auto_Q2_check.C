@@ -4,6 +4,8 @@
 // Date:   Monday Jan 9th,2012
 // Version:1.1
 //
+// Modifed: 06-29-2012 by Valerie Gray
+//
 //
 // This script is used to extract the Q2 information for both packages
 // from the rootfiles. Now it has two filters turned on, one is the MD
@@ -28,7 +30,7 @@
 // covers oct 7. The default value for the octant specification number is 1, which corresponds
 // to the nominal situation(pkg2 is at oct1 and pkg1 is at oct5).
 
-// notion: the package number is always consitent with package number in R2
+// notion: the package number is always consitent with package number in R3
 
 // UPDATE on Feb 12th, 2012
 // remove the oct number in the argument list. The octant number will be automatically deduced give 
@@ -47,21 +49,20 @@
 
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 // Threshold for defining the maximum number of allowed hits per event per package
 const int multiple=18;
 
-TString outputPrefix;
-
 int getOctNumber(TChain* event_tree){
 
-//get a histogram (called h) of the octant cutting on region 2 and pacakge 2 - only one octant will be return - the one we want
+//get a histogram (called h) of the octant cutting on region 3 and pacakge 2 - only one octant will be return - the one we want
 
-TH1F* h = new TH1F("h","Region 2, Package 2 Octant number",9,-0.5,8.5);
+TH1F* h = new TH1F("h","Region 3, Package 2 Octant number",9,-0.5,8.5);
 
-event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==2&&events.fQwPartialTracks.fPackage==2");
+event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==3&&events.fQwPartialTracks.fPackage==2","GOFF",1000);
 
-//get the mean of histgram h made above, this returns a double value that is the trunkated to interger which is the region 2 pacakge 2 octant number
+//get the mean of histgram h made above, this returns a double value that is the trunkated to interger which is the region 3 pacakge 2 octant number
 
 int j = int (h->GetMean());
 
@@ -71,18 +72,22 @@ return (j);
 }
 
 
-void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1, int event_end=-1, TString stem="Qweak_", string suffix=""){
+void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1, int event_end=-1, TString stem="Qweak_", TString suffix=""){
 
 
   // changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly 
-   outputPrefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+   TString outputPrefix(Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum));
 
    // Create and load the chain
    TChain *event_tree = new TChain("event_tree");
-   event_tree->Add(Form("$QW_ROOTFILES/%s%d%s.root",stem.Data(),runnum,suffix.c_str()));
+   event_tree->Add(Form("$QW_ROOTFILES/%s%d%s.root",stem.Data(),runnum,suffix.Data()));
 
-//try to get the oct number from the run number
-  int oct=getOctNumber(event_tree);
+   // try to get the oct number from the run number
+   int oct=getOctNumber(event_tree);
+   if (oct == 0 || oct > 8) {
+     cout << "octant not valid!" << endl;
+     oct = 1;
+   }
 
    // Configure root
    gStyle->SetPalette(1);
@@ -95,7 +100,6 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
    TH1F* q2_1=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0,0.12);
    TH1F* q2_2=new TH1F("Q2 distribution in Package 2","Q2 distribution in Package 2",100,0,0.12);
 
-   TH1F* special=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0.1,0.06);
    QwEvent* fEvent=0;
 
    // How many events are in this rootfile?
@@ -107,6 +111,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
    
     // Now get a pointer to the branches so that we can loop through the tree
     event_tree->SetBranchStatus("events",1);
+    event_tree->SetBranchStatus("maindet",1);
     TBranch* event_branch=event_tree->GetBranch("events");
     TBranch* maindet_branch=event_tree->GetBranch("maindet");
     TBranch* trig_branch=event_tree->GetBranch("trigscint");
@@ -115,6 +120,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
     //get the octant numbers
     int md_1=(oct+4)%8;  //package 1
     int md_2=oct;    //package 2
+
 
     //TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_adc",md_1));
     //TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_adc",md_1));
@@ -129,11 +135,11 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
           
     // Temporayy histograms to stroe projection angles
-      TH1F* pkg1_theta=new TH1F("a","a",500,-1,1);
-      TH1F* pkg2_theta=new TH1F("b","b",500,-1,1);
+      TH1F* pkg1_theta=new TH1F("pkg1_theta","pkg1_theta",500,-1,1);
+      TH1F* pkg2_theta=new TH1F("pkg2_theta","pkg2_theta",500,-1,1);
 
-      TH1F* pkg1_phi=new TH1F("c","c",500,-1,1);
-      TH1F* pkg2_phi=new TH1F("d","d",500,-1,1);
+      TH1F* pkg1_phi=new TH1F("pkg1_phi","pkg1_phi",500,-1,1);
+      TH1F* pkg2_phi=new TH1F("pkg2_phi","pkg2_phi",500,-1,1);
 
       // the fit function (guassian) for the angles projections
       TF1* f1=new TF1("f1","gaus",-1,1);
@@ -143,22 +149,22 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
       f2->SetParameters(1,-0.5,1);
 
       TF1* f3=new TF1("f3","gaus",-1,1);
-      f1->SetParameters(1,-0.5,1);
+      f3->SetParameters(1,-0.5,1);
 
       TF1* f4=new TF1("f4","gaus",-1,1);
-      f1->SetParameters(1,-0.5,1);
+      f4->SetParameters(1,-0.5,1);
 
       // Finally project them to the above histograms to extract mean angle
-      event_tree->Project("a","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==1");
+      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg1_theta","events.fQwTracks.fPackage==1","GOFF",10000);
       pkg1_theta->Fit("f1","QN0");
 
-      event_tree->Project("b","events.fQwTracks.fDirectionThetaoff","events.fQwTracks.fPackage==2");
+      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg2_theta","events.fQwTracks.fPackage==2","GOFF",10000);
       pkg2_theta->Fit("f2","QN0");
 
-      event_tree->Project("c","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==1");
+      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg1_phi","events.fQwTracks.fPackage==1","GOFF",10000);
       pkg1_phi->Fit("f3","QN0");
 
-      event_tree->Project("d","events.fQwTracks.fDirectionPhioff","events.fQwTracks.fPackage==2");
+      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg2_phi","events.fQwTracks.fPackage==2","GOFF",10000);
       pkg2_phi->Fit("f4","QN0");
       
       double mean_thetaoff_pkg1=f1->GetParameter(1);
@@ -233,27 +239,27 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	  }
 	}
 
-      for(int j=0;j<ntracks;++j){
-        // Get pointer to j'th hit in entry i
-	const QwTrack* track=fEvent->GetTrack(j);
+	if(ntracks > 0)
+	{
+        // Get only the first track - only one we are looking at
+	const QwTrack* track=fEvent->GetTrack(0);
 
         // Check if it is a valid track for the corresponding package
-	if(track->GetPackage()==1 && valid_hits_1 < multiple && 
-	   mdm_value_1 >-210 && mdm_value_1 < -150 && 
+	if(track->fBack->GetPackage()==1 && valid_hits_1 < multiple && 
+	   mdm_value_1 > -210 && mdm_value_1 < -150 && 
 	   mdp_value_1 > -210 && mdp_value_1 < -150){
 
 	   if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper 
 	     && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper ){
 	  
 	  //Valid for package 1 Q^2 and angles, fill the histograms
-	  angle_1->Fill(track->fScatteringAngle);
-	  q2_1->Fill(track->fQ2);
-	  special->Fill(track->fQ2);
-	  angle->Fill(track->fScatteringAngle);
-	  q2->Fill(track->fQ2);
+	  angle_1->Fill(fEvent->fScatteringAngle);
+	  q2_1->Fill(fEvent->fKin.fQ2);
+	  angle->Fill(fEvent->fScatteringAngle);
+	  q2->Fill(fEvent->fKin.fQ2);
 	   }
 	}
-      	else if(track->GetPackage()==2 && valid_hits_2 < multiple 
+      	else if(track->fBack->GetPackage()==2 && valid_hits_2 < multiple 
                 && mdm_value_2 > -210 && mdm_value_2 < -150 
                 && mdp_value_2 > -210 && mdp_value_2 < -150 ){
 	 
@@ -261,10 +267,10 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 		    && track->fDirectionThetaoff>pkg2_thetaoff_lower && track->fDirectionThetaoff<pkg2_thetaoff_upper){
 	  
 			//if valid for package 2 fill the Q^2 and angle  histograms
-			angle_2->Fill(track->fScatteringAngle);
-	  		q2_2->Fill(track->fQ2);
-	  		angle->Fill(track->fScatteringAngle);
-	  		q2->Fill(track->fQ2);
+			angle_2->Fill(fEvent->fScatteringAngle);
+	  		q2_2->Fill(fEvent->fKin.fQ2);
+	  		angle->Fill(fEvent->fScatteringAngle);
+	  		q2->Fill(fEvent->fKin.fQ2);
 	   }
 	}
       }
@@ -276,25 +282,25 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
     cout << "pkg2: " << angle_2->GetEntries() << endl;
 
     cout << "scattering angle: " << endl;
-    if(angle->GetEntries()) {
-      cout << "all: " << setprecision(5) << angle->GetMean() << " error RMS/sqrt(N): " << setprecision(4) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
+    if(angle->GetEntries()!=0) {
+      cout << "all: " << std::setprecision(5) << angle->GetMean() << " error RMS/sqrt(N): " << std::setprecision(4) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
     }
     if(angle_1->GetEntries()!=0) {
-      cout << "pkg1: " << setprecision(5) << angle_1->GetMean() << " error RMS/sqrt(N): " << setprecision(4) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
+      cout << "pkg1: " << std::setprecision(5) << angle_1->GetMean() << " error RMS/sqrt(N): " << std::setprecision(4) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
     }
     if(angle_2->GetEntries()!=0) {
-      cout << "pkg2: " <<  setprecision(5) << angle_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
+      cout << "pkg2: " <<  std::setprecision(5) << angle_2->GetMean() << " error RMS/sqrt(N): " <<  std::setprecision(4) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
     }
 
     cout << "q2: " << endl;
-    if(q2->GetEntries()) {
-      cout << "all: " <<  setprecision(5) << 1000*q2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2->GetRMS()/sqrt(q2->GetEntries()) << endl;
+    if(q2->GetEntries()!=0) {
+      cout << "all: " <<  std::setprecision(5) << 1000*q2->GetMean() << " error RMS/sqrt(N): " <<  std::setprecision(4) << 1000*q2->GetRMS()/sqrt(q2->GetEntries()) << endl;
     }
     if(q2_1->GetEntries()!=0) {
-      cout << "pkg1: " <<  setprecision(5) << 1000*q2_1->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
+      cout << "pkg1: " <<  std::setprecision(5) << 1000*q2_1->GetMean() << " error RMS/sqrt(N): " <<  std::setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
     }
     if(q2_2->GetEntries()!=0) {
-      cout << "pkg2: " <<  setprecision(5) << 1000*q2_2->GetMean() << " error RMS/sqrt(N): " <<  setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
+      cout << "pkg2: " <<  std::setprecision(5) << 1000*q2_2->GetMean() << " error RMS/sqrt(N): " <<  std::setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
     }
     
     //print to file 
@@ -318,25 +324,25 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
     fout << "Ntrig \t " << runnum << "\t 2 \t" << angle_2->GetEntries() << endl;
      
     //fout << "scattering angle: " << endl;
-    if(angle->GetEntries()) {
-      fout << "angle \t " << runnum <<"\t 0 \t" << setprecision(5) << angle->GetMean() << "\t" << setprecision(4) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
+    if(angle->GetEntries()!=0) {
+      fout << "angle \t " << runnum <<"\t 0 \t" << std::setprecision(5) << angle->GetMean() << "\t" << std::setprecision(4) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
     }
     if(angle_1->GetEntries()!=0) {
-      fout << "angle \t " << runnum <<"\t 1 \t" << setprecision(5) << angle_1->GetMean() << "\t" << setprecision(4) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
+      fout << "angle \t " << runnum <<"\t 1 \t" << std::setprecision(5) << angle_1->GetMean() << "\t" << std::setprecision(4) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
     }
     if(angle_2->GetEntries()!=0) {
-      fout << "angle \t " << runnum <<"\t 2 \t" <<  setprecision(5) << angle_2->GetMean() << " \t " <<  setprecision(4) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
+      fout << "angle \t " << runnum <<"\t 2 \t" <<  std::setprecision(5) << angle_2->GetMean() << " \t " <<  std::setprecision(4) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
     }
 
     //fout << "q2: " << endl;
-    if(q2->GetEntries()) {
-      fout << "q2 \t " << runnum <<"\t 0 \t" <<  setprecision(5) << 1000*q2->GetMean() << " \t " <<  setprecision(4) << 1000*q2->GetRMS()/sqrt(q2->GetEntries()) << endl;
+    if(q2->GetEntries()!=0) {
+      fout << "q2 \t " << runnum <<"\t 0 \t" <<  std::setprecision(5) << 1000*q2->GetMean() << " \t " <<  std::setprecision(4) << 1000*q2->GetRMS()/sqrt(q2->GetEntries()) << endl;
     }
     if(q2_1->GetEntries()!=0) {
-      fout << "q2 \t " << runnum <<"\t 1 \t" <<  setprecision(5) << 1000*q2_1->GetMean() << " \t " <<  setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
+      fout << "q2 \t " << runnum <<"\t 1 \t" <<  std::setprecision(5) << 1000*q2_1->GetMean() << " \t " <<  std::setprecision(4) << 1000*q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << endl;
     }
     if(q2_2->GetEntries()!=0) {
-      fout << "q2 \t " << runnum <<"\t 2 \t" <<  setprecision(5) << 1000*q2_2->GetMean() << " \t " <<  setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
+      fout << "q2 \t " << runnum <<"\t 2 \t" <<  std::setprecision(5) << 1000*q2_2->GetMean() << " \t " <<  std::setprecision(4) << 1000*q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << endl;
     }
     
     //close the file

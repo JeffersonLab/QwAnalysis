@@ -13,6 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <vector>
 using std::string;
 
 // Qweak headers
@@ -31,32 +32,32 @@ class QwOptions;
 /*! \def QwOut
  *  \brief Predefined log drain for explicit output
  */
-#define QwOut      gQwLog(QwLog::kAlways)
+#define QwOut      gQwLog(QwLog::kAlways,__PRETTY_FUNCTION__)
 
 /*! \def QwError
  *  \brief Predefined log drain for errors
  */
-#define QwError    gQwLog(QwLog::kError,__PRETTY_FUNCTION__,__FUNCTION__)
+#define QwError    gQwLog(QwLog::kError,__PRETTY_FUNCTION__)
 
 /*! \def QwWarning
  *  \brief Predefined log drain for warnings
  */
-#define QwWarning  gQwLog(QwLog::kWarning,__PRETTY_FUNCTION__,__FUNCTION__)
+#define QwWarning  gQwLog(QwLog::kWarning,__PRETTY_FUNCTION__)
 
 /*! \def QwMessage
  *  \brief Predefined log drain for regular messages
  */
-#define QwMessage  gQwLog(QwLog::kMessage)
+#define QwMessage  gQwLog(QwLog::kMessage,__PRETTY_FUNCTION__)
 
 /*! \def QwVerbose
  *  \brief Predefined log drain for verbose messages
  */
-#define QwVerbose  gQwLog(QwLog::kVerbose)
+#define QwVerbose  gQwLog(QwLog::kVerbose,__PRETTY_FUNCTION__)
 
 /*! \def QwDebug
  *  \brief Predefined log drain for debugging output
  */
-#define QwDebug    gQwLog(QwLog::kDebug)
+#define QwDebug    gQwLog(QwLog::kDebug,__PRETTY_FUNCTION__)
 
 
 /**
@@ -110,6 +111,10 @@ class QwLog : public std::ostream {
      */
     virtual ~QwLog();
 
+    /*! \brief Determine whether the function name matches a specified list of regular expressions
+     */
+    bool                        IsDebugFunction(const string func_name);
+
     /*! \brief Initialize the log file with name 'name'
      */
     void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
@@ -129,8 +134,7 @@ class QwLog : public std::ostream {
     /*! \brief Set the stream log level
      */
     QwLog&                      operator()(const QwLogLevel level,
-                                           const std::string func_sig  = "<unknown>",
-                                           const std::string func_name = "<unknown>");
+                                           const std::string func_sig  = "<unknown>");
 
     /*! \brief Stream an object to the output stream
      */
@@ -175,10 +179,12 @@ class QwLog : public std::ostream {
     //! Log level of this stream
     QwLogLevel fLogLevel;
 
-    //! Flag to print function name on warning or error
-    bool fPrintFunctionName;
     //! Flag to print function signature on warning or error
     bool fPrintFunctionSignature;
+
+    //! List of regular expressions for functions that will have increased log level
+    std::map<std::string,bool> fIsDebugFunction;
+    std::vector<std::string> fDebugFunctionRegexString;
 
     //! Flag to disable color
     bool fUseColor;

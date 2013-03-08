@@ -12,6 +12,7 @@
 // System headers
 #include <string>
 #include <cmath>
+#include "../include/QwTreeEventBuffer.h"
 
 // ROOT headers
 #include <TVector3.h>
@@ -58,6 +59,16 @@ QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
   ReserveVectors();
   // Initialize the tree vectors
   ClearVectors();
+  
+  fNumOfSimulated_ValidTracks = 0;
+  fNumOfSimulated_R2_PartialTracks = 0;
+  fNumOfSimulated_R2_TS_MD_Tracks = 0;
+  fNumOfSimulated_R3_TS_MD_Tracks = 0;
+  fNumOfSimulated_R3_PartialTracks = 0;
+  fNumOfSimulated_R2_R3_Tracks = 0;
+  fNumOfSimulated_TS_Tracks = 0;
+  fNumOfSimulated_MD_Tracks = 0;
+  fNumOfSimulated_TS_MD_Tracks = 0;
 }
 
 
@@ -234,16 +245,19 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
   while (fCurrentEntryNumber / fNumberOfEntriesPerEvent == fCurrentEventNumber
       && fCurrentEntryNumber < fNumberOfEntries) {
 
+    bool r2Hit = false;
+    bool r3Hit = false;
     // Get the next entry from the ROOT tree
-    GetEntry(fCurrentEntryNumber++);
-
+    if(GetEntry(fCurrentEntryNumber++, &r2Hit, &r3Hit)==false)
+        continue;
+    
     // Add the smeared hit list
-    QwHitContainer* smearedhitlist = CreateHitList(true);
+    QwHitContainer* smearedhitlist = CreateHitList(false,r2Hit,r3Hit);
     fCurrentEvent->AddHitContainer(smearedhitlist);
     delete smearedhitlist;
 
     // Add the original hit list
-    QwHitContainer* originalhitlist = CreateHitList(false);
+    QwHitContainer* originalhitlist = CreateHitList(false,r2Hit,r3Hit);
     fOriginalEvent->AddHitContainer(originalhitlist);
     delete originalhitlist;
 
@@ -257,7 +271,17 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
                fPrimary_OriginVertexMomentumDirectionY,
                fPrimary_OriginVertexMomentumDirectionZ);
 
-    // Add the tree lines
+    // jpan: new assignment
+    fOriginalEvent->fScatteringVertexZ =  fPrimary_OriginVertexPositionZ;
+    fOriginalEvent->fScatteringVertexR =  
+        sqrt(fPrimary_OriginVertexPositionX*fPrimary_OriginVertexPositionX
+           + fPrimary_OriginVertexPositionY*fPrimary_OriginVertexPositionY);
+    fOriginalEvent->fPrimaryQ2 = fPrimary_PrimaryQ2;
+    fOriginalEvent->fScatteringAngle = fPrimary_OriginVertexThetaAngle;
+    fOriginalEvent->fCrossSection = fPrimary_CrossSection;
+    fOriginalEvent->fPreScatteringEnergy = fPrimary_PreScatteringKineticEnergy;     
+    fOriginalEvent->fOriginVertexEnergy =  fPrimary_OriginVertexKineticEnergy;
+
     std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
     treelinelist = CreateTreeLines(kRegionID2);
     for (size_t i = 0; i < treelinelist.size(); i++)
@@ -276,7 +300,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
       fOriginalEvent->AddPartialTrack(partialtracklist[i].get());
 
   } // end of loop over entries
-
+  
   return 0;
 }
 
@@ -285,7 +309,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
  * Read the specified entry from the tree
  * @param entry Entry to read from ROOT tree
  */
-void QwTreeEventBuffer::GetEntry(const unsigned int entry)
+bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r3_hit)
 {
   // Read event
   QwVerbose << "Reading entry " << entry << QwLog::endl;
@@ -310,11 +334,58 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
                         fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit  == 5;
 
   // Region 3
+  bool is_charged_particle = true;
+  for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VECTOR_SIZE; i1++) {
+      int pdgcode = fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1);
+      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+  }
+
+  for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VECTOR_SIZE; i2++) {
+      int pdgcode = fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2);
+      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+  }
+
+  for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VECTOR_SIZE; i3++) {
+      int pdgcode = fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3);
+      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+  }
+
+  for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VECTOR_SIZE; i4++) {
+      int pdgcode = fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4);
+      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+  }
+
   fRegion3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
                         fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
                         fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
-                        fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5;
+                        fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5 &&
+                        is_charged_particle ;
 
+	
+  if (fRegion3_HasBeenHit) {
+    
+     const QwDetectorInfo* detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackage1).at(0);
+     double r3_half_length_x = 0.5*detectorinfo->GetActiveWidthX();
+     double r3_half_length_y = 0.5*detectorinfo->GetActiveWidthY();
+     
+     bool r3_geo_check_ok = true;
+     int r3_min_hits = TMath::Min(TMath::Min(fRegion3_ChamberFront_WirePlaneU_NbOfHits, fRegion3_ChamberFront_WirePlaneV_NbOfHits),
+                                  TMath::Min(fRegion3_ChamberBack_WirePlaneU_NbOfHits,fRegion3_ChamberBack_WirePlaneV_NbOfHits));
+     for (int j = 0; j < r3_min_hits && j < VECTOR_SIZE; j++) {
+       r3_geo_check_ok = r3_geo_check_ok && 
+                      (fabs(fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(j))<r3_half_length_x &&
+                       fabs(fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(j))<r3_half_length_x &&
+                       fabs(fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(j))<r3_half_length_x &&
+                       fabs(fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(j))<r3_half_length_x &&
+                       fabs(fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(j))<r3_half_length_y &&
+                       fabs(fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(j))<r3_half_length_y &&
+                       fabs(fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(j))<r3_half_length_y &&
+                       fabs(fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(j))<r3_half_length_y );
+
+    }
+    fRegion3_HasBeenHit = (fRegion3_HasBeenHit && r3_geo_check_ok);
+  }
+  
   // Trigger Scintillator
   fTree->GetBranch("TriggerScintillator.Detector.HasBeenHit")->GetEntry(entry);
   fTriggerScintillator_HasBeenHit = (fTriggerScintillator_Detector_HasBeenHit == 5);
@@ -322,12 +393,66 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
   // Cerenkov
   fTree->GetBranch("Cerenkov.Detector.HasBeenHit")->GetEntry(entry);
   fCerenkov_HasBeenHit = (fCerenkov_Detector_HasBeenHit == 5);
+  fTree->GetBranch("Cerenkov.Detector.DetectorID")->GetEntry(entry);
+  
+//   std::cout<<"Detector number of hits: "<<fCerenkov_Detector_NbOfHits<<std::endl;
+//   for (int i = 0; i < fCerenkov_Detector_NbOfHits ; i++) {
+//     
+//     int octant = fDetectorInfo.in(kRegionID3).in(kPackage1).at(i)->GetOctant();
+//      //fCerenkov_HasBeenHit = fCerenkov_HasBeenHit && (fCerenkov_Detector_DetectorID.at(0) == octant);
+//   
+//     std::cout<<"detector ID="<<fCerenkov_Detector_DetectorID.at(i)<<", Octant: "<<octant<<std::endl;
+//   }
+  
+  fTree->GetBranch("Cerenkov.PMT.PMTTotalNbOfHits")->GetEntry(entry);
+  fCerenkov_Light = (fCerenkov_PMT_PMTTotalNbOfHits >0);
 
-  // Coincidence for avoiding match empty nodes
-  if (fRegion1_HasBeenHit && fRegion2_HasBeenHit && fRegion3_HasBeenHit) {
+  if (fRegion2_HasBeenHit)
+    fNumOfSimulated_R2_PartialTracks++;
+  
+  if (fRegion2_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light) {
+    fNumOfSimulated_R2_TS_MD_Tracks++;
+    *r2_hit = true;
+  }
+      
+  if (fRegion3_HasBeenHit)
+    fNumOfSimulated_R3_PartialTracks++;
+  
+  if (fRegion3_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light) {
+    fNumOfSimulated_R3_TS_MD_Tracks++;
+    *r3_hit = true;
+  }
+  
+  if (fRegion2_HasBeenHit && fRegion3_HasBeenHit)
+    fNumOfSimulated_R2_R3_Tracks++;
+  
+  if (fTriggerScintillator_HasBeenHit)
+    fNumOfSimulated_TS_Tracks++;
+  
+  if (fCerenkov_HasBeenHit && fCerenkov_Light)
+    fNumOfSimulated_MD_Tracks++;
+  
+  if (fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light)
+    fNumOfSimulated_TS_MD_Tracks++;
+  
+  //count as a valid track if the coincidence is satisfied
+  bool is_a_valid_track = fRegion2_HasBeenHit && fRegion3_HasBeenHit 
+                          && fTriggerScintillator_HasBeenHit 
+                          && fCerenkov_HasBeenHit && fCerenkov_Light;
+  if (is_a_valid_track)
+    fNumOfSimulated_ValidTracks++;
+
+//   std::cout<<"trigger: "<<fRegion2_HasBeenHit<<", "<<fRegion3_HasBeenHit<<", "
+//            <<fTriggerScintillator_HasBeenHit<<", "<<fTriggerScintillator_HasBeenHit<<", "
+// 	   <<fCerenkov_Light<<std::endl;
+
+  if (fRegion2_HasBeenHit || fRegion3_HasBeenHit) {
     fTree->GetEntry(entry);
+
   } else {
+
     QwDebug << "Skipped event with missing hits: " << entry << QwLog::endl;
+    return false;
   }
 
   // Print info
@@ -360,6 +485,8 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
 
   QwDebug << "Cerenkov: "
           << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
+
+  return true;
 }
 
 
@@ -464,10 +591,10 @@ std::vector<boost::shared_ptr<QwPartialTrack> > QwTreeEventBuffer::CreatePartial
  * @param resolution_effects Flag to enable resolution effects (default is true)
  * @return Hit list
  */
-QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) const
+QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, bool r2_hit, bool r3_hit) const
 {
   QwDebug << "Calling QwTreeEventBuffer::GetHitList ()" << QwLog::endl;
-
+  
   // Flag to set hit numbers to non-zero values
   const bool set_hit_numbers = false;
 
@@ -539,6 +666,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
 
 
+  if (r2_hit) {
   // Region 2 front chambers (x,u,v,x',u',v')
   QwDebug << "Processing Region2_ChamberFront_WirePlane1: "
           << fRegion2_ChamberFront_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
@@ -806,7 +934,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   } catch (std::exception&) {
     QwDebug << "No detector in region 2, back plane 6." << QwLog::endl;
   }
-
+  
+  } // end of if (r2_hit)
+  
   // The local reference frame in which the region 3 hits are stored in the MC
   // file is centered at the wire plane center, has the z axis pointing towards
   // the target, the y axis pointing towards the beam pipe, and the x axis to
@@ -840,6 +970,9 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // rotation to obtain the slope with respect to the wire plane.  This means
   // a rotation over -theta around x for z,y.
 
+  if (r3_hit) {
+    
+  double originX0, originY0, originZ0;
   // Region 3 front planes (u,v)
   QwDebug << "Processing Region3_ChamberFront_WirePlaneU: "
           << fRegion3_ChamberFront_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
@@ -848,31 +981,73 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
     for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
-      // We don't care about gamma particles now
-      if (fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1) == 2) continue;
+      // We don't care about nutral particles, such as gamma and neutron
+      int pdgcode = fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1);
+      if (abs(pdgcode) != 11) continue;
 
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
       double yLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
+      double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
+      double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
+      double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
+      double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
 
-      // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorRotationCos();
-      double sin_theta = detectorinfo->GetDetectorRotationSin();
-      // Rotation over theta around x of z,y in the MC frame
-      double pxLocalMC = pxGlobalMC; // no change in x
-      double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
-      double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
+      // Convert global x-y to local x-y
+      double originX = originX0 = detectorinfo->GetXPosition();
+      double originY = originY0 = detectorinfo->GetYPosition();
+      double originZ = originZ0 = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nVDC front U, octant: "<<detectorinfo->GetOctant()<<", ";
+//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+// 
+//       std::cout<<"px: "<<pxGlobalMC<<", py: "<<pyGlobalMC<<", pz: "<<pzGlobalMC <<std::endl;
+//             
+//       xLocalMC = xGlobalMC - originX;
+//       yLocalMC = yGlobalMC - originY;
 
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
+      
+//       double phi = -(octant-1)*45.0*TMath::DegToRad();
+//       double sin_phi = sin(phi);
+//       double cos_phi = cos(phi);
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+//       std::cout<<"rotated local xy: "<<x<<","<<y<<std::endl;
+      
+      // Detector rotation over theta around the x axis in the MC frame
+      double cos_theta = detectorinfo->GetDetectorRotationCos();
+      double sin_theta = detectorinfo->GetDetectorRotationSin();
+      
+      // Rotation over theta around x of z,y in the MC frame
+      double pxLocalMC = pxGlobalMC; // no change in x
+      double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
+      double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
+      
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
       double my = -pxLocalMC / pzLocalMC;
 
+//       double mx_global = pxGlobalMC/pzGlobalMC;
+//       double my_global = pyGlobalMC/pzGlobalMC;
+//       double dz = originZ - originZ0;
+//       xLocalMC = xGlobalMC+dz*mx_global - originX;
+//       yLocalMC = yGlobalMC+dz*my_global - originY;
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+//       
+//       std::cout<<"new local x,y: "<<x<<","<<y<<std::endl;
+//       std::cout<<"global mx, my: "<<mx_global<<","<<my_global<<std::endl;
+//       std::cout<<" plane offset: "<<dz<<std::endl;
+      
       // Fill a vector with the hits for this track
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
 
@@ -895,30 +1070,78 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
     for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VECTOR_SIZE; i2++) {
       QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
-      // We don't care about gamma particles
-      if (fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2) == 2) continue;
+      // We don't care about nutral particles, such as gamma and neytron
+      int pdgcode = fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2);
+      if (abs(pdgcode) != 11) continue;
 
       // Get the position and momentum in the MC frame (local and global)
+//       double xLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
+//       double yLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
+//       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
+//       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
+//       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
+
+            // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
       double yLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
+      double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
+      double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
+      double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
+      double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
 
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"VDC front V, octant: "<<octant <<", ";
+//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+//       
+//        
+//       xLocalMC = xGlobalMC - originX;
+//       yLocalMC = yGlobalMC - originY;
+       
+      // Position in the Qweak frame
+      double x =  yLocalMC;
+      double y = -xLocalMC;
+      
+//       double phi = -(octant-1)*45.0*TMath::DegToRad();
+//       double sin_phi = sin(phi);
+//       double cos_phi = cos(phi);
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+//       std::cout<<"rotated local xy: "<<x<<","<<y<<std::endl;
+
       // Detector rotation over theta around the x axis in the MC frame
       double cos_theta = detectorinfo->GetDetectorRotationCos();
       double sin_theta = detectorinfo->GetDetectorRotationSin();
+      
       // Rotation over theta around x of z,y in the MC frame
       double pxLocalMC = pxGlobalMC; // no change in x
       double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
       double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
-
-      // Position in the Qweak frame
-      double x =  yLocalMC;
-      double y = -xLocalMC;
+      
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
       double my = -pxLocalMC / pzLocalMC;
+
+//       double mx_global = pxGlobalMC/pzGlobalMC;
+//       double my_global = pyGlobalMC/pzGlobalMC;
+//       double dz = originZ - originZ0;
+//       xLocalMC = xGlobalMC+dz*mx_global - originX;
+//       yLocalMC = yGlobalMC+dz*my_global - originY;
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+// 
+//       std::cout<<"new local x,y: "<<x<<","<<y<<std::endl;
+//       std::cout<<"global mx, my: "<<mx_global<<","<<my_global<<std::endl;
+//       std::cout<<" plane offset: "<<dz<<std::endl;
 
       // Fill a vector with the hits for this track
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
@@ -943,30 +1166,77 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
     for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VECTOR_SIZE; i3++) {
       QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
-      // We don't care about gamma particles
-      if (fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3) == 2) continue;
+      // We don't care about nutral particles, such as gamma and neytron
+      int pdgcode = fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3);
+      if (abs(pdgcode) != 11) continue;
 
+      // Get the position and momentum in the MC frame (local and global)
+//       double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
+//       double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
+//       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
+//       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
+//       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
+      
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
       double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
+      double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
+      double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
+      double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
+      double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
 
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"VDC back U, octant: "<<detectorinfo->GetOctant()<<", ";
+//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+//       
+//       xLocalMC = xGlobalMC - originX;
+//       yLocalMC = yGlobalMC - originY;
+      
+      // Position in the Qweak frame
+      double x =  yLocalMC;
+      double y = -xLocalMC;
+      
+//       double phi = -(octant-1)*45.0*TMath::DegToRad();
+//       double sin_phi = sin(phi);
+//       double cos_phi = cos(phi);
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+//       std::cout<<"rotated local xy: "<<x<<","<<y<<std::endl;
+      
       // Detector rotation over theta around the x axis in the MC frame
       double cos_theta = detectorinfo->GetDetectorRotationCos();
       double sin_theta = detectorinfo->GetDetectorRotationSin();
+      
       // Rotation over theta around x of z,y in the MC frame
       double pxLocalMC = pxGlobalMC; // no change in x
       double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
       double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
-
-      // Position in the Qweak frame
-      double x =  yLocalMC;
-      double y = -xLocalMC;
+      
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
       double my = -pxLocalMC / pzLocalMC;
+
+//       double mx_global = pxGlobalMC/pzGlobalMC;
+//       double my_global = pyGlobalMC/pzGlobalMC;
+//       double dz = originZ - originZ0;
+//       xLocalMC = xGlobalMC+dz*mx_global - originX;
+//       yLocalMC = yGlobalMC+dz*my_global - originY;
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+// 
+//       std::cout<<"new local x,y: "<<x<<","<<y<<std::endl;
+//       std::cout<<"global mx, my: "<<mx_global<<","<<my_global<<std::endl;
+//       std::cout<<" plane offset: "<<dz<<std::endl;
 
       // Fill a vector with the hits for this track
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
@@ -990,31 +1260,78 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
     for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VECTOR_SIZE; i4++) {
       QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
-      // We don't care about gamma particles
-      if (fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4) == 2) continue;
+      // We don't care about nutral particles, such as gamma and neytron
+      int pdgcode = fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4);
+      if (abs(pdgcode) != 11) continue;
 
+      // Get the position and momentum in the MC frame (local and global)
+//       double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
+//       double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
+//       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
+//       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
+//       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
+      
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
       double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
+      double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
+      double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
+      double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
+      double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
 
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+
+//       std::cout<<"VDC back V, octant: "<<detectorinfo->GetOctant()<<", ";
+//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+//       
+//       xLocalMC = xGlobalMC - originX;
+//       yLocalMC = yGlobalMC - originY;
+      
+      // Position in the Qweak frame
+      double x =  yLocalMC;
+      double y = -xLocalMC;
+      
+//       double phi = -(octant-1)*45.0*TMath::DegToRad();
+//       double sin_phi = sin(phi);
+//       double cos_phi = cos(phi);
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+//       std::cout<<"rotated local xy: "<<x<<","<<y<<std::endl;
+      
       // Detector rotation over theta around the x axis in the MC frame
       double cos_theta = detectorinfo->GetDetectorRotationCos();
       double sin_theta = detectorinfo->GetDetectorRotationSin();
+      
       // Rotation over theta around x of z,y in the MC frame
       double pxLocalMC = pxGlobalMC; // no change in x
       double pyLocalMC = cos_theta * pyGlobalMC - sin_theta * pzGlobalMC;
       double pzLocalMC = sin_theta * pyGlobalMC + cos_theta * pzGlobalMC;
-
-      // Position in the Qweak frame
-      double x =  yLocalMC;
-      double y = -xLocalMC;
+      
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
       double my = -pxLocalMC / pzLocalMC;
 
+//       double mx_global = pxGlobalMC/pzGlobalMC;
+//       double my_global = pyGlobalMC/pzGlobalMC;
+//       double dz = originZ - originZ0;
+//       xLocalMC = xGlobalMC+dz*mx_global - originX;
+//       yLocalMC = yGlobalMC+dz*my_global - originY;
+//       x = xLocalMC*cos_phi - yLocalMC*sin_phi;
+//       y = xLocalMC*sin_phi + yLocalMC*cos_phi;
+//       
+//       std::cout<<"new local x,y: "<<x<<","<<y<<std::endl;
+//       std::cout<<"global mx, my: "<<mx_global<<","<<my_global<<std::endl;
+//       std::cout<<" plane offset: "<<dz<<std::endl;
+	    
       // Fill a vector with the hits for this track
       std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
 
@@ -1029,7 +1346,8 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   } catch (std::exception&) {
     QwDebug << "No detector in region 3, back plane 1." << QwLog::endl;
   }
-
+  
+  } // end of if (r3_hit)
 
   QwDebug << "Processing Trigger Scintillator: "
           << fTriggerScintillator_Detector_NbOfHits << " hit(s)." << QwLog::endl;
@@ -1316,8 +1634,10 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   // current direction, so the other one is arbitrarily set to angleU = -angleV,
   // which happens to be correct for region 2 and 3 drift chambers.
   double angleU = 0.0, angleV = Qw::pi/2.0; // default: UV == XY
-  if (direction == kDirectionU) { angleU = angle; angleV = - angle; }
-  if (direction == kDirectionV) { angleU = - angle; angleV = angle; }
+
+  if (direction == kDirectionU) { angleU = -angle; angleV =  angle; }
+  if (direction == kDirectionV) { angleU =  angle; angleV = -angle; }
+  
   // Ensure correct handedness
   if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
   Uv2xy uv2xy (angleU, angleV);
@@ -1355,7 +1675,11 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   for (int wire = wire1; wire <= wire2; wire++) {
 
     // Check whether this wire is physical, skip if not possible
-    if ((wire < 1) || (wire > detectorinfo->GetNumberOfElements())) continue;
+    if ((wire < 1) || (wire > detectorinfo->GetNumberOfElements())) {
+//       std::cout<<"skiped unphysical wire "<<wire<<", where wire1="<<wire1<<", wire2="<<wire2
+//                <<", detectorinfo->GetNumberOfElements()="<<detectorinfo->GetNumberOfElements()<<std::endl;
+      continue;
+    }
 
     // Calculate the actual position of this wire
     double x_wire = offset + (wire - 1) * spacing;
@@ -1378,13 +1702,19 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
     }
 
     // Skip the hit if is outside of the chamber
-    if (distance > dz/2) continue;
+    if (distance > dz/2) {
+      //std::cout<<"skiped a outside hit: distance ("<<distance<<") > dz/2 ("<<dz/2<<")"<<std::endl;
+      continue;
+    }
 
     // Create a new hit
     QwHit* hit = new QwHit(0,0,0,0, region, package, octant, plane, direction, wire, 0);
     hit->SetDriftDistance(distance);
     hit->SetDetectorInfo(detectorinfo);
 
+//     std::cout<<"add a hit===>> region, package, octant, plane, direction, wire, distance: \n\t"
+//              <<region<<", "<<package<<", "<<octant<<", "<<plane<<", "<<direction<<", "<<wire<<", "<<distance<<std::endl;
+  
     // Add hit to the list for this detector plane and delete local instance
     hits.push_back(*hit);
     delete hit;
@@ -1660,6 +1990,9 @@ void QwTreeEventBuffer::ReserveVectors()
   fRegion3_ChamberFront_WirePlaneU_LocalPositionX.reserve(VECTOR_SIZE);
   fRegion3_ChamberFront_WirePlaneU_LocalPositionY.reserve(VECTOR_SIZE);
   fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.reserve(VECTOR_SIZE);
+  fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.reserve(VECTOR_SIZE);
+  fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.reserve(VECTOR_SIZE);
+  fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.reserve(VECTOR_SIZE);
   fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.reserve(VECTOR_SIZE);
   fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.reserve(VECTOR_SIZE);
   fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.reserve(VECTOR_SIZE);
@@ -1719,6 +2052,7 @@ void QwTreeEventBuffer::ReserveVectors()
 //   fTriggerScintillator_Detector_HitGlobalPositionY.reserve(VECTOR_SIZE);
 //   fTriggerScintillator_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
 
+  fCerenkov_Detector_DetectorID.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionZ.reserve(VECTOR_SIZE);
@@ -1959,6 +2293,9 @@ void QwTreeEventBuffer::ClearVectors()
   fRegion3_ChamberFront_WirePlaneU_LocalPositionX.clear();
   fRegion3_ChamberFront_WirePlaneU_LocalPositionY.clear();
   fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.clear();
+  fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.clear();
+  fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.clear();
+  fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.clear();
   fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.clear();
   fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.clear();
   fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.clear();
@@ -2036,8 +2373,10 @@ void QwTreeEventBuffer::ClearVectors()
 //   fTriggerScintillator_Detector_HitGlobalPositionY.clear();
 //   fTriggerScintillator_Detector_HitGlobalPositionZ.clear();
 
+  fCerenkov_Detector_DetectorID.clear();
   fCerenkov_Detector_HasBeenHit = 0;
   fCerenkov_Detector_NbOfHits = 0;
+  fCerenkov_PMT_PMTTotalNbOfHits = 0;
   fCerenkov_Detector_HitLocalPositionX = 0.0;
   fCerenkov_Detector_HitLocalPositionY = 0.0;
   fCerenkov_Detector_HitLocalPositionZ = 0.0;
@@ -2085,6 +2424,13 @@ void QwTreeEventBuffer::AttachBranches()
 		&fPrimary_OriginVertexMomentumDirectionY);
   fTree->SetBranchAddress("Primary.OriginVertexMomentumDirectionZ",
 		&fPrimary_OriginVertexMomentumDirectionZ);
+
+  fTree->SetBranchAddress("Primary.CrossSection",
+                &fPrimary_CrossSection);
+  fTree->SetBranchAddress("Primary.OriginVertexThetaAngle",
+                &fPrimary_OriginVertexThetaAngle);
+  fTree->SetBranchAddress("Primary.PreScatteringKineticEnergy",
+                &fPrimary_PreScatteringKineticEnergy);
 
   /// Attach to the region 1 branches
   // Region1 WirePlane
@@ -2516,6 +2862,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion3_ChamberFront_WirePlaneU_LocalPositionY);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalPositionZ",
 		&fRegion3_ChamberFront_WirePlaneU_LocalPositionZ);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionX",
+		&fRegion3_ChamberFront_WirePlaneU_GlobalPositionX);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionY",
+		&fRegion3_ChamberFront_WirePlaneU_GlobalPositionY);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionZ",
+		&fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalMomentumX",
 		&fRegion3_ChamberFront_WirePlaneU_LocalMomentumX);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalMomentumY",
@@ -2655,10 +3007,14 @@ void QwTreeEventBuffer::AttachBranches()
 
 
   /// Attach to the cerenkov branches
-//  fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
-//		&fCerenkov_Detector_HasBeenHit);
-//  fTree->SetBranchAddress("Cerenkov.Detector.NbOfHits",
-//		&fCerenkov_Detector_NbOfHits);
+    fTree->SetBranchAddress("Cerenkov.Detector.DetectorID",
+		&fCerenkov_Detector_DetectorID);
+  fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
+		&fCerenkov_Detector_HasBeenHit);
+  fTree->SetBranchAddress("Cerenkov.Detector.NbOfHits",
+		&fCerenkov_Detector_NbOfHits);
+  fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfHits",
+                &fCerenkov_PMT_PMTTotalNbOfHits);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
 //		&fCerenkov_Detector_HitLocalPositionX);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
@@ -2677,4 +3033,55 @@ void QwTreeEventBuffer::AttachBranches()
 //		&fCerenkov_Detector_HitGlobalPositionY);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionZ",
 //		&fCerenkov_Detector_HitGlobalPositionZ);
+}
+
+// Set track counters
+int QwTreeEventBuffer::fNumOfSimulated_ValidTracks;
+int QwTreeEventBuffer::fNumOfSimulated_R2_PartialTracks;
+int QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks;
+int QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks;
+int QwTreeEventBuffer::fNumOfSimulated_R3_PartialTracks;
+int QwTreeEventBuffer::fNumOfSimulated_R2_R3_Tracks;
+int QwTreeEventBuffer::fNumOfSimulated_TS_Tracks;
+int QwTreeEventBuffer::fNumOfSimulated_MD_Tracks;
+int QwTreeEventBuffer::fNumOfSimulated_TS_MD_Tracks;
+
+void QwTreeEventBuffer::PrintStatInfo(int r2good=0,int r3good=0, int ngoodtracks=0)
+{
+    QwMessage<<"\nNumber of Geant4-simulated tracks:"<<QwLog::endl;
+    QwMessage<<"Hit MD:                "<<QwTreeEventBuffer::fNumOfSimulated_MD_Tracks<<QwLog::endl;
+    QwMessage<<"Hit TS:                "<< QwTreeEventBuffer::fNumOfSimulated_TS_Tracks<<QwLog::endl;
+    QwMessage<<"Hit TS & MD:           "<<QwTreeEventBuffer::fNumOfSimulated_TS_MD_Tracks<<QwLog::endl;   
+
+    QwMessage<<"Hit R2:                "<<QwTreeEventBuffer::fNumOfSimulated_R2_PartialTracks<<QwLog::endl;
+    QwMessage<<"Hit R2 & TS & MD:      "<<QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks<<QwLog::endl;
+    QwMessage<<"Hit R3:                "<<QwTreeEventBuffer::fNumOfSimulated_R3_PartialTracks<<QwLog::endl;
+    QwMessage<<"Hit R3 & TS & MD:      "<<QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks<<QwLog::endl;
+
+    QwMessage<<"Hit R2 & R3 & TS & MD: "<<QwTreeEventBuffer::fNumOfSimulated_ValidTracks<<"\n"<<QwLog::endl;
+
+    QwMessage << "Number of good partial tracks found: "<< r2good+r3good << QwLog::endl;
+    QwMessage << "Region 2: " << r2good << QwLog::endl;
+    QwMessage << "Region 3: " << r3good << QwLog::endl;
+
+    QwMessage << "\nNumber of bridged tracks: "<< ngoodtracks << QwLog::endl;
+    
+    if (QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks>0)
+      QwMessage << "\nRegion 2 partial track finding efficiency: " 
+                << r2good<<"/"<<QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks<<" = "
+                <<(float)r2good/QwTreeEventBuffer::fNumOfSimulated_R2_TS_MD_Tracks*100<<" \%"<<QwLog::endl;
+    if (QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks>0)
+      QwMessage << "Region 3 partial track finding efficiency: " 
+                << r3good<<"/"<<QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks<<" = "
+                <<(float)r3good/QwTreeEventBuffer::fNumOfSimulated_R3_TS_MD_Tracks*100<<" \%"<<QwLog::endl;
+
+    if (TMath::Min(r2good,r3good)>0)
+      QwMessage << "Bridging efficiency: " 
+                << ngoodtracks<<"/"<<TMath::Min(r2good,r3good)<<" = "
+                <<(float)ngoodtracks/TMath::Min(r2good,r3good)*100<<" \%"<<QwLog::endl;
+    if (QwTreeEventBuffer::fNumOfSimulated_ValidTracks>0)
+      QwMessage << "Overall efficiency : " 
+                << ngoodtracks<<"/"<<QwTreeEventBuffer::fNumOfSimulated_ValidTracks<<" = "
+                <<(float)ngoodtracks/QwTreeEventBuffer::fNumOfSimulated_ValidTracks*100<<" \%"<<QwLog::endl;
+
 }

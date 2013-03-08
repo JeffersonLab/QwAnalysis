@@ -33,7 +33,7 @@
  * @param v Array of 3 doubles
  * @return Output stream
  */
-inline ostream& operator<< (ostream& stream, const double v[3])
+inline std::ostream& operator<< (std::ostream& stream, const double v[3])
 {
   return stream << "(" << v[0] << "," << v[1] << "," << v[2] << ")";
 }

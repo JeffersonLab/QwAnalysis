@@ -15,6 +15,11 @@ create table if not exists run_quality (
   type TEXT
 );
 
+create table if not exists source (
+  source_id INTEGER PRIMARY KEY ASC,
+  title TEXT
+);
+
 create table if not exists run (
   run_id INTEGER PRIMARY KEY ASC,
   run_number INT UNSIGNED,
@@ -32,11 +37,21 @@ create table if not exists run (
 create table if not exists laser_cycle (
   laser_cycle_id INTEGER PRIMARY KEY ASC,
   run_id INT UNSIGNED,
+  source_id INT UNSIGNED,
   cycle_number INT UNSIGNED,
-  start_hel INT UNSIGNED,
-  end_hel INT UNSIGNED,
-  start_mps INT UNSIGNED,
-  end_mps INT UNSIGNED
+  laser_state char(3),
+  start INT UNSIGNED,
+  end INT UNSIGNED
+);
+
+create table if not exists laser_pattern (
+  laser_pattern_id INTEGER PRIMARY KEY ASC,
+  run_id INT UNSIGNED,
+  source_id INT UNSIGNED,
+  cycle_number INT UNSIGNED,
+  laser_off_left_id  INT UNSIGNED,
+  laser_on_id INT UNSIGNED,
+  laser_off_right INT UNSIGNED
 );
 
 create table if not exists slow_control_detector (
@@ -68,16 +83,12 @@ create table if not exists slow_controls_data (
 create table if not exists analysis (
   analysis_id INTEGER PRIMARY KEY ASC,
   laser_cycle_id INT UNSIGNED,
-  analyzer_version TEXT,
-  laser_state char(3),
-  n_mps INT UNSIGNED,
-  n_qrt INT UNSIGNED,
-  first_event INT UNSIGNED,
-  last_event INT UNSIGNED
+  laser_pattern_id INT UNSIGNED,
+  type char(3)
 );
 
 create table if not exists measurement_type (
-  measurement_type_id char(4),
+  measurement_type_id INTEGER PRIMARY KEY ASC,
   units TEXT,
   title TEXT
 );
@@ -85,7 +96,7 @@ create table if not exists measurement_type (
 create table if not exists electron_data (
   electron_data_id INTEGER PRIMARY KEY ASC,
   analysis_id INT UNSIGNED,
-  measurement_type_id char(4),
+  measurement_type_id INT,
   plane UNSIGNED INT,
   strip UNSIGNED INT,
   n UNSIGNED INT,
@@ -96,7 +107,8 @@ create table if not exists electron_data (
 create table if not exists photon_data (
   photon_data_id INTEGER PRIMARY KEY ASC,
   analysis_id INT UNSIGNED,
-  measurement_type_id char(4),
+  monitor_id INT UNSIGNED,
+  measurement_type_id INT,
   n INT UNSIGNED,
   value float,
   error float
@@ -106,7 +118,7 @@ create table if not exists beam (
   beam_id INTEGER PRIMARY KEY ASC,
   analysis_id INT UNSIGNED,
   monitor_id INT UNSIGNED,
-  measurement_type_id char(4),
+  measurement_type_id INT,
   n INT UNSIGNED,
   value float,
   error float
@@ -114,6 +126,14 @@ create table if not exists beam (
 
 create table if not exists monitor (
   monitor_id INTEGER PRIMARY KEY ASC,
-  quantity TEXT,
   title TEXT
+);
+
+create table if not exists slug (
+  slug_id INTEGER PRIMARY KEY ASC,
+  ihwp1 char(3),
+  ihwp2 char(3),
+  laser char(3),
+  wien char(3)
+  number INTEGER
 );

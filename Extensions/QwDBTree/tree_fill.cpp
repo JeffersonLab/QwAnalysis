@@ -22,7 +22,9 @@
 #include <TSQLServer.h>
 #include <TMath.h>
 #include <string>
-#include "detector.h"
+#include "QwMainDet.h"
+#include "QwLumiDet.h"
+#include "QwBeamDet.h"
 #include "parse.h"
 #include "runlet.h"
 
@@ -41,7 +43,6 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
      * the number of detectors in the mapfile for looping later. If needed,
      * also read in the run list.
      */
-    cout << Form("%smd.map",mapdir.Data()) << endl;
     QwParse mds(Form("%smd.map",mapdir.Data()));
     mds.parse();
     const Int_t num_mds = mds.num_detectors();

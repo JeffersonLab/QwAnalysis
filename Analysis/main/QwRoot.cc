@@ -23,6 +23,7 @@ int main(int argc, char** argv)
   gROOT->ProcessLine(".include " + path + "/Analysis/include");
   gROOT->ProcessLine(".include " + path + "/Parity/include");
   gROOT->ProcessLine(".include " + path + "/Tracking/include");
+  gROOT->ProcessLine("gSystem->Load(\"libCint.so\");");
   // Start Qw-Root command prompt
   QwRint* qwrint = new QwRint("Qweak-Root Analyzer", &argc, argv);
   qwrint->Run();

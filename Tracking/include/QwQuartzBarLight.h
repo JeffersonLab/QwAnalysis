@@ -90,13 +90,13 @@ class QwQuartzBarLight: public TObject {
 #endif
 
     /// \brief Output stream operator
-    friend ostream& operator<< (ostream& stream, const QwQuartzBarLight& h);
+    friend std::ostream& operator<< (std::ostream& stream, const QwQuartzBarLight& h);
 
   ClassDef(QwQuartzBarLight,1);
 };
 
 /// Output stream operator
-inline ostream& operator<< (ostream& stream, const QwQuartzBarLight& h) {
+inline std::ostream& operator<< (std::ostream& stream, const QwQuartzBarLight& h) {
   stream << "Run " << h.fRunNumber << ", ";
   stream << "event " << h.fEventNumber << ":";
   return stream;

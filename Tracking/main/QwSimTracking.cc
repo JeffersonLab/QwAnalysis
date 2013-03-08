@@ -129,7 +129,6 @@ int main (int argc, char* argv[])
       /// Create the original event
       original = treebuffer->GetOriginalEvent();
 
-
       /// Create the to-be-reconstructed event
       event = treebuffer->GetCurrentEvent();
 
@@ -145,22 +144,16 @@ int main (int argc, char* argv[])
 
     } // end of loop over events
 
-    QwMessage << "Number of events processed at end of run: "
-              << treebuffer->GetEventNumber() << QwLog::endl;
-
-
     /// Stop timer
     timer.Stop();
     // Print timer info
     PrintInfo(timer);
+    
+    QwMessage << "\nNumber of events processed at end of run: "
+              << treebuffer->GetEventNumber() << QwLog::endl;
 
-    QwMessage << "Number of good partial tracks found: "
-              << trackingworker->ngood << QwLog::endl;
-    QwMessage << "Region 2: "
-              << trackingworker->R2Good << QwLog::endl;
-    QwMessage << "Region 3: "
-              << trackingworker->R3Good << QwLog::endl;
-
+    treebuffer->PrintStatInfo(trackingworker->R2Good,trackingworker->R3Good,trackingworker->nbridged);
+    
     // Write and close file
     file->Write();
     file->Close();
