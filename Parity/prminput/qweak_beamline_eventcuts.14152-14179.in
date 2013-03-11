@@ -1,17 +1,13 @@
 !
-!11/15/2010 R. Beminiwattha : Started with beamline event cuts based on run 6297
-!03/08/2011 B. Waidyawansa  : The bpm saturation cuts (upper limit) are based on run 10214.  
-!01/23/2012 R. Beminiwattha : Set the min. current to 10 uA from run 15402. BCM8 has the global cut now.
-!02/15/2012 R. Beminiwattha : Updated event cuts for Run1 pass4 that includes stability cuts on Target and MD yields.
-!                             Closed the run range 9000-12162.
-!03/20/2012 B. Waidyawansa :  Updated the lower limits of BPM wires to 10000 (corresponding to 0.7V) from 0.
-!                             The operating range of a BPM is typically 2-3V so anything below that can be considered as 
-!                             junk readings. 
-! 
-!01/24/2013 B.Waidyawansa  : Updated event cuts with the ones found in qweak_beamline_eventcute.11694-11701.in
-!                            Updated bcm1 and bcm8 event cuts, added charge event cut and event cuts
-!                            absolute BPM positions, updated energy event cut.
-!                         
+!11/15/2010 R. Beminiwattha: Started with beamline event cuts based on run 6297
+!03/08/2011 B. Waidyawansa : The bpm saturation cuts (upper limit) are based on run 10214.
+!11/21/2011 R. Beminiwattha: Added new event cut files for the current run range with event cuts disabled 
+!                            for MD yields and target abs postions  
+!03/20/2012 B. Waidyawansa : Updated the lower limits of BPM wires to 10000 (corresponding to 0.7V) from 0.
+!                            The operating range of a BPM is typically 2-3V so anything below that can be considered as 
+!                            junk readings. 
+!01/31/2013 S. MacEwan     : Updated file to include agressive pass5 global cuts.
+!03/11/2013 J. Magee	   : Updated for run 2 aluminum current cuts
 !*********************************************************************************************
 !Global switch to turn ON and OFF eventcut check
 !Available settings
@@ -39,25 +35,26 @@ EVENTCUTS = 3
 !
 !  ADJUST THE CHARGE CUT HERE!
 !
-!***************************************************		
+!***************************************************
 !for combined bcm devices (tested with injector run 924)
-!device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-combinedbcm, qwk_charge,  	20,    500,  g,   2
+!device_type, device_name,   lower limit, upper limit, local(l)/global(g), stability percentage
+!combinedbcm, qwk_charge,         100,    500,  g,   2
+combinedbcm, qwk_charge,         20,    500,  g,   2
+
 
 !***************************************************
 !for bcm devices
 !device_type, device_name,      lower limit, upper limit, local(l)/global(g), stability percentage
+
+bcm, qwk_bcm1,          1,      1000000,        g,      0
+bcm, qwk_bcm5,          1,      1000000,        g,      0
+bcm, qwk_bcm6,          1,      1000000,        g,      0
+!bcm, qwk_bcm2,         1,      1000000,        g,      0
+!bcm, qwk_bcm6,         1,      1000000,        g,      0
+bcm, qwk_bcm8,          1,      1000000,        g,      0
  
-bcm, qwk_bcm1,		1,	1000000,	g,	0
-bcm, qwk_bcm5,		1,	1000000,	g,	0
-bcm, qwk_bcm6,		1,	1000000,	g,	0
-!bcm, qwk_bcm2,		1,	1000000,	g,	0
-!bcm, qwk_bcm6, 		1,	1000000,	g,	0
-bcm, qwk_bcm8,		1,	1000000,	g,	0
 
 halomonitor , sca_habcm, 5, 	1000000,	l,	0
-
-
 !****************************************************		
 !For bpmstrpline devices 
 !channel_name can be relx, rely, absx, absy, effective charge, xp, xm, yp, ym
@@ -161,20 +158,34 @@ bpmstripline, 	qwk_bpm3h09b,   XM,		10000,  60150,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   YP,		10000,  59030,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   YM,             10000,  76200,   l,      0
 
-bpmstripline, 	qwk_bpm3c12,    ABSX,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3c12,    ABSY,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h04,    ABSX,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h04,    ABSY,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h07a,   ABSX,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h07a,   ABSY,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h07b,   ABSX,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h07b,   ABSY,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h07c,   ABSX,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h07c,   ABSY,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h09,    ABSX,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h09,    ABSY,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h09b,   ABSX,		-10,  10,	 g,	 0
-bpmstripline, 	qwk_bpm3h09b,   ABSY,		-10,  10,	 g,	 0
+bpmstripline,   qwk_bpm3c12,    ABSX,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3c12,    ABSY,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h04,    ABSX,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h04,    ABSY,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h07a,   ABSX,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h07a,   ABSY,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h07b,   ABSX,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h07b,   ABSY,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h07c,   ABSX,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h07c,   ABSY,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h09,    ABSX,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h09,    ABSY,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h09b,   ABSX,           -10,  10,        g,      0
+bpmstripline,   qwk_bpm3h09b,   ABSY,           -10,  10,        g,      0
+
+
+
+!***************************************************		
+!For bpmcavity devices
+!channel_name can be relx, rely, absx, absy, q
+!Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
+!So pedestals are applied before appyling the cuts.
+
+!device_type, device_name, channel_name, lower limit, upper limit, local(l)/global(g), stability percentage
+!bpmcavity, qwk_bpmcavity1, absx, 0, 10000, l, 1
+!bpmcavity, qwk_bpmcavity1, absy, 0, 0, l, 0
+!bpmcaivty, qwk_bpmcavity2, absx, 0, 0, l, 0
+!bpmcavity, qwk_bpmcavity2, absy, 0, 0, l, 0
 
 
 !***************************************************		
@@ -183,16 +194,22 @@ bpmstripline, 	qwk_bpm3h09b,   ABSY,		-10,  10,	 g,	 0
 !Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
 
 !device_type, device_name,   channel_name,   lower limit,      upper limit, local(l)/global(g), stability percentage
-!New abs positions cuts added by Rakitha (rakithab@jlab.org)
+!Cuts added by smacewan on 1/31/13 based on Rakitha's cuts in run1.
 combinedbpm, qwk_target, absx, -10, 10, g, 0.15
 combinedbpm, qwk_target, absy, -10, 10, g, 0.15
 
 
+!***************************************************		
+!for combined bcm devices (tested with injector run 924)
+!device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
+!combinedbcm, qwk_charge,  	3.18588, 	3.18591e+10, l, 0
+!combinedbcm, qwk_charge,  	1, 	500, g, 0.001
+!combinedbcm, qwk_charge,  	0, 	3.18591e+10, l, 4
 
 !***************************************************	
 !for QwEnergyCalculator
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-energycalculator, qwk_energy,  	-3.18588e+100, 	3.18591e+100, g, 0
+!energycalculator, qwk_energy,  	-3.18588e-100, 	3.18591e+100, l, 1
 
 
 !Comments

@@ -8,10 +8,11 @@
 !                             The operating range of a BPM is typically 2-3V so anything below that can be considered as 
 !                             junk readings. 
 ! 
-!01/24/2013 B.Waidyawansa  : Updated event cuts with the ones found in qweak_beamline_eventcute.11694-11701.in
-!                            Updated bcm1 and bcm8 event cuts, added charge event cut and event cuts
+!01/24/2013 B.Waidyawansa  : Updated event cuts with the ones found in qweak_beamline_eventcute.16055-16159.in
+!                            Updated bcm1, bcm5,bcm6 and bcm8 event cuts, added charge event cut and event cuts
 !                            absolute BPM positions, updated energy event cut.
 !                         
+!03/11/2013 J. Magee	   : Updated for run 2 aluminum running
 !*********************************************************************************************
 !Global switch to turn ON and OFF eventcut check
 !Available settings
@@ -42,6 +43,7 @@ EVENTCUTS = 3
 !***************************************************		
 !for combined bcm devices (tested with injector run 924)
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
+!combinedbcm, qwk_charge,  	100,    500,  g,   2
 combinedbcm, qwk_charge,  	20,    500,  g,   2
 
 !***************************************************
