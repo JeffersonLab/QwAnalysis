@@ -3,7 +3,7 @@
 !**************************************************************************
 !As of 11/10/2011 
 !
-! 2/1/2013 M. McHugh : Created new target BPM containing 3h04  
+! 2013-03-11 M. McHugh : Created new target BPM containing 3h04 with name qwk_target_plus4.
 !
 ROC=1
 Bank=0x102
@@ -235,10 +235,7 @@ name=qwk_target_plus4
 !  QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
 
-
-
 ! The X and Y weights were obtained using run 10220 at 150uA.
-
 
 !**************************************************************************
 ! COMBINATION OF DEVICES USED TO OBTAIN THE BEAM ENERGY
