@@ -39,7 +39,7 @@ EVENTCUTS = 3
 !for combined bcm devices (tested with injector run 924)
 !device_type, device_name,   lower limit, upper limit, local(l)/global(g), stability percentage
 !combinedbcm, qwk_charge,         100,    500,  g,   2
-jombinedbcm, qwk_charge,         20,    500,  g,   2
+combinedbcm, qwk_charge,         20,    500,  g,   2
 
 
 !***************************************************
