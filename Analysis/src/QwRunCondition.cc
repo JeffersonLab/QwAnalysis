@@ -8,8 +8,6 @@
 #include "QwRunCondition.h"
 #include "QwSVNVersion.h"
 
-// ClassImp(QwRunCondition)
-
 const Int_t QwRunCondition::fCharLength = 127;
 
 QwRunCondition::QwRunCondition(Int_t argc, Char_t* argv[], TString name)

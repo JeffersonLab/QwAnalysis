@@ -250,7 +250,9 @@ class QwDetectorInfo: public TObject {
       fHitID.push_back(time);
     }
 
-  ClassDef(QwDetectorInfo,0);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwDetectorInfo,0);
+  #endif
 
 };
 

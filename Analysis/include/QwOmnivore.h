@@ -41,9 +41,14 @@ class QwOmnivore: public VQwSubsystem_t {
     /// Apply the single event cuts
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     /// Report the number of events failed due to HW and event cut failures
-    void PrintErrorCounters() const {};
+    void PrintErrorCounters() const { };
     /// Return the error flag to the main routine
     UInt_t GetEventcutErrorFlag() { return 0; };
+
+    /// Increment error counters
+    void IncrementErrorCounters() { };
+    /// Update error flag
+    void UpdateErrorFlag(const VQwSubsystem*) { };
 
     /// Get the hit list
     //void  GetHitList(QwHitContainer& grandHitContainer) { };
@@ -108,6 +113,7 @@ class QwOmnivore: public VQwSubsystem_t {
 
     /// \brief Update the running sums for devices
     void AccumulateRunningSum(VQwSubsystem* value) { };
+    void DeaccumulateRunningSum(VQwSubsystem* value) { };
     /// \brief Calculate the average for all good events
     void CalculateRunningAverage() { };
 };

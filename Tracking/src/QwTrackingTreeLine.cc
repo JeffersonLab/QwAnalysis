@@ -8,7 +8,9 @@
  */
 
 #include "QwTrackingTreeLine.h"
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwTrackingTreeLine)
+#endif
 
 // System headers
 #include <cmath>

@@ -1,5 +1,7 @@
 #include "QwHitRootContainer.h"
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwHitRootContainer);
+#endif
 
 // Initialize the static list of QwHits
 TClonesArray *QwHitRootContainer::gQwHits = 0;

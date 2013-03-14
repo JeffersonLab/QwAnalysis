@@ -47,7 +47,7 @@ int main (int argc, char* argv[])
 
   // Initialize the field map
   gettimeofday(&time_start, 0);
-  QwMagneticField* magneticfield = new QwMagneticField(true);
+  QwMagneticField* magneticfield = new QwMagneticField(gQwOptions,true);
   gettimeofday(&time_finish, 0);
   if (timing) {
     int time_initialize_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
@@ -129,7 +129,7 @@ int main (int argc, char* argv[])
 
     // Create new field map
     gettimeofday(&time_start, 0);
-    magneticfield = new QwMagneticField(true);
+    magneticfield = new QwMagneticField(gQwOptions,true);
     gettimeofday(&time_finish, 0);
     if (timing) {
       int time_initialize2_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);

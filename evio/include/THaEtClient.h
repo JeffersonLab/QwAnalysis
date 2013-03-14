@@ -92,10 +92,12 @@ private:
 
     TString fStationName;
 
-// use ClassDef if using rootcint
-#ifndef STANDALONE     
-     ClassDef(THaEtClient,0)   // ET client connection for online data
-#endif
+    // use ClassDef if using rootcint
+    #ifndef STANDALONE
+       #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+          ClassDef(THaEtClient,0)   // ET client connection for online data
+       #endif
+    #endif
 
 };
 

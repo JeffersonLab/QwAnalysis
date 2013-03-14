@@ -213,7 +213,9 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   // ideal wire position, and fPosition2, which would be the second level signed
   // track position.
 
-  ClassDef(QwHit,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwHit,1);
+  #endif
 
 }; // class QwHit
 

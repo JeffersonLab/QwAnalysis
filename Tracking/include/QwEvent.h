@@ -108,7 +108,9 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwEventHeader& h);
 
-  ClassDef(QwEventHeader,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwEventHeader,1);
+  #endif
 };
 
 /// Output stream operator
@@ -138,7 +140,9 @@ class QwKinematics: public TObject {
     double fX;      ///< Bjorken-x scaling variable \f$ x = Q^2 / 2 M \nu \f$
     double fY;      ///< Fractional energy loss \f$ y = \nu / E \f$
 
-  ClassDef(QwKinematics,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwKinematics,1);
+  #endif
 };
 
 
@@ -434,7 +438,9 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     /*! list of vertices in this event */
     //std::vector< QwVertex* > vertex; //!
 
-  ClassDef(QwEvent,3);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwEvent,3);
+  #endif
 
 }; // class QwEvent
 

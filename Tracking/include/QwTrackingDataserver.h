@@ -25,7 +25,6 @@ class QwTrackingDataserver : public VQwDataserver {
     void NextEvent();
     QwHitContainer* GetHitList();
 
-  //ClassDef(QwTrackingDataserver,1)
 };
 
 #endif // __QwTrackingDataserver_h__
