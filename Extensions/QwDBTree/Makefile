@@ -1,4 +1,4 @@
-CXXFLAGS = -Wall -ggdb -c -pthread -m64 -I/usr/include/root
+CXXFLAGS = $(shell root-config --cflags)
 LIBS = $(shell root-config --glibs)
 
 SRCS := \
