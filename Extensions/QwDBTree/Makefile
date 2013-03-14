@@ -1,4 +1,4 @@
-CXXFLAGS = $(shell root-config --cflags --glibs)
+CXXFLAGS = -Wall -ggdb -c -pthread -m64 -I/usr/include/root
 LIBS = $(shell root-config --glibs)
 
 SRCS := \
@@ -22,7 +22,7 @@ all: tree_fill
 	@echo "Running this will create massive database load, and is done automatically once per day."
 
 tree_fill: $(OFILES)
-		g++ -Wall -ggdb $(CXXFLAGS) -o $@ $^ $(LIBS)
+		g++ -Wall -ggdb -o $@ $^ $(LIBS)
 
 %.o: %.cpp
 		g++ -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
