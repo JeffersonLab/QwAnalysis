@@ -89,7 +89,6 @@
 #include "QwEPICSEvent.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
-#include "QwEventRing.h"
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
 
@@ -157,12 +156,6 @@ int main(int argc, char* argv[])
     QwHelicityPattern helicitypattern(detectors);
     helicitypattern.ProcessOptions(gQwOptions);
 
-    ///  Create the event ring with the subsystem array
-    QwEventRing eventring(gQwOptions,detectors);
-    //  Make a copy of the detectors object to hold the
-    //  events which pass through the ring.
-    QwSubsystemArrayParity ringoutput(detectors);
-
     // Create a configuration options output
     QwSubsystemArrayParity configoutput(detectors);
 
@@ -172,12 +165,11 @@ int main(int argc, char* argv[])
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
     rootfile->WriteParamFileList("mapfiles", detectors);
     //  Construct histograms
-    rootfile->ConstructHistograms("mps_histo", ringoutput);
+    rootfile->ConstructHistograms("mps_histo", detectors);
     rootfile->ConstructHistograms("hel_histo", helicitypattern);
-    detectors.ShareHistograms(ringoutput);
 
     //  Construct tree branches
-    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", ringoutput);
+    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstYield(),"yield_");
     rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstAsymmetry(),"asym_");
@@ -234,19 +226,48 @@ int main(int argc, char* argv[])
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
 
-        // Add event to the ring
-        eventring.push(detectors);
+        // Fill the histograms
+        rootfile->FillHistograms(detectors);
 
-        // Check to see ring is ready
-        if (eventring.IsReady()) {
-          ringoutput = eventring.pop();
+        // Fill the tree
+        rootfile->FillTreeBranches(detectors);
+        rootfile->FillTree("Mps_Tree");
 
-          // Fill the histograms
-          rootfile->FillHistograms(ringoutput);
 
-          // Fill the tree
-          rootfile->FillTreeBranches(ringoutput);
-          rootfile->FillTree("Mps_Tree");
+        //  Somehow test to see if the laser state has changed.  If it has,
+        //  then calculate and print the running sums so far.
+        //  Maybe instead of here, it should be done as soon as we've picked up an
+        //  event, instead of waiting to build a complete pattern.
+
+        if (detectors.CheckForEndOfBurst()){
+          //  Do the burst versions of
+          helicitypattern.CalculateRunningAverage();
+          // Maybe we need to clear the burst sums also
+        }
+
+
+        // Helicity pattern
+        helicitypattern.LoadEventData(detectors);
+
+
+        // TODO We need another check here to test for pattern validity.  Right
+        // now the first 24 cycles are also added to the histograms.
+        if (helicitypattern.IsCompletePattern()) {
+
+          // Calculate the asymmetry
+          helicitypattern.CalculateAsymmetry();
+          if (helicitypattern.IsGoodAsymmetry()) {
+
+            // Fill histograms
+            rootfile->FillHistograms(helicitypattern);
+
+            // Fill tree branches
+            rootfile->FillTreeBranches(helicitypattern);
+            rootfile->FillTree("Hel_Tree");
+
+            // Clear the data
+            helicitypattern.ClearEventData();
+          }
 
 
           //  Somehow test to see if the laser state has changed.  If it has,
@@ -254,45 +275,7 @@ int main(int argc, char* argv[])
           //  Maybe instead of here, it should be done as soon as we've picked up an
           //  event, instead of waiting to build a complete pattern.
 
-          if (ringoutput.CheckForEndOfBurst()){
-            //  Do the burst versions of
-            helicitypattern.CalculateRunningAverage();
-            // Maybe we need to clear the burst sums also
-          }
-
-
-          // Helicity pattern
-          helicitypattern.LoadEventData(detectors);
-
-
-          // TODO We need another check here to test for pattern validity.  Right
-          // now the first 24 cycles are also added to the histograms.
-          if (helicitypattern.IsCompletePattern()) {
-
-            // Calculate the asymmetry
-            helicitypattern.CalculateAsymmetry();
-            if (helicitypattern.IsGoodAsymmetry()) {
-
-              // Fill histograms
-              rootfile->FillHistograms(helicitypattern);
-
-              // Fill tree branches
-              rootfile->FillTreeBranches(helicitypattern);
-              rootfile->FillTree("Hel_Tree");
-
-              // Clear the data
-              helicitypattern.ClearEventData();
-            }
-
-
-            //  Somehow test to see if the laser state has changed.  If it has,
-            //  then calculate and print the running sums so far.
-            //  Maybe instead of here, it should be done as soon as we've picked up an
-            //  event, instead of waiting to build a complete pattern.
-
-          }
-
-        } // eventring.IsReady()
+        }
 
       } // detectors.ApplySingleEventCuts()
 
