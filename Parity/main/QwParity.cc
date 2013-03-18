@@ -31,7 +31,6 @@
 #include "QwHelicityPattern.h"
 #include "QwEventRing.h"
 #include "QwEPICSEvent.h"
-//#include "QwCorrelation.h"
 #include "QwRegression.h"
 #include "QwRegressionSubsystem.h"
 #include "QwPromptSummary.h"
@@ -129,9 +128,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     ///  Create the asymmetry-based linear regression
     QwRegression regression(gQwOptions,helicitypattern);
     QwRegression running_regression(regression);
-
-    ///  Create the correlation engine
-    //QwCorrelation correlations(gQwOptions,helicitypattern);
 
     ///  Create the event ring with the subsystem array
     QwEventRing eventring(gQwOptions,detectors);
@@ -319,9 +315,6 @@ Int_t main(Int_t argc, Char_t* argv[])
                 // Clear the data
                 helicitypattern.ClearBurstSum();
               }
-
-              // Accumulate the correlations
-              //correlations.AccumulateCorrelations(QwRegression::kRegTypeAsym);
 
               // Linear regression on asymmetries
 	      regression.LinearRegression(QwRegression::kRegTypeAsym);

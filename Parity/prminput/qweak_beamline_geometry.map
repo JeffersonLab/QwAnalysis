@@ -26,9 +26,9 @@
 !				3p02a rotation = 0  (no rotation)
 !				3p02b rotation = 45-16 = 29 degrees to get back to accelerator coordinates.
 !				These values and rotation information were obtained by EPICS via communication with Jay Benesch.
-! 06-01-2011  B.Waidyawansa    Added relative gains for X and Y. Keywords will be used to set these values for the bpms when neccessary.
+! 06-01-2011  B.Waidyawansa    	Added relative gains for X and Y. Keywords will be used to set these values for the bpms when neccessary.
 !
-! 01-17-2013  M. McHugh 	Added combinedbpm for a new qwk_target_4plus9 with same geometry as old.
+! 2013-03-11  M. McHugh		Added combinedbpm for a new qwk_target_plus4 with same geometry as old qwk_target.
 !  
 !! Description of variables:
 !-----------------------------

@@ -28,7 +28,6 @@ class QwTrackingAnalyzer : public VQwAnalyzer {
 
     void Process();
 
-  //ClassDef(QwTrackingAnalyzer,1)
 };
 
 #endif // __QwTrackingAnalyzer_h__

@@ -210,7 +210,9 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     double fAverageResidual;	///< average residual over all used treelines
 
-  ClassDef(QwPartialTrack,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwPartialTrack,1);
+  #endif
 
 }; // class QwPartialTrack
 

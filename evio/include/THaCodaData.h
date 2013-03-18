@@ -51,9 +51,11 @@ protected:
    int *evbuffer;                    // Raw data
    int fStatus;                      // Status from CODA calls
 
-#ifndef STANDALONE
-   ClassDef(THaCodaData,0) // Base class of CODA data (file, ET conn, etc)
-#endif
+   #ifndef STANDALONE
+      #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+         ClassDef(THaCodaData,0) // Base class of CODA data (file, ET conn, etc)
+      #endif
+   #endif
 
 };
 

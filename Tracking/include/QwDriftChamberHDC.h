@@ -59,7 +59,6 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
   std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
   std::vector< Double_t> fTtoDNumbers;
-  //  ClassDef(QwDriftChamber,2);
 
   Int_t fR2Octant;
 

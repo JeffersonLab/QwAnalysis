@@ -7,8 +7,6 @@
 // Qweak hit container
 #include "QwHitContainer.h"
 
-//ClassImp(QwTrackingDataserver)
-
 QwTrackingDataserver::QwTrackingDataserver (const char* name) : VQwDataserver (name)
 {
   // Initialize QwHitContainer

@@ -9,9 +9,6 @@
 // Qweak tracking worker
 #include "QwTrackingWorker.h"
 
-
-//ClassImp(QwTrackingAnalyzer)
-
 QwTrackingAnalyzer::QwTrackingAnalyzer (const char* name) : VQwAnalyzer (name)
 {
   // Create the tracking worker

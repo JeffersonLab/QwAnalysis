@@ -683,7 +683,7 @@ myevio_lib:
 	do \
 	$(ECHO) Writing dependencies for file $$file...; \
 	$(ECHO) $$file | $(SED) 's/\(.*\/\)dictionary\(\/.*\)Dict\$(SrcSuf)/&: \1include\2\$(IncSuf)/' >> .auxDepends; \
-	$(ECHO) $(TAB)@$(ROOTCINT) -f '$$@' -c $(INCFLAGS) $(CODACFLAGS) -DROOTCINTFIX "\`""$(CAT) .auxLinkDefFiles | $(GREP)" '$$<'"\`" >> .auxDepends; \
+	$(ECHO) $(TAB)@$(ROOTCINT) -f '$$@' -c -p $(INCFLAGS) $(CODACFLAGS) -DROOTCINTFIX "\`""$(CAT) .auxLinkDefFiles | $(GREP)" '$$<'"\`" >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) $(ROOTCINT) -f '$$@' -c $(INCFLAGS) $(CODACFLAGS) -DROOTCINTFIX "\`""$(CAT) .auxLinkDefFiles | $(GREP)" '$$<'"\`" >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \

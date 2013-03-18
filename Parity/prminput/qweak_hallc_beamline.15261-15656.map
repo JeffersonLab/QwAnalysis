@@ -4,6 +4,9 @@
 !As of 11/10/2011 
 !
 ! 2/12/2012 B.Waidyawansa : Rearranged 3c16 wires to fix the wire mixup done at bpm can.
+!
+! 2013-03-11 M. McHugh : Created new target BPM containing 3h04 with name qwk_target_plus4.
+!
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
@@ -222,7 +225,17 @@ name=qwk_target
 ! QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
 
-
+!New qwk_target including 3h04
+begin=combinedbpm
+name=qwk_target_plus4	
+! name           type          q      x          y    
+  QWK_BPM3H04,   bpmstripline, 1.0,   1.0,   1.0
+  QWK_BPM3H07A,  bpmstripline, 1.0,   1.0,   1.0 
+  QWK_BPM3H07B,  bpmstripline, 1.0,   1.0,   1.0
+  QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
+  QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
+!  QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
 
 ! The X and Y weights were obtained using run 10220 at 150uA.
 

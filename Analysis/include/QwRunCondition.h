@@ -52,8 +52,6 @@ class QwRunCondition
   QwRunCondition* operator&(); // address-of operator
   const QwRunCondition* operator&() const; // address-of operator
 
-
-  //  ClassDef(QwRunCondition,1);
 };
 
 

@@ -7,8 +7,10 @@
 
 #include "QwSoftwareMeantime.h"
 
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(MeanTime);
 ClassImp(MeanTimeContainer);
+#endif
 
 
 const Int_t MeanTime::fSoftwareMeantimeHitElementID = 3;

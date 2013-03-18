@@ -117,7 +117,9 @@ class VQwTrackingElement: public TObject {
     int fPlane;                         ///< Plane number
     int fElement;                       ///< Element number
 
-  ClassDef(VQwTrackingElement,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(VQwTrackingElement,1);
+  #endif
 
 }; // class VQwTrackingElement
 

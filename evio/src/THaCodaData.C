@@ -15,7 +15,9 @@
 #include "THaCodaData.h"
 
 #ifndef STANDALONE
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(THaCodaData)
+#endif
 #endif
 
 THaCodaData::THaCodaData() {

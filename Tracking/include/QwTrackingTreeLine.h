@@ -227,7 +227,9 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
 
     double fAverageResidual;	        ///< average residual over all used hits
 
-  ClassDef(QwTrackingTreeLine,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwTrackingTreeLine,1);
+  #endif
 
 }; // class QwTrackingTreeLine
 

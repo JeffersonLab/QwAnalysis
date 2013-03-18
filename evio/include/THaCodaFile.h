@@ -61,9 +61,11 @@ private:
   int maxflist,maxftype;
   TArrayI evlist, evtypes;
 
-#ifndef STANDALONE
-  ClassDef(THaCodaFile,0)   //  File of CODA data
-#endif
+  #ifndef STANDALONE
+     #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+        ClassDef(THaCodaFile,0)   //  File of CODA data
+     #endif
+  #endif
 
 };
 

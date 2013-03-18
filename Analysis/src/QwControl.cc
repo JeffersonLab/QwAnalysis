@@ -21,7 +21,9 @@ using std::cout; using std::endl;
 #include "QwTrackingDataserver.h"
 
 
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwControl)
+#endif
 
 
 void* QwRunThread (void* arg)

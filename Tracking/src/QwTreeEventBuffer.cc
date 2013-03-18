@@ -675,6 +675,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC front #1, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -699,6 +717,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC front #2, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -721,6 +757,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionZ.at(i1);
+
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC front #3, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -743,6 +797,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC front #4, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -765,6 +837,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC front #5, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -787,6 +877,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC front #6, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -810,6 +918,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC back #1, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -832,6 +958,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC back #2, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -854,6 +998,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC back #3, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -876,6 +1038,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC back #4, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -898,6 +1078,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC back #5, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;
@@ -920,6 +1118,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
       double xLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
       double yLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
+      double xGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionX.at(i1);
+      double yGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionY.at(i1);
+      double zGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionZ.at(i1);
+      
+      // Convert global x-y to local x-y
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+      double originZ = detectorinfo->GetZPosition();
+      int octant = detectorinfo->GetOctant();
+      
+//       std::cout<<"\nHDC back #6, octant: "<<detectorinfo->GetOctant()<<"\n";
+//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+             
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
+      
       // Position in the Qweak frame
       double x =  yLocalMC;
       double y = -xLocalMC;

@@ -30,7 +30,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
 
-  modulation->ReadConfig(modulation, "bmod");
+  modulation->ReadConfig("bmod");
   modulation->fNumberEvents = mod_tree->GetEntries();
 
   std::cout << "Number of entries: " << modulation->fNumberEvents << std::endl;

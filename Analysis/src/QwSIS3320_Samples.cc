@@ -15,7 +15,9 @@
  */
 
 #include "QwSIS3320_Samples.h"
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwSIS3320_Samples);
+#endif
 
 // System headers
 #include <numeric>

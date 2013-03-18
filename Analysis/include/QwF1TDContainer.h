@@ -241,7 +241,9 @@ class QwF1TDC :  public TObject
 
   UInt_t GetTotal(UInt_t* error_counter);
 
-  ClassDef(QwF1TDC,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwF1TDC,1);
+  #endif
 
 };
 
@@ -375,7 +377,9 @@ private:
 
   Bool_t CheckSlot20Chan30(Int_t slot, Int_t chan);
 
-  ClassDef(QwF1TDContainer,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(QwF1TDContainer,1);
+  #endif
 
 };
 
@@ -457,7 +461,9 @@ class F1TDCReferenceSignal :  public TObject
 
   void Clear() { fRefTimeArbUnit = (Double_t) fNoRefTimeArbUnit; fFirstHitFlag = false;};
 
-  ClassDef(F1TDCReferenceSignal,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(F1TDCReferenceSignal,1);
+  #endif
 
 };
 
@@ -500,7 +506,9 @@ class F1TDCReferenceContainer :  public TObject
 private:
 
   TString            fSystemName;
-  ClassDef(F1TDCReferenceContainer,1);
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+    ClassDef(F1TDCReferenceContainer,1);
+  #endif
 
 };
 
