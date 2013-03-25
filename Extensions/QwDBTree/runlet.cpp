@@ -87,10 +87,10 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
 
     /* Runlet and analysis level cuts are done here. */
     query += "WHERE analysis.slope_correction = \"" + reg_type + "\"\n";
-    query += "AND slow_controls_settings.target_position = \"HYDROGEN-CELL\"\n";
 
     /* Check and see if the runlist is empty. If not, only query those runs. */
     if(0 == runlist.size()) {
+        query += "AND slow_controls_settings.target_position = \"HYDROGEN-CELL\"\n";
         query += "AND runlet.runlet_quality_id = 1\n";
         query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
     }
@@ -138,16 +138,20 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += "JOIN run ON runlet.run_id = run.run_id\n";
     query += "JOIN slow_controls_settings ON runlet.runlet_id = slow_controls_settings.runlet_id\n";
 
-    /* Runlet and analysis level cuts are done here. */
+    /* Runlet and analysis level cuts are done here. The regression type is set
+     * based on the mapfile.
+     *
+     * FIXME: this method seems retarded and needs revamping
+     */
     query += "WHERE analysis.slope_correction = \"off\"\n";
 
     if(reg_type == "off") query += "AND analysis.slope_calculation = \"on\"\n";
     else if(reg_type == "offoff") query += "AND analysis.slope_calculation = \"off\"\n";
     else query += "AND analysis.slope_calculation = \"" + reg_type + "\"\n";
-    query += "AND slow_controls_settings.target_position = \"HYDROGEN-CELL\"\n";
 
     /* Check and see if the runlist is empty. If not, only query those runs. */
     if(0 == runlist.size()) {
+        query += "AND slow_controls_settings.target_position = \"HYDROGEN-CELL\"\n";
         query += "AND runlet.runlet_quality_id = 1\n";
         query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
     }
@@ -261,9 +265,11 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist)
                 /* Fill wien. */
                 if(temp_wien_reversal == "normal") wien_reversal.push_back(0);
                 else if(temp_wien_reversal == "reverse") wien_reversal.push_back(1);
-                else cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message:\nwien_reversal"
-                    + temp_wien_reversal << endl;
-
+                else
+                {
+                    cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message:\nwien_reversal" + temp_wien_reversal << endl;
+                    wien_reversal.push_back(2);
+                }
                 /* Fill qtor current. */
                 qtor_current.push_back(temp_qtor_current);
             }
