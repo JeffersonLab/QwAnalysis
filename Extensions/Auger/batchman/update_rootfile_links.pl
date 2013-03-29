@@ -22,7 +22,7 @@ if ($opt_h){
 if($opt_S ne ""){
     $source_directory = $opt_S;
 } else {
-    $source_directory = "/cache/mss/hallc/qweak/rootfiles/pass5";
+    $source_directory = "/cache/mss/hallc/qweak/rootfiles/pass5b";
 }
 
 if($opt_r ne ""){

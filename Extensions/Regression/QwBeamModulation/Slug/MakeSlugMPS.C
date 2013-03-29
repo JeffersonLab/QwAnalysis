@@ -18,19 +18,21 @@
 
 Bool_t globalEXIT;
 
-const TString qwstem = "QwPass5";
+// const TString qwstem = "QwPass5";
 
 Bool_t FileSearch(TString, TChain *, 
 				  Bool_t fSegInclude = false, 
 				  Int_t fLowerSegment = 0, 
 				  Int_t fUpperSegment = 0,
-				  Int_t run_number = 0);
+				  Int_t run_number = 0,
+				  TString filestem = 0);
 
 void LoadRootFile(TString, TChain *, 
 				  Bool_t fSegInclude = false, 
 				  Int_t fLowerSegment = 0, 
 				  Int_t fUpperSegment = 0, 
-				  Int_t run_number = 0);
+				  Int_t run_number = 0,
+				  TString qwstem = 0);
 
 void sigint_handler(int);
 
@@ -39,7 +41,8 @@ Int_t MakeSlugMPS(
 	Int_t run_number = -1,
 	TString runlets = "-1",
 	TString leaflistfilename = "",
-	TString slugrootfilename = "")
+	TString slugrootfilename = "",
+	TString qwstem = "")
 {
 	Int_t fLowerSegment = 0;
 	Int_t fUpperSegment = 0;
@@ -51,34 +54,38 @@ Int_t MakeSlugMPS(
 			  << leaflistfilename << " "
 			  << slugrootfilename << std::endl;
 
-	if (run_number == -1 ||  !leaflistfilename ||  !slugrootfilename) {
+	if (run_number == -1 ||  !leaflistfilename ||  !slugrootfilename || !qwstem) {
 		printf("Usage:\n\t.x MakeSlug(run_number, leaflistfilename, slugrootfilename)\n\n");
 		exit(1);
 	}
-	if(runlets.CompareTo("", TString::kExact) != 0){
-		if(runlets.CompareTo("-1", TString::kExact) == 0){
-			fSegInclude = false;
-			std::cout << "Processing all runlets.\n" << std::endl;
-		} 
-		else{
-			std::string option(runlets);
 
-			Int_t index = option.find_first_of(":");
-			Int_t tmp1 = index + 1;                // Using tmp# variables here is absolutely ridiculous, 
-			Int_t tmp2 = option.size() - index;    // but CInt doesn't seem to want it any other way...
-			fLowerSegment = atoi( option.substr(0, index).c_str() );
-			fUpperSegment = atoi( option.substr(tmp1, tmp2).c_str() );
-			fSegInclude = true;
 
-			std::cout << "Runlet range specified to be:\t" 
-					  << fLowerSegment << "-"
-					  << fUpperSegment << std::endl;
-		}
-	}
+	std::cout << "Analysis pass stem set to: " << qwstem << std::endl;
+	// if(runlets.CompareTo("", TString::kExact) != 0){
+	if(runlets.CompareTo("-1", TString::kExact) == 0){
+		fSegInclude = false;
+		runlets="full";
+		std::cout << "Processing all runlets.\n" << std::endl;
+	} 
 	else{
-		std::cerr << "Runlet argument is invalid.  You should probably fix that...." << std::endl;
-		exit(1);
+		std::string option(runlets);
+		
+		Int_t index = option.find_first_of(":");
+		Int_t tmp1 = index + 1;                // Using tmp# variables here is absolutely ridiculous, 
+		Int_t tmp2 = option.size() - index;    // but CInt doesn't seem to want it any other way...
+		fLowerSegment = atoi( option.substr(0, index).c_str() );
+		fUpperSegment = atoi( option.substr(tmp1, tmp2).c_str() );
+		fSegInclude = true;
+		
+		std::cout << "Runlet range specified to be:\t" 
+				  << fLowerSegment << "-"
+				  << fUpperSegment << std::endl;
+	// }
 	}
+	// else{
+	// 	std::cerr << "Runlet argument is invalid.  You should probably fix that...." << std::endl;
+	// 	exit(1);
+	// }
 
 	const Int_t debug = 1;
 
@@ -164,10 +171,11 @@ Int_t MakeSlugMPS(
 		
 		if(fSegInclude){
 			TString rootfilename = Form("%s_%d*.trees.root", qwstem.Data(), run_number);
-			LoadRootFile(rootfilename, tree, true, fLowerSegment, fUpperSegment, run_number);
+			LoadRootFile(rootfilename, tree, true, fLowerSegment, fUpperSegment, run_number, qwstem);
 		}
 		else{
 			TString rootfilename = Form("%s_%d*.trees.root", qwstem.Data(), run_number);
+			std::cout << "Loading full rootfile" << std::endl;
 			LoadRootFile(rootfilename, tree);
 		}
 
@@ -182,7 +190,13 @@ Int_t MakeSlugMPS(
 		std::cout << "Reading leaves in.\n" << std::endl;
 
 		for (Int_t leafnumber = 0; leafnumber < (numinputleaves + 1); leafnumber++) {
-			tree->SetBranchStatus(Form("%s", branchnamelist[leafnumber]), 1);
+//
+// Not sure why the below line gave a TRegExp error.  This line worked previously and has only recently given errors
+// By enabling all leaves in tree though I seem to have patched it fo rthe moment - though someone should figure
+// out WHY it stopped working. 
+//
+			// tree->SetBranchStatus(Form("%s", branchnamelist[leafnumber]), 1);
+			tree->SetBranchStatus("*", 1);
 
 			if (strcmp(branchnamelist[leafnumber],"qwk_bcm1")==0) {
 			} else {
@@ -221,7 +235,7 @@ Int_t MakeSlugMPS(
 						slugleafvalue[leafnumber] = tree->GetLeaf(modfullleafnamelist[leafnumber])->GetValue();
  					} 
 					else {
-   		// 				slugleafvalue[leafnumber-1] = -1e6;
+   		 				// slugleafvalue[leafnumber-1] = -1e6;
  					}
 				}
 				slug->Fill();
@@ -250,7 +264,7 @@ void sigint_handler(int sig)
 	globalEXIT = 1;
 }
 
-Bool_t FileSearch(TString filename, TChain *chain, Bool_t fSegInclude, Int_t fLowerSegment, Int_t fUpperSegment, Int_t run_number)
+Bool_t FileSearch(TString filename, TChain *chain, Bool_t fSegInclude, Int_t fLowerSegment, Int_t fUpperSegment, Int_t run_number, TString qwstem)
 {
 
   TString file_directory;
@@ -295,9 +309,9 @@ Bool_t FileSearch(TString filename, TChain *chain, Bool_t fSegInclude, Int_t fLo
 
 }
 
-void LoadRootFile(TString filename, TChain *tree, Bool_t fSegInclude, Int_t fLowerSegment, Int_t fUpperSegment, Int_t run_number)
+void LoadRootFile(TString filename, TChain *tree, Bool_t fSegInclude, Int_t fLowerSegment, Int_t fUpperSegment, Int_t run_number, TString qwstem)
 {
-	Bool_t found = FileSearch(filename, tree, fSegInclude, fLowerSegment, fUpperSegment, run_number);
+	Bool_t found = FileSearch(filename, tree, fSegInclude, fLowerSegment, fUpperSegment, run_number, qwstem);
   
 	if(!found){
 		std::cerr << "Unable to locate requested file :: "

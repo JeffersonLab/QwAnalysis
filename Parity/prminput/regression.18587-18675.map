@@ -198,6 +198,7 @@ asym:qwk_md9pos, 0.50
 
 
 #Lumi Asymmetery Average PMT
+#Do uslumi1* need to be added back in here?
 [asym:@asym_uslumi_pmtavg]
 asym:qwk_uslumi3neg, 0.25 
 asym:qwk_uslumi3pos, 0.25 

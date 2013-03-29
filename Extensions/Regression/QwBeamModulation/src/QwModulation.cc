@@ -805,11 +805,6 @@ void QwModulation::CalculateSlope(Int_t fNModType)
 	 DetectorSlopeError[fNModType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
       }
 
-      if(fNModType == 0){
-	std::cout << "Slope: " << slope/( TMath::Abs(d_mean) ) << " +- "
-		  << sigma_slope/( TMath::Abs(d_mean) ) << std::endl;
-      }
-      
       c_mean = 0;
       d_mean = 0;
       slope = 0;
