@@ -4,7 +4,7 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
 
-void qNormVariables(Double_t totCountsB1L0[nPlanes][nStrips],Double_t totCountsB1L1[nPlanes][nStrips],Int_t totIL0,Int_t totIL1)
+void qNormVariables(Int_t totCountsB1L0[nPlanes][nStrips],Int_t totCountsB1L1[nPlanes][nStrips],Int_t totIL0,Int_t totIL1)
 {
   for(Int_t p = startPlane; p < endPlane; p++) { 
     for (Int_t s =startStrip; s <endStrip; s++) {        

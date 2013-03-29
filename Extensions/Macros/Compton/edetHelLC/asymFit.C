@@ -73,7 +73,7 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   Int_t NDF[nPlanes],resFitNDF[nPlanes];
   Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=1,debug1=0,debug2=0;
+  Bool_t debug=1,debug1=0,debug2=1;
   Bool_t polSign,kYieldFit=0,kYield=1,kResidual=1;
   ifstream paramfile;
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
@@ -90,7 +90,7 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   Int_t numbGoodStrips[nPlanes]={0};
 
   if(dataType == "Sc") qNormBkgdSubSigToBkgdRatioLow=1.25;
-  if(dataType == "Ac") qNormBkgdSubSigToBkgdRatioLow=4.00;
+  if(dataType == "Ac") qNormBkgdSubSigToBkgdRatioLow=1.25;
   if(dataType == "Ev") qNormBkgdSubSigToBkgdRatioLow=1.25;
 
   ///Note: the 's' in this section of the routine does not necessarily represent strip number
@@ -125,10 +125,12 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
     Bool_t trueEdge = 0;
     cout<<"looking for generic compton edge for plane "<<p+1<<endl; 
     for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
-      if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow) { //!'qNormBkgdSubSigToBkgdRatioLow' is set=5.0 
+      if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] < qNormBkgdSubSigToBkgdRatioLow) { 
 	trueEdge = 1;
 	Double_t probableEdge = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
 	cout<<"probable Cedge : "<<probableEdge<<endl;
+	cout<<"since "<<qNormScBkgdSubSigB1[p][s]<<" over "<<qNormScB1L0[p][s]<<" is less than "<<qNormBkgdSubSigToBkgdRatioLow<<" hence qualified"<<endl;
+	cout<<red<<qNormScBkgdSubSigB1[p][s]<<"\t"<<qNormScB1L0[p][s]<<normal<<endl;
 	Int_t leftStrips = numbGoodStrips[p] - (Int_t)probableEdge;
 	for(Int_t st =1; st <=leftStrips;st++) {///starting to check next strip onwards
 	  if (qNormScBkgdSubSigB1[p][s+st]/qNormScB1L0[p][s+st]  >= qNormBkgdSubSigToBkgdRatioLow) trueEdge = 0;
@@ -191,12 +193,12 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
     polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge,3);
     //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
     polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
-    //polFit->SetParameters(1.0,0.0001,0.85);//2nd parameter as Compton edge internal position
-    
+    //polFit->SetParameters(1.0,0.0001,0.85);//2nd parameter as Compton edge internal position  
     //polFit->SetParLimits(0,1.021,1.021);//fixing the strip width to 1.021
     polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch    
+    //polFit->SetParLimits(0,1.0,1.0);
     polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
-    //polFit->SetParLimits(1,tempCedge-1.0,tempCedge+2.0);///allowing compton edge to vary by -3 strips to upto +2 strips
+    //polFit->SetParLimits(1,40.0,62.0);
     polFit->SetParLimits(2,-1.0,1.0);///allowing polarization to be - 100% to +100%
 
     polFit->SetParNames("effStrip","comptonEdge","polarization");
@@ -265,22 +267,22 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
       if(kVladas_data) expAsymPWTL1.open("/home/narayan/acquired/vladas/run.24519");
       else expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(expAsymPWTL1.is_open()) {
-	if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
-	if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
+	if(debug1) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
+	if(debug1) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
 	for(Int_t s =startStrip ; s < endStrip; s++) {
 	  if (!mask[p][s]) continue;
 	  expAsymPWTL1>>stripNum[p][s]>>stripAsym[p][s]>>stripAsymEr[p][s];
-	  if(debug2) cout<<stripNum[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<endl;
+	  if(debug1) cout<<stripNum[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<endl;
 	}
 	expAsymPWTL1.close();
       }
       else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
-      if(debug2) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
+      if(debug1) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
       for (Int_t s = startStrip; s <= Cedge[p]; s++) {
 	if (!mask[p][s]) continue;
 	fitResidue[p][s] = stripAsym[p][s] - polFit->Eval(s+1);
-	if(debug2) cout<<fitResidue[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<polFit->Eval(s+1)<<endl;
+	if(debug1) cout<<fitResidue[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<polFit->Eval(s+1)<<endl;
       }
       cResidual->cd(p+1);  
       cResidual->GetPad(p+1)->SetGridx(1);
@@ -324,12 +326,12 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
     for (Int_t p =startPlane; p <endPlane; p++) {
       infileYield.open(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(infileYield.is_open()) {
-	if(debug2) cout<<"Reading the Yield corresponding to Plane "<<p+1<<endl;
-	if(debug2) cout<<"stripNum\t"<<"stripYield\t"<<"stripYieldEr"<<endl;
+	if(debug1) cout<<"Reading the Yield corresponding to Plane "<<p+1<<endl;
+	if(debug1) cout<<"stripNum\t"<<"stripYield\t"<<"stripYieldEr"<<endl;
 	for(Int_t s =startStrip ; s < endStrip; s++) {
 	  if (!mask[p][s]) continue;
 	  infileYield>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
-	  if(debug2) cout<<stripNum[p][s]<<"\t"<<stripAsymDr[p][s]<<"\t"<<stripAsymDrEr[p][s]<<endl;
+	  if(debug1) cout<<stripNum[p][s]<<"\t"<<stripAsymDr[p][s]<<"\t"<<stripAsymDrEr[p][s]<<endl;
 	}
 	infileYield.close();
       }

@@ -87,7 +87,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     if(laser<=laserFracLo*laserMax) n++;///laser is off for n consecutive entries
     else if((laser>laserFracHi*laserMax)&&(laser>=0.0)) n=0; ///laser On begins ///the additional if ensures that the laser readback is not non-sensical
 
-    if (n==minEntries) { ///laser has been off for minEntries/960 seconds continuously, hence consider it a valid laseroff
+    if (n==minEntries) { ///laser has been off for minEntries/240 seconds continuously, hence consider it a valid laseroff
       cutL.push_back(index-minEntries+1);//!the +1 is needed to take care of the fact that C++ counts "index" from 0, while 'minEntries' is compared only when 'n' goes all the way from 1 to minEntries.
       if(debug) printf("cutL[%d]=%d\n",m,cutL.back());///print begin of laser off entry
       flipperIsUp = kTRUE; ///laserOff state begins
@@ -102,9 +102,9 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       }
     }
     ///    find and record electron beam off periods
-    // rampIsDone = (bcm> (beamFrac*beamMax) && (bcm <200.0));
-    // isABeamTrip = (bcm<= (beamFrac*beamMax) && (bcm >0.0));
-    rampIsDone = (bcm> (50.0) && (bcm <200.0));
+    //rampIsDone = (bcm> (beamFracHi*beamMax) && (bcm <200.0));
+    //isABeamTrip = (bcm<= (beamFrac*beamMax) && (bcm >0.0));
+    rampIsDone = (bcm> (20.0) && (bcm <200.0));
     isABeamTrip = (bcm<= (20.0) && (bcm >0.0));
 
     if(isABeamTrip && prevTripDone) {
@@ -166,4 +166,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
  *..demarcation was for beam Off and laser-off.
  * we throw away about 2 seconds of data before the beamTrip is found
  * the laser on state doesn't have a check for how long it stays ON?
- ************************************/
+ * We could not throw away the initial/final part of laser On data because,
+ * ..the same marker which is used for beginning of laser On, is also used for end of Laser off
+ * ..hence, shifting the laser on marker by (say) 1s would confuse the laser off identification
+************************************/

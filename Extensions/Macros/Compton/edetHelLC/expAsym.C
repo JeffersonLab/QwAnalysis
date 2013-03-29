@@ -24,19 +24,20 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
 
   Bool_t beamOn =kFALSE;//lasOn,
-  Int_t goodCycles=0,chainExists = 0;
+  Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
+  Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
   Int_t l = 0;//lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
   Int_t nHelLCB1L1=0, nHelLCB1L0=0;
-
+  Int_t totalMissedQuartets=0;
   Int_t entry=0; ///integer assitant in reading entry from a file
   Int_t missedLasEntries=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
   Double_t yieldB1L1[nPlanes][nStrips], yieldB1L0[nPlanes][nStrips];
   Double_t diffB1L1[nPlanes][nStrips], diffB1L0[nPlanes][nStrips];
   Double_t bYield[nPlanes][nStrips],bDiff[nPlanes][nStrips],bAsym[nPlanes][nStrips];
   Double_t iLCL1=0.0,iLCL0=0.0;
-  Double_t lasPow[3],bcm[3],bpm_3c20X[2];
+  Double_t lasPow[3],bcm[3],bpm_3c20X[2],bModRamp[3];
   Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2];
   Double_t pattern_number, event_number;
   Double_t laserOnOffRatioH0;
@@ -49,9 +50,9 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   Double_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips],qNormLasCycAsym[nPlanes][nStrips];
   Double_t lasPowLCB1L0=0.0,lasPowLCB1L1=0.0;
 
-  Double_t totyieldB1L1[nPlanes][nStrips], totyieldB1L0[nPlanes][nStrips];
-  Double_t totIAllL1=0.0,totIAllL0=0.0;
-  //Int_t totHelB1L1=0,totHelB1L0=0;
+//  Double_t totyieldB1L1[nPlanes][nStrips], totyieldB1L0[nPlanes][nStrips];
+//  Double_t totIAllL1=0.0,totIAllL0=0.0;
+//  Int_t totHelB1L1=0,totHelB1L0=0;
 
   TString readEntry;
   TChain *helChain = new TChain("Hel_Tree");//chain of run segments
@@ -171,6 +172,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   helChain->SetBranchStatus("yield_sca_bpm_3p03aX",1);
   helChain->SetBranchStatus("yield_sca_bpm_3c20Y",1);
   helChain->SetBranchStatus("yield_sca_bpm_3c20X",1);
+  helChain->SetBranchStatus("yield_sca_bmod_ramp",1);
+
   if (dataType == "Ev") {
     helChain->SetBranchStatus("yield_p*RawEv",1);
     helChain->SetBranchStatus("diff_p*RawEv",1);
@@ -220,7 +223,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   helChain->SetBranchAddress("yield_sca_bpm_3p03aX",&bpm_3p03aX);
   helChain->SetBranchAddress("yield_sca_bpm_3p03aY",&bpm_3p03aY);
   helChain->SetBranchAddress("yield_sca_bpm_3c20X",&bpm_3c20X);
-
+  helChain->SetBranchAddress("yield_sca_bmod_ramp",&bModRamp);
   ///I need to open the lasCyc dependent files separately here since at every nCycle I update this file with a new entry
   ///..it should be opened before I enter the nCycle loop, and close them after coming out of the nCycle loop.
   if(lasCycPrint) {
@@ -250,7 +253,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     if (debug) cout<<"\nStarting nCycle:"<<nCycle+1<<" and resetting all nCycle variables"<<endl;
     ///since this is the beginning of a new Laser cycle, and all Laser cycle based variables 
     ///..are already assigned to a permanent variable reset the LasCyc based variables
-    nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0; 
+    nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0,missedDueToBMod=0; 
     iLCL1= 0.0, iLCL0= 0.0;
     lasPowLCB1L0=0.0,lasPowLCB1L1= 0.0;
     for(Int_t p = startPlane; p <nPlanes; p++) {      
@@ -287,7 +290,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
       if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
       else beamOn = kFALSE;
-    } else cout<<"\n***Error ... Something drastically wrong in BeamTrip evaluation***\n"<<endl;
+    } else cout<<red<<"\n***Error ... Something drastically wrong in BeamTrip evaluation***\n"<<normal<<endl;
       
     if(debug) cout<<"Will analyze from entry # "<<cutLas.at(2*nCycle)<<" to entry # "<<cutLas.at(2*nCycle+2)<<endl;
 
@@ -301,47 +304,56 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       else missedLasEntries++;
 
       helChain->GetEntry(i);
+//      if (kRejectBMod && (bModRamp[0]<100.0)) continue; 
       if (beamOn) { ////currently the counters are only populated for beamOn cycles
-	if (l==0) {//using the H=0 configuration for now
-	  nHelLCB1L0++;
-	  iLCL0 += bcm[0];
-	  lasPowLCB1L0 += lasPow[0];
-	  for(Int_t p = startPlane; p <endPlane; p++) {
-	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (!mask[p][s]) continue;
-	      yieldB1L0[p][s] += bYield[p][s];
-	      diffB1L0[p][s]  += bDiff[p][s];
+          if (kRejectBMod && (bModRamp[0]>100.0)) {
+	    missedDueToBMod++; 
+	    continue;
+	  }
+	  if (l==0) {//using the H=0 configuration for now
+	    nHelLCB1L0++;
+	    iLCL0 += bcm[0];
+	    lasPowLCB1L0 += lasPow[0];
+	    for(Int_t p = startPlane; p <endPlane; p++) {
+	      for(Int_t s =startStrip; s <endStrip; s++) {
+	        if (!mask[p][s]) continue;
+	        yieldB1L0[p][s] += bYield[p][s];
+	        diffB1L0[p][s]  += bDiff[p][s];
+	      }
+	    }
+	  } else if (l==1) {////the elseif statement helps avoid overhead in each entry
+	    nHelLCB1L1++;
+	    iLCL1 += bcm[0];
+	    lasPowLCB1L1 += lasPow[0];
+	    for(Int_t p = startPlane; p <endPlane; p++) {
+	      for(Int_t s =startStrip; s <endStrip; s++) {
+	        if (!mask[p][s]) continue;
+	        yieldB1L1[p][s] += bYield[p][s];
+	        diffB1L1[p][s]  += bDiff[p][s];
+	      }
 	    }
 	  }
-	} else if (l==1) {////the elseif statement helps avoid overhead in each entry
-	  nHelLCB1L1++;
-	  iLCL1 += bcm[0];
-	  lasPowLCB1L1 += lasPow[0];
-	  for(Int_t p = startPlane; p <endPlane; p++) {
-	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (!mask[p][s]) continue;
-	      yieldB1L1[p][s] += bYield[p][s];
-	      diffB1L1[p][s]  += bDiff[p][s];
-	    }
-	  }
-	}
       }///if (beamOn)
     }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
     if(debug) cout<<"had to ignore "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
 
+    totalMissedQuartets += missedDueToBMod++;
     //after having filled the above vectors based on laser and beam periods, find asymmetry for this laser cycle
     if (beamOn) {
       goodCycles++;
+      if(kRejectBMod) cout<<blue<<"no.of quartets missed for BMod ramp this cycle: "<<missedDueToBMod<<normal<<endl;
       laserOnOffRatioH0 = (Double_t)nHelLCB1L1/nHelLCB1L0;
       totIAllL1 += iLCL1;
       totIAllL0 += iLCL0;
-      //totHelB1L1 += nHelLCB1L1;
-      //totHelB1L0 += nHelLCB1L0;
-      if (nHelLCB1L1<= 0||nHelLCB1L0<= 0)
+      totHelB1L1 += nHelLCB1L1;
+      totHelB1L0 += nHelLCB1L0;
+      if (nHelLCB1L1<= 0||nHelLCB1L0<= 0) {
+	cout<<red<<endl;
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nHelLCB1L1:%d, nHelLCB1L0:%d",nCycle,nHelLCB1L1,nHelLCB1L0);
-      else if (iLCL1<= 0||iLCL0<= 0)
+      } else if (iLCL1<= 0||iLCL0<= 0)
 	printf("\n****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check iLCL1:%f, iLCL0:%f**\n",nCycle,iLCL1,iLCL0);
       else {
+        cout<<normal<<endl;
 	for (Int_t p =startPlane; p <endPlane; p++) {
 	  for (Int_t s = startStrip; s < endStrip; s++) {
 	    if (!mask[p][s]) continue;
@@ -441,7 +453,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  
-  cout<<"the no.of used laser cycles in this run was "<<goodCycles<<endl;
+  cout<<blue<<"total no.of quartets ignored due to Beam Mod : "<<totalMissedQuartets<<normal<<endl;
+  cout<<"the no.of used laser cycles in this run was "<<goodCycles<<normal<<endl;
   return goodCycles;//the function returns the number of used Laser cycles
 }
 /******************************************************
