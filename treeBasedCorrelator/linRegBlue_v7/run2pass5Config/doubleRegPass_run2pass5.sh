@@ -102,6 +102,12 @@ fi
 logPath='./out/'
 mxEve=2223344
 
+if [ -x /usr/bin/time ] ; then
+    timeCommand="/usr/bin/time -vao $logPath/timeLog "
+else
+    timeCommand="time"
+fi
+
 echo doubleRegPass  run.seg=${run}.${seg}
 
 
@@ -135,14 +141,32 @@ chmod u+rw,g+rws out
 
 
 #.......................................
-echo regPass5 started ...
-time ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve} >& ${logPath}/logS1
+date >> ${logPath}/timeLog
+echo "## df -k ."     >> ${logPath}/timeLog
+df -k .               >> ${logPath}/timeLog
+echo "## vmstat 1 5"  >> ${logPath}/timeLog
+vmstat 1 5            >> ${logPath}/timeLog
+echo "## iostat -n"   >> ${logPath}/timeLog
+iostat -n             >> ${logPath}/timeLog
+echo "## iostat"      >> ${logPath}/timeLog
+iostat                >> ${logPath}/timeLog
+echo "## top -b -n 1" >> ${logPath}/timeLog
+top -b -n 1           >> ${logPath}/timeLog
+
+echo regPass5 started ... | tee -a ${logPath}/timeLog
+$timeCommand ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve} >& ${logPath}/logS1
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass5 for run ${run}.${seg}
    cat ${logPath}/logS1
    chgrp -R ${myown}  out
    chmod -R ${myperm} out
+   if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
+       arr=$(find out -type f -name blueR\*hist.root)
+       for d in "${arr[@]}"; do
+           mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
+       done
+   fi
    mv out ${outPath}/out-regAbort1-${run}.${seg}_${timestamp}
    echo abandon this run
    exit
@@ -157,6 +181,12 @@ if [ $? -ne 0 ] ; then
    echo failed to find slope matrix  for run ${run}.${seg}
    chgrp -R ${myown}  out
    chmod -R ${myperm} out
+   if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
+       arr=$(find out -type f -name blueR\*hist.root)
+       for d in "${arr[@]}"; do
+           mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
+       done
+   fi
    mv out ${outPath}/out-regAbort2-${run}.${seg}_${timestamp}
    echo abandon this run
    exit
@@ -164,20 +194,28 @@ fi
 
 
 #.......................................
+date >>${logPath}/timeLog
 echo regPass2 started 
-echo ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile}
-time ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile} >& ${logPath}/logS2
+echo ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile} | tee -a ${logPath}/timeLog
+$timeCommand ${scriptPath}/../linRegBlue  ${run} ${seg} ${mxEve}  blueReg.conf ${slopeFile} >& ${logPath}/logS2
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass2 for run ${run}.${seg}
    chgrp -R ${myown}  out
    chmod -R ${myperm} out
+   if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
+       arr=$(find out -type f -name blueR\*hist.root)
+       for d in "${arr[@]}"; do
+           mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
+       done
+   fi
    mv out ${outPath}/out-regAbort3-${run}.${seg}_${timestamp}
    echo abandon this run
    exit
 fi
 
 #.......................................
-echo Prepare data for DB upload
+date >>${logPath}/timeLog
+echo Prepare data for DB upload | tee -a ${logPath}/timeLog
 
 root -b -q ${scriptPath}/../prCsvRecordTwo.C'('${run}.${seg}',"out/")'
 
@@ -193,8 +231,18 @@ fi
 
 
 #.......................................
-echo regPass2 successful destDir=${destDir}
-
+echo regPass2 successful destDir=${destDir}| tee -a ${logPath}/timeLog
+date >>${logPath}/timeLog
+echo "## df -k ."     >> ${logPath}/timeLog
+df -k .               >> ${logPath}/timeLog
+echo "## vmstat 1 5"  >> ${logPath}/timeLog
+vmstat 1 5            >> ${logPath}/timeLog
+echo "## iostat -n"   >> ${logPath}/timeLog
+iostat -n             >> ${logPath}/timeLog
+echo "## iostat"      >> ${logPath}/timeLog
+iostat                >> ${logPath}/timeLog
+echo "## top -b -n 1" >> ${logPath}/timeLog
+top -b -n 1          >> ${logPath}/timeLog
 
 chgrp -R ${myown}  out
 chmod -R ${myperm} out
@@ -206,6 +254,14 @@ if  [ -d  ${outPath}/../lrb_rootfiles ] ; then
     arr=$(find ${destDir} -type f -name reg_\*.root)
     for d in "${arr[@]}"; do
 	mv -v ${d} ${outPath}/../lrb_rootfiles/${configSuffix}_`basename ${d}`
+    done
+fi
+
+#  Move the diagnostics rootfile to the lrb_diagnostics directory if it exists
+if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
+    arr=$(find ${destDir} -type f -name blueR\*hist.root)
+    for d in "${arr[@]}"; do
+	mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
     done
 fi
 
