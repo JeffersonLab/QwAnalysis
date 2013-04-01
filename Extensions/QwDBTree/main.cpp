@@ -67,7 +67,7 @@ int main(Int_t argc, Char_t* argv[]) {
      * ALL trees to use).
      */
     QwRunlet runlets(db);
-    runlets.fill(reg_types, runlist_str);
+    runlets.fill(reg_types, runlist_str, runavg);
 
     /* Run tree_fill to grab the remaining data from the database. */
     const Int_t num_regs = reg_types.num_detectors();

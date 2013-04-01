@@ -16,7 +16,7 @@ QwRunlet::QwRunlet(TSQLServer* db_pointer) {
  * Generate query to get the runlet level data out of temporary table. offoff
  * is used because it is backwards compatible with pass4b.
  */
-TString QwRunlet::runlet_query(vector<TString> runlist) {
+TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg) {
     TString query;
     query = "SELECT\n";
     query += "runlet_id\n";
@@ -29,7 +29,7 @@ TString QwRunlet::runlet_query(vector<TString> runlist) {
     query += ", good_for_id\n";
     query += "FROM temp_table_unreg_offoff\n";
     /* Group by run_number for run averaging */
-    if(0 < runlist.size()) {
+    if(runavg) {
         query += "GROUP BY run_number;";
     }
 
@@ -148,11 +148,11 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     if(reg_type == "off") query += "AND analysis.slope_calculation = \"on\"\n";
     else if(reg_type == "offoff") query += "AND analysis.slope_calculation = \"off\"\n";
     else query += "AND analysis.slope_calculation = \"" + reg_type + "\"\n";
+    query += "AND runlet.runlet_quality_id = 1\n";
 
     /* Check and see if the runlist is empty. If not, only query those runs. */
     if(0 == runlist.size()) {
         query += "AND slow_controls_settings.target_position = \"HYDROGEN-CELL\"\n";
-        query += "AND runlet.runlet_quality_id = 1\n";
         query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
     }
     else {
@@ -196,7 +196,7 @@ vector<Int_t> QwRunlet::get_runs(void) {
  * This fuction creates all the temporary tables for use later. First, it loops
  * over all regression types,
  */
-void QwRunlet::fill(QwParse &reg_types, QwParse &runlist)
+void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, Bool_t runavg)
 {
     // create the fist temp table
     cout << "creating temp runlet tables" << endl;
@@ -225,7 +225,8 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist)
     }
 
     cout << "querying runlet data" << endl;
-    query = runlet_query(runlist.ret_detector());
+    query = runlet_query(runlist.ret_detector(), runavg);
+    cout << query << endl;
     stmt = db->Statement(query, 100);
 
     if((db!=0) && db->IsConnected()) {
