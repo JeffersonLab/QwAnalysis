@@ -26,7 +26,6 @@ TString QwLumiDet::query(void) {
     /* query holds the actualy query as a TString */
     TString query;
     query = "SELECT\n";
-    query += "DISTINCT run_number\n";
     /*
      * If run averaging is enabled, take the weighted average.
      * 
@@ -37,19 +36,22 @@ TString QwLumiDet::query(void) {
      * error weight: mdallbars_width/sqrt(n)
      */
     if(runavg) {
+        query += "DISTINCT run_number\n";
         /* Changed to number weighted avg. FIXME. */
         if(measurement_id == "a" || measurement_id == "d") {
+            /* Changed to number weighted avg. FIXME. */
             query += ", SUM(lumi_data.value*SQRT(n))/SUM(SQRT(n))*1e6\n";
             query += ", SQRT(1/SUM(1/POWER(lumi_data.error,2)))*1e6\n";
         }
         else {
-            query += ", SUM(lumi_data.value*SQRT(n))/SUM(SQRT(n))\n";
+            query += ", SUM(lumi_data.value*(n))/SUM(SQRT(n))\n";
             query += ", SQRT(1/SUM(1/POWER(lumi_data.error,2)))\n";
         }
         query += ", SUM(lumi_data.n)\n";
     }
     /* Otherwise, grab runlets with asymmetries and diffs in ppm. */
     else {
+        query += "DISTINCT runlet_id\n";
         if(measurement_id == "a" || measurement_id == "d") {
             /* Convert values of asymmetries to ppm */
             query += ", lumi_data.value*1e6\n";
@@ -63,18 +65,19 @@ TString QwLumiDet::query(void) {
     }
     query += "FROM " + table + "\n";
 
-    /* Join the temorary table to the main detector table */
-    query += "JOIN lumi_data ON " + table + ".analysis_id = lumi_data.analysis_id\n";
+    /* Join the temorary table to the lumi detector table */
+    query += "JOIN lumi_data ON " + table+ ".analysis_id = lumi_data.analysis_id\n";
     /* Join the detector name to the detector number. */
     query += "JOIN lumi_detector ON lumi_data.lumi_detector_id = lumi_detector.lumi_detector_id\n";
 
     /*
-     * lumi level cuts. Runlet level cuts are made when generating temporary
-     * tables
+     * lumi detector level cuts. Runlet level cuts are made when generating
+     * temporary tables
      */
     query += "WHERE lumi_data.subblock = 0\n";
     query += "AND lumi_data.measurement_type_id = \"" + measurement_id + "\"\n";
-    query += "AND lumi_detector.quantity = \"" + detector_name +"\"\n";
+    query += "AND lumi_detector.quantity = \"" + detector_name + "\"\n";
+    query += "AND lumi_data.n > 0\n";
 
     /* Organize the data. */
     if(runavg) query += "GROUP BY run_number;\n";
