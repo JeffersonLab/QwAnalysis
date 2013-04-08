@@ -30,8 +30,8 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
       qNormLasCycAsym[p][s] = (BCqNormLasCycDiff / BCqNormLasCycSum);
 
       ///Evaluation of error on asymmetry; partitioned the evaluation in a way which avoids re-calculation
-      Double_t term1 = (1-qNormLasCycAsym[p][s])/BCqNormLasCycSum;
-      Double_t term2 = (1+qNormLasCycAsym[p][s])/BCqNormLasCycSum;
+      Double_t term1 = (1.0-qNormLasCycAsym[p][s])/BCqNormLasCycSum;
+      Double_t term2 = (1.0+qNormLasCycAsym[p][s])/BCqNormLasCycSum;
       Double_t NplusOn_SqQplusOn    = qNormCountsLCB1H1L1 /qAvgLCL1;
       Double_t NminusOn_SqQminusOn  = qNormCountsLCB1H0L1 /qAvgLCL1;
       Double_t NplusOff_SqQplusOff  = qNormCountsLCB1H1L0 /qAvgLCL0;

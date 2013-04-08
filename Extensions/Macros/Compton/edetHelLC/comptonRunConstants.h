@@ -2,6 +2,7 @@
 #define __COMPTONRUNCONSTANTS_H
 
 #include <rootClass.h>
+#include <stdlib.h>
 
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
@@ -35,7 +36,8 @@ const Double_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
 //const Double_t zdrift = 2.275;///drift distance(m) from middle of 2nd dipole to front of 3rd dipole
 //const Double_t chicaneBend = 10.131; ///(degree)
 const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
-const Int_t minEntries = 2000; //Laser must be off for at least this many consecutive entries to be considered (off)
+const Int_t minEntries = 4000; //Laser must be off for at least this many consecutive entries to be considered (off)
+///4000/helRate ~<20 second; we never ran with a laser cycle such that lasOff <20s, so this is good
 const Double_t th_det = 10.08;//based on elog399; 10.3;//angle at which the diamond detector is inclined towards the beam (deg)
 const Double_t ldet[nPlanes] = {1.69792,1.70823,1.71855,1.72886};//1.645,; ///survey provided longitudinal distance of det-bottom from edge of 3rd dipole
 
@@ -44,15 +46,15 @@ const Bool_t v2processed=0;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t acceptLasPow = 120000;//typical values of sca_laser_PowT ~ 160k when On
-const Double_t laserFrac = 0.9;//this was the limit for full current regluar running during run2.///typical 160E3. 
-const Double_t laserFracLo = 0.60;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
+const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
+const Double_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
 const Double_t laserFracHi = 0.90;//90% of maximum beam to be considered as laserOn///typical 150E3.
 const Double_t beamFracHi = 0.78;
 const Double_t beamFracLo = 0.6;
 const Double_t beamFrac = 0.6;
 
-const Int_t WAIT_N_ENTRIES = 10000;//# of mps's to wait after beam trip
-const Int_t PREV_N_ENTRIES = 5000;//# of mps's to wait after beam trip
+const Int_t WAIT_N_ENTRIES = 5000;//# of quartets to wait after beam trip
+const Int_t PREV_N_ENTRIES = 500;//# of quartets to ignore before a beam trip
 const Double_t ignoreBeamAbove = 195.0;
 //const Double_t ignoreLasPowAbove = 195.0;
 const Double_t MpsRate = 960.015;
@@ -86,13 +88,16 @@ Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;
 ///Declaration of regular variables to be used in the macro
 Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
 Double_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];
+Double_t beamMax, laserMax;
+
 Double_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
 Double_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
 Double_t qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
-/* Double_t qNormScalerB1L1[nPlanes][nStrips],qNormScalerB1L0[nPlanes][nStrips]; */
-/* Double_t qNormAccumB1L1[nPlanes][nStrips],qNormAccumB1L0[nPlanes][nStrips]; */
+Double_t BCqNormBkgdSubAllB1L1[nPlanes][nStrips], BCqNormBkgdSubAllB1L1Er[nPlanes][nStrips];
+//Double_t qNormScalerB1L1[nPlanes][nStrips],qNormScalerB1L0[nPlanes][nStrips];
+//Double_t qNormAccumB1L1[nPlanes][nStrips],qNormAccumB1L0[nPlanes][nStrips]; 
 Double_t qNormCountsB1L0[nPlanes][nStrips],qNormCountsB1L1[nPlanes][nStrips];
-
+Double_t qNormBkgdSubAllB1L1[nPlanes][nStrips],qNormAllB1L0[nPlanes][nStrips],qNormAllB1L0Er[nPlanes][nStrips]; 
 Int_t totIAllL1=0.0,totIAllL0=0.0;
 Int_t totHelB1L1=0,totHelB1L0=0;
 Int_t totyieldB1L1[nPlanes][nStrips], totyieldB1L0[nPlanes][nStrips];

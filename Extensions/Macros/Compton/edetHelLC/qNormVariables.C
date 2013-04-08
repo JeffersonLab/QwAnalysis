@@ -11,6 +11,9 @@ void qNormVariables(Int_t totCountsB1L0[nPlanes][nStrips],Int_t totCountsB1L1[nP
       if (!mask[p][s]) continue;
       qNormCountsB1L1[p][s]  = (totCountsB1L1[p][s])/((Double_t)(totIL1/helRate));
       qNormCountsB1L0[p][s]  = (totCountsB1L0[p][s])/((Double_t)(totIL0/helRate));
+      BCqNormBkgdSubAllB1L1[p][s]=qNormCountsB1L1[p][s]-qNormCountsB1L0[p][s];
+      BCqNormBkgdSubAllB1L1Er[p][s] = (TMath::Sqrt(BCqNormBkgdSubAllB1L1[p][s]))/(Double_t)(totIL1/helRate);
+      qNormAllB1L0Er[p][s] = (TMath::Sqrt(totCountsB1L0[p][s]))/(Double_t)(totIL0/helRate);
     }
   }
 }

@@ -23,7 +23,7 @@ void edetLasCyc(Int_t runnum, TString dataType="Ac")
   gROOT->LoadMacro(" evaluateAsym.C+g");
   gROOT->LoadMacro(" expAsym.C+g");
   gROOT->LoadMacro(" asymFit.C+g");
-  gROOT->LoadMacro(" fileReadDraw.C+g");
+  //gROOT->LoadMacro(" fileReadDraw.C+g");
 
   infoDAQ(runnum); //!add a method to verify that config tree was successfully read
   Int_t asymReturn = expAsym(runnum,dataType);

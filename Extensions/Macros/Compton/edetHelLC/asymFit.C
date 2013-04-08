@@ -66,6 +66,7 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   gStyle->SetTitleOffset(0.6,"Y");
   gStyle->SetTitleSize(0.06,"Y");
   gStyle->SetLabelSize(0.06,"xyz");
+
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   Double_t pol[nPlanes],polEr[nPlanes],chiSq[nPlanes],effStripWidth[nPlanes],effStripWidthEr[nPlanes];
@@ -74,77 +75,61 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=1,debug1=0,debug2=0;
-  Bool_t polSign,kYieldFit=0,kYield=0,kResidual=0;
+  Bool_t polSign,kYieldFit=0,kYield=1,kResidual=1;
   Bool_t kFitEffWidth=1;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
-
-  ifstream paramfile;
+  Bool_t kFoundCE[nPlanes]={0};
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
+  TLine *myline = new TLine(1,0,65,0);
+  TF1 *polFit,*linearFit;
 
   if (!maskSet) infoDAQ(runnum);
 
-  ifstream infileScaler, expAsymPWTL1, infileYield;
+  ifstream paramfile,infileL0Yield, expAsymPWTL1, infileYield;
   ofstream polList;
-  TLine *myline = new TLine(1,0,65,0);
-  TF1 *polFit,*linearFit;
-  Double_t qNormScBkgdSubSigB1[nPlanes][nStrips];
-  std::vector<std::vector <Double_t> > activeStrip,qNormScB1L1,qNormScB1L0;
+  //Double_t qNormScBkgdSubSigB1[nPlanes][nStrips];
+  std::vector<std::vector <Double_t> > activeStrip,qNormCntsB1L0,qNormCntsB1L0Er;
   Int_t numbGoodStrips[nPlanes]={0};
-
+  Double_t stripNum[nPlanes][nStrips],qNormCntsB1L1[nPlanes][nStrips],qNormCntsB1L1Er[nPlanes][nStrips];
   //if(kFitEffWidth) {
-    if(dataType == "Sc") qNormBkgdSubSigToBkgdRatioLow=1.25;
-    if(dataType == "Ac") qNormBkgdSubSigToBkgdRatioLow=1.25;
-    if(dataType == "Ev") qNormBkgdSubSigToBkgdRatioLow=1.25;
-
     ///Note: the 's' in this section of the routine does not necessarily represent strip number
     for(Int_t p =startPlane; p <endPlane; p++) {
-      infileScaler.open(Form("%s/%s/%s"+dataType+"QnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      if(infileScaler.is_open()) {
-        if(p>=(Int_t)activeStrip.size()) {
-	  activeStrip.resize(p+1),qNormScB1L1.resize(p+1),qNormScB1L0.resize(p+1);
-	}
-	if(debug) cout<<"Reading the qNormScaler corresponding to Plane "<<p+1<<endl;
-	if(debug2) cout<<"\np\ts\tbkgdSubScal\tactiveStr\t"<<"qNormScL1\t"<<"qNormScL0\t"<<"(L1-L0)/L1\t"<<"(L1-L0)/L0"<<endl;
-	while(infileScaler.good()) {
-	  activeStrip[p].push_back(0.0);
-	  qNormScB1L1[p].push_back(0.0);
-	  qNormScB1L0[p].push_back(0.0);
-	  Int_t s=activeStrip[p].size() - 1;///this 's' does not represent the actual strip number
-	  infileScaler>>activeStrip[p][s]>>qNormScB1L1[p][s]>>qNormScB1L0[p][s];///the content of the 'activeStrip' vector contains the true strip # in human counting
-	  qNormScBkgdSubSigB1[p][s] = qNormScB1L1[p][s] - qNormScB1L0[p][s];
-	  if(debug2) printf("%d\t%d\t%f\t%2.0f\t%f\t%f\t%f\t%f\n",p+1,s+1,qNormScBkgdSubSigB1[p][s],activeStrip[p][s],qNormScB1L1[p][s],qNormScB1L0[p][s],qNormScBkgdSubSigB1[p][s]/qNormScB1L1[p][s],qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s]);
-	  numbGoodStrips[p]++;//counts in human counting ///this is basically =activeStrip[p].size()
-	}
-	infileScaler.close();
-      } else {
-	cout<<red<<"\n*** Alert:couldn't find "<<Form("%s/%s/%s"+dataType+"QnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" needed to generically locate Compton edge"<<normal<<endl;
-	cout<<"*** Check the file used for compton edge determination***"<<endl;
-	return -1;
+      for(Int_t s = startStrip; s <endStrip; s++) {
+	stripNum[p][s]=0.0,qNormCntsB1L1[p][s]=0.0,qNormCntsB1L1Er[p][s]=0.0;
       }
     }
 
-    ///start finding the generic compton edge 
     for(Int_t p =startPlane; p <endPlane; p++) {
-      Bool_t trueEdge = 0;
-      cout<<"looking for generic compton edge for plane "<<p+1<<endl; 
-      for(Int_t s =(Int_t)activeStrip[p][0]; s < numbGoodStrips[p]; s++) {//begin at first activeStrip
-	if (qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] < qNormBkgdSubSigToBkgdRatioLow) { 
-	  trueEdge = 1;
-	  Double_t probableEdge = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
-	  cout<<"probable Cedge : "<<probableEdge<<endl;
-	  Int_t leftStrips = 1;//numbGoodStrips[p] - (Int_t)probableEdge;
-	  ///If the ratio is clean for 4 consecutive strips then it can't be a hoax
-	  for(Int_t st =1; st <=leftStrips;st++) {///starting to check next strip onwards
-	    if (qNormScBkgdSubSigB1[p][s+st]/qNormScB1L0[p][s+st]  >= qNormBkgdSubSigToBkgdRatioLow) trueEdge = 0;
-	    if(debug2) printf("qNormScBkgdSubSigB1[%d][%d]:%f, leftStrips:%d, trueEdge:%d\n",p+1,s+1+st+1,qNormScBkgdSubSigB1[p][s+st+1],leftStrips,trueEdge);
-	  }
-	  if (trueEdge) {
-	    Cedge[p]= probableEdge;
-	    cout<<"\nCompton edge for plane "<<p+1<<" auto-determined to strip "<<Cedge[p]<<"\n"<<endl;
+      infileL0Yield.open(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      infileYield.open(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      if(infileL0Yield.is_open() && infileYield.is_open()) {
+        if(p>=(Int_t)activeStrip.size()) {
+	  activeStrip.resize(p+1),qNormCntsB1L0.resize(p+1),qNormCntsB1L0Er.resize(p+1);
+	}
+	if(debug1) cout<<"Reading the qNorm files corresponding to Plane "<<p+1<<endl;
+	//if(debug1) cout<<"\nstrip\tbkgdSubSig-bkgd\t"<<" 5sigma"<<endl;
+	while(infileL0Yield.good()) {
+	  activeStrip[p].push_back(0.0),qNormCntsB1L0[p].push_back(0.0),qNormCntsB1L0Er[p].push_back(0.0);
+	  Int_t s=activeStrip[p].size() - 1;///this 's' does not represent the actual strip number
+	  infileL0Yield>>activeStrip[p][s]>>qNormCntsB1L0[p][s]>>qNormCntsB1L0Er[p][s];///the content of the 'activeStrip' vector contains the true strip # in human counting
+	  infileYield>>stripNum[p][s]>>qNormCntsB1L1[p][s]>>qNormCntsB1L1Er[p][s]>>stripAsymNr[p][s];
+	  if((qNormCntsB1L1[p][s]-qNormCntsB1L0[p][s])< 400.0*qNormCntsB1L0Er[p][s]) {// && !kFoundCE[p]) {
+	    Cedge[p] = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
+	    cout<<"probable Cedge : "<<Cedge[p]<<endl;
+	    kFoundCE[p] = 1;
 	    break;
-	  } else cout<<"**** Did not find Cedge for plane "<<p+1<<" in run # "<<runnum<<" in this iteration"<<endl;
-	} else if(s==numbGoodStrips[p]-1) cout<<red<<"**** Alert:*** Something unusual in Cedge determination for run # "<<runnum<<" Did not find Cedge till last strip"<<normal<<endl;
+	  }
+	  //if(debug1) cout<<stripNum[p][s]<<"\t"<<qNormCntsB1L1[p][s]-qNormCntsB1L0[p][s]<<"\t"<<400.0*qNormCntsB1L0Er[p][s]<<endl;
+	  numbGoodStrips[p]++;//counts in human counting ///this is basically =activeStrip[p].size()
+	}
+	infileL0Yield.close(),infileYield.close();
+      } else {
+	cout<<red<<"\n*** Alert:couldn't find "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<
+	cout<<" or the Yield file "<<Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+	return -1;
       }
+      if(kFoundCE[p]) cout<<"\nCompton edge for plane "<<p+1<<" auto-determined to strip "<<Cedge[p]<<"\n"<<endl;
+      else cout<<red<<"**** Alert: Did not find Cedge for plane "<<p+1<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
     }///for(Int_t p =startPlane; p <endPlane; p++)
     //}///if(kFitEffWidth)
   TCanvas *cAsym;
@@ -153,7 +138,7 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300*endPlane);
   cAsym->Divide(1,endPlane); 
 
-  Double_t stripNum[nPlanes][nStrips], fitResidue[nPlanes][nStrips];
+  Double_t fitResidue[nPlanes][nStrips];
   Double_t zero[nStrips];
 
   polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePrefix.Data()));
@@ -179,7 +164,6 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
     grAsymPlane[p]->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",p+1));//Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
     grAsymPlane[p]->SetMarkerStyle(kFullCircle);
     grAsymPlane[p]->SetLineColor(kRed);
-    grAsymPlane[p]->SetFillColor(0);   
     grAsymPlane[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
     grAsymPlane[p]->SetMaximum(0.048); 
     grAsymPlane[p]->SetMinimum(-0.048);
@@ -206,10 +190,8 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
     polFit->SetParLimits(2,-1.0,1.0);///allowing polarization to be - 100% to +100%
     polFit->SetParNames("effStrip","comptonEdge","polarization");
     polFit->SetLineColor(kBlue);
-    if(debug1) cout<<"starting to fit exp asym"<<endl;
     cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
-    grAsymPlane[p]->Fit("polFit","0ME");
-    if(debug1) cout<<"finished fitting exp asym"<<endl;
+    grAsymPlane[p]->Fit("polFit","0 R M E");
     polFit->DrawCopy("same");
     offset[p] = polFit->GetParameter(1);
     offsetEr[p] = polFit->GetParError(1);
@@ -264,28 +246,28 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
       ///determining the residue of the above fit
       for (Int_t s = startStrip; s < endStrip; s++) {//ensure that all variables gets initiated by zero
 	stripNum[p][s]=0.0,stripAsym[p][s]=0.0,stripAsymEr[p][s]=0.0;
-	stripAsymDr[p][s]=0.0,stripAsymNr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
+	qNormCntsB1L1[p][s]=0.0,stripAsymNr[p][s]=0.0,qNormCntsB1L1Er[p][s]=0.0;
 	zero[s] = 0.0;
       }
       if(kVladas_data) expAsymPWTL1.open("/home/narayan/acquired/vladas/run.24519");
       else expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
       if(expAsymPWTL1.is_open()) {
-	if(debug1) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
-	if(debug1) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
+	if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
+	if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
 	for(Int_t s =startStrip ; s < endStrip; s++) {
 	  if (!mask[p][s]) continue;
 	  expAsymPWTL1>>stripNum[p][s]>>stripAsym[p][s]>>stripAsymEr[p][s];
-	  if(debug1) cout<<stripNum[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<endl;
+	  if(debug2) cout<<stripNum[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<endl;
 	}
 	expAsymPWTL1.close();
       }
       else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
-      if(debug1) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
+      if(debug2) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
       for (Int_t s = startStrip; s <= Cedge[p]; s++) {
 	if (!mask[p][s]) continue;
 	fitResidue[p][s] = stripAsym[p][s] - polFit->Eval(s+1);
-	if(debug1) cout<<fitResidue[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<polFit->Eval(s+1)<<endl;
+	if(debug2) cout<<fitResidue[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<polFit->Eval(s+1)<<endl;
       }
       cResidual->cd(p+1);  
       cResidual->GetPad(p+1)->SetGridx(1);
@@ -327,19 +309,6 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
     cYield->Divide(1,endPlane); 
 
     for (Int_t p =startPlane; p <endPlane; p++) {
-      infileYield.open(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      if(infileYield.is_open()) {
-	if(debug1) cout<<"Reading the Yield corresponding to Plane "<<p+1<<endl;
-	if(debug1) cout<<"stripNum\t"<<"stripYield\t"<<"stripYieldEr"<<endl;
-	for(Int_t s =startStrip ; s < endStrip; s++) {
-	  if (!mask[p][s]) continue;
-	  infileYield>>stripNum[p][s]>>stripAsymDr[p][s]>>stripAsymDrEr[p][s]>>stripAsymNr[p][s];
-	  if(debug1) cout<<stripNum[p][s]<<"\t"<<stripAsymDr[p][s]<<"\t"<<stripAsymDrEr[p][s]<<endl;
-	}
-	infileYield.close();
-      }
-      else cout<<"did not find the Yield file "<<Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
-
       cYield->cd(p+1);
       cYield->GetPad(p+1)->SetGridx(1);
       grYieldPlane[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
@@ -352,12 +321,12 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
 	TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,Cedge[p]-1,3);///three parameter fit
 	crossSecFit->SetParameters(1,Cedge[p],20.0);//begin the fitting from the generic Cedge
 	crossSecFit->SetParLimits(0,0.2,2.0);
-	grB1L0[p]->SetFillColor(kBlue);
 	crossSecFit->SetParLimits(1,Cedge[p],Cedge[p]); //effectively fixing the Compton edge    
 	crossSecFit->SetLineColor(kRed);
 	grYieldPlane[p]->Fit("crossSecFit","0 R M E q");
       }
       grB1L0[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grB1L0[p]->SetFillColor(kBlue);
       grB1L0[p]->SetLineColor(kBlue);
       grB1L0[p]->SetMarkerColor(kBlue);
 
@@ -401,7 +370,7 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
  *In auto determination of Compton edge, I'm using (L1 - L0)/L0 instead of (L1 - L0)/L1 
  *..because in the latter both Nr and Dr reduce at the Compton edge, hence the former should be more pronounced
  *the use of qNormScBkgdSubSigB1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow ; is a better comparision
- *..for identifying compton edge compared to qNormScB1L1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow
+ *..for identifying compton edge compared to qNormCntsB1L1[p][s]/qNormScB1L0[p][s] <= qNormBkgdSubSigToBkgdRatioLow
  *..since the former puts the magnitude of signal-over-bkgd in the perspective of the background; while the later 
  *..simply does a numerical comparision of the signal-over-bkgd.
 

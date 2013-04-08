@@ -42,4 +42,5 @@ Double_t weightedMean(Double_t weightedMeanNrAsym[nPlanes][nStrips],Double_t wei
   }
   return 1.0;
 }
+//weightedMean : wm
 #endif
