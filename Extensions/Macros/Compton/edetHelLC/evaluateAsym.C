@@ -2,25 +2,27 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 
-void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes][nStrips],Double_t yieldB1L1[nPlanes][nStrips],Double_t yieldB1L0[nPlanes][nStrips],Double_t bcmLCL1,Double_t bcmLCL0,Double_t wmNrAsym[nPlanes][nStrips],Double_t wmDrAsym[nPlanes][nStrips],Double_t wmNrBCqNormSum[nPlanes][nStrips],Double_t wmDrBCqNormSum[nPlanes][nStrips],Double_t wmNrBCqNormDiff[nPlanes][nStrips],Double_t wmNrqNormB1L0[nPlanes][nStrips],Double_t wmDrqNormB1L0[nPlanes][nStrips],Double_t wmNrBkgdAsym[nPlanes][nStrips],Double_t wmDrBkgdAsym[nPlanes][nStrips],Double_t qNormLasCycAsym[nPlanes][nStrips],Double_t LasCycAsymErSqr[nPlanes][nStrips])
+void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes][nStrips],Double_t yieldB1L1[nPlanes][nStrips],Double_t yieldB1L0[nPlanes][nStrips],Double_t bcmLCH1L1,Double_t bcmLCH1L0,Double_t bcmLCH0L1,Double_t bcmLCH0L0,Double_t wmNrAsym[nPlanes][nStrips],Double_t wmDrAsym[nPlanes][nStrips],Double_t wmNrBCqNormSum[nPlanes][nStrips],Double_t wmDrBCqNormSum[nPlanes][nStrips],Double_t wmNrBCqNormDiff[nPlanes][nStrips],Double_t wmNrqNormB1L0[nPlanes][nStrips],Double_t wmDrqNormB1L0[nPlanes][nStrips],Double_t wmNrBkgdAsym[nPlanes][nStrips],Double_t wmDrBkgdAsym[nPlanes][nStrips],Double_t qNormLasCycAsym[nPlanes][nStrips],Double_t LasCycAsymErSqr[nPlanes][nStrips])
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug=0,debug1=0;
-  Double_t qAvgLCL1 = bcmLCL1 /(helRate);
-  Double_t qAvgLCL0 = bcmLCL0 /(helRate);
+  Double_t qAvgLCH1L1 = bcmLCH1L1 /(helRate);
+  Double_t qAvgLCH1L0 = bcmLCH1L0 /(helRate);
+  Double_t qAvgLCH0L1 = bcmLCH0L1 /(helRate);
+  Double_t qAvgLCH0L0 = bcmLCH0L0 /(helRate);
 
   for (Int_t p =startPlane; p <endPlane; p++) {	  	  
     for (Int_t s =startStrip; s <endStrip; s++) {	  
       if (!mask[p][s]) continue;
       ///a factor of 4 is needed to balance out the averaging in the yield and diff reported in the helicity tree
-      Double_t countsLCB1H1L1=(yieldB1L1[p][s] + diffB1L1[p][s])/2.0;
-      Double_t countsLCB1H1L0=(yieldB1L0[p][s] + diffB1L0[p][s])/2.0;
-      Double_t countsLCB1H0L1=(yieldB1L1[p][s] - diffB1L1[p][s])/2.0;
-      Double_t countsLCB1H0L0=(yieldB1L0[p][s] - diffB1L0[p][s])/2.0;
-      Double_t qNormCountsLCB1H1L1=4.0*countsLCB1H1L1/qAvgLCL1;
-      Double_t qNormCountsLCB1H1L0=4.0*countsLCB1H1L0/qAvgLCL0;
-      Double_t qNormCountsLCB1H0L1=4.0*countsLCB1H0L1/qAvgLCL1;
-      Double_t qNormCountsLCB1H0L0=4.0*countsLCB1H0L0/qAvgLCL0;
+      Double_t countsLCB1H1L1=2.0*(yieldB1L1[p][s] + diffB1L1[p][s]);///this is now the true total counts in this laser cycle durng H1,L1
+      Double_t countsLCB1H1L0=2.0*(yieldB1L0[p][s] + diffB1L0[p][s]);
+      Double_t countsLCB1H0L1=2.0*(yieldB1L1[p][s] - diffB1L1[p][s]);
+      Double_t countsLCB1H0L0=2.0*(yieldB1L0[p][s] - diffB1L0[p][s]);
+      Double_t qNormCountsLCB1H1L1=countsLCB1H1L1/qAvgLCH1L1;
+      Double_t qNormCountsLCB1H1L0=countsLCB1H1L0/qAvgLCH1L0;
+      Double_t qNormCountsLCB1H0L1=countsLCB1H0L1/qAvgLCH0L1;
+      Double_t qNormCountsLCB1H0L0=countsLCB1H0L0/qAvgLCH0L0;
 
       Double_t BCqNormAcB1H1L1LasCyc= qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
       Double_t BCqNormAcB1H0L1LasCyc= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
@@ -32,10 +34,10 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
       ///Evaluation of error on asymmetry; partitioned the evaluation in a way which avoids re-calculation
       Double_t term1 = (1.0-qNormLasCycAsym[p][s])/BCqNormLasCycSum;
       Double_t term2 = (1.0+qNormLasCycAsym[p][s])/BCqNormLasCycSum;
-      Double_t NplusOn_SqQplusOn    = qNormCountsLCB1H1L1 /qAvgLCL1;
-      Double_t NminusOn_SqQminusOn  = qNormCountsLCB1H0L1 /qAvgLCL1;
-      Double_t NplusOff_SqQplusOff  = qNormCountsLCB1H1L0 /qAvgLCL0;
-      Double_t NminusOff_SqQminusOff= qNormCountsLCB1H0L0 /qAvgLCL0;
+      Double_t NplusOn_SqQplusOn    = qNormCountsLCB1H1L1 /qAvgLCH1L1;
+      Double_t NminusOn_SqQminusOn  = qNormCountsLCB1H0L1 /qAvgLCH0L1;
+      Double_t NplusOff_SqQplusOff  = qNormCountsLCB1H1L0 /qAvgLCH1L0;
+      Double_t NminusOff_SqQminusOff= qNormCountsLCB1H0L0 /qAvgLCH0L0;
 
       ///redefining these error variables 
       Double_t errB1H1L1 = pow(term1,2) * NplusOn_SqQplusOn; 
