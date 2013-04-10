@@ -33,6 +33,9 @@
 // Definitions
 #define VECTOR_SIZE 100
 
+bool is_R2WirePlane10_OK = true;
+double drop_off_R2_hits = 0;  // percent of dropped hits to total hits in Region 2, no drop-off if set to 0
+double drop_off_R3_hits = 0;  // percent of dropped hits to total hits in Region 3, no drop-off if set to 0
 
 //------------------------------------------------------------
 /**
@@ -329,7 +332,7 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
                         fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit  == 5 &&
                         fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit  == 5 &&
                         fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit  == 5 &&
-                        fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit  == 5 &&
+                        fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit  == 5 && // non-functioning plane
                         fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit  == 5 &&
                         fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit  == 5;
 
@@ -677,13 +680,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC front #1, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -719,13 +722,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC front #2, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -759,13 +762,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionZ.at(i1);
 
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC front #3, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -799,13 +802,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC front #4, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -839,13 +842,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC front #5, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -879,13 +882,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC front #6, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -920,13 +923,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC back #1, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -960,13 +963,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC back #2, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -1000,13 +1003,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC back #3, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -1031,6 +1034,8 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
     QwDebug << "No detector in region 2, back plane 3." << QwLog::endl;
   }
 
+  if (is_R2WirePlane10_OK==true)
+  {
   QwDebug << "Processing Region2_ChamberBack_WirePlane4: "
           << fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
   try {
@@ -1040,13 +1045,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC back #4, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -1070,6 +1075,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
   } catch (std::exception&) {
     QwDebug << "No detector in region 2, back plane 4." << QwLog::endl;
   }
+  } // end of  if (is_R2WirePlane10_OK==true)
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane5: "
           << fRegion2_ChamberBack_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
@@ -1080,13 +1086,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC back #5, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -1120,13 +1126,13 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
       double xGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionX.at(i1);
       double yGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionY.at(i1);
-      double zGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionZ.at(i1);
+      //double zGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionZ.at(i1);
       
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nHDC back #6, octant: "<<detectorinfo->GetOctant()<<"\n";
 //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
@@ -1188,7 +1194,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
 
   if (r3_hit) {
     
-  double originX0, originY0, originZ0;
+  //double originX0, originY0, originZ0;
   // Region 3 front planes (u,v)
   QwDebug << "Processing Region3_ChamberFront_WirePlaneU: "
           << fRegion3_ChamberFront_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
@@ -1204,19 +1210,19 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
       double yLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
-      double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
-      double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
-      double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
-      double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
+      //double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
+      //double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
+      //double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
+      //double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
 
       // Convert global x-y to local x-y
-      double originX = originX0 = detectorinfo->GetXPosition();
-      double originY = originY0 = detectorinfo->GetYPosition();
-      double originZ = originZ0 = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originX = originX0 = detectorinfo->GetXPosition();
+      //double originY = originY0 = detectorinfo->GetYPosition();
+      //double originZ = originZ0 = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"\nVDC front U, octant: "<<detectorinfo->GetOctant()<<", ";
 //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
@@ -1300,19 +1306,19 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
             // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
       double yLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
-      double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
-      double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
-      double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
-      double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
+      //double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
+      //double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
+      //double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
+      //double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
 
       // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originX = detectorinfo->GetXPosition();
+      //double originY = detectorinfo->GetYPosition();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"VDC front V, octant: "<<octant <<", ";
 //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
@@ -1396,19 +1402,19 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
       double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
-      double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
-      double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
-      double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
-      double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
+      //double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
+      //double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
+      //double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
+      //double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
 
       // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originX = detectorinfo->GetXPosition();
+      //double originY = detectorinfo->GetYPosition();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
       
 //       std::cout<<"VDC back U, octant: "<<detectorinfo->GetOctant()<<", ";
 //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
@@ -1490,19 +1496,19 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
       double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
-      double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
-      double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
-      double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
-      double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
+      //double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
+      //double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
+      //double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
+      //double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
 
       // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+      //double originX = detectorinfo->GetXPosition();
+      //double originY = detectorinfo->GetYPosition();
+      //double originZ = detectorinfo->GetZPosition();
+      //int octant = detectorinfo->GetOctant();
 
 //       std::cout<<"VDC back V, octant: "<<detectorinfo->GetOctant()<<", ";
 //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
@@ -1729,6 +1735,19 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
 	const double x, const double y,
 	const bool resolution_effects) const
 {
+  if ( drop_off_R2_hits > 0.0 &&  drop_off_R2_hits < 100) 
+  {
+    boost::mt19937 rng;
+    boost::uniform_real<double> u(0, 100);
+    static boost::variate_generator<boost::mt19937, boost::uniform_real<double> > gen(rng, u);
+    double random_percent = gen();
+    if( random_percent < drop_off_R2_hits )
+    {
+      //std::cout<<"rand()="<<random_percent<<", drop_off_R2_hits="<<drop_off_R2_hits<<std::endl;
+      return 0;
+    }
+  }
+  
   // Detector identification
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
@@ -1781,6 +1800,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   // Calculate the drift distance
   double mean_distance = fabs(w - w_wire);
   double sigma_distance = detectorinfo->GetSpatialResolution();
+  //sigma_distance = 0.03;
   double distance = mean_distance;
   // If resolution effects are enables, we override the mean value
   if (resolution_effects) {
@@ -1845,7 +1865,20 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 
   // Create a list for the hits (will be returned)
   std::vector<QwHit> hits;
-
+  // randomly drop off some hits
+  if ( drop_off_R3_hits > 0.0 &&  drop_off_R3_hits < 100) 
+  {
+    boost::mt19937 rng;
+    boost::uniform_real<double> u(0, 100);
+    static boost::variate_generator<boost::mt19937, boost::uniform_real<double> > gen(rng, u);
+    double random_percent = gen();
+    if( random_percent < drop_off_R3_hits )
+    {
+      //std::cout<<"rand()="<<random_percent<<", drop_off_R3_hits="<<drop_off_R3_hits<<std::endl;
+      return hits;
+    }
+  }
+  
   // Determine angles for U and V, but we are really only interested in the
   // current direction, so the other one is arbitrarily set to angleU = -angleV,
   // which happens to be correct for region 2 and 3 drift chambers.
@@ -1905,6 +1938,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
     // included here (it could be done, though, mx and mz are available).
     double mean_distance = dz * fabs(x0 - x_wire) / (x2 - x1);
     double sigma_distance = detectorinfo->GetSpatialResolution();
+    //sigma_distance = 0.028;
     double distance = mean_distance;
     // If resolution effects are active, we override the mean value
     if (resolution_effects) {
