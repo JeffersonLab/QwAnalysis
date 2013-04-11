@@ -59,6 +59,8 @@ my $query = '
                     AND data.run_quality_id is not NULL
                     AND !FIND_IN_SET("2",data.run_quality_id) AND !FIND_IN_SET("3",data.run_quality_id)
                     AND data.good_for_id is not NULL AND  FIND_IN_SET("1",data.good_for_id) AND FIND_IN_SET("3",data.good_for_id)
+		ORDER BY
+		    run_number, segment_number
              ';
 
 my $query_handle = $dbh->prepare($query);
@@ -69,12 +71,15 @@ if (!$query_handle->rows) {
 }
 $query_handle->bind_columns(\$run, \$seg);
 
+my $dummy=0;
 while($query_handle->fetch()){
+print "\n" if $dummy!=$run;
 $filename = "$slugletDir/sluglet$run\_".sprintf("%03d",$seg).".root";
 	unless(-e $filename){
 		print("Sluglet file for Run$run.$seg does not exist!\n");
 		$status=1;
 	}
+$dummy=$run;
 }
 
 if($status==0){
