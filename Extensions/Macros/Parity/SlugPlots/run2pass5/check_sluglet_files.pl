@@ -4,7 +4,10 @@ use warnings;
 use strict;
 use DBI;
 use DBD::mysql;
-#
+use Getopt::Long;
+
+sub helpscreen;
+
 my $user = "qweak";
 my $password = "QweakQweak";
 my $host = "qweakdb.jlab.org";
@@ -20,10 +23,20 @@ my $slugletDir = "/volatile/hallc/qweak/QwAnalysis/run2/pass5b_slugs";
 my $filename = "";
 my $dbh = DBI->connect("dbi:mysql:$database:$host",$user,$password) or die $DBI::errstr;
 
-if(@ARGV<1){
-	print "Usage: ./check_sluglet_files.pl <SLUG>\n";
-	exit;
+my ($target,$alum,$help);
+my $optstatus = GetOptions
+	"target|targ=s" => \$target,
+	"alum|al"       => \$alum,
+	"help|h|?"	=> \$help,
+;
+
+if (!$target) {
+	if ($alum) { $target="DS-4%-Aluminum";}
+	else {$target="HYDROGEN-CELL";}
 }
+
+helpscreen if ($help);
+helpscreen if (@ARGV<1);
 
 my $query = '
                 SELECT
@@ -40,7 +53,7 @@ my $query = '
                     AND data.slope_calculation="off"
                     AND data.subblock = 0
                     AND data.error !=0
-                    AND target_position = "HYDROGEN-CELL"
+                    AND target_position = "' .$target. '"
                     AND measurement_type = "a"
                     AND detector = "mdallpmtavg"
                     AND data.run_quality_id is not NULL
@@ -72,5 +85,27 @@ else{
 }
 
 
+exit;
+
+sub helpscreen {
+my $helpstring = <<EOF;
+A program that checks whether sluglet files exist for a given slug.
+It will alert you if any sluglets are missing, and if your query is
+empty. You can also pass it a target if you are looking at non-LH2
+running.
+Calling syntax:
+	./check_sluglet_files.pl [slug number] [options]
+Examples:
+	./check_sluglet_files.pl 314	#checks if there are LH2 sluglets for slug 314
+	./check_sluglet_files.pl 314 --target="HYDROGEN-CELL"	#same, but awkward
+	./check_sluglet_files.pl 314 --alum	#checks if slug 314 used the DS 4$ target
+
+Options:
+	--help		prints this helpful message
+	--target	provide alternate target
+	--alum|al	equivalent to --target="DS-4%-Aluminum"
+EOF
+die $helpstring if $help;
+}
 
 
