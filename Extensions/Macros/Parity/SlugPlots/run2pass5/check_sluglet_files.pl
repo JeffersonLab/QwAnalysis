@@ -50,6 +50,10 @@ my $query = '
 
 my $query_handle = $dbh->prepare($query);
 $query_handle->execute();
+if (!$query_handle->rows) {
+	print "Your query is empty!\n";
+	$status=1;
+}
 $query_handle->bind_columns(\$run, \$seg);
 
 while($query_handle->fetch()){
