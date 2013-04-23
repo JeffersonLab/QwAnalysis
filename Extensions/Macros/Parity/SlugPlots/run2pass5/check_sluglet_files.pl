@@ -36,7 +36,7 @@ if (!$target) {
 }
 
 helpscreen if ($help);
-helpscreen if (@ARGV<1);
+helpscreen unless @ARGV;
 
 my $query = '
                 SELECT
@@ -110,7 +110,7 @@ Options:
 	--target	provide alternate target
 	--alum|al	equivalent to --target="DS-4%-Aluminum"
 EOF
-die $helpstring if $help;
+die $helpstring;
 }
 
 
