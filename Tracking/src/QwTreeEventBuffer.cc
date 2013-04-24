@@ -27,6 +27,8 @@
 #include "QwPartialTrack.h"
 #include "QwEvent.h"
 
+#include "QwDriftChamberHDC.h"
+
 // Helper headers
 #include "uv2xy.h"
 
@@ -34,8 +36,15 @@
 #define VECTOR_SIZE 100
 
 bool is_R2WirePlane10_OK = true;
+bool is_Plane10_Wire18_OK = true;
+int  num_of_dead_R2_wire = 18;
+
+double drop_off_R2_plane10_hits = 0; //90;  // percent of dropped hits to total hits in plane 10 of Region 2, no drop-off if set to 0
+
 double drop_off_R2_hits = 0;  // percent of dropped hits to total hits in Region 2, no drop-off if set to 0
 double drop_off_R3_hits = 0;  // percent of dropped hits to total hits in Region 3, no drop-off if set to 0
+
+double missing_drift_time = 7.0; // [ns], set to 0 if no missing drift time
 
 //------------------------------------------------------------
 /**
@@ -72,6 +81,8 @@ QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
   fNumOfSimulated_TS_Tracks = 0;
   fNumOfSimulated_MD_Tracks = 0;
   fNumOfSimulated_TS_MD_Tracks = 0;
+  
+  LoadDriftTimeDistance();
 }
 
 
@@ -255,7 +266,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
         continue;
     
     // Add the smeared hit list
-    QwHitContainer* smearedhitlist = CreateHitList(false,r2Hit,r3Hit);
+    QwHitContainer* smearedhitlist = CreateHitList(true,r2Hit,r3Hit);
     fCurrentEvent->AddHitContainer(smearedhitlist);
     delete smearedhitlist;
 
@@ -1038,6 +1049,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
   {
   QwDebug << "Processing Region2_ChamberBack_WirePlane4: "
           << fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
+    
   try {
     detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackage1).at(9);
     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
@@ -1066,6 +1078,20 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double y = -xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+
+      if ( drop_off_R2_plane10_hits > 0.0 &&  drop_off_R2_plane10_hits < 100) 
+      {
+        boost::mt19937 rng;
+        boost::uniform_real<double> u(0, 100);
+        static boost::variate_generator<boost::mt19937, boost::uniform_real<double> > gen(rng, u);
+        double random_percent = gen();
+        if( random_percent < drop_off_R2_plane10_hits )
+        {
+          //std::cout<<"rand()="<<random_percent<<", drop_off_R2_plane10_hits="<<drop_off_R2_plane10_hits<<std::endl;
+          hit = 0;
+        }
+      }
+
       if (hit) {
         if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
         hitlist->push_back(*hit);
@@ -1794,13 +1820,20 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   // Check whether this wire is physical, return null if not possible
   if ((wire < 1) || (wire > detectorinfo->GetNumberOfElements())) return 0;
 
+  //check whether this wire is a dead wire (plane 1, wire 18)
+  if (is_Plane10_Wire18_OK == false && plane == 1 && wire == num_of_dead_R2_wire) 
+  {
+    //std::cout<<"Dropped a hit on wire 18 of R2 plane 1"<<std::endl;
+    return 0;
+  }
+  
   // Calculate the actual position of this wire
   double w_wire = offset + (wire - 1) * spacing;
 
   // Calculate the drift distance
   double mean_distance = fabs(w - w_wire);
   double sigma_distance = detectorinfo->GetSpatialResolution();
-  //sigma_distance = 0.03;
+  sigma_distance = 0.03;
   double distance = mean_distance;
   // If resolution effects are enables, we override the mean value
   if (resolution_effects) {
@@ -1812,7 +1845,19 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
     // Another absolute value to avoid negative distances
     distance = fabs(mean_distance + sigma_distance * normal());
   }
-
+  
+  // taken into account the missing drift time
+  if(missing_drift_time != 0)
+  {
+    double drift_time = GetR2DriftTimeFromDistance(distance);
+    //std::cout<<"before: dist="<<distance<<", time="<<drift_time;
+    drift_time = drift_time - missing_drift_time;
+    if (drift_time<0)
+      drift_time = 0;
+    distance = GetR2DriftDistanceFromTime(drift_time);
+    //std::cout<<", after: dist="<<distance<<", time="<<drift_time<<std::endl;
+  }
+  
   // Create a new hit
   QwHit* hit = new QwHit(0,0,0,0, region, package, octant, plane, direction, wire, 0);
   hit->SetDetectorInfo(detectorinfo);
@@ -1938,7 +1983,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
     // included here (it could be done, though, mx and mz are available).
     double mean_distance = dz * fabs(x0 - x_wire) / (x2 - x1);
     double sigma_distance = detectorinfo->GetSpatialResolution();
-    //sigma_distance = 0.028;
+    sigma_distance = 0.028;
     double distance = mean_distance;
     // If resolution effects are active, we override the mean value
     if (resolution_effects) {
@@ -3333,5 +3378,61 @@ void QwTreeEventBuffer::PrintStatInfo(int r2good=0,int r3good=0, int ngoodtracks
       QwMessage << "Overall efficiency : " 
                 << ngoodtracks<<"/"<<QwTreeEventBuffer::fNumOfSimulated_ValidTracks<<" = "
                 <<(float)ngoodtracks/QwTreeEventBuffer::fNumOfSimulated_ValidTracks*100<<" \%"<<QwLog::endl;
+}
 
+void QwTreeEventBuffer::LoadDriftTimeDistance()
+{
+  TString TtoD_MapFile = getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/R2_TtoDTable.12164-14000.map";
+  std::ifstream mapfile (TtoD_MapFile, std::ifstream::in);
+  
+  int line = 0;
+  int time;
+  double dist;
+  while (line<131 && mapfile.good()) {
+    mapfile >> time >> dist;
+    //std::cout<<time <<"\t"<< dist<<std::endl;
+    fDriftTimeDistance[time] = dist;
+    line++;
+  }
+
+  mapfile.close();
+}
+
+// Get drift distance from drift time
+double QwTreeEventBuffer::GetR2DriftDistanceFromTime(double time) const
+{
+  int t = time-0.5; // [ns]
+  if(t<0)
+    t=0;
+  if(t>=129)
+    t=129;
+  
+  double dist;
+  if (fDriftTimeDistance[t+1] > fDriftTimeDistance[t])
+    dist = fDriftTimeDistance[t]+(fDriftTimeDistance[t+1]-fDriftTimeDistance[t])/(t+1-t)*(time-t);
+  else
+    dist = fDriftTimeDistance[t];
+  
+  return  dist/10.0; // [cm]
+}
+
+// Get drift time from drift distance
+double QwTreeEventBuffer::GetR2DriftTimeFromDistance(double dist) const
+{  
+  int t;
+  
+  for (t=1; t<=130; t++)
+  {
+    if(GetR2DriftDistanceFromTime(t) > dist)
+      break;
+  }
+
+  // interpolation
+  double time;
+  if (GetR2DriftDistanceFromTime(t) > GetR2DriftDistanceFromTime(t-1))
+    time=(t-1) + (dist-GetR2DriftDistanceFromTime(t-1))/(GetR2DriftDistanceFromTime(t)-GetR2DriftDistanceFromTime(t-1))*(t-(t-1));
+  else
+    time = t-1;
+  
+  return time; // [ns]
 }
