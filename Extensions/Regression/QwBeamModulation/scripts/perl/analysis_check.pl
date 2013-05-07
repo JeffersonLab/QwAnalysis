@@ -186,8 +186,10 @@ sub CheckDatabaseDetector {
     my @result_size;
 
     my $det_query = "select md_data_view.value from analysis, md_data_view";
-    $det_query .= " where md_data_view.detector=\"qwk_mdallbars\" AND analysis.slope_calculation='off' and analysis.slope_correction='$_[1]'"; 
+    $det_query .= " where md_data_view.detector=\"qwk_mdallbars\" AND analysis.slope_calculation='off' and analysis.slope_correction='on'"; 
     $det_query .= " and analysis.analysis_id=md_data_view.analysis_id and analysis.beam_mode='nbm' and run_quality_id=1 and good_for_id='1,3' and run_number = $_[0]";
+
+    print $det_query, "\n";
     
      my $query = $dbi->prepare($det_query); 
      $query->execute or 
@@ -196,7 +198,7 @@ sub CheckDatabaseDetector {
 	 push @result_size, $temp;
      }
      my $rows = $#result_size + 1;
-     if($rows < 5){
+     if($rows < 1){
 	 push @error_detector, $_[0];
      }
 
