@@ -200,7 +200,7 @@ sub CheckDatabaseDetector {
 
     my $det_query = "select md_data_view.value from analysis, md_data_view";
     $det_query .= " where md_data_view.detector=\"qwk_mdallbars\" AND analysis.slope_calculation='off' and analysis.slope_correction='$regset{$_[1]}'"; 
-    $det_query .= " and analysis.analysis_id=md_data_view.analysis_id and analysis.beam_mode='nbm' and run_quality_id=1 and good_for_id='1,3' and run_number = $_[0]";
+    $det_query .= " and analysis.analysis_id=md_data_view.analysis_id and analysis.beam_mode='nbm' and run_number = $_[0]";
 
     my $query = $dbi->prepare($det_query); 
     $query->execute or 
@@ -224,7 +224,7 @@ sub CheckDatabaseDetector {
      my $mod_query = "select md_slope_view.value from analysis, md_slope_view"; 
      $mod_query .= " where md_slope_view.detector=\"qwk_mdallbars\" AND analysis.slope_calculation='on_beammod_4'"; 
      $mod_query .= " and analysis.slope_correction='off' and analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='cp'";
-     $mod_query .= " and run_quality_id=1 and good_for_id='1,3' and run_number = $_[0]";
+     $mod_query .= " and run_number = $_[0]";
 
      my $query = $dbi->prepare($mod_query); 
      $query->execute or 
