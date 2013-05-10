@@ -160,7 +160,8 @@ int main(Int_t argc,Char_t* argv[])
   dAmsr_reg    =  0.0070; // ppm
   dAmsr_dpk    =  0.0080; //ppm
   dAmsr_nonlin =  TMath::Abs(0.02*A_msr);//0.0040; // ppm
-  dAmsr_cuts   =  0.0042; // ppm
+  //dAmsr_cuts   =  0.0042; // ppm from Kat's thesis   //final results A_signal(<Q^2>) =-0.2788 +/- 0.0348 (stat) +/- 0.0294 (syst) ppm
+  dAmsr_cuts   =  0.0014; // ppm from Rak's thesis //final results A_signal(<Q^2>) =-0.2788 +/- 0.0348 (stat) +/- 0.0290 (syst) ppm 
   dAmsr_trans  =  0.00435; // ppm
 
   Delta_A_reg = A_msr - A_raw; // regression correction ppm 
@@ -254,7 +255,7 @@ void printInputs(){//Print all the input values
   printf("dAmsr_reg    = %6.4f ppm\n",dAmsr_reg);
   printf("dAmsr_dpk    = %6.4f ppm\n",dAmsr_dpk);
   printf("dAmsr_nonlin = %6.4f ppm\n",dAmsr_nonlin);
-  printf("dAmsr_cuts   = %6.4f ppm\n",dAmsr_cuts);
+  printf("dAmsr_cuts   = %6.4f ppm (updated results!!! \n",dAmsr_cuts);
   printf("dAmsr_trans  = %6.4f ppm\n",dAmsr_trans);
   printf("dAmsr_syst   = %6.4f  ppm (reg-scheme+dpk+nonlin.+cuts+transverse) \n",dAmsr_syst);
   printf("A_msr        = %6.4f +/- %6.4f (stat) +/- %6.4f (syst)  ppm\n",A_msr,dAmsr_stat,dAmsr_syst);
@@ -273,6 +274,7 @@ void printInputs(){//Print all the input values
 
   printf("\n Experimenta Bias Corrections: EM radiative Correction, light weighting, acceptance correction and Error \n");
   printf("Exp_Bias_C = %3.4f +/- %3.4f \n",Exp_Bias_C,dExp_Bias_C);
+
 
 
 
@@ -431,7 +433,7 @@ void ComputeAsymmetryCorrections(){//Plot A_msr, all it's corrections and A-sign
 
 void PlotAsymmetryCorrections(){//Plot A_msr, all it's corrections and A-signal
   const Int_t plot_count = 12;
-  TString Xlabels[plot_count]={"A_raw","#DeltaReg","trans","nonlin","A_msr","Pol","Al","QTOR","BL","N_#Delta","Det.+EM_R","A_Final"};
+  TString Xlabels[plot_count]={"A_raw","#DeltaReg","trans","nonlin","A_msr","Pol","Al","QTOR","B-L","N_#Delta","Exp_Bias","A_Tree"};
   Double_t dd_x[plot_count]={0,1,2,3,4,5,6,7,8,9,10,11};
   Double_t dd_ex[plot_count]={0,0,0,0,0,0,0,0,0,0,0,0};
   Double_t dd_y[plot_count];//={-0.2045,-0.0361,-0.0588,0.0021,-0.0009,0.0006,-0.0930,-0.2947};
@@ -480,3 +482,4 @@ void PlotAsymmetryCorrections(){//Plot A_msr, all it's corrections and A-signal
   gre->Draw("b");
   
 }
+ 
