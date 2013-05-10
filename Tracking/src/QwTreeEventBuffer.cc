@@ -44,7 +44,7 @@ double drop_off_R2_plane10_hits = 0; //90;  // percent of dropped hits to total 
 double drop_off_R2_hits = 0;  // percent of dropped hits to total hits in Region 2, no drop-off if set to 0
 double drop_off_R3_hits = 0;  // percent of dropped hits to total hits in Region 3, no drop-off if set to 0
 
-double missing_drift_time = 7.0; // [ns], set to 0 if no missing drift time
+double missing_drift_time = 0.0; // [ns], set to 0 if no missing drift time
 
 //------------------------------------------------------------
 /**
@@ -266,7 +266,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
         continue;
     
     // Add the smeared hit list
-    QwHitContainer* smearedhitlist = CreateHitList(true,r2Hit,r3Hit);
+    QwHitContainer* smearedhitlist = CreateHitList(false,r2Hit,r3Hit);
     fCurrentEvent->AddHitContainer(smearedhitlist);
     delete smearedhitlist;
 
@@ -643,7 +643,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.at(i1);
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
       // Set the hit numbers
       for (size_t i = 0; i < hits.size(); i++)
@@ -666,7 +666,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       double yLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.at(i2);
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
       // Set the hit numbers
       for (size_t i = 0; i < hits.size(); i++)
@@ -709,7 +709,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -751,7 +751,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -791,7 +791,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -831,7 +831,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -871,7 +871,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -911,7 +911,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -952,7 +952,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -992,7 +992,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -1032,7 +1032,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -1075,7 +1075,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
 
@@ -1130,7 +1130,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -1170,7 +1170,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       // Create the hit
       QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
       if (hit) {
@@ -1236,20 +1236,20 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
       double yLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
-      //double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
-      //double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
-      //double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
+//      double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
+      double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
+      double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
+//      double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
 
       // Convert global x-y to local x-y
-      //double originX = originX0 = detectorinfo->GetXPosition();
-      //double originY = originY0 = detectorinfo->GetYPosition();
-      //double originZ = originZ0 = detectorinfo->GetZPosition();
-      //int octant = detectorinfo->GetOctant();
-      
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+//      double originZ = detectorinfo->GetZPosition();
+//      int octant = detectorinfo->GetOctant();
+//       
 //       std::cout<<"\nVDC front U, octant: "<<detectorinfo->GetOctant()<<", ";
 //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
 //                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
@@ -1257,12 +1257,12 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
 // 
 //       std::cout<<"px: "<<pxGlobalMC<<", py: "<<pyGlobalMC<<", pz: "<<pzGlobalMC <<std::endl;
 //             
-//       xLocalMC = xGlobalMC - originX;
-//       yLocalMC = yGlobalMC - originY;
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
 
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       
 //       double phi = -(octant-1)*45.0*TMath::DegToRad();
 //       double sin_phi = sin(phi);
@@ -1282,7 +1282,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
-      double my = -pxLocalMC / pzLocalMC;
+      double my = pxLocalMC / pzLocalMC;
 
 //       double mx_global = pxGlobalMC/pzGlobalMC;
 //       double my_global = pyGlobalMC/pzGlobalMC;
@@ -1332,32 +1332,32 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
             // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
       double yLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
-      //double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
-      //double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
-      //double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
-      //double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
+//      double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
+      double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
+      double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
+//      double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
 
       // Convert global x-y to local x-y
-      //double originX = detectorinfo->GetXPosition();
-      //double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      //int octant = detectorinfo->GetOctant();
-      
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+//      double originZ = detectorinfo->GetZPosition();
+//      int octant = detectorinfo->GetOctant();
+//      
 //       std::cout<<"VDC front V, octant: "<<octant <<", ";
 //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
 //                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
 //                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
 //       
 //        
-//       xLocalMC = xGlobalMC - originX;
-//       yLocalMC = yGlobalMC - originY;
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
        
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       
 //       double phi = -(octant-1)*45.0*TMath::DegToRad();
 //       double sin_phi = sin(phi);
@@ -1377,7 +1377,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
-      double my = -pxLocalMC / pzLocalMC;
+      double my = pxLocalMC / pzLocalMC;
 
 //       double mx_global = pxGlobalMC/pzGlobalMC;
 //       double my_global = pyGlobalMC/pzGlobalMC;
@@ -1417,42 +1417,35 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // We don't care about nutral particles, such as gamma and neytron
       int pdgcode = fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3);
       if (abs(pdgcode) != 11) continue;
-
-      // Get the position and momentum in the MC frame (local and global)
-//       double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
-//       double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
-//       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
-//       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
-//       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
       
       // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
       double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
-      //double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
-      //double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
-      //double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
-      //double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
+//      double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
+      double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
+      double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
+//      double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
 
       // Convert global x-y to local x-y
-      //double originX = detectorinfo->GetXPosition();
-      //double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      //int octant = detectorinfo->GetOctant();
-      
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+//      double originZ = detectorinfo->GetZPosition();
+//      int octant = detectorinfo->GetOctant();
+//      
 //       std::cout<<"VDC back U, octant: "<<detectorinfo->GetOctant()<<", ";
 //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
 //                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
 //                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
 //       
-//       xLocalMC = xGlobalMC - originX;
-//       yLocalMC = yGlobalMC - originY;
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       
 //       double phi = -(octant-1)*45.0*TMath::DegToRad();
 //       double sin_phi = sin(phi);
@@ -1472,7 +1465,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
-      double my = -pxLocalMC / pzLocalMC;
+      double my = pxLocalMC / pzLocalMC;
 
 //       double mx_global = pxGlobalMC/pzGlobalMC;
 //       double my_global = pyGlobalMC/pzGlobalMC;
@@ -1513,40 +1506,33 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       if (abs(pdgcode) != 11) continue;
 
       // Get the position and momentum in the MC frame (local and global)
-//       double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
-//       double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
-//       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
-//       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
-//       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
-      
-      // Get the position and momentum in the MC frame (local and global)
       double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
       double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
-      //double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
-      //double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
-      //double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
-      //double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
+//      double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
+      double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
+      double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
+//      double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
 
       // Convert global x-y to local x-y
-      //double originX = detectorinfo->GetXPosition();
-      //double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      //int octant = detectorinfo->GetOctant();
-
-//       std::cout<<"VDC back V, octant: "<<detectorinfo->GetOctant()<<", ";
-//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
-//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
-//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+      double originX = detectorinfo->GetXPosition();
+      double originY = detectorinfo->GetYPosition();
+//      double originZ = detectorinfo->GetZPosition();
+//      int octant = detectorinfo->GetOctant();
+//
+//        std::cout<<"VDC back V, octant: "<<detectorinfo->GetOctant()<<", ";
+//        std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+//                 <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+//                 <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
 //       
-//       xLocalMC = xGlobalMC - originX;
-//       yLocalMC = yGlobalMC - originY;
+      xLocalMC = xGlobalMC - originX;
+      yLocalMC = yGlobalMC - originY;
       
       // Position in the Qweak frame
       double x =  yLocalMC;
-      double y = -xLocalMC;
+      double y = xLocalMC;
       
 //       double phi = -(octant-1)*45.0*TMath::DegToRad();
 //       double sin_phi = sin(phi);
@@ -1566,7 +1552,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       
       // Slopes in the Qweak frame
       double mx =  pyLocalMC / pzLocalMC;
-      double my = -pxLocalMC / pzLocalMC;
+      double my = pxLocalMC / pzLocalMC;
 
 //       double mx_global = pxGlobalMC/pzGlobalMC;
 //       double my_global = pyGlobalMC/pzGlobalMC;
@@ -1790,8 +1776,8 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   // current direction, so the other one is arbitrarily set to angleU = -angleV,
   // which happens to be correct for region 2 and 3 drift chambers.
   double angleU = 0.0, angleV = Qw::pi/2.0; // default: UV == XY
-  if (direction == kDirectionU) { angleU = angle; angleV = - angle; }
-  if (direction == kDirectionV) { angleU = - angle; angleV = angle; }
+  if (direction == kDirectionU) { angleU = angle; angleV = -angle; }
+  if (direction == kDirectionV) { angleU = -angle; angleV = angle; }
   // Ensure correct handedness
   if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
   Uv2xy uv2xy (angleU, angleV);
@@ -1929,11 +1915,11 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   // which happens to be correct for region 2 and 3 drift chambers.
   double angleU = 0.0, angleV = Qw::pi/2.0; // default: UV == XY
 
-  if (direction == kDirectionU) { angleU = -angle; angleV =  angle; }
-  if (direction == kDirectionV) { angleU =  angle; angleV = -angle; }
+  if (direction == kDirectionU) { angleU = angle; angleV =  -angle; }
+  if (direction == kDirectionV) { angleU = -angle; angleV = angle; }
   
   // Ensure correct handedness
-  if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
+  if (fmod(angleU,2.0*Qw::pi) - fmod(angleV,2.0*Qw::pi) < 0.0) angleU += Qw::pi;
   Uv2xy uv2xy (angleU, angleV);
 
   // Make the necessary transformations for the wires
@@ -3374,6 +3360,7 @@ void QwTreeEventBuffer::PrintStatInfo(int r2good=0,int r3good=0, int ngoodtracks
       QwMessage << "Bridging efficiency: " 
                 << ngoodtracks<<"/"<<TMath::Min(r2good,r3good)<<" = "
                 <<(float)ngoodtracks/TMath::Min(r2good,r3good)*100<<" \%"<<QwLog::endl;
+
     if (QwTreeEventBuffer::fNumOfSimulated_ValidTracks>0)
       QwMessage << "Overall efficiency : " 
                 << ngoodtracks<<"/"<<QwTreeEventBuffer::fNumOfSimulated_ValidTracks<<" = "
