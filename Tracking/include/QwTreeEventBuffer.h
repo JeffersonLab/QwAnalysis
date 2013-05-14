@@ -210,6 +210,12 @@ class QwTreeEventBuffer
       void   LoadDriftTimeDistance();
       double GetR2DriftDistanceFromTime(double time) const;
       double GetR2DriftTimeFromDistance(double dist) const;
+
+    /// \brief Get local coordinate from global coordinates and octant number
+      double xGlobalToLocal  (double x,  double y,  int octant) const;
+      double yGlobalToLocal  (double x,  double y,  int octant) const;
+      double pxGlobalToLocal (double px, double py, int octant) const;
+      double pyGlobalToLocal (double px, double py, int octant) const;
       
     // @}
 
