@@ -519,7 +519,13 @@ TString get_query(TString detector, TString measurement, TString ihwp){
   // select only good runs (for now)
   TString run_quality =  Form("(%s.run_quality_id = '1') ",datatable.Data());
 
-  TString regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = '%s' ",
+  TString regression;
+
+  if(reg_set.Contains("off"))
+    regression = Form("%s.slope_calculation = 'on' and %s.slope_correction = '%s' ",
+			    datatable.Data(),datatable.Data(),reg_set.Data()); 
+  else
+    regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = '%s' ",
 			    datatable.Data(),datatable.Data(),reg_set.Data()); 
 
   /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
