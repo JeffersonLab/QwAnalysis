@@ -19,8 +19,13 @@
 // update log:
 //
 // jpan, Fri May  3 15:27:55 CDT 2013
-// initial setup
+// Initial setup
 //
+// jpan, Thu May 16 13:56:06 CDT 2013
+// Added in track rejection flag. Filling histogram only when rejection flag is false.
+// Note that the filling of histograms is in event loop other than the track loop. As
+// such, only the last track in an event is filled. The multiple track issue needs to
+// be further investigated.
 
 #include <iostream>
 #include <iomanip>
@@ -85,6 +90,9 @@ double momentum_max = 2000.0;  // unit: MeV
 //double md_zpos[9] = {0.0, 581.665, 576.705, 577.020, 577.425, 582.515, 577.955, 577.885, 577.060};
 double md_zpos[9] = {0.0, 577.410, 577.415, 577.710, 578.080, 578.240, 578.615, 578.515, 577.730};//MD survey data on Oct 2012
 
+// rejection flag
+bool rejection;
+
 // set debug flag to false to disable printing debug info
 bool debug = false;
 
@@ -99,6 +107,7 @@ bool scattering_angle_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, scattering_angle_cut, theta_angle="<<val<<endl;
         return false;
@@ -111,6 +120,7 @@ bool  vertex_z_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, vertex_z_cut, vertex_z="<<val<<endl;
         return false;
@@ -123,6 +133,7 @@ bool  vertex_r_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, vertex_r_cut, vertex_r="<<val<<endl;
         return false;
@@ -135,6 +146,7 @@ bool  momentum_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, momentum_cut, momentum="<<val<<endl;
         return false;
@@ -147,6 +159,7 @@ bool  bending_angle_position_theta_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, bending_angle_position_theta_cut, position_theta_off="<<val<<endl;
         return false;
@@ -159,6 +172,7 @@ bool  bending_angle_position_phi_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, bending_angle_position_phi_cut, position_phi_off="<<val<<endl;
         return false;
@@ -171,6 +185,7 @@ bool  bending_angle_direction_theta_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, bending_angle_direction_theta_cut, direction_theta_off="<<val<<endl;
         return false;
@@ -183,6 +198,7 @@ bool  bending_angle_direction_phi_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, bending_angle_direction_phi_cut, direction_phi_off="<<val<<endl;
         return false;
@@ -195,6 +211,7 @@ bool  position_resolution_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, position_resolution_cut, position_r_off="<<val<<endl;
         return false;
@@ -207,6 +224,7 @@ bool  hit_position_x_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, hit_position_x_cut, x="<<val<<endl;
         return false;
@@ -219,6 +237,7 @@ bool  hit_position_y_cut ( double val )
         return true;
     else
     {
+        rejection = true;
         if ( debug )
             cout<<"rejected, hit_position_y_cut, y="<<val<<endl;
         return false;
@@ -335,6 +354,7 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
                 cout << "events processed so far: " << i << endl;
 
             event_tree->GetEntry ( i );
+            rejection = false;
 
             double Q2_val = fEvent->fKinElasticWithLoss.fQ2;
             if(Q2_val<=0.01 || Q2_val>=0.08)
@@ -523,6 +543,8 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
                 // note: filling histograms out of track-loop eliminate multiple tracks
                 // in one event, e.g. only the last track is counted
 
+            if (rejection == false)
+            {
                 angle->Fill ( angle_val,xsect );
                 q2->Fill ( Q2_val,xsect );
                 hit_dist->Fill ( y,x,xsect );
@@ -557,6 +579,7 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
                 hit_tgt_window->Fill ( tgt_win_x,tgt_win_y,xsect );
 
                 q2_dist->Fill ( y,x,Q2_val,xsect );
+             }
 
         }  // end of loop over all events
     }// end of loop over files: for (Int_t ifile = start; ifile <= end; ifile++)
