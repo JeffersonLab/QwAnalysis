@@ -70,7 +70,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     query += ", analysis.runlet_id\n";
     query += ", run.run_number\n";
     query += ", run.slug\n";
-    query += ", runlet.good_for_id\n";
+    query += ", run.good_for_id\n";
     query += ", slow_controls_settings.slow_helicity_plate\n";
     query += ", slow_controls_settings.passive_helicity_plate\n";
     query += ", slow_controls_settings.wien_reversal\n";
@@ -96,8 +96,8 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
         query += "AND runlet.runlet_quality_id = 1\n";
         /* use the FIND_IN_SET method instead */
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
-        query += "AND FIND_IN_SET('1',runlet.good_for_id)\n";
-        query += "AND FIND_IN_SET('3',runlet.good_for_id)\n";
+        query += "AND FIND_IN_SET('1',run.good_for_id)\n";
+        query += "AND FIND_IN_SET('3',run.good_for_id)\n";
     }
 
     /* if using runlist, cut on run number */
@@ -131,7 +131,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += ", analysis.runlet_id\n";
     query += ", run.run_number\n";
     query += ", run.slug\n";
-    query += ", runlet.good_for_id\n";
+    query += ", run.good_for_id\n";
     query += ", slow_controls_settings.slow_helicity_plate\n";
     query += ", slow_controls_settings.passive_helicity_plate\n";
     query += ", slow_controls_settings.wien_reversal\n";
@@ -164,8 +164,8 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
         query += "AND runlet.runlet_quality_id = 1\n";
         /* use the FIND_IN_SET method instead */
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
-        query += "AND FIND_IN_SET('1',runlet.good_for_id)\n";
-        query += "AND FIND_IN_SET('3',runlet.good_for_id)\n";
+        query += "AND FIND_IN_SET('1',run.good_for_id)\n";
+        query += "AND FIND_IN_SET('3',run.good_for_id)\n";
     }
 
     /* if using runlist, cut on run number */
