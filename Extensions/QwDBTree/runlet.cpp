@@ -230,7 +230,6 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
         else cout << "Failed to connect to the database while creating runlet temp table" << endl;
         
         query = runlet_temp_table_unreg_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality);
-	cout << query << endl;
         stmt = db->Statement(query, 100);
         if((db!=0) && db->IsConnected()) {
             stmt->Process();
