@@ -56,6 +56,8 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 Int_t asymFit(Int_t runnum,TString dataType="Ac")
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
+  time_t tStart = time(0), tEnd; 
+  div_t div_output;
   //gStyle->SetOptFit(1);
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
@@ -67,8 +69,6 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   gStyle->SetTitleSize(0.06,"Y");
   gStyle->SetLabelSize(0.06,"xyz");
 
-  time_t tStart = time(0), tEnd; 
-  div_t div_output;
   Double_t pol[nPlanes],polEr[nPlanes],chiSq[nPlanes],effStripWidth[nPlanes],effStripWidthEr[nPlanes];
   Double_t offset[nPlanes],offsetEr[nPlanes];
   Int_t NDF[nPlanes],resFitNDF[nPlanes];
@@ -76,7 +76,7 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=1,debug1=0,debug2=0;
   Bool_t polSign,kYieldFit=0,kYield=1,kResidual=1;
-  Bool_t kFitEffWidth=1;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
+  Bool_t kFitEffWidth=0;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
   Bool_t kFoundCE[nPlanes]={0};
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
@@ -87,51 +87,58 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
 
   ifstream paramfile,infileL0Yield, expAsymPWTL1, infileYield;
   ofstream polList;
-  //Double_t qNormScBkgdSubSigB1[nPlanes][nStrips];
   std::vector<std::vector <Double_t> > activeStrip,qNormCntsB1L0,qNormCntsB1L0Er;
   Int_t numbGoodStrips[nPlanes]={0};
   Double_t stripNum[nPlanes][nStrips],qNormCntsB1L1[nPlanes][nStrips],qNormCntsB1L1Er[nPlanes][nStrips];
-  //if(kFitEffWidth) {
-    ///Note: the 's' in this section of the routine does not necessarily represent strip number
-    for(Int_t p =startPlane; p <endPlane; p++) {
-      for(Int_t s = startStrip; s <endStrip; s++) {
-	stripNum[p][s]=0.0,qNormCntsB1L1[p][s]=0.0,qNormCntsB1L1Er[p][s]=0.0;
-      }
-    }
 
-    for(Int_t p =startPlane; p <endPlane; p++) {
-      infileL0Yield.open(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      infileYield.open(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      if(infileL0Yield.is_open() && infileYield.is_open()) {
-        if(p>=(Int_t)activeStrip.size()) {
-	  activeStrip.resize(p+1),qNormCntsB1L0.resize(p+1),qNormCntsB1L0Er.resize(p+1);
-	}
-	if(debug1) cout<<"Reading the qNorm files corresponding to Plane "<<p+1<<endl;
-	//if(debug1) cout<<"\nstrip\tbkgdSubSig-bkgd\t"<<" 5sigma"<<endl;
-	while(infileL0Yield.good()) {
-	  activeStrip[p].push_back(0.0),qNormCntsB1L0[p].push_back(0.0),qNormCntsB1L0Er[p].push_back(0.0);
-	  Int_t s=activeStrip[p].size() - 1;///this 's' does not represent the actual strip number
-	  infileL0Yield>>activeStrip[p][s]>>qNormCntsB1L0[p][s]>>qNormCntsB1L0Er[p][s];///the content of the 'activeStrip' vector contains the true strip # in human counting
-	  infileYield>>stripNum[p][s]>>qNormCntsB1L1[p][s]>>qNormCntsB1L1Er[p][s]>>stripAsymNr[p][s];
-	  if((qNormCntsB1L1[p][s]-qNormCntsB1L0[p][s])< 400.0*qNormCntsB1L0Er[p][s]) {// && !kFoundCE[p]) {
-	    Cedge[p] = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
-	    cout<<"probable Cedge : "<<Cedge[p]<<endl;
-	    kFoundCE[p] = 1;
-	    break;
-	  }
-	  //if(debug1) cout<<stripNum[p][s]<<"\t"<<qNormCntsB1L1[p][s]-qNormCntsB1L0[p][s]<<"\t"<<400.0*qNormCntsB1L0Er[p][s]<<endl;
-	  numbGoodStrips[p]++;//counts in human counting ///this is basically =activeStrip[p].size()
-	}
-	infileL0Yield.close(),infileYield.close();
-      } else {
-	cout<<red<<"\n*** Alert:couldn't find "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<
-	cout<<" or the Yield file "<<Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
-	return -1;
+  ///Note: the 's' in this section of the routine does not necessarily represent strip number
+  for(Int_t p =startPlane; p <endPlane; p++) {
+    for(Int_t s = startStrip; s <endStrip; s++) {
+      stripNum[p][s]=0.0,qNormCntsB1L1[p][s]=0.0,qNormCntsB1L1Er[p][s]=0.0;
+    }
+  }
+  ///determine the compton edge
+  for(Int_t p =startPlane; p <endPlane; p++) {
+    //infileL0Yield.open(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    //infileYield.open(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),dataType.Data(),p+1));
+    infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),dataType.Data(),p+1));
+    if(infileL0Yield.is_open() && infileYield.is_open()) {
+      if(p>=(Int_t)activeStrip.size()) {
+  	activeStrip.resize(p+1);
+	qNormCntsB1L0.resize(p+1);
+	qNormCntsB1L0Er.resize(p+1);
       }
-      if(kFoundCE[p]) cout<<"\nCompton edge for plane "<<p+1<<" auto-determined to strip "<<Cedge[p]<<"\n"<<endl;
-      else cout<<red<<"**** Alert: Did not find Cedge for plane "<<p+1<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
-    }///for(Int_t p =startPlane; p <endPlane; p++)
-    //}///if(kFitEffWidth)
+      if(debug1) cout<<"Reading the qNorm files corresponding to Plane "<<p+1<<endl;
+      while(infileL0Yield.good()) {
+  	activeStrip[p].push_back(0.0);
+	qNormCntsB1L0[p].push_back(0.0);
+	qNormCntsB1L0Er[p].push_back(0.0);
+  	Int_t s=(Int_t)activeStrip[p].size() - 1;///this 's' does not represent the actual strip number
+  	infileL0Yield>>activeStrip[p][s]>>qNormCntsB1L0[p][s]>>qNormCntsB1L0Er[p][s];///the content of the 'activeStrip' vector contains the true strip # in human counting
+  	infileYield>>stripNum[p][s]>>qNormCntsB1L1[p][s]>>qNormCntsB1L1Er[p][s]>>stripAsymNr[p][s];
+  	//cout<<blue<<activeStrip[p][s]<<"\t"<<(qNormCntsB1L1[p][s]-qNormCntsB1L0[p][s])<<"\t"<<qNormCntsB1L0[p][s]+100.0*qNormCntsB1L0Er[p][s]<<normal<<endl;
+  	if((((qNormCntsB1L1[p][s]-qNormCntsB1L0[p][s]))< (qNormCntsB1L0[p][s]+100.0*qNormCntsB1L0Er[p][s])) && activeStrip[p][s]>48) {
+  	  Cedge[p] = activeStrip[p][s-1]; ///since the above condition is fulfiled after crossing Cedge
+  	  cout<<"probable Cedge : "<<Cedge[p]<<endl;
+  	  kFoundCE[p] = 1;
+  	  break;
+  	}
+  	//if(debug1) cout<<stripNum[p][s]<<"\t"<<qNormCntsB1L1[p][s]-qNormCntsB1L0[p][s]<<"\t"<<400.0*qNormCntsB1L0Er[p][s]<<endl;
+  	numbGoodStrips[p]++;//counts in human counting ///this is basically =activeStrip[p].size()
+      }
+      infileL0Yield.close(),infileYield.close();
+    } else {
+      ///!Interesting fact:TString probably does not have operator '<<' defined on it, hence the following causes eventual crash
+      //cout<<red<<"\n*** Alert:couldn't find "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<
+      //cout<<" or the Yield file "<<Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      cout<<"there's a problem around line # "<<__LINE__<<" of asymFit.C"<<endl;
+      return -1;
+    }
+    if(kFoundCE[p]) cout<<"\nCompton edge for plane "<<p+1<<" auto-determined to strip "<<Cedge[p]<<"\n"<<endl;
+    else cout<<red<<"**** Alert: Did not find Cedge for plane "<<p+1<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
+  }///for(Int_t p =startPlane; p <endPlane; p++)
+
   TCanvas *cAsym;
   TGraphErrors *grAsymPlane[nPlanes];
 

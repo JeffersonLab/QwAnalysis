@@ -2,8 +2,9 @@
 
 cd /u/home/narayan/svn/QwAnalysis/Extensions/Macros/Compton/edetHelLC
 #for i in `seq 23444 24051`;
-#for i in `seq 23098 25204`;
-for i in `seq 23220 23530`;
+for i in `seq 23098 25204`;
+#for i in `seq 23220 23530`;
+#for i in `seq 23220 23232`;
 
 do
   cat amar_submit_header.xml > amar_submit_$i.xml

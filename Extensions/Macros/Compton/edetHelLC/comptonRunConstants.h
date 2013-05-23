@@ -45,7 +45,7 @@ const Double_t ldet[nPlanes] = {1.69792,1.70823,1.71855,1.72886};//1.645,; ///su
 const Bool_t v2processed=0;
 const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
-const Double_t acceptLasPow = 120000;//typical values of sca_laser_PowT ~ 160k when On
+const Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
 const Double_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
 const Double_t laserFracHi = 0.90;//90% of maximum beam to be considered as laserOn///typical 150E3.
@@ -53,15 +53,14 @@ const Double_t beamFracHi = 0.78;
 const Double_t beamFracLo = 0.6;
 const Double_t beamFrac = 0.6;
 
-const Int_t WAIT_N_ENTRIES = 5000;//# of quartets to wait after beam trip
-const Int_t PREV_N_ENTRIES = 500;//# of quartets to ignore before a beam trip
+const Int_t WAIT_N_ENTRIES = 50;//# of quartets to wait after beam trip
+const Int_t PREV_N_ENTRIES = 50;//# of quartets to ignore before a beam trip
 const Double_t ignoreBeamAbove = 195.0;
-//const Double_t ignoreLasPowAbove = 195.0;
+
 const Double_t MpsRate = 960.015;
 const Double_t helRate = 240.00375;///960.015/4.0;
 const Double_t lowCurrentLimit = 65.0;
 
-//following numbers are all in C++ counting(start at 0)
 const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
@@ -75,7 +74,8 @@ Double_t gamma_my;
 
 Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
 Bool_t mask[nPlanes][nStrips];  
-Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
+//the following declration in main file could be causing memory faults
+//Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
 
 std::vector <Int_t> skipStrip; //a list of strips across different planes to be masked (!trying a new idea)
 std::vector<Int_t>::iterator itStrip;
@@ -98,9 +98,11 @@ Double_t BCqNormBkgdSubAllB1L1[nPlanes][nStrips], BCqNormBkgdSubAllB1L1Er[nPlane
 //Double_t qNormAccumB1L1[nPlanes][nStrips],qNormAccumB1L0[nPlanes][nStrips]; 
 Double_t qNormCountsB1L0[nPlanes][nStrips],qNormCountsB1L1[nPlanes][nStrips];
 Double_t qNormBkgdSubAllB1L1[nPlanes][nStrips],qNormAllB1L0[nPlanes][nStrips],qNormAllB1L0Er[nPlanes][nStrips]; 
-Int_t totIAllL1=0.0,totIAllL0=0.0;
+Int_t totIAllH1L1=0.0,totIAllH1L0=0.0,totIAllH0L1=0.0,totIAllH0L0=0.0;
 Int_t totHelB1L1=0,totHelB1L0=0;
 Int_t totyieldB1L1[nPlanes][nStrips], totyieldB1L0[nPlanes][nStrips];
+Int_t totyieldB1H1L1[nPlanes][nStrips],totyieldB1H1L0[nPlanes][nStrips],totyieldB1H0L1[nPlanes][nStrips], totyieldB1H0L0[nPlanes][nStrips];
+
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64

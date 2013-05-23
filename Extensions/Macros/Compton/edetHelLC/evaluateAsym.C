@@ -6,6 +6,14 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug=0,debug1=0;
+  Double_t countsLCB1H1L1=0.0,countsLCB1H1L0=0.0,countsLCB1H0L1=0.0,countsLCB1H0L0=0.0;
+  Double_t qNormCountsLCB1H1L1=0.0,qNormCountsLCB1H1L0=0.0,qNormCountsLCB1H0L1=0.0,qNormCountsLCB1H0L0=0.0;
+  Double_t BCqNormAcB1H1L1LasCyc=0.0,BCqNormAcB1H0L1LasCyc=0.0;
+  Double_t BCqNormLasCycDiff=0.0,BCqNormLasCycSum=0.0;
+  Double_t term1=0.0,term2=0.0,NplusOn_SqQplusOn=0.0,NminusOn_SqQminusOn=0.0,NplusOff_SqQplusOff=0.0,NminusOff_SqQminusOff=0.0;
+  Double_t errB1H1L1=0.0, errB1H0L1=0.0, errB1H1L0=0.0, errB1H0L0=0.0;
+  Double_t qNormAcBkgdAsymNr=0.0,qNormAcBkgdAsymDr=0.0,qNormAcBkgdAsym=0.0,term1Bkgd=0.0,term2Bkgd=0.0,errBkgdAsymH1=0.0,errBkgdAsymH0=0.0,bkgdAsymErSqr=0.0;
+  Double_t erBCqNormLasCycSumSq=0.0,erqNormB1L0LasCycSq=0.0;
   Double_t qAvgLCH1L1 = bcmLCH1L1 /(helRate);
   Double_t qAvgLCH1L0 = bcmLCH1L0 /(helRate);
   Double_t qAvgLCH0L1 = bcmLCH0L1 /(helRate);
@@ -15,48 +23,53 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
     for (Int_t s =startStrip; s <endStrip; s++) {	  
       if (!mask[p][s]) continue;
       ///a factor of 4 is needed to balance out the averaging in the yield and diff reported in the helicity tree
-      Double_t countsLCB1H1L1=2.0*(yieldB1L1[p][s] + diffB1L1[p][s]);///this is now the true total counts in this laser cycle durng H1,L1
-      Double_t countsLCB1H1L0=2.0*(yieldB1L0[p][s] + diffB1L0[p][s]);
-      Double_t countsLCB1H0L1=2.0*(yieldB1L1[p][s] - diffB1L1[p][s]);
-      Double_t countsLCB1H0L0=2.0*(yieldB1L0[p][s] - diffB1L0[p][s]);
-      Double_t qNormCountsLCB1H1L1=countsLCB1H1L1/qAvgLCH1L1;
-      Double_t qNormCountsLCB1H1L0=countsLCB1H1L0/qAvgLCH1L0;
-      Double_t qNormCountsLCB1H0L1=countsLCB1H0L1/qAvgLCH0L1;
-      Double_t qNormCountsLCB1H0L0=countsLCB1H0L0/qAvgLCH0L0;
+      countsLCB1H1L1=2.0*(yieldB1L1[p][s] + diffB1L1[p][s]);///this is now the true total counts in this laser cycle durng H1,L1
+      countsLCB1H1L0=2.0*(yieldB1L0[p][s] + diffB1L0[p][s]);
+      countsLCB1H0L1=2.0*(yieldB1L1[p][s] - diffB1L1[p][s]);
+      countsLCB1H0L0=2.0*(yieldB1L0[p][s] - diffB1L0[p][s]);
+      totyieldB1H1L1[p][s] += countsLCB1H1L1;
+      totyieldB1H1L0[p][s] += countsLCB1H1L0;
+      totyieldB1H0L1[p][s] += countsLCB1H0L1;
+      totyieldB1H0L0[p][s] += countsLCB1H0L0;
 
-      Double_t BCqNormAcB1H1L1LasCyc= qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
-      Double_t BCqNormAcB1H0L1LasCyc= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
+      qNormCountsLCB1H1L1=countsLCB1H1L1/qAvgLCH1L1;
+      qNormCountsLCB1H1L0=countsLCB1H1L0/qAvgLCH1L0;
+      qNormCountsLCB1H0L1=countsLCB1H0L1/qAvgLCH0L1;
+      qNormCountsLCB1H0L0=countsLCB1H0L0/qAvgLCH0L0;
+
+      BCqNormAcB1H1L1LasCyc= qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
+      BCqNormAcB1H0L1LasCyc= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
       //Double_t BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);//I should use this variable without explicit background correction because in difference, this is automatically taken care
-      Double_t BCqNormLasCycDiff = qNormCountsLCB1H1L1 - qNormCountsLCB1H0L1;
-      Double_t BCqNormLasCycSum  = (BCqNormAcB1H1L1LasCyc + BCqNormAcB1H0L1LasCyc);
+      BCqNormLasCycDiff = qNormCountsLCB1H1L1 - qNormCountsLCB1H0L1;
+      BCqNormLasCycSum  = (BCqNormAcB1H1L1LasCyc + BCqNormAcB1H0L1LasCyc);
       qNormLasCycAsym[p][s] = (BCqNormLasCycDiff / BCqNormLasCycSum);
 
       ///Evaluation of error on asymmetry; partitioned the evaluation in a way which avoids re-calculation
-      Double_t term1 = (1.0-qNormLasCycAsym[p][s])/BCqNormLasCycSum;
-      Double_t term2 = (1.0+qNormLasCycAsym[p][s])/BCqNormLasCycSum;
-      Double_t NplusOn_SqQplusOn    = qNormCountsLCB1H1L1 /qAvgLCH1L1;
-      Double_t NminusOn_SqQminusOn  = qNormCountsLCB1H0L1 /qAvgLCH0L1;
-      Double_t NplusOff_SqQplusOff  = qNormCountsLCB1H1L0 /qAvgLCH1L0;
-      Double_t NminusOff_SqQminusOff= qNormCountsLCB1H0L0 /qAvgLCH0L0;
+      term1 = (1.0-qNormLasCycAsym[p][s])/BCqNormLasCycSum;
+      term2 = (1.0+qNormLasCycAsym[p][s])/BCqNormLasCycSum;
+      NplusOn_SqQplusOn    = qNormCountsLCB1H1L1 /qAvgLCH1L1;
+      NminusOn_SqQminusOn  = qNormCountsLCB1H0L1 /qAvgLCH0L1;
+      NplusOff_SqQplusOff  = qNormCountsLCB1H1L0 /qAvgLCH1L0;
+      NminusOff_SqQminusOff= qNormCountsLCB1H0L0 /qAvgLCH0L0;
 
       ///redefining these error variables 
-      Double_t errB1H1L1 = pow(term1,2) * NplusOn_SqQplusOn; 
-      Double_t errB1H0L1 = pow(term2,2) * NminusOn_SqQminusOn;
-      Double_t errB1H1L0 = pow(term1,2) * NplusOff_SqQplusOff;
-      Double_t errB1H0L0 = pow(term2,2) * NminusOff_SqQminusOff; 
+      errB1H1L1 = pow(term1,2) * NplusOn_SqQplusOn; 
+      errB1H0L1 = pow(term2,2) * NminusOn_SqQminusOn;
+      errB1H1L0 = pow(term1,2) * NplusOff_SqQplusOff;
+      errB1H0L0 = pow(term2,2) * NminusOff_SqQminusOff; 
 
       LasCycAsymErSqr[p][s] = (errB1H1L1 + errB1H0L1 + errB1H1L0 + errB1H0L0);
 
       ///adding asymmetry evaluation for laser off data
-      Double_t qNormAcBkgdAsymNr = qNormCountsLCB1H1L0 - qNormCountsLCB1H0L0;
-      Double_t qNormAcBkgdAsymDr = qNormCountsLCB1H1L0 + qNormCountsLCB1H0L0;
-      Double_t qNormAcBkgdAsym = qNormAcBkgdAsymNr/qNormAcBkgdAsymDr;
-      Double_t term1Bkgd = (1-qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
-      Double_t term2Bkgd = (1+qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
+      qNormAcBkgdAsymNr = qNormCountsLCB1H1L0 - qNormCountsLCB1H0L0;
+      qNormAcBkgdAsymDr = qNormCountsLCB1H1L0 + qNormCountsLCB1H0L0;
+      qNormAcBkgdAsym = qNormAcBkgdAsymNr/qNormAcBkgdAsymDr;
+      term1Bkgd = (1-qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
+      term2Bkgd = (1+qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
 
-      Double_t errBkgdAsymH1 = pow(term1Bkgd,2) * NplusOff_SqQplusOff;
-      Double_t errBkgdAsymH0 = pow(term2Bkgd,2) * NminusOff_SqQminusOff;
-      Double_t bkgdAsymErSqr = errBkgdAsymH1 + errBkgdAsymH0;
+      errBkgdAsymH1 = pow(term1Bkgd,2) * NplusOff_SqQplusOff;
+      errBkgdAsymH0 = pow(term2Bkgd,2) * NminusOff_SqQminusOff;
+      bkgdAsymErSqr = errBkgdAsymH1 + errBkgdAsymH0;
       
       if (LasCycAsymErSqr[p][s] >0.0) {///eqn 4.17(Bevington)
 	wmNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
@@ -67,9 +80,9 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
 	printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);
       }
       ///Error evaluation for SUM (in asymmetry)
-      Double_t erBCqNormLasCycSumSq = (NplusOn_SqQplusOn+ NminusOn_SqQminusOn+ NplusOff_SqQplusOff+ NminusOff_SqQminusOff);
+      erBCqNormLasCycSumSq = (NplusOn_SqQplusOn+ NminusOn_SqQminusOn+ NplusOff_SqQplusOff+ NminusOff_SqQminusOff);
       ///Error of laser off background for every laser cycle
-      Double_t erqNormB1L0LasCycSq = (NplusOff_SqQplusOff+NminusOff_SqQminusOff);
+      erqNormB1L0LasCycSq = (NplusOff_SqQplusOff+NminusOff_SqQminusOff);
 
       ///addition of bkgdAsym term over various laser cycles
       if (bkgdAsymErSqr > 0.0) {///eqn 4.17(Bevington)
@@ -98,4 +111,3 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
     }//for (Int_t s =startStrip; s <endStrip; s++) {	
   }///for (Int_t p =startPlane; p <endPlane; p++) {  
 }
-///!!Notice that this calculation assumes(while finding average charge) that the beam was constant for both helicities... that is fair

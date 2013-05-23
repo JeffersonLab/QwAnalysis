@@ -88,7 +88,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       //qNormB1L1[p][s]=0.0,qNormB1L0[p][s]=0.0;
       qNormLasCycAsym[p][s]=0.0,LasCycAsymErSqr[p][s]=0.0;
 
-      totyieldB1L1[p][s]=0,totyieldB1L0[p][s]=0;
+      totyieldB1L1[p][s]=0,totyieldB1L0[p][s]=0;//this can be removed after the variables below do the requisite
+      totyieldB1H1L1[p][s]=0,totyieldB1H1L0[p][s]=0,totyieldB1H0L1[p][s]=0,totyieldB1H0L0[p][s]=0;      
     }
   }
 
@@ -347,8 +348,10 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       goodCycles++;
       if(kRejectBMod) cout<<blue<<"no.of quartets missed for BMod ramp this cycle: "<<missedDueToBMod<<normal<<endl;
       laserOnOffRatioH0 = (Double_t)nHelLCB1L1/nHelLCB1L0;
-      totIAllL1 += iLCH1L1;//this tot* variable is not for anything serious, hence not bothering to tune it
-      totIAllL0 += iLCH1L0;
+      totIAllH1L1 += iLCH1L1;
+      totIAllH1L0 += iLCH1L0;
+      totIAllH0L1 += iLCH0L1;
+      totIAllH0L0 += iLCH0L0;
       totHelB1L1 += nHelLCB1L1;
       totHelB1L0 += nHelLCB1L0;
       if (nHelLCB1L1<= 0||nHelLCB1L0<= 0) {
@@ -424,7 +427,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   //notice that the variables to be written by the writeToFile command is updated after every call of weightedMean() function
 
   weightedMean(wmCountsNrAsym, wmCountsDrAsym, wmCountsNrBCqNormSum, wmCountsDrBCqNormSum, wmCountsNrBCqNormDiff, wmCountsNrqNormB1L0, wmCountsDrqNormB1L0, wmCountsNrBkgdAsym, wmCountsDrBkgdAsym);
-  qNormVariables(totyieldB1L0,totyieldB1L1,totIAllL0,totIAllL1);
+  qNormVariables(totyieldB1L0,totyieldB1L1,totIAllH1L0,totIAllH1L1);
 
 
   writeToFile(runnum,dataType);

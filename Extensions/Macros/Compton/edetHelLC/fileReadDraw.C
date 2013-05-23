@@ -10,7 +10,7 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=0;//now the asymFit.C plots this already
   Bool_t compareAsym=0;//compares asymmetries from dataType and dataType2(defined locally)
-  Bool_t asymComponents=0;//plots the numerator of asymmetry
+  Bool_t asymComponents=1;//plots the numerator of asymmetry
   Bool_t scalerPlot=0;
   Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
@@ -18,8 +18,8 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
   Bool_t lasWisePlotLasPow=0;//plots laser power for laser on/off against the corresponding laser cycle #
   Bool_t bkgdVsBeam=0;//plots quantities againt beam current variations
   Bool_t bkgdSubVsBeam=0;//plots background subtracted compton rates against diff. beam currents
-  Bool_t asymLasCycDr=0;//plots the experimental asymmetery against laser cycle for a given strip
-  Bool_t asymLasCycHist=1;//histograms the exp.asym per laser cycle for a given set of 8 strips
+  Bool_t asymLasCycDraw=0;//plots the experimental asymmetery against laser cycle for a given strip
+  Bool_t asymLasCycHist=0;//histograms the exp.asym per laser cycle for a given set of 8 strips
   Bool_t debug=1,debug1=0,debug2=0;
   Int_t mCyc=100;
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
@@ -231,7 +231,7 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
     }
     gPad->Update();
     cAsymComponent->Update();
-    cAsymComponent->SaveAs(Form("%s/%s/%sasymNrAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
+    cAsymComponent->SaveAs(Form("%s/%s/%s"+dataType+"AsymNr.png",pPath,webDirectory,filePrefix.Data()));
   }///if(asymComponents)
 
   if (yieldPlot) {
@@ -968,7 +968,7 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
     }
   }
 
-  if (asymLasCycDr) {
+  if (asymLasCycDraw) {
     gStyle->SetOptFit(1);
     TF1 *linearFit = new TF1("linearFit", "pol0");
     TGraphErrors *grAsymLasCyc[nStrips];
@@ -1028,7 +1028,7 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
   if (asymLasCycHist) {
     ifstream asymLC;
     Int_t nCycle[mCyc];
-    Int_t str = 48;//56;//48;//40;//24;//16;//8;//0;//c++ counting
+    Int_t str = 56;//56;//48;//40;//32;//24;//16;//8;//0;//c++ counting
     Int_t histMult=8;//human counting
     Double_t asymAcB1L1[nPlanes][nStrips][mCyc], asymErAcB1L1[nPlanes][nStrips][mCyc];
     std::vector<vector <TH1D*> > hAsymLC;
