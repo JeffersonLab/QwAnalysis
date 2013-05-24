@@ -18,14 +18,22 @@
 //
 // update log:
 //
+// ---
 // jpan, Fri May  3 15:27:55 CDT 2013
 // Initial setup
 //
+// ---
 // jpan, Thu May 16 13:56:06 CDT 2013
 // Added in track rejection flag. Filling histogram only when rejection flag is false.
 // Note that the filling of histograms is in event loop other than the track loop. As
 // such, only the last track in an event is filled. The multiple track issue needs to
 // be further investigated.
+//
+// ---
+// jpan, Fri May 24 10:52:32 CDT 2013
+// Changed the the error calculation for scattering angle and Q2 to take into account
+// the case of using cross-section weight
+//
 
 #include <iostream>
 #include <iomanip>
@@ -593,13 +601,13 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     if ( num_of_valid_tracks )
     {
         cout << "scattering angle: " << setprecision ( 5 ) << angle->GetMean() << " +/- "
-             << setprecision ( 3 ) << angle->GetRMS() /sqrt ( num_of_valid_tracks ) << " deg"<<endl;
+             << setprecision ( 3 ) << angle->GetMeanError() << " deg"<<endl;
     }
 
     if ( q2->GetEntries() )
     {
         cout << "Q2: "<< setprecision ( 5 ) << q2->GetMean() << " +/- "
-             <<  setprecision ( 3 ) << q2->GetRMS() /sqrt ( q2->GetEntries() ) << " ( GeV/c ) ^2"<<endl<<endl;
+             <<  setprecision ( 3 ) << q2->GetMeanError() << " ( GeV/c ) ^2"<<endl<<endl;
     }
 
     // Draw histograms
@@ -812,7 +820,7 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     {
         summary_txt->AddText ( Form ( "number of tracks: %d", num_of_valid_tracks ) );
         summary_txt->AddText ( Form ( "scattering angle: %f +/- %f deg",
-                                      angle->GetMean(), angle->GetRMS() /sqrt ( num_of_valid_tracks ) ) );
+                                      angle->GetMean(), angle->GetMeanError() ) );
 
         summary_txt->AddText ( Form ( "vertex z: %f +/- %f ( rms ) cm,  vertex r: %f +/- %f ( rms ) cm",
                                       histo_vertex_z->GetMean(), histo_vertex_z->GetRMS(),
@@ -822,7 +830,7 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     if ( q2->GetEntries() )
     {
         summary_txt->AddText ( Form ( "Q2:  %f +/- %f ( GeV/c ) ^2",
-                                      q2->GetMean(),q2->GetRMS() /sqrt ( q2->GetEntries() ) ) );
+                                      q2->GetMean(),q2->GetMeanError() ) );
     }
 
     summary_txt->Draw();
