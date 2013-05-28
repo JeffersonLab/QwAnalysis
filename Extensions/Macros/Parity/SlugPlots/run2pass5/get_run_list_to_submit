@@ -13,6 +13,6 @@ sql_query="select run.run_number from run  where slug=${slug_num} ; "
 
 rm -f analyzer_status_query.sql
 echo " ${sql_query} " > analyzer_status_query.sql
-mysql -u qweak -h qweakdb -p qw_run2_pass5  < analyzer_status_query.sql
+mysql -u qweak -h qweakdb -p qw_run2_pass5b  < analyzer_status_query.sql
 
 rm -f analyzer_status_query.sql

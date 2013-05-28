@@ -5,6 +5,7 @@
 #to run ./check_analysis_status slug_number
 #where slug_nuber is any run2 slug
 # Updated for run2pass5 buddhini
+# Updated for run2pass5b smacewan
 
 slug_num=$1
 
@@ -18,7 +19,7 @@ rm -f analyzer_status_query.sql
 
 echo " ${sql_query} " > analyzer_status_query.sql
 
-mysql -u qweak -h qweakdb -p qw_run2_pass5  < analyzer_status_query.sql
+mysql -u qweak -h qweakdb -p qw_run2_pass5b  < analyzer_status_query.sql
 
 rm -f analyzer_status_query.sql
 
@@ -31,7 +32,7 @@ sql_query="  select run.slug, runlet.run_number, runlet.segment_number, analysis
 
 echo " ${sql_query} " > analyzer_status_query.sql
 
-mysql -u qweak -h qweakdb -p qw_run2_pass5  < analyzer_status_query.sql
+mysql -u qweak -h qweakdb -p qw_run2_pass5b  < analyzer_status_query.sql
 
 rm -f analyzer_status_query.sql
 

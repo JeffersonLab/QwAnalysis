@@ -689,7 +689,7 @@ sub create_xml_jobfile($$$@) {
 	" <Project name=\"qweak\"/>\n",
 	" <Track name=\"$BatchQueue\"/>\n",
 	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
-    my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
+    my $timelimit = 400*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
 	" <OS name=\"$FarmOSName\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
@@ -731,6 +731,12 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"Started at `date`\" | tee -a \$QWSTATUS\n",
 	"  echo $executable -r $runnumber $optionlist | tee -a \$QWSTATUS\n",
 	"  $executable -r $runnumber $optionlist\n",
+	"  if \(\$\? \!\= 0\) then\n",
+	"  echo \"**** qwparity failed. Terminating script... ****\"\n",
+	"  exit\n",
+	"  else\n",
+	"  echo \"** qwparity ran successfully. Continuing... **\"\n",
+	"  endif\n",
 	"  chmod g+w \$QW_ROOTFILES/*.root\n",
 	"  ls -al \$QW_ROOTFILES | tee -a \$QWSTATUS\n";
     my $postprocess;
