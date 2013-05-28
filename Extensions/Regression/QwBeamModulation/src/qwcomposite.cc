@@ -60,6 +60,13 @@ Int_t main(Int_t argc, Char_t *argv[])
     exit(1);
   }
 
+  TString output = gSystem->Getenv("QWSCRATCH");
+
+  if(!gSystem->OpenDirectory(output)){
+    modulation->PrintError("Cannot open scratch directory.\n");
+    exit(1);
+  }
+
   TString filename = Form("%s_%d*root", modulation->fFileStem.Data(), modulation->run_number);
   std::cout << "Filename: " <<  Form("%s/%s", directory.Data(), filename.Data() ) << std::endl;
   if( !(mps_tree->Add(Form("%s/%s", directory.Data(), filename.Data() ))) ){
@@ -85,6 +92,12 @@ Int_t main(Int_t argc, Char_t *argv[])
   modulation->ReadConfig();
   data->GetDBSensitivities(modulation->DetectorList.front().Data(), "", "sens_all");
 
+  for(Int_t i = 0; i < 5; i++){
+    std::cout << "Sensitvities: " << i 
+	      << " : " << data->fSensitivity[i][0]
+	      << std::endl;
+  }
+
   modulation->fNumberEvents = mps_tree->GetEntries();
 
   mps_tree->SetBranchStatus("*", 0);     
@@ -103,22 +116,28 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t det = 0; det < modulation->fNDetector; det++){
     mps_tree->SetBranchStatus(Form("%s", modulation->DetectorList[det].Data()), 1);   
   }
-
   for(Int_t mon = 0; mon < modulation->fNMonitor; mon++){
     mps_tree->SetBranchStatus(Form("%s", modulation->MonitorList[mon].Data()), 1);   
   }
 
   std::cout << "Number of entries: " << modulation->fNumberEvents << std::endl;
+  if(modulation->fNumberEvents <= 0){
+    modulation->PrintError("There are no entries in this rootfile."); 
+    exit(1);
+  }
 
   Int_t events = 0;
 
   std::vector <Double_t> fMonitorMean(modulation->fNMonitor);
   std::vector <Double_t> fDetectorMean(modulation->fNDetector);
 
+  std::cout << "Cutting on pattern number: " 
+	    << modulation->fPatternNumber << std::endl;
+
   for(Int_t i = 0; i < (modulation->fNumberEvents); i++){
     mps_tree->GetEntry(i);
 
-    if((modulation->CheckRampLinearity()) != 0 && ErrorFlag == 0x4018080 && ramp_hw_sum > 10 && bm_pattern_number == 11){
+    if((modulation->CheckRampLinearity("")) != 0 && ErrorFlag == 0x4018080 && ramp_hw_sum > 10 && bm_pattern_number == (modulation->fPatternNumber)){
       for(Int_t mon = 0; mon < (modulation->fNMonitor); mon++){
 	if(i == 0) fMonitorMean[mon] = 0;      
 	fMonitorMean[mon] += mps_tree->GetLeaf(modulation->MonitorList[mon].Data())->GetValue(); 
@@ -131,6 +150,10 @@ Int_t main(Int_t argc, Char_t *argv[])
     }
 
   }
+  if(events == 0){
+    modulation->PrintError("No good events were found.");
+    exit(1);
+  }
   for(Int_t mon = 0; mon < (modulation->fNMonitor); mon++){
     fMonitorMean[mon] /= events;
     std::cout << "<Monitor>: "
@@ -139,6 +162,9 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
   for(Int_t det = 0; det < (modulation->fNDetector); det++){
     fDetectorMean[det] /= events;
+    std::cout << "<Detector>: "
+ 	      << fDetectorMean.front()
+ 	      << std::endl;
   }
 
   //
@@ -158,18 +184,19 @@ Int_t main(Int_t argc, Char_t *argv[])
   Double_t key[5] = {1.e6, 1., 4100., 1.e6, 1.};
 
   corrected = modulation->DetectorList.front().Data();
-  for(Int_t mon = 0; mon < (modulation->fNMonitor); mon++){
-    corrected = Form("%s-(%s-%e)*(%e)*(%e)/%e", corrected.Data(), modulation->MonitorList[mon].Data(), 
-		     fMonitorMean[mon], data->fSensitivity[mon][0], fDetectorMean.front(), key[mon]);
-  }
+//   for(Int_t mon = 0; mon < (modulation->fNMonitor); mon++){
+//     corrected = Form("%s-(%s-%e)*(%e)*(%e)/%e", corrected.Data(), modulation->MonitorList[mon].Data(), 
+//      		     fMonitorMean[mon], data->fSensitivity[mon][0], fDetectorMean.front(), key[mon]);
+//   }
   
+  std::cout << "Plotting: " << corrected << std::endl;
 
-  sine_data.open(Form("sine_fit_data_%s_%s.dat", modulation->DetectorList.front().Data(), 
+  sine_data.open(Form("%s/sine_fit_data_%s_%s.dat", output.Data(), modulation->DetectorList.front().Data(), 
 		      pattern_name[(modulation->fPatternNumber) - 11].Data()), std::ios::out | std::ios::app);
-  cosine_data.open(Form("cosine_fit_data_%s_%s.dat", modulation->DetectorList.front().Data(), 
+  cosine_data.open(Form("%s/cosine_fit_data_%s_%s.dat", output.Data(), modulation->DetectorList.front().Data(), 
 			pattern_name[(modulation->fPatternNumber) - 11].Data()), std::ios::out | std::ios::app);
-
-  TCanvas *canvas = new TCanvas("canvas", "canvas", 5);
+  
+  TCanvas *canvas = new TCanvas("canvas", "canvas", 1000, 700);
   gStyle->SetOptFit(0);
   gStyle->SetOptStat(0);
 
@@ -178,18 +205,23 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   canvas->cd();
   profile = new TProfile("profile", "profile", 100, 10, 340);
-  mps_tree->Draw(Form("(%s):ramp>>profile", corrected.Data()), Form("ErrorFlag == 0x4018080 && ramp > 10 && bm_pattern_number == %d", modulation->fPatternNumber));
+  mps_tree->Draw(Form("(%s):ramp>>profile", corrected.Data()), 
+		 Form("ErrorFlag == 0x4018080 && ramp > 10 && bm_pattern_number == %d", modulation->fPatternNumber));
   (TProfile *)gDirectory->Get("profile");
+  if(!(profile->GetEntries())){
+    modulation->PrintError("No entries in the profile plot.");
+    exit(1);
+  }
 
   composite->SetParameter(0, profile->GetMean(2));
   composite->SetParameter(2, TMath::PiOver2());
   composite->SetParameter(4, TMath::PiOver2());
 
-  if(!(modulation->fPhaseConfig))
-     modulation->ReadPhaseConfig("config/phase_set4.config");
+  if(!(modulation->fPhaseConfig)){
+    TString analysis = gSystem->Getenv("QWANALYSIS");
+    modulation->ReadPhaseConfig(Form("%s/Extensions/Regression/QwBeamModulation/config/phase_set4.config", analysis.Data()));
+  }
      
-  std::cout << modulation->phase[0] << std::endl;
-
   composite->FixParameter(2, modulation->phase[(modulation->fPatternNumber) - 11]);
   composite->FixParameter(4, modulation->phase[(modulation->fPatternNumber) - 11]);
 
@@ -198,6 +230,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   profile->GetXaxis()->SetLabelSize(0.02);
   profile->GetYaxis()->SetLabelSize(0.02);
   profile->GetXaxis()->SetTitleSize(0.02);
+  profile->GetYaxis()->SetTitleOffset(2.0);
   profile->GetYaxis()->SetTitleSize(0.02);
 
   profile->SetTitle(Form("%s Corrected Yield Response: %s Modulation", modulation->DetectorList.front().Data(), pattern_name[(modulation->fPatternNumber) - 11].Data()));
@@ -224,9 +257,21 @@ Int_t main(Int_t argc, Char_t *argv[])
   profile->Fit("sine", "R B+ Q");
   profile->Fit("cosine", "R B+ Q");
 
+
+  Double_t sine_amplitude = (composite->GetParameter(1))/(fDetectorMean.front());
+  Double_t cosine_amplitude = (composite->GetParameter(3))/(fDetectorMean.front());
+
+  Double_t sine_error = TMath::Power((composite->GetParError(1))/(composite->GetParameter(1)), 2);
+  sine_error += TMath::Power((composite->GetParError(0))/(composite->GetParameter(0)), 2); 
+  sine_error = TMath::Sqrt(sine_error)*TMath::Abs(((composite->GetParameter(1))/(composite->GetParameter(0))));
+
+  Double_t cosine_error = TMath::Power((composite->GetParError(3))/(composite->GetParameter(3)), 2);
+  cosine_error += TMath::Power((composite->GetParError(0))/(composite->GetParameter(0)), 2); 
+  cosine_error = TMath::Sqrt(cosine_error)*TMath::Abs(((composite->GetParameter(3))/(composite->GetParameter(0))));
+
   legend = new TLegend(0.1, 0.8, 0.45, 0.92);
-  legend->AddEntry(sine, Form("Sine: %3.3e +- %3.3e ", composite->GetParameter(1), composite->GetParError(1)), "l");
-  legend->AddEntry(cosine,  Form("Cosine: %3.3e +- %3.3e ", composite->GetParameter(3), composite->GetParError(3)), "l");
+  legend->AddEntry(sine, Form("Sine: %3.3f +- %3.3f ppm", 1e6*sine_amplitude, 1e6*sine_error), "l");
+  legend->AddEntry(cosine,  Form("Cosine: %3.3f +- %3.3f ppm", 1e6*cosine_amplitude, 1e6*cosine_error), "l");
   legend->Draw();
 
   canvas->Update();
@@ -235,18 +280,19 @@ Int_t main(Int_t argc, Char_t *argv[])
 				     (composite->GetParameter(0)) - 2*(composite->GetParameter(1)));
   
   sine_data << modulation->run_number << " " 
-	    << composite->GetParameter(1) << " "
-	    << composite->GetParError(1)
+	    << 1e6*sine_amplitude << " "
+	    << 1e6*sine_error
 	    << std::endl;
   cosine_data << modulation->run_number << " " 
-	      << composite->GetParameter(3) << " "
-	      << composite->GetParError(3)
+	      << 1e6*cosine_amplitude << " "
+	      << 1e6*cosine_error
 	      << std::endl;
 
   sine_data.close();
   cosine_data.close();
   
-  canvas->SaveAs(Form("composite_%s_%s.C", modulation->DetectorList.front().Data(), pattern_name[(modulation->fPatternNumber) - 11].Data()));
+  canvas->SaveAs(Form("%s/composite_%d_%s_%s.C", output.Data(), modulation->run_number, 
+		      modulation->DetectorList.front().Data(), pattern_name[(modulation->fPatternNumber) - 11].Data()));
   
   //   theApp.Run();
   

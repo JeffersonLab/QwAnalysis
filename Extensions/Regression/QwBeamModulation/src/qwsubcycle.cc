@@ -213,7 +213,7 @@ Int_t main(Int_t argc, Char_t *argv[])
       
       if(!(modulation->fPhaseConfig)){
 	TString analysis = gSystem->Getenv("QWANALYSIS");
-	modulation->ReadPhaseConfig(Form("%s/Extensions/Regression/QwBeamModulation/config/phase_set4.config", analysis.Data()));
+	modulation->ReadPhaseConfig(Form("%s/Extensions/Regression/QwBeamModulation/config/phase_set3.config", analysis.Data()));
       }
       
       composite->FixParameter(2, modulation->phase[(modulation->fPatternNumber) - 11]);

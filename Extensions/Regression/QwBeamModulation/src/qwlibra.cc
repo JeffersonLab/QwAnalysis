@@ -163,7 +163,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 	// ************************************* //
 
 	TH2F *temp = new TH2F("temp", "temp", fResolution, -1.0, 1.0, fResolution, -1.0, 1.0);    
-	mod_tree->Draw(Form("raw_asym_%s:raw_diff_%s>>temp", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("asym_%s:diff_%s>>temp", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data()), cut_mod[j], "prof");
 
 	temp = (TH2F *)gDirectory->Get("temp");
@@ -187,10 +187,10 @@ Int_t main(Int_t argc, Char_t *argv[])
 	// ************************************
 	modulation->SensHistogram[i][j]->SetErrorOption("i");	
 	modulation->SensHistogram[i][j]->SetLineColor(12);	
-	mod_tree->Draw(Form("raw_asym_%s:raw_diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("asym_%s:diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()), cut_mod[j], "");
 	
-	std::cout << other << Form("raw_asym_%s:raw_diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
+	std::cout << other << Form("asym_%s:diff_%s>>hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
 				   modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()) << " " <<  cut_mod[j] << normal << std::endl;
 	modulation->SensHistogram[i][j] = (TProfile *)gDirectory->Get(Form("hist_%i_%s_%s", j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data() ));
  	modulation->SensHistogram[i][j]->SetAxisRange(-0.0005, 0.0005, "Y");
@@ -231,7 +231,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
 	TH2F *temp2 = new TH2F("temp2", "temp2", fResolution, -1.0, 1.0, fResolution, -1.0, 1.0);    
 
-	mod_tree->Draw(Form("raw_corr_asym_%s:raw_diff_%s>>temp2", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("corr_asym_%s:diff_%s>>temp2", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data()), cut_mod[j], "prof");
 
 	temp2 = (TH2F *)gDirectory->Get("temp2");
@@ -242,10 +242,10 @@ Int_t main(Int_t argc, Char_t *argv[])
 	modulation->SensHistogramCorr[i][j]->SetErrorOption("i");	
 	modulation->SensHistogramCorr[i][j]->SetLineColor(12);	
 	
-	mod_tree->Draw(Form("raw_corr_asym_%s:raw_diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
+	mod_tree->Draw(Form("corr_asym_%s:diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), 
 			    modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()), cut_mod[j], "prof");
 	
-	std::cout << other << Form("raw_corr_asym_%s:raw_diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data(), j, 
+	std::cout << other << Form("corr_asym_%s:diff_%s>>corr_hist_%i_%s_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data(), j, 
 				   modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data()) << " " << cut_mod[j] << normal << std::endl;
 
 	modulation->SensHistogramCorr[i][j] = (TProfile *)gDirectory->Get(Form("corr_hist_%i_%s_%s", j, modulation->MonitorList[i].Data(), modulation->DetectorList[k].Data() ));
@@ -592,11 +592,11 @@ Int_t main(Int_t argc, Char_t *argv[])
     
     hist_temp->Delete();
 
-    modulation->RawAsymHistogram.push_back(new TH1F(Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()),
-						    Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()), 1000, mean_temp - 1e7*rms_temp, mean_temp + 1e7*rms_temp ));
+    modulation->RawAsymHistogram.push_back(new TH1F(Form("hist_asym_%s", modulation->DetectorList[i].Data()),
+						    Form("hist_asym_%s", modulation->DetectorList[i].Data()), 1000, mean_temp - 1e7*rms_temp, mean_temp + 1e7*rms_temp ));
 
-    mod_tree->Draw(Form("1e6*asym_%s>>hist_raw_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
-    modulation->RawAsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()));
+    mod_tree->Draw(Form("1e6*asym_%s>>hist_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
+    modulation->RawAsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_asym_%s", modulation->DetectorList[i].Data()));
     modulation->RawAsymMean.push_back(modulation->RawAsymHistogram[i]->GetMean());
     modulation->RawAsymRMS.push_back(modulation->RawAsymHistogram[i]->GetRMS());
     modulation->RawAsymHistogram[i]->GetYaxis()->SetTitle("Counts");

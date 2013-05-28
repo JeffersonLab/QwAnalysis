@@ -13,16 +13,38 @@ const char QwModulation::normal[8] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
 const Double_t fUnitConvert[5] = {1., 1.e6, 1., 1., 1.e6};
 
-QwModulation::QwModulation(TChain *tree):
-  fXModulation(0),fYModulation(3),fEModulation(2),
-  fXPModulation(1),fYPModulation(4), fNEvents(0),
-  fReduceMatrix_x(0), fReduceMatrix_y(0), fReduceMatrix_xp(0),
-  fReduceMatrix_yp(0), fReduceMatrix_e(0), fSensHumanReadable(0),
-  fNModType(5), fPedestal(0), fNModEvents(0), fCurrentCut(40), 
-  fXinit(false), fYinit(false), fEinit(false), fXPinit(false), 
-  fYPinit(false), fSingleCoil(false), fRunNumberSet(false), 
-  fPhaseConfig(false),fFileSegment(""), fFileStem("QwPass*"), fSetStem("std") 
-{
+QwModulation::QwModulation(TChain *tree){
+  fXModulation = 0;
+  fYModulation = 3;
+  fEModulation = 2;
+  fXPModulation = 1;
+  fYPModulation = 4; 
+  fNEvents = 0;
+  fReduceMatrix_x = 0; 
+  fReduceMatrix_y = 0;
+  fReduceMatrix_xp = 0;  
+  fReduceMatrix_yp = 0; 
+  fReduceMatrix_e = 0; 
+  fSensHumanReadable = 0;
+  fNModType = 5; 
+  fPedestal = 0; 
+  fNModEvents = 0; 
+  fCurrentCut= 40; 
+  fPatternNumber = 11;
+
+  fXinit = false; 
+  fYinit = false; 
+  fEinit = false; 
+  fXPinit = false; 
+  fYPinit = false; 
+  fSingleCoil = false; 
+  fRunNumberSet = false; 
+  fPhaseConfig = false;
+  
+  fFileSegment = ""; 
+  fFileStem = "QwPass*"; 
+  fSetStem = "std"; 
+
   Init(tree);
 }
 
@@ -98,7 +120,15 @@ void QwModulation::GetOptions(Char_t **options){
 		<< run_number
 		<< normal << std::endl;
     }    
+    if(flag.CompareTo("--pattern-number", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      fPatternNumber = atoi(options[i + 1]);
 
+      std::cout << other << "Pattern Number:\t" 
+		<< fPatternNumber
+		<< normal << std::endl;
+    }    
     if(flag.CompareTo("--phase-config", TString::kExact) == 0){
       std::string option(options[i+1]);
       flag.Clear();
@@ -111,7 +141,12 @@ void QwModulation::GetOptions(Char_t **options){
     if(flag.CompareTo("--charge-sens", TString::kExact) == 0){
       fCharge = true;
       flag.Clear();
-      fChargeFile = Form("config/charge_sensitivity_%i.dat", run_number);
+      TString analysis = gSystem->Getenv("QwANALYSIS");
+      if(!analysis){
+	PrintError("QWANALYSIS not defined.");
+	exit(1);
+      }
+      fChargeFile = Form("%s/Extensions/Regression/QwBeamModulation/config/charge_sensitivity_%i.dat", run_number);
       std::cout << other << "Setting up pseudo 5+1 analysis:\t" << fChargeFile << normal << std::endl;
       ReadChargeSensitivity();
     }    
@@ -184,7 +219,7 @@ void QwModulation::GetOptions(Char_t **options){
     }
     if(flag.CompareTo("--help", TString::kExact) == 0){
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-      printf("Usage: ./qwbeammod <run_number> <options>");
+      printf("Usage: ./qwbeammod --run <run_number> <options>");
       printf("\n\t--charge-sens \t\tinclude charge sensitivity in overall correction to physics asymmetry.");
       printf("\n\t--charge \t\tsame as --chare-sesn except use can specify path of charge sensitivities.");
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -343,25 +378,35 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
   if( type.CompareTo("mps_tree", TString::kIgnoreCase) == 0 ){
     subblock = ((ramp_block3+ramp_block0)-(ramp_block2+ramp_block1));
     
-    for(Int_t i = 0; i < fNMonitor; i++){
-      if( (Int_t)MonBranch[i + 1][fDeviceErrorCode] != 0 ){
- 	bmodErrorFlag = 1;
-      }
-    }
-    for(Int_t i = 0; i < fNDetector; i++){
-      if( (Int_t)DetBranch[i][fDeviceErrorCode] != 0){
-	bmodErrorFlag = 1;
-      }
-    }
-    if(qwk_charge_Device_Error_Code != 0){
-      bmodErrorFlag = 1;
-    }
+//     for(Int_t i = 0; i < fNMonitor; i++){
+//       if( (Int_t)MonBranch[i + 1][fDeviceErrorCode] != 0 ){
+// 	std::cerr << "Monitor Device Error Code: " << MonitorList[i] 
+// 		  << "\tErrorCode: " 
+// 		  << MonBranch[i + 1][fDeviceErrorCode] << std::endl; 
+//  	bmodErrorFlag = 1;
+//       }
+//     }
+//     for(Int_t i = 0; i < fNDetector; i++){
+//       if( (Int_t)DetBranch[i][fDeviceErrorCode] != 0){
+// 	std::cerr << "Detector Device Error Code: " << DetectorList[i] 
+// 		  << "\tErrorCode: " 
+// 		  << DetBranch[i][fDeviceErrorCode] << std::endl; 
+// 	bmodErrorFlag = 1;
+//       }
+//     }
+//     if(qwk_charge_Device_Error_Code != 0){
+//       std::cerr << "Charge Device Error Code: "  
+// 		  << "\tErrorCode: " 
+// 		  << qwk_charge_Device_Error_Code << std::endl; 
+//       bmodErrorFlag = 1;
+//     }
 
     if(qwk_charge_hw_sum < fCurrentCut){
+      std::cerr << "Low current failed: " << qwk_charge_hw_sum << std::endl;
       bmodErrorFlag = 1;
     }
 
-    if( !((subblock > -50) && (subblock < 50)) )
+    if( !((subblock > -0.5) && (subblock < 0.5)) )
       bmodErrorFlag = 1;
 
     if( (ramp_hw_sum > fPedestal) && ((UInt_t)ErrorFlag != 0x4018080)  ){
@@ -390,16 +435,16 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
   if( type.CompareTo("hel_tree", TString::kIgnoreCase) == 0 ){
     subblock = ((yield_ramp_block3+yield_ramp_block0)-(yield_ramp_block2+yield_ramp_block1));
     
-    for(Int_t i = 0; i < fNMonitor; i++){
-      if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
-	bmodErrorFlag = 1;
-      }
-    }
-    for(Int_t i = 0; i < fNDetector; i++){
-      if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
-	bmodErrorFlag = 1;
-      }
-    }
+//     for(Int_t i = 0; i < fNMonitor; i++){
+//       if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
+// 	bmodErrorFlag = 1;
+//       }
+//     }
+//     for(Int_t i = 0; i < fNDetector; i++){
+//       if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
+// 	bmodErrorFlag = 1;
+//       }
+//     }
 
 //     if( !((subblock > -50) && (subblock < 50)) )
 //       bmodErrorFlag = 1;
@@ -415,11 +460,30 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
     if(yield_qwk_charge_hw_sum < fCurrentCut){
       bmodErrorFlag = 1;
     }
-
-
   }
   
   return( bmodErrorFlag );
+}
+
+Int_t QwModulation::CheckRampLinearity(TString type){
+
+  TString prefix;
+
+  if(type.CompareTo("hel_tree", TString::kExact) == 0)
+    prefix = "yield_";
+  else
+    prefix = "";
+
+  Double_t block0 = fChain->GetLeaf(Form("%sramp_block0", prefix.Data()))->GetValue();
+  Double_t block1 = fChain->GetLeaf(Form("%sramp_block1", prefix.Data()))->GetValue();
+  Double_t block2 = fChain->GetLeaf(Form("%sramp_block3", prefix.Data()))->GetValue();
+  Double_t block3 = fChain->GetLeaf(Form("%sramp_block3", prefix.Data()))->GetValue();
+
+  if( !( TMath::Abs((block3+block0) - (block2+block1)) < 50) )
+    return(1);
+
+  return(0);
+
 }
 
 void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
@@ -472,6 +536,7 @@ void QwModulation::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD e
     std::cout << other << "Errors?!" << normal << std::endl;
     Error.Print();
 }
+
 
 void QwModulation::MatrixFill()
 {
@@ -549,7 +614,6 @@ void QwModulation::MatrixFill()
   }
   SMatrix.Print();
   ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
-
   Write();
 
   if(fSensHumanReadable == 1){
@@ -593,9 +657,9 @@ void QwModulation::ComputeAsymmetryCorrections()
 
   for(Int_t i = 0; i < fNDetector; i++){
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("raw_%s",HDetectorList[i].Data()), &HDetBranch[i][0], Form("raw_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("%s",HDetectorList[i].Data()), &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("raw_corr_%s/D", HDetectorList[i].Data())); 
+//     mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("raw_corr_%s/D", HDetectorList[i].Data())); 
     if(fCharge){
       mod_tree->Branch(Form("corr_%s_charge", HDetectorList[i].Data()), &AsymmetryCorrectionQ[i], 
 		       Form("corr_%s_charge/D", HDetectorList[i].Data())); 
@@ -612,7 +676,7 @@ void QwModulation::ComputeAsymmetryCorrections()
   }
   for(Int_t j = 0; j < fNMonitor; j++){
     mod_tree->Branch(HMonitorList[j], &HMonBranch[j][0], Form("%s/D", HMonitorList[j].Data())); 
-    mod_tree->Branch(Form("raw_%s", HMonitorList[j].Data()), &HMonBranch[j][0], Form("raw_%s/D", HMonitorList[j].Data())); 
+    mod_tree->Branch(Form("%s", HMonitorList[j].Data()), &HMonBranch[j][0], Form("%s/D", HMonitorList[j].Data())); 
     mod_tree->Branch(Form("%s_Device_Error_Code", HMonitorList[j].Data()), &HMonBranch[j][fDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HMonitorList[j].Data())); 
 
@@ -737,6 +801,7 @@ void QwModulation::CalculateWeightedSlope()
 
 }
 
+
 void QwModulation::CalculateSlope(Int_t fNModType)
 {
 
@@ -758,6 +823,8 @@ void QwModulation::CalculateSlope(Int_t fNModType)
     std::cout << red << "Error in run:: Number of good events too small, exiting." << normal << std::endl;
     return;
   }
+
+//   fNEvents /= 4;
   
   if(CoilData[fNModType].size() <= 0){
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" << CoilData[fNModType].size() << std::endl;
@@ -805,11 +872,6 @@ void QwModulation::CalculateSlope(Int_t fNModType)
 	 DetectorSlopeError[fNModType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
       }
 
-      if(fNModType == 0){
-	std::cout << "Slope: " << slope/( TMath::Abs(d_mean) ) << " +- "
-		  << sigma_slope/( TMath::Abs(d_mean) ) << std::endl;
-      }
-      
       c_mean = 0;
       d_mean = 0;
       slope = 0;
@@ -1255,7 +1317,12 @@ Int_t QwModulation::ReadConfig(TString opt)
     det_prefix = ""; 
   }
   
-  config.open("config/setup.config", std::ios_base::in);
+  TString analysis = gSystem->Getenv("QWANALYSIS");
+  if(!analysis){
+    std::cout << red << "QWANALYSIS is not defined." << normal << std::endl;
+    exit(1);
+  }
+  config.open(Form("%s/Extensions/Regression/QwBeamModulation/config/setup.config", analysis.Data()), std::ios_base::in);
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
     exit(1);

@@ -60,6 +60,7 @@ public :
   Int_t           fNMonitor;
   Int_t           run_number;
   Int_t           fNumberEvents;
+  Int_t           fPatternNumber;
 
   // Definitions for branches in the Mps_Tree
 
@@ -293,6 +294,7 @@ public :
   Int_t    ReadConfig(TString opt = "");
   Int_t    ReadPhaseConfig(Char_t *);
   Int_t    ErrorCodeCheck(TString);
+  Int_t    CheckRampLinearity(TString);
   Int_t    ConvertPatternNumber(Int_t);
   Int_t    GetCurrentCut();
 
