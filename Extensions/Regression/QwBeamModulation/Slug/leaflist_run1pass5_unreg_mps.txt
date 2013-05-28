@@ -1,10 +1,16 @@
 ErrorFlag	ErrorFlag
 bm_pattern_number bm_pattern_number
+mps_counter mps_counter
 fgx1.hw_sum fgx1
 fgx2.hw_sum fgx2
 fgy1.hw_sum fgy1
 fgy2.hw_sum fgy2
+fge.hw_sum fge
 ramp.hw_sum	ramp
+lemx1.hw_sum lemx1
+lemx2.hw_sum lemx2
+lemy1.hw_sum lemy1
+lemy2.hw_sum lemy2
 ramp.block0 ramp_block0
 ramp.block1 ramp_block1
 ramp.block2 ramp_block2

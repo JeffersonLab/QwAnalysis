@@ -85,7 +85,10 @@ elif [ $fseg == "-1" ]; then
     segment=""
     echo "Processing full set of segments."
 else
-    segment=$(echo $fseg |perl -n -e 'if($_ =~ /\D*([0-9]+\:[0-9]+)\D*/){print $1;}') 
+# added the elsif line below inorder to handle a single segment
+# - rupesh, 2Apr2013
+    segment=$(echo $fseg |perl -n -e 'if($_ =~ /\D*([0-9]+\:[0-9]+)\D*/){print $1;}
+      elsif($_ =~ /\D*([0-9]+)\D*/){print $1;}') 
     echo "Run segments to process --> "$segment
     options="$options --file-segment $segment"
     libra_options="$options --file-segment $segment"

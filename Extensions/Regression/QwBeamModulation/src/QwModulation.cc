@@ -343,19 +343,19 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
   if( type.CompareTo("mps_tree", TString::kIgnoreCase) == 0 ){
     subblock = ((ramp_block3+ramp_block0)-(ramp_block2+ramp_block1));
     
-    for(Int_t i = 0; i < fNMonitor; i++){
-      if( (Int_t)MonBranch[i + 1][fDeviceErrorCode] != 0 ){
- 	bmodErrorFlag = 1;
-      }
-    }
-    for(Int_t i = 0; i < fNDetector; i++){
-      if( (Int_t)DetBranch[i][fDeviceErrorCode] != 0){
-	bmodErrorFlag = 1;
-      }
-    }
-    if(qwk_charge_Device_Error_Code != 0){
-      bmodErrorFlag = 1;
-    }
+//     for(Int_t i = 0; i < fNMonitor; i++){
+//       if( (Int_t)MonBranch[i + 1][fDeviceErrorCode] != 0 ){
+//  	bmodErrorFlag = 1;
+//       }
+//     }
+//     for(Int_t i = 0; i < fNDetector; i++){
+//       if( (Int_t)DetBranch[i][fDeviceErrorCode] != 0){
+// 	bmodErrorFlag = 1;
+//       }
+//     }
+//     if(qwk_charge_Device_Error_Code != 0){
+//       bmodErrorFlag = 1;
+//     }
 
     if(qwk_charge_hw_sum < fCurrentCut){
       bmodErrorFlag = 1;
@@ -390,16 +390,16 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
   if( type.CompareTo("hel_tree", TString::kIgnoreCase) == 0 ){
     subblock = ((yield_ramp_block3+yield_ramp_block0)-(yield_ramp_block2+yield_ramp_block1));
     
-    for(Int_t i = 0; i < fNMonitor; i++){
-      if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
-	bmodErrorFlag = 1;
-      }
-    }
-    for(Int_t i = 0; i < fNDetector; i++){
-      if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
-	bmodErrorFlag = 1;
-      }
-    }
+//     for(Int_t i = 0; i < fNMonitor; i++){
+//       if( (Int_t)HMonBranch[i][fDeviceErrorCode] != 0 ){
+// 	bmodErrorFlag = 1;
+//       }
+//     }
+//     for(Int_t i = 0; i < fNDetector; i++){
+//       if( (Int_t)HDetBranch[i][fDeviceErrorCode] != 0 ){
+// 	bmodErrorFlag = 1;
+//       }
+//     }
 
 //     if( !((subblock > -50) && (subblock < 50)) )
 //       bmodErrorFlag = 1;
