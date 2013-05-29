@@ -406,7 +406,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
       bmodErrorFlag = 1;
     }
 
-    if( !((subblock > -0.5) && (subblock < 0.5)) )
+    if( !((subblock > -50) && (subblock < 50)) )
       bmodErrorFlag = 1;
 
     if( (ramp_hw_sum > fPedestal) && ((UInt_t)ErrorFlag != 0x4018080)  ){
