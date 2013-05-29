@@ -10,6 +10,7 @@ use warnings;
 use DBI;
 
 use Getopt::Long;
+use File::Glob 'bsd_glob';
 
 use vars qw($runs
 	    $directory
@@ -23,7 +24,9 @@ use vars qw($runs
 	    @error_chanmap
 	    @error_unid
 	    @error_bmod
-	    @error_detector);
+	    @error_detector
+	    @error_sluglet
+	    @error_mps);
 
 GetOptions("r|runs=s"     => \$runs,
 	   "directory=s"  => \$directory,
@@ -99,6 +102,8 @@ my $dbi = DBI->connect($dbinfo, "qweak", "QweakQweak") or
 foreach $run (@range){
     CheckDatabaseDetector($run, $regtype);
     CheckDatabaseModulation($run);
+    CheckMpsFileExists($run);
+    CheckSlugletFileExists($run);
 }
 $dbi->disconnect;
 
@@ -123,6 +128,16 @@ foreach my $index (@error_bmod){
 
 print "\n\n -- Regressed Detector values for '$regtype' not found in database for runs:\n";
 foreach my $index (@error_detector){
+    print $index, " ";
+}
+
+print "\n\n -- Mps Only files not found in analysis directory:\n";
+foreach my $index (@error_mps){
+    print $index, " ";
+}
+
+print "\n\n -- Sluglet files not found in analysis directory:\n";
+foreach my $index (@error_sluglet){
     print $index, " ";
 }
 
@@ -239,6 +254,28 @@ sub CheckDatabaseDetector {
 
      return;
  }
+
+sub CheckMpsFileExists {
+    my $runnum = $_[0];
+    my @files = </w/hallc/qweak/QwAnalysis/run1/pass5b_bmod_regression/mps_slug/mps_only_${runnum}_*.root>;
+
+    if((my $size = $#files+1) eq 0 ){
+	push @error_mps, $runnum;
+    }
+
+    return;
+}
+
+sub CheckSlugletFileExists {
+    my $runnum = $_[0];
+    my @files = </w/hallc/qweak/QwAnalysis/run1/pass5b_slugs/sluglet${runnum}_*.root>;
+
+    if((my $size = $#files+1) eq 0 ){
+	push @error_sluglet, $runnum;
+    }
+
+    return;
+}
 
 sub Usage {
     print "*** Usage for analysis checking script *** \n\n";
