@@ -141,12 +141,13 @@ void QwModulation::GetOptions(Char_t **options){
     if(flag.CompareTo("--charge-sens", TString::kExact) == 0){
       fCharge = true;
       flag.Clear();
-      TString analysis = gSystem->Getenv("QwANALYSIS");
+      TString analysis = gSystem->Getenv("QWANALYSIS");
       if(!analysis){
 	PrintError("QWANALYSIS not defined.");
 	exit(1);
       }
-      fChargeFile = Form("%s/Extensions/Regression/QwBeamModulation/config/charge_sensitivity_%i.dat", run_number);
+      fChargeFile = Form("%s/Extensions/Regression/QwBeamModulation/config/charge_sensitivity_%i.dat", 
+			 analysis.Data(), run_number);
       std::cout << other << "Setting up pseudo 5+1 analysis:\t" << fChargeFile << normal << std::endl;
       ReadChargeSensitivity();
     }    

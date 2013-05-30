@@ -11,21 +11,21 @@ cd $scriptPath/../../
 
 scriptPath=`pwd`
 
-#dbName="qw_test_20120720"
-dbName="qw_run2_pass5"
+#dbName="qw_test_20130313" #smacewan 03-18-13
+dbName="qw_run2_pass5b" #smacewan 03-26-13
 
 #export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run2/rootfiles
 
 echo "QW_ROOTFILES=$QW_ROOTFILES"
 
-export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run2/pass5_bmod_regression/output
+export BMOD_OUT=/w/hallc/qweak/QwAnalysis/run2/pass5b_bmod_regression/output
 
 run_number=$1
 fseg=$2
 
-log=/w/hallc/qweak/QwAnalysis/run2/pass5_bmod_regression/output/out_files
+log=/w/hallc/qweak/QwAnalysis/run2/pass5b_bmod_regression/output/out_files
 
-file_stem=" --file-stem QwPass5 "
+file_stem=" --file-stem QwPass5b " #smacewan 03-18-13
 ramp_pedestal=" --ramp-pedestal 10 "
 config_dir="config"
 
@@ -85,7 +85,10 @@ elif [ $fseg == "-1" ]; then
     segment=""
     echo "Processing full set of segments."
 else
-    segment=$(echo $fseg |perl -n -e 'if($_ =~ /\D*([0-9]+\:[0-9]+)\D*/){print $1;}') 
+# added the elsif line below inorder to handle a single segment
+# - rupesh, 2Apr2013
+    segment=$(echo $fseg |perl -n -e 'if($_ =~ /\D*([0-9]+\:[0-9]+)\D*/){print $1;}
+      elsif($_ =~ /\D*([0-9]+)\D*/){print $1;}') 
     echo "Run segments to process --> "$segment
     options="$options --file-segment $segment"
     libra_options="$options --file-segment $segment"
