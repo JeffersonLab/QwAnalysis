@@ -1,22 +1,23 @@
 
 //////////////////////////////////////////////////////////
 //
-//    QwModulation.hh
+//    QwMpsOnly.hh
 //    
 //    Author: Joshua Hoskins
 //
 //////////////////////////////////////////////////////////
 
-#ifndef QwModulation_h
-#define QwModulation_h
+#ifndef QwMpsOnly_h
+#define QwMpsOnly_h
 
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
 #include <fstream>
 #include "TMatrixD.h"
+#include "QwMpsOnly.hh"
 
-class QwModulation {
+class QwMpsOnly {
 
 private:
   Int_t fDetectorRead;
@@ -41,6 +42,8 @@ private:
   Int_t fLowerSegment;
   Int_t fUpperSegment;
 
+  Double_t fPreviousRampValue;
+
   static const Int_t fNMaxMon = 6;
   static const Int_t fNMaxDet = 35;
   static const Int_t fNMaxCoil = 5;
@@ -60,98 +63,26 @@ public :
   Int_t           fNMonitor;
   Int_t           run_number;
   Int_t           fNumberEvents;
-  Int_t           fPatternNumber;
 
   // Definitions for branches in the Mps_Tree
 
   Double_t        qwk_charge_hw_sum;
-  Double_t        qwk_charge_block0;
-  Double_t        qwk_charge_block1;
-  Double_t        qwk_charge_block2;
-  Double_t        qwk_charge_block3;
-  Double_t        qwk_charge_num_samples;
   Double_t        qwk_charge_Device_Error_Code;
   Double_t        bm_pattern_number;
   Double_t        event_number;
   Double_t        ErrorFlag;
   Double_t        fgx1_hw_sum;
-  Double_t        fgx1_block0;
-  Double_t        fgx1_block1;
-  Double_t        fgx1_block2;
-  Double_t        fgx1_block3;
-  Double_t        fgx1_num_samples;
   Double_t        fgx1_Device_Error_Code;
-  Double_t        fgx1_hw_sum_raw;
-  Double_t        fgx1_block0_raw;
-  Double_t        fgx1_block1_raw;
-  Double_t        fgx1_block2_raw;
-  Double_t        fgx1_block3_raw;
-  Double_t        fgx1_sequence_number;
   Double_t        fgy1_hw_sum;
-  Double_t        fgy1_block0;
-  Double_t        fgy1_block1;
-  Double_t        fgy1_block2;
-  Double_t        fgy1_block3;
-  Double_t        fgy1_num_samples;
   Double_t        fgy1_Device_Error_Code;
-  Double_t        fgy1_hw_sum_raw;
-  Double_t        fgy1_block0_raw;
-  Double_t        fgy1_block1_raw;
-  Double_t        fgy1_block2_raw;
-  Double_t        fgy1_block3_raw;
-  Double_t        fgy1_sequence_number;
   Double_t        fgx2_hw_sum;
-  Double_t        fgx2_block0;
-  Double_t        fgx2_block1;
-  Double_t        fgx2_block2;
-  Double_t        fgx2_block3;
-  Double_t        fgx2_num_samples;
   Double_t        fgx2_Device_Error_Code;
-  Double_t        fgx2_hw_sum_raw;
-  Double_t        fgx2_block0_raw;
-  Double_t        fgx2_block1_raw;
-  Double_t        fgx2_block2_raw;
-  Double_t        fgx2_block3_raw;
-  Double_t        fgx2_sequence_number;
   Double_t        fgy2_hw_sum;
-  Double_t        fgy2_block0;
-  Double_t        fgy2_block1;
-  Double_t        fgy2_block2;
-  Double_t        fgy2_block3;
-  Double_t        fgy2_num_samples;
   Double_t        fgy2_Device_Error_Code;
-  Double_t        fgy2_hw_sum_raw;
-  Double_t        fgy2_block0_raw;
-  Double_t        fgy2_block1_raw;
-  Double_t        fgy2_block2_raw;
-  Double_t        fgy2_block3_raw;
-  Double_t        fgy2_sequence_number;
   Double_t        fge_hw_sum;
-  Double_t        fge_block0;
-  Double_t        fge_block1;
-  Double_t        fge_block2;
-  Double_t        fge_block3;
-  Double_t        fge_num_samples;
   Double_t        fge_Device_Error_Code;
-  Double_t        fge_hw_sum_raw;
-  Double_t        fge_block0_raw;
-  Double_t        fge_block1_raw;
-  Double_t        fge_block2_raw;
-  Double_t        fge_block3_raw;
-  Double_t        fge_sequence_number;
   Double_t        ramp_hw_sum;
-  Double_t        ramp_block0;
-  Double_t        ramp_block1;
-  Double_t        ramp_block2;
-  Double_t        ramp_block3;
-  Double_t        ramp_num_samples;
   Double_t        ramp_Device_Error_Code;
-  Double_t        ramp_hw_sum_raw;
-  Double_t        ramp_block0_raw;
-  Double_t        ramp_block1_raw;
-  Double_t        ramp_block2_raw;
-  Double_t        ramp_block3_raw;
-  Double_t        ramp_sequence_number;
 
   Double_t        AsymmetryCorrection[fNMaxDet];
   Double_t        AsymmetryCorrectionQ[fNMaxDet];
@@ -189,44 +120,18 @@ public :
 
   Double_t        yield_bm_pattern_number;
   Double_t        yield_qwk_charge_hw_sum;
-  Double_t        yield_qwk_charge_block0;
-  Double_t        yield_qwk_charge_block1;
-  Double_t        yield_qwk_charge_block2;
-  Double_t        yield_qwk_charge_block3;
-  Double_t        yield_qwk_charge_num_samples;
   Double_t        yield_qwk_charge_Device_Error_Code;
-  Double_t        mps_counter; 
+  Double_t        pattnum; 
   Double_t        yield_ramp_hw_sum;
-  Double_t        yield_ramp_block0;
-  Double_t        yield_ramp_block1;
-  Double_t        yield_ramp_block2;
-  Double_t        yield_ramp_block3;
-  Double_t        yield_ramp_num_samples;
   Double_t        yield_ramp_Device_Error_Code;
-  Double_t        yield_ramp_hw_sum_raw;
-  Double_t        yield_ramp_block0_raw;
-  Double_t        yield_ramp_block1_raw;
-  Double_t        yield_ramp_block2_raw;
-  Double_t        yield_ramp_block3_raw;
-  Double_t        yield_ramp_sequence_number;
   Double_t        yield_qwk_mdallbars_hw_sum;
-  Double_t        yield_qwk_mdallbars_block0;
-  Double_t        yield_qwk_mdallbars_block1;
-  Double_t        yield_qwk_mdallbars_block2;
-  Double_t        yield_qwk_mdallbars_block3;
-  Double_t        yield_qwk_mdallbars_num_samples;
   Double_t        yield_qwk_mdallbars_Device_Error_Code;
   Double_t        asym_qwk_charge_hw_sum;
-  Double_t        asym_qwk_charge_block0;
-  Double_t        asym_qwk_charge_block1;
-  Double_t        asym_qwk_charge_block2;
-  Double_t        asym_qwk_charge_block3;
-  Double_t        asym_qwk_charge_num_samples;
   Double_t        asym_qwk_charge_Device_Error_Code;
 
   TBranch        *b_yield_bm_pattern_number;
   TBranch        *b_yield_qwk_charge;
-  TBranch        *b_mps_counter;
+  TBranch        *b_pattnum;
   TBranch        *b_yield_ramp; 
   TBranch        *b_yield_qwk_mdallbars; 
   TBranch        *b_asym_qwk_charge; 
@@ -286,8 +191,8 @@ public :
   TString fSetStem;
   TString output;
 
-  QwModulation(TChain *tree = 0);
-  ~QwModulation();
+  QwMpsOnly(TChain *tree = 0);
+  ~QwMpsOnly();
 
   Int_t    Cut(Long64_t entry);
   Int_t    GetEntry(Long64_t entry);
@@ -304,7 +209,7 @@ public :
   void     Scan(void);
   void     PilferData();
   void     Show(Long64_t entry = -1);  
-  void     LoadRootFile(TString, TChain *);
+  void     LoadRootFile(TString, TChain *, Bool_t slug = false);
   void     BuildDetectorData();
   void     BuildMonitorData();
   void     BuildCoilData(); 
@@ -333,7 +238,7 @@ public :
   void     ReadChargeSensitivity();
 
   Bool_t   Notify();
-  Bool_t   FileSearch(TString, TChain *);
+  Bool_t   FileSearch(TString, TChain *, Bool_t slug = false);
   Bool_t   IfExists(const char *);
   
 };

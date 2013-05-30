@@ -80,6 +80,7 @@ public:
   TString  fMysqlSlopeCorr;
   TString  fModulationType;
   TString  fMysqlBeamMode;
+  TString  fSegmentFlag;
 
   Bool_t   fDBase;
   Bool_t   fRunRange;

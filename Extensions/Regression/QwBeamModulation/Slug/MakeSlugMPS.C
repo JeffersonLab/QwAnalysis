@@ -246,8 +246,13 @@ Int_t MakeSlugMPS(
 		}
 		std::cout << "Finished processing entries" << std::endl;
 	}
-	
-	slugrootfile->Write(0,TObject::kOverwrite);
+
+	if(slugeventnumber <= 0){
+		std::cerr << "Rootfile contains no good events.  Exiting." << std::endl;
+		exit(1);
+	}else{
+		slugrootfile->Write(0,TObject::kOverwrite);
+	}
 	timer.Print();
 	
 	Double_t fillTime = timer.CpuTime();
