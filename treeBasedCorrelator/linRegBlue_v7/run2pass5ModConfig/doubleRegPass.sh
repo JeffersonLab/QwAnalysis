@@ -6,6 +6,10 @@ outputPath=$3
 
 scriptPath=`dirname $0`
 
+#  File permission variable.
+myown="c-qweak"
+myperm="u+rw,g+rw"
+
 logPath='./out/'
 #logPath='/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/lrb_bmod/out'
 mxEve=2223344
@@ -34,8 +38,12 @@ if [ -d $destDir ] ; then
 fi
 
 
-
+#  Create the directory, change the owner, and set the permissions.
+#  We'll use the group sticky bit to try to make sure all contents
+#  are created with the proper group ownership.
 mkdir out
+chgrp ${myown}  out
+chmod u+rw,g+rws out
 
 if [ -d $outputPath/out ]; then
     mkdir $outputPath/out
@@ -49,6 +57,8 @@ ${scriptPath}/../linRegBlue  $run $seg $mxEve $scriptPath/blueReg_bmod.conf >& $
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass1 for run $run.$seg
+   chgrp -R ${myown}  out
+   chmod -R ${myperm} out
    mv -vf out $outputPath/out-regAbort1-$run.$seg
    echo abandon this run
    exit
@@ -61,6 +71,8 @@ mv -vf out/blueR$run.$seg\new.slope.root out/$slopeFile
 
 if [ $? -ne 0 ] ; then 
    echo failed to find slope matrix  for run $run.$seg
+   chgrp -R ${myown}  out
+   chmod -R ${myperm} out
    mv -vf out $outputPath/out-regAbort2-$run.$seg
    echo abandon this run
    exit
@@ -73,6 +85,8 @@ time ${scriptPath}/../linRegBlue  $run $seg $mxEve  $scriptPath/blueReg_full.con
 
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass2 for run $run.$seg
+   chgrp -R ${myown}  out
+   chmod -R ${myperm} out
    mv -vf out $outputPath/out-regAbort3-$run.$seg
    echo abandon this run
    exit
@@ -93,6 +107,8 @@ echo regPass2 successful destDir=$destDir ....
 #fi
 
 echo "copying out to $destDir"
+chgrp -R ${myown}  out
+chmod -R ${myperm} out
 mv -vf out $destDir
 
 #  Move the regressed rootfile to the lrb_rootfiles directory if it exists

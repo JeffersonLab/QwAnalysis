@@ -163,9 +163,11 @@ if [ $? -ne 0 ] ; then
    chmod -R ${myperm} out
    if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
        arr=$(find out -type f -name blueR\*hist.root)
-       for d in "${arr[@]}"; do
-           mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
-       done
+       if [ ${#arr[@]} -gt 0 -a -n "${arr[@]}" ] ; then
+	   for d in "${arr[@]}"; do
+	       mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
+	   done
+       fi
    fi
    mv out ${outPath}/out-regAbort1-${run}.${seg}_${timestamp}
    echo abandon this run
@@ -183,9 +185,11 @@ if [ $? -ne 0 ] ; then
    chmod -R ${myperm} out
    if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
        arr=$(find out -type f -name blueR\*hist.root)
-       for d in "${arr[@]}"; do
-           mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
-       done
+       if [ ${#arr[@]} -gt 0 -a -n "${arr[@]}" ] ; then
+	   for d in "${arr[@]}"; do
+	       mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
+	   done
+       fi
    fi
    mv out ${outPath}/out-regAbort2-${run}.${seg}_${timestamp}
    echo abandon this run
@@ -204,9 +208,11 @@ if [ $? -ne 0 ] ; then
    chmod -R ${myperm} out
    if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
        arr=$(find out -type f -name blueR\*hist.root)
-       for d in "${arr[@]}"; do
-           mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
-       done
+       if [ ${#arr[@]} -gt 0 -a -n "${arr[@]}" ] ; then
+	   for d in "${arr[@]}"; do
+	       mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
+	   done
+       fi
    fi
    mv out ${outPath}/out-regAbort3-${run}.${seg}_${timestamp}
    echo abandon this run
@@ -252,17 +258,21 @@ mv out ${destDir}
 #  Move the regressed rootfile to the lrb_rootfiles directory if it exists
 if  [ -d  ${outPath}/../lrb_rootfiles ] ; then
     arr=$(find ${destDir} -type f -name reg_\*.root)
-    for d in "${arr[@]}"; do
-	mv -v ${d} ${outPath}/../lrb_rootfiles/${configSuffix}_`basename ${d}`
-    done
+    if [ ${#arr[@]} -gt 0 -a -n "${arr[@]}" ] ; then
+	for d in "${arr[@]}"; do
+	    mv -v ${d} ${outPath}/../lrb_rootfiles/${configSuffix}_`basename ${d}`
+	done
+    fi
 fi
 
 #  Move the diagnostics rootfile to the lrb_diagnostics directory if it exists
 if  [ -d  ${outPath}/../lrb_diagnostics ] ; then
     arr=$(find ${destDir} -type f -name blueR\*hist.root)
-    for d in "${arr[@]}"; do
-	mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
-    done
+    if [ ${#arr[@]} -gt 0 -a -n "${arr[@]}" ] ; then
+	for d in "${arr[@]}"; do
+	    mv -v ${d} ${outPath}/../lrb_diagnostics/${configSuffix}_`basename ${d}`
+	done
+    fi
 fi
 
 du -hs ${destDir}
