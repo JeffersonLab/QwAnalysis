@@ -1,10 +1,15 @@
 qwk_charge          d
 qwk_charge          yq
 qwk_energy          d
+qwk_energy          yp
 qwk_targetX         d
+qwk_targetX         yp
 qwk_targetY         d
+qwk_targetY         yp
 qwk_targetXSlope    d
+qwk_targetXSlope    yp
 qwk_targetYSlope    d
+qwk_targetYSlope    yp
 qwk_bcm3c12x        d
 qwk_bcm1            a
 qwk_bcm1            yq
