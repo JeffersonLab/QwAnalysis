@@ -4,7 +4,7 @@
 //    QwMpsOnly.hh
 //    
 //    Author: Joshua Hoskins
-//
+//    Modified: Don Jones
 //////////////////////////////////////////////////////////
 
 #ifndef QwMpsOnly_h
@@ -14,12 +14,14 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <fstream>
+#include <vector>
 #include "TMatrixD.h"
 #include "QwMpsOnly.hh"
 
 class QwMpsOnly {
 
 private:
+
   Int_t fDetectorRead;
   Int_t fMonitorRead;
   Int_t fXModulation;
@@ -42,16 +44,18 @@ private:
   Int_t fLowerSegment;
   Int_t fUpperSegment;
 
+
   Double_t fPreviousRampValue;
-
-  static const Int_t fNMaxMon = 6;
-  static const Int_t fNMaxDet = 35;
-  static const Int_t fNMaxCoil = 5;
-  static const Int_t fBranchSize = 13;
-  static const Int_t fDeviceErrorCode = 6;
-  static const Int_t fError = 1;
-  static const Int_t fRampPedestal = 128;
-
+  Double_t fMaxRampNonLinearity;
+  static const Int_t kNMaxMon = 6;
+  static const Int_t kNMaxDet = 35;
+  static const Int_t kNMaxCoil = 5;
+  static const Int_t kBranchSize = 13;
+  static const Int_t kDeviceErrorCode = 6;
+  static const Int_t kError = 1;
+  static const Int_t kRampPedestal = 128;
+  static const Double_t PI = 3.14159265358979312;
+  static const Double_t kDegToRad = 0.00174532925199432955e-02;
 public :
 
   TChain          *fChain;
@@ -82,25 +86,29 @@ public :
   Double_t        fge_hw_sum;
   Double_t        fge_Device_Error_Code;
   Double_t        ramp_hw_sum;
+  Double_t        ramp_block0;
+  Double_t        ramp_block1;
+  Double_t        ramp_block2;
+  Double_t        ramp_block3;
   Double_t        ramp_Device_Error_Code;
 
-  Double_t        AsymmetryCorrection[fNMaxDet];
-  Double_t        AsymmetryCorrectionQ[fNMaxDet];
-  Double_t        MonBranch[fNMaxMon][fBranchSize];  
-  Double_t        DetBranch[fNMaxDet][fBranchSize];  
-  Double_t        HMonBranch[fNMaxMon][fBranchSize];  
-  Double_t        YMonBranch[fNMaxMon][fBranchSize];  
-  Double_t        HDetBranch[fNMaxDet][fBranchSize];  
-  Double_t        CoilBranch[fNMaxCoil][fBranchSize];
-  Double_t        DeviceAsymmetryCorrection[fNMaxDet][fNMaxMon];
-  Double_t        AverageAsymmetryCorrection[fNMaxDet][fNMaxMon];
-  Double_t        PositionDiffMean[fNMaxDet][fNMaxMon];
-  Double_t        YieldSlope[fNMaxDet][fNMaxMon];
-  Double_t        YieldSlopeError[fNMaxDet][fNMaxMon];
-  Double_t        MonitorMean[fNMaxMon];
-  Double_t        DetectorMean[fNMaxDet];
+  Double_t        AsymmetryCorrection[kNMaxDet];
+  Double_t        AsymmetryCorrectionQ[kNMaxDet];
+  Double_t        MonBranch[kNMaxMon][kBranchSize];  
+  Double_t        DetBranch[kNMaxDet][kBranchSize];  
+  Double_t        HMonBranch[kNMaxMon][kBranchSize];  
+  Double_t        YMonBranch[kNMaxMon][kBranchSize];  
+  Double_t        HDetBranch[kNMaxDet][kBranchSize];  
+  Double_t        CoilBranch[kNMaxCoil][kBranchSize];
+  Double_t        DeviceAsymmetryCorrection[kNMaxDet][kNMaxMon];
+  Double_t        AverageAsymmetryCorrection[kNMaxDet][kNMaxMon];
+  Double_t        PositionDiffMean[kNMaxDet][kNMaxMon];
+  Double_t        YieldSlope[kNMaxDet][kNMaxMon];
+  Double_t        YieldSlopeError[kNMaxDet][kNMaxMon];
+  Double_t        MonitorMean[kNMaxMon];
+  Double_t        DetectorMean[kNMaxDet];
 
-  Int_t        ModulationEvents[fNMaxCoil];
+  Int_t           ModulationEvents[kNMaxCoil];
 
   Double_t        qwk_targetX_hw_sum;
 
@@ -202,11 +210,12 @@ public :
   Int_t    CheckRampLinearity(TString);
   Int_t    ConvertPatternNumber(Int_t);
   Int_t    GetCurrentCut();
-
+  Int_t    ProcessMicroCycle(Int_t, Int_t *, Int_t *, Int_t*);
   Long64_t LoadTree(Long64_t entry);
 
   void     Init(TChain *tree);
   void     Scan(void);
+  void     SetMaxRampNonLinearity(Double_t);
   void     PilferData();
   void     Show(Long64_t entry = -1);  
   void     LoadRootFile(TString, TChain *, Bool_t slug = false);
