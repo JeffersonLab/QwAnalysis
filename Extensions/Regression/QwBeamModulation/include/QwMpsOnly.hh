@@ -226,12 +226,13 @@ public :
   void     BuildDetectorSlopeVector();
   void     BuildMonitorAvSlope();
   void     BuildDetectorAvSlope();
-  void     CalculateWeightedSlope();
+  void     CalculateWeightedSlope(Int_t);
   void     CalculateSlope(Int_t);
   void     MatrixFill();
   void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     SetFileName(TString &);
   void     ComputeAsymmetryCorrections(); 
+  void     PrintAverageSlopes();
   void     ReduceMatrix(Int_t);
   void     SetHuman(void);
   void     SetupMpsBranchAddress(void); 

@@ -64,7 +64,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->PilferData();
   mps_only->BuildDetectorAvSlope();
   mps_only->BuildMonitorAvSlope();
-  mps_only->CalculateWeightedSlope();
+  mps_only->CalculateWeightedSlope(1);
   mps_only->MatrixFill();
   
   std::cout << "Closing Mps_Tree" << std::endl;

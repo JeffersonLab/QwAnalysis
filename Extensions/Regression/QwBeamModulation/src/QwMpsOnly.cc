@@ -160,8 +160,8 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
   ModulationEvents[fNModType] += fNEvents;
   //*******************************
    
- if(fNModType == 0)
-    std::cout<<"mod_type# "<<fNModType<<"\n";
+//  if(fNModType == 0)
+//     std::cout<<"mod_type# "<<fNModType<<"\n";
 
   for(Int_t det = 0; det < fNDetector; det++){
     
@@ -173,7 +173,7 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
 
   
     for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
-      c_mean += TMath::Sin( (PI/180)*CoilData[fNModType][evNum] + 
+      c_mean += TMath::Sin( kDegToRad*CoilData[fNModType][evNum] + 
 			    phase[fNModType]);
     c_mean /= fNEvents;
     
@@ -196,11 +196,11 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     sigma_slope = TMath::Sqrt((sigma_dd - ( (sigma_dc*sigma_dc)/sigma_cc) )
 			      /(sigma_cc*( fNEvents - 2 )));
     
-    if(fNModType == 0){
-      std::cout << "Slope: d_" << DetectorList[det]<<"/d_Sin(ramp): "
-		<<slope/TMath::Abs(d_mean) << " +- " 
-		<< sigma_slope/TMath::Abs(d_mean) << std::endl;
-    }
+//     if(fNModType == 0){
+//       std::cout << "Slope: d_" << DetectorList[det]<<"/d_Sin(ramp): "
+// 		<<slope/TMath::Abs(d_mean) << " +- " 
+// 		<< sigma_slope/TMath::Abs(d_mean) << std::endl;
+//     }
     
     //
     // Load Yields in to make Yield Correction a little easier in the end.
@@ -289,7 +289,7 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
   return;
 }
 
-void QwMpsOnly::CalculateWeightedSlope()
+void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
 {
 
   Double_t mean = 0;
@@ -326,7 +326,7 @@ void QwMpsOnly::CalculateWeightedSlope()
       for(Int_t k = 0; k < (Int_t)MonitorSlope[i][j].size(); k++){
 	mean += ( MonitorSlope[i][j][k]
 		  /TMath::Power(MonitorSlopeError[i][j][k],2) );
-        mean_error += (1/TMath::Power(MonitorSlopeError[i][j][k],2));
+	mean_error += (1/TMath::Power(MonitorSlopeError[i][j][k],2));
       }
       if(mean_error > 0){
 	mean /= mean_error;
@@ -346,15 +346,17 @@ void QwMpsOnly::CalculateWeightedSlope()
       }
     }
   }
-
+  if(verbose)
+    PrintAverageSlopes();
   DetectorSlope.clear();
   DetectorSlopeError.clear();
   MonitorSlope.clear();
   MonitorSlopeError.clear();
-
+  
   std::cout << "Weighted Averages calculated." << std::endl;
-
+  
 }
+
 
 void QwMpsOnly::CheckFlags()
 {
@@ -1037,16 +1039,50 @@ void QwMpsOnly::PilferData()
   return;
 }
 
-void QwMpsOnly::PrintError(TString error){
+void QwMpsOnly::PrintAverageSlopes()
+{
+  printf("\nMonitor Slopes   |      X       |      Y       |      E       |"
+	 "      XP      |      YP      |\n");
+  printf("******************************************************************"
+	 "***************************\n");
 
+  for(Int_t i=0;i<fNMonitor;i++){
+    TString mon = MonitorList[i];
+    mon.Resize(16);
+    printf("%s |",mon.Data());
+    for(Int_t j=0;j<fNModType;j++){
+      printf(" %+9.5e |",AvMonitorSlope[j][i]);
+    }
+    printf("\n");
+  }
+  printf("\n\n");
+  printf("Detector Slopes  |      X       |      Y       |      E       |"
+	 "      XP      |      YP      |\n");
+  printf("******************************************************************"
+	 "***************************\n");
+
+  for(Int_t i=0;i<fNDetector;i++){
+    TString mon = DetectorList[i];
+    mon.Resize(16);
+    printf("%s |",mon.Data());
+    for(Int_t j=0;j<fNModType;j++){
+      printf(" %+9.5e |",AvDetectorSlope[j][i]);
+    }
+    printf("\n");
+  }
+  printf("\n\n");
+}
+
+void QwMpsOnly::PrintError(TString error)
+{
   std::cout << red << error << normal << std::endl;
 
   return;
 }
 
 Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err, 
-				   Int_t *good){
-
+				   Int_t *good)
+{
   Int_t nEnt = fChain->GetEntries();
   Int_t modType = -1, modNum = -1, nCut = 0, nErr = 0;
   TString str = TString("");
