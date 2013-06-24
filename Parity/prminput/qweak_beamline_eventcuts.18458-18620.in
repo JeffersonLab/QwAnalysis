@@ -200,7 +200,7 @@ combinedbpm, qwk_target, absy, -10, 10, g, 0.15
 !***************************************************	
 !for QwEnergyCalculator
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-energycalculator, qwk_energy,  	-3.18588e+100, 	3.18591e+100, g, 0
+!energycalculator, qwk_energy,  	-3.18588e+100, 	3.18591e+100, g, 0
 
 
 !Comments
