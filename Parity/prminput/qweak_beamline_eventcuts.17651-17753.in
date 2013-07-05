@@ -1,0 +1,205 @@
+!
+!11/15/2010 R. Beminiwattha: Started with beamline event cuts based on run 6297
+!03/08/2011 B. Waidyawansa : The bpm saturation cuts (upper limit) are based on run 10214.  
+!01/23/2012 R. Beminiwattha: Set the min. current to 10 uA from run 15402. BCM8 has the global cut now.
+!02/15/2012 R. Beminiwattha: Updated event cuts for Run1 pass4 that includes stability cuts on Target and MD yields.
+!                            Closed the run range 9000-12162.
+!03/20/2012 B. Waidyawansa : Updated the lower limits of BPM wires to 10000 (corresponding to 0.7V) from 0.
+!                            The operating range of a BPM is typically 2-3V so anything below that can be considered as 
+!                            junk readings. 
+!
+!*********************************************************************************************
+!Global switch to turn ON and OFF eventcut check
+!Available settings
+!***************************************************
+!To turn OFF all checks
+!EVENTCUTS = 0 
+
+!***************************************************
+!To turn OFF event cuts and perform only HW checks
+!EVENTCUTS = 1
+
+!***************************************************
+!To turn ON both event cuts and HW checks
+!EVENTCUTS = 2
+
+!***************************************************
+!To turn do both event cuts and HW checks and only flag event cut failed events
+EVENTCUTS = 3
+
+!IMPORTANT
+!---------
+!Make sure when puting tabs in the map file entries, always put ", " before inserting a tab. 
+!Otherwise the routine QwParameterFile::GetNextToken(", ") will get confuse.
+
+!
+!  ADJUST THE CHARGE CUT HERE!
+!
+!***************************************************		
+!for combined bcm devices (tested with injector run 924)
+!device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
+combinedbcm, qwk_charge,  	40,    500,  g,   2
+
+
+!***************************************************
+!for bcm devices
+!device_type, device_name,      lower limit, upper limit, local(l)/global(g), stability percentage
+ 
+bcm, qwk_bcm1,		1,	1000000,	g,	0
+bcm, qwk_bcm2, 		1,	1000000,	g,	0
+bcm, qwk_bcm5, 		1,	1000000,	g,	0
+bcm, qwk_bcm6, 		1,	1000000,	g,	0
+bcm, qwk_bcm7, 		1,	1000000,	g,	0
+bcm, qwk_bcm8, 		1,	1000000,	g,	0
+
+!bcm, qwk_batext1, 		1, 2, l, 0
+!bcm, qwk_batext2,  		0, 0, l, 0
+ 
+!bcm, qwk_batery6,		0, 0, l, 0 
+!bcm, qwk_batery7, 		95.57778e+9, 95.5788e+9, l, 0 
+!bcm, phasemonitor, 		0, 0, l, 0
+
+halomonitor , sca_habcm, 5, 	1000000,	l,	0
+
+!****************************************************		
+!For bpmstrpline devices 
+!channel_name can be relx, rely, absx, absy, effective charge, xp, xm, yp, ym
+!Cuts are applied after the VQwSubsystem::ProcessEvent() routine.
+! So pedestals are applied before appyling the cuts.
+! The upper limits for the wires are set to remove saturations. 
+! These limits were obtained from run 14153 for the bpms in IOCSE14 (Fast feedback IOC). 
+! 
+!device_type,  device_name, channel_name, lower limit, upper limit, local(l)/global(g), stability percentage
+
+bpmstripline,	qwk_bpm3c07,    XP,		10000,  62200,	 l,	 0
+bpmstripline, 	qwk_bpm3c07,    XM,		10000,  64500,	 l,	 0
+bpmstripline, 	qwk_bpm3c07,    YP,		10000,  62600,	 l,	 0
+bpmstripline, 	qwk_bpm3c07,    YM,		10000,  55500,	 l,	 0
+bpmstripline, 	qwk_bpm3c07a,   XP,		10000,  64000,	 l,	 0
+bpmstripline, 	qwk_bpm3c07a,   XM,		10000,  66000,	 l,	 0
+bpmstripline, 	qwk_bpm3c07a,   YP,		10000,  65500,	 l,	 0
+bpmstripline, 	qwk_bpm3c07a,   YM,		10000,  63000,	 l,	 0
+bpmstripline, 	qwk_bpm3c08,    XP,		10000,  58000,	 l,	 0
+bpmstripline, 	qwk_bpm3c08,    XM,		10000,  67000,	 l,	 0
+bpmstripline, 	qwk_bpm3c08,    YP,		10000,  58000,	 l,	 0
+bpmstripline, 	qwk_bpm3c08,    YM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c11,    XP,		10000,  58000,	 l,	 0
+bpmstripline, 	qwk_bpm3c11,    XM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c11,    YP,		10000,  58000,	 l,	 0
+bpmstripline, 	qwk_bpm3c11,    YM,		10000,  64000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    XP,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    XM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    YP,		10000,  59000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    YM,		10000,  54000,	 l,	 0
+bpmstripline, 	qwk_bpm3c14,    XP,		10000,  59000,	 l,	 0
+bpmstripline, 	qwk_bpm3c14,    XM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c14,    YP,		10000,  59000,	 l,	 0
+bpmstripline, 	qwk_bpm3c14,    YM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c16,    XP,		10000,  58000,	 l,	 0
+bpmstripline, 	qwk_bpm3c16,    XM,		10000,  56000,	 l,	 0
+bpmstripline, 	qwk_bpm3c16,    YP,		10000,  60000,	 l,	 0
+bpmstripline, 	qwk_bpm3c16,    YM,		10000,  60000,	 l,	 0
+bpmstripline, 	qwk_bpm3c17,    XP,		10000,  61000,	 l,	 0
+bpmstripline, 	qwk_bpm3c17,    XM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c17,    YP,		10000,  68000,	 l,	 0
+bpmstripline, 	qwk_bpm3c17,    YM,		10000,  55500,	 l,	 0
+bpmstripline, 	qwk_bpm3c18,    XP,		10000,  60000,	 l,	 0
+bpmstripline, 	qwk_bpm3c18,    XM,		10000,  44000,	 l,	 0
+bpmstripline, 	qwk_bpm3c18,    YP,		10000,  59000,	 l,	 0
+bpmstripline, 	qwk_bpm3c18,    YM,		10000,  59000,	 l,	 0
+bpmstripline, 	qwk_bpm3c19,    XP,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c19,    XM,		10000,  58000,	 l,	 0
+bpmstripline, 	qwk_bpm3c19,    YP,		10000,  56000,	 l,	 0
+bpmstripline, 	qwk_bpm3c19,    YM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3p02a,   XP,		10000,  60000,	 l,	 0
+bpmstripline, 	qwk_bpm3p02a,   XM,		10000,  61000,	 l,	 0
+bpmstripline, 	qwk_bpm3p02a,   YP,		10000,  69000,	 l,	 0
+bpmstripline, 	qwk_bpm3p02a,   YM,		10000,  67000,	 l,	 0
+bpmstripline, 	qwk_bpm3p02b,   XP,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3p02b,   XM,		10000,  60300,	 l,	 0
+bpmstripline, 	qwk_bpm3p02b,   YP,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3p02b,   YM,		10000,  62000,	 l,	 0
+bpmstripline, 	qwk_bpm3p03a,   XP,		10000,  67000,	 l,	 0
+bpmstripline, 	qwk_bpm3p03a,   XM,		10000,  61000,	 l,	 0
+bpmstripline, 	qwk_bpm3p03a,   YP,		10000,  65000,	 l,	 0
+bpmstripline, 	qwk_bpm3p03a,   YM,		10000,  64000,	 l,	 0
+bpmstripline, 	qwk_bpm3c20,    XP,		10000,  74000,	 l,	 0
+bpmstripline, 	qwk_bpm3c20,    XM,		10000,  72500,	 l,	 0
+bpmstripline, 	qwk_bpm3c20,    YP,		10000,  77000,	 l,	 0
+bpmstripline, 	qwk_bpm3c20,    YM,		10000,  78000,	 l,	 0
+bpmstripline, 	qwk_bpm3c21,    XP,		10000,  81000,	 l,	 0
+bpmstripline, 	qwk_bpm3c21,    XM,		10000,  91500,	 l,	 0
+bpmstripline, 	qwk_bpm3c21,    YP,		10000,  82000,	 l,	 0
+bpmstripline, 	qwk_bpm3c21,    YM,		10000,  80000,	 l,	 0
+bpmstripline, 	qwk_bpm3h02,    XP,		10000,  77000,	 l,	 0
+bpmstripline, 	qwk_bpm3h02,    XM,		10000,  75000,	 l,	 0
+bpmstripline, 	qwk_bpm3h02,    YP,		10000,  73000,	 l,	 0
+bpmstripline, 	qwk_bpm3h02,    YM,		10000,  76000,	 l,	 0
+bpmstripline, 	qwk_bpm3h04,    XP,		10000,  74000,	 l,	 0
+bpmstripline, 	qwk_bpm3h04,    XM,		10000,  82500,	 l,	 0
+bpmstripline, 	qwk_bpm3h04,    YP,		10000,  74000,	 l,	 0
+bpmstripline, 	qwk_bpm3h04,    YM,		10000,  76000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07a,   XP,		10000,  65000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07a,   XM,		10000,  62600,	 l,	 0
+bpmstripline, 	qwk_bpm3h07a,   YP,		10000,  69000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07a,   YM,		10000,  72000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07b,   XP,		10000,  65500,	 l,	 0
+bpmstripline, 	qwk_bpm3h07b,   XM,		10000,  67000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07b,   YP,		10000,  69000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07b,   YM,		10000,  70000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07c,   XP,		10000,  65000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07c,   XM,		10000,  66000,	 l,	 0
+bpmstripline, 	qwk_bpm3h07c,   YP,		10000,  66400,	 l,	 0
+bpmstripline, 	qwk_bpm3h07c,   YM,		10000,  66000,	 l,	 0
+bpmstripline, 	qwk_bpm3h08,    XP,		10000,  69000,	 l,	 0
+bpmstripline, 	qwk_bpm3h08,    XM,		10000,  70000,	 l,	 0
+bpmstripline, 	qwk_bpm3h08,    YP,		10000,  66400,	 l,	 0
+bpmstripline, 	qwk_bpm3h08,    YM,		10000,  70000,	 l,	 0
+bpmstripline, 	qwk_bpm3h09,    XP,		10000,  62120,	 l,	 0
+bpmstripline, 	qwk_bpm3h09,    XM,		10000,  64800,	 l,	 0
+bpmstripline, 	qwk_bpm3h09,    YP,		10000,  62400,	 l,	 0
+bpmstripline, 	qwk_bpm3h09,    YM,		10000,  61900,	 l,	 0
+bpmstripline, 	qwk_bpm3h09b,   XP,		10000,  64260,	 l,	 0
+bpmstripline, 	qwk_bpm3h09b,   XM,		10000,  60150,	 l,	 0
+bpmstripline, 	qwk_bpm3h09b,   YP,		10000,  59030,	 l,	 0
+bpmstripline, 	qwk_bpm3h09b,   YM,             10000,  76200,   l,      0
+
+bpmstripline, 	qwk_bpm3c12,    ABSX,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3c12,    ABSY,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h04,    ABSX,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h04,    ABSY,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h07a,   ABSX,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h07a,   ABSY,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h07b,   ABSX,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h07b,   ABSY,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h07c,   ABSX,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h07c,   ABSY,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h09,    ABSX,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h09,    ABSY,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h09b,   ABSX,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3h09b,   ABSY,		-10,  10,	 g,	 0
+
+
+!***************************************************		
+!For combined bpm devices, 
+!channel_name can be effective charge, xlope, yslope, relx, rely, absx, absy
+!Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
+
+!device_type, device_name,   channel_name,   lower limit,      upper limit, local(l)/global(g), stability percentage
+!New abs positions cuts added by Rakitha (rakithab@jlab.org)
+combinedbpm, qwk_target, absx, -10, 10, g, 0.15
+combinedbpm, qwk_target, absy, -10, 10, g, 0.15
+
+
+!***************************************************	
+!for QwEnergyCalculator
+!device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
+energycalculator, qwk_energy,  	-3.18588e+100, 	3.18591e+100, g, 0
+
+
+!Comments
+!--------
+!Devices that are not in the list are not subjected event cut checks
+
+
+
