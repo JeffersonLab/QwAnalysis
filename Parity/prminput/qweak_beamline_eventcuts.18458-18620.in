@@ -86,14 +86,10 @@ bpmstripline, 	qwk_bpm3c11,    XP,		10000,  58000,	 l,	 0
 bpmstripline, 	qwk_bpm3c11,    XM,		10000,  57000,	 l,	 0
 bpmstripline, 	qwk_bpm3c11,    YP,		10000,  58000,	 l,	 0
 bpmstripline, 	qwk_bpm3c11,    YM,		10000,  64000,	 l,	 0
-!bpmstripline, 	qwk_bpm3c12,    XP,		10000,  57000,	 l,	 0
-!bpmstripline, 	qwk_bpm3c12,    XM,		10000,  57000,	 l,	 0
-!bpmstripline, 	qwk_bpm3c12,    YP,		10000,  59000,	 l,	 0
-!bpmstripline, 	qwk_bpm3c12,    YM,		10000,  54000,	 l,	 0
-bpmstripline, 	qwk_bpm3c11,    XP,		10000,  57000,	 l,	 0
-bpmstripline, 	qwk_bpm3c11,    XM,		10000,  57000,	 l,	 0
-bpmstripline, 	qwk_bpm3c11,    YP,		10000,  59000,	 l,	 0
-bpmstripline, 	qwk_bpm3c11,    YM,		10000,  54000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    XP,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    XM,		10000,  57000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    YP,		10000,  59000,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    YM,		10000,  54000,	 l,	 0
 bpmstripline, 	qwk_bpm3c14,    XP,		10000,  59000,	 l,	 0
 bpmstripline, 	qwk_bpm3c14,    XM,		10000,  57000,	 l,	 0
 bpmstripline, 	qwk_bpm3c14,    YP,		10000,  59000,	 l,	 0
@@ -167,8 +163,8 @@ bpmstripline, 	qwk_bpm3h09b,   XM,		10000,  60150,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   YP,		10000,  59030,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   YM,             10000,  76200,   l,      0
 
-!bpmstripline, 	qwk_bpm3c12,    ABSX,		-10,  10,	 g,	 0
-!bpmstripline, 	qwk_bpm3c12,    ABSY,		-10,  10,	 g,	 0
+bpmstripline, 	qwk_bpm3c12,    ABSX,		-10,  10,	 l,	 0
+bpmstripline, 	qwk_bpm3c12,    ABSY,		-10,  10,	 l,	 0
 bpmstripline, 	qwk_bpm3c11,    ABSX,		-10,  10,	 g,	 0
 bpmstripline, 	qwk_bpm3c11,    ABSY,		-10,  10,	 g,	 0
 bpmstripline, 	qwk_bpm3h04,    ABSX,		-10,  10,	 g,	 0
@@ -200,7 +196,7 @@ combinedbpm, qwk_target, absy, -10, 10, g, 0.15
 !***************************************************	
 !for QwEnergyCalculator
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-!energycalculator, qwk_energy,  	-3.18588e+100, 	3.18591e+100, g, 0
+energycalculator, qwk_energy,  	-3.18588e+100, 	3.18591e+100, l, 0
 
 
 !Comments
