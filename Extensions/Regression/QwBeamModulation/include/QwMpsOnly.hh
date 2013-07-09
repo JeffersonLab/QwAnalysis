@@ -240,6 +240,7 @@ public :
   void     FindRampPeriodAndOffset();
   void     CalculateWeightedSlope(Int_t);
   void     CalculateSlope(Int_t);
+  void     Calculate2DSlope(Int_t);
   void     SetRampScaleAndOffset();
   void     MatrixFill();
   void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
