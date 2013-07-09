@@ -323,6 +323,8 @@ void QwEvent::CalculateKinematics(const QwTrack* track)
   fKinElasticWithLoss.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
   fKinElasticWithLoss.fX = Q2 / (2.0 * Mp * (P0 - PP));
   fKinElasticWithLoss.fY = (P0 - PP) / P0;
+  
+  fPrimaryQ2 = fKinElasticWithLoss.fQ2;
 }
 
 // Print the event
