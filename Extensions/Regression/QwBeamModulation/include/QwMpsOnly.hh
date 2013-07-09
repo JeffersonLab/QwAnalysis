@@ -45,8 +45,15 @@ private:
   Int_t fUpperSegment;
 
 
+  Double_t fDegPerEntry;
   Double_t fPreviousRampValue;
   Double_t fMaxRampNonLinearity;
+  Double_t fRampMax;
+  Double_t fRampMin;
+  Double_t fRampPeriod;
+  Double_t fRampOffset;
+  Double_t fRampReturnSlope;
+
   static const Int_t kNMaxMon = 6;
   static const Int_t kNMaxDet = 35;
   static const Int_t kNMaxCoil = 5;
@@ -55,7 +62,8 @@ private:
   static const Int_t kError = 1;
   static const Int_t kRampPedestal = 128;
   static const Double_t PI = 3.14159265358979312;
-  static const Double_t kDegToRad = 0.00174532925199432955e-02;
+  static const Double_t kDegToRad = 1.74532925199432955e-02;
+
 public :
 
   TChain          *fChain;
@@ -91,7 +99,9 @@ public :
   Double_t        ramp_block2;
   Double_t        ramp_block3;
   Double_t        ramp_Device_Error_Code;
+  Double_t        ramp_filled;
 
+  Int_t           ModulationEvents[kNMaxCoil];
   Double_t        AsymmetryCorrection[kNMaxDet];
   Double_t        AsymmetryCorrectionQ[kNMaxDet];
   Double_t        MonBranch[kNMaxMon][kBranchSize];  
@@ -107,9 +117,6 @@ public :
   Double_t        YieldSlopeError[kNMaxDet][kNMaxMon];
   Double_t        MonitorMean[kNMaxMon];
   Double_t        DetectorMean[kNMaxDet];
-
-  Int_t           ModulationEvents[kNMaxCoil];
-
   Double_t        qwk_targetX_hw_sum;
 
   TBranch        *b_qwk_charge;    
@@ -143,6 +150,7 @@ public :
   TBranch        *b_yield_ramp; 
   TBranch        *b_yield_qwk_mdallbars; 
   TBranch        *b_asym_qwk_charge; 
+  TBranch        *b_ramp_filled; 
 
   static const char red[8];
   static const char other[8];
@@ -212,7 +220,9 @@ public :
   Int_t    GetCurrentCut();
   Int_t    ProcessMicroCycle(Int_t, Int_t *, Int_t *, Int_t*);
   Long64_t LoadTree(Long64_t entry);
-
+  Double_t FindDegPerEntry();
+  Double_t GetDegPerEntry();
+  Double_t Sine(Double_t, Double_t *, Bool_t);
   void     Init(TChain *tree);
   void     Scan(void);
   void     SetMaxRampNonLinearity(Double_t);
@@ -220,20 +230,25 @@ public :
   void     Show(Long64_t entry = -1);  
   void     LoadRootFile(TString, TChain *, Bool_t slug = false);
   void     BuildDetectorData();
-  void     BuildMonitorData();
+  void     BuildMonitorData();  
   void     BuildCoilData(); 
   void     BuildMonitorSlopeVector();
   void     BuildDetectorSlopeVector();
   void     BuildMonitorAvSlope();
   void     BuildDetectorAvSlope();
+  void     FindRampRange();
+  void     FindRampPeriodAndOffset();
   void     CalculateWeightedSlope(Int_t);
   void     CalculateSlope(Int_t);
+  void     SetRampScaleAndOffset();
   void     MatrixFill();
   void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     SetFileName(TString &);
   void     ComputeAsymmetryCorrections(); 
+  void     MakeRampFilled(Bool_t);
   void     PrintAverageSlopes();
   void     ReduceMatrix(Int_t);
+  void     SetDegPerEntry(Double_t);
   void     SetHuman(void);
   void     SetupMpsBranchAddress(void); 
   void     SetupHelBranchAddress(void); 
@@ -250,7 +265,6 @@ public :
   Bool_t   Notify();
   Bool_t   FileSearch(TString, TChain *, Bool_t slug = false);
   Bool_t   IfExists(const char *);
-  
 };
 
 #endif

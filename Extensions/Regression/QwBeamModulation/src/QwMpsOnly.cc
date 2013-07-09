@@ -29,12 +29,13 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fReduceMatrix_yp = 0; 
   fReduceMatrix_e  = 0; 
   fSensHumanReadable = 0;
+  fDegPerEntry = 0;
   fNModType = 5; 
   fPedestal = 0; 
   fNModEvents = 0; 
   fCurrentCut = 40; 
   fPreviousRampValue = -1.;
-  fMaxRampNonLinearity = 50.;
+  fMaxRampNonLinearity = 3.;
   fXinit  = false; 
   fYinit  = false; 
   fEinit  = false; 
@@ -47,7 +48,6 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fFileSegment = ""; 
   fFileStem = "QwPass*"; 
   fSetStem = "std"; 
-
 
   Init(tree);
 }
@@ -196,12 +196,6 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     sigma_slope = TMath::Sqrt((sigma_dd - ( (sigma_dc*sigma_dc)/sigma_cc) )
 			      /(sigma_cc*( fNEvents - 2 )));
     
-//     if(fNModType == 0){
-//       std::cout << "Slope: d_" << DetectorList[det]<<"/d_Sin(ramp): "
-// 		<<slope/TMath::Abs(d_mean) << " +- " 
-// 		<< sigma_slope/TMath::Abs(d_mean) << std::endl;
-//     }
-    
     //
     // Load Yields in to make Yield Correction a little easier in the end.
     //
@@ -213,9 +207,8 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
       
     }else{
       DetectorSlope[fNModType][det].push_back(slope/( TMath::Abs(d_mean) ));
-      DetectorSlopeError[fNModType][det].push_back(sigma_slope
-						   /( TMath::Abs(d_mean) ));
-    }
+      DetectorSlopeError[fNModType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
+  }
     
     c_mean = 0;
     d_mean = 0;
@@ -243,17 +236,11 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     
     //Linearize Data --don  
     for(Int_t evNum = 0; evNum < fNEvents; evNum++){
-      sigma_cc += (TMath::Sin(kDegToRad*CoilData[fNModType][evNum] 
-			      + phase[fNModType] ) - c_mean)
-	         *(TMath::Sin( kDegToRad*CoilData[fNModType][evNum] 
-		      +phase[fNModType] ) - c_mean);
-      
-      sigma_dc += (MonitorData[mon][evNum] - d_mean)
-	         *(TMath::Sin(kDegToRad*CoilData[fNModType][evNum] 
-		    + phase[fNModType] ) - c_mean);
-      
-      sigma_dd += (MonitorData[mon][evNum] - d_mean)
-	         *(MonitorData[mon][evNum] - d_mean);
+      Double_t val = (TMath::Sin(kDegToRad*CoilData[fNModType][evNum] 
+				 + phase[fNModType] ) - c_mean);
+      sigma_cc += val*val;
+      sigma_dc += val*(MonitorData[mon][evNum] - d_mean);
+      sigma_dd += TMath::Power((MonitorData[mon][evNum] - d_mean),2);
       
       // Clear instances after computation
       MonitorData[mon].clear();
@@ -299,7 +286,7 @@ void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
     for(Int_t j = 0; j < fNDetector; j++){
       for(Int_t k = 0; k < (Int_t)DetectorSlope[i][j].size(); k++){
 	mean += ( DetectorSlope[i][j][k]
-		  /(TMath::Power(DetectorSlopeError[i][j][k],2)) );
+		  * TMath::Power(DetectorSlopeError[i][j][k],-2) );
 
         mean_error += TMath::Power(DetectorSlopeError[i][j][k],-2);
       }
@@ -325,8 +312,8 @@ void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
     for(Int_t j = 0; j < fNMonitor; j++){
       for(Int_t k = 0; k < (Int_t)MonitorSlope[i][j].size(); k++){
 	mean += ( MonitorSlope[i][j][k]
-		  /TMath::Power(MonitorSlopeError[i][j][k],2) );
-	mean_error += (1/TMath::Power(MonitorSlopeError[i][j][k],2));
+		  *TMath::Power(MonitorSlopeError[i][j][k],-2) );
+	mean_error += TMath::Power(MonitorSlopeError[i][j][k],-2);
       }
       if(mean_error > 0){
 	mean /= mean_error;
@@ -505,7 +492,7 @@ void QwMpsOnly::ComputeAsymmetryCorrections()
     fChain->GetEntry(i);
     ++fEvCounter;
 
-    if( (ErrorCodeCheck("hel_tree") == 0) ){
+    if( (ErrorCodeCheck("hel_tree") == 0) && CheckRampLinearity("") == 0 ){
       for(Int_t j = 0; j < fNDetector; j++){
 	HDetBranch[j][0] = fChain->GetLeaf(Form("%s", HDetectorList[j].Data()))->GetValue();
 	HDetBranch[j][kDeviceErrorCode] = fChain->GetLeaf(Form("%s_Device_Error_Code", HDetectorList[j].Data()))->GetValue();
@@ -625,9 +612,9 @@ Int_t QwMpsOnly::ErrorCodeCheck(TString type)
     if(qwk_charge_hw_sum < fCurrentCut){
       bmodErrorFlag = 1;
     }
-    double lin = CheckRampLinearity("");
-    if(lin != 0)
-      bmodErrorFlag = 1;
+//     double lin = CheckRampLinearity("");
+//     if(lin != 0)
+//       bmodErrorFlag = 1;
 
     if( (ramp_hw_sum > fPedestal) && ((UInt_t)ErrorFlag != 0x4018080)  ){
 
@@ -728,9 +715,69 @@ Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t slug)
 
 }
 
+Double_t QwMpsOnly::FindDegPerEntry()
+{
+  Int_t ent = fChain->GetEntries(), newCycle = 0;
+  Double_t mean = 0, n = 0, ramp_prev = -9999;
+  printf("Finding # of degrees per entry. Searching %i entries.\n", ent);
+  for(int i = 0;i<ent;i++){
+    fChain->GetEntry(i);
+    Double_t nonLin = TMath::Abs((ramp_block3+ramp_block0) - 
+				 (ramp_block2+ramp_block1));
+    if(nonLin>2||ramp_hw_sum<ramp_prev)newCycle = 1;
+    if(ErrorFlag==67207296&&qwk_charge_hw_sum>40&&ramp_hw_sum>100){
+      if(ramp_hw_sum<310&&!newCycle){
+	mean += ramp_hw_sum - ramp_prev;
+	//	std::cout<<ramp_hw_sum - ramp_prev<<std::endl;
+	n++;
+      }
+      newCycle = 0;
+    }
+    ramp_prev = ramp_hw_sum;
+  }
+  mean = mean / n;
+  std::cout<<"Degrees per entry = "<<mean<<std::endl;
+  return  mean;
+}
+
+void QwMpsOnly::FindRampPeriodAndOffset()
+{
+  TCut cut;
+  Double_t par[4] = {-500,1000,4,360};
+  TF1 *f = new TF1("f", "[0]+[1]*sin((x+[2])*2*TMath::Pi()/[3])",0,360);
+  f->SetParameters(par);
+  f->SetParLimits(2,0,175);
+  f->SetParLimits(3,350,360);
+
+  cut = TCut(Form("TMath::Abs(ramp_block0+ramp_block3-ramp_block2-ramp_block1)"
+		  "<%f && ramp_block3>ramp_block2 && ramp_block2>ramp_block1 &&"
+		  "ramp_block1>ramp_block0", fMaxRampNonLinearity));
+  //  std::cout<<fChain->GetEntries(cut)<<" entries."<<std::endl;;
+  fChain->Draw("fgx1:ramp>>ht(1000,0,400,1000)",cut, "goff");
+  TH2D *ht = (TH2D*)gDirectory->Get("ht");
+  ht->Fit(f);
+  fRampOffset = f->GetParameter(2);
+  fRampPeriod = f->GetParameter(3);
+  std::cout<<"Ramp offset: "<<fRampOffset<<".  Ramp period: "<<fRampPeriod<<
+    std::endl;
+}
+
+void QwMpsOnly::FindRampRange()
+{
+  fRampMin = fChain->GetMinimum("ramp") + 0.27;
+  fRampMax = fChain->GetMaximum("ramp") - 0.27;
+  std::cout<<"RampMin: "<<fRampMin<<".  RampMax:"<<fRampMax<<std::endl;
+  
+}
+
 Int_t QwMpsOnly::GetCurrentCut()
 {
   return(fCurrentCut);
+}
+
+Double_t QwMpsOnly::GetDegPerEntry()
+{
+  return fDegPerEntry;
 }
 
 Int_t QwMpsOnly::GetEntry(Long64_t entry)
@@ -907,6 +954,64 @@ Long64_t QwMpsOnly::LoadTree(Long64_t entry)
    return centry;
 }
 
+Double_t QwMpsOnly::Sine(Double_t x, Double_t *par, Bool_t is_non_lin)
+{
+  Int_t inl = is_non_lin, il = !(is_non_lin); 
+  //parameters: 0-DC offset; 1-amplitude; 2-ramp_max; 3-ramp_min; 4-phase offset
+  //Use inl and il to fill ramp if in nonlinear ramp return region
+  Double_t f = par[0] + par[1]*
+    TMath::Sin((((x-par[2]*inl)/(par[3]*inl-par[2]*inl + il)
+		 *((fRampPeriod-par[2]+par[3])*inl+il) 
+		 + par[3])+par[4])*2*TMath::Pi()/fRampPeriod);
+  return f;
+}
+
+void QwMpsOnly::MakeRampFilled(Bool_t verbose)
+{//take ramp values from return and map them to meaningful ramp values
+
+  //create new friendable tree with new ramp
+  TFile *newfile = new TFile(Form("%s/mps_only_ramp_filled_%i.root",
+				 gSystem->Getenv("BMOD_ONLY_ROOTFILES"),
+				 run_number),"recreate");
+  TTree *newTree = new TTree("mps_slug", "mps_slug"); 
+
+  FindRampPeriodAndOffset();
+
+  FindRampRange();
+
+  Bool_t isLinear;
+  Double_t ramp_f, lin;
+
+  b_ramp_filled = newTree->Branch("ramp_filled", &ramp_f, "ramp_filled/D");
+  
+  for(Int_t i=0;i<fChain->GetEntries();i++){
+    fChain->GetEntry(i);
+    lin =  TMath::Abs(ramp_block0+ramp_block3-ramp_block2-ramp_block1);
+    isLinear = lin < fMaxRampNonLinearity && ramp_block3>ramp_block2 && 
+               ramp_block2>ramp_block1 && ramp_block1>ramp_block0;
+
+    ramp_f = (isLinear ? ramp_hw_sum : (fRampMax-ramp_hw_sum)/(fRampMax-fRampMin)*
+	      (fRampPeriod + fRampMin - fRampMax) + fRampMax);
+
+
+    //stretch and offset ramp before filling
+    ramp_f = (ramp_f + fRampOffset) * 360.0 / fRampPeriod;
+    ramp_f = ramp_f - ((Int_t)(ramp_f/360.0))*360.0;
+    //    if(!isLinear)std::cout<<ramp_f<<std::endl;
+
+    newTree->Fill();
+    if(i%10000==0)std::cout<<"Processing entry "<<i<<".\n";
+  }
+  if(verbose)
+    newTree->Print();
+  newTree->Write("",TObject::kOverwrite);
+  //  newTree->AutoSave();
+  fChain->AddFriend("mps_slug", newfile);
+  fChain->SetBranchAddress("ramp_filled", &ramp_filled);
+  //  newfile->Close();
+  //  delete newfile;
+}
+
 void QwMpsOnly::MatrixFill()
 {
 
@@ -1005,7 +1110,6 @@ Bool_t QwMpsOnly::Notify()
 
 void QwMpsOnly::PilferData()
 {
-
   Int_t fEvCounter = 0;
   Int_t error[kNMaxCoil], good[kNMaxCoil];
 
@@ -1022,7 +1126,7 @@ void QwMpsOnly::PilferData()
   for(Int_t i = 0; i < nentries; i++){
     //    LoadTree(i);
     fChain->GetEntry(i);
- 
+
     pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
 
     i =  ProcessMicroCycle(i, &fEvCounter, &error[0], &good[0]);
@@ -1041,8 +1145,8 @@ void QwMpsOnly::PilferData()
 
 void QwMpsOnly::PrintAverageSlopes()
 {
-  printf("\nMonitor Slopes   |      X       |      Y       |      E       |"
-	 "      XP      |      YP      |\n");
+  printf("Monitor Slopes   |  Pattern 0   |  Pattern 1   |  Pattern 2   |"
+	 "  Pattern 3   |  Pattern 4   |\n");
   printf("******************************************************************"
 	 "***************************\n");
 
@@ -1056,15 +1160,15 @@ void QwMpsOnly::PrintAverageSlopes()
     printf("\n");
   }
   printf("\n\n");
-  printf("Detector Slopes  |      X       |      Y       |      E       |"
-	 "      XP      |      YP      |\n");
+  printf("Detector Slopes  |  Pattern 0   |  Pattern 1   |  Pattern 2   |"
+	 "  Pattern 3   |  Pattern 4   |\n");
   printf("******************************************************************"
 	 "***************************\n");
 
   for(Int_t i=0;i<fNDetector;i++){
-    TString mon = DetectorList[i];
-    mon.Resize(16);
-    printf("%s |",mon.Data());
+    TString det = DetectorList[i];
+    det.Resize(16);
+    printf("%s |",det.Data());
     for(Int_t j=0;j<fNModType;j++){
       printf(" %+9.5e |",AvDetectorSlope[j][i]);
     }
@@ -1083,49 +1187,54 @@ void QwMpsOnly::PrintError(TString error)
 Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err, 
 				   Int_t *good)
 {
+  std::ofstream file(Form("file%i.dat", run_number),std::ios_base::app);
   Int_t nEnt = fChain->GetEntries();
   Int_t modType = -1, modNum = -1, nCut = 0, nErr = 0;
-  TString str = TString("");
+  Double_t prev_ramp = 0;
   Int_t pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
   fNEvents = 0;
   switch(pattern){
   case 0:
-    str+="X";
     modNum = 0;
     modType = fXModulation;
     break;
   case 1:
-    str+="Y";
     modNum = 1;
-    modType = fYModulation;
+    modType = fXPModulation;
     break;
   case 2:
-    str+="E";
     modNum = 2;
     modType = fEModulation;
     break;
   case 3:
-    str+="XP";
     modNum = 3;
-    modType = fXPModulation;
+    modType = fYModulation;
     break;
   case 4:
-    str+="YP";
     modNum = 4;
     modType = fYPModulation;
     break;
   default:
     std::cout<<"Modulation type unknown\n"<<std::endl;
   }
-  std::cout<<str<<" modulation found at entry "<<i<<"\n";
+  std::cout<<"Modulation type "<<pattern<<" found at entry "<<i<<"\n";
 
   while(pattern == modNum && i < nEnt){
 
-    if((ErrorCodeCheck("mps_tree") != 0)){
+    if(ErrorCodeCheck("mps_tree")!=0){
       nCut++;
       nErr++;
     }else{
       good[modNum]++;
+      CoilData[modType].push_back(ramp_filled);
+
+//       if(CheckRampLinearity("") == 0){
+// 	CoilData[modType].push_back(ramp_hw_sum);
+//       }
+//       else{
+// 	CoilData[modType].push_back(prev_ramp+fDegPerEntry);
+//       }
+
       for(Int_t j = 0; j < fNDetector; j++){
 	Double_t val = fChain->GetLeaf(DetectorList[j].Data())->GetValue();
 	DetectorData[j].push_back(val);
@@ -1135,7 +1244,7 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
 	  (fChain->GetLeaf(MonitorList[j].Data())->GetValue());
 	MonitorData[j].push_back(val);
       }
-      CoilData[modType].push_back(ramp_hw_sum);
+      prev_ramp = ramp_hw_sum;
       ++evCntr;
       ++fNEvents;
     }
@@ -1148,10 +1257,12 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
   }
   i--;
   err[modNum] += nErr;
-  std::cout<<fNEvents<< " good "<<str<<" modulation events found. ";
-  std::cout<<nErr<<" errors -- "<<err[modNum]<<" total "<<str<<"-type errors.\n";
+  std::cout<<fNEvents<< " good "<<pattern<<"-type modulation events found. ";
+  std::cout<<nErr<<" errors -- "<<err[modNum]<<" total "<<pattern<<
+    "-type errors.\n";
 
   CalculateSlope(modType);
+  file.close();
 
   fNEvents = 0;
   return i;
@@ -1213,7 +1324,7 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
     det_prefix = ""; 
   }
   
-  config.open("config/setup.config", std::ios_base::in);
+  config.open("config/setup_mpsonly.config", std::ios_base::in);
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
     exit(1);
@@ -1404,6 +1515,11 @@ void QwMpsOnly::Scan()
 //    }
 }
 
+void QwMpsOnly::SetDegPerEntry(Double_t deg)
+{
+  fDegPerEntry = deg;
+}
+
 void QwMpsOnly::SetFileName(TString & filename)
 {
   fFileName = filename;
@@ -1494,6 +1610,7 @@ void QwMpsOnly::SetupMpsBranchAddress()
    fChain->SetBranchAddress("ramp_block3", &ramp_block3);
 
 }
+
 
 void QwMpsOnly::SetPhaseValues(Double_t *val)
 {

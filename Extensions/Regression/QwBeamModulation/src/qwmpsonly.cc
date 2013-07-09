@@ -4,13 +4,17 @@
 
 Int_t main(Int_t argc, Char_t *argv[])
 {
-  Int_t atUVA = 0;
+  Int_t atUVA = 1;
   TString filename;
 
   TChain *mps_tree = new TChain("mps_slug");
 
   QwMpsOnly *mps_only = new QwMpsOnly(mps_tree);
   mps_only->output = gSystem->Getenv("BMOD_OUT");
+
+  gSystem->Setenv("BMOD_ONLY_ROOTFILES", 
+		  (atUVA ? "/net/data1/paschkedata1/pass5b_bmod_mpsslug":
+		   "/volatile/hallc/qweak/QwAnalysis/run2/pass5b_bmod_mpsslug"));
 
   if(!gSystem->OpenDirectory(mps_only->output)){
     mps_only->PrintError("Cannot open output directory.\n");
@@ -45,17 +49,8 @@ Int_t main(Int_t argc, Char_t *argv[])
   std::cout << "Finished scanning data -- building relevant data vectors" << std::endl;
   mps_only->BuildDetectorData();
   mps_only->BuildMonitorData();
-
-  //
-  // This could be done more cleverly ... anyway these need to be initialized before
-  // checking the error codes.
-  //
-
-  mps_tree->SetBranchStatus("ramp_block0", 1);   
-  mps_tree->SetBranchStatus("ramp_block1", 1);   
-  mps_tree->SetBranchStatus("ramp_block2", 1);   
-  mps_tree->SetBranchStatus("ramp_block3", 1);   
-
+  mps_only->MakeRampFilled(1);
+  //  mps_only->SetDegPerEntry(mps_only->FindDegPerEntry());
   mps_only->BuildCoilData();
   mps_only->BuildDetectorSlopeVector();
   mps_only->BuildMonitorSlopeVector();
