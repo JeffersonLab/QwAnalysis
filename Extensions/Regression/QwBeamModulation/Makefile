@@ -14,13 +14,13 @@ CC         = g++
 SRC        = src
 CFLAGS     = -O -Wall 
 
-all: QwMpsOnly qwmpsonly
+all: QwMpsOnly runMpsOnly
 
 
 QwMpsOnly: 
 	   ${CC} ${CFLAGS} ${LIBS} ${INCLUDES} ${SRC}/$@.cc -c -o ${SRC}/$@.o
 
-qwmpsonly: ${SRC}/QwMpsOnly.o 
+runMpsOnly: ${SRC}/QwMpsOnly.o 
 	   ${CC} ${CFLAGS} ${LIBS} ${INCLUDES} $^ ${SRC}/$@.cc -o $@
 
 clean: 
