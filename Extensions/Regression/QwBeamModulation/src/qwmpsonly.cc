@@ -4,17 +4,12 @@
 
 Int_t main(Int_t argc, Char_t *argv[])
 {
-  Int_t atUVA = 1;
   TString filename;
 
   TChain *mps_tree = new TChain("mps_slug");
 
   QwMpsOnly *mps_only = new QwMpsOnly(mps_tree);
   mps_only->output = gSystem->Getenv("BMOD_OUT");
-
-  gSystem->Setenv("BMOD_ONLY_ROOTFILES", 
-		  (atUVA ? "/net/data1/paschkedata1/pass5b_bmod_mpsslug":
-		   "/volatile/hallc/qweak/QwAnalysis/run2/pass5b_bmod_mpsslug"));
 
   if(!gSystem->OpenDirectory(mps_only->output)){
     mps_only->PrintError("Cannot open output directory.\n");
@@ -29,13 +24,8 @@ Int_t main(Int_t argc, Char_t *argv[])
     exit(1);
   }
 
-  // This is the default filename format.  If doing a segment analysis
-  // it is changes in QwModulation::FileSearch()
-
-  //  filename = Form("QwPass*_%d*.trees.root", modulation->run_number);
-
   filename = Form("%s_%d*.root", mps_only->fFileStem.Data(), mps_only->run_number);
-  mps_only->LoadRootFile(filename, mps_tree);
+  mps_only->LoadRootFile(filename, mps_tree, 0);
   mps_only->SetFileName(filename);
   mps_only->SetupMpsBranchAddress();
   std::cout<<"Entries: "<<mps_tree->GetEntries()<<std::endl;
@@ -44,7 +34,6 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->ReadConfig("");
 
   mps_only->Scan();
-//   modulation->fNumberEvents = mps_tree->GetEntries();
 
   std::cout << "Finished scanning data -- building relevant data vectors" << std::endl;
   mps_only->BuildDetectorData();
@@ -73,9 +62,6 @@ Int_t main(Int_t argc, Char_t *argv[])
   std::cout << "Creating Slug(let) chain now." << std::endl;
   TChain *hel_tree = new TChain("slug");
   mps_only->Init(hel_tree);
-
-  if(atUVA)
-    gSystem->Setenv("QW_ROOTFILES", "/net/data1/paschkedata2/pass5b_slugs/wien6");
 
   filename = Form("sluglet%d_*root", mps_only->run_number);
   mps_only->LoadRootFile(filename, hel_tree, true);

@@ -868,30 +868,36 @@ Int_t QwMpsOnly::ErrorCodeCheck(TString type)
   return( bmodErrorFlag );
 }
 
-Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t slug)
+Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t sluglet)
 {
 
   TString file_directory;
   Bool_t c_status = kFALSE;
 
-  file_directory = gSystem->Getenv("QW_ROOTFILES");
+  if(sluglet)
+    file_directory = gSystem->Getenv("SLUGLET_FILES");
+  else
+    file_directory = gSystem->Getenv("MPS_ONLY_ROOTFILES");
 
   if(fFileSegmentInclude){
     c_status = true;
 
-    if(slug){
+    if(sluglet){
       std::cout << other << "Adding:: " 
 		<< filename << normal << std::endl;
       if(!(chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()))) ){
-	std::cout << red << "Error chaining segment:\t" << filename << normal << std::endl;
+	std::cout << red << "Error chaining segment:\t" << filename << 
+	  normal << std::endl;
 	exit(1);
       }
     }else{
-      filename = Form("%s_%d_%d:%d.root", fFileStem.Data(), run_number, fLowerSegment, fUpperSegment);
+      filename = Form("%s_%d_%d:%d.root", fFileStem.Data(), run_number,
+		      fLowerSegment, fUpperSegment);
       std::cout << other << "Adding:: " 
 		<< filename << normal << std::endl;
       if(!(chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()))) ){
-	std::cout << red << "Error chaining segment:\t" << filename << normal << std::endl;
+	std::cout << red << "Error chaining segment:\t" << filename << 
+	  normal << std::endl;
 	exit(1);
       }
     }
@@ -1178,8 +1184,8 @@ void QwMpsOnly::MakeRampFilled(Bool_t verbose)
 
   //create new friendable tree with new ramp
   TFile *newfile = new TFile(Form("%s/mps_only_ramp_filled_%i.root",
-				 gSystem->Getenv("BMOD_ONLY_ROOTFILES"),
-				 run_number),"recreate");
+				  gSystem->Getenv("MPS_ONLY_ROOTFILES"),
+				  run_number),"recreate");
   TTree *newTree = new TTree("mps_slug", "mps_slug"); 
 
   FindRampPeriodAndOffset();
@@ -1394,7 +1400,6 @@ void QwMpsOnly::PrintError(TString error)
 Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err, 
 				   Int_t *good)
 {
-  std::ofstream file(Form("file%i.dat", run_number),std::ios_base::app);
   Int_t nEnt = fChain->GetEntries();
   Int_t modType = -1, modNum = -1, nCut = 0, nErr = 0;
   Double_t prev_ramp = 0;
@@ -1469,7 +1474,6 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
     "-type errors.\n";
 
   CalculateSlope(modType);
-  file.close();
 
   fNEvents = 0;
   return i;
