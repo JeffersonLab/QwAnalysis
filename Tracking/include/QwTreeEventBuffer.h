@@ -570,7 +570,12 @@ class QwTreeEventBuffer
     vector <Int_t> fCerenkov_Detector_DetectorID;
     Int_t fCerenkov_Detector_HasBeenHit;
     Int_t fCerenkov_Detector_NbOfHits;
-    Int_t fCerenkov_PMT_PMTTotalNbOfHits;
+    vector <Int_t> fCerenkov_PMT_PMTTotalNbOfHits;
+    
+    vector <Float_t> fCerenkov_PMT_PMTTotalNbOfPEs;
+    vector <Float_t> fCerenkov_PMT_PMTLeftNbOfPEs;
+    vector <Float_t> fCerenkov_PMT_PMTRightNbOfPEs;
+    
     Float_t fCerenkov_Detector_HitLocalPositionX;
     Float_t fCerenkov_Detector_HitLocalPositionY;
     Float_t fCerenkov_Detector_HitLocalPositionZ;

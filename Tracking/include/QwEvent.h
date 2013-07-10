@@ -402,6 +402,13 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
     static double fBeamEnergy;  ///< Electron beam energy
 
+    /// \name Main detector light yield
+    //@{
+    std::vector <float> fMD_LeftNbOfPEs;
+    std::vector <float> fMD_RightNbOfPEs;
+    std::vector <float> fMD_TotalNbOfPEs;
+    //@}
+    
     /// \name Generic kinematic variables
     //@{
     double fHydrogenEnergyLoss; ///< Pre-scattering target energy loss assuming LH2 target

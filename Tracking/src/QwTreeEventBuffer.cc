@@ -296,6 +296,21 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     fOriginalEvent->fPreScatteringEnergy = fPrimary_PreScatteringKineticEnergy;     
     fOriginalEvent->fOriginVertexEnergy =  fPrimary_OriginVertexKineticEnergy;
 
+    for (size_t i=0; i<fCerenkov_PMT_PMTLeftNbOfPEs.size(); i++){
+        fOriginalEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs.at(i) );
+        fCurrentEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs.at(i) );
+    }
+
+    for (size_t i=0; i<fCerenkov_PMT_PMTRightNbOfPEs.size(); i++){
+	fOriginalEvent->fMD_RightNbOfPEs.push_back( fCerenkov_PMT_PMTRightNbOfPEs.at(i) );
+	fCurrentEvent->fMD_RightNbOfPEs.push_back( fCerenkov_PMT_PMTRightNbOfPEs.at(i) );
+    }
+
+    for (size_t i=0; i<fCerenkov_PMT_PMTTotalNbOfPEs.size(); i++){
+        fOriginalEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs.at(i) );   
+        fCurrentEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs.at(i) );
+    }
+    
     std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
     treelinelist = CreateTreeLines(kRegionID2);
     for (size_t i = 0; i < treelinelist.size(); i++)
@@ -335,62 +350,62 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
 
   // Region 2
   bool is_charged_particle = true;
-  for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
+  for (size_t i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_ParticleType.size(); i1++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane1_ParticleType.at(i1);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i2 = 0; i2 < fRegion2_ChamberFront_WirePlane2_NbOfHits && i2 < VECTOR_SIZE; i2++) {
+  for (size_t i2 = 0; i2 < fRegion2_ChamberFront_WirePlane2_ParticleType.size(); i2++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane2_ParticleType.at(i2);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i3 = 0; i3 < fRegion2_ChamberFront_WirePlane3_NbOfHits && i3 < VECTOR_SIZE; i3++) {
+  for (size_t i3 = 0; i3 < fRegion2_ChamberFront_WirePlane3_ParticleType.size(); i3++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane3_ParticleType.at(i3);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i4 = 0; i4 < fRegion2_ChamberFront_WirePlane4_NbOfHits && i4 < VECTOR_SIZE; i4++) {
+  for (size_t i4 = 0; i4 < fRegion2_ChamberFront_WirePlane4_ParticleType.size(); i4++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane4_ParticleType.at(i4);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i5 = 0; i5 < fRegion2_ChamberFront_WirePlane5_NbOfHits && i5 < VECTOR_SIZE; i5++) {
+  for (size_t i5 = 0; i5 < fRegion2_ChamberFront_WirePlane5_ParticleType.size(); i5++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane5_ParticleType.at(i5);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i6 = 0; i6 < fRegion2_ChamberFront_WirePlane6_NbOfHits && i6 < VECTOR_SIZE; i6++) {
+  for (size_t i6 = 0; i6 < fRegion2_ChamberFront_WirePlane6_ParticleType.size(); i6++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane6_ParticleType.at(i6);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
+  for (size_t i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_ParticleType.size(); i1++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane1_ParticleType.at(i1);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i2 = 0; i2 < fRegion2_ChamberBack_WirePlane2_NbOfHits && i2 < VECTOR_SIZE; i2++) {
+  for (size_t i2 = 0; i2 < fRegion2_ChamberBack_WirePlane2_ParticleType.size(); i2++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane2_ParticleType.at(i2);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i3 = 0; i3 < fRegion2_ChamberBack_WirePlane3_NbOfHits && i3 < VECTOR_SIZE; i3++) {
+  for (size_t i3 = 0; i3 < fRegion2_ChamberBack_WirePlane3_ParticleType.size(); i3++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane3_ParticleType.at(i3);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i4 = 0; i4 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i4 < VECTOR_SIZE; i4++) {
+  for (size_t i4 = 0; i4 < fRegion2_ChamberBack_WirePlane4_ParticleType.size(); i4++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane4_ParticleType.at(i4);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i5 = 0; i5 < fRegion2_ChamberBack_WirePlane5_NbOfHits && i5 < VECTOR_SIZE; i5++) {
+  for (size_t i5 = 0; i5 < fRegion2_ChamberBack_WirePlane5_ParticleType.size(); i5++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane5_ParticleType.at(i5);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
 
-  for (int i6 = 0; i6 < fRegion2_ChamberBack_WirePlane6_NbOfHits && i6 < VECTOR_SIZE; i6++) {
+  for (size_t i6 = 0; i6 < fRegion2_ChamberBack_WirePlane6_ParticleType.size(); i6++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane6_ParticleType.at(i6);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
@@ -410,27 +425,29 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
                         is_charged_particle ;
 
   // Region 3
-  is_charged_particle = true;
-  for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VECTOR_SIZE; i1++) {
+  is_charged_particle = false;
+  for (size_t i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_ParticleType.size(); i1++) {
       int pdgcode = fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
   }
-
-  for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VECTOR_SIZE; i2++) {
+  
+  for (size_t i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_ParticleType.size(); i2++) {
       int pdgcode = fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
   }
 
-  for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VECTOR_SIZE; i3++) {
+  for (size_t i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_ParticleType.size(); i3++) {
       int pdgcode = fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
   }
 
-  for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VECTOR_SIZE; i4++) {
+  for (size_t i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_ParticleType.size(); i4++) {
       int pdgcode = fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
   }
 
+//  is_charged_particle = true;  // uncomment this line to disable neutral particle rejection
+   
   fRegion3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
                         fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
                         fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
@@ -461,11 +478,10 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
     }
     fRegion3_HasBeenHit = (fRegion3_HasBeenHit && r3_geo_check_ok);
   }
-  
+
   // Trigger Scintillator
   is_charged_particle = true;
-  fTree->GetBranch("TriggerScintillator.Detector.HasBeenHit")->GetEntry(entry);
-  for (int i = 0; i < fTriggerScintillator_Detector_NbOfHits && i < VECTOR_SIZE; i++) {
+  for (size_t i = 0; i < fTriggerScintillator_Detector_ParticleType.size(); i++) {
       int pdgcode = fTriggerScintillator_Detector_ParticleType.at(i);
       if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
   }
@@ -473,9 +489,7 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
   fTriggerScintillator_HasBeenHit = (fTriggerScintillator_Detector_HasBeenHit == 5 && is_charged_particle);
 
   // Cerenkov
-  fTree->GetBranch("Cerenkov.Detector.HasBeenHit")->GetEntry(entry);
   fCerenkov_HasBeenHit = (fCerenkov_Detector_HasBeenHit == 5);
-  fTree->GetBranch("Cerenkov.Detector.DetectorID")->GetEntry(entry);
   
 //   std::cout<<"Detector number of hits: "<<fCerenkov_Detector_NbOfHits<<std::endl;
 //   for (int i = 0; i < fCerenkov_Detector_NbOfHits ; i++) {
@@ -485,10 +499,25 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
 //   
 //     std::cout<<"detector ID="<<fCerenkov_Detector_DetectorID.at(i)<<", Octant: "<<octant<<std::endl;
 //   }
-  
-  fTree->GetBranch("Cerenkov.PMT.PMTTotalNbOfHits")->GetEntry(entry);
-  fCerenkov_Light = (fCerenkov_PMT_PMTTotalNbOfHits >0);
 
+  fCerenkov_Light = false;
+  if(!fCerenkov_PMT_PMTTotalNbOfPEs.empty())
+  {
+    for(size_t i=0; i<fCerenkov_PMT_PMTTotalNbOfPEs.size(); i++)
+    {
+      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfPEs.at(i) >0);
+    }
+  }
+  else if (!fCerenkov_PMT_PMTTotalNbOfHits.empty())
+  {
+    for(size_t i=0; i<fCerenkov_PMT_PMTTotalNbOfHits.size(); i++)
+    {
+      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfHits.at(i) >0);
+    }
+  }
+  else
+    fCerenkov_Light = true;
+  
   if (fRegion2_HasBeenHit)
     fNumOfSimulated_R2_PartialTracks++;
   
@@ -2322,6 +2351,10 @@ void QwTreeEventBuffer::ReserveVectors()
 //   fTriggerScintillator_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
 
   fCerenkov_Detector_DetectorID.reserve(VECTOR_SIZE);
+  fCerenkov_PMT_PMTTotalNbOfHits.reserve(VECTOR_SIZE);
+  fCerenkov_PMT_PMTTotalNbOfPEs.reserve(VECTOR_SIZE);
+  fCerenkov_PMT_PMTLeftNbOfPEs.reserve(VECTOR_SIZE);
+  fCerenkov_PMT_PMTRightNbOfPEs.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionZ.reserve(VECTOR_SIZE);
@@ -2661,7 +2694,10 @@ void QwTreeEventBuffer::ClearVectors()
   fCerenkov_Detector_DetectorID.clear();
   fCerenkov_Detector_HasBeenHit = 0;
   fCerenkov_Detector_NbOfHits = 0;
-  fCerenkov_PMT_PMTTotalNbOfHits = 0;
+  fCerenkov_PMT_PMTTotalNbOfHits.clear();
+  fCerenkov_PMT_PMTTotalNbOfPEs.clear();
+  fCerenkov_PMT_PMTLeftNbOfPEs.clear();
+  fCerenkov_PMT_PMTRightNbOfPEs.clear();
   fCerenkov_Detector_HitLocalPositionX = 0.0;
   fCerenkov_Detector_HitLocalPositionY = 0.0;
   fCerenkov_Detector_HitLocalPositionZ = 0.0;
@@ -2784,8 +2820,9 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane1_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.ParticleType",
-		&fRegion2_ChamberFront_WirePlane1_ParticleType);
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane1.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.ParticleType",
+                &fRegion2_ChamberFront_WirePlane1_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneLocalPositionY",
@@ -2815,7 +2852,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane1_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane1.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.ParticleType",
 		&fRegion2_ChamberBack_WirePlane1_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX);
@@ -2847,7 +2885,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane2_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane2.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.ParticleType",
 		&fRegion2_ChamberFront_WirePlane2_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX);
@@ -2878,7 +2917,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane2_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane2.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.ParticleType",
 		&fRegion2_ChamberBack_WirePlane2_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX);
@@ -2910,7 +2950,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane3_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane3.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.ParticleType",
 		&fRegion2_ChamberFront_WirePlane3_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX);
@@ -2941,7 +2982,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane3_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane3.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.ParticleType",
 		&fRegion2_ChamberBack_WirePlane3_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX);
@@ -2973,7 +3015,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane4_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane4.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.ParticleType",
 		&fRegion2_ChamberFront_WirePlane4_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX);
@@ -3004,7 +3047,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane4_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane4.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.ParticleType",
 		&fRegion2_ChamberBack_WirePlane4_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX);
@@ -3036,7 +3080,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane5_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane5.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.ParticleType",
 		&fRegion2_ChamberFront_WirePlane5_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX);
@@ -3067,7 +3112,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane5_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane5.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.ParticleType",
 		&fRegion2_ChamberBack_WirePlane5_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX);
@@ -3099,7 +3145,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane6_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane6.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.ParticleType",
 		&fRegion2_ChamberFront_WirePlane6_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX);
@@ -3130,7 +3177,8 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane6_NbOfHits);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.ParticleType",
+  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane6.ParticleType"))
+      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.ParticleType",
 		&fRegion2_ChamberBack_WirePlane6_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX);
@@ -3295,6 +3343,9 @@ void QwTreeEventBuffer::AttachBranches()
 		&fTriggerScintillator_Detector_HasBeenHit);
   fTree->SetBranchAddress("TriggerScintillator.Detector.NbOfHits",
 		&fTriggerScintillator_Detector_NbOfHits);
+  if(fTree->GetListOfLeaves()->FindObject("TriggerScintillator.Detector.ParticleType"))
+      fTree->SetBranchAddress("TriggerScintillator.Detector.ParticleType",
+		&fTriggerScintillator_Detector_ParticleType);
   fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalPositionX",
 		&fTriggerScintillator_Detector_HitLocalPositionX);
   fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalPositionY",
@@ -3316,7 +3367,7 @@ void QwTreeEventBuffer::AttachBranches()
 
 
   /// Attach to the cerenkov branches
-    fTree->SetBranchAddress("Cerenkov.Detector.DetectorID",
+  fTree->SetBranchAddress("Cerenkov.Detector.DetectorID",
 		&fCerenkov_Detector_DetectorID);
   fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
 		&fCerenkov_Detector_HasBeenHit);
@@ -3324,6 +3375,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fCerenkov_Detector_NbOfHits);
   fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfHits",
                 &fCerenkov_PMT_PMTTotalNbOfHits);
+  fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfPEs",
+                &fCerenkov_PMT_PMTTotalNbOfPEs);
+  fTree->SetBranchAddress("Cerenkov.PMT.PMTLeftNbOfPEs",
+                &fCerenkov_PMT_PMTLeftNbOfPEs);
+  fTree->SetBranchAddress("Cerenkov.PMT.PMTRightNbOfPEs",
+                &fCerenkov_PMT_PMTRightNbOfPEs);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
 //		&fCerenkov_Detector_HitLocalPositionX);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
