@@ -39,6 +39,8 @@ private:
   Int_t fNModType;
   Int_t fPedestal;
 
+  Bool_t fNewEbpm;
+
   Int_t fNModEvents;
   Int_t fCurrentCut;
   Int_t fLowerSegment;
@@ -101,6 +103,8 @@ public :
   Double_t        ramp_Device_Error_Code;
   Double_t        ramp_filled;
 
+  Double_t        newEbpm;
+
   Int_t           ModulationEvents[kNMaxCoil];
   Double_t        AsymmetryCorrection[kNMaxDet];
   Double_t        AsymmetryCorrectionQ[kNMaxDet];
@@ -130,6 +134,8 @@ public :
   TBranch        *b_fge;   
   TBranch        *b_ramp;  
   TBranch        *b_qwk_targetX_hw_sum;
+
+  TBranch        *b_newEbpm;
 
   // Definitions for branches in the Hel_Tree
 
@@ -262,6 +268,8 @@ public :
 //   void     SetFlags(void);
   void     CheckFlags(void);
   void     ReadChargeSensitivity();
+
+  void     BuildNewEBPM();
 
   Bool_t   Notify();
   Bool_t   FileSearch(TString, TChain *, Bool_t slug = false);

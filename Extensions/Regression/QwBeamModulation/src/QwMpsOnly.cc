@@ -46,8 +46,10 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fPhaseConfig = false;
 
   fFileSegment = ""; 
-  fFileStem = "QwPass*"; 
+  fFileStem = "mps_only"; 
   fSetStem = "std"; 
+
+  fNewEbpm = 0;
 
   Init(tree);
 }
@@ -108,6 +110,7 @@ void QwMpsOnly::BuildMonitorAvSlope()
 
 void QwMpsOnly::BuildMonitorData()
 {
+
   for(Int_t i = 0; i < fNMonitor; i++)
     MonitorData.push_back(std::vector <Double_t>());
 
@@ -1111,6 +1114,19 @@ void QwMpsOnly::GetOptions(Char_t **options){
       fCurrentCut = atoi(options[i + 1]);
       std::cout << other << "Setting current-cut to:\t" << fCurrentCut << normal << std::endl;
     }
+
+    // flag to turn ON/OFF new energy bpm
+    if(flag.CompareTo("--fNewEbpm", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+
+      fNewEbpm = atoi(options[i + 1]);
+
+      std::cout << other << "Setting use NEW energy bpm flag to " << fNewEbpm
+		<< normal << std::endl;
+
+    }  
+
     if(flag.CompareTo("--help", TString::kExact) == 0){
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
       printf("Usage: ./qwbeammod <run_number> <options>");
@@ -1143,7 +1159,7 @@ void QwMpsOnly::Init(TChain *tree)
 
 void QwMpsOnly::LoadRootFile(TString filename, TChain *tree, Bool_t slug)
 {
-  Bool_t found = FileSearch(filename, tree);
+  Bool_t found = FileSearch(filename, tree, slug);
   
     if(!found){
       std::cerr << "Unable to locate requested file :: "
@@ -1614,7 +1630,62 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
   
   config.close();
   
+  // now create/update MonitorList with newEbpm, if needed
+  if(fNewEbpm){
+
+    BuildNewEBPM();
+    
+    TString fname = Form("%s/mps_only_newEbpm_%i.root",
+			 gSystem->Getenv("MPS_ONLY_ROOTFILES"),
+			 run_number);
+
+    fChain->AddFriend("mps_slug", fname);
+    fChain->SetBranchAddress("newEbpm", &newEbpm);
+
+    // now set the new energy bpm as the energy bpm to be used
+    for(int inew=0;inew<5;inew++){
+      if(MonitorList[inew].CompareTo("qwk_bpm3c12X", TString::kExact) == 0)
+	MonitorList[inew] = "newEbpm";
+    }
+  }
+
   return 0;
+}
+
+void QwMpsOnly::BuildNewEBPM(){
+  
+  //create a new friendable tree
+  TFile *newfile = new TFile(Form("%s/mps_only_newEbpm_%i.root",
+				  gSystem->Getenv("MPS_ONLY_ROOTFILES"),
+				  run_number),"recreate");
+  TTree *newTree = new TTree("mps_slug", "mps_slug"); 
+
+  Double_t newEnergyBPM=0;
+  b_newEbpm = newTree->Branch("newEbpm", &newEnergyBPM, "newEbpm/D");
+
+  Double_t alpha[] = {1.47521,-57239.6,1,-0.0423589,-4131.94}; // X,XP,E,Y,YP in setup.config
+  
+  for(Int_t i=0;i<fChain->GetEntries();i++){
+
+    newEnergyBPM=0;
+    fChain->GetEntry(i);
+
+    // construct new energy bpm
+    for(int inew=0;inew<5;inew++){
+
+      newEnergyBPM += alpha[inew]*(fChain->GetLeaf(MonitorList[inew].Data())->GetValue());
+
+      // if(i%100==0) 
+      // 	std::cout << alpha[inew] <<"*"<< fChain->GetLeaf(MonitorList[inew].Data())->GetValue() << " + " ;
+    }
+    //    if(i%100==0) std::cout << " = "<< newEnergyBPM <<"\n"<< std::endl;
+
+    newTree->Fill();
+    if(i%10000==0)std::cout<<"Processing entry "<<i<<".\n";
+  }
+  newTree->Print();
+  newfile->Write("",TObject::kOverwrite);
+  //  newfile->Close();
 }
 
 Int_t QwMpsOnly::ReadPhaseConfig(Char_t *file)
@@ -1821,7 +1892,6 @@ void QwMpsOnly::SetupMpsBranchAddress()
    fChain->SetBranchAddress("ramp_block3", &ramp_block3);
 
 }
-
 
 void QwMpsOnly::SetPhaseValues(Double_t *val)
 {
