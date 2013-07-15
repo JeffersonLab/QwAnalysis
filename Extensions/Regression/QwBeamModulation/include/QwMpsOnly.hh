@@ -39,6 +39,7 @@ private:
   Int_t fNModType;
   Int_t fPedestal;
 
+  Bool_t f2DFit;
   Bool_t fNewEbpm;
 
   Int_t fNModEvents;

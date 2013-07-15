@@ -44,6 +44,8 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fSingleCoil = false; 
   fRunNumberSet = false; 
   fPhaseConfig = false;
+  
+  f2DFit = false;
 
   fFileSegment = ""; 
   fFileStem = "mps_only"; 
@@ -132,17 +134,8 @@ void QwMpsOnly::BuildMonitorSlopeVector()
 
 void QwMpsOnly::Calculate2DSlope(Int_t fNModType)
 {
-  //std::cout << "Entering QwMpsOnly::Calculate2DSlope" << std::endl;      
+  // std::cout << "Entering QwMpsOnly::Calculate2DSlope" << std::endl;      
   
-  Double_t c_mean = 0;
-  Double_t d_mean = 0;
-  Double_t sigma_cc = 0;
-  Double_t sigma_dc = 0;
-  Double_t sigma_dd = 0;
-  Double_t sigma_slope = 0;
-  Double_t slope = 0;
-
-
   if(!fPhaseConfig){
     Double_t temp[5]={0.26, 0.26, 0.0, 1.08, 1.08};              
     SetPhaseValues(temp); 
@@ -170,8 +163,8 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType)
   fctn->SetParameters(0.0, 1.0, -0.1);
   fctn->SetLineColor(kBlack);
   
-  //gStyle->SetOptStat(1);
-  //gStyle->SetOptFit(1);
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1);
   
   // Arrays for all fits. 
   Double_t x[fNEvents];					  	// Dependent
@@ -180,10 +173,20 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType)
     x[evNum] = CoilData[fNModType][evNum];			// Dependent is always ramp
   
   // Variables to hold fit parameters.
-  Double_t Const = 0;
+  //Double_t Const = 0;
+  //Double_t ConstError = 0;
   Double_t sinAmp = 0;
-  Double_t cosAmp = 0;  
-    
+  Double_t sinAmpError = 0; 
+  //Double_t cosAmp = 0;
+  //Double_t cosAmpError = 0;  
+
+  //std::vector <char*> ModName;
+  //ModName.push_back("X");
+  //ModName.push_back("XP");
+  //ModName.push_back("E");
+  //ModName.push_back("Y");
+  //ModName.push_back("YP"); 
+     
   //////////////
   // Monitors //
   //////////////
@@ -200,13 +203,8 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType)
       return;
     }
     
-    for(Int_t evNum=0; evNum<fNEvents; evNum++) {
+    for(Int_t evNum=0; evNum<fNEvents; evNum++)
       y[evNum] = MonitorData[mon][evNum];
-      c_mean += TMath::Sin(kDegToRad*x[evNum]+phase[fNModType]);
-      d_mean += y[evNum];
-    }
-    d_mean /= fNEvents;
-    c_mean /= fNEvents;
     
     // Perform fit.    
     //c1->cd(mon+1);
@@ -217,122 +215,93 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType)
     //mongr[mon]->GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
     mongr[mon]->Fit("fctn", "qr");
     //mongr[mon]->Draw("AP");
-    
     //c1->Update();
     
-    Const = fctn->GetParameter(0);        
+    //Const = fctn->GetParameter(0);        
+    //ConstError = fctn->GetParError(0);
     sinAmp = fctn->GetParameter(1);
-    cosAmp = fctn->GetParameter(2);
-    
-    for(Int_t evNum=0; evNum<fNEvents; evNum++) {
-      Double_t val1 = TMath::Sin(kDegToRad*x[evNum]+phase[fNModType]) - c_mean;  
-      Double_t val2 = sinAmp*TMath::Sin(kDegToRad*x[evNum])
-                      + cosAmp*TMath::Cos(kDegToRad*x[evNum])
-                      + Const - d_mean;
-    
-      sigma_cc += val1*val1;
-      sigma_dc += val1*val2;
-      sigma_dd += val2*val2;
-      
-      MonitorData[mon].clear();    
-    }
-    
-    slope = sigma_dc/sigma_cc; 
-    sigma_slope = TMath::Sqrt((sigma_dd - (sigma_dc*sigma_dc)/sigma_cc)
-			      /(sigma_cc*(fNEvents -2 )));
-    
-    MonitorSlope[fNModType][mon].push_back(slope);
-    MonitorSlopeError[fNModType][mon].push_back(sigma_slope);    
-    
-    c_mean = 0;
-    d_mean = 0;
-    slope = 0;
-    sigma_slope = 0;
-    sigma_cc = 0;
-    sigma_dc = 0;
-    sigma_dd = 0;
+    sinAmpError = fctn->GetParError(1);
+    //cosAmp = fctn->GetParameter(2);
+    //cosAmpError = fctn->GetParError(2);    
+
+    MonitorSlope[fNModType][mon].push_back(sinAmp);
+    MonitorSlopeError[fNModType][mon].push_back(sinAmpError);    
+
+    MonitorData[mon].clear();    
   }
   
+  //c1->cd(6);
+  //TPaveText* pt1 = new TPaveText(0.05, 0.05, 0.8, 0.8);
+  //pt1->AddText(Form("%s Modulation", ModName[fNModType]));
+  //pt1->SetFillColor(43);
+  //pt1->Draw();
   //c1->cd();
-  //c1->Print(Form("ModPlot%i.png",fNModType));
-  
+  //c1->Print(Form("MonitorPlot%i.png",fNModType));
   //delete c1;
   
   ///////////////
   // Detectors //
   ///////////////
   
+  //TCanvas* c2 = new TCanvas("c2", "canvas", 2400, 2000);
+  //c2->Divide(6,5);
+  
   TGraph* detgr[fNDetector];
   
-    for(Int_t det=0; det<fNMonitor; det++) {
+  for(Int_t det=0; det<fNDetector; det++) {
     if(DetectorData[det].size() <= 0){
       std::cout << "!!!!!!!!!!!!!!!!! Illegal Detector vector length:\t" 
 		<< DetectorData[det].size() << std::endl;
       return;
     }
     
-    for(Int_t evNum=0; evNum<fNEvents; evNum++) {
+    for(Int_t evNum=0; evNum<fNEvents; evNum++)
       y[evNum] = DetectorData[det][evNum];
-      c_mean += TMath::Sin(kDegToRad*x[evNum]+phase[fNModType]);
-      d_mean += y[evNum];
-    }
-    d_mean /= fNEvents;
-    c_mean /= fNEvents;
     
     // Perform fit.    
+    //c2->cd(det+1);
     detgr[det] = new TGraph(fNEvents, x, y);
+    //detgr[det]->SetMarkerColor(kBlue);
+    //detgr[det]->SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
+    //detgr[det]->GetXaxis()->SetTitle("ramp");
+    //detgr[det]->GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
     detgr[det]->Fit("fctn", "qr");
+    //detgr[det]->Draw("AP");
+    //c2->Update();
     
-    Const = fctn->GetParameter(0);        
+    //Const = fctn->GetParameter(0);        
+    //ConstError = fctn->GetParError(0);
     sinAmp = fctn->GetParameter(1);
-    cosAmp = fctn->GetParameter(2);
+    sinAmpError = fctn->GetParError(1);
+    //cosAmp = fctn->GetParameter(2);
+    //cosAmpError = fctn->GetParError(2);
     
-    for(Int_t evNum=0; evNum<fNEvents; evNum++) {
-      Double_t val1 = TMath::Sin(kDegToRad*x[evNum]+phase[fNModType]) - c_mean;  
-      Double_t val2 = sinAmp*TMath::Sin(kDegToRad*x[evNum])
-                      + cosAmp*TMath::Cos(kDegToRad*x[evNum])
-                      + Const - d_mean;
-    
-      sigma_cc += val1*val1;
-      sigma_dc += val1*val2;
-      sigma_dd += val2*val2;  
+    DetectorSlope[fNModType][det].push_back(sinAmp);
+    DetectorSlopeError[fNModType][det].push_back(sinAmpError);
 
-      DetectorData[det].clear();
-    }
-    
-    slope = sigma_dc/sigma_cc; 
-    sigma_slope = TMath::Sqrt((sigma_dd - (sigma_dc*sigma_dc)/sigma_cc)
-			      /(sigma_cc*(fNEvents -2 )));
-    
-    if(fSensHumanReadable == 1){
-      DetectorSlope[fNModType][det].push_back(1e6*slope/( TMath::Abs(d_mean) ));
-      DetectorSlopeError[fNModType][det].push_back(1e6*sigma_slope/( TMath::Abs(d_mean) ));  
-    }else{
-      DetectorSlope[fNModType][det].push_back(slope/( TMath::Abs(d_mean) ));
-      DetectorSlopeError[fNModType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
-    }   
-    
-    c_mean = 0;
-    d_mean = 0;
-    slope = 0;
-    sigma_slope = 0;
-    sigma_cc = 0;
-    sigma_dc = 0;
-    sigma_dd = 0;
+    DetectorData[det].clear();
   }
+  
+  //c2->cd(30);
+  //TPaveText* pt2 = new TPaveText(0.05, 0.05, 0.8, 0.8);
+  //pt2->AddText(Form("%s Modulation", ModName[fNModType]));
+  //pt2->SetFillColor(43);
+  //pt2->Draw();
+  //c2->cd();
+  //c2->Print(Form("DetectorPlot%i.png",fNModType));
+  //delete c2;
   
   // Same as above.
   CoilData[fNModType].clear();
   
   // These need to be set so we know if we have a full set of modulation data
-  
   if(fNModType == fXModulation)  fXinit = true;
   if(fNModType == fYModulation)  fYinit = true;
   if(fNModType == fEModulation)  fEinit = true;
   if(fNModType == fXPModulation) fXPinit = true;
   if(fNModType == fYPModulation) fYPinit = true;
   
-  //std::cout << "Leaving QwMpsOnly::Calculate2DSlope" << std::endl;
+  // std::cout << "Leaving QwMpsOnly::Calculate2DSlope" << std::endl;
   
   return;
 }
@@ -1109,6 +1078,7 @@ void QwMpsOnly::GetOptions(Char_t **options){
 	fCharge = false;
       }
     }
+    
     if(flag.CompareTo("--current-cut", TString::kExact) == 0){
       flag.Clear();
       fCurrentCut = atoi(options[i + 1]);
@@ -1126,6 +1096,13 @@ void QwMpsOnly::GetOptions(Char_t **options){
 		<< normal << std::endl;
 
     }  
+  
+    // Flag to turn ON 2D fit. (Default = OFF)
+    if(flag.CompareTo("--2dfit", TString::kExact) == 0){
+      flag.Clear();
+      f2DFit = true;
+      std::cout << "2D Fit Selected" << std::endl;
+    } 
 
     if(flag.CompareTo("--help", TString::kExact) == 0){
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -1346,20 +1323,14 @@ void QwMpsOnly::PilferData()
     error[i] = 0;
     good[i] = 0;
   }
-  Int_t pattern = -1;
   fNEvents = 0;
   if (fChain == 0) return;
   Long64_t nentries = fChain->GetEntries();
 
   std::cout << "Number of entries: " << nentries << std::endl;
   for(Int_t i = 0; i < nentries; i++){
-    //    LoadTree(i);
     fChain->GetEntry(i);
-
-    pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
-
     i =  ProcessMicroCycle(i, &fEvCounter, &error[0], &good[0]);
-    
   }
 
   std::cout << "Run "<<run_number<<std::endl;
@@ -1418,7 +1389,7 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
 {
   Int_t nEnt = fChain->GetEntries();
   Int_t modType = -1, modNum = -1, nCut = 0, nErr = 0;
-  Double_t prev_ramp = 0;
+  //Double_t prev_ramp = 0;
   Int_t pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
   fNEvents = 0;
   switch(pattern){
@@ -1455,14 +1426,11 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
     }else{
       good[modNum]++;
       CoilData[modType].push_back(ramp_filled);
-
-//       if(CheckRampLinearity("") == 0){
-// 	CoilData[modType].push_back(ramp_hw_sum);
-//       }
-//       else{
-// 	CoilData[modType].push_back(prev_ramp+fDegPerEntry);
-//       }
-
+      //if(CheckRampLinearity("") == 0){
+      //  CoilData[modType].push_back(ramp_hw_sum);
+      //}else{
+      //  CoilData[modType].push_back(prev_ramp+fDegPerEntry);
+      //}
       for(Int_t j = 0; j < fNDetector; j++){
 	Double_t val = fChain->GetLeaf(DetectorList[j].Data())->GetValue();
 	DetectorData[j].push_back(val);
@@ -1472,7 +1440,7 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
 	  (fChain->GetLeaf(MonitorList[j].Data())->GetValue());
 	MonitorData[j].push_back(val);
       }
-      prev_ramp = ramp_hw_sum;
+      //prev_ramp = ramp_hw_sum;
       ++evCntr;
       ++fNEvents;
     }
@@ -1489,8 +1457,12 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
   std::cout<<nErr<<" errors -- "<<err[modNum]<<" total "<<pattern<<
     "-type errors.\n";
 
-  CalculateSlope(modType);
-
+  if(f2DFit) {
+    Calculate2DSlope(modType);
+  } else {
+    CalculateSlope(modType);
+  }
+  
   fNEvents = 0;
   return i;
 }
