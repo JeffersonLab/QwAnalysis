@@ -52,7 +52,7 @@ private:
   Double_t fPreviousRampValue;
   Double_t fMaxRampNonLinearity;
   Double_t fRampMax;
-  Double_t fRampMin;
+  Double_t fRampLength;
   Double_t fRampPeriod;
   Double_t fRampOffset;
   Double_t fRampReturnSlope;
@@ -218,7 +218,10 @@ public :
   ~QwMpsOnly();
 
   Int_t    Cut(Long64_t entry);
+  Int_t    FindRampPeriodAndOffset();
+  Int_t    FindRampRange();
   Int_t    GetEntry(Long64_t entry);
+  Int_t    MakeRampFilled(Bool_t);
   Int_t    ReadConfig(TString opt = "");
   Int_t    ReadPhaseConfig(Char_t *);
   Int_t    ErrorCodeCheck(TString);
@@ -229,7 +232,6 @@ public :
   Long64_t LoadTree(Long64_t entry);
   Double_t FindDegPerEntry();
   Double_t GetDegPerEntry();
-  Double_t Sine(Double_t, Double_t *, Bool_t);
   void     Init(TChain *tree);
   void     Scan(void);
   void     SetMaxRampNonLinearity(Double_t);
@@ -243,17 +245,14 @@ public :
   void     BuildDetectorSlopeVector();
   void     BuildMonitorAvSlope();
   void     BuildDetectorAvSlope();
-  void     FindRampRange();
-  void     FindRampPeriodAndOffset();
   void     CalculateWeightedSlope(Int_t);
   void     CalculateSlope(Int_t);
-  void     Calculate2DSlope(Int_t);
+  void     Calculate2DSlope(Int_t, Int_t);
   void     SetRampScaleAndOffset();
   void     MatrixFill();
   void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     SetFileName(TString &);
   void     ComputeAsymmetryCorrections(); 
-  void     MakeRampFilled(Bool_t);
   void     PrintAverageSlopes();
   void     ReduceMatrix(Int_t);
   void     SetDegPerEntry(Double_t);

@@ -38,8 +38,8 @@ Int_t main(Int_t argc, Char_t *argv[])
   std::cout << "Finished scanning data -- building relevant data vectors" << std::endl;
   mps_only->BuildDetectorData();
   mps_only->BuildMonitorData();
-  mps_only->MakeRampFilled(1);
-  //  mps_only->SetDegPerEntry(mps_only->FindDegPerEntry());
+  if(mps_only->MakeRampFilled(1)) 
+    return 1;
   mps_only->BuildCoilData();
   mps_only->BuildDetectorSlopeVector();
   mps_only->BuildMonitorSlopeVector();
