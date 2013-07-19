@@ -34,6 +34,7 @@
 
 // Definitions
 #define VECTOR_SIZE 100
+#define COINCIDENCE_LEVEL_OF_R3_CHARGED_HITS 0 // choose 0 - 4 folder of coincidence for charged particle hits in VDCs
 
 bool is_R2WirePlane10_OK = true;
 bool is_Plane10_Wire18_OK = true;
@@ -296,6 +297,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     fOriginalEvent->fPreScatteringEnergy = fPrimary_PreScatteringKineticEnergy;     
     fOriginalEvent->fOriginVertexEnergy =  fPrimary_OriginVertexKineticEnergy;
 
+#ifdef NEW_G4_DATA    
     for (size_t i=0; i<fCerenkov_PMT_PMTLeftNbOfPEs.size(); i++){
         fOriginalEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs.at(i) );
         fCurrentEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs.at(i) );
@@ -310,6 +312,16 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
         fOriginalEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs.at(i) );   
         fCurrentEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs.at(i) );
     }
+#else
+        fOriginalEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs );
+        fCurrentEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs );
+
+        fOriginalEvent->fMD_RightNbOfPEs.push_back( fCerenkov_PMT_PMTRightNbOfPEs );
+        fCurrentEvent->fMD_RightNbOfPEs.push_back( fCerenkov_PMT_PMTRightNbOfPEs );
+
+        fOriginalEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs );   
+        fCurrentEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs );    
+#endif
     
     std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
     treelinelist = CreateTreeLines(kRegionID2);
@@ -425,35 +437,38 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
                         is_charged_particle ;
 
   // Region 3
-  is_charged_particle = false;
+  int charge_particle_coincidence_hits = 0;
+  bool FU=false, FV=false, BU=false, BV=false;
+
   for (size_t i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_ParticleType.size(); i1++) {
       int pdgcode = fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1);
-      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
+      if (abs(pdgcode) == 11) FU = true;
   }
   
   for (size_t i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_ParticleType.size(); i2++) {
       int pdgcode = fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2);
-      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
+      if (abs(pdgcode) == 11) FV = true;
   }
 
   for (size_t i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_ParticleType.size(); i3++) {
       int pdgcode = fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3);
-      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
+      if (abs(pdgcode) == 11) BU = true;
   }
 
   for (size_t i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_ParticleType.size(); i4++) {
       int pdgcode = fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4);
-      if (abs(pdgcode) == 11) is_charged_particle = is_charged_particle || true;
+      if (abs(pdgcode) == 11) BV = true;
   }
 
-//  is_charged_particle = true;  // uncomment this line to disable neutral particle rejection
+  charge_particle_coincidence_hits = (int)FU+(int)FV+(int)BU+(int)BV;
    
   fRegion3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
                         fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
                         fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
-                        fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5 &&
-                        is_charged_particle ;
+                        fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5 ;
 
+  fRegion3_HasBeenHit = fRegion3_HasBeenHit && 
+                       (charge_particle_coincidence_hits>=COINCIDENCE_LEVEL_OF_R3_CHARGED_HITS);
 	
   if (fRegion3_HasBeenHit) {
     
@@ -501,6 +516,7 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
 //   }
 
   fCerenkov_Light = false;
+#ifdef NEW_G4_DATA
   if(!fCerenkov_PMT_PMTTotalNbOfPEs.empty())
   {
     for(size_t i=0; i<fCerenkov_PMT_PMTTotalNbOfPEs.size(); i++)
@@ -517,6 +533,11 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
   }
   else
     fCerenkov_Light = true;
+  
+#else
+      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfHits >0);
+#endif
+
   
   if (fRegion2_HasBeenHit)
     fNumOfSimulated_R2_PartialTracks++;
@@ -2351,10 +2372,12 @@ void QwTreeEventBuffer::ReserveVectors()
 //   fTriggerScintillator_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
 
   fCerenkov_Detector_DetectorID.reserve(VECTOR_SIZE);
+#ifdef NEW_G4_DATA
   fCerenkov_PMT_PMTTotalNbOfHits.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTTotalNbOfPEs.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTLeftNbOfPEs.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTRightNbOfPEs.reserve(VECTOR_SIZE);
+#endif
 //   fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionZ.reserve(VECTOR_SIZE);
@@ -2694,10 +2717,18 @@ void QwTreeEventBuffer::ClearVectors()
   fCerenkov_Detector_DetectorID.clear();
   fCerenkov_Detector_HasBeenHit = 0;
   fCerenkov_Detector_NbOfHits = 0;
+#ifdef NEW_G4_DATA
   fCerenkov_PMT_PMTTotalNbOfHits.clear();
   fCerenkov_PMT_PMTTotalNbOfPEs.clear();
   fCerenkov_PMT_PMTLeftNbOfPEs.clear();
   fCerenkov_PMT_PMTRightNbOfPEs.clear();
+#else
+  fCerenkov_PMT_PMTTotalNbOfHits = 0;
+  fCerenkov_PMT_PMTTotalNbOfPEs = 0;
+  fCerenkov_PMT_PMTLeftNbOfPEs = 0;
+  fCerenkov_PMT_PMTRightNbOfPEs = 0;  
+#endif
+  
   fCerenkov_Detector_HitLocalPositionX = 0.0;
   fCerenkov_Detector_HitLocalPositionY = 0.0;
   fCerenkov_Detector_HitLocalPositionZ = 0.0;
@@ -3532,3 +3563,4 @@ double QwTreeEventBuffer::pyGlobalToLocal(double px, double py, int octant) cons
   double angle = (octant-1)*(-45.0)*TMath::DegToRad();
   return px*sin(angle)+py*cos(angle);
 }
+

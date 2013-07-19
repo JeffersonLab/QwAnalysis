@@ -28,6 +28,8 @@ using std::vector;
 #include "QwOptions.h"
 #include "QwGeometry.h"
 
+//#define NEW_G4_DATA  // uncomment this line to use newly simulated Geant4 data files
+
 // Definition of the reference detectors (## is concatenation)
 #define REGION1_DETECTOR(chamber,var) fRegion1_Chamber ## chamber ## _WirePlane_ ## var
 #define REGION2_DETECTOR(chamber,plane,var) fRegion2_Chamber ## chamber ## _WirePlane ## plane ## _ ## var
@@ -570,11 +572,18 @@ class QwTreeEventBuffer
     vector <Int_t> fCerenkov_Detector_DetectorID;
     Int_t fCerenkov_Detector_HasBeenHit;
     Int_t fCerenkov_Detector_NbOfHits;
-    vector <Int_t> fCerenkov_PMT_PMTTotalNbOfHits;
     
+#ifdef NEW_G4_DATA
+    vector <Int_t> fCerenkov_PMT_PMTTotalNbOfHits;    
     vector <Float_t> fCerenkov_PMT_PMTTotalNbOfPEs;
     vector <Float_t> fCerenkov_PMT_PMTLeftNbOfPEs;
     vector <Float_t> fCerenkov_PMT_PMTRightNbOfPEs;
+#else
+    Int_t   fCerenkov_PMT_PMTTotalNbOfHits;    
+    Float_t fCerenkov_PMT_PMTTotalNbOfPEs;
+    Float_t fCerenkov_PMT_PMTLeftNbOfPEs;
+    Float_t fCerenkov_PMT_PMTRightNbOfPEs;
+#endif
     
     Float_t fCerenkov_Detector_HitLocalPositionX;
     Float_t fCerenkov_Detector_HitLocalPositionY;
