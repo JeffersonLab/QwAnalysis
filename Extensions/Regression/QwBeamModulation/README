@@ -11,6 +11,8 @@ two environment variables.
 
     $MPS_ONLY_ROOTFILES
     $SLUGLET_FILES
+    $BMOD_SRC  this must be the location of the config directory, containing setup_mpsonly.config
+      	       (probably we should make this more flexible sometime)
     $BMOD_OUT: this must have the following directory structure: 
 
        output/slopes

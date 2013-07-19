@@ -178,6 +178,10 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
   Double_t d_mean = 0;
   Double_t c_mean = 0;
   Double_t slope = 0;
+  Double_t sigma_cc2 = 0;
+  Double_t sigma_dc2 = 0;
+  Double_t c_mean2 = 0;
+  Double_t slope2 = 0;
   
   if(!fPhaseConfig){
     Double_t temp[5]={0.26, 0.26, 0.0, 1.08, 1.08};              
@@ -215,13 +219,17 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
   Double_t x[fNEvents];				// Dependent
   Double_t y[fNEvents];				// Independent
   
+  c_mean=0;
+  c_mean2=0;
   for(Int_t evNum=0; evNum<fNEvents; evNum++) { // Dependent is always ramp
     x[evNum] = CoilData[fNModType][evNum] + phase[fNModType]/kDegToRad;
     if(x[evNum] >= 360.0)
       x[evNum] -= 360.0;
     c_mean += TMath::Sin(kDegToRad*x[evNum]);	
+    c_mean2 += TMath::Cos(kDegToRad*x[evNum]);	
   }
   c_mean /= fNEvents;
+  c_mean2 /= fNEvents;
   
   // Variables to hold fit parameters.
   Double_t Const = 0;
@@ -241,8 +249,9 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
   //////////////
   // Monitors //
   //////////////
-  TCanvas *cM = new TCanvas("cM", "canvas", 1200, 800);
+  TCanvas *cM;
   if(makePlots){
+    cM = new TCanvas("cM", "canvas", 1200, 800);
     cM->Divide(3,2);
   }
   
@@ -255,6 +264,12 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
       return;
     }
     
+    sigma_cc=0;
+    sigma_dc=0;
+    sigma_cc2=0;
+    sigma_dc2=0;
+    d_mean =0;
+
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       y[evNum] = MonitorData[mon][evNum];
       d_mean += y[evNum];      
@@ -264,25 +279,27 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       Double_t val1 = TMath::Sin(kDegToRad*x[evNum]) - c_mean;
       Double_t val2 = y[evNum] - d_mean;
+
+      Double_t val1c = TMath::Cos(kDegToRad*x[evNum]) - c_mean2;
       
       sigma_cc += val1*val1;
       sigma_dc += val1*val2;
+      sigma_cc2 += val1c*val1c;
+      sigma_dc2 += val1c*val2;
     }
     slope = sigma_dc/sigma_cc;
+    slope2 = sigma_dc2/sigma_cc2;
     
     // Perform fit.    
-    cM->cd(mon+1);
     mongr[mon] = new TGraph(fNEvents, x, y);
+    fctn->SetParameters(d_mean, slope, slope2);
+    mongr[mon]->Fit("fctn", "qr");
     if(makePlots){
+      cM->cd(mon+1);
       mongr[mon]->SetMarkerColor(kBlue);
       mongr[mon]->SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
       mongr[mon]->GetXaxis()->SetTitle("ramp");
       mongr[mon]->GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
-    }
-    fctn->SetParameters(d_mean, slope, 0.1*slope);
-    mongr[mon]->Fit("fctn", "qr");
-
-    if(makePlots){
       mongr[mon]->Draw("AP");
       cM->Update();
     }
@@ -299,32 +316,29 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
     MonitorSlope[fNModType+5][mon].push_back(cosAmp);
     MonitorSlopeError[fNModType+5][mon].push_back(cosAmpError);
     
-    d_mean = 0;
-    sigma_cc = 0;
-    sigma_dc = 0;
-    //    MonitorData[mon].clear();    
   }
   
-  cM->cd(6);
   if(makePlots){
+    cM->cd(6);
     TPaveText* pt1 = new TPaveText(0.05, 0.05, 0.8, 0.8);
     pt1->AddText(Form("%s Modulation", ModName[fNModType]));
     pt1->SetFillColor(43);
     pt1->Draw();
     cM->cd();
     cM->Print(Form("MonitorPlot%i.png",fNModType));
+    delete cM;
   }
-  delete cM;
   
   ///////////////
   // Detectors //
   ///////////////
   
-  TCanvas *cD = new TCanvas("cD", "canvas", 2400, 2000);
- 
-    if(makePlots){
-      cD->Divide(6,5);
-    }
+  TCanvas *cD;
+  
+  if(makePlots){
+    cD = new TCanvas("cD", "canvas", 2400, 2000);
+    cD->Divide(6,5);
+  }
   
   TGraph* detgr[fNDetector];
   
@@ -335,6 +349,12 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
       return;
     }
     
+    sigma_cc=0;
+    sigma_dc=0;
+    sigma_cc2=0;
+    sigma_dc2=0;
+    d_mean =0;
+
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       y[evNum] = DetectorData[det][evNum];
       d_mean += y[evNum];      
@@ -344,27 +364,29 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       Double_t val1 = TMath::Sin(kDegToRad*x[evNum]) - c_mean;
       Double_t val2 = y[evNum] - d_mean;
+      Double_t val1c = TMath::Cos(kDegToRad*x[evNum]) - c_mean2;
       
       sigma_cc += val1*val1;
       sigma_dc += val1*val2;
+      sigma_cc2 += val1c*val1c;
+      sigma_dc2 += val1c*val2;
     }
     slope = sigma_dc/sigma_cc;
+    slope2 = sigma_dc2/sigma_cc2;
     
     // Perform fit.    
-    cD->cd(det+1);
     detgr[det] = new TGraph(fNEvents, x, y);
+    fctn->SetParameters(d_mean, slope, slope2);
+    detgr[det]->Fit("fctn", "qr");
     if(makePlots){
+      cD->cd(det+1);
       detgr[det]->SetMarkerColor(kBlue);
       detgr[det]->SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
       detgr[det]->GetXaxis()->SetTitle("ramp");
       detgr[det]->GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
+      detgr[det]->Draw("AP");
+      cD->Update();
     }
-    fctn->SetParameters(d_mean, slope, 0.1*slope);
-    detgr[det]->Fit("fctn", "qr");
-     if(makePlots){
-       detgr[det]->Draw("AP");
-       cD->Update();
-     }
     
     Const = fctn->GetParameter(0);        
     //ConstError = fctn->GetParError(0);
@@ -378,22 +400,18 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
     DetectorSlope[fNModType+5][det].push_back(cosAmp/Const);
     DetectorSlopeError[fNModType+5][det].push_back(cosAmpError);
     
-    d_mean = 0;
-    sigma_cc = 0;
-    sigma_dc = 0;    
-    //    DetectorData[det].clear();
   }
   
-    if(makePlots){
-      cD->cd(30);
-      TPaveText* pt2 = new TPaveText(0.05, 0.05, 0.8, 0.8);
-      pt2->AddText(Form("%s Modulation", ModName[fNModType]));
-      pt2->SetFillColor(43);
-      pt2->Draw();
-      cD->cd();
-      cD->Print(Form("DetectorPlot%i.png",fNModType));
-    }
-  delete cD;
+  if(makePlots){
+    cD->cd(30);
+    TPaveText* pt2 = new TPaveText(0.05, 0.05, 0.8, 0.8);
+    pt2->AddText(Form("%s Modulation", ModName[fNModType]));
+    pt2->SetFillColor(43);
+    pt2->Draw();
+    cD->cd();
+    cD->Print(Form("DetectorPlot%i.png",fNModType));
+    delete cD;
+  }
   
   //  CoilData[fNModType].clear();
   
