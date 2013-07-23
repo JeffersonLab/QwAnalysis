@@ -44,7 +44,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fRunNumberSet = false; 
   fPhaseConfig = false;
   
-  f2DFit = false;
+  f2DFit = true;
 
   fFileSegment = ""; 
   fFileStem = "mps_only"; 
@@ -673,7 +673,7 @@ Int_t QwMpsOnly::CheckRampLinearity(TString type){
 
 void QwMpsOnly::Clean()
 {
-  //
+
   // This function serves the purpose of deallocating 
   // memory for unused vectors in the QwMpsOnly Class.
   // Should be run after finishing with the slope calculation.
@@ -681,23 +681,25 @@ void QwMpsOnly::Clean()
 
   DetectorData.clear();
   MonitorData.clear();
-    AvDetectorSlope.clear();
-    AvDetectorSlopeError.clear();
-    AvMonitorSlope.clear();
-    AvMonitorSlopeError.clear();
-    CoilData.clear();
-    MonitorSlope.clear();
-    MonitorSlopeError.clear();
-    DetectorSlope.clear();
-    DetectorSlopeError.clear();
+  AvDetectorSlope.clear();
+  AvDetectorSlopeError.clear();
+  AvMonitorSlope.clear();
+  AvMonitorSlopeError.clear();
+  CoilData.clear();
+  MonitorSlope.clear();
+  MonitorSlopeError.clear();
+  DetectorSlope.clear();
+  DetectorSlopeError.clear();
 
-    return;
+  return;
 }
 
 void QwMpsOnly::CleanFolders()
 {
-  gSystem->Exec(Form("rm -rf regression_%i", run_number));
-  gSystem->Exec(Form("rm -rf slopes_%i", run_number));
+  gSystem->Exec(Form("rm -rf %s/regression/regression_%i.%s.dat", 
+		     gSystem->Getenv("BMOD_OUT"), run_number, fSetStem.Data()));
+  gSystem->Exec(Form("rm -rf %s/slopes/slopes_%i.%s.dat",
+		     gSystem->Getenv("BMOD_OUT"), run_number, fSetStem.Data()));
 
   return;
 }
@@ -1325,7 +1327,7 @@ Int_t QwMpsOnly::MakeRampFilled(Bool_t verbose)
   std::cout<<"::Making \"ramp_filled\" variable::\n";
   FindDegPerEntry();
   //create new friendable tree with new ramp
-  TFile *newfile = new TFile(Form("%s/mps_only_ramp_filled_%i.root",
+  TFile *newfile = new TFile(Form("%s/mps_only_friend_%i.root",
 				  gSystem->Getenv("MPS_ONLY_ROOTFILES"),
 				  run_number),"recreate");
   TTree *newTree = new TTree("mps_slug", "mps_slug"); 
@@ -1465,9 +1467,9 @@ Bool_t QwMpsOnly::Notify()
    return kTRUE;
 }
 
-void QwMpsOnly::PilferData()
+Int_t QwMpsOnly::PilferData()
 {
-  Int_t fEvCounter = 0;
+  Int_t fEvCounter = 0, nonModEvts = 0;
   Int_t error[kNMaxCoil], good[kNMaxCoil];
 
   for(Int_t i=0;i<kNMaxCoil;i++){
@@ -1475,23 +1477,31 @@ void QwMpsOnly::PilferData()
     good[i] = 0;
   }
   fNEvents = 0;
-  if (fChain == 0) return;
+  if (fChain == 0) return -1;
   Long64_t nentries = fChain->GetEntries();
 
   std::cout << "Number of entries: " << nentries << std::endl;
+
   for(Int_t i = 0; i < nentries; i++){
     fChain->GetEntry(i);
-    i =  ProcessMicroCycle(i, &fEvCounter, &error[0], &good[0]);
+    Int_t pat = ConvertPatternNumber((Int_t)bm_pattern_number);
+    if(pat > -1 && pat < 5)
+      i =  ProcessMicroCycle(i, &fEvCounter, &error[0], &good[0]);
+    else nonModEvts++;
   }
 
   std::cout << "Run "<<run_number<<std::endl;
-  for(Int_t i = 0; i < kNMaxCoil; i++)
+  Int_t goodEv = 0;
+  for(Int_t i = 0; i < kNMaxCoil; i++){
     std::cout<<" bm_pattern# "<<i<<":  Total Events Cut (" << error[i] <<")"
 	      <<"   Good Events ("<<good[i]<<")\n";
+    goodEv += good[i];
+  }
 
+  std::cout <<nonModEvts<<" non-modulation events." << std::endl;
   std::cout << "\n::Done with Pilfer::" << std::endl;
 
-  return;
+  return goodEv;
 }
 
 void QwMpsOnly::PrintAverageSlopes()
@@ -1565,8 +1575,11 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
     modType = fYPModulation;
     break;
   default:
-    std::cout<<"Modulation type unknown\n"<<std::endl;
+    modNum = -1;
+    std::cout<<"Modulation type "<<pattern<<" unknown.\n"<<std::endl;
+    break;
   }
+  if(modNum==-1)return -1;
   std::cout<<"Modulation type "<<pattern<<" found at entry "<<i<<"\n";
 
   //Make sure arrays are clear of data
@@ -1612,7 +1625,7 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
   std::cout<<nErr<<" errors -- "<<err[modNum]<<" total "<<pattern<<
     "-type errors.\n";
 
-  if(good[modNum]) {
+  if(f2DFit) {
     Calculate2DSlope(modType, 0);
   } else {
     CalculateSlope(modType);

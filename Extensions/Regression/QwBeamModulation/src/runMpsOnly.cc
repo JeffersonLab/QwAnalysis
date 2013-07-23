@@ -4,8 +4,8 @@
 
 Int_t main(Int_t argc, Char_t *argv[])
 {
+  Int_t minEvents = 10000;
   TString filename;
-
   TChain *mps_tree = new TChain("mps_slug");
 
   QwMpsOnly *mps_only = new QwMpsOnly(mps_tree);
@@ -29,6 +29,11 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->SetFileName(filename);
   mps_only->SetupMpsBranchAddress();
   std::cout<<"Entries: "<<mps_tree->GetEntries()<<std::endl;
+  if(mps_tree->GetEntries() < minEvents){
+    std::cout<<mps_tree->GetEntries()<<" entries. Exiting program."<<
+      " Too few entries.\n";
+    return 1;
+  }
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
 
   mps_only->ReadConfig("");
@@ -45,7 +50,11 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->BuildMonitorSlopeVector();
 
   std::cout << "Starting to pilfer the data" << std::endl;
-  mps_only->PilferData();
+  if(mps_only->PilferData()<minEvents){
+    std::cout<<"Too few good events. Exiting program for run "<<
+      mps_only->run_number<<"\n"; 
+    return -1;
+  }
   mps_only->BuildDetectorAvSlope();
   mps_only->BuildMonitorAvSlope();
   mps_only->CalculateWeightedSlope(1);

@@ -223,6 +223,7 @@ public :
   Int_t    GetEntry(Long64_t entry);
   Int_t    MakeRampFilled(Bool_t);
   Int_t    ReadConfig(TString opt = "");
+  Int_t    PilferData();
   Int_t    ReadPhaseConfig(Char_t *);
   Int_t    ErrorCodeCheck(TString);
   Int_t    CheckRampLinearity(TString);
@@ -235,7 +236,6 @@ public :
   void     Init(TChain *tree);
   void     Scan(void);
   void     SetMaxRampNonLinearity(Double_t);
-  void     PilferData();
   void     Show(Long64_t entry = -1);  
   void     LoadRootFile(TString, TChain *, Bool_t slug = false);
   void     BuildDetectorData();
