@@ -28,7 +28,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fReduceMatrix_yp = 0; 
   fReduceMatrix_e  = 0; 
   fSensHumanReadable = 0;
-  fDegPerEntry = 0;
+  fDegPerMPS = 0;
   fNModType = 5; 
   fPedestal = 0; 
   fNModEvents = 0; 
@@ -71,7 +71,8 @@ void QwMpsOnly::BuildDetectorData()
 
 void QwMpsOnly::BuildDetectorAvSlope()
 {
-  for(Int_t i = 0; i < fNModType; i++){
+  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+  for(Int_t i = 0; i < nMod; i++){
     AvDetectorSlope.push_back(std::vector <Double_t>());
     AvDetectorSlopeError.push_back(std::vector <Double_t>());
   }
@@ -81,9 +82,10 @@ void QwMpsOnly::BuildDetectorAvSlope()
 
 void QwMpsOnly::BuildCoilData()
  {
-   for(Int_t i = 0; i < fNModType; i++)
+   Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+   for(Int_t i = 0; i < nMod; i++)
      CoilData.push_back(std::vector <Double_t>());
-   std::cout << "Coil block size: " << CoilData.size() << std::endl;
+     std::cout << "Coil block size: " << CoilData.size() << std::endl;
    
    return;
  }
@@ -103,7 +105,8 @@ void QwMpsOnly::BuildDetectorSlopeVector()
 
 void QwMpsOnly::BuildMonitorAvSlope()
 {
-  for(Int_t i = 0; i < fNModType; i++){
+  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+  for(Int_t i = 0; i < nMod; i++){
     AvMonitorSlope.push_back(std::vector <Double_t>());
     AvMonitorSlopeError.push_back(std::vector <Double_t>());
   }
@@ -486,8 +489,6 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
       sigma_dc += (DetectorData[det][evNum] - d_mean) * val;
       sigma_dd += TMath::Power((DetectorData[det][evNum] - d_mean), 2);
       
-      // Clear instances after computation
-      //     DetectorData[det].clear();
     }
     
     slope = sigma_dc/sigma_cc;
@@ -540,9 +541,7 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
       sigma_dc += val*(MonitorData[mon][evNum] - d_mean);
       sigma_dd += TMath::Power((MonitorData[mon][evNum] - d_mean),2);
       
-      // Clear instances after computation
-      //     MonitorData[mon].clear();
-    }
+     }
     
     slope = sigma_dc/sigma_cc; 
     sigma_slope = TMath::Sqrt((sigma_dd - (sigma_dc*sigma_dc)/sigma_cc)
@@ -560,8 +559,6 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     sigma_dd = 0;  
     
   }
-  // Same as above.
-  //  CoilData[fNModType].clear();
   
   // These need to be set so we know if we have a full set of modulation data
   
@@ -579,8 +576,8 @@ void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
 
   Double_t mean = 0;
   Double_t mean_error = 0;
-
-  for(Int_t i = 0; i < fNModType; i++){
+  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+  for(Int_t i = 0; i < nMod; i++){
     for(Int_t j = 0; j < fNDetector; j++){
       for(Int_t k = 0; k < (Int_t)DetectorSlope[i][j].size(); k++){
 	mean += ( DetectorSlope[i][j][k]
@@ -606,7 +603,7 @@ void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
       }
     }
   }
-  for(Int_t i = 0; i < fNModType; i++){
+  for(Int_t i = 0; i < nMod; i++){
     for(Int_t j = 0; j < fNMonitor; j++){
       for(Int_t k = 0; k < (Int_t)MonitorSlope[i][j].size(); k++){
 	mean += ( MonitorSlope[i][j][k]
@@ -1021,7 +1018,7 @@ Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t sluglet)
 
 }
 
-Double_t QwMpsOnly::FindDegPerEntry()
+Double_t QwMpsOnly::FindDegPerMPS()
 {
   Int_t ent = fChain->GetEntries(), newCycle = 0;
   Double_t mean = 0, n = 0, ramp_prev = -9999;
@@ -1042,7 +1039,7 @@ Double_t QwMpsOnly::FindDegPerEntry()
     ramp_prev = ramp_hw_sum;
   }
   mean = mean / n;
-  fDegPerEntry = mean;
+  fDegPerMPS = mean;
   std::cout<<"Degrees per entry = "<<mean<<std::endl;
   return  mean;
 }
@@ -1094,11 +1091,11 @@ Int_t QwMpsOnly::FindRampRange()
 
   for(Int_t i=0;i<fChain->GetEntries()&&n<max;i++){
     fChain->GetEntry(i);
-    if(ramp_hw_sum<fRampMax && ramp_hw_sum>fRampMax-fDegPerEntry/2.0 &&
+    if(ramp_hw_sum<fRampMax && ramp_hw_sum>fRampMax-fDegPerMPS/2.0 &&
        TMath::Abs(ramp_block3+ramp_block0-ramp_block1-ramp_block2)
        >fMaxRampNonLinearity){
       rampold[n] = ramp_hw_sum;
-      rampnew[n] = rampprev + fDegPerEntry;
+      rampnew[n] = rampprev + fDegPerMPS;
       //      std::cout<<rampold[n]<<"\t"<<rampnew[n]<<"\n";
       n++;
     }
@@ -1118,9 +1115,9 @@ Int_t QwMpsOnly::GetCurrentCut()
   return(fCurrentCut);
 }
 
-Double_t QwMpsOnly::GetDegPerEntry()
+Double_t QwMpsOnly::GetDegPerMPS()
 {
-  return fDegPerEntry;
+  return fDegPerMPS;
 }
 
 Int_t QwMpsOnly::GetEntry(Long64_t entry)
@@ -1325,7 +1322,7 @@ Int_t QwMpsOnly::MakeRampFilled(Bool_t verbose)
 
 
   std::cout<<"::Making \"ramp_filled\" variable::\n";
-  FindDegPerEntry();
+  FindDegPerMPS();
   //create new friendable tree with new ramp
   TFile *newfile = new TFile(Form("%s/mps_only_friend_%i.root",
 				  gSystem->Getenv("MPS_ONLY_ROOTFILES"),
@@ -1506,20 +1503,29 @@ Int_t QwMpsOnly::PilferData()
 
 void QwMpsOnly::PrintAverageSlopes()
 {
+  FILE *mon_coil_coeff = fopen(Form("%s/slopes/mon_coil_coeff_%i.dat",
+				 gSystem->Getenv("BMOD_OUT"),run_number),"w");
+  FILE *det_coil_coeff = fopen(Form("%s/slopes/det_coil_coeff_%i.dat",
+				 gSystem->Getenv("BMOD_OUT"),run_number),"w");
   printf("Monitor Slopes   |  Pattern 0   |  Pattern 1   |  Pattern 2   |"
 	 "  Pattern 3   |  Pattern 4   |\n");
   printf("******************************************************************"
 	 "***************************\n");
-
+  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
   for(Int_t i=0;i<fNMonitor;i++){
     TString mon = MonitorList[i];
     mon.Resize(16);
+    fprintf(mon_coil_coeff,"%s\n",MonitorList[i].Data());
     printf("%s |",mon.Data());
-    for(Int_t j=0;j<fNModType;j++){
+    for(Int_t j=0;j<nMod;j++){
       printf(" %+9.5e |",AvMonitorSlope[j][i]);
+      fprintf(mon_coil_coeff,"%12.6e\t%12.6e\n", AvMonitorSlope[j][i],
+	      AvMonitorSlopeError[j][i]);
     }
     printf("\n");
   }
+  fclose(mon_coil_coeff);
+
   printf("\n\n");
   printf("Detector Slopes  |  Pattern 0   |  Pattern 1   |  Pattern 2   |"
 	 "  Pattern 3   |  Pattern 4   |\n");
@@ -1530,12 +1536,16 @@ void QwMpsOnly::PrintAverageSlopes()
     TString det = DetectorList[i];
     det.Resize(16);
     printf("%s |",det.Data());
-    for(Int_t j=0;j<fNModType;j++){
+    fprintf(det_coil_coeff, "%s\n", DetectorList[i].Data());
+   for(Int_t j=0;j<nMod;j++){
       printf(" %+9.5e |",AvDetectorSlope[j][i]);
+      fprintf(det_coil_coeff,"%12.6e\t%12.6e\n",AvDetectorSlope[j][i],
+	      AvDetectorSlopeError[j][i]);
     }
     printf("\n");
   }
   printf("\n\n");
+  fclose(det_coil_coeff);
 }
 
 void QwMpsOnly::PrintError(TString error)
@@ -1902,9 +1912,9 @@ void QwMpsOnly::Scan()
 //    }
 }
 
-void QwMpsOnly::SetDegPerEntry(Double_t deg)
+void QwMpsOnly::SetDegPerMPS(Double_t deg)
 {
-  fDegPerEntry = deg;
+  fDegPerMPS = deg;
 }
 
 void QwMpsOnly::SetFileName(TString & filename)
@@ -2060,6 +2070,12 @@ void QwMpsOnly::Write(){
     }
     diagnostic << fNModEvents << std::endl;
   }
+  diagnostic<<"\n\nRamp information\n";
+  diagnostic <<"ramp phase offset\t"<<fRampOffset<<std::endl;
+  diagnostic <<"ramp period\t"<<fRampPeriod<<std::endl;
+  diagnostic <<"ramp maximum\t"<<fRampMax<<std::endl;
+  diagnostic <<"ramp length\t"<<fRampLength<<std::endl;
+  diagnostic <<"degrees per mps\t"<<fDegPerMPS<<std::endl;
 
 
   //***************************************************************

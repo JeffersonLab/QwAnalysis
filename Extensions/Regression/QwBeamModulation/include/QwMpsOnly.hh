@@ -48,14 +48,13 @@ private:
   Int_t fUpperSegment;
 
 
-  Double_t fDegPerEntry;
+  Double_t fDegPerMPS;
   Double_t fPreviousRampValue;
   Double_t fMaxRampNonLinearity;
   Double_t fRampMax;
   Double_t fRampLength;
   Double_t fRampPeriod;
   Double_t fRampOffset;
-  Double_t fRampReturnSlope;
 
   static const Int_t kNMaxMon = 6;
   static const Int_t kNMaxDet = 35;
@@ -231,8 +230,8 @@ public :
   Int_t    GetCurrentCut();
   Int_t    ProcessMicroCycle(Int_t, Int_t *, Int_t *, Int_t*);
   Long64_t LoadTree(Long64_t entry);
-  Double_t FindDegPerEntry();
-  Double_t GetDegPerEntry();
+  Double_t FindDegPerMPS();
+  Double_t GetDegPerMPS();
   void     Init(TChain *tree);
   void     Scan(void);
   void     SetMaxRampNonLinearity(Double_t);
@@ -255,7 +254,7 @@ public :
   void     ComputeAsymmetryCorrections(); 
   void     PrintAverageSlopes();
   void     ReduceMatrix(Int_t);
-  void     SetDegPerEntry(Double_t);
+  void     SetDegPerMPS(Double_t);
   void     SetHuman(void);
   void     SetupMpsBranchAddress(void); 
   void     SetupHelBranchAddress(void); 
