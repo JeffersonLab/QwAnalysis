@@ -9,7 +9,7 @@ ifndef EXTRAFLAGS
   $(warning Verbose MPS error messages have been disabled.  Recompile with 'make EXTRAFLAGS=-D__VERBOSE_ERRORS' to enable them.)
 endif
 
-ifndef LOCALARCH
+ifndef NO_MYSQL
  ############################
  ############################
  # Some set-up for the MySQL library (copied from $QWANALYSIS/GNUmakefile)
@@ -69,7 +69,7 @@ ifndef LOCALARCH
  ############################
 endif
 
-ifdef LOCALARCH
+ifdef NO_MYSQL
  $(warning Compiling code without the use of mysql libraries.  This may cause some code not to compile correctly.  Currently this should only be used for the MpsOnly)
 endif
 
