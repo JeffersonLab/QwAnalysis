@@ -101,14 +101,14 @@ int main(Int_t argc,Char_t* argv[]){
   Int_t datopt = 3;
   Int_t ropt = 2;
   Int_t qtor_opt = 2;
+  Int_t fit_opt = 2;
 
   TString good_for;
   TString qtor_current;
   TString qtor_stem;
   TString good;
   TString interaction;
-  TString showFit1,showFit2,showFit3;
-
+  TString showFit1,showFit2,showFit3,fitStem;
 
 //   Double_t value1[8] ={0.0};
 //   Double_t err1[8] ={0.0};
@@ -372,6 +372,35 @@ int main(Int_t argc,Char_t* argv[]){
   }
 
 
+  std::cout<<Form("Enter fit function type (%sJust Hit ENTER to choose default%s):",blue,normal)<<std::endl;
+  std::cout<<Form("1. Nominal: Fit with Am,phi0,C")<<std::endl;
+  std::cout<<Form("2. %sFit with Am,phi0. NO C (deafult)%s",blue,normal)<<std::endl;
+  std::cout<<Form("3. Fit with Am,C. NO Phi0 ")<<std::endl;
+  std::cout<<Form("4. Fit with Am. NO C and Phi0 ")<<std::endl;
+  //   std::cin>>ropt;
+  std::string input_fit_opt;
+  std::getline( std::cin, input_fit_opt );
+  if ( !input_fit_opt.empty() ) {
+    std::istringstream stream( input_fit_opt );
+    stream >> fit_opt;
+  }
+  if(fit_opt == 1){
+    fitStem  = "";
+  }
+  else if(fit_opt == 2){
+    fitStem  = "noCFit";
+  }
+  else if(fit_opt == 3){
+    fitStem  = "noPhi0Fit";
+  }
+  else if(fit_opt == 4){
+    fitStem  = "noCPhi0Fit";
+  }
+
+
+
+
+
   TApplication theApp("App",&argc,argv);
 
   // }
@@ -427,10 +456,34 @@ int main(Int_t argc,Char_t* argv[]){
   gDirectory->Delete("*");
 
 
-  // Fit function to show 
-  showFit1 = "FIT = A_{M} cos(#phi) - C sin(#phi) + D";
-  showFit2 = "FIT = A_{M} cos(#phi + #phi_{0}) + C";
-  showFit3 = "FIT = A_{M} sin(#phi + #phi_{0}) + C";
+  if(fit_opt == 1){
+    showFit1 = "FIT = A_{M} cos(#phi) - C sin(#phi) + D";
+    showFit2 = "FIT = A_{M} cos(#phi + #phi_{0}) + C";
+    showFit3 = "FIT = A_{M} sin(#phi + #phi_{0}) + C";
+  }
+  else if(fit_opt == 2){
+    showFit1 = "FIT = A_{M} cos(#phi) - C sin(#phi)";
+    showFit2 = "FIT = A_{M} cos(#phi + #phi_{0})";
+    showFit3 = "FIT = A_{M} sin(#phi + #phi_{0})";
+  }
+  else if(fit_opt == 3){
+    showFit1 = "FIT = A_{M} cos(#phi) - C sin(#phi) + D";
+    showFit2 = "FIT = A_{M} cos(#phi) + C";
+    showFit3 = "FIT = A_{M} sin(#phi) + C";
+  }
+  else if(fit_opt == 4){
+    showFit1 = "FIT = A_{M} cos(#phi) - C sin(#phi)";
+    showFit2 = "FIT = A_{M} cos(#phi)";
+    showFit3 = "FIT = A_{M} sin(#phi)";
+  }
+
+//   // Fit function to show 
+//   showFit1 = "FIT = A_{M} cos(#phi) - C sin(#phi)";
+//   showFit2 = "FIT = A_{M} cos(#phi + #phi_{0})";
+//   showFit3 = "FIT = A_{M} sin(#phi + #phi_{0})";
+//   showFit1 = "FIT = A_{M} cos(#phi) - C sin(#phi) + D";
+//   showFit2 = "FIT = A_{M} cos(#phi + #phi_{0}) + C";
+//   showFit3 = "FIT = A_{M} sin(#phi + #phi_{0}) + C";
 
 
   TString title1;
@@ -533,22 +586,84 @@ int main(Int_t argc,Char_t* argv[]){
   }
 
 
-//   TPad* pad = (TPad*)(gPad->GetMother());
- 
-  // cos fit in
-  TF1 *fit_in;
+  TF1 *fit_in; TString fit_func_in;
   if(datopt==1) {
-    TString fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]";
+    if(fit_opt == 1){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]";
+    }
+    else if(fit_opt == 2){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1)))";
+    }
+    else if(fit_opt == 3){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]";
+    }
+    else if(fit_opt == 4){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1)))";
+    }
     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
   }
   else if(datopt==2){
-    TString fit_func_in = "[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]";
+    if(fit_opt == 1){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]";
+    }
+    else if(fit_opt == 2){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1) + [1]))";
+    }
+    else if(fit_opt == 3){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) + [1]";
+    }
+    else if(fit_opt == 4){
+      fit_func_in = "[0]*cos((pi/180)*(45*(x-1)))";
+    }
     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
   }
   else{
-    TString fit_func_in = "[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]";
+    if(fit_opt == 1){
+      fit_func_in = "[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]";
+    }
+    else if(fit_opt == 2){
+      fit_func_in = "[0]*sin((pi/180)*(45*(x-1) + [1]))";
+    }
+    else if(fit_opt == 3){
+      fit_func_in = "[0]*sin((pi/180)*(45*(x-1))) + [1]";
+    }
+    else if(fit_opt == 4){
+      fit_func_in = "[0]*sin((pi/180)*(45*(x-1)))";
+    }
     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
   }
+
+//   // cos fit in
+//   TF1 *fit_in;
+//   if(datopt==1) {
+//     TString fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1)))";
+//     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
+//   }
+//   else if(datopt==2){
+//     TString fit_func_in = "[0]*cos((pi/180)*(45*(x-1) + [1]))";
+//     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
+//   }
+//   else{
+//     TString fit_func_in = "[0]*sin((pi/180)*(45*(x-1) + [1]))";
+//     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
+//   }
+
+
+
+//   if(datopt==1) {
+//     TString fit_func_in = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]";
+//     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
+//   }
+//   else if(datopt==2){
+//     TString fit_func_in = "[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]";
+//     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
+//   }
+//   else{
+//     TString fit_func_in = "[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]";
+//     fit_in = new TF1("fit_in",Form("%s",fit_func_in.Data()),1,8);
+//   }
+
+
 
   fit_in->SetParameter(0,0);
 
@@ -598,19 +713,84 @@ int main(Int_t argc,Char_t* argv[]){
   grp_out ->SetLineColor(kRed);
 
 
-  TF1 *fit_out;
-  if(datopt==1){
-    TString fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]";
+
+
+  TF1 *fit_out; TString fit_func_out;
+  if(datopt==1) {
+    if(fit_opt == 1){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) - [1]*cos((pi/180)*(45*(x-1))) + [2]";
+    }
+    else if(fit_opt == 2){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1)))";
+    }
+    else if(fit_opt == 3){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]";
+    }
+    else if(fit_opt == 4){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1)))";
+    }
     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
   }
   else if(datopt==2){
-    TString fit_func_out = "[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]";
+    if(fit_opt == 1){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]";
+    }
+    else if(fit_opt == 2){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1) + [1]))";
+    }
+    else if(fit_opt == 3){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) + [1]";
+    }
+    else if(fit_opt == 4){
+      fit_func_out = "[0]*cos((pi/180)*(45*(x-1)))";
+    }
     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
   }
   else{
-    TString fit_func_out = "[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]";
+    if(fit_opt == 1){
+      fit_func_out = "[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]";
+    }
+    else if(fit_opt == 2){
+      fit_func_out = "[0]*sin((pi/180)*(45*(x-1) + [1]))";
+    }
+    else if(fit_opt == 3){
+      fit_func_out = "[0]*sin((pi/180)*(45*(x-1))) + [1]";
+    }
+    else if(fit_opt == 4){
+      fit_func_out = "[0]*sin((pi/180)*(45*(x-1)))";
+    }
     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
   }
+
+//   TF1 *fit_out;
+//   if(datopt==1){
+//     TString fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1)))";
+//     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
+//   }
+//   else if(datopt==2){
+//     TString fit_func_out = "[0]*cos((pi/180)*(45*(x-1) + [1]))";
+//     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
+//   }
+//   else{
+//     TString fit_func_out = "[0]*sin((pi/180)*(45*(x-1) + [1]))";
+//     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
+//   }
+
+
+//   if(datopt==1){
+//     TString fit_func_out = "[0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))) + [2]";
+//     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
+//   }
+//   else if(datopt==2){
+//     TString fit_func_out = "[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]";
+//     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
+//   }
+//   else{
+//     TString fit_func_out = "[0]*sin((pi/180)*(45*(x-1) + [1])) + [2]";
+//     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
+//   }
+
+
   
   /*Initialize this fit with the results from the previous fit*/
   //  cosfit_out->SetParameter(0,-1*(fit1->GetParameter(0)));
@@ -683,11 +863,35 @@ int main(Int_t argc,Char_t* argv[]){
   fit3->DrawCopy("same");
   fit4->DrawCopy("same");
 
+  if(fit_opt == 1){
+    fit1->SetParNames("A_{M}","#phi_{0}","C");
+    fit2->SetParNames("A_{M}","#phi_{0}","C");
+    fit3->SetParNames("C");
+    fit4->SetParNames("A_{M}","#phi_{0}","C");
+  }
+  else if(fit_opt == 2){
+    fit1->SetParNames("A_{M}","#phi_{0}");
+    fit2->SetParNames("A_{M}","#phi_{0}");
+    fit3->SetParNames("C");
+    fit4->SetParNames("A_{M}","#phi_{0}");
+  }
+  else if(fit_opt == 3){
+    fit1->SetParNames("A_{M}","C");
+    fit2->SetParNames("A_{M}","C");
+    fit3->SetParNames("C");
+    fit4->SetParNames("A_{M}","C");
+  }
+  else if(fit_opt == 4){
+    fit1->SetParNames("A_{M}");
+    fit2->SetParNames("A_{M}");
+    fit3->SetParNames("C");
+    fit4->SetParNames("A_{M}");
+  }
 
-  fit1->SetParNames("A_{M}","#phi_{0}","C");
-  fit2->SetParNames("A_{M}","#phi_{0}","C");
-  fit3->SetParNames("C");
-  fit4->SetParNames("A_{M}","#phi_{0}","C");
+//   fit1->SetParNames("A_{M}","#phi_{0}","C");
+//   fit2->SetParNames("A_{M}","#phi_{0}","C");
+//   fit3->SetParNames("C");
+//   fit4->SetParNames("A_{M}","#phi_{0}","C");
 
   TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
   stats1->SetTextColor(kBlue);
@@ -778,9 +982,9 @@ int main(Int_t argc,Char_t* argv[]){
   Myfile3.close();
 
 
-  TString saveSummaryPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_plots_%s"
+  TString saveSummaryPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_plots_%s_%s"
 				 ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-				 ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
+				 ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(),fitStem.Data());
 
   Canvas1->Update();
   Canvas1->Print(saveSummaryPlot+".png");
@@ -857,9 +1061,9 @@ int main(Int_t argc,Char_t* argv[]){
   stats11->SetFillColor(kWhite); 
   stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
 
-  TString saveInOutPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_plots_%s"
+  TString saveInOutPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_plots_%s_%s"
 			       ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
+			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(),fitStem.Data());
 
   gPad->Update();
 
@@ -978,9 +1182,9 @@ int main(Int_t argc,Char_t* argv[]){
   }
 
 
-  TString saveOppositeOctantPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_opposite_octant_plots_%s"
+  TString saveOppositeOctantPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_opposite_octant_plots_%s_%s"
 					,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-					,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
+					,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(),fitStem.Data());
 
   Canvas22-> Update();
   Canvas22->Print(saveOppositeOctantPlot+".png");

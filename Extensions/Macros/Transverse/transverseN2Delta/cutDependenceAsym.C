@@ -95,12 +95,13 @@ int main(Int_t argc,Char_t* argv[]){
 
   std::ofstream Myfile3;
 
-  TString target, polar,targ, goodfor, reg_set, reg_calc;
+  TString target, polar,targ, goodfor, reg_set, reg_calc, sigma_set, sigma_draw;
 
   Int_t opt =1;
   Int_t datopt = 3;
   Int_t ropt = 2;
   Int_t qtor_opt = 2;
+  Int_t sigmaopt = 3;
 
   TString good_for;
   TString qtor_current;
@@ -246,6 +247,35 @@ int main(Int_t argc,Char_t* argv[]){
     std::istringstream stream( input_regID );
     stream >> regID;
   }
+
+
+  std::cout<<Form("Enter sigma cut (%sJust Hit ENTER to choose default%s):",blue,normal)<<std::endl;
+  std::cout<<Form("1. 2 sigma")<<std::endl;
+  std::cout<<Form("2. 2.5 sigma")<<std::endl;
+  std::cout<<Form("3. %s3 sigma (deafult)%s",blue,normal)<<std::endl;
+  std::string input_sigmaopt;
+  std::getline( std::cin, input_sigmaopt );
+  if ( !input_sigmaopt.empty() ) {
+    std::istringstream stream( input_sigmaopt );
+    stream >> sigmaopt;
+  }
+  if(sigmaopt == 1){
+    sigma_set = "2sigma";
+    sigma_draw = "2#sigma";
+  }
+  else if(sigmaopt == 2){
+    sigma_set = "2.5sigma";
+    sigma_draw = "2.5#sigma";
+  }
+  else if(sigmaopt == 3){
+    sigma_set = "3sigma";
+    sigma_draw = "3#sigma";
+  }
+  else{
+    std::cout<<Form("Unknown polarization type!")<<std::endl;
+    exit(1);
+  }
+  
 
 
   if(argc>1) database = argv[1];
@@ -434,8 +464,8 @@ int main(Int_t argc,Char_t* argv[]){
 
 
   TString title1;
-  TString titleSummary = Form("%s (%s, %s A): Regression-%s MD %s Asymmetries."
-			      ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),deviceTitle.Data());
+  TString titleSummary = Form("%s (%s, %s A): Regression-%s MD %s Asymmetries. %s cut. "
+			      ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),deviceTitle.Data(),sigma_draw.Data());
 
   if(datopt==1){ title1= Form("%s %s",titleSummary.Data(),showFit1.Data());}
   else if(datopt==2){ title1= Form("%s %s",titleSummary.Data(),showFit2.Data());}
@@ -459,14 +489,10 @@ int main(Int_t argc,Char_t* argv[]){
   pad2->cd();
 
 
-  Char_t  textfile[400],textfile3[400];
-  sprintf(textfile,"dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_%s.txt"
+  Char_t  textfile[400];
+  sprintf(textfile,"dirPlot/cutDependence/%s_%s_%s_%s_MD_%s_regression_%s_%s_cutDependence_%s_%s.txt"
 	  ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-	  ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data()); 
-  sprintf(textfile3,"dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_asym_%s.txt"
-	  ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-	  ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
-  Myfile3.open(textfile3);
+	  ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),sigma_set.Data(),database_stem.Data()); 
 
 //   printf("%sText File = %s\n%s",green,textfile,normal);
 
@@ -778,9 +804,9 @@ int main(Int_t argc,Char_t* argv[]){
   Myfile3.close();
 
 
-  TString saveSummaryPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_plots_%s"
+  TString saveSummaryPlot = Form("dirPlot/cutDependence/%s_%s_%s_%s_MD_%s_regression_%s_%s_cutDependence_%s_%s"
 				 ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-				 ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
+				 ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),sigma_set.Data(),database_stem.Data());
 
   Canvas1->Update();
   Canvas1->Print(saveSummaryPlot+".png");
@@ -788,217 +814,6 @@ int main(Int_t argc,Char_t* argv[]){
     Canvas1->Print(saveSummaryPlot+".svg");
     Canvas1->Print(saveSummaryPlot+".C");
   }
-
-
-  /********************************************/
-  /********************************************/
-
-  TString title11;
-  TString titleInOut = Form("%s (%s, %s A): Regression-%s MD %s IN-OUT asymmetries."
-			    ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),deviceTitle.Data());
-
-  if(datopt==1) title11 = Form("%s %s",titleInOut.Data(),showFit1.Data());
-  else if(datopt==2) title11 = Form("%s %s",titleInOut.Data(),showFit2.Data());
-  else title11 = Form("%s %s",titleInOut.Data(),showFit3.Data());
-
-
-  TCanvas * Canvas11 = new TCanvas("canvas11",title11,0,0,canvasSize[0],canvasSize[1]);
-  Canvas11->Draw();
-  Canvas11->cd();
-
-  TPad*pad11 = new TPad("pad11","pad11",pad1x[0],pad1y[0],pad1x[1],pad1y[1]);
-  TPad*pad12 = new TPad("pad12","pad12",pad2x[0],pad2y[0],pad2x[1],pad2y[1]);
-  pad11->SetFillColor(kWhite);
-  pad11->Draw();
-  pad12->Draw();
-  pad11->cd();
-  TString text11 = Form(title11);
-  TLatex*t11 = new TLatex(0.06,0.3,text11);
-  t11->SetTextSize(0.5);
-  t11->Draw();
-  pad12->cd();
-  //  pad12->SetFillColor(0);
-
-
-  TMultiGraph * grp1 = new TMultiGraph();
-  grp1->Add(grp_diff);
-  grp1->Draw("AP");
-  fit4->DrawCopy("same");
-  fit4->SetLineColor(kMagenta+1);
-
-  grp1->SetTitle("");
-  grp1->GetXaxis()->SetTitle("Octant");
-  grp1->GetXaxis()->CenterTitle();
-  grp1->GetYaxis()->SetTitle(Form("MD %s Asymmetry [ppm]",deviceTitle.Data()));
-  grp1->GetYaxis()->CenterTitle();
-  grp1->GetYaxis()->SetTitleSize(0.04);
-  grp1->GetYaxis()->SetTitleOffset(0.9);
-  grp1->GetXaxis()->SetTitleOffset(0.8);
-  grp1->GetXaxis()->SetNdivisions(8,0,0);
-  if(SCALE){
-    grp1->GetYaxis()->SetRangeUser(yScale[0],yScale[1]);
-  }
-
-
-  if(PRELIMINARY){
-    // Preliminary water mark sign 
-    TLatex * prelim = new TLatex(waterMark[0],waterMark[1],"Preliminary");
-    prelim->SetTextColor(18);
-    prelim->SetTextSize(0.1991525);
-    prelim->SetTextAngle(15.0);
-    prelim->SetLineWidth(2);
-    prelim->Draw();
-    grp1->Draw("P");
-  }
-
-  TPaveStats *stats11 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
-
-  stats11->SetTextColor(kMagenta+1);
-  stats11->SetFillColor(kWhite); 
-  stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
-
-  TString saveInOutPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_plots_%s"
-			       ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
-
-  gPad->Update();
-
-  Canvas11-> Update();
-  Canvas11->Print(saveInOutPlot+".png");
-  if(FIGURE){
-    Canvas11->Print(saveInOutPlot+".svg");
-    Canvas11->Print(saveInOutPlot+".C");
-  }
-
-
-
-  /********************************************/
-  /********************************************/
-
-  TString title22;
-  TString titleOppositeOctant = Form("%s (%s, %s A): Regression-%s Slug Based Opposite Octant Averages of MD %s."
-				     ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),deviceTitle.Data());
-
-  if(datopt==1) title22 = Form("%s %s",titleOppositeOctant.Data(),showFit1.Data());
-  else if(datopt==2) title22 = Form("%s %s",titleOppositeOctant.Data(),showFit2.Data());
-  else title22 = Form("%s %s",titleOppositeOctant.Data(),showFit3.Data());
-
-
-  TCanvas * Canvas22 = new TCanvas("canvas11",title22,0,0,canvasSize[0],canvasSize[1]);
-  Canvas22->Draw();
-  Canvas22->cd();
-  TPad*pad21 = new TPad("pad21","pad21",pad1x[0],pad1y[0],pad1x[1],pad1y[1]);
-  TPad*pad22 = new TPad("pad22","pad22",pad2x[0],pad2y[0],pad2x[1],pad2y[1]);
-  pad21->SetFillColor(kWhite);
-  pad21->Draw();
-  pad22->Draw();
-
-  pad21->cd();
-  TString text22 = Form(title22);
-  TLatex*t22 = new TLatex(0.06,0.3,text22);
-  t22->SetTextSize(0.5);
-  t22->Draw();
-
-  pad22->cd();
-
-  TGraphErrors* grp_sum_bars  = new TGraphErrors(4,x,valuesumopp,errx,errorsumopp);
-  grp_sum_bars ->SetMarkerSize(markerSize[4]);
-  grp_sum_bars ->SetMarkerStyle(22);
-  grp_sum_bars ->SetMarkerColor(kGreen-3);
-  //grp_sum_bars->Fit("pol0");
-  //TF1* fit1 = grp_sum_bars->GetFunction("pol0");
-  //fit1->DrawCopy("same");
-  //fit1->SetLineColor(kGreen-2);
- 
-
-  TGraphErrors* grp_diff_bars  = new TGraphErrors(4,x,valuediffopp,errx,errordiffopp);
-  grp_diff_bars ->SetMarkerSize(markerSize[4]);
-  grp_diff_bars ->SetMarkerStyle(21);
-  grp_diff_bars ->SetMarkerColor(kMagenta);
-  //  grp_diff_bars->Fit("pol0");
-  // TF1* fit2 = grp_diff_bars->GetFunction("pol0");
-  //fit2->DrawCopy("same");
-  //fit2->SetLineColor(kRed);
-
-  TMultiGraph * grpOctant = new TMultiGraph();
-  grpOctant->Add(grp_sum_bars);
-  grpOctant->Add(grp_diff_bars);
-  grpOctant->Draw("AP");
-
-  grpOctant->SetTitle("");
-  grpOctant->GetXaxis()->SetTitle("Octant & Opposite Octant");
-  grpOctant->GetXaxis()->CenterTitle();
-  grpOctant->GetYaxis()->SetTitle(Form("MD %s Opposite Octant Asym. Combo [ppm]",deviceTitle.Data()));
-  grpOctant->GetYaxis()->CenterTitle();
-  grpOctant->GetYaxis()->SetTitleSize(0.04);
-  grpOctant->GetYaxis()->SetTitleOffset(0.9);
-  grpOctant->GetXaxis()->SetTitleOffset(0.9);
-  grpOctant->GetXaxis()->SetNdivisions(4,0,0);
-  grpOctant->GetXaxis()->SetLabelColor(0);
-
-  TAxis *xaxisGrpOctant= grpOctant->GetXaxis();
-  xaxisGrpOctant->SetLimits(0.5,4.5);
-
-
-
-  TLegend *legend2 = new TLegend(0.1,0.83,0.35,0.95,"","brNDC");
-  legend2->AddEntry(grp_sum_bars, "A_{(IN+OUT)/2 + (IN+OUT)/2\'}", "p");
-  legend2->AddEntry(grp_diff_bars, "A_{AVG(IN,-OUT) - AVG(IN,-OUT)\'}","p");
-  legend2->SetFillColor(0);
-  legend2->SetBorderSize(2);
-  legend2->SetTextSize(0.035);
-  legend2->Draw("");
-
-
-  Double_t xAxisGrpOctant = 0.92;
-  Double_t yAxisGrpOctant = -8.2;
-  TLatex* text1=new TLatex(xAxisGrpOctant,yAxisGrpOctant,"1,5");
-  text1->SetTextSize(0.045);
-  TLatex* text2=new TLatex(1+xAxisGrpOctant,yAxisGrpOctant,"2,6");
-  text2->SetTextSize(0.045);
-  TLatex* text3=new TLatex(2+xAxisGrpOctant,yAxisGrpOctant,"3,7");
-  text3->SetTextSize(0.045);
-  TLatex* text4=new TLatex(3+xAxisGrpOctant,yAxisGrpOctant,"4,8");
-  text4->SetTextSize(0.045);
-
-  text1->Draw();
-  text2->Draw();
-  text3->Draw();
-  text4->Draw();
-
-  if(PRELIMINARY){
-    // Preliminary water mark sign 
-    TLatex * prelim = new TLatex(waterMark[0]/1.5,waterMark[1],"Preliminary");
-    prelim->SetTextColor(18);
-    prelim->SetTextSize(0.1991525);
-    prelim->SetTextAngle(15.0);
-    prelim->SetLineWidth(2);
-    prelim->Draw();
-    grpOctant->Draw("P");
-  }
-
-
-  TString saveOppositeOctantPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_opposite_octant_plots_%s"
-					,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-					,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
-
-  Canvas22-> Update();
-  Canvas22->Print(saveOppositeOctantPlot+".png");
-  if(FIGURE){
-    Canvas22->Print(saveOppositeOctantPlot+".svg");
-    Canvas22->Print(saveOppositeOctantPlot+".C");
-  }
-
-
-
-
-
-
-//   printf("%s HWP\t\t: Am+-eAm Phi0+-ePhi0 C+-eC Chisquare NDF Prob \n%s",green,normal);
-//   printf("%s IN\t\t: %4.2f+-%4.2f %4.2f+-%4.2f %4.2f+-%4.2f %4.2f %4.0f %4.2f \n%s",green,p0in,ep0in,p1in,ep1in,p2in,ep2in,Chiin,NDFin,Probin,normal);
-//   printf("%s OUT\t\t: %4.2f+-%4.2f %4.2f+-%4.2f %4.2f+-%4.2f %4.2f %4.0f %4.2f \n%s",green,p0out,ep0out,p1out,ep1out,p2out,ep2out,Chiout,NDFout,Probout,normal);
-//   printf("%s (IN+OUT)/2\t: \t\t\t  %4.2f+-%4.2f %4.2f %4.0f %4.2f \n%s",green,p0sum,ep0sum,Chisum,NDFsum,Probsum,normal);
-//   printf("%s AVG(IN-OUT)\t: %4.2f+-%4.2f %4.2f+-%4.2f %4.2f+-%4.2f %4.2f %4.0f %4.2f \n%s",green,p0diff,ep0diff,p1diff,ep1diff,p2diff,ep2diff,Chidiff,NDFdiff,Probdiff,normal);
 
 
 
