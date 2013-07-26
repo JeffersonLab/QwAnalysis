@@ -6,11 +6,11 @@ make
 
 If you are on a personal machine and do not want to invoke the msql libraries(this will cause compilation errors if you try to compile code that needs mysql++) use:
 
-make qwmpsonly NO_MYSQL=-D__NO_MYSQL
+make runMpsOnly NO_MYSQL=-D__NO_MYSQL
 
 or 
 
-make qwmpsonly NO_MYSQL
+make runMpsOnly NO_MYSQL
 
 "Makefile_full" is the original Makefile to compile QwModulation as well as 
 QwMpsOnly.

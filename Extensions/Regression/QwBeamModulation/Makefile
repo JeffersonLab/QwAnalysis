@@ -90,7 +90,7 @@ all: qwbeammod qwlibra qwasymsplitter qwresidual qwmpsonly
 
 qwbeammod : ${SRC}/qwbeammod.o ${SRC}/QwModulation.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
-qwmpsonly : ${SRC}/runMpsOnly.o ${SRC}/QwMpsOnly.o
+runMpsOnly : ${SRC}/runMpsOnly.o ${SRC}/QwMpsOnly.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
 qwlibra : ${SRC}/qwlibra.o ${SRC}/QwData.o ${SRC}/QwDiagnostic.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
@@ -125,6 +125,8 @@ qwfileplot: ${SRC}/qwfileplot.o ${SRC}/QwDataFile.o
 qwfilemplot: ${SRC}/qwfilemplot.o ${SRC}/QwDataFile.o 
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
 qwnormal: ${SRC}/qwnormal.o ${SRC}/QwModulation.o 
+	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
+qwcomposite: ${SRC}/qwcomposite.o ${SRC}/QwDataContainer.o ${SRC}/QwModulation.o ${SRC}/QwDBConnection.o
 	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}  ${LIB}	
 clean: 
 	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ qwbeammod qwlibra qwcharge qwdbplot qw_ndelta qwslug qwcorrelation qwregrun qwasymsplitter qwresidual qwdboptics
