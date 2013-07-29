@@ -134,6 +134,7 @@ search=(
     /usr/include/mysql++
     /usr/local/include/mysql++
     /opt/local/include/mysql++
+    /group/qweak/QwAnalysis/Linux_CentOS6.2-x86_64/mysql++/3.0.9/include/mysql++
     /group/qweak/spayde/local/include/mysql++
     )
 export MYSQLPP_INC_DIR=$(first_existing_directory "${MYSQLPP_INC_DIR}" "${search[@]}")
@@ -147,6 +148,7 @@ search=(
     /usr/local/${lib}
     /usr/local/${lib}/mysql++
     /opt/local/${lib}
+    /group/qweak/QwAnalysis/Linux_CentOS6.2-x86_64/mysql++/3.0.9/lib
     /group/qweak/spayde/local/${lib}
     )
 export MYSQLPP_LIB_DIR=$(first_path_with_file $libname "${MYSQLPP_LIB_DIR}" "${search[@]}")
