@@ -12,7 +12,7 @@
 // System headers
 #include <string>
 #include <cmath>
-#include "../include/QwTreeEventBuffer.h"
+#include "QwTreeEventBuffer.h"
 
 // ROOT headers
 #include <TVector3.h>
