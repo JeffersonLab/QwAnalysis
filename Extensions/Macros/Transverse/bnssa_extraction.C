@@ -57,7 +57,7 @@ void elastic_bnsa_extraction(){
   Double_t Bn = 0.0; //to be determined
   Double_t Bmsr = -4.835;//ppm 
   Double_t dBmsr_stat = 0.057; //ppm
-  Double_t dBmsr_non_linear = 0.063; //ppm i.e. 4.805x0.013
+  Double_t dBmsr_non_linear = 0.096; //ppm i.e. 4.805x0.02
   Double_t dBmsr_reg_scheme = 0.029; //ppm
   Double_t dBmsr_acc_avg = 0.015; //ppm
 
