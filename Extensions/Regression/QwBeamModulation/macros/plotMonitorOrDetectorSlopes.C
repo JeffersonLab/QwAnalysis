@@ -111,7 +111,8 @@ Int_t plotMonitorOrDetectorSlopes(Int_t slug_start = 139, Int_t slug_end = 225, 
   //
   //Get runs in each slug from slug list file
   //
-  ifstream slugList("runsBySlug.dat");
+  ifstream slugList(Form("%s/macros/runsBySlug.dat", 
+			 gSystem->Getenv("BMOD_SRC")));
   Int_t nSlugs = 0, nSlug = 0;;
   if(slugList.is_open())cout<<"File list found.\n";
   else cout<<"File list not found.\n";
