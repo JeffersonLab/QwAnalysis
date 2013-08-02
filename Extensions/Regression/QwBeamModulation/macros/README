@@ -1,0 +1,27 @@
+The macros in this directory are useful for plotting certain BMOD outputs and 
+residuals. 
+
+checkInvertedSlopes.C
+Reads the inverted slopes from the "slopes/slope<run_number>.set4.dat" files and
+uses them to correct the data in the bmod_only rootfiles. It then profiles the 
+data and fits a sine + cosine curve to the corrected data vs. ramp_filled. These
+residual cosine and sine components are stored in the 
+"slopes/run<run_number>Cosine(Sine)Ampl.dat" files.
+
+checkInvertSlopes.sh
+Script that executes "runQwMpsOnly.cc" and then "checkInvertedSlopes.C" for a 
+given run range creating the modulation slopes and diagnostic files and residual 
+cosine and sine amplitude files.
+
+plotInvertedSlopesBySlug.C
+Plots the inverted slopes (dDet/dMon) as found in the 
+"slopes/slope_<run_number>.set4.dat" files. These slopes are error weighted and 
+averaged over full slugs. This program gets its runlist by slug from the file 
+"runBySlug.dat" also located in this macros directory.
+
+plotResidualCosAndSinCompBySlug.C
+Plots the residual cosine and sine amplitudes vs slug.
+
+plotMonitorOrDetectorSlopes.C
+Plots either the monitor or detector coefficients (dMon/dCoil) vs slug.
+
