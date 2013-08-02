@@ -174,7 +174,7 @@ void QwMpsOnly::BuildNewEBPM(){
   //  newfile->Close();
 }
 
-void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
+void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
 {
   Double_t sigma_cc = 0;
   Double_t sigma_dc = 0;
@@ -197,14 +197,14 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
     return;
   }
   
-  if(CoilData[fNModType].size() <= 0){
+  if(CoilData[modType].size() <= 0){
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" 
-	      << CoilData[fNModType].size() << std::endl;
+	      << CoilData[modType].size() << std::endl;
     return;
   }
 
   //*******************************
-  ModulationEvents[fNModType] += fNEvents;
+  ModulationEvents[modType] += fNEvents;
   //*******************************
   
   // 2D Sin+Cos+Const fit.
@@ -225,7 +225,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
   c_mean=0;
   c_mean2=0;
   for(Int_t evNum=0; evNum<fNEvents; evNum++) { // Dependent is always ramp
-    x[evNum] = CoilData[fNModType][evNum] + phase[fNModType]/kDegToRad;
+    x[evNum] = CoilData[modType][evNum] + phase[modType]/kDegToRad;
     if(x[evNum] >= 360.0)
       x[evNum] -= 360.0;
     c_mean += TMath::Sin(kDegToRad*x[evNum]);	
@@ -242,7 +242,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
   Double_t cosAmp = 0;
   Double_t cosAmpError = 0;  
 
-  char  *ModName[fNModType];
+  char  *ModName[modType];
   ModName[fXModulation] = "X";
   ModName[fXPModulation] = "XP";
   ModName[fEModulation] = "E";
@@ -314,21 +314,21 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
     cosAmp = fctn->GetParameter(2);
     cosAmpError = fctn->GetParError(2);
     
-    MonitorSlope[fNModType][mon].push_back(sinAmp);
-    MonitorSlopeError[fNModType][mon].push_back(sinAmpError);
-    MonitorSlope[fNModType+5][mon].push_back(cosAmp);
-    MonitorSlopeError[fNModType+5][mon].push_back(cosAmpError);
+    MonitorSlope[modType][mon].push_back(sinAmp);
+    MonitorSlopeError[modType][mon].push_back(sinAmpError);
+    MonitorSlope[modType+5][mon].push_back(cosAmp);
+    MonitorSlopeError[modType+5][mon].push_back(cosAmpError);
     
   }
   
   if(makePlots){
     cM->cd(6);
     TPaveText* pt1 = new TPaveText(0.05, 0.05, 0.8, 0.8);
-    pt1->AddText(Form("%s Modulation", ModName[fNModType]));
+    pt1->AddText(Form("%s Modulation", ModName[modType]));
     pt1->SetFillColor(43);
     pt1->Draw();
     cM->cd();
-    cM->Print(Form("MonitorPlot%i.png",fNModType));
+    cM->Print(Form("MonitorPlot%i.png",modType));
     delete cM;
   }
   
@@ -398,37 +398,37 @@ void QwMpsOnly::Calculate2DSlope(Int_t fNModType, Int_t makePlots)
     cosAmp = fctn->GetParameter(2);
     cosAmpError = fctn->GetParError(2);
     
-    DetectorSlope[fNModType][det].push_back(sinAmp/Const);
-    DetectorSlopeError[fNModType][det].push_back(sinAmpError);
-    DetectorSlope[fNModType+5][det].push_back(cosAmp/Const);
-    DetectorSlopeError[fNModType+5][det].push_back(cosAmpError);
+    DetectorSlope[modType][det].push_back(sinAmp/Const);
+    DetectorSlopeError[modType][det].push_back(sinAmpError);
+    DetectorSlope[modType+5][det].push_back(cosAmp/Const);
+    DetectorSlopeError[modType+5][det].push_back(cosAmpError);
     
   }
   
   if(makePlots){
     cD->cd(30);
     TPaveText* pt2 = new TPaveText(0.05, 0.05, 0.8, 0.8);
-    pt2->AddText(Form("%s Modulation", ModName[fNModType]));
+    pt2->AddText(Form("%s Modulation", ModName[modType]));
     pt2->SetFillColor(43);
     pt2->Draw();
     cD->cd();
-    cD->Print(Form("DetectorPlot%i.png",fNModType));
+    cD->Print(Form("DetectorPlot%i.png",modType));
     delete cD;
   }
   
-  //  CoilData[fNModType].clear();
+  //  CoilData[modType].clear();
   
   // These need to be set so we know if we have a full set of modulation data
-  if(fNModType == fXModulation)  fXinit = true;
-  if(fNModType == fYModulation)  fYinit = true;
-  if(fNModType == fEModulation)  fEinit = true;
-  if(fNModType == fXPModulation) fXPinit = true;
-  if(fNModType == fYPModulation) fYPinit = true;
+  if(modType == fXModulation)  fXinit = true;
+  if(modType == fYModulation)  fYinit = true;
+  if(modType == fEModulation)  fEinit = true;
+  if(modType == fXPModulation) fXPinit = true;
+  if(modType == fYPModulation) fYPinit = true;
   
   return;
 }
 
-void QwMpsOnly::CalculateSlope(Int_t fNModType)
+void QwMpsOnly::CalculateSlope(Int_t modType)
 {
 
   Double_t c_mean = 0;
@@ -439,7 +439,7 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
   Double_t sigma_slope = 0;
   Double_t slope = 0;
 
-  //  DetectorSlope[fNModType].resize(fNEvents);
+  //  DetectorSlope[modType].resize(fNEvents);
   if(!fPhaseConfig){
     Double_t temp[5]={0.26, 0.26, 0.0, 1.08, 1.08};              
     SetPhaseValues(temp); 
@@ -451,18 +451,18 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     return;
   }
   
-  if(CoilData[fNModType].size() <= 0){
+  if(CoilData[modType].size() <= 0){
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" 
-	      << CoilData[fNModType].size() << std::endl;
+	      << CoilData[modType].size() << std::endl;
     return;
   }
 
   //*******************************
-  ModulationEvents[fNModType] += fNEvents;
+  ModulationEvents[modType] += fNEvents;
   //*******************************
    
-//  if(fNModType == 0)
-//     std::cout<<"mod_type# "<<fNModType<<"\n";
+//  if(modType == 0)
+//     std::cout<<"mod_type# "<<modType<<"\n";
 
   for(Int_t det = 0; det < fNDetector; det++){
     
@@ -474,8 +474,8 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
 
   
     for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
-      c_mean += TMath::Sin( kDegToRad*CoilData[fNModType][evNum] + 
-			    phase[fNModType]);
+      c_mean += TMath::Sin( kDegToRad*CoilData[modType][evNum] + 
+			    phase[modType]);
     c_mean /= fNEvents;
     
     for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
@@ -483,8 +483,8 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     d_mean /= fNEvents;
 
     for(Int_t evNum = 0; evNum < fNEvents; evNum++){
-      Double_t val = (TMath::Sin( kDegToRad*CoilData[fNModType][evNum] 
-			     + phase[fNModType] )- c_mean);
+      Double_t val = (TMath::Sin( kDegToRad*CoilData[modType][evNum] 
+			     + phase[modType] )- c_mean);
       sigma_cc += val * val;
       sigma_dc += (DetectorData[det][evNum] - d_mean) * val;
       sigma_dd += TMath::Power((DetectorData[det][evNum] - d_mean), 2);
@@ -499,14 +499,14 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     // Load Yields in to make Yield Correction a little easier in the end.
     //
     if(fSensHumanReadable == 1){
-      DetectorSlope[fNModType][det].push_back(1e6*slope
+      DetectorSlope[modType][det].push_back(1e6*slope
 					      /( TMath::Abs(d_mean) ));
-      DetectorSlopeError[fNModType][det].push_back(1e6*sigma_slope
+      DetectorSlopeError[modType][det].push_back(1e6*sigma_slope
 						   /( TMath::Abs(d_mean) ));
       
     }else{
-      DetectorSlope[fNModType][det].push_back(slope/( TMath::Abs(d_mean) ));
-      DetectorSlopeError[fNModType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
+      DetectorSlope[modType][det].push_back(slope/( TMath::Abs(d_mean) ));
+      DetectorSlopeError[modType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
     }
     
     c_mean = 0;
@@ -525,8 +525,8 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
       return;
     }
     for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
-      c_mean += TMath::Sin( kDegToRad*CoilData[fNModType][evNum] 
-			    + phase[fNModType] );
+      c_mean += TMath::Sin( kDegToRad*CoilData[modType][evNum] 
+			    + phase[modType] );
     c_mean /= fNEvents;
     
     for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
@@ -535,8 +535,8 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     
     //Linearize Data --don  
     for(Int_t evNum = 0; evNum < fNEvents; evNum++){
-      Double_t val = (TMath::Sin(kDegToRad*CoilData[fNModType][evNum] 
-				 + phase[fNModType] ) - c_mean);
+      Double_t val = (TMath::Sin(kDegToRad*CoilData[modType][evNum] 
+				 + phase[modType] ) - c_mean);
       sigma_cc += val*val;
       sigma_dc += val*(MonitorData[mon][evNum] - d_mean);
       sigma_dd += TMath::Power((MonitorData[mon][evNum] - d_mean),2);
@@ -547,8 +547,8 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
     sigma_slope = TMath::Sqrt((sigma_dd - (sigma_dc*sigma_dc)/sigma_cc)
 			      /(sigma_cc*(fNEvents -2 )));
     
-    MonitorSlope[fNModType][mon].push_back(slope);
-    MonitorSlopeError[fNModType][mon].push_back(sigma_slope);
+    MonitorSlope[modType][mon].push_back(slope);
+    MonitorSlopeError[modType][mon].push_back(sigma_slope);
     
     c_mean = 0;
     d_mean = 0;
@@ -562,11 +562,11 @@ void QwMpsOnly::CalculateSlope(Int_t fNModType)
   
   // These need to be set so we know if we have a full set of modulation data
   
-  if(fNModType == fXModulation)  fXinit = true;
-  if(fNModType == fYModulation)  fYinit = true;
-  if(fNModType == fEModulation)  fEinit = true;
-  if(fNModType == fXPModulation) fXPinit = true;
-  if(fNModType == fYPModulation) fYPinit = true;
+  if(modType == fXModulation)  fXinit = true;
+  if(modType == fYModulation)  fYinit = true;
+  if(modType == fEModulation)  fEinit = true;
+  if(modType == fXPModulation) fXPinit = true;
+  if(modType == fYPModulation) fYPinit = true;
   
   return;
 }
@@ -1507,8 +1507,8 @@ void QwMpsOnly::PrintAverageSlopes()
 				 gSystem->Getenv("BMOD_OUT"),run_number),"w");
   FILE *det_coil_coeff = fopen(Form("%s/slopes/det_coil_coeff_%i.dat",
 				 gSystem->Getenv("BMOD_OUT"),run_number),"w");
-  printf("Monitor Slopes   |  Pattern 0   |  Pattern 1   |  Pattern 2   |"
-	 "  Pattern 3   |  Pattern 4   |\n");
+  printf("Monitor Slopes   |       Xmod   |       XPmod  |       Emod   |"
+	 "      Ymod    |      YPmod   |\n");
   printf("******************************************************************"
 	 "***************************\n");
   Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
@@ -1527,8 +1527,8 @@ void QwMpsOnly::PrintAverageSlopes()
   fclose(mon_coil_coeff);
 
   printf("\n\n");
-  printf("Detector Slopes  |  Pattern 0   |  Pattern 1   |  Pattern 2   |"
-	 "  Pattern 3   |  Pattern 4   |\n");
+  printf("Detector Slopes  |       Xmod   |       XPmod  |       Emod   |"
+	 "      Ymod    |      YPmod   |\n");
   printf("******************************************************************"
 	 "***************************\n");
 
@@ -1537,7 +1537,7 @@ void QwMpsOnly::PrintAverageSlopes()
     det.Resize(16);
     printf("%s |",det.Data());
     fprintf(det_coil_coeff, "%s\n", DetectorList[i].Data());
-   for(Int_t j=0;j<nMod;j++){
+    for(Int_t j=0;j<nMod;j++){
       printf(" %+9.5e |",AvDetectorSlope[j][i]);
       fprintf(det_coil_coeff,"%12.6e\t%12.6e\n",AvDetectorSlope[j][i],
 	      AvDetectorSlopeError[j][i]);
