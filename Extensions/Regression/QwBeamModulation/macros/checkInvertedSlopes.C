@@ -40,7 +40,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-  char  x[255], xe[255], mon[255], monitor[255];
+  char  x[255], xe[255], mon[255], monitr[255], det[255], detectr[255];
   string line;
 
   gStyle->SetOptFit(1111);
@@ -54,29 +54,23 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
   Double_t meanX[nMOD][nMOD], meanY[nMOD][nDET];
   Int_t order[18] = {8,7,1,2,3,9,15,14,13,11,10,4,5,6,12,18,17,16};
   TString ModulationList[nMOD] = {"Xmod", "Ymod", "Emod", "XPmod", "YPmod"};
-  TString MonitorList[nMOD] ;
+  TString MonitorList[nMOD];
 
-  TString DetectorList[nDET] = {"qwk_mdallbars", "qwk_md1barsum", 
-				"qwk_md2barsum", "qwk_md3barsum", 
-				"qwk_md4barsum", "qwk_md5barsum",
-				"qwk_md6barsum", "qwk_md7barsum", 
-				"qwk_md8barsum"};//, "qwk_md9barsum",
-// 				"qwk_dslumi1", "qwk_dslumi2",
-// 				"qwk_dslumi3", "qwk_dslumi4", 
-// 				"qwk_dslumi5", "qwk_dslumi6", 
-// 				"qwk_dslumi7","qwk_dslumi8",
-// 				"uslumi_sum","uslumi1_sum",
-// 				"uslumi3_sum", "uslumi5_sum",
-// 				"uslumi7_sum","qwk_pmtltg",
-// 				"qwk_pmtonl","qwk_bcm1","qwk_bcm2",
-// 				"qwk_bcm5","qwk_bcm6"};
+  TString DetectorList[nDET];
 
   ifstream file(Form("%s/config/setup_mpsonly.config",gSystem->Getenv("BMOD_SRC")));
   for(int i=0;i<5;i++){
-    file>>mon>>monitor;
+    file>>mon>>monitr;
     getline(file, line);
-    MonitorList[i] = TString(monitor);
+    MonitorList[i] = TString(monitr);
     cout<<MonitorList[i]<<endl;
+  }
+  getline(file, line);
+  for(int i=0;i<nDET;i++){
+    file>>det>>detectr;
+    getline(file, line);
+    DetectorList[i] = TString(detectr);
+    cout<<DetectorList[i]<<endl;
   }
 
   TString detector;
@@ -92,7 +86,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 
 
   TChain *ch = new TChain("mps_slug");
-  ch->Add(Form("mps_only_%i*.root",run));
+  ch->Add(Form("%s/mps_only_%i*.root",gSystem->Getenv("MPS_ONLY_ROOTFILES"),run));
   TFile *friendTree = new TFile(Form("%s/mps_only_friend_%i.root",
 				     gSystem->Getenv("MPS_ONLY_ROOTFILES"), run));
   if(friendTree->IsOpen()){

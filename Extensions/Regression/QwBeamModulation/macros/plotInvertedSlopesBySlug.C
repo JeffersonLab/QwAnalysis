@@ -105,7 +105,7 @@ Int_t plotInvertedSlopesBySlug(Int_t slug_start = 139, Int_t slug_end = 225){
     cout<<DetectorList[i]<<endl;
   }
 
-  TString detector;
+  //  TString detector;
   ifstream slugList(Form("%s/macros/runsBySlug.dat", 
 			 gSystem->Getenv("BMOD_SRC")));
   Int_t nSlugs = 0, nSlug = 0;;
