@@ -44,7 +44,11 @@ fi
 # Sets used below inaddition don't have 3h09b.
 # post mortem uslumi5pos
 if [ $run -ge 17019 -a $run -le 18005 ] ; then
-    confDir="run2pass5_no_uslumi5pos"
+    if [ $run -ge 17754 -a $run -le 17758 ] ; then
+        confDir="run2pass5_n2delta"
+    else
+        confDir="run2pass5_no_uslumi5pos"
+    fi
 fi
 
 if [ $run -ge 18006 -a $run -le 18030 ] ; then
