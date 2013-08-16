@@ -22,6 +22,7 @@ class QwMpsOnly {
 
 private:
 
+  char *fg[4];//used by FindRampPeriodAndOffset() and Write()
   Int_t fDetectorRead;
   Int_t fMonitorRead;
   Int_t fXModulation;
@@ -55,6 +56,10 @@ private:
   Double_t fRampLength;
   Double_t fRampPeriod;
   Double_t fRampOffset;
+  Double_t rampPeriodFitRslt[4];
+  Double_t rampPeriodFitRsltErr[4];
+  Double_t rampOffsetFitRslt[4];
+  Double_t rampOffsetFitRsltErr[4];
 
   static const Int_t kNMaxMon = 6;
   static const Int_t kNMaxDet = 35;

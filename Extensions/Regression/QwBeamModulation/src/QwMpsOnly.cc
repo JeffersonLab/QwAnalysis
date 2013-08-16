@@ -76,7 +76,8 @@ void QwMpsOnly::BuildDetectorAvSlope()
     AvDetectorSlope.push_back(std::vector <Double_t>());
     AvDetectorSlopeError.push_back(std::vector <Double_t>());
   }
-  std::cout << "Average Detector vector size: " << AvDetectorSlope.size() << std::endl;
+  std::cout << "Average Detector vector size: " << AvDetectorSlope.size() << 
+    std::endl;
   return;
 }
 
@@ -110,7 +111,8 @@ void QwMpsOnly::BuildMonitorAvSlope()
     AvMonitorSlope.push_back(std::vector <Double_t>());
     AvMonitorSlopeError.push_back(std::vector <Double_t>());
   }
-  std::cout << "Average Monitor vector size: " << AvMonitorSlope.size() << std::endl;
+  std::cout << "Average Monitor vector size: " << AvMonitorSlope.size() << 
+    std::endl;
   return;
 }
 
@@ -149,7 +151,8 @@ void QwMpsOnly::BuildNewEBPM(){
   Double_t newEnergyBPM=0;
   b_newEbpm = newTree->Branch("newEbpm", &newEnergyBPM, "newEbpm/D");
 
-  Double_t alpha[] = {1.47521,-57239.6,1,-0.0423589,-4131.94}; // X,XP,E,Y,YP in setup.config
+  Double_t alpha[] = {1.47521,-57239.6,1,-0.0423589,-4131.94}; // X,XP,E,Y,YP in 
+                                                               // setup.config
   
   for(Int_t i=0;i<fChain->GetEntries();i++){
 
@@ -159,12 +162,10 @@ void QwMpsOnly::BuildNewEBPM(){
     // construct new energy bpm
     for(int inew=0;inew<5;inew++){
 
-      newEnergyBPM += alpha[inew]*(fChain->GetLeaf(MonitorList[inew].Data())->GetValue());
+      newEnergyBPM += alpha[inew]*(fChain->GetLeaf(MonitorList[inew].Data())->
+				   GetValue());
 
-      // if(i%100==0) 
-      // 	std::cout << alpha[inew] <<"*"<< fChain->GetLeaf(MonitorList[inew].Data())->GetValue() << " + " ;
     }
-    //    if(i%100==0) std::cout << " = "<< newEnergyBPM <<"\n"<< std::endl;
 
     newTree->Fill();
     if(i%10000==0)std::cout<<"Processing entry "<<i<<".\n";
@@ -506,7 +507,8 @@ void QwMpsOnly::CalculateSlope(Int_t modType)
       
     }else{
       DetectorSlope[modType][det].push_back(slope/( TMath::Abs(d_mean) ));
-      DetectorSlopeError[modType][det].push_back(sigma_slope/( TMath::Abs(d_mean) ));
+      DetectorSlopeError[modType][det].push_back(sigma_slope
+						 /( TMath::Abs(d_mean) ));
     }
     
     c_mean = 0;
@@ -710,7 +712,8 @@ void QwMpsOnly::ComputeAsymmetryCorrections()
 //
 //**************************************************************
 
-  TFile file(Form("%s/rootfiles/mps_bmod_tree%s_%i.%s.root", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()),"RECREATE");
+  TFile file(Form("%s/rootfiles/mps_bmod_tree%s_%i.%s.root", output.Data(), 
+		  fFileSegment.Data(), run_number, fSetStem.Data()),"RECREATE");
 
   TTree *mod_tree = new TTree("Mod_Tree", "Modulation Analysis Results Tree");
 
@@ -722,56 +725,74 @@ void QwMpsOnly::ComputeAsymmetryCorrections()
   correction.resize(fNDetector);
 
   mod_tree->Branch("pattnum", &pattnum, "pattnum/D"); 
-  mod_tree->Branch("yield_qwk_charge", &yield_qwk_charge_hw_sum, "yield_qwk_charge/D"); 
-
-//   mod_tree->Branch("yield_ramp_block0", &yield_ramp_block0, "yield_ramp_block0/D"); 
-//   mod_tree->Branch("yield_ramp_block1", &yield_ramp_block1, "yield_ramp_block1/D"); 
-//   mod_tree->Branch("yield_ramp_block2", &yield_ramp_block2, "yield_ramp_block2/D"); 
-//   mod_tree->Branch("yield_ramp_block3", &yield_ramp_block3, "yield_ramp_block3/D"); 
-
-  mod_tree->Branch("yield_bm_pattern_number", &yield_bm_pattern_number, "yield_bm_pattern_number/D"); 
+  mod_tree->Branch("yield_qwk_charge", &yield_qwk_charge_hw_sum, 
+		   "yield_qwk_charge/D"); 
+  mod_tree->Branch("yield_bm_pattern_number", &yield_bm_pattern_number, 
+		   "yield_bm_pattern_number/D"); 
   mod_tree->Branch("yield_ramp", &yield_ramp_hw_sum, "yield_ramp_hw_sum/D"); 
   mod_tree->Branch("ErrorFlag", &ErrorFlag, "ErrorFlag/D"); 
-  mod_tree->Branch("yield_qwk_mdallbars_Device_Error_Code", &yield_qwk_mdallbars_Device_Error_Code, "yield_qwk_mdallbars_Device_Error_Code/D"); 
-  mod_tree->Branch("yield_qwk_mdallbars", &yield_qwk_mdallbars_hw_sum, "yield_qwk_mdallbars/D"); 
-  mod_tree->Branch("asym_qwk_charge", &asym_qwk_charge_hw_sum, "asym_qwk_charge/D"); 
+  mod_tree->Branch("yield_qwk_mdallbars_Device_Error_Code", 
+		   &yield_qwk_mdallbars_Device_Error_Code, 
+		   "yield_qwk_mdallbars_Device_Error_Code/D"); 
+  mod_tree->Branch("yield_qwk_mdallbars", &yield_qwk_mdallbars_hw_sum, 
+		   "yield_qwk_mdallbars/D"); 
+  mod_tree->Branch("asym_qwk_charge", &asym_qwk_charge_hw_sum, 
+		   "asym_qwk_charge/D"); 
 
   for(Int_t i = 0; i < fNDetector; i++){
-    mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("raw_%s",HDetectorList[i].Data()), &HDetBranch[i][0], Form("raw_%s/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), &AsymmetryCorrection[i], Form("raw_corr_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], 
+		     Form("%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_%s",HDetectorList[i].Data()), &HDetBranch[i][0], 
+		     Form("raw_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), 
+		     &AsymmetryCorrection[i], 
+		     Form("corr_%s/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("raw_corr_%s", HDetectorList[i].Data()), 
+		     &AsymmetryCorrection[i], 
+		     Form("raw_corr_%s/D", HDetectorList[i].Data())); 
     if(fCharge){
-      mod_tree->Branch(Form("corr_%s_charge", HDetectorList[i].Data()), &AsymmetryCorrectionQ[i], 
+      mod_tree->Branch(Form("corr_%s_charge", HDetectorList[i].Data()), 
+		       &AsymmetryCorrectionQ[i], 
 		       Form("corr_%s_charge/D", HDetectorList[i].Data())); 
     }
-    mod_tree->Branch(Form("%s_Device_Error_Code", HDetectorList[i].Data()), &HDetBranch[i][kDeviceErrorCode], 
+    mod_tree->Branch(Form("%s_Device_Error_Code", HDetectorList[i].Data()), 
+		     &HDetBranch[i][kDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HDetectorList[i].Data())); 
-    mod_tree->Branch(Form("correction_%s", DetectorList[i].Data()), &correction[i], Form("correction_%s/D", DetectorList[i].Data())); 
+    mod_tree->Branch(Form("correction_%s", DetectorList[i].Data()),
+		     &correction[i],
+		     Form("correction_%s/D", DetectorList[i].Data())); 
 
     if(fCharge){
-      mod_tree->Branch(Form("correction_%s_charge", DetectorList[i].Data()), &correction[i], 
+      mod_tree->Branch(Form("correction_%s_charge", DetectorList[i].Data()), 
+		       &correction[i], 
 		       Form("correction_%s_charge/D", DetectorList[i].Data())); 
     }
     std::cout << HDetectorList[i] << std::endl;
   }
 
   for(Int_t j = 0; j < fNMonitor; j++){
-    mod_tree->Branch(HMonitorList[j], &HMonBranch[j][0], Form("%s/D", HMonitorList[j].Data())); 
-    mod_tree->Branch(Form("raw_%s", HMonitorList[j].Data()), &HMonBranch[j][0], Form("raw_%s/D", HMonitorList[j].Data())); 
-    mod_tree->Branch(Form("%s_Device_Error_Code", HMonitorList[j].Data()), &HMonBranch[j][kDeviceErrorCode], 
+    mod_tree->Branch(HMonitorList[j], &HMonBranch[j][0], 
+		     Form("%s/D", HMonitorList[j].Data())); 
+    mod_tree->Branch(Form("raw_%s", HMonitorList[j].Data()), &HMonBranch[j][0], 
+		     Form("raw_%s/D", HMonitorList[j].Data())); 
+    mod_tree->Branch(Form("%s_Device_Error_Code", HMonitorList[j].Data()), 
+		     &HMonBranch[j][kDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HMonitorList[j].Data())); 
 
-    mod_tree->Branch(YMonitorList[j], &YMonBranch[j][0], Form("%s/D", YMonitorList[j].Data())); 
-    mod_tree->Branch(Form("%s_Device_Error_Code", YMonitorList[j].Data()), &YMonBranch[j][kDeviceErrorCode], 
+    mod_tree->Branch(YMonitorList[j], &YMonBranch[j][0], 
+		     Form("%s/D", YMonitorList[j].Data())); 
+    mod_tree->Branch(Form("%s_Device_Error_Code", YMonitorList[j].Data()), 
+		     &YMonBranch[j][kDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", YMonitorList[j].Data())); 
     std::cout << HMonitorList[j] << "\t" << YMonitorList[j] << std::endl;
   }
 
   for(Int_t i = 0; i < fNDetector; i++){
     for(Int_t j = 0; j < fNMonitor; j++){
-      mod_tree->Branch(Form("corr_%s_%s", HDetectorList[i].Data(), HMonitorList[j].Data()), &monitor_correction[i][j], 
-		       Form("corr_%s_%s/D", HDetectorList[i].Data(), HMonitorList[j].Data())); 
+      mod_tree->Branch(Form("corr_%s_%s", HDetectorList[i].Data(), 
+			    HMonitorList[j].Data()), &monitor_correction[i][j], 
+		       Form("corr_%s_%s/D", HDetectorList[i].Data(), 
+			    HMonitorList[j].Data())); 
     }
   }
 
@@ -791,14 +812,23 @@ void QwMpsOnly::ComputeAsymmetryCorrections()
 
     if( (ErrorCodeCheck("hel_tree") == 0) && CheckRampLinearity("") == 0 ){
       for(Int_t j = 0; j < fNDetector; j++){
-	HDetBranch[j][0] = fChain->GetLeaf(Form("%s", HDetectorList[j].Data()))->GetValue();
-	HDetBranch[j][kDeviceErrorCode] = fChain->GetLeaf(Form("%s_Device_Error_Code", HDetectorList[j].Data()))->GetValue();
+	HDetBranch[j][0] = fChain->GetLeaf(Form("%s", HDetectorList[j].Data()))->
+	  GetValue();
+	HDetBranch[j][kDeviceErrorCode] = 
+	  fChain->GetLeaf(Form("%s_Device_Error_Code", 
+			       HDetectorList[j].Data()))->GetValue();
 
 	for(Int_t k = 0; k < fNMonitor; k++){
-	  HMonBranch[k][0] = fChain->GetLeaf(Form("%s", HMonitorList[k].Data()))->GetValue();
-	  YMonBranch[k][0] = fChain->GetLeaf(Form("%s", HMonitorList[k].Data()))->GetValue();
-	  HMonBranch[k][kDeviceErrorCode] = fChain->GetLeaf(Form("%s_Device_Error_Code", HMonitorList[k].Data()))->GetValue();
-	  YMonBranch[k][kDeviceErrorCode] = fChain->GetLeaf(Form("%s_Device_Error_Code", HMonitorList[k].Data()))->GetValue();
+	  HMonBranch[k][0] = 
+	    fChain->GetLeaf(Form("%s", HMonitorList[k].Data()))->GetValue();
+	  YMonBranch[k][0] = 
+	    fChain->GetLeaf(Form("%s", HMonitorList[k].Data()))->GetValue();
+	  HMonBranch[k][kDeviceErrorCode] = 
+	    fChain->GetLeaf(Form("%s_Device_Error_Code", 
+				 HMonitorList[k].Data()))->GetValue();
+	  YMonBranch[k][kDeviceErrorCode] = 
+	    fChain->GetLeaf(Form("%s_Device_Error_Code", 
+				 HMonitorList[k].Data()))->GetValue();
 
   	  temp_correction += YieldSlope[j][k]*HMonBranch[k][0]; 
 	  monitor_correction[j][k] = YieldSlope[j][k]*HMonBranch[k][0];
@@ -807,8 +837,10 @@ void QwMpsOnly::ComputeAsymmetryCorrections()
 	}
    	correction[j] = temp_correction;                                  
 
-	if(fCharge) correction_charge[j] = temp_correction + ChargeSensitivity[j]*asym_qwk_charge_hw_sum;                                  
-	if(fCharge) AsymmetryCorrectionQ[j] = HDetBranch[j][0] - correction_charge[j];
+	if(fCharge) correction_charge[j] = temp_correction + 
+	  ChargeSensitivity[j]*asym_qwk_charge_hw_sum;  
+	if(fCharge) AsymmetryCorrectionQ[j] = HDetBranch[j][0] - 
+	  correction_charge[j];
 
 	else
 	  AsymmetryCorrection[j] = HDetBranch[j][0] - correction[j];
@@ -843,7 +875,8 @@ void QwMpsOnly::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
       for(Int_t k = 0; k < fNModType; k++){
 	for(Int_t n = 0; n < fNModType; n++){
 	  for(Int_t j = 0; j < fNModType; j++){
-	    var(i, k) += TMath::Power(A(i, n), 2)*TMath::Power(eA(n, j), 2)*TMath::Power(A(j, k), 2);
+	    var(i, k) += TMath::Power(A(i, n), 2) * TMath::Power(eA(n, j), 2)
+	      * TMath::Power(A(j, k), 2);
 	  }
 	}
       }
@@ -869,7 +902,8 @@ void QwMpsOnly::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
 	 Errord(m,i) = TMath::Sqrt(Errord(m,i));
     
      for(Int_t i = 0; i < fNModType; i++){
-       Error(m, i) = TMath::Power(Errord(m, i), 2) + TMath::Power(Errorm(m, i), 2);
+       Error(m, i) = TMath::Power(Errord(m, i), 2) + 
+	 TMath::Power(Errorm(m, i), 2);
        Error(m, i) = TMath::Sqrt(Error(m, i))*fUnitConvert[i];
        YieldSlopeError[m][i] = Error(m, i);
      }
@@ -928,7 +962,8 @@ Int_t QwMpsOnly::ErrorCodeCheck(TString type)
 
 #ifdef __VERBOSE_ERRORS
 
-      std::cout << red << "Mps Tree::Natural Motion ErrorFlag" << normal << std::endl;
+      std::cout << red << "Mps Tree::Natural Motion ErrorFlag" << normal << 
+	std::endl;
 
 #endif
 
@@ -1022,7 +1057,7 @@ Double_t QwMpsOnly::FindDegPerMPS()
 {
   Int_t ent = fChain->GetEntries(), newCycle = 0;
   Double_t mean = 0, n = 0, ramp_prev = -9999;
-  printf("Finding # of degrees per entry. Searching %i entries.\n", ent);
+  printf("Finding # of degrees per MPS. Searching %i entries.\n", ent);
   for(int i = 0;i<ent;i++){
     fChain->GetEntry(i);
     Double_t nonLin = TMath::Abs((ramp_block3+ramp_block0) - 
@@ -1040,7 +1075,7 @@ Double_t QwMpsOnly::FindDegPerMPS()
   }
   mean = mean / n;
   fDegPerMPS = mean;
-  std::cout<<"Degrees per entry = "<<mean<<std::endl;
+  std::cout<<"Degrees per MPS = "<<mean<<std::endl;
   return  mean;
 }
 
@@ -1049,20 +1084,106 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
   TCut cut;
   Double_t parLim[4] = {0,175,350,360};
   Double_t par[4] = {-500,1000,4,360};
-  TF1 *f = new TF1("f", "[0]+[1]*sin((x+[2])*2*TMath::Pi()/[3])",0,360);
-  f->SetParameters(par);
-  f->SetParLimits(2,parLim[0],parLim[1]);
-  f->SetParLimits(3,parLim[2],parLim[3]);
+  //define function generator signals used
+  //right now fge missing from bmod_only files, but may add later
+  fg[0] = "fgx1";
+  fg[1] = "fgy1";
+  fg[2] = "fgx2";
+  fg[3] = "fgy2";
+
+  Double_t bm_pat_num[8] = {0.,1.,3.,4.,11.,12.,14.,15.};
+  Double_t temp_offset[4], temp_period[4];
+  Double_t temp_offset_err[4], temp_period_err[4];
 
   cut = TCut(Form("TMath::Abs(ramp_block0+ramp_block3-ramp_block2-ramp_block1)"
 		  "<%f && ramp_block3>ramp_block2 && ramp_block2>ramp_block1 &&"
 		  "ramp_block1>ramp_block0", fMaxRampNonLinearity));
 
-  fChain->Draw("fgx1:ramp>>ht(1000,0,400,1000)",cut, "goff");
-  TH2D *ht = (TH2D*)gDirectory->Get("ht");
-  ht->Fit(f);
-  fRampOffset = f->GetParameter(2);
-  fRampPeriod = f->GetParameter(3);
+  //find periods and offsets from 4 function generator types
+  Double_t numerPeriod = 0, numerOffset = 0;
+  Double_t denomPeriod = 0, denomOffset = 0;
+  Bool_t used[4] = {0,0,0,0};
+  Int_t numGood = 0;
+  for(int i=0;i<4;i++){
+     fChain->Draw(Form("%s:ramp>>ht(1000,0,400,1000)",fg[i]),cut && 
+		 Form("(bm_pattern_number==%f || bm_pattern_number==%f)",
+		      bm_pat_num[i],bm_pat_num[4+i]),"goff");
+    TH2D *ht = (TH2D*)gDirectory->Get("ht");
+    TF1 *f = new TF1("f", "[0]+[1]*sin((x+[2])*2*TMath::Pi()/[3])",0,360);
+    f->SetParameters(par);
+//     f->SetParLimits(2,parLim[0],parLim[1]);
+//     f->SetParLimits(3,parLim[2],parLim[3]);
+
+    Int_t fitResult = ht->Fit(f);
+
+    //if hitting parameter limits try reversing sign of amplitude in initial guess
+//     if(f->GetParameter(2)==parLim[0] || f->GetParameter(2)==parLim[1] ||
+//        f->GetParameter(3)==parLim[2] || f->GetParameter(3)==parLim[3] || 
+    if(fitResult != 0 || TMath::Abs(f->GetParameter(2))>30){
+      f->SetParameters(par);
+      f->SetParameter(1, f->GetParameter(1) * (-1.0));
+      fitResult = ht->Fit(f);
+    }
+
+    temp_offset[i] = f->GetParameter(2);
+    temp_period[i] = f->GetParameter(3);
+    temp_offset_err[i] = f->GetParError(2);
+    temp_period_err[i] = f->GetParError(3);
+    if(fitResult == 0){
+      numGood++;
+      used[i] = 1;
+      numerPeriod += temp_period[i] * TMath::Power(temp_period_err[i], -2);
+      numerOffset += temp_offset[i] * TMath::Power(temp_offset_err[i], -2);
+      denomPeriod += TMath::Power(temp_period_err[i], -2);
+      denomOffset += TMath::Power(temp_offset_err[i], -2);
+      rampPeriodFitRslt[i] = temp_period[i];
+      rampPeriodFitRsltErr[i] = temp_period_err[i];
+      rampOffsetFitRslt[i] = temp_offset[i];
+      rampOffsetFitRsltErr[i] = temp_offset_err[i];
+    }else{
+      std::cout<<"Fit to "<<fg[i]<<" vs ramp failed. Excluding from calculation "
+	"of ramp period and offset.\n";
+      rampPeriodFitRslt[i] = -999999;
+      rampPeriodFitRsltErr[i] = -999999;
+      rampOffsetFitRslt[i] = -999999;
+      rampOffsetFitRsltErr[i] = -999999;
+    }
+  }
+
+  if(numGood<1 || denomPeriod==0.0 || denomOffset==0.0){
+    std::cout<<"No good fit results for ramp period and offset."
+      " Exiting program.\n";
+    return 1;
+  }else{
+    //use error weighted mean
+    fRampPeriod = numerPeriod / denomPeriod;
+    fRampOffset = numerOffset / denomOffset;
+  }
+
+  Bool_t allGood = 1;
+  Double_t maxDev = 0.5; //maximum deviation allowed from mean
+  for(int i=0;i<4;i++){//kill execution if one or more fits not close to average
+    if(used[i]){
+      if(!(TMath::Abs(fRampPeriod - temp_period[i]) < maxDev) ||
+	 !(TMath::Abs(fRampPeriod - temp_period[i]) < 3 * temp_period_err[i])){
+	printf("Ramp period from %s fit = %f not in close enough agreement with"
+	       " average ramp period %f\n", fg[i], temp_period[i], fRampPeriod);
+	allGood = 0;
+      }
+      if(!(TMath::Abs(fRampOffset - temp_offset[i]) < maxDev) ||
+	 !(TMath::Abs(fRampOffset - temp_offset[i]) < 3 * temp_offset_err[i])){
+	printf("Ramp offset from %s fit = %f not in close enough agreement with"
+	       " average ramp offset %f\n", fg[i], temp_offset[i], fRampOffset);
+	allGood = 0;
+      }
+    }
+  }
+
+  if(!allGood){
+    printf("Exiting program.\n");
+    return 1;
+  }
+
   if(!(fRampOffset>parLim[0]&&fRampOffset<parLim[1])){
     std::cout<<"fRampOffset is at limit of fit parameters. Exiting program.\n";
     return 1;
@@ -1084,7 +1205,7 @@ Int_t QwMpsOnly::FindRampRange()
   rampold = new Double_t[max];
   rampnew = new Double_t[max];
   fRampMax = fChain->GetMaximum("ramp") - 1;
-  if(!(fRampMax>325&&fRampMax<340)){
+  if(!(fRampMax>315&&fRampMax<340)){
     std::cout<<"fRampMax not within specified bounds. Exiting program.\n";
     return 1;
   }
@@ -1158,7 +1279,8 @@ void QwMpsOnly::GetOptions(Char_t **options){
       fCharge = true;
       flag.Clear();
       fChargeFile = Form("config/charge_sensitivity_%i.dat", run_number);
-      std::cout << other << "Setting up pseudo 5+1 analysis:\t" << fChargeFile << normal << std::endl;
+      std::cout << other << "Setting up pseudo 5+1 analysis:\t" << fChargeFile 
+		<< normal << std::endl;
       ReadChargeSensitivity();
     }    
 
@@ -1170,7 +1292,8 @@ void QwMpsOnly::GetOptions(Char_t **options){
       fFileSegment = options[i + 1];
       Int_t index = option.find_first_of(":");
       fLowerSegment = atoi(option.substr(0, index).c_str());
-      fUpperSegment = atoi(option.substr(index + 1, option.length()-index).c_str());
+      fUpperSegment = atoi(option.substr(index + 1, 
+					 option.length()-index).c_str());
 
       std::cout << other << "Processing file segments:\t" 
 		<< fLowerSegment << ":" 
@@ -1225,11 +1348,13 @@ void QwMpsOnly::GetOptions(Char_t **options){
       if( IfExists(options[i + 1]) ){
 	flag = options[i + 1];
 	fChargeFile = flag;
-	std::cout << other << "Setting up pseudo 5+1 analysis w/ external nonlinearity file:\t" << flag << normal << std::endl;
+	std::cout << other << "Setting up pseudo 5+1 analysis w/ "
+	  "external nonlinearity file:\t" << flag << normal << std::endl;
 	ReadChargeSensitivity();
       }
       else{
-	PrintError("Could not open inpust file.  Disabling charge sensitivity analysis");
+	PrintError("Could not open input file.  "
+		   "Disabling charge sensitivity analysis");
 	fCharge = false;
       }
     }
@@ -1237,7 +1362,8 @@ void QwMpsOnly::GetOptions(Char_t **options){
     if(flag.CompareTo("--current-cut", TString::kExact) == 0){
       flag.Clear();
       fCurrentCut = atoi(options[i + 1]);
-      std::cout << other << "Setting current-cut to:\t" << fCurrentCut << normal << std::endl;
+      std::cout << other << "Setting current-cut to:\t" 
+		<< fCurrentCut << normal << std::endl;
     }
 
     // flag to turn ON/OFF new energy bpm
@@ -1262,8 +1388,10 @@ void QwMpsOnly::GetOptions(Char_t **options){
     if(flag.CompareTo("--help", TString::kExact) == 0){
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
       printf("Usage: ./qwbeammod <run_number> <options>");
-      printf("\n\t--charge-sens \t\tinclude charge sensitivity in overall correction to physics asymmetry.");
-      printf("\n\t--charge \t\tsame as --chare-sesn except use can specify path of charge sensitivities.");
+      printf("\n\t--charge-sens \t\tinclude charge sensitivity in overall"
+	     " correction to physics asymmetry.");
+      printf("\n\t--charge \t\tsame as --chare-sesn except use can specify"
+	     " path of charge sensitivities.");
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
       exit(0);
     }        
@@ -1352,7 +1480,6 @@ Int_t QwMpsOnly::MakeRampFilled(Bool_t verbose)
     //stretch and offset ramp before filling
     ramp_f = (ramp_f + fRampOffset) * 360.0 / fRampPeriod;
     ramp_f = ramp_f - ((Int_t)(ramp_f/360.0))*360.0;
-    //    if(!isLinear)std::cout<<ramp_f<<std::endl;
 
     newTree->Fill();
     if(i%20000==0)std::cout<<"Processing entry "<<i<<".\n";
@@ -1378,7 +1505,9 @@ void QwMpsOnly::MatrixFill()
 
   CheckFlags();
 
-  diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()) , fstream::out);
+  diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i.%s.dat", output.Data(), 
+		       fFileSegment.Data(), run_number, fSetStem.Data()) , 
+		  fstream::out);
 
   for(Int_t j = 0; j < fNDetector; j++){
     diagnostic << DetectorList[j] << std::endl;
@@ -1719,7 +1848,8 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 
        	token = strtok(NULL, " .,"); 
 	if( !(fChain->GetBranch(Form("%s%s", mon_prefix.Data(), token))) ){
-	  std::cout << other << token << ": Branch doesn't exist." << normal << std::endl;
+	  std::cout << other << token << ": Branch doesn't exist." << normal 
+		    << std::endl;
 	}
 	else{
 	  if(fHelTree) {
@@ -1730,13 +1860,16 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 	    this->YMonitorList.push_back(Form("yield_%s", token));
 	    fChain->SetBranchStatus(Form("yield_%s", token), 1);
 	    fChain->SetBranchStatus(Form("yield_%s_Device_Error_Code", token), 1);
-	    std::cout << HMonitorList.back() << "\t" << YMonitorList.back() << std::endl;
+	    std::cout << HMonitorList.back() << "\t" << YMonitorList.back() 
+		      << std::endl;
 	  }
 	  else{
-	    std::cout << other << "\t\tMonitor is: " << token << normal << std::endl;
+	    std::cout << other << "\t\tMonitor is: " << token << normal 
+		      << std::endl;
 	    this->MonitorList.push_back(Form("%s%s", mon_prefix.Data(), token)); 
 	    fChain->SetBranchStatus(Form("%s%s", mon_prefix.Data(), token), 1);
-	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", mon_prefix.Data(), token), 1);
+	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", 
+					 mon_prefix.Data(), token), 1);
 	  }
 	}
       }
@@ -1745,7 +1878,8 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
        	token = strtok(NULL, " .,"); 
 	
 	if( !(fChain->GetBranch(Form("%s%s", det_prefix.Data(), token))) ){
-	  std::cout << other << token << ": Branch doesn't exist." << normal << std::endl;
+	  std::cout << other << token << ": Branch doesn't exist." << normal 
+		    << std::endl;
 	}
 	else{
 	  if(fHelTree) {
@@ -1755,10 +1889,12 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 	    std::cout << HDetectorList.back() << std::endl;
 	  }
 	  else{
-	    std::cout << other << "\t\tDetector is: " << token << normal << std::endl; 
+	    std::cout << other << "\t\tDetector is: " << token << normal 
+		      << std::endl; 
 	    this->DetectorList.push_back(Form("%s%s", det_prefix.Data(), token));
 	    fChain->SetBranchStatus(Form("%s%s", det_prefix.Data(), token), 1);
-	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", det_prefix.Data(), token), 1);
+	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", 
+					 det_prefix.Data(), token), 1);
 	  }
 	}
       }
@@ -1772,10 +1908,10 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
   
   if( (fNDetector > kNMaxDet) || (fNMonitor > kNMaxMon) )
     {
-      std::cout << red << "Error :: Exceeded maximum number of detectors(monitors)" 
-		<< red << "Detectors:\t" << fNDetector << "\tMax:\t" << kNMaxDet
-		<< red << "Monitors:\t" << fNMonitor   << "\tMax:\t" << kNMaxMon
-		<< normal << std::endl;
+      std::cout<<red<<"Error :: Exceeded maximum number of detectors(monitors)" 
+	       <<red<<"Detectors:\t" << fNDetector << "\tMax:\t" << kNMaxDet
+	       <<red<<"Monitors:\t" << fNMonitor   << "\tMax:\t" << kNMaxMon
+	       <<normal<< std::endl;
       exit(1);
     }
   
@@ -1947,31 +2083,16 @@ void QwMpsOnly::SetupHelBranchAddress()
   fChain->SetBranchStatus("yield_qwk_charge", 1);
   fChain->SetBranchStatus("asym_qwk_charge", 1);
 
-  fChain->SetBranchAddress("yield_qwk_charge",&yield_qwk_charge_hw_sum ,&b_yield_qwk_charge);
-//   fChain->SetBranchAddress("yield_qwk_charge_Device_Error_Code",&yield_qwk_charge_Device_Error_Code ,&b_yield_qwk_charge_Device_Error_Code);
-//   fChain->SetBranchAddress("yield_bm_pattern_number",&yield_bm_pattern_number,&b_yield_bm_pattern_number);
+  fChain->SetBranchAddress("yield_qwk_charge",&yield_qwk_charge_hw_sum ,
+			   &b_yield_qwk_charge);
   fChain->SetBranchAddress("pattnum", &pattnum, &b_pattnum);
   fChain->SetBranchAddress("yield_ramp",&yield_ramp_hw_sum,&b_yield_ramp);
   fChain->SetBranchAddress("ErrorFlag",&ErrorFlag, &b_ErrorFlag);
-  fChain->SetBranchAddress("yield_qwk_mdallbars", &yield_qwk_mdallbars_hw_sum, &b_yield_qwk_mdallbars);
-  fChain->SetBranchAddress("asym_qwk_charge", &asym_qwk_charge_hw_sum, &b_asym_qwk_charge);
+  fChain->SetBranchAddress("yield_qwk_mdallbars", &yield_qwk_mdallbars_hw_sum, 
+			   &b_yield_qwk_mdallbars);
+  fChain->SetBranchAddress("asym_qwk_charge", &asym_qwk_charge_hw_sum, 
+			   &b_asym_qwk_charge);
 
-//   for(Int_t i = 0; i < (Int_t)(DetectorList.size()); i++){
-//     HDetectorList.push_back(Form("asym_%s", DetectorList[i].Data()));
-//     fChain->SetBranchStatus(Form("asym_%s", DetectorList[i].Data()), 1);
-//     fChain->SetBranchAddress(Form("asym_%s", DetectorList[i].Data()),&HDetBranch[i]);
-//   }
-//    for(Int_t i = 0; i < (Int_t)(MonitorList.size()); i++){
-//     HMonitorList.push_back(Form("%s%s", fPrefix[i].Data(), MonitorList[i].Data()));
-//     fChain->SetBranchStatus(Form("%s%s", fPrefix[i].Data(), MonitorList[i].Data()), 1);
-//     fChain->SetBranchAddress(Form("%s%s", fPrefix[i].Data(), MonitorList[i].Data()),&HMonBranch[i]);
-
-//     YMonitorList.push_back(Form("yield_%s", MonitorList[i].Data()));
-//     fChain->SetBranchStatus(Form("yield_%s", MonitorList[i].Data()), 1);
-//     fChain->SetBranchAddress(Form("yield_%s", MonitorList[i].Data()),&YMonBranch[i]);
-
-//     std::cout << "Monitors: " << HMonitorList[i] << "\t" << YMonitorList[i] << std::endl;
-//    }
 }
 
 void QwMpsOnly::SetupMpsBranchAddress()
@@ -1981,25 +2102,20 @@ void QwMpsOnly::SetupMpsBranchAddress()
    fChain->SetBranchStatus("qwk_charge", 1);
    fChain->SetBranchStatus("qwk_charge_Device_Error_Code", 1);
    fChain->SetBranchStatus("bm_pattern_number", 1);
-   //   fChain->SetBranchStatus("mps_counter", 1);
    fChain->SetBranchStatus("ErrorFlag", 1);
    fChain->SetBranchStatus("ramp", 1);
    fChain->SetBranchStatus("fgx1", 1);
    fChain->SetBranchStatus("fgx2", 1);
-   //   fChain->SetBranchStatus("fge", 1);
    fChain->SetBranchStatus("fgy2", 1);
    fChain->SetBranchStatus("fgy1", 1);
 
    fChain->SetBranchAddress("qwk_charge", &qwk_charge_hw_sum);
-//    fChain->SetBranchAddress("qwk_charge_Device_Error_Code", &qwk_charge_Device_Error_Code, &b_qwk_charge_Device_Error_Code);
    fChain->SetBranchAddress("bm_pattern_number", &bm_pattern_number);
-   //   fChain->SetBranchAddress("mps_counter", &event_number, &b_event_number);
    fChain->SetBranchAddress("ErrorFlag", &ErrorFlag);
    fChain->SetBranchAddress("fgx1", &fgx1_hw_sum);
    fChain->SetBranchAddress("fgy1", &fgy1_hw_sum);
    fChain->SetBranchAddress("fgx2", &fgx2_hw_sum);
    fChain->SetBranchAddress("fgy2", &fgy2_hw_sum);
-   //   fChain->SetBranchAddress("fge", &fge_hw_sum, &b_fge);
    fChain->SetBranchAddress("ramp", &ramp_hw_sum);
    fChain->SetBranchAddress("ramp_block0", &ramp_block0);
    fChain->SetBranchAddress("ramp_block1", &ramp_block1);
@@ -2012,10 +2128,8 @@ void QwMpsOnly::SetPhaseValues(Double_t *val)
 {
 
   phase.resize(5);
-//   std::cout << other << "Default phase information:\t" << normal << std::endl;
   for(Int_t i = 0; i < fNModType; i++){
     phase[i] = val[i];
-//     std::cout << other << phase[i] << normal << std::endl;
   }
 
   return;
@@ -2042,8 +2156,11 @@ void QwMpsOnly::Write(){
 
   gSystem->Exec("umask 002");
 
-  slopes.open(Form("%s/slopes/slopes%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()) , fstream::out);
-  regression = fopen(Form("%s/regression/regression%s_%i.%s.dat", output.Data(), fFileSegment.Data(), run_number, fSetStem.Data()), "w");
+  slopes.open(Form("%s/slopes/slopes%s_%i.%s.dat", output.Data(), 
+		   fFileSegment.Data(), run_number, fSetStem.Data()) , 
+	      fstream::out);
+  regression = fopen(Form("%s/regression/regression%s_%i.%s.dat", output.Data(), 
+			  fFileSegment.Data(), run_number, fSetStem.Data()), "w");
 
   if( (slopes.is_open() && slopes.good()) ){
     for(Int_t i = 0; i < fNDetector; i++){
@@ -2077,6 +2194,19 @@ void QwMpsOnly::Write(){
   diagnostic <<"ramp length\t"<<fRampLength<<std::endl;
   diagnostic <<"degrees per mps\t"<<fDegPerMPS<<std::endl;
 
+  diagnostic <<"\nRamp period fit results for function generator signals\n";
+  for(int i=0;i<4;i++){
+    diagnostic <<fg[i]<<"\t"<<rampPeriodFitRslt[i]<<"\t"<<
+      rampPeriodFitRsltErr[i]<<std::endl;
+  }
+
+  diagnostic <<"\nRamp offset fit results for function generator signals\n";
+    for(int i=0;i<4;i++){
+    diagnostic <<fg[i]<<"\t"<<rampOffsetFitRslt[i]<<"\t"<<
+      rampOffsetFitRsltErr[i]<<std::endl;
+  }
+
+
 
   //***************************************************************
   // Write output file for regression - This will go into the DB.  
@@ -2088,7 +2218,8 @@ void QwMpsOnly::Write(){
   if( regression != NULL ){
     for(Int_t i = 0; i < fNDetector; i++){
       for(Int_t j = 0; j < fNModType; j++){
-	fprintf(regression, "%s/%s : %i : %i : %e : %e\n", DetectorList[i].Data(), MonitorList[j].Data(), 
+	fprintf(regression, "%s/%s : %i : %i : %e : %e\n", DetectorList[i].Data(),
+		MonitorList[j].Data(), 
 		ModulationEvents[j], j, YieldSlope[i][j], YieldSlopeError[i][j]);
       }
     }
