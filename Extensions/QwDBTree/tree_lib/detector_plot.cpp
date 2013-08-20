@@ -45,21 +45,18 @@ int main(int argc, char* argv[]) {
 
     /* Get inital variables needed for checks. */
     vector<double> detector;
-    vector<double> qwk_charge;
     vector<int> runlet;
-    vector<int> run;
+    vector<double> detector_clean;
+    vector<int> runlet_clean;
     get_data_from_tree(tree, detector_name, &detector);
-    get_data_from_tree(tree, "asym_qwk_charge", &qwk_charge);
-    get_single_value_from_tree(tree, "run", &run);
     get_single_value_from_tree(tree, "runlet_id", &runlet);
 
     /* remove all the zeros that come from regression failures */
-    for(std::vector<double>::iterator it = detector.begin(); it != detector.end();) {
-        if(*it == -1e6) {
-            detector.erase(it);
+    for(int i = 0; i < detector.size(); i++) {
+        if(dectector[i] != -1e6) {
+            detector_clean.push_back(detector[i])
+            runlet_clean.push_back(runlet[i])
         }
-        else
-            it++;
     }
 
     TCanvas* c;
@@ -72,7 +69,7 @@ int main(int argc, char* argv[]) {
 
     /* Output all runlets with asymmetry greater than 10 */
     for(int i = 0; i < detector.size(); i++) {
-        if(detector[i] > 10)
+        if(detector[i] < 0.01)
             cout << run[i] << "  " << runlet[i] << "  " << detector[i] << endl;
     }
 

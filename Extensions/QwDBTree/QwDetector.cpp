@@ -43,7 +43,7 @@ void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i) {
     else if (measurement_id == "d")
         type = "diff_";
     /* FIXME: Can only look at either y or yq for a variable <_<. */
-    else if (measurement_id == "y" || measurement_id == "yq")
+    else if (measurement_id == "y" || measurement_id == "yq" || measurement_id == "yp")
         type = "yield_";
     else
         type = "asym_";
