@@ -66,6 +66,9 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     ///@}
     // Get the number of partial tracks
     Int_t GetNumberOfPartialTracks() const { return fNQwPartialTracks; };
+    //! \brief Get the specified partial track
+    const QwPartialTrack* GetPartialTrack(const int pt) const { return fQwPartialTracks.at(pt); };
+ 
     // Print the list of partial tracks
     void PrintPartialTracks(Option_t *option = "") const;
 
