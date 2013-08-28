@@ -11,6 +11,7 @@ class QwParse;
 struct QwValues {
     vector<Int_t> runlet_properties;
     Double_t qtor_current;
+    Double_t run_number_decimal;
     string good_for_id;
 };
 
@@ -32,10 +33,15 @@ class QwRunlet {
     /* Runlet level data. */
     vector<Int_t> runlet_id;
     vector<Int_t> run;
+    vector<Double_t> run_number_decimal;
     vector<Int_t> slug;
+    /* Wien slug is what the wien number is called in the database. */
+    vector<Int_t> wien_slug;
     vector<Int_t> ihwp_setting;
     vector<Int_t> phwp_setting;
     vector<Int_t> wien_reversal;
+    vector<Int_t> precession_reversal;
+    vector<Int_t> sign_correction;
     vector<Double_t> qtor_current;
     vector<string> good_for;
 

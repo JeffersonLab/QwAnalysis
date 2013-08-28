@@ -9,6 +9,9 @@ SRCS := \
 	QwDetector.cpp \
 	QwLumiDet.cpp \
 	QwMainDet.cpp \
+	QwDetectorSlope.cpp \
+	QwMainDetSlope.cpp \
+	QwLumiDetSlope.cpp \
 	parse.cpp \
 	runlet.cpp \
 	parse.h

@@ -22,11 +22,13 @@ TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg) {
     query += "runlet_id\n";
     query += ", run_number\n";
     query += ", slug\n";
+    query += ", wien_slug\n";
+    query += ", segment_number\n";
     query += ", slow_helicity_plate\n";
     query += ", passive_helicity_plate\n";
     query += ", wien_reversal\n";
+    query += ", precession_reversal\n";
     query += ", qtor_current\n";
-    query += ", good_for_id\n";
     query += "FROM temp_table_unreg_offoff\n";
     /* Group by run_number for run averaging */
     if(runavg) {
@@ -70,10 +72,12 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     query += ", analysis.runlet_id\n";
     query += ", run.run_number\n";
     query += ", run.slug\n";
-    query += ", run.good_for_id\n";
+    query += ", run.wien_slug\n";
+    query += ", runlet.segment_number\n";
     query += ", slow_controls_settings.slow_helicity_plate\n";
     query += ", slow_controls_settings.passive_helicity_plate\n";
     query += ", slow_controls_settings.wien_reversal\n";
+    query += ", slow_controls_settings.precession_reversal\n";
     query += ", slow_controls_settings.qtor_current\n";
     query += "FROM analysis\n";
 
@@ -131,10 +135,12 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += ", analysis.runlet_id\n";
     query += ", run.run_number\n";
     query += ", run.slug\n";
-    query += ", run.good_for_id\n";
+    query += ", run.wien_slug\n";
+    query += ", runlet.segment_number\n";
     query += ", slow_controls_settings.slow_helicity_plate\n";
     query += ", slow_controls_settings.passive_helicity_plate\n";
     query += ", slow_controls_settings.wien_reversal\n";
+    query += ", slow_controls_settings.precession_reversal\n";
     query += ", slow_controls_settings.qtor_current\n";
     query += "FROM analysis\n";
     /*
@@ -252,16 +258,21 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                 Int_t temp_runlet_id = stmt->GetInt(0);
                 Int_t temp_run = stmt->GetInt(1);
                 Int_t temp_slug = stmt->GetInt(2);
-                TString temp_ihwp_setting = stmt->GetString(3);
-                TString temp_phwp_setting = stmt->GetString(4);
-                TString temp_wien_reversal = stmt->GetString(5);
-                Double_t temp_qtor_current = stmt->GetDouble(6);
+                Int_t temp_wien_slug = stmt->GetInt(3);
+                Int_t temp_segment_number = stmt->GetInt(4);
+                TString temp_ihwp_setting = stmt->GetString(5);
+                TString temp_phwp_setting = stmt->GetString(6);
+                TString temp_wien_reversal = stmt->GetString(7);
+                TString temp_precession_reversal = stmt->GetString(8);
+                Double_t temp_qtor_current = stmt->GetDouble(9);
                 /* FIXME: Add some sort of good for support... */
                 //string temp_good_for = stmt->GetString(7);
 
                 runlet_id.push_back(temp_runlet_id);
                 run.push_back(temp_run);
                 slug.push_back(temp_slug);
+                wien_slug.push_back(temp_wien_slug);
+                run_number_decimal.push_back((Double_t)temp_run + (Double_t)temp_segment_number/20.0);
 
                 /* Fill ihwp. */
                 if(temp_ihwp_setting == "in") ihwp_setting.push_back(1);
@@ -276,16 +287,66 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                 else cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
                     + temp_phwp_setting << endl;
 
-                /* Fill wien. */
+                /* Fill wien reversal. */
                 if(temp_wien_reversal == "normal") wien_reversal.push_back(0);
                 else if(temp_wien_reversal == "reverse") wien_reversal.push_back(1);
-                else
-                {
+                else {
                     cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message:\nwien_reversal" + temp_wien_reversal << endl;
                     wien_reversal.push_back(2);
                 }
+
+                /* Fill precession reversal. */
+                if(temp_precession_reversal == "normal") precession_reversal.push_back(0);
+                else if(temp_precession_reversal == "reverse") precession_reversal.push_back(1);
+                else cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
+                    + temp_precession_reversal << endl;
+
                 /* Fill qtor current. */
                 qtor_current.push_back(temp_qtor_current);
+
+                /* Fill sign correction using perscription described in A&S
+                 * elog 619 by J. Leacock.
+                 *
+                 * normal = right flip
+                 * reverse = left flip
+                 */
+                if(temp_precession_reversal == "normal") {
+                    if(temp_wien_reversal == "normal") {
+                        if(temp_ihwp_setting == "out") {
+                            sign_correction.push_back(1);
+                        }
+                        else if(temp_ihwp_setting == "in") {
+                            sign_correction.push_back(-1);
+                        }
+                    }
+                    if(temp_wien_reversal == "reverse") {
+                        if(temp_ihwp_setting == "out") {
+                            sign_correction.push_back(-1);
+                        }
+                        else if(temp_ihwp_setting == "in") {
+                            sign_correction.push_back(1);
+                        }
+                    }
+                }
+                else if(temp_precession_reversal == "reverse") {
+                    if(temp_wien_reversal == "normal") {
+                        if(temp_ihwp_setting == "out") {
+                            sign_correction.push_back(-1);
+                        }
+                        else if(temp_ihwp_setting == "in") {
+                            sign_correction.push_back(1);
+                        }
+                    }
+                    if(temp_wien_reversal == "reverse") {
+                        if(temp_ihwp_setting == "out") {
+                            sign_correction.push_back(1);
+                        }
+                        else if(temp_ihwp_setting == "in") {
+                            sign_correction.push_back(-1);
+                        }
+                    }
+                }
+                else cout << "FAILBOAT" << endl;
             }
         }
     }
@@ -294,11 +355,15 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
 /* Method to branch for the runlet variables. */
 void QwRunlet::branch(TTree* tree, QwValues &values) {
     tree->Branch("runlet_id", &(values.runlet_properties[0]));
-    tree->Branch("run", &(values.runlet_properties[1]));
+    tree->Branch("run_number", &(values.runlet_properties[1]));
+    tree->Branch("run_number_decimal", &(values.run_number_decimal));
     tree->Branch("slug", &(values.runlet_properties[2]));
-    tree->Branch("ihwp_setting", &(values.runlet_properties[3]));
-    tree->Branch("phwp_setting", &(values.runlet_properties[4]));
-    tree->Branch("wien_reversal", &(values.runlet_properties[5]));
+    tree->Branch("wien_slug", &(values.runlet_properties[3]));
+    tree->Branch("ihwp_setting", &(values.runlet_properties[4]));
+    tree->Branch("phwp_setting", &(values.runlet_properties[5]));
+    tree->Branch("wien_reversal", &(values.runlet_properties[6]));
+    tree->Branch("precession_reversal", &(values.runlet_properties[7]));
+    tree->Branch("sign_correction", &(values.runlet_properties[8]));
     tree->Branch("qtor_current", &(values.qtor_current));
 }
 
@@ -312,8 +377,12 @@ void QwRunlet::get_data_for_runlet(Int_t j, QwValues &values) {
     values.runlet_properties[0] = runlet_id[j];
     values.runlet_properties[1] = run[j];
     values.runlet_properties[2] = slug[j];
-    values.runlet_properties[3] = ihwp_setting[j];
-    values.runlet_properties[4] = phwp_setting[j];
-    values.runlet_properties[5] = wien_reversal[j];
+    values.runlet_properties[3] = wien_slug[j];
+    values.runlet_properties[4] = ihwp_setting[j];
+    values.runlet_properties[5] = phwp_setting[j];
+    values.runlet_properties[6] = wien_reversal[j];
+    values.runlet_properties[7] = precession_reversal[j];
+    values.runlet_properties[8] = sign_correction[j];
     values.qtor_current = qtor_current[j];
+    values.run_number_decimal = run_number_decimal[j];
 }
