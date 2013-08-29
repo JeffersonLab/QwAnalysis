@@ -21,6 +21,15 @@
 class QwMpsOnly {
 
 private:
+  static const Int_t kNMaxMon = 6;
+  static const Int_t kNMaxDet = 35;
+  static const Int_t kNMaxCoil = 5;
+  static const Int_t kBranchSize = 13;
+  static const Int_t kDeviceErrorCode = 6;
+  static const Int_t kError = 1;
+  static const Int_t kRampPedestal = 128;
+  static const Double_t PI = 3.14159265358979312;
+  static const Double_t kDegToRad = 1.74532925199432955e-02;
 
   char *fg[4];//used by FindRampPeriodAndOffset() and Write()
   Int_t fDetectorRead;
@@ -56,20 +65,12 @@ private:
   Double_t fRampLength;
   Double_t fRampPeriod;
   Double_t fRampOffset;
+  Double_t fUnitConvert[kNMaxCoil];
   Double_t rampPeriodFitRslt[4];
   Double_t rampPeriodFitRsltErr[4];
   Double_t rampOffsetFitRslt[4];
   Double_t rampOffsetFitRsltErr[4];
 
-  static const Int_t kNMaxMon = 6;
-  static const Int_t kNMaxDet = 35;
-  static const Int_t kNMaxCoil = 5;
-  static const Int_t kBranchSize = 13;
-  static const Int_t kDeviceErrorCode = 6;
-  static const Int_t kError = 1;
-  static const Int_t kRampPedestal = 128;
-  static const Double_t PI = 3.14159265358979312;
-  static const Double_t kDegToRad = 1.74532925199432955e-02;
 
 public :
 
@@ -268,7 +269,7 @@ public :
   void     Write();
   void     Clean(void);
   void     CleanFolders(void);
-  void     GetOptions(Char_t **);
+  void     GetOptions(Int_t, Char_t **);
 //   void     SetFlags(void);
   void     CheckFlags(void);
   void     ReadChargeSensitivity();

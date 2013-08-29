@@ -17,7 +17,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     exit(1);
   }
 
-  mps_only->GetOptions(argv);
+  mps_only->GetOptions(argc, argv);
 
   if( !(mps_only->fRunNumberSet) ){
     mps_only->PrintError("Error Loading:  no run number specified");

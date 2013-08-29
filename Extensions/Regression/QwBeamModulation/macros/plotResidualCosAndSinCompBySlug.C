@@ -52,7 +52,7 @@ void getErrorWeightedMean(Double_t *x, Double_t *xe, Double_t *mean, Int_t n){
 
 Int_t plotResidualCosAndSinCompBySlug(Int_t slug_start = 139, Int_t slug_end = 225){
   //  gStyle->SetOptFit(1111);
-  char  x[255], xe[255], mon[255], monitor[255];
+  char slg[255], x[255], xe[255], mon[255], monitor[255];
   string line;
 
   gStyle->SetOptFit(1111);
@@ -93,30 +93,29 @@ Int_t plotResidualCosAndSinCompBySlug(Int_t slug_start = 139, Int_t slug_end = 2
   TString detector;
   ifstream slugList(Form("%s/macros/runsBySlug.dat", 
 			 gSystem->Getenv("BMOD_SRC")));
-  Int_t nSlugs = 0, nSlug = 0;;
+  Int_t nSlugs = 0, nSlug = 0, prevSlug = 0;
   if(slugList.is_open())cout<<"File list found.\n";
   else cout<<"File list not found.\n";
 
+  Int_t nRn = 0;
   while(slugList.good()){
-    Int_t n = 2;//reserve n=0 for slugnumber and n=1 for number of runs in slug
-    slugList>>x;
-    if(atoi(x)>slug_end) break;
-    slug[nSlug][0] = atoi(x);
-    slugArray[nSlug] = (Double_t)slug[nSlug][0];
-    cout<<atoi(x)<<" ";
-    while(slugList.peek()!= '\n'){
-      slugList>>x;
-      slug[nSlug][n] = atoi(x);
-      cout<<atoi(x)<<" ";
-      n++;
+    slugList>>slg>>x;
+    getline(slugList,line);
+    if(slugList.eof())break;
+    Int_t sl = atoi(slg); 
+    if(sl>=slug_start && sl<=slug_end){
+      if(sl!=prevSlug){
+	slug[nSlug][0] = sl;
+	if(nSlug!=0)
+	  slug[nSlug - 1][1] = nRn;
+	nSlug++;
+	nRn = 0;
+	//	cout<<nSlug<<"\n";
+      }
+      slug[nSlug-1][nRn+2] = atoi(x);
     }
-    getline(slugList, line);
-    cout<<endl;
-    slug[nSlug][1] = n - 2;
-    if(slug_start <= slug[nSlug][0]){
-      cout<<slug[nSlug][1]<<" runs in slug "<<slug[nSlug][0]<<" found.\n";
-      nSlug++;
-    }
+    prevSlug = sl;
+    nRn++;
   }
   nSlugs = nSlug;
   nSlug = 0;
@@ -140,17 +139,19 @@ Int_t plotResidualCosAndSinCompBySlug(Int_t slug_start = 139, Int_t slug_end = 2
       }
     Bool_t atLeastOneGoodRun = 0;
     for(int r = 0; r<slug[sl][1];r++){
-      ifstream cosFile(Form("%s/slopes/run%iCosineAmpl.dat",gSystem->Getenv("BMOD_OUT"),
-			    slug[sl][r+2]));
-      ifstream sinFile(Form("%s/slopes/run%iSineAmpl.dat",gSystem->Getenv("BMOD_OUT"),
-			    slug[sl][r+2]));
+      ifstream cosFile(Form("%s/slopes/run%iCosineAmpl.dat",
+			    gSystem->Getenv("BMOD_OUT"), slug[sl][r+2]));
+      ifstream sinFile(Form("%s/slopes/run%iSineAmpl.dat",
+			    gSystem->Getenv("BMOD_OUT"), slug[sl][r+2]));
       if(sinFile.is_open() && cosFile.is_open())
 	cout<<"Sine and cosine files found for run "<<slug[sl][r+2]<<" in slug "<<
 	  slug[sl][0]<<".\n";
 	else 
-	  cout<<"Sine and cosine files NOT found for run "<<slug[sl][r+2]<<" in slug "<<
-	    slug[sl][0]<<".\n";
-      if(sinFile.good()&& cosFile.good()){
+	  cout<<"Sine and cosine files NOT found for run "
+	      <<slug[sl][r+2]<<" in slug "<<slug[sl][0]<<".\n";
+      sinFile.peek();//if file exists but is empty this will set eofbit
+      cosFile.peek();//if file exists but is empty this will set eofbit
+      if(sinFile.good()&& cosFile.good()&&!sinFile.eof()&&!cosFile.eof()){
 	atLeastOneGoodRun = 1;
 	for(int i=0;i<nDET;i++){
 	  for(int j=0;j<nMOD;j++){
@@ -158,16 +159,18 @@ Int_t plotResidualCosAndSinCompBySlug(Int_t slug_start = 139, Int_t slug_end = 2
 	    if(atof(xe)>5e-6){
 	      tempSin[j][i][nRuns[j][i]] = atof(x);
 	      tempSinErr[j][i][nRuns[j][i]] = atof(xe);
-// 	      cout<<tempSin[j][i][nRuns[j][i]]<<" "<< 
-// 		tempSinErr[j][i][nRuns[j][i]]<<"\t";
+	      if(slug[sl][r+2]==15343)
+		cout<<tempSin[j][i][nRuns[j][i]]<<" "<< 
+		  tempSinErr[j][i][nRuns[j][i]]<<"\t";
 	    }else good = 0;
 
 	    cosFile>>x>>xe;
 	    if(atof(xe)>5e-6){
 	      tempCos[j][i][nRuns[j][i]] = atof(x);
 	      tempCosErr[j][i][nRuns[j][i]] = atof(xe);
-// 	      cout<<tempCos[j][i][nRuns[j][i]]<<" "<< 
-// 		tempCosErr[j][i][nRuns[j][i]]<<"\t";
+	      if(slug[sl][r+2]==15343)
+		cout<<tempCos[j][i][nRuns[j][i]]<<" "<< 
+		  tempCosErr[j][i][nRuns[j][i]]<<"\t";
 	    }else good = 0;
 	    if(good) nRuns[j][i]++;
 	  }
@@ -175,7 +178,7 @@ Int_t plotResidualCosAndSinCompBySlug(Int_t slug_start = 139, Int_t slug_end = 2
 	}
       }
     }
-    if(atLeastOneGoodRun&&slug[sl][0]!=224){
+    if(atLeastOneGoodRun&&slug[sl][0]){
       slugArray[nSlug] = slug[sl][0];
       Double_t par[2];
       for(int i=0;i<nDET;i++){
@@ -213,7 +216,8 @@ Int_t plotResidualCosAndSinCompBySlug(Int_t slug_start = 139, Int_t slug_end = 2
       //      mg[j][i] = new TMultiGraph();
       //      mg[j][i]->SetTitle(Form("Residual %s Cosine & Sine vs Run", 
       //			      DetectorList[i].Data()));
-      grS[j][i] = new TGraphErrors(nSlug,slugArray,AvCorrectedDetectorSin[j][i],runsSErr[j][i],
+      grS[j][i] = new TGraphErrors(nSlug,slugArray,AvCorrectedDetectorSin[j][i],
+				   runsSErr[j][i],
 				   AvCorrectedDetectorSinError[j][j]);
       grS[j][i]->SetTitle(Form("Residual %s Sine Response vs Slug", 
 			      DetectorList[i].Data()));

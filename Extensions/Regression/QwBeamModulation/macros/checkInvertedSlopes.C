@@ -402,9 +402,9 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	 "*\n");
 
   for(Int_t i=0;i<nDET;i++){
-    TString det = DetectorList[i];
-    det.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,det.Data());
+    TString detec = DetectorList[i];
+    detec.Resize(16);
+    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvDetectorSlope[j][i])<TMath::Abs(AvDetectorSlopeError[j][i]))
@@ -428,9 +428,9 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	 "***********************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
-    TString det = DetectorList[i];
-    det.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,det.Data());
+    TString detec = DetectorList[i];
+    detec.Resize(16);
+    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvUncorrectedDetectorSin[j][i])<
@@ -453,9 +453,9 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	 "***********************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
-    TString det = DetectorList[i];
-    det.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,det.Data());
+    TString detec = DetectorList[i];
+    detec.Resize(16);
+    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvCorrectedDetectorSin[j][i])<
@@ -482,9 +482,9 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	 "***********************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
-    TString det = DetectorList[i];
-    det.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,det.Data());
+    TString detec = DetectorList[i];
+    detec.Resize(16);
+    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvUncorrectedDetectorCos[j][i])<
@@ -508,9 +508,9 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	 "***********************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
-    TString det = DetectorList[i];
-    det.Resize(16); 
-   printf("%s%s |", ANSI_COLOR_RESET,det.Data());
+    TString detec = DetectorList[i];
+    detec.Resize(16); 
+   printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvCorrectedDetectorCos[j][i])<

@@ -11,7 +11,7 @@ const char QwMpsOnly::red[8] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
 const char QwMpsOnly::other[8] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
 const char QwMpsOnly::normal[8] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
-const Double_t fUnitConvert[5] = {1., 1.e6, 1., 1., 1.e6};
+//const Double_t fUnitConvert[5] = {1., 1.e6, 1., 1., 1.e6};
 
 QwMpsOnly::QwMpsOnly(TChain *tree)
 {
@@ -43,7 +43,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fSingleCoil = false; 
   fRunNumberSet = false; 
   fPhaseConfig = false;
-  
+  fFileSegmentInclude = false;
   f2DFit = true;
 
   fFileSegment = ""; 
@@ -1129,7 +1129,7 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
     temp_period[i] = f->GetParameter(3);
     temp_offset_err[i] = f->GetParError(2);
     temp_period_err[i] = f->GetParError(3);
-    if(fitResult == 0){
+    if(fitResult == 0 &&f->GetChisquare()<3e5){
       numGood++;
       used[i] = 1;
       numerPeriod += temp_period[i] * TMath::Power(temp_period_err[i], -2);
@@ -1161,17 +1161,17 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
   }
 
   Bool_t allGood = 1;
-  Double_t maxDev = 0.5; //maximum deviation allowed from mean
+  Double_t maxDev = 0.8; //maximum deviation allowed from mean
   for(int i=0;i<4;i++){//kill execution if one or more fits not close to average
     if(used[i]){
-      if(!(TMath::Abs(fRampPeriod - temp_period[i]) < maxDev) ||
-	 !(TMath::Abs(fRampPeriod - temp_period[i]) < 3 * temp_period_err[i])){
+      if(TMath::Abs(fRampPeriod - temp_period[i]) > maxDev &&
+	 TMath::Abs(fRampPeriod - temp_period[i]) > 3 * temp_period_err[i]){
 	printf("Ramp period from %s fit = %f not in close enough agreement with"
 	       " average ramp period %f\n", fg[i], temp_period[i], fRampPeriod);
 	allGood = 0;
       }
-      if(!(TMath::Abs(fRampOffset - temp_offset[i]) < maxDev) ||
-	 !(TMath::Abs(fRampOffset - temp_offset[i]) < 3 * temp_offset_err[i])){
+      if(TMath::Abs(fRampOffset - temp_offset[i]) > maxDev &&
+	 TMath::Abs(fRampOffset - temp_offset[i]) > 3 * temp_offset_err[i]){
 	printf("Ramp offset from %s fit = %f not in close enough agreement with"
 	       " average ramp offset %f\n", fg[i], temp_offset[i], fRampOffset);
 	allGood = 0;
@@ -1247,17 +1247,15 @@ Int_t QwMpsOnly::GetEntry(Long64_t entry)
    return fChain->GetEntry(entry);
 }
 
-void QwMpsOnly::GetOptions(Char_t **options){
+void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
   Int_t i = 0;
-
   TString flag;
-
-  while(options[i] != NULL){
+  while(i<n){
     flag = options[i];
 
     if(flag.CompareTo("--run", TString::kExact) == 0){
-      std::string option(options[i+1]);
-      flag.Clear();
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
       fRunNumberSet = true;
       run_number = atoi(options[i + 1]);
 
@@ -1267,8 +1265,8 @@ void QwMpsOnly::GetOptions(Char_t **options){
     }    
 
     if(flag.CompareTo("--phase-config", TString::kExact) == 0){
-      std::string option(options[i+1]);
-      flag.Clear();
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
       fPhaseConfig = true;
       ReadPhaseConfig(options[i + 1]);
       std::cout << other << "Setting external phase values:\t" 
@@ -1277,7 +1275,7 @@ void QwMpsOnly::GetOptions(Char_t **options){
 
     if(flag.CompareTo("--charge-sens", TString::kExact) == 0){
       fCharge = true;
-      flag.Clear();
+      //      flag.Clear();
       fChargeFile = Form("config/charge_sensitivity_%i.dat", run_number);
       std::cout << other << "Setting up pseudo 5+1 analysis:\t" << fChargeFile 
 		<< normal << std::endl;
@@ -1288,7 +1286,7 @@ void QwMpsOnly::GetOptions(Char_t **options){
       std::string option(options[i+1]);
       fFileSegmentInclude = true;
 
-      flag.Clear();
+      //      flag.Clear();
       fFileSegment = options[i + 1];
       Int_t index = option.find_first_of(":");
       fLowerSegment = atoi(option.substr(0, index).c_str());
@@ -1301,30 +1299,26 @@ void QwMpsOnly::GetOptions(Char_t **options){
     }
 
     if(flag.CompareTo("--file-stem", TString::kExact) == 0){
-      std::string option(options[i+1]);
-
-      flag.Clear();
+      //      flag.Clear();
       fFileStem = options[i + 1];
 
       std::cout << other << "Setting file stem to:\t" 
-		<< fFileStem << ":" 
-		<< normal << std::endl;
+		<< fFileStem.Data() << normal << std::endl;
     }    
 
     if(flag.CompareTo("--set-stem", TString::kExact) == 0){
-      std::string option(options[i+1]);
+      //      std::string option(options[i+1]);
 
-      flag.Clear();
+      //      flag.Clear();
       fSetStem = options[i + 1];
 
       std::cout << other << "Setting set stem to:\t" 
-		<< fSetStem << ":" 
-		<< normal << std::endl;
+		<< fSetStem.Data() << normal << std::endl;
     }    
 
     if(flag.CompareTo("--ramp-pedestal", TString::kExact) == 0){
-      std::string option(options[i+1]);
-      flag.Clear();
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
       fPedestal = atoi(options[i + 1]);
 
       std::cout << other << "Setting ramp pedestal to:\t" 
@@ -1333,8 +1327,8 @@ void QwMpsOnly::GetOptions(Char_t **options){
     }    
 
     if(flag.CompareTo("--ramp-max-nonlin", TString::kExact) == 0){
-      std::string option(options[i+1]);
-      flag.Clear();
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
       fMaxRampNonLinearity = atoi(options[i + 1]);
 
       std::cout << other << "Setting ramp maximum non-linearity to:\t" 
@@ -1344,7 +1338,7 @@ void QwMpsOnly::GetOptions(Char_t **options){
 
     if(flag.CompareTo("--charge", TString::kExact) == 0){
       fCharge = true;
-      flag.Clear();
+      //      flag.Clear();
       if( IfExists(options[i + 1]) ){
 	flag = options[i + 1];
 	fChargeFile = flag;
@@ -1360,7 +1354,7 @@ void QwMpsOnly::GetOptions(Char_t **options){
     }
     
     if(flag.CompareTo("--current-cut", TString::kExact) == 0){
-      flag.Clear();
+      //      flag.Clear();
       fCurrentCut = atoi(options[i + 1]);
       std::cout << other << "Setting current-cut to:\t" 
 		<< fCurrentCut << normal << std::endl;
@@ -1368,8 +1362,8 @@ void QwMpsOnly::GetOptions(Char_t **options){
 
     // flag to turn ON/OFF new energy bpm
     if(flag.CompareTo("--fNewEbpm", TString::kExact) == 0){
-      std::string option(options[i+1]);
-      flag.Clear();
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
 
       fNewEbpm = atoi(options[i + 1]);
 
@@ -1380,7 +1374,7 @@ void QwMpsOnly::GetOptions(Char_t **options){
   
     // Flag to turn ON 2D fit. (Default = OFF)
     if(flag.CompareTo("--2dfit", TString::kExact) == 0){
-      flag.Clear();
+      //      flag.Clear();
       f2DFit = true;
       std::cout << "2D Fit Selected" << std::endl;
     } 
@@ -1394,7 +1388,8 @@ void QwMpsOnly::GetOptions(Char_t **options){
 	     " path of charge sensitivities.");
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
       exit(0);
-    }        
+    } 
+    flag.Clear();       
     i++;
   }
 }
@@ -1688,37 +1683,18 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
 				   Int_t *good)
 {
   Int_t nEnt = fChain->GetEntries();
-  Int_t modType = -1, modNum = -1, nCut = 0, nErr = 0;
+  Int_t modType = -1, nCut = 0, nErr = 0;
   //Double_t prev_ramp = 0;
   Int_t pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
   fNEvents = 0;
-  switch(pattern){
-  case 0:
-    modNum = 0;
-    modType = fXModulation;
-    break;
-  case 1:
-    modNum = 1;
-    modType = fXPModulation;
-    break;
-  case 2:
-    modNum = 2;
-    modType = fEModulation;
-    break;
-  case 3:
-    modNum = 3;
-    modType = fYModulation;
-    break;
-  case 4:
-    modNum = 4;
-    modType = fYPModulation;
-    break;
-  default:
-    modNum = -1;
-    std::cout<<"Modulation type "<<pattern<<" unknown.\n"<<std::endl;
-    break;
-  }
-  if(modNum==-1)return -1;
+
+  //choosing modType as pattern means monitor and detector coefficients
+  //are calculated and stored in the same order they were set up in the
+  //rootfiles i.e. time ordering: X, Y, E, XP, YP.
+  modType =  pattern;
+
+
+  if(modType<0||modType>4)return -1;
   std::cout<<"Modulation type "<<pattern<<" found at entry "<<i<<"\n";
 
   //Make sure arrays are clear of data
@@ -1730,13 +1706,13 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
     DetectorData[j].clear();
   }
 
-  while(pattern == modNum && i < nEnt){
+  while(pattern == modType && i < nEnt){
 
     if(ErrorCodeCheck("mps_tree")!=0){
       nCut++;
       nErr++;
     }else{
-      good[modNum]++;
+      good[modType]++;
       CoilData[modType].push_back(ramp_filled);
 
       for(Int_t j = 0; j < fNDetector; j++){
@@ -1759,9 +1735,9 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
     if(i%1000==0)std::cout<<i<<"  pattern "<<pattern<<std::endl;
   }
   i--;
-  err[modNum] += nErr;
+  err[modType] += nErr;
   std::cout<<fNEvents<< " good "<<pattern<<"-type modulation events found. ";
-  std::cout<<nErr<<" errors -- "<<err[modNum]<<" total "<<pattern<<
+  std::cout<<nErr<<" errors -- "<<err[modType]<<" total "<<pattern<<
     "-type errors.\n";
 
   if(f2DFit) {
@@ -1806,7 +1782,6 @@ void QwMpsOnly::ReadChargeSensitivity(){
 Int_t QwMpsOnly::ReadConfig(TString opt)
 {
   std::string line;
-
   char *token;
 
   TString mon_prefix;
@@ -1935,6 +1910,14 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 	MonitorList[inew] = "newEbpm";
     }
   }
+
+  //set the unit conversion array
+  std::cout<<"Unit conversion array: ";
+  for(int i=0; i<5;i++){
+    fUnitConvert[i] = (MonitorList[i].Contains("Slope") ? 1.0e6 : 1.0);
+    std::cout<<fUnitConvert[i]<<"  ";
+  }
+  std::cout<<std::endl;
 
   return 0;
 }
@@ -2166,8 +2149,8 @@ void QwMpsOnly::Write(){
     for(Int_t i = 0; i < fNDetector; i++){
       slopes << "det " << DetectorList[i] << std::endl;
       for(Int_t j = 0; j < fNModType; j++){
-	slopes << YieldSlope[i][j] << "\t"
-	       << YieldSlopeError[i][j] << std::endl;
+	slopes << Form("%+14.7e",YieldSlope[i][j]) << "\t"
+	       << Form("%12.5e",YieldSlopeError[i][j]) << std::endl;
       }
     }
   }
@@ -2196,14 +2179,14 @@ void QwMpsOnly::Write(){
 
   diagnostic <<"\nRamp period fit results for function generator signals\n";
   for(int i=0;i<4;i++){
-    diagnostic <<fg[i]<<"\t"<<rampPeriodFitRslt[i]<<"\t"<<
-      rampPeriodFitRsltErr[i]<<std::endl;
+    diagnostic <<fg[i]<<"\t"<<Form("%13.6e",rampPeriodFitRslt[i])<<"\t"<<
+      Form("%12.5e",rampPeriodFitRsltErr[i])<<std::endl;
   }
 
   diagnostic <<"\nRamp offset fit results for function generator signals\n";
     for(int i=0;i<4;i++){
-    diagnostic <<fg[i]<<"\t"<<rampOffsetFitRslt[i]<<"\t"<<
-      rampOffsetFitRsltErr[i]<<std::endl;
+      diagnostic <<fg[i]<<"\t"<<Form("%13.6e",rampOffsetFitRslt[i])<<"\t"<<
+	Form("%12.5e",rampOffsetFitRsltErr[i])<<std::endl;
   }
 
 

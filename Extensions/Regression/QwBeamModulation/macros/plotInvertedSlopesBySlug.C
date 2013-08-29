@@ -44,9 +44,9 @@ void getErrorWeightedMean(Double_t *x, Double_t *xe, Double_t *mean, Int_t n){
   mean[1] = sqrt(1 / esqinv);
 }
 
-Int_t plotInvertedSlopesBySlug(Int_t slug_start = 139, Int_t slug_end = 225){
+Int_t plotInvertedSlopesBySlug(Int_t slug_start = 137, Int_t slug_end = 322){
   //  gStyle->SetOptFit(1111);
-  char  x[255], xe[255], mon[255], monitr[255], det[255], detectr[255];
+  char  x[255], xe[255], mon[255], monitr[255], det[255], detectr[255], slg[255];
   string line;
 
   Bool_t ppm_per_micro = 1;
@@ -108,31 +108,30 @@ Int_t plotInvertedSlopesBySlug(Int_t slug_start = 139, Int_t slug_end = 225){
   //  TString detector;
   ifstream slugList(Form("%s/macros/runsBySlug.dat", 
 			 gSystem->Getenv("BMOD_SRC")));
-  Int_t nSlugs = 0, nSlug = 0;;
+  Int_t nSlugs = 0, nSlug = 0, prevSlug = 0;
   if(slugList.is_open())cout<<"File list found.\n";
   else cout<<"File list not found.\n";
-
-  while(slugList.good()){
-    Int_t n = 2;//reserve n=0 for slugnumber and n=1 for number of runs in slug
-    slugList>>x;
-    if(atoi(x)>slug_end) break;
-    slug[nSlug][0] = atoi(x);
-    slugArray[nSlug] = (Double_t)slug[nSlug][0];
-    cout<<atoi(x)<<" ";
-    while(slugList.peek()!= '\n'){
-      slugList>>x;
-      slug[nSlug][n] = atoi(x);
-      cout<<atoi(x)<<" ";
-      n++;
+  //nSlug, n , idx 0 and 1
+  Int_t nRn = 0;
+  while(slugList.good()&&!slugList.eof()){
+    slugList>>slg>>x;
+    getline(slugList,line);
+    Int_t sl = atoi(slg); 
+    if(sl>=slug_start && sl<=slug_end){
+      if(sl!=prevSlug){
+	slug[nSlug][0] = sl;
+	if(nSlug!=0)
+	  slug[nSlug - 1][1] = nRn;
+	nSlug++;
+	nRn = 0;
+	//	cout<<nSlug<<"\n";
+      }
+      slug[nSlug-1][nRn+2] = atoi(x);
     }
-    getline(slugList, line);
-    cout<<endl;
-    slug[nSlug][1] = n - 2;
-    if(slug_start <= slug[nSlug][0]){
-      cout<<slug[nSlug][1]<<" runs in slug "<<slug[nSlug][0]<<" found.\n";
-      nSlug++;
-    }
+    prevSlug = sl;
+    nRn++;
   }
+
   nSlugs = nSlug;
   nSlug = 0;
 
@@ -142,23 +141,31 @@ Int_t plotInvertedSlopesBySlug(Int_t slug_start = 139, Int_t slug_end = 225){
     temp[nMOD][nDET][100], tempErr[nMOD][nDET][100];
 
   Int_t n[nMOD][nDET], nRuns;
+  //  for(int i=0;i<nSlugs
+
+
 
   for(int sl = 0; sl < nSlugs; sl++){
-    for(int i=0;i<nDET;i++)
+    for(int i=0;i<nDET;i++){
       for(int j=0;j<nMOD;j++){
 	n[j][i] = 0;
       }
+    }
     nRuns = 0;
     for(int r = 0; r<slug[sl][1];r++){
       ifstream slopesFile(Form("%s/slopes/slopes_%i.set4.dat",
 			       gSystem->Getenv("BMOD_OUT"), slug[sl][r+2]));
-      if(slopesFile.is_open())
+      Int_t good = 0;
+      if(slopesFile.is_open()&&slopesFile.good()){
 	cout<<"Slope file found for run "<<slug[sl][r+2]<<" in slug "<<
 	  slug[sl][0]<<".\n";
-	else 
-	  cout<<"Slope file NOT found for run "<<slug[sl][r+2]<<" in slug "<<
-	    slug[sl][0]<<".\n";
-      if(slopesFile.good()){
+	slopesFile.peek();//if file exists but is empty this will set eofbit
+	good = 1;
+      }else 
+	cout<<"Slope file NOT found for run "<<slug[sl][r+2]<<" in slug "<<
+	  slug[sl][0]<<".\n";
+
+      if(!slopesFile.eof()&&good){
 	Int_t allGood = 0;
 
 	for(int i=0;i<nDET;i++){  
