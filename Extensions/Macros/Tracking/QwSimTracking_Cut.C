@@ -68,7 +68,7 @@ double num_pe_cut = 1.0;
 double num_of_frontPTChi_cut = 15; // track-level chi cut
 double num_of_backPTChi_cut = 15;
 
-double num_of_R2PTChi_cut = 2;  // partial-track-level chi cut 
+double num_of_R2PTChi_cut = 10;  // partial-track-level chi cut 
 double num_of_R3PTChi_cut = 15;
 
 double scattering_angle_cut_min = 3.0;
@@ -1074,6 +1074,7 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     c7->Write();
     c8->Write();
     c9->Write();     
+    c10->Write();
 
     //save histograms
     hit_dist->Write();
@@ -1083,6 +1084,9 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
 
     histo_md_pe->Write();
     light_weighted_q2->Write();
+
+    front_pt_chi->Write();
+    back_pt_chi->Write();
 
     histo_vertex_z->Write();
     histo_vertex_r->Write();
