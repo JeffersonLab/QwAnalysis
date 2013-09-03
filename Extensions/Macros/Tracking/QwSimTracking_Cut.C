@@ -34,7 +34,11 @@
 // Changed the the error calculation for scattering angle and Q2 to take into account
 // the case of using cross-section weight
 //
-
+// ---
+// jpan, Fri Aug 30 11:44:44 CDT 2013
+// Added in partial-track-level chi cuts and track-level chi cuts
+// also added in number of PE cut and PE weighting
+// 
 #include <iostream>
 #include <iomanip>
 
@@ -50,9 +54,22 @@ bool enable_position_r_off_cut   = false;
 bool enable_hit_position_x_cut   = false;
 bool enable_hit_position_y_cut   = false;
 bool enable_momentum_cut         = false;
+bool enable_PE_cut               = true;
+bool enable_frontPTChi_cut       = false;
+bool enable_backPTChi_cut        = false;
+bool enable_R2PTChi_cut          = true;
+bool enable_R3PTChi_cut          = false; 
 
 // cut values
 const double degree = 3.1415927/180.0;
+
+double num_pe_cut = 1.0;
+
+double num_of_frontPTChi_cut = 15; // track-level chi cut
+double num_of_backPTChi_cut = 15;
+
+double num_of_R2PTChi_cut = 2;  // partial-track-level chi cut 
+double num_of_R3PTChi_cut = 15;
 
 double scattering_angle_cut_min = 3.0;
 double scattering_angle_cut_max = 13.0;
@@ -252,6 +269,58 @@ bool  hit_position_y_cut ( double val )
     }
 }
 
+bool PE_cut ( double val)
+{
+   if (val> num_pe_cut)
+        return true;
+    else
+    {
+        rejection = true;
+        if ( debug )
+            cout<<"rejected, PE_cut, PE="<<val<<endl;
+        return false;
+    }
+}
+
+bool frontPTChi_cut ( double val)
+{
+   if (val< num_of_frontPTChi_cut)
+        return true;
+    else
+    {
+        rejection = true;
+        if ( debug )
+            cout<<"rejected, track-level frontPTChi_cut, frontPTChi="<<val<<endl;
+        return false;
+    }
+}
+
+bool backPTChi_cut ( double val)
+{
+   if (val< num_of_backPTChi_cut)
+        return true;
+    else
+    {
+        rejection = true;
+        if ( debug )
+            cout<<"rejected, track-level backPTChi_cut, backPTChi="<<val<<endl;
+        return false;
+    }
+}
+
+bool PTChi_cut ( double val, double num_of_PTChi_cut )
+{
+   if (val< num_of_PTChi_cut)
+        return true;
+    else
+    {
+        rejection = true;
+        if ( debug )
+            cout<<"rejected, partial-track-level PTChi_cut, PTChi="<<val<<endl;
+        return false;
+    }
+}
+
 //---------------------------------------------------------------------
 
 void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
@@ -264,6 +333,7 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     TH2F* hit_dist = new TH2F ( "hit_dist",Form ( "QwSimRun %d-%d, Hits Distribution",start,end ),480,-120,120,100,310,360 );
     TH1F* angle = new TH1F ( "theta",Form ( "QwSimRun %d-%d, Scattering Angle Distribution",start,end ),400,3,14 );
     TH1F* q2 = new TH1F ( "q2",Form ( "QwSimRun %d-%d, Q2 Distribution",start,end ),400,0,0.08 );
+
 
     //define extra histograms
     TH2F*  r2_proj;
@@ -315,13 +385,23 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     TH1F* histo_direction_theta_off;
     histo_direction_theta_off = new TH1F ( "histo_direction_theta_off_all",Form ( "QwSimRun %d-%d, Direction_Theta_Off",start,end ),400,-0.4/degree,0.4/degree );
 
+    TH1F* histo_md_pe;
+    histo_md_pe = new TH1F ( "histo_md_pe",Form ( "QwSimRun %d-%d, MD_PE",start,end ),500,0,500); 
+
+    TH1F* light_weighted_q2 = new TH1F ( "light_weighted_q2",Form("QwSimRun %d-%d, Light-Weighted Q2 distribution",start,end ),400,0,0.08);
+
     TH1F* histo_position_theta_off;
     histo_position_theta_off = new TH1F ( "histo_position_theta_off_all",Form ( "QwSimRun %d-%d, Position_Theta_Off",start,end ),400,-0.003/degree,0.003/degree );
 
     TProfile2D* q2_dist = new TProfile2D ( "q2_dist",Form ( "QwSimRun %d-%d, Q2 Distribution",start,end ),480,-120,120,100,310,360 );
     TProfile* q2_vs_x = new TProfile ( "q2_vs_x",Form ( "QwSimRun %d-%d, Q2 vs. X",start,end ),240,-120,120 );
     TProfile* q2_vs_y = new TProfile ( "q2_vs_y",Form ( "QwSimRun %d-%d, Q2 vs. Y",start,end ),120,335-20,335+20 );
-
+    
+    TH1F* front_pt_chi;
+    front_pt_chi = new TH1F ( "front_pt_chi",Form ( "QwSimRun %d-%d, Front Partial Track Chi-distribution",start,end ),400,0,40 );
+    
+    TH1F* back_pt_chi;
+    back_pt_chi = new TH1F ( "back_pt_chi",Form ( "QwSimRun %d-%d, Back Partial Track Chi-distribution",start,end ),400,0,40 );
 
     TString Path = "$QW_ROOTFILES/"; // qwsimtracking-analyzed events
 
@@ -358,13 +438,39 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
         int num_of_events = event_tree->GetEntries();
         for ( int i=0; i<num_of_events; i++ )   // start to loop over all events
         {
-            if ( i%5000==0 )
+            if ( i%5000==0 && i>0)
                 cout << "events processed so far: " << i << endl;
 
             event_tree->GetEntry ( i );
             rejection = false;
 
-            double Q2_val = fEvent->fKinElasticWithLoss.fQ2;
+            // Performing partial-track-level chi cut    
+            // reject an event if one of its partial track chi values 
+            // is larger than the pre-defined cut value
+            int Num_Of_PT_Tracks = fEvent->GetNumberOfPartialTracks();
+            for (int j=0; j<Num_Of_PT_Tracks; j++)
+            {
+              pt = fEvent->GetPartialTrack(j);
+              int Region = pt->GetRegion();
+              double chi_val = pt->fChi;
+
+              if( Region==2 && enable_R2PTChi_cut )
+              {    
+                   if ( ! PTChi_cut ( chi_val, num_of_R2PTChi_cut ) )
+                       continue;
+              }
+    
+              if( Region==3 && enable_R3PTChi_cut )
+              {
+                   if ( ! PTChi_cut ( chi_val, num_of_R3PTChi_cut ) )
+                       continue;
+              }
+            }
+    
+            if (rejection == true)
+               continue;
+
+	    double Q2_val = fEvent->fKinElasticWithLoss.fQ2;
             if(Q2_val<=0.01 || Q2_val>=0.08)
                 continue;
 
@@ -536,20 +642,59 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
                         continue;
                 }
 
-
-                // obtain additional parameters
+                               // obtain additional parameters
                 double Eloss  = fEvent->fHydrogenEnergyLoss;
                 double P0_val = fEvent->fKinElasticWithLoss.fP0;
                 double Pp_val = fEvent->fKinElasticWithLoss.fPp;
 
-            } // end of loop over tracks
+	  
+           } // end of loop over tracks
+                
+           //  main detector PE cut     
+           if ( enable_PE_cut )
+           {
+              vector<float> PEs;
+              float PE_val = 0;
+              int PE_vec_size = fEvent->fMD_TotalNbOfPEs.size();
+              PEs.resize(PE_vec_size);
+              for (int n=0; n<PE_vec_size; n++)
+              {
+                 PEs[n] = fEvent->fMD_TotalNbOfPEs.at(n);
+                 if( n>0 )
+                    cout<<"Warning: multiple detector hits, MD_PE["<<n<<"]: "<<PEs[n]<<endl;
+                 if(PE_val<PEs[n])
+                    PE_val = PEs[n];  // taking the maximum number of PEs
+              }
 
-                //----------------------
-                // fill histograms
-                //----------------------
+              if ( ! PE_cut ( PE_val ) )
+                    continue;
+           }
 
-                // note: filling histograms out of track-loop eliminate multiple tracks
-                // in one event, e.g. only the last track is counted
+           // Performing track-level chi cut
+           
+           // front partial track Chi cuts                  
+           double frontPTChi_val = track->fFront->fChi;
+           if ( enable_frontPTChi_cut )
+           {
+               if ( ! frontPTChi_cut ( frontPTChi_val) )
+                   continue;
+           }
+
+           // back partial track Chi cut
+           double backPTChi_val = track->fBack->fChi;
+           if ( enable_backPTChi_cut )
+           {
+               if ( ! backPTChi_cut ( backPTChi_val) )
+                   continue;
+           }
+              
+              
+           //----------------------
+           // fill histograms
+           //----------------------
+
+           // note: filling histograms out of track-loop eliminate multiple tracks
+           // in one event, e.g. only the last track is counted
 
             if (rejection == false)
             {
@@ -558,6 +703,11 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
                 hit_dist->Fill ( y,x,xsect );
 
                 // fill additional histograms
+ 
+                histo_md_pe->Fill ( PE_val,xsect );
+
+                light_weighted_q2->Fill ( Q2_val,PE_val*xsect);
+
                 histo_vertex_r->Fill ( vertex_r,xsect );
                 histo_vertex_z->Fill ( vertex_z,xsect );
 
@@ -587,6 +737,9 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
                 hit_tgt_window->Fill ( tgt_win_x,tgt_win_y,xsect );
 
                 q2_dist->Fill ( y,x,Q2_val,xsect );
+		
+		front_pt_chi->Fill (frontPTChi_val,xsect );
+		back_pt_chi->Fill (backPTChi_val,xsect );
              }
 
         }  // end of loop over all events
@@ -748,6 +901,32 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     vertex_2D_yz->GetXaxis()->SetTitle ( "vertex z [cm]" );
     vertex_2D_yz->GetYaxis()->SetTitle ( "vertex y [cm]" );
 
+    // canvas 9
+    TCanvas* c9=new TCanvas ( "c9","Light-weighted Q2 Distribution",800,300 );
+
+    c9->Divide ( 2,1 );
+
+    c9->cd ( 1 );
+    histo_md_pe->Draw();
+    histo_md_pe->GetXaxis()->SetTitle("Total number of PE");
+
+    c9->cd ( 2 );
+    light_weighted_q2->Draw();
+    light_weighted_q2->GetXaxis()->SetTitle("Light-weighted Q2 [(GeV/c)^2]");
+    
+    // canvas 10
+    TCanvas* c10=new TCanvas ( "c10","Partial Track Chi-Distribution",800,300 );
+    
+    c10->Divide ( 2,1);
+
+    c10->cd ( 1 );
+    front_pt_chi->Draw();
+    front_pt_chi->GetXaxis()->SetTitle("Front Chi");
+    
+    c10->cd ( 2 );
+    back_pt_chi->Draw();
+    back_pt_chi->GetXaxis()->SetTitle("Back Chi");
+    
     // canvas for run conditions
     TCanvas* run_condition=new TCanvas ( "run_condition","Tracking Cut Run Conditions",600,400 );
     TPaveText *condition_txt = new TPaveText ( 0.05,0.05,0.95,0.95 );
@@ -807,6 +986,26 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     {
         condition_txt->AddText ( Form ( "hit_position_y_cut_min=%f, hit_position_y_cut_max=%f", hit_position_y_cut_min, hit_position_y_cut_max ) );
     }
+    if ( enable_PE_cut )
+    {
+        condition_txt->AddText ( Form ( "num_pe_cut=%.2f", num_pe_cut ) );
+    }
+    if ( enable_frontPTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_frontPTChi_cut=%.2f", num_of_frontPTChi_cut ) );
+    }
+    if ( enable_backPTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_backPTChi_cut=%.2f", num_of_backPTChi_cut ) );
+    }
+    if ( enable_R2PTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_R2PTChi_cut=%.2f", num_of_R2PTChi_cut ) );
+    }
+    if ( enable_R3PTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_R3PTChi_cut=%.2f", num_of_R3PTChi_cut ) );
+    }
     condition_txt->Draw();
 
     TCanvas* run_summary=new TCanvas ( "run_summary","Tracking Cut Run Summary",600,400 );
@@ -831,6 +1030,12 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     {
         summary_txt->AddText ( Form ( "Q2:  %f +/- %f ( GeV/c ) ^2",
                                       q2->GetMean(),q2->GetMeanError() ) );
+    }
+
+    if ( light_weighted_q2->GetEntries() )
+    {
+        summary_txt->AddText ( Form ( "Light-weighted Q2: %f +/- %f ( GeV/c ) ^2",
+                   light_weighted_q2->GetMean(),light_weighted_q2->GetMeanError() ) );
     }
 
     summary_txt->Draw();
@@ -868,12 +1073,16 @@ void QwSimTracking_Cut ( int start=1,int end=1, int cs=0 )
     c6->Write();
     c7->Write();
     c8->Write();
+    c9->Write();     
 
     //save histograms
     hit_dist->Write();
 
     angle->Write();
     q2->Write();
+
+    histo_md_pe->Write();
+    light_weighted_q2->Write();
 
     histo_vertex_z->Write();
     histo_vertex_r->Write();

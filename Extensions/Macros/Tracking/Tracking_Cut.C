@@ -92,7 +92,9 @@
 // Changed the the error calculation for scattering angle and Q2 to take into account
 // the case of using cross-section weight
 //
-
+// jpan, Fri Aug 30 11:44:44 CDT 2013
+// Added in partial-track-level chi cuts and track-level chi cuts
+// 
 #include <iostream>
 #include <iomanip>
 
@@ -113,7 +115,11 @@ bool enable_direction_phi_cut    = true;
 bool enable_position_r_off_cut   = false;
 bool enable_hit_position_x_cut   = false;
 bool enable_hit_position_y_cut   = false;
-bool enable_momentum_cut         = true;
+bool enable_momentum_cut         = false;
+bool enable_frontPTChi_cut       = false;
+bool enable_backPTChi_cut        = false;
+bool enable_R2PTChi_cut          = false;
+bool enable_R3PTChi_cut          = false;
 
 // cut values
 const int multiple=18;
@@ -125,6 +131,12 @@ int tdc_cut_min[2] = {-210,-210}; //tdc cuts for package {1, 2}
 int tdc_cut_max[2] = {-150,-150};
 
 double num_pe_cut = 3.0;
+
+double num_of_frontPTChi_cut = 15; // track-level chi cut
+double num_of_backPTChi_cut = 15;
+
+double num_of_R2PTChi_cut = 5;  // partial-track-level chi cut
+double num_of_R3PTChi_cut = 15;
 
 double scattering_angle_cut_min = 3.0;
 double scattering_angle_cut_max = 13.0;
@@ -167,6 +179,9 @@ double hit_position_y_cut_max = 120;
 
 double momentum_min = 0.0;
 double momentum_max = 2000.0;  // unit: MeV
+
+// rejection flag
+bool rejection;
 
 // parameters
 
@@ -382,6 +397,45 @@ bool  hit_position_y_cut(double val)
   }
 }
 
+bool frontPTChi_cut ( double val)
+{
+   if (val< num_of_frontPTChi_cut)
+        return true;
+    else
+    {
+        rejection = true;
+        if ( debug )
+            cout<<"rejected, track-level frontPTChi_cut, frontPTChi="<<val<<endl;
+        return false;
+    }
+}
+
+bool backPTChi_cut ( double val)
+{
+   if (val< num_of_backPTChi_cut)
+        return true;
+    else
+    {
+        rejection = true;
+        if ( debug )
+            cout<<"rejected, track-level backPTChi_cut, backPTChi="<<val<<endl;
+        return false;
+    }
+}
+
+bool PTChi_cut ( double val, double num_of_PTChi_cut )
+{
+   if (val< num_of_PTChi_cut)
+        return true;
+    else
+    {
+        rejection = true;
+        if ( debug )
+            cout<<"rejected, partial-track-level PTChi_cut, PTChi="<<val<<endl;
+        return false;
+    }
+}
+
 //---------------------------------------------------------------------
 
 void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem="Qweak_", TString suffix="")
@@ -591,6 +645,16 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TProfile* weighted_q2_vs_y1 = new TProfile("weighted_q2_vs_y1",Form("Run %d, Light-weighted Q2 vs. Y in Oct %d",run,md_1),120,335-20,335+20);
     TProfile* weighted_q2_vs_y2 = new TProfile("weighted_q2_vs_y2",Form("Run %d, Light-weighted Q2 vs. Y in Oct %d",run,md_2),120,335-20,335+20);
 
+    TH1F* front_pt_chi[3];
+    front_pt_chi[0] = new TH1F ( "front_pt_chi_0",Form ( "Run %d, Oct %d + %d, Front Partial Track Chi-distribution",run,md_1,md_2 ),400,0,40 );
+    front_pt_chi[1] = new TH1F ( "front_pt_chi_1",Form ( "Run %d, Oct %d, Front Partial Track Chi-distribution",run,md_1 ),400,0,40 );
+    front_pt_chi[2] = new TH1F ( "front_pt_chi_2",Form ( "Run %d, Oct %d, Front Partial Track Chi-distribution",run,md_2 ),400,0,40 );
+    
+    TH1F* back_pt_chi[3];
+    back_pt_chi[0] = new TH1F ( "back_pt_chi_0",Form ( "Run %d, Oct %d + %d, Back Partial Track Chi-distribution",run,md_1,md_2 ),400,0,40 );
+    back_pt_chi[1] = new TH1F ( "back_pt_chi_1",Form ( "Run %d, Oct %d, Back Partial Track Chi-distribution",run,md_1 ),400,0,40 );
+    back_pt_chi[2] = new TH1F ( "back_pt_chi_2",Form ( "Run %d, Oct %d, Back Partial Track Chi-distribution",run,md_2 ),400,0,40 );
+
    // Fetch events from tree
     for(int i=start;i<end;i++)  // start to loop over all events
     {
@@ -601,7 +665,35 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       event_branch->GetEntry(i);
       maindet_branch->GetEntry(i);
       trig_branch->GetEntry(i);
-     
+
+      rejection = false;
+
+      // Performing partial-track-level chi cut
+      // reject an event if one of its partial track chi values
+      // is larger than the pre-defined cut value
+      int Num_Of_PT_Tracks = fEvent->GetNumberOfPartialTracks();
+      for (int j=0; j<Num_Of_PT_Tracks; j++)
+      {
+              pt = fEvent->GetPartialTrack(j);
+              int Region = pt->GetRegion();
+              double chi_val = pt->fChi;
+
+              if( Region==2 && enable_R2PTChi_cut )
+              {
+                   if ( ! PTChi_cut ( chi_val, num_of_R2PTChi_cut ) )
+                       continue;
+              }
+
+              if( Region==3 && enable_R3PTChi_cut )
+              {
+                   if ( ! PTChi_cut ( chi_val, num_of_R3PTChi_cut ) )
+                       continue;
+              }
+      }
+
+      if (rejection == true)
+         continue;
+   
       double Q2_val = fEvent->fKinElasticWithLoss.fQ2;
       if(Q2_val<=0)
          continue;
@@ -694,8 +786,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
               x       = xoffset+xslope*dz;
               y       = yoffset+yslope*dz;
 
-              if(debug)
-                  cout<<"event#"<<i<<", pkg"<<pkg<<", hit at ("<<x<<","<<y<<")"<<endl;
+ //             if(debug)
+ //                 cout<<"event#"<<i<<", pkg"<<pkg<<", hit at ("<<x<<","<<y<<")"<<endl;
 
               global2local(&x,&y,oct,R3_pkg);
 
@@ -894,6 +986,24 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       double P0_val = fEvent->fKinElasticWithLoss.fP0;
       double Pp_val = fEvent->fKinElasticWithLoss.fPp;
 
+      // Performing track-level chi cut
+
+      // front partial track Chi cuts
+      double frontPTChi_val = track->fFront->fChi;
+      if ( enable_frontPTChi_cut )
+      {
+           if ( ! frontPTChi_cut ( frontPTChi_val) )
+               continue;
+      }
+
+      // back partial track Chi cut
+      double backPTChi_val = track->fBack->fChi;
+      if ( enable_backPTChi_cut )
+      {
+           if ( ! backPTChi_cut ( backPTChi_val) )
+               continue;
+      }
+           
       //----------------------
       // fill histograms
       //----------------------
@@ -980,7 +1090,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 light_vs_y1->Fill(x,total_num_pe);
                 weighted_q2_vs_y1->Fill(x,Q2_val,total_num_pe);
 
-	   }
+                front_pt_chi[0]->Fill (frontPTChi_val );
+                back_pt_chi[0]->Fill (backPTChi_val );
+                front_pt_chi[1]->Fill (frontPTChi_val );
+                back_pt_chi[1]->Fill (backPTChi_val );
+           }
          else if(package==2 ) 
            {
                 angle_2->Fill(angle_val);
@@ -1063,7 +1177,11 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
                 light_vs_y2->Fill(x,total_num_pe);
                 weighted_q2_vs_y2->Fill(x,Q2_val,total_num_pe);
 
-	   }
+                front_pt_chi[0]->Fill (frontPTChi_val );
+                back_pt_chi[0]->Fill (backPTChi_val );
+                front_pt_chi[2]->Fill (frontPTChi_val );
+                back_pt_chi[2]->Fill (backPTChi_val );
+           }
 
       } // end of loop over tracks
     }  // end of loop over all events
@@ -1646,6 +1764,34 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     vertex_2D_yz[2]->GetXaxis()->SetTitle("vertex z [cm]");
     vertex_2D_yz[2]->GetYaxis()->SetTitle("vertex y [cm]");
 
+    // canvas 14
+    TCanvas* c14=new TCanvas("c14","Chi-Distributions",1200,800);
+    c14->Divide(3,2);
+
+    c14->cd(1);
+    front_pt_chi[0]->Draw ();
+    front_pt_chi[0]->GetXaxis()->SetTitle("chi^2");
+
+    c14->cd(2);
+    front_pt_chi[1]->Draw ();
+    front_pt_chi[1]->GetXaxis()->SetTitle("chi^2");
+    
+    c14->cd(3);
+    front_pt_chi[2]->Draw ();
+    front_pt_chi[2]->GetXaxis()->SetTitle("chi^2");
+
+    c14->cd(4);
+    back_pt_chi[0]->Draw ();
+    back_pt_chi[0]->GetXaxis()->SetTitle("chi^2");
+
+    c14->cd(5);
+    back_pt_chi[1]->Draw ();
+    back_pt_chi[1]->GetXaxis()->SetTitle("chi^2");
+
+    c14->cd(6);
+    back_pt_chi[2]->Draw ();
+    back_pt_chi[2]->GetXaxis()->SetTitle("chi^2");
+    
     // canvas for run conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
     TPaveText *condition_txt = new TPaveText(0.05,0.05,0.95,0.95);
@@ -1708,6 +1854,23 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     if(enable_hit_position_y_cut){
       condition_txt->AddText(Form("hit_position_y_cut_min=%f, hit_position_y_cut_max=%f", hit_position_y_cut_min, hit_position_y_cut_max));
     }
+
+    if ( enable_frontPTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_frontPTChi_cut=%.2f", num_of_frontPTChi_cut ) );
+    }
+    if ( enable_backPTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_backPTChi_cut=%.2f", num_of_backPTChi_cut ) );
+    }
+    if ( enable_R2PTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_R2PTChi_cut=%.2f", num_of_R2PTChi_cut ) );
+    }
+    if ( enable_R3PTChi_cut )
+    {
+        condition_txt->AddText ( Form ( "num_of_R3PTChi_cut=%.2f", num_of_R3PTChi_cut ) );
+    }
     condition_txt->Draw();
 
     TCanvas* run_summary=new TCanvas("run_summary","Tracking Cut Run Summary",800,800);
@@ -1734,7 +1897,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       if(num_tracks2!=0)
       {
         summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg2)", 
-                             angle_2->GetMean(), angle_2->GetMeanError));
+                             angle_2->GetMean(), angle_2->GetMeanError()));
       }
     }
 
@@ -1831,6 +1994,7 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     c11->Write();
     c12->Write();
     c13->Write();
+    c14->Write();
 
     //save histograms
     hit_dist1->Write();
@@ -1864,6 +2028,8 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
         vertex_2D_xz[i]->Write();
         vertex_2D_yz[i]->Write();
         hit_tgt_window[i]->Write();
+        front_pt_chi[i]->Write();
+        back_pt_chi[i]->Write();
     }
 
     histo_tdc1m->Write();
