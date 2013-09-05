@@ -32,6 +32,7 @@ mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/wien10/parity
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/wien10/yield
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/parity
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/yield
+mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/al
 
 # Run 1
 ./tree_fill --host 127.0.0.1 --db qw_run1_pass5 --target HYDROGEN-CELL --runlist mapfiles/lists/run1/wien0.list --mapdir mapfiles/run1/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run1/wien0/parity/
@@ -61,6 +62,8 @@ mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/yield
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --runlist mapfiles/lists/run2/wien10.list --mapdir mapfiles/y_run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/wien10/yield/
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/parity/
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/y_run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/yield/
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target DS-4%-Aluminum --runlist mapfiles/lists/run2/al_ds_run2.list --mapdir mapfiles/run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/al/
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target US-2%-Aluminum --runlist mapfiles/lists/run2/al_us_run2.list --mapdir mapfiles/run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/al/
 
 rm -rf /group/qweak/www/html/private/db_rootfiles/run1
 rm -rf /group/qweak/www/html/private/db_rootfiles/run2
