@@ -97,6 +97,35 @@ void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH1
 
 }
 
+void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH2F* hist) {
+  float size=0.07;
+  float titlesize=0.09;
+  float labelsize = 0.07;
+  hist->SetTitle(title);
+  hist->GetXaxis()->SetTitle(xaxis);
+  hist->GetYaxis()->SetTitle(yaxis);
+
+  canvas->Modified();
+  canvas->Update();
+
+  hist->GetYaxis()->SetTitleOffset(0.35);
+  hist->GetXaxis()->SetTitleOffset(0.75);
+  hist->GetYaxis()->SetTitleSize(size);
+  hist->GetXaxis()->SetTitleSize(size);
+  hist->GetYaxis()->SetLabelSize(labelsize);
+  hist->GetXaxis()->SetLabelSize(labelsize);
+
+  TPaveText *tit = (TPaveText*) gPad->GetPrimitive("title");
+  tit->SetTextSize(titlesize);
+  //gStyle->SetTitleSize(titlesize);
+
+  gPad->SetGrid();
+
+  canvas->Modified();
+  canvas->Update();
+
+}
+
 void placeLabel(TString text, float x1, float y1, float x2, float y2) {
  TPaveLabel *subtitle = new TPaveLabel(x1,y1,x2,y2,text,"NDC");
  subtitle->SetBorderSize(0);
@@ -173,6 +202,11 @@ void magentaPlot(TGraphErrors *plot, float size ) {
 
 void blueHisto(TH1F *hist) {
   hist->SetLineColor(kBlue+3);
+  hist->SetFillColor(9);
+}
+
+void redHisto(TH2F *hist) {
+  hist->SetLineColor(kRed+3);
   hist->SetFillColor(9);
 }
 

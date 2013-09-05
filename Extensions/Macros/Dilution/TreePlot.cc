@@ -41,7 +41,7 @@
 using namespace std;
 
 /*Functions found in this macro
- * void plotChargeAsym( TString )
+ * void plotByRunlet( TString,TString )
  * void histoLeaf( TString filename, TString dataname="asym_qwk_charge")
  * void printSlugInfo( TString filename, TString dataname="asym_qwk_charge", TString outfile="outfile")
  * void findBadRunlets( TString filename)
@@ -51,13 +51,11 @@ using namespace std;
  * void pullByWien( TString filename, TString dataname="diff_bcmdd78" )
  */
 
-void plotChargeAsym( TString filename , TString dataname="charge_asym", int low=10, int high=100) {
+void plotByRunlet( TString filename , TString dataname="diff_qwk_charge") {
   gROOT->Reset();
   gROOT->SetStyle("Modern");
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
-
-  bool debug=false;
 
   TFile *file = new TFile(filename);
   if ( !file->IsOpen() ) {
@@ -68,62 +66,29 @@ void plotChargeAsym( TString filename , TString dataname="charge_asym", int low=
 
   TTree *tree = (TTree*) file->Get("tree");
 
-  std::vector<int> runletLow;
-  std::vector<int> runletMid;
-  std::vector<int> runletHigh;
-  std::vector<double> valueLow;
-  std::vector<double> errLow;
-  std::vector<double> valueMid;
-  std::vector<double> errMid;
-//  std::vector<double> valueHigh;
-//  std::vector<double> errHigh;
+  std::vector<double> value;
+  std::vector<double> error;
+  std::vector<double> runlet;
 
   TCanvas *canvas = new TCanvas("canvas","title",1200,900);
   TMultiGraph *multi = new TMultiGraph("multi","");
 
-//  get_single_value_from_tree(tree,"runlet_id",&runletNum);
-//  get_data_with_cuts(tree,dataname,low,high,&valueLow,&errLow,&valueMid,&errMid,&valueHigh,&errHigh);
-  get_data_with_cuts_replace_runlets(tree,dataname,low,high,
-      &valueLow,&errLow,&runletLow,
-      &valueMid,&errMid,&runletMid);
+  get_data_from_tree_runlet(tree,dataname,&value,&error,&runlet);
+//  get_data_from_tree_runlet_decimal(tree,dataname,&value,&error,&runlet);
 
-  if (debug) {
-//  printf("runletNum size: %i \tvalueLow.size() %i \terrLow size: %i\n",int(runletNum.size()),int(valueLow.size()),int(errLow.size()));
-    ofstream output;
-    output.open("badruns.txt");
-    output <<"These are the runs that are INITIALLY failed:\n";
-    for(size_t i=0; i<valueLow.size(); i++) {
-      if ( valueLow.at(i) == -1e6 ) {
-        output <<"Value: \t" <<valueLow.at(i) <<"\t runlet_id: " <<runletLow.at(i)
-          <<"\n";
-      }
-    }
-    output.close();
-  }
-
-  std::vector<double> runletLowD( runletLow.begin(), runletLow.end() );
-  std::vector<double> runletMidD( runletMid.begin(), runletMid.end() );
-//  std::vector<double> runletHighD( runletHigh.begin(), runletHigh.end() );
-
-  TGraphErrors *plotLow = new TGraphErrors(runletLowD.size(),runletLowD.data(),valueLow.data(),0,errLow.data());
-  TGraphErrors *plotMid = new TGraphErrors(runletMidD.size(),runletMidD.data(),valueMid.data(),0,errMid.data());
-//  TGraphErrors *plotHigh = new TGraphErrors(runletHighD.size(),runletHighD.data(),valueHigh.data(),0,errHigh.data());
+  TGraphErrors *plot = new TGraphErrors(runlet.size(),runlet.data(),value.data(),0,error.data());
 
   float size=1;
-  bluePlot(plotLow,size);
-  greenPlot(plotMid,size);
-//  redPlot(plotHigh,size);
+  bluePlot(plot,size);
 
-  multi->Add(plotMid);
-  multi->Add(plotLow);
-//  multi->Add(plotHigh);
+  multi->Add(plot);
 
   canvas->cd();
   multi->Draw("ap");
 
-  multi->SetTitle("Charge Asymmetry in DS Aluminum (run 2)");
+  multi->SetTitle("Charge Asymmetry in DS-4\% Aluminum (run 2)");
   multi->GetYaxis()->SetTitle("Charge Asymmetry (ppm)");
-  multi->GetXaxis()->SetTitle("Runlet Count");
+  multi->GetXaxis()->SetTitle("Run Number (arb.)");
   multi->GetYaxis()->SetTitleOffset(1.3);
   multi->SetMinimum(-21);
   multi->SetMaximum(21);
@@ -134,41 +99,18 @@ void plotChargeAsym( TString filename , TString dataname="charge_asym", int low=
 
 //  canvas->Print("mygraph.png");
 
-
-  TLegend *leg = new TLegend(0.83,0.84,0.98,0.94);
-  leg->SetFillColor(0);
-  leg->AddEntry(plotLow,"Good","lp");
-  leg->AddEntry(plotMid,"Suspect","lp");
-//  leg->AddEntry(plotHigh,"Bad","lp");
-
-  leg->Draw("sames");
-  gPad->Modified();
-  gPad->Update();
-
-  TF1 *fitLow = new TF1("fitLow","pol0");
-  //TColor fitLowColor = plotLow->GetMarkerColor();
-  //fitLow->SetLineColor(fitLowColor);
-  fitLow->SetLineColor(46);
-  fitLow->SetLineStyle(1);
-  plotLow->Fit("fitLow","sames");
-
-  TF1 *fitMid = new TF1("fitMid","pol0");
-  fitMid->SetLineColor(kGreen+3);
-  fitMid->SetLineStyle(1);
-  plotMid->Fit("fitMid","sames");
+  TF1 *fit = new TF1("fit","pol0");
+  fit->SetLineColor(46);
+  fit->SetLineStyle(1);
+  plot->Fit("fit","sames");
 
   gPad->Modified();
   gPad->Update();
 
-  TPaveStats *stat1 = (TPaveStats*) plotLow->GetListOfFunctions()->FindObject("stats");
+  TPaveStats *stat1 = (TPaveStats*) plot->GetListOfFunctions()->FindObject("stats");
   setup_stats(stat1,0.82,0.71,0.98,0.84);
   stat1->SetTextColor(9);
   stat1->Draw("sames");
-
-  TPaveStats *stat2 = (TPaveStats*) plotMid->GetListOfFunctions()->FindObject("stats");
-  setup_stats(stat2,0.82,0.71,0.98,0.84);
-  stat2->SetTextColor(kGreen+3);
-  stat2->Draw("sames");
 
   gPad->Modified();
   gPad->Update();
@@ -185,10 +127,10 @@ void plotChargeAsym( TString filename , TString dataname="charge_asym", int low=
   float txtHigh = txtLow+tsize/2;
   float txtSize = 2;
   //wien lows/highs in x-direction
-  int w8a = 295;
-  int w8b = 841;
-  int w9a = 842;
-  int w9b = 1341;
+  int w8a = 270;
+  int w8b = 723;
+  int w9a = 724;
+  int w9b = 1591;
 
   //Two-pass
   TLine *lineTP = new TLine();
@@ -760,7 +702,57 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
 
 } //end of histoByWien function
 
+void detector_check( TString filename, string dataname = "diff_bcmdd78", int wien=6) {
+  gROOT->Reset();
+  gROOT->SetStyle("Modern");
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
 
+  TFile *file = new TFile(filename);
+  if ( !file->IsOpen() ) {
+    std::cerr <<"Error opening ROOTFILE " <<file <<".\n" <<endl;
+    exit(1);
+  }
+  std::cout <<"Successfully opened ROOTFILE " <<filename <<".\n" <<endl;
+
+  TTree *tree = (TTree*) file->Get("tree");
+
+  const int size = 9;
+  const TString detectors [size] = {
+    "md1", "md2", "md3",
+    "md1", "md2", "md3",
+    "md1", "md2",
+  };
+
+  const int pad [size] = {
+    4, 1, 2, 3, 6, 8, 9, 7, 5
+  };
+
+  TH2F *histArray[8];
+  for (int n=0; n<=7; n++) {
+    histArray[n] = new TH2F(Form("Detector Histo #%i",n),"title",100,0,100,100,0,100);
+  }
+
+  fillHistArray(tree,dataname,wien,histArray,8);
+
+  TCanvas *canvas = new TCanvas("canvas","title");
+  canvas->Divide(3,3);
+
+  for (int i=0; i<size; i++) {
+    canvas->cd(pad[i]);
+    histArray[i]->Draw();
+    redHisto(histArray[i]);
+    placeAxis("title","xaxis","yaxis",canvas,histArray[i]);
+
+    canvas->Modified();
+    canvas->Update();
+  }
+
+  std::cout <<"If you're reading this, root didn't die.\n";
+
+
+
+} //end routine detector_check
 
 
 
