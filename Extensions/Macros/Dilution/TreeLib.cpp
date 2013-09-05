@@ -123,6 +123,10 @@ void get_data_from_tree_runlet(TTree* tree, TString name,
       printf("Wien %i \tRunlet %i\n",wien,i);
     }
 
+    if (wien_slug==0) {
+      printf("Wien is zero!! Runet %i\n",i);
+      wien==wien_slug;
+    }
     if (wien!=wien_slug) {
       printf("Wien %i \tRunlet %i\n",wien,i);
       wien=wien_slug;
