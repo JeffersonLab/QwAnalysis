@@ -1129,7 +1129,7 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
     temp_period[i] = f->GetParameter(3);
     temp_offset_err[i] = f->GetParError(2);
     temp_period_err[i] = f->GetParError(3);
-    if(fitResult == 0 &&f->GetChisquare()<3e5){
+    if(fitResult == 0 && f->GetChisquare()/f->GetNDF()<50){
       numGood++;
       used[i] = 1;
       numerPeriod += temp_period[i] * TMath::Power(temp_period_err[i], -2);
@@ -1205,7 +1205,7 @@ Int_t QwMpsOnly::FindRampRange()
   rampold = new Double_t[max];
   rampnew = new Double_t[max];
   fRampMax = fChain->GetMaximum("ramp") - 1;
-  if(!(fRampMax>315&&fRampMax<340)){
+  if(!(fRampMax>315&&fRampMax<350)){
     std::cout<<"fRampMax not within specified bounds. Exiting program.\n";
     return 1;
   }
