@@ -117,8 +117,9 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	cout<<line<<"\n";
 	for(int j=0;j<5;j++){
 	  slopesFile>>x>>xe;
-	  AvDetectorSlope[j][i] = atof(x);
-	  AvDetectorSlopeError[j][i] = atof(xe);
+	  Bool_t notANum = strcmp(xe,"nan")==0 || strcmp( x,"nan")==0;
+	  AvDetectorSlope[j][i] = (notANum ? -99999.0 : atof(x));
+	  AvDetectorSlopeError[j][i] = (notANum ? -99999.0 : atof(xe));
 	  cout<<AvDetectorSlope[j][i]<<" +/- "<<AvDetectorSlopeError[j][i]<<"\n";
 	  getline(slopesFile, line);
 	}
@@ -151,94 +152,103 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
     cDet[i] = new TCanvas(Form("cDet%i",i),Form("cDet%i",i),0,0,1900,1000);
     cDet[i]->Divide(6,(nDET>9 ? 5 :3));
     for(int j=0;j<nDET;j++){
-      TF1 *f = new TF1("f",Form("[0]+[1]*sin(x*%f+%f)+[2]*cos(x*%f+%f)",DegToRad,
-				phase[i], DegToRad, phase[i]),-10, 370);
 
-      cDet[i]->cd((nDET>9 ? j+1 : order[j]));
-      if(j==0)pt->Draw();
-      gPad->Update();
-      ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
-      TH1D *h = (TH1D*)gDirectory->Get(Form("h%i",j));
-      meanY[i][j] = TMath::Abs(h->GetMean());
-      if(plotAsProfile){
-	ch->Draw(Form("%s/%e:ramp_filled>>pr[%i]",DetectorList[j].Data(),
-		      meanY[i][j],n),cut,"prof");
-	pr[n] = (TProfile*)gDirectory->Get(Form("pr[%i]",n));
-	pr[n]->Approximate(1);
-
-	Double_t max = pr[n]->GetBinContent(0)+2*pr[n]->GetBinError(0);
-	for(int k=1; k<pr[n]->GetNbinsX();k++){
-	  Double_t val = pr[n]->GetBinContent(k)+2*pr[n]->GetBinError(k);
-	  if(max<val&&pr[n]->GetBinContent(k)!=0){
-	    max = val;
-	  }
-	}
-	Double_t min = 1e6; 
-	for(int k=1; k<pr[n]->GetNbinsX();k++){
-	  Double_t val = pr[n]->GetBinContent(k)-2*pr[n]->GetBinError(k);
-	  if(min>val&&pr[n]->GetBinContent(k)!=0){
-	    min = val;
-	  }
-	}
-	pr[n]->SetTitle(Form("%s ModType=%i(%s)",DetectorList[j].Data(),i,
-			     ModulationList[i].Data()));
-
-	pr[n]->GetYaxis()->SetRangeUser(min,max);
-	pr[n]->GetYaxis()->SetTitle(Form("Normalized %s",DetectorList[j].Data()));
-	pr[n]->GetXaxis()->SetTitle("ramp_filled");
-	pr[n]->GetXaxis()->SetTitleSize(0.055);
-	pr[n]->GetXaxis()->SetTitleOffset(0.8);
-	pr[n]->Fit(f);
-	f->SetLineColor(kMagenta);
-	TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(2), DegToRad, phase[i]),
-			    0, 360);
-	fcos->SetLineColor(kBlue);
-        TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(1), DegToRad, phase[i]),
-			    0, 360);
-	fsin->SetLineColor(kRed);
-	AvUncorrectedDetectorSin[i][j]= f->GetParameter(1);
-	AvUncorrectedDetectorSinError[i][j]= f->GetParError(1);
-	AvUncorrectedDetectorCos[i][j]= f->GetParameter(2);
-	AvUncorrectedDetectorCosError[i][j]= f->GetParError(2);
-	pr[n]->Draw();
-	fsin->Draw("same");
-	fcos->Draw("same");
-	f->Draw("same");
- 
-      }else{
-	ch->Draw(Form("%s/%e:ramp_filled>>hist[%i]",DetectorList[j].Data(),
-		      meanY[i][j],n),cut);
-	hist[n] = (TH2D*)gDirectory->Get(Form("hist[%i]",n));
-	hist[n]->SetTitle(Form("%s ModType=%i(%s)",DetectorList[j].Data(),i,
-			     ModulationList[i].Data()));
-	hist[n]->GetYaxis()->SetTitle(Form("Normalized %s",
-					   DetectorList[j].Data()));
-	hist[n]->GetXaxis()->SetTitle("ramp_filled");
-	hist[n]->GetXaxis()->SetTitleSize(0.055);
-	hist[n]->GetXaxis()->SetTitleOffset(0.8);
-	hist[n]->Fit(f);
-	f->SetLineColor(kMagenta);
-	TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(2), DegToRad, phase[i]),
-			    0, 360);
-	fcos->SetLineColor(kBlue);
-        TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(1), DegToRad, phase[i]),
-			    0, 360);
-	fsin->SetLineColor(kRed);
-	AvUncorrectedDetectorSin[i][j]= f->GetParameter(1);
-	AvUncorrectedDetectorSinError[i][j]= f->GetParError(1);
-	AvUncorrectedDetectorCos[i][j]= f->GetParameter(2);
-	AvUncorrectedDetectorCosError[i][j]= f->GetParError(2);
-	hist[n]->Draw();
-	fsin->Draw("same");
-	fcos->Draw("same");
-	f->Draw("same");
+      Int_t allGood = 1;
+      for(int k=0;k<nMOD;k++){
+	if(AvDetectorSlope[k][j]==-99999.0 || 
+	   AvDetectorSlopeError[k][j]==-99999.0 )allGood = 0;
       }
-      if(j==0)pt->Draw();
-      gPad->Update();
+
+      if(allGood){
+	TF1 *f = new TF1("f",Form("[0]+[1]*sin(x*%f+%f)+[2]*cos(x*%f+%f)",DegToRad,
+				  phase[i], DegToRad, phase[i]),-10, 370);
+
+	cDet[i]->cd((nDET>9 ? j+1 : order[j]));
+	if(j==0)pt->Draw();
+	gPad->Update();
+	ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
+	TH1D *h = (TH1D*)gDirectory->Get(Form("h%i",j));
+	meanY[i][j] = TMath::Abs(h->GetMean());
+	if(plotAsProfile){
+	  ch->Draw(Form("%s/%e:ramp_filled>>pr[%i]",DetectorList[j].Data(),
+			meanY[i][j],n),cut,"prof");
+	  pr[n] = (TProfile*)gDirectory->Get(Form("pr[%i]",n));
+	  pr[n]->Approximate(1);
+
+	  Double_t max = pr[n]->GetBinContent(0)+2*pr[n]->GetBinError(0);
+	  for(int k=1; k<pr[n]->GetNbinsX();k++){
+	    Double_t val = pr[n]->GetBinContent(k)+2*pr[n]->GetBinError(k);
+	    if(max<val&&pr[n]->GetBinContent(k)!=0){
+	      max = val;
+	    }
+	  }
+	  Double_t min = 1e6; 
+	  for(int k=1; k<pr[n]->GetNbinsX();k++){
+	    Double_t val = pr[n]->GetBinContent(k)-2*pr[n]->GetBinError(k);
+	    if(min>val&&pr[n]->GetBinContent(k)!=0){
+	      min = val;
+	    }
+	  }
+	  pr[n]->SetTitle(Form("%s ModType=%i(%s)",DetectorList[j].Data(),i,
+			       ModulationList[i].Data()));
+
+	  pr[n]->GetYaxis()->SetRangeUser(min,max);
+	  pr[n]->GetYaxis()->SetTitle(Form("Normalized %s",DetectorList[j].Data()));
+	  pr[n]->GetXaxis()->SetTitle("ramp_filled");
+	  pr[n]->GetXaxis()->SetTitleSize(0.055);
+	  pr[n]->GetXaxis()->SetTitleOffset(0.8);
+	  pr[n]->Fit(f);
+	  f->SetLineColor(kMagenta);
+	  TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(2), DegToRad, phase[i]),
+			      0, 360);
+	  fcos->SetLineColor(kBlue);
+	  TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(1), DegToRad, phase[i]),
+			      0, 360);
+	  fsin->SetLineColor(kRed);
+	  AvUncorrectedDetectorSin[i][j]= f->GetParameter(1);
+	  AvUncorrectedDetectorSinError[i][j]= f->GetParError(1);
+	  AvUncorrectedDetectorCos[i][j]= f->GetParameter(2);
+	  AvUncorrectedDetectorCosError[i][j]= f->GetParError(2);
+	  pr[n]->Draw();
+	  fsin->Draw("same");
+	  fcos->Draw("same");
+	  f->Draw("same");
+ 
+	}else{
+	  ch->Draw(Form("%s/%e:ramp_filled>>hist[%i]",DetectorList[j].Data(),
+			meanY[i][j],n),cut);
+	  hist[n] = (TH2D*)gDirectory->Get(Form("hist[%i]",n));
+	  hist[n]->SetTitle(Form("%s ModType=%i(%s)",DetectorList[j].Data(),i,
+				 ModulationList[i].Data()));
+	  hist[n]->GetYaxis()->SetTitle(Form("Normalized %s",
+					     DetectorList[j].Data()));
+	  hist[n]->GetXaxis()->SetTitle("ramp_filled");
+	  hist[n]->GetXaxis()->SetTitleSize(0.055);
+	  hist[n]->GetXaxis()->SetTitleOffset(0.8);
+	  hist[n]->Fit(f);
+	  f->SetLineColor(kMagenta);
+	  TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(2), DegToRad, phase[i]),
+			      0, 360);
+	  fcos->SetLineColor(kBlue);
+	  TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(1), DegToRad, phase[i]),
+			      0, 360);
+	  fsin->SetLineColor(kRed);
+	  AvUncorrectedDetectorSin[i][j]= f->GetParameter(1);
+	  AvUncorrectedDetectorSinError[i][j]= f->GetParError(1);
+	  AvUncorrectedDetectorCos[i][j]= f->GetParameter(2);
+	  AvUncorrectedDetectorCosError[i][j]= f->GetParError(2);
+	  hist[n]->Draw();
+	  fsin->Draw("same");
+	  fcos->Draw("same");
+	  f->Draw("same");
+	}
+	if(j==0)pt->Draw();
+	gPad->Update();
+      }
       n++;
     }
     scut.Clear();
@@ -274,112 +284,126 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 
  
     for(int j=0;j<nDET;j++){
-      TF1 *f = new TF1("f",Form("[0]+[1]*sin(x*%f+%f)+[2]*cos(x*%f+%f)",DegToRad,
-				phase[i], DegToRad, phase[i]),-10, 370);
-      prC[n] = new TProfile(Form("pr%i",j+(i*nDET)),
-			    Form("pr%i",j+(i*nDET)),100,-1.1,1.1);
-      (cDet[i]->cd((nDET>9 ? j+1 : order[j+9])))->SetFillColor(20);
-      //      cDetCorrectedModType[i]->cd(j+1);
-      ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
-      TH1D *h = (TH1D*)gDirectory->Get(Form("h%i",j));
-      
-      meanY[i][j] = TMath::Abs(h->GetMean());
  
-      if(plotAsProfile){
-	ch->Draw(Form("%s/%e*(1-%e*(%s-%e)-%e*(%s-%e)-%e*(%s-%e)"
-		    "-%e*(%s-%e)-%e*(%s-%e)):ramp_filled>>prC[%i]",
-		      DetectorList[j].Data(),meanY[i][j],AvDetectorSlope[0][j],
-		      MonitorList[0].Data(),meanX[i][0],AvDetectorSlope[1][j],
-		      MonitorList[1].Data(),meanX[i][1],AvDetectorSlope[2][j],
-		      MonitorList[2].Data(),meanX[i][2],AvDetectorSlope[3][j],
-		      MonitorList[3].Data(),meanX[i][3],AvDetectorSlope[4][j],
-		      MonitorList[4].Data(),meanX[i][4], n), 
-		 cut, "prof");
-	prC[n] = (TProfile*)gDirectory->Get(Form("prC[%i]",n));
-	prC[n]->Approximate(1);
-	
-	Double_t max = prC[n]->GetBinContent(0)+2*prC[n]->GetBinError(0);
-	for(int k=1; k<prC[n]->GetNbinsX();k++){
-	  Double_t val = prC[n]->GetBinContent(k)+2*prC[n]->GetBinError(k);
-	  if(max<val&&prC[n]->GetBinContent(k)!=0){
-	    max = val;
-	  }
-	}
-	Double_t min = 1e6; 
-	for(int k=1; k<prC[n]->GetNbinsX();k++){
-	  Double_t val = prC[n]->GetBinContent(k)-2*prC[n]->GetBinError(k);
-	  if(min>val&&prC[n]->GetBinContent(k)!=0){
-	    min = val;
-	  }
-	}
-	prC[n]->SetTitle(Form("Corrected %s ModType=%i(%s)", 
-			      DetectorList[j].Data(), i, ModulationList[i].Data()));
-	prC[n]->Fit(f);
-	f->SetLineColor(kMagenta);
-	TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(2), DegToRad, phase[i]),
-			    0, 360);
-	fcos->SetLineColor(kBlue);
-        TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(1), DegToRad, phase[i]),
-			    0, 360);
-	fsin->SetLineColor(kRed);
-
-	AvCorrectedDetectorSin[i][j]= f->GetParameter(1);
-	AvCorrectedDetectorSinError[i][j]= f->GetParError(1);
-	AvCorrectedDetectorCos[i][j]= f->GetParameter(2);
-	AvCorrectedDetectorCosError[i][j]= f->GetParError(2);
-	prC[n]->SetTitle(Form("Corrected %s ModType=%i(%s)", 
-			      DetectorList[j].Data(), i, ModulationList[i].Data()));
-	prC[n]->GetYaxis()->SetRangeUser(min,max);
-	prC[n]->GetYaxis()->SetTitle(Form("Corrected %s",DetectorList[j].Data()));
-	prC[n]->GetXaxis()->SetTitle("ramp_filled");
-	prC[n]->GetXaxis()->SetTitleSize(0.055);
-	prC[n]->GetXaxis()->SetTitleOffset(0.8);
-	prC[n]->Draw();
-	fsin->Draw("same");
-	fcos->Draw("same");
-	f->Draw("same");
-      }else{
-	ch->Draw(Form("%s/%e*(1-%e*(%s-%e)-%e*(%s-%e)-%e*(%s-%e)"
-		    "-%e*(%s-%e)-%e*(%s-%e)):ramp_filled>>hC[%i]",
-		      DetectorList[j].Data(),meanY[i][j],AvDetectorSlope[0][j],
-		      MonitorList[0].Data(),meanX[i][0],AvDetectorSlope[1][j],
-		      MonitorList[1].Data(),meanX[i][1],AvDetectorSlope[2][j],
-		      MonitorList[2].Data(),meanX[i][2],AvDetectorSlope[3][j],
-		      MonitorList[3].Data(),meanX[i][3],AvDetectorSlope[4][j],
-		      MonitorList[4].Data(),meanX[i][4], n), cut);
-
-	hC[n] = (TH2D*)gDirectory->Get(Form("hC[%i]",n));
-	hC[n]->SetTitle(Form("%s ModType=%i(%s)",
-			     DetectorList[j].Data(),i,ModulationList[i].Data()));
-	hC[n]->Fit(f);
-	f->SetLineColor(kMagenta);
-	TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(2), DegToRad, phase[i]),
-			    0, 360);
-	fcos->SetLineColor(kBlue);
-        TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
-					f->GetParameter(1), DegToRad, phase[i]),
-			    0, 360);
-	fsin->SetLineColor(kRed);
-
-	AvCorrectedDetectorSin[i][j]= f->GetParameter(1);
-	AvCorrectedDetectorSinError[i][j]= f->GetParError(1);
-	AvCorrectedDetectorCos[i][j]= f->GetParameter(2);
-	AvCorrectedDetectorCosError[i][j]= f->GetParError(2);
-	hC[n]->SetTitle(Form("Corrected %s ModType=%i(%s)",
-			     DetectorList[j].Data(),i,ModulationList[i].Data()));
-	hC[n]->GetYaxis()->SetTitle(Form("Corrected %s",DetectorList[j].Data()));
-	hC[n]->GetXaxis()->SetTitle("ramp_filled");
-	hC[n]->GetXaxis()->SetTitleSize(0.055);
-	hC[n]->GetXaxis()->SetTitleOffset(0.8);
-	hC[n]->Draw();
-	fsin->Draw("same");
-	fcos->Draw("same");
-	f->Draw("same");
+      Int_t allGood = 1;
+      for(int k=0;k<nMOD;k++){
+	if(AvDetectorSlope[k][j]==-99999.0 || 
+	   AvDetectorSlopeError[k][j]==-99999.0 )allGood = 0;
       }
-      gPad->Update();
+
+      if(allGood){
+	TF1 *f = new TF1("f",Form("[0]+[1]*sin(x*%f+%f)+[2]*cos(x*%f+%f)",DegToRad,
+				  phase[i], DegToRad, phase[i]),-10, 370);
+	prC[n] = new TProfile(Form("pr%i",j+(i*nDET)),
+			      Form("pr%i",j+(i*nDET)),100,-1.1,1.1);
+	(cDet[i]->cd((nDET>9 ? j+1 : order[j+9])))->SetFillColor(20);
+	//      cDetCorrectedModType[i]->cd(j+1);
+	ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
+	TH1D *h = (TH1D*)gDirectory->Get(Form("h%i",j));
+      
+	meanY[i][j] = TMath::Abs(h->GetMean());
+ 
+	if(plotAsProfile){
+	  ch->Draw(Form("%s/%e*(1-%e*(%s-%e)-%e*(%s-%e)-%e*(%s-%e)"
+			"-%e*(%s-%e)-%e*(%s-%e)):ramp_filled>>prC[%i]",
+			DetectorList[j].Data(),meanY[i][j],AvDetectorSlope[0][j],
+			MonitorList[0].Data(),meanX[i][0],AvDetectorSlope[1][j],
+			MonitorList[1].Data(),meanX[i][1],AvDetectorSlope[2][j],
+			MonitorList[2].Data(),meanX[i][2],AvDetectorSlope[3][j],
+			MonitorList[3].Data(),meanX[i][3],AvDetectorSlope[4][j],
+			MonitorList[4].Data(),meanX[i][4], n), 
+		   cut, "prof");
+	  prC[n] = (TProfile*)gDirectory->Get(Form("prC[%i]",n));
+	  prC[n]->Approximate(1);
+	
+	  Double_t max = prC[n]->GetBinContent(0)+2*prC[n]->GetBinError(0);
+	  for(int k=1; k<prC[n]->GetNbinsX();k++){
+	    Double_t val = prC[n]->GetBinContent(k)+2*prC[n]->GetBinError(k);
+	    if(max<val&&prC[n]->GetBinContent(k)!=0){
+	      max = val;
+	    }
+	  }
+	  Double_t min = 1e6; 
+	  for(int k=1; k<prC[n]->GetNbinsX();k++){
+	    Double_t val = prC[n]->GetBinContent(k)-2*prC[n]->GetBinError(k);
+	    if(min>val&&prC[n]->GetBinContent(k)!=0){
+	      min = val;
+	    }
+	  }
+	  prC[n]->SetTitle(Form("Corrected %s ModType=%i(%s)", 
+				DetectorList[j].Data(), i, ModulationList[i].Data()));
+	  prC[n]->Fit(f);
+	  f->SetLineColor(kMagenta);
+	  TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(2), DegToRad, phase[i]),
+			      0, 360);
+	  fcos->SetLineColor(kBlue);
+	  TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(1), DegToRad, phase[i]),
+			      0, 360);
+	  fsin->SetLineColor(kRed);
+
+	  AvCorrectedDetectorSin[i][j]= f->GetParameter(1);
+	  AvCorrectedDetectorSinError[i][j]= f->GetParError(1);
+	  AvCorrectedDetectorCos[i][j]= f->GetParameter(2);
+	  AvCorrectedDetectorCosError[i][j]= f->GetParError(2);
+	  prC[n]->SetTitle(Form("Corrected %s ModType=%i(%s)", 
+				DetectorList[j].Data(), i, ModulationList[i].Data()));
+	  prC[n]->GetYaxis()->SetRangeUser(min,max);
+	  prC[n]->GetYaxis()->SetTitle(Form("Corrected %s",DetectorList[j].Data()));
+	  prC[n]->GetXaxis()->SetTitle("ramp_filled");
+	  prC[n]->GetXaxis()->SetTitleSize(0.055);
+	  prC[n]->GetXaxis()->SetTitleOffset(0.8);
+	  prC[n]->Draw();
+	  fsin->Draw("same");
+	  fcos->Draw("same");
+	  f->Draw("same");
+	}else{
+	  ch->Draw(Form("%s/%e*(1-%e*(%s-%e)-%e*(%s-%e)-%e*(%s-%e)"
+			"-%e*(%s-%e)-%e*(%s-%e)):ramp_filled>>hC[%i]",
+			DetectorList[j].Data(),meanY[i][j],AvDetectorSlope[0][j],
+			MonitorList[0].Data(),meanX[i][0],AvDetectorSlope[1][j],
+			MonitorList[1].Data(),meanX[i][1],AvDetectorSlope[2][j],
+			MonitorList[2].Data(),meanX[i][2],AvDetectorSlope[3][j],
+			MonitorList[3].Data(),meanX[i][3],AvDetectorSlope[4][j],
+			MonitorList[4].Data(),meanX[i][4], n), cut);
+
+	  hC[n] = (TH2D*)gDirectory->Get(Form("hC[%i]",n));
+	  hC[n]->SetTitle(Form("%s ModType=%i(%s)",
+			       DetectorList[j].Data(),i,ModulationList[i].Data()));
+	  hC[n]->Fit(f);
+	  f->SetLineColor(kMagenta);
+	  TF1 *fcos = new TF1("fcos",Form("%e+%e*cos(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(2), DegToRad, phase[i]),
+			      0, 360);
+	  fcos->SetLineColor(kBlue);
+	  TF1 *fsin = new TF1("fsin",Form("%e+%e*sin(x*%f+%f)",f->GetParameter(0),
+					  f->GetParameter(1), DegToRad, phase[i]),
+			      0, 360);
+	  fsin->SetLineColor(kRed);
+
+	  AvCorrectedDetectorSin[i][j]= f->GetParameter(1);
+	  AvCorrectedDetectorSinError[i][j]= f->GetParError(1);
+	  AvCorrectedDetectorCos[i][j]= f->GetParameter(2);
+	  AvCorrectedDetectorCosError[i][j]= f->GetParError(2);
+	  hC[n]->SetTitle(Form("Corrected %s ModType=%i(%s)",
+			       DetectorList[j].Data(),i,ModulationList[i].Data()));
+	  hC[n]->GetYaxis()->SetTitle(Form("Corrected %s",DetectorList[j].Data()));
+	  hC[n]->GetXaxis()->SetTitle("ramp_filled");
+	  hC[n]->GetXaxis()->SetTitleSize(0.055);
+	  hC[n]->GetXaxis()->SetTitleOffset(0.8);
+	  hC[n]->Draw();
+	  fsin->Draw("same");
+	  fcos->Draw("same");
+	  f->Draw("same");
+	}
+	gPad->Update();
+      }else{
+	AvCorrectedDetectorSin[i][j]= -99999.0;
+	AvCorrectedDetectorSinError[i][j]=  -99999.0;
+	AvCorrectedDetectorCos[i][j]=  -99999.0;
+	AvCorrectedDetectorCosError[i][j]=  -99999.0;
+      }
       n++;
     }
     scut.Clear();
@@ -510,7 +534,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
   for(Int_t i=0;i<nDET;i++){
     TString detec = DetectorList[i];
     detec.Resize(16); 
-   printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
+    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvCorrectedDetectorCos[j][i])<

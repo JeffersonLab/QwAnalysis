@@ -48,7 +48,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
   gStyle->SetStatH(0.25);
   gStyle->SetOptStat(0);
 
-  const Int_t nDET = 9, nMOD = 5;
+  const Int_t nDET = 29, nMOD = 5;
   Double_t DegToRad = 0.0174532925199432955;
   Double_t phase[nMOD] = {0.26,1.08,0,0.26,1.08};  
   Double_t meanX[nMOD][nMOD], meanY[nMOD][nDET];
@@ -149,12 +149,12 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
     cut.Print();
     cout<<"Entries passing cut: "<<ch->GetEntries(cut)<<"\n";
     cDet[i] = new TCanvas(Form("cDet%i",i),Form("cDet%i",i),0,0,1900,1000);
-    cDet[i]->Divide(6,3);
+    cDet[i]->Divide(6,(nDET>9 ? 5 :3));
     for(int j=0;j<nDET;j++){
       TF1 *f = new TF1("f",Form("[0]+[1]*sin(x*%f+%f)+[2]*cos(x*%f+%f)",DegToRad,
 				phase[i], DegToRad, phase[i]),-10, 370);
 
-      cDet[i]->cd(order[j]);
+      cDet[i]->cd((nDET>9 ? j+1 : order[j]));
       if(j==0)pt->Draw();
       gPad->Update();
       ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
@@ -278,7 +278,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 				phase[i], DegToRad, phase[i]),-10, 370);
       prC[n] = new TProfile(Form("pr%i",j+(i*nDET)),
 			    Form("pr%i",j+(i*nDET)),100,-1.1,1.1);
-      (cDet[i]->cd(order[j+9]))->SetFillColor(20);
+      (cDet[i]->cd((nDET>9 ? j+1 : order[j+9])))->SetFillColor(20);
       //      cDetCorrectedModType[i]->cd(j+1);
       ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
       TH1D *h = (TH1D*)gDirectory->Get(Form("h%i",j));
