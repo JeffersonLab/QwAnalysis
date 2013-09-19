@@ -40,6 +40,33 @@
 using namespace std;
 
 
+//get_wien_starts walks through the tree and determines where a
+//new wien period starts
+void get_wien_starts (TTree* tree) {
+  int n_events = (int) tree->GetEntries();
+  int wien, wien_slug;
+//  double run_number_decimal;
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug", &wien_slug);
+//  tree->SetBranchAddress("run_number_decimal", &run_number_decimal);
+  for (int i=0; i<n_events; i++) {
+    tree->GetEntry(i);
+    if(i==0) {
+      wien=wien_slug;
+      printf("Wien %i \tRunlet %i\n",wien,i);
+    }
+    if (wien_slug==0) {
+      printf("Wien is zero!! Runet %i\n",i);
+      wien=wien_slug;
+    }
+    if (wien!=wien_slug) {
+      printf("Wien %i \tRunlet %i\n",wien,i);
+      wien=wien_slug;
+    }
+  }
+}
+
+
 void get_data_from_tree( TTree* tree, TString name, std::vector<double> *value, std::vector<int> *runlet ) {
   int n_events = (int) tree->GetEntries();
   int run_number_decimal;
@@ -107,7 +134,7 @@ void get_data_from_tree_runlet(TTree* tree, TString name,
     std::vector<double> *runlet ) {
 
   int n_events = (int) tree->GetEntries();
-  int sign, wien_slug, wien;
+  int sign, wien_slug;
   double run_number_decimal;
   double temp_branch[4];
   tree->ResetBranchAddresses();
@@ -117,21 +144,6 @@ void get_data_from_tree_runlet(TTree* tree, TString name,
   tree->SetBranchAddress("run_number_decimal", &run_number_decimal);
   for (int i=0; i<n_events; i++) {
     tree->GetEntry(i);
-
-    if(i==0) {
-      wien=wien_slug;
-      printf("Wien %i \tRunlet %i\n",wien,i);
-    }
-
-    if (wien_slug==0) {
-      printf("Wien is zero!! Runet %i\n",i);
-      wien==wien_slug;
-    }
-    if (wien!=wien_slug) {
-      printf("Wien %i \tRunlet %i\n",wien,i);
-      wien=wien_slug;
-    }
-
     if ( temp_branch[0]==-1e6 )
       continue;
     value->push_back(sign*temp_branch[0]);
@@ -139,6 +151,7 @@ void get_data_from_tree_runlet(TTree* tree, TString name,
     runlet->push_back(i);
   }
 }
+
 
 void get_data_from_tree_runlet_decimal(TTree* tree, TString name,
     std::vector<double> *value, std::vector<double> *error,
@@ -301,12 +314,32 @@ void printInfo(TTree *tree, TString name, TString outfile) {
 }
 
 
+void get_rms_by_wien(int wien, TTree *tree, TString name, std::vector<double> *runlet, std::vector<double>*rms) {
+  int n_events = (int) tree->GetEntries();
+  int  wien_slug;
+  double temp_branch[4], run_number_decimal;
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien_slug);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name,&temp_branch);
+  for( int i =0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    //skip bad entries
+    if ( temp_branch[0]==-1e6 || wien_slug != wien)
+      continue;
+
+    runlet->push_back(run_number_decimal);
+//    runlet->push_back(i);
+    rms->push_back(temp_branch[2]);
+  }
+}
+
+
 void get_data_by_wien(int wien, TTree *tree, TString name, std::vector<double> *runlet, std::vector<double> *value, std::vector<double>*error) {
   int n_events = (int) tree->GetEntries();
-  int sign, slug, wien_slug, run_number_decimal;
-  double temp_branch[4];
+  int sign, wien_slug;
+  double temp_branch[4], run_number_decimal;
   tree->ResetBranchAddresses();
-  tree->SetBranchAddress("slug",&slug);
   tree->SetBranchAddress("wien_slug",&wien_slug);
   tree->SetBranchAddress("sign_correction",&sign);
   tree->SetBranchAddress("run_number_decimal",&run_number_decimal);

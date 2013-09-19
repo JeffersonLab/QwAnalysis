@@ -14,9 +14,10 @@ using namespace std;
 
 class TGraphErrors;
 
-void placeAxis(TString, TString, TString, TCanvas*, TGraphErrors*);
 void placeAxis(TString, TString, TString, TCanvas*, TH1F*);
 void placeAxis(TString, TString, TString, TCanvas*, TH2F*);
+void placeAxis(TString, TString, TString, TCanvas*, TGraphErrors*);
+void placeAxis(TString, TString, TString, TCanvas*, TMultiGraph*);
 
 void placeLabel(TString,float,float,float,float);
 

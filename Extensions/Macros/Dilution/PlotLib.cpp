@@ -39,34 +39,7 @@
 using namespace std;
 
 
-void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TGraphErrors *graph) {
-  float size=0.07;
-  float titlesize=0.09;
-  float labelsize = 0.07;
-  graph->SetTitle(title);
-  graph->GetXaxis()->SetTitle(xaxis);
-  graph->GetYaxis()->SetTitle(yaxis);
 
-  canvas->Modified();
-  canvas->Update();
-
-  graph->GetYaxis()->SetTitleOffset(0.25);
-  graph->GetXaxis()->SetTitleOffset(0.75);
-  graph->GetYaxis()->SetTitleSize(size);
-  graph->GetXaxis()->SetTitleSize(size);
-  graph->GetYaxis()->SetLabelSize(labelsize);
-  graph->GetXaxis()->SetLabelSize(labelsize);
-
-  TPaveText *tit = (TPaveText*) gPad->GetPrimitive("title");
-  tit->SetTextSize(titlesize);
-  //gStyle->SetTitleSize(titlesize);
-
-  gPad->SetGrid();
-
-  canvas->Modified();
-  canvas->Update();
-
-}
 
 void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH1F* hist) {
   float size=0.07;
@@ -91,10 +64,8 @@ void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH1
   //gStyle->SetTitleSize(titlesize);
 
   gPad->SetGrid();
-
   canvas->Modified();
   canvas->Update();
-
 }
 
 void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH2F* hist) {
@@ -120,17 +91,69 @@ void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH2
   //gStyle->SetTitleSize(titlesize);
 
   gPad->SetGrid();
+  canvas->Modified();
+  canvas->Update();
+}
+
+void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TGraphErrors *graph) {
+  float size=0.07;
+  float titlesize=0.09;
+  float labelsize = 0.07;
+  graph->SetTitle(title);
+  graph->GetXaxis()->SetTitle(xaxis);
+  graph->GetYaxis()->SetTitle(yaxis);
 
   canvas->Modified();
   canvas->Update();
 
+  graph->GetYaxis()->SetTitleOffset(0.25);
+  graph->GetXaxis()->SetTitleOffset(0.75);
+  graph->GetYaxis()->SetTitleSize(size);
+  graph->GetXaxis()->SetTitleSize(size);
+  graph->GetYaxis()->SetLabelSize(labelsize);
+  graph->GetXaxis()->SetLabelSize(labelsize);
+
+  TPaveText *tit = (TPaveText*) gPad->GetPrimitive("title");
+  tit->SetTextSize(titlesize);
+  //gStyle->SetTitleSize(titlesize);
+
+  gPad->SetGrid();
+  canvas->Modified();
+  canvas->Update();
+}
+
+void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TMultiGraph *multi) {
+  float size=0.07;
+  float titlesize=0.09;
+  float labelsize = 0.07;
+  multi->SetTitle(title);
+  multi->GetXaxis()->SetTitle(xaxis);
+  multi->GetYaxis()->SetTitle(yaxis);
+
+  canvas->Modified();
+  canvas->Update();
+
+  multi->GetYaxis()->SetTitleOffset(0.25);
+  multi->GetXaxis()->SetTitleOffset(0.75);
+  multi->GetYaxis()->SetTitleSize(size);
+  multi->GetXaxis()->SetTitleSize(size);
+  multi->GetYaxis()->SetLabelSize(labelsize);
+  multi->GetXaxis()->SetLabelSize(labelsize);
+
+  TPaveText *tit = (TPaveText*) gPad->GetPrimitive("title");
+  tit->SetTextSize(titlesize);
+  //gStyle->SetTitleSize(titlesize);
+
+  gPad->SetGrid();
+  canvas->Modified();
+  canvas->Update();
 }
 
 void placeLabel(TString text, float x1, float y1, float x2, float y2) {
  TPaveLabel *subtitle = new TPaveLabel(x1,y1,x2,y2,text,"NDC");
  subtitle->SetBorderSize(0);
  subtitle->SetFillColor(0);
- subtitle->SetTextSize(0.05);
+ subtitle->SetTextSize(0.5);
  //  subtitle->SetTextColor(46);
   subtitle->Draw();
 }

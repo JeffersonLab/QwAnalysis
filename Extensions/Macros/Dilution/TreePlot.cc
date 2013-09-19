@@ -120,6 +120,7 @@ void plotByRunlet( TString filename , TString dataname="diff_qwk_charge") {
 //  float xmin = multi->GetXaxis()->GetXmin();
   float xmax = multi->GetXaxis()->GetXmax();
 
+  get_wien_starts(tree);
   //Wien values (a,b)= (begin,end)
   float hArr=ymin+1;;      //arrow height
   float tsize=1.5;
@@ -127,10 +128,10 @@ void plotByRunlet( TString filename , TString dataname="diff_qwk_charge") {
   float txtHigh = txtLow+tsize/2;
   float txtSize = 2;
   //wien lows/highs in x-direction
-  int w8a = 270;
-  int w8b = 723;
-  int w9a = 724;
-  int w9b = 1591;
+  int w8a = 283;
+  int w8b = 736;
+  int w9a = 737;
+  int w9b = 1449;
 
   //Two-pass
   TLine *lineTP = new TLine();
@@ -174,7 +175,6 @@ void plotByRunlet( TString filename , TString dataname="diff_qwk_charge") {
   lab10->SetFillColor(0);
   lab10->SetTextSize(txtSize);
   lab10->Draw();
-
 
   gPad->Modified();
   gPad->Update();
@@ -310,17 +310,15 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   }
 
   if (debug) {
-
     printf("Runlet size: %i",int(wien6_runlet.size()));
     for(size_t j=0; j<wien6_runlet.size(); j++) {
       double runlet = wien6_runlet[j];
       double value = wien6_val[j];
       double error = wien6_err[j];
-
       printf("%f \t%f \t%f\n",runlet,value,error);
-
     }
   }
+
   //put data into TGraphErrors
   TGraphErrors *w6 = new TGraphErrors(wien6_runlet.size(),wien6_runlet.data(),wien6_val.data(),0,wien6_err.data());
   TGraphErrors *w8 = new TGraphErrors(wien8_runlet.size(),wien8_runlet.data(),wien8_val.data(),0,wien8_err.data());
@@ -344,7 +342,7 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   canvas->cd(1);
   w6->Draw("ap");
   placeAxis(title,xtitle,ytitle,canvas,w6);
-  placeLabel("Wien 6",0.4,0.73,0.51,0.88);
+  placeLabel("Wien 6 (two-pass)",0.4,0.73,0.51,0.88);
   TF1 *fit6 = new TF1("fit6","pol0");
   fitGraphWithStats(w6,fit6,0.85,0.66,0.99,0.99);
 
@@ -396,25 +394,21 @@ void plotByWienRMS( TString filename, TString dataname="diff_bcmdd78" ) {
   TTree *tree = (TTree*) file->Get("tree");
 
   std::vector<double> wien6_runlet;
-  std::vector<double> wien6_val;
   std::vector<double> wien6_err;
 
   std::vector<double> wien8_runlet;
-  std::vector<double> wien8_val;
   std::vector<double> wien8_err;
 
   std::vector<double> wien9_runlet;
-  std::vector<double> wien9_val;
   std::vector<double> wien9_err;
 
   std::vector<double> wien10_runlet;
-  std::vector<double> wien10_val;
   std::vector<double> wien10_err;
 
-  get_data_by_wien(6,tree,dataname,&wien6_runlet,&wien6_val,&wien6_err);
-  get_data_by_wien(8,tree,dataname,&wien8_runlet,&wien8_val,&wien8_err);
-  get_data_by_wien(9,tree,dataname,&wien9_runlet,&wien9_val,&wien9_err);
-  get_data_by_wien(10,tree,dataname,&wien10_runlet,&wien10_val,&wien10_err);
+  get_rms_by_wien(6,tree,dataname,&wien6_runlet,&wien6_err);
+  get_rms_by_wien(8,tree,dataname,&wien8_runlet,&wien8_err);
+  get_rms_by_wien(9,tree,dataname,&wien9_runlet,&wien9_err);
+  get_rms_by_wien(10,tree,dataname,&wien10_runlet,&wien10_err);
 
   check_size(&wien6_runlet,6);
   check_size(&wien8_runlet,8);
@@ -427,15 +421,11 @@ void plotByWienRMS( TString filename, TString dataname="diff_bcmdd78" ) {
   }
 
   if (debug) {
-
     printf("Runlet size: %i",int(wien6_runlet.size()));
     for(size_t j=0; j<wien6_runlet.size(); j++) {
       double runlet = wien6_runlet[j];
-      double value = wien6_val[j];
       double error = wien6_err[j];
-
-      printf("%f \t%f \t%f\n",runlet,value,error);
-
+      printf("%f \t%f\n",runlet,error);
     }
   }
   //put data into TGraphErrors
@@ -509,30 +499,30 @@ void histoByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   TTree *tree = (TTree*) file->Get("tree");
 
   float xmax = 1.;
-  float xmin = 0.2;
-  float Nbins = 75;
+  float xmin = -1;
+  float Nbins = 200;
   TH1F *h6 = new TH1F("h6","title",Nbins,xmin,xmax);
   TH1F *h8 = new TH1F("h8","title",Nbins,xmin,xmax);
   TH1F *h9 = new TH1F("h9","title",Nbins,xmin,xmax);
   TH1F *h10 = new TH1F("h10","title",Nbins,xmin,xmax);
 
-/*  histo_by_wien(6,tree,dataname,h6);
+  histo_by_wien(6,tree,dataname,h6);
   histo_by_wien(8,tree,dataname,h8);
   histo_by_wien(9,tree,dataname,h9);
   histo_by_wien(10,tree,dataname,h10);
-*/
-  histoRMS_by_wien(6,tree,dataname,h6);
+
+/*  histoRMS_by_wien(6,tree,dataname,h6);
   histoRMS_by_wien(8,tree,dataname,h8);
   histoRMS_by_wien(9,tree,dataname,h9);
   histoRMS_by_wien(10,tree,dataname,h10);
-
+*/
   blueHisto(h6);
   blueHisto(h8);
   blueHisto(h9);
   blueHisto(h10);
 
-  TString title  = "BCM78 DD Asymmetry Width (Runlets,5+1)";
-  TString xtitle = "BCM78 DD Asymmetry Width (ppm)";
+  TString title  = "BCM78 DD Asymmetry (Runlets,5+1)";
+  TString xtitle = "BCM78 DD Asymmetry (ppm)";
   TString ytitle = "Counts";
 
   TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
