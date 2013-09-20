@@ -584,17 +584,21 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   TTree *tree = (TTree*) file->Get("tree");
 
   float mean;
-  float error;
 
   std::vector<double> v6;
   std::vector<double> v8;
   std::vector<double> v9;
   std::vector<double> v10;
 
-  get_wien_from_tree(6,tree,dataname,&v6);
-  get_wien_from_tree(8,tree,dataname,&v8);
-  get_wien_from_tree(9,tree,dataname,&v9);
-  get_wien_from_tree(10,tree,dataname,&v10);
+  std::vector<double> v6rms;
+  std::vector<double> v8rms;
+  std::vector<double> v9rms;
+  std::vector<double> v10rms;
+
+  get_wien_from_tree(6,tree,dataname,&v6,&v6rms);
+  get_wien_from_tree(8,tree,dataname,&v8,&v8rms);
+  get_wien_from_tree(9,tree,dataname,&v9,&v9rms);
+  get_wien_from_tree(10,tree,dataname,&v10,&v10rms);
 
   float xmax = 10;
   float xmin = -xmax;
@@ -613,7 +617,6 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   dummy10->FillN(v10.size(),v10.data(),NULL);
 
 
-
   xmax=5;
   xmin=-xmax;
   Nbins = 100;
@@ -623,20 +626,16 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   TH1F *h10 = new TH1F("h10","title",Nbins,xmin,xmax);
 
   mean = dummy6->GetMean();
-  error =  dummy6->GetRMS();
-  fill_pull_histo(h6,&v6,mean,error);
+  fill_pull_histo(h6,mean,&v6,&v6rms);
 
   mean = dummy8->GetMean();
-  error = dummy8->GetRMS();
-  fill_pull_histo(h8,&v8,mean,error);
+  fill_pull_histo(h8,mean,&v8,&v8rms);
 
   mean = dummy9->GetMean();
-  error = dummy9->GetRMS();
-  fill_pull_histo(h9,&v9,mean,error);
+  fill_pull_histo(h9,mean,&v9,&v9rms);
 
   mean = dummy10->GetMean();
-  error = dummy10->GetRMS();
-  fill_pull_histo(h10,&v10,mean,error);
+  fill_pull_histo(h10,mean,&v10,&v10rms);
 
   dummy6=NULL;
   dummy8=NULL;
@@ -708,12 +707,12 @@ void detector_check( TString filename, string dataname = "diff_bcmdd78", int wie
   TTree *tree = (TTree*) file->Get("tree");
 
   const int size = 9;
-  const TString detectors [size] = {
+/*  const TString detectors [size] = {
     "md1", "md2", "md3",
     "md1", "md2", "md3",
     "md1", "md2",
   };
-
+*/
   const int pad [size] = {
     4, 1, 2, 3, 6, 8, 9, 7, 5
   };
