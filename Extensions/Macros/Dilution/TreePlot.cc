@@ -45,6 +45,7 @@ using namespace std;
  * void histoLeaf( TString filename, TString dataname="asym_qwk_charge")
  * void printSlugInfo( TString filename, TString dataname="asym_qwk_charge", TString outfile="outfile")
  * void findBadRunlets( TString filename)
+ * void plotOneWien( TString filename, int wien, TString dataname="diff_bcmdd78" )
  * void plotByWien( TString filename, TString dataname="diff_bcmdd78" )
  * void plotByWienRMS( TString filename, TString dataname="diff_bcmdd78" )
  * void histoByWien( TString filename, TString dataname="diff_bcmdd78" )
@@ -261,6 +262,60 @@ void findBadRunlets( TString filename) {
   find_bad_runlets(tree,outfile_name);
 }
 
+
+void plotOneWien( TString filename, int wien=6, TString dataname="diff_bcmdd78" ) {
+  gROOT->Reset();
+  gROOT->SetStyle("Modern");
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  TFile *file = new TFile(filename);
+  if ( !file->IsOpen() ) {
+    std::cerr <<"Error opening ROOTFILE " <<file <<".\n" <<endl;
+    exit(1);
+  }
+  std::cout <<"Successfully opened ROOTFILE " <<filename <<".\n" <<endl;
+
+  TTree *tree = (TTree*) file->Get("tree");
+
+  std::vector<double> wien_runlet;
+  std::vector<double> wien_val;
+  std::vector<double> wien_err;
+
+//  get_data_by_wien(wien,tree,dataname,&wien_runlet,&wien_val,&wien_err);
+  get_data_by_wien_decimal(wien,tree,dataname,&wien_runlet,&wien_val,&wien_err);
+
+  if (int(wien_runlet.size()) == 0) {
+    std::cout <<"No data\nExiting\n.";
+    exit(0);
+  }
+
+  //put data into TGraphErrors
+  TGraphErrors *graph = new TGraphErrors(wien_runlet.size(),wien_runlet.data(),wien_val.data(),0,wien_err.data());
+
+  //float size=0.05;
+  float size=0.5;
+  bluePlot(graph,size);
+
+  TString title  = "Sign Corrected Charge Asymmetry";
+  TString xtitle = "Run Number Decimal";
+  TString ytitle = "Charge Asymmetry (ppm)";
+
+  TCanvas *canvas = new TCanvas("canvas","title",1200,700);
+
+  canvas->cd();
+  graph->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,graph);
+  placeLabel(Form("Wien %i",wien),0.4,0.73,0.51,0.88);
+  TF1 *fit = new TF1("fit","pol0");
+  fitGraphWithStats(graph,fit,0.85,0.66,0.99,0.99);
+
+  gPad->SetGrid();
+  gPad->Modified();
+  gPad->Update();
+
+} //end of plotOneWien function
+
 void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   gROOT->Reset();
   gROOT->SetStyle("Modern");
@@ -294,10 +349,10 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   std::vector<double> wien10_val;
   std::vector<double> wien10_err;
 
-  get_data_by_wien(6,tree,dataname,&wien6_runlet,&wien6_val,&wien6_err);
-  get_data_by_wien(8,tree,dataname,&wien8_runlet,&wien8_val,&wien8_err);
-  get_data_by_wien(9,tree,dataname,&wien9_runlet,&wien9_val,&wien9_err);
-  get_data_by_wien(10,tree,dataname,&wien10_runlet,&wien10_val,&wien10_err);
+  get_data_by_wien_decimal(6,tree,dataname,&wien6_runlet,&wien6_val,&wien6_err);
+  get_data_by_wien_decimal(8,tree,dataname,&wien8_runlet,&wien8_val,&wien8_err);
+  get_data_by_wien_decimal(9,tree,dataname,&wien9_runlet,&wien9_val,&wien9_err);
+  get_data_by_wien_decimal(10,tree,dataname,&wien10_runlet,&wien10_val,&wien10_err);
 
   check_size(&wien6_runlet,6);
   check_size(&wien8_runlet,8);
@@ -332,9 +387,13 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   bluePlot(w9,size);
   bluePlot(w10,size);
 
-  TString title  = "Sign Corrected BCM78 DD Asymmetry";
+/*  TString title  = "Sign Corrected BCM78 DD Asymmetry";
   TString xtitle = "Runlet_id";
   TString ytitle = "BCM78 DD Asymmetry (ppm)";
+*/
+  TString title  = "Sign Corrected Charge Asymmetry";
+  TString xtitle = "Run Number Decimal";
+  TString ytitle = "Charge Asymmetry (ppm)";
 
   TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
   canvas->Divide(1,4);

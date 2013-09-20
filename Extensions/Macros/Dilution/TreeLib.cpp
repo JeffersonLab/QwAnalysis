@@ -129,6 +129,25 @@ void get_wien_from_tree(int wien, TTree* tree, TString name, std::vector<double>
   }
 }
 
+void get_wien_from_tree(int wien, TTree* tree, TString name, std::vector<double> *value, std::vector<double> *error) {
+  int n_events, slug, wien_slug, sign;
+  n_events = (int) tree->GetEntries();
+  double temp_branch[4];
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("slug", &slug);
+  tree->SetBranchAddress("wien_slug", &wien_slug);
+  tree->SetBranchAddress("sign_correction",&sign);
+  tree->SetBranchAddress(name, &temp_branch);
+  for(int i=0; i<n_events; i++) {
+    tree->GetEntry(i);
+    //skip bad entries
+    if ( temp_branch[0]==-1e6 || wien_slug != wien)
+      continue;
+    value->push_back(sign*temp_branch[0]);
+    error->push_back(temp_branch[1]);
+  }
+}
+
 void get_data_from_tree_runlet(TTree* tree, TString name,
     std::vector<double> *value, std::vector<double> *error,
     std::vector<double> *runlet ) {
@@ -338,6 +357,27 @@ void get_rms_by_wien(int wien, TTree *tree, TString name, std::vector<double> *r
 void get_data_by_wien(int wien, TTree *tree, TString name, std::vector<double> *runlet, std::vector<double> *value, std::vector<double>*error) {
   int n_events = (int) tree->GetEntries();
   int sign, wien_slug;
+  double temp_branch[4];
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien_slug);
+  tree->SetBranchAddress("sign_correction",&sign);
+  tree->SetBranchAddress(name,&temp_branch);
+  for( int i =0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    //skip bad entries
+    if ( temp_branch[0]==-1e6 || wien_slug != wien)
+      continue;
+
+    value->push_back(sign*temp_branch[0]);
+    runlet->push_back(i);
+    error->push_back(temp_branch[1]);
+  }
+}
+
+
+void get_data_by_wien_decimal(int wien, TTree *tree, TString name, std::vector<double> *runlet, std::vector<double> *value, std::vector<double>*error) {
+  int n_events = (int) tree->GetEntries();
+  int sign, wien_slug;
   double temp_branch[4], run_number_decimal;
   tree->ResetBranchAddresses();
   tree->SetBranchAddress("wien_slug",&wien_slug);
@@ -351,7 +391,7 @@ void get_data_by_wien(int wien, TTree *tree, TString name, std::vector<double> *
       continue;
 
     value->push_back(sign*temp_branch[0]);
-    runlet->push_back(i);
+    runlet->push_back(run_number_decimal);
     error->push_back(temp_branch[1]);
   }
 }
@@ -376,9 +416,18 @@ void histo_by_wien(int wien, TTree *tree, TString name, TH1F *hist) {
     }
 }
 
-void fill_pull_histo(TH1F* hist, std::vector<double> *vec, float mean, float error) {
-  for(std::vector<double>::iterator it = vec->begin(); it != vec->end(); ++it) {
-    hist->Fill( (*it-mean)/error );
+void fill_pull_histo(TH1F* hist, float mean, std::vector<double> *vec, std::vector<double> *error) {
+  if ( vec->size() != error->size() )
+  {
+    std::cout <<"In function fill_pull_histo your two vectors are of different sizes!" <<std::endl;
+    exit(1);
+  }
+
+  std::vector<double>::iterator itvec;
+  std::vector<double>::iterator iterr;
+
+  for(itvec = vec->begin(), iterr = error->begin(); itvec != vec->end() && iterr != error->end(); ++itvec, ++iterr) {
+    hist->Fill( (*itvec-mean) / *iterr );
   }
 }
 
