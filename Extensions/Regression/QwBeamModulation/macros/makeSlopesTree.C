@@ -14,7 +14,7 @@
 
 void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
   
-  const Int_t nDET = 29, nMOD = 5, nRUNS = 1300, nCOIL = 10;
+  const Int_t nDET = 29, nMOD = 5, nRUNS = 1350, nCOIL = 10;
   string line;
   TFile *newfile; 
   TTree *newTree = new TTree("slopes", "slopes"); 
@@ -132,7 +132,7 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	log[4] = 1;
 	cout<<Form("%s/slopes/run%iSineAmpl.dat found ",
 		   gSystem->Getenv("BMOD_OUT"),(int)run); 
-	resSineFile.peek();
+       	resSineFile.peek();
 	if(resSineFile.eof()){
 	  cout<<"but is EMPTY\n";
 	  all_good = 0;
@@ -348,6 +348,17 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	detCoeffErr[i][j] = detCoeffsErr[i][j][k];
       }
     }
+
+    for(int i=0;i<nDET;i++){
+      for(int j=0;j<nMOD;j++){
+	sineResid[i][j] = sineRes[i][j][k];
+	sineResidErr[i][j] = sineResErr[i][j][k];
+	cosineResid[i][j] = cosineRes[i][j][k];
+	cosineResidErr[i][j] = cosineResErr[i][j][k];
+      }
+    }
+
+
     run = runs[k];
     slug = slugs[k];
     newTree->Fill();
