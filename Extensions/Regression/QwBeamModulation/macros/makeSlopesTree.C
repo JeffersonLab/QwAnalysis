@@ -226,15 +226,15 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	for(int i=0;i<nDET;i++){
 	  for(int j=0;j<nMOD;j++){
 	    resSineFile>>x>>xe;
-// 	    sineRes[i][j][n] = atof(x) * slopesUnitConvert[j];
-// 	    sineResErr[i][j][n] = atof(xe) * slopesUnitConvert[j];
-	    sineRes[i][j].push_back(atof(x) * slopesUnitConvert[j]);
-	    sineResErr[i][j].push_back(atof(xe) * slopesUnitConvert[j]);
+// 	    sineRes[i][j][n] = atof(x) * 1.0e6;
+// 	    sineResErr[i][j][n] = atof(xe) * 1.0e6;
+	    sineRes[i][j].push_back(atof(x) * 1.0e6);
+	    sineResErr[i][j].push_back(atof(xe) * 1.0e6);
 	    resCosineFile>>x>>xe;
-// 	    cosineRes[i][j][n] = atof(x) * slopesUnitConvert[j];
-// 	    cosineResErr[i][j][n] = atof(xe) * slopesUnitConvert[j];
-	    cosineRes[i][j].push_back(atof(x) * slopesUnitConvert[j]);
-	    cosineResErr[i][j].push_back(atof(xe) * slopesUnitConvert[j]);
+// 	    cosineRes[i][j][n] = atof(x) * 1.0e6;
+// 	    cosineResErr[i][j][n] = atof(xe) * 1.0e6;
+	    cosineRes[i][j].push_back(atof(x) * 1.0e6);
+	    cosineResErr[i][j].push_back(atof(xe) * 1.0e6);
 	  }
 	  getline(resSineFile,line);
 	  getline(resCosineFile,line);
