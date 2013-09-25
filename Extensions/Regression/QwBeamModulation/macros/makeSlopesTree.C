@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include "TSystem.h"
 #include "TFile.h"
 #include "TROOT.h"
@@ -50,12 +51,47 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 
   Int_t n = 0, nBad = 0;
   //  for(int i=0;i<nMOD;i++)n[i] = 0;
+//   Double_t runs[nRUNS], slugs[nRUNS];
+//   Double_t slopes[nDET][nMOD][nRUNS], slopesErr[nDET][nMOD][nRUNS];
+//   Double_t monCoeffs[nMOD][nCOIL][nRUNS], monCoeffsErr[nMOD][nCOIL][nRUNS];
+//   Double_t detCoeffs[nDET][nCOIL][nRUNS], detCoeffsErr[nDET][nCOIL][nRUNS];
+//   Double_t sineRes[nDET][nMOD][nRUNS], sineResErr[nDET][nMOD][nRUNS];
+//   Double_t cosineRes[nDET][nMOD][nRUNS], cosineResErr[nDET][nMOD][nRUNS];
   Double_t runs[nRUNS], slugs[nRUNS];
-  Double_t slopes[nDET][nMOD][nRUNS], slopesErr[nDET][nMOD][nRUNS];
-  Double_t monCoeffs[nMOD][nCOIL][nRUNS], monCoeffsErr[nMOD][nCOIL][nRUNS];
-  Double_t detCoeffs[nDET][nCOIL][nRUNS], detCoeffsErr[nDET][nCOIL][nRUNS];
-  Double_t sineRes[nDET][nMOD][nRUNS], sineResErr[nDET][nMOD][nRUNS];
-  Double_t cosineRes[nDET][nMOD][nRUNS], cosineResErr[nDET][nMOD][nRUNS];
+  vector<vector<vector<Double_t> > > slopes, slopesErr;
+  vector<vector<vector<Double_t> > > monCoeffs, monCoeffsErr;
+  vector<vector<vector<Double_t> > > detCoeffs, detCoeffsErr;
+  vector<vector<vector<Double_t> > > sineRes, sineResErr;
+  vector<vector<vector<Double_t> > > cosineRes, cosineResErr;
+
+  slopes.resize(nDET);
+  slopesErr.resize(nDET);
+  sineRes.resize(nDET);
+  sineResErr.resize(nDET);
+  cosineRes.resize(nDET);
+  cosineResErr.resize(nDET);
+  for(int j=0;j<nDET;j++){
+    slopes[j].resize(nMOD);
+    slopesErr[j].resize(nMOD);
+    sineRes[j].resize(nMOD);
+    sineResErr[j].resize(nMOD);
+    cosineRes[j].resize(nMOD);
+    cosineResErr[j].resize(nMOD);
+  }
+
+  monCoeffs.resize(nMOD);
+  monCoeffsErr.resize(nMOD);
+  for(int j=0;j<nMOD;j++){
+    monCoeffs[j].resize(nCOIL);
+    monCoeffsErr[j].resize(nCOIL);
+  }
+
+  detCoeffs.resize(nDET);
+  detCoeffsErr.resize(nDET);
+  for(int j=0;j<nDET;j++){
+    detCoeffs[j].resize(nCOIL);
+    detCoeffsErr[j].resize(nCOIL);
+  }
 
   Double_t run = 0, slug = 0;
   FILE *logFile = fopen(Form("%s/log.dat",gSystem->Getenv("BMOD_OUT")), "w+");
@@ -179,8 +215,10 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	    Bool_t notANum = strcmp(xe,"nan")==0 || strcmp( x,"nan")==0;
 	    if(notANum)allDefined = 0;
 	    slugs[n] = atof(sl);
-	    slopes[i][j][n] = (notANum ? -99999.0 : atof(x) * slopesUnitConvert[j]);
-	    slopesErr[i][j][n] = (notANum ? -99999.0 : atof(xe) * slopesUnitConvert[j]);
+// 	    slopes[i][j][n] = (notANum ? -99999.0 : atof(x) * slopesUnitConvert[j]);
+// 	    slopesErr[i][j][n] = (notANum ? -99999.0 : atof(xe) * slopesUnitConvert[j]);
+	    slopes[i][j].push_back((notANum ? -99999.0 : atof(x) * slopesUnitConvert[j]));
+	    slopesErr[i][j].push_back((notANum ? -99999.0 : atof(xe) * slopesUnitConvert[j]));
 	      //cout<<slopes[i][j][n]<<"+/-"<<slopesErr[i][j][n]<<"  "<<n<<endl;
 	  }
 	}
@@ -188,11 +226,15 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	for(int i=0;i<nDET;i++){
 	  for(int j=0;j<nMOD;j++){
 	    resSineFile>>x>>xe;
-	    sineRes[i][j][n] = atof(x) * slopesUnitConvert[j];
-	    sineResErr[i][j][n] = atof(xe) * slopesUnitConvert[j];
+// 	    sineRes[i][j][n] = atof(x) * slopesUnitConvert[j];
+// 	    sineResErr[i][j][n] = atof(xe) * slopesUnitConvert[j];
+	    sineRes[i][j].push_back(atof(x) * slopesUnitConvert[j]);
+	    sineResErr[i][j].push_back(atof(xe) * slopesUnitConvert[j]);
 	    resCosineFile>>x>>xe;
-	    cosineRes[i][j][n] = atof(x) * slopesUnitConvert[j];
-	    cosineResErr[i][j][n] = atof(xe) * slopesUnitConvert[j];
+// 	    cosineRes[i][j][n] = atof(x) * slopesUnitConvert[j];
+// 	    cosineResErr[i][j][n] = atof(xe) * slopesUnitConvert[j];
+	    cosineRes[i][j].push_back(atof(x) * slopesUnitConvert[j]);
+	    cosineResErr[i][j].push_back(atof(xe) * slopesUnitConvert[j]);
 	  }
 	  getline(resSineFile,line);
 	  getline(resCosineFile,line);
@@ -207,8 +249,10 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	    for(int j=0;j<nCOIL;j++){
 	      monitorFile>>x>>xe;
 	      getline(monitorFile,line);
-	      monCoeffs[i][j][n] =  atof(x) * unitConv;
-	      monCoeffsErr[i][j][n] = atof(xe) * unitConv;
+// 	      monCoeffs[i][j][n] =  atof(x) * unitConv;
+// 	      monCoeffsErr[i][j][n] = atof(xe) * unitConv;
+	      monCoeffs[i][j].push_back(atof(x) * unitConv);
+	      monCoeffsErr[i][j].push_back(atof(xe) * unitConv);
 	    }
 	  }else{
 	    cout<<"Error in order of monitor coefficients file. Exiting\n";
@@ -223,8 +267,10 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	    for(int j=0;j<nCOIL;j++){
 	      detectorFile>>x>>xe;
 	      getline(detectorFile,line);
-	      detCoeffs[i][j][n] = atof(x) * unitConv;
-	      detCoeffsErr[i][j][n] = atof(xe) * unitConv;
+// 	      detCoeffs[i][j][n] = atof(x) * unitConv;
+// 	      detCoeffsErr[i][j][n] = atof(xe) * unitConv;
+	      detCoeffs[i][j].push_back(atof(x) * unitConv);
+	      detCoeffsErr[i][j].push_back(atof(xe) * unitConv);
 	    }
 	  }else{
 	    cout<<"Error in order of detector coefficients file. Exiting\n";
@@ -287,19 +333,19 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 					       MonitorList[j].Data()));	
       brSineRes[i][j] = newTree->Branch(Form("SineRes_%s_%s",DetectorList[i].Data(),
 					    MonitorList[j].Data()), &sineResid[i][j],
-				       Form("SineRes%s_%s/D",DetectorList[i].Data(),
+				       Form("SineRes_%s_%s/D",DetectorList[i].Data(),
 					    MonitorList[j].Data()));	
-      brSineResErr[i][j] = newTree->Branch(Form("SineRes%s_%s_err",DetectorList[i].Data(),
+      brSineResErr[i][j] = newTree->Branch(Form("SineRes_%s_%s_err",DetectorList[i].Data(),
 					       MonitorList[j].Data()), &sineResidErr[i][j],
-					  Form("SineRes%s_%s_err/D",DetectorList[i].Data(),
+					  Form("SineRes_%s_%s_err/D",DetectorList[i].Data(),
 					       MonitorList[j].Data()));	
       brCosineRes[i][j] = newTree->Branch(Form("CosineRes_%s_%s",DetectorList[i].Data(),
 					    MonitorList[j].Data()), &cosineResid[i][j],
-				       Form("CosineRes%s_%s/D",DetectorList[i].Data(),
+				       Form("CosineRes_%s_%s/D",DetectorList[i].Data(),
 					    MonitorList[j].Data()));	
-      brCosineResErr[i][j] = newTree->Branch(Form("CosineRes%s_%s_err",DetectorList[i].Data(),
+      brCosineResErr[i][j] = newTree->Branch(Form("CosineRes_%s_%s_err",DetectorList[i].Data(),
 					       MonitorList[j].Data()), &cosineResidErr[i][j],
-					  Form("CosineRes%s_%s_err/D",DetectorList[i].Data(),
+					  Form("CosineRes_%s_%s_err/D",DetectorList[i].Data(),
 					       MonitorList[j].Data()));	
     }
   }
