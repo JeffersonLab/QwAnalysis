@@ -387,12 +387,35 @@ void get_data_by_wien_decimal(int wien, TTree *tree, TString name, std::vector<d
   for( int i =0; i<n_events; i++ ) {
     tree->GetEntry(i);
     //skip bad entries
-    if ( temp_branch[0]==-1e6 || wien_slug != wien)
+    if ( temp_branch[0]==-1e6 || wien_slug != wien || run_number_decimal==13957.25)
       continue;
 
     value->push_back(sign*temp_branch[0]);
     runlet->push_back(run_number_decimal);
-    error->push_back(temp_branch[1]);
+//    error->push_back(temp_branch[1]);
+    error->push_back(temp_branch[2]); //width, NOT error
+  }
+}
+
+
+void get_yield_by_wien_decimal(int wien, TTree *tree, TString name, std::vector<double> *runlet, std::vector<double> *value, std::vector<double>*error) {
+  int n_events = (int) tree->GetEntries();
+  int wien_slug;
+  double temp_branch[4], run_number_decimal;
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien_slug);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name,&temp_branch);
+  for( int i =0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    //skip bad entries
+    if ( temp_branch[0]==-1e6 || wien_slug != wien)
+      continue;
+
+    value->push_back(temp_branch[0]);
+    runlet->push_back(run_number_decimal);
+//    error->push_back(temp_branch[1]);
+    error->push_back(temp_branch[2]); //width, NOT error
   }
 }
 
@@ -449,7 +472,84 @@ void histoRMS_by_wien(int wien, TTree *tree, TString name, TH1F *hist) {
   }
 }
 
-void find_bad_runlets(TTree *tree) {
+void print_good_runlets(TTree *tree, TString name, TString outfile) {
+  int n_events;
+  n_events = (int) tree->GetEntries();
+  int sign,wien;
+  double run_number_decimal,temp_branch[4];
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien);
+  tree->SetBranchAddress("sign_correction",&sign);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name,&temp_branch);
+
+  ofstream output;
+  output.open(outfile);
+  output <<"Wien \tRun_number_decimal \tValue\t Error \tRMS \tNumEntries" <<std::endl;
+
+  for( int i =0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    if ( temp_branch[0] == -1e6 )
+      continue;
+    output <<wien <<"\t" <<std::fixed
+      <<std::setprecision(2) <<run_number_decimal <<"\t" <<"\t"
+      <<std::setprecision(5) <<sign*temp_branch[0]  <<"\t" <<"\t"
+      <<std::setprecision(5) <<temp_branch[1]  <<"\t" <<"\t"
+      <<std::setprecision(5) <<temp_branch[2]  <<"\t" <<"\t"
+      <<std::setprecision(0) <<temp_branch[3] <<std::endl;
+
+  }
+  output.close();
+}
+
+void find_bad_runlets(TTree *tree, TString name) {
+  int n_events;
+  n_events = (int) tree->GetEntries();
+  int  wien;
+  double  run_number_decimal;
+  double temp_branch[4];
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name,&temp_branch);
+  for( int i =0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    if ( temp_branch[0] == -1e6 || temp_branch[2] >5000 ) {
+      printf("Wien: %i \tRunlet_id: %f\tValue: %f\t Error: %f\t RMS: %f\t NumEntries: %f\n",wien,run_number_decimal,temp_branch[0],temp_branch[1],temp_branch[2],temp_branch[3]);
+    }
+  }
+}
+
+
+void find_bad_runlets(TTree *tree, TString name, TString outfile) {
+  int n_events;
+  n_events = (int) tree->GetEntries();
+  int wien;
+  double run_number_decimal,temp_branch[4];
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name,&temp_branch);
+
+  ofstream output;
+  output.open(outfile);
+  output <<"Wien \tRunlet_id \tValue\t Error \tRMS \tNumEntries" <<std::endl;
+
+  for( int i =0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    if ( temp_branch[0] == -1e6 || temp_branch[2] >=1e6 ) {
+      output <<wien <<"\t"
+        <<run_number_decimal <<"\t" <<"\t"
+        <<temp_branch[0]  <<"\t" <<"\t"
+        <<temp_branch[1]  <<"\t" <<"\t"
+        <<temp_branch[2]  <<"\t" <<"\t"
+        <<temp_branch[3] <<std::endl;
+    }
+  }
+  output.close();
+}
+
+void find_bad_qtor_runlets(TTree *tree) {
   int n_events;
   n_events = (int) tree->GetEntries();
   int dummy=0;
@@ -469,37 +569,6 @@ void find_bad_runlets(TTree *tree) {
   }
 }
 
-
-void find_bad_runlets(TTree *tree, TString outfile) {
-  int n_events;
-  n_events = (int) tree->GetEntries();
-  int dummy=0;
-  int run,run_number_decimal;
-  double qtor_current;
-  double temp_branch[7];
-  tree->ResetBranchAddresses();
-  tree->SetBranchAddress("run",&run);
-  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
-  tree->SetBranchAddress("qtor_current",&qtor_current);
-  tree->SetBranchAddress("run_number_decimal",&temp_branch);
-
-  ofstream output;
-  output.open(outfile);
-  output <<"Run \tRunlet_id \tqtor" <<std::endl;
-
-  for( int i =0; i<n_events; i++ ) {
-    tree->GetEntry(i);
-    if (dummy==run) continue;
-    if ( qtor_current<8000 ) {
-      output <<Form("Run: %i \tRunlet_id: %i \tqtor: %f\n",run,run_number_decimal,qtor_current);
-      dummy=run;
-      for(int j=0; j<7; j++) {
-        std::cout <<temp_branch[j] <<std::endl;
-      }
-    }
-  }
-  output.close();
-}
 
 void check_size(std::vector<double> *runlet,int wien) {
   if (runlet->size() != 0)

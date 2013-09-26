@@ -44,8 +44,11 @@ using namespace std;
  * void plotByRunlet( TString,TString )
  * void histoLeaf( TString filename, TString dataname="asym_qwk_charge")
  * void printSlugInfo( TString filename, TString dataname="asym_qwk_charge", TString outfile="outfile")
+ * void printGoodRunlets( TString filename)
  * void findBadRunlets( TString filename)
  * void plotOneWien( TString filename, int wien, TString dataname="diff_bcmdd78" )
+ * void plotOneWienRMS( TString filename, int wien, TString dataname="diff_bcmdd78" )
+ * void plotYieldByWien( TString filename, TString dataname="diff_bcmdd78" )
  * void plotByWien( TString filename, TString dataname="diff_bcmdd78" )
  * void plotByWienRMS( TString filename, TString dataname="diff_bcmdd78" )
  * void histoByWien( TString filename, TString dataname="diff_bcmdd78" )
@@ -244,7 +247,7 @@ void printSlugInfo( TString filename, TString dataname="asym_qwk_charge", TStrin
 
 }
 
-void findBadRunlets( TString filename) {
+void findBadRunlets( TString filename, TString dataname = "diff_qwk_charge") {
   gROOT->Reset();
   gROOT->SetStyle("Modern");
   gStyle->SetOptStat(1);
@@ -258,8 +261,27 @@ void findBadRunlets( TString filename) {
   std::cout <<"Successfully opened ROOTFILE " <<filename <<".\n" <<endl;
 
   TTree *tree = (TTree*) file->Get("tree");
-  TString outfile_name = "badqtor.dat";
-  find_bad_runlets(tree,outfile_name);
+  TString outfile_name = "badruns.dat";
+//  find_bad_runlets(tree,dataname);
+  find_bad_runlets(tree,dataname,outfile_name);
+}
+
+void printGoodRunlets( TString filename, TString dataname = "diff_qwk_charge") {
+  gROOT->Reset();
+  gROOT->SetStyle("Modern");
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  TFile *file = new TFile(filename);
+  if ( !file->IsOpen() ) {
+    std::cerr <<"Error opening ROOTFILE " <<file <<".\n" <<endl;
+    exit(1);
+  }
+  std::cout <<"Successfully opened ROOTFILE " <<filename <<".\n" <<endl;
+
+  TTree *tree = (TTree*) file->Get("tree");
+  TString outfile_name = "goodruns.dat";
+  print_good_runlets(tree,dataname,outfile_name);
 }
 
 
@@ -297,24 +319,214 @@ void plotOneWien( TString filename, int wien=6, TString dataname="diff_bcmdd78" 
   float size=0.5;
   bluePlot(graph,size);
 
-  TString title  = "Sign Corrected Charge Asymmetry";
+  TString title  = "Sign Corrected Charge Asymmetry (Run 2 LH2)";
+//  TString title  = "Charge Asymmetry Width (Run 2 LH2)";
   TString xtitle = "Run Number Decimal";
   TString ytitle = "Charge Asymmetry (ppm)";
 
-  TCanvas *canvas = new TCanvas("canvas","title",1200,700);
+  TCanvas *canvas = new TCanvas("canvas","title",1400,800);
 
   canvas->cd();
   graph->Draw("ap");
   placeAxis(title,xtitle,ytitle,canvas,graph);
   placeLabel(Form("Wien %i",wien),0.4,0.73,0.51,0.88);
   TF1 *fit = new TF1("fit","pol0");
-  fitGraphWithStats(graph,fit,0.85,0.66,0.99,0.99);
+  fitGraphWithStats(graph,fit,0.85,0.80,0.99,0.95);
 
   gPad->SetGrid();
   gPad->Modified();
   gPad->Update();
 
 } //end of plotOneWien function
+
+
+void plotOneWienRMS( TString filename, int wien=6, TString dataname="diff_bcmdd78" ) {
+  gROOT->Reset();
+  gROOT->SetStyle("Modern");
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  TFile *file = new TFile(filename);
+  if ( !file->IsOpen() ) {
+    std::cerr <<"Error opening ROOTFILE " <<file <<".\n" <<endl;
+    exit(1);
+  }
+  std::cout <<"Successfully opened ROOTFILE " <<filename <<".\n" <<endl;
+
+  TTree *tree = (TTree*) file->Get("tree");
+
+  std::vector<double> wien_runlet;
+  std::vector<double> wien_err;
+
+  get_rms_by_wien(wien,tree,dataname,&wien_runlet,&wien_err);
+
+  if (int(wien_runlet.size()) == 0) {
+    std::cout <<"No data\nExiting\n.";
+    exit(0);
+  }
+
+  //put data into TGraphErrors
+  TGraphErrors *graph = new TGraphErrors(wien_runlet.size(),wien_runlet.data(),wien_err.data(),0,0);
+
+  //float size=0.05;
+  float size=0.5;
+  bluePlot(graph,size);
+
+  //TString title  = "Sign Corrected Charge Asymmetry";
+  TString title  = "Charge Asymmetry Width";
+  TString xtitle = "Run Number Decimal";
+  TString ytitle = "Charge Asymmetry Width (ppm)";
+
+  TCanvas *canvas = new TCanvas("canvas","title",1400,800);
+
+  canvas->cd();
+  graph->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,graph);
+  placeLabel(Form("Wien %i",wien),0.4,0.73,0.51,0.88);
+  TF1 *fit = new TF1("fit","pol0");
+  fitGraphWithStats(graph,fit,0.85,0.80,0.99,0.95);
+
+  gPad->SetGrid();
+  gPad->Modified();
+  gPad->Update();
+
+} //end of plotOneWien function
+
+void plotYieldByWien( TString filename, TString dataname="diff_bcmdd78" ) {
+  gROOT->Reset();
+  gROOT->SetStyle("Modern");
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  bool debug=false;
+
+  TFile *file = new TFile(filename);
+  if ( !file->IsOpen() ) {
+    std::cerr <<"Error opening ROOTFILE " <<file <<".\n" <<endl;
+    exit(1);
+  }
+  std::cout <<"Successfully opened ROOTFILE " <<filename <<".\n" <<endl;
+
+  TTree *tree = (TTree*) file->Get("tree");
+
+  std::vector<double> wien6_runlet;
+  std::vector<double> wien6_val;
+  std::vector<double> wien6_err;
+
+  std::vector<double> wien7_runlet;
+  std::vector<double> wien7_val;
+  std::vector<double> wien7_err;
+
+  std::vector<double> wien8_runlet;
+  std::vector<double> wien8_val;
+  std::vector<double> wien8_err;
+
+  std::vector<double> wien9_runlet;
+  std::vector<double> wien9_val;
+  std::vector<double> wien9_err;
+
+  std::vector<double> wien10_runlet;
+  std::vector<double> wien10_val;
+  std::vector<double> wien10_err;
+
+  get_yield_by_wien_decimal(6,tree,dataname,&wien6_runlet,&wien6_val,&wien6_err);
+  get_yield_by_wien_decimal(7,tree,dataname,&wien7_runlet,&wien7_val,&wien7_err);
+  get_yield_by_wien_decimal(8,tree,dataname,&wien8_runlet,&wien8_val,&wien8_err);
+  get_yield_by_wien_decimal(9,tree,dataname,&wien9_runlet,&wien9_val,&wien9_err);
+  get_yield_by_wien_decimal(10,tree,dataname,&wien10_runlet,&wien10_val,&wien10_err);
+
+  check_size(&wien6_runlet,6);
+  check_size(&wien7_runlet,7);
+  check_size(&wien8_runlet,8);
+  check_size(&wien9_runlet,9);
+  check_size(&wien10_runlet,10);
+
+  if (int(wien6_runlet.size()) == 0) {
+    std::cout <<"wien 6 has no data\nExiting\n.";
+    exit(0);
+  }
+
+  if (debug) {
+    printf("Runlet size: %i",int(wien6_runlet.size()));
+    for(size_t j=0; j<wien6_runlet.size(); j++) {
+      double runlet = wien6_runlet[j];
+      double value = wien6_val[j];
+      double error = wien6_err[j];
+      printf("%f \t%f \t%f\n",runlet,value,error);
+    }
+  }
+
+  //put data into TGraphErrors
+  TGraphErrors *w6 = new TGraphErrors(wien6_runlet.size(),wien6_runlet.data(),wien6_val.data(),0,wien6_err.data());
+  TGraphErrors *w7 = new TGraphErrors(wien7_runlet.size(),wien7_runlet.data(),wien7_val.data(),0,wien7_err.data());
+  TGraphErrors *w8 = new TGraphErrors(wien8_runlet.size(),wien8_runlet.data(),wien8_val.data(),0,wien8_err.data());
+  TGraphErrors *w9 = new TGraphErrors(wien9_runlet.size(),wien9_runlet.data(),wien9_val.data(),0,wien9_err.data());
+  TGraphErrors *w10 = new TGraphErrors(wien10_runlet.size(),wien10_runlet.data(),wien10_val.data(),0,wien10_err.data());
+
+  //float size=0.05;
+  float size=0.5;
+  bluePlot(w6,size);
+  bluePlot(w7,size);
+  bluePlot(w8,size);
+  bluePlot(w9,size);
+  bluePlot(w10,size);
+
+/*  TString title  = "Sign Corrected BCM78 DD Asymmetry";
+  TString xtitle = "Runlet_id";
+  TString ytitle = "BCM78 DD Asymmetry (ppm)";
+
+  TString title  = "Sign Corrected Charge Asymmetry";
+  TString xtitle = "Run Number Decimal";
+  TString ytitle = "Charge Asymmetry (ppm)";
+*/
+  TString title  = "LH2 Current vs. Run number (Run 2)";
+  TString xtitle = "Run number";
+  TString ytitle = "Current (#muA)";
+
+  TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
+  canvas->Divide(1,5);
+
+  canvas->cd(1);
+  w6->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,w6);
+  placeLabel("Wien 6",0.4,0.73,0.51,0.88);
+  TF1 *fit6 = new TF1("fit6","pol0");
+  fitGraphWithStats(w6,fit6,0.85,0.66,0.99,0.99);
+
+  title = "Wien 7";
+  canvas->cd(2);
+  w7->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,w7);
+  TF1 *fit7 = new TF1("fit7","pol0");
+  fitGraphWithStats(w7,fit7,0.85,0.66,0.99,0.99);
+
+  title = "Wien 8";
+  canvas->cd(3);
+  w8->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,w8);
+  TF1 *fit8 = new TF1("fit8","pol0");
+  fitGraphWithStats(w8,fit8,0.85,0.66,0.99,0.99);
+
+  title = "Wien 9";
+  canvas->cd(4);
+  w9->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,w9);
+  TF1 *fit9 = new TF1("fit9","pol0");
+  fitGraphWithStats(w9,fit9,0.85,0.66,0.99,0.99);
+
+  title = "Wien 10";
+  canvas->cd(5);
+  w10->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,w10);
+  TF1 *fit10 = new TF1("fit10","pol0");
+  fitGraphWithStats(w10,fit10,0.85,0.66,0.99,0.99);
+
+  gPad->SetGrid();
+  gPad->Modified();
+  gPad->Update();
+
+} //end of plotByWien function
+
 
 void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   gROOT->Reset();
@@ -337,6 +549,10 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   std::vector<double> wien6_val;
   std::vector<double> wien6_err;
 
+  std::vector<double> wien7_runlet;
+  std::vector<double> wien7_val;
+  std::vector<double> wien7_err;
+
   std::vector<double> wien8_runlet;
   std::vector<double> wien8_val;
   std::vector<double> wien8_err;
@@ -350,11 +566,13 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   std::vector<double> wien10_err;
 
   get_data_by_wien_decimal(6,tree,dataname,&wien6_runlet,&wien6_val,&wien6_err);
+  get_data_by_wien_decimal(7,tree,dataname,&wien7_runlet,&wien7_val,&wien7_err);
   get_data_by_wien_decimal(8,tree,dataname,&wien8_runlet,&wien8_val,&wien8_err);
   get_data_by_wien_decimal(9,tree,dataname,&wien9_runlet,&wien9_val,&wien9_err);
   get_data_by_wien_decimal(10,tree,dataname,&wien10_runlet,&wien10_val,&wien10_err);
 
   check_size(&wien6_runlet,6);
+  check_size(&wien7_runlet,7);
   check_size(&wien8_runlet,8);
   check_size(&wien9_runlet,9);
   check_size(&wien10_runlet,10);
@@ -376,6 +594,7 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
 
   //put data into TGraphErrors
   TGraphErrors *w6 = new TGraphErrors(wien6_runlet.size(),wien6_runlet.data(),wien6_val.data(),0,wien6_err.data());
+  TGraphErrors *w7 = new TGraphErrors(wien7_runlet.size(),wien7_runlet.data(),wien7_val.data(),0,wien7_err.data());
   TGraphErrors *w8 = new TGraphErrors(wien8_runlet.size(),wien8_runlet.data(),wien8_val.data(),0,wien8_err.data());
   TGraphErrors *w9 = new TGraphErrors(wien9_runlet.size(),wien9_runlet.data(),wien9_val.data(),0,wien9_err.data());
   TGraphErrors *w10 = new TGraphErrors(wien10_runlet.size(),wien10_runlet.data(),wien10_val.data(),0,wien10_err.data());
@@ -383,44 +602,52 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   //float size=0.05;
   float size=0.5;
   bluePlot(w6,size);
+  bluePlot(w7,size);
   bluePlot(w8,size);
   bluePlot(w9,size);
   bluePlot(w10,size);
 
-/*  TString title  = "Sign Corrected BCM78 DD Asymmetry";
+  TString title  = "Sign Corrected BCM78 DD Asymmetry";
   TString xtitle = "Runlet_id";
   TString ytitle = "BCM78 DD Asymmetry (ppm)";
-*/
-  TString title  = "Sign Corrected Charge Asymmetry";
+
+/*  TString title  = "Sign Corrected Charge Asymmetry (LH2, Run2)";
   TString xtitle = "Run Number Decimal";
   TString ytitle = "Charge Asymmetry (ppm)";
-
+*/
   TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
-  canvas->Divide(1,4);
+  canvas->Divide(1,5);
 
   canvas->cd(1);
   w6->Draw("ap");
   placeAxis(title,xtitle,ytitle,canvas,w6);
-  placeLabel("Wien 6 (two-pass)",0.4,0.73,0.51,0.88);
+  placeLabel("Wien 6",0.4,0.73,0.51,0.88);
   TF1 *fit6 = new TF1("fit6","pol0");
   fitGraphWithStats(w6,fit6,0.85,0.66,0.99,0.99);
 
-  title = "Wien 8";
+  title = "Wien 7";
   canvas->cd(2);
+  w7->Draw("ap");
+  placeAxis(title,xtitle,ytitle,canvas,w7);
+  TF1 *fit7 = new TF1("fit7","pol0");
+  fitGraphWithStats(w7,fit7,0.85,0.66,0.99,0.99);
+
+  title = "Wien 8";
+  canvas->cd(3);
   w8->Draw("ap");
   placeAxis(title,xtitle,ytitle,canvas,w8);
   TF1 *fit8 = new TF1("fit8","pol0");
   fitGraphWithStats(w8,fit8,0.85,0.66,0.99,0.99);
 
   title = "Wien 9";
-  canvas->cd(3);
+  canvas->cd(4);
   w9->Draw("ap");
   placeAxis(title,xtitle,ytitle,canvas,w9);
   TF1 *fit9 = new TF1("fit9","pol0");
   fitGraphWithStats(w9,fit9,0.85,0.66,0.99,0.99);
 
   title = "Wien 10";
-  canvas->cd(4);
+  canvas->cd(5);
   w10->Draw("ap");
   placeAxis(title,xtitle,ytitle,canvas,w10);
   TF1 *fit10 = new TF1("fit10","pol0");
@@ -440,8 +667,6 @@ void plotByWienRMS( TString filename, TString dataname="diff_bcmdd78" ) {
   gROOT->SetStyle("Modern");
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
-
-  bool debug=false;
 
   TFile *file = new TFile(filename);
   if ( !file->IsOpen() ) {
@@ -474,19 +699,6 @@ void plotByWienRMS( TString filename, TString dataname="diff_bcmdd78" ) {
   check_size(&wien9_runlet,9);
   check_size(&wien10_runlet,10);
 
-  if (wien6_runlet.size() == 0) {
-    std::cout <<"wien 6 has no data\nExiting\n.";
-    exit(0);
-  }
-
-  if (debug) {
-    printf("Runlet size: %i",int(wien6_runlet.size()));
-    for(size_t j=0; j<wien6_runlet.size(); j++) {
-      double runlet = wien6_runlet[j];
-      double error = wien6_err[j];
-      printf("%f \t%f\n",runlet,error);
-    }
-  }
   //put data into TGraphErrors
   TGraphErrors *w6 = new TGraphErrors(wien6_runlet.size(),wien6_runlet.data(),wien6_err.data(),0,0);
   TGraphErrors *w8 = new TGraphErrors(wien8_runlet.size(),wien8_runlet.data(),wien8_err.data(),0,0);
@@ -500,9 +712,13 @@ void plotByWienRMS( TString filename, TString dataname="diff_bcmdd78" ) {
   bluePlot(w9,size);
   bluePlot(w10,size);
 
-  TString title  = "BCM78 DD Asymmetry Width";
+/*  TString title  = "BCM78 DD Asymmetry Width";
   TString xtitle = "Runlet_id";
   TString ytitle = "BCM78 DD Width (ppm)";
+*/
+  TString title  = "Charge Asymmetry Width";
+  TString xtitle = "Runlet_id";
+  TString ytitle = "Charge Asymmetry RMS (ppm)";
 
   TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
   canvas->Divide(1,4);
@@ -557,67 +773,78 @@ void histoByWien( TString filename, TString dataname="diff_bcmdd78" ) {
 
   TTree *tree = (TTree*) file->Get("tree");
 
-  float xmax = 1.;
-  float xmin = -1;
-  float Nbins = 200;
+  float xmax = 2.5;
+  float xmin = -2.5;
+  float Nbins = 250;
   TH1F *h6 = new TH1F("h6","title",Nbins,xmin,xmax);
+  TH1F *h7 = new TH1F("h7","title",Nbins,xmin,xmax);
   TH1F *h8 = new TH1F("h8","title",Nbins,xmin,xmax);
   TH1F *h9 = new TH1F("h9","title",Nbins,xmin,xmax);
   TH1F *h10 = new TH1F("h10","title",Nbins,xmin,xmax);
 
   histo_by_wien(6,tree,dataname,h6);
+  histo_by_wien(7,tree,dataname,h7);
   histo_by_wien(8,tree,dataname,h8);
   histo_by_wien(9,tree,dataname,h9);
   histo_by_wien(10,tree,dataname,h10);
 
 /*  histoRMS_by_wien(6,tree,dataname,h6);
+  histoRMS_by_wien(7,tree,dataname,h7);
   histoRMS_by_wien(8,tree,dataname,h8);
   histoRMS_by_wien(9,tree,dataname,h9);
   histoRMS_by_wien(10,tree,dataname,h10);
 */
   blueHisto(h6);
+  blueHisto(h7);
   blueHisto(h8);
   blueHisto(h9);
   blueHisto(h10);
 
-  TString title  = "BCM78 DD Asymmetry (Runlets,5+1)";
-  TString xtitle = "BCM78 DD Asymmetry (ppm)";
+  TString title  = "BCM78 DD (LH2, Runlets,5+1,Sign Corrected)";
+  TString xtitle = "Charge DD Asymmetry (ppm)";
   TString ytitle = "Counts";
 
+/*  TString title  = "Charge Asymmetry Width (LH2, Runlets,5+1,Sign Corrected)";
+  TString xtitle = "Charge DD Asymmetry RMS (ppm)";
+  TString ytitle = "Counts";
+*/
   TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
-  canvas->Divide(1,4);
+  canvas->Divide(1,5);
 
   canvas->cd(1);
   h6->Draw();
   placeAxis(title,xtitle,ytitle,canvas,h6);
   placeLabel("Wien 6",0.4,0.73,0.51,0.88);
-//  TPaveStats *stats6 = (TPaveStats*) h6->GetListOfFunctions()->FindObject("stats");
-//  TF1 *fit6 = new TF1("fit6","gaus");
-// fitHistoWithStats(h6,fit6,0.77,0.25,0.99,0.99);
+  TF1 *fit6 = new TF1("fit6","gaus");
+  fitHistoWithStats(h6,fit6,0.77,0.25,0.99,0.99);
+
+  title = "Wien 7";
+  canvas->cd(2);
+  h7->Draw();
+  placeAxis(title,xtitle,ytitle,canvas,h7);
+  TF1 *fit7 = new TF1("fit7","gaus");
+  fitHistoWithStats(h7,fit7,0.77,0.25,0.99,0.99);
 
   title = "Wien 8";
-  canvas->cd(2);
+  canvas->cd(3);
   h8->Draw();
   placeAxis(title,xtitle,ytitle,canvas,h8);
-//  TPaveStats *stats8 = (TPaveStats*) h8->GetListOfFunctions()->FindObject("stats");
-//   TF1 *fit8 = new TF1("fit8","gaus");
-//   fitHistoWithStats(h8,fit8,0.77,0.25,0.99,0.99);
+  TF1 *fit8 = new TF1("fit8","gaus");
+  fitHistoWithStats(h8,fit8,0.77,0.25,0.99,0.99);
 
   title = "Wien 9";
-  canvas->cd(3);
+  canvas->cd(4);
   h9->Draw();
   placeAxis(title,xtitle,ytitle,canvas,h9);
-//  TPaveStats *stats9 = (TPaveStats*) h9->GetListOfFunctions()->FindObject("stats");
-//   TF1 *fit9 = new TF1("fit9","gaus");
-//   fitHistoWithStats(h9,fit9,0.77,0.25,0.99,0.99);
+  TF1 *fit9 = new TF1("fit9","gaus");
+  fitHistoWithStats(h9,fit9,0.77,0.25,0.99,0.99);
 
   title = "Wien 10";
-  canvas->cd(4);
+  canvas->cd(5);
   h10->Draw();
   placeAxis(title,xtitle,ytitle,canvas,h10);
-//  TPaveStats *stats10 = (TPaveStats*) h10->GetListOfFunctions()->FindObject("stats");
-//   TF1 *fit10 = new TF1("fit10","gaus");
-//   fitHistoWithStats(h10,fit10,0.77,0.25,0.99,0.99);
+  TF1 *fit10 = new TF1("fit10","gaus");
+  fitHistoWithStats(h10,fit10,0.77,0.25,0.99,0.99);
 
   gPad->SetGrid();
   gPad->Modified();
@@ -645,16 +872,19 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   float mean;
 
   std::vector<double> v6;
+  std::vector<double> v7;
   std::vector<double> v8;
   std::vector<double> v9;
   std::vector<double> v10;
 
   std::vector<double> v6rms;
+  std::vector<double> v7rms;
   std::vector<double> v8rms;
   std::vector<double> v9rms;
   std::vector<double> v10rms;
 
   get_wien_from_tree(6,tree,dataname,&v6,&v6rms);
+  get_wien_from_tree(7,tree,dataname,&v7,&v7rms);
   get_wien_from_tree(8,tree,dataname,&v8,&v8rms);
   get_wien_from_tree(9,tree,dataname,&v9,&v9rms);
   get_wien_from_tree(10,tree,dataname,&v10,&v10rms);
@@ -666,11 +896,13 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   //dummy histograms to calculate mean/std dev
   //should really do this a better way, but it works for now
   TH1F *dummy6 = new TH1F("dummy6","title",Nbins,xmin,xmax);
+  TH1F *dummy7 = new TH1F("dummy7","title",Nbins,xmin,xmax);
   TH1F *dummy8 = new TH1F("dummy8","title",Nbins,xmin,xmax);
   TH1F *dummy9 = new TH1F("dummy9","title",Nbins,xmin,xmax);
   TH1F *dummy10 = new TH1F("dummy10","title",Nbins,xmin,xmax);
 
   dummy6->FillN(v6.size(),v6.data(),NULL);
+  dummy7->FillN(v7.size(),v7.data(),NULL);
   dummy8->FillN(v8.size(),v8.data(),NULL);
   dummy9->FillN(v9.size(),v9.data(),NULL);
   dummy10->FillN(v10.size(),v10.data(),NULL);
@@ -680,12 +912,16 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   xmin=-xmax;
   Nbins = 100;
   TH1F *h6 = new TH1F("h6","title",Nbins,xmin,xmax);
+  TH1F *h7 = new TH1F("h7","title",Nbins,xmin,xmax);
   TH1F *h8 = new TH1F("h8","title",Nbins,xmin,xmax);
   TH1F *h9 = new TH1F("h9","title",Nbins,xmin,xmax);
   TH1F *h10 = new TH1F("h10","title",Nbins,xmin,xmax);
 
   mean = dummy6->GetMean();
   fill_pull_histo(h6,mean,&v6,&v6rms);
+
+  mean = dummy7->GetMean();
+  fill_pull_histo(h7,mean,&v7,&v7rms);
 
   mean = dummy8->GetMean();
   fill_pull_histo(h8,mean,&v8,&v8rms);
@@ -697,24 +933,26 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   fill_pull_histo(h10,mean,&v10,&v10rms);
 
   dummy6=NULL;
+  dummy7=NULL;
   dummy8=NULL;
   dummy9=NULL;
   dummy10=NULL;
 
   blueHisto(h6);
+  blueHisto(h7);
   blueHisto(h8);
   blueHisto(h9);
   blueHisto(h10);
 
-//  TString title  = "BCM78 DD Asymmetry Width (Runlets,5+1)";
-//  TString xtitle = "BCM78 DD Asymmetry Width (ppm)";
-//  TString ytitle = "Counts";
-  TString title = "BCM78 DD Asymmetry (Runlets, 5+1)";
-  TString xtitle = "DD Asymmetry Pull";
+  TString title  = "BCM78 DD Pull Plots (Runlets,5+1)";
+  TString xtitle = "Standard deviations";
   TString ytitle = "Counts";
-
+/*  TString title = "Charge Asymmetry Pull (LH2, Runlets, 5+1,Sign Corrected)";
+  TString xtitle = "Charge Asymmetry Pull";
+  TString ytitle = "Counts";
+*/
   TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
-  canvas->Divide(1,4);
+  canvas->Divide(1,5);
 
   canvas->cd(1);
   h6->Draw();
@@ -723,22 +961,29 @@ void pullByWien( TString filename, TString dataname="diff_bcmdd78" ) {
   TF1 *fit6 = new TF1("fit6","gaus");
   fitHistoWithStats(h6,fit6,0.77,0.25,0.99,0.99);
 
-  title = "Wien 8";
   canvas->cd(2);
+  h7->Draw();
+  placeAxis(title,xtitle,ytitle,canvas,h7);
+  placeLabel("Wien 7",0.4,0.73,0.51,0.88);
+  TF1 *fit7 = new TF1("fit7","gaus");
+  fitHistoWithStats(h7,fit7,0.77,0.25,0.99,0.99);
+
+  title = "Wien 8";
+  canvas->cd(3);
   h8->Draw();
   placeAxis(title,xtitle,ytitle,canvas,h8);
   TF1 *fit8 = new TF1("fit8","gaus");
   fitHistoWithStats(h8,fit8,0.77,0.25,0.99,0.99);
 
   title = "Wien 9";
-  canvas->cd(3);
+  canvas->cd(4);
   h9->Draw();
   placeAxis(title,xtitle,ytitle,canvas,h9);
   TF1 *fit9 = new TF1("fit9","gaus");
   fitHistoWithStats(h9,fit9,0.77,0.25,0.99,0.99);
 
   title = "Wien 10";
-  canvas->cd(4);
+  canvas->cd(5);
   h10->Draw();
   placeAxis(title,xtitle,ytitle,canvas,h10);
   TF1 *fit10 = new TF1("fit10","gaus");

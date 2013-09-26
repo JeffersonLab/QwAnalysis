@@ -40,6 +40,9 @@ void get_rms_by_wien(int,TTree *,TString, std::vector<double>*,std::vector<doubl
 void get_data_by_wien(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 void get_data_by_wien_decimal(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 
+void get_yield_by_wien_decimal(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
+
+
 void histo_by_wien(int, TTree*, TString, TH1F*);
 void histoRMS_by_wien(int, TTree*, TString, TH1F*);
 
@@ -47,8 +50,10 @@ void fillHistArray(TTree*, TString string, int, TH2F**, int);
 
 void fill_pull_histo(TH1F*, float, std::vector<double>*, std::vector<double>*);
 
-void find_bad_runlets(TTree *);
+void print_good_runlets(TTree *, TString, TString);
 void find_bad_runlets(TTree *, TString);
+void find_bad_runlets(TTree *, TString, TString);
+void find_bad_qtor_runlets(TTree *);
 
 void check_size(std::vector<double>*,int);
 
