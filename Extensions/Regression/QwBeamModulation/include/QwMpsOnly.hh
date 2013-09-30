@@ -50,6 +50,7 @@ private:
   Int_t fPedestal;
 
   Bool_t f2DFit;
+  Bool_t fChiSquareMinimization;
   Bool_t fNewEbpm;
 
   Int_t fNModEvents;
@@ -238,6 +239,8 @@ public :
   Long64_t LoadTree(Long64_t entry);
   Double_t FindDegPerMPS();
   Double_t GetDegPerMPS();
+  Double_t FindChiSquareMinAMatrix(Int_t, Int_t);
+  Double_t FindChiSquareMinRMatrix(Int_t, Int_t);
   void     Init(TChain *tree);
   void     Scan(void);
   void     SetMaxRampNonLinearity(Double_t);

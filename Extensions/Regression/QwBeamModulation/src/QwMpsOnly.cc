@@ -45,7 +45,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fPhaseConfig = false;
   fFileSegmentInclude = false;
   f2DFit = true;
-
+  fChiSquareMinimization = false;
   fFileSegment = ""; 
   fFileStem = "mps_only"; 
   fSetStem = "std"; 
@@ -442,7 +442,7 @@ void QwMpsOnly::CalculateSlope(Int_t modType)
 
   //  DetectorSlope[modType].resize(fNEvents);
   if(!fPhaseConfig){
-    Double_t temp[5]={0.26, 0.26, 0.0, 1.08, 1.08};              
+    Double_t temp[5]={0.,0.,0.,0.,0.}//;{0.26, 0.26, 0.0, 1.08, 1.08};         
     SetPhaseValues(temp); 
   }
 
@@ -1053,6 +1053,24 @@ Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t sluglet)
 
 }
 
+Double_t QwMpsOnly::FindChiSquareMinAMatrix(Int_t row, Int_t col){
+
+  Double_t index = 0;
+  for(Int_t i=0;i<fNModType*2;i++){
+    index += AvDetectorSlope[i][row] * AvMonitorSlope[i][col];
+  }
+  return index;
+}
+
+Double_t QwMpsOnly::FindChiSquareMinRMatrix(Int_t row, Int_t col){
+
+  Double_t index = 0;
+  for(Int_t i=0;i<fNModType*2;i++){
+    index += AvMonitorSlope[i][row] * AvMonitorSlope[i][col];
+  }
+  return index;
+}
+
 Double_t QwMpsOnly::FindDegPerMPS()
 {
   Int_t ent = fChain->GetEntries(), newCycle = 0;
@@ -1206,7 +1224,8 @@ Int_t QwMpsOnly::FindRampRange()
   rampnew = new Double_t[max];
   fRampMax = fChain->GetMaximum("ramp") - 1;
   if(!(fRampMax>315&&fRampMax<350)){
-    std::cout<<"fRampMax not within specified bounds. Exiting program.\n";
+    std::cout<<"fRampMax = "<<fRampMax<<" not within specified bounds."<<
+      " Exiting program.\n";
     return 1;
   }
 
@@ -1324,6 +1343,16 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
       std::cout << other << "Setting ramp pedestal to:\t" 
 		<< fPedestal
 		<< normal << std::endl;
+    }    
+
+    if(flag.CompareTo("--chi-square-min", TString::kExact) == 0){
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
+      fChiSquareMinimization = (atoi(options[i + 1])==0 ? 0 : 1);
+
+      if(fChiSquareMinimization)      
+	std::cout << other  <<"Using Chi Square minimization."
+		  << normal << std::endl;
     }    
 
     if(flag.CompareTo("--ramp-max-nonlin", TString::kExact) == 0){
@@ -1507,7 +1536,8 @@ void QwMpsOnly::MatrixFill()
   for(Int_t j = 0; j < fNDetector; j++){
     diagnostic << DetectorList[j] << std::endl;
     for(Int_t k = 0; k < fNModType; k++){
-      AMatrix(j,k) = AvDetectorSlope[k][j];
+      AMatrix(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrix(j,k) : 
+		      AvDetectorSlope[k][j]);
       AMatrixE(j,k) = AvDetectorSlopeError[k][j];
       if( (diagnostic.is_open() && diagnostic.good()) ){
 	diagnostic << AvDetectorSlope[k][j] << " +- " 
@@ -1528,7 +1558,8 @@ void QwMpsOnly::MatrixFill()
 
   for(Int_t j = 0; j < fNMonitor; j++){
     for(Int_t k = 0; k < fNModType; k++){
-      RMatrix(j,k) = AvMonitorSlope[k][j];
+      RMatrix(j,k) = (fChiSquareMinimization ? FindChiSquareMinRMatrix(j,k) :
+		      AvMonitorSlope[k][j]);
       RMatrixE(j,k) = AvMonitorSlopeError[k][j];
 
       if( (diagnostic.is_open() && diagnostic.good()) ){
