@@ -18,6 +18,7 @@ void get_wien_starts (TTree*);
 
 void get_wien_from_tree(int, TTree*, TString, std::vector<double> *);
 void get_wien_from_tree(int, TTree*, TString, std::vector<double> *, std::vector<double> *);
+void get_wien_from_tree_friend(int, TTree*, TTree*, TString, std::vector<double> *, std::vector<double> *);
 
 void get_data_from_tree(TTree*, TString, std::vector<double> *);
 void get_data_from_tree(TTree*, TString, std::vector<double> *, std::vector<int>* );
@@ -40,6 +41,8 @@ void get_rms_by_wien(int,TTree *,TString, std::vector<double>*,std::vector<doubl
 void get_data_by_wien(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 void get_data_by_wien_decimal(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 
+void get_data_wien_decimal_friend(int,TTree *, TTree*, TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
+
 void get_yield_by_wien_decimal(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 
 
@@ -51,6 +54,7 @@ void fillHistArray(TTree*, TString string, int, TH2F**, int);
 void fill_pull_histo(TH1F*, float, std::vector<double>*, std::vector<double>*);
 
 void print_good_runlets(TTree *, TString, TString);
+void find_conditional_runlets(TTree *, TString, float);
 void find_bad_runlets(TTree *, TString);
 void find_bad_runlets(TTree *, TString, TString);
 void find_bad_qtor_runlets(TTree *);

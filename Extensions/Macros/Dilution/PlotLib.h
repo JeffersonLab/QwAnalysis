@@ -20,6 +20,8 @@ void placeAxis(TString, TString, TString, TCanvas*, TGraphErrors*);
 void placeAxis(TString, TString, TString, TCanvas*, TMultiGraph*);
 
 void placeLabel(TString,float,float,float,float);
+void placeLabelRed(TString,float,float,float,float);
+void placeLabelBlue(TString,float,float,float,float);
 
 void bluePlot(TGraphErrors *, float);
 void redPlot(TGraphErrors *, float);

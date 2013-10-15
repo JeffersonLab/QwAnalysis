@@ -148,6 +148,52 @@ void get_wien_from_tree(int wien, TTree* tree, TString name, std::vector<double>
   }
 }
 
+
+void get_wien_from_tree_friend(int wien, TTree* tree, TTree* friendtree, TString name, std::vector<double> *value, std::vector<double> *error) {
+  int n_events = (int) tree->GetEntries();
+  int n_events_friend = (int) friendtree->GetEntries();
+
+  if (n_events != n_events_friend) {
+    std::cout <<"The two rootfiles have different number of events!\n";
+    exit(0);
+  }
+
+  int slug, wien_slug, sign;
+  double temp_branch[4], run_number_decimal;
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("slug", &slug);
+  tree->SetBranchAddress("wien_slug", &wien_slug);
+  tree->SetBranchAddress("sign_correction",&sign);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name, &temp_branch);
+
+  double current[4], run_decimal_friend;
+  friendtree->ResetBranchAddresses();
+  friendtree->SetBranchAddress("yield_qwk_charge",&current);
+  friendtree->SetBranchAddress("run_number_decimal",&run_decimal_friend);
+
+  for(int i=0; i<n_events; i++) {
+    tree->GetEntry(i);
+    friendtree->GetEntry(i);
+
+    //skip bad entries
+    if (run_number_decimal != run_decimal_friend ) {
+      printf("You have a problem - your trees are not processing the same events for run: %f \t%f\n", run_number_decimal, run_decimal_friend);
+      continue;
+    }
+
+    if ( temp_branch[0]==-1e6 || wien_slug != wien)
+      continue;
+
+    if (run_number_decimal==13957.25 || current[0]<130.0) {
+      printf("Disregarded run %f \tCurrent %f\n",run_number_decimal,current[0]);
+      continue;
+    }
+    value->push_back(sign*temp_branch[0]);
+    error->push_back(temp_branch[1]);
+  }
+}
+
 void get_data_from_tree_runlet(TTree* tree, TString name,
     std::vector<double> *value, std::vector<double> *error,
     std::vector<double> *runlet ) {
@@ -387,13 +433,60 @@ void get_data_by_wien_decimal(int wien, TTree *tree, TString name, std::vector<d
   for( int i =0; i<n_events; i++ ) {
     tree->GetEntry(i);
     //skip bad entries
-    if ( temp_branch[0]==-1e6 || wien_slug != wien || run_number_decimal==13957.25)
+    if ( temp_branch[0]==-1e6 || wien_slug != wien)
       continue;
 
     value->push_back(sign*temp_branch[0]);
     runlet->push_back(run_number_decimal);
-//    error->push_back(temp_branch[1]);
-    error->push_back(temp_branch[2]); //width, NOT error
+    error->push_back(temp_branch[1]);
+//    error->push_back(temp_branch[2]); //width, NOT error
+  }
+}
+
+
+void get_data_wien_decimal_friend(int wien, TTree *tree, TTree* friendtree, TString name, std::vector<double> *runlet, std::vector<double> *value, std::vector<double>*error) {
+  int n_events       = (int) tree->GetEntries();
+  int n_eventsfriend = (int) friendtree->GetEntries();
+
+  if (n_events != n_eventsfriend) {
+    std::cout <<"The two rootfiles have different number of events!\n";
+    exit(0);
+  }
+
+  int sign, wien_slug;
+  double temp_branch[4], run_number_decimal;
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien_slug);
+  tree->SetBranchAddress("sign_correction",&sign);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name,&temp_branch);
+
+  double current[4], run_decimal_friend;
+  friendtree->ResetBranchAddresses();
+  friendtree->SetBranchAddress("yield_qwk_charge",&current);
+  friendtree->SetBranchAddress("run_number_decimal",&run_decimal_friend);
+
+  for( int i=0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    friendtree->GetEntry(i);
+    //skip bad entries
+    if ( temp_branch[0]==-1e6 || wien_slug != wien)
+      continue;
+
+    if (run_number_decimal != run_decimal_friend ) {
+      printf("You have a problem - your trees are not processing the same events for run: %f \t%f\n", run_number_decimal, run_decimal_friend);
+      continue;
+    }
+
+    if (run_number_decimal==13957.25 || current[0]<130.0) {
+      printf("Disregarded run %f \tCurrent %f\n",run_number_decimal,current[0]);
+      continue;
+    }
+
+    value->push_back(sign*temp_branch[0]);
+    runlet->push_back(run_number_decimal);
+    error->push_back(temp_branch[1]);
+//    error->push_back(temp_branch[2]); //width, NOT error
   }
 }
 
@@ -518,6 +611,30 @@ void find_bad_runlets(TTree *tree, TString name) {
       printf("Wien: %i \tRunlet_id: %f\tValue: %f\t Error: %f\t RMS: %f\t NumEntries: %f\n",wien,run_number_decimal,temp_branch[0],temp_branch[1],temp_branch[2],temp_branch[3]);
     }
   }
+}
+
+
+void find_conditional_runlets(TTree *tree, TString name, float limit) {
+  int n_events;
+  n_events = (int) tree->GetEntries();
+  int  wien;
+  int count=0;
+  double  run_number_decimal;
+  double temp_branch[4];
+  tree->ResetBranchAddresses();
+  tree->SetBranchAddress("wien_slug",&wien);
+  tree->SetBranchAddress("run_number_decimal",&run_number_decimal);
+  tree->SetBranchAddress(name,&temp_branch);
+  for( int i =0; i<n_events; i++ ) {
+    tree->GetEntry(i);
+    if ( temp_branch[0] == -1e6 )
+      continue;
+    if ( temp_branch[0] < limit ) {
+      printf("Wien: %i \tRunlet_id: %f\tValue: %f\t Error: %f\t RMS: %f\t NumEntries: %f\n",wien,run_number_decimal,temp_branch[0],temp_branch[1],temp_branch[2],temp_branch[3]);
+      count++;
+    }
+  }
+  printf("Total number of runs satisfying condition: \t%i\n",count);
 }
 
 

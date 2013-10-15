@@ -97,8 +97,8 @@ void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH2
 
 void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TGraphErrors *graph) {
   float size=0.07;
-  float titlesize=0.09;
-  float labelsize = 0.07;
+  float titlesize=0.08;
+  float labelsize = 0.06;
   graph->SetTitle(title);
   graph->GetXaxis()->SetTitle(xaxis);
   graph->GetYaxis()->SetTitle(yaxis);
@@ -155,7 +155,27 @@ void placeLabel(TString text, float x1, float y1, float x2, float y2) {
  subtitle->SetFillColor(0);
  subtitle->SetTextSize(0.5);
  //  subtitle->SetTextColor(46);
-  subtitle->Draw();
+ subtitle->Draw();
+}
+
+void placeLabelRed(TString text, float x1, float y1, float x2, float y2) {
+ TPaveLabel *subtitle = new TPaveLabel(x1,y1,x2,y2,text,"NDC");
+ subtitle->SetBorderSize(0);
+ subtitle->SetFillColor(0);
+ subtitle->SetTextSize(0.75);
+ subtitle->SetTextColor(46);
+// subtitle->SetTextColor(kRed+3);
+ subtitle->Draw();
+}
+
+
+void placeLabelBlue(TString text, float x1, float y1, float x2, float y2) {
+ TPaveLabel *subtitle = new TPaveLabel(x1,y1,x2,y2,text,"NDC");
+ subtitle->SetBorderSize(0);
+ subtitle->SetFillColor(0);
+ subtitle->SetTextSize(0.75);
+ subtitle->SetTextColor(9);
+ subtitle->Draw();
 }
 
 void fitGraph(TGraphErrors *graph, TF1* fit) {
