@@ -622,14 +622,18 @@ void plotByWien( TString filename, TString dataname="diff_bcmdd78") {
   bluePlot(w9,size);
   bluePlot(w10,size);
 
-/*  TString title  = "Sign Corrected BCM78 DD Asymmetry";
-  TString xtitle = "Runlet_id";
-  TString ytitle = "BCM78 DD Asymmetry (ppm)";
+  // TString title  = "Sign Corrected BCM78 DD Asymmetry";
+  // TString xtitle = "Runlet_id";
+  // TString ytitle = "BCM78 DD Asymmetry (ppm)";
 
-/*  TString title  = "Sign Corrected Charge Asymmetry (LH2, Run2)";
-  TString xtitle = "Run Number Decimal";
-  TString ytitle = "Charge Asymmetry (ppm)";
-*/
+  // TString title  = "Sign Corrected Charge Asymmetry (LH2, Run2)";
+  // TString xtitle = "Run Number Decimal";
+  // TString ytitle = "Charge Asymmetry (ppm)";
+
+  TString title  = "";
+  TString xtitle = "";
+  TString ytitle = "";
+
   TCanvas *canvas = new TCanvas("canvas","title",1200,1500);
   canvas->Divide(1,5);
 
