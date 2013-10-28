@@ -10,7 +10,7 @@
 #ifdef QwDataContainer_cxx
 
 QwDataContainer::QwDataContainer():fMysqlBeamMode("nbm"), fSegmentFlag("segment_number=0"), 
-				   fDBase(false), fRunRange(false), fModType(false), 
+				   fDBase(false), fNDelta(false), fRunRange(false), fModType(false), 
 				   fSegmentNumber(false), fMysqlSetStem(false), 
 				   fMysqlSetDet(false), fNumberMonitor(1) 
 {
@@ -85,6 +85,9 @@ void QwDataContainer::GetOptions(Char_t **options)
     fOptions.push_back(options[i]);
 
     if(fOptions[i].CompareTo("--database", TString::kExact) == 0) fDBase = true;
+    if(fOptions[i].CompareTo("--ndelta", TString::kExact) == 0){
+      fNDelta = true;
+    }
 
     if(flag.CompareTo("--run") == 0){
       fRunRange = true;
@@ -330,12 +333,17 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("sens_all", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select md_slope_view.run_number, value, error, slope from analysis,md_slope_view, slow_controls_settings, runlet where slow_controls_settings.runlet_id=runlet.runlet_id AND runlet.run_number=md_slope_view.run_number AND runlet.segment_number=0 AND slow_controls_settings.target_position='HYDROGEN-CELL' AND analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='%s' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and md_slope_view.run_number >= %i && md_slope_view.run_number <= %i; ", fMysqlBeamMode.Data(), fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select md_slope_view.run_number, md_slope_view.segment_number, value, error, slope from analysis,md_slope_view, slow_controls_settings, runlet where slow_controls_settings.runlet_id=runlet.runlet_id AND runlet.run_number=md_slope_view.run_number AND runlet.segment_number=0 AND slow_controls_settings.target_position='HYDROGEN-CELL' AND analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='%s' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3' and detector = '%s' and md_slope_view.run_number >= %i && md_slope_view.run_number <= %i; ", fMysqlBeamMode.Data(), fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+  }
+  if(type.CompareTo("sens_all_ndelta", TString::kExact) == 0){
+    dbase.fNumberColumns = 4;
+    fNumberMonitor = 5;
+    fMysqlQuery = Form("select md_slope_view.run_number, md_slope_view.segment_number, value, error, slope from analysis,md_slope_view, slow_controls_settings, runlet where slow_controls_settings.runlet_id=runlet.runlet_id AND runlet.run_number=md_slope_view.run_number AND runlet.segment_number=0 AND slow_controls_settings.target_position='HYDROGEN-CELL' AND analysis.analysis_id=md_slope_view.analysis_id and analysis.beam_mode='%s' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and md_slope_view.run_quality_id=1 and md_slope_view.good_for_id='1,3,18' and detector = '%s' and md_slope_view.run_number >= %i && md_slope_view.run_number <= %i; ", fMysqlBeamMode.Data(), fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("sens_all_bcm", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select beam_slope_view.run_number, value, error, slope from analysis,beam_slope_view, slow_controls_settings, runlet where slow_controls_settings.runlet_id=runlet.runlet_id AND runlet.run_number=beam_slope_view.run_number AND runlet.segment_number=0 AND slow_controls_settings.target_position='HYDROGEN-CELL' AND beam_slope_view.segment_number IS NULL && analysis.analysis_id=beam_slope_view.analysis_id and analysis.beam_mode='%s' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and beam_slope_view.run_quality_id=1 and beam_slope_view.good_for_id='1,3' and detector = '%s' and beam_slope_view.run_number >= %i && beam_slope_view.run_number <= %i; ", fMysqlBeamMode.Data(), fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select beam_slope_view.run_number, md_slope_view.segment_number, value, error, slope from analysis,beam_slope_view, slow_controls_settings, runlet where slow_controls_settings.runlet_id=runlet.runlet_id AND runlet.run_number=beam_slope_view.run_number AND runlet.segment_number=0 AND slow_controls_settings.target_position='HYDROGEN-CELL' AND beam_slope_view.segment_number IS NULL && analysis.analysis_id=beam_slope_view.analysis_id and analysis.beam_mode='%s' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and beam_slope_view.run_quality_id=1 and beam_slope_view.good_for_id='1,3' and detector = '%s' and beam_slope_view.run_number >= %i && beam_slope_view.run_number <= %i; ", fMysqlBeamMode.Data(), fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("corrections_all", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
@@ -345,7 +353,7 @@ TString QwDataContainer::BuildQuery(TString type)
   if(type.CompareTo("sens_all_lumi", TString::kExact) == 0){
     dbase.fNumberColumns = 4;
     fNumberMonitor = 5;
-    fMysqlQuery = Form("select lumi_slope_view.run_number, value, error, slope, slow_controls_settings.slow_helicity_plate  from analysis,lumi_slope_view, slow_controls_settings, runlet as runlet0 where runlet0.segment_number=0 AND lumi_slope_view.run_number=runlet0.run_number && lumi_slope_view.segment_number IS NULL && analysis.analysis_id=lumi_slope_view.analysis_id and analysis.beam_mode='%s' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and lumi_slope_view.run_quality_id=1 and lumi_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && lumi_slope_view.run_number >= %i && lumi_slope_view.run_number <= %i; ", fMysqlBeamMode.Data(), fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
+    fMysqlQuery = Form("select lumi_slope_view.run_number, md_slope_view.run_number, value, error, slope, slow_controls_settings.slow_helicity_plate  from analysis,lumi_slope_view, slow_controls_settings, runlet as runlet0 where runlet0.segment_number=0 AND lumi_slope_view.run_number=runlet0.run_number && lumi_slope_view.segment_number IS NULL && analysis.analysis_id=lumi_slope_view.analysis_id and analysis.beam_mode='%s' and analysis.slope_calculation= '%s' and analysis.slope_correction='off' and lumi_slope_view.run_quality_id=1 and lumi_slope_view.good_for_id='1,3' and detector = '%s' and runlet0.runlet_id=slow_controls_settings.runlet_id && lumi_slope_view.run_number >= %i && lumi_slope_view.run_number <= %i; ", fMysqlBeamMode.Data(), fMysqlSlopeCorr.Data(), fMysqlDet.Data() , fMysqlRunLower, fMysqlRunUpper);
   }
   if(type.CompareTo("corrected", TString::kExact) == 0){
     dbase.fNumberColumns = 1;
@@ -539,8 +547,8 @@ void QwDataContainer::FillDataVector(TString type)
   
   Double_t fConvFactor[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
 
-//   enum {run, segment, value, error, slope, ihwp};
-  enum {run, value, error, slope, ihwp};
+  enum {run, segment, value, error, slope, ihwp};
+  // enum {run, value, error, slope, ihwp};
   enum {X, XP, E, Y, YP}; 
 
   std::cout << "Filling data vector" << std::endl;
@@ -551,8 +559,8 @@ void QwDataContainer::FillDataVector(TString type)
 	mod = 0;
 	index++;
 	}
-//       fRunNumber[index] = (Double_t)dbase.result[i][run] + (Double_t)(0.01*dbase.result[i][segment]);
-      fRunNumber[index] = (Double_t)dbase.result[i][run];
+      fRunNumber[index] = (Double_t)dbase.result[i][run] + (Double_t)(0.01*dbase.result[i][segment]);
+      // fRunNumber[index] = (Double_t)dbase.result[i][run];
 
       std::string slopewrt(dbase.result[i][slope]);
       if(slopewrt.compare("wrt_diff_targetX") == 0){
@@ -800,8 +808,16 @@ void QwDataContainer::PlotDBSensitivities()
     qtemp = BuildQuery("sens_all_bcm");
     query_flag = "sens_all_bcm";
   }
-  else if(fMysqlDet.CompareTo("sens_all", TString::kExact)){
-    qtemp = BuildQuery("sens_all");
+  // else if(fMysqlDet.CompareTo("sens_all", TString::kExact)){
+  else if(fMysqlDet.Contains("qwk_", TString::kExact)){
+    if(fNDelta){
+      std::cout << "Searching to N->Delta data..." << std::endl;
+      qtemp = BuildQuery("sens_all_ndelta");
+    }
+    else{
+      qtemp = BuildQuery("sens_all");
+    }
+
     std::cout << "Building Detector Query..." << std::endl;
     query_flag = "sens_all";
   }

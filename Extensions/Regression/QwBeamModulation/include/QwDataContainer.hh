@@ -83,6 +83,7 @@ public:
   TString  fSegmentFlag;
 
   Bool_t   fDBase;
+  Bool_t   fNDelta;
   Bool_t   fRunRange;
   Bool_t   fModType;
   Bool_t   fSegmentNumber;
