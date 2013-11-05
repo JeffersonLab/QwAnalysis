@@ -574,8 +574,8 @@ void QwDataContainer::FillDataVector(TString type)
 // 	fSensitivityError[XP][index] = 0;
       }
       if(slopewrt.compare("wrt_diff_bpm3c12X") == 0){
- 	fSensitivity[E][index] = 0.0041*fConvFactor[E]*dbase.result[i][value];
-  	fSensitivityError[E][index] = 0.0041*fConvFactor[E]*dbase.result[i][error];
+ 	fSensitivity[E][index] = fConvFactor[E]*dbase.result[i][value];
+  	fSensitivityError[E][index] = fConvFactor[E]*dbase.result[i][error];
 // 	fSensitivityError[E][index] = 0;
       }
       if(slopewrt.compare("wrt_diff_energy") == 0){
@@ -1005,7 +1005,7 @@ void QwDataContainer::PlotSensitivities()
   sensx->GetXaxis()->SetTitleSize(0.02);
   sensx->GetYaxis()->SetTitleSize(0.02);
   sensx->GetXaxis()->SetTitleOffset(1.5);
-  sensx->GetYaxis()->SetTitleOffset(1.5);
+  sensx->GetYaxis()->SetTitleOffset(1.8);
 //   ScaleTGraph(sensx);
   sensx->Draw("AP");
   sensx->Fit("line0", "");
@@ -1028,7 +1028,7 @@ void QwDataContainer::PlotSensitivities()
   sensxp->GetXaxis()->SetTitleSize(0.02);
   sensxp->GetYaxis()->SetTitleSize(0.02);
   sensxp->GetXaxis()->SetTitleOffset(1.5);
-  sensxp->GetYaxis()->SetTitleOffset(1.5);
+  sensxp->GetYaxis()->SetTitleOffset(1.8);
 //   ScaleTGraph(sensxp);
   sensxp->Draw("AP");
   sensxp->Fit("line0", "");
@@ -1044,15 +1044,15 @@ void QwDataContainer::PlotSensitivities()
   sense->SetMarkerColor(6);
   sense->SetMarkerSize(0.6);
   sense->SetMarkerStyle(21);
-  sense->SetTitle(Form("E Sensitivities vs Run:%s", fMysqlSlopeCorr.Data()));
+  sense->SetTitle(Form("E(bpm3c12X) Sensitivities vs Run:%s", fMysqlSlopeCorr.Data()));
   sense->GetXaxis()->SetTitle("Run number ");
-  sense->GetYaxis()->SetTitle("Sensitivity (per mm)");
+  sense->GetYaxis()->SetTitle("Sensitivity (ppm/mm)");
   sense->GetXaxis()->SetLabelSize(0.02);
   sense->GetYaxis()->SetLabelSize(0.02);
   sense->GetXaxis()->SetTitleSize(0.02);
   sense->GetYaxis()->SetTitleSize(0.02);
   sense->GetXaxis()->SetTitleOffset(1.5);
-  sense->GetYaxis()->SetTitleOffset(1.5);
+  sense->GetYaxis()->SetTitleOffset(1.8);
 //   ScaleTGraph(sense);
 //   sense->GetYaxis()->SetRangeUser(-10., 0.);
   sense->Draw("AP");
@@ -1076,7 +1076,7 @@ void QwDataContainer::PlotSensitivities()
   sensy->GetXaxis()->SetTitleSize(0.02);
   sensy->GetYaxis()->SetTitleSize(0.02);
   sensy->GetXaxis()->SetTitleOffset(1.5);
-  sensy->GetYaxis()->SetTitleOffset(1.5);
+  sensy->GetYaxis()->SetTitleOffset(1.8);
 //   ScaleTGraph(sensy);
 //   sensy->GetYaxis()->SetRangeUser(-3000., 3000.);
   sensy->Draw("AP");
@@ -1100,7 +1100,7 @@ void QwDataContainer::PlotSensitivities()
   sensyp->GetXaxis()->SetTitleSize(0.02);
   sensyp->GetYaxis()->SetTitleSize(0.02);
   sensyp->GetXaxis()->SetTitleOffset(1.5);
-  sensyp->GetYaxis()->SetTitleOffset(1.5);
+  sensyp->GetYaxis()->SetTitleOffset(1.8);
 //   ScaleTGraph(sensyp);
 //   sensyp->GetYaxis()->SetRangeUser(-200., 200.);
   sensyp->Draw("AP");
