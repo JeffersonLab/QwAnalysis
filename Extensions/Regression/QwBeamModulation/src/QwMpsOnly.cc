@@ -442,7 +442,7 @@ void QwMpsOnly::CalculateSlope(Int_t modType)
 
   //  DetectorSlope[modType].resize(fNEvents);
   if(!fPhaseConfig){
-    Double_t temp[5]={0.,0.,0.,0.,0.}//;{0.26, 0.26, 0.0, 1.08, 1.08};         
+    Double_t temp[5]={0.,0.,0.,0.,0.};//{0.26, 0.26, 0.0, 1.08, 1.08};         
     SetPhaseValues(temp); 
   }
 
@@ -573,7 +573,7 @@ void QwMpsOnly::CalculateSlope(Int_t modType)
   return;
 }
 
-void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
+Int_t QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
 {
 
   Double_t mean = 0;
@@ -595,12 +595,13 @@ void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
 	mean_error = 0;
       }
       else{ 
-	mean = 0;
-	mean_error = 0;
 	std::cout << "\n[empty]Detector Weighted Mean:= "<< mean 
-		  << " +/- " << mean_error << std::endl; 
-	AvDetectorSlope[i].push_back(mean);
-	AvDetectorSlopeError[i].push_back(mean_error);
+		  << " +/- " << mean_error <<". Exiting."<< std::endl; 
+	return -1;
+// 	mean = 0;
+// 	mean_error = 0;
+// 	AvDetectorSlope[i].push_back(mean);
+// 	AvDetectorSlopeError[i].push_back(mean_error);
 
       }
     }
@@ -638,7 +639,7 @@ void QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
   MonitorSlopeError.clear();
   
   std::cout << "Weighted Averages calculated." << std::endl;
-  
+  return 0;
 }
 
 
@@ -695,10 +696,15 @@ void QwMpsOnly::Clean()
 
 void QwMpsOnly::CleanFolders()
 {
-  gSystem->Exec(Form("rm -rf %s/regression/regression_%i.%s.dat", 
-		     gSystem->Getenv("BMOD_OUT"), run_number, fSetStem.Data()));
-  gSystem->Exec(Form("rm -rf %s/slopes/slopes_%i.%s.dat",
-		     gSystem->Getenv("BMOD_OUT"), run_number, fSetStem.Data()));
+  gSystem->Exec(Form("rm -rf %s/regression/regression_%i%s.%s.dat", 
+		     gSystem->Getenv("BMOD_OUT"), run_number, 
+		     (fChiSquareMinimization ? "_ChiSqMin" : ""),
+		     fSetStem.Data()));
+				   
+  gSystem->Exec(Form("rm -rf %s/slopes/slopes_%i%s.%s.dat",
+		     gSystem->Getenv("BMOD_OUT"), run_number, 
+		     (fChiSquareMinimization ? "_ChiSqMin" : ""),
+		     fSetStem.Data()));
 
   return;
 }
@@ -913,6 +919,68 @@ void QwMpsOnly::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
     Error.Print();
 }
 
+void QwMpsOnly::ComputeSlopeErrors(TMatrixD A, TMatrixD AErr, 
+				   TMatrixD RInv, TMatrixD RErr)
+{//Using derivation in http://arxiv.org/abs/hep-ex/9909031
+  //from equation 10 we must first square each element of A, AErr, RInv, and RErr
+  //Implemented as A=S*R ==> S=A*RInv where S is desired matrix of slopes dDet/dMon
+  //A=fNDetector x fNMonitor
+  //R=fNMonitor x fNMonitor 
+  //S=fNDetector x fNMonitor
+
+  TMatrixD RInvSq(fNMonitor, fNMonitor);
+  TMatrixD RErrSq(fNMonitor, fNMonitor);
+  TMatrixD ASq(fNDetector, fNMonitor);
+  TMatrixD AErrSq(fNDetector, fNMonitor);
+  TMatrixD Error(fNDetector, fNModType);  
+
+  //square each matrix element
+  for(int irow=0;irow<fNMonitor;irow++){
+    for(int icol=0;icol<fNMonitor;icol++){
+      RInvSq(irow, icol) = TMath::Power(RInv(irow,icol),2);
+      RErrSq(irow, icol) = TMath::Power(RErr(irow,icol),2);
+    }
+  }
+  for(int irow=0;irow<fNDetector;irow++){
+    for(int icol=0;icol<fNMonitor;icol++){
+      ASq(irow, icol) = TMath::Power(A(irow,icol),2);
+      AErrSq(irow, icol) = TMath::Power(AErr(irow,icol),2);
+    }
+  }
+
+  //Find matrix of errors of elements in RInvSq
+  TMatrixD RInvSqErr(fNMonitor, fNMonitor); 
+  for(int alpha=0;alpha<fNMonitor;alpha++){
+    for(int beta=0;beta<fNMonitor;beta++){
+      Double_t err = 0;
+      for(int i=0;i<fNMonitor;i++){
+	Double_t sum = 0;
+	for(int j=0;j<fNMonitor;j++){
+	  sum = RErrSq(i, j)*RInvSq(j, beta);
+	}
+	err += RInvSq(alpha, i) * sum;
+      }
+      RInvSqErr(alpha, beta) = err;
+    }
+  }
+
+  for(int idet=0;idet<fNDetector;idet++){
+    for(int imon=0;imon<fNMonitor;imon++){
+      Double_t sum = 0;
+      for(int jmon=0;jmon<fNMonitor;jmon++){
+	sum += AErrSq(idet,jmon) * RInvSq(jmon,imon) + 
+	       ASq(idet,jmon) * RInvSqErr(jmon, imon);
+      }
+      Error(idet, imon) = TMath::Sqrt(sum) * fUnitConvert[imon];
+      YieldSlopeError[idet][imon] = Error(idet, imon);
+    }
+  }
+
+  std::cout << other << "Errors:" << normal << std::endl;
+  Error.Print();
+
+}
+
 Int_t QwMpsOnly::ConvertPatternNumber(Int_t global)
 {
   Int_t key[16] = {0, 1, 2, 3, 4, 0, 0, 0, 0, 
@@ -1056,8 +1124,8 @@ Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t sluglet)
 Double_t QwMpsOnly::FindChiSquareMinAMatrix(Int_t row, Int_t col){
 
   Double_t index = 0;
-  for(Int_t i=0;i<fNModType*2;i++){
-    index += AvDetectorSlope[i][row] * AvMonitorSlope[i][col];
+  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+    index += AvDetectorSlope[icoil][row] * AvMonitorSlope[icoil][col];
   }
   return index;
 }
@@ -1065,10 +1133,34 @@ Double_t QwMpsOnly::FindChiSquareMinAMatrix(Int_t row, Int_t col){
 Double_t QwMpsOnly::FindChiSquareMinRMatrix(Int_t row, Int_t col){
 
   Double_t index = 0;
-  for(Int_t i=0;i<fNModType*2;i++){
-    index += AvMonitorSlope[i][row] * AvMonitorSlope[i][col];
+  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+    index += AvMonitorSlope[icoil][row] * AvMonitorSlope[icoil][col];
   }
   return index;
+}
+
+Double_t QwMpsOnly::FindChiSquareMinAMatrixError(Int_t row, Int_t col){
+
+  Double_t index = 0;
+  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+    index += TMath::Power(AvMonitorSlope[icoil][col] *
+			  AvDetectorSlopeError[icoil][row],2);
+    index += TMath::Power(AvDetectorSlope[icoil][row] * 
+			  AvMonitorSlopeError[icoil][col],2);
+  }
+  return TMath::Sqrt(index);
+}
+
+Double_t QwMpsOnly::FindChiSquareMinRMatrixError(Int_t row, Int_t col){
+
+  Double_t index = 0;
+  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+    index += TMath::Power(AvMonitorSlope[icoil][col] * 
+			  AvMonitorSlopeError[icoil][row],2);
+    index += TMath::Power(AvMonitorSlope[icoil][row] *
+			  AvMonitorSlopeError[icoil][col],2);
+  }
+  return TMath::Sqrt(index);
 }
 
 Double_t QwMpsOnly::FindDegPerMPS()
@@ -1529,16 +1621,18 @@ void QwMpsOnly::MatrixFill()
 
   CheckFlags();
 
-  diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i.%s.dat", output.Data(), 
-		       fFileSegment.Data(), run_number, fSetStem.Data()) , 
-		  fstream::out);
+  diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i%s.%s.dat", output.Data(), 
+		       fFileSegment.Data(), run_number,
+		       (fChiSquareMinimization ? "_ChiSqMin" : ""), 
+		       fSetStem.Data()), fstream::out);
 
   for(Int_t j = 0; j < fNDetector; j++){
     diagnostic << DetectorList[j] << std::endl;
     for(Int_t k = 0; k < fNModType; k++){
       AMatrix(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrix(j,k) : 
 		      AvDetectorSlope[k][j]);
-      AMatrixE(j,k) = AvDetectorSlopeError[k][j];
+      AMatrixE(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrixError(j,k) : 
+		      AvDetectorSlopeError[k][j]);
       if( (diagnostic.is_open() && diagnostic.good()) ){
 	diagnostic << AvDetectorSlope[k][j] << " +- " 
 		   << AvDetectorSlopeError[k][j] << " ";
@@ -1556,15 +1650,18 @@ void QwMpsOnly::MatrixFill()
   TMatrixD RMatrix(fNMonitor, fNModType);
   TMatrixD RMatrixE(fNMonitor, fNModType);
 
-  for(Int_t j = 0; j < fNMonitor; j++){
-    for(Int_t k = 0; k < fNModType; k++){
-      RMatrix(j,k) = (fChiSquareMinimization ? FindChiSquareMinRMatrix(j,k) :
-		      AvMonitorSlope[k][j]);
-      RMatrixE(j,k) = AvMonitorSlopeError[k][j];
+  for(Int_t imon = 0; imon < fNMonitor; imon++){
+    for(Int_t icoil = 0; icoil < fNModType; icoil++){
+      RMatrix(imon,icoil) = (fChiSquareMinimization ? 
+			     FindChiSquareMinRMatrix(imon,icoil) :
+			     AvMonitorSlope[icoil][imon]);
+      RMatrixE(imon,icoil) = (fChiSquareMinimization ? 
+			     FindChiSquareMinRMatrixError(imon,icoil) :
+			     AvMonitorSlopeError[icoil][imon]);
 
       if( (diagnostic.is_open() && diagnostic.good()) ){
-	diagnostic << AvMonitorSlope[k][j] << " +- " 
-		   << AvMonitorSlopeError[k][j] << " ";
+	diagnostic << AvMonitorSlope[icoil][imon] << " +- " 
+		   << AvMonitorSlopeError[icoil][imon] << " ";
       }
     }
     diagnostic << std::endl;
@@ -1574,6 +1671,27 @@ void QwMpsOnly::MatrixFill()
   
   std::cout << "\t\t\t\t::R Matrix Error::"<< std::endl;
   RMatrixE.Print("%11.10f");
+  
+  //get eigenvalues and eigenvectors of RMatrix
+  TVectorD RMatrixEigenvalues(fNMonitor);
+  TMatrixD RMatrixEigenvectors(fNMonitor, fNModType);
+  RMatrixEigenvectors = RMatrix.EigenVectors(RMatrixEigenvalues);
+  if( (diagnostic.is_open() && diagnostic.good()) ){
+    diagnostic <<"\n\nRMatrix Eigenvalues:\n";
+    for(int row=0;row<fNMonitor;row++){
+      diagnostic <<Form("%+0.13f   ",RMatrixEigenvalues(row));
+    }
+    diagnostic <<"\n\nRMatrix Eigenvectors:\n";
+    for(int row=0;row<fNMonitor;row++){
+      for(int col=0;col<fNMonitor;col++){
+	diagnostic<<Form("%+0.8f   ",RMatrixEigenvectors(row,col));
+      }
+      diagnostic<<std::endl;
+    }
+
+  }
+  
+
   
   TMatrixD RMatrixInv = RMatrix;
   RMatrixInv.Invert(&determinant);
@@ -1598,7 +1716,10 @@ void QwMpsOnly::MatrixFill()
     }
   }
   SMatrix.Print();
-  ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
+  if(fChiSquareMinimization)
+    ComputeSlopeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
+  else
+    ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
 
   Write();
 
@@ -1658,10 +1779,14 @@ Int_t QwMpsOnly::PilferData()
 
 void QwMpsOnly::PrintAverageSlopes()
 {
-  FILE *mon_coil_coeff = fopen(Form("%s/slopes/mon_coil_coeff_%i.dat",
-				 gSystem->Getenv("BMOD_OUT"),run_number),"w");
-  FILE *det_coil_coeff = fopen(Form("%s/slopes/det_coil_coeff_%i.dat",
-				 gSystem->Getenv("BMOD_OUT"),run_number),"w");
+  FILE *mon_coil_coeff = fopen(Form("%s/slopes/mon_coil_coeff_%i%s.%s.dat",
+				    gSystem->Getenv("BMOD_OUT"),run_number,
+				    (fChiSquareMinimization ? "_ChiSqMin" : ""),
+				    fSetStem.Data()),"w");
+  FILE *det_coil_coeff = fopen(Form("%s/slopes/det_coil_coeff_%i%s.%s.dat",
+				 gSystem->Getenv("BMOD_OUT"),run_number,
+				    (fChiSquareMinimization ? "_ChiSqMin" : ""),
+				    fSetStem.Data()),"w");
   printf("Monitor Slopes   |       Xmod   |       XPmod  |       Emod   |"
 	 "      Ymod    |      YPmod   |\n");
   printf("******************************************************************"
@@ -1945,7 +2070,7 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
   //set the unit conversion array
   std::cout<<"Unit conversion array: ";
   for(int i=0; i<5;i++){
-    fUnitConvert[i] = (MonitorList[i].Contains("Slope") ? 1.0e6 : 1.0);
+    fUnitConvert[i] = (MonitorList[i].Contains("Slope") ? 1.0e4 : 1.0);
     std::cout<<fUnitConvert[i]<<"  ";
   }
   std::cout<<std::endl;
@@ -2170,11 +2295,14 @@ void QwMpsOnly::Write(){
 
   gSystem->Exec("umask 002");
 
-  slopes.open(Form("%s/slopes/slopes%s_%i.%s.dat", output.Data(), 
-		   fFileSegment.Data(), run_number, fSetStem.Data()) , 
-	      fstream::out);
-  regression = fopen(Form("%s/regression/regression%s_%i.%s.dat", output.Data(), 
-			  fFileSegment.Data(), run_number, fSetStem.Data()), "w");
+  slopes.open(Form("%s/slopes/slopes%s_%i%s.%s.dat", output.Data(), 
+		   fFileSegment.Data(), run_number, 
+		   (fChiSquareMinimization ? "_ChiSqMin" : ""),
+		   fSetStem.Data()), fstream::out);
+  regression = fopen(Form("%s/regression/regression%s_%i%s.%s.dat", output.Data(),
+			  fFileSegment.Data(), run_number,
+			  (fChiSquareMinimization ? "_ChiSqMin" : ""),
+			  fSetStem.Data()), "w");
 
   if( (slopes.is_open() && slopes.good()) ){
     for(Int_t i = 0; i < fNDetector; i++){
