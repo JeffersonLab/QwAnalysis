@@ -236,11 +236,14 @@ public :
   Int_t    ConvertPatternNumber(Int_t);
   Int_t    GetCurrentCut();
   Int_t    ProcessMicroCycle(Int_t, Int_t *, Int_t *, Int_t*);
+  Int_t    CalculateWeightedSlope(Int_t);
   Long64_t LoadTree(Long64_t entry);
   Double_t FindDegPerMPS();
   Double_t GetDegPerMPS();
   Double_t FindChiSquareMinAMatrix(Int_t, Int_t);
   Double_t FindChiSquareMinRMatrix(Int_t, Int_t);
+  Double_t FindChiSquareMinAMatrixError(Int_t, Int_t);
+  Double_t FindChiSquareMinRMatrixError(Int_t, Int_t);
   void     Init(TChain *tree);
   void     Scan(void);
   void     SetMaxRampNonLinearity(Double_t);
@@ -253,12 +256,12 @@ public :
   void     BuildDetectorSlopeVector();
   void     BuildMonitorAvSlope();
   void     BuildDetectorAvSlope();
-  void     CalculateWeightedSlope(Int_t);
   void     CalculateSlope(Int_t);
   void     Calculate2DSlope(Int_t, Int_t);
   void     SetRampScaleAndOffset();
   void     MatrixFill();
   void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
+  void     ComputeSlopeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     SetFileName(TString &);
   void     ComputeAsymmetryCorrections(); 
   void     PrintAverageSlopes();
