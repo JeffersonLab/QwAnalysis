@@ -13,8 +13,13 @@
 // Only selected entries are copied to the new Tree.
 
 
-void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
-  
+void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000, 
+		    Double_t fUnitConvertTargetSlope = 1.0e4, Int_t chisq = 1) {
+  // fUnitConvertTargetSlope needs to be the same value used in making the coeff-
+  // cient files. This can be found on the line that looks like this in the file
+  // QwMpsOnly.cc:
+  // fUnitConvert[i] = (MonitorList[i].Contains("Slope") ? 1.0e4 : 1.0);
+  // In this example fUnitConvert=1.0e4
   const Int_t nDET = 29, nMOD = 5, nRUNS = 1350, nCOIL = 10;
   string line;
   TFile *newfile; 
@@ -105,12 +110,13 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
     if(run>=run_end)break;
     Bool_t all_good = 1;
     if(run>=run_start){
-      ifstream slopesFile(Form("%s/slopes/slopes_%i.set4.dat",
-			       gSystem->Getenv("BMOD_OUT"),(int)run));
+      char* name = (char*)(chisq ? "_ChiSqMin.set0" : ".set4");
+      ifstream slopesFile(Form("%s/slopes/slopes_%i%s.dat",
+			       gSystem->Getenv("BMOD_OUT"),(int)run, name));
       if(slopesFile.is_open()&&slopesFile.good()){
 	log[1] = 1;
-	cout<<Form("%s/slopes/slopes_%i.set4.dat found ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/slopes_%i%s.dat found.\n;",
+	       gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	slopesFile.peek();
 	if(slopesFile.eof()){
 	  cout<<"but is EMPTY\n";
@@ -119,17 +125,17 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	}
 	else  cout<<endl;
       }else{
-	cout<<Form("%s/slopes/slopes_%i.set4.dat NOT found.\n ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/slopes_%i%s.dat NOT found.\n;",
+	       gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	all_good = 0;
       }
-
-      ifstream monitorFile(Form("%s/slopes/mon_coil_coeff_%i.dat",
-				gSystem->Getenv("BMOD_OUT"),(int)run));
+      name = (char*)(chisq ? "_ChiSqMin.set0" : "");
+      ifstream monitorFile(Form("%s/slopes/mon_coil_coeff_%i%s.dat",
+				gSystem->Getenv("BMOD_OUT"),(int)run, name));
       if(monitorFile.is_open()&&monitorFile.good()){
 	log[2] = 1;
-	cout<<Form("%s/slopes/mon_coil_coeff_%i.dat found ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/mon_coil_coeff_%i%s.dat found.\n",
+		gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	monitorFile.peek();
 	if(monitorFile.eof()){
 	  cout<<"but is EMPTY\n";
@@ -138,15 +144,17 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	}
 	else  cout<<endl;
       }else{
-	cout<<Form("%s/slopes/mon_coil_coeff_%i.dat NOT found.\n ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/mon_coil_coeff_%i%s.dat NOT found.\n",
+		gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	all_good = 0;
       }
 
-      ifstream detectorFile(Form("%s/slopes/det_coil_coeff_%i.dat",
-				 gSystem->Getenv("BMOD_OUT"),(int)run));
+      ifstream detectorFile(Form("%s/slopes/det_coil_coeff_%i%s.dat",
+				 gSystem->Getenv("BMOD_OUT"),(int)run, name));
       if(detectorFile.is_open()&&detectorFile.good()){
 	log[3] = 1;
+	printf("%s/slopes/det_coil_coeff_%i%s.dat found.\n",
+		gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	cout<<Form("%s/slopes/det_coil_coeff_%i.dat found ",
 		   gSystem->Getenv("BMOD_OUT"),(int)run); 
 	detectorFile.peek();
@@ -162,12 +170,12 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	all_good = 0;
       }
 
-      ifstream resSineFile(Form("%s/slopes/run%iSineAmpl.dat",
-				 gSystem->Getenv("BMOD_OUT"),(int)run));
+      ifstream resSineFile(Form("%s/slopes/run%iSineAmpl%s.dat",
+				gSystem->Getenv("BMOD_OUT"),(int)run, name));
       if(resSineFile.is_open()&&resSineFile.good()){
 	log[4] = 1;
-	cout<<Form("%s/slopes/run%iSineAmpl.dat found ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/run%iSineAmpl%s.dat found.\n",
+	       gSystem->Getenv("BMOD_OUT"),(int)run, name);
        	resSineFile.peek();
 	if(resSineFile.eof()){
 	  cout<<"but is EMPTY\n";
@@ -176,17 +184,17 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	}
 	else  cout<<endl;
       }else{
-	cout<<Form("%s/slopes/run%iSineAmpl.dat NOT found.\n ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/run%iSineAmpl%s.dat NOT found.\n",
+	       gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	all_good = 0;
       }
 
-      ifstream resCosineFile(Form("%s/slopes/run%iCosineAmpl.dat",
-				 gSystem->Getenv("BMOD_OUT"),(int)run));
+      ifstream resCosineFile(Form("%s/slopes/run%iCosineAmpl%s.dat",
+				  gSystem->Getenv("BMOD_OUT"),(int)run, name));
       if(resCosineFile.is_open()&&resCosineFile.good()){
 	log[5] = 1;
-	cout<<Form("%s/slopes/run%iCosineAmpl.dat found ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/run%iCosineAmpl%s.dat found.\n",
+	       gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	resCosineFile.peek();
 	if(resCosineFile.eof()){
 	  cout<<"but is EMPTY\n";
@@ -195,8 +203,8 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	}
 	else  cout<<endl;
       }else{
-	cout<<Form("%s/slopes/run%iCosineAmpl.dat NOT found.\n ",
-		   gSystem->Getenv("BMOD_OUT"),(int)run); 
+	printf("%s/slopes/run%iCosineAmpl%s.dat NOT found.\n",
+	       gSystem->Getenv("BMOD_OUT"),(int)run, name);
 	all_good = 0;
       }
 
@@ -245,7 +253,7 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 	  if(line == MonitorList[i].Data()){
 	    Double_t unitConv = 1000;
 	    if(MonitorList[i].Contains("Slope"))
-	      unitConv = 1.0;
+	      unitConv = 1.0e6/fUnitConvertTargetSlope;
 	    for(int j=0;j<nCOIL;j++){
 	      monitorFile>>x>>xe;
 	      getline(monitorFile,line);
@@ -305,10 +313,23 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
   Double_t monCoeff[nMOD][nCOIL], monCoeffErr[nMOD][nCOIL];
   Double_t detCoeff[nDET][nCOIL], detCoeffErr[nDET][nCOIL];
 
+
+  //Find list of runs to exclude and use it to make a flag in the tree
+  ifstream excludedRunsFile(Form("%s/../temporarily_excluded_runs.dat",
+		     gSystem->Getenv("BMOD_OUT")));
+  vector<Int_t>excludedRuns;
+  while(!excludedRunsFile.eof()){
+    excludedRunsFile>>x;
+    excludedRuns.push_back(atoi(x));
+    getline(excludedRunsFile,line);
+  }
+  cout<<excludedRuns.size()<<" excluded runs."<<endl;
   
+
   //Create a new file
-  newfile = new TFile(Form("/net/data1/paschkedata1/slopesTree.root"),"recreate");
-  
+  char* name = (char*)(chisq ? "_ChiSqMin.set0" : ".set4");
+  newfile = new TFile(Form("/net/data1/paschkedata1/slopesTree%s.root", name),"recreate");
+  Int_t idx = 0, good;  
   TBranch *brSlopes[nDET][nMOD];
   TBranch *brSlopesErr[nDET][nMOD];
   TBranch *brSineRes[nDET][nMOD];
@@ -320,7 +341,9 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
   TBranch *brDetCoeff[nDET][nCOIL];
   TBranch *brDetCoeffErr[nDET][nCOIL];
   TBranch *rn = newTree->Branch("run", &run, "run/D");
+  TBranch *goodRn = newTree->Branch("good", &good, "good/I");
   TBranch *slg = newTree->Branch("slug", &slug, "slug/D");
+
   for(int i=0;i<nDET;i++){
     for(int j=0;j<nMOD;j++){
       brSlopes[i][j] = newTree->Branch(Form("%s_%s",DetectorList[i].Data(),
@@ -331,22 +354,18 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
 					       MonitorList[j].Data()), &slopeErr[i][j],
 					  Form("%s_%s_err/D",DetectorList[i].Data(),
 					       MonitorList[j].Data()));	
-      brSineRes[i][j] = newTree->Branch(Form("SineRes_%s_%s",DetectorList[i].Data(),
-					    MonitorList[j].Data()), &sineResid[i][j],
-				       Form("SineRes_%s_%s/D",DetectorList[i].Data(),
-					    MonitorList[j].Data()));	
-      brSineResErr[i][j] = newTree->Branch(Form("SineRes_%s_%s_err",DetectorList[i].Data(),
-					       MonitorList[j].Data()), &sineResidErr[i][j],
-					  Form("SineRes_%s_%s_err/D",DetectorList[i].Data(),
-					       MonitorList[j].Data()));	
-      brCosineRes[i][j] = newTree->Branch(Form("CosineRes_%s_%s",DetectorList[i].Data(),
-					    MonitorList[j].Data()), &cosineResid[i][j],
-				       Form("CosineRes_%s_%s/D",DetectorList[i].Data(),
-					    MonitorList[j].Data()));	
-      brCosineResErr[i][j] = newTree->Branch(Form("CosineRes_%s_%s_err",DetectorList[i].Data(),
-					       MonitorList[j].Data()), &cosineResidErr[i][j],
-					  Form("CosineRes_%s_%s_err/D",DetectorList[i].Data(),
-					       MonitorList[j].Data()));	
+      brSineRes[i][j] = newTree->Branch(Form("SineRes_%s_Coil%i",DetectorList[i].Data(),j), 
+					&sineResid[i][j],
+				       Form("SineRes_%s_Coil%i/D",DetectorList[i].Data(),j));	
+      brSineResErr[i][j] = newTree->Branch(Form("SineRes_%s_Coil%i_err",DetectorList[i].Data(),j),
+					   &sineResidErr[i][j],
+					  Form("SineRes_%s_Coil%i_err/D",DetectorList[i].Data(),j));	
+      brCosineRes[i][j] = newTree->Branch(Form("CosineRes_%s_Coil%i",DetectorList[i].Data(),j), 
+					  &cosineResid[i][j],
+				       Form("CosineRes_%s_Coil%i/D",DetectorList[i].Data(),j));	
+      brCosineResErr[i][j] = newTree->Branch(Form("CosineRes_%s_Coil%i_err",DetectorList[i].Data(),j),
+					     &cosineResidErr[i][j],
+					  Form("CosineRes_%s_Coil%i_err/D",DetectorList[i].Data(),j));	
     }
   }
   for(int i=0;i<nMOD;i++){
@@ -404,8 +423,10 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000) {
       }
     }
 
-
     run = runs[k];
+    good = 1;
+    for(int i=0;i<excludedRuns.size()-1;i++)
+      if(excludedRuns.at(i)==run) good = 0;
     slug = slugs[k];
     newTree->Fill();
   }

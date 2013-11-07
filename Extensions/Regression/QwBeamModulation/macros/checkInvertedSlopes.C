@@ -31,7 +31,8 @@
 //THIS MACRO TESTS THE VALIDITY OF THE FINAL SLOPES AFTER INVERSION.
 
 
-Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
+Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1, 
+			  Bool_t chsq = 0){
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -41,18 +42,20 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
   char  x[255], xe[255], mon[255], monitr[255], det[255], detectr[255];
+  char *chisquare = "";
   string line;
-
+  if(chsq)chisquare = (char *)"_ChiSqMin";
   gStyle->SetOptFit(1111);
   gStyle->SetStatW(0.25);
   gStyle->SetStatH(0.25);
   gStyle->SetOptStat(0);
 
-  const Int_t nDET = 29, nMOD = 5;
+  const Int_t nDET = 25, nMOD = 5;
   Double_t DegToRad = 0.0174532925199432955;
-  Double_t phase[nMOD] = {0.26,1.08,0,0.26,1.08};  
+  Double_t phase[nMOD] = {0,0,0,0,0};//{0.26,1.08,0,0.26,1.08};  
   Double_t meanX[nMOD][nMOD], meanY[nMOD][nDET];
   Int_t order[18] = {8,7,1,2,3,9,15,14,13,11,10,4,5,6,12,18,17,16};
+  Int_t order_bkg[30] = {1,2,3,7,8,9,13,14,15,19,20,21,25,26,27,4,5,6,10,11,12,16,17,18,22,23,24,28,29,30};
   TString ModulationList[nMOD] = {"Xmod", "Ymod", "Emod", "XPmod", "YPmod"};
   TString MonitorList[nMOD];
 
@@ -63,14 +66,14 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
     file>>mon>>monitr;
     getline(file, line);
     MonitorList[i] = TString(monitr);
-    cout<<MonitorList[i]<<endl;
+    std::cout<<MonitorList[i]<<endl;
   }
   getline(file, line);
   for(int i=0;i<nDET;i++){
     file>>det>>detectr;
     getline(file, line);
     DetectorList[i] = TString(detectr);
-    cout<<DetectorList[i]<<endl;
+    std::cout<<DetectorList[i]<<endl;
   }
 
   TString detector;
@@ -92,35 +95,37 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
   if(friendTree->IsOpen()){
     ch->AddFriend("mps_slug", friendTree);
   }else{
-    cout<<"Friend file not found exiting program.\n";
+    std::cout<<"Friend file not found exiting program.\n";
     return 1;
   }
-  cout<<"Run "<<run<<" \"by hand\""<<endl;
+  std::cout<<"Run "<<run<<" \"by hand\""<<endl;
   TString scut = TString(1000);
   TCut cut;
   int n = 0;
-  ifstream slopesFile(Form("%s/slopes/slopes_%i.set4.dat",
-			   gSystem->Getenv("BMOD_OUT"), run));
+  ifstream slopesFile(Form("%s/slopes/slopes_%i%s.set0.dat",
+			   gSystem->Getenv("BMOD_OUT"), run, chisquare));
 
-  if (slopesFile.is_open())cout<<"File found.\n";
-  else{
-    cout<<slopesFile<<" not found. Exiting.\n";
+  if (slopesFile.is_open()){
+    printf("Slopes file found for run %i.\n", run);
+  }else{
+    printf("%s/slopes/slopes_%i%s.set0.dat not found. Exiting.\n",  
+	   gSystem->Getenv("BMOD_OUT"), run, chisquare);
     return -1;
   }
-
+  
   for(int i=0;i<nDET;i++){
     if(slopesFile.is_open()&&slopesFile.good()){
       getline(slopesFile, line);
       detector = TString("det ");
       detector += DetectorList[i].Data();
       if(line==detector.Data()){
-	cout<<line<<"\n";
+	std::cout<<line<<"\n";
 	for(int j=0;j<5;j++){
 	  slopesFile>>x>>xe;
 	  Bool_t notANum = strcmp(xe,"nan")==0 || strcmp( x,"nan")==0;
 	  AvDetectorSlope[j][i] = (notANum ? -99999.0 : atof(x));
 	  AvDetectorSlopeError[j][i] = (notANum ? -99999.0 : atof(xe));
-	  cout<<AvDetectorSlope[j][i]<<" +/- "<<AvDetectorSlopeError[j][i]<<"\n";
+	  std::cout<<AvDetectorSlope[j][i]<<" +/- "<<AvDetectorSlopeError[j][i]<<"\n";
 	  getline(slopesFile, line);
 	}
       }
@@ -139,6 +144,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
   pt->SetTextColor(kRed);
 
   TCanvas *cDet[nMOD]; 
+  TCanvas *cBkg[nMOD]; 
 
   TProfile *pr[nDET*nMOD];
 
@@ -148,9 +154,12 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
     scut = Form("bm_pattern_number==%i||bm_pattern_number==%i",i,11+i);
     cut = scut;
     cut.Print();
-    cout<<"Entries passing cut: "<<ch->GetEntries(cut)<<"\n";
+    std::cout<<"Entries passing cut: "<<ch->GetEntries(cut)<<"\n";
     cDet[i] = new TCanvas(Form("cDet%i",i),Form("cDet%i",i),0,0,1900,1000);
-    cDet[i]->Divide(6,(nDET>9 ? 5 :3));
+    cDet[i]->Divide(6,3);
+    cBkg[i] = new TCanvas(Form("cBkg%i",i),Form("cBkg%i",i),0,0,1900,1000);
+    cBkg[i]->Divide(6,5);
+    Int_t bkg = 0;
     for(int j=0;j<nDET;j++){
 
       Int_t allGood = 1;
@@ -163,7 +172,11 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	TF1 *f = new TF1("f",Form("[0]+[1]*sin(x*%f+%f)+[2]*cos(x*%f+%f)",DegToRad,
 				  phase[i], DegToRad, phase[i]),-10, 370);
 
-	cDet[i]->cd((nDET>9 ? j+1 : order[j]));
+	if(j<9)
+	  cDet[i]->cd(order[j]);
+	else
+	  cBkg[i]->cd(order_bkg[bkg]);
+
 	if(j==0)pt->Draw();
 	gPad->Update();
 	ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
@@ -250,6 +263,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	gPad->Update();
       }
       n++;
+      if(j>9)bkg++;
     }
     scut.Clear();
   }
@@ -258,7 +272,6 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 
 //   //////////////////////////////////////////////////////////////////////////
 //   //Now apply the slopes to the detector data to see if correlations removed.
-  
   
   TProfile *prC[150];
 
@@ -270,18 +283,18 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
       ch->Draw(Form("%s>>hX%i(100)",MonitorList[j].Data(),n),cut,"goff");
       TH1D *hX = (TH1D*)gDirectory->Get(Form("hX%i",n));
       meanX[i][j] = hX->GetMean();
-      cout<<"meanX["<<i<<"]["<<j<<"]="<<meanX[i][j]<<"\n";
+      std::cout<<"meanX["<<i<<"]["<<j<<"]="<<meanX[i][j]<<"\n";
       n++;
     }
   }
-
   n = 0;
   for(int i=0;i<nMOD;i++){
     scut = Form("bm_pattern_number==%i||bm_pattern_number==%i",i,11+i);
     cut = scut;
     cut.Print();
-    cout<<"Entries passing cut: "<<ch->GetEntries(cut)<<"\n";
+    std::cout<<"Entries passing cut: "<<ch->GetEntries(cut)<<"\n";
 
+    int bkg = 0;
  
     for(int j=0;j<nDET;j++){
  
@@ -296,7 +309,11 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 				  phase[i], DegToRad, phase[i]),-10, 370);
 	prC[n] = new TProfile(Form("pr%i",j+(i*nDET)),
 			      Form("pr%i",j+(i*nDET)),100,-1.1,1.1);
-	(cDet[i]->cd((nDET>9 ? j+1 : order[j+9])))->SetFillColor(20);
+	if(j<9)
+	  (cDet[i]->cd(order[j+9]))->SetFillColor(20);
+	else
+	  (cBkg[i]->cd(order_bkg[bkg+15]))->SetFillColor(20);
+
 	//      cDetCorrectedModType[i]->cd(j+1);
 	ch->Draw(Form("%s>>h%i(100)",DetectorList[j].Data(),j),cut,"goff");
 	TH1D *h = (TH1D*)gDirectory->Get(Form("h%i",j));
@@ -404,38 +421,48 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	AvCorrectedDetectorCos[i][j]=  -99999.0;
 	AvCorrectedDetectorCosError[i][j]=  -99999.0;
       }
+      if(j>9)bkg++;
       n++;
     }
     scut.Clear();
   }
+  TCanvas *c = new TCanvas("c","c",0,0,1200,600);
+  gStyle->SetOptFit(0); 
+  c->Divide(2,1);
+  c->cd(1);
+  pr[18]->Draw();
+  c->cd(2);
+  prC[18]->Draw();
 
   FILE *sineData, *cosineData;
-  sineData = fopen(Form("%s/slopes/run%iSineAmpl.dat",
-			gSystem->Getenv("BMOD_OUT"),run), "w");
-  cosineData= fopen(Form("%s/slopes/run%iCosineAmpl.dat",
-			 gSystem->Getenv("BMOD_OUT"),run), "w");
+  sineData = fopen(Form("%s/slopes/run%iSineAmpl%s.set0.dat",
+			gSystem->Getenv("BMOD_OUT"),run,chisquare), "w");
+  cosineData= fopen(Form("%s/slopes/run%iCosineAmpl%s.set0.dat",
+			 gSystem->Getenv("BMOD_OUT"),run,chisquare), "w");
 
 
-  printf("\nTable 1. Run %i detector slopes from mps_only code.\n", run);
-  printf("                 |      %s       |   %s     |      %s      |"
-	 "      %s       |   %s     |\n", MonitorList[0].Data(),  
+  printf("\nTable 1. Run %i detector slopes from mps_only code%s\n", run,
+	 (char *)(chsq ? " using Chi Square minimization.":"."));
+
+  printf("                |     %s       |   %s    |     %s      |"
+	 "     %s       |   %s    |\n", MonitorList[0].Data(),  
 	 MonitorList[1].Data(), MonitorList[2].Data(), MonitorList[3].Data(),
 	 MonitorList[4].Data());
-  printf("***********************************************************************"
-	 "***********************************************************************"
+  printf("*********************************************************************"
+	 "*******************************************************************"
 	 "*\n");
 
   for(Int_t i=0;i<nDET;i++){
     TString detec = DetectorList[i];
     detec.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
+    printf("%s%s|", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvDetectorSlope[j][i])<TMath::Abs(AvDetectorSlopeError[j][i]))
 	good = 1;
       printf("%s %+8.3e",(!good ? ANSI_COLOR_RED: ANSI_COLOR_RESET),
 	     AvDetectorSlope[j][i]);
-      printf("%s+/-%7.3e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
+      printf("%s+/-%6.2e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
 	     AvDetectorSlopeError[j][i],ANSI_COLOR_RESET);
     }
     printf("\n");
@@ -444,17 +471,18 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 
 
 
-  printf("Table 2. Run %i Uncorrected detector Sine component from profile fit.\n"
-	 "                 |          Xmod          |           Ymod         |"
-	 "          Emod          |"
-	 "          XPmod         |          YPmod         |\n", run);
-  printf("************************************************************************"
-	 "***********************************************************************\n");
+  printf("Table 2. Run %i Uncorrected detector Sine component from profile fit%s\n" , 
+	 run, (char *)(chsq ? " using Chi Square minimization.":"."));
+
+  printf("                |         Xmod          |         Ymod          |        Emod"
+	 "           |        XPmod          |        YPmod          |\n"
+	 "***************************************************************************"
+	 "**************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
     TString detec = DetectorList[i];
     detec.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
+    printf("%s%s|", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvUncorrectedDetectorSin[j][i])<
@@ -462,24 +490,25 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	good = 1;
       printf("%s %+8.3e",(!good ? ANSI_COLOR_RED: ANSI_COLOR_RESET),
 	     AvUncorrectedDetectorSin[j][i]);
-      printf("%s+/-%7.3e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
+      printf("%s+/-%6.2e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
 	     AvUncorrectedDetectorSinError[j][i],ANSI_COLOR_RESET);
     }
     printf("\n");
   }
   printf("\n\n");
 
-  printf("Table 3. Run %i Corrected detector residual Sine component from profile fit.\n"
-	 "                 |          Xmod          |           Ymod         |"
-	 "          Emod          |"
-	 "         XPmod          |         YPmod          |\n", run);
-  printf("************************************************************************"
-	 "***********************************************************************\n");
+  printf("Table 3. Run %i Corrected detector residual Sine component from profile fit%s\n", 
+	 run, (char *)(chsq ? " using Chi Square minimization.":"."));
+
+  printf("                |         Xmod          |         Ymod          |        Emod"
+	 "           |        XPmod          |        YPmod          |\n"
+	 "***************************************************************************"
+	 "**************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
     TString detec = DetectorList[i];
     detec.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
+    printf("%s%s|", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvCorrectedDetectorSin[j][i])<
@@ -487,7 +516,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	good = 1;
       printf("%s %+8.3e",(!good ? ANSI_COLOR_RED: ANSI_COLOR_RESET),
 	     AvCorrectedDetectorSin[j][i]);
-      printf("%s+/-%7.3e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
+      printf("%s+/-%6.2e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
 	     AvCorrectedDetectorSinError[j][i],ANSI_COLOR_RESET);
       fprintf(sineData, "%+8.3e\t",AvCorrectedDetectorSin[j][i]);
       fprintf(sineData, "%7.3e\t",AvCorrectedDetectorSinError[j][i]);
@@ -498,17 +527,18 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
   printf("\n\n");
 
 
-  printf("Table 4. Run %i Uncorrected detector Cosine component from profile fit.\n"
-	 "                 |          Xmod          |           Ymod         |"
-	 "          Emod          |"
-	 "          XPmod         |          YPmod         |\n", run);
-  printf("************************************************************************"
-	 "***********************************************************************\n");
+  printf("Table 4. Run %i Uncorrected detector Cosine component from profile fit%s.\n ", 
+	 run,(char *)(chsq ? " using Chi Square minimization.":"."));
+
+  printf("               |         Xmod          |         Ymod          |        Emod"
+	 "           |        XPmod          |        YPmod          |\n"
+	 "***************************************************************************"
+	 "**************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
     TString detec = DetectorList[i];
     detec.Resize(16);
-    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
+    printf("%s%s|", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvUncorrectedDetectorCos[j][i])<
@@ -516,7 +546,7 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	good = 1;
       printf("%s %+8.3e",(!good ? ANSI_COLOR_RED: ANSI_COLOR_RESET),
 	     AvUncorrectedDetectorCos[j][i]);
-      printf("%s+/-%7.3e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
+      printf("%s+/-%6.2e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
 	     AvUncorrectedDetectorCosError[j][i],ANSI_COLOR_RESET);
     }
     printf("\n");
@@ -524,17 +554,18 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
   printf("\n\n");
 
 
-  printf("Table 5. Run %i Corrected detector residual Cosine component from profile fit."
-	 "\n                 |          Xmod          |           Ymod         |"
-	 "          Emod          |"
-	 "         XPmod          |         YPmod          |\n", run);
-  printf("************************************************************************"
-	 "***********************************************************************\n");
+  printf("Table 5. Run %i Corrected detector residual Cosine component from profile fit%s\n",
+	 run, (char *)(chsq ? " using Chi Square minimization.":"."));
+
+  printf("                |         Xmod          |         Ymod          |        Emod"
+	 "           |        XPmod          |        YPmod          |\n"
+	 "***************************************************************************"
+	 "**************************************************************\n");
 
   for(Int_t i=0;i<nDET;i++){
     TString detec = DetectorList[i];
     detec.Resize(16); 
-    printf("%s%s |", ANSI_COLOR_RESET,detec.Data());
+    printf("%s%s|", ANSI_COLOR_RESET,detec.Data());
     for(Int_t j=0;j<nMOD;j++){
       Int_t good = 0;
       if(TMath::Abs(AvCorrectedDetectorCos[j][i])<
@@ -542,13 +573,31 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1){
 	good = 1;
       printf("%s %+8.3e",(!good ? ANSI_COLOR_RED: ANSI_COLOR_RESET),
 	     AvCorrectedDetectorCos[j][i]);
-      printf("%s+/-%7.3e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
+      printf("%s+/-%6.2e %s|",(!good ? ANSI_COLOR_RED:ANSI_COLOR_RESET),
 	     AvCorrectedDetectorCosError[j][i],ANSI_COLOR_RESET);
       fprintf(cosineData, "%+8.3e\t",AvCorrectedDetectorCos[j][i]);
       fprintf(cosineData, "%7.3e\t",AvCorrectedDetectorCosError[j][i]);
     }
     printf("\n");
     fprintf(cosineData, "\n");
+  }
+  printf("\n\n");
+
+  printf("Table 6. Run %i Quality criteria: Sum over Coils (Residual^2)/Error^2%s\n",	
+	 run, (char *)(chsq ? " using Chi Square minimization.":"."));
+
+  for(Int_t i=0;i<nDET;i++){
+    TString detec = DetectorList[i];
+    detec.Resize(16); 
+    printf("%s%s|", ANSI_COLOR_RESET,detec.Data());
+    Double_t val = 0;
+    for(Int_t j=0;j<nMOD;j++){
+      val =  TMath::Power(AvCorrectedDetectorSin[j][i],2)*
+	     TMath::Power(AvCorrectedDetectorSinError[j][i],-2) +
+	     TMath::Power(AvCorrectedDetectorCos[j][i],2)*
+	     TMath::Power(AvCorrectedDetectorCosError[j][i],-2);
+    }
+    printf("%0.6f\n", val);
   }
   printf("\n\n");
 
