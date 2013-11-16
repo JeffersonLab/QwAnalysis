@@ -1,17 +1,6 @@
 /*
- * wshutter.cpp
+ * QwTreeLib.cpp
  * Author: Wade S Duvall <wsduvall@jlab.org>
- *
- * Small program to correlate two variables, one of which is charge normalized. To compile:
- *
- * g++ `root-config --glibs --cflags` -ggdb -O0 -Wall -Wextra -o correlator correlator.cpp
- *
- * To plot var1 vs var2:
- *
- * ./correlator <var1> <var2> <rootfile>
- *
- * Example: 
- * ./correlator asym_qwk_md1_qwk_md5 asym_qwk_pmtltg offoff_tree.root
  *
  */
 #include <TROOT.h>
@@ -30,68 +19,95 @@
 
 using namespace std;
 
-void get_data_from_tree(TTree* tree, TString name, std::vector<double>* value) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    double temp_branch[4];
-    cout << name.Data() << endl;
-    tree->ResetBranchAddresses();
-    tree->SetBranchAddress(name, &temp_branch);
-    for(int i = 0; i < n_events; i++) {
-        tree->GetEntry(i);
-        value->push_back(temp_branch[0]);
+tree_value::tree_value(void) {
+    size_of = 0;
+}
+
+void tree_value::fill(temp_value filler) {
+    value.push_back(filler.value);
+    error.push_back(filler.error);
+    rms.push_back(filler.rms);
+    n.push_back(filler.n);
+    size_of++;
+}
+
+void tree_value::fill(int filler) {
+    runlet.push_back(filler);
+}
+
+void tree_value::debug(void) {
+    for (int i = 0; i < size_of; i++) {
+        cout << value[i] << endl;
     }
 }
 
-void get_data_from_tree(TTree* tree, TString name, std::vector<double>* value, std::vector<double>* error) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    double temp_branch[4];
-    cout << name.Data() << endl;
-    tree->ResetBranchAddresses();
-    tree->SetBranchAddress(name, &temp_branch);
-    for(int i = 0; i < n_events; i++) {
-        tree->GetEntry(i);
-        value->push_back(temp_branch[0]);
-        error->push_back(temp_branch[1]);
-    }
+vector<double> tree_value::return_value(void) {
+    return value;
 }
 
-void get_data_from_tree(TTree* tree, TString name, std::vector<double>* value, std::vector<double>* error, std::vector<double>* rms) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    double temp_branch[4];
-    cout << name.Data() << endl;
-    tree->ResetBranchAddresses();
-    tree->SetBranchAddress(name, &temp_branch);
-    for(int i = 0; i < n_events; i++) {
-        tree->GetEntry(i);
-        value->push_back(temp_branch[0]);
-        error->push_back(temp_branch[1]);
-        rms->push_back(temp_branch[2]);
-    }
+vector<double> tree_value::return_error(void) {
+    return error;
 }
 
-void get_data_from_tree(TTree* tree, TString name, std::vector<double>* value, std::vector<double>* error, std::vector<double>* rms, std::vector<double>* n) {
+vector<double> tree_value::return_rms(void) {
+    return rms;
+}
+
+vector<int> tree_value::return_n(void) {
+    return n;
+}
+
+void tree_value::del_index(int i) {
+    value.erase(value.begin()+i);
+    error.erase(error.begin()+i);
+    rms.erase(rms.begin()+i);
+    n.erase(n.begin()+i);
+    runlet.erase(runlet.begin()+i);
+    size_of--;
+}
+
+int tree_value::size(void) {
+    return size_of;
+}
+
+
+void get_data_from_tree(TTree* tree, TString name, tree_value* data) {
     int n_events;
     n_events = (int)tree->GetEntries();
-    double temp_branch[4];
+    temp_value temp_branch;
+    int temp_int;
     cout << name.Data() << endl;
     tree->ResetBranchAddresses();
     tree->SetBranchAddress(name, &temp_branch);
     for(int i = 0; i < n_events; i++) {
         tree->GetEntry(i);
-        value->push_back(temp_branch[0]);
-        error->push_back(temp_branch[1]);
-        rms->push_back(temp_branch[2]);
-        n->push_back(temp_branch[3]);
+        data->fill(temp_branch);
+    }
+    tree->ResetBranchAddresses();
+    tree->SetBranchAddress("runlet_id", &temp_int);
+    for(int i = 0; i < n_events; i++ ) {
+        tree->GetEntry(i);
+        data->fill(temp_int);
     }
 }
 
 void get_single_value_from_tree(TTree* tree, TString name, std::vector<double>* value) {
     int n_events;
     n_events = (int)tree->GetEntries();
-    double temp_branch[4];
+    double temp_branch[1];
+    cout << name.Data() << endl;
+    tree->ResetBranchAddresses();
+    tree->SetBranchAddress(name, &temp_branch);
+    for(int i = 0; i < n_events; i++) {
+        tree->GetEntry(i);
+        value->push_back(temp_branch[0]);
+    }
+}
+
+void get_single_value_from_tree(TTree* tree, TString name, std::vector<float>* value) {
+    int n_events;
+    n_events = (int)tree->GetEntries();
+    float temp_branch[1];
     cout << name.Data() << endl;
     tree->ResetBranchAddresses();
     tree->SetBranchAddress(name, &temp_branch);
@@ -104,13 +120,27 @@ void get_single_value_from_tree(TTree* tree, TString name, std::vector<double>* 
 void get_single_value_from_tree(TTree* tree, TString name, std::vector<int>* value) {
     int n_events;
     n_events = (int)tree->GetEntries();
-    int temp_branch[4];
+    int temp_branch[1];
     cout << name.Data() << endl;
     tree->ResetBranchAddresses();
     tree->SetBranchAddress(name, &temp_branch);
     for(int i = 0; i < n_events; i++) {
         tree->GetEntry(i);
         value->push_back(temp_branch[0]);
+    }
+}
+
+void get_single_value_from_tree(TTree* tree, TString name, std::vector<TString>* value) {
+    int n_events;
+    n_events = (int)tree->GetEntries();
+    char temp_branch[256];
+    cout << name.Data() << endl;
+    tree->ResetBranchAddresses();
+    tree->SetBranchAddress(name, &temp_branch);
+    for(int i = 0; i < n_events; i++) {
+        tree->GetEntry(i);
+        TString temp_str = string(temp_branch);
+        value->push_back(temp_branch);
     }
 }
 
@@ -134,5 +164,27 @@ TGraph* plot_vectors(std::vector<int> x, std::vector<double> y, TString x_title,
     TGraph* tg = new TGraph(y.size(), &(double_x[0]), &(y[0]));
     tg->GetXaxis()->SetTitle(x_title);
     tg->GetYaxis()->SetTitle(y_title);
+    tg->SetTitle(y_title);
+    return tg;
+}
+
+TGraph* plot_vectors(std::vector<double> x, std::vector<double> y, TString x_title, TString y_title) {
+    /* Convert the int to a double for plotting. This way is slighly ghetto, so
+     * maybe FIXME */
+    TGraph* tg = new TGraph(y.size(), &(x[0]), &(y[0]));
+    tg->GetXaxis()->SetTitle(x_title);
+    tg->GetYaxis()->SetTitle(y_title);
+    tg->SetTitle(y_title);
+    return tg;
+}
+
+TGraph* plot_vectors(std::vector<int> x, std::vector<float> y, TString x_title, TString y_title) {
+    /* Convert the int to a double for plotting. This way is slighly ghetto, so
+     * maybe FIXME */
+    std::vector<float> double_x(x.begin(), x.end());
+    TGraph* tg = new TGraph(y.size(), &(double_x[0]), &(y[0]));
+    tg->GetXaxis()->SetTitle(x_title);
+    tg->GetYaxis()->SetTitle(y_title);
+    tg->SetTitle(y_title);
     return tg;
 }

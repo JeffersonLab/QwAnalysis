@@ -2,12 +2,12 @@ CXXFLAGS = -Wall -ggdb -c -pthread -m64 -I/usr/include/root
 LIBS = $(shell root-config --glibs)
 
 PROGRAM_FILES := \
-	detector_plot
+	charge_blocked_width
 
 LIB_FILES := \
 	QwTreeLib
 
-detector_plot: $(PROGRAM_FILES).o libQwDB.so
+charge_blocked_width: $(PROGRAM_FILES).o libQwDB.so
 	g++ -Wall -ggdb -o $@ $(PROGRAM_FILES).o $(LIBS) -L. -lQwDB
 
 libQwDB.so: $(LIB_FILES).o
@@ -20,7 +20,7 @@ $(PROGRAM_FILES).o: $(PROGRAM_FILES).cpp
 	g++ -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f libQwDB.so *.o
+	rm -f libQwDB.so *.o charge_blocked_width
 
 install:
 	install libQwDB.so $(QWANALYSIS)/lib/
