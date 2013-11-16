@@ -96,8 +96,8 @@ void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TH2
 }
 
 void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TGraphErrors *graph) {
-  float size=0.07;
-  float titlesize=0.08;
+  float size=0.05;
+  float titlesize=0.07;
   float labelsize = 0.06;
   graph->SetTitle(title);
   graph->GetXaxis()->SetTitle(xaxis);
@@ -106,8 +106,8 @@ void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TGr
   canvas->Modified();
   canvas->Update();
 
-  graph->GetYaxis()->SetTitleOffset(0.25);
-  graph->GetXaxis()->SetTitleOffset(0.75);
+  graph->GetYaxis()->SetTitleOffset(0.55);
+  graph->GetXaxis()->SetTitleOffset(0.80);
   graph->GetYaxis()->SetTitleSize(size);
   graph->GetXaxis()->SetTitleSize(size);
   graph->GetYaxis()->SetLabelSize(labelsize);
@@ -133,8 +133,8 @@ void placeAxis(TString title, TString xaxis, TString yaxis, TCanvas *canvas, TMu
   canvas->Modified();
   canvas->Update();
 
-  multi->GetYaxis()->SetTitleOffset(0.25);
-  multi->GetXaxis()->SetTitleOffset(0.75);
+  multi->GetYaxis()->SetTitleOffset(0.50);
+  multi->GetXaxis()->SetTitleOffset(0.80);
   multi->GetYaxis()->SetTitleSize(size);
   multi->GetXaxis()->SetTitleSize(size);
   multi->GetYaxis()->SetLabelSize(labelsize);
@@ -153,7 +153,7 @@ void placeLabel(TString text, float x1, float y1, float x2, float y2) {
  TPaveLabel *subtitle = new TPaveLabel(x1,y1,x2,y2,text,"NDC");
  subtitle->SetBorderSize(0);
  subtitle->SetFillColor(0);
- subtitle->SetTextSize(0.5);
+ subtitle->SetTextSize(0.60);
  //  subtitle->SetTextColor(46);
  subtitle->Draw();
 }
@@ -187,6 +187,7 @@ void fitGraph(TGraphErrors *graph, TF1* fit) {
 void fitGraphWithStats(TGraphErrors *graph, TF1* fit,float x1, float y1, float x2, float y2) {
   fit->SetLineColor(46);
   fit->SetLineStyle(1);
+  fit->SetLineWidth(3);
   graph->Fit(fit,"sames");
 
   gPad->Modified();
@@ -194,6 +195,37 @@ void fitGraphWithStats(TGraphErrors *graph, TF1* fit,float x1, float y1, float x
 
   TPaveStats * stats = (TPaveStats*) graph->GetListOfFunctions()->FindObject("stats");
   setup_stats(stats,x1,y1,x2,y2);
+  stats->Draw("sames");
+}
+
+void fitGraphWithStatsRed(TGraphErrors *graph, TF1* fit,float x1, float y1, float x2, float y2) {
+  fit->SetLineColor(kRed+2);
+  fit->SetLineStyle(9);
+  fit->SetLineWidth(3);
+  graph->Fit(fit,"sames");
+
+  gPad->Modified();
+  gPad->Update();
+
+  TPaveStats * stats = (TPaveStats*) graph->GetListOfFunctions()->FindObject("stats");
+  setup_stats(stats,x1,y1,x2,y2);
+  redStats(stats);
+  stats->Draw("sames");
+}
+
+
+void fitGraphWithStatsBlue(TGraphErrors *graph, TF1* fit,float x1, float y1, float x2, float y2) {
+  fit->SetLineColor(kBlue+2);
+  fit->SetLineStyle(2);
+  fit->SetLineWidth(3);
+  graph->Fit(fit,"sames");
+
+  gPad->Modified();
+  gPad->Update();
+
+  TPaveStats * stats = (TPaveStats*) graph->GetListOfFunctions()->FindObject("stats");
+  setup_stats(stats,x1,y1,x2,y2);
+  blueStats(stats);
   stats->Draw("sames");
 }
 
@@ -209,6 +241,43 @@ void fitHistoWithStats(TH1F* hist, TF1* fit,float x1, float y1, float x2, float 
   TPaveStats * stats = (TPaveStats*) hist->GetListOfFunctions()->FindObject("stats");
   setup_stats(stats,x1,y1,x2,y2);
   stats->Draw("sames");
+}
+
+void fitHistoWithStats(TH2F* hist, TF1* fit,float x1, float y1, float x2, float y2) {
+  fit->SetLineColor(46);
+  fit->SetLineStyle(1);
+  hist->Fit(fit,"sames");
+
+  gPad->Modified();
+  gPad->Update();
+
+  TPaveStats * stats = (TPaveStats*) hist->GetListOfFunctions()->FindObject("stats");
+  setup_stats(stats,x1,y1,x2,y2);
+  stats->Draw("sames");
+}
+
+void callPlot(TGraphErrors *plot, TString color, float size) {
+  color.ToLower();
+  if (color == "blue")
+    bluePlot(plot, size);
+  else if (color == "red")
+    redPlot(plot,size);
+  else if (color == "green")
+    greenPlot(plot,size);
+  else if (color == "magenta")
+    magentaPlot(plot,size);
+  else if (color == "gray")
+    grayPlot(plot,size);
+  else if (color == "orange")
+    orangePlot(plot,size);
+  else if (color == "cyan")
+    cyanPlot(plot,size);
+  else if (color == "black")
+    blackPlot(plot,size);
+  else {
+    std::cout <<"You need to select a color! Blue is selected for you!\n";
+    bluePlot(plot,size);
+  }
 }
 
 void bluePlot(TGraphErrors *plot, float size ) {
@@ -243,6 +312,38 @@ void magentaPlot(TGraphErrors *plot, float size ) {
   plot->SetMarkerSize(size);
 }
 
+void grayPlot(TGraphErrors *plot, float size ) {
+  plot->SetMarkerColor(kGray+3);
+  plot->SetMarkerStyle(29);
+  plot->SetLineColor(kGray+3);
+  plot->SetLineWidth(2);
+  plot->SetMarkerSize(size);
+}
+
+void orangePlot(TGraphErrors *plot, float size ) {
+  plot->SetMarkerColor(kOrange+10);
+  plot->SetMarkerStyle(21);
+  plot->SetLineColor(kOrange+10);
+  plot->SetLineWidth(2);
+  plot->SetMarkerSize(size);
+}
+
+void cyanPlot(TGraphErrors *plot, float size ) {
+  plot->SetMarkerColor(kCyan+4);
+  plot->SetMarkerStyle(32);
+  plot->SetLineColor(kCyan+4);
+  plot->SetLineWidth(2);
+  plot->SetMarkerSize(size);
+}
+
+void blackPlot(TGraphErrors *plot, float size ) {
+  plot->SetMarkerColor(kBlack);
+  plot->SetMarkerStyle(33);
+  plot->SetLineColor(kBlack);
+  plot->SetLineWidth(2);
+  plot->SetMarkerSize(size);
+}
+
 void blueHisto(TH1F *hist) {
   hist->SetLineColor(kBlue+3);
   hist->SetFillColor(9);
@@ -250,7 +351,9 @@ void blueHisto(TH1F *hist) {
 
 void redHisto(TH2F *hist) {
   hist->SetLineColor(kRed+3);
-  hist->SetFillColor(9);
+  hist->SetFillColor(kRed+3);
+  hist->SetMarkerColor(kRed+3);
+  hist->SetMarkerStyle(2);
 }
 
 void setup_stats(TPaveStats *stats, float x1, float y1, float x2, float y2) {
@@ -259,6 +362,14 @@ void setup_stats(TPaveStats *stats, float x1, float y1, float x2, float y2) {
   stats->SetY1NDC(y1);
   stats->SetX2NDC(x2);
   stats->SetY2NDC(y2);
+}
+
+void redStats(TPaveStats *stats) {
+  stats->SetTextColor(46);
+}
+
+void blueStats(TPaveStats *stats) {
+  stats->SetTextColor(9);
 }
 
 void HorizontalLine(TLine *line, float x1, float x2, float y) {

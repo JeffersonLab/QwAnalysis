@@ -19,6 +19,8 @@ void get_wien_starts (TTree*);
 void get_wien_from_tree(int, TTree*, TString, std::vector<double> *);
 void get_wien_from_tree(int, TTree*, TString, std::vector<double> *, std::vector<double> *);
 void get_wien_from_tree_friend(int, TTree*, TTree*, TString, std::vector<double> *, std::vector<double> *);
+void get_wien_from_tree_friend(int, TTree*, TTree*, TString, TString, std::vector<double> *, std::vector<double> *);
+void get_wien_from_tree_friend(int, TTree*, TTree*, TString, TString, std::vector<double> *, std::vector<double> *, std::vector<double>*);
 
 void get_data_from_tree(TTree*, TString, std::vector<double> *);
 void get_data_from_tree(TTree*, TString, std::vector<double> *, std::vector<int>* );
@@ -41,13 +43,20 @@ void get_rms_by_wien(int,TTree *,TString, std::vector<double>*,std::vector<doubl
 void get_data_by_wien(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 void get_data_by_wien_decimal(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 
+void get_data_by_wien_decimal_ihwp(int,int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
+
+void get_data_by_wien2(int,TTree *,TString, TString, std::vector<double>*,std::vector<double>*, std::vector<double>*, std::vector<double>*);
+
 void get_data_wien_decimal_friend(int,TTree *, TTree*, TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 
 void get_yield_by_wien_decimal(int,TTree *,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
+void get_yield_by_wien_decimal_friend(int,TTree *,TTree*,TString, std::vector<double>*,std::vector<double>*,std::vector<double>*);
 
 
 void histo_by_wien(int, TTree*, TString, TH1F*);
+void histo_by_wien(int, TTree*, TString, TString, TH1F*);
 void histoRMS_by_wien(int, TTree*, TString, TH1F*);
+void histo_by_wien_weighted_friend(int,TTree *, TString, TTree*,TString,TH1F*);
 
 void fillHistArray(TTree*, TString string, int, TH2F**, int);
 
