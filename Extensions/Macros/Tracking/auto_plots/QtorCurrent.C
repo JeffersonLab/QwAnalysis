@@ -33,18 +33,68 @@ void QtorCurrent(int runnum, bool is100k)
 
 	//Create a canvas and histogram
 	TCanvas c1( "c1", "QTOR current vs. Time (as Event Number)", 1000, 400);
-	TH2D* h = new TH2D ("h","QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
-	h->GetYaxis()->SetTitle("QTOR current (A)");
-	h->GetXaxis()->SetTitle("Time (as Entry Number)");
-	h->SetMarkerStyle(3);
+	c1->Divide(1,4);
+
+
+	//Histogram of the QTOR current (DCCT set point)
+	c1->cd(1);
+	TH2D* h1 = new TH2D ("h1","QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
+	h1->GetYaxis()->SetTitle("QTOR current, DCCT setpoint (A)");
+	h1->GetXaxis()->SetTitle("Time (as Entry Number)");
+	h1->SetMarkerStyle(3);
 
 	//Here the "L" draws a line through the point on the graph <-want
 	//the "C" conects the dots smoothly
 	//one needs to place "" in the second place of the draw command (the cuts) part so that 
 	//root recognizes that that the L is not a cut but a draw option and then root :)
-	chain->Draw("qw_qt_mps_i_set:Entry$>>h","" ,"L");
+	chain->Draw("qw_qt_mps_i_set:Entry$>>h1","" ,"L");
+	h1->Draw("L"); //for some reason ROOT refused to actually draw this line
 
-	h->Draw("L"); //for some reason ROOT refused to actually draw this line
+
+	//Histogram of the QTOR current (DCCT set point)
+	c1->cd(2);
+	TH2D* h2 = new TH2D ("h2","QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
+	h2->GetYaxis()->SetTitle("QTOR current, DCCT readback (A)");
+	h2->GetXaxis()->SetTitle("Time (as Entry Number)");
+	h2->SetMarkerStyle(3);
+
+	//Here the "L" draws a line through the point on the graph <-want
+	//the "C" conects the dots smoothly
+	//one needs to place "" in the second place of the draw command (the cuts) part so that 
+	//root recognizes that that the L is not a cut but a draw option and then root :)
+	chain->Draw("qw_qt_mps_i_dcct:Entry$>>h2","" ,"L");
+	h2->Draw("L"); //for some reason ROOT refused to actually draw this line
+
+
+	//Histogram of the QTOR current (DCCT set point)
+	c1->cd(3);
+	TH2D* h3 = new TH2D ("h3","Hall probe vs Time (as Event Number)",30,1,0, 30,1,0);
+	h3->GetYaxis()->SetTitle("Hall probe (au)");
+	h3->GetXaxis()->SetTitle("Time (as Entry Number)");
+	h3->SetMarkerStyle(3);
+
+	//Here the "L" draws a line through the point on the graph <-want
+	//the "C" conects the dots smoothly
+	//one needs to place "" in the second place of the draw command (the cuts) part so that 
+	//root recognizes that that the L is not a cut but a draw option and then root :)
+	chain->Draw("Q1HallP:Entry$>>h3","" ,"L");
+	h3->Draw("L"); //for some reason ROOT refused to actually draw this line
+
+
+	//Histogram of the Hall probe measurement over the QTOR current
+	c1->cd(4);
+	TH2D* h4 = new TH2D ("h4","Hall probe / QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
+	h4->GetYaxis()->SetTitle("Hall probe / QTOR current (au)");
+	h4->GetXaxis()->SetTitle("Time (as Entry Number)");
+	h4->SetMarkerStyle(3);
+
+	//Here the "L" draws a line through the point on the graph <-want
+	//the "C" conects the dots smoothly
+	//one needs to place "" in the second place of the draw command (the cuts) part so that 
+	//root recognizes that that the L is not a cut but a draw option and then root :)
+	chain->Draw("Q1HallP/qw_qt_mps_i_dcct:Entry$>>h4","" ,"L");
+	h4->Draw("L"); //for some reason ROOT refused to actually draw this line
+
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"current_vs_time.png");
@@ -62,7 +112,6 @@ void QtorCurrent(int runnum, bool is100k)
 	fout.open(Prefix+"QTOR_Current.txt");
 	if (!fout.is_open()) cout << "File not opened" << endl;
 	//Prefix will inculed run number which we need.
-	
 	fout << h->GetMean(2) << endl;
 
 	//close the file
