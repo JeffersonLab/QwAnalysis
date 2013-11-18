@@ -38,12 +38,14 @@ public:
   void SetXaxisTitle(TString);
   void SetYaxisTitle(TString);
   void HistoByWien(TString, Int_t);
+  void HistoByWien(TString, Int_t, TString);
+  void FillHistoByWien(Int_t, TString, TH1F *);
   void FillHistoByWien(Int_t, TString, TH1F *, TString);
   void LoadRootFile(TString, TChain *);
 
-  TString GetTitle(TString);
-  TString GetXaxisTitle(TString);
-  TString GetYaxisTitle(TString);
+  TString GetTitle();
+  TString GetXaxisTitle();
+  TString GetYaxisTitle();
   TString GetBranchName(TString);
   TString GetLeafName(TString);
 
