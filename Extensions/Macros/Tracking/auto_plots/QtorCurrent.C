@@ -32,12 +32,12 @@ void QtorCurrent(int runnum, bool is100k)
 	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/QTOR_%d_",runnum, runnum);
 
 	//Create a canvas and histogram
-	TCanvas c1( "c1", "QTOR current vs. Time (as Event Number)", 1000, 400);
-	c1->Divide(1,4);
+	TCanvas c1( "c1", "QTOR current vs. Time (as Event Number)", 1000, 1000);
+	c1.Divide(1,4);
 
 
 	//Histogram of the QTOR current (DCCT set point)
-	c1->cd(1);
+	c1.cd(1);
 	TH2D* h1 = new TH2D ("h1","QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
 	h1->GetYaxis()->SetTitle("QTOR current, DCCT setpoint (A)");
 	h1->GetXaxis()->SetTitle("Time (as Entry Number)");
@@ -52,7 +52,7 @@ void QtorCurrent(int runnum, bool is100k)
 
 
 	//Histogram of the QTOR current (DCCT set point)
-	c1->cd(2);
+	c1.cd(2);
 	TH2D* h2 = new TH2D ("h2","QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
 	h2->GetYaxis()->SetTitle("QTOR current, DCCT readback (A)");
 	h2->GetXaxis()->SetTitle("Time (as Entry Number)");
@@ -67,7 +67,7 @@ void QtorCurrent(int runnum, bool is100k)
 
 
 	//Histogram of the QTOR current (DCCT set point)
-	c1->cd(3);
+	c1.cd(3);
 	TH2D* h3 = new TH2D ("h3","Hall probe vs Time (as Event Number)",30,1,0, 30,1,0);
 	h3->GetYaxis()->SetTitle("Hall probe (au)");
 	h3->GetXaxis()->SetTitle("Time (as Entry Number)");
@@ -82,7 +82,7 @@ void QtorCurrent(int runnum, bool is100k)
 
 
 	//Histogram of the Hall probe measurement over the QTOR current
-	c1->cd(4);
+	c1.cd(4);
 	TH2D* h4 = new TH2D ("h4","Hall probe / QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
 	h4->GetYaxis()->SetTitle("Hall probe / QTOR current (au)");
 	h4->GetXaxis()->SetTitle("Time (as Entry Number)");
@@ -112,7 +112,7 @@ void QtorCurrent(int runnum, bool is100k)
 	fout.open(Prefix+"QTOR_Current.txt");
 	if (!fout.is_open()) cout << "File not opened" << endl;
 	//Prefix will inculed run number which we need.
-	fout << h->GetMean(2) << endl;
+	fout << h1->GetMean(2) << endl;
 
 	//close the file
 	fout.close();
