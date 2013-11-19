@@ -45,8 +45,10 @@ public:
   void SetYaxisTitle(TString);
   void HistoByWien(TString, Int_t);
   void HistoByWien(TString, Int_t, TString);
+  void PullByWien(TString, Int_t);
   void FillHistoByWien(Int_t, TString, TH1F *);
   void FillHistoByWien(Int_t, TString, TH1F *, TString);
+  void FillPullByWien(Int_t, TString, TH1F *, Double_t);
   void LoadRootFile(TString, TChain *);
   void PlotByWien(TString, Int_t);
   void PlotByWien(TString, Int_t, TString);

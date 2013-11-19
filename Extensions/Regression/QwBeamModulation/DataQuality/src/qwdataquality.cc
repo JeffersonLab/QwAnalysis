@@ -33,7 +33,8 @@ Int_t main(Int_t argc, Char_t *argv[])
    qwdata->SetXaxisTitle("bcm12dd");
    qwdata->SetYaxisTitle("counts");
 
-   qwdata->HistoByWien("diff_bcmdd12/value", 1);
+   // qwdata->HistoByWien("diff_bcmdd12/value", 1);
+   qwdata->PullByWien("diff_bcmdd12/value", 1);
 
   // qwdata->SetTitle("Target X");
   // qwdata->SetYaxisTitle("mdallbars");

@@ -16,11 +16,11 @@ QwDataQuality::QwDataQuality(TChain *tree)
   fYaxisTitle = "";
   fFilename   = "";
 
-  fXmaximum =  2.5;
-  fXminimum = -2.5;
+  fXmaximum =  5.0;
+  fXminimum = -5.0;
   fYmaximum =  100;
   fYminimum =  100;
-  fNbins    =  100;
+  fNbins    =  200;
 
   fFileOpen = false;
 
@@ -54,6 +54,69 @@ void QwDataQuality::SetYaxisTitle(TString title)
 {
   fYaxisTitle = title;
   return;
+}
+
+void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0 ) 
+{
+  gROOT->Reset();
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  std::vector <TF1 *> fit;
+  std::vector <TH1F*> histo;
+
+  Int_t data_set_offset = 0;
+
+  Double_t mean = 0;
+  
+  if(data_set == 1){
+    data_set_offset = 1;
+  }
+  else if(data_set == 2){
+    data_set_offset = 6;
+  }
+  else {
+    std::cout << "Unknown run period. Exiting." << std::endl;
+    exit(1);
+  }
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
+  TCanvas *canvas = new TCanvas("canvas","title", 5);
+
+  canvas->Divide(1,5);
+  
+  for(Int_t i = 0; i < 5; i++){
+    TH1F *temp = new TH1F("temp","temp", fNbins, fXminimum, fXmaximum);
+    FillHistoByWien(i +  data_set_offset, dataname, temp);
+    mean = temp->GetMean(1);
+    ClearVectors();
+    temp->Delete();
+
+    histo.push_back(new TH1F(Form("Wien_%i", i + data_set),"PullHisto", fNbins, fXminimum, fXmaximum));
+    FillPullByWien(i +  data_set_offset, dataname, histo[i], mean);
+    // blueHisto(histo[i]);
+
+    canvas->cd(i + 1);
+    gPad->SetGrid();
+    gPad->SetLogy();
+
+    histo[i]->SetTitle(fTitle);
+    histo[i]->GetXaxis()->SetTitle(fXaxisTitle);
+    histo[i]->GetYaxis()->SetTitle(fYaxisTitle);
+    histo[i]->SetLineColor(1);
+    histo[i]->SetFillColor(9);
+    histo[i]->Draw();
+    fit.push_back(new TF1(Form("fit%d", data_set_offset + i), "gaus"));
+    FitGraphWithStats(histo[i], fit[i], 0.85, 0.56, 0.99, 0.99);
+  }
+  gPad->Modified();
+  gPad->Update();
+
+  canvas->SaveAs(Form("%s_histogram_by_wien.C", GetTitle().Data()));
 }
 
 void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0 ) 
@@ -426,6 +489,47 @@ void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value
   }
 
   return;
+}
+
+void QwDataQuality::FillPullByWien(Int_t wien, TString name, TH1F *hist, Double_t mean = 1)
+{
+
+  Int_t nevents = (Int_t) fChain->GetEntries();
+  Int_t wien_slug;
+  Int_t slug;
+  Int_t sign;
+
+  Double_t difference;
+  Double_t weight;
+
+  if(!(fChain->GetLeaf(name))){
+    std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
+    exit(1);
+  }
+
+  fChain->ResetBranchAddresses();
+  fChain->SetBranchStatus("*", 0);
+
+  fChain->SetBranchStatus("slug", 1);
+  fChain->SetBranchStatus("wien_slug", 1);
+  fChain->SetBranchStatus("sign_correction", 1);
+  fChain->SetBranchStatus(GetBranchName(name), 1);
+
+  fChain->SetBranchAddress("slug", &slug);
+  fChain->SetBranchAddress("wien_slug", &wien_slug);
+  fChain->SetBranchAddress("sign_correction", &sign);
+
+  for( Int_t i = 0; i < nevents; i++ ) {
+    fChain->GetEntry(i);
+    
+    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+      continue;
+    else{
+      difference = sign*(fChain->GetLeaf(name)->GetValue() - mean);
+      weight = 1/(fChain->GetLeaf(Form("%s/err", GetBranchName(name).Data()))->GetValue());
+      hist->Fill(difference*weight);
+    }
+  }
 }
 
 void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist)
