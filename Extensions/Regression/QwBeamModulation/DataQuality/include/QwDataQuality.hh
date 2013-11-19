@@ -27,6 +27,11 @@ private:
 
   TChain *fChain;
 
+  std::vector <Double_t> fValue;
+  std::vector <Double_t> fWeight;
+  std::vector <Double_t> fError;
+  std::vector <Double_t> fRMS;
+  std::vector <Double_t> fRunlet;
 
 public:
 
@@ -42,10 +47,13 @@ public:
   void FillHistoByWien(Int_t, TString, TH1F *);
   void FillHistoByWien(Int_t, TString, TH1F *, TString);
   void LoadRootFile(TString, TChain *);
+  void PlotByWien(TString, Int_t);
+  void GetDataByWien(Int_t, TString);
+  void ClearVectors(void);
 
-  TString GetTitle();
-  TString GetXaxisTitle();
-  TString GetYaxisTitle();
+  TString GetTitle(void);
+  TString GetXaxisTitle(void);
+  TString GetYaxisTitle(void);
   TString GetBranchName(TString);
   TString GetLeafName(TString);
 

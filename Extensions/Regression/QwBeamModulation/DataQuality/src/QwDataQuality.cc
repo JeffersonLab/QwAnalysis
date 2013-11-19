@@ -149,6 +149,73 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t dat
   canvas->SaveAs(Form("%s_histogram_by_wien_weighted_by_%s.C", GetTitle().Data(), weight.Data()));
 }
 
+void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0) {
+  gROOT->Reset();
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  Int_t data_set_offset = 1;
+
+  if(data_set == 1){
+    data_set_offset = 1;
+  }
+  else if(data_set == 2){
+    data_set_offset = 6;
+  }
+  else {
+    std::cout << "Unknown run period. Exiting." << std::endl;
+    exit(1);
+  }
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
+  std::vector <TGraphErrors *> w;
+  std::vector <TF1 *> fit;
+
+  TCanvas *canvas = new TCanvas("canvas","title", 5);
+  canvas->Divide(1,5);
+
+  for(Int_t i = 0; i < 5; i++){
+    GetDataByWien(i + data_set_offset, dataname);
+
+    if(GetLeafName(dataname).CompareTo("value", TString::kExact) == 0){
+      w.push_back(new TGraphErrors(fRunlet.size(), fRunlet.data(), fValue.data(), 0, fError.data()));
+      ClearVectors();
+    }
+    else if(GetLeafName(dataname).CompareTo("rms", TString::kExact) == 0){
+      w.push_back(new TGraphErrors(fRunlet.size(), fRunlet.data(), fRMS.data(), 0, 0));
+      ClearVectors();
+    }
+    else if(GetLeafName(dataname).CompareTo("err", TString::kExact) == 0){
+      w.push_back(new TGraphErrors(fRunlet.size(), fRunlet.data(), fError.data(), 0, 0));
+      ClearVectors();
+    }
+    else{
+      std::cerr << "Unknown data type passed to QwDataQuality::PlotByWien.  Exiting." << std::endl;
+      exit(1);
+    }
+
+    canvas->cd(i + 1);
+    gPad->SetGrid();
+    w[i]->SetTitle(fTitle);
+    w[i]->GetXaxis()->SetTitle(fXaxisTitle);
+    w[i]->GetYaxis()->SetTitle(fYaxisTitle);
+    w[i]->Draw("ap");
+    // placeAxis(title, xtitle, ytitle, canvas, w[i]);
+
+    fit.push_back(new TF1(Form("fit%d", data_set_offset + i), "pol0"));
+    // fitGraphWithStats(w[i], fit[i], 0.85, 0.66, 0.99, 0.99);
+
+  }
+  gPad->Modified();
+  gPad->Update();
+  canvas->SaveAs(Form("%s_%s_plotted_by_wien.C", GetBranchName(dataname).Data(), GetLeafName(dataname).Data()));
+
+} 
+
 
 TString QwDataQuality::GetBranchName(TString name)
 {
@@ -176,9 +243,126 @@ TString QwDataQuality::GetLeafName(TString name)
 
 }
 
-void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist, TString weight)
+void QwDataQuality::GetDataByWien(Int_t wien, TString name)
 {
 
+  Int_t nevents = (Int_t) fChain->GetEntries();
+  Int_t wien_slug;
+  Int_t slug;
+  Int_t sign;
+
+  if(!(fChain->GetLeaf(name))){
+    std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
+    exit(1);
+  }
+
+  fChain->ResetBranchAddresses();
+  fChain->SetBranchStatus("*", 0);
+
+  fChain->SetBranchStatus("slug", 1);
+  fChain->SetBranchStatus("wien_slug", 1);
+  fChain->SetBranchStatus("sign_correction", 1);
+  fChain->SetBranchStatus("run_number_decimal", 1);
+  fChain->SetBranchStatus(GetBranchName(name), 1);
+
+  fChain->SetBranchAddress("slug", &slug);
+  fChain->SetBranchAddress("wien_slug", &wien_slug);
+  fChain->SetBranchAddress("sign_correction", &sign);
+
+  for( Int_t i = 0; i < nevents; i++ ) {
+    fChain->GetEntry(i);
+    
+    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+      continue;
+    else{
+      fValue.push_back(sign*(fChain->GetLeaf(Form("%s/value",GetBranchName(name).Data()))->GetValue()));
+      fError.push_back(fChain->GetLeaf(Form("%s/err",GetBranchName(name).Data()))->GetValue());
+      fRMS.push_back(fChain->GetLeaf(Form("%s/rms",GetBranchName(name).Data()))->GetValue());
+      fRunlet.push_back(fChain->GetLeaf("run_number_decimal")->GetValue());
+    }
+  }
+
+  return;
+}
+/*
+void QwDataQuality::GetDataByWien(Int_t wien, TString name, TString weight)
+{
+
+  Int_t nevents = (Int_t) fChain->GetEntries();
+  Int_t wien_slug;
+  Int_t slug;
+  Int_t sign;
+
+  if(!(fChain->GetLeaf(name))){
+    std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
+    exit(1);
+  }
+
+  fChain->ResetBranchAddresses();
+  fChain->SetBranchStatus("*", 0);
+
+  fChain->SetBranchStatus("slug", 1);
+  fChain->SetBranchStatus("wien_slug", 1);
+  fChain->SetBranchStatus("sign_correction", 1);
+  fChain->SetBranchStatus(GetBranchName(name), 1);
+  fChain->SetBranchStatus(GetBranchName(weight), 1);
+
+  fChain->SetBranchAddress("slug", &slug);
+  fChain->SetBranchAddress("wien_slug", &wien_slug);
+  fChain->SetBranchAddress("sign_correction", &sign);
+
+  for( Int_t i = 0; i < nevents; i++ ) {
+    fChain->GetEntry(i);
+    
+    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+      continue;
+    else{
+      fValue.push_back(sign*(fChain->GetLeaf(Form("%s.value",GetBranchName(name).Data()))->GetValue()));
+      fWeight.push_back(sign*(fChain->GetLeaf(Form("%s.value",GetBranchName(weight).Data()))->GetValue()));
+      fError.push_back(sign*(fChain->GetLeaf(Form("%s.error",GetBranchName(name).Data()))->GetValue()));
+      fRMS.push_back(sign*(fChain->GetLeaf(Form("%s.rms",GetBranchName(name).Data()))->GetValue()));
+    }
+  }
+}
+*/
+void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist)
+{
+
+  Int_t nevents = (Int_t) fChain->GetEntries();
+  Int_t wien_slug;
+  Int_t slug;
+  Int_t sign;
+
+  if(!(fChain->GetLeaf(name))){
+    std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
+    exit(1);
+  }
+
+  fChain->ResetBranchAddresses();
+  fChain->SetBranchStatus("*", 0);
+
+  fChain->SetBranchStatus("slug", 1);
+  fChain->SetBranchStatus("wien_slug", 1);
+  fChain->SetBranchStatus("sign_correction", 1);
+  fChain->SetBranchStatus(GetBranchName(name), 1);
+
+  fChain->SetBranchAddress("slug", &slug);
+  fChain->SetBranchAddress("wien_slug", &wien_slug);
+  fChain->SetBranchAddress("sign_correction", &sign);
+
+  for( Int_t i = 0; i < nevents; i++ ) {
+    fChain->GetEntry(i);
+    
+    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+      continue;
+    else{
+      hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()));
+    }
+  }
+}
+
+void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist, TString weight)
+{
   Int_t nevents = (Int_t) fChain->GetEntries();
   Int_t wien_slug;
   Int_t slug;
@@ -213,42 +397,6 @@ void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist, TStrin
       continue;
     else{
       hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()), TMath::Power(1/(fChain->GetLeaf(weight)->GetValue()),2));
-    }
-  }
-}
-
-void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist)
-{
-
-  Int_t nevents = (Int_t) fChain->GetEntries();
-  Int_t wien_slug;
-  Int_t slug;
-  Int_t sign;
-
-  if(!(fChain->GetLeaf(name))){
-    std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
-    exit(1);
-  }
-
-  fChain->ResetBranchAddresses();
-  fChain->SetBranchStatus("*", 0);
-
-  fChain->SetBranchStatus("slug", 1);
-  fChain->SetBranchStatus("wien_slug", 1);
-  fChain->SetBranchStatus("sign_correction", 1);
-  fChain->SetBranchStatus(GetBranchName(name), 1);
-
-  fChain->SetBranchAddress("slug", &slug);
-  fChain->SetBranchAddress("wien_slug", &wien_slug);
-  fChain->SetBranchAddress("sign_correction", &sign);
-
-  for( Int_t i = 0; i < nevents; i++ ) {
-    fChain->GetEntry(i);
-    
-    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
-      continue;
-    else{
-      hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()));
     }
   }
 }
@@ -296,6 +444,17 @@ void QwDataQuality::LoadRootFile(TString filename, TChain *tree)
     
   }
   fFileOpen = true;
+}
+
+void QwDataQuality::ClearVectors()
+{
+
+  fValue.clear();
+  fError.clear();
+  fRMS.clear();
+  fRunlet.clear();
+
+  return;
 }
 
 #endif
