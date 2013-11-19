@@ -7,6 +7,7 @@
 #include <fstream>
 #include "TMatrixD.h"
 #include "TH2.h"
+#include "TGraphErrors.h"
 
 class QwDataQuality {
 
@@ -48,8 +49,12 @@ public:
   void FillHistoByWien(Int_t, TString, TH1F *, TString);
   void LoadRootFile(TString, TChain *);
   void PlotByWien(TString, Int_t);
+  void PlotByWien(TString, Int_t, TString);
   void GetDataByWien(Int_t, TString);
+  void GetDataByWien(Int_t, TString, TString);
   void ClearVectors(void);
+  void FitGraphWithStats(TGraphErrors *, TF1 *, Float_t, Float_t, Float_t, Float_t);
+  void FitGraphWithStats(TH1F *, TF1 *, Float_t, Float_t, Float_t, Float_t);
 
   TString GetTitle(void);
   TString GetXaxisTitle(void);

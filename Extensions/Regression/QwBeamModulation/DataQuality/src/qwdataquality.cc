@@ -20,24 +20,27 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   std::cout << "Opening: " << filename << std::endl;
 
-  if(!gSystem->OpenDirectory(gSystem->Getenv("QW_ROOTFILES"))){
+  TString file_directory =  gSystem->Getenv("QW_ROOTFILES");
+
+  if(!(gSystem->OpenDirectory(file_directory))){
     std::cerr << "You must set $QW_ROOTFILES enviroment variable. Exiting." << std::endl;
     exit(1);
   }
 
   qwdata->LoadRootFile(filename, tree);
 
-  // qwdata->SetTitle("BCM12DD by Wien");
-  // qwdata->SetXaxisTitle("bcm12dd");
-  // qwdata->SetYaxisTitle("counts");
+   qwdata->SetTitle("BCM12DD by Wien");
+   qwdata->SetXaxisTitle("bcm12dd");
+   qwdata->SetYaxisTitle("counts");
 
-  // qwdata->HistoByWien("diff_bcmdd12/value", 1);
+   qwdata->HistoByWien("diff_bcmdd12/value", 1);
 
-  qwdata->SetTitle("BCM12DD by Wien");
-  qwdata->SetYaxisTitle("bcm12dd");
-  qwdata->SetXaxisTitle("runlet number");
+  // qwdata->SetTitle("Target X");
+  // qwdata->SetYaxisTitle("mdallbars");
+  // qwdata->SetXaxisTitle("runlet number");
 
-  qwdata->PlotByWien("diff_bcmdd12/value", 1);
+  // qwdata->PlotByWien("diff_qwk_targetX/value", 1);
+  // qwdata->PlotByWien("diff_qwk_targetX/value", 1, "asym_qwk_mdallbars/err");
 
   // theApp.Run();
   
