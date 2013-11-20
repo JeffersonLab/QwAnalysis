@@ -43,6 +43,10 @@ Int_t main(Int_t argc, Char_t *argv[])
   // qwdata->PlotByWien("diff_qwk_targetX/value", 1);
   // qwdata->PlotByWien("diff_qwk_targetX/value", 1, "asym_qwk_mdallbars/err");
 
+   std::vector <Double_t> value;
+
+   qwdata->FillDataVector(value, "diff_bcmdd12/value");
+
   // theApp.Run();
   
   return 0;

@@ -57,6 +57,7 @@ public:
   void ClearVectors(void);
   void FitGraphWithStats(TGraphErrors *, TF1 *, Float_t, Float_t, Float_t, Float_t);
   void FitGraphWithStats(TH1F *, TF1 *, Float_t, Float_t, Float_t, Float_t);
+  void FillDataVector(std::vector <Double_t> &, TString);
 
   TString GetTitle(void);
   TString GetXaxisTitle(void);

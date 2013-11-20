@@ -251,6 +251,11 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data
     exit(1);
   }
 
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
   std::vector <TGraphErrors *> w;
   std::vector <TF1 *> fit;
 
@@ -403,6 +408,11 @@ void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value
   Int_t slug;
   Int_t sign;
 
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
   fChain->ResetBranchAddresses();
   fChain->SetBranchStatus("*", 0);
 
@@ -446,6 +456,11 @@ void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value
   Int_t sign;
 
   Double_t weighted_value;
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
 
   fChain->ResetBranchAddresses();
   fChain->SetBranchStatus("*", 0);
@@ -502,6 +517,11 @@ void QwDataQuality::FillPullByWien(Int_t wien, TString name, TH1F *hist, Double_
   Double_t difference;
   Double_t weight;
 
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
   if(!(fChain->GetLeaf(name))){
     std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
     exit(1);
@@ -540,6 +560,11 @@ void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist)
   Int_t slug;
   Int_t sign;
 
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
   if(!(fChain->GetLeaf(name))){
     std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
     exit(1);
@@ -575,6 +600,11 @@ void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist, TStrin
   Int_t slug;
   Int_t sign;
 
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
   if(!(fChain->GetLeaf(name))){
     std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
     exit(1);
@@ -606,6 +636,40 @@ void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist, TStrin
       hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()), TMath::Power(1/(fChain->GetLeaf(weight)->GetValue()),2));
     }
   }
+}
+
+void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name ="asym_qwk_mdallbars/value")
+{
+
+  Int_t nevents = (Int_t) fChain->GetEntries();
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
+  fChain->ResetBranchAddresses();
+  fChain->SetBranchStatus("*", 0);
+  fChain->SetBranchStatus(GetBranchName(name), 1);
+
+  if(!(fChain->GetLeaf(name))){
+    std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
+    exit(1);
+  }
+
+
+  for(Int_t i = 0; i < nevents; i++){
+    fChain->GetEntry(i);
+    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 )
+      continue;
+    else{
+      std::cout << fChain->GetLeaf(name)->GetValue() << std::endl;
+      data.push_back(fChain->GetLeaf(name)->GetValue());
+    }
+  }
+
+  return;
+
 }
 
 Bool_t QwDataQuality::FileSearch(TString filename, TChain *chain)
