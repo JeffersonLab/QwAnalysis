@@ -1,6 +1,6 @@
-# Makefile to compile qwdataquality
+# Makefile to compile dataquality
 # 	Joshua hoskins
-#	  July 2013
+#	  November 2013
 #
 
 ROOTLIBS   = $(shell root-config --libs ) -lSpectrum
@@ -10,15 +10,14 @@ INCLUDES   = -I$(shell root-config --incdir) -Iinclude/
 CC         = g++ 
 SRC        = src
 CFLAGS     = -O -Wall ${INCLUDES}
-MYSQL      = 
 
-all: qwdataquality
+all: dataquality
 
 %.o: %.cc
 	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 
 
-qwdataquality : ${SRC}/qwdataquality.o ${SRC}/QwDataQuality.o
-	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
+dataquality : ${SRC}/dataquality.o ${SRC}/QwDataQuality.o
+	${CC} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
 clean: 
-	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ qwdataquality
+	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ dataquality
 
