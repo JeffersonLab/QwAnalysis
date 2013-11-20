@@ -24,4 +24,3 @@ clean:
 
 install:
 	install libQwDB.so $(QWANALYSIS)/lib/
-	install detector_plot $(QWANALYSIS)/bin/

@@ -19,44 +19,57 @@
 
 using namespace std;
 
+/* Constructor for tree_value class. */
 tree_value::tree_value(void) {
+    /* Currently all we need is to init the size to 0. */
     size_of = 0;
 }
 
+/* Method to fill one entry from a branch into a tree_value */
 void tree_value::fill(temp_value filler) {
     value.push_back(filler.value);
     error.push_back(filler.error);
     rms.push_back(filler.rms);
     n.push_back(filler.n);
+    /* Bump the size stored in the class. This probably needs to be made more
+     * rigours. */
     size_of++;
 }
 
+/* Method to fill only the runlet. Should be merged into previous method. */
 void tree_value::fill(int filler) {
     runlet.push_back(filler);
 }
 
+/* Debugging method to print the value from a tree_value. Feel free to change
+ * what this does. */
 void tree_value::debug(void) {
     for (int i = 0; i < size_of; i++) {
         cout << value[i] << endl;
     }
 }
 
+/* Getter for value. */
 vector<double> tree_value::return_value(void) {
     return value;
 }
 
+/* Getter for error. */
 vector<double> tree_value::return_error(void) {
     return error;
 }
 
+/* Getter for rms. */
 vector<double> tree_value::return_rms(void) {
     return rms;
 }
 
+/* Getter for n. */
 vector<int> tree_value::return_n(void) {
     return n;
 }
 
+/* Method that removes the ith entry from all elements of the tree_value. */
 void tree_value::del_index(int i) {
     value.erase(value.begin()+i);
     error.erase(error.begin()+i);
@@ -66,92 +79,43 @@ void tree_value::del_index(int i) {
     size_of--;
 }
 
+/* Getter for size of tree_value. */
 int tree_value::size(void) {
     return size_of;
 }
 
+/* Method to extract data from the db_rootfile. */
+void tree_value::get_data_from_tree(TTree* tree, TString name) {
+    int n_events;               // number of events (read: runlets) in the tree.
+    temp_value temp_branch;     // temporary struct to read the tree out into
 
-void get_data_from_tree(TTree* tree, TString name, tree_value* data) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    temp_value temp_branch;
-    int temp_int;
-    cout << name.Data() << endl;
+    /*
+     * Grab number of events from the tree, reset to the beginning of the tree
+     * (in case its been read before) and set the branch you wish to grab. Then
+     * loop over the tree and fill the vectors in the tree_value class.
+     */
+    n_events = (int)tree->GetEntries();     
     tree->ResetBranchAddresses();
     tree->SetBranchAddress(name, &temp_branch);
+
     for(int i = 0; i < n_events; i++) {
         tree->GetEntry(i);
-        data->fill(temp_branch);
+        this->fill(temp_branch);
     }
+
+    /* Repeat again for the runlet_id. */
+    int temp_int;   // temporary int to read the tree out into.
+
     tree->ResetBranchAddresses();
     tree->SetBranchAddress("runlet_id", &temp_int);
+
     for(int i = 0; i < n_events; i++ ) {
         tree->GetEntry(i);
-        data->fill(temp_int);
+        this->fill(temp_int);
     }
 }
 
-void get_single_value_from_tree(TTree* tree, TString name, std::vector<double>* value) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    double temp_branch[1];
-    cout << name.Data() << endl;
-    tree->ResetBranchAddresses();
-    tree->SetBranchAddress(name, &temp_branch);
-    for(int i = 0; i < n_events; i++) {
-        tree->GetEntry(i);
-        value->push_back(temp_branch[0]);
-    }
-}
-
-void get_single_value_from_tree(TTree* tree, TString name, std::vector<float>* value) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    float temp_branch[1];
-    cout << name.Data() << endl;
-    tree->ResetBranchAddresses();
-    tree->SetBranchAddress(name, &temp_branch);
-    for(int i = 0; i < n_events; i++) {
-        tree->GetEntry(i);
-        value->push_back(temp_branch[0]);
-    }
-}
-
-void get_single_value_from_tree(TTree* tree, TString name, std::vector<int>* value) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    int temp_branch[1];
-    cout << name.Data() << endl;
-    tree->ResetBranchAddresses();
-    tree->SetBranchAddress(name, &temp_branch);
-    for(int i = 0; i < n_events; i++) {
-        tree->GetEntry(i);
-        value->push_back(temp_branch[0]);
-    }
-}
-
-void get_single_value_from_tree(TTree* tree, TString name, std::vector<TString>* value) {
-    int n_events;
-    n_events = (int)tree->GetEntries();
-    char temp_branch[256];
-    cout << name.Data() << endl;
-    tree->ResetBranchAddresses();
-    tree->SetBranchAddress(name, &temp_branch);
-    for(int i = 0; i < n_events; i++) {
-        tree->GetEntry(i);
-        TString temp_str = string(temp_branch);
-        value->push_back(temp_branch);
-    }
-}
-
-void plot_histo_branch_value(TTree* tree, TString name) {
-    tree->Draw(Form("%s.value",name.Data()),Form("%s.n>0",name.Data()));
-}
-
-void plot_histo_single_value(TTree* tree, TString name) {
-    tree->Draw(Form("%s",name.Data()));
-}
-
+/* Legacy plotting function, they remain for now. */
 TGraph* plot_vectors(std::vector<double> x, std::vector<double> y) {
     TGraph* tg = new TGraph(y.size(), &(x[0]), &(y[0]));
     return tg;

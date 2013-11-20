@@ -61,14 +61,14 @@ int main(int argc, char* argv[]) {
      *
      * get_data_from_tree(TTree*, "variable name as appears in branch", &tree_value)
      */ 
-    get_data_from_tree(tree_asym, "asym_qwk_md1barsum", &md1pmtavg);
-    get_data_from_tree(tree_asym, "asym_qwk_md3barsum", &md3pmtavg);
-    get_data_from_tree(tree_asym, "asym_qwk_md5barsum", &md5pmtavg);
-    get_data_from_tree(tree_asym, "asym_qwk_pmtltg", &pmtltg);
-    get_data_from_tree(tree_slope, "asym_qwk_md1barsum", &md1pmtavg_slope);
-    get_data_from_tree(tree_slope, "asym_qwk_md3barsum", &md3pmtavg_slope);
-    get_data_from_tree(tree_slope, "asym_qwk_md5barsum", &md5pmtavg_slope);
-    get_data_from_tree(tree_slope, "asym_qwk_pmtltg", &pmtltg_slope);
+    md1pmtavg.get_data_from_tree(tree_asym, "asym_qwk_md1barsum");
+    md3pmtavg.get_data_from_tree(tree_asym, "asym_qwk_md3barsum");
+    md5pmtavg.get_data_from_tree(tree_asym, "asym_qwk_md5barsum");
+    pmtltg.get_data_from_tree(tree_asym, "asym_qwk_pmtltg");
+    md1pmtavg_slope.get_data_from_tree(tree_slope, "asym_qwk_md1barsum");
+    md3pmtavg_slope.get_data_from_tree(tree_slope, "asym_qwk_md3barsum");
+    md5pmtavg_slope.get_data_from_tree(tree_slope, "asym_qwk_md5barsum");
+    pmtltg_slope.get_data_from_tree(tree_slope, "asym_qwk_pmtltg");
 
     /* 
      * Clean out all the zeros. This needs to be done betterer, but for now
