@@ -27,22 +27,53 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
-  bool debug=0;
-  if (argc==1) {
-    printf("You MUST specify a rootfile name!\n");
-    exit(1);
-    return 1;
-  }
+void helpscreen(void);
 
+int main(int argc, char* argv[]) {
+
+  //define default values
+  //TString myFile;
+  long eventLow = 0;     //first event to process
+  long eventHigh= 4e6;   //last event to process
+  int tsplane = 2;    //tsplane 2 = octant 1; plane 1 = octant 5
+  int mdplane = 1;    //mdplane 1 = octant 1; plane 5 = octant 5
+  bool debug=0;
+
+  if (argc<=2) {
+    helpscreen();
+    exit(0);
+    return 0;
+  }
+  /* else { //we have to process options
+    for (int j=1; j<argc; j++) {
+      if (j+1 != argc) {//check that we haven't finished parsing already
+        if (argv[j] == "-f") {
+          myFile = argv[j+1];
+          printf("Argument %i is %s\n",j+1,argv[j+1]);
+        } else if (argv[j] == "-e") {
+          myLow  = long(argv[j+1]);
+          myHigh = long(argv[j+2]);
+        } else if (argv[j] == "-ts") {
+          tsplane = int(argv[j+1]);
+        } else if (argv[j] == "-md") {
+          mdplane = int(argv[j+1]);
+        } else if (argv[j] == "--help") {
+          helpscreen();
+        } else if (argv[j] == "--debug") {
+          debug = 1;
+        }
+      }
+    } //loop over options
+  } //finish processing options
+*/
   //get rootfile name
-  TString var_1 = argv[1];
+  TString myFile = argv[1];
 
   //Open rootfile
-  TFile *rootfile1 = TFile::Open(var_1);
+  TFile *rootfile1 = TFile::Open(myFile);
 
   if ( !rootfile1->IsOpen() ) {
-    printf("Rootfile %s isn't open! Exiting!\n", var_1.Data());
+    printf("Rootfile %s isn't open! Exiting!\n", myFile.Data());
     exit(1);
   }
 
@@ -56,11 +87,9 @@ int main(int argc, char* argv[]) {
   DetectorMarriage detMarriage(tree);
   if (debug) printf("DetectorMarriage object created...\n");
 
-//  DetectorMarriage detMarriage();
-//  detMarriage.setTree(tree);
-  detMarriage.setEventRange(14090,15010);
-  detMarriage.setTsPlane(2);
-  detMarriage.setMdPlane(1);
+  detMarriage.setEventRange(eventLow,eventHigh);
+  detMarriage.setTsPlane(tsplane);
+  detMarriage.setMdPlane(mdplane);
   detMarriage.processEvents();
   //Create a TApplication. This is required for anything using the ROOT GUI.
   TApplication *app = new TApplication("myApp",&argc,argv);
@@ -76,6 +105,33 @@ int main(int argc, char* argv[]) {
   app->Run();
   return 0;
 }
+
+
+void helpscreen (void) {
+  string helpstring = "Help for f1marriage.cpp program.\n";
+    helpstring += "Program to calculate a proper marriage of meantimes from the\n";
+    helpstring += "Qweak main detector and trigger scintillator f1 multi-hit tdc's.\n";
+    helpstring += "Usage: \n";
+    helpstring += "\t./f1tdc_marriage [options]\n";
+    helpstring += "Options: \n";
+    helpstring += "\t-f  \t\tfilename\n";
+    helpstring += "\t-e  \t\tevents to look at (delimeter is ':')\n";
+    helpstring += "\t-ts \t\tdefines trigger scintillator plane (plane 1=octant 5\n";
+    helpstring += "\t    \t\tplane 2 = octant 1) Default is plane 2.\n";
+    helpstring += "\t-md \t\tdefines main detector plane (plane 1 = octant 1\n";
+    helpstring += "\t    \t\tplane 5 = octant 5) Default is plane 1.\n";
+    helpstring += "\t--debug \tfor debugging code (not fully implemented)\n";
+    helpstring += "\t--help  \tdisplays this helpful message.\n";
+    helpstring += "Example: \n";
+    helpstring += "\t./f1marriage -f Qweak_10717.root -e 15e3:30e3\n";
+
+  std::cout <<helpstring <<endl;
+  exit(0);
+}
+
+
+
+
 
 
 
