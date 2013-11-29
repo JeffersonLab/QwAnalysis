@@ -24,6 +24,7 @@
 
 #include "MarryVecs.h"
 #include "DetectorMarriage.h"
+#include "PlotLib.h"
 
 using namespace std;
 
@@ -39,7 +40,7 @@ int main(int argc, char* argv[]) {
   int mdplane = 1;    //mdplane 1 = octant 1; plane 5 = octant 5
   bool debug=0;
 
-  if (argc<=2) {
+  if (argc<=1) {
     helpscreen();
     exit(0);
     return 0;
@@ -100,6 +101,29 @@ int main(int argc, char* argv[]) {
 
   TCanvas *canvas = new TCanvas("canvas","title");
   canvas->cd();
+
+  vector<double> *first_marriage = detMarriage.getFirstMarriage();
+  vector<double> *marrVec = detMarriage.getDetectorMarriage();
+  vector<double> *diffVec = detMarriage.getDetectorMarriageDifferences();
+
+  int Nbins = 1800;
+  int xmin  = -400;
+  int xmax  = 1400;
+  TH1F* mHist = new TH1F("mHist","Original TS*MD Spectra",Nbins,xmin,xmax);
+
+  //mHist->FillN(marrVec->size(),marrVec->data(),NULL);
+  mHist->FillN(first_marriage->size(),first_marriage->data(),NULL);
+
+  mHist->Draw();
+  canvas->SetLogy();
+
+  TCanvas *canvas2 = new TCanvas("canvas2","title");
+  canvas2->cd();
+
+  TH1F* mHist2 = new TH1F("mHist2","New Marriage Spectra",Nbins,xmin,xmax);
+  mHist2->FillN(marrVec->size(),marrVec->data(),NULL);
+  mHist2->Draw();
+  canvas2->SetLogy();
 
 
   app->Run();

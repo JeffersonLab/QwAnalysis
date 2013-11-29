@@ -37,12 +37,17 @@ class DetectorMarriage {
 
     void processEvents(void);
 
+    vector<double>* getDetectorMarriage(void);
+    vector<double>* getDetectorMarriageDifferences(void);
+    vector<double>* getFirstMarriage(void);
+
   private:
     TTree *tree;
     int tsPlane;
     int mdPlane;
     long eventLow;    //event number minimum (ie, process only events> eventLow)
     long eventHigh;   //event number maximum (ie, process only events< eventHigh)
+    vector<double> first_marriage;
     MarryVecs marriageVectors;  //marriage class for final marriage of MD to TS
 
     bool haveTree; //variable to determine if DetectorMarriage instance has a tree

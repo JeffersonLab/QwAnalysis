@@ -21,7 +21,7 @@ using namespace std;
 MarryVecs::MarryVecs(void) {
   num_entries_groom=0;
   num_entries_bride=0;
-  isMarried = false;
+  marriage_status = false;
 }
 
 //default destructor
@@ -52,19 +52,12 @@ void MarryVecs::add_entry(double groomEntry, double brideEntry) {
 }
 
 void MarryVecs::add_matched_entry(double entry) {
-  if (matched.size()<max_size) {
     matched.push_back(entry);
-  } else {
-    printf("Matched vector has too many entries!\n");
-  }
+    marriage_status = true;
 }
 
 void MarryVecs::add_differences_entry(double entry1, double entry2) {
-  if (differences.size()<max_size) {
     differences.push_back(entry1-entry2);
-  } else {
-    printf("Differences vector has too many entries!\n");
-  }
 }
 //return vector-reference to vector of final matches
 vector<double> * MarryVecs::get_final_marriage(void) {
@@ -76,7 +69,7 @@ vector<double> *MarryVecs::get_differences(void) {
   return &differences;
 }
 
-//clear all vectors
+//clear all vectors but married ones
 void MarryVecs::reset(void) {
   for (int j=0; j<max_size; j++) {
     groom[j] = dummy_entry;
@@ -84,6 +77,11 @@ void MarryVecs::reset(void) {
   }
   num_entries_groom=0;
   num_entries_bride=0;
+}
+
+//clear all vectors
+void MarryVecs::resetAll(void) {
+  reset();
   matched.clear();
   differences.clear();
 }
@@ -116,6 +114,7 @@ void MarryVecs::check_size(void) {
 void MarryVecs::print_vectors(void) {
   printf("Index \tGroom \tBride\n");
   for (int j=0; j<max_size; j++) {
+    if (groom[j]==dummy_entry && bride[j]==dummy_entry) continue;
     printf("%i \t%f \t%f\n",j,groom[j],bride[j]);
   }
 
@@ -123,7 +122,7 @@ void MarryVecs::print_vectors(void) {
     printf("No matched pairs yet!\n");
   } else {
     printf("Matched pairs: \n");
-    for (unsigned int j=0; j<matched.size(); j++){
+    for (unsigned int j=matched.size()-3; j<matched.size(); j++){
       printf("%i \t%f \n",j,matched[j]);
     }
   }
@@ -252,16 +251,24 @@ void MarryVecs::marry_arrays(void) {
     } //fiancee[p] is engaged
   } //everything is engaged (while getting_engaged==7)
 
+  print_vectors();
   for(int p=0; p<max_size; p++) {
-    if (groom[p]!=0 && bride[fiancee[p]]!=0) {
+    if (groom[p]!=0 && bride[fiancee[p]]!=0 && groom[p]!=dummy_entry && bride[fiancee[p]]!=dummy_entry) {
+      double tsentry = groom[p];
+      double mdentry = bride[fiancee[p]];
+      if (tsentry != 0 && tsentry>-190 && tsentry<-178 && 
+          mdentry != 0 ) {//&& mdentry>-210 && mdentry<-150 ) {
       //add_matched_entry(groom[p],bride[fiancee[p]]);
-      add_matched_entry(groom[p]);
+      add_matched_entry(bride[fiancee[p]]);
       add_differences_entry(groom[p],bride[fiancee[p]]);
+      }
     }
   }
 }//end MarryVecs::marry_arrays
 
-
+bool MarryVecs::get_marriage_status(void) {
+  return marriage_status;
+}
 
 
 

@@ -38,15 +38,18 @@ class MarryVecs {
     void marry_arrays(void);  //marry bride/groom arrays
 
     void reset(void);
+    void resetAll(void);      //resets even the matched/difference vectors
     void check_size(void);
     void print_vectors(void);
+
+    bool get_marriage_status(void);
 
   private:
     int num_entries_groom;
     int num_entries_bride;
     static const int max_size = 7;
     static const double dummy_entry = 1e6;
-    bool isMarried;
+    bool marriage_status;
 
     double groom[max_size];   //"male" or "positive"
     double bride[max_size];   //"woman" or "negative"

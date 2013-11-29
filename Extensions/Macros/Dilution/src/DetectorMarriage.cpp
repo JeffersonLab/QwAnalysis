@@ -84,7 +84,7 @@ void DetectorMarriage::processEvents(void) {
     tree->GetEntry(localEntry);
 
     if(j % 1000 == 0) {
-      printf(" Total events %ld events process so far : %ld\n", n_entries, j);
+      printf(" Total events %ld. events process so far: %ld\n", n_entries, j);
     }
 
     marriageVectors.reset();
@@ -110,10 +110,40 @@ void DetectorMarriage::processEvents(void) {
       }
     } //end loop through individual hits
 
+    double tsentry = marriageVectors.get_groom_entry(0);
+    double mdentry = marriageVectors.get_bride_entry(0);
+    if (tsentry != 0 && tsentry>-190 && tsentry<-178 &&
+        mdentry != 0 )//&& mdentry>-210 && mdentry<-150 ) 
+    {
+      first_marriage.push_back(mdentry);
+    }
     //now that the groom and bride arrays have been filled, we can marry them
     marriageVectors.marry_arrays();
   } //end loop through events
 } //end processEvents() declaration
+
+vector<double>* DetectorMarriage::getDetectorMarriage(void) {
+  if (marriageVectors.get_marriage_status()==false) {
+    printf("There is no data in this marriage vector. Make sure you process the file first!\n");
+  }
+  return marriageVectors.get_final_marriage();
+}
+
+vector<double>* DetectorMarriage::getDetectorMarriageDifferences(void) {
+  if (marriageVectors.get_marriage_status()==false) {
+    printf("There is no data in this differences vector. Make sure you process the file first!\n");
+  }
+  return marriageVectors.get_differences();
+}
+
+vector<double>* DetectorMarriage::getFirstMarriage(void) {
+  marriageVectors.print_vectors();
+  return &first_marriage;
+}
+
+
+
+
 
 
 
