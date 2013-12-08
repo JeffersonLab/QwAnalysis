@@ -15,14 +15,22 @@ QwDataQuality::QwDataQuality(TChain *tree)
   fXaxisTitle = "";
   fYaxisTitle = "";
   fFilename   = "";
+  fFilename   = "output";
 
   fXmaximum =  5.0;
   fXminimum = -5.0;
   fYmaximum =  100;
   fYminimum =  100;
-  fNbins    =  200;
+  fNbins    =  250;
 
-  fFileOpen = false;
+  fXcanvas = 2000;
+  fYcanvas = 1500;
+
+  fFileOpen  = false;
+  fStatError = false;
+  fSignCorr  = true;
+  fRun1      = false;
+  fRun2      = false;
 
   fChain = tree;
   fChain->SetMakeClass(1);
@@ -56,7 +64,129 @@ void QwDataQuality::SetYaxisTitle(TString title)
   return;
 }
 
-void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0 ) 
+void QwDataQuality::SetStatisticalError(Bool_t value = true)
+{
+  fStatError = value;
+}
+
+void QwDataQuality::SetSignCorr(Bool_t value = true)
+{
+  std::cout << "Changing fSignCorr from: " << fSignCorr 
+	    << " -> " << value << std::endl;
+  fSignCorr = value;
+}
+
+void QwDataQuality::SetOutputFilename(TString output = "output")
+{
+  fOutputName = output;
+}
+
+void QwDataQuality::SetRunPeriod(TString run)
+{
+  if(run.CompareTo("run1", TString::kIgnoreCase) == 0) fRun1 = true;
+  if(run.CompareTo("run2", TString::kIgnoreCase) == 0) fRun2 = true;
+
+  return;
+}
+
+void QwDataQuality::SetXmaximum(Int_t value)
+{
+
+  fXmaximum = value;
+  return;
+}
+
+void QwDataQuality::SetXminimum(Int_t value)
+{
+
+  fXminimum = value;
+  return;
+}
+
+void QwDataQuality::SetYmaximum(Int_t value)
+{
+
+  fYmaximum = value;
+  return;
+}
+
+void QwDataQuality::SetYminimum(Int_t value)
+{
+
+  fYminimum = value;
+  return;
+}
+
+void QwDataQuality::SetExtrema(std::vector <Double_t> x_value)
+{
+
+ Int_t nentries = x_value.size();
+
+  Double_t max = x_value[0];
+  Double_t min = x_value[0];
+    
+  for(Int_t i = 0; i < nentries; i++){
+    if( x_value[i] > max) max = x_value[i];
+    if( x_value[i] < min) min = x_value[i]; 
+  }
+  fXmaximum = max;
+  fXminimum = min;
+  fNbins = (max - min)*0.1;
+    
+  if(fNbins > 1e4) fNbins = 1000;
+
+  return;
+  
+}
+void QwDataQuality::SetExtrema(std::vector <Double_t> x_value, std::vector <Double_t> y_value)
+{
+  Int_t nentries = x_value.size();
+  
+  Double_t max = x_value[0];
+  Double_t min = x_value[0];
+  
+  for(Int_t i = 0; i < nentries; i++){
+    if( x_value[i] > max) max = x_value[i];
+    if( x_value[i] < min) min = x_value[i]; 
+  }
+  fXmaximum = max;
+  fXminimum = min;
+
+  nentries = y_value.size();
+  
+  max = y_value[0];
+  min = y_value[0];
+  
+  for(Int_t i = 0; i < nentries; i++){
+    if( y_value[i] > max) max = y_value[i];
+    if( y_value[i] < min) min = y_value[i]; 
+  }
+  fYmaximum = max;
+  fYminimum = min;
+
+  fNbins = (max - min)*0.1;
+    
+  if(fNbins > 1e4) fNbins = 1000;
+
+  return;
+}
+
+void QwDataQuality::GetWeightedAverage(std::vector <Double_t> value, std::vector <Double_t> weight)
+{
+
+  Double_t avg = 0;
+  Double_t err = 0;
+
+  for(Int_t i = 0; i < (Int_t)value.size(); i++){
+    avg += value[i]/TMath::Power(weight[i], 2);
+    err += 1/TMath::Power(weight[i], 2);
+  }
+
+  std::cout << avg/err << " +- " << TMath::Sqrt(1/err) << std::endl;
+
+}
+
+void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value") 
 {
   gROOT->Reset();
   gStyle->SetOptStat(1);
@@ -69,10 +199,10 @@ void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value", Int_t data
 
   Double_t mean = 0;
   
-  if(data_set == 1){
+  if(fRun1){
     data_set_offset = 1;
   }
-  else if(data_set == 2){
+  else if(fRun2){
     data_set_offset = 6;
   }
   else {
@@ -85,7 +215,7 @@ void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value", Int_t data
     exit(1);
   }
 
-  TCanvas *canvas = new TCanvas("canvas","title", 5);
+  TCanvas *canvas = new TCanvas("canvas","title", fYcanvas, fXcanvas);
 
   canvas->Divide(1,5);
   
@@ -96,7 +226,7 @@ void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value", Int_t data
     ClearVectors();
     temp->Delete();
 
-    histo.push_back(new TH1F(Form("Wien_%i", i + data_set),"PullHisto", fNbins, fXminimum, fXmaximum));
+    histo.push_back(new TH1F(Form("Wien_%i", i + data_set_offset),"PullHisto", fNbins, fXminimum, fXmaximum));
     FillPullByWien(i +  data_set_offset, dataname, histo[i], mean);
     // blueHisto(histo[i]);
 
@@ -111,15 +241,18 @@ void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value", Int_t data
     histo[i]->SetFillColor(9);
     histo[i]->Draw();
     fit.push_back(new TF1(Form("fit%d", data_set_offset + i), "gaus"));
-    FitGraphWithStats(histo[i], fit[i], 0.85, 0.56, 0.99, 0.99);
+    FitGraphWithStats(histo[i], fit[i], 0.85, 0.46, 0.99, 0.99);
   }
   gPad->Modified();
   gPad->Update();
 
-  canvas->SaveAs(Form("%s_histogram_by_wien.C", GetTitle().Data()));
+  canvas->SaveAs(Form("%s.C", fOutputName.Data()));
+  canvas->Close();
+
+  DeleteHisto(histo);
 }
 
-void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0 ) 
+void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value") 
 {
   gROOT->Reset();
   gStyle->SetOptStat(1);
@@ -129,10 +262,10 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t dat
 
   Int_t data_set_offset = 0;
   
-  if(data_set == 1){
+  if(fRun1){
     data_set_offset = 1;
   }
-  else if(data_set == 2){
+  else if(fRun2){
     data_set_offset = 6;
   }
   else {
@@ -147,11 +280,11 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t dat
 
   std::vector <TH1F*> histo;
 
-  TCanvas *canvas = new TCanvas("canvas","title", 5);
+  TCanvas *canvas = new TCanvas("canvas","title", fYcanvas, fXcanvas);
   canvas->Divide(1,5);
   
   for(Int_t i = 0; i < 5; i++){
-    histo.push_back(new TH1F(Form("Wien_%i", i + data_set),"WienHisto", fNbins, fXminimum, fXmaximum));
+    histo.push_back(new TH1F(Form("Wien_%i", i + data_set_offset),"WienHisto", fNbins, fXminimum, fXmaximum));
     FillHistoByWien(i +  data_set_offset, dataname, histo[i]);
     // blueHisto(histo[i]);
 
@@ -162,19 +295,23 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t dat
     histo[i]->SetTitle(fTitle);
     histo[i]->GetXaxis()->SetTitle(fXaxisTitle);
     histo[i]->GetYaxis()->SetTitle(fYaxisTitle);
+
     histo[i]->SetLineColor(1);
     histo[i]->SetFillColor(9);
     histo[i]->Draw();
     fit.push_back(new TF1(Form("fit%d", data_set_offset + i), "gaus"));
-    FitGraphWithStats(histo[i], fit[i], 0.85, 0.56, 0.99, 0.99);
+    FitGraphWithStats(histo[i], fit[i], 0.85, 0.46, 0.99, 0.99);
   }
   gPad->Modified();
   gPad->Update();
 
-  canvas->SaveAs(Form("%s_histogram_by_wien.C", GetTitle().Data()));
+  canvas->SaveAs(Form("%s.C", fOutputName.Data()));
+  canvas->Close();
+
+  DeleteHisto(histo);
 }
 
-void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0, TString weight = "" ) {
+void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", TString weight = "" ) {
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -183,10 +320,10 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t dat
 
   Int_t data_set_offset = 0;
   
-  if(data_set == 1){
+  if(fRun1){
     data_set_offset = 1;
   }
-  else if(data_set == 2){
+  else if(fRun2){
     data_set_offset = 6;
   }
   else {
@@ -201,11 +338,11 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t dat
 
   std::vector <TH1F*> histo;
 
-  TCanvas *canvas = new TCanvas("canvas","title",5);
+  TCanvas *canvas = new TCanvas("canvas","title", fYcanvas, fXcanvas);
   canvas->Divide(1,5);
   
   for(Int_t i = 0; i < 5; i++){
-    histo.push_back(new TH1F(Form("Wien_%i", i + data_set),"WienHisto", fNbins, fXminimum, fXmaximum));
+    histo.push_back(new TH1F(Form("Wien_%i", i + data_set_offset),"WienHisto", fNbins, fXminimum, fXmaximum));
     FillHistoByWien(i + data_set_offset, dataname, histo[i], weight);
     // blueHisto(histo[i]);
 
@@ -219,26 +356,98 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", Int_t dat
     histo[i]->SetFillColor(9);
     histo[i]->Draw();
     fit.push_back(new TF1(Form("fit%d", data_set_offset + i), "gaus"));
-    FitGraphWithStats(histo[i], fit[i], 0.85, 0.56, 0.99, 0.99);
+    FitGraphWithStats(histo[i], fit[i], 0.85, 0.46, 0.99, 0.99);
   }
 
   gPad->Modified();
   gPad->Update();
 
-  canvas->SaveAs(Form("%s_histogram_by_wien_weighted_by_%s.C", GetTitle().Data(), weight.Data()));
+  canvas->SaveAs(Form("%s.C", fOutputName.Data()));
+  canvas->Close();
+
+  DeleteHisto(histo);
+
 }
 
-void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0) {
+void QwDataQuality::HistoByWien(std::vector <Double_t> value) 
+{
+  gROOT->Reset();
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  std::vector <TF1 *> fit;
+
+  Int_t data_set_offset = 0;
+
+  if(fRun1){
+    data_set_offset = 1;
+  }
+  else if(fRun2){
+    data_set_offset = 6;
+  }
+  else {
+    std::cout << "Unknown run period. Exiting." << std::endl;
+    exit(1);
+  }
+  
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+  Int_t events = (Int_t)fChain->GetEntries();  
+
+  Double_t wien_slug;
+
+  std::vector <TH1F*> histo;
+
+  TCanvas *canvas = new TCanvas("canvas","title", fYcanvas, fXcanvas);
+  canvas->Divide(1,5);
+  
+  fChain->SetBranchStatus("*", 0);
+  fChain->SetBranchStatus("wien_slug", 1);
+  fChain->SetBranchAddress("wien_slug", &wien_slug);
+  
+  for(Int_t i = 0; i < 5; i++){
+    histo.push_back(new TH1F(Form("Wien_%i", i + data_set_offset),"WienHisto", fNbins, fXminimum, fXmaximum));
+    for(Int_t j = 0; j < events; j++){
+      fChain->GetEntry(j);
+      histo[i]->Fill(value[j]);
+    }
+        
+    canvas->cd(i + 1);
+    gPad->SetGrid();
+    gPad->SetLogy();
+    
+    histo[i]->SetTitle(fTitle);
+    histo[i]->GetXaxis()->SetTitle(fXaxisTitle);
+    histo[i]->GetYaxis()->SetTitle(fYaxisTitle);
+    histo[i]->SetLineColor(1);
+    histo[i]->SetFillColor(9);
+    histo[i]->Draw();
+    fit.push_back(new TF1(Form("fit%d", data_set_offset + i), "gaus"));
+    FitGraphWithStats(histo[i], fit[i], 0.85, 0.46, 0.99, 0.99);
+  }
+  gPad->Modified();
+  gPad->Update();
+  
+  canvas->SaveAs(Form("%s.C", fOutputName.Data()));
+  canvas->Close();
+
+  DeleteHisto(histo);
+
+}
+
+void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value") {
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
 
   Int_t data_set_offset = 1;
 
-  if(data_set == 1){
+  if(fRun1){
     data_set_offset = 1;
   }
-  else if(data_set == 2){
+  else if(fRun2){
     data_set_offset = 6;
   }
   else {
@@ -259,7 +468,7 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data
   std::vector <TGraphErrors *> w;
   std::vector <TF1 *> fit;
 
-  TCanvas *canvas = new TCanvas("canvas","title", 5);
+  TCanvas *canvas = new TCanvas("canvas","title", fYcanvas, fXcanvas);
   canvas->Divide(1,5);
 
   for(Int_t i = 0; i < 5; i++){
@@ -298,21 +507,23 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data
   }
   gPad->Modified();
   gPad->Update();
-  canvas->SaveAs(Form("%s_%s_plotted_by_wien.C", GetBranchName(dataname).Data(), GetLeafName(dataname).Data()));
+
+  canvas->SaveAs(Form("%s.C", fOutputName.Data()));
+  canvas->Close();
 
 } 
 
-void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data_set = 0, TString weight = "diff_bcmdd12/err") {
+void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", TString weight = "diff_bcmdd12/err") {
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
 
   Int_t data_set_offset = 1;
 
-  if(data_set == 1){
+  if(fRun1){
     data_set_offset = 1;
   }
-  else if(data_set == 2){
+  else if(fRun2){
     data_set_offset = 6;
   }
   else {
@@ -328,7 +539,7 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data
   std::vector <TGraphErrors *> w;
   std::vector <TF1 *> fit;
 
-  TCanvas *canvas = new TCanvas("canvas","title", 5);
+  TCanvas *canvas = new TCanvas("canvas","title", fYcanvas, fXcanvas);
   canvas->Divide(1,5);
 
   for(Int_t i = 0; i < 5; i++){
@@ -370,7 +581,48 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", Int_t data
   }
   gPad->Modified();
   gPad->Update();
-  canvas->SaveAs(Form("%s_%s_plotted_by_wien_weighted.C", GetBranchName(dataname).Data(), GetLeafName(dataname).Data()));
+
+  canvas->SaveAs(Form("%s.C", fOutputName.Data()));
+  canvas->Close();
+
+}
+
+void QwDataQuality::PlotCorrelation(std::vector <Double_t> x, std::vector <Double_t> y, std::vector <Double_t> x_err, std::vector <Double_t> y_err) 
+{
+  gROOT->Reset();
+  gStyle->SetOptStat(1);
+  gStyle->SetOptFit(1111);
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
+
+  TCanvas *canvas = new TCanvas("canvas","title", fYcanvas, fXcanvas);
+
+  TGraphErrors *graph = new TGraphErrors(x.size(), x.data(), y.data(), x_err.data(), y_err.data());
+
+    canvas->cd();
+    gPad->SetGrid();
+
+    graph->SetTitle(fTitle);
+    graph->GetXaxis()->SetTitle(fXaxisTitle);
+    graph->GetYaxis()->SetTitle(fYaxisTitle);
+    graph->SetMarkerColor(1);
+    graph->SetMarkerStyle(20);
+    graph->SetLineColor(9);
+    graph->SetLineWidth(2);
+    graph->Draw("ap");
+    TF1 *linear= new TF1("linear", "pol1");
+    FitGraphWithStats(graph, linear, 0.85, 0.66, 0.99, 0.99);
+
+  
+  gPad->Modified();
+  gPad->Update();
+
+  canvas->SaveAs(Form("%s.C", fOutputName.Data()));
+  canvas->Close();
 
 }
 
@@ -398,6 +650,93 @@ TString QwDataQuality::GetLeafName(TString name)
   
   return l_name;
 
+}
+
+Double_t QwDataQuality::GetValue(Int_t index)
+{
+  return(fValue[index]);
+}
+
+Double_t QwDataQuality::GetRMS(Int_t index)
+{
+  return(fRMS[index]);
+}
+
+Double_t QwDataQuality::GetError(Int_t index)
+{
+  return(fError[index]);
+}
+
+void QwDataQuality::SetValue(std::vector <Double_t> value)
+{
+
+  Int_t nevents;
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+  // if(!fDataFilled){
+  //   std::cerr << "Data vectors not yet filled." << std::endl;
+  //   exit(1);
+  // }
+
+  nevents = (Int_t)fChain->GetEntries();
+  
+  for( Int_t i = 0; i < nevents; i++ ) {
+    fChain->GetEntry(i);
+    fValue[i] = value[i];
+  }
+  
+  return;
+}
+
+void QwDataQuality::SetError(std::vector <Double_t> error)
+{
+
+  Int_t nevents;
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+  // if(!fDataFilled){
+  //   std::cerr << "Data vectors not yet filled." << std::endl;
+  //   exit(1);
+  // }
+
+  nevents = (Int_t)fChain->GetEntries();
+  
+  for( Int_t i = 0; i < nevents; i++ ) {
+    fChain->GetEntry(i);
+    fError[i] = error[i];
+  }
+  
+  return;
+}
+
+void QwDataQuality::SetRMS(std::vector <Double_t> rms)
+{
+
+  Int_t nevents;
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+  // if(!fDataFilled){
+  //   std::cerr << "Data vectors not yet filled." << std::endl;
+  //   exit(1);
+  // }
+
+  nevents = (Int_t)fChain->GetEntries();
+  
+  for( Int_t i = 0; i < nevents; i++ ) {
+    fChain->GetEntry(i);
+    fRMS[i] = rms[i];
+  }
+  
+  return;
 }
 
 void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value")
@@ -434,13 +773,17 @@ void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value
   for( Int_t i = 0; i < nevents; i++ ) {
     fChain->GetEntry(i);
     
-    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+    if ( (fChain->GetLeaf(Form("%s/n", GetBranchName(name).Data()))->GetValue())  == 0 || wien_slug != wien )
       continue;
     else{
-      fValue.push_back(sign*(fChain->GetLeaf(Form("%s/value",GetBranchName(name).Data()))->GetValue()));
+      if(fSignCorr) fValue.push_back(sign*(fChain->GetLeaf(Form("%s/value",GetBranchName(name).Data()))->GetValue()));
+      else fValue.push_back((fChain->GetLeaf(Form("%s/value",GetBranchName(name).Data()))->GetValue()));
       fError.push_back(fChain->GetLeaf(Form("%s/err",GetBranchName(name).Data()))->GetValue());
       fRMS.push_back(fChain->GetLeaf(Form("%s/rms",GetBranchName(name).Data()))->GetValue());
+      fN.push_back(fChain->GetLeaf(Form("%s/n",GetBranchName(name).Data()))->GetValue());
       fRunlet.push_back(fChain->GetLeaf("run_number_decimal")->GetValue());
+
+      if(fStatError) fError.back() = fRMS.back()/TMath::Sqrt(fN.back());
     }
   }
 
@@ -488,11 +831,12 @@ void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value
   for( Int_t i = 0; i < nevents; i++ ) {
     fChain->GetEntry(i);
     
-    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+    if ( (fChain->GetLeaf(Form("%s/n", GetBranchName(name).Data()))->GetValue())  == 0 || wien_slug != wien )
       continue;
     else{
-      weighted_value = sign*(fChain->GetLeaf(Form("%s/value",GetBranchName(name).Data()))->GetValue());
-      weighted_value /= (TMath::Power(fChain->GetLeaf(Form("%s/value",GetBranchName(weight).Data()))->GetValue(), 2));
+      if(fSignCorr) weighted_value = sign*(fChain->GetLeaf(Form("%s/value",GetBranchName(name).Data()))->GetValue());
+      else weighted_value = (fChain->GetLeaf(Form("%s/value",GetBranchName(name).Data()))->GetValue());
+      weighted_value /= (TMath::Power(fChain->GetLeaf(Form("%s",GetBranchName(weight).Data()))->GetValue(), 2));
       fValue.push_back(weighted_value);
 
       // Not sure how to handle the error and rms here : /
@@ -542,7 +886,7 @@ void QwDataQuality::FillPullByWien(Int_t wien, TString name, TH1F *hist, Double_
   for( Int_t i = 0; i < nevents; i++ ) {
     fChain->GetEntry(i);
     
-    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+    if ( (fChain->GetLeaf(Form("%s/n", GetBranchName(name).Data()))->GetValue()) == 0 || wien_slug != wien )
       continue;
     else{
       difference = sign*(fChain->GetLeaf(name)->GetValue() - mean);
@@ -550,6 +894,8 @@ void QwDataQuality::FillPullByWien(Int_t wien, TString name, TH1F *hist, Double_
       hist->Fill(difference*weight);
     }
   }
+
+  return;
 }
 
 void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist)
@@ -585,10 +931,17 @@ void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist)
   for( Int_t i = 0; i < nevents; i++ ) {
     fChain->GetEntry(i);
     
-    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+    if ( (fChain->GetLeaf(Form("%s/n", GetBranchName(name).Data()))->GetValue()) == 0 || wien_slug != wien )
       continue;
     else{
-      hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()));
+      if(fSignCorr == true){
+	hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()));
+	// std::cout << "Adding sign correction. " << fSignCorr << std::endl;
+      }
+      else{
+	hist->Fill((fChain->GetLeaf(name)->GetValue()));
+	// std::cout << "NOT Adding sign correction." << std::endl;
+      }
     }
   }
 }
@@ -627,21 +980,35 @@ void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist, TStrin
   fChain->SetBranchAddress("wien_slug", &wien_slug);
   fChain->SetBranchAddress("sign_correction", &sign);
 
+  Double_t sum = 0 ;
+
+
+  std::cout << "Sum: " << sum << std::endl;
+
   for( Int_t i = 0; i < nevents; i++ ) {
     fChain->GetEntry(i);
     
-    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 || wien_slug != wien )
+    if ( (fChain->GetLeaf(Form("%s/n", GetBranchName(name).Data()))->GetValue()) == 0 || wien_slug != wien )
       continue;
     else{
-      hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()), TMath::Power(1/(fChain->GetLeaf(weight)->GetValue()),2));
+      if(fSignCorr)
+	hist->Fill(sign*(fChain->GetLeaf(name)->GetValue()), 1/TMath::Power((fChain->GetLeaf(weight)->GetValue()),2));
+      else
+	hist->Fill((fChain->GetLeaf(name)->GetValue()), 1/TMath::Power((fChain->GetLeaf(weight)->GetValue()),2));
     }
   }
+}
+
+void QwDataQuality::CalculateCorrelation(TString x, TString y)
+{
+  return;
 }
 
 void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name ="asym_qwk_mdallbars/value")
 {
 
   Int_t nevents = (Int_t) fChain->GetEntries();
+  Int_t sign;
 
   if(!fFileOpen){
     std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
@@ -651,6 +1018,10 @@ void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name =
   fChain->ResetBranchAddresses();
   fChain->SetBranchStatus("*", 0);
   fChain->SetBranchStatus(GetBranchName(name), 1);
+  fChain->SetBranchStatus("sign_correction", 1);
+
+  fChain->SetBranchAddress("sign_correction", &sign);
+
 
   if(!(fChain->GetLeaf(name))){
     std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
@@ -660,14 +1031,64 @@ void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name =
 
   for(Int_t i = 0; i < nevents; i++){
     fChain->GetEntry(i);
-    if ( (fChain->GetLeaf(Form("%s/value", GetBranchName(name).Data()))->GetValue())  == -1e6 )
+    if ( (fChain->GetLeaf(Form("%s/n", GetBranchName(name).Data()))->GetValue()) == 0 )
       continue;
     else{
-      std::cout << fChain->GetLeaf(name)->GetValue() << std::endl;
-      data.push_back(fChain->GetLeaf(name)->GetValue());
+      if(fSignCorr){
+	data.push_back(sign*(fChain->GetLeaf(name)->GetValue()));
+	std::cout << sign << std::endl;
+      }
+      else {
+	data.push_back((fChain->GetLeaf(name)->GetValue()));
+      }
     }
   }
 
+  ClearVectors();
+  return;
+
+}
+
+void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name ="asym_qwk_mdallbars/value", Int_t wien = 1)
+{
+
+  Int_t nevents = (Int_t) fChain->GetEntries();
+  Int_t sign;
+
+  if(!fFileOpen){
+    std::cerr << "Rootfile not yet opened.  Exiting." <<std::endl;
+    exit(1);
+  }
+
+  fChain->ResetBranchAddresses();
+  fChain->SetBranchStatus("*", 0);
+  fChain->SetBranchStatus(GetBranchName(name), 1);
+  fChain->SetBranchStatus("wien_slug", 1);
+  fChain->SetBranchStatus("sign_correction", 1);
+
+  fChain->SetBranchAddress("sign_correction", &sign);
+
+  if(!(fChain->GetLeaf(name))){
+    std::cout << Form("Cannot find : %s in tree.  Exiting.", name.Data()) << std::endl;
+    exit(1);
+  }
+
+
+  for(Int_t i = 0; i < nevents; i++){
+    fChain->GetEntry(i);
+    if ( (fChain->GetLeaf(Form("%s/n", GetBranchName(name).Data()))->GetValue()) == 0 || (fChain->GetLeaf("wien_slug")->GetValue()) != wien)
+      continue;
+    else{
+      if(fSignCorr){
+	data.push_back(sign*(fChain->GetLeaf(name)->GetValue()));
+      }
+      else {
+	data.push_back((fChain->GetLeaf(name)->GetValue()));
+      }
+    }
+  }
+
+  ClearVectors();
   return;
 
 }
@@ -721,10 +1142,27 @@ void QwDataQuality::ClearVectors()
 {
 
   fValue.clear();
+  fWeight.clear();
   fError.clear();
   fRMS.clear();
+  fN.clear();
   fRunlet.clear();
 
+  return;
+}
+
+void QwDataQuality::DeleteHisto(TH1F *histo)
+{
+  histo->Delete();
+  return;
+}
+
+void QwDataQuality::DeleteHisto(std::vector <TH1F *> histo)
+{
+
+  for(Int_t i = 0; i < (Int_t)histo.size(); i++){
+    histo[i]->Delete();
+  }
   return;
 }
 

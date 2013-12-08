@@ -18,6 +18,8 @@ all: dataquality
 
 dataquality : ${SRC}/dataquality.o ${SRC}/QwDataQuality.o
 	${CC} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
+avgposdiff : ${SRC}/avgposdiff.o ${SRC}/QwDataQuality.o
+	${CC} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
 clean: 
-	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ dataquality
+	rm -f *.o ~* src/*.o src/*.cc~ include/*.hh~ dataquality avgposdiff
 
