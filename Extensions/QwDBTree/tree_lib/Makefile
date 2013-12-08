@@ -1,26 +1,29 @@
-CXXFLAGS = -Wall -ggdb -c -pthread -m64 -I/usr/include/root
-LIBS = $(shell root-config --glibs)
+#CPP 	 = g++
+CPP 	 = clang
+CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude
+LDFLAGS  = $(shell root-config --glibs)
 
-PROGRAM_FILES := \
+PROG_FILES := \
 	charge_blocked_width
 
 LIB_FILES := \
-	QwTreeLib
+	src/QwTreeBranch src/QwTreeBranchPair src/QwTreeBranchPlot
 
-charge_blocked_width: $(PROGRAM_FILES).o libQwDB.so
-	g++ -Wall -ggdb -o $@ $(PROGRAM_FILES).o $(LIBS) -L. -lQwDB
+LIB_O_FILES := $(addsuffix .o,$(LIB_FILES))
 
-libQwDB.so: $(LIB_FILES).o
-	g++ -shared -Wl,-soname,libQwDB.so -o $@ $^
+PROG_O_FILES := $(addsuffix .o,$(PROG_FILES))
 
-$(LIB_FILES).o: $(LIB_FILES).cpp
-	g++ -shared -Wall -ggdb -c -fPIC $(CXXFLAGS) -o $@ $^
+$(PROG_FILES): $(PROG_O_FILES) libQwDB.so
+	$(CPP) -Wall -ggdb -o $@ $(PROG_O_FILES) $(LDFLAGS) -L. -lQwDB
 
-$(PROGRAM_FILES).o: $(PROGRAM_FILES).cpp
-	g++ -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
+libQwDB.so: $(LIB_O_FILES)
+	$(CPP) -shared -Wl,-soname,libQwDB.so -o $@ $^
+
+%.o: %.cpp
+	$(CPP) -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f libQwDB.so *.o charge_blocked_width
+	rm -f libQwDB.so *.o src/*.o charge_blocked_width
 
 install:
 	install libQwDB.so $(QWANALYSIS)/lib/
