@@ -1,5 +1,5 @@
-#CPP 	 = g++
-CPP 	 = clang
+CPP 	 = g++
+#CPP 	 = clang
 CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude
 LDFLAGS  = $(shell root-config --glibs)
 
