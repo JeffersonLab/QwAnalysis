@@ -48,41 +48,54 @@ TString QwDataQuality::GetYaxisTitle(){return fYaxisTitle;}
 
 void QwDataQuality::SetTitle(TString title)
 {
+  // Set title used for plots
+
   fTitle = title;
   return;
 }
 
 void QwDataQuality::SetXaxisTitle(TString title)
 {
+  // set x-axis title
+
   fXaxisTitle = title;
   return;
 }
 
 void QwDataQuality::SetYaxisTitle(TString title)
 {
+  // set y-axis title
+
   fYaxisTitle = title;
   return;
 }
 
 void QwDataQuality::SetStatisticalError(Bool_t value = true)
 {
+  // Flag to make sure the error variable is set to rms/Sqrt(N) instead of what is native in the database.  Currently, for most leaves, I think they are the same.
+
   fStatError = value;
 }
 
 void QwDataQuality::SetSignCorr(Bool_t value = true)
 {
-  std::cout << "Changing fSignCorr from: " << fSignCorr 
-	    << " -> " << value << std::endl;
+  // Flag used to determine whether data is sign corrected or not.
+
   fSignCorr = value;
 }
 
 void QwDataQuality::SetOutputFilename(TString output = "output")
 {
+  // Choose the name used for the output file.
+
   fOutputName = output;
 }
 
 void QwDataQuality::SetRunPeriod(TString run)
 {
+
+  // Sets run period to be plotted.
+
   if(run.CompareTo("run1", TString::kIgnoreCase) == 0) fRun1 = true;
   if(run.CompareTo("run2", TString::kIgnoreCase) == 0) fRun2 = true;
 
@@ -92,6 +105,8 @@ void QwDataQuality::SetRunPeriod(TString run)
 void QwDataQuality::SetXmaximum(Int_t value)
 {
 
+  // Set x extrema for plots
+
   fXmaximum = value;
   return;
 }
@@ -99,12 +114,15 @@ void QwDataQuality::SetXmaximum(Int_t value)
 void QwDataQuality::SetXminimum(Int_t value)
 {
 
+  // Set x extrema for plots
+
   fXminimum = value;
   return;
 }
 
 void QwDataQuality::SetYmaximum(Int_t value)
 {
+  // Set y extrema for plots
 
   fYmaximum = value;
   return;
@@ -112,6 +130,7 @@ void QwDataQuality::SetYmaximum(Int_t value)
 
 void QwDataQuality::SetYminimum(Int_t value)
 {
+  // Set y extrema for plots
 
   fYminimum = value;
   return;
@@ -119,6 +138,8 @@ void QwDataQuality::SetYminimum(Int_t value)
 
 void QwDataQuality::SetExtrema(std::vector <Double_t> x_value)
 {
+
+  // Loop through a given data vector and find the x(y) extrema then set the internal class variables asscotiated with each.
 
  Int_t nentries = x_value.size();
 
@@ -140,6 +161,9 @@ void QwDataQuality::SetExtrema(std::vector <Double_t> x_value)
 }
 void QwDataQuality::SetExtrema(std::vector <Double_t> x_value, std::vector <Double_t> y_value)
 {
+
+  // Loop through a given data vector and find the x(y) extrema then set the internal class variables asscotiated with each.
+
   Int_t nentries = x_value.size();
   
   Double_t max = x_value[0];
@@ -174,6 +198,9 @@ void QwDataQuality::SetExtrema(std::vector <Double_t> x_value, std::vector <Doub
 void QwDataQuality::GetWeightedAverage(std::vector <Double_t> value, std::vector <Double_t> weight)
 {
 
+  // Calculate the weighted average of a data vector given the weight.  Currently this value is not stored anywhere.  The input data vector can 
+  // be filled using FillDataVector()
+
   Double_t avg = 0;
   Double_t err = 0;
 
@@ -188,6 +215,10 @@ void QwDataQuality::GetWeightedAverage(std::vector <Double_t> value, std::vector
 
 void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value") 
 {
+
+  // Plots the pull plot for a given variable.  Before using sign correction shoulf be set using SetSignCorr() function.  This flag defaults to 
+  // true.  It is also recommended that flags such as title, axes names, and run period be set.
+
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -254,6 +285,10 @@ void QwDataQuality::PullByWien(TString dataname="diff_bcmdd12/value")
 
 void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value") 
 {
+
+  // Plots the histograms of a given variable.  Before using sign correction shoulf be set using SetSignCorr() function.  This flag defaults to 
+  // true.  It is also recommended that flags such as title, axes names, and run period be set.
+
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -312,6 +347,10 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value")
 }
 
 void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", TString weight = "" ) {
+
+  // Plots the weighted histograms of a given variable.  Before using sign correction shoulf be set using SetSignCorr() function.  This flag defaults to 
+  // true.  It is also recommended that flags such as title, axes names, and run period be set.  
+
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -371,6 +410,13 @@ void QwDataQuality::HistoByWien(TString dataname="diff_bcmdd12/value", TString w
 
 void QwDataQuality::HistoByWien(std::vector <Double_t> value) 
 {
+
+  // Plots the histograms of a data vector.  Before using sign correction shoulf be set using SetSignCorr() function.  This flag defaults to 
+  // true.  It is also recommended that flags such as title, axes names, and run period be set.
+  //
+  // Data vector can be filled using FillDataVector().
+  
+
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -438,6 +484,9 @@ void QwDataQuality::HistoByWien(std::vector <Double_t> value)
 }
 
 void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value") {
+  // Plots a given variable versus runlet for each wien.  Before using sign correction shoulf be set using SetSignCorr() function.  This flag defaults to 
+  // true.  It is also recommended that flags such as title, axes names, and run period be set.
+
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -514,6 +563,10 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value") {
 } 
 
 void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", TString weight = "diff_bcmdd12/err") {
+
+  // Plots a given variable and weight versus runlet for each wien.  Before using sign correction shoulf be set using SetSignCorr() function.  This flag defaults to 
+  // true.  It is also recommended that flags such as title, axes names, and run period be set.
+
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -546,8 +599,10 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", TString we
     GetDataByWien(i + data_set_offset, dataname, weight);
 
     if(GetLeafName(dataname).CompareTo("value", TString::kExact) == 0){
+
       // Fill error with '0' for the moment till I add the proper perscription for a weighted error
       // w.push_back(new TGraphErrors(fRunlet.size(), fRunlet.data(), fValue.data(), 0, fError.data()));
+
       w.push_back(new TGraphErrors(fRunlet.size(), fRunlet.data(), fValue.data(), 0, 0));
       ClearVectors();
     }
@@ -589,6 +644,10 @@ void QwDataQuality::PlotByWien(TString dataname="diff_bcmdd12/value", TString we
 
 void QwDataQuality::PlotCorrelation(std::vector <Double_t> x, std::vector <Double_t> y, std::vector <Double_t> x_err, std::vector <Double_t> y_err) 
 {
+  // This function simply plots 2 variables versus each other.  I would like to add more functionality to this.  Data vectors can be built using FillDataVector()
+  // and then passed to this function.  Axis extrema are not automatically determined yet so SetExtrema() functions above should be used if the default values 
+  // are not sufficient. 
+
   gROOT->Reset();
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
@@ -654,21 +713,31 @@ TString QwDataQuality::GetLeafName(TString name)
 
 Double_t QwDataQuality::GetValue(Int_t index)
 {
+  // Return a given value from the interanl data vectors filled using FillDataVector().  This should not be used unless the FillDataVector funstion has been run.
+  // A flag should be added to assure this is the case.
+
   return(fValue[index]);
 }
 
 Double_t QwDataQuality::GetRMS(Int_t index)
 {
+  // Return a given value from the interanl data vectors filled using FillDataVector().  This should not be used unless the FillDataVector funstion has been run.
+  // A flag should be added to assure this is the case.
+
   return(fRMS[index]);
 }
 
 Double_t QwDataQuality::GetError(Int_t index)
 {
+  // Return a given value from the interanl data vectors filled using FillDataVector().  This should not be used unless the FillDataVector funstion has been run.
+  // A flag should be added to assure this is the case.
   return(fError[index]);
 }
 
 void QwDataQuality::SetValue(std::vector <Double_t> value)
 {
+  // Set a given value from the interanl data vectors filled using FillDataVector().  This should not be used unless the FillDataVector funstion has been run.
+  // A flag should be added to assure this is the case.
 
   Int_t nevents;
 
@@ -693,6 +762,8 @@ void QwDataQuality::SetValue(std::vector <Double_t> value)
 
 void QwDataQuality::SetError(std::vector <Double_t> error)
 {
+  // Return a given value from the interanl data vectors filled using FillDataVector().  This should not be used unless the FillDataVector funstion has been run.
+  // A flag should be added to assure this is the case.
 
   Int_t nevents;
 
@@ -717,6 +788,8 @@ void QwDataQuality::SetError(std::vector <Double_t> error)
 
 void QwDataQuality::SetRMS(std::vector <Double_t> rms)
 {
+  // Return a given value from the interanl data vectors filled using FillDataVector().  This should not be used unless the FillDataVector funstion has been run.
+  // A flag should be added to assure this is the case.
 
   Int_t nevents;
 
@@ -741,6 +814,10 @@ void QwDataQuality::SetRMS(std::vector <Double_t> rms)
 
 void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value")
 {
+  //
+  // Fill class data vectors with branch values.  There is no check on whether these have been previously filled so they need to be cleared using ClearVectors()
+  // before another branch can be grabbed.
+  //
 
   Int_t nevents = (Int_t) fChain->GetEntries();
   Int_t wien_slug;
@@ -792,6 +869,11 @@ void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value
 
 void QwDataQuality::GetDataByWien(Int_t wien, TString name = "diff_bcmdd12/value", TString weight = "diff_bcmdd12/err")
 {
+
+  //
+  // Fill class data vectors with weighted branch values.  There is no check on whether these have been previously filled so they need to be cleared using ClearVectors()
+  // before another branch can be grabbed.
+  //
 
   Int_t nevents = (Int_t) fChain->GetEntries();
   Int_t wien_slug;
@@ -1001,11 +1083,15 @@ void QwDataQuality::FillHistoByWien(Int_t wien, TString name, TH1F *hist, TStrin
 
 void QwDataQuality::CalculateCorrelation(TString x, TString y)
 {
+  // This is no implemented yet.
+
   return;
 }
 
 void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name ="asym_qwk_mdallbars/value")
 {
+
+  // Fill input data vector with leaf of your choice.
 
   Int_t nevents = (Int_t) fChain->GetEntries();
   Int_t sign;
@@ -1051,6 +1137,8 @@ void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name =
 
 void QwDataQuality::FillDataVector(std::vector <Double_t > &data, TString name ="asym_qwk_mdallbars/value", Int_t wien = 1)
 {
+
+  // Fill input data vector with weighted leaf of your choice.
 
   Int_t nevents = (Int_t) fChain->GetEntries();
   Int_t sign;
