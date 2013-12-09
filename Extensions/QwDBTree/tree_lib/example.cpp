@@ -1,12 +1,12 @@
 /*
- * charge_blocked_width.cpp
+ * example.cpp
  * Author: Wade S Duvall <wsduvall@jlab.org>
  *
  * Requires QwTreeLib to be installed into $LD_LIBRARY_PATH
  *
  * Run make, make install to build this file and the library
  *
- * ./charge_blocked_width <rootfile 1> <rootfile 2>
+ * ./example <rootfile> 
  */
 #include <TROOT.h>
 #include <Riostream.h>

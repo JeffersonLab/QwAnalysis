@@ -1,0 +1,10 @@
+After sourcing $QWANALYSIS/SetupFiles/SET_ME_UP.bash, run:
+
+make
+make install
+./example <rootfile path>
+
+The library libQwDB.so in installed to $QWANALYSIS/lib, which should
+automatically be in your $LD_LIBRARY_PATH.
+
+More details added later.

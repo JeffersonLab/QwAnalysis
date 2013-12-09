@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude
 LDFLAGS  = $(shell root-config --glibs)
 
 PROG_FILES := \
-	charge_blocked_width
+	example
 
 LIB_FILES := \
 	src/QwTreeBranch src/QwTreeBranchPair src/QwTreeBranchPlot
@@ -23,7 +23,7 @@ libQwDB.so: $(LIB_O_FILES)
 	$(CPP) -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f libQwDB.so *.o src/*.o charge_blocked_width
+	rm -f libQwDB.so *.o src/*.o example
 
 install:
 	install libQwDB.so $(QWANALYSIS)/lib/
