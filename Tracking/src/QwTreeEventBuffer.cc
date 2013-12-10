@@ -286,7 +286,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
                fPrimary_OriginVertexMomentumDirectionY,
                fPrimary_OriginVertexMomentumDirectionZ);
 
-    // jpan: new assignment
+    // Assign some of the kinematic variables to the original event
     fOriginalEvent->fScatteringVertexZ =  fPrimary_OriginVertexPositionZ;
     fOriginalEvent->fScatteringVertexR =  
         sqrt(fPrimary_OriginVertexPositionX*fPrimary_OriginVertexPositionX
@@ -296,6 +296,9 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     fOriginalEvent->fCrossSection = fPrimary_CrossSection;
     fOriginalEvent->fPreScatteringEnergy = fPrimary_PreScatteringKineticEnergy;     
     fOriginalEvent->fOriginVertexEnergy =  fPrimary_OriginVertexKineticEnergy;
+
+    // Assign the cross section to the reconstructed event for correct weighting
+    fCurrentEvent->fCrossSection = fPrimary_CrossSection;
 
 #ifdef NEW_G4_DATA    
     for (size_t i=0; i<fCerenkov_PMT_PMTLeftNbOfPEs.size(); i++){
