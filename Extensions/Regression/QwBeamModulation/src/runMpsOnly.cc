@@ -25,6 +25,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
 
   filename = Form("%s_%d*.root", mps_only->fFileStem.Data(), mps_only->run_number);
+  std::cout<<filename<<std::endl;
   mps_only->LoadRootFile(filename, mps_tree, 0);
   mps_only->SetFileName(filename);
   mps_only->SetupMpsBranchAddress();
@@ -48,6 +49,15 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->BuildCoilData();
   mps_only->BuildDetectorSlopeVector();
   mps_only->BuildMonitorSlopeVector();
+  mps_only->BuildDetectorAvSlope();
+  mps_only->BuildMonitorAvSlope();
+
+  //Open file for writing coil sensitivities by microcycle
+  gSystem->Exec("umask 002");
+  mps_only->coil_sens.open(Form("%s/coil_sensitivities/coil_sens_%i%s.%s.dat", 
+		      gSystem->Getenv("BMOD_OUT"), mps_only->run_number,
+		      ( mps_only->fChiSquareMinimization ? "_ChiSqMin" : ""),
+		       mps_only->fSetStem.Data()), fstream::out);
 
   std::cout << "Starting to pilfer the data" << std::endl;
   if(mps_only->PilferData()<minEvents){
@@ -55,13 +65,13 @@ Int_t main(Int_t argc, Char_t *argv[])
       mps_only->run_number<<"\n"; 
     return -1;
   }
-  mps_only->BuildDetectorAvSlope();
-  mps_only->BuildMonitorAvSlope();
+
+  mps_only->coil_sens.close();
   if(mps_only->CalculateWeightedSlope(1)==-1){
     std::cout<<"Error in calculating slopes. One or more 0 entries. Exiting\n";
     return -1;
   }
-  mps_only->MatrixFill();
+  mps_only->MatrixFill(1);
   
   std::cout << "Closing Mps_Tree" << std::endl;
   delete mps_tree;

@@ -20,7 +20,7 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000,
   // QwMpsOnly.cc:
   // fUnitConvert[i] = (MonitorList[i].Contains("Slope") ? 1.0e4 : 1.0);
   // In this example fUnitConvert=1.0e4
-  const Int_t nDET = 29, nMOD = 5, nRUNS = 1350, nCOIL = 10;
+  const Int_t nDET = 32, nMOD = 5, nRUNS = 1350, nCOIL = 10;
   string line;
   TFile *newfile; 
   TTree *newTree = new TTree("slopes", "slopes"); 
@@ -32,21 +32,35 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000,
 
   ifstream file(Form("%s/config/setup_mpsonly.config",
 		     gSystem->Getenv("BMOD_SRC")));
+  TChain *ch = new TChain("mps_slug");
+  ch->Add(Form("%s/mps_only_13993*.root",gSystem->Getenv("MPS_ONLY_ROOTFILES")));
   for(int i=0;i<5;i++){
     file>>mon>>monitr;
     getline(file, line);
     MonitorList[i] = TString(monitr);
     slopesUnitConvert[i] = (MonitorList[i].Contains("Slope") ? 1.0 : 1.0e3);
-    cout<<MonitorList[i].Data()<<" unit conversion: "<<slopesUnitConvert[i]<<endl;
+    if(!ch->GetBranch(MonitorList[i].Data())){
+      cout<<MonitorList[i].Data()<<" missing. Exiting.\n";
+      return;
+    }else
+      cout<<MonitorList[i].Data()<<" unit conversion: "<<
+	slopesUnitConvert[i]<<endl;
   }
   getline(file, line);
+  Int_t nDet = 0;
   for(int i=0;i<nDET;i++){
     file>>det>>detectr;
     getline(file, line);
-    DetectorList[i] = TString(detectr);
-    cout<<DetectorList[i].Data()<<endl;
+    DetectorList[nDet] = TString(detectr);
+    if(!ch->GetBranch(DetectorList[nDet].Data())){
+      cout<<DetectorList[nDet].Data()<<" missing.\n";
+    }else{
+      cout<<DetectorList[nDet].Data()<<endl;
+      nDet++;
+    }
+    
   }
-
+  delete ch;
   ifstream runList(Form("%s/macros/runsBySlug_new.dat", 
 			 gSystem->Getenv("BMOD_SRC")));
 
@@ -425,7 +439,7 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000,
 
     run = runs[k];
     good = 1;
-    for(int i=0;i<excludedRuns.size()-1;i++)
+    for(int i=0;i<(int)excludedRuns.size()-1;i++)
       if(excludedRuns.at(i)==run) good = 0;
     slug = slugs[k];
     newTree->Fill();

@@ -22,6 +22,9 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fXPModulation = 1; 
   fYPModulation = 4;
   fNEvents = 0;
+  fMacroCycleNum = 0;
+  for(Int_t imod = 0;imod<kNMod;imod++)
+    fCycleNum[imod] = 0;
   fReduceMatrix_x  = 0;
   fReduceMatrix_y  = 0;
   fReduceMatrix_xp = 0;
@@ -35,6 +38,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fCurrentCut = 40; 
   fPreviousRampValue = -1.;
   fMaxRampNonLinearity = 3.;
+  fFullCycle = false;
   fXinit  = false; 
   fYinit  = false; 
   fEinit  = false; 
@@ -51,7 +55,6 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fSetStem = "std"; 
 
   fNewEbpm = 0;
-
   Init(tree);
 }
 
@@ -175,8 +178,9 @@ void QwMpsOnly::BuildNewEBPM(){
   //  newfile->Close();
 }
 
-void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
+void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
 {
+  Int_t minEvents = 100;
   Double_t sigma_cc = 0;
   Double_t sigma_dc = 0;
   Double_t d_mean = 0;
@@ -186,18 +190,17 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
   Double_t sigma_dc2 = 0;
   Double_t c_mean2 = 0;
   Double_t slope2 = 0;
-  
-  if(!fPhaseConfig){
-    Double_t temp[5]={0.26, 0.26, 0.0, 1.08, 1.08};              
-    SetPhaseValues(temp); 
-  }
+  Double_t slopeSin = 0, slopeSinErr = 0;
+  Double_t slopeCos = 0, slopeCosErr = 0;
+ 
+  fCycleNum[modType]++;
 
-  if(fNEvents < 3){
-    std::cout << red <<"Error in run:: Number of good events too small, exiting." 
+  if(fNEvents < minEvents){
+    std::cout << red <<"Number of good events too small in microcycle. Exiting." 
 	      << normal << std::endl;
     return;
   }
-  
+  //  std::cout<<"fNEvents="<<CoilData[modType].size()<<" "<<fNEvents<<std::endl; 
   if(CoilData[modType].size() <= 0){
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" 
 	      << CoilData[modType].size() << std::endl;
@@ -213,19 +216,19 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
 				   "[2] * TMath::Cos(%e * x)", kDegToRad, 
 				   kDegToRad), 0.0, 360.0); 
   fctn->SetParNames("Const.", "A_s", "A_c");
-  fctn->SetParameters(0.0, 1.0, -0.1);
   fctn->SetLineColor(kBlack);
   
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1);
   
   // Arrays for all fits. 
-  Double_t x[fNEvents];				// Dependent
-  Double_t y[fNEvents];				// Independent
-  
+  Double_t *x, *y;
+  x = new Double_t[fNEvents];			
+  y = new Double_t[fNEvents];				
+
   c_mean=0;
   c_mean2=0;
-  for(Int_t evNum=0; evNum<fNEvents; evNum++) { // Dependent is always ramp
+  for(Int_t evNum=0; evNum<fNEvents; evNum++) { 
     x[evNum] = CoilData[modType][evNum] + phase[modType]/kDegToRad;
     if(x[evNum] >= 360.0)
       x[evNum] -= 360.0;
@@ -234,14 +237,11 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
   }
   c_mean /= fNEvents;
   c_mean2 /= fNEvents;
-  
+
   // Variables to hold fit parameters.
-  Double_t Const = 0;
-  //Double_t ConstError = 0;
-  Double_t sinAmp = 0;
-  Double_t sinAmpError = 0; 
-  Double_t cosAmp = 0;
-  Double_t cosAmpError = 0;  
+  Double_t mean = 0, meanError = 0;
+  Double_t sinAmp = 0, sinAmpError = 0; 
+  Double_t cosAmp = 0, cosAmpError = 0;  
 
   char  *ModName[modType];
   ModName[fXModulation] = "X";
@@ -259,8 +259,15 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     cM->Divide(3,2);
   }
   
-  TGraph* mongr[fNMonitor];
-  
+  TGraph mongr[fNMonitor];
+  TProfile monpr[fNMonitor];
+  //Write sensitivities to coils to file as they are determined
+   if(coil_sens.is_open()&&coil_sens.good()){
+     coil_sens << Form("Coil %i                     Constant       Error"
+		       "            Sine           Error            Cosine"
+		       "         Error          ChiSq/NDF          nEvents\n",
+		       modType);
+  }
   for(Int_t mon=0; mon<fNMonitor; mon++) {
     if(MonitorData[mon].size() <= 0){
       std::cout << "!!!!!!!!!!!!!!!!! Illegal Monitor vector length:\t" 
@@ -273,19 +280,21 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     sigma_cc2=0;
     sigma_dc2=0;
     d_mean =0;
-
+    Double_t max = MonitorData[mon][0], min = MonitorData[mon][0];
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       y[evNum] = MonitorData[mon][evNum];
-      d_mean += y[evNum];      
+      d_mean += y[evNum];     
+      if(y[evNum]>max)max = y[evNum];
+      if(y[evNum]<min)min = y[evNum];
     }
-    d_mean /= fNEvents;
+    d_mean /= (Double_t)fNEvents;
     
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       Double_t val1 = TMath::Sin(kDegToRad*x[evNum]) - c_mean;
       Double_t val2 = y[evNum] - d_mean;
 
       Double_t val1c = TMath::Cos(kDegToRad*x[evNum]) - c_mean2;
-      
+
       sigma_cc += val1*val1;
       sigma_dc += val1*val2;
       sigma_cc2 += val1c*val1c;
@@ -294,44 +303,71 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     slope = sigma_dc/sigma_cc;
     slope2 = sigma_dc2/sigma_cc2;
     
-    // Perform fit.    
-    mongr[mon] = new TGraph(fNEvents, x, y);
-    fctn->SetParameters(d_mean, slope, slope2);
-    mongr[mon]->Fit("fctn", "qr");
+    // Perform fit. 
+    //    printf("min=%f   max=%f\n",min,max);
+    if(profile){
+      monpr[mon] = TProfile(Form("monpr%i",mon),Form("monpr%i",mon),
+			    100, 0.0,360.0, min, max);
+      for(Int_t evNum=0; evNum<fNEvents; evNum++) {
+	monpr[mon].Fill(x[evNum],y[evNum],1);
+      }
+      fctn->SetParameters(d_mean, slope, slope2);
+      monpr[mon].Approximate(1);
+      monpr[mon].Fit("fctn", "qr");
+    }else{
+      mongr[mon] = TGraph(fNEvents, x, y);
+      fctn->SetParameters(d_mean, slope, slope2);
+      mongr[mon].Fit("fctn", "qr");
+    }
+
     if(makePlots){
       cM->cd(mon+1);
-      mongr[mon]->SetMarkerColor(kBlue);
-      mongr[mon]->SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
-      mongr[mon]->GetXaxis()->SetTitle("ramp");
-      mongr[mon]->GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
-      mongr[mon]->Draw("AP");
+      monpr[mon].SetMarkerColor(kBlue);
+      monpr[mon].SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
+      monpr[mon].GetXaxis()->SetTitle("ramp");
+      monpr[mon].GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
+      monpr[mon].Draw("AP");
       cM->Update();
     }
     
-    //Const = fctn->GetParameter(0);        
-    //ConstError = fctn->GetParError(0);
+    mean = fctn->GetParameter(0);
+    meanError = fctn->GetParError(0);
     sinAmp = fctn->GetParameter(1);
     sinAmpError = fctn->GetParError(1);
     cosAmp = fctn->GetParameter(2);
     cosAmpError = fctn->GetParError(2);
     
-    MonitorSlope[modType][mon].push_back(sinAmp);
-    MonitorSlopeError[modType][mon].push_back(sinAmpError);
-    MonitorSlope[modType+5][mon].push_back(cosAmp);
-    MonitorSlopeError[modType+5][mon].push_back(cosAmpError);
-    
+    slopeSin = sinAmp;
+    slopeSinErr = sinAmpError;
+    slopeCos = cosAmp;
+    slopeCosErr = cosAmpError;
+
+    MonitorSlope[modType][mon].push_back(slopeSin);
+    MonitorSlopeError[modType][mon].push_back(slopeSinErr);
+    MonitorSlope[modType+5][mon].push_back(slopeCos);
+    MonitorSlopeError[modType+5][mon].push_back(slopeCosErr);
+ 
+    if(coil_sens.is_open()&&coil_sens.good()){
+      coil_sens << MonitorList[mon].Data() <<
+	(MonitorList[mon].Contains("Slope") ? "\t" : "\t\t")<<
+	Form("%+13.6e  %11.4e ",mean,meanError)<<"\t"<<
+	Form("%+13.6e  %11.4e ",slopeSin,slopeSinErr)<<"\t"<<
+	Form("%+13.6e  %11.4e\t %f\n",slopeCos,slopeCosErr, 
+	     fctn->GetChisquare()/fctn->GetNDF());
+    }else printf("Coil sensitivities file not opened. Cannot write data.\n");
   }
   
   if(makePlots){
     cM->cd(6);
-    TPaveText* pt1 = new TPaveText(0.05, 0.05, 0.8, 0.8);
-    pt1->AddText(Form("%s Modulation", ModName[modType]));
-    pt1->SetFillColor(43);
-    pt1->Draw();
+    TPaveText pt1 = TPaveText(0.05, 0.05, 0.8, 0.8);
+    pt1.AddText(Form("%s Modulation", ModName[modType]));
+    pt1.SetFillColor(43);
+    pt1.Draw();
     cM->cd();
     cM->Print(Form("MonitorPlot%i.png",modType));
     delete cM;
   }
+  
   
   ///////////////
   // Detectors //
@@ -344,7 +380,8 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     cD->Divide(6,5);
   }
   
-  TGraph* detgr[fNDetector];
+  TGraph detgr[fNDetector];
+  TProfile detpr[fNDetector];
   
   for(Int_t det=0; det<fNDetector; det++) {
     if(DetectorData[det].size() <= 0){
@@ -359,12 +396,15 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     sigma_dc2=0;
     d_mean =0;
 
+    Double_t max = DetectorData[det][0], min = DetectorData[det][0];
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       y[evNum] = DetectorData[det][evNum];
-      d_mean += y[evNum];      
+      d_mean += y[evNum];
+      if(y[evNum]>max) max = y[evNum];    
+      if(y[evNum]<min) min = y[evNum];    
     }
-    d_mean /= fNEvents;
-    
+    d_mean /= (Double_t)fNEvents;
+
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       Double_t val1 = TMath::Sin(kDegToRad*x[evNum]) - c_mean;
       Double_t val2 = y[evNum] - d_mean;
@@ -378,40 +418,78 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     slope = sigma_dc/sigma_cc;
     slope2 = sigma_dc2/sigma_cc2;
     
-    // Perform fit.    
-    detgr[det] = new TGraph(fNEvents, x, y);
-    fctn->SetParameters(d_mean, slope, slope2);
-    detgr[det]->Fit("fctn", "qr");
+   //    printf("%s min=%f   max=%f\n",DetectorList[det].Data(),min,max);
+
+    // Perform fit. 
+    detpr[det] = TProfile(Form("detpr%i", det), Form("detpr%i", det),
+			  100, 0.0,360.0,min, max);
+    if(max>min){
+      if(profile){
+	for(Int_t evNum=0; evNum<fNEvents; evNum++) {
+	  detpr[det].Fill(x[evNum],y[evNum] ,1);
+	}
+	fctn->SetParameters(d_mean, slope, slope2);
+	detpr[det].Approximate(1);
+	detpr[det].Fit("fctn", "qr");
+      }
+      else{
+	detgr[det] = TGraph(fNEvents, x, y);
+	fctn->SetParameters(d_mean, slope, slope2);
+	detgr[det].Fit("fctn", "qr");
+      }
+    }else{
+      fctn->SetParameters(0, 0.0, 0.0);
+      Double_t err[3] = {1.0, 1.0, 1.0};
+      fctn->SetParErrors(err);
+    }
     if(makePlots){
       cD->cd(det+1);
-      detgr[det]->SetMarkerColor(kBlue);
-      detgr[det]->SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
-      detgr[det]->GetXaxis()->SetTitle("ramp");
-      detgr[det]->GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
-      detgr[det]->Draw("AP");
+      detpr[det].SetMarkerColor(kBlue);
+      detpr[det].SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
+      detpr[det].GetXaxis()->SetTitle("ramp");
+      detpr[det].GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
+      detpr[det].Draw("AP");
       cD->Update();
     }
     
-    Const = fctn->GetParameter(0);        
-    //ConstError = fctn->GetParError(0);
-    sinAmp = fctn->GetParameter(1);
-    sinAmpError = fctn->GetParError(1);
-    cosAmp = fctn->GetParameter(2);
-    cosAmpError = fctn->GetParError(2);
-    
-    DetectorSlope[modType][det].push_back(sinAmp/Const);
-    DetectorSlopeError[modType][det].push_back(sinAmpError);
-    DetectorSlope[modType+5][det].push_back(cosAmp/Const);
-    DetectorSlopeError[modType+5][det].push_back(cosAmpError);
-    
+    mean = (fctn->GetParameter(0));        
+    meanError = (fctn->GetParError(0));
+    sinAmp = (fctn->GetParameter(1));
+    sinAmpError = (fctn->GetParError(1));
+    cosAmp = (fctn->GetParameter(2));
+    cosAmpError = (fctn->GetParError(2));
+
+    slopeSin = sinAmp/mean;
+    slopeSinErr = TMath::Abs(sinAmp/mean) *
+       TMath::Sqrt(TMath::Power(sinAmpError/sinAmp,2) +
+		   TMath::Power(meanError/mean,2));
+    slopeCos = cosAmp/mean;
+    slopeCosErr = TMath::Abs(cosAmp/mean) * 
+      TMath::Sqrt(TMath::Power(cosAmpError/cosAmp,2) +
+		  TMath::Power(meanError/mean,2));
+//     slopeSinErr = sinAmpError; 
+//     slopeCosErr = cosAmpError; 
+    DetectorSlope[modType][det].push_back(slopeSin);
+    DetectorSlopeError[modType][det].push_back(slopeSinErr);
+    DetectorSlope[modType+5][det].push_back(slopeCos);
+    DetectorSlopeError[modType+5][det].push_back(slopeCosErr);
+
+    //Write sensitivities to coils to file
+    if(coil_sens.is_open()&&coil_sens.good()){
+      coil_sens << DetectorList[det].Data() <<"\t\t"<<
+	Form("%+13.6e  %11.4e ",mean,meanError)<<"\t"<<
+	Form("%+13.6e  %11.4e \t", slopeSin,slopeSinErr)<<
+	Form("%+13.6e  %11.4e\t %f\t %i\n",slopeCos,slopeCosErr, 
+	     fctn->GetChisquare()/fctn->GetNDF(), fNEvents);
+    }    
   }
-  
+
   if(makePlots){
     cD->cd(30);
-    TPaveText* pt2 = new TPaveText(0.05, 0.05, 0.8, 0.8);
-    pt2->AddText(Form("%s Modulation", ModName[modType]));
-    pt2->SetFillColor(43);
-    pt2->Draw();
+    TPaveText pt2 = TPaveText(0.05, 0.05, 0.8, 0.8);
+    pt2.AddText(Form("%s Modulation", ModName[modType]));
+    pt2.SetFillColor(43);
+    pt2.Draw();
     cD->cd();
     cD->Print(Form("DetectorPlot%i.png",modType));
     delete cD;
@@ -425,7 +503,10 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
   if(modType == fEModulation)  fEinit = true;
   if(modType == fXPModulation) fXPinit = true;
   if(modType == fYPModulation) fYPinit = true;
-  
+  delete [] x;
+  delete [] y;
+  if(coil_sens.is_open()&&coil_sens.good())
+    coil_sens <<"\n";
   return;
 }
 
@@ -580,34 +661,37 @@ Int_t QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
   Double_t mean_error = 0;
   Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
   for(Int_t i = 0; i < nMod; i++){
+    AvDetectorSlope[i].clear();
+    AvDetectorSlopeError[i].clear();
     for(Int_t j = 0; j < fNDetector; j++){
+      mean = 0, mean_error = 0;
       for(Int_t k = 0; k < (Int_t)DetectorSlope[i][j].size(); k++){
 	mean += ( DetectorSlope[i][j][k]
 		  * TMath::Power(DetectorSlopeError[i][j][k],-2) );
 
-        mean_error += TMath::Power(DetectorSlopeError[i][j][k],-2);
+	mean_error += TMath::Power(DetectorSlopeError[i][j][k],-2);
       }
       if(mean_error > 0){
 	mean /= mean_error;
 	AvDetectorSlope[i].push_back(mean);
-	AvDetectorSlopeError[i].push_back(TMath::Sqrt(1/mean_error));
-	mean = 0;
-	mean_error = 0;
+	AvDetectorSlopeError[i].push_back(TMath::Sqrt(1.0/mean_error));
       }
       else{ 
-	std::cout << "\n[empty]Detector Weighted Mean:= "<< mean 
-		  << " +/- " << mean_error <<". Exiting."<< std::endl; 
-	return -1;
-// 	mean = 0;
-// 	mean_error = 0;
-// 	AvDetectorSlope[i].push_back(mean);
-// 	AvDetectorSlopeError[i].push_back(mean_error);
+	//Don't terminate loop if one detector fails.
+	std::cout <<mean_error<< "\nUndefined "<<DetectorList[j].Data()<<
+	  " Error Weighted Mean:= "<< mean << " +/- " << mean_error <<std::endl;
+ 	AvDetectorSlope[i].push_back(mean);
+ 	AvDetectorSlopeError[i].push_back(mean_error);
 
       }
     }
   }
+
   for(Int_t i = 0; i < nMod; i++){
+    AvMonitorSlope[i].clear();
+    AvMonitorSlopeError[i].clear();
     for(Int_t j = 0; j < fNMonitor; j++){
+      mean = 0, mean_error = 0;
       for(Int_t k = 0; k < (Int_t)MonitorSlope[i][j].size(); k++){
 	mean += ( MonitorSlope[i][j][k]
 		  *TMath::Power(MonitorSlopeError[i][j][k],-2) );
@@ -616,18 +700,16 @@ Int_t QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
       if(mean_error > 0){
 	mean /= mean_error;
 	AvMonitorSlope[i].push_back(mean);
-	AvMonitorSlopeError[i].push_back(TMath::Sqrt(1/mean_error));
+	AvMonitorSlopeError[i].push_back(TMath::Sqrt(1.0/mean_error));
 
-	mean = 0;
-	mean_error = 0;
       }
       else{
-	mean = 0;
-	mean_error = 0;
-	std::cout << "Monitor Weighted Mean:= "<< mean << " / " 
+	//Terminate loop if even one monitor fails since all are necessary.
+	std::cout << "Error! Monitor Weighted Mean:= "<< mean << " / " 
 		  << mean_error << std::endl; 
 	AvMonitorSlope[i].push_back(mean);
 	AvMonitorSlopeError[i].push_back(mean_error);
+	return -1;
       }
     }
   }
@@ -646,7 +728,7 @@ Int_t QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
 void QwMpsOnly::CheckFlags()
 {
 
-  if( !(fXinit && fYinit && fEinit && fXPinit && fYPinit) ){
+  if( !fFullCycle ){
     PrintError("Not enough modulation cycles in this run -- exiting");
     CleanFolders();
     exit(1);
@@ -1611,8 +1693,27 @@ Int_t QwMpsOnly::MakeRampFilled(Bool_t verbose)
   return 0;
 }
 
-void QwMpsOnly::MatrixFill()
-{
+void QwMpsOnly::MatrixFill(Bool_t run_avg)
+{ //Treat differently if analyzing full run average than if single full cycle
+  //For analyzing a single cycle, copy cycle slopes into AverageSlope vectors
+  //and proceed as usual.
+
+  if(!run_avg){
+    for(Int_t icoil=0;icoil<fNModType*(fChiSquareMinimization ? 2 : 1);icoil++){
+      AvDetectorSlope[icoil].clear();
+      AvDetectorSlopeError[icoil].clear();
+      for(Int_t idet=0;idet<fNDetector;idet++){
+	AvDetectorSlope[icoil].push_back(DetectorSlope[icoil][idet].back());
+	AvDetectorSlopeError[icoil].push_back(DetectorSlopeError[icoil][idet].back());
+      }
+      AvMonitorSlope[icoil].clear();
+      AvMonitorSlopeError[icoil].clear();
+      for(Int_t imon=0;imon<fNMonitor;imon++){
+	AvMonitorSlope[icoil].push_back(MonitorSlope[icoil][imon].back());
+	AvMonitorSlopeError[icoil].push_back(MonitorSlopeError[icoil][imon].back());
+      }
+    }
+  }
 
   TMatrixD AMatrix(fNDetector, fNModType);
   TMatrixD AMatrixE(fNDetector, fNModType);
@@ -1620,27 +1721,31 @@ void QwMpsOnly::MatrixFill()
   Double_t determinant;
 
   CheckFlags();
-
-  diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i%s.%s.dat", output.Data(), 
-		       fFileSegment.Data(), run_number,
-		       (fChiSquareMinimization ? "_ChiSqMin" : ""), 
-		       fSetStem.Data()), fstream::out);
+  if(run_avg){
+    diagnostic.open(Form("%s/diagnostics/diagnostic%s_%i%s.%s.dat", output.Data(),
+			 fFileSegment.Data(), run_number,
+			 (fChiSquareMinimization ? "_ChiSqMin" : ""), 
+			 fSetStem.Data()), fstream::out);
+  }
 
   for(Int_t j = 0; j < fNDetector; j++){
-    diagnostic << DetectorList[j] << std::endl;
+    if(diagnostic.is_open()&&diagnostic.good() && run_avg)
+      diagnostic << DetectorList[j] << std::endl;
     for(Int_t k = 0; k < fNModType; k++){
-      AMatrix(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrix(j,k) : 
+      AMatrix(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrix(j,k): 
 		      AvDetectorSlope[k][j]);
-      AMatrixE(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrixError(j,k) : 
-		      AvDetectorSlopeError[k][j]);
-      if( (diagnostic.is_open() && diagnostic.good()) ){
+      AMatrixE(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrixError(j,k):
+		       AvDetectorSlopeError[k][j]);
+      if( (diagnostic.is_open() && diagnostic.good()) && run_avg ){
 	diagnostic << AvDetectorSlope[k][j] << " +- " 
 		   << AvDetectorSlopeError[k][j] << " ";
       }
     }
-    diagnostic << std::endl;
+    if( (diagnostic.is_open() && diagnostic.good()) && run_avg )
+      diagnostic << std::endl;
   }
-  diagnostic << std::endl;
+  if( (diagnostic.is_open() && diagnostic.good()) && run_avg ) 
+    diagnostic << std::endl;
   std::cout << "\t\t\t\t::A Matrix::"<< std::endl;
   AMatrix.Print("%11.10f");
 
@@ -1659,24 +1764,25 @@ void QwMpsOnly::MatrixFill()
 			     FindChiSquareMinRMatrixError(imon,icoil) :
 			     AvMonitorSlopeError[icoil][imon]);
 
-      if( (diagnostic.is_open() && diagnostic.good()) ){
+      if( (diagnostic.is_open() && diagnostic.good() && run_avg) ){
 	diagnostic << AvMonitorSlope[icoil][imon] << " +- " 
 		   << AvMonitorSlopeError[icoil][imon] << " ";
       }
     }
-    diagnostic << std::endl;
+    if( (diagnostic.is_open() && diagnostic.good()) && run_avg )
+      diagnostic << std::endl;
   }
   std::cout << "\t\t\t\t::R Matrix:: " << std::endl;
   RMatrix.Print("%11.10f");
   
   std::cout << "\t\t\t\t::R Matrix Error::"<< std::endl;
   RMatrixE.Print("%11.10f");
-  
+
   //get eigenvalues and eigenvectors of RMatrix
   TVectorD RMatrixEigenvalues(fNMonitor);
   TMatrixD RMatrixEigenvectors(fNMonitor, fNModType);
   RMatrixEigenvectors = RMatrix.EigenVectors(RMatrixEigenvalues);
-  if( (diagnostic.is_open() && diagnostic.good()) ){
+  if( (diagnostic.is_open() && diagnostic.good()) && run_avg){
     diagnostic <<"\n\nRMatrix Eigenvalues:\n";
     for(int row=0;row<fNMonitor;row++){
       diagnostic <<Form("%+0.13f   ",RMatrixEigenvalues(row));
@@ -1721,7 +1827,7 @@ void QwMpsOnly::MatrixFill()
   else
     ComputeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
 
-  Write();
+  Write(run_avg);
 
   if(fSensHumanReadable == 1){
     std::cout << "Exiting after sensitivities." << std::endl;
@@ -1761,6 +1867,19 @@ Int_t QwMpsOnly::PilferData()
     if(pat > -1 && pat < 5)
       i =  ProcessMicroCycle(i, &fEvCounter, &error[0], &good[0]);
     else nonModEvts++;
+
+    //Invert matrix each full cycle
+    if(fXinit && fYinit && fEinit && fXPinit && fYPinit){
+      fMacroCycleNum ++;
+      fFullCycle = true;
+      MatrixFill(0);
+      //reset all flags
+      fXinit = 0;
+      fYinit = 0;
+      fEinit = 0;
+      fXPinit = 0;
+      fYPinit = 0;
+    }
   }
 
   std::cout << "Run "<<run_number<<std::endl;
@@ -1892,12 +2011,12 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
   }
   i--;
   err[modType] += nErr;
-  std::cout<<fNEvents<< " good "<<pattern<<"-type modulation events found. ";
-  std::cout<<nErr<<" errors -- "<<err[modType]<<" total "<<pattern<<
+  std::cout<<fNEvents<< " good "<<modType<<"-type modulation events found. ";
+  std::cout<<nErr<<" errors -- "<<err[modType]<<" total "<<modType<<
     "-type errors.\n";
 
   if(f2DFit) {
-    Calculate2DSlope(modType, 0);
+    Calculate2DSlope(modType, 0, 1);
   } else {
     CalculateSlope(modType);
   }
@@ -2285,15 +2404,38 @@ void QwMpsOnly::Show(Long64_t entry)
 
 
 
-void QwMpsOnly::Write(){
-  //*********************************************
-  //
-  //  Slopes.dat is really a deprecated file 
-  //  at this point.  I will remove it soon.
-  //
-  //********************************************
+void QwMpsOnly::Write(Bool_t run_avg){
+  //Write single cycle slopes to different directory and files 
+  //than run averaged slopes.
 
   gSystem->Exec("umask 002");
+
+  if(!run_avg){
+    //Write output to individual macrocycle files here.
+    if(!macrocycle_slopes.is_open()){
+      macrocycle_slopes.open(Form("%s/macrocycle_slopes/"
+				  "macrocycle_slopes%s_%i%s.%s.dat", 
+				  output.Data(), fFileSegment.Data(), run_number, 
+				  (fChiSquareMinimization ? "_ChiSqMin" : ""),
+				  fSetStem.Data()), fstream::out);
+    }
+    if(macrocycle_slopes.is_open() && macrocycle_slopes.good()){
+      macrocycle_slopes<<"Macrocycle "<<fMacroCycleNum<<" \t";
+      for(Int_t imod = 0;imod<kNMod;imod++){
+	macrocycle_slopes<<"Mod"<<imod<<" "<<fCycleNum[imod]<<" \t";
+      }
+      macrocycle_slopes<<std::endl;
+      for(Int_t i = 0; i < fNDetector; i++){
+	macrocycle_slopes << "det " << DetectorList[i] << std::endl;
+	for(Int_t j = 0; j < fNModType; j++){
+	  macrocycle_slopes << Form("%+14.7e",YieldSlope[i][j]) << "\t"
+		 << Form("%12.5e",YieldSlopeError[i][j]) << std::endl;
+	}
+      }
+    }else std::cout<<"Macrocycle slopes file not open.\n";
+
+    return;
+  }
 
   slopes.open(Form("%s/slopes/slopes%s_%i%s.%s.dat", output.Data(), 
 		   fFileSegment.Data(), run_number, 
@@ -2376,6 +2518,7 @@ void QwMpsOnly::Write(){
 
   fclose(regression);
   slopes.close();
+  macrocycle_slopes.close();
   diagnostic.close();
   
   return;

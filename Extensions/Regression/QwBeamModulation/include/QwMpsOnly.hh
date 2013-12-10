@@ -23,15 +23,19 @@ class QwMpsOnly {
 private:
   static const Int_t kNMaxMon = 6;
   static const Int_t kNMaxDet = 35;
+  static const Int_t kNMod = 5;
   static const Int_t kNMaxCoil = 5;
   static const Int_t kBranchSize = 13;
   static const Int_t kDeviceErrorCode = 6;
   static const Int_t kError = 1;
   static const Int_t kRampPedestal = 128;
+  static const Double_t kErrorFlag = -999999;
   static const Double_t PI = 3.14159265358979312;
   static const Double_t kDegToRad = 1.74532925199432955e-02;
 
   char *fg[4];//used by FindRampPeriodAndOffset() and Write()
+  Int_t fMacroCycleNum;
+  Int_t fCycleNum[kNMod];
   Int_t fDetectorRead;
   Int_t fMonitorRead;
   Int_t fXModulation;
@@ -48,9 +52,8 @@ private:
   Int_t fSensHumanReadable;
   Int_t fNModType;
   Int_t fPedestal;
-
+  Bool_t fFullCycle;
   Bool_t f2DFit;
-  Bool_t fChiSquareMinimization;
   Bool_t fNewEbpm;
 
   Int_t fNModEvents;
@@ -172,7 +175,9 @@ public :
   std::fstream config;
   std::fstream input;
   std::fstream slopes;
+  std::fstream macrocycle_slopes;
   std::fstream diagnostic;
+  std::fstream coil_sens;
   std::fstream charge_sens;  
 
   FILE *regression;
@@ -213,6 +218,7 @@ public :
   Bool_t fFileSegmentInclude;
   Bool_t fRunNumberSet;
   Bool_t fPhaseConfig;
+  Bool_t fChiSquareMinimization;
 
   TString fChargeFile;
   TString fFileSegment;
@@ -257,9 +263,9 @@ public :
   void     BuildMonitorAvSlope();
   void     BuildDetectorAvSlope();
   void     CalculateSlope(Int_t);
-  void     Calculate2DSlope(Int_t, Int_t);
+  void     Calculate2DSlope(Int_t, Int_t, Bool_t);
   void     SetRampScaleAndOffset();
-  void     MatrixFill();
+  void     MatrixFill(Bool_t);
   void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     ComputeSlopeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     SetFileName(TString &);
@@ -272,7 +278,7 @@ public :
   void     SetupHelBranchAddress(void); 
   void     PrintError(TString);
   void     SetPhaseValues(Double_t *);
-  void     Write();
+  void     Write(Bool_t);
   void     Clean(void);
   void     CleanFolders(void);
   void     GetOptions(Int_t, Char_t **);

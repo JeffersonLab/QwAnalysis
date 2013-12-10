@@ -7,11 +7,11 @@ PLOTASPROFILE=1
 for i in `seq $1 $2`
   do
   SLOPESFILE="/net/data1/paschkedata1/bmod_out/slopes/slopes_${i}_ChiSqMin.set0.dat"
-  if [ -f $SLOPESFILE ]; then
-      echo $SLOPESFILE found. 
-  else
+#  if [ -f $SLOPESFILE ]; then
+#      echo $SLOPESFILE found. 
+#  else
       ${BMOD_SRC}/runMpsOnly --ramp-max-nonlin 3 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config ${BMOD_SRC}/config/phase_set0.config --run ${i} --chi-square-min 1
-  fi 
+#  fi 
       nice root -b -q checkInvertedSlopes.C\(${i},$PLOTASPROFILE,$CHISQUARE\)
 done
 
