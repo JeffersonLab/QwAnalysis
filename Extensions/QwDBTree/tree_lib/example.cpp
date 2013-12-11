@@ -77,10 +77,10 @@ int main(int argc, char* argv[]) {
     c = new TCanvas("c"); 
 
     /* Use ValueRunletPlot() method to plot value leaf vs runlet. */
-    //mdallpmtavg.ValueRunletPlot();
+    mdallpmtavg.ValueRunletPlot();
 
     /* Use the ValuePlot method to plot a histo of value. */
-    mdallpmtavg.ValuePlot();
+    //mdallpmtavg.ValuePlot();
 
     /* If uncommented, will print all the values for that object. */
     //mdallpmtavg.debug();

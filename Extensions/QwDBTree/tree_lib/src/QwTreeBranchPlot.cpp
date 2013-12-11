@@ -31,8 +31,16 @@ QwTreeBranchPlot::QwTreeBranchPlot(TString temp_plot_label, TString temp_x_axis_
 
 /* Plots value vs runlet. This is just the start, more work needed here. */
 void QwTreeBranchPlot::ValueRunletPlot(void) {
-    /* Convert the runlet vector<int> into a vector<double> for plotting. */
-    std::vector<double> double_runlet(this->get_runlet().begin(), this->get_runlet().end());
+    /*
+     * Convert the runlet vector<int> into a vector<double> for plotting. Only
+     * works in clang, changing to a for loop for now, till I can figure it
+     * out.
+     */ 
+    //std::vector<double> double_runlet(this->get_runlet().begin(), this->get_runlet().end());
+    std::vector<double> double_runlet;
+    for(int i = 0; i < this->size(); i++) 
+        double_runlet.push_back((double)this->get_runlet()[i]);
+
 
     /* Plot value vs runlet. */
     TGraphErrors* temp_plot = new TGraphErrors(this->size(),
@@ -69,7 +77,7 @@ void QwTreeBranchPlot::ValuePlot(void) {
     vector<double> fill_data = this->get_value();
     cout << fill_data.size() << endl;
     /* Fill the histo. */
-    for(int i = 0; i < fill_data.size(); i++){
+    for(unsigned int i = 0; i < fill_data.size(); i++){
         temp_histo->Fill(fill_data[i]);
     }
 
@@ -92,7 +100,7 @@ void QwTreeBranchPlot::ValuePlotSignCorr(void) {
     vector<int> sign = this->get_sign();
     cout << fill_data.size() << endl;
     /* Fill the histo. */
-    for(int i = 0; i < fill_data.size(); i++){
+    for(unsigned int i = 0; i < fill_data.size(); i++){
         temp_histo->Fill((double)sign[i]*fill_data[i]);
     }
     
@@ -115,7 +123,7 @@ void QwTreeBranchPlot::ValuePlotWeight(void) {
     vector<double> weight = this->get_weight();
     cout << fill_data.size() << endl;
     /* Fill the histo. */
-    for(int i = 0; i < fill_data.size(); i++){
+    for(unsigned int i = 0; i < fill_data.size(); i++){
         temp_histo->Fill(fill_data[i]/weight[i], TMath::Power(1/weight[i],2));
     }
 
@@ -139,7 +147,7 @@ void QwTreeBranchPlot::ValuePlotSignCorrWeight(void) {
     vector<double> weight = this->get_weight();
     cout << fill_data.size() << endl;
     /* Fill the histo. */
-    for(int i = 0; i < fill_data.size(); i++){
+    for(unsigned int i = 0; i < fill_data.size(); i++){
         temp_histo->Fill((double)sign[i]*fill_data[i], TMath::Power(1/weight[i],2));
     }
 
