@@ -11,10 +11,10 @@ configSuffix=$7
 myown="c-qweak"
 myperm="u+rw,g+rw"
 
-if [ $# -ne 7 ] ; then
-   echo provide run +segemnt + outPath + workDir + rootFileStem + dbName + confSuffix
-   exit
-fi
+#if [ $# -ne 7 ] ; then
+#   echo provide run +segemnt + outPath + workDir + rootFileStem + dbName + confSuffix
+#   exit
+#fi
 
 if [[ "$configSuffix" == "" || "$configSuffix" == "std" ]] ; then
     set_option=""
@@ -74,8 +74,10 @@ if [ $run -ge 9442  -a  $run -le 11701 ] ; then
     confDir="run1pass5_uslumi7pos"
     elif [ $run -ge 11002 ] ; then
 	confDir="run1pass5_11002"
-	#The Lumi7 saturation period 11230 - 11304
-	if [ $run -ge 11230  -a  $run -le 11304 ] ; then
+	#The Lumi7 saturation period 
+    if [ $run -ge 11107  -a  $run -le 11162 ] ; then
+        confDir="run1pass5_uslumi7neg"
+	elif [ $run -ge 11230  -a  $run -le 11304 ] ; then
 	    confDir="run1pass5_11230-11304"
 	fi
     else
@@ -83,6 +85,10 @@ if [ $run -ge 9442  -a  $run -le 11701 ] ; then
         #  the preceeding conditional cascades.
         echo "Keep confDir set to $confDir"
     fi
+fi
+#The Lumi 1 saturation period
+if [ $run -ge 12024 -a $run -le 12078 ] ; then
+    confDir="run1pass5_uslumi1pos"
 fi
 
 # For transverse use both set4 and set 10 (which uses bcm6). Buddhini 07-25-2012.
@@ -99,6 +105,9 @@ else
     #  the preceeding conditional cascades.
     echo "Keep confDir set to $confDir"
 fi
+
+echo $confDir
+exit 0
 
 scriptPath=`dirname $0`
 
