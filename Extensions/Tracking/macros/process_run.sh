@@ -87,6 +87,9 @@ do
       [0-9]*)
          RUNNUM=$i
          ;;
+      -1)
+         ## qwbatchsub adds this if all segments are to be analyzed
+         ;;
       *)
          echo "Error: option $i is unkown"
          exit -1;
