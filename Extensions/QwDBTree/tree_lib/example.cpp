@@ -52,6 +52,7 @@ int main(int argc, char* argv[]) {
      * get_data_from_tree(TTree*, "variable name as appears in branch")
      */ 
     mdallpmtavg.get_data_from_tree(tree_asym, "asym_mdallpmtavg", "asym_qwk_charge");
+    //mdallpmtavg.set_weight_value(tree_asym, "asym_qwk_charge");
 
     /*
      * Will grab only wien 6 from the rootfile. Currently, it disagrees with

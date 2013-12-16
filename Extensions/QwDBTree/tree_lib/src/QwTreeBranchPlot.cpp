@@ -41,11 +41,146 @@ void QwTreeBranchPlot::ValueRunletPlot(void) {
     for(int i = 0; i < this->size(); i++) 
         double_runlet.push_back((double)this->get_runlet()[i]);
 
+    /* Plot value vs runlet. */
+    TGraphErrors* temp_plot = new TGraphErrors(this->size(),
+                                               &(double_runlet[0]),
+                                               &(this->get_value()[0]),
+                                               0,
+                                               &(this->get_error()[0]));
+    /* Set style. Do we want to store style info in the class? */
+    temp_plot->SetMarkerStyle(kFullSquare);
+    temp_plot->SetMarkerSize(1);
+    temp_plot->SetMarkerColor(kBlack);
+
+    /* Draw. */
+    temp_plot->Draw("AP");
+
+    /* Set axis and plot labels. */
+    temp_plot->SetTitle(plot_label);
+    temp_plot->GetXaxis()->SetTitle(x_axis_label);
+    temp_plot->GetYaxis()->SetTitle(y_axis_label);
+
+    /* Fit. */
+    temp_plot->Fit("pol0");
+}
+
+/* Plots value vs runlet, sign corrected. This is just the start, more work needed here. */
+void QwTreeBranchPlot::ValueRunletPlotSignCorr(void) {
+    /*
+     * Convert the runlet vector<int> into a vector<double> for plotting. Only
+     * works in clang, changing to a for loop for now, till I can figure it
+     * out.
+     */ 
+    //std::vector<double> double_runlet(this->get_runlet().begin(), this->get_runlet().end());
+    std::vector<double> double_runlet;
+    for(int i = 0; i < this->size(); i++) 
+        double_runlet.push_back((double)this->get_runlet()[i]);
+
+    /* Sign correct value. */
+    std::vector<double> value_sign_corr;
+    for(int i = 0; i < this->size(); i++)
+        value_sign_corr.push_back(this->get_value()[i] * (double)this->get_sign()[i]);
+
+    /* Plot value vs runlet. */
+    TGraphErrors* temp_plot = new TGraphErrors(this->size(),
+                                               &(double_runlet[0]),
+                                               &(value_sign_corr[0]),
+                                               0,
+                                               &(this->get_error()[0]));
+    /* Set style. Do we want to store style info in the class? */
+    temp_plot->SetMarkerStyle(kFullSquare);
+    temp_plot->SetMarkerSize(1);
+    temp_plot->SetMarkerColor(kBlack);
+
+    /* Draw. */
+    temp_plot->Draw("AP");
+
+    /* Set axis and plot labels. */
+    temp_plot->SetTitle(plot_label);
+    temp_plot->GetXaxis()->SetTitle(x_axis_label);
+    temp_plot->GetYaxis()->SetTitle(y_axis_label);
+
+    /* Fit. */
+    temp_plot->Fit("pol0");
+}
+
+/* Plots value vs runlet, weighted. This is just the start, more work needed here. */
+void QwTreeBranchPlot::ValueRunletPlotWeight(void) {
+    /* Check if there is actually a weight. */
+    if(get_weight().empty()) {
+        cout << "Weight not filled. Exiting." << endl;
+        exit(0);
+    }
+
+    /*
+     * Convert the runlet vector<int> into a vector<double> for plotting. Only
+     * works in clang, changing to a for loop for now, till I can figure it
+     * out.
+     */ 
+    //std::vector<double> double_runlet(this->get_runlet().begin(), this->get_runlet().end());
+    std::vector<double> double_runlet;
+    for(int i = 0; i < this->size(); i++) 
+        double_runlet.push_back((double)this->get_runlet()[i]);
+    
+    /* Weighted value. */
+    std::vector<double> value_sign_weight;
+    for(int i = 0; i < this->size(); i++)
+        value_sign_weight.push_back(this->get_value()[i] *
+                                    TMath::Power(1/this->get_weight()[i],2));
 
     /* Plot value vs runlet. */
     TGraphErrors* temp_plot = new TGraphErrors(this->size(),
                                                &(double_runlet[0]),
                                                &(this->get_value()[0]),
+                                               0,
+                                               &(this->get_error()[0]));
+    /* Set style. Do we want to store style info in the class? */
+    temp_plot->SetMarkerStyle(kFullSquare);
+    temp_plot->SetMarkerSize(1);
+    temp_plot->SetMarkerColor(kBlack);
+
+    /* Draw. */
+    temp_plot->Draw("AP");
+
+    /* Set axis and plot labels. */
+    temp_plot->SetTitle(plot_label);
+    temp_plot->GetXaxis()->SetTitle(x_axis_label);
+    temp_plot->GetYaxis()->SetTitle(y_axis_label);
+
+    /* Fit. */
+    temp_plot->Fit("pol0");
+}
+
+/* Plots value vs runlet, sign corrected and weighted. This is just the start, more work needed here. */
+void QwTreeBranchPlot::ValueRunletPlotSignCorrWeight(void) {
+    /*
+     * Convert the runlet vector<int> into a vector<double> for plotting. Only
+     * works in clang, changing to a for loop for now, till I can figure it
+     * out.
+     */ 
+    //std::vector<double> double_runlet(this->get_runlet().begin(), this->get_runlet().end());
+
+    /* Check if there is actually a weight. */
+    if(get_weight().size() == 0) {
+        cout << "Weight not filled. Exiting." << endl;
+        exit(0);
+    }
+
+    std::vector<double> double_runlet;
+    for(int i = 0; i < this->size(); i++) 
+        double_runlet.push_back((double)this->get_runlet()[i]);
+
+    /* Weighted, sign corrected value. */
+    std::vector<double> value_weight_sign_corr;
+    for(int i = 0; i < this->size(); i++)
+        value_weight_sign_corr.push_back(this->get_value()[i] *
+                                        (double)this->get_sign()[i] *
+                                        TMath::Power(1/this->get_weight()[i],2));
+
+    /* Plot value vs runlet. */
+    TGraphErrors* temp_plot = new TGraphErrors(this->size(),
+                                               &(double_runlet[0]),
+                                               &(value_weight_sign_corr[0]),
                                                0,
                                                &(this->get_error()[0]));
     /* Set style. Do we want to store style info in the class? */
@@ -71,7 +206,7 @@ void QwTreeBranchPlot::ValuePlot(void) {
      * Create a histo. The values are taken from Josh's script, will be added to the class later.
      * FIXME: The way the histogram is sized/bin number is set is ghetto.
      */
-    TH1D* temp_histo = new TH1D("h1",plot_label, 100,-400,400);
+    TH1D* temp_histo = new TH1D("h1",plot_label, 100,2.5,-2.5);
 
     /* Get necessary data from object. */
     vector<double> fill_data = this->get_value();
@@ -112,6 +247,13 @@ void QwTreeBranchPlot::ValuePlotSignCorr(void) {
 
 /* Plots a histo of value. */
 void QwTreeBranchPlot::ValuePlotWeight(void) {
+
+    /* Check if there is actually a weight. */
+    if(get_weight().size() == 0) {
+        cout << "Weight not filled. Exiting." << endl;
+        exit(0);
+    }
+
     /*
      * Create a histo. The values are taken from Josh's script, will be added to the class later.
      * FIXME: The way the histogram is sized/bin number is set is ghetto.
@@ -135,6 +277,13 @@ void QwTreeBranchPlot::ValuePlotWeight(void) {
 
 /* Plots a histo of value, sign corrected. */
 void QwTreeBranchPlot::ValuePlotSignCorrWeight(void) {
+
+    /* Check if there is actually a weight. */
+    if(get_weight().size() == 0) {
+        cout << "Weight not filled. Exiting." << endl;
+        exit(0);
+    }
+
     /*
      * Create a histo. The values are taken from Josh's script, will be added to the class later.
      * FIXME: The way the histogram is sized/bin number is set is ghetto.

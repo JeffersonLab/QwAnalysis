@@ -55,7 +55,7 @@ void QwTreeBranch::fill_sign(int filler) {
  * what this does. */
 void QwTreeBranch::debug(void) {
     for (int i = 0; i < size_of; i++) {
-        cout << value[i] << endl;
+        cout << weight[i] << endl;
     }
 }
 
@@ -99,7 +99,10 @@ void QwTreeBranch::del_index(int i) {
     rms.erase(rms.begin()+i);
     n.erase(n.begin()+i);
     runlet.erase(runlet.begin()+i);
-    weight.erase(weight.begin()+i);
+    /* Prevent segfault and make sure weight is filled before removing. */
+    if(!weight.empty()) {
+        weight.erase(weight.begin()+i);
+    }
     size_of--;
 }
 
@@ -134,7 +137,8 @@ void QwTreeBranch::get_data_from_tree(TTree* tree, TString name) {
     }
 }
 
-/* Method to extract data from the db_rootfile via wien. FIXME: untested. */
+/* Method to extract data from the db_rootfile via wien. FIXME: untested.
+ * FIXME: set wien as a variable. */
 void QwTreeBranch::get_data_from_tree(TTree* tree, TString name, int wien) {
     int n_events;               // number of events (read: runlets) in the tree.
     temp_value temp_branch;     // temporary struct to read the tree out into
@@ -193,7 +197,8 @@ void QwTreeBranch::get_data_from_tree(TTree* tree, TString name, TString weight_
     }
 }
 
-/* Method to extract data from the db_rootfile via wien with weight FIXME: untested. */
+/* Method to extract data from the db_rootfile via wien with weight FIXME:
+ * untested. FIXME: set wien as a variable. */
 void QwTreeBranch::get_data_from_tree(TTree* tree, TString name, TString weight_name, int wien) {
     int n_events;               // number of events (read: runlets) in the tree.
     temp_value temp_branch;     // temporary struct to read the tree out into
@@ -223,5 +228,101 @@ void QwTreeBranch::get_data_from_tree(TTree* tree, TString name, TString weight_
             this->fill_runlet(temp_runlet);
             this->fill_sign(temp_sign);
         }
+    }
+}
+
+/* Method to extract a value from the db_rootfile and the fill it into weight. */
+void QwTreeBranch::set_weight_value(TTree* tree, TString name) {
+    if(weight.size() > 0) {
+        cout << "Size of weight is non-zero, probably already filled!" << endl;
+        return;
+    }
+    int n_events;               // number of events (read: runlets) in the tree.
+    temp_value temp_weight;     // temporary struct to read the tree out into
+
+    /*
+     * Grab number of events from the tree, reset to the beginning of the tree
+     * (in case its been read before) and set the branch you wish to grab. Then
+     * loop over the tree and fill the vectors in the QwTreeBranch class.
+     */
+    n_events = (int)tree->GetEntries();     
+    tree->ResetBranchAddresses();
+    tree->SetBranchAddress(name, &temp_weight);
+
+    for(int i = 0; i < n_events; i++) {
+        tree->GetEntry(i);
+        this->fill_weight(temp_weight.value);
+    }
+}
+
+/* Method to extract a error from the db_rootfile and the fill it into weight. */
+void QwTreeBranch::set_weight_error(TTree* tree, TString name) {
+    if(weight.size() > 0) {
+        cout << "Size of wieght is non-zero, probably already filled!" << endl;
+        return;
+    }
+    int n_events;               // number of events (read: runlets) in the tree.
+    temp_value temp_weight;     // temporary struct to read the tree out into
+
+    /*
+     * Grab number of events from the tree, reset to the beginning of the tree
+     * (in case its been read before) and set the branch you wish to grab. Then
+     * loop over the tree and fill the vectors in the QwTreeBranch class.
+     */
+    n_events = (int)tree->GetEntries();     
+    tree->ResetBranchAddresses();
+    tree->SetBranchAddress(name, &temp_weight);
+
+    for(int i = 0; i < n_events; i++) {
+        tree->GetEntry(i);
+        this->fill_weight(temp_weight.error);
+    }
+}
+
+/* Method to extract a rms from the db_rootfile and the fill it into weight. */
+void QwTreeBranch::set_weight_rms(TTree* tree, TString name) {
+    if(weight.size() > 0) {
+        cout << "Size of wieght is non-zero, probably already filled!" << endl;
+        return;
+    }
+    int n_events;               // number of events (read: runlets) in the tree.
+    temp_value temp_weight;     // temporary struct to read the tree out into
+
+    /*
+     * Grab number of events from the tree, reset to the beginning of the tree
+     * (in case its been read before) and set the branch you wish to grab. Then
+     * loop over the tree and fill the vectors in the QwTreeBranch class.
+     */
+    n_events = (int)tree->GetEntries();     
+    tree->ResetBranchAddresses();
+    tree->SetBranchAddress(name, &temp_weight);
+
+    for(int i = 0; i < n_events; i++) {
+        tree->GetEntry(i);
+        this->fill_weight(temp_weight.rms);
+    }
+}
+
+/* Method to extract a n from the db_rootfile and the fill it into weight. */
+void QwTreeBranch::set_weight_n(TTree* tree, TString name) {
+    if(weight.size() > 0) {
+        cout << "Size of wieght is non-zero, probably already filled!" << endl;
+        return;
+    }
+    int n_events;               // number of events (read: runlets) in the tree.
+    temp_value temp_weight;     // temporary struct to read the tree out into
+
+    /*
+     * Grab number of events from the tree, reset to the beginning of the tree
+     * (in case its been read before) and set the branch you wish to grab. Then
+     * loop over the tree and fill the vectors in the QwTreeBranch class.
+     */
+    n_events = (int)tree->GetEntries();     
+    tree->ResetBranchAddresses();
+    tree->SetBranchAddress(name, &temp_weight);
+
+    for(int i = 0; i < n_events; i++) {
+        tree->GetEntry(i);
+        this->fill_weight(temp_weight.n);
     }
 }

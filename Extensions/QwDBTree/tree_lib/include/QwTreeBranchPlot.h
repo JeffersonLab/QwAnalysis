@@ -21,10 +21,13 @@ class QwTreeBranchPlot : public QwTreeBranch {
         QwTreeBranchPlot(void);                         // empty constructor
         QwTreeBranchPlot(TString, TString, TString);    // constructor w/ label names
         void ValueRunletPlot(void);                     // plot value vs runlet
+        void ValueRunletPlotSignCorr(void);             // plot value vs runlet sign corrected
+        void ValueRunletPlotWeight(void);               // plot value vs runlet
+        void ValueRunletPlotSignCorrWeight(void);       // plot value vs runlet sign corrected
         void ValuePlot(void);                           // plot histo of value
-        void ValuePlotSignCorr(void);                   // plot histo of value
-        void ValuePlotWeight(void);                           // plot histo of value
-        void ValuePlotSignCorrWeight(void);                   // plot histo of value
+        void ValuePlotSignCorr(void);                   // plot histo of value sign corrected
+        void ValuePlotWeight(void);                     // plot histo of value weighted
+        void ValuePlotSignCorrWeight(void);             // plot histo of value sign corrceted and weighted
     private:
         TString plot_label;                             // stores plot label
         TString x_axis_label;                           // stores x axis label

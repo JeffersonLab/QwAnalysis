@@ -25,11 +25,12 @@ struct temp_value {
 class QwTreeBranch {
     public:
         QwTreeBranch(void);                       // constructor
+
+        /* Setters and getters. */
         void fill(temp_value);                    // fills the leafs from temp_value struct
         void fill_runlet(int);                    // fills the runlet
         void fill_weight(double);                 // fills the weight
         void fill_sign(int);                      // fills the runlet
-        void debug(void);                         // debug class that prints out value
         vector<double> get_value(void);           // getter for value
         vector<double> get_error(void);           // getter for error
         vector<double> get_rms(void);             // getter for rms
@@ -41,6 +42,11 @@ class QwTreeBranch {
                                                   // elements of vector
         int size(void);                           // getter for the number of
                                                   // elements in vector
+
+        /* Debug methods. */
+        void debug(void);                         // debug class that prints out value
+
+        /* IO from ROOT file/tree methods. */
         void get_data_from_tree(TTree*, TString); // method to pull data out of
                                                   // the tree into the object
         void get_data_from_tree(TTree*,           // same as previous, only pass wien
@@ -54,8 +60,11 @@ class QwTreeBranch {
                                 TString,          // number and grab only that wien
                                 TString,
                                 int);
+        void set_weight_value(TTree*, TString);   // method to set the weight to value
+        void set_weight_error(TTree*, TString);   // method to set the weight to error
+        void set_weight_rms(TTree*, TString);     // method to set the weight to rms
+        void set_weight_n(TTree*, TString);       // method to set the weight to n
 
-        /* Add histo/pull plot functions here. */
     private:
         vector<double> value;                     // vector for the value
         vector<double> weight;                    // vector for the weight
