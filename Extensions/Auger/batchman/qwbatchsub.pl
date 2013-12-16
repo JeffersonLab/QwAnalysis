@@ -155,7 +155,7 @@ if (!defined($FarmOSName) || $FarmOSName eq "") {
     if (-f "$script_dir/.farm_os_name") {
 	chomp($FarmOSName = `cat $script_dir/.farm_os_name`);
     }
-    $FarmOSName = "linux64" if (!defined($FarmOSName) || $FarmOSName eq "");
+    $FarmOSName = "centos62" if (!defined($FarmOSName) || $FarmOSName eq "");
 }
 
 $BaseMSSDir = "/mss/hallc/qweak" if (!defined($BaseMSSDir) || $BaseMSSDir eq "");

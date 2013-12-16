@@ -649,7 +649,7 @@ sub create_old_jobfile($$$@) {
     #"OUTPUT_TEMPLATE: $ENV{PEDESTAL_DIR}/.\n";
 
     print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
-    print JOBFILE  "OS: linux64\n";
+    print JOBFILE  "OS: centos62\n";
     close JOBFILE;
     return $command_file;
 }
@@ -680,7 +680,7 @@ sub create_xml_jobfile($$$@) {
 	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
     my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
-	" <OS name=\"linux64\"/>\n",
+	" <OS name=\"centos62\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
 	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
 	" <Memory space=\"$MaxMemoryPerJob\" unit=\"MB\"/>\n";

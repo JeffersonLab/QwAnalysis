@@ -160,7 +160,7 @@ sub create_xml_jobfile() {
 	" <Name name=\"Post_$runnumber\"/>\n";
     my $memory=2048;
     print JOBFILE
-	" <OS name=\"linux64\"/>\n",
+	" <OS name=\"centos62\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"90\"/>\n",
 	" <Memory space=\"$memory\" unit=\"MB\"/>\n";
     print JOBFILE
