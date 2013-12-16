@@ -1,6 +1,6 @@
 CPP 	 = g++
 #CPP 	 = clang
-CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude
+CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude -I$(shell root-config --incdir)
 LDFLAGS  = $(shell root-config --glibs)
 
 PROG_FILES := \
