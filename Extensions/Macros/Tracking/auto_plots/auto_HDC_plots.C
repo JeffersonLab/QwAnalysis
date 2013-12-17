@@ -4,6 +4,8 @@
 //Edited: Nov 2013 to be able to save plots automatically in order to be used in 
 //tracking pass5 replay -- Anna 
 
+#include "TCanvas.h"
+#include "TFile.h"
 
 void auto_HDC_plots(int run_num){
   //  gSystem->GetEnv();
