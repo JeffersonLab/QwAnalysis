@@ -4,13 +4,56 @@
 //Edited: Nov 2013 to be able to save plots automatically in order to be used in 
 //tracking pass5 replay -- Anna 
 
+#include "TH1D.h"
 #include "TCanvas.h"
-#include "TFile.h"
+#include "TChain.h"
+#include "QwEvent.h"
+#include "TF1.h"
+#include "TStyle.h"
+#include "TPaveStats.h"
+#include "TList.h"
 
-void auto_HDC_plots(int run_num){
-  //  gSystem->GetEnv();
-  TFile *f = new TFile(Form("$QW_ROOTFILES/Qweak_%d.root",run_num));
-  
+void auto_HDC_plots(int runnum){
+  // groups root files for a run together
+  TChain* event_tree = new TChain ("event_tree");
+
+  //add the root files to the chain the event_tree branches
+  event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
+
+  TH1D* E1 = new TH1D ("E1","Hokie 2: Package 2 Plane 1",34,0,33);
+  TH1D* E2 = new TH1D ("E2","Hokie 2: Package 2 Plane 2",34,0,33);
+  TH1D* E3 = new TH1D ("E3","Hokie 2: Package 2 Plane 3",34,0,33);
+  TH1D* E4 = new TH1D ("E4","Hokie 2: Package 2 Plane 4",34,0,33);
+  TH1D* E5 = new TH1D ("E5","Hokie 2: Package 2 Plane 5",34,0,33);
+  TH1D* E6 = new TH1D ("E6","Hokie 2: Package 2 Plane 6",34,0,33);
+  TH1D* E7 = new TH1D ("E7","Hokie 3: Package 2 Plane 7",34,0,33);
+  TH1D* E8 = new TH1D ("E8","Hokie 3: Package 2 Plane 8",34,0,33);
+  TH1D* E9 = new TH1D ("E9","Hokie 3: Package 2 Plane 9",34,0,33);
+  TH1D* E10 = new TH1D ("E10","Hokie 3: Package 2 Plane 10",34,0,33);
+  TH1D* E11 = new TH1D ("E11","Hokie 3: Package 2 Plane 11",34,0,33);
+  TH1D* E12 = new TH1D ("E12","Hokie 3: Package 2 Plane 12",34,0,33);
+  TH1D* E13 = new TH1D ("E13","Hokie 4: Package 1 Plane 1",34,0,33);
+  TH1D* E14 = new TH1D ("E14","Hokie 4: Package 1 Plane 2",34,0,33);
+  TH1D* E15 = new TH1D ("E15","Hokie 4: Package 1 Plane 3",34,0,33);
+  TH1D* E16 = new TH1D ("E16","Hokie 4: Package 1 Plane 4",34,0,33);
+  TH1D* E17 = new TH1D ("E17","Hokie 4: Package 1 Plane 5",34,0,33);
+  TH1D* E18 = new TH1D ("E18","Hokie 4: Package 1 Plane 6",34,0,33);
+  TH1D* E19 = new TH1D ("E19","Hokie 5: Package 1 Plane 7",34,0,33);
+  TH1D* E20 = new TH1D ("E20","Hokie 5: Package 1 Plane 8",34,0,33);
+  TH1D* E21 = new TH1D ("E21","Hokie 5: Package 1 Plane 9",34,0,33);
+  TH1D* E22 = new TH1D ("E22","Hokie 5: Package 1 Plane 10",34,0,33);
+  TH1D* E23 = new TH1D ("E23","Hokie 5: Package 1 Plane 11",34,0,33);
+  TH1D* E24 = new TH1D ("E24","Hokie 5: Package 1 Plane 12",34,0,33);
+
+  TH1D* T1 = new TH1D ("T1","Hokie 2: fTimeNS",100,-100,400);
+  TH1D* T2 = new TH1D ("T2","Hokie 3: fTimeNS",100,-100,400);
+  TH1D* T3 = new TH1D ("T3","Hokie 4: fTimeNS",100,-100,400);
+  TH1D* T4 = new TH1D ("T4","Hokie 5: fTimeNS",100,-100,400);
+  TH1D* T5 = new TH1D ("T5","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
+  TH1D* T6 = new TH1D ("T6","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
+  TH1D* T7 = new TH1D ("T7","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+  TH1D* T8 = new TH1D ("T8","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+
   
   TCanvas* c1 = new TCanvas("c1","Hit Patterns",1200,700);
   c1->Divide(6,4);
@@ -142,7 +185,7 @@ void auto_HDC_plots(int run_num){
   E24->SetTitle("Hokie 5: Package 1 Plane 12");
   E24->GetXaxis()->SetTitle("Wire");
  
-  c1->SaveAs(Form("$QWSCRATCH/tracking/run_%d/hit_patterns_%d.png",run_num));
+  c1->SaveAs(Form("$QWSCRATCH/tracking/run_%d/hit_patterns_%d.png",runnum,runnum));
 
   //start ftime plots
 
@@ -198,7 +241,7 @@ void auto_HDC_plots(int run_num){
   T8->SetTitle("Hokie 5: fTimeNs-Log Scale");
   T8->GetXaxis()->SetTitle("Drift Time (ns)");
 
-  c2->SaveAs(Form("$QWSCRATCH/tracking/run_%d/drift_times_%d.png",run_num));
+  c2->SaveAs(Form("$QWSCRATCH/tracking/run_%d/drift_times_%d.png",runnum,runnum));
 
   return;  
 }

@@ -42,7 +42,6 @@
 
 void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.56)
 {
-  cout << "Testing, Testing, this is start of the script." << endl;
 	// groups root files for a run together
 	TChain* event_tree = new TChain ("event_tree");
 
@@ -62,9 +61,9 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 	c1.Divide(3,2);
 
 	//defines the 3 distance histograms
-	TH1D* dX = new TH1D ("dX","X plane Drift Distance - Package 1",11,-0.1,0.7);
-	TH1D* dU = new TH1D ("dU","U plane Drift Distance - Package 1",11,-0.1,0.7);
-	TH1D* dV = new TH1D ("dV","V plane Drift Distance - Package 1",11,-0.1,0.7);
+	TH1D* dX = new TH1D ("dX","X plane Drift Distance - Package 1",50,-0.1,0.7);
+	TH1D* dU = new TH1D ("dU","U plane Drift Distance - Package 1",50,-0.1,0.7);
+	TH1D* dV = new TH1D ("dV","V plane Drift Distance - Package 1",50,-0.1,0.7);
 
 	//set line colors of all the histograms
 	dX->SetLineColor(2);
@@ -72,9 +71,9 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 	dV->SetLineColor(8);
 
 	//define the 3 time histograms
-	TH1D* tX = new TH1D ("tX","X plane Drift Time - Package 1",15,-100.0,400.0);
-	TH1D* tU = new TH1D ("tU","U plane Drift Time - Package 1",15,-100.0,400.0);
-	TH1D* tV = new TH1D ("tV","V plane Drift Time - Package 1",15,-100.0,400.0);
+	TH1D* tX = new TH1D ("tX","X plane Drift Time - Package 1",50,-100.0,400.0);
+	TH1D* tU = new TH1D ("tU","U plane Drift Time - Package 1",50,-100.0,400.0);
+	TH1D* tV = new TH1D ("tV","V plane Drift Time - Package 1",50,-100.0,400.0);
 
 	//set line colors of all the histograms
 	tX->SetLineColor(2);
@@ -82,9 +81,9 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 	tV->SetLineColor(8);
 
 	//defines the 3 distance histograms
-	TH1D* dX2 = new TH1D ("dX2","X plane Drift Distance - Package 2",11,-0.1,0.7);
-	TH1D* dU2 = new TH1D ("dU2","U plane Drift Distance - Package 2",11,-0.1,0.7);
-	TH1D* dV2 = new TH1D ("dV2","V plane Drift Distance - Package 2",11,-0.1,0.7);
+	TH1D* dX2 = new TH1D ("dX2","X plane Drift Distance - Package 2",50,-0.1,0.7);
+	TH1D* dU2 = new TH1D ("dU2","U plane Drift Distance - Package 2",50,-0.1,0.7);
+	TH1D* dV2 = new TH1D ("dV2","V plane Drift Distance - Package 2",50,-0.1,0.7);
 
 	//set line colors of all the histograms
 	dX2->SetLineColor(2);
@@ -92,9 +91,9 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 	dV2->SetLineColor(8);
 
 	//define the 3 time histograms
-	TH1D* tX2 = new TH1D ("tX2","X plane Drift Time - Package 2",15,-100.0,400.0);
-	TH1D* tU2 = new TH1D ("tU2","U plane Drift Time - Package 2",15,-100.0,400.0);
-	TH1D* tV2 = new TH1D ("tV2","V plane Drift Time - Package 2",15,-100.0,400.0);
+	TH1D* tX2 = new TH1D ("tX2","X plane Drift Time - Package 2",50,-100.0,400.0);
+	TH1D* tU2 = new TH1D ("tU2","U plane Drift Time - Package 2",50,-100.0,400.0);
+	TH1D* tV2 = new TH1D ("tV2","V plane Drift Time - Package 2",50,-100.0,400.0);
 
 	//set line colors of all the histograms
 	tX2->SetLineColor(2);
@@ -132,10 +131,10 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 
 	//figure out how many evernts are in the rootfile so I know how long to have my loop go for
 	Int_t nevents=event_tree->GetEntries();
-  cout << "this is before QwEvent is used..." << endl;
+
 	//To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
 	QwEvent* fEvent = 0;
-  cout << "this is after QwEvent is used..." << endl;
+
 	//Now I have to get a pointer to the events branch to loop through
 
 	//Start by setting the event_tree branch to be on
@@ -146,7 +145,6 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 	event_branch->SetAddress(&fEvent);
 
 	//Loop through this and fill all the graphs at once
-  cout << "this is where the loop starts" << endl;
   cout << "Total Events: "  << nevents << endl;
   for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
   {   
@@ -241,7 +239,6 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 	  }
   }
  TF1 *fit = new TF1("fit","pol1",fitmin,fitmax);
-  cout << "this is after the loop but before drawing plots" << endl;
 	//start with graphing the distances - they go across the top
 	//select pad 1
 	c1.cd(1);
@@ -260,7 +257,6 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
         xst->SetY2NDC(0.15);
 	xst->SetX1NDC(0.5); 
  
-	cout << "first plot should have drawn" << endl;
 	//select pad 2
 	c1.cd(2);
 
@@ -407,7 +403,6 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c2.SaveAs(Prefix+"Package_2.png");
-  cout << "just to check, this is end of script...it really should have produced plots..." << endl;
 	return;
 
 }
