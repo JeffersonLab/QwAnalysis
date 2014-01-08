@@ -58,7 +58,7 @@ TString QwRunlet::run_query(void) {
  * Instead, you do 3 of the JOINs once, and just JOIN this temporary table to
  * your data.
  */
-TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality) {
+TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality) {
     /* query holds the MySQL query in a TString. */
     TString query;
     /*
@@ -97,7 +97,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
 
     /* set run quality checks */
     if(!ignore_quality) {
-        query += "AND runlet.runlet_quality_id = 1\n";
+        query += Form("AND runlet.runlet_quality_id = %d + \n", run_quality);
         /* use the FIND_IN_SET method instead */
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
@@ -121,7 +121,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
 }
 
 /* Generate query to create temporary table for unregressed values. */
-TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality) {
+TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality) {
     /* query holds the MySQL query in a TString. */
     TString query;
     /*
@@ -167,7 +167,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
 
     /* set run quality checks */
     if(!ignore_quality) {
-        query += "AND runlet.runlet_quality_id = 1\n";
+        query += Form("AND runlet.runlet_quality_id = %d + \n", run_quality);
         /* use the FIND_IN_SET method instead */
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
@@ -216,7 +216,7 @@ vector<Int_t> QwRunlet::get_runs(void) {
  * This fuction creates all the temporary tables for use later. First, it loops
  * over all regression types,
  */
-void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t runavg, Bool_t ignore_quality)
+void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t runavg, Bool_t ignore_quality, Int_t run_quality)
 {
     // create the fist temp table
     cout << "creating temp runlet tables" << endl;
@@ -227,7 +227,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
     for(Int_t i = 0; i < num_regs; i++) {
         cout << reg_types.detector(i) << endl;
 
-        query = runlet_temp_table_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality);
+        query = runlet_temp_table_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality);
         stmt = db->Statement(query, 100);
         if((db!=0) && db->IsConnected()) {
             stmt->Process();
@@ -235,7 +235,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
         }
         else cout << "Failed to connect to the database while creating runlet temp table" << endl;
         
-        query = runlet_temp_table_unreg_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality);
+        query = runlet_temp_table_unreg_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality);
         stmt = db->Statement(query, 100);
         if((db!=0) && db->IsConnected()) {
             stmt->Process();

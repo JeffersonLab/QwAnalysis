@@ -28,6 +28,7 @@ int main(Int_t argc, Char_t* argv[]) {
     TString db_name = "qw_run1_pass5b"; // database defaults to qw_run1_pass4b
     TString runlist = "";               // no default (uses all runlets)
     TString target = "HYDROGEN-CELL";   // defaults to LH2 target
+    Int_t run_quality = 1;              // defaults to good data
     Bool_t runavg = kFALSE;             // disabled by default
     Bool_t ignore_quality = kFALSE;     // disabled by default
     Bool_t slopes = kFALSE;             // disabled by default
@@ -40,6 +41,9 @@ int main(Int_t argc, Char_t* argv[]) {
         if(0 == strcmp("--outdir", argv[i])) outdir = argv[i+1];
         if(0 == strcmp("--runlist", argv[i])) runlist = argv[i+1];
         if(0 == strcmp("--target", argv[i])) target = argv[i+1];
+        if(0 == strcmp("--good", argv[i])) run_quality = 1;
+        if(0 == strcmp("--suspect", argv[i])) run_quality = 3;
+        if(0 == strcmp("--bad", argv[i])) run_quality = 2;
         if(0 == strcmp("--runavg", argv[i])) runavg = kTRUE;
         if(0 == strcmp("--ignore-quality", argv[i])) ignore_quality = kTRUE;
         if(0 == strcmp("--slopes", argv[i])) slopes = kTRUE;
@@ -52,6 +56,7 @@ int main(Int_t argc, Char_t* argv[]) {
     cout << "db = " << db_name << endl;
     cout << "runlist = " << runlist << endl;
     cout << "target = " << target << endl;
+    cout << "run quality = " << run_quality << endl;
     if(runavg) cout << "runavg : enabled" << endl;
     else cout << "runavg : disabled" << endl;
     if(ignore_quality) cout << "ignore data quality : enabled" << endl;
@@ -78,7 +83,7 @@ int main(Int_t argc, Char_t* argv[]) {
      * ALL trees to use).
      */
     QwRunlet runlets(db);
-    runlets.fill(reg_types, runlist_str, target, runavg, ignore_quality);
+    runlets.fill(reg_types, runlist_str, target, runavg, ignore_quality, run_quality);
 
     /* Run tree_fill to grab the remaining data from the database. */
     const Int_t num_regs = reg_types.num_detectors();
