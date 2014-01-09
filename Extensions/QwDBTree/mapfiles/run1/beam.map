@@ -31,11 +31,9 @@ sca_halo3           y
 sca_halo4           y
 sca_halo3           a
 sca_halo4           a
-bpm_9b_m_4Y	    d
-bpm_9b_m_4X	    d
-bpm_9b_p_4Y	    d
-bpm_9b_p_4X	    d
-bpm_9_m_4Y	    d
-bpm_9_m_4X	    d
-bpm_9_p_4Y	    d
-bpm_9_p_4X          d
+qwk_bpm3c12X        d
+qwk_bpm3c12Y        d
+qwk_bpm3h04X        d
+qwk_bpm3h04Y        d
+qwk_bpm3h09bX       d
+qwk_bpm3h09bY       d
