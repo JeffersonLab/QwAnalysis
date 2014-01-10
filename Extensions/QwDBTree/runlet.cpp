@@ -97,7 +97,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
 
     /* set run quality checks */
     if(!ignore_quality) {
-        query += Form("AND runlet.runlet_quality_id = %d\n", run_quality);
+        query += Form("AND runlet.runlet_quality_id = \"%d\"\n", run_quality);
         /* use the FIND_IN_SET method instead */
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
@@ -167,7 +167,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
 
     /* set run quality checks */
     if(!ignore_quality) {
-        query += Form("AND runlet.runlet_quality_id = %d\n", run_quality);
+        query += Form("AND runlet.runlet_quality_id = \"%d\"\n", run_quality);
         /* use the FIND_IN_SET method instead */
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
