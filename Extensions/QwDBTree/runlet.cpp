@@ -43,8 +43,8 @@ TString QwRunlet::run_query(void) {
     TString query;
     query = "SELECT\n";
     query += "DISTINCT run_number\n";
-    query += "FROM temp_table_unreg_offoff\n";
-    query += "ORDER BY run_number;\n";
+    query += "FROM temp_table_unreg_offoff;\n";
+    //query += "ORDER BY run_number;\n";
 
     return query;
 }
@@ -115,7 +115,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
         }
     }
 
-    query += "ORDER BY runlet_id);\n";
+    query += "ORDER BY runlet.run_number, runlet.segment_number);\n";
 
     return query;
 }
@@ -185,7 +185,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
         }
     }
 
-    query += "ORDER BY runlet_id);\n";
+    query += "ORDER BY runlet.run_number, runlet.segment_number);\n";
 
     return query;
 }

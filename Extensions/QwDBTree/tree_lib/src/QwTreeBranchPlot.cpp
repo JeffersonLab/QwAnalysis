@@ -305,3 +305,7 @@ void QwTreeBranchPlot::ValuePlotSignCorrWeight(void) {
     temp_histo->Draw();
     temp_histo->Fit("gaus");
 }
+
+/* Plots pull plot of value. */
+void QwTreeBranchPlot::ValuePullPlot(void) {
+}
