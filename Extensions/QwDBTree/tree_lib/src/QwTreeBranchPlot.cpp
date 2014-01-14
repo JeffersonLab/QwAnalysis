@@ -209,11 +209,10 @@ void QwTreeBranchPlot::ValuePlot(void) {
     TH1D* temp_histo = new TH1D("h1",plot_label, 100,2.5,-2.5);
 
     /* Get necessary data from object. */
-    vector<double> fill_data = this->get_value();
-    cout << fill_data.size() << endl;
+    vector<double> fill_value = this->get_value();
     /* Fill the histo. */
-    for(unsigned int i = 0; i < fill_data.size(); i++){
-        temp_histo->Fill(fill_data[i]);
+    for(unsigned int i = 0; i < fill_value.size(); i++){
+        temp_histo->Fill(fill_value[i]);
     }
 
     /* Set label. Use the y axis since it works with the ValueRunletPlot (y_axis is the value). */
@@ -231,12 +230,11 @@ void QwTreeBranchPlot::ValuePlotSignCorr(void) {
     TH1D* temp_histo = new TH1D("h1",plot_label, 100,2.5,-2.5);
 
     /* Get necessary data from object. */
-    vector<double> fill_data = this->get_value();
+    vector<double> fill_value = this->get_value();
     vector<int> sign = this->get_sign();
-    cout << fill_data.size() << endl;
     /* Fill the histo. */
-    for(unsigned int i = 0; i < fill_data.size(); i++){
-        temp_histo->Fill((double)sign[i]*fill_data[i]);
+    for(unsigned int i = 0; i < fill_value.size(); i++){
+        temp_histo->Fill((double)sign[i]*fill_value[i]);
     }
     
     /* Set label. Use the y axis since it works with the ValueRunletPlot (y_axis is the value). */
@@ -261,12 +259,11 @@ void QwTreeBranchPlot::ValuePlotWeight(void) {
     TH1D* temp_histo = new TH1D("h1",plot_label, 100,2.5,-2.5);
 
     /* Get necessary data from object. */
-    vector<double> fill_data = this->get_value();
+    vector<double> fill_value = this->get_value();
     vector<double> weight = this->get_weight();
-    cout << fill_data.size() << endl;
     /* Fill the histo. */
-    for(unsigned int i = 0; i < fill_data.size(); i++){
-        temp_histo->Fill(fill_data[i]/weight[i], TMath::Power(1/weight[i],2));
+    for(unsigned int i = 0; i < fill_value.size(); i++){
+        temp_histo->Fill(fill_value[i]/weight[i], TMath::Power(1/weight[i],2));
     }
 
     /* Set label. Use the y axis since it works with the ValueRunletPlot (y_axis is the value). */
@@ -291,13 +288,12 @@ void QwTreeBranchPlot::ValuePlotSignCorrWeight(void) {
     TH1D* temp_histo = new TH1D("h1",plot_label, 100,2.5,-2.5);
 
     /* Get necessary data from object. */
-    vector<double> fill_data = this->get_value();
+    vector<double> fill_value = this->get_value();
     vector<int> sign = this->get_sign();
     vector<double> weight = this->get_weight();
-    cout << fill_data.size() << endl;
     /* Fill the histo. */
-    for(unsigned int i = 0; i < fill_data.size(); i++){
-        temp_histo->Fill((double)sign[i]*fill_data[i], TMath::Power(1/weight[i],2));
+    for(unsigned int i = 0; i < fill_value.size(); i++){
+        temp_histo->Fill((double)sign[i]*fill_value[i], TMath::Power(1/weight[i],2));
     }
 
     /* Set label. Use the y axis since it works with the ValueRunletPlot (y_axis is the value). */
@@ -308,4 +304,28 @@ void QwTreeBranchPlot::ValuePlotSignCorrWeight(void) {
 
 /* Plots pull plot of value. */
 void QwTreeBranchPlot::ValuePullPlot(void) {
+    /*
+     * Create a histo. The values are taken from Josh's script, will be added to the class later.
+     * FIXME: The way the histogram is sized/bin number is set is ghetto.
+     */
+    TH1D* temp_histo_mean = new TH1D("h1",plot_label, 100,2.5,-2.5);
+
+    /* Get necessary data from object. */
+    vector<double> fill_value = this->get_value();
+    vector<double> fill_error = this->get_error();
+    vector<int> sign = this->get_sign();
+    /* Fill the histo. */
+    for(unsigned int i = 0; i < fill_value.size(); i++){
+        temp_histo_mean->Fill((double)sign[i]*fill_value[i]);
+    }
+
+    double mean = temp_histo_mean->GetMean(1);
+
+    TH1D* temp_histo = new TH1D("h2",plot_label, 100, 2.5, -2.5);
+    for(unsigned int i = 0; i < fill_value.size(); i++){
+        double difference = (double)sign[i]*(fill_value[i] - mean);
+        temp_histo->Fill(difference/fill_error[i]);
+    }
+    temp_histo->GetXaxis()->SetTitle(y_axis_label);
+    temp_histo->Draw();
 }

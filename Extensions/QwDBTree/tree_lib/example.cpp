@@ -83,6 +83,9 @@ int main(int argc, char* argv[]) {
     /* Use the ValuePlot method to plot a histo of value. */
     //mdallpmtavg.ValuePlot();
 
+    /* Use the ValuePullPlot method to generate a pull plot */
+    //mdallpmtavg.ValuePullPlot();
+
     /* If uncommented, will print all the values for that object. */
     //mdallpmtavg.debug();
 
