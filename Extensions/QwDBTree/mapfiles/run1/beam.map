@@ -21,12 +21,8 @@ qwk_bcm4            a
 qwk_bcm4            yq
 qwk_bcm5            a
 qwk_bcm5            yq
-qwk_bcm9            a
-qwk_bcm9            yq
-qwk_bcm12           a
-qwk_bcm12           yq
-bcmdd12             d
-bcmdd15             d
+bcmdd12             a
+bcmdd15             a
 sca_halo3           y
 sca_halo4           y
 sca_halo3           a

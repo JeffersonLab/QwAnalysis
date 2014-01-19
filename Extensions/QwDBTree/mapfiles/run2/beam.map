@@ -21,10 +21,6 @@ qwk_bcm4            a
 qwk_bcm4            yq
 qwk_bcm5            a
 qwk_bcm5            yq
-qwk_bcm9            a
-qwk_bcm9            yq
-qwk_bcm12           a
-qwk_bcm12           yq
 bpm_9_p_4X          d
 bpm_9_p_4Y          d
 bpm_9_m_4X          d
@@ -33,7 +29,7 @@ sca_halo3           y
 sca_halo4           y
 sca_halo3           a
 sca_halo4           a
-bcmdd78             d
+bcmdd78             a
 qwk_bpm3c12X        d
 qwk_bpm3c12Y        d
 qwk_bpm3h04X        d
