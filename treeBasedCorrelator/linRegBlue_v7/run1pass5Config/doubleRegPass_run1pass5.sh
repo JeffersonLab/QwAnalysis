@@ -11,10 +11,10 @@ configSuffix=$7
 myown="c-qweak"
 myperm="u+rw,g+rw"
 
-#if [ $# -ne 7 ] ; then
-#   echo provide run +segemnt + outPath + workDir + rootFileStem + dbName + confSuffix
-#   exit
-#fi
+if [ $# -ne 7 ] ; then
+   echo provide run +segemnt + outPath + workDir + rootFileStem + dbName + confSuffix
+   exit
+fi
 
 if [[ "$configSuffix" == "" || "$configSuffix" == "std" ]] ; then
     set_option=""
@@ -105,9 +105,6 @@ else
     #  the preceeding conditional cascades.
     echo "Keep confDir set to $confDir"
 fi
-
-echo $confDir
-exit 0
 
 scriptPath=`dirname $0`
 
