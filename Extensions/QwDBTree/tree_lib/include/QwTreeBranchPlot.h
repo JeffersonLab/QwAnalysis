@@ -20,6 +20,7 @@ class QwTreeBranchPlot : public QwTreeBranch {
     public:
         QwTreeBranchPlot(void);                         // empty constructor
         QwTreeBranchPlot(TString, TString, TString);    // constructor w/ label names
+        void CleanZeroes(void);                         // clean out the zero entries
         void ValueRunletPlot(void);                     // plot value vs runlet
         void ValueRunletPlotSignCorr(void);             // plot value vs runlet sign corrected
         void ValueRunletPlotWeight(void);               // plot value vs runlet

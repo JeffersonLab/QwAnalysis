@@ -29,6 +29,22 @@ QwTreeBranchPlot::QwTreeBranchPlot(TString temp_plot_label, TString temp_x_axis_
         y_axis_label = temp_y_axis_label;
 }
 
+/* Clean out the zero entries.
+ *
+ * Clean out all the zeros. This needs to be done betterer, but for now
+ * this works. Will implement Pauls fix soon.
+ */
+void QwTreeBranchPlot::CleanZeroes(void) {
+    int size = this->size();
+    for(int i = 0; i < size; i++) {
+        if(get_value()[i] < -1e5) {
+            del_index(i);
+            i--;
+            size--;
+        }
+    }
+}
+
 /* Plots value vs runlet. This is just the start, more work needed here. */
 void QwTreeBranchPlot::ValueRunletPlot(void) {
     /*
