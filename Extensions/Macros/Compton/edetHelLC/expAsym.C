@@ -14,14 +14,14 @@
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
 
-Int_t expAsym(Int_t runnum, TString dataType="Ac")
+Int_t expAsym(Int_t runnum, TString dataType="Sc")
 {
   cout<<"\nstarting into expAsym.C**************with dataType: "<<dataType<<"\n"<<endl;
   filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   const Bool_t debug = 1, debug1 = 0, debug2 = 0;
-  const Bool_t lasCycPrint=1;//!if accum, scaler counts and asym are needed for every laser cycle
+  const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
   Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
 
   Bool_t beamOn =kFALSE;//lasOn,
@@ -47,7 +47,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   Double_t wmCountsNrBCqNormSum[nPlanes][nStrips],wmCountsDrBCqNormSum[nPlanes][nStrips];
   Double_t wmCountsNrBCqNormDiff[nPlanes][nStrips];
   Double_t wmCountsNrqNormB1L0[nPlanes][nStrips],wmCountsDrqNormB1L0[nPlanes][nStrips];
-  
+
   Double_t LasCycAsymEr[nPlanes][nStrips],LasCycAsymErSqr[nPlanes][nStrips],qNormLasCycAsym[nPlanes][nStrips];
   Double_t lasPowLCB1L0=0.0,lasPowLCB1L1=0.0;
 
@@ -77,7 +77,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       wmCountsNrBCqNormSum[p][s]=0.0,wmCountsDrBCqNormSum[p][s]=0.0;
       wmCountsNrBCqNormDiff[p][s]=0.0;
       wmCountsNrqNormB1L0[p][s]=0.0,wmCountsDrqNormB1L0[p][s]=0.0;
- 
+
       stripAsym[p][s]= 0.0,stripAsymEr[p][s]= 0.0;
       stripAsymDr[p][s]=0.0,stripAsymDrEr[p][s]=0.0;
       stripAsymNr[p][s]=0.0,stripAsymNrEr[p][s]=0.0;
@@ -115,15 +115,15 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
 
   infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
   infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
-    
+
   if (infileLas.is_open() && infileBeam.is_open()) {
     cout<<"Found the cutLas and cutEB file in "<<Form("%s/%s/run_%d/",pPath,webDirectory,runnum)<<" directory."<<endl;
     while (infileLas.good()) {
       infileLas >> readEntry; //read the contents of the line in a string first
       if (readEntry.IsDigit()) { //check if the string is a combination of numbers of not
-	entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
-	if (debug) cout<<Form("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
-	cutLas.push_back(entry);
+        entry = readEntry.Atoi(); //if string is a combination of numbers get the corresponding Integer of this string
+        if (debug) cout<<Form("cutLas[%d]=%d\n",(Int_t)cutLas.size(),entry);
+        cutLas.push_back(entry);
       }
     }
     infileLas.close();
@@ -133,9 +133,9 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     while (infileBeam.good()) {
       infileBeam >> readEntry;
       if (readEntry.IsDigit()) {
-	entry = readEntry.Atoi();
-	if (debug) cout<<Form("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
-	cutEB.push_back(entry);
+        entry = readEntry.Atoi();
+        if (debug) cout<<Form("cutEB[%d]=%d\n",(Int_t)cutEB.size(),entry);
+        cutEB.push_back(entry);
       }
     }
     infileBeam.close();
@@ -151,14 +151,14 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     nBeamTrips = nLasCycBeamTrips / 1000;
     ////fourth digit of return value of getEBeamLasCuts
   }
-  
+
   if (debug) cout<<Form("cutEB.size:%d,cutLas.size:%d\n",(Int_t)cutEB.size(),(Int_t)cutLas.size());
 
   Int_t nEntries = helChain->GetEntries();
   cout<<blue<<"This chain has "<<nEntries<<" entries"<<endl;
   cout<<"nbeamTrips="<<nBeamTrips<<endl;
   cout<<"nLasCycles="<<nLasCycles<<normal<<endl;
-  
+
   helChain->ResetBranchAddresses();//!? should it be here?
   helChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
   helChain->SetBranchStatus("CodaEventNumber",1);
@@ -233,13 +233,13 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     gSystem->mkdir(Form("%s/%s/run_%d/lasCyc",pPath,webDirectory,runnum));    
     for(Int_t p = startPlane; p <endPlane; p++) {
       for(Int_t s =startStrip; s <endStrip; s++) {
-	if (!mask[p][s]) continue;    
-	///lasCyc based files go into a special folder named lasCyc
-	lasCycCounts[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
-	///Lets open the files for writing asymmetries in the beamOn loop repeatedly
-  	outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-	if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+        if (!mask[p][s]) continue;    
+        ///lasCyc based files go into a special folder named lasCyc
+        lasCycCounts[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+        if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+        ///Lets open the files for writing asymmetries in the beamOn loop repeatedly
+        outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+        if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
       }
     }
     lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
@@ -247,7 +247,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
 
     for(Int_t p = startPlane; p <endPlane; p++) {
       for(Int_t s =startStrip; s <endStrip; s++) {
-	firstlinelasPrint[p][s] = kTRUE;///this needs to be '1' for every new file
+        firstlinelasPrint[p][s] = kTRUE;///this needs to be '1' for every new file
       }
     }
   }
@@ -261,9 +261,9 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     lasPowLCB1L0=0.0,lasPowLCB1L1= 0.0;
     for(Int_t p = startPlane; p <nPlanes; p++) {      
       for(Int_t s = startStrip; s <endStrip; s++) {
-	yieldB1L0[p][s] =0.0, yieldB1L1[p][s] =0.0;
-	diffB1L0[p][s] =0.0, diffB1L1[p][s] =0.0;
- 	LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0,qNormLasCycAsym[p][s]=0.0;
+        yieldB1L0[p][s] =0.0, yieldB1L1[p][s] =0.0;
+        diffB1L0[p][s] =0.0, diffB1L1[p][s] =0.0;
+        LasCycAsymEr[p][s]= 0.0,LasCycAsymErSqr[p][s]= 0.0,qNormLasCycAsym[p][s]=0.0;
       }
     }
     // if(nCycle==17) {
@@ -274,27 +274,27 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     else if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
     else if(nthBeamTrip < nBeamTrips) {  ///yes, we do have beamtrip(s)
       if(nthBeamTrip==0) { // haven't encountered a trip yet(special case of first trip)
-	if(cutLas.at(2*nCycle+2)<cutEB.at(0)) beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
-	else {                    ///there is a beam trip during this laser cycle
-	  beamOn = kFALSE;
-	  nthBeamTrip++;          ///encountered the first beam trip
-	}
+        if(cutLas.at(2*nCycle+2)<cutEB.at(0)) beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
+        else {                    ///there is a beam trip during this laser cycle
+          beamOn = kFALSE;
+          nthBeamTrip++;          ///encountered the first beam trip
+        }
       } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
-	beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
-	if(debug1) cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl;
+        beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
+        if(debug1) cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl;
       } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
-	beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
-	if(debug1) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl;
+        beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
+        if(debug1) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl;
       } else { ///encountered "another" beam trip	
-	beamOn = kFALSE;  
-	nthBeamTrip++;
-	cout<<"encountered a new beam trip in lasCyc: "<<nCycle+1<<endl;
+        beamOn = kFALSE;  
+        nthBeamTrip++;
+        cout<<"encountered a new beam trip in lasCyc: "<<nCycle+1<<endl;
       }
     } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
       if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
       else beamOn = kFALSE;
     } else cout<<red<<"\n***Error ... Something drastically wrong in BeamTrip evaluation***\n"<<normal<<endl;
-      
+
     if(debug) cout<<"Will analyze from entry # "<<cutLas.at(2*nCycle)<<" to entry # "<<cutLas.at(2*nCycle+2)<<endl;
 
     for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
@@ -309,35 +309,35 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       helChain->GetEntry(i);
       //      if (kRejectBMod && (bModRamp[0]<100.0)) continue; 
       if (beamOn) { ////currently the counters are only populated for beamOn cycles
-	if (kRejectBMod && (bModRamp[0]>100.0)) {
-	  missedDueToBMod++; 
-	  continue;
-	}
-	if (l==0) {//using the H=0 configuration for now
-	  nHelLCB1L0++;
-	  iLCH1L0 += (y_bcm[0]+d_bcm[0]);///@if the factor '2' is multiplied, that would count the bcm reading once for each of the two H1 measurements; without the factor, this is already an average of the two counts that were recorded during the two H1 events in a given quartet
-	  iLCH0L0 += (y_bcm[0]-d_bcm[0]);
-	  lasPowLCB1L0 += lasPow[0];
-	  for(Int_t p = startPlane; p <endPlane; p++) {
-	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (!mask[p][s]) continue;
-	      yieldB1L0[p][s] += bYield[p][s];
-	      diffB1L0[p][s]  += bDiff[p][s];
-	    }
-	  }
-	} else if (l==1) {////the elseif statement helps avoid overhead in each entry
-	  nHelLCB1L1++;
-	  iLCH1L1 += (y_bcm[0]+d_bcm[0]);
-	  iLCH0L1 += (y_bcm[0]-d_bcm[0]);
-	  lasPowLCB1L1 += lasPow[0];
-	  for(Int_t p = startPlane; p <endPlane; p++) {
-	    for(Int_t s =startStrip; s <endStrip; s++) {
-	      if (!mask[p][s]) continue;
-	      yieldB1L1[p][s] += bYield[p][s];
-	      diffB1L1[p][s]  += bDiff[p][s];
-	    }
-	  }
-	}
+        if (kRejectBMod && (bModRamp[0]>100.0)) {
+          missedDueToBMod++; 
+          continue;
+        }
+        if (l==0) {//using the H=0 configuration for now
+          nHelLCB1L0++;
+          iLCH1L0 += (y_bcm[0]+d_bcm[0]);///@if the factor '2' is multiplied, that would count the bcm reading once for each of the two H1 measurements; without the factor, this is already an average of the two counts that were recorded during the two H1 events in a given quartet
+          iLCH0L0 += (y_bcm[0]-d_bcm[0]);
+          lasPowLCB1L0 += lasPow[0];
+          for(Int_t p = startPlane; p <endPlane; p++) {
+            for(Int_t s =startStrip; s <endStrip; s++) {
+              if (!mask[p][s]) continue;
+              yieldB1L0[p][s] += bYield[p][s];
+              diffB1L0[p][s]  += bDiff[p][s];
+            }
+          }
+        } else if (l==1) {////the elseif statement helps avoid overhead in each entry
+          nHelLCB1L1++;
+          iLCH1L1 += (y_bcm[0]+d_bcm[0]);
+          iLCH0L1 += (y_bcm[0]-d_bcm[0]);
+          lasPowLCB1L1 += lasPow[0];
+          for(Int_t p = startPlane; p <endPlane; p++) {
+            for(Int_t s =startStrip; s <endStrip; s++) {
+              if (!mask[p][s]) continue;
+              yieldB1L1[p][s] += bYield[p][s];
+              diffB1L1[p][s]  += bDiff[p][s];
+            }
+          }
+        }
       }///if (beamOn)
     }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
     if(debug) cout<<"had to ignore "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
@@ -355,65 +355,67 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       totHelB1L1 += nHelLCB1L1;
       totHelB1L0 += nHelLCB1L0;
       if (nHelLCB1L1<= 0||nHelLCB1L0<= 0) {
-	printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nHelLCB1L1:%d, nHelLCB1L0:%d%s",red,nCycle,nHelLCB1L1,nHelLCB1L0,normal);
+        printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nHelLCB1L1:%d, nHelLCB1L0:%d%s",red,nCycle,nHelLCB1L1,nHelLCB1L0,normal);
       } else if (iLCH1L1<= 0||iLCH1L0<= 0||iLCH0L1<= 0||iLCH0L0<= 0)
-	printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n** check iLCH1L1:%f, iLCH1L0:%f, iLCH0L1:%f, iLCH0L0:%f**%s\n",red,nCycle,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,normal);
+        printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n** check iLCH1L1:%f, iLCH1L0:%f, iLCH0L1:%f, iLCH0L0:%f**%s\n",red,nCycle,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,normal);
       else {
-	for (Int_t p =startPlane; p <endPlane; p++) {
-	  for (Int_t s = startStrip; s < endStrip; s++) {
-	    if (!mask[p][s]) continue;
-	    totyieldB1L1[p][s] += yieldB1L1[p][s];
-	    totyieldB1L0[p][s] += yieldB1L0[p][s];
- 	  }
- 	}
+        for (Int_t p =startPlane; p <endPlane; p++) {
+          for (Int_t s = startStrip; s < endStrip; s++) {
+            if (!mask[p][s]) continue;
+            totyieldB1L1[p][s] += 4*yieldB1L1[p][s];//yield in Hel_Tree is normalized for the quartet
+            totyieldB1L0[p][s] += 4*yieldB1L0[p][s];
+          }
+        }
 
-	if(debug) cout<<red<<nCycle+1<<"\t"<<nHelLCB1L1<<"\t"<< nHelLCB1L0<<"\t"<<iLCH1L1<<"\t"<<iLCH1L0<<"\t"<<iLCH0L1<<"\t"<<iLCH0L0<<normal<<endl;
-	//indepYield(yieldB1L1, yieldB1L0, nHelLCB1L1, nHelLCB1L0, iLCH1L1, iLCH1L0);//was invoked for checking
-	///now lets do a yield weighted mean of the above asymmetry
-	evaluateAsym(diffB1L1,diffB1L0,yieldB1L1,yieldB1L0,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,wmCountsNrAsym,wmCountsDrAsym,wmCountsNrBCqNormSum,wmCountsDrBCqNormSum,wmCountsNrBCqNormDiff,wmCountsNrqNormB1L0,wmCountsDrqNormB1L0,wmCountsNrBkgdAsym,wmCountsDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
-  
-	if(lasCycPrint) {
-	  //q=i*t;qH1L1=(iH1L1/nMpsH1L1)*(nMpsH1L1/MpsRate);//this really gives total-charge for this laser cycle
-	  Double_t qLasCycL1 = iLCH1L1 /helRate;
-	  Double_t qLasCycL0 = iLCH1L0 /helRate;
-	  //!!check the above "average charge", it doesn't seem the appropriate way of averaging
-	  if(debug1) {
-	    cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
-	    cout<<"printing variables on a per-laser-cycle basis"<<endl;
-	    cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<endl;
-	    cout<<Form("iLCH1L1: %f\t iLCH1L0: %f",iLCH1L1,iLCH1L0)<<endl;
-	  }	   
-	  if (!firstLineLasCyc) {
-	    lasCycBCM<<"\n";
-	    lasCycLasPow<<"\n";
-	  }
-	  firstLineLasCyc = kFALSE;
-	  for(Int_t p = startPlane; p < endPlane; p++) {
-	    for (Int_t s =startStrip; s <endStrip;s++) {
-	      if (!mask[p][s]) continue;
-	      if(!firstlinelasPrint[p][s]) {
-		lasCycCounts[p][s]<<"\n";
-		outAsymLasCyc[p][s]<<"\n";
-	      }
-	      firstlinelasPrint[p][s] =kFALSE;
-	      if (lasCycCounts[p][s].is_open()) {
-		lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,yieldB1L0[p][s]/qLasCycL0,yieldB1L1[p][s]/qLasCycL1);
-	      } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
-	      if (outAsymLasCyc[p][s].is_open()) {
-		outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
-	      } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
-	    }
-	  }
-	  lasCycBCM<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(iLCH1L0+iLCH0L0)/nHelLCB1L0,(iLCH1L1+iLCH0L1)/nHelLCB1L1);
-	  lasCycLasPow<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,lasPowLCB1L0/nHelLCB1L0,lasPowLCB1L1/nHelLCB1L1);
-	}///if(lasCycPrint)
+        if(debug) cout<<red<<nCycle+1<<"\t"<<nHelLCB1L1<<"\t"<< nHelLCB1L0<<"\t"<<iLCH1L1<<"\t"<<iLCH1L0<<"\t"<<iLCH0L1<<"\t"<<iLCH0L0<<normal<<endl;
+        //indepYield(yieldB1L1, yieldB1L0, nHelLCB1L1, nHelLCB1L0, iLCH1L1, iLCH1L0);//was invoked for checking
+        ///now lets do a yield weighted mean of the above asymmetry
+        evaluateAsym(diffB1L1,diffB1L0,yieldB1L1,yieldB1L0,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,wmCountsNrAsym,wmCountsDrAsym,wmCountsNrBCqNormSum,wmCountsDrBCqNormSum,wmCountsNrBCqNormDiff,wmCountsNrqNormB1L0,wmCountsDrqNormB1L0,wmCountsNrBkgdAsym,wmCountsDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+
+
+        if(lasCycPrint) {
+          //q=i*t;qH1L1=(iH1L1/nMpsH1L1)*(nMpsH1L1/MpsRate);//this really gives total-charge for this laser cycle
+          Double_t qLasCycL1 = iLCH1L1 /helRate;
+          Double_t qLasCycL0 = iLCH1L0 /helRate;
+          //!!check the above "average charge", it doesn't seem the appropriate way of averaging
+          if(debug1) {
+            cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
+            cout<<"printing variables on a per-laser-cycle basis"<<endl;
+            cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<endl;
+            cout<<Form("iLCH1L1: %f\t iLCH1L0: %f",iLCH1L1,iLCH1L0)<<endl;
+          }	   
+          if (!firstLineLasCyc) {
+            lasCycBCM<<"\n";
+            lasCycLasPow<<"\n";
+          }
+          firstLineLasCyc = kFALSE;
+          for(Int_t p = startPlane; p < endPlane; p++) {
+            for (Int_t s =startStrip; s <endStrip;s++) {
+              if (!mask[p][s]) continue;
+              if(!firstlinelasPrint[p][s]) {
+                lasCycCounts[p][s]<<"\n";
+                outAsymLasCyc[p][s]<<"\n";
+              }
+              firstlinelasPrint[p][s] =kFALSE;
+              if (lasCycCounts[p][s].is_open()) {
+                lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,yieldB1L0[p][s]/qLasCycL0,yieldB1L1[p][s]/qLasCycL1);
+                lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(yieldB1L0[p][s]/((Double_t)nHelLCB1L0/helRate)),((TMath::Sqrt(yieldB1L0[p][s]))/(Double_t)(nHelLCB1L0/helRate)));
+              } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
+              if (outAsymLasCyc[p][s].is_open()) {
+                outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
+              } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
+            }
+          }
+          lasCycBCM<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(iLCH1L0+iLCH0L0)/nHelLCB1L0,(iLCH1L1+iLCH0L1)/nHelLCB1L1);
+          lasCycLasPow<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,lasPowLCB1L0/nHelLCB1L0,lasPowLCB1L1/nHelLCB1L1);
+        }///if(lasCycPrint)
 
       }///sanity check of being non-zero for filled laser cycle variables
     }///if (beamOn)
     else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-  
-  for(Int_t p = 0; p <nPlanes; p++) {      
+
+  for(Int_t p = startPlane; p <endPlane; p++) {
     for(Int_t s =startStrip; s <endStrip; s++) {
       if (!mask[p][s]) continue;    
       lasCycCounts[p][s].close();
@@ -467,36 +469,36 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   return goodCycles;//the function returns the number of used Laser cycles
 }
 /******************************************************
-!Further modifications:
-* While rejecting an event due to Laser/Beam, reject the entire quartet
-* If I figure out a way to normalize by laserPower then I can relax 
-*..the condition of laserPower being 90% of maximum for the laser entries to be accepted.
-* plot qNormAcB1H1L0LasCyc and qNormyieldB1L0LasCyc against
-*..strip numbers to watch the helicity correlated beam-background
-* evaluate asymmetry per pattern_number and see its behaviour
-* ensure efficient evaluation of beamtrips
-* check consistency of cut on laserPow and beamtrip
-* add color code to the error and warning messages
-******************************************************/
+  !Further modifications:
+ * While rejecting an event due to Laser/Beam, reject the entire quartet
+ * If I figure out a way to normalize by laserPower then I can relax 
+ *..the condition of laserPower being 90% of maximum for the laser entries to be accepted.
+ * plot qNormAcB1H1L0LasCyc and qNormyieldB1L0LasCyc against
+ *..strip numbers to watch the helicity correlated beam-background
+ * evaluate asymmetry per pattern_number and see its behaviour
+ * ensure efficient evaluation of beamtrips
+ * check consistency of cut on laserPow and beamtrip
+ * add color code to the error and warning messages
+ ******************************************************/
 
 /******************************************************
 Comments:
-* B1: beam on; H1: helicity plus; L1: laser on; and vice versa
-* qNormXXX: charge normalized quantity; tNormXXX: time normalized quantity
-* BC: Backgraound Corrected.
-* wm: weightedMean, Ac: Accum, Sc: Scaler, Ev: Event
-* each Laser cycle consitutes of one laser Off zone followed by one laser On period.
-* ..it begins with a Laser Off period and ends with the (just)next laser On period.
-* If we get too many missedEntries,check 'acceptLasPow' and 'minLasPow' variables
-* The first laser-on(if the run begins with that) is ignored.
-* While checking if we want to consider a laser cycle as bad, we check till 
-* ..the beginning of the next laser cycle on purpose to make sure that the 
-* ..beam was indeed ON during both laser On as well as Off periods
-* nCycle refers to the present/current/ongoing laser-cycle
-* nthBeamTrip (on the contrary) refers to the upcoming beamTrip
-* the code counts from '0' but at all human interface, I add '+1' hence human counting
-* Notice that my beamOff's are not true beam-off, they include ramping data as well
-* Careful: there are some h=-9999 that appears in beginning of every runlet
-* Laser power is uncorrelated with beam helicity hence not using its difference 
-* ..to construct the true laser power but simply using the yield for laser power.
-******************************************************/
+ * B1: beam on; H1: helicity plus; L1: laser on; and vice versa
+ * qNormXXX: charge normalized quantity; tNormXXX: time normalized quantity
+ * BC: Backgraound Corrected.
+ * wm: weightedMean, Ac: Accum, Sc: Scaler, Ev: Event
+ * each Laser cycle consitutes of one laser Off zone followed by one laser On period.
+ * ..it begins with a Laser Off period and ends with the (just)next laser On period.
+ * If we get too many missedEntries,check 'acceptLasPow' and 'minLasPow' variables
+ * The first laser-on(if the run begins with that) is ignored.
+ * While checking if we want to consider a laser cycle as bad, we check till 
+ * ..the beginning of the next laser cycle on purpose to make sure that the 
+ * ..beam was indeed ON during both laser On as well as Off periods
+ * nCycle refers to the present/current/ongoing laser-cycle
+ * nthBeamTrip (on the contrary) refers to the upcoming beamTrip
+ * the code counts from '0' but at all human interface, I add '+1' hence human counting
+ * Notice that my beamOff's are not true beam-off, they include ramping data as well
+ * Careful: there are some h=-9999 that appears in beginning of every runlet
+ * Laser power is uncorrelated with beam helicity hence not using its difference 
+ * ..to construct the true laser power but simply using the yield for laser power.
+ ******************************************************/
