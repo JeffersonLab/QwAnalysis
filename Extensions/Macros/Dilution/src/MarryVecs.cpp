@@ -60,19 +60,42 @@ void MarryVecs::add_matched_entry(double groom_entry, double bride_entry) {
     marriage_status = true;
 }
 
+void MarryVecs::add_matched_peak_entry(double entry) {
+  matched_peaks.push_back(entry);
+}
+
+void MarryVecs::add_matched_accidentals_entry(double entry) {
+    matched_accidentals.push_back(entry);
+}
+
 void MarryVecs::add_differences_entry(double entry1, double entry2) {
   if (entry1==dummy_entry || entry2==dummy_entry)
     { return; }
   differences.push_back(entry1-entry2);
 }
+
 //return vector-reference to vector of final matches
-vector<double> * MarryVecs::get_final_marriage(void) {
+vector<double> * MarryVecs::get_final_marriage_brides(void) {
   return &matched_brides;
+}
+
+//return vector-reference to vector of final matches
+vector<double> * MarryVecs::get_final_marriage_grooms(void) {
+  return &matched_grooms;
 }
 
 //return vector-reference to vector of differences
 vector<double> *MarryVecs::get_differences(void) {
   return &differences;
+}
+
+vector<double> *MarryVecs::get_matched_peak(void) {
+  return &matched_peaks;
+}
+
+//return vector-reference to vector of accidentals
+vector<double> *MarryVecs::get_accidentals(void) {
+  return &matched_accidentals;
 }
 
 //clear all vectors but married ones
@@ -338,25 +361,27 @@ void MarryVecs::marry_arrays(void) {
     //if our match includes a dummy entry, we don't want to keep it
     if (groom[p]==dummy_entry || bride[fiancee[p]]==dummy_entry)
     { continue; }
-//    if (fabs(groom[p]-bride[fiancee[p]])>max_difference)
-//    { continue; }
-//
+    if (fabs(groom[p]-bride[fiancee[p]])>max_difference)
+    { continue; }
+
     //if our match is GOOD (ie, doesn't have a dummy entry)
     //we should add it to our matched vector
-    add_matched_entry(groom[p],bride[fiancee[p]]);
-    printf("Adding to matched: groom: %f \tbride: %f\n",groom[p],bride[fiancee[p]]);
+//    add_matched_entry(groom[p],bride[fiancee[p]]);
+   // printf("Adding to matched: groom: %f \tbride: %f\n",groom[p],bride[fiancee[p]]);
     //if our entries are within the F1TDC bounds selected,
     //put them into matched vector
-    /*    if (groom[p]!=0 && bride[fiancee[p]]!=0) {
-          double tsentry = groom[p];
-          double mdentry = bride[fiancee[p]];
-          if (tsentry != 0 && tsentry>-190 && tsentry<-178 &&
-          mdentry != 0 ) //&& mdentry>-210 && mdentry<-150 )
-          {
-    add_matched_entry(groom[p],bride[fiancee[p]]);
+    if (groom[p]!=0 && bride[fiancee[p]]!=0) {
+      double tsentry = groom[p];
+      double mdentry = bride[fiancee[p]];
+      if (tsentry != 0 && tsentry>-186 && tsentry<-178 &&
+          mdentry!=0) {
+         add_matched_entry(tsentry,mdentry);
+         if (mdentry>=-220 && mdentry<=-160)
+           add_matched_peak_entry(mdentry);
+         if (mdentry != 0 && mdentry>=-161 && mdentry<=-101)
+           add_matched_accidentals_entry(mdentry);
+      }
     }
-    }
-    */
   }
 }//end MarryVecs::marry_arrays
 

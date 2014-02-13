@@ -1,6 +1,9 @@
 /*
- * f1marriage.cpp
- * Patches together f1adc data by time, "marrying" them.
+ * DetectorMarriage.h
+ * This class scans a rootfile directly, separating events
+ * based on detector type (TS or MD). To enable a marrying
+ * algorithm, it contains a MarryVec object. Instead, it
+ * probably should have been some inheritance structure.
  *
  * Written by Josh Magee
  * magee@jlab.org
@@ -112,8 +115,8 @@ void DetectorMarriage::processEvents(void) {
 
     double tsentry = marriageVectors.get_groom_entry(0);
     double mdentry = marriageVectors.get_bride_entry(0);
-    if (tsentry != 0 && tsentry>-190 && tsentry<-178 &&
-        mdentry != 0 )//&& mdentry>-210 && mdentry<-150 ) 
+    if (tsentry != 0 && tsentry>-186 && tsentry<-178 &&
+        mdentry != 0 )//&& mdentry>-210 && mdentry<-150 )
     {
       first_marriage.push_back(mdentry);
     }
@@ -126,7 +129,14 @@ vector<double>* DetectorMarriage::getDetectorMarriage(void) {
   if (marriageVectors.get_marriage_status()==false) {
     printf("There is no data in this marriage vector. Make sure you process the file first!\n");
   }
-  return marriageVectors.get_final_marriage();
+  return marriageVectors.get_final_marriage_brides();
+}
+
+vector<double>* DetectorMarriage::getDetectorMarriage_unused(void) {
+  if (marriageVectors.get_marriage_status()==false) {
+    printf("There is no data in this marriage vector. Make sure you process the file first!\n");
+  }
+  return marriageVectors.get_final_marriage_grooms();
 }
 
 vector<double>* DetectorMarriage::getDetectorMarriageDifferences(void) {
@@ -136,8 +146,19 @@ vector<double>* DetectorMarriage::getDetectorMarriageDifferences(void) {
   return marriageVectors.get_differences();
 }
 
+vector<double>* DetectorMarriage::getDetectorMarriagePeak(void) {
+  return marriageVectors.get_matched_peak();
+}
+
+vector<double>* DetectorMarriage::getDetectorMarriageAccidentals(void) {
+  if (marriageVectors.get_marriage_status()==false) {
+    printf("There is no data in this differences vector. Make sure you process the file first!\n");
+  }
+  return marriageVectors.get_accidentals();
+}
+
 vector<double>* DetectorMarriage::getFirstMarriage(void) {
-  marriageVectors.print_vectors();
+//  marriageVectors.print_vectors();
   return &first_marriage;
 }
 
