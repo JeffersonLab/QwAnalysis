@@ -29,6 +29,7 @@ TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg) {
     query += ", wien_reversal\n";
     query += ", precession_reversal\n";
     query += ", qtor_current\n";
+    query += ", runlet_quality_id\n";
     query += "FROM temp_table_unreg_offoff\n";
     /* Group by run_number for run averaging */
     if(runavg) {
@@ -79,6 +80,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     query += ", slow_controls_settings.wien_reversal\n";
     query += ", slow_controls_settings.precession_reversal\n";
     query += ", slow_controls_settings.qtor_current\n";
+    query += ", runlet.runlet_quality_id\n";
     query += "FROM analysis\n";
 
     /*
@@ -142,6 +144,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += ", slow_controls_settings.wien_reversal\n";
     query += ", slow_controls_settings.precession_reversal\n";
     query += ", slow_controls_settings.qtor_current\n";
+    query += ", runlet.runlet_quality_id\n";
     query += "FROM analysis\n";
     /*
      * Join together the analysis table, runlet table and
@@ -265,6 +268,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                 TString temp_wien_reversal = stmt->GetString(7);
                 TString temp_precession_reversal = stmt->GetString(8);
                 Double_t temp_qtor_current = stmt->GetDouble(9);
+                Int_t temp_runlet_quality_id = stmt->GetInt(10);
                 /* FIXME: Add some sort of good for support... */
                 //string temp_good_for = stmt->GetString(7);
 
@@ -347,6 +351,9 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                     }
                 }
                 else cout << "FAILBOAT" << endl;
+
+                /* Fill the run quality id. */
+                runlet_quality_id.push_back((Int_t)temp_runlet_quality_id);
             }
         }
     }
@@ -365,6 +372,7 @@ void QwRunlet::branch(TTree* tree, QwValues &values) {
     tree->Branch("precession_reversal", &(values.runlet_properties[7]));
     tree->Branch("sign_correction", &(values.runlet_properties[8]));
     tree->Branch("qtor_current", &(values.qtor_current));
+    tree->Branch("runlet_quality_id", &(values.runlet_quality_id));
 }
 
 /* Method to return runlet id. */
@@ -385,4 +393,5 @@ void QwRunlet::get_data_for_runlet(Int_t j, QwValues &values) {
     values.runlet_properties[8] = sign_correction[j];
     values.qtor_current = qtor_current[j];
     values.run_number_decimal = run_number_decimal[j];
+    values.runlet_quality_id = runlet_quality_id[j];
 }

@@ -12,7 +12,7 @@ struct QwValues {
     vector<Int_t> runlet_properties;
     Double_t qtor_current;
     Double_t run_number_decimal;
-    string good_for_id;
+    Int_t runlet_quality_id;
 };
 
 /* QwRunlet class which is used to store and query runlets. */
@@ -43,7 +43,7 @@ class QwRunlet {
     vector<Int_t> precession_reversal;
     vector<Int_t> sign_correction;
     vector<Double_t> qtor_current;
-    vector<string> good_for;
+    vector<Int_t> runlet_quality_id;
 
     /* Query generating methods. */
     TString runlet_query(vector<TString>, Bool_t runavg);
