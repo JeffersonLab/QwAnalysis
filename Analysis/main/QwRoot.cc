@@ -19,13 +19,16 @@
 
 int main(int argc, char** argv)
 {
+  // Start Qw-Root command prompt
+  QwRint* qwrint = new QwRint("Qweak-Root Analyzer", &argc, argv);
+  // Set some paths
   TString path = getenv_safe_TString("QWANALYSIS");
   gROOT->ProcessLine(".include " + path + "/Analysis/include");
   gROOT->ProcessLine(".include " + path + "/Parity/include");
   gROOT->ProcessLine(".include " + path + "/Tracking/include");
   gROOT->ProcessLine("gSystem->Load(\"libCint.so\");");
-  // Start Qw-Root command prompt
-  QwRint* qwrint = new QwRint("Qweak-Root Analyzer", &argc, argv);
+  // Run the interface
   qwrint->Run();
+  // Delete object
   delete qwrint;
 }
