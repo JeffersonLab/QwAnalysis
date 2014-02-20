@@ -114,7 +114,7 @@ The left graph is package 1 and the right is package 2.
 In both the drift distance is across the top and the drift time is across the bottom.
 Again plane X is red, plane U is blue and plane V is green.
 </p><center>
-<p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png"> <img src="drift_distance_and_time_%%RUNNUM%%_Package_2.png"></center></p>
+<p><center><img src="trk_fit_drift_distance_and_time_%%RUNNUM%%_Package_1.png"> <img src="trk_fit_drift_distance_and_time_%%RUNNUM%%_Package_2.png"></center></p>
 
 <a name="QwHits"></a>
 <center><h2>QwHits plots</h2></center>

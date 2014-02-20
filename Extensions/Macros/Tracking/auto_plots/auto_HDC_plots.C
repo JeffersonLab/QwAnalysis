@@ -13,7 +13,7 @@
 #include "TPaveStats.h"
 #include "TList.h"
 
-void auto_HDC_plots(int runnum){
+void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   // groups root files for a run together
   TChain* event_tree = new TChain ("event_tree");
 
@@ -185,7 +185,7 @@ void auto_HDC_plots(int runnum){
   E24->SetTitle("Hokie 5: Package 1 Plane 12");
   E24->GetXaxis()->SetTitle("Wire");
  
-  c1->SaveAs(Form("$QWSCRATCH/tracking/run_%d/hit_patterns_%d.png",runnum,runnum));
+  c1->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/hit_patterns_%d.png",runnum,runnum));
 
   //start ftime plots
 
@@ -241,7 +241,7 @@ void auto_HDC_plots(int runnum){
   T8->SetTitle("Hokie 5: fTimeNs-Log Scale");
   T8->GetXaxis()->SetTitle("Drift Time (ns)");
 
-  c2->SaveAs(Form("$QWSCRATCH/tracking/run_%d/drift_times_%d.png",runnum,runnum));
+  c2->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/drift_times_%d.png",runnum,runnum));
 
   return;  
 }

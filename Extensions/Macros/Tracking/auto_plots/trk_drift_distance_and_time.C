@@ -40,8 +40,12 @@
 //define a prefix for all the output files - global don't need to pass
 //TString Prefix;
 
-void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.56)
+void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 {
+	// fit ranges
+	double fitmin=0.04;
+	double fitmax=0.56;
+
 	// groups root files for a run together
 	TChain* event_tree = new TChain ("event_tree");
 
@@ -49,7 +53,7 @@ void trk_drift_distance_and_time(int runnum, double fitmin=0.04,double fitmax=0.
 	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	TString Prefix = Form("$QWSCRATCH/tracking/run_%d/trk_fit_drift_distance_and_time_%d_",runnum, runnum);
+	TString Prefix = Form("$QWSCRATCH/tracking/www/run_%d/trk_fit_drift_distance_and_time_%d_",runnum, runnum);
 
 	//Set up style options (ie should print out fit information)
 	gStyle->SetOptFit(1110);
