@@ -13,7 +13,7 @@
 #include "TPaveStats.h"
 #include "TList.h"
 
-void auto_HDC_plots(int runnum){
+void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   // groups root files for a run together
   TChain* event_tree = new TChain ("event_tree");
 
