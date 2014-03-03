@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude -I$(
 LDFLAGS  = $(shell root-config --glibs)
 
 PROG_FILES := \
-	lumi data_quality
+	mdallpmtavg bcmdd
 
 LIB_FILES := \
 	src/QwTreeBranch src/QwTreeBranchPair src/QwTreeBranchPlot
@@ -16,8 +16,11 @@ all: $(PROG_FILES)
 lumi: lumi.o libQwDB.so
 	$(CPP) -Wall -ggdb -o $@ lumi.o $(LDFLAGS) -L. -lQwDB
 
-data_quality: data_quality.o libQwDB.so
-	$(CPP) -Wall -ggdb -o $@ data_quality.o $(LDFLAGS) -L. -lQwDB
+mdallpmtavg: mdallpmtavg.o libQwDB.so
+	$(CPP) -Wall -ggdb -o $@ mdallpmtavg.o $(LDFLAGS) -L. -lQwDB
+
+bcmdd: bcmdd.o libQwDB.so
+	$(CPP) -Wall -ggdb -o $@ bcmdd.o $(LDFLAGS) -L. -lQwDB
 
 libQwDB.so: $(LIB_O_FILES)
 	$(CPP) -shared -Wl,-soname,libQwDB.so -o $@ $^
