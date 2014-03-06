@@ -1,0 +1,7 @@
+! test input file for full analysis calculator
+! Each raw represents a time scale (either slugs, weins, etc TBD)
+!
+! A_reg, dA_reg, P, dP, A_bkg1, dA_bkg1, A_bkg2, dA_bkg2, R, dR
+! (ppm), (ppm) ,  ,   , (ppm) , (ppm)  , (ppm) , (ppm)  ,  ,  ,
+0.210, 0.008, 0.8000, 0.0080, 4.0, 0.2, 5.0, 0.5, 1.0, 1.1
+0.211, 0.009, 0.8100, 0.0081, 5.0, 0.3, 6.0, 0.6, 1.1, 1.2
