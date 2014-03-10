@@ -1,0 +1,20 @@
+!
+!  The ramp gain is given by the 0.3 V full-scale range of the ramp
+!  signal
+!  (360 degrees * 76.29 mV/VQWKbit / 0.3 V)===(0.091548 degree/VQWKbit)
+!  A fit against FGX1 and FGX2 were done of the form:
+!       "[0] + [1]*sin(TMath::DegToRad()*[2]*x + [3])"
+!  to determine a scaling term.
+!  
+!  Modifed based on Don's finding in Elog 1027.
+!
+!  gain_new = (0.0876389) * 360./(Don's range)
+!  ped_new  = -109.0046 - (Don's offset)/gain_new
+!
+!  For run range 17370-18085, these are
+!       Don's offset:   3.89
+!       Don's range:  356.65
+!
+! channel, pedestal, gain
+ramp, -152.9782, 0.088462
+
