@@ -20,6 +20,14 @@ int main()
   // Read the data from text file
   QwReadFile input("test_input.txt");
   QwCalculator cal;
+
+  // Create the output text file to write the corrected asymmetries
+  std::ofstream output("test_output.txt");
+
+  float A       =0;
+  float dA_stat =0;
+  float dA_sys  =0;
+
   while (input.ReadNextDataLine()){
 
     // ignore comments
@@ -42,6 +50,12 @@ int main()
       cal.PrintAcceltanceCorrectedAsym();
       cal.PrintCorrectionBreakdown();
     }
+
+    // get the corrected asymmetry and write it to an output file
+    cal.GetCorrectedAsymmetry(&A,&dA_stat,&dA_sys);
+    if(debug) printf("A_signal(<Q^2>) =%6.4f +/- %6.4f (stat) +/- %6.4f (syst) ppm \n",A,dA_stat,dA_sys);
+    output<<A<<","<<dA_stat<<","<<dA_sys<<std::endl;
+
   }
   return 0;
 }

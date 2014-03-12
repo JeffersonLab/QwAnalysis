@@ -129,6 +129,17 @@ int QwCalculator::ComputePhysAsym()
 }
 
 ////////////////////////
+// Compute physics asymmetry
+///////////////////////
+void QwCalculator::GetCorrectedAsymmetry(float *A, float *dA_stat, float*dA_sys){
+
+  *A = A_signal;
+  *dA_stat = dA_signal_stat;
+  *dA_sys = dA_signal_syst;
+}
+
+
+////////////////////////
 // Apply the blinding factor to the measured asymmetry
 ///////////////////////
 void QwCalculator::UnblindMeasuredAsymmetry(){

@@ -27,11 +27,12 @@ class QwCalculator{
 
   void SetTimeDependentQtys(QwReadFile &input);
   void SetTimeIndependentQtys();
-  int ComputePhysAsym();
+  int  ComputePhysAsym();
   void UnblindMeasuredAsymmetry();
   void ComputeSignalAsymmetryPartialErrors();
   void ComputeSignalAsymmetry();
   void ComputeMeasuredAsymmetryCorrections();
+  void GetCorrectedAsymmetry(float *A, float *dA_stat, float*dA_sys);
   void PrintInputs();
   void PrintErrorContributions();
   void PrintCorrectionBreakdown();
