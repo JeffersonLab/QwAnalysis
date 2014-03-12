@@ -1,7 +1,6 @@
 
-#ifndef COMPUTE_LH2_ASYM_H
-#define COMPUTE_LH2_ASYM_H
-
+#ifndef QWCALCULATOR_H
+#define QWCALCULATOR_H
 
 #include <vector>
 #include <string>
@@ -16,18 +15,27 @@
 #include <cstdio>
 #include <TMath.h>
 
-#include <TApplication.h>
-#include "TRandom.h"
+#include "QwReadWrite.h"
 
-#include <TCanvas.h>
-#include <TH2F.h>
-#include <TGraph.h>
-#include <TMultiGraph.h>
-#include <TLegend.h>
-#include <TGraphErrors.h>
+using namespace std;
 
+class QwCalculator{
 
-class compute_lh2_asym {
+ public:
+  QwCalculator();
+  ~QwCalculator(){};
+
+  void SetTimeDependentQtys(QwReadFile &input);
+  void SetTimeIndependentQtys();
+  int ComputePhysAsym();
+  void UnblindMeasuredAsymmetry();
+  void ComputeSignalAsymmetryPartialErrors();
+  void ComputeSignalAsymmetry();
+  void ComputeMeasuredAsymmetryCorrections();
+  void PrintInputs();
+  void PrintErrorContributions();
+  void PrintCorrectionBreakdown();
+  void PrintAcceltanceCorrectedAsym();
 
   //Measured Asymmetry inputs
   Double_t A_raw; // unregressed asymmetry ppm 
@@ -57,17 +65,17 @@ class compute_lh2_asym {
   Double_t P; 
   Double_t dP;
   
-  /* //Detector Bias Correction (Q^2 light wieghting at the detector) */
-  /* Double_t DetCorr = 0.9905; */
-  /* Double_t dDetCorr = 0.9905; */
+  //Detector Bias Correction (Q^2 light wieghting at the detector) */
+  Double_t DetCorr;
+  Double_t dDetCorr;
   
-  /* //EM radiative correction factor */
-  /* Double_t EM_Rad_C  = 1.0100; */
-  /* Double_t dEM_Rad_C = 0.0050; */
+  //EM radiative correction factor
+  Double_t EM_Rad_C;
+  Double_t dEM_Rad_C;
   
-  /* //acceptance correction */
-  /* Double_t AccCorr = 0.980; */
-  /* Double_t dAccCorr = 0.010; */
+  //acceptance correction
+  Double_t AccCorr;
+  Double_t dAccCorr;
   
   //EM+Det_bias+acceptance correction
   Double_t Exp_Bias_C;
@@ -75,27 +83,12 @@ class compute_lh2_asym {
 
   //Bacground Asymmetries and dilutions
 
-  Double_t Ab[bkg_count];//bkg asymmetry
-  Double_t dAb[bkg_count];//bkg asymmetry error
-  Double_t fb[bkg_count];//bkg dilution
-  Double_t dfb[bkg_count];//bkg dilution error
+  Double_t Ab[4];//bkg asymmetry
+  Double_t dAb[4];//bkg asymmetry error
+  Double_t fb[4];//bkg dilution
+  Double_t dfb[4];//bkg dilution error
   Double_t f_total;//total background dilution
 
- public:
-
-  compute_lh2_asym();
-  ~compute_lh2_asym(){};
-
-  int coumputefinal(); //Compute final asymmetry (main function)
-  void printInputs();//Print all the input values
-  void unblindMeasuredAsymmetry();//apply the blinding factor to the measured asymmetry
-  void computeSignalAsymmetryTotalError();//compute the total error for the final corrected asymmetry
-  void computeSignalAsymmetryPartialErrors();//compute the partial error contributions from A_msr, polarization and backgrounds
-  void computeSignalAsymmetry();//compute the final corrected asymmetry
-  void computeMeasuredAsymmetryCorrections();//compute the breakdown of corrections done to the A_msr by polarization effect and background dilutions and EM+Det corrections. Here I tried to compute the total correction DeltaA such that A_final=A_msr + DeltaA
-  void computeAsymmetryCorrections();//compute the breakdown of corrections done to the A_msr by polarization effect and background dilutions and correction to the final asymmetry from EM rad. and Det. bias corrections
-  void PlotAsymmetryCorrections();//Plot A_msr, all it's corrections and A-signal
-  
     //Final output parameters
   Double_t A_signal; //final corrected asymmetry ppm
   Double_t dA_signal;//final corrected asymmetry error ppm
@@ -118,15 +111,15 @@ class compute_lh2_asym {
   Double_t asymmetry_correction_Exp_Bias_C; //effective exp. bias correction  ppm
   Double_t pdExp_Bias_C;//Exp. bias correction partial error on final asymmetry ppm
   
-  Double_t asymmetry_correction_b[bkg_count];//correction from bkg contribution on final asymmetry
-  Double_t pdb[bkg_count];//bkg contribution (asymmetry+dilution) error on final asymmetry
-  Double_t pdAb[bkg_count];//bkg asymmetry partial error on final asymmetry
-  Double_t pdfb[bkg_count];//bkg dilution partial error on final asymmetry
+  Double_t asymmetry_correction_b[4];//correction from bkg contribution on final asymmetry
+  Double_t pdb[4];//bkg contribution (asymmetry+dilution) error on final asymmetry
+  Double_t pdAb[4];//bkg asymmetry partial error on final asymmetry
+  Double_t pdfb[4];//bkg dilution partial error on final asymmetry
   Double_t asymmetry_total_correction;//total corrections from polarization, backgrounds, EM rad and det. bias corrections
   Double_t dA_total_asymmetry_correction;//error on total corrections from polarization, backgrounds, EM rad and det. bias corrections
- 
+  Double_t dA_asymmetry_correction;
 
-}
+};
 
 
 #endif

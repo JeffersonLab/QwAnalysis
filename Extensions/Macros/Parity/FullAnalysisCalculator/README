@@ -1,0 +1,20 @@
+#############################################
+
+Qweak Full Analysis Calculator
+Date : March 12th 2014/
+Authors : B.Waidyawansa, R.Silwal & S.MacEwan
+
+#############################################
+
+This program is designed to extract the asymmetries and correction information from a input text file and to produce an output file containing the corrected asymmetries. For more information see https://qweak.jlab.org/wiki/index.php/Full_Analysis_Calculator.
+
+Input - A text file containing the columns regressed asymmetry, polarization, backgrounds, dilutions and their respective errors. Rows represents the selected time periods (slugs/Wiens/variable)
+Output - A text file containing rows of corrected asymmetry, individual corrections and the errors for the selected time periods.
+
+
+Source code:
+================
+fullanacalc.cc - main file.
+QwReadWrite - Contains the classes used to decode read/write tethe input/output text files containing data.
+QwCalculator - Contains the methods to calculate the unblinded physics asymmetry. This basically is a modular form of the program, compute_LH2_asym.cc, that was used to apply the corrections on the Wien0 data set.
+ 

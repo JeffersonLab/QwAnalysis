@@ -8,12 +8,6 @@
 #include "QwReadWrite.h"
 #include <cstdlib>
 
-// // Set default comment, whitespace, section characters
-// const std::string QwReadWrite::kDefaultCommentChars = "#!;";
-// const std::string QwReadWrite::kDefaultWhitespaceChars = " \t\r";
-// const std::string QwReadWrite::kDefaultTokenSepChars = ", \t";
-
-
 QwReadFile::QwReadFile(const char* name){
   // try to open file
   std::ifstream fRfile(name);

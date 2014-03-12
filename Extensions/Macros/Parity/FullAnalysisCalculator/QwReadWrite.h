@@ -29,8 +29,9 @@ using namespace std;
 class QwReadFile {
 
  public:
+  QwReadFile(){};
   QwReadFile(const char* name);
-  ~QwReadFile() { };
+  ~QwReadFile(){};
 
   Bool_t ReadNextDataLine() {
     fCurrentPos = 0;
@@ -53,16 +54,9 @@ class QwReadFile {
   
   void TrimComment(const std::string& commentchars);
   Bool_t LineIsEmpty(){return fLine.empty();};
-
-  /* void AddLine(const std::string& line) {  */
-  /*   fStream << line << std::endl;  */
-  /* }; */
-
-  // Get next token as a double
   float GetNextToken(const std::string& separatorchars);
   void GetTokenPair(const std::string& separatorchars,
 		    float*value,float*error);
-
 
 
  protected:
