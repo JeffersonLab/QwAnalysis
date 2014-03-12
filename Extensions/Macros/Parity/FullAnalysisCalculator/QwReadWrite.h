@@ -7,7 +7,7 @@
 
 \**********************************************************/
 
-#ifdef QWREADWRITE_H
+#ifndef QWREADWRITE_H
 #define QWREADWRITE_H
 
 // System headers
@@ -20,21 +20,17 @@
 #include <set>
 
 // ROOT headers
-#include "Rtypes.h"
-#include "TString.h"
-#include "TRegexp.h"
-#include "TObjArray.h"
-#include "TObjString.h"
-#include "TMacro.h"
-#include "TList.h"
+#include <Rtypes.h>
+#include <TString.h>
 
-class QwReadWrite {
+
+using namespace std;
+
+class QwReadFile {
 
  public:
-
-  QwReadWrite(const std::string& filename);
-  virtual ~QwReadWrite() { };
-
+  QwReadFile(const char* name);
+  ~QwReadFile() { };
 
   Bool_t ReadNextDataLine() {
     fCurrentPos = 0;
@@ -56,15 +52,17 @@ class QwReadWrite {
   };
   
   void TrimComment(const std::string& commentchars);
-  void AddLine(const std::string& line) { 
-    fStream << line << std::endl; 
-  };
+  Bool_t LineIsEmpty(){return fLine.empty();};
 
-  // Get next token as a string
-  Double_t GetNextToken(const std::string& separatorchars);
-  Double_t GetNextToken() { 
-    return GetNextToken(fTokenSepChars); 
-  };
+  /* void AddLine(const std::string& line) {  */
+  /*   fStream << line << std::endl;  */
+  /* }; */
+
+  // Get next token as a double
+  float GetNextToken(const std::string& separatorchars);
+  void GetTokenPair(const std::string& separatorchars,
+		    float*value,float*error);
+
 
 
  protected:
@@ -73,20 +71,11 @@ class QwReadWrite {
   size_t fCurrentPos;     /// Current position in the line
 
   // File and stream
-  const std::string fFilename;
-  std::ifstream fFile;
+  const std::string fRfilename;
+  std::filebuf* inbuf;
+  std::stringstream fStream;
 
-  // Local comment, whitespace, section, module characters
-  std::string fCommentChars;
-  std::string fWhitespaceChars;
-  std::string fTokenSepChars;
-
-  // Default comment, whitespace, section, module characters
-  static const std::string kDefaultCommentChars;
-  static const std::string kDefaultWhitespaceChars;
-  static const std::string kDefaultTokenSepChars;
-
-}
+};
 
 
 #endif 

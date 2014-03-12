@@ -6,37 +6,34 @@
 \**********************************************************/
 
 #include "QwReadWrite.h"
+#include <cstdlib>
 
-// Set default comment, whitespace, section characters
-const std::string QwReadWrite::kDefaultCommentChars = "#!;";
-const std::string QwReadWrite::kDefaultWhitespaceChars = " \t\r";
-const std::string QwReadWrite::kDefaultTokenSepChars = ", \t";
+// // Set default comment, whitespace, section characters
+// const std::string QwReadWrite::kDefaultCommentChars = "#!;";
+// const std::string QwReadWrite::kDefaultWhitespaceChars = " \t\r";
+// const std::string QwReadWrite::kDefaultTokenSepChars = ", \t";
 
 
-// constructor
-QwReadWrite::QwReadWrite(const std::string& name)
-  : fCommentChars(kDefaultCommentChars),
-    fWhitespaceChars(kDefaultWhitespaceChars),
-    fTokenSepChars(kDefaultTokenSepChars),
-    fFilename(name),
-{
-  
+QwReadFile::QwReadFile(const char* name){
   // try to open file
-  fFile(name);
-  if (!fFile.is_open()) {
-    std::cout<<"Unable to open input file "<<name<<std::endl;
-    exit(1);
+  std::ifstream fRfile(name);
+
+  if (!fRfile.is_open()) {
+    std::cout<<"Unable to open file "<<name<<std::endl;
+    return;
   } else{
     // found file
     std::cout<<"Opened file "<<name<<std::endl;
+    
     // Load into stream
-    fStream << fFile.rdbuf();
+    fStream << fRfile.rdbuf();
+
   }
 }
 
+
 // remove comments
-void QwReadWrite::TrimComment(const std::string& commentchars)
-{
+void QwReadFile::TrimComment(const std::string& commentchars){
   // Remove everything after the comment character
   size_t mypos = fLine.find_first_of(commentchars);
   if (mypos != std::string::npos){
@@ -45,10 +42,8 @@ void QwReadWrite::TrimComment(const std::string& commentchars)
 }
 
 // get next token
-Double_t QwReadWrite::GetNextToken(const std::string& separatorchars)
-{
-  std::string tmpstring = "";
-  TString outstring="";
+float QwReadFile::GetNextToken(const std::string& separatorchars){
+  std::string tmpstring;
 
   if (fCurrentPos != std::string::npos){
     size_t pos1 = fCurrentPos;
@@ -61,12 +56,17 @@ Double_t QwReadWrite::GetNextToken(const std::string& separatorchars)
       tmpstring   = fLine.substr(pos1,pos2-pos1);
     }
   }
-  //
-  //TrimWhitespace(tmpstring,TString::kBoth);
-  // TString wont mind having white spaces when it converts string to int/double/usign
 
-  outstring = TString(tmpstring);
-  return Atof(outstring);
+  return std::atof(tmpstring.c_str());
 }
+
+// get pair of tokens. In this case, value and error.
+void QwReadFile::GetTokenPair(const std::string& separatorchars,
+			      float*value, 
+			      float*error){
+  *value = GetNextToken(separatorchars);
+  *error = GetNextToken(separatorchars);  
+}
+
 
 
