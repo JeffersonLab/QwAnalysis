@@ -115,6 +115,8 @@ bool enable_direction_phi_cut    = true;
 bool enable_position_r_off_cut   = false;
 bool enable_hit_position_x_cut   = false;
 bool enable_hit_position_y_cut   = false;
+bool enable_hit_colli2_x_cut     = true;
+bool enable_hit_colli2_y_cut     = true;
 bool enable_momentum_cut         = false;
 bool enable_frontPTChi_cut       = false;
 bool enable_backPTChi_cut        = false;
@@ -135,8 +137,8 @@ double num_pe_cut = 3.0;
 double num_of_frontPTChi_cut = 15; // track-level chi cut
 double num_of_backPTChi_cut = 15;
 
-double num_of_R2PTChi_cut = 5;  // partial-track-level chi cut
-double num_of_R3PTChi_cut = 15;
+double num_of_R2PTChi_cut = 40;  // partial-track-level chi cut
+double num_of_R3PTChi_cut = 1;
 
 double scattering_angle_cut_min = 3.0;
 double scattering_angle_cut_max = 13.0;
@@ -172,10 +174,15 @@ double bending_angle_direction_phi_cut_max[2];
 double position_r_off_cut_min = -1.0;
 double position_r_off_cut_max = 1.0;
 
-double hit_position_x_cut_min = (344-9.0) -10.0; // add in 10 cm margin
-double hit_position_x_cut_max = (344+9.0) +10.0;
-double hit_position_y_cut_min = -120;
-double hit_position_y_cut_max = 120;
+double hit_position_x_cut_min = 335-5.0; // (344-9.0) -10.0; // add in 10 cm margin
+double hit_position_x_cut_max = 335+5.0; // (344+9.0) +10.0;
+double hit_position_y_cut_min = -50; // -120;
+double hit_position_y_cut_max = 50; // 120;
+
+double hit_colli2_x_cut_min = 42.14-10.0;
+double hit_colli2_x_cut_max = 42.14+10.0;
+double hit_colli2_y_cut_min = -5.0;
+double hit_colli2_y_cut_max = +5.0;
 
 double momentum_min = 0.0;
 double momentum_max = 2000.0;  // unit: MeV
@@ -393,6 +400,30 @@ bool  hit_position_y_cut(double val)
   {
     if(debug)
        cout<<"rejected, hit_position_y_cut, y="<<val<<endl;
+    return false;
+  }
+}
+
+bool hit_colli2_x_cut(double val)
+{
+  if(fabs(val)> hit_colli2_x_cut_min && fabs(val)< hit_colli2_x_cut_max)
+    return true;
+  else
+  {
+    if(debug)
+       cout<<"rejected, hit_colli2_x_cut, x="<<val<<endl;
+    return false;
+  }
+}
+
+bool hit_colli2_y_cut(double val)
+{
+  if(fabs(val)> hit_colli2_y_cut_min && fabs(val)< hit_colli2_y_cut_max)
+    return true;
+  else
+  {
+    if(debug)
+       cout<<"rejected, hit_colli2_y_cut, y="<<val<<endl;
     return false;
   }
 }
@@ -646,14 +677,14 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     TProfile* weighted_q2_vs_y2 = new TProfile("weighted_q2_vs_y2",Form("Run %d, Light-weighted Q2 vs. Y in Oct %d",run,md_2),120,335-20,335+20);
 
     TH1F* front_pt_chi[3];
-    front_pt_chi[0] = new TH1F ( "front_pt_chi_0",Form ( "Run %d, Oct %d + %d, Front Partial Track Chi-distribution",run,md_1,md_2 ),400,0,40 );
-    front_pt_chi[1] = new TH1F ( "front_pt_chi_1",Form ( "Run %d, Oct %d, Front Partial Track Chi-distribution",run,md_1 ),400,0,40 );
-    front_pt_chi[2] = new TH1F ( "front_pt_chi_2",Form ( "Run %d, Oct %d, Front Partial Track Chi-distribution",run,md_2 ),400,0,40 );
+    front_pt_chi[0] = new TH1F ( "front_pt_chi_0",Form ( "Run %d, Oct %d + %d, Front Partial Track Chi-distribution",run,md_1,md_2 ),4000,0,1000 );
+    front_pt_chi[1] = new TH1F ( "front_pt_chi_1",Form ( "Run %d, Oct %d, Front Partial Track Chi-distribution",run,md_1 ),4000,0,1000 );
+    front_pt_chi[2] = new TH1F ( "front_pt_chi_2",Form ( "Run %d, Oct %d, Front Partial Track Chi-distribution",run,md_2 ),4000,0,1000 );
     
     TH1F* back_pt_chi[3];
-    back_pt_chi[0] = new TH1F ( "back_pt_chi_0",Form ( "Run %d, Oct %d + %d, Back Partial Track Chi-distribution",run,md_1,md_2 ),400,0,40 );
-    back_pt_chi[1] = new TH1F ( "back_pt_chi_1",Form ( "Run %d, Oct %d, Back Partial Track Chi-distribution",run,md_1 ),400,0,40 );
-    back_pt_chi[2] = new TH1F ( "back_pt_chi_2",Form ( "Run %d, Oct %d, Back Partial Track Chi-distribution",run,md_2 ),400,0,40 );
+    back_pt_chi[0] = new TH1F ( "back_pt_chi_0",Form ( "Run %d, Oct %d + %d, Back Partial Track Chi-distribution",run,md_1,md_2 ),400,0,100 );
+    back_pt_chi[1] = new TH1F ( "back_pt_chi_1",Form ( "Run %d, Oct %d, Back Partial Track Chi-distribution",run,md_1 ),400,0,100 );
+    back_pt_chi[2] = new TH1F ( "back_pt_chi_2",Form ( "Run %d, Oct %d, Back Partial Track Chi-distribution",run,md_2 ),400,0,100 );
 
    // Fetch events from tree
     for(int i=start;i<end;i++)  // start to loop over all events
@@ -816,6 +847,25 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
           double r2_yslope  = pt->fSlopeY;
           r2_x = r2_xoffset+r2_xslope*collimator2_z;
           r2_y = r2_yoffset+r2_yslope*collimator2_z;
+
+          if(R2_pkg == 1)
+             oct = md_1;
+          else if (R2_pkg == 2)
+             oct = md_2;
+ 
+          global2local(&r2_x,&r2_y,oct,R2_pkg);
+
+          if(enable_hit_colli2_x_cut)
+          {
+              if(! hit_colli2_x_cut(r2_x))
+                continue;
+          }
+
+          if(enable_hit_colli2_y_cut)
+          {
+              if(! hit_colli2_y_cut(r2_y))
+                continue;
+          }
 
           vertex_x = r2_xoffset+r2_xslope*vertex_z;
           vertex_y = r2_yoffset+r2_yslope*vertex_z;
@@ -1770,27 +1820,27 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
     c14->cd(1);
     front_pt_chi[0]->Draw ();
-    front_pt_chi[0]->GetXaxis()->SetTitle("chi^2");
+    front_pt_chi[0]->GetXaxis()->SetTitle("chi");
 
     c14->cd(2);
     front_pt_chi[1]->Draw ();
-    front_pt_chi[1]->GetXaxis()->SetTitle("chi^2");
+    front_pt_chi[1]->GetXaxis()->SetTitle("chi");
     
     c14->cd(3);
     front_pt_chi[2]->Draw ();
-    front_pt_chi[2]->GetXaxis()->SetTitle("chi^2");
+    front_pt_chi[2]->GetXaxis()->SetTitle("chi");
 
     c14->cd(4);
     back_pt_chi[0]->Draw ();
-    back_pt_chi[0]->GetXaxis()->SetTitle("chi^2");
+    back_pt_chi[0]->GetXaxis()->SetTitle("chi");
 
     c14->cd(5);
     back_pt_chi[1]->Draw ();
-    back_pt_chi[1]->GetXaxis()->SetTitle("chi^2");
+    back_pt_chi[1]->GetXaxis()->SetTitle("chi");
 
     c14->cd(6);
     back_pt_chi[2]->Draw ();
-    back_pt_chi[2]->GetXaxis()->SetTitle("chi^2");
+    back_pt_chi[2]->GetXaxis()->SetTitle("chi");
     
     // canvas for run conditions
     TCanvas* run_condition=new TCanvas("run_condition","Tracking Cut Run Conditions",800,800);
