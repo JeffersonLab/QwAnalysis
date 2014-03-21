@@ -1,6 +1,7 @@
 #define QwMpsOnly_cxx
 #include "QwMpsOnly.hh"
 #include "headers.h"
+#include <functional> 
 #include <TLeaf.h>
 #include <TH2.h>
 #include <TStyle.h>
@@ -22,7 +23,10 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fXPModulation = 1; 
   fYPModulation = 4;
   fNEvents = 0;
+  fFirstEntry = 0;
+  fLastEntry = 0;
   fMacroCycleNum = 0;
+  fCutNonlinearRegions = 0;
   for(Int_t imod = 0;imod<kNMod;imod++)
     fCycleNum[imod] = 0;
   fReduceMatrix_x  = 0;
@@ -180,7 +184,9 @@ void QwMpsOnly::BuildNewEBPM(){
 
 void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
 {
-  Int_t minEvents = 100;
+  Int_t minFullBins = 7;
+  Int_t minEntriesPerBin = 5;
+  Int_t minEntries = 100;
   Double_t sigma_cc = 0;
   Double_t sigma_dc = 0;
   Double_t d_mean = 0;
@@ -195,12 +201,12 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
  
   fCycleNum[modType]++;
 
-  if(fNEvents < minEvents){
-    std::cout << red <<"Number of good events too small in microcycle. Exiting." 
-	      << normal << std::endl;
+  if(fNEvents < minEntries){
+    std::cout<< red << "Number of good events too small in microcycle."<<
+      " Exiting."<< normal << std::endl;
     return;
   }
-  //  std::cout<<"fNEvents="<<CoilData[modType].size()<<" "<<fNEvents<<std::endl; 
+  
   if(CoilData[modType].size() <= 0){
     std::cout << "!!!!!!!!!!!!!!!!! Illegal Coil vector length:\t" 
 	      << CoilData[modType].size() << std::endl;
@@ -244,11 +250,11 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
   Double_t cosAmp = 0, cosAmpError = 0;  
 
   char  *ModName[modType];
-  ModName[fXModulation] = "X";
-  ModName[fXPModulation] = "XP";
-  ModName[fEModulation] = "E";
-  ModName[fYModulation] = "Y";
-  ModName[fYPModulation] = "YP"; 
+  ModName[0] = "X";
+  ModName[1] = "Y";
+  ModName[2] = "E";
+  ModName[3] = "XP";
+  ModName[4] = "YP"; 
      
   //////////////
   // Monitors //
@@ -261,6 +267,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
   
   TGraph mongr[fNMonitor];
   TProfile monpr[fNMonitor];
+  TGraphErrors mongrerr[fNMonitor];  
   //Write sensitivities to coils to file as they are determined
    if(coil_sens.is_open()&&coil_sens.good()){
      coil_sens << Form("Coil %i                     Constant       Error"
@@ -312,22 +319,51 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
 	monpr[mon].Fill(x[evNum],y[evNum],1);
       }
       fctn->SetParameters(d_mean, slope, slope2);
-      monpr[mon].Approximate(1);
-      monpr[mon].Fit("fctn", "qr");
+      std::vector<Double_t> vx, vxe, vy, vye;
+      for(int ibin=1; ibin<monpr[mon].GetNbinsX(); ++ibin){
+	if(monpr[mon].GetBinEntries(ibin)>=minEntriesPerBin){
+	  vx.push_back(monpr[mon].GetBinCenter(ibin));
+	  vxe.push_back(monpr[mon].GetBinWidth(ibin)/2.0);
+	  vy.push_back(monpr[mon].GetBinContent(ibin));
+	  vye.push_back(monpr[mon].GetBinError(ibin));
+	}
+      }
+      if((int)vx.size() < minFullBins){
+	if(mon==0)
+	  std::cout<< red << "Number of good events too small for graph."<<
+	    " Using TProfile::Approximate() for errors."<< normal << std::endl;
+	monpr[mon].Approximate(1);
+	vx.clear();
+	vxe.clear();
+	vy.clear();
+	vye.clear();
+	for(int ibin=1; ibin<monpr[mon].GetNbinsX(); ++ibin){
+	  if(monpr[mon].GetBinEntries(ibin)>0){
+	    vx.push_back(monpr[mon].GetBinCenter(ibin));
+	    vxe.push_back(monpr[mon].GetBinWidth(ibin)/2.0);
+	    vy.push_back(monpr[mon].GetBinContent(ibin));
+	    vye.push_back(monpr[mon].GetBinError(ibin));
+	  }
+	}
+      }
+
+      mongrerr[mon] = TGraphErrors((int)vx.size(), vx.data(), vy.data(), 
+				     vxe.data(), vye.data());
+      mongrerr[mon].Fit("fctn", "QREX0");
     }else{
       mongr[mon] = TGraph(fNEvents, x, y);
       fctn->SetParameters(d_mean, slope, slope2);
-      mongr[mon].Fit("fctn", "qr");
+      mongr[mon].Fit("fctn", "QR");
     }
 
     if(makePlots){
       cM->cd(mon+1);
-      monpr[mon].SetMarkerColor(kBlue);
-      monpr[mon].SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
-      monpr[mon].GetXaxis()->SetTitle("ramp");
-      monpr[mon].GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
-      monpr[mon].Draw("AP");
-      cM->Update();
+      mongrerr[mon].SetMarkerColor(kBlue);
+      mongrerr[mon].SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
+      mongrerr[mon].GetXaxis()->SetTitle("ramp");
+      mongrerr[mon].GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
+      mongrerr[mon].Draw("AP");
+      cM->ForceUpdate();
     }
     
     mean = fctn->GetParameter(0);
@@ -363,6 +399,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
     pt1.AddText(Form("%s Modulation", ModName[modType]));
     pt1.SetFillColor(43);
     pt1.Draw();
+    gPad->Update();
     cM->cd();
     cM->Print(Form("MonitorPlot%i.png",modType));
     delete cM;
@@ -382,7 +419,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
   
   TGraph detgr[fNDetector];
   TProfile detpr[fNDetector];
-  
+  TGraphErrors detgrerr[fNDetector];  
   for(Int_t det=0; det<fNDetector; det++) {
     if(DetectorData[det].size() <= 0){
       std::cout << "!!!!!!!!!!!!!!!!! Illegal Detector vector length:\t" 
@@ -429,10 +466,44 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
 	  detpr[det].Fill(x[evNum],y[evNum] ,1);
 	}
 	fctn->SetParameters(d_mean, slope, slope2);
-	detpr[det].Approximate(1);
-	detpr[det].Fit("fctn", "qr");
+
+	std::vector<Double_t> vx, vxe, vy, vye;
+	for(int ibin=1; ibin<detpr[det].GetNbinsX(); ++ibin){
+	  if(detpr[det].GetBinEntries(ibin)>=minEntriesPerBin){
+	    vx.push_back(detpr[det].GetBinCenter(ibin));
+	    vxe.push_back(detpr[det].GetBinWidth(ibin)/2.0);
+	    vy.push_back(detpr[det].GetBinContent(ibin));
+	    vye.push_back(detpr[det].GetBinError(ibin));
+	  }
+	}
+	if((int)vx.size() < minFullBins){
+	  if(det==0)
+	    std::cout<< red << "Number of good events too small for graph."<<
+	      " Using TProfile::Approximate() for errors."<< normal << std::endl;
+	  detpr[det].Approximate(1);
+	  vx.clear();
+	  vxe.clear();
+	  vy.clear();
+	  vye.clear();
+	  for(int ibin=1; ibin<detpr[det].GetNbinsX(); ++ibin){
+	    if(detpr[det].GetBinEntries(ibin)>0){
+	      vx.push_back(detpr[det].GetBinCenter(ibin));
+	      vxe.push_back(detpr[det].GetBinWidth(ibin)/2.0);
+	      vy.push_back(detpr[det].GetBinContent(ibin));
+	      vye.push_back(detpr[det].GetBinError(ibin));
+	    }
+	  }
+	}
+	detgrerr[det] = TGraphErrors((int)vx.size(), vx.data(), vy.data(), 
+				     vxe.data(), vye.data());
+	detgrerr[det].Fit("fctn", "QREX0");
       }
       else{
+	if(fNEvents < minFullBins * minEntriesPerBin){
+	  std::cout<< red << "Number of good events too small in microcycle."<<
+	    " Exiting."<< normal << std::endl;
+	  return;
+	}
 	detgr[det] = TGraph(fNEvents, x, y);
 	fctn->SetParameters(d_mean, slope, slope2);
 	detgr[det].Fit("fctn", "qr");
@@ -444,15 +515,15 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
     }
     if(makePlots){
       cD->cd(det+1);
-      detpr[det].SetMarkerColor(kBlue);
-      detpr[det].SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
-      detpr[det].GetXaxis()->SetTitle("ramp");
-      detpr[det].GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
-      detpr[det].Draw("AP");
-      cD->Update();
+      detgrerr[det].SetMarkerColor(kBlue);
+      detgrerr[det].SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
+      detgrerr[det].GetXaxis()->SetTitle("ramp");
+      detgrerr[det].GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
+      detgrerr[det].Draw("AP");
+      cD->ForceUpdate();
     }
     
-    mean = (fctn->GetParameter(0));        
+    mean = TMath::Abs(fctn->GetParameter(0));        
     meanError = (fctn->GetParError(0));
     sinAmp = (fctn->GetParameter(1));
     sinAmpError = (fctn->GetParError(1));
@@ -1271,10 +1342,47 @@ Double_t QwMpsOnly::FindDegPerMPS()
   return  mean;
 }
 
+Int_t QwMpsOnly::FindRampExcludedRegions()
+{
+  TF1 *f = new TF1("f",Form("[0]+[1]*cos((x-[2])*%e)", kDegToRad),0,360);
+  for(int imod=0;imod<kNMod;++imod){
+    Double_t rampPeaks = 0;
+    f->SetParameter(0,1);
+    f->SetParameter(1,1);
+    f->SetParameter(2,1);
+    TString monit = ((imod == 1 || imod == 4) ? "qwk_targetY":"qwk_targetX");
+    fChain->Draw(Form("%s:ramp_filled>>pr%i",monit.Data(), imod),
+		 Form("bm_pattern_number==%i || bm_pattern_number==%i",
+		      imod, 11+imod), "prof");
+    TProfile *pr = (TProfile*)gDirectory->Get(Form("pr%i",imod));
+    pr->Approximate(1);
+    Int_t fitResult = pr->Fit(f);
+    if(fitResult != 0){
+      std::cout<<"Problem finding ramp peak for pattern "<<imod<<". Exiting.\n";
+      delete f;
+      return -1;
+    }
+    rampPeaks = f->GetParameter(2); 
+    if(rampPeaks >=0)rampPeaks = fmod(rampPeaks, 180.0);
+    else rampPeaks = 180 + fmod(rampPeaks, 180.0);
+    //    std::cout<<"Ramp peak pattern "<<imod<<": "<<rampPeaks<<std::endl; 
+    rampExcludedRegion[0][imod] = rampPeaks - kDegreesExcluded;
+    rampExcludedRegion[1][imod] = rampPeaks + kDegreesExcluded;
+    rampExcludedRegion[2][imod] = rampExcludedRegion[0][imod] + 180;
+    rampExcludedRegion[3][imod] = rampExcludedRegion[1][imod] + 180;
+  }
+  for(int imod=0;imod<kNMod;++imod)
+    printf("Ramp excluded regions: %i to %i  and  %i to %i\n",
+	   (int)rampExcludedRegion[0][imod],(int)rampExcludedRegion[1][imod],
+	   (int)rampExcludedRegion[2][imod],(int)rampExcludedRegion[3][imod]);
+  delete f;
+  return 0;
+}
+
 Int_t QwMpsOnly::FindRampPeriodAndOffset()
 {
   TCut cut;
-  Double_t parLim[4] = {0,175,350,360};
+  Double_t parLim[4] = {0,175,350,370};
   Double_t par[4] = {-500,1000,4,360};
   //define function generator signals used
   //right now fge missing from bmod_only files, but may add later
@@ -1397,7 +1505,7 @@ Int_t QwMpsOnly::FindRampRange()
   rampold = new Double_t[max];
   rampnew = new Double_t[max];
   fRampMax = fChain->GetMaximum("ramp") - 1;
-  if(!(fRampMax>315&&fRampMax<350)){
+  if(!(fRampMax>308&&fRampMax<350)){
     std::cout<<"fRampMax = "<<fRampMax<<" not within specified bounds."<<
       " Exiting program.\n";
     return 1;
@@ -1491,12 +1599,17 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 		<< fUpperSegment << normal << std::endl;
     }
 
-    if(flag.CompareTo("--file-stem", TString::kExact) == 0){
-      //      flag.Clear();
-      fFileStem = options[i + 1];
 
-      std::cout << other << "Setting file stem to:\t" 
-		<< fFileStem.Data() << normal << std::endl;
+    if(flag.CompareTo("--cut-nonlinear-regions", TString::kExact) == 0){
+      //      flag.Clear();
+      fCutNonlinearRegions = (Bool_t)atoi(options[i + 1]);
+
+      std::cout << other << (fCutNonlinearRegions ? 
+			     Form("Applying nonlinearity cut to +/- %i degrees"
+				  " around peak excursions in target variables.", 
+				  (int)kDegreesExcluded) : 
+			     "No nonlinearity cut applied.")<<
+	normal << std::endl;
     }    
 
     if(flag.CompareTo("--set-stem", TString::kExact) == 0){
@@ -1815,10 +1928,10 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
 
   std::cout << "\n\n\t\t\t\t::SMatrix::\n" << std::endl;
 
-  for(Int_t i = 0; i < fNDetector; i++){
-    for(Int_t j = 0; j < fNModType; j++){
-      SMatrix(i,j) *= fUnitConvert[j];
-      YieldSlope[i][j] = SMatrix(i,j);
+  for(Int_t idet = 0; idet < fNDetector; idet++){
+    for(Int_t imon = 0; imon < fNMonitor; imon++){
+      SMatrix(idet,imon) *= fUnitConvert[imon];
+      YieldSlope[idet][imon] = SMatrix(idet,imon);
     }
   }
   SMatrix.Print();
@@ -1864,14 +1977,18 @@ Int_t QwMpsOnly::PilferData()
   for(Int_t i = 0; i < nentries; i++){
     fChain->GetEntry(i);
     Int_t pat = ConvertPatternNumber((Int_t)bm_pattern_number);
-    if(pat > -1 && pat < 5)
+    if(pat > -1 && pat < 5){
+      if(fXinit==0 && fYinit==0 && fEinit==0 && fXPinit==0 && fYPinit==0){
+	fFirstEntry = i;
+      }
       i =  ProcessMicroCycle(i, &fEvCounter, &error[0], &good[0]);
-    else nonModEvts++;
+    }else nonModEvts++;
 
     //Invert matrix each full cycle
     if(fXinit && fYinit && fEinit && fXPinit && fYPinit){
       fMacroCycleNum ++;
       fFullCycle = true;
+      fLastEntry = i;//last entry of macrocycle
       MatrixFill(0);
       //reset all flags
       fXinit = 0;
@@ -1982,27 +2099,47 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
   }
 
   while(pattern == modType && i < nEnt){
+    Bool_t inCutRegion = 0;
+    if(fCutNonlinearRegions){
+      if(rampExcludedRegion[0][modType]>=0){
+	inCutRegion = ramp_filled > rampExcludedRegion[0][modType] && 
+	              ramp_filled < rampExcludedRegion[1][modType];
+      }else{
+	inCutRegion = ramp_filled > 360.0 + rampExcludedRegion[0][modType] || 
+	              ramp_filled < rampExcludedRegion[1][modType];
+      }
 
-    if(ErrorCodeCheck("mps_tree")!=0){
-      nCut++;
-      nErr++;
+      if(rampExcludedRegion[3][modType]<=360){
+	inCutRegion = inCutRegion ||
+	  (ramp_filled > rampExcludedRegion[2][modType] && 
+	   ramp_filled < rampExcludedRegion[3][modType]);
+      }else{
+	inCutRegion = inCutRegion ||
+	  (ramp_filled > rampExcludedRegion[2][modType] || 
+	   ramp_filled < rampExcludedRegion[3][modType] - 360);
+      }
+
+    }
+    if(ErrorCodeCheck("mps_tree")!=0 || inCutRegion){
+      ++nCut;
+      if(ErrorCodeCheck("mps_tree")!=0)++nErr;
     }else{
       good[modType]++;
       CoilData[modType].push_back(ramp_filled);
 
-      for(Int_t j = 0; j < fNDetector; j++){
-	Double_t val = fChain->GetLeaf(DetectorList[j].Data())->GetValue();
-	DetectorData[j].push_back(val);
+      for(Int_t idet = 0; idet < fNDetector; ++idet){
+	Double_t val = fChain->GetLeaf(DetectorList[idet].Data())->GetValue();
+	DetectorData[idet].push_back(val);
       }
-      for(Int_t j = 0; j < fNMonitor; j++){
-	Double_t val = fUnitConvert[j]*
-	  (fChain->GetLeaf(MonitorList[j].Data())->GetValue());
-	MonitorData[j].push_back(val);
+      for(Int_t imon = 0; imon < fNMonitor; imon++){
+	Double_t val = fUnitConvert[imon]*
+	  (fChain->GetLeaf(MonitorList[imon].Data())->GetValue());
+	MonitorData[imon].push_back(val);
       }
       ++evCntr;
       ++fNEvents;
     }
-    i++;
+    ++i;
     if(i==nEnt)break;
 
     fChain->GetEntry(i);
@@ -2411,7 +2548,48 @@ void QwMpsOnly::Write(Bool_t run_avg){
   gSystem->Exec("umask 002");
 
   if(!run_avg){
-    //Write output to individual macrocycle files here.
+
+    //Write output to individual macrocycle coefficient files here.
+    //////////////////////////////////////////////////////////////
+    Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+    if(!macrocycle_coeffs.is_open()){
+      macrocycle_coeffs.open(Form("%s/macrocycle_slopes/"
+				  "coil_coeffs%s_%i%s.%s.dat", 
+				  output.Data(), fFileSegment.Data(), run_number, 
+				  (fChiSquareMinimization ? "_ChiSqMin" : ""),
+				  fSetStem.Data()), fstream::out);
+    }
+    if(macrocycle_coeffs.is_open() && macrocycle_coeffs.good()){
+      macrocycle_coeffs<<"Macrocycle "<<fMacroCycleNum<<" \t";
+      for(Int_t imod = 0;imod<kNMod;imod++){
+	macrocycle_coeffs<<"Mod"<<imod<<" "<<fCycleNum[imod]<<" \t";
+      }
+      macrocycle_coeffs<<"Id "<<run_number<<fMacroCycleNum<<"  first_entry "<<
+	fFirstEntry<<"  last_entry "<<fLastEntry<<std::endl;
+      for(Int_t imon = 0; imon < fNMonitor; imon++){
+	macrocycle_coeffs << "mon " << MonitorList[imon].Data() << std::endl;
+	for(Int_t imod = 0; imod < nMod; imod++){
+	  Double_t sl = MonitorSlope[imod][imon].back();
+	  Double_t err = MonitorSlopeError[imod][imon].back();
+	  macrocycle_coeffs << Form("%+14.7e\t%12.5e\n",sl, err);
+	}
+      }
+
+      for(Int_t idet = 0; idet < fNDetector; idet++){
+	macrocycle_coeffs << "det " << DetectorList[idet].Data() << std::endl;
+	for(Int_t imod = 0; imod < nMod; imod++){
+	  Double_t sl = DetectorSlope[imod][idet].back();
+	  Double_t err = DetectorSlopeError[imod][idet].back();
+	  macrocycle_coeffs << Form("%+14.7e\t%12.5e\n",sl, err);
+	}
+      }
+
+    }else std::cout<<"Macrocycle coefficients file not opened.\n";
+    /////////////////////////////////////////////////////////////
+
+
+    //Write output to individual macrocycle slopes files here.
+    /////////////////////////////////////////////////////////
     if(!macrocycle_slopes.is_open()){
       macrocycle_slopes.open(Form("%s/macrocycle_slopes/"
 				  "macrocycle_slopes%s_%i%s.%s.dat", 
@@ -2424,17 +2602,22 @@ void QwMpsOnly::Write(Bool_t run_avg){
       for(Int_t imod = 0;imod<kNMod;imod++){
 	macrocycle_slopes<<"Mod"<<imod<<" "<<fCycleNum[imod]<<" \t";
       }
-      macrocycle_slopes<<std::endl;
-      for(Int_t i = 0; i < fNDetector; i++){
-	macrocycle_slopes << "det " << DetectorList[i] << std::endl;
-	for(Int_t j = 0; j < fNModType; j++){
-	  macrocycle_slopes << Form("%+14.7e",YieldSlope[i][j]) << "\t"
-		 << Form("%12.5e",YieldSlopeError[i][j]) << std::endl;
+      macrocycle_slopes<<"Id "<<run_number<<fMacroCycleNum<<"  first_entry "<<
+	fFirstEntry<<"  last_entry "<<fLastEntry<<std::endl;
+
+      for(Int_t idet = 0; idet < fNDetector; idet++){
+	macrocycle_slopes << "det " << DetectorList[idet].Data() << std::endl;
+	for(Int_t imon = 0; imon < fNMonitor; imon++){
+	  Double_t sl = YieldSlope[idet][imon];
+	  Double_t err = YieldSlopeError[idet][imon];
+	  macrocycle_slopes << Form("%+14.7e\t%12.5e\n",sl, err);
 	}
       }
     }else std::cout<<"Macrocycle slopes file not open.\n";
+    /////////////////////////////////////////////////////////
+ 
 
-    return;
+   return;
   }
 
   slopes.open(Form("%s/slopes/slopes%s_%i%s.%s.dat", output.Data(), 
@@ -2447,11 +2630,11 @@ void QwMpsOnly::Write(Bool_t run_avg){
 			  fSetStem.Data()), "w");
 
   if( (slopes.is_open() && slopes.good()) ){
-    for(Int_t i = 0; i < fNDetector; i++){
-      slopes << "det " << DetectorList[i] << std::endl;
-      for(Int_t j = 0; j < fNModType; j++){
-	slopes << Form("%+14.7e",YieldSlope[i][j]) << "\t"
-	       << Form("%12.5e",YieldSlopeError[i][j]) << std::endl;
+    for(Int_t idet = 0; idet < fNDetector; idet++){
+      slopes << "det " << DetectorList[idet] << std::endl;
+      for(Int_t imon = 0; imon < fNMonitor; imon++){
+	slopes << Form("%+14.7e",YieldSlope[idet][imon]) << "\t"
+	       << Form("%12.5e",YieldSlopeError[idet][imon]) << std::endl;
       }
     }
   }
@@ -2519,6 +2702,7 @@ void QwMpsOnly::Write(Bool_t run_avg){
   fclose(regression);
   slopes.close();
   macrocycle_slopes.close();
+  macrocycle_coeffs.close();
   diagnostic.close();
   
   return;

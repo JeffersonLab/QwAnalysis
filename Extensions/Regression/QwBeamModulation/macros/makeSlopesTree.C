@@ -61,7 +61,7 @@ void makeSlopesTree(Int_t run_start = 13842, Int_t  run_end = 19000,
     
   }
   delete ch;
-  ifstream runList(Form("%s/macros/runsBySlug_new.dat", 
+  ifstream runList(Form("%s/macros/runsBySlug.dat", 
 			 gSystem->Getenv("BMOD_SRC")));
 
 

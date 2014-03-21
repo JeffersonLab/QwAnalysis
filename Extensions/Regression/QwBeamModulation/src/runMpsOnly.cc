@@ -21,6 +21,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   if( !(mps_only->fRunNumberSet) ){
     mps_only->PrintError("Error Loading:  no run number specified");
+    //   std::cout<<mps_only->fRunNumberSet<<std::endl;
     exit(1);
   }
 
@@ -33,7 +34,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   if(mps_tree->GetEntries() < minEvents){
     std::cout<<mps_tree->GetEntries()<<" entries. Exiting program."<<
       " Too few entries.\n";
-    return 1;
+    return -1;
   }
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
 
@@ -45,7 +46,9 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->BuildDetectorData();
   mps_only->BuildMonitorData();
   if(mps_only->MakeRampFilled(1)) 
-    return 1;
+    return -1;
+  if(mps_only->FindRampExcludedRegions()) 
+    return -1;
   mps_only->BuildCoilData();
   mps_only->BuildDetectorSlopeVector();
   mps_only->BuildMonitorSlopeVector();
@@ -55,11 +58,17 @@ Int_t main(Int_t argc, Char_t *argv[])
   //Open file for writing coil sensitivities by microcycle
   gSystem->Exec("umask 002");
   mps_only->coil_sens.open(Form("%s/coil_sensitivities/coil_sens_%i%s.%s.dat", 
-		      gSystem->Getenv("BMOD_OUT"), mps_only->run_number,
-		      ( mps_only->fChiSquareMinimization ? "_ChiSqMin" : ""),
-		       mps_only->fSetStem.Data()), fstream::out);
+				gSystem->Getenv("BMOD_OUT"), mps_only->run_number,
+				( mps_only->fChiSquareMinimization ? 
+				  "_ChiSqMin" : ""),
+				mps_only->fSetStem.Data()), fstream::out);
+
 
   std::cout << "Starting to pilfer the data" << std::endl;
+  if(!mps_only->coil_sens.is_open()){
+    std::cout<<"Coil sensitivities file(s) not opened. Exiting.\n";
+    return -1;
+  }
   if(mps_only->PilferData()<minEvents){
     std::cout<<"Too few good events. Exiting program for run "<<
       mps_only->run_number<<"\n"; 
@@ -67,6 +76,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
 
   mps_only->coil_sens.close();
+  mps_only->macrocycle_coeffs.close();
   if(mps_only->CalculateWeightedSlope(1)==-1){
     std::cout<<"Error in calculating slopes. One or more 0 entries. Exiting\n";
     return -1;

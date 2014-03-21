@@ -16,7 +16,6 @@
 #include <fstream>
 #include <vector>
 #include "TMatrixD.h"
-#include "QwMpsOnly.hh"
 
 class QwMpsOnly {
 
@@ -29,6 +28,7 @@ private:
   static const Int_t kDeviceErrorCode = 6;
   static const Int_t kError = 1;
   static const Int_t kRampPedestal = 128;
+  static const Double_t kDegreesExcluded = 45;
   static const Double_t kErrorFlag = -999999;
   static const Double_t PI = 3.14159265358979312;
   static const Double_t kDegToRad = 1.74532925199432955e-02;
@@ -55,6 +55,7 @@ private:
   Bool_t fFullCycle;
   Bool_t f2DFit;
   Bool_t fNewEbpm;
+  Bool_t fCutNonlinearRegions;
 
   Int_t fNModEvents;
   Int_t fCurrentCut;
@@ -74,7 +75,7 @@ private:
   Double_t rampPeriodFitRsltErr[4];
   Double_t rampOffsetFitRslt[4];
   Double_t rampOffsetFitRsltErr[4];
-
+  Double_t rampExcludedRegion[4][kNMod];
 
 public :
 
@@ -83,6 +84,8 @@ public :
   TString         fFileName;
 
   Int_t           fCurrent;
+  Int_t           fFirstEntry;
+  Int_t           fLastEntry;
   Int_t           fNDetector;  
   Int_t           fNMonitor;
   Int_t           run_number;
@@ -176,6 +179,7 @@ public :
   std::fstream input;
   std::fstream slopes;
   std::fstream macrocycle_slopes;
+  std::fstream macrocycle_coeffs;
   std::fstream diagnostic;
   std::fstream coil_sens;
   std::fstream charge_sens;  
@@ -229,68 +233,69 @@ public :
   QwMpsOnly(TChain *tree = 0);
   ~QwMpsOnly();
 
-  Int_t    Cut(Long64_t entry);
-  Int_t    FindRampPeriodAndOffset();
-  Int_t    FindRampRange();
-  Int_t    GetEntry(Long64_t entry);
-  Int_t    MakeRampFilled(Bool_t);
-  Int_t    ReadConfig(TString opt = "");
-  Int_t    PilferData();
-  Int_t    ReadPhaseConfig(Char_t *);
-  Int_t    ErrorCodeCheck(TString);
-  Int_t    CheckRampLinearity(TString);
-  Int_t    ConvertPatternNumber(Int_t);
-  Int_t    GetCurrentCut();
-  Int_t    ProcessMicroCycle(Int_t, Int_t *, Int_t *, Int_t*);
+  void     BuildCoilData(); 
+  void     BuildDetectorAvSlope();
+  void     BuildDetectorData();
+  void     BuildDetectorSlopeVector();
+  void     BuildMonitorData();  
+  void     BuildMonitorSlopeVector();
+  void     BuildMonitorAvSlope();
+  void     BuildNewEBPM();
+  void     Calculate2DSlope(Int_t, Int_t, Bool_t);
+  void     CalculateSlope(Int_t);
   Int_t    CalculateWeightedSlope(Int_t);
-  Long64_t LoadTree(Long64_t entry);
-  Double_t FindDegPerMPS();
-  Double_t GetDegPerMPS();
+  void     CheckFlags(void);
+  Int_t    CheckRampLinearity(TString);
+  void     Clean(void);
+  void     CleanFolders(void);
+  void     ComputeAsymmetryCorrections(); 
+  void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
+  void     ComputeSlopeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
+  Int_t    ConvertPatternNumber(Int_t);
+  Int_t    Cut(Long64_t entry);
+  Int_t    ErrorCodeCheck(TString);
+  Bool_t   FileSearch(TString, TChain *, Bool_t slug = false);
   Double_t FindChiSquareMinAMatrix(Int_t, Int_t);
   Double_t FindChiSquareMinRMatrix(Int_t, Int_t);
   Double_t FindChiSquareMinAMatrixError(Int_t, Int_t);
   Double_t FindChiSquareMinRMatrixError(Int_t, Int_t);
-  void     Init(TChain *tree);
-  void     Scan(void);
-  void     SetMaxRampNonLinearity(Double_t);
-  void     Show(Long64_t entry = -1);  
-  void     LoadRootFile(TString, TChain *, Bool_t slug = false);
-  void     BuildDetectorData();
-  void     BuildMonitorData();  
-  void     BuildCoilData(); 
-  void     BuildMonitorSlopeVector();
-  void     BuildDetectorSlopeVector();
-  void     BuildMonitorAvSlope();
-  void     BuildDetectorAvSlope();
-  void     CalculateSlope(Int_t);
-  void     Calculate2DSlope(Int_t, Int_t, Bool_t);
-  void     SetRampScaleAndOffset();
-  void     MatrixFill(Bool_t);
-  void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
-  void     ComputeSlopeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
-  void     SetFileName(TString &);
-  void     ComputeAsymmetryCorrections(); 
-  void     PrintAverageSlopes();
-  void     ReduceMatrix(Int_t);
-  void     SetDegPerMPS(Double_t);
-  void     SetHuman(void);
-  void     SetupMpsBranchAddress(void); 
-  void     SetupHelBranchAddress(void); 
-  void     PrintError(TString);
-  void     SetPhaseValues(Double_t *);
-  void     Write(Bool_t);
-  void     Clean(void);
-  void     CleanFolders(void);
+  Double_t FindDegPerMPS();
+  Int_t    FindRampExcludedRegions();
+  Int_t    FindRampPeriodAndOffset();
+  Int_t    FindRampRange();
+  Int_t    GetCurrentCut();
   void     GetOptions(Int_t, Char_t **);
-//   void     SetFlags(void);
-  void     CheckFlags(void);
-  void     ReadChargeSensitivity();
-
-  void     BuildNewEBPM();
-
-  Bool_t   Notify();
-  Bool_t   FileSearch(TString, TChain *, Bool_t slug = false);
+  Double_t GetDegPerMPS();
+  Int_t    GetEntry(Long64_t entry);
   Bool_t   IfExists(const char *);
+  void     Init(TChain *tree);
+  Long64_t LoadTree(Long64_t entry);
+  void     LoadRootFile(TString, TChain *, Bool_t slug = false);
+  Int_t    MakeRampFilled(Bool_t);
+  void     MatrixFill(Bool_t);
+  Bool_t   Notify();
+  Int_t    PilferData();
+  void     PrintAverageSlopes();
+  void     PrintError(TString);
+  Int_t    ProcessMicroCycle(Int_t, Int_t *, Int_t *, Int_t*);
+  void     ReadChargeSensitivity();
+  Int_t    ReadConfig(TString opt = "");
+  Int_t    ReadPhaseConfig(Char_t *);
+  void     ReduceMatrix(Int_t);
+  void     Scan(void);
+  void     SetDegPerMPS(Double_t);
+  void     SetFileName(TString &); 
+//   void     SetFlags(void);
+  void     SetHuman(void);
+  void     SetMaxRampNonLinearity(Double_t);
+  void     SetPhaseValues(Double_t *);
+  void     SetRampScaleAndOffset();
+  void     SetupHelBranchAddress(void); 
+  void     SetupMpsBranchAddress(void); 
+  void     Show(Long64_t entry = -1);  
+  void     Write(Bool_t);
+
+
 };
 
 #endif
