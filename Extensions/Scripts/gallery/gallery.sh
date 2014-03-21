@@ -10,7 +10,7 @@ normtype=png
 normopts="-resize ${normsize}x${normsize}"
 fulldir=full
 formatdir=format
-formats="png jpg"
+formats="pdf png jpg"
 ncols=3
 
 # Relative directories under basedir
@@ -49,7 +49,7 @@ footer=footer.html
 indexfile=index.html
 
 # Filter of items to consider
-filter="\(jpg\|png\|eps\)"
+filter="\(jpg\|png\|eps\|pdf\)"
 
 # File with sidebar categories
 sidebarfile=sidebar.html
@@ -62,6 +62,7 @@ source ${0/sh/conf}
 # Function to do server-side includes on html generation
 writehtml () {
 	file=$1
+	touch "$basedir/$file"
 	if [ "$includes" == "yes" ] ; then
 		echo "<!--#include virtual=\"$baseweb/$file\" -->"
 	else
@@ -92,7 +93,7 @@ relative () {
 
 process_dirs_in_dir () {
 
-	local parent=$1
+	local parent="$1"
 
 	local nparentdirs=$(find "$origdir/$parent" -maxdepth 1 -type d | wc -l)
 	let nparentdirs=$nparentdirs-1
@@ -110,27 +111,26 @@ process_dirs_in_dir () {
 		echo "<li><a href=\"$baseweb/${parent/\/*/}\" id=\"new\">${parent/\/*/}</a>" >> "$sidebarfile".new
 	fi
 
-	for dir in $origdir/$parent/* ; do
-		if [ -d "$dir" ] ; then
+	find "$origdir/$parent" -mindepth 1 -maxdepth 1 -type d -print0 | while read -d $'\0' dir ; do
 
-			local section=$(relative "$dir" "$origdir")
+		local section=$(relative "$dir" "$origdir")
 
-			# Create working directory if necessary
-			if [ ! -d "$section" ] ; then mkdir -p "$section" ; fi
+		# Create working directory if necessary
+		if [ ! -d "$section" ] ; then mkdir -p "$section" ; fi
 
-			local nfiles=`find "$origdir/$section" -maxdepth 1 -type f -regex ".*\.$filter" | wc -l`
-			local ndirs=`find "$origdir/$section" -maxdepth 1 -type d | wc -l`
-			let ndirs=$ndirs-1
+		local nfiles=`find "$origdir/$section" -maxdepth 1 -type f -regex ".*\.$filter" | wc -l`
+		local ndirs=`find "$origdir/$section" -maxdepth 1 -type d | wc -l`
+		let ndirs=$ndirs-1
 
-			# Categories
-			echo "<li><a href=\"$baseweb/$section/$indexfile\">`basename "$section"` ($ndirs/$nfiles)</a>" >> "$sidebarfile".new
+		# Categories
+		echo "<li><a href=\"$baseweb/$section/$indexfile\">`basename "$section"` ($ndirs/$nfiles)</a>" >> "$sidebarfile".new
 
-			# Line with number of entries
-			echo "<li><a href=\"$baseweb/$section/$indexfile\">`basename "$section"`</a> ($ndirs $sectionsname, $nfiles $itemsname)" >> "$indexfile".new
+		# Line with number of entries
+		echo "<li><a href=\"$baseweb/$section/$indexfile\">`basename "$section"`</a> ($ndirs $sectionsname, $nfiles $itemsname)" >> "$indexfile".new
 
-			# Process this directory
-			process_dir "$section"
-		fi
+		# Process this directory
+		process_dir "$section"
+
 	done
 
 	mv "$sidebarfile".new "$sidebarfile"
@@ -149,13 +149,13 @@ process_file () {
 	local prev=$2
 	local next=$3
 
-	local itemframe=`echo $item | sed "s/$filter/html/"`
-	local prevframe=`echo $prev | sed "s/$filter/html/"`
-	local nextframe=`echo $next | sed "s/$filter/html/"`
+	local itemframe="$item.html"
+	local prevframe="$prev.html"
+	local nextframe="$next.html"
 
 	# Do some processing on this item
-	thumbitem="${item/.*/}.$thumbtype"
-	normitem="${item/.*/}.$normtype"
+	thumbitem="$item.$thumbtype"
+	normitem="$item.$normtype"
 	if [ ! -e "$thumbdir/$thumbitem" ] ; then
 		# Autorotate jpg files
 		if [ `hash exifautotran 2>/dev/null` ] ; then
@@ -219,7 +219,7 @@ END
 
 <p align="center">
  <a href="$baseweb/$section/$fulldir/$item">
-  <img src="$baseweb/$section/$normdir/${item/.*/}.$normtype" width="450px">
+  <img src="$baseweb/$section/$normdir/$item.$normtype" width="450px">
  </a>
 </p>
 END
@@ -229,7 +229,7 @@ END
 	echo "<p align=\"center\">" >> "$itemframe".new
 	echo "| <a href=\"$baseweb/$section/$fulldir/$item\">original</a>" >> "$itemframe".new
 	for format in $formats ; do
-		echo "| <a href=\"$baseweb/$section/$formatdir/${item/.*/}.$format\">$format</a>" >> "$itemframe".new
+		echo "| <a href=\"$baseweb/$section/$formatdir/${item/./_}.$format\">$format</a>" >> "$itemframe".new
 	done
 	echo " |</p>" >> "$itemframe".new	
 
@@ -315,7 +315,8 @@ process_files_in_dir () {
 	local prev="0"
 	local next="0"
 	local total=`find "$origdir/$section" -maxdepth 1 -type f -regex ".*\.$filter" | wc -l`
-	for file in `find "$origdir/$section" -maxdepth 1 -type f -regex ".*\.$filter"` ; do
+	find "$origdir/$section" -maxdepth 1 -type f -regex ".*\.$filter" -print0 | while read -d $'\0' file ; do
+
 		let nprev=$counter
 		let counter=$counter+1
 		let nnext=$counter+1
@@ -341,10 +342,10 @@ process_files_in_dir () {
 
 		process_file "$item" "$prev" "$next"
 
-		local itemframe=`echo $item | sed "s/$filter/html/"`
+		local itemframe="$item.html"
 		{
 			echo "    <a href=\"$itemframe\">"
-			echo "      <img src=\"$thumbdir/${item/.*/}.$thumbtype\" border=\"0\">"
+			echo "      <img src=\"$thumbdir/$item.$thumbtype\" border=\"0\">"
 			echo "    </a><a href=\"$item\">&nbsp;</a>"
 		} >> "$indexfile".new
 
