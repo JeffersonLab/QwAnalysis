@@ -32,7 +32,7 @@
   echo "Finished at `date`"
 ]]></Command>
  <Job>
-  <Input src="mss:/mss/hallc/qweak/rootfiles/tracking_pass4/Qweak_%RUN%.root" dest="Qweak_%RUN%.root"/>
+  <Input src="mss:/mss/hallc/qweak/rootfiles/tracking_pass%PASS%/Qweak_%RUN%.root" dest="Qweak_%RUN%.root"/>
   <Stdout dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.out"/>
   <Stderr dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.err"/>
  </Job>
