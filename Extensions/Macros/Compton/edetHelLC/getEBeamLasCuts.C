@@ -93,8 +93,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     if(flipperIsUp){ ///if the laser is known to be off check ...
       if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the end of run has been reached
         cutL.push_back(index); ///record this as the end of laserOn cycle
-	//printf("cutL[%d]=%d, laserPow rises:%d, index:%d\n",m,cutL.back(),(Int_t)laser,index);
-	printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
+        //printf("cutL[%d]=%d, laserPow rises:%d, index:%d\n",m,cutL.back(),(Int_t)laser,index);
+        printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
         m++; ///cutLas array's odd number index (corresponding to a laserOn)
         flipperIsUp = kFALSE; ///laserOff state ends
       }
@@ -103,8 +103,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     ///find and record electron beam off periods
     //rampIsDone = (bcm> (beamFracHi*beamMax) && (bcm <200.0));
     //isABeamTrip = (bcm<= (beamFrac*beamMax) && (bcm >0.0));
-    rampIsDone = (bcm> (20.0) && (bcm <200.0));
-    isABeamTrip = (bcm<= (20.0) && (bcm >0.0));
+    rampIsDone = (bcm> (beamOnLimit) && (bcm <beamMaxEver));
+    isABeamTrip = (bcm<= (beamOnLimit) && (bcm >0.0));
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition
@@ -113,16 +113,16 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       if(q>=100) { ///beam is found off for over 100 consecutive entries (~ 400ms) 
         q = 0;
         o++; ///cutE array's even number index (corresponding to a beamTrip)
-	if (index >= (PREV_N_ENTRIES+100)) { //to protect the beamTrip that may have occured in the first 5s of the run
-	  cutE.push_back(index-(PREV_N_ENTRIES+100)); ///register the entry# ~ 4s before this instance as a beam-trip
-	  printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",red,cutE.back(),bcm,index,normal);
-	  //printf("ch1 bcm:%3.2f, index:%d\n",bcm,index);
-	}
+        if (index >= (PREV_N_ENTRIES+100)) { //to protect the beamTrip that may have occured in the first 5s of the run
+          cutE.push_back(index-(PREV_N_ENTRIES+100)); ///register the entry# ~ 4s before this instance as a beam-trip
+          printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",red,cutE.back(),bcm,index,normal);
+          //printf("ch1 bcm:%3.2f, index:%d\n",bcm,index);
+        }
         else {
-	  cutE.push_back(index-100);
-	  printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",blue,cutE.back(),bcm,index,normal);
-	  //printf("ch2 bcm:%3.2f, index:%d\n",bcm,index);
-	}
+          cutE.push_back(index-100);
+          printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",blue,cutE.back(),bcm,index,normal);
+          //printf("ch2 bcm:%3.2f, index:%d\n",bcm,index);
+        }
         prevTripDone = kFALSE; ///register that this beamTrip has been recorded
       }
     }///if(isABeamTrip && prevTripDone)
@@ -133,8 +133,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
         o++; ///cutE array's odd number index (corresponding to a beam recovery)
         p = 0; 
         cutE.push_back(index); ///register that the trip is recovered. 
-	printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",green,cutE.back(),bcm,index,normal);
-	//printf("ch3 bcm:%3.2f, o:%d  index:%d\n",bcm,o,index);
+        printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",green,cutE.back(),bcm,index,normal);
+        //printf("ch3 bcm:%3.2f, o:%d  index:%d\n",bcm,o,index);
         prevTripDone = kTRUE; 
       }
     }
@@ -159,7 +159,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     outfileLas << cutL.at(i) <<endl;
   }
 
-  infoBeamLas<<Form("%5.0f\t%.2f\t%.0f\t%.2f\t%f.0\t%.0f\n",(Float_t)runnum,beamMax,((Float_t)cutE.size()-2.0)/2,laserMax,((Float_t)cutL.size()-2.0)/2,(Float_t)nEntries);
+  infoBeamLas<<Form("%5.0f\t%.2f\t%.0f\t%.2f\t%.0f\t%.0f\n",(Float_t)runnum,beamMax,((Float_t)cutE.size()-2.0)/2,laserMax,((Float_t)cutL.size()-2.0)/2,(Float_t)nEntries);
   outfileLas.close();
   outfileBeam.close();
   infoBeamLas.close();
@@ -178,4 +178,4 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
  * We could not throw away the initial/final part of laser On data because,
  * ..the same marker which is used for beginning of laser On, is also used for end of Laser off
  * ..hence, shifting the laser on marker by (say) 1s would confuse the laser off identification
-************************************/
+ ************************************/

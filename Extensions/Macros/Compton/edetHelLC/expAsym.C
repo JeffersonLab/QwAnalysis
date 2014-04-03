@@ -14,7 +14,7 @@
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
 
-Int_t expAsym(Int_t runnum, TString dataType="Sc")
+Int_t expAsym(Int_t runnum, TString dataType="Ac")
 {
   cout<<"\nstarting into expAsym.C**************with dataType: "<<dataType<<"\n"<<endl;
   filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
@@ -84,8 +84,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Sc")
       bkgdAsym[p][s]= 0.0,bkgdAsymEr[p][s]= 0.0;
 
       qNormB1L0[p][s]=0.0,qNormB1L0Er[p][s]=0.0;
-      qNormCountsB1L1[p][s]=0.0,qNormCountsB1L0[p][s]=0.0;
-      //qNormB1L1[p][s]=0.0,qNormB1L0[p][s]=0.0;
+      qNormCountsB1L1[p][s]=0.0,qNormCountsB1L1Er[p][s]=0.0;
+      qNormCountsB1L0[p][s]=0.0,qNormCountsB1L0Er[p][s]=0.0;
       qNormLasCycAsym[p][s]=0.0,LasCycAsymErSqr[p][s]=0.0;
 
       totyieldB1L1[p][s]=0,totyieldB1L0[p][s]=0;//this can be removed after the variables below do the requisite
@@ -236,10 +236,10 @@ Int_t expAsym(Int_t runnum, TString dataType="Sc")
         if (!mask[p][s]) continue;    
         ///lasCyc based files go into a special folder named lasCyc
         lasCycCounts[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-        if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+        if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
         ///Lets open the files for writing asymmetries in the beamOn loop repeatedly
         outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-        if(debug2) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+        if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
       }
     }
     lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
@@ -358,7 +358,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Sc")
         printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nHelLCB1L1:%d, nHelLCB1L0:%d%s",red,nCycle,nHelLCB1L1,nHelLCB1L0,normal);
       } else if (iLCH1L1<= 0||iLCH1L0<= 0||iLCH0L1<= 0||iLCH0L0<= 0)
         printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n** check iLCH1L1:%f, iLCH1L0:%f, iLCH0L1:%f, iLCH0L0:%f**%s\n",red,nCycle,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,normal);
-      else {
+      else { ///if everything okay, start main buisness
         for (Int_t p =startPlane; p <endPlane; p++) {
           for (Int_t s = startStrip; s < endStrip; s++) {
             if (!mask[p][s]) continue;
@@ -372,11 +372,10 @@ Int_t expAsym(Int_t runnum, TString dataType="Sc")
         ///now lets do a yield weighted mean of the above asymmetry
         evaluateAsym(diffB1L1,diffB1L0,yieldB1L1,yieldB1L0,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,wmCountsNrAsym,wmCountsDrAsym,wmCountsNrBCqNormSum,wmCountsDrBCqNormSum,wmCountsNrBCqNormDiff,wmCountsNrqNormB1L0,wmCountsDrqNormB1L0,wmCountsNrBkgdAsym,wmCountsDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
 
-
         if(lasCycPrint) {
           //q=i*t;qH1L1=(iH1L1/nMpsH1L1)*(nMpsH1L1/MpsRate);//this really gives total-charge for this laser cycle
-          Double_t qLasCycL1 = iLCH1L1 /helRate;
-          Double_t qLasCycL0 = iLCH1L0 /helRate;
+          Double_t qLasCycL1 = iLCH0L1 /helRate;//(iLCH0L1 + iLCH1L1) /helRate;  
+          Double_t qLasCycL0 = iLCH0L0 /helRate;
           //!!check the above "average charge", it doesn't seem the appropriate way of averaging
           if(debug1) {
             cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
@@ -429,34 +428,37 @@ Int_t expAsym(Int_t runnum, TString dataType="Sc")
   //notice that the variables to be written by the writeToFile command is updated after every call of weightedMean() function
 
   weightedMean(wmCountsNrAsym, wmCountsDrAsym, wmCountsNrBCqNormSum, wmCountsDrBCqNormSum, wmCountsNrBCqNormDiff, wmCountsNrqNormB1L0, wmCountsDrqNormB1L0, wmCountsNrBkgdAsym, wmCountsDrBkgdAsym);
-  qNormVariables(totyieldB1L0,totyieldB1L1,totIAllH1L0,totIAllH1L1);
 
+  qNormVariables(totyieldB1L1,totIAllH1L1,qNormCountsB1L1,qNormCountsB1L1Er);//background uncorrected yield
+  qNormVariables(totyieldB1L0,totIAllH1L0,qNormCountsB1L0,qNormCountsB1L0Er);//background yield
+  qNormVariables(totyieldB1L1,totHelB1L1,tNormYieldB1L1,tNormYieldB1L1Er);
+  qNormVariables(totyieldB1L0,totHelB1L0,tNormYieldB1L0,tNormYieldB1L0Er);
 
   writeToFile(runnum,dataType);
 
   //!!this currently would not work if the Cedge changes between planes
-  if(debug1) {
+  if(debug2) {
     TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
     cStability->Divide(3,3);
     cStability->cd(1);
-    helChain->Draw("sca_bcm6:event_number","sca_bcm6 < 200");
+    helChain->Draw("yield_sca_bcm6:pattern_number","yield_sca_bcm6.value < 200");
     cStability->cd(2);
-    helChain->Draw("sca_bpm_3p02aY:event_number");
+    helChain->Draw("yield_sca_bpm_3p02aY:pattern_number");
     cStability->cd(3);
-    helChain->Draw("sca_bpm_3p02bY:event_number");
+    helChain->Draw("yield_sca_bpm_3p02bY:pattern_number");
     cStability->cd(4);
-    helChain->Draw("sca_bpm_3p03aY:event_number");
+    helChain->Draw("yield_sca_bpm_3p03aY:pattern_number");
     cStability->cd(5);
-    helChain->Draw("sca_bpm_3c20Y:event_number");
+    helChain->Draw("yield_sca_bpm_3c20Y:pattern_number");
     //helChain->Draw("sca_bpm_3c20X:event_number");
     cStability->cd(6);
-    helChain->Draw("sca_bpm_3p02aX:event_number");
+    helChain->Draw("yield_sca_bpm_3p02aX:pattern_number");
     cStability->cd(7);
-    helChain->Draw("sca_bpm_3p02bX:event_number");
+    helChain->Draw("yield_sca_bpm_3p02bX:pattern_number");
     cStability->cd(8);
-    helChain->Draw("sca_bpm_3p03aX:event_number");
+    helChain->Draw("yield_sca_bpm_3p03aX:pattern_number");
     cStability->cd(9);
-    helChain->Draw("sca_laser_PowT:event_number","sca_laser_PowT<180000");
+    helChain->Draw("yield_sca_laser_PowT:pattern_number","yield_sca_laser_PowT<180000");
 
     cStability->Update();
     cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));

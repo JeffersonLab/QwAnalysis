@@ -8,18 +8,24 @@ Int_t infoDAQ(Int_t runnum)
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
   Bool_t debug=1;
-  Bool_t additionalStripMask=1;
+  Bool_t additionalStripMask=0;
   Double_t bMask[nPlanes][nStrips];
   const Int_t errFlag=100;
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
-  Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
+  //Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
   //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
   ofstream flagsfile,debugInfoDAQ,infoStripMask;
 
-  TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
-  TTree *configTree = (TTree*)file->Get("Config_Tree");
+  //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
+  TFile file(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
+  if(file.IsZombie()) {
+    cout<<red<<"couldn't open the rootfile needed by infoDAQ.C"<<normal<<endl;
+    return -1;
+  }
+  //TTree *configTree = (TTree*)file->Get("Config_Tree");
+  TTree *configTree = (TTree*)file.Get("Config_Tree");
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   //configTree->ResetBranchAddresses();
   configTree->SetBranchStatus("*",1); 
@@ -41,7 +47,7 @@ Int_t infoDAQ(Int_t runnum)
 
   configTree->GetEntry(0);
 
-  for(Int_t p = startPlane; p <nPlanes-1; p++) {
+  for(Int_t p = startPlane; p <nPlanes; p++) {
     for(Int_t s =startStrip; s <endStrip; s++) {
       mask[p][s] = (Int_t)bMask[p][s];
     }
@@ -65,7 +71,7 @@ Int_t infoDAQ(Int_t runnum)
   ///list all those strips that you want in the list for in case it was not already a part of the above created vector
   if(additionalStripMask) {
     skipStrip.push_back(2);//notice that the strip number pushed is in human counts
-//    skipStrip.push_back(10);//notice that the strip number pushed is in human counts
+    //    skipStrip.push_back(10);//notice that the strip number pushed is in human counts
     cout<<red<<"apart from strips masked in DAQ, am ignoring strip # 2 accross all planes"<<normal<<endl;//!update this with above list
   }
   for(Int_t m = 0; m <nModules; m++) {
@@ -89,13 +95,17 @@ Int_t infoDAQ(Int_t runnum)
   holdOff = holdOffSlave[0]==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
   pipelineDelay = pipelineDelaySlave[0]==pipelineDelaySlave[1] ? pipelineDelaySlave[1] : errFlag;
  
+  gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
   flagsfile.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
   if(flagsfile.is_open()) {
     flagsfile<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\thOff\tplDelay"<<endl;
     flagsfile<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
     flagsfile.close();
     cout<<"wrote the flagsfile info to "<<Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data())<<endl;
-  } else cout<<"could not open file for writing flags file info"<<endl;
+  } else {
+    cout<<"could not open file for writing flags file info"<<endl;
+    cout<<Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data())<<endl;
+  }
 
   if ((acTrig==errFlag)||(evTrig==errFlag)||(minWidth==errFlag)||(firmwareRev==errFlag)||(pwtl1==errFlag)||(pwtl2==errFlag)||(holdOff==errFlag)||(pipelineDelay==errFlag)) {
     cout<<"found a potential error in flags file as found in rootfile, printing debugInfoDAQ "<<endl;

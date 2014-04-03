@@ -56,13 +56,12 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 Int_t asymFit(Int_t runnum,TString dataType="Ac")
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
-  time_t tStart = time(0), tEnd; 
-  div_t div_output;
+//  time_t tStart = time(0), tEnd; 
+//  div_t div_output;
   //gStyle->SetOptFit(1);
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
-  //gStyle->SetCenterTitle();
   gStyle->SetTitleOffset(1.05,"X");
   gStyle->SetTitleSize(0.05,"X");
   gStyle->SetTitleOffset(0.6,"Y");
@@ -75,7 +74,7 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=1,debug1=0,debug2=0;
-  Bool_t polSign,kYieldFit=0,kYield=1,kResidual=1;
+  Bool_t polSign,kYieldFit=0,kYield=1,kResidual=0;
   Bool_t kFitEffWidth=0;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
   Bool_t kFoundCE[nPlanes]={0};
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
@@ -235,7 +234,6 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
     pt[p]->SetShadowColor(-1);
 
     pt[p]->AddText(Form("chi Sq / ndf       : %.3f",chiSq[p]/NDF[p]));
-    pt[p]->AddText(Form("eff. strip width  : %2.3f #pm %2.3f",effStripWidth[p],effStripWidthEr[p]));
     //pt[p]->AddText(Form("Compton Edge      : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
     pt[p]->AddText(Form("Compton Edge : %2.2f #pm %2.2f",offset[p],offsetEr[p]));
     pt[p]->AddText(Form("Polarization      : %2.2f #pm %2.2f",pol[p]*100.0,polEr[p]*100.0));
@@ -367,9 +365,9 @@ Int_t asymFit(Int_t runnum,TString dataType="Ac")
   //else if(!kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sAcAsymFit.png",pPath,webDirectory,filePrefix.Data()));
   else if(!kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePrefix.Data()));
 
-  tEnd = time(0);
-  div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to execute asymFit.C\n",div_output.quot,div_output.rem );  
+//  tEnd = time(0);
+//  div_output = div((Int_t)difftime(tEnd, tStart),60);
+//  printf("\n it took %d minutes %d seconds to execute asymFit.C\n",div_output.quot,div_output.rem );  
   return 1;
 }
 

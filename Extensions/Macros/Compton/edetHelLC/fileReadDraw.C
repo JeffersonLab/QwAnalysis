@@ -336,11 +336,6 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
     leg = new TLegend(0.1,0.7,0.4,0.9);
     TCanvas *cAsym = new TCanvas("cAsym","Asymmetry Vs Strip number",50,50,1000,700);
     TCanvas *cAsymComp = new TCanvas("cAsymComp","Asymmetry"+dataType+" Vs Asymmetry"+dataType2,50,50,1000,1000);
-    // // cAsymComp->Draw();
-    // // 
-    // // TPad *pAsymComp = new TPad("pAsymComp","pAsymComp",0,0,0.99,0.99);
-    // // pAsymComp->Draw();
-    // // pAsymComp->cd();
     TGraphErrors *grDiff[nPlanes], *grAsymPlane[nPlanes],*grFort,*grAsymComp[nPlanes];
     ifstream lasCycAsymP1,fortranOutP1;
     Double_t stripAsym_v2[nPlanes][nStrips],stripNum2[nPlanes][nStrips],stripAsym2[nPlanes][nStrips],asymDiff2[nPlanes][nStrips];
@@ -397,7 +392,7 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
       cAsym->cd(2);//to plot the residuals
       cAsym->GetPad(2)->SetGridx(1); 
       if(lasCycAsymP1.is_open() && fortranOutP1.is_open()) {
-	if(debug) cout<<"str#\t"<<"asymLasCyc\t"<<"asymRunLet\t"<<"asymDiff\t"<<"asymRatio"<<endl;
+	if(debug) cout<<"str#\t"<<dataType+"asym\t"<<dataType2+"asym\t"<<"asymDiff\t"<<endl;
 	while(1) {
 	  lasCycAsymP1>>stripNum2[p][size]>>stripAsym2[p][size]>>stripAsymEr2[p][size];
 	  fortranOutP1>>stripNum2[p][size]>>stripAsym_v2[p][size]>>stripAsymEr_v2[p][size];
@@ -406,7 +401,7 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
 	  //asymRatioEr[p][size] = stripAsymEr2[p][size]/ stripAsym_v2[p][size];
 	  if(debug) cout<<stripNum2[p][size]<<"\t"<<stripAsym2[p][size]<<"\t"<<stripAsym_v2[p][size]<<"\t"<<asymDiff2[p][size]<<endl;
 	  size++;
-	  if((Int_t)stripNum2[p][size] >= 55) {
+	  if((Int_t)stripNum2[p][size] == 55) {
 	    cout<<"reached the Compton edge"<<endl;
 	    break;
 	  }
@@ -421,10 +416,13 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
       cout<<"size is "<<size<<endl;
       grDiff[p] = new TGraphErrors(size,stripNum2[p],asymDiff2[p],zero[p],stripAsymEr2[p]);
       grDiff[p]->GetXaxis()->SetTitle("strip number");
-      grDiff[p]->GetYaxis()->SetTitle("(LaserWise - RunletBased Asym)");
+      grDiff[p]->GetYaxis()->SetTitle("("+dataType+"-"+dataType2+" Asym)");
       grDiff[p]->SetTitle(Form("difference of above asymmetry"));
-      grDiff[p]->SetMaximum(0.0042);
-      grDiff[p]->SetMinimum(-0.0042);
+      grDiff[p]->SetMarkerStyle(kOpenTriangleUp);
+      grDiff[p]->SetMaximum(0.015);
+      grDiff[p]->SetMinimum(-0.015);
+//      grDiff[p]->SetMaximum(0.0042);
+//      grDiff[p]->SetMinimum(-0.0042);
       grDiff[p]->Fit(linearFit,"ER");
       grDiff[p]->SetLineColor(kBlue);
       grDiff[p]->GetXaxis()->SetLimits(1,65); 
@@ -448,8 +446,8 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
       grAsymComp[p]->GetYaxis()->SetTitleOffset(1.2);
       grAsymComp[p]->GetYaxis()->SetLabelSize();
 
-      grAsymComp[p]->Fit("pol1","E");
-      grAsymComp[p]->Draw("AP");     
+//      grAsymComp[p]->Fit("pol1","E"); !temp
+//      grAsymComp[p]->Draw("AP");     
       // //pAsymComp->Update(); 
       //cAsymComp->Update();
       // // TPaveStats *psAsymComp = (TPaveStats*)grAsymComp[p]->GetListOfFunctions()->FindObject("stats");
@@ -717,7 +715,7 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
     Double_t stripNumber[nStrips][numb],stripBkgdYield[nStrips][numb],stripBkgdYieldEr[nStrips][numb],zero1[numb];
     Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
     TString filePrefix2;
-    Double_t p0,p1,NDF,chiSq,p1Er,p0Er;
+    //    Double_t p0,p1,NDF,chiSq,p1Er,p0Er;
     /*run  : beam***********
      *23142 :  30uA, 
      *23148 :  50uA, 
@@ -750,22 +748,19 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
       }
       zero1[n] = 0.0;
     }
+    // TF1 *bkgdFit = new TF1("bkgdFit","[0] + [1]/x",25,105);//specifying current range to fit
+    // bkgdFit->SetParameters(-0.1,20);
+    // noiseFit.open(Form("%s/%s/noiseFit.txt",pPath,webDirectory));
+    // noiseFit<<";strip\tp0\tp0Er\tp1\tp1Er\tchiSq\tNDF"<<endl;
     
-    TF1 *bkgdFit = new TF1("bkgdFit","[0] + [1]/x",25,105);//specifying current range to fit
-    bkgdFit->SetParameters(-0.1,20);
-    noiseFit.open(Form("%s/%s/noiseFit.txt",pPath,webDirectory));
-    noiseFit<<";strip\tp0\tp0Er\tp1\tp1Er\tchiSq\tNDF"<<endl;
-    
-    TCanvas *cScalVsBeam1 = new TCanvas("cScalVsBeam1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1200,1000);
+    TCanvas *cScalVsBeam1 = new TCanvas("cScalVsBeam1",Form("scaler counts per laser cycle for strips 01-16"),0,0,1000,900);
     //    TCanvas *cScalVsBeam2 = new TCanvas("cScalVsBeam2",Form("scaler counts per laser cycle for strips 17-32"),20,10,1200,1000);
     //     TCanvas *cScalVsBeam3 = new TCanvas("cScalVsBeam3",Form("scaler counts per laser cycle for strips 33-48"),40,20,1200,1000);
     //     TCanvas *cScalVsBeam4 = new TCanvas("cScalVsBeam4",Form("scaler counts per laser cycle for strips 49-64"),60,30,1200,1000);
-    
     cScalVsBeam1->Divide(4,4);
     //     cScalVsBeam2->Divide(4,4);
     //     cScalVsBeam3->Divide(4,4);
     //     cScalVsBeam4->Divide(4,4);
-    
     for(Int_t s=startStrip;s<endStrip;s++) {
       //!the masked strips are not taken care of properly here
       ScalerVsBeam[s] = new TGraphErrors(numb,beamI,stripBkgdYield[s],zero1,stripBkgdYieldEr[s]);
@@ -773,28 +768,27 @@ Int_t fileReadDraw(Int_t runnum,TString dataType="Ac")
       if(s>= 0 && s<16) cScalVsBeam1->cd(s+1);
       //       if(s>=16 && s<32) cScalVsBeam2->cd(s-16+1);
       //       if(s>=32 && s<48) cScalVsBeam3->cd(s-32+1);
-      //       if(s>=48 && s<64) cScalVsBeam4->cd(s-48+1);
-      
+      //       if(s>=48 && s<64) cScalVsBeam4->cd(s-48+1);     
       ScalerVsBeam[s]->SetTitle(Form("Strip %d",s+1));
       ScalerVsBeam[s]->SetMarkerStyle(kFullCircle);
-      ScalerVsBeam[s]->SetMarkerSize(1);
-      ScalerVsBeam[s]->SetMarkerColor(kRed);
-      ScalerVsBeam[s]->SetLineColor(kRed);
+      //ScalerVsBeam[s]->SetMarkerSize(1);
+      //ScalerVsBeam[s]->SetMarkerColor(kRed);
+      //ScalerVsBeam[s]->SetLineColor(kRed);
       ScalerVsBeam[s]->SetLineWidth(2);
       ScalerVsBeam[s]->GetXaxis()->SetTitle("beam current (uA)");
-      ScalerVsBeam[s]->GetYaxis()->SetTitle("qNorm (bkgd) accum counts (Hz/uA)");
+      ScalerVsBeam[s]->GetYaxis()->SetTitle(Form("qNorm(B1L0) "+dataType+" counts (Hz/uA)"));
       //cScalVsBeam1->GetPad(2)->SetGridx(1); 
       ScalerVsBeam[s]->Draw("APE");
-      ScalerVsBeam[s]->Fit("bkgdFit","0 R M E");
-      p0 = bkgdFit->GetParameter(0);
-      p0Er = bkgdFit->GetParError(0);
-      p1 = bkgdFit->GetParameter(1);
-      p1Er = bkgdFit->GetParError(1);
-      chiSq = bkgdFit->GetChisquare();
-      NDF = bkgdFit->GetNDF();
-      noiseFit<<s+1<<"\t"<<p0<<"\t"<<p0Er<<p1<<"\t"<<p1Er<<"\t"<<chiSq<<"\t"<<NDF<<endl;     
+      // ScalerVsBeam[s]->Fit("bkgdFit","0 R M E");
+      // p0 = bkgdFit->GetParameter(0);
+      // p0Er = bkgdFit->GetParError(0);
+      // p1 = bkgdFit->GetParameter(1);
+      // p1Er = bkgdFit->GetParError(1);
+      // chiSq = bkgdFit->GetChisquare();
+      // NDF = bkgdFit->GetNDF();
+      // noiseFit<<s+1<<"\t"<<p0<<"\t"<<p0Er<<p1<<"\t"<<p1Er<<"\t"<<chiSq<<"\t"<<NDF<<endl;     
     }
-    noiseFit.close();
+    //    noiseFit.close();
     gPad->Update();
     cScalVsBeam1->Update();
     //     cScalVsBeam2->Update();
