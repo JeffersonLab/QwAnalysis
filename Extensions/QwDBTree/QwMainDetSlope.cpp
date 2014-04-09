@@ -20,7 +20,7 @@ TString QwMainDetSlope::query(void) {
     /* Figure out which table to use, based on regression type. */
     if(reg_type == "on_5+1") table = "temp_table_unreg_on_5p1";
     else if(reg_type == "off") table = "temp_table_unreg_on";
-    else table = "temp_table_unreg" + reg_type;
+    else table = "temp_table_unreg_" + reg_type;
 
     /* query holds the actualy query as a TString */
     TString query;

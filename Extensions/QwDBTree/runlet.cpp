@@ -90,9 +90,12 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     query += "JOIN runlet ON analysis.runlet_id = runlet.runlet_id\n";
     query += "JOIN run ON runlet.run_id = run.run_id\n";
     query += "JOIN slow_controls_settings ON runlet.runlet_id = slow_controls_settings.runlet_id\n";
+    query += "JOIN slow_controls_data ON runlet.runlet_id = slow_controls_data.runlet_id\n";
+    query += "JOIN sc_detector ON sc_detector.sc_detector_id = slow_controls_data.sc_detector_id\n";
 
     /* Runlet and analysis level cuts are done here. */
     query += "WHERE analysis.slope_correction = \"" + reg_type + "\"\n";
+    query += "AND sc_detector.name = \"Q1HallP\"\n";
 
     /* set target */
     if(target != "") query += "AND slow_controls_settings.target_position = \"" + target + "\"\n";
@@ -104,6 +107,9 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
         query += "AND FIND_IN_SET('3',run.good_for_id)\n";
+        //query += "AND slow_controls_data.value <= -710.60 AND slow_controls_data.value >= -711.32\n";
+        //query += "AND slow_controls_data.value <= -707.40 AND slow_controls_data.value >= -714.52\n";
+        //query += "AND slow_controls_data.value <= -675.40 AND slow_controls_data.value >= -746.51\n";
     }
 
     /* if using runlist, cut on run number */
@@ -153,6 +159,8 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += "JOIN runlet ON analysis.runlet_id = runlet.runlet_id\n";
     query += "JOIN run ON runlet.run_id = run.run_id\n";
     query += "JOIN slow_controls_settings ON runlet.runlet_id = slow_controls_settings.runlet_id\n";
+    query += "JOIN slow_controls_data ON runlet.runlet_id = slow_controls_data.runlet_id\n";
+    query += "JOIN sc_detector ON sc_detector.sc_detector_id = slow_controls_data.sc_detector_id\n";
 
     /* Runlet and analysis level cuts are done here. The regression type is set
      * based on the mapfile.
@@ -160,6 +168,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
      * FIXME: this method seems retarded and needs revamping
      */
     query += "WHERE analysis.slope_correction = \"off\"\n";
+    query += "AND sc_detector.name = \"Q1HallP\"\n";
 
     if(reg_type == "off") query += "AND analysis.slope_calculation = \"on\"\n";
     else if(reg_type == "offoff") query += "AND analysis.slope_calculation = \"off\"\n";
@@ -175,6 +184,9 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
         query += "AND FIND_IN_SET('3',run.good_for_id)\n";
+        //query += "AND slow_controls_data.value <= -710.60 AND slow_controls_data.value >= -711.32\n";
+        //query += "AND slow_controls_data.value <= -707.40 AND slow_controls_data.value >= -714.52\n";
+        //query += "AND slow_controls_data.value <= -675.40 AND slow_controls_data.value >= -746.51\n";
     }
 
     /* if using runlist, cut on run number */

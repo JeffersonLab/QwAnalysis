@@ -1,4 +1,5 @@
-CXXFLAGS = $(shell root-config --cflags)
+SVNDEV = -D'SVN_REV="$(shell svnversion -c . | sed -e 's/[MS]//g' -e 's/^[[:digit:]]*://')"'
+CXXFLAGS = $(SVNDEV) $(shell root-config --cflags)
 LIBS = $(shell root-config --glibs)
 
 SRCS := \

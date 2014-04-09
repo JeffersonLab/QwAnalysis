@@ -31,7 +31,7 @@ int main(Int_t argc, Char_t* argv[]) {
     Int_t run_quality = 1;              // defaults to good data
     Bool_t runavg = kFALSE;             // disabled by default
     Bool_t ignore_quality = kFALSE;     // disabled by default
-    Bool_t slopes = kFALSE;             // disabled by default
+    TString slopes = "";                // disabled by default
     
     // Parse command line options.
     for(Int_t i = 1; i < argc; i++) {
@@ -46,7 +46,7 @@ int main(Int_t argc, Char_t* argv[]) {
         if(0 == strcmp("--bad", argv[i])) run_quality = 2;
         if(0 == strcmp("--runavg", argv[i])) runavg = kTRUE;
         if(0 == strcmp("--ignore-quality", argv[i])) ignore_quality = kTRUE;
-        if(0 == strcmp("--slopes", argv[i])) slopes = kTRUE;
+        if(0 == strcmp("--slope", argv[i])) slopes = argv[i+1];
     }
 
     /* print all settings */
@@ -61,8 +61,8 @@ int main(Int_t argc, Char_t* argv[]) {
     else cout << "runavg : disabled" << endl;
     if(ignore_quality) cout << "ignore data quality : enabled" << endl;
     else cout << "ignore data quality: disabled" << endl;
-    if(slopes) cout << "slopes : enabled" << endl;
-    else cout << "slopes: disabled" << endl;
+    if(slopes == "") cout << "slopes : disabled" << endl;
+    else cout << "slopes: " << slopes << endl;
 
     /* Open connection to specified database with qweak credentials. */
     TSQLServer *db;
@@ -87,9 +87,9 @@ int main(Int_t argc, Char_t* argv[]) {
 
     /* Run tree_fill to grab the remaining data from the database. */
     const Int_t num_regs = reg_types.num_detectors();
-    if(slopes) {
+    if(slopes != "") {
         for(Int_t i = 0; i < num_regs; i++) {
-            if(reg_types.detector(i) == "on_5+1") {
+            if(reg_types.detector(i) == "on_5+1" || reg_types.detector(i) == "on") {
                 tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, target, runavg, slopes);
             }
         }

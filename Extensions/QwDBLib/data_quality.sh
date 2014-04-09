@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # Path to the database ROOT files
-db_rootfiles_path="/group/qweak/www/html/private/db_rootfiles"
-data_quality_path="/group/qweak/www/html/private/data_quality"
+#db_rootfiles_path="/group/qweak/www/html/private/db_rootfiles"
+#data_quality_path="/group/qweak/www/html/private/data_quality"
+db_rootfiles_path="~/db_rootfiles"
+data_quality_path="output"
 
 # Plots to be generated
 plots="mdallpmtavg"

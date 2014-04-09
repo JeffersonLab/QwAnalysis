@@ -29,7 +29,7 @@ libQwDB.so: $(LIB_O_FILES)
 	$(CPP) -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f libQwDB.so *.o src/*.o lumi
+	rm -f libQwDB.so *.o src/*.o lumi mdallpmtavg bcmdd lumi example
 
 install:
 	install libQwDB.so $(QWANALYSIS)/lib/

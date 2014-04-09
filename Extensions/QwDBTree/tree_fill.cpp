@@ -27,6 +27,7 @@
 #include "QwLumiDet.h"
 #include "QwLumiDetSlope.h"
 #include "QwBeamDet.h"
+#include <time.h>
 #include "parse.h"
 #include "runlet.h"
 
@@ -35,9 +36,10 @@
  * then reads in the detector mapfiles md, lumi, and beam; reg map file is read
  * in by main(). 
  */
-int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, TString target, Bool_t runavg, Bool_t slopes) {
+int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, TString target, Bool_t runavg, TString slopes) {
     /* Open the output file and create the tree for outputting. */
-    TFile *f = new TFile(Form("%s%s_%s_tree.root",outdir.Data(),target.Data(),reg_type.Data()),"RECREATE");
+    TFile *f;
+    f = new TFile(Form("%s%s%s_%s_tree.root",outdir.Data(),slopes.Data(),target.Data(),reg_type.Data()),"RECREATE");
     TTree *tree = new TTree("tree","treelibrated tree");
 
     /*
@@ -93,24 +95,23 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
     vector<QwLumiDet> lumi_detectors;
     vector<QwBeamDet> beam_detectors;
 
-    if(slopes) {
-        cout << "ohshit" << endl;
+    if(slopes != "") {
         /* Create a vector of slopes for wrt_qwk_charge only for each MD. Only do
          * this if reg_type = "on_5+1". 
          *
          * Fill main detector slope object vector
          */
-        if(reg_type == "on_5+1") {
+        if(reg_type == "on_5+1" || reg_type == "on") {
             for(Int_t i = 0; i < num_mds; i++) {
-                QwMainDetSlope temp_detector(mds.detector(i), mds.id_type(i), reg_type, "wrt_asym_charge", good_runlets, db, runavg);
+                QwMainDetSlope temp_detector(mds.detector(i), mds.id_type(i), reg_type, slopes, good_runlets, db, runavg);
                 temp_detector.fill();
                 main_detector_slopes.push_back(temp_detector);
             }
         }
 
-        if(reg_type == "on_5+1") {
-            for(Int_t i = 0; i < num_lumis; i++) {
-                QwLumiDetSlope temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, "wrt_asym_charge", good_runlets, db, runavg);
+        if(reg_type == "on_5+1" || reg_type == "on") {
+            for(Int_t i = 0; i < num_lumis; i++ || reg_type == "on") {
+                QwLumiDetSlope temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, slopes, good_runlets, db, runavg);
                 temp_detector.fill();
                 lumi_detector_slopes.push_back(temp_detector);
             }
@@ -181,7 +182,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
     /* Branch the tree. See QwDetector::branch() for details. */
     runlets.branch(tree, runlet_data);
 
-    if(slopes) {
+    if(slopes != "") {
         for(Int_t i = 0; i < num_mds; i++) {
             // pass in the vector like main_data[i]
             main_detector_slopes[i].branch(tree, main_slope_data, i);
@@ -207,7 +208,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
         /* Fill runlet data. */
         runlets.get_data_for_runlet(j, runlet_data);
         /* Fill main detectors, lumis, and beam detectors. */
-        if(slopes) {
+        if(slopes != "") {
             for(Int_t i = 0; i < num_mds; i++) {
                 main_detector_slopes[i].get_data_for_runlet(good_runlets[j], main_slope_data[i]);
             }
@@ -229,6 +230,18 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
         /* Fill the tree. It will use the address given during branching. */
         tree->Fill();
     }
+
+    /* Create new tree to store basic info. */
+    TTree *tree_info = new TTree("tree_info","treelibrated tree");
+
+    /* Set SVN revision and date. */
+    int svn_revision = atoi(SVN_REV);
+
+    /* Branch SVN revision and date before branching the remainder of the tree. */
+    tree_info->Branch("svn_revision", &(svn_revision));
+
+    /* Fill SVN revision and date. */
+    tree_info->Fill();
 
     /* Write the tree to the previously opened rootfile. */
     f->Write();

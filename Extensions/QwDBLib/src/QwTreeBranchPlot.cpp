@@ -77,7 +77,7 @@ void QwTreeBranchPlot::ValueRunletPlot(void) {
     temp_plot->GetYaxis()->SetTitle(y_axis_label);
 
     /* Fit. */
-    temp_plot->Fit("pol0");
+    //temp_plot->Fit("pol0");
 }
 
 /* Plots value vs runlet, sign corrected. This is just the start, more work needed here. */

@@ -34,9 +34,11 @@ mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/parity
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/yield
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/al/yield
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/al
-# Suspect and bad rootfiles
+# Suspect, bad, and slope rootfiles
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/suspect
 mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/bad
+mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run1
+mkdir -p /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run1/ /net/cdaq/cdaql5data/qweak/db_rootfiles/suspect
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/ /net/cdaq/cdaql5data/qweak/db_rootfiles/suspect
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run1/ /net/cdaq/cdaql5data/qweak/db_rootfiles/bad
@@ -138,6 +140,20 @@ cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/ /net/cdaq/cdaql5data/qweak/d
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target DS-4%-Aluminum --runlist mapfiles/lists/run2/al_ds_run2.list --mapdir mapfiles/y_run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/bad/run2/al/yield --bad
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target US-2%-Aluminum --runlist mapfiles/lists/run2/al_us_run2.list --mapdir mapfiles/run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/bad/run2/al/ --bad
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target US-2%-Aluminum --runlist mapfiles/lists/run2/al_us_run2.list --mapdir mapfiles/y_run2/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/bad/run2/al/yield --bad
+#Run 1 slopes
+./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run1/ --slope wrt_diff_targetX
+./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run1/ --slope wrt_diff_targetY
+./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run1/ --slope wrt_diff_targetXSlope
+./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run1/ --slope wrt_diff_targetYSlope
+./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run1/ --slope wrt_diff_energy
+./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run1/ --slope wrt_asym_charge
+#Run 2 slopes
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_diff_targetX
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_diff_targetY
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_diff_targetXSlope
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_diff_targetYSlope
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_diff_energy
+./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_asym_charge
 
 rm -rf /group/qweak/www/html/private/db_rootfiles/run1
 rm -rf /group/qweak/www/html/private/db_rootfiles/run2
