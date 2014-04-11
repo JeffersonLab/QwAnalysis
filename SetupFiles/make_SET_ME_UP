@@ -175,6 +175,7 @@ export BOOST_INC_DIR=$(first_path_with_file $libname "${search[@]}" "${BOOST_INC
 libname=libboost_filesystem.a
 search=(
     /usr/${lib}
+    /usr/${lib}/x86_64-linux-gnu
     /usr/local/${lib}
     /opt/local/${lib}
     )
