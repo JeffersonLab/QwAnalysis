@@ -11,6 +11,15 @@
 #include <TBranch.h>
 #include <TLeaf.h>
 #include <TStyle.h>
+#include <THStack.h>
+
+#include <QwEvent.h>
+#include <QwHit.h>
+
+#include "PlotLib.h"
+
+using namespace std;
+using std::vector;
 
 //CodaEventType (1=mps, 2=TS)
 void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventHigh=4e6) {
@@ -94,5 +103,107 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
     <<"LT estimate: " <<quotient <<" \t"
     <<"for EventType = " <<eventType <<std::endl;
 }
+
+
+void livetime_counter(int runNum, double eventType=1, int eventLow=0, int eventHigh=4e6) {
+  gROOT -> Reset();
+  gROOT -> SetStyle("Modern");
+
+  //open rootfile
+  TString filename = Form("Qweak_%i.original.root",runNum);
+  TFile *file = new TFile(filename);
+  if ( !file->IsOpen() ) {
+    std::cout <<"Error opening ROOTFILE " << file->GetName() <<std::endl;
+    return;
+  }
+  else {
+    std::cout <<"Successfully opened ROOTFILE " <<file->GetName() <<std::endl;
+  }
+
+  std::vector<double> liveVec;
+  std::vector<double> totalVec;
+  std::vector<double> ratioVec;
+
+  bool debug = false;
+  TString trigger = Form("sca_trig0%i",int(eventType));
+
+  //grab the tree and set all the addresses we want
+  TTree   *tree   = (TTree*) file->Get("Mps_Tree");
+  tree->ResetBranchAddresses();
+  TLeaf *type = tree->GetLeaf("CodaEventType");
+
+  TBranch *sca_livetime = (TBranch*) tree->GetBranch("sca_livetime");
+  TLeaf *livetime = sca_livetime->GetLeaf("value");
+
+  TBranch *sca_totaltime = (TBranch*) tree->GetBranch("sca_totaltime");
+  TLeaf *totaltime = sca_totaltime->GetLeaf("value");
+
+  int n_entries  = (int) tree->GetEntries();  //get the number of entries
+
+  if (debug) printf("Events recorded \tEventType \ttotal\n");
+  eventHigh = (n_entries<eventHigh) ? n_entries : eventHigh;
+  for(int j=0; j<n_entries; j++) {
+    tree->GetEntry(j);
+    sca_livetime->GetEntry(j);
+    sca_totaltime->GetEntry(j);
+    if (j<eventLow) {continue;}
+    if (j>eventHigh) {break;}
+    if (j % 100000==0) {
+      printf("Processing event #%i out of %i\n",j,n_entries);
+    }
+
+    //ignore if not the appropriate trigger
+    if (eventType!=type->GetValue()) {
+      continue;
+    }
+
+    if( livetime->GetValue() != 0 && totaltime->GetValue() != 0 ) {
+      liveVec.push_back(livetime->GetValue());
+      totalVec.push_back(totaltime->GetValue());
+      ratioVec.push_back(  (livetime->GetValue()/totaltime->GetValue() ) );
+    }
+
+  }
+
+  TH1F *hLive = new TH1F("rLive","title",400,-100e3,300e3);
+  TH1F *hTotal = new TH1F("rTotal","title",400,-100e3,300e3);
+  TH1F *hRatio = new TH1F("hRatio","title",200,0.0,1.1);
+//  TH1F *hCompare = new TH1F("hCompare","title",400,-100e3,300e3);
+
+  hLive->FillN(liveVec.size(),liveVec.data(),NULL);
+  hTotal->FillN(totalVec.size(),totalVec.data(),NULL);
+
+  blueHisto(hLive);
+  redHisto(hTotal);
+
+  THStack *stack = new THStack("stack","title");
+  stack->Add(hLive,"sames");
+  stack->Add(hTotal,"sames");
+
+  TCanvas *c1 = new TCanvas("c1");
+  c1->cd();
+  stack->Draw("nostack");
+
+  gPad->SetLogy();
+  stack->SetTitle(Form("Run %i: Livetime scaler clock {events>%i && events<%i}",runNum,eventLow,eventHigh));
+  stack->GetXaxis()->SetTitle("sca_livetime (counts)");
+
+  gPad->Modified();
+  gPad->Update();
+
+  hRatio->FillN(ratioVec.size(),ratioVec.data(),NULL);
+
+  blueHisto(hRatio);
+
+  TCanvas *c2 = new TCanvas("c2");
+  c2->cd();
+  hRatio->Draw();
+  hRatio->GetXaxis()->SetTitle("Calculated livetime(unitless)");
+  gPad->Modified();
+  gPad->Update();
+
+
+}
+
 
 
