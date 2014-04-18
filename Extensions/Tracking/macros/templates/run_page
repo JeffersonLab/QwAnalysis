@@ -65,6 +65,21 @@ The mean values and the error are given in the text file below the plot.
 <p><center><img src="%%RUNNUM%%_q2.png"></center></p>
 <p><center><a href="%%RUNNUM%%_q2.txt">Q2 Values</a></center></p>
 
+<a name="BeamPositionQ2"></a>
+<center><h2>Q2 vs. X and Y Beam Position Plots</h2></center>
+<center><p>
+All plots illustrate Q2 vs. beam position for x and y position (global) of the rastered beam.
+The top plot is for x beam position and the bottom plot is for y beam position, for both packages,
+package 1, and package 2, respectively. The dependence between Q2 and beam position has been
+figured in each of them. The slope, error, and chi square are given in the text file below
+the plots. 
+</p></center>
+<p><center><img src="BeamPositionQ2_%%RUNNUM%%_Q2_vs_beamxposition.png"></center></p>
+<p><center><img src="BeamPositionQ2_%%RUNNUM%%_Q2_vs_beamyposition.png"></center></p>
+<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BPQ2_Output_x.txt">Beam X Position Values</a></center></p>
+<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BPQ2_Output_y.txt">Beam Y Position Values</a></center></p>
+
+
 <a name="Chi"></a>
 <center><h2>Log(Chi) plots and values</h2></center>
 <center><p> 
