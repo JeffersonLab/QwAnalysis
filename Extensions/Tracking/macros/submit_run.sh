@@ -8,16 +8,36 @@ fi
 DATE=`date +%Y%m%d`
 TIME=`date +%H%M%S`
 
-for arg in $* ; do
-	case $arg in
+RUN=""
+PASS=""
+OTHER=""
+while [ $# -ge 1 ] ; do
+	case $1 in
 	--run=*)
-		RUN=${arg/--run=/}
+		RUN=${1/--run=/}
+		echo "Analyzing run ${RUN}..."
+		shift
 		;;
 	--pass=*)
-		PASS=${arg/--pass=/}
+		PASS=${1/--pass=/}
+		echo "Analyzing pass ${PASS}..."
+		shift
+		;;
+	*)
+		OTHER="$OTHER $1"
+		shift
 		;;
 	esac
 done
+if [ -z "${RUN}" ] ; then
+	echo "Error: argument --run=<run> not specified."
+	exit
+fi
+if [ -z "${PASS}" ] ; then
+	echo "Error: argument --pass=<pass> not specified."
+	exit
+fi
+
 
 rm -f ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
 echo "s|%QWANALYSIS%|${QWANALYSIS}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
@@ -27,7 +47,7 @@ echo "s|%DATE%|${DATE}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run
 echo "s|%TIME%|${TIME}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
 echo "s|%PASS%|${PASS}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
 echo "s|%RUN%|${RUN}|g"		>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%OTHER%|$*|g"		>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
+echo "s|%OTHER%|${OTHER}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
 
 sed -f ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed \
        ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml \
