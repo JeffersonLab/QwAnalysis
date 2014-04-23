@@ -7,7 +7,7 @@
 
 class QwMainDet : public QwDetector {
     public:
-        QwMainDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
+        QwMainDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
         TString query(void);
 };
 

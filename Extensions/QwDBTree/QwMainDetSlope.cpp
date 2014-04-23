@@ -5,8 +5,8 @@
 #include "QwDetectorSlope.h"
 
 /* Constructor for QwMainDet. */
-QwMainDetSlope::QwMainDetSlope(TString name, TString id, TString type, TString wrt, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t avg):
-    QwDetectorSlope(name, id, type, wrt, runlets, db_pointer, avg) {}
+QwMainDetSlope::QwMainDetSlope(TString name, TString id, TString type, TString wrt, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg):
+    QwDetectorSlope(name, id, type, wrt, runlets, db_pointer, ravg, savg, wavg) {}
 
 /*
  * Method to generate a query for main detectors. It uses the temporary tables
@@ -34,17 +34,29 @@ TString QwMainDetSlope::query(void) {
      * value weight: n * mdallbars_width^(-2)
      * error weight: mdallbars_width/sqrt(n)
      */
-    if(runavg) {
-        query += "DISTINCT run_number\n";
+    if(runavg || slugavg || wienavg) {
+        if(runavg) {
+            query += "DISTINCT run_number\n";
+        }
+        if(slugavg) {
+            query += "DISTINCT slug\n";
+        }
+        if(wienavg) {
+            query += "DISTINCT wien_slug\n";
+        }
         /* Changed to number weighted avg. FIXME. */
         if(measurement_id == "a" || measurement_id == "d") {
             /* Changed to number weighted avg. FIXME. */
-            query += ", SUM(md_data.value*SQRT(n))/SUM(SQRT(n))*1e6\n";
-            query += ", SQRT(1/SUM(1/POWER(md_data.error,2)))*1e6\n";
+            //query += ", SUM(md_data.value*SQRT(n))/SUM(SQRT(n))*1e6\n";
+            query += ", SUM(md_slope.value/POW(main_det.error,2))/SUM(POW(main_det.error,-2))*1e6\n";
+            //query += ", SQRT(1/SUM(1/POWER(md_data.error,2)))*1e6\n";
+            query += ", SUM(md_slope.error/POW(main_det.error,2))/SUM(POW(main_det.error,-2))*1e6\n";
         }
         else {
-            query += ", SUM(md_data.value*(n))/SUM(SQRT(n))\n";
-            query += ", SQRT(1/SUM(1/POWER(md_data.error,2)))\n";
+            //query += ", SUM(md_data.value*(n))/SUM(SQRT(n))\n";
+            query += ", SUM(md_slope.value/POW(main_det.error,2))/SUM(POW(main_det.error,-2))\n";
+            //query += ", SQRT(1/SUM(1/POWER(md_data.error,2)))\n";
+            query += ", SUM(md_slope.error/POW(main_det.error,2))/SUM(POW(main_det.error,-2))\n";
         }
         query += ", SUM(md_slope.n)\n";
     }
@@ -70,6 +82,11 @@ TString QwMainDetSlope::query(void) {
     query += "JOIN main_detector ON md_slope.main_detector_id = main_detector.main_detector_id\n";
     /* Join the slope name to the slope number. */
     query += "JOIN slope_type ON slope_type.slope_type_id = md_slope.slope_type_id\n";
+    /* If run avg, join the main detector on for error weighting in the same manner as above. */
+    if(runavg || slugavg || wienavg) {
+        query += "JOIN md_data AS main_det ON " + table+ ".analysis_id = main_det.analysis_id\n";
+        query += "JOIN main_detector AS main_detector_label ON main_det.main_detector_id = main_detector_label.main_detector_id\n";
+    }
 
     /*
      * main detector level cuts. Runlet level cuts are made when generating
@@ -83,6 +100,8 @@ TString QwMainDetSlope::query(void) {
 
     /* Organize the data. */
     if(runavg) query += "GROUP BY run_number;\n";
+    else if(slugavg) query += "GROUP BY slug;\n";
+    else if(wienavg) query += "GROUP BY wien_slug;\n";
     else query += "ORDER BY runlet_id;\n";
 
     return query;

@@ -19,11 +19,13 @@ struct QwValues {
 class QwRunlet {
     public:
     QwRunlet(TSQLServer*);
-    void fill(QwParse&, QwParse&, TString, Bool_t, Bool_t, Int_t);
+    void fill(QwParse&, QwParse&, TString, Bool_t, Bool_t, Bool_t, Bool_t, Int_t);
     void fill_run(void);
     void branch(TTree*, QwValues&);
     vector<Int_t> get_runlets(void);
     vector<Int_t> get_runs(void);
+    vector<Int_t> get_slugs(void);
+    vector<Int_t> get_wiens(void);
     void get_data_for_runlet(Int_t, QwValues&);
 
     private:
@@ -46,8 +48,10 @@ class QwRunlet {
     vector<Int_t> runlet_quality_id;
 
     /* Query generating methods. */
-    TString runlet_query(vector<TString>, Bool_t runavg);
+    TString runlet_query(vector<TString>, Bool_t, Bool_t, Bool_t);
     TString run_query(void);
+    TString slug_query(void);
+    TString wien_query(void);
     TString runlet_temp_table_create(TString, vector<TString>, TString, Bool_t, Int_t);
     TString runlet_temp_table_unreg_create(TString, vector<TString>, TString, Bool_t, Int_t);
 };

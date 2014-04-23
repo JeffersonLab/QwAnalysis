@@ -7,7 +7,7 @@
 
 class QwMainDetSlope : public QwDetectorSlope {
     public:
-        QwMainDetSlope(TString, TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
+        QwMainDetSlope(TString, TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
         TString query(void);
 };
 

@@ -16,7 +16,7 @@ QwRunlet::QwRunlet(TSQLServer* db_pointer) {
  * Generate query to get the runlet level data out of temporary table. offoff
  * is used because it is backwards compatible with pass4b.
  */
-TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg) {
+TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg, Bool_t slugavg, Bool_t wienavg) {
     TString query;
     query = "SELECT\n";
     query += "runlet_id\n";
@@ -35,6 +35,12 @@ TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg) {
     if(runavg) {
         query += "GROUP BY run_number;";
     }
+    else if(slugavg) {
+        query += "GROUP BY slug;";
+    }
+    else if(wienavg) {
+        query += "GROUP BY wien_slug;";
+    }
 
     return query;
 }
@@ -44,6 +50,28 @@ TString QwRunlet::run_query(void) {
     TString query;
     query = "SELECT\n";
     query += "DISTINCT run_number\n";
+    query += "FROM temp_table_unreg_offoff;\n";
+    //query += "ORDER BY run_number;\n";
+
+    return query;
+}
+
+/* Generate query to get the slug level data out of temporary table. */
+TString QwRunlet::slug_query(void) {
+    TString query;
+    query = "SELECT\n";
+    query += "DISTINCT slug\n";
+    query += "FROM temp_table_unreg_offoff;\n";
+    //query += "ORDER BY run_number;\n";
+
+    return query;
+}
+
+/* Generate query to get the wien level data out of temporary table. */
+TString QwRunlet::wien_query(void) {
+    TString query;
+    query = "SELECT\n";
+    query += "DISTINCT wien_slug\n";
     query += "FROM temp_table_unreg_offoff;\n";
     //query += "ORDER BY run_number;\n";
 
@@ -227,11 +255,55 @@ vector<Int_t> QwRunlet::get_runs(void) {
     return run_number;
 }
 
+/* Method to get slugs from the temporary table. */
+vector<Int_t> QwRunlet::get_slugs(void) {
+    TString query = slug_query();
+    TSQLStatement *stmt = db->Statement(query, 100);
+    vector<Int_t> slug;
+
+    if((db!=0) && db->IsConnected()) {
+        if(stmt->Process()) {
+            stmt->StoreResult();
+
+            while(stmt->NextResultRow()) {
+                /* Get values from database. */
+                Int_t temp_slug = stmt->GetInt(0);
+
+                slug.push_back(temp_slug);
+            }
+        }
+    }
+
+    return slug;
+}
+
+/* Method to get wiens from the temporary table. */
+vector<Int_t> QwRunlet::get_wiens(void) {
+    TString query = wien_query();
+    TSQLStatement *stmt = db->Statement(query, 100);
+    vector<Int_t> wien;
+
+    if((db!=0) && db->IsConnected()) {
+        if(stmt->Process()) {
+            stmt->StoreResult();
+
+            while(stmt->NextResultRow()) {
+                /* Get values from database. */
+                Int_t temp_wien = stmt->GetInt(0);
+
+                wien.push_back(temp_wien);
+            }
+        }
+    }
+
+    return wien;
+}
+
 /*
  * This fuction creates all the temporary tables for use later. First, it loops
  * over all regression types,
  */
-void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t runavg, Bool_t ignore_quality, Int_t run_quality)
+void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t runavg, Bool_t slugavg, Bool_t wienavg, Bool_t ignore_quality, Int_t run_quality)
 {
     // create the fist temp table
     cout << "creating temp runlet tables" << endl;
@@ -260,7 +332,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
     }
 
     cout << "querying runlet data" << endl;
-    query = runlet_query(runlist.ret_detector(), runavg);
+    query = runlet_query(runlist.ret_detector(), runavg, slugavg, wienavg);
     stmt = db->Statement(query, 100);
 
     if((db!=0) && db->IsConnected()) {

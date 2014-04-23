@@ -26,6 +26,10 @@ Double_t QwData::return_val(void) {
     return value;
 }
 
+Double_t QwData::return_n(void) {
+    return n;
+}
+
 void QwData::fill_empty(void) {
     /*
      * -1e6 is used instead of zero so that it is distinguishable from small

@@ -8,7 +8,7 @@
 /* QwDetector class, from which specific detectors inherit. */
 class QwDetector {
     public:
-        QwDetector(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
+        QwDetector(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
         void branch(TTree*, vector<QwData>&, Int_t);
         void fill(void);
         void get_data_for_runlet(Int_t runlet, QwData&);
@@ -24,6 +24,10 @@ class QwDetector {
         TSQLServer *db;
         /* Bool governing run averages */
         Bool_t runavg;
+        /* Bool governing slug averages */
+        Bool_t slugavg;
+        /* Bool governing wien averages */
+        Bool_t wienavg;
 
         /* runlets for this detector, mapped to number of runlet in tree */
         map<Int_t, Int_t> runlet_id;

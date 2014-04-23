@@ -7,13 +7,15 @@
 #include "string.h"
 
 /* Constructor for QwDetector. */
-QwDetector::QwDetector(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t avg) {
+QwDetector::QwDetector(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg) {
     detector_name = name;
     measurement_id = id;
     reg_type = type;
     good_runlets = runlets;
     db = db_pointer;
-    runavg = avg;
+    runavg = ravg;
+    slugavg = savg;
+    wienavg = wavg;
 }
 
 /*

@@ -30,6 +30,8 @@ int main(Int_t argc, Char_t* argv[]) {
     TString target = "HYDROGEN-CELL";   // defaults to LH2 target
     Int_t run_quality = 1;              // defaults to good data
     Bool_t runavg = kFALSE;             // disabled by default
+    Bool_t slugavg = kFALSE;            // disabled by default
+    Bool_t wienavg = kFALSE;            // disabled by default
     Bool_t ignore_quality = kFALSE;     // disabled by default
     TString slopes = "";                // disabled by default
     
@@ -45,6 +47,8 @@ int main(Int_t argc, Char_t* argv[]) {
         if(0 == strcmp("--suspect", argv[i])) run_quality = 3;
         if(0 == strcmp("--bad", argv[i])) run_quality = 2;
         if(0 == strcmp("--runavg", argv[i])) runavg = kTRUE;
+        if(0 == strcmp("--slugavg", argv[i])) slugavg = kTRUE;
+        if(0 == strcmp("--wienavg", argv[i])) wienavg = kTRUE;
         if(0 == strcmp("--ignore-quality", argv[i])) ignore_quality = kTRUE;
         if(0 == strcmp("--slope", argv[i])) slopes = argv[i+1];
     }
@@ -59,6 +63,10 @@ int main(Int_t argc, Char_t* argv[]) {
     cout << "run quality = " << run_quality << endl;
     if(runavg) cout << "runavg : enabled" << endl;
     else cout << "runavg : disabled" << endl;
+    if(slugavg) cout << "slugavg : enabled" << endl;
+    else cout << "slugavg : disabled" << endl;
+    if(wienavg) cout << "wienavg : enabled" << endl;
+    else cout << "wienavg : disabled" << endl;
     if(ignore_quality) cout << "ignore data quality : enabled" << endl;
     else cout << "ignore data quality: disabled" << endl;
     if(slopes == "") cout << "slopes : disabled" << endl;
@@ -83,20 +91,20 @@ int main(Int_t argc, Char_t* argv[]) {
      * ALL trees to use).
      */
     QwRunlet runlets(db);
-    runlets.fill(reg_types, runlist_str, target, runavg, ignore_quality, run_quality);
+    runlets.fill(reg_types, runlist_str, target, runavg, slugavg, wienavg, ignore_quality, run_quality);
 
     /* Run tree_fill to grab the remaining data from the database. */
     const Int_t num_regs = reg_types.num_detectors();
     if(slopes != "") {
         for(Int_t i = 0; i < num_regs; i++) {
             if(reg_types.detector(i) == "on_5+1" || reg_types.detector(i) == "on") {
-                tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, target, runavg, slopes);
+                tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, target, runavg, slugavg, wienavg, slopes);
             }
         }
     }
     else {
         for(Int_t i = 0; i < num_regs; i++) {
-            tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, target, runavg, slopes);
+            tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, target, runavg, slugavg, wienavg, slopes);
         }
     }
 

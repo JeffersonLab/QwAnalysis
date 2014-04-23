@@ -5,5 +5,5 @@
 #include "runlet.h"
 
 /* Definition of the tree_fill function. */
-int tree_fill(TString, TSQLServer*, QwRunlet&, TString, TString, TString, Bool_t, TString);
+int tree_fill(TString, TSQLServer*, QwRunlet&, TString, TString, TString, Bool_t, Bool_t, Bool_t, TString);
 #endif

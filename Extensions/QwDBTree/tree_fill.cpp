@@ -36,10 +36,15 @@
  * then reads in the detector mapfiles md, lumi, and beam; reg map file is read
  * in by main(). 
  */
-int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, TString target, Bool_t runavg, TString slopes) {
+int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, TString target, Bool_t runavg, Bool_t slugavg, Bool_t wienavg, TString slopes) {
+    /* Select name for if averaging. */
+    TString avg_type = "";
+    if(runavg) avg_type = "runavg";
+    if(slugavg) avg_type = "slugavg";
+    if(wienavg) avg_type = "wienavg";
     /* Open the output file and create the tree for outputting. */
     TFile *f;
-    f = new TFile(Form("%s%s%s_%s_tree.root",outdir.Data(),slopes.Data(),target.Data(),reg_type.Data()),"RECREATE");
+    f = new TFile(Form("%s%s%s%s_%s_tree.root",outdir.Data(),avg_type.Data(),slopes.Data(),target.Data(),reg_type.Data()),"RECREATE");
     TTree *tree = new TTree("tree","treelibrated tree");
 
     /*
@@ -82,6 +87,12 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
     if(runavg) {
         good_runlets = runlets.get_runs();
     }
+    if(slugavg) {
+        good_runlets = runlets.get_slugs();
+    }
+    if(wienavg) {
+        good_runlets = runlets.get_wiens();
+    }
 
     /*
      * Create a temporary detector object and push it onto a vector of detector
@@ -103,7 +114,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
          */
         if(reg_type == "on_5+1" || reg_type == "on") {
             for(Int_t i = 0; i < num_mds; i++) {
-                QwMainDetSlope temp_detector(mds.detector(i), mds.id_type(i), reg_type, slopes, good_runlets, db, runavg);
+                QwMainDetSlope temp_detector(mds.detector(i), mds.id_type(i), reg_type, slopes, good_runlets, db, runavg, slugavg, wienavg);
                 temp_detector.fill();
                 main_detector_slopes.push_back(temp_detector);
             }
@@ -111,7 +122,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
 
         if(reg_type == "on_5+1" || reg_type == "on") {
             for(Int_t i = 0; i < num_lumis; i++ || reg_type == "on") {
-                QwLumiDetSlope temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, slopes, good_runlets, db, runavg);
+                QwLumiDetSlope temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, slopes, good_runlets, db, runavg, slugavg, wienavg);
                 temp_detector.fill();
                 lumi_detector_slopes.push_back(temp_detector);
             }
@@ -122,7 +133,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
          * Fill main detector object vector.
          */
         for(Int_t i = 0; i < num_mds; i++) {
-            QwMainDet temp_detector(mds.detector(i), mds.id_type(i), reg_type, good_runlets, db, runavg);
+            QwMainDet temp_detector(mds.detector(i), mds.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
             temp_detector.fill();
             main_detectors.push_back(temp_detector);
         }
@@ -131,7 +142,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
          * Fill lumi object vector.
          */
         for(Int_t i = 0; i < num_lumis; i++) {
-            QwLumiDet temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, good_runlets, db, runavg);
+            QwLumiDet temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
             temp_detector.fill();
             lumi_detectors.push_back(temp_detector);
         }
@@ -140,7 +151,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
          * Fill beam object vector.
          */
         for(Int_t i = 0; i < num_beams; i++) {
-            QwBeamDet temp_detector(beams.detector(i), beams.id_type(i), reg_type, good_runlets, db, runavg);
+            QwBeamDet temp_detector(beams.detector(i), beams.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
             temp_detector.fill();
             beam_detectors.push_back(temp_detector);
         }
