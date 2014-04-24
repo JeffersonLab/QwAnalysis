@@ -1,1 +1,0 @@
-/home/vmgray/QwAnalysis/Extensions/Macros/Tracking/auto_plots/R3_offsets.C
