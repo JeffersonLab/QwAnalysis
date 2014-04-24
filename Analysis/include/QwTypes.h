@@ -22,6 +22,21 @@ enum EQwRegionID {
 inline std::ostream& operator<< (std::ostream& stream, const EQwRegionID& i) {
   stream << "?123TCS#"[i]; return stream;
 }
+typedef std::map < char, EQwRegionID > QwRegionMap;
+inline QwRegionMap CreateRegionMap()
+{
+  QwRegionMap map;
+  map['?'] = kRegionIDNull;
+  map['1'] = kRegionID1;
+  map['2'] = kRegionID2;
+  map['3'] = kRegionID3;
+  map['T'] = kRegionIDTrig;
+  map['C'] = kRegionIDCer;
+  map['S'] = kRegionIDScanner;
+  return map;
+}
+static const QwRegionMap kQwRegionMap = CreateRegionMap();
+
 
 enum EQwDirectionID {
   kDirectionNull = 0,
@@ -34,6 +49,22 @@ enum EQwDirectionID {
 inline std::ostream& operator<< (std::ostream& stream, const EQwDirectionID& i) {
   stream << "?xyuvrfLR#"[i]; return stream;
 }
+typedef std::map < char, EQwDirectionID > QwDirectionMap;
+inline QwDirectionMap CreateDirectionMap()
+{
+  QwDirectionMap map;
+  map['?'] = kDirectionNull;
+  map['x'] = kDirectionX;
+  map['y'] = kDirectionY;
+  map['u'] = kDirectionU;
+  map['v'] = kDirectionV;
+  map['r'] = kDirectionR;
+  map['f'] = kDirectionPhi;
+  map['L'] = kDirectionLeft;
+  map['R'] = kDirectionRight;
+  return map;
+}
+static const QwDirectionMap kQwDirectionMap = CreateDirectionMap();
 
 // Currently up and down are considered two packages.
 enum EQwDetectorPackage {
@@ -49,6 +80,16 @@ enum EQwDetectorPackage {
 inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorPackage& i) {
   stream << "?12#"[i]; return stream;
 }
+typedef std::map < char, EQwDetectorPackage > QwPackageMap;
+inline QwPackageMap CreatePackageMap()
+{
+  QwPackageMap map;
+  map['?'] = kPackageNull;
+  map['1'] = kPackage1;
+  map['2'] = kPackage2;
+  return map;
+}
+static const QwPackageMap kQwPackageMap = CreatePackageMap();
 
 enum EQwDetectorType {
   kTypeNull = 0,
