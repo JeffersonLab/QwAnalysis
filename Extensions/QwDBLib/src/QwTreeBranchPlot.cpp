@@ -16,6 +16,23 @@
 #include <TH1D.h>
 #include <TMath.h>
 
+/* Two quickly thrown together functions to get the max and min sizes of vectors. */
+double max_vector(vector<double> vector) {
+    double max = vector.at(0);
+    for(unsigned int i = 1; i < vector.size(); i++) {
+        if(vector.at(i) > max) max = vector.at(i);
+    }
+    return max;
+}
+
+double min_vector(vector<double> vector) {
+    double min = vector.at(0);
+    for(unsigned int i = 1; i < vector.size(); i++) {
+        if(vector.at(i) < min) min = vector.at(i);
+    }
+    return min;
+}
+
 /* Empty constructor. */
 QwTreeBranchPlot::QwTreeBranchPlot(void):
     QwTreeBranch() {}
@@ -301,7 +318,7 @@ void QwTreeBranchPlot::ValuePlotSignCorrWeight(void) {
      * Create a histo. The values are taken from Josh's script, will be added to the class later.
      * FIXME: The way the histogram is sized/bin number is set is ghetto.
      */
-    TH1D* temp_histo = new TH1D("h1",plot_label, 100,2.5,-2.5);
+    TH1D* temp_histo = new TH1D("h1",plot_label, 100,min_vector(this->get_value()),max_vector(this->get_value()));
 
     /* Get necessary data from object. */
     vector<double> fill_value = this->get_value();
@@ -324,7 +341,7 @@ void QwTreeBranchPlot::ValuePullPlot(void) {
      * Create a histo. The values are taken from Josh's script, will be added to the class later.
      * FIXME: The way the histogram is sized/bin number is set is ghetto.
      */
-    TH1D* temp_histo_mean = new TH1D("h1",plot_label, 100,2.5,-2.5);
+    TH1D* temp_histo_mean = new TH1D("h3",plot_label, 100,min_vector(this->get_value()),max_vector(this->get_value()));
 
     /* Get necessary data from object. */
     vector<double> fill_value = this->get_value();
@@ -337,11 +354,12 @@ void QwTreeBranchPlot::ValuePullPlot(void) {
 
     double mean = temp_histo_mean->GetMean(1);
 
-    TH1D* temp_histo = new TH1D("h2",plot_label, 100, 2.5, -2.5);
+    TH1D* temp_histo = new TH1D("h4",plot_label, 100, -5, 5);
     for(unsigned int i = 0; i < fill_value.size(); i++){
         double difference = (double)sign[i]*(fill_value[i] - mean);
         temp_histo->Fill(difference/fill_error[i]);
     }
     temp_histo->GetXaxis()->SetTitle(y_axis_label);
     temp_histo->Draw();
+    temp_histo->Fit("gaus");
 }

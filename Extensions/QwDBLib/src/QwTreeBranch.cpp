@@ -326,3 +326,40 @@ void QwTreeBranch::set_weight_n(TTree* tree, TString name) {
         this->fill_weight(temp_weight.n);
     }
 }
+
+TTree* clean_tree(TTree* tree, int clean_scheme) {
+
+    /* Number of runlets in the dirty tree. */
+    int entries = tree->GetEntries();
+
+    /* Temp objects to store tree. */
+    temp_value mdallpmtavg;
+    temp_value uslumi;
+    temp_value pmtltg;
+    temp_value pmtonl;
+    temp_value md9;
+
+    /* Set branches to duplicate. */
+    tree->SetBranchStatus("*",1);
+
+    /* Grab these detectors to cut on. */
+    tree->SetBranchAddress("asym_mdallpmtavg", &mdallpmtavg);
+    tree->SetBranchAddress("asym_uslumi_sum", &uslumi);
+    tree->SetBranchAddress("asym_qwk_pmtltg", &pmtltg);
+    tree->SetBranchAddress("asym_qwk_pmtonl", &pmtonl);
+    tree->SetBranchAddress("asym_md9pmtavg", &md9);
+
+    /* Define object to hold new tree. */
+    TFile *newfile;
+    newfile = new TFile("/tmp/deleteme.root","recreate");
+    TTree* tree_new;                                           
+    tree_new = tree->CloneTree(0);
+
+    for(int i = 0; i < entries; i++) {
+        tree->GetEntry(i);
+        if(mdallpmtavg.n > 0 && uslumi.n > 0) tree_new->Fill();
+    }
+
+    return tree_new;
+
+}

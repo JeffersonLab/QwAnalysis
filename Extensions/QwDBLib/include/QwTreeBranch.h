@@ -64,6 +64,7 @@ class QwTreeBranch {
         void set_weight_error(TTree*, TString);   // method to set the weight to error
         void set_weight_rms(TTree*, TString);     // method to set the weight to rms
         void set_weight_n(TTree*, TString);       // method to set the weight to n
+        //void clean_tree(TTree*, int);             // clean zeros from tree
 
     private:
         vector<double> value;                     // vector for the value
@@ -75,5 +76,7 @@ class QwTreeBranch {
         vector<int> runlet;                       // vector for the runlet
         int size_of;                              // value that stores the size
 };
+
+TTree* clean_tree(TTree*, int);
 
 #endif

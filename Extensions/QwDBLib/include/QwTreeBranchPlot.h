@@ -36,4 +36,7 @@ class QwTreeBranchPlot : public QwTreeBranch {
         TString y_axis_label;                           // stores y axis label
 };
 
+double max_vector(vector<double>);
+double min_vector(vector<double>);
+
 #endif

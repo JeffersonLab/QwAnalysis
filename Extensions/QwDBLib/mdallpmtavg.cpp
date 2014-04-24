@@ -24,6 +24,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "QwTreeBranchPlot.h"
+#include "QwTreeBranch.h"
 
 int main(int argc, char* argv[]) {
     /* Usage information if no arguments */
@@ -40,22 +41,19 @@ int main(int argc, char* argv[]) {
     rootfile_asym = TFile::Open(var_1);
 
     /* Grab the tree from both rootfile. */
+    TTree *tree_dirty;
     TTree *tree_asym;
-    tree_asym = (TTree*)rootfile_asym->Get("tree");
+    tree_dirty = (TTree*)rootfile_asym->Get("tree");
+    tree_asym = clean_tree(tree_dirty, 1);
 
     /* Some fit crap. */
     gStyle->SetOptFit(1111);
     gStyle->SetOptStat(0000000);
 
-
     /* Define objects to hold each branch. Define the axis variables in constructor.*/
     QwTreeBranchPlot mdallpmtavg("mdallpmtavg", "runlet_id", "mdallpmtavg asym (ppm)");
     mdallpmtavg.get_data_from_tree(tree_asym, "asym_mdallpmtavg", "asym_qwk_charge");
     //mdallpmtavg.set_weight_value(tree_asym, "asym_qwk_charge");
-    mdallpmtavg.CleanZeroes();
-
-    
-
 
     /* Create TCanvas. */
     TCanvas c1("c1");
@@ -69,6 +67,12 @@ int main(int argc, char* argv[]) {
     c2.Update();
     c2.Modified();
     c2.Print("mdallpmtavg_histogram.png");
+
+    TCanvas c3("c3");
+    mdallpmtavg.ValuePullPlot();
+    c3.Update();
+    c3.Modified();
+    c3.Print("mdallpmtavg_pull.png");
 
     /* Return */
     return 0;
