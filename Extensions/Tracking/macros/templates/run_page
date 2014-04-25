@@ -11,47 +11,58 @@
 
 <table border="0" width="100%">
 <tr>
-<td><h2><-Previous Run
-</td></h2>
-<td><h1 align="center">Run %%RUNNUM%% %%FIRST100KMESSAGE%% 
-</h1></td>
-<td><h2 align="right">Next Run->
-</td></h2>
-<td><h2 align="right"><a href="../index.html">^Runlist^</a>
-</td></h2>
+  <td><h2><-Previous Run</td></h2>
+  <td><h1 align="center">Run %%RUNNUM%% %%FIRST100KMESSAGE%%</h1></td>
+  <td><h2 align="right">Next Run-></td></h2>
+  <td><h2 align="right"><a href="../index.html">^Runlist^</a></td></h2>
 </tr>
 </table> 
 
 <table class="runpage-info" width="100%">
 <tr>
 	<td>Links</td>
-	<td></td><td>Start Run: %%STARTDATE%%</td>
-	<td></td><td>%%BCM01%%</td>
+  <td>Start Run: %%STARTDATE%%</td>
+	<td>Links</td>
 </tr>
 <tr>
 	<td><a href="./">Directory List</a></td>
-	<td></td><td>End Run: %%ENDDATE%%</td>
-	<td></td><td>%%BCM02%%</td>
+	<td>End Run: %%ENDDATE%%</td>
+	<td><a href="./">Directory List</a></td>
 </tr>
 <tr>
-	<td><a href="#hdc">Horizontal Drift Chambers</a></td>
-	<td></td><td>Root file date: %%ROOTDATE%%</td>
-	<td></td><td>%%BCM17%%</td>
+  <td><a href="#Q2">Q2</a></td>
+  <td>End Run: %%ENDDATE%%</td>
+  <td><a href="#vdc">VDC</a></td>
 </tr>
 <tr>
-	<td><a href="#vdc">Vertical Drift Chambers</a></td>
-	<td></td><td>Last Analysis: %%ANALYSISDATE%%</td>
-	<td></td><td>%%HWP%%</td>
+  <td><a href="#BeamPositionQ2">BeamPosition Q2</a></td>
+  <td>Root file date: %%ROOTDATE%%</td>
+  <td><a href="#R3TreelinesMatchUp">R3 treeline match up</a></td>
 </tr>
 <tr>
-	<td><a href="#ts">Trigger Scintillators</a></td>
-	<td></td>
-	<td></td>
+  <td><a href="#Chi">Log(Chi)</a></td>
+  <td>Root file date: %%ROOTDATE%%</td>
+  <td><a href="#R3Offsets">R3 offset</a></td>
 </tr>
 <tr>
-	<td><a href="#lumi">Luminosity Detectors</a></td>
-	<td></td>
-	<td></td>
+  <td><a href="#Residual">Residuals R2</a></td>
+  <td>Last Analysis: %%ANALYSISDATE%%</td>
+  <td><a href="#ts">Trigger Scint</a></td>
+</tr>
+<tr>
+	<td><a href="#hdc">HDCs</a></td>
+  <td></td>
+	<td><a href="#lumi">Lumis</a></td>
+</tr>
+<tr>
+  <td><a href="#QwHits">QwHits</a></td>
+  <td></td>
+  <td><a href="#QTOR">QTOR</a></td>
+</tr>
+<tr>
+  <td><a href="#OctantDetermination">Octant Determination</a></td>
+  <td></td>
+  <td><a href="#NumTracks">Good Events</a></td>
 </tr>
 </table>
 
@@ -64,6 +75,10 @@ The mean values and the error are given in the text file below the plot.
 </p></center>
 <p><center><img src="%%RUNNUM%%_q2.png"></center></p>
 <p><center><a href="%%RUNNUM%%_q2.txt">Q2 Values</a></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="BeamPositionQ2"></a>
 <center><h2>Q2 vs. X and Y Beam Position Plots</h2></center>
@@ -78,6 +93,10 @@ the plots.
 <p><center><img src="BeamPositionQ2_%%RUNNUM%%_Q2_vs_beamyposition.png"></center></p>
 <p><center><a href="BeamPositionQ2_%%RUNNUM%%_BPQ2_Output_x.txt">Beam X Position Values</a></center></p>
 <p><center><a href="BeamPositionQ2_%%RUNNUM%%_BPQ2_Output_y.txt">Beam Y Position Values</a></center></p>
+
+
+
+<!-- New Topic -->
 
 
 <a name="Chi"></a>
@@ -96,6 +115,10 @@ The direction is refenced by number where 0 == total package, 1 == X plane, 3 ==
 From left to right the order is total package, X plane, U plane, V plane.</p><center>
 <p><center><img src="Chi_%%RUNNUM%%__chi_vs_time.png"></center></p>
 -->
+
+
+<!-- New Topic -->
+
 
 <a name="Residual"></a>
 <center><h2>Residual value - Region 2</h2></center>
@@ -121,6 +144,9 @@ RMS/sqrt(N).
 <p><center><img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_1.png"> <img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_2.png"></center></p>
 
 
+<!-- New Topic -->
+
+
 <a name="hdc"></a>
 <center><h2>Horizontal Drift Chamber Plots</h2></center>
 <center><p>
@@ -134,6 +160,10 @@ Again plane X is red, plane U is blue and plane V is green.
 Anna's plots that are unexplained... mystery...
 </p><center>
 <p><center><img src="test_drift_times_%%RUNNUM%%.png"> <img src="test_hit_patterns_%%RUNNUM%%.png"></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="QwHits"></a>
 <center><h2>QwHits plots</h2></center>
@@ -158,6 +188,10 @@ This plot is of the log of events.fNQwTracks.
 </p><center>
 <p><center><img src="QwHitsInfo_%%RUNNUM%%_fNQwTracks.png">
 
+
+<!-- New Topic -->
+
+
 <a name="OctantDetermination"></a>
 <center><h2>Octant Determination Plots</h2></center>
 <center><p>
@@ -179,7 +213,10 @@ the octant that was passed to through the analyzer graphed itn the center.
 <img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_3_Package_2.png"></center></p>
 
 
-<a name="vdc"></a1>
+<!-- New Topic -->
+
+
+<a name="vdc"></a>
 <center><h2>Vertical Drift Chamber Plots</h2></center>
 <center><p>
 The first two plots graphs the number of hits vs wire number.  
@@ -212,12 +249,161 @@ Vader is red, Yoda is green, Leia is blue and Han is purple.
 </p><center>
 <p><center><img src="auto_vdc_%%RUNNUM%%_hit_number.png"></center></p>
 
+
+<!-- New Topic -->
+
+
+<a name="R3TreelinesMatchUp"></a>
+<center><h2>R3 match up of the treelines</h2></center>
+<center><p>
+These plots are to investigate how well the treelines in each plane match up with each other.
+They are of the slope and the Chi^2 values of ALL (no cuts as of 04-15-2014) the treelines 
+in the file.  This is done for the treelines, partial tracks, and tracks.  The fist group of
+plots are for the slope and the second set are for the Chi^2 values.</p>
+
+<p>How are the planes related to each other you ask?   Well that is a very useful question.
+The planes are: Both, U, V, UU and VV.  In the plots we have:
+
+
+<table border="1" cellspacing="0" cellpadding="4" style="width:300px">
+<tr>
+  <td>Plane</td>
+  <td>VDC</td>    
+  <td>notes</td>
+  </tr>
+<tr>
+  <td>Both</td>
+  <td>Front/Back</td>   
+  <td>combination of the U and V plan for a VDC</td>
+</tr>
+<tr>
+  <td>U</td>
+  <td>Front/Back</td>   
+  <td>Just the plan old U plane</td>
+</tr>
+<tr>
+  <td>V</td>
+  <td>Front/Back</td>   
+  <td>Just the plan old V plane</td>
+</tr>
+<tr>
+  <td>UU</td>
+  <td>Both</td>   
+  <td>Combination of the U planes in both VDCs</td>
+</tr>
+<tr>
+  <td>VV</td>
+  <td>Both</td>   
+  <td>Combination of the U planes in both VDCs</td>
+</tr>
+</table>
+
+<font size="1">More information on how these related to our friends in a 
+galaxy see the comments a the beginning of R3_treelines_match_up.C script
+(feel free to meander the code too ;) )</font>
+</p><center>
+
+<center><h3>Slopes</h3></center>
+<center><p>
+The first set of plots is the treelines.  The first 3 are both VDCs together, 
+the front VDC and then the Back VDC for package 1 and likewise for package 2.
+Both VDCs include the UU and VV plane from left to right.  The front and back 
+VDCs have both planes combined, the U and then the V plane.
+This is followed by a text file with average slopes in it.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_1_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_1_Back_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_2_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_2_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_2_Back_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Treeline_match_up_Slope.txt">R3 Treelines slopes</a></center></p>
+
+<center><p>
+These plots is the are for the partial tracks.  As partial tracks by nature are a
+connection of treelines that match up.  There is no treelines in planes.  
+This means that we only have UU and VV planes, so both VDCs.  Package 1
+(top) and 2 (bottom) are here followed agin by the summary in a text file.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Slope_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Slope_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Partial_Tracks_match_up_Slope.txt">R3 Partial Tracks slopes</a></center></p>
+
+<center><p>
+These plots is the are for the tracks.  Like partial tracks tracks by nature are a
+connection of treelines that match up.  There is no treelines in planes.  
+This means that we only have UU and VV planes, so both VDCs.  Package 1
+(top) and 2 (bottom) are here followed agin by the summary in a text file.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Tracks_Slope_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Tracks_Slope_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Tracks_match_up_Slope.txt">R3 Tracks slopes</a></center></p>
+
+<center><h3>Chi^2</h3></center>
+<center><p>
+The first set of plots is the treelines.  The first 3 are both VDCs together, 
+the front VDC and then the Back VDC for package 1 and likewise for package 2.
+Both VDCs include the UU and VV plane from left to right.  The front and back 
+VDCs have both planes combined, the U and then the V plane.
+This is followed by a text file with average slopes in it.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_1_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_1_Back_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_2_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_2_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_2_Back_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Treeline_match_up_Chi2.txt">R3 Treelines Chi^2</a></center></p>
+
+<center><p>
+These plots is the are for the partial tracks.  As partial tracks by nature are a
+connection of treelines that match up.  There is no treelines in planes.  
+This means that we only have UU and VV planes, so both VDCs.  Package 1
+(top) and 2 (bottom) are here followed agin by the summary in a text file.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Chi2_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Chi2_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Partial_Tracks_match_up_Chi2.txt">R3 Partial Tracks Chi^2</a></center></p>
+
+<center><p>
+These plots is the are for the tracks.  Like partial tracks tracks by nature are a
+connection of treelines that match up.  There is no treelines in planes.  
+This means that we only have UU and VV planes, so both VDCs.  Package 1
+(top) and 2 (bottom) are here followed agin by the summary in a text file.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Tracks_Chi2_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Tracks_Chi2_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Tracks_match_up_Chi2.txt">R3 Tracks Chi^2</a></center></p>
+
+
+<!-- New Topic -->
+
+
+<a name="R3Offsets"></a>
+<center><h2>R3 offset plots</h2></center>
+<center><p>
+These plots are looking at the offsets in direction (in the real world, momentum)
+of the Theta (top) and Phi (bottom) angles.  The plots from left to right are package 0 (both), 1,
+2.  The mean values are also in the file below the plots.
+</p><center>
+<p><center><img src="%%RUNNUM%%_Theta_offset.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Phi_offset.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_offsets.txt">Angle Momentum offsets</a></center></p>
+
+
+<!-- New Topic -->
+
+
 <a name="ts"></a>
 <center><h2>Trigger Scintillator Plots</h2></center>
 <center><p>
 Graphs the two trigger scintillator scaler values vs time as event number.
 </p><center>
 <p><center><img src="trigger_scint_scalers_vs_time_%%RUNNUM%%.png"></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="lumi"></a>
 <center><h2>Luminosity Detector Plots</h2></center>
@@ -235,12 +421,20 @@ Graphs all 4 dslumi rates ratios vs. time on one canvas
 </p><center>
 <p><center><img src="dslumi_%%RUNNUM%%_ratios_vs_time.png"></center></p>
 
+
+<!-- New Topic -->
+
+
 <a name="QTOR"></a>
 <center><h2>QTOR current vs. time Plots</h2></center>
 <center><p>
 Graphs the QTOR current vs event number.
 </p><center>
 <p><center><img src="QTOR_%%RUNNUM%%_current_vs_time.png"></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="NumTracks"></a>
 <center><h2>Number of Good Events in Various Categories</h2></center>
