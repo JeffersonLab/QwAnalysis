@@ -105,6 +105,9 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Newton's method step size in momentum
     double fMomentumStep;
 
+    /// Newton's method initial momentum
+    double fInitialMomentum;
+
     Double_t fBdl;  ///< scalar field integrals
     Double_t fBdlx; ///< x component of the field integral
     Double_t fBdly; ///< y component of the field integral

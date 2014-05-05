@@ -108,6 +108,13 @@ void QwRayTracer::DefineOptions(QwOptions& options)
   options.AddOptions("Momentum reconstruction")("QwRayTracer.position_resolution",
       po::value<float>(0)->default_value(0.3),
       "Newton's method position step [cm]");
+
+  // Starting momentum of Newton's method
+  // Note: Start iteration from a higher momentum limit (1.250 GeV)
+  //       as suggested by David Armstrong, to avoid possible bias
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.initial_momemtum",
+      po::value<float>(0)->default_value(1.25),
+      "Newton's method position step [GeV]");
 }
 
 /**
@@ -120,6 +127,7 @@ void QwRayTracer::ProcessOptions(QwOptions& options)
   fIntegrationStep = Qw::cm * options.GetValue<float>("QwRayTracer.step");
   fMomentumStep = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
   fPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
+  fInitialMomentum = Qw::GeV * options.GetValue<float>("QwRayTracer.initial_momemtum");
 }
 
 /**
@@ -146,9 +154,7 @@ const QwTrack* QwRayTracer::Bridge(
   // else
   //     momentum[0] = 0.20 * Qw::GeV;
 
-  // Start iteration from a higher momentum limit (1.250 GeV)
-  // as suggested by David Armstrong, to avoid possible bias
-  momentum[0] = 1.250 * Qw::GeV;
+  momentum[0] = fInitialMomentum;
 
   // Front track position and direction
   TVector3 start_position = front->GetPosition(-250 * Qw::cm);
