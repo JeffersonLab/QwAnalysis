@@ -138,6 +138,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
         //query += "AND slow_controls_data.value <= -710.60 AND slow_controls_data.value >= -711.32\n";
         //query += "AND slow_controls_data.value <= -707.40 AND slow_controls_data.value >= -714.52\n";
         //query += "AND slow_controls_data.value <= -675.40 AND slow_controls_data.value >= -746.51\n";
+        //query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
     }
 
     /* if using runlist, cut on run number */
@@ -215,6 +216,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
         //query += "AND slow_controls_data.value <= -710.60 AND slow_controls_data.value >= -711.32\n";
         //query += "AND slow_controls_data.value <= -707.40 AND slow_controls_data.value >= -714.52\n";
         //query += "AND slow_controls_data.value <= -675.40 AND slow_controls_data.value >= -746.51\n";
+        //query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
     }
 
     /* if using runlist, cut on run number */
