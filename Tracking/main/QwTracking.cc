@@ -157,7 +157,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (fabs(trackingworker->GetMagneticFieldCurrent()) < 100.0) {
         QwError << "Error: no magnetic field specified and no EPICS events in range!"
                 << QwLog::endl;
-        return -1;
       }
     }
 
