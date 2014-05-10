@@ -104,6 +104,20 @@ enum EQwDetectorType {
 inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorType& i) {
   stream << "?fhvtcs#"[i]; return stream;
 }
+typedef std::map < char, EQwDetectorType > QwTypeMap;
+inline QwTypeMap CreateTypeMap()
+{
+  QwTypeMap map;
+  map['?'] = kTypeNull;
+  map['f'] = kTypeSciFiber;
+  map['h'] = kTypeDriftHDC;
+  map['v'] = kTypeDriftVDC;
+  map['t'] = kTypeTrigscint;
+  map['c'] = kTypeCerenkov;
+  map['s'] = kTypeScanner;
+  return map;
+}
+static const QwTypeMap kQwTypeMap = CreateTypeMap();
 
 // Enumerator type for the instrument type, used in subsystems that have to
 // distinguish between various detector types.
