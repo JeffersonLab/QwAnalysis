@@ -127,10 +127,27 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
       return results;
     }
 
+    // Print function
+    void Print() const;
+
     // Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwGeometry& detectors);
 
 };
+
+/**
+ * Print function
+ */
+inline void QwGeometry::Print() const
+{
+  for (QwGeometry::const_iterator i = begin(); i != end(); i++) {
+    if (*i)
+      (*i)->Print();
+    else
+      QwOut << "(null)" << QwLog::endl;
+    QwOut << QwLog::endl;
+  }
+}
 
 /**
  * Output stream operator

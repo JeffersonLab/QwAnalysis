@@ -151,6 +151,34 @@ double QwDetectorInfo::GetElementCoordinate(const int element) const
   return GetElementOffset() + (element - 1) * GetElementSpacing();
 }
 
+/**
+ * Print all variables in this
+ */
+void QwDetectorInfo::Print() const
+{
+  QwOut << "type = " << fType << QwLog::endl;
+  QwOut << "region = " << fRegion << QwLog::endl;
+  QwOut << "package = " << fPackage << QwLog::endl;
+  QwOut << "direction = " << fDirection << QwLog::endl;
+  QwOut << "octant = " << fOctant << QwLog::endl;
+  QwOut << "plane = " << fPlane << QwLog::endl;
+  QwOut << "active_width_x = " << fActiveWidthX/Qw::cm << QwLog::endl;
+  QwOut << "active_width_y = " << fActiveWidthY/Qw::cm << QwLog::endl;
+  QwOut << "active_width_z = " << fActiveWidthZ/Qw::cm << QwLog::endl;
+  QwOut << "detector_origin_x = " << fDetectorOriginX/Qw::cm << QwLog::endl;
+  QwOut << "detector_origin_y = " << fDetectorOriginY/Qw::cm << QwLog::endl;
+  QwOut << "detector_origin_z = " << fDetectorOriginZ/Qw::cm << QwLog::endl;
+  QwOut << "detector_rotation = " << fDetectorRotation/Qw::deg << QwLog::endl;
+  QwOut << "detector_tilt = " << fDetectorTilt/Qw::deg << QwLog::endl;
+  QwOut << "spatial_resolution = " << fSpatialResolution << QwLog::endl;
+  QwOut << "track_resolution = " << fTrackResolution << QwLog::endl;
+  QwOut << "slope_matching = " << fSlopeMatching << QwLog::endl;
+  QwOut << "element_angle = " << fElementAngle/Qw::deg << QwLog::endl;
+  QwOut << "element_spacing = " << fElementSpacing/Qw::cm << QwLog::endl;
+  QwOut << "element_offset = " << fElementOffset/Qw::cm << QwLog::endl;
+  QwOut << "number_of_elements = " << fNumberOfElements << QwLog::endl;
+  QwOut << "plane_offset = " << fPlaneOffset/Qw::cm << QwLog::endl;
+}
 
 /**
  * Output stream operator

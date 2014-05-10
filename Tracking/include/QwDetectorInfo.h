@@ -163,6 +163,9 @@ class QwDetectorInfo: public TObject {
     // Get unique detector ID
     int GetID() const { return fDetectorID; };
 
+    // Print function
+    void Print() const;
+
     // Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);
 
