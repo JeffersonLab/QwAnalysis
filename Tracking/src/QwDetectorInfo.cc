@@ -15,130 +15,108 @@
 ClassImp(QwDetectorInfo)
 #endif
 
-void QwDetectorInfo::SetDetectorInfo (
-	TString sdType,
-	double det_originZ,
-	double rot,
-	double  sp_res,
-	double  track_res,
-	double slope_match,
-	TString spackage,
-	int region,
-	TString planeDir,
-	double det_originX,
-	double det_originY,
-	double activewidthX,
-	double activewidthY,
-	double activewidthZ,
-	double wireSpace,
-	double firstWire,
-	double w_rcos,
-	double w_rsin,
-	double tilt,
-	int totalwires,
-	int detId)
+// Qweak headers
+#include "QwParameterFile.h"
+
+QwDetectorInfo::QwDetectorInfo()
+: fType(kTypeNull),fPackage(kPackageNull),fRegion(kRegionIDNull),
+  fDirection(kDirectionNull),
+  fPlane(0),fOctant(0),
+  fCrate(0),fModule(0),fChannel(0),
+  fDetectorOriginX(0),fDetectorOriginY(0),fDetectorOriginZ(0),
+  fDetectorRotation(0),fDetectorRotationCos(0),fDetectorRotationSin(0),
+  fDetectorTilt(0),fDetectorTiltCos(0),fDetectorTiltSin(0),
+  fIsActive(true),fSpatialResolution(0),fTrackResolution(0),fSlopeMatching(0),
+  fActiveWidthX(0),fActiveWidthY(0),fActiveWidthZ(0),
+  fElementSpacing(0),fElementAngle(0),fElementAngleCos(0),fElementAngleSin(0),
+  fElementOffset(0),fPlaneOffset(0),fNumberOfElements(0),fTree(0),
+  fDetectorID(0),fReferenceChannelIndex(0)
 {
-  // Detector geometry parameters
-
-  SetSpatialResolution(sp_res);
-  SetTrackResolution(track_res);
-  SetSlopeMatching(slope_match);
-
-  SetXYZPosition(det_originX, det_originY, det_originZ);
-  SetDetectorRotation(rot); 
-  SetDetectorTilt(tilt);
-  
-
-  fActiveWidthX = activewidthX;
-  fActiveWidthY = activewidthY;
-  fActiveWidthZ = activewidthZ;
-
-  SetElementSpacing(wireSpace);
-  SetElementOffset(firstWire);
-  SetElementAngle(w_rcos, w_rsin);
-  SetNumberOfElements(totalwires);
-
-  
-
-  fDetectorID = detId;
-
-  // Type
-  if (sdType == "d" && region == 2)
-    fType = kTypeDriftHDC;
-  else if (sdType == "d" && region == 3)
-    fType = kTypeDriftVDC;
-  else if (sdType == "t")
-    fType = kTypeTrigscint;
-  else if (sdType == "c")
-    fType = kTypeCerenkov;
-  else if (sdType == "f")
-    fType = kTypeSciFiber;
-  else if (sdType == "s")
-    fType = kTypeScanner;
-
-  // Package
-  if (spackage == "u"){
-    fPackage = kPackage1;
-  }
-  else if (spackage == "d"){
-    fPackage = kPackage2;
-  }
-
-  // Region
-  if (region == 1)
-    fRegion = kRegionID1;
-  else if (region == 2)
-    fRegion = kRegionID2;
-  else if (region == 3)
-    fRegion = kRegionID3;
-  else if (region == 4)
-    fRegion = kRegionIDTrig;
-  else if (region == 5)
-    fRegion = kRegionIDCer;
-
-  // plane offset(only used in r2)
-  if(region==2){
-    // double rotate_cos=0.99998629;
-    //double rotate_sin=0.00523596;
-    //double new_originX=rotate_cos*det_originX+rotate_sin*det_originY;
-    //double new_originY=-rotate_sin*det_originX+rotate_cos*det_originY;
-    //SetPlaneOffset(new_originY*w_rcos+new_originX*w_rsin);
-    SetPlaneOffset(det_originY*w_rcos+det_originX*w_rsin);
-  }
-  // Direction
-  if (planeDir == "x")
-    fDirection = kDirectionX;
-  else if (planeDir == "u")
-    fDirection = kDirectionU;
-  else if (planeDir == "v")
-    fDirection = kDirectionV;
-  else if (planeDir == "y")
-    fDirection = kDirectionY;
-  else if (planeDir == "r")
-    fDirection = kDirectionR;
-  else if (planeDir == "f")
-    fDirection = kDirectionPhi;
-  fOctant=0;
-  
-  
 
 }
 
+void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
+{
+  std::string varvalue;
 
-/// Get position of the detector
+  map->TrimWhitespace();
+
+  if (map->FileHasVariablePair("=","active_width_x",varvalue))
+    fActiveWidthX = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","active_width_y",varvalue))
+    fActiveWidthY = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","active_width_z",varvalue))
+    fActiveWidthZ = map->ConvertValue<double>(varvalue) * Qw::cm;
+
+  if (map->FileHasVariablePair("=","detector_origin_x",varvalue))
+    fDetectorOriginX = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","detector_origin_y",varvalue))
+    fDetectorOriginY = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","detector_origin_z",varvalue))
+    fDetectorOriginZ = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","detector_rotation",varvalue))
+    fDetectorRotation = map->ConvertValue<double>(varvalue) * Qw::deg;
+  if (map->FileHasVariablePair("=","detector_tilt",varvalue))
+    fDetectorTilt = map->ConvertValue<double>(varvalue) * Qw::deg;
+
+  if (map->FileHasVariablePair("=","number_of_elements",varvalue))
+    fNumberOfElements = map->ConvertValue<int>(varvalue);
+  if (map->FileHasVariablePair("=","element_spacing",varvalue))
+    fElementSpacing = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","element_offset",varvalue))
+    fElementOffset = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","element_angle_cos",varvalue))
+    fElementAngleCos = map->ConvertValue<double>(varvalue);
+  if (map->FileHasVariablePair("=","element_angle_sin",varvalue))
+    fElementAngleSin = map->ConvertValue<double>(varvalue);
+  fElementAngle = std::atan2(fElementAngleSin,fElementAngleCos);
+
+  if (map->FileHasVariablePair("=","spatial_resolution",varvalue))
+    fSpatialResolution = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","track_resolution",varvalue))
+    fTrackResolution = map->ConvertValue<double>(varvalue) * Qw::cm;
+  if (map->FileHasVariablePair("=","slope_matching",varvalue))
+    fSlopeMatching = map->ConvertValue<double>(varvalue) * Qw::cm;
+
+  if (map->FileHasVariablePair("=","type",varvalue))
+    fType = kQwTypeMap.find(map->ConvertValue<char>(varvalue))->second;
+  if (map->FileHasVariablePair("=","package",varvalue))
+    fPackage = kQwPackageMap.find(map->ConvertValue<char>(varvalue))->second;
+  if (map->FileHasVariablePair("=","region",varvalue))
+    fRegion = kQwRegionMap.find(map->ConvertValue<char>(varvalue))->second;
+  if (map->FileHasVariablePair("=","direction",varvalue))
+    fDirection = kQwDirectionMap.find(map->ConvertValue<char>(varvalue))->second;
+
+  if (map->FileHasVariablePair("=","octant",varvalue))
+    fOctant = map->ConvertValue<int>(varvalue);
+  if (map->FileHasVariablePair("=","plane",varvalue))
+    fPlane = map->ConvertValue<int>(varvalue);
+
+  if (map->FileHasVariablePair("=","active",varvalue))
+    fIsActive = map->ConvertValue<bool>(varvalue);
+
+  // A value of importance for region 2 only
+  fPlaneOffset = fDetectorOriginY * fElementAngleCos + fDetectorOriginX * fElementAngleSin;
+}
+
+
+/** Get position of the detector
+ * @return TVector3
+ */
 const TVector3 QwDetectorInfo::GetPosition() const
 {
   return TVector3(fDetectorOriginX,fDetectorOriginY,fDetectorOriginZ);
 }
 
-/// Set position of the detector
+/** Set position of the detector
+ * @param position TVector3
+ */
 void QwDetectorInfo::SetPosition(const TVector3& position)
 {
   fDetectorOriginX = position.X();
   fDetectorOriginY = position.Y();
   fDetectorOriginZ = position.Z();
 }
-
 
 /**
  * Get the coordinate of the specified element.  E.g. this returns the x/u/v

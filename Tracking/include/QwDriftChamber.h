@@ -64,9 +64,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   //separate meanings in VDC and HDC
   virtual void  SubtractReferenceTimes() = 0;
   virtual void  ProcessEvent() = 0;
-  virtual Int_t LoadGeometryDefinition(TString mapfile ) = 0;
  
-  virtual Int_t LoadChannelMap(TString mapfile ) = 0;
   virtual void  ClearEventData() = 0;
 
   

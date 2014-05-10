@@ -44,7 +44,6 @@ class QwSciFiDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable
   /*  Member functions derived from VQwSubsystemTracking. */
   Int_t LoadChannelMap(TString mapfile );
   Int_t LoadInputParameters(TString mapfile);
-  Int_t LoadGeometryDefinition(TString mapfile);
 
 
   void  FillListOfHits(QwHitContainer& hitlist);

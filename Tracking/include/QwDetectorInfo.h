@@ -18,6 +18,7 @@
 #include "QwLog.h"
 
 // Forward declarations
+class QwParameterFile;
 class QwTrackingTreeRegion;
 
 ///
@@ -31,9 +32,10 @@ class QwDetectorInfo: public TObject {
   public:
 
     /// Default constructor
-    QwDetectorInfo(): fIsActive(true),fTree(0) { };
+    QwDetectorInfo();
 
-    void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
+    // Load geometry information from parameter file
+    void LoadGeometryDefinition(QwParameterFile* map);
 
     // Get/set spatial resolution
     double GetSpatialResolution() const { return fSpatialResolution; };
@@ -58,23 +60,19 @@ class QwDetectorInfo: public TObject {
       fDetectorOriginX = x;
       fDetectorOriginY = y;
     };
-
-    void SetOctant(const int octant) { fOctant = octant;};
-    int  GetOctant() const {return fOctant; };
-
     void SetXYZPosition(const double x, const double y, const double z) {
       SetXYPosition(x,y);
       SetZPosition(z);
     };
 
-    double GetPlaneOffset() const {
-      return fPlaneOffset;
-    }
-    
-    void SetPlaneOffset (double x) {
-      fPlaneOffset = x;
-    }
+    // Get/set the octant
+    void SetOctant(const int octant) { fOctant = octant;};
+    int  GetOctant() const {return fOctant; };
 
+    // Get/set the plane offset
+    void SetPlaneOffset (double offset) { fPlaneOffset = offset; }
+    double GetPlaneOffset() const { return fPlaneOffset; }
+    
     // Get/set active flag
     bool IsActive() const { return fIsActive; };
     bool IsInactive() const { return !IsActive(); };
@@ -215,7 +213,7 @@ class QwDetectorInfo: public TObject {
     double fElementAngleSin;	///< Sin of the element orientation
     double fElementOffset;	///< Position of the first element (it is not
                                 ///  exactly clear to me what that exactly means)
-    double fPlaneOffset;        /// perpendicular distance from the first plane in the same direction
+    double fPlaneOffset;        ///< Perpendicular distance from the first plane in the same direction
     int fNumberOfElements;	///< Total number of elements in this detector
     
 

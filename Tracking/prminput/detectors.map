@@ -13,23 +13,23 @@ geom = qweak_new.geo
 [QwDriftChamberHDC]
  name = R2
  map = qweak_R2.map
- geom = qweak_new.geo
+ geom = qweak_HDC.geo
 
 [QwDriftChamberVDC]
  name = R3
  map = qweak_R3.map
- geom = qweak_new.geo
+ geom = qweak_VDC.geo
 
 [QwTriggerScintillator]
  name = TS
  map = qweak_trigscint_channel.map
- geom = qweak_new.geo
+ geom = qweak_TS.geo
  mask = 0xffff
 
 [QwMainDetector]
  name = MD
  map = qweak_maindet_channel.map
- geom = qweak_new.geo
+ geom = qweak_MD.geo
  mask = 0xffff
 
 [QwLumi]
