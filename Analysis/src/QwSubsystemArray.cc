@@ -73,7 +73,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
 {
   // This is how this should work
   QwParameterFile* preamble;
-  preamble = detectors.ReadPreamble();
+  preamble = detectors.ReadSectionPreamble();
   // Process preamble
   QwVerbose << "Preamble:" << QwLog::endl;
   QwVerbose << *preamble << QwLog::endl;
@@ -533,7 +533,7 @@ void QwSubsystemArray::ConstructBranch(
 
   QwParameterFile* preamble;
   QwParameterFile* nextsection;
-  preamble = trim_file.ReadPreamble();
+  preamble = trim_file.ReadSectionPreamble();
 
   // Process preamble
   QwVerbose << "QwSubsystemArrayTracking::ConstructBranch  Preamble:" << QwLog::endl;

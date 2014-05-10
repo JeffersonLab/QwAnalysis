@@ -702,7 +702,7 @@ Bool_t QwParameterFile::SkipSection(std::string secname)
  * Read the lines until the first header
  * @return Pointer to the parameter stream until first section
  */
-QwParameterFile* QwParameterFile::ReadPreamble()
+QwParameterFile* QwParameterFile::ReadSectionPreamble()
 {
   RewindToFileStart();
   return ReadUntilNextSection();
@@ -726,6 +726,17 @@ QwParameterFile* QwParameterFile::ReadNextSection(TString &secname, const bool k
   if (IsEOF()) return 0;
   while (! LineHasSectionHeader(secname) && ReadNextLine()); // skip until header
   return ReadUntilNextSection(keep_header);
+}
+
+
+/**
+ * Read the lines until the first header
+ * @return Pointer to the parameter stream until first module
+ */
+QwParameterFile* QwParameterFile::ReadModulePreamble()
+{
+  RewindToFileStart();
+  return ReadUntilNextModule();
 }
 
 /**
@@ -847,18 +858,18 @@ TString QwParameterFile::LastString(TString in, char* delim)
 };
  
 
-TString QwParameterFile::GetParemeters()
+TString QwParameterFile::GetParameterFileContents()
 {
-  fParameterFile = new TMacro(fBestParamFileNameAndPath);
+  TMacro *fParameterFile = new TMacro(fBestParamFileNameAndPath);
   TString ms;
   TList *list = fParameterFile->GetListOfLines();
   for(Int_t i=0; i < list->GetSize(); i++) {
     ms += list->At(i)->GetName();
     ms += "\n";
   }
-  delete fParameterFile;fParameterFile = NULL;
+  delete fParameterFile;
+  fParameterFile = NULL;
   return ms;
-  
 }
 
 

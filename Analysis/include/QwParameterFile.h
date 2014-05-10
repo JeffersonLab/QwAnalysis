@@ -117,7 +117,7 @@ class QwParameterFile {
     void TrimModuleHeader();
 
     TString LastString(TString in, char* delim);
-    TString GetParemeters();
+    TString GetParameterFileContents();
 
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
@@ -166,7 +166,7 @@ class QwParameterFile {
     Bool_t SkipSection(std::string secname);
 
     /// \brief Rewinds to the start and read until it finds next section header
-    QwParameterFile* ReadPreamble();
+    QwParameterFile* ReadSectionPreamble();
     QwParameterFile* ReadUntilNextSection(const bool add_current_line = false);
     QwParameterFile* ReadNextSection(std::string &secname, const bool keep_header = false);
     QwParameterFile* ReadNextSection(TString &secname, const bool keep_header = false);
@@ -176,6 +176,7 @@ class QwParameterFile {
     };
 
     /// \brief Rewinds to the start and read until it finds next module header
+    QwParameterFile* ReadModulePreamble();
     QwParameterFile* ReadUntilNextModule(const bool add_current_line = false);
     QwParameterFile* ReadNextModule(std::string &secname, bool keep_header = false);
     QwParameterFile* ReadNextModule(TString &secname, bool keep_header = false);
@@ -190,7 +191,9 @@ class QwParameterFile {
     const TString GetParamFilename() {return fBestParamFileName;};
     const TString GetParamFilenameAndPath() {return fBestParamFileNameAndPath;};
 
-    const std::pair<TString, TString> GetParamFileNameContents() {return std::pair<TString, TString>(GetParamFilename(), GetParemeters());};
+    const std::pair<TString, TString> GetParamFileNameContents() {
+      return std::pair<TString, TString>(GetParamFilename(), GetParameterFileContents());
+    };
 
     void SetParamFilename();
 
@@ -232,6 +235,7 @@ class QwParameterFile {
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
     void TrimWhitespace(std::string &token, TString::EStripType head_tail);
 
+  public:
     /// Convert string value into specific type
     template <typename T>
     T ConvertValue(const std::string& value) {
@@ -299,8 +303,6 @@ class QwParameterFile {
     std::string fLine;      /// Internal line storage
     size_t fCurrentPos;     /// Current position in the line
 
-    TMacro *fParameterFile;
-
  protected:
 
     Bool_t GetKeyValue(const std::string keyname, std::string &retvalue,
@@ -333,7 +335,10 @@ class QwParameterFile {
       fTokenSepChars(kDefaultTokenSepChars),
       fSectionChars(kDefaultSectionChars),
       fModuleChars(kDefaultModuleChars),
-      fFilename("empty")
+      fFilename("empty"),
+      fCurrentPos(0),
+      fBeGreedy(kFALSE),
+      fHasNewPairs(kFALSE)
     { };
 
     // Private copy constructor
@@ -343,7 +348,10 @@ class QwParameterFile {
       fTokenSepChars(input.fTokenSepChars),
       fSectionChars(input.fSectionChars),
       fModuleChars(input.fModuleChars),
-      fFilename(input.fFilename)
+      fFilename(input.fFilename),
+      fCurrentPos(input.fCurrentPos),
+      fBeGreedy(input.fBeGreedy),
+      fHasNewPairs(input.fHasNewPairs)
     { };
 
     // Set to end of file
