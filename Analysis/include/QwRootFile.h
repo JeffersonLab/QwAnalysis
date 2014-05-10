@@ -45,7 +45,8 @@ class QwRootTree {
 
     /// Constructor with existing tree
     QwRootTree(const QwRootTree* tree, const std::string& prefix = "")
-    : fName(tree->GetName()),fDesc(tree->GetDesc()),fPrefix(prefix),fType("type undefined"),fCurrentEvent(0) {
+    : fName(tree->GetName()),fDesc(tree->GetDesc()),fPrefix(prefix),fType("type undefined"),
+      fCurrentEvent(0),fNumEventsCycle(0),fNumEventsToSave(0),fNumEventsToSkip(0) {
       QwMessage << "Existing tree: " << tree->GetName() << ", " << tree->GetDesc() << QwLog::endl;
       fTree = tree->fTree;
     }
@@ -53,7 +54,8 @@ class QwRootTree {
     /// Constructor with name, description, and object
     template < class T >
     QwRootTree(const std::string& name, const std::string& desc, T& object, const std::string& prefix = "")
-    : fName(name),fDesc(desc),fPrefix(prefix),fType("type undefined"),fCurrentEvent(0) {
+    : fName(name),fDesc(desc),fPrefix(prefix),fType("type undefined"),
+      fCurrentEvent(0),fNumEventsCycle(0),fNumEventsToSave(0),fNumEventsToSkip(0) {
       // Construct tree
       ConstructNewTree();
 
@@ -64,7 +66,8 @@ class QwRootTree {
     /// Constructor with existing tree, and object
     template < class T >
     QwRootTree(const QwRootTree* tree, T& object, const std::string& prefix = "")
-    : fName(tree->GetName()),fDesc(tree->GetDesc()),fPrefix(prefix),fType("type undefined"),fCurrentEvent(0) {
+    : fName(tree->GetName()),fDesc(tree->GetDesc()),fPrefix(prefix),fType("type undefined"),
+      fCurrentEvent(0),fNumEventsCycle(0),fNumEventsToSave(0),fNumEventsToSkip(0) {
       QwMessage << "Existing tree: " << tree->GetName() << ", " << tree->GetDesc() << QwLog::endl;
       fTree = tree->fTree;
 
@@ -193,9 +196,9 @@ class QwRootTree {
 
     /// Tree prescaling parameters
     UInt_t fCurrentEvent;
+    UInt_t fNumEventsCycle;
     UInt_t fNumEventsToSave;
     UInt_t fNumEventsToSkip;
-    UInt_t fNumEventsCycle;
 
     /// Set tree prescaling parameters
     void SetPrescaling(UInt_t num_to_save, UInt_t num_to_skip) {
@@ -440,7 +443,7 @@ class QwRootFile {
   private:
 
     /// Private default constructor
-    QwRootFile() { };
+    QwRootFile();
 
 
     /// ROOT file

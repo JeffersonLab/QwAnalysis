@@ -1967,6 +1967,7 @@ F1TDCReferenceSignal::F1TDCReferenceSignal(
   fBankIndex     = bank_index;
   fRefSignalName = name;
   fSystemName    = "";
+  fCounter       = 0;
   Clear();
 } 
 
