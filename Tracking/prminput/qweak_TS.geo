@@ -1,5 +1,6 @@
 # TS geometry
 
+type = t
 region = T
 
 spatial_resolution = 0
@@ -28,11 +29,13 @@ element_angle_sin = 1
 detector_origin_x = 0
 
 [TS1]
+plane = 1
 package = 1
 detector_origin_y = 317.34
 detector_origin_z = 539.74
  
 [TS2]
+plane = 1
 package = 2
 detector_origin_y = 317.34
 detector_origin_z = 539.74

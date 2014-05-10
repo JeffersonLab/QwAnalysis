@@ -1,5 +1,6 @@
 # Region 3 VDC geometry
 
+type = v
 region = 3
 
 spatial_resolution = 7e-2
@@ -20,7 +21,160 @@ element_offset = -69.9
 
 
 [VDC_pkg1_front_v]
+  plane = 1
   package = 1
+  direction = v
+  element_angle_cos = -0.894427
+  element_angle_sin = -0.447214
+  element_offset = -69.3
+  <R3-octant = 1>
+    detector_origin_x = -0.08
+    detector_origin_y = 272.78
+    detector_origin_z = 443.45
+    detector_rotation = -24.33
+    detector_tilt = 0.16
+  <R3-octant = 2>
+    detector_origin_x = -0.10
+    detector_origin_y = 272.44
+    detector_origin_z = 443.83
+    detector_rotation = -24.37
+    detector_tilt = 0.09
+  <R3-octant = 3>
+    detector_origin_x = 0.45
+    detector_origin_y = 272.39
+    detector_origin_z = 443.91
+    detector_rotation = -24.24
+    detector_tilt = 0.08
+  <R3-octant = 8>
+    detector_origin_x = -0.63
+    detector_origin_y = 273.11
+    detector_origin_z = 443.16
+    detector_rotation = -24.21
+    detector_tilt = 0.2
+  <R3-octant = 7>
+    detector_origin_x = -0.60
+    detector_origin_y = 273.15
+    detector_origin_z = 442.98
+    detector_rotation = -24.2
+    detector_tilt = 0.27
+  
+[VDC_pkg1_front_u]
+  plane = 2
+  package = 1
+  direction = u
+  element_angle_cos = -0.894427
+  element_angle_sin = 0.447214
+  element_offset = -69.3
+  <R3-octant = 1>
+    detector_origin_x = -0.08
+    detector_origin_y = 271.73
+    detector_origin_z = 445.77
+    detector_rotation = -24.33
+    detector_tilt = 0.16
+  <R3-octant = 2>
+    detector_origin_x = -0.09
+    detector_origin_y = 271.40
+    detector_origin_z = 446.15
+    detector_rotation = -24.37
+    detector_tilt = 0.09
+  <R3-octant = 3>
+    detector_origin_x = 0.46
+    detector_origin_y = 271.34
+    detector_origin_z = 446.23
+    detector_rotation = -24.24
+    detector_tilt = 0.08
+  <R3-octant = 8>
+    detector_origin_x = -0.62
+    detector_origin_y = 272.07
+    detector_origin_z = 445.48
+    detector_rotation = -24.21
+    detector_tilt = 0.2
+  <R3-octant = 7>
+    detector_origin_x = -0.59
+    detector_origin_y = 272.11
+    detector_origin_z = 445.29
+    detector_rotation = -24.2
+    detector_tilt = 0.27
+  
+[VDC_pkg1_back_v]
+  plane = 3
+  package = 1
+  direction = v
+  element_angle_cos = -0.894427
+  element_angle_sin = -0.447214
+  element_offset = -69.63
+  <R3-octant = 1>
+    detector_origin_x = -0.02
+    detector_origin_y = 294.80
+    detector_origin_z = 496.51
+    detector_rotation = -24.41
+    detector_tilt = 0.16
+  <R3-octant = 2>
+    detector_origin_x = -0.04
+    detector_origin_y = 294.43
+    detector_origin_z = 496.90
+    detector_rotation = -24.46
+    detector_tilt = 0.09
+  <R3-octant = 3>
+    detector_origin_x = 0.58
+    detector_origin_y = 294.49
+    detector_origin_z = 496.93
+    detector_rotation = -24.33
+    detector_tilt = 0.08
+  <R3-octant = 8>
+    detector_origin_x = -0.61
+    detector_origin_y = 295.24
+    detector_origin_z = 496.17
+    detector_rotation = -24.50
+    detector_tilt = 0.2
+  <R3-octant = 7>
+    detector_origin_x = -0.57
+    detector_origin_y = 295.29
+    detector_origin_z = 495.98
+    detector_rotation = -24.28
+    detector_tilt = 0.27
+
+[VDC_pkg1_back_u]
+  plane = 4
+  package = 1
+  direction = u
+  element_angle_cos = -0.894427
+  element_angle_sin = 0.447214
+  element_offset = -69.38
+  <R3-octant = 1>
+    detector_origin_x = -0.02
+    detector_origin_y = 293.75
+    detector_origin_z = 498.82
+    detector_rotation = -24.41
+    detector_tilt = 0.16
+  <R3-octant = 2>
+    detector_origin_x = -0.04
+    detector_origin_y = 293.38
+    detector_origin_z = 499.21
+    detector_rotation = -24.46
+    detector_tilt = 0.09
+  <R3-octant = 3>
+    detector_origin_x = 0.59
+    detector_origin_y = 293.45
+    detector_origin_z = 499.24
+    detector_rotation = -24.33
+    detector_tilt = 0.08
+  <R3-octant = 8>
+    detector_origin_x = -0.61
+    detector_origin_y = 294.19
+    detector_origin_z = 498.49
+    detector_rotation = -24.50
+    detector_tilt = 0.2
+  <R3-octant = 7>
+    detector_origin_x = -0.56
+    detector_origin_y = 294.25
+    detector_origin_z = 498.29
+    detector_rotation = -24.28
+    detector_tilt = 0.27
+
+[VDC_pkg2_front_v]
+  plane = 1
+  package = 2
   direction = v
   element_angle_cos = 0.894427
   element_angle_sin = 0.447214
@@ -56,8 +210,9 @@ element_offset = -69.9
     detector_rotation = -24.64
     detector_tilt = 0.1
 
-[VDC_pkg1_front_u]
-  package = 1
+[VDC_pkg2_front_u]
+  plane = 2
+  package = 2
   direction = u
   element_angle_cos = 0.894427
   element_angle_sin = -0.447214
@@ -94,8 +249,9 @@ element_offset = -69.9
     detector_tilt = 0.1
 
 
-[VDC_pkg1_back_v]  
-  package = 1
+[VDC_pkg2_back_v]  
+  plane = 3
+  package = 2
   direction = v
   element_angle_cos = 0.894427
   element_angle_sin = 0.447214
@@ -132,8 +288,9 @@ element_offset = -69.9
     detector_tilt = 0.1
 
 
-[VDC_pkg1_back_u]                                                                                                                                                                           
-  package = 1
+[VDC_pkg2_back_u]                                                                                                                                                                           
+  plane = 4
+  package = 2
   direction = u
   element_angle_cos = 0.894427
   element_angle_sin = -0.447214
@@ -168,152 +325,3 @@ element_offset = -69.9
     detector_origin_z = 499.15
     detector_rotation = -24.71
     detector_tilt = 0.1
-
-[VDC_pkg2_front_v]
-  package = 2
-  direction = v
-  element_angle_cos = 0.894427
-  element_angle_sin = 0.447214
-  element_offset = -69.3
-  <R3-octant = 1>
-    detector_origin_x = -0.08
-    detector_origin_y = 272.78
-    detector_origin_z = 443.45
-    detector_rotation = -24.33
-    detector_tilt = 0.16
-  <R3-octant = 2>
-    detector_origin_x = -0.10
-    detector_origin_y = 272.44
-    detector_origin_z = 443.83
-    detector_rotation = -24.37
-    detector_tilt = 0.09
-  <R3-octant = 3>
-    detector_origin_x = 0.45
-    detector_origin_y = 272.39
-    detector_origin_z = 443.91
-    detector_rotation = -24.24
-    detector_tilt = 0.08
-  <R3-octant = 8>
-    detector_origin_x = -0.63
-    detector_origin_y = 273.11
-    detector_origin_z = 443.16
-    detector_rotation = -24.21
-    detector_tilt = 0.2
-  <R3-octant = 7>
-    detector_origin_x = -0.60
-    detector_origin_y = 273.15
-    detector_origin_z = 442.98
-    detector_rotation = -24.2
-    detector_tilt = 0.27
-  
-[VDC_pkg2_front_u]
-  package = 2
-  direction = u
-  element_angle_cos = 0.894427
-  element_angle_sin = -0.447214
-  element_offset = -69.3
-  <R3-octant = 1>
-    detector_origin_x = -0.08
-    detector_origin_y = 271.73
-    detector_origin_z = 445.77
-    detector_rotation = -24.33
-    detector_tilt = 0.16
-  <R3-octant = 2>
-    detector_origin_x = -0.09
-    detector_origin_y = 271.40
-    detector_origin_z = 446.15
-    detector_rotation = -24.37
-    detector_tilt = 0.09
-  <R3-octant = 3>
-    detector_origin_x = 0.46
-    detector_origin_y = 271.34
-    detector_origin_z = 446.23
-    detector_rotation = -24.24
-    detector_tilt = 0.08
-  <R3-octant = 8>
-    detector_origin_x = -0.62
-    detector_origin_y = 272.07
-    detector_origin_z = 445.48
-    detector_rotation = -24.21
-    detector_tilt = 0.2
-  <R3-octant = 7>
-    detector_origin_x = -0.59
-    detector_origin_y = 272.11
-    detector_origin_z = 445.29
-    detector_rotation = -24.2
-    detector_tilt = 0.27
-  
-[VDC_pkg2_back_v]
-  package = 2
-  direction = v
-  element_angle_cos = 0.894427
-  element_angle_sin = 0.447214
-  element_offset = -69.63
-  <R3-octant = 1>
-    detector_origin_x = -0.02
-    detector_origin_y = 294.80
-    detector_origin_z = 496.51
-    detector_rotation = -24.41
-    detector_tilt = 0.16
-  <R3-octant = 2>
-    detector_origin_x = -0.04
-    detector_origin_y = 294.43
-    detector_origin_z = 496.90
-    detector_rotation = -24.46
-    detector_tilt = 0.09
-  <R3-octant = 3>
-    detector_origin_x = 0.58
-    detector_origin_y = 294.49
-    detector_origin_z = 496.93
-    detector_rotation = -24.33
-    detector_tilt = 0.08
-  <R3-octant = 8>
-    detector_origin_x = -0.61
-    detector_origin_y = 295.24
-    detector_origin_z = 496.17
-    detector_rotation = -24.50
-    detector_tilt = 0.2
-  <R3-octant = 7>
-    detector_origin_x = -0.57
-    detector_origin_y = 295.29
-    detector_origin_z = 495.98
-    detector_rotation = -24.28
-    detector_tilt = 0.27
-
-[VDC_pkg2_back_u]
-  package = 2
-  direction = u
-  element_angle_cos = 0.894427
-  element_angle_sin = -0.447214
-  element_offset = -69.38
-  <R3-octant = 1>
-    detector_origin_x = -0.02
-    detector_origin_y = 293.75
-    detector_origin_z = 498.82
-    detector_rotation = -24.41
-    detector_tilt = 0.16
-  <R3-octant = 2>
-    detector_origin_x = -0.04
-    detector_origin_y = 293.38
-    detector_origin_z = 499.21
-    detector_rotation = -24.46
-    detector_tilt = 0.09
-  <R3-octant = 3>
-    detector_origin_x = 0.59
-    detector_origin_y = 293.45
-    detector_origin_z = 499.24
-    detector_rotation = -24.33
-    detector_tilt = 0.08
-  <R3-octant = 8>
-    detector_origin_x = -0.61
-    detector_origin_y = 294.19
-    detector_origin_z = 498.49
-    detector_rotation = -24.50
-    detector_tilt = 0.2
-  <R3-octant = 7>
-    detector_origin_x = -0.56
-    detector_origin_y = 294.25
-    detector_origin_z = 498.29
-    detector_rotation = -24.28
-    detector_tilt = 0.27
-

@@ -1,5 +1,6 @@
 # Region 2 HDC geometry
 
+type = h
 region = 2
 
 spatial_resolution = 1e-2
@@ -23,6 +24,7 @@ detector_tilt = 0
 
 
 [HDC_pkg1_front_plane01_x]
+  plane = 1
   package = 1
   direction = x
   detector_origin_z = -342.300
@@ -54,6 +56,7 @@ detector_tilt = 0
 
 
 [HDC_pkg1_front_plane02_u]
+  plane = 2
   package = 1
   direction = u
   detector_origin_z = -340.322
@@ -85,6 +88,7 @@ detector_tilt = 0
 
 
 [HDC_pkg1_front_plane03_v]
+  plane = 3
   package = 1
   direction = v
   detector_origin_z = -338.344
@@ -116,6 +120,7 @@ detector_tilt = 0
 
   
 [HDC_pkg1_front_plane04_x]
+  plane = 4
   package = 1
   direction = x
   detector_origin_z = -336.366
@@ -147,6 +152,7 @@ detector_tilt = 0
 
   
 [HDC_pkg1_front_plane05_u]
+  plane = 5
   package = 1
   direction = u
   detector_origin_z = -334.388
@@ -178,6 +184,7 @@ detector_tilt = 0
 
   
 [HDC_pkg1_front_plane06_v]
+  plane = 6
   package = 1
   direction = v
   detector_origin_z = -332.410
@@ -208,8 +215,9 @@ detector_tilt = 0
     detector_origin_y = 51.255
 
   
-[HDC_pkg1_back_plane07_x]
-  package = 1
+[HDC_pkg2_back_plane01_x]
+  plane = 1
+  package = 2
   direction = x
   detector_origin_z = -341.700
   <R2-octant = 1>
@@ -240,8 +248,9 @@ detector_tilt = 0
 
   
   
-[HDC_pkg1_back_plane08_u]
-  package = 1
+[HDC_pkg2_back_plane02_u]
+  plane = 2
+  package = 2
   direction = u
   detector_origin_z = -339.722
   <R2-octant = 1>
@@ -271,8 +280,9 @@ detector_tilt = 0
     detector_origin_y = 51.021
 
   
-[HDC_pkg1_back_plane09_v]
-  package = 1
+[HDC_pkg2_back_plane03_v]
+  plane = 3
+  package = 2
   direction = v
   detector_origin_z = -337.744
   <R2-octant = 1>
@@ -302,8 +312,9 @@ detector_tilt = 0
     detector_origin_y = 51.265
 
   
-[HDC_pkg1_back_plane10_x]
-  package = 1
+[HDC_pkg2_back_plane04_x]
+  plane = 4
+  package = 2
   direction = x
   detector_origin_z = -335.766
   <R2-octant = 1>
@@ -333,8 +344,9 @@ detector_tilt = 0
     detector_origin_y = 51.123
 
   
-[HDC_pkg1_back_plane11_u]
-  package = 1
+[HDC_pkg2_back_plane05_u]
+  plane = 5
+  package = 2
   direction = u
   detector_origin_z = -333.788
   <R2-octant = 1>
@@ -364,8 +376,9 @@ detector_tilt = 0
     detector_origin_y = 51.021
 
   
-[HDC_pkg1_back_plane12_v]
-  package = 1
+[HDC_pkg2_back_plane06_v]
+  plane = 6
+  package = 2
   direction = v
   detector_origin_z = -331.810
   <R2-octant = 1>
@@ -397,9 +410,10 @@ detector_tilt = 0
   
   
 
-[HDC_pkg2_front_plane01_x]
-  package = 2
-  direction = u
+[HDC_pkg1_front_plane07_x]
+  plane = 7
+  package = 1
+  direction = x
   detector_origin_z = -299.600
   <R2-octant = 1>
     element_angle_cos = 1
@@ -428,8 +442,9 @@ detector_tilt = 0
     detector_origin_y = 54.983
 
   
-[HDC_pkg2_front_plane02_u]
-  package = 2
+[HDC_pkg1_front_plane08_u]
+  plane = 8
+  package = 1
   direction = u
   detector_origin_z = -297.622
   <R2-octant = 1>
@@ -458,8 +473,9 @@ detector_tilt = 0
     detector_origin_x = -0.138
     detector_origin_y = 54.881
 
-[HDC_pkg2_front_plane03_v]
-  package = 2
+[HDC_pkg1_front_plane09_v]
+  plane = 9
+  package = 1
   direction = v
   detector_origin_z = -295.644
   <R2-octant = 1>
@@ -488,8 +504,9 @@ detector_tilt = 0
     detector_origin_x = -0.138
     detector_origin_y = 55.125
   
-[HDC_pkg2_front_plane04_x]
-  package = 2
+[HDC_pkg1_front_plane10_x]
+  plane = 10
+  package = 1
   direction = x
   detector_origin_z = -293.666
   <R2-octant = 1>
@@ -518,8 +535,9 @@ detector_tilt = 0
     detector_origin_x = -0.138
     detector_origin_y = 54.983
   
-[HDC_pkg2_front_plane05_u]
-  package = 2
+[HDC_pkg1_front_plane11_u]
+  plane = 11
+  package = 1
   direction = u
   detector_origin_z = -291.688
   <R2-octant = 1>
@@ -548,8 +566,9 @@ detector_tilt = 0
     detector_origin_x = -0.138
     detector_origin_y = 54.881
   
-[HDC_pkg2_front_plane06_v]
-  package = 2
+[HDC_pkg1_front_plane12_v]
+  plane = 12
+  package = 1
   direction = v
   detector_origin_z = -289.710
   <R2-octant = 1>
@@ -579,6 +598,7 @@ detector_tilt = 0
     detector_origin_y = 55.125
   
 [HDC_pkg2_back_plane07_x]
+  plane = 7
   package = 2
   direction = x
   detector_origin_z = -298.850
@@ -610,6 +630,7 @@ detector_tilt = 0
   
   
 [HDC_pkg2_back_plane08_u]
+  plane = 8
   package = 2
   direction = u
   detector_origin_z = -296.872
@@ -640,6 +661,7 @@ detector_tilt = 0
     detector_origin_y = 55.021
   
 [HDC_pkg2_back_plane09_v]
+  plane = 9
   package = 2
   direction = v
   detector_origin_z = -294.894
@@ -670,6 +692,7 @@ detector_tilt = 0
     detector_origin_y = 55.265
   
 [HDC_pkg2_back_plane10_x]
+  plane = 10
   package = 2
   direction = x
   detector_origin_z = -292.916
@@ -700,6 +723,7 @@ detector_tilt = 0
     detector_origin_y = 55.123
   
 [HDC_pkg2_back_plane11_u]
+  plane = 11
   package = 2
   direction = u
   detector_origin_z = -290.938
@@ -730,6 +754,7 @@ detector_tilt = 0
     detector_origin_y = 55.021
 
 [HDC_pkg2_back_plane12_v]
+  plane = 12
   package = 2
   direction = v
   detector_origin_z = -288.960

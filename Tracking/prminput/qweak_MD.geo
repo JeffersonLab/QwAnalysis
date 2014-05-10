@@ -1,5 +1,6 @@
 # MD geometry
 
+type = c
 region = C
 
 spatial_resolution = 0
@@ -25,6 +26,7 @@ direction = y
 element_angle_cos = 0
 element_angle_sin = 1
 
+plane = 1
 package = 1
 
 detector_origin_x = 0
