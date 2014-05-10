@@ -157,11 +157,12 @@ inline void QwGeometry::Print() const
  */
 inline std::ostream& operator<< (std::ostream& stream, const QwGeometry& detectors)
 {
-  for (QwGeometry::const_iterator i = detectors.begin(); i != detectors.end(); i++)
+  for (QwGeometry::const_iterator i = detectors.begin(); i != detectors.end(); i++) {
     if (*i)
       stream << *(*i) << std::endl;
     else
       stream << "(null)" << std::endl;
+  }
   return stream;
 }
 

@@ -523,6 +523,9 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
     double z1,
     int wire_offset )
 {
+  // Return if n is zero, no hits
+  if (n == 0) return;
+
   // Declaration of matrices
   double A[n][2], G[n][n], AtGA[2][2];
   double AtGy[2], y[n], x[2];
@@ -1202,6 +1205,9 @@ int QwTrackingTreeCombine::TlMatchHits (
     goodHits[nHits] = SelectLeftRightHit ( thisX, & ( *hit ));
     nHits++;
   }
+
+  // Return if no hits were found
+  if (nHits == 0) return 0;
 
   // Warn when the number of wires between first and last is different from the
   // number of hits found (missing wires or wires wit multiple hits)

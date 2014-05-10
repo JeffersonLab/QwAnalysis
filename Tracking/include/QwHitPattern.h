@@ -46,9 +46,12 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
   public:
 
     /// \brief Default constructor
-    QwHitPattern():fLevels(0),fBins(0),fBinWidth(0),fPattern(0),fPatternHash(0) { };
+    QwHitPattern()
+    : fLevels(0),fBins(0),fBinWidth(0),fPattern(0),fPatternHash(0)
+    { };
     /// \brief Constructor with hit pattern depth
-    QwHitPattern(const unsigned int levels) {
+    QwHitPattern(const unsigned int levels)
+    : fLevels(0),fBins(0),fBinWidth(0),fPattern(0),fPatternHash(0) {
       SetNumberOfLevels(levels);
       Reset();
     };
@@ -129,13 +132,13 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
     void _SetPoints (double pos_start, double pos_end, double detectorwidth);
 
 
-    unsigned int fLevels; ///< Depth of the tree search
+    unsigned int fLevels;               ///< Depth of the tree search
 
-    unsigned int fBins;
-    unsigned int fBinWidth;
+    unsigned int fBins;                 ///< Number of bins
+    unsigned int fBinWidth;             ///< Width of each bin
 
-    unsigned char* fPattern;		//!	/// Hit pattern
-    unsigned int*  fPatternHash;	//!	/// Hash of the hit pattern
+    unsigned char* fPattern;	 //!	///< Hit pattern
+    unsigned int*  fPatternHash; //!	///< Hash of the hit pattern
 
   friend std::ostream& operator<< (std::ostream& stream, const QwHitPattern& hitpattern);
 

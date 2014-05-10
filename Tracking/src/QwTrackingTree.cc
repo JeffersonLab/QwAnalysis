@@ -153,6 +153,8 @@ QwTrackingTree::QwTrackingTree(unsigned int numlayers)
   // be equal to the value defined in the header.
   fHashSize = HSHSIZ;
   fHashTable = new treenode*[fHashSize];
+  for (size_t i = 0; i < fHashSize; i++)
+    fHashTable[i] = 0;
 
   // Initialize the QwTrackingTree structure
   fFather = new treenode(fNumLayers);

@@ -53,7 +53,7 @@ double missing_drift_time = 0.0; // [ns], set to 0 if no missing drift time
  * @param detector_info Detector geometry information vector
  */
 QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
-: fDetectorInfo(detector_info)
+: fDetectorInfo(detector_info),fCurrentEvent(0),fOriginalEvent(0)
 {
   // Initialize
   fCurrentRunNumber = -1;

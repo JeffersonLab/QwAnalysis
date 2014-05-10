@@ -592,8 +592,7 @@ void QwTrackingWorker::ProcessEvent (
                             }
 
                             // Create a vector of hit patterns
-                            std::vector<QwHitPattern> patterns;
-                            patterns.resize(numwires+1); // wires are counted from 1
+                            std::vector<QwHitPattern> patterns(numwires+1,QwHitPattern()); // wires are counted from 1
                             if (patterns.at(0).GetNumberOfBins() == 0)
                               for (size_t wire = 0; wire < patterns.size(); wire++)
                                 patterns.at(wire).SetNumberOfLevels(fLevelsR3);
@@ -643,8 +642,8 @@ void QwTrackingWorker::ProcessEvent (
                               delete[] channel[wire];
                               delete[] hashchannel[wire];
                             }
-                            delete channel;
-                            delete hashchannel;
+                            delete[] channel;
+                            delete[] hashchannel;
 
                             // TODO These treelines should contain the region id etc
                             // We should set the QwDetectorInfo link here already,
@@ -793,8 +792,8 @@ void QwTrackingWorker::ProcessEvent (
                           delete[] channel[layer];
                           delete[] hashchannel[layer];
                         }
-                        delete channel;
-                        delete hashchannel;
+                        delete[] channel;
+                        delete[] hashchannel;
 
                         // TODO These treelines should contain the region id etc
                         // We should set the QwDetectorInfo link here already,
