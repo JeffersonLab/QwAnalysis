@@ -23,6 +23,7 @@ void edetLasCyc(Int_t runnum, TString dataType="Ac")
   gROOT->LoadMacro(" expAsym.C+g");
   gROOT->LoadMacro(" asymFit.C+g");
   gROOT->LoadMacro(" infoDAQ.C+g");
+  gROOT->LoadMacro(" writeToFile.C+g");
   //gROOT->LoadMacro(" fileReadDraw.C+g");
 
   daqflag = infoDAQ(runnum); 

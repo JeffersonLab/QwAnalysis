@@ -39,8 +39,8 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
 
       BCqNormAcB1H1L1LasCyc= qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
       BCqNormAcB1H0L1LasCyc= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
-      //Double_t BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);//I should use this variable without explicit background correction because in difference, this is automatically taken care
-      BCqNormLasCycDiff = qNormCountsLCB1H1L1 - qNormCountsLCB1H0L1;
+      //Double_t BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);//I could use this variable without explicit background correction because in difference, this is automatically taken care
+      BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);
       BCqNormLasCycSum  = (BCqNormAcB1H1L1LasCyc + BCqNormAcB1H0L1LasCyc);
       qNormLasCycAsym[p][s] = (BCqNormLasCycDiff / BCqNormLasCycSum);
 

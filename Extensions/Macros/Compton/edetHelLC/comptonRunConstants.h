@@ -9,6 +9,7 @@ const char *pPath = getenv("QWSCRATCH");
 const char *webDirectory= "www";
 TString filePrefix;
 //Asymmetry calculation constants 
+const Double_t light=0.2998;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
 const Double_t pi=3.141592;
 const Double_t hbarc=0.197E-15;/// GeV.m
 const Double_t alpha=0.00729927; ///=1.0/137.0;
@@ -100,7 +101,7 @@ Int_t totyieldB1L1[nPlanes][nStrips], totyieldB1L0[nPlanes][nStrips];
 Int_t totyieldB1H1L1[nPlanes][nStrips],totyieldB1H1L0[nPlanes][nStrips],totyieldB1H0L1[nPlanes][nStrips], totyieldB1H0L0[nPlanes][nStrips];
 Double_t tNormYieldB1L1[nPlanes][nStrips],tNormYieldB1L0[nPlanes][nStrips];
 Double_t tNormYieldB1L1Er[nPlanes][nStrips],tNormYieldB1L0Er[nPlanes][nStrips];
-Double_t beamMaxEver = 200.0, beamOnLimit=1.0;
+Double_t beamMaxEver = 200.0, beamOnLimit=20.0;
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64

@@ -2,24 +2,23 @@
 #define __INFODAQ_F
 #include <rootClass.h>
 #include "comptonRunConstants.h"
+//several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
 
 Int_t infoDAQ(Int_t runnum)
 {
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
-  Bool_t debug=1;
+  const Bool_t debug=0;
+  const Int_t errFlag=100;
   Bool_t additionalStripMask=0;
   Double_t bMask[nPlanes][nStrips];
-  const Int_t errFlag=100;
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
-  //Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
-  //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
   ofstream flagsfile,debugInfoDAQ,infoStripMask;
 
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
-  TFile file(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
+  TFile file(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//need to read in only the first runlet
   if(file.IsZombie()) {
     cout<<red<<"couldn't open the rootfile needed by infoDAQ.C"<<normal<<endl;
     return -1;
@@ -71,7 +70,7 @@ Int_t infoDAQ(Int_t runnum)
   ///list all those strips that you want in the list for in case it was not already a part of the above created vector
   if(additionalStripMask) {
     skipStrip.push_back(2);//notice that the strip number pushed is in human counts
-    //    skipStrip.push_back(10);//notice that the strip number pushed is in human counts
+    //skipStrip.push_back(10);//notice that the strip number pushed is in human counts
     cout<<red<<"apart from strips masked in DAQ, am ignoring strip # 2 accross all planes"<<normal<<endl;//!update this with above list
   }
   for(Int_t m = 0; m <nModules; m++) {

@@ -9,7 +9,6 @@
 #include "weightedMean.C"
 #include "writeToFile.C"
 #include "qNormVariables.C"
-#include "indepYield.C"//!temp
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
@@ -22,10 +21,9 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   div_t div_output;
   const Bool_t debug = 1, debug1 = 0, debug2 = 0;
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
+  const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
   Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
-
   Bool_t beamOn =kFALSE;//lasOn,
-  Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
   Int_t l = 0;//lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables

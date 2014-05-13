@@ -8,9 +8,9 @@ Double_t rhoToX(Int_t plane)
   Bool_t debug=0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
-  Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,r,h,kDummy;
+  Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,h,kDummy;//r
   Double_t kk,x1,CedgeToDetBot,zdrift;
-  Double_t thetabend = asin(0.3*B_dipole*lmag/E);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
+  Double_t thetabend = asin(light*B_dipole*lmag/E);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)
  
   CedgeToDetBot = (Cedge[plane] + 4)*stripWidth + 0.5*stripWidth;///elog 399
@@ -21,44 +21,47 @@ Double_t rhoToX(Int_t plane)
   }
   re = alpha*hbarc/me;
   gamma_my=E/me; //electron gamma, eqn.20
-  R_bend = (gamma_my*hbarc)/(2.0*xmuB*B_dipole);
+  //R_bend = (gamma_my*hbarc)/(2.0*xmuB*B_dipole);
+  //cout<<red<<"check temp R_bend old: "<<R_bend<<endl;
+  R_bend = E/(light*B_dipole);
+  cout<<green<<"check temp R_bend elog495: "<<R_bend<<normal<<endl;
   k =2*pi*hbarc/(lambda); // incident photon energy (GeV)
   a_const =1/(1+4*k*gamma_my/me); // eqn.15 
   kprimemax=4*a_const*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
   asymmax=(1-a_const)*(1+a_const)/(1+a_const*a_const);
   rho0=1/(1+a_const);
   k0prime=rho0*kprimemax;
-  Double_t th_prime = asin(0.3*B_dipole*lmag/(E+k-kprimemax));
+  Double_t th_prime = asin(light*B_dipole*lmag/(E+k-kprimemax));
   //  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
 
   p_beam =sqrt(E*E - me*me);///momentum of beam electrons
-  r =(p_beam/me)*(hbarc/(2*xmuB*B_dipole));///radius of curvature of beam due to dipole-3.
-  h = r*(1 - cos(thetabend));
+  //r =(p_beam/me)*(hbarc/(2*xmuB*B_dipole));///radius of curvature of beam due to dipole-3.
+  h = R_bend*(1 - cos(thetabend));
   kk =zdrift*tan(thetabend);
   x1 =(kk + h);
-  Double_t r_max = ((E+k-kprimemax)/me)*hbarc/(2*xmuB*B_dipole);///just for comparision,not needed really
+  Double_t r_max = ((E+k-kprimemax))/(light*B_dipole);///just for comparision,not needed really
 
   
   kDummy = kprimemax; ///initiating 
   Double_t r_dummy,th_dummy,x1_old,x2_old,x1_new,x2_new,dxPrime_old;
   x1_old= R_bend*(1-cos(thetabend)) + zdrift*tan(thetabend);
   x2_old= r_max* (1-cos(th_prime)) +  zdrift*tan(th_prime);
-  //x1_new= R_bend*(1-cos(thetabend))+(ldet[plane] + CedgeToDetBot*tan(det_angle))*tan(thetabend);
   dxPrime_old = x2_old - x1_old;
+///max vertical displacement of unscattered beam (m)
+// x1_new = R_bend*(1-cos(thetabend)) + (zdrift + dxPrime_old*tan(det_angle))*tan(thetabend); 
+  x1_new = R_bend*(1-cos(thetabend)) + (zdrift)*tan(thetabend);
 
   QEDasym.open(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane+1));
-  for (Int_t i = 1; i <=nPoints; i++) {
+  for (Int_t i = 1; i <= nPoints; i++) {
     rho[i] = (Double_t)i/nPoints;
     kDummy = rho[i]*kprimemax;
-    r_dummy = ((E-kDummy+k)/me)*(hbarc/(2*xmuB*B_dipole)); //!still to change
-    th_dummy = asin(0.3*B_dipole*lmag/(E+k-kDummy));
-    
-    x2_new = r_dummy*(1-cos(th_dummy))+
-      (zdrift + dxPrime_old*(((Double_t)nPoints-i)/nPoints)*tan(det_angle))*tan(th_dummy); // max displacement (m)
-      
-    x1_new = R_bend*(1-cos(thetabend)) + (zdrift + dxPrime_old*tan(det_angle))*tan(thetabend); // max displacement (m)
+    r_dummy = (E-kDummy+k)/(light*B_dipole); 
+    th_dummy = asin(light*B_dipole*lmag/(E+k-kDummy));
+//  max displacement of the beam with ith (m) 
+//  x2_new = r_dummy*(1-cos(th_dummy)) + (zdrift + dxPrime_old*(((Double_t)nPoints-i)/nPoints)*tan(det_angle))*tan(th_dummy); // max displacement (m)
+    x2_new = r_dummy*(1-cos(th_dummy)) + (zdrift)*tan(th_dummy); 
 
-    xPrime[i] = (x2_new - x1_new)/cos(det_angle);
+    xPrime[i] = (x2_new - x1_new)*cos(thetabend)/cos(det_angle-thetabend);
 
     dsdx_0[i]=((1.0-rho[i]*(1.0+a_const))/(1.0-rho[i]*(1.0-a_const)));
     dsdx[i] = 2*pi*re*re/100.0*a_const*(rho[i]*rho[i]*(1-a_const)*(1-a_const)/(1-rho[i]*(1.0-a_const))+1.0+(dsdx_0[i] *dsdx_0[i]));
@@ -73,8 +76,8 @@ Double_t rhoToX(Int_t plane)
 
   if(debug) {
     cout<<red<<"\nfor plane: "<<plane+1<<", CedgeToDetBot: "<<CedgeToDetBot<<", zdrift: "<<zdrift<<", xCedge:"<<xCedge<<"\n"<<endl;
-    printf("\nR_bend:%f, thetabend:%f, r:%f\n",R_bend,thetabend*180/3.1415,r);
-    cout<<"th_prime: "<<th_prime*180/3.1415<<endl;
+    printf("\nR_bend:%f, thetabend:%f degree\n",R_bend,thetabend*180/pi);
+    cout<<"th_prime: "<<th_prime*180/pi<<endl;
     cout<<"r_max: "<<r_max<<"dx1: "<<x1_new<<endl;
     cout<<"dxprimemax: "<<dxPrime_old<<endl;
     cout<<"max. recoil ph.energy: "<<kprimemax<<normal<<endl;
