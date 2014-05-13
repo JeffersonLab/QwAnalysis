@@ -22,10 +22,9 @@
 	setenv QWSCRATCH  /w/hallc/compton/users/narayan/my_scratch
 	source /u/home/narayan/svn/QwAnalysis/SetupFiles/SET_ME_UP.csh
 	setenv QW_DATA /cache/mss/hallc/qweak/polarimetry/raw
-	setenv SVNSCRIPT /u/home/narayan/svn/QwAnalysis/Extensions/Macros/Compton/edetHelLC
-
-	cd $SVNSCRIPT
 	setenv QW_ROOTFILES $HERE
+
+  cd /work/hallc/compton/users/narayan/svn/edetHelLC
 	root -l -b -q edetLasCyc.C+\(RUNNUM\)
   ]]></Command>
 
