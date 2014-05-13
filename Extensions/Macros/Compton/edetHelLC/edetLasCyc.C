@@ -10,7 +10,7 @@ void edetLasCyc(Int_t runnum, TString dataType="Ac")
   cout<<"starting into edetLasCyc.C**************"<<endl;
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  Int_t asymflag=0,daqflag=0;
+  Int_t daqflag=0;
   gStyle->SetOptFit(0);
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);

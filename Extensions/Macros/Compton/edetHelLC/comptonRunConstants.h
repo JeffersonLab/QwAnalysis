@@ -66,6 +66,7 @@ const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
 
+Int_t asymflag=0;
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;

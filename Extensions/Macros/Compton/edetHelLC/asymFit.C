@@ -148,7 +148,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   Double_t zero[nStrips];
 
   polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePrefix.Data()));
-  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane"<<endl;
+  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane\tgoodCycles"<<endl;
   for (Int_t p =startPlane; p <endPlane; p++) {  
     if (!kVladas_meth) xCedge = rhoToX(p); ///this function should be called after determining the Cedge
 
@@ -211,7 +211,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     NDF[p] = polFit->GetNDF();
 
     if(debug) cout<<"\nwrote the polarization relevant values to file "<<endl;
-    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n",(Double_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);
+    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\t%d\n",(Double_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1,asymflag);
     if(debug) {
       cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStripWidth effStripWidthEr plane");
       cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Double_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);      
