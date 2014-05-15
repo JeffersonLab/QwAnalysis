@@ -108,18 +108,18 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition
-      //insist > 100 in a row meet the isABeamTrip criterion
+      //insist > avoidDAQEr in a row meet the isABeamTrip criterion
       q++;
-      if(q>=100) { ///beam is found off for over 100 consecutive entries (~ 400ms) 
+      if(q>avoidDAQEr) { ///beam is found off for over 10 consecutive entries (~ 40ms) 
         q = 0;
         o++; ///cutE array's even number index (corresponding to a beamTrip)
-        if (index >= (PREV_N_ENTRIES+100)) { //to protect the beamTrip that may have occured in the first 5s of the run
-          cutE.push_back(index-(PREV_N_ENTRIES+100)); ///register the entry# ~ 4s before this instance as a beam-trip
+        if (index >= (PREV_N_ENTRIES+avoidDAQEr)) { //to protect the beamTrip that may have occured in the first 5s of the run
+          cutE.push_back(index-(PREV_N_ENTRIES+avoidDAQEr)); ///register the entry# ~ 4s before this instance as a beam-trip
           printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",red,cutE.back(),bcm,index,normal);
           //printf("ch1 bcm:%3.2f, index:%d\n",bcm,index);
         }
         else {
-          cutE.push_back(index-100);
+          cutE.push_back(index-avoidDAQEr);///note: index = q -1
           printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",blue,cutE.back(),bcm,index,normal);
           //printf("ch2 bcm:%3.2f, index:%d\n",bcm,index);
         }

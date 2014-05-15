@@ -190,7 +190,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch   
       polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
     } else {
-      polFit->SetParLimits(0,1.0,1.0);///fix the effective strip width to 1.0
+      //polFit->SetParLimits(0,1.0,1.0);///fix the effective strip width to 1.0
+      polFit->SetParLimits(0,1.0033,1.0033);///fix the effective strip width to 1.0033 !changed to match the runlet analysis output
       polFit->SetParLimits(1,30.0,63.0);///allow the CE to vary between strip 30-63
     }
     polFit->SetParLimits(2,-1.0,1.0);///allowing polarization to be - 100% to +100%

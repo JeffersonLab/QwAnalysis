@@ -21,10 +21,7 @@ Double_t rhoToX(Int_t plane)
   }
   re = alpha*hbarc/me;
   gamma_my=E/me; //electron gamma, eqn.20
-  //R_bend = (gamma_my*hbarc)/(2.0*xmuB*B_dipole);
-  //cout<<red<<"check temp R_bend old: "<<R_bend<<endl;
   R_bend = E/(light*B_dipole);
-  cout<<green<<"check temp R_bend elog495: "<<R_bend<<normal<<endl;
   k =2*pi*hbarc/(lambda); // incident photon energy (GeV)
   a_const =1/(1+4*k*gamma_my/me); // eqn.15 
   kprimemax=4*a_const*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)

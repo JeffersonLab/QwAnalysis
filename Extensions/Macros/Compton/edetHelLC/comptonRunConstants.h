@@ -52,7 +52,7 @@ const Double_t laserFracHi = 0.90;//90% of maximum beam to be considered as lase
 const Double_t beamFracHi = 0.78;
 const Double_t beamFracLo = 0.6;
 const Double_t beamFrac = 0.6;
-
+const Int_t avoidDAQEr = 10;
 const Int_t WAIT_N_ENTRIES = 50;//# of quartets to wait after beam trip
 const Int_t PREV_N_ENTRIES = 50;//# of quartets to ignore before a beam trip
 const Double_t ignoreBeamAbove = 195.0;

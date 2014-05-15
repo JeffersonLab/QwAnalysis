@@ -110,6 +110,15 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     delete helChain;
     return -1;
   }
+//////////////for a quick peep of the beam and laser stability of beam//////////
+  TCanvas *c1 = new TCanvas("c1"," ",0,0,900,900);
+  c1->Divide(1,2);
+  c1->cd(1);
+  helChain->Draw("yield_sca_laser_PowT:pattern_number");    
+  c1->cd(2);
+  helChain->Draw("yield_sca_bcm6:pattern_number");
+  c1->SaveAs(Form("%s/%s/%slasBeamStability.png",pPath,webDirectory,filePrefix.Data()));
+//////////////////////////////////////////////////////////////////////////////
 
   infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
   infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));

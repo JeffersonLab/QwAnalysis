@@ -23,7 +23,7 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   //polRunlet.open(Form("/u/home/narayan/acquired/vladas/modFiles/runletPol_%d_%d.txt",run1,run2));
   TString lasCycFile = destDir + Form("/polList_%d_%d.txt",run1,run2);
   //TString lasCycFile = Form("/w/hallc/qweak/narayan/polList_%d_%d.txt",run1,run2);
-  TString dum1,dum2,dum3,dum4,dum5,dum6,dum7,dum8,dum9,dum10;
+  TString dum1,dum2,dum3,dum4,dum5,dum6,dum7,dum8,dum9,dum10,dum11;
   Int_t runRange = run2-run1+1;
   TH1D *hPolEr = new TH1D("polEr laser Cycle", "polarization error laser cycle analysis", runRange, 0, 0.1);
   TH1D *hRunletPolEr = new TH1D("polEr runlet based", "polarization error runlet based analysis", runRange, 0, 0.1);
@@ -47,16 +47,16 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   polLasCyc<<"run\tabsPol\tpolEr\tchiSq/ndf\tCE\tCEEr\teffStrWid\teffStrWidEr\tpl"<<endl;
   for (Int_t r=run1; r<=run2; r++) {
     Double_t absPol[nPlanes],pol[nPlanes]={0.0},polEr[nPlanes]={0.0},chiSq[nPlanes],comptEdge[nPlanes],comptEdgeEr[nPlanes],effStrip[nPlanes],effStripEr[nPlanes];
-    Int_t plane[nPlanes],NDF[nPlanes],runnum[nPlanes]; 
+    Int_t plane[nPlanes],NDF[nPlanes],runnum[nPlanes],goodCyc[nPlanes]; 
     filePrefix= Form("run_%d/edetLasCyc_%d_",r,r);
     poltext.open(Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePrefix.Data()));
     if(poltext.is_open()) {
       if(debug1) cout<<"opened file "<<Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePrefix.Data())<<endl;
-      poltext >>dum1>>dum2>>dum3>>dum4>>dum5>>dum6>>dum7>>dum8>>dum9>>dum10;
+      poltext >>dum1>>dum2>>dum3>>dum4>>dum5>>dum6>>dum7>>dum8>>dum9>>dum10>>dum11;
       if(debug1) cout<<"plane\tpol\tpolEr"<<endl;
       for (Int_t p=startPlane; p<endPlane; p++) {
-	poltext>>runnum[p]>>pol[p]>>polEr[p]>>chiSq[p]>>NDF[p]>>comptEdge[p]>>comptEdgeEr[p]>>effStrip[p]>>effStripEr[p]>>plane[p];
-	if(debug1) cout<<plane[p]<<"\t"<<pol[p]<<"\t"<<polEr[p]<<endl;
+        poltext>>runnum[p]>>pol[p]>>polEr[p]>>chiSq[p]>>NDF[p]>>comptEdge[p]>>comptEdgeEr[p]>>effStrip[p]>>effStripEr[p]>>plane[p]>>goodCyc[p];
+        if(debug1) cout<<plane[p]<<"\t"<<pol[p]<<"\t"<<polEr[p]<<endl;
       }
       poltext.close();
     } else if(debug) cout<<"*** Alert: could not open "<<Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePrefix.Data())<<endl;
@@ -99,30 +99,30 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   cout<<red<<"found valid "<<count2<<" analyzed runs in runListRL"<<normal<<endl;
 
   cout<<" runRange:"<<runRange<<", count1:"<<count1<<", count2:"<<count2<<endl;
-  
+
   std::vector<Double_t> commonRuns,polDiff,polDiffEr,zero_1;
   for(Int_t r=0; r<(Int_t)runListRL.size(); r++) {
     Bool_t kFound = 0;
     for(Int_t r2=0; r2<(Int_t)runListLC.size(); r2++) {
       if(runListRL[r] == runListLC[r2]) { 
-	kFound = 1;
-	if((comptEdgeRL[r]-comptEdgeLC[r2])>0.5) {
-	  cout<<green<<"CE was off by 0.5 strip for run "<<runListLC[r2]<<normal<<endl;
-	} else if(fabs(polRL[r] - polLC[r2])>1.0) {
-	  cout<<blue<<runListRL[r]<<"\t"<<polRL[r]<<" in RL, and "<<runListLC[r2]<<" "<<polLC[r2]<<" in LC"<<normal<<endl;
-	} else {
-	  polDiff.push_back(polLC[r2] - polRL[r]);
-	  commonRuns.push_back(runListRL[r2]);
-	  polDiffEr.push_back(polErLC[r]);
-	  zero_1.push_back(0.0);
-	  hPolDiff->Fill(polDiff.back());
-	  hPolEr->Fill(polErLC[r2]);
-	  hRunletPolEr->Fill(polErRL[r]);
+        kFound = 1;
+        if((comptEdgeRL[r]-comptEdgeLC[r2])>0.5) {
+          cout<<green<<"CE was off by 0.5 strip for run "<<runListLC[r2]<<normal<<endl;
+        } else if(fabs(polRL[r] - polLC[r2])>1.0) {
+          cout<<blue<<runListRL[r]<<"\t"<<polRL[r]<<" in RL, and "<<runListLC[r2]<<" "<<polLC[r2]<<" in LC"<<normal<<endl;
+        } else {
+          polDiff.push_back(polLC[r2] - polRL[r]);
+          commonRuns.push_back(runListRL[r2]);
+          polDiffEr.push_back(polErLC[r]);
+          zero_1.push_back(0.0);
+          hPolDiff->Fill(polDiff.back());
+          hPolEr->Fill(polErLC[r2]);
+          hRunletPolEr->Fill(polErRL[r]);
 
-	  hChiSqLC->Fill(chiSqLC[r2]);
-	  hChiSqRL->Fill(chiSqRL[r]);
-	  break;
-	}
+          hChiSqLC->Fill(chiSqLC[r2]);
+          hChiSqRL->Fill(chiSqRL[r]);
+          break;
+        }
       }
     }
     if(!kFound) cout<<magenta<<"run "<<runListRL[r]<<" from RL not found in LC"<<normal<<endl;
@@ -248,8 +248,8 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     Int_t count4=0;
     for (Int_t r=0; r<numbRuns; r++) {
       if((runListRL[r] >= run1) && (runListRL[r] <= run2)) {
-	count4++;
-	runletCedgeInRange[count4] = comptEdgeRL[r];
+        count4++;
+        runletCedgeInRange[count4] = comptEdgeRL[r];
       }
     }
     //TGraph *grRunletCedge = new TGraph(count4,lasCycRunnum,runletCedgeInRange);
@@ -296,8 +296,8 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     Int_t count4=0;
     for (Int_t r=0; r<numbRuns; r++) {
       if((runListRL[r] >= run1) && (runListRL[r] <= run2)) {
-	count4++;
-	runletChiSqrInRange[count4] = chiSqRL[r];
+        count4++;
+        runletChiSqrInRange[count4] = chiSqRL[r];
       }
     }
     //TGraph *grRunletChiSqr = new TGraph(count4,lasCycRunnum,runletChiSqrInRange);

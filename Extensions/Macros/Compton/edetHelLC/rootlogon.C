@@ -45,6 +45,9 @@ void rootlogon()
   pubStyle->SetOptStat(0);
   pubStyle->SetOptFit(0);
 
+  pubStyle->SetPalette(1);
+  //pubStyle->SetPadBorderSize(3);
+  pubStyle->SetFrameLineWidth(3);
   // put tick marks on top and RHS of plots
   pubStyle->SetPadTickX(1);
   pubStyle->SetPadTickY(1);

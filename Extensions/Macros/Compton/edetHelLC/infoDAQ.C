@@ -10,7 +10,7 @@ Int_t infoDAQ(Int_t runnum)
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
   const Bool_t debug=0;
   const Int_t errFlag=100;
-  Bool_t additionalStripMask=0;
+  Bool_t additionalStripMask=1;
   Double_t bMask[nPlanes][nStrips];
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
@@ -70,7 +70,7 @@ Int_t infoDAQ(Int_t runnum)
   ///list all those strips that you want in the list for in case it was not already a part of the above created vector
   if(additionalStripMask) {
     skipStrip.push_back(2);//notice that the strip number pushed is in human counts
-    //skipStrip.push_back(10);//notice that the strip number pushed is in human counts
+    skipStrip.push_back(10);//notice that the strip number pushed is in human counts
     cout<<red<<"apart from strips masked in DAQ, am ignoring strip # 2 accross all planes"<<normal<<endl;//!update this with above list
   }
   for(Int_t m = 0; m <nModules; m++) {
