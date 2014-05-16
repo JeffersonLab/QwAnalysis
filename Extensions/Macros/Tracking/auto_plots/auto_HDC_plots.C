@@ -3,7 +3,9 @@
 //Makes plots of hit pattern and drift time for the use of the shift crew  
 //Edited: Nov 2013 to be able to save plots automatically in order to be used in 
 //tracking pass5 replay -- Anna 
-
+//Edited: May 2014 - now makes two sets of plots, one for all hits in a run, 
+//and one for only the hits used in full tracks
+//
 #include "TH1D.h"
 #include "TCanvas.h"
 #include "TChain.h"
@@ -20,7 +22,7 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   //add the root files to the chain the event_tree branches
   event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
-  //define the hit pattern histograms
+  //define the hit pattern histograms: trk required
   TH1D* E1 = new TH1D ("E1","Hokie 2: Package 2 Plane 1",34,0,33);
   TH1D* E2 = new TH1D ("E2","Hokie 2: Package 2 Plane 2",34,0,33);
   TH1D* E3 = new TH1D ("E3","Hokie 2: Package 2 Plane 3",34,0,33);
@@ -46,7 +48,33 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   TH1D* E23 = new TH1D ("E23","Hokie 5: Package 1 Plane 11",34,0,33);
   TH1D* E24 = new TH1D ("E24","Hokie 5: Package 1 Plane 12",34,0,33);
 
-  //Define the  drift time histograms
+  //define hit pattern histos for full run
+  TH1D* F1 = new TH1D ("F1","Hokie 2: Package 2 Plane 1",34,0,33);
+  TH1D* F2 = new TH1D ("F2","Hokie 2: Package 2 Plane 2",34,0,33);
+  TH1D* F3 = new TH1D ("F3","Hokie 2: Package 2 Plane 3",34,0,33);
+  TH1D* F4 = new TH1D ("F4","Hokie 2: Package 2 Plane 4",34,0,33);
+  TH1D* F5 = new TH1D ("F5","Hokie 2: Package 2 Plane 5",34,0,33);
+  TH1D* F6 = new TH1D ("F6","Hokie 2: Package 2 Plane 6",34,0,33);
+  TH1D* F7 = new TH1D ("F7","Hokie 3: Package 2 Plane 7",34,0,33);
+  TH1D* F8 = new TH1D ("F8","Hokie 3: Package 2 Plane 8",34,0,33);
+  TH1D* F9 = new TH1D ("F9","Hokie 3: Package 2 Plane 9",34,0,33);
+  TH1D* F10 = new TH1D ("F10","Hokie 3: Package 2 Plane 10",34,0,33);
+  TH1D* F11 = new TH1D ("F11","Hokie 3: Package 2 Plane 11",34,0,33);
+  TH1D* F12 = new TH1D ("F12","Hokie 3: Package 2 Plane 12",34,0,33);
+  TH1D* F13 = new TH1D ("F13","Hokie 4: Package 1 Plane 1",34,0,33);
+  TH1D* F14 = new TH1D ("F14","Hokie 4: Package 1 Plane 2",34,0,33);
+  TH1D* F15 = new TH1D ("F15","Hokie 4: Package 1 Plane 3",34,0,33);
+  TH1D* F16 = new TH1D ("F16","Hokie 4: Package 1 Plane 4",34,0,33);
+  TH1D* F17 = new TH1D ("F17","Hokie 4: Package 1 Plane 5",34,0,33);
+  TH1D* F18 = new TH1D ("F18","Hokie 4: Package 1 Plane 6",34,0,33);
+  TH1D* F19 = new TH1D ("F19","Hokie 5: Package 1 Plane 7",34,0,33);
+  TH1D* F20 = new TH1D ("F20","Hokie 5: Package 1 Plane 8",34,0,33);
+  TH1D* F21 = new TH1D ("F21","Hokie 5: Package 1 Plane 9",34,0,33);
+  TH1D* F22 = new TH1D ("F22","Hokie 5: Package 1 Plane 10",34,0,33);
+  TH1D* F23 = new TH1D ("F23","Hokie 5: Package 1 Plane 11",34,0,33);
+  TH1D* F24 = new TH1D ("F24","Hokie 5: Package 1 Plane 12",34,0,33);
+
+  //Define the  drift time histograms: trk required
   TH1D* T1 = new TH1D ("T1","Hokie 2: fTimeNS",100,-100,400);
   TH1D* T2 = new TH1D ("T2","Hokie 3: fTimeNS",100,-100,400);
   TH1D* T3 = new TH1D ("T3","Hokie 4: fTimeNS",100,-100,400);
@@ -56,7 +84,17 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   TH1D* T7 = new TH1D ("T7","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
   TH1D* T8 = new TH1D ("T8","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
 
-  
+  //Define the drift time histos for full run
+  TH1D* S1 = new TH1D ("S1","Hokie 2: fTimeNS",100,-100,400);
+  TH1D* S2 = new TH1D ("S2","Hokie 3: fTimeNS",100,-100,400);
+  TH1D* S3 = new TH1D ("S3","Hokie 4: fTimeNS",100,-100,400);
+  TH1D* S4 = new TH1D ("S4","Hokie 5: fTimeNS",100,-100,400);
+  TH1D* S5 = new TH1D ("S5","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
+  TH1D* S6 = new TH1D ("S6","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
+  TH1D* S7 = new TH1D ("S7","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+  TH1D* S8 = new TH1D ("S8","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+
+ 
   //Create and Divide canvases
   TCanvas* c1 = new TCanvas("c1","Hit Patterns",1200,700);
   c1->Divide(6,4);
@@ -65,6 +103,16 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   TCanvas* c2 = new TCanvas("c2","Drift Times",1000,600);
   c2->Divide(4,2);
   //fTime plots are on c2  
+
+  TCanvas* c3 = new TCanvas("c3","Hit Patterns: Full Run",1200,700);
+  c3->Divide(6,4);
+  //fElement plots are on c3
+
+  TCanvas* c4 = new TCanvas("c4","Drift Times",1000,600);
+  c4->Divide(4,2);
+  //fTime plots are on c4  
+
+
 
   //Define axis
   E1->GetXaxis()->SetTitle("Wire");
@@ -92,6 +140,31 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   E23->GetXaxis()->SetTitle("Wire");
   E24->GetXaxis()->SetTitle("Wire");
 
+  F1->GetXaxis()->SetTitle("Wire");
+  F2->GetXaxis()->SetTitle("Wire");
+  F3->GetXaxis()->SetTitle("Wire");
+  F4->GetXaxis()->SetTitle("Wire");
+  F5->GetXaxis()->SetTitle("Wire");
+  F6->GetXaxis()->SetTitle("Wire");
+  F7->GetXaxis()->SetTitle("Wire");
+  F8->GetXaxis()->SetTitle("Wire");
+  F9->GetXaxis()->SetTitle("Wire");
+  F10->GetXaxis()->SetTitle("Wire");
+  F11->GetXaxis()->SetTitle("Wire");
+  F12->GetXaxis()->SetTitle("Wire");
+  F13->GetXaxis()->SetTitle("Wire");
+  F14->GetXaxis()->SetTitle("Wire");
+  F15->GetXaxis()->SetTitle("Wire");
+  F16->GetXaxis()->SetTitle("Wire");
+  F17->GetXaxis()->SetTitle("Wire");
+  F18->GetXaxis()->SetTitle("Wire");
+  F19->GetXaxis()->SetTitle("Wire");
+  F20->GetXaxis()->SetTitle("Wire");
+  F21->GetXaxis()->SetTitle("Wire");
+  F22->GetXaxis()->SetTitle("Wire");
+  F23->GetXaxis()->SetTitle("Wire");
+  F24->GetXaxis()->SetTitle("Wire");
+
   T1->GetXaxis()->SetTitle("Drift Time (NS)");
   T2->GetXaxis()->SetTitle("Drift Time (NS)");
   T3->GetXaxis()->SetTitle("Drift Time (NS)");
@@ -100,6 +173,15 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   T6->GetXaxis()->SetTitle("Drift Time (NS)");
   T7->GetXaxis()->SetTitle("Drift Time (NS)");
   T8->GetXaxis()->SetTitle("Drift Time (NS)");
+
+  S1->GetXaxis()->SetTitle("Drift Time (NS)");
+  S2->GetXaxis()->SetTitle("Drift Time (NS)");
+  S3->GetXaxis()->SetTitle("Drift Time (NS)");
+  S4->GetXaxis()->SetTitle("Drift Time (NS)");
+  S5->GetXaxis()->SetTitle("Drift Time (NS)");
+  S6->GetXaxis()->SetTitle("Drift Time (NS)");
+  S7->GetXaxis()->SetTitle("Drift Time (NS)");
+  S8->GetXaxis()->SetTitle("Drift Time (NS)");
  
   //start looping over events
   //extract number of events
@@ -115,145 +197,298 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   TBranch* event_branch=event_tree->GetBranch("events");
   event_branch->SetAddress(&fEvent);
 
+    int numhits = 0;
   //Loop through the events, filling histogram as you go
   cout << "Total Events: " << nevents << endl;
   for(int i=0; i<nevents;i++){
     //get event
     event_branch->GetEntry(i);
     //get number of hits
-    int nhits = fEvent->GetNumberOfHits();
-    //loop over hits
-    for(int j=0;j<nhits;j++){
-      const QwHit* hit = fEvent->GetHit(j);
-      if(hit->GetRegion()==2){
-        if(hit->GetPackage()==2){
-          if(hit->GetPlane()==1){
-            E1->Fill(hit->GetElement());
-            T1->Fill(hit->GetTimeNs());
-            T5->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==2){
-            E2->Fill(hit->GetElement());
-            T1->Fill(hit->GetTimeNs());
-            T5->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==3){
-            E3->Fill(hit->GetElement());
-            T1->Fill(hit->GetTimeNs());
-            T5->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==4){
-            E4->Fill(hit->GetElement());
-            T1->Fill(hit->GetTimeNs());
-            T5->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==5){
-            E5->Fill(hit->GetElement());
-            T1->Fill(hit->GetTimeNs());
-            T5->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==6){
-            E6->Fill(hit->GetElement());
-            T1->Fill(hit->GetTimeNs());
-            T5->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==7){
-            E7->Fill(hit->GetElement());
-            T2->Fill(hit->GetTimeNs());
-            T6->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==8){
-            E8->Fill(hit->GetElement());
-            T2->Fill(hit->GetTimeNs());
-            T6->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==9){
-            E9->Fill(hit->GetElement());
-            T2->Fill(hit->GetTimeNs());
-            T6->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==10){
-            E10->Fill(hit->GetElement());
-            T2->Fill(hit->GetTimeNs());
-            T6->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==11){
-            E11->Fill(hit->GetElement());
-            T2->Fill(hit->GetTimeNs());
-            T6->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==12){
-            E12->Fill(hit->GetElement());
-            T2->Fill(hit->GetTimeNs());
-            T6->Fill(hit->GetTimeNs());
-          }
-        }
-        if(hit->GetPackage()==1){
-           if(hit->GetPlane()==1){
-            E13->Fill(hit->GetElement());
-            T3->Fill(hit->GetTimeNs());
-            T7->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==2){
-            E14->Fill(hit->GetElement());
-            T3->Fill(hit->GetTimeNs());
-            T7->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==3){
-            E15->Fill(hit->GetElement());
-            T3->Fill(hit->GetTimeNs());
-            T7->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==4){
-            E16->Fill(hit->GetElement());
-            T3->Fill(hit->GetTimeNs());
-            T7->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==5){
-            E17->Fill(hit->GetElement());
-            T3->Fill(hit->GetTimeNs());
-            T7->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==6){
-            E18->Fill(hit->GetElement());
-            T3->Fill(hit->GetTimeNs());
-            T7->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==7){
-            E19->Fill(hit->GetElement());
-            T4->Fill(hit->GetTimeNs());
-            T8->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==8){
-            E20->Fill(hit->GetElement());
-            T4->Fill(hit->GetTimeNs());
-            T8->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==9){
-            E21->Fill(hit->GetElement());
-            T4->Fill(hit->GetTimeNs());
-            T8->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==10){
-            E22->Fill(hit->GetElement());
-            T4->Fill(hit->GetTimeNs());
-            T8->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==11){
-            E23->Fill(hit->GetElement());
-            T4->Fill(hit->GetTimeNs());
-            T8->Fill(hit->GetTimeNs());
-          }
-          if(hit->GetPlane()==12){
-            E24->Fill(hit->GetElement());
-            T4->Fill(hit->GetTimeNs());
-            T8->Fill(hit->GetTimeNs());
-          }     
-        }
-      } 
+
+    int nhitsf = fEvent->GetNumberOfHits();
+    for(int k=0;k<nhitsf;k++)
+    {
+	    const QwHit* hit = fEvent->GetHit(k);
+	    if(hit->GetRegion()==2){
+		    if(hit->GetPackage()==2){
+			    if(hit->GetPlane()==1){
+				    F1->Fill(hit->GetElement());
+				    S1->Fill(hit->GetTimeNs());
+				    S5->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==2){
+				    F2->Fill(hit->GetElement());
+				    S1->Fill(hit->GetTimeNs());
+				    S5->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==3){
+				    F3->Fill(hit->GetElement());
+				    S1->Fill(hit->GetTimeNs());
+				    S5->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==4){
+				    F4->Fill(hit->GetElement());
+				    S1->Fill(hit->GetTimeNs());
+				    S5->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==5){
+				    F5->Fill(hit->GetElement());
+				    S1->Fill(hit->GetTimeNs());
+				    S5->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==6){
+				    F6->Fill(hit->GetElement());
+				    S1->Fill(hit->GetTimeNs());
+				    S5->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==7){
+				    F7->Fill(hit->GetElement());
+				    S2->Fill(hit->GetTimeNs());
+				    S6->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==8){
+				    F8->Fill(hit->GetElement());
+				    S2->Fill(hit->GetTimeNs());
+				    S6->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==9){
+				    F9->Fill(hit->GetElement());
+				    S2->Fill(hit->GetTimeNs());
+				    S6->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==10){
+				    F10->Fill(hit->GetElement());
+				    S2->Fill(hit->GetTimeNs());
+				    S6->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==11){
+				    F11->Fill(hit->GetElement());
+				    S2->Fill(hit->GetTimeNs());
+				    S6->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==12){
+				    F12->Fill(hit->GetElement());
+				    S2->Fill(hit->GetTimeNs());
+				    S6->Fill(hit->GetTimeNs());
+			    }
+		    }
+		    if(hit->GetPackage()==1){
+			    if(hit->GetPlane()==1){
+				    F13->Fill(hit->GetElement());
+				    S3->Fill(hit->GetTimeNs());
+				    S7->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==2){
+				    F14->Fill(hit->GetElement());
+				    S3->Fill(hit->GetTimeNs());
+				    S7->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==3){
+				    F15->Fill(hit->GetElement());
+				    S3->Fill(hit->GetTimeNs());
+				    S7->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==4){
+				    F16->Fill(hit->GetElement());
+				    S3->Fill(hit->GetTimeNs());
+				    S7->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==5){
+				    F17->Fill(hit->GetElement());
+				    S3->Fill(hit->GetTimeNs());
+				    S7->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==6){
+				    F18->Fill(hit->GetElement());
+				    S3->Fill(hit->GetTimeNs());
+				    S7->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==7){
+				    F19->Fill(hit->GetElement());
+				    S4->Fill(hit->GetTimeNs());
+				    S8->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==8){
+				    F20->Fill(hit->GetElement());
+				    S4->Fill(hit->GetTimeNs());
+				    S8->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==9){
+				    F21->Fill(hit->GetElement());
+				    S4->Fill(hit->GetTimeNs());
+				    S8->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==10){
+				    F22->Fill(hit->GetElement());
+				    S4->Fill(hit->GetTimeNs());
+				    S8->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==11){
+				    F23->Fill(hit->GetElement());
+				    S4->Fill(hit->GetTimeNs());
+				    S8->Fill(hit->GetTimeNs());
+			    }
+			    if(hit->GetPlane()==12){
+				    F24->Fill(hit->GetElement());
+				    S4->Fill(hit->GetTimeNs());
+				    S8->Fill(hit->GetTimeNs());
+			    }
+		    }
+	    }
     }
-  }
+    int ntrk = fEvent->GetNumberOfTracks();
+    if(ntrk>0)
+    {
+	    //loop over hits
+	    const QwTrack* fTrack = fEvent->GetTrack(0);
+	    int nPTs = fTrack->GetNumberOfPartialTracks();
+	    for (int b = 0; b < nPTs; b++)
+	    {
+		    const QwPartialTrack* fPt = fTrack->GetPartialTrack(b);
+		    if(fPt->GetRegion()==2){
+			    int nTLs = fPt->GetNumberOfTreeLines();
+			    for (int a = 0; a < nTLs; a++ )
+			    {
+				    const QwTreeLine* const_treeline = fPt->GetTreeLine(a);
+				    int nhits = const_treeline->GetNumberOfHits();
+				    for(int j=0;j<nhits;j++)
+				    {
+					    const QwHit* hit = const_treeline->GetHit(j);
+					    //      if(hit->GetRegion()==2){
+					    numhits++;
+					    if(hit->GetPackage()==2){
+						    if(hit->GetPlane()==1){
+							    E1->Fill(hit->GetElement());
+							    T1->Fill(hit->GetTimeNs());
+							    T5->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==2){
+							    E2->Fill(hit->GetElement());
+							    T1->Fill(hit->GetTimeNs());
+							    T5->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==3){
+							    E3->Fill(hit->GetElement());
+							    T1->Fill(hit->GetTimeNs());
+							    T5->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==4){
+							    E4->Fill(hit->GetElement());
+							    T1->Fill(hit->GetTimeNs());
+							    T5->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==5){
+							    E5->Fill(hit->GetElement());
+							    T1->Fill(hit->GetTimeNs());
+							    T5->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==6){
+							    E6->Fill(hit->GetElement());
+							    T1->Fill(hit->GetTimeNs());
+							    T5->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==7){
+							    E7->Fill(hit->GetElement());
+							    T2->Fill(hit->GetTimeNs());
+							    T6->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==8){
+							    E8->Fill(hit->GetElement());
+							    T2->Fill(hit->GetTimeNs());
+							    T6->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==9){
+							    E9->Fill(hit->GetElement());
+							    T2->Fill(hit->GetTimeNs());
+							    T6->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==10){
+							    E10->Fill(hit->GetElement());
+							    T2->Fill(hit->GetTimeNs());
+							    T6->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==11){
+							    E11->Fill(hit->GetElement());
+							    T2->Fill(hit->GetTimeNs());
+							    T6->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==12){
+							    E12->Fill(hit->GetElement());
+							    T2->Fill(hit->GetTimeNs());
+							    T6->Fill(hit->GetTimeNs());
+						    }
+					    }
+					    if(hit->GetPackage()==1){
+						    if(hit->GetPlane()==1){
+							    E13->Fill(hit->GetElement());
+							    T3->Fill(hit->GetTimeNs());
+							    T7->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==2){
+							    E14->Fill(hit->GetElement());
+							    T3->Fill(hit->GetTimeNs());
+							    T7->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==3){
+							    E15->Fill(hit->GetElement());
+							    T3->Fill(hit->GetTimeNs());
+							    T7->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==4){
+							    E16->Fill(hit->GetElement());
+							    T3->Fill(hit->GetTimeNs());
+							    T7->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==5){
+							    E17->Fill(hit->GetElement());
+							    T3->Fill(hit->GetTimeNs());
+							    T7->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==6){
+							    E18->Fill(hit->GetElement());
+							    T3->Fill(hit->GetTimeNs());
+							    T7->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==7){
+							    E19->Fill(hit->GetElement());
+							    T4->Fill(hit->GetTimeNs());
+							    T8->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==8){
+							    E20->Fill(hit->GetElement());
+							    T4->Fill(hit->GetTimeNs());
+							    T8->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==9){
+							    E21->Fill(hit->GetElement());
+							    T4->Fill(hit->GetTimeNs());
+							    T8->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==10){
+							    E22->Fill(hit->GetElement());
+							    T4->Fill(hit->GetTimeNs());
+							    T8->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==11){
+							    E23->Fill(hit->GetElement());
+							    T4->Fill(hit->GetTimeNs());
+							    T8->Fill(hit->GetTimeNs());
+						    }
+						    if(hit->GetPlane()==12){
+							    E24->Fill(hit->GetElement());
+							    T4->Fill(hit->GetTimeNs());
+							    T8->Fill(hit->GetTimeNs());
+						    }     
+					    }
+				    }
+				    }  
+			    }
+		    }
+	    }
+    }
   //Draw historgrams
+
+	cout << "Number of hits this added to things: " << numhits << endl;
   c1->cd(1);
   E1->Draw();
   c1->cd(2);
@@ -324,10 +559,84 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
   T8->Draw();
   gPad->SetLogy(1);
 
+  c3->cd(1);
+  F1->Draw();
+  c3->cd(2);
+  F2->Draw();
+  c3->cd(3);
+  F3->Draw();
+  c3->cd(4);
+  F4->Draw();
+  c3->cd(5);
+  F5->Draw();
+  c3->cd(6);
+  F6->Draw();
+  c3->cd(7);
+  F7->Draw();
+  c3->cd(8);
+  F8->Draw();
+  c3->cd(9);
+  F9->Draw();
+  c3->cd(10);
+  F10->Draw();
+  c3->cd(11);
+  F11->Draw();
+  c3->cd(12);
+  F12->Draw();
+  c3->cd(13);
+  F13->Draw();
+  c3->cd(14);
+  F14->Draw();
+  c3->cd(15);
+  F15->Draw();
+  c3->cd(16);
+  F16->Draw();
+  c3->cd(17);
+  F17->Draw();
+  c3->cd(18);
+  F18->Draw();
+  c3->cd(19);
+  F19->Draw();
+  c3->cd(20);
+  F20->Draw();
+  c3->cd(21);
+  F21->Draw();
+  c3->cd(22);
+  F22->Draw();
+  c3->cd(23);
+  F23->Draw();
+  c3->cd(24);
+  F24->Draw();
+
+  c4->cd(1);
+  S1->Draw();
+  c4->cd(2);
+  S2->Draw();
+  c4->cd(3);
+  S3->Draw();
+  c4->cd(4);
+  S4->Draw();
+  c4->cd(5);
+  S5->Draw();
+  gPad->SetLogy(1);
+  c4->cd(6);
+  S6->Draw();
+  gPad->SetLogy(1);
+  c4->cd(7);
+  S7->Draw();
+  gPad->SetLogy(1);
+  c4->cd(8);
+  S8->Draw();
+  gPad->SetLogy(1);
+
+
 
   //Save the plots
-  c1->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/test_hit_patterns_%d.png",runnum,runnum));
-  c2->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/test_drift_times_%d.png",runnum,runnum));
+  c1->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/trk_hit_patterns_%d.png",runnum,runnum));
+  c2->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/trk_drift_times_%d.png",runnum,runnum));
+  c3->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/full_hit_patterns_%d.png",runnum,runnum));
+  c4->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/full_drift_times_%d.png",runnum,runnum));
+
 
   return;  
 }
