@@ -158,9 +158,9 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	  //get the number of Tracks 
 	  int nTrks = fEvent->GetNumberOfTracks();
           //Loop over Tracks
-	  for(int z = 0; z < nTrks; z++)
+	  if(nTrks>0)
 	  {
-		  const QwTrack* fTrack = fEvent->GetTrack(z);
+		  const QwTrack* fTrack = fEvent->GetTrack(0);
                   //get number of partial tracks (should be 2 always, 1 for R2 and 1 for R3)
 		  int nPts  = fTrack->GetNumberOfPartialTracks();
                   //Loop over partial tracks that compose track   
