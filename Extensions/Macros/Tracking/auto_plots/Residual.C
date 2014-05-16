@@ -169,7 +169,7 @@ void Residual(int runnum, bool is100k)
 	for (int pkg1 = 1 ; pkg1 <3 ; pkg1++)
 	{
 		//Create the canvas
-		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 1000,900);
+		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 2000,1800);
 
 		//divide the canvas
 		c1.Divide(6,2);
@@ -201,7 +201,7 @@ RMS/sqrt(N)
 	{
 
 		//Create the canvas
-		TCanvas c3("c3", Form("Residual values for each plane - Package %d",pkg), 500,500);
+		TCanvas c3("c3", Form("Residual values for each plane - Package %d",pkg), 1000,1000);
 
 		//divide the canvas
 		c3.Divide(2,0);
@@ -240,11 +240,11 @@ RMS/sqrt(N)
 		gr2->SetMarkerSize(5);
 
 		//Lable the titles and the axises
-		//gr->SetTitle(Form("Mean Rsidual value vs. Plane number in Region 2 for package %d", pkg));
+		//gr->SetTitle(Form("Mean Residual value vs. Plane number in Region 2 for package %d", pkg));
 		//gr->GetXaxis()->SetTitle(Form("Plane number in Region 2 for package %d", pkg));
 		//gr->GetYaxis()->SetTitle("Mean Residual value (cm)");
 
-                gr2->SetTitle(Form("Mean Rsidual value vs. Plane number in Region 2 for package %d", pkg));
+                gr2->SetTitle(Form("Mean Residual value vs. Plane number in Region 2 for package %d", pkg));
                 gr2->GetXaxis()->SetTitle(Form("Plane number in Region 2 for package %d", pkg));
                 gr2->GetYaxis()->SetTitle("Mean Residual value (cm)");
 
@@ -266,7 +266,7 @@ RMS/sqrt(N)
 
 
 	//Create the canvas
-	TCanvas c2("c2", "Residual values for both Packages", 500,600);
+	TCanvas c2("c2", "Residual values for both Packages", 1000,1200);
 
 	c2.Divide(2,0);
 

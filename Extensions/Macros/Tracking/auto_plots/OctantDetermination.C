@@ -73,7 +73,7 @@ void OctantDetermination(int runnum, bool is100k)
 	{
 		for (int y = 0; y < 9 ;y++)
 		{
-			h[z][y]= new TH2D (Form("h[%d][%d]",z,y),"OC",100,0.0,3000.0 ,100, 0.0, 3000.0 );
+			h[z][y]= new TH2D (Form("h[%d][%d]",z,y),"OC",100,0.0,6000.0 ,100, 0.0, 3000.0 );
 	                h[z][y]->GetYaxis()->SetTitle(Form("main detector %d signal",y));
         	        h[z][y]->GetXaxis()->SetTitle(Form("Trigger scintillator %d signal",y));
 
@@ -83,7 +83,7 @@ void OctantDetermination(int runnum, bool is100k)
 		{
 			for (int k = 0;k < 9;k++)
 			{
-				h2[z][q][k] = new TH1D (Form("h[%d][%d][%d]",z,q,k),"MD",100,0.0,3000.0);
+				h2[z][q][k] = new TH1D (Form("h[%d][%d][%d]",z,q,k),"MD",100,0.0,6000.0);
 		                h2[z][q][k]->GetYaxis()->SetTitle("frequency");
         		        h2[z][q][k]->GetXaxis()->SetTitle(Form("main detector %d signal",k));
 

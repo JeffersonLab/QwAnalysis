@@ -41,13 +41,15 @@ void QtorCurrent(int runnum, bool is100k)
 	TH2D* h1 = new TH2D ("h1","QTOR current vs Time (as Event Number)",30,1,0, 30,1,0);
 	h1->GetYaxis()->SetTitle("QTOR current, DCCT setpoint (A)");
 	h1->GetXaxis()->SetTitle("Time (as Entry Number)");
-	h1->SetMarkerStyle(3);
-
+	h1->SetMarkerStyle(20);
+	h1->SetMarkerSize(2);
 	//Here the "L" draws a line through the point on the graph <-want
 	//the "C" conects the dots smoothly
 	//one needs to place "" in the second place of the draw command (the cuts) part so that 
 	//root recognizes that that the L is not a cut but a draw option and then root :)
 	chain->Draw("qw_qt_mps_i_set:Entry$>>h1","" ,"L");
+	gStyle->SetStatH(0.3);                
+	// 	gStyle->SetOptStat(10101);                
 	h1->Draw("L"); //for some reason ROOT refused to actually draw this line
 
 
