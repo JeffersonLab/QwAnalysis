@@ -32,6 +32,10 @@ Entry Conditions: the run number, bool for first 100k
 Date: 03-28-2012
 Modified:07-17-2012
 Assisted By:Juan Carlos Cornejo and Wouter Deconinck
+
+Modified May 2014 by Anna Lee:
+This script now only uses hits that are part of a full track
+
 *********************************************************/
 
 #include "auto_shared_includes.h"
@@ -40,6 +44,7 @@ Assisted By:Juan Carlos Cornejo and Wouter Deconinck
 #include <TGraphErrors.h>
 #include "QwEvent.h"
 #include "QwHit.h"
+#include "TPaveStats.h" 
 
 #include <fstream>
 #include <iostream>
@@ -54,8 +59,13 @@ void Residual(int runnum, bool is100k)
 {
 	// changed the Prefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/Residual_%d_",runnum,runnum);
+	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/statbox_Residual_%d_",runnum,runnum);
 
+	gStyle->SetOptFit(1110);      
+	gStyle->SetStatX(0.9);
+        gStyle->SetStatY(0.9);
+        gStyle->SetStatW(0.4);
+        gStyle->SetStatH(0.2);
 	// groups root files for a run together
 	TChain* event_tree = new TChain ("event_tree");
 
@@ -65,8 +75,14 @@ void Residual(int runnum, bool is100k)
 	//create a vector of vectors of TH1D histogram pointer
 	std::vector< vector<TH1D*> > h;
 
+       //going to try and creat vector of vectors of TPaveSTats
+//        std::vector< vector<TPaveStats*> > hstats;
+
 	//size the vector h
 	h.resize(2);
+
+	//size hstats
+//	hstats.resize(2);
 	//size each the h[i] vector
 	//going from q = 0 till q<h.size() allows for changing the size of h easly without hunting it down elsewhere in the code, and makes sure that one is not outside 
 	//of the range of h ever.  NOTE: will get a warning about the h.size() not being a signed varable as it is awarnign it can be ignored, other wise one can through 
@@ -74,12 +90,15 @@ void Residual(int runnum, bool is100k)
 	for(size_t q = 0; q < h.size(); q++)
 	{
 		h[q].resize(12);
+  //              hstats[q].resize(12); //same with hstats
 	}
 
 	//create and size a vector of TH1D histograms so I can loop again :)
 	//package on is on the left and package two is on the right
 	std::vector<TH1D*> h2;
+   	std::vector<TH1D*> hplane;
 	h2.resize(2);
+ 	hplane.resize(2);
 
 
 	for (int pkg =1; pkg<=2; pkg++)
@@ -118,7 +137,7 @@ void Residual(int runnum, bool is100k)
 		h2[pkg - 1]= new TH1D (Form("h2[%d]",pkg -1 ),Form("Residual - Package %d - All Planes",pkg),30,-0.5,0.5);
                 h2[pkg - 1]->GetXaxis()->SetTitle(Form("Residual for package %d",pkg));
                 h2[pkg - 1]->GetYaxis()->SetTitle("Frequency");
-
+		hplane[pkg -1] = new TH1D(Form("hplane[%d]",pkg-1),Form("Hits by Plane, Package %d",pkg),14,0,13);
 
 	}
 
@@ -135,41 +154,55 @@ void Residual(int runnum, bool is100k)
 	//set the brach address	
 	event_branch->SetAddress(&fEvent);
 
+		int numhits =0;	
+	cout << "Total Events: " << nevents << endl;
 	for (int i = 0; i < nevents; i++)
 	{
 		event_tree->GetEntry(i);		
-
-		//get number of treelines
-		int ntreelines = fEvent->GetNumberOfTreeLines();
-		
-		for (int t = 0; t < ntreelines ; t++)
+		if( i%10000==0) cout << "Working on Event number: " << i << endl;
+		//get number of treelines xxx trying to adjust to tracks instead of treelines
+		int ntrk = fEvent->GetNumberOfTracks();
+                if (ntrk > 0)
 		{
 
 			//set pointer to treeline
-			const QwTreeLine* const_treeline = fEvent->GetTreeLine(t);
+			const QwTrack* fTrack = fEvent->GetTrack(0);
 
-			//get number of hits for this event
-			int nhits = const_treeline->GetNumberOfHits();
-
-			for (int j = 0; j < nhits ; j++)
-			{
-				//set pointer to hit
-				QwTreeLine* treeline = const_cast<QwTrackingTreeLine*>(const_treeline);
-				const QwHit* hit = treeline->GetHit(j);
-
-				if (hit->GetRegion()==2)
+			int nPTs = fTrack->GetNumberOfPartialTracks();
+   			for (int b = 0; b < nPTs; b++)
+                        {
+				const QwPartialTrack* fPt = fTrack->GetPartialTrack(b);
+				if(fPt->GetRegion()==2)
 				{
-					h2[hit->GetPackage() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
-					h[hit->GetPackage() - 1][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
+  				
+					int nTLs = fPt->GetNumberOfTreeLines();
+					for (int a = 0; a < nTLs; a++ )
+ 					{
+						const QwTreeLine* const_treeline = fPt->GetTreeLine(a); 
+						//get number of hits for this event
+						int nhits = const_treeline->GetNumberOfHits();
+									
+						for (int j = 0; j < nhits ; j++)
+						{
+							//set pointer to hit
+							const QwHit* hit = const_treeline->GetHit(j);
+							numhits++;
+							{
+								h2[hit->GetPackage() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
+								h[hit->GetPackage() - 1][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
+								hplane[hit->GetPackage() - 1]->Fill(hit->GetPlane());
+							}
+						}
+					}
 				}
-			}
+ 			}
 		}
 	}
 
 	for (int pkg1 = 1 ; pkg1 <3 ; pkg1++)
 	{
 		//Create the canvas
-		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 2000,1800);
+		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 1500,900);
 
 		//divide the canvas
 		c1.Divide(6,2);
@@ -179,7 +212,11 @@ void Residual(int runnum, bool is100k)
 			c1.cd(plane);
 		
 			h[pkg1-1][plane -1]->Draw();//Look closer at this - not drawing the first 3 planes
-		}
+		/*	hstats[pkg1-1][plane-1]=(TPaveStats*) h[pkg1-1][plane-1]->GetListOfFunctions()->FindObject("stats");
+                        hstats[pkg1-1][plane-1]->SetY1NDC(0.55);
+			hstats[pkg1-1][plane-1]->SetY2NDC(0.15); 
+			hstats[pkg1-1][plane-1]->SetX1NDC(0.5);
+*/		}
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 		c1.SaveAs(Prefix+Form("Residual_Package_%d.png",pkg1));
@@ -266,7 +303,7 @@ RMS/sqrt(N)
 
 
 	//Create the canvas
-	TCanvas c2("c2", "Residual values for both Packages", 1000,1200);
+	TCanvas c2("c2", "Residual values for both Packages", 1000,600);
 
 	c2.Divide(2,0);
 
@@ -281,10 +318,24 @@ RMS/sqrt(N)
 // 		   1),Form("events.fQwTreeLines.fQwHits.fRegion==2&&events.fQwTreeLines.fQwHits.fPackage==%d",j));
 
 	}
+	TCanvas cplane("cplane", "hits for planes", 1000,600);
 
+	cplane.Divide(2,0);
+
+	for (int j = 1; j<=2; j++)
+	{
+
+		cplane.cd(j);
+
+		hplane[j - 1]->Draw();
+
+//		event_tree->Draw(Form("events.fQwTreeLines.fQwHits.fDriftPosition-events.fQwTreeLines.fQwHits.fTrackPosition>>h2[%d]",j - 
+// 		   1),Form("events.fQwTreeLines.fQwHits.fRegion==2&&events.fQwTreeLines.fQwHits.fPackage==%d",j));
+
+	}
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-	c2.SaveAs(Prefix+"Residual_Both_Packages.png");
-
+	cplane.SaveAs(Prefix+"Hits.png");
+	cout << "Number of hits this added to things: " << numhits << endl;
 	//write down that stats for the Residual in a file 
 
 	//print to file 
