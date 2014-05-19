@@ -235,7 +235,7 @@ int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack 
 shared between two treelines.  The only output is the integer
 return value
 */
-int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2)
+int QwTrackingTreeSort::rcCommonWires_r3 (QwTreeLine *line1, QwTreeLine *line2)
 {
   //################
   // DECLARATIONS  #
@@ -337,8 +337,8 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcCommonWires (
-	QwTrackingTreeLine *treeline1, ///< first tree line
-	QwTrackingTreeLine *treeline2) ///< second tree line
+	QwTreeLine *treeline1, ///< first tree line
+	QwTreeLine *treeline2) ///< second tree line
 {
   // Get the lists of hits associated with the two tree lines
   QwHit **hits1  = treeline1->fHits;
@@ -422,7 +422,7 @@ int QwTrackingTreeSort::rcCommonWires (
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcTreeConnSort (
-	QwTrackingTreeLine *treelinelist,	///< list of tree lines
+	QwTreeLine *treelinelist,	///< list of tree lines
 	EQwRegionID region)			///< region
 {
   // Maximum allowed chi value (was 20000.0)
@@ -445,7 +445,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
 
     index = 0;
     // Loop over the list of treelines
-    for (QwTrackingTreeLine* treeline = treelinelist;
+    for (QwTreeLine* treeline = treelinelist;
          treeline; treeline = treeline->next) {
 
       // If we have been doing this for too long already, give up already
@@ -510,11 +510,11 @@ int QwTrackingTreeSort::rcTreeConnSort (
   int*   isvoid = (int*)    malloc (nTreeLines * sizeof(int));
   double*   chi = (double*) malloc (nTreeLines * sizeof(double));
   int*    array = (int*)    malloc (nTreeLines * nTreeLines * sizeof(int));
-  QwTrackingTreeLine **tlarr = (QwTrackingTreeLine**) malloc (nTreeLines * sizeof(QwTrackingTreeLine*));
+  QwTreeLine **tlarr = (QwTreeLine**) malloc (nTreeLines * sizeof(QwTreeLine*));
 
   // Loop over the treelines and store valid treelines in new list
   index = 0;
-  for (QwTrackingTreeLine* treeline = treelinelist;
+  for (QwTreeLine* treeline = treelinelist;
        treeline; treeline = treeline->next) {
     if (treeline->IsValid()) {
       tlarr[index]  = treeline;

@@ -8,7 +8,7 @@
 #include "QwHit.h"
 #include "QwHitContainer.h"
 #include "QwHitRootContainer.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 
 ClassImp(QwGUITrackFinding);
@@ -404,7 +404,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 
 		  Int_t nTreeLines = event->GetNumberOfTreeLines();
 		  for (int iTreeLine = 0; iTreeLine < nTreeLines; iTreeLine++) {
-			const QwTrackingTreeLine* treeline = event->GetTreeLine(iTreeLine);
+			const QwTreeLine* treeline = event->GetTreeLine(iTreeLine);
                 	if (treeline->GetRegion() == kRegionID2) {
 //				std::cout << "Region 2 availiable" << std::endl;
                   		chi_TLr2->	Fill(treeline->GetChi());

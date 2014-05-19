@@ -6,7 +6,7 @@ ClassImp(QwEventDisplay3D);
 #include <QwEvent.h>
 #include <QwLog.h>
 #include <QwPartialTrack.h>
-#include <QwTrackingTreeLine.h>
+#include <QwTreeLine.h>
 #include "QwParameterFile.h"
 
 // ROOT Includes
@@ -815,7 +815,7 @@ void QwEventDisplay3D::DisplayEvent()
          std::cout << "Number of Tree Lines: " << numberOfTreeLines << "\n";
          for (Int_t k = 0; k < numberOfTreeLines; k++ ) {
             // Extract the TreeLine
-            const QwTrackingTreeLine *treeline = fEvent->GetTreeLine(k);
+            const QwTreeLine *treeline = fEvent->GetTreeLine(k);
 
             if (treeline && treeline->IsValid()) {
                std::cout << "Region: " << treeline->GetRegion() << "\t"

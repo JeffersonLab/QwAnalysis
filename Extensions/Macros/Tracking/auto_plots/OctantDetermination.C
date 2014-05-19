@@ -162,7 +162,7 @@ void OctantDetermination(int runnum, bool is100k)
 		// this will fill the passed value to the root tree from the analyzer
                 for (int t = 0; t < nTreeLines; t++)
                 {
-                        const QwTrackingTreeLine* treeline = fEvent->GetTreeLine(t);
+                        const QwTreeLine* treeline = fEvent->GetTreeLine(t);
 			if (! treeline) continue;
 			h3[treeline->GetRegion()][treeline->GetPackage()]->Fill(treeline->GetOctant());
 			h2[treeline->GetRegion()][treeline->GetPackage()][treeline->GetOctant()]->Fill(mdm[treeline->GetOctant()]->GetValue()+mdp[treeline->GetOctant()]->GetValue());

@@ -105,7 +105,7 @@ using std::endl;
 // Qweak track/event headers
 #include "QwHit.h"
 #include "QwHitContainer.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 #include "QwEvent.h"
@@ -222,8 +222,8 @@ QwTrackingWorker::~QwTrackingWorker ()
             << " (of " << QwHit::GetObjectsCreated() << ")" << QwLog::endl;
   QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive()
             << " (of " << QwHitPattern::GetObjectsCreated() << ")" << QwLog::endl;
-  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive()
-            << " (of " << QwTrackingTreeLine::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwTreeLine: "     << QwTreeLine::GetObjectsAlive()
+            << " (of " << QwTreeLine::GetObjectsCreated() << ")" << QwLog::endl;
   QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive()
             << " (of " << QwPartialTrack::GetObjectsCreated() << ")" << QwLog::endl;
   QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive()
@@ -549,7 +549,7 @@ void QwTrackingWorker::ProcessEvent (
                                   linked list                                              ---- */
 
                     // Start the search for this set of like-pitched planes
-                    QwTrackingTreeLine* treelinelist = 0; // local list of found tree lines
+                    QwTreeLine* treelinelist = 0; // local list of found tree lines
 
                     /*! ---- 3rd: create the bit patterns for the hits                     ---- */
 
@@ -557,7 +557,7 @@ void QwTrackingWorker::ProcessEvent (
                     if (region == kRegionID3 && type == kTypeDriftVDC) {
 
                         dlayer = 0; /* set "number of detectors" to zero */
-                        QwTrackingTreeLine *treelinelist1 = 0, *treelinelist2 = 0;
+                        QwTreeLine *treelinelist1 = 0, *treelinelist2 = 0;
 
                         // Set hit pattern for this region
                         QwDebug << "Setting hit pattern (region 3)" << QwLog::endl;
@@ -649,7 +649,7 @@ void QwTrackingWorker::ProcessEvent (
                             // We should set the QwDetectorInfo link here already,
                             // or manually set the QwDetectorID fields.  Also, we
                             // should put QwDetectorInfo in the searchtree object.
-                            for (QwTrackingTreeLine* treeline = treelinelist;
+                            for (QwTreeLine* treeline = treelinelist;
                                  treeline; treeline = treeline->next) {
                               treeline->SetRegion(region);
                               treeline->SetPackage(package);
@@ -707,8 +707,8 @@ void QwTrackingWorker::ProcessEvent (
                         }
 
                         // Delete tree line lists after storing results in event structure
-                        QwTrackingTreeLine* tl = 0;
-                        QwTrackingTreeLine* tl_next = 0;
+                        QwTreeLine* tl = 0;
+                        QwTreeLine* tl_next = 0;
                         tl = treelinelist1;
                         while (tl) { tl_next = tl->next; delete tl; tl = tl_next; }
                         tl = treelinelist2;
@@ -799,7 +799,7 @@ void QwTrackingWorker::ProcessEvent (
                         // We should set the QwDetectorInfo link here already,
                         // or manually set the QwDetectorID fields.  Also, we
                         // should put QwDetectorInfo in the searchtree object.
-                        for (QwTrackingTreeLine* treeline = treelinelist;
+                        for (QwTreeLine* treeline = treelinelist;
                              treeline; treeline = treeline->next) {
                           treeline->SetRegion(region);
                           treeline->SetPackage(package);

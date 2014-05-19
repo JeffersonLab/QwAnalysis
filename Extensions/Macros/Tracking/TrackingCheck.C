@@ -270,7 +270,7 @@ void slope(int ev_start=-1,int ev_end=-1,int run_number=6327){
  
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
-    QwTrackingTreeLine* tl=0;
+    QwTreeLine* tl=0;
     QwPartialTrack* pt=0;
 
     event_tree->SetBranchAddress ( "events",&fEvent );
@@ -359,7 +359,7 @@ void residual(int run_number=6327){
  
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
-    QwTrackingTreeLine* treeline=0;
+    QwTreeLine* treeline=0;
     QwPartialTrack* pt=0;
     TH1F* dd=new TH1F("dd","dd",500,-5,5);
     TH1F* dt=new TH1F("dt","dt",700,-100,600);
@@ -595,7 +595,7 @@ void r2angle(int ev_start=-1, int ev_end=-1,  int run=5148, int package=1, int o
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
     QwPartialTrack* pt=0;
-    QwTrackingTreeLine* treeline=0;
+    QwTreeLine* treeline=0;
     QwTrack* track=0;
     event_tree->SetBranchAddress ( "events",&fEvent );
 
@@ -729,7 +729,7 @@ void diagnostics(int ev_start=-1, int ev_end=-1,  int run=5148){
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
     QwPartialTrack* pt=0;
-    QwTrackingTreeLine* tl=0;
+    QwTreeLine* tl=0;
     QwHit* hit=0;
     QwTrack* track=0;
 

@@ -62,7 +62,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
   QwEvent* fEvent=0;
   QwPartialTrack* pt=0;
-  QwTrackingTreeLine* tl=0;
+  QwTreeLine* tl=0;
   // QwHit* hits=0;
 
   //check if you put some crazy numbers here
@@ -884,7 +884,7 @@ void CleanTrack(int package=1, int md_number=5,int run=6327, int max_events=-1)
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
     QwPartialTrack* pt=0;
-    QwTrackingTreeLine* tl=0;
+    QwTreeLine* tl=0;
 
     TBranch* branch_event=event_tree->GetBranch("events");
     TBranch* branch=event_tree->GetBranch("maindet");
@@ -959,7 +959,7 @@ void Angle(int package=1, int md_number=5,int run=6327, int max_events=-1)
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
     QwPartialTrack* pt=0;
-    QwTrackingTreeLine* tl=0;
+    QwTreeLine* tl=0;
 
     TBranch* branch_event=event_tree->GetBranch("events");
     TBranch* branch=event_tree->GetBranch("maindet");

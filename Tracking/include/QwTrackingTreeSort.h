@@ -31,10 +31,10 @@ class QwTrackingTreeSort {
     double doubletrack;
     int good;
 
-    int rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region);
+    int rcTreeConnSort (QwTreeLine *head, EQwRegionID region);
     int connectiv( char *ca, int *array, int *isvoid, char size, int idx );
-    int rcCommonWires(QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 );
-    int rcCommonWires_r3( QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 );
+    int rcCommonWires(QwTreeLine *line1, QwTreeLine *line2 );
+    int rcCommonWires_r3( QwTreeLine *line1, QwTreeLine *line2 );
     int connectarray( char *ca, int *array, int *isvoid, char size, int idx );
     void bestunconnected( char *ca, int *array, int *isvoid, double *chia,
 		 int size, int idx);

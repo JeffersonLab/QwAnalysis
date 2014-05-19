@@ -9,7 +9,7 @@ ClassImp(QwQuartzBarLight)
 #include "QwUnits.h"
 #include "QwHit.h"
 #include "QwHitContainer.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 #include "QwVertex.h"
@@ -167,25 +167,25 @@ QwHitContainer* QwQuartzBarLight::GetHitContainer()
 
 
 // Create a new QwTreeLine
-QwTrackingTreeLine* QwQuartzBarLight::CreateNewTreeLine()
+QwTreeLine* QwQuartzBarLight::CreateNewTreeLine()
 {
   TClonesArray &treelines = *fQwTreeLines;
-  QwTrackingTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTrackingTreeLine();
+  QwTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTreeLine();
   return treeline;
 };
 
 // Add an existing QwTreeLine
-void QwQuartzBarLight::AddTreeLine(QwTrackingTreeLine* treeline)
+void QwQuartzBarLight::AddTreeLine(QwTreeLine* treeline)
 {
-  QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
+  QwTreeLine* newtreeline = CreateNewTreeLine();
   *newtreeline = *treeline;
   newtreeline->next = 0;
 };
 
 // Add a linked list of QwTreeLine's
-void QwQuartzBarLight::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+void QwQuartzBarLight::AddTreeLineList(QwTreeLine* treelinelist)
 {
-  for (QwTrackingTreeLine *treeline = treelinelist;
+  for (QwTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next)
     if (treeline->IsValid())
       AddTreeLine(treeline);
@@ -209,8 +209,8 @@ void QwQuartzBarLight::ResetTreeLines(Option_t *option)
 void QwQuartzBarLight::PrintTreeLines()
 {
   TIterator* iterator = fQwTreeLines->MakeIterator();
-  QwTrackingTreeLine* treeline = 0;
-  while ((treeline = (QwTrackingTreeLine*) iterator->Next()))
+  QwTreeLine* treeline = 0;
+  while ((treeline = (QwTreeLine*) iterator->Next()))
     std::cout << *treeline << std::endl;
   delete iterator;
 }

@@ -15,7 +15,7 @@
 // Qweak headers
 #include "QwTypes.h"
 #include "QwObjectCounter.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 
@@ -196,10 +196,10 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
       TClonesArray *fQwTreeLines; ///< Array of QwTreeLines
     #endif // QWTREELINES_IN_LOCAL_TCLONESARRAY
     #ifdef QWTREELINES_IN_STL_VECTOR
-      std::vector<QwTrackingTreeLine*> fQwTreeLines; ///< Array of QwTreeLines
+      std::vector<QwTreeLine*> fQwTreeLines; ///< Array of QwTreeLines
     #endif // QWTREELINES_IN_STL_VECTOR
     #ifdef QWTREELINES_IN_TEMPLATED_LIST
-      QwTrackingTreeLineContainer fQwTreeLines;
+      QwTreeLineContainer fQwTreeLines;
     #endif
 
     // Partial tracks
@@ -305,13 +305,13 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \name Tree line list maintenance for output to ROOT files
     // @{
     //! \brief Create a new tree line
-    QwTrackingTreeLine* CreateNewTreeLine();
+    QwTreeLine* CreateNewTreeLine();
     //! \brief Add an existing tree line as a copy
-    void AddTreeLine(const QwTrackingTreeLine* treeline);
+    void AddTreeLine(const QwTreeLine* treeline);
     //! \brief Add a list of existing tree lines as a copy
-    void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
+    void AddTreeLineList(const QwTreeLine* treelinelist);
     //! \brief Add a list of existing tree lines as a copy
-    void AddTreeLineList(const std::vector<QwTrackingTreeLine*>& treelinelist);
+    void AddTreeLineList(const std::vector<QwTreeLine*>& treelinelist);
     //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
     //! \brief Reset the list of tree lines
@@ -323,10 +323,10 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
       const TClonesArray* GetListOfTreeLines() const { return fQwTreeLines; };
     #endif
     #if defined QWTREELINES_IN_STL_VECTOR
-      const std::vector<QwTrackingTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
+      const std::vector<QwTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
     #endif
     //! \brief Get the specified tree line
-    const QwTrackingTreeLine* GetTreeLine(const int tl) const;
+    const QwTreeLine* GetTreeLine(const int tl) const;
     //! \brief Print the list of tree lines
     void PrintTreeLines(Option_t* option = "") const;
     // @}
@@ -434,7 +434,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     Double_t fPrimaryQ2;
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
-    QwTrackingTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
+    QwTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
 
     /*! list of partial tracks [package][region][type] */
     QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions][kNumTypes]; //!

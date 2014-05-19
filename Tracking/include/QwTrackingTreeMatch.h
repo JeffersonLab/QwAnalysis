@@ -20,7 +20,7 @@
 #include "QwTypes.h"
 
 // Forward declarations
-class QwTrackingTreeLine;
+class QwTreeLine;
 class QwPartialTrack;
 class QwTrack;
 
@@ -62,18 +62,10 @@ class QwTrackingTreeMatch {
     /// Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
 
-    void TgTrackPar (
-	QwPartialTrack* front,
-	QwPartialTrack* back,
-	double *theta,
-	double *phi,
-	double *bending,
-	double *ZVertex );
-
     //! Match the tree lines in two planes in region 3
-    QwTrackingTreeLine* MatchRegion3 (
-	QwTrackingTreeLine* frontlist,
-	QwTrackingTreeLine* backlist);
+    QwTreeLine* MatchRegion3 (
+	QwTreeLine* frontlist,
+	QwTreeLine* backlist);
 
   private:
 

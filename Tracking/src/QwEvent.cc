@@ -11,7 +11,7 @@ ClassImp(QwKinematics);
 #include "QwParameterFile.h"
 #include "QwHit.h"
 #include "QwHitContainer.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 #include "QwVertex.h"
@@ -59,7 +59,7 @@ QwEvent::QwEvent()
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
     // Create the static TClonesArray for the tree lines if not existing yet
     if (! gQwTreeLines)
-      gQwTreeLines = new TClonesArray("QwTrackingTreeLine", QWEVENT_MAX_NUM_TREELINES);
+      gQwTreeLines = new TClonesArray("QwTreeLine", QWEVENT_MAX_NUM_TREELINES);
     // Set local TClonesArray to static TClonesArray
     fQwTreeLines = gQwTreeLines;
   #endif
@@ -138,9 +138,9 @@ QwEvent::~QwEvent()
 	
         // Delete all those treelines
          for (int l = 0; l < kNumDirections; ++l) {
-           QwTrackingTreeLine* tl = fTreeLine[i][j][k][l];
+           QwTreeLine* tl = fTreeLine[i][j][k][l];
            while (tl) {
-             QwTrackingTreeLine* tl_next = tl->next;
+             QwTreeLine* tl_next = tl->next;
              delete tl;
              tl = tl_next;
            }
@@ -463,26 +463,26 @@ QwHitContainer* QwEvent::GetHitContainer()
 
 
 // Create a new QwTreeLine
-QwTrackingTreeLine* QwEvent::CreateNewTreeLine()
+QwTreeLine* QwEvent::CreateNewTreeLine()
 {
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
     TClonesArray &treelines = *fQwTreeLines;
-    QwTrackingTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTrackingTreeLine();
+    QwTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTreeLine();
   #else
-    QwTrackingTreeLine* treeline = new QwTrackingTreeLine();
+    QwTreeLine* treeline = new QwTreeLine();
     AddTreeLine(treeline);
   #endif
   return treeline;
 }
 
 // Add an existing QwTreeLine
-void QwEvent::AddTreeLine(const QwTrackingTreeLine* treeline)
+void QwEvent::AddTreeLine(const QwTreeLine* treeline)
 {
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
+    QwTreeLine* newtreeline = CreateNewTreeLine();
     *newtreeline = *treeline;
   #elif defined QWTREELINES_IN_STL_VECTOR
-    fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
+    fQwTreeLines.push_back(new QwTreeLine(treeline));
   #elif defined QWTREELINES_IN_TEMPLATED_LIST
     fQwTreeLines.Add(treeline);
   #endif
@@ -490,9 +490,9 @@ void QwEvent::AddTreeLine(const QwTrackingTreeLine* treeline)
 }
 
 // Add a linked list of QwTreeLine's
-void QwEvent::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
+void QwEvent::AddTreeLineList(const QwTreeLine* treelinelist)
 {
-  for (const QwTrackingTreeLine *treeline = treelinelist;
+  for (const QwTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next){
     if (treeline->IsValid()){
        AddTreeLine(treeline);
@@ -501,7 +501,7 @@ void QwEvent::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
 }
 
 // Add a vector of QwTreeLine's
-void QwEvent::AddTreeLineList(const std::vector<QwTrackingTreeLine*>& treelinelist)
+void QwEvent::AddTreeLineList(const std::vector<QwTreeLine*>& treelinelist)
 {
   for (size_t i = 0; i < treelinelist.size(); i++)
     if (treelinelist[i]->IsValid())
@@ -515,10 +515,10 @@ void QwEvent::ClearTreeLines(Option_t *option)
     fQwTreeLines->Clear(option); // Clear the local TClonesArray
   #elif defined QWTREELINES_IN_STL_VECTOR
     for (size_t i = 0; i < fQwTreeLines.size(); i++){
-      QwTrackingTreeLine* tl=fQwTreeLines.at(i);
+      QwTreeLine* tl=fQwTreeLines.at(i);
       delete tl;
 //       while(tl){
-// 	QwTrackingTreeLine* tl_next=tl->next;
+// 	QwTreeLine* tl_next=tl->next;
 // 	delete tl;
 // 	tl=tl_next;
 //       }
@@ -541,11 +541,11 @@ void QwEvent::ResetTreeLines(Option_t *option)
 }
 
 // Get the specified tree line
-const QwTrackingTreeLine* QwEvent::GetTreeLine(const int tl) const
+const QwTreeLine* QwEvent::GetTreeLine(const int tl) const
 {
   if (tl < 0 || tl > GetNumberOfTreeLines()) return 0;
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    return (QwTrackingTreeLine*) fQwTreeLines->At(tl);
+    return (QwTreeLine*) fQwTreeLines->At(tl);
   #else // QWTREELINES_IN_STL_VECTOR
     return fQwTreeLines.at(tl);
   #endif
@@ -556,15 +556,15 @@ void QwEvent::PrintTreeLines(Option_t* option) const
 {
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
     TIterator* iterator = fQwTreeLines->MakeIterator();
-    QwTrackingTreeLine* treeline = 0;
-    while ((treeline = (QwTrackingTreeLine*) iterator->Next()))
+    QwTreeLine* treeline = 0;
+    while ((treeline = (QwTreeLine*) iterator->Next()))
       std::cout << *treeline << std::endl;
     delete iterator;
   #else // QWTREELINES_IN_STL_VECTOR
-    for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
+    for (std::vector<QwTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
          treeline != fQwTreeLines.end(); treeline++){
       std::cout << **treeline << std::endl;
-      QwTrackingTreeLine* tl=(*treeline)->next;
+      QwTreeLine* tl=(*treeline)->next;
       while (tl){
 	 std::cout << *tl << std::endl;
 	 tl=tl->next;

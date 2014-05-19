@@ -1,5 +1,5 @@
 /**
- * \file   QwTrackingTreeLine.cc
+ * \file   QwTreeLine.cc
  * \brief  Definition of the one-dimensional track stubs
  *
  * \author Wouter Deconinck <wdconinc@mit.edu>
@@ -7,9 +7,9 @@
  * \date   Sun May 24 11:05:29 CDT 2009
  */
 
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-ClassImp(QwTrackingTreeLine)
+ClassImp(QwTreeLine)
 #endif
 
 // System headers
@@ -22,7 +22,7 @@ ClassImp(QwTrackingTreeLine)
 
 
 /// Default constructor
-QwTrackingTreeLine::QwTrackingTreeLine()
+QwTreeLine::QwTreeLine()
 {
   // Initialize
   Initialize();
@@ -30,7 +30,7 @@ QwTrackingTreeLine::QwTrackingTreeLine()
 
 
 /// Constructor with tree search results
-QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _b_end)
+QwTreeLine::QwTreeLine(int _a_beg, int _a_end, int _b_beg, int _b_end)
 {
   // Initialize
   Initialize();
@@ -44,7 +44,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
 
 /// Copy constructor
-QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine& that)
+QwTreeLine::QwTreeLine(const QwTreeLine& that)
 : VQwTrackingElement(that)
 {
   // Initialize
@@ -55,7 +55,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine& that)
 }
 
 /// Copy constructor
-QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* that)
+QwTreeLine::QwTreeLine(const QwTreeLine* that)
 : VQwTrackingElement(*that)
 {
   // Initialize
@@ -72,7 +72,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* that)
 /**
  * Delete the tree line and the lists of hits depending on it
  */
-QwTrackingTreeLine::~QwTrackingTreeLine()
+QwTreeLine::~QwTreeLine()
 { 
   // Delete the hits in this treeline
   for (int i = 0; i < 2 * MAX_LAYERS; ++i) {
@@ -92,7 +92,7 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
 /**
  * Perform object initialization
  */
-void QwTrackingTreeLine::Initialize()
+void QwTreeLine::Initialize()
 {
   // Clear the list of hits
   ClearHits();
@@ -131,7 +131,7 @@ void QwTrackingTreeLine::Initialize()
 /**
  * Assignment operator
  */
-QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that)
+QwTreeLine& QwTreeLine::operator=(const QwTreeLine& that)
 {
   if (this == &that) return *this;
 
@@ -187,14 +187,14 @@ QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that
 
 
 // Clear the list of hits
-void QwTrackingTreeLine::ClearHits()
+void QwTreeLine::ClearHits()
 {
   fQwHits.clear();
   fNQwHits = 0;
 }
 
 // Delete the hits in the list
-void QwTrackingTreeLine::DeleteHits()
+void QwTreeLine::DeleteHits()
 {
   for (size_t i = 0; i < fQwHits.size(); i++)
     delete fQwHits.at(i);
@@ -202,14 +202,14 @@ void QwTrackingTreeLine::DeleteHits()
 }
 
 // Add a single hit
-void QwTrackingTreeLine::AddHit(const QwHit* hit)
+void QwTreeLine::AddHit(const QwHit* hit)
 {
   if (hit) fQwHits.push_back(new QwHit(hit));
   fNQwHits++;
 }
 
 // Add a list of hits
-void QwTrackingTreeLine::AddHitList(const std::vector<QwHit*> &hitlist)
+void QwTreeLine::AddHitList(const std::vector<QwHit*> &hitlist)
 {
   for (std::vector<QwHit*>::const_iterator hit = hitlist.begin();
        hit != hitlist.end(); hit++)
@@ -217,7 +217,7 @@ void QwTrackingTreeLine::AddHitList(const std::vector<QwHit*> &hitlist)
 }
 
 // Add the hits of a QwHitContainer to the TClonesArray
-void QwTrackingTreeLine::AddHitContainer(QwHitContainer* hitlist)
+void QwTreeLine::AddHitContainer(QwHitContainer* hitlist)
 {
   for (QwHitContainer::iterator hit = hitlist->begin();
        hit != hitlist->end(); hit++) {
@@ -227,7 +227,7 @@ void QwTrackingTreeLine::AddHitContainer(QwHitContainer* hitlist)
 }
 
 // Get the hits from the TClonesArray to a QwHitContainer
-const QwHit* QwTrackingTreeLine::GetHit(int i) const
+const QwHit* QwTreeLine::GetHit(int i) const
 {
   if (fNQwHits == 0 ||  i >= fNQwHits)
     return 0;
@@ -236,7 +236,7 @@ const QwHit* QwTrackingTreeLine::GetHit(int i) const
 }
 
 // Get the hits from the TClonesArray to a QwHitContainer
-const QwHitContainer* QwTrackingTreeLine::GetHitContainer() const
+const QwHitContainer* QwTreeLine::GetHitContainer() const
 {
   QwHitContainer* hitlist = new QwHitContainer();
   for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
@@ -252,7 +252,7 @@ const QwHitContainer* QwTrackingTreeLine::GetHitContainer() const
  *
  * @return Weighted chi^2
  */
-double QwTrackingTreeLine::GetChiWeight ()
+double QwTreeLine::GetChiWeight ()
 {
   double weight;
   // NOTE Added +1 to get this to work if fNumHits == fNumMiss (region 2 cosmics)
@@ -272,7 +272,7 @@ double QwTrackingTreeLine::GetChiWeight ()
  * @param offset Optional offset to the position
  * @return Hit with smallest drift distance
  */
-QwHit* QwTrackingTreeLine::GetBestWireHit (double offset)
+QwHit* QwTreeLine::GetBestWireHit (double offset)
 {
   double best_position = 9999.9;
   int best_hit = 0;
@@ -291,7 +291,7 @@ QwHit* QwTrackingTreeLine::GetBestWireHit (double offset)
  * Calculate average residual of this partial track over all treelines
  * @return Average residual
  */
-double QwTrackingTreeLine::CalculateAverageResidual()
+double QwTreeLine::CalculateAverageResidual()
 {
   int numHits = 0;
   double sumResiduals = 0.0;
@@ -313,7 +313,7 @@ double QwTrackingTreeLine::CalculateAverageResidual()
 /**
  * Print the tree line in a linked list
  */
-void QwTrackingTreeLine::Print(const Option_t* options) const {
+void QwTreeLine::Print(const Option_t* options) const {
   if (!this) return;
   std::cout << *this << std::endl;
   if (next) next->Print(options);
@@ -323,7 +323,7 @@ void QwTrackingTreeLine::Print(const Option_t* options) const {
 /**
  * Print the valid tree lines in a linked list
  */
-void QwTrackingTreeLine::PrintValid() {
+void QwTreeLine::PrintValid() {
   if (!this) return;
   if (this->IsValid()) std::cout << *this << std::endl;
   next->PrintValid();
@@ -336,7 +336,7 @@ void QwTrackingTreeLine::PrintValid() {
  * @param tl Tree line as rhs of the operator
  * @return Stream as result of the operator
  */
-std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
+std::ostream& operator<< (std::ostream& stream, const QwTreeLine& tl) {
   stream << "tl: ";
   if (tl.a_beg + tl.a_end + tl.b_beg + tl.b_end != 0) {
     stream << tl.a_beg << "," << tl.a_end << " -- ";
@@ -363,14 +363,14 @@ std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
   return stream;
 }
 
-void QwTrackingTreeLine::SetMatchingPattern(std::vector<int>& box)
+void QwTreeLine::SetMatchingPattern(std::vector<int>& box)
 {
   std::vector<int>::iterator iter = box.begin();
   while (iter != box.end())
     fMatchingPattern.push_back(*iter++);
 }
 
-std::pair<double,double> QwTrackingTreeLine::CalculateDistance(int row,double width,unsigned int bins,double resolution)
+std::pair<double,double> QwTreeLine::CalculateDistance(int row,double width,unsigned int bins,double resolution)
 {
   std::pair<double,double> boundary(0,0);
   int bin = fMatchingPattern.at(row);

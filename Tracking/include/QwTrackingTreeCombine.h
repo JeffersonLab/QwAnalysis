@@ -66,7 +66,7 @@ and combining track segments into full tracks with lab coordinates.
 class QwHit;
 class QwHitContainer;
 class QwTrackingTreeRegion;
-class QwTrackingTreeLine;
+class QwTreeLine;
 class QwPartialTrack;
 class QwEvent;
 
@@ -110,39 +110,39 @@ class QwTrackingTreeCombine {
 
     bool TlCheckForX (
 		double x1, double x2, double dx1, double dx2, double Dx, double z1, double dz,
-		QwTrackingTreeLine *treefill, QwHitContainer *hitlist,
+		QwTreeLine *treefill, QwHitContainer *hitlist,
 		int  dlayer, int tlayer, int iteration, int stay_tuned, double width);
 
     int TlMatchHits (
 		double x1, double x2, double z1, double z2,
-		QwTrackingTreeLine *treeline, QwHitContainer *hitlist,
+		QwTreeLine *treeline, QwHitContainer *hitlist,
 		int tlayers);
 
     bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
-    void TlTreeLineSort (QwTrackingTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
+    void TlTreeLineSort (QwTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
 
     // Combine the tree lines in partial tracks for region 2 and region 3
     QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv,
-		QwTrackingTreeLine *wx,
+		QwTreeLine *wu,
+		QwTreeLine *wv,
+		QwTreeLine *wx,
 		int tlayer);
      QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv,
-		QwTrackingTreeLine *wx,
+		QwTreeLine *wu,
+		QwTreeLine *wv,
+		QwTreeLine *wx,
 		int tlayer,bool opt);
 
     QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv,
+		QwTreeLine *wu,
+		QwTreeLine *wv,
 		int tlayer);
     QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv);
+		QwTreeLine *wu,
+		QwTreeLine *wv);
 
     QwPartialTrack* TlTreeCombine (
-		QwTrackingTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
+		QwTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
 		EQwRegionID region, int tlayer, int dlayer);
 
     void ResidualWrite (QwEvent *event);
@@ -151,7 +151,7 @@ class QwTrackingTreeCombine {
     int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual, bool opt);
     int r3_TrackFit_deprecated  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
     QwPartialTrack* r3_TrackFit (const int num, QwHit **hits,
-        QwTrackingTreeLine *wu, QwTrackingTreeLine *wv);
+        QwTreeLine *wu, QwTreeLine *wv);
 
   private:
 

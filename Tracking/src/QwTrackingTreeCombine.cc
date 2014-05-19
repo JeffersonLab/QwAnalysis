@@ -32,7 +32,7 @@
 #include "QwHitContainer.h"
 #include "QwDetectorInfo.h"
 #include "QwTrackingTree.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 #include "QwEvent.h"
@@ -789,7 +789,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
     double Dx,
     double z1,
     double Dz,
-    QwTrackingTreeLine *treeline,
+    QwTreeLine *treeline,
     QwHitContainer *hitlist,
     int dlayer,
     int tlayer,
@@ -1127,7 +1127,7 @@ int QwTrackingTreeCombine::TlMatchHits (
     double x2,	///< x coordinates at last wire (i.e. distances)
     double z1,	///< z coordinates of first wire (i.e. wire number
     double z2,	///< z coordinates of last wire (i.e. wire number)
-    QwTrackingTreeLine *treeline,	///< determined treeline
+    QwTreeLine *treeline,	///< determined treeline
     QwHitContainer *hitlist,	///< hit list
     int tlayers )		///< number of tree layers
 {
@@ -1272,7 +1272,7 @@ int QwTrackingTreeCombine::TlMatchHits (
    chi^2
    ------------------------------ */
 void QwTrackingTreeCombine::TlTreeLineSort (
-    QwTrackingTreeLine *treelinelist,
+    QwTreeLine *treelinelist,
     QwHitContainer *hitlist,
     EQwDetectorPackage package,
     EQwRegionID region,
@@ -1294,7 +1294,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 		   -------------------------------------------------- */
 
       // For each valid tree line
-      for ( QwTrackingTreeLine *treeline = treelinelist;
+      for ( QwTreeLine *treeline = treelinelist;
           treeline && treeline->IsValid();
           treeline = treeline->next )
       {
@@ -1377,7 +1377,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
             -------------------------------------------------- */
 
       // Loop over all valid tree lines
-      for ( QwTrackingTreeLine *treeline = treelinelist;
+      for ( QwTreeLine *treeline = treelinelist;
           treeline; treeline = treeline->next )
       {
         if ( treeline->IsVoid() )
@@ -1424,7 +1424,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
 
   // Calculate the average residual
-  for (QwTrackingTreeLine *treeline = treelinelist; treeline;
+  for (QwTreeLine *treeline = treelinelist; treeline;
       treeline = treeline->next) {
     if (treeline->IsValid()) {
       treeline->CalculateAverageResidual();
@@ -1433,10 +1433,10 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
   // Now search for identical tree lines in the list
   QwDebug << "Searching for identical treelines..." << QwLog::endl;
-  for (QwTrackingTreeLine *treeline1 = treelinelist; treeline1;
+  for (QwTreeLine *treeline1 = treelinelist; treeline1;
       treeline1 = treeline1->next) {
     if (treeline1->IsValid()) {
-      for (QwTrackingTreeLine *treeline2 = treeline1->next; treeline2;
+      for (QwTreeLine *treeline2 = treeline1->next; treeline2;
           treeline2 = treeline2->next) {
         if (treeline2->IsValid()
             && treeline1->fOffset == treeline2->fOffset
@@ -1906,8 +1906,8 @@ int QwTrackingTreeCombine::r2_TrackFit (
 QwPartialTrack* QwTrackingTreeCombine::r3_TrackFit (
     const int num,
     QwHit **hits,
-    QwTrackingTreeLine* wu,
-    QwTrackingTreeLine* wv)
+    QwTreeLine* wu,
+    QwTreeLine* wv)
 {
   // Initialize variables
   double fit[4];
@@ -2209,8 +2209,8 @@ int QwTrackingTreeCombine::r3_TrackFit_deprecated (
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
-    QwTrackingTreeLine *wu,
-    QwTrackingTreeLine *wv )
+    QwTreeLine *wu,
+    QwTreeLine *wv )
 {
   //###############
   // Declarations #
@@ -2279,8 +2279,8 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
-    QwTrackingTreeLine *wu,
-    QwTrackingTreeLine *wv,
+    QwTreeLine *wu,
+    QwTreeLine *wv,
     int tlayer )
 {
   //###############
@@ -2432,9 +2432,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 
  *//*-------------------------------------------------------------------------*/
 QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
-    QwTrackingTreeLine *wu,
-    QwTrackingTreeLine *wv,
-    QwTrackingTreeLine *wx,
+    QwTreeLine *wu,
+    QwTreeLine *wv,
+    QwTreeLine *wx,
     int tlayer)
 {
   QwHit *hits[3 * DLAYERS];
@@ -2547,9 +2547,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 // reloaded version
 
 QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
-    QwTrackingTreeLine *wu,
-    QwTrackingTreeLine *wv,
-    QwTrackingTreeLine *wx,
+    QwTreeLine *wu,
+    QwTreeLine *wv,
+    QwTreeLine *wx,
     int tlayer, bool opt)
 {
   QwHit *hits[3 * DLAYERS];
@@ -2675,7 +2675,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 
  */
 QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
-    QwTrackingTreeLine *uvl[kNumDirections],
+    QwTreeLine *uvl[kNumDirections],
     EQwDetectorPackage package,
     EQwRegionID region,
     int tlayer,
@@ -2720,8 +2720,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
       int nump0 = 0;
       int count = 0;
       // Get the U treeline
-      QwTrackingTreeLine *wu = uvl[kDirectionU];
-      QwTrackingTreeLine *wv = uvl[kDirectionV];
+      QwTreeLine *wu = uvl[kDirectionU];
+      QwTreeLine *wv = uvl[kDirectionV];
       while (wu) {
         // Skip this treeline if it was no good
         if (wu->IsVoid()) {
@@ -2832,10 +2832,10 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
       double best_chi=10000;
       QwPartialTrack* best_pt=0;
-      QwTrackingTreeLine* best_tl[3]={0};
+      QwTreeLine* best_tl[3]={0};
 
       // Get the U treeline
-      QwTrackingTreeLine* wu = uvl[kDirectionU];
+      QwTreeLine* wu = uvl[kDirectionU];
       while(wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS) {
         // Skip this treeline if it was no good
         if (wu->IsVoid()) {
@@ -2844,7 +2844,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         }
 
         // Get the V treeline
-        QwTrackingTreeLine* wv = uvl[kDirectionV];
+        QwTreeLine* wv = uvl[kDirectionV];
         while (wv) {
           // Skip this treeline if it was no good
           if (wv->IsVoid()) {
@@ -2853,7 +2853,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
           }
 
           // Get the X treeline
-          QwTrackingTreeLine* wx = uvl[kDirectionX];
+          QwTreeLine* wx = uvl[kDirectionX];
           while(wx) {
             // Skip this treeline if it was no good
             if (wx->IsVoid()) {
@@ -2935,7 +2935,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
      */
     /*
         // Get the u track
-        QwTrackingTreeLine *wu = uvl[kDirectionU];
+        QwTreeLine *wu = uvl[kDirectionU];
         while (wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS) {
 
           // Skip this treeline if it was no good
@@ -2948,7 +2948,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
           double offset_u = wu->fOffset; // constant
 
           // Get the v track
-          QwTrackingTreeLine *wv = uvl[kDirectionV];
+          QwTreeLine *wv = uvl[kDirectionV];
           while (wv) {
 
             // Skip this treeline if it was no good
@@ -3021,8 +3021,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
             // Loop over the x tracks
             // TODO (wdc) no x hit will never give a partial track!
-            QwTrackingTreeLine *wx = uvl[kDirectionX];
-            QwTrackingTreeLine *best_wx = 0; // start with null, no solution guaranteed
+            QwTreeLine *wx = uvl[kDirectionX];
+            QwTreeLine *best_wx = 0; // start with null, no solution guaranteed
             double minimum = 1.0e10;
             while (wx) {
               if (wx->IsVoid()) {

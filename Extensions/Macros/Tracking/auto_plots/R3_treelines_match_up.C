@@ -403,7 +403,7 @@ void Chi_Slope_Treelines(TChain * event_tree)
     for (int j=0; j < nTreelines; j++)
     {
       //get the jth treeline
-      const QwTrackingTreeLine* treeline = fEvent->GetTreeLine(j);
+      const QwTreeLine* treeline = fEvent->GetTreeLine(j);
 
       //start making cuts and filling histograms
       switch(treeline->GetRegion())
@@ -611,7 +611,7 @@ void Chi_Slope_PartialTracks(TChain * event_tree)
       for (int j=0; j < nTreelines; j++)
       {
         //get the jth treeline
-        const QwTrackingTreeLine* treeline = partialtracks->GetTreeLine(j);
+        const QwTreeLine* treeline = partialtracks->GetTreeLine(j);
 
         //start making cuts and filling histograms
         switch(treeline->GetRegion())
@@ -843,7 +843,7 @@ void Chi_Slope_Tracks(TChain * event_tree)
         {
 
           //get the jth treeline
-          const QwTrackingTreeLine* treeline = partialtracks->GetTreeLine(j);
+          const QwTreeLine* treeline = partialtracks->GetTreeLine(j);
 
           //start making and filling the histograms
           switch(treeline->GetRegion())

@@ -326,7 +326,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
         fCurrentEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs );    
 #endif
     
-    std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
+    std::vector<boost::shared_ptr<QwTreeLine> > treelinelist;
     treelinelist = CreateTreeLines(kRegionID2);
     for (size_t i = 0; i < treelinelist.size(); i++)
       fOriginalEvent->AddTreeLine(treelinelist[i].get());
@@ -641,10 +641,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitContainer() const
  * @param region Region of the tree lines
  * @return Vector of tree lines
  */
-std::vector<boost::shared_ptr<QwTrackingTreeLine> > QwTreeEventBuffer::CreateTreeLines(EQwRegionID region) const
+std::vector<boost::shared_ptr<QwTreeLine> > QwTreeEventBuffer::CreateTreeLines(EQwRegionID region) const
 {
   // List of tree lines
-  std::vector<boost::shared_ptr<QwTrackingTreeLine> > treelinelist;
+  std::vector<boost::shared_ptr<QwTreeLine> > treelinelist;
 
   /// \todo Recreate tree lines from simulated hits in QwTreeEventBuffer
 

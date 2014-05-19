@@ -27,7 +27,7 @@
  *  \brief Virtual base class for all tracking elements
  *
  * This is the virtual base class of all tracking elements, such as QwTrack,
- * QwPartialTrack, or QwTrackingTreeLine.  This class contains the identifying
+ * QwPartialTrack, or QwTreeLine.  This class contains the identifying
  * information of the detector where the tracking element resides.  All other
  * classes that contain tracking information should inherit from this class.
  *

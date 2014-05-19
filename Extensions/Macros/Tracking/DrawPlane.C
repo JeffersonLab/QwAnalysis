@@ -31,7 +31,7 @@ void draw(int event_number=0,Int_t run_number=6327){
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
     QwHit* hit=0;
-    QwTrackingTreeLine* tl=0;
+    QwTreeLine* tl=0;
 
     event_tree->SetBranchAddress ( "events",&fEvent );
     Int_t nevent=event_tree->GetEntries();

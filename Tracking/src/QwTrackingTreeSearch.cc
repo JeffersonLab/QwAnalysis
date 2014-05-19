@@ -119,7 +119,7 @@
 #include "globals.h"
 #include "QwHit.h"
 #include "QwDetectorInfo.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwTrackingTreeRegion.h"
 
 // Qweak tracking tree headers
@@ -157,7 +157,7 @@ QwTrackingTreeSearch::~QwTrackingTreeSearch ()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingTreeLine* QwTrackingTreeSearch::GetListOfTreeLines ()
+QwTreeLine* QwTrackingTreeSearch::GetListOfTreeLines ()
 {
   return fTreeLineList;
 }
@@ -784,7 +784,7 @@ int QwTrackingTreeSearch::exists (
 	int front,
 	int back,
 	int offset,
-	QwTrackingTreeLine *treelinelist)
+	QwTreeLine *treelinelist)
 {
   int *olda;
   int oldmiss, diff;
@@ -795,7 +795,7 @@ int QwTrackingTreeSearch::exists (
       newmiss++;
 
   // Loop over the treelines
-  for (QwTrackingTreeLine* tl = treelinelist; tl; tl = tl->next) {
+  for (QwTreeLine* tl = treelinelist; tl; tl = tl->next) {
 
 
     // If the treeline has been voided, go onto next one
@@ -1156,7 +1156,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             if (fShowMatchingPatterns) tree->Print();
 
             /* Create new treeline */ 
-            QwTrackingTreeLine* treeline = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
+            QwTreeLine* treeline = new QwTreeLine (frontbin, frontbin, backbin, backbin);
 
             /* Number of treelines found */
             fNTreeLines++;
@@ -1317,7 +1317,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 
             /* Create new treeline */
                                 
-            QwTrackingTreeLine* treeline = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
+            QwTreeLine* treeline = new QwTreeLine (frontbin, frontbin, backbin, backbin);
             /* Number of treelines found */
             ++fNTreeLines;
 
@@ -1377,7 +1377,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
  * @param numlayers Number of layers in region 3
  * @return Linked list of treelines
  */
-QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
+QwTreeLine* QwTrackingTreeSearch::SearchTreeLines (
 	QwTrackingTreeRegion* searchtree,
 	char **pattern,
 	int  **hashpat,

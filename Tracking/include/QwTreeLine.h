@@ -1,5 +1,5 @@
 /**
- * \file   QwTrackingTreeLine.h
+ * \file   QwTreeLine.h
  * \brief  Definition of the one-dimensional track stubs
  *
  * \author Wouter Deconinck <wdconinc@mit.edu>
@@ -7,8 +7,8 @@
  * \date   Sun May 24 11:05:29 CDT 2009
  */
 
-#ifndef QWTRACKINGTREELINE_H
-#define QWTRACKINGTREELINE_H
+#ifndef QWTREELINE_H
+#define QWTREELINE_H
 
 // System headers
 #include <vector>
@@ -38,17 +38,17 @@ class QwHitContainer;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
- *  \class QwTrackingTreeLine
+ *  \class QwTreeLine
  *  \ingroup QwTracking
  *  \brief One-dimensional (u, v, or x) track stubs and associated hits
  *
- * The QwTrackingTreeLine has a pointer to a set of hits.  It is passed to
+ * The QwTreeLine has a pointer to a set of hits.  It is passed to
  * various track fitting procedures and carries around the fit results.
  *
  * \todo This class needs a non-trivial copy constructor which ensures
  * that the hits are copied correctly.
  */
-class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTrackingTreeLine> {
+class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> {
 
   private:
 
@@ -66,18 +66,18 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
 
 
     /// Default constructor
-    QwTrackingTreeLine();
+    QwTreeLine();
     /// Constructor with tree search results
-    QwTrackingTreeLine(int _a_beg, int _a_end , int _b_beg, int _b_end);
+    QwTreeLine(int _a_beg, int _a_end , int _b_beg, int _b_end);
     /// Copy constructor
-    QwTrackingTreeLine(const QwTrackingTreeLine& that);
+    QwTreeLine(const QwTreeLine& that);
     /// Copy constructor
-    QwTrackingTreeLine(const QwTrackingTreeLine* that);
+    QwTreeLine(const QwTreeLine* that);
     /// Destructor
-    virtual ~QwTrackingTreeLine();
+    virtual ~QwTreeLine();
 
     /// Assignment operator
-    QwTrackingTreeLine& operator=(const QwTrackingTreeLine& treeline);
+    QwTreeLine& operator=(const QwTreeLine& treeline);
 
   private:
 
@@ -132,7 +132,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     void PrintValid();
 
     //! \brief Output stream operator
-    friend std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl);
+    friend std::ostream& operator<< (std::ostream& stream, const QwTreeLine& tl);
 
     //! \name Positions and resolutions in wire planes
     // @{
@@ -219,7 +219,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     int fR3Offset;			///< offset of demultiplexed group of 8
     int fR3FirstWire, fR3LastWire;	///< first and last wire in group of 8
 
-    QwTrackingTreeLine *next; //!       ///< link to next list element
+    QwTreeLine *next; //!       ///< link to next list element
 
     QwTrackingTreeRegion* fTree; //!    ///< search tree used to find this tree line
 
@@ -228,13 +228,13 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     double fAverageResidual;	        ///< average residual over all used hits
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(QwTrackingTreeLine,1);
+    ClassDef(QwTreeLine,1);
   #endif
 
-}; // class QwTrackingTreeLine
+}; // class QwTreeLine
 
-typedef QwTrackingTreeLine QwTreeLine;
+typedef QwTreeLine QwTrackingTreeLine;
 
-typedef VQwTrackingElementContainer<QwTrackingTreeLine> QwTrackingTreeLineContainer;
+typedef VQwTrackingElementContainer<QwTreeLine> QwTreeLineContainer;
 
-#endif // QWTRACKINGTREELINE_H
+#endif // QWTREELINE_H

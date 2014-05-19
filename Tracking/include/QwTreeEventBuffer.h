@@ -39,7 +39,7 @@ using std::vector;
 class QwDetectorInfo;
 class QwHit;
 class QwHitContainer;
-class QwTrackingTreeLine;
+class QwTreeLine;
 class QwPartialTrack;
 class QwTrack;
 class QwEvent;
@@ -110,7 +110,7 @@ class QwTreeEventBuffer
     QwHitContainer* GetHitContainer() const;
 
     /// \brief Get the tree lines
-    std::vector<boost::shared_ptr<QwTrackingTreeLine> > CreateTreeLines(EQwRegionID region) const;
+    std::vector<boost::shared_ptr<QwTreeLine> > CreateTreeLines(EQwRegionID region) const;
 
     /// \brief Get the partial tracks
     std::vector<boost::shared_ptr<QwPartialTrack> > CreatePartialTracks(EQwRegionID region) const;

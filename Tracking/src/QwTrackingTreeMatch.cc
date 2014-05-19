@@ -23,25 +23,9 @@
 #include "QwTrackingTreeCombine.h"
 
 // Qweak tracking headers
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double rcPEval( double vz, double te, double ph, double bend){
-  std::cerr << "Error: THIS FUNCTION IS ONLY A STUB rcPEval " << std::endl;
-  return -1000;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double rcZEval( double vz, double te, double ph, double mom, int idx){
-  std::cerr << "Error: THIS FUNCTION IS ONLY A STUB rcZEval " << std::endl;
-  return -1000;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
  * Match the tree lines in two like-pitched planes in region 3.
@@ -76,9 +60,9 @@ double rcZEval( double vz, double te, double ph, double mom, int idx){
  * @param backlist List of tree lines in the back plane
  * @return List of tree lines after matching
  */
-QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
-	QwTrackingTreeLine* frontlist,
-	QwTrackingTreeLine* backlist)
+QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
+	QwTreeLine* frontlist,
+	QwTreeLine* backlist)
 {
   // Check the region of the tree lines (only region 3 is allowed)
   if (frontlist->GetRegion() != kRegionID3
@@ -106,7 +90,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
 
   // Initialize the list of combined tree lines to null
-  QwTrackingTreeLine* treelinelist = 0;
+  QwTreeLine* treelinelist = 0;
 
   // Initialize the tree combine object (TODO can this be avoided?)
   QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
@@ -149,7 +133,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
   // Loop over the tree lines in the front VDC plane to set the wire position.
   int numflines = 0;
-  for (QwTrackingTreeLine* frontline = frontlist; frontline;
+  for (QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, numflines++) {
     // Skip the the void tree lines
     if (frontline->IsVoid()) continue;
@@ -165,7 +149,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   }
   // Loop over the tree lines in the back VDC plane to set the wire position
   int numblines = 0;
-  for (QwTrackingTreeLine* backline = backlist; backline;
+  for (QwTreeLine* backline = backlist; backline;
        backline = backline->next, numblines++) {
     // Skip the the void tree lines
     if (backline->IsVoid()) continue;
@@ -195,7 +179,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
   // Loop over the tree lines in the front VDC plane
   int ifront = 0;
-  for (QwTrackingTreeLine* frontline = frontlist; frontline;
+  for (QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
 
     // Initialization of fmatches
@@ -212,7 +196,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
     // Loop over the tree lines in the back VDC plane
     int iback = 0;
-    for (QwTrackingTreeLine* backline = backlist; backline;
+    for (QwTreeLine* backline = backlist; backline;
          backline = backline->next, iback++) {
 
       // Skip void tree lines
@@ -294,19 +278,19 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   // Loop over the tree lines in the front VDC plane
 
   ifront = 0;
-  for (QwTrackingTreeLine* frontline = frontlist; frontline;
+  for (QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
 
     // Loop over the tree lines in the back VDC plane
     int iback = 0;
-    for (QwTrackingTreeLine* backline = backlist; backline;
+    for (QwTreeLine* backline = backlist; backline;
          backline = backline->next, iback++) {
 
       // If this front segment was matched to this back segment
       if (fmatches[ifront] == iback) {
 
         // Create a new tree line
-        QwTrackingTreeLine* treeline = new QwTrackingTreeLine;
+        QwTreeLine* treeline = new QwTreeLine;
         // Set the detector identification
         treeline->SetRegion(frontline->GetRegion());
         treeline->SetPackage(frontline->GetPackage());
@@ -385,23 +369,3 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   // Return the list of matched tree lines (if no tree lines found, this is null)
   return treelinelist;
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwTrackingTreeMatch::TgTrackPar (
-	QwPartialTrack *front,	///< front partial track
-	QwPartialTrack *back,	///< back partial track
-	double *theta,		///< determined polar angle
-	double *phi,		///< determined azimuthal angle
-	double *bending,	///< bending in polar angle
-	double *ZVertex)	///< determined z vertex
-{
-  *theta = atan(front->fSlopeX);
-  *phi   = atan(front->fSlopeY);
-  if (bending && back)
-    *bending = atan(back->fSlopeX) - *theta;
-  *ZVertex = - ( (front->fSlopeX * front->fOffsetX + front->fSlopeY * front->fOffsetY)
-	       / (front->fSlopeX * front->fSlopeX  + front->fSlopeY * front->fSlopeY));
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

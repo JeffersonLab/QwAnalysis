@@ -157,7 +157,7 @@ void Chi(int runnum, bool is100k)
 		// now let's loop through the tree lines and fill all the above histograms
 		for (int t = 0; t < nTreeLines; t++)
 		{
-			 const QwTrackingTreeLine* treeline = fEvent->GetTreeLine(t);
+			 const QwTreeLine* treeline = fEvent->GetTreeLine(t);
 	
 			//Start making the cuts needed to fill the histogram
 

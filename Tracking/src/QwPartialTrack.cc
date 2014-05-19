@@ -207,7 +207,7 @@ double QwPartialTrack::CalculateAverageResidual()
   int numTreeLines = 0;
   double sumResiduals = 0.0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    for (const QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
+    for (const QwTreeLine* treeline = fTreeLine[dir]; treeline;
          treeline = treeline->next) {
       if (treeline->IsUsed()) {
         numTreeLines++;
@@ -233,24 +233,24 @@ void QwPartialTrack::Reset(Option_t *option)
 }
 
 // Create a new QwTreeLine
-QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
+QwTreeLine* QwPartialTrack::CreateNewTreeLine()
 {
-  QwTrackingTreeLine* treeline = new QwTrackingTreeLine();
+  QwTreeLine* treeline = new QwTreeLine();
   AddTreeLine(treeline);
   return treeline;
 }
 
 // Add an existing QwTreeLine
-void QwPartialTrack::AddTreeLine(const QwTrackingTreeLine* treeline)
+void QwPartialTrack::AddTreeLine(const QwTreeLine* treeline)
 {
-  fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
+  fQwTreeLines.push_back(new QwTreeLine(treeline));
   ++fNQwTreeLines;
 }
 
 // Add a linked list of QwTreeLine's
-void QwPartialTrack::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
+void QwPartialTrack::AddTreeLineList(const QwTreeLine* treelinelist)
 {
-  for (const QwTrackingTreeLine *treeline = treelinelist;
+  for (const QwTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next){
     if (treeline->IsValid()){
        AddTreeLine(treeline);
@@ -259,9 +259,9 @@ void QwPartialTrack::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
 }
 
 // Add a list of tree lines
-void QwPartialTrack::AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist)
+void QwPartialTrack::AddTreeLineList(const std::vector<QwTreeLine*> &treelinelist)
 { 
-  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = treelinelist.begin();
+  for (std::vector<QwTreeLine*>::const_iterator treeline = treelinelist.begin();
        treeline != treelinelist.end(); treeline++)
     AddTreeLine(*treeline);
 }
@@ -270,7 +270,7 @@ void QwPartialTrack::AddTreeLineList(const std::vector<QwTrackingTreeLine*> &tre
 void QwPartialTrack::ClearTreeLines(Option_t *option)
 {
   for (size_t i = 0; i < fQwTreeLines.size(); i++) {
-    QwTrackingTreeLine* tl = fQwTreeLines.at(i);
+    QwTreeLine* tl = fQwTreeLines.at(i);
     delete tl;
   }
   fQwTreeLines.clear();
@@ -286,10 +286,10 @@ void QwPartialTrack::ResetTreeLines(Option_t *option)
 // Print the tree lines
 void QwPartialTrack::PrintTreeLines(Option_t *option) const
 {
-  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
+  for (std::vector<QwTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
        treeline != fQwTreeLines.end(); treeline++) {
     std::cout << **treeline << std::endl;
-    QwTrackingTreeLine* tl = (*treeline)->next;
+    QwTreeLine* tl = (*treeline)->next;
     while (tl) {
       std::cout << *tl << std::endl;
       tl = tl->next;

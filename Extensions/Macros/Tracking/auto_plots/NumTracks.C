@@ -139,7 +139,7 @@ void NumTracks(Int_t runnum, bool is100k)
                 //starting with the TreeLines
                 for (Int_t t = 0 ; t < nTreeLines; t++)
                 {
-                        const QwTrackingTreeLine* treeline = fEvent->GetTreeLine(t);
+                        const QwTreeLine* treeline = fEvent->GetTreeLine(t);
 
                         if (treeline->GetRegion() == 2)
                         {
