@@ -94,8 +94,8 @@ the plots.
 </p></center>
 <p><center><img src="BeamPositionQ2_%%RUNNUM%%_Q2_vs_beamxposition.png"></center></p>
 <p><center><img src="BeamPositionQ2_%%RUNNUM%%_Q2_vs_beamyposition.png"></center></p>
-<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BPQ2_Output_x.txt">Beam X Position Values</a></center></p>
-<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BPQ2_Output_y.txt">Beam Y Position Values</a></center></p>
+<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BeamPositionQ2_X.txt">Beam X Position Values</a></center></p>
+<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BeamPositionQ2_Y.txt">Beam Y Position Values</a></center></p>
 
 
 
@@ -112,8 +112,21 @@ the U plane (in blue) and the V plane (in green) of the package which is being p
 Below these plots is a text file that has the mean Chi value for all of these and the error. <br> 
 In the file the direction is referenced by: 0 == total package, 1 == X plane, 3 == U plane, and 4 == V plane.  <br>
 </p></center>
+<<<<<<< .mine
+<p><center><img src="%%RUNNUM%%_LogChi.png"></center></p>
+<p><center><a href="%%RUNNUM%%_LogChi.txt">Chi Values</a></center></p>
+=======
 <p><center><img src="Chi_%%RUNNUM%%__chi.png" style="width: 900px;"></center></p>
 <p><center><a href="Chi_%%RUNNUM%%_Chi.txt">Chi Values</a></center></p>
+>>>>>>> .r5723
+<<<<<<< .mine
+<!-- 
+<center><p> The third plot log(Chi) values vs time in in region 2 for package 1 (across the top and package 2 across the bottom.
+From left to right the order is total package, X plane, U plane, V plane.</p><center>
+<p><center><img src="%%RUNNUM%%__chi_vs_time.png"></center></p>
+-->
+=======
+>>>>>>> .r5723
 
 
 <!-- New Topic -->
@@ -485,6 +498,7 @@ Graphs all 4 dslumi rates ratios vs. time on one canvas
 Graphs the QTOR current vs event number.
 </p><center>
 <p><center><img src="QTOR_%%RUNNUM%%_current_vs_time.png"></center></p>
+<p><center><a href="QTOR_%%RUNNUM%%_QTOR.txt">QTOR current</a></center></p>
 
 
 <!-- New Topic -->

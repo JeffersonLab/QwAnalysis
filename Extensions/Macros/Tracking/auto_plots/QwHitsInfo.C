@@ -76,7 +76,7 @@ Modified:7-9-2012
 void QwHits_Region (TChain * event_tree)
 {
 	//Create the canvas
-	TCanvas c1("c1", "QwHits by Region - regardless of package", 500,400);
+	TCanvas c1("c1", "QwHits by Region - regardless of package", 400,400);
 
 	//define the histogram
 	TH1D* h = new TH1D ("h","QwHits - Region",7,0.0,7.0);
@@ -172,7 +172,7 @@ void QwHits_Package (TChain * event_tree)
 {
 
 	//Create the canvas
-	TCanvas c2("c2", "QwHits by Package - regardless of region", 500,400);
+	TCanvas c2("c2", "QwHits by Package - regardless of region", 400,400);
 
 	//define the histogram
 	TH1D* h2 = new TH1D ("h2","QwHits - Package",3,0.0,3.0);
@@ -272,7 +272,7 @@ Modified: 07-09-2012
 void QwHits_Direction (TChain * event_tree)
 {
 	//Create the canvas
-	TCanvas c3("c3", "QwHits by Dircetion - in Region 2", 500,400);
+	TCanvas c3("c3", "QwHits by Dircetion - in Region 2", 400,400);
 
 	//define the histogram
 	TH1D* h3 = new TH1D ("h3","QwHits - Direction",5,0.0,5.0);
@@ -463,7 +463,7 @@ void QwHits_Element (TChain * event_tree)
 	for (int r = 2; r <=3; r++)
 	{
 		//Create the canvas
-		TCanvas c4("c4", Form("QwHits by Element - in Region %d",r), 500,400);
+		TCanvas c4("c4", Form("QwHits by Element - in Region %d",r), 400,400);
 
 		c4.Divide(2,0);
 
@@ -539,7 +539,7 @@ void NQwTracks (TChain * event_tree)
 	}
 
         //Create the canvas and set y axis log scale
-        TCanvas c4("c4", "Log of events.fNQwTracks", 500,400);
+        TCanvas c4("c4", "Log of events.fNQwTracks", 400,400);
 	c4.SetLogy();
 
 	h6->Draw();

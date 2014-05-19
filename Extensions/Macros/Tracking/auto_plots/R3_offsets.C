@@ -10,7 +10,7 @@ Specifically the momentum
 
 Entry Conditions: the run number, bool for first 100k
 Date: 02-25-2014
-Modified: 03-25-2014
+Modified: 05-07-2014
 Assisted By: Me :-), Juan Carlos Cornejo, Wouter Deconinck
 ***********************************************************/
 
@@ -494,45 +494,47 @@ void Print_To_File(int run_num)
   // open file with PREFIX+R3_offsets.txt which will
   // store the output of the vlaues to a file in a easy way
   //that should be able to be read back into a program if needed
-  fout.open(PREFIX+"R3_offsets.txt");
-  if (!fout.is_open()) cout << "File not opened" << endl;
-  //Prefix will inculed run number which we need.
 
-  //Name what each coulmn is.
-  //Note direction is 0 - all planes, 1 - the X planes, 3 - U planes, 4 - V planes
-  //Error is the RMS.sqrt(N)
-  fout << "Run \t pkg \t DIR \t Value \t Error" << endl; // add if nee position info \t POS \t Value \t Error" <<endl;
-
-  for (int i=1; i<NUMPACKAGES; i++)
+  for(int j=0; j< NUMDIRECTIONOFF; j++)
   {
-    for(int j=0; j< NUMDIRECTIONOFF; j++)
+    switch(j)
     {
-      h_Temp = (TH1D*)gDirectory->Get(Form("h_Direction_%s_OFF[%d]",INDEXTODirectionOFF[j].c_str(),i));
-      switch(j)
-      {
-        case 0:
-          break;
+      case 0:
+        break;
 
-        case 1:
-          break;
+      case 1:
+        break;
 
-        case 2:
-          break;
+      case 2:
+        break;
 
-        case 3:
-        case 4:
-          fout << run_num << "\t" << i << "\t" << INDEXTODirectionOFF[j].c_str() << "\t" <<
+      case 3:
+      case 4:
+        fout.open(PREFIX+Form("R3_offsets_%s.txt",INDEXTODirectionOFF[j].c_str()));
+        if (!fout.is_open()) cout << "File not opened" << endl;
+        //Prefix will inculed run number which we need.
+
+        //Name what each coulmn is.
+        //Note direction is 0 - all planes, 1 - the X planes, 3 - U planes, 4 - V planes
+        //Error is the RMS.sqrt(N)
+        fout << "Run \t pkg \t DIR \t Value \t Error" << endl; // add if nee position info \t POS \t Value \t Error" <<endl;
+
+        for (int i=1; i<NUMPACKAGES; i++)
+        {
+          h_Temp = (TH1D*)gDirectory->Get(Form("h_Direction_%s_OFF[%d]",INDEXTODirectionOFF[j].c_str(),i));
+
+          fout << run_num << " \t " << i << " \t " << INDEXTODirectionOFF[j].c_str() << " \t " <<
              value_with_error(h_Temp->GetMean(),(h_Temp->GetRMS()/sqrt(h_Temp->GetEntries()))) << endl;
-          break;
+        }
 
-        default:
-          break;
-      }
+        //close the file
+        fout.close();
+        break;
+
+      default:
+        break;
     }
   }
-
-  //close the file
-  fout.close();
 
   return;
 }

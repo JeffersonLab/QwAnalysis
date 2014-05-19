@@ -46,7 +46,10 @@
 //     be correct for tight values of "width" parameter)
 //   - added text output for matching parameters, and changed to a 3 sigma cut
 //   - deleted some unused variables
-
+//
+// Modified 50-06-2014
+// Added in some more text file output so that I can make the ROOT tree :)
+// Also added the sig digets function
 
 #include "auto_shared_includes.h"
 
@@ -61,6 +64,16 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+
+/***********************************
+set up the significant figures right - &plusmn is for html,
+  change to +/- if not useing,
+  or in this case \t for a tab space in the outputfile
+Use this by calling: value_with_error(a,da)
+***********************************/
+#define value_with_error(a,da) std::setiosflags(std::ios::fixed) \
+ << std::setprecision((size_t) (std::log10((a)/(da)) - std::log10(a) + 1.5)) \
+ << " " << (a) << " \t " << (da) << std::resetiosflags(std::ios::fixed)
 
 // Threshold for defining the maximum number of allowed hits per event per package
 const int multiple=18;
@@ -453,13 +466,13 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
       fout << "Phi\t " << runnum <<" \t 2 \t  " << md_2 << "\t" <<  std::setprecision(3) << p2_phi->GetMean() << "\t\t" <<  std::setprecision(2) << p2_phi->GetRMS()/sqrt(p2_phi->GetEntries()) << endl;
     }
 
-    if(p1_theta->GetEntries()!=0) {
+    if(p1_theta_p->GetEntries()!=0) {
       fout << "Theta_P\t " << runnum <<" \t 1 \t  " << md_1 << "\t" <<  std::setprecision(3) << p1_theta_p->GetMean() << "\t\t" <<  std::setprecision(2) << p1_theta_p->GetRMS()/sqrt(p1_theta_p->GetEntries()) << endl;
     }
     if(p2_theta_p->GetEntries()!=0) {
       fout << "Theta_P\t " << runnum <<" \t 2 \t  " << md_2 << "\t" <<  std::setprecision(3) << p2_theta_p->GetMean() << "\t\t" <<  std::setprecision(2) << p2_theta_p->GetRMS()/sqrt(p2_theta_p->GetEntries()) << endl;
     }
-    if(p1_phi->GetEntries()!=0) {
+    if(p1_phi_p->GetEntries()!=0) {
       fout << "Phi_P\t " << runnum <<" \t 1 \t  " << md_1 << "\t" <<  std::setprecision(3) << p1_phi_p->GetMean() << "\t\t" <<  std::setprecision(2) << p1_phi_p->GetRMS()/sqrt(p1_phi_p->GetEntries()) << endl;
     }
     if(p2_phi_p->GetEntries()!=0) {
@@ -473,16 +486,218 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
     //    fout << "mean phi off Pack 1 = " << mean_phioff_pkg1 << endl;
     //    fout << "mean phi off Pack 2 = " << mean_phioff_pkg2 << endl;
 
-   
     //close the file
     fout.close();
-        
+
+  /*************************************
+  This part is to output files for the ROOT Tree
+  Therefore they will not be included in the website
+  on the html file, but will be in the directory
+  however I am still making it human readable :)
+  *************************************/
+
+  //Num of Tiggers
+  fout.open(outputPrefix+"NumTriggers.txt");
+  if (!fout.is_open()) cout << "File not opened - Num Tiggers" << endl;
+
+  fout << "Run # \t Total Triggers" << endl;
+  fout << runnum << " \t " << nevents << endl;
+
+  //close the file
+  fout.close();
+
+  //Num of Raw Tracks
+  fout.open(outputPrefix+"RawTracks.txt");
+  if (!fout.is_open()) cout << "File not opened - raw tracks" << endl;
+
+  fout << "Run # \t pkg \t RawTracks" << endl;
+  fout << runnum << " \t 1 \t " << n_raw_track_1 << endl;
+  fout << runnum << " \t 2 \t " <<  n_raw_track_2 << endl;
+
+  //close the file
+  fout.close();
+
+  //num of good tracks
+  fout.open(outputPrefix+"GoodTracks.txt");
+  if (!fout.is_open()) cout << "File not opened - good tracks" << endl;
+
+  fout << "Run # \t pkg \t GoodTracks" << endl;
+  fout << runnum << " \t 1 \t "<< angle_1->GetEntries() << endl;
+  fout << runnum << " \t 2 \t " <<  angle_2->GetEntries() << endl;
+
+  //close the file
+  fout.close();
+
+  //num of % good tracks
+  fout.open(outputPrefix+"PercentGood.txt");
+  if (!fout.is_open()) cout << "File not opened - % good" << endl;
+
+  fout << "Run # \t pkg \t % Tracks" << endl;
+  if (n_raw_track_1>0)
+  {
+    fout << runnum << " \t 1 \t  " << std::setprecision(4)
+      << 100.*float(angle_1->GetEntries()/n_raw_track_1) << endl;
+  }
+  if (n_raw_track_2>0)
+  {
+    fout << runnum << " \t 2 \t " <<  std::setprecision(4)
+      << 100.*float(angle_2->GetEntries()/n_raw_track_2) << endl;
+  }
+
+  //close the file
+  fout.close();
+
+  //Angle
+  fout.open(outputPrefix+"Angle.txt");
+  if (!fout.is_open()) cout << "File not opened - angle" << endl;
+
+  fout << "Run # \t pkg \t Angle \t Error" << endl;
+  if(angle->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 0 \t" << value_with_error(angle->GetMean(), (angle->GetRMS()/sqrt(angle->GetEntries()))) << endl;
+  }
+  if(angle_1->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(angle_1->GetMean(),(angle_1->GetRMS()/sqrt(angle_1->GetEntries()))) << endl;
+  }
+  if(angle_2->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(angle_2->GetMean(), (angle_2->GetRMS()/sqrt(angle_2->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+  //Q2 Version 1 - with loss
+  fout.open(outputPrefix+"Q2_WithLoss.txt");
+  if (!fout.is_open()) cout << "File not opened - Q2 w/ loss" << endl;
+
+  fout << "Run # \t pkg \t Q2 \t Error (w/ loss)" << endl;
+  if(q2->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 0 \t" << value_with_error(q2->GetMean(), (q2->GetRMS()/sqrt(q2->GetEntries()))) << endl;
+  }
+  if(q2_1->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(q2_1->GetMean(),(q2_1->GetRMS()/sqrt(q2_1->GetEntries()))) << endl;
+  }
+  if(q2_2->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(q2_2->GetMean(), (q2_2->GetRMS()/sqrt(q2_2->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+  //Q2 Version 1 - without loss
+  fout.open(outputPrefix+"Q2_WithOutLoss.txt");
+  if (!fout.is_open()) cout << "File not opened - Q2 w/o loss" << endl;
+
+  fout << "Run # \t pkg \t Q2 \t Error (w/o loss)" << endl;
+  if(q2_0->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 0 \t" << value_with_error(q2_0->GetMean(), (q2_0->GetRMS()/sqrt(q2_0->GetEntries()))) << endl;
+  }
+  if(q2_0_1->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(q2_0_1->GetMean(),(q2_0_1->GetRMS()/sqrt(q2_0_1->GetEntries()))) << endl;
+  }
+  if(q2_0_2->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(q2_0_2->GetMean(), (q2_0_2->GetRMS()/sqrt(q2_0_2->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+  //Scattering Energy
+  fout.open(outputPrefix+"ScatteringEnergy.txt");
+  if (!fout.is_open()) cout << "File not opened - Scat Energy" << endl;
+
+  fout << "Run # \t pkg \t Energy \t Error " << endl;
+  if(eprime_1->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(eprime_1->GetMean(),(eprime_1->GetRMS()/sqrt(eprime_1->GetEntries()))) << endl;
+  }
+  if(eprime_2->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(eprime_2->GetMean(), (eprime_2->GetRMS()/sqrt(eprime_2->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+  //Theta Match
+  fout.open(outputPrefix+"ThetaMatch.txt");
+  if (!fout.is_open()) cout << "File not opened - Theta" << endl;
+
+  fout << "Run # \t pkg \t deltaTheta \t Error " << endl;
+  if(p1_theta->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(p1_theta->GetMean(),(p1_theta->GetRMS()/sqrt(p1_theta->GetEntries()))) << endl;
+  }
+  if(p2_theta->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(p2_theta->GetMean(), (p2_theta->GetRMS()/sqrt(p2_theta->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+  //Phi Match
+  fout.open(outputPrefix+"PhiMatch.txt");
+  if (!fout.is_open()) cout << "File not opened - Phi" << endl;
+
+  fout << "Run # \t pkg \t deltaPhi \t Error " << endl;
+  if(p1_phi->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(p1_phi->GetMean(),(p1_phi->GetRMS()/sqrt(p1_phi->GetEntries()))) << endl;
+  }
+  if(p2_phi->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(p2_phi->GetMean(), (p2_phi->GetRMS()/sqrt(p2_phi->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+  //Theta Perp Match
+  fout.open(outputPrefix+"ThetaProjMatch.txt");
+  if (!fout.is_open()) cout << "File not opened - Theta Perp" << endl;
+
+  fout << "Run # \t pkg \t deltaTheta Proj \t Error " << endl;
+  if(p1_theta_p->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(p1_theta_p->GetMean(),(p1_theta_p->GetRMS()/sqrt(p1_theta_p->GetEntries()))) << endl;
+  }
+  if(p2_theta_p->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(p2_theta_p->GetMean(), (p2_theta_p->GetRMS()/sqrt(p2_theta_p->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+  //Phi Perp Match
+  fout.open(outputPrefix+"PhiProjMatch.txt");
+  if (!fout.is_open()) cout << "File not opened - Phi Perp" << endl;
+
+  fout << "Run # \t pkg \t deltaPhi Proj \t Error " << endl;
+  if(p1_phi_p->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 1 \t" << value_with_error(p1_phi_p->GetMean(),(p1_phi_p->GetRMS()/sqrt(p1_phi_p->GetEntries()))) << endl;
+  }
+  if(p2_phi_p->GetEntries()!=0)
+  {
+    fout << runnum <<" \t 2 \t" << value_with_error(p2_phi_p->GetMean(), (p2_phi_p->GetRMS()/sqrt(p2_phi_p->GetEntries()))) << endl;
+  }
+  //close the file
+  fout.close();
+
+/*****************************************
+That is all folks in terms of the ROOT tree :D
+*****************************************/
+
+
     TCanvas* c=new TCanvas("c","c",800,600);
     c->Divide(2,3);
     c->cd(1);
-    gStyle->SetStatW(0.3);                
+    gStyle->SetStatW(0.3);
 // Set width of stat-box (fraction of pad size)
-    gStyle->SetStatH(0.3);                
+    gStyle->SetStatH(0.3);
 // Set height of stat-box (fraction of pad size)
 
     gPad->SetLogy();

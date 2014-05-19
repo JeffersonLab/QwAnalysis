@@ -6,7 +6,7 @@ Also print out the Qtor currnet to a txt file
 
 Entry Conditions: the run number, bool for first 100k
 Date: 06-28-2012
-Modified: 07-12-2012
+Modified: 05-05-2014
 Assisted By: Wouter Deconinck
 *********************************************************/
 #include "TSystem.h"
@@ -32,7 +32,7 @@ void QtorCurrent(int runnum, bool is100k)
 	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/QTOR_%d_",runnum, runnum);
 
 	//Create a canvas and histogram
-	TCanvas c1( "c1", "QTOR current vs. Time (as Event Number)", 1000, 1000);
+	TCanvas c1( "c1", "QTOR current vs. Time (as Event Number)", 1000, 700);
 	c1.Divide(1,4);
 
 
@@ -45,7 +45,7 @@ void QtorCurrent(int runnum, bool is100k)
 	h1->SetMarkerSize(2);
 	//Here the "L" draws a line through the point on the graph <-want
 	//the "C" conects the dots smoothly
-	//one needs to place "" in the second place of the draw command (the cuts) part so that 
+	//one needs to place "" in the second place of the draw command (the cuts) part so that
 	//root recognizes that that the L is not a cut but a draw option and then root :)
 	chain->Draw("qw_qt_mps_i_set:Entry$>>h1","" ,"L");
 	gStyle->SetStatH(0.3);                
@@ -62,7 +62,7 @@ void QtorCurrent(int runnum, bool is100k)
 
 	//Here the "L" draws a line through the point on the graph <-want
 	//the "C" conects the dots smoothly
-	//one needs to place "" in the second place of the draw command (the cuts) part so that 
+	//one needs to place "" in the second place of the draw command (the cuts) part so that
 	//root recognizes that that the L is not a cut but a draw option and then root :)
 	chain->Draw("qw_qt_mps_i_dcct:Entry$>>h2","" ,"L");
 	h2->Draw("L"); //for some reason ROOT refused to actually draw this line
@@ -77,7 +77,7 @@ void QtorCurrent(int runnum, bool is100k)
 
 	//Here the "L" draws a line through the point on the graph <-want
 	//the "C" conects the dots smoothly
-	//one needs to place "" in the second place of the draw command (the cuts) part so that 
+	//one needs to place "" in the second place of the draw command (the cuts) part so that
 	//root recognizes that that the L is not a cut but a draw option and then root :)
 	chain->Draw("Q1HallP:Entry$>>h3","" ,"L");
 	h3->Draw("L"); //for some reason ROOT refused to actually draw this line
@@ -92,7 +92,7 @@ void QtorCurrent(int runnum, bool is100k)
 
 	//Here the "L" draws a line through the point on the graph <-want
 	//the "C" conects the dots smoothly
-	//one needs to place "" in the second place of the draw command (the cuts) part so that 
+	//one needs to place "" in the second place of the draw command (the cuts) part so that
 	//root recognizes that that the L is not a cut but a draw option and then root :)
 	chain->Draw("Q1HallP/qw_qt_mps_i_dcct:Entry$>>h4","" ,"L");
 	h4->Draw("L"); //for some reason ROOT refused to actually draw this line
@@ -101,17 +101,17 @@ void QtorCurrent(int runnum, bool is100k)
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"current_vs_time.png");
 
-	//write down the QTOR current in a file 
+	//write down the QTOR current in a file
 
-	//print to file 
+	//print to file
 	//this file and evrything related to it is fout
 	std::ofstream fout;
 
 	//open file
-	// open file with outputPrefix+q2.txt which will store the output of the vlaues 
-	//to a file in a easy way that should be able to be read back into a program if 
+	// open file with outputPrefix+q2.txt which will store the output of the vlaues
+	//to a file in a easy way that should be able to be read back into a program if
 	//needed
-	fout.open(Prefix+"QTOR_Current.txt");
+	fout.open(Prefix+"QTOR.txt");
 	if (!fout.is_open()) cout << "File not opened" << endl;
 	//Prefix will inculed run number which we need.
 	fout << h1->GetMean(2) << endl;

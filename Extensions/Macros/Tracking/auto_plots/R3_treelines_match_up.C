@@ -17,7 +17,7 @@ Modified:04-15-2014
 Assisted By: Me :-) && Wouter Deconinck && the magical goblins
 ***********************************************************/
 
- /********************************
+/********************************
 Note on VDC
 
 The VDC can be defined as such (from David's auto_vdc.C script)
@@ -99,11 +99,11 @@ TString PREFIX;
     - 2 == back
 
   - Plane
-    - 0 == both planes for VDC
-    - 1 == U plane for VDC
-    - 2 == V plane for VDC
-    - 3 == UU plane treeline matched to both U planes, fDirection == 3
-    - 4 = VV plane treeline matched to both V planes, fDirection == 4
+    - 0 == both planes for VDC (defult units of cm/wire)
+    - 1 == U plane for VDC  (default units of cm/wire)
+    - 2 == V plane for VDC (defult units of cm/wire)
+    - 3 == UU plane treeline matched to both U planes, fDirection == 3 (unitless)
+    - 4 = VV plane treeline matched to both V planes, fDirection == 4 (unitless)
 
   FYI - Front and back VDCs have a both plane filled
         in them this means, that I have filled the
@@ -137,7 +137,7 @@ static const Int_t NUMPACKAGES = 3;
 static const Int_t NUMVDCS = 3;
 static const Int_t NUMPLANES = 5;
 static const Int_t NUMBRANCHES = 3;
-
+static const Double_t WIRE_SPACING = 0.496965; // cm/wire
 // index of vector to what it is
 std::string INDEXTOVDC[NUMVDCS] = {"Both","Front","Back"};
 std::string INDEXTOPLANE[NUMPLANES] = {"Both","U","V","UU","VV"};
@@ -419,7 +419,7 @@ void Chi_Slope_Treelines(TChain * event_tree)
               if(treeline->GetDirection() == 3) // this is the UU plane
               {
                 h_SLOPE_Treelines[treeline->GetPackage()][0][3]->Fill(treeline->GetPackage() == 1 ?
-                  - treeline->fSlope : treeline->fSlope);
+                  - treeline->fSlope : treeline->fSlope );
                 h_CHI2_Treelines[treeline->GetPackage()][0][3]->Fill(treeline->fChi);
 
                 //we are not suppose to care about both, so commenting out till told we want it
@@ -444,12 +444,12 @@ void Chi_Slope_Treelines(TChain * event_tree)
 
               //for package X, front VDC, V plane
               h_SLOPE_Treelines[treeline->GetPackage()][1][2]->Fill(treeline->GetPackage() == 1 ?
-                  treeline->fSlope : treeline->fSlope);
+                  (treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][1][2]->Fill(treeline->fChi);
 
               //for both packages X, front VDC, both planes
               h_SLOPE_Treelines[treeline->GetPackage()][1][0]->Fill(treeline->GetPackage() == 1 ?
-                  treeline->fSlope : treeline->fSlope);
+                  (treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][1][0]->Fill(treeline->fChi);
 
               //we are not suppose to care about both, so commenting out till told we want it
@@ -462,15 +462,14 @@ void Chi_Slope_Treelines(TChain * event_tree)
 
             case 2:
 
-// TOOK OUT NEG SIGN
               //for package X, front VDC, U plane
               h_SLOPE_Treelines[treeline->GetPackage()][1][1]->Fill(treeline->GetPackage() == 1 ?
-                  treeline->fSlope : treeline->fSlope);
+                  (treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][1][1]->Fill(treeline->fChi);
 
               //for both packages X, front VDC, both planes
               h_SLOPE_Treelines[treeline->GetPackage()][1][0]->Fill(treeline->GetPackage() == 1 ?
-                  treeline->fSlope : treeline->fSlope);
+                  (treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][1][0]->Fill(treeline->fChi);
 
               //we are not suppose to care about both, so commenting out till told we want it
@@ -485,12 +484,12 @@ void Chi_Slope_Treelines(TChain * event_tree)
 
               //for package X, Back VDC, V plane
               h_SLOPE_Treelines[treeline->GetPackage()][2][2]->Fill(treeline->GetPackage() == 1 ?
-                  treeline->fSlope : treeline->fSlope);
+                  (treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][2][2]->Fill(treeline->fChi);
 
               //for both packages X, back VDC, both planes
               h_SLOPE_Treelines[treeline->GetPackage()][2][0]->Fill(treeline->GetPackage() == 1 ?
-                  treeline->fSlope : treeline->fSlope);
+                  (treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][2][0]->Fill(treeline->fChi);
 
               //we are not suppose to care about both, so commenting out till told we want it
@@ -505,12 +504,12 @@ void Chi_Slope_Treelines(TChain * event_tree)
 
               //for package X, Back VDC, U plane
               h_SLOPE_Treelines[treeline->GetPackage()][2][1]->Fill(treeline->GetPackage() == 1 ?
-                  treeline->fSlope : treeline->fSlope);
+                  (treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][2][1]->Fill(treeline->fChi);
 
               //for both packages X, back VDC, both planes
               h_SLOPE_Treelines[treeline->GetPackage()][2][0]->Fill(treeline->GetPackage() == 1 ?
-                  -treeline->fSlope : treeline->fSlope);
+                  -(treeline->fSlope / WIRE_SPACING) : (treeline->fSlope / WIRE_SPACING));
               h_CHI2_Treelines[treeline->GetPackage()][2][0]->Fill(treeline->fChi);
 
               //we are not suppose to care about both, so commenting out till told we want it
@@ -1374,7 +1373,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Slope->GetEntries() << " \t " <<
+                        h_Temp_Slope->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Slope->GetMean(),
                            (h_Temp_Slope->GetRMS()/sqrt(h_Temp_Slope->GetEntries()))) << endl;
 
@@ -1385,7 +1384,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Chi2->GetEntries() << " \t " <<
+                        h_Temp_Chi2->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Chi2->GetMean(),
                            (h_Temp_Chi2->GetRMS()/sqrt(h_Temp_Chi2->GetEntries()))) << endl;
 
@@ -1439,7 +1438,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Slope->GetEntries() << " \t " <<
+                        h_Temp_Slope->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Slope->GetMean(),
                            (h_Temp_Slope->GetRMS()/sqrt(h_Temp_Slope->GetEntries()))) << endl;
 
@@ -1451,7 +1450,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Chi2->GetEntries() << " \t " <<
+                        h_Temp_Chi2->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Chi2->GetMean(),
                            (h_Temp_Chi2->GetRMS()/sqrt(h_Temp_Chi2->GetEntries()))) << endl;
                     }
@@ -1506,7 +1505,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Slope->GetEntries() << " \t " <<
+                        h_Temp_Slope->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Slope->GetMean(),
                            (h_Temp_Slope->GetRMS()/sqrt(h_Temp_Slope->GetEntries()))) << endl;
 
@@ -1518,7 +1517,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Chi2->GetEntries() << " \t " <<
+                        h_Temp_Chi2->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Chi2->GetMean(),
                            (h_Temp_Chi2->GetRMS()/sqrt(h_Temp_Chi2->GetEntries()))) << endl;
                     }

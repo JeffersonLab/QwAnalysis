@@ -30,7 +30,7 @@ RMS/sqrt(N)
 
 Entry Conditions: the run number, bool for first 100k
 Date: 03-28-2012
-Modified:07-17-2012
+Modified:05-07-2014
 Assisted By:Juan Carlos Cornejo and Wouter Deconinck
 
 Modified May 2014 by Anna Lee:
@@ -54,6 +54,16 @@ This script now only uses hits that are part of a full track
 
 //define a prefix for all the output files - global don't need to pass
 TString Prefix;
+
+ /***********************************
+set up the significant figures right - &plusmn is for html,
+  change to +/- if not useing,
+  or in this case \t for a tab space in the outputfile
+Use this by calling: value_with_error(a,da)
+***********************************/
+#define value_with_error(a,da) std::setiosflags(std::ios::fixed) \
+ << std::setprecision((size_t) (std::log10((a)/(da)) - std::log10(a) + 1.5)) \
+ << " " << (a) << " \t " << (da) << std::resetiosflags(std::ios::fixed)
 
 void Residual(int runnum, bool is100k)
 {
@@ -202,7 +212,11 @@ void Residual(int runnum, bool is100k)
 	for (int pkg1 = 1 ; pkg1 <3 ; pkg1++)
 	{
 		//Create the canvas
+<<<<<<< .mine
+		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 1000,500);
+=======
 		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 1500,900);
+>>>>>>> .r5728
 
 		//divide the canvas
 		c1.Divide(6,2);
@@ -303,7 +317,11 @@ RMS/sqrt(N)
 
 
 	//Create the canvas
+<<<<<<< .mine
+	TCanvas c2("c2", "Residual values for both Packages", 1000,500);
+=======
 	TCanvas c2("c2", "Residual values for both Packages", 1000,600);
+>>>>>>> .r5728
 
 	c2.Divide(2,0);
 
@@ -354,19 +372,22 @@ RMS/sqrt(N)
 	//Note direction is 0 - all planes
 	//Error is the RMS.sqrt(N)
 
-	fout << "What \t Run \t pkg \t Plane \t Value \t Error" <<endl; 
-	fout << "Resd. \t " << runnum << "\t 1 \t 0 \t" << setprecision(5) << h2[0]->GetMean() << "\t" << setprecision(4) << h2[0]->GetRMS()/sqrt(h2[0]->GetEntries()) << endl;
+	fout << "What \t Run \t pkg \t Plane \t Value \t RMS " <<endl;
+	fout << "Resd. \t " << runnum << " \t 1 \t 0 \t" << value_with_error(h2[0]->GetMean(), h2[0]->GetRMS()) << endl;
 
 	for (int k = 1; k<=12; k++)
 	{
-		fout << "Resd. \t " << runnum <<"\t 1 \t " << k << " \t" << setprecision(5) << h[0][k - 1]->GetMean() << "\t" << setprecision(4) << h[0][k - 1]->GetRMS()/sqrt(h[0][k - 1]->GetEntries()) << endl;
+		fout << "Resd. \t " << runnum <<" \t 1 \t " << k << " \t" <<
+      value_with_error(h[0][k - 1]->GetMean(), h[0][k - 1]->GetRMS()) << endl;
 	}
 
-	fout << "Resd. \t " << runnum << "\t 2 \t 0 \t" << setprecision(5) << h2[1]->GetMean() << "\t" << setprecision(4) << h2[1]->GetRMS()/sqrt(h2[1]->GetEntries()) << endl;
+	fout << "Resd. \t " << runnum << " \t 2 \t 0 \t" <<
+    value_with_error(h2[1]->GetMean(),h2[1]->GetRMS()) << endl;
 
 	for (int m = 1; m<=12; m++)
 	{
-		fout << "Resd. \t " << runnum <<"\t 2 \t " << m << " \t" << setprecision(5) << h[1][m - 1]->GetMean() << "\t" << setprecision(4) << h[1][m - 1]->GetRMS()/sqrt(h[1][m - 1]->GetEntries()) << endl;
+		fout << "Resd. \t " << runnum <<" \t 2 \t " << m << " \t" <<
+      value_with_error(h[1][m - 1]->GetMean(),  h[1][m - 1]->GetRMS()) << endl;
 	}
 
 	//close the file

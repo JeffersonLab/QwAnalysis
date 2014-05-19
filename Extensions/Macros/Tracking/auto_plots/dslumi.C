@@ -120,7 +120,7 @@ void dslumi(int runnum, bool is100k)
 
 
 	//Create a canvas
-	TCanvas* c1 = new TCanvas( "c1", "dslumi rate vs. mps counter", 900, 1000);
+	TCanvas* c1 = new TCanvas( "c1", "dslumi rate vs. mps counter", 1000, 900);
 
 	//Divide that canvas into 8 rows and 1 columns
 	c1->Divide(1,8);
@@ -150,7 +150,7 @@ void dslumi(int runnum, bool is100k)
 
 
 	//Create a canvas
-	TCanvas* c2 = new TCanvas ( "c2", "dslumi ratios vs. mps counter", 900, 800);
+	TCanvas* c2 = new TCanvas ( "c2", "dslumi ratios vs. mps counter", 500, 500);
 
 	//Divide that canvas into 8 rows and 1 columns
 	c2->Divide(1,4);

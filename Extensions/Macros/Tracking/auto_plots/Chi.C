@@ -15,9 +15,14 @@ v - fDirection==4
 NOTE the time plots are comment out as of now, we can add them later if we can use them later
 Right now they don't seam to tell us anything
 
+edited: 05-14-2014
+added in the in formation so that the Chi values are also printed out
+changed the error so that it prints out the Chi values and not just log Chi
+Also changed error to RMS, as we are intersted in the width of the distribution
+
 Entry Conditions: the run number, bool for first 100k
 Date: 03-22-2012
-Modified:06-06-2012
+Modified:05-14-2014
 Assisted By: Juan Carlos Cornejo and Wouter Deconinck
 *********************************************************/
 
@@ -34,12 +39,22 @@ Assisted By: Juan Carlos Cornejo and Wouter Deconinck
 //define a prefix for all the output files - global don't need to pass
 TString Prefix;
 
+/***********************************
+set up the significant figures right - &plusmn is for html,
+change to +/- if not useing,
+or in this case \t for a tab space in the outputfile
+Use this by calling: value_with_error(a,da)
+***********************************/
+#define value_with_error(a,da) std::setiosflags(std::ios::fixed) \
+ << std::setprecision((size_t) (std::log10((a)/(da)) - std::log10(a) + 1.5)) \
+ << " " << (a) << " \t " << (da) << std::resetiosflags(std::ios::fixed)
+
 void Chi(int runnum, bool is100k)
 {
 
 	// changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/Chi_%d_",runnum,runnum);
+	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
 
 	// groups root files for a run together
 	TChain* event_tree = new TChain ("event_tree");
@@ -48,7 +63,11 @@ void Chi(int runnum, bool is100k)
 	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//Create the canvas
+<<<<<<< .mine
+	TCanvas c1("c1", "log(Chi) - Package 1 across top, Package 2 across bottom", 900,800);
+=======
 	TCanvas c1("c1", "log(Chi) - Package 1 across top, Package 2 across bottom", 1900,2000);
+>>>>>>> .r5728
 
 	//divide the canvas
 	c1.Divide(4,2);	
@@ -84,7 +103,7 @@ void Chi(int runnum, bool is100k)
 		{
 			c[pkg - 1][plane]= new TH1D (Form("c[%d][%d]",pkg - 1,plane),Plane[plane] + Form(" log(Chi)- Package %d",pkg),30,0.01,5.0);
 			c[pkg - 1][plane]->GetYaxis()->SetTitle("frequency");
-        		c[pkg - 1][plane]->GetXaxis()->SetTitle("log(Chi)");		
+   		c[pkg - 1][plane]->GetXaxis()->SetTitle("log(Chi)");
 		}
 
 		//set line colors of all the histograms
@@ -92,7 +111,35 @@ void Chi(int runnum, bool is100k)
 		c[pkg - 1][2]->SetLineColor(4);
 		c[pkg - 1][3]->SetLineColor(8);
 
-	} 
+	}
+
+  //for the no log chi values
+	std::vector< vector<TH1D*> > h1;
+	//Size of c
+	h1.resize(2);
+	for(size_t q = 0; q < h1.size(); q++)
+	{
+		h1[q].resize(4);
+	}
+
+	//Let's define the histograms
+	for (int pkg = 1; pkg <= 2; pkg ++)
+	{
+		for (int plane = 0; plane < 4; plane ++)
+		{
+			h1[pkg - 1][plane]= new TH1D (Form("h1[%d][%d]",pkg - 1,plane),Plane[plane] + Form(" Chi- Package %d",pkg),30,0.01,5.0);
+			h1[pkg - 1][plane]->GetYaxis()->SetTitle("frequency");
+     	h1[pkg - 1][plane]->GetXaxis()->SetTitle("Chi");
+		}
+
+    //set line colors of all the histograms
+		h1[pkg - 1][1]->SetLineColor(2);
+		h1[pkg - 1][2]->SetLineColor(4);
+		h1[pkg - 1][3]->SetLineColor(8);
+
+	}
+
+
 	//create a vector of vectors of TH1D histogram pointer
 //	std::vector< vector<TH2D*> > h;
 	//Size of c
@@ -165,20 +212,24 @@ void Chi(int runnum, bool is100k)
 			if (treeline->fRegion==2&&treeline->fPackage==1)
 			{
 				c[0][0]->Fill(log(treeline->fChi));
+				h1[0][0]->Fill(treeline->fChi);
 //				h[0][0]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				if (treeline->fDirection==1)
 				{	
 					c[0][1]->Fill(log(treeline->fChi));
+					h1[0][1]->Fill(treeline->fChi);
 //					h[0][1]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				}
 				if (treeline->fDirection==3)
 				{	
 					c[0][2]->Fill(log(treeline->fChi));
+					h1[0][2]->Fill(treeline->fChi);
 //					h[0][3]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				}
 				if (treeline->fDirection==4)
 				{	
 					c[0][3]->Fill(log(treeline->fChi));
+					h1[0][3]->Fill(treeline->fChi);
 //					h[0][3]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				}
 			}
@@ -187,20 +238,24 @@ void Chi(int runnum, bool is100k)
 			if (treeline->fRegion==2&&treeline->fPackage==2)
 			{
 				c[1][0]->Fill(log(treeline->fChi));
+				h1[1][0]->Fill(treeline->fChi);
 //				h[1][0]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				if (treeline->fDirection==1)
 				{	
 					c[1][1]->Fill(log(treeline->fChi));	
+					h1[1][1]->Fill(treeline->fChi);	
 //					h[1][1]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				}
 				if (treeline->fDirection==3)
 				{	
 					c[1][2]->Fill(log(treeline->fChi));	
+					h1[1][2]->Fill(treeline->fChi);	
 //					h[1][2]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				}
 				if (treeline->fDirection==4)
 				{	
 					c[1][3]->Fill(log(treeline->fChi));
+					h1[1][3]->Fill(treeline->fChi);
 //					h[1][3]->Fill(log(treeline->fChi),fEvent->fEventHeader->fEventNumber);
 				}
 			}
@@ -226,7 +281,7 @@ void Chi(int runnum, bool is100k)
 	c[1][3]->Draw();
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-	c1.SaveAs(Prefix+"_chi.png");
+	c1.SaveAs(Prefix+"LogChi.png");
 
 
 	//Draw the time histograms - all, x ,u,v across and package 1 on top and package 2 on the bottom
@@ -258,7 +313,7 @@ void Chi(int runnum, bool is100k)
     
 	//open file
 	// open file with outputPrefix+q2.txt which will store the output of the vlaues to a file in a easy way that should be able to be read back into a program if needed	
-	fout.open(Prefix+"Chi.txt");
+	fout.open(Prefix+"LogChi.txt");
 	if (!fout.is_open()) cout << "File not opened" << endl;	
     
 	//outputPrefix will inculed run number which we need.
@@ -266,22 +321,49 @@ void Chi(int runnum, bool is100k)
 	//Name what each coulmn is.
 	//Note direction is 0 - all planes, 1 - the X planes, 3 - U planes, 4 - V planes
 	//Error is the RMS.sqrt(N)
-	fout << "What \t Run \t pkg \t DIR \t Value \t Error" <<endl; 
-	fout << "Chi \t " << runnum << "\t 1 \t 0 \t" << setprecision(5) << c[0][0]->GetMean() << "\t" << setprecision(4) << c[0][0]->GetRMS()/sqrt(c[0][0]->GetEntries()) << endl;
+	fout << "What \t Run \t pkg \t DIR \t Value \t RMS" <<endl;
+	fout << "LogChi \t " << runnum << " \t 1 \t 0 \t " << value_with_error(c[0][0]->GetMean(),c[0][0]->GetRMS()) << endl;
 
-	fout << "Chi \t " << runnum << "\t 1 \t 1 \t" << setprecision(5) << c[0][1]->GetMean() << "\t" << setprecision(4) << c[0][1]->GetRMS()/sqrt(c[0][1]->GetEntries()) << endl;
+	fout << "LogChi \t " << runnum << " \t 1 \t 1 \t" << value_with_error(c[0][1]->GetMean(), c[0][1]->GetRMS()) << endl;
 
-	fout << "Chi \t " << runnum << "\t 1 \t 3 \t" << setprecision(5) << c[0][2]->GetMean() << "\t" << setprecision(4) << c[0][2]->GetRMS()/sqrt(c[0][2]->GetEntries()) << endl;
+	fout << "LogChi \t " << runnum << " \t 1 \t 3 \t" << value_with_error(c[0][2]->GetMean(), c[0][2]->GetRMS()) << endl;
 
-	fout << "Chi \t " << runnum << "\t 1 \t 4 \t" << setprecision(5) << c[0][3]->GetMean() << "\t" << setprecision(4) << c[0][3]->GetRMS()/sqrt(c[0][3]->GetEntries()) << endl;
+	fout << "LogChi \t " << runnum << " \t 1 \t 4 \t" << value_with_error(c[0][3]->GetMean(), c[0][3]->GetRMS()) << endl;
 
-	fout << "Chi \t " << runnum << "\t 2 \t 0 \t" << setprecision(5) << c[1][0]->GetMean() << "\t" << setprecision(4) << c[1][0]->GetRMS()/sqrt(c[1][0]->GetEntries()) << endl;
+	fout << "LogChi \t " << runnum << " \t 2 \t 0 \t" << value_with_error(c[1][0]->GetMean(), c[1][0]->GetRMS()) << endl;
 
-	fout << "Chi \t " << runnum << "\t 2 \t 1 \t" << setprecision(5) << c[1][1]->GetMean() << "\t" << setprecision(4) << c[1][1]->GetRMS()/sqrt(c[1][1]->GetEntries()) << endl;
+	fout << "LogChi \t " << runnum << " \t 2 \t 1 \t" << value_with_error(c[1][1]->GetMean(), c[1][1]->GetRMS()) << endl;
 
-	fout << "Chi \t " << runnum << "\t 2 \t 3 \t" << setprecision(5) << c[1][2]->GetMean() << "\t" << setprecision(4) << c[1][2]->GetRMS()/sqrt(c[1][2]->GetEntries()) << endl;
+	fout << "LogChi \t " << runnum << " \t 2 \t 3 \t" << value_with_error(c[1][2]->GetMean(), c[1][2]->GetRMS()) << endl;
 
-	fout << "Chi \t " << runnum << "\t 2 \t 4 \t" << setprecision(5) << c[1][3]->GetMean() << "\t" << setprecision(4) << c[1][3]->GetRMS()/sqrt(c[1][3]->GetEntries()) << endl;
+	fout << "LogChi \t " << runnum << " \t 2 \t 4 \t" << value_with_error(c[1][3]->GetMean(), c[1][3]->GetRMS()) << endl;
+
+	//close the file
+	fout.close();
+
+//the Chi values
+	fout.open(Prefix+"Chi.txt");
+	if (!fout.is_open()) cout << "File not opened" << endl;
+	//outputPrefix will inculed run number which we need.
+
+	//Name what each coulmn is.
+	//Note direction is 0 - all planes, 1 - the X planes, 3 - U planes, 4 - V planes
+	fout << "What \t Run \t pkg \t DIR \t Value \t RMS" <<endl;
+	fout << "Chi \t " << runnum << " \t 1 \t 0 \t " << value_with_error(h1[0][0]->GetMean(),h1[0][0]->GetRMS()) << endl;
+
+	fout << "Chi \t " << runnum << " \t 1 \t 1 \t" << value_with_error(h1[0][1]->GetMean(), h1[0][1]->GetRMS()) << endl;
+
+	fout << "Chi \t " << runnum << " \t 1 \t 3 \t" << value_with_error(h1[0][2]->GetMean(), h1[0][2]->GetRMS()) << endl;
+
+	fout << "Chi \t " << runnum << " \t 1 \t 4 \t" << value_with_error(h1[0][3]->GetMean(), h1[0][3]->GetRMS()) << endl;
+
+	fout << "Chi \t " << runnum << " \t 2 \t 0 \t" << value_with_error(h1[1][0]->GetMean(), h1[1][0]->GetRMS()) << endl;
+
+	fout << "Chi \t " << runnum << " \t 2 \t 1 \t" << value_with_error(h1[1][1]->GetMean(), h1[1][1]->GetRMS()) << endl;
+
+	fout << "Chi \t " << runnum << " \t 2 \t 3 \t" << value_with_error(h1[1][2]->GetMean(), h1[1][2]->GetRMS()) << endl;
+
+	fout << "Chi \t " << runnum << " \t 2 \t 4 \t" << value_with_error(h1[1][3]->GetMean(), h1[1][3]->GetRMS()) << endl;
 
 	//close the file
 	fout.close();

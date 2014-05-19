@@ -1,7 +1,12 @@
 /*****************************************
 
 Programmer: Melissa Guidry
-Purpose: To output all graphs of Q2 vs. x and y positions of rastered beam on bar.
+Purpose: To output all graphs of Q2 vs. x and
+  y positions of rastered beam on bar.
+
+Modified: 05-07-2014 by Valerie Gray
+  Changed the output to add in the slope of the
+  both pakages combination
 
 *****************************************/
 
@@ -17,6 +22,16 @@ Purpose: To output all graphs of Q2 vs. x and y positions of rastered beam on ba
 
 #include <iostream>
 #include <fstream>
+
+/***********************************
+set up the significant figures right - &plusmn is for html,
+  change to +/- if not useing,
+  or in this case \t for a tab space in the outputfile
+Use this by calling: value_with_error(a,da)
+***********************************/
+#define value_with_error(a,da) std::setiosflags(std::ios::fixed) \
+ << std::setprecision((size_t) (std::log10((a)/(da)) - std::log10(a) + 1.5)) \
+ << " " << (a) << " \t " << (da) << std::resetiosflags(std::ios::fixed)
 
 // Define Octant number function
 int getOctNumber(TChain* event_tree)
@@ -201,8 +216,8 @@ void BeamPositionQ2(int runnum, bool is100k)
       std::ofstream Output_file_x;
       std::ofstream Output_file_y;
 
-      Output_file_x.open(Prefix+"BPQ2_Output_x.txt");
-      Output_file_y.open(Prefix+"BPQ2_Output_y.txt");
+      Output_file_x.open(Prefix+"BeamPositionQ2_X.txt");
+      Output_file_y.open(Prefix+"BeamPositionQ2_Y.txt");
 
 //      Output_file_x.open("/home/maguidry/TestScripts/Output/BPQ2_Output_x.txt");
  //     Output_file_y.open("/home/maguidry/TestScripts/Output/BPQ2_Output_y.txt");
@@ -210,21 +225,29 @@ void BeamPositionQ2(int runnum, bool is100k)
       if (!Output_file_x.is_open()) cout<<"File not opened."<<endl;
       if (!Output_file_y.is_open()) cout<<"File not opened."<<endl;
 
-      Output_file_x << "Package \t Octant \t Chi^2 \t Error" << endl;
-      Output_file_x << "1 \t " << octpkg1 <<" \t "<< setprecision(5) <<  fitx[1]->GetChisquare()/fitx[1]->GetNDF()<<" \t " << setprecision(4)<< fitx[1]->GetParameter(1) << " \t " << fitx[1]->GetParError(1) << endl;
-      Output_file_x << "2 \t " << octpkg2 <<" \t "<< setprecision(5) <<  fitx[2]->GetChisquare()/fitx[2]->GetNDF()<<" \t " << setprecision(4)<< fitx[2]->GetParameter(1) << " \t " << fitx[2]->GetParError(1) << endl;
+      Output_file_x << "Package \t Octant \t Chi^2 \t Slope \t Error" << endl;
+      Output_file_x << "0 \t " << "NA" <<" \t "<< setprecision(5) <<  fitx[0]->GetChisquare()/fitx[0]->GetNDF() <<
+        " \t" << value_with_error(fitx[0]->GetParameter(1), fitx[0]->GetParError(1)) << endl;
+      Output_file_x << "1 \t " << octpkg1 <<" \t "<< setprecision(5) <<  fitx[1]->GetChisquare()/fitx[1]->GetNDF() <<
+        " \t" << value_with_error(fitx[1]->GetParameter(1), fitx[1]->GetParError(1)) << endl;
+      Output_file_x << "2 \t " << octpkg2 <<" \t "<< setprecision(5) <<  fitx[2]->GetChisquare()/fitx[2]->GetNDF() <<
+        " \t" << value_with_error(fitx[2]->GetParameter(1), fitx[2]->GetParError(1)) << endl;
 
-      Output_file_y << "Package \t Octant \t Chi^2 \t Slope \t" << endl;
-      Output_file_y << "1 \t " << octpkg1 <<" \t "<< setprecision(5) <<  fity[1]->GetChisquare()/fitx[1]->GetNDF()<<" \t " << setprecision(4)<< fity[1]->GetParameter(1) << " \t " << fity[1]->GetParError(1) << endl;
-      Output_file_y << "2 \t " << octpkg2 <<" \t "<< setprecision(5) <<  fity[2]->GetChisquare()/fitx[2]->GetNDF()<<" \t " << setprecision(4)<< fity[2]->GetParameter(1) << " \t " << fity[2]->GetParError(1) << endl;
+      Output_file_y << "Package \t Octant \t Chi^2 \t Slope \t Error " << endl;
+      Output_file_y << "0 \t " << "NA" <<" \t "<< setprecision(5) <<  fity[0]->GetChisquare()/fitx[1]->GetNDF() <<
+        " \t " << value_with_error(fity[0]->GetParameter(1), fity[0]->GetParError(1)) << endl;
+      Output_file_y << "1 \t " << octpkg1 <<" \t "<< setprecision(5) <<  fity[1]->GetChisquare()/fitx[1]->GetNDF() <<
+        " \t" << value_with_error(fity[1]->GetParameter(1), << fity[1]->GetParError(1)) << endl;
+      Output_file_y << "2 \t " << octpkg2 <<" \t "<< setprecision(5) <<  fity[2]->GetChisquare()/fitx[2]->GetNDF() <<
+        " \t" << value_with_error(fity[2]->GetParameter(1), fity[2]->GetParError(1)) << endl;
 
       Output_file_x.close();
       Output_file_y.close();
 
 //-------------Draw Things--------------------
 
-      TCanvas* Q2BeamXPositionTCanvas = new TCanvas("Q2BeamXPositionTCanvas", "Q^2 vs. x position", 900, 700);
-      TCanvas* Q2BeamYPositionTCanvas = new TCanvas("Q2BeamYPositionTCanvas", "Q^2 vs. y position", 900, 700);
+      TCanvas* Q2BeamXPositionTCanvas = new TCanvas("Q2BeamXPositionTCanvas", "Q^2 vs. x position", 450, 350);
+      TCanvas* Q2BeamYPositionTCanvas = new TCanvas("Q2BeamYPositionTCanvas", "Q^2 vs. y position", 450, 3500);
 
       Q2BeamXPositionTCanvas->Divide(3);
       Q2BeamYPositionTCanvas->Divide(3);

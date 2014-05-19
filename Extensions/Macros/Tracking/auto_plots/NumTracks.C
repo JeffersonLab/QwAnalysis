@@ -1,4 +1,4 @@
-/*********************************************************** 
+/***********************************************************
 Programmer: Valerie Gray
 Purpose: To look at where the tracks/events are getting lost.
 
@@ -289,7 +289,7 @@ void NumTracks(Int_t runnum, bool is100k)
 */	
 
 	//Now lets graph and save the ONE histogram that is acutally made and used here
-	c[0]= new TCanvas ("c[0]",title[0],900,600);
+	c[0]= new TCanvas ("c[0]",title[0],500,500);
 	c[0]->SetLogy();
 	h[0]->Draw();
 
