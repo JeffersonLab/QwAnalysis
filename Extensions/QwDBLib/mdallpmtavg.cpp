@@ -55,24 +55,33 @@ int main(int argc, char* argv[]) {
     mdallpmtavg.get_data_from_tree(tree_asym, "asym_mdallpmtavg", "asym_qwk_charge");
     //mdallpmtavg.set_weight_value(tree_asym, "asym_qwk_charge");
 
-    /* Create TCanvas. */
-    TCanvas c1("c1");
-    mdallpmtavg.ValueRunletPlot();
-    c1.Update();
-    c1.Modified();
-    c1.Print("mdallpmtavg_vs_runlet.png");
+    // sign*asymmetry vs runlet for mdallpmtavg
+    TCanvas mdallpmtavg_vs_runlet("c1");
+    mdallpmtavg.ValueRunletPlotSignCorr();
+    mdallpmtavg_vs_runlet.Update();
+    mdallpmtavg_vs_runlet.Modified();
+    mdallpmtavg_vs_runlet.Print("mdallpmtavg_vs_runlet.png");
 
-    TCanvas c2("c2");
-    mdallpmtavg.ValuePlot();
-    c2.Update();
-    c2.Modified();
-    c2.Print("mdallpmtavg_histogram.png");
+    // asymmetry rms vs runlet for mdallpmtavg
+    TCanvas mdallpmtavg_rms_vs_runlet("c1");
+    mdallpmtavg.RMSRunletPlot();
+    mdallpmtavg_rms_vs_runlet.Update();
+    mdallpmtavg_rms_vs_runlet.Modified();
+    mdallpmtavg_rms_vs_runlet.Print("mdallpmtavg_rms_vs_runlet.png");
 
-    TCanvas c3("c3");
+    // sign*asymmetry for mdallpmtavg
+    TCanvas mdallpmtavg_histogram("c2");
+    mdallpmtavg.ValuePlotSignCorr();
+    mdallpmtavg_histogram.Update();
+    mdallpmtavg_histogram.Modified();
+    mdallpmtavg_histogram.Print("mdallpmtavg_histogram.png");
+
+    // runlet pull plots of mdallpmtavg
+    TCanvas mdallpmtavg_pull_plot("c3");
     mdallpmtavg.ValuePullPlot();
-    c3.Update();
-    c3.Modified();
-    c3.Print("mdallpmtavg_pull.png");
+    mdallpmtavg_pull_plot.Update();
+    mdallpmtavg_pull_plot.Modified();
+    mdallpmtavg_pull_plot.Print("mdallpmtavg_pull_plot.png");
 
     /* Return */
     return 0;

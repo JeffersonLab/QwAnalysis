@@ -40,49 +40,61 @@ int main(int argc, char* argv[]) {
     rootfile_asym = TFile::Open(var_1);
 
     /* Grab the tree from both rootfile. */
+    TTree *tree_dirty;
     TTree *tree_asym;
-    tree_asym = (TTree*)rootfile_asym->Get("tree");
+    tree_dirty = (TTree*)rootfile_asym->Get("tree");
+    tree_asym = clean_tree(tree_dirty, 1);
 
     /* Some fit crap. */
     gStyle->SetOptFit(1111);
     gStyle->SetOptStat(0000000);
 
-
     /* Define objects to hold each branch. Define the axis variables in constructor.*/
     QwTreeBranchPlot bcmdd("bcmdd", "runlet_id", "BCM asymmetry double difference (ppm)");
-    bcmdd.get_data_from_tree(tree_asym, "asym_bcmdd");
-    //bcmdd.set_weight_value(tree_asym, "asym_qwk_charge");
-    bcmdd.CleanZeroes();
+    bcmdd.get_data_from_tree(tree_asym, "asym_bcmdd12");
 
-    /* Create TCanvas. */
+    // sign*BCM 1-2 DD central value vs. runlet
     TCanvas c_bcmdd_vs_runlet("c_bcmdd_vs_runlet");
-    bcmdd.ValueRunletPlot();
+    bcmdd.ValueRunletPlotSignCorr();
     c_bcmdd_vs_runlet.Update();
     c_bcmdd_vs_runlet.Modified();
     c_bcmdd_vs_runlet.Print("bcmdd_vs_runlet.png");
 
+    // BCM 1-2 DD rms vs. runlet
+    TCanvas c_bcmdd_rms_vs_runlet("c_bcmdd_rms_vs_runlet");
+    bcmdd.RMSRunletPlot();
+    c_bcmdd_rms_vs_runlet.Update();
+    c_bcmdd_rms_vs_runlet.Modified();
+    c_bcmdd_rms_vs_runlet.Print("bcmdd_rms_vs_runlet.png");
+
+    // sign*BCM 1-2 double difference histograms
     TCanvas c_bcmdd_histogram("c_bcmdd_histogram");
-    bcmdd.ValuePlot();
+    bcmdd.ValuePlotSignCorr();
     c_bcmdd_histogram.Update();
     c_bcmdd_histogram.Modified();
     c_bcmdd_histogram.Print("bcmdd_histogram.png");
 
+    // sign*BCM 1-2 double difference pull plot
+    TCanvas c_bcmdd_pull_plot("c_bcmdd_pull_plot");
+    bcmdd.ValuePullPlot();
+    c_bcmdd_pull_plot.Update();
+    c_bcmdd_pull_plot.Modified();
+    c_bcmdd_pull_plot.Print("bcmdd_pull_plot.png");
 
-    // set the weight to the error of teh bcm DD asymmetry
-    bcmdd.set_weight_error(tree_asym, "asym_bcmdd");
+    // set the weight to the error of the bcm DD asymmetry
+    bcmdd.set_weight_error(tree_asym, "asym_bcmdd12");
 
     TCanvas c_bcmdd_histogram_weighted_by_own_error("c_bcmdd_histogram_weighted_by_own_error");
-    bcmdd.ValuePlot();
+    bcmdd.ValuePlotSignCorrWeight();
     c_bcmdd_histogram_weighted_by_own_error.Update();
     c_bcmdd_histogram_weighted_by_own_error.Modified();
     c_bcmdd_histogram_weighted_by_own_error.Print("bcmdd_weighted_by_own_error.png");
-
 
     // set the weight to the error of MD all bars
     bcmdd.set_weight_error(tree_asym, "asym_mdallbars");
 
     TCanvas c_bcmdd_histogram_weighted_by_mdallbars_error("c_bcmdd_histogram_weighted_by_mdallbars_error");
-    bcmdd.ValuePlot();
+    bcmdd.ValuePlotSignCorrWeight();
     c_bcmdd_histogram_weighted_by_mdallbars_error.Update();
     c_bcmdd_histogram_weighted_by_mdallbars_error.Modified();
     c_bcmdd_histogram_weighted_by_mdallbars_error.Print("bcmdd_weighted_by_mdallbars_error.png");

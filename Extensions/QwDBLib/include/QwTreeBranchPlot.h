@@ -30,6 +30,7 @@ class QwTreeBranchPlot : public QwTreeBranch {
         void ValuePlotWeight(void);                     // plot histo of value weighted
         void ValuePlotSignCorrWeight(void);             // plot histo of value sign corrceted and weighted
         void ValuePullPlot(void);                       // plot pull plot of value
+        void RMSRunletPlot(void);                     // plot value vs runlet
     private:
         TString plot_label;                             // stores plot label
         TString x_axis_label;                           // stores x axis label

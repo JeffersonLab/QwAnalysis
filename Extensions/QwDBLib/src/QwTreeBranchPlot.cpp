@@ -94,7 +94,7 @@ void QwTreeBranchPlot::ValueRunletPlot(void) {
     temp_plot->GetYaxis()->SetTitle(y_axis_label);
 
     /* Fit. */
-    //temp_plot->Fit("pol0");
+    temp_plot->Fit("pol0");
 }
 
 /* Plots value vs runlet, sign corrected. This is just the start, more work needed here. */
@@ -362,4 +362,38 @@ void QwTreeBranchPlot::ValuePullPlot(void) {
     temp_histo->GetXaxis()->SetTitle(y_axis_label);
     temp_histo->Draw();
     temp_histo->Fit("gaus");
+}
+
+void QwTreeBranchPlot::RMSRunletPlot(void) {
+    /*
+     * Convert the runlet vector<int> into a vector<double> for plotting. Only
+     * works in clang, changing to a for loop for now, till I can figure it
+     * out.
+     */ 
+    //std::vector<double> double_runlet(this->get_runlet().begin(), this->get_runlet().end());
+    std::vector<double> double_runlet;
+    for(int i = 0; i < this->size(); i++) 
+        double_runlet.push_back((double)this->get_runlet()[i]);
+
+    /* Plot value vs runlet. */
+    TGraphErrors* temp_plot = new TGraphErrors(this->size(),
+                                               &(double_runlet[0]),
+                                               &(this->get_rms()[0]),
+                                               0,
+                                               &(this->get_error()[0]));
+    /* Set style. Do we want to store style info in the class? */
+    temp_plot->SetMarkerStyle(kFullSquare);
+    temp_plot->SetMarkerSize(1);
+    temp_plot->SetMarkerColor(kBlack);
+
+    /* Draw. */
+    temp_plot->Draw("AP");
+
+    /* Set axis and plot labels. */
+    temp_plot->SetTitle(plot_label);
+    temp_plot->GetXaxis()->SetTitle(x_axis_label);
+    temp_plot->GetYaxis()->SetTitle(y_axis_label);
+
+    /* Fit. */
+    temp_plot->Fit("pol0");
 }
