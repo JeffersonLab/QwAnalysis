@@ -4,13 +4,12 @@
 // System headers
 #include <cmath>
 #include <vector>
+#include <string>
 #include <iostream>
 #include <algorithm>
 
 // ROOT headers
-#include "TString.h"
 #include "TObject.h"
-#include "TMath.h"
 #include "TVector3.h"
 
 // Qweak headers
@@ -31,8 +30,8 @@ class QwDetectorInfo: public TObject {
 
   public:
 
-    /// Default constructor
-    QwDetectorInfo();
+    /// Constructor with optional name
+    QwDetectorInfo(const std::string& name = "");
 
     // Load geometry information from parameter file
     void LoadGeometryDefinition(QwParameterFile* map);
@@ -113,7 +112,7 @@ class QwDetectorInfo: public TObject {
     // Get/set element orientation
     double GetElementAngle() const { return fElementAngle; };
     double GetElementAngleInRad() const { return fElementAngle; };
-    double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
+    double GetElementAngleInDeg() const { return fElementAngle / Qw::deg; };
     double GetElementAngleCos() const { return fElementAngleCos; };
     double GetElementAngleSin() const { return fElementAngleSin; };
     void SetElementAngle(const double angle) {
@@ -133,7 +132,7 @@ class QwDetectorInfo: public TObject {
     // Get/set detector rotation (in degrees)
     double GetDetectorRotation() const { return fDetectorRotation; };
     double GetDetectorRotationInRad() const { return fDetectorRotation; };
-    double GetDetectorRotationInDeg() const { return fDetectorRotation * TMath::RadToDeg(); };
+    double GetDetectorRotationInDeg() const { return fDetectorRotation / Qw::deg; };
     double GetDetectorRotationCos() const { return fDetectorRotationCos; };
     double GetDetectorRotationSin() const { return fDetectorRotationSin; };
     void SetDetectorRotation(const double rotation) {
@@ -144,7 +143,7 @@ class QwDetectorInfo: public TObject {
     // Get/set detector tilt (in degrees)
     double GetDetectorTilt() const { return fDetectorTilt; };
     double GetDetectorTiltInRad() const { return fDetectorTilt; };
-    double GetDetectorTiltInDeg() const { return fDetectorTilt * TMath::RadToDeg(); };
+    double GetDetectorTiltInDeg() const { return fDetectorTilt / Qw::deg; };
     double GetDetectorTiltCos() const { return fDetectorTiltCos; };
     double GetDetectorTiltSin() const { return fDetectorTiltSin; };
     void SetDetectorTilt(const double tilting) {
@@ -158,24 +157,28 @@ class QwDetectorInfo: public TObject {
     const QwTrackingTreeRegion* GetTrackingSearchTree() const { return fTree; };
     void SetTrackingSearchTree(QwTrackingTreeRegion* tree) { fTree = tree; };
 
-    // Get unique detector ID
-    int GetID() const { return fDetectorID; };
-
     // Print function
     void Print() const;
 
     // Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);
 
-    // Detector information
+    // Get detector information
+    EQwDetectorType GetType() const { return fType; };
+    EQwDetectorPackage GetPackage() const { return fPackage; };
+    EQwRegionID GetRegion() const { return fRegion; };
+    EQwDirectionID GetDirection() const { return fDirection; };
+    int GetPlane() const { return fPlane; };
+
+  private:
+
+    // Detector information variables
     EQwDetectorType fType;
     EQwDetectorPackage fPackage;
     EQwRegionID fRegion;
     EQwDirectionID fDirection;
     int fPlane;
     int fOctant;
-
-  private:
 
     // Identification info for readout channels. Filled at load time.
     int fCrate; //ROC number
@@ -220,6 +223,9 @@ class QwDetectorInfo: public TObject {
     QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 
   public:
+    // Detector name
+    std::string fName;
+
     // Unique detector identifier
     int fDetectorID;
 
@@ -259,10 +265,10 @@ class QwDetectorInfo: public TObject {
 
 // Detectors could be sorted by package, region, z position
 inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
-  if (lhs.fPackage < rhs.fPackage) return true;
-  else if (lhs.fPackage == rhs.fPackage) {
-    if (lhs.fRegion < rhs.fRegion) return true;
-    else if (lhs.fRegion == rhs.fRegion) {
+  if (lhs.GetPackage() < rhs.GetPackage()) return true;
+  else if (lhs.GetPackage() == rhs.GetPackage()) {
+    if (lhs.GetRegion() < rhs.GetRegion()) return true;
+    else if (lhs.GetRegion() == rhs.GetRegion()) {
       if (lhs.GetZPosition() < rhs.GetZPosition()) return true;
       else if (lhs.GetZPosition() == rhs.GetZPosition()) {
         return false;

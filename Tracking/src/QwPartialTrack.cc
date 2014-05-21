@@ -4,7 +4,6 @@ ClassImp(QwPartialTrack)
 #endif
 
 // ROOT headers
-#include "TMath.h"
 #include "TRandom.h"
 
 // Qweak headers

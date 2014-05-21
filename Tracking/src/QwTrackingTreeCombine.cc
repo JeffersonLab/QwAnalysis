@@ -865,7 +865,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
   for (size_t plane = 0; plane < planes.size(); ++plane) {
 
     // Get subhitlist of hits in this detector
-    QwHitContainer *hitsInPlane = hitlist->GetSubList_Plane(region, package, planes.at(plane)->fPlane);
+    QwHitContainer *hitsInPlane = hitlist->GetSubList_Plane(region, package, planes.at(plane)->GetPlane());
 
     // Coordinates of the track at this detector plane
     double thisZ = planes.at(plane)->GetZPosition();
@@ -1308,7 +1308,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
         for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++) {
           int wire = hit->GetElement();
           int row = wire-treeline->fR3Offset;
-          if(oct==0 && hit->GetDetectorInfo()->fPackage==package){
+          if(oct==0 && hit->GetDetectorInfo()->GetPackage() == package){
             oct=hit->GetDetectorInfo()->GetOctant();
           }
           if (row < 0 || row > 7) continue;
@@ -1570,7 +1570,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
   {
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
     double norm = 1.0 / ( resolution * resolution );
-    EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
+    EQwDirectionID dir = hits[i]->GetDetectorInfo()->GetDirection();
     // offset includes all offset
     double centerx=hits[i]->GetDetectorInfo()->GetXPosition();
     double centery=hits[i]->GetDetectorInfo()->GetYPosition();
@@ -1611,7 +1611,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
   chi = 0.0;
   for ( int i = 0; i < num; ++i )
   {
-    EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
+    EQwDirectionID dir = hits[i]->GetDetectorInfo()->GetDirection();
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
     double norm = 1.0 / ( resolution * resolution );
 
@@ -1728,7 +1728,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
   {
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
     double norm = 1.0 / ( resolution * resolution );
-    EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
+    EQwDirectionID dir = hits[i]->GetDetectorInfo()->GetDirection();
     // offset includes all offset
     double centerx=hits[i]->GetDetectorInfo()->GetXPosition();
     double centery=hits[i]->GetDetectorInfo()->GetYPosition();
@@ -1768,7 +1768,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
   std::pair<int,double> worst_case(0,-0.01);
   for ( int i = 0; i < num; ++i )
   {
-    EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
+    EQwDirectionID dir = hits[i]->GetDetectorInfo()->GetDirection();
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
     double norm = 1.0 / ( resolution * resolution );
     double z=hits[i]->GetDetectorInfo()->GetZPosition();
@@ -1822,7 +1822,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
       if(i!=drop){
         double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
         double norm = 1.0 / ( resolution * resolution );
-        EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
+        EQwDirectionID dir = hits[i]->GetDetectorInfo()->GetDirection();
         // offset includes all offset
         double centerx=hits[i]->GetDetectorInfo()->GetXPosition();
         double centery=hits[i]->GetDetectorInfo()->GetYPosition();
@@ -1865,7 +1865,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
     for ( int i = 0; i < num; i++ )
     {
       if(i!=drop){
-        EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
+        EQwDirectionID dir = hits[i]->GetDetectorInfo()->GetDirection();
         double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
         double norm = 1.0 / ( resolution * resolution );
 
@@ -1935,7 +1935,7 @@ QwPartialTrack* QwTrackingTreeCombine::r3_TrackFit (
   // Hard coded values to be updated
   double uvshift = 2.54;
 
-  if (hits[0]->GetDetectorInfo()->fPackage == kPackage1)
+  if (hits[0]->GetDetectorInfo()->GetPackage() == kPackage1)
     perp = 39.3679;
   else
     perp = 39.2835;
@@ -1997,7 +1997,7 @@ QwPartialTrack* QwTrackingTreeCombine::r3_TrackFit (
   // NOTE: since the first plane is in v direction and hits[0] is in u, so here 1 should be changed to 2
 
 
-  if ( hits[0]->GetDetectorInfo()->fPlane == 2 )
+  if ( hits[0]->GetDetectorInfo()->GetPlane() == 2 )
   {
     QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
     costheta = hits[0]->GetDetectorInfo()->GetDetectorRotationCos();
@@ -2102,7 +2102,7 @@ int QwTrackingTreeCombine::r3_TrackFit_deprecated (
 
 
   // get some detector information
-  if ( hit[0]->GetDetectorInfo()->fDirection == kDirectionU )
+  if ( hit[0]->GetDetectorInfo()->GetDirection() == kDirectionU )
   {
 
     QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;

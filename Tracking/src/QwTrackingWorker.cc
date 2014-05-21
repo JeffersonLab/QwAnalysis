@@ -359,14 +359,14 @@ void QwTrackingWorker::InitTree(const QwGeometry& geometry)
         double width = 0.0;
 
         /// Region 2 contains 4 layers
-        if (det->fRegion == kRegionID2) {
+        if (det->GetRegion() == kRegionID2) {
           numlayers = 4; // TODO replace this with info from the geometry file
           width = det->GetElementSpacing() * det->GetNumberOfElements();
           levels = fLevelsR2;
         }
 
         /// Region 3 contains 8 layers
-        if (det->fRegion == kRegionID3) {
+        if (det->GetRegion() == kRegionID3) {
           numlayers = 8; // TODO replace this with info from the geometry file
           width = det->GetActiveWidthZ();
           levels = fLevelsR3;
@@ -568,7 +568,7 @@ void QwTrackingWorker::ProcessEvent (
                             QwDetectorInfo* det = (*iter);
 
                             // Get plane number
-                            int plane = det->fPlane;
+                            int plane = det->GetPlane();
                             // Get number of wires
                             int numwires = det->GetNumberOfElements();
 
@@ -733,7 +733,7 @@ void QwTrackingWorker::ProcessEvent (
                             QwDetectorInfo* det = (*iter);
 
                             // Get plane number
-                            Int_t plane = det->fPlane;
+                            Int_t plane = det->GetPlane();
 
                             // Print detector info
                             if (fDebug) QwOut << plane << ": " << *det << QwLog::endl;

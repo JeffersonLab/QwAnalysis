@@ -234,7 +234,7 @@ int QwTrackingTree::consistent(
   //###########
   // REGION 2 #
   //###########
-  if (detector->fType == kTypeDriftHDC && detector->fRegion == kRegionID2) {
+  if (detector->GetType() == kTypeDriftHDC && detector->GetRegion() == kRegionID2) {
     int layer;
     int templayers = 4;
     int tlaym1 = templayers - 1;
@@ -332,7 +332,7 @@ int QwTrackingTree::consistent(
   //###########
   // REGION 3 #
   //###########
-  } else if (detector->fType == kTypeDriftVDC && detector->fRegion == kRegionID3) {
+  } else if (detector->GetType() == kTypeDriftVDC && detector->GetRegion() == kRegionID3) {
 
     int templayers = 8;
 
@@ -564,7 +564,7 @@ void QwTrackingTree::marklin (
   //###########
   // REGION 2 #
   //###########
-  if (detector->fRegion == kRegionID2 && detector->fType == kTypeDriftHDC) {
+  if (detector->GetRegion() == kRegionID2 && detector->GetType() == kTypeDriftHDC) {
 
     // There are four u, v, or x wire planes.
     fNumPlanes = 4;
@@ -753,7 +753,7 @@ void QwTrackingTree::marklin (
   //###########
   // REGION 3 #
   //###########
-  else if (detector->fRegion == kRegionID3 && detector->fType == kTypeDriftVDC) {
+  else if (detector->GetRegion() == kRegionID3 && detector->GetType() == kTypeDriftVDC) {
 
     // There are 8 wires in each demultiplexed VDC group
     fNumWires = 8;

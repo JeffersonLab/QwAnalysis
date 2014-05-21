@@ -1688,11 +1688,11 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion1 (
 	const bool resolution_effects) const
 {
   // Detector identification
-  EQwRegionID region = detectorinfo->fRegion;
-  EQwDetectorPackage package = detectorinfo->fPackage;
-  EQwDirectionID direction = detectorinfo->fDirection;
-  int octant = detectorinfo->fOctant;
-  int plane = detectorinfo->fPlane;
+  EQwRegionID region = detectorinfo->GetRegion();
+  EQwDetectorPackage package = detectorinfo->GetPackage();
+  EQwDirectionID direction = detectorinfo->GetDirection();
+  int octant = detectorinfo->GetOctant();
+  int plane = detectorinfo->GetPlane();
   double offset = detectorinfo->GetElementOffset();
   double spacing = detectorinfo->GetElementSpacing();
   int numberofelements = detectorinfo->GetNumberOfElements();
@@ -1785,11 +1785,11 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   }
   
   // Detector identification
-  EQwRegionID region = detectorinfo->fRegion;
-  EQwDetectorPackage package = detectorinfo->fPackage;
-  EQwDirectionID direction = detectorinfo->fDirection;
-  int octant = detectorinfo->fOctant;
-  int plane = detectorinfo->fPlane;
+  EQwRegionID region = detectorinfo->GetRegion();
+  EQwDetectorPackage package = detectorinfo->GetPackage();
+  EQwDirectionID direction = detectorinfo->GetDirection();
+  int octant = detectorinfo->GetOctant();
+  int plane = detectorinfo->GetPlane();
 
   // Detector geometry
   double angle = detectorinfo->GetElementAngle();
@@ -1906,11 +1906,11 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 	const bool resolution_effects) const
 {
   // Detector identification
-  EQwRegionID region = detectorinfo->fRegion;
-  EQwDetectorPackage package = detectorinfo->fPackage;
-  EQwDirectionID direction = detectorinfo->fDirection;
-  int octant = detectorinfo->fOctant;
-  int plane = detectorinfo->fPlane;
+  EQwRegionID region = detectorinfo->GetRegion();
+  EQwDetectorPackage package = detectorinfo->GetPackage();
+  EQwDirectionID direction = detectorinfo->GetDirection();
+  int octant = detectorinfo->GetOctant();
+  int plane = detectorinfo->GetPlane();
 
   // Detector geometry: wirespacing, width, central wire
   double angle   = detectorinfo->GetElementAngle();
@@ -2043,11 +2043,11 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
 	const double x_local, const double y_local) const
 {
   // Detector identification
-  EQwRegionID region = detectorinfo->fRegion;
-  EQwDetectorPackage package = detectorinfo->fPackage;
-  EQwDirectionID direction = detectorinfo->fDirection;
-  int octant = detectorinfo->fOctant;
-  int plane = detectorinfo->fPlane;
+  EQwRegionID region = detectorinfo->GetRegion();
+  EQwDetectorPackage package = detectorinfo->GetPackage();
+  EQwDirectionID direction = detectorinfo->GetDirection();
+  int octant = detectorinfo->GetOctant();
+  int plane = detectorinfo->GetPlane();
 
   // Detector geometry
   double x_detector = detectorinfo->GetXPosition();
@@ -3545,25 +3545,25 @@ double QwTreeEventBuffer::GetR2DriftTimeFromDistance(double dist) const
 
 double QwTreeEventBuffer::xGlobalToLocal(double x, double y, int octant) const
 {
-  double angle = (octant-1)*(-45.0)*TMath::DegToRad();
-  return x*cos(angle)-y*sin(angle);;
+  double angle = (octant-1)*(-45.0*Qw::deg);
+  return x*cos(angle)-y*sin(angle);
 }
 
 double QwTreeEventBuffer::yGlobalToLocal(double x, double y, int octant) const
 {
-  double angle = (octant-1)*(-45.0)*TMath::DegToRad();
+  double angle = (octant-1)*(-45.0*Qw::deg);
   return x*sin(angle)+y*cos(angle);
 }
 
 double QwTreeEventBuffer::pxGlobalToLocal(double px, double py, int octant) const
 {
-  double angle = (octant-1)*(-45.0)*TMath::DegToRad();
-  return px*cos(angle)-py*sin(angle);;
+  double angle = (octant-1)*(-45.0*Qw::deg);
+  return px*cos(angle)-py*sin(angle);
 }
 
 double QwTreeEventBuffer::pyGlobalToLocal(double px, double py, int octant) const
 {
-  double angle = (octant-1)*(-45.0)*TMath::DegToRad();
+  double angle = (octant-1)*(-45.0*Qw::deg);
   return px*sin(angle)+py*cos(angle);
 }
 

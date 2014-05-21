@@ -386,8 +386,8 @@ int QwTrackingTreeSort::rcCommonWires (
       break;
 
     // Now that we have a hit in tree line 1 and 2, determine the detector ID
-    int id1 = hits1[i1]->GetDetectorInfo()->GetID();
-    int id2 = hits2[i2]->GetDetectorInfo()->GetID();
+    int id1 = hits1[i1]->GetDetectorInfo()->GetPlane();
+    int id2 = hits2[i2]->GetDetectorInfo()->GetPlane();
     // If the ID in treeline 1 is lower, advance on treeline 1
     if (id1 < id2)
       fw = 1;

@@ -83,7 +83,7 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
     const QwGeometry in(const EQwRegionID& r) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fRegion == r)
+        if ((*i)->GetRegion() == r)
           results.push_back(*i);
       return results;
     }
@@ -92,7 +92,7 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
     const QwGeometry in(const EQwDetectorPackage& p) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fPackage == p)
+        if ((*i)->GetPackage() == p)
           results.push_back(*i);
       return results;
     }
@@ -101,7 +101,7 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
     const QwGeometry in(const EQwDirectionID& d) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fDirection == d)
+        if ((*i)->GetDirection() == d)
           results.push_back(*i);
       return results;
     }
@@ -110,7 +110,7 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
     const QwGeometry of(const EQwDetectorType& t) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fType == t)
+        if ((*i)->GetType() == t)
           results.push_back(*i);
       return results;
     }
@@ -119,10 +119,10 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
     const QwGeometry as(const QwDetectorInfo* d) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fPackage == d->fPackage
-         && (*i)->fRegion == d->fRegion
-         && (*i)->fDirection == d->fDirection
-         && (*i)->fType == d->fType)
+        if ((*i)->GetPackage()   == d->GetPackage()
+         && (*i)->GetRegion()    == d->GetRegion()
+         && (*i)->GetDirection() == d->GetDirection()
+         && (*i)->GetType()      == d->GetType())
           results.push_back(*i);
       return results;
     }

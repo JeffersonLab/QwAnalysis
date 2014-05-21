@@ -18,7 +18,7 @@ ClassImp(QwDetectorInfo)
 // Qweak headers
 #include "QwParameterFile.h"
 
-QwDetectorInfo::QwDetectorInfo()
+QwDetectorInfo::QwDetectorInfo(const std::string& name)
 : fType(kTypeNull),fPackage(kPackageNull),fRegion(kRegionIDNull),
   fDirection(kDirectionNull),
   fPlane(0),fOctant(0),
@@ -30,7 +30,7 @@ QwDetectorInfo::QwDetectorInfo()
   fActiveWidthX(0),fActiveWidthY(0),fActiveWidthZ(0),
   fElementSpacing(0),fElementAngle(0),fElementAngleCos(0),fElementAngleSin(0),
   fElementOffset(0),fPlaneOffset(0),fNumberOfElements(0),fTree(0),
-  fDetectorID(0),fReferenceChannelIndex(0)
+  fName(name),fReferenceChannelIndex(0)
 {
 
 }
@@ -54,10 +54,16 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
     fDetectorOriginY = map->ConvertValue<double>(varvalue) * Qw::cm;
   if (map->FileHasVariablePair("=","detector_origin_z",varvalue))
     fDetectorOriginZ = map->ConvertValue<double>(varvalue) * Qw::cm;
-  if (map->FileHasVariablePair("=","detector_rotation",varvalue))
-    fDetectorRotation = map->ConvertValue<double>(varvalue) * Qw::deg;
-  if (map->FileHasVariablePair("=","detector_tilt",varvalue))
+  if (map->FileHasVariablePair("=","detector_tilt",varvalue)) {
     fDetectorTilt = map->ConvertValue<double>(varvalue) * Qw::deg;
+    fDetectorTiltCos = cos(fDetectorTilt);
+    fDetectorTiltSin = sin(fDetectorTilt);
+  }
+  if (map->FileHasVariablePair("=","detector_rotation",varvalue)) {
+    fDetectorRotation = map->ConvertValue<double>(varvalue) * Qw::deg;
+    fDetectorRotationCos = cos(fDetectorRotation);
+    fDetectorRotationSin = sin(fDetectorRotation);
+  }
 
   if (map->FileHasVariablePair("=","number_of_elements",varvalue))
     fNumberOfElements = map->ConvertValue<int>(varvalue);
@@ -166,14 +172,14 @@ void QwDetectorInfo::Print() const
  */
 std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det)
 {
-  stream << "det "     << det.fDetectorID << ": ";
+  stream << det.fName << ": ";
   stream << "type "    << det.fType  << ", ";
   stream << "package " << det.fPackage << ", ";
   stream << "region "  << det.fRegion << ", ";
   stream << "plane "   << det.fPlane << ", ";
   stream << "octant "  << det.fOctant << ", ";
   stream << "dir "     << det.GetElementDirection() << " ";
-  stream << "(y = "    << det.fDetectorOriginX/Qw::cm << " cm)";
-  stream << "(z = "    << det.GetZPosition()/Qw::cm << " cm)";
+  stream << "(y = "    << det.GetXPosition() / Qw::cm << " cm)";
+  stream << "(z = "    << det.GetZPosition() / Qw::cm << " cm)";
   return stream;
 }
