@@ -39,6 +39,7 @@
 //
 //NOTE: not all integer leaves are copied but can be easily added as necessary.
 //
+// Compile as g++ `root-config --glibs --cflags` -ggdb -O0 -Wall -Wextra -o avg CreateAverageDBFriendTree.cpp
 ///////////////////////////////////////////////////////////////////////////////
 
 const Int_t nRUNS=20000, nSLUGS=325;
@@ -273,7 +274,9 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
 
 int main(Int_t argc, Char_t* argv[]) {
     CreateAverageDBFriendTree(atoi(argv[3]), 1, argv[1], argv[2], "tree");
-    CreateAverageDBFriendTree(atoi(argv[3]), 0, argv[1], argv[2], "tree");
+    if(atoi(argv[3]) == 2) {
+        CreateAverageDBFriendTree(atoi(argv[3]), 0, argv[1], argv[2], "tree");
+    }
     return 0;
 }
 
