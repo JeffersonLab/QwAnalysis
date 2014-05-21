@@ -476,7 +476,7 @@ void QwRunlet::get_data_for_runlet(Int_t j, QwValues &values) {
     values.runlet_properties[5] = phwp_setting[j];
     values.runlet_properties[6] = wien_reversal[j];
     values.runlet_properties[7] = precession_reversal[j];
-    values.runlet_properties[8] = sign_correction[j];
+    //values.runlet_properties[8] = sign_correction[j];
     values.qtor_current = qtor_current[j];
     values.run_number_decimal = run_number_decimal[j];
     values.runlet_quality_id = runlet_quality_id[j];
