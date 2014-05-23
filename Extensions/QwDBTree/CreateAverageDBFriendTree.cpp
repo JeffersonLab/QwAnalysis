@@ -290,7 +290,6 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
 int main(Int_t argc, Char_t* argv[]) {
     CreateAverageDBFriendTree(atoi(argv[3]), 1, argv[1], argv[2], "tree");
     CreateAverageDBFriendTree(atoi(argv[3]), 0, argv[1], argv[2], "tree");
-    }
     return 0;
 }
 

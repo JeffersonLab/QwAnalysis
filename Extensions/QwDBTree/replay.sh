@@ -79,3 +79,4 @@ cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run1 /group/qweak/www/html/private
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run2 /group/qweak/www/html/private/db_rootfiles
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/suspect /group/qweak/www/html/private/db_rootfiles
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/bad /group/qweak/www/html/private/db_rootfiles
+cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes /group/qweak/www/html/private/db_rootfiles
