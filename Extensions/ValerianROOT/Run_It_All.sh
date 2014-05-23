@@ -14,12 +14,13 @@ export PASS="5b"
 export WEBSITE="/group/qweak/www/html/tracking/pass${PASS}"
 #where you are - this is where all the
 #output of the perl scripts will go
-export IAMHERE="/home/vmgray/QweakTracking/"
+#export IAMHERE="/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT/"
+export VALERIAN=`dirname $0`
 
 if [ $DEBUG -gt 0 ] ; then
   echo "Pass $PASS"
   echo "Website files $WEBSITE"
-  echo "Kilroy is $IAMHERE waiting for output"
+  echo "Kilroy is $VALERIAN waiting for output"
 fi
 
 #get Run list

@@ -16,6 +16,7 @@ Assisted By: Juan Carlos Cornejo
 #include <TROOT.h> // Contains most of the ROOT data types
 #include <TTree.h>
 #include <TFile.h>
+#include <TSystem.h>
 
 // Load STD includes
 #include <iostream>
@@ -28,12 +29,12 @@ Assisted By: Juan Carlos Cornejo
 int main(int argc, char** argv)
 {
   Int_t pass = 5;
-  TString path = Form("home/vmgray/QweakTracking/data/pass%d/",pass);
+  TString path = TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass") + TString(gSystem->Getenv("PASS"));
 //  TString path = Form("home/vmgray/QweakTracking/data/pass%d/",pass);
 
   // Get a list of runs... this puts them in the
 //  std::vector<MyRun_t> runs = GetRun(path+Form("List_of_Run_pass%d.txt",pass));
-  std::vector<MyRun_t> runs = GetRun("/home/vmgray/QweakTracking/data/pass5b/List_of_Run_pass5b.txt");
+  std::vector<MyRun_t> runs = GetRun(TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass") + TString(gSystem->Getenv("PASS")) + "/List_of_Run_pass5b.txt");
 
   // Loop through the runlist and parse necessary files
   for( size_t i = 0; i < runs.size(); i++ )

@@ -13,8 +13,6 @@
 #Modified: 05-21-2014
 #Assisted By: Juan Carlos Cornejo
 
-#use Evn;
-
 my $debug = $ENV{"DEBUG"};
 #0 is false all else is true
 #false will not print - This way I
@@ -36,7 +34,7 @@ use diagnostics;
 
 #get in the enviroment variables
 my $pass = $ENV{"PASS"};
-my $BaseDir = $ENV{"IAMHERE"};
+my $BaseDir = $ENV{"VALERIAN"};
 my $QweakDir = $ENV{"WEBSITE"};
 
 #all other info 

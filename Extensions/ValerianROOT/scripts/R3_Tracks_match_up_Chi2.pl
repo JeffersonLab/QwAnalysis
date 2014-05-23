@@ -13,7 +13,7 @@
 #Modified: 05-21-2014
 #Assisted By:
 
-my $debug = 0;
+my $debug = $ENV{"DEBUG"};
 #0 is false all else is true
 #false will not print - This way I
 #can set it up so levels of debugging :)
@@ -31,24 +31,28 @@ use diagnostics;
 
 #pass number, dircetory, outputfilename, & runlist
 #where I am now
+
+#get in the enviroment variables
+my $pass = $ENV{"PASS"};
+my $BaseDir = $ENV{"VALERIAN"};
+my $QweakDir = $ENV{"WEBSITE"};
+
+#all other info 
 my $script = "R3_Tracks_match_up_Chi2";
-my $pass = "5b";
-my $BaseDir = "/home/vmgray/QweakTracking/";
 my $MissingDir = $BaseDir . "missing/pass". $pass;
 my $YouAreHere = $BaseDir . "data/pass". $pass;
-my $QweakDir = "/group/qweak/www/html/tracking/pass" . $pass;
 my $OutputDir = $YouAreHere .  "/" . $script;
 my $RunList = $YouAreHere . "/" . "List_of_Run_pass" . $pass . ".txt";
 
 #debugging
-print "the script for $script \n" if ($debug);
-print "Base jump from $BaseDir \n" if ($debug);
-print "Now on the back of milk cartons $MissingDir \n" if ($debug);
-print "Kilroy was $YouAreHere \n" if ($debug);
-print "Pass: $pass \n" if ($debug);
-print "Pass Directory: $QweakDir \n" if ($debug);
-print "Output directory: $OutputDir \n" if ($debug);
-print "Run list: $RunList \n" if ($debug);
+print "the script for $script \n" if ($debug >= 2);
+print "Base jump from $BaseDir \n" if ($debug >= 2);
+print "Now on the back of milk cartons $MissingDir \n" if ($debug >= 2);
+print "Kilroy was $YouAreHere \n" if ($debug >= 2);
+print "Pass: $pass \n" if ($debug >= 2);
+print "Pass Directory: $QweakDir \n" if ($debug >= 2);
+print "Output directory: $OutputDir \n" if ($debug >= 2);
+print "Run list: $RunList \n" if ($debug >= 2);
 
 #if the output diectory is not there, make it
 make_path $OutputDir;
@@ -60,7 +64,7 @@ my $MissingFile = $MissingDir . "/" . $script . "_Missing.txt" ;
 open( MISSINGRUNS, ">$MissingFile" )
   || warn "Couldn't open file $MissingFile, $!";
 #debug
-print "$MissingFile \n" if ($debug);
+print "$MissingFile \n" if ($debug >= 2);
 
 #we need the list of runs in this pass so we must read in
 #the list of runs file
@@ -76,13 +80,13 @@ while ( my $runnum = <ALLRUNS> )
   #get rid of the end charater in the runnum
   chomp( $runnum );
   #debug
-  print "Run num is... $runnum \n" if ($debug);
+  print "Run num is... $runnum \n" if ($debug >= 2);
 
   #define the output files name only open if we have data
   #though, so open function is in the loop
   my $TracksChiOut = $OutputDir . "/" . $script . "_" . $runnum . ".txt";
   #debug
-  print "$TracksChiOut \n" if ($debug);
+  print "$TracksChiOut \n" if ($debug >= 2);
 
   #open the file from the Qweak dir for this
   #runnum and pass
@@ -113,7 +117,7 @@ while ( my $runnum = <ALLRUNS> )
         if ($linecount == 1)
         {
           #debugging
-          print "$line \n" if ($debug);
+          print "$line \n" if ($debug >= 2);
 
           #this line is not what we want to print out
           #none of this is actual data.

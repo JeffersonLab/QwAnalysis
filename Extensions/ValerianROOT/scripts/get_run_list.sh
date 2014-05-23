@@ -13,7 +13,7 @@
 
 #pass number,dircetory, and outputfilename
 pass=$PASS
-YouAreHere=${IAMHERE}
+YouAreHere=${VALERIAN}
 dir=${WEBSITE}
 
 OutputDir=${YouAreHere}data/pass${pass}

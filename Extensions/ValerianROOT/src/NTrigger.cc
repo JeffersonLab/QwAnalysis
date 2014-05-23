@@ -17,6 +17,7 @@
 
 //ROOT includes
 #include <TString.h>
+#include <TSystem.h>
 
 //standard include
 #include <fstream>
@@ -31,7 +32,7 @@
 std::vector<MyTrigger_t> GetTrigger(Int_t run, Int_t pass, TString path)
 {
 //  TString filename = TString("path")+Form("Angle_%d.txt",pass);
-  TString filename = TString(Form("/home/vmgray/QweakTracking/data/pass5b/NTriggers/NTriggers_%d.txt",run));
+  TString filename = TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass") + TString(gSystem->Getenv("PASS")) + Form("/NTriggers/NTriggers_%d.txt",run);
 
   // An input stream that contains run list
   ifstream trigger_data;

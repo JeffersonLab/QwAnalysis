@@ -17,6 +17,7 @@
 
 //ROOT includes
 #include <TString.h>
+#include <TSystem.h>
 
 //standard include
 #include <fstream>
@@ -31,7 +32,7 @@
 std::vector<MyQ2ThetaMatch_t> GetQ2ThetaMatch(Int_t run, Int_t pass, TString path)
 {
 //  TString filename = TString("path")+Form("Angle_%d.txt",pass);
-  TString filename = TString(Form("/home/vmgray/QweakTracking/data/pass5b/ThetaMatch/ThetaMatch_%d.txt",run));
+  TString filename = TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass") + TString(gSystem->Getenv("PASS")) + Form("/ThetaMatch/ThetaMatch_%d.txt",run);
 
   // An input stream that contains run list
   ifstream theta_data;

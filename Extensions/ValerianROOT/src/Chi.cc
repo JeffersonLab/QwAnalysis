@@ -17,6 +17,7 @@
 
 //ROOT includes
 #include <TString.h>
+#include <TSystem.h>
 
 //standard include
 #include <fstream>
@@ -30,7 +31,7 @@
 std::vector<MyChi_t> GetChi(Int_t run, Int_t pass, TString path)
 {
 //  TString filename = TString("path")+Form("Chi_%d.txt",pass);
-  TString filename = TString(Form("/home/vmgray/QweakTracking/data/pass5b/Chi/Chi_%d.txt",run));
+  TString filename = TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass") + TString(gSystem->Getenv("PASS")) + Form("/Chi/Chi_%d.txt",run);
 
   // An input stream that contains run list
   ifstream chi_data;

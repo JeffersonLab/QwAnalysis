@@ -1,5 +1,5 @@
 Welcome to this awesome README page.  This is the 411 on ValerianROOT
-how to use it and why it is so awsome!!
+how to use it and why it is so calming and relaxing!
 
 What is it and what is it's goal?
 
@@ -23,7 +23,7 @@ coorresponding pass subdirectiory.
 
 2) It goes through all of the text files on the website, reads
 in the information and rewrites only the parts that are needed
-for ValerianROOTTreeMaker (scripts.*pl files).  These files are
+for ValerianROOTTreeMaker (scripts/*pl files).  These files are
 outputed to the data directory in the coorresponding pass
 subdirectory and the coorresponding script (textfile) directory.
   *Example: If you are gathering the  Qtor current, then the
@@ -52,13 +52,21 @@ ValerianLinkDef.h file in the linkdef subdirectory.
   added into this file in order for it to work.  The added line
   will have the form: #pragma link C++ struct MyAngle_t+;
 
-3) The src directory has in it all the .cc files that go with the header
+5) The src directory has in it all the .cc files that go with the header
 file for an output.  These only have in the Get function that reads in
 the data written out.  The main file will call this function and go here
 to have it read in the wanted data from the text file for a run.
   *even though Run.h has all the other stucts in it.  The Run.cc
   file is just like any other.  It doesn't get information about
   the other structures*
+
+6) Make ValerianROOT- ValerianROOT.cc is in charge of making
+ValerianROOT.  Here ValerianROOT gets to know about all the
+structures that I moreover we are including in the ROOT tree.
+
+7) Make the ROOT file for a pass - ValerianROOTTreeMaker.cc
+This function 
+
 ----------------------------------------------------------------------------
 
 List of files (or directory of files or a combination) and
