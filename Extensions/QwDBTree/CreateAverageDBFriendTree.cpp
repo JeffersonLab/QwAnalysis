@@ -29,7 +29,7 @@
 //Usage: CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average,
 //				    TString filename, TString treename)
 //run_period:  1 or 2
-//run_average: 1 is run_average, 2 is slug_average
+//run_average: 1 is run_average, 0 is slug_average
 //filename:    name of rootfile to average
 //treename:    name of tree in rootfile
 //
@@ -174,19 +174,29 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
         tree->GetEntry(ient);
         average_tree->GetEntry(ient);
         run_number = (int)tree->GetLeaf("run_number")->GetValue();
-        int idx = (run_average ? run_number : slug); 
+        int idx = (run_average ? run_number : slug);
+
+        //don't include values with no entries
         if(tree->GetBranch("asym_qwk_charge")->GetLeaf("n")->GetValue()<1){
             continue;
         }
-        ++vNRunlets[idx];
-        vSlug[idx] = slug;
+        //don't include slugs that aren't LH2
+        if(!(slug>=42&&slug<=321))continue;
         double err_MD = average_tree->GetBranch(mdallbars.Data())->
             GetLeaf("err")->GetValue();
+
+        //don't include errors
+        if(err_MD==ERROR)continue;
+
+        ++vNRunlets[idx];
+        vSlug[idx] = slug;
+
         for(int ileaf=0;ileaf<size;++ileaf){
             vLeaves[ileaf][idx] = intLeaves[ileaf];
             //       cout<<ient<<" "<<slug<<" "<<integerLeaves[ileaf].Data()
             // 	  <<": "<<intLeaves[ileaf]<<endl;
         }
+
         for(int ibranch=0;ibranch<int(branchnames.size());++ibranch){
             double value = average_tree->GetBranch(branchnames[ibranch].Data())->
 	            GetLeaf("value")->GetValue();
@@ -194,23 +204,29 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
 	            GetLeaf("err")->GetValue();
             int n = (int)average_tree->GetBranch(branchnames[ibranch].Data())->
 	            GetLeaf("n")->GetValue();
-            //cout<<branchnames[ibranch].Data()<<":"<<value<<" "<<err<<" "<<n<<endl;
+	        //	cout<<branchnames[ibranch].Data()<<":"<<value<<" "<<err<<" "<<n
+            //	    <<"  "<<err_MD<<endl;
             vBranches[ibranch][idx].value += value / (err_MD * err_MD);
             vBranches[ibranch][idx].err += pow(err / (err_MD * err_MD) , 2);
             vBranches[ibranch][idx].rms += pow(value / err_MD, 2);
             vWeights[ibranch][idx] += pow(err_MD , -2);
             vBranches[ibranch][idx].n += n;
+
         }
     }
-    for(int islug=0;islug<=nSLUGS;++islug){
+
+    for(int i=0;i<=(run_average ? nRUNS : nSLUGS);++i){
         for(int ibranch=0;ibranch<int(branchnames.size());++ibranch){
-            if(vBranches[ibranch][islug].n>0){
-	            vBranches[ibranch][islug].value /=  vWeights[ibranch][islug];
-	            vBranches[ibranch][islug].rms /=  vWeights[ibranch][islug];
-	            vBranches[ibranch][islug].rms -= pow(vBranches[ibranch][islug].value , 2);
-	            vBranches[ibranch][islug].rms = pow( vBranches[ibranch][islug].rms, 0.5);
-	            vBranches[ibranch][islug].err = pow(vBranches[ibranch][islug].err, 0.5);
-	            vBranches[ibranch][islug].err /= vWeights[ibranch][islug];
+            if(vBranches[ibranch][i].n>0){
+	            vBranches[ibranch][i].value /=  vWeights[ibranch][i];
+	            if(vNRunlets[i]>1){
+	                vBranches[ibranch][i].rms /=  vWeights[ibranch][i];
+	                vBranches[ibranch][i].rms -= pow(vBranches[ibranch][i].value , 2);
+	                vBranches[ibranch][i].rms = pow( vBranches[ibranch][i].rms, 0.5);
+	            }else
+	                vBranches[ibranch][i].rms = 0;
+	            vBranches[ibranch][i].err = pow(vBranches[ibranch][i].err, 0.5);
+	            vBranches[ibranch][i].err /= vWeights[ibranch][i];
             }
         }
     }
@@ -222,7 +238,6 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
     TFile *new_file = new TFile(Form("%s/%s_averaged_%s", dirname.Data(),
 				(run_average ? "run" : "slug"),
 				filename.Data()), "recreate");
-    //cout << Form("%s/%s_averaged_%s", dirname.Data(),(run_average ? "run" : "slug"),filename.Data());
     TTree *new_tree = new TTree(treename.Data(),treename.Data());
     Branch_t *bBranches = new Branch_t[int(branchnames.size())]; 
     TBranch *brSlug = new_tree->Branch("slug", &slug,"slug/I"); 
@@ -240,7 +255,7 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
 				&bBranches[ibranch],
 				"value/D:err/D:rms/D:n/I");
     }
-    for(int i=0;i<=(run_average ? nRUNS : nSLUGS);++i){
+    for(int i=0;i<(int)vNRunlets.size();++i){
         if(vBranches[0][i].n>0){
             slug = vSlug[i];
             nrunlets = vNRunlets[i];
@@ -274,8 +289,7 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
 
 int main(Int_t argc, Char_t* argv[]) {
     CreateAverageDBFriendTree(atoi(argv[3]), 1, argv[1], argv[2], "tree");
-    if(atoi(argv[3]) == 2) {
-        CreateAverageDBFriendTree(atoi(argv[3]), 0, argv[1], argv[2], "tree");
+    CreateAverageDBFriendTree(atoi(argv[3]), 0, argv[1], argv[2], "tree");
     }
     return 0;
 }
