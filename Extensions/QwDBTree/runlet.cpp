@@ -138,7 +138,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
         if(db_name == "qw_run2_pass5b")
             query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
         if(db_name == "qw_run1_pass5b")
-            query += "AND slow_controls_data.value <= -709.5 AND slow_controls_data.value >= -711.5.5\n";
+            query += "AND slow_controls_data.value <= -709.5 AND slow_controls_data.value >= -711.5\n";
     }
 
     /* if using runlist, cut on run number */
@@ -153,6 +153,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     }
 
     query += "ORDER BY runlet.run_number, runlet.segment_number);\n";
+    cout << query << endl;
 
     return query;
 }
