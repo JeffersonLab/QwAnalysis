@@ -52,8 +52,8 @@ class QwRunlet {
     TString run_query(void);
     TString slug_query(void);
     TString wien_query(void);
-    TString runlet_temp_table_create(TString, vector<TString>, TString, Bool_t, Int_t);
-    TString runlet_temp_table_unreg_create(TString, vector<TString>, TString, Bool_t, Int_t);
+    TString runlet_temp_table_create(TString, vector<TString>, TString, Bool_t, Int_t, TString);
+    TString runlet_temp_table_unreg_create(TString, vector<TString>, TString, Bool_t, Int_t, TString);
 };
 
 #endif

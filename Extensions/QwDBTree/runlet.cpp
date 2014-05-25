@@ -87,7 +87,7 @@ TString QwRunlet::wien_query(void) {
  * Instead, you do 3 of the JOINs once, and just JOIN this temporary table to
  * your data.
  */
-TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality) {
+TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality, TString db_name) {
     /* query holds the MySQL query in a TString. */
     TString query;
     /*
@@ -135,10 +135,10 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
         query += "AND FIND_IN_SET('3',run.good_for_id)\n";
-        //query += "AND slow_controls_data.value <= -710.60 AND slow_controls_data.value >= -711.32\n";
-        //query += "AND slow_controls_data.value <= -707.40 AND slow_controls_data.value >= -714.52\n";
-        //query += "AND slow_controls_data.value <= -675.40 AND slow_controls_data.value >= -746.51\n";
-        //query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
+        if(db_name == "qw_run2_pass5b")
+            query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
+        if(db_name == "qw_run1_pass5b")
+            query += "AND slow_controls_data.value <= -709.5 AND slow_controls_data.value >= -711.5.5\n";
     }
 
     /* if using runlist, cut on run number */
@@ -158,7 +158,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
 }
 
 /* Generate query to create temporary table for unregressed values. */
-TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality) {
+TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality, TString db_name) {
     /* query holds the MySQL query in a TString. */
     TString query;
     /*
@@ -213,10 +213,10 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
         //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
         query += "AND FIND_IN_SET('3',run.good_for_id)\n";
-        //query += "AND slow_controls_data.value <= -710.60 AND slow_controls_data.value >= -711.32\n";
-        //query += "AND slow_controls_data.value <= -707.40 AND slow_controls_data.value >= -714.52\n";
-        //query += "AND slow_controls_data.value <= -675.40 AND slow_controls_data.value >= -746.51\n";
-        //query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
+        if(db_name == "qw_run2_pass5b")
+            query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
+        if(db_name == "qw_run1_pass5b")
+            query += "AND slow_controls_data.value <= -709.5 AND slow_controls_data.value >= -711.5.5\n";
     }
 
     /* if using runlist, cut on run number */
@@ -316,7 +316,8 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
     for(Int_t i = 0; i < num_regs; i++) {
         cout << reg_types.detector(i) << endl;
 
-        query = runlet_temp_table_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality);
+        TString db_name = db->GetDB();
+        query = runlet_temp_table_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality, db_name);
         stmt = db->Statement(query, 100);
         if((db!=0) && db->IsConnected()) {
             stmt->Process();
@@ -324,7 +325,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
         }
         else cout << "Failed to connect to the database while creating runlet temp table" << endl;
         
-        query = runlet_temp_table_unreg_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality);
+        query = runlet_temp_table_unreg_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality, db_name);
         stmt = db->Statement(query, 100);
         if((db!=0) && db->IsConnected()) {
             stmt->Process();

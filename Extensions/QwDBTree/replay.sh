@@ -66,10 +66,6 @@ cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run2/ /net/cdaq/cdaql5data/qweak/d
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_diff_targetYSlope
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_diff_energy
 ./tree_fill --host 127.0.0.1 --db qw_run2_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run2_slopes/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes/run2/ --slope wrt_asym_charge
-#Run 1 averaged rootfiles
-./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run1/parity/ --runavg
-./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run1/parity/ --slugavg
-./tree_fill --host 127.0.0.1 --db qw_run1_pass5b --target HYDROGEN-CELL --mapdir mapfiles/run1/ --outdir /net/cdaq/cdaql5data/qweak/db_rootfiles/run1/parity/ --wienavg
 
 rm -rf /group/qweak/www/html/private/db_rootfiles/run1
 rm -rf /group/qweak/www/html/private/db_rootfiles/run2
@@ -79,4 +75,5 @@ cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run1 /group/qweak/www/html/private
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/run2 /group/qweak/www/html/private/db_rootfiles
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/suspect /group/qweak/www/html/private/db_rootfiles
 cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/bad /group/qweak/www/html/private/db_rootfiles
-cp -r /net/cdaq/cdaql5data/qweak/db_rootfiles/slopes /group/qweak/www/html/private/db_rootfiles
+
+./avg_replay.sh
