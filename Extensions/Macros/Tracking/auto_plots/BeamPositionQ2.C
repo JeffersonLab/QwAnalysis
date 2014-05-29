@@ -237,7 +237,7 @@ void BeamPositionQ2(int runnum, bool is100k)
       Output_file_y << "0 \t " << "NA" <<" \t "<< setprecision(5) <<  fity[0]->GetChisquare()/fitx[1]->GetNDF() <<
         " \t " << value_with_error(fity[0]->GetParameter(1), fity[0]->GetParError(1)) << endl;
       Output_file_y << "1 \t " << octpkg1 <<" \t "<< setprecision(5) <<  fity[1]->GetChisquare()/fitx[1]->GetNDF() <<
-        " \t" << value_with_error(fity[1]->GetParameter(1), << fity[1]->GetParError(1)) << endl;
+        " \t" << value_with_error(fity[1]->GetParameter(1), fity[1]->GetParError(1)) << endl;
       Output_file_y << "2 \t " << octpkg2 <<" \t "<< setprecision(5) <<  fity[2]->GetChisquare()/fitx[2]->GetNDF() <<
         " \t" << value_with_error(fity[2]->GetParameter(1), fity[2]->GetParError(1)) << endl;
 

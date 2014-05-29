@@ -313,11 +313,7 @@ RMS/sqrt(N)
 
 
 	//Create the canvas
-<<<<<<< .mine
-	TCanvas c2("c2", "Residual values for both Packages", 1000,500);
-=======
 	TCanvas c2("c2", "Residual values for both Packages", 1000,600);
->>>>>>> .r5728
 
 	c2.Divide(2,0);
 
