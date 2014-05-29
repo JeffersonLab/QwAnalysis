@@ -40,16 +40,19 @@ Int_t VQwSubsystemTracking::LoadGeometryDefinition(TString filename)
     // Load section parameters
     detector->LoadGeometryDefinition(section);
 
-    // Construct something like "R2-octant = 1" to require as module header
-    std::stringstream octant_option, octant_match;
+    // Construct "R2-octant" to request the requested octant
+    std::stringstream octant_option;
     octant_option << "R" << detector->GetRegion() << "-octant";
-    octant_match << octant_option << " = " << gQwOptions.GetValue<Int_t>(octant_option.str());
 
     // Obtain the current octant number from the command line options
     detector->SetOctant(gQwOptions.GetValue<Int_t>(octant_option.str()));
-    // The specified octant is for package 2...
+    // The octant specified on the command line is for package 2...
     if (detector->GetPackage() == kPackage1)
       detector->SetOctant((detector->GetOctant() + 3) % 8 + 1);
+
+    // Construct "R2-octant = 2" to construct the correct module header
+    std::stringstream octant_match;
+    octant_match << octant_option << " = " << detector->GetOctant();
 
     // Find modules matching the current octant
     QwParameterFile* module;
