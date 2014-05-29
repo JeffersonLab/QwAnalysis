@@ -212,11 +212,7 @@ void Residual(int runnum, bool is100k)
 	for (int pkg1 = 1 ; pkg1 <3 ; pkg1++)
 	{
 		//Create the canvas
-<<<<<<< .mine
-		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 1000,500);
-=======
 		TCanvas c1("c1", Form("Residual values - Package %d",pkg1), 1500,900);
->>>>>>> .r5728
 
 		//divide the canvas
 		c1.Divide(6,2);

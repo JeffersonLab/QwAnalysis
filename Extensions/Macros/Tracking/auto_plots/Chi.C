@@ -63,11 +63,7 @@ void Chi(int runnum, bool is100k)
 	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//Create the canvas
-<<<<<<< .mine
-	TCanvas c1("c1", "log(Chi) - Package 1 across top, Package 2 across bottom", 900,800);
-=======
 	TCanvas c1("c1", "log(Chi) - Package 1 across top, Package 2 across bottom", 1900,2000);
->>>>>>> .r5728
 
 	//divide the canvas
 	c1.Divide(4,2);	
