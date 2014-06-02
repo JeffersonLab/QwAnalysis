@@ -69,7 +69,7 @@ void Residual(int runnum, bool is100k)
 {
 	// changed the Prefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/statbox_Residual_%d_",runnum,runnum);
+	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/Residual_%d_",runnum,runnum);
 
 	gStyle->SetOptFit(1110);      
 	gStyle->SetStatX(0.9);

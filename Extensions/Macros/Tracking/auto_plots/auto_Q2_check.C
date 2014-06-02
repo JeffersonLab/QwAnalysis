@@ -219,6 +219,9 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
      int n_raw_track_1=0;
      int n_raw_track_2=0;
 
+     int n_good_track_1=0;
+     int n_good_track_2=0;
+
      for(int i=start;i<end;++i){
      //     for(int i=0;i<200002;++i){   // this line can be used for quick tests
 
@@ -293,6 +296,10 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	  if(track->fDirectionPhioff>phioff_lower && track->fDirectionPhioff<phioff_upper 
 	     && track->fDirectionThetaoff>thetaoff_lower && track->fDirectionThetaoff<thetaoff_upper ){
   
+  	// Count raw number of bridged tracks in each package 
+  	if(track->fBack->GetPackage()==1) n_good_track_1++;
+  	if(track->fBack->GetPackage()==2) n_good_track_2++;
+
 	  //Valid for package 1 Q^2 and angles, fill the histograms
 	  angle_1->Fill(fEvent->fScatteringAngle);
 	  q2_0_1->Fill(fEvent->fKin.fQ2);
@@ -355,22 +362,22 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
     cout << "raw and good tracks per package" << endl;
     if (n_raw_track_1>0){
-    cout << "pkg1: raw: " << n_raw_track_1 << "\t good: " << angle_1->GetEntries() << 
-      "\t good/raw: " << angle_1->GetEntries()/n_raw_track_1 << endl;
+    cout << "pkg1: raw: " << n_raw_track_1 << "\t good: " << n_good_track_1 << 
+      "\t good/raw: " << n_good_track_1/n_raw_track_1 << endl;
     }
     if (n_raw_track_2>0){
-    cout << "pkg2: raw: " << n_raw_track_2 << "\t good: " << angle_2->GetEntries() << 
-      "\t good/raw: " << angle_2->GetEntries()/n_raw_track_2 << endl;
+    cout << "pkg2: raw: " << n_raw_track_2 << "\t good: " << n_good_track_2 << 
+      "\t good/raw: " << n_good_track_2/n_raw_track_2 << endl;
     }
 
     cout << "scattering angle: " << endl;
     if(angle->GetEntries()!=0) {
       cout << "all: " << std::setprecision(5) << angle->GetMean() << " error RMS/sqrt(N): " << std::setprecision(2) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
     }
-    if(angle_1->GetEntries()!=0) {
+    if(n_good_track_1!=0) {
       cout << "pkg1: " << std::setprecision(5) << angle_1->GetMean() << " error RMS/sqrt(N): " << std::setprecision(2) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
     }
-    if(angle_2->GetEntries()!=0) {
+    if(n_good_track_2!=0) {
       cout << "pkg2: " <<  std::setprecision(5) << angle_2->GetMean() << " error RMS/sqrt(N): " <<  std::setprecision(2) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
     }
 
@@ -405,22 +412,22 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
     fout << "rawTrks\t " << runnum << " \t 1 \t  " << md_1 << "\t" << n_raw_track_1 << "\t \t" << endl;
     fout << "rawTrks\t " << runnum << " \t 2 \t  " << md_2 << "\t" << n_raw_track_2 << "\t \t" << endl;
-    fout << "gd Trks\t " << runnum << " \t 1 \t  " << md_1 << "\t" << angle_1->GetEntries() << "\t \t" << endl; 
-    fout << "gd Trks\t " << runnum << " \t 2 \t  " << md_2 << "\t" << angle_2->GetEntries() << "\t \t" << endl; 
+    fout << "gd Trks\t " << runnum << " \t 1 \t  " << md_1 << "\t" << n_good_track_1 << "\t \t" << endl; 
+    fout << "gd Trks\t " << runnum << " \t 2 \t  " << md_2 << "\t" << n_good_track_2 << "\t \t" << endl; 
     if (n_raw_track_1>0){
-      fout << "% good\t " << runnum << " \t 1 \t  " << md_1 << "\t" <<std::setprecision(4) << 100.*float(angle_1->GetEntries()/n_raw_track_1) << "\t \t" << endl; 
+      fout << "% good\t " << runnum << " \t 1 \t  " << md_1 << "\t" <<std::setprecision(4) << 100.*float(n_good_track_1/n_raw_track_1) << "\t \t" << endl; 
     }
     if (n_raw_track_2>0){
-      fout << "% good\t " << runnum << " \t 2 \t  " << md_2 << "\t" <<  std::setprecision(4) << 100.*float(angle_2->GetEntries()/n_raw_track_2) << "\t \t" << endl; 
+      fout << "% good\t " << runnum << " \t 2 \t  " << md_2 << "\t" <<  std::setprecision(4) << 100.*float(n_good_track_2/n_raw_track_2) << "\t \t" << endl; 
     }
 
     if(angle->GetEntries()!=0) {
       fout << "angle \t " << runnum <<" \t 0 \t \t" << std::setprecision(5) << angle->GetMean() << "\t " << std::setprecision(2) << angle->GetRMS()/sqrt(angle->GetEntries()) << endl; 
     }
-    if(angle_1->GetEntries()!=0) {
+    if(n_good_track_1!=0) {
       fout << "angle \t " << runnum <<" \t 1 \t  " << md_1 << "\t" << std::setprecision(5) << angle_1->GetMean() << "\t " << std::setprecision(2) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << endl;
     }
-    if(angle_2->GetEntries()!=0) {
+    if(n_good_track_2!=0) {
       fout << "angle \t " << runnum <<" \t 2 \t  " << md_2 << "\t" << std::setprecision(5) << angle_2->GetMean() << " \t " <<  std::setprecision(2) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << endl;
     }
 
@@ -522,8 +529,8 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
   if (!fout.is_open()) cout << "File not opened - good tracks" << endl;
 
   fout << "Run # \t pkg \t GoodTracks" << endl;
-  fout << runnum << " \t 1 \t "<< angle_1->GetEntries() << endl;
-  fout << runnum << " \t 2 \t " <<  angle_2->GetEntries() << endl;
+  fout << runnum << " \t 1 \t " << n_good_track_1 << endl;
+  fout << runnum << " \t 2 \t " << n_good_track_2 << endl;
 
   //close the file
   fout.close();
@@ -535,13 +542,13 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
   fout << "Run # \t pkg \t % Tracks" << endl;
   if (n_raw_track_1>0)
   {
-    fout << runnum << " \t 1 \t  " << std::setprecision(4)
-      << 100.*float(angle_1->GetEntries()/n_raw_track_1) << endl;
+    fout << runnum << " \t 1 \t " << std::setprecision(4)
+      << 100.*float(n_good_track_1/n_raw_track_1) << endl;
   }
   if (n_raw_track_2>0)
   {
     fout << runnum << " \t 2 \t " <<  std::setprecision(4)
-      << 100.*float(angle_2->GetEntries()/n_raw_track_2) << endl;
+      << 100.*float(n_good_track_2/n_raw_track_2) << endl;
   }
 
   //close the file
@@ -556,11 +563,11 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
   {
     fout << runnum <<" \t 0 \t" << value_with_error(angle->GetMean(), (angle->GetRMS()/sqrt(angle->GetEntries()))) << endl;
   }
-  if(angle_1->GetEntries()!=0)
+  if(n_good_track_1!=0)
   {
     fout << runnum <<" \t 1 \t" << value_with_error(angle_1->GetMean(),(angle_1->GetRMS()/sqrt(angle_1->GetEntries()))) << endl;
   }
-  if(angle_2->GetEntries()!=0)
+  if(n_good_track_2!=0)
   {
     fout << runnum <<" \t 2 \t" << value_with_error(angle_2->GetMean(), (angle_2->GetRMS()/sqrt(angle_2->GetEntries()))) << endl;
   }

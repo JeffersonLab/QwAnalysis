@@ -1343,7 +1343,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Slope->GetEntries() << " \t " <<
+                        std::setprecision(10) << h_Temp_Slope->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Slope->GetMean(),
                            (h_Temp_Slope->GetRMS()/sqrt(h_Temp_Slope->GetEntries()))) << endl;
 
@@ -1355,7 +1355,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Chi2->GetEntries() << " \t " <<
+                        std::setprecision(10) << h_Temp_Chi2->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Chi2->GetMean(),
                            (h_Temp_Chi2->GetRMS()/sqrt(h_Temp_Chi2->GetEntries()))) << endl;
                     }
@@ -1373,7 +1373,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Slope->GetEntries() << " \t" <<
+                        std::setprecision(10) << h_Temp_Slope->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Slope->GetMean(),
                            (h_Temp_Slope->GetRMS()/sqrt(h_Temp_Slope->GetEntries()))) << endl;
 
@@ -1384,7 +1384,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Chi2->GetEntries() << " \t" <<
+                        std::setprecision(10) << h_Temp_Chi2->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Chi2->GetMean(),
                            (h_Temp_Chi2->GetRMS()/sqrt(h_Temp_Chi2->GetEntries()))) << endl;
 
@@ -1438,7 +1438,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Slope->GetEntries() << " \t" <<
+                        std::setprecision(10) << h_Temp_Slope->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Slope->GetMean(),
                            (h_Temp_Slope->GetRMS()/sqrt(h_Temp_Slope->GetEntries()))) << endl;
 
@@ -1450,7 +1450,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Chi2->GetEntries() << " \t" <<
+                        std::setprecision(10) << h_Temp_Chi2->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Chi2->GetMean(),
                            (h_Temp_Chi2->GetRMS()/sqrt(h_Temp_Chi2->GetEntries()))) << endl;
                     }
@@ -1505,7 +1505,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Slope->GetEntries() << " \t" <<
+                        std::setprecision(10) << h_Temp_Slope->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Slope->GetMean(),
                            (h_Temp_Slope->GetRMS()/sqrt(h_Temp_Slope->GetEntries()))) << endl;
 
@@ -1517,7 +1517,7 @@ void Print_To_File(int run_num)
                         pkg << " \t " <<
                         INDEXTOVDC[VDC].c_str() << " \t " <<
                         INDEXTOPLANE[plane].c_str() << " \t " <<
-                        h_Temp_Chi2->GetEntries() << " \t" <<
+                        std::setprecision(10) << h_Temp_Chi2->GetEntries() << " \t" <<
                         value_with_error(h_Temp_Chi2->GetMean(),
                            (h_Temp_Chi2->GetRMS()/sqrt(h_Temp_Chi2->GetEntries()))) << endl;
                     }
