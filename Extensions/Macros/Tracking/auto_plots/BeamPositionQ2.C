@@ -247,7 +247,7 @@ void BeamPositionQ2(int runnum, bool is100k)
 //-------------Draw Things--------------------
 
       TCanvas* Q2BeamXPositionTCanvas = new TCanvas("Q2BeamXPositionTCanvas", "Q^2 vs. x position", 450, 350);
-      TCanvas* Q2BeamYPositionTCanvas = new TCanvas("Q2BeamYPositionTCanvas", "Q^2 vs. y position", 450, 3500);
+      TCanvas* Q2BeamYPositionTCanvas = new TCanvas("Q2BeamYPositionTCanvas", "Q^2 vs. y position", 450, 350);
 
       Q2BeamXPositionTCanvas->Divide(3);
       Q2BeamYPositionTCanvas->Divide(3);
