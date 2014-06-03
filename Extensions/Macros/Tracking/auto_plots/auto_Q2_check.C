@@ -296,9 +296,8 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	  if(track->fDirectionPhioff>phioff_lower && track->fDirectionPhioff<phioff_upper 
 	     && track->fDirectionThetaoff>thetaoff_lower && track->fDirectionThetaoff<thetaoff_upper ){
   
-  	// Count raw number of bridged tracks in each package 
-  	if(track->fBack->GetPackage()==1) n_good_track_1++;
-  	if(track->fBack->GetPackage()==2) n_good_track_2++;
+  	  n_good_track_1++;
+
 
 	  //Valid for package 1 Q^2 and angles, fill the histograms
 	  angle_1->Fill(fEvent->fScatteringAngle);
@@ -331,7 +330,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	      phioff_upper=pkg2_phioff_upper;
 	      thetaoff_lower=pkg2_thetaoff_lower;
 	      thetaoff_upper=pkg2_thetaoff_upper;
-	  }	      
+	    }
 
 	    //  these lines below used for debugging
 	    //	    	    cout << "front package = " << track->fFront->GetPackage() << "  back package = "
@@ -344,6 +343,8 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	    if(track->fDirectionPhioff>phioff_lower && track->fDirectionPhioff<phioff_upper 
 	       && track->fDirectionThetaoff>thetaoff_lower && track->fDirectionThetaoff<thetaoff_upper){
   
+  	      n_good_track_2++;
+
 	      //if valid for package 2 fill the Q^2 and angle  histograms
 		angle_2->Fill(fEvent->fScatteringAngle);
 		q2_0_2->Fill(fEvent->fKin.fQ2);
