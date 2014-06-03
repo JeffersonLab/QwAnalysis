@@ -726,6 +726,9 @@ void QwTrackingWorker::ProcessEvent (
                         // Create a vector of hit patterns
                         std::vector<QwHitPattern> patterns;
 
+                        // Get the hit list for this package/region/direction
+                        QwHitContainer *treelinehits = new QwHitContainer();
+
                         /* Loop over the like-pitched planes in a region */
                         tlayers = 0;
                         for (std::vector<QwDetectorInfo*>::iterator iter = detectors.begin();
@@ -745,8 +748,9 @@ void QwTrackingWorker::ProcessEvent (
                             }
 
                             // Get the subhitlist of hits in this detector plane
-                            QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
-                            if (fDebug) subhitlist->Print();
+                            QwHitContainer *planehits = hitlist->GetSubList_Plane(region, package, plane);
+                            treelinehits->Append(planehits);
+                            if (fDebug) planehits->Print();
 
                             // Construct the hit pattern for this set of hits
                             QwHitPattern hitpattern(fLevelsR2);
@@ -756,12 +760,12 @@ void QwTrackingWorker::ProcessEvent (
                             hitpattern.SetDirection(dir);
                             hitpattern.SetPlane(plane);
                             // Set the hit pattern
-                            hitpattern.SetHDCHitList(searchtree->GetWidth(), subhitlist);
+                            hitpattern.SetHDCHitList(searchtree->GetWidth(), planehits);
                             // Add hit pattern to the vector
                             patterns.push_back(hitpattern);
 
                             // Delete subhitlist
-                            delete subhitlist;
+                            delete planehits;
 
                         } // end of loop over like-pitched planes in a region
 
@@ -812,15 +816,11 @@ void QwTrackingWorker::ProcessEvent (
                             if (treelinelist) treelinelist->Print();
                         }
 
-                        // Get the hit list for this package/region/direction
-                        QwHitContainer *subhitlist = hitlist->GetSubList_Dir(region, package, dir);
-                        if (fDebug) subhitlist->Print();
-
                         QwDebug << "Calculate chi^2" << QwLog::endl;
                         if (searchtree) {
 
                             double width = searchtree->GetWidth();
-                            fTreeCombine->TlTreeLineSort (treelinelist, subhitlist,
+                            fTreeCombine->TlTreeLineSort (treelinelist, treelinehits,
                                                          package, region, dir,
                                                          1UL << (fLevelsR2 - 1),
                                                          tlayers, 0, width);
@@ -836,8 +836,8 @@ void QwTrackingWorker::ProcessEvent (
                         event->fTreeLine[package][region][type][dir] = treelinelist;
                         event->AddTreeLineList(treelinelist);
 
-                        // Delete subhitlist
-                        delete subhitlist;
+                        // Delete treelinehits
+                        delete treelinehits;
 
                         /* Any other region */
                     } else {
