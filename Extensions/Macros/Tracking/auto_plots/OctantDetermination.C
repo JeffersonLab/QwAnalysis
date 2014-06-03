@@ -93,7 +93,7 @@ void OctantDetermination(int runnum, bool is100k)
 
 			}
 
-			h3[z][q]= new TH1I (Form("h3[%d][%d]",z,q),"passed octant",9,0,8);
+			h3[z][q]= new TH1I (Form("h3[%d][%d]",z,q),"passed octant",10,0,9);
 	                h3[z][q]->GetYaxis()->SetTitle("frequency");
         	        h3[z][q]->GetXaxis()->SetTitle(Form("passed octatn number for region %d and pacakge %d",z,q));
 
