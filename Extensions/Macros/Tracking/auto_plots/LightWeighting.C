@@ -307,7 +307,7 @@ void LightWeighting (int runnum, bool is100k)
 		for (int bin = 0; bin < bin_size; bin++)
 		{
 			fout << runnum << " \t " << pkg << " \t " << std::setprecision(10) << h_q2_prof[pkg]->GetBinCenter(bin) << " \t " <<
-							std::setprecision(5) << h_x[pkg]->GetBinContent(bin) << " \t" <<
+							std::setprecision(10) << h_x[pkg]->GetBinContent(bin) << " \t" <<
 							value_with_error(h_q2_prof[pkg]->GetBinContent(bin), h_q2_prof[pkg]->GetBinError(bin)) << " \t" <<
 							value_with_error(h_lw_prof[pkg]->GetBinContent(bin), h_lw_prof[pkg]->GetBinError(bin)) << " \t" <<
 							value_with_error(h_sa_prof[pkg]->GetBinContent(bin), h_sa_prof[pkg]->GetBinError(bin)) << endl;

@@ -250,7 +250,7 @@ void OctantDetermination(int runnum, bool is100k)
   fout.open(Prefix+"OctantDetermination_R2_pkg1.txt");
   if (!fout.is_open()) cout << "File not opened R2_1" << endl;
   fout1.open(Prefix+"OctantDetermination_R2_pkg2.txt");
-  if (!fout2.is_open()) cout << "File not opened R2_2" << endl;
+  if (!fout1.is_open()) cout << "File not opened R2_2" << endl;
 
   //what are we printing
   fout << h3[2][1]->GetMean() << endl;
