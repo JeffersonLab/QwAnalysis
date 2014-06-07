@@ -1,19 +1,16 @@
-﻿/********************************************
-\author <b>Programmer:</b> Valerie Gray
-\author <b>Assisted By:</b>
+/********************************************
+ \author <b>Programmer:</b> Valerie Gray
+ \author <b>Assisted By:</b>
 
-\brief <b>Purpose:</b> This file gets the number
-  partial track chi information
+ \brief <b>Purpose:</b> This file gets the number
+ partial track chi information
 
-\date <b>Date:</b> 05-15-2015
-\date <b>Modified:</b>
+ \date <b>Date:</b> 05-15-2014
+ \date <b>Modified:</b> 05-25-2014
 
-\note <b>Entry Conditions:</b>
-    - run number
-    - Pass number
-    - path, path to the data
-
-********************************************/
+ \note <b>Entry Conditions:</b>
+ - run number
+ ********************************************/
 
 //ROOT includes
 #include <TString.h>
@@ -23,25 +20,27 @@
 #include <fstream>
 #include <vector>
 #include <iostream>
+#include <cstdlib>
 
 //Valerian Root include
 #include "PartialTrackChi2.h"
 
 //Read in the tigger information for a given run number
 
-std::vector<MyPartialTrackChi2_t> GetPartialTrackChi2(Int_t run, Int_t pass, TString path)
+std::vector<MyPartialTrackChi2_t> GetPartialTrackChi2(Int_t run)
 {
-//  TString filename = TString("path")+Form("Angle_%d.txt",pass);
-  TString filename = TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass") + TString(gSystem->Getenv("PASS")) + Form("/R3_Partial_Tracks_match_up_Chi2/R3_Partial_Tracks_match_up_Chi2_%d.txt",run);
+  TString filename =
+      TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass")
+      + TString(gSystem->Getenv("PASS"))
+      + Form(
+          "/R3_Partial_Tracks_match_up_Chi2/R3_Partial_Tracks_match_up_Chi2_%d.txt",
+          run);
 
   // An input stream that contains run list
   ifstream ptchi_data;
-  ptchi_data.open(filename,std::ios::in);
+  ptchi_data.open(filename, std::ios::in);
   //this has an input mode of std::ios::in
   //and be keyboard, or file input, and read only
-
-//debugging
-//  if(!angle_data.is_open()) std::cout << "Angle File " << run << " not open" << std::endl;
 
   // A vector that will contain all the runs
   // To make organization for now easier, we will define a special
@@ -50,31 +49,61 @@ std::vector<MyPartialTrackChi2_t> GetPartialTrackChi2(Int_t run, Int_t pass, TSt
   MyPartialTrackChi2_t tmp;
 
   /*****************************
-  Summary of what I will be doing:
-  - I have defined a vector of MyBLAH_t (BLAH) and just one element
-      of this type (tmp)
-  - I read in the file number by number filling the tmp element
-  - the tmp element is a "sub"-element of the vector angle (for
-      the run run), so push that into the BLAH vector.
-  - then celebrate when it works!
-  *****************************/
+   Summary of what I will be doing:
+   - I have defined a vector of MyBLAH_t (BLAH) and just one element
+   of this type (tmp)
+   - I read in the file number by number filling the tmp element
+   - the tmp element is a "sub"-element of the vector angle (for
+   the run run), so push that into the BLAH vector.
+   - then celebrate when it works!
+   *****************************/
 
-  //Get the information from the text file I need to process
-  //while I...
-  while (ptchi_data >> tmp.package  //read in the pkg
-    && ptchi_data >> tmp.VDC  //read in the VDC
-    && ptchi_data >> tmp.plane  //read in the plane
-    && ptchi_data >> tmp.nevents  //read in the number of events
-    && ptchi_data >> tmp.Val  //read in the chi Value
-    && ptchi_data >> tmp.nevents  //read in the error
-    && !ptchi_data.eof() )      // am not at the end of the file
+  /*****************************
+   if there is a file then fill it with the information,
+   if not then fill it with something that is unreal,
+   ie -1e6 cause well that is not likely to happen.
+
+   Then when it put into the tree something is there
+   and not garbage.  The garbage is bad as we don't know
+   what it and it can play tricks on us.  Bad ones :(
+   *****************************/
+
+  if (ptchi_data.is_open())
   {
-    ptchi.push_back(tmp);
-    //this put all this information in the BLAH
-    //vector for the run
-  }
+    //Get the information from the text file I need to process
+    //while I...
+    while (ptchi_data >> tmp.R3package  //read in the pkg
+           && ptchi_data >> tmp.VDC  //read in the VDC
+           && ptchi_data >> tmp.plane  //read in the plane
+           && ptchi_data >> tmp.nevents  //read in the number of events
+           && ptchi_data >> tmp.Val  //read in the chi Value
+           && ptchi_data >> tmp.RMS  //read in the Error
+           && !ptchi_data.eof())  // am not at the end of the file
+    {
+      ptchi.push_back(tmp);
+      //this put all this information in the BLAH
+      //vector for the run
+    }
 
-  ptchi_data.close();
+    ptchi_data.close();
+
+  } else
+  {
+    //debugging
+    if (atoi(gSystem->Getenv("DEBUG")) >= 3)
+    {
+      std::cout << "PT Chi File " << run << " not open" << std::endl;
+    }
+
+    tmp.R3package = -1e6;
+    tmp.VDC = "none";
+    tmp.plane = "none";
+    tmp.nevents = -1e6;
+    tmp.Val = -1e6;
+    tmp.RMS = -1e6;
+    ptchi.push_back(tmp);
+
+  }
 
   return ptchi;
 }

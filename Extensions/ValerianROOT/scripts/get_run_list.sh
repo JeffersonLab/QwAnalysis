@@ -10,21 +10,23 @@
 #Assisted By: Wouter Deconinck
 #
 
-
 #pass number,dircetory, and outputfilename
-pass=$PASS
+pass=${PASS}
 YouAreHere=${VALERIAN}
 dir=${WEBSITE}
+debug=${DEBUG}
 
-OutputDir=${YouAreHere}data/pass${pass}
+OutputDir=${YouAreHere}/data/pass${pass}
 OutputFile=${OutputDir}/List_of_Run_pass${pass}.txt
 
 #debugging - I have no idea what I am doing... I know no bash :(
-#echo ${pass}
-#echo ${YouAreHere}
-#echo ${dir}
-#echo ${OutputDir}
-#echo ${OutputFile}
+if [ ${debug} -gt 0 ] ; then
+  echo "Pass value ${pass}"
+  echo "Kilroy was ${YouAreHere}"
+  echo "Surf the web here ${dir}"
+  echo "Output will go here${OutputDir}"
+  echo "The file is ${OutputFile}"
+fi
 
 #make all directoies that don't exist
 mkdir -p ${OutputDir}

@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -28,13 +28,13 @@
 //QTOR current Structure
 struct MyGoodTrack_t
 {
-  Int_t package;  //Package number
-  Int_t percent;  //the percent of good tracks
+  Int_t R3package;  //Package number
+  Int_t number;  //the number of good tracks
 };
 
 //Function to read in the number
 //information for a given run number
 
-std::vector<MyGoodTrack_t> GetGoodTrack(Int_t run, Int_t pass, TString path);
+std::vector<MyGoodTrack_t> GetGoodTrack(Int_t run);
 
-#endif /* RAWTRACK_HH_ */
+#endif /* GOODTRACK_HH_ */

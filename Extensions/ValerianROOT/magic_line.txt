@@ -11,6 +11,7 @@ grep '  std::vector' include/Run.h | while read line ; do
   # - cut with delimiter space (\ ) and pick the second field
   # - cut with delimiter ; and pick the first field
   varname=`echo $line | cut -d\  -f2 | cut -d\; -f1` ; 
+
   # Similar to get the name of the struct (for example "MyAngle_t)
   structname=`echo $line | cut -d\< -f2 | cut -d\> -f1` ; 
   # Similar to get the name of the header file (for example "Angle.h"

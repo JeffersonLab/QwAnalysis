@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,14 +26,14 @@
 //Angle Structure
 struct MyThetaOffset_t
 {
-  Int_t package;  //package number
-  Double_t Val;      //mean value of the theta offset
-  Double_t error;      //error on the theat offset
+  Int_t R3package;  //package number
+  Double_t Val;      //mean value of the theta offset - rad
+  Double_t Error;      //Error on the theat offset
 };
 
 //Function to read in the Angle
 //information for a given run number
 
-std::vector<MyThetaOffset_t> GetThetaOffset(Int_t run, Int_t pass, TString path);
+std::vector<MyThetaOffset_t> GetThetaOffset(Int_t run);
 
 #endif /* R3THETAOFFSET_HH_ */

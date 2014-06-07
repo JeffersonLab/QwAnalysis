@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -28,14 +28,14 @@
 //QTOR current Structure
 struct MyQ2NoLoss_t  //this Q2 found!
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   Double_t Val;  //the Q2 in m(GeV)^2
-  Double_t error; //the error on the Q2
+  Double_t Error; //the Error on the Q2
 };
 
 //Function to read in the Q2 with loss
 //information for a given run number
 
-std::vector<MyQ2NoLoss_t> GetQ2NoLoss(Int_t run, Int_t pass, TString path);
+std::vector<MyQ2NoLoss_t> GetQ2NoLoss(Int_t run);
 
 #endif /* Q2WITHOUTLOSS_HH_ */

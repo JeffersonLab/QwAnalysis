@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -28,13 +28,13 @@
 //raw track Structure
 struct MyRawTrack_t
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   Int_t number;  //the number of raw tracks
 };
 
 //Function to read in the octatnnumber
 //information for a given run number
 
-std::vector<MyRawTrack_t> GetRawTrack(Int_t run, Int_t pass, TString path);
+std::vector<MyRawTrack_t> GetRawTrack(Int_t run);
 
 #endif /* RAWTRACK_HH_ */

@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -28,18 +28,18 @@
 //QTOR current Structure
 struct MyQ2Cut_t
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   Double_t q2Val;  //the Q2 in m(GeV)^2
-  Double_t q2error; //the error on the Q2
+  Double_t q2Error; //the Error on the Q2
   Double_t LWq2Val;  //the light weighted Q2 in m(GeV)^2
-  Double_t LWq2error; //the error on the lightweighted Q2
+  Double_t LWq2Error; //the Error on the lightweighted Q2
   Double_t LWPq2Val;  //the lightweighted, pedistal subtracted Q2 in m(GeV)^2
-  Double_t LWPq2error; //the lightweighted, pedistal subtracted error on the Q2
+  Double_t LWPq2Error; //the lightweighted, pedistal subtracted Error on the Q2
 };
 
 //Function to read in the Q2 with cuts
 //information for a given run number
 
-std::vector<MyQ2Cut_t> GetQ2Cut(Int_t run, Int_t pass, TString path);
+std::vector<MyQ2Cut_t> GetQ2Cut(Int_t run);
 
 #endif /* Q2WITHCUT_HH_ */

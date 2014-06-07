@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,18 +26,18 @@
 //Treeline Slope Structure
 struct MyTreelineSlope_t
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   TString VDC;  //The VDC
   TString plane;  //the VDC plane
   Int_t nevents;  //number of events
-  Double_t Val;      //slope value
-  Double_t error;      //error
+  Double_t Val;      //slope value unitless
+  Double_t Error;      //error
 };
 
 //Function to read in the slope values for
 //the treeline match up info in R3
 //information for a given run number
 
-std::vector<MyTreelineSlope_t> GetTreelineSlope(Int_t run, Int_t pass, TString path);
+std::vector<MyTreelineSlope_t> GetTreelineSlope(Int_t run);
 
 #endif /* TREELINESLOPE_HH_ */

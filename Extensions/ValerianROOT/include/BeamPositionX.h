@@ -26,15 +26,15 @@
 //Beam position X Structure
 struct MyBeamPositionX_t
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   Double_t chi2;  //Chi squared value for the fit
-  Double_t slope;  //slope value
-  Double_t error;  //error in the slope
+  Double_t slope;  //slope value in m(GeV)^2/mm
+  Double_t Error;  //Error in the slope in m(GeV)^2/mm
 };
 
 //Function to read in the beam position X
 //information for a given run number
 
-std::vector<MyBeamPositionX_t> GetBeamPositionX(Int_t run, Int_t pass, TString path);
+std::vector<MyBeamPositionX_t> GetBeamPositionX(Int_t run);
 
 #endif /* BEAMPOSITIONX_HH_ */

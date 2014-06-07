@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,7 +26,7 @@
 // Chi Structure
 struct MyLogChi_t
 {
-  Int_t package;  //packag number
+  Int_t R2package;  //packag number
   Int_t direction;  //plane direction in HDC
   Double_t Val;  // mean log Chi value
   Double_t RMS;  //RMS of the distribution
@@ -35,6 +35,6 @@ struct MyLogChi_t
 //Function to read in the Chi
 //information for a given run number
 
-std::vector<MyLogChi_t> GetLogChi(Int_t run, Int_t pass, TString path);
+std::vector<MyLogChi_t> GetLogChi(Int_t run);
 
 #endif /* LOGCHI_HH_ */

@@ -10,7 +10,7 @@
 #
 #Date: 05-01-2014
 #Modified: 05-04-2014 (Star Wars day 2014)
-#Modified: 05-21-2014
+#Modified: 06-05-2014
 #Assisted By:
 
 my $debug = $ENV{"DEBUG"};
@@ -39,8 +39,8 @@ my $QweakDir = $ENV{"WEBSITE"};
 
 #all other info 
 my $script = "Chi";
-my $YouAreHere = $BaseDir . "data/pass". $pass;
-my $MissingDir = $BaseDir . "missing/pass". $pass;
+my $YouAreHere = $BaseDir . "/data/pass". $pass;
+my $MissingDir = $BaseDir . "/missing/pass". $pass;
 my $OutputDir = $YouAreHere . "/" . $script;
 my $RunList = $YouAreHere . "/" . "List_of_Run_pass" . $pass . ".txt";
 
@@ -116,12 +116,16 @@ while ( my $runnum = <ALLRUNS> )
         if ($linecount == 1)
         {
           #debugging
-          #print "$line \n";
+          #debugging
+          print "$line \n" if ($debug >= 2);
 
           #this line is not what we want to print out
           #none of this is actual data.
         } else
           {
+            #debugging
+            print "$line \n" if ($debug >= 2);
+
             #we are going to take the data read in the CHIDATA
             #file split it up into columns for each line (row)
             #and then print out the useful stuff
@@ -134,9 +138,17 @@ while ( my $runnum = <ALLRUNS> )
             {
               if ($i != 0 && $i != 1)
               {
+                #if an entry is nan C++ will not behave, so are going to
+                #replace that with -2000000 (-2e6 so C++ will read it in)
+                #if data is missing for a run then I fill with -1e6 so this
+                #is a way to distinguish these
+                $DataColumns[$i] =~ s/inf/-2000000/g;
+                $DataColumns[$i] =~ s/-nan/-2000000/g;
+                $DataColumns[$i] =~ s/nan/-2000000/g;
+
                 #write out to the file
                 #print CHIOUT
-                print CHIOUT "$DataColumns[$i]\t";
+                print CHIOUT "$DataColumns[$i] ";
               }
             } 
             

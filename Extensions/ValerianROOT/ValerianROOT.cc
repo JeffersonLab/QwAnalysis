@@ -32,50 +32,12 @@ Assisted By:
 //standard includes
 #include <iostream>
 
-//Load the Valerian ROOT includes
-/*
-#include "Angle.h"
-#include "BeamPositionX.h"
-#include "BeamPositionY.h"
-#include "Chi.h"
-#include "GoodTrack.h"
-#include "LogChi.h"
-#include "NTrigger.h"
-#include "PartialTrackChi2.h"
-#include "PartialTrackSlope.h"
-#include "PosOnBar.h"
-#include "Q2PhiMatch.h"
-#include "Q2PhiMatchProj.h"
-#include "Q2ThetaMatch.h"
-#include "Q2ThetaMatchProj.h"
-#include "Q2WithCut.h"
-#include "Q2WithLoss.h"
-#include "Q2WithOutLoss.h"
-#include "QTOR.h"
-#include "R2Pkg1.h"
-#include "R2Pkg2.h"
-#include "R3PhiOffset.h"
-#include "R3Pkg1.h"
-#include "R3Pkg2.h"
-#include "R3ThetaOffset.h"
-#include "RawTrack.h"
-#include "Residual.h"
-#include "ScatEnergy.h"
-#include "TrackChi2.h"
-#include "TrackSlope.h"
-#include "TreelineChi2.h"
-#include "TreelineSlope.h"
-
-#include "Run.h"
-*/
-
 int main(int argc, char** argv)
 {
-
   // Start CINT command prompt - which is then
   // The Valerian ROOT command prompt
   TRint* valerianrootrint =
-    new TRint("Valerian ROOT - For a calm relaxing ROOT Experience", &argc, argv);
+    new TRint("\n \n Valerian ROOT - For a calm relaxing ROOT Experience \n \n", &argc, argv);
   // So that it can work with the installed version too
   valerianrootrint->SetPrompt("Valerian[%d] ");
   valerianrootrint->ProcessLine(".include include");

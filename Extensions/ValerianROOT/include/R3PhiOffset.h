@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,14 +26,14 @@
 //Angle Structure
 struct MyPhiOffset_t
 {
-  Int_t package;  //package number
-  Double_t Val;      //mean value of the phi offset
-  Double_t error;      //error on the phi offset
+  Int_t R3package;  //package number
+  Double_t Val;      //mean value of the phi offset - rad
+  Double_t Error;      //Error on the phi offset
 };
 
 //Function to read in the Angle
 //information for a given run number
 
-std::vector<MyPhiOffset_t> GetPhiOffset(Int_t run, Int_t pass, TString path);
+std::vector<MyPhiOffset_t> GetPhiOffset(Int_t run);
 
 #endif /* R3PHIOFFSET_HH_ */

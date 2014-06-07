@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -27,12 +27,12 @@
 //QTOR current Structure
 struct MyQtor_t
 {
-  Int_t current;  //Qtor current
+  Double_t current;  //Qtor current - A
 };
 
 //Function to ead in the Qtor current
 //information for a given run number
 
-std::vector<MyQtor_t> GetQtor(Int_t run, Int_t pass, TString path);
+std::vector<MyQtor_t> GetQtor(Int_t run);
 
 #endif /* QTOR_HH_ */

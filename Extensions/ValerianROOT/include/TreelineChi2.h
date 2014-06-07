@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,18 +26,18 @@
 //Treeline Chi2 Structure
 struct MyTreelineChi2_t
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   TString VDC;  //The VDC
   TString plane;  //the VDC plane
   Int_t nevents;  //number of events
   Double_t Val;      //Chi value
-  Double_t RMS;      //error
+  Double_t RMS;      //Error
 };
 
 //Function to read in the chi2 values for
 //the treeline match up info in R3
 //information for a given run number
 
-std::vector<MyTreelineChi2_t> GetTreelineChi2(Int_t run, Int_t pass, TString path);
+std::vector<MyTreelineChi2_t> GetTreelineChi2(Int_t run);
 
 #endif /* TREELINECHI2_HH_ */

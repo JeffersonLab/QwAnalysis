@@ -25,14 +25,14 @@
 //Angle Structure
 struct MyAngle_t
 {
-  Int_t package;  //package number
-  Double_t Val; //scattering angle value
-  Double_t error; //error in the scattering angle value
+  Int_t R3package;  //package number
+  Double_t Val; //scattering angle value in deg
+  Double_t Error; //Error in the scattering angle value
 };
 
 //Function to read in the Angle
 //information for a given run number
 
-std::vector<MyAngle_t> GetAngle(Int_t run, Int_t pass, TString path);
+std::vector<MyAngle_t> GetAngle(Int_t run);
 
 #endif /* ANGLE_HH_ */

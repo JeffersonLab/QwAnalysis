@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -28,14 +28,14 @@
 //Theta Match Structure
 struct MyQ2ThetaMatchProj_t
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   Double_t Val;  //the theta mach value (rad)
-  Double_t error; //the error on the theta match
+  Double_t Error; //the Error on the theta match - rad
 };
 
 //Function to read in the theta projected match values
 //information for a given run number
 
-std::vector<MyQ2ThetaMatchProj_t> GetQ2ThetaMatchProj(Int_t run, Int_t pass, TString path);
+std::vector<MyQ2ThetaMatchProj_t> GetQ2ThetaMatchProj(Int_t run);
 
 #endif /* Q2THETAMATCHPROJ_HH_ */

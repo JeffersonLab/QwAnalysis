@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -33,6 +33,6 @@ struct MyR2Pkg2_t
 //Function to read in the octatnnumber
 //information for a given run number
 
-std::vector<MyR2Pkg2_t> GetR2Pkg2(Int_t run, Int_t pass, TString path);
+std::vector<MyR2Pkg2_t> GetR2Pkg2(Int_t run);
 
 #endif /* R2PKG2_HH_ */

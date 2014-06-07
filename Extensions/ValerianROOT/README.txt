@@ -65,7 +65,47 @@ ValerianROOT.  Here ValerianROOT gets to know about all the
 structures that I moreover we are including in the ROOT tree.
 
 7) Make the ROOT file for a pass - ValerianROOTTreeMaker.cc
-This function 
+This has the soll function of makeing the ROOT tree, so it reads
+in the data through the src/ files in the structures defined in the
+include/ files.
+
+8) Run_it_all.sh - this is a fancy little script that will do just that,
+Run it all.  It sets the enviromental variables that are needed by all
+working parts (debuging level, pass number, ValerianROOT directory,
+website location).  Following this is get the list of runs
+(exicuting scripts/get_run_list.sh), get all the txt files from the
+website to the "right" form for ValerianROOT, makes ValerianROOT,
+makes the ROOT file and saves it.
+
+9) Data directory - this directory is the output directory for data
+that is taken from the website.  Unless you are making a ValerianROOT
+ROOT file this will probably be empty.
+
+10) Missing directory - this directory is the output directory for a list
+of the run numbers that are missing for that data stucture that should be
+there since it is in the list of runs gathered from the website.
+Unless you are making a ValerianROOT ROOT file this will probably be empty.
+
+11) macros directory - here are macros that you can store and share (cause it
+is caring or so I was told in Kindergarden) on your analysis of all the
+tracking data.  ROOT macros, like looking at the Q2 over time, etc should
+be placed here.
+
+12) runlist directory - a place to keep and share runlist that are of interest.
+These MUST be in the form of one run per line starting with the lowest
+value and going to highest value - a note to meyself  sort -n FILE
+Also please make sure that the name is desriptive enough that one can
+tell what the runs have in common.
+
+13) README.txt - well if you are here then you have found
+the README and by now know what it is for.
+
+14) CMakeLists.txt, cmake directory, etc - CMake stuff... magical black
+box - it works I don't have much more to say on that - sorry
+
+15) Compile_ValerianROOT.sh - script that is used to make ValerianROOT so one
+has the ValerianROOT exicutable.  Unless you are making a ROOT file, cause say you
+have created a new autoplot this is all you should need.
 
 ----------------------------------------------------------------------------
 
@@ -80,9 +120,16 @@ what there goal is:
     mass analysis.
 
 - ValerianROOT.cc
+    This main function is for creating the ValerianROOT version
 
 - ValerianROOTTreeMaker.cc
+    The main function for creating the ROOT file.
 
+- src/* && include/*
+    The sorce files for each data type, and there header files
+     ** the header files have more info on what things are if it is not clear
+         from the tree. **
+    
 - magic_line.txt
     This is a magic line that Wouter used to save me from
     pulling out my hair and possibly going crazy...  It does some
@@ -90,8 +137,7 @@ what there goal is:
     might have been hundreds of lines, and also the spelling
     errors that come with that.
 
-- Testing.sh
-HELP NAME CHANGE HERE
+- Run_it_all.sh
     This file sets up all the envitomental variables that are needed
     for ValerianROOT.  These are really just values that are shared
     between the vast majority of files.
@@ -99,17 +145,46 @@ HELP NAME CHANGE HERE
     ValerianROOTTreeMaker to make the ROOT file.
     Goes in and comilpes the code and runs ValerianROOTTreeMaker
     producing a ROOT file that then others can use
-    ** This ROOT file is also stored on the website **
+    ** The goals is this ROOT file is also stored on the website
+        That way it will be there for everyone and can get ran when
+        a new pass is done  **
+
+- Compile_ValerianROOT.sh
+    This file is to compile ValerianROOT so that you have the ValerianROOT
+    exicutable sn therefore can read the ROOTfiles
 
 - CMakeList.txt && cmake/*
     The cmake stuff.  Needed to make ValerianROOT, nothing
     else to 'c' here. :P
 
-- scripts/get_run_list
+- scripts/get_run_list.sh
     This bash script goes and get the list of every run that is included
     in a said tracking pass and is on the website (which should be all the
     runs in the pass)
 
+- scripts/CountingPackages.sh
+    This bash script goes and count the number of packages for a data struture.
+    Part of my debugging - it count the number runs that this data stucture
+    has data for and the number of package occurances.  One can take output of
+    this, compare it right to the output to the ROOT tree, if they
+    match oh happy day and do a cleberatory dance.  If not then either there is
+    a bug in ValerianROOT somewhere with the data getting read in or parsed or
+    Linux has forgotten how to do its basic commands. - One of those nifity things
+    that unless you are adding to ValerianROOT you probably won't use.
+
 - scripts/*.pl
     For these perl script there is on for each text file that is generated by
-    the tracking pass (in other words on the website)
+    the tracking pass (in other words on the website).  
+    
+- runlist/*
+    List of runs that are of interest and have simular conditions.
+ 
+- macros/*
+    Place to store ValerianROOT macros
+    
+- data/ && missing/
+    For generation of a new ROOT tree output of perl scripts and some debugging 
+    goes here.
+    
+ If you are adding to this, the frame work is there, you should really only need to 
+ copy files and modify to fit your needs and then add to other files a few line.

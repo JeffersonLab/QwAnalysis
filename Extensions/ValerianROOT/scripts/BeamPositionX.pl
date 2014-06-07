@@ -9,7 +9,7 @@
 #a happy root means a happy life
 #
 #Date: 05-05-2014
-#Modified:05-21-2014
+#Modified: 06-05-2014
 #Assisted By:
 
 my $debug = $ENV{"DEBUG"};
@@ -38,8 +38,8 @@ my $QweakDir = $ENV{"WEBSITE"};
 
 #all other info 
 my $script = "BeamPositionQ2";
-my $YouAreHere = $BaseDir . "data/pass". $pass;
-my $MissingDir = $BaseDir . "missing/pass". $pass;
+my $YouAreHere = $BaseDir . "/data/pass". $pass;
+my $MissingDir = $BaseDir . "/missing/pass". $pass;
 my $OutputDir = $YouAreHere .  "/" . $script . "X";
 my $RunList = $YouAreHere . "/" . "List_of_Run_pass" . $pass . ".txt";
 
@@ -121,6 +121,9 @@ while ( my $runnum = <ALLRUNS> )
           #none of this is actual data.
         } else
           {
+            #debugging
+            print "$line \n" if ($debug >= 2);
+
             #we are going to take the data read in the BEAMPOSITIONDATA
             #file split it up into columns for each line (row)
             #and then print out the useful stuff
@@ -134,12 +137,20 @@ while ( my $runnum = <ALLRUNS> )
               
               if ($i != 1)
               {
-                 # when $i ==2. we have octant number we don't need that as I have it
+                #if an entry is nan C++ will not behave, so are going to
+                #replace that with -2000000 (-2e6 so C++ will read it in)
+                #if data is missing for a run then I fill with -1e6 so this
+                #is a way to distinguish these
+                $DataColumns[$i] =~ s/inf/-2000000/g;
+                $DataColumns[$i] =~ s/-nan/-2000000/g;
+                $DataColumns[$i] =~ s/nan/-2000000/g;
+
+                 # when $i ==1. we have octant number we don't need that as I have it
                  #elsewhere.  So don't print it
 
                  #write out to the file
                  #print BEAMPOSITIONOUT
-                 print BEAMPOSITIONOUT "$DataColumns[$i]\t";
+                 print BEAMPOSITIONOUT "$DataColumns[$i] ";
               }
             }
 
@@ -159,11 +170,13 @@ while ( my $runnum = <ALLRUNS> )
     #close BeamPosition data file
     close(BEAMPOSITIONDATA);  
 
-    #print the run number to the MissingFile
-    print MISSINGRUNS "$runnum\n"
   }else 
     {
       warn "Could not open file $QweakText $!";
+
+      #print the run number to the MissingFile
+      print MISSINGRUNS "$runnum\n"
+
     }
 }
 

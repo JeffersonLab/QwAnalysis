@@ -9,7 +9,7 @@
 #a happy root means a happy life
 #
 #Date: 05-05-2014
-#Modified: 05-21-2014
+#Modified: 06-05-2014
 #Assisted By:
 
 my $debug = $ENV{"DEBUG"};
@@ -38,8 +38,8 @@ my $QweakDir = $ENV{"WEBSITE"};
 
 #all other info 
 my $script = "QTOR";
-my $MissingDir = $BaseDir . "missing/pass". $pass;
-my $YouAreHere = $BaseDir . "data/pass". $pass;
+my $MissingDir = $BaseDir . "/missing/pass". $pass;
+my $YouAreHere = $BaseDir . "/data/pass". $pass;
 my $OutputDir = $YouAreHere . "/" . $script;
 my $RunList = $YouAreHere . "/" . "List_of_Run_pass" . $pass . ".txt";
 
@@ -109,9 +109,20 @@ while ( my $runnum = <ALLRUNS> )
 
       while( my $line = <QTORDATA> )
       {
+        #debugging
+        print "$line \n" if ($debug >= 2);
+
+        #if an entry is nan C++ will not behave, so are going to
+        #replace that with -2000000 (-2e6 so C++ will read it in)
+        #if data is missing for a run then I fill with -1e6 so this
+        #is a way to distinguish these
+        $line =~ s/inf/-2000000/g;
+        $line =~ s/-nan/-2000000/g;
+        $line =~ s/nan/-2000000/g;
+
         #write out to the file
         #print QTOROUT
-        print QTOROUT "$line";
+        print QTOROUT "$line ";
       }
 
       #close the output file (as one for each run has to get done at the of writing

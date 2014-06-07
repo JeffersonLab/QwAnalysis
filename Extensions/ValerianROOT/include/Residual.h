@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,15 +26,15 @@
 //Residual Structure
 struct MyResidual_t
 {
-  Int_t package;  //packag number
+  Int_t R2package;  //packag number
   Int_t plane;  //plane in HDC
-  Double_t Val;  // mean value
+  Double_t Val;  // mean value - cm
   Double_t RMS;  //RMS of the distribution
 };
 
 //Function to read in the Residual
 //information for a given run number
 
-std::vector<MyResidual_t> GetResidual(Int_t run, Int_t pass, TString path);
+std::vector<MyResidual_t> GetResidual(Int_t run);
 
 #endif /* RESIDUAL_HH_ */

@@ -32,6 +32,7 @@
 #pragma link C++ struct MyTrigger_t+;
 #pragma link C++ struct MyPartialTrackChi2_t+;
 #pragma link C++ struct MyPartialTrackSlope_t+;
+#pragma link C++ struct MyPercentGood_t+;
 #pragma link C++ struct MyPosOnBar_t+;
 #pragma link C++ struct MyQ2PhiMatch_t+;
 #pragma link C++ struct MyQ2PhiMatchProj_t+;
@@ -43,6 +44,7 @@
 #pragma link C++ struct MyQtor_t+;
 #pragma link C++ struct MyR2Pkg1_t+;
 #pragma link C++ struct MyR2Pkg2_t+;
+#pragma link C++ struct MyPercentGood_t+;
 #pragma link C++ struct MyPhiOffset_t+;
 #pragma link C++ struct MyR3Pkg1_t+;
 #pragma link C++ struct MyR3Pkg2_t+;

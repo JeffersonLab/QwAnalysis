@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,7 +26,7 @@
 // Chi Structure
 struct MyChi_t  //hot please enjoy!
 {
-  Int_t package;  //packag number
+  Int_t R2package;  //packag number
   Int_t direction;  //plane direction in HDC
   Double_t Val;  // mean of the Chi2 value
   Double_t RMS;  //RMS of the distribution
@@ -35,6 +35,6 @@ struct MyChi_t  //hot please enjoy!
 //Function to read in the Chi
 //information for a given run number
 
-std::vector<MyChi_t> GetChi(Int_t run, Int_t pass, TString path);
+std::vector<MyChi_t> GetChi(Int_t run);
 
 #endif /* CHI_HH_ */

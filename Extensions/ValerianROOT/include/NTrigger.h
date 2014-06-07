@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,7 +26,7 @@
 #include <vector>
 
 //QTOR current Structure
-struct MyTrigger_t  //not to be confused with my Tigger ;)
+struct MyTrigger_t  //not to be confused with Tigger ;)
 {
   Int_t number;  //number of triggers
 };
@@ -34,6 +34,6 @@ struct MyTrigger_t  //not to be confused with my Tigger ;)
 //Function to read in the octatnnumber
 //information for a given run number
 
-std::vector<MyTrigger_t> GetTrigger(Int_t run, Int_t pass, TString path);
+std::vector<MyTrigger_t> GetTrigger(Int_t run);
 
 #endif /* NTRIGGER_HH_ */

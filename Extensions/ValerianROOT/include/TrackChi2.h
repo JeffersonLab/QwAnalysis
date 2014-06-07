@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -26,7 +26,7 @@
 //Track Chi2 Structure
 struct MyTrackChi2_t
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   TString VDC;  //The VDC
   TString plane;  //the VDC plane
   Int_t nevents;  //number of events
@@ -38,6 +38,6 @@ struct MyTrackChi2_t
 //the track  match up info in R3
 //information for a given run number
 
-std::vector<MyTrackChi2_t> GetTrackChi2(Int_t run, Int_t pass, TString path);
+std::vector<MyTrackChi2_t> GetTrackChi2(Int_t run);
 
 #endif /* TRACKCHI2_HH_ */

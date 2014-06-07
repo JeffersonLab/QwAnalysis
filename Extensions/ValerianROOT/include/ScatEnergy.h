@@ -1,4 +1,4 @@
-﻿/********************************************
+/********************************************
  \author <b>Programmer:<\b> Valerie Gray
  \author <b>Assisted By:<\b>
 
@@ -28,15 +28,15 @@
 //Scattering energy Structure
 struct MyScatEnergy_t  //no this is not what you are thinking...
 {
-  Int_t package;  //package number
+  Int_t R3package;  //package number
   Double_t Val;  //the of the scattering energy GeV
-  Double_t error; //the error on the scattering energy
+  Double_t Error; //the Error on the scattering energy
 };
 
 //Function to read in the scattering energy
 //information for a given run number
 
-std::vector<MyScatEnergy_t> GetScatEnergy(Int_t run, Int_t pass, TString path);
+std::vector<MyScatEnergy_t> GetScatEnergy(Int_t run);
 //this fuction does not read out calories spent ;)
 
 #endif /* SCATENERGY_HH_ */

@@ -3,9 +3,9 @@
  \author <b>Assisted By:</b>
 
  \brief <b>Purpose:</b> This file gets the number
- of raw track information
+ of percent good track information
 
- \date <b>Date:</b> 05-19-2014
+ \date <b>Date:</b> 05-15-2014
  \date <b>Modified:</b> 05-25-2014
 
  \note <b>Entry Conditions:</b>
@@ -23,28 +23,28 @@
 #include <cstdlib>
 
 //Valerian Root include
-#include "RawTrack.h"
+#include "PercentGood.h"
 
 //Read in the good tracks information for a given run number
 
-std::vector<MyRawTrack_t> GetRawTrack(Int_t run)
+std::vector<MyPercentGood_t> GetPercentGood(Int_t run)
 {
 
   TString filename = TString(gSystem->Getenv("VALERIAN")) + Form("/data/pass")
                      + TString(gSystem->Getenv("PASS"))
-                     + Form("/RawTracks/RawTracks_%d.txt", run);
+                     + Form("/PercentGood/PercentGood_%d.txt", run);
 
   // An input stream that contains run list
-  ifstream rawtrack_data;
-  rawtrack_data.open(filename, std::ios::in);
+  ifstream percgood_data;
+  percgood_data.open(filename, std::ios::in);
   //this has an input mode of std::ios::in
   //and be keyboard, or file input, and read only
 
   // A vector that will contain all the runs
   // To make organization for now easier, we will define a special
   // structure called MyRun_t which will include what we need
-  std::vector<MyRawTrack_t> rawtrack;
-  MyRawTrack_t tmp;
+  std::vector<MyPercentGood_t> percgood;
+  MyPercentGood_t tmp;
 
   /*****************************
    Summary of what I will be doing:
@@ -66,31 +66,31 @@ std::vector<MyRawTrack_t> GetRawTrack(Int_t run)
    what it and it can play tricks on us.  Bad ones :(
    *****************************/
 
-  if (rawtrack_data.is_open())
+  if (percgood_data.is_open())
   {
     //Get the information from the text file I need to process
     //while I...
-    while (rawtrack_data >> tmp.R3package  //read in the pkg
-           && rawtrack_data >> tmp.number  //read in number of raw tracks
-           && !rawtrack_data.eof())  // am not at the end of the file
+    while (percgood_data >> tmp.R3package  //read in the pkg
+           && percgood_data >> tmp.percent  //read in percent good
+           && !percgood_data.eof())  // am not at the end of the file
     {
-      rawtrack.push_back(tmp);
+      percgood.push_back(tmp);
       //this put all this information in the BLAH
       //vector for the run
     }
-    rawtrack_data.close();
+    percgood_data.close();
   } else
   {
     //debugging
     if (atoi(gSystem->Getenv("DEBUG")) >= 3)
     {
-      std::cout << "Raw tracks File " << run << " not open" << std::endl;
+      std::cout << "Percent Good Track File " << run << " not open" << std::endl;
     }
 
     tmp.R3package = -1e6;
-    tmp.number = -1e6;
-    rawtrack.push_back(tmp);
+    tmp.percent = -1e6;
+    percgood.push_back(tmp);
   }
-  return rawtrack;
+  return percgood;
 }
 

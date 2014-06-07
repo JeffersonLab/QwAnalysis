@@ -33,6 +33,7 @@
 #include "NTrigger.h"
 #include "PartialTrackChi2.h"
 #include "PartialTrackSlope.h"
+#include "PercentGood.h"
 #include "PosOnBar.h"
 #include "Q2PhiMatch.h"
 #include "Q2PhiMatchProj.h"
@@ -62,10 +63,10 @@ struct MyRun_t
   Int_t run;  //run number
 
   //all the structures from the above includes
-  //these could be spperate and are in the tree, this
+  //these could be separate and are in the tree, this
   //is for book keeping, and only use internally,
   //this way each structure doesn't have to know about
-  //and store the run number - makeing it better all around
+  //and store the run number - making it better all around
 
   std::vector<MyAngle_t> angle;  //vector of the scat angles for a run
   std::vector<MyBeamPositionX_t> beamposx;  //vector of the beam pos X values
@@ -76,6 +77,7 @@ struct MyRun_t
   std::vector<MyTrigger_t> trigger;  //vector of the number of triggers
   std::vector<MyPartialTrackChi2_t> ptchi;  //vector of the partial tracks chi2
   std::vector<MyPartialTrackSlope_t> ptslope;  //vector of the partial tracks slope
+  std::vector<MyPercentGood_t> percgood;  //vector for the q2 percent good tracks
   std::vector<MyPosOnBar_t> posonbar;  //vector for the position on bar data
   std::vector<MyQ2PhiMatch_t> q2phimatch;  //vector for the q2 phi match
   std::vector<MyQ2PhiMatchProj_t> q2phimatchproj;  //vector for q2 phi projection match
@@ -85,11 +87,11 @@ struct MyRun_t
   std::vector<MyQ2Loss_t> q2loss;  //vector for the q2 with loss
   std::vector<MyQ2NoLoss_t> q2noloss;  //vector for the q2 without loss
   std::vector<MyQtor_t> qtor;  //vector of qtor currents
-  std::vector<MyR2Pkg1_t> r2pkg1;  //vector of r2 pkg 1 octant number
-  std::vector<MyR2Pkg2_t> r2pkg2;  //vector of r2 pkg 2 octant number
+  std::vector<MyR2Pkg1_t> r2pkg1;  //vector of r2 package 1 octant number
+  std::vector<MyR2Pkg2_t> r2pkg2;  //vector of r2 package 2 octant number
   std::vector<MyPhiOffset_t> phioffset;  //vector of the phi offset
-  std::vector<MyR3Pkg1_t> r3pkg1;  //vector of r3 pkg 1 octant number
-  std::vector<MyR3Pkg2_t> r3pkg2;  //vector of r3 pkg 2 octant number
+  std::vector<MyR3Pkg1_t> r3pkg1;  //vector of r3 package 1 octant number
+  std::vector<MyR3Pkg2_t> r3pkg2;  //vector of r3 package 2 octant number
   std::vector<MyThetaOffset_t> thetaoffset;  //vector of the phi offset
   std::vector<MyRawTrack_t> rawtrack;  //vector of the raw track value
   std::vector<MyResidual_t> residual;  //vector of the residual
@@ -99,9 +101,6 @@ struct MyRun_t
   std::vector<MyTreelineChi2_t> treechi;  //vector of the treeline chi
   std::vector<MyTreelineSlope_t> treeslope;  //vector of the treeline slope
 };
-
-//Function to read in the Chi
-//information for a given run number
 
 std::vector<MyRun_t> GetRun(const char* filename = "runlist.txt");
 

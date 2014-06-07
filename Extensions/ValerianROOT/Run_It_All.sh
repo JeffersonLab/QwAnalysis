@@ -1,10 +1,21 @@
 #!/bin/bash
 
+#Programmer: Valerie Gray
+#Purpose:
+# This script will get the run numbers that were generated
+# in the pass n website.  And write it to a text file
+#
+#Date: 04-21-2014
+#Modified: 05-21-2014
+#Assisted By: Wouter Deconinck
+#
+
+
 #debug level
 export DEBUG=0
 # 0 == No debugging
-# 1 == debug this script only
-# 2 == debug the perl scripts and lower levels
+# 1 == debug this script only and the get_run_list.sh script
+# 2 == debug the perl scripts and lower levels (only way to get missing file numbers)
 # 3 == debug the C++ script and lower levels
 
 #set enviromental variables
@@ -14,7 +25,9 @@ export PASS="5b"
 export WEBSITE="/group/qweak/www/html/tracking/pass${PASS}"
 #where you are - this is where all the
 #output of the perl scripts will go
-#export IAMHERE="/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT/"
+#export IAMHERE="/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT"
+#export VALERIAN="$( cd "$( dirname $0 )" && pwd)"
+#export VALERIAN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 export VALERIAN=`dirname $0`
 
 if [ $DEBUG -gt 0 ] ; then
@@ -23,12 +36,10 @@ if [ $DEBUG -gt 0 ] ; then
   echo "Kilroy is $VALERIAN waiting for output"
 fi
 
+
 #get Run list
 echo -e "\n Get Run List \n"
 ./scripts/get_run_list.sh
-
-echo -e "\n Auto Q2 - Angle \n"
-./scripts/Angle.pl
 
 #Beam Position
 echo -e "\n Beam Pos X \n"
@@ -57,7 +68,7 @@ echo -e "\n Auto Q2 - Angle \n"
 ./scripts/Angle.pl
 echo -e "\n Auto Q2 - Good Tracks \n"
 ./scripts/GoodTracks.pl
-echo -e "\n Auto Q2 - Num triggers \n"
+echo -e "\n Auto Q2 - Num tiggers \n"
 ./scripts/NumTriggers.pl
 echo -e "\n Auto Q2 - % good \n"
 ./scripts/PercentGood.pl
@@ -86,7 +97,7 @@ echo -e "\n R3 Theta offset \n"
 
 #QTOR
 echo -e "\n Give me a Q, Give me a T, Give me an O, \
- give me and R, whats that spell QTOR \n"
+ give me and R, .... whats that spell QTOR \n"
 ./scripts/QTOR.pl
 
 #R3 treeline matchup Chi
@@ -116,12 +127,17 @@ echo -e "\n Q2 with Cuts \n"
 ./scripts/Q2_with_cuts.pl
 
 
+######################################
+#now build Valerian ROOT
+#####################################
+
 echo -e "\n Make ValerianROOT \n"
 #build and make ValerianROOT
 mkdir -p build
 cd build
 cmake ..
 make
+
 
 echo -e "\n Make the ROOT Tree \n"
 #Make the ROOT file
@@ -131,10 +147,25 @@ build/ValerianROOTTreeMaker
 echo -e "\n That is all I am exhausted, go take a nap :)"
 
 
-#echo "done begin comment"
+
+if [ $DEBUG -gt 0 ] ; then
+  echo -e "\n\n not that fast cowboy, there is still cows to be lassoed"
+  echo -e "\n Count the number of package info outputted, etc,"
+  ./scripts/CountingPackages.sh
+
+  echo -e "\n\n That discount double check is done \
+ - Thanks Rodgers, now a nap!"
+fi
+
 : <<'COMMENT'
 
+#echo "done begin comment"
+#also works for perl :)
+# print <<<COMMENT
+#COMMENT
+
 COMMENT
+
 
 #extra
 #./scripts/
