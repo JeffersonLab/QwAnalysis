@@ -4,10 +4,11 @@
 db_rootfiles_path="/group/qweak/www/html/private/db_rootfiles"
 data_quality_path="/group/qweak/www/html/private/data_quality"
 #db_rootfiles_path=~/db_rootfiles
+#data_quality_path=.
 data_quality_path="output"
 
 # Plots to be generated
-plots="mdallpmtavg"
+plots="mdallpmtavg bcmdd bcm"
 
 
 # Move to output directory
@@ -27,19 +28,19 @@ for run in 1 2 ; do
 
             echo Run $run -- Target $target -- Wien $wien
 
-            mkdir -p ${data_quality_path}/run${run}/${target}/wien${wien}
-            pushd ${data_quality_path}/run${run}/${target}/wien${wien}
+            mkdir -p ${data_quality_path}/run${run}/${target}/
+            pushd ${data_quality_path}/run${run}/${target}/
 
             # Check whether the database ROOT file exists
-            file="${db_rootfiles_path}/run${run}/wien${wien}/parity/${target}_on_tree.root"
+            file="${db_rootfiles_path}/run${run}/parity/${target}_on_tree.root"
             echo ${file}
             if [ -e ${file} ] ; then
 
                 # Loop over plots
                 for plot in $plots ; do
 
-                    #$QWANALYSIS/Extensions/QwDBLib/${plots} "${file}"
-                    ~/QwAnalysis/Extensions/QwDBLib/${plots} "${file}"
+                    $QWANALYSIS/Extensions/QwDBLib/${plots} "${file}" $wien
+                    #~/QwAnalysis/Extensions/QwDBLib/${plots} "${file}" $wien
 
                 done # end of loop over plots
 

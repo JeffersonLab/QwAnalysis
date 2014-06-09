@@ -32,6 +32,12 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
 
+    int wien = -1;
+    if(argc > 2) {
+        wien = atoi(argv[2]);
+        cout << "Only plotting wien " << wien << endl;
+    }
+
     /* Get variable names from cli for rootfiles. */
     TString var_1 = argv[1];
 
@@ -51,7 +57,11 @@ int main(int argc, char* argv[]) {
 
     /* Define objects to hold each branch. Define the axis variables in constructor.*/
     QwTreeBranchPlot bcmdd("bcmdd", "runlet_id", "BCM asymmetry double difference (ppm)");
-    bcmdd.get_data_from_tree(tree_asym, "asym_bcmdd12");
+    if(wien == -1) {
+        bcmdd.get_data_from_tree(tree_asym, "asym_bcmdd12");
+    } else {
+        bcmdd.get_data_from_tree(tree_asym, "asym_bcmdd12", wien);
+    }
 
     // sign*BCM 1-2 DD central value vs. runlet
     TCanvas c_bcmdd_vs_runlet("c_bcmdd_vs_runlet");

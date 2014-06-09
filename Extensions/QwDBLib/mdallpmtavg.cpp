@@ -33,6 +33,12 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
 
+    int wien = -1;
+    if(argc > 2) {
+        wien = atoi(argv[2]);
+        cout << "Only plotting wien " << wien << endl;
+    }
+
     /* Get variable names from cli for rootfiles. */
     TString var_1 = argv[1];
 
@@ -52,7 +58,12 @@ int main(int argc, char* argv[]) {
 
     /* Define objects to hold each branch. Define the axis variables in constructor.*/
     QwTreeBranchPlot mdallpmtavg("mdallpmtavg", "runlet_id", "mdallpmtavg asym (ppm)");
-    mdallpmtavg.get_data_from_tree(tree_asym, "asym_mdallpmtavg", "asym_qwk_charge");
+    if(wien == -1) {
+        mdallpmtavg.get_data_from_tree(tree_asym, "asym_mdallpmtavg", "asym_qwk_charge");
+    } else {
+        mdallpmtavg.get_data_from_tree(tree_asym, "asym_mdallpmtavg", "asym_qwk_charge", wien);
+    }
+
     //mdallpmtavg.set_weight_value(tree_asym, "asym_qwk_charge");
 
     // sign*asymmetry vs runlet for mdallpmtavg

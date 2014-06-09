@@ -27,9 +27,15 @@
 
 int main(int argc, char* argv[]) {
     /* Usage information if no arguments */
-    if (argc < 2) {
+    if(argc < 2) {
         std::cout << "Usage: " << argv[0] << " <rootfiles>" << std::endl;
         exit(0);
+    }
+
+    int wien = -1;
+    if(argc > 2) {
+        wien = atoi(argv[2]);
+        cout << "Only plotting wien " << wien << endl;
     }
 
     /* Get variable names from cli for rootfiles. */
@@ -52,7 +58,11 @@ int main(int argc, char* argv[]) {
 
     /* Define objects to hold each branch. Define the axis variables in constructor.*/
     QwTreeBranchPlot bcm("bcm", "runlet_id", "BCM chrage asymmetry (ppm)");
-    bcm.get_data_from_tree(tree_asym, "asym_qwk_charge");
+    if(wien == -1) {
+        bcm.get_data_from_tree(tree_asym, "asym_qwk_charge");
+    } else {
+        bcm.get_data_from_tree(tree_asym, "asym_qwk_charge", wien);
+    }
 
     // sign*Aq central value vs. runlet
     TCanvas c_bcm_vs_runlet("c_bcm_vs_runlet");
