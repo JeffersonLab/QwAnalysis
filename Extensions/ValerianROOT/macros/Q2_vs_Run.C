@@ -79,12 +79,12 @@ std::vector<Int_t> RUNNUMLIST;
 
 //any other things that will be needed by more than on function
 
-void Q2_vs_Run(std::string filename)
+void Q2_vs_Run(std::string pass, std::string filename )
 {
   //Create TChain and give it a file
   TChain* Track_It = new TChain("TrackThat");
-  Track_It->Add(
-      "/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT/Pass5b_TrackingRuns.root");
+  Track_It->Add( TString(gSystem->Getenv("QWANALYSIS"))
+      + Form("/Extensions/ValerianROOT/Pass%s_TrackingRuns.root",pass.c_str()));
 
   //run the functions on interest
   Read_In_Run_Numbers(filename);
@@ -638,8 +638,8 @@ void Plot()
     //update the pad
     gPad->Update();
 
-    c_q2[i_pkg]->SaveAs(
-        Form("~/QwAnalysis_trunk/Extensions/ValerianROOT/Q2_vs_run_%s_pkg.png",
+    c_q2[i_pkg]->SaveAs(TString(gSystem->Getenv("QWANALYSIS")) +
+        Form("/Extensions/ValerianROOT/Q2_vs_run_%s_pkg.png",
             INDEXTOPKG[i_pkg].c_str()));
   }
 
