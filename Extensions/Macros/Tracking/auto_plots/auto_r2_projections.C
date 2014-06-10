@@ -72,22 +72,33 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
    double z_coll2 = -370.719;
    double z_lh2 = -656.0;
 
+   TH1F* p1_coll1_y=new TH1F("y at coll 1","y at coll 1",200,-20,20);
+   TH1F* p1_coll1_x=new TH1F("x at coll 1","x at coll 1",200,-20,20);
+   TH1F* p1_coll2_y=new TH1F("y at coll 2","y at coll 2",240,-60,60);
+   TH1F* p1_coll2_x=new TH1F("x at coll 2","x at coll 2",240,-60,60);
+   TH1F* p1_lh2_y=new TH1F("y at lH2","y at lH2 2",64,-8,8);
+   TH1F* p1_lh2_x=new TH1F("x at lH2","x at lH2 2",64,-8,8);
+
+   TH1F* p2_coll1_y=new TH1F("y at coll 1","y at coll 1",200,-20,20);
+   TH1F* p2_coll1_x=new TH1F("x at coll 1","x at coll 1",200,-20,20);
+   TH1F* p2_coll2_y=new TH1F("y at coll 2","y at coll 2",240,-60,60);
+   TH1F* p2_coll2_x=new TH1F("x at coll 2","x at coll 2",240,-60,60);
+   TH1F* p2_lh2_y=new TH1F("y at lH2","y at lH2",64,-8,8);
+   TH1F* p2_lh2_x=new TH1F("x at lH2","x at lH2",64,-8,8);
+
+
    TH1F* p1_vertex=new TH1F("vertex in Z","vertex in Z",200,-850,-450);
-   TH2F* p1_projection_coll1=new TH2F("projection","projection",240,-30,30,240,-30,30);
+   TH2F* p1_projection_coll1=new TH2F("projection","projection",200,-20,20,200,-20,20);
    TH2F* p1_projection_coll2=new TH2F("projection","projection",240,-60,60,240,-60,60);
    TH2F* p1_projection_lh2=new TH2F("projection","projection",40,-8,8,40,-8,8);
    TH1F* p1_Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",200,0,20);
    TH1F* p2_vertex=new TH1F("vertex in Z","vertex in Z",200,-850,-450);
-   TH2F* p2_projection_coll1=new TH2F("projection","projection",240,-30,30,240,-30,30);
+   TH2F* p2_projection_coll1=new TH2F("projection","projection",200,-20,20,200,-20,20);
    TH2F* p2_projection_coll2=new TH2F("projection","projection",240,-60,60,240,-60,60);
    TH2F* p2_projection_lh2=new TH2F("projection","projection",40,-8,8,40,-8,8);
    TH1F* p2_Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",200,0,20);
 
    QwEvent* fEvent=0;
-   //   QwHit* hit=0;
-   //   QwTrac* track=0;
-   //   QwPartialTrack* pt=0;
-
 
    Int_t nevents=event_tree->GetEntries();
    cout << "total events: " << nevents << endl;
@@ -112,7 +123,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
    
     // set up track matching cuts
-    // DSA should make these more realistic!!
+    // DSA shold make these more realistic!!
 
     double mean_thetaoff_pkg1=0,sigma_thetaoff_pkg1=0.01;
     double mean_thetaoff_pkg2=0,sigma_thetaoff_pkg2=0.01;
@@ -136,7 +147,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     int pkg=1;
     for(int i=start;i<end;++i){
     //DSA  below kludge for testing
-    //for(int i=start;i<10000;++i){
+    //    for(int i=start;i<100000;++i){
 
       if(i%1000==0) cout << "package 1 events processed so far: " << i << endl;
       
@@ -169,7 +180,9 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
       double chi=0;
 
       // now, apply track matching cuts
-      for(int nts=0;nts<ntracks;++nts){
+      // only use first bridged track
+      if(ntracks>0){
+      int nts=0;
 	const QwTrack *track=fEvent->GetTrack(nts);
       if(track->GetPackage()!=pkg){
 	continue;
@@ -193,23 +206,30 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
 	double x = pt->fOffsetX+z_coll1*pt->fSlopeX;
 	double y = pt->fOffsetY+z_coll1*pt->fSlopeY;
 	p1_projection_coll1->Fill(x,y); 
+        p1_coll1_y->Fill(y);
+        p1_coll1_x->Fill(x);
 
 	x = pt->fOffsetX+z_coll2*pt->fSlopeX;
 	y = pt->fOffsetY+z_coll2*pt->fSlopeY;
 	p1_projection_coll2->Fill(x,y); 
+        p1_coll2_y->Fill(y);
+        p1_coll2_x->Fill(x);
 
 	x = pt->fOffsetX+z_lh2*pt->fSlopeX;
 	y = pt->fOffsetY+z_lh2*pt->fSlopeY;
 	p1_projection_lh2->Fill(x,y); 
+        p1_lh2_y->Fill(y);
+        p1_lh2_x->Fill(x);
+
       }
-      }
+      } 
     }  // end of for loop over package 1 events
    
 
     // Loop over events for package 2
     pkg=2;
     for(int i=start;i<end;++i){
-    //for(int i=start;i<10000;++i){
+    //    for(int i=start;i<100000;++i){
 
       if(i%1000==0) cout << "package 2 events processed so far: " << i << endl;
       
@@ -243,7 +263,9 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
       double chi=0;
 
       // now, apply track matching cuts
-      for(int nts=0;nts<ntracks;++nts){
+      // only use first bridged track
+      if(ntracks>0){
+      int nts=0;
 	const QwTrack* track=fEvent->GetTrack(nts);
       if(track->GetPackage()!=pkg){
 	continue;
@@ -252,7 +274,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
       if(track->fDirectionPhioff<pkg2_phioff_lower || track->fDirectionPhioff> pkg2_phioff_upper || track->fDirectionThetaoff < pkg2_thetaoff_lower || track->fDirectionThetaoff >  pkg2_thetaoff_upper ) continue;
 
       // Now the event has passed out cuts
-
+      
       for(int j=0;j<npts;++j){
         const QwPartialTrack* pt=fEvent->GetPartialTrack(j);
 	// check that the partial track is from the correct package
@@ -268,14 +290,21 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
 	double x = pt->fOffsetX+z_coll1*pt->fSlopeX;
 	double y = pt->fOffsetY+z_coll1*pt->fSlopeY;
 	p2_projection_coll1->Fill(x,y); 
+        p2_coll1_y->Fill(y);
+        p2_coll1_x->Fill(x);
 
 	x = pt->fOffsetX+z_coll2*pt->fSlopeX;
 	y = pt->fOffsetY+z_coll2*pt->fSlopeY;
 	p2_projection_coll2->Fill(x,y); 
+        p2_coll2_y->Fill(y);
+        p2_coll2_x->Fill(x);
 
 	x = pt->fOffsetX+z_lh2*pt->fSlopeX;
 	y = pt->fOffsetY+z_lh2*pt->fSlopeY;
 	p2_projection_lh2->Fill(x,y); 
+        p2_lh2_y->Fill(y);
+        p2_lh2_x->Fill(x);
+
       }
       }
     }  // end of for loop over package 2 events
@@ -298,13 +327,12 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
 
     spad1->Draw();
     spad1->cd();
-    p1_vertex->Draw();
+    p1_coll1_y->Draw();
     coll1->cd();
     TPad* spad2=new TPad("spad2","spad2",.61,0.01,.99,.49);
     spad2->Draw();
     spad2->cd();
-    spad2->SetLogy();
-    p1_Chi_histo->Draw();
+    p1_coll1_x->Draw();
     coll1->cd();
     TPad* spad3=new TPad("spad3","spad3",.01,.01,.59,.99);
     spad3->Draw();
@@ -362,13 +390,12 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
 
     spad4->Draw();
     spad4->cd();
-    p1_vertex->Draw();
+    p1_coll2_y->Draw();
     coll2->cd();
     TPad* spad5=new TPad("spad5","spad5",.61,0.01,.99,.49);
     spad5->Draw();
     spad5->cd();
-    spad5->SetLogy();
-    p1_Chi_histo->Draw();
+    p1_coll2_x->Draw();
     coll2->cd();
     TPad* spad6=new TPad("spad6","spad6",.01,.01,.59,.99);
     spad6->Draw();
@@ -429,13 +456,12 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
 
     spad7->Draw();
     spad7->cd();
-    p1_vertex->Draw();
+    p1_lh2_y->Draw();
     lh2->cd();
     TPad* spad8=new TPad("spad8","spad8",.61,0.01,.99,.49);
     spad8->Draw();
     spad8->cd();
-    spad8->SetLogy();
-    p1_Chi_histo->Draw();
+    p1_lh2_x->Draw();
     lh2->cd();
     TPad* spad9=new TPad("spad9","spad9",.01,.01,.59,.99);
     spad9->Draw();
@@ -461,14 +487,13 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
 
     spad12->Draw();
     spad12->cd();
-    p2_vertex->Draw();
+    //    p2_vertex->Draw();
+    p2_coll1_y->Draw();
     coll1_p2->cd();
-
     TPad* spad22=new TPad("spad22","spad22",.61,0.01,.99,.49);
     spad22->Draw();
     spad22->cd();
-    spad22->SetLogy();
-    p2_Chi_histo->Draw();
+    p2_coll1_x->Draw();
     coll1_p2->cd();
     TPad* spad32=new TPad("spad32","spad32",.01,.01,.59,.99);
     spad32->Draw();
@@ -526,13 +551,12 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
 
     spad42->Draw();
     spad42->cd();
-    p2_vertex->Draw();
+    p2_coll2_y->Draw();
     coll2_p2->cd();
     TPad* spad52=new TPad("spad52","spad52",.61,0.01,.99,.49);
     spad52->Draw();
     spad52->cd();
-    spad52->SetLogy();
-    p2_Chi_histo->Draw();
+    p2_coll2_x->Draw();
     coll2_p2->cd();
     TPad* spad62=new TPad("spad62","spad62",.01,.01,.59,.99);
     spad62->Draw();
@@ -591,16 +615,14 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     TPad* spad72=new TPad("spad72","spad72",.61,.51,.99,.99);
     spad72->Draw();
     spad72->cd();
-    p2_vertex->Draw();
+    p2_lh2_y->Draw();
     lh2_p2->cd();
 
     TPad* spad82=new TPad("spad82","spad82",.61,0.01,.99,.49);
     spad82->Draw();
     spad82->cd();
-    spad82->SetLogy();
-    p2_Chi_histo->Draw();
+    p2_lh2_x->Draw();
     lh2_p2->cd();
-
     TPad* spad92=new TPad("spad92","spad92",.01,.01,.59,.99);
     spad92->Draw();
     spad92->cd();
@@ -613,7 +635,31 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     
     lh2_p2->SaveAs(outputPrefix+"p2_lh2_proj.png");
 
- 
+
+     // Vertex, chi for Region 2 partial tracks
+    TCanvas* vertex=new TCanvas("vertex","Region 2 Partial Tracks: z-vertex and chi",600,600);
+
+    vertex->Divide(2,2);
+    vertex->cd(1);
+    gStyle->SetStatW(0.3);
+    gStyle->SetStatH(0.3);
+    p1_vertex->SetLineColor(2);
+    p1_vertex->Draw();
+    vertex->cd(2);
+    p2_vertex->SetLineColor(4);
+    p2_vertex->Draw();
+    vertex->cd(3);
+    gPad->SetLogy();
+    p1_Chi_histo->SetLineColor(2);
+    p1_Chi_histo->Draw();
+    vertex->cd(4);
+    gPad->SetLogy();
+    p2_Chi_histo->SetLineColor(4);
+    p2_Chi_histo->Draw();
+
+    vertex->SaveAs(outputPrefix+"r2_vertex_chi.png");
+
+
     //  Output summary data to text files
 
    std::ofstream fout;

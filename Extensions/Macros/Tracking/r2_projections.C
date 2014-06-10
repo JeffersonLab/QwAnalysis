@@ -43,16 +43,32 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
    double z_coll2 = -370.719;
    double z_lh2 = -656.0;
 
-   TH1F* p1_vertex=new TH1F("vertex in Z","vertex in Z",200,-850,-450);
-   TH2F* p1_projection_coll1=new TH2F("projection","projection",240,-30,30,240,-30,30);
+
+   TH1F* p1_coll1_y=new TH1F("y at coll 1","y at coll 1",200,-20,20);
+   TH1F* p1_coll1_x=new TH1F("x at coll 1","x at coll 1",200,-20,20);
+   TH1F* p1_coll2_y=new TH1F("y at coll 2","y at coll 2",240,-60,60);
+   TH1F* p1_coll2_x=new TH1F("x at coll 2","x at coll 2",240,-60,60);
+   TH1F* p1_lh2_y=new TH1F("y at lH2","y at lH2 2",64,-8,8);
+   TH1F* p1_lh2_x=new TH1F("x at lH2","x at lH2 2",64,-8,8);
+
+   TH1F* p2_coll1_y=new TH1F("y at coll 1","y at coll 1",200,-20,20);
+   TH1F* p2_coll1_x=new TH1F("x at coll 1","x at coll 1",200,-20,20);
+   TH1F* p2_coll2_y=new TH1F("y at coll 2","y at coll 2",240,-60,60);
+   TH1F* p2_coll2_x=new TH1F("x at coll 2","x at coll 2",240,-60,60);
+   TH1F* p2_lh2_y=new TH1F("y at lH2","y at lH2",64,-8,8);
+   TH1F* p2_lh2_x=new TH1F("x at lH2","x at lH2",64,-8,8);
+
+   TH1F* p1_vertex=new TH1F("vertex in Z","vertex in Z  (package 1)",200,-850,-450);
+   TH2F* p1_projection_coll1=new TH2F("projection","projection",240,-20,20,240,-20,20);
    TH2F* p1_projection_coll2=new TH2F("projection","projection",240,-60,60,240,-60,60);
    TH2F* p1_projection_lh2=new TH2F("projection","projection",40,-8,8,40,-8,8);
-   TH1F* p1_Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",200,0,20);
-   TH1F* p2_vertex=new TH1F("vertex in Z","vertex in Z",200,-850,-450);
-   TH2F* p2_projection_coll1=new TH2F("projection","projection",240,-30,30,240,-30,30);
+   TH1F* p1_Chi_histo=new TH1F("chi","chi in Region 2  (package 1)",200,0,20);
+
+   TH1F* p2_vertex=new TH1F("vertex in Z","vertex in Z  (package 2)",200,-850,-450);
+   TH2F* p2_projection_coll1=new TH2F("projection","projection",240,-20,20,240,-20,20);
    TH2F* p2_projection_coll2=new TH2F("projection","projection",240,-60,60,240,-60,60);
    TH2F* p2_projection_lh2=new TH2F("projection","projection",40,-8,8,40,-8,8);
-   TH1F* p2_Chi_histo=new TH1F("chi distribution of partial track","chi distribution in r2",200,0,20);
+   TH1F* p2_Chi_histo=new TH1F("chi","chi in Region 2  (package 2)",200,0,20);
 
    QwEvent* fEvent=0;
    QwHit* hit=0;
@@ -139,7 +155,9 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
       double chi=0;
 
       // now, apply track matching cuts
-      for(int nts=0;nts<ntracks;++nts){
+      // only use first bridged track
+      if(ntracks>0){
+      int nts=0;
       track=fEvent->GetTrack(nts);
       if(track->GetPackage()!=pkg){
 	continue;
@@ -163,14 +181,20 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 	double x = pt->fOffsetX+z_coll1*pt->fSlopeX;
 	double y = pt->fOffsetY+z_coll1*pt->fSlopeY;
 	p1_projection_coll1->Fill(x,y); 
+        p1_coll1_y->Fill(y);
+        p1_coll1_x->Fill(x);
 
 	x = pt->fOffsetX+z_coll2*pt->fSlopeX;
 	y = pt->fOffsetY+z_coll2*pt->fSlopeY;
 	p1_projection_coll2->Fill(x,y); 
+        p1_coll2_y->Fill(y);
+        p1_coll2_x->Fill(x);
 
 	x = pt->fOffsetX+z_lh2*pt->fSlopeX;
 	y = pt->fOffsetY+z_lh2*pt->fSlopeY;
 	p1_projection_lh2->Fill(x,y); 
+        p1_lh2_y->Fill(y);
+        p1_lh2_x->Fill(x);
       }
       }
     }  // end of for loop over package 1 events
@@ -213,7 +237,9 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
       double chi=0;
 
       // now, apply track matching cuts
-      for(int nts=0;nts<ntracks;++nts){
+      // only use first bridged track
+      if(ntracks>0){
+      int nts=0;
       track=fEvent->GetTrack(nts);
       if(track->GetPackage()!=pkg){
 	continue;
@@ -238,14 +264,20 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 	double x = pt->fOffsetX+z_coll1*pt->fSlopeX;
 	double y = pt->fOffsetY+z_coll1*pt->fSlopeY;
 	p2_projection_coll1->Fill(x,y); 
+        p2_coll1_y->Fill(y);
+        p2_coll1_x->Fill(x);
 
 	x = pt->fOffsetX+z_coll2*pt->fSlopeX;
 	y = pt->fOffsetY+z_coll2*pt->fSlopeY;
-	p2_projection_coll2->Fill(x,y); 
+	p2_projection_coll2->Fill(x,y);
+        p2_coll2_y->Fill(y);
+        p2_coll2_x->Fill(x);
 
 	x = pt->fOffsetX+z_lh2*pt->fSlopeX;
 	y = pt->fOffsetY+z_lh2*pt->fSlopeY;
 	p2_projection_lh2->Fill(x,y); 
+        p2_lh2_y->Fill(y);
+        p2_lh2_x->Fill(x);
       }
       }
     }  // end of for loop over package 2 events
@@ -269,13 +301,12 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
     spad1->Draw();
     spad1->cd();
-    p1_vertex->Draw();
+    p1_coll1_y->Draw();
     coll1->cd();
     TPad* spad2=new TPad("spad2","spad2",.61,0.01,.99,.49);
     spad2->Draw();
     spad2->cd();
-    spad2->SetLogy();
-    p1_Chi_histo->Draw();
+    p1_coll1_x->Draw();
     coll1->cd();
     TPad* spad3=new TPad("spad3","spad3",.01,.01,.59,.99);
     spad3->Draw();
@@ -332,13 +363,12 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
     spad4->Draw();
     spad4->cd();
-    p1_vertex->Draw();
+    p1_coll2_y->Draw();
     coll2->cd();
     TPad* spad5=new TPad("spad5","spad5",.61,0.01,.99,.49);
     spad5->Draw();
     spad5->cd();
-    spad5->SetLogy();
-    p1_Chi_histo->Draw();
+    p1_coll2_x->Draw();
     coll2->cd();
     TPad* spad6=new TPad("spad6","spad6",.01,.01,.59,.99);
     spad6->Draw();
@@ -396,13 +426,12 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
     spad4->Draw();
     spad4->cd();
-    p1_vertex->Draw();
+    p1_lh2_y->Draw();
     lh2->cd();
     TPad* spad5=new TPad("spad5","spad5",.61,0.01,.99,.49);
     spad5->Draw();
     spad5->cd();
-    spad5->SetLogy();
-    p1_Chi_histo->Draw();
+    p1_lh2_x->Draw();
     lh2->cd();
     TPad* spad6=new TPad("spad6","spad6",.01,.01,.59,.99);
     spad6->Draw();
@@ -428,13 +457,12 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
     spad1->Draw();
     spad1->cd();
-    p2_vertex->Draw();
+    p2_coll1_y->Draw();
     coll1_p2->cd();
     TPad* spad2=new TPad("spad2","spad2",.61,0.01,.99,.49);
     spad2->Draw();
     spad2->cd();
-    spad2->SetLogy();
-    p2_Chi_histo->Draw();
+    p2_coll1_x->Draw();
     coll1_p2->cd();
     TPad* spad3=new TPad("spad3","spad3",.01,.01,.59,.99);
     spad3->Draw();
@@ -491,13 +519,12 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
     spad4->Draw();
     spad4->cd();
-    p2_vertex->Draw();
+    p2_coll2_y->Draw();
     coll2_p2->cd();
     TPad* spad5=new TPad("spad5","spad5",.61,0.01,.99,.49);
     spad5->Draw();
     spad5->cd();
-    spad5->SetLogy();
-    p2_Chi_histo->Draw();
+    p2_coll2_x->Draw();
     coll2_p2->cd();
     TPad* spad6=new TPad("spad6","spad6",.01,.01,.59,.99);
     spad6->Draw();
@@ -555,13 +582,13 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
     spad4->Draw();
     spad4->cd();
-    p2_vertex->Draw();
+    p2_lh2_y->Draw();
     lh2_p2->cd();
+
     TPad* spad5=new TPad("spad5","spad5",.61,0.01,.99,.49);
     spad5->Draw();
     spad5->cd();
-    spad5->SetLogy();
-    p2_Chi_histo->Draw();
+    p2_lh2_x->Draw();
     lh2_p2->cd();
     TPad* spad6=new TPad("spad6","spad6",.01,.01,.59,.99);
     spad6->Draw();
@@ -575,6 +602,30 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
     
     lh2_p2->SaveAs(Form("%d_p2_lh2_proj.png",run));
  
+
+    // Vertex, chi for Region 2 partial tracks
+    TCanvas* vertex=new TCanvas("vertex","Region 2 Partial Tracks: z-vertex and chi",600,600);
+
+    vertex->Divide(2,2);
+    vertex->cd(1);
+    gStyle->SetStatW(0.3);
+    gStyle->SetStatH(0.3);
+    p1_vertex->SetLineColor(2);
+    p1_vertex->Draw();
+    vertex->cd(2);
+    p2_vertex->SetLineColor(4);
+    p2_vertex->Draw();
+    vertex->cd(3);
+    gPad->SetLogy();
+    p1_Chi_histo->SetLineColor(2);
+    p1_Chi_histo->Draw();
+    vertex->cd(4);
+    gPad->SetLogy();
+    p2_Chi_histo->SetLineColor(4);
+    p2_Chi_histo->Draw();
+    vertex->SaveAs(Form("%d_r2_vertex_chi.png",run));
+
+
     //  Output summary data to text files
 
    std::ofstream fout;
