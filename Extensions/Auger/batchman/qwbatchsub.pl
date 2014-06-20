@@ -54,7 +54,7 @@ use vars qw($original_cwd $executable $script_dir $BaseMSSDir
 	    $Default_Analysis_Options $AnalysisOptionList $CacheOptionList
 	    $opt_h $opt_E $DryRun $RunRange $SegmentRange
 	    $opt_F 
-	    $RootfileStem $OutputPath $BatchQueue
+	    $RootfileStem $OutputPath $BatchQueue $TimePerFile
 	    @run_list @discards $first_run $last_run
 	    %good_segs $first_seg $last_seg
 	    @good_runs $goodrunfile 
@@ -121,6 +121,7 @@ my $ret = GetOptions("help|usage|h"       => \$opt_h,
 		     "options|O=s"        => \$AnalysisOptionList,
 		     "goodrundb|F=s"      => \$opt_F,
 		     "batchqueue|Q=s"     => \$BatchQueue,
+		     "time-per-file=s"    => \$TimePerFile,
 		     "cacheoptions|C=s"   => \$CacheOptionList,
 		     "rootfile-stem|R=s"  => \$RootfileStem,
 		     "rootfile-output=s"  => \$OutputPath,
@@ -161,7 +162,8 @@ if (!defined($FarmOSName) || $FarmOSName eq "") {
 $BaseMSSDir = "/mss/hallc/qweak" if (!defined($BaseMSSDir) || $BaseMSSDir eq "");
 $CacheOptionList = ""       if (!defined($CacheOptionList) 
 				  || $CacheOptionList eq "");
-$BatchQueue = "one_pass"     if (!defined($BatchQueue) || $BatchQueue eq "");
+$BatchQueue = "one_pass"      if (!defined($BatchQueue) || $BatchQueue eq "");
+$TimePerFile = 300            if (!defined($TimePerFile) || $TimePerFile eq 0);
 $RootfileStem = "Qweak_"      if (!defined($RootfileStem) || $RootfileStem eq "");
 if (!defined($OutputPath) || $OutputPath eq ""){
     $OutputPath = "mss:$BaseMSSDir/rootfiles/pass0";
@@ -689,7 +691,7 @@ sub create_xml_jobfile($$$@) {
 	" <Project name=\"qweak\"/>\n",
 	" <Track name=\"$BatchQueue\"/>\n",
 	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
-    my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
+    my $timelimit = $TimePerFile*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
 	" <OS name=\"$FarmOSName\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
@@ -889,6 +891,10 @@ sub displayusage {
 	"\t\tused;  it defaults to be  \"one_pass\".   Check the\n",
 	"\t\tbatch  system documentation for the  other possible\n",
 	"\t\tvalues.\n",
+	"\t--time-per-file <time in minutes>\n",
+	"\t\tThis argument specifies the time (in minutes) that should\n",
+	"\t\tbe requested per input file.\n",
+	"\t\tThe default value is 300 minutes.\n",
 	"\t--cacheoptions | -C <cache option>\n",
 	"\t\tThis flag specifies  the update_cache_links options\n",
 	"\t\tto pass to the analysis jobs.   The list of options\n",
