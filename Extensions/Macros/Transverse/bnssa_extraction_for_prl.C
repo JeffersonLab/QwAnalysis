@@ -5,7 +5,7 @@ B.Waidyawansa
 Coppied from bnssa_extraction.C script I used exactly an year ago to get the final
 elastic e+p BNSSA asymmetry presented in my thesis (Qweak-doc-1886-v1)
 This time around, it will have a better non-linearity error estimate based on the analysis presented i
-Qweak-doc-2013-v2.
+Qweak-doc-2013-v7.
 */
 
 
@@ -46,8 +46,8 @@ const Double_t dR = 0.004;
 const Double_t f_acc = 0.9938; // assign a 50% error
 // Non-linearity factors
 // elog 1166
-const Double_t f_lh2_nonlin = 0.008;
-const Double_t f_al_nonlin  = 0.041; 
+const Double_t f_lh2_nonlin = 0.003;
+const Double_t f_al_nonlin  = 0.047; 
 
 // General analysis systematic errors
 // pg. 153
@@ -164,11 +164,6 @@ void elastic_bnsa_extraction(){
 			 A_lh2_ie, dA_lh2_ie,
 			 f_ie, df_ie,
 			 R, dR);
-
-// P_b,  Bmsr, -9.667, f_al, 28.85,f_ie,0.9979,
-//   		     dP_b, dBmsr_stat,dBmsr_acc_avg,dBmsr_reg_scheme,dBmsr_non_linear
-//  // 		     ,0.603, df_al, 6.39433, df_ie,0.004);
-
 
 
 }
