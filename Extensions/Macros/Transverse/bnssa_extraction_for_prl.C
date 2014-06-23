@@ -15,8 +15,8 @@ Qweak-doc-2013-v7.
 // Beam polarization
 // pg. 157
 // Run II (needed for inelastic asymmetry extraction)
-const Double_t P_II  = 0.8778;
-const Double_t dP_II = 0.0099;
+const Double_t P_II  = 0.8750;
+const Double_t dP_II = 0.0079;
 // Run I and Run II (average)
 const Double_t P_b  = 0.8804;
 const Double_t dP_b = 0.0087;
