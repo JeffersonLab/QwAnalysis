@@ -39,7 +39,7 @@ const Double_t df_ie = 0.0001;
 // Detector bias and radiative correction
 // pg. 167
 const Double_t R  = 0.9979;
-const Double_t dR = 0.004;
+const Double_t dR = 0.0032;
 
 // Acceptance averaging correction factor
 // pg. 148
@@ -195,19 +195,20 @@ Double_t * aluminum_asymmetry(Double_t A_ds4al_reg, Double_t dA_ds4al_stat,
   std::cout<<"\tsystematic error (ppm)= "<<dA_ds4al_sys<<std::endl;
   std::cout<<"\ttotal error (ppm)= "<<dA_ds4al_tot<<std::endl;
 
+  // Correct for upstream downstream acceptance difference
   Double_t A_al_phys = ( A_usal +  A_ds4al_acc)/2;
-  // apply a 50% model uncertainty for taking Bn = sqrt(Q2)
+  // apply a 50% error on the correction
   Double_t dA_us_ds_acceptance = (A_al_phys- A_ds4al_acc)*0.5; 
 
 
-  Double_t dA_al_phys = dA_ds4al_tot*sqrt(1+sqrt(f_us))/2;
+  Double_t dA_al_phys = sqrt(pow(dA_ds4al_tot,2)+pow(dA_us_ds_acceptance,2));
   std::cout<< "Aluminum physics asymmetry (ppm)= "<<A_al_phys<<std::endl;
   std::cout<< "\terror (ppm)= "<<dA_al_phys<<std::endl;
 
   // extract Aluminum e+p elastic asymmetry
   Double_t A_al = A_al_phys/P;
   std::cout<< "Effective aluminum ep asymmetry (ppm)= "<<A_al<<std::endl;
-  Double_t dA_al = sqrt(pow((dA_al_phys/P),2)+pow(((A_al*dP)/P),2)+pow(dA_us_ds_acceptance,2));
+  Double_t dA_al = sqrt(pow((dA_al_phys/P),2)+pow(((A_al*dP)/P),2));
   std::cout<<"\terror (ppm)= "<<dA_al<<std::endl;
 
   // Fill the array
@@ -296,8 +297,8 @@ Double_t * two_bkg_correction(Double_t P_beam,Double_t dP_beam,
   // backgrounds
   std::cout<<"A_b1 = "<<A_b1<<" +- "<<dA_b1<<std::endl;
   std::cout<<"A_b2 = "<<A_b2<<" +- "<<dA_b2<<std::endl;
-  std::cout<<"A_b1 = "<<fb1<<" +- "<<dfb1<<std::endl;
-  std::cout<<"A_b1 = "<<fb2<<" +- "<<dfb2<<std::endl;
+  std::cout<<"f_b1 = "<<fb1<<" +- "<<dfb1<<std::endl;
+  std::cout<<"f_b1 = "<<fb2<<" +- "<<dfb2<<std::endl;
 
   // kinematics+detector bias
   std::cout<<"RQ   = "<<RQ<<" +- "<<dRQ<<std::endl;
@@ -331,14 +332,12 @@ Double_t * two_bkg_correction(Double_t P_beam,Double_t dP_beam,
   Double_t partial_A_b2 = ((-fb2*RQ)/denom)*dA_b2;
   std::cout<<"partial_A_b2 dAb2 = "<<partial_A_b2<<std::endl;
 
-  Double_t partial_fb1 = (RQ*((A_p/P_beam)-denom*A_b1-fb1*A_b1-fb2*A_b2)/pow(denom,2))*dfb1;
+  Double_t partial_fb1 = (RQ*((A_p/P_beam)+(-1+fb2)*A_b1-fb2*A_b2)/pow(denom,2))*dfb1;
   std::cout<<"partial_fb1 dfb1 = "<<partial_fb1<<std::endl;
 
-  //Double_t partial_fb1 = ((-A_b1*(1-fb2)*RQ)/pow(denom,2))*dfb1;
-  //std::cout<<"partial_fb1 dfb1 = "<<partial_fb1<<std::endl;
+  Double_t partial_fb2 = (RQ*((A_p/P_beam)+(-1+fb1)*A_b2-fb1*A_b1)/pow(denom,2))*dfb2;
 
-  Double_t partial_fb2 = (RQ*((A_p/P_beam)-denom*A_b2-fb1*A_b1-fb2*A_b2)/pow(denom,2))*dfb2;
-  std::cout<<"partial_fb1 dfb2 = "<<partial_fb2<<std::endl;
+  std::cout<<"partial_fb2 dfb2 = "<<partial_fb2<<std::endl;
 
   // Double_t partial_fb2 = (-A_b2*(1-fb1)*RQ*dfb2)/(denom*denom);
   // std::cout<<"partial_fb2 dfb2 = "<<partial_fb2<<std::endl;
