@@ -185,14 +185,18 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,3);
     //polFit = new TF1("polFit",theoreticalAsym,startStrip+1,endStrip,3);
     //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
-    polFit->SetParameters(1.0,tempCedge,0.85);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
+    polFit->SetParameters(1.0033,tempCedge,0.85);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
     if (kFitEffWidth) {
       polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch   
       polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
+      cout<<blue<<"using effective strip width and pol as the two fit parameters"<<normal<<endl;
+      cout<<blue<<"CE fixed at strip "<<normal<<tempCedge<<endl;
     } else {
       //polFit->SetParLimits(0,1.0,1.0);///fix the effective strip width to 1.0
       polFit->SetParLimits(0,1.0033,1.0033);///fix the effective strip width to 1.0033 !changed to match the runlet analysis output
       polFit->SetParLimits(1,30.0,63.0);///allow the CE to vary between strip 30-63
+      cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
+      //cout<<blue<<"effective strip width fixed at "<<normal<<<GetParameter[0]<endl;
     }
     polFit->SetParLimits(2,-1.0,1.0);///allowing polarization to be - 100% to +100%
     polFit->SetParNames("effStrip","comptonEdge","polarization");

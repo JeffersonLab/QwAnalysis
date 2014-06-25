@@ -71,7 +71,7 @@ Int_t infoDAQ(Int_t runnum)
   if(additionalStripMask) {
     skipStrip.push_back(2);//notice that the strip number pushed is in human counts
     skipStrip.push_back(10);//notice that the strip number pushed is in human counts
-    cout<<red<<"apart from strips masked in DAQ, am ignoring strip # 2 accross all planes"<<normal<<endl;//!update this with above list
+    cout<<red<<"apart from masked strips, ignoring strip # 2,10 accross all planes"<<normal<<endl;//!update this with above list
   }
   for(Int_t m = 0; m <nModules; m++) {
     acTrigSlave[m]        = (Int_t)bAcTrigSlave[m];  

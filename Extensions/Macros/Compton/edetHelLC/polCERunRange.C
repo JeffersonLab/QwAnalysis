@@ -3,8 +3,9 @@
 //Int_t polRunRange(Int_t run1=23220, Int_t run2=23515)
 Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
 {
+  //gROOT->SetStyle("publication");
   Bool_t debug=1,debug1=0,kPlsPrint=0,debug2=0;
-  Bool_t bPolCompare=1,bPolErCompare=0,bCedgeCompare=0,bChiSqrCompare=0,bChiSqrHist=0;
+  Bool_t bPolCompare=1,bPolErCompare=1,bCedgeCompare=1,bChiSqrCompare=0,bChiSqrHist=0;
   gStyle->SetOptFit(1);
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
@@ -16,7 +17,7 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   const Int_t numbRuns = runEnd - runBegin;//a non-variable is needed to set the size of an array length
   ifstream poltext,polRunlet;
   ofstream polLasCyc;
-  TString destDir="/w/hallc/compton/users/narayan/my_scratch/www";
+  TString destDir="/w/hallc/compton/users/narayan/svn/edetHelLC";//"/w/hallc/compton/users/narayan/my_scratch/www";
   TString runletFile = Form("/u/home/narayan/acquired/vladas/modFiles/polRunletCE_%d_%d.dat",run1,run2);//file updated by Vladas on 24Apr2013
   //Form("/u/home/narayan/acquired/vladas/modFiles/polEffWidth_%d_%d.dat",run1,run2);//file updated by Vladas on 24Apr2013
   //polRunlet.open("/u/home/narayan/acquired/vladas/modFiles/runletFCEPolRun2.txt");
@@ -28,6 +29,7 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   TH1D *hPolEr = new TH1D("polEr laser Cycle", "polarization error laser cycle analysis", runRange, 0, 0.1);
   TH1D *hRunletPolEr = new TH1D("polEr runlet based", "polarization error runlet based analysis", runRange, 0, 0.1);
   TH1D *hPolDiff = new TH1D("diff. in pol%", "difference in polarization between the two analysis", runRange, 0, 0.1);
+  TH1D *hCEDiff = new TH1D("diff. in CE", "difference in CE between the two analysis", runRange, 0, 0.1);
   TH1D *hChiSqLC = new TH1D("chiSqr laser Cycle", "chi sqr laser cycle analysis", runRange, 0, 0.1);
   TH1D *hChiSqRL = new TH1D("chiSqr runlet based", "chi sqr runlet based analysis", runRange, 0, 0.1);
   TF1 *linearFit = new TF1("linearFit", "pol0");
@@ -35,6 +37,7 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   hPolEr->SetBit(TH1::kCanRebin);
   hRunletPolEr->SetBit(TH1::kCanRebin);
   hPolDiff->SetBit(TH1::kCanRebin);
+  hCEDiff->SetBit(TH1::kCanRebin);
   hChiSqLC->SetBit(TH1::kCanRebin);
   hChiSqRL->SetBit(TH1::kCanRebin);
 
@@ -44,7 +47,7 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   Int_t count1=0;
   polLasCyc.open(lasCycFile.Data());
   if (!polLasCyc.is_open()) cout<<"could not open file to assimilate pol"<<endl;
-  polLasCyc<<"run\tabsPol\tpolEr\tchiSq/ndf\tCE\tCEEr\teffStrWid\teffStrWidEr\tpl"<<endl;
+  polLasCyc<<"run\tabsPol\tpolEr\tchiSq/ndf\tCE\tCEEr\tss2\tss2Er\tpl\tgoodCyc"<<endl;
   for (Int_t r=run1; r<=run2; r++) {
     Double_t absPol[nPlanes],pol[nPlanes]={0.0},polEr[nPlanes]={0.0},chiSq[nPlanes],comptEdge[nPlanes],comptEdgeEr[nPlanes],effStrip[nPlanes],effStripEr[nPlanes];
     Int_t plane[nPlanes],NDF[nPlanes],runnum[nPlanes],goodCyc[nPlanes]; 
@@ -61,11 +64,11 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
       poltext.close();
     } else if(debug) cout<<"*** Alert: could not open "<<Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePrefix.Data())<<endl;
     absPol[0] = fabs(pol[0]);
-    kPlsPrint = (runnum[0]==r && polEr[0]<3.0 && absPol[0]<93.0 && absPol[0]>50.0 && polEr[0]!=0.0 && comptEdge[0]>20.0 && (chiSq[0]/NDF[0]) <5.0);
+    kPlsPrint = (runnum[0]==r && polEr[0]<5.0 && absPol[0]<93.0 && absPol[0]>50.0 && polEr[0]!=0.0 && comptEdge[0]>20.0);// && (chiSq[0]/NDF[0]) <5.0);///often chiSqr/NDF is not on expected lines
     //kPlsPrint = (polEr[0]<4.0 && absPol[0]<95.0 && absPol[0]>50.0 && polEr[0]!=0.0 && comptEdge[0]>20.0 && (chiSq[0]/NDF[0]) <6.0);
     //kPlsPrint = (runnum[0]==r && polEr[0]<1.5 && absPol[0]<91.5 && absPol[0]>50.0 && polEr[0]!=0.0 && comptEdge[0]>20.0 && (chiSq[0]/NDF[0]) <5.0);
     if (kPlsPrint) {
-      polLasCyc<<Form("%5.0f\t%2.2f\t%1.2f\t%.2f\t%2.2f\t%2.2f\t%.3f\t%.3f\t%d\n",(Double_t)r,absPol[0],polEr[0],chiSq[0]/NDF[0],comptEdge[0],comptEdgeEr[0],effStrip[0],effStripEr[0],plane[0]);
+      polLasCyc<<Form("%5.0f\t%2.2f\t%1.2f\t%.2f\t%2.2f\t%2.2f\t%.3f\t%.3f\t%d\t%d\n",(Double_t)r,absPol[0],polEr[0],chiSq[0]/NDF[0],comptEdge[0],comptEdgeEr[0],effStrip[0],effStripEr[0],plane[0],goodCyc[0]);
       runListLC.push_back(r);
       polLC.push_back(absPol[0]);
       polErLC.push_back(polEr[0]);
@@ -100,25 +103,28 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
 
   cout<<" runRange:"<<runRange<<", count1:"<<count1<<", count2:"<<count2<<endl;
 
-  std::vector<Double_t> commonRuns,polDiff,polDiffEr,zero_1;
+  std::vector<Double_t> commonRuns,polDiff,CEDiff,polDiffEr,CEDiffEr,zero_1;
   for(Int_t r=0; r<(Int_t)runListRL.size(); r++) {
     Bool_t kFound = 0;
     for(Int_t r2=0; r2<(Int_t)runListLC.size(); r2++) {
       if(runListRL[r] == runListLC[r2]) { 
         kFound = 1;
-        if((comptEdgeRL[r]-comptEdgeLC[r2])>0.5) {
-          cout<<green<<"CE was off by 0.5 strip for run "<<runListLC[r2]<<normal<<endl;
-        } else if(fabs(polRL[r] - polLC[r2])>1.0) {
+        if((comptEdgeRL[r]-comptEdgeLC[r2])>1.0) {
+          cout<<green<<"CE was off by >1.0 strip for run "<<runListLC[r2]<<normal<<endl;
+        } else if(fabs(polRL[r] - polLC[r2])>2.0) {
           cout<<blue<<runListRL[r]<<"\t"<<polRL[r]<<" in RL, and "<<runListLC[r2]<<" "<<polLC[r2]<<" in LC"<<normal<<endl;
         } else {
           polDiff.push_back(polLC[r2] - polRL[r]);
           commonRuns.push_back(runListRL[r2]);
-          polDiffEr.push_back(polErLC[r]);
-          zero_1.push_back(0.0);
+          polDiffEr.push_back(polErLC[r2]+polErRL[r]);
+          zero_1.push_back(0.0);          
+          CEDiff.push_back(comptEdgeLC[r2]-comptEdgeRL[r]);
+          CEDiffEr.push_back(edgeErLC[r2]+edgeErRL[r]);
+
           hPolDiff->Fill(polDiff.back());
           hPolEr->Fill(polErLC[r2]);
           hRunletPolEr->Fill(polErRL[r]);
-
+          hCEDiff->Fill(CEDiff.back());
           hChiSqLC->Fill(chiSqLC[r2]);
           hChiSqRL->Fill(chiSqRL[r]);
           break;
@@ -130,34 +136,33 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
 
   if(bPolCompare) {
     //coordinates in TCanvas are in order :x,y of left top corner;x,y of right bottom corner
-    TCanvas *polAvgP1 = new TCanvas("polAvgP1","Avg Polarization Plane 1",10,10,1000,900);
+    TCanvas *polAvgP1 = new TCanvas("polAvgP1","Polarization trend P1",10,10,1000,900);
     TCanvas *cpolDiff = new TCanvas("cpolDiff","difference in evaluated Polarization",10,10,600,600);
     polAvgP1->Divide(1,2);
     polAvgP1->cd(1);
     TGraphErrors *grPolPlane1,*grRunletPolP1;
-    TLegend *legPol= new TLegend(0.101,0.85,0.40,0.9);;
+    TLegend *legPol= new TLegend(0.101,0.85,0.40,0.95);;
 
     //grPolPlane1 = new TGraphErrors(destDir+Form("/polList_%d_%d.txt",run1,run2),"%lg %lg %lg");
     grPolPlane1 = new TGraphErrors(runListLC.size(),runListLC.data(),polLC.data(),zero,polErLC.data());
     grRunletPolP1 = new TGraphErrors(runListRL.size(),runListRL.data(),polRL.data(),zero,polErRL.data());
 
     polAvgP1->GetPad(1)->SetGridx(1);
-    //polAvgP1->SetGridx(1);
     grPolPlane1->SetMarkerStyle(kOpenCircle);
     grPolPlane1->SetMarkerColor(kBlue);
     grPolPlane1->SetLineColor(kBlue);
     grPolPlane1->SetFillColor(0);
-    grPolPlane1->SetTitle();
-    grPolPlane1->GetXaxis()->SetTitleSize(0.05);
-    grPolPlane1->GetXaxis()->SetTitleOffset(0.84);
-    grPolPlane1->GetXaxis()->SetLabelSize(0.05);
+    grPolPlane1->SetTitle("Polarization trend");
+    //grPolPlane1->GetXaxis()->SetTitleSize(0.05);
+    //grPolPlane1->GetXaxis()->SetTitleOffset(0.84);
+    //grPolPlane1->GetXaxis()->SetLabelSize(0.05);
     grPolPlane1->GetXaxis()->SetTitle("Run number");
-    grPolPlane1->GetXaxis()->SetLimits(run1+5,run2+5); 
+    grPolPlane1->GetXaxis()->SetLimits(run1-5,run2+5); 
 
-    grPolPlane1->GetYaxis()->SetTitleSize(0.05);
-    grPolPlane1->GetYaxis()->SetTitleOffset(0.9);
-    grPolPlane1->GetYaxis()->CenterTitle();
-    grPolPlane1->GetYaxis()->SetLabelSize(0.06);
+    //grPolPlane1->GetYaxis()->SetTitleSize(0.05);
+    //grPolPlane1->GetYaxis()->SetTitleOffset(0.9);
+    //grPolPlane1->GetYaxis()->CenterTitle();
+    //grPolPlane1->GetYaxis()->SetLabelSize(0.06);
     grPolPlane1->GetYaxis()->SetTitle("polarization (%)");
     grPolPlane1->GetYaxis()->SetDecimals(1);
     grPolPlane1->Draw("AP");
@@ -168,7 +173,6 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     grRunletPolP1->Draw("P");
 
     legPol->AddEntry(grPolPlane1,"laser Cycle evaluation","lpe");
-    //legPol->AddEntry(grPolPlane1,"polarization","lpe");
     legPol->AddEntry(grRunletPolP1,"runlet based evaluation","lpe");
     legPol->SetFillColor(0);
     legPol->Draw();
@@ -182,12 +186,12 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     grPolDiff->Draw("AP");
     grPolDiff->Fit(linearFit,"EM");
     grPolDiff->SetTitle();
-    grPolDiff->GetXaxis()->SetLimits(run1+5,run2+5); 
-    grPolDiff->GetXaxis()->SetTitleSize(0.05);
+    grPolDiff->GetXaxis()->SetLimits(run1-5,run2+5); 
+    //grPolDiff->GetXaxis()->SetTitleSize(0.05);
     grPolDiff->SetMaximum(3.2); 
     grPolDiff->SetMinimum(-3.2);
 
-    grPolDiff->GetYaxis()->SetTitleSize(0.05);
+    //grPolDiff->GetYaxis()->SetTitleSize(0.05);
     grPolDiff->GetXaxis()->SetTitle("run number");
     grPolDiff->GetYaxis()->SetTitle("difference in polarization");
 
@@ -221,10 +225,13 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
   }
 
   if(bCedgeCompare) {
-    TCanvas *cComptEdge = new TCanvas("cComptEdge","Compton edge",10,10,1000,500);
-    TLegend *legCedge= new TLegend(0.101,0.75,0.43,0.9);;
+    TCanvas *cComptEdge = new TCanvas("cComptEdge","Compton edge",10,10,1000,900);
+    TCanvas *cCEDiff = new TCanvas("cCEDiff","difference in Compton edge",60,0,500,500);
+    TLegend *legCedge= new TLegend(0.101,0.85,0.43,0.95);;
     cout<<" runRange:"<<runRange<<", count1:"<<count1<<", count2:"<<count2<<endl;
-
+    cComptEdge->Divide(1,2);
+    cComptEdge->cd(1);
+  
     ofstream fCedgeRunlet,fCedgeLasCyc;
     fCedgeRunlet.open("edgeRL_run1_run2.txt");
     for (Int_t r=0; r<count2; r++) {
@@ -240,7 +247,7 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     fCedgeLasCyc.close();
 
     TGraphErrors *grLasCycCedge = new TGraphErrors("edgeLC_run1_run2.txt","%lg %lg %lg");
-    cComptEdge->SetGridx(1);
+    cComptEdge->GetPad(1)->SetGridx(1);
     grLasCycCedge->SetTitle();
     grLasCycCedge->SetMarkerStyle(kOpenSquare);
     grLasCycCedge->SetMarkerColor(kBlue);
@@ -257,7 +264,6 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     grRunletCedge->SetMarkerStyle(kFullSquare);//(kFullSquare);
     grRunletCedge->SetMarkerColor(kRed);
     grRunletCedge->SetMarkerSize(0.7);
-
     TMultiGraph *grCedge = new TMultiGraph();
     grCedge->Add(grRunletCedge);
     grCedge->Add(grLasCycCedge);
@@ -265,14 +271,35 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     grCedge->SetTitle("Compton edge found by signal over noise comparition");
     grCedge->GetXaxis()->SetTitle("Run number");
     grCedge->GetYaxis()->SetTitle("Compton edge (strip number)");
-    grCedge->GetXaxis()->SetLimits(run1+5,run2+5); 
+    grCedge->GetXaxis()->SetLimits(run1-5,run2+5); 
 
     legCedge->AddEntry(grLasCycCedge,"laser Cycle evaluation","p");
     legCedge->AddEntry(grRunletCedge,"runlet based evaluation","p");
     legCedge->SetFillColor(0);
     legCedge->Draw();
 
-    cComptEdge->SaveAs(Form("/w/hallc/qweak/narayan/comptEdge_%d_%d.png",run1,run2));
+    cComptEdge->cd(2);
+    cComptEdge->GetPad(2)->SetGridx(1);
+    TGraphErrors *grCEDiff = new TGraphErrors((Int_t)CEDiff.size(),commonRuns.data(),CEDiff.data(),zero_1.data(),CEDiffEr.data());
+    grCEDiff->SetMarkerStyle(kOpenCircle);
+    grCEDiff->SetMarkerColor(kBlack);
+    grCEDiff->Draw("AP");
+    grCEDiff->Fit(linearFit,"EM");
+    grCEDiff->SetTitle();
+    grCEDiff->GetXaxis()->SetLimits(run1-5,run2+5); 
+    //grCEDiff->GetXaxis()->SetTitleSize(0.05);
+    grCEDiff->SetMaximum(3.2); 
+    grCEDiff->SetMinimum(-3.2);
+
+    //grCEDiff->GetYaxis()->SetTitleSize(0.05);
+    grCEDiff->GetXaxis()->SetTitle("run number");
+    grCEDiff->GetYaxis()->SetTitle("CE_lasCyc - CE_runlet");
+
+    cCEDiff->cd();
+    hCEDiff->Draw("H");
+    //cComptEdge->SaveAs(Form("/w/hallc/qweak/narayan/comptEdge_%d_%d.png",run1,run2));
+    cComptEdge->SaveAs(destDir+Form("/CE_%d_%d.png",run1,run2));
+    cCEDiff->SaveAs(destDir+Form("/CEDiff_%d_%d.png",run1,run2));    
   }
 
   if(bChiSqrCompare) {
@@ -288,7 +315,7 @@ Int_t polCERunRange(Int_t run1=23220, Int_t run2=23530)
     grChiSqr->GetYaxis()->SetTitle("chiSqr / ndf");
     grChiSqr->SetMarkerColor(kBlue);
     grChiSqr->SetLineColor(kBlue);
-    grChiSqr->GetXaxis()->SetLimits(run1+5,run2+5); 
+    grChiSqr->GetXaxis()->SetLimits(run1-5,run2+5); 
     grChiSqr->Draw("AP");
     linearFit->SetLineColor(kBlue);
     grChiSqr->Fit(linearFit,"ME");

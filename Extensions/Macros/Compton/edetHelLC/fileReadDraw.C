@@ -6,10 +6,10 @@
 Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac") 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t kBkgdAsym=0;//plots the asymmetry from Laser off events
+  Bool_t kBkgdAsym=1;//plots the asymmetry from Laser off events
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=0;//now the asymFit.C plots this already
-  Bool_t compareAsym=1;//compares asymmetries from dataType and dataType2(defined locally)
+  Bool_t compareAsym=0;//compares asymmetries from dataType and dataType2(defined locally)
   Bool_t asymComponents=0;//plots the numerator of asymmetry
   Bool_t scalerPlot=0;
   Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
@@ -80,11 +80,11 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
       grB1L0[p]->SetMarkerSize(1);
       grB1L0[p]->SetMarkerColor(kBlue);
       grB1L0[p]->SetFillColor(kBlue);
-      grB1L0[p]->SetTitle("laser off asymmetry");
-      grB1L0[p]->SetTitle(Form("bkgdAsym for run %d",runnum));
+      //grB1L0[p]->SetTitle("laser off asymmetry");
+      //grB1L0[p]->SetTitle(Form("bkgdAsym for run %d",runnum));
       grB1L0[p]->Draw("AP");//for some reason!:Tmultigraph wants the axis settings to come after having drawn the graph
-      grB1L0[p]->GetXaxis()->SetTitle("strip number");
-      grB1L0[p]->GetYaxis()->SetTitle("background asymmetry");
+      //grB1L0[p]->GetXaxis()->SetTitle("strip number");
+      //grB1L0[p]->GetYaxis()->SetTitle("background asymmetry");
       grB1L0[p]->SetMaximum(0.048); //this limit is the same as the residuals
       grB1L0[p]->SetMinimum(-0.048);
 

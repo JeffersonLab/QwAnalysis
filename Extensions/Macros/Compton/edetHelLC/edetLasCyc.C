@@ -5,7 +5,7 @@
 #include "expAsym.C"
 #include "fileReadDraw.C"
 
-void edetLasCyc(Int_t runnum, TString dataType="Ac")
+void edetLasCyc(Int_t runnum=23413, TString dataType="Ac")
 {
   cout<<"starting into edetLasCyc.C**************"<<endl;
   time_t tStart = time(0), tEnd; 
