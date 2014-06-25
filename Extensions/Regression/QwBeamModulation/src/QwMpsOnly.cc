@@ -42,6 +42,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fCurrentCut = 40; 
   fPreviousRampValue = -1.;
   fMaxRampNonLinearity = 3.;
+  fTransverseData = false;
   fFullCycle = false;
   fXinit  = false; 
   fYinit  = false; 
@@ -68,6 +69,20 @@ QwMpsOnly::~QwMpsOnly()
    delete fChain->GetCurrentFile();
 }
 
+int QwMpsOnly::AddFriendTree()
+{
+  TFriendElement *f;
+  f = fChain->AddFriend("mps_slug", Form("%s/%smps_only_friend_%i.root",
+					 gSystem->Getenv("MPS_ONLY_ROOTFILES"),
+					 (fTransverseData ? "transverse/" : ""),
+					 run_number));
+  fChain->SetBranchStatus("ramp_filled",1);
+  if(fChain->GetBranchStatus("ramp_filled")==0){
+    std::cout<<"Warning. Failed to add friend tree.\n";
+    return 1;
+  }else
+    return 0;
+}
 void QwMpsOnly::BuildDetectorData()
 {
   for(Int_t i = 0; i < fNDetector; i++)
@@ -150,8 +165,9 @@ void QwMpsOnly::BuildMonitorSlopeVector()
 void QwMpsOnly::BuildNewEBPM(){
   
   //create a new friendable tree
-  TFile *newfile = new TFile(Form("%s/mps_only_newEbpm_%i.root",
+  TFile *newfile = new TFile(Form("%s/%smps_only_newEbpm_%i.root",
 				  gSystem->Getenv("MPS_ONLY_ROOTFILES"),
+				  (fTransverseData ? "transverse/" : ""),
 				  run_number),"recreate");
   TTree *newTree = new TTree("mps_slug", "mps_slug"); 
 
@@ -184,8 +200,15 @@ void QwMpsOnly::BuildNewEBPM(){
 
 void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
 {
-  Int_t minFullBins = 7;
-  Int_t minEntriesPerBin = 5;
+  //  gStyle->SetFitFormat("8.7g");
+
+  //  DetectorSlope[modType].resize(fNEvents);
+  if(!fPhaseConfig){
+    Double_t temp[5]={0.,0.,0.,0.,0.};//{0.26, 0.26, 0.0, 1.08, 1.08};         
+    SetPhaseValues(temp); 
+  }
+  Int_t minFullBins = 10;
+  Int_t minEntriesPerBin = 10;
   Int_t minEntries = 100;
   Double_t sigma_cc = 0;
   Double_t sigma_dc = 0;
@@ -200,7 +223,6 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
   Double_t slopeCos = 0, slopeCosErr = 0;
  
   fCycleNum[modType]++;
-
   if(fNEvents < minEntries){
     std::cout<< red << "Number of good events too small in microcycle."<<
       " Exiting."<< normal << std::endl;
@@ -231,7 +253,6 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
   Double_t *x, *y;
   x = new Double_t[fNEvents];			
   y = new Double_t[fNEvents];				
-
   c_mean=0;
   c_mean2=0;
   for(Int_t evNum=0; evNum<fNEvents; evNum++) { 
@@ -255,6 +276,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
   ModName[2] = "E";
   ModName[3] = "XP";
   ModName[4] = "YP"; 
+
      
   //////////////
   // Monitors //
@@ -309,16 +331,17 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
     }
     slope = sigma_dc/sigma_cc;
     slope2 = sigma_dc2/sigma_cc2;
-    
     // Perform fit. 
-    //    printf("min=%f   max=%f\n",min,max);
+    //printf("min=%f   max=%f\n",min,max);
     if(profile){
       monpr[mon] = TProfile(Form("monpr%i",mon),Form("monpr%i",mon),
 			    100, 0.0,360.0, min, max);
+      monpr[mon].Approximate(0);
       for(Int_t evNum=0; evNum<fNEvents; evNum++) {
 	monpr[mon].Fill(x[evNum],y[evNum],1);
       }
       fctn->SetParameters(d_mean, slope, slope2);
+      //printf("f->SetParameters(%14.8e, %14.8e, %14.8e)\n",d_mean,slope,slope2);
       std::vector<Double_t> vx, vxe, vy, vye;
       for(int ibin=1; ibin<monpr[mon].GetNbinsX(); ++ibin){
 	if(monpr[mon].GetBinEntries(ibin)>=minEntriesPerBin){
@@ -358,11 +381,19 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
 
     if(makePlots){
       cM->cd(mon+1);
-      mongrerr[mon].SetMarkerColor(kBlue);
-      mongrerr[mon].SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
-      mongrerr[mon].GetXaxis()->SetTitle("ramp");
-      mongrerr[mon].GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
-      mongrerr[mon].Draw("AP");
+      if(profile){
+	mongrerr[mon].SetMarkerColor(kBlue);
+	mongrerr[mon].SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
+	mongrerr[mon].GetXaxis()->SetTitle("ramp");
+	mongrerr[mon].GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
+	mongrerr[mon].Draw("AP");
+      }else{
+	mongr[mon].SetMarkerColor(kBlue);
+	mongr[mon].SetTitle(Form("%s vs. ramp", MonitorList[mon].Data()));
+	mongr[mon].GetXaxis()->SetTitle("ramp");
+	mongr[mon].GetXaxis()->SetTitle(Form("%s",MonitorList[mon].Data()));
+	mongr[mon].Draw("AP");
+      }
       cM->ForceUpdate();
     }
     
@@ -441,6 +472,8 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
       if(y[evNum]<min) min = y[evNum];    
     }
     d_mean /= (Double_t)fNEvents;
+//     std::cout<<fFirstEntry<<" "<<fLastEntry<<"  "<<fNEvents
+// 	     <<"  "<<d_mean<<std::endl;
 
     for(Int_t evNum=0; evNum<fNEvents; evNum++) {
       Double_t val1 = TMath::Sin(kDegToRad*x[evNum]) - c_mean;
@@ -455,17 +488,19 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
     slope = sigma_dc/sigma_cc;
     slope2 = sigma_dc2/sigma_cc2;
     
-   //    printf("%s min=%f   max=%f\n",DetectorList[det].Data(),min,max);
+    //printf("%s min=%f   max=%f\n",DetectorList[det].Data(),min,max);
 
     // Perform fit. 
     detpr[det] = TProfile(Form("detpr%i", det), Form("detpr%i", det),
 			  100, 0.0,360.0,min, max);
+    detpr[det].Approximate(0);
     if(max>min){
       if(profile){
 	for(Int_t evNum=0; evNum<fNEvents; evNum++) {
 	  detpr[det].Fill(x[evNum],y[evNum] ,1);
 	}
 	fctn->SetParameters(d_mean, slope, slope2);
+	//printf("f->SetParameters(%14.8e,%14.8e,%14.8e)\n",d_mean,slope,slope2);
 
 	std::vector<Double_t> vx, vxe, vy, vye;
 	for(int ibin=1; ibin<detpr[det].GetNbinsX(); ++ibin){
@@ -506,6 +541,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
 	}
 	detgr[det] = TGraph(fNEvents, x, y);
 	fctn->SetParameters(d_mean, slope, slope2);
+	fctn->SetParameters(0,0,0);
 	detgr[det].Fit("fctn", "qr");
       }
     }else{
@@ -515,11 +551,19 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
     }
     if(makePlots){
       cD->cd(det+1);
-      detgrerr[det].SetMarkerColor(kBlue);
-      detgrerr[det].SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
-      detgrerr[det].GetXaxis()->SetTitle("ramp");
-      detgrerr[det].GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
-      detgrerr[det].Draw("AP");
+      if(profile){
+	detgrerr[det].SetMarkerColor(kBlue);
+	detgrerr[det].SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
+	detgrerr[det].GetXaxis()->SetTitle("ramp");
+	detgrerr[det].GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
+	detgrerr[det].Draw("AP");
+      }else{
+	detgr[det].SetMarkerColor(kBlue);
+	detgr[det].SetTitle(Form("%s vs. ramp", DetectorList[det].Data()));
+	detgr[det].GetXaxis()->SetTitle("ramp");
+	detgr[det].GetXaxis()->SetTitle(Form("%s", DetectorList[det].Data()));
+	detgr[det].Draw("AP");
+      }
       cD->ForceUpdate();
     }
     
@@ -538,8 +582,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots, Bool_t profile)
     slopeCosErr = TMath::Abs(cosAmp/mean) * 
       TMath::Sqrt(TMath::Power(cosAmpError/cosAmp,2) +
 		  TMath::Power(meanError/mean,2));
-//     slopeSinErr = sinAmpError; 
-//     slopeCosErr = cosAmpError; 
+
     DetectorSlope[modType][det].push_back(slopeSin);
     DetectorSlopeError[modType][det].push_back(slopeSinErr);
     DetectorSlope[modType+5][det].push_back(slopeCos);
@@ -850,12 +893,12 @@ void QwMpsOnly::Clean()
 void QwMpsOnly::CleanFolders()
 {
   gSystem->Exec(Form("rm -rf %s/regression/regression_%i%s.%s.dat", 
-		     gSystem->Getenv("BMOD_OUT"), run_number, 
+		     output.Data(), run_number, 
 		     (fChiSquareMinimization ? "_ChiSqMin" : ""),
 		     fSetStem.Data()));
 				   
   gSystem->Exec(Form("rm -rf %s/slopes/slopes_%i%s.%s.dat",
-		     gSystem->Getenv("BMOD_OUT"), run_number, 
+		     output.Data(), run_number, 
 		     (fChiSquareMinimization ? "_ChiSqMin" : ""),
 		     fSetStem.Data()));
 
@@ -1225,6 +1268,10 @@ Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t sluglet)
   else
     file_directory = gSystem->Getenv("MPS_ONLY_ROOTFILES");
 
+  if(fTransverseData){
+    file_directory += "/transverse";
+  }
+
   if(fFileSegmentInclude){
     c_status = true;
 
@@ -1270,7 +1317,7 @@ Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t sluglet)
       }
     }
   } 
-    return c_status;
+  return c_status;
 
 }
 
@@ -1318,18 +1365,21 @@ Double_t QwMpsOnly::FindChiSquareMinRMatrixError(Int_t row, Int_t col){
 
 Double_t QwMpsOnly::FindDegPerMPS()
 {
+  SetupMpsBranchAddresses(0,0);
   Int_t ent = fChain->GetEntries(), newCycle = 0;
   Double_t mean = 0, n = 0, ramp_prev = -9999;
   printf("Finding # of degrees per MPS. Searching %i entries.\n", ent);
+
   for(int i = 0;i<ent;i++){
     fChain->GetEntry(i);
     Double_t nonLin = TMath::Abs((ramp_block3+ramp_block0) - 
 				 (ramp_block2+ramp_block1));
+    // std::cout<<nonLin<<" "<<fMaxRampNonLinearity<<"  "<<ramp_hw_sum<<std::endl;
     if(nonLin>fMaxRampNonLinearity||ramp_hw_sum<ramp_prev)newCycle = 1;
-    if(ErrorFlag==67207296&&qwk_charge_hw_sum>40&&ramp_hw_sum>100){
-      if(ramp_hw_sum<310&&!newCycle){
+    if(ErrorFlag==67207296 && qwk_charge_hw_sum>40 && ramp_hw_sum>100){
+      if(ramp_hw_sum<310 && !newCycle){
 	mean += ramp_hw_sum - ramp_prev;
-	//	std::cout<<ramp_hw_sum - ramp_prev<<std::endl;
+	//std::cout<<ramp_hw_sum - ramp_prev<<std::endl;
 	n++;
       }
       newCycle = 0;
@@ -1381,8 +1431,9 @@ Int_t QwMpsOnly::FindRampExcludedRegions()
 
 Int_t QwMpsOnly::FindRampPeriodAndOffset()
 {
+  SetupMpsBranchAddresses(0, 0);
   TCut cut;
-  Double_t parLim[4] = {0,175,350,370};
+  Double_t parLim[4] = {-90,90,350,370};
   Double_t par[4] = {-500,1000,4,360};
   //define function generator signals used
   //right now fge missing from bmod_only files, but may add later
@@ -1391,7 +1442,7 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
   fg[2] = "fgx2";
   fg[3] = "fgy2";
 
-  Double_t bm_pat_num[8] = {0.,1.,3.,4.,11.,12.,14.,15.};
+  Int_t bm_pat_num[8] = {0, 1, 3, 4, 11, 12, 14, 15};
   Double_t temp_offset[4], temp_period[4];
   Double_t temp_offset_err[4], temp_period_err[4];
 
@@ -1404,10 +1455,12 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
   Double_t denomPeriod = 0, denomOffset = 0;
   Bool_t used[4] = {0,0,0,0};
   Int_t numGood = 0;
+  //  cut.Print();
   for(int i=0;i<4;i++){
-     fChain->Draw(Form("%s:ramp>>ht(1000,0,400,1000)",fg[i]),cut && 
-		 Form("(bm_pattern_number==%f || bm_pattern_number==%f)",
-		      bm_pat_num[i],bm_pat_num[4+i]),"goff");
+    fChain->Draw(Form("%s:ramp>>ht(1000,0,400,1000)",fg[i]),cut && 
+	       Form("(bm_pattern_number==%i || bm_pattern_number==%i)",
+		    bm_pat_num[i],bm_pat_num[4+i]),"goff");
+
     TH2D *ht = (TH2D*)gDirectory->Get("ht");
     TF1 *f = new TF1("f", "[0]+[1]*sin((x+[2])*2*TMath::Pi()/[3])",0,360);
     f->SetParameters(par);
@@ -1419,7 +1472,7 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
     //if hitting parameter limits try reversing sign of amplitude in initial guess
 //     if(f->GetParameter(2)==parLim[0] || f->GetParameter(2)==parLim[1] ||
 //        f->GetParameter(3)==parLim[2] || f->GetParameter(3)==parLim[3] || 
-    if(fitResult != 0 || TMath::Abs(f->GetParameter(2))>30){
+    if(fitResult != 0 || TMath::Abs(f->GetParameter(2))>90){
       f->SetParameters(par);
       f->SetParameter(1, f->GetParameter(1) * (-1.0));
       fitResult = ht->Fit(f);
@@ -1429,7 +1482,7 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
     temp_period[i] = f->GetParameter(3);
     temp_offset_err[i] = f->GetParError(2);
     temp_period_err[i] = f->GetParError(3);
-    if(fitResult == 0 && f->GetChisquare()/f->GetNDF()<50){
+    if(fitResult == 0 && f->GetChisquare()/f->GetNDF()<150){
       numGood++;
       used[i] = 1;
       numerPeriod += temp_period[i] * TMath::Power(temp_period_err[i], -2);
@@ -1441,8 +1494,8 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
       rampOffsetFitRslt[i] = temp_offset[i];
       rampOffsetFitRsltErr[i] = temp_offset_err[i];
     }else{
-      std::cout<<"Fit to "<<fg[i]<<" vs ramp failed. Excluding from calculation "
-	"of ramp period and offset.\n";
+      std::cout<<"Fit to "<<fg[i]<<" vs ramp failed or has bad Chi-Square/NDF."
+	" Excluding from calculation of ramp period and offset.\n";
       rampPeriodFitRslt[i] = -999999;
       rampPeriodFitRsltErr[i] = -999999;
       rampOffsetFitRslt[i] = -999999;
@@ -1500,34 +1553,23 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
 Int_t QwMpsOnly::FindRampRange()
 { //two parameters are need, the ramp length and maximum,
   // are needed to map the ramp_return to the phase gap
-  Int_t n = 0, max = 10000;
-  Double_t *rampold, *rampnew, rampprev = 0;
-  rampold = new Double_t[max];
-  rampnew = new Double_t[max];
-  fRampMax = fChain->GetMaximum("ramp") - 1;
-  if(!(fRampMax>308&&fRampMax<350)){
-    std::cout<<"fRampMax = "<<fRampMax<<" not within specified bounds."<<
-      " Exiting program.\n";
-    return 1;
-  }
 
-  for(Int_t i=0;i<fChain->GetEntries()&&n<max;i++){
-    fChain->GetEntry(i);
-    if(ramp_hw_sum<fRampMax && ramp_hw_sum>fRampMax-fDegPerMPS/2.0 &&
-       TMath::Abs(ramp_block3+ramp_block0-ramp_block1-ramp_block2)
-       >fMaxRampNonLinearity){
-      rampold[n] = ramp_hw_sum;
-      rampnew[n] = rampprev + fDegPerMPS;
-      //      std::cout<<rampold[n]<<"\t"<<rampnew[n]<<"\n";
-      n++;
-    }
-    rampprev = ramp_hw_sum;
+  SetupMpsBranchAddresses(0,0);
+  fChain->Draw("ramp>>hRamp(100)");
+  TH1D *hRamp = (TH1D*)gDirectory->Get("hRamp");
+  int lBin = hRamp->FindFirstBinAbove(0.0005*hRamp->GetEntries());
+  int hBin = hRamp->FindLastBinAbove(0.0005*hRamp->GetEntries());
+  double width = hRamp->GetBinWidth(1);
+  double avg_entries = 0, n = 0;
+  for(int i = lBin+3;i<hBin-3;++i){
+    avg_entries += hRamp->GetBinContent(i);
+    ++n;
   }
-  TGraph gr = TGraph(n,rampold,rampnew);
-  TF1 *myfit = new TF1("myfit","pol1");
-  gr.Fit(myfit);
-  fRampLength = fRampPeriod / (1 - myfit->GetParameter(1));
-  fRampMax = myfit->GetParameter(0) * fRampLength / fRampPeriod;
+  avg_entries /= n;
+  double min = hRamp->GetBinLowEdge(lBin+1)-hRamp->GetBinContent(lBin)/avg_entries*width;
+  fRampMax = hRamp->GetBinLowEdge(hBin)+hRamp->GetBinContent(hBin)/avg_entries*width;
+  fRampLength = fRampMax - min;
+
   std::cout<<"RampLength: "<<fRampLength<<".  RampMax:"<<fRampMax<<std::endl;
   return 0; 
 }
@@ -1551,7 +1593,7 @@ Int_t QwMpsOnly::GetEntry(Long64_t entry)
 void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
   Int_t i = 0;
   TString flag;
-  while(i<n){
+  while(i < n){
     flag = options[i];
 
     if(flag.CompareTo("--run", TString::kExact) == 0){
@@ -1564,14 +1606,24 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 		<< run_number
 		<< normal << std::endl;
     }    
-
+    
     if(flag.CompareTo("--phase-config", TString::kExact) == 0){
       //      std::string option(options[i+1]);
       //      flag.Clear();
       fPhaseConfig = true;
       ReadPhaseConfig(options[i + 1]);
-      std::cout << other << "Setting external phase values:\t" 
-		<< options[i + 1] << normal << std::endl;
+      if(fPhaseConfig)
+	std::cout << other << "Setting phase from file "<<options[i + 1]<<"."<<
+	  normal<<std::endl;
+    }    
+
+
+    if(flag.CompareTo("--transverse-data", TString::kExact) == 0){
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
+      fTransverseData = atoi(options[i + 1]);
+      if(fTransverseData)
+	std::cout <<"Processing transversely polarized data.\n"<<std::endl;
     }    
 
     if(flag.CompareTo("--charge-sens", TString::kExact) == 0){
@@ -1622,6 +1674,22 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 		<< fSetStem.Data() << normal << std::endl;
     }    
 
+    if(flag.CompareTo("--file-stem", TString::kExact) == 0){
+      //      std::string option(options[i+1]);
+
+      //      flag.Clear();
+      fFileStem = options[i + 1];
+
+      std::cout << other << "Setting file stem to:\t" 
+		<< fFileStem.Data() << normal << std::endl;
+    }    
+
+    if(flag.CompareTo("--set-output", TString::kExact) == 0){
+      output = options[i + 1];
+      std::cout << other << "Setting output directory to:\t" 
+		<< output.Data() << normal << std::endl;
+    }    
+
     if(flag.CompareTo("--ramp-pedestal", TString::kExact) == 0){
       //      std::string option(options[i+1]);
       //      flag.Clear();
@@ -1632,7 +1700,7 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 		<< normal << std::endl;
     }    
 
-    if(flag.CompareTo("--chi-square-min", TString::kExact) == 0){
+e    if(flag.CompareTo("--chi-square-min", TString::kExact) == 0){
       //      std::string option(options[i+1]);
       //      flag.Clear();
       fChiSquareMinimization = (atoi(options[i + 1])==0 ? 0 : 1);
@@ -1689,10 +1757,11 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
     }  
   
     // Flag to turn ON 2D fit. (Default = OFF)
-    if(flag.CompareTo("--2dfit", TString::kExact) == 0){
+    if(flag.CompareTo("--2Dfit", TString::kExact) == 0){
       //      flag.Clear();
-      f2DFit = true;
-      std::cout << "2D Fit Selected" << std::endl;
+      f2DFit = atoi(options[i + 1]);
+      std::cout <<(f2DFit ? "2D Fit Selected" : "Linearized 1D Fit Selected")
+		<< std::endl;
     } 
 
     if(flag.CompareTo("--help", TString::kExact) == 0){
@@ -1708,6 +1777,11 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
     flag.Clear();       
     i++;
   }
+}
+
+TString  QwMpsOnly::GetOutput()
+{
+  return output;
 }
 
 Bool_t QwMpsOnly::IfExists(const char *file)
@@ -1728,7 +1802,7 @@ void QwMpsOnly::Init(TChain *tree)
    Notify();
 }
 
-void QwMpsOnly::LoadRootFile(TString filename, TChain *tree, Bool_t slug)
+Bool_t QwMpsOnly::LoadRootFile(TString filename, TChain *tree, Bool_t slug)
 {
   Bool_t found = FileSearch(filename, tree, slug);
   
@@ -1736,8 +1810,9 @@ void QwMpsOnly::LoadRootFile(TString filename, TChain *tree, Bool_t slug)
       std::cerr << "Unable to locate requested file :: "
 		<< filename
 		<< std::endl;
-      exit(1);
-    }
+      return 0;
+    }else
+      return 1;
 }
 
 Long64_t QwMpsOnly::LoadTree(Long64_t entry)
@@ -1754,32 +1829,84 @@ Long64_t QwMpsOnly::LoadTree(Long64_t entry)
    return centry;
 }
 
-Int_t QwMpsOnly::MakeRampFilled(Bool_t verbose)
+Int_t QwMpsOnly::MakeFriendTree(Bool_t verbose)
 { //Take ramp values from return and map them to meaningful ramp values.
   //This is preformed using the following equation for the nonlinear points:
   //ramp_filled = (ramp_max-ramp)/ramp_length*(ramp_period-ramp_length)+ramp_max
-
-
+  //If using redefined monitors create new monitor variables as linear combos
+  //of the target variables.
   std::cout<<"::Making \"ramp_filled\" variable::\n";
   FindDegPerMPS();
-  //create new friendable tree with new ramp
-  TFile *newfile = new TFile(Form("%s/mps_only_friend_%i.root",
-				  gSystem->Getenv("MPS_ONLY_ROOTFILES"),
-				  run_number),"recreate");
-  TTree *newTree = new TTree("mps_slug", "mps_slug"); 
-
   if(FindRampPeriodAndOffset())
     return 1;
   if(FindRampRange())
     return 1;
 
+  //create new friendable tree with new ramp
+  TFile *newfile = new TFile(Form("%s/%smps_only_friend_%i.root",
+				  gSystem->Getenv("MPS_ONLY_ROOTFILES"),
+				  (fTransverseData ? "transverse/" : ""),
+				  run_number),"recreate");
+  TTree *newTree = new TTree("mps_slug", "mps_slug");
+ 
   Bool_t isLinear;
-  Double_t ramp_f, lin;
+  Double_t ramp_f, lin, x, y, xp, yp, x1, y1, x2, y2;
+  Double_t x1_dec, y1_dec, x2_dec, y2_dec;
+  Double_t scale_xp, scale_yp;
 
   b_ramp_filled = newTree->Branch("ramp_filled", &ramp_f, "ramp_filled/D");
+  ifstream scale_file(Form("%s/config/new_monitors.config",
+			   gSystem->Getenv("BMOD_SRC")));
+  if(!(scale_file.is_open() && scale_file.good())){
+    std::cout<<"New monitor scale factor file not found. Exiting.\n";
+    return -1;
+  }
+  std::string temp_line;
+  while(scale_file.peek()=='!')
+    getline(scale_file, temp_line);
+  char temp[255], arun1[255], arun2[255], brun1[255], brun2[255];
+  scale_file>>temp>>arun1>>arun2;
+  scale_file>>temp>>brun1>>brun2;
+  scale_xp = (run_number < 13000 ? atof(arun1) : atof(arun2));
+  scale_yp = (run_number < 13000 ? atof(brun1) : atof(brun2));
   
+  b_mx1 = newTree->Branch("MX1", &x1, "MX1/D");
+  b_mx2 = newTree->Branch("MX2", &x2, "MX2/D");
+  b_my1 = newTree->Branch("MY1", &y1, "MY1/D");
+  b_my2 = newTree->Branch("MY2", &y2, "MY2/D");
+  b_mx1_dec = newTree->Branch("MX1_Device_Error_Code", &x1_dec, 
+			      "MX1_Device_Error_Code/D");
+  b_mx2_dec = newTree->Branch("MX2_Device_Error_Code", &x2_dec, 
+			      "MX2_Device_Error_Code/D");
+  b_my1_dec = newTree->Branch("MY1_Device_Error_Code", &y1_dec, 
+			      "MY1_Device_Error_Code/D");
+  b_my2_dec = newTree->Branch("MY2_Device_Error_Code", &y2_dec, 
+			      "MY2_Device_Error_Code/D");
+
+  fChain->SetBranchStatus("qwk_targetX", 1);
+  fChain->SetBranchStatus("qwk_targetXSlope", 1);
+  fChain->SetBranchStatus("qwk_targetY", 1);
+  fChain->SetBranchStatus("qwk_targetYSlope", 1);
+  fChain->SetBranchStatus("qwk_targetX_Device_Error_Code", 1);
+  fChain->SetBranchStatus("qwk_targetXSlope_Device_Error_Code", 1);
+  fChain->SetBranchStatus("qwk_targetY_Device_Error_Code", 1);
+  fChain->SetBranchStatus("qwk_targetYSlope_Device_Error_Code", 1);
+  fChain->SetBranchAddress("qwk_targetX", &x);
+  fChain->SetBranchAddress("qwk_targetXSlope", &xp);
+  fChain->SetBranchAddress("qwk_targetY", &y);
+  fChain->SetBranchAddress("qwk_targetYSlope", &yp);
+  fChain->SetBranchAddress("qwk_targetX_Device_Error_Code", &x1_dec);
+  fChain->SetBranchAddress("qwk_targetXSlope_Device_Error_Code", &x2_dec);
+  fChain->SetBranchAddress("qwk_targetY_Device_Error_Code", &y1_dec);
+  fChain->SetBranchAddress("qwk_targetYSlope_Device_Error_Code", &y2_dec);
+
   for(Int_t i=0;i<fChain->GetEntries();i++){
     fChain->GetEntry(i);
+    x1 = x + (scale_xp * xp);
+    x2 = x - (scale_xp * xp);
+    y1 = y + (scale_yp * yp);
+    y2 = y - (scale_yp * yp);
+    
     lin =  TMath::Abs(ramp_block0+ramp_block3-ramp_block2-ramp_block1);
     isLinear = lin < fMaxRampNonLinearity && ramp_block3>ramp_block2 && 
                ramp_block2>ramp_block1 && ramp_block1>ramp_block0;
@@ -1793,16 +1920,16 @@ Int_t QwMpsOnly::MakeRampFilled(Bool_t verbose)
     ramp_f = ramp_f - ((Int_t)(ramp_f/360.0))*360.0;
 
     newTree->Fill();
-    if(i%20000==0)std::cout<<"Processing entry "<<i<<".\n";
+    if(i%100000==0)std::cout<<"Processing entry "<<i<<".\n";
   }
   if(verbose)
     newTree->Print();
   newTree->Write("",TObject::kOverwrite);
   //  newTree->AutoSave();
-  fChain->AddFriend("mps_slug", newfile);
-  fChain->SetBranchAddress("ramp_filled", &ramp_filled);
-  //  newfile->Close();
+  newfile->Close();
   //  delete newfile;
+  //  delete newTree;
+  fChain->ResetBranchAddresses();
   return 0;
 }
 
@@ -1961,19 +2088,19 @@ Bool_t QwMpsOnly::Notify()
 
 Int_t QwMpsOnly::PilferData()
 {
+  SetupMpsBranchAddresses(1,0);
   Int_t fEvCounter = 0, nonModEvts = 0;
-  Int_t error[kNMaxCoil], good[kNMaxCoil];
-
+  Int_t errors[kNMaxCoil], good[kNMaxCoil];
   for(Int_t i=0;i<kNMaxCoil;i++){
-    error[i] = 0;
+    errors[i] = 0;
     good[i] = 0;
   }
+
   fNEvents = 0;
   if (fChain == 0) return -1;
   Long64_t nentries = fChain->GetEntries();
 
   std::cout << "Number of entries: " << nentries << std::endl;
-
   for(Int_t i = 0; i < nentries; i++){
     fChain->GetEntry(i);
     Int_t pat = ConvertPatternNumber((Int_t)bm_pattern_number);
@@ -1981,7 +2108,7 @@ Int_t QwMpsOnly::PilferData()
       if(fXinit==0 && fYinit==0 && fEinit==0 && fXPinit==0 && fYPinit==0){
 	fFirstEntry = i;
       }
-      i =  ProcessMicroCycle(i, &fEvCounter, &error[0], &good[0]);
+      i =  ProcessMicroCycle(i, &fEvCounter, errors, good);
     }else nonModEvts++;
 
     //Invert matrix each full cycle
@@ -2002,7 +2129,7 @@ Int_t QwMpsOnly::PilferData()
   std::cout << "Run "<<run_number<<std::endl;
   Int_t goodEv = 0;
   for(Int_t i = 0; i < kNMaxCoil; i++){
-    std::cout<<" bm_pattern# "<<i<<":  Total Events Cut (" << error[i] <<")"
+    std::cout<<" bm_pattern# "<<i<<":  Total Events Cut (" << errors[i] <<")"
 	      <<"   Good Events ("<<good[i]<<")\n";
     goodEv += good[i];
   }
@@ -2016,11 +2143,11 @@ Int_t QwMpsOnly::PilferData()
 void QwMpsOnly::PrintAverageSlopes()
 {
   FILE *mon_coil_coeff = fopen(Form("%s/slopes/mon_coil_coeff_%i%s.%s.dat",
-				    gSystem->Getenv("BMOD_OUT"),run_number,
+				    output.Data(), run_number,
 				    (fChiSquareMinimization ? "_ChiSqMin" : ""),
 				    fSetStem.Data()),"w");
   FILE *det_coil_coeff = fopen(Form("%s/slopes/det_coil_coeff_%i%s.%s.dat",
-				 gSystem->Getenv("BMOD_OUT"),run_number,
+				    output.Data(), run_number,
 				    (fChiSquareMinimization ? "_ChiSqMin" : ""),
 				    fSetStem.Data()),"w");
   printf("Monitor Slopes   |       Xmod   |       XPmod  |       Emod   |"
@@ -2120,6 +2247,11 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
       }
 
     }
+    if(inCutRegion&&!fCutNonlinearRegions){
+      std::cout<<"Error! Cutting regions of ramp that are supposed"
+	       <<" to be included!\n";
+      return -1;
+    }
     if(ErrorCodeCheck("mps_tree")!=0 || inCutRegion){
       ++nCut;
       if(ErrorCodeCheck("mps_tree")!=0)++nErr;
@@ -2143,12 +2275,13 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
     if(i==nEnt)break;
 
     fChain->GetEntry(i);
+    //    std::cout<<i<<" bm_pattern_number:"<<bm_pattern_number<<std::endl;
     pattern = ConvertPatternNumber((Int_t)bm_pattern_number);
-    if(i%1000==0)std::cout<<i<<"  pattern "<<pattern<<std::endl;
+    if(i%10000==0)std::cout<<i<<"  pattern "<<pattern<<std::endl;
   }
   i--;
-  err[modType] += nErr;
   std::cout<<fNEvents<< " good "<<modType<<"-type modulation events found. ";
+  err[modType] += nErr;
   std::cout<<nErr<<" errors -- "<<err[modType]<<" total "<<modType<<
     "-type errors.\n";
 
@@ -2252,11 +2385,11 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 	  }
 	  else{
 	    std::cout << other << "\t\tMonitor is: " << token << normal 
-		      << std::endl;
+		      <<std::endl;
 	    this->MonitorList.push_back(Form("%s%s", mon_prefix.Data(), token)); 
-	    fChain->SetBranchStatus(Form("%s%s", mon_prefix.Data(), token), 1);
-	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", 
-					 mon_prefix.Data(), token), 1);
+// 	    fChain->SetBranchStatus(Form("%s%s", mon_prefix.Data(), token), 1);
+// 	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", 
+// 					 mon_prefix.Data(), token), 1);
 	  }
 	}
       }
@@ -2279,9 +2412,9 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 	    std::cout << other << "\t\tDetector is: " << token << normal 
 		      << std::endl; 
 	    this->DetectorList.push_back(Form("%s%s", det_prefix.Data(), token));
-	    fChain->SetBranchStatus(Form("%s%s", det_prefix.Data(), token), 1);
-	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", 
-					 det_prefix.Data(), token), 1);
+// 	    fChain->SetBranchStatus(Form("%s%s", det_prefix.Data(), token), 1);
+// 	    fChain->SetBranchStatus(Form("%s%s_Device_Error_Code", 
+// 					 det_prefix.Data(), token), 1);
 	  }
 	}
       }
@@ -2309,8 +2442,9 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 
     BuildNewEBPM();
     
-    TString fname = Form("%s/mps_only_newEbpm_%i.root",
+    TString fname = Form("%s/%smps_only_newEbpm_%i.root",
 			 gSystem->Getenv("MPS_ONLY_ROOTFILES"),
+			 (fTransverseData ? "transverse/" : ""),
 			 run_number);
 
     fChain->AddFriend("mps_slug", fname);
@@ -2430,17 +2564,21 @@ void QwMpsOnly::ReduceMatrix(Int_t i)
   return;
 }
 
-void QwMpsOnly::Scan()
+void QwMpsOnly::Scan(Bool_t set_status)
 {
                                
-//    for(Int_t i = 0; i < (Int_t)fNDetector; i++){
-//      fChain->SetBranchStatus(DetectorList[i], 1);
-//      fChain->SetBranchAddress(DetectorList[i], &DetBranch[i]);
-//    }
-//    for(Int_t i = 0; i < (Int_t)fNMonitor; i++){
-//      fChain->SetBranchStatus(MonitorList[i], 1);
-//      fChain->SetBranchAddress(MonitorList[i], &MonBranch[i+1]);
-//    }
+   for(Int_t i = 0; i < (Int_t)fNDetector; i++){
+     if(set_status)
+       fChain->SetBranchStatus(DetectorList[i], 1);
+     if(!set_status)
+       fChain->SetBranchAddress(DetectorList[i], &DetBranch[i]);
+   }
+   for(Int_t i = 0; i < (Int_t)fNMonitor; i++){
+     if(set_status)
+       fChain->SetBranchStatus(MonitorList[i], 1);
+     if(!set_status)
+       fChain->SetBranchAddress(MonitorList[i], &MonBranch[i]);
+   }
 }
 
 void QwMpsOnly::SetDegPerMPS(Double_t deg)
@@ -2463,6 +2601,11 @@ void QwMpsOnly::SetHuman()
 
 void QwMpsOnly::SetMaxRampNonLinearity(Double_t max){
    fMaxRampNonLinearity= max;
+}
+
+void QwMpsOnly::SetOutput(char *out)
+{
+  output = out;
 }
 
 void QwMpsOnly::SetupHelBranchAddress()
@@ -2489,34 +2632,62 @@ void QwMpsOnly::SetupHelBranchAddress()
 			   &b_asym_qwk_charge);
 
 }
+void QwMpsOnly::SetupMpsBranchStatuses(Bool_t includeFriendTreeLeaves,
+				       Bool_t includeMonitorsAndDetectors){
+  fChain->SetBranchStatus("*", 0);
+  fChain->SetBranchStatus("qwk_charge", 1);
+  fChain->SetBranchStatus("qwk_charge_Device_Error_Code", 1);
+  fChain->SetBranchStatus("bm_pattern_number", 1);
+  fChain->SetBranchStatus("ErrorFlag", 1);
+  fChain->SetBranchStatus("ramp", 1);
+  fChain->SetBranchStatus("fgx1", 1);
+  fChain->SetBranchStatus("fgx2", 1);
+  fChain->SetBranchStatus("fgy2", 1);
+  fChain->SetBranchStatus("fgy1", 1);
+  fChain->SetBranchStatus("ramp_block0", 1);
+  fChain->SetBranchStatus("ramp_block1", 1);
+  fChain->SetBranchStatus("ramp_block2", 1);
+  fChain->SetBranchStatus("ramp_block3", 1);
+  if(includeFriendTreeLeaves){
+    fChain->SetBranchStatus("ramp_filled", 1);
+    fChain->SetBranchStatus("MX1", 1);
+    fChain->SetBranchStatus("MX2", 1);
+    fChain->SetBranchStatus("MY1", 1);
+    fChain->SetBranchStatus("MY2", 1);
+    fChain->SetBranchStatus("MX1_Device_Error_Code", 1);
+    fChain->SetBranchStatus("MX2_Device_Error_Code", 1);
+    fChain->SetBranchStatus("MY1_Device_Error_Code", 1);
+    fChain->SetBranchStatus("MY2_Device_Error_Code", 1);
+  }
+  if(includeMonitorsAndDetectors){
+    Scan(1);
+  }
+}
 
-void QwMpsOnly::SetupMpsBranchAddress()
+void QwMpsOnly::SetupMpsBranchAddresses(Bool_t includeFriendTreeLeaves,
+				      Bool_t includeMonitorsAndDetectors)
 {
+  fChain->ResetBranchAddresses();
+  SetupMpsBranchStatuses(includeFriendTreeLeaves, 1);
+  fChain->SetBranchAddress("qwk_charge", &qwk_charge_hw_sum);
+  fChain->SetBranchAddress("bm_pattern_number", &bm_pattern_number);
+  fChain->SetBranchAddress("ErrorFlag", &ErrorFlag);
+  fChain->SetBranchAddress("fgx1", &fgx1_hw_sum);
+  fChain->SetBranchAddress("fgy1", &fgy1_hw_sum);
+  fChain->SetBranchAddress("fgx2", &fgx2_hw_sum);
+  fChain->SetBranchAddress("fgy2", &fgy2_hw_sum);
+  fChain->SetBranchAddress("ramp", &ramp_hw_sum);
+  fChain->SetBranchAddress("ramp_block0", &ramp_block0);
+  fChain->SetBranchAddress("ramp_block1", &ramp_block1);
+  fChain->SetBranchAddress("ramp_block2", &ramp_block2);
+  fChain->SetBranchAddress("ramp_block3", &ramp_block3);
+  if(includeFriendTreeLeaves){
+    fChain->SetBranchAddress("ramp_filled", &ramp_filled);
+  }
 
-   fChain->SetBranchStatus("*", 0);
-   fChain->SetBranchStatus("qwk_charge", 1);
-   fChain->SetBranchStatus("qwk_charge_Device_Error_Code", 1);
-   fChain->SetBranchStatus("bm_pattern_number", 1);
-   fChain->SetBranchStatus("ErrorFlag", 1);
-   fChain->SetBranchStatus("ramp", 1);
-   fChain->SetBranchStatus("fgx1", 1);
-   fChain->SetBranchStatus("fgx2", 1);
-   fChain->SetBranchStatus("fgy2", 1);
-   fChain->SetBranchStatus("fgy1", 1);
-
-   fChain->SetBranchAddress("qwk_charge", &qwk_charge_hw_sum);
-   fChain->SetBranchAddress("bm_pattern_number", &bm_pattern_number);
-   fChain->SetBranchAddress("ErrorFlag", &ErrorFlag);
-   fChain->SetBranchAddress("fgx1", &fgx1_hw_sum);
-   fChain->SetBranchAddress("fgy1", &fgy1_hw_sum);
-   fChain->SetBranchAddress("fgx2", &fgx2_hw_sum);
-   fChain->SetBranchAddress("fgy2", &fgy2_hw_sum);
-   fChain->SetBranchAddress("ramp", &ramp_hw_sum);
-   fChain->SetBranchAddress("ramp_block0", &ramp_block0);
-   fChain->SetBranchAddress("ramp_block1", &ramp_block1);
-   fChain->SetBranchAddress("ramp_block2", &ramp_block2);
-   fChain->SetBranchAddress("ramp_block3", &ramp_block3);
-
+  if(includeMonitorsAndDetectors){
+    Scan(0);
+  }
 }
 
 void QwMpsOnly::SetPhaseValues(Double_t *val)

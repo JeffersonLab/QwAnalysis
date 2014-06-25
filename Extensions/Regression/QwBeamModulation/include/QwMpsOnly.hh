@@ -55,7 +55,6 @@ private:
   Bool_t fFullCycle;
   Bool_t f2DFit;
   Bool_t fNewEbpm;
-  Bool_t fCutNonlinearRegions;
 
   Int_t fNModEvents;
   Int_t fCurrentCut;
@@ -77,12 +76,15 @@ private:
   Double_t rampOffsetFitRsltErr[4];
   Double_t rampExcludedRegion[4][kNMod];
 
+  TString output;
+
 public :
 
   TChain          *fChain;
 
   TString         fFileName;
 
+  Bool_t          fCutNonlinearRegions;
   Int_t           fCurrent;
   Int_t           fFirstEntry;
   Int_t           fLastEntry;
@@ -170,6 +172,14 @@ public :
   TBranch        *b_yield_qwk_mdallbars; 
   TBranch        *b_asym_qwk_charge; 
   TBranch        *b_ramp_filled; 
+  TBranch        *b_mx1;
+  TBranch        *b_mx2;
+  TBranch        *b_my1;
+  TBranch        *b_my2;
+  TBranch        *b_mx1_dec;
+  TBranch        *b_mx2_dec;
+  TBranch        *b_my1_dec;
+  TBranch        *b_my2_dec;
 
   static const char red[8];
   static const char other[8];
@@ -219,6 +229,7 @@ public :
   Bool_t fYPinit;
   Bool_t fSingleCoil;
   Bool_t fCharge;
+  Bool_t fTransverseData;
   Bool_t fFileSegmentInclude;
   Bool_t fRunNumberSet;
   Bool_t fPhaseConfig;
@@ -228,11 +239,11 @@ public :
   TString fFileSegment;
   TString fFileStem;
   TString fSetStem;
-  TString output;
 
   QwMpsOnly(TChain *tree = 0);
   ~QwMpsOnly();
 
+  Int_t   AddFriendTree();
   void     BuildCoilData(); 
   void     BuildDetectorAvSlope();
   void     BuildDetectorData();
@@ -264,14 +275,15 @@ public :
   Int_t    FindRampPeriodAndOffset();
   Int_t    FindRampRange();
   Int_t    GetCurrentCut();
-  void     GetOptions(Int_t, Char_t **);
   Double_t GetDegPerMPS();
   Int_t    GetEntry(Long64_t entry);
+  void     GetOptions(Int_t, Char_t **);
+  TString  GetOutput();
   Bool_t   IfExists(const char *);
   void     Init(TChain *tree);
   Long64_t LoadTree(Long64_t entry);
-  void     LoadRootFile(TString, TChain *, Bool_t slug = false);
-  Int_t    MakeRampFilled(Bool_t);
+  Bool_t   LoadRootFile(TString, TChain *, Bool_t slug = false);
+  Int_t    MakeFriendTree(Bool_t);
   void     MatrixFill(Bool_t);
   Bool_t   Notify();
   Int_t    PilferData();
@@ -282,16 +294,18 @@ public :
   Int_t    ReadConfig(TString opt = "");
   Int_t    ReadPhaseConfig(Char_t *);
   void     ReduceMatrix(Int_t);
-  void     Scan(void);
+  void     Scan(Bool_t);
   void     SetDegPerMPS(Double_t);
   void     SetFileName(TString &); 
 //   void     SetFlags(void);
   void     SetHuman(void);
   void     SetMaxRampNonLinearity(Double_t);
   void     SetPhaseValues(Double_t *);
+  void     SetOutput(char *);
   void     SetRampScaleAndOffset();
   void     SetupHelBranchAddress(void); 
-  void     SetupMpsBranchAddress(void); 
+  void     SetupMpsBranchStatuses(Bool_t, Bool_t); 
+  void     SetupMpsBranchAddresses(Bool_t, Bool_t); 
   void     Show(Long64_t entry = -1);  
   void     Write(Bool_t);
 

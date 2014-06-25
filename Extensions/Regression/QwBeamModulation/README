@@ -21,7 +21,7 @@ the larger more extensive one. The Makefile here only compiles the QwMpsOnly.cc
 class and the main program, qwmpsonly.cc
 
 In order to have a working version at either UVA or JLab, you will need to set 
-two environment variables. 
+some environment variables. 
 
     $MPS_ONLY_ROOTFILES
     $SLUGLET_FILES
@@ -38,4 +38,4 @@ Build that structure and have $BMOD_OUT point to output/
 
 The following is an example of the command line options that might be used:
 
-runMpsOnly --run 12079 --file-stem mps_only --set-stem set4 --ramp-pedestal 10 --phase-config config/phase_set4.config --ramp-max-nonlin 50
+runMpsOnly --run 12079 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config config/phase_set0.config --ramp-max-nonlin 3 --chi-square-min 1 --2Dfit 1 --transverse-data 0

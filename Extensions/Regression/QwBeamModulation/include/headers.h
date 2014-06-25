@@ -21,6 +21,7 @@
 #include "TChain.h"
 #include "TSystem.h"
 #include "TChainElement.h"
+#include "TFriendElement.h"
 #include "TGraph.h"
 #include "TF1.h"
 #include "TMath.h"

@@ -10,7 +10,7 @@ for i in `seq $1 $2`
 #  if [ -f $SLOPESFILE ]; then
 #      echo $SLOPESFILE found. 
 #  else
-      ${BMOD_SRC}/runMpsOnly --ramp-max-nonlin 3 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config ${BMOD_SRC}/config/phase_set0.config --run ${i} --chi-square-min 1
+      ${BMOD_SRC}/runMpsOnly --ramp-max-nonlin 3 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config ${BMOD_SRC}/config/phase_set0.config --run ${i} --chi-square-min 1 --2Dfit 1 --transverse-data 0
 #  fi 
       nice root -b -q checkInvertedSlopes.C\(${i},$PLOTASPROFILE,$CHISQUARE\)
 done
