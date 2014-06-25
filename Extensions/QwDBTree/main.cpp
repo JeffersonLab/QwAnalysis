@@ -97,7 +97,7 @@ int main(Int_t argc, Char_t* argv[]) {
     const Int_t num_regs = reg_types.num_detectors();
     if(slopes != "") {
         for(Int_t i = 0; i < num_regs; i++) {
-            if(reg_types.detector(i) == "on_5+1" || reg_types.detector(i) == "on") {
+            if(reg_types.detector(i) == "on_5+1" || reg_types.detector(i) == "on" || reg_types.detector(i) == "on_set11") {
                 tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, target, runavg, slugavg, wienavg, slopes);
             }
         }
