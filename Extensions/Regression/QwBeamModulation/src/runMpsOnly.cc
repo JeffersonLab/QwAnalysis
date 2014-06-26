@@ -17,6 +17,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     exit(1);
   }
   mps_only->GetOptions(argc, argv);
+  std::cout<<"Beginning to process run "<<mps_only->run_number<<std::endl;
 
   if( !(mps_only->fRunNumberSet ) ){
     std::cout<<"fRunNum: "<<mps_only->fRunNumberSet<<std::endl;

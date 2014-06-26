@@ -32,7 +32,7 @@
 
 
 Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1, 
-			  Bool_t chsq = 0){
+			  Bool_t chsq = 0, char *out_dir = ""){
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -43,6 +43,12 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1,
 
   char  x[255], xe[255], mon[255], monitr[255], det[255], detectr[255];
   char *chisquare = "";
+  char *output_dir = (char *)gSystem->Getenv("BMOD_OUT");
+  if(out_dir == "")
+    output_dir = "/net/data1/paschkedata1/bmod_out_new_monitors";
+  else 
+    output_dir = out_dir;
+
   string line;
   if(chsq)chisquare = (char *)"_ChiSqMin";
   gStyle->SetOptFit(1111);
@@ -103,13 +109,13 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1,
   TCut cut;
   int n = 0;
   ifstream slopesFile(Form("%s/slopes/slopes_%i%s.set0.dat",
-			   gSystem->Getenv("BMOD_OUT"), run, chisquare));
+			   output_dir, run, chisquare));
 
   if (slopesFile.is_open()){
     printf("Slopes file found for run %i.\n", run);
   }else{
     printf("%s/slopes/slopes_%i%s.set0.dat not found. Exiting.\n",  
-	   gSystem->Getenv("BMOD_OUT"), run, chisquare);
+	   output_dir, run, chisquare);
     return -1;
   }
   
@@ -436,9 +442,9 @@ Int_t checkInvertedSlopes(Int_t run = 13993, Bool_t plotAsProfile = 1,
 
   FILE *sineData, *cosineData;
   sineData = fopen(Form("%s/slopes/run%iSineAmpl%s.set0.dat",
-			gSystem->Getenv("BMOD_OUT"),run,chisquare), "w");
+			output_dir,run,chisquare), "w");
   cosineData= fopen(Form("%s/slopes/run%iCosineAmpl%s.set0.dat",
-			 gSystem->Getenv("BMOD_OUT"),run,chisquare), "w");
+			 output_dir,run,chisquare), "w");
 
 
   printf("\nTable 1. Run %i detector slopes from mps_only code%s\n", run,

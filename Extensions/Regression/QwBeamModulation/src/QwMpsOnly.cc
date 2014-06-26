@@ -58,7 +58,8 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fFileSegment = ""; 
   fFileStem = "mps_only"; 
   fSetStem = "std"; 
-
+  configFileName = Form("%s/config/setup_mpsonly.config",
+			gSystem->Getenv("BMOD_SRC"));
   fNewEbpm = 0;
   Init(tree);
 }
@@ -1448,7 +1449,8 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
 
   cut = TCut(Form("TMath::Abs(ramp_block0+ramp_block3-ramp_block2-ramp_block1)"
 		  "<%f && ramp_block3>ramp_block2 && ramp_block2>ramp_block1 &&"
-		  "ramp_block1>ramp_block0", fMaxRampNonLinearity));
+		  "ramp_block1>ramp_block0&&ramp>%f", fMaxRampNonLinearity,
+		  (double)fPedestal));
 
   //find periods and offsets from 4 function generator types
   Double_t numerPeriod = 0, numerOffset = 0;
@@ -1464,14 +1466,9 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
     TH2D *ht = (TH2D*)gDirectory->Get("ht");
     TF1 *f = new TF1("f", "[0]+[1]*sin((x+[2])*2*TMath::Pi()/[3])",0,360);
     f->SetParameters(par);
-//     f->SetParLimits(2,parLim[0],parLim[1]);
-//     f->SetParLimits(3,parLim[2],parLim[3]);
 
     Int_t fitResult = ht->Fit(f);
 
-    //if hitting parameter limits try reversing sign of amplitude in initial guess
-//     if(f->GetParameter(2)==parLim[0] || f->GetParameter(2)==parLim[1] ||
-//        f->GetParameter(3)==parLim[2] || f->GetParameter(3)==parLim[3] || 
     if(fitResult != 0 || TMath::Abs(f->GetParameter(2))>90){
       f->SetParameters(par);
       f->SetParameter(1, f->GetParameter(1) * (-1.0));
@@ -1553,11 +1550,31 @@ Int_t QwMpsOnly::FindRampPeriodAndOffset()
 Int_t QwMpsOnly::FindRampRange()
 { //two parameters are need, the ramp length and maximum,
   // are needed to map the ramp_return to the phase gap
+  TCut cut;
+  cut = TCut(Form("TMath::Abs(ramp_block0+ramp_block3-ramp_block2-ramp_block1)"
+		  "<%f && ramp_block3>ramp_block2 && ramp_block2>ramp_block1 &&"
+		  "ramp_block1>ramp_block0", fMaxRampNonLinearity));
 
   SetupMpsBranchAddresses(0,0);
-  fChain->Draw("ramp>>hRamp(100)");
+  fChain->Draw("ramp>>hRamp(100)", cut);
   TH1D *hRamp = (TH1D*)gDirectory->Get("hRamp");
   int lBin = hRamp->FindFirstBinAbove(0.0005*hRamp->GetEntries());
+
+  //Some runs have non-modulation data leaked even when the modulation flag is
+  //set. Try to discriminate between these data and modulation data. 
+  if(hRamp->GetBinCenter(lBin)<fPedestal){
+    for(int i=0;i<5;++i){
+      if(hRamp->GetBinContent(i+lBin)<0.0005*hRamp->GetEntries() &&
+	 lBin<hRamp->GetNbinsX()){
+	while(hRamp->GetBinContent(i+lBin)<0.0005*hRamp->GetEntries()){
+	  ++lBin;
+	}
+	lBin += i;
+	break;
+      }
+    }
+
+  }
   int hBin = hRamp->FindLastBinAbove(0.0005*hRamp->GetEntries());
   double width = hRamp->GetBinWidth(1);
   double avg_entries = 0, n = 0;
@@ -1595,17 +1612,6 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
   TString flag;
   while(i < n){
     flag = options[i];
-
-    if(flag.CompareTo("--run", TString::kExact) == 0){
-      //      std::string option(options[i+1]);
-      //      flag.Clear();
-      fRunNumberSet = true;
-      run_number = atoi(options[i + 1]);
-
-      std::cout << other << "Processing run number:\t" 
-		<< run_number
-		<< normal << std::endl;
-    }    
     
     if(flag.CompareTo("--phase-config", TString::kExact) == 0){
       //      std::string option(options[i+1]);
@@ -1615,6 +1621,12 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
       if(fPhaseConfig)
 	std::cout << other << "Setting phase from file "<<options[i + 1]<<"."<<
 	  normal<<std::endl;
+    }    
+    
+    if(flag.CompareTo("--setup-config", TString::kExact) == 0){
+      configFileName = options[i + 1];
+      std::cout << other << "Using specified setup configuration file: "
+		<<options[i + 1]<<"."<<  normal<<std::endl;
     }    
 
 
@@ -1700,7 +1712,7 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 		<< normal << std::endl;
     }    
 
-e    if(flag.CompareTo("--chi-square-min", TString::kExact) == 0){
+    if(flag.CompareTo("--chi-square-min", TString::kExact) == 0){
       //      std::string option(options[i+1]);
       //      flag.Clear();
       fChiSquareMinimization = (atoi(options[i + 1])==0 ? 0 : 1);
@@ -1763,6 +1775,18 @@ e    if(flag.CompareTo("--chi-square-min", TString::kExact) == 0){
       std::cout <<(f2DFit ? "2D Fit Selected" : "Linearized 1D Fit Selected")
 		<< std::endl;
     } 
+
+
+    if(flag.CompareTo("--run", TString::kExact) == 0){
+      //      std::string option(options[i+1]);
+      //      flag.Clear();
+      fRunNumberSet = true;
+      run_number = atoi(options[i + 1]);
+
+      std::cout << other << "Processing run number:\t" 
+		<< run_number
+		<< normal << std::endl;
+    }    
 
     if(flag.CompareTo("--help", TString::kExact) == 0){
       printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -2350,8 +2374,7 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
     det_prefix = ""; 
   }
   
-  config.open(Form("%s/config/setup_mpsonly.config",gSystem->Getenv("BMOD_SRC")), 
-	      std::ios_base::in);
+  config.open(configFileName.Data(), std::ios_base::in);
   if(!config.is_open()){
     std::cout << red << "Error opening config file" << normal << std::endl;
     exit(1);

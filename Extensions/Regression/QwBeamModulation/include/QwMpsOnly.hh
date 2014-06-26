@@ -77,6 +77,7 @@ private:
   Double_t rampExcludedRegion[4][kNMod];
 
   TString output;
+  TString configFileName;
 
 public :
 
@@ -84,7 +85,8 @@ public :
 
   TString         fFileName;
 
-  Bool_t          fCutNonlinearRegions;
+  Bool_t fCutNonlinearRegions;
+
   Int_t           fCurrent;
   Int_t           fFirstEntry;
   Int_t           fLastEntry;
