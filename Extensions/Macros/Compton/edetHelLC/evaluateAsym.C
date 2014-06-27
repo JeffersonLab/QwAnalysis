@@ -70,14 +70,14 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
       errBkgdAsymH1 = pow(term1Bkgd,2) * NplusOff_SqQplusOff;
       errBkgdAsymH0 = pow(term2Bkgd,2) * NminusOff_SqQminusOff;
       bkgdAsymErSqr = errBkgdAsymH1 + errBkgdAsymH0;
-      
+
       if (LasCycAsymErSqr[p][s] >0.0) {///eqn 4.17(Bevington)
-	wmNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
-	wmDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator 
-	if (debug1) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/LasCycAsymErSqr[p][s],wmDrAsym[p][s]);
+        wmNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
+        wmDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator
+        if (debug1) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/LasCycAsymErSqr[p][s],wmDrAsym[p][s]);
       } else {
-	cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? It gives non-positive Asym Er"<<endl;
-	printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);
+        cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? It gives non-positive Asym Er"<<endl;
+        printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);
       }
       ///Error evaluation for SUM (in asymmetry)
       erBCqNormLasCycSumSq = (NplusOn_SqQplusOn+ NminusOn_SqQminusOn+ NplusOff_SqQplusOff+ NminusOff_SqQminusOff);
@@ -86,28 +86,29 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
 
       ///addition of bkgdAsym term over various laser cycles
       if (bkgdAsymErSqr > 0.0) {///eqn 4.17(Bevington)
-	wmNrBkgdAsym[p][s] += qNormAcBkgdAsym/bkgdAsymErSqr; ///Numerator 
-	wmDrBkgdAsym[p][s] += 1.0/bkgdAsymErSqr; ///Denominator 
-	if (debug) printf("*****adding %g(1/bkgdAsymSq) to wmDrBkgdAsym making it: %f\n",1.0/bkgdAsymErSqr,wmDrBkgdAsym[p][s]);
+        wmNrBkgdAsym[p][s] += qNormAcBkgdAsym/bkgdAsymErSqr; ///Numerator 
+        wmDrBkgdAsym[p][s] += 1.0/bkgdAsymErSqr; ///Denominator 
+        if (debug) printf("***adding %g(1/bkgdAsymSq) to wmDrBkgdAsym making it: %f\n",1.0/bkgdAsymErSqr,wmDrBkgdAsym[p][s]);
       } else {
-	cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? the bkgdAsymEr is non-positive"<<endl;
-	printf("errBkgdAsymH1:%f, errBkgdAsymH1:%f\n",errBkgdAsymH1,errBkgdAsymH0);
+        cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? the bkgdAsymEr is non-positive"<<endl;
+        printf("errBkgdAsymH1:%f, errBkgdAsymH1:%f\n",errBkgdAsymH1,errBkgdAsymH0);
       }
 
 
       if (erBCqNormLasCycSumSq >0.0) {
-	wmNrBCqNormSum[p][s] += BCqNormLasCycSum/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
-	wmDrBCqNormSum[p][s] += 1.0/erBCqNormLasCycSumSq; ///Denominator eqn 4.17(Bevington)
-	///The error for the difference and sum are same, hence reusing the variable
-	wmNrBCqNormDiff[p][s] += BCqNormLasCycDiff/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
-	//wmDrBCqNormDiff[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
-	wmNrqNormB1L0[p][s] += qNormAcBkgdAsymDr/erqNormB1L0LasCycSq; //refer bevington
-	wmDrqNormB1L0[p][s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
+        wmNrBCqNormSum[p][s] += BCqNormLasCycSum/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
+        wmDrBCqNormSum[p][s] += 1.0/erBCqNormLasCycSumSq; ///Denominator eqn 4.17(Bevington)
+        ///The error for the difference and sum are same, hence reusing the variable
+        wmNrBCqNormDiff[p][s] += BCqNormLasCycDiff/erBCqNormLasCycSumSq; ///Numerator eqn 4.17(Bevington)
+        //wmDrBCqNormDiff[p][s] += 1.0/erBCqNormLasCycSumSq[p][s]; ///Denominator eqn 4.17(Bevington)
+        wmNrqNormB1L0[p][s] += qNormAcBkgdAsymDr/erqNormB1L0LasCycSq; //refer bevington
+        wmDrqNormB1L0[p][s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
       } else {
-	printf("**Alert: getting non-positive erBCqNormLasCycSumSq for plane:%d, strip:%d in line:%d\n",p+1,s+1,__LINE__);
-	printf("NplusOn_SqQplusOn:%g, NminusOn_SqQminusOn:%g, NplusOff_SqQplusOff:%g, NminusOff_SqQminusOff:%g,\n"
-	       ,NplusOn_SqQplusOn,NminusOn_SqQminusOn,NplusOff_SqQplusOff,NminusOff_SqQminusOff);
+        printf("**Alert: getting non-positive erBCqNormLasCycSumSq for plane:%d, strip:%d in line:%d\n",p+1,s+1,__LINE__);
+        printf("NplusOn_SqQplusOn:%g, NminusOn_SqQminusOn:%g, NplusOff_SqQplusOff:%g, NminusOff_SqQminusOff:%g,\n"
+            ,NplusOn_SqQplusOn,NminusOn_SqQminusOn,NplusOff_SqQplusOff,NminusOff_SqQminusOff);
       }
     }//for (Int_t s =startStrip; s <endStrip; s++) {	
-  }///for (Int_t p =startPlane; p <endPlane; p++) {  
+  }///for (Int_t p =startPlane; p <endPlane; p++) { 
+  cout<<"this nCycle e.g: expAsym[p1][s22]: "<<qNormLasCycAsym[0][21]<<"+/-"<<TMath::Sqrt(LasCycAsymErSqr[0][21])<<endl;
 }
