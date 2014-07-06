@@ -60,8 +60,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   ifstream infileLas, infileBeam;
 
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
-  if (kRejectBMod) cout<<red<<"quartets during beam modulation ramp rejected"<<normal<<endl;
-  else cout<<red<<"quartets during beam modulation ramp NOT rejected"<<normal<<endl;
+  if (kRejectBMod) cout<<green<<"quartets during beam modulation ramp rejected"<<normal<<endl;
+  else cout<<green<<"quartets during beam modulation ramp NOT rejected"<<normal<<endl;
 
   if(!maskSet) infoDAQ(runnum); //if the masks are not set yet, call the function to set it
 
@@ -110,17 +110,17 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     delete helChain;
     return -1;
   }
-//////////////for a quick peep of the beam and laser stability of beam//////////
+  //////////////for a quick peep of the beam and laser stability of beam//////////
   if(debug1) {
-  TCanvas *c1 = new TCanvas("c1"," ",0,0,900,900);
-  c1->Divide(1,2);
-  c1->cd(1);
-  helChain->Draw("yield_sca_laser_PowT:pattern_number");    
-  c1->cd(2);
-  helChain->Draw("yield_sca_bcm6:pattern_number");
-  c1->SaveAs(Form("%s/%s/%slasBeamStability.png",pPath,webDirectory,filePrefix.Data()));
+    TCanvas *c1 = new TCanvas("c1"," ",0,0,900,900);
+    c1->Divide(1,2);
+    c1->cd(1);
+    helChain->Draw("yield_sca_laser_PowT:pattern_number");    
+    c1->cd(2);
+    helChain->Draw("yield_sca_bcm6:pattern_number");
+    c1->SaveAs(Form("%s/%s/%slasBeamStability.png",pPath,webDirectory,filePrefix.Data()));
   }
-//////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
   infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
@@ -260,11 +260,13 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       }
     }
   }
-
+  if(nLasCycles<=0) {
+    cout<<red<<"no.of laser cycles found in this run is ZERO"<<endl;
+    return -1;
+  }
   cout<<"if lasOff period has lasPower > "<<minLasPow<<", or "
-      <<"if lasOn period has lasPower  < "<<acceptLasPow<<", it gets counted as 'missedLasEntries'"<<endl;
-  if(nthBeamTrip != nBeamTrips) cout<<"this run has beam trips"<<endl;
-
+    <<"if lasOn period has lasPower  < "<<acceptLasPow<<", it gets counted as 'missedLasEntries'"<<endl;
+  if(nthBeamTrip != nBeamTrips) cout<<"this run has beam trips"<<endl;  
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
     if (debug) cout<<"\nStarting nCycle:"<<nCycle+1<<" and resetting all nCycle variables"<<endl;
     ///since this is the beginning of a new Laser cycle, and all Laser cycle based variables 
@@ -283,31 +285,31 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     //   cout<<"\n"<<red<<"skipping laser cycle # "<<nCycle+1<<normal<<endl;
     //   continue;
     // }
-/// This beamOn decision arrived below is valid only for this nCycle of the laser
-//    if(noiseRun) beamOn = kFALSE; //this Bool_t variable will be appropriately set by looking at the max current in this run in getEBeamLasCuts.C
-//    else if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
-//    else if(nthBeamTrip < nBeamTrips) {  ///yes, we do have beamtrip(s)
-//      if(nthBeamTrip==0) { // haven't encountered a trip yet(special case of first trip)
-//        if(cutLas.at(2*nCycle+2)<cutEB.at(0)) beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
-//        else {                    ///there is a beam trip during this laser cycle
-//          beamOn = kFALSE;
-//          nthBeamTrip++;          ///encountered the first beam trip
-//        }
-//      } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
-//        beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
-//        if(debug1) cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl;
-//      } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
-//        beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
-//        if(debug1) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl;
-//      } else { ///encountered "another" beam trip	
-//        beamOn = kFALSE;  
-//        nthBeamTrip++;
-//        cout<<"encountered a new beam trip in lasCyc: "<<nCycle+1<<endl;
-//      }
-//    } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
-//      if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
-//      else beamOn = kFALSE;
-//    } else cout<<red<<"\n***Error ... Something drastically wrong in BeamTrip evaluation***\n"<<normal<<endl;
+    /// This beamOn decision arrived below is valid only for this nCycle of the laser
+    //    if(noiseRun) beamOn = kFALSE; //this Bool_t variable will be appropriately set by looking at the max current in this run in getEBeamLasCuts.C
+    //    else if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
+    //    else if(nthBeamTrip < nBeamTrips) {  ///yes, we do have beamtrip(s)
+    //      if(nthBeamTrip==0) { // haven't encountered a trip yet(special case of first trip)
+    //        if(cutLas.at(2*nCycle+2)<cutEB.at(0)) beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
+    //        else {                    ///there is a beam trip during this laser cycle
+    //          beamOn = kFALSE;
+    //          nthBeamTrip++;          ///encountered the first beam trip
+    //        }
+    //      } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
+    //        beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
+    //        if(debug1) cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl;
+    //      } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
+    //        beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
+    //        if(debug1) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl;
+    //      } else { ///encountered "another" beam trip	
+    //        beamOn = kFALSE;  
+    //        nthBeamTrip++;
+    //        cout<<"encountered a new beam trip in lasCyc: "<<nCycle+1<<endl;
+    //      }
+    //    } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
+    //      if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
+    //      else beamOn = kFALSE;
+    //    } else cout<<red<<"\n***Error ... Something drastically wrong in BeamTrip evaluation***\n"<<normal<<endl;
 
     if(debug) cout<<"Will analyze from entry # "<<cutLas.at(2*nCycle)<<" to entry # "<<cutLas.at(2*nCycle+2)<<endl;
 
@@ -321,13 +323,15 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       else missedLasEntries++;
 
       helChain->GetEntry(i);
+      //temp      cout<<"for helicity entry i: "<<i<<" bcm is\t"<<y_bcm[0]+d_bcm[0]<<endl;
       //      if (kRejectBMod && (bModRamp[0]<100.0)) continue; 
-//      if (beamOn) { ////currently the counters are only populated for beamOn cycles
-      if ((y_bcm[0]+d_bcm[0])>beamOnLimit) {///Is the beam>20uA for this quartet
+      //      if (beamOn) { ////currently the counters are only populated for beamOn cycles
+      if ((y_bcm[0]) > beamOnLimit) {///Is the beam>20uA for this quartet
         if (kRejectBMod && (bModRamp[0]>100.0)) {
           missedDueToBMod++; 
           continue;
         }
+        //if(bYield[0][44]>0.0) cout<<blue<<i<<"\t"<<yieldB1L1[0][44]<<"\t"<<bYield[0][44]<<normal<<endl;    //temp
         if (l==0) {//using the H=0 configuration for now
           nHelLCB1L0++;
           iLCH1L0 += (y_bcm[0]+d_bcm[0]);///@if the factor '2' is multiplied, that would count the bcm reading once for each of the two H1 measurements; without the factor, this is already an average of the two counts that were recorded during the two H1 events in a given quartet
@@ -359,163 +363,175 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
 
     totalMissedQuartets += missedDueToBMod++;
     //after having filled the above vectors based on laser and beam periods, find asymmetry for this laser cycle
-//    if (beamOn) {
+    //    if (beamOn) {
+    if(kRejectBMod) cout<<blue<<"no.of quartets missed for BMod ramp this cycle: "<<missedDueToBMod<<normal<<endl;
+    laserOnOffRatioH0 = (Double_t)nHelLCB1L1/nHelLCB1L0;
+    totIAllH1L1 += iLCH1L1;
+    totIAllH1L0 += iLCH1L0;
+    totIAllH0L1 += iLCH0L1;
+    totIAllH0L0 += iLCH0L0;
+    totHelB1L1 += nHelLCB1L1;
+    totHelB1L0 += nHelLCB1L0;
+    if (nHelLCB1L1<= 0||nHelLCB1L0<= 0) {
+      printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nHelLCB1L1:%d, nHelLCB1L0:%d%s",red,nCycle,nHelLCB1L1,nHelLCB1L0,normal);
+    } else if (iLCH1L1<= 0||iLCH1L0<= 0||iLCH0L1<= 0||iLCH0L0<= 0) {
+      printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n** check iLCH1L1:%f, iLCH1L0:%f, iLCH0L1:%f, iLCH0L0:%f**%s\n",red,nCycle,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,normal);
+      cout<<red<<"*** HENCE skipping this laser cycle ***"<<normal<<endl;
+      continue;
+    } else { ///if everything okay, start main buisness
+      for (Int_t p =startPlane; p <endPlane; p++) {
+        for (Int_t s = startStrip; s < endStrip; s++) {
+          if (!mask[p][s]) continue;
+          totyieldB1L1[p][s] += 4*yieldB1L1[p][s];//yield in Hel_Tree is normalized for the quartet
+          totyieldB1L0[p][s] += 4*yieldB1L0[p][s];
+        }
+      }
+
+      if(debug) cout<<blue<<"In lasCyc# "<<nCycle+1<<", nHelLCB1L1:"<<nHelLCB1L1<<", nHelLCB1L0:"<< nHelLCB1L0<<", iLCH1L1:"<<iLCH1L1<<", iLCH1L0:"<<iLCH1L0<<", iLCH0L1:"<<iLCH0L1<<", iLCH0L0:"<<iLCH0L0<<normal<<endl;
+      //indepYield(yieldB1L1, yieldB1L0, nHelLCB1L1, nHelLCB1L0, iLCH1L1, iLCH1L0);//was invoked for checking
+      ///now lets do a yield weighted mean of the above asymmetry
+      //printf("%d  %d\t%f\t%f\t%f\t%f\n",nCycle,totyieldB1L1[0][40],diffB1L1[0][40],diffB1L0[0][40],yieldB1L1[0][40],yieldB1L0[0][40]);//temp!
+      Int_t evaluated = evaluateAsym(diffB1L1,diffB1L0,yieldB1L1,yieldB1L0,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,wmCountsNrAsym,wmCountsDrAsym,wmCountsNrBCqNormSum,wmCountsDrBCqNormSum,wmCountsNrBCqNormDiff,wmCountsNrqNormB1L0,wmCountsDrqNormB1L0,wmCountsNrBkgdAsym,wmCountsDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+      if(evaluated<0) {
+        cout<<red<<"evaluateAsym has some problem for lasCycle "<<nCycle+1<<" hence skipping"<<normal<<endl;
+        continue;//break;
+        //        return -1;
+      } else if(skipCyc==kTRUE) {
+        cout<<red<<"skipping this laser cycle, nCycle "<<nCycle+1<<normal<<endl;
+        continue;//break;
+      }
       goodCycles++;
-      if(kRejectBMod) cout<<blue<<"no.of quartets missed for BMod ramp this cycle: "<<missedDueToBMod<<normal<<endl;
-      laserOnOffRatioH0 = (Double_t)nHelLCB1L1/nHelLCB1L0;
-      totIAllH1L1 += iLCH1L1;
-      totIAllH1L0 += iLCH1L0;
-      totIAllH0L1 += iLCH0L1;
-      totIAllH0L0 += iLCH0L0;
-      totHelB1L1 += nHelLCB1L1;
-      totHelB1L0 += nHelLCB1L0;
-      if (nHelLCB1L1<= 0||nHelLCB1L0<= 0) {
-        printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n\t\t** check nHelLCB1L1:%d, nHelLCB1L0:%d%s",red,nCycle,nHelLCB1L1,nHelLCB1L0,normal);
-      } else if (iLCH1L1<= 0||iLCH1L0<= 0||iLCH0L1<= 0||iLCH0L0<= 0)
-        printf("\n%s****  Warning: Something drastically wrong in nCycle:%d\n** check iLCH1L1:%f, iLCH1L0:%f, iLCH0L1:%f, iLCH0L0:%f**%s\n",red,nCycle,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,normal);
-      else { ///if everything okay, start main buisness
-        for (Int_t p =startPlane; p <endPlane; p++) {
-          for (Int_t s = startStrip; s < endStrip; s++) {
+      if(lasCycPrint) {
+        //q=i*t;qH1L1=(iH1L1/nMpsH1L1)*(nMpsH1L1/MpsRate);//this really gives total-charge for this laser cycle
+        Double_t qLasCycL1 = iLCH0L1 /helRate;//(iLCH0L1 + iLCH1L1) /helRate;  
+        Double_t qLasCycL0 = iLCH0L0 /helRate;
+        //!!check the above "average charge", it doesn't seem the appropriate way of averaging
+        if(debug1) {
+          cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
+          cout<<"printing variables on a per-laser-cycle basis"<<endl;
+          cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<endl;
+          cout<<Form("iLCH1L1: %f\t iLCH1L0: %f",iLCH1L1,iLCH1L0)<<endl;
+        }	   
+        if (!firstLineLasCyc) {
+          lasCycBCM<<"\n";
+          lasCycLasPow<<"\n";
+        }
+        firstLineLasCyc = kFALSE;
+        for(Int_t p = startPlane; p < endPlane; p++) {
+          for (Int_t s =startStrip; s <endStrip;s++) {
             if (!mask[p][s]) continue;
-            totyieldB1L1[p][s] += 4*yieldB1L1[p][s];//yield in Hel_Tree is normalized for the quartet
-            totyieldB1L0[p][s] += 4*yieldB1L0[p][s];
+            if(!firstlinelasPrint[p][s]) {
+              lasCycCounts[p][s]<<"\n";
+              outAsymLasCyc[p][s]<<"\n";
+            }
+            firstlinelasPrint[p][s] =kFALSE;
+            if (lasCycCounts[p][s].is_open()) {
+              lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,yieldB1L0[p][s]/qLasCycL0,yieldB1L1[p][s]/qLasCycL1);
+              lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(yieldB1L0[p][s]/((Double_t)nHelLCB1L0/helRate)),((TMath::Sqrt(yieldB1L0[p][s]))/(Double_t)(nHelLCB1L0/helRate)));
+            } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
+            if (outAsymLasCyc[p][s].is_open()) {
+              outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
+            } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
           }
         }
+        lasCycBCM<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(iLCH1L0+iLCH0L0)/nHelLCB1L0,(iLCH1L1+iLCH0L1)/nHelLCB1L1);
+        lasCycLasPow<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,lasPowLCB1L0/nHelLCB1L0,lasPowLCB1L1/nHelLCB1L1);
+      }///if(lasCycPrint)
 
-        if(debug) cout<<red<<nCycle+1<<"\t"<<nHelLCB1L1<<"\t"<< nHelLCB1L0<<"\t"<<iLCH1L1<<"\t"<<iLCH1L0<<"\t"<<iLCH0L1<<"\t"<<iLCH0L0<<normal<<endl;
-        //indepYield(yieldB1L1, yieldB1L0, nHelLCB1L1, nHelLCB1L0, iLCH1L1, iLCH1L0);//was invoked for checking
-        ///now lets do a yield weighted mean of the above asymmetry
-        evaluateAsym(diffB1L1,diffB1L0,yieldB1L1,yieldB1L0,iLCH1L1,iLCH1L0,iLCH0L1,iLCH0L0,wmCountsNrAsym,wmCountsDrAsym,wmCountsNrBCqNormSum,wmCountsDrBCqNormSum,wmCountsNrBCqNormDiff,wmCountsNrqNormB1L0,wmCountsDrqNormB1L0,wmCountsNrBkgdAsym,wmCountsDrBkgdAsym,qNormLasCycAsym,LasCycAsymErSqr);
+    }///sanity check of being non-zero for filled laser cycle variables
+    //    }///if (beamOn)
+    //    else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
+    }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
 
-        if(lasCycPrint) {
-          //q=i*t;qH1L1=(iH1L1/nMpsH1L1)*(nMpsH1L1/MpsRate);//this really gives total-charge for this laser cycle
-          Double_t qLasCycL1 = iLCH0L1 /helRate;//(iLCH0L1 + iLCH1L1) /helRate;  
-          Double_t qLasCycL0 = iLCH0L0 /helRate;
-          //!!check the above "average charge", it doesn't seem the appropriate way of averaging
-          if(debug1) {
-            cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
-            cout<<"printing variables on a per-laser-cycle basis"<<endl;
-            cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<endl;
-            cout<<Form("iLCH1L1: %f\t iLCH1L0: %f",iLCH1L1,iLCH1L0)<<endl;
-          }	   
-          if (!firstLineLasCyc) {
-            lasCycBCM<<"\n";
-            lasCycLasPow<<"\n";
-          }
-          firstLineLasCyc = kFALSE;
-          for(Int_t p = startPlane; p < endPlane; p++) {
-            for (Int_t s =startStrip; s <endStrip;s++) {
-              if (!mask[p][s]) continue;
-              if(!firstlinelasPrint[p][s]) {
-                lasCycCounts[p][s]<<"\n";
-                outAsymLasCyc[p][s]<<"\n";
-              }
-              firstlinelasPrint[p][s] =kFALSE;
-              if (lasCycCounts[p][s].is_open()) {
-                lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,yieldB1L0[p][s]/qLasCycL0,yieldB1L1[p][s]/qLasCycL1);
-                lasCycCounts[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(yieldB1L0[p][s]/((Double_t)nHelLCB1L0/helRate)),((TMath::Sqrt(yieldB1L0[p][s]))/(Double_t)(nHelLCB1L0/helRate)));
-              } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
-              if (outAsymLasCyc[p][s].is_open()) {
-                outAsymLasCyc[p][s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormLasCycAsym[p][s],TMath::Sqrt(LasCycAsymErSqr[p][s]));
-              } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
-            }
-          }
-          lasCycBCM<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(iLCH1L0+iLCH0L0)/nHelLCB1L0,(iLCH1L1+iLCH0L1)/nHelLCB1L1);
-          lasCycLasPow<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,lasPowLCB1L0/nHelLCB1L0,lasPowLCB1L1/nHelLCB1L1);
-        }///if(lasCycPrint)
-
-      }///sanity check of being non-zero for filled laser cycle variables
-//    }///if (beamOn)
-//    else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
-  }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-
-  for(Int_t p = startPlane; p <endPlane; p++) {
-    for(Int_t s =startStrip; s <endStrip; s++) {
-      if (!mask[p][s]) continue;    
-      lasCycCounts[p][s].close();
-      outAsymLasCyc[p][s].close();
+    for(Int_t p = startPlane; p <endPlane; p++) {
+      for(Int_t s =startStrip; s <endStrip; s++) {
+        if (!mask[p][s]) continue;    
+        lasCycCounts[p][s].close();
+        outAsymLasCyc[p][s].close();
+      }
     }
+    lasCycBCM.close();
+    lasCycLasPow.close();
+
+    cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
+    //notice that the variables to be written by the writeToFile command is updated after every call of weightedMean() function
+
+    if(goodCycles>0) {
+      weightedMean(wmCountsNrAsym, wmCountsDrAsym, wmCountsNrBCqNormSum, wmCountsDrBCqNormSum, wmCountsNrBCqNormDiff, wmCountsNrqNormB1L0, wmCountsDrqNormB1L0, wmCountsNrBkgdAsym, wmCountsDrBkgdAsym);
+
+      qNormVariables(totyieldB1L1,totIAllH1L1,qNormCountsB1L1,qNormCountsB1L1Er);//background uncorrected yield
+      qNormVariables(totyieldB1L0,totIAllH1L0,qNormCountsB1L0,qNormCountsB1L0Er);//background yield
+      qNormVariables(totyieldB1L1,totHelB1L1,tNormYieldB1L1,tNormYieldB1L1Er);
+      qNormVariables(totyieldB1L0,totHelB1L0,tNormYieldB1L0,tNormYieldB1L0Er);
+
+      writeToFile(runnum,dataType);
+
+      //!!this currently would not work if the Cedge changes between planes
+      if(debug2) {
+        TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
+        cStability->Divide(3,3);
+        cStability->cd(1);
+        helChain->Draw("yield_sca_bcm6:pattern_number","yield_sca_bcm6.value < 200");
+        cStability->cd(2);
+        helChain->Draw("yield_sca_bpm_3p02aY:pattern_number");
+        cStability->cd(3);
+        helChain->Draw("yield_sca_bpm_3p02bY:pattern_number");
+        cStability->cd(4);
+        helChain->Draw("yield_sca_bpm_3p03aY:pattern_number");
+        cStability->cd(5);
+        helChain->Draw("yield_sca_bpm_3c20Y:pattern_number");
+        //helChain->Draw("sca_bpm_3c20X:event_number");
+        cStability->cd(6);
+        helChain->Draw("yield_sca_bpm_3p02aX:pattern_number");
+        cStability->cd(7);
+        helChain->Draw("yield_sca_bpm_3p02bX:pattern_number");
+        cStability->cd(8);
+        helChain->Draw("yield_sca_bpm_3p03aX:pattern_number");
+        cStability->cd(9);
+        helChain->Draw("yield_sca_laser_PowT:pattern_number","yield_sca_laser_PowT<180000");
+
+        cStability->Update();
+        cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));
+      }
+    } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
+    tEnd = time(0);
+    div_output = div((Int_t)difftime(tEnd, tStart),60);
+    printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  
+    cout<<blue<<"total no.of quartets ignored due to Beam Mod : "<<totalMissedQuartets<<normal<<endl;
+    cout<<"the no.of used laser cycles in this run was "<<goodCycles<<normal<<endl;
+    return goodCycles;//the function returns the number of used Laser cycles
   }
-  lasCycBCM.close();
-  lasCycLasPow.close();
+  /******************************************************
+    !Further modifications:
+   * While rejecting an event due to Laser/Beam, reject the entire quartet
+   * If I figure out a way to normalize by laserPower then I can relax 
+   *..the condition of laserPower being 90% of maximum for the laser entries to be accepted.
+   * plot qNormAcB1H1L0LasCyc and qNormyieldB1L0LasCyc against
+   *..strip numbers to watch the helicity correlated beam-background
+   * evaluate asymmetry per pattern_number and see its behaviour
+   * ensure efficient evaluation of beamtrips
+   * check consistency of cut on laserPow and beamtrip
+   * add color code to the error and warning messages
+   ******************************************************/
 
-  cout<<red<<"the dataType is set to :"<<dataType<<normal<<endl;
-  //notice that the variables to be written by the writeToFile command is updated after every call of weightedMean() function
-
-  weightedMean(wmCountsNrAsym, wmCountsDrAsym, wmCountsNrBCqNormSum, wmCountsDrBCqNormSum, wmCountsNrBCqNormDiff, wmCountsNrqNormB1L0, wmCountsDrqNormB1L0, wmCountsNrBkgdAsym, wmCountsDrBkgdAsym);
-
-  qNormVariables(totyieldB1L1,totIAllH1L1,qNormCountsB1L1,qNormCountsB1L1Er);//background uncorrected yield
-  qNormVariables(totyieldB1L0,totIAllH1L0,qNormCountsB1L0,qNormCountsB1L0Er);//background yield
-  qNormVariables(totyieldB1L1,totHelB1L1,tNormYieldB1L1,tNormYieldB1L1Er);
-  qNormVariables(totyieldB1L0,totHelB1L0,tNormYieldB1L0,tNormYieldB1L0Er);
-
-  writeToFile(runnum,dataType);
-
-  //!!this currently would not work if the Cedge changes between planes
-  if(debug2) {
-    TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
-    cStability->Divide(3,3);
-    cStability->cd(1);
-    helChain->Draw("yield_sca_bcm6:pattern_number","yield_sca_bcm6.value < 200");
-    cStability->cd(2);
-    helChain->Draw("yield_sca_bpm_3p02aY:pattern_number");
-    cStability->cd(3);
-    helChain->Draw("yield_sca_bpm_3p02bY:pattern_number");
-    cStability->cd(4);
-    helChain->Draw("yield_sca_bpm_3p03aY:pattern_number");
-    cStability->cd(5);
-    helChain->Draw("yield_sca_bpm_3c20Y:pattern_number");
-    //helChain->Draw("sca_bpm_3c20X:event_number");
-    cStability->cd(6);
-    helChain->Draw("yield_sca_bpm_3p02aX:pattern_number");
-    cStability->cd(7);
-    helChain->Draw("yield_sca_bpm_3p02bX:pattern_number");
-    cStability->cd(8);
-    helChain->Draw("yield_sca_bpm_3p03aX:pattern_number");
-    cStability->cd(9);
-    helChain->Draw("yield_sca_laser_PowT:pattern_number","yield_sca_laser_PowT<180000");
-
-    cStability->Update();
-    cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));
-  }
-  tEnd = time(0);
-  div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  
-  cout<<blue<<"total no.of quartets ignored due to Beam Mod : "<<totalMissedQuartets<<normal<<endl;
-  cout<<"the no.of used laser cycles in this run was "<<goodCycles<<normal<<endl;
-  return goodCycles;//the function returns the number of used Laser cycles
-}
-/******************************************************
-  !Further modifications:
- * While rejecting an event due to Laser/Beam, reject the entire quartet
- * If I figure out a way to normalize by laserPower then I can relax 
- *..the condition of laserPower being 90% of maximum for the laser entries to be accepted.
- * plot qNormAcB1H1L0LasCyc and qNormyieldB1L0LasCyc against
- *..strip numbers to watch the helicity correlated beam-background
- * evaluate asymmetry per pattern_number and see its behaviour
- * ensure efficient evaluation of beamtrips
- * check consistency of cut on laserPow and beamtrip
- * add color code to the error and warning messages
- ******************************************************/
-
-/******************************************************
+  /******************************************************
 Comments:
- * B1: beam on; H1: helicity plus; L1: laser on; and vice versa
- * qNormXXX: charge normalized quantity; tNormXXX: time normalized quantity
- * BC: Backgraound Corrected.
- * wm: weightedMean, Ac: Accum, Sc: Scaler, Ev: Event
- * each Laser cycle consitutes of one laser Off zone followed by one laser On period.
- * ..it begins with a Laser Off period and ends with the (just)next laser On period.
- * If we get too many missedEntries,check 'acceptLasPow' and 'minLasPow' variables
- * The first laser-on(if the run begins with that) is ignored.
- * While checking if we want to consider a laser cycle as bad, we check till 
- * ..the beginning of the next laser cycle on purpose to make sure that the 
- * ..beam was indeed ON during both laser On as well as Off periods
- * nCycle refers to the present/current/ongoing laser-cycle
- * nthBeamTrip (on the contrary) refers to the upcoming beamTrip
- * the code counts from '0' but at all human interface, I add '+1' hence human counting
- * Notice that my beamOff's are not true beam-off, they include ramping data as well
- * Careful: there are some h=-9999 that appears in beginning of every runlet
- * Laser power is uncorrelated with beam helicity hence not using its difference 
- * ..to construct the true laser power but simply using the yield for laser power.
- ******************************************************/
+   * B1: beam on; H1: helicity plus; L1: laser on; and vice versa
+   * qNormXXX: charge normalized quantity; tNormXXX: time normalized quantity
+   * BC: Backgraound Corrected.
+   * wm: weightedMean, Ac: Accum, Sc: Scaler, Ev: Event
+   * each Laser cycle consitutes of one laser Off zone followed by one laser On period.
+   * ..it begins with a Laser Off period and ends with the (just)next laser On period.
+   * If we get too many missedEntries,check 'acceptLasPow' and 'minLasPow' variables
+   * The first laser-on(if the run begins with that) is ignored.
+   * While checking if we want to consider a laser cycle as bad, we check till 
+   * ..the beginning of the next laser cycle on purpose to make sure that the 
+   * ..beam was indeed ON during both laser On as well as Off periods
+   * nCycle refers to the present/current/ongoing laser-cycle
+   * nthBeamTrip (on the contrary) refers to the upcoming beamTrip
+   * the code counts from '0' but at all human interface, I add '+1' hence human counting
+   * Notice that my beamOff's are not true beam-off, they include ramping data as well
+   * Careful: there are some h=-9999 that appears in beginning of every runlet
+   * Laser power is uncorrelated with beam helicity hence not using its difference 
+   * ..to construct the true laser power but simply using the yield for laser power.
+   ******************************************************/

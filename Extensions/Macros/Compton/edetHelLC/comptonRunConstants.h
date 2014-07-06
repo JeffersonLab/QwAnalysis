@@ -73,6 +73,7 @@ Bool_t paramRead;
 Double_t k;
 Double_t gamma_my;
 
+Bool_t skipCyc=kFALSE;///true implies this cycle to be skipped
 Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
 Bool_t mask[nPlanes][nStrips];  
 Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];

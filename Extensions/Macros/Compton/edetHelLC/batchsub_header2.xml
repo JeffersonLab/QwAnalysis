@@ -1,0 +1,14 @@
+<Command><![CDATA[
+    echo "User:         " `whoami`
+    echo "WORKDIR:      " $WORKDIR
+    echo "PWD:          " $PWD
+    echo "------"
+    echo "Started at `date`" 
+    echo "Job Number" $JOB_ID
+    setenv JLAB_ROOT /site/12gev_phys
+    source $JLAB_ROOT/ce/jlab.csh 
+    setenv MYSQLPP_LIB_DIR $HOME/svn/lib
+    setenv MYSQLPP_INC_DIR $HOME/svn/include/mysql++
+
+
+

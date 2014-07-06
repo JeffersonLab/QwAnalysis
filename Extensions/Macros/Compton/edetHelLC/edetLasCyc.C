@@ -24,6 +24,7 @@ void edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
   gROOT->LoadMacro(" asymFit.C+g");
   gROOT->LoadMacro(" infoDAQ.C+g");
   gROOT->LoadMacro(" writeToFile.C+g");
+  gROOT->LoadMacro(" qNormVariables.C+g");
   //gROOT->LoadMacro(" fileReadDraw.C+g");
 
   daqflag = infoDAQ(runnum); 
@@ -36,7 +37,8 @@ void edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
   }
 
   if(asymflag!=-1) {
-    asymFit(runnum,dataType);
+    if(asymflag==0) cout<<blue<<"this run has NO useful LASER CYCLE"<<normal<<endl;
+    else asymFit(runnum,dataType);
     //fileReadDraw(runnum);  ///This function uses the output from different dataTypes together, hence should not be called while executing single dataType
   } else cout <<"\n***expAsym.C failed so exiting\n"<<endl;
 

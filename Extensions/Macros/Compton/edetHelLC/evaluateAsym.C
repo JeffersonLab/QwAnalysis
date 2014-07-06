@@ -2,7 +2,7 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 
-void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes][nStrips],Double_t yieldB1L1[nPlanes][nStrips],Double_t yieldB1L0[nPlanes][nStrips],Double_t bcmLCH1L1,Double_t bcmLCH1L0,Double_t bcmLCH0L1,Double_t bcmLCH0L0,Double_t wmNrAsym[nPlanes][nStrips],Double_t wmDrAsym[nPlanes][nStrips],Double_t wmNrBCqNormSum[nPlanes][nStrips],Double_t wmDrBCqNormSum[nPlanes][nStrips],Double_t wmNrBCqNormDiff[nPlanes][nStrips],Double_t wmNrqNormB1L0[nPlanes][nStrips],Double_t wmDrqNormB1L0[nPlanes][nStrips],Double_t wmNrBkgdAsym[nPlanes][nStrips],Double_t wmDrBkgdAsym[nPlanes][nStrips],Double_t qNormLasCycAsym[nPlanes][nStrips],Double_t LasCycAsymErSqr[nPlanes][nStrips])
+Int_t evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes][nStrips],Double_t yieldB1L1[nPlanes][nStrips],Double_t yieldB1L0[nPlanes][nStrips],Double_t bcmLCH1L1,Double_t bcmLCH1L0,Double_t bcmLCH0L1,Double_t bcmLCH0L0,Double_t wmNrAsym[nPlanes][nStrips],Double_t wmDrAsym[nPlanes][nStrips],Double_t wmNrBCqNormSum[nPlanes][nStrips],Double_t wmDrBCqNormSum[nPlanes][nStrips],Double_t wmNrBCqNormDiff[nPlanes][nStrips],Double_t wmNrqNormB1L0[nPlanes][nStrips],Double_t wmDrqNormB1L0[nPlanes][nStrips],Double_t wmNrBkgdAsym[nPlanes][nStrips],Double_t wmDrBkgdAsym[nPlanes][nStrips],Double_t qNormLasCycAsym[nPlanes][nStrips],Double_t LasCycAsymErSqr[nPlanes][nStrips])
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug=0,debug1=0;
@@ -23,7 +23,7 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
     for (Int_t s =startStrip; s <endStrip; s++) {	  
       if (!mask[p][s]) continue;
       ///a factor of 4 is needed to balance out the averaging in the yield and diff reported in the helicity tree
-      countsLCB1H1L1=2.0*(yieldB1L1[p][s] + diffB1L1[p][s]);///this is now the true total counts in this laser cycle durng H1,L1
+      countsLCB1H1L1=2.0*(yieldB1L1[p][s] + diffB1L1[p][s]);///the true total counts in this laser cycle during H1,L1
       countsLCB1H1L0=2.0*(yieldB1L0[p][s] + diffB1L0[p][s]);
       countsLCB1H0L1=2.0*(yieldB1L1[p][s] - diffB1L1[p][s]);
       countsLCB1H0L0=2.0*(yieldB1L0[p][s] - diffB1L0[p][s]);
@@ -31,19 +31,30 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
       totyieldB1H1L0[p][s] += countsLCB1H1L0;
       totyieldB1H0L1[p][s] += countsLCB1H0L1;
       totyieldB1H0L0[p][s] += countsLCB1H0L0;
-
+      //cout<<blue<<"temp4 "<<yieldB1L1[p][s]<<"\t"<<diffB1L1[p][s]<<"\t"<<yieldB1L0[p][s]<<"\t"<<diffB1L0[p][s]<<normal<<endl;
+      //cout<<green<<"temp3 "<<countsLCB1H1L1<<"\t"<<countsLCB1H1L0<<"\t"<<countsLCB1H0L1<<"\t"<<countsLCB1H0L0<<normal<<endl;
       qNormCountsLCB1H1L1=countsLCB1H1L1/qAvgLCH1L1;
       qNormCountsLCB1H1L0=countsLCB1H1L0/qAvgLCH1L0;
       qNormCountsLCB1H0L1=countsLCB1H0L1/qAvgLCH0L1;
       qNormCountsLCB1H0L0=countsLCB1H0L0/qAvgLCH0L0;
-
+      //cout<<countsLCB1H1L1<<"\t"<<yieldB1L1[p][s]<<"\t"<<qAvgLCH1L1<<endl;//temp
+      //cout<<countsLCB1H1L0<<"\t"<<yieldB1L0[p][s]<<"\t"<<qAvgLCH1L0<<endl;//temp
+      //cout<<countsLCB1H0L1<<"\t"<<diffB1L1[p][s]<<"\t"<<qAvgLCH0L1<<endl;//temp
+      //cout<<countsLCB1H0L0<<"\t"<<diffB1L0[p][s]<<"\t"<<qAvgLCH0L0<<endl;//temp
       BCqNormAcB1H1L1LasCyc= qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
       BCqNormAcB1H0L1LasCyc= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
       //Double_t BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);//I could use this variable without explicit background correction because in difference, this is automatically taken care
       BCqNormLasCycDiff = (BCqNormAcB1H1L1LasCyc - BCqNormAcB1H0L1LasCyc);
       BCqNormLasCycSum  = (BCqNormAcB1H1L1LasCyc + BCqNormAcB1H0L1LasCyc);
-      qNormLasCycAsym[p][s] = (BCqNormLasCycDiff / BCqNormLasCycSum);
-
+      if(BCqNormLasCycSum>0.0) qNormLasCycAsym[p][s] = (BCqNormLasCycDiff / BCqNormLasCycSum);
+      else {
+        cout<<red<<"\nsomething wrong in plane "<<p+1<<" strip "<<s+1<<", it has null yield\n"<<normal<<
+        "countsLCB1H1L1:"<<countsLCB1H1L1<<"\tH1L0:"<<countsLCB1H1L0<<"\tH0L1:"<<countsLCB1H0L1<<"\tH0L0:"<<countsLCB1H0L0<<
+        "\nqNormCountsLCB1H1L1:"<<qNormCountsLCB1H1L1<<" ,H1L0:"<<qNormCountsLCB1H1L0<<", H0L1:"<<qNormCountsLCB1H0L1<<" ,H0L0:"<<qNormCountsLCB1H0L0<<
+        "\nBCqNormAcB1H1L1LasCyc:"<<BCqNormAcB1H1L1LasCyc<<" ,H0L1:"<<BCqNormAcB1H0L1LasCyc<<endl;
+        //skipCyc=kTRUE;
+        return -1;
+      }
       ///Evaluation of error on asymmetry; partitioned the evaluation in a way which avoids re-calculation
       term1 = (1.0-qNormLasCycAsym[p][s])/BCqNormLasCycSum;
       term2 = (1.0+qNormLasCycAsym[p][s])/BCqNormLasCycSum;
@@ -51,7 +62,7 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
       NminusOn_SqQminusOn  = qNormCountsLCB1H0L1 /qAvgLCH0L1;
       NplusOff_SqQplusOff  = qNormCountsLCB1H1L0 /qAvgLCH1L0;
       NminusOff_SqQminusOff= qNormCountsLCB1H0L0 /qAvgLCH0L0;
-
+      //      cout<<"temp "<<term1<<"\t"<<NplusOn_SqQplusOn<<"\n"<<endl;
       ///redefining these error variables 
       errB1H1L1 = pow(term1,2) * NplusOn_SqQplusOn; 
       errB1H0L1 = pow(term2,2) * NminusOn_SqQminusOn;
@@ -63,14 +74,40 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
       ///adding asymmetry evaluation for laser off data
       qNormAcBkgdAsymNr = qNormCountsLCB1H1L0 - qNormCountsLCB1H0L0;
       qNormAcBkgdAsymDr = qNormCountsLCB1H1L0 + qNormCountsLCB1H0L0;
-      qNormAcBkgdAsym = qNormAcBkgdAsymNr/qNormAcBkgdAsymDr;
-      term1Bkgd = (1-qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
-      term2Bkgd = (1+qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
+      //cout<<red<<"temp2 "<<p<<" "<<s<<" "<<qNormCountsLCB1H1L0<<"\t"<<qNormCountsLCB1H0L0<<"\t"<<errB1H1L0<<"\t"<<errB1H0L0<<normal<<endl;
+      if(qNormAcBkgdAsymDr>0.0) {
+        qNormAcBkgdAsym = qNormAcBkgdAsymNr/qNormAcBkgdAsymDr;
+        term1Bkgd = (1-qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
+        term2Bkgd = (1+qNormAcBkgdAsym)/qNormAcBkgdAsymDr;
 
-      errBkgdAsymH1 = pow(term1Bkgd,2) * NplusOff_SqQplusOff;
-      errBkgdAsymH0 = pow(term2Bkgd,2) * NminusOff_SqQminusOff;
-      bkgdAsymErSqr = errBkgdAsymH1 + errBkgdAsymH0;
+        errBkgdAsymH1 = pow(term1Bkgd,2) * NplusOff_SqQplusOff;
+        errBkgdAsymH0 = pow(term2Bkgd,2) * NminusOff_SqQminusOff;
+        bkgdAsymErSqr = errBkgdAsymH1 + errBkgdAsymH0;
 
+        ///addition of bkgdAsym term over various laser cycles
+        if (bkgdAsymErSqr > 0.0) {///eqn 4.17(Bevington)
+          wmNrBkgdAsym[p][s] += qNormAcBkgdAsym/bkgdAsymErSqr; ///Numerator 
+          wmDrBkgdAsym[p][s] += 1.0/bkgdAsymErSqr; ///Denominator 
+          if(debug) printf("***adding %g(1/bkgdAsymSq) to wmDrBkgdAsym making it: %f\n",1.0/bkgdAsymErSqr,wmDrBkgdAsym[p][s]);
+        } else {
+          cout<<blue<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? the bkgdAsymErSqr is non-positive\n"<<normal
+          <<"countsLCB1H1L0,  qAvgLCH1L0,  countsLCB1H0L0,  qAvgLCH0L0"
+          <<"\n\t"<<countsLCB1H1L0<<"\t"<<qAvgLCH1L0<<"\t"<<countsLCB1H0L0<<"\t"<<qAvgLCH0L0<<
+          "\nqNormAcBkgdAsymNr:"<<qNormAcBkgdAsymNr<<" ,Dr:"<<qNormAcBkgdAsymDr<<
+          "\nqNormCountsLCB1H1L0:"<<qNormCountsLCB1H1L0<<", H0L0:"<<qNormCountsLCB1H0L0<<
+          "\nterm1Bkgd: "<<term1Bkgd<<" ,term2Bkgd:"<<term2Bkgd<<
+          "\nerrBkgdAsymH1:"<< errBkgdAsymH1<<" ,\tH0:"<<errBkgdAsymH0<<
+          "\nThis could also happen due to beamTrip coincidentally during laserOff"<<endl;
+          //skipCyc=kTRUE;
+          continue;//skip this plane and strip for this laser cycle
+        }
+      }
+      else {
+        cout<<red<<"something uncommon in bgd asym of plane "<<p+1<<" strip "<<s+1<<", it has null yield\n"<<normal<<
+          "laserOff counts for H1 & H0 are "<<qNormCountsLCB1H1L0<<"\t"<<qNormCountsLCB1H0L0<<"\t"<<endl;
+        //skipCyc=kTRUE;//enough ground to skip this laser cycle
+        continue;
+      }  
       if (LasCycAsymErSqr[p][s] >0.0) {///eqn 4.17(Bevington)
         wmNrAsym[p][s] += qNormLasCycAsym[p][s]/LasCycAsymErSqr[p][s]; ///Numerator 
         wmDrAsym[p][s] += 1.0/LasCycAsymErSqr[p][s]; ///Denominator
@@ -78,21 +115,12 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
       } else {
         cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? It gives non-positive Asym Er"<<endl;
         printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);
+        return -1;
       }
       ///Error evaluation for SUM (in asymmetry)
       erBCqNormLasCycSumSq = (NplusOn_SqQplusOn+ NminusOn_SqQminusOn+ NplusOff_SqQplusOff+ NminusOff_SqQminusOff);
       ///Error of laser off background for every laser cycle
       erqNormB1L0LasCycSq = (NplusOff_SqQplusOff+NminusOff_SqQminusOff);
-
-      ///addition of bkgdAsym term over various laser cycles
-      if (bkgdAsymErSqr > 0.0) {///eqn 4.17(Bevington)
-        wmNrBkgdAsym[p][s] += qNormAcBkgdAsym/bkgdAsymErSqr; ///Numerator 
-        wmDrBkgdAsym[p][s] += 1.0/bkgdAsymErSqr; ///Denominator 
-        if (debug) printf("***adding %g(1/bkgdAsymSq) to wmDrBkgdAsym making it: %f\n",1.0/bkgdAsymErSqr,wmDrBkgdAsym[p][s]);
-      } else {
-        cout<<"check if plane "<<p+1<<" strip "<<s+1<<" is MASKED? the bkgdAsymEr is non-positive"<<endl;
-        printf("errBkgdAsymH1:%f, errBkgdAsymH1:%f\n",errBkgdAsymH1,errBkgdAsymH0);
-      }
 
 
       if (erBCqNormLasCycSumSq >0.0) {
@@ -111,4 +139,5 @@ void evaluateAsym(Double_t diffB1L1[nPlanes][nStrips],Double_t diffB1L0[nPlanes]
     }//for (Int_t s =startStrip; s <endStrip; s++) {	
   }///for (Int_t p =startPlane; p <endPlane; p++) { 
   cout<<"this nCycle e.g: expAsym[p1][s22]: "<<qNormLasCycAsym[0][21]<<"+/-"<<TMath::Sqrt(LasCycAsymErSqr[0][21])<<endl;
-}
+  return 1;
+  }
