@@ -151,6 +151,39 @@ class QwDetectorInfo: public TObject {
       fDetectorTiltCos = std::cos(fDetectorTilt);
       fDetectorTiltSin = std::sin(fDetectorTilt);
     };
+    // Get/set rotator pitch (in degrees)
+    double GetRotatorPitch() const { return fRotatorPitch; };
+    double GetRotatorPitchInRad() const { return fRotatorPitch; };  // ???
+    double GetRotatorPitchInDeg() const { return fRotatorPitch / Qw::deg; };
+    double GetRotatorPitchCos() const { return fRotatorPitchCos; };
+    double GetRotatorPitchSin() const { return fRotatorPitchSin; };
+    void SetRotatorPitch(const double pitch) {
+    	fRotatorPitch = pitch; // in degrees
+    	fRotatorPitchCos = std::cos(fRotatorPitch);
+    	fRotatorPitchSin = std::sin(fRotatorPitch);
+    };
+    // Get/set rotator yaw (in degrees)
+    double GetRotatorYaw() const { return fRotatorYaw; };
+    double GetRotatorYawInRad() const { return fRotatorYaw; };  // ???
+    double GetRotatorYawInDeg() const { return fRotatorYaw / Qw::deg; };
+    double GetRotatorYawCos() const { return fRotatorYawCos; };
+    double GetRotatorYawSin() const { return fRotatorYawSin; };
+    void SetRotatorYaw(const double yaw) {
+    	fRotatorYaw = yaw; // in degrees
+    	fRotatorYawCos = std::cos(fRotatorYaw);
+    	fRotatorYawSin = std::sin(fRotatorYaw);
+    };
+    // Get/set rotator roll (in degrees)
+    double GetRotatorRoll() const { return fRotatorRoll; };
+    double GetRotatorRollInRad() const { return fRotatorRoll; };  // ???
+    double GetRotatorRollInDeg() const { return fRotatorRoll / Qw::deg; };
+    double GetRotatorRollCos() const { return fRotatorRollCos; };
+    double GetRotatorRollSin() const { return fRotatorRollSin; };
+    void SetRotatorRoll(const double roll) {
+    	fRotatorRoll = roll; // in degrees
+    	fRotatorRollCos = std::cos(fRotatorRoll);
+    	fRotatorRollSin = std::sin(fRotatorRoll);
+    };
 
     // Get/set tracking search tree
     QwTrackingTreeRegion* GetTrackingSearchTree() { return fTree; };
@@ -198,6 +231,15 @@ class QwDetectorInfo: public TObject {
     double fDetectorTilt;               ///Tilt in XY of Detector
     double fDetectorTiltCos;    	///< Cos of detector tilt
     double fDetectorTiltSin;	        ///< Sin of detector tilt
+    double fRotatorPitch;			/// Pitch of rotator (rotation of rotator about global x-axis)
+    double fRotatorPitchCos;		///< Cos of rotator pitch
+    double fRotatorPitchSin;		///< Sin of rotator pitch
+    double fRotatorYaw;				/// Yaw of rotator (rotation of rotator about global y-axis)
+    double fRotatorYawCos;			///< Cos of rotator yaw
+    double fRotatorYawSin;			///< Sin of rotator yaw
+    double fRotatorRoll;			/// Roll of rotator (rotation of rotator about global z-axis)
+    double fRotatorRollCos;			///< Cos of rotator roll
+    double fRotatorRollSin;			///< Sin of rotator roll
 
 
     bool   fIsActive;		///< Is this detector activated in tracking

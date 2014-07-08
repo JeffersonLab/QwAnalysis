@@ -26,6 +26,9 @@ QwDetectorInfo::QwDetectorInfo(const std::string& name)
   fDetectorOriginX(0),fDetectorOriginY(0),fDetectorOriginZ(0),
   fDetectorRotation(0),fDetectorRotationCos(0),fDetectorRotationSin(0),
   fDetectorTilt(0),fDetectorTiltCos(0),fDetectorTiltSin(0),
+  fRotatorPitch(0),fRotatorPitchCos(0),fRotatorPitchSin(0),
+  fRotatorYaw(0),fRotatorYawCos(0),fRotatorYawSin(0),
+  fRotatorRoll(0),fRotatorRollCos(0),fRotatorRollSin(0),
   fIsActive(true),fSpatialResolution(0),fTrackResolution(0),fSlopeMatching(0),
   fActiveWidthX(0),fActiveWidthY(0),fActiveWidthZ(0),
   fElementSpacing(0),fElementAngle(0),fElementAngleCos(0),fElementAngleSin(0),
@@ -63,6 +66,21 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
     fDetectorRotation = map->ConvertValue<double>(varvalue) * Qw::deg;
     fDetectorRotationCos = cos(fDetectorRotation);
     fDetectorRotationSin = sin(fDetectorRotation);
+  }
+  if(map->FileHasVariablePair("=","rotator_pitch",varvalue)) {
+   	fRotatorPitch = map->ConvertValue<double>(varvalue) * Qw::deg;
+   	fRotatorPitchCos = cos(fRotatorPitch);
+   	fRotatorPitchSin = sin(fRotatorPitch);
+  }
+  if(map->FileHasVariablePair("=","rotator_yaw",varvalue)) {
+  	fRotatorYaw = map->ConvertValue<double>(varvalue) * Qw::deg;
+  	fRotatorYawCos = cos(fRotatorYaw);
+  	fRotatorYawSin = sin(fRotatorYaw);
+  }
+  if(map->FileHasVariablePair("=","rotator_roll",varvalue)) {
+  	fRotatorRoll = map->ConvertValue<double>(varvalue) * Qw::deg;
+  	fRotatorRollCos = cos(fRotatorRoll);
+  	fRotatorRollSin = sin(fRotatorRoll);
   }
 
   if (map->FileHasVariablePair("=","number_of_elements",varvalue))
@@ -154,6 +172,9 @@ void QwDetectorInfo::Print() const
   QwOut << "detector_origin_z = " << fDetectorOriginZ/Qw::cm << QwLog::endl;
   QwOut << "detector_rotation = " << fDetectorRotation/Qw::deg << QwLog::endl;
   QwOut << "detector_tilt = " << fDetectorTilt/Qw::deg << QwLog::endl;
+  QwOut << "rotator_pitch = " << fRotatorPitch/Qw::deg << QwLog::endl;
+  QwOut << "rotator_yaw = " << fRotatorYaw/Qw::deg << QwLog::endl;
+  QwOut << "rotator_roll = " << fRotatorRoll/Qw::deg << QwLog::endl;
   QwOut << "spatial_resolution = " << fSpatialResolution << QwLog::endl;
   QwOut << "track_resolution = " << fTrackResolution << QwLog::endl;
   QwOut << "slope_matching = " << fSlopeMatching << QwLog::endl;

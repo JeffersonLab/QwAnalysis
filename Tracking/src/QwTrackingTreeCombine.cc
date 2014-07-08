@@ -1991,8 +1991,8 @@ QwPartialTrack* QwTrackingTreeCombine::r3_TrackFit (
   fit[3]=P_dir[1]/P_dir[2];
 
   // TASK 3: rotate xy local to the global coordination(partially because of y axis)
-  double ztrans,ytrans,xtrans,costheta,sintheta,cosphi,sinphi;
   double P1[3],P2[3],Pp1[3],Pp2[3];
+    double ztrans,ytrans,xtrans,costheta,sintheta,cosphi,sinphi;
   //get some detector information
   // NOTE: since the first plane is in v direction and hits[0] is in u, so here 1 should be changed to 2
 
@@ -2004,6 +2004,7 @@ QwPartialTrack* QwTrackingTreeCombine::r3_TrackFit (
     sintheta = hits[0]->GetDetectorInfo()->GetDetectorRotationSin();
     cosphi = hits[0]->GetDetectorInfo()->GetDetectorTiltCos();
     sinphi = hits[0]->GetDetectorInfo()->GetDetectorTiltSin();
+    
     /// xtrans,ytrans,ztrans are first plane's information
     xtrans = hits[0]->GetDetectorInfo()->GetXPosition();
     ytrans = hits[0]->GetDetectorInfo()->GetYPosition();
@@ -2773,6 +2774,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             pt->SetPackage(package);
             pt->SetOctant(wu->GetOctant());
             pt->RotateCoordinates();
+            pt->RotateRotator(wu->fHits[0]->GetDetectorInfo());
             // Set 2 plane 0 treelines only
             pt->SetAlone(nump0);
 

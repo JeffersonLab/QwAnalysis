@@ -163,6 +163,9 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     //! Rotate coordinates to right octant
     void RotateCoordinates();
 
+    //Rotate coordinates to account for any rotator pitch, yaw, or roll
+    void RotateRotator(const QwDetectorInfo* geometry);
+
   public: // members
 
     Double_t fOffsetX;		///< x coordinate (at MAGNET_CENTER)

@@ -539,3 +539,49 @@ void QwPartialTrack::RotateCoordinates(){
   fSlopeY=(y4-y3)/(z2-z1);
 
 }
+void QwPartialTrack::RotateRotator(const QwDetectorInfo* detector){
+	double z1=0,z2=-250;
+	double x1=0,y1=0,x2=0,y2=0;
+	double pitch=0,yaw=0,roll=0;
+	double pitchrad=0,yawrad=0,rollrad=0;
+	x1=fOffsetX+fSlopeX*z1;
+	y1=fOffsetY+fSlopeY*z1;
+	x2=fOffsetX+fSlopeX*z2;
+	y2=fOffsetY+fSlopeY*z2;
+
+
+	TVector3 v1(x1,y1,z1);
+	TVector3 v2(x2,y2,z2);
+
+	TVector3 xaxis(1,0,0);   //x-axis of rotator
+	TVector3 yaxis(0,1,0);  //y-axis of rotator
+	TVector3 zaxis(0,0,1);  //z-axis of rotator
+
+	 pitch = detector->GetRotatorPitch();
+	 yaw = detector->GetRotatorYaw();
+	 roll = detector->GetRotatorRoll();
+	 double PI=3.1415926;
+	 pitchrad = pitch * PI/180.0;
+	 yawrad = yaw * PI/180.0;
+	 rollrad = roll * PI/180.0;
+
+	v1.Rotate(pitchrad,xaxis);
+	v2.Rotate(pitchrad,xaxis);
+	yaxis.Rotate(pitchrad,xaxis);	//rotating y-axis for yaw next
+	zaxis.Rotate(pitchrad,xaxis);	//rotating z-axis for roll later
+
+	v1.Rotate(yawrad,yaxis);
+	v2.Rotate(yawrad,yaxis);
+	zaxis.Rotate(yawrad,yaxis);	//rotating z-axis for roll next
+
+	v1.Rotate(rollrad,zaxis);
+	v2.Rotate(rollrad,zaxis);
+
+	fOffsetX = v1.X();
+	fOffsetY = v1.Y();
+
+	fSlopeX = (v2.X()-v1.X())/(v2.Z()-v1.Z());
+	fSlopeY = (v2.Y()-v1.Y())/(v2.Z()-v1.Z());
+
+
+}
