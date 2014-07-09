@@ -1,7 +1,15 @@
-//Implementation file for slug vec class
-//J. Magee
-//February 15, 2013
-//slugvec.h
+/* Implementation file for SlugCalcVec class
+ *
+ * SlugCalcVecs are vector objects where elements are SlugCalc objects.
+ * SlugCalc objects process data sets into chunks called "slugs." Often,
+ * one wants to manipulate multiple slugs for plotting and analysis purposes.
+ * The SlugCalcVec class makes this possible and less head-ache prone.
+ *
+ * Joshua Magee
+ * joshuamagee@gmail.com
+ * February 14, 2013
+ * SlugCalcVec.h
+ */
 
 #include <iostream>
 #include<math.h>
@@ -24,9 +32,9 @@ SlugCalcVec::SlugCalcVec() //default constructor
 SlugCalcVec::~SlugCalcVec() //default destructor
 {   } //end destructor
 
-void SlugCalcVec::push_back(int slug, int runlet, float val, float err)
+void SlugCalcVec::push_back(float slug, float runlet, float val, float err)
 {
-  map<int,int>::iterator iter = index.find(slug);
+  map<float,int>::iterator iter = index.find(slug);
   if ( iter == index.end() ) {
     index[slug] = slugvec.size();
     slugvec.push_back(SlugCalc(slug));
@@ -52,7 +60,6 @@ const float* SlugCalcVec::GetErrorArray()
 } //end GetErrorArray function
 
 
-
 const float* SlugCalcVec::GetAvgArray()
 {
   int length = slugvec.size();
@@ -66,8 +73,6 @@ const float* SlugCalcVec::GetAvgArray()
 
   return fVal;
 } //end GetErrorArray function
-
-
 
 const float* SlugCalcVec::GetSlugsArray()
 {
@@ -83,11 +88,47 @@ const float* SlugCalcVec::GetSlugsArray()
   return fSlug;
 } //end GetErrorArray function
 
-int SlugCalcVec::size()
+const float *SlugCalcVec::GetChiArray()
 {
-  return (int) slugvec.size();
+  int length = slugvec.size();
+  float * old = fChi;
+  fChi = new float (length+1);
+
+  for( int i=0; i<length; i++ ) {
+    fChi[i]=slugvec[i].GetChi();
+  } //end for loop
+  delete old;
+
+  return fChi;
 }
 
+const float *SlugCalcVec::GetReducedChiArray()
+{
+  int length = slugvec.size();
+  float * old = fRedChi;
+  fRedChi = new float (length+1);
+
+  for( int i=0; i<length; i++ ) {
+    fRedChi[i]=slugvec[i].GetReducedChi();
+  } //end for loop
+  delete old;
+
+  return fRedChi;
+}
+
+const float *SlugCalcVec::GetDofArray()
+{
+  int length = slugvec.size();
+  float * old = fDof;
+  fDof = new float (length+1);
+
+  for( int i=0; i<length; i++ ) {
+    fDof[i]=slugvec[i].GetDof();
+  } //end for loop
+  delete old;
+
+  return fDof;
+}
 
 
 void SlugCalcVec::PrintSlugVec()
@@ -97,7 +138,7 @@ void SlugCalcVec::PrintSlugVec()
   const float *avgArray   = GetAvgArray();
   const float *errorArray = GetErrorArray();
 
-  std::cout <<"Size: \t" <<length <<std::endl;
+//  std::cout <<"Size: \t" <<length <<std::endl;
   std::cout <<"\tSlug \tAvg \tError\n";
   for (int i=0; i<length; i++) {
     std::cout <<" \t" <<slugArray[i] <<" \t" <<avgArray[i]
@@ -107,6 +148,15 @@ void SlugCalcVec::PrintSlugVec()
 } //end PrintSlugVec function
 
 
+int SlugCalcVec::Size()
+{
+  return (int) slugvec.size();
+}
+
+SlugCalc& SlugCalcVec::operator[] (int index)
+{
+  return slugvec[index];
+}
 
 
 
