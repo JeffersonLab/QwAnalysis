@@ -297,6 +297,15 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     fOriginalEvent->fPreScatteringEnergy = fPrimary_PreScatteringKineticEnergy;     
     fOriginalEvent->fOriginVertexEnergy =  fPrimary_OriginVertexKineticEnergy;
 
+    // Assign the kinematic variables in fKin
+    fOriginalEvent->fKin.fP0 = fPrimary_PreScatteringKineticEnergy * Qw::MeV / Qw::GeV;
+    fOriginalEvent->fKin.fPp = fPrimary_OriginVertexKineticEnergy * Qw::MeV / Qw::GeV;
+    fOriginalEvent->fKin.fQ2 = fPrimary_PrimaryQ2 / Qw::GeV2;
+    fOriginalEvent->fKin.fNu = (fOriginalEvent->fKin.fP0 - fOriginalEvent->fKin.fPp) / Qw::GeV;
+    fOriginalEvent->fKin.fW2 = (Qw::Mp * Qw::Mp + 2.0 * Qw::Mp * (fOriginalEvent->fKin.fP0 - fOriginalEvent->fKin.fPp) - fOriginalEvent->fKin.fQ2) / Qw::GeV2;
+    fOriginalEvent->fKin.fX = fOriginalEvent->fKin.fQ2 / (2.0 * Qw::Mp * (fOriginalEvent->fKin.fP0 - fOriginalEvent->fKin.fPp));
+    fOriginalEvent->fKin.fY = (fOriginalEvent->fKin.fP0 - fOriginalEvent->fKin.fPp) / fOriginalEvent->fKin.fP0;
+
     // Assign the cross section to the reconstructed event for correct weighting
     fCurrentEvent->fCrossSection = fPrimary_CrossSection;
 
