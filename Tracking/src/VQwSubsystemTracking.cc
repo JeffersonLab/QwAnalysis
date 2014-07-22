@@ -52,11 +52,12 @@ Int_t VQwSubsystemTracking::LoadGeometryDefinition(TString filename)
 
     // Construct "R2-octant = 2" to construct the correct module header
     std::stringstream octant_match;
-    octant_match << octant_option << " = " << detector->GetOctant();
+    octant_match << octant_option.str() << " = " << detector->GetOctant();
 
     // Find modules matching the current octant
     QwParameterFile* module;
     std::string module_name;
+    section->RewindToFileStart();
     while ((module = section->ReadNextModule(module_name))) {
       // Find matching module
       if (module_name == octant_match.str()) {
