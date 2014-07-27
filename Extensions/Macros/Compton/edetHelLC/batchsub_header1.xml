@@ -2,7 +2,7 @@
   <Email email="narayan@jlab.org" request="false" job="false"/>
   <Project name="qweak"/>
   <Track name="debug"/>
-  <TimeLimit unit="minutes" time="7"/>
+  <TimeLimit unit="minutes" time="8"/>
   <DiskSpace space="1030" unit="MB"/>
   <Memory space="2048" unit="MB"/>
   <OS name="centos62"/>

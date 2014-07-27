@@ -20,15 +20,15 @@ Int_t writeToFile(Int_t runnum,TString dataType)
     outtNormYieldB1L1.open(Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     outtNormYieldB1L0.open(Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     if (outfileExpAsymP.is_open()) {// && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
-      cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
       fortranCheck<<Form("%f\t%f\t%f\t%f\t%f\n",totIAllH1L1,totIAllH1L0,totIAllH0L1,totIAllH0L0,totIAllH1L1+totIAllH1L0+totIAllH0L1+totIAllH0L0);
       fortranCheck<<";\n";
       fortranCheck<<Form("%f\t%f\t%f\n",totHelB1L1/helRate,totHelB1L0/helRate,(totHelB1L1+totHelB1L0)/helRate);
@@ -36,7 +36,7 @@ Int_t writeToFile(Int_t runnum,TString dataType)
       //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
       Bool_t firstOne=kTRUE;
       for (Int_t s =startStrip; s <endStrip;s++) { 
-        if (!mask[p][s]) continue;
+        //if (!mask[p][s]) continue;
         if(!firstOne) {
           outfileExpAsymP<<"\n";
           outfileBkgdAsymP<<"\n";
@@ -68,15 +68,15 @@ Int_t writeToFile(Int_t runnum,TString dataType)
       outqNormL0.close();
       outtNormYieldB1L1.close();
       outtNormYieldB1L0.close();
-      cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
     } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
     }
     return runnum;

@@ -8,7 +8,7 @@ void qNormVariables(Int_t totCounts[nPlanes][nStrips],Double_t totI,Double_t qNo
 {
   for(Int_t p = startPlane; p < endPlane; p++) {
     for (Int_t s =startStrip; s <endStrip; s++) { 
-      if (!mask[p][s]) continue;
+      //if (!mask[p][s]) continue;
       qNormCnts[p][s]  = (totCounts[p][s])/((Double_t)(totI/helRate));
       qNormCntsEr[p][s] = (TMath::Sqrt(totCounts[p][s]))/(Double_t)(totI/helRate);
     }

@@ -10,7 +10,7 @@ Int_t infoDAQ(Int_t runnum)
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
   const Bool_t debug=0;
   const Int_t errFlag=100;
-  Bool_t additionalStripMask=1;
+  Bool_t additionalStripMask=1;///this will be my primary tool to skip masked strips in asymFit.C
   Double_t bMask[nPlanes][nStrips];
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
@@ -18,6 +18,17 @@ Int_t infoDAQ(Int_t runnum)
   ofstream flagsfile,debugInfoDAQ,infoStripMask;
 
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
+  if(additionalStripMask) {
+    //skipStrip.push_back(2);//notice that the strip number pushed is in human counts
+    skipStrip.push_back(6);
+    //skipStrip.push_back(10);//notice that the strip number pushed is in human counts
+    skipStrip.push_back(20);
+    //skipStrip.push_back(39);
+    //cout<<red<<"masked strips # 2,6,10,20,39 accross all planes"<<normal<<endl;//!update this with above list
+    cout<<red<<"masked strips # 39 accross all planes"<<normal<<endl;//!update this with above list
+  }
+
+///For further processing, I need the rootfile
   TFile file(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//need to read in only the first runlet
   if(file.IsZombie()) {
     cout<<red<<"couldn't open the rootfile needed by infoDAQ.C"<<normal<<endl;
@@ -61,18 +72,13 @@ Int_t infoDAQ(Int_t runnum)
       if (mask[p][s] == 0) {
 	infoStripMask<<s+1<<"\t";
 	//skipStrip.insert(s+1); //idea of declaraing it as a 'set' did not work
-	skipStrip.push_back(s+1);//notice that the strip#s are pushed in as human count #s
+	//skipStrip.push_back(s+1);//notice that the strip#s are pushed in as human count #s
 	if(debug) cout<<blue<<"masked strip "<<s+1<<normal<<endl;
       }//check if strip is masked
     }//for all strips
   }//for all planes
   infoStripMask.close();
   ///list all those strips that you want in the list for in case it was not already a part of the above created vector
-  if(additionalStripMask) {
-    skipStrip.push_back(2);//notice that the strip number pushed is in human counts
-    skipStrip.push_back(10);//notice that the strip number pushed is in human counts
-    cout<<red<<"apart from masked strips, ignoring strip # 2,10 accross all planes"<<normal<<endl;//!update this with above list
-  }
   for(Int_t m = 0; m <nModules; m++) {
     acTrigSlave[m]        = (Int_t)bAcTrigSlave[m];  
     evTrigSlave[m]        = (Int_t)bEvTrigSlave[m];

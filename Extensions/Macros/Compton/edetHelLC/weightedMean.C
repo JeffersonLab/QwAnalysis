@@ -8,8 +8,9 @@ Double_t weightedMean(Double_t weightedMeanNrAsym[nPlanes][nStrips],Double_t wei
   Bool_t debug=0;
   for (Int_t p =startPlane; p <endPlane; p++) { ///eqn 4.17 Bevington
     for (Int_t s =startStrip; s <endStrip; s++) {        
-      if (!mask[p][s]) continue;
-      if(weightedMeanDrAsym[p][s]<=0.0) cout<<"stand. deviation in weighted Mean Asym is non-positive for p"<<p<<" s"<<s<<endl;
+      //if (!mask[p][s]) continue;
+      if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
+      else if(weightedMeanDrAsym[p][s]<=0.0) cout<<red<<"stand. deviation in weighted Mean Asym is non-positive for p"<<p+1<<" s"<<s+1<<endl;
       else {
         stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
         if (weightedMeanDrAsym[p][s]<0.0) {

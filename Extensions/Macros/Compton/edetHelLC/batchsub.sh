@@ -4,11 +4,10 @@ macro=/w/hallc/compton/users/narayan/svn/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
-#for i in `seq 23446 23447`;
 #for i in `seq 23098 25204`;
 #for i in `seq 22659 25546`;
-#for i in `seq 23220 23530`;
-for i in `seq 23220 23239`;
+#for i in `seq 23531 24000`;
+for i in `seq 23220 23530`;
 do
   cat batchsub_header1.xml >> batch_submit_$i.xml
   echo '<Name name="edetHelLC_'$i'"/>' >> batch_submit_$i.xml
@@ -38,26 +37,6 @@ do
   echo '<Stderr dest="'$QWSCRATCH'/work/check_'$i'.err"/>' >> batch_submit_$i.xml
   echo '<Stdout dest="'$QWSCRATCH'/work/check_'$i'.out"/>' >> batch_submit_$i.xml
 #  echo '<Stdout dest="/dev/null"/>' >> batch_submit_$i.xml
-
-#  echo '<Output src="edetLasCyc_'$i'_AcAsymFit.png" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcAsymFit.png"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcAsymFitResidual.png" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcAsymFitResidual.png"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcYieldFit.png" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcYieldFit.png"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcBkgdAsymP1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcBkgdAsymP1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcExpAsymP1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcExpAsymP1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcFortranCheckP1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcFortranCheckP1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcLasOffBkgdP1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcLasOffBkgdP1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcPol.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcPol.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcqNormCntsB1L0P1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcqNormCntsB1L0P1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcqNormCntsB1L1P1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcqNormCntsB1L1P1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_ActNormYieldB1L0P1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_ActNormYieldB1L0P1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_ActNormYieldB1L1P1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_ActNormYieldB1L1P1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_AcYieldP1.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_AcYieldP1.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_cutBeam.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_cutBeam.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_cutLas.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_cutLas.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_debugInfoDAQ.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_debugInfoDAQ.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_infoBeamLas.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_infoBeamLas.txt"/>' >> batch_submit_$i.xml
-#  echo '<Output src="edetLasCyc_'$i'_infoDAQ.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_infoDAQ.txt"/>' >> batch_submit_$i.xml
-##  echo '<Output src="edetLasCyc_'$i'_.txt" dest="'$WWW'/run_'$i'/edetLasCyc_'$i'_.txt"/>' >> batch_submit_$i.xml
 
   echo '</Job>'  >> batch_submit_$i.xml
   echo '</Request>'  >> batch_submit_$i.xml

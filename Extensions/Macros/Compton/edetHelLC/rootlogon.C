@@ -41,7 +41,7 @@ void rootlogon()
   pubStyle->SetErrorX(0.001);
 
   // do not display any of the standard histogram decorations
-  pubStyle->SetOptTitle(0);
+  pubStyle->SetOptTitle(1);
   pubStyle->SetOptStat(0);
   pubStyle->SetOptFit(1);
 

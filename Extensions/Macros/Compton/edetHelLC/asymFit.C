@@ -39,7 +39,7 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   //xStrip = xCedge -0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
   if(!kVladas_meth) {//!my method
     xStrip = xCedge - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
-    rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3];
+    rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]+ xStrip*xStrip*xStrip*xStrip*param[4]+ xStrip*xStrip*xStrip*xStrip*xStrip*param[5];
   } else {  //!Vladas's numbers
     xStrip = 17.315 - 0.2*(par[1] - (*thisStrip))*par[0]; //for 2nd parameter as Cedge itself
     rhoStrip = 2.81648E-06 + xStrip*0.0602395 + xStrip*xStrip*(-0.000148674) + xStrip*xStrip*xStrip*1.84876E-07 + xStrip*xStrip*xStrip*xStrip*1.05068E-08 + xStrip*xStrip*xStrip*xStrip*xStrip*(-2.537E-10);
@@ -87,6 +87,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   ifstream paramfile,infileL0Yield, expAsymPWTL1, infileYield;
   ofstream polList;
   std::vector<std::vector <Double_t> > activeStrip,qNormCntsB1L0,qNormCntsB1L0Er;
+  std::vector<Double_t > trueStrip,asym,asymEr;
   Int_t numbGoodStrips[nPlanes]={0};
   Double_t stripNum[nPlanes][nStrips],qNormCntsB1L1[nPlanes][nStrips],qNormCntsB1L1Er[nPlanes][nStrips];
 
@@ -149,21 +150,45 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePrefix.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane\tgoodCycles"<<endl;
+
   for (Int_t p =startPlane; p <endPlane; p++) {  
     if (!kVladas_meth) xCedge = rhoToX(p); ///this function should be called after determining the Cedge
 
     paramfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,p+1));
     cout<<"reading in the rho to X fitting parameters for plane "<<p+1<<", they were:" <<endl;
-    paramfile>>param[0]>>param[1]>>param[2]>>param[3];
+    paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
     paramfile.close();
-    if(debug) printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
+    if(debug) printf("%g\t%g\t%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3],param[4],param[5]);
 
     cAsym->cd(p+1);  
     cAsym->GetPad(p+1)->SetGridx(1);
 
+    if(kVladas_data) expAsymPWTL1.open("/home/narayan/acquired/vladas/run.24519");
+    else expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    Int_t c1=0;
+    Double_t dummy1,dummy2,dummy3;
+    if(expAsymPWTL1.is_open()) {
+      if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
+      if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
+      for(Int_t s =startStrip ; s < endStrip; s++) {
+        if (std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) {
+          cout<<red<<"skipping strip "<<s+1<<normal<<endl;
+          expAsymPWTL1>>dummy1>>dummy2>>dummy3;
+          continue; 
+        }
+        //if (!mask[p][s]) continue;
+        trueStrip.push_back(0.0),asym.push_back(0.0),asymEr.push_back(0.0);
+        expAsymPWTL1>>trueStrip[c1]>>asym[c1]>>asymEr[c1];
+        if(debug2) cout<<blue<<trueStrip[c1]<<"\t"<<asym[c1]<<"\t"<<asymEr[c1]<<normal<<endl;
+        c1++;
+      }
+      expAsymPWTL1.close();
+    } else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+
     if(kVladas_data) grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/run.24519","%lg %lg %lg");  
     //grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
-    else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
+    //else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
+    else grAsymPlane[p]=new TGraphErrors(nStrips,trueStrip.data(),asym.data(),zero,asymEr.data());
 
     grAsymPlane[p]->GetXaxis()->SetTitle("Strip number");
     grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");   
@@ -255,33 +280,19 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     for (Int_t p =startPlane; p <endPlane; p++) {
       ///determining the residue of the above fit
       for (Int_t s = startStrip; s < endStrip; s++) {//ensure that all variables gets initiated by zero
-        stripNum[p][s]=0.0,stripAsym[p][s]=0.0,stripAsymEr[p][s]=0.0;
         qNormCntsB1L1[p][s]=0.0,stripAsymNr[p][s]=0.0,qNormCntsB1L1Er[p][s]=0.0;
         zero[s] = 0.0;
       }
-      if(kVladas_data) expAsymPWTL1.open("/home/narayan/acquired/vladas/run.24519");
-      else expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      if(expAsymPWTL1.is_open()) {
-        if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
-        if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
-        for(Int_t s =startStrip ; s < endStrip; s++) {
-          if (!mask[p][s]) continue;
-          expAsymPWTL1>>stripNum[p][s]>>stripAsym[p][s]>>stripAsymEr[p][s];
-          if(debug2) cout<<stripNum[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<stripAsymEr[p][s]<<endl;
-        }
-        expAsymPWTL1.close();
-      }
-      else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
       if(debug2) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
       for (Int_t s = startStrip; s <= Cedge[p]; s++) {
-        if (!mask[p][s]) continue;
-        fitResidue[p][s] = stripAsym[p][s] - polFit->Eval(s+1);
-        if(debug2) cout<<fitResidue[p][s]<<"\t"<<stripAsym[p][s]<<"\t"<<polFit->Eval(s+1)<<endl;
+        //if (!mask[p][s]) continue;
+        fitResidue[p][s] = asym[s] - polFit->Eval(s+1);
+        if(debug2) cout<<fitResidue[p][s]<<"\t"<<asym[s]<<"\t"<<polFit->Eval(s+1)<<endl;
       }
       cResidual->cd(p+1);  
       cResidual->GetPad(p+1)->SetGridx(1);
-      grResiduals[p]=new TGraphErrors((Int_t)Cedge[p],stripNum[p],fitResidue[p],zero,stripAsymEr[p]);
+      grResiduals[p]=new TGraphErrors((Int_t)Cedge[p],trueStrip.data(),fitResidue[p],zero,asymEr.data());
       grResiduals[p]->SetMarkerStyle(kOpenCircle);
       grResiduals[p]->SetMaximum(0.012);/// half of asymmetry axis 
       grResiduals[p]->SetMinimum(-0.012);/// half of asymmetry axis 

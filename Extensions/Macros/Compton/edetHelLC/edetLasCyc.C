@@ -5,7 +5,7 @@
 #include "expAsym.C"
 #include "fileReadDraw.C"
 
-void edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
+Int_t edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
 {
   cout<<"starting into edetLasCyc.C**************"<<endl;
   time_t tStart = time(0), tEnd; 
@@ -45,5 +45,5 @@ void edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to execute edetLasCyc.C\n",div_output.quot,div_output.rem );  
-
+  return 2;
 }

@@ -5,6 +5,7 @@
 ///This function ought to be called after auto-determination of compton edge was successful
 Double_t rhoToX(Int_t plane)
 {
+  cout<<"\nStarting into rhoToX.C **************\n"<<endl;
   Bool_t debug=0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
@@ -90,7 +91,7 @@ Double_t rhoToX(Int_t plane)
   grtheory->SetLineColor(2);
   grtheory->SetMarkerColor(2);
   
-  TF1 *fn0 = new TF1("fn0","pol3");
+  TF1 *fn0 = new TF1("fn0","pol5");
   grtheory->Fit("fn0","0");//,"0","goff");
   fn0->GetParameters(param);
   // if(debug) {
@@ -102,7 +103,7 @@ Double_t rhoToX(Int_t plane)
   checkfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane+1));
    if(checkfile.is_open()) {
      cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane+1<<endl;
-     checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
+     checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<"\t"<<param[4]<<"\t"<<param[5]<<endl;
    } else cout<<"**Alert: couldn't open file to write QED fit parameters**\n"<<endl;
   checkfile.close();
   return xCedge;

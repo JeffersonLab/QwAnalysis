@@ -19,7 +19,7 @@ const Double_t B_dipole = 0.544;///T
 const Double_t E = 1.159; //Beam energy (GeV)
 const Double_t lambda = 532E-9; //photon wavelength (nm)      
 Double_t xCedge;
-Double_t param[4];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
+Double_t param[6];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
 Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
@@ -104,6 +104,8 @@ Int_t totyieldB1H1L1[nPlanes][nStrips],totyieldB1H1L0[nPlanes][nStrips],totyield
 Double_t tNormYieldB1L1[nPlanes][nStrips],tNormYieldB1L0[nPlanes][nStrips];
 Double_t tNormYieldB1L1Er[nPlanes][nStrips],tNormYieldB1L0Er[nPlanes][nStrips];
 Double_t beamMaxEver = 200.0, beamOnLimit=20.0;
+Double_t timeB0,rateB0[nStrips];
+
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64

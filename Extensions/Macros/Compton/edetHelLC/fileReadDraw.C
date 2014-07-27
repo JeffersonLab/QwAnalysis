@@ -6,10 +6,10 @@
 Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac") 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
-  Bool_t kBkgdAsym=1;//plots the asymmetry from Laser off events
+  Bool_t kBkgdAsym=0;//plots the asymmetry from Laser off events
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=0;//now the asymFit.C plots this already
-  Bool_t compareAsym=0;//compares asymmetries from dataType and dataType2(defined locally)
+  Bool_t compareAsym=1;//compares asymmetries from dataType and dataType2(defined locally)
   Bool_t asymComponents=0;//plots the numerator of asymmetry
   Bool_t scalerPlot=0;
   Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
@@ -38,7 +38,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
   Double_t qNormAcB1L0[nPlanes][nStrips][mCyc],qNormAcB1L1[nPlanes][nStrips][mCyc];
   Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
   Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
-  if(!maskSet) infoDAQ(runnum);
+  //if(!maskSet) infoDAQ(runnum);
 
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
@@ -292,7 +292,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         cout<<"Reading the expAsym corresponding to PWTL2 for Plane "<<p+1<<endl;
         if(debug) cout<<"stripNum\t"<<"stripAsym_v1\t"<<"stripAsym_v2\t"<<"asymDiff"<<endl;
         for(Int_t s =startStrip ; s < endStrip; s++) {
-          if (!mask[p][s]) continue;
+          //if (!mask[p][s]) continue;
           expAsymPWTL1>>stripNum[p][s]>>stripAsym_v1[p][s]>>stripAsymEr_v1[p][s];
           expAsymPWTL2>>stripNum[p][s]>>stripAsym_v2[p][s]>>stripAsymEr_v2[p][s];
           asymDiff[p][s] = (stripAsym_v1[p][s]- stripAsym_v2[p][s]);
@@ -515,7 +515,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     //for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
-        if (!mask[p][s]) continue; //currently only for plane 1	
+        //if (!mask[p][s]) continue; //currently only for plane 1	
         lasCycAccum.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_AcLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
         Int_t nLasCycles=0;
         if(lasCycAccum.is_open()) {
@@ -671,7 +671,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     //for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
-        if (!mask[p][s]) continue; //currently only for plane 1	
+        //if (!mask[p][s]) continue; //currently only for plane 1	
         lasCycScaler.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
         Int_t nLasCycles=0;
         if(lasCycScaler.is_open()) {
@@ -837,7 +837,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
       filePrefix3= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
         for(Int_t s=startStrip;s<endStrip;s++) {
-          if (!mask[p][s]) continue; //!!currently only for plane 1	
+          //if (!mask[p][s]) continue; //!!currently only for plane 1	
           scalerRate.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1));
           if (scalerRate.is_open()) {
             Int_t nLasCycles=0;
@@ -881,7 +881,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         if(debug2)printf("qNormScB1\tqNormScL1\tqNormScL0\tnumber for chosenCyc#\n");
         for(Int_t pl =startPlane; pl <endPlane; pl++) {//!!this is currently valid for only plane 1
           for(Int_t s=startStrip;s<endStrip;s++) {
-            if (!mask[pl][s]) continue; 
+            //if (!mask[pl][s]) continue; 
             qNormScB1[pl][s][n] = qNormScalerB1[pl][s][chosenCyc-1];//!note that only one laser cycle is used
             qNormScL1[pl][s][n] = qNormScalerB1L1[pl][s][chosenCyc-1];//!note that only one laser cycle is used
             qNormScL0[pl][s][n] = qNormScalerB1L0[pl][s][chosenCyc-1];//!note that only one laser cycle is used
@@ -982,7 +982,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     //for(Int_t p =startPlane; p <endPlane; p++) {
     for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
-        if (!mask[p][s]) continue; //currently only for plane 1	
+        //if (!mask[p][s]) continue; //currently only for plane 1	
         grAsymLasCyc[s] = new TGraphErrors(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_AcAsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1),"%lg %lg %lg");
 
         if(s>= 0 && s<16) {
