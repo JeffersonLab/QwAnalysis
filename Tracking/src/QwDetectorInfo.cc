@@ -25,7 +25,7 @@ QwDetectorInfo::QwDetectorInfo(const std::string& name)
   fCrate(0),fModule(0),fChannel(0),
   fDetectorOriginX(0),fDetectorOriginY(0),fDetectorOriginZ(0),
   fDetectorRotation(0),fDetectorRotationCos(0),fDetectorRotationSin(0),
-  fDetectorTilt(0),fDetectorTiltCos(0),fDetectorTiltSin(0),
+  fDetectorRoll(0),fDetectorRollCos(0),fDetectorRollSin(0),
   fRotatorPitch(0),fRotatorPitchCos(0),fRotatorPitchSin(0),
   fRotatorYaw(0),fRotatorYawCos(0),fRotatorYawSin(0),
   fRotatorRoll(0),fRotatorRollCos(0),fRotatorRollSin(0),
@@ -57,15 +57,25 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
     fDetectorOriginY = map->ConvertValue<double>(varvalue) * Qw::cm;
   if (map->FileHasVariablePair("=","detector_origin_z",varvalue))
     fDetectorOriginZ = map->ConvertValue<double>(varvalue) * Qw::cm;
-  if (map->FileHasVariablePair("=","detector_tilt",varvalue)) {
-    fDetectorTilt = map->ConvertValue<double>(varvalue) * Qw::deg;
-    fDetectorTiltCos = cos(fDetectorTilt);
-    fDetectorTiltSin = sin(fDetectorTilt);
-  }
   if (map->FileHasVariablePair("=","detector_rotation",varvalue)) {
     fDetectorRotation = map->ConvertValue<double>(varvalue) * Qw::deg;
     fDetectorRotationCos = cos(fDetectorRotation);
     fDetectorRotationSin = sin(fDetectorRotation);
+  }
+  if (map->FileHasVariablePair("=","detector_pitch",varvalue)) {
+    fDetectorPitch = map->ConvertValue<double>(varvalue) * Qw::deg;
+    fDetectorPitchCos = cos(fDetectorPitch);
+    fDetectorPitchSin = sin(fDetectorPitch);
+  }
+  if (map->FileHasVariablePair("=","detector_yaw",varvalue)) {
+    fDetectorYaw = map->ConvertValue<double>(varvalue) * Qw::deg;
+    fDetectorYawCos = cos(fDetectorYaw);
+    fDetectorYawSin = sin(fDetectorYaw);
+  }
+  if (map->FileHasVariablePair("=","detector_roll",varvalue)) {
+    fDetectorRoll = map->ConvertValue<double>(varvalue) * Qw::deg;
+    fDetectorRollCos = cos(fDetectorRoll);
+    fDetectorRollSin = sin(fDetectorRoll);
   }
   if(map->FileHasVariablePair("=","rotator_pitch",varvalue)) {
    	fRotatorPitch = map->ConvertValue<double>(varvalue) * Qw::deg;
@@ -171,10 +181,12 @@ void QwDetectorInfo::Print() const
   QwOut << "detector_origin_y = " << fDetectorOriginY/Qw::cm << QwLog::endl;
   QwOut << "detector_origin_z = " << fDetectorOriginZ/Qw::cm << QwLog::endl;
   QwOut << "detector_rotation = " << fDetectorRotation/Qw::deg << QwLog::endl;
-  QwOut << "detector_tilt = " << fDetectorTilt/Qw::deg << QwLog::endl;
+  QwOut << "detector_pitch = " << fDetectorPitch/Qw::deg << QwLog::endl;
+  QwOut << "detector_roll = " << fDetectorRoll/Qw::deg << QwLog::endl;
+  QwOut << "detector_yaw = " << fDetectorYaw/Qw::deg << QwLog::endl;
   QwOut << "rotator_pitch = " << fRotatorPitch/Qw::deg << QwLog::endl;
-  QwOut << "rotator_yaw = " << fRotatorYaw/Qw::deg << QwLog::endl;
   QwOut << "rotator_roll = " << fRotatorRoll/Qw::deg << QwLog::endl;
+  QwOut << "rotator_yaw = " << fRotatorYaw/Qw::deg << QwLog::endl;
   QwOut << "spatial_resolution = " << fSpatialResolution << QwLog::endl;
   QwOut << "track_resolution = " << fTrackResolution << QwLog::endl;
   QwOut << "slope_matching = " << fSlopeMatching << QwLog::endl;

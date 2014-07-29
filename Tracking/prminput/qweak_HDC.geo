@@ -7,7 +7,7 @@ spatial_resolution = 1e-2
 track_resolution = 0.5e-1
 slope_matching = 1e-2
 
-detector_rotation = 0
+detector_pitch = 0
 
 # Geometry of a detector chamber
 active_width_x = 28.575
@@ -20,7 +20,7 @@ element_spacing = 1.1684
 element_offset = -18.1102
 
 # Tilt of detector around the Z axis
-detector_tilt = 0
+detector_roll = 0
 
 
 [HDC_pkg1_front_plane01_x]

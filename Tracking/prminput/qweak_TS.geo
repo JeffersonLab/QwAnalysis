@@ -7,7 +7,7 @@ spatial_resolution = 0
 track_resolution = 0
 slope_matching = 0
 
-detector_rotation = 0
+detector_pitch = 0
 
 # Geometry of a detector chamber
 active_width_x = 218.45
@@ -19,8 +19,8 @@ number_of_elements = 2
 element_spacing = 100.0
 element_offset = -50.0
 
-# Tilt of detector around the Z axis
-detector_tilt = 0
+# Roll of detector around the Z axis
+detector_roll = 0
 
 direction = y
 element_angle_cos = 0

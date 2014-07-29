@@ -2000,10 +2000,10 @@ QwPartialTrack* QwTrackingTreeCombine::r3_TrackFit (
   if ( hits[0]->GetDetectorInfo()->GetPlane() == 2 )
   {
     QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
-    costheta = hits[0]->GetDetectorInfo()->GetDetectorRotationCos();
-    sintheta = hits[0]->GetDetectorInfo()->GetDetectorRotationSin();
-    cosphi = hits[0]->GetDetectorInfo()->GetDetectorTiltCos();
-    sinphi = hits[0]->GetDetectorInfo()->GetDetectorTiltSin();
+    costheta = hits[0]->GetDetectorInfo()->GetDetectorPitchCos();
+    sintheta = hits[0]->GetDetectorInfo()->GetDetectorPitchSin();
+    cosphi = hits[0]->GetDetectorInfo()->GetDetectorRollCos();
+    sinphi = hits[0]->GetDetectorInfo()->GetDetectorRollSin();
     
     /// xtrans,ytrans,ztrans are first plane's information
     xtrans = hits[0]->GetDetectorInfo()->GetXPosition();
@@ -2107,8 +2107,8 @@ int QwTrackingTreeCombine::r3_TrackFit_deprecated (
   {
 
     QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
-    costheta = hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
-    sintheta = hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
+    costheta = hit[0]->GetDetectorInfo()->GetDetectorPitchCos();
+    sintheta = hit[0]->GetDetectorInfo()->GetDetectorPitchSin();
 
     xtrans = hit[0]->GetDetectorInfo()->GetXPosition();
     ytrans = hit[0]->GetDetectorInfo()->GetYPosition();

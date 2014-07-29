@@ -129,58 +129,70 @@ class QwDetectorInfo: public TObject {
     // Get/set number of elements
     int GetNumberOfElements() const { return fNumberOfElements; };
     void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
-    // Get/set detector rotation (in degrees)
-    double GetDetectorRotation() const { return fDetectorRotation; };
-    double GetDetectorRotationInRad() const { return fDetectorRotation; };
-    double GetDetectorRotationInDeg() const { return fDetectorRotation / Qw::deg; };
-    double GetDetectorRotationCos() const { return fDetectorRotationCos; };
-    double GetDetectorRotationSin() const { return fDetectorRotationSin; };
-    void SetDetectorRotation(const double rotation) {
-      fDetectorRotation = rotation; // in degrees
-      fDetectorRotationCos = std::cos(fDetectorRotation);
-      fDetectorRotationSin = std::sin(fDetectorRotation);
+
+    // Get/set detector pitch (in degrees)
+    double GetDetectorPitch() const { return fDetectorPitch; };
+    double GetDetectorPitchInRad() const { return fDetectorPitch / Qw::rad; };
+    double GetDetectorPitchInDeg() const { return fDetectorPitch / Qw::deg; };
+    double GetDetectorPitchCos() const { return fDetectorPitchCos; };
+    double GetDetectorPitchSin() const { return fDetectorPitchSin; };
+    void SetDetectorPitch(const double pitch) {
+      fDetectorPitch = pitch; // in radians
+      fDetectorPitchCos = std::cos(fDetectorPitch);
+      fDetectorPitchSin = std::sin(fDetectorPitch);
     };
-    // Get/set detector tilt (in degrees)
-    double GetDetectorTilt() const { return fDetectorTilt; };
-    double GetDetectorTiltInRad() const { return fDetectorTilt; };
-    double GetDetectorTiltInDeg() const { return fDetectorTilt / Qw::deg; };
-    double GetDetectorTiltCos() const { return fDetectorTiltCos; };
-    double GetDetectorTiltSin() const { return fDetectorTiltSin; };
-    void SetDetectorTilt(const double tilting) {
-      fDetectorTilt = tilting; // in degrees
-      fDetectorTiltCos = std::cos(fDetectorTilt);
-      fDetectorTiltSin = std::sin(fDetectorTilt);
+    // Get/set detector yaw (in degrees)
+    double GetDetectorYaw() const { return fDetectorYaw; };
+    double GetDetectorYawInRad() const { return fDetectorYaw / Qw::rad; };
+    double GetDetectorYawInDeg() const { return fDetectorYaw / Qw::deg; };
+    double GetDetectorYawCos() const { return fDetectorYawCos; };
+    double GetDetectorYawSin() const { return fDetectorYawSin; };
+    void SetDetectorYaw(const double yaw) {
+      fDetectorYaw = yaw; // in radians
+      fDetectorYawCos = std::cos(fDetectorYaw);
+      fDetectorYawSin = std::sin(fDetectorYaw);
+    };
+    // Get/set detector roll (in degrees)
+    double GetDetectorRoll() const { return fDetectorRoll; };
+    double GetDetectorRollInRad() const { return fDetectorRoll / Qw::rad; };
+    double GetDetectorRollInDeg() const { return fDetectorRoll / Qw::deg; };
+    double GetDetectorRollCos() const { return fDetectorRollCos; };
+    double GetDetectorRollSin() const { return fDetectorRollSin; };
+    void SetDetectorRoll(const double roll) {
+      fDetectorRoll = roll; // in radians
+      fDetectorRollCos = std::cos(fDetectorRoll);
+      fDetectorRollSin = std::sin(fDetectorRoll);
     };
     // Get/set rotator pitch (in degrees)
     double GetRotatorPitch() const { return fRotatorPitch; };
-    double GetRotatorPitchInRad() const { return fRotatorPitch; };  // ???
+    double GetRotatorPitchInRad() const { return fRotatorPitch / Qw::rad; };
     double GetRotatorPitchInDeg() const { return fRotatorPitch / Qw::deg; };
     double GetRotatorPitchCos() const { return fRotatorPitchCos; };
     double GetRotatorPitchSin() const { return fRotatorPitchSin; };
     void SetRotatorPitch(const double pitch) {
-    	fRotatorPitch = pitch; // in degrees
+    	fRotatorPitch = pitch; // in radians
     	fRotatorPitchCos = std::cos(fRotatorPitch);
     	fRotatorPitchSin = std::sin(fRotatorPitch);
     };
     // Get/set rotator yaw (in degrees)
     double GetRotatorYaw() const { return fRotatorYaw; };
-    double GetRotatorYawInRad() const { return fRotatorYaw; };  // ???
+    double GetRotatorYawInRad() const { return fRotatorYaw / Qw::rad; };
     double GetRotatorYawInDeg() const { return fRotatorYaw / Qw::deg; };
     double GetRotatorYawCos() const { return fRotatorYawCos; };
     double GetRotatorYawSin() const { return fRotatorYawSin; };
     void SetRotatorYaw(const double yaw) {
-    	fRotatorYaw = yaw; // in degrees
+    	fRotatorYaw = yaw; // in radians
     	fRotatorYawCos = std::cos(fRotatorYaw);
     	fRotatorYawSin = std::sin(fRotatorYaw);
     };
     // Get/set rotator roll (in degrees)
     double GetRotatorRoll() const { return fRotatorRoll; };
-    double GetRotatorRollInRad() const { return fRotatorRoll; };  // ???
+    double GetRotatorRollInRad() const { return fRotatorRoll / Qw::rad; };
     double GetRotatorRollInDeg() const { return fRotatorRoll / Qw::deg; };
     double GetRotatorRollCos() const { return fRotatorRollCos; };
     double GetRotatorRollSin() const { return fRotatorRollSin; };
     void SetRotatorRoll(const double roll) {
-    	fRotatorRoll = roll; // in degrees
+    	fRotatorRoll = roll; // in radians
     	fRotatorRollCos = std::cos(fRotatorRoll);
     	fRotatorRollSin = std::sin(fRotatorRoll);
     };
@@ -228,18 +240,24 @@ class QwDetectorInfo: public TObject {
       /// \todo This is an inconsistent definition of coordinate frames.
     double fDetectorRotationCos;	///< Cos of detector orientation
     double fDetectorRotationSin;	///< Sin of detector orientation
-    double fDetectorTilt;               ///Tilt in XY of Detector
-    double fDetectorTiltCos;    	///< Cos of detector tilt
-    double fDetectorTiltSin;	        ///< Sin of detector tilt
-    double fRotatorPitch;			/// Pitch of rotator (rotation of rotator about global x-axis)
+    double fDetectorPitch;              ///< Pitch of detector
+    double fDetectorPitchCos;           ///< Cos of detector pitch
+    double fDetectorPitchSin;           ///< Sin of detector pitch
+    double fDetectorYaw;                ///< Yaw of detector
+    double fDetectorYawCos;             ///< Cos of detector yaw
+    double fDetectorYawSin;             ///< Sin of detector yaw
+    double fDetectorRoll;               ///< Roll of detector
+    double fDetectorRollCos;    	///< Cos of detector roll
+    double fDetectorRollSin;	        ///< Sin of detector roll
+    double fRotatorPitch;		///< Pitch of rotator (rotation of rotator about global x-axis)
     double fRotatorPitchCos;		///< Cos of rotator pitch
     double fRotatorPitchSin;		///< Sin of rotator pitch
-    double fRotatorYaw;				/// Yaw of rotator (rotation of rotator about global y-axis)
-    double fRotatorYawCos;			///< Cos of rotator yaw
-    double fRotatorYawSin;			///< Sin of rotator yaw
-    double fRotatorRoll;			/// Roll of rotator (rotation of rotator about global z-axis)
-    double fRotatorRollCos;			///< Cos of rotator roll
-    double fRotatorRollSin;			///< Sin of rotator roll
+    double fRotatorYaw;			///< Yaw of rotator (rotation of rotator about global y-axis)
+    double fRotatorYawCos;		///< Cos of rotator yaw
+    double fRotatorYawSin;		///< Sin of rotator yaw
+    double fRotatorRoll;		///< Roll of rotator (rotation of rotator about global z-axis)
+    double fRotatorRollCos;		///< Cos of rotator roll
+    double fRotatorRollSin;		///< Sin of rotator roll
 
 
     bool   fIsActive;		///< Is this detector activated in tracking

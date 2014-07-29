@@ -1348,8 +1348,8 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorRotationCos();
-      double sin_theta = detectorinfo->GetDetectorRotationSin();
+      double cos_theta = detectorinfo->GetDetectorPitchCos();
+      double sin_theta = detectorinfo->GetDetectorPitchSin();
 
       // x = x/cos_theta;
 //
@@ -1422,8 +1422,8 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorRotationCos();
-      double sin_theta = detectorinfo->GetDetectorRotationSin();
+      double cos_theta = detectorinfo->GetDetectorPitchCos();
+      double sin_theta = detectorinfo->GetDetectorPitchSin();
 
       // x = x/cos_theta;
       
@@ -1498,8 +1498,8 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorRotationCos();
-      double sin_theta = detectorinfo->GetDetectorRotationSin();
+      double cos_theta = detectorinfo->GetDetectorPitchCos();
+      double sin_theta = detectorinfo->GetDetectorPitchSin();
 
       // x = x/cos_theta;
       
@@ -1573,8 +1573,8 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorRotationCos();
-      double sin_theta = detectorinfo->GetDetectorRotationSin();
+      double cos_theta = detectorinfo->GetDetectorPitchCos();
+      double sin_theta = detectorinfo->GetDetectorPitchSin();
 
       // x = x/cos_theta;
       

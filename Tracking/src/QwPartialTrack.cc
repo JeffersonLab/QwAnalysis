@@ -415,7 +415,7 @@ QwPartialTrack& QwPartialTrack::SmearAnglePhi(double sigma)
 const QwVertex* QwPartialTrack::DeterminePositionInDetector(const QwDetectorInfo* detector)
 {
   QwVertex* vertex = 0;
-  if (detector->GetDetectorRotation() != 0) {
+  if (detector->GetDetectorPitch() != 0) {
     // Get intersection with z-plane
     double z = detector->GetZPosition();
     TVector3 position = GetPosition(z);
