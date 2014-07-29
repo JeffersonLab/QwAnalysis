@@ -99,9 +99,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     ///  Set the current event number for parameter file lookup
     QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
 
-    ///  Add more options from run-specific file
-    gQwOptions.AddConfigFile("qwtracking.conf");
-    gQwOptions.ListConfigFiles();
+    ///  Clear options to pick up run number specific config files
+    gQwOptions.Clear();
 
     ///  Create an EPICS event
     QwEPICSEvent epics;

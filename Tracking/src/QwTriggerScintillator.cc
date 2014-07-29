@@ -349,7 +349,7 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
     UInt_t slot_id      = 0;
     UInt_t vme_slot_num = 0;
 
-    Bool_t local_debug  = true;
+    Bool_t local_debug  = false;
 
     QwF1TDC *local_f1tdc = NULL;
    

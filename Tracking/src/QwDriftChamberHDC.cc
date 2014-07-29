@@ -14,17 +14,8 @@
 RegisterSubsystemFactory(QwDriftChamberHDC);
 
 
-QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp)
-: VQwSubsystem(region_tmp),
-  QwDriftChamber(region_tmp,fTDCHits)
-{
-  OK=0;
-}
-
-
 void  QwDriftChamberHDC::SubtractReferenceTimes()
 {
- 
   UInt_t   bank_index        = 0;
   Double_t raw_time_arb_unit = 0.0;
   Double_t ref_time_arb_unit = 0.0;

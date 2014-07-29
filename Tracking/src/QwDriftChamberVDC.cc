@@ -13,6 +13,7 @@
 #include "boost/bind.hpp"
 #include <algorithm>
 
+#define OK 0
 
 const UInt_t QwDriftChamberVDC::kBackPlaneNum=16;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
@@ -23,15 +24,14 @@ bool invalid(QwHit& hit){
   return hit.GetDriftDistance() < 0;
 }
 
-QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :
-  VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
+QwDriftChamberVDC::QwDriftChamberVDC(TString name) :
+  VQwSubsystem(name), QwDriftChamber(name,fWireHitsVDC )
 {
   std::vector<QwDelayLine> temp;
   temp.clear();
   temp.resize ( kLineNum );
   fDelayLineArray.resize ( kBackPlaneNum, temp );
   fDelayLinePtrs.resize ( 21 );
-  OK=0;
 }
 
 void  QwDriftChamberVDC::SubtractReferenceTimes()
@@ -904,15 +904,15 @@ void QwDriftChamberVDC::ClearEventData()
 
 void QwDriftChamberVDC::DefineOptions ( QwOptions& options )
 {
-  options.AddOptions() ( "use-tdchit",
-			 po::value<bool>()->default_bool_value(false),
-			 "creat tdc based tree" );
-  options.AddOptions() ( "disable-wireoffset",
-			 po::value<bool>()->default_bool_value(false),
-			 "disable the ablitity of subtracting t0 for every wire" );
-  options.AddOptions() ("R3-octant",
-			po::value<int>()->default_value(1),
-			"MD Package 2 of R3 is in front of" );
+  options.AddOptions("Tracking Options") ( "use-tdchit",
+      po::value<bool>()->default_bool_value(false),
+      "create TDC-based tree" );
+  options.AddOptions("Tracking Options") ( "disable-wireoffset",
+      po::value<bool>()->default_bool_value(false),
+      "disable subtraction of t0 for every wire" );
+  options.AddOptions("Tracking Options") ("R3-octant",
+      po::value<int>()->default_value(1),
+      "MD Package 2 of R3 is in front of" );
 }
 
 void QwDriftChamberVDC::ProcessOptions ( QwOptions& options )

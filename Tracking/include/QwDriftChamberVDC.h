@@ -26,7 +26,7 @@ class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
    *
    ******************************************************************/
  public:
-  QwDriftChamberVDC(TString region_tmp);
+  QwDriftChamberVDC(TString name);
   virtual ~QwDriftChamberVDC() { };
 
   /* Unique virtual member functions from QwDrifChamber base class */

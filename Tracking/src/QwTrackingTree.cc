@@ -1112,7 +1112,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 //   }
 
   /*! Try to read in an existing database */
-  QwMessage << "Attempting to read tree from " << filename << QwLog::endl;
+  QwVerbose << "Attempting to read tree from " << filename << QwLog::endl;
   trr = readtree(filename, levels, tlayer, width, regenerate);
   if (trr == 0) {
 

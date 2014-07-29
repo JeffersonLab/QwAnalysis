@@ -1209,12 +1209,8 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
   fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
   fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
 
-  // fHistograms.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
-
-  //TProfile2D(const char* name, const char* title,
-  // Int_t nbinsx, Double_t xlow, Double_t xup,
-  // Int_t nbinsy, Double_t ylow, Double_t yup,
-  // Option_t* option = "")
+  //fHistograms.push_back( gQwHists.Construct2DProf(TString("scanner_rate_map_cm")));
+  //fHistograms.push_back( gQwHists.Construct2DProf(TString("scanner_rate_map_em")));
 
   fRateMapCM  = new TProfile2D("scanner_rate_map_cm",
       "Scanner Rate Map (Current Mode)",110,-55.0,55.0,40,-360.0,-320.0);

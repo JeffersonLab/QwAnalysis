@@ -11,6 +11,9 @@
 
 #include "QwDriftChamber.h"
 #include "QwOptions.h"
+
+#define OK 0
+
 ///
 /// \ingroup QwTrackingg
 class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberHDC> {
@@ -20,7 +23,7 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
    *
    ******************************************************************/
  public:
-  QwDriftChamberHDC(TString region_tmp);
+  QwDriftChamberHDC(TString name): VQwSubsystem(name), QwDriftChamber(name,fTDCHits) { };
   virtual ~QwDriftChamberHDC() { };
 
   /* Unique virtual member functions from QwDrifChamber base class */
