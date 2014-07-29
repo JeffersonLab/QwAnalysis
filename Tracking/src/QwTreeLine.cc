@@ -377,7 +377,7 @@ std::pair<double,double> QwTreeLine::CalculateDistance(int row,double width,unsi
 
   double dx = width / bins, lower = 0, upper = 0;
   bin += 1;
-  if (bin <= bins/2) bin = bins - bin + 1;
+  if (bin <= (int) (bins/2)) bin = bins - bin + 1;
     lower = (bin - 1) * dx - width / 2 - resolution;
     upper = bin * dx - width / 2 + resolution;
   boundary.first = lower;

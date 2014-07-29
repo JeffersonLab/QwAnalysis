@@ -120,9 +120,9 @@ EXCLUDEDIRS = evio Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwcompton qwmoller qwroot
+    EXES := qwtracking qwparity qwsimtracking qwcompton qwmoller qwroot
   else
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwcompton qwmoller qwroot
+    EXES := qwtracking qwparity qwsimtracking qwcompton qwmoller qwroot
   endif
 else
   EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -130,9 +130,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwcompton qwmoller qwroot
+    EXES := qwtracking qwparity qwsimtracking qwcompton qwmoller qwroot
   else
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwcompton qwmoller qwroot
+    EXES := qwtracking qwparity qwsimtracking qwcompton qwmoller qwroot
   endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"

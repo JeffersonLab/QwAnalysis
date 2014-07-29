@@ -119,7 +119,7 @@ void QwTrackingTree::PrintTree() const
 void QwTrackingTree::PrintHashTable() const
 {
   QwOut << "Hash table:" << QwLog::endl;
-  for (int i = 0; i < fHashSize; i++) {
+  for (size_t i = 0; i < fHashSize; i++) {
     QwOut << "hash " << i << ":" << QwLog::endl;
     treenode* node = fHashTable[i];
     while (node) {
@@ -177,7 +177,7 @@ QwTrackingTree::~QwTrackingTree ()
 
   // Delete all top links in the hash table
   QwDebug << "Deleting fHashTable..." << QwLog::endl;
-  for (int i = 0; i < fHashSize; i++) {
+  for (size_t i = 0; i < fHashSize; i++) {
     treenode* node = fHashTable[i];
     while (node) {
       treenode* node_next = node->GetNext();
@@ -1160,7 +1160,7 @@ treenode* QwTrackingTree::_inittree (
   /// Clear the hash table
   fNumPatterns = 0;
   // TODO Replace with delete/new if constructor is not sufficient
-  memset (fHashTable, 0, sizeof(fHashTable));
+  memset (&fHashTable, 0, sizeof(fHashTable));
 
   /// Call the recursive tree generator
   marklin (node, 0, detector);

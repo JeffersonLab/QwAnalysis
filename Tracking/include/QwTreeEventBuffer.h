@@ -160,7 +160,7 @@ class QwTreeEventBuffer
     int GetNumberOfEntries() const { return fNumberOfEntries; };
 
     /// \brief Read the specified entry from the tree
-    bool GetEntry(const unsigned int entry, bool* r2_hit=false, bool* r3_hit=false);
+    bool GetEntry(const unsigned int entry, bool& r2_hit, bool& r3_hit);
 
 
     /// The event to be reconstructed

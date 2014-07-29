@@ -1245,7 +1245,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
               specified in the treenode are on                           ---- */
 
       //NOTE:to print out the final binoffset value
-      int final[4]={0};
+      //int final[4] = {0}; // unused
       unsigned long pattern_offset = pattern_start + offset;
       int* tree_pattern = tree->fBit;
       unsigned int matched_planes = 0;
@@ -1265,7 +1265,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
           patterns.at(plane)=pattern_offset + bin;
           if (static_pattern[plane][pattern_offset + bin] || has_planes[plane]==0) {
             ++matched_planes; /* number of matched tree-planes */
-            final[plane]=pattern_offset+bin;
+            //final[plane] = pattern_offset+bin; // unused
           }
           //else if(has_planes[plane]==0){
           //  ++matched_planes;

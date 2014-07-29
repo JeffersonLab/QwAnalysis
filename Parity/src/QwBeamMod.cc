@@ -854,7 +854,7 @@ void QwBeamMod::AnalyzeOpticsPlots()
 
   TCanvas *canvas = new TCanvas("canvas", "canvas", 5);
 
-  Double_t mean;
+  //Double_t mean; // unused
   Double_t amplitude;
   Double_t phase;
 
@@ -871,7 +871,7 @@ void QwBeamMod::AnalyzeOpticsPlots()
 	sine->SetParLimits(2, 0, TMath::Pi()*2 );
 	fHistograms[5*bpm + pattern]->Fit("sine","R B");
 	
-	mean = sine->GetParameter(0);
+	//mean = sine->GetParameter(0); // unused
 	amplitude = TMath::Abs(sine->GetParameter(1));
 	phase = sine->GetParameter(2) * TMath::RadToDeg();
 	

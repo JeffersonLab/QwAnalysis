@@ -53,7 +53,7 @@ double missing_drift_time = 0.0; // [ns], set to 0 if no missing drift time
  * @param detector_info Detector geometry information vector
  */
 QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
-: fDetectorInfo(detector_info),fCurrentEvent(0),fOriginalEvent(0)
+: fCurrentEvent(0),fOriginalEvent(0),fDetectorInfo(detector_info)
 {
   // Initialize
   fCurrentRunNumber = -1;
@@ -263,7 +263,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     bool r2Hit = false;
     bool r3Hit = false;
     // Get the next entry from the ROOT tree
-    if(GetEntry(fCurrentEntryNumber++, &r2Hit, &r3Hit)==false)
+    if(GetEntry(fCurrentEntryNumber++, r2Hit, r3Hit)== false)
         continue;
     
     // Add the smeared hit list
@@ -362,7 +362,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
  * Read the specified entry from the tree
  * @param entry Entry to read from ROOT tree
  */
-bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r3_hit)
+bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r3_hit)
 {
   // Read event
   QwVerbose << "Reading entry " << entry << QwLog::endl;
@@ -556,7 +556,7 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
   
   if (fRegion2_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light) {
     fNumOfSimulated_R2_TS_MD_Tracks++;
-    *r2_hit = true;
+    r2_hit = true;
   }
       
   if (fRegion3_HasBeenHit)
@@ -564,7 +564,7 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool* r2_hit, bool* r
   
   if (fRegion3_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light) {
     fNumOfSimulated_R3_TS_MD_Tracks++;
-    *r3_hit = true;
+    r3_hit = true;
   }
   
   if (fRegion2_HasBeenHit && fRegion3_HasBeenHit)

@@ -71,15 +71,13 @@ QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
     TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
     TVector3 start_direction = front->GetMomentumDirection();
     // front track position and angles at z = -250 cm plane
-    double r = fabs(start_position.Z() - (-250.0 * Qw::cm)) / start_direction.Z();
-    double x = start_position.X() + r * start_direction.X();
-    double y = start_position.Y() + r * start_direction.Y();
+    //double r = fabs(start_position.Z() - (-250.0 * Qw::cm)) / start_direction.Z(); // unused
+    //double x = start_position.X() + r * start_direction.X(); // unused
+    //double y = start_position.Y() + r * start_direction.Y(); // unused
 
     //    double position_r = sqrt(x*x + y*y);
-    double position_phi = 0.0;
-    position_phi = start_position.Phi();
-    double direction_theta = 0.0;
-    direction_theta = front->GetMomentumDirectionTheta();
+    double position_phi = start_position.Phi();
+    //double direction_theta = direction_theta = front->GetMomentumDirectionTheta(); // unused
 
     //double vertex_z = -250.0 * Qw::cm - position_r / tan(acos(start_direction.Z()));
     double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
@@ -89,7 +87,7 @@ QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
       //                                 << fMaxVertexZ/Qw::cm << "] cm" << QwLog::endl;
         return kFailVertexZ;
     }
-    
+
     // scattering angle phi and the position_phi at Region 2 should have very small difference
     // this will post a limit on the phi difference
     double direction_phi = 0.0;
