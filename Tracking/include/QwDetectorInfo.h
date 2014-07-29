@@ -230,16 +230,12 @@ class QwDetectorInfo: public TObject {
     int fModule; //F1TDC slot number or module index
     int fChannel; //channel number
 
-    // Geometry information
+    // Detector position
     double fDetectorOriginX;	///< Detector position in x
     double fDetectorOriginY;	///< Detector position in y
     double fDetectorOriginZ;	///< Detector position in z
-    double fDetectorRotation;	///< Orientation of the detector around the
-      /// Y axis with respect to the X axis.  Region 2 has zero degrees here.
-      /// Region 3 is rotated around the Y axis over approximately 65 degrees.
-      /// \todo This is an inconsistent definition of coordinate frames.
-    double fDetectorRotationCos;	///< Cos of detector orientation
-    double fDetectorRotationSin;	///< Sin of detector orientation
+
+    // Detector orientation
     double fDetectorPitch;              ///< Pitch of detector
     double fDetectorPitchCos;           ///< Cos of detector pitch
     double fDetectorPitchSin;           ///< Sin of detector pitch
