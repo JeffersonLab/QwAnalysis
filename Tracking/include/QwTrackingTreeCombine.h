@@ -8,7 +8,6 @@
 // Standard C and C++ headers
 #include <iostream>
 #include <utility>
-using std::cout; using std::cerr; using std::endl;
 
 #include "QwTypes.h"
 #include "QwDetectorInfo.h"
@@ -26,33 +25,6 @@ using std::cout; using std::cerr; using std::endl;
 #warning Defining DLAYERS outside of the globals.h header file!
 #define DLAYERS 10
 #endif
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/*!
-    \todo The chi_hash class is legacy code which I have yet to abolish.  Its
-    functions are used by various routines.  The goal is to eventually replace
-    the need for this class.
-*/
-///
-/// \ingroup QwTracking
-class chi_hash {
-
-  public:
-
-    chi_hash() {
-      hits = 0;
-    };
-    virtual ~chi_hash() {};
-
-    double cx, mx, cov[3], chi;
-    double hit[DLAYERS];
-    int    hits;
-    chi_hash *next;
-
-  private:
-
-};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -91,7 +63,6 @@ class QwTrackingTreeCombine {
     int SelectLeftRightHit (double *xresult, double dist_cut,
 		QwHitContainer *hitlist, QwHit **ha, double Dx = 0);
 
-    int SelectLeftRightHit (QwHitContainer *hitlist, QwHit **ha, int bin, double width,double Dx = 0);
     /// \brief Select the left or right hit assignment for VDC hits
     QwHit* SelectLeftRightHit (double track_position, QwHit* hit);
 
@@ -145,11 +116,8 @@ class QwTrackingTreeCombine {
 		QwTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
 		EQwRegionID region, int tlayer, int dlayer);
 
-    void ResidualWrite (QwEvent *event);
-
     int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual);
     int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual, bool opt);
-    int r3_TrackFit_deprecated  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
     QwPartialTrack* r3_TrackFit (const int num, QwHit **hits,
         QwTreeLine *wu, QwTreeLine *wv);
 

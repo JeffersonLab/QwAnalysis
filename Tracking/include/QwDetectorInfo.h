@@ -71,7 +71,7 @@ class QwDetectorInfo: public TObject {
     // Get/set the plane offset
     void SetPlaneOffset (double offset) { fPlaneOffset = offset; }
     double GetPlaneOffset() const { return fPlaneOffset; }
-    
+
     // Get/set active flag
     bool IsActive() const { return fIsActive; };
     bool IsInactive() const { return !IsActive(); };
@@ -281,9 +281,6 @@ class QwDetectorInfo: public TObject {
   public:
     // Detector name
     std::string fName;
-
-    // Unique detector identifier
-    int fDetectorID;
 
     // Reference channel index in list of reference channels (most prob. filled at load time)
     int fReferenceChannelIndex;

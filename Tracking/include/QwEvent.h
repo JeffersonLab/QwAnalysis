@@ -433,11 +433,11 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     ///< Momentum transfer Q^2 assuming elastic scattering with hydrogen energy loss
     Double_t fPrimaryQ2;
 
-    /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
-    QwTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
+    /*! list of tree lines [upper/lower][region][u/v/x/y] */
+    QwTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumDirections]; //!
 
     /*! list of partial tracks [package][region][type] */
-    QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions][kNumTypes]; //!
+    QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions]; //!
 
     /*! list of complete tracks [package] */
     QwTrack* track[kNumPackages]; //!

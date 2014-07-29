@@ -97,14 +97,12 @@ QwEvent::QwEvent()
     track[i] = 0;
 
     for (int j = 0; j < kNumRegions; ++j) {
-      for (int k = 0; k < kNumTypes; ++k) {
-        // Null the partial track pointers
-        fPartialTrack[i][j][k] = 0;
-        // Null the treeline pointers
-        for (int l = 0; l < kNumDirections; ++l) {
-          fTreeLine[i][j][k][l] = 0;
-        } // end of loop over directions
-      } // end of loop over types
+      // Null the partial track pointers
+      fPartialTrack[i][j] = 0;
+      // Null the treeline pointers
+      for (int k = 0; k < kNumDirections; ++k) {
+        fTreeLine[i][j][k] = 0;
+      } // end of loop over directions
     } // end of loop over regions
   } // end of loop over packages
 
@@ -123,12 +121,11 @@ QwEvent::~QwEvent()
 
     // Delete all those tracks
     delete track[i];
-    
+
     for (int j = 0; j < kNumRegions; ++j) {
       
-      for (int k = 0; k < kNumTypes; ++k) {
         // Delete all those partial tracks
-         QwPartialTrack* pt = fPartialTrack[i][j][k];
+         QwPartialTrack* pt = fPartialTrack[i][j];
 	 
          while (pt) {
            QwPartialTrack* pt_next = pt->next;
@@ -137,15 +134,14 @@ QwEvent::~QwEvent()
          }
 	
         // Delete all those treelines
-         for (int l = 0; l < kNumDirections; ++l) {
-           QwTreeLine* tl = fTreeLine[i][j][k][l];
+         for (int k = 0; k < kNumDirections; ++k) {
+           QwTreeLine* tl = fTreeLine[i][j][k];
            while (tl) {
              QwTreeLine* tl_next = tl->next;
              delete tl;
              tl = tl_next;
            }
         } // end of loop over directions
-      } // end of loop over types
     } // end of loop over regions
   } // end of loop over packages
 
@@ -273,9 +269,6 @@ void QwEvent::CalculateKinematics(const QwTrack* track)
   Double_t pre_loss = EnergyLossHydrogen(vertex_z);
   fHydrogenEnergyLoss = pre_loss;
 
-  // Mass of the proton
-  Double_t Mp = Qw::Mp;
-
   // Generic scattering without energy loss
   Double_t P0 = energy;
   Double_t PP = track->fMomentum;
@@ -284,8 +277,8 @@ void QwEvent::CalculateKinematics(const QwTrack* track)
   fKin.fPp = PP / Qw::GeV;
   fKin.fQ2 = Q2 / Qw::GeV2;
   fKin.fNu = (P0 - PP) / Qw::GeV;
-  fKin.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
-  fKin.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKin.fW2 = (Qw::Mp * Qw::Mp + 2.0 * Qw::Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKin.fX = Q2 / (2.0 * Qw::Mp * (P0 - PP));
   fKin.fY = (P0 - PP) / P0;
 
   // Generic scattering with energy loss
@@ -296,32 +289,32 @@ void QwEvent::CalculateKinematics(const QwTrack* track)
   fKinWithLoss.fPp = PP / Qw::GeV;
   fKinWithLoss.fQ2 = Q2 / Qw::GeV2;
   fKinWithLoss.fNu = (P0 - PP) / Qw::GeV;
-  fKinWithLoss.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
-  fKinWithLoss.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinWithLoss.fW2 = (Qw::Mp * Qw::Mp + 2.0 * Qw::Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinWithLoss.fX = Q2 / (2.0 * Qw::Mp * (P0 - PP));
   fKinWithLoss.fY = (P0 - PP) / P0;
 
   // Elastic scattering without energy loss
   P0 = energy * Qw::MeV;
-  PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
+  PP = Qw::Mp * P0 / (Qw::Mp + P0 * (1 - cos_theta));
   Q2 = 2.0 * P0 * PP * (1 - cos_theta);
   fKinElastic.fP0 = P0 / Qw::GeV;
   fKinElastic.fPp = PP / Qw::GeV;
   fKinElastic.fQ2 = Q2 / Qw::GeV2;
   fKinElastic.fNu = (P0 - PP) / Qw::GeV;
-  fKinElastic.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
-  fKinElastic.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinElastic.fW2 = (Qw::Mp * Qw::Mp + 2.0 * Qw::Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinElastic.fX = Q2 / (2.0 * Qw::Mp * (P0 - PP));
   fKinElastic.fY = (P0 - PP) / P0;
 
   // Elastic scattering with energy loss
   P0 = (energy - pre_loss) * Qw::MeV;
-  PP = Mp * P0 / (Mp + P0 * (1 - cos_theta));
+  PP = Qw::Mp * P0 / (Qw::Mp + P0 * (1 - cos_theta));
   Q2 = 2.0 * P0 * PP * (1 - cos_theta);
   fKinElasticWithLoss.fP0 = P0 / Qw::GeV;
   fKinElasticWithLoss.fPp = PP / Qw::GeV;
   fKinElasticWithLoss.fQ2 = Q2 / Qw::GeV2;
   fKinElasticWithLoss.fNu = (P0 - PP) / Qw::GeV;
-  fKinElasticWithLoss.fW2 = (Mp * Mp + 2.0 * Mp * (P0 - PP) - Q2) / Qw::GeV2;
-  fKinElasticWithLoss.fX = Q2 / (2.0 * Mp * (P0 - PP));
+  fKinElasticWithLoss.fW2 = (Qw::Mp * Qw::Mp + 2.0 * Qw::Mp * (P0 - PP) - Q2) / Qw::GeV2;
+  fKinElasticWithLoss.fX = Q2 / (2.0 * Qw::Mp * (P0 - PP));
   fKinElasticWithLoss.fY = (P0 - PP) / P0;
   
   fPrimaryQ2 = fKinElasticWithLoss.fQ2;

@@ -271,8 +271,6 @@ const QwTrack* QwRayTracer::Bridge(
     track->fEndPositionActualRKF45 = position;
     track->fEndDirectionActualRKF45 = direction;
 
-    //std::cout<<"radial position of end point: "<<position.Perp()<<", momentum: "<<momentum[0]<<std::endl;
-
     // Let front partial track determine the package and octant
     track->SetPackage(front->GetPackage());
     track->SetOctant(front->GetOctant());
