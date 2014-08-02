@@ -97,12 +97,8 @@ class QwTrackingTreeCombine {
 		QwTreeLine *wu,
 		QwTreeLine *wv,
 		QwTreeLine *wx,
-		int tlayer);
-     QwPartialTrack* TcTreeLineCombine (
-		QwTreeLine *wu,
-		QwTreeLine *wv,
-		QwTreeLine *wx,
-		int tlayer,bool opt);
+		int tlayer,
+		bool drop_worst_hit);
 
     QwPartialTrack* TcTreeLineCombine (
 		QwTreeLine *wu,
@@ -116,8 +112,15 @@ class QwTrackingTreeCombine {
 		QwTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
 		EQwRegionID region, int tlayer, int dlayer);
 
-    int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual);
-    int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual, bool opt);
+    int r2_TrackFit (
+                const int num,
+                QwHit **hits,
+                double *fit,
+                double *cov,
+                double &chi2,
+                double *signedresidual,
+                bool drop_worst_hit);
+
     QwPartialTrack* r3_TrackFit (const int num, QwHit **hits,
         QwTreeLine *wu, QwTreeLine *wv);
 
