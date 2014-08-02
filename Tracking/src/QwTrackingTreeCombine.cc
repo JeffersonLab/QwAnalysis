@@ -2546,14 +2546,15 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             if (pt) {
               // Find partial track with best chi
               if (pt->fChi < best_chi) {
-                // Update best chi
-                best_chi = pt->fChi;
                 // Update best partial track
                 if (best_pt) {
                   delete best_pt;
                   best_pt = 0;
                 }
+                // Combine the U, V and X treeline into a partial track without worst hit
                 best_pt = TcTreeLineCombine(wu, wv, wx, tlayer, true);
+                // Update best chi
+                best_chi = best_pt->fChi;
 
                 // Set geometry identification
                 best_pt->SetRegion(region);
