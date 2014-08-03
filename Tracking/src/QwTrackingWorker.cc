@@ -256,9 +256,8 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
                           "show bit pattern for matching tracks");
 
   options.AddOptions("Tracking options")("QwTracking.package-mismatch",
-					 po::value<bool>()->default_bool_value(false),
-					 "if the package number is different for R2 and R3 at the same octant"
-					 );
+                          po::value<bool>()->default_bool_value(false),
+                          "if the package number is different for R2 and R3 at the same octant");
 
   // Region 2
   options.AddOptions("Tracking options")("QwTracking.R2.levels",
@@ -276,6 +275,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddOptions("Tracking options")("QwTracking.R2.MaxMissedPlanes",
                           po::value<int>()->default_value(1),
                           "maximum number of missed planes");
+  options.AddOptions("Tracking options")("QwTracking.R2.DropWorstHit",
+                          po::value<bool>()->default_bool_value(false),
+                          "attempt partial track fit without worst hit");
 
   // Region 3
   options.AddOptions("Tracking options")("QwTracking.R3.levels",

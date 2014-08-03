@@ -50,12 +50,16 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeCombine::QwTrackingTreeCombine()
+: fMaxRoad(0.0),fMaxXRoad(0.0)
 {
   fDebug = 0; // Debug level
 
   // Get maximum number of HDC planes
-  fMaxMissedPlanes = gQwOptions.GetValue<int> ( "QwTracking.R2.MaxMissedPlanes" );
-  fMaxMissedWires  = gQwOptions.GetValue<int> ( "QwTracking.R3.MaxMissedWires" );
+  fMaxMissedPlanes = gQwOptions.GetValue<int>("QwTracking.R2.MaxMissedPlanes");
+  fMaxMissedWires = gQwOptions.GetValue<int>("QwTracking.R3.MaxMissedWires");
+
+  // Attempt to drop hit with worst residual
+  fDropWorstHit = gQwOptions.GetValue<bool>("QwTracking.R2.DropWorstHit");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -1413,6 +1417,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 		solving systems of equations.
 
  *//*-------------------------------------------------------------------------*/
+
 int QwTrackingTreeCombine::r2_TrackFit (
     const int num_hits,
     QwHit **hits,
@@ -1454,8 +1459,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
       break;
 
   // Did we have any direction without any hits? i.e. first hit is identical to number of hits
-  if (hitx == num_hits || hitu == num_hits || hitv == num_hits)
-  {
+  if (hitx == num_hits || hitu == num_hits || hitv == num_hits) {
     QwWarning << "No hit on X plane found.  What I gotta do?" << QwLog::endl;
     return -1;
   }
@@ -1478,17 +1482,20 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
   for (int i = 0; i < num_hits; ++i)
   {
+    // Normalization = 1/sigma^2
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    double norm = 1.0 / (resolution * resolution);
+    double normalization = 1.0 / (resolution * resolution);
 
     // Get cos and sin of the wire angles of this plane
     double rcos = hits[i]->GetDetectorInfo()->GetElementAngleCos();
     double rsin = hits[i]->GetDetectorInfo()->GetElementAngleSin();
 
-    // offset includes all offset
-    double centerx = hits[i]->GetDetectorInfo()->GetXPosition();
-    double centery = hits[i]->GetDetectorInfo()->GetYPosition();
-    double center_offset = rcos * centery + rsin * centerx;
+    // Determine the offset of the center of this plane
+    double center_x = hits[i]->GetDetectorInfo()->GetXPosition();
+    double center_y = hits[i]->GetDetectorInfo()->GetYPosition();
+    double center_offset = rcos * center_y + rsin * center_x;
+
+    // TODO
     double dx = dx_[hits[i]->GetPlane() - 1];
 
     double wire_off = -0.5 * hits[i]->GetDetectorInfo()->GetElementSpacing()
@@ -1502,9 +1509,9 @@ int QwTrackingTreeCombine::r2_TrackFit (
     r[3] = rcos * (hits[i]->GetDetectorInfo()->GetZPosition());
     for (int k = 0; k < 4; ++k)
     {
-      B[k] += norm * r[k] * (hit_pos + center_offset);
+      B[k] += normalization * r[k] * (hit_pos + center_offset);
       for (int j = 0; j < 4; ++j)
-        A[k][j] += norm * r[k] * r[j];
+        A[k][j] += normalization * r[k] * r[j];
     }
   }
 
@@ -1514,28 +1521,31 @@ int QwTrackingTreeCombine::r2_TrackFit (
   // Check that inversion was successful
   if (!cov)
   {
-    cerr << "Inversion failed" << endl;
+    QwWarning << "Inversion failed" << QwLog::endl;
     return -1;
   }
 
   // Calculate the fit
   M_A_times_b(fit, cov, 4, 4, B); // fit = matrix cov * vector B
 
-  // Calculate chi^2,rewrite
+  // Calculate chi2^2,rewrite
   chi2 = 0.0;
   std::pair<int, double> worst_case(0, -0.01);
   for (int i = 0; i < num_hits; ++i)
   {
+    // Normalization = 1/sigma^2
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    double norm = 1.0 / (resolution * resolution);
+    double normalization = 1.0 / (resolution * resolution);
 
     // Get cos and sin of the wire angles of this plane
     double rcos = hits[i]->GetDetectorInfo()->GetElementAngleCos();
     double rsin = hits[i]->GetDetectorInfo()->GetElementAngleSin();
 
-    double z = hits[i]->GetDetectorInfo()->GetZPosition();
-    double x = fit[0] + fit[1] * z;
-    double y = fit[2] + fit[3] * z;
+    // Absolute positions of the fitted position at this plane
+    double x = fit[0] + fit[1] * hits[i]->GetDetectorInfo()->GetZPosition();
+    double y = fit[2] + fit[3] * hits[i]->GetDetectorInfo()->GetZPosition();
+
+    // Relative positions of the fitted position at this plane
     x -= hits[i]->GetDetectorInfo()->GetXPosition();
     y -= hits[i]->GetDetectorInfo()->GetYPosition();
 
@@ -1553,10 +1563,17 @@ int QwTrackingTreeCombine::r2_TrackFit (
       worst_case.second = residual;
     }
 
-    chi2 += norm * residual * residual;
+    chi2 += normalization * residual * residual;
   }
 
+  // Divide by degrees of freedom (number of hits minus two offsets, two slopes)
   chi2 /= (num_hits - 4);
+
+  // Return if we are done
+  if (drop_worst_hit == false) {
+    return 0;
+  }
+
   double best_chi2 = chi2;
 
   /*
@@ -1568,12 +1585,12 @@ int QwTrackingTreeCombine::r2_TrackFit (
   for (int i = 1; i < 12; ++i)
     temp_residual[i] = -10;
 
-  if (drop_worst_hit == false)
-  {
-    return 0;
-  }
 
-  //renitialize
+
+  int drop = worst_case.first;
+  double fit_drop[4] = { 0.0 };
+
+  // Initialize the matrices
   for (int i = 0; i < 4; ++i)
   {
     B[i] = 0.0;
@@ -1581,17 +1598,15 @@ int QwTrackingTreeCombine::r2_TrackFit (
       A[i][j] = 0.0;
   }
 
-  int drop = worst_case.first;
-  double fit_drop[4] = { 0.0 };
+  // Adjust the matrices A and B by ignoring the worst hit
   for (int i = 0; i < num_hits; ++i)
   {
     // Skip the dropped hit
-    if (i == drop)
-      continue;
+    if (i == drop) continue;
 
     // Normalization = 1/sigma^2
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    double norm = 1.0 / (resolution * resolution);
+    double normalization = 1.0 / (resolution * resolution);
 
     // Get cos and sin of the wire angles of this plane
     double rcos = hits[i]->GetDetectorInfo()->GetElementAngleCos();
@@ -1602,6 +1617,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
     double center_y = hits[i]->GetDetectorInfo()->GetYPosition();
     double center_offset = rcos * center_y + rsin * center_x;
 
+    // TODO
     double dx = dx_[hits[i]->GetPlane() - 1];
 
     double wire_off = -0.5 * hits[i]->GetDetectorInfo()->GetElementSpacing()
@@ -1613,14 +1629,13 @@ int QwTrackingTreeCombine::r2_TrackFit (
     r[1] = rsin * (hits[i]->GetDetectorInfo()->GetZPosition());
     r[2] = rcos;
     r[3] = rcos * (hits[i]->GetDetectorInfo()->GetZPosition());
-
     for (int k = 0; k < 4; k++)
     {
-      B[k] += norm * r[k] * (hit_pos + center_offset);
+      B[k] += normalization * r[k] * (hit_pos + center_offset);
       for (int j = 0; j < 4; j++)
-        A[k][j] += norm * r[k] * r[j];
+        A[k][j] += normalization * r[k] * r[j];
     }
-  }     // end of the for loop for num
+  }     // end of the for loop for num_hits
 
   M_Invert(Ap, cov, 4);
 
@@ -1634,17 +1649,17 @@ int QwTrackingTreeCombine::r2_TrackFit (
   // Calculate the fit
   M_A_times_b(fit_drop, cov, 4, 4, B); // fit = matrix cov * vector B
 
-  // Calculate chi^2,rewrite
-  double chi_test = 0.0;
+  // Calculate chi2^2, rewrite
+  double chi2_test = 0.0;
   for (int i = 0; i < num_hits; i++)
   {
     // Skip the dropped hit
-    if (i == drop)
-      continue;
+    if (i == drop) continue;
+
 
     // Normalization = 1/sigma^2
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    double norm = 1.0 / (resolution * resolution);
+    double normalization = 1.0 / (resolution * resolution);
 
     // Get cos and sin of the wire angles of this plane
     double rcos = hits[i]->GetDetectorInfo()->GetElementAngleCos();
@@ -1659,24 +1674,24 @@ int QwTrackingTreeCombine::r2_TrackFit (
     y -= hits[i]->GetDetectorInfo()->GetYPosition();
 
     double dx = dx_[hits[i]->GetPlane() - 1];
+
     double wire_off = -0.5 * hits[i]->GetDetectorInfo()->GetElementSpacing()
         + hits[i]->GetDetectorInfo()->GetElementOffset();
     double hit_pos = hits[i]->GetDriftPosition() + wire_off - dx;
-
     double residual = y * rcos + x * rsin - hit_pos;
     temp_residual[hits[i]->GetPlane() - 1] = residual;
-    chi_test += norm * residual * residual;
+    chi2_test += normalization * residual * residual;
+
   }
 
+  // Divide by degrees of freedom (number of hits minus one dropped hit, two offsets, two slopes)
+  chi2_test /= (num_hits - 5);
+
 
   // If new chi^2 is less than 80% of the original chi^2, use the improved version
-  chi_test /= (num_hits - 5);
-
-
-  // If new chi^2 is less than 80% of the original chi^2, use the improved version
-  if (chi_test < 0.8 * best_chi2)
+  if (chi2_test < 0.8 * best_chi2)
   {
-    best_chi2 = chi_test;
+    best_chi2 = chi2_test;
     for (int k = 0; k < 4; ++k)
       fit[k] = fit_drop[k];
     for (int k = 0; k < 12; ++k)
@@ -1958,59 +1973,65 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 		solving systems of equations.
 
  *//*-------------------------------------------------------------------------*/
+
 QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
     QwTreeLine *wu,
     QwTreeLine *wv,
     QwTreeLine *wx,
     int tlayer,
-    bool opt)
+    bool drop_worst_hit)
 {
   QwHit *hits[3 * DLAYERS];
-  for ( int i = 0; i < 3 * DLAYERS; i++ )
+  for (int i = 0; i < 3 * DLAYERS; i++)
     hits[i] = 0;
 
   QwHit **hitarray = 0;
   QwHit *h = 0;
-  int hitc, num;
 
-
-  /* Initialize */
+  // Initialize fit results and covariance matrix
   double fit[4];
-  double residual[12];
-
   double cov[4][4];
   double *covp = &cov[0][0];
-  int ntotal = 0;
-
-  for (int i=0;i<12;++i)
-    residual[i]=-10;
-
-  for ( int i = 0; i < 4; ++i )
+  for (int i = 0; i < 4; ++i)
   {
     fit[i] = 0;
-    for ( int j = 0; j < 4; ++j )
+    for (int j = 0; j < 4; ++j)
       cov[i][j] = 0;
   }
 
-  // Put all the hits into one array.
-  hitc = 0;
-  for ( EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++ )
-  {
-    switch ( dir )
-    {
-      case kDirectionU: hitarray = wu->fHits; break;
-      case kDirectionV: hitarray = wv->fHits; break;
-      //case kDirectionX: hitarray = 0;break;
-      case kDirectionX: hitarray = wx->fHits; break;
-      default: hitarray = 0; break;
-    }
-    if ( ! hitarray ) continue;
+  // Initialize residuals for each plane
+  double residual[12];
+  for (int i = 0; i < 12; ++i)
+    residual[i] = -10;
 
-    for ( num = MAXHITPERLINE * DLAYERS; num-- && *hitarray; ++hitarray )
+
+  // Put all the hits into one array
+  int hitc = 0;
+  for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++)
+  {
+    switch (dir)
+    {
+      case kDirectionU:
+        hitarray = wu->fHits;
+        break;
+      case kDirectionV:
+        hitarray = wv->fHits;
+        break;
+      case kDirectionX:
+        hitarray = wx->fHits;
+        break;
+      default:
+        hitarray = 0;
+        break;
+    }
+    if (!hitarray)
+      continue;
+
+    for (int num = MAXHITPERLINE * DLAYERS; num-- && *hitarray; ++hitarray)
     {
       h = *hitarray;
-      ntotal++;
-      if ( h->IsUsed() != 0 && hitc < DLAYERS*3 ){
+      if (h->IsUsed() != 0 && hitc < DLAYERS * 3)
+      {
         //if(h->GetDirection()!=kDirectionX)
         hits[hitc++] = h;
         //else if(h->GetPlane()==1 || h->GetPlane()==7 || h->GetPlane()==4 || h->GetPlane()==10)
@@ -2019,19 +2040,18 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
     }
   }
 
-  // Perform the fit.
+  // Perform the fit
   double chi = 0.0;
-  if ( r2_TrackFit ( hitc, hits, fit, covp, chi, residual,opt )  == -1 )
+  if (r2_TrackFit(hitc, hits, fit, covp, chi, residual, drop_worst_hit) == -1)
   {
-    cerr << "QwPartialTrack Fit Failed" << endl;
+    QwWarning << "QwPartialTrack Fit Failed" << QwLog::endl;
     return 0;
   }
 
-  QwDebug << "Ntotal = " << ntotal << QwLog::endl;
-
+  // Create new partial track
   QwPartialTrack* pt = new QwPartialTrack();
 
-
+  // Store the track offset and slope in the correct coordinate frame
   pt->fOffsetX = -fit[0];
   pt->fOffsetY = fit[2];
   pt->fSlopeX  = -fit[1];
@@ -2039,15 +2059,19 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 
   pt->fIsVoid  = false;
 
-  pt->fChi = sqrt ( chi );
+  pt->fChi = sqrt(chi);
+
+  // TODO FIXME
   pt->SetAverageResidual(wx->GetAverageResidual()+wu->GetAverageResidual()+wv->GetAverageResidual());
 
-  for ( int i = 0; i < 4; i++ )
-    for ( int j = 0; j < 4; j++ )
+  // Store covariance matrix
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++)
       pt->fCov[i][j] = cov[i][j];
 
-  for( int i=0;i<12;++i)
-    pt->fSignedResidual[i]=residual[i];
+  // Store residuals for each plane
+  for (int i = 0; i < 12; ++i)
+    pt->fSignedResidual[i] = residual[i];
 
   pt->fNumMiss = wu->fNumMiss + wv->fNumMiss + wx->fNumMiss;
   pt->fNumHits = wu->fNumHits + wv->fNumHits + wx->fNumHits;
@@ -2057,15 +2081,17 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
   pt->AddTreeLine(wu);
   pt->AddTreeLine(wv);
 
-  pt->TSlope[kDirectionX]=wx->fSlope;
-  pt->TSlope[kDirectionU]=wu->fSlope;
-  pt->TSlope[kDirectionV]=wv->fSlope;
-  pt->TOffset[kDirectionX]=wx->fOffset;
-  pt->TOffset[kDirectionU]=wu->fOffset;
-  pt->TOffset[kDirectionV]=wv->fOffset;
-  pt->TResidual[kDirectionX]=wx->GetAverageResidual();
-  pt->TResidual[kDirectionU]=wu->GetAverageResidual();
-  pt->TResidual[kDirectionV]=wv->GetAverageResidual();
+  pt->TSlope[kDirectionX] = wx->fSlope;
+  pt->TSlope[kDirectionU] = wu->fSlope;
+  pt->TSlope[kDirectionV] = wv->fSlope;
+  pt->TOffset[kDirectionX] = wx->fOffset;
+  pt->TOffset[kDirectionU] = wu->fOffset;
+  pt->TOffset[kDirectionV] = wv->fOffset;
+  pt->TResidual[kDirectionX] = wx->GetAverageResidual();
+  pt->TResidual[kDirectionU] = wu->GetAverageResidual();
+  pt->TResidual[kDirectionV] = wv->GetAverageResidual();
+
+  // Return the partial track
   return pt;
 }
 
@@ -2222,11 +2248,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
     {
       // Get the front and back HDC plane to determine offset
       QwGeometry hdc(fGeometry.in(package).in(region).in(kDirectionX));
-      //        QwDetectorInfo* front = hdc.front();
-      //        QwDetectorInfo* back = hdc.back();
-      //        double zx1 = front->GetZPosition();
-      //double zx2 = back->GetZPosition();
-
 
       //############################
       // Get the u, v and x tracks #
@@ -2243,14 +2264,14 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
 
 
-
-      double best_chi=10000;
-      QwPartialTrack* best_pt=0;
-      QwTreeLine* best_tl[3]={0};
+      // Find the partial track with the lowest chi^2
+      double best_chi = 10000;
+      QwPartialTrack* best_pt = 0;
+      QwTreeLine* best_tl[3] = {0};
 
       // Get the U treeline
       QwTreeLine* wu = uvl[kDirectionU];
-      while(wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS) {
+      while (wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS) {
         // Skip this treeline if it was no good
         if (wu->IsVoid()) {
           wu = wu->next;
@@ -2276,7 +2297,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             }
 
             // Combine the U, V and X treeline into a partial track
-            QwPartialTrack *pt = TcTreeLineCombine(wu, wv, wx, tlayer, false);
+            QwPartialTrack *pt = TcTreeLineCombine(wu, wv, wx, tlayer, fDropWorstHit);
 
             // If a partial track was found
             if (pt) {
@@ -2287,8 +2308,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
                   delete best_pt;
                   best_pt = 0;
                 }
-                // Combine the U, V and X treeline into a partial track without worst hit
-                best_pt = TcTreeLineCombine(wu, wv, wx, tlayer, true);
+                best_pt = pt;
                 // Update best chi
                 best_chi = best_pt->fChi;
 
@@ -2302,9 +2322,10 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
                 best_tl[1] = wu;
                 best_tl[2] = wv;
 
+              } else {
+                // Delete the partial track
+                delete pt;
               }
-              // Delete the partial track
-              delete pt;
             }
 
             wx = wx->next;

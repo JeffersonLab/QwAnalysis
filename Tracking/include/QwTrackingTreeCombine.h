@@ -113,7 +113,7 @@ class QwTrackingTreeCombine {
 		EQwRegionID region, int tlayer, int dlayer);
 
     int r2_TrackFit (
-                const int num,
+                const int num_hits,
                 QwHit **hits,
                 double *fit,
                 double *cov,
@@ -121,8 +121,11 @@ class QwTrackingTreeCombine {
                 double *signedresidual,
                 bool drop_worst_hit);
 
-    QwPartialTrack* r3_TrackFit (const int num, QwHit **hits,
-        QwTreeLine *wu, QwTreeLine *wv);
+    QwPartialTrack* r3_TrackFit (
+                const int num,
+                QwHit **hits,
+                QwTreeLine *wu,
+                QwTreeLine *wv);
 
   private:
 
@@ -137,6 +140,9 @@ class QwTrackingTreeCombine {
     int fMaxMissedPlanes;
     /// Maximum number of missed wires in region 3
     int fMaxMissedWires;
+
+    /// Drop the hit with largest residual and attempt partial track fit again in region 2
+    bool fDropWorstHit;
 
 }; // class QwTrackingTreeCombine
 
