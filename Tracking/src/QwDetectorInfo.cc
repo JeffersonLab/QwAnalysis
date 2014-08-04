@@ -162,7 +162,7 @@ double QwDetectorInfo::GetElementCoordinate(const int element) const
 /**
  * Print all variables in this
  */
-void QwDetectorInfo::Print() const
+void QwDetectorInfo::Print(Option_t *option) const
 {
   QwOut << "type = " << fType << QwLog::endl;
   QwOut << "region = " << fRegion << QwLog::endl;

@@ -297,6 +297,7 @@ std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
 
   stream << "element "  << hit.fElement;
   if (hit.fDistance != 0.0) stream << ", distance " << hit.fDistance/Qw::cm << " cm";
+  if (hit.fResidual != 0.0) stream << ", |" << hit.fDriftPosition/Qw::cm << " - " << hit.fTrackPosition/Qw::cm << "| = " << hit.fResidual/Qw::cm << " cm";
   if (hit.fAmbiguousElement) stream << " (?)";
 
   return stream;

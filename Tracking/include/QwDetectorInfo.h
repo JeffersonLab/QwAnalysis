@@ -203,7 +203,7 @@ class QwDetectorInfo: public TObject {
     void SetTrackingSearchTree(QwTrackingTreeRegion* tree) { fTree = tree; };
 
     // Print function
-    void Print() const;
+    void Print(Option_t *option = "") const;
 
     // Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);
