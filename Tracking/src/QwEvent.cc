@@ -16,20 +16,6 @@ ClassImp(QwKinematics);
 #include "QwTrack.h"
 #include "QwVertex.h"
 
-// Initialize the static lists
-#ifdef QWHITS_IN_STATIC_TCLONESARRAY
-  TClonesArray* QwEvent::gQwHits = 0;
-#endif
-#ifdef QWTREELINES_IN_STATIC_TCLONESARRAY
-  TClonesArray* QwEvent::gQwTreeLines = 0;
-#endif
-#ifdef QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY
-  TClonesArray* QwEvent::gQwPartialTracks = 0;
-#endif
-#ifdef QWTRACKS_IN_STATIC_TCLONESARRAY
-  TClonesArray* QwEvent::gQwTracks = 0;
-#endif
-
 // Initialize beam energy
 Double_t QwEvent::fBeamEnergy = 1.165 * Qw::GeV;
 
@@ -39,56 +25,9 @@ QwEvent::QwEvent()
   // Reset the event header
   fEventHeader = 0;
 
-  #ifdef QWHITS_IN_LOCAL_TCLONESARRAY
-    // Initialize the local list
-    gQwHits = 0;
-  #endif
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    // Create the static TClonesArray for the hits if not existing yet
-    if (! gQwHits)
-      gQwHits = new TClonesArray("QwHit", QWEVENT_MAX_NUM_HITS);
-    // Set local TClonesArray to static TClonesArray
-    fQwHits = gQwHits;
-  #endif
   fNQwHits = 0;
-
-  #ifdef QWTREELINES_IN_LOCAL_TCLONESARRAY
-    // Initialize the local list
-    gQwTreeLines = 0;
-  #endif
-  #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    // Create the static TClonesArray for the tree lines if not existing yet
-    if (! gQwTreeLines)
-      gQwTreeLines = new TClonesArray("QwTreeLine", QWEVENT_MAX_NUM_TREELINES);
-    // Set local TClonesArray to static TClonesArray
-    fQwTreeLines = gQwTreeLines;
-  #endif
   fNQwTreeLines = 0;
-
-  #ifdef QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    // Initialize the local list
-    gQwPartialTracks = 0;
-  #endif
-  #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    // Create the static TClonesArray for the tree lines if not existing yet
-    if (! gQwPartialTracks)
-      gQwPartialTracks = new TClonesArray("QwPartialTrack", QWEVENT_MAX_NUM_PARTIALTRACKS);
-    // Set local TClonesArray to static TClonesArray
-    fQwPartialTracks = gQwPartialTracks;
-  #endif
   fNQwPartialTracks = 0;
-
-  #ifdef QWTRACKS_IN_LOCAL_TCLONESARRAY
-    // Initialize the local list
-    gQwTracks = 0;
-  #endif
-  #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-    // Create the static TClonesArray for the tree lines if not existing yet
-    if (! gQwTracks)
-      gQwTracks = new TClonesArray("QwTrack", QWEVENT_MAX_NUM_TRACKS);
-    // Set local TClonesArray to static TClonesArray and zero hits
-    fQwTracks = gQwTracks;
-  #endif
   fNQwTracks = 0;
 
   // Loop over all pointer objects
@@ -350,49 +289,31 @@ void QwEvent::Print(Option_t* option) const
 // Create a new QwHit
 QwHit* QwEvent::CreateNewHit()
 {
-  QwHit *hit = 0;
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    TClonesArray &hits = *fQwHits;
-    hit = new (hits[fNQwHits++]) QwHit();
-  #else
-    QwWarning << "you shouldn't be here" << QwLog::endl;
-  #endif
+  QwHit* hit = new QwHit();
+  AddHit(hit);
   return hit;
 }
 
 // Add an existing QwHit
 void QwEvent::AddHit(const QwHit* hit)
 {
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    QwHit* newhit = CreateNewHit();
-    *newhit = *hit;
-  #else // QWHITS_IN_STL_VECTOR
-    if (hit) fQwHits.push_back(new QwHit(hit));
-    else QwError << "trying to add null hit" << QwLog::endl;
-  #endif
+  if (hit) fQwHits.push_back(new QwHit(hit));
+  else QwError << "trying to add null hit" << QwLog::endl;
   fNQwHits++;
 }
 
 // Clear the local TClonesArray of hits
 void QwEvent::ClearHits(Option_t *option)
 {
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    fQwHits->Clear(option); // Clear the local TClonesArray
-  #else // QWHITS_IN_STL_VECTOR
-    for (size_t i = 0; i < fQwHits.size(); i++)
-      delete fQwHits.at(i);
-    fQwHits.clear();
-  #endif
+  for (size_t i = 0; i < fQwHits.size(); i++)
+    delete fQwHits.at(i);
+  fQwHits.clear();
   fNQwHits = 0;
 }
 
 // Delete the static TClonesArray of hits
 void QwEvent::ResetHits(Option_t *option)
 {
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    delete gQwHits;
-    gQwHits = 0;
-  #endif // QWHITS_IN_STATIC_TCLONESARRAY || QWHITS_IN_LOCAL_TCLONESARRAY
   ClearHits();
 }
 
@@ -400,29 +321,17 @@ void QwEvent::ResetHits(Option_t *option)
 const QwHit* QwEvent::GetHit(const int hit) const
 {
   if (hit < 0 || hit > GetNumberOfHits()) return 0;
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    return (QwHit*) fQwHits->At(hit);
-  #else // QWHITS_IN_STL_VECTOR
-    return fQwHits.at(hit);
-  #endif
+  return fQwHits.at(hit);
 }
 
 // Print the hits
 void QwEvent::PrintHits(Option_t* option) const
 {
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    TIterator* iterator = GetListOfHits()->MakeIterator();
-    QwHit* hit = 0;
-    while ((hit = (QwHit*) iterator->Next()))
-      std::cout << *hit << std::endl;
-    delete iterator;
-  #else // QWHITS_IN_STL_VECTOR
-    for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
-         hit != fQwHits.end(); ++hit){
-      if((*hit)->GetDriftDistance()!=-5)
+  for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
+      hit != fQwHits.end(); ++hit) {
+    if ((*hit)->GetDriftDistance() != -5)
       std::cout << **hit << std::endl;
-    }
-  #endif
+  }
 }
 
 
@@ -440,17 +349,12 @@ void QwEvent::AddHitContainer(const QwHitContainer* hitlist)
 QwHitContainer* QwEvent::GetHitContainer()
 {
   QwHitContainer* hitlist = new QwHitContainer();
-  #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    TIterator* iterator = fQwHits->MakeIterator();
-    QwHit* hit = 0;
-    while ((hit = (QwHit*) iterator->Next()))
+  for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
+      hit != fQwHits.end(); hit++)
+    if (*hit)
       hitlist->push_back(*hit);
-  #else // QWHITS_IN_STL_VECTOR
-    for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
-         hit != fQwHits.end(); hit++)
-      if (*hit) hitlist->push_back(*hit);
-      else QwError << "null hit in hit list" << QwLog::endl;
-  #endif
+    else
+      QwError << "null hit in hit list" << QwLog::endl;
   return hitlist;
 }
 
@@ -458,27 +362,15 @@ QwHitContainer* QwEvent::GetHitContainer()
 // Create a new QwTreeLine
 QwTreeLine* QwEvent::CreateNewTreeLine()
 {
-  #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    TClonesArray &treelines = *fQwTreeLines;
-    QwTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTreeLine();
-  #else
-    QwTreeLine* treeline = new QwTreeLine();
-    AddTreeLine(treeline);
-  #endif
+  QwTreeLine* treeline = new QwTreeLine();
+  AddTreeLine(treeline);
   return treeline;
 }
 
 // Add an existing QwTreeLine
 void QwEvent::AddTreeLine(const QwTreeLine* treeline)
 {
-  #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    QwTreeLine* newtreeline = CreateNewTreeLine();
-    *newtreeline = *treeline;
-  #elif defined QWTREELINES_IN_STL_VECTOR
-    fQwTreeLines.push_back(new QwTreeLine(treeline));
-  #elif defined QWTREELINES_IN_TEMPLATED_LIST
-    fQwTreeLines.Add(treeline);
-  #endif
+  fQwTreeLines.push_back(new QwTreeLine(treeline));
   fNQwTreeLines++;
 }
 
@@ -504,32 +396,17 @@ void QwEvent::AddTreeLineList(const std::vector<QwTreeLine*>& treelinelist)
 // Clear the local TClonesArray of tree lines
 void QwEvent::ClearTreeLines(Option_t *option)
 {
-  #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    fQwTreeLines->Clear(option); // Clear the local TClonesArray
-  #elif defined QWTREELINES_IN_STL_VECTOR
-    for (size_t i = 0; i < fQwTreeLines.size(); i++){
-      QwTreeLine* tl=fQwTreeLines.at(i);
-      delete tl;
-//       while(tl){
-// 	QwTreeLine* tl_next=tl->next;
-// 	delete tl;
-// 	tl=tl_next;
-//       }
-     }
-    fQwTreeLines.clear();
-  #elif defined QWTREELINES_IN_TEMPLATED_LIST
-    fQwTreeLines.Clear(option);
-  #endif
+  for (size_t i = 0; i < fQwTreeLines.size(); i++) {
+    QwTreeLine* tl = fQwTreeLines.at(i);
+    delete tl;
+  }
+  fQwTreeLines.clear();
   fNQwTreeLines = 0;
 }
 
 // Delete the static TClonesArray of tree lines
 void QwEvent::ResetTreeLines(Option_t *option)
 {
-  #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    delete gQwTreeLines;
-    gQwTreeLines = 0;
-  #endif // QWTREELINES_IN_STATIC_TCLONESARRAY || QWTREELINES_IN_LOCAL_TCLONESARRAY
   ClearTreeLines();
 }
 
@@ -537,60 +414,36 @@ void QwEvent::ResetTreeLines(Option_t *option)
 const QwTreeLine* QwEvent::GetTreeLine(const int tl) const
 {
   if (tl < 0 || tl > GetNumberOfTreeLines()) return 0;
-  #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    return (QwTreeLine*) fQwTreeLines->At(tl);
-  #else // QWTREELINES_IN_STL_VECTOR
-    return fQwTreeLines.at(tl);
-  #endif
+  return fQwTreeLines.at(tl);
 }
 
 // Print the tree lines
 void QwEvent::PrintTreeLines(Option_t* option) const
 {
-  #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-    TIterator* iterator = fQwTreeLines->MakeIterator();
-    QwTreeLine* treeline = 0;
-    while ((treeline = (QwTreeLine*) iterator->Next()))
-      std::cout << *treeline << std::endl;
-    delete iterator;
-  #else // QWTREELINES_IN_STL_VECTOR
-    for (std::vector<QwTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
-         treeline != fQwTreeLines.end(); treeline++){
-      std::cout << **treeline << std::endl;
-      QwTreeLine* tl=(*treeline)->next;
-      while (tl){
-	 std::cout << *tl << std::endl;
-	 tl=tl->next;
-	}
+  for (std::vector<QwTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
+      treeline != fQwTreeLines.end(); treeline++) {
+    std::cout << **treeline << std::endl;
+    QwTreeLine* tl = (*treeline)->next;
+    while (tl) {
+      std::cout << *tl << std::endl;
+      tl = tl->next;
     }
-  #endif
+  }
 }
 
 
 // Create a new QwPartialTrack
 QwPartialTrack* QwEvent::CreateNewPartialTrack()
 {
-  #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    TClonesArray &partialtracks = *fQwPartialTracks;
-    QwPartialTrack *partialtrack = new (partialtracks[fNQwPartialTracks++]) QwPartialTrack();
-  #else
-    QwPartialTrack* partialtrack = new QwPartialTrack();
-    AddPartialTrack(partialtrack);
-  #endif
+  QwPartialTrack* partialtrack = new QwPartialTrack();
+  AddPartialTrack(partialtrack);
   return partialtrack;
 }
 
 // Add an existing QwPartialTrack
 void QwEvent::AddPartialTrack(const QwPartialTrack* partialtrack)
 {
-  #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    QwPartialTrack* newpartialtrack = CreateNewPartialTrack();
-    *newpartialtrack = *partialtrack;
-  #elif defined QWPARTIALTRACKS_IN_STL_VECTOR
-    fQwPartialTracks.push_back(new QwPartialTrack(partialtrack));
-  #elif defined QWPARTIALTRACKS_IN_TEMPLATED_LIST
-    fQwPartialTracks.Add(partialtrack);
-  #endif
+  fQwPartialTracks.push_back(new QwPartialTrack(partialtrack));
   fNQwPartialTracks++;
 }
 
@@ -615,25 +468,15 @@ void QwEvent::AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtra
 // Clear the local TClonesArray of hits
 void QwEvent::ClearPartialTracks(Option_t *option)
 {
-  #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    fQwPartialTracks->Clear(option); // Clear the local TClonesArray
-  #elif defined QWPARTIALTRACKS_IN_STL_VECTOR
-    for (size_t i = 0; i < fQwPartialTracks.size(); i++)
-      delete fQwPartialTracks.at(i);
-    fQwPartialTracks.clear();
-  #elif defined QWPARTIALTRACKS_IN_TEMPLATED_LIST
-    fQwPartialTracks.Clear(option);
-  #endif
+  for (size_t i = 0; i < fQwPartialTracks.size(); i++)
+    delete fQwPartialTracks.at(i);
+  fQwPartialTracks.clear();
   fNQwPartialTracks = 0;
 }
 
 // Delete the static TClonesArray of partial tracks
 void QwEvent::ResetPartialTracks(Option_t *option)
 {
-  #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    delete gQwPartialTracks;
-    gQwPartialTracks = 0;
-  #endif // QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
   ClearPartialTracks();
 }
 
@@ -641,51 +484,31 @@ void QwEvent::ResetPartialTracks(Option_t *option)
 const QwPartialTrack* QwEvent::GetPartialTrack(const int pt) const
 {
   if (pt < 0 || pt > GetNumberOfPartialTracks()) return 0;
-  #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    return (QwPartialTrack*) fQwPartialTracks->At(pt);
-  #else // QWPARTIALTRACKS_IN_STL_VECTOR
-    return fQwPartialTracks.at(pt);
-  #endif
+  return fQwPartialTracks.at(pt);
 }
 
 // Print the partial tracks
 void QwEvent::PrintPartialTracks(Option_t* option) const
 {
-  #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    TIterator* iterator = fQwPartialTracks->MakeIterator();
-    QwPartialTrack* partialtrack = 0;
-    while ((partialtrack = (QwPartialTrack*) iterator->Next()))
-      std::cout << *partialtrack << std::endl;
-  #else // QWPARTIALTRACKS_IN_STL_VECTOR
-    for (std::vector<QwPartialTrack*>::const_iterator parttrack = fQwPartialTracks.begin();
-         parttrack != fQwPartialTracks.end(); ++parttrack)
-      std::cout << **parttrack << std::endl;
-  #endif
+  for (std::vector<QwPartialTrack*>::const_iterator parttrack =
+      fQwPartialTracks.begin(); parttrack != fQwPartialTracks.end();
+      ++parttrack)
+    std::cout << **parttrack << std::endl;
 }
 
 
 // Create a new QwTrack
 QwTrack* QwEvent::CreateNewTrack()
 {
-  #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-    TClonesArray &tracks = *fQwTracks;
-    QwTrack *track = new (tracks[fNQwTracks++]) QwTrack();
-  #else // QWTRACKS_IN_STL_VECTOR
-    QwTrack* track = new QwTrack();
-    AddTrack(track);
-  #endif
+  QwTrack* track = new QwTrack();
+  AddTrack(track);
   return track;
 }
 
 // Add an existing QwTrack
 void QwEvent::AddTrack(const QwTrack* track)
 {
-  #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-    QwTrack* newtrack = CreateNewTrack();
-    *newtrack = *track;
-  #else // QWTRACKS_IN_STL_VECTOR
-    fQwTracks.push_back(new QwTrack(track));
-  #endif
+  fQwTracks.push_back(new QwTrack(track));
   ++fNQwTracks;
 }
 
@@ -700,25 +523,15 @@ void QwEvent::AddTrackList(const std::vector<QwTrack*>& tracklist)
 // Clear the local TClonesArray of hits
 void QwEvent::ClearTracks(Option_t *option)
 {
-  #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-    fQwTracks->Clear(option); // Clear the local TClonesArray
-  #elif defined QWTRACKS_IN_STL_VECTOR
-    for (size_t i = 0; i < fQwTracks.size(); i++)
-      delete fQwTracks.at(i);
-    fQwTracks.clear();
-  #else
-    // not implemented
-  #endif
+  for (size_t i = 0; i < fQwTracks.size(); i++)
+    delete fQwTracks.at(i);
+  fQwTracks.clear();
   fNQwTracks = 0;
 }
 
 // Delete the static TClonesArray of tracks
 void QwEvent::ResetTracks(Option_t *option)
 {
-  #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-    delete gQwTracks;
-    gQwTracks = 0;
-  #endif // QWTRACKS_IN_STATIC_TCLONESARRAY || QWTRACKS_IN_LOCAL_TCLONESARRAY
   ClearTracks();
 }
 
@@ -726,24 +539,13 @@ void QwEvent::ResetTracks(Option_t *option)
 const QwTrack* QwEvent::GetTrack(const int t) const
 {
   if (t < 0 || t > GetNumberOfTracks()) return 0;
-  #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-    return (QwTrack*) fQwTracks->At(t);
-  #else // QWTRACKS_IN_STL_VECTOR
-    return fQwTracks.at(t);
-  #endif
+  return fQwTracks.at(t);
 }
 
 // Print the tracks
 void QwEvent::PrintTracks(Option_t* option) const
 {
-  #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-    TIterator* iterator = fQwTracks->MakeIterator();
-    QwTrack* track = 0;
-    while ((track = (QwTrack*) iterator->Next()))
-      std::cout << *track << std::endl;
-  #else // QWTRACKS_IN_STL_VECTOR
-    for (std::vector<QwTrack*>::const_iterator track = fQwTracks.begin();
-         track != fQwTracks.end(); track++)
-      std::cout << **track << std::endl;
-  #endif
+  for (std::vector<QwTrack*>::const_iterator track = fQwTracks.begin();
+      track != fQwTracks.end(); track++)
+    std::cout << **track << std::endl;
 }

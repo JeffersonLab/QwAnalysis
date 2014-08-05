@@ -148,7 +148,6 @@ class VQwTrackingElement: public TObject {
 /// when two identical branches with TClonesArrays are in the same tree.
 /// When drawing leafs from the second branch, the first branch is drawn.
 
-#define CONTAINS_STL_VECTOR
 #define MAX_NUM_ELEMENTS 1000
 
 template <class T>
@@ -157,44 +156,18 @@ class VQwTrackingElementContainer: public std::vector<T*> {
   public:
 
     /// Constructor
-    VQwTrackingElementContainer() {
-      #if defined LOCAL_TCLONESARRAY
-        // Initialize the local list
-        gList = 0;
-      #endif
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        // Create the static TClonesArray for the hits if not existing yet
-        if (! gList)
-          gList = new TClonesArray(T::Class(), MAX_NUM_ELEMENTS);
-        // Set local TClonesArray to static TClonesArray
-        fList = gList;
-        fSize = 0;
-      #endif
-    }
+    VQwTrackingElementContainer() { }
 
     /// Create a new tree line
     T* CreateNew() {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        TClonesArray &elements = *fList;
-        T *element = new (elements[fSize++]) T();
-      #elif defined CONTAINS_STL_VECTOR || defined INHERITS_STL_VECTOR
-        T* element = new T();
-        Add(element);
-      #endif
+      T* element = new T();
+      Add(element);
       return element;
     }
 
     /// Add an existing element as a copy
     void Add(T* element) {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        T* newelement = CreateNew();
-        *newelement = *element;
-        fSize++;
-      #elif defined CONTAINS_STL_VECTOR
-        fList.push_back(new T(element));
-      #elif defined INHERITS_STL_VECTOR
-        push_back(new T(element));
-      #endif
+      fList.push_back(new T(element));
     }
 
     /// Add a list of existing tree lines as a copy
@@ -205,78 +178,32 @@ class VQwTrackingElementContainer: public std::vector<T*> {
 
     /// Clear the list of tree lines
     void Clear(Option_t *option = "") {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        fList->Clear(option); // Clear the local TClonesArray
-        fSize = 0;
-      #elif defined CONTAINS_STL_VECTOR
-        for (typename std::vector<T*>::iterator element = fList.begin();
-             element != fList.end(); element++)
-          delete *element;
-        fList.clear();
-      #elif defined INHERITS_STL_VECTOR
-        for (typename std::vector<T*>::iterator element = this->begin();
-             element != this->end(); element++)
-          delete *element;
-        this->clear();
-      #endif
+      for (typename std::vector<T*>::iterator element = fList.begin();
+           element != fList.end(); element++)
+        delete *element;
+      fList.clear();
     }
 
     /// Reset the list of tree lines
     void Reset(Option_t *option = "") {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        delete gList;
-        gList = 0;
-      #endif // STATIC_TCLONESARRAY || LOCAL_TCLONESARRAY
       Clear(option);
     }
 
     /// Print the list of tree lines
     void Print(Option_t* option = "") const {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        TIterator* iterator = fList->MakeIterator();
-        T* element = 0;
-        while ((element = (T*) iterator->Next()))
-          std::cout << *element << std::endl;
-        delete iterator;
-      #elif defined CONTAINS_STL_VECTOR
-        for (typename std::vector<T*>::const_iterator element = fList.begin();
-             element != fList.end(); element++)
-          QwMessage << **element << QwLog::endl;
-      #elif defined INHERITS_STL_VECTOR
-        for (typename std::vector<T*>::const_iterator element = this->begin();
-             element != this->end(); element++)
-          QwMessage << **element << QwLog::endl;
-      #endif
+      for (typename std::vector<T*>::const_iterator element = fList.begin();
+           element != fList.end(); element++)
+        QwMessage << **element << QwLog::endl;
     }
 
     /// Get the number of tree lines
     Int_t GetNumberOfElements() const {
-      #if defined CONTAINS_STL_VECTOR
-        return fList.size();
-      #elif defined INHERITS_STL_VECTOR
-        return this->size();
-      #else
-        return fSize;
-      #endif
+      return fList.size();
     };
 
   private:
 
-    #ifdef STATIC_TCLONESARRAY
-      Int_t fSize; ///< Number of elements in the array
-      static TClonesArray* gList; //! ///< Static array of elements
-      TClonesArray*        fList; ///< Array of elements
-    #endif
-
-    #ifdef LOCAL_TCLONESARRAY
-      Int_t fSize; ///< Number of elements in the array
-      TClonesArray* gList; //! ///< Local array of elements
-      TClonesArray* fList; ///< Array of elements
-    #endif
-
-    #ifdef CONTAINS_STL_VECTOR
-      std::vector<T*> fList; ///< Array of pointers to elements
-    #endif
+    std::vector<T*> fList; ///< Array of pointers to elements
 
 }; // class VQwTrackingElementContainer
 

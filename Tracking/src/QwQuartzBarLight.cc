@@ -14,10 +14,6 @@ ClassImp(QwQuartzBarLight)
 #include "QwTrack.h"
 #include "QwVertex.h"
 
-// Initialize the static lists
-#ifdef QWHITS_IN_STATIC_TCLONESARRAY
-//  TClonesArray* QwQuartzBarLight::gQwHits = 0;
-#endif
 
 QwQuartzBarLight::QwQuartzBarLight() {
   printf("\nJJ QwQuartzBarLight constructor\n\n");
