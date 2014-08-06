@@ -40,11 +40,11 @@ class VQwTrackingElement: public TObject {
 
     /// \brief Default constructor
     VQwTrackingElement()
-    : pDetectorInfo(0),
+    : TObject(),fDetectorInfo(0),
       fRegion(kRegionIDNull), fPackage(kPackageNull), fOctant(0),
       fDirection(kDirectionNull), fPlane(0), fElement(0) { };
     VQwTrackingElement(const VQwTrackingElement& that)
-    : TObject(that),
+    : TObject(that),fDetectorInfo(that.fDetectorInfo),
       fRegion(that.fRegion), fPackage(that.fPackage), fOctant(that.fOctant),
       fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) { };
     /// \brief Virtual destructor
@@ -52,14 +52,20 @@ class VQwTrackingElement: public TObject {
 
     /// \brief Assignment operator
     VQwTrackingElement& operator=(const VQwTrackingElement& that) {
-      SetGeometryTo(that);
+      fDetectorInfo = that.fDetectorInfo;
+      fRegion = that.fRegion;
+      fPackage = that.fPackage;
+      fOctant = that.fOctant;
+      fDirection = that.fDirection;
+      fPlane = that.fPlane;
+      fElement = that.fElement;
       return *this;
     };
 
     /// \brief Get the detector info pointer
-    const QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
+    const QwDetectorInfo* GetDetectorInfo () const { return fDetectorInfo; };
     /// \brief Set the detector info pointer
-    void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
+    void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { fDetectorInfo = detectorinfo; };
 
     /// \brief Get the region
     EQwRegionID GetRegion() const { return fRegion; };
@@ -93,6 +99,7 @@ class VQwTrackingElement: public TObject {
 
     /// \brief Copy the geometry info from another object
     void SetGeometryTo(const VQwTrackingElement& e) {
+      fDetectorInfo = e.fDetectorInfo;
       fRegion = e.fRegion;
       fPackage = e.fPackage;
       fOctant = e.fOctant;
@@ -106,7 +113,7 @@ class VQwTrackingElement: public TObject {
     // This will stay empty until we have completely moved away from Det to the
     // QwDetectorInfo class for geometry propagation.  Then it will contain the
     // detector info of the first (not necessarily only) detector location.
-    const QwDetectorInfo* pDetectorInfo; //!	///< Detector info pointer
+    const QwDetectorInfo* fDetectorInfo; //!	///< Detector info pointer
 
     // There is a lot of overlap with QwDetectorID here, but as long as there
     // are still int in QwDetectorInfo we should use the standard types here.

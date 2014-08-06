@@ -124,7 +124,7 @@ void QwHit::Initialize()
   fDirection         = kDirectionNull;
   fPlane             = 0;
   fElement           = 0;
-  pDetectorInfo      = 0;
+  fDetectorInfo      = 0;
 
   fAmbiguousElement  = false;
   fLRAmbiguity       = false;
@@ -171,7 +171,7 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fDirection         = hit.fDirection;
   fPlane             = hit.fPlane;
   fElement           = hit.fElement;
-  pDetectorInfo      = hit.pDetectorInfo;
+  fDetectorInfo      = hit.fDetectorInfo;
 
   fAmbiguousElement  = hit.fAmbiguousElement;
   fLRAmbiguity       = hit.fLRAmbiguity;
@@ -292,7 +292,7 @@ std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
   stream << "dir "       << hit.fDirection << ", ";
   stream << "plane "     << hit.fPlane;
 
-  if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
+  if (hit.fDetectorInfo) stream << " (detector " << hit.fDetectorInfo << "), ";
   else                   stream << ", ";
 
   stream << "element "  << hit.fElement;
