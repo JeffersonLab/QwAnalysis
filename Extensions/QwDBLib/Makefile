@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude -I$(
 LDFLAGS  = $(shell root-config --glibs)
 
 PROG_FILES := \
-	mdallpmtavg bcmdd bcm uslumi
+	mdallpmtavg bcmdd bcm uslumi dslumi
 
 LIB_FILES := \
 	src/QwTreeBranch src/QwTreeBranchPair src/QwTreeBranchPlot
@@ -15,6 +15,9 @@ all: $(PROG_FILES)
 
 uslumi: uslumi.o libQwDB.so
 	$(CPP) -Wall -ggdb -o $@ uslumi.o $(LDFLAGS) -L. -lQwDB
+
+dslumi: dslumi.o libQwDB.so
+	$(CPP) -Wall -ggdb -o $@ dslumi.o $(LDFLAGS) -L. -lQwDB
 
 mdallpmtavg: mdallpmtavg.o libQwDB.so
 	$(CPP) -Wall -ggdb -o $@ mdallpmtavg.o $(LDFLAGS) -L. -lQwDB
