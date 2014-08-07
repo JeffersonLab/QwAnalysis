@@ -57,11 +57,16 @@ int main(int argc, char* argv[]) {
 
     /* Define objects to hold each branch. Define the axis variables in constructor.*/
     QwTreeBranchPlot bcmdd("bcmdd", "runlet_id", "BCM asymmetry double difference (ppm)");
-    if(wien == -1) {
-        bcmdd.get_data_from_tree(tree_asym, "asym_bcmdd12");
-    } else {
-        bcmdd.get_data_from_tree(tree_asym, "asym_bcmdd12", wien);
+    TString bcmdd_name;
+    if (wien < 0 || wien > 10) {
+        std::cout << "Wien " << wien << " not supported." << std::endl;
+        return -1;
+    } else if (wien < 6) {
+        bcmdd_name = "asym_bcmdd12";
+    } else if (wien > 5) {
+        bcmdd_name = "asym_bcmdd78";
     }
+    bcmdd.get_data_from_tree(tree_asym, bcmdd_name, wien);
 
     // sign*BCM 1-2 DD central value vs. runlet
     TCanvas c_bcmdd_vs_runlet("c_bcmdd_vs_runlet");
@@ -92,7 +97,7 @@ int main(int argc, char* argv[]) {
     c_bcmdd_pull_plot.Print("bcmdd_pull_plot.png");
 
     // set the weight to the error of the bcm DD asymmetry
-    bcmdd.set_weight_error(tree_asym, "asym_bcmdd12");
+    bcmdd.set_weight_error(tree_asym, bcmdd_name);
 
     TCanvas c_bcmdd_histogram_weighted_by_own_error("c_bcmdd_histogram_weighted_by_own_error");
     bcmdd.ValuePlotSignCorrWeight();

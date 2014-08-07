@@ -3,17 +3,12 @@
 # Path to the database ROOT files
 db_rootfiles_path="/group/qweak/www/html/private/db_rootfiles"
 data_quality_path="/group/qweak/www/html/private/data_quality"
-#db_rootfiles_path=~/db_rootfiles
-#data_quality_path=.
-#data_quality_path="output"
 
 # Plots to be generated
-plots="offoff/bcmdd on/bcmdd off/bcmdd"
-#plots="on/mdallpmtavg offoff/bcmdd on/bcmdd on/bcm"
+plots="parity/on/mdallpmtavg parity/on/uslumi parity/offoff/bcmdd parity/offoff/bcm"
 
 # Targets to be generated
-targets="HYDROGEN-CELL"
-#targets="HYDROGEN-CELL DS-4%-Aluminum US-2%-Aluminum"
+targets="HYDROGEN-CELL DS-4%-Aluminum US-2%-Aluminum"
 
 # Runs to loop over
 runs="run1 run2"
@@ -54,21 +49,23 @@ for run in $runs ; do
             # Loop over plots
             for plot in $plots ; do
 
-                mkdir -p $plots
-                pushd $plots
+                mkdir -p $plot
+                pushd $plot
 
-                type=`dirname $plot`
+		type=`dirname $plot`
+		heltype=`dirname $type`
+                regtype=`basename $type`
                 macro=`basename $plot`
 
                 # Check whether the database ROOT file exists
-                for file in ${db_rootfiles_path}/${run}/*/${target}_${type}_tree.root ; do
+                for file in ${db_rootfiles_path}/${run}/${heltype}/${target}_${regtype}_tree.root ; do
                     if [ -e "${file}" ] ; then
 
                         echo "Analyzing ${file} with  $QWANALYSIS/Extensions/QwDBLib/${macro}"
                         $QWANALYSIS/Extensions/QwDBLib/${macro} "${file}" "${wien}"
 
                     else
-                        echo "Did not find any rootfiles in ${db_rootfiles_path}/${run}/*/${target}_${type}_tree.root. This makes me a sad panda."
+                        echo "Did not find any rootfiles in ${db_rootfiles_path}/${run}/${heltype}/${target}_${regtype}_tree.root. This makes me a sad panda."
 
                     fi # end of if file exists
                 done

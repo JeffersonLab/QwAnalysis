@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
 
     /* Define objects to hold each branch. Define the axis variables in constructor.*/
-    QwTreeBranchPlot bcm("bcm", "runlet_id", "BCM chrage asymmetry (ppm)");
+    QwTreeBranchPlot bcm("bcm", "runlet_id", "BCM charge asymmetry (ppm)");
     if(wien == -1) {
         bcm.get_data_from_tree(tree_asym, "asym_qwk_charge");
     } else {
@@ -94,7 +94,6 @@ int main(int argc, char* argv[]) {
     c_bcm_histogram_weighted_by_own_error.Modified();
     c_bcm_histogram_weighted_by_own_error.Print("bcm_weighted_by_own_error.png");
 
-
     // set the weight to the error of MD all bars
     bcm.set_weight_error(tree_asym, "asym_mdallbars");
 
@@ -103,7 +102,6 @@ int main(int argc, char* argv[]) {
     c_bcm_histogram_weighted_by_mdallbars_error.Update();
     c_bcm_histogram_weighted_by_mdallbars_error.Modified();
     c_bcm_histogram_weighted_by_mdallbars_error.Print("bcm_weighted_by_mdallbars_error.png");
-
 
     /* Return */
     return 0;

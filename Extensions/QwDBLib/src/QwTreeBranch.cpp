@@ -258,7 +258,7 @@ void QwTreeBranch::set_weight_value(TTree* tree, TString name) {
 /* Method to extract a error from the db_rootfile and the fill it into weight. */
 void QwTreeBranch::set_weight_error(TTree* tree, TString name) {
     if(weight.size() > 0) {
-        cout << "Size of wieght is non-zero, probably already filled!" << endl;
+        cout << "Size of weight is non-zero, probably already filled!" << endl;
         return;
     }
     int n_events;               // number of events (read: runlets) in the tree.
@@ -282,7 +282,7 @@ void QwTreeBranch::set_weight_error(TTree* tree, TString name) {
 /* Method to extract a rms from the db_rootfile and the fill it into weight. */
 void QwTreeBranch::set_weight_rms(TTree* tree, TString name) {
     if(weight.size() > 0) {
-        cout << "Size of wieght is non-zero, probably already filled!" << endl;
+        cout << "Size of weight is non-zero, probably already filled!" << endl;
         return;
     }
     int n_events;               // number of events (read: runlets) in the tree.
@@ -306,7 +306,7 @@ void QwTreeBranch::set_weight_rms(TTree* tree, TString name) {
 /* Method to extract a n from the db_rootfile and the fill it into weight. */
 void QwTreeBranch::set_weight_n(TTree* tree, TString name) {
     if(weight.size() > 0) {
-        cout << "Size of wieght is non-zero, probably already filled!" << endl;
+        cout << "Size of weight is non-zero, probably already filled!" << endl;
         return;
     }
     int n_events;               // number of events (read: runlets) in the tree.
