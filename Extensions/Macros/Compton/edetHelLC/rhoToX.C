@@ -9,7 +9,6 @@ Double_t rhoToX(Int_t plane)
   Bool_t debug=0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
-  Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,h,kDummy;//r
   Double_t kk,x1,CedgeToDetBot,zdrift;
   Double_t thetabend = asin(light*B_dipole*lmag/E);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)
@@ -23,13 +22,13 @@ Double_t rhoToX(Int_t plane)
   re = alpha*hbarc/me;
   gamma_my=E/me; //electron gamma, eqn.20
   R_bend = E/(light*B_dipole);
-  k =2*pi*hbarc/(lambda); // incident photon energy (GeV)
-  a_const =1/(1+4*k*gamma_my/me); // eqn.15 
-  kprimemax=4*a_const*k*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
+  eLaser =2*pi*hbarc/(lambda); // incident photon energy (GeV)
+  a_const =1/(1+4*eLaser*gamma_my/me); // eqn.15 
+  kprimemax=4*a_const*eLaser*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
   asymmax=(1-a_const)*(1+a_const)/(1+a_const*a_const);
   rho0=1/(1+a_const);
   k0prime=rho0*kprimemax;
-  Double_t th_prime = asin(light*B_dipole*lmag/(E+k-kprimemax));
+  Double_t th_prime = asin(light*B_dipole*lmag/(E+eLaser-kprimemax));
   //  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
 
   p_beam =sqrt(E*E - me*me);///momentum of beam electrons
@@ -37,7 +36,7 @@ Double_t rhoToX(Int_t plane)
   h = R_bend*(1 - cos(thetabend));
   kk =zdrift*tan(thetabend);
   x1 =(kk + h);
-  Double_t r_max = ((E+k-kprimemax))/(light*B_dipole);///just for comparision,not needed really
+  Double_t r_max = ((E+eLaser-kprimemax))/(light*B_dipole);///just for comparision,not needed really
 
   
   kDummy = kprimemax; ///initiating 
@@ -53,8 +52,8 @@ Double_t rhoToX(Int_t plane)
   for (Int_t i = 1; i <= nPoints; i++) {
     rho[i] = (Double_t)i/nPoints;
     kDummy = rho[i]*kprimemax;
-    r_dummy = (E-kDummy+k)/(light*B_dipole); 
-    th_dummy = asin(light*B_dipole*lmag/(E+k-kDummy));
+    r_dummy = (E-kDummy+eLaser)/(light*B_dipole); 
+    th_dummy = asin(light*B_dipole*lmag/(E+eLaser-kDummy));
 //  max displacement of the beam with ith (m) 
 //  x2_new = r_dummy*(1-cos(th_dummy)) + (zdrift + dxPrime_old*(((Double_t)nPoints-i)/nPoints)*tan(det_angle))*tan(th_dummy); // max displacement (m)
     x2_new = r_dummy*(1-cos(th_dummy)) + (zdrift)*tan(th_dummy); 
@@ -92,7 +91,7 @@ Double_t rhoToX(Int_t plane)
   grtheory->SetMarkerColor(2);
   
   TF1 *fn0 = new TF1("fn0","pol5");
-  grtheory->Fit("fn0","0");//,"0","goff");
+  grtheory->Fit("fn0","0 Q");//,"0","goff");
   fn0->GetParameters(param);
   // if(debug) {
   //   grtheory->Draw("AP");
@@ -102,7 +101,7 @@ Double_t rhoToX(Int_t plane)
   ofstream checkfile;
   checkfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane+1));
    if(checkfile.is_open()) {
-     cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane+1<<endl;
+     if(debug) cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane+1<<endl;
      checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<"\t"<<param[4]<<"\t"<<param[5]<<endl;
    } else cout<<"**Alert: couldn't open file to write QED fit parameters**\n"<<endl;
   checkfile.close();

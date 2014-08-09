@@ -11,14 +11,14 @@ TString filePrefix;
 //Asymmetry calculation constants 
 const Double_t light=0.2998;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
 const Double_t pi=3.141592;
-const Double_t hbarc=0.197E-15;/// GeV.m
+const Double_t hbarc=0.19732858E-15;/// GeV.m
 const Double_t alpha=0.00729927; ///=1.0/137.0;
-const Double_t me=0.000511;///GeV
+const Double_t me=0.00051099006;///GeV
 const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
 const Double_t B_dipole = 0.544;///T
 const Double_t E = 1.159; //Beam energy (GeV)
 const Double_t lambda = 532E-9; //photon wavelength (nm)      
-Double_t xCedge;
+Double_t xCedge=0.0;
 Double_t param[6];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
 Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
@@ -70,8 +70,15 @@ Int_t asymflag=0;
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;
-Double_t k;
+Double_t eLaser;
 Double_t gamma_my;
+Double_t re,R_bend,kprimemax,asymmax,rho0,k0prime,p_beam,h,kDummy;//r
+Double_t betaBar=0.0,betaCM=0.0,gammaCM=0.0;
+Double_t delta = 0.0,eGamma;
+Double_t sEq211=0.0;
+Double_t eLaserCM=0.0,eBeamCM=0.0, eBetaCM;
+Double_t costhcm;
+Double_t radCor = 1.0;
 
 Bool_t skipCyc=kFALSE;///true implies this cycle to be skipped
 Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
@@ -90,6 +97,10 @@ Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;
 Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
 Double_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];
 Double_t beamMax, laserMax;
+Double_t pol,polEr,chiSq,effStripWidth,effStripWidthEr;
+Double_t cEdge,cEdgeEr;
+Int_t NDF,resFitNDF;
+Double_t resFit,resFitEr, chiSqResidue;
 
 Double_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
 Double_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];

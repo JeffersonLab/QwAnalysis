@@ -7,7 +7,6 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 #include "infoDAQ.C"
-const Bool_t kVladas_meth=0,kVladas_data=0;
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
 {///parCx[1]: to be found Cedge
   itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
@@ -24,6 +23,8 @@ Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for
 }
 
 ///3 parameter method
+const Bool_t kVladas_meth=0,kVladas_data=0;
+const Bool_t kRadCor=1;
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
   //itStrip = skipStrip.find(*thisStrip); //for some reason the std::set did not work !
@@ -45,12 +46,28 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
     rhoStrip = 2.81648E-06 + xStrip*0.0602395 + xStrip*xStrip*(-0.000148674) + xStrip*xStrip*xStrip*1.84876E-07 + xStrip*xStrip*xStrip*xStrip*1.05068E-08 + xStrip*xStrip*xStrip*xStrip*xStrip*(-2.537E-10);
     //cout<<red<<(*thisStrip)<<"\t"<<xStrip<<"\t"<<rhoStrip<<normal<<endl;
   }
+  if(kRadCor) {
+    eGamma = rhoStrip* kprimemax;
+    betaBar=TMath::Sqrt(1.0 - (me/E)*(me/E)) ;
+    betaCM = (betaBar*E-eLaser)/(E+eLaser) ; //eq. 2.10
+    sEq211 = me*me + 2*eLaser*E*(1.0+betaCM) ;//eq. 2.11 
+    gammaCM = (E+eLaser)/TMath::Sqrt(sEq211) ;
+    eLaserCM = eLaser*gammaCM*(1.0+betaCM) ;
+    eBeamCM = TMath::Sqrt(eLaser*eLaser + me*me) ; 
+
+    eBetaCM = eLaserCM/eBeamCM;// eqn. 2.2
+    costhcm=(gammaCM*eLaserCM - eGamma)/(eLaserCM*gammaCM*betaCM); // eqn. 2.13 
+
+    if(rhoStrip<=1.0) delta=alpha/pi *(3.0*costhcm-1.0)/(4*(eBetaCM + costhcm));//  eqn 3.9 
+    else delta = 0.0;///leave A_QED unchanged
+    radCor = (1.0+delta);
+  }
   rhoPlus = 1.0-rhoStrip*(1.0+a_const);
   rhoMinus = 1.0-rhoStrip*(1.0 - a_const);//just a term in eqn 24
   dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
   dsdrho =((rhoStrip*(1.0 - a_const)*rhoStrip*(1.0 - a_const)/rhoMinus)+1.0+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a_const
   //Double_t calcAsym=(par[0]*(-1*IHWP)*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//eqn.24,without factor 2*pi*(re^2)/a
-  return (par[2]*(rhoPlus*(1.0-1.0/(rhoMinus*rhoMinus)))/dsdrho);//calcAsym;
+  return (radCor*(par[2]*(rhoPlus*(1.0-1.0/(rhoMinus*rhoMinus)))/dsdrho));//calcAsym;
 }
 
 Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
@@ -68,10 +85,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   gStyle->SetTitleSize(0.06,"Y");
   gStyle->SetLabelSize(0.06,"xyz");
 
-  Double_t pol[nPlanes],polEr[nPlanes],chiSq[nPlanes],effStripWidth[nPlanes],effStripWidthEr[nPlanes];
-  Double_t offset[nPlanes],offsetEr[nPlanes];
-  Int_t NDF[nPlanes],resFitNDF[nPlanes];
-  Double_t resFit[nPlanes],resFitEr[nPlanes], chiSqResidue[nPlanes];
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   Bool_t debug=1,debug1=0,debug2=0;
   Bool_t polSign,kYieldFit=0,kYield=1,kResidual=1;
@@ -140,16 +153,13 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   }///for(Int_t p =startPlane; p <endPlane; p++)
 
   TCanvas *cAsym;
-  TGraphErrors *grAsymPlane[nPlanes];
+  TGraphErrors *grAsym[nPlanes];
 
   cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300*endPlane);
   cAsym->Divide(1,endPlane); 
 
   Double_t fitResidue[nPlanes][nStrips];
   Double_t zero[nStrips];
-
-  polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePrefix.Data()));
-  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane\tgoodCycles"<<endl;
 
   for (Int_t p =startPlane; p <endPlane; p++) {  
     if (!kVladas_meth) xCedge = rhoToX(p); ///this function should be called after determining the Cedge
@@ -185,23 +195,25 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       expAsymPWTL1.close();
     } else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
-    if(kVladas_data) grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/run.24519","%lg %lg %lg");  
-    //grAsymPlane[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
-    //else grAsymPlane[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
-    else grAsymPlane[p]=new TGraphErrors(nStrips,trueStrip.data(),asym.data(),zero,asymEr.data());
+    if(kVladas_data) {
+      grAsym[p]=new TGraphErrors("/home/narayan/acquired/vladas/run.24519","%lg %lg %lg");  
+      cout<<red<<"\nNotice: plotting Vladas's asymmetry file for now\n"<<normal<<endl;
+    } else grAsym[p]=new TGraphErrors(nStrips,trueStrip.data(),asym.data(),zero,asymEr.data()); 
+    //grAsym[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
+    //else grAsym[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
 
-    grAsymPlane[p]->GetXaxis()->SetTitle("Strip number");
-    grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");   
-    grAsymPlane[p]->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",p+1));//Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
-    grAsymPlane[p]->SetMarkerStyle(kFullCircle);
-    grAsymPlane[p]->SetLineColor(kRed);
-    grAsymPlane[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
-    grAsymPlane[p]->SetMaximum(0.048); 
-    grAsymPlane[p]->SetMinimum(-0.048);
-    grAsymPlane[p]->GetXaxis()->SetLimits(1,65); 
-    grAsymPlane[p]->GetXaxis()->SetNdivisions(416, kFALSE);
+    grAsym[p]->GetXaxis()->SetTitle("Strip number");
+    grAsym[p]->GetYaxis()->SetTitle("asymmetry");   
+    grAsym[p]->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",p+1));//Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
+    grAsym[p]->SetMarkerStyle(kFullCircle);
+    grAsym[p]->SetLineColor(kRed);
+    grAsym[p]->SetMarkerColor(kRed); ///kRed+2 = Maroon
+    grAsym[p]->SetMaximum(0.048); 
+    grAsym[p]->SetMinimum(-0.048);
+    grAsym[p]->GetXaxis()->SetLimits(1,65); 
+    grAsym[p]->GetXaxis()->SetNdivisions(416, kFALSE);
 
-    grAsymPlane[p]->Draw("AP");  
+    grAsym[p]->Draw("AP");
     tempCedge = Cedge[p];//-0.5;///this should be equated before the declaration of TF1
     linearFit = new TF1("linearFit", "pol0",startStrip+1,tempCedge);
     linearFit->SetLineColor(kRed);
@@ -227,32 +239,35 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     polFit->SetParNames("effStrip","comptonEdge","polarization");
     polFit->SetLineColor(kBlue);
     cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
-    grAsymPlane[p]->Fit("polFit","0 R M E");
+    grAsym[p]->Fit("polFit","0 R M E");
     polFit->DrawCopy("same");
-    offset[p] = polFit->GetParameter(1);
-    offsetEr[p] = polFit->GetParError(1);
-    pol[p] = polFit->GetParameter(2);
-    polEr[p] = polFit->GetParError(2);
+    cEdge = polFit->GetParameter(1);
+    cEdgeEr = polFit->GetParError(1);
+    pol = polFit->GetParameter(2);
+    polEr = polFit->GetParError(2);
 
-    effStripWidth[p] = polFit->GetParameter(0);
-    effStripWidthEr[p] = polFit->GetParError(0);
+    effStripWidth = polFit->GetParameter(0);
+    effStripWidthEr = polFit->GetParError(0);
 
-    chiSq[p] = polFit->GetChisquare();
-    NDF[p] = polFit->GetNDF();
+    chiSq = polFit->GetChisquare();
+    NDF = polFit->GetNDF();
 
-    if(debug) cout<<"\nwrote the polarization relevant values to file "<<endl;
-    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\t%d\n",(Double_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1,asymflag);
+    if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
+    polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePrefix.Data()));
+    polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane\tgoodCycles"<<endl;
+    polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1,asymflag);
     if(debug) {
       cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStripWidth effStripWidthEr plane");
-      cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Double_t)runnum,pol[p]*100,polEr[p]*100,chiSq[p],NDF[p],offset[p],offsetEr[p],effStripWidth[p],effStripWidthEr[p],p+1);      
+      cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1);      
     }
     leg[p] = new TLegend(0.101,0.75,0.43,0.9);
-    leg[p]->AddEntry(grAsymPlane[0],"experimental asymmetry","lpe");///I just need the name
+    //leg[p]->AddEntry(grAsym[0],"experimental asymmetry","lpe");///I just need the name
+    leg[p]->AddEntry(grAsym[0],"experimental asymmetry","lpe");///I just need the name
     leg[p]->AddEntry("polFit","QED asymmetry fit to exp. asymmetry","l");//"lpf");//
     leg[p]->SetFillColor(0);
     leg[p]->Draw();
 
-    polSign = pol[p] > 0 ? 1 : 0;
+    polSign = pol > 0 ? 1 : 0;
     if (polSign) pt[p] = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
     else  pt[p] = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
     if(debug) cout<<"polSign is: "<<polSign<<endl;
@@ -263,10 +278,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     pt[p]->SetFillColor(-1);
     pt[p]->SetShadowColor(-1);
 
-    pt[p]->AddText(Form("chi Sq / ndf       : %.3f",chiSq[p]/NDF[p]));
+    pt[p]->AddText(Form("chi Sq / ndf       : %.3f",chiSq/NDF));
     //pt[p]->AddText(Form("Compton Edge      : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
-    pt[p]->AddText(Form("Compton Edge : %2.2f #pm %2.2f",offset[p],offsetEr[p]));
-    pt[p]->AddText(Form("Polarization      : %2.2f #pm %2.2f",pol[p]*100.0,polEr[p]*100.0));
+    pt[p]->AddText(Form("Compton Edge : %2.2f #pm %2.2f",cEdge,cEdgeEr));
+    pt[p]->AddText(Form("Polarization      : %2.2f #pm %2.2f",pol*100.0,polEr*100.0));
     pt[p]->Draw();
     myline->Draw();
   }//for (Int_t p =startPlane; p <endPlane; p++)
@@ -304,10 +319,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       grResiduals[p]->Draw("AP");
       grResiduals[p]->Fit(linearFit,"REq");//q:quiet mode
 
-      resFit[p] = linearFit->GetParameter(0);
-      resFitEr[p] = linearFit->GetParError(0);
-      chiSqResidue[p] = linearFit->GetChisquare();
-      resFitNDF[p] = linearFit->GetNDF();
+      resFit = linearFit->GetParameter(0);
+      resFitEr = linearFit->GetParError(0);
+      chiSqResidue = linearFit->GetChisquare();
+      resFitNDF = linearFit->GetNDF();
 
       ptRes[p] = new TPaveText(0.67,0.67,0.9,0.9,"brNDC");///x1,y1,x2,y2
       ptRes[p]->SetTextSize(0.048);//0.028); 
@@ -315,8 +330,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       ptRes[p]->SetTextAlign(12);
       ptRes[p]->SetFillColor(0);
       ptRes[p]->SetShadowColor(-1);
-      ptRes[p]->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqResidue[p],resFitNDF[p]));
-      ptRes[p]->AddText(Form("linear fit    : %f #pm %f",resFit[p],resFitEr[p]));
+      ptRes[p]->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqResidue,resFitNDF));
+      ptRes[p]->AddText(Form("linear fit    : %f #pm %f",resFit,resFitEr));
       ptRes[p]->Draw();
     }//for (Int_t p =startPlane; p <endPlane; p++)
     cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePrefix.Data()));

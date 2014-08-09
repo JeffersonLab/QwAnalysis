@@ -38,7 +38,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
   Double_t qNormAcB1L0[nPlanes][nStrips][mCyc],qNormAcB1L1[nPlanes][nStrips][mCyc];
   Double_t asymDiff[nPlanes][nStrips],zero[nPlanes][nStrips];
   Double_t accumB1L0[nPlanes][nStrips],accumB1L0Er[nPlanes][nStrips];
-  //if(!maskSet) infoDAQ(runnum);
+  if(!maskSet) infoDAQ(runnum);
 
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);

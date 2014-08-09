@@ -19,13 +19,12 @@ Int_t infoDAQ(Int_t runnum)
 
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
   if(additionalStripMask) {
-    //skipStrip.push_back(2);//notice that the strip number pushed is in human counts
+    skipStrip.push_back(2);//notice that the strip number pushed is in human counts
     skipStrip.push_back(6);
     //skipStrip.push_back(10);//notice that the strip number pushed is in human counts
     skipStrip.push_back(20);
-    //skipStrip.push_back(39);
-    //cout<<red<<"masked strips # 2,6,10,20,39 accross all planes"<<normal<<endl;//!update this with above list
-    cout<<red<<"masked strips # 39 accross all planes"<<normal<<endl;//!update this with above list
+    skipStrip.push_back(39);
+    cout<<red<<"masked strips # 2,6,10,20,39 accross all planes"<<normal<<endl;//!update this with above list
   }
 
 ///For further processing, I need the rootfile
