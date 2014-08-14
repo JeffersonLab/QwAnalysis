@@ -356,7 +356,7 @@ void QwTreeBranchPlot::ValuePullPlot(void) {
 
     TH1D* temp_histo = new TH1D("h4",plot_label, 100, -5, 5);
     for(unsigned int i = 0; i < fill_value.size(); i++){
-        double difference = (double)sign[i]*(fill_value[i] - mean);
+        double difference = (double)sign[i]*fill_value[i] - mean;
         temp_histo->Fill(difference/fill_error[i]);
     }
     temp_histo->GetXaxis()->SetTitle(y_axis_label);
