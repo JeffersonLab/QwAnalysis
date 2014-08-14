@@ -37,7 +37,7 @@ sample_size=464
 ! ModuleType, Module#, Chan#, DetType, DetName
   VQWK, 3, 0,  IntegrationPMT,  qwk_PMTLED,		NOT_BLINDABLE,  NOT_NORMALIZABLE
   VQWK, 3, 1,  IntegrationPMT,  qwk_PMTONL,		NOT_BLINDABLE
-  VQWK, 3, 2,  IntegrationPMT,  qwk_PMTLTG,		NOT_BLINDABLE
+  VQWK, 3, 2,  IntegrationPMT,  qwk_PMTONL_wide,        NOT_BLINDABLE
   VQWK, 3, 3,  IntegrationPMT,  qwk_md9neg,		NOT_BLINDABLE
   VQWK, 3, 4,  IntegrationPMT,  qwk_md9pos,		NOT_BLINDABLE
   VQWK, 3, 5,  IntegrationPMT,  qwk_ISourc,		NOT_BLINDABLE,  NOT_NORMALIZABLE

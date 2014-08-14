@@ -19,14 +19,6 @@ asym:qwk_bcm5, -1
 asym:qwk_bcm1, 1
 asym:qwk_bcm6, -1
 
-[asym:@bcmdd17]
-asym:qwk_bcm1, 1
-asym:qwk_bcm7, -1
-
-[asym:@bcmdd18]
-asym:qwk_bcm1, 1
-asym:qwk_bcm8, -1
-
 [asym:@bcmdd25]
 asym:qwk_bcm2, 1
 asym:qwk_bcm5, -1
@@ -35,37 +27,9 @@ asym:qwk_bcm5, -1
 asym:qwk_bcm2, 1
 asym:qwk_bcm6, -1
 
-[asym:@bcmdd27]
-asym:qwk_bcm2, 1
-asym:qwk_bcm7, -1
-
-[asym:@bcmdd28]
-asym:qwk_bcm2, 1
-asym:qwk_bcm8, -1
-
 [asym:@bcmdd56]
 asym:qwk_bcm5, 1
 asym:qwk_bcm6, -1
-
-[asym:@bcmdd57]
-asym:qwk_bcm5, 1
-asym:qwk_bcm7, -1
-
-[asym:@bcmdd58]
-asym:qwk_bcm5, 1
-asym:qwk_bcm8, -1
-
-[asym:@bcmdd67]
-asym:qwk_bcm6, 1
-asym:qwk_bcm7, -1
-
-[asym:@bcmdd68]
-asym:qwk_bcm6, 1
-asym:qwk_bcm8, -1
-
-[asym:@bcmdd78]
-asym:qwk_bcm7, 1
-asym:qwk_bcm8, -1
 
 [asym:@bpmdd_charge_3c12]
 asym:qwk_bpm3c12_EffectiveCharge, 1
@@ -127,6 +91,7 @@ asym:qwk_md4barsum,  0.17678
 asym:qwk_md6barsum, -0.17678
 asym:qwk_md7barsum, -0.25
 asym:qwk_md8barsum, -0.17678
+
 
 # MD Asymmetry Average
 [asym:@asym_mdallbarsavg]
@@ -198,12 +163,15 @@ asym:qwk_md9pos, 0.50
 
 
 #Lumi Asymmetery Average PMT
-#Do uslumi1* need to be added back in here?
 [asym:@asym_uslumi_pmtavg]
-asym:qwk_uslumi3neg, 0.25 
-asym:qwk_uslumi3pos, 0.25 
-asym:qwk_uslumi7neg, 0.25 
-asym:qwk_uslumi7pos, 0.25
+asym:qwk_uslumi1neg, 0.125 
+asym:qwk_uslumi1pos, 0.125 
+asym:qwk_uslumi3neg, 0.125 
+asym:qwk_uslumi3pos, 0.125 
+asym:qwk_uslumi5neg, 0.125 
+asym:qwk_uslumi5pos, 0.125 
+asym:qwk_uslumi7neg, 0.125 
+asym:qwk_uslumi7pos, 0.125
 
 [asym:@asym_dslumi_pmtavg]
 asym:qwk_dslumi1, 0.125 
@@ -217,8 +185,10 @@ asym:qwk_dslumi8, 0.125
  
 #USLumi Asymmetry Average Detector
 [asym:@asym_uslumi_detavg]
-asym:uslumi3_sum, 0.50 
-asym:uslumi7_sum, 0.50
+asym:uslumi1_sum, 0.25 
+asym:uslumi3_sum, 0.25 
+asym:uslumi5_sum, 0.25 
+asym:uslumi7_sum, 0.25
 
 #USLumi Detector Asymmetries form Averaged Tube Asyms
 [asym:@asym_uslumi1_avg]
@@ -229,12 +199,20 @@ asym:qwk_uslumi1pos, 0.50
 asym:qwk_uslumi3neg, 0.50
 asym:qwk_uslumi3pos, 0.50
 
+[asym:@asym_uslumi5_avg]
+asym:qwk_uslumi5neg, 0.50
+asym:qwk_uslumi5pos, 0.50
+
 [asym:@asym_uslumi7_avg]
 asym:qwk_uslumi7neg, 0.50
 asym:qwk_uslumi7pos, 0.50
 
 
 #USLumi Dipoles
+[asym:@asym_uslumi15_dipole]
+asym:uslumi1_sum,  1
+asym:uslumi5_sum, -1
+
 [asym:@asym_uslumi37_dipole]
 asym:uslumi3_sum,  1
 asym:uslumi7_sum, -1
