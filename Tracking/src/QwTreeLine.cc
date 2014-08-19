@@ -298,7 +298,7 @@ double QwTreeLine::CalculateAverageResidual()
   for (int layer = 0; layer < 2 * MAX_LAYERS; ++layer) {
     for (QwHit* hit = fHits[layer]; hit; hit = hit->next) {
       if (hit->IsUsed()) {        
-        double residual = hit->GetResidual();
+        double residual = hit->GetTreelineResidual();
         sumResiduals += residual;
         numHits++;
       }

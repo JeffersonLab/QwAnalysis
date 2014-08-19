@@ -135,11 +135,12 @@ void QwHit::Initialize()
   fTime              = 0.0;
   fTimeRes           = 0.0;
   fDistance          = 0.0;
-  fDriftPosition     = 0.0;
-  fTrackPosition     = 0.0;
   fWirePosition      = 0.0;
-  fResidual          = 0.0;
-  fZPosition         = 0.0;
+  fDriftPosition     = 0.0;
+  fTreelinePosition     = 0.0;
+  fTreelineResidual     = 0.0;
+  fPartialTrackPosition = 0.0;
+  fPartialTrackResidual = 0.0;
   fSpatialResolution = 0.0;
   fTrackResolution   = 0.0;
 
@@ -184,9 +185,10 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fDistance          = hit.fDistance;
   fDriftPosition     = hit.fDriftPosition;
   fWirePosition      = hit.fWirePosition;
-  fTrackPosition     = hit.fTrackPosition;
-  fResidual          = hit.fResidual;
-  fZPosition         = hit.fZPosition;
+  fTreelinePosition     = hit.fTreelinePosition;
+  fTreelineResidual     = hit.fTreelineResidual;
+  fPartialTrackPosition = hit.fPartialTrackPosition;
+  fPartialTrackResidual = hit.fPartialTrackResidual;
   fSpatialResolution = hit.fSpatialResolution;
   fTrackResolution   = hit.fTrackResolution;
 
@@ -296,8 +298,17 @@ std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
   else                   stream << ", ";
 
   stream << "element "  << hit.fElement;
-  if (hit.fDistance != 0.0) stream << ", distance " << hit.fDistance/Qw::cm << " cm";
-  if (hit.fResidual != 0.0) stream << ", |" << hit.fDriftPosition/Qw::cm << " - " << hit.fTrackPosition/Qw::cm << "| = " << hit.fResidual/Qw::cm << " cm";
+  if (hit.fDistance != 0.0)
+    stream << ", distance " << hit.fDistance/Qw::cm << " cm";
+
+  if (hit.fTreelineResidual != 0.0)
+    stream << ", |" << hit.fDriftPosition/Qw::cm << " - " << hit.fTreelinePosition/Qw::cm
+    << "| = " << hit.fTreelineResidual/Qw::cm << " cm";
+
+  if (hit.fPartialTrackResidual != 0.0)
+    stream << ", |" << hit.fDriftPosition/Qw::cm << " - " << hit.fPartialTrackPosition/Qw::cm
+    << "| = " << hit.fPartialTrackResidual/Qw::cm << " cm";
+
   if (hit.fAmbiguousElement) stream << " (?)";
 
   return stream;

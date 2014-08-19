@@ -332,7 +332,7 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 // 		std::cout << DetecHits[i]->fDriftPosition << "," << std::endl;
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
-        TreeCombine->weight_lsq_r3 (slope, offset, cov, chi, DetecHits, nhits, 0, -1);
+        TreeCombine->r3_TreelineFit (slope, offset, cov, chi, DetecHits, nhits, 0, -1);
 
         // Store the determined offset, slope, and chi^2 into the tree line
         treeline->SetOffset(offset);

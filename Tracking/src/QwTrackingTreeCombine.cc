@@ -273,7 +273,7 @@ void QwTrackingTreeCombine::mul_do (
  * get the covariance matrix for position and slope.
  */
 // TODO Why is this similar to weight_lsq_r3?  can't this be one function?
-void QwTrackingTreeCombine::weight_lsq (
+void QwTrackingTreeCombine::r2_TreelineFit (
     double& slope,	//!< (returns) slope of fitted track
     double& offset,	//!< (returns) offset of fitted track
     double  cov[3],	//!< (returns) covariance matrix of slope and offset
@@ -342,9 +342,9 @@ void QwTrackingTreeCombine::weight_lsq (
   for ( int i = 0; i < n; ++i )
   {
 
-    hits[i]->SetTrackPosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
-    hits[i]->CalculateResidual();
-    double residual = hits[i]->GetResidual();
+    hits[i]->SetTreelinePosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
+    hits[i]->CalculateTreelineResidual();
+    double residual = hits[i]->GetTreelineResidual();
     firstpass+=fabs(residual);
     sum += G[i][i] * residual * residual;
   }
@@ -412,9 +412,9 @@ void QwTrackingTreeCombine::weight_lsq (
       for ( int i = 0; i < n; ++i )
       {
         if(i!=drop){
-          hits[i]->SetTrackPosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
-          hits[i]->CalculateResidual();
-          double residual=hits[i]->GetResidual();
+          hits[i]->SetTreelinePosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
+          hits[i]->CalculateTreelineResidual();
+          double residual=hits[i]->GetTreelineResidual();
           sum += G[i][i] * residual * residual;
         }
       }
@@ -451,7 +451,7 @@ void QwTrackingTreeCombine::weight_lsq (
  * and get the covariance matrix for position and slope.
  */
 
-void QwTrackingTreeCombine::weight_lsq_r3 (
+void QwTrackingTreeCombine::r3_TreelineFit (
     double& slope,
     double& offset,
     double  cov[3],
@@ -535,9 +535,9 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   {
     for ( int i = 0; i < n; i++ )
     {
-      hits[i]->SetTrackPosition ( slope * ( hits[i]->GetWirePosition() - z1 ) + offset );
-      hits[i]->CalculateResidual();
-      double residual = hits[i]->GetResidual();
+      hits[i]->SetTreelinePosition ( slope * ( hits[i]->GetWirePosition() - z1 ) + offset );
+      hits[i]->CalculateTreelineResidual();
+      double residual = hits[i]->GetTreelineResidual();
       sum += G[i][i] * residual * residual;
     }
   }
@@ -548,9 +548,9 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
       // 			hits[i]->SetWirePosition ( i + wire_offset ); // TODO element spacing
       //hits[i]->SetTrackPosition ( slope * ( i + wire_offset ) + offset );
       hits[i]->SetWirePosition (hits[i]->GetElement());
-      hits[i]->SetTrackPosition ( slope * hits[i]->GetElement() + offset );
-      hits[i]->CalculateResidual();
-      double residual = hits[i]->GetResidual();
+      hits[i]->SetTreelinePosition ( slope * hits[i]->GetElement() + offset );
+      hits[i]->CalculateTreelineResidual();
+      double residual = hits[i]->GetTreelineResidual();
       sum += G[i][i] * residual * residual;
     }
   }
@@ -921,7 +921,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
       double chi = 0.0; // chi^2 of the fit
       double cov[3] = {0.0, 0.0, 0.0}; // covariance matrix
 
-      weight_lsq ( slope, offset, cov, chi, usedHits, nPlanesWithHits );
+      r2_TreelineFit ( slope, offset, cov, chi, usedHits, nPlanesWithHits );
       // (returns slope, offset, cov, chi)
 
 
@@ -960,7 +960,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
         best_permutation  = permutation;
         for(int plane=0;plane<nPlanesWithHits;++plane){
           if(!usedHits[plane]->IsUsed())
-            best_trackpos[plane]=usedHits[plane]->GetTrackPosition();
+            best_trackpos[plane]=usedHits[plane]->GetTreelinePosition();
         }
 
         memcpy ( best_cov, cov, sizeof cov );
@@ -989,8 +989,8 @@ bool QwTrackingTreeCombine::TlCheckForX (
           nPlanesWithHits, nHitsInPlane, goodHits, usedHits );
 
       for(int plane=0;plane<nPlanesWithHits;++plane){
-        usedHits[plane]->SetTrackPosition(best_trackpos[plane]);
-        usedHits[plane]->CalculateResidual();
+        usedHits[plane]->SetTreelinePosition(best_trackpos[plane]);
+        usedHits[plane]->CalculateTreelineResidual();
       }
 
       // Reset the used flags
@@ -1169,7 +1169,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   double chi = 0.0;
   double slope = 0.0, offset = 0.0;
   double cov[3] = {0.0, 0.0, 0.0};
-  weight_lsq_r3 ( slope, offset, cov, chi, treeline->fHits, nHits, z1, treeline->fR3Offset );
+  r3_TreelineFit ( slope, offset, cov, chi, treeline->fHits, nHits, z1, treeline->fR3Offset );
   //    (returns slope, offset, cov, chi)
 
   //################
@@ -1418,7 +1418,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
  *//*-------------------------------------------------------------------------*/
 
-int QwTrackingTreeCombine::r2_TrackFit (
+int QwTrackingTreeCombine::r2_PartialTrackFit (
     const int num_hits,
     QwHit **hits,
     double *fit,
@@ -1555,6 +1555,12 @@ int QwTrackingTreeCombine::r2_TrackFit (
         + hits[i]->GetDetectorInfo()->GetElementOffset();
     double hit_pos = hits[i]->GetDriftPosition() + wire_off - dx;
     double residual = y * rcos + x * rsin - hit_pos;
+
+    // Update residuals
+    hits[i]->SetPartialTrackPosition(dx - wire_off + y * rcos + x * rsin);
+    hits[i]->CalculatePartialTrackResidual();
+    QwDebug << "hit " << i << ": " << hits[i]->GetPartialTrackPosition() << QwLog::endl;
+
     signedresidual[hits[i]->GetPlane() - 1] = residual;
     residual = fabs(residual);
     if (residual > worst_case.second)
@@ -1679,6 +1685,12 @@ int QwTrackingTreeCombine::r2_TrackFit (
         + hits[i]->GetDetectorInfo()->GetElementOffset();
     double hit_pos = hits[i]->GetDriftPosition() + wire_off - dx;
     double residual = y * rcos + x * rsin - hit_pos;
+
+    // Update residuals
+    hits[i]->SetPartialTrackPosition(dx - wire_off + y * rcos + x * rsin);
+    hits[i]->CalculatePartialTrackResidual();
+    QwDebug << "hit " << i << ": " << hits[i]->GetPartialTrackPosition() << QwLog::endl;
+
     temp_residual[hits[i]->GetPlane() - 1] = residual;
     chi2_test += normalization * residual * residual;
 
@@ -1704,7 +1716,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
 
 // NOTE:this version is using information directly from the treeline in plane0 to do the reconstruction
-QwPartialTrack* QwTrackingTreeCombine::r3_TrackFit (
+QwPartialTrack* QwTrackingTreeCombine::r3_PartialTrackFit (
     const int num,
     QwHit **hits,
     QwTreeLine* wu,
@@ -1938,7 +1950,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
   QwDebug << "Ntotal = " << ntotal << QwLog::endl;
 
   // Perform the fit to create partial track
-  QwPartialTrack* pt = r3_TrackFit(hitc, hits, wu, wv);
+  QwPartialTrack* pt = r3_PartialTrackFit(hitc, hits, wu, wv);
 
   // If the fit was unsuccessful
   if (!pt) {
@@ -2042,7 +2054,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 
   // Perform the fit
   double chi = 0.0;
-  if (r2_TrackFit(hitc, hits, fit, covp, chi, residual, drop_worst_hit) == -1)
+  if (r2_PartialTrackFit(hitc, hits, fit, covp, chi, residual, drop_worst_hit) == -1)
   {
     QwWarning << "QwPartialTrack Fit Failed" << QwLog::endl;
     return 0;

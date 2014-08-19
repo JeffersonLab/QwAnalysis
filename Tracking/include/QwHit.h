@@ -92,10 +92,11 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   const Double_t&       GetDriftDistance() const { return fDistance; };
   const Double_t&       GetDriftPosition() const { return fDriftPosition; };
   const Double_t&       GetWirePosition()  const { return fWirePosition; };
-  const Double_t&       GetTrackPosition() const { return fTrackPosition; };
-  const Double_t&       GetResidual()      const { return fResidual; };
-  const Double_t&       GetZPos()          const { return fZPosition; };
-  const Double_t&       GetZPosition()     const { return fZPosition; };
+
+  const Double_t&       GetTreelinePosition() const { return fTreelinePosition; };
+  const Double_t&       GetTreelineResidual() const { return fTreelineResidual; };
+  const Double_t&       GetPartialTrackPosition() const { return fPartialTrackPosition; };
+  const Double_t&       GetPartialTrackResidual() const { return fPartialTrackResidual; };
 
   const Bool_t&         IsUsed()           const { return fIsUsed; };
 
@@ -125,11 +126,11 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   void SetDriftDistance(const Double_t distance)    { fDistance = distance; };
   void SetDriftPosition(const Double_t position)    { fDriftPosition = position; };
   void SetWirePosition(const Double_t position)     { fWirePosition = position; };
-  void SetTrackPosition(const Double_t position)    { fTrackPosition = position; };
-  void SetResidual(const Double_t residual)         { fResidual = residual; };
-  void SetZPos(const Double_t zposition)            { fZPosition = zposition; };
-  void SetZPosition(const Double_t zposition)       { fZPosition = zposition; };
 
+  void SetTreelinePosition(const Double_t position)     { fTreelinePosition = position; };
+  void SetPartialTrackPosition(const Double_t position) { fPartialTrackPosition = position; };
+  void SetTreelineResidual(const Double_t residual)     { fTreelineResidual = residual; };
+  void SetPartialTrackResidual(const Double_t residual) { fPartialTrackResidual = residual; };
 
   void SetSpatialResolution(const Double_t sresolution) { fSpatialResolution = sresolution; };
   void SetTrackResolution(const Double_t tresolution)   { fTrackResolution = tresolution; };
@@ -152,7 +153,12 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
   Bool_t WireMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane, Int_t wire);
 
-  void CalculateResidual() { fResidual = fabs(fDriftPosition - fTrackPosition); };
+  void CalculateTreelineResidual()     {
+    fTreelineResidual = fabs(fDriftPosition - fTreelinePosition);
+  };
+  void CalculatePartialTrackResidual() {
+    fPartialTrackResidual = fabs(fDriftPosition - fPartialTrackPosition);
+  };
 
  public:
 
@@ -178,15 +184,18 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   Double_t fDistance;                ///< Perpendicular distance from the wire to the track,
                                      ///  as reconstructed from the drift time
   Double_t fDriftPosition;           ///< Position of the decoded hit in the drift cell
-  Double_t fTrackPosition;           ///< Position of the fitted track through the drift cell
-  Double_t fWirePosition;            ///< Lontigudinal position of the hit (this is mainly
+  Double_t fWirePosition;            ///< Longitudinal position of the hit (this is mainly
                                      ///  used in region 3 where the z coordinate is taken
                                      ///  in the wire plane instead of perpendicular to it)
-  Double_t fResidual;                ///< Residual of this hit (difference between the drift
-                                     ///  distance and the distance to the fitted track)
-  Double_t fZPosition;               ///< Lontigudinal position of the hit (this is mainly
-                                     ///  used in region 3 where the z coordinate is taken
-                                     ///  in the wire plane instead of perpendicular to it)
+
+  Double_t fTreelinePosition;        ///< Position of the fitted treeline through the drift cell
+  Double_t fTreelineResidual;        ///< Treeline residual of this hit (difference between
+                                     ///  the drift distance and the distance to the fitted track)
+
+  Double_t fPartialTrackPosition;    ///< Position of the fitted treeline through the drift cell
+  Double_t fPartialTrackResidual;    ///< Partial track residual of this hit (difference between
+                                     ///  the drift distance and the distance to the fitted track)
+
   Double_t fSpatialResolution;       ///< Spatial resolution
   Double_t fTrackResolution;         ///< Track resolution
 

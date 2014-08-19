@@ -68,10 +68,10 @@ class QwTrackingTreeCombine {
 
 
     void mul_do (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
-    void weight_lsq (
+    void r2_TreelineFit (
 		double& slope, double& offset, double cov[3], double& chi,
 		QwHit **hits, int n);
-    void weight_lsq_r3 (
+    void r3_TreelineFit (
 		double& slope, double& offset, double cov[3], double& chi,
 		QwHit **hits, int n, double z1, int wire_offset );
 
@@ -112,7 +112,7 @@ class QwTrackingTreeCombine {
 		QwTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
 		EQwRegionID region, int tlayer, int dlayer);
 
-    int r2_TrackFit (
+    int r2_PartialTrackFit (
                 const int num_hits,
                 QwHit **hits,
                 double *fit,
@@ -121,7 +121,7 @@ class QwTrackingTreeCombine {
                 double *signedresidual,
                 bool drop_worst_hit);
 
-    QwPartialTrack* r3_TrackFit (
+    QwPartialTrack* r3_PartialTrackFit (
                 const int num,
                 QwHit **hits,
                 QwTreeLine *wu,
