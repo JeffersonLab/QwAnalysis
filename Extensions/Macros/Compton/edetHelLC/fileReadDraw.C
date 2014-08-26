@@ -820,7 +820,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     Double_t qNormScalerB1L1[nPlanes][nStrips][mCyc],qNormScalerB1L0[nPlanes][nStrips][mCyc],qNormScalerB1[nPlanes][nStrips][mCyc];
     Double_t qNormScB1[nPlanes][nStrips][numb],qNormScL1[nPlanes][nStrips][numb],qNormScL0[nPlanes][nStrips][numb];
     Double_t zero2[numb];
-    Double_t p0,p1,NDF,chiSq,p1Er,p0Er;
+    Double_t p0,p1,p1Er,p0Er;
     /*run  : beam***********
      *23142 :  30uA, 
      *23148 :  50uA, 

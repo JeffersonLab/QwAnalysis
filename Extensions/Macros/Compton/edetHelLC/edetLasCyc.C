@@ -1,9 +1,9 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
 #include "asymFit.C"
-//#include "infoDAQ.C"
 #include "expAsym.C"
-#include "fileReadDraw.C"
+//#include "infoDAQ.C"
+//#include "fileReadDraw.C"
 
 Int_t edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
 {

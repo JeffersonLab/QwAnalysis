@@ -23,7 +23,6 @@ Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for
 }
 
 ///3 parameter method
-const Bool_t kVladas_meth=0,kVladas_data=0;
 const Bool_t kRadCor=1;
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
@@ -38,14 +37,8 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   //xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as actual position inside Cedge strip
   //xStrip = xCedge + par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting!!didn't work
   //xStrip = xCedge -0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
-  if(!kVladas_meth) {//!my method
-    xStrip = xCedge - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
-    rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]+ xStrip*xStrip*xStrip*xStrip*param[4]+ xStrip*xStrip*xStrip*xStrip*xStrip*param[5];
-  } else {  //!Vladas's numbers
-    xStrip = 17.315 - 0.2*(par[1] - (*thisStrip))*par[0]; //for 2nd parameter as Cedge itself
-    rhoStrip = 2.81648E-06 + xStrip*0.0602395 + xStrip*xStrip*(-0.000148674) + xStrip*xStrip*xStrip*1.84876E-07 + xStrip*xStrip*xStrip*xStrip*1.05068E-08 + xStrip*xStrip*xStrip*xStrip*xStrip*(-2.537E-10);
-    //cout<<red<<(*thisStrip)<<"\t"<<xStrip<<"\t"<<rhoStrip<<normal<<endl;
-  }
+  xStrip = xCedge - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
+  rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]+ xStrip*xStrip*xStrip*xStrip*param[4]+ xStrip*xStrip*xStrip*xStrip*xStrip*param[5];
   if(kRadCor) {
     eGamma = rhoStrip* kprimemax;
     betaBar=TMath::Sqrt(1.0 - (me/E)*(me/E)) ;
@@ -73,6 +66,8 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
+  if(kRadCor) cout<<blue<<"Radiative correction being applied"<<normal<<endl;
+  else cout<<blue<<"radiative correction turned OFF"<<normal<<endl;
   //  time_t tStart = time(0), tEnd; 
   //  div_t div_output;
   //gStyle->SetOptFit(1);
@@ -162,7 +157,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   Double_t zero[nStrips];
 
   for (Int_t p =startPlane; p <endPlane; p++) {  
-    if (!kVladas_meth) xCedge = rhoToX(p); ///this function should be called after determining the Cedge
+    xCedge = rhoToX(p); ///this function should be called after determining the Cedge
 
     paramfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,p+1));
     cout<<"reading in the rho to X fitting parameters for plane "<<p+1<<", they were:" <<endl;
@@ -173,8 +168,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     cAsym->cd(p+1);  
     cAsym->GetPad(p+1)->SetGridx(1);
 
-    if(kVladas_data) expAsymPWTL1.open("/home/narayan/acquired/vladas/run.24519");
-    else expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
     Int_t c1=0;
     Double_t dummy1,dummy2,dummy3;
     if(expAsymPWTL1.is_open()) {
@@ -195,10 +189,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       expAsymPWTL1.close();
     } else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
 
-    if(kVladas_data) {
-      grAsym[p]=new TGraphErrors("/home/narayan/acquired/vladas/run.24519","%lg %lg %lg");  
-      cout<<red<<"\nNotice: plotting Vladas's asymmetry file for now\n"<<normal<<endl;
-    } else grAsym[p]=new TGraphErrors(nStrips,trueStrip.data(),asym.data(),zero,asymEr.data()); 
+    grAsym[p]=new TGraphErrors(nStrips,trueStrip.data(),asym.data(),zero,asymEr.data()); 
     //grAsym[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
     //else grAsym[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
 
@@ -222,7 +213,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,3);
     //polFit = new TF1("polFit",theoreticalAsym,startStrip+1,endStrip,3);
     //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
-    polFit->SetParameters(1.0033,tempCedge,0.85);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
+    polFit->SetParameters(1.0033,tempCedge,0.89);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
     if (kFitEffWidth) {
       polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch   
       polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
@@ -231,15 +222,16 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     } else {
       //polFit->SetParLimits(0,1.0,1.0);///fix the effective strip width to 1.0
       polFit->SetParLimits(0,1.0033,1.0033);///fix the effective strip width to 1.0033 !changed to match the runlet analysis output
-      polFit->SetParLimits(1,30.0,63.0);///allow the CE to vary between strip 30-63
+      polFit->SetParLimits(1,30.0,60.0);///allow the CE to vary between strip 30-63
       cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
       //cout<<blue<<"effective strip width fixed at "<<normal<<<GetParameter[0]<endl;
     }
-    polFit->SetParLimits(2,-1.0,1.0);///allowing polarization to be - 100% to +100%
+    polFit->SetParLimits(2,-0.93,0.93);///allowing polarization to be - 100% to +100%
     polFit->SetParNames("effStrip","comptonEdge","polarization");
     polFit->SetLineColor(kBlue);
     cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
-    grAsym[p]->Fit("polFit","0 R M E");
+    TVirtualFitter::SetMaxIterations( 10000 );
+    grAsym[p]->Fit("polFit","N R M E");
     polFit->DrawCopy("same");
     cEdge = polFit->GetParameter(1);
     cEdgeEr = polFit->GetParError(1);
@@ -389,13 +381,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   }
   polList.close();
 
-  //!Vladas
-  if(kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sasymFit_runletData_anMeth.png",pPath,webDirectory,filePrefix.Data()));
-  else if(kVladas_data && kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sasymFit_runletData_vtMeth.png",pPath,webDirectory,filePrefix.Data()));
-  else if(!kVladas_data && kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sasymFit_vtMeth.png",pPath,webDirectory,filePrefix.Data()));
-  //else if(!kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%sAcAsymFit.png",pPath,webDirectory,filePrefix.Data()));
-  else if(!kVladas_data && !kVladas_meth) cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePrefix.Data()));
-
+  cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePrefix.Data()));
   //  tEnd = time(0);
   //  div_output = div((Int_t)difftime(tEnd, tStart),60);
   //  printf("\n it took %d minutes %d seconds to execute asymFit.C\n",div_output.quot,div_output.rem );  

@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-macro=/w/hallc/compton/users/narayan/svn/edetHelLC
+macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
 #for i in `seq 23098 25204`;
 #for i in `seq 22659 25546`;
-#for i in `seq 23531 24000`;
+#for i in `seq 23220 23221`;
 for i in `seq 23220 23530`;
 do
   cat batchsub_header1.xml >> batch_submit_$i.xml

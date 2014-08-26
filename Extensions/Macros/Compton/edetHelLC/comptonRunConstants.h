@@ -1,7 +1,7 @@
 #ifndef __COMPTONRUNCONSTANTS_H
 #define __COMPTONRUNCONSTANTS_H
 
-#include <rootClass.h>
+#include "/w/hallc/compton/users/narayan/svn/Compton/edetHelLC/rootClass.h"
 #include <stdlib.h>
 
 //Directory paths
@@ -80,7 +80,7 @@ Double_t eLaserCM=0.0,eBeamCM=0.0, eBetaCM;
 Double_t costhcm;
 Double_t radCor = 1.0;
 
-Bool_t skipCyc=kFALSE;///true implies this cycle to be skipped
+Int_t skipCyc=0;///counts the no.of times the background corrected counts go <= 0
 Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
 Bool_t mask[nPlanes][nStrips];  
 Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
@@ -91,16 +91,19 @@ std::vector<Int_t>::iterator itStrip;
 /* set<Int_t>::iterator itStrip; */
 
 //used in asymFit's fit function evaluation:
-Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;
+Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;///on purpose left uninitialized, if they are being used without being assigned, it will generate a warning of 'using a variable without initializing'
 
 ///Declaration of regular variables to be used in the macro
+Float_t corrB1H1L1_0=0.0,corrB1H1L0_0=0.0,corrB1H0L1_0=0.0,corrB1H0L0_0=0.0;//deadtime correction for given run
+Float_t corrB1H1L1_1=0.0,corrB1H1L0_1=0.0,corrB1H0L1_1=0.0,corrB1H0L0_1=0.0;//deadtime correction for given run
+Float_t c2B1H1L1[nPlanes][nStrips],c2B1H1L0[nPlanes][nStrips],c2B1H0L1[nPlanes][nStrips],c2B1H0L0[nPlanes][nStrips];
 Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
 Double_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];
-Double_t beamMax, laserMax;
-Double_t pol,polEr,chiSq,effStripWidth,effStripWidthEr;
-Double_t cEdge,cEdgeEr;
-Int_t NDF,resFitNDF;
-Double_t resFit,resFitEr, chiSqResidue;
+Double_t beamMax=0.0, laserMax=0.0;
+Double_t pol=0.0,polEr=0.0,chiSq=0.0,effStripWidth=0.0,effStripWidthEr=0.0;
+Double_t cEdge=0.0,cEdgeEr=0.0;
+Int_t NDF=0,resFitNDF=0;
+Double_t resFit=0.0,resFitEr=0.0, chiSqResidue=0.0;
 
 Double_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
 Double_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];

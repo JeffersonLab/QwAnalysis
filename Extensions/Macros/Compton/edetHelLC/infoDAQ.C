@@ -8,37 +8,123 @@ Int_t infoDAQ(Int_t runnum)
 {
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
-  const Bool_t debug=0;
+  gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
+  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  const Bool_t debug=1;
   const Int_t errFlag=100;
   Bool_t additionalStripMask=1;///this will be my primary tool to skip masked strips in asymFit.C
   Double_t bMask[nPlanes][nStrips];
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
-  ofstream flagsfile,debugInfoDAQ,infoStripMask;
-
+  ofstream flagsfile,debugInfoDAQ,infoStripMask,fBeamProp;
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
-  if(additionalStripMask) {
-    skipStrip.push_back(2);//notice that the strip number pushed is in human counts
+  if(additionalStripMask) {//notice that the strip number pushed is in human counts 
+    skipStrip.push_back(2);
     skipStrip.push_back(6);
-    //skipStrip.push_back(10);//notice that the strip number pushed is in human counts
+    skipStrip.push_back(10);
     skipStrip.push_back(20);
     skipStrip.push_back(39);
     cout<<red<<"masked strips # 2,6,10,20,39 accross all planes"<<normal<<endl;//!update this with above list
   }
 
-///For further processing, I need the rootfile
+  ///For further processing, I need the rootfile
   TFile file(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//need to read in only the first runlet
   if(file.IsZombie()) {
     cout<<red<<"couldn't open the rootfile needed by infoDAQ.C"<<normal<<endl;
     return -1;
   }
-  //TTree *configTree = (TTree*)file->Get("Config_Tree");
+  //TTree *slowTree = (TTree*)file.Get("Slow_Tree");
+  TChain *slowChain = new TChain("Slow_Tree");//to scan through the entire run if a parameter changed midway
+  Int_t slowExists = slowChain->Add(Form("$QW_ROOTFILES/Compton_Pass2b_%d.*.root",runnum));//for pass2b
+  cout<<"Attached "<<slowExists<<" files to chain for Run # "<<runnum<<endl;
+
+  Double_t hWien, rms_hWien, vWien, rms_vWien;
+  Double_t ihwp1set,rms_ihwp1set, rhwp, rms_rhwp,ihwp1read, rms_ihwp1read, ihwp2read, rms_ihwp2read;   
+  //Double_t hallcPhI,hallcWaveL;
+  //Double_t weinAngle,qeHallA,qeHallB,qeHallC;
+  //Double_t hallcTrans,
+  Double_t hccedpos, rms_hccedpos;
+
+  slowChain->SetBranchStatus("*",1);
+  //slowChain->SetBranchAddress("HWienAngle",&hWienAngle);
+  //slowChain->SetBranchAddress("VWienAngle",&vWienAngle);
+  //slowChain->SetBranchAddress("IGL1I00OD16_16",&ihwp1set);
+  //slowChain->SetBranchAddress("IGL1I00DI24_24M",&ihwp1read);
+  //slowChain->SetBranchAddress("psub_pl_pos",&rhwp);
+  //slowChain->SetBranchAddress("IGL1I00DIOFLRD",&ihwp2read);
+  //slowChain->SetBranchAddress("hallc_photocurrent",&hallcPhI);
+  ////slowChain->SetBranchAddress("hallb_transmission",&);
+  //slowChain->SetBranchAddress("laser_c_wavelength",&hallcWaveL);
+  //slowChain->SetBranchAddress("WienAngle",&weinAngle);
+  //slowChain->SetBranchAddress("qe_halla",&qeHallA);
+  //slowChain->SetBranchAddress("qe_hallb",&qeHallB);
+  //slowChain->SetBranchAddress("qe_hallc",&qeHallC);
+  //slowChain->SetBranchAddress("hallc_transmission",&hallcTrans);
+  //slowChain->SetBranchAddress("HCCEDPOS",&hccedpos);
+  ////slowChain->SetBranchAddress("",&);
+
+  //Int_t totEntries = slowChain->GetEntries();
+
+  TH1D *hCheck = new TH1D("hCheck","dummy",100,-0.0,0.1);//typical value of maximum beam current
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("HWienAngle>>hCheck","","goff");
+  hWien = hCheck->GetMean();
+  rms_hWien = hCheck->GetRMS();
+  hCheck->Reset();
+
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("VWienAngle>>hCheck","","goff");
+  vWien = hCheck->GetMean();
+  rms_vWien = hCheck->GetRMS();
+  hCheck->Reset();
+
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("IGL1I00OD16_16>>hCheck","","goff");
+  ihwp1set = hCheck->GetMean();
+  rms_ihwp1set = hCheck->GetRMS();
+  hCheck->Reset();
+
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("IGL1I00DI24_24M>>hCheck","","goff");
+  ihwp1read = hCheck->GetMean();
+  rms_ihwp1read = hCheck->GetRMS();
+  hCheck->Reset();
+
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("psub_pl_pos>>hCheck","","goff");
+  rhwp = hCheck->GetMean();
+  rms_rhwp = hCheck->GetRMS();
+  hCheck->Reset();
+
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("IGL1I00DIOFLRD>>hCheck","","goff");
+  ihwp2read = hCheck->GetMean();
+  rms_ihwp2read = hCheck->GetRMS();
+  hCheck->Reset();
+
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("HCCEDPOS>>hCheck","","goff");
+  hccedpos = hCheck->GetMean();
+  rms_hccedpos = hCheck->GetRMS();
+  hCheck->Reset();
+
+  if(debug) {
+    cout<<blue<<"HWien\tVWien\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\n"<<endl;
+    cout<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
+    cout<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos <<normal<<endl;
+  }
+  fBeamProp.open(Form("%s/%s/%sbeamProperties.txt",pPath,webDirectory,filePrefix.Data()));//,std::fstream::app);
+  if(fBeamProp.is_open()) {
+    fBeamProp<<runnum<<"\t"<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
+    fBeamProp<<runnum<<"\t"<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos<<endl;
+    fBeamProp.close();
+  } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
+
   TTree *configTree = (TTree*)file.Get("Config_Tree");
-  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
   //configTree->ResetBranchAddresses();
   configTree->SetBranchStatus("*",1); 
- 
+
   for(Int_t p = 0; p <nPlanes; p++) {      
     configTree->SetBranchAddress(Form("v1495InfoPlane%d",p+1),&bMask[p]);
   }//the branch for each plane is named from 1 to 4
@@ -56,28 +142,28 @@ Int_t infoDAQ(Int_t runnum)
 
   configTree->GetEntry(0);
 
-  for(Int_t p = startPlane; p <nPlanes; p++) {
-    for(Int_t s =startStrip; s <endStrip; s++) {
-      mask[p][s] = (Int_t)bMask[p][s];
-    }
-  }
-  
-  infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePrefix.Data()));
-  infoStripMask<<";plane\tmaskedStrips:";
-  //for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out
-  for(Int_t p = startPlane; p <endPlane; p++) {
-    infoStripMask<<"\n"<<p+1<<"\t";
-    for(Int_t s =startStrip; s <endStrip; s++) {
-      if (mask[p][s] == 0) {
-	infoStripMask<<s+1<<"\t";
-	//skipStrip.insert(s+1); //idea of declaraing it as a 'set' did not work
-	//skipStrip.push_back(s+1);//notice that the strip#s are pushed in as human count #s
-	if(debug) cout<<blue<<"masked strip "<<s+1<<normal<<endl;
-      }//check if strip is masked
-    }//for all strips
-  }//for all planes
-  infoStripMask.close();
-  ///list all those strips that you want in the list for in case it was not already a part of the above created vector
+  //for(Int_t p = startPlane; p <nPlanes; p++) {
+  //  for(Int_t s =startStrip; s <endStrip; s++) {
+  //    mask[p][s] = (Int_t)bMask[p][s];
+  //  }
+  //}
+  //
+  //infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePrefix.Data()));
+  //infoStripMask<<";plane\tmaskedStrips:";
+  ////for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out
+  //for(Int_t p = startPlane; p <endPlane; p++) {
+  //  infoStripMask<<"\n"<<p+1<<"\t";
+  //  for(Int_t s =startStrip; s <endStrip; s++) {
+  //    if (mask[p][s] == 0) {
+  //infoStripMask<<s+1<<"\t";
+  ////skipStrip.insert(s+1); //idea of declaraing it as a 'set' did not work
+  ////skipStrip.push_back(s+1);//notice that the strip#s are pushed in as human count #s
+  //if(debug) cout<<blue<<"masked strip "<<s+1<<normal<<endl;
+  //    }//check if strip is masked
+  //  }//for all strips
+  //}//for all planes
+  //infoStripMask.close();
+  /////list all those strips that you want in the list for in case it was not already a part of the above created vector
   for(Int_t m = 0; m <nModules; m++) {
     acTrigSlave[m]        = (Int_t)bAcTrigSlave[m];  
     evTrigSlave[m]        = (Int_t)bEvTrigSlave[m];
@@ -98,8 +184,7 @@ Int_t infoDAQ(Int_t runnum)
   pwtl2 = pwtl2Slave[0]==pwtl2Slave[1] ? pwtl2Slave[1] :errFlag;
   holdOff = holdOffSlave[0]==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
   pipelineDelay = pipelineDelaySlave[0]==pipelineDelaySlave[1] ? pipelineDelaySlave[1] : errFlag;
- 
-  gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
+
   flagsfile.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
   if(flagsfile.is_open()) {
     flagsfile<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\thOff\tplDelay"<<endl;
@@ -129,14 +214,14 @@ Int_t infoDAQ(Int_t runnum)
 }
 
 /***********************
- Choosing how to skip a strip that was not masked in DAQ:
+  Choosing how to skip a strip that was not masked in DAQ:
  *I can look at the asymmetry numerator and visually look for outliers
  *I can look at the asymmetry fit residuals and visually identify outliers
  *As of now, the above two methods do not seem to be in agreement for some choices
  **this list may need to become dependent on run-ranges because some strips started growing bad with time
  **some part of the bias in the evaluation may be coming from the symmetry in the trigger generation. 
  **This symmetry gets biased by masking one strip in a plane while leaving it unmasked in another plane. 
- 
+
  *Instead of going through the skipStrip mechanism of ignoring a strip, 
  *why not simply modify the mask[p][s] with this additional information of the 
  *strips that I think should be masked off ? 

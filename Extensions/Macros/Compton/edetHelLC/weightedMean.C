@@ -14,8 +14,9 @@ Double_t weightedMean(Double_t weightedMeanNrAsym[nPlanes][nStrips],Double_t wei
       else {
         stripAsym[p][s] = weightedMeanNrAsym[p][s]/weightedMeanDrAsym[p][s];
         if (weightedMeanDrAsym[p][s]<0.0) {
-          stripAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrAsym[p][s]));//!!shouldn't need to do this
+          //stripAsymEr[p][s] = TMath::Sqrt(-(1.0/weightedMeanDrAsym[p][s]));//!!shouldn't need to do this
           cout<<red<<"*** Warning: the weightedMeanDrAsym for plane:"<<p+1<<", strip:"<<s+1<<" is (negative) :"<<weightedMeanDrAsym[p][s]<<normal<<endl;
+          return -1.0;
         } else stripAsymEr[p][s] = TMath::Sqrt(1.0/weightedMeanDrAsym[p][s]);
         if(debug) printf("stripAsym[%d][%d]:%f  stripAsymEr:%f\n",p,s,stripAsym[p][s],stripAsymEr[p][s]);
 
