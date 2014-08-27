@@ -528,12 +528,9 @@ Modified:
 
 int DetermineOctantRegion3(TChain* event_tree, int package)
 {
-  for (int octant = 1; octant <= 8; octant++) 
-    {
-    TH1D* h_adc = new TH1D("h_adc","h_adc",128,0,4096);
-    event_tree->Draw(Form("maindet.md%dm_adc+maindet.md%dp_adc>>h_adc",octant,octant),
-                     Form("events.fQwTracks.fPackage==%d",package),"",1000);
-    if (h_adc->GetMean() > adc_pedestal[octant] + 50.0) return octant;
-    delete h_adc;
-    }
+	  TH1F* h = new TH1F("h",Form("Region3, Package %d Octant",package),9,-0.5,8.5);
+	  event_tree->Draw("events.fQwPartialTracks.fOctant>>h",Form("events.fQwPartialTracks.fRegion==3&&events.fQwPartialTracks.fPackage==%d",package),"GOFF",100000);
+	  int oct = int (h->GetMean());
+	  delete h;
+	  return oct;
 }

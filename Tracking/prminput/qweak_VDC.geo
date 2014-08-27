@@ -7,7 +7,7 @@ spatial_resolution = 7e-2
 track_resolution = 9e-2
 slope_matching = 1e-1
 
-rotator_pitch = 0
+rotator_pitch = 0.1
 rotator_yaw = 0
 rotator_roll = 0
 
