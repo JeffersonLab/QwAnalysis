@@ -117,7 +117,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         qNormCntsB1L0.resize(p+1);
         qNormCntsB1L0Er.resize(p+1);
       }
-      if(debug1) cout<<"Reading the qNorm files corresponding to Plane "<<p+1<<endl;
+      if(debug1) cout<<"Reading the qNorm Yield for Plane "<<p+1<<endl;
       while(infileL0Yield.good()) {
         activeStrip[p].push_back(0.0);
         qNormCntsB1L0[p].push_back(0.0);
@@ -169,22 +169,18 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     cAsym->GetPad(p+1)->SetGridx(1);
 
     expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    Int_t c1=0;
     Double_t dummy1,dummy2,dummy3;
     if(expAsymPWTL1.is_open()) {
       if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
       if(debug2) cout<<"stripNum\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
-      for(Int_t s =startStrip ; s < endStrip; s++) {
-        if (std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) {
-          cout<<red<<"skipping strip "<<s+1<<normal<<endl;
-          expAsymPWTL1>>dummy1>>dummy2>>dummy3;
+      while( expAsymPWTL1>>dummy1>>dummy2>>dummy3 && expAsymPWTL1.good() ) {
+        if (std::find(skipStrip.begin(),skipStrip.end(),dummy1)!=skipStrip.end()) {
+          cout<<blue<<"skipping strip "<<dummy1<<normal<<endl;
           continue; 
         }
         //if (!mask[p][s]) continue;
-        trueStrip.push_back(0.0),asym.push_back(0.0),asymEr.push_back(0.0);
-        expAsymPWTL1>>trueStrip[c1]>>asym[c1]>>asymEr[c1];
-        if(debug2) cout<<blue<<trueStrip[c1]<<"\t"<<asym[c1]<<"\t"<<asymEr[c1]<<normal<<endl;
-        c1++;
+        trueStrip.push_back(dummy1),asym.push_back(dummy2),asymEr.push_back(dummy3);
+        if(debug2) cout<<blue<<trueStrip.back()<<"\t"<<asym.back()<<"\t"<<asymEr.back()<<normal<<endl;
       }
       expAsymPWTL1.close();
     } else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
@@ -291,18 +287,18 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         zero[s] = 0.0;
       }
 
-      if(debug2) cout<<"fitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
+      if(debug2) cout<<"strip\tfitResidue[p][s]\tstripAsym[p][s]\tpolFit->Eval(s+1)"<<endl;
       for (Int_t s = startStrip; s <= Cedge[p]; s++) {
         //if (!mask[p][s]) continue;
         fitResidue[p][s] = asym[s] - polFit->Eval(s+1);
-        if(debug2) cout<<fitResidue[p][s]<<"\t"<<asym[s]<<"\t"<<polFit->Eval(s+1)<<endl;
+        if(debug2) cout<<s+1<<"\t"<<fitResidue[p][s]<<"\t"<<asym[s]<<"\t"<<polFit->Eval(s+1)<<endl;
       }
       cResidual->cd(p+1);  
       cResidual->GetPad(p+1)->SetGridx(1);
       grResiduals[p]=new TGraphErrors((Int_t)Cedge[p],trueStrip.data(),fitResidue[p],zero,asymEr.data());
       grResiduals[p]->SetMarkerStyle(kOpenCircle);
-      grResiduals[p]->SetMaximum(0.012);/// half of asymmetry axis 
-      grResiduals[p]->SetMinimum(-0.012);/// half of asymmetry axis 
+      //grResiduals[p]->SetMaximum(0.012);/// half of asymmetry axis 
+      //grResiduals[p]->SetMinimum(-0.012);/// half of asymmetry axis 
       grResiduals[p]->GetXaxis()->SetLimits(1,Cedge[p]); 
       grResiduals[p]->SetTitle(Form(dataType+" Mode Asymmetry Fit Residual, Plane %d",p+1));
       grResiduals[p]->GetXaxis()->SetTitle("Compton electron detector strip number");
