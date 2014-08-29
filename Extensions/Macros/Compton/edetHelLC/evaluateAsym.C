@@ -32,8 +32,6 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[nPlanes][nStrips],Double_t countsLCB1
       BCqNormDiffLC = (BCqNormLCB1H1L1 - BCqNormLCB1H0L1);
       BCqNormSumLC  = (BCqNormLCB1H1L1 + BCqNormLCB1H0L1);
       if(BCqNormSumLC>0.0) {
-        //reset the skipCyc; it will be incremented on finding a strip with <=0 bgd sub. counts in a nCycle  
-        skipCyc=0;
         qNormAsymLC[p][s] = (BCqNormDiffLC / BCqNormSumLC);
         ///Evaluation of error on asymmetry; partitioned the evaluation in a way which avoids re-calculation
         term1 = (1.0-qNormAsymLC[p][s])/BCqNormSumLC;
@@ -121,7 +119,6 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[nPlanes][nStrips],Double_t countsLCB1
           return -1;
         } else {
           cout<<blue<<"check if it needs further attention"<<normal<<endl;
-          //skipCyc++;///this maintains a count of how many strips in a laser cyle report <=0 counts after bgd sub
           break;//continue;
           ///the above can often happen for post-CE strips, hence 'break' instead of 'continue' is a better solution
           ///... eg.run 23300, in nCycle 29
