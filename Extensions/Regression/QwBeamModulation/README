@@ -38,4 +38,7 @@ Build that structure and have $BMOD_OUT point to output/
 
 The following is an example of the command line options that might be used:
 
-runMpsOnly --run 12079 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config config/phase_set0.config --ramp-max-nonlin 3 --chi-square-min 1 --2Dfit 1 --transverse-data 0
+runMpsOnly --run 12079 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config config/phase_set0.config --ramp-max-nonlin 3 --chi-square-min 1 --2Dfit 1 --transverse-data 0  --set-output $BMOD_OUT
+
+To run the mps only code and find residuals use the script findBModResiduals.sh.
+Be sure to set the variables properly for your given analysis job. 

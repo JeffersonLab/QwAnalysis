@@ -1331,15 +1331,6 @@ Double_t QwMpsOnly::FindChiSquareMinAMatrix(Int_t row, Int_t col){
   return index;
 }
 
-Double_t QwMpsOnly::FindChiSquareMinRMatrix(Int_t row, Int_t col){
-
-  Double_t index = 0;
-  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
-    index += AvMonitorSlope[icoil][row] * AvMonitorSlope[icoil][col];
-  }
-  return index;
-}
-
 Double_t QwMpsOnly::FindChiSquareMinAMatrixError(Int_t row, Int_t col){
 
   Double_t index = 0;
@@ -1350,6 +1341,15 @@ Double_t QwMpsOnly::FindChiSquareMinAMatrixError(Int_t row, Int_t col){
 			  AvMonitorSlopeError[icoil][col],2);
   }
   return TMath::Sqrt(index);
+}
+
+Double_t QwMpsOnly::FindChiSquareMinRMatrix(Int_t row, Int_t col){
+
+  Double_t index = 0;
+  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+    index += AvMonitorSlope[icoil][row] * AvMonitorSlope[icoil][col];
+  }
+  return index;
 }
 
 Double_t QwMpsOnly::FindChiSquareMinRMatrixError(Int_t row, Int_t col){
@@ -1394,7 +1394,8 @@ Double_t QwMpsOnly::FindDegPerMPS()
 }
 
 Int_t QwMpsOnly::FindRampExcludedRegions()
-{
+{//used in non_linearity study for cutting sections of ramp
+  //where largest deviations in position on target occur
   TF1 *f = new TF1("f",Form("[0]+[1]*cos((x-[2])*%e)", kDegToRad),0,360);
   for(int imod=0;imod<kNMod;++imod){
     Double_t rampPeaks = 0;
@@ -1966,15 +1967,18 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
     for(Int_t icoil=0;icoil<fNModType*(fChiSquareMinimization ? 2 : 1);icoil++){
       AvDetectorSlope[icoil].clear();
       AvDetectorSlopeError[icoil].clear();
+      //      std::cout<<icoil<<": "<<std::endl;
       for(Int_t idet=0;idet<fNDetector;idet++){
 	AvDetectorSlope[icoil].push_back(DetectorSlope[icoil][idet].back());
 	AvDetectorSlopeError[icoil].push_back(DetectorSlopeError[icoil][idet].back());
+	//	printf("%s: %14.9e\n",DetectorList[idet].Data(),DetectorSlope[icoil][idet].back());
       }
       AvMonitorSlope[icoil].clear();
       AvMonitorSlopeError[icoil].clear();
       for(Int_t imon=0;imon<fNMonitor;imon++){
 	AvMonitorSlope[icoil].push_back(MonitorSlope[icoil][imon].back());
 	AvMonitorSlopeError[icoil].push_back(MonitorSlopeError[icoil][imon].back());
+	//	printf("%s: %14.9e\n",MonitorList[imon].Data(),MonitorSlope[icoil][imon].back());
       }
     }
   }
@@ -2310,7 +2314,7 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
     "-type errors.\n";
 
   if(f2DFit) {
-    Calculate2DSlope(modType, 0, 1);
+    Calculate2DSlope(modType, 0, 0);
   } else {
     CalculateSlope(modType);
   }
