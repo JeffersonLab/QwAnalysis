@@ -23,7 +23,7 @@ Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for
 }
 
 ///3 parameter method
-const Bool_t kRadCor=0;
+const Bool_t kRadCor=1;
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
   //itStrip = skipStrip.find(*thisStrip); //for some reason the std::set did not work !
@@ -81,7 +81,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   gStyle->SetLabelSize(0.06,"xyz");
 
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=1,debug1=0,debug2=0;
+  Bool_t debug=1,debug1=1,debug2=1;
   Bool_t polSign,kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
   Bool_t kFitEffWidth=0;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
   Bool_t kFoundCE[nPlanes]={0};
@@ -147,7 +147,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     for(Int_t s=0; s<=(Int_t)trueStrip.size(); s++) {
       //Int_t s = trueStrip[i];///actual strip number
       //if((((yieldL1[s]-yieldL0[s]))< (yieldL0[s]+100.0*yieldL0Er[s])) && trueStrip[s]>edgeClamp) {
-      if( (yieldL1.at(s)-yieldL0.at(s) < 100.0*yieldL0Er.at(s) )) {
+      if( (yieldL1.at(s)-yieldL0.at(s) < 100.0*yieldL0Er.at(s) ) && s>25) {
+        ///there are cases when strip-1 has beamOff counts higher than bgd sub counts due to halo eg.run23246
+        ///hence the above condition of s>25 is applied to ensure that trueStrip.at(s-1) does not access strip-1
         Cedge[p] = trueStrip.at(s-1); ///since the above condition is fulfiled after crossing Cedge
         cout<<"probable Cedge : "<<Cedge[p]<<endl;
         kFoundCE[p] = 1;
