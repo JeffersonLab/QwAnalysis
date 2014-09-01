@@ -4,13 +4,15 @@ macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
+dataType=Ac
 #for i in `seq 23098 25204`;
 #for i in `seq 22659 25546`;
-#for i in `seq 23220 23221`;
-for i in `seq 23220 23530`;
+#for i in `seq 23450 23530`;
+#for i in `seq 23220 23530`;
+for i in `seq 23220 23221`;
 do
   cat batchsub_header1.xml >> batch_submit_$i.xml
-  echo '<Name name="edetHelLC_'$i'"/>' >> batch_submit_$i.xml
+  echo '<Name name="edetHelLC_'$dataType'_'$i'"/>' >> batch_submit_$i.xml
 	cat batchsub_header2.xml >> batch_submit_$i.xml
   echo 'root -l -b -q edetLasCyc.C+\('$i'\)' >> batch_submit_$i.xml
   echo 'echo "Finished at `date`"' >> batch_submit_$i.xml
@@ -34,8 +36,8 @@ do
   echo '<Input src="'$macro'/weightedMean.C" dest="weightedMean.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/comptonRunConstants.h" dest="comptonRunConstants.h"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/rootClass.h" dest="rootClass.h"/>' >> batch_submit_$i.xml
-  echo '<Stderr dest="'$QWSCRATCH'/work/check_'$i'.err"/>' >> batch_submit_$i.xml
-  echo '<Stdout dest="'$QWSCRATCH'/work/check_'$i'.out"/>' >> batch_submit_$i.xml
+  echo '<Stderr dest="'$QWSCRATCH'/work/check'$dataType'_'$i'.err"/>' >> batch_submit_$i.xml
+  echo '<Stdout dest="'$QWSCRATCH'/work/check'$dataType'_'$i'.out"/>' >> batch_submit_$i.xml
 #  echo '<Stdout dest="/dev/null"/>' >> batch_submit_$i.xml
 
   echo '</Job>'  >> batch_submit_$i.xml

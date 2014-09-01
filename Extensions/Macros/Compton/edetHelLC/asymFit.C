@@ -81,8 +81,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   gStyle->SetLabelSize(0.06,"xyz");
 
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  Bool_t debug=1,debug1=1,debug2=1;
-  Bool_t polSign,kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
+  Bool_t debug=1,debug1=0,debug2=0;
+  Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
   Bool_t kFitEffWidth=0;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
   Bool_t kFoundCE[nPlanes]={0};
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
@@ -152,12 +152,17 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         ///hence the above condition of s>25 is applied to ensure that trueStrip.at(s-1) does not access strip-1
         Cedge[p] = trueStrip.at(s-1); ///since the above condition is fulfiled after crossing Cedge
         cout<<"probable Cedge : "<<Cedge[p]<<endl;
+        polSign = asym.at(s-1) > 0 ? 1 : 0;
         kFoundCE[p] = 1;
         break;
       }
     }
-    if(kFoundCE[p]) cout<<"\nCompton edge for plane "<<p+1<<" auto-determined to strip "<<Cedge[p]<<"\n"<<endl;
-    else cout<<red<<"**** Alert: Did not find Cedge for plane "<<p+1<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
+
+    if(kFoundCE[p]) {
+      cout<<"\nCompton edge for plane "<<p+1<<" auto-determined to strip "<<Cedge[p]<<endl;
+      if(polSign) cout<<"sign of polarization is positive\n"<<endl;
+      else cout<<"sign of polarization is negative\n"<<endl;
+    } else cout<<red<<"**** Alert: Did not find Cedge for plane "<<p+1<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
     }///for(Int_t p =startPlane; p <endPlane; p++)
 
     TCanvas *cAsym;
@@ -200,7 +205,14 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,3);
       //polFit = new TF1("polFit",theoreticalAsym,startStrip+1,endStrip,3);
       //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
-      polFit->SetParameters(1.0033,tempCedge,0.89);//begin the fitting from stripWidth parameter = 1, Cedge=auto-determined, polarization=85%
+      if(polSign) {
+        polFit->SetParameters(1.0033,tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+        polFit->SetParLimits(2,0.7,0.94);///allowing polarization to be 50% to 93%
+      } else {
+        polFit->SetParameters(1.0033,tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+        polFit->SetParLimits(2,-0.94,-0.7);
+      }
+
       if (kFitEffWidth) {
         polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch   
         polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
@@ -208,12 +220,12 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         cout<<blue<<"CE fixed at strip "<<normal<<tempCedge<<endl;
       } else {
         //polFit->SetParLimits(0,1.0,1.0);///fix the effective strip width to 1.0
-        polFit->SetParLimits(0,1.0033,1.0033);///fix the effective strip width to 1.0033 !changed to match the runlet analysis output
-        polFit->SetParLimits(1,30.0,60.0);///allow the CE to vary between strip 30-63
+        polFit->SetParLimits(0,1.0033,1.0033);///1.0033 !changed to match the runlet analysis output
+        //polFit->SetParLimits(1,40.0,56.5);///allow the CE to vary between these strip
+        polFit->SetParLimits(1,40.0,62.0);///run2: allow the CE to vary between these strip
         cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
         //cout<<blue<<"effective strip width fixed at "<<normal<<<GetParameter[0]<endl;
       }
-      polFit->SetParLimits(2,-0.93,0.93);///allowing polarization to be - 100% to +100%
       polFit->SetParNames("effStrip","comptonEdge","polarization");
       polFit->SetLineColor(kBlue);
       cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
@@ -246,10 +258,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       leg[p]->SetFillColor(0);
       leg[p]->Draw();
 
-      polSign = pol > 0 ? 1 : 0;
+      //polSign = pol > 0 ? 1 : 0;
       if (polSign) pt[p] = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
       else  pt[p] = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
-      if(debug) cout<<"polSign is: "<<polSign<<endl;
 
       pt[p]->SetTextSize(0.060);//0.028); 
       pt[p]->SetBorderSize(1);
@@ -380,10 +391,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       }//for (Int_t p =startPlane; p <endPlane; p++)
       cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
     }
-      fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePrefix.Data()));
-      fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
-      fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
-      fitInfo.close();
+    fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePrefix.Data()));
+    fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
+    fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
+    fitInfo.close();
 
     if (kYield) { ///determine yield
       TCanvas *cYield;

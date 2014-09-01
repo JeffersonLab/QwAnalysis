@@ -14,7 +14,6 @@ Int_t infoDAQ(Int_t runnum)
   const Int_t errFlag=100;
   Bool_t additionalStripMask=1;///this will be my primary tool to skip masked strips in asymFit.C
   Double_t bMask[nPlanes][nStrips];
-  Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
   ofstream flagsfile,debugInfoDAQ,infoStripMask,fBeamProp;

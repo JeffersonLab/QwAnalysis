@@ -66,6 +66,7 @@ const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
 
+Bool_t polSign=0;
 Int_t asymflag=0;
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !
@@ -84,6 +85,7 @@ Int_t skipCyc=0;///counts the no.of times the background corrected counts go <= 
 Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
 Bool_t mask[nPlanes][nStrips];  
 Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
+Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
 std::vector <Int_t> skipStrip; //a list of strips across different planes to be masked (!trying a new idea)
 std::vector<Int_t>::iterator itStrip;

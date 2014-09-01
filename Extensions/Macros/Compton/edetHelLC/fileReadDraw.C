@@ -9,8 +9,8 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
   Bool_t kBkgdAsym=0;//plots the asymmetry from Laser off events
   Bool_t asymDiffPlot=0;//plots the difference in asymmetry as obtained from PWTL1 - PWTL2
   Bool_t yieldPlot=0;//now the asymFit.C plots this already
-  Bool_t compareAsym=1;//compares asymmetries from dataType and dataType2(defined locally)
-  Bool_t asymComponents=0;//plots the numerator of asymmetry
+  Bool_t compareAsym=0;//compares asymmetries from dataType and dataType2(defined locally)
+  Bool_t asymComponents=1;//plots the numerator of asymmetry
   Bool_t scalerPlot=0;
   Bool_t lasWisePlotAc=0;//plot quantities against laser-cycle 
   Bool_t lasWisePlotSc=0;//plot quantities against laser-cycle 
@@ -222,8 +222,8 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
       grAsymNr[p]->GetYaxis()->SetTitle("numerator of asym (a.u)");
       grAsymNr[p]->SetMarkerStyle(kOpenCircle);
       grAsymNr[p]->SetMarkerSize(1);
-      grAsymNr[p]->SetLineColor(kGreen);
-      grAsymNr[p]->SetMarkerColor(kGreen);
+      grAsymNr[p]->SetLineColor(kBlue);
+      grAsymNr[p]->SetMarkerColor(kBlue);
       grAsymNr[p]->SetFillColor(kGreen);
       grAsymNr[p]->GetXaxis()->SetLimits(1,65); 
       grAsymNr[p]->GetXaxis()->SetNdivisions(416, kFALSE);
