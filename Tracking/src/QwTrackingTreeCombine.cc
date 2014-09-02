@@ -101,7 +101,6 @@ QwHit* QwTrackingTreeCombine::SelectLeftRightHit (
 
   // Write the best hit (actually just uses the old structure)
   QwHit* besthit = new QwHit ( *hit );
-  besthit->next = 0; // only this entry in linked list
   besthit->fDriftPosition = best_position;
   return besthit;
 }
@@ -165,7 +164,6 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
           ha[ngood] = new QwHit;
           // Copy the hit, but reset the pointers
           *ha[ngood] = *hit;
-          ha[ngood]->next = 0;
           // Store this position
           ha[ngood]->fDriftPosition = hit_position;
 
@@ -191,17 +189,12 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
             if ( distance < odist )
             {
               *ha[i] = *hit;
-              ha[i]->next = 0;
               ha[i]->fDriftPosition = hit_position;
               break;
             }
           }
         }
       } // end of distance cut
-
-
-      if ( hit_position == hit->rPos2 )
-        break;
 
     } // end of left/right ambiguity
 
@@ -342,9 +335,9 @@ void QwTrackingTreeCombine::r2_TreelineFit (
   for ( int i = 0; i < n; ++i )
   {
 
-    hits[i]->SetTreelinePosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
-    hits[i]->CalculateTreelineResidual();
-    double residual = hits[i]->GetTreelineResidual();
+    hits[i]->SetTreeLinePosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
+    hits[i]->CalculateTreeLineResidual();
+    double residual = hits[i]->GetTreeLineResidual();
     firstpass+=fabs(residual);
     sum += G[i][i] * residual * residual;
   }
@@ -412,9 +405,9 @@ void QwTrackingTreeCombine::r2_TreelineFit (
       for ( int i = 0; i < n; ++i )
       {
         if(i!=drop){
-          hits[i]->SetTreelinePosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
-          hits[i]->CalculateTreelineResidual();
-          double residual=hits[i]->GetTreelineResidual();
+          hits[i]->SetTreeLinePosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
+          hits[i]->CalculateTreeLineResidual();
+          double residual=hits[i]->GetTreeLineResidual();
           sum += G[i][i] * residual * residual;
         }
       }
@@ -535,9 +528,9 @@ void QwTrackingTreeCombine::r3_TreelineFit (
   {
     for ( int i = 0; i < n; i++ )
     {
-      hits[i]->SetTreelinePosition ( slope * ( hits[i]->GetWirePosition() - z1 ) + offset );
-      hits[i]->CalculateTreelineResidual();
-      double residual = hits[i]->GetTreelineResidual();
+      hits[i]->SetTreeLinePosition ( slope * ( hits[i]->GetWirePosition() - z1 ) + offset );
+      hits[i]->CalculateTreeLineResidual();
+      double residual = hits[i]->GetTreeLineResidual();
       sum += G[i][i] * residual * residual;
     }
   }
@@ -548,9 +541,9 @@ void QwTrackingTreeCombine::r3_TreelineFit (
       // 			hits[i]->SetWirePosition ( i + wire_offset ); // TODO element spacing
       //hits[i]->SetTrackPosition ( slope * ( i + wire_offset ) + offset );
       hits[i]->SetWirePosition (hits[i]->GetElement());
-      hits[i]->SetTreelinePosition ( slope * hits[i]->GetElement() + offset );
-      hits[i]->CalculateTreelineResidual();
-      double residual = hits[i]->GetTreelineResidual();
+      hits[i]->SetTreeLinePosition ( slope * hits[i]->GetElement() + offset );
+      hits[i]->CalculateTreeLineResidual();
+      double residual = hits[i]->GetTreeLineResidual();
       sum += G[i][i] * residual * residual;
     }
   }
@@ -960,7 +953,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
         best_permutation  = permutation;
         for(int plane=0;plane<nPlanesWithHits;++plane){
           if(!usedHits[plane]->IsUsed())
-            best_trackpos[plane]=usedHits[plane]->GetTreelinePosition();
+            best_trackpos[plane]=usedHits[plane]->GetTreeLinePosition();
         }
 
         memcpy ( best_cov, cov, sizeof cov );
@@ -989,8 +982,8 @@ bool QwTrackingTreeCombine::TlCheckForX (
           nPlanesWithHits, nHitsInPlane, goodHits, usedHits );
 
       for(int plane=0;plane<nPlanesWithHits;++plane){
-        usedHits[plane]->SetTreelinePosition(best_trackpos[plane]);
-        usedHits[plane]->CalculateTreelineResidual();
+        usedHits[plane]->SetTreeLinePosition(best_trackpos[plane]);
+        usedHits[plane]->CalculateTreeLineResidual();
       }
 
       // Reset the used flags

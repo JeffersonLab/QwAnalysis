@@ -93,8 +93,8 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   const Double_t&       GetDriftPosition() const { return fDriftPosition; };
   const Double_t&       GetWirePosition()  const { return fWirePosition; };
 
-  const Double_t&       GetTreelinePosition() const { return fTreelinePosition; };
-  const Double_t&       GetTreelineResidual() const { return fTreelineResidual; };
+  const Double_t&       GetTreeLinePosition() const { return fTreeLinePosition; };
+  const Double_t&       GetTreeLineResidual() const { return fTreeLineResidual; };
   const Double_t&       GetPartialTrackPosition() const { return fPartialTrackPosition; };
   const Double_t&       GetPartialTrackResidual() const { return fPartialTrackResidual; };
 
@@ -127,9 +127,9 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   void SetDriftPosition(const Double_t position)    { fDriftPosition = position; };
   void SetWirePosition(const Double_t position)     { fWirePosition = position; };
 
-  void SetTreelinePosition(const Double_t position)     { fTreelinePosition = position; };
+  void SetTreeLinePosition(const Double_t position)     { fTreeLinePosition = position; };
   void SetPartialTrackPosition(const Double_t position) { fPartialTrackPosition = position; };
-  void SetTreelineResidual(const Double_t residual)     { fTreelineResidual = residual; };
+  void SetTreeLineResidual(const Double_t residual)     { fTreeLineResidual = residual; };
   void SetPartialTrackResidual(const Double_t residual) { fPartialTrackResidual = residual; };
 
   void SetSpatialResolution(const Double_t sresolution) { fSpatialResolution = sresolution; };
@@ -153,8 +153,8 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
   Bool_t WireMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane, Int_t wire);
 
-  void CalculateTreelineResidual()     {
-    fTreelineResidual = fabs(fDriftPosition - fTreelinePosition);
+  void CalculateTreeLineResidual()     {
+    fTreeLineResidual = fabs(fDriftPosition - fTreeLinePosition);
   };
   void CalculatePartialTrackResidual() {
     fPartialTrackResidual = fabs(fDriftPosition - fPartialTrackPosition);
@@ -188,8 +188,8 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
                                      ///  used in region 3 where the z coordinate is taken
                                      ///  in the wire plane instead of perpendicular to it)
 
-  Double_t fTreelinePosition;        ///< Position of the fitted treeline through the drift cell
-  Double_t fTreelineResidual;        ///< Treeline residual of this hit (difference between
+  Double_t fTreeLinePosition;        ///< Position of the fitted treeline through the drift cell
+  Double_t fTreeLineResidual;        ///< Treeline residual of this hit (difference between
                                      ///  the drift distance and the distance to the fitted track)
 
   Double_t fPartialTrackPosition;    ///< Position of the fitted treeline through the drift cell
@@ -201,26 +201,6 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
 
   Bool_t fIsUsed; //!                ///< Is this hit used in a tree line?
 
-
- public:
-
-  // The following public section are taken from the original Hit class
-  // for merging the Hit class into the QwHit class.
-
-  //  Hits for individual detector elements are strung together.  They also
-  //  have a pointer back to the detector in case more information about the
-  //  hit is needed.  The various position values are used in multiple ways,
-  //  and therefore are not strictly defined.
-
-  QwHit *next;	        //!	///< next hit
-  QwHit *nextdet;	//!	///< next hit in same detector
-  Double_t rPos;		///< Position from level I track finding
-  Double_t rPos2;		///< Position from level II decoding
-
-  // NOTE (wdc) Probably it makes sense to rename rPos and rPos2 to fPosition,
-  // which would be the first level signed track position with respect to the
-  // ideal wire position, and fPosition2, which would be the second level signed
-  // track position.
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
     ClassDef(QwHit,1);

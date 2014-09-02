@@ -295,15 +295,14 @@ double QwTreeLine::CalculateAverageResidual()
 {
   int numHits = 0;
   double sumResiduals = 0.0;
-  for (int layer = 0; layer < 2 * MAX_LAYERS; ++layer) {
-    for (QwHit* hit = fHits[layer]; hit; hit = hit->next) {
-      if (hit->IsUsed()) {        
-        double residual = hit->GetTreelineResidual();
-        sumResiduals += residual;
-        numHits++;
-      }
-    } // end of loop over hits (only one of them is used)
-  } // end of loop over layers
+  // loop over hits
+  for (Int_t i = 0; i < GetNumberOfHits(); i++) {
+    const QwHit* hit = GetHit(i);
+    if (hit->IsUsed()) {
+      sumResiduals += hit->GetTreeLineResidual();
+      numHits++;
+    }
+  } // end of loop over hits
   fAverageResidual = sumResiduals / numHits;
   return fAverageResidual;
 }

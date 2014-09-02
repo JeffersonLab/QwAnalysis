@@ -137,19 +137,14 @@ void QwHit::Initialize()
   fDistance          = 0.0;
   fWirePosition      = 0.0;
   fDriftPosition     = 0.0;
-  fTreelinePosition     = 0.0;
-  fTreelineResidual     = 0.0;
+  fTreeLinePosition     = 0.0;
+  fTreeLineResidual     = 0.0;
   fPartialTrackPosition = 0.0;
   fPartialTrackResidual = 0.0;
   fSpatialResolution = 0.0;
   fTrackResolution   = 0.0;
 
   fIsUsed            = false;
-
-  next               = 0;
-  nextdet            = 0;
-  rPos               = 0.0;
-  rPos2              = 0.0;
 }
 
 /**
@@ -185,19 +180,14 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fDistance          = hit.fDistance;
   fDriftPosition     = hit.fDriftPosition;
   fWirePosition      = hit.fWirePosition;
-  fTreelinePosition     = hit.fTreelinePosition;
-  fTreelineResidual     = hit.fTreelineResidual;
+  fTreeLinePosition     = hit.fTreeLinePosition;
+  fTreeLineResidual     = hit.fTreeLineResidual;
   fPartialTrackPosition = hit.fPartialTrackPosition;
   fPartialTrackResidual = hit.fPartialTrackResidual;
   fSpatialResolution = hit.fSpatialResolution;
   fTrackResolution   = hit.fTrackResolution;
 
   fIsUsed            = hit.fIsUsed;
-
-  next               = hit.next;
-  nextdet            = hit.nextdet;
-  rPos               = hit.rPos;
-  rPos2              = hit.rPos2;
 
   return *this;
 }
@@ -301,12 +291,12 @@ std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
   if (hit.fDistance != 0.0)
     stream << ", distance " << hit.fDistance/Qw::cm << " cm";
 
-  if (hit.fTreelineResidual != 0.0)
-    stream << ", |" << hit.fDriftPosition/Qw::cm << " - " << hit.fTreelinePosition/Qw::cm
-    << "| = " << hit.fTreelineResidual/Qw::cm << " cm";
+  if (hit.fTreeLineResidual != 0.0)
+    stream << ", tl |" << hit.fDriftPosition/Qw::cm << " - " << hit.fTreeLinePosition/Qw::cm
+    << "| = " << hit.fTreeLineResidual/Qw::cm << " cm";
 
   if (hit.fPartialTrackResidual != 0.0)
-    stream << ", |" << hit.fDriftPosition/Qw::cm << " - " << hit.fPartialTrackPosition/Qw::cm
+    stream << ", pt |" << hit.fDriftPosition/Qw::cm << " - " << hit.fPartialTrackPosition/Qw::cm
     << "| = " << hit.fPartialTrackResidual/Qw::cm << " cm";
 
   if (hit.fAmbiguousElement) stream << " (?)";
