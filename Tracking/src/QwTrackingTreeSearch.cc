@@ -452,8 +452,7 @@ int QwTrackingTreeSearch::exists (
 	int *newa,
 	int front,
 	int back,
-	int offset,
-	QwTreeLine *treelinelist)
+	int offset)
 {
   int *olda;
   int oldmiss, diff;
@@ -464,7 +463,7 @@ int QwTrackingTreeSearch::exists (
       newmiss++;
 
   // Loop over the treelines
-  for (QwTreeLine* tl = treelinelist; tl; tl = tl->next) {
+  for (QwTreeLine* tl = fTreeLineList; tl; tl = tl->next) {
 
 
     // If the treeline has been voided, go onto next one
@@ -819,7 +818,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 	  
           /* Check whether this treeline already exists */
 	  
-          if (! exists(hashpat, frontbin, backbin, row_offset,fTreeLineList)) {
+          if (! exists(hashpat, frontbin, backbin, row_offset)) {
 	     
             /* Print tree */
             if (fShowMatchingPatterns) tree->Print();
@@ -979,7 +978,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
           else if (static_pattern[fNumPlanes-1][backbin] == 0)
             miss = 1;
           /* Check whether this treeline already exists */
-          if (! exists(hashpat, frontbin, backbin, -1,fTreeLineList)) {
+          if (! exists(hashpat, frontbin, backbin, -1)) {
                 
             /* Print tree */
             if (fShowMatchingPatterns) tree->Print();

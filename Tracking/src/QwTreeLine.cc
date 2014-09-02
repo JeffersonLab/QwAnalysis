@@ -216,16 +216,6 @@ void QwTreeLine::AddHitList(const std::vector<QwHit*> &hitlist)
     AddHit(*hit);
 }
 
-// Add the hits of a QwHitContainer to the TClonesArray
-void QwTreeLine::AddHitContainer(QwHitContainer* hitlist)
-{
-  for (QwHitContainer::iterator hit = hitlist->begin();
-       hit != hitlist->end(); hit++) {
-    QwHit* p = &(*hit);
-    AddHit(p);
-  }
-}
-
 // Get the hits from the TClonesArray to a QwHitContainer
 const QwHit* QwTreeLine::GetHit(int i) const
 {
@@ -233,17 +223,6 @@ const QwHit* QwTreeLine::GetHit(int i) const
     return 0;
   else
     return fQwHits.at(i);
-}
-
-// Get the hits from the TClonesArray to a QwHitContainer
-const QwHitContainer* QwTreeLine::GetHitContainer() const
-{
-  QwHitContainer* hitlist = new QwHitContainer();
-  for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
-       hit != fQwHits.end(); hit++)
-    if (*hit) hitlist->push_back(*hit);
-    else QwError << "null hit in hit list" << QwLog::endl;
-  return hitlist;
 }
 
 

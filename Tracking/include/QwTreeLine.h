@@ -52,11 +52,6 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
 
   private:
 
-    // Hits
-    //#define QWTREELINE_MAX_NUM_HITS 1000
-    //TClonesArray        *fQwHits; ///< Array of QwHits
-    //static TClonesArray *gQwHits; ///< Static array of QwHits
-
     //! Number of hits in this tree line
     Int_t fNQwHits;
     //! List of hits in this tree line
@@ -108,14 +103,10 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     void AddHit(const QwHit* hit);
     //! \brief Add a list of hits
     void AddHitList(const std::vector<QwHit*> &fQwHits);
-    //! \brief Add an existing hit container
-    void AddHitContainer(QwHitContainer* hitlist);
     //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; }
     //! \brief Get a specific hit
     const QwHit* GetHit(int i = 0) const;
-    //! \brief Get the hits as a hit container
-    const QwHitContainer* GetHitContainer() const;
     //! \brief Clear the list of hits without deleting
     void ClearHits();
     //! \brief Delete the hits in the list
@@ -220,8 +211,6 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     int fR3FirstWire, fR3LastWire;	///< first and last wire in group of 8
 
     QwTreeLine *next; //!       ///< link to next list element
-
-    QwTrackingTreeRegion* fTree; //!    ///< search tree used to find this tree line
 
   private:
 
