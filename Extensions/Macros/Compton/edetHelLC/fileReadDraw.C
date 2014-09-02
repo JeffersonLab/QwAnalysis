@@ -22,7 +22,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
   Bool_t asymLasCycHist=0;//histograms the exp.asym per laser cycle for a given set of 8 strips
   Bool_t debug=1,debug1=0,debug2=0;
   const Int_t mCyc=100;
-  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePre = Form(filePrefix,runnum,runnum);
   TLine *myline = new TLine(1,0,64,0);
   ifstream in1, in2;
   ifstream expAsymPWTL1,expAsymPWTL2,expAsymComponents,scalerRates,lasCycScaler;
@@ -66,7 +66,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     TGraphErrors *grB1L0[nPlanes];
     TLegend *legbkgdAsym[nPlanes];
     Double_t bkgdAsymVal[nPlanes], bkgdAsymValEr[nPlanes],bkgdAsymFitChiSqr[nPlanes],bkgdAsymNDF[nPlanes];
-    bkgdAsymFit.open(Form("%s/%s/%s"+dataType+"BkgdAsymFitInfo.txt",pPath,webDirectory,filePrefix.Data()));
+    bkgdAsymFit.open(Form("%s/%s/%s"+dataType+"BkgdAsymFitInfo.txt",pPath,webDirectory,filePre.Data()));
     bkgdAsymFit<<Form(";plane\tbkgdAsymVal\tbkgdAsymValEr\tbkgdAsymFit-ChiSqr/NDF")<<endl;
 
     cbkgdAsym->Divide(startPlane+1,endPlane);
@@ -74,7 +74,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
       cbkgdAsym->GetPad(p+1)->SetGridx(1);
       cbkgdAsym->cd(p+1);
 
-      grB1L0[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"BkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grB1L0[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"BkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1), "%lg %lg %lg");
       grB1L0[p]->SetLineColor(kBlue);
       grB1L0[p]->SetMarkerStyle(kFullSquare);
       grB1L0[p]->SetMarkerSize(1);
@@ -106,7 +106,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     }
     bkgdAsymFit.close();
     cbkgdAsym->Update();    
-    cbkgdAsym->SaveAs(Form("%s/%s/%sbkgdAsym.png",pPath,webDirectory,filePrefix.Data()));
+    cbkgdAsym->SaveAs(Form("%s/%s/%sbkgdAsym.png",pPath,webDirectory,filePre.Data()));
     gStyle->SetOptFit(0);
   }
 
@@ -120,7 +120,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     cNoise->Divide(startPlane+1,endPlane);
 
     for(Int_t p =startPlane; p <endPlane; p++) {
-      scalerRates.open(Form("%s/%s/%s"+dataType+"QnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      scalerRates.open(Form("%s/%s/%s"+dataType+"QnormCountsP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
       if(scalerRates.is_open()) {
         if(p>=(Int_t)stripNum2.size()) {
           stripNum2.resize(p+1);
@@ -141,7 +141,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
           if(debug) printf("[%d][%d]:%2.0f\t%f\t%f\n",p+1,s+1,stripNum2[p][s],scalerB1L1[p][s],scalerB1L0[p][s]);
         }
         scalerRates.close();
-      } else cout<<"did not find "<<Form("%s/%s/%s"+dataType+"QnormCountsP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      } else cout<<"did not find "<<Form("%s/%s/%s"+dataType+"QnormCountsP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<endl;
 
       cNoise->GetPad(p+1)->SetGridx(1);
       cNoise->cd(p+1);
@@ -184,13 +184,13 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     }
     gPad->Update();
     cNoise->Update();
-    cNoise->SaveAs(Form("%s/%s/%sqNormScaler.png",pPath,webDirectory,filePrefix.Data()));
+    cNoise->SaveAs(Form("%s/%s/%sqNormScaler.png",pPath,webDirectory,filePre.Data()));
   }///if(scalerPlot)
 
 
   if(asymComponents) {
     for(Int_t p =startPlane; p <endPlane; p++) {
-      expAsymComponents.open(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      expAsymComponents.open(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
       if(expAsymComponents.is_open()) {
         if(p<=(Int_t)stripNum.size()) {
           stripNum.resize(p+1),strAsymDr.resize(p+1),strAsymDrEr.resize(p+1),strAsymNr.resize(p+1);
@@ -205,7 +205,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         }
         expAsymComponents.close();
       }
-      else cout<<"did not find "<<Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      else cout<<"did not find "<<Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<endl;
     }
 
     TCanvas *cAsymComponent = new TCanvas("cAsymDiff",Form("Nr. of Asym for run:%d",runnum),30,30,1000,420*endPlane);
@@ -231,7 +231,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     }
     gPad->Update();
     cAsymComponent->Update();
-    cAsymComponent->SaveAs(Form("%s/%s/%s"+dataType+"AsymNr.png",pPath,webDirectory,filePrefix.Data()));
+    cAsymComponent->SaveAs(Form("%s/%s/%s"+dataType+"AsymNr.png",pPath,webDirectory,filePre.Data()));
   }///if(asymComponents)
 
   if (yieldPlot) {
@@ -244,14 +244,14 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     for (Int_t p =startPlane; p <endPlane; p++) { 
       cAsymDr->GetPad(p+1)->SetGridx(1);
       cAsymDr->cd(p+1);
-      grAsymDr[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grAsymDr[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePre.Data(),p+1), "%lg %lg %lg");
       grAsymDr[p]->SetMarkerStyle(kFullCircle);
       grAsymDr[p]->SetMarkerSize(1);
       grAsymDr[p]->SetLineColor(kGreen);
       grAsymDr[p]->SetMarkerColor(kGreen);
       grAsymDr[p]->SetFillColor(kGreen);
 
-      grB1L0[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      grB1L0[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),p+1), "%lg %lg %lg");
       grB1L0[p]->SetLineColor(kBlue);
       grB1L0[p]->SetMarkerStyle(kFullSquare);
       grB1L0[p]->SetMarkerSize(1);
@@ -276,7 +276,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     }
     gPad->Update();
     cAsymDr->Update();
-    cAsymDr->SaveAs(Form("%s/%s/%syieldAllPlanes.png",pPath,webDirectory,filePrefix.Data()));
+    cAsymDr->SaveAs(Form("%s/%s/%syieldAllPlanes.png",pPath,webDirectory,filePre.Data()));
   }///  if (yieldPlot)
 
   if(asymDiffPlot) {
@@ -284,9 +284,9 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     Double_t stripAsym_v2[nPlanes][nStrips],stripAsymEr_v2[nPlanes][nStrips];
     //Int_t dummyStrip[nPlanes];
     for(Int_t p =startPlane; p <endPlane; p++) {
-      expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+      expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
       //open the dataType to be compared below
-      expAsymPWTL2.open(Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));//only plane1 is used for v2 data
+      expAsymPWTL2.open(Form("%s/%s/%sAcExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));//only plane1 is used for v2 data
       if(expAsymPWTL1.is_open() && expAsymPWTL2.is_open()) {
         cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
         cout<<"Reading the expAsym corresponding to PWTL2 for Plane "<<p+1<<endl;
@@ -301,7 +301,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         expAsymPWTL1.close();
         expAsymPWTL2.close();
       }
-      else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<endl;
     }
 
     TCanvas *cDiff = new TCanvas("cDiff",Form("expAsym Diff for run:%d",runnum),1,1,1000,420*endPlane);
@@ -326,7 +326,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
       grDiffPWTL1_2[p]->Draw("AP");
     }
     cDiff->Update();
-    cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePrefix.Data()));
+    cDiff->SaveAs(Form("%s/%s/%sdiffexpAsym.png",pPath,webDirectory,filePre.Data()));
   }///  if(asymDiffPlot)
 
   if (compareAsym) {
@@ -351,8 +351,8 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     for (Int_t p = 0; p <1; p++) {
       cAsym->cd(1);//(p+1);
       cAsym->GetPad(1)->SetGridx(1); 
-      lasCycAsymP1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-      grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+      lasCycAsymP1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+      grAsymPlane[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1), "%lg %lg %lg");
       grAsymPlane[p]->GetXaxis()->SetTitle("strip number");
       grAsymPlane[p]->GetYaxis()->SetTitle("asymmetry");
       grAsymPlane[p]->SetTitle(Form("comparing experimental asymmetry"));
@@ -375,13 +375,13 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         fortranOutP1.open("/home/narayan/acquired/vladas/run.24519");
         cout<<"used /home/narayan/acquired/vladas/run.24519 file for comparision to "+dataType<<endl;
       } else {
-        fortranOutP1.open(Form("%s/%s/%s"+dataType2+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-        cout<<"used "<<Form("%s/%s/%s"+dataType2+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" for comparision to "<<dataType<<endl;
+        fortranOutP1.open(Form("%s/%s/%s"+dataType2+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+        cout<<"used "<<Form("%s/%s/%s"+dataType2+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" for comparision to "<<dataType<<endl;
       }
       if(fortranOutP1.is_open()) {
         //if(dataType2=="Rl") grFort = new TGraphErrors("/home/narayan/acquired/vladas/run.24519", "%lg %lg %lg");
         if(dataType2=="Rl") grFort = new TGraphErrors("/home/narayan/acquired/vladas/FOR-AMRENDRA/as.plane.1.run.23530", "%lg %lg %lg");
-        else grFort = new TGraphErrors(Form("%s/%s/%s"+dataType2+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
+        else grFort = new TGraphErrors(Form("%s/%s/%s"+dataType2+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1), "%lg %lg %lg");
         grFort->SetMarkerColor(kRed);
         grFort->SetMarkerStyle(24);
         grFort->SetFillColor(0);
@@ -416,7 +416,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         }
         lasCycAsymP1.close();
         fortranOutP1.close();
-      } else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+      } else cout<<"did not find one of the expAsym files eg:"<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<endl;
       cout<<"size is "<<size<<endl;
       grDiff[p] = new TGraphErrors(size,stripNum2[p],asymDiff2[p],zero[p],asymDiffEr[p]);
       grDiff[p]->GetXaxis()->SetTitle("strip number");
@@ -462,8 +462,8 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     cAsymComp->Update();
 
     gStyle->SetOptFit(0);
-    cAsym->SaveAs(Form("%s/%s/%scompareAsymDiff"+dataType+dataType2+".png",pPath,webDirectory,filePrefix.Data()));
-    cAsymComp->SaveAs(Form("%s/%s/%scompare"+dataType+dataType2+"Asym.png",pPath,webDirectory,filePrefix.Data()));
+    cAsym->SaveAs(Form("%s/%s/%scompareAsymDiff"+dataType+dataType2+".png",pPath,webDirectory,filePre.Data()));
+    cAsymComp->SaveAs(Form("%s/%s/%scompare"+dataType+dataType2+"Asym.png",pPath,webDirectory,filePre.Data()));
 
     if(kCompEr) {
       TCanvas *cPolErr = new TCanvas("cPolErr","polarization error",10,10,600,600);
@@ -493,7 +493,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
       ps2->SetX1NDC(0.60); ps2->SetX2NDC(0.90); ps2->SetY1NDC(0.55); ps2->SetY2NDC(0.70);
       ps2->SetTextColor(kRed);
       pPolErr->Modified();
-      cPolErr->SaveAs(Form("%s/%s/%scompareError.png",pPath,webDirectory,filePrefix.Data()));
+      cPolErr->SaveAs(Form("%s/%s/%scompareError.png",pPath,webDirectory,filePre.Data()));
     }
   }///  if (compareAsym) 
 
@@ -516,7 +516,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
         //if (!mask[p][s]) continue; //currently only for plane 1	
-        lasCycAccum.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_AcLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+        lasCycAccum.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_AcLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
         Int_t nLasCycles=0;
         if(lasCycAccum.is_open()) {
           while(lasCycAccum.good()) {
@@ -549,10 +549,10 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
       //cAccumLC2->Update();
       //cAccumLC3->Update();
       //cAccumLC4->Update();
-      cAccumLC1->SaveAs(Form("%s/%s/%slasCycAc1.png",pPath,webDirectory,filePrefix.Data()));
-      //cAccumLC2->SaveAs(Form("%s/%s/%slasCycAc2.png",pPath,webDirectory,filePrefix.Data()));
-      //cAccumLC3->SaveAs(Form("%s/%s/%slasCycAc3.png",pPath,webDirectory,filePrefix.Data()));
-      //cAccumLC4->SaveAs(Form("%s/%s/%slasCycAc4.png",pPath,webDirectory,filePrefix.Data()));
+      cAccumLC1->SaveAs(Form("%s/%s/%slasCycAc1.png",pPath,webDirectory,filePre.Data()));
+      //cAccumLC2->SaveAs(Form("%s/%s/%slasCycAc2.png",pPath,webDirectory,filePre.Data()));
+      //cAccumLC3->SaveAs(Form("%s/%s/%slasCycAc3.png",pPath,webDirectory,filePre.Data()));
+      //cAccumLC4->SaveAs(Form("%s/%s/%slasCycAc4.png",pPath,webDirectory,filePre.Data()));
     }
   }///  if(lasWisePlotAc)
 
@@ -563,7 +563,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     ifstream lasWiseBCM;
     Double_t nCycle[mCyc];
     Double_t bcmL0[mCyc],bcmL1[mCyc],bcm[mCyc];
-    lasWiseBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
+    lasWiseBCM.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
     Int_t nLasCycles=0;
     while(lasWiseBCM.good()) {
       lasWiseBCM>>nCycle[nLasCycles]>>bcmL1[nLasCycles]>>bcmL0[nLasCycles];
@@ -612,7 +612,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     legBCM[1]->Draw();
 
     cLasCycBCM->Update();
-    cLasCycBCM->SaveAs(Form("%s/%s/%slasCycBCM.png",pPath,webDirectory,filePrefix.Data()));
+    cLasCycBCM->SaveAs(Form("%s/%s/%slasCycBCM.png",pPath,webDirectory,filePre.Data()));
   }
 
   if(lasWisePlotLasPow) {
@@ -621,7 +621,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     ifstream lasWisePow;
     Double_t nCycle[mCyc];
     Double_t lasPowB1L0[mCyc],lasPowB1L1[mCyc];
-    lasWisePow.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));
+    lasWisePow.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));
     Int_t nLasCycles=0;
     while(lasWisePow.good()) {
       lasWisePow>>nCycle[nLasCycles]>>lasPowB1L0[nLasCycles]>>lasPowB1L1[nLasCycles];
@@ -650,7 +650,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     lasCycLasPow->GetYaxis()->SetTitle("laser Power (a.u)");
 
     cLasCycPow->Update();
-    cLasCycPow->SaveAs(Form("%s/%s/run_%d/edetLasCyc_%d_lasCycLasPow.png",pPath,webDirectory,runnum,runnum));
+    cLasCycPow->SaveAs(Form("%s/%s/%s_lasCycLasPow.png",pPath,webDirectory,filePre.Data()));
   }
 
   if(lasWisePlotSc) {
@@ -672,7 +672,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
         //if (!mask[p][s]) continue; //currently only for plane 1	
-        lasCycScaler.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+        lasCycScaler.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
         Int_t nLasCycles=0;
         if(lasCycScaler.is_open()) {
           while(lasCycScaler.good()) {
@@ -703,10 +703,10 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     //cScalerLC2->Update();
     //cScalerLC3->Update();
     //cScalerLC4->Update();
-    cScalerLC1->SaveAs(Form("%s/%s/%slasCycScaler1.png",pPath,webDirectory,filePrefix.Data()));
-    //cScalerLC2->SaveAs(Form("%s/%s/%slasCycScaler2.png",pPath,webDirectory,filePrefix.Data()));
-    //cScalerLC3->SaveAs(Form("%s/%s/%slasCycScaler3.png",pPath,webDirectory,filePrefix.Data()));
-    //cScalerLC4->SaveAs(Form("%s/%s/%slasCycScaler4.png",pPath,webDirectory,filePrefix.Data()));
+    cScalerLC1->SaveAs(Form("%s/%s/%slasCycScaler1.png",pPath,webDirectory,filePre.Data()));
+    //cScalerLC2->SaveAs(Form("%s/%s/%slasCycScaler2.png",pPath,webDirectory,filePre.Data()));
+    //cScalerLC3->SaveAs(Form("%s/%s/%slasCycScaler3.png",pPath,webDirectory,filePre.Data()));
+    //cScalerLC4->SaveAs(Form("%s/%s/%slasCycScaler4.png",pPath,webDirectory,filePre.Data()));
   }
 
   if(bkgdVsBeam) {
@@ -718,7 +718,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
     Double_t stripNumber[nStrips][numb],stripBkgdYield[nStrips][numb],stripBkgdYieldEr[nStrips][numb],zero1[numb];
     Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
-    TString filePrefix2;
+    TString filePre2;
     //    Double_t p0,p1,NDF,chiSq,p1Er,p0Er;
     /*run  : beam***********
      *23142 :  30uA, 
@@ -733,10 +733,10 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
      ***************/
 
     for(Int_t n=0; n<numb; n++) {        
-      filePrefix2= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
+      filePre2= Form("run_%d/edetLC_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
-        infilelasOffBkgd.open(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1));
-        if(debug1)cout<<"opening file "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
+        infilelasOffBkgd.open(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePre2.Data(),p+1));
+        if(debug1)cout<<"opening file "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePre2.Data(),p+1)<<endl;
         if(infilelasOffBkgd.is_open()) {
           Int_t strip=0;
           while(infilelasOffBkgd.good()) {
@@ -744,9 +744,9 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
             strip = strip +1;
           }
           infilelasOffBkgd.close();
-          if(debug1)cout<<"closing file "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;     
+          if(debug1)cout<<"closing file "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePre2.Data(),p+1)<<endl;     
         } else {
-          if(debug)cout<<"did not find "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix2.Data(),p+1)<<endl;
+          if(debug)cout<<"did not find "<<Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePre2.Data(),p+1)<<endl;
           return -1;
         }
       }
@@ -798,10 +798,10 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     //     cScalVsBeam2->Update();
     //     cScalVsBeam3->Update();
     //     cScalVsBeam4->Update();
-    cScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix2.Data()));
-    //     cScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix2.Data()));
-    //     cScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix2.Data()));
-    //     cScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix2.Data()));
+    cScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePre2.Data()));
+    //     cScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePre2.Data()));
+    //     cScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePre2.Data()));
+    //     cScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePre2.Data()));
   }
 
   if(bkgdSubVsBeam) {
@@ -813,7 +813,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     TMultiGraph *ScalVsBeam[endPlane][endStrip];
     TLegend *legScVsBeam[endPlane][endStrip];
     Int_t runlist[numb]={23142,23148,23154,23151,23152,23168};
-    TString filePrefix3;
+    TString filePre3;
     //Double_t beamI[numb]={30,50,60,100,150,180};//!assumed 1-to-1 matching between runlist and beamI array
     Double_t beamI[numb]={34,54,64,103,152,180};//!assumed 1-to-1 matching between runlist and beamI array
     Double_t qNormScalerB1H0L0[nPlanes][nStrips][mCyc],qNormScalerB1H0L1[nPlanes][nStrips][mCyc],qNormScalerB1H1L0[nPlanes][nStrips][mCyc],qNormScalerB1H1L1[nPlanes][nStrips][mCyc];
@@ -834,11 +834,11 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
      ***************/
     Int_t chosenCyc=0;///in human counting
     for(Int_t n=0; n<numb; n++) {        
-      filePrefix3= Form("run_%d/edetLasCyc_%d_",runlist[n],runlist[n]);   
+      filePre3= Form("run_%d/edetLC_%d_",runlist[n],runlist[n]);   
       for(Int_t p =startPlane; p <endPlane; p++) {
         for(Int_t s=startStrip;s<endStrip;s++) {
           //if (!mask[p][s]) continue; //!!currently only for plane 1	
-          scalerRate.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1));
+          scalerRate.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1));
           if (scalerRate.is_open()) {
             Int_t nLasCycles=0;
             while(scalerRate.good()) {
@@ -849,9 +849,9 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
               nLasCycles=nLasCycles+1;//!this nLasCycles is not necessarily in sync with the laser cycle number
             }
             scalerRate.close();	  
-            if(debug2)cout<<"closing file "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1)<<endl;
+            if(debug2)cout<<"closing file "<<Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1)<<endl;
           } else {
-            cout<<"did not find "          <<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1)<<endl;
+            cout<<"did not find "          <<Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycScalerP%dS%d.txt",pPath,webDirectory,runlist[n],runlist[n],p+1,s+1)<<endl;
             return -1;
           }
         }
@@ -959,10 +959,10 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         bkgdSubCountsFit<<s+1<<"\t"<<p0<<"\t"<<p0Er<<p1<<"\t"<<p1Er<<"\t"<<chiSq<<"\t"<<NDF<<endl;     
       }
       bkgdSubCountsFit.close();
-      cBkgdSubScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePrefix3.Data()));
-      cBkgdSubScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePrefix3.Data()));
-      cBkgdSubScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePrefix3.Data()));
-      cBkgdSubScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePrefix3.Data()));
+      cBkgdSubScalVsBeam1->SaveAs(Form("%s/%s/%sScalVsBeamStr01_16.png",pPath,webDirectory,filePre3.Data()));
+      cBkgdSubScalVsBeam2->SaveAs(Form("%s/%s/%sScalVsBeamStr17_32.png",pPath,webDirectory,filePre3.Data()));
+      cBkgdSubScalVsBeam3->SaveAs(Form("%s/%s/%sScalVsBeamStr33_48.png",pPath,webDirectory,filePre3.Data()));
+      cBkgdSubScalVsBeam4->SaveAs(Form("%s/%s/%sScalVsBeamStr49_64.png",pPath,webDirectory,filePre3.Data()));
     }
   }
 
@@ -983,7 +983,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     for(Int_t p =0; p <1; p++) {
       for(Int_t s=startStrip;s<endStrip;s++) { 
         //if (!mask[p][s]) continue; //currently only for plane 1	
-        grAsymLasCyc[s] = new TGraphErrors(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_AcAsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1),"%lg %lg %lg");
+        grAsymLasCyc[s] = new TGraphErrors(Form("%s/%s/run_%d/lasCyc/edetLC_%d_AcAsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1),"%lg %lg %lg");
 
         if(s>= 0 && s<16) {
           cAsymLC1->cd(s+1);
@@ -1016,10 +1016,10 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     cAsymLC2->Update();
     cAsymLC3->Update();
     cAsymLC4->Update();
-    cAsymLC1->SaveAs(Form("%s/%s/%sasymLasCycStr01_16.png",pPath,webDirectory,filePrefix.Data()));
-    cAsymLC2->SaveAs(Form("%s/%s/%sasymLasCycStr17_32.png",pPath,webDirectory,filePrefix.Data()));
-    cAsymLC3->SaveAs(Form("%s/%s/%sasymLasCycStr33_48.png",pPath,webDirectory,filePrefix.Data()));
-    cAsymLC4->SaveAs(Form("%s/%s/%sasymLasCycStr49_64.png",pPath,webDirectory,filePrefix.Data()));
+    cAsymLC1->SaveAs(Form("%s/%s/%sasymLasCycStr01_16.png",pPath,webDirectory,filePre.Data()));
+    cAsymLC2->SaveAs(Form("%s/%s/%sasymLasCycStr17_32.png",pPath,webDirectory,filePre.Data()));
+    cAsymLC3->SaveAs(Form("%s/%s/%sasymLasCycStr33_48.png",pPath,webDirectory,filePre.Data()));
+    cAsymLC4->SaveAs(Form("%s/%s/%sasymLasCycStr49_64.png",pPath,webDirectory,filePre.Data()));
     gStyle->SetOptFit(0);
   }///if (asymLasCycDr)
 
@@ -1037,7 +1037,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
     for (Int_t p =0; p <1; p++) {
       for(Int_t s=str; s<str+histMult; s++) { 
         //if (!mask[p][s]) continue; //currently only for plane 1	
-        asymLC.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_AcAsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+        asymLC.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_AcAsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
         if(asymLC.is_open()) {
           nLasCycles=0;
           while(asymLC.good()) {
@@ -1065,7 +1065,7 @@ Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac")
         hAsymLC[p][s]->Draw("H");	
       }
     }    
-    cAsymLC->SaveAs(Form("%s/%s/%sasymHistPerLasCycStr%d_%d.png",pPath,webDirectory,filePrefix.Data(),str+1,str+8));
+    cAsymLC->SaveAs(Form("%s/%s/%sasymHistPerLasCycStr%d_%d.png",pPath,webDirectory,filePre.Data(),str+1,str+8));
   }///  if (asymLasCycHist) 
 
   return runnum;

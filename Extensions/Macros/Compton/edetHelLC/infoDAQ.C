@@ -9,7 +9,7 @@ Int_t infoDAQ(Int_t runnum)
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
-  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePre = Form(filePrefix,runnum,runnum);
   const Bool_t debug=1;
   const Int_t errFlag=100;
   Bool_t additionalStripMask=1;///this will be my primary tool to skip masked strips in asymFit.C
@@ -113,7 +113,7 @@ Int_t infoDAQ(Int_t runnum)
     cout<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
     cout<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos <<normal<<endl;
   }
-  fBeamProp.open(Form("%s/%s/%sbeamProperties.txt",pPath,webDirectory,filePrefix.Data()));//,std::fstream::app);
+  fBeamProp.open(Form("%s/%s/%sbeamProperties.txt",pPath,webDirectory,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
     fBeamProp<<runnum<<"\t"<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
     fBeamProp<<runnum<<"\t"<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos<<endl;
@@ -147,7 +147,7 @@ Int_t infoDAQ(Int_t runnum)
   //  }
   //}
   //
-  //infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePrefix.Data()));
+  //infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePre.Data()));
   //infoStripMask<<";plane\tmaskedStrips:";
   ////for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out
   //for(Int_t p = startPlane; p <endPlane; p++) {
@@ -184,20 +184,20 @@ Int_t infoDAQ(Int_t runnum)
   holdOff = holdOffSlave[0]==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
   pipelineDelay = pipelineDelaySlave[0]==pipelineDelaySlave[1] ? pipelineDelaySlave[1] : errFlag;
 
-  flagsfile.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
+  flagsfile.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePre.Data()));
   if(flagsfile.is_open()) {
     flagsfile<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\thOff\tplDelay"<<endl;
     flagsfile<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
     flagsfile.close();
-    cout<<"wrote the flagsfile info to "<<Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data())<<endl;
+    cout<<"wrote the flagsfile info to "<<Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePre.Data())<<endl;
   } else {
     cout<<"could not open file for writing flags file info"<<endl;
-    cout<<Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data())<<endl;
+    cout<<Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePre.Data())<<endl;
   }
 
   if ((acTrig==errFlag)||(evTrig==errFlag)||(minWidth==errFlag)||(firmwareRev==errFlag)||(pwtl1==errFlag)||(pwtl2==errFlag)||(holdOff==errFlag)||(pipelineDelay==errFlag)) {
     cout<<"found a potential error in flags file as found in rootfile, printing debugInfoDAQ "<<endl;
-    debugInfoDAQ.open(Form("%s/%s/%sdebugInfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
+    debugInfoDAQ.open(Form("%s/%s/%sdebugInfoDAQ.txt",pPath,webDirectory,filePre.Data()));
     debugInfoDAQ<<";module\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
     for(Int_t m = 0; m <nModules; m++) {
       debugInfoDAQ<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",m,acTrigSlave[m],evTrigSlave[m],minWidthSlave[m],firmwareRevSlave[m],pwtlSlave[m],pwtl2Slave[m],holdOffSlave[m],pipelineDelaySlave[m]);

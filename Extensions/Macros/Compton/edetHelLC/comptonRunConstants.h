@@ -7,7 +7,8 @@
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
 const char *webDirectory= "www";
-TString filePrefix;
+const TString filePrefix = "run_%d/edetLC_%d_";///one spot change of all file names
+TString filePre;
 //Asymmetry calculation constants 
 const Double_t light=0.2998;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
 const Double_t pi=3.141592;
@@ -67,6 +68,7 @@ const Int_t startPlane = 0;
   const Int_t endPlane = 1;
 
 Bool_t polSign=0;
+Int_t daqflag=0;
 Int_t asymflag=0;
 Double_t Cedge[nPlanes];
 Double_t tempCedge=50;//!should I initiate it like this !

@@ -16,14 +16,14 @@
 Int_t expAsym(Int_t runnum, TString dataType="Ac")
 {
   cout<<"\nstarting into expAsym.C**************with dataType: "<<dataType<<"\n"<<endl;
-  filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePre = Form(filePrefix,runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   const Bool_t debug = 1, debug1 = 0, debug2 = 0;
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
   const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
   const Bool_t kNoiseSub = 1;
-  const Bool_t kDeadTime = 0;
+  const Bool_t kDeadTime = 1, k2parDT = 0;
   Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
@@ -68,7 +68,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   if (kRejectBMod) cout<<green<<"quartets during beam modulation ramp rejected"<<normal<<endl;
   else cout<<green<<"quartets during beam modulation ramp NOT rejected"<<normal<<endl;
 
-  if(!maskSet) infoDAQ(runnum); //if the masks are not set yet, call the function to set it
+  if(daqflag==0) infoDAQ(runnum); //if the masks are not set yet, call the function to set it
 
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
   ///some of the variables declared in the compton header file
@@ -112,12 +112,12 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     helChain->Draw("yield_sca_laser_PowT:pattern_number");    
     c1->cd(2);
     helChain->Draw("yield_sca_bcm6:pattern_number");
-    c1->SaveAs(Form("%s/%s/%slasBeamStability.png",pPath,webDirectory,filePrefix.Data()));
+    c1->SaveAs(Form("%s/%s/%slasBeamStability.png",pPath,webDirectory,filePre.Data()));
   }
   //////////////////////////////////////////////////////////////////////////////
 
-  infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
-  infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
+  infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePre.Data()));
+  infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data()));
 
   if (infileLas.is_open() && infileBeam.is_open()) {
     cout<<"Found the cutLas and cutEB file in "<<Form("%s/%s/run_%d/",pPath,webDirectory,runnum)<<" directory."<<endl;
@@ -262,15 +262,15 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       for(Int_t s =startStrip; s <endStrip; s++) {
         //if (!mask[p][s]) continue;    
         ///lasCyc based files go into a special folder named lasCyc
-        countsLC[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-        if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+        countsLC[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+        if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLC_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
         ///Lets open the files for writing asymmetries in the beamOn loop repeatedly
-        outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
-        if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
+        outAsymLasCyc[p][s].open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1));
+        if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLC_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,p+1,s+1)<<endl;
       }
     }
-    lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
-    lasCycLasPow.open(Form("%s/%s/run_%d/lasCyc/edetLasCyc_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));  
+    lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycBcmAvg.txt",pPath,webDirectory,runnum,runnum));
+    lasCycLasPow.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycAvgLasPow.txt",pPath,webDirectory,runnum,runnum));  
 
     for(Int_t p = startPlane; p <endPlane; p++) {
       for(Int_t s =startStrip; s <endStrip; s++) {
@@ -291,13 +291,23 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     ifstream inRateCor0, inRateCor1;
     Float_t runDum;
     if(acTrig==2) {
-      cout<<blue<<"Deadtime correction is turned on\n Applying 2 factor correction for 2/3 trigger"<<normal<<endl;
-      inRateCor0.open(Form("%s/data/dtcorr2by3_p0.dat",pPath));
-      inRateCor1.open(Form("%s/data/dtcorr2by3_p1.dat",pPath));
+      if(k2parDT) {
+        cout<<blue<<"Applying 2 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
+        inRateCor0.open(Form("%s/data/dtcorr2by3_p0.dat",pPath));
+        inRateCor1.open(Form("%s/data/dtcorr2by3_p1.dat",pPath));
+      } else {
+        cout<<blue<<"Applying 1 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
+        inRateCor0.open(Form("%s/data/dtcorr22.dat",pPath));
+      }
     } else if(acTrig==3) {
-      cout<<blue<<"Deadtime correction is turned on\n Applying 2 factor correction for 3/3 trigger"<<normal<<endl;
-      inRateCor0.open(Form("%s/data/dtcorr3by3_p0.dat",pPath));
-      inRateCor1.open(Form("%s/data/dtcorr3by3_p1.dat",pPath));
+      if(k2parDT) {
+        cout<<blue<<"Applying 2 parameter Deadtime correction for 3/3 trigger"<<normal<<endl;
+        inRateCor0.open(Form("%s/data/dtcorr3by3_p0.dat",pPath));
+        inRateCor1.open(Form("%s/data/dtcorr3by3_p1.dat",pPath));
+      } else {
+        cout<<blue<<"Applying 1 parameter Deadtime correction for 3/3 trigger"<<normal<<endl;
+        inRateCor0.open(Form("%s/data/dtcorr33.dat",pPath));
+      }
     } else if(acTrig==1) {
       cout<<blue<<"NO correction file available for 1/3 trigger, hence no correction being applied"<<normal<<endl;
     } else cout<<red<<"\nTrigger undetermined, hence DT correction not applied due to ambiguity\n"<<normal<<endl;
@@ -317,6 +327,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
             break;
           }
         }
+        if(k2parDT) {
         if(inRateCor1.is_open()) {
           while(1) {
             inRateCor1>>runDum>>corrB1H1L1_1>>corrB1H1L0_1>>corrB1H0L1_1>>corrB1H0L0_1;
@@ -333,6 +344,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
             }
           }
         } else cout<<red<<"\n***Alert: Could not open file for p1 DT correction factors\n"<<normal<<endl;
+        }
       } else cout<<red<<"\n***Alert: Could not open file for p0 DT correction factors\n"<<normal<<endl;
     }
   } else {
@@ -476,14 +488,25 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
 
       /////Apply deadtime correction///////////////////
       if(kDeadTime) {
-        if(corrB1H1L1_0==corrB1H1L0_0 || corrB1H0L1_0==corrB1H0L0_0) cout<<red<<"the correction factors for laser on/off is same for this run, hence something wrong"<<normal<<endl;
-        else {
+        if(corrB1H1L1_0==corrB1H1L0_0 || corrB1H0L1_0==corrB1H0L0_0) cout<<red<<"\nthe correction factors for laser on/off is same for this run, hence something wrong\n"<<normal<<endl;
+        else if(k2parDT) {
+          //cout<<"applying 2 parameter DT correction"<<endl;
           for (Int_t p =startPlane; p <endPlane; p++) { 
             for (Int_t s =startStrip; s <endStrip; s++) {	
               c2B1H1L1[p][s] = (corrB1H1L1_0 + (s+1)*corrB1H1L1_1);
               c2B1H1L0[p][s] = (corrB1H1L0_0 + (s+1)*corrB1H1L0_1); 
               c2B1H0L1[p][s] = (corrB1H0L1_0 + (s+1)*corrB1H0L1_1);
               c2B1H0L0[p][s] = (corrB1H0L0_0 + (s+1)*corrB1H0L0_1);
+            }
+          }
+        } else {
+          //cout<<"applying 1 parameter DT correction"<<endl;
+          for (Int_t p =startPlane; p <endPlane; p++) { 
+            for (Int_t s =startStrip; s <endStrip; s++) {	
+              c2B1H1L1[p][s] = corrB1H1L1_0 ;
+              c2B1H1L0[p][s] = corrB1H1L0_0 ; 
+              c2B1H0L1[p][s] = corrB1H0L1_0 ;
+              c2B1H0L0[p][s] = corrB1H0L0_0 ;
             }
           }
         }
@@ -603,7 +626,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
         helChain->Draw("yield_sca_laser_PowT:pattern_number","yield_sca_laser_PowT<180000");
 
         cStability->Update();
-        cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePrefix.Data()));
+        cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePre.Data()));
       }
     } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
     tEnd = time(0);

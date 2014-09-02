@@ -63,10 +63,10 @@ Int_t polCERunRange(Int_t run1=runBegin, Int_t run2=runEnd)
   for (Int_t r=run1; r<=run2; r++) {
     Double_t absPol[nPlanes],pol[nPlanes]={0.0},polEr[nPlanes]={0.0},chiSq[nPlanes],comptEdge[nPlanes],comptEdgeEr[nPlanes],effStrip[nPlanes],effStripEr[nPlanes];
     Int_t plane[nPlanes],NDF[nPlanes],runnum[nPlanes],goodCyc[nPlanes]; 
-    filePrefix= Form("run_%d/edetLasCyc_%d_",r,r);
-    inFileRunsLC.open(Form("%s/%sAcPol.txt",myDir,filePrefix.Data()));
+    filePre = Form(filePrefix,runnum,runnum);
+    inFileRunsLC.open(Form("%s/%sAcPol.txt",myDir,filePre.Data()));
     if(inFileRunsLC.is_open()) {
-      if(debug1) cout<<"opened file "<<Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePrefix.Data())<<endl;
+      if(debug1) cout<<"opened file "<<Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePre.Data())<<endl;
       inFileRunsLC >>dum1>>dum2>>dum3>>dum4>>dum5>>dum6>>dum7>>dum8>>dum9>>dum10>>dum11;
       if(debug1) cout<<"runnum\tplane\tpol\tpolEr"<<endl;
       for (Int_t p=startPlane; p<endPlane; p++) {
@@ -74,7 +74,7 @@ Int_t polCERunRange(Int_t run1=runBegin, Int_t run2=runEnd)
         if(debug1) cout<<r<<"\t"<<plane[p]<<"\t"<<pol[p]<<"\t"<<polEr[p]<<endl;
       }
       inFileRunsLC.close();
-    } else if(debug1) cout<<"***couldn't open "<<Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePrefix.Data())<<endl;
+    } else if(debug1) cout<<"***couldn't open "<<Form("%s/%s/%sAcPol.txt",pPath,webDirectory,filePre.Data())<<endl;
     absPol[0] = fabs(pol[0]);//fabs(pol[0]);
     kPrintLC = (runnum[0]==r && polEr[0]<5.0 && absPol[0]<93.0 && absPol[0]>50.0 && polEr[0]!=0.0 && comptEdge[0]>20.0);// && (chiSq[0]/NDF[0]) <5.0);///often chiSqr/NDF is not on expected lines
     //kPrintLC = (polEr[0]<4.0 && absPol[0]<95.0 && absPol[0]>50.0 && polEr[0]!=0.0 && comptEdge[0]>20.0 && (chiSq[0]/NDF[0]) <6.0);

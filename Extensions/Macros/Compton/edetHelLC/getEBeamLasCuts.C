@@ -17,7 +17,7 @@
 
 Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
-  filePrefix= Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePre = Form(filePrefix,runnum,runnum);
   Bool_t debug = 1;
   chain->ResetBranchAddresses();
   Int_t nEntries = chain->GetEntries();
@@ -42,14 +42,14 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
 
   ofstream outfileLas,outfileBeam,infoBeamLas;
-  outfileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data()));
-  if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
+  outfileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePre.Data()));
+  if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
 
-  outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data()));
-  if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
+  outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data()));
+  if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
 
-  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePrefix.Data()));
-  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePrefix.Data())<<" file created\n"<<endl;
+  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data()));
+  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
   infoBeamLas<<";runnum\tbeamMax\tnBeamTrips\tlasMax\tnLasCycles\tnEntries"<<endl;
 
   TBranch *bLaser;
@@ -69,12 +69,12 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   for(Int_t index=0; index<nEntries;index++) {
     chain->GetEntry(index);
     bLaser = bBCM = 0;
-    lLaser = lBCM = 0;
     bLaser = (TBranch*)chain->GetBranch("yield_sca_laser_PowT");
-    bBCM = (TBranch*)chain->GetBranch("yield_sca_bcm6");
+    lLaser = lBCM = 0;
     lLaser = (TLeaf*)bLaser->GetLeaf("value");
-    lBCM = (TLeaf*)bBCM->GetLeaf("value");
     laser = lLaser->GetValue();
+    bBCM = (TBranch*)chain->GetBranch("yield_sca_bcm6");
+    lBCM = (TLeaf*)bBCM->GetLeaf("value");
     bcm = lBCM->GetValue();
 
     ////find laser off periods and record start and finish entries

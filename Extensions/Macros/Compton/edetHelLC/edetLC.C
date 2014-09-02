@@ -5,12 +5,11 @@
 //#include "infoDAQ.C"
 //#include "fileReadDraw.C"
 
-Int_t edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
+Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
 {
-  cout<<"starting into edetLasCyc.C**************"<<endl;
+  cout<<"starting into edetLC.C**************"<<endl;
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  Int_t daqflag=0;
   gStyle->SetOptFit(0);
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);
@@ -44,6 +43,6 @@ Int_t edetLasCyc(Int_t runnum=24519, TString dataType="Ac")
 
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to execute edetLasCyc.C\n",div_output.quot,div_output.rem );  
+  printf("\n it took %d minutes %d seconds to execute edetLC.C\n",div_output.quot,div_output.rem );  
   return 2;
 }

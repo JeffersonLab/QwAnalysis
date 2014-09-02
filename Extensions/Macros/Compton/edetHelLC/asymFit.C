@@ -80,7 +80,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   gStyle->SetTitleSize(0.06,"Y");
   gStyle->SetLabelSize(0.06,"xyz");
 
-  filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
+  filePre = Form(filePrefix,runnum,runnum);
+
   Bool_t debug=1,debug1=0,debug2=0;
   Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
   Bool_t kFitEffWidth=0;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
@@ -104,7 +105,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   ///Read in all files that are needed
   for(Int_t p =startPlane; p <endPlane; p++) {
-    expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
     if(expAsymPWTL1.is_open()) {
       if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<p+1<<endl;
       if(debug2) cout<<"strip\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
@@ -117,32 +118,43 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         if(debug2) cout<<blue<<trueStrip.back()<<"\t"<<asym.back()<<"\t"<<asymEr.back()<<normal<<endl;
       }
       expAsymPWTL1.close();
-    } else cout<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<endl;
+    } else {
+      cout<<red<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<normal<<endl;
+      return -1;
+    }
 
-    infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),dataType.Data(),p+1));
+    infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),p+1));
     if(infileL0Yield.is_open()) {
       if(debug1) cout<<"Reading the qNorm Laser Off Yield for Plane "<<p+1<<endl;
       while(infileL0Yield>>dum1>>dum2>>dum3 && infileL0Yield.good()) {
         if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-          cout<<magenta<<"skipping strip "<<dum1<<normal<<endl;
+          //cout<<magenta<<"skipping strip "<<dum1<<normal<<endl;
           continue; 
         }
         yieldL0.push_back(dum2), yieldL0Er.push_back(dum3), zero.push_back(0.0);
       }
       infileL0Yield.close();
+    } else {
+      cout<<red<<"didn't find lasOff bgd file "<<Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),p+1)<<normal<<endl;
+      return -1;
     }
-    infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),dataType.Data(),p+1));
+
+    infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),p+1));
     if(infileYield.is_open()) {
       if(debug1) cout<<"Reading the qNorm Laser On Yield for Plane "<<p+1<<endl;
       while(infileYield>>dum1>>dum2>>dum3>>dum4 && infileYield.good()) {
         if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-          cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
+          //cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
           continue; 
         }
         yieldL1.push_back(dum2), yieldL1Er.push_back(dum3), asymNr.push_back(dum4);
       }
       infileYield.close();
+    } else {
+      cout<<red<<"did not find the bgd subtracted yield file "<<Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),p+1)<<normal<<endl;
+      return -1;
     }
+
     ///Estimate the compton edge location
     for(Int_t s=0; s<=(Int_t)trueStrip.size(); s++) {
       //Int_t s = trueStrip[i];///actual strip number
@@ -184,9 +196,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       cAsym->GetPad(p+1)->SetGridx(1);
 
       grAsym[p]=new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),asym.data(),zero.data(),asymEr.data()); 
-      //grAsym[p]=new TGraphErrors("/home/narayan/acquired/vladas/r24519_lasCycAsym_runletErr.txt","%lg %lg %lg");  
-      //else grAsym[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
-
       grAsym[p]->GetXaxis()->SetTitle("Strip number");
       grAsym[p]->GetYaxis()->SetTitle("asymmetry");   
       //grAsym[p]->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",p+1));//Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
@@ -222,7 +231,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         //polFit->SetParLimits(0,1.0,1.0);///fix the effective strip width to 1.0
         polFit->SetParLimits(0,1.0033,1.0033);///1.0033 !changed to match the runlet analysis output
         //polFit->SetParLimits(1,40.0,56.5);///allow the CE to vary between these strip
-        polFit->SetParLimits(1,40.0,62.0);///run2: allow the CE to vary between these strip
+        polFit->SetParLimits(1,48.0,52.0);///run2: allow the CE to vary between these strip
         cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
         //cout<<blue<<"effective strip width fixed at "<<normal<<<GetParameter[0]<endl;
       }
@@ -244,12 +253,12 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       NDF = polFit->GetNDF();
 
       if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
-      polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePrefix.Data()));
+      polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePre.Data()));
       polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane\tgoodCycles"<<endl;
-      polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1,asymflag);
+      polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.5f\t%.5f\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1,asymflag);
       if(debug) {
         cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStripWidth effStripWidthEr plane");
-        cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.3f\t%.3f\t%d\n\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1);      
+        cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.5f\t%.5f\t%d\n\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1);      
       }
       leg[p] = new TLegend(0.101,0.73,0.30,0.9);
       //leg[p]->AddEntry(grAsym[0],"experimental asymmetry","lpe");///I just need the name
@@ -295,8 +304,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       ///Read in the background asymmetry file
       cBgd->cd();
       for (Int_t p =startPlane; p <endPlane; p++) {
-        fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-        //fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+        fBgdAsym.open(Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),p+1));
+        //fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
         if(fBgdAsym.is_open()) {
           if(debug2) cout<<"Reading the bgdAsym file for Plane "<<p+1<<endl;
           if(debug2) cout<<"strip\t"<<"bgdAsym\t"<<"bgdAsymEr"<<endl;
@@ -309,8 +318,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
             if(debug2) cout<<blue<<dum1<<"\t"<<bgdAsym.back()<<"\t"<<bgdAsymEr.back()<<normal<<endl;
           }
           fBgdAsym.close();
-        } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s"+dataType+"BkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<normal<<endl;
-        //cout<<(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1))<<endl;
+        } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),p+1)<<normal<<endl;
+        //cout<<(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),p+1))<<endl;
 
         grBgd = new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),bgdAsym.data(),zero.data(),bgdAsymEr.data());
         grBgd->Draw("AP");
@@ -389,9 +398,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         ptRes[p]->AddText(Form("linear fit    : %f #pm %f",resFit,resFitEr));
         ptRes[p]->Draw();
       }//for (Int_t p =startPlane; p <endPlane; p++)
-      cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePrefix.Data()));
+      cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePre.Data()));
     }
-    fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePrefix.Data()));
+    fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePre.Data()));
     fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
     fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
     fitInfo.close();
@@ -407,7 +416,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         cYield->cd(p+1);
         cYield->GetPad(p+1)->SetGridx(1);
         grYieldPlane[p] = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL1.data(), zero.data(), yieldL1Er.data());
-        //grYieldPlane[p]=new TGraphErrors(Form("%s/%s/%s"+dataType+"YieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1),"%lg %lg %lg");
         grYieldPlane[p]->SetLineColor(kGreen);
         grYieldPlane[p]->SetFillColor(kGreen);   
         grYieldPlane[p]->SetMarkerColor(kGreen); ///kRed+2 = Maroon
@@ -421,7 +429,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
           crossSecFit->SetLineColor(kRed);
           grYieldPlane[p]->Fit("crossSecFit","0 R M E q");
         }
-        //grB1L0[p] = new TGraphErrors(Form("%s/%s/%s"+dataType+"LasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1), "%lg %lg %lg");
         grB1L0[p] = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL0.data(), zero.data(), yieldL0Er.data());
         grB1L0[p]->SetFillColor(kBlue);
         grB1L0[p]->SetLineColor(kBlue);
@@ -446,10 +453,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         legYield[p]->SetFillColor(0);
         legYield[p]->Draw();
       }//for (Int_t p =startPlane; p <endPlane; p++)
-      cYield->SaveAs(Form("%s/%s/%s"+dataType+"YieldFit.png",pPath,webDirectory,filePrefix.Data()));
+      cYield->SaveAs(Form("%s/%s/%s"+dataType+"YieldFit.png",pPath,webDirectory,filePre.Data()));
     }
 
-    cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePrefix.Data()));
+    cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePre.Data()));
     //  tEnd = time(0);
     //  div_output = div((Int_t)difftime(tEnd, tStart),60);
     //  printf("\n it took %d minutes %d seconds to execute asymFit.C\n",div_output.quot,div_output.rem );  

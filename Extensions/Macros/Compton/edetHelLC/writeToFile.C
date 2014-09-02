@@ -6,29 +6,29 @@
 ///This is only intended to write out the files. In the current format, the outqNormL0 and outfilelasOffBkgd should carry the same output physics-wise, for one is the overall average, while other is laserCyc based weighted average respectively
 Int_t writeToFile(Int_t runnum,TString dataType)
 {
-  filePrefix= Form("run_%d/edetLasCyc_%d_%s",runnum,runnum,dataType.Data());
-  cout<<blue<<"filePrefix is: "<<filePrefix.Data()<<normal<<endl;
+  filePre = Form(filePrefix+"%s",runnum,runnum,dataType.Data());
+  cout<<blue<<"filePre.Data() is: "<<filePre.Data()<<normal<<endl;
   ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck,outScaler,outtNormYieldB1L0,outtNormYieldB1L1,outqNormL0;
   for(Int_t p = startPlane; p < endPlane; p++) {
-    outfileExpAsymP.open(Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outfileBkgdAsymP.open(Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outfilelasOffBkgd.open(Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    fortranCheck.open(Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outScaler.open(Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outqNormL0.open(Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outtNormYieldB1L1.open(Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
-    outtNormYieldB1L0.open(Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1));
+    outfileExpAsymP.open(Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    outfileBkgdAsymP.open(Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    outfilelasOffBkgd.open(Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    fortranCheck.open(Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    outScaler.open(Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    outqNormL0.open(Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    outtNormYieldB1L1.open(Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePre.Data(),p+1));
+    outtNormYieldB1L0.open(Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePre.Data(),p+1));
     if (outfileExpAsymP.is_open()) {// && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
-      //cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
-      //cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" file created"<<endl;
       fortranCheck<<Form("%f\t%f\t%f\t%f\t%f\n",totIAllH1L1,totIAllH1L0,totIAllH0L1,totIAllH0L0,totIAllH1L1+totIAllH1L0+totIAllH0L1+totIAllH0L0);
       fortranCheck<<";\n";
       fortranCheck<<Form("%f\t%f\t%f\n",totHelB1L1/helRate,totHelB1L0/helRate,(totHelB1L1+totHelB1L0)/helRate);
@@ -68,15 +68,15 @@ Int_t writeToFile(Int_t runnum,TString dataType)
       outqNormL0.close();
       outtNormYieldB1L1.close();
       outtNormYieldB1L0.close();
-      //cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
-      //cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePrefix.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sFortranCheckP%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
+      //cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,webDirectory,filePre.Data(),p+1)<<" filled and closed"<<endl;
     } else cout<<"\n***Alert: Couldn't open file for writing experimental asymmetry values\n\n"<<endl;    
     }
     return runnum;
