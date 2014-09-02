@@ -9,7 +9,7 @@ dataType=Ac
 #for i in `seq 22659 25546`;
 #for i in `seq 23450 23530`;
 #for i in `seq 23220 23530`;
-for i in `seq 23220 23221`;
+for i in `seq 24252 24253`;
 do
   cat batchsub_header1.xml >> batch_submit_$i.xml
   echo '<Name name="edetHelLC_'$dataType'_'$i'"/>' >> batch_submit_$i.xml
