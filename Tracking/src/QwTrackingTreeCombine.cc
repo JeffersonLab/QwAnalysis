@@ -994,7 +994,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
       for ( int plane = 0; plane < nPlanesWithHits; ++plane )
       {
         if(best_trackpos[plane]!=0.0){
-          treeline->fUsedHits[plane] = new QwHit(usedHits[plane]);
+          treeline->AddHit(usedHits[plane]);
           if ( usedHits[plane] )
             usedHits[plane]->SetUsed ( true );
         }
@@ -1075,11 +1075,6 @@ int QwTrackingTreeCombine::TlMatchHits (
   //    usedHits[i] = 0;
   //  }
 
-  // Declare list of hits and initialize to null
-  //  QwHit* goodHits2[tlayers][MAXHITPERLINE];
-  QwHit* goodHits[tlayers];
-  for ( int i = 0; i < tlayers; i++ ) goodHits[i] = 0;
-
   // Calculate the geometrical parameters of this treeline
   // In this function:
   //   x = signed drift distance to the hit wire
@@ -1132,29 +1127,31 @@ int QwTrackingTreeCombine::TlMatchHits (
     double thisZ = ( double ) hit->GetElement();
     // Calculate the track position at this wire
     double thisX = track_slope * thisZ + intercept;
+
     // Determine the best hit assignment for this position
-    goodHits[nHits] = SelectLeftRightHit ( thisX, & ( *hit ));
+    QwHit* goodhit = SelectLeftRightHit ( thisX, & ( *hit ));
+
+    //############################
+    //RETURN HITS FOUND IN BESTX #
+    //############################
+
+    goodhit->SetUsed ( true );
+    treeline->fHits[nHits] = new QwHit(goodhit);
+    treeline->AddHit (goodhit);
+
+    // Delete the hit from SelectLeftRightHit again so as to not leak memory
+    delete goodhit;
+
     nHits++;
   }
 
-  // Return if no hits were found
-  if (nHits == 0) return 0;
-
   // Warn when the number of wires between first and last is different from the
   // number of hits found (missing wires or wires wit multiple hits)
-  // 	if ( nHits != nWires )
-  // 		QwWarning << "Expected " << nWires << " consecutive wires to be hit, " << "but found " << nHits << " hits in plane" << treeline->GetPlane() <<  QwLog::endl;
+  //    if ( nHits != nWires )
+  //            QwWarning << "Expected " << nWires << " consecutive wires to be hit, " << "but found " << nHits << " hits in plane" << treeline->GetPlane() <<  QwLog::endl;
 
-  //############################
-  //RETURN HITS FOUND IN BESTX #
-  //############################
-  for ( int hit = 0; hit < nHits; hit++ )
-  {
-    goodHits[hit]->SetUsed ( true );
-    treeline->fUsedHits[hit] = goodHits[hit];
-    treeline->fHits[hit] = new QwHit(goodHits[hit]);
-    treeline->AddHit ( goodHits[hit] );
-  }
+  // Return if no hits were found
+  //if (nHits == 0) return 0;
 
   //######################
   //CALCULATE CHI SQUARE #

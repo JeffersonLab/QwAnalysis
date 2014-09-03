@@ -203,7 +203,6 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     int   fNumMiss;			///< number of planes without hits
 
     QwHit* fHits[2*MAX_LAYERS];	//!     ///< all hits that satisfy road requirement
-    QwHit* fUsedHits[2*MAX_LAYERS]; //! ///< hits that correspond to optimal chi^2
 
     int fHashArray[2*MAX_LAYERS]; //!
 

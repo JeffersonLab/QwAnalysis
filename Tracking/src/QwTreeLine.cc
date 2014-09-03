@@ -79,9 +79,6 @@ QwTreeLine::~QwTreeLine()
 
     if (fHits[i]) delete fHits[i];
     fHits[i] = 0;
-
-    if (fUsedHits[i]) delete fUsedHits[i];
-    fUsedHits[i] = 0;
   }
 
   DeleteHits();
@@ -120,7 +117,6 @@ void QwTreeLine::Initialize()
 
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     fHits[i] = 0;
-    fUsedHits[i] = 0;
     fHashArray[i] = 0;
   }
 
@@ -172,9 +168,6 @@ QwTreeLine& QwTreeLine::operator=(const QwTreeLine& that)
 
     if (that.fHits[i]) {
       this->fHits[i] = new QwHit(that.fHits[i]);
-    }
-    if (that.fUsedHits[i]) {
-      this->fUsedHits[i] = new QwHit(that.fUsedHits[i]);
     }
   }
 
