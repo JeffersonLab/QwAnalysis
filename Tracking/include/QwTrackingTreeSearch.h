@@ -33,6 +33,9 @@
 ///
 /// \ingroup QwTracking
 
+// Standard C and C++ headers
+#include <vector>
+
 // Forward declarations
 namespace QwTracking {
   class shortnode;
@@ -60,7 +63,7 @@ class QwTrackingTreeSearch {
     void SetShowMatchingPatterns(bool show = true) { fShowMatchingPatterns = show; };
 
     /// \brief Get the list of tree lines
-    QwTreeLine* GetListOfTreeLines ();
+    std::vector<QwTreeLine*> GetListOfTreeLines ();
 
     int exists (int *newa, int front, int back, int offset);
 
@@ -103,7 +106,7 @@ class QwTrackingTreeSearch {
     unsigned int fPattern_fMaxBins;
     unsigned int fPattern_fMaxRows;
 
-    QwTreeLine* fTreeLineList;	// linked list of tree lines in a set of planes
+    std::vector<QwTreeLine*> fTreeLineList;
     unsigned int fNTreeLines;		// number of tree lines found
 
     // Recursive tree pattern methods

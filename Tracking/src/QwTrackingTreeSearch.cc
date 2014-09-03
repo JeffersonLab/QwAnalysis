@@ -157,7 +157,7 @@ QwTrackingTreeSearch::~QwTrackingTreeSearch ()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTreeLine* QwTrackingTreeSearch::GetListOfTreeLines ()
+std::vector<QwTreeLine*> QwTrackingTreeSearch::GetListOfTreeLines ()
 {
   return fTreeLineList;
 }
@@ -463,8 +463,8 @@ int QwTrackingTreeSearch::exists (
       newmiss++;
 
   // Loop over the treelines
-  for (QwTreeLine* tl = fTreeLineList; tl; tl = tl->next) {
-
+  for (size_t i = 0; i < fTreeLineList.size(); i++) {
+    QwTreeLine* tl = fTreeLineList[fTreeLineList.size() - 1 - i];
 
     // If the treeline has been voided, go onto next one
     if (tl->IsVoid())
@@ -477,17 +477,17 @@ int QwTrackingTreeSearch::exists (
     
     if(wire_diff<5 && offset!=-1){
       if (tl->a_beg == front && front == tl->a_end )
-      over++;
-    if (tl->b_beg == back  && back  == tl->b_end )
-      over++;
+        over++;
+      if (tl->b_beg == back  && back  == tl->b_end )
+        over++;
     }
-    
+
     // r2
     if(offset==-1){
-    if(tl->a_beg == front && front == tl->a_end )
-      ++over;
-    if(tl->b_beg == back && back == tl->b_end )
-      ++over;
+      if(tl->a_beg == front && front == tl->a_end )
+        ++over;
+      if(tl->b_beg == back && back == tl->b_end )
+        ++over;
     }
     if (over == 2) {
       return 1;
@@ -849,8 +849,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 	    }
             /* Add this treeline to the linked-list */
 	    if (firstwire != lastwire) {
-              treeline->next = fTreeLineList;
-              fTreeLineList = treeline;
+              fTreeLineList.push_back(treeline);
 	    } else delete treeline;
           }
 
@@ -997,9 +996,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             treeline->fNumMiss = miss;
 	    treeline->SetMatchingPattern(patterns);
             /* Add this treeline to the linked-list */
-            treeline->next = fTreeLineList;
-            fTreeLineList = treeline;
-            
+	    fTreeLineList.push_back(treeline);
           }
 
         } else {                        /* check son patterns */
@@ -1072,7 +1069,7 @@ QwTreeLine* QwTrackingTreeSearch::SearchTreeLines (
 
   // Reset the list of tree lines (this could cause memory leaks)
   fNTreeLines = 0; // number of tree lines
-  fTreeLineList = 0; // list of tree lines
+  fTreeLineList.clear();
 
   /// For every wire we perform a recursive search.  For region 2 the number of
   /// wires is set to zero, so this will only execute once for every plane.
@@ -1121,6 +1118,16 @@ QwTreeLine* QwTrackingTreeSearch::SearchTreeLines (
   // Write out the number of tree lines
   QwDebug << "Found " << fNTreeLines << " tree line(s)." << QwLog::endl;
 
+
+  // Put in linked list
+  QwTreeLine* list = 0;
+  if (fTreeLineList.size() > 0) {
+    for (size_t tl = 0; tl < fTreeLineList.size(); tl++) {
+      fTreeLineList[tl]->next = list;
+      list = fTreeLineList[tl];
+    }
+  }
+
   // Return the list of tree lines
-  return fTreeLineList;
+  return list;
 }
