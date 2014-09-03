@@ -1,7 +1,7 @@
 #ifndef __QNORMVARIABLES_F
 #define __QNORMVARIABLES_F
 
-#include <rootClass.h>
+#include "rootClass.h"
 #include "comptonRunConstants.h"
 ///This routine takes in a variable and the corresponding charge/time to give the corresponding normalized counts and the associated error. it should work for both time as well as charge normalization. Instead of the earlier format, it will now be repeatedly called for every instance of a variable to be normalized.
 void qNormVariables(Int_t totCounts[nPlanes][nStrips],Double_t totI,Double_t qNormCnts[nPlanes][nStrips],Double_t qNormCntsEr[nPlanes][nStrips])

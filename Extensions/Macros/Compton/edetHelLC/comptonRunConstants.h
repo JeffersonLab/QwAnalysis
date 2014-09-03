@@ -104,8 +104,9 @@ Float_t c2B1H1L1[nPlanes][nStrips],c2B1H1L0[nPlanes][nStrips],c2B1H0L1[nPlanes][
 Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
 Double_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];
 Double_t beamMax=0.0, laserMax=0.0;
-Double_t pol=0.0,polEr=0.0,chiSq=0.0,effStripWidth=0.0,effStripWidthEr=0.0;
+Double_t pol=0.0,polEr=0.0,chiSq=0.0;
 Double_t cEdge=0.0,cEdgeEr=0.0;
+const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
 Int_t NDF=0,resFitNDF=0, bgdAsymFitNDF=0;
 Double_t resFit=0.0,resFitEr=0.0, chiSqResidue=0.0;
 Double_t bgdAsymFit =0.0, bgdAsymFitEr = 0.0, chiSqBgdAsym=0.0;

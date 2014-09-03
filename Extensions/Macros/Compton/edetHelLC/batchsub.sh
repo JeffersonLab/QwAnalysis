@@ -5,22 +5,25 @@ QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
 dataType=Ac1ParDT
-for i in `seq 23220 23230`;
+found=no
+#for i in `seq 23324 23324`;
 #for i in `seq 22659 25546`;
-#for i in `seq 23450 23530`;
-#for i in `seq 23220 23530`;
+#for i in `seq 23449 23449`;
+for i in `seq 23220 23530`;
+#for i in `seq 23241 23530`;
 do
   cat batchsub_header1.xml >> batch_submit_$i.xml
   echo '<Name name="edetHelLC_'$dataType'_'$i'"/>' >> batch_submit_$i.xml
-	cat batchsub_header2.xml >> batch_submit_$i.xml
+  cat batchsub_header2.xml >> batch_submit_$i.xml
   echo 'root -l -b -q edetLC.C+\('$i'\)' >> batch_submit_$i.xml
   echo 'echo "Finished at `date`"' >> batch_submit_$i.xml
   echo ']]></Command>' >> batch_submit_$i.xml
   echo '<Job>' >> batch_submit_$i.xml
-
+  
   for seg in `ls /mss/hallc/qweak/polarimetry/rootfiles/pass2/Compton_Pass2b_$i.*.root`
   do
     echo '<Input src="mss:'$seg'" dest="'`basename $seg`'"/>' >> batch_submit_$i.xml
+    found=yes
   done
   echo '<Input src="'$macro'/expAsym.C" dest="expAsym.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/rhoToX.C" dest="rhoToX.C"/>' >> batch_submit_$i.xml
@@ -37,11 +40,16 @@ do
   echo '<Input src="'$macro'/rootClass.h" dest="rootClass.h"/>' >> batch_submit_$i.xml
   echo '<Stderr dest="'$QWSCRATCH'/work/check'$dataType'_'$i'.err"/>' >> batch_submit_$i.xml
   echo '<Stdout dest="'$QWSCRATCH'/work/check'$dataType'_'$i'.out"/>' >> batch_submit_$i.xml
-#  echo '<Stdout dest="/dev/null"/>' >> batch_submit_$i.xml
-
+  #  echo '<Stdout dest="/dev/null"/>' >> batch_submit_$i.xml
+  
   echo '</Job>'  >> batch_submit_$i.xml
   echo '</Request>'  >> batch_submit_$i.xml
-
+  
+  if [ "x$found" = "xyes" ];
+  then
   jsub -xml batch_submit_$i.xml
+  else
+  echo "No rootfiles found. Skipping run $i"
+  fi
   rm batch_submit_$i.xml
 done

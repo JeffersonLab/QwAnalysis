@@ -1,6 +1,6 @@
 #ifndef __INFODAQ_F
 #define __INFODAQ_F
-#include <rootClass.h>
+#include "rootClass.h"
 #include "comptonRunConstants.h"
 //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
 

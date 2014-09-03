@@ -3,7 +3,7 @@
 #define __asymFit_F
 #endif
 
-#include <rootClass.h>
+#include "rootClass.h"
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 #include "infoDAQ.C"
@@ -34,10 +34,9 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
     return 0;
   }
   //xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
-  //xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as actual position inside Cedge strip
-  //xStrip = xCedge + par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//Guruji's method of fitting!!didn't work
-  //xStrip = xCedge -0.5*stripWidth - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
-  xStrip = xCedge - (par[1] -(*thisStrip))*stripWidth*par[0]; //for 2nd parameter as Cedge itself
+  //xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //2nd parameter as position inside CE strip
+  //xStrip = xCedge + par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//G's method of fitting!!didn't work
+  xStrip = xCedge - (par[0] -(*thisStrip))*stripWidth*effStripWidth; //for 2nd parameter as Cedge itself
   rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]+ xStrip*xStrip*xStrip*xStrip*param[4]+ xStrip*xStrip*xStrip*xStrip*xStrip*param[5];
   if(kRadCor) {
     eGamma = rhoStrip* kprimemax;
@@ -60,7 +59,7 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
   dsdrho =((rhoStrip*(1.0 - a_const)*rhoStrip*(1.0 - a_const)/rhoMinus)+1.0+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a_const
   //Double_t calcAsym=(par[0]*(-1*IHWP)*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//eqn.24,without factor 2*pi*(re^2)/a
-  return (radCor*(par[2]*(rhoPlus*(1.0-1.0/(rhoMinus*rhoMinus)))/dsdrho));//calcAsym;
+  return (radCor*(par[1]*(rhoPlus*(1.0-1.0/(rhoMinus*rhoMinus)))/dsdrho));//calcAsym;
 }
 
 Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
@@ -84,7 +83,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   Bool_t debug=1,debug1=0,debug2=0;
   Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
-  Bool_t kFitEffWidth=0;///choose if you want to fit the effective strip width parameter or the CE as the second parameter
   Bool_t kFoundCE[nPlanes]={0};
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
@@ -210,64 +208,48 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       grAsym[p]->Draw("AP");
       tempCedge = Cedge[p];//-0.5;///this should be equated before the declaration of TF1
 
-      ///3 parameter fit
-      polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,3);
-      //polFit = new TF1("polFit",theoreticalAsym,startStrip+1,endStrip,3);
+      ///2 parameter fit
+      polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,2);
       //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
       if(polSign) {
-        polFit->SetParameters(1.0033,tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-        polFit->SetParLimits(2,0.7,0.94);///allowing polarization to be 50% to 93%
+        polFit->SetParameters(tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+        polFit->SetParLimits(0,47.0,52.0);///run2: allow the CE to vary between these strip
+        polFit->SetParLimits(1,0.82,0.94);///allowing polarization to be 50% to 93%
       } else {
-        polFit->SetParameters(1.0033,tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-        polFit->SetParLimits(2,-0.94,-0.7);
+        polFit->SetParameters(tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+        polFit->SetParLimits(0,48.0,52.0);///run2: allow the CE to vary between these strip
+        polFit->SetParLimits(1,-0.94,-0.82);
       }
+      cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
 
-      if (kFitEffWidth) {
-        polFit->SetParLimits(0,0.8,1.8);///allowing the strip width to be either 80% or 180% of its real pitch   
-        polFit->SetParLimits(1,tempCedge,tempCedge);///fixed compton edge
-        cout<<blue<<"using effective strip width and pol as the two fit parameters"<<normal<<endl;
-        cout<<blue<<"CE fixed at strip "<<normal<<tempCedge<<endl;
-      } else {
-        //polFit->SetParLimits(0,1.0,1.0);///fix the effective strip width to 1.0
-        polFit->SetParLimits(0,1.0033,1.0033);///1.0033 !changed to match the runlet analysis output
-        //polFit->SetParLimits(1,40.0,56.5);///allow the CE to vary between these strip
-        polFit->SetParLimits(1,48.0,52.0);///run2: allow the CE to vary between these strip
-        cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
-        //cout<<blue<<"effective strip width fixed at "<<normal<<<GetParameter[0]<endl;
-      }
-      polFit->SetParNames("effStrip","comptonEdge","polarization");
+      polFit->SetParNames("comptonEdge","polarization");
       polFit->SetLineColor(kBlue);
       cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
-      TVirtualFitter::SetMaxIterations( 10000 );
-      grAsym[p]->Fit("polFit","N R M E");
+      TVirtualFitter::SetMaxIterations(50000);
+      grAsym[p]->Fit("polFit","NRME");
       polFit->DrawCopy("same");
-      cEdge = polFit->GetParameter(1);
-      cEdgeEr = polFit->GetParError(1);
-      pol = polFit->GetParameter(2);
-      polEr = polFit->GetParError(2);
-
-      effStripWidth = polFit->GetParameter(0);
-      effStripWidthEr = polFit->GetParError(0);
+      cEdge = polFit->GetParameter(0);
+      cEdgeEr = polFit->GetParError(0);
+      pol = polFit->GetParameter(1);
+      polEr = polFit->GetParError(1);
 
       chiSq = polFit->GetChisquare();
       NDF = polFit->GetNDF();
 
       if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
       polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePre.Data()));
-      polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStrip\teffStripEr\tplane\tgoodCycles"<<endl;
-      polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.5f\t%.5f\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1,asymflag);
+      polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\tplane\tgoodCycles"<<endl;
+      polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,p+1,asymflag);
       if(debug) {
-        cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\teffStripWidth effStripWidthEr plane");
-        cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%2.5f\t%.5f\t%d\n\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,effStripWidth,effStripWidthEr,p+1);      
+        cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\tplane");
+        cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\n\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,p+1);      
       }
       leg[p] = new TLegend(0.101,0.73,0.30,0.9);
-      //leg[p]->AddEntry(grAsym[0],"experimental asymmetry","lpe");///I just need the name
       leg[p]->AddEntry(grAsym[0],"measured","lpe");///I just need the name
       leg[p]->AddEntry("polFit","QED fit","l");//"lpf");//
       leg[p]->SetFillColor(0);
       leg[p]->Draw();
 
-      //polSign = pol > 0 ? 1 : 0;
       if (polSign) pt[p] = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
       else  pt[p] = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
 
@@ -278,7 +260,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       pt[p]->SetShadowColor(-1);
 
       pt[p]->AddText(Form("chi Sq / ndf       : %.3f",chiSq/NDF));
-      //pt[p]->AddText(Form("Compton Edge      : %f #pm %f",Cedge[p]+offset[p],offsetEr[p]));
       pt[p]->AddText(Form("Compton Edge : %2.2f #pm %2.2f",cEdge,cEdgeEr));
       pt[p]->AddText(Form("Polarization      : %2.2f #pm %2.2f",pol*100.0,polEr*100.0));
       pt[p]->Draw();

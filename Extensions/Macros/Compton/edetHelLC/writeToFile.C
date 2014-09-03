@@ -1,7 +1,7 @@
 #ifndef __WRITETOFILE_F
 #define __WRITETOFILE_F
 
-#include <rootClass.h>
+#include "rootClass.h"
 #include "comptonRunConstants.h"
 ///This is only intended to write out the files. In the current format, the outqNormL0 and outfilelasOffBkgd should carry the same output physics-wise, for one is the overall average, while other is laserCyc based weighted average respectively
 Int_t writeToFile(Int_t runnum,TString dataType)
