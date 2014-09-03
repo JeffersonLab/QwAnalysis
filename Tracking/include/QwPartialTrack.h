@@ -188,12 +188,6 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     Int_t  fNumMiss;		///< missing hits
     Int_t  fNumHits;		///< used hits
 
-    int triggerhit;		///< Did this track pass through the trigger?
-    double trig[3];		///< x-y-z position at trigger face
-
-    int cerenkovhit;		///< Did this track pass through the cerenkov bar?
-    double cerenkov[3];		///< x-y-z position at Cerenkov bar face
-
     double pR2hit[3];           ///< x-y-z position at R2
     double uvR2hit[3];          ///< direction at R2
 

@@ -122,14 +122,6 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
   fNumMiss = that.fNumMiss;
   fNumHits = that.fNumHits;
 
-  triggerhit = that.triggerhit;
-  for (size_t i = 0; i < 3; ++i)
-    trig[i] = that.trig[i];
-
-  cerenkovhit = that.cerenkovhit;
-  for (size_t i = 0; i < 3; ++i)
-    cerenkov[i] = that.cerenkov[i];
-
   for (size_t i = 0; i < 3; ++i) {
     pR2hit[i] = that.pR2hit[i];
     uvR2hit[i] = that.uvR2hit[i];
