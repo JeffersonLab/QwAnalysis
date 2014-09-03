@@ -33,8 +33,8 @@ class QwTrackingTreeSort {
 
     int rcTreeConnSort (QwTreeLine *head, EQwRegionID region);
     int connectiv( char *ca, int *array, int *isvoid, char size, int idx );
-    int rcCommonWires(QwTreeLine *line1, QwTreeLine *line2 );
-    int rcCommonWires_r3( QwTreeLine *line1, QwTreeLine *line2 );
+    int rcCommonWires(const QwTreeLine *line1, const QwTreeLine *line2 );
+    int rcCommonWires_r3(const QwTreeLine *line1, const QwTreeLine *line2 );
     int connectarray( char *ca, int *array, int *isvoid, char size, int idx );
     void bestunconnected( char *ca, int *array, int *isvoid, double *chia,
 		 int size, int idx);
@@ -45,7 +45,7 @@ class QwTrackingTreeSort {
 
 
     int rcPartConnSort (QwPartialTrack *head);
-    int rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2);
+    int rcPTCommonWires (const QwPartialTrack *track1, const QwPartialTrack *track2);
 
   private:
 

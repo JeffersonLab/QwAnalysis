@@ -117,7 +117,7 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     double GetChiWeight ();
 
     //! \brief Get the hit with the smallest drift distance
-    QwHit* GetBestWireHit (double offset = 0.0);
+    QwHit* GetBestWireHit (double offset = 0.0) const;
 
     void Print(const Option_t* options = 0) const;
     void PrintValid();

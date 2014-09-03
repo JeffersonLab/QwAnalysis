@@ -61,8 +61,8 @@
  * @return List of tree lines after matching
  */
 QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
-	QwTreeLine* frontlist,
-	QwTreeLine* backlist)
+	const QwTreeLine* frontlist,
+	const QwTreeLine* backlist)
 {
   // Check the region of the tree lines (only region 3 is allowed)
   if (frontlist->GetRegion() != kRegionID3
@@ -133,7 +133,7 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
   // Loop over the tree lines in the front VDC plane to set the wire position.
   int numflines = 0;
-  for (QwTreeLine* frontline = frontlist; frontline;
+  for (const QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, numflines++) {
     // Skip the the void tree lines
     if (frontline->IsVoid()) continue;
@@ -149,7 +149,7 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   }
   // Loop over the tree lines in the back VDC plane to set the wire position
   int numblines = 0;
-  for (QwTreeLine* backline = backlist; backline;
+  for (const QwTreeLine* backline = backlist; backline;
        backline = backline->next, numblines++) {
     // Skip the the void tree lines
     if (backline->IsVoid()) continue;
@@ -179,7 +179,7 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
   // Loop over the tree lines in the front VDC plane
   int ifront = 0;
-  for (QwTreeLine* frontline = frontlist; frontline;
+  for (const QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
 
     // Initialization of fmatches
@@ -196,7 +196,7 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
     // Loop over the tree lines in the back VDC plane
     int iback = 0;
-    for (QwTreeLine* backline = backlist; backline;
+    for (const QwTreeLine* backline = backlist; backline;
          backline = backline->next, iback++) {
 
       // Skip void tree lines
@@ -278,12 +278,12 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   // Loop over the tree lines in the front VDC plane
 
   ifront = 0;
-  for (QwTreeLine* frontline = frontlist; frontline;
+  for (const QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
 
     // Loop over the tree lines in the back VDC plane
     int iback = 0;
-    for (QwTreeLine* backline = backlist; backline;
+    for (const QwTreeLine* backline = backlist; backline;
          backline = backline->next, iback++) {
 
       // If this front segment was matched to this back segment
@@ -349,11 +349,9 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
         // Store the final set of hits into this tree line
         for (int hit = 0; hit < fronthits; hit++) {
-          treeline->fUsedHits[hit] = new QwHit(DetecHits[hit]);
           treeline->AddHit(DetecHits[hit]);
         }
         for (int hit = fronthits; hit < fronthits + backhits; hit++) {
-          treeline->fUsedHits[hit] = new QwHit(DetecHits[hit]);
           treeline->AddHit(DetecHits[hit]);
         }
 

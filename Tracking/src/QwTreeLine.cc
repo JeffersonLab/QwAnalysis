@@ -244,7 +244,7 @@ double QwTreeLine::GetChiWeight ()
  * @param offset Optional offset to the position
  * @return Hit with smallest drift distance
  */
-QwHit* QwTreeLine::GetBestWireHit (double offset)
+QwHit* QwTreeLine::GetBestWireHit (double offset) const
 {
   double best_position = 9999.9;
   int best_hit = 0;

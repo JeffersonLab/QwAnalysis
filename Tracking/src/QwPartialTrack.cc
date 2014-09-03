@@ -109,8 +109,6 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
 
   // this is a pointer
   for (size_t i = 0; i < kNumDirections; ++i){
-    TSlope[i]=that.TSlope[i];
-    TOffset[i]=that.TOffset[i];
     TResidual[i]=that.TResidual[i];
   }
     
@@ -161,10 +159,7 @@ void QwPartialTrack::Initialize()
   // Initialize pointers
   next = 0;
   for (int i = 0; i < kNumDirections; ++i){
-    TSlope[i]=0.0;
-    TOffset[i]=0.0;
     TResidual[i]=0.0;
-    fTreeLine[i] = 0;
   }
 
   for(int i=0; i< 12;++i)
@@ -205,15 +200,13 @@ double QwPartialTrack::CalculateAverageResidual()
 {
   int numTreeLines = 0;
   double sumResiduals = 0.0;
-  for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    for (const QwTreeLine* treeline = fTreeLine[dir]; treeline;
-         treeline = treeline->next) {
-      if (treeline->IsUsed()) {
-        numTreeLines++;
-        sumResiduals += treeline->GetAverageResidual();
-      }
-    } // end of loop over treelines
-  } // end of loop over directions
+  for (Int_t i = 0; i < GetNumberOfTreeLines(); i++) {
+    const QwTreeLine* treeline = GetTreeLine(i);
+    if (treeline->IsUsed()) {
+      numTreeLines++;
+      sumResiduals += treeline->GetAverageResidual();
+    }
+  } // end of loop over treelines
   fAverageResidual = sumResiduals / numTreeLines;
   return fAverageResidual;
 }

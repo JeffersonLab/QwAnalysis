@@ -217,14 +217,29 @@ int QwTrackingTreeSort::bestconnected (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2)
+int QwTrackingTreeSort::rcPTCommonWires (const QwPartialTrack *track1, const QwPartialTrack *track2)
 {
+  // Get lists of treelines in these tracks
+  const std::vector<QwTreeLine*> tl1 = track1->GetListOfTreeLines();
+  const std::vector<QwTreeLine*> tl2 = track2->GetListOfTreeLines();
+
+  // Map direction to treeline (assumes one treeline per direction)
+  std::map<EQwDirectionID,QwTreeLine*> tl1map, tl2map;
+  for (size_t i = 0; i < tl1.size(); i++)
+    tl1map[tl1[i]->GetDirection()] = tl1[i];
+  for (size_t i = 0; i < tl2.size(); i++)
+    tl2map[tl2[i]->GetDirection()] = tl2[i];
+
+  // Count common wires for the partial track
   int common = 0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    if (! track1->fTreeLine[dir]) continue;
-    if (! track2->fTreeLine[dir]) continue;
-    common += rcCommonWires (track1->fTreeLine[dir], track2->fTreeLine[dir]);
+    // Check whether entries exist for this direction
+    if (tl1map.count(dir) == 0) continue;
+    if (tl2map.count(dir) == 0) continue;
+    // Count common wires for these treelines
+    common += rcCommonWires (tl1map[dir], tl2map[dir]);
   }
+  // Determine average assuming 3 directions
   common /= 3;
   return common;
 }
@@ -235,20 +250,19 @@ int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack 
 shared between two treelines.  The only output is the integer
 return value
 */
-int QwTrackingTreeSort::rcCommonWires_r3 (QwTreeLine *line1, QwTreeLine *line2)
+int QwTrackingTreeSort::rcCommonWires_r3 (const QwTreeLine *line1, const QwTreeLine *line2)
 {
   //################
   // DECLARATIONS  #
   //################
-  int total1, total2, common, total;
-  QwHit **hits1, **hits2;
+  int common, total;
 
   //##################
   //DEFINE VARIABLES #
   //##################
-  common = total1 = total2 = total = 0;
-  hits1  = line1->fHits;
-  hits2  = line2->fHits;
+  common = total = 0;
+  const QwHit* const* hits1  = line1->fHits;
+  const QwHit* const* hits2  = line2->fHits;
 
   //##############################################
   //Count the wires shared between the treelines #
@@ -337,12 +351,12 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTreeLine *line1, QwTreeLine *line2)
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcCommonWires (
-	QwTreeLine *treeline1, ///< first tree line
-	QwTreeLine *treeline2) ///< second tree line
+	const QwTreeLine *treeline1, ///< first tree line
+	const QwTreeLine *treeline2) ///< second tree line
 {
   // Get the lists of hits associated with the two tree lines
-  QwHit **hits1  = treeline1->fHits;
-  QwHit **hits2  = treeline2->fHits;
+  const QwHit* const* hits1  = treeline1->fHits;
+  const QwHit* const* hits2  = treeline2->fHits;
 
   // A two-bit pattern indicates on which treeline we should advance in the
   // next iteration of the search.  This assumes that the detectors are ordered.

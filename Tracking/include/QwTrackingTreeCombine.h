@@ -123,9 +123,9 @@ class QwTrackingTreeCombine {
 
     QwPartialTrack* r3_PartialTrackFit (
                 const int num,
-                QwHit **hits,
-                QwTreeLine *wu,
-                QwTreeLine *wv);
+                const QwHit** hits,
+                const QwTreeLine* wu,
+                const QwTreeLine* wv);
 
   private:
 

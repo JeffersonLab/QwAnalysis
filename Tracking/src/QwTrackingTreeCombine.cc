@@ -1708,9 +1708,9 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
 // NOTE:this version is using information directly from the treeline in plane0 to do the reconstruction
 QwPartialTrack* QwTrackingTreeCombine::r3_PartialTrackFit (
     const int num,
-    QwHit **hits,
-    QwTreeLine* wu,
-    QwTreeLine* wv)
+    const QwHit** hits,
+    const QwTreeLine* wu,
+    const QwTreeLine* wv)
 {
   // Initialize variables
   double fit[4];
@@ -1860,9 +1860,7 @@ QwPartialTrack* QwTrackingTreeCombine::r3_PartialTrackFit (
 
   // Add number of hits
   pt->fNumHits = wu->fNumHits + wv->fNumHits;
-  // Add link to treeline
-  pt->fTreeLine[kDirectionU] = wu;
-  pt->fTreeLine[kDirectionV] = wv;
+
   // Store copy of treeline
   pt->AddTreeLine(wu);
   pt->AddTreeLine(wv);
@@ -1896,7 +1894,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
   /// \todo Need to revisit whether tlayer needs to be passed and used as the
   ///       length of the array hits.
 
-  QwHit **hitarray, *h;
+  QwHit **hitarray;
   int num;
 
   int ntotal = 0;
@@ -1904,7 +1902,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
   // Put all the hits into the array hits, with length the total number of hits
   // in the u and v directions.  Not all of the entries will be filled (because
   // not all hits h will be h->used), so it is an upper limit.
-  QwHit *hits[wu->fNumHits + wv->fNumHits];
+  const QwHit* hits[wu->fNumHits + wv->fNumHits];
   int hitc  = 0;
   for (EQwDirectionID dir = kDirectionU; dir <= kDirectionV; dir++) {
 
@@ -1929,7 +1927,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 
     // Loop over all hits
     for (int i = 0; i < num && *hitarray; i++, hitarray++) {
-      h = *hitarray;
+      const QwHit* h = *hitarray;
       ntotal++;
       if (h->IsUsed() != 0) {
         hits[hitc] = h;
@@ -2083,12 +2081,6 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
   pt->AddTreeLine(wu);
   pt->AddTreeLine(wv);
 
-  pt->TSlope[kDirectionX] = wx->fSlope;
-  pt->TSlope[kDirectionU] = wu->fSlope;
-  pt->TSlope[kDirectionV] = wv->fSlope;
-  pt->TOffset[kDirectionX] = wx->fOffset;
-  pt->TOffset[kDirectionU] = wu->fOffset;
-  pt->TOffset[kDirectionV] = wv->fOffset;
   pt->TResidual[kDirectionX] = wx->GetAverageResidual();
   pt->TResidual[kDirectionU] = wu->GetAverageResidual();
   pt->TResidual[kDirectionV] = wv->GetAverageResidual();
