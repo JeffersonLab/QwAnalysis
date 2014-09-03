@@ -107,6 +107,8 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     Int_t GetNumberOfHits() const { return fNQwHits; }
     //! \brief Get a specific hit
     const QwHit* GetHit(int i = 0) const;
+    //! \brief Get the list of hits
+    const std::vector<QwHit*>& GetListOfHits() const { return fQwHits; };
     //! \brief Clear the list of hits without deleting
     void ClearHits();
     //! \brief Delete the hits in the list
@@ -209,7 +211,7 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     int fR3Offset;			///< offset of demultiplexed group of 8
     int fR3FirstWire, fR3LastWire;	///< first and last wire in group of 8
 
-    QwTreeLine *next; //!       ///< link to next list element
+    QwTreeLine *next; //!               ///< link to next list element
 
   private:
 

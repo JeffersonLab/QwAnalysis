@@ -303,15 +303,17 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         // NOTE:Set the hits for front VDC, the reverse will determine how we should align the treelines
         int fronthits = frontline->fNumHits;
         for (int hit = 0; hit < fronthits; hit++) {
-          treeline->fHits[hit] = new QwHit(frontline->fHits[hit]);
-          DetecHits[hit] = treeline->fHits[hit];
-	        DetecHits[hit]->fDriftPosition *= reverse[ifront*numblines+iback];
+          treeline->AddHit(frontline->fHits[hit]);
+          treeline->fHits[hit] = treeline->GetListOfHits().back();
+          DetecHits[hit] = treeline->GetListOfHits().back();
+          DetecHits[hit]->fDriftPosition *= reverse[ifront*numblines+iback];
         }
         // Set the hits for back VDC
         int backhits = backline->fNumHits;
         for (int hit = 0; hit < backhits; hit++) {
-          treeline->fHits[hit+fronthits] = new QwHit(backline->fHits[hit]);
-          DetecHits[hit+fronthits] = treeline->fHits[hit+fronthits];
+          treeline->AddHit(backline->fHits[hit]);
+          treeline->fHits[hit+fronthits] = treeline->GetListOfHits().back();
+          DetecHits[hit+fronthits] = treeline->GetListOfHits().back();
 
           if (backline->GetPackage() == 1)
             DetecHits[hit+fronthits]->fWirePosition -= delta_u;
@@ -330,6 +332,7 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 // 	std::cout << "distance: " << std::endl;
 // 	for(int i=0;i<nhits;i++)
 // 		std::cout << DetecHits[i]->fDriftPosition << "," << std::endl;
+
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
         TreeCombine->r3_TreelineFit (slope, offset, cov, chi, DetecHits, nhits, 0, -1);
@@ -347,12 +350,9 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         // Set the tree line valid
         treeline->SetValid();
 
-        // Store the final set of hits into this tree line
-        for (int hit = 0; hit < fronthits; hit++) {
-          treeline->AddHit(DetecHits[hit]);
-        }
-        for (int hit = fronthits; hit < fronthits + backhits; hit++) {
-          treeline->AddHit(DetecHits[hit]);
+        // TODO remove this along with fHits, this is just so the destructor of treeline is happy
+        for (int hit = 0; hit < fronthits + backhits; hit++) {
+          treeline->fHits[hit] = new QwHit(treeline->fHits[hit]);
         }
 
         treeline->next = treelinelist;

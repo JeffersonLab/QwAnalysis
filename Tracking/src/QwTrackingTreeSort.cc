@@ -261,14 +261,14 @@ int QwTrackingTreeSort::rcCommonWires_r3 (const QwTreeLine *line1, const QwTreeL
   //DEFINE VARIABLES #
   //##################
   common = total = 0;
-  const QwHit* const* hits1  = line1->fHits;
-  const QwHit* const* hits2  = line2->fHits;
+  std::vector<QwHit*> hits1 = line1->GetListOfHits();
+  std::vector<QwHit*> hits2 = line2->GetListOfHits();
 
   //##############################################
   //Count the wires shared between the treelines #
   //##############################################
   int i1 = 0, i2 = 0;
-  for ( ; i1 < line1->fNumHits && i2 < line2->fNumHits ; ) {
+  for ( ; i1 < line1->GetNumberOfHits() && i2 < line2->GetNumberOfHits() ; ) {
     if (hits1[i1]->GetElement() == hits2[i2]->GetElement()) {
       if (hits1[i1]->IsUsed() && hits2[i2]->IsUsed())
 	common++;
@@ -285,56 +285,15 @@ int QwTrackingTreeSort::rcCommonWires_r3 (const QwTreeLine *line1, const QwTreeL
       total++;
     }
   }
-  total += line1->fNumHits - i1 + line2->fNumHits - i2;
-/*
-  for( ;; ) {
-    // A
-    if( fw & 1 ) {//Set i1 equal to the index of the next hit used in line1
-      i1++;
-      for( ; i1 < MAX_LAYERS && hits1[i1]; i1++)
-	if( hits1[i1]->used ) {
-	  total1++;
-	  break;
-	}
-    }
-    // B
-    if( fw & 2 ) {//Set i2 equal to the index of the next hit used in line2
-      i2++;
-      for( ; i2 < MAX_LAYERS && hits2[i2]; i2++)
-	if( hits2[i2]->used ) {
-	  total2++;
-	  break;
-	}
-    }
-    // ---
-    if( i1 == MAX_LAYERS || ! hits1[i1] ||
-	i2 == MAX_LAYERS || ! hits2[i2] )
-      break;//break if we reach the end of the hits in either line
-    //-----------------------------------------------------------
-    //The following lines separate hits in different detectors
-    did1 = hits1[i1]->detec->ID;//this line was altered
-    did2 = hits2[i2]->detec->ID;//this line was altered
+  total += line1->GetNumberOfHits() - i1 + line2->GetNumberOfHits() - i2;
 
-    cout << "dids = (" << did1 << "," << did2 << ")" << endl;
-    if( did1 < did2 )
-      fw = 1;// do only A in the next iteration
-    else if( did1 > did2 )
-      fw = 2;// do only B in the next iteration
-    else {
-      if( hits1[i1]->GetElement() == hits2[i2]->GetElement() )
-	common ++;
-      fw = 3;// do both A and B next iteration
-    }
-    //-----------------------------------------------------------
-  }
-*/
-//Check which line has more hits used
-//  total = total1 > total2 ? total2 : total1;
+  //Check which line has more hits used
+  //  total = total1 > total2 ? total2 : total1;
 
   if (! total)
     return 0;
 
-  // Get a ratio and mulitply it to return an integer
+  // Get a ratio and multiply it to return an integer
   return (10000 * common / total + 50 ) / 100;
   // if 8 common out of 8, then this = 100
 }

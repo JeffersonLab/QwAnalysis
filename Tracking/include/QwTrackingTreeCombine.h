@@ -76,7 +76,7 @@ class QwTrackingTreeCombine {
 		QwHit **hits, int n, double z1, int wire_offset );
 
 
-    int selectx (double *xresult, double dist_cut, QwHit *hitarray[], QwHit **ha);
+    int selectx (double *xresult, double dist_cut, QwHit** hitarray, QwHit** ha);
     int contains (double var, QwHit **arr, int len);
 
     bool TlCheckForX (
@@ -104,9 +104,6 @@ class QwTrackingTreeCombine {
 		QwTreeLine *wu,
 		QwTreeLine *wv,
 		int tlayer);
-    QwPartialTrack* TcTreeLineCombine (
-		QwTreeLine *wu,
-		QwTreeLine *wv);
 
     QwPartialTrack* TlTreeCombine (
 		QwTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
@@ -122,8 +119,6 @@ class QwTrackingTreeCombine {
                 bool drop_worst_hit);
 
     QwPartialTrack* r3_PartialTrackFit (
-                const int num,
-                const QwHit** hits,
                 const QwTreeLine* wu,
                 const QwTreeLine* wv);
 
