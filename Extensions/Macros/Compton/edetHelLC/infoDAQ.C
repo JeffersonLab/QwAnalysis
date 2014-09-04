@@ -10,7 +10,7 @@ Int_t infoDAQ(Int_t runnum)
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,webDirectory,runnum));
   filePre = Form(filePrefix,runnum,runnum);
-  const Bool_t debug=1;
+  const Bool_t debug = 0;
   const Int_t errFlag=100;
   Bool_t additionalStripMask=1;///this will be my primary tool to skip masked strips in asymFit.C
   Double_t bMask[nPlanes][nStrips];
@@ -31,7 +31,9 @@ Int_t infoDAQ(Int_t runnum)
   TFile file(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//need to read in only the first runlet
   if(file.IsZombie()) {
     cout<<red<<"couldn't open the rootfile needed by infoDAQ.C"<<normal<<endl;
-    return -1;
+    return 1;
+    ///Even without the rootfile the masks are set so I can use this macro so lets return gracefully 
+    ///But can't execute the process the rest of the macro so exiting;
   }
   //TTree *slowTree = (TTree*)file.Get("Slow_Tree");
   TChain *slowChain = new TChain("Slow_Tree");//to scan through the entire run if a parameter changed midway
@@ -108,17 +110,48 @@ Int_t infoDAQ(Int_t runnum)
   rms_hccedpos = hCheck->GetRMS();
   hCheck->Reset();
 
+  hCheck->SetBit(TH1::kCanRebin);
+  slowChain->Draw("HALLC_p>>hCheck","","goff");
+  eEnergy = hCheck->GetMean();
+  rms_eEnergy = hCheck->GetRMS();
+  hCheck->Reset();
+
   if(debug) {
     cout<<blue<<"HWien\tVWien\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\n"<<endl;
     cout<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
     cout<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos <<normal<<endl;
   }
-  fBeamProp.open(Form("%s/%s/%sbeamProperties.txt",pPath,webDirectory,filePre.Data()));//,std::fstream::app);
+  eEnergy = eEnergy/1000.0; ///to convert to GeV
+  rms_eEnergy = rms_eEnergy/1000.0;
+   if(debug) cout<<"beam Energy: "<<eEnergy<<"+/-"<<rms_eEnergy<<endl;
+   eEnergy = 1.159;//!!!
+   cout<<red<<"temporarily setting energy =1.159 GeV, though its differnt from readback value"<<normal<<endl;
+
+  fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath,webDirectory,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
     fBeamProp<<runnum<<"\t"<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
     fBeamProp<<runnum<<"\t"<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos<<endl;
+    fBeamProp<<runnum<<"\t"<<eEnergy<<"+/-"<<rms_eEnergy<<endl;
     fBeamProp.close();
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
+
+   if(ihwp1set!=ihwp1read) {
+    cout<<red<<"\nAlert****: The IHWP set and read back not same\n"<<normal<<endl;
+    return -1;
+  }
+  if(rms_ihwp1read/ihwp1read > rmsLimit || rms_ihwp1set/ihwp1set > rmsLimit || rms_rhwp/rhwp >rmsLimit || rms_ihwp2read/ihwp2read >rmsLimit) {
+    cout<<red<<"\nAlert****: The IHWP was probably CHANGED in the middle of run\n"<<normal<<endl;
+    cout<<blue<<"HWien\tVWien\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\n"<<endl;
+    cout<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
+    cout<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos <<normal<<endl;
+    return -1;
+  }
+  if(rms_hccedpos/hccedpos > rmsLimit) {
+    cout<<red<<"\nAlert*****: The detector was probably moving while data was taken\n"<<normal<<endl;
+    cout<<blue<<"edetPos   rms_edetPos"<<endl;
+    cout<<hccedpos<<"\t"<< rms_hccedpos<<endl;
+    return -1;
+  }
 
   TTree *configTree = (TTree*)file.Get("Config_Tree");
   //configTree->ResetBranchAddresses();

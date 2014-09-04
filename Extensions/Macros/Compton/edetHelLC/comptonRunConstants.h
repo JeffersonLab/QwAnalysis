@@ -17,7 +17,8 @@ const Double_t alpha=0.00729927; ///=1.0/137.0;
 const Double_t me=0.00051099006;///GeV
 const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
 const Double_t B_dipole = 0.544;///T
-const Double_t E = 1.159; //Beam energy (GeV)
+Double_t eEnergy = 1.159, rms_eEnergy =0.0;///to be read in from infoDAQ
+
 const Double_t lambda = 532E-9; //photon wavelength (nm)      
 Double_t xCedge=0.0;
 Double_t param[6];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
@@ -66,7 +67,7 @@ const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
   const Int_t endPlane = 1;
-
+const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
 Bool_t polSign=0;
 Int_t daqflag=0;
 Int_t asymflag=0;

@@ -40,10 +40,10 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]+ xStrip*xStrip*xStrip*xStrip*param[4]+ xStrip*xStrip*xStrip*xStrip*xStrip*param[5];
   if(kRadCor) {
     eGamma = rhoStrip* kprimemax;
-    betaBar=TMath::Sqrt(1.0 - (me/E)*(me/E)) ;
-    betaCM = (betaBar*E-eLaser)/(E+eLaser) ; //eq. 2.10
-    sEq211 = me*me + 2*eLaser*E*(1.0+betaCM) ;//eq. 2.11 
-    gammaCM = (E+eLaser)/TMath::Sqrt(sEq211) ;
+    betaBar=TMath::Sqrt(1.0 - (me/eEnergy)*(me/eEnergy)) ;
+    betaCM = (betaBar*eEnergy-eLaser)/(eEnergy+eLaser) ; //eq. 2.10
+    sEq211 = me*me + 2*eLaser*eEnergy*(1.0+betaCM) ;//eq. 2.11 
+    gammaCM = (eEnergy+eLaser)/TMath::Sqrt(sEq211) ;
     eLaserCM = eLaser*gammaCM*(1.0+betaCM) ;
     eBeamCM = TMath::Sqrt(eLaser*eLaser + me*me) ; 
 
@@ -84,12 +84,17 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   Bool_t debug=1,debug1=0,debug2=0;
   Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
   Bool_t kFoundCE[nPlanes]={0};
+  Int_t status=1;///1: fit not converged; 0: converged
   TPaveText *pt[nPlanes], *ptRes[nPlanes];
   TLegend *leg[nPlanes],*legYield[nPlanes];
   TLine *myline = new TLine(1,0,65,0);
   TF1 *polFit;
 
-  if (!maskSet) infoDAQ(runnum);
+  if (!maskSet) daqflag = infoDAQ(runnum);
+  if(daqflag==-1) {
+    cout<<red<<"\nreturned error from infoDAQ, hence exiting\n"<<normal<<endl;
+    return -1;
+  }
 
   ifstream paramfile,infileL0Yield, expAsymPWTL1, infileYield, fBgdAsym;
   ofstream polList,fitInfo;
@@ -211,28 +216,43 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       ///2 parameter fit
       polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,2);
       //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge[p],3);//use strips after the first 10 strips
-      if(polSign) {
+      if(polSign) { //positive
         polFit->SetParameters(tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-        polFit->SetParLimits(0,47.0,52.0);///run2: allow the CE to vary between these strip
-        polFit->SetParLimits(1,0.82,0.94);///allowing polarization to be 50% to 93%
-      } else {
+        polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
+        polFit->SetParLimits(1,0.68,0.94);///allowing polarization to be 50% to 93%
+      } else {     //negative
         polFit->SetParameters(tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-        polFit->SetParLimits(0,48.0,52.0);///run2: allow the CE to vary between these strip
-        polFit->SetParLimits(1,-0.94,-0.82);
+        polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
+        polFit->SetParLimits(1,-0.94,-0.68);
       }
       cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
 
       polFit->SetParNames("comptonEdge","polarization");
       polFit->SetLineColor(kBlue);
       cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
-      TVirtualFitter::SetMaxIterations(50000);
-      grAsym[p]->Fit("polFit","NRME");
-      polFit->DrawCopy("same");
-      cEdge = polFit->GetParameter(0);
-      cEdgeEr = polFit->GetParError(0);
-      pol = polFit->GetParameter(1);
-      polEr = polFit->GetParError(1);
+      //TVirtualFitter::SetMaxIterations(50000);a
 
+      while(status!=0) { ///if not converged, reuse results of previous fit to refit
+        TFitResultPtr fitr = grAsym[p]->Fit("polFit","RMES 0");
+        status = int (fitr);
+        cout<<green<<"the polarization fit status "<<status<<endl;
+
+        cEdge = polFit->GetParameter(0);
+        cEdgeEr = polFit->GetParError(0);
+        pol = polFit->GetParameter(1);
+        polEr = polFit->GetParError(1);
+        polFit->SetParameters(cEdge,pol);
+        polFit->SetParLimits(0, cEdge-1, cEdge+1);///allowing CE to change by +/- 1 strip
+        polFit->SetParLimits(1, pol-0.02, pol+0.02);///allowing pol% to change by +/- 2%
+        //polFit->SetParLimits(0, cEdge-cEdgeEr, cEdge+cEdgeEr);
+        //polFit->SetParLimits(1, pol-polEr, pol+polEr);
+        if("SUCCESSFUL"==gMinuit->fCstatu) {
+          cout<<blue<<"fit status: "<<gMinuit->fCstatu<<normal<<endl;
+          break;
+        }
+      }
+
+      polFit->DrawCopy("same");
       chiSq = polFit->GetChisquare();
       NDF = polFit->GetNDF();
 
@@ -382,8 +402,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePre.Data()));
     }
     fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePre.Data()));
-    fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
-    fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
+    fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF\tfitStatus"<<endl;
+    fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF,status);
     fitInfo.close();
 
     if (kYield) { ///determine yield

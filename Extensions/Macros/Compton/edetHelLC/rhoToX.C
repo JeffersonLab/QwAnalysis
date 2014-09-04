@@ -10,7 +10,7 @@ Double_t rhoToX(Int_t plane)
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
   Double_t kk,x1,CedgeToDetBot,zdrift;
-  Double_t thetabend = asin(light*B_dipole*lmag/E);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
+  Double_t thetabend = asin(light*B_dipole*lmag/eEnergy);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)
  
   CedgeToDetBot = (Cedge[plane] + 4)*stripWidth + 0.5*stripWidth;///elog 399
@@ -20,23 +20,23 @@ Double_t rhoToX(Int_t plane)
     cout<<Form("zdrift:%f = %f - %f * %f",zdrift,ldet[plane],CedgeToDetBot,sin(det_angle))<<normal<<endl;
   }
   re = alpha*hbarc/me;
-  gamma_my=E/me; //electron gamma, eqn.20
-  R_bend = E/(light*B_dipole);
+  gamma_my=eEnergy/me; //electron gamma, eqn.20
+  R_bend = eEnergy/(light*B_dipole);
   eLaser =2*pi*hbarc/(lambda); // incident photon energy (GeV)
   a_const =1/(1+4*eLaser*gamma_my/me); // eqn.15 
   kprimemax=4*a_const*eLaser*gamma_my*gamma_my; //eqn.16{max recoil photon energy} (GeV)
   asymmax=(1-a_const)*(1+a_const)/(1+a_const*a_const);
   rho0=1/(1+a_const);
   k0prime=rho0*kprimemax;
-  Double_t th_prime = asin(light*B_dipole*lmag/(E+eLaser-kprimemax));
-  //  dx0prime=(k0prime/E)*zdrift*thetabend; //  displacement at asym 0 (m)
+  Double_t th_prime = asin(light*B_dipole*lmag/(eEnergy+eLaser-kprimemax));
+  //  dx0prime=(k0prime/eEnergy)*zdrift*thetabend; //  displacement at asym 0 (m)
 
-  p_beam =sqrt(E*E - me*me);///momentum of beam electrons
+  p_beam =sqrt(eEnergy*eEnergy - me*me);///momentum of beam electrons
   //r =(p_beam/me)*(hbarc/(2*xmuB*B_dipole));///radius of curvature of beam due to dipole-3.
   h = R_bend*(1 - cos(thetabend));
   kk =zdrift*tan(thetabend);
   x1 =(kk + h);
-  Double_t r_max = ((E+eLaser-kprimemax))/(light*B_dipole);///just for comparision,not needed really
+  Double_t r_max = ((eEnergy+eLaser-kprimemax))/(light*B_dipole);///just for comparision,not needed really
 
   
   kDummy = kprimemax; ///initiating 
@@ -52,8 +52,8 @@ Double_t rhoToX(Int_t plane)
   for (Int_t i = 1; i <= nPoints; i++) {
     rho[i] = (Double_t)i/nPoints;
     kDummy = rho[i]*kprimemax;
-    r_dummy = (E-kDummy+eLaser)/(light*B_dipole); 
-    th_dummy = asin(light*B_dipole*lmag/(E+eLaser-kDummy));
+    r_dummy = (eEnergy-kDummy+eLaser)/(light*B_dipole); 
+    th_dummy = asin(light*B_dipole*lmag/(eEnergy+eLaser-kDummy));
 //  max displacement of the beam with ith (m) 
 //  x2_new = r_dummy*(1-cos(th_dummy)) + (zdrift + dxPrime_old*(((Double_t)nPoints-i)/nPoints)*tan(det_angle))*tan(th_dummy); // max displacement (m)
     x2_new = r_dummy*(1-cos(th_dummy)) + (zdrift)*tan(th_dummy); 

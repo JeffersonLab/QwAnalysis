@@ -23,7 +23,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
   const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
   const Bool_t kNoiseSub = 1;
-  const Bool_t kDeadTime = 1, k2parDT = 0;
+  const Bool_t kDeadTime = 1, k2parDT = 0;//0: 1-param DT corr; 1: 2-param DT corr
   Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
@@ -68,8 +68,11 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   if (kRejectBMod) cout<<green<<"quartets during beam modulation ramp rejected"<<normal<<endl;
   else cout<<green<<"quartets during beam modulation ramp NOT rejected"<<normal<<endl;
 
-  if(daqflag==0) infoDAQ(runnum); //if the masks are not set yet, call the function to set it
-
+  if(!maskSet) daqflag = infoDAQ(runnum); //if the masks are not set yet, call the function to set it
+  if(daqflag==-1) {
+    cout<<red<<"\nreturned error from infoDAQ, hence exiting\n"<<normal<<endl;
+    return -1;
+  }
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
   ///some of the variables declared in the compton header file
   for(Int_t p = startPlane; p <endPlane; p++) {      	
@@ -99,9 +102,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   //chainExists = helChain->Add(Form("$QW_ROOTFILES/Compton_%d.*.root",runnum));//for myQwAnalyisis output
   cout<<"Attached "<<chainExists<<" files to chain for Run # "<<runnum<<endl;
 
-  if(!chainExists){//delete chains and exit if files do not exist
+  if(!chainExists){/// exit if rootfiles do not exist
     cout<<"\n\n***Error: The analyzed Root file for run "<<runnum<<" does not exist***\n\n"<<endl;
-    delete helChain;
     return -1;
   }
   //////////////for a quick peep of the beam and laser stability of beam//////////

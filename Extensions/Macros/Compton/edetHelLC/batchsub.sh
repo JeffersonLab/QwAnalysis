@@ -7,15 +7,15 @@ QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
 dataType=Ac1ParDT
 found=no
 #for i in `seq 23324 23324`;
-#for i in `seq 22659 25546`;
+for i in `seq 22659 25546`;
 #for i in `seq 23449 23449`;
-for i in `seq 23220 23530`;
+#for i in `seq 23220 23530`;
 #for i in `seq 23241 23530`;
 do
   cat batchsub_header1.xml >> batch_submit_$i.xml
   echo '<Name name="edetHelLC_'$dataType'_'$i'"/>' >> batch_submit_$i.xml
   cat batchsub_header2.xml >> batch_submit_$i.xml
-  echo 'root -l -b -q edetLC.C+\('$i'\)' >> batch_submit_$i.xml
+  echo 'qwroot -l -b -q edetLC.C++\('$i'\)' >> batch_submit_$i.xml
   echo 'echo "Finished at `date`"' >> batch_submit_$i.xml
   echo ']]></Command>' >> batch_submit_$i.xml
   echo '<Job>' >> batch_submit_$i.xml
@@ -32,7 +32,7 @@ do
   echo '<Input src="'$macro'/asymFit.C" dest="asymFit.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/infoDAQ.C" dest="infoDAQ.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/writeToFile.C" dest="writeToFile.C"/>' >> batch_submit_$i.xml
-  echo '<Input src="'$macro'/fileReadDraw.C" dest="fileReadDraw.C"/>' >> batch_submit_$i.xml
+# echo '<Input src="'$macro'/fileReadDraw.C" dest="fileReadDraw.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/edetLC.C" dest="edetLC.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/qNormVariables.C" dest="qNormVariables.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/weightedMean.C" dest="weightedMean.C"/>' >> batch_submit_$i.xml
@@ -40,7 +40,7 @@ do
   echo '<Input src="'$macro'/rootClass.h" dest="rootClass.h"/>' >> batch_submit_$i.xml
   echo '<Stderr dest="'$QWSCRATCH'/work/check'$dataType'_'$i'.err"/>' >> batch_submit_$i.xml
   echo '<Stdout dest="'$QWSCRATCH'/work/check'$dataType'_'$i'.out"/>' >> batch_submit_$i.xml
-  #  echo '<Stdout dest="/dev/null"/>' >> batch_submit_$i.xml
+# echo '<Stdout dest="/dev/null"/>' >> batch_submit_$i.xml
   
   echo '</Job>'  >> batch_submit_$i.xml
   echo '</Request>'  >> batch_submit_$i.xml
