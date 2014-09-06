@@ -222,7 +222,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     helChain->SetBranchStatus("yield_p*RawEv*",1);
     helChain->SetBranchStatus("diff_p*RawEv*",1);
     helChain->SetBranchStatus("asym_p*RawEv*",1);
-    for(Int_t p = 0; p <nPlanes; p++) {      
+    for(Int_t p = startPlane; p <endPlane; p++) {      
       helChain->SetBranchAddress(Form("yield_p%dRawEv",p+1),&bYield[p]);
       helChain->SetBranchAddress(Form("diff_p%dRawEv",p+1),&bDiff[p]);
       helChain->SetBranchAddress(Form("asym_p%dRawEv",p+1),&bAsym[p]);
@@ -231,7 +231,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     helChain->SetBranchStatus("yield_p*RawV1495Scaler*",1);
     helChain->SetBranchStatus("diff_p*RawV1495Scaler*",1);
     helChain->SetBranchStatus("asym_p*RawV1495Scaler*",1);
-    for(Int_t p = 0; p <nPlanes; p++) {      
+    for(Int_t p = startPlane; p <endPlane; p++) {      
       helChain->SetBranchAddress(Form("yield_p%dRawV1495Scaler",p+1),&bYield[p]);
       helChain->SetBranchAddress(Form("diff_p%dRawV1495Scaler",p+1),&bDiff[p]);
       helChain->SetBranchAddress(Form("asym_p%dRawV1495Scaler",p+1),&bAsym[p]);
@@ -240,7 +240,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     helChain->SetBranchStatus("yield_p*RawAc_v2*",1);//!there is ambiguity in this
     helChain->SetBranchStatus("diff_p*RawAc_v2*",1);//!there is ambiguity in this
     helChain->SetBranchStatus("asym_p*RawAc_v2*",1);//!there is ambiguity in this
-    for(Int_t p = 0; p <nPlanes; p++) {      
+    for(Int_t p = startPlane; p <endPlane; p++) {      
       helChain->SetBranchAddress(Form("yield_p%dRawAc_v2",p+1),&bYield[p]);
       helChain->SetBranchAddress(Form("diff_p%dRawAc_v2",p+1),&bDiff[p]);
       helChain->SetBranchAddress(Form("asym_p%dRawAc_v2",p+1),&bAsym[p]);
@@ -249,7 +249,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     helChain->SetBranchStatus("yield_p*RawAc*",1);
     helChain->SetBranchStatus("diff_p*RawAc*",1);
     helChain->SetBranchStatus("asym_p*RawAc*",1);
-    for(Int_t p = 0; p <nPlanes; p++) {      
+    for(Int_t p = startPlane; p <endPlane; p++) {      
       helChain->SetBranchAddress(Form("yield_p%dRawAc",p+1),&bYield[p]);
       helChain->SetBranchAddress(Form("diff_p%dRawAc",p+1),&bDiff[p]);
       helChain->SetBranchAddress(Form("asym_p%dRawAc",p+1),&bAsym[p]);
@@ -366,7 +366,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0,missedDueToBMod=0; 
     iLCH1L1= 0.0, iLCH1L0= 0.0, iLCH0L1= 0.0, iLCH0L0= 0.0;
     lasPowLCB1L0=0.0,lasPowLCB1L1= 0.0;
-    for(Int_t p = startPlane; p <nPlanes; p++) {      
+    for(Int_t p = startPlane; p <endPlane; p++) {      
       for(Int_t s = startStrip; s <endStrip; s++) {
         yieldB1L0[p][s] =0.0, yieldB1L1[p][s] =0.0;
         diffB1L0[p][s] =0.0, diffB1L1[p][s] =0.0;

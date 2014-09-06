@@ -101,8 +101,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   std::vector<std::vector <Double_t> > activeStrip;
   std::vector<Double_t > trueStrip,asym,asymEr;
   std::vector<Double_t > yieldL1,yieldL1Er,asymNr;
-  std::vector<Double_t > yieldL0,yieldL0Er,zero;
-  std::vector<Double_t > stripCE, zero1;
+  std::vector<Double_t > yieldL0,yieldL0Er;
+  std::vector<Double_t > stripCE;
   Int_t usedStrips=0;///no.of used strips upto the CE
   Double_t dum1,dum2,dum3,dum4;
 
@@ -134,7 +134,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
           //cout<<magenta<<"skipping strip "<<dum1<<normal<<endl;
           continue; 
         }
-        yieldL0.push_back(dum2), yieldL0Er.push_back(dum3), zero.push_back(0.0);
+        yieldL0.push_back(dum2), yieldL0Er.push_back(dum3);
       }
       infileL0Yield.close();
     } else {
@@ -198,7 +198,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       cAsym->cd(p+1);  
       cAsym->GetPad(p+1)->SetGridx(1);
 
-      grAsym[p]=new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),asym.data(),zero.data(),asymEr.data()); 
+      grAsym[p]=new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),asym.data(),0,asymEr.data()); 
       grAsym[p]->GetXaxis()->SetTitle("Strip number");
       grAsym[p]->GetYaxis()->SetTitle("asymmetry");   
       //grAsym[p]->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",p+1));//Form("experimental asymmetry Run: %d, Plane %d",runnum,p+1));
@@ -322,7 +322,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),p+1)<<normal<<endl;
         //cout<<(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),p+1))<<endl;
 
-        grBgd = new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),bgdAsym.data(),zero.data(),bgdAsymEr.data());
+        grBgd = new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),bgdAsym.data(),0,bgdAsymEr.data());
         grBgd->Draw("AP");
         grBgd->GetXaxis()->SetTitle("Strip number");
         grBgd->GetYaxis()->SetTitle("bgd asymmetry");   
@@ -364,14 +364,13 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         for (Int_t s = startStrip; s < usedStrips; s++) {
           stripCE.push_back(trueStrip.at(s));
           residueEr.push_back(asymEr.at(s));
-          zero1.push_back(0.0);
           fitResidue.push_back( asym.at(s) - polFit->Eval(trueStrip.at(s)) );
           if(debug2) cout<<trueStrip.at(s)<<"\t"<<fitResidue.at(s)<<"\t"<<asym.at(s)<<"\t"<<polFit->Eval(trueStrip.at(s))<<endl;
         }
 
         cResidual->cd(p+1);  
         cResidual->GetPad(p+1)->SetGridx(1);
-        grResiduals[p]=new TGraphErrors((Int_t)stripCE.size(),stripCE.data(),fitResidue.data(),zero1.data(),residueEr.data());
+        grResiduals[p]=new TGraphErrors((Int_t)stripCE.size(),stripCE.data(),fitResidue.data(),0,residueEr.data());
         grResiduals[p]->SetMarkerStyle(kOpenCircle);
         //grResiduals[p]->SetMaximum(0.012);/// half of asymmetry axis 
         //grResiduals[p]->SetMinimum(-0.012);/// half of asymmetry axis 
@@ -416,7 +415,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       for (Int_t p =startPlane; p <endPlane; p++) {
         cYield->cd(p+1);
         cYield->GetPad(p+1)->SetGridx(1);
-        grYieldPlane[p] = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL1.data(), zero.data(), yieldL1Er.data());
+        grYieldPlane[p] = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL1.data(), 0, yieldL1Er.data());
         grYieldPlane[p]->SetLineColor(kGreen);
         grYieldPlane[p]->SetFillColor(kGreen);   
         grYieldPlane[p]->SetMarkerColor(kGreen); ///kRed+2 = Maroon
@@ -430,7 +429,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
           crossSecFit->SetLineColor(kRed);
           grYieldPlane[p]->Fit("crossSecFit","0 R M E q");
         }
-        grB1L0[p] = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL0.data(), zero.data(), yieldL0Er.data());
+        grB1L0[p] = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL0.data(), 0, yieldL0Er.data());
         grB1L0[p]->SetFillColor(kBlue);
         grB1L0[p]->SetLineColor(kBlue);
         grB1L0[p]->SetMarkerColor(kBlue);
