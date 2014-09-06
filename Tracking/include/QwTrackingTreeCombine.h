@@ -67,7 +67,7 @@ class QwTrackingTreeCombine {
     QwHit* SelectLeftRightHit (double track_position, QwHit* hit);
 
 
-    void mul_do (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
+    void SelectPermutationOfHits (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
     void r2_TreelineFit (
 		double& slope, double& offset, double cov[3], double& chi,
 		QwHit **hits, int n);

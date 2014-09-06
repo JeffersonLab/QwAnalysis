@@ -256,6 +256,8 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
     //! \brief Get the list of tree lines
     const std::vector<QwTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
+    //! \brief Get the list of tree lines in region and direction
+    const std::vector<QwTreeLine*> GetListOfTreeLines(EQwRegionID region, EQwDirectionID direction) const;
     //! \brief Get the specified tree line
     const QwTreeLine* GetTreeLine(const int tl) const;
     //! \brief Print the list of tree lines
@@ -359,12 +361,6 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
     /*! list of partial tracks [package][region][type] */
     QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions]; //!
-
-    /*! list of complete tracks [package] */
-    QwTrack* track[kNumPackages]; //!
-
-    /*! list of vertices in this event */
-    //std::vector< QwVertex* > vertex; //!
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
     ClassDef(QwEvent,3);

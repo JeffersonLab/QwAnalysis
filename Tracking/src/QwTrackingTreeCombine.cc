@@ -152,8 +152,6 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 
       // Only consider this hit if it is not too far away from the track position,
       // i.e. within the drift distance resolution
-      //if(hit->GetPlane()==12)
-      //  cout << "resolution: " << resolution << " " << hit_position << " " << distance << endl;
       if ( distance < resolution )
       {
         // Save only a maximum number of hits per track crossing through the plane
@@ -214,7 +212,7 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
  * hx  : hits filled: ha[l][r[]]
  * ha  : array to write permutated hits in
  * ------------------------------------------------------------------------- */
-void QwTrackingTreeCombine::mul_do (
+void QwTrackingTreeCombine::SelectPermutationOfHits (
     int i,
     int mul,
     int l,
@@ -902,7 +900,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
     for ( int permutation = 0; permutation < nPermutations; ++permutation )
     {
       // Select a permutations from goodHits[][] and store in usedHits[]
-      mul_do ( permutation, nPermutations, nPlanesWithHits, nHitsInPlane, goodHits, usedHits );
+      SelectPermutationOfHits ( permutation, nPermutations, nPlanesWithHits, nHitsInPlane, goodHits, usedHits );
       // (returns usedHits)
 
       // Determine chi^2 of this set of hits
@@ -974,7 +972,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
     // Select the best permutation (if it was found)
     if ( best_permutation != -1 )
     {
-      mul_do ( best_permutation, nPermutations,
+      SelectPermutationOfHits ( best_permutation, nPermutations,
           nPlanesWithHits, nHitsInPlane, goodHits, usedHits );
 
       for(int plane=0;plane<nPlanesWithHits;++plane){

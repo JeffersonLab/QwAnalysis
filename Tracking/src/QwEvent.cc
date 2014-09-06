@@ -32,9 +32,6 @@ QwEvent::QwEvent()
 
   // Loop over all pointer objects
   for (int i = 0; i < kNumPackages; ++i) {
-    // Null the track pointers
-    track[i] = 0;
-
     for (int j = 0; j < kNumRegions; ++j) {
       // Null the partial track pointers
       fPartialTrack[i][j] = 0;
@@ -57,9 +54,6 @@ QwEvent::~QwEvent()
   
   // Loop over all allocated objects
   for (int i = 0; i < kNumPackages; ++i) {
-
-    // Delete all those tracks
-    delete track[i];
 
     for (int j = 0; j < kNumRegions; ++j) {
       
@@ -429,6 +423,21 @@ void QwEvent::PrintTreeLines(Option_t* option) const
       tl = tl->next;
     }
   }
+}
+
+const std::vector<QwTreeLine*> QwEvent::GetListOfTreeLines(EQwRegionID region, EQwDirectionID direction) const
+{
+  std::vector<QwTreeLine*> treelines;
+  for (std::vector<QwTreeLine*>::const_iterator
+      tl  = fQwTreeLines.begin();
+      tl != fQwTreeLines.end(); tl++) {
+    if ((*tl)->GetRegion() == region) {
+      if ((*tl)->GetDirection() == direction) {
+        treelines.push_back(*tl);
+      }
+    }
+  }
+  return treelines;
 }
 
 
