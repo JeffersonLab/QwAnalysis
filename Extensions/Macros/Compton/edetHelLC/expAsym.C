@@ -23,7 +23,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
   const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
   const Bool_t kNoiseSub = 1;
-  const Bool_t kDeadTime = 1, k2parDT = 0;//0: 1-param DT corr; 1: 2-param DT corr
+  const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
   Bool_t firstlinelasPrint[nPlanes][nStrips],firstLineLasCyc=kTRUE;
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
@@ -295,8 +295,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     if(acTrig==2) {
       if(k2parDT) {
         cout<<blue<<"Applying 2 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
-        inRateCor0.open(Form("%s/data/dtcorr2by3_p0.dat",pPath));
-        inRateCor1.open(Form("%s/data/dtcorr2by3_p1.dat",pPath));
+        inRateCor0.open(Form("%s/data/dtcorr_2by3p0.dat",pPath));  //dtcorr1by3_p0.dat 
+        inRateCor1.open(Form("%s/data/dtcorr_2by3p1.dat",pPath));///these files have all runs of run2
       } else {
         cout<<blue<<"Applying 1 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
         inRateCor0.open(Form("%s/data/dtcorr22.dat",pPath));
@@ -304,8 +304,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     } else if(acTrig==3) {
       if(k2parDT) {
         cout<<blue<<"Applying 2 parameter Deadtime correction for 3/3 trigger"<<normal<<endl;
-        inRateCor0.open(Form("%s/data/dtcorr3by3_p0.dat",pPath));
-        inRateCor1.open(Form("%s/data/dtcorr3by3_p1.dat",pPath));
+        inRateCor0.open(Form("%s/data/dtcorr_3by3p0.dat",pPath));
+        inRateCor1.open(Form("%s/data/dtcorr_3by3p1.dat",pPath));
       } else {
         cout<<blue<<"Applying 1 parameter Deadtime correction for 3/3 trigger"<<normal<<endl;
         inRateCor0.open(Form("%s/data/dtcorr33.dat",pPath));

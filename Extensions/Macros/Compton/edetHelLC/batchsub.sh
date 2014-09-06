@@ -4,7 +4,7 @@ macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
-dataType=Ac1ParDT
+dataType=Ac2ParDT
 found=no
 #for i in `seq 23324 23324`;
 for i in `seq 22659 25546`;
@@ -15,7 +15,7 @@ do
   cat batchsub_header1.xml >> batch_submit_$i.xml
   echo '<Name name="edetHelLC_'$dataType'_'$i'"/>' >> batch_submit_$i.xml
   cat batchsub_header2.xml >> batch_submit_$i.xml
-  echo 'qwroot -l -b -q edetLC.C++\('$i'\)' >> batch_submit_$i.xml
+  echo 'root -l -b -q edetLC.C+g\('$i'\)' >> batch_submit_$i.xml
   echo 'echo "Finished at `date`"' >> batch_submit_$i.xml
   echo ']]></Command>' >> batch_submit_$i.xml
   echo '<Job>' >> batch_submit_$i.xml
@@ -46,10 +46,10 @@ do
   echo '</Request>'  >> batch_submit_$i.xml
   
   if [ "x$found" = "xyes" ];
-  then
-  jsub -xml batch_submit_$i.xml
+    then
+    jsub -xml batch_submit_$i.xml
   else
-  echo "No rootfiles found. Skipping run $i"
+    echo "No rootfiles found. Skipping run $i"
   fi
   rm batch_submit_$i.xml
 done

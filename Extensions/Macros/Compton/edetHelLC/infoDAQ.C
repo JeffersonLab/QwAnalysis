@@ -130,8 +130,8 @@ Int_t infoDAQ(Int_t runnum)
   fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath,webDirectory,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
     fBeamProp<<runnum<<"\t"<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
-    fBeamProp<<runnum<<"\t"<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos<<endl;
-    fBeamProp<<runnum<<"\t"<<eEnergy<<"+/-"<<rms_eEnergy<<endl;
+    fBeamProp<<rms_hWien<<"\t"<< rms_vWien<<"\t"<< rms_ihwp1set<<"\t"<<rms_ihwp1read<<"\t"<< rms_rhwp<<"\t"<< rms_ihwp2read<<"\t"<< rms_hccedpos<<endl;
+    fBeamProp<<eEnergy<<"\t"<<rms_eEnergy<<endl;
     fBeamProp.close();
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
 
