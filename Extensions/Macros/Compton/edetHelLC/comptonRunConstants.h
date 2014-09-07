@@ -26,9 +26,9 @@ Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will no
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
 Double_t qNormBkgdSubSigToBkgdRatioLow = 1.25;//0.80;//!this is arbitrarily chosen by observing how it may vary
-               /*Ideally this ratio could be safely left >0.0, but due to some form of deadtime, 
-		*..I may have to be forgiving 
-		*Once I find a mechanism to fit the Cedge, I won't need to be nosy about this choice */
+/*Ideally this ratio could be safely left >0.0, but due to some form of deadtime, 
+ *..I may have to be forgiving 
+ *Once I find a mechanism to fit the Cedge, I won't need to be nosy about this choice */
 
 //Hardware related constants
 const Int_t nStrips = 64;//96;
@@ -66,12 +66,21 @@ const Double_t lowCurrentLimit = 65.0;
 const Int_t startStrip = 0;
 const Int_t endStrip = 64;
 const Int_t startPlane = 0;
-  const Int_t endPlane = 1;
+const Int_t endPlane = 1;
 const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
+
+///Boolean constants pertaining to analysis:
+const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
+const Bool_t kNoiseSub = 1;
+const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
+const Bool_t kRadCor=1;
+const Int_t maxIterations =10;
+
+Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
 Int_t daqflag=0;
 Int_t asymflag=0;
-Double_t Cedge[nPlanes];
+Double_t Cedge;
 Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;
 Double_t eLaser;
@@ -86,7 +95,6 @@ Double_t radCor = 1.0;
 
 Int_t skipCyc=0;///counts the no.of times the background corrected counts go <= 0
 Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
-Bool_t mask[nPlanes][nStrips];  
 Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
 Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
@@ -101,9 +109,9 @@ Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;///on purpose left unin
 ///Declaration of regular variables to be used in the macro
 Float_t corrB1H1L1_0=0.0,corrB1H1L0_0=0.0,corrB1H0L1_0=0.0,corrB1H0L0_0=0.0;//deadtime correction for given run
 Float_t corrB1H1L1_1=0.0,corrB1H1L0_1=0.0,corrB1H0L1_1=0.0,corrB1H0L0_1=0.0;//deadtime correction for given run
-Float_t c2B1H1L1[nPlanes][nStrips],c2B1H1L0[nPlanes][nStrips],c2B1H0L1[nPlanes][nStrips],c2B1H0L0[nPlanes][nStrips];
-Double_t stripAsym[nPlanes][nStrips],stripAsymEr[nPlanes][nStrips];
-Double_t bkgdAsym[nPlanes][nStrips],bkgdAsymEr[nPlanes][nStrips];
+Float_t c2B1H1L1[nStrips]={0.0},c2B1H1L0[nStrips]={0.0},c2B1H0L1[nStrips]={0.0},c2B1H0L0[nStrips]={0.0};
+Double_t stripAsym[nStrips]={0.0},stripAsymEr[nStrips]={0.0};
+Double_t bkgdAsym[nStrips]={0.0},bkgdAsymEr[nStrips]={0.0};
 Double_t beamMax=0.0, laserMax=0.0;
 Double_t pol=0.0,polEr=0.0,chiSq=0.0;
 Double_t cEdge=0.0,cEdgeEr=0.0;
@@ -112,20 +120,26 @@ Int_t NDF=0,resFitNDF=0, bgdAsymFitNDF=0;
 Double_t resFit=0.0,resFitEr=0.0, chiSqResidue=0.0;
 Double_t bgdAsymFit =0.0, bgdAsymFitEr = 0.0, chiSqBgdAsym=0.0;
 
-Double_t stripAsymDr[nPlanes][nStrips],stripAsymDrEr[nPlanes][nStrips];
-Double_t stripAsymNr[nPlanes][nStrips],stripAsymNrEr[nPlanes][nStrips];
-Double_t qNormB1L0[nPlanes][nStrips],qNormB1L0Er[nPlanes][nStrips];
-Double_t qNormCountsB1L1[nPlanes][nStrips],qNormCountsB1L1Er[nPlanes][nStrips];
-Double_t qNormCountsB1L0[nPlanes][nStrips],qNormCountsB1L0Er[nPlanes][nStrips];
-Double_t qNormBkgdSubAllB1L1[nPlanes][nStrips],qNormAllB1L0[nPlanes][nStrips],qNormAllB1L0Er[nPlanes][nStrips]; 
+Double_t asymErSqrLC[nStrips]={0.0},qNormAsymLC[nStrips]={0.0};
+Double_t wmNrAsym[nStrips]={0.0},wmDrAsym[nStrips]={0.0};
+Double_t wmNrBkgdAsym[nStrips]={0.0},wmDrBkgdAsym[nStrips]={0.0};
+Double_t wmNrBCqNormSum[nStrips]={0.0},wmDrBCqNormSum[nStrips]={0.0};
+Double_t wmNrBCqNormDiff[nStrips]={0.0};
+Double_t wmNrqNormB1L0[nStrips]={0.0},wmDrqNormB1L0[nStrips]={0.0};
+Double_t stripAsymDr[nStrips]={0.0},stripAsymDrEr[nStrips]={0.0};
+Double_t stripAsymNr[nStrips]={0.0},stripAsymNrEr[nStrips]={0.0};
+Double_t qNormB1L0[nStrips]={0.0},qNormB1L0Er[nStrips]={0.0};
+Double_t qNormCountsB1L1[nStrips]={0.0},qNormCountsB1L1Er[nStrips]={0.0};
+Double_t qNormCountsB1L0[nStrips]={0.0},qNormCountsB1L0Er[nStrips]={0.0};
+Double_t qNormBkgdSubAllB1L1[nStrips]={0.0},qNormAllB1L0[nStrips]={0.0},qNormAllB1L0Er[nStrips]={0.0}; 
 Double_t totIAllH1L1=0.0,totIAllH1L0=0.0,totIAllH0L1=0.0,totIAllH0L0=0.0;///total current
 Int_t totHelB1L1=0,totHelB1L0=0;///total no.of helicities (hence time)
-Int_t totyieldB1L1[nPlanes][nStrips], totyieldB1L0[nPlanes][nStrips];
-Int_t totyieldB1H1L1[nPlanes][nStrips],totyieldB1H1L0[nPlanes][nStrips],totyieldB1H0L1[nPlanes][nStrips], totyieldB1H0L0[nPlanes][nStrips];
-Double_t tNormYieldB1L1[nPlanes][nStrips],tNormYieldB1L0[nPlanes][nStrips];
-Double_t tNormYieldB1L1Er[nPlanes][nStrips],tNormYieldB1L0Er[nPlanes][nStrips];
+Int_t totyieldB1L1[nStrips]={0.0}, totyieldB1L0[nStrips]={0.0};
+Int_t totyieldB1H1L1[nStrips]={0.0},totyieldB1H1L0[nStrips]={0.0},totyieldB1H0L1[nStrips]={0.0}, totyieldB1H0L0[nStrips]={0.0};
+Double_t tNormYieldB1L1[nStrips]={0.0},tNormYieldB1L0[nStrips]={0.0};
+Double_t tNormYieldB1L1Er[nStrips]={0.0},tNormYieldB1L0Er[nStrips]={0.0};
 Double_t beamMaxEver = 200.0, beamOnLimit=20.0;
-Double_t timeB0,rateB0[nStrips];
+Double_t timeB0,rateB0[nStrips]={0.0};
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12

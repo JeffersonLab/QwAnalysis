@@ -14,7 +14,7 @@ Int_t infoDAQ(Int_t runnum)
   const Int_t errFlag=100;
   Bool_t additionalStripMask=1;///this will be my primary tool to skip masked strips in asymFit.C
   Double_t bMask[nPlanes][nStrips];
-
+  Double_t mask[nPlanes][nStrips];
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
   ofstream flagsfile,debugInfoDAQ,infoStripMask,fBeamProp;
   //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
@@ -123,9 +123,9 @@ Int_t infoDAQ(Int_t runnum)
   }
   eEnergy = eEnergy/1000.0; ///to convert to GeV
   rms_eEnergy = rms_eEnergy/1000.0;
-   if(debug) cout<<"beam Energy: "<<eEnergy<<"+/-"<<rms_eEnergy<<endl;
-   eEnergy = 1.159;//!!!
-   cout<<red<<"temporarily setting energy =1.159 GeV, though its differnt from readback value"<<normal<<endl;
+  if(debug) cout<<"beam Energy: "<<eEnergy<<"+/-"<<rms_eEnergy<<endl;
+  eEnergy = 1.159;//!!!
+  cout<<red<<"temporarily setting energy =1.159 GeV, though its differnt from readback value"<<normal<<endl;
 
   fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath,webDirectory,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
@@ -135,7 +135,7 @@ Int_t infoDAQ(Int_t runnum)
     fBeamProp.close();
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
 
-   if(ihwp1set!=ihwp1read) {
+  if(ihwp1set!=ihwp1read) {
     cout<<red<<"\nAlert****: The IHWP set and read back not same\n"<<normal<<endl;
     return -1;
   }
@@ -157,9 +157,9 @@ Int_t infoDAQ(Int_t runnum)
   //configTree->ResetBranchAddresses();
   configTree->SetBranchStatus("*",1); 
 
-  for(Int_t p = 0; p <nPlanes; p++) {      
-    configTree->SetBranchAddress(Form("v1495InfoPlane%d",p+1),&bMask[p]);
-  }//the branch for each plane is named from 1 to 4
+  for(Int_t p = startPlane; p <nPlanes; p++) {
+    configTree->SetBranchAddress(Form("v1495InfoPlane%d",plane),&bMask[p]);
+  } //the branch for each plane is named from 1 to 4 
 
   for(Int_t m = 0; m <nModules; m++) {
     configTree->SetBranchAddress(Form("slave%d_acTrig",m+1),&bAcTrigSlave[m]);
@@ -174,28 +174,29 @@ Int_t infoDAQ(Int_t runnum)
 
   configTree->GetEntry(0);
 
-  //for(Int_t p = startPlane; p <nPlanes; p++) {
-  //  for(Int_t s =startStrip; s <endStrip; s++) {
-  //    mask[p][s] = (Int_t)bMask[p][s];
-  //  }
-  //}
-  //
-  //infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePre.Data()));
-  //infoStripMask<<";plane\tmaskedStrips:";
-  ////for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out
-  //for(Int_t p = startPlane; p <endPlane; p++) {
-  //  infoStripMask<<"\n"<<p+1<<"\t";
-  //  for(Int_t s =startStrip; s <endStrip; s++) {
-  //    if (mask[p][s] == 0) {
-  //infoStripMask<<s+1<<"\t";
-  ////skipStrip.insert(s+1); //idea of declaraing it as a 'set' did not work
-  ////skipStrip.push_back(s+1);//notice that the strip#s are pushed in as human count #s
-  //if(debug) cout<<blue<<"masked strip "<<s+1<<normal<<endl;
-  //    }//check if strip is masked
-  //  }//for all strips
-  //}//for all planes
-  //infoStripMask.close();
-  /////list all those strips that you want in the list for in case it was not already a part of the above created vector
+  for(Int_t p = startPlane; p <nPlanes; p++) {
+    for(Int_t s =startStrip; s <endStrip; s++) {
+      mask[p][s] = (Int_t)bMask[p][s];
+    }
+  }
+
+  infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePre.Data()));
+  infoStripMask<<";plane\tmaskedStrips:";
+  if(infoStripMask.is_open()) {
+    infoStripMask<<";plane\trow of masked strips in this plane -->"<<endl;
+  for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out
+    infoStripMask<<"\n"<<p+1<<"\t";
+    for(Int_t s =startStrip; s <endStrip; s++) {
+      if (mask[p][s] == 0) {
+        infoStripMask<<s+1<<"\t";//notice that the strip#s are pushed in as human count #s 
+        if(debug) cout<<blue<<"masked strip "<<s+1<<normal<<endl;
+      }//check if strip is masked
+    }//for all strips
+  }//for all planes
+  infoStripMask.close();
+  } else cout<<red<<"could not open a file to write the stripMaskInfo"<<normal<<endl;
+
+  ///list all those strips that you want in the list for in case it was not already a part of the above created vector
   for(Int_t m = 0; m <nModules; m++) {
     acTrigSlave[m]        = (Int_t)bAcTrigSlave[m];  
     evTrigSlave[m]        = (Int_t)bEvTrigSlave[m];

@@ -3,6 +3,10 @@
  * modified by: Amrendra
  * thanks Juan Carlos
  ************************************************ */
+#ifndef __getEBeamLasCuts_F
+#define __getEBeamLasCuts_F
+#endif
+ 
 #include "rootClass.h"
 #include "comptonRunConstants.h"
 

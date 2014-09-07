@@ -3,7 +3,7 @@
 
 #include "comptonRunConstants.h"
 ///This function ought to be called after auto-determination of compton edge was successful
-Double_t rhoToX(Int_t plane)
+Double_t rhoToX()//now plane is a variable set in the constants file
 {
   cout<<"\nStarting into rhoToX.C **************\n"<<endl;
   Bool_t debug=0;
@@ -13,11 +13,11 @@ Double_t rhoToX(Int_t plane)
   Double_t thetabend = asin(light*B_dipole*lmag/eEnergy);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)
  
-  CedgeToDetBot = (Cedge[plane] + 4)*stripWidth + 0.5*stripWidth;///elog 399
-  zdrift = ldet[plane] - CedgeToDetBot*sin(det_angle);
+  CedgeToDetBot = (Cedge + 4)*stripWidth + 0.5*stripWidth;///elog 399
+  zdrift = ldet[plane-1] - CedgeToDetBot*sin(det_angle);
   if(debug) {
-    cout<<red<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge[plane],stripWidth,stripWidth);
-    cout<<Form("zdrift:%f = %f - %f * %f",zdrift,ldet[plane],CedgeToDetBot,sin(det_angle))<<normal<<endl;
+    cout<<red<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge,stripWidth,stripWidth);
+    cout<<Form("zdrift:%f = %f - %f * %f",zdrift,ldet[plane-1],CedgeToDetBot,sin(det_angle))<<normal<<endl;
   }
   re = alpha*hbarc/me;
   gamma_my=eEnergy/me; //electron gamma, eqn.20
@@ -48,7 +48,7 @@ Double_t rhoToX(Int_t plane)
 // x1_new = R_bend*(1-cos(thetabend)) + (zdrift + dxPrime_old*tan(det_angle))*tan(thetabend); 
   x1_new = R_bend*(1-cos(thetabend)) + (zdrift)*tan(thetabend);
 
-  QEDasym.open(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane+1));
+  QEDasym.open(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane));
   for (Int_t i = 1; i <= nPoints; i++) {
     rho[i] = (Double_t)i/nPoints;
     kDummy = rho[i]*kprimemax;
@@ -72,7 +72,7 @@ Double_t rhoToX(Int_t plane)
   xCedge = xPrime[nPoints-1]; ///'xCedge' is used in determining QED asym, hence this should be evaluated before calling the function to fit theoretical asym
 
   if(debug) {
-    cout<<red<<"\nfor plane: "<<plane+1<<", CedgeToDetBot: "<<CedgeToDetBot<<", zdrift: "<<zdrift<<", xCedge:"<<xCedge<<"\n"<<endl;
+    cout<<red<<"\nfor plane: "<<plane<<", CedgeToDetBot: "<<CedgeToDetBot<<", zdrift: "<<zdrift<<", xCedge:"<<xCedge<<"\n"<<endl;
     printf("\nR_bend:%f, thetabend:%f degree\n",R_bend,thetabend*180/pi);
     cout<<"th_prime: "<<th_prime*180/pi<<endl;
     cout<<"r_max: "<<r_max<<"dx1: "<<x1_new<<endl;
@@ -81,7 +81,7 @@ Double_t rhoToX(Int_t plane)
     // TCanvas *cQED = new TCanvas("cQED","fit for QED parameter",10,10,300,300);
     // cQED->cd();
   }
-  TGraph *grtheory = new TGraph(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane+1), "%lg %lg");
+  TGraph *grtheory = new TGraph(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane), "%lg %lg");
   grtheory->GetXaxis()->SetTitle("dist from compton scattered electrons(m)");
   grtheory->GetYaxis()->SetTitle("#rho");
   grtheory->GetYaxis()->CenterTitle();
@@ -99,9 +99,9 @@ Double_t rhoToX(Int_t plane)
   // }
 
   ofstream checkfile;
-  checkfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane+1));
+  checkfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane));
    if(checkfile.is_open()) {
-     if(debug) cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane+1<<endl;
+     if(debug) cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane<<endl;
      checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<"\t"<<param[4]<<"\t"<<param[5]<<endl;
    } else cout<<"**Alert: couldn't open file to write QED fit parameters**\n"<<endl;
   checkfile.close();
