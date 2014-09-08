@@ -1,6 +1,4 @@
-#ifndef __RHOTOX_F
-#define __RHOTOX_F
-
+#include "rootbasic.h"
 #include "comptonRunConstants.h"
 ///This function ought to be called after auto-determination of compton edge was successful
 Double_t rhoToX()//now plane is a variable set in the constants file
@@ -110,4 +108,3 @@ Double_t rhoToX()//now plane is a variable set in the constants file
 /*Comment: Both plane and compton edge independently affect the rho-to-x conversion 
  *.. hence they both need to be passed on to this function
  */
-#endif

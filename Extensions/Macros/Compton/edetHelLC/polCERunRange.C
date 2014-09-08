@@ -1,9 +1,9 @@
-#include <rootClass.h>
+#include "polCERunRange.h"
+#include "rootClass.h"
 #include "comptonRunConstants.h"
 ///lets focus on the region between 23220 to 23530;
-const Int_t runBegin = 23220, runEnd = 23530;//runBegin = 22659, runEnd = 25546;
 //Int_t polRunRange(Int_t run1=23220, Int_t run2=23515)
-Int_t polCERunRange(Int_t run1=runBegin, Int_t run2=runEnd)
+Int_t polCERunRange(Int_t run1, Int_t run2)
 {
   //gROOT->SetStyle("publication");
   Bool_t debug=1,debug1=0,debug2=0;

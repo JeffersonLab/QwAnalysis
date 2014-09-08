@@ -1,5 +1,4 @@
-#ifndef __INFODAQ_F
-#define __INFODAQ_F
+#include "infoDAQ.h"
 #include "rootClass.h"
 #include "comptonRunConstants.h"
 //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
@@ -266,4 +265,3 @@ Int_t infoDAQ(Int_t runnum)
  * to remove a strip just because it was not in line with the result that we were anticipating. 
  *************************/
 
-#endif

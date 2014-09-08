@@ -1,12 +1,10 @@
 //attempting to fit the theoretically evaluated asymmetry to experimentally measured asymmetry
-#ifndef __asymFit_F
-#define __asymFit_F
-#endif
 
+#include "asymFit.h"
 #include "rootClass.h"
 #include "comptonRunConstants.h"
-#include "rhoToX.C"
-#include "infoDAQ.C"
+#include "rhoToX.h"
+#include "infoDAQ.h"
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
 {///parCx[1]: to be found Cedge
   itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
@@ -61,7 +59,8 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   return (radCor*(par[1]*(rhoPlus*(1.0-1.0/(rhoMinus*rhoMinus)))/dsdrho));//calcAsym;
 }
 
-Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
+//Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
+Int_t asymFit(Int_t runnum,TString dataType)
 {
   cout<<"\nStarting into asymFit.C **************\n"<<endl;
   if(kRadCor) cout<<blue<<"Radiative correction being applied"<<normal<<endl;
@@ -254,6 +253,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         } else if(numbIterations>maxIterations) {
           cout<<magenta<<"maximum ("<<maxIterations<<") no.of iterations attempted, hence exiting"<<endl;
           break;
+        }
       } 
 
       polFit->DrawCopy("same");
