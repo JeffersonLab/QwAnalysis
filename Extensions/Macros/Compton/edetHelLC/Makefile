@@ -5,8 +5,8 @@ OBJ_FILES := $(subst .C,.o,$(CPP_FILES))
 ROOTFLAGS = $(shell root-config --cflags)
 ROOTLIBS  = $(shell root-config --libs --ldflags)
 
-CXX :="g++"
-CPPFLAGS := "-g"
+CXX :=g++
+CPPFLAGS := -g
 
 all:$(Target)
 
