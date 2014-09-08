@@ -74,7 +74,7 @@ const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets du
 const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
-const Int_t maxIterations =10;
+const Int_t maxIterations =4;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;

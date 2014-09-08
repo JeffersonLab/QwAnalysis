@@ -157,8 +157,8 @@ Int_t infoDAQ(Int_t runnum)
   //configTree->ResetBranchAddresses();
   configTree->SetBranchStatus("*",1); 
 
-  for(Int_t p = startPlane; p <nPlanes; p++) {
-    configTree->SetBranchAddress(Form("v1495InfoPlane%d",plane),&bMask[p]);
+  for(Int_t p = 0; p <nPlanes; p++) {
+    configTree->SetBranchAddress(Form("v1495InfoPlane%d",p+1),&bMask[p]);
   } //the branch for each plane is named from 1 to 4 
 
   for(Int_t m = 0; m <nModules; m++) {
@@ -181,7 +181,6 @@ Int_t infoDAQ(Int_t runnum)
   }
 
   infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePre.Data()));
-  infoStripMask<<";plane\tmaskedStrips:";
   if(infoStripMask.is_open()) {
     infoStripMask<<";plane\trow of masked strips in this plane -->"<<endl;
   for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out

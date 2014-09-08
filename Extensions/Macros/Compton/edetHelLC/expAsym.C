@@ -290,7 +290,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       }
     } else if(acTrig==1) {
       cout<<blue<<"NO correction file available for 1/3 trigger, hence no correction being applied"<<normal<<endl;
-    } else cout<<red<<"\nTrigger undetermined, hence DT correction not applied due to ambiguity\n"<<normal<<endl;
+    } else cout<<red<<"\nTrigger undetermined at "<<acTrig<<", hence DT correction not applied due to ambiguity\n"<<normal<<endl;
     if(acTrig==2 || acTrig==3) {
       if(inRateCor0.is_open()) {
         while(1) {

@@ -106,356 +106,389 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   Double_t dum1,dum2,dum3,dum4;
 
   ///Read in all files that are needed
-    expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
-    if(expAsymPWTL1.is_open()) {
-      if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<plane<<endl;
-      if(debug2) cout<<"strip\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
-      while( expAsymPWTL1>>dum1>>dum2>>dum3 && expAsymPWTL1.good() ) {
-        if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-          cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
-          continue; 
-        }
-        trueStrip.push_back(dum1),asym.push_back(dum2),asymEr.push_back(dum3);
-        if(debug2) cout<<blue<<trueStrip.back()<<"\t"<<asym.back()<<"\t"<<asymEr.back()<<normal<<endl;
+  expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
+  if(expAsymPWTL1.is_open()) {
+    if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<plane<<endl;
+    if(debug2) cout<<"strip\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
+    while( expAsymPWTL1>>dum1>>dum2>>dum3 && expAsymPWTL1.good() ) {
+      if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
+        cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
+        continue; 
       }
-      expAsymPWTL1.close();
+      trueStrip.push_back(dum1),asym.push_back(dum2),asymEr.push_back(dum3);
+      if(debug2) cout<<blue<<trueStrip.back()<<"\t"<<asym.back()<<"\t"<<asymEr.back()<<normal<<endl;
+    }
+    expAsymPWTL1.close();
+  } else {
+    cout<<red<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),plane)<<normal<<endl;
+    return -1;
+  }
+
+  infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
+  if(infileL0Yield.is_open()) {
+    if(debug1) cout<<"Reading the qNorm Laser Off Yield for Plane "<<plane<<endl;
+    while(infileL0Yield>>dum1>>dum2>>dum3 && infileL0Yield.good()) {
+      if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
+        //cout<<magenta<<"skipping strip "<<dum1<<normal<<endl;
+        continue; 
+      }
+      yieldL0.push_back(dum2), yieldL0Er.push_back(dum3);
+    }
+    infileL0Yield.close();
+  } else {
+    cout<<red<<"didn't find lasOff bgd file "<<Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
+    return -1;
+  }
+
+  infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
+  if(infileYield.is_open()) {
+    if(debug1) cout<<"Reading the qNorm Laser On Yield for Plane "<<plane<<endl;
+    while(infileYield>>dum1>>dum2>>dum3>>dum4 && infileYield.good()) {
+      if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
+        //cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
+        continue; 
+      }
+      yieldL1.push_back(dum2), yieldL1Er.push_back(dum3), asymNr.push_back(dum4);
+    }
+    infileYield.close();
+  } else {
+    cout<<red<<"did not find the bgd subtracted yield file "<<Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
+    return -1;
+  }
+
+  ///Estimate the compton edge location
+  for(Int_t s=0; s<=(Int_t)trueStrip.size(); s++) {
+    //Int_t s = trueStrip[i];///actual strip number
+    //if((((yieldL1[s]-yieldL0[s]))< (yieldL0[s]+100.0*yieldL0Er[s])) && trueStrip[s]>edgeClamp) {
+    if( (yieldL1.at(s)-yieldL0.at(s) < 100.0*yieldL0Er.at(s) ) && s>25) {
+      ///there are cases when strip-1 has beamOff counts higher than bgd sub counts due to halo eg.run23246
+      ///hence the above condition of s>25 is applied to ensure that trueStrip.at(s-1) does not access strip-1
+      Cedge = trueStrip.at(s-1); ///since the above condition is fulfiled after crossing Cedge
+      cout<<"probable Cedge : "<<Cedge<<endl;
+      polSign = asym.at(s-1) > 0 ? 1 : 0;
+      kFoundCE = 1;
+      break;
+    }
+  }
+
+  if(kFoundCE) {
+    cout<<"\nCompton edge for plane "<<plane<<" auto-determined to strip "<<Cedge<<endl;
+    if(polSign) cout<<"sign of polarization is positive\n"<<endl;
+    else cout<<"sign of polarization is negative\n"<<endl;
+  } else cout<<red<<"**** Alert: Did not find Cedge for plane "<<plane<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
+
+  TCanvas *cAsym;
+  TGraphErrors *grAsym;
+
+  cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300);
+
+  xCedge = rhoToX(); ///this function should be called after determining the Cedge
+
+  paramfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane));
+  cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
+  paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
+  paramfile.close();
+  if(debug) printf("%g\t%g\t%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3],param[4],param[5]);
+
+  cAsym->cd();  
+  //cAsym->GetPad(1)->SetGridx(1);
+  cAsym->SetGridx(1);
+
+  grAsym=new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),asym.data(),0,asymEr.data()); 
+  grAsym->GetXaxis()->SetTitle("Strip number");
+  grAsym->GetYaxis()->SetTitle("asymmetry");   
+  //grAsym->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",plane));//Form("experimental asymmetry Run: %d, Plane %d",runnum,plane));
+  grAsym->SetMarkerStyle(kFullCircle);
+  grAsym->SetLineColor(kRed);
+  grAsym->SetMarkerColor(kRed); ///kRed+2 = Maroon
+  grAsym->SetMaximum(0.048); 
+  grAsym->SetMinimum(-0.048);
+  grAsym->GetXaxis()->SetLimits(1,65); 
+  //grAsym->GetXaxis()->SetNdivisions(416, kFALSE);
+
+  grAsym->Draw("AP");
+  tempCedge = Cedge;//-0.5;///this should be equated before the declaration of TF1
+
+  ///2 parameter fit
+  polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,2);
+  //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge,3);//use strips after the first 10 strips
+  if(polSign) { //positive
+    polFit->SetParameters(tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+    polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
+    polFit->SetParLimits(1,0.68,0.94);///allowing polarization to be 50% to 93%
+  } else {     //negative
+    polFit->SetParameters(tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+    polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
+    polFit->SetParLimits(1,-0.94,-0.68);
+  }
+  cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
+
+  polFit->SetParNames("comptonEdge","polarization");
+  polFit->SetLineColor(kBlue);
+  cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
+  TVirtualFitter::SetMaxIterations(10000);
+
+  Int_t numbIterations = 0;
+  TFitResultPtr fitr = grAsym->Fit("polFit","RES 0");///1st attempt
+  status = int (fitr);
+  cout<<green<<"the polarization fit status "<<status<<normal<<endl;
+
+  if(status==0) { ///if not converged, reuse results of previous fit to refit
+    cout<<blue<<"fit converged, hence applying MINOS for better errors"<<normal<<endl;
+    cEdge = polFit->GetParameter(0);
+    cEdgeEr = polFit->GetParError(0);
+    pol = polFit->GetParameter(1);
+    polEr = polFit->GetParError(1);
+    chiSq = polFit->GetChisquare();
+    NDF = polFit->GetNDF();
+    cout<<green<<"pol%: "<<pol*100<<"+/-"<<polEr*100<<"\t CE: "<<cEdge<<"+/-"<<cEdgeEr<<normal<<endl;
+    //polFit->SetParameters(cEdge,pol);
+    //polFit->SetParLimits(0, cEdge-2, cEdge+2);///allowing CE to change by +/- 1 strip
+    //polFit->SetParLimits(1, pol-0.02, pol+0.02);///allowing pol% to change by +/- 2%
+    //polFit->SetParLimits(0, cEdge-cEdgeEr, cEdge+cEdgeEr);
+    //polFit->SetParLimits(1, pol-polEr, pol+polEr);
+    fitr = grAsym->Fit("polFit","MRES 0");///2nd attempt
+    status = int (fitr);
+    numbIterations++;
+    if (status!=0) { ///fit failed after attempting to apply MINOS on a successful fit
+      cout<<magenta<<"failed MINOS though the initial fit was successful"<<endl;
+      cout<<"do not update the preceeding fit parameters"<<normal<<endl;
+      status = 0;
+      //fitr = grAsym->Fit("polFit","RES 0");
+      //status = int (fitr);
+      //After failing once, an attempt to refit even without MINOS fails, hence leaving the parameters
+      //.. untouched instead and setting back the fit status =0, so that subsequent attempt is avoided
     } else {
-      cout<<red<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),plane)<<normal<<endl;
-      return -1;
-    }
-
-    infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
-    if(infileL0Yield.is_open()) {
-      if(debug1) cout<<"Reading the qNorm Laser Off Yield for Plane "<<plane<<endl;
-      while(infileL0Yield>>dum1>>dum2>>dum3 && infileL0Yield.good()) {
-        if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-          //cout<<magenta<<"skipping strip "<<dum1<<normal<<endl;
-          continue; 
-        }
-        yieldL0.push_back(dum2), yieldL0Er.push_back(dum3);
-      }
-      infileL0Yield.close();
-    } else {
-      cout<<red<<"didn't find lasOff bgd file "<<Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
-      return -1;
-    }
-
-    infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
-    if(infileYield.is_open()) {
-      if(debug1) cout<<"Reading the qNorm Laser On Yield for Plane "<<plane<<endl;
-      while(infileYield>>dum1>>dum2>>dum3>>dum4 && infileYield.good()) {
-        if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-          //cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
-          continue; 
-        }
-        yieldL1.push_back(dum2), yieldL1Er.push_back(dum3), asymNr.push_back(dum4);
-      }
-      infileYield.close();
-    } else {
-      cout<<red<<"did not find the bgd subtracted yield file "<<Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
-      return -1;
-    }
-
-    ///Estimate the compton edge location
-    for(Int_t s=0; s<=(Int_t)trueStrip.size(); s++) {
-      //Int_t s = trueStrip[i];///actual strip number
-      //if((((yieldL1[s]-yieldL0[s]))< (yieldL0[s]+100.0*yieldL0Er[s])) && trueStrip[s]>edgeClamp) {
-      if( (yieldL1.at(s)-yieldL0.at(s) < 100.0*yieldL0Er.at(s) ) && s>25) {
-        ///there are cases when strip-1 has beamOff counts higher than bgd sub counts due to halo eg.run23246
-        ///hence the above condition of s>25 is applied to ensure that trueStrip.at(s-1) does not access strip-1
-        Cedge = trueStrip.at(s-1); ///since the above condition is fulfiled after crossing Cedge
-        cout<<"probable Cedge : "<<Cedge<<endl;
-        polSign = asym.at(s-1) > 0 ? 1 : 0;
-        kFoundCE = 1;
-        break;
-      }
-    }
-
-    if(kFoundCE) {
-      cout<<"\nCompton edge for plane "<<plane<<" auto-determined to strip "<<Cedge<<endl;
-      if(polSign) cout<<"sign of polarization is positive\n"<<endl;
-      else cout<<"sign of polarization is negative\n"<<endl;
-    } else cout<<red<<"**** Alert: Did not find Cedge for plane "<<plane<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
-
-    TCanvas *cAsym;
-    TGraphErrors *grAsym;
-
-    cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300);
-
-      xCedge = rhoToX(); ///this function should be called after determining the Cedge
-
-      paramfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane));
-      cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
-      paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
-      paramfile.close();
-      if(debug) printf("%g\t%g\t%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3],param[4],param[5]);
-
-      cAsym->cd();  
-      //cAsym->GetPad(1)->SetGridx(1);
-      cAsym->SetGridx(1);
-
-      grAsym=new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),asym.data(),0,asymEr.data()); 
-      grAsym->GetXaxis()->SetTitle("Strip number");
-      grAsym->GetYaxis()->SetTitle("asymmetry");   
-      //grAsym->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",plane));//Form("experimental asymmetry Run: %d, Plane %d",runnum,plane));
-      grAsym->SetMarkerStyle(kFullCircle);
-      grAsym->SetLineColor(kRed);
-      grAsym->SetMarkerColor(kRed); ///kRed+2 = Maroon
-      grAsym->SetMaximum(0.048); 
-      grAsym->SetMinimum(-0.048);
-      grAsym->GetXaxis()->SetLimits(1,65); 
-      //grAsym->GetXaxis()->SetNdivisions(416, kFALSE);
-
-      grAsym->Draw("AP");
-      tempCedge = Cedge;//-0.5;///this should be equated before the declaration of TF1
-
-      ///2 parameter fit
-      polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,2);
-      //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge,3);//use strips after the first 10 strips
-      if(polSign) { //positive
-        polFit->SetParameters(tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-        polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
-        polFit->SetParLimits(1,0.68,0.94);///allowing polarization to be 50% to 93%
-      } else {     //negative
-        polFit->SetParameters(tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-        polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
-        polFit->SetParLimits(1,-0.94,-0.68);
-      }
-      cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
-
-      polFit->SetParNames("comptonEdge","polarization");
-      polFit->SetLineColor(kBlue);
-      cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
-      //TVirtualFitter::SetMaxIterations(50000);
-
-      Int_t numbIterations = 0;
-      while(status!=0) { ///if not converged, reuse results of previous fit to refit
-        TFitResultPtr fitr = grAsym->Fit("polFit","RMES 0");
-        status = int (fitr);
-        cout<<green<<"the polarization fit status "<<status<<endl;
-
-        cEdge = polFit->GetParameter(0);
-        cEdgeEr = polFit->GetParError(0);
-        pol = polFit->GetParameter(1);
-        polEr = polFit->GetParError(1);
-        polFit->SetParameters(cEdge,pol);
-        polFit->SetParLimits(0, cEdge-1, cEdge+1);///allowing CE to change by +/- 1 strip
-        polFit->SetParLimits(1, pol-0.02, pol+0.02);///allowing pol% to change by +/- 2%
-        //polFit->SetParLimits(0, cEdge-cEdgeEr, cEdge+cEdgeEr);
-        //polFit->SetParLimits(1, pol-polEr, pol+polEr);
-        numbIterations++;
-        //if("SUCCESSFUL"==gMinuit->fCstatu) {
-        //  cout<<blue<<"fit status: "<<gMinuit->fCstatu<<normal<<endl;
-        //  break;
-        //}
-        if(status==0) {
-          cout<<blue<<"polarization fit converged"<<normal<<endl;
-          break;
-        } else if(numbIterations>maxIterations) {
-          cout<<magenta<<"maximum ("<<maxIterations<<") no.of iterations attempted, hence exiting"<<endl;
-          break;
-      } 
-
-      polFit->DrawCopy("same");
+      cout<<magenta<<"updated the fit parameters with the MINOS fit results"<<normal<<endl;
+      cEdge = polFit->GetParameter(0);
+      cEdgeEr = polFit->GetParError(0);
+      pol = polFit->GetParameter(1);
+      polEr = polFit->GetParError(1);
       chiSq = polFit->GetChisquare();
       NDF = polFit->GetNDF();
+    }
+  } 
+  ///sometimes (eg.22773) the fit fails after I try to apply MINOS, though it succeeded earlier
+  //..so the following while loop should operate independent of the preceeding 'if' loop
+  //
+  while (status!=0) {
+    numbIterations++;
+    cout<<blue<<"repeating attempt to fit without MINOS, attempt# "<<numbIterations<<normal<<endl;
+    //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Simplex");///failed r22987
+    //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Minimize");//failed r22987
+    ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Scan");
+    fitr = grAsym->Fit("polFit","RES 0");
+    status = int (fitr);
+    if(numbIterations>maxIterations) {
+      cout<<magenta<<"maximum no.of iterations ("<<maxIterations<<") attempted, hence exiting"<<normal<<endl;
+      break;
+    }
+    cEdge = polFit->GetParameter(0);
+    cEdgeEr = polFit->GetParError(0);
+    pol = polFit->GetParameter(1);
+    polEr = polFit->GetParError(1);
+    chiSq = polFit->GetChisquare();
+    NDF = polFit->GetNDF();
+  }
 
-      if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
-      polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePre.Data()));
-      polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tgoodCyc"<<endl;
-      polList<<Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag);
-      if(debug) {
-        cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\tplane");
-        cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\n\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane);      
+  polFit->DrawCopy("same");
+
+  if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
+  polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePre.Data()));
+  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tgoodCyc"<<endl;
+  polList<< Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
+  if(debug) {
+    cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\tplane\tfitStatus\tgoodCyc");
+    cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
+  }
+  leg = new TLegend(0.101,0.73,0.30,0.9);
+  leg->AddEntry(grAsym,"measured","lpe");///I just need the name
+  leg->AddEntry("polFit","QED fit","l");//"lpf");//
+  leg->SetFillColor(0);
+  leg->Draw();
+
+  if (polSign) pt = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
+  else  pt = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
+
+  pt->SetTextSize(0.060);//0.028); 
+  pt->SetBorderSize(1);
+  pt->SetTextAlign(12);
+  pt->SetFillColor(-1);
+  pt->SetShadowColor(-1);
+
+  pt->AddText(Form("chi Sq / ndf       : %.3f",chiSq/NDF));
+  pt->AddText(Form("Compton Edge : %2.2f #pm %2.2f",cEdge,cEdgeEr));
+  pt->AddText(Form("Polarization      : %2.2f #pm %2.2f",pol*100.0,polEr*100.0));
+  pt->Draw();
+  myline->Draw();
+  polList.close();
+
+  for (Int_t s = startStrip; s < (Int_t)trueStrip.size(); s++) {///trueStrip will be the no.of used strips including post CE
+    if (trueStrip.at(s) < cEdge) usedStrips++;  ///cEdge determined in preceeding section 
+  }
+  if(debug) cout<<blue<<"used a total of "<<usedStrips<<" strips upto the CE"<<normal<<endl;
+  TF1 *linearFit = new TF1("linearFit", "pol0",startStrip+1,cEdge);
+  linearFit->SetLineColor(kRed);
+
+  if(kBgdAsym) {
+    //!This is not meant to be able to deal with different planes, the need wasn't felt
+    TGraphErrors *grBgd; 
+    TCanvas *cBgd = new TCanvas("cBgd","Bgd Asymmetry",10,650,900,300);
+    TPaveText *ptBgd;
+
+    //ifstream fBgdAsym;
+    std::vector <Double_t> bgdAsym, bgdAsymEr;
+    ///Read in the background asymmetry file
+    cBgd->cd();
+    fBgdAsym.open(Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
+    //fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
+    if(fBgdAsym.is_open()) {
+      if(debug2) cout<<"Reading the bgdAsym file for Plane "<<plane<<endl;
+      if(debug2) cout<<"strip\t"<<"bgdAsym\t"<<"bgdAsymEr"<<endl;
+      while( fBgdAsym>>dum1>>dum2>>dum3 && fBgdAsym.good() ) {
+        if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
+          if(debug1) cout<<green<<"skipping strip "<<dum1<<normal<<endl;
+          continue; 
+        }
+        bgdAsym.push_back(dum2),bgdAsymEr.push_back(dum3);
+        if(debug2) cout<<blue<<dum1<<"\t"<<bgdAsym.back()<<"\t"<<bgdAsymEr.back()<<normal<<endl;
       }
-      leg = new TLegend(0.101,0.73,0.30,0.9);
-      leg->AddEntry(grAsym,"measured","lpe");///I just need the name
-      leg->AddEntry("polFit","QED fit","l");//"lpf");//
-      leg->SetFillColor(0);
-      leg->Draw();
+      fBgdAsym.close();
+    } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
+    //cout<<(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),plane))<<endl;
 
-      if (polSign) pt = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
-      else  pt = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
+    grBgd = new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),bgdAsym.data(),0,bgdAsymEr.data());
+    grBgd->Draw("AP");
+    grBgd->GetXaxis()->SetTitle("Strip number");
+    grBgd->GetYaxis()->SetTitle("bgd asymmetry");   
+    grBgd->SetTitle(0);
+    grBgd->SetMarkerStyle(kFullCircle);
+    grBgd->SetLineColor(kBlue);
+    grBgd->SetMarkerColor(kBlue); ///kRed+2 = Maroon
+    //grBgd->GetXaxis()->SetLimits(1,65); 
+    grBgd->Fit(linearFit,"RE");//q:quiet mode
 
-      pt->SetTextSize(0.060);//0.028); 
-      pt->SetBorderSize(1);
-      pt->SetTextAlign(12);
-      pt->SetFillColor(-1);
-      pt->SetShadowColor(-1);
+    bgdAsymFit = linearFit->GetParameter(0);
+    bgdAsymFitEr = linearFit->GetParError(0);
+    chiSqBgdAsym = linearFit->GetChisquare();
+    bgdAsymFitNDF = linearFit->GetNDF();
 
-      pt->AddText(Form("chi Sq / ndf       : %.3f",chiSq/NDF));
-      pt->AddText(Form("Compton Edge : %2.2f #pm %2.2f",cEdge,cEdgeEr));
-      pt->AddText(Form("Polarization      : %2.2f #pm %2.2f",pol*100.0,polEr*100.0));
-      pt->Draw();
-      myline->Draw();
-    polList.close();
+    ptBgd = new TPaveText(0.67,0.67,0.9,0.9,"brNDC");///x1,y1,x2,y2
+    ptBgd->SetTextSize(0.048);//0.028); 
+    ptBgd->SetBorderSize(1);
+    ptBgd->SetTextAlign(12);
+    ptBgd->SetFillColor(0);
+    ptBgd->SetShadowColor(-1);
+    ptBgd->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqBgdAsym,bgdAsymFitNDF));
+    ptBgd->AddText(Form("linear fit    : %f #pm %f",bgdAsymFit, bgdAsymFitEr));
+    ptBgd->Draw();
+  }
 
-    for (Int_t s = startStrip; s < (Int_t)trueStrip.size(); s++) {///trueStrip will be the no.of used strips including post CE
-      if (trueStrip.at(s) < cEdge) usedStrips++;  ///cEdge determined in preceeding section 
-    }
-    if(debug) cout<<blue<<"used a total of "<<usedStrips<<" strips upto the CE"<<normal<<endl;
-    TF1 *linearFit = new TF1("linearFit", "pol0",startStrip+1,cEdge);
-    linearFit->SetLineColor(kRed);
+  if(kResidual) {
+    TCanvas *cResidual;
+    TGraphErrors *grResiduals; 
+    cResidual = new TCanvas("cResidual","residual (Asymmetry - Fit)",10,500,900,300);
+    std::vector<Double_t> residueEr; 
 
-    if(kBgdAsym) {
-      //!This is not meant to be able to deal with different planes, the need wasn't felt
-      TGraphErrors *grBgd; 
-      TCanvas *cBgd = new TCanvas("cBgd","Bgd Asymmetry",10,650,900,300);
-      TPaveText *ptBgd;
-
-      //ifstream fBgdAsym;
-      std::vector <Double_t> bgdAsym, bgdAsymEr;
-      ///Read in the background asymmetry file
-      cBgd->cd();
-        fBgdAsym.open(Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
-        //fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
-        if(fBgdAsym.is_open()) {
-          if(debug2) cout<<"Reading the bgdAsym file for Plane "<<plane<<endl;
-          if(debug2) cout<<"strip\t"<<"bgdAsym\t"<<"bgdAsymEr"<<endl;
-          while( fBgdAsym>>dum1>>dum2>>dum3 && fBgdAsym.good() ) {
-            if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-              if(debug1) cout<<green<<"skipping strip "<<dum1<<normal<<endl;
-              continue; 
-            }
-            bgdAsym.push_back(dum2),bgdAsymEr.push_back(dum3);
-            if(debug2) cout<<blue<<dum1<<"\t"<<bgdAsym.back()<<"\t"<<bgdAsymEr.back()<<normal<<endl;
-          }
-          fBgdAsym.close();
-        } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
-        //cout<<(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),plane))<<endl;
-
-        grBgd = new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),bgdAsym.data(),0,bgdAsymEr.data());
-        grBgd->Draw("AP");
-        grBgd->GetXaxis()->SetTitle("Strip number");
-        grBgd->GetYaxis()->SetTitle("bgd asymmetry");   
-        grBgd->SetTitle(0);
-        grBgd->SetMarkerStyle(kFullCircle);
-        grBgd->SetLineColor(kBlue);
-        grBgd->SetMarkerColor(kBlue); ///kRed+2 = Maroon
-        //grBgd->GetXaxis()->SetLimits(1,65); 
-        grBgd->Fit(linearFit,"RE");//q:quiet mode
-
-        bgdAsymFit = linearFit->GetParameter(0);
-        bgdAsymFitEr = linearFit->GetParError(0);
-        chiSqBgdAsym = linearFit->GetChisquare();
-        bgdAsymFitNDF = linearFit->GetNDF();
-
-        ptBgd = new TPaveText(0.67,0.67,0.9,0.9,"brNDC");///x1,y1,x2,y2
-        ptBgd->SetTextSize(0.048);//0.028); 
-        ptBgd->SetBorderSize(1);
-        ptBgd->SetTextAlign(12);
-        ptBgd->SetFillColor(0);
-        ptBgd->SetShadowColor(-1);
-        ptBgd->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqBgdAsym,bgdAsymFitNDF));
-        ptBgd->AddText(Form("linear fit    : %f #pm %f",bgdAsymFit, bgdAsymFitEr));
-        ptBgd->Draw();
+    std::vector<Double_t> fitResidue;
+    ///determining the residue of the above fit
+    if(debug2) cout<<"strip\tfitResidue.at(s)\tstripAsym.at(s)\tpolFit->Eval(s)"<<endl;
+    for (Int_t s = startStrip; s < usedStrips; s++) {
+      stripCE.push_back(trueStrip.at(s));
+      residueEr.push_back(asymEr.at(s));
+      fitResidue.push_back( asym.at(s) - polFit->Eval(trueStrip.at(s)) );
+      if(debug2) cout<<trueStrip.at(s)<<"\t"<<fitResidue.at(s)<<"\t"<<asym.at(s)<<"\t"<<polFit->Eval(trueStrip.at(s))<<endl;
     }
 
-    if(kResidual) {
-      TCanvas *cResidual;
-      TGraphErrors *grResiduals; 
-      cResidual = new TCanvas("cResidual","residual (Asymmetry - Fit)",10,500,900,300);
-      std::vector<Double_t> residueEr; 
+    cResidual->cd();  
+    cResidual->SetGridx(1);
+    grResiduals=new TGraphErrors((Int_t)stripCE.size(),stripCE.data(),fitResidue.data(),0,residueEr.data());
+    grResiduals->SetMarkerStyle(kOpenCircle);
+    //grResiduals->SetMaximum(0.012);/// half of asymmetry axis 
+    //grResiduals->SetMinimum(-0.012);/// half of asymmetry axis 
+    //grResiduals->GetXaxis()->SetLimits(1,Cedge); 
+    //grResiduals->SetTitle(Form(dataType+" Mode Asymmetry Fit Residual, Plane %d",plane));
+    grResiduals->SetTitle(0);
+    grResiduals->GetXaxis()->SetTitle("Compton electron detector strip number");
+    grResiduals->GetYaxis()->SetTitle("asymmetry - Fit");
 
-        std::vector<Double_t> fitResidue;
-        ///determining the residue of the above fit
-        if(debug2) cout<<"strip\tfitResidue.at(s)\tstripAsym.at(s)\tpolFit->Eval(s)"<<endl;
-        for (Int_t s = startStrip; s < usedStrips; s++) {
-          stripCE.push_back(trueStrip.at(s));
-          residueEr.push_back(asymEr.at(s));
-          fitResidue.push_back( asym.at(s) - polFit->Eval(trueStrip.at(s)) );
-          if(debug2) cout<<trueStrip.at(s)<<"\t"<<fitResidue.at(s)<<"\t"<<asym.at(s)<<"\t"<<polFit->Eval(trueStrip.at(s))<<endl;
-        }
+    grResiduals->Draw("AP");
+    grResiduals->Fit(linearFit,"REq");//q:quiet mode
 
-        cResidual->cd();  
-        cResidual->SetGridx(1);
-        grResiduals=new TGraphErrors((Int_t)stripCE.size(),stripCE.data(),fitResidue.data(),0,residueEr.data());
-        grResiduals->SetMarkerStyle(kOpenCircle);
-        //grResiduals->SetMaximum(0.012);/// half of asymmetry axis 
-        //grResiduals->SetMinimum(-0.012);/// half of asymmetry axis 
-        //grResiduals->GetXaxis()->SetLimits(1,Cedge); 
-        //grResiduals->SetTitle(Form(dataType+" Mode Asymmetry Fit Residual, Plane %d",plane));
-        grResiduals->SetTitle(0);
-        grResiduals->GetXaxis()->SetTitle("Compton electron detector strip number");
-        grResiduals->GetYaxis()->SetTitle("asymmetry - Fit");
+    resFit = linearFit->GetParameter(0);
+    resFitEr = linearFit->GetParError(0);
+    chiSqResidue = linearFit->GetChisquare();
+    resFitNDF = linearFit->GetNDF();
 
-        grResiduals->Draw("AP");
-        grResiduals->Fit(linearFit,"REq");//q:quiet mode
+    ptRes = new TPaveText(0.67,0.67,0.9,0.9,"brNDC");///x1,y1,x2,y2
+    ptRes->SetTextSize(0.048);//0.028); 
+    ptRes->SetBorderSize(1);
+    ptRes->SetTextAlign(12);
+    ptRes->SetFillColor(0);
+    ptRes->SetShadowColor(-1);
+    ptRes->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqResidue,resFitNDF));
+    ptRes->AddText(Form("linear fit    : %f #pm %f",resFit,resFitEr));
+    ptRes->Draw();
+    cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePre.Data()));
+  }
+  fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePre.Data()));
+  fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
+  fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
+  fitInfo.close();
 
-        resFit = linearFit->GetParameter(0);
-        resFitEr = linearFit->GetParError(0);
-        chiSqResidue = linearFit->GetChisquare();
-        resFitNDF = linearFit->GetNDF();
+  if (kYield) { ///determine yield
+    TCanvas *cYield;
+    TGraphErrors *grYield,*grB1L0;
+    TMultiGraph *grAsymDrAll;
+    cYield = new TCanvas("cYield","detector yield",300,200,1000,300);
 
-        ptRes = new TPaveText(0.67,0.67,0.9,0.9,"brNDC");///x1,y1,x2,y2
-        ptRes->SetTextSize(0.048);//0.028); 
-        ptRes->SetBorderSize(1);
-        ptRes->SetTextAlign(12);
-        ptRes->SetFillColor(0);
-        ptRes->SetShadowColor(-1);
-        ptRes->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqResidue,resFitNDF));
-        ptRes->AddText(Form("linear fit    : %f #pm %f",resFit,resFitEr));
-        ptRes->Draw();
-      cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePre.Data()));
+    cYield->cd();
+    cYield->SetGridx(1);
+    grYield = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL1.data(), 0, yieldL1Er.data());
+    grYield->SetLineColor(kGreen);
+    grYield->SetFillColor(kGreen);   
+    grYield->SetMarkerColor(kGreen); ///kRed+2 = Maroon
+
+    ///3 parameter fit for cross section
+    if(kYieldFit) {
+      TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,Cedge-1,3);///three parameter fit
+      crossSecFit->SetParameters(1,Cedge,20.0);//begin the fitting from the generic Cedge
+      crossSecFit->SetParLimits(0,0.2,2.0);
+      crossSecFit->SetParLimits(1,Cedge,Cedge); //effectively fixing the Compton edge    
+      crossSecFit->SetLineColor(kRed);
+      grYield->Fit("crossSecFit","0 R M E q");
     }
-    fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePre.Data()));
-    fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
-    fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
-    fitInfo.close();
+    grB1L0 = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL0.data(), 0, yieldL0Er.data());
+    grB1L0->SetFillColor(kBlue);
+    grB1L0->SetLineColor(kBlue);
+    grB1L0->SetMarkerColor(kBlue);
 
-    if (kYield) { ///determine yield
-      TCanvas *cYield;
-      TGraphErrors *grYield,*grB1L0;
-      TMultiGraph *grAsymDrAll;
-      cYield = new TCanvas("cYield","detector yield",300,200,1000,300);
+    grAsymDrAll = new TMultiGraph();
+    grAsymDrAll->Add(grYield);
+    grAsymDrAll->Add(grB1L0);
 
-        cYield->cd();
-        cYield->SetGridx(1);
-        grYield = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL1.data(), 0, yieldL1Er.data());
-        grYield->SetLineColor(kGreen);
-        grYield->SetFillColor(kGreen);   
-        grYield->SetMarkerColor(kGreen); ///kRed+2 = Maroon
+    //grAsymDrAll->SetTitle(Form(dataType+" Mode Yield, Plane %d",plane));
+    grAsymDrAll->Draw("AB");//for some reason!:Tmultigraph wants the axis settings to come after having drawn the graph
 
-        ///3 parameter fit for cross section
-        if(kYieldFit) {
-          TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,Cedge-1,3);///three parameter fit
-          crossSecFit->SetParameters(1,Cedge,20.0);//begin the fitting from the generic Cedge
-          crossSecFit->SetParLimits(0,0.2,2.0);
-          crossSecFit->SetParLimits(1,Cedge,Cedge); //effectively fixing the Compton edge    
-          crossSecFit->SetLineColor(kRed);
-          grYield->Fit("crossSecFit","0 R M E q");
-        }
-        grB1L0 = new TGraphErrors((Int_t)trueStrip.size(), trueStrip.data(), yieldL0.data(), 0, yieldL0Er.data());
-        grB1L0->SetFillColor(kBlue);
-        grB1L0->SetLineColor(kBlue);
-        grB1L0->SetMarkerColor(kBlue);
+    grAsymDrAll->GetXaxis()->SetTitle("Compton electron detector strip number");
+    grAsymDrAll->GetYaxis()->SetTitle("qNorm Counts (Hz/uA)");
+    //grAsymDrAll->GetXaxis()->SetNdivisions(416, kFALSE);
+    grAsymDrAll->GetXaxis()->SetLimits(1,65); 
 
-        grAsymDrAll = new TMultiGraph();
-        grAsymDrAll->Add(grYield);
-        grAsymDrAll->Add(grB1L0);
+    legYield = new TLegend(0.101,0.75,0.44,0.9);
+    legYield->AddEntry(grYield,"background corrected detector yield","lpe");
+    if(kYieldFit) legYield->AddEntry("crossSecFit","theoretical cross-section","l");
+    legYield->AddEntry(grB1L0,"background(Hz/uA)","lpe");
+    legYield->SetFillColor(0);
+    legYield->Draw();
+    cYield->SaveAs(Form("%s/%s/%s"+dataType+"YieldFit.png",pPath,webDirectory,filePre.Data()));
+  }
 
-        //grAsymDrAll->SetTitle(Form(dataType+" Mode Yield, Plane %d",plane));
-        grAsymDrAll->Draw("AB");//for some reason!:Tmultigraph wants the axis settings to come after having drawn the graph
-
-        grAsymDrAll->GetXaxis()->SetTitle("Compton electron detector strip number");
-        grAsymDrAll->GetYaxis()->SetTitle("qNorm Counts (Hz/uA)");
-        //grAsymDrAll->GetXaxis()->SetNdivisions(416, kFALSE);
-        grAsymDrAll->GetXaxis()->SetLimits(1,65); 
-
-        legYield = new TLegend(0.101,0.75,0.44,0.9);
-        legYield->AddEntry(grYield,"background corrected detector yield","lpe");
-        if(kYieldFit) legYield->AddEntry("crossSecFit","theoretical cross-section","l");
-        legYield->AddEntry(grB1L0,"background(Hz/uA)","lpe");
-        legYield->SetFillColor(0);
-        legYield->Draw();
-      cYield->SaveAs(Form("%s/%s/%s"+dataType+"YieldFit.png",pPath,webDirectory,filePre.Data()));
-    }
-
-    cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePre.Data()));
-    //  tEnd = time(0);
-    //  div_output = div((Int_t)difftime(tEnd, tStart),60);
-    //  printf("\n it took %d minutes %d seconds to execute asymFit.C\n",div_output.quot,div_output.rem );  
-    return 1;
+  cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePre.Data()));
+  //  tEnd = time(0);
+  //  div_output = div((Int_t)difftime(tEnd, tStart),60);
+  //  printf("\n it took %d minutes %d seconds to execute asymFit.C\n",div_output.quot,div_output.rem );  
+  return 1;
   }
 
   /*Comments

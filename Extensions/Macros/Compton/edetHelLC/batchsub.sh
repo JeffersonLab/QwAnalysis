@@ -8,7 +8,7 @@ dataType=Ac2ParDT
 found=no
 #for i in `seq 23324 23324`;
 for i in `seq 22659 25546`;
-#for i in `seq 23449 23449`;
+#for i in `seq 23320 24500`;
 #for i in `seq 23220 23530`;
 #for i in `seq 23241 23530`;
 do

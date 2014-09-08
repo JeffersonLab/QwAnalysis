@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <set>
 #include "TVirtualFitter.h"
+#include <Math/MinimizerOptions.h>
 using namespace std;
 
 char red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
