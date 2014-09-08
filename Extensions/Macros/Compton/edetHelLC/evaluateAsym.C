@@ -1,7 +1,6 @@
-#include "evaluateAsym.h"
 #include "rootClass.h"
 #include "comptonRunConstants.h"
-#include "rhoToX.h"
+#include "rhoToX.C"
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs

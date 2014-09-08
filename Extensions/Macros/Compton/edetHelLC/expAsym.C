@@ -1,20 +1,19 @@
 ///Author: Amrendra Narayan
 ///Courtesy: Don Jones seeded the code 
-#include "expAsym.h"
 #include "rootClass.h"
-#include "getEBeamLasCuts.h"
+#include "getEBeamLasCuts.C"
 #include "comptonRunConstants.h"
-#include "rhoToX.h"
-#include "evaluateAsym.h"
-#include "infoDAQ.h"
-#include "weightedMean.h"
-#include "writeToFile.h"
-#include "qNormVariables.h"
+#include "rhoToX.C"
+#include "evaluateAsym.C"
+#include "infoDAQ.C"
+#include "weightedMean.C"
+#include "writeToFile.C"
+#include "qNormVariables.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
 
-Int_t expAsym(Int_t runnum, TString dataType)
+Int_t expAsym(Int_t runnum, TString dataType="Ac")
 {
   cout<<"\nstarting into expAsym.C**************with dataType: "<<dataType<<"\n"<<endl;
   filePre = Form(filePrefix,runnum,runnum);

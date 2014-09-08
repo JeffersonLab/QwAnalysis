@@ -1,3 +1,5 @@
+#ifndef __WEIGHTEDMEAN_F
+#define __WEIGHTEDMEAN_F
 
 #include "comptonRunConstants.h"
 
@@ -31,3 +33,4 @@ Double_t weightedMean()//Double_t wmNrAsym[nStrips],Double_t wmDrAsym[nStrips],D
   return 1.0;
 }
 //weightedMean : wm
+#endif

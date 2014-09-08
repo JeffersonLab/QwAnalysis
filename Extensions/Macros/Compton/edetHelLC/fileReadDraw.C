@@ -1,10 +1,9 @@
-#include "fileReadDraw.h"
-#include "rootClass.h"
+#include <rootClass.h>
 #include "comptonRunConstants.h"
-#include "rhoToX.h"
-#include "infoDAQ.h"
+#include "rhoToX.C"
+#include "infoDAQ.C"
 
-Int_t fileReadDraw(Int_t runnum,TString dataType)
+Int_t fileReadDraw(Int_t runnum=24519,TString dataType="Ac") 
 {
   cout<<"\nstarting into fileReadDraw.C**************\n"<<endl;
   Bool_t kBkgdAsym=0;//plots the asymmetry from Laser off events
