@@ -38,20 +38,20 @@ if [ -z "${PASS}" ] ; then
 	exit
 fi
 
+SED=`mktemp ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.XXXXXX.sed`
+XML=`mktemp ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.XXXXXX.xml`
+echo "s|%QWANALYSIS%|${QWANALYSIS}|g"	>> ${SED}
+echo "s|%QWSCRATCH%|${QWSCRATCH}|g"	>> ${SED}
+echo "s|%USER%|${USER}|g"	>> ${SED}
+echo "s|%DATE%|${DATE}|g"	>> ${SED}
+echo "s|%TIME%|${TIME}|g"	>> ${SED}
+echo "s|%PASS%|${PASS}|g"	>> ${SED}
+echo "s|%RUN%|${RUN}|g"		>> ${SED}
+echo "s|%OTHER%|${OTHER}|g"	>> ${SED}
 
-rm -f ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%QWANALYSIS%|${QWANALYSIS}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%QWSCRATCH%|${QWSCRATCH}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%USER%|${USER}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%DATE%|${DATE}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%TIME%|${TIME}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%PASS%|${PASS}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%RUN%|${RUN}|g"		>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%OTHER%|${OTHER}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
+BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml
+sed -f ${SED} ${BASE} > ${XML}
 
-sed -f ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed \
-       ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml \
-> ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.xml
+echo "Job: ${XML}"
+jsub -xml  ${XML}
 
-echo "Job: ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.xml"
-jsub -xml ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.xml
