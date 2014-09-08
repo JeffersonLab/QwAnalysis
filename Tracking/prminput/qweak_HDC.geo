@@ -692,6 +692,7 @@ detector_roll = 0
     detector_origin_y = 55.265
   
 [HDC_pkg2_back_plane10_x]
+  active = false
   plane = 10
   package = 2
   direction = x
