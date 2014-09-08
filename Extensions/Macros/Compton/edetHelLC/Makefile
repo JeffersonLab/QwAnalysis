@@ -11,7 +11,7 @@ CPPFLAGS := -g
 all:$(Target)
 
 $(Target): $(Target).cpp $(OBJ_FILES)
-	$(CXX) -o $@ $(Target).cpp $(OBJ_FILES) $(ROOTFLAGS) $(ROOTLIBS)
+	$(CXX) -o $@ $(CFLAGS) $(CPPFLAGS) $(Target).cpp $(OBJ_FILES) $(ROOTFLAGS) $(ROOTLIBS)
 
 %.o: %.C
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(ROOTFLAGS) -c -o $@ $<

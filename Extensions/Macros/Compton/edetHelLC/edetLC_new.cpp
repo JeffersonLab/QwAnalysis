@@ -14,10 +14,10 @@ int main(int argc, char** argv)
 {
   Int_t runnum = 24519;
   TString dataType = "Ac";
-  if(argc >= 1 ) {
+  if(argc > 1 ) {
     runnum = atoi(argv[1]);
   }
-  if(argc >= 2 ) {
+  if(argc > 2 ) {
     dataType = TString(argv[2]);
   }
 
