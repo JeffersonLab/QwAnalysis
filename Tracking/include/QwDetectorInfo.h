@@ -128,7 +128,10 @@ class QwDetectorInfo: public TObject {
 
     // Get/set number of elements
     int GetNumberOfElements() const { return fNumberOfElements; };
-    void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
+    void SetNumberOfElements(const int nelements) {
+      fNumberOfElements = nelements;
+      fEfficiency.assign(nelements,1.0);
+    };
 
     // Get/set detector pitch (in degrees)
     double GetDetectorPitch() const { return fDetectorPitch; };
@@ -215,6 +218,30 @@ class QwDetectorInfo: public TObject {
     EQwDirectionID GetDirection() const { return fDirection; };
     int GetPlane() const { return fPlane; };
 
+    // Get element efficiency
+    double GetElementEfficiency(int element) const {
+      try {
+        return fEfficiency.at(element);
+      } catch (std::exception& e) {
+        QwWarning << "Undefined efficiency for element " << element << " in "
+            << *this << QwLog::endl;
+        return 0.0;
+      }
+    }
+    // Set element efficiency
+    void SetElementEfficiency(int element, double efficiency) {
+      try {
+        fEfficiency.at(element) = efficiency;
+      } catch (std::exception& e) {
+        QwWarning << "Undefined element " << element << " in "
+            << *this << QwLog::endl;
+      }
+    }
+    // Set element efficiency for all elements
+    void SetElementEfficiency(double efficiency) {
+      fEfficiency.assign(fEfficiency.size(),efficiency);
+    }
+
   private:
 
     // Detector information variables
@@ -275,6 +302,7 @@ class QwDetectorInfo: public TObject {
     double fPlaneOffset;        ///< Perpendicular distance from the first plane in the same direction
     int fNumberOfElements;	///< Total number of elements in this detector
     
+    std::vector<double> fEfficiency;//! ///< Efficiency of all elements
 
     QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 

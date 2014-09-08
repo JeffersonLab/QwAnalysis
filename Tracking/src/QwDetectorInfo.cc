@@ -90,11 +90,12 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
   }
 
   if (map->FileHasVariablePair("=","number_of_elements",varvalue))
-    fNumberOfElements = map->ConvertValue<int>(varvalue);
+    SetNumberOfElements(map->ConvertValue<int>(varvalue));
   if (map->FileHasVariablePair("=","element_spacing",varvalue))
-    fElementSpacing = map->ConvertValue<double>(varvalue) * Qw::cm;
+    SetElementSpacing(map->ConvertValue<double>(varvalue) * Qw::cm);
   if (map->FileHasVariablePair("=","element_offset",varvalue))
-    fElementOffset = map->ConvertValue<double>(varvalue) * Qw::cm;
+    SetElementOffset(map->ConvertValue<double>(varvalue) * Qw::cm);
+
   if (map->FileHasVariablePair("=","element_angle_cos",varvalue))
     fElementAngleCos = map->ConvertValue<double>(varvalue);
   if (map->FileHasVariablePair("=","element_angle_sin",varvalue))
@@ -124,6 +125,39 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
 
   if (map->FileHasVariablePair("=","active",varvalue))
     fIsActive = map->ConvertValue<bool>(varvalue);
+
+  if (map->FileHasVariablePair("=","efficiency",varvalue)) {
+    SetElementEfficiency(map->ConvertValue<double>(varvalue));
+  }
+  if (map->FileHasVariablePair("=","efficiency_list",varvalue)) {
+    std::string list = map->ConvertValue<string>(varvalue);
+    size_t begin = 0; // start of a 'element:efficiency' pair
+    while (begin < list.size()) {
+      // find next space
+      size_t end = list.find(' ',begin);
+      // if no space, point to end of the line
+      if (end == std::string::npos) end = list.size();
+      // get the 'element:efficiency' pair
+      std::string word = list.substr(begin,end-begin);
+      // find next colon
+      size_t colon = word.find(':');
+      // if no colon, stop
+      if (colon == std::string::npos) continue;
+#if defined(__GXX_EXPERIMENTAL_CXX0X) || __cplusplus >= 201103L
+      // get element and efficiency
+      int element = std::stoi(word.substr(0,colon));
+      double efficiency = std::stod(word.substr(colon+1,word.size()-colon-1));
+      SetElementEfficiency(element,efficiency);
+#else
+      QwError << "QwDetectorInfo efficiency requires C++0x or C++11 support." << QwLog::endl;
+      QwMessage << "Recompile with CXXFLAGS += -std=c++0x or CXXFLAGS += -std=c++11." << QwLog::endl;
+      exit(-1);
+#endif
+      // continue
+      begin = end+1;
+    }
+  }
+
 
   // A value of importance for region 2 only
   fPlaneOffset = fDetectorOriginY * fElementAngleCos + fDetectorOriginX * fElementAngleSin;

@@ -1883,6 +1883,13 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   hit->SetDriftDistance(distance);
   hit->SetSpatialResolution(spacing);
 
+  // Efficiency of this wire
+  double efficiency = detectorinfo->GetElementEfficiency(wire);
+  if (efficiency < 1.0 && double(rand() % 10000) / 10000.0 > efficiency) {
+    delete hit;
+    hit = 0;
+  }
+
   return hit;
 }
 
@@ -2028,9 +2035,14 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 
 //     std::cout<<"add a hit===>> region, package, octant, plane, direction, wire, distance: \n\t"
 //              <<region<<", "<<package<<", "<<octant<<", "<<plane<<", "<<direction<<", "<<wire<<", "<<distance<<std::endl;
-  
-    // Add hit to the list for this detector plane and delete local instance
-    hits.push_back(*hit);
+
+    // Efficiency of this wire
+    double efficiency = detectorinfo->GetElementEfficiency(wire);
+    if (efficiency == 1.0 || double(rand() % 10000) / 10000.0 < efficiency) {
+      // Add hit to the list for this detector plane and delete local instance
+      hits.push_back(*hit);
+    }
+
     delete hit;
   }
 
