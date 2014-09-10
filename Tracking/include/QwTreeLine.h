@@ -184,6 +184,17 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     /// calculate the upper and lower bound of the drift distance give the row number
     std::pair<double,double> CalculateDistance(int row,double width,unsigned int bins,double error);
 
+    /// Get vector for linked list of treelines
+    std::vector<QwTreeLine*> GetListAsVector() const {
+      std::vector<QwTreeLine*> list;
+      QwTreeLine* treeline = const_cast<QwTreeLine*>(this);
+      while (treeline) {
+        list.push_back(treeline);
+        treeline = treeline->next;
+      }
+      return list;
+    }
+
   private:
 
     bool fIsVoid;			///< has been found void
