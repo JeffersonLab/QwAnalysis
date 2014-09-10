@@ -505,6 +505,24 @@ void QwEvent::PrintPartialTracks(Option_t* option) const
     std::cout << **parttrack << std::endl;
 }
 
+// Get the list of partial tracks in region
+const std::vector<QwPartialTrack*> QwEvent::GetListOfPartialTracks(
+    EQwRegionID region,
+    EQwDetectorPackage package) const
+{
+  std::vector<QwPartialTrack*> partialtracks;
+  for (std::vector<QwPartialTrack*>::const_iterator
+      pt  = fQwPartialTracks.begin();
+      pt != fQwPartialTracks.end(); pt++) {
+    if ((*pt)->GetRegion() == region) {
+      if ((*pt)->GetPackage() == package) {
+        partialtracks.push_back(*pt);
+      }
+    }
+  }
+  return partialtracks;
+}
+
 
 // Create a new QwTrack
 QwTrack* QwEvent::CreateNewTrack()

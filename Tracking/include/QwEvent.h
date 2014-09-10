@@ -280,6 +280,8 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void ResetPartialTracks(Option_t *option = "");
     //! \brief Get the number of partial tracks
     Int_t GetNumberOfPartialTracks() const { return fNQwPartialTracks; };
+    //! \brief Get the list of partial tracks in region and direction
+    const std::vector<QwPartialTrack*> GetListOfPartialTracks(EQwRegionID region, EQwDetectorPackage package) const;
     //! \brief Get the list of partial tracks
     const std::vector<QwPartialTrack*>& GetListOfPartialTracks() const { return fQwPartialTracks; };
     //! \brief Get the specified partial track
