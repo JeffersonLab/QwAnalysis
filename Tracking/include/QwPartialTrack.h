@@ -166,6 +166,17 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     //Rotate coordinates to account for any rotator pitch, yaw, or roll
     void RotateRotator(const QwDetectorInfo* geometry);
 
+    /// Get vector for linked list of partial tracks
+    std::vector<QwPartialTrack*> GetListAsVector() const {
+      std::vector<QwPartialTrack*> list;
+      QwPartialTrack* partialtrack = const_cast<QwPartialTrack*>(this);
+      while (partialtrack) {
+        list.push_back(partialtrack);
+        partialtrack = partialtrack->next;
+      }
+      return list;
+    }
+
   public: // members
 
     Double_t fOffsetX;		///< x coordinate (at MAGNET_CENTER)

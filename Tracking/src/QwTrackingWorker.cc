@@ -890,22 +890,22 @@ void QwTrackingWorker::ProcessEvent (
       else
         R2package = (R3package == kPackage1)? kPackage1: kPackage2;
 
-      // QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
-
-      // Local copies of front and back track
-      QwPartialTrack* front = event->fPartialTrack[R2package][kRegionID2];
-      QwPartialTrack* back  = event->fPartialTrack[R3package][kRegionID3];
+      // Get the lists of partial tracks in the front and back detectors
+      std::vector<QwPartialTrack*> frontlist = event->fPartialTrack[R2package][kRegionID2]->GetListAsVector();
+      std::vector<QwPartialTrack*> backlist  = event->fPartialTrack[R3package][kRegionID3]->GetListAsVector();
 
       // Loop over all good front and back partial tracks
-      while (front) {
-        while (back) {
+      for (size_t ifront = 0; ifront < frontlist.size(); ifront++) {
+        QwPartialTrack* front = frontlist[ifront];
+
+        for (size_t iback = 0; iback < backlist.size(); iback++) {
+          QwPartialTrack* back = backlist[iback];
 
           // Filter reasonable pairs
           int status = fBridgingTrackFilter->Filter(front, back);
           status = 0;
           if (status != 0) {
             QwMessage << "Tracks did not pass filter." << QwLog::endl;
-            back = back->next;
             continue;
           }
 
@@ -915,22 +915,14 @@ void QwTrackingWorker::ProcessEvent (
             if (track) {
               event->AddTrack(track);
               delete track;
-              back = back->next;
-              continue;
             }
           }
 
-          // Next back track
-          back = back->next;
-
         } // end of loop over back tracks
-
-        // Next front track
-        front = front->next;
 
       } // end of loop over front tracks
 
-    } /* end of if*/
+    } // end of loop over packages
 
 
     // Calculate kinematics
