@@ -864,116 +864,74 @@ void QwTrackingWorker::ProcessEvent (
 
         } /* end of loop over the regions */
 
-
-        /* ==============================
-        * Correlate front and back
-        * tracks from x, y and y' infor-
-        * mation
-        * ============================== */
-
-        // If there were partial tracks in the HDC and VDC regions
-
-        if (! fDisableMomentum && !fMismatchPkg
-         && event->fPartialTrack[package][kRegionID2]
-         && event->fPartialTrack[package][kRegionID3]) {
-
-	  // QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
-
-            // Local copies of front and back track
-            QwPartialTrack* front = event->fPartialTrack[package][kRegionID2];
-            QwPartialTrack* back  = event->fPartialTrack[package][kRegionID3];
-
-            // Loop over all good front and back partial tracks
-            while (front) {
-              while (back) {
-
-                // Filter reasonable pairs
-                int status = fBridgingTrackFilter->Filter(front, back);
-                status = 0;
-                if (status != 0) {
-                  QwMessage << "Tracks did not pass filter." << QwLog::endl;
-                  back = back->next;
-                  continue;
-                }
-
-                // Attempt to bridge tracks using ray-tracing
-                if (! fDisableRayTracer) {
-                  const QwTrack* track = fRayTracer->Bridge(front, back);
-                  if (track) {
-                    event->AddTrack(track);
-                    delete track;
-                    back = back->next;
-                    continue;
-                  }
-                }
-
-                // Next back track
-                back = back->next;
-
-              } // end of loop over back tracks
-
-              // Next front track
-              front = front->next;
-
-            } // end of loop over front tracks
-
-        } /* end of */
-
     } /* end of loop over the detector packages */
 
-    if(fMismatchPkg && !fDisableMomentum){
-       for (EQwDetectorPackage R3package = kPackage1;
-	    R3package <= kPackage2; R3package++) {
-	  for (EQwDetectorPackage R2package = kPackage1;
-	       R2package <= kPackage2; R2package++) {
-	     if (R3package!=R2package
-	         && event->fPartialTrack[R2package][kRegionID2]
-	         && event->fPartialTrack[R3package][kRegionID3]) {
+    // Delete local copy of the hit list
+    delete hitlist;
 
-	  // QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
 
-            // Local copies of front and back track
-            QwPartialTrack* front = event->fPartialTrack[R2package][kRegionID2];
-            QwPartialTrack* back  = event->fPartialTrack[R3package][kRegionID3];
+    /* ==============================
+     * Correlate front and back
+     * tracks from x, y and y' infor-
+     * mation
+     * ============================== */
 
-            // Loop over all good front and back partial tracks
-            while (front) {
-              while (back) {
+    /// If momentum reconstruction is disabled
+    if (fDisableMomentum) return;
 
-                // Filter reasonable pairs
-                int status = fBridgingTrackFilter->Filter(front, back);
-                status = 0;
-                if (status != 0) {
-                  QwMessage << "Tracks did not pass filter." << QwLog::endl;
-                  back = back->next;
-                  continue;
-                }
+    // Loop over packages in region 3
+    for (EQwDetectorPackage R3package = kPackage1;
+        R3package <= kPackage2; R3package++) {
 
-                // Attempt to bridge tracks using ray-tracing
-                if (! fDisableRayTracer) {
-                  const QwTrack* track = fRayTracer->Bridge(front, back);
-                  if (track) {
-                    event->AddTrack(track);
-                    delete track;
-                    back = back->next;
-                    continue;
-                  }
-                }
+      // Determine package in region 2 (considering possibility of reversed run)
+      EQwDetectorPackage R2package;
+      if (fMismatchPkg)
+        R2package = (R3package == kPackage1)? kPackage2: kPackage1;
+      else
+        R2package = (R3package == kPackage1)? kPackage1: kPackage2;
 
-                // Next back track
-                back = back->next;
+      // QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
 
-              } // end of loop over back tracks
+      // Local copies of front and back track
+      QwPartialTrack* front = event->fPartialTrack[R2package][kRegionID2];
+      QwPartialTrack* back  = event->fPartialTrack[R3package][kRegionID3];
 
-              // Next front track
-              front = front->next;
+      // Loop over all good front and back partial tracks
+      while (front) {
+        while (back) {
 
-	    } // end of loop over front tracks
-
-	    } /* end of if*/
+          // Filter reasonable pairs
+          int status = fBridgingTrackFilter->Filter(front, back);
+          status = 0;
+          if (status != 0) {
+            QwMessage << "Tracks did not pass filter." << QwLog::endl;
+            back = back->next;
+            continue;
           }
-       }
-    }
+
+          // Attempt to bridge tracks using ray-tracing
+          if (! fDisableRayTracer) {
+            const QwTrack* track = fRayTracer->Bridge(front, back);
+            if (track) {
+              event->AddTrack(track);
+              delete track;
+              back = back->next;
+              continue;
+            }
+          }
+
+          // Next back track
+          back = back->next;
+
+        } // end of loop over back tracks
+
+        // Next front track
+        front = front->next;
+
+      } // end of loop over front tracks
+
+    } /* end of if*/
+
 
     // Calculate kinematics
     int num_of_bridged = event->GetNumberOfTracks();
@@ -981,9 +939,6 @@ void QwTrackingWorker::ProcessEvent (
       nbridged += num_of_bridged;
       event->CalculateKinematics(event->GetTrack(0));
     }
-
-    // Delete local objects
-    delete hitlist;
 
     // Print the result
     if (fDebug) event->Print();
