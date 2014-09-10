@@ -59,7 +59,6 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     /// Creating and adding partial tracks
     QwPartialTrack* CreateNewPartialTrack();
     void AddPartialTrack(const QwPartialTrack* partialtrack);
-    void AddPartialTrackList(const QwPartialTrack* partialtracklist);
     void AddPartialTrackList(const std::vector<QwPartialTrack*> &partialtracklist);
     void ClearPartialTracks(Option_t *option = "");
     void ResetPartialTracks(Option_t *option = "");

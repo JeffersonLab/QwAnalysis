@@ -271,8 +271,6 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Add an existing partial track as a copy
     void AddPartialTrack(const QwPartialTrack* partialtrack);
     //! \brief Add a list of existing partial tracks as a copy
-    void AddPartialTrackList(const QwPartialTrack* partialtracklist);
-    //! \brief Add a list of existing partial tracks as a copy
     void AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtracklist);
     //! \brief Clear the list of partial tracks
     void ClearPartialTracks(Option_t *option = "");
@@ -360,9 +358,6 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
     /*! list of tree lines [upper/lower][region][u/v/x/y] */
     QwTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumDirections]; //!
-
-    /*! list of partial tracks [package][region][type] */
-    QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions]; //!
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
     ClassDef(QwEvent,3);

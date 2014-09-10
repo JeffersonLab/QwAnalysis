@@ -33,8 +33,6 @@ QwEvent::QwEvent()
   // Loop over all pointer objects
   for (int i = 0; i < kNumPackages; ++i) {
     for (int j = 0; j < kNumRegions; ++j) {
-      // Null the partial track pointers
-      fPartialTrack[i][j] = 0;
       // Null the treeline pointers
       for (int k = 0; k < kNumDirections; ++k) {
         fTreeLine[i][j][k] = 0;
@@ -57,15 +55,6 @@ QwEvent::~QwEvent()
 
     for (int j = 0; j < kNumRegions; ++j) {
       
-        // Delete all those partial tracks
-         QwPartialTrack* pt = fPartialTrack[i][j];
-	 
-         while (pt) {
-           QwPartialTrack* pt_next = pt->next;
-           delete pt;
-           pt = pt_next;
-         }
-	
         // Delete all those treelines
          for (int k = 0; k < kNumDirections; ++k) {
            QwTreeLine* tl = fTreeLine[i][j][k];
@@ -454,16 +443,6 @@ void QwEvent::AddPartialTrack(const QwPartialTrack* partialtrack)
 {
   fQwPartialTracks.push_back(new QwPartialTrack(partialtrack));
   fNQwPartialTracks++;
-}
-
-// Add a linked list of QwPartialTrack's
-void QwEvent::AddPartialTrackList(const QwPartialTrack* partialtracklist)
-{
-  for (const QwPartialTrack *partialtrack = partialtracklist;
-         partialtrack; partialtrack =  partialtrack->next){
-    if (partialtrack->IsValid())
-      AddPartialTrack(partialtrack);
-  }
 }
 
 // Add a vector of QwPartialTracks

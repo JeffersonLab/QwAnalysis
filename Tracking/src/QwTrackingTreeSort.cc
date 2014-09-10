@@ -574,12 +574,11 @@ int QwTrackingTreeSort::rcTreeConnSort (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
+int QwTrackingTreeSort::rcPartConnSort (std::vector<QwPartialTrack*> parttracklist)
 {
   char *connarr;
   int *array;
   QwPartialTrack **ptarr, *parttrack;
-  int num, idx, i, j, bestconn;
   int  *isvoid;
   double   *chia, chi, maxch = 2000.0, nmaxch, nminch;
   /* ------------------------------------------------------------------
@@ -587,12 +586,14 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
    * ------------------------------------------------------------------ */
 
   int rep = 0;
+  int idx = 0;
   do {        /* filter out high chi2 if needed */
     rep++;
+    idx = 0;
     nmaxch = 0.0;
     nminch = maxch;
-    for (idx = 0, parttrack = parttracklist;
-         parttrack; parttrack = parttrack->next) {
+    for (size_t pt = 0; pt < parttracklist.size(); pt++) {
+      parttrack = parttracklist[pt];
       if (parttrack->fIsVoid == false ) {
         chi = parttrack->GetChiWeight();
         if (chi > maxch) {
@@ -613,10 +614,10 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
       }
     }
     maxch = nminch + (nmaxch - nminch) * 0.66;
-  } while( idx > 30 && rep < 10);
+  } while (idx > 30 && rep < 10);
 
 
-  num = idx;
+  int num = idx;
 
   if (! num)
     return 0;
@@ -632,19 +633,13 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
     fprintf(stderr,"Cannot Allocate Sort Array for %d PartialTracks\n",num);
     abort();
   }
-  /*
-  if( DE && (DEBUG & D_GRAPHP)) {
-    printf("----------SORT PT %c %c\n",
-    "FB"[vispar],"UL"[viswer]);
-  }
-  */
 
   /* ----------------------------------------------------------------------
    * find the used parttracks
    * ---------------------------------------------------------------------- */
 
-  for (idx = 0, parttrack = parttracklist;
-       parttrack; parttrack = parttrack->next) {
+  for (size_t pt = 0, idx = 0; pt < parttracklist.size(); pt++) {
+    parttrack = parttracklist[pt];
     if (parttrack->fIsVoid == false) {
       ptarr[idx]  = parttrack;
       isvoid[idx] = parttrack->fIsVoid;
@@ -657,76 +652,35 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
    * build the graph array
    * ---------------------------------------------------------------------- */
 
-  for (i = 0; i < num; i++) {
+  for (int i = 0; i < num; i++) {
     array[i * num + i] = false;
-    for (j = i+1; j < num; j++) {
+    for (int j = i+1; j < num; j++) {
       array[i * num + j] = array[j * num + i] =
         (rcPTCommonWires(ptarr[i], ptarr[j]) > 25);
     }
   }
-  /*
-  if( DE && (DEBUG & D_GRAPHP)) {
-    for( i = 0; i < num; i++ ) {
-      if( isvoid[i] != true )
-        printf("pthave (%d) %f,%f %f,%f - %f %d (%d)\n", i,
-        ptarr[i]->x,
-        ptarr[i]->y,
-        ptarr[i]->mx,
-        ptarr[i]->my,
-        ptarr[i]->GetChiWeight(),
-        ptarr[i]->nummiss,
-        connectiv( 0, array, isvoid, num, i));
-    }
-  }
-  */
+
   /* --------------------------------------------------------------------
    * check connectivity
    * -------------------------------------------------------------------- */
 
-  for (i = 0; i < num; ) {
+  for (int i = 0; i < num; ) {
     if (isvoid[i] == false) {
-      bestconn =  connectiv( 0, array, isvoid, num, i);
+      int bestconn =  connectiv( 0, array, isvoid, num, i);
       if (bestconn > 0) {
         if (connectarray(connarr, array, isvoid, num, i))
           continue;
-        /*
-        if( DE && (DEBUG & D_GRAPHP)) {
-          printf(" %d-connections:", i);
-          for( j = 0; j < num; j++ ) {
-            if( connarr[j])
-              printf("%d ",j);
-          }
-          puts("");
-        }
-        */
+
         bestunconnected (connarr, array, isvoid, chia, num, i);
-        /*
-        if( DE && (DEBUG & D_GRAPHP))
-          puts("");
-        */
+
       } else
         isvoid[i] = good;//good
     } else
       i++;
   }
-  /*
-  if( DE && (DEBUG & D_GRAPHP)) {
-    for( i = 0; i < num; i++ ) {
-      if( isvoid[i] != true )
-  printf("ptkeep (%d) %f,%f %f,%f - %f %d (%d)\n", i,
-         ptarr[i]->x,
-         ptarr[i]->y,
-         ptarr[i]->mx,
-         ptarr[i]->my,
-         ptarr[i]->GetChiWeight(),
-         ptarr[i]->nummiss,
-         connectiv( 0, array, isvoid, num, i));
-    }
-  }
-  */
-  for (i = 0; i < num; i++) {
+
+  for (int i = 0; i < num; i++) {
     if (isvoid[i] != true) {
-      //Statist[method].QwPartialTracksUsed[where][part] ++;
       ptarr[i]->fIsVoid = false;
     } else
       ptarr[i]->fIsVoid = true;

@@ -149,7 +149,6 @@ void QwPartialTrack::Initialize()
   fIsVoid = false; fIsUsed = false; fIsGood = false;
 
   // Initialize pointers
-  next = 0;
   for (int i = 0; i < kNumDirections; ++i){
     TResidual[i]=0.0;
   }
@@ -289,7 +288,6 @@ void QwPartialTrack::Print(const Option_t* options) const
 {
   if (!this) return;
   QwVerbose << *this << QwLog::endl;
-  if (next) next->Print();
 }
 
 /**
@@ -299,7 +297,6 @@ void QwPartialTrack::PrintValid()
 {
   if (!this) return;
   if (this->IsValid()) QwVerbose << *this << QwLog::endl;
-  if (next) next->PrintValid();
 }
 
 /**

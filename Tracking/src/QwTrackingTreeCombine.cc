@@ -2028,8 +2028,10 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 
 
  */
-QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
-    QwTreeLine *uvl[kNumDirections],
+std::vector<QwPartialTrack*> QwTrackingTreeCombine::TlTreeCombine (
+    const std::vector<QwTreeLine*>& treelines_x,
+    const std::vector<QwTreeLine*>& treelines_u,
+    const std::vector<QwTreeLine*>& treelines_v,
     EQwDetectorPackage package,
     EQwRegionID region,
     int tlayer,
@@ -2037,18 +2039,19 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 {
   QwDebug << "[QwTrackingTreeCombine::TlTreeCombine]" << QwLog::endl;
 
+  // List of partial tracks to return
+  std::vector<QwPartialTrack*> parttracklist;
+
   //################
   // DECLARATIONS  #
   //################
-  QwPartialTrack* pt_next = 0;
   int nPartialTracks = 0;
 
   const int MAXIMUM_PARTIAL_TRACKS = 50;
 
-  // TODO This should return a std::vector of QwPartialTrack pointers
-  // This is already filled, but not returned yet, because whatever is
-  // calling this is not ready for it yet.
-  std::vector<QwPartialTrack*> parttracklist;
+  //#################################
+  // Get the x, u, and v tree lines #
+  //#################################
 
   switch (region) {
 
@@ -2062,60 +2065,76 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
       // Get the u and v tracks #
       //#########################
 
-      // Print the u and v tree line lists
-      if (fDebug) {
-        std::cout << "TreeLines in U:" << std::endl;
-        uvl[kDirectionU]->Print();
-        std::cout << "TreeLines in V:" << std::endl;
-        uvl[kDirectionV]->Print();
-      }
-
       // For 2 plane 0  counters only counters
       int nump0 = 0;
       int count = 0;
-      // Get the U treeline
-      QwTreeLine *wu = uvl[kDirectionU];
-      QwTreeLine *wv = uvl[kDirectionV];
-      while (wu) {
-        // Skip this treeline if it was no good
-        if (wu->IsVoid()) {
-          wu = wu->next;
-          continue;
+      // Count number of U treelines
+      for (size_t u = 0; u < treelines_u.size(); u++) {
+        // Get treeline
+        QwTreeLine* wu = treelines_u[u];
+
+        // Debug
+        if (fDebug) {
+          QwOut << "wu: " << *wu << QwLog::endl;
+          for (int hit = 0; hit < wu->GetNumberOfHits(); hit++)
+            QwOut << *(wu->GetHit(hit)) << QwLog::endl;
         }
+
+        // Skip all treelines in a single plane (not matched between chambers)
+        if (wu->GetPlane() > 0) continue;
+
+        // Skip this treeline if it was no good
+        if (wu->IsVoid()) continue;
+
         count++;
-        wu = wu->next;
       }
       if (count < 2) {
         count = 0;
-        while (wv) {
-          // Skip this treeline if it was no good
-          if (wv->IsVoid()) {
-            wv = wv->next;
-            continue;
+        // Count number of V treelines
+        for (size_t v = 0; v < treelines_v.size(); v++) {
+          // Get treeline
+          QwTreeLine* wv = treelines_v[v];
+
+          // Debug
+          if (fDebug) {
+            QwOut << "wv: " << *wv << QwLog::endl;
+            for (int hit = 0; hit < wv->GetNumberOfHits(); hit++)
+              QwOut << *(wv->GetHit(hit)) << QwLog::endl;
           }
+
+          // Skip all treelines in a single plane (not matched between chambers)
+          if (wv->GetPlane() > 0) continue;
+
+          // Skip this treeline if it was no good
+          if (wv->IsVoid()) continue;
+
           count++;
-          wv = wv->next;
         }
       }
       if (count < 2) nump0 = 1;
 
+
       // Get the U treeline
-      wu = uvl[kDirectionU];
-      while (wu) {
+      for (size_t u = 0; u < treelines_u.size(); u++) {
+        // Get treeline
+        QwTreeLine* wu = treelines_u[u];
+
+        // Skip all treelines in a single plane (not matched between chambers)
+        if (wu->GetPlane() > 0) continue;
+
         // Skip this treeline if it was no good
-        if (wu->IsVoid()) {
-          wu = wu->next;
-          continue;
-        }
+        if (wu->IsVoid()) continue;
 
         // Get the V treeline
-        wv = uvl[kDirectionV];
-        while (wv) {
+        for (size_t v = 0; v < treelines_v.size(); v++) {
+          // Get treeline
+          QwTreeLine* wv = treelines_v[v];
+
+          // Skip all treelines in a single plane (not matched between chambers)
+          if (wv->GetPlane() > 0) continue;
+
           // Skip this treeline if it was no good
-          if (wv->IsVoid()) {
-            wv = wv->next;
-            continue;
-          }
+          if (wv->IsVoid()) continue;
 
           // Combine the U and V treeline into a partial track
           QwPartialTrack *pt = r3_PartialTrackFit(wu, wv);
@@ -2131,27 +2150,12 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             // Set 2 plane 0 treelines only
             pt->SetAlone(nump0);
 
-            // TODO remove QwPartialTrack::next
-            pt->next   = pt_next;
-            pt_next = pt;
-
-            // Check whether this track went through the trigger and/or
-            // the cerenkov bar.
-            // TODO use generic detector info object
-            //pt->DeterminePositionInTriggerScintillators ( package );
-            //pt->DeterminePositionInCerenkovBars ( package );
-
             // Add partial track to list to return
             parttracklist.push_back(pt);
           }
 
-          // Next v treeline
-          wv = wv->next;
-        }
-
-        // Next u treeline
-        wu = wu->next;
-      }
+        } // end of loop over V treelines
+      } // end of loop over U treelines
 
       break;
     }
@@ -2161,55 +2165,62 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
     //################
     case kRegionID2:
     {
-      // Get the front and back HDC plane to determine offset
-      QwGeometry hdc(fGeometry.in(package).in(region).in(kDirectionX));
 
       //############################
       // Get the u, v and x tracks #
       //############################
-      // Print the u, v and x tree line lists
-      if (fDebug) {
-        QwOut << "Valid treelines in X:" << QwLog::endl;
-        uvl[kDirectionX]->PrintValid();
-        QwOut << "Valid treelines in U:" << QwLog::endl;
-        uvl[kDirectionU]->PrintValid();
-        QwOut << "Valid treelines in V:" << QwLog::endl;
-        uvl[kDirectionV]->PrintValid();
-      }
-
-
 
       // Find the partial track with the lowest chi^2
       double best_chi = 10000;
       QwPartialTrack* best_pt = 0;
       QwTreeLine* best_tl[3] = {0};
 
+      //  while (nPartialTracks < MAXIMUM_PARTIAL_TRACKS)
+
       // Get the U treeline
-      QwTreeLine* wu = uvl[kDirectionU];
-      while (wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS) {
-        // Skip this treeline if it was no good
-        if (wu->IsVoid()) {
-          wu = wu->next;
-          continue;
+      for (size_t u = 0; u < treelines_u.size(); u++) {
+        // Get treeline
+        QwTreeLine* wu = treelines_u[u];
+
+        // Debug
+        if (fDebug) {
+          QwOut << "wu: " << *wu << QwLog::endl;
+          for (int hit = 0; hit < wu->GetNumberOfHits(); hit++)
+            QwOut << *(wu->GetHit(hit)) << QwLog::endl;
         }
 
+        // Skip this treeline if it was no good
+        if (wu->IsVoid()) continue;
+
         // Get the V treeline
-        QwTreeLine* wv = uvl[kDirectionV];
-        while (wv) {
-          // Skip this treeline if it was no good
-          if (wv->IsVoid()) {
-            wv = wv->next;
-            continue;
+        for (size_t v = 0; v < treelines_v.size(); v++) {
+          // Get treeline
+          QwTreeLine* wv = treelines_v[v];
+
+          // Debug
+          if (fDebug) {
+            QwOut << "wv: " << *wv << QwLog::endl;
+            for (int hit = 0; hit < wv->GetNumberOfHits(); hit++)
+              QwOut << *(wv->GetHit(hit)) << QwLog::endl;
           }
 
-          // Get the X treeline
-          QwTreeLine* wx = uvl[kDirectionX];
-          while(wx) {
-            // Skip this treeline if it was no good
-            if (wx->IsVoid()) {
-              wx = wx->next;
-              continue;
+          // Skip this treeline if it was no good
+          if (wv->IsVoid()) continue;
+
+          // Get the V treeline
+          for (size_t x = 0; x < treelines_x.size(); x++) {
+            // Get treeline
+            QwTreeLine* wx = treelines_x[x];
+
+            // Debug
+            if (fDebug) {
+              QwOut << "wx: " << *wx << QwLog::endl;
+              for (int hit = 0; hit < wx->GetNumberOfHits(); hit++)
+                QwOut << *(wx->GetHit(hit)) << QwLog::endl;
             }
+
+            // Skip this treeline if it was no good
+            if (wx->IsVoid()) continue;
 
             // Combine the U, V and X treeline into a partial track
             QwPartialTrack *pt = TcTreeLineCombine(wu, wv, wx, tlayer, fDropWorstHit);
@@ -2243,14 +2254,11 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
               }
             }
 
-            wx = wx->next;
-          } // end of wx while loop
+          } // end of loop over X treelines
 
-          wv = wv->next;
-        } // end of wv while loop
+        } // end of loop over V treelines
 
-        wu = wu->next;
-      } // end of wu while loop
+      } // end of loop over U treelines
 
       // If there was a best partial track
       if (best_pt) {
@@ -2259,9 +2267,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         best_tl[0]->SetUsed();
         best_tl[1]->SetUsed();
         best_tl[2]->SetUsed();
-
-        best_pt->next = pt_next;
-        pt_next = best_pt;
 
         // Add partial track to list to return
         parttracklist.push_back(best_pt);
@@ -2290,14 +2295,14 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
 
   // Calculate the average residual
-  for (QwPartialTrack *parttrack = pt_next; parttrack;
-      parttrack = parttrack->next) {
+  for (size_t pt = 0; pt < parttracklist.size(); pt++) {
+    QwPartialTrack* parttrack = parttracklist[pt];
     if (parttrack->IsValid())
       parttrack->CalculateAverageResidual();
   }
 
 
-  return pt_next;
+  return parttracklist;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

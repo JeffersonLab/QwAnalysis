@@ -174,17 +174,6 @@ void QwTrack::AddPartialTrack(const QwPartialTrack* partialtrack)
   ++fNQwPartialTracks;
 }
 
-// Add a linked list of QwPartialTrack's
-void QwTrack::AddPartialTrackList(const QwPartialTrack* partialtracklist)
-{
-  for (const QwPartialTrack *partialtrack = partialtracklist;
-         partialtrack; partialtrack = partialtrack->next){
-    if (partialtrack->IsValid()){
-       AddPartialTrack(partialtrack);
-    }
-  }
-}
-
 // Add a list of partial tracks
 void QwTrack::AddPartialTrackList(const std::vector<QwPartialTrack*> &partialtracklist)
 {
@@ -216,11 +205,6 @@ void QwTrack::PrintPartialTracks(Option_t *option) const
   for (std::vector<QwPartialTrack*>::const_iterator partialtrack = fQwPartialTracks.begin();
        partialtrack != fQwPartialTracks.end(); partialtrack++) {
     QwMessage  << **partialtrack << QwLog::endl;
-    QwPartialTrack* tl = (*partialtrack)->next;
-    while (tl) {
-      QwMessage  << *tl << QwLog::endl;
-      tl = tl->next;
-    }
   }
 }
 

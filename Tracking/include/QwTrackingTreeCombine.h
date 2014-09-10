@@ -105,9 +105,14 @@ class QwTrackingTreeCombine {
 		QwTreeLine *wv,
 		int tlayer);
 
-    QwPartialTrack* TlTreeCombine (
-		QwTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
-		EQwRegionID region, int tlayer, int dlayer);
+    std::vector<QwPartialTrack*> TlTreeCombine (
+                const std::vector<QwTreeLine*>& treelines_x,
+                const std::vector<QwTreeLine*>& treelines_u,
+                const std::vector<QwTreeLine*>& treelines_v,
+                EQwDetectorPackage package,
+                EQwRegionID region,
+                int tlayer,
+                int dlayer);
 
     int r2_PartialTrackFit (
                 const int num_hits,

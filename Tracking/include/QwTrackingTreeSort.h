@@ -44,7 +44,7 @@ class QwTrackingTreeSort {
 
 
 
-    int rcPartConnSort (QwPartialTrack *head);
+    int rcPartConnSort (std::vector<QwPartialTrack*> head);
     int rcPTCommonWires (const QwPartialTrack *track1, const QwPartialTrack *track2);
 
   private:

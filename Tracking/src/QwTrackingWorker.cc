@@ -802,63 +802,62 @@ void QwTrackingWorker::ProcessEvent (
 
             /*! ---- TASK 2: Combine the treelines into partial tracks             ---- */
 
-            QwPartialTrack* parttrack = 0; // list of partial tracks
+            // List of partial tracks to return
+            std::vector<QwPartialTrack*> parttracklist;
 
+            if (event->GetNumberOfTreeLines() > 0 && tlayers)
+            {
+              std::vector<QwTreeLine*> treelines_x =
+                  event->fTreeLine[package][region][kDirectionX]->GetListAsVector();
+              std::vector<QwTreeLine*> treelines_u =
+                  event->fTreeLine[package][region][kDirectionU]->GetListAsVector();
+              std::vector<QwTreeLine*> treelines_v =
+                  event->fTreeLine[package][region][kDirectionV]->GetListAsVector();
 
-
-            // This if statement may be done wrong
-            if (region == kRegionID3) {
-
-              if (event->fTreeLine[package][region][kDirectionU]
-               && event->fTreeLine[package][region][kDirectionV]
-               && tlayers) {
-                parttrack = fTreeCombine->TlTreeCombine(
-                    event->fTreeLine[package][region],
-                    package, region,
-                    tlayers, dlayer);
-              }
-
-            } else if(region == kRegionID2){
-
-              if (event->fTreeLine[package][region][kDirectionU]
-               && event->fTreeLine[package][region][kDirectionV]
-               && event->fTreeLine[package][region][kDirectionX]
-                                                                                                                              && tlayers) {
-                parttrack = fTreeCombine->TlTreeCombine(
-                    event->fTreeLine[package][region],
-                    package, region,
-                    tlayers, dlayer);
-              }
-
+              parttracklist = fTreeCombine->TlTreeCombine(
+                  treelines_x, treelines_u, treelines_v,
+                  package, region,
+                  tlayers, dlayer);
             } else continue;
 
 
+            // If we found partial tracks in this event
+            if (parttracklist.size() > 0) {
+
+              /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
+
+              fTreeSort->rcPartConnSort(parttracklist);
 
 
-            /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
+              /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
-            if (parttrack) fTreeSort->rcPartConnSort(parttrack);
+              // Add partial tracks to the event
+              event->AddPartialTrackList(parttracklist);
+
+              // Debug output
+              if (fDebug) {
+                QwOut << "List of partial tracks:" << QwLog::endl;
+                for (size_t pt = 0; pt < parttracklist.size(); pt++)
+                  QwOut << *parttracklist[pt] << QwLog::endl;
+              }
+
+              // Delete partial tracks
+              for (size_t pt = 0; pt < parttracklist.size(); pt++)
+                delete parttracklist[pt];
 
 
-            /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
-
-
-            if (parttrack) {
-              event->fPartialTrack[package][region] = parttrack;
-              event->AddPartialTrackList(parttrack);
-            }
-
-
-            if (parttrack) {
-              if (fDebug) parttrack->Print();
+              // Count this as a good event
               QwVerbose << "Found a good partial track in region " << region << QwLog::endl;
-              ++ngood;
-              if (region==2) ++R2Good;
-              if (region==3) ++R3Good;
+              if (region == 2) ++R2Good;
+              if (region == 3) ++R3Good;
+              ngood++;
+
             } else {
+
+              // Count this as a bad event
               QwVerbose << "Couldn't find a good partial track in region " << region << QwLog::endl;
-              if (region ==2) ++R2Bad;
-              if (region ==3) ++R3Bad;
+              if (region == 2) ++R2Bad;
+              if (region == 3) ++R3Bad;
               nbad++;
             }
 
@@ -891,8 +890,8 @@ void QwTrackingWorker::ProcessEvent (
         R2package = (R3package == kPackage1)? kPackage1: kPackage2;
 
       // Get the lists of partial tracks in the front and back detectors
-      std::vector<QwPartialTrack*> frontlist = event->fPartialTrack[R2package][kRegionID2]->GetListAsVector();
-      std::vector<QwPartialTrack*> backlist  = event->fPartialTrack[R3package][kRegionID3]->GetListAsVector();
+      std::vector<QwPartialTrack*> frontlist = event->GetListOfPartialTracks(kRegionID2,R2package);
+      std::vector<QwPartialTrack*> backlist  = event->GetListOfPartialTracks(kRegionID3,R3package);
 
       // Loop over all good front and back partial tracks
       for (size_t ifront = 0; ifront < frontlist.size(); ifront++) {
