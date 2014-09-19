@@ -113,8 +113,6 @@ class QwTrackingWorker {
     //@{
     /// Track filter
     QwBridgingTrackFilter* fBridgingTrackFilter;
-    /// Lookup table bridging method
-    QwMatrixLookup* fMatrixLookup;
     /// Ray tracing bridging method
     QwRayTracer* fRayTracer;
     //@}

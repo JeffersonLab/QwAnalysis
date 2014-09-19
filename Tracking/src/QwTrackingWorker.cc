@@ -137,24 +137,6 @@ QwTrackingWorker::QwTrackingWorker(QwOptions& options, const QwGeometry& geometr
   // Initialize a bridging filter
   fBridgingTrackFilter = new QwBridgingTrackFilter();
 
-  // Initialize a lookup table bridging method
-  if (! fDisableMomentum && ! fDisableMatrixLookup) {
-    fMatrixLookup = new QwMatrixLookup(options);
-    // Determine lookup table file from environment variables
-    std::string trajmatrix = "";
-    if (getenv("QW_LOOKUP"))
-      trajmatrix = std::string(getenv("QW_LOOKUP")) + "/" + fFilenameLookupTable;
-    else {
-      QwWarning << "Environment variable QW_LOOKUP not defined." << QwLog::endl;
-      QwWarning << "It should point to the directory with the file"
-                << fFilenameLookupTable << QwLog::endl;
-    }
-    // Load lookup table
-    if (! fMatrixLookup->LoadTrajMatrix(trajmatrix))
-      QwError << "Could not load trajectory lookup table!" << QwLog::endl;
-  // or set to null if disabled
-  } else fMatrixLookup = 0;
-
   // Initialize a ray tracer bridging method
   if (! fDisableMomentum && ! fDisableRayTracer) {
     fRayTracer = new QwRayTracer(options);
@@ -202,7 +184,6 @@ QwTrackingWorker::~QwTrackingWorker ()
 {
   // Delete helper objects
   if (fBridgingTrackFilter) delete fBridgingTrackFilter;
-  if (fMatrixLookup) delete fMatrixLookup;
   if (fRayTracer)    delete fRayTracer;
 
   // Delete tracking modules
