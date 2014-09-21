@@ -79,7 +79,7 @@ const Int_t maxIterations =4;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
-Int_t daqflag=0;
+Int_t daqflag=0, daqCheck=0;
 Int_t asymflag=0;
 Double_t Cedge;
 Double_t tempCedge=50;//!should I initiate it like this !

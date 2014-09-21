@@ -4,13 +4,13 @@ macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
-dataType=Ac2ParDT
+dataType=AcAllLC
 found=no
-#for i in `seq 23324 23324`;
-for i in `seq 22659 25546`;
+#for i in `seq 24252 24252`;
+#for i in `seq 22659 25546`;
 #for i in `seq 23320 24500`;
 #for i in `seq 23220 23530`;
-#for i in `seq 23241 23530`;
+for i in `seq 24250 24450`;
 do
   cat batchsub_header1.xml >> batch_submit_$i.xml
   echo '<Name name="edetHelLC_'$dataType'_'$i'"/>' >> batch_submit_$i.xml
@@ -25,6 +25,7 @@ do
     echo '<Input src="mss:'$seg'" dest="'`basename $seg`'"/>' >> batch_submit_$i.xml
     found=yes
   done
+  echo '<Input src="'$macro'/stripMask.C" dest="stripMask.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/expAsym.C" dest="expAsym.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/rhoToX.C" dest="rhoToX.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/getEBeamLasCuts.C" dest="getEBeamLasCuts.C"/>' >> batch_submit_$i.xml

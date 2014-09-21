@@ -26,7 +26,7 @@ Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
 
   plane=1;
   Int_t asymSuc=0;
-  Int_t daqCheck = infoDAQ(runnum); 
+  daqCheck = infoDAQ(runnum); 
   asymflag = expAsym(runnum,dataType);
 
   if(asymflag!=-1) {

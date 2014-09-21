@@ -1,11 +1,12 @@
 #ifndef __RHOTOX_F
 #define __RHOTOX_F
-
+#include <TString.h>
 #include "comptonRunConstants.h"
 ///This function ought to be called after auto-determination of compton edge was successful
-Double_t rhoToX()//now plane is a variable set in the constants file
+Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
 {
   cout<<"\nStarting into rhoToX.C **************\n"<<endl;
+  filePre = Form(filePrefix,runnum,runnum);
   Bool_t debug=0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
@@ -48,7 +49,7 @@ Double_t rhoToX()//now plane is a variable set in the constants file
 // x1_new = R_bend*(1-cos(thetabend)) + (zdrift + dxPrime_old*tan(det_angle))*tan(thetabend); 
   x1_new = R_bend*(1-cos(thetabend)) + (zdrift)*tan(thetabend);
 
-  QEDasym.open(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane));
+  QEDasym.open(Form("%s/%s/%sQEDasymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
   for (Int_t i = 1; i <= nPoints; i++) {
     rho[i] = (Double_t)i/nPoints;
     kDummy = rho[i]*kprimemax;
@@ -81,7 +82,7 @@ Double_t rhoToX()//now plane is a variable set in the constants file
     // TCanvas *cQED = new TCanvas("cQED","fit for QED parameter",10,10,300,300);
     // cQED->cd();
   }
-  TGraph *grtheory = new TGraph(Form("%s/%s/QEDasymP%d.txt",pPath,webDirectory,plane), "%lg %lg");
+  TGraph *grtheory = new TGraph(Form("%s/%s/%sQEDasymP%d.txt",pPath,webDirectory,filePre.Data(),plane), "%lg %lg");
   grtheory->GetXaxis()->SetTitle("dist from compton scattered electrons(m)");
   grtheory->GetYaxis()->SetTitle("#rho");
   grtheory->GetYaxis()->CenterTitle();
@@ -99,7 +100,7 @@ Double_t rhoToX()//now plane is a variable set in the constants file
   // }
 
   ofstream checkfile;
-  checkfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane));
+  checkfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath,webDirectory,filePre.Data(),plane));
    if(checkfile.is_open()) {
      if(debug) cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane<<endl;
      checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<"\t"<<param[4]<<"\t"<<param[5]<<endl;
