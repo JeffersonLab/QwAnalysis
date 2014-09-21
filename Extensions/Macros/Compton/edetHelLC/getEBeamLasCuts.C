@@ -31,9 +31,14 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,180000);//typical value of maximum laser power
 
   chain->Draw("yield_sca_bcm6.value>>hBeam","","goff");
+  //chain->Draw("yield_sca_bcm6.value>>hBeam");
   hBeam = (TH1D*)gDirectory->Get("hBeam");  
+  //beamMax = hBeam->GetMaximum();
+  Double_t beamMean = hBeam->GetMean();
+  Double_t beamMeanEr = hBeam->GetMeanError();
+  Double_t beamRMS = hBeam->GetRMS();
   beamMax = hBeam->GetBinLowEdge(hBeam->FindLastBinAbove(100));//to avoid extraneous values
-  cout<<"beamMax(bcm6) "<<beamMax<<endl;
+  //cout<<"beamMax(bcm6): "<<beamMax<<",\t beamMean: "<<beamMean<<",\t beamRMS: "<<beamRMS<<endl;
 
   chain->Draw("yield_sca_laser_PowT.value>>hLaser","","goff");
   hLaser = (TH1D*)gDirectory->Get("hLaser");  
@@ -51,10 +56,6 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 
   outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data()));
   if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
-
-  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data()));
-  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
-  infoBeamLas<<";runnum\tbeamMax\tnBeamTrips\tlasMax\tnLasCycles\tnEntries"<<endl;
 
   TBranch *bLaser;
   TBranch *bBCM;
@@ -163,7 +164,15 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     outfileLas << cutL.at(i) <<endl;
   }
 
-  infoBeamLas<<Form("%5.0f\t%.2f\t%.0f\t%.2f\t%.0f\t%.0f\n",(Float_t)runnum,beamMax,((Float_t)cutE.size()-2.0)/2,laserMax,((Float_t)cutL.size()-2.0)/2,(Float_t)nEntries);
+  if(debug) {
+    cout<<blue<<"\nrunnum\tbeamMax\tbeamRMS\tbeamMean\tbeamMeanEr\tbeamTrips\tlasMax\tnLasCyc\tnEntries"<<endl;
+    cout<<Form("%d\t%.2f\t%f\t%f\t%f\t%.0f\t%.2f\t%.0f\t%.0f",runnum,beamMax,beamRMS,beamMean,beamMeanEr,((Float_t)cutE.size()-2.0)/2,laserMax,((Float_t)cutL.size()-2.0)/2,(Float_t)nEntries)<<normal<<endl;
+  }
+
+  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data()));
+  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
+  infoBeamLas<<"runnum\tbeamMax\tbeamRMS\tbeamMean\tbeamMeanEr\tnBeamTrips\tlasMax\tnLasCycles\tnEntries"<<endl;
+  infoBeamLas<<runnum<<"\t"<<beamMax<<"\t"<<beamRMS<<"\t"<<beamMean<<"\t"<<beamMeanEr<<"\t"<<(cutE.size())/2<<"\t"<<laserMax<<"\t"<<(cutL.size()-2)/2<<"\t"<<nEntries;
   outfileLas.close();
   outfileBeam.close();
   infoBeamLas.close();

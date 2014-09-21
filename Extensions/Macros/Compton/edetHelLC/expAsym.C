@@ -1,11 +1,10 @@
 ///Author: Amrendra Narayan
 ///Courtesy: Don Jones seeded the code 
 #include "rootClass.h"
-#include "getEBeamLasCuts.C"
 #include "comptonRunConstants.h"
-#include "rhoToX.C"
+#include "getEBeamLasCuts.C"
+#include "stripMask.C"
 #include "evaluateAsym.C"
-#include "infoDAQ.C"
 #include "weightedMean.C"
 #include "writeToFile.C"
 #include "qNormVariables.C"
@@ -59,11 +58,27 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   if (kRejectBMod) cout<<green<<"quartets during beam modulation ramp rejected"<<normal<<endl;
   else cout<<green<<"quartets during beam modulation ramp NOT rejected"<<normal<<endl;
 
-  if(!maskSet) daqflag = infoDAQ(runnum); //if the masks are not set yet, call the function to set it
+  daqflag = stripMask(); //if the masks are not set yet, its needed in evaluateAsym.C
   if(daqflag==-1) {
     cout<<red<<"\nreturned error from infoDAQ, hence exiting\n"<<normal<<endl;
     return -1;
   }
+
+  //ifstream infileBeamProp; 
+  /////Check if it is already known that this run has no beam
+  //Double_t runN =0.0, maxBeam =0.0, totBeamTrips =0.0, lasMaxP =0.0, lasCycles =0.0, readEntries =0.0;
+  //infileBeamProp.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data()));
+  //if(infileBeamProp.is_open()) {
+  //  cout<<"reading file "<<Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data())<<endl;
+  //  if(infileBeamProp.good()) {///its a single line read
+  //    infileBeamProp>>runN>>maxBeam>>totBeamTrips>>lasMaxP>>lasCycles >>readEntries;
+  //    if(maxBeam < beamOnLimit) {
+  //      cout<<red<<"beamMax is "<<maxBeam<<" uA, < the beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl;
+  //      return -1;
+  //    } else cout<<blue<<"beamMax is "<<maxBeam<<" uA, hence continuing the analysis of this run"<<normal<<endl;
+  //  }
+  //}
+
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
   ///some of the variables declared in the compton header file
   for(Int_t s =startStrip; s <endStrip; s++) {
@@ -104,9 +119,9 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     c1->cd(2);
     helChain->Draw("yield_sca_bcm6:pattern_number");
     c1->SaveAs(Form("%s/%s/%slasBeamStability.png",pPath,webDirectory,filePre.Data()));
+    //delete c1;
   }
   //////////////////////////////////////////////////////////////////////////////
-
   infileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePre.Data()));
   infileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data()));
 
@@ -144,12 +159,18 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     ////first two digits of return value of getEBeamLasCuts
     nBeamTrips = nLasCycBeamTrips / 1000;
     ////fourth digit of return value of getEBeamLasCuts
+    ///If the beamMax is very low exit the execution here itself
+    if(beamMax<beamOnLimit) {
+      cout<<red<<"beamMax is "<<beamMax<<" uA < beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl; 
+      return -1;
+    } else cout<<blue<<"beamMax is "<<beamMax<<" uA > beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl; 
   }
 
   if (debug) cout<<Form("cutEB.size:%d,cutLas.size:%d\n",(Int_t)cutEB.size(),(Int_t)cutLas.size());
 
   Int_t nEntries = helChain->GetEntries();
   cout<<blue<<"This chain has "<<nEntries<<" entries"<<endl;
+  cout<<"beamMax="<<beamMax<<endl;
   cout<<"nbeamTrips="<<nBeamTrips<<endl;
   cout<<"nLasCycles="<<nLasCycles<<normal<<endl;
 
@@ -178,7 +199,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
 
   //helChain->ResetBranchAddresses();//!? should it be here?
   helChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
-  //helChain->SetBranchStatus("CodaEventNumber",1);
   helChain->SetBranchStatus("pattern_number",1);
   helChain->SetBranchStatus("yield_sca_laser_PowT*",1);
   helChain->SetBranchStatus("yield_sca_bcm6*",1);
@@ -243,7 +263,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   if(lasCycPrint) {
     gSystem->mkdir(Form("%s/%s/run_%d/lasCyc",pPath,webDirectory,runnum));    
     for(Int_t s =startStrip; s <endStrip; s++) {
-      //if (!mask[s]) continue;    
       ///lasCyc based files go into a special folder named lasCyc
       countsLC[s].open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,plane,s+1));
       if(debug1) cout<<"opened "<<Form("%s/%s/run_%d/lasCyc/edetLC_%d_"+dataType+"LasCycP%dS%d.txt",pPath,webDirectory,runnum,runnum,plane,s+1)<<endl;
@@ -355,14 +374,13 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
       //loop over laser cycle periods taking one LasOff state and the following laserOn state
       //if(debug1 && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;//commented to speed up
+      helChain->GetEntry(i);
 
       if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<minLasPow) l= 0; ///laser off zone
       else if((i > cutLas.at(2*nCycle+1)) && (lasPow[0]>acceptLasPow)) l =1;///laser on zone
       ///the equal sign above is in laser-On zone because that's how getEBeamLasCuts currently assign it(may change!)
       else missedLasEntries++;
 
-      helChain->GetEntry(i);
-      //      if (kRejectBMod && (bModRamp[0]<100.0)) continue; 
       //      if (beamOn) { ////currently the counters are only populated for beamOn cycles
       if ((y_bcm[0]) > beamOnLimit) {///Is the beam>20uA for this quartet
         if (kRejectBMod && (bModRamp[0]>100.0)) {
@@ -376,7 +394,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
           iLCH0L0 += (y_bcm[0]-d_bcm[0]);
           lasPowLCB1L0 += lasPow[0];
           for(Int_t s =startStrip; s <endStrip; s++) {
-            //if (!mask[s]) continue;
             yieldB1L0[s] += bYield[s];
             diffB1L0[s]  += bDiff[s];
           }
@@ -386,7 +403,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
           iLCH0L1 += (y_bcm[0]-d_bcm[0]);
           lasPowLCB1L1 += lasPow[0];
           for(Int_t s =startStrip; s <endStrip; s++) {
-            //if (!mask[s]) continue;
             yieldB1L1[s] += bYield[s];
             diffB1L1[s]  += bDiff[s];
           }
@@ -416,7 +432,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       continue;
     } else { ///if everything okay, start main buisness
       for (Int_t s = startStrip; s < endStrip; s++) {
-        //if (!mask[s]) continue;
         totyieldB1L1[s] += 4*yieldB1L1[s];//yield in Hel_Tree is normalized for the quartet
         totyieldB1L0[s] += 4*yieldB1L0[s];
       }
@@ -430,7 +445,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       Double_t qAvgLCH0L0 = iLCH0L0 /(helRate);
       ///a factor of 4 is needed to balance out the averaging in the yield and diff reported in the helicity tree
       for (Int_t s =startStrip; s <endStrip; s++) {	  
-        //if (!mask[s]) continue;
         countsLCB1H1L1[s]=2.0*(yieldB1L1[s] + diffB1L1[s]);///the true total counts this laser cycle for H1L1
         countsLCB1H1L0[s]=2.0*(yieldB1L0[s] + diffB1L0[s]);
         countsLCB1H0L1[s]=2.0*(yieldB1L1[s] - diffB1L1[s]);
@@ -444,7 +458,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       ///// Modification due to explicit (electronic) noise subtraction /////      
       if(kNoiseSub) {
         for (Int_t s =startStrip; s <endStrip; s++) {	  
-          //if (!mask[s]) continue;
           ///the noiseSubtraction assumes that the +ve and -ve helicities are equal in number, hence dividing by 2
           countsLCB1H1L1[s]=countsLCB1H1L1[s]-rateB0[s]*(nHelLCB1L1/2.0)/helRate;
           countsLCB1H1L0[s]=countsLCB1H1L0[s]-rateB0[s]*(nHelLCB1L0/2.0)/helRate;
@@ -512,7 +525,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
       }
       firstLineLasCyc = kFALSE;
       for (Int_t s =startStrip; s <endStrip;s++) {
-        //if (!mask[s]) continue;
         if(!firstlinelasPrint[s]) {
           countsLC[s]<<"\n";
           outAsymLasCyc[s]<<"\n";
@@ -536,7 +548,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
 
     for(Int_t s =startStrip; s <endStrip; s++) {
-      //if (!mask[s]) continue;    
       countsLC[s].close();
       outAsymLasCyc[s].close();
     }
@@ -585,6 +596,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
 
         cStability->Update();
         cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,webDirectory,filePre.Data()));
+        //delete cStability;
       }
     } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
     tEnd = time(0);
@@ -592,6 +604,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  
     if(kRejectBMod) cout<<blue<<"total no.of quartets ignored due to Beam Mod : "<<totalMissedQuartets<<normal<<endl;
     cout<<blue<<"We used "<<goodCycles<<", out of "<<nLasCycles<<" laser cycles in run "<<runnum<<normal<<endl;
+
+    delete helChain;
     return goodCycles;//the function returns the number of used Laser cycles
   }
   /******************************************************
@@ -623,6 +637,4 @@ Comments:
    * the code counts from '0' but at all human interface, I add '+1' hence human counting
    * Notice that my beamOff's are not true beam-off, they include ramping data as well
    * Careful: there are some h=-9999 that appears in beginning of every runlet
-   * Laser power is uncorrelated with beam helicity hence not using its difference 
-   * ..to construct the true laser power but simply using the yield for laser power.
    ******************************************************/

@@ -1,8 +1,8 @@
-#include <rootClass.h>
+#include "rootClass.h"
 #include "comptonRunConstants.h"
 #include "asymFit.C"
 #include "expAsym.C"
-//#include "infoDAQ.C"
+#include "infoDAQ.C"
 //#include "fileReadDraw.C"
 
 Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
@@ -11,7 +11,8 @@ Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   ofstream analFlags;
-
+  
+  gROOT->LoadMacro(" stripMask.C+g");
   gROOT->LoadMacro(" rhoToX.C+g");
   gROOT->LoadMacro(" getEBeamLasCuts.C+g");
   gROOT->LoadMacro(" evaluateAsym.C+g");
@@ -24,18 +25,13 @@ Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
   //gROOT->LoadMacro(" fileReadDraw.C+g");
 
   plane=1;
-  daqflag = infoDAQ(runnum); 
-  if(daqflag==1) {
-    asymflag = expAsym(runnum,dataType);
-  } else {
-    cout<<"couldn't execute infoDAQ.C"<<endl;
-    cout<<"probably root file doesn't exist"<<endl;
-    asymflag = -1;
-  }
+  Int_t asymSuc=0;
+  Int_t daqCheck = infoDAQ(runnum); 
+  asymflag = expAsym(runnum,dataType);
 
   if(asymflag!=-1) {
     if(asymflag==0) cout<<blue<<"this run has NO useful LASER CYCLE"<<normal<<endl;
-    else asymFit(runnum,dataType);
+    else asymSuc = asymFit(runnum,dataType);
     //fileReadDraw(runnum);  ///This function uses the output from different dataTypes together, hence should not be called while executing single dataType
   } else cout <<"\n***expAsym.C failed so exiting\n"<<endl;
 
@@ -45,6 +41,16 @@ Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
     analFlags<<runnum<<"\t"<<kRadCor<<"\t"<< kDeadTime<<"\t"<< k2parDT<<"\t"<< kRejectBMod<<"\t"<< kNoiseSub<<endl;
     analFlags.close();
   }
+
+  if(daqCheck<0 || asymflag <0 || asymSuc<0) {
+  analFlags.open(Form("%s/%s/%sWhyNotExecuted.txt",pPath,webDirectory,filePre.Data()));
+  if (analFlags.is_open()) {
+    analFlags<<";runnum\tinfoDAQ\texpAsym\tasymFit"<<endl;
+    analFlags<<runnum<<"\t"<< daqCheck<<"\t"<< asymflag<<"\t"<<asymSuc<<endl;
+    analFlags.close();
+  }
+  }
+
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to execute edetLC.C\n",div_output.quot,div_output.rem );  

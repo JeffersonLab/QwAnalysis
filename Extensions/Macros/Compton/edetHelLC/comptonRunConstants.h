@@ -17,7 +17,7 @@ const Double_t alpha=0.00729927; ///=1.0/137.0;
 const Double_t me=0.00051099006;///GeV
 const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
 const Double_t B_dipole = 0.544;///T
-Double_t eEnergy = 1.159, rms_eEnergy =0.0;///to be read in from infoDAQ
+Double_t eEnergy = 1.1575, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in from infoDAQ
 
 const Double_t lambda = 532E-9; //photon wavelength (nm)      
 Double_t xCedge=0.0;
@@ -54,6 +54,7 @@ const Double_t laserFracHi = 0.90;//90% of maximum beam to be considered as lase
 const Double_t beamFracHi = 0.78;
 const Double_t beamFracLo = 0.6;
 const Double_t beamFrac = 0.6;
+const Double_t highBeamCut = 90;//uA
 const Int_t avoidDAQEr = 10;
 const Int_t WAIT_N_ENTRIES = 50;//# of quartets to wait after beam trip
 const Int_t PREV_N_ENTRIES = 50;//# of quartets to ignore before a beam trip
@@ -94,8 +95,7 @@ Double_t costhcm;
 Double_t radCor = 1.0;
 
 Int_t skipCyc=0;///counts the no.of times the background corrected counts go <= 0
-Bool_t maskSet=0; //set it on when I call the infoDAQ.C to set the mask
-Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
+Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],fwRev[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],plDelay[nModules];
 Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
 std::vector <Int_t> skipStrip; //a list of strips across different planes to be masked (!trying a new idea)

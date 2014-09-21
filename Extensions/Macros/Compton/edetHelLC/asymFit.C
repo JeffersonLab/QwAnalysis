@@ -1,12 +1,11 @@
 //attempting to fit the theoretically evaluated asymmetry to experimentally measured asymmetry
 #ifndef __asymFit_F
 #define __asymFit_F
-#endif
 
 #include "rootClass.h"
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
-#include "infoDAQ.C"
+#include "stripMask.C"
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
 {///parCx[1]: to be found Cedge
   itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
@@ -89,10 +88,12 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TLine *myline = new TLine(1,0,65,0);
   TF1 *polFit;
 
-  if (!maskSet) daqflag = infoDAQ(runnum);
-  if(daqflag==-1) {
-    cout<<red<<"\nreturned error from infoDAQ, hence exiting\n"<<normal<<endl;
-    return -1;
+  if(daqflag == 0) {///stripMask not called yet 
+    daqflag = stripMask();
+    if(daqflag < 0) {///exited because one of the variables determining sign of pol flipped in the middle of run
+      cout<<red<<"\nreturned error from skipStrip, hence exiting\n"<<normal<<endl;
+      return -1;
+    }
   }
 
   ifstream paramfile,infileL0Yield, expAsymPWTL1, infileYield, fBgdAsym;
@@ -182,9 +183,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300);
 
-  xCedge = rhoToX(); ///this function should be called after determining the Cedge
+  xCedge = rhoToX(runnum); ///this function should be called after determining the Cedge
 
-  paramfile.open(Form("%s/%s/checkfileP%d.txt",pPath,webDirectory,plane));
+  paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath,webDirectory,filePre.Data(),plane));
   cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
   paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
   paramfile.close();
@@ -322,6 +323,13 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   pt->Draw();
   myline->Draw();
   polList.close();
+  cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePre.Data()));
+  //delete myline;
+  //delete cAsym;
+  //delete pt;
+  //delete leg;
+  //delete grAsym;
+  //delete polFit;
 
   for (Int_t s = startStrip; s < (Int_t)trueStrip.size(); s++) {///trueStrip will be the no.of used strips including post CE
     if (trueStrip.at(s) < cEdge) usedStrips++;  ///cEdge determined in preceeding section 
@@ -330,8 +338,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TF1 *linearFit = new TF1("linearFit", "pol0",startStrip+1,cEdge);
   linearFit->SetLineColor(kRed);
 
+  //!This is not meant to be able to deal with different planes, the need wasn't felt
   if(kBgdAsym) {
-    //!This is not meant to be able to deal with different planes, the need wasn't felt
     TGraphErrors *grBgd; 
     TCanvas *cBgd = new TCanvas("cBgd","Bgd Asymmetry",10,650,900,300);
     TPaveText *ptBgd;
@@ -382,6 +390,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     ptBgd->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqBgdAsym,bgdAsymFitNDF));
     ptBgd->AddText(Form("linear fit    : %f #pm %f",bgdAsymFit, bgdAsymFitEr));
     ptBgd->Draw();
+    cBgd->SaveAs(Form("%s/%s/%s"+dataType+"BgdAsym.png",pPath,webDirectory,filePre.Data()));
+    //delete grBgd;
+    //delete cBgd;
+    //delete ptBgd;
   }
 
   if(kResidual) {
@@ -430,7 +442,11 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     ptRes->AddText(Form("linear fit    : %f #pm %f",resFit,resFitEr));
     ptRes->Draw();
     cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePre.Data()));
+    //delete cResidual;
+    //delete grResiduals;
+    //delete ptRes;
   }
+  //delete linearFit;
   fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePre.Data()));
   fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
   fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
@@ -482,9 +498,13 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     legYield->SetFillColor(0);
     legYield->Draw();
     cYield->SaveAs(Form("%s/%s/%s"+dataType+"YieldFit.png",pPath,webDirectory,filePre.Data()));
+    //delete cYield;
+    //delete grYield;
+    //delete grB1L0;
+    //delete grAsymDrAll;
+    //delete legYield;
   }
 
-  cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePre.Data()));
   //  tEnd = time(0);
   //  div_output = div((Int_t)difftime(tEnd, tStart),60);
   //  printf("\n it took %d minutes %d seconds to execute asymFit.C\n",div_output.quot,div_output.rem );  
@@ -502,3 +522,5 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
    *The acceptance limit for the ratio of the background subtracted Signal over Signal is set at 10%
    *StripNum is a 2D array so as to hold the different set of strips that may be unmasked
    */
+#endif
+
