@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -fPIC -ggdb -c -pthread -m64 -I/usr/include/root -Iinclude -I$(
 LDFLAGS  = $(shell root-config --glibs)
 
 PROG_FILES := \
-	mdallpmtavg bcmdd bcm uslumi dslumi
+	mdallbars_y mdallpmtavg bcmdd bcm uslumi uslumi_y dslumi
 
 LIB_FILES := \
 	src/QwTreeBranch src/QwTreeBranchPair src/QwTreeBranchPlot
@@ -22,6 +22,12 @@ dslumi: dslumi.o libQwDB.so
 mdallpmtavg: mdallpmtavg.o libQwDB.so
 	$(CPP) -Wall -ggdb -o $@ mdallpmtavg.o $(LDFLAGS) -L. -lQwDB
 
+mdallbars_y: mdallbars_y.o libQwDB.so
+	$(CPP) -Wall -ggdb -o $@ mdallbars_y.o $(LDFLAGS) -L. -lQwDB
+
+uslumi_y: uslumi_y.o libQwDB.so
+	$(CPP) -Wall -ggdb -o $@ uslumi_y.o $(LDFLAGS) -L. -lQwDB
+
 bcmdd: bcmdd.o libQwDB.so
 	$(CPP) -Wall -ggdb -o $@ bcmdd.o $(LDFLAGS) -L. -lQwDB
 
@@ -35,7 +41,7 @@ libQwDB.so: $(LIB_O_FILES)
 	$(CPP) -Wall -ggdb -c $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f libQwDB.so *.o src/*.o lumi mdallpmtavg bcmdd lumi example
+	rm -f libQwDB.so *.o src/*.o lumi mdallbars_y mdallpmtavg bcmdd lumi example
 
 install:
 	install libQwDB.so $(QWANALYSIS)/lib/

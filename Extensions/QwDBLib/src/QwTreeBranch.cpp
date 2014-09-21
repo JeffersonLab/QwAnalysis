@@ -328,7 +328,7 @@ void QwTreeBranch::set_weight_n(TTree* tree, TString name) {
 }
 
 TTree* clean_tree(TTree* tree, int clean_scheme) {
-
+    cout << clean_scheme << endl;
     /* Number of runlets in the dirty tree. */
     int entries = tree->GetEntries();
 
@@ -343,11 +343,20 @@ TTree* clean_tree(TTree* tree, int clean_scheme) {
     tree->SetBranchStatus("*",1);
 
     /* Grab these detectors to cut on. */
-    tree->SetBranchAddress("asym_mdallpmtavg", &mdallpmtavg);
-    tree->SetBranchAddress("asym_uslumi_sum", &uslumi);
-    tree->SetBranchAddress("asym_qwk_pmtltg", &pmtltg);
-    tree->SetBranchAddress("asym_qwk_pmtonl", &pmtonl);
-    tree->SetBranchAddress("asym_md9pmtavg", &md9);
+    if(clean_scheme == 1) {
+        tree->SetBranchAddress("asym_mdallpmtavg", &mdallpmtavg);
+        tree->SetBranchAddress("asym_uslumi_sum", &uslumi);
+        tree->SetBranchAddress("asym_qwk_pmtltg", &pmtltg);
+        tree->SetBranchAddress("asym_qwk_pmtonl", &pmtonl);
+        tree->SetBranchAddress("asym_md9pmtavg", &md9);
+    }
+    else if(clean_scheme == 2) {
+        tree->SetBranchAddress("yield_qwk_mdallbars", &mdallpmtavg);
+        tree->SetBranchAddress("yield_uslumi_sum", &uslumi);
+        tree->SetBranchAddress("yield_qwk_pmtltg", &pmtltg);
+        tree->SetBranchAddress("yield_qwk_pmtonl", &pmtonl);
+        tree->SetBranchAddress("yield_md9pmtavg", &md9);
+    }
 
     /* Define object to hold new tree. */
     TFile *newfile;
