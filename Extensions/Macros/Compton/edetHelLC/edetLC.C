@@ -35,15 +35,15 @@ Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
     //fileReadDraw(runnum);  ///This function uses the output from different dataTypes together, hence should not be called while executing single dataType
   } else cout <<"\n***expAsym.C failed so exiting\n"<<endl;
 
-  analFlags.open(Form("%s/%s/%sanalysisFlags.txt",pPath,webDirectory,filePre.Data()));
+  analFlags.open(Form("%s/%s/%sanalysisFlags.txt",pPath,www,filePre.Data()));
   if (analFlags.is_open()) {
-    analFlags<<";runnum\tkRadCor\tkDeadTime\tk2parDT\tkRejectBMod\tkNoiseSub"<<endl;
-    analFlags<<runnum<<"\t"<<kRadCor<<"\t"<< kDeadTime<<"\t"<< k2parDT<<"\t"<< kRejectBMod<<"\t"<< kNoiseSub<<endl;
+    analFlags<<";runnum\tkRadCor\tkDeadTime\tk2parDT\tkRejectBMod\tkNoiseSub\tkOnlyGoodLasCyc"<<endl;
+    analFlags<<runnum<<"\t"<<kRadCor<<"\t"<< kDeadTime<<"\t"<< k2parDT<<"\t"<< kRejectBMod<<"\t"<< kNoiseSub<<"\t"<<kOnlyGoodLasCyc<<endl;
     analFlags.close();
   }
 
   if(daqCheck<0 || asymflag <0 || asymSuc<0) {
-  analFlags.open(Form("%s/%s/%sWhyNotExecuted.txt",pPath,webDirectory,filePre.Data()));
+  analFlags.open(Form("%s/%s/%sWhyNotExecuted.txt",pPath,www,filePre.Data()));
   if (analFlags.is_open()) {
     analFlags<<";runnum\tinfoDAQ\texpAsym\tasymFit"<<endl;
     analFlags<<runnum<<"\t"<< daqCheck<<"\t"<< asymflag<<"\t"<<asymSuc<<endl;

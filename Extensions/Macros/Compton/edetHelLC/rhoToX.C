@@ -38,7 +38,6 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   kk =zdrift*tan(thetabend);
   x1 =(kk + h);
   Double_t r_max = ((eEnergy+eLaser-kprimemax))/(light*B_dipole);///just for comparision,not needed really
-
   
   kDummy = kprimemax; ///initiating 
   Double_t r_dummy,th_dummy,x1_old,x2_old,x1_new,x2_new,dxPrime_old;
@@ -49,7 +48,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
 // x1_new = R_bend*(1-cos(thetabend)) + (zdrift + dxPrime_old*tan(det_angle))*tan(thetabend); 
   x1_new = R_bend*(1-cos(thetabend)) + (zdrift)*tan(thetabend);
 
-  QEDasym.open(Form("%s/%s/%sQEDasymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
+  QEDasym.open(Form("%s/%s/%sQEDasymP%d.txt",pPath,www,filePre.Data(),plane));
   for (Int_t i = 1; i <= nPoints; i++) {
     rho[i] = (Double_t)i/nPoints;
     kDummy = rho[i]*kprimemax;
@@ -82,7 +81,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
     // TCanvas *cQED = new TCanvas("cQED","fit for QED parameter",10,10,300,300);
     // cQED->cd();
   }
-  TGraph *grtheory = new TGraph(Form("%s/%s/%sQEDasymP%d.txt",pPath,webDirectory,filePre.Data(),plane), "%lg %lg");
+  TGraph *grtheory = new TGraph(Form("%s/%s/%sQEDasymP%d.txt",pPath,www,filePre.Data(),plane), "%lg %lg");
   grtheory->GetXaxis()->SetTitle("dist from compton scattered electrons(m)");
   grtheory->GetYaxis()->SetTitle("#rho");
   grtheory->GetYaxis()->CenterTitle();
@@ -100,7 +99,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   // }
 
   ofstream checkfile;
-  checkfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath,webDirectory,filePre.Data(),plane));
+  checkfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath,www,filePre.Data(),plane));
    if(checkfile.is_open()) {
      if(debug) cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane<<endl;
      checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<"\t"<<param[4]<<"\t"<<param[5]<<endl;

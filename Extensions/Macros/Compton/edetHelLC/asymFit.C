@@ -21,10 +21,8 @@ Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for
   return (parCx[2]*((rhoStrip*(1.0 - a_const)*rhoStrip*(1.0 - a_const)/rhoMinus)+1.0+dsdrho1*dsdrho1));//eqn.22,without factor 2*pi*(re^2)/a_const
 }
 
-///3 parameter method
 Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
 {
-  //itStrip = skipStrip.find(*thisStrip); //for some reason the std::set did not work !
   itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
   if(itStrip != skipStrip.end() ) { 
     //cout<<red<<"ignored strip: "<<*thisStrip<<normal<<endl;
@@ -71,11 +69,18 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   gStyle->SetPalette(1);
   gStyle->SetPadBorderSize(3);
   gStyle->SetFrameLineWidth(3);
+  gStyle->SetTitleSize(0.06,"XY");
   gStyle->SetTitleOffset(1.05,"X");
-  gStyle->SetTitleSize(0.05,"X");
   gStyle->SetTitleOffset(0.6,"Y");
-  gStyle->SetTitleSize(0.06,"Y");
+
+  //gStyle->SetTextFont(132);
+  gStyle->SetTextSize(0.08);
+  gStyle->SetLabelFont(132,"xyz");
   gStyle->SetLabelSize(0.06,"xyz");
+  //gStyle->SetPadTopMargin(0.05);
+  gStyle->SetPadRightMargin(0.07);
+  gStyle->SetPadBottomMargin(0.16);
+  //gStyle->SetPadLeftMargin(0.12);
 
   filePre = Form(filePrefix,runnum,runnum);
 
@@ -107,7 +112,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   Double_t dum1,dum2,dum3,dum4;
 
   ///Read in all files that are needed
-  expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
+  expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,www,filePre.Data(),plane));
   if(expAsymPWTL1.is_open()) {
     if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<plane<<endl;
     if(debug2) cout<<"strip\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
@@ -121,11 +126,11 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     }
     expAsymPWTL1.close();
   } else {
-    cout<<red<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,webDirectory,filePre.Data(),plane)<<normal<<endl;
+    cout<<red<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,www,filePre.Data(),plane)<<normal<<endl;
     return -1;
   }
 
-  infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
+  infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane));
   if(infileL0Yield.is_open()) {
     if(debug1) cout<<"Reading the qNorm Laser Off Yield for Plane "<<plane<<endl;
     while(infileL0Yield>>dum1>>dum2>>dum3 && infileL0Yield.good()) {
@@ -137,11 +142,11 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     }
     infileL0Yield.close();
   } else {
-    cout<<red<<"didn't find lasOff bgd file "<<Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
+    cout<<red<<"didn't find lasOff bgd file "<<Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
     return -1;
   }
 
-  infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
+  infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane));
   if(infileYield.is_open()) {
     if(debug1) cout<<"Reading the qNorm Laser On Yield for Plane "<<plane<<endl;
     while(infileYield>>dum1>>dum2>>dum3>>dum4 && infileYield.good()) {
@@ -153,7 +158,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     }
     infileYield.close();
   } else {
-    cout<<red<<"did not find the bgd subtracted yield file "<<Form("%s/%s/%s%sYieldP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
+    cout<<red<<"did not find the bgd subtracted yield file "<<Form("%s/%s/%s%sYieldP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
     return -1;
   }
 
@@ -181,11 +186,11 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TCanvas *cAsym;
   TGraphErrors *grAsym;
 
-  cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,1000,300);
+  cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,900,300);
 
   xCedge = rhoToX(runnum); ///this function should be called after determining the Cedge
 
-  paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath,webDirectory,filePre.Data(),plane));
+  paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath,www,filePre.Data(),plane));
   cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
   paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
   paramfile.close();
@@ -197,14 +202,15 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   grAsym=new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),asym.data(),0,asymEr.data()); 
   grAsym->GetXaxis()->SetTitle("Strip number");
-  grAsym->GetYaxis()->SetTitle("asymmetry");   
+  grAsym->GetYaxis()->SetTitle("asymmetry");  
+  grAsym->SetTitle();
   //grAsym->SetTitle(Form(dataType+" Mode Asymmetry, Plane %d",plane));//Form("experimental asymmetry Run: %d, Plane %d",runnum,plane));
   grAsym->SetMarkerStyle(kFullCircle);
   grAsym->SetLineColor(kRed);
   grAsym->SetMarkerColor(kRed); ///kRed+2 = Maroon
   grAsym->SetMaximum(0.048); 
   grAsym->SetMinimum(-0.048);
-  grAsym->GetXaxis()->SetLimits(1,65); 
+  grAsym->GetXaxis()->SetLimits(0,65); 
   //grAsym->GetXaxis()->SetNdivisions(416, kFALSE);
 
   grAsym->Draw("AP");
@@ -295,7 +301,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   polFit->DrawCopy("same");
 
   if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
-  polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,webDirectory,filePre.Data()));
+  polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,www,filePre.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tgoodCyc"<<endl;
   polList<< Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
   if(debug) {
@@ -308,8 +314,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   leg->SetFillColor(0);
   leg->Draw();
 
-  if (polSign) pt = new TPaveText(0.44,0.12,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
-  else  pt = new TPaveText(0.44,0.52,0.68,0.88,"brNDC");
+  if (polSign) pt = new TPaveText(0.44,0.14,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
+  else  pt = new TPaveText(0.44,0.51,0.69,0.88,"brNDC");
 
   pt->SetTextSize(0.060);//0.028); 
   pt->SetBorderSize(1);
@@ -317,13 +323,13 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   pt->SetFillColor(-1);
   pt->SetShadowColor(-1);
 
-  pt->AddText(Form("chi Sq / ndf       : %.3f",chiSq/NDF));
-  pt->AddText(Form("Compton Edge : %2.2f #pm %2.2f",cEdge,cEdgeEr));
+  pt->AddText(Form("Chi Sq / ndf       : %.3f",chiSq/NDF));
+  pt->AddText(Form("Compton edge : %2.2f #pm %2.2f",cEdge,cEdgeEr));
   pt->AddText(Form("Polarization      : %2.2f #pm %2.2f",pol*100.0,polEr*100.0));
   pt->Draw();
   myline->Draw();
   polList.close();
-  cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,webDirectory,filePre.Data()));
+  cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,www,filePre.Data()));
   //delete myline;
   //delete cAsym;
   //delete pt;
@@ -348,8 +354,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     std::vector <Double_t> bgdAsym, bgdAsymEr;
     ///Read in the background asymmetry file
     cBgd->cd();
-    fBgdAsym.open(Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane));
-    //fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),plane));
+    cBgd->SetGridx();
+    fBgdAsym.open(Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane));
+    //fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,www,filePre.Data(),plane));
     if(fBgdAsym.is_open()) {
       if(debug2) cout<<"Reading the bgdAsym file for Plane "<<plane<<endl;
       if(debug2) cout<<"strip\t"<<"bgdAsym\t"<<"bgdAsymEr"<<endl;
@@ -362,8 +369,14 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
         if(debug2) cout<<blue<<dum1<<"\t"<<bgdAsym.back()<<"\t"<<bgdAsymEr.back()<<normal<<endl;
       }
       fBgdAsym.close();
-    } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,webDirectory,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
-    //cout<<(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,webDirectory,filePre.Data(),plane))<<endl;
+    } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
+
+    //Trying to debug the pattern in bgd asym
+    if(debug2) {
+      for(int i=0; i<(Int_t)trueStrip.size(); i++) {
+        printf("%f\t%f\t%f\n",trueStrip[i],bgdAsym[i],bgdAsymEr[i]);
+      }
+    }
 
     grBgd = new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),bgdAsym.data(),0,bgdAsymEr.data());
     grBgd->Draw("AP");
@@ -373,7 +386,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     grBgd->SetMarkerStyle(kFullCircle);
     grBgd->SetLineColor(kBlue);
     grBgd->SetMarkerColor(kBlue); ///kRed+2 = Maroon
-    //grBgd->GetXaxis()->SetLimits(1,65); 
+    grBgd->GetXaxis()->SetLimits(0,65); 
     grBgd->Fit(linearFit,"RE");//q:quiet mode
 
     bgdAsymFit = linearFit->GetParameter(0);
@@ -390,7 +403,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     ptBgd->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqBgdAsym,bgdAsymFitNDF));
     ptBgd->AddText(Form("linear fit    : %f #pm %f",bgdAsymFit, bgdAsymFitEr));
     ptBgd->Draw();
-    cBgd->SaveAs(Form("%s/%s/%s"+dataType+"BgdAsym.png",pPath,webDirectory,filePre.Data()));
+    cBgd->SaveAs(Form("%s/%s/%s"+dataType+"BgdAsym.png",pPath,www,filePre.Data()));
     //delete grBgd;
     //delete cBgd;
     //delete ptBgd;
@@ -418,7 +431,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     grResiduals->SetMarkerStyle(kOpenCircle);
     //grResiduals->SetMaximum(0.012);/// half of asymmetry axis 
     //grResiduals->SetMinimum(-0.012);/// half of asymmetry axis 
-    //grResiduals->GetXaxis()->SetLimits(1,Cedge); 
+    grResiduals->GetXaxis()->SetLimits(startStrip,endStrip+1); 
     //grResiduals->SetTitle(Form(dataType+" Mode Asymmetry Fit Residual, Plane %d",plane));
     grResiduals->SetTitle(0);
     grResiduals->GetXaxis()->SetTitle("Compton electron detector strip number");
@@ -441,13 +454,13 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     ptRes->AddText(Form("chi Sq / ndf  : %0.1f / %d",chiSqResidue,resFitNDF));
     ptRes->AddText(Form("linear fit    : %f #pm %f",resFit,resFitEr));
     ptRes->Draw();
-    cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,webDirectory,filePre.Data()));
+    cResidual->SaveAs(Form("%s/%s/%s"+dataType+"AsymFitResidual.png",pPath,www,filePre.Data()));
     //delete cResidual;
     //delete grResiduals;
     //delete ptRes;
   }
   //delete linearFit;
-  fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,webDirectory,filePre.Data()));
+  fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,www,filePre.Data()));
   fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
   fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
   fitInfo.close();
@@ -456,7 +469,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     TCanvas *cYield;
     TGraphErrors *grYield,*grB1L0;
     TMultiGraph *grAsymDrAll;
-    cYield = new TCanvas("cYield","detector yield",300,200,1000,300);
+    cYield = new TCanvas("cYield","detector yield",300,200,900,300);
 
     cYield->cd();
     cYield->SetGridx(1);
@@ -489,7 +502,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     grAsymDrAll->GetXaxis()->SetTitle("Compton electron detector strip number");
     grAsymDrAll->GetYaxis()->SetTitle("qNorm Counts (Hz/uA)");
     //grAsymDrAll->GetXaxis()->SetNdivisions(416, kFALSE);
-    grAsymDrAll->GetXaxis()->SetLimits(1,65); 
+    grAsymDrAll->GetXaxis()->SetLimits(startStrip,endStrip+1); 
 
     legYield = new TLegend(0.101,0.75,0.44,0.9);
     legYield->AddEntry(grYield,"background corrected detector yield","lpe");
@@ -497,7 +510,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     legYield->AddEntry(grB1L0,"background(Hz/uA)","lpe");
     legYield->SetFillColor(0);
     legYield->Draw();
-    cYield->SaveAs(Form("%s/%s/%s"+dataType+"YieldFit.png",pPath,webDirectory,filePre.Data()));
+    cYield->SaveAs(Form("%s/%s/%s"+dataType+"YieldFit.png",pPath,www,filePre.Data()));
     //delete cYield;
     //delete grYield;
     //delete grB1L0;

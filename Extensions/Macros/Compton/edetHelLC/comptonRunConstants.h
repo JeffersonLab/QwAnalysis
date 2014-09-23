@@ -6,7 +6,7 @@
 
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
-const char *webDirectory= "www";
+const char *www= "www";
 const TString filePrefix = "run_%d/edetLC_%d_";///one spot change of all file names
 TString filePre;
 //Asymmetry calculation constants 
@@ -17,7 +17,8 @@ const Double_t alpha=0.00729927; ///=1.0/137.0;
 const Double_t me=0.00051099006;///GeV
 const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
 const Double_t B_dipole = 0.544;///T
-Double_t eEnergy = 1.1575, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in from infoDAQ
+const Double_t eEnergyRun2 = 1157.53;///current run2 histogrammed mean
+Double_t eEnergy = 1157.53, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in from infoDAQ
 
 const Double_t lambda = 532E-9; //photon wavelength (nm)      
 Double_t xCedge=0.0;
@@ -75,6 +76,7 @@ const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets du
 const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
+const Bool_t kOnlyGoodLasCyc = 1;
 const Int_t maxIterations =4;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros

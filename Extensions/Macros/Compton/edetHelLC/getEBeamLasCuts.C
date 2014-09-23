@@ -51,11 +51,11 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
 
   ofstream outfileLas,outfileBeam,infoBeamLas;
-  outfileLas.open(Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePre.Data()));
-  if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
+  outfileLas.open(Form("%s/%s/%scutLas.txt",pPath,www,filePre.Data()));
+  if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,www,filePre.Data())<<" file created\n"<<endl;
 
-  outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data()));
-  if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
+  outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,www,filePre.Data()));
+  if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,www,filePre.Data())<<" file created\n"<<endl;
 
   TBranch *bLaser;
   TBranch *bBCM;
@@ -169,8 +169,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     cout<<Form("%d\t%.2f\t%f\t%f\t%f\t%.0f\t%.2f\t%.0f\t%.0f",runnum,beamMax,beamRMS,beamMean,beamMeanEr,((Float_t)cutE.size()-2.0)/2,laserMax,((Float_t)cutL.size()-2.0)/2,(Float_t)nEntries)<<normal<<endl;
   }
 
-  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data()));
-  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,webDirectory,filePre.Data())<<" file created\n"<<endl;
+  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,www,filePre.Data()));
+  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,www,filePre.Data())<<" file created\n"<<endl;
   infoBeamLas<<"runnum\tbeamMax\tbeamRMS\tbeamMean\tbeamMeanEr\tnBeamTrips\tlasMax\tnLasCycles\tnEntries"<<endl;
   infoBeamLas<<runnum<<"\t"<<beamMax<<"\t"<<beamRMS<<"\t"<<beamMean<<"\t"<<beamMeanEr<<"\t"<<(cutE.size())/2<<"\t"<<laserMax<<"\t"<<(cutL.size()-2)/2<<"\t"<<nEntries;
   outfileLas.close();
