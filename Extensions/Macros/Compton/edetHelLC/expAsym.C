@@ -6,6 +6,7 @@
 #include "stripMask.C"
 #include "infoDAQ.C"
 #include "evaluateAsym.C"
+#include "evalBgdAsym.C"
 #include "weightedMean.C"
 #include "writeToFile.C"
 #include "qNormVariables.C"
@@ -21,7 +22,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   div_t div_output;
   const Bool_t debug = 1, debug1 = 0, debug2 = 0;
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
-  Bool_t firstlinelasPrint[nStrips],firstLineLasCyc=kTRUE;
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
   Int_t l = 0;//lasOn tracking variables
@@ -277,13 +277,10 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     }
     lasCycBCM.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycBcmAvg.txt",pPath,www,runnum,runnum));
     lasCycLasPow.open(Form("%s/%s/run_%d/lasCyc/edetLC_%d_lasCycAvgLasPow.txt",pPath,www,runnum,runnum));  
-
-    for(Int_t s =startStrip; s <endStrip; s++) {
-      firstlinelasPrint[s] = kTRUE;///this needs to be '1' for every new file
-    }
   }
   if(nLasCycles<=0) {
-    cout<<red<<"no.of laser cycles found in this run is ZERO"<<endl;
+    cout<<red<<"no.of laser cycles found in this run is ZERO"<<
+    "\nHence this will useful entirely as a background run\n"<<normal<<endl;
     return -1;
   }
   cout<<"if laser-Off period has lasPower > "<<minLasPow<<", or \n"
@@ -417,7 +414,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
         ///the equal sign above is in laser-On zone because that's how getEBeamLasCuts currently assign it(may change!)
         else missedLasEntries++;
 
-        if (y_bcm[0] > beamOnLimit) {///this check needed for kOnlyGoodCycles=0 case
+        if ((y_bcm[0]+d_bcm[0]) > beamOnLimit) {///this check needed for kOnlyGoodCycles=0 case
           ///when only good cycles are taken, 'beamOn' will inhibit the whole laser cycle with a beam trip
           //..when all laserCycles are taken, 2nd condition will reject the individual beamOff quartets
           if (kRejectBMod && (bModRamp[0]>100.0)) {
@@ -444,13 +441,13 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
               diffB1L1[s]  += bDiff[s];
             }
           }
-        }///if (y_bcm[0] > beamOnLimit)
+        }///if ((y_bcm[0]+d_bcm[0]) > beamOnLimit)///!NOT populating beam off counts currently
       }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
       if(debug) cout<<"had to ignore "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
 
       totalMissedQuartets += missedDueToBMod++;
       //after having filled the above vectors based on laser and beam periods, find asymmetry for this laser cycle
-      if (y_bcm[0] > beamOnLimit) {
+      if ((y_bcm[0]+d_bcm[0]) > beamOnLimit) {
         if(kRejectBMod) cout<<blue<<"no.of quartets missed for BMod ramp this cycle: "<<missedDueToBMod<<normal<<endl;
         laserOnOffRatioH0 = (Double_t)nHelLCB1L1/nHelLCB1L0;
         totIAllH1L1 += iLCH1L1;
@@ -535,7 +532,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
           //the corr* variables depend on the aggregate rate at a time, unaffected by individual strip rate
           /////////////////////////////////////////////////
 
-          Int_t evaluated = evaluateAsym(countsLCB1H1L1,countsLCB1H1L0,countsLCB1H0L1,countsLCB1H0L0,qAvgLCH1L1,qAvgLCH1L0,qAvgLCH0L1,qAvgLCH0L0);
+          Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qAvgLCH1L1, qAvgLCH1L0, qAvgLCH0L1, qAvgLCH0L0);
+          evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qAvgLCH1L0, qAvgLCH0L0);
           if(evaluated<0) {
             cout<<red<<"evaluateAsym reported background corrected yield to be negative in lasCycle "<<nCycle+1<<" hence skipping"<<normal<<endl;
             continue;///go to next nCycle
@@ -556,27 +554,17 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
             cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<endl;
             cout<<Form("iLCH1L1: %f\t iLCH1L0: %f",iLCH1L1,iLCH1L0)<<endl;
           }	   
-          if (!firstLineLasCyc) {
-            lasCycBCM<<"\n";
-            lasCycLasPow<<"\n";
-          }
-          firstLineLasCyc = kFALSE;
           for (Int_t s =startStrip; s <endStrip;s++) {
-            if(!firstlinelasPrint[s]) {
-              countsLC[s]<<"\n";
-              outAsymLasCyc[s]<<"\n";
-            }
-            firstlinelasPrint[s] =kFALSE;
             if (countsLC[s].is_open()) {
-              countsLC[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,yieldB1L0[s]/qLasCycL0,yieldB1L1[s]/qLasCycL1);
-              countsLC[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(yieldB1L0[s]/((Double_t)nHelLCB1L0/helRate)),((TMath::Sqrt(yieldB1L0[s]))/(Double_t)(nHelLCB1L0/helRate)));
+              countsLC[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,yieldB1L0[s]/qLasCycL0,yieldB1L1[s]/qLasCycL1)<<endl;
+              countsLC[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(yieldB1L0[s]/((Double_t)nHelLCB1L0/helRate)),((TMath::Sqrt(yieldB1L0[s]))/(Double_t)(nHelLCB1L0/helRate)))<<endl;
             } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
             if (outAsymLasCyc[s].is_open()) {
-              outAsymLasCyc[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormAsymLC[s],TMath::Sqrt(asymErSqrLC[s]));
+              outAsymLasCyc[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormAsymLC[s],TMath::Sqrt(asymErSqrLC[s]))<<endl;
             } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
           }
-          lasCycBCM<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(iLCH1L0+iLCH0L0)/nHelLCB1L0,(iLCH1L1+iLCH0L1)/nHelLCB1L1);
-          lasCycLasPow<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,lasPowLCB1L0/nHelLCB1L0,lasPowLCB1L1/nHelLCB1L1);
+          lasCycBCM<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(iLCH1L0+iLCH0L0)/nHelLCB1L0,(iLCH1L1+iLCH0L1)/nHelLCB1L1)<<endl;
+          lasCycLasPow<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,lasPowLCB1L0/nHelLCB1L0,lasPowLCB1L1/nHelLCB1L1)<<endl;
         }///if(lasCycPrint)
 
         }///sanity check of being non-zero for filled laser cycle variables

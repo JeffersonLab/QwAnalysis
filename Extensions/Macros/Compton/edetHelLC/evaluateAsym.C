@@ -7,14 +7,13 @@
 Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0)
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
-  const Bool_t debug=0,debug1=0;
+  const Bool_t debug =0;
   Double_t qNormCountsLCB1H1L1=0.0,qNormCountsLCB1H1L0=0.0,qNormCountsLCB1H0L1=0.0,qNormCountsLCB1H0L0=0.0;
   Double_t BCqNormLCB1H1L1=0.0,BCqNormLCB1H0L1=0.0;
   Double_t BCqNormDiffLC=0.0,BCqNormSumLC=0.0;
   Double_t term1=0.0,term2=0.0,NplusOn_SqQplusOn=0.0,NminusOn_SqQminusOn=0.0,NplusOff_SqQplusOff=0.0,NminusOff_SqQminusOff=0.0;
   Double_t errB1H1L1=0.0, errB1H0L1=0.0, errB1H1L0=0.0, errB1H0L0=0.0;
-  Double_t qNormBkgdAsymNr=0.0,qNormBkgdAsymDr=0.0,qNormBkgdAsym=0.0,term1Bkgd=0.0,term2Bkgd=0.0,errBkgdAsymH1=0.0,errBkgdAsymH0=0.0,bkgdAsymErSqr=0.0;
-  Double_t erBCqNormSumLCSq=0.0,erqNormB1L0LasCycSq=0.0;
+  Double_t erBCqNormSumLCSq=0.0;
   Double_t newCntsB1H1L1,newCntsB1H1L0,newCntsB1H0L1,newCntsB1H0L0;
 
   for (Int_t s =startStrip; s <endStrip; s++) {	  
@@ -30,10 +29,6 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
     BCqNormLCB1H0L1= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
     BCqNormDiffLC = (BCqNormLCB1H1L1 - BCqNormLCB1H0L1);
     BCqNormSumLC  = (BCqNormLCB1H1L1 + BCqNormLCB1H0L1);
-
-    ///adding asymmetry evaluation for laser off data
-    qNormBkgdAsymNr = qNormCountsLCB1H1L0 - qNormCountsLCB1H0L0;
-    qNormBkgdAsymDr = qNormCountsLCB1H1L0 + qNormCountsLCB1H0L0;
 
     if(BCqNormSumLC>0.0) {
       qNormAsymLC[s] = (BCqNormDiffLC / BCqNormSumLC);
@@ -54,7 +49,7 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
       if (asymErSqrLC[s] >0.0) {///eqn 4.17(Bevington)
         wmNrAsym[s] += qNormAsymLC[s]/asymErSqrLC[s]; ///Numerator 
         wmDrAsym[s] += 1.0/asymErSqrLC[s]; ///Denominator
-        if (debug1) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/asymErSqrLC[s],wmDrAsym[s]);
+        if (debug) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/asymErSqrLC[s],wmDrAsym[s]);
       } else if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
       else {
         cout<<"for a non masked strip "<<s+1<<"! Asym Er shouldn't be non-positive"<<endl;
@@ -63,8 +58,6 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
       }
       ///Error evaluation for SUM (in asymmetry)
       erBCqNormSumLCSq = (NplusOn_SqQplusOn+ NminusOn_SqQminusOn+ NplusOff_SqQplusOff+ NminusOff_SqQminusOff);
-      ///Error of laser off background for every laser cycle
-      erqNormB1L0LasCycSq = (NplusOff_SqQplusOff+NminusOff_SqQminusOff);
 
       if (erBCqNormSumLCSq >0.0) {
         wmNrBCqNormSum[s] += BCqNormSumLC/erBCqNormSumLCSq; ///Numerator eqn 4.17(Bevington)
@@ -72,8 +65,6 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
         ///The error for the difference and sum are same, hence reusing the variable
         wmNrBCqNormDiff[s] += BCqNormDiffLC/erBCqNormSumLCSq; ///Numerator eqn 4.17(Bevington)
         //wmDrBCqNormDiff[s] += 1.0/erBCqNormSumLCSq[s]; ///Denominator eqn 4.17(Bevington)
-        wmNrqNormB1L0[s] += qNormBkgdAsymDr/erqNormB1L0LasCycSq; //refer bevington
-        wmDrqNormB1L0[s] += 1.0/erqNormB1L0LasCycSq; //refer bevington
       } else {
         printf("**Alert: getting non-positive erBCqNormSumLCSq for strip:%d in line:%d\n",s+1,__LINE__);
         printf("NplusOn_SqQplusOn:%g, NminusOn_SqQminusOn:%g, NplusOff_SqQplusOff:%g, NminusOff_SqQminusOff:%g,\n"
@@ -96,35 +87,6 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
         ///... eg.run 23300, in nCycle 29
       }
     }
-    ///addition of bkgdAsym term over various laser cycles
-    if (qNormBkgdAsymDr > 0.0) {///eqn 4.17(Bevington)
-      qNormBkgdAsym = qNormBkgdAsymNr/qNormBkgdAsymDr;
-      term1Bkgd = (1-qNormBkgdAsym)/qNormBkgdAsymDr;
-      term2Bkgd = (1+qNormBkgdAsym)/qNormBkgdAsymDr;
-      errBkgdAsymH1 = pow(term1Bkgd,2) * NplusOff_SqQplusOff;
-      errBkgdAsymH0 = pow(term2Bkgd,2) * NminusOff_SqQminusOff;
-      bkgdAsymErSqr = errBkgdAsymH1 + errBkgdAsymH0;
-
-      wmNrBkgdAsym[s] += qNormBkgdAsym/bkgdAsymErSqr; ///Numerator 
-      wmDrBkgdAsym[s] += 1.0/bkgdAsymErSqr; ///Denominator 
-      if(debug) printf("for strip:%d, adding %g(1/bkgdAsymErSq) to wmDrBkgdAsym making it: %f\n",s+1,1.0/bkgdAsymErSqr,wmDrBkgdAsym[s]);
-    } else if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
-    //else if(bkgdAsymErSqr == 0.0) {
-    //  cout<<red<<"\ncheck if plane "<<plane<<" strip "<<s+1<<" is MASKED? the bkgdAsymErSqr is non-positive"<<
-    //    "\nThis could also happen due to beamTrip coincident with whole laserOff period"<<normal<<endl;
-    else {
-      cout<<"the bkgdAsymErSqr shouldn't be normally negative; check:strip\tcountsLCB1H1L0\tH0L0\n"
-        <<s<<"\t"<<newCntsB1H1L0<<"\t"<<newCntsB1H0L0<<"\t"<<
-        "\nqNormBkgdAsymNr:"<<qNormBkgdAsymNr<<" ,Dr:"<<qNormBkgdAsymDr<<
-        "\nqNormCountsLCB1H1L0:"<<qNormCountsLCB1H1L0<<", H0L0:"<<qNormCountsLCB1H0L0<<
-        "\nterm1Bkgd: "<<term1Bkgd<<" ,term2Bkgd:"<<term2Bkgd<<
-        "\nerrBkgdAsymH1:"<< errBkgdAsymH1<<" ,\tH0:"<<errBkgdAsymH0<<endl;
-      continue;//skip this strip for this laser cycle
-    }
-    //cout<<red<<"something uncommon in bgd asym of plane "<<plane<<" strip "<<s+1<<", it has null yield\n"<<normal<<
-    //  "laserOff counts for H1 & H0 are "<<qNormCountsLCB1H1L0<<"\t"<<qNormCountsLCB1H0L0<<"\t"<<endl;
-    //cout<<red<<"returning from evaluateAsym.C at line "<<__LINE__<<normal<<endl;
-    //return -1;//continue;
   }//for (Int_t s =startStrip; s <endStrip; s++) {	
   cout<<"this nCycle e.g: expAsym[s38]: "<<qNormAsymLC[37]<<"+/-"<<TMath::Sqrt(asymErSqrLC[37])<<endl;
   return 1;

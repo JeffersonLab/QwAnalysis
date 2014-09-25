@@ -42,7 +42,7 @@ void rootlogon()
 
   // do not display any of the standard histogram decorations
   pubStyle->SetOptTitle(0);
-  pubStyle->SetOptStat(0);
+  pubStyle->SetOptStat(1);
   pubStyle->SetOptFit(1);
 
   pubStyle->SetPalette(1);
