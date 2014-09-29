@@ -3,37 +3,38 @@
 #include "asymFit.C"
 #include "expAsym.C"
 #include "infoDAQ.C"
+#include "stripMask.C"
 //#include "fileReadDraw.C"
 
 Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
 {
-  cout<<"starting into edetLC.C**************"<<endl;
+  cerr<<"starting into edetLC.C**************"<<endl;
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   ofstream analFlags;
   
-  gROOT->LoadMacro(" stripMask.C+g");
-  gROOT->LoadMacro(" rhoToX.C+g");
-  gROOT->LoadMacro(" getEBeamLasCuts.C+g");
-  gROOT->LoadMacro(" evaluateAsym.C+g");
-  gROOT->LoadMacro(" expAsym.C+g");
-  gROOT->LoadMacro(" asymFit.C+g");
-  gROOT->LoadMacro(" infoDAQ.C+g");
-  gROOT->LoadMacro(" writeToFile.C+g");
-  gROOT->LoadMacro(" qNormVariables.C+g");
-  gROOT->LoadMacro(" weightedMean.C+g");
+  //gROOT->LoadMacro(" stripMask.C+g");
+  //gROOT->LoadMacro(" rhoToX.C+g");
+  //gROOT->LoadMacro(" getEBeamLasCuts.C+g");
+  //gROOT->LoadMacro(" evaluateAsym.C+g");
+  //gROOT->LoadMacro(" expAsym.C+g");
+  //gROOT->LoadMacro(" asymFit.C+g");
+  //gROOT->LoadMacro(" infoDAQ.C+g");
+  //gROOT->LoadMacro(" writeToFile.C+g");
+  //gROOT->LoadMacro(" qNormVariables.C+g");
+  //gROOT->LoadMacro(" weightedMean.C+g");
   //gROOT->LoadMacro(" fileReadDraw.C+g");
 
   plane=1;
   Int_t asymSuc=0;
-  daqCheck = infoDAQ(runnum); 
+  daqCheck = infoDAQ(runnum,dataType); 
   asymflag = expAsym(runnum,dataType);
 
   if(asymflag!=-1) {
-    if(asymflag==0) cout<<blue<<"this run has NO useful LASER CYCLE"<<normal<<endl;
+    if(asymflag==0) cerr<<blue<<"this run has NO useful LASER CYCLE"<<normal<<endl;
     else asymSuc = asymFit(runnum,dataType);
     //fileReadDraw(runnum);  ///This function uses the output from different dataTypes together, hence should not be called while executing single dataType
-  } else cout <<"\n***expAsym.C failed so exiting\n"<<endl;
+  } else cerr <<"\n***expAsym.C failed so exiting\n"<<endl;
 
   analFlags.open(Form("%s/%s/%sanalysisFlags.txt",pPath,www,filePre.Data()));
   if (analFlags.is_open()) {

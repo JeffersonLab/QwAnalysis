@@ -6,6 +6,7 @@
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
 Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L0, Double_t qAvgLCH0L0) 
 {
+  cout<<"starting into evalBgdAsym.C**************"<<endl;
   const Bool_t debug =0;
   Double_t qNormBkgdAsymNr=0.0,qNormBkgdAsymDr=0.0,qNormBkgdAsym=0.0,term1Bkgd=0.0,term2Bkgd=0.0,errBkgdAsymH1=0.0,errBkgdAsymH0=0.0,bkgdAsymErSqr=0.0;
   Double_t qNormCountsLCB1H1L0 =0.0, qNormCountsLCB1H0L0=0.0;

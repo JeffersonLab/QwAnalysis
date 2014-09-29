@@ -3,7 +3,7 @@
 #include "rootClass.h"
 #include "comptonRunConstants.h"
 
-Int_t infoDAQ(Int_t runnum)
+Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
 {
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,www,runnum));
@@ -21,13 +21,10 @@ Int_t infoDAQ(Int_t runnum)
 
   TChain *slowChain = new TChain("Slow_Tree");//to scan through the entire run if a parameter changed midway
   Int_t slowExists = slowChain->Add(Form("$QW_ROOTFILES/Compton_Pass2b_%d.*.root",runnum));//for pass2b
-  cout<<"Attached "<<slowExists<<" files to chain for Run # "<<runnum<<endl;
   if(!slowChain) {/// exit if rootfiles do not exist
-    cout<<"\n\n***Error: The analyzed Root file for run "<<runnum<<" does not exist***\n\n"<<endl;
+    cout<<"\n\n***Error: The analyzed Root file for run "<<runnum<<" does not exist at "<<Form("$QW_ROOTFILES")<<"***\n\n"<<endl;
     return -1;
-    ///Even without the rootfile the masks are set so I can use this macro; so lets return gracefully 
-    ///But can't execute the process the rest of the macro so exiting;
-  }
+  } else cout<<"Attached "<<slowExists<<" files to chain for Run # "<<runnum<<endl;
 
   Double_t hWien, vWien, ihwp1set, rhwp, ihwp1read, ihwp2read, hccedpos;
   //Double_t hallcPhI,hallcWaveL;

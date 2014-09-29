@@ -36,6 +36,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   Double_t bYield[nStrips],bDiff[nStrips],bAsym[nStrips];
   Double_t iLCH1L1=0.0,iLCH1L0=0.0,iLCH0L1=0.0,iLCH0L0=0.0;
   Double_t lasPow[3],y_bcm[3],d_bcm[3],bpm_3c20X[2],bModRamp[3];//?!the vector size should be 3 I suppose, not 4
+  Double_t bUnixTime[3];
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
   Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2];
   //Double_t bpm_3p02aX[1],bpm_3p02aY[1],bpm_3p02bX[1],bpm_3p02bY[1],bpm_3p03aX[1],bpm_3p03aY[1];
@@ -49,10 +50,9 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   TChain *helChain = new TChain("Hel_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
-  ofstream lasCycExpAsym,lasCycYield;
   ofstream countsLC[nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
   ofstream outAsymLasCyc[nStrips];
-  ofstream outfileExpAsymP,outfileBkgdAsymP,outfileYield,outfilelasOffBkgd,fortranCheck;
+  ofstream fTime;
   ifstream infileLas, infileBeam, fileNoise;
 
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,www,runnum));
@@ -60,7 +60,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   else cout<<green<<"quartets during beam modulation ramp NOT rejected"<<normal<<endl;
 
   if(daqflag == 0) daqflag = stripMask(); //if the masks are not set yet, its needed in evaluateAsym.C
-  if(daqCheck ==0) daqCheck = infoDAQ(runnum); ///needed acTrig for applying deadtime correction
+  if(daqCheck ==0) daqCheck = infoDAQ(runnum, dataType); ///needed acTrig for applying deadtime correction
   if(daqflag==-1) {
     cout<<red<<"\nreturned error from stripMask.C, hence exiting\n"<<normal<<endl;
     return -1;
@@ -217,6 +217,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   helChain->SetBranchStatus("yield_sca_bpm_3c20Y*",1);
   helChain->SetBranchStatus("yield_sca_bpm_3c20X*",1);
   helChain->SetBranchStatus("yield_sca_bmod_ramp*",1);
+  helChain->SetBranchStatus("yield_time_unix",1);
 
   helChain->SetBranchAddress("mps_counter",&event_number);
   helChain->SetBranchAddress("pattern_number",&pattern_number);
@@ -231,6 +232,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   helChain->SetBranchAddress("yield_sca_bpm_3p03aY",&bpm_3p03aY);
   helChain->SetBranchAddress("yield_sca_bpm_3c20X",&bpm_3c20X);
   helChain->SetBranchAddress("yield_sca_bmod_ramp",&bModRamp);
+  helChain->SetBranchAddress("yield_time_unix", &bUnixTime);
 
   if (dataType == "Ev") {
     helChain->SetBranchStatus("yield_p*RawEv*",1);
@@ -262,6 +264,21 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     helChain->SetBranchAddress(Form("asym_p%dRawAc",plane),&bAsym);
     //the branch for each plane is named from 1 to 4
   } else cout<<red<<"dataType not defined clearly"<<normal<<endl;
+ 
+  /////Output the Unix time for the beginning and end of a run !!
+  //cout<<bUnixTime[0]<<endl;//"\t"<<beginT<<endl;
+  //helChain->GetEntry(0);
+  ////TString *beginT = 
+  //AsString(bUnixTime[0]);
+  ////TString beginT = 
+  //GetDate(bUnixTime[0]);
+  //cout<<bUnixTime[0]<<endl;//"\t"<<beginT<<endl;
+  //cout<<red<<"Temporarily exiting the chain"<<normal<<endl;
+  //return 1;
+  ////TString *endT = helChain->;
+  ////fTime.open();
+  ////fTime<<endl;
+  ////fTime.close();
 
   ///I need to open the lasCyc dependent files separately here since at every nCycle I update this file with a new entry
   ///..it should be opened before I enter the nCycle loop, and close them after coming out of the nCycle loop.
@@ -533,7 +550,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
           /////////////////////////////////////////////////
 
           Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qAvgLCH1L1, qAvgLCH1L0, qAvgLCH0L1, qAvgLCH0L0);
-          evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qAvgLCH1L0, qAvgLCH0L0);
           if(evaluated<0) {
             cout<<red<<"evaluateAsym reported background corrected yield to be negative in lasCycle "<<nCycle+1<<" hence skipping"<<normal<<endl;
             continue;///go to next nCycle
@@ -542,7 +558,10 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
             //} else if(skipCyc>0) {///if the skipCyc event happens more than twice(arbitrarily chosen number)
             //  cout<<red<<"skipping this laser cycle, nCycle "<<nCycle+1<<normal<<endl;
             //  continue;//break;
-        } else goodCycles++;///
+        } else {
+          evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qAvgLCH1L0, qAvgLCH0L0);
+          goodCycles++;///
+        }
         if(lasCycPrint) {
           //q=i*t;qH1L1=(iH1L1/nMpsH1L1)*(nMpsH1L1/MpsRate);//this really gives total-charge for this laser cycle
           Double_t qLasCycL1 = iLCH0L1 /helRate;//(iLCH0L1 + iLCH1L1) /helRate;  

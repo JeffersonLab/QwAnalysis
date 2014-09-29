@@ -111,7 +111,7 @@ Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;///on purpose left unin
 ///Declaration of regular variables to be used in the macro
 Float_t corrB1H1L1_0=0.0,corrB1H1L0_0=0.0,corrB1H0L1_0=0.0,corrB1H0L0_0=0.0;//deadtime correction for given run
 Float_t corrB1H1L1_1=0.0,corrB1H1L0_1=0.0,corrB1H0L1_1=0.0,corrB1H0L0_1=0.0;//deadtime correction for given run
-Float_t c2B1H1L1[nStrips]={0.0},c2B1H1L0[nStrips]={0.0},c2B1H0L1[nStrips]={0.0},c2B1H0L0[nStrips]={0.0};
+Float_t c2B1H1L1[nStrips]={1.0},c2B1H1L0[nStrips]={1.0},c2B1H0L1[nStrips]={1.0},c2B1H0L0[nStrips]={1.0};
 Double_t stripAsym[nStrips]={0.0},stripAsymEr[nStrips]={0.0};
 Double_t bkgdAsym[nStrips]={0.0},bkgdAsymEr[nStrips]={0.0};
 Double_t beamMax=0.0, laserMax=0.0;
