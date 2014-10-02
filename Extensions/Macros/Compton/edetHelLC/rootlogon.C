@@ -14,9 +14,9 @@ void rootlogon()
 
   // set the paper & margin sizes
   pubStyle->SetPaperSize(20,26);
-  pubStyle->SetPadTopMargin(0.05);
+  pubStyle->SetPadTopMargin(0.06);//0.05);
   //pubStyle->SetPadRightMargin(0.09);//till 26Sep2014
-  pubStyle->SetPadRightMargin(0.05);
+  pubStyle->SetPadRightMargin(0.089);//0.05);
   pubStyle->SetPadBottomMargin(0.15);
   pubStyle->SetPadLeftMargin(0.15);
   //pubStyle->SetPadLeftMargin(0.12);//till 26Sep2014

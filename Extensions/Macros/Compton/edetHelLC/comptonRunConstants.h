@@ -4,6 +4,14 @@
 #include "/w/hallc/compton/users/narayan/svn/Compton/edetHelLC/rootClass.h"
 #include <stdlib.h>
 
+///Boolean constants pertaining to analysis:
+const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
+const Bool_t kNoiseSub = 1;
+const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
+const Bool_t kRadCor=1;
+const Bool_t kOnlyGoodLasCyc = 1;
+const Int_t maxIterations =4;
+
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
 const char *www= "www";
@@ -46,7 +54,7 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t minLasPow = 2000;///put by eyeballing, needs to be checked !!
+const Double_t minLasPow = 1100;///elog 319 
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
@@ -70,14 +78,6 @@ const Int_t endStrip = 64;
 const Int_t startPlane = 0;
 const Int_t endPlane = 1;
 const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
-
-///Boolean constants pertaining to analysis:
-const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 1;
-const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
-const Bool_t kRadCor=1;
-const Bool_t kOnlyGoodLasCyc = 1;
-const Int_t maxIterations =4;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;

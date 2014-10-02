@@ -24,7 +24,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
-  Int_t l = 0;//lasOn tracking variables
+  Int_t lasOn = 0;//lasOn tracking variables
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
   Int_t nHelLCB1L1=0, nHelLCB1L0=0;
@@ -124,7 +124,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     c1->cd(2);
     helChain->Draw("yield_sca_bcm6:pattern_number");
     c1->SaveAs(Form("%s/%s/%slasBeamStability.png",pPath,www,filePre.Data()));
-    //delete c1;
+    //return 1;///
+    //cout<<red<<"!!!temp exiting"<<endl;
   }
   //////////////////////////////////////////////////////////////////////////////
   infileLas.open(Form("%s/%s/%scutLas.txt",pPath,www,filePre.Data()));
@@ -426,10 +427,10 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
         //if(debug1 && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;//commented to speed up
         helChain->GetEntry(i);
 
-        if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<minLasPow) l= 0; ///laser off zone
-        else if((i > cutLas.at(2*nCycle+1)) && (lasPow[0]>acceptLasPow)) l =1;///laser on zone
+        if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<minLasPow) lasOn= 0; ///laser off zone
+        else if((i > cutLas.at(2*nCycle+1)) && (lasPow[0]>acceptLasPow)) lasOn =1;///laser on zone
         ///the equal sign above is in laser-On zone because that's how getEBeamLasCuts currently assign it(may change!)
-        else missedLasEntries++;
+        else lasOn = -1;///just to set it to an absurd value, so that it doesn't retain previous
 
         if ((y_bcm[0]+d_bcm[0]) > beamOnLimit) {///this check needed for kOnlyGoodCycles=0 case
           ///when only good cycles are taken, 'beamOn' will inhibit the whole laser cycle with a beam trip
@@ -439,7 +440,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
             continue;
           }
           //if(bYield[0][44]>0.0) cout<<blue<<i<<"\t"<<yieldB1L1[0][44]<<"\t"<<bYield[0][44]<<normal<<endl;    //temp
-          if (l==0) {//using the H=0 configuration for now
+          if (lasOn==0) {//using the H=0 configuration for now
             nHelLCB1L0++;
             iLCH1L0 += (y_bcm[0]+d_bcm[0]);///@if the factor '2' is multiplied, that would count the bcm reading once for each of the two H1 measurements; without the factor, this is already an average of the two counts that were recorded during the two H1 events in a given quartet
             iLCH0L0 += (y_bcm[0]-d_bcm[0]);
@@ -448,7 +449,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
               yieldB1L0[s] += bYield[s];
               diffB1L0[s]  += bDiff[s];
             }
-          } else if (l==1) {////the elseif statement helps avoid overhead in each entry
+          } else if (lasOn==1) {////the elseif statement helps avoid overhead in each entry
             nHelLCB1L1++;
             iLCH1L1 += (y_bcm[0]+d_bcm[0]);
             iLCH0L1 += (y_bcm[0]-d_bcm[0]);
@@ -457,7 +458,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
               yieldB1L1[s] += bYield[s];
               diffB1L1[s]  += bDiff[s];
             }
-          }
+          } else missedLasEntries++; ///whenever the laser power was intermittent of the 'on' and 'off'
         }///if ((y_bcm[0]+d_bcm[0]) > beamOnLimit)///!NOT populating beam off counts currently
       }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
       if(debug) cout<<"had to ignore "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
