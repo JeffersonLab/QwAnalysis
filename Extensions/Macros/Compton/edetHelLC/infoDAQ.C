@@ -199,17 +199,16 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
 
   fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath,www,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
-    fBeamProp<<runnum<<"\t"<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
-    fBeamProp<<runnum<<"\t"<<eEnergy<<"\t"<<rms_eEnergy<<endl;
+    fBeamProp<<"run\tHWien\tVWien\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\tmeanE\tmeanE_RMS"<<endl;
+    fBeamProp<<runnum<<"\t"<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<"\t"<<newEmean<<"\t"<<rms_eEnergy<<endl;
     fBeamProp.close();
     cout<<"wrote beamProperties info to "<<Form("%s/%s/%sbeamProp.txt",pPath,www,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
   
   fBeamProp.open(Form("%s/%s/%sdipole.txt",pPath,www,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
-    fBeamProp<<"runnum\tdipoleI\t\tdipoleIEr\tdipoleIRMS\tPosLock\tEnergyLock"<<endl;
-    fBeamProp<<runnum<<"\t"<<setDipoleI<<"\t"<<setDipoleIEr<<"\t"<<setDipoleIRMS<<"\t"<<minPosLockFB<<"\t"<<minEnergyLockFB<<endl;
-    fBeamProp<<runnum<<"\t"<<dipoleI<<"\t"<<dipoleIEr<<"\t"<<dipoleIRMS<<"\t"<<maxPosLockFB<<"\t"<<maxEnergyLockFB<<endl;
+    fBeamProp<<"runnum\tsetdipoleI\tsetdipoleIEr\tsetdipoleIRMS\tdipoleI\tdipoleIEr\tdipoleIRMS\tPosLockMax\tposLockMin\tenergyLockMax\tEnergyLockMin"<<endl;
+    fBeamProp<<runnum<<"\t"<<setDipoleI<<"\t"<<setDipoleIEr<<"\t"<<setDipoleIRMS<<"\t"<<dipoleI<<"\t"<<dipoleIEr<<"\t"<<dipoleIRMS<<"\t"<<maxPosLockFB<<"\t"<<minPosLockFB<<"\t"<<maxEnergyLockFB<<"\t"<<minEnergyLockFB<<endl;
     fBeamProp.close();
     cout<<"wrote dipole info to "<<Form("%s/%s/%sdipole.txt",pPath,www,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the dipole info"<<normal<<endl;
@@ -339,6 +338,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   }
 
   if(debug) {
+    cout<<"using datatype: "<<dataType<<endl;
     cout<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\tholdOff\tplDelay"<<endl;
     cout<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay);
   }

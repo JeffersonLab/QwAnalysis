@@ -54,7 +54,7 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t minLasPow = 1100;///elog 319 
+const Double_t minLasPow = 1261;//1100;///elog 319 
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
