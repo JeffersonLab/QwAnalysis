@@ -37,7 +37,6 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
 
       wmNrBkgdAsym[s] += qNormBkgdAsym/bkgdAsymErSqr; ///Numerator 
       wmDrBkgdAsym[s] += 1.0/bkgdAsymErSqr; ///Denominator 
-      if(debug) printf("for strip:%d, adding %g(1/bkgdAsymErSq) to wmDrBkgdAsym making it: %f\n",s+1,1.0/bkgdAsymErSqr,wmDrBkgdAsym[s]);
       ///Error of laser off background for every laser cycle
       erqNormB1L0LasCycSq = (NplusOff_SqQplusOff + NminusOff_SqQminusOff);
       wmNrqNormB1L0[s] += qNormBkgdAsymDr / erqNormB1L0LasCycSq; //refer bevington
@@ -56,7 +55,7 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
         "\nerrBkgdAsymH1:"<< errBkgdAsymH1<<" ,\tH0:"<<errBkgdAsymH0<<normal<<endl;
       continue;//skip this strip for this laser cycle
     }
-
+    if(debug) printf("for strip:%d, adding %g(1/bkgdAsymErSq) to wmDrBkgdAsym making it: %f\n",s+1,1.0/bkgdAsymErSqr,wmDrBkgdAsym[s]);
   }
   //cout<<red<<"something uncommon in bgd asym of plane "<<plane<<" strip "<<s+1<<", it has null yield\n"<<normal<<
   //  "laserOff counts for H1 & H0 are "<<qNormCountsLCB1H1L0<<"\t"<<qNormCountsLCB1H0L0<<"\t"<<endl;

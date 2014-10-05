@@ -171,19 +171,24 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   hEnergy->SetBit(TH1::kCanRebin);
   Int_t totEntries = slowChain->GetEntries();
   if(debug) cout<<blue<<"total number of entries in slow tree is : "<<totEntries<<normal<<endl;
-  for(int i=0; i<totEntries; i++) {
-    slowChain->GetEntry(i);
-    if(ibcm1 > highBeamCut) hEnergy->Fill(rawE);
-  }
-  Double_t newEmean = hEnergy->GetMean();
-  rms_eEnergy = hEnergy->GetRMS();
-  cout<<blue<<"new energy mean: "<<newEmean<<normal<<endl;
 
   Double_t maxE = slowChain->GetMaximum("HALLC_p");
   Double_t minE = slowChain->GetMinimum("HALLC_p");
+  Double_t newEmean;
   cout<<"beam energy: max, min: "<<maxE<<"\t"<<minE<<endl;
-  if((maxE - minE)<1) eEnergy = newEmean;///energy still in MeV
-  else {
+  if((maxE - minE)<1) {///within 1 MeV
+    cout<<"max and min energy measurement are consistent"<<endl;
+    for(int i=0; i<totEntries; i++) {///because the max and min E are consistent, following should work
+      slowChain->GetEntry(i);
+      hEnergy->Fill(rawE);
+      //if(ibcm1 > highBeamCut) hEnergy->Fill(rawE);
+    }
+    newEmean = hEnergy->GetMean();
+    rms_eEnergy = hEnergy->GetRMS();
+    eEnergyEr = hEnergy->GetMeanError();
+    cout<<blue<<"new energy mean: "<<newEmean<<normal<<endl;
+    if(newEmean <= maxE && newEmean >= minE) eEnergy = newEmean;///energy still in MeV
+  } else {
     eEnergy = eEnergyRun2; ///default histogram value for whole run
     cout<<blue<<"eEnergy being hard set to "<<eEnergyRun2<<normal<<endl;
     erBeamVar += "\teEnergyEr";///to assert that something spurious happened in energy measurement
@@ -199,8 +204,8 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
 
   fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath,www,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
-    fBeamProp<<"run\tHWien\tVWien\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\tmeanE\tmeanE_RMS"<<endl;
-    fBeamProp<<runnum<<"\t"<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<"\t"<<newEmean<<"\t"<<rms_eEnergy<<endl;
+    fBeamProp<<"run\tHWien\tVWien\t\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\tmeanE\tmeanE_RMS"<<endl;
+    fBeamProp<<Form("%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.2f\t%.2f\n",runnum, hWien, vWien, ihwp1set, ihwp1read, rhwp, ihwp2read, hccedpos,newEmean,rms_eEnergy);
     fBeamProp.close();
     cout<<"wrote beamProperties info to "<<Form("%s/%s/%sbeamProp.txt",pPath,www,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
@@ -230,10 +235,6 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
       cout<<magenta<<"something changed, during the run; its being listed in "<<Form("%s/%s/%srunRemark.txt",pPath,www,filePre.Data())<<normal<<endl;
     }
   }
-
-  //!temporarily here:
-  eEnergy = 1.159;
-  cout<<red<<"beam energy temporarily hard set to 1.159 for this version of analysis"<<normal<<endl;
 
   TChain *confChain = new TChain("Config_Tree");//chain of run segments
   Int_t chainExists = confChain->Add(Form("$QW_ROOTFILES/Compton_Pass2b_%d.*.root",runnum));//for pass2b

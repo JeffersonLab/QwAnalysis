@@ -6,6 +6,8 @@
 #include "comptonRunConstants.h"
 #include "rhoToX.C"
 #include "stripMask.C"
+#include "infoDAQ.C"
+
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
 {///parCx[1]: to be found Cedge
   itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
@@ -99,6 +101,14 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       cout<<red<<"\nreturned error from skipStrip, hence exiting\n"<<normal<<endl;
       return -1;
     }
+  }
+  if(daqCheck ==0) {
+    daqCheck = infoDAQ(runnum, dataType); ///needed eEnergy for rhoToX.C
+    cout<<"calling infoDAQ from asymFit.C to get energy value"<<endl;
+  } else cout<<"parameters from infoDAQ already available hence not invoking that macro (daqcheck="<<daqCheck<<")"<<endl;
+  if(daqCheck<0) {
+    cout<<red<<"\nreturned error from infoDAQ.C hence exiting\n"<<normal<<endl;
+    return -2;
   }
 
   ifstream paramfile,infileL0Yield, expAsymPWTL1, infileYield, fBgdAsym;

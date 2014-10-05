@@ -35,11 +35,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   Double_t diffB1L1[nStrips], diffB1L0[nStrips];
   Double_t bYield[nStrips],bDiff[nStrips],bAsym[nStrips];
   Double_t iLCH1L1=0.0,iLCH1L0=0.0,iLCH0L1=0.0,iLCH0L0=0.0;
-  Double_t lasPow[3],y_bcm[3],d_bcm[3],bpm_3c20X[2],bModRamp[3];//?!the vector size should be 3 I suppose, not 4
-  Double_t bUnixTime[3];
+  Double_t lasPow[3],y_bcm[3],d_bcm[3],bModRamp[3];//?!the vector size should be 3 I suppose, not 4
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
-  Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2];
-  //Double_t bpm_3p02aX[1],bpm_3p02aY[1],bpm_3p02bX[1],bpm_3p02bY[1],bpm_3p03aX[1],bpm_3p03aY[1];
   Double_t pattern_number, event_number;
   Double_t laserOnOffRatioH0;
   Double_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
@@ -52,7 +49,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   vector<Int_t>cutEB;//arrays of cuts for electron beam
   ofstream countsLC[nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
   ofstream outAsymLasCyc[nStrips];
-  ofstream fTime;
   ifstream infileLas, infileBeam, fileNoise;
 
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,www,runnum));
@@ -209,31 +205,14 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   helChain->SetBranchStatus("yield_sca_laser_PowT*",1);
   helChain->SetBranchStatus("yield_sca_bcm6*",1);
   helChain->SetBranchStatus("diff_sca_bcm6*",1);
-  helChain->SetBranchStatus("yield_sca_bpm_3p02aY*",1); 
-  helChain->SetBranchStatus("yield_sca_bpm_3p02aX*",1); 
-  helChain->SetBranchStatus("yield_sca_bpm_3p02bY*",1); 
-  helChain->SetBranchStatus("yield_sca_bpm_3p02bX*",1); 
-  helChain->SetBranchStatus("yield_sca_bpm_3p03aY*",1); 
-  helChain->SetBranchStatus("yield_sca_bpm_3p03aX*",1);
-  helChain->SetBranchStatus("yield_sca_bpm_3c20Y*",1);
-  helChain->SetBranchStatus("yield_sca_bpm_3c20X*",1);
   helChain->SetBranchStatus("yield_sca_bmod_ramp*",1);
-  helChain->SetBranchStatus("yield_time_unix",1);
 
   helChain->SetBranchAddress("mps_counter",&event_number);
   helChain->SetBranchAddress("pattern_number",&pattern_number);
   helChain->SetBranchAddress("yield_sca_laser_PowT",&lasPow);
   helChain->SetBranchAddress("yield_sca_bcm6",&y_bcm);
   helChain->SetBranchAddress("diff_sca_bcm6",&d_bcm);
-  helChain->SetBranchAddress("yield_sca_bpm_3p02aX",&bpm_3p02aX);
-  helChain->SetBranchAddress("yield_sca_bpm_3p02aY",&bpm_3p02aY);
-  helChain->SetBranchAddress("yield_sca_bpm_3p02bX",&bpm_3p02bX);
-  helChain->SetBranchAddress("yield_sca_bpm_3p02bY",&bpm_3p02bY);
-  helChain->SetBranchAddress("yield_sca_bpm_3p03aX",&bpm_3p03aX);
-  helChain->SetBranchAddress("yield_sca_bpm_3p03aY",&bpm_3p03aY);
-  helChain->SetBranchAddress("yield_sca_bpm_3c20X",&bpm_3c20X);
   helChain->SetBranchAddress("yield_sca_bmod_ramp",&bModRamp);
-  helChain->SetBranchAddress("yield_time_unix", &bUnixTime);
 
   if (dataType == "Ev") {
     helChain->SetBranchStatus("yield_p*RawEv*",1);
@@ -265,21 +244,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     helChain->SetBranchAddress(Form("asym_p%dRawAc",plane),&bAsym);
     //the branch for each plane is named from 1 to 4
   } else cout<<red<<"dataType not defined clearly"<<normal<<endl;
- 
-  /////Output the Unix time for the beginning and end of a run !!
-  //cout<<bUnixTime[0]<<endl;//"\t"<<beginT<<endl;
-  //helChain->GetEntry(0);
-  ////TString *beginT = 
-  //AsString(bUnixTime[0]);
-  ////TString beginT = 
-  //GetDate(bUnixTime[0]);
-  //cout<<bUnixTime[0]<<endl;//"\t"<<beginT<<endl;
-  //cout<<red<<"Temporarily exiting the chain"<<normal<<endl;
-  //return 1;
-  ////TString *endT = helChain->;
-  ////fTime.open();
-  ////fTime<<endl;
-  ////fTime.close();
 
   ///I need to open the lasCyc dependent files separately here since at every nCycle I update this file with a new entry
   ///..it should be opened before I enter the nCycle loop, and close them after coming out of the nCycle loop.
@@ -619,33 +583,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     writeToFile(runnum,dataType);
 
     //!!this currently would not work if the Cedge changes between planes
-    if(debug2) {
-      TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
-      cStability->Divide(3,3);
-      cStability->cd(1);
-      helChain->Draw("yield_sca_bcm6:pattern_number","yield_sca_bcm6.value < 200");
-      cStability->cd(2);
-      helChain->Draw("yield_sca_bpm_3p02aY:pattern_number");
-      cStability->cd(3);
-      helChain->Draw("yield_sca_bpm_3p02bY:pattern_number");
-      cStability->cd(4);
-      helChain->Draw("yield_sca_bpm_3p03aY:pattern_number");
-      cStability->cd(5);
-      helChain->Draw("yield_sca_bpm_3c20Y:pattern_number");
-      //helChain->Draw("sca_bpm_3c20X:event_number");
-      cStability->cd(6);
-      helChain->Draw("yield_sca_bpm_3p02aX:pattern_number");
-      cStability->cd(7);
-      helChain->Draw("yield_sca_bpm_3p02bX:pattern_number");
-      cStability->cd(8);
-      helChain->Draw("yield_sca_bpm_3p03aX:pattern_number");
-      cStability->cd(9);
-      helChain->Draw("yield_sca_laser_PowT:pattern_number","yield_sca_laser_PowT<180000");
-
-      cStability->Update();
-      cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,www,filePre.Data()));
-      //delete cStability;
-    }
   } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);

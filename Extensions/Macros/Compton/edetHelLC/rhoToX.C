@@ -17,7 +17,8 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   CedgeToDetBot = (Cedge + 4)*stripWidth + 0.5*stripWidth;///elog 399
   zdrift = ldet[plane-1] - CedgeToDetBot*sin(det_angle);
   if(debug) {
-    cout<<red<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge,stripWidth,stripWidth);
+    cout<<blue<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge,stripWidth,stripWidth);
+    cout<<"beam energy: "<<eEnergy<<" +/- "<<eEnergyEr<<endl;
     cout<<Form("zdrift:%f = %f - %f * %f",zdrift,ldet[plane-1],CedgeToDetBot,sin(det_angle))<<normal<<endl;
   }
   re = alpha*hbarc/me;

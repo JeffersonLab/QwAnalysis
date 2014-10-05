@@ -13,18 +13,6 @@ Int_t edetLC(Int_t runnum=24519, TString dataType="Ac")
   div_t div_output;
   ofstream analFlags;
   
-  //gROOT->LoadMacro(" stripMask.C+g");
-  //gROOT->LoadMacro(" rhoToX.C+g");
-  //gROOT->LoadMacro(" getEBeamLasCuts.C+g");
-  //gROOT->LoadMacro(" evaluateAsym.C+g");
-  //gROOT->LoadMacro(" expAsym.C+g");
-  //gROOT->LoadMacro(" asymFit.C+g");
-  //gROOT->LoadMacro(" infoDAQ.C+g");
-  //gROOT->LoadMacro(" writeToFile.C+g");
-  //gROOT->LoadMacro(" qNormVariables.C+g");
-  //gROOT->LoadMacro(" weightedMean.C+g");
-  //gROOT->LoadMacro(" fileReadDraw.C+g");
-
   plane=1;
   Int_t asymSuc=0;
   daqCheck = infoDAQ(runnum,dataType); 
