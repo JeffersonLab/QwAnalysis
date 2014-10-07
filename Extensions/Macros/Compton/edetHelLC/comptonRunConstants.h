@@ -7,7 +7,7 @@
 ///Boolean constants pertaining to analysis:
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
 const Bool_t kNoiseSub = 1;
-const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
+const Bool_t kDeadTime = 0, k2parDT = 0;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kOnlyGoodLasCyc = 1;
 const Int_t maxIterations =4;
@@ -15,7 +15,7 @@ const Int_t maxIterations =4;
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
 const char *www= "www";
-const TString filePrefix = "run_%d/edetLC_%d_";///one spot change of all file names
+const TString filePrefix = "run_%d/edetLCNoDTBgd1100_%d_";///one spot change of all file names
 TString filePre;
 //Asymmetry calculation constants 
 const Double_t light=0.2998;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
@@ -54,7 +54,7 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t minLasPow = 1261;//1100;///elog 319 
+const Double_t minLasPow = 1100;//1261;//1100;///elog 319 
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
@@ -131,6 +131,10 @@ Double_t wmNrqNormB1L0[nStrips]={0.0},wmDrqNormB1L0[nStrips]={0.0};
 Double_t stripAsymDr[nStrips]={0.0},stripAsymDrEr[nStrips]={0.0};
 Double_t stripAsymNr[nStrips]={0.0},stripAsymNrEr[nStrips]={0.0};
 Double_t qNormB1L0[nStrips]={0.0},qNormB1L0Er[nStrips]={0.0};
+Double_t qNormCntsB1H1L1[nStrips]={0.0},qNormCntsB1H1L1Er[nStrips]={0.0};
+Double_t qNormCntsB1H1L0[nStrips]={0.0},qNormCntsB1H1L0Er[nStrips]={0.0};
+Double_t qNormCntsB1H0L1[nStrips]={0.0},qNormCntsB1H0L1Er[nStrips]={0.0};
+Double_t qNormCntsB1H0L0[nStrips]={0.0},qNormCntsB1H0L0Er[nStrips]={0.0};
 Double_t qNormCountsB1L1[nStrips]={0.0},qNormCountsB1L1Er[nStrips]={0.0};
 Double_t qNormCountsB1L0[nStrips]={0.0},qNormCountsB1L0Er[nStrips]={0.0};
 Double_t qNormBkgdSubAllB1L1[nStrips]={0.0},qNormAllB1L0[nStrips]={0.0},qNormAllB1L0Er[nStrips]={0.0}; 

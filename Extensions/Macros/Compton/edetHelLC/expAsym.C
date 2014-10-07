@@ -39,7 +39,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
   Double_t pattern_number, event_number;
   Double_t laserOnOffRatioH0;
-  Double_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
+  Int_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
 
   Double_t lasPowLCB1L0=0.0,lasPowLCB1L1=0.0;
 
@@ -273,7 +273,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   if(kDeadTime) {
     ifstream inRateCor0, inRateCor1;
     Float_t runDum;
-    if(acTrig==2) {
+    if(acTrig==0) cout<<red<<"the trigger was found: "<<acTrig<<", still applying the deadtime correction for 2/3 trigger"<<normal<<endl;
+    if(acTrig==2 || acTrig==0) {
       if(k2parDT) {
         cout<<blue<<"Applying 2 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
         inRateCor0.open(Form("%s/data/dtcorr_2by3p0.dat",pPath));  //dtcorr1by3_p0.dat 
@@ -294,7 +295,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     } else if(acTrig==1) {
       cout<<blue<<"NO correction file available for 1/3 trigger, hence no correction being applied"<<normal<<endl;
     } else cout<<red<<"\nTrigger undetermined at "<<acTrig<<", hence DT correction not applied due to ambiguity\n"<<normal<<endl;
-    if(acTrig==2 || acTrig==3) {
+    if(acTrig==2 || acTrig==3 || acTrig==0) {
       if(inRateCor0.is_open()) {
         while(1) {
           inRateCor0>>runDum>>corrB1H1L1_0>>corrB1H1L0_0>>corrB1H0L1_0>>corrB1H0L0_0;

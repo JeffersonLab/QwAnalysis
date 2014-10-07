@@ -4,7 +4,7 @@
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
-Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0)
+Int_t evaluateAsym(Int_t countsLCB1H1L1[], Int_t countsLCB1H1L0[], Int_t countsLCB1H0L1[], Int_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0)
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug =0;
@@ -55,7 +55,7 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
         cout<<"for a non masked strip "<<s+1<<"! Asym Er shouldn't be non-positive"<<endl;
         printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);
         printf("%f\t%f\t%f\t%f\t%f\t%f\n",term1, term2, NplusOn_SqQplusOn, NminusOn_SqQminusOn, NplusOff_SqQplusOff, NminusOff_SqQminusOff);
-        printf("%f\t%f\t%f\n",newCntsB1H1L1,countsLCB1H1L1[0],c2B1H1L1[0]);
+        printf("%f\t%d\t%f\n",newCntsB1H1L1,countsLCB1H1L1[0],c2B1H1L1[0]);
         return -1;
       }
       ///Error evaluation for SUM (in asymmetry)

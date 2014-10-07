@@ -64,6 +64,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   Double_t minScintRate = slowChain->GetMinimum("cComptScintRateNorm");
   if((maxScintRate - minScintRate) > 20*scintRateRMS) {
     cout<<red<<"the scintillator rate varied significantly during the run:"<<maxScintRate<<"\t"<<minScintRate<<normal<<endl;
+    erBeamVar += "\tscintRate";
   }
   
   Double_t setDipoleI, setDipoleIRMS, setDipoleIEr, maxSetDipoleI, minSetDipoleI;
@@ -76,7 +77,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   ///an additional check
   maxSetDipoleI = slowChain->GetMaximum("MCP3P01");
   minSetDipoleI = slowChain->GetMinimum("MCP3P01");
-  if((maxSetDipoleI - minSetDipoleI) > 5000000.0) {
+  if((maxSetDipoleI - minSetDipoleI) > 50000000.0) {
     erBeamVar += "\tdipoleISetValue";
     cout<<red<<"the dipole set current changed during the run:"<<maxSetDipoleI<<"\t"<<minSetDipoleI<<normal<<endl;
   }
@@ -93,7 +94,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   minDipoleI = slowChain->GetMinimum("MCP3P01M");
   if((maxDipoleI - minDipoleI)>1000000.0) {
     erBeamVar += "\tdipoleIValue";
-    cout<<red<<"the dipole set current changed during the run:"<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;
+    cout<<red<<"the dipole readback current changed during the run:"<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;
   }
   //cout<<red<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;
 
@@ -176,7 +177,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   Double_t minE = slowChain->GetMinimum("HALLC_p");
   Double_t newEmean;
   cout<<"beam energy: max, min: "<<maxE<<"\t"<<minE<<endl;
-  if((maxE - minE)<1) {///within 1 MeV
+  if((maxE - minE)<1 && (maxE != 0)) {///within 1 MeV
     cout<<"max and min energy measurement are consistent"<<endl;
     for(int i=0; i<totEntries; i++) {///because the max and min E are consistent, following should work
       slowChain->GetEntry(i);
@@ -199,7 +200,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
     cout<<hWien<<"\t"<<vWien<<"\t"<<ihwp1set<<"\t"<<ihwp1read<<"\t"<< rhwp<<"\t"<< ihwp2read<<"\t"<< hccedpos<<endl;
     cout<<"beam Energy: "<<eEnergy<<"\t"<<rms_eEnergy<<"\t"<<eEnergyEr<<normal<<endl;
   }
-  eEnergy = eEnergy/1000.0; ///to convert to GeV
+  eEnergy = (eEnergy+0.8)/1000.0; ///adding the difference of tiffenback measurement and convert to GeV
   rms_eEnergy = rms_eEnergy/1000.0;
 
   fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath,www,filePre.Data()));//,std::fstream::app);

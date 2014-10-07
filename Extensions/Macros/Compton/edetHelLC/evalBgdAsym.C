@@ -4,7 +4,7 @@
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
-Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L0, Double_t qAvgLCH0L0) 
+Int_t evalBgdAsym(Int_t countsLCB1H1L0[], Int_t countsLCB1H0L0[], Double_t qAvgLCH1L0, Double_t qAvgLCH0L0) 
 {
   cout<<"starting into evalBgdAsym.C**************"<<endl;
   const Bool_t debug =0;
@@ -24,6 +24,8 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
     qNormBkgdAsymNr = qNormCountsLCB1H1L0 - qNormCountsLCB1H0L0;
     qNormBkgdAsymDr = qNormCountsLCB1H1L0 + qNormCountsLCB1H0L0;
 
+    if(debug) printf("%d\t%d\t%f\t%f\t%f\n",s+1, countsLCB1H1L0[s], newCntsB1H1L0, qAvgLCH1L0, qNormCountsLCB1H1L0);
+    if(debug) printf("%d\t%d\t%f\t%f\t%f\n",s+1, countsLCB1H0L0[s], newCntsB1H0L0, qAvgLCH0L0, qNormCountsLCB1H0L0);
     ///addition of bkgdAsym term over various laser cycles
     if (qNormBkgdAsymDr > 0.0) {///eqn 4.17(Bevington)
       qNormBkgdAsym = qNormBkgdAsymNr/qNormBkgdAsymDr;
@@ -53,7 +55,8 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
         "\nqNormCountsLCB1H1L0:"<<qNormCountsLCB1H1L0<<", H0L0:"<<qNormCountsLCB1H0L0<<
         "\nterm1Bkgd: "<<term1Bkgd<<" ,term2Bkgd:"<<term2Bkgd<<
         "\nerrBkgdAsymH1:"<< errBkgdAsymH1<<" ,\tH0:"<<errBkgdAsymH0<<normal<<endl;
-      continue;//skip this strip for this laser cycle
+      //continue;//skip this strip for this laser cycle
+      return -1;///in background, I can't think why this should ever be negative
     }
     if(debug) printf("for strip:%d, adding %g(1/bkgdAsymErSq) to wmDrBkgdAsym making it: %f\n",s+1,1.0/bkgdAsymErSqr,wmDrBkgdAsym[s]);
   }
