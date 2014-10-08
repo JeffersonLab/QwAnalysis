@@ -7,7 +7,7 @@ spatial_resolution = 1e-2
 track_resolution = 0.5e-1
 slope_matching = 1e-2
 
-detector_pitch = 0
+detector_rotation = 0
 
 # Geometry of a detector chamber
 active_width_x = 28.575
@@ -20,7 +20,7 @@ element_spacing = 1.1684
 element_offset = -18.1102
 
 # Tilt of detector around the Z axis
-detector_roll = 0
+detector_tilt = 0
 
 
 [HDC_pkg1_front_plane01_x]
@@ -64,7 +64,7 @@ detector_roll = 0
     element_angle_cos = 0.597
     element_angle_sin = -0.802
     detector_origin_x = -0.275
-    detector_origin_y = 50.951
+    detector_origin_y = 50.910
   <R2-octant = 6>
     element_angle_cos = 0.604
     element_angle_sin = -0.797
@@ -96,7 +96,7 @@ detector_roll = 0
     element_angle_cos = 0.603
     element_angle_sin = 0.798
     detector_origin_x = -0.276
-    detector_origin_y = 51.195
+    detector_origin_y = 51.154
   <R2-octant = 6>
     element_angle_cos = 0.596
     element_angle_sin = 0.803
@@ -160,7 +160,7 @@ detector_roll = 0
     element_angle_cos = 0.597
     element_angle_sin = -0.802
     detector_origin_x = -0.275
-    detector_origin_y = 50.951
+    detector_origin_y = 50.910
   <R2-octant = 6>
     element_angle_cos = 0.604
     element_angle_sin = -0.797
@@ -192,7 +192,7 @@ detector_roll = 0
     element_angle_cos = 0.603
     element_angle_sin = 0.798
     detector_origin_x = -0.276
-    detector_origin_y = 51.195
+    detector_origin_y = 51.154
   <R2-octant = 6>
     element_angle_cos = 0.596
     element_angle_sin = 0.803
@@ -451,7 +451,7 @@ detector_roll = 0
     element_angle_cos = 0.597
     element_angle_sin = -0.802
     detector_origin_x = -0.140
-    detector_origin_y = 54.841
+    detector_origin_y = 54.801
   <R2-octant = 6>
     element_angle_cos = 0.603
     element_angle_sin = -0.798
@@ -474,6 +474,7 @@ detector_roll = 0
     detector_origin_y = 54.881
 
 [HDC_pkg1_front_plane09_v]
+  active = false
   plane = 9
   package = 1
   direction = v
@@ -482,7 +483,7 @@ detector_roll = 0
     element_angle_cos = 0.603
     element_angle_sin = 0.798
     detector_origin_x = -0.141
-    detector_origin_y = 55.085
+    detector_origin_y = 55.045
   <R2-octant = 6>
     element_angle_cos = 0.597
     element_angle_sin = 0.802
@@ -544,7 +545,7 @@ detector_roll = 0
     element_angle_cos = 0.597
     element_angle_sin = -0.802
     detector_origin_x = -0.140
-    detector_origin_y = 54.841
+    detector_origin_y = 54.801
   <R2-octant = 6>
     element_angle_cos = 0.603
     element_angle_sin = -0.798
@@ -575,7 +576,7 @@ detector_roll = 0
     element_angle_cos = 0.603
     element_angle_sin = 0.798
     detector_origin_x = -0.141
-    detector_origin_y = 55.085
+    detector_origin_y = 55.045
   <R2-octant = 6>
     element_angle_cos = 0.597
     element_angle_sin = 0.802
