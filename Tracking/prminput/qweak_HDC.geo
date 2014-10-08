@@ -474,7 +474,6 @@ detector_tilt = 0
     detector_origin_y = 54.881
 
 [HDC_pkg1_front_plane09_v]
-  active = false
   plane = 9
   package = 1
   direction = v
