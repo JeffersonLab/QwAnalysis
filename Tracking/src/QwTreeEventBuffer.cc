@@ -376,62 +376,62 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r
   bool is_charged_particle = true;
   for (size_t i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_ParticleType.size(); i1++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane1_ParticleType.at(i1);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i2 = 0; i2 < fRegion2_ChamberFront_WirePlane2_ParticleType.size(); i2++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane2_ParticleType.at(i2);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i3 = 0; i3 < fRegion2_ChamberFront_WirePlane3_ParticleType.size(); i3++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane3_ParticleType.at(i3);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i4 = 0; i4 < fRegion2_ChamberFront_WirePlane4_ParticleType.size(); i4++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane4_ParticleType.at(i4);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i5 = 0; i5 < fRegion2_ChamberFront_WirePlane5_ParticleType.size(); i5++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane5_ParticleType.at(i5);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i6 = 0; i6 < fRegion2_ChamberFront_WirePlane6_ParticleType.size(); i6++) {
       int pdgcode = fRegion2_ChamberFront_WirePlane6_ParticleType.at(i6);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_ParticleType.size(); i1++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane1_ParticleType.at(i1);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i2 = 0; i2 < fRegion2_ChamberBack_WirePlane2_ParticleType.size(); i2++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane2_ParticleType.at(i2);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i3 = 0; i3 < fRegion2_ChamberBack_WirePlane3_ParticleType.size(); i3++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane3_ParticleType.at(i3);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i4 = 0; i4 < fRegion2_ChamberBack_WirePlane4_ParticleType.size(); i4++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane4_ParticleType.at(i4);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i5 = 0; i5 < fRegion2_ChamberBack_WirePlane5_ParticleType.size(); i5++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane5_ParticleType.at(i5);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   for (size_t i6 = 0; i6 < fRegion2_ChamberBack_WirePlane6_ParticleType.size(); i6++) {
       int pdgcode = fRegion2_ChamberBack_WirePlane6_ParticleType.at(i6);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) != 11) is_charged_particle = false;
   }
 
   fRegion2_HasBeenHit = fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
@@ -450,7 +450,7 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r
 
   // Region 3
   int charge_particle_coincidence_hits = 0;
-  bool FU=false, FV=false, BU=false, BV=false;
+  bool FU = false, FV = false, BU = false, BV = false;
 
   for (size_t i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_ParticleType.size(); i1++) {
       int pdgcode = fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1);
@@ -472,7 +472,7 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r
       if (abs(pdgcode) == 11) BV = true;
   }
 
-  charge_particle_coincidence_hits = (int)FU+(int)FV+(int)BU+(int)BV;
+  charge_particle_coincidence_hits = (int) FU + (int) FV + (int) BU + (int) BV;
    
   fRegion3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
                         fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
@@ -507,10 +507,10 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r
   }
 
   // Trigger Scintillator
-  is_charged_particle = true;
+  is_charged_particle = false;
   for (size_t i = 0; i < fTriggerScintillator_Detector_ParticleType.size(); i++) {
       int pdgcode = fTriggerScintillator_Detector_ParticleType.at(i);
-      if (abs(pdgcode) != 11) is_charged_particle = is_charged_particle && false;
+      if (abs(pdgcode) == 11) is_charged_particle = true;
   }
   
   fTriggerScintillator_HasBeenHit = (fTriggerScintillator_Detector_HasBeenHit == 5 && is_charged_particle);
