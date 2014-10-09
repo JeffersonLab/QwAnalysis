@@ -72,7 +72,7 @@ set up the significant figures right - &plusmn is for html,
 Use this by calling: value_with_error(a,da)
 ***********************************/
 #define value_with_error(a,da) std::setiosflags(std::ios::fixed) \
- << std::setprecision((size_t) (std::log10((a)/(da)) - std::log10(a) + 1.5)) \
+  << std::setprecision((size_t) (std::log10((fabs(a))/(da)) - std::log10(fabs(a)) + 1.5)) \
  << " " << (a) << " \t " << (da) << std::resetiosflags(std::ios::fixed)
 
 // Threshold for defining the maximum number of allowed hits per event per package
@@ -416,10 +416,10 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
     fout << "gd Trks\t " << runnum << " \t 1 \t  " << md_1 << "\t" << n_good_track_1 << "\t \t" << endl; 
     fout << "gd Trks\t " << runnum << " \t 2 \t  " << md_2 << "\t" << n_good_track_2 << "\t \t" << endl; 
     if (n_raw_track_1>0){
-      fout << "% good\t " << runnum << " \t 1 \t  " << md_1 << "\t" <<std::setprecision(4) << 100.*float(n_good_track_1/n_raw_track_1) << "\t \t" << endl; 
+      fout << "% good\t " << runnum << " \t 1 \t  " << md_1 << "\t" <<std::setprecision(4) << 100.*float(n_good_track_1)/n_raw_track_1 << "\t \t" << endl; 
     }
     if (n_raw_track_2>0){
-      fout << "% good\t " << runnum << " \t 2 \t  " << md_2 << "\t" <<  std::setprecision(4) << 100.*float(n_good_track_2/n_raw_track_2) << "\t \t" << endl; 
+      fout << "% good\t " << runnum << " \t 2 \t  " << md_2 << "\t" <<  std::setprecision(4) << 100.*float(n_good_track_2)/n_raw_track_2 << "\t \t" << endl; 
     }
 
     if(angle->GetEntries()!=0) {
@@ -544,12 +544,12 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
   if (n_raw_track_1>0)
   {
     fout << runnum << " \t 1 \t " << std::setprecision(4)
-      << 100.*float(n_good_track_1/n_raw_track_1) << endl;
+	 << 100.*float(n_good_track_1)/n_raw_track_1 << endl;
   }
   if (n_raw_track_2>0)
   {
     fout << runnum << " \t 2 \t " <<  std::setprecision(4)
-      << 100.*float(n_good_track_2/n_raw_track_2) << endl;
+	 << 100.*float(n_good_track_2)/n_raw_track_2 << endl;
   }
 
   //close the file
