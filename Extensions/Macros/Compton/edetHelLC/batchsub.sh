@@ -4,14 +4,15 @@ macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
-dataType=BgdFixed
-found=yes
+dataType=MCM
+found=no
 #for i in `seq 24252 24252`;
 #for i in `seq 22659 25546`;
 #for i in `seq 23320 24500`;
 #for i in `seq 23220 23530`;
 #for i in `seq 24250 24450`;
-for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol.txt);
+for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/runsMCM.txt);
+#for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol.txt);
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol_23000.txt);
 
 do
@@ -23,11 +24,11 @@ do
   echo ']]></Command>' >> batch_submit_$i.xml
   echo '<Job>' >> batch_submit_$i.xml
   
-  #for seg in `ls /mss/hallc/qweak/polarimetry/rootfiles/pass2/Compton_Pass2b_$i.*.root`
-  #do
-  #  echo '<Input src="mss:'$seg'" dest="'`basename $seg`'"/>' >> batch_submit_$i.xml
-  #  found=yes
-  #done
+  for seg in `ls /mss/hallc/qweak/polarimetry/rootfiles/pass2/Compton_Pass2b_$i.*.root`
+  do
+    echo '<Input src="mss:'$seg'" dest="'`basename $seg`'"/>' >> batch_submit_$i.xml
+    found=yes
+  done
   echo '<Input src="'$macro'/stripMask.C" dest="stripMask.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/expAsym.C" dest="expAsym.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/rhoToX.C" dest="rhoToX.C"/>' >> batch_submit_$i.xml

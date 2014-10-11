@@ -5,9 +5,10 @@
 #include <stdlib.h>
 
 ///Boolean constants pertaining to analysis:
+    Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
 const Bool_t kNoiseSub = 1;
-const Bool_t kDeadTime = 0, k2parDT = 0;//0: 1-param DT corr; 1: 2-param DT corr
+const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kOnlyGoodLasCyc = 1;
 const Int_t maxIterations =4;
@@ -15,7 +16,7 @@ const Int_t maxIterations =4;
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
 const char *www= "www";
-const TString filePrefix = "run_%d/edetLCNoDTBgd1100_%d_";///one spot change of all file names
+const TString filePrefix = "run_%d/edetLC_%d_";///one spot change of all file names
 TString filePre;
 //Asymmetry calculation constants 
 const Double_t light=0.2998;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
@@ -54,7 +55,7 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t minLasPow = 1100;//1261;//1100;///elog 319 
+const Double_t minLasPow = 1261;//2000;//1261;//1100;///elog 319 
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
@@ -139,12 +140,12 @@ Double_t qNormCountsB1L1[nStrips]={0.0},qNormCountsB1L1Er[nStrips]={0.0};
 Double_t qNormCountsB1L0[nStrips]={0.0},qNormCountsB1L0Er[nStrips]={0.0};
 Double_t qNormBkgdSubAllB1L1[nStrips]={0.0},qNormAllB1L0[nStrips]={0.0},qNormAllB1L0Er[nStrips]={0.0}; 
 Double_t totIAllH1L1=0.0,totIAllH1L0=0.0,totIAllH0L1=0.0,totIAllH0L0=0.0;///total current
-Int_t totHelB1L1=0,totHelB1L0=0;///total no.of helicities (hence time)
-Int_t totyieldB1L1[nStrips]={0.0}, totyieldB1L0[nStrips]={0.0};
-Int_t totyieldB1H1L1[nStrips]={0.0},totyieldB1H1L0[nStrips]={0.0},totyieldB1H0L1[nStrips]={0.0}, totyieldB1H0L0[nStrips]={0.0};
+Double_t totHelB1L1=0,totHelB1L0=0;///total no.of helicities (hence time)
+Double_t totyieldB1L1[nStrips]={0.0}, totyieldB1L0[nStrips]={0.0};
+Double_t totyieldB1H1L1[nStrips]={0.0},totyieldB1H1L0[nStrips]={0.0},totyieldB1H0L1[nStrips]={0.0}, totyieldB1H0L0[nStrips]={0.0};
 Double_t tNormYieldB1L1[nStrips]={0.0},tNormYieldB1L0[nStrips]={0.0};
 Double_t tNormYieldB1L1Er[nStrips]={0.0},tNormYieldB1L0Er[nStrips]={0.0};
-Double_t beamMaxEver = 200.0, beamOnLimit=20.0;
+const Float_t beamMaxEver = 200.0, beamOnLimit=20.0;
 Double_t timeB0,rateB0[nStrips]={0.0};
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012

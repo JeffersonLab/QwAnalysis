@@ -324,7 +324,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   leg->SetFillColor(0);
   leg->Draw();
 
-  if (polSign) pt = new TPaveText(0.44,0.14,0.68,0.48,"brNDC");///left edge,bottom edge,right edge, top edge
+  if (polSign) pt = new TPaveText(0.44,0.17,0.69,0.52,"brNDC");///left edge,bottom edge,right edge, top edge
   else  pt = new TPaveText(0.44,0.51,0.69,0.88,"brNDC");
 
   pt->SetTextSize(0.060);//0.028); 
@@ -351,7 +351,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     if (trueStrip.at(s) < cEdge) usedStrips++;  ///cEdge determined in preceeding section 
   }
   if(debug) cout<<blue<<"used a total of "<<usedStrips<<" strips upto the CE"<<normal<<endl;
-  TF1 *linearFit = new TF1("linearFit", "pol0",startStrip+1,cEdge);
+  TF1 *linearFit = new TF1("linearFit", "pol0",startStrip+1);
   linearFit->SetLineColor(kRed);
 
   //!This is not meant to be able to deal with different planes, the need wasn't felt
@@ -397,7 +397,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     grBgd->SetLineColor(kBlue);
     grBgd->SetMarkerColor(kBlue); ///kRed+2 = Maroon
     grBgd->GetXaxis()->SetLimits(0,65); 
-    grBgd->Fit(linearFit,"RE");//q:quiet mode
+    grBgd->Fit(linearFit,"ME");//q:quiet mode
 
     bgdAsymFit = linearFit->GetParameter(0);
     bgdAsymFitEr = linearFit->GetParError(0);

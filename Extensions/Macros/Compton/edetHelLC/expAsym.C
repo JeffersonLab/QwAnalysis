@@ -10,6 +10,7 @@
 #include "weightedMean.C"
 #include "writeToFile.C"
 #include "qNormVariables.C"
+#include "noiseCorrect.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
@@ -39,7 +40,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
   Double_t pattern_number, event_number;
   Double_t laserOnOffRatioH0;
-  Int_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
+  Double_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
 
   Double_t lasPowLCB1L0=0.0,lasPowLCB1L1=0.0;
 
@@ -49,7 +50,8 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   vector<Int_t>cutEB;//arrays of cuts for electron beam
   ofstream countsLC[nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
   ofstream outAsymLasCyc[nStrips];
-  ifstream infileLas, infileBeam, fileNoise;
+  ifstream infileLas, infileBeam, fIn;
+  TString file;
 
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,www,runnum));
   if (kRejectBMod) cout<<green<<"quartets during beam modulation ramp rejected"<<normal<<endl;
@@ -64,21 +66,6 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     cout<<red<<"\nreturned error from infoDAQ.C hence exiting\n"<<normal<<endl;
     return -2;
   }
-
-  //ifstream infileBeamProp; 
-  /////Check if it is already known that this run has no beam
-  //Double_t runN =0.0, maxBeam =0.0, totBeamTrips =0.0, lasMaxP =0.0, lasCycles =0.0, readEntries =0.0;
-  //infileBeamProp.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,www,filePre.Data()));
-  //if(infileBeamProp.is_open()) {
-  //  cout<<"reading file "<<Form("%s/%s/%sinfoBeamLas.txt",pPath,www,filePre.Data())<<endl;
-  //  if(infileBeamProp.good()) {///its a single line read
-  //    infileBeamProp>>runN>>maxBeam>>totBeamTrips>>lasMaxP>>lasCycles >>readEntries;
-  //    if(maxBeam < beamOnLimit) {
-  //      cout<<red<<"beamMax is "<<maxBeam<<" uA, < the beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl;
-  //      return -1;
-  //    } else cout<<blue<<"beamMax is "<<maxBeam<<" uA, hence continuing the analysis of this run"<<normal<<endl;
-  //  }
-  //}
 
   ///following variables are not to be reset every laser-cycle hence lets initialize with zero
   ///some of the variables declared in the compton header file
@@ -183,19 +170,27 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
     Double_t tB0H1L1,tB0H1L0,tB0H0L1,tB0H0L0,tBeamOff;
     Double_t lasPowB0H1L1, lasPowB0H1L0, lasPowB0H0L1, lasPowB0H0L0, tBeamOn;
     Double_t rateB0H1L1[nStrips],rateB0H1L0[nStrips],rateB0H0L1[nStrips],rateB0H0L0[nStrips],strip[nStrips];
-    fileNoise.open(Form("%s/data/beamoff_23229.0.dat",pPath));
-    if(fileNoise.is_open()) {
-      cout<<blue<<"explicit noise subtraction"<<normal<<endl; 
-      fileNoise>>tB0H1L1>>tB0H1L0>>tB0H0L1>>tB0H0L0>>tBeamOff;
-      fileNoise>>lasPowB0H1L1>>lasPowB0H1L0>>lasPowB0H0L1>>lasPowB0H0L0>>tBeamOn;
+    if (runnum <=25280) file = Form("%s/data/beamoff_23229.0.dat",pPath);
+    else if(runnum >25280 || runnum<=25287) file = Form("%s/data/beamoff_25286.0.dat",pPath);
+    else if(runnum >25287 || runnum<=25290) file = Form("%s/data/beamoff_25289.0.dat",pPath);
+    else if(runnum >25290) file = Form("%s/data/beamoff_25293.0.dat",pPath);
+    else file = Form("%s/data/beamoff_25449.0.dat",pPath);
+    //else if(runnum >25280 && runnum <25300) file = Form("%s/data/beamoff_25289.0.dat",pPath);//MCM runs
+    cout<<blue<<"for noise correction used "<<file<<normal<<endl;
+
+    fIn.open(file);
+    if(fIn.is_open()) {
+      cout<<blue<<"Applying explicit noise subtraction"<<normal<<endl; 
+      fIn >>tB0H1L1 >>tB0H1L0 >>tB0H0L1 >>tB0H0L0 >>tBeamOff;
+      fIn >>lasPowB0H1L1 >>lasPowB0H1L0 >>lasPowB0H0L1 >>lasPowB0H0L0 >>tBeamOn;
       timeB0 = tB0H1L1+tB0H1L0+tB0H0L1+tB0H0L0;
-      for(Int_t s=0;s<endStrip;s++) {
-        fileNoise>>rateB0H1L1[s]>>rateB0H1L0[s]>>rateB0H0L1[s]>>rateB0H0L0[s]>>strip[s];
+      for(Int_t s=0; s<nStrips; s++) {
+        fIn >>rateB0H1L1[s] >>rateB0H1L0[s] >>rateB0H0L1[s] >>rateB0H0L0[s] >>strip[s];
         rateB0[s]= (rateB0H1L1[s]+rateB0H1L0[s]+rateB0H0L1[s]+rateB0H0L0[s])*4.0/timeB0;
         //printf("%f\t%f\t%f\t%f\t%f\n",rateB0H1L1[s],rateB0H1L0[s],rateB0H0L1[s],rateB0H0L0[s],strip[s]);
         if(debug2) printf("%f\t%f\n",strip[s],rateB0[s]);
       }
-    } else cout<<red<<"couldn't open the beam off file"<<normal<<endl;
+    } else cout<<red<<"couldn't open the beam off file "<<file<<normal<<endl;
   } else cout<<blue<<"\nNoise subtraction turned OFF for this analysis\n"<<normal<<endl; 
   ///////////////////////////////////////////////////
 
@@ -262,7 +257,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
   }
   if(nLasCycles<=0) {
     cout<<red<<"no.of laser cycles found in this run is ZERO"<<
-    "\nHence this will useful entirely as a background run\n"<<normal<<endl;
+      "\nHence this will useful entirely as a background run\n"<<normal<<endl;
     return -1;
   }
   cout<<"if laser-Off period has lasPower > "<<minLasPow<<", or \n"
@@ -476,10 +471,10 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
           if(kNoiseSub) {
             for (Int_t s =startStrip; s <endStrip; s++) {	  
               ///the noiseSubtraction assumes that the +ve and -ve helicities are equal in number, hence dividing by 2
-              countsLCB1H1L1[s]=countsLCB1H1L1[s]-rateB0[s]*(nHelLCB1L1/2.0)/helRate;
-              countsLCB1H1L0[s]=countsLCB1H1L0[s]-rateB0[s]*(nHelLCB1L0/2.0)/helRate;
-              countsLCB1H0L1[s]=countsLCB1H0L1[s]-rateB0[s]*(nHelLCB1L1/2.0)/helRate;
-              countsLCB1H0L0[s]=countsLCB1H0L0[s]-rateB0[s]*(nHelLCB1L0/2.0)/helRate;
+              countsLCB1H1L1[s] = countsLCB1H1L1[s] - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
+              countsLCB1H1L0[s] = countsLCB1H1L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
+              countsLCB1H0L1[s] = countsLCB1H0L1[s] - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
+              countsLCB1H0L0[s] = countsLCB1H0L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
             }
           }
           //////////////
@@ -515,6 +510,7 @@ Int_t expAsym(Int_t runnum, TString dataType="Ac")
           //the corr* variables depend on the aggregate rate at a time, unaffected by individual strip rate
           /////////////////////////////////////////////////
 
+          ///calling the function to evaluate asymmetry for counts in this laser cycle
           Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qAvgLCH1L1, qAvgLCH1L0, qAvgLCH0L1, qAvgLCH0L0);
           if(evaluated<0) {
             cout<<red<<"evaluateAsym reported background corrected yield to be negative in lasCycle "<<nCycle+1<<" hence skipping"<<normal<<endl;

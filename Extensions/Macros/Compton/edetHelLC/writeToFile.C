@@ -37,7 +37,7 @@ Int_t writeToFile(Int_t runnum,TString dataType)
       outfileBkgdAsymP<<Form("%2.0f\t%f\t%f",(Double_t)s+1,bkgdAsym[s],bkgdAsymEr[s])<<endl;
       outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Double_t)s+1,stripAsymDr[s],stripAsymDrEr[s],stripAsymNr[s])<<endl;//has all expt asym components
       outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormB1L0[s],qNormB1L0Er[s])<<endl;
-      fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totyieldB1H1L1[s],totyieldB1H1L0[s],totyieldB1H0L1[s],totyieldB1H0L0[s])<<endl;
+      fortranCheck<<Form("%d\t%f\t%f\t%f\t%f",s+1,totyieldB1H1L1[s],totyieldB1H1L0[s],totyieldB1H0L1[s],totyieldB1H0L0[s])<<endl;
       outScaler <<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormCountsB1L1[s],qNormCountsB1L1Er[s])<<endl;
       outqNormL0<<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormCountsB1L0[s],qNormCountsB1L0Er[s])<<endl;
       outtNormYieldB1L1<<Form("%2.0f\t%g\t%g",(Double_t)s+1,tNormYieldB1L1[s],tNormYieldB1L1Er[s])<<endl;

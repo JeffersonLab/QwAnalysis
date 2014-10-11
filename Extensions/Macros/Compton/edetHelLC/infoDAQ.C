@@ -77,10 +77,10 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   ///an additional check
   maxSetDipoleI = slowChain->GetMaximum("MCP3P01");
   minSetDipoleI = slowChain->GetMinimum("MCP3P01");
-  if((maxSetDipoleI - minSetDipoleI) > 50000000.0) {
-    erBeamVar += "\tdipoleISetValue";
-    cout<<red<<"the dipole set current changed during the run:"<<maxSetDipoleI<<"\t"<<minSetDipoleI<<normal<<endl;
-  }
+  //if((maxSetDipoleI - minSetDipoleI) > 50000000.0) {
+  //  erBeamVar += "\tdipoleISetValue";
+  //  cout<<red<<"the dipole set current changed during the run:"<<maxSetDipoleI<<"\t"<<minSetDipoleI<<normal<<endl;
+  //}
   //cout<<red<<maxSetDipoleI<<"\t"<<minSetDipoleI<<normal<<endl;
 
   Double_t dipoleI, dipoleIRMS, dipoleIEr, maxDipoleI, minDipoleI;
@@ -92,16 +92,15 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   hCheck->Reset();
   maxDipoleI = slowChain->GetMaximum("MCP3P01M");
   minDipoleI = slowChain->GetMinimum("MCP3P01M");
-  if((maxDipoleI - minDipoleI)>1000000.0) {
-    erBeamVar += "\tdipoleIValue";
-    cout<<red<<"the dipole readback current changed during the run:"<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;
-  }
-  //cout<<red<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;
+  //if((maxDipoleI - minDipoleI)>1000000.0) {
+  //  erBeamVar += "\tdipoleIValue";
+  //  cout<<red<<"the dipole readback current changed during the run:"<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;
+  //}
 
-  if((setDipoleI - dipoleI) > 1000000) {
-    erBeamVar += "\tSetReadDipoleDisagree";
-    cout<<red<<"set and read back dipole current disagree"<<normal<<endl;
-  }
+  //if((setDipoleI - dipoleI) > 1000000) {
+  //  erBeamVar += "\tSetReadDipoleDisagree";
+  //  cout<<red<<"set and read back dipole current disagree"<<normal<<endl;
+  //}
 
   Double_t maxEnergyLockFB = slowChain->GetMaximum("FB_C_FB_on");
   Double_t minEnergyLockFB = slowChain->GetMinimum("FB_C_FB_on");
