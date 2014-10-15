@@ -20,12 +20,19 @@
 #include <TROOT.h>
 #include <TApplication.h>
 #include <TStyle.h>
+#include <TAxis.h>
+#include <TPaveStats.h>
+#include <TGraphErrors.h>
+#include <TMultiGraph.h>
+#include <TLegend.h>
 
 #include "TauCalc.h"
 
 using namespace std;
 
-void helpscreen(void);
+void helpscreen(void); //helpful message
+void placeAxis(std::string, std::string, std::string, TCanvas *canvas, TMultiGraph*);
+//void summaryGraph(const TauCalc &, const int);
 
 /* default run condition:
  * To Be Determined
@@ -130,6 +137,7 @@ int main(int argc, char* argv[]) {
   file.close();
   std::cout <<"File closed..." <<std::endl;
 
+  //now let's process the data and output the results
   for(int j=0; j<num_md; j++) {
     tau_calcs[j].processDataAutomatically();
     tau_list[j] = tau_calcs[j].getTauNs();
@@ -140,6 +148,115 @@ int main(int argc, char* argv[]) {
   for(int j=0; j<num_md; j++) {
     std::cout <<"\t" <<j+1 <<" \t" <<tau_list[j] <<std::endl;
   }
+
+  /* One helpful thing would be to provide a "summary" plot,
+   * where all 8 detectors are grouped onto one canvas.
+   * Since this is unnecessary, this should beimplemented as
+   * a separate function, which should be accessed by
+   * a command line argument.
+   *
+   * The goal is to display the fits BUT NOT THE STATS BOXES on this.
+   * this is because we want the summary plot to show the correction
+   * works, and be able to see the relationship between each main detector.
+   * Sadly, the ROOT memory management system makes this somewhat hard.
+   *
+   * So below I grab pointers to the arrays of TGraphErrors, and then
+   * load them into a multigraph. Then I immediately delete the
+   * TPaveStats object. I can imagine many scenarios in the future
+   * where this kludge will seg fault, but it seems to work for now.
+   */
+
+  //creation of pointer arrays
+  TGraphErrors *rate_graphs[num_md];
+  TGraphErrors *yield_graphs[num_md];
+  TGraphErrors *rel_graphs[num_md];
+  TGraphErrors *corr_graphs[num_md];
+
+  //creation of related multigraphs
+  TMultiGraph *mg_rates = new TMultiGraph("mg_rates","rates");
+  TMultiGraph *mg_yield = new TMultiGraph("mg_yield","yields");
+  TMultiGraph *mg_rel   = new TMultiGraph("mg_rel","rel");
+  TMultiGraph *mg_corr  = new TMultiGraph("mg_corr","corr");
+
+  //create TLegend
+  TLegend *leg = new TLegend(0.75,.35,0.90,0.90);
+  leg->SetFillColor(0);
+
+  //grab the pointers for each main detector and add them into the
+  //array
+  for(int j=0; j<num_md; j++) {
+    rate_graphs[j] = tau_calcs[j].getRateGraph();
+    yield_graphs[j] = tau_calcs[j].getYieldGraph();
+    rel_graphs[j] = tau_calcs[j].getRelativeGraph();
+    corr_graphs[j] = tau_calcs[j].getCorrectedGraph();
+
+    mg_rates ->Add( rate_graphs[j]  );
+    mg_yield ->Add( yield_graphs[j] );
+    mg_rel   ->Add( rel_graphs[j]   );
+    mg_corr  ->Add( corr_graphs[j]   );
+
+    sprintf(buffer,"MD %i",j+1); //set internal names/graph titles
+    object_name = buffer;
+    leg->AddEntry(yield_graphs[j],object_name.data(),"lp");
+  }
+
+
+  //now let's delete the stat boxes...
+  TPaveStats *rs,*ys,*rels,*cs;
+  for(int j=0; j<num_md; j++) {
+    rs = (TPaveStats*) rate_graphs[j]->GetListOfFunctions()->FindObject("stats");
+    ys = (TPaveStats*) yield_graphs[j]->GetListOfFunctions()->FindObject("stats");
+    rels = (TPaveStats*) rel_graphs[j]->GetListOfFunctions()->FindObject("stats");
+    cs = (TPaveStats*) corr_graphs[j]->GetListOfFunctions()->FindObject("stats");
+    delete rs;
+    delete ys;
+    delete rels;
+    delete cs;
+    rs = NULL;
+    ys = NULL;
+    rels = NULL;
+    cs = NULL;
+  }
+
+
+  TCanvas *mycanvas = new TCanvas("mycanvas","title",1000,700);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptFit(0);
+
+  mycanvas->Divide(2,2);
+
+  std::string title, xaxis, yaxis;
+  mycanvas->cd(1);
+  mg_rates->Draw("ap");
+  title = "Rates (measured) vs. Current";
+  xaxis = "Current (#muA)";
+  yaxis = "Rate (kHz)";
+  placeAxis(title,xaxis,yaxis,mycanvas,mg_rates);
+
+  mycanvas->cd(2);
+  mg_yield->Draw("ap");
+  title = "Yield (measured) vs. Current";
+  xaxis = "Current (#muA)";
+  yaxis = "Yield (kHz/#muA)";
+  placeAxis(title,xaxis,yaxis,mycanvas,mg_yield);
+  leg->Draw("sames");
+
+  mycanvas->cd(3);
+  mg_rel->Draw("ap");
+  title = "Relative Rate vs. Corrected Rate";
+  xaxis = "Corrected Rate";
+  yaxis = "Relative Rate";
+  placeAxis(title,xaxis,yaxis,mycanvas,mg_rel);
+
+  mycanvas->cd(4);
+  mg_corr->Draw("ap");
+  title = "Yield (corrected) vs. Current";
+  xaxis = "Current (#muA)";
+  yaxis = "Yield (kHz/#muA)";
+  placeAxis(title,xaxis,yaxis,mycanvas,mg_corr);
+
+  std::cout <<"Program finished." <<std::endl;
+
 
   //run process
   app->Run();
@@ -161,6 +278,43 @@ void helpscreen (void) {
   exit(0);
 }
 
+void placeAxis(std::string title,
+    std::string xaxis,
+    std::string yaxis,
+    TCanvas *canvas,
+    TMultiGraph *multi) {
+  float size=0.04;
+  float titlesize=0.05;
+  float labelsize = 0.03;
+  multi->SetTitle(title.data());
+  multi->GetXaxis()->SetTitle(xaxis.data());
+  multi->GetYaxis()->SetTitle(yaxis.data());
 
+  canvas->Modified();
+  canvas->Update();
+
+  multi->GetYaxis()->SetTitleOffset(0.90);
+  multi->GetXaxis()->SetTitleOffset(0.90);
+  multi->GetYaxis()->SetTitleSize(size);
+  multi->GetXaxis()->SetTitleSize(size);
+  multi->GetYaxis()->SetLabelSize(labelsize);
+  multi->GetXaxis()->SetLabelSize(labelsize);
+
+  TPaveText *tit = (TPaveText*) gPad->GetPrimitive("title");
+  tit->SetTextSize(titlesize);
+  //gStyle->SetTitleSize(titlesize);
+
+  gPad->SetGrid();
+  canvas->Modified();
+  canvas->Update();
+}
+
+
+/*
+ * void summaryGraph(const TCalc &, const int); //prototype
+ * void summaryGraph(const TauCalc &tau_calc, const int num_md) {
+ * std::cout <<"This works?!\n";
+ * }
+ */
 
 

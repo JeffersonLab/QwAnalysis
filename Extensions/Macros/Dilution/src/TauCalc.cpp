@@ -408,6 +408,22 @@ void TauCalc::processDataAutomatically(void) {
 
 }
 
+TGraphErrors* TauCalc::getRateGraph(void) {
+  return rate_graph;
+}
+
+TGraphErrors* TauCalc::getYieldGraph(void) {
+  return yield_graph;
+}
+
+TGraphErrors* TauCalc::getRelativeGraph(void) {
+  return relative_graph;
+}
+
+TGraphErrors* TauCalc::getCorrectedGraph(void) {
+  return corrected_graph;
+}
+
 double TauCalc::getTauNs(void) {
   if (haveTau)
     return tau*1000000;

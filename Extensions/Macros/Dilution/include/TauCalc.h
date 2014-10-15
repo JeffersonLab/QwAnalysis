@@ -83,6 +83,12 @@ class TauCalc {
     void graphRelativeRates(void);
     void graphCorrectedRates(void);
 
+    //getters to retrieve pointers to graphs
+    TGraphErrors* getRateGraph(void);
+    TGraphErrors* getYieldGraph(void);
+    TGraphErrors* getRelativeGraph(void);
+    TGraphErrors* getCorrectedGraph(void);
+
     //the following methods create the canvas and
     //are in charge of making it look acceptible.
     void createCanvas(void); //create canvas to plot
