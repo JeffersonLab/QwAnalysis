@@ -71,6 +71,7 @@ int main(int argc, char* argv[]) {
     object_name = buffer;
     tau_calcs[j].setName(object_name);
     tau_calcs[j].createCanvas();
+    tau_calcs[j].setPlotColor(j+1);
   }
 
   /* Now our TauCalc object array is initialized and ready to roll.

@@ -23,6 +23,7 @@
 #include <TPaveText.h>
 #include <TGraphErrors.h>
 #include <TF1.h>
+#include <TColor.h>
 
 #include "TauCalc.h"
 
@@ -83,7 +84,7 @@ void TauCalc::graphMeasuredRates(void) {
 
   //now lets try to fit this...
   rate_graph->Fit("expo");
-  rate_graph->GetFunction("expo")->SetLineColor(kRed+2);
+  rate_graph->GetFunction("expo")->SetLineColor(fit_color);
 
   //now let's create the axis titles, etc
   char buffer[100];
@@ -142,7 +143,7 @@ void TauCalc::graphMeasuredYields(void) {
 
   //from the fit, we extract the "true" yield
   TF1 *fit = yield_graph->GetFunction("pol1");
-  fit->SetLineColor(kRed+2);
+  fit->SetLineColor(fit_color);
   zero_rate_yield = fit->GetParameter(0);
   if (debug) printf("True yield: %f...\n",zero_rate_yield);
   fit = NULL;
@@ -225,7 +226,7 @@ void TauCalc::graphRelativeRates(void) {
 
   //from the fit, we extract the "true" relative
   TF1 *fit = relative_graph->GetFunction("expo");
-  fit->SetLineColor(kRed+2);
+  fit->SetLineColor(fit_color);
   tau = fit->GetParameter(1);
   haveTau = true;
   if (debug) printf("Tau = %f ns...\n",tau*1000000);
@@ -303,7 +304,7 @@ void TauCalc::graphCorrectedRates(void) {
 
   //from the fit, we extract the "true" relative
   TF1 *fit = corrected_graph->GetFunction("pol1");
-  fit->SetLineColor(kRed+2);
+  fit->SetLineColor(fit_color);
   double slope = fit->GetParameter(1);
   if (debug) printf("slope = %f ...\n",slope);
   fit = NULL;
@@ -328,9 +329,10 @@ void TauCalc::makeGraphsPretty(
     std::string xaxis,
     std::string yaxis) {
 
-  graph->SetMarkerColor(kBlue+2);
-  graph->SetLineColor(kBlue+2);
-  graph->SetMarkerStyle(20);
+  graph->SetMarkerColor(plot_color);
+  graph->SetLineColor(plot_color);
+  graph->SetMarkerStyle(plot_marker);
+  graph->SetMarkerSize(1.5);
 
   float size=0.05;
   float titlesize=0.05;
@@ -376,10 +378,13 @@ void TauCalc::reset() {
   yields.clear();
   yields_error.clear();
 
+  setPlotColor("default");
+
   haveData   = false;
   haveYields = false;
   haveTau    = false;
   correctedData = false;
+
 }
 
 void TauCalc::processDataAutomatically(void) {
@@ -415,6 +420,78 @@ double TauCalc::getZeroRate(void) {
     return zero_rate_yield;
   else
     return 0;
+}
+
+void TauCalc::setPlotColor(std::string color) {
+  if (color == "blue") {
+    plot_color  = kBlue+2;
+    fit_color   = kBlue+2;
+    plot_marker = 20;
+  } else if (color == "red") {
+    plot_color  = kRed+3;
+    fit_color   = kRed+3;
+    plot_marker = 21;
+  } else if (color == "green") {
+    plot_color  = kGreen+3;
+    fit_color   = kGreen+3;
+    plot_marker = 22;
+  } else if (color == "magenta") {
+    plot_color  = kMagenta-1;
+    fit_color   = kMagenta-1;
+    plot_marker = 23;
+  } else if (color == "gray") {
+    plot_color  = kGray+2;
+    fit_color   = kGray+2;
+    plot_marker = 24;
+  } else if (color == "orange") {
+    plot_color  = kOrange+7;
+    fit_color   = kOrange+7;
+    plot_marker = 25;
+  } else if (color == "cyan") {
+    plot_color  = kCyan+3;
+    fit_color   = kCyan+3;
+    plot_marker = 26;
+  } else if (color == "black") {
+    plot_color  = kBlack;
+    fit_color   = kBlack;
+    plot_marker = 29;
+  } else {
+    plot_color  = kBlue+2;
+    fit_color   = kRed+2;
+    plot_marker = 0;
+  }
+}
+
+void TauCalc::setPlotColor(int n) {
+  switch (n) {
+    case 1:
+      setPlotColor("blue");
+      break;
+    case 2:
+      setPlotColor("red");
+      break;
+    case 3:
+      setPlotColor("green");
+      break;
+    case 4:
+      setPlotColor("magenta");
+      break;
+    case 5:
+      setPlotColor("gray");
+      break;
+    case 6:
+      setPlotColor("orange");
+      break;
+    case 7:
+      setPlotColor("cyan");
+      break;
+    case 8:
+      setPlotColor("black");
+      break;
+    default:
+      setPlotColor("default");
+      break;
+  }
 }
 
 //default constructor

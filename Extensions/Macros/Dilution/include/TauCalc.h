@@ -16,6 +16,7 @@
 
 #include <TCanvas.h>
 #include <TGraphErrors.h>
+#include <TColor.h>
 
 using std::vector;
 using std::string;
@@ -86,6 +87,9 @@ class TauCalc {
     //are in charge of making it look acceptible.
     void createCanvas(void); //create canvas to plot
     void makeGraphsPretty(TGraphErrors*,std::string, std::string, std::string); //makes the TGraph objects look nice
+    void setPlotColor(std::string); //sets color schema for plots
+    void setPlotColor(int ); //sets color schema for plots
+                            //each detector #1-8 has a different color
 
   private:
     static const bool debug = false; //global function debugger
@@ -139,6 +143,10 @@ class TauCalc {
     TGraphErrors *yield_graph;
     TGraphErrors *relative_graph;
     TGraphErrors *corrected_graph;
+
+    int plot_marker; //specify plotting symbol type
+    int plot_color; //specify plotting symbol color
+    int fit_color;  //specify color of fitted line
 
 };
 
