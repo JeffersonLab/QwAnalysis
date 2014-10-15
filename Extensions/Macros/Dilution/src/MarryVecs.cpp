@@ -74,6 +74,21 @@ void MarryVecs::add_differences_entry(double entry1, double entry2) {
   differences.push_back(entry1-entry2);
 }
 
+void MarryVecs:: calculate_channel_time_differences(void) {
+  for(int j=0; j<max_size-1; j++) {
+    /*Take groom channel as example. We want to calculate
+     *            groom[j+1] - groom[j]
+     * This gives us the time differences between pulses/signals.
+     */
+
+    if(groom[j]!=dummy_entry && groom[j+1]!=dummy_entry)
+      groom_hit_timediff[j].push_back( groom[j+1] - groom[j] );
+
+    if(bride[j]!=dummy_entry && bride[j+1]!=dummy_entry)
+      bride_hit_timediff[j].push_back( bride[j+1] - bride[j] );
+  }
+}
+
 //return vector-reference to vector of final matches
 vector<double> * MarryVecs::get_final_marriage_brides(void) {
   return &matched_brides;
@@ -390,5 +405,17 @@ bool MarryVecs::get_marriage_status(void) {
 }
 
 
-
+void MarryVecs::find_channel_time_diffs(void) {
+  for(int p=0; p<max_size; p++) {
+    if (groom[p]!=dummy_entry)
+      groom_hit_matches[p] = true;
+    else
+      groom_hit_matches[p] = false;
+    if (bride[p]!=dummy_entry)
+      bride_hit_matches[p] = true;
+    else
+      bride_hit_matches[p] = false;
+  }
+  return;
+}
 

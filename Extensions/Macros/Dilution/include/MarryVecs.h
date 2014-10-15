@@ -49,7 +49,11 @@ class MarryVecs {
     void add_matched_peak_entry(double);
     void add_matched_accidentals_entry(double);
     void add_differences_entry(double,double);
+    void calculate_channel_time_differences(void);  //calculate time diff for
+                                                    //only the bride OR groom
+                                                    //channel. Discussed below.
 
+    void find_channel_time_diffs(void);
     //methods to retrieve specific entries from private arrays
     double get_groom_entry(int);
     double get_bride_entry(int);
@@ -93,7 +97,21 @@ class MarryVecs {
     vector<double> matched_peaks;   //vector of marriages UNDER promp peak
     vector<double> matched_accidentals;   //vector of marriages NOT under peak
     vector<double> differences; //vector of time differences (TS-MD)<max_diff
-}; //end of class MarryVecs definition
 
+    /*These are vectors that store the time differences between
+     * successive hits in each detector. For instance,
+     *      groom_hit_timediff[1] = groom_hit_2 - groom_hit-1
+     *  This is opposed to the previously defined differences
+     *  which is the difference between groom and bride channels:
+     *      differences.push_back(groom_entry - bride_entry)
+     *  Note because we are calculating differences, array size
+     *  is max_size-1
+     */
+    vector<double> groom_hit_timediff[max_size-1];
+    vector<double> bride_hit_timediff[max_size-1];
+    bool groom_hit_matches[max_size];
+    bool bride_hit_matches[max_size];
+    bool calc_hit_time_differences;
+}; //end of class MarryVecs definitionl
 #endif
 
