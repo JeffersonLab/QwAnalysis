@@ -227,7 +227,7 @@ void TauCalc::graphRelativeRates(void) {
   //from the fit, we extract the "true" relative
   TF1 *fit = relative_graph->GetFunction("expo");
   fit->SetLineColor(fit_color);
-  tau = fit->GetParameter(1);
+  tau = -1*fit->GetParameter(1);
   haveTau = true;
   if (debug) printf("Tau = %f ns...\n",tau*1000000);
   fit = NULL;
