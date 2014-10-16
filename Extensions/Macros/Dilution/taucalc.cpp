@@ -5,7 +5,7 @@
  *
  * useage:
  *      compile taucalc, including the TauCalc libraries
- *      ./taucalc [options]
+ *      ./taucalc <filename>
  * Options include:
  *      providing a file name
  *
@@ -45,13 +45,17 @@ int main(int argc, char* argv[]) {
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1111);
 
+  //TApplication "eats" our command line arguments. Let's get them back.
+  int argc_orig    = app->Argc();
+  char** argv_orig = app->Argv();
+
   //debug is to debug overall program
   bool debug=false;
 
   if (debug)
    std::cout <<"Debug on..." <<std::endl;
 
-  if (argc>=2) {
+  if (argc_orig!=2) {
     helpscreen();
     exit(0);
     return 0;
@@ -96,8 +100,9 @@ int main(int argc, char* argv[]) {
   double i, rate, err;
 
   //process file name information
-  string filename = "dt.txt";
-  const char* filename_str  = filename.c_str();
+  //string filename = "dt.txt";
+  //const char* filename_str  = filename.c_str();
+  char* filename_str = argv_orig[1];
   ifstream file;
   file.open(filename_str,ios::in);
 
@@ -129,7 +134,7 @@ int main(int argc, char* argv[]) {
       tau_calcs[n-1].push_data(i,rate,err);
     }
   } else { //else file isn't open
-    std::cout <<"Your file " <<filename <<" isn't open. \nExiting!"
+    std::cout <<"Your file " <<filename_str <<" isn't open. \nExiting!"
       <<std::endl;
     exit(EXIT_FAILURE);
   }
@@ -228,7 +233,7 @@ int main(int argc, char* argv[]) {
   std::string title, xaxis, yaxis;
   mycanvas->cd(1);
   mg_rates->Draw("ap");
-  title = "Rates (measured) vs. Current";
+  title = "Run 2 MT LH2 (measured) vs. Current";
   xaxis = "Current (#muA)";
   yaxis = "Rate (kHz)";
   placeAxis(title,xaxis,yaxis,mycanvas,mg_rates);
@@ -268,13 +273,14 @@ int main(int argc, char* argv[]) {
 void helpscreen (void) {
   std::cout <<"Welcome to the Q-weak dead time calculator.\n"
     <<"This code is still a work in progress, but is functional.\n"
-    <<"The help function isn't complete at the moment.\n"
     <<"However, to run, first compile the libraries, and then run.\n"
+    <<"You must supply a filename of data, 4 space-separated columns:\n"
+    <<"MD# \tcurrent \trate \terror_on_rate\n"
     <<std::endl
     <<"Usage example:\n\t"
     <<"g++ -Wall -g `root-config --libs --cflags` -Iinclude \n"
-    <<"\tsrc/TauCalc.cpp taucalc.cpp -o test\n"
-    <<"./test\n";
+    <<"\tsrc/TauCalc.cpp taucalc.cpp -o calc_dt\n"
+    <<"./calc_dt <filename>\n";
   exit(0);
 }
 
