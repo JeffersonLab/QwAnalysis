@@ -6,7 +6,7 @@
 Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
 {
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
-  gSystem->mkdir(Form("%s/%s/run_%d",pPath,www,runnum));
+  gSystem->mkdir(Form("%s/%s/r%d",pPath, txt,runnum));
   filePre = Form(filePrefix,runnum,runnum);
   const Bool_t debug = 0;
   TString erBeamVar = "";
@@ -202,37 +202,37 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   eEnergy = (eEnergy+0.8)/1000.0; ///adding the difference of tiffenback measurement and convert to GeV
   rms_eEnergy = rms_eEnergy/1000.0;
 
-  fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath,www,filePre.Data()));//,std::fstream::app);
+  fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath, txt,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
     fBeamProp<<"run\tHWien\tVWien\t\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\tmeanE\tmeanE_RMS"<<endl;
     fBeamProp<<Form("%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.2f\t%.2f\n",runnum, hWien, vWien, ihwp1set, ihwp1read, rhwp, ihwp2read, hccedpos,newEmean,rms_eEnergy);
     fBeamProp.close();
-    cout<<"wrote beamProperties info to "<<Form("%s/%s/%sbeamProp.txt",pPath,www,filePre.Data())<<endl;
+    cout<<"wrote beamProperties info to "<<Form("%s/%s/%sbeamProp.txt",pPath, txt,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
   
-  fBeamProp.open(Form("%s/%s/%sdipole.txt",pPath,www,filePre.Data()));//,std::fstream::app);
+  fBeamProp.open(Form("%s/%s/%sdipole.txt",pPath, txt,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
     fBeamProp<<"runnum\tsetdipoleI\tsetdipoleIEr\tsetdipoleIRMS\tdipoleI\tdipoleIEr\tdipoleIRMS\tPosLockMax\tposLockMin\tenergyLockMax\tEnergyLockMin"<<endl;
     fBeamProp<<runnum<<"\t"<<setDipoleI<<"\t"<<setDipoleIEr<<"\t"<<setDipoleIRMS<<"\t"<<dipoleI<<"\t"<<dipoleIEr<<"\t"<<dipoleIRMS<<"\t"<<maxPosLockFB<<"\t"<<minPosLockFB<<"\t"<<maxEnergyLockFB<<"\t"<<minEnergyLockFB<<endl;
     fBeamProp.close();
-    cout<<"wrote dipole info to "<<Form("%s/%s/%sdipole.txt",pPath,www,filePre.Data())<<endl;
+    cout<<"wrote dipole info to "<<Form("%s/%s/%sdipole.txt",pPath, txt,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the dipole info"<<normal<<endl;
 
-  fBeamProp.open(Form("%s/%s/%sscintRateNorm.txt",pPath,www,filePre.Data()));//,std::fstream::app);
+  fBeamProp.open(Form("%s/%s/%sscintRateNorm.txt",pPath, txt,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
     fBeamProp<<"runnum\tscintRate\tscintRateEr\tscintRateRMS"<<endl;
     fBeamProp<<runnum<<"\t"<<scintRate<<"\t"<<scintRateEr<<"\t"<<scintRateRMS<<endl;
     fBeamProp.close();
-    cout<<"wrote dipole info to "<<Form("%s/%s/%sscintRateNorm.txt",pPath,www,filePre.Data())<<endl;
+    cout<<"wrote dipole info to "<<Form("%s/%s/%sscintRateNorm.txt",pPath, txt,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the scintillator normalized rate"<<normal<<endl;
 
   if(erBeamVar != "") {
     ofstream fTag;
-    fTag.open(Form("%s/%s/%srunRemark.txt",pPath,www,filePre.Data()));
+    fTag.open(Form("%s/%s/%srunRemark.txt",pPath, txt,filePre.Data()));
     if(fTag.is_open()) {
       fTag<<runnum<<"\t"<<erBeamVar<<endl;///whatever may be the parameter changed in the middle, it will get listed
       fTag.close();
-      cout<<magenta<<"something changed, during the run; its being listed in "<<Form("%s/%s/%srunRemark.txt",pPath,www,filePre.Data())<<normal<<endl;
+      cout<<magenta<<"something changed, during the run; its being listed in "<<Form("%s/%s/%srunRemark.txt",pPath, txt,filePre.Data())<<normal<<endl;
     }
   }
 
@@ -267,7 +267,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
     }
   }
 
-  infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,www,filePre.Data()));
+  infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath, txt,filePre.Data()));
   if(infoStripMask.is_open()) {
     infoStripMask<<"plane\t\trow of masked strips in this plane -->"<<endl;
     for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out
@@ -281,7 +281,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
       }//for all strips
     }//for all planes
     infoStripMask.close();
-    cout<<"wrote strip mask information to "<<Form("%s/%s/%sinfoStripMask.txt",pPath,www,filePre.Data())<<endl;
+    cout<<"wrote strip mask information to "<<Form("%s/%s/%sinfoStripMask.txt",pPath, txt,filePre.Data())<<endl;
   } else cout<<red<<"could not open a file to write the stripMaskInfo"<<normal<<endl;
 
   ///the config tree gets written only in the beginning of the run, the subsequent runlets carry a null entry
@@ -316,19 +316,19 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
 
   //cout<<red<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay)<<normal<<endl;
 
-  flagsfile.open(Form("%s/%s/%sinfoDAQ.txt",pPath,www,filePre.Data()));
+  flagsfile.open(Form("%s/%s/%sinfoDAQ.txt",pPath, txt,filePre.Data()));
   if(flagsfile.is_open()) {
     flagsfile<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\thOff\tplDelay"<<endl;
     flagsfile<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],plDelay[0]);
     flagsfile.close();
-    cout<<"wrote the flagsfile info to "<<Form("%s/%s/%sinfoDAQ.txt",pPath,www,filePre.Data())<<endl;
+    cout<<"wrote the flagsfile info to "<<Form("%s/%s/%sinfoDAQ.txt",pPath, txt,filePre.Data())<<endl;
   } else {
-    cout<<"could not open file for writing flags file info "<<Form("%s/%s/%sinfoDAQ.txt",pPath,www,filePre.Data())<<endl;
+    cout<<"could not open file for writing flags file info "<<Form("%s/%s/%sinfoDAQ.txt",pPath, txt,filePre.Data())<<endl;
   }
 
   if (erDAQVar != "") {
     cout<<magenta<<"found a potential error in flags file as found in rootfile, printing debugDAQ "<<normal<<endl;
-    debugDAQ.open(Form("%s/%s/%sdebugDAQ.txt",pPath,www,filePre.Data()));
+    debugDAQ.open(Form("%s/%s/%sdebugDAQ.txt",pPath, txt,filePre.Data()));
     debugDAQ<<"module\tacTrig\tevTrig\tminW\tfwRev\tpwtl1\tpwtl2\tholdOff\tplDelay"<<endl;
     for(Int_t m = 0; m <nModules; m++) {
       cout<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",m,acTrigSlave[m],evTrigSlave[m],minWidthSlave[m],fwRev[m],pwtlSlave[m],pwtl2Slave[m],holdOffSlave[m],plDelay[m]);

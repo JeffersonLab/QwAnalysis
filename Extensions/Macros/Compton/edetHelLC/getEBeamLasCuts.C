@@ -5,8 +5,7 @@
  ************************************************ */
 #ifndef __getEBeamLasCuts_F
 #define __getEBeamLasCuts_F
-#endif
- 
+
 #include "rootClass.h"
 #include "comptonRunConstants.h"
 
@@ -22,21 +21,21 @@
 Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
   filePre = Form(filePrefix,runnum,runnum);
-  Bool_t debug = 1;
+  const Bool_t debug = 1;
   chain->ResetBranchAddresses();
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0.0, bcm = 0.0;//, patNum=0.0;
 
   TH1D *hBeam = new TH1D("hBeam","dummy",100,0,220);//typical value of maximum beam current
-  TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,180000);//typical value of maximum laser power
+  TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,250000);//typical value of maximum laser power
 
   chain->Draw("yield_sca_bcm6.value>>hBeam","","goff");
   //chain->Draw("yield_sca_bcm6.value>>hBeam");
   hBeam = (TH1D*)gDirectory->Get("hBeam");  
   //beamMax = hBeam->GetMaximum();
-  Double_t beamMean = hBeam->GetMean();
-  Double_t beamMeanEr = hBeam->GetMeanError();
-  Double_t beamRMS = hBeam->GetRMS();
+  beamMean = hBeam->GetMean();
+  beamMeanEr = hBeam->GetMeanError();
+  beamRMS = hBeam->GetRMS();
   beamMax = hBeam->GetBinLowEdge(hBeam->FindLastBinAbove(100));//to avoid extraneous values
   //cout<<"beamMax(bcm6): "<<beamMax<<",\t beamMean: "<<beamMean<<",\t beamRMS: "<<beamRMS<<endl;
 
@@ -45,17 +44,11 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   laserMax = hLaser->GetBinLowEdge(hLaser->FindLastBinAbove(100));//to avoid extraneous values
   cout<<"laserMax = "<<laserMax<<endl;
 
-  Int_t nLasCycBeamTrips;
   Int_t n = 0, m = 0, o = 0, p = 0, q = 0;
   Bool_t flipperIsUp = kFALSE, isABeamTrip = kFALSE;
   Bool_t rampIsDone = kTRUE, prevTripDone = kTRUE;
-
-  ofstream outfileLas,outfileBeam,infoBeamLas;
-  outfileLas.open(Form("%s/%s/%scutLas.txt",pPath,www,filePre.Data()));
-  if(outfileLas.is_open())cout<<Form("%s/%s/%scutLas.txt",pPath,www,filePre.Data())<<" file created\n"<<endl;
-
-  outfileBeam.open(Form("%s/%s/%scutBeam.txt",pPath,www,filePre.Data()));
-  if(outfileBeam.is_open())cout<<Form("%s/%s/%scutBeam.txt",pPath,www,filePre.Data())<<" file created\n"<<endl;
+  ofstream fOut;
+  TString file;
 
   TBranch *bLaser;
   TBranch *bBCM;
@@ -90,7 +83,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 
     if (n==minEntries) { ///laser has been off for minEntries/240 seconds continuously, hence consider it a valid laseroff
       cutL.push_back(index-minEntries+1);//!the +1 is needed to take care of the fact that C++ counts "index" from 0, while 'minEntries' is compared only when 'n' goes all the way from 1 to minEntries.
-      printf("cutL[%d]=%d\n",m,cutL.back()); ///print begin of laser off entry
+      if(debug) printf("cutL[%d]=%d\n",m,cutL.back()); ///print begin of laser off entry
       //printf("laserPow here:%d, index:%d\n",(Int_t)laser,index);
       flipperIsUp = kTRUE; ///laserOff state begins
       m++; ///cutLas array's even number index (corresponding to a laserOff)
@@ -99,7 +92,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the end of run has been reached
         cutL.push_back(index); ///record this as the end of laserOn cycle
         //printf("cutL[%d]=%d, laserPow rises:%d, index:%d\n",m,cutL.back(),(Int_t)laser,index);
-        printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
+        if(debug) printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
         m++; ///cutLas array's odd number index (corresponding to a laserOn)
         flipperIsUp = kFALSE; ///laserOff state ends
       }
@@ -118,14 +111,14 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
       if(q>avoidDAQEr) { ///beam is found off for over 10 consecutive entries (~ 40ms) 
         q = 0;
         o++; ///cutE array's even number index (corresponding to a beamTrip)
-        if (index >= (PREV_N_ENTRIES+avoidDAQEr)) { //to protect the beamTrip that may have occured in the first 5s of the run
-          cutE.push_back(index-(PREV_N_ENTRIES+avoidDAQEr)); ///register the entry# ~ 4s before this instance as a beam-trip
-          printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",red,cutE.back(),bcm,index,normal);
+        if (index >= (PREV_N_ENTRIES+avoidDAQEr)) { //to protect the beamTrip that may have occured in the first 2s of the run
+          cutE.push_back(index-(PREV_N_ENTRIES+avoidDAQEr)); ///register the entry# ~ 2s before this instance as a beam-trip
+          if(debug) printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",red,cutE.back(),bcm,index,normal);
           //printf("ch1 bcm:%3.2f, index:%d\n",bcm,index);
         }
         else {
           cutE.push_back(index-avoidDAQEr);///note: index = q -1
-          printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",blue,cutE.back(),bcm,index,normal);
+          if(debug) printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",blue,cutE.back(),bcm,index,normal);
           //printf("ch2 bcm:%3.2f, index:%d\n",bcm,index);
         }
         prevTripDone = kFALSE; ///register that this beamTrip has been recorded
@@ -134,11 +127,11 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 
     if(!prevTripDone && rampIsDone){
       p++;      
-      if(p>=WAIT_N_ENTRIES) { //wait ~10s for beam to stabilize in this state
+      if(p>=WAIT_N_ENTRIES) { //wait ~2s for beam to stabilize in this state
         o++; ///cutE array's odd number index (corresponding to a beam recovery)
         p = 0; 
         cutE.push_back(index); ///register that the trip is recovered. 
-        printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",green,cutE.back(),bcm,index,normal);
+        if(debug) printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",green,cutE.back(),bcm,index,normal);
         //printf("ch3 bcm:%3.2f, o:%d  index:%d\n",bcm,o,index);
         prevTripDone = kTRUE; 
       }
@@ -148,47 +141,56 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   //if the run ends with a beam trip, record last entry in cutE vector
   if(o%2!=0){
     cutE.push_back(nEntries-1);
-    printf("%scutE[]=%i,   bcm:%3.2f\n%s",green,cutE.back(),bcm,normal);
+    if(debug) printf("%scutE[]=%i,   bcm:%3.2f\n%s",green,cutE.back(),bcm,normal);
     o++;
   }
   //print the beam trip cuts
   if(debug) printf("going to write beam cut file\n");
-  for(Int_t i=0;i<o;i++) {
-    if(debug) printf("cutE[%i]=%i\n",i,cutE.at(i));
-    outfileBeam << cutE.at(i) <<endl;
-  }
+  file = Form("%s/%s/%scutBeam.txt",pPath, txt,filePre.Data());
+  fOut.open(file);
+  if(fOut.is_open()) {
+    cout<<Form("%s/%s/%scutBeam.txt",pPath, txt,filePre.Data())<<" file created\n"<<endl;
+    for(Int_t i=0;i<o;i++) {
+      if(debug) printf("cutE[%i]=%i\n",i,cutE.at(i));
+      fOut << cutE.at(i) <<endl;
+    }
+    fOut.close();
+  } else cout<<red<<"couldn't open "<<file<<normal<<endl;
 
   if(debug) printf("going to write cutL file\n");
-  for(Int_t i=0;i<m;i++) {
-    //if(debug) printf("cutL[%i]=%i\n",i,cutL.at(i));
-    outfileLas << cutL.at(i) <<endl;
-  }
+  file = Form("%s/%s/%scutLas.txt",pPath, txt,filePre.Data());
+  fOut.open(file);
+  if(fOut.is_open()) {
+    cout<<file<<" created\n"<<endl;
+    for(Int_t i=0;i<m;i++) {
+      if(debug) printf("cutL[%i]=%i\n",i,cutL.at(i));
+      fOut << cutL.at(i) <<endl;
+    }
+    fOut.close();
+  } else cout<<red<<"couldn't open "<<file<<normal<<endl;
 
   if(debug) {
     cout<<blue<<"\nrunnum\tbeamMax\tbeamRMS\tbeamMean\tbeamMeanEr\tbeamTrips\tlasMax\tnLasCyc\tnEntries"<<endl;
     cout<<Form("%d\t%.2f\t%f\t%f\t%f\t%.0f\t%.2f\t%.0f\t%.0f",runnum,beamMax,beamRMS,beamMean,beamMeanEr,((Float_t)cutE.size()-2.0)/2,laserMax,((Float_t)cutL.size()-2.0)/2,(Float_t)nEntries)<<normal<<endl;
   }
 
-  infoBeamLas.open(Form("%s/%s/%sinfoBeamLas.txt",pPath,www,filePre.Data()));
-  if(infoBeamLas.is_open())cout<<Form("%s/%s/%sinfoBeamLas.txt",pPath,www,filePre.Data())<<" file created\n"<<endl;
-  infoBeamLas<<"runnum\tbeamMax\tbeamRMS\tbeamMean\tbeamMeanEr\tnBeamTrips\tlasMax\tnLasCycles\tnEntries"<<endl;
-  infoBeamLas<<runnum<<"\t"<<beamMax<<"\t"<<beamRMS<<"\t"<<beamMean<<"\t"<<beamMeanEr<<"\t"<<(cutE.size())/2<<"\t"<<laserMax<<"\t"<<(cutL.size()-2)/2<<"\t"<<nEntries;
-  outfileLas.close();
-  outfileBeam.close();
-  infoBeamLas.close();
-  nLasCycBeamTrips = o*500+m/2;
+  file = Form("%s/%s/%sinfoBeamLas.txt",pPath, txt,filePre.Data());
+  fOut.open(file);
+  if(fOut.is_open()) {
+    cout<<file<<" created\n"<<endl;
+    fOut<<"runnum\tbeamMax\tbeamRMS\tbeamMean\tbeamMeanEr\tnBeamTrips\tlasMax\tnLasCycles\tnEntries"<<endl;
+    fOut<<runnum<<"\t"<<beamMax<<"\t"<<beamRMS<<"\t"<<beamMean<<"\t"<<beamMeanEr<<"\t"<<(cutE.size())/2<<"\t"<<laserMax<<"\t"<<(cutL.size()-2)/2<<"\t"<<nEntries<<endl;
+    fOut.close();
+  } else cout<<red<<"couldn't open "<<file<<normal<<endl;
+
   return o*500+m/2;//nEntries for both arrays is encoded into return value
 }
+#endif
 
 /* Comments**************************
- * !The output file instead of going to the run's edet-subdirectory should be in the run 
- * ..directory and should be used as a generic file used by both compton componets
  * the entry numbers in cutLas and cutEB demarcate the periods when the the laser
  *..and beam were ON and Good. This is unlike the previous version where the 
  *..demarcation was for beam Off and laser-off.
  * we throw away about 2 seconds of data before the beamTrip is found
- * the laser on state doesn't have a check for how long it stays ON?
- * We could not throw away the initial/final part of laser On data because,
- * ..the same marker which is used for beginning of laser On, is also used for end of Laser off
- * ..hence, shifting the laser on marker by (say) 1s would confuse the laser off identification
+ * the laser on state doesn't have a check for how long it stays ON
  ************************************/

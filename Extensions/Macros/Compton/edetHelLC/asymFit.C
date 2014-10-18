@@ -7,6 +7,7 @@
 #include "rhoToX.C"
 #include "stripMask.C"
 #include "infoDAQ.C"
+#include "read3Cfile.C"
 
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
 {///parCx[1]: to be found Cedge
@@ -86,7 +87,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   filePre = Form(filePrefix,runnum,runnum);
 
-  Bool_t debug=1,debug1=0,debug2=0;
+  Bool_t debug=1,debug1=0;
   Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
   Bool_t kFoundCE=0;
   Int_t status=1;///1: fit not converged; 0: converged
@@ -94,6 +95,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TLegend *leg,*legYield;
   TLine *myline = new TLine(1,0,65,0);
   TF1 *polFit;
+  TString file;
 
   if(daqflag == 0) {///stripMask not called yet 
     daqflag = stripMask();
@@ -111,66 +113,25 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     return -2;
   }
 
-  ifstream paramfile,infileL0Yield, expAsymPWTL1, infileYield, fBgdAsym;
+  ifstream paramfile;
   ofstream polList,fitInfo;
   std::vector<std::vector <Double_t> > activeStrip;
   std::vector<Double_t > trueStrip,asym,asymEr;
   std::vector<Double_t > yieldL1,yieldL1Er,asymNr;
   std::vector<Double_t > yieldL0,yieldL0Er;
-  std::vector<Double_t > stripCE;
+  std::vector<Double_t > stripCE, dummy;
   Int_t usedStrips=0;///no.of used strips upto the CE
-  Double_t dum1,dum2,dum3,dum4;
 
   ///Read in all files that are needed
-  expAsymPWTL1.open(Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,www,filePre.Data(),plane));
-  if(expAsymPWTL1.is_open()) {
-    if(debug2) cout<<"Reading the expAsym corresponding to PWTL1 for Plane "<<plane<<endl;
-    if(debug2) cout<<"strip\t"<<"stripAsym\t"<<"stripAsymEr"<<endl;
-    while( expAsymPWTL1>>dum1>>dum2>>dum3 && expAsymPWTL1.good() ) {
-      if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-        cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
-        continue; 
-      }
-      trueStrip.push_back(dum1),asym.push_back(dum2),asymEr.push_back(dum3);
-      if(debug2) cout<<blue<<trueStrip.back()<<"\t"<<asym.back()<<"\t"<<asymEr.back()<<normal<<endl;
-    }
-    expAsymPWTL1.close();
-  } else {
-    cout<<red<<"did not find the expAsym file "<<Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath,www,filePre.Data(),plane)<<normal<<endl;
-    return -1;
-  }
+  Int_t fOpen;
+  file = Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath, txt,filePre.Data(),plane);
+  fOpen = read3Cfile(file, trueStrip, asym, asymEr);
 
-  infileL0Yield.open(Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane));
-  if(infileL0Yield.is_open()) {
-    if(debug1) cout<<"Reading the qNorm Laser Off Yield for Plane "<<plane<<endl;
-    while(infileL0Yield>>dum1>>dum2>>dum3 && infileL0Yield.good()) {
-      if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-        //cout<<magenta<<"skipping strip "<<dum1<<normal<<endl;
-        continue; 
-      }
-      yieldL0.push_back(dum2), yieldL0Er.push_back(dum3);
-    }
-    infileL0Yield.close();
-  } else {
-    cout<<red<<"didn't find lasOff bgd file "<<Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
-    return -1;
-  }
+  file = Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath, txt,filePre.Data(),dataType.Data(),plane);
+  fOpen = read3Cfile(file, dummy, yieldL0, yieldL0Er); 
 
-  infileYield.open(Form("%s/%s/%s%sYieldP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane));
-  if(infileYield.is_open()) {
-    if(debug1) cout<<"Reading the qNorm Laser On Yield for Plane "<<plane<<endl;
-    while(infileYield>>dum1>>dum2>>dum3>>dum4 && infileYield.good()) {
-      if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-        //cout<<blue<<"skipping strip "<<dum1<<normal<<endl;
-        continue; 
-      }
-      yieldL1.push_back(dum2), yieldL1Er.push_back(dum3), asymNr.push_back(dum4);
-    }
-    infileYield.close();
-  } else {
-    cout<<red<<"did not find the bgd subtracted yield file "<<Form("%s/%s/%s%sYieldP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
-    return -1;
-  }
+  file = Form("%s/%s/%s%sYieldP%d.txt",pPath, txt,filePre.Data(),dataType.Data(),plane);
+  fOpen = read3Cfile(file, dummy, yieldL1, yieldL1Er);
 
   ///Estimate the compton edge location
   for(Int_t s=0; s<=(Int_t)trueStrip.size(); s++) {
@@ -200,7 +161,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   xCedge = rhoToX(runnum); ///this function should be called after determining the Cedge
 
-  paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath,www,filePre.Data(),plane));
+  paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath, txt,filePre.Data(),plane));
   cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
   paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
   paramfile.close();
@@ -311,7 +272,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   polFit->DrawCopy("same");
 
   if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
-  polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath,www,filePre.Data()));
+  polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath, txt,filePre.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tgoodCyc"<<endl;
   polList<< Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
   if(debug) {
@@ -360,29 +321,15 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     TCanvas *cBgd = new TCanvas("cBgd","Bgd Asymmetry",10,650,900,300);
     TPaveText *ptBgd;
 
-    //ifstream fBgdAsym;
     std::vector <Double_t> bgdAsym, bgdAsymEr;
     ///Read in the background asymmetry file
     cBgd->cd();
     cBgd->SetGridx();
-    fBgdAsym.open(Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane));
-    //fBgdAsym.open(Form("%s/%s/%s"+dataType+"BkgdAymP%d.txt",pPath,www,filePre.Data(),plane));
-    if(fBgdAsym.is_open()) {
-      if(debug2) cout<<"Reading the bgdAsym file for Plane "<<plane<<endl;
-      if(debug2) cout<<"strip\t"<<"bgdAsym\t"<<"bgdAsymEr"<<endl;
-      while( fBgdAsym>>dum1>>dum2>>dum3 && fBgdAsym.good() ) {
-        if (std::find(skipStrip.begin(),skipStrip.end(),dum1)!=skipStrip.end()) {
-          if(debug1) cout<<green<<"skipping strip "<<dum1<<normal<<endl;
-          continue; 
-        }
-        bgdAsym.push_back(dum2),bgdAsymEr.push_back(dum3);
-        if(debug2) cout<<blue<<dum1<<"\t"<<bgdAsym.back()<<"\t"<<bgdAsymEr.back()<<normal<<endl;
-      }
-      fBgdAsym.close();
-    } else cout<<red<<"did not find the bgdAsym file "<<Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath,www,filePre.Data(),dataType.Data(),plane)<<normal<<endl;
+    file = Form("%s/%s/%s%sBkgdAsymP%d.txt",pPath, txt,filePre.Data(),dataType.Data(),plane);
+    fOpen = read3Cfile(file, dummy, bgdAsym, bgdAsymEr);
 
     //Trying to debug the pattern in bgd asym
-    if(debug2) {
+    if(debug1) {
       for(int i=0; i<(Int_t)trueStrip.size(); i++) {
         printf("%f\t%f\t%f\n",trueStrip[i],bgdAsym[i],bgdAsymEr[i]);
       }
@@ -427,12 +374,12 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
     std::vector<Double_t> fitResidue;
     ///determining the residue of the above fit
-    if(debug2) cout<<"strip\tfitResidue.at(s)\tstripAsym.at(s)\tpolFit->Eval(s)"<<endl;
+    if(debug1) cout<<"strip\tfitResidue.at(s)\tstripAsym.at(s)\tpolFit->Eval(s)"<<endl;
     for (Int_t s = startStrip; s < usedStrips; s++) {
       stripCE.push_back(trueStrip.at(s));
       residueEr.push_back(asymEr.at(s));
       fitResidue.push_back( asym.at(s) - polFit->Eval(trueStrip.at(s)) );
-      if(debug2) cout<<trueStrip.at(s)<<"\t"<<fitResidue.at(s)<<"\t"<<asym.at(s)<<"\t"<<polFit->Eval(trueStrip.at(s))<<endl;
+      if(debug1) cout<<trueStrip.at(s)<<"\t"<<fitResidue.at(s)<<"\t"<<asym.at(s)<<"\t"<<polFit->Eval(trueStrip.at(s))<<endl;
     }
 
     cResidual->cd();  
@@ -470,7 +417,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     //delete ptRes;
   }
   //delete linearFit;
-  fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath,www,filePre.Data()));
+  fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath, txt,filePre.Data()));
   fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
   fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
   fitInfo.close();

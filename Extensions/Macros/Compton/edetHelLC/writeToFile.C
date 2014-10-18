@@ -14,8 +14,8 @@ Int_t writeToFile(Int_t runnum,TString dataType)
   outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,www,filePre.Data(),plane));
   outfilelasOffBkgd.open(Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,www,filePre.Data(),plane));
   fortranCheck.open(Form("%s/%s/%sFortranCheckP%d.txt",pPath,www,filePre.Data(),plane));
-  outScaler.open(Form("%s/%s/%sqNormCntsB1L1P%d.txt",pPath,www,filePre.Data(),plane));
-  outqNormL0.open(Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,www,filePre.Data(),plane));
+  outScaler.open(Form("%s/%s/%sqNormCntsB1H1L1P%d.txt",pPath,www,filePre.Data(),plane));
+  outqNormL0.open(Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath,www,filePre.Data(),plane));
   outtNormYieldB1L1.open(Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,www,filePre.Data(),plane));
   outtNormYieldB1L0.open(Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,www,filePre.Data(),plane));
   if (outfileExpAsymP.is_open()) {// && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
@@ -28,8 +28,9 @@ Int_t writeToFile(Int_t runnum,TString dataType)
     //cout<<Form("%s/%s/%sqNormCntsB1L0P%d.txt",pPath,www,filePre.Data(),plane)<<" file created"<<endl;
     //cout<<Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath,www,filePre.Data(),plane)<<" file created"<<endl;
     //cout<<Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,www,filePre.Data(),plane)<<" file created"<<endl;
-    fortranCheck<<Form("%f\t%f\t%f\t%f\t%f",totIAllH1L1,totIAllH1L0,totIAllH0L1,totIAllH0L0,totIAllH1L1+totIAllH1L0+totIAllH0L1+totIAllH0L0)<<endl;;
-    fortranCheck<<Form("%f\t%f\t%f",totHelB1L1/helRate,totHelB1L0/helRate,(totHelB1L1+totHelB1L0)/helRate)<<endl;
+    fortranCheck<<Form("%f\t%f\t%f\t%f\t%f",qAllH1L1,qAllH1L0,qAllH0L1,qAllH0L0,qAllH1L1+qAllH1L0+qAllH0L1+qAllH0L0)<<endl;///the fortran version has charge scalers so this won't match
+    fortranCheck<<Form("%.1f\t%.1f\t%.1f\t%.1f\t%.1f\n", lasOffCut, lasOffCut, lasOffCut, lasOffCut, (totHelB1L1+totHelB1L0) / helRate);///!this line won't match really
+    fortranCheck<<Form("%.1f\t%.1f\t%.1f\t%.1f\t%.1f\n", (totHelB1L1/2)/helRate, (totHelB1L0/2)/helRate, (totHelB1L1/2)/helRate, (totHelB1L0/2)/helRate, (totHelB1L1+totHelB1L0) / helRate);
     //outfileYield<<";strip\texpAsymDr\texpAsymDrEr\texpAsymNr"<<endl;
     //outfileExpAsymP<<";strip\texpAsym\tasymEr"<<endl; ///If I want a header for the following text
     for (Int_t s =startStrip; s <endStrip;s++) { 
@@ -37,9 +38,9 @@ Int_t writeToFile(Int_t runnum,TString dataType)
       outfileBkgdAsymP<<Form("%2.0f\t%f\t%f",(Double_t)s+1,bkgdAsym[s],bkgdAsymEr[s])<<endl;
       outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Double_t)s+1,stripAsymDr[s],stripAsymDrEr[s],stripAsymNr[s])<<endl;//has all expt asym components
       outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormB1L0[s],qNormB1L0Er[s])<<endl;
-      fortranCheck<<Form("%d\t%f\t%f\t%f\t%f",s+1,totyieldB1H1L1[s],totyieldB1H1L0[s],totyieldB1H0L1[s],totyieldB1H0L0[s])<<endl;
-      outScaler <<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormCountsB1L1[s],qNormCountsB1L1Er[s])<<endl;
-      outqNormL0<<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormCountsB1L0[s],qNormCountsB1L0Er[s])<<endl;
+      fortranCheck<<Form("%.1f\t%.1f\t%.1f\t%.1f\t%2d\n",totyieldB1H1L1[s]/4,totyieldB1H1L0[s]/4,totyieldB1H0L1[s]/4,totyieldB1H0L0[s]/4,s+1);///just to match the counts in fortran
+      outScaler <<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormCntsB1H1L1[s],qNormCntsB1H1L1Er[s])<<endl;
+      outqNormL0<<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormCntsB1H1L0[s],qNormCntsB1H1L0Er[s])<<endl;
       outtNormYieldB1L1<<Form("%2.0f\t%g\t%g",(Double_t)s+1,tNormYieldB1L1[s],tNormYieldB1L1Er[s])<<endl;
       outtNormYieldB1L0<<Form("%2.0f\t%g\t%g",(Double_t)s+1,tNormYieldB1L0[s],tNormYieldB1L0Er[s])<<endl;
     }

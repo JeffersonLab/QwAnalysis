@@ -7,7 +7,7 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 1;
+const Bool_t kNoiseSub = 0;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kOnlyGoodLasCyc = 1;
@@ -15,11 +15,12 @@ const Int_t maxIterations =4;
 
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
-const char *www= "www";
-const TString filePrefix = "run_%d/edetLC_%d_";///one spot change of all file names
+const char *www = "www";///to store all image files
+const char *txt = "txt";///to store all the text files
+const TString filePrefix = "r%d/edetLC_%d_";///one spot change of all file names
 TString filePre;
 //Asymmetry calculation constants 
-const Double_t light=0.2998;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
+const Double_t light=0.299792458;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
 const Double_t pi=3.141592;
 const Double_t hbarc=0.19732858E-15;/// GeV.m
 const Double_t alpha=0.00729927; ///=1.0/137.0;
@@ -55,12 +56,12 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t minLasPow = 1261;//2000;//1261;//1100;///elog 319 
+const Double_t lasOffCut = 1261;//2000;//1261;//1100;///elog 319 
 const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
-const Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
+Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
 const Double_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
-const Double_t laserFracHi = 0.90;//90% of maximum beam to be considered as laserOn///typical 150E3.
+const Double_t laserFracHi = 0.80;//90% of maximum beam to be considered as laserOn///typical 150E3.
 const Double_t beamFracHi = 0.78;
 const Double_t beamFracLo = 0.6;
 const Double_t beamFrac = 0.6;
@@ -79,6 +80,8 @@ const Int_t endStrip = 64;
 const Int_t startPlane = 0;
 const Int_t endPlane = 1;
 const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
+const Float_t beamMaxEver = 200.0, beamOnLimit=20.0;
+const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
@@ -110,15 +113,13 @@ std::vector<Int_t>::iterator itStrip;
 Double_t xStrip,rhoStrip,rhoPlus,rhoMinus,dsdrho1,dsdrho;///on purpose left uninitialized, if they are being used without being assigned, it will generate a warning of 'using a variable without initializing'
 
 ///Declaration of regular variables to be used in the macro
-Float_t corrB1H1L1_0=0.0,corrB1H1L0_0=0.0,corrB1H0L1_0=0.0,corrB1H0L0_0=0.0;//deadtime correction for given run
-Float_t corrB1H1L1_1=0.0,corrB1H1L0_1=0.0,corrB1H0L1_1=0.0,corrB1H0L0_1=0.0;//deadtime correction for given run
 Float_t c2B1H1L1[nStrips]={1.0},c2B1H1L0[nStrips]={1.0},c2B1H0L1[nStrips]={1.0},c2B1H0L0[nStrips]={1.0};
 Double_t stripAsym[nStrips]={0.0},stripAsymEr[nStrips]={0.0};
 Double_t bkgdAsym[nStrips]={0.0},bkgdAsymEr[nStrips]={0.0};
 Double_t beamMax=0.0, laserMax=0.0;
+Double_t beamMean = -1.0, beamRMS = -1.0, beamMeanEr = -1.0;
 Double_t pol=0.0,polEr=0.0,chiSq=0.0;
 Double_t cEdge=0.0,cEdgeEr=0.0;
-const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
 Int_t NDF=0,resFitNDF=0, bgdAsymFitNDF=0;
 Double_t resFit=0.0,resFitEr=0.0, chiSqResidue=0.0;
 Double_t bgdAsymFit =0.0, bgdAsymFitEr = 0.0, chiSqBgdAsym=0.0;
@@ -136,16 +137,13 @@ Double_t qNormCntsB1H1L1[nStrips]={0.0},qNormCntsB1H1L1Er[nStrips]={0.0};
 Double_t qNormCntsB1H1L0[nStrips]={0.0},qNormCntsB1H1L0Er[nStrips]={0.0};
 Double_t qNormCntsB1H0L1[nStrips]={0.0},qNormCntsB1H0L1Er[nStrips]={0.0};
 Double_t qNormCntsB1H0L0[nStrips]={0.0},qNormCntsB1H0L0Er[nStrips]={0.0};
-Double_t qNormCountsB1L1[nStrips]={0.0},qNormCountsB1L1Er[nStrips]={0.0};
-Double_t qNormCountsB1L0[nStrips]={0.0},qNormCountsB1L0Er[nStrips]={0.0};
 Double_t qNormBkgdSubAllB1L1[nStrips]={0.0},qNormAllB1L0[nStrips]={0.0},qNormAllB1L0Er[nStrips]={0.0}; 
-Double_t totIAllH1L1=0.0,totIAllH1L0=0.0,totIAllH0L1=0.0,totIAllH0L0=0.0;///total current
+Double_t qAllH1L1=0.0,qAllH1L0=0.0,qAllH0L1=0.0,qAllH0L0=0.0;///total current
 Double_t totHelB1L1=0,totHelB1L0=0;///total no.of helicities (hence time)
 Double_t totyieldB1L1[nStrips]={0.0}, totyieldB1L0[nStrips]={0.0};
 Double_t totyieldB1H1L1[nStrips]={0.0},totyieldB1H1L0[nStrips]={0.0},totyieldB1H0L1[nStrips]={0.0}, totyieldB1H0L0[nStrips]={0.0};
 Double_t tNormYieldB1L1[nStrips]={0.0},tNormYieldB1L0[nStrips]={0.0};
 Double_t tNormYieldB1L1Er[nStrips]={0.0},tNormYieldB1L0Er[nStrips]={0.0};
-const Float_t beamMaxEver = 200.0, beamOnLimit=20.0;
 Double_t timeB0,rateB0[nStrips]={0.0};
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
