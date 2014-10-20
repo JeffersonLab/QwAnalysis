@@ -1,48 +1,59 @@
 #include "rootClass.h"
 #include "comptonRunConstants.h"
-#include "stripMask.C"
+#include "read3CfileArray.C"
 ///////////////////////////////////////////////////////////////////////////
-Int_t ratioRates(Int_t run1 = 24761, Int_t run2 = 24762, TString dataType = "Ac") {
+Int_t ratioRates(Int_t run1 = 24761, Int_t run2 = 24762, TString f1 ="AcLasOffBkgdP1") {
+//Int_t ratioRates(Int_t run1 = 24761, Int_t run2 = 24762, TString f1 ="AcqNormCntsB1H1L0P1") {
+//Int_t ratioRates(Int_t run1 = 24761, Int_t run2 = 24762, TString f1 ="AcqNormCntsB1H0L0P1") {
   ifstream fIn;
-  std::vecotr<Double_t> d1;
   TString file;
+  Double_t strip[nStrips], rate1[nStrips], rate1Er[nStrips];
+  Double_t dum[nStrips], rate2[nStrips], rate2Er[nStrips];
 
-  filePre = Form("run_%d/edetAll_%d_%s",run1,run1,dataType.Data());///to to make it stand apart from the LC outputs
-  std::vector<Double_t> strip, rate1, rate1Er;
-  //file = Form("%s/%s/%sqNormCntsB1H0L0P1.txt",pPath,www,filePre.Data());
-  file = Form("%s/%s/%sqNormCntsB1H1L0P1.txt",pPath,www,filePre.Data());
-  read3Cfile(file, strip, rate1, rate1Er) 
+  filePre = Form("run_%d/edetAll_%d_",run1,run1);///to to make it stand apart from the LC outputs
+  file = Form("%s/%s/%s"+f1+".txt",pPath,www,filePre.Data());
+  Int_t failed1 = read3CfileArray(file, strip, rate1, rate1Er); 
 
-  filePre = Form("run_%d/edetAll_%d_%s", run2, run2, dataType.Data());///to to make it stand apart from the LC outputs
-  std::vector<Double_t> rate2, rate2Er;
-  //file = Form("%s/%s/%sqNormCntsB1H1L0P1.txt",pPath,www,filePre.Data());
-  file = Form("%s/%s/%sqNormCntsB1H0L0P1.txt",pPath,www,filePre.Data());
-  read3Cfile(file, d1, rate2, rate2Er) 
+  filePre = Form("run_%d/edetAll_%d_", run2, run2);///to to make it stand apart from the LC outputs
+  file = Form("%s/%s/%s"+f1+".txt",pPath,www,filePre.Data());
+  Int_t failed2 = read3CfileArray(file, dum, rate2, rate2Er);
 
-  std::vector<Double_t> str, ratio, ratioEr;
-  for(int i=0; i< (int)strip.size(); i++) {
-    str.push_back(strip.at(i));
-    if(rate2.at(i)!=0) {
-      ratio.push_back(rate1.at(i)/rate2.at(i));
-      ratioEr.push_back( TMath::Sqrt(pow(rate1Er.at(i)/rate2.at(i),2) + pow((rate1.at(i)/(pow(rate2.at(i),2)))*rate2Er.at(i),2)) );
-      //printf("%f\t%f\t%f\t%f\t%f\n",strip.at(i), rate1.at(i), rate2.at(i), ratio.back(), ratioEr.back());
+  if(failed1 * failed2 < 0) {
+    cout<<"exiting becuase a file failed"<<endl;
+    return -1;
+  }
+  //forming the ratio using the above two files
+  Double_t ratio[nStrips], ratioEr[nStrips];
+  for(int s=0; s<nStrips; s++) {
+    if(rate2[s]!=0) {
+      ratio[s] = (rate1[s]/rate2[s]);
+      ratioEr[s] = TMath::Sqrt(pow(rate1Er[s]/rate2[s],2) + pow((rate1[s]/(pow(rate2[s],2)))*rate2Er[s],2));
+      //printf("%f\t%f\t%f\t%f\t%f\n",strip[s], rate1[s], rate2[s], ratio[s], ratioEr[s]);
     } else {
-      cout<<blue<<"strip # "<<i+1<<" must be masked"<<normal<<endl;
-      ratio.push_back(1.0);
-      ratioEr.push_back(0.0);
+      cout<<blue<<"strip # "<<s+1<<" must be masked"<<normal<<endl;
+      ratio[s] = 1.0;
+      ratioEr[s] = 0.0;
     }
   }
-
   ofstream fOut;
-  //fOut.open("ratioOfRatesH1L0.txt");
-  fOut.open("ratioOfRatesH0L0.txt");
+  file = Form("ratio_"+f1+"_%d_%d_%d.txt", run1, run2, (Int_t)lasOffCut);
+
+  fOut.open(file);
   if(fOut.is_open()) {
-    for(int i=0; i< (int)ratio.size(); i++) {
-      cout <<str.at(i) <<"\t"<<ratio.at(i) <<"\t"<<ratioEr.at(i) <<endl;
-      fOut <<str.at(i) <<"\t"<<ratio.at(i) <<"\t"<<ratioEr.at(i) <<endl;
+    for(int s=0; s< nStrips; s++) {
+      //cout <<str[s] <<"\t"<<ratio[s] <<"\t"<<ratioEr[s] <<endl;
+      fOut <<strip[s] <<"\t"<<ratio[s] <<"\t"<<ratioEr[s] <<endl;
     }
     fOut.close();
   }
+  cout<<"wrote file "<<file<<endl;
 
+  //file = Form("%s/%s/%sqNormCntsB1H0L0P1.txt",pPath,www,filePre.Data());
+  //file = Form("%s/%s/%sqNormCntsB1H0L0P1.txt",pPath,www,filePre.Data());
+  //file = Form("ratioOfRatesH1L0_%d.txt",run1);
   return 1;
 }
+
+///This macro should function as an independent module. It reads in two files each of 3 column width, 
+//..forms a ratio of the 2nd column using the 3rd column as error
+//..writes the ratio into a file in a local directory

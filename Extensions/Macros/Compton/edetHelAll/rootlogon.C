@@ -10,6 +10,7 @@ void rootlogon()
   pubStyle->SetPadColor(0);
   pubStyle->SetCanvasColor(0);
   pubStyle->SetStatColor(0);
+  pubStyle->SetFillStyle(0);
   pubStyle->SetFillColor(0);
 
   // set the paper & margin sizes

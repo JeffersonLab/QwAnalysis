@@ -7,16 +7,16 @@ Int_t noiseCorrect(Double_t rate1[], Double_t rate2[], Double_t rate3[], Double_
   Double_t tB0H1L1,tB0H1L0,tB0H0L1,tB0H0L0,tBeamOff;
   Double_t lasPowB0H1L1, lasPowB0H1L0, lasPowB0H0L1, lasPowB0H0L0, tBeamOn;
   Double_t rateB0H1L1[nStrips],rateB0H1L0[nStrips],rateB0H0L1[nStrips],rateB0H0L0[nStrips],strip[nStrips];
-  ifstream fileNoise;
+  ifstream fIn;
 
-  fileNoise.open(Form("%s/data/beamoff_23229.0.dat",pPath));
-  if(fileNoise.is_open()) {
+  fIn.open(Form("%s/data/beamoff_24752.0.dat",pPath));
+  if(fIn.is_open()) {
     cout<<blue<<"explicit noise subtraction"<<normal<<endl; 
-    fileNoise>>tB0H1L1>>tB0H1L0>>tB0H0L1>>tB0H0L0>>tBeamOff;
-    fileNoise>>lasPowB0H1L1>>lasPowB0H1L0>>lasPowB0H0L1>>lasPowB0H0L0>>tBeamOn;
+    fIn>>tB0H1L1>>tB0H1L0>>tB0H0L1>>tB0H0L0>>tBeamOff;
+    fIn>>lasPowB0H1L1>>lasPowB0H1L0>>lasPowB0H0L1>>lasPowB0H0L0>>tBeamOn;
     timeB0 = tB0H1L1+tB0H1L0+tB0H0L1+tB0H0L0;
     for(Int_t s=0;s<endStrip;s++) {
-      fileNoise>>rateB0H1L1[s]>>rateB0H1L0[s]>>rateB0H0L1[s]>>rateB0H0L0[s]>>strip[s];
+      fIn>>rateB0H1L1[s]>>rateB0H1L0[s]>>rateB0H0L1[s]>>rateB0H0L0[s]>>strip[s];
       rateB0[s]= (rateB0H1L1[s]+rateB0H1L0[s]+rateB0H0L1[s]+rateB0H0L0[s])*4.0/timeB0;
       //printf("%f\t%f\t%f\t%f\t%f\n",rateB0H1L1[s],rateB0H1L0[s],rateB0H0L1[s],rateB0H0L0[s],strip[s]);
       //printf("%f\t%f\n",strip[s],rateB0[s]);

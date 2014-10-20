@@ -1,11 +1,12 @@
 #ifndef __COMPTONRUNCONSTANTS_H
 #define __COMPTONRUNCONSTANTS_H
 
-#include "/w/hallc/compton/users/narayan/svn/Compton/edetHelLC/rootClass.h"
+#include "rootClass.h"
 #include <stdlib.h>
 
 ///Boolean constants pertaining to analysis:
-    Bool_t kBgdSub = 0; 
+Int_t h1GTh0 = -1;
+const Bool_t kBgdCorrect = 1; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
 const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
@@ -55,16 +56,15 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t minLasPow = 2000;//1261;//1100;///elog 319 
-const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
-const Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
-const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
-const Double_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
-const Double_t laserFracHi = 0.90;//90% of maximum beam to be considered as laserOn///typical 150E3.
-const Double_t beamFracHi = 0.78;
-const Double_t beamFracLo = 0.6;
-const Double_t beamFrac = 0.6;
-const Double_t highBeamCut = 90;//uA
+const Float_t lasOffCut = 2000;//1261;//1100;///elog 319 
+const Float_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
+const Float_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
+const Float_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
+const Float_t laserFracHi = 0.80;//90% of maximum beam to be considered as laserOn///typical 150E3.
+const Float_t beamFracHi = 0.78;
+const Float_t beamFracLo = 0.6;
+const Float_t beamFrac = 0.6;
+const Float_t highBeamCut = 90;//uA
 const Int_t avoidDAQEr = 10;
 const Int_t WAIT_N_ENTRIES = 50;//# of quartets to wait after beam trip
 const Int_t PREV_N_ENTRIES = 50;//# of quartets to ignore before a beam trip
@@ -79,6 +79,7 @@ const Int_t endStrip = 64;
 const Int_t startPlane = 0;
 const Int_t endPlane = 1;
 const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
+Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
@@ -116,6 +117,7 @@ Float_t c2B1H1L1[nStrips]={1.0},c2B1H1L0[nStrips]={1.0},c2B1H0L1[nStrips]={1.0},
 Double_t stripAsym[nStrips]={0.0},stripAsymEr[nStrips]={0.0};
 Double_t bkgdAsym[nStrips]={0.0},bkgdAsymEr[nStrips]={0.0};
 Double_t beamMax=0.0, laserMax=0.0;
+Double_t beamMean = -1.0, beamRMS = -1.0, beamMeanEr = -1.0;
 Double_t pol=0.0,polEr=0.0,chiSq=0.0;
 Double_t cEdge=0.0,cEdgeEr=0.0;
 const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
@@ -123,6 +125,7 @@ Int_t NDF=0,resFitNDF=0, bgdAsymFitNDF=0;
 Double_t resFit=0.0,resFitEr=0.0, chiSqResidue=0.0;
 Double_t bgdAsymFit =0.0, bgdAsymFitEr = 0.0, chiSqBgdAsym=0.0;
 
+Double_t stripArray[nStrips];
 Double_t asymErSqrLC[nStrips]={0.0},qNormAsymLC[nStrips]={0.0};
 Double_t wmNrAsym[nStrips]={0.0},wmDrAsym[nStrips]={0.0};
 Double_t wmNrBkgdAsym[nStrips]={0.0},wmDrBkgdAsym[nStrips]={0.0};
@@ -136,17 +139,17 @@ Double_t qNormCntsB1H1L1[nStrips]={0.0},qNormCntsB1H1L1Er[nStrips]={0.0};
 Double_t qNormCntsB1H1L0[nStrips]={0.0},qNormCntsB1H1L0Er[nStrips]={0.0};
 Double_t qNormCntsB1H0L1[nStrips]={0.0},qNormCntsB1H0L1Er[nStrips]={0.0};
 Double_t qNormCntsB1H0L0[nStrips]={0.0},qNormCntsB1H0L0Er[nStrips]={0.0};
-Double_t qNormCountsB1L1[nStrips]={0.0},qNormCountsB1L1Er[nStrips]={0.0};
-Double_t qNormCountsB1L0[nStrips]={0.0},qNormCountsB1L0Er[nStrips]={0.0};
+Double_t qNormCntsB1L1[nStrips]={0.0},qNormCntsB1L1Er[nStrips]={0.0};
+Double_t qNormCntsB1L0[nStrips]={0.0},qNormCntsB1L0Er[nStrips]={0.0};
 Double_t qNormBkgdSubAllB1L1[nStrips]={0.0},qNormAllB1L0[nStrips]={0.0},qNormAllB1L0Er[nStrips]={0.0}; 
-Double_t totIAllH1L1=0.0,totIAllH1L0=0.0,totIAllH0L1=0.0,totIAllH0L0=0.0;///total current
+Double_t qAllH1L1=0.0,qAllH1L0=0.0,qAllH0L1=0.0,qAllH0L0=0.0;///total current
 Double_t totHelB1L1=0,totHelB1L0=0;///total no.of helicities (hence time)
 Double_t totyieldB1L1[nStrips]={0.0}, totyieldB1L0[nStrips]={0.0};
 Double_t totyieldB1H1L1[nStrips]={0.0},totyieldB1H1L0[nStrips]={0.0},totyieldB1H0L1[nStrips]={0.0}, totyieldB1H0L0[nStrips]={0.0};
 Double_t tNormYieldB1L1[nStrips]={0.0},tNormYieldB1L0[nStrips]={0.0};
 Double_t tNormYieldB1L1Er[nStrips]={0.0},tNormYieldB1L0Er[nStrips]={0.0};
 Double_t beamMaxEver = 200.0, beamOnLimit=2.0;
-Double_t timeB0,rateB0[nStrips]={0.0};
+Double_t timeB0, rateB0[nStrips]={0.0};
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12

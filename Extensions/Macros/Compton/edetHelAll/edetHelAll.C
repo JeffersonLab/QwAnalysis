@@ -5,8 +5,11 @@
 #include "evalBgdAsym.C"
 #include "weightedMean.C"
 #include "qNormVariables.C"
-#include "noiseCorrect.C"
 #include "bgdAsym.C"
+#include "bgdCorrect.C"
+#include "determineNoise.C"
+#include "write3CfileArray.C"
+#include "aggregateRate.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise for beam on, laser off cycles
 ////////////////////////////////////////////////////////////////////////////
@@ -21,22 +24,20 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
   Int_t chainExists = 0, missedDueToBMod=0;
   Int_t beamOn = 0;//beamOn,
   Int_t lasOn = 0;//lasOn tracking variables
-  Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nHelLCB1L1=0, nHelLCB1L0=0;
   Int_t totalMissedQuartets=0;
   Int_t missedLasEntries=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
   Double_t yieldB1L1[nStrips], yieldB1L0[nStrips];
   Double_t diffB1L1[nStrips], diffB1L0[nStrips];
   Double_t bYield[nStrips],bDiff[nStrips],bAsym[nStrips];
-  Double_t iLCH1L1=0.0,iLCH1L0=0.0,iLCH0L1=0.0,iLCH0L0=0.0;
+  Double_t qLCH1L1=0.0,qLCH1L0=0.0,qLCH0L1=0.0,qLCH0L0=0.0;
   Double_t lasPow[3],y_bcm[3],d_bcm[3],bModRamp[3];//?!the vector size should be 3 I suppose, not 4
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
   Double_t pattern_number, event_number;
   Double_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
-
+  TString file;
   Double_t lasPowLCB1L0=0.0,lasPowLCB1L1=0.0;
 
-  TString readEntry;
   TChain *helChain = new TChain("Hel_Tree");//chain of run segments
 
   chainExists = helChain->Add(Form("$QW_ROOTFILES/Compton_Pass2b_%d.*.root",runnum));//for pass2b
@@ -75,22 +76,45 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
     bkgdAsym[s]= 0.0,bkgdAsymEr[s]= 0.0;
 
     qNormB1L0[s]=0.0,qNormB1L0Er[s]=0.0;
-    qNormCountsB1L1[s]=0.0,qNormCountsB1L1Er[s]=0.0;
+    qNormCntsB1L1[s]=0.0,qNormCntsB1L1Er[s]=0.0;
     qNormCntsB1H1L0[s]=0.0,qNormCntsB1H1L0Er[s]=0.0;
     qNormAsymLC[s]=0.0,asymErSqrLC[s]=0.0;
 
-    totyieldB1L1[s]=0.0,totyieldB1L0[s]=0.0;//this can be removed after the variables below do the requisite
     totyieldB1H1L1[s]=0,totyieldB1H1L0[s]=0,totyieldB1H0L1[s]=0,totyieldB1H0L0[s]=0;      
   }
 
-  //cout<<"beamMax="<<beamMax<<endl;
-  //cout<<"nbeamTrips="<<nBeamTrips<<endl;
-  //cout<<"nLasCycles="<<nLasCycles<<normal<<endl;
-
   gSystem->mkdir(Form("%s/%s/run_%d",pPath,www,runnum));
+  ///////////////////////////////////////////////////
+
+  //////////////////////////////////////////////////////////////////////////////
+  TH1D *hBeam = new TH1D("hBeam","dummy",100,0,220);//typical value of maximum beam current
+  //hBeam->SetBit(TH1::kCanRebin);
+  helChain->Draw("yield_sca_bcm6.value>>hBeam","","goff");
+  hBeam = (TH1D*)gDirectory->Get("hBeam");  
+  //beamMax = hBeam->GetMaximum();
+  beamMean = hBeam->GetMean();
+  beamMeanEr = hBeam->GetMeanError();
+  beamRMS = hBeam->GetRMS();
+  beamMax = hBeam->GetBinLowEdge(hBeam->FindLastBinAbove(100));//to avoid extraneous values
+  //cout<<"beamMax(bcm6): "<<beamMax<<",\t beamMean: "<<beamMean<<",\t beamRMS: "<<beamRMS<<endl;
+
+  TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,180000);//typical value of maximum laser power
+  //hLaser->SetBit(TH1::kCanRebin);
+  helChain->Draw("yield_sca_laser_PowT.value>>hLaser","","goff");
+  hLaser = (TH1D*)gDirectory->Get("hLaser");  
+  //laserMax = hLaser->GetMaximum();
+  laserMax = hLaser->GetBinLowEdge(hLaser->FindLastBinAbove(100));//to avoid extraneous values
+  cout<<"laserMax = "<<laserMax<<endl;
+  if(beamMax<beamOnLimit) {
+    cout<<red<<"beamMax is "<<beamMax<<" uA < beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl; 
+    return -1;
+  } else cout<<blue<<"beamMax is "<<beamMax<<" uA > beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl; 
+
   Int_t nEntries = helChain->GetEntries();
   cout<<blue<<"This chain has "<<nEntries<<" entries"<<endl;
-  ///////////////////////////////////////////////////
+  cout<<"beamMax="<<beamMax<<endl;
+  cout<<"laserMax="<<laserMax<<endl;
+
   helChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
   helChain->SetBranchStatus("pattern_number",1);
   helChain->SetBranchStatus("yield_sca_laser_PowT*",1);
@@ -136,10 +160,6 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
     //the branch for each plane is named from 1 to 4
   } else cout<<red<<"dataType not defined clearly"<<normal<<endl;
 
-  cout<<"if laser-Off period has lasPower > "<<minLasPow<<", or \n"
-    <<"if laser-On period has lasPower < "<<acceptLasPow<<", it gets counted as 'missedLasEntries'"<<endl;
-  if(nthBeamTrip != nBeamTrips) cout<<"this run has beam trips"<<endl;  
-
   ///Not applying deadtime to this
   for (Int_t s =startStrip; s <endStrip; s++) {	///Needed in evalBgdAsym.C
     c2B1H1L1[s] = 1.0; 
@@ -156,7 +176,6 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
   cout<<blue<<"\nThis analysis takes all entries in a run, without any consideration for laser cycles"<<normal<<endl;
 
   nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0,missedDueToBMod=0; 
-  iLCH1L1= 0.0, iLCH1L0= 0.0, iLCH0L1= 0.0, iLCH0L0= 0.0;
   lasPowLCB1L0=0.0,lasPowLCB1L1= 0.0;
   for(Int_t s = startStrip; s <endStrip; s++) {
     yieldB1L0[s] =0.0, yieldB1L1[s] =0.0;
@@ -164,7 +183,10 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
     asymErSqrLC[s]= 0.0,qNormAsymLC[s]=0.0;
   }
 
-  Double_t tempBgdCut = 2000;///temporarily place background cut, to easily change without playing with comptonRunConstants.h
+  acceptLasPow = laserFracHi * laserMax;
+  cout<<"if laser-Off period has lasPower > "<<lasOffCut<<", or \n"
+    <<"if laser-On period has lasPower < "<<laserFracHi * laserMax<<", it gets counted as 'missedLasEntries'"<<endl;
+
   for(Int_t i =0; i <nEntries; i++) { 
     helChain->GetEntry(i);
 
@@ -173,8 +195,7 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
       continue;
     }
 
-    //if(lasPow[0]<minLasPow) lasOn =0; ///laser off zone
-    if(lasPow[0]<tempBgdCut) lasOn =0; ///laser off zone
+    if(lasPow[0]<lasOffCut) lasOn =0; ///laser off zone
     else if(lasPow[0]>acceptLasPow) lasOn =1;///laser on zone
     else lasOn =-1;///just to set it to an absurd value, so that it doesn't retain previous
 
@@ -184,8 +205,8 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
 
     if (beamOn==1 && lasOn==0) {//using the H=0 configuration for now
       nHelLCB1L0++;
-      iLCH1L0 += (y_bcm[0]+d_bcm[0]);///@if the factor '2' is multiplied, that would count the bcm reading once for each of the two H1 measurements; without the factor, this is already an average of the two counts that were recorded during the two H1 events in a given quartet
-      iLCH0L0 += (y_bcm[0]-d_bcm[0]);
+      qLCH1L0 += (y_bcm[0]+d_bcm[0])/(2*helRate);///@if the factor '2' is multiplied, that would count the bcm reading once for each of the two H1 measurements; without the factor, this is already an average of the two counts that were recorded during the two H1 events in a given quartet
+      qLCH0L0 += (y_bcm[0]-d_bcm[0])/(2*helRate);
       lasPowLCB1L0 += lasPow[0];
       for(Int_t s =startStrip; s <endStrip; s++) {
         yieldB1L0[s] += bYield[s];
@@ -193,8 +214,8 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
       }
     } else if (beamOn==1 && lasOn==1) {////the elseif statement helps avoid overhead in each entry
       nHelLCB1L1++;
-      iLCH1L1 += (y_bcm[0]+d_bcm[0]);
-      iLCH0L1 += (y_bcm[0]-d_bcm[0]);
+      qLCH1L1 += (y_bcm[0]+d_bcm[0])/(2*helRate);
+      qLCH0L1 += (y_bcm[0]-d_bcm[0])/(2*helRate);
       lasPowLCB1L1 += lasPow[0];
       for(Int_t s =startStrip; s <endStrip; s++) {
         yieldB1L1[s] += bYield[s];
@@ -213,23 +234,12 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
   } else if (nHelLCB1L1 < 0||nHelLCB1L0 < 0) {
     printf("\n%s****  Warning: Something drastically wrong in :\n\t\t** check nHelLCB1L1:%d, nHelLCB1L0:%d%s",red,nHelLCB1L1,nHelLCB1L0,normal);
   } else { ///if everything okay, start main buisness
-    for (Int_t s = startStrip; s < endStrip; s++) {
-      totyieldB1L1[s] = 4*yieldB1L1[s];//yield in Hel_Tree is normalized for the quartet
-      totyieldB1L0[s] = 4*yieldB1L0[s];
-    }///for (Int_t s = startStrip; s < endStrip; s++)
+    qAllH1L1 = qLCH1L1; ///in non LC analysis, qLCH1L1 would be the total current already
+    qAllH1L0 = qLCH1L0;
+    qAllH0L1 = qLCH0L1;
+    qAllH0L0 = qLCH0L0;
 
-    totIAllH1L1 = iLCH1L1; ///in non LC analysis, iLCH1L1 would be the total current already
-    totIAllH1L0 = iLCH1L0;
-    totIAllH0L1 = iLCH0L1;
-    totIAllH0L0 = iLCH0L0;
-
-    if(debug) cout<<"nHelLCB1L1:"<<nHelLCB1L1<<", nHelLCB1L0:"<< nHelLCB1L0<<blue<<",\niLCH1L1:"<<iLCH1L1<<", iLCH1L0:"<<iLCH1L0<<", iLCH0L1:"<<iLCH0L1<<", iLCH0L0:"<<iLCH0L0<<normal<<endl;
-    ///now lets do a yield weighted mean of the above asymmetry
-    //Double_t qAvgLCH1L1 = iLCH1L1 /(helRate);
-    //Double_t qAvgLCH0L1 = iLCH0L1 /(helRate);
-    Double_t qAvgLCH1L0 = iLCH1L0 /(helRate);
-    Double_t qAvgLCH0L0 = iLCH0L0 /(helRate);
-    ///a factor of 4 is needed to balance out the averaging in the yield and diff reported in the helicity tree
+    if(debug) cout<<"nHelLCB1L1:"<<nHelLCB1L1<<", nHelLCB1L0:"<< nHelLCB1L0<<blue<<",\nqLCH1L1:"<<qLCH1L1<<", qLCH1L0:"<<qLCH1L0<<", qLCH0L1:"<<qLCH0L1<<", qLCH0L0:"<<qLCH0L0<<normal<<endl;
     for (Int_t s =startStrip; s <endStrip; s++) {	  
       countsLCB1H1L1[s]=2.0*(yieldB1L1[s] + diffB1L1[s]);///the true total counts this laser cycle for H1L1
       countsLCB1H1L0[s]=2.0*(yieldB1L0[s] + diffB1L0[s]);
@@ -238,15 +248,85 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
     }///for (Int_t s =startStrip; s <endStrip; s++)
 
     ///////////// Implementing noise subtraction //////
+    ///Reading in the noise file
     if(kNoiseSub) {
-      //if(0) {
-      //  noiseCorrect(Double_t rate1[], Double_t rate2[], Double_t rate3[], Double_t rate4[], Int_t nHelLCB1L1, Int_t nHelLCB1L0) {
-      noiseCorrect(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, nHelLCB1L1, nHelLCB1L0);
+      Int_t retNoise = determineNoise(runnum, stripArray);
+      if (retNoise<0) cout<<red<<"\n Noise subtraction failed, check its reasons\n \n"<<normal<<endl;
+    } 
+
+    if(kNoiseSub) {
+      for (Int_t s =startStrip; s <endStrip; s++) {	  
+        ///the noiseSubtraction assumes that the +ve and -ve helicities are equal in number, hence dividing by 2
+        countsLCB1H1L1[s] = countsLCB1H1L1[s] - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
+        countsLCB1H1L0[s] = countsLCB1H1L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
+        countsLCB1H0L1[s] = countsLCB1H0L1[s] - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
+        countsLCB1H0L0[s] = countsLCB1H0L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
+      }
     } else cout<<blue<<"\nNoise subtraction turned OFF for this analysis\n"<<normal<<endl; 
     ///////////////////////////////////////////////////
 
+    qNormVariables(countsLCB1H1L0, qAllH1L0, qNormCntsB1H1L0, qNormCntsB1H1L0Er);//background yield
+    qNormVariables(countsLCB1H0L0, qAllH0L0, qNormCntsB1H0L0, qNormCntsB1H0L0Er);//background uncorrected yield
+    //qNormVariables(totyieldB1L1,totHelB1L1,tNormYieldB1L1,tNormYieldB1L1Er);
+    //qNormVariables(totyieldB1L0,totHelB1L0,tNormYieldB1L0,tNormYieldB1L0Er);
+
+    //if(kBgdCorrect && runnum!=24762) {
+    //  bgdCorrect(qNormCntsB1H1L0, qNormCntsB1H0L0);///the call of this function in evalBgdAsym.C does not fix these rates written to files
+    //} else cout<<magenta<<"\n NOT applying bgdCorrection for run "<<runnum<<normal<<endl;
+
+    filePre = Form("run_%d/edetAll_%d_%s",runnum,runnum,dataType.Data());///to to make it stand apart from the LC outputs
+
+    file = Form("%s/%s/%sqNormCntsB1H1L0P%d.txt",pPath,www,filePre.Data(),plane);
+    write3CfileArray(file, stripArray, qNormCntsB1H1L0, qNormCntsB1H1L0Er);
+    
+    file = Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath,www,filePre.Data(),plane);
+    write3CfileArray(file, stripArray, qNormCntsB1H0L0, qNormCntsB1H0L0Er);
+
+    Double_t aggH1 = aggregateRate(runnum, "Ac", "qNormCntsB1H1L0P1.txt");///returns the aggregate rate
+    Double_t aggH0 = aggregateRate(runnum, "Ac", "qNormCntsB1H0L0P1.txt");
+
+    if (aggH1 > aggH0) {
+      h1GTh0 = 1;
+      cout<<magenta<<"rates in H1 are higher than H0"<<normal<<endl;
+    } else if (aggH1 < aggH0) {
+      h1GTh0 = 0;
+      cout<<magenta<<"rates in H1 are higher than H0"<<normal<<endl;
+    } else {
+      h1GTh0 = -1;///undetermined 
+      cout<<red<<" helicity state undertermined"<<normal<<endl;
+    }
+
+/////for the current version of bgd correction, I need to know CE hence reading in a file to find CE
+    ifstream fIn;
+    file = "comptEdgeRun2.txt";
+    fIn.open(file);
+    Int_t d1, d4, d5, d6; 
+    Double_t d2, d3;
+    TString s1, s2, s3, s4, s5, s6;
+    if (fIn.is_open()) {
+      fIn>>s1 >>s2 >>s3 >>s4 >>s5 >>s6;
+      while (1) {
+        fIn>>d1 >>d2 >>d3 >>d4 >>d5 >>d6;
+        //cout<<d1<<"\t" <<d2<<"\t"  <<d3<<"\t"  <<d4<<"\t"  <<d5<<"\t"  <<d6<<endl;
+        if(runnum == d1) {
+          Cedge = d2; 
+          cout<<blue<<"for run: "<<d1<<" the CE is: "<<Cedge<<normal<<endl;
+          break;
+        } else if(fIn.eof()) {
+          cout<<red<<"reached end of file, without finding CE"<<normal<<endl;
+          cout<<"hence forcing CE = 50"<<endl;
+          Cedge = 50;
+          break;
+        }
+      }
+      fIn.close();
+    } else {
+      cout<<red<<"couldn't open "<<file<<endl;
+      Cedge = 50;
+    }
+
     cout<<blue<<"calling evalBgdAsym"<<normal<<endl;
-    Int_t evalBgdRet = evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qAvgLCH1L0, qAvgLCH0L0);
+    Int_t evalBgdRet = evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qAllH1L0, qAllH0L0);
     if(evalBgdRet<0) {
       cout<<red<<"evalBgdAsym.C failed so exiting"<<normal<<endl;
       return -1;
@@ -264,42 +344,28 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
         bkgdAsymEr[s] = TMath::Sqrt(1.0/wmDrBkgdAsym[s]);
       }
     }///for (Int_t s =startStrip; s <endStrip; s++)
-    qNormVariables(countsLCB1H1L0, totIAllH1L0, qNormCntsB1H1L0, qNormCntsB1H1L0Er);//background yield
-    qNormVariables(countsLCB1H0L0, totIAllH0L0, qNormCntsB1H0L0, qNormCntsB1H0L0Er);//background uncorrected yield
-    qNormVariables(totyieldB1L1,totHelB1L1,tNormYieldB1L1,tNormYieldB1L1Er);
-    qNormVariables(totyieldB1L0,totHelB1L0,tNormYieldB1L0,tNormYieldB1L0Er);
 
-    if(runnum!=24762) bgdCorrect(qNormCntsB1H1L0, qNormCntsB1H0L0);///the call of this function in evalBgdAsym.C does not fix these rates written to files
-    else cout<<magenta<<"won't apply bgdCorrection for run 24762"<<normal<<endl;
-
-    filePre = Form("run_%d/edetAll_%d_%s",runnum,runnum,dataType.Data());///to to make it stand apart from the LC outputs
     ofstream outfileBkgdAsymP, outfilelasOffBkgd,outqNormH0L0, outqNormH1L0,outtNormYieldB1L0;
     //ofstream outfileYield, fortranCheck,outScaler;
 
     outfileBkgdAsymP.open(Form("%s/%s/%sBkgdAsymP%d.txt",pPath,www,filePre.Data(),plane));
     outfilelasOffBkgd.open(Form("%s/%s/%sLasOffBkgdP%d.txt",pPath,www,filePre.Data(),plane));
-    outqNormH1L0.open(Form("%s/%s/%sqNormCntsB1H1L0P%d.txt",pPath,www,filePre.Data(),plane));
-    outqNormH0L0.open(Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath,www,filePre.Data(),plane));
     outtNormYieldB1L0.open(Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath,www,filePre.Data(),plane));
     //outfileYield.open(Form("%s/%s/%sYieldP%d.txt",pPath,www,filePre.Data(),plane));
     //fortranCheck.open(Form("%s/%s/%sFortranCheckP%d.txt",pPath,www,filePre.Data(),plane));
     if (outfileBkgdAsymP.is_open()) {// && outfileYield.is_open() && outfilelasOffBkgd.is_open()) {
-      //fortranCheck<<Form("%f\t%f\t%f\t%f\t%f",totIAllH1L1,totIAllH1L0,totIAllH0L1,totIAllH0L0,totIAllH1L1+totIAllH1L0+totIAllH0L1+totIAllH0L0)<<endl;;
+      //fortranCheck<<Form("%f\t%f\t%f\t%f\t%f",qAllH1L1,qAllH1L0,qAllH0L1,qAllH0L0,qAllH1L1+qAllH1L0+qAllH0L1+qAllH0L0)<<endl;;
       //fortranCheck<<Form("%f\t%f\t%f",totHelB1L1/helRate,totHelB1L0/helRate,(totHelB1L1+totHelB1L0)/helRate)<<endl;
       ////outfileYield<<";strip\texpAsymDr\texpAsymDrEr\texpAsymNr"<<endl;
       for (Int_t s =startStrip; s <endStrip;s++) { 
         outfileBkgdAsymP<<Form("%2.0f\t%f\t%f",(Double_t)s+1,bkgdAsym[s],bkgdAsymEr[s])<<endl;
         outfilelasOffBkgd<<Form("%2.0f\t%g\t%g",(Double_t)s+1,qNormB1L0[s],qNormB1L0Er[s])<<endl;
-        outqNormH1L0<<Form("%2.0f\t%g\t%g",(Double_t)s+1, qNormCntsB1H1L0[s], qNormCntsB1H1L0Er[s])<<endl;
-        outqNormH0L0<<Form("%2.0f\t%g\t%g",(Double_t)s+1, qNormCntsB1H0L0[s], qNormCntsB1H0L0Er[s])<<endl;
         outtNormYieldB1L0<<Form("%2.0f\t%g\t%g",(Double_t)s+1,tNormYieldB1L0[s],tNormYieldB1L0Er[s])<<endl;
         //outfileYield<<Form("%2.0f\t%g\t%g\t%g",(Double_t)s+1,stripAsymDr[s],stripAsymDrEr[s],stripAsymNr[s])<<endl;//has all expt asym components
         //fortranCheck<<Form("%d\t%d\t%d\t%d\t%d",s+1,totyieldB1H1L1[s],totyieldB1H1L0[s],totyieldB1H0L1[s],totyieldB1H0L0[s])<<endl;
       }///for (Int_t s =startStrip; s <endStrip;s++)
       outfileBkgdAsymP.close();
       outfilelasOffBkgd.close();
-      outqNormH1L0.close();
-      outqNormH0L0.close();
       outtNormYieldB1L0.close();
       //outfileYield.close();
       //fortranCheck.close();
@@ -312,16 +378,20 @@ Int_t edetHelAll(Int_t runnum =24503, TString dataType="Ac")
 
     //TCanvas *cBgd = new TCanvas("cBgd",Form("bgd yield run %d",runnum),0,0,800,600);
     //cBgd->cd();
-    //TGraphErrors *grH0L0 = new TGraphErrors(Form("%s/%s/%sqNormCntsB1H1L0P%d.txt",pPath,www,filePre.Data(),plane),"%lg %lg %lg");
-    //TGraphErrors *grH1L0 = new TGraphErrors(Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath,www,filePre.Data(),plane),"%lg %lg %lg");
-    //grH0L0->SetLineColor(kBlue);
-    //grH0L0->Draw("AP");
-    //grH1L0->SetLineColor(kRed);
-    //grH1L0->Draw("P");
-    //cBgd->SaveAs(Form("r%d_bgd_%d.png",runnum,(int)tempBgdCut));
+    //TGraphErrors *grBgd = new TGraphErrors(Form("%s/%s/%sLasOffBkgdP1.txt",pPath,www,filePre.Data()),"%lg %lg %lg");
+    //TGraphErrors *grFlp = new TGraphErrors(Form("/w/hallc/compton/users/narayan/my_scratch/www/run_24762/edetAll_24762_AcLasOffBkgdP1.txt"),"%lg %lg %lg");
+    ////TGraphErrors *grH0L0 = new TGraphErrors(Form("%s/%s/%sqNormCntsB1H1L0P%d.txt",pPath,www,filePre.Data(),plane),"%lg %lg %lg");
+    ////TGraphErrors *grH1L0 = new TGraphErrors(Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath,www,filePre.Data(),plane),"%lg %lg %lg");
+    ////grH0L0->SetLineColor(kBlue);
+    ////grH0L0->Draw("AP");
+    ////grH1L0->SetLineColor(kRed);
+    ////grH1L0->Draw("P");
+    //grBgd->Draw("AP");
+    //grFlp->Draw("P");
+    //cBgd->SaveAs(Form("yieldB1L0_%d_bgd_%d.png",runnum,(int)lasOffCut));
 
     bgdAsym(runnum,dataType);
 
     return nEntries;//the function returns the number of used Laser cycles
-    }
+  }
 

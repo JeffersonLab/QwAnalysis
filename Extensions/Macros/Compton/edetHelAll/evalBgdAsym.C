@@ -21,13 +21,13 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
     qNormCntsLCB1H0L0[s]= newCntsB1H0L0[s]/qAvgLCH0L0;
   }
 
-  printf("%f\t%f\n", countsLCB1H1L0[40], countsLCB1H0L0[40]);
-  //if(kBgdSub) {
-  if(1) {
+  printf("%d\t%f\t%f\n", 40, qNormCntsLCB1H1L0[40], qNormCntsLCB1H0L0[40]);
+  if(kBgdCorrect) {
     cout<<blue<<"applying background correction for flipper effect"<<normal<<endl;
-    bgdCorrect(qNormCntsLCB1H1L0, qNormCntsLCB1H0L0);
+    if (h1GTh0 == 0) bgdCorrect(qNormCntsLCB1H1L0, qNormCntsLCB1H0L0);
+    else if (h1GTh0 == 1) bgdCorrect(qNormCntsLCB1H0L0, qNormCntsLCB1H1L0);
   } else cout<<blue<<"not applying background correction"<<normal<<endl;
-  printf("%f\t%f\n", countsLCB1H1L0[40], countsLCB1H0L0[40]);
+  printf("%d\t%f\t%f\n", 40, qNormCntsLCB1H1L0[40], qNormCntsLCB1H0L0[40]);
 
   for (Int_t s =startStrip; s <endStrip; s++) {	  
     ///adding asymmetry evaluation for laser off data
