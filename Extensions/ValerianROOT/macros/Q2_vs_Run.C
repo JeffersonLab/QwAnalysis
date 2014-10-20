@@ -1,17 +1,25 @@
 /***********************************************************
  Programmer: Valerie Gray
  Purpose:
- This script has 2 purpuses
+ This script has 2 purposes
  1) To serve as testing for the development of ValerianROOT
  2) be an example of how to manage the ValerianROOT Tree and
- get plots out, as this ROOT file does not have a struture
- which supports simple Draw statments (sorry to those of
+ get plots out, as this ROOT file does not have a structure
+ which supports simple Draw statements (sorry to those of
  you who like them)
  3) To plot the Q2 (all versions) vs run number
 
+ This macro is wonderful because it uses the way ValerianROOT
+ was set up and envisioned to make life easier.  This is that
+ it uses the data structure.  So one doesn't have to get leafs
+ just grab the brach and bam you have it all.  The way
+ ValerianROOT uses stucts and vectors is beautiful and was
+ designed to make life easier and happy. :-) and in this arena
+ happy ROOT means a happy life.
+
  Entry Conditions:none
  Date: 05-13-2014
- Modified: 06-08-2014
+ Modified: 10-09-2014
  Assisted By: Wouter Deconinck
  *********************************************************/
 
@@ -27,6 +35,7 @@
 #include <TLegend.h>
 #include <TStyle.h>
 #include <TAxis.h>
+#include <TLatex.h>
 
 //standard includes
 #include <fstream>
@@ -35,13 +44,20 @@
 #include <vector>
 #include <algorithm>
 
-//function definitions
-void Read_In_Run_Numbers(std::string file_name);
+//ValerianROOT macro includes
+//include for the functions used in all macros without being customized
+#include "Read_In_Run_Numbers.h"
+#include "less_than_but_non_zero.h"
+
+//ValerianROOT includes
+#include "include/Q2WithCut.h"
+#include "include/Q2WithLoss.h"
+#include "include/Q2WithOutLoss.h"
+
+//function definitions for those not in the header files
 void Loop_Through_Tree(TChain * track_that);
 void Make_graphs();
 void Plot();
-bool less_than_but_non_zero(Double_t x, Double_t y);
-//void Print_To_File(int run_num);
 
 //define TGraphErrors
 std::vector<std::vector<TGraphErrors*> > g_Q2_VS_RUN;  //[Q2 type][package]
@@ -60,11 +76,11 @@ std::vector<Double_t> RUN_ERROR;  //[run] always zero - needs to be double for T
 //definition of integers
 Int_t nentries;  // number of entries in the tree
 
-static const Int_t NUMPACKAGES = 3;
-static const Int_t NUMQ2TYPES = 5;
+const Int_t NUMPACKAGES = 3;
+const Int_t NUMQ2TYPES = 5;
 
 Double_t FUDGEFACTOR_Q2 = 0.1;  //m(GeV)^2 the factor added on to the y axis for pretty plots
-Double_t FUDGEFACTOR_RUN[2] = {0.05 ,0.25};  // the percentage add on to the X axis for pretty plots
+Double_t FUDGEFACTOR_RUN[2] = { 0.05, 0.25 };  // the percentage add on to the X axis for pretty plots
 
 // index of vector to what it is
 std::string INDEXTOQ2[NUMQ2TYPES] = { "with No Cuts", "with lightweighting",
@@ -75,16 +91,19 @@ std::string INDEXTOPKG[NUMQ2TYPES] = { "Both", "1", "2" };
 Double_t Q2_MIN[NUMPACKAGES] = { 0 };  //min q2 for a pkg
 Double_t Q2_MAX[NUMPACKAGES] = { 0 };  //max q2 for a pkg
 
-std::vector<Int_t> RUNNUMLIST;
+//the pass number
+std::string PASS;
 
-//any other things that will be needed by more than on function
-
-void Q2_vs_Run(std::string pass, std::string filename )
+void Q2_vs_Run(std::string pass, std::string filename)
 {
+  PASS = pass;
+
   //Create TChain and give it a file
   TChain* Track_It = new TChain("TrackThat");
-  Track_It->Add( TString(gSystem->Getenv("QWANALYSIS"))
-      + Form("/Extensions/ValerianROOT/Pass%s_TrackingRuns.root",pass.c_str()));
+  Track_It->Add(
+      Form(
+          "/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_TrackingRuns.root",
+          PASS.c_str()));
 
   //run the functions on interest
   Read_In_Run_Numbers(filename);
@@ -92,89 +111,7 @@ void Q2_vs_Run(std::string pass, std::string filename )
   Make_graphs();
   Plot();
 
-//  Print_To_File (runnum);
-
   RUNNUMLIST.clear();
-
-  return;
-}
-
-/***********************************************************
- Function: Read_In_Run_Numbers
- Purpose:
- - To read in all the run numbers of interest
- - sort the values in that file from lowest to highest
- which is needed for filling the histogram
-
- Entry Conditions:
- - file_name - the name of the text file with the run numbers of
- interest in it
-
- Global:
- - RUNNUMLIST - vector that will store these run numbers
-
- Exit Conditions: none
- Called By: Q2_vs_Run
- Date: 06-04-2014
- Modified:
- *********************************************************/
-void Read_In_Run_Numbers(std::string file_name)
-{
-  Int_t tmp;
-
-  TString filename = TString(gSystem->Getenv("QWANALYSIS"))
-      + "/Extensions/ValerianROOT/runlists/" + file_name;
-
-  // An input stream that contains run list
-  ifstream runnum_data;
-  runnum_data.open(filename, std::ios::in);
-  //this has an input mode of std::ios::in
-  //and be keyboard, or file input, and read only
-
-  //if this file is open and while it is open fill the vector with
-  //the run numbers
-  if (runnum_data.is_open())
-  {
-    //debugging
-//    std::cout << "run data is open made it in the if loop" << std::endl;
-
-    while (runnum_data >> tmp  //while reading in the file - to temporary variable tmp
-           && !runnum_data.eof())  //and not at the end of the file
-    {
-      //debugging
-//      std::cout << "in the while loop - this means there has been something read in..."
-      //     << std::endl;
-      RUNNUMLIST.push_back(tmp);  //put the read in run number into the run list vector
-    }
-
-  } else
-  {
-    std::cout << "Run File: " << filename << "  not open" << std::endl;
-  }
-
-  //debugging
-//  std::cout << "the size of the vector is: " << RUNNUMLIST.size() << std::endl;
-
-  /*
-   //debugging!
-   std::cout << "Original runlist is: " << std::endl;
-   for (int i = 0; i < RUNNUMLIST.size(); i++)
-   {
-   std::cout << RUNNUMLIST[i] << std::endl;
-   }
-   */
-
-  //sort the vector so that the entries go form low to high
-  std::sort(RUNNUMLIST.begin(), RUNNUMLIST.end());
-
-  /*
-   //debugging!
-   std::cout << "SORTED runlist is: " << std::endl;
-   for (int i = 0; i < RUNNUMLIST.size(); i++)
-   {
-   std::cout << RUNNUMLIST[i] << std::endl;
-   }
-   */
 
   return;
 }
@@ -209,75 +146,83 @@ void Read_In_Run_Numbers(std::string file_name)
  *********************************************************/
 void Loop_Through_Tree(TChain* track_that)
 {
-  //get the number of entries in the tree
-  nentries = track_that->GetEntries();
-  /*  //debugging
-   std::cout << "number of entries in the tree " << nentries << std::endl;*/
-
   /*******************************
-   * Get the branches, and leaf values that are need for this script
+   * define the pointer to the vector of the object we want from the tree
+   * This allows us to use the stucts that ValerianROOT was made on
    * This is done by:
    *******************************/
+  //creates memory address to store the address of a vector (we set to 0 at moment)
+  std::vector<MyQ2Cut_t>* myQ2Cut = 0;
+  std::vector<MyQ2Loss_t>* myQ2Loss = 0;
+  std::vector < MyQ2NoLoss_t >* myQ2NoLoss = 0;
+  //create and interger for the run number - as this is not a
+  //stucture it does not need a pointer
+  Int_t run;
 
-  //Run info
-  track_that->SetBranchStatus("Run", 1);
-  TLeaf* l_run = track_that->GetLeaf("Run");
-
-//  // Run info (alternative)
-//  Int_t v_run;
-//  track_that->SetBranchAddress("Run",&v_run);
-
-  std::vector<TLeaf*> l_q2_Val(NUMQ2TYPES);
-  std::vector<TLeaf*> l_q2_Error(NUMQ2TYPES);
-  std::vector<TLeaf*> l_q2_R3Pkg(NUMQ2TYPES);
-
-  //Q2 with no cuts
+  /*******************************
+   * Get the branches that are need for this script
+   * This is done by:
+   *******************************/
+  // Enable branches that we will use in this macro
   track_that->SetBranchStatus("Q2Cut", 1);
-  l_q2_Val[0] = track_that->GetLeaf("Q2Cut.q2Val");
-  l_q2_Error[0] = track_that->GetLeaf("Q2Cut.q2Error");
-  l_q2_R3Pkg[0] = track_that->GetLeaf("Q2Cut.R3package");
+  track_that->SetBranchStatus("Q2Loss", 1);
+  track_that->SetBranchStatus("Q2NoLoss", 1);
+  track_that->SetBranchStatus("Run", 1);
 
-  //Q2 with light weighting
-  l_q2_Val[1] = track_that->GetLeaf("Q2Cut.LWq2Val");
-  l_q2_Error[1] = track_that->GetLeaf("Q2Cut.LWq2Error");
-  l_q2_R3Pkg[1] = track_that->GetLeaf("Q2Cut.R3package");
+  /*******************************
+   * Now point branch to our local variables
+   *
+   * This take the place that ROOT puts these variables in
+   * its memory and points that to our memory address
+   * (so we are forcing ROOT to use the memory we allocated)
+   * - neat trick
+   *
+   * This is done by:
+   *******************************/
+  //creates a memory address, which points to the memory address of myQ2* (the pointer)
+  //since run is not a pointer this one just points to the run
+  track_that->SetBranchAddress("Q2Cut", &myQ2Cut);
+  track_that->SetBranchAddress("Q2Loss", &myQ2Loss);
+  track_that->SetBranchAddress("Q2NoLoss", &myQ2NoLoss);
+  track_that->SetBranchAddress("Run", &run);
 
-  //Q2 with lightweighting and Pedestal subtracted
-  l_q2_Val[2] = track_that->GetLeaf("Q2Cut.LWPq2Val");
-  l_q2_Error[2] = track_that->GetLeaf("Q2Cut.LWPq2Error");
-  l_q2_R3Pkg[2] = track_that->GetLeaf("Q2Cut.R3package");
-
-//  //Q2 with cuts (alternative)
-// doen't work since my root tree is too structure is to complicated
-//  Double_t v_q2Cut_Val, v_q2Cut_Error;
-//  track_that->SetBranchAddress("Q2Cut.Val",&v_q2Cut_Val);
-//  track_that->SetBranchAddress("Q2Cut.Error",&v_q2Cut_Error);
-
-  //Q2 with loss
-  l_q2_Val[3] = track_that->GetLeaf("Q2Loss.Val");
-  l_q2_Error[3] = track_that->GetLeaf("Q2Loss.Error");
-  l_q2_R3Pkg[3] = track_that->GetLeaf("Q2Loss.R3package");
-
-  //Q2 without Loss
-  l_q2_Val[4] = track_that->GetLeaf("Q2NoLoss.Val");
-  l_q2_Error[4] = track_that->GetLeaf("Q2NoLoss.Error");
-  l_q2_R3Pkg[4] = track_that->GetLeaf("Q2NoLoss.R3package");
-  /*  //debugging
-   std::cout << "Val: " << l_q2_Val[2] << std::endl;
-   std::cout << "Error: " << l_q2_Error[2] << std::endl;
-   std::cout << "Pkg: " << l_q2_R3Pkg[2] << std::endl;*/
-
-  //for sizing the Q2 storage vectors
+  /********************
+   * resize the Q2_VAL and Q2_ERROR vectors so that
+   * I can fill them without my brains going boom,
+   * cause all that push_back with vectors of vectors in confusing!
+   * also set all values to zero this is for good house keeping
+   * and, so that there is something in it
+   *
+   * Also do the RUN_VAL and RUN_ERROR - although these are easy
+   *********************/
   RUN_VAL.resize(RUNNUMLIST.size(), 0);
   RUN_ERROR.resize(RUNNUMLIST.size(), 0);
   Q2_VAL.resize(NUMQ2TYPES);
   Q2_ERROR.resize(NUMQ2TYPES);
-  int run_index = 0;
-  /*
 
-   //debugging
-   std::cout << "right before looping through the tree, run index is "
-   << run_index << std::endl;
+  for (int i_type = 0; i_type < NUMQ2TYPES; i_type++)
+  {
+    //push back for many vectors involves pushing in vectors...
+    //but I should be able to resize them I would think...
+    //resize q2 vectors
+    Q2_VAL[i_type].resize(NUMPACKAGES);
+    Q2_ERROR[i_type].resize(NUMPACKAGES);
+
+    for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+    {
+      //resize q2 vector and fill with zero
+      //resize q2 vectors
+      Q2_VAL[i_type][i_pkg].resize(RUNNUMLIST.size(), 0);
+      Q2_ERROR[i_type][i_pkg].resize(RUNNUMLIST.size(), 0);
+    }
+  }
+
+  int run_index = 0;  //this is the index of a run in the RUNNUMLIST vector
+
+  //get the number of entries in the tree
+  nentries = track_that->GetEntries();
+  /*  //debugging
+   std::cout << "number of entries in the tree " << nentries << std::endl;
    */
 
   //start looping through the tree
@@ -291,95 +236,265 @@ void Loop_Through_Tree(TChain* track_that)
 
     //get the i'th entry in the tree
     track_that->GetEntry(i_entry);
-    //get the run number for that entry
-    Int_t run = l_run->GetValue();
-
     /*
      //debugging
-     std::cout << "the count of this run, " << run << " in the run list is: "
+     std::cout << "we are looking getting the run number, " << run
+     << " in the run list is: "
      << std::count(RUNNUMLIST.begin(), RUNNUMLIST.end(), run) << std::endl;
      */
 
     //check whether run number is in the run list
     if (std::count(RUNNUMLIST.begin(), RUNNUMLIST.end(), run) > 0)
     {
-
-/*      //debugging
+/*
+      //debugging
+      std::cout << "our run is in out run list" << std::endl;
       std::cout << "for run " << run << " the count is "
       << std::count(RUNNUMLIST.begin(), RUNNUMLIST.end(), run)
-      << " and we have compared them..." << std::endl;*/
+      << " and we have compared them..." << std::endl;
+*/
 
+      //fill the run value vector for the plots
       RUN_VAL[run_index] = run;
 
       /********************
-       //resize the Q2_VAL and Q2_ERROR vectors so that I can fill them without
-       //my brains going boom, cause all that push_back with vectors of vectors in confusing!
-       //Also set all values to zero this is for good house keeping and, so that there
-       //is something in it
+       * Now lets get the information from the vectors in ValerianROOT
+       * and put them in the vectors for the plots
        *********************/
-      for (int i_type = 0; i_type < NUMQ2TYPES; i_type++)
+
+      /*****************
+       * With the structures in ValerianROOT we have to now loop through
+       * the entries in the vector (*myQ2Cut)
+       * This is Q2TYPE = 0, 1, 2
+       * Q2 no cuts, Q2TYPE = 0
+       * Q2 lightweighted, Q2TYPE = 1
+       * Q2 lightweighted && pedestal, Q2TYPE = 1
+       ******************/
+
+      for (UInt_t i = 0; i < myQ2Cut->size(); i++)
       {
-        /*        //debugging....
-         std::cout << "In type loop, Type: " << i_type << std::endl;*/
-        //push back for many vectors involves pushing in vectors...
-        //but I should be able to resize them I would think...
-        //resize q2 vectors
-        Q2_VAL[i_type].resize(NUMPACKAGES);
-        Q2_ERROR[i_type].resize(NUMPACKAGES);
+/*
+        //debugging
+        std::cout << "In the Q2 Cut arena - we have data :-)" << std::cout;
+*/
 
-        for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+        /*****************
+         * If there is no data for this run, i_entry, then there is
+         * one and only one entry for this run in any one type.
+         * This values is -1e6.
+         * So we must skip this and move on.  Fill the vector with zeros,
+         * which I have done in resizing them, Oh Happy Day!!
+         *
+         * So by using this switch statement, this is accomplished,
+         * IFF the pkg is 0, 1, or 2 in this case
+         *
+         ******************/
+
+        //what pkg are we in?
+        switch ((*myQ2Cut)[i].R3package)
         {
-          /*                    std::cout << "in pkg loop, Pkg: " << l_q2_R3Pkg[i_type]->GetValue(i_pkg)
-           << std::endl;*/
+          case 0 :  //both pkgs
+            // not Q2 cut info for both pkgs move along :-)
+/*
+            //debugging
+            std::cout << "I am Q2_cut, both pkgs, beware!" << std::endl;
+*/
 
-          //resize q2 vector and fill with zero
-          //resize q2 vectors
-          Q2_VAL[i_type][i_pkg].resize(RUNNUMLIST.size(), 0);
-          Q2_ERROR[i_type][i_pkg].resize(RUNNUMLIST.size(), 0);
+            break;
 
-          /*****************
-           If there is no data for this run, i_entry, then there is one and only one
-           entry for this run in any one type.  So we must skip this and move on.
-           Fill the vector with zeros, which I have done in resizing them, Oh Happy Day!!
-           ******************/
-          if (l_q2_R3Pkg[i_type]->GetValue(0) > -1)
-          {
-            /*                        //debugging
-             std::cout << "and yes I am not > -1" << std::endl;*/
-            //there is no Q2_cut value for both pkgs
-            if ((i_type == 0 || i_type == 1 || i_type == 2) && i_pkg == 2)
-            {
-              /*                            //debugging
-               std::cout << "I am Q2_cut, both pkgs, beware!" << std::endl;*/
-              //this is not needed as a initialize the vectors so everything is zero
-              //Q2_VAL[run_index][i_type][0] = 0;
-              //Q2_ERROR[run_index][i_type][0] = 0;
-            } else
-            {
-              /*                            //debugging
-               std::cout << "Made it to the else, not type 0, or 1 or 2 && pkg 0 run num: "
-               << run << std::endl;
-               std::cout << "Type: " << i_type << std::endl;
-               std::cout << "Pkg: " << l_q2_R3Pkg[i_type]->GetValue(i_pkg)
-               << std::endl;
-               std::cout << "Q2 val: " << l_q2_Val[i_type]->GetValue(i_pkg)
-               << std::endl;
-               std::cout << "Q2 error: " << l_q2_Error[i_type]->GetValue(i_pkg)
-               << std::endl;*/
-              Q2_VAL[i_type][l_q2_R3Pkg[i_type]->GetValue(i_pkg)][run_index] =
-                  (i_type == 0 || i_type == 1 || i_type == 2) ?
-                      l_q2_Val[i_type]->GetValue(i_pkg) :
-                      1000 * l_q2_Val[i_type]->GetValue(i_pkg);
+          case 1 :  //pkg 1
+          case 2 :  //pkg 2
+/*
+            //debugging
+            std::cout << "I am Q2 cut hear me roar, this is run num: " << run
+            << std::endl << std::endl;
 
-              Q2_ERROR[i_type][l_q2_R3Pkg[i_type]->GetValue(i_pkg)][run_index] =
-                  (i_type == 0) || i_type == 1 || i_type == 2 ?
-                      l_q2_Error[i_type]->GetValue(i_pkg) :
-                      1000 * l_q2_Error[i_type]->GetValue(i_pkg);
+            // for the Q2 with no cuts fill the vectors for the plots
 
-            }
-          }
+            std::cout << "Type: " << INDEXTOQ2[0] << std::endl;
+            std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
+            std::cout << "Q2 val: " << (*myQ2Cut)[i].q2Val << std::endl;
+            std::cout << "Q2 error: " << (*myQ2Cut)[i].q2Error << std::endl
+            << std::endl;
+*/
+
+            Q2_VAL[0][(*myQ2Cut)[i].R3package][run_index] = (*myQ2Cut)[i].q2Val;
+            Q2_ERROR[0][(*myQ2Cut)[i].R3package][run_index] =
+                (*myQ2Cut)[i].q2Error;
+            // for the Q2 with lightweighting fill the vectors for the plots
+
+/*
+            std::cout << "Type: " << INDEXTOQ2[1] << std::endl;
+            std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
+            std::cout << "Q2 val: " << (*myQ2Cut)[i].LWq2Val << std::endl;
+            std::cout << "Q2 error: " << (*myQ2Cut)[i].LWq2Error << std::endl
+            << std::endl;
+*/
+
+            Q2_VAL[1][(*myQ2Cut)[i].R3package][run_index] =
+                (*myQ2Cut)[i].LWq2Val;
+            Q2_ERROR[1][(*myQ2Cut)[i].R3package][run_index] =
+                (*myQ2Cut)[i].LWq2Error;
+
+            // for the Q2 with lightweighting and pedestal subtracted
+            //fill the vectors for the plots
+
+/*
+            std::cout << "Type: " << INDEXTOQ2[2] << std::endl;
+            std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
+            std::cout << "Q2 val: " << (*myQ2Cut)[i].LWq2Val << std::endl;
+            std::cout << "Q2 error: " << (*myQ2Cut)[i].LWq2Error << std::endl
+            << std::endl;
+*/
+
+            Q2_VAL[2][(*myQ2Cut)[i].R3package][run_index] =
+                (*myQ2Cut)[i].LWq2Val;
+            Q2_ERROR[2][(*myQ2Cut)[i].R3package][run_index] =
+                (*myQ2Cut)[i].LWq2Error;
+
+            /*
+             Q2_VAL[i_type][l_q2_R3Pkg[i_type]->GetValue(i_pkg)][run_index] =
+             (i_type == 0 || i_type == 1 || i_type == 2) ?
+             l_q2_Val[i_type]->GetValue(i_pkg) :
+             1000 * l_q2_Val[i_type]->GetValue(i_pkg);
+
+             Q2_ERROR[i_type][l_q2_R3Pkg[i_type]->GetValue(i_pkg)][run_index] =
+             (i_type == 0) || i_type == 1 || i_type == 2 ?
+             l_q2_Error[i_type]->GetValue(i_pkg) :
+             1000 * l_q2_Error[i_type]->GetValue(i_pkg);
+             */
+
+            break;
+
+            //default case
+          default :
+            break;
         }
       }
+
+      /*****************
+       * With the structures in ValerianROOT we have to now loop through
+       * the entries in the vector (*myQ2Loss)
+       *
+       * This is Q2TYPE = 3
+       ******************/
+
+      for (UInt_t i = 0; i < myQ2Loss->size(); i++)
+      {
+/*
+        //debugging
+        std::cout << "In the Q2Loss arena - we have data :-)" << std::cout;
+*/
+
+        /*****************
+         * If there is no data for this run, i_entry, then there is
+         * one and only one entry for this run in any one type.
+         * This values is -1e6.
+         * So we must skip this and move on.  Fill the vector with zeros,
+         * which I have done in resizing them, Oh Happy Day!!
+         *
+         * So by using this switch statement, this is accomplished,
+         * IFF the pkg is 0, 1, or 2 in this case
+         *
+         ******************/
+
+        //what pkg are we in?
+        switch ((*myQ2Loss)[i].R3package)
+        {
+          case 0 :  //both pkgs
+          case 1 :  //pkg 1
+          case 2 :  //pkg 2
+/*
+            //debugging
+            std::cout << "I am Q2 Loss hear me roar, this is run num: " << run
+            << std::endl << std::endl;
+
+            // for the Q2 Loss fill the vectors for the plots
+
+            std::cout << "Type: " << INDEXTOQ2[3] << std::endl;
+            std::cout << "Pkg: " << (*myQ2Loss)[i].R3package << std::endl;
+            std::cout << "Q2 val: " << (*myQ2Loss)[i].Val << std::endl;
+            std::cout << "Q2 error: " << (*myQ2Loss)[i].Error << std::endl
+            << std::endl;
+*/
+
+            //the Q2 values and error is multiplied by 1000 so it is in
+            //m(Gev)^2 rather then GeV^2
+            Q2_VAL[3][(*myQ2Loss)[i].R3package][run_index] = 1000
+                * (*myQ2Loss)[i].Val;
+            Q2_ERROR[3][(*myQ2Loss)[i].R3package][run_index] =
+                1000 * (*myQ2Loss)[i].Error;
+
+            break;
+
+            //default case
+          default :
+            break;
+        }
+      }
+
+      /*****************
+       * With the structures in ValerianROOT we have to now loop through
+       * the entries in the vector (*myQ2NoLoss)
+       *
+       * This is Q2TYPE = 4
+       ******************/
+
+      for (UInt_t i = 0; i < myQ2NoLoss->size(); i++)
+      {
+/*
+        //debugging
+        std::cout << "In the Q2NoLoss arena - we have data :-)" << std::cout;
+*/
+
+        /*****************
+         * If there is no data for this run, i_entry, then there is
+         * one and only one entry for this run in any one type.
+         * This values is -1e6.
+         * So we must skip this and move on.  Fill the vector with zeros,
+         * which I have done in resizing them, Oh Happy Day!!
+         *
+         * So by using this switch statement, this is accomplished,
+         * IFF the pkg is 0, 1, or 2 in this case
+         *
+         ******************/
+
+        //what pkg are we in?
+        switch ((*myQ2NoLoss)[i].R3package)
+        {
+          case 0 :  //both pkgs
+          case 1 :  //pkg 1
+          case 2 :  //pkg 2
+/*
+            //debugging
+            std::cout << "I am Q2 No Loss hear me roar, this is run num: "
+            << run << std::endl << std::endl;
+
+            // for the Q2 No Loss fill the vectors for the plots
+
+            std::cout << "Type: " << INDEXTOQ2[4] << std::endl;
+            std::cout << "Pkg: " << (*myQ2NoLoss)[i].R3package << std::endl;
+            std::cout << "Q2 val: " << (*myQ2NoLoss)[i].Val << std::endl;
+            std::cout << "Q2 error: " << (*myQ2NoLoss)[i].Error << std::endl
+            << std::endl;
+*/
+
+            //the Q2 values and error is multiplied by 1000 so it is in
+            //m(Gev)^2 rather then GeV^2
+            Q2_VAL[4][(*myQ2NoLoss)[i].R3package][run_index] = 1000
+                * (*myQ2NoLoss)[i].Val;
+            Q2_ERROR[4][(*myQ2NoLoss)[i].R3package][run_index] =
+                1000 * (*myQ2NoLoss)[i].Error;
+
+            break;
+
+            //default case
+          default :
+            break;
+        }
+      }
+
+      //Increment run index so we can look at the next run
       run_index++;
     }
     //debugging
@@ -424,32 +539,32 @@ void Make_graphs()
   /*  //debugging
    std::cout << "made it in the make graph function" << std::endl;*/
 
-  //resize the vector of the tgraph to the number of q2 types
+//resize the vector of the tgraph to the number of q2 types
   g_Q2_VS_RUN.resize(NUMQ2TYPES);
-  //resize the muiltigraph to number of packages
+//resize the muiltigraph to number of packages
   mg_Q2_VS_RUN.resize(NUMPACKAGES);
 
-  //define legend
+//define legend
   LEGEND.resize(NUMPACKAGES);
 
-  //Make the TGraphs with the information we got in from looping through the tree
+//Make the TGraphs with the information we got in from looping through the tree
   for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
   {
     /*    //debugging....
      std::cout << "Pkg: " << i_pkg << std::endl;*/
 
-    //define legend
+//define legend
     LEGEND[i_pkg] =
         (i_pkg == 0) ?
             new TLegend(0.89, 0.45, 0.99, 0.55) :
             new TLegend(0.79, 0.35, 0.99, 0.65);
-    LEGEND[i_pkg]->SetHeader("Q^2 Type");
+    LEGEND[i_pkg]->SetHeader("Q^{2} Type");
 
-    //define the multigraph
+//define the multigraph
     mg_Q2_VS_RUN[i_pkg] = new TMultiGraph(Form("mg_Q2_VS_RUN[%d]", i_pkg),
-        Form("Q2 vs Run number for package %s", INDEXTOPKG[i_pkg].c_str()));
+        Form("Q^{2} vs Run number for package %s", INDEXTOPKG[i_pkg].c_str()));
 
-    //initalize the max and min values - Max very small, Min large so they must be replaced
+//initalize the max and min values - Max very small, Min large so they must be replaced
     Q2_MAX[i_pkg] = -1e6;
     Q2_MIN[i_pkg] = 1e6;
 
@@ -457,26 +572,26 @@ void Make_graphs()
     {
       /*      //debugging....
        std::cout << "Type: " << i_type << std::endl;*/
-      //resize the type tgraph vector
+//resize the type tgraph vector
       g_Q2_VS_RUN[i_type].resize(NUMPACKAGES);
-      //push back for many vectors involves pushing in vectors...
-      //but I should be able to resize them I would think...
+//push back for many vectors involves pushing in vectors...
+//but I should be able to resize them I would think...
 
-      //take the vectors and turn them into arrays so that TGraphErrors will play nice
-      //with them by &(vector[0]) :)
+//take the vectors and turn them into arrays so that TGraphErrors will play nice
+//with them by &(vector[0]) :)
       g_Q2_VS_RUN[i_type][i_pkg] = new TGraphErrors(RUNNUMLIST.size(),
           &(RUN_VAL[0]), &(Q2_VAL[i_type][i_pkg][0]), &(RUN_ERROR[0]),
           &(Q2_ERROR[i_type][i_pkg][0]));
 
-      //set the attributes of the graph
-      //Q2 no cuts = black, filled circle
-      //Q2 lightweighted = violet, filled square
-      //Q2 lightweight and pediatal subtracted = green, filled hospital sign
-      //Q2Loss = red, filled triangle point up
-      //Q2NoLoss = blue, filled triangle point down
+//set the attributes of the graph
+//Q2 no cuts = black, filled circle
+//Q2 lightweighted = violet, filled square
+//Q2 lightweight and pediatal subtracted = green, filled hospital sign
+//Q2Loss = red, filled triangle point up
+//Q2NoLoss = blue, filled triangle point down
       switch (i_type)
       {
-        case 0:  //Q2 no cuts
+        case 0 :  //Q2 no cuts
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Black
@@ -490,7 +605,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(8);
           break;
 
-        case 1:  //Q2 no cuts
+        case 1 :  //Q2 no cuts
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Violet
@@ -504,7 +619,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(21);
           break;
 
-        case 2:  //Q2 light weight and pedistal subtrackted
+        case 2 :  //Q2 light weight and pedistal subtrackted
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Green
@@ -518,7 +633,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(34);
           break;
 
-        case 3:
+        case 3 :
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Red
@@ -532,7 +647,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(22);
           break;
 
-        case 4:
+        case 4 :
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Blue
@@ -546,22 +661,23 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(23);
           break;
 
-        default:
+        default :
           break;
       }
       if (!((i_type == 0 || i_type == 1 || i_type == 2) && i_pkg == 0))
       {
-        //add this graph to the muitigraph
+//add this graph to the muitigraph
         mg_Q2_VS_RUN[i_pkg]->Add(g_Q2_VS_RUN[i_type][i_pkg]);
 
-        //add to the Legend
+//add to the Legend
         LEGEND[i_pkg]->AddEntry(g_Q2_VS_RUN[i_type][i_pkg],
-            Form("Q2 %s", INDEXTOQ2[i_type].c_str()), "ep");
+            Form("Q^{2} %s", INDEXTOQ2[i_type].c_str()), "ep");
 
-        //get the min and max Q2 values
+//get the min and max Q2 values
         Q2_MAX[i_pkg] = std::max(Q2_MAX[i_pkg],
             *std::max_element(Q2_VAL[i_type][i_pkg].begin(),
                 Q2_VAL[i_type][i_pkg].end()));
+
         Q2_MIN[i_pkg] = std::min(Q2_MIN[i_pkg],
             *std::min_element(Q2_VAL[i_type][i_pkg].begin(),
                 Q2_VAL[i_type][i_pkg].end(), less_than_but_non_zero));
@@ -590,8 +706,11 @@ void Make_graphs()
 
  - RUNNUMLIST - list of the run numbers - now sorted
 
- - Q2_MAX max q2 value for a pkg
- - Q2_MIN min q2 value for a pkg
+ - Q2_MAX - max q2 value for a pkg
+ - Q2_MIN - min q2 value for a pkg
+
+ - FUDGEFACTOR_RUN - buffer for the RUN axis
+ - FUDGEFACTOR_Q2 - buffer for the Q2 axis
 
  Exit Conditions: none
  Called By: Q2_vs_Run
@@ -600,31 +719,31 @@ void Make_graphs()
  *********************************************************/
 void Plot()
 {
-  //Canvas
+//Canvas
   std::vector<TCanvas*> c_q2;  //[pkg]
   c_q2.resize(NUMPACKAGES);
 
   for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
   {
     c_q2[i_pkg] = new TCanvas(Form("c_q2[%d]", i_pkg),
-        Form("Q2 vs run number for %s package", INDEXTOPKG[i_pkg].c_str()));
+        Form("Q^{2} vs run number for %s package", INDEXTOPKG[i_pkg].c_str()));
 
-    //set title and axis lables
+//set title and axis lables
     mg_Q2_VS_RUN[i_pkg]->SetTitle(
-        Form("Q2 vs Run number for %s package; Run number; Q2 (m(GeV)^2)",
+        Form("Q^{2} vs Run number for %s package; Run number; Q^{2} (m(GeV^{2}))",
             INDEXTOPKG[i_pkg].c_str()));
 
-    //Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
+//Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
     mg_Q2_VS_RUN[i_pkg]->Draw("AP");
 
-/*    //debugging
-    std::cout << "Pkg: " << i_pkg << std::endl << " Min: " << Q2_MIN[i_pkg]
-    << std::endl << " Max: " << Q2_MAX[i_pkg] << std::endl;
-    std::cout << "Run Num Min: " << RUNNUMLIST.front()
-    << std::endl << "Run Num Max: " << RUNNUMLIST.back() << std::endl; */
+    /*    //debugging
+     std::cout << "Pkg: " << i_pkg << std::endl << " Min: " << Q2_MIN[i_pkg]
+     << std::endl << " Max: " << Q2_MAX[i_pkg] << std::endl;
+     std::cout << "Run Num Min: " << RUNNUMLIST.front()
+     << std::endl << "Run Num Max: " << RUNNUMLIST.back() << std::endl; */
 
-    mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(Q2_MIN[i_pkg] - FUDGEFACTOR_Q2,
-        Q2_MAX[i_pkg] + FUDGEFACTOR_Q2);
+    mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
+        Q2_MIN[i_pkg] - FUDGEFACTOR_Q2, Q2_MAX[i_pkg] + FUDGEFACTOR_Q2);
 
     Double_t RunRange = Double_t(RUNNUMLIST.back() - RUNNUMLIST.front());
 
@@ -635,53 +754,17 @@ void Plot()
     //draw the legend
     LEGEND[i_pkg]->Draw();
 
+    //move the axis label so can read everything
+    mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetTitleOffset(1.25);
+
     //update the pad
     gPad->Update();
 
-    c_q2[i_pkg]->SaveAs(TString(gSystem->Getenv("QWANALYSIS")) +
-        Form("/Extensions/ValerianROOT/Q2_vs_run_%s_pkg.png",
-            INDEXTOPKG[i_pkg].c_str()));
+    c_q2[i_pkg]->SaveAs(
+        Form(
+            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass_%s_Q2_vs_run_%s_pkg.png",
+            PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
   }
 
   return;
 }
-
-/***********************************************************
- Function: less_than_but_non_zero
- Purpose:
- To find the lowest value in an array/vector that is non zero
- by forcing zero to be infinity
-
- helper function that turns any zero value into a +infinity
- (zero is larger than any other number)
-
- if x== 0 no matter what y is this is FALSE, since x is
- zero it can't be less then y
-
- if y == 0, no matter what x is this is TRUE since x is not zero
- it is less than and not zero
-
- else compare x < y, if x is then TRUE else FALSE
-
- Entry Conditions:
- - Double_t x
- - Double_t y
-
- Global:
- none
-
- Exit Conditions: bool
- Called By: Make_graphs
- Date: 06-06-2014
- Modified:
- Brilliance by: Wouter Deconinck
- *********************************************************/
-bool less_than_but_non_zero(Double_t x, Double_t y)
-{
-  if (x == 0)
-    return false;
-  if (y == 0)
-    return true;
-  return (x < y);
-}
-
