@@ -16,14 +16,14 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
   Double_t newCntsB1H1L1,newCntsB1H1L0,newCntsB1H0L1,newCntsB1H0L0;
 
   for (Int_t s =startStrip; s <endStrip; s++) {	  
-    newCntsB1H1L1=countsLCB1H1L1[s] * c2B1H1L1[s]; 
-    newCntsB1H1L0=countsLCB1H1L0[s] * c2B1H1L0[s];
-    newCntsB1H0L1=countsLCB1H0L1[s] * c2B1H0L1[s];
-    newCntsB1H0L0=countsLCB1H0L0[s] * c2B1H0L0[s];
-    qNormCountsLCB1H1L1= newCntsB1H1L1/qAvgLCH1L1;
-    qNormCountsLCB1H1L0= newCntsB1H1L0/qAvgLCH1L0;
-    qNormCountsLCB1H0L1= newCntsB1H0L1/qAvgLCH0L1;
-    qNormCountsLCB1H0L0= newCntsB1H0L0/qAvgLCH0L0;
+    newCntsB1H1L1 = countsLCB1H1L1[s] * c2B1H1L1[s]; 
+    newCntsB1H1L0 = countsLCB1H1L0[s] * c2B1H1L0[s];
+    newCntsB1H0L1 = countsLCB1H0L1[s] * c2B1H0L1[s];
+    newCntsB1H0L0 = countsLCB1H0L0[s] * c2B1H0L0[s];
+    qNormCountsLCB1H1L1 = newCntsB1H1L1/qAvgLCH1L1;
+    qNormCountsLCB1H1L0 = newCntsB1H1L0/qAvgLCH1L0;
+    qNormCountsLCB1H0L1 = newCntsB1H0L1/qAvgLCH0L1;
+    qNormCountsLCB1H0L0 = newCntsB1H0L0/qAvgLCH0L0;
     BCqNormLCB1H1L1= qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
     BCqNormLCB1H0L1= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
     BCqNormDiffLC = (BCqNormLCB1H1L1 - BCqNormLCB1H0L1);
@@ -73,7 +73,8 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
       }
     } else if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
     else {//the counts should never be negative 
-      cout<<red<<"Reporting a strip with equal no.of laser on & off counts. The lasOn could be engulfed in a beamTrip"<<normal<<endl;
+      cout<<red<<"Reporting a strip with lasOff counts >= lasOn counts."<<endl;
+      cout<<"Most possibly, a post CE strip, is affected by noise fluctuation due to low statistics"<<normal<<endl;
       cout<<"strip\tnewCntsB1H1L1\t...H1L0\t...H0L1\t...H0L0\n"<<
         s+1<<"\t"<<newCntsB1H1L1<<"\t\t"<<newCntsB1H1L0<<"\t"<<newCntsB1H0L1<<"\t"<<newCntsB1H0L0<<endl;
       if(s<nStrips/2) {///if the reporting strip is most possibly a pre CE strip

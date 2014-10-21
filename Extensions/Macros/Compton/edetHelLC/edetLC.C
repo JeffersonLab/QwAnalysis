@@ -43,5 +43,6 @@ Int_t edetLC(Int_t runnum, TString dataType="Ac")
   tEnd = time(0);
   div_output = div((Int_t)difftime(tEnd, tStart),60);
   printf("\n it took %d minutes %d seconds to execute edetLC.C\n",div_output.quot,div_output.rem );  
+  gSystem->Exec(Form("%s/make_erun_page.sh %d",pPath, runnum));
   return 2;
 }

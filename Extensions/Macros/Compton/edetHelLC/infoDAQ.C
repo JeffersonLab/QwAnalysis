@@ -21,10 +21,10 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
 
   TChain *slowChain = new TChain("Slow_Tree");//to scan through the entire run if a parameter changed midway
   Int_t slowExists = slowChain->Add(Form("$QW_ROOTFILES/Compton_Pass2b_%d.*.root",runnum));//for pass2b
-  if(!slowChain) {/// exit if rootfiles do not exist
+  if(slowChain ==0) {/// exit if rootfiles do not exist
     cout<<"\n\n***Error: The analyzed Root file for run "<<runnum<<" does not exist at "<<Form("$QW_ROOTFILES")<<"***\n\n"<<endl;
     return -1;
-  } else cout<<"Attached "<<slowExists<<" files to chain for Run # "<<runnum<<endl;
+  } else cout<<"Attached "<<slowExists<<" files to slow chain for Run # "<<runnum<<endl;
 
   Double_t hWien, vWien, ihwp1set, rhwp, ihwp1read, ihwp2read, hccedpos;
   //Double_t hallcPhI,hallcWaveL;
@@ -223,7 +223,7 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
     fBeamProp<<"runnum\tscintRate\tscintRateEr\tscintRateRMS"<<endl;
     fBeamProp<<runnum<<"\t"<<scintRate<<"\t"<<scintRateEr<<"\t"<<scintRateRMS<<endl;
     fBeamProp.close();
-    cout<<"wrote dipole info to "<<Form("%s/%s/%sscintRateNorm.txt",pPath, txt,filePre.Data())<<endl;
+    cout<<"wrote scintillator rate to "<<Form("%s/%s/%sscintRateNorm.txt",pPath, txt,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the scintillator normalized rate"<<normal<<endl;
 
   if(erBeamVar != "") {

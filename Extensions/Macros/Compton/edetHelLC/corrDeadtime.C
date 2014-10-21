@@ -15,11 +15,12 @@ Int_t corrDeadtime(Int_t runnum, TString dataType) {
   }
 
   if(acTrig==0) cout<<red<<"the trigger was found: "<<acTrig<<", still applying the deadtime correction for 2/3 trigger"<<normal<<endl;
-  if(acTrig==2 || acTrig==0) {
+  if(acTrig==2 || acTrig==0 || acTrig==1) {
     if(k2parDT) {
-      cout<<blue<<"Applying 2 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
-      inRateCor0.open(Form("%s/data/dtcorr_2by3p0.dat",pPath));  //dtcorr1by3_p0.dat 
-      inRateCor1.open(Form("%s/data/dtcorr_2by3p1.dat",pPath));///these files have all runs of run2
+      cout<<blue<<"found the trigger to be "<<acTrig<<endl;
+      cout<<"Applying 2 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
+      inRateCor0.open(Form("%s/data/newdtcorr_2by3p0.dat",pPath));  //dtcorr_2by3p0.dat //dtcorr1by3_p0.dat 
+      inRateCor1.open(Form("%s/data/newdtcorr_2by3p1.dat",pPath));///these files have all runs of run2
     } else {
       cout<<blue<<"Applying 1 parameter Deadtime correction for 2/3 trigger"<<normal<<endl;
       inRateCor0.open(Form("%s/data/dtcorr22.dat",pPath));
@@ -27,14 +28,12 @@ Int_t corrDeadtime(Int_t runnum, TString dataType) {
   } else if(acTrig==3) {
     if(k2parDT) {
       cout<<blue<<"Applying 2 parameter Deadtime correction for 3/3 trigger"<<normal<<endl;
-      inRateCor0.open(Form("%s/data/dtcorr_3by3p0.dat",pPath));
-      inRateCor1.open(Form("%s/data/dtcorr_3by3p1.dat",pPath));
+      inRateCor0.open(Form("%s/data/newdtcorr_3by3p0.dat",pPath));
+      inRateCor1.open(Form("%s/data/newdtcorr_3by3p1.dat",pPath));
     } else {
       cout<<blue<<"Applying 1 parameter Deadtime correction for 3/3 trigger"<<normal<<endl;
       inRateCor0.open(Form("%s/data/dtcorr33.dat",pPath));
     }
-  } else if(acTrig==1) {
-    cout<<blue<<"NO correction file available for 1/3 trigger, hence no correction being applied"<<normal<<endl;
   } else cout<<red<<"\nTrigger undetermined at "<<acTrig<<", hence DT correction not applied due to ambiguity\n"<<normal<<endl;
   if(acTrig==2 || acTrig==3 || acTrig==0) {
     if(inRateCor0.is_open()) {
@@ -73,7 +72,16 @@ Int_t corrDeadtime(Int_t runnum, TString dataType) {
     } else cout<<red<<"\n***Alert: Could not open file for p0 DT correction factors\n"<<normal<<endl;
   }
   /////Apply deadtime correction///////////////////
-  if(corrB1H1L1_0==corrB1H1L0_0 || corrB1H0L1_0==corrB1H0L0_0) cout<<red<<"\nthe correction factors for laser on/off is same for this run, hence something wrong\n"<<normal<<endl;
+  if(corrB1H1L1_0==corrB1H1L0_0 || corrB1H0L1_0==corrB1H0L0_0) {
+    cout<<red<<"\nthe correction factors for laser on/off is same for this run, hence something wrong\n"<<normal<<endl;
+    cout<<"setting the deadtime correction factors to 1.0"<<endl;
+    for (Int_t s =startStrip; s <endStrip; s++) {	
+      c2B1H1L1[s] = 1.0 ;
+      c2B1H1L0[s] = 1.0 ; 
+      c2B1H0L1[s] = 1.0 ;
+      c2B1H0L0[s] = 1.0 ;
+    }
+  }
   else if(k2parDT) {
     //cout<<"applying 2 parameter DT correction"<<endl;
     for (Int_t s =startStrip; s <endStrip; s++) {	

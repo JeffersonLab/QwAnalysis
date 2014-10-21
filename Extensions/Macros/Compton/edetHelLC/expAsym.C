@@ -20,7 +20,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   filePre = Form(filePrefix,runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  const Bool_t debug = 1, debug1 = 1, debug2 = 0;
+  const Bool_t debug = 1, debug1 = 0, debug2 = 0;
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
@@ -246,7 +246,8 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       "\nHence this will useful entirely as a background run\n"<<normal<<endl;
     return -1;
   }
-  if(kDeadTime) {
+
+  if(dataType=="Ac" && kDeadTime) {///to ensure that it doesn't get applied for Scaler analysis
     corrDeadtime(runnum, dataType);
   } else {
     for (Int_t s =startStrip; s <endStrip; s++) {	
@@ -275,26 +276,37 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
     if(kOnlyGoodLasCyc) {
       ///Lets see if this laser cycle# corresponds to beamOn or not
-      if(noiseRun) beamOn = kFALSE; //this Bool_t variable will be appropriately set by looking at the max current in this run in getEBeamLasCuts.C
-      else if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
+      //if(noiseRun) beamOn = kFALSE; //this Bool_t variable will be appropriately set by looking at the max current in this run in getEBeamLasCuts.C
+      if(nBeamTrips == 0) beamOn = kTRUE;         ///no beamtrip
       else if(nthBeamTrip < nBeamTrips) {  ///yes, we do have beamtrip(s)
-        if(nthBeamTrip==0) { // haven't encountered a trip yet(special case of first trip)
-          if(cutLas.at(2*nCycle+2)<cutEB.at(0)) beamOn = kTRUE; ///no beam trip till the end of THIS laser cycle
-          else {                    ///there is a beam trip during this laser cycle
+        if(nthBeamTrip==0) { 
+          cout<<"haven't encountered a trip yet(special case of first trip)"<<endl;
+          if(cutLas.at(2*nCycle+2)<cutEB.at(0)) {
+            beamOn = kTRUE; 
+            if(debug) cout<<"no beam trip till the end of THIS laser cycle"<<endl;
+          } else {                    ///there is a beam trip during this laser cycle
             beamOn = kFALSE;
             nthBeamTrip++;          
-            cout<<"encountered the first beam trip"<<endl;
+            cout<<"encountered the first beam trip in lasCycle: "<<nCycle+1<<endl;
           }
         } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
           beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
           cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl; 
+        } else if(nthBeamTrip!=nBeamTrips && cutLas.at(2*nCycle)>cutEB.at(2*nthBeamTrip)) {///the beginning of this lasCyc preceeds next beamTrip 
+          while(cutLas.at(2*nCycle)>cutEB.at(2*nthBeamTrip)) {
+            nthBeamTrip++;
+          }
+          cout<<"more than one beam trip must have happenned in the last lasCyc"<<endl;
+          cout<<"beam trip counter incremented to : "<<nthBeamTrip<<endl;
+          if (cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) beamOn = kTRUE;
         } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
           beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
-          if(debug1) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl;  
+          if(debug) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl; 
         } else { ///encountered "another" beam trip 
           beamOn = kFALSE;
+          if(debug1) printf("%snCycle: %d\tnthBeamTrip: %d\ncutLas[%d]: %d\tcutEB[%d]: %d%s\n", magenta, nCycle, nthBeamTrip, 2*nCycle, cutLas[2*nCycle], 2*nthBeamTrip, cutEB[2*nthBeamTrip], normal);
+          cout<<"encountered "<<nthBeamTrip<<" th beam trip in lasCyc: "<<nCycle+1<<endl;
           nthBeamTrip++;
-          cout<<"encountered a new beam trip in lasCyc: "<<nCycle+1<<endl;
         } 
       } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
         if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered

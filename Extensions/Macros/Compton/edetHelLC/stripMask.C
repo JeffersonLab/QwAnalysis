@@ -6,7 +6,7 @@
 
 Int_t stripMask()
 {
-  cout<<blue<<"\nStarting into stripMask.C **************\n"<<normal<<endl;
+  //cout<<blue<<"\nStarting into stripMask.C **************\n"<<normal<<endl;
   Bool_t additionalStripMask=1;///this will be my primary tool to skip masked strips in asymFit.C
   
   if(additionalStripMask) {//notice that the strip number pushed is in human counts 

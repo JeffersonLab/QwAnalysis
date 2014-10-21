@@ -3,8 +3,8 @@
 
 Int_t studyRun(Int_t runnum = 24519) {
   const Bool_t bBeam = 1;
-  const Bool_t bBPM = 0;
-  const Bool_t bEnergy = 0;
+  const Bool_t bBPM = 1;
+  const Bool_t bEnergy = 1;
   gStyle->SetTextFont(132);
   gStyle->SetTextSize(0.08);
   gStyle->SetLabelFont(132,"xyz");
@@ -81,7 +81,7 @@ Int_t studyRun(Int_t runnum = 24519) {
     Double_t xmin = pad->GetUxmin();
     Double_t xmax = pad->GetUxmax();
     Double_t ymin = 0;
-    Double_t ymax = 5;//190;
+    Double_t ymax = 190;//5;//190;
     //cout<<"the min is: "<<*min_element(bcm6.begin(), bcm6.end())<<endl;
     //cout<<"the max is: "<<*max_element(bcm6.begin(), bcm6.end())<<endl;
     //cout<<"the min is: "<<*min_element(laserPow.begin(), laserPow.end())<<endl;
@@ -125,17 +125,17 @@ Int_t studyRun(Int_t runnum = 24519) {
     TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
     cStability->Divide(3,2);// # of col,# of row
     cStability->cd(1);
-    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cStability->cd(2);
-    helChain->Draw("diff_sca_bpm_3p02bY:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3p02bY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cStability->cd(3);
-    helChain->Draw("diff_sca_bpm_3p03aY:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3p03aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cStability->cd(4);
-    helChain->Draw("diff_sca_bpm_3p02aX:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3p02aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cStability->cd(5);
-    helChain->Draw("diff_sca_bpm_3p02bX:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3p02bX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cStability->cd(6);
-    helChain->Draw("diff_sca_bpm_3p03aX:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3p03aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
 
     cStability->Update();
     cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,www,filePre.Data()));
@@ -149,11 +149,12 @@ Int_t studyRun(Int_t runnum = 24519) {
     TCanvas *cEn = new TCanvas("cEn","energy parameters",0,0,800,500);
     cEn->Divide(2,1);// # of col,# of row
     cEn->cd(1);
-    helChain->Draw("diff_sca_bpm_3c20Y:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3c20Y:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cEn->cd(2);
-    helChain->Draw("diff_sca_bmod_ramp:pattern_number","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bmod_ramp:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cEn->SaveAs(Form("%s/%s/%sEnergyStability.png",pPath,www,filePre.Data()));
   }
 
+  gSystem->Exec(Form("%s/make_erun_page.sh %d",pPath, runnum));
   return nEntries;
 }
