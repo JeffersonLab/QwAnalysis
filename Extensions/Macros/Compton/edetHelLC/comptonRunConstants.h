@@ -48,7 +48,7 @@ const Int_t nModules = 2;//number of slave boards
 const Double_t stripWidth = 2.0E-4;//(m) SI unit
 const Double_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
 const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
-const Int_t minEntries = 4000; //Laser must be off for at least this many consecutive entries to be considered (off)
+const Int_t minEntries = 2400; //Laser must be off for at least this many consecutive entries to be considered (off)
 ///4000/helRate ~<20 second; we never ran with a laser cycle such that lasOff <20s, so this is good
 const Double_t th_det = 11.78;//based on elog495;//detector inclination towards the beam (deg)
 ///survey provided longitudinal distance of det-bottom from magnetic exit of 3rd dipole

@@ -21,7 +21,7 @@
 Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
   filePre = Form(filePrefix,runnum,runnum);
-  const Bool_t debug = 0;
+  const Bool_t debug = 1;
   chain->ResetBranchAddresses();
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0.0, bcm = 0.0;//, patNum=0.0;
@@ -85,14 +85,14 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     if (n==minEntries) { ///laser has been off for minEntries/240 seconds continuously, hence consider it a valid laseroff
       cutL.push_back(index-minEntries+1);//!the +1 is needed to take care of the fact that C++ counts "index" from 0, while 'minEntries' is compared only when 'n' goes all the way from 1 to minEntries.
       printf("cutL[%d]=%d\n",m,cutL.back()); ///print begin of laser off entry
-      //printf("laserPow here:%d, index:%d\n",(Int_t)laser,index);
+      printf("laserPow here:%d, index:%d\n",(Int_t)laser,index);
       flipperIsUp = kTRUE; ///laserOff state begins
       m++; ///cutLas array's even number index (corresponding to a laserOff)
     }
     if(flipperIsUp){ ///if the laser is known to be off check ...
       if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the end of run has been reached
         cutL.push_back(index); ///record this as the end of laserOn cycle
-        //printf("cutL[%d]=%d, laserPow rises:%d, index:%d\n",m,cutL.back(),(Int_t)laser,index);
+        printf("cutL[%d]=%d, laserPow rises:%d, index:%d\n",m,cutL.back(),(Int_t)laser,index);
         printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
         m++; ///cutLas array's odd number index (corresponding to a laserOn)
         flipperIsUp = kFALSE; ///laserOff state ends
@@ -146,25 +146,25 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     o++;
   }
   //print the beam trip cuts
-  if(debug) printf("going to write beam cut file\n");
+  //printf("going to write beam cut file\n");
   file = Form("%s/%s/%scutBeam.txt",pPath, txt,filePre.Data());
   fOut.open(file);
   if(fOut.is_open()) {
     cout<<Form("%s/%s/%scutBeam.txt",pPath, txt,filePre.Data())<<" file created"<<endl;
     for(Int_t i=0;i<o;i++) {
-      if(debug) printf("cutE[%i]=%i\n",i,cutE.at(i));
+      //if(debug) printf("cutE[%i]=%i\n",i,cutE.at(i));
       fOut << cutE.at(i) <<endl;
     }
     fOut.close();
   } else cout<<red<<"couldn't open "<<file<<normal<<endl;
 
-  if(debug) printf("going to write cutL file\n");
+  //printf("going to write cutL file\n");
   file = Form("%s/%s/%scutLas.txt",pPath, txt,filePre.Data());
   fOut.open(file);
   if(fOut.is_open()) {
     cout<<file<<" created"<<endl;
     for(Int_t i=0;i<m;i++) {
-      if(debug) printf("cutL[%i]=%i\n",i,cutL.at(i));
+      //if(debug) printf("cutL[%i]=%i\n",i,cutL.at(i));
       fOut << cutL.at(i) <<endl;
     }
     fOut.close();

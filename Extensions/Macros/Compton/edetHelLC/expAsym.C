@@ -272,7 +272,8 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
     //for(Int_t nCycle=0; nCycle<1; nCycle++) {//temp:to debug, run only 1 laserCycle
     //cout<<red<<"\n**Temporarily analyzing only one laser cycle for debug purpose**\n"<<normal<<endl;
-    if (debug) cout<<"\nStarting nCycle:"<<nCycle+1<<" and resetting all nCycle variables"<<endl;
+    if(debug) cout<<"\nStarting nCycle:"<<nCycle+1<<" from entry # "<<cutLas.at(2*nCycle)<<" to # "<<cutLas.at(2*nCycle+2)<<endl;
+
     ///since this is the beginning of a new Laser cycle, and all Laser cycle based variables 
     ///..are already assigned to a permanent variable reset the LasCyc based variables
     nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0,missedDueToBMod=0, missedDueToStability=0; 
@@ -329,8 +330,6 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     } else beamOn = 1;///No laser cycle is tagged as beamOff,
 
     if (beamOn) {
-      if(debug) cout<<"Will analyze from entry # "<<cutLas.at(2*nCycle)<<" to entry # "<<cutLas.at(2*nCycle+2)<<endl;
-
       for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
         //loop over laser cycle periods taking one LasOff state and the following laserOn state
         //if(debug1 && i%100000==0) cout<<"Starting to analyze "<<i<<"th event"<<endl;
