@@ -38,6 +38,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   beamRMS = hBeam->GetRMS();
   beamMax = hBeam->GetBinLowEdge(hBeam->FindLastBinAbove(100));//to avoid extraneous values
   //cout<<"beamMax(bcm6): "<<beamMax<<",\t beamMean: "<<beamMean<<",\t beamRMS: "<<beamRMS<<endl;
+  beamTripLimit = beamFracHi * beamMax;
 
   chain->Draw("yield_sca_laser_PowT.value>>hLaser","","goff");
   hLaser = (TH1D*)gDirectory->Get("hLaser");  
@@ -101,8 +102,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
     ///find and record electron beam off periods
     //rampIsDone = (bcm> (beamFracHi*beamMax) && (bcm <200.0));
     //isABeamTrip = (bcm<= (beamFrac*beamMax) && (bcm >0.0));
-    rampIsDone = ((bcm> beamOnLimit) && (bcm <beamMaxEver));
-    isABeamTrip = ((bcm<= beamOnLimit) && (bcm >0.0));
+    rampIsDone = ((bcm> beamTripLimit) && (bcm <beamMaxEver));
+    isABeamTrip = ((bcm<= beamTripLimit) && (bcm >0.0));
 
     if(isABeamTrip && prevTripDone) {
       //to make sure it is a beam trip not a problem with acquisition

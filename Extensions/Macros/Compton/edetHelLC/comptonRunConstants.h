@@ -56,16 +56,16 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t lasOffCut = 1261;//2000;//1261;//1100;///elog 319 
-const Double_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
-Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
-const Double_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
-const Double_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
-const Double_t laserFracHi = 0.80;//90% of maximum beam to be considered as laserOn///typical 150E3.
-const Double_t beamFracHi = 0.78;
-const Double_t beamFracLo = 0.6;
-const Double_t beamFrac = 0.6;
-const Double_t highBeamCut = 90;//uA
+const Float_t lasOffCut = 1261;//2000;//1261;//1100;///elog 319 
+const Float_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
+      Float_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
+const Float_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
+const Float_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
+const Float_t laserFracHi = 0.80;//90% of maximum beam to be considered as laserOn///typical 150E3.
+const Float_t beamFracHi = 0.78;
+const Float_t beamFracLo = 0.6;
+const Float_t beamFrac = 0.6;
+const Float_t highBeamCut = 90;//uA
 const Int_t avoidDAQEr = 10;
 const Int_t WAIT_N_ENTRIES = 50;//# of quartets to wait after beam trip
 const Int_t PREV_N_ENTRIES = 50;//# of quartets to ignore before a beam trip
@@ -81,6 +81,7 @@ const Int_t startPlane = 0;
 const Int_t endPlane = 1;
 const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
 const Float_t beamMaxEver = 200.0, beamOnLimit=20.0;
+Float_t beamTripLimit;
 const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros

@@ -20,22 +20,24 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   filePre = Form(filePrefix,runnum,runnum);
   time_t tStart = time(0), tEnd; 
   div_t div_output;
-  const Bool_t debug = 1, debug1 = 0, debug2 = 0;
+  const Bool_t debug = 1, debug1 = 1, debug2 = 0;
   const Bool_t lasCycPrint=0;//!if accum, scaler counts and asym are needed for every laser cycle
   Bool_t beamOn =kFALSE;//lasOn,
   Int_t goodCycles=0,chainExists = 0, missedDueToBMod=0;
   Int_t lasOn = 0;//lasOn tracking variables
+  Int_t beamStable = 0;
   Int_t nthBeamTrip = 0, nBeamTrips = 0;//beamTrip tracking variables
   Int_t nLasCycles=0;//total no.of LasCycles, index of the already declared cutLas vector
   Int_t nHelLCB1L1=0, nHelLCB1L0=0;
   Int_t totalMissedQuartets=0;
   Int_t entry=0; ///integer assitant in reading entry from a file
-  Int_t missedLasEntries=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
+  Int_t missedLasEntries=0, missedDueToStability=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
   Double_t yieldB1L1[nStrips], yieldB1L0[nStrips];
   Double_t diffB1L1[nStrips], diffB1L0[nStrips];
   Double_t bYield[nStrips],bDiff[nStrips],bAsym[nStrips];
   Double_t qLCH1L1=-1.0,qLCH1L0=-1.0,qLCH0L1=-1.0,qLCH0L0=-1.0;
-  Double_t lasPow[3],y_bcm[3],d_bcm[3],bModRamp[3];//?!the vector size should be 3 I suppose, not 4
+  Double_t lasPow[3],y_bcm[3],d_bcm[3],bModRamp[3];//declaring 3 element array to accomodate: value, deviceErrorCode, raw
+  Double_t d_3p02aY[2], d_3p02bY[2], d_3p03aY[2];
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
   Double_t pattern_number, event_number;
   Double_t laserOnOffRatioH0;
@@ -187,6 +189,10 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   helChain->SetBranchStatus("yield_sca_bcm6*",1);
   helChain->SetBranchStatus("diff_sca_bcm6*",1);
   helChain->SetBranchStatus("yield_sca_bmod_ramp*",1);
+  helChain->SetBranchStatus("diff_sca_bpm_3p02aY*", 1);
+  helChain->SetBranchStatus("diff_sca_bpm_3p02bY*", 1);
+  helChain->SetBranchStatus("diff_sca_bpm_3p03aY*", 1);
+  //helChain->SetBranchAddress("", 1);
 
   helChain->SetBranchAddress("mps_counter",&event_number);
   helChain->SetBranchAddress("pattern_number",&pattern_number);
@@ -194,6 +200,10 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   helChain->SetBranchAddress("yield_sca_bcm6",&y_bcm);
   helChain->SetBranchAddress("diff_sca_bcm6",&d_bcm);
   helChain->SetBranchAddress("yield_sca_bmod_ramp",&bModRamp);
+  helChain->SetBranchAddress("diff_sca_bpm_3p02aY", &d_3p02aY);
+  helChain->SetBranchAddress("diff_sca_bpm_3p02bY", &d_3p02bY);
+  helChain->SetBranchAddress("diff_sca_bpm_3p03aY", &d_3p03aY);
+
 
   if (dataType == "Ev") {
     helChain->SetBranchStatus("yield_p*RawEv*",1);
@@ -265,7 +275,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     if (debug) cout<<"\nStarting nCycle:"<<nCycle+1<<" and resetting all nCycle variables"<<endl;
     ///since this is the beginning of a new Laser cycle, and all Laser cycle based variables 
     ///..are already assigned to a permanent variable reset the LasCyc based variables
-    nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0,missedDueToBMod=0; 
+    nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0,missedDueToBMod=0, missedDueToStability=0; 
     qLCH1L1= 0.0, qLCH1L0= 0.0, qLCH0L1= 0.0, qLCH0L0= 0.0;
     lasPowLCB1L0=0.0,lasPowLCB1L1= 0.0;
     for(Int_t s = startStrip; s <endStrip; s++) {
@@ -292,21 +302,24 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
         } else if(cutLas.at(2*nCycle)<cutEB.at(2*nthBeamTrip-1)) {///the new lasCyc begins before the end of previous beamTrip
           beamOn=kFALSE;///continuation of the previous nthBeamTrip for current cycle
           cout<<"continuation of the nthBeamTrip:"<<nthBeamTrip<<" for lasCyc:"<<nCycle+1<<endl; 
-        } else if(nthBeamTrip!=nBeamTrips && cutLas.at(2*nCycle)>cutEB.at(2*nthBeamTrip)) {///the beginning of this lasCyc preceeds next beamTrip 
-          while(cutLas.at(2*nCycle)>cutEB.at(2*nthBeamTrip)) {
+        } else if(nthBeamTrip<nBeamTrips && cutLas.at(2*nCycle)>cutEB.at(2*nthBeamTrip+1)) {///the beginning of this lasCyc preceeds the end of next beamTrip also => there were more than one beamTrip in last lasCyc
+          while(cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip+1)) {
+            if(debug1) printf("%snCycle: %d\tnthBeamTrip: %d\ncutLas[%d]: %d\tcutEB[%d]: %d%s\n", blue, nCycle, nthBeamTrip, 2*nCycle, cutLas[2*nCycle], 2*nthBeamTrip, cutEB[2*nthBeamTrip], normal);
             nthBeamTrip++;
+            cout<<"increamenting the beam trip counter, nthBeamTrip : "<<nthBeamTrip<<endl;
+            if (nthBeamTrip==nBeamTrips) break;//cutEB wont' exist for nthBeamTrip = nBeamTrips. 
           }
           cout<<"more than one beam trip must have happenned in the last lasCyc"<<endl;
           cout<<"beam trip counter incremented to : "<<nthBeamTrip<<endl;
-          if (cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) beamOn = kTRUE;
+          if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE;
         } else if(cutLas.at(2*nCycle+2)<cutEB.at(2*nthBeamTrip)) {
           beamOn=kTRUE;///next beamTrip does not occur atleast till the end of THIS cycle
           if(debug) cout<<"next beamTrip does not occur atleast till the end of THIS cycle"<<endl; 
         } else { ///encountered "another" beam trip 
           beamOn = kFALSE;
           if(debug1) printf("%snCycle: %d\tnthBeamTrip: %d\ncutLas[%d]: %d\tcutEB[%d]: %d%s\n", magenta, nCycle, nthBeamTrip, 2*nCycle, cutLas[2*nCycle], 2*nthBeamTrip, cutEB[2*nthBeamTrip], normal);
-          cout<<"encountered "<<nthBeamTrip<<" th beam trip in lasCyc: "<<nCycle+1<<endl;
           nthBeamTrip++;
+          cout<<"encountered "<<nthBeamTrip<<" th beam trip in lasCyc: "<<nCycle+1<<endl;
         } 
       } else if(nthBeamTrip == nBeamTrips) { ///encountered the last beamTrip     
         if (cutLas.at(2*nCycle) > cutEB.at(2*nthBeamTrip-1)) beamOn = kTRUE; ///current laser Cycle begins after the beamTrip recovered
@@ -326,7 +339,18 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
         if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<lasOffCut) lasOn= 0; ///laser off zone
         else if((i > cutLas.at(2*nCycle+1)) && (lasPow[0]>acceptLasPow)) lasOn =1;///laser on zone
         ///the equal sign above is in laser-On zone because that's how getEBeamLasCuts currently assign it(may change!)
-        else lasOn = -1;///just to set it to an absurd value, so that it doesn't retain previous
+        else {
+          lasOn = -1;///just to set it to an absurd value, so that it doesn't retain previous
+          missedLasEntries++; ///whenever the laser power was intermittent of the 'on' and 'off'
+          continue;
+        }
+
+        if(d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05) beamStable = 1;
+        else {
+          beamStable = 0;
+          missedDueToStability++;
+          continue;
+        }
 
         if ((y_bcm[0]+d_bcm[0]) > beamOnLimit) {///this check needed for kOnlyGoodCycles=0 case
           ///when only good cycles are taken, 'beamOn' will inhibit the whole laser cycle with a beam trip
@@ -354,14 +378,15 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
               yieldB1L1[s] += bYield[s];
               diffB1L1[s]  += bDiff[s];
             }
-          } else missedLasEntries++; ///whenever the laser power was intermittent of the 'on' and 'off'
+          }
         }///if ((y_bcm[0]+d_bcm[0]) > beamOnLimit)///!NOT populating beam off counts currently
       }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
-      if(debug) cout<<"had to ignore "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
+      cout<<blue<<"\% of quartets ignored due to bad laser: "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
+      if(kRejectBMod) cout<<"# of quartets missed due to BMod ramp this cycle: "<<missedDueToBMod<<endl;
+      cout<<"# of quartets missed due to beam fluctuations/stability : "<<missedDueToStability<<normal<<endl;
 
       totalMissedQuartets += missedDueToBMod++;
       //after having filled the above vectors based on laser and beam periods, find asymmetry for this laser cycle
-      if(kRejectBMod) cout<<blue<<"no.of quartets missed for BMod ramp this cycle: "<<missedDueToBMod<<normal<<endl;
       laserOnOffRatioH0 = (Double_t)nHelLCB1L1/nHelLCB1L0;
       qAllH1L1 += qLCH1L1;
       qAllH1L0 += qLCH1L0;

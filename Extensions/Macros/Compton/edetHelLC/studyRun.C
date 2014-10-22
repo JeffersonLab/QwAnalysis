@@ -16,7 +16,7 @@ Int_t studyRun(Int_t runnum = 24519) {
   gStyle->SetPadBottomMargin(0.15);
   gStyle->SetPadLeftMargin(0.13);
   //gROOT->SetStyle("publication");
-  filePre = Form(filePrefix,runnum,runnum);
+  filePre = Form("r%d/study_%d_",runnum,runnum);
   TChain *helChain = new TChain("Hel_Tree");
   Int_t chainExists = helChain->Add(Form("$QW_ROOTFILES/Compton_Pass2b_%d.*.root",runnum));
   cout<<"Attached "<<chainExists<<" files to helicity chain for Run # "<<runnum<<endl;
@@ -42,20 +42,20 @@ Int_t studyRun(Int_t runnum = 24519) {
   TH1D *h1 = new TH1D("h1","h1",100,0,1);
   h1->SetBit(TH1::kCanRebin);
 
-  for(int i=0; i<nEntries; i++) {
-    helChain->GetEntry(i);
-    bcm6.push_back(bcm[0]);
-    pattern.push_back(patNum/240);///scaling to make it time (s)
-    //pattern.push_back(patNum);///scaling to make it time (s)
-    laserPow.push_back(lasPow[0]);
-  }
-
   if(bBeam) {
     TCanvas *c1 = new TCanvas("c1","test canvas ",0,0,800,500);///x,y cordinates of left top point; width, height
     TPad *pad = new TPad("pad","",0,0,1,1);
     //pad->SetGrid();
     pad->Draw();
     pad->cd();
+
+    for(int i=0; i<nEntries; i++) {
+      helChain->GetEntry(i);
+      bcm6.push_back(bcm[0]);
+      pattern.push_back(patNum/240);///scaling to make it time (s)
+      //pattern.push_back(patNum);///scaling to make it time (s)
+      laserPow.push_back(lasPow[0]);
+    }
 
     TGraph *gr1 = new TGraph((Int_t)pattern.size(), pattern.data(), laserPow.data());
     gr1->SetMarkerStyle(kDot);
@@ -108,6 +108,7 @@ Int_t studyRun(Int_t runnum = 24519) {
 
   if(bBPM) {
     //Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2],bpm_3c20X[2];
+    helChain->SetBranchStatus("yield_sca_4mhz*",1);
     helChain->SetBranchStatus("diff_sca_bpm_3p02aY*",1); 
     helChain->SetBranchStatus("diff_sca_bpm_3p02aX*",1); 
     helChain->SetBranchStatus("diff_sca_bpm_3p02bY*",1); 
@@ -125,7 +126,7 @@ Int_t studyRun(Int_t runnum = 24519) {
     TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
     cStability->Divide(3,2);// # of col,# of row
     cStability->cd(1);
-    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(yield_sca_4mhz-0.93e-3)<0.05e-3");
     cStability->cd(2);
     helChain->Draw("diff_sca_bpm_3p02bY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
     cStability->cd(3);
