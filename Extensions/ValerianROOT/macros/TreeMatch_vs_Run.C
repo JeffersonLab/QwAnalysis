@@ -123,8 +123,8 @@ void TreeMatch_vs_Run(std::string pass, std::string filename)
   //Create TChain and give it a file
   TChain* Track_It = new TChain("TrackThat");
   Track_It->Add(
-      TString(gSystem->Getenv("QWANALYSIS")) + Form(
-          "/Extensions/ValerianROOT/Pass%s_TrackingRuns.root", pass.c_str()));
+      TString("/group/qweak/www/html/tracking/pass%s/Pass%s_TrackingRuns.root",
+          PASS.c_str(),  PASS.c_str()));
 
   //run the functions on interest
   Read_In_Run_Numbers(filename);
@@ -951,25 +951,25 @@ void Make_graphs()
   for (UInt_t i_pkg = 0; i_pkg < NUMPACKAGE; i_pkg++)
   {
     mg_TREEPLANE_SLOPE_VS_RUN[i_pkg] = new TMultiGraph(
-        Form("mg_TREEPLANE_SLOPE_VS_RUN[%d]",i_pkg),
+        Form("mg_TREEPLANE_SLOPE_VS_RUN[%d]", i_pkg),
         Form("Treeline level Slope vs run number for %s Package",
             INDEXTOPKG[i_pkg].c_str()));
     mg_TREEPLANE_CHI2_VS_RUN[i_pkg] = new TMultiGraph(
-        Form("mg_TREEPLANE_CHI2_VS_RUN[%d]",i_pkg),
+        Form("mg_TREEPLANE_CHI2_VS_RUN[%d]", i_pkg),
         Form("Treeline level Chi^{2} vs run number for %s Package",
             INDEXTOPKG[i_pkg].c_str()));
     mg_COMPLANE_SLOPE_VS_RUN[i_pkg] = new TMultiGraph(
-        Form("mg_COMPLANE_SLOPE_VS_RUN[%d]",i_pkg),
+        Form("mg_COMPLANE_SLOPE_VS_RUN[%d]", i_pkg),
         Form("Partial Track and Track level Slope vs run number for %s Package",
             INDEXTOPKG[i_pkg].c_str()));
     mg_COMPLANE_CHI2_VS_RUN[i_pkg] =
-        new TMultiGraph(Form("mg_COMPLANE_CHI2_VS_RUN[%d]",i_pkg),
+        new TMultiGraph(Form("mg_COMPLANE_CHI2_VS_RUN[%d]", i_pkg),
             Form(
-                "Partial Track and Track level level Chi^{2} vs run number for %s Package",
+                "Partial Track and Track level Chi^{2} vs run number for %s Package",
                 INDEXTOPKG[i_pkg].c_str()));
 
     LEGEND_TREE[i_pkg] = new TLegend(0.85, 0.40, 0.99, 0.60);
-    LEGEND_TREE[i_pkg]->SetHeader("Treeplane");
+    LEGEND_TREE[i_pkg]->SetHeader("Treeline");
     LEGEND_TRACKS[i_pkg] = new TLegend(0.80, 0.40, 0.99, 0.60);
     LEGEND_TRACKS[i_pkg]->SetHeader("Track");
 
@@ -1131,40 +1131,39 @@ void Make_graphs()
 
       if (i_pkg != 0)
       {
-/*
-        //debugging
-        std::cout << "TREEPLANE SLOPE \n Entry \t Run \t Value \t PKG: " << i_pkg << std::endl;
-        for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
-        {
-          std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
-          << TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg][i_run] << std::endl;
-        }
+        /*
+         //debugging
+         std::cout << "TREEPLANE SLOPE \n Entry \t Run \t Value \t PKG: " << i_pkg << std::endl;
+         for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
+         {
+         std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
+         << TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg][i_run] << std::endl;
+         }
 
-        std::cout << "Max: "
-        << *std::max_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-            TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end())
-        << std::endl;
+         std::cout << "Max: "
+         << *std::max_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end())
+         << std::endl;
 
-        std::cout << "Min: "
-        << *std::min_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-            TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
-            less_than_but_non_zero)
-        << std::endl;
+         std::cout << "Min: "
+         << *std::min_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
+         less_than_but_non_zero)
+         << std::endl;
 
-        std::cout << "Total Max: "
-        << std::max(TREEPLANE_SLOPE_MAX[i_pkg],
-            *std::max_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end()))
-        << std::endl;
+         std::cout << "Total Max: "
+         << std::max(TREEPLANE_SLOPE_MAX[i_pkg],
+         *std::max_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end()))
+         << std::endl;
 
-        std::cout << "Total Min: "
-        << std::min(TREEPLANE_SLOPE_MIN[i_pkg],
-            *std::min_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
-                less_than_but_non_zero))
-        << std::endl << std::endl;
-*/
-
+         std::cout << "Total Min: "
+         << std::min(TREEPLANE_SLOPE_MIN[i_pkg],
+         *std::min_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
+         less_than_but_non_zero))
+         << std::endl << std::endl;
+         */
 
         //get the min and max Treeline slope and Chi2 values
         TREEPLANE_SLOPE_MAX[i_pkg] = std::max(TREEPLANE_SLOPE_MAX[i_pkg],
@@ -1176,47 +1175,47 @@ void Make_graphs()
                 TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
                 less_than_but_non_zero));
 
-/*
-        //debugging
-        std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
-        std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
-*/
+        /*
+         //debugging
+         std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
+         std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
+         */
 
- /*       //debugging
-        std::cout << "TREEPLANE CHI \n Entry \t Run \t Value" << std::endl;
-        for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
-        {
-          std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
-          << TREEPLANE_CHI2_VAL[i_treeplane][i_pkg][i_run] << std::endl;
-        }
+        /*       //debugging
+         std::cout << "TREEPLANE CHI \n Entry \t Run \t Value" << std::endl;
+         for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
+         {
+         std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
+         << TREEPLANE_CHI2_VAL[i_treeplane][i_pkg][i_run] << std::endl;
+         }
 
-        std::cout << "Max: "
-        << *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-            TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end())
-        << std::endl;
+         std::cout << "Max: "
+         << *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end())
+         << std::endl;
 
-        std::cout << "Min: "
-        << *std::min_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-            TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
-            less_than_but_non_zero)
-        << std::endl;
+         std::cout << "Min: "
+         << *std::min_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
+         less_than_but_non_zero)
+         << std::endl;
 
-        std::cout << "Total Max: "
-        << std::max(TREEPLANE_CHI2_MAX[i_pkg],
-            *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end()))        //debugging
-        std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
-        std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
+         std::cout << "Total Max: "
+         << std::max(TREEPLANE_CHI2_MAX[i_pkg],
+         *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end()))        //debugging
+         std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
+         std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
 
-        << std::endl;
+         << std::endl;
 
-        std::cout << "Total Min: "
-        << std::min(TREEPLANE_CHI2_MIN[i_pkg],
-            *std::min_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
-                less_than_but_non_zero))
-        << std::endl << std::endl;
-*/
+         std::cout << "Total Min: "
+         << std::min(TREEPLANE_CHI2_MIN[i_pkg],
+         *std::min_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
+         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
+         less_than_but_non_zero))
+         << std::endl << std::endl;
+         */
 
         TREEPLANE_CHI2_MAX[i_pkg] = std::max(TREEPLANE_CHI2_MAX[i_pkg],
             *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
@@ -1227,12 +1226,11 @@ void Make_graphs()
                 TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
                 less_than_but_non_zero));
 
-/*
-        //debugging
-        std::cout << "TREEPLANE_CHI2_MAX: " << TREEPLANE_CHI2_MAX[i_pkg] << std::endl;
-        std::cout << "TREEPLANE_CHI2_MIN: " << TREEPLANE_CHI2_MIN[i_pkg] << std::endl << std::endl;
-*/
-
+        /*
+         //debugging
+         std::cout << "TREEPLANE_CHI2_MAX: " << TREEPLANE_CHI2_MAX[i_pkg] << std::endl;
+         std::cout << "TREEPLANE_CHI2_MIN: " << TREEPLANE_CHI2_MIN[i_pkg] << std::endl << std::endl;
+         */
 
       }
     }
@@ -1413,65 +1411,69 @@ void Make_graphs()
             Form("%s - %s", INDEXTOCOMPLANE[i_complane].c_str(),
                 INDEXTOTRACKTYPE[i_tracktype].c_str()), "ep");
 
-/*
-        //get min and max values
-        //debugging
-        std: cout << "COMPLANE SLOPE \n Entry \t Run \t Value \t PKG: " << i_pkg << std::endl;
-        for (UInt_t i_run = 1; i_run < RUNNUMLIST.size(); i_run++)
-        {
-          std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
-          << COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg][i_run]
-          << std::endl;
-        }
+        /*
+         //get min and max values
+         //debugging
+         std: cout << "COMPLANE SLOPE \n Entry \t Run \t Value \t PKG: " << i_pkg << std::endl;
+         for (UInt_t i_run = 1; i_run < RUNNUMLIST.size(); i_run++)
+         {
+         std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
+         << COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg][i_run]
+         << std::endl;
+         }
 
-        std::cout << "Max: "
-        << *std::max_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
-            COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end())
-        << std::endl;
+         std::cout << "Max: "
+         << *std::max_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
+         COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end())
+         << std::endl;
 
-        std::cout << "Min: "
-        << *std::min_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
-            COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end(),
-            less_than_but_non_zero)
-        << std::endl;
+         std::cout << "Min: "
+         << *std::min_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
+         COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end(),
+         less_than_but_non_zero)
+         << std::endl;
 
-        std::cout << "Total Max: "
-        << std::max(COMPLANE_SLOPE_MAX[i_pkg],
-            *std::max_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
-                COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end()))
-        << std::endl;
+         std::cout << "Total Max: "
+         << std::max(COMPLANE_SLOPE_MAX[i_pkg],
+         *std::max_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
+         COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end()))
+         << std::endl;
 
-        std::cout << "Total Min: "
-        << std::min(COMPLANE_CHI2_MIN[i_pkg],
-            *std::min_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
-                COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end(),
-                less_than_but_non_zero))
-        << std::endl << std::endl;
-*/
+         std::cout << "Total Min: "
+         << std::min(COMPLANE_CHI2_MIN[i_pkg],
+         *std::min_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
+         COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end(),
+         less_than_but_non_zero))
+         << std::endl << std::endl;
+         */
 
         //get the min and max Treeline slope and Chi2 values
         COMPLANE_SLOPE_MAX[i_pkg] = std::max(COMPLANE_SLOPE_MAX[i_pkg],
-            *std::max_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
+            *std::max_element(
+                COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
                 COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end()));
 
         COMPLANE_SLOPE_MIN[i_pkg] = std::min(COMPLANE_SLOPE_MIN[i_pkg],
-            *std::min_element(COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
+            *std::min_element(
+                COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].begin(),
                 COMPLANE_SLOPE_VAL[i_tracktype][i_complane][i_pkg].end(),
                 less_than_but_non_zero));
 
         COMPLANE_CHI2_MAX[i_pkg] = std::max(COMPLANE_CHI2_MAX[i_pkg],
-            *std::max_element(COMPLANE_CHI2_VAL[i_tracktype][i_complane][i_pkg].begin(),
+            *std::max_element(
+                COMPLANE_CHI2_VAL[i_tracktype][i_complane][i_pkg].begin(),
                 COMPLANE_CHI2_VAL[i_tracktype][i_complane][i_pkg].end()));
 
         COMPLANE_CHI2_MIN[i_pkg] = std::min(COMPLANE_CHI2_MIN[i_pkg],
-            *std::min_element(COMPLANE_CHI2_VAL[i_tracktype][i_complane][i_pkg].begin(),
+            *std::min_element(
+                COMPLANE_CHI2_VAL[i_tracktype][i_complane][i_pkg].begin(),
                 COMPLANE_CHI2_VAL[i_tracktype][i_complane][i_pkg].end(),
                 less_than_but_non_zero));
 
-/*
-        std::cout << "COMPLANE_SLOPE_MAX: " << COMPLANE_SLOPE_MAX[i_pkg] << std::endl;
-        std::cout << "COMPLANE_SLOPE_MIN: " << COMPLANE_SLOPE_MIN[i_pkg] << std::endl;
-*/
+        /*
+         std::cout << "COMPLANE_SLOPE_MAX: " << COMPLANE_SLOPE_MAX[i_pkg] << std::endl;
+         std::cout << "COMPLANE_SLOPE_MIN: " << COMPLANE_SLOPE_MIN[i_pkg] << std::endl;
+         */
       }
     }
   }
@@ -1529,10 +1531,10 @@ void Make_graphs()
  *********************************************************/
 void Plot()
 {
-/*
+  /*
    //debugging
    std::cout << "made it in the make plotting function" << std::endl;
-*/
+   */
 
   //define Canvases
   std::vector<TCanvas*> c_slope_tree;  //[pkg]
@@ -1557,14 +1559,16 @@ void Plot()
         Form("#Chi^{2} of treelines vs run number for %s package",
             INDEXTOPKG[i_pkg].c_str()));
 
-    c_slope_track[i_pkg] = new TCanvas(Form("c_slope_track[%d]", i_pkg),
-        Form("Slope of partial tracks and tracks vs run number for %s package",
-            INDEXTOPKG[i_pkg].c_str()));
+    c_slope_track[i_pkg] =
+        new TCanvas(Form("c_slope_track[%d]", i_pkg),
+            Form(
+                "Slope of treelines in the partial tracks and tracks vs run number for %s package",
+                INDEXTOPKG[i_pkg].c_str()));
 
     c_chi2_track[i_pkg] =
         new TCanvas(Form("c_chi2_track[%d]", i_pkg),
             Form(
-                "#Chi^{2} of partial tracks and tracks vs run number for %s package",
+                "#Chi^{2} of treelines in the partial tracks and tracks vs run number for %s package",
                 INDEXTOPKG[i_pkg].c_str()));
 
     //set title and axis lables (happens on the mulitgraphs)
@@ -1580,12 +1584,14 @@ void Plot()
 
     mg_COMPLANE_SLOPE_VS_RUN[i_pkg]->SetTitle(
         Form(
-            "Slope of partial tracks and tracks vs run number for %s package; Run number; slope (unitless)",
+            "Slope of treelines in the partial tracks and tracks vs run number for %s package;"
+            "Run number; slope (unitless)",
             INDEXTOPKG[i_pkg].c_str()));
 
     mg_COMPLANE_CHI2_VS_RUN[i_pkg]->SetTitle(
         Form(
-            "#Chi^{2} of partial tracks and tracks vs run number for %s package; Run number; #Chi^{2} (unitless)",
+            "#Chi^{2} of treelines in the partial tracks and tracks vs run number for %s package;"
+            "Run number; #Chi^{2} (unitless)",
             INDEXTOPKG[i_pkg].c_str()));
 
     //Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
@@ -1596,14 +1602,14 @@ void Plot()
     c_slope_tree[i_pkg]->cd();
     mg_TREEPLANE_SLOPE_VS_RUN[i_pkg]->Draw("AP");
 
-/*
-    //debugging
-    std::cout << "\n Treeplane Slope \n Pkg: " << i_pkg << std::endl << " Min: "
-    << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << " Max: "
-    << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
-    std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
-    << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
-*/
+    /*
+     //debugging
+     std::cout << "\n Treeplane Slope \n Pkg: " << i_pkg << std::endl << " Min: "
+     << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << " Max: "
+     << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
+     std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
+     << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
+     */
 
     mg_TREEPLANE_SLOPE_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
         TREEPLANE_SLOPE_MIN[i_pkg] - FUDGEFACTOR_TREEPLANE_SLOPE,
@@ -1634,14 +1640,14 @@ void Plot()
     c_chi2_tree[i_pkg]->cd();
     mg_TREEPLANE_CHI2_VS_RUN[i_pkg]->Draw("AP");
 
-/*
-    //debugging
-    std::cout << "Treeplane Chi2 \n Pkg: " << i_pkg << std::endl << " Min: "
-    << TREEPLANE_CHI2_MIN[i_pkg] << std::endl << " Max: "
-    << TREEPLANE_CHI2_MAX[i_pkg] << std::endl;
-    std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
-    << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
-*/
+    /*
+     //debugging
+     std::cout << "Treeplane Chi2 \n Pkg: " << i_pkg << std::endl << " Min: "
+     << TREEPLANE_CHI2_MIN[i_pkg] << std::endl << " Max: "
+     << TREEPLANE_CHI2_MAX[i_pkg] << std::endl;
+     std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
+     << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
+     */
 
     mg_TREEPLANE_CHI2_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
         TREEPLANE_CHI2_MIN[i_pkg] - FUDGEFACTOR_TREEPLANE_CHI2,
@@ -1671,14 +1677,14 @@ void Plot()
     c_slope_track[i_pkg]->cd();
     mg_COMPLANE_SLOPE_VS_RUN[i_pkg]->Draw("AP");
 
-/*
-    //debugging
-    std::cout << "coplane Slope \n Pkg: " << i_pkg << std::endl << " Min: "
-    << COMPLANE_SLOPE_MIN[i_pkg] << std::endl << " Max: "
-    << COMPLANE_SLOPE_MAX[i_pkg] << std::endl;
-    std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
-    << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
-*/
+    /*
+     //debugging
+     std::cout << "coplane Slope \n Pkg: " << i_pkg << std::endl << " Min: "
+     << COMPLANE_SLOPE_MIN[i_pkg] << std::endl << " Max: "
+     << COMPLANE_SLOPE_MAX[i_pkg] << std::endl;
+     std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
+     << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
+     */
 
     mg_COMPLANE_SLOPE_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
         COMPLANE_SLOPE_MIN[i_pkg] - FUDGEFACTOR_COMPLANE_SLOPE,
@@ -1709,14 +1715,14 @@ void Plot()
     c_chi2_track[i_pkg]->cd();
     mg_COMPLANE_CHI2_VS_RUN[i_pkg]->Draw("AP");
 
-/*
-    //debugging
-    std::cout << "Coplane Chi2 \n Pkg: " << i_pkg << std::endl << " Min: "
-    << COMPLANE_CHI2_MIN[i_pkg] << std::endl << " Max: "
-    << COMPLANE_CHI2_MAX[i_pkg] << std::endl;
-    std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
-    << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
-*/
+    /*
+     //debugging
+     std::cout << "Coplane Chi2 \n Pkg: " << i_pkg << std::endl << " Min: "
+     << COMPLANE_CHI2_MIN[i_pkg] << std::endl << " Max: "
+     << COMPLANE_CHI2_MAX[i_pkg] << std::endl;
+     std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
+     << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
+     */
 
     mg_COMPLANE_CHI2_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
         COMPLANE_CHI2_MIN[i_pkg] - FUDGEFACTOR_COMPLANE_CHI2,

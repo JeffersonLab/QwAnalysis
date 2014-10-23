@@ -101,9 +101,8 @@ void Q2_vs_Run(std::string pass, std::string filename)
   //Create TChain and give it a file
   TChain* Track_It = new TChain("TrackThat");
   Track_It->Add(
-      Form(
-          "/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_TrackingRuns.root",
-          PASS.c_str()));
+      Form("/group/qweak/www/html/tracking/pass%s/Pass%s_TrackingRuns.root",
+          PASS.c_str(),PASS.c_str()));
 
   //run the functions on interest
   Read_In_Run_Numbers(filename);
