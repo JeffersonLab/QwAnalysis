@@ -68,6 +68,9 @@ do
 	  FIRST100K=kTRUE
 	  FIRST100KMESSAGE="(First 100k analysis)"
 	  ;;
+      --configfile=*)
+	  CONFIGFILE=`echo $i | sed 's/--configfile=//'`
+	  ;;
           ## This flag skips running the macros and regenerating the index page 
           ## if all you want to is to regenerate the run webpage
       --macros=*)
@@ -102,6 +105,23 @@ if [ x${RUNNUM} ==  "x" ]
 then
    echo "Did not provide a run number! Provide it with --run=run_number"
    exit -1;
+fi
+
+
+# Source any configuration file for environmental variables
+if [ x${CONFIGFILE} != "x" ]
+then
+  if [ -e ${CONFIGFILE} ]
+  then
+    echo "Sourcing file ${CONFIGFILE}"
+    source ${CONFIGFILE}
+  fi
+fi
+
+## Check to make sure QWROOT got defined, if not defined it now
+if [ x$QWROOT == "x" ]
+then
+  QWROOT=$QWANALYSIS/bin/qwroot
 fi
 
 ################################################################################
@@ -211,8 +231,8 @@ then
 
                 ## Now after the configuration file has been read, and the script is enabled, process the script
                 echo "Running ${MACRO}"
-                echo "qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log"
-                nice  qwroot -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log
+                echo "${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log"
+                nice  ${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log
             else
                 echo "Macro ${MACROSDIR}/${MACRO} not found"
             fi
