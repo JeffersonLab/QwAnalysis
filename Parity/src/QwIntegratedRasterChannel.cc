@@ -159,7 +159,7 @@ Bool_t QwIntegratedRasterChannel<T>::ApplyHWChecks()
 /********************************************************/
 
 template<typename T>
-Int_t QwIntegratedRasterChannel<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
+Int_t QwIntegratedRasterChannel<T>::SetSingleEventCuts(Double_t LL, Double_t UL){
   fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
 }
@@ -167,7 +167,7 @@ Int_t QwIntegratedRasterChannel<T>::SetSingleEventCuts(Double_t LL=0, Double_t U
 /********************************************************/
 
 template<typename T>
-void QwIntegratedRasterChannel<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+void QwIntegratedRasterChannel<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL, Double_t UL, Double_t stability){
   //set the unique tag to identify device type (bcm,bpm & etc)
   //errorflag|=kBCMErrorFlag;
   QwMessage<<"QwIntegratedRasterChannel<T> Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
