@@ -4,7 +4,7 @@ macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
-dataType=AcVer001
+dataType=AcNoDTVer001
 found=yes
 #for i in `seq 24252 24252`;
 #for i in `seq 22659 25546`;

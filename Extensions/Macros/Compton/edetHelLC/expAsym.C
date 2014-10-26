@@ -10,6 +10,7 @@
 #include "qNormVariables.C"
 #include "determineNoise.C"
 #include "corrDeadtime.C"
+#include "writeToFile.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
@@ -35,7 +36,8 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   Double_t yieldB1L1[nStrips], yieldB1L0[nStrips];
   Double_t diffB1L1[nStrips], diffB1L0[nStrips];
   Double_t bYield[nStrips],bDiff[nStrips],bAsym[nStrips];
-  Double_t qLCH1L1=-1.0,qLCH1L0=-1.0,qLCH0L1=-1.0,qLCH0L0=-1.0;
+  Double_t qLCH1L1 =0.0, qLCH1L0 =0.0, qLCH0L1 =0.0, qLCH0L0 =0.0;
+  Double_t qH1L1 =0.0, qH1L0 =0.0, qH0L1 =0.0, qH0L0 =0.0;///didn't need separate variables, but still declaring a new set, to ensure that nothing tampers with the old set of working variables qLCH1L1 type variables
   Double_t lasPow[3],y_bcm[3],d_bcm[3],bModRamp[3];//declaring 3 element array to accomodate: value, deviceErrorCode, raw
   Double_t d_3p02aY[2], d_3p02bY[2], d_3p03aY[2];
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
@@ -391,8 +393,10 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       qAllH1L0 += qLCH1L0;
       qAllH0L1 += qLCH0L1;
       qAllH0L0 += qLCH0L0;
-      totHelB1L1 += nHelLCB1L1;
-      totHelB1L0 += nHelLCB1L0;
+      totHelB1H1L1 += nHelLCB1L1/2.0;
+      totHelB1H1L0 += nHelLCB1L0/2.0;
+      totHelB1H0L1 += nHelLCB1L1/2.0;
+      totHelB1H0L0 += nHelLCB1L0/2.0;
       if (nHelLCB1L1 == 0||nHelLCB1L0 == 0) {
         cout<<blue<<"this laser cycle probably had laser off "<<nCycle+1<<normal<<endl;
       } else if (nHelLCB1L1 < 0||nHelLCB1L0 < 0) {
@@ -472,7 +476,43 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
       }///sanity check of being non-zero for filled laser cycle variables
       //    else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
-    } ///if (beamOn); for kOnlyGoodCycles=1, the whole loop is avoided if the lasCyc had a beamTrip
+    } else { ///if (beamOn); for kOnlyGoodCycles=1, the whole loop is avoided if the lasCyc had a beamTrip
+      qH1L1 = 0.0, qH1L0 = 0.0, qH0L1 = 0.0, qH0L0 = 0.0;
+      for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
+        helChain->GetEntry(i);
+
+        if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<lasOffCut) lasOn= 0; ///laser off zone
+        else if((i > cutLas.at(2*nCycle+1)) && (lasPow[0]>acceptLasPow)) lasOn =1;///laser on zone
+        else {
+          lasOn = -1;
+          continue;
+        }
+
+        if(d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05) beamStable = 1;
+        else {
+          beamStable = 0;
+          continue;
+        }
+
+        if ((y_bcm[0]+d_bcm[0]) > beamOnLimit) {
+          if (kRejectBMod && (bModRamp[0]>100.0)) {
+            continue;///ignore this entry if beam modulation is on
+          }
+        } else continue; ///ignore this entry if  beam is < 20uA
+          //if(bYield[0][44]>0.0) cout<<blue<<i<<"\t"<<yieldB1L1[0][44]<<"\t"<<bYield[0][44]<<normal<<endl;    //temp
+        if(lasOn ==1) {
+          qH1L1 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
+          qH0L1 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+        } else if(lasOn ==0) {
+          qH1L0 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
+          qH0L0 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+        }
+      }
+      qIgnoredH1L1 += qH1L1;///these are the charge for only clean laser cycles
+      qIgnoredH1L0 += qH1L0;
+      qIgnoredH0L1 += qH0L1;
+      qIgnoredH0L0 += qH0L0;
+    }///if (beamOn)
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
 
   if(lasCycPrint) {///close them only if you open 
@@ -493,16 +533,22 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       cout<<red<<"the weightedMean macro returned negative,check what's wrong"<<normal<<endl;
       return -1;///exit the execution
     }
+
+    ///Note: All of the following variables are populated only for clean laser cycles
     qNormVariables(totyieldB1H1L1, qAllH1L1, qNormCntsB1H1L1, qNormCntsB1H1L1Er);//background uncorrected yield
     qNormVariables(totyieldB1H1L0, qAllH1L0, qNormCntsB1H1L0, qNormCntsB1H1L0Er);//background yield
-    //qNormVariables(totyieldB1H1L1, totHelB1L1, tNormYieldB1L1, tNormYieldB1L1Er);
-    //qNormVariables(totyieldB1L0, totHelB1L0, tNormYieldB1L0, tNormYieldB1L0Er);
+    qNormVariables(totyieldB1H0L1, qAllH0L1, qNormCntsB1H0L1, qNormCntsB1H0L1Er);//background uncorrected yield
+    qNormVariables(totyieldB1H0L0, qAllH0L0, qNormCntsB1H0L0, qNormCntsB1H0L0Er);//background yield
+    qNormVariables(totyieldB1H1L1, totHelB1H1L1, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
+    qNormVariables(totyieldB1H1L0, totHelB1H1L0, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
+    qNormVariables(totyieldB1H0L1, totHelB1H0L1, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
+    qNormVariables(totyieldB1H0L0, totHelB1H0L0, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
 
     filePre = Form(filePrefix+"%s",runnum,runnum,dataType.Data());
-  
+
     file = Form("%s/%s/%sExpAsymP%d.txt",pPath, txt,filePre.Data(),plane);
     write3CfileArray(file, stripArray, stripAsym, stripAsymEr);
-    
+
     file = Form("%s/%s/%sBkgdAsymP%d.txt",pPath, txt,filePre.Data(),plane);
     write3CfileArray(file, stripArray, bkgdAsym, bkgdAsymEr);
 
@@ -515,15 +561,29 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     file = Form("%s/%s/%sqNormCntsB1H1L1P%d.txt",pPath, txt,filePre.Data(),plane);
     write3CfileArray(file, stripArray, qNormCntsB1H1L1, qNormCntsB1H1L1Er);
 
-    file = Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath, txt,filePre.Data(),plane); 
+    file = Form("%s/%s/%sqNormCntsB1H1L0P%d.txt",pPath, txt,filePre.Data(),plane); 
     write3CfileArray(file, stripArray, qNormCntsB1H1L0, qNormCntsB1H1L0Er);
 
-    file = Form("%s/%s/%stNormYieldB1L1P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, tNormYieldB1L1, tNormYieldB1L1Er);
+    file = Form("%s/%s/%sqNormCntsB1H0L1P%d.txt",pPath, txt,filePre.Data(),plane);
+    write3CfileArray(file, stripArray, qNormCntsB1H0L1, qNormCntsB1H0L1Er);
 
-    file = Form("%s/%s/%stNormYieldB1L0P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, tNormYieldB1L0, tNormYieldB1L1Er);
+    file = Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath, txt,filePre.Data(),plane); 
+    write3CfileArray(file, stripArray, qNormCntsB1H0L0, qNormCntsB1H0L0Er);
 
+    file = Form("%s/%s/%stNormYieldB1H1L1P%d.txt",pPath, txt,filePre.Data(),plane);
+    write3CfileArray(file, stripArray, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
+
+    file = Form("%s/%s/%stNormYieldB1H1L0P%d.txt",pPath, txt,filePre.Data(),plane);
+    write3CfileArray(file, stripArray, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
+
+    file = Form("%s/%s/%stNormYieldB1H0L1P%d.txt",pPath, txt,filePre.Data(),plane);
+    write3CfileArray(file, stripArray, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
+
+    file = Form("%s/%s/%stNormYieldB1H0L0P%d.txt",pPath, txt,filePre.Data(),plane);
+    write3CfileArray(file, stripArray, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
+
+    file = Form("%s/%s/%sFortranCheckP%d.txt",pPath, txt, filePre.Data(),plane);
+    writeToFile(file);
     //this currently would not work if the Cedge changes between planes
   } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
   tEnd = time(0);

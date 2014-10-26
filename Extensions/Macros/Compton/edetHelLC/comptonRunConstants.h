@@ -8,7 +8,7 @@
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
 const Bool_t kNoiseSub = 0;
-const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
+const Bool_t kDeadTime = 0, k2parDT = 0;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kOnlyGoodLasCyc = 1;
 const Int_t maxIterations =4;
@@ -17,7 +17,7 @@ const Int_t maxIterations =4;
 const char *pPath = getenv("QWSCRATCH");
 const char *www = "www";///to store all image files
 const char *txt = "txt";///to store all the text files
-const TString filePrefix = "r%d/edetLC_%d_";///one spot change of all file names
+const TString filePrefix = "r%d/edetLCNoDT_%d_";///one spot change of all file names
 TString filePre;
 //Asymmetry calculation constants 
 const Double_t light=0.299792458;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
@@ -62,9 +62,7 @@ const Float_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when 
 const Float_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
 const Float_t laserFracLo = 0.20;///typical laser off 2E3 ///this is protected explicitly in expAsym.C
 const Float_t laserFracHi = 0.80;//90% of maximum beam to be considered as laserOn///typical 150E3.
-const Float_t beamFracHi = 0.78;
-const Float_t beamFracLo = 0.6;
-const Float_t beamFrac = 0.6;
+const Float_t beamFrac = 0.5;
 const Float_t highBeamCut = 90;//uA
 const Int_t avoidDAQEr = 10;
 const Int_t WAIT_N_ENTRIES = 50;//# of quartets to wait after beam trip
@@ -140,11 +138,15 @@ Double_t qNormCntsB1H0L1[nStrips]={0.0},qNormCntsB1H0L1Er[nStrips]={0.0};
 Double_t qNormCntsB1H0L0[nStrips]={0.0},qNormCntsB1H0L0Er[nStrips]={0.0};
 Double_t qNormBkgdSubAllB1L1[nStrips]={0.0},qNormAllB1L0[nStrips]={0.0},qNormAllB1L0Er[nStrips]={0.0}; 
 Double_t qAllH1L1=0.0,qAllH1L0=0.0,qAllH0L1=0.0,qAllH0L0=0.0;///total current
-Double_t totHelB1L1=0,totHelB1L0=0;///total no.of helicities (hence time)
+Double_t qIgnoredH1L1=0.0,qIgnoredH1L0=0.0,qIgnoredH0L1=0.0,qIgnoredH0L0=0.0;///total current
+Double_t totHelB1H1L1=0,totHelB1H1L0=0;///total no.of helicities (hence time)
+Double_t totHelB1H0L1=0,totHelB1H0L0=0;///total no.of helicities (hence time)
 Double_t totyieldB1L1[nStrips]={0.0}, totyieldB1L0[nStrips]={0.0};
 Double_t totyieldB1H1L1[nStrips]={0.0},totyieldB1H1L0[nStrips]={0.0},totyieldB1H0L1[nStrips]={0.0}, totyieldB1H0L0[nStrips]={0.0};
-Double_t tNormYieldB1L1[nStrips]={0.0},tNormYieldB1L0[nStrips]={0.0};
-Double_t tNormYieldB1L1Er[nStrips]={0.0},tNormYieldB1L0Er[nStrips]={0.0};
+Double_t tNormYieldB1H1L1[nStrips]={0.0},tNormYieldB1H1L1Er[nStrips]={0.0};
+Double_t tNormYieldB1H1L0[nStrips]={0.0},tNormYieldB1H1L0Er[nStrips]={0.0};
+Double_t tNormYieldB1H0L1[nStrips]={0.0},tNormYieldB1H0L1Er[nStrips]={0.0};
+Double_t tNormYieldB1H0L0[nStrips]={0.0},tNormYieldB1H0L0Er[nStrips]={0.0};
 Double_t timeB0,rateB0[nStrips]={0.0};
 
 ///skip p1:s02,s06,s20 //as of Feb2,2012
