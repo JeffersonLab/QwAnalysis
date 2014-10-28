@@ -3351,7 +3351,7 @@ void QwTreeEventBuffer::AttachBranches()
       fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.ParticleType",
 		&fRegion2_ChamberBack_WirePlane6_ParticleType);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PackageID",
-    		&fRegion2_ChamberBack_WirePlane1_PackageID);
+    		&fRegion2_ChamberBack_WirePlane6_PackageID);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PlaneLocalPositionY",
