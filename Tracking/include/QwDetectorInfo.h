@@ -130,7 +130,7 @@ class QwDetectorInfo: public TObject {
     int GetNumberOfElements() const { return fNumberOfElements; };
     void SetNumberOfElements(const int nelements) {
       fNumberOfElements = nelements;
-      fEfficiency.assign(nelements,1.0);
+      fEfficiency.assign(nelements + 1, 1.0); // wires are counted from 1
     };
 
     // Get/set detector pitch (in degrees)
@@ -239,7 +239,7 @@ class QwDetectorInfo: public TObject {
     }
     // Set element efficiency for all elements
     void SetElementEfficiency(double efficiency) {
-      fEfficiency.assign(fEfficiency.size(),efficiency);
+      fEfficiency.assign(fEfficiency.size(), efficiency);
     }
 
   private:
