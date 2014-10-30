@@ -8,6 +8,7 @@
 #include "weightedMean.C"
 #include "write3CfileArray.C"
 #include "qNormVariables.C"
+#include "tNormVariables.C"
 #include "determineNoise.C"
 #include "corrDeadtime.C"
 #include "writeToFile.C"
@@ -495,10 +496,10 @@ cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
     qNormVariables(totyieldB1H1L0, qAllH1L0, qNormCntsB1H1L0, qNormCntsB1H1L0Er);//background yield
     qNormVariables(totyieldB1H0L1, qAllH0L1, qNormCntsB1H0L1, qNormCntsB1H0L1Er);//background uncorrected yield
     qNormVariables(totyieldB1H0L0, qAllH0L0, qNormCntsB1H0L0, qNormCntsB1H0L0Er);//background yield
-    qNormVariables(totyieldB1H1L1, totHelB1H1L1, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
-    qNormVariables(totyieldB1H1L0, totHelB1H1L0, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
-    qNormVariables(totyieldB1H0L1, totHelB1H0L1, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
-    qNormVariables(totyieldB1H0L0, totHelB1H0L0, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
+    tNormVariables(totyieldB1H1L1, totHelB1H1L1, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
+    tNormVariables(totyieldB1H1L0, totHelB1H1L0, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
+    tNormVariables(totyieldB1H0L1, totHelB1H0L1, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
+    tNormVariables(totyieldB1H0L0, totHelB1H0L0, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
 
     filePre = Form(filePrefix+"%s",runnum,runnum,dataType.Data());
 
