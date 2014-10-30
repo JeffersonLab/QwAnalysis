@@ -8,7 +8,7 @@ Double_t weightedMean()//Double_t wmNrAsym[nStrips],Double_t wmDrAsym[nStrips],D
   Bool_t debug=0;
   for (Int_t s =startStrip; s <endStrip; s++) {        
     if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
-    else if(wmDrAsym[s]<=0.0) cout<<red<<"stand. deviation in weighted Mean Asym is non-positive for strip:"<<s+1<<endl;
+    else if(wmDrAsym[s]<=0.0) cout<<red<<"stand. deviation in weighted Mean Asym is non-positive for strip:"<<s+1<<normal<<endl;
     else {
       stripAsym[s] = wmNrAsym[s]/wmDrAsym[s];
       stripAsymEr[s] = TMath::Sqrt(1.0/wmDrAsym[s]);

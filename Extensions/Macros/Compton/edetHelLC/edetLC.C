@@ -12,10 +12,10 @@ Int_t edetLC(Int_t runnum, TString dataType="Ac")
   time_t tStart = time(0), tEnd; 
   div_t div_output;
   ofstream analFlags;
-  
+
   plane=1;
   Int_t asymSuc=0;
-  daqCheck = infoDAQ(runnum,dataType); 
+  retInfoDAQ = infoDAQ(runnum); 
   asymflag = expAsym(runnum,dataType);
 
   if(asymflag!=-1) {
@@ -31,13 +31,13 @@ Int_t edetLC(Int_t runnum, TString dataType="Ac")
     analFlags.close();
   }
 
-  if(daqCheck<0 || asymflag <0 || asymSuc<0) {
-  analFlags.open(Form("%s/%s/%sWhyNotExecuted.txt",pPath, txt,filePre.Data()));
-  if (analFlags.is_open()) {
-    analFlags<<";runnum\tinfoDAQ\texpAsym\tasymFit"<<endl;
-    analFlags<<runnum<<"\t"<< daqCheck<<"\t"<< asymflag<<"\t"<<asymSuc<<endl;
-    analFlags.close();
-  }
+  if(retInfoDAQ<0 || asymflag <0 || asymSuc<0) {
+    analFlags.open(Form("%s/%s/%sWhyNotExecuted.txt",pPath, txt,filePre.Data()));
+    if (analFlags.is_open()) {
+      analFlags<<";runnum\tinfoDAQ\texpAsym\tasymFit"<<endl;
+      analFlags<<runnum<<"\t"<< retInfoDAQ<<"\t"<< asymflag<<"\t"<<asymSuc<<endl;
+      analFlags.close();
+    }
   }
 
   tEnd = time(0);

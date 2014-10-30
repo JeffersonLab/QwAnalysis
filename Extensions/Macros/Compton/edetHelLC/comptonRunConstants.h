@@ -7,8 +7,8 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 0;
-const Bool_t kDeadTime = 0, k2parDT = 0;//0: 1-param DT corr; 1: 2-param DT corr
+const Bool_t kNoiseSub = 1;
+const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kOnlyGoodLasCyc = 1;
 const Int_t maxIterations =4;
@@ -17,7 +17,8 @@ const Int_t maxIterations =4;
 const char *pPath = getenv("QWSCRATCH");
 const char *www = "www";///to store all image files
 const char *txt = "txt";///to store all the text files
-const TString filePrefix = "r%d/edetLCNoDT_%d_";///one spot change of all file names
+//const TString filePrefix = "r%d/edetLCNoDT_%d_";///one spot change of all file names
+const TString filePrefix = "r%d/edetLC_%d_";///one spot change of all file names
 TString filePre;
 //Asymmetry calculation constants 
 const Double_t light=0.299792458;///in conjungtion with the 10^9 of GeV, the 10^8 of light in SI units gives this;
@@ -30,7 +31,9 @@ const Double_t B_dipole = 0.544;///T
 const Double_t eEnergyRun2 = 1157.53;///current run2 histogrammed mean
 Double_t eEnergy = 1157.53, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in from infoDAQ
 
+//const Double_t lambda = 248E-9;//uv
 const Double_t lambda = 532E-9; //photon wavelength (nm)      
+//const Double_t lambda = 1064E-9;//infra red
 Double_t xCedge=0.0;
 Double_t param[6];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
 Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
@@ -84,9 +87,9 @@ const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !!
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
-Int_t daqflag=0, daqCheck=0;
+Int_t daqflag=0, retInfoDAQ=0, retNoise=0;
 Int_t asymflag=0;
-Double_t Cedge;
+Double_t Cedge = 50;
 Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;
 Double_t eLaser;

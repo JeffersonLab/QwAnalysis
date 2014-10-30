@@ -3,7 +3,7 @@
 #include "rootClass.h"
 #include "comptonRunConstants.h"
 
-Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
+Int_t infoDAQ(Int_t runnum)
 {
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
   gSystem->mkdir(Form("%s/%s/r%d",pPath, txt,runnum));
@@ -339,7 +339,6 @@ Int_t infoDAQ(Int_t runnum, TString dataType="Ac")
   }
 
   if(debug) {
-    cout<<"using datatype: "<<dataType<<endl;
     cout<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\tholdOff\tplDelay"<<endl;
     cout<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay);
   }

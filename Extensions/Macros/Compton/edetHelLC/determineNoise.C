@@ -1,15 +1,21 @@
 #include "rootClass.h"
 #include "comptonRunConstants.h"
 ///////////////////////////////////////////////////////////////////////////
-Int_t determineNoise(Int_t runnum, Double_t strip[]) {
+Int_t determineNoise(Int_t runnum, Double_t strip[], TString dataType = "Ac") {
   cout<<blue<<"\nFinding the correct file for Noise subtraction\n"<<normal<<endl;
 
   Double_t tB0H1L1, tB0H1L0, tB0H0L1, tB0H0L0, tBeamOff;
   Double_t lasPowB0H1L1, lasPowB0H1L0, lasPowB0H0L1, lasPowB0H0L0, tBeamOn;
   Double_t rateB0H1L1[nStrips], rateB0H1L0[nStrips], rateB0H0L1[nStrips], rateB0H0L0[nStrips];
   ifstream fIn;
-
-  TString file = Form("%s/data/noisecorr_run.dat", pPath) ; 
+  TString file;
+  
+  if(dataType =="Ac") file = Form("%s/data/noisecorr_run.dat", pPath) ; 
+  else if(dataType =="Sc") file = Form("%s/data/sing_noisecorr_run.dat", pPath);
+  else {
+    cout<<red<<"dataType not known hence exiting determineNoise.C"<<normal<<endl;
+    return -1;
+  }
   Float_t runDum, tDum, noiseDum, runletDum;
   fIn.open(file);
   if (fIn.is_open()) {
@@ -21,16 +27,20 @@ Int_t determineNoise(Int_t runnum, Double_t strip[]) {
         fIn.close();
         return -1;
       } else if(runDum == runnum) {
-        cout<<blue<<"Use noise from beamoff_"<<runDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
+        if(dataType =="Ac") cout<<blue<<"Use noise from beamoff_"<<runDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
+        else cout<<blue<<"Use noise from singles_boff_"<<runDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
         fIn.close();
         break;
       }
     }
-
     fIn.close();
-  } else cout<<red<<"couldn't open the "<<file<<normal<<endl;
+  } else {
+    cout<<red<<"couldn't open the "<<file<<normal<<endl;
+    return -1;
+  }
 
-  file = Form("%s/data/beamOffRates/beamoff_%d.%d.dat", pPath, (Int_t)noiseDum, (Int_t)runletDum);
+  if(dataType =="Ac") file = Form("%s/data/beamOffRates/beamoff_%d.%d.dat", pPath, (Int_t)noiseDum, (Int_t)runletDum);
+  else file = Form("%s/data/beamOffRates/singles_boff_%d.%d.dat", pPath, (Int_t)noiseDum, (Int_t)runletDum);
   fIn.open(file);
   if(fIn.is_open()) {
     cout<<blue<<"explicit noise subtraction"<<normal<<endl; 

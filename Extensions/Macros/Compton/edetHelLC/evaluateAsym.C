@@ -50,11 +50,12 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
         wmDrAsym[s] += 1.0/asymErSqrLC[s]; ///Denominator
         if (debug) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/asymErSqrLC[s],wmDrAsym[s]);
       } else if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
-      else {
+      else if(s<nStrips/2) {
         cout<<"for a non masked strip "<<s+1<<"! Asym Er shouldn't be non-positive"<<endl;
         printf("errB1H1L1:%f, errB1H0L1:%f, errB1H1L0:%f, errB1H0L0:%f\n",errB1H1L1,errB1H0L1,errB1H1L0,errB1H0L0);
         printf("%f\t%f\t%f\t%f\t%f\t%f\n",term1, term2, NplusOn_SqQplusOn, NminusOn_SqQminusOn, NplusOff_SqQplusOff, NminusOff_SqQminusOff);
-        printf("%f\t%f\t%f\n",newCntsB1H1L1,countsLCB1H1L1[0],c2B1H1L1[0]);
+        printf("B1H1L1: %f\t%f\t%f\n",newCntsB1H1L1,countsLCB1H1L1[0],c2B1H1L1[0]);
+        printf("B1H1L0: %f\t%f\t%f\n",newCntsB1H1L0,countsLCB1H1L0[0],c2B1H1L0[0]);
         return -1;
       }
       ///Error evaluation for SUM (in asymmetry)
@@ -66,25 +67,20 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
         ///The error for the difference and sum are same, hence reusing the variable
         wmNrBCqNormDiff[s] += BCqNormDiffLC/erBCqNormSumLCSq; ///Numerator eqn 4.17(Bevington)
         //wmDrBCqNormDiff[s] += 1.0/erBCqNormSumLCSq[s]; ///Denominator eqn 4.17(Bevington)
-      } else {
+      } else if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
+      else if(s<nStrips/2) {///if the reporting strip is most possibly a pre CE strip
         printf("**Alert: getting non-positive erBCqNormSumLCSq for strip:%d in line:%d\n",s+1,__LINE__);
         printf("NplusOn_SqQplusOn:%g, NminusOn_SqQminusOn:%g, NplusOff_SqQplusOff:%g, NminusOff_SqQminusOff:%g,\n"
             ,NplusOn_SqQplusOn,NminusOn_SqQminusOn,NplusOff_SqQplusOff,NminusOff_SqQminusOff);
-      }
-    } else if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
-    else {//the counts should never be negative 
-      cout<<red<<"Reporting a strip with lasOff counts >= lasOn counts."<<endl;
-      cout<<"Most possibly, a post CE strip, is affected by noise fluctuation due to low statistics"<<normal<<endl;
+        cout<<"exiting evaluateAsym.C and won't use this nCycle for asym eval"<<endl;
+        return -2;
+      } else {//the counts should never be negative 
+      cout<<red<<"Reporting a strip with lasOff counts >= lasOn counts."<<normal<<endl;
+      cout<<"Most possibly, a post CE strip, is affected by noise fluctuation due to low statistics"<<endl;
       cout<<"strip\tnewCntsB1H1L1\t...H1L0\t...H0L1\t...H0L0\n"<<
         s+1<<"\t"<<newCntsB1H1L1<<"\t\t"<<newCntsB1H1L0<<"\t"<<newCntsB1H0L1<<"\t"<<newCntsB1H0L0<<endl;
-      if(s<nStrips/2) {///if the reporting strip is most possibly a pre CE strip
-        //  "\nqNormCountsLCB1H1L1:"<<qNormCountsLCB1H1L1<<" ,H1L0:"<<qNormCountsLCB1H1L0<<", H0L1:"<<qNormCountsLCB1H0L1<<" ,H0L0:"<<qNormCountsLCB1H0L0<<
-        //  "\nBCqNormLCB1H1L1:"<<BCqNormLCB1H1L1<<" ,H0L1:"<<BCqNormLCB1H0L1<<endl;
-        cout<<"exiting evaluateAsym.C and won't use this nCycle for asym eval"<<endl;
-        return -1;
-      } else {
         cout<<blue<<"check if it needs further attention"<<normal<<endl;
-        break;//continue;
+        continue;//break;//continue;
         ///the above can often happen for post-CE strips, hence 'break' instead of 'continue' is a better solution
         ///... eg.run 23300, in nCycle 29
       }

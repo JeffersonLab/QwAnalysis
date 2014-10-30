@@ -2,14 +2,24 @@
 #define __RHOTOX_F
 #include <TString.h>
 #include "comptonRunConstants.h"
+#include "infoDAQ.C"
 ///This function ought to be called after auto-determination of compton edge was successful
 Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
 {
   cout<<"\nStarting into rhoToX.C **************\n"<<endl;
   filePre = Form(filePrefix,runnum,runnum);
-  Bool_t debug=0;
+  Bool_t debug =0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
   ofstream QEDasym;
+  if(retInfoDAQ ==0) {
+    retInfoDAQ = infoDAQ(runnum); ///needed eEnergy for rhoToX.C
+    cout<<"calling infoDAQ from asymFit.C to get energy value"<<endl;
+  } else cout<<"parameters from infoDAQ already available hence not invoking that macro (daqcheck="<<retInfoDAQ<<")"<<endl;
+  if(retInfoDAQ<0) {
+    cout<<red<<"\nreturned error from infoDAQ.C hence exiting\n"<<normal<<endl;
+    return -2;
+  }
+
   Double_t kk,x1,CedgeToDetBot,zdrift;
   Double_t thetabend = asin(light*B_dipole*lmag/eEnergy);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)

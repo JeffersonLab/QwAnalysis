@@ -21,12 +21,12 @@
 Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain *chain, Int_t runnum)
 {
   filePre = Form(filePrefix,runnum,runnum);
-  const Bool_t debug = 1;
+  const Bool_t debug = 0;
   chain->ResetBranchAddresses();
   Int_t nEntries = chain->GetEntries();
   Double_t laser = 0.0, bcm = 0.0;//, patNum=0.0;
 
-  TH1D *hBeam = new TH1D("hBeam","dummy",100,0,220);//typical value of maximum beam current
+  TH1D *hBeam = new TH1D("hBeam","dummy",100,0,200);//typical value of maximum beam current
   TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,250000);//typical value of maximum laser power
 
   chain->Draw("yield_sca_bcm6.value>>hBeam","","goff");

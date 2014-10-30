@@ -50,7 +50,7 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
     //else if(bkgdAsymErSqr == 0.0) {
     //  cout<<red<<"\ncheck if plane "<<plane<<" strip "<<s+1<<" is MASKED? the bkgdAsymErSqr is non-positive"<<
     //    "\nThis could also happen due to beamTrip coincident with whole laserOff period"<<normal<<endl;
-    else {
+    else if(s<nStrips/2) {///most possibly a pre CE strip
       cout<<red<<"the bkgdAsymErSqr shouldn't be normally negative;check:\nstrip\tcountsLCB1H1L0\t..H0L0\tnewCntsB1H1L0\t..H0L0\n"
         <<s+1<<"\t"<<countsLCB1H1L0[s]<<"\t"<<countsLCB1H0L0[s]<<"\t"<<newCntsB1H1L0[s]<<"\t"<<newCntsB1H0L0[s]<<"\t"<<
         "\nqNormBkgdAsymNr:"<<qNormBkgdAsymNr<<" ,Dr:"<<qNormBkgdAsymDr<<
@@ -59,6 +59,9 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
         "\nerrBkgdAsymH1:"<< errBkgdAsymH1<<" ,\tH0:"<<errBkgdAsymH0<<normal<<endl;
       //continue;//skip this strip for this laser cycle
       return -1;///in background, I can't think why this should ever be negative
+    } else {
+      cout<<"most possibly a far off strip suffers from statistical fluctuation"<<endl;
+      break;
     }
     //if(debug) printf("for strip:%d, adding %g(1/bkgdAsymErSq) to wmDrBkgdAsym making it: %f\n",s+1,1.0/bkgdAsymErSqr,wmDrBkgdAsym[s]);
   }

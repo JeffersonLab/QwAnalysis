@@ -3,6 +3,8 @@ void rootlogon()
 	gSystem->Load("libCint");
   TStyle *pubStyle= new TStyle("publication","publication quality plots style");
 
+//for TPaveText, TLegend etc
+  pubStyle->SetFillStyle(0);
 // use plain black on white colors
   pubStyle->SetFrameBorderMode(0);
   pubStyle->SetCanvasBorderMode(0);
@@ -52,6 +54,6 @@ void rootlogon()
   //pubStyle->SetPadBorderSize(3);
   pubStyle->SetFrameLineWidth(3);
   // put tick marks on top and RHS of plots
-  pubStyle->SetPadTickX(1);
+  //pubStyle->SetPadTickX(1);
   pubStyle->SetPadTickY(1);
 }

@@ -11,6 +11,7 @@
 #include "determineNoise.C"
 #include "corrDeadtime.C"
 #include "writeToFile.C"
+//#include "lasCycOut.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
 ///////////////////////////////////////////////////////////////////////////
@@ -51,8 +52,6 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   TChain *helChain = new TChain("Hel_Tree");//chain of run segments
   vector<Int_t>cutLas;//arrays of cuts for laser
   vector<Int_t>cutEB;//arrays of cuts for electron beam
-  ofstream countsLC[nStrips],lasCycBCM,lasCycLasPow;//to write files every laserCycle
-  ofstream outAsymLasCyc[nStrips];
   ifstream infileLas, infileBeam, fIn;
   TString file;
 
@@ -179,7 +178,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   ///////////// Implementing noise subtraction //////
   ///Reading in the noise file
   if(kNoiseSub) {
-    Int_t retNoise = determineNoise(runnum, stripArray);
+    retNoise = determineNoise(runnum, stripArray, dataType);
     if (retNoise<0) cout<<red<<"\n Noise subtraction failed, check its reasons\n \n"<<normal<<endl;
   } 
   ///////////////////////////////////////////////////
@@ -238,29 +237,14 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     //the branch for each plane is named from 1 to 4
   } else cout<<red<<"dataType not defined clearly"<<normal<<endl;
 
-  ///I need to open the lasCyc dependent files separately here since at every nCycle I update this file with a new entry
-  ///..it should be opened before I enter the nCycle loop, and close them after coming out of the nCycle loop.
-  if(lasCycPrint) {
-    gSystem->mkdir(Form("%s/%s/r%d/lasCyc",pPath,txt,runnum));    
-    for(Int_t s =startStrip; s <endStrip; s++) {
-      ///lasCyc based files go into a special folder named lasCyc
-      countsLC[s].open(Form("%s/%s/r%d/lasCyc/edetLC_%d_"+dataType+"LasCycP%dS%d.txt",pPath,txt,runnum,runnum,plane,s+1));
-      if(debug1) cout<<"opened "<<Form("%s/%s/r%d/lasCyc/edetLC_%d_"+dataType+"LasCycP%dS%d.txt",pPath,txt,runnum,runnum,plane,s+1)<<endl;
-      ///Lets open the files for writing asymmetries in the beamOn loop repeatedly
-      outAsymLasCyc[s].open(Form("%s/%s/r%d/lasCyc/edetLC_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,txt,runnum,runnum,plane,s+1));
-      if(debug1) cout<<"opened "<<Form("%s/%s/r%d/lasCyc/edetLC_%d_"+dataType+"AsymPerLasCycP%dS%d.txt",pPath,txt,runnum,runnum,plane,s+1)<<endl;
-    }
-    lasCycBCM.open(Form("%s/%s/r%d/lasCyc/edetLC_%d_lasCycBcmAvg.txt",pPath,txt,runnum,runnum));
-    lasCycLasPow.open(Form("%s/%s/r%d/lasCyc/edetLC_%d_lasCycAvgLasPow.txt",pPath,txt,runnum,runnum));  
-  }
-  if(nLasCycles<=0) {
+if(nLasCycles<=0) {
     cout<<red<<"no.of laser cycles found in this run is ZERO"<<
       "\nHence this will useful entirely as a background run\n"<<normal<<endl;
     return -1;
   }
 
   if(dataType=="Ac" && kDeadTime) {///to ensure that it doesn't get applied for Scaler analysis
-    corrDeadtime(runnum, dataType);
+    corrDeadtime(runnum);
   } else {
     for (Int_t s =startStrip; s <endStrip; s++) {	
       c2B1H1L1[s] = 1.0; 
@@ -272,7 +256,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   }
 
   for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-    //for(Int_t nCycle=0; nCycle<1; nCycle++) {//temp:to debug, run only 1 laserCycle
+  //for(Int_t nCycle=0; nCycle<1; nCycle++) {//temp:to debug, run only 1 laserCycle
     //cout<<red<<"\n**Temporarily analyzing only one laser cycle for debug purpose**\n"<<normal<<endl;
     if(debug) cout<<"\nStarting nCycle:"<<nCycle+1<<" from entry # "<<cutLas.at(2*nCycle)<<" to # "<<cutLas.at(2*nCycle+2)<<endl;
 
@@ -346,7 +330,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           continue;
         }
 
-        if(d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05) beamStable = 1;
+        if(d_3p02aY[0] < 0.00005 || d_3p02aY[0] < 0.00005 || d_3p02aY[0] < 0.00005) beamStable = 1;
         else {
           beamStable = 0;
           missedDueToStability++;
@@ -421,6 +405,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
         if(kNoiseSub) {
           for (Int_t s =startStrip; s <endStrip; s++) {	  
             ///the noiseSubtraction assumes that the +ve and -ve helicities are equal in number, hence dividing by 2
+            //cout<<s+1<<"  before NoiseSub  "<<countsLCB1H1L0[s]<<"  "<<countsLCB1H1L0[s]<<"  "<<rateB0[s]<<"   "<<(nHelLCB1L0/2.0)/helRate<<endl;
             countsLCB1H1L1[s] = countsLCB1H1L1[s] - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
             countsLCB1H1L0[s] = countsLCB1H1L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
             countsLCB1H0L1[s] = countsLCB1H0L1[s] - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
@@ -450,28 +435,8 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
         evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qLCH1L0, qLCH0L0);
         goodCycles++;///
       }
-      if(lasCycPrint) {
-        //q=i*t;qH1L1=(iH1L1/nMpsH1L1)*(nMpsH1L1/MpsRate);//this really gives total-charge for this laser cycle
-        Double_t qLasCycL1 = qLCH0L1 + qLCH1L1;//(qLCH0L1 + qLCH1L1) /helRate;  
-        Double_t qLasCycL0 = qLCH0L0 + qLCH1L0;
-        //!!check the above "average charge", it doesn't seem the appropriate way of averaging
-        if(debug1) {
-          cout<<"the Laser Cycle: "<<nCycle+1<<" has 'beamOn': "<<beamOn<<endl;
-          cout<<"printing variables on a per-laser-cycle basis"<<endl;
-          cout<<"laserOnOffRatioH0: "<<laserOnOffRatioH0<<endl;
-          cout<<Form("qLCH1L1: %f\t qLCH1L0: %f",qLCH1L1,qLCH1L0)<<endl;
-        }	   
-        for (Int_t s =startStrip; s <endStrip;s++) {
-          if (countsLC[s].is_open()) {
-            countsLC[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,yieldB1L0[s]/qLasCycL0,yieldB1L1[s]/qLasCycL1)<<endl;
-            countsLC[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(yieldB1L0[s]/((Double_t)nHelLCB1L0/helRate)),((TMath::Sqrt(yieldB1L0[s]))/(Double_t)(nHelLCB1L0/helRate)))<<endl;
-          } else cout<<"\n***Alert: Couldn't open file for writing laserCycle based values\n\n"<<endl;  
-          if (outAsymLasCyc[s].is_open()) {
-            outAsymLasCyc[s]<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,qNormAsymLC[s],TMath::Sqrt(asymErSqrLC[s]))<<endl;
-          } else cout<<"\n***Alert: Couldn't open file for writing asymmetry per laser cycle per strip\n\n"<<endl;
-        }
-        lasCycBCM<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,(qLCH1L0+qLCH0L0)/nHelLCB1L0,(qLCH1L1+qLCH0L1)/nHelLCB1L1)<<endl;
-        lasCycLasPow<<Form("%2.0f\t%f\t%f",(Double_t)nCycle+1,lasPowLCB1L0/nHelLCB1L0,lasPowLCB1L1/nHelLCB1L1)<<endl;
+      if(lasCycPrint) {///to be called to print some values every laser cycle
+        //lasCycOut(runnum);
       }///if(lasCycPrint)
 
       }///sanity check of being non-zero for filled laser cycle variables
@@ -488,7 +453,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           continue;
         }
 
-        if(d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05) beamStable = 1;
+        if(d_3p02aY[0] < 0.00005 || d_3p02aY[0] < 0.00005 || d_3p02aY[0] < 0.00005) beamStable = 1;
         else {
           beamStable = 0;
           continue;
@@ -515,16 +480,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     }///if (beamOn)
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
 
-  if(lasCycPrint) {///close them only if you open 
-    for(Int_t s =startStrip; s <endStrip; s++) {
-      countsLC[s].close();
-      outAsymLasCyc[s].close();
-    }
-    lasCycBCM.close();
-    lasCycLasPow.close();
-  }
-
-  cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
+cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
   //notice that the variables to be written by the writeToFile command is updated after every call of weightedMean() function
 
   if(goodCycles>0) {

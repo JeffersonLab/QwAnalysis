@@ -104,11 +104,11 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       return -1;
     }
   }
-  if(daqCheck ==0) {
-    daqCheck = infoDAQ(runnum, dataType); ///needed eEnergy for rhoToX.C
+  if(retInfoDAQ ==0) {
+    retInfoDAQ = infoDAQ(runnum); ///needed eEnergy for rhoToX.C
     cout<<"calling infoDAQ from asymFit.C to get energy value"<<endl;
-  } else cout<<"parameters from infoDAQ already available hence not invoking that macro (daqcheck="<<daqCheck<<")"<<endl;
-  if(daqCheck<0) {
+  } else cout<<"parameters from infoDAQ already available hence not invoking that macro (daqcheck="<<retInfoDAQ<<")"<<endl;
+  if(retInfoDAQ<0) {
     cout<<red<<"\nreturned error from infoDAQ.C hence exiting\n"<<normal<<endl;
     return -2;
   }

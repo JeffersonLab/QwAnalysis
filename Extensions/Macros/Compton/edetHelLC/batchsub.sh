@@ -4,7 +4,7 @@ macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
-dataType=AcNoDTVer001
+dataType=AcVer002
 found=yes
 #for i in `seq 24252 24252`;
 #for i in `seq 22659 25546`;
@@ -12,7 +12,8 @@ found=yes
 #for i in `seq 23220 23530`;
 #for i in `seq 24250 24450`;
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/runsMCM.txt);
-for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol.txt);
+#for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol.txt);
+for i in $(cat testSub2.temp);
 #for i in $(cat testSub.temp);
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol_23000.txt);
 
