@@ -176,23 +176,23 @@ Int_t infoDAQ(Int_t runnum)
   Double_t minE = slowChain->GetMinimum("HALLC_p");
   Double_t newEmean;
   cout<<"beam energy: max, min: "<<maxE<<"\t"<<minE<<endl;
-  if((maxE - minE)<1 && (maxE != 0)) {///within 1 MeV
-    cout<<"max and min energy measurement are consistent"<<endl;
-    for(int i=0; i<totEntries; i++) {///because the max and min E are consistent, following should work
-      slowChain->GetEntry(i);
-      hEnergy->Fill(rawE);
-      //if(ibcm1 > highBeamCut) hEnergy->Fill(rawE);
-    }
-    newEmean = hEnergy->GetMean();
-    rms_eEnergy = hEnergy->GetRMS();
-    eEnergyEr = hEnergy->GetMeanError();
-    cout<<blue<<"new energy mean: "<<newEmean<<normal<<endl;
-    if(newEmean <= maxE && newEmean >= minE) eEnergy = newEmean;///energy still in MeV
-  } else {
+  //if((maxE - minE)<1 && (maxE != 0)) {///within 1 MeV
+  //  cout<<"max and min energy measurement are consistent"<<endl;
+  //  for(int i=0; i<totEntries; i++) {///because the max and min E are consistent, following should work
+  //    slowChain->GetEntry(i);
+  //    hEnergy->Fill(rawE);
+  //    //if(ibcm1 > highBeamCut) hEnergy->Fill(rawE);
+  //  }
+  //  newEmean = hEnergy->GetMean();
+  //  rms_eEnergy = hEnergy->GetRMS();
+  //  eEnergyEr = hEnergy->GetMeanError();
+  //  cout<<blue<<"new energy mean: "<<newEmean<<normal<<endl;
+  //  if(newEmean <= maxE && newEmean >= minE) eEnergy = newEmean;///energy still in MeV
+  //} else {
     eEnergy = eEnergyRun2; ///default histogram value for whole run
     cout<<blue<<"eEnergy being hard set to "<<eEnergyRun2<<normal<<endl;
     erBeamVar += "\teEnergyEr";///to assert that something spurious happened in energy measurement
-  }
+  //}
 
   if(debug) {
     cout<<blue<<"HWien\tVWien\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos"<<endl;
