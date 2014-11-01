@@ -9,11 +9,13 @@ const Int_t runBegin = 22659, runEnd = 25546;///whole run2 range
 
 Int_t allRunPol_3v() {
   gROOT->SetStyle("publication");
-  Bool_t bRatio = 1;
+  Bool_t bRatio = 0;
   Bool_t bDiff = 0;
   Bool_t bRateScan = 0;
-  Bool_t bPolSc = 0, bPolAc =0;
+  Bool_t bPolSc = 0, bPolAc =1;
   Bool_t bCorrDT = 0;
+  Bool_t bIndepCorrDT = 0;
+  Bool_t bScint = 1;
   ifstream fIn;
   ofstream fCheck;
   TString ver1, ver2, file;
@@ -21,6 +23,7 @@ Int_t allRunPol_3v() {
   std::vector<Double_t> finalRuns,polCol1, polCol1Er, polCol2, polCol2Er, polCol3, polCol3Er, acTr, p4On, p1ScH1BgdSub;
   std::vector<Double_t> polS1, polErS1, polS2, polErS2, polS3, polErS3; ///polarization in various colums
   Double_t d1, d2, d3, d4, d5, d6, d7, d8, d9, d10;
+  Double_t d11, d12, d13;
   TString s1, s2, s3, s4, s5, s6, s7, s8, s9, s0;
   TF1 *lFitV1 = new TF1("lFitV1", "pol0",runBegin,runEnd);
   TF1 *lFitV2 = new TF1("lFitV2", "pol0",runBegin,runEnd);
@@ -40,27 +43,31 @@ Int_t allRunPol_3v() {
   //} else cout<<red<<"couldn't open the list of good runs"<<normal<<endl;
   //cout<<blue<<goodRuns.size()<<" runs found in the goodList"<<endl;
 
-  //fIn.open("allRun2.info");
+  std::vector<Double_t> scintRate, scintRateEr, scintRMS;
   //fIn.open("combFiles_30Sep14.info");
-  file = "combFiles_Ver001.info";
+  //file = "combFiles_Ver001.info";
+  file = "combFiles_Ver001_31Oct14.info";
   fIn.open(file);
   if(fIn.is_open()) {
     fIn>>s0>>s1>>s2>>s3>>s4>>s5>>s6>>s7>>s8>>s9;
-    while(fIn>>d1>>d2>>d3>>d4>>d5>>d6>>d7>>d8>>d9>>d10 && fIn.good()) {
+    while(fIn>>d1>>d2>>d3>>d4>>d5>>d6>>d7>>d8>>d9>>d10>>d11>>d12>>d13 && fIn.good()) {
       if(d1>=runBegin && d1<=runEnd) {///limiting run range
         if(d2>80.0 && d4>80 && d6>80) {
           if(d3<1.5 && d5<1.5 && d7<1.5) {///excluding polEr > 1.5% in Ac_noDT
             if(d3>0.01 && d5>0.01 && d7>0.01) {
               finalRuns.push_back(d1);//run#
-              polCol1.push_back(d2);//polAc_noDT
-              polCol1Er.push_back(d3);//polErAc_noDT
-              polCol2.push_back(d4);//polAc_2parDT 
-              polCol2Er.push_back(d5);//polErAc_2parDT
+              polCol1.push_back(d2);//polAc
+              polCol1Er.push_back(d3);//polErAc
+              polCol2.push_back(d4);//polSc
+              polCol2Er.push_back(d5);//polErSc
               polCol3.push_back(d6);//polSc_noDT
               polCol3Er.push_back(d7);//polErSc_noDT
               acTr.push_back(d8);//acTrig
               p4On.push_back(d9);//plane 4 rates
               p1ScH1BgdSub.push_back(d10);//plane1 Bgd Sub Scalar aggregate
+              scintRate.push_back(d11);
+              scintRateEr.push_back(d12);
+              scintRMS.push_back(d13);
             } else fCheck<<d1<<"\t"<<d2<<"\t"<<d3<<"\t"<<d4<<"\t"<<d5<<"\t"<<d6<<"\t"<<d7<<endl;
           } else fCheck<<d1<<"\t"<<d2<<"\t"<<d3<<"\t"<<d4<<"\t"<<d5<<"\t"<<d6<<"\t"<<d7<<endl;
         } else fCheck<<d1<<"\t"<<d2<<"\t"<<d3<<"\t"<<d4<<"\t"<<d5<<"\t"<<d6<<"\t"<<d7<<endl;
@@ -74,9 +81,10 @@ Int_t allRunPol_3v() {
 
   ///Only one of these can be turned On
   //pick and choose what needs to be compared from below
-  Bool_t bS3S2 =0;
+  Bool_t bS2S3 =0;
+  Bool_t bS3S2 =1;
   Bool_t bS1S2 =0;
-  Bool_t bS1S3 =1;
+  Bool_t bS1S3 =0;
   if(bS1S2) {//keeping the noDT version in denominator
     polS1 =   polCol1;  
     polErS1 = polCol1Er;
@@ -91,6 +99,13 @@ Int_t allRunPol_3v() {
     polErS2 = polCol2Er;
     ver1 = s5;//"Ac2parDT";
     ver2 = s3;//"ScNoDT";
+  } else if(bS2S3) {
+    polS1 =   polCol2;
+    polErS1 = polCol2Er;
+    polS2 =   polCol3;
+    polErS2 = polCol3Er;
+    ver1 = s3;//"Ac2parDT";
+    ver2 = s5;//"ScNoDT";
   } else if(bS1S3) { 
     polS1 =  polCol1; 
     polErS1 = polCol1Er;
@@ -105,6 +120,8 @@ Int_t allRunPol_3v() {
   std::vector<Double_t> runs_24, polV1_24, polErV1_24, polV2_24, polErV2_24;
   std::vector<Double_t> runs_33, polV1_33, polErV1_33, polV2_33, polErV2_33;
   std::vector<Double_t> runs_34, polV1_34, polErV1_34, polV2_34, polErV2_34;
+  std::vector<Double_t> scint_23, scint_24, scint_33, scint34;
+  std::vector<Double_t> scintEr_23, scintEr_24, scintEr_33, scintEr_34;
   Int_t group = 30;
   std::vector<Double_t> wmRuns_23, wmPolV2_23, wmPolErV2_23, wmPolV1_23, wmPolErV1_23;
   std::vector<Double_t> wmRuns_33, wmPolV2_33, wmPolErV2_33, wmPolV1_33, wmPolErV1_33;
@@ -175,7 +192,7 @@ Int_t allRunPol_3v() {
       //rV1V2Er_23.push_back(wmPolErV1_23.at(r));
     }
     grV1_23 = new TGraphErrors((Int_t)wmRuns_23.size(), wmRuns_23.data(), wmPolV1_23.data(), 0, wmPolErV1_23.data());
-    grV1_23->SetMarkerStyle(kFullSquare);
+    grV1_23->SetMarkerStyle(kOpenSquare);
     grV1_23->SetMarkerColor(kBlue);
     grV1_23->SetLineColor(kBlue);
     grV2_23 = new TGraphErrors((Int_t)wmRuns_23.size(), wmRuns_23.data(), wmPolV2_23.data(), 0, wmPolErV2_23.data());
@@ -205,20 +222,20 @@ Int_t allRunPol_3v() {
       //rV1V2Er_24.push_back(wmPolErV1_24.at(r));
     }
     grV1_24 = new TGraphErrors((Int_t)wmRuns_24.size(), wmRuns_24.data(), wmPolV1_24.data(), 0, wmPolErV1_24.data());
-    grV1_24->SetMarkerStyle(kFullSquare);
+    grV1_24->SetMarkerStyle(kOpenSquare);
     grV1_24->SetMarkerColor(kGreen);
     grV1_24->SetLineColor(kGreen);
     grV2_24 = new TGraphErrors((Int_t)wmRuns_24.size(), wmRuns_24.data(), wmPolV2_24.data(), 0, wmPolErV2_24.data());
-    grV2_24->SetMarkerStyle(kFullSquare);
+    grV2_24->SetMarkerStyle(kOpenSquare);
     grV2_24->SetMarkerColor(kGreen);
     grV2_24->SetLineColor(kGreen);
     grR_24 = new TGraphErrors((Int_t)wmRuns_24.size(), wmRuns_24.data(), rV1V2_24.data(), 0, rV1V2Er_24.data());
-    grR_24->SetMarkerStyle(kFullSquare);
+    grR_24->SetMarkerStyle(kOpenSquare);
     grR_24->SetMarkerColor(kGreen);
     grR_24->SetLineColor(kGreen);
     ///Difference of grouped value of individual pol% sets
     grDiff_24 = new TGraphErrors((Int_t)wmRuns_24.size(), wmRuns_24.data(), diffV1V2_24.data(), 0, wmPolErV1_24.data());
-    grDiff_24->SetMarkerStyle(kFullSquare);
+    grDiff_24->SetMarkerStyle(kOpenSquare);
     grDiff_24->SetMarkerColor(kGreen);
     grDiff_24->SetLineColor(kGreen);
   }
@@ -239,7 +256,7 @@ Int_t allRunPol_3v() {
       //rV1V2Er_33.push_back(wmPolErV1_33.at(r));
     }
     grV1_33 = new TGraphErrors((Int_t)wmRuns_33.size(), wmRuns_33.data(), wmPolV1_33.data(), 0, wmPolErV1_33.data());
-    grV1_33->SetMarkerStyle(kFullSquare);
+    grV1_33->SetMarkerStyle(kOpenSquare);
     grV1_33->SetMarkerColor(kRed);
     grV1_33->SetLineColor(kRed);
     grV2_33 = new TGraphErrors((Int_t)wmRuns_33.size(), wmRuns_33.data(), wmPolV2_33.data(), 0, wmPolErV2_33.data());
@@ -271,7 +288,7 @@ Int_t allRunPol_3v() {
       rV1V2Er_34.push_back( TMath::Sqrt(pow(wmPolErV1_34.at(r)/wmPolV2_34.at(r),2) + pow((wmPolV1_34.at(r)/(pow(wmPolV2_34.at(r),2)))*wmPolErV2_34.at(r), 2) ));
     }
     grV1_34 = new TGraphErrors((Int_t)wmRuns_34.size(), wmRuns_34.data(), wmPolV1_34.data(), 0, wmPolErV1_34.data());
-    grV1_34->SetMarkerStyle(kFullSquare);
+    grV1_34->SetMarkerStyle(kOpenSquare);
     grV1_34->SetMarkerColor(6);
     grV1_34->SetLineColor(6);
     grV2_34 = new TGraphErrors((Int_t)wmRuns_34.size(), wmRuns_34.data(), wmPolV2_34.data(), 0, wmPolErV2_34.data());
@@ -288,7 +305,23 @@ Int_t allRunPol_3v() {
     grDiff_34->SetLineColor(6);
   }
 
-  if(bCorrDT) {
+  if(bScint) {
+    TCanvas *cScint = new TCanvas("cScint","Scintillator rates",100,100,800,400);
+    cScint->SetGridx();
+    std::vector<Double_t> wmRunsScint, wmScint, wmScintEr;
+
+    cluster(group,finalRuns, scintRate, scintRateEr, wmRunsScint, wmScint, wmScintEr);
+    TGraphErrors *grScint = new TGraphErrors((Int_t)wmRunsScint.size(), wmRunsScint.data(), wmScint.data(), 0, wmScintEr.data());
+    grScint->Draw("AP");
+    grScint->GetXaxis()->SetTitle("Run number"); 
+    grScint->GetYaxis()->SetTitle("scintillator rate");
+    grScint->SetTitle();
+    grScint->GetXaxis()->SetLimits(runBegin-5,runEnd+5); 
+    cScint->SaveAs(Form("scint_G%d.png",group)); 
+  }
+
+  
+  if(bIndepCorrDT) {
     TCanvas *cDT = new TCanvas("cDT","DT corr",0,400,800,400);
 
     std::vector<Double_t> rListDT_23, corrH1L1_23, corrH1L0_23, corrH0L1_23, corrH0L0_23;
@@ -397,16 +430,91 @@ Int_t allRunPol_3v() {
     if((Int_t)runs_24.size()>group) grRatio->Add(grR_24);
     if((Int_t)runs_34.size()>group) grRatio->Add(grR_34);
 
+  if(bCorrDT) {
+    std::vector<Double_t> rListDT_23, corrH1L1_23, corrH1L0_23, corrH0L1_23, corrH0L0_23;
+    std::vector<Double_t> rListDT_24, corrH1L1_24, corrH1L0_24, corrH0L1_24, corrH0L0_24;
+    file = Form("%s/data/newdtcorr_2by3p0.dat",pPath);
+    fIn.open(file);
+    if(fIn.is_open()) {
+      while(fIn >>d1 >>d2 >>d3 >>d4 >>d5 && fIn.good()) {
+        if(std::find(runs_23.begin(), runs_23.end(), d1) != runs_23.end()) {///populate only if the run exists in goodList
+          rListDT_23.push_back(d1);
+          corrH1L1_23.push_back(d2);
+          corrH1L0_23.push_back(d3);
+          corrH0L1_23.push_back(d4);
+          corrH0L0_23.push_back(d5);
+        } else if(std::find(runs_24.begin(), runs_24.end(), d1) != runs_24.end()) {///populate only if the run exists in goodList
+          rListDT_24.push_back(d1);
+          corrH1L1_24.push_back(d2);
+          corrH1L0_24.push_back(d3);
+          corrH0L1_24.push_back(d4);
+          corrH0L0_24.push_back(d5);
+        }
+      }
+      fIn.close();
+    }
+    cout<<"size of rListDT_23: "<<rListDT_23.size()<<endl;
+    cout<<"size of rListDT_24: "<<rListDT_24.size()<<endl;
+
+    std::vector<Double_t> rListDT_33, corrH1L1_33, corrH1L0_33, corrH0L1_33, corrH0L0_33;
+    std::vector<Double_t> rListDT_34, corrH1L1_34, corrH1L0_34, corrH0L1_34, corrH0L0_34;
+    file = Form("%s/data/newdtcorr_3by3p0.dat",pPath);
+    fIn.open(file);
+    if(fIn.is_open()) {
+      cout<<"opened file "<<file<<endl;
+      while(fIn >>d1 >>d2 >>d3 >>d4 >>d5 && fIn.good()) {
+        //printf("%f\t%f\t%f\t%f\t%f\n",d1, d2, d3, d4, d5);
+        if(std::find(runs_33.begin(), runs_33.end(), d1) != runs_33.end()) {///populate only if the run exists in 
+          rListDT_33.push_back(d1);
+          corrH1L1_33.push_back(d2);
+          corrH1L0_33.push_back(d3);
+          corrH0L1_33.push_back(d4);
+          corrH0L0_33.push_back(d5);
+        } else if(std::find(runs_34.begin(), runs_34.end(), d1) != runs_34.end()) {///populate only if the run exists 
+          rListDT_34.push_back(d1);
+          corrH1L1_34.push_back(d2);
+          corrH1L0_34.push_back(d3);
+          corrH0L1_34.push_back(d4);
+          corrH0L0_34.push_back(d5);
+        }
+      }
+      fIn.close();
+    } else cout<<red<<file<<" not opened"<<normal<<endl;
+
+    cout<<"size of rListDT_33: "<<rListDT_33.size()<<endl;
+    cout<<"size of rListDT_34: "<<rListDT_34.size()<<endl;
+
+    std::vector<Double_t> rGrH1L1_23, grDTH1L1_23;
+    std::vector<Double_t> rGrH1L1_24, grDTH1L1_24;
+    std::vector<Double_t> rGrH1L1_34, grDTH1L1_34;
+    //std::vector<Double_t> rGrH1L0_23, grDTH1L0_23;
+    simpleAvg(group, rListDT_23, corrH1L1_23, rGrH1L1_23, grDTH1L1_23);
+    simpleAvg(group, rListDT_24, corrH1L1_24, rGrH1L1_24, grDTH1L1_24);
+    simpleAvg(group, rListDT_34, corrH1L1_34, rGrH1L1_34, grDTH1L1_34);
+    //simpleAvg(group, rListDT_23, corrH1L0_23, rGrH1L0_23, grDTH1L0_23);
+
+    TGraph *gr3 = new TGraph((Int_t)rGrH1L1_23.size(), rGrH1L1_23.data(), grDTH1L1_23.data());
+    gr3->SetMarkerColor(kBlue);
+
+    TGraph *gr2 = new TGraph((Int_t)rGrH1L1_24.size(), rGrH1L1_24.data(), grDTH1L1_24.data());
+    gr2->SetMarkerColor(kGreen);
+
+    TGraph *gr1 = new TGraph((Int_t)rGrH1L1_34.size(), rGrH1L1_34.data(), grDTH1L1_34.data());
+    gr1->SetMarkerColor(kMagenta);
+
+    grRatio->Add(gr3);
+    grRatio->Add(gr2);
+    grRatio->Add(gr1);
+  }
+
     grRatio->Draw("AP");
     grRatio->GetXaxis()->SetTitle("Run number"); 
-    grRatio->GetYaxis()->SetTitle("pol Ratio(#frac{"+ver1+"}{"+ver2+"})");
+    grRatio->GetYaxis()->SetTitle("Ratio(#frac{"+ver1+"}{"+ver2+"})");
     grRatio->SetTitle();
     grRatio->GetXaxis()->SetLimits(runBegin-5,runEnd+5); 
     //grRatio->SetMinimum(1.02);
     //grRatio->SetMaximum(1.055);
-
     //if((Int_t)runs_23.size()>group) grR_23->Fit(lFitV1,"EM");
-
     //TLegend *legRa = new TLegend(0.12,0.75,0.3,0.99);
     //legRa->AddEntry(grR_23,"Ac(_23)/Sc","lpe");
     //legRa->AddEntry(grR_24,"Ac(_24)/Sc","lpe");

@@ -41,9 +41,11 @@ Int_t combFiles(Int_t run1=runBegin, Int_t run2=runEnd)
 
   ///read in the DAQ (trig) info for all runs
   std::vector<Double_t> runDAQ, acTrigRun2;
+  TString s1, s2, s3, s4, s5, s6, s7, s8, s9;
   char firmW[5]="0000";
   fIn.open("run2DAQ.info");
   if (fIn.is_open()) { 
+    fIn>> s1 >>s2 >>s3 >>s4 >>s5 >>s6 >>s7 >>s8 >>s9;
     while(fIn>>tRun>>acTrig>>evTrig>>minWidth>>firmW>>pwtl1>>pwtl2>>holdOff>>pipelineDelay && fIn.good()) {
       if(std::find(goodRuns.begin(), goodRuns.end(), tRun) != goodRuns.end()) {///populate only if the run exists in goodList
         runDAQ.push_back((Double_t)tRun);
@@ -75,15 +77,16 @@ Int_t combFiles(Int_t run1=runBegin, Int_t run2=runEnd)
   cout<<blue<<rListBeam.size()<<" runs found in beam las info list"<<normal<<endl;
 
   ///to reach the scintillator rates
-  std::vector<Double_t> rListScint, scintRate, scintRateEr;
-  Double_t scint, scintEr, scintRMS;
-  file = "scintRate_14Oct14.info";
+  std::vector<Double_t> rListScint, scintRate, scintRateEr, scintRMS;
+  Double_t sci, sciEr, sciRMS;
+  file = "scintRate_ver001_31Oct14.info";
   fIn.open(file);
   if(fIn.is_open()) {
-    while(fIn >>runD >>scint >>scintEr >>scintRMS && fIn.good()) {
+    while(fIn >>runD >>sci >>sciEr >>sciRMS && fIn.good()) {
       rListScint.push_back(runD);
-      scintRate.push_back(scint);
-      scintRateEr.push_back(scintEr);
+      scintRate.push_back(sci);
+      scintRateEr.push_back(sciEr);
+      scintRMS.push_back(sciRMS);
     }
     fIn.close();
   } else cout<<red<<"couldn't open "<<file<<normal<<endl;
@@ -181,7 +184,7 @@ Int_t combFiles(Int_t run1=runBegin, Int_t run2=runEnd)
 
   std::vector<Double_t>finalList;
   //file = "combFiles_03Oct14.info";
-  file = "combFiles_Ver001.txt";
+  file = "combFiles_Ver001_31Oct14.info";
   ofstream fOut;
   fOut.open(file);
   if (fOut.is_open()) {
@@ -201,10 +204,14 @@ Int_t combFiles(Int_t run1=runBegin, Int_t run2=runEnd)
                         if(goodRuns.at(r1) == rListV3.at(r6)) {
                           for(int r7=0; r7<(int)rListP4.size(); r7++) {//plane4 aggregate rates
                             if(goodRuns.at(r1) == rListP4.at(r7)) {
-                              finalList.push_back(goodRuns.at(r1));
-                              fOut<<Form("%5.0f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%5.0f\t%.0f\t%.0f\n", goodRuns.at(r1), polV1.at(r3), polErV1.at(r3), polV2.at(r4), polErV2.at(r4), polV3.at(r6), polErV3.at(r6), acTrigRun2.at(r2), rateScP4H1L1.at(r7), ratesScH1L1.at(r5) - ratesScH1L0.at(r5));
-                              //cout<<Form("%5.0f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%5.0f\t%.0f\t%.0f\n", goodRuns.at(r1), polV1.at(r3), polErV1.at(r3), polV2.at(r4), polErV2.at(r4), polV3.at(r6), polErV3.at(r6), acTrigRun2.at(r2), rateScP4H1L1.at(r7), ratesScH1L1.at(r5) - ratesScH1L0.at(r5));
-                              break;
+                              for(int r8=0; r8<(int)rListScint.size(); r8++) {
+                                if(goodRuns.at(r1) == rListScint.at(r8)) {
+                                  finalList.push_back(goodRuns.at(r1));
+                                  fOut<<Form("%5.0f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%5.0f\t%.0f\t%.0f\t%8.2f\t%8.2f\t%8.2f\n", goodRuns.at(r1), polV1.at(r3), polErV1.at(r3), polV2.at(r4), polErV2.at(r4), polV3.at(r6), polErV3.at(r6), acTrigRun2.at(r2), rateScP4H1L1.at(r7), ratesScH1L1.at(r5) - ratesScH1L0.at(r5), scintRate.at(r8), scintRateEr.at(r8), scintRMS.at(r8));
+                                  //cout<<Form("%5.0f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%5.0f\t%.0f\t%.0f\n", goodRuns.at(r1), polV1.at(r3), polErV1.at(r3), polV2.at(r4), polErV2.at(r4), polV3.at(r6), polErV3.at(r6), acTrigRun2.at(r2), rateScP4H1L1.at(r7), ratesScH1L1.at(r5) - ratesScH1L0.at(r5));
+                                  break;
+                                }
+                              }
                             }
                           }
                         }

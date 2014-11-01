@@ -24,6 +24,6 @@ Int_t run1, Int_t run2)
       }
     }
     fRates.close();
-  } else cout<<red<<"could not open "<<file.Data()<<normal<<endl;
+  } else cout<<red<<"could not open "<<file<<normal<<endl;
   return 1;
 }
