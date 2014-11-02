@@ -22,7 +22,7 @@ export DEBUG=0
 #pass
 export PASS="5b"
 #path to website
-export WEBSITE="/group/qweak/www/html/tracking/pass${PASS}"
+export WEBSITE="/home/wdconinc/qweak/QwScratch/tracking/www"
 #where you are - this is where all the
 #output of the perl scripts will go
 #export IAMHERE="/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT"
@@ -40,6 +40,9 @@ fi
 #get Run list
 echo -e "\n Get Run List \n"
 ./scripts/get_run_list.sh
+
+echo "If you encounter perl errors in the following line, you may need to point \
+ all perl scripts (./scripts/*.pl) to the correct perl location in the first line."
 
 #Beam Position
 echo -e "\n Beam Pos X \n"
