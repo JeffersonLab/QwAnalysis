@@ -108,6 +108,11 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Newton's method initial momentum
     double fInitialMomentum;
 
+    /// Starting position for magnetic field swimming
+    double fStartPosition;
+    /// Ending position for magnetic field swimming
+    double fEndPosition;
+
     Double_t fBdl;  ///< scalar field integrals
     Double_t fBdlx; ///< x component of the field integral
     Double_t fBdly; ///< y component of the field integral

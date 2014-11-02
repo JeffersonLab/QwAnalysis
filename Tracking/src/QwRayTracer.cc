@@ -115,6 +115,15 @@ void QwRayTracer::DefineOptions(QwOptions& options)
   options.AddOptions("Momentum reconstruction")("QwRayTracer.initial_momemtum",
       po::value<float>(0)->default_value(1.25),
       "Newton's method position step [GeV]");
+
+  // Starting position for magnetic field swimming
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.start_position",
+      po::value<float>(0)->default_value(-250.0),
+      "Magnetic field swimming start position [cm]");
+  // Ending position for magnetic field swimming
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.end_position",
+      po::value<float>(0)->default_value(+577.0),
+      "Magnetic field swimming end position [cm]");
 }
 
 /**
@@ -128,6 +137,8 @@ void QwRayTracer::ProcessOptions(QwOptions& options)
   fMomentumStep = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
   fPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
   fInitialMomentum = Qw::GeV * options.GetValue<float>("QwRayTracer.initial_momemtum");
+  fStartPosition = Qw::cm * options.GetValue<float>("QwRayTracer.start_position");
+  fEndPosition = Qw::cm * options.GetValue<float>("QwRayTracer.end_position");
 }
 
 /**
@@ -157,11 +168,11 @@ const QwTrack* QwRayTracer::Bridge(
   momentum[0] = fInitialMomentum;
 
   // Front track position and direction
-  TVector3 start_position = front->GetPosition(-250 * Qw::cm);
+  TVector3 start_position = front->GetPosition(fStartPosition);
   TVector3 start_direction = front->GetMomentumDirection();
 
   // Back track position and direction
-  TVector3 end_position = back->GetPosition(577.0 * Qw::cm);
+  TVector3 end_position = back->GetPosition(fEndPosition);
   TVector3 end_direction = back->GetMomentumDirection();
 
   TVector3 position = start_position;
