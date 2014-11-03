@@ -82,6 +82,11 @@ class QwTreeEventBuffer
     /// Get the current event number
     int GetEventNumber() const { return fCurrentEventNumber; };
 
+    /// Get the current run label
+    TString GetRunLabel() const {
+      TString runlabel = Form("%d",fCurrentRunNumber);
+      return runlabel;
+    }
 
     /// \brief Open the next event file
     unsigned int OpenNextFile();

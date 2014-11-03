@@ -23,6 +23,7 @@
 // Qweak headers
 #include "QwOptionsTracking.h"
 #include "QwLog.h"
+#include "QwRootFile.h"
 #include "QwParameterFile.h"
 
 // Qweak event buffer and tracking worker
@@ -53,6 +54,9 @@ void PrintInfo(TStopwatch& timer)
 
 int main (int argc, char* argv[])
 {
+  // Set default ROOT file stem
+  QwRootFile::SetDefaultRootFileStem("QwSim_");
+
   /// First, we fill the search paths for the parameter files.
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
@@ -68,11 +72,11 @@ int main (int argc, char* argv[])
   gQwLog.ProcessOptions(&gQwOptions);
 
   ///  Load the tracking detectors from file
-  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking(gQwOptions);
-  detectors->ProcessOptions(gQwOptions);
+  QwSubsystemArrayTracking detectors(gQwOptions);
+  detectors.ProcessOptions(gQwOptions);
 
   // Get detector geometry
-  QwGeometry geometry = detectors->GetGeometry();
+  QwGeometry geometry = detectors.GetGeometry();
 
   /// Create a timer
   TStopwatch timer;
@@ -82,7 +86,7 @@ int main (int argc, char* argv[])
   timer.Start();
 
   /// Next, we create the tracking worker that will pull coordinate the tracking.
-  QwTrackingWorker *trackingworker = new QwTrackingWorker(gQwOptions, geometry);
+  QwTrackingWorker trackingworker(gQwOptions, geometry);
 
   /// Stop timer
   timer.Stop();
@@ -90,27 +94,28 @@ int main (int argc, char* argv[])
   PrintInfo(timer);
 
   /// Create the event buffer
-  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);
-  treebuffer->ProcessOptions(gQwOptions);
-  treebuffer->SetEntriesPerEvent(1);
+  QwTreeEventBuffer treebuffer(geometry);
+  treebuffer.ProcessOptions(gQwOptions);
+  treebuffer.SetEntriesPerEvent(1);
 
   ///  Start loop over all runs
-  while (treebuffer->OpenNextFile() == 0) {
+  while (treebuffer.OpenNextFile() == 0) {
+
+    // Open the ROOT file
+    QwRootFile* rootfile = new QwRootFile(treebuffer.GetRunLabel());
+    if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
+
+    //  Construct a Tree which contains map file names which are used to analyze data
+    rootfile->WriteParamFileList("mapfiles", detectors);
 
     // Create dummy events for branch creation (memory leak when using null)
     QwEvent* event = new QwEvent();
     QwEvent* original = new QwEvent();
 
-    // Open ROOT file
-    TFile* file = 0;
-    TTree* event_tree = 0;
-    file = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/QwSim_%d.root",
-                     treebuffer->GetRunNumber()), "RECREATE",
-                     "QWeak ROOT file with simulated event");
-    file->cd();
-    event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
-    event_tree->Branch("events", "QwEvent", &event);
-    event_tree->Branch("originals", "QwEvent", &original);
+    // Create the tracking object branches
+    rootfile->NewTree("event_tree", "QwTracking Event-based Tree");
+    rootfile->GetTree("event_tree")->Branch("events", "QwEvent", &event);
+    rootfile->GetTree("event_tree")->Branch("originals", "QwEvent", &original);
 
     // Delete dummy events again
     delete event; event = 0;
@@ -122,21 +127,20 @@ int main (int argc, char* argv[])
 
     /// We loop over all requested events.
     Int_t nevents = 0;
-    while (treebuffer->GetNextEvent() == 0) {
+    while (treebuffer.GetNextEvent() == 0) {
 
 
       /// Create the original event
-      original = treebuffer->GetOriginalEvent();
+      original = treebuffer.GetOriginalEvent();
 
       /// Create the to-be-reconstructed event
-      event = treebuffer->GetCurrentEvent();
+      event = treebuffer.GetCurrentEvent();
 
       /// We process the hit list through the tracking worker
-      trackingworker->ProcessEvent(detectors, event);
+      trackingworker.ProcessEvent(&detectors, event);
 
       // Fill the tree
-      event_tree->Fill();
-
+      rootfile->FillTree("event_tree");
 
       // Event has been processed
       nevents++;
@@ -147,27 +151,25 @@ int main (int argc, char* argv[])
     timer.Stop();
     // Print timer info
     PrintInfo(timer);
-    
-    QwMessage << "\nNumber of events processed at end of run: "
-              << treebuffer->GetEventNumber() << QwLog::endl;
 
-    treebuffer->PrintStatInfo(trackingworker->R2Good,trackingworker->R3Good,trackingworker->nbridged);
-    
-    // Write and close file
-    file->Write();
-    file->Close();
-    delete file;
+    QwMessage << "\nNumber of events processed at end of run: "
+              << treebuffer.GetEventNumber() << QwLog::endl;
+
+    treebuffer.PrintStatInfo(trackingworker.R2Good, trackingworker.R3Good, trackingworker.nbridged);
+
+    // Write and close file (after last access to ROOT tree)
+    rootfile->Write(0, TObject::kOverwrite);
+
+    // Close ROOT file
+    rootfile->Close();
+
+    // Delete objects (this is confusing: the if only applies to the delete)
+    if (rootfile) delete rootfile; rootfile = 0;
 
     // Close input file
-    treebuffer->CloseFile();
+    treebuffer.CloseFile();
 
   } // end of loop over runs
-
-
-  // Delete objects
-  delete treebuffer;
-  delete detectors;
-  delete trackingworker;
 
   return 0;
 }
