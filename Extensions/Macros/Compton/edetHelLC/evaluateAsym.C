@@ -87,5 +87,12 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
     }
   }//for (Int_t s =startStrip; s <endStrip; s++) {	
   cout<<"this nCycle e.g: expAsym[s38]: "<<qNormAsymLC[37]<<"+/-"<<TMath::Sqrt(asymErSqrLC[37])<<endl;
+  ///checking the data if the HWP may have changed between the run
+  if(checkAsym == 0.0) checkAsym = qNormAsymLC[37];/// if checkAsym is 0, this is 1st laser cycle
+  else if(checkAsym/qNormAsymLC[37] < 0.0) {
+    cout<<red<<"evaluateAsym concludes that sign of asym changed for strip 38"<<normal<<endl;
+    return -3;
+  }
+
   return 1;
 }

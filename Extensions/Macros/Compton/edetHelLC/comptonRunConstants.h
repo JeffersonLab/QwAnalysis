@@ -151,7 +151,7 @@ Double_t tNormYieldB1H1L0[nStrips]={0.0},tNormYieldB1H1L0Er[nStrips]={0.0};
 Double_t tNormYieldB1H0L1[nStrips]={0.0},tNormYieldB1H0L1Er[nStrips]={0.0};
 Double_t tNormYieldB1H0L0[nStrips]={0.0},tNormYieldB1H0L0Er[nStrips]={0.0};
 Double_t timeB0,rateB0[nStrips]={0.0};
-
+Double_t checkAsym=0.0;///use to check if sign of asymmetry changed during run
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64

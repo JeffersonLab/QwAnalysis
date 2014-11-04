@@ -96,7 +96,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
   if(!chainExists){/// exit if rootfiles do not exist
     cout<<"\n\n***Error: The analyzed Root file for run "<<runnum<<" does not exist***\n\n"<<endl;
-    return -1;
+    return -2;
   }
   //////////////for a quick peep of the beam and laser stability of beam//////////
   if(debug2) {///there's a better version of this available in studyRun.C
@@ -161,7 +161,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   }
   if(beamMax<beamOnLimit) {
     cout<<red<<"beamMax is "<<beamMax<<" uA < beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl; 
-    return -1;
+    return -4;
   } else cout<<blue<<"beamMax is "<<beamMax<<" uA > beamOnLimit ("<<beamOnLimit<<" uA)"<<normal<<endl; 
 
   if (debug) cout<<Form("cutEB.size:%d,cutLas.size:%d\n",(Int_t)cutEB.size(),(Int_t)cutLas.size());
@@ -241,7 +241,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 if(nLasCycles<=0) {
     cout<<red<<"no.of laser cycles found in this run is ZERO"<<
       "\nHence this will useful entirely as a background run\n"<<normal<<endl;
-    return -1;
+    return -5;
   }
 
   if(dataType=="Ac" && kDeadTime) {///to ensure that it doesn't get applied for Scaler analysis
@@ -331,7 +331,7 @@ if(nLasCycles<=0) {
           continue;
         }
 
-        if(d_3p02aY[0] < 0.00005 || d_3p02aY[0] < 0.00005 || d_3p02aY[0] < 0.00005) beamStable = 1;
+        if(d_3p02aY[0] < 0.0005 || d_3p02aY[0] < 0.05 || d_3p02aY[0] < 0.05) beamStable = 1;
         else {
           beamStable = 0;
           missedDueToStability++;
@@ -424,7 +424,10 @@ if(nLasCycles<=0) {
 
         ///calling the function to evaluate asymmetry for counts in this laser cycle
         Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0);
-        if(evaluated<0) {
+        if(evaluated==-3) {
+          cout<<red<<"\nevaluateAsym detected change of HWP in the middle of a run\n"<<normal<<endl;
+          return -3;
+        } else if(evaluated<0) {
           cout<<red<<"evaluateAsym reported background corrected yield to be negative in lasCycle "<<nCycle+1<<" hence skipping"<<normal<<endl;
           continue;///go to next nCycle
           //break;///exit the for loop of laser cycles
@@ -488,7 +491,7 @@ cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
     Double_t wm_out = weightedMean();//wmNrAsym, wmDrAsym, wmNrBCqNormSum, wmDrBCqNormSum, wmNrBCqNormDiff, wmNrqNormB1L0, wmDrqNormB1L0, wmNrBkgdAsym, wmDrBkgdAsym);
     if(wm_out<0) {
       cout<<red<<"the weightedMean macro returned negative,check what's wrong"<<normal<<endl;
-      return -1;///exit the execution
+      return -6;///exit the execution
     }
 
     ///Note: All of the following variables are populated only for clean laser cycles

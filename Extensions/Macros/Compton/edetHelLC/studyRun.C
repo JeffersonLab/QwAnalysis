@@ -5,7 +5,7 @@
 Int_t studyRun(Int_t runnum = 24519) {
   const Bool_t bBeam = 1;
   const Bool_t bBPM = 1;
-  const Bool_t bEnergy = 1;
+  const Bool_t bEnergy = 0;
   gStyle->SetTextFont(132);
   gStyle->SetTextSize(0.08);
   gStyle->SetLabelFont(132,"xyz");
@@ -129,17 +129,17 @@ Int_t studyRun(Int_t runnum = 24519) {
     TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
     cStability->Divide(3,2);// # of col,# of row
     cStability->cd(1);
-    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aY)<0.000075");
+    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aY)<0.00120");
     cStability->cd(2);
-    helChain->Draw("diff_sca_bpm_3p02bY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bY)<0.000075");
+    helChain->Draw("diff_sca_bpm_3p02bY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bY)<0.050");
     cStability->cd(3);
-    helChain->Draw("diff_sca_bpm_3p03aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aY)<0.000075");
+    helChain->Draw("diff_sca_bpm_3p03aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aY)<0.050");
     cStability->cd(4);
-    helChain->Draw("diff_sca_bpm_3p02aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aX)<0.000075");
+    helChain->Draw("diff_sca_bpm_3p02aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aX)<0.00120");
     cStability->cd(5);
-    helChain->Draw("diff_sca_bpm_3p02bX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bX)<0.000075");
+    helChain->Draw("diff_sca_bpm_3p02bX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bX)<0.050");
     cStability->cd(6);
-    helChain->Draw("diff_sca_bpm_3p03aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aX)<0.000075");
+    helChain->Draw("diff_sca_bpm_3p03aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aX)<0.050");
 
     cStability->Update();
     cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,www,filePre.Data()));

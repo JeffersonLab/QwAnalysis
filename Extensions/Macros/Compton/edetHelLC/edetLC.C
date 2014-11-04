@@ -18,11 +18,10 @@ Int_t edetLC(Int_t runnum, TString dataType="Ac")
   retInfoDAQ = infoDAQ(runnum); 
   asymflag = expAsym(runnum,dataType);
 
-  if(asymflag!=-1) {
-    if(asymflag==0) cerr<<blue<<"this run has NO useful LASER CYCLE"<<normal<<endl;
-    else asymSuc = asymFit(runnum,dataType);
+  if(asymflag<0) {
+    cerr <<"\n***expAsym.C failed so exiting\n"<<endl;
     //fileReadDraw(runnum);  ///This function uses the output from different dataTypes together, hence should not be called while executing single dataType
-  } else cerr <<"\n***expAsym.C failed so exiting\n"<<endl;
+  } else asymSuc = asymFit(runnum,dataType);
 
   analFlags.open(Form("%s/%s/%sanalysisFlags.txt",pPath, txt,filePre.Data()));
   if (analFlags.is_open()) {
