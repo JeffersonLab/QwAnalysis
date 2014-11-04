@@ -5,6 +5,8 @@
 #include <TCut.h>
 #include <TStyle.h>
 #include <TCanvas.h>
+#include <iostream>
+#include <fstream>
 
 void Neutral_Fraction::Loop(Int_t cleanData)
 {
@@ -17,7 +19,7 @@ void Neutral_Fraction::Loop(Int_t cleanData)
 
   // TDC Cuts
   Double_t MD_lo=-195;			// Main Detector Mean Time High threshold
-  Double_t MD_hi=-178;			// MD MT Low threshold
+  Double_t MD_hi=-177;			// MD MT Low threshold
   Double_t MD_rand_lo = -215;		// MD MT Low threshold for randoms
   Double_t MD_rand_hi = -198;		// " " High " " "
   Double_t TS_lo=-220;			// Trigger Scintillator MT High threshold
@@ -68,8 +70,8 @@ void Neutral_Fraction::Loop(Int_t cleanData)
   TCut MD_MT_Cut_2 = Form("%f<((maindet.md%im_f1+maindet.md%ip_f1)/2.0) && ((maindet.md%im_f1+maindet.md%ip_f1)/2.0)<%f",MD_lo,TS_Octant[1],TS_Octant[1],TS_Octant[1],TS_Octant[1],MD_hi);
   TCut MD_DIFF_Cut_1 = Form("TMath::Abs(maindet.md%im_f1-maindet.md%ip_f1)<%f",TS_Octant[0],TS_Octant[0],MD_bar);
   TCut MD_DIFF_Cut_2 = Form("TMath::Abs(maindet.md%im_f1-maindet.md%ip_f1)<%f",TS_Octant[1],TS_Octant[1],MD_bar);
-  TCut MD_MT_Rand_Cut_1 = Form("-600.0<((maindet.md%im_f1+maindet.md%ip_f1)/2.0) && ((maindet.md%im_f1+maindet.md%ip_f1)/2.0)<1000",TS_Octant[0],TS_Octant[0],TS_Octant[0],TS_Octant[0]);
-  TCut MD_MT_Rand_Cut_2 = Form("-600.0<((maindet.md%im_f1+maindet.md%ip_f1)/2.0) && ((maindet.md%im_f1+maindet.md%ip_f1)/2.0)<1000",TS_Octant[1],TS_Octant[1],TS_Octant[1],TS_Octant[1]);
+  TCut MD_MT_Rand_Cut_1 = Form("-400.0<((maindet.md%im_f1+maindet.md%ip_f1)/2.0) && ((maindet.md%im_f1+maindet.md%ip_f1)/2.0)<0",TS_Octant[0],TS_Octant[0],TS_Octant[0],TS_Octant[0]);
+  TCut MD_MT_Rand_Cut_2 = Form("-400.0<((maindet.md%im_f1+maindet.md%ip_f1)/2.0) && ((maindet.md%im_f1+maindet.md%ip_f1)/2.0)<0",TS_Octant[1],TS_Octant[1],TS_Octant[1],TS_Octant[1]);
 
   // Good MD && Good TS Events
   TCut Good_MD_1 = MD_MT_Cut_1 && MD_DIFF_Cut_1 && MD_TDC_Cut_1 && EventType && CleanData;
@@ -92,6 +94,9 @@ void Neutral_Fraction::Loop(Int_t cleanData)
   TH1F* hMD_ADC_Good[2];
   TH1F* hMD_ADC_Charge[2];
   TH1F* hMD_ADC_Neutral[2];
+  TH1F* hMD_ADC_Good_Raw[2];
+  TH1F* hMD_ADC_Charge_Raw[2];
+  TH1F* hMD_ADC_Neutral_Raw[2];
   TH1F* hMD_ADC_Good_Rand[2];
   TH1F* hMD_ADC_Charge_Rand[2];
   TH1F* hMD_ADC_Neutral_Rand[2];
@@ -102,6 +107,9 @@ void Neutral_Fraction::Loop(Int_t cleanData)
     hMD_ADC_Good[i] = new TH1F(Form("hMD_ADC_Good_%i",TS_Octant[i]),Form("hMD_ADC_Good_%i",TS_Octant[i]),nBins,0,3500);
     hMD_ADC_Charge[i] = new TH1F(Form("hMD_ADC_Charge_%i",TS_Octant[i]),Form("hMD_ADC_Charge_%i",TS_Octant[i]),nBins,0,3500);
     hMD_ADC_Neutral[i] = new TH1F(Form("hMD_ADC_Neutral_%i",TS_Octant[i]),Form("hMD_ADC_Neutral_%i",TS_Octant[i]),nBins,0,3500);
+    hMD_ADC_Good_Raw[i] = new TH1F(Form("hMD_ADC_Good_Raw_%i",TS_Octant[i]),Form("hMD_ADC_Good_Raw_%i",TS_Octant[i]),nBins,0,3500);
+    hMD_ADC_Charge_Raw[i] = new TH1F(Form("hMD_ADC_Charge_Raw_%i",TS_Octant[i]),Form("hMD_ADC_Charge_Raw_%i",TS_Octant[i]),nBins,0,3500);
+    hMD_ADC_Neutral_Raw[i] = new TH1F(Form("hMD_ADC_Neutral_Raw_%i",TS_Octant[i]),Form("hMD_ADC_Neutral_Raw_%i",TS_Octant[i]),nBins,0,3500);
     hMD_ADC_Good_Rand[i] = new TH1F(Form("hMD_ADC_Good_Rand_%i",TS_Octant[i]),Form("hMD_ADC_Good_Rand_%i",TS_Octant[i]),nBins,0,3500);
     hMD_ADC_Charge_Rand[i] = new TH1F(Form("hMD_ADC_Charge_Rand_%i",TS_Octant[i]),Form("hMD_ADC_Charge_Rand_%i",TS_Octant[i]),nBins,0,3500);
     hMD_ADC_Neutral_Rand[i] = new TH1F(Form("hMD_ADC_Neutral_Rand_%i",TS_Octant[i]),Form("hMD_ADC_Neutral_Rand_%i",TS_Octant[i]),nBins,0,3500);
@@ -120,6 +128,8 @@ void Neutral_Fraction::Loop(Int_t cleanData)
 
   // Diagnostic Histograms
   // 1D Histograms
+  TH1F* hMD_MT_Good = new TH1F("hMD_MT_Good","hMD_MT_Good",400,-400,0);
+  TH1F* hMD_MT_Rand = new TH1F("hMD_MT_Rand","hMD_MT_Rand",400,-400,0);
 //  TH1F* hTS_ADC_Raw[2];
 //  TH1F* hMD_ADC_Raw[2];
 //  TH1F* hTS_ADC_Good[2];
@@ -167,40 +177,61 @@ void Neutral_Fraction::Loop(Int_t cleanData)
   // IMPORTANT DATAAAA //
   ///////////////////////
 
+  Double_t pedMinus[2];
+  pedMinus[0] = MD_ADC_PED[TS_Octant[0]-1];
+  pedMinus[1] = MD_ADC_PED[TS_Octant[1]-1];
+
+  // MD ADC Raw Plots (no pedestal subtraction)
+  TCanvas* cMD_ADC_Raw = new TCanvas("cMD_ADC_Raw","cMD_ADC_Raw",1200,800);
+  cMD_ADC_Raw->Divide(3,2);
+  cMD_ADC_Raw->cd(1);
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0 >> hMD_ADC_Good_Raw_%i",TS_Octant[0],TS_Octant[0],TS_Octant[0]),Good_MD_1,"");
+  cMD_ADC_Raw->cd(2);
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0 >> hMD_ADC_Charge_Raw_%i",TS_Octant[0],TS_Octant[0],TS_Octant[0]),Good_MD_1 && Good_TS_1,"");
+  cMD_ADC_Raw->cd(3);
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0 >> hMD_ADC_Neutral_Raw_%i",TS_Octant[0],TS_Octant[0],TS_Octant[0]),Good_MD_1 && !Good_TS_1,"");
+  cMD_ADC_Raw->cd(4);
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0 >> hMD_ADC_Good_Raw_%i",TS_Octant[1],TS_Octant[1],TS_Octant[1]),Good_MD_2,"");
+  cMD_ADC_Raw->cd(5);
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0 >> hMD_ADC_Charge_Raw_%i",TS_Octant[1],TS_Octant[1],TS_Octant[1]),Good_MD_2 && Good_TS_2,"");
+  cMD_ADC_Raw->cd(6);
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0 >> hMD_ADC_Neutral_Raw_%i",TS_Octant[1],TS_Octant[1],TS_Octant[1]),Good_MD_2 && !Good_TS_2,"");
+
+
   // MD ADC Plots
   TCanvas* cMD_ADC = new TCanvas("cMD_ADC","cMD_ADC",1200,800);
   cMD_ADC->Divide(3,2);
   cMD_ADC->cd(1);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_%i",TS_Octant[0],TS_Octant[0],MD_ADC_PED[TS_Octant[0]-1],TS_Octant[0]),Good_MD_1,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_%i",TS_Octant[0],TS_Octant[0],pedMinus[0],TS_Octant[0]),Good_MD_1,"");
   cMD_ADC->cd(2);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_%i",TS_Octant[0],TS_Octant[0],MD_ADC_PED[TS_Octant[0]-1],TS_Octant[0]),Good_MD_1 && Good_TS_1,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_%i",TS_Octant[0],TS_Octant[0],pedMinus[0],TS_Octant[0]),Good_MD_1 && Good_TS_1,"");
   cMD_ADC->cd(3);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_%i",TS_Octant[0],TS_Octant[0],MD_ADC_PED[TS_Octant[0]-1],TS_Octant[0]),Good_MD_1 && !Good_TS_1,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_%i",TS_Octant[0],TS_Octant[0],pedMinus[0],TS_Octant[0]),Good_MD_1 && !Good_TS_1,"");
   cMD_ADC->cd(4);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_%i",TS_Octant[1],TS_Octant[1],MD_ADC_PED[TS_Octant[1]-1],TS_Octant[1]),Good_MD_2,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_%i",TS_Octant[1],TS_Octant[1],pedMinus[1],TS_Octant[1]),Good_MD_2,"");
   cMD_ADC->cd(5);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_%i",TS_Octant[1],TS_Octant[1],MD_ADC_PED[TS_Octant[1]-1],TS_Octant[1]),Good_MD_2 && Good_TS_2,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_%i",TS_Octant[1],TS_Octant[1],pedMinus[1],TS_Octant[1]),Good_MD_2 && Good_TS_2,"");
   cMD_ADC->cd(6);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_%i",TS_Octant[1],TS_Octant[1],MD_ADC_PED[TS_Octant[1]-1],TS_Octant[1]),Good_MD_2 && !Good_TS_2,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_%i",TS_Octant[1],TS_Octant[1],pedMinus[1],TS_Octant[1]),Good_MD_2 && !Good_TS_2,"");
 
   // MD RAND ADC Plots
   TCanvas* cMD_RAND = new TCanvas("cMD_RAND","cMD_RAND",1200,800);
   cMD_RAND->Divide(3,2);
   cMD_RAND->cd(1);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_Rand_%i",TS_Octant[0],TS_Octant[0],MD_ADC_PED[TS_Octant[0]-1],TS_Octant[0]), Rand_MD_1,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_Rand_%i",TS_Octant[0],TS_Octant[0],pedMinus[0],TS_Octant[0]), Rand_MD_1,"");
   cMD_RAND->cd(2);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_Rand_%i",TS_Octant[0],TS_Octant[0],MD_ADC_PED[TS_Octant[0]-1],TS_Octant[0]), Rand_MD_1 && Good_TS_1 ,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_Rand_%i",TS_Octant[0],TS_Octant[0],pedMinus[0],TS_Octant[0]), Rand_MD_1 && Good_TS_1 ,"");
   cMD_RAND->cd(3);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_Rand_%i",TS_Octant[0],TS_Octant[0],MD_ADC_PED[TS_Octant[0]-1],TS_Octant[0]), Rand_MD_1 && !Good_TS_1 ,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_Rand_%i",TS_Octant[0],TS_Octant[0],pedMinus[0],TS_Octant[0]), Rand_MD_1 && !Good_TS_1 ,"");
   cMD_RAND->cd(4);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_Rand_%i",TS_Octant[1],TS_Octant[1],MD_ADC_PED[TS_Octant[1]-1],TS_Octant[1]), Rand_MD_2,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Good_Rand_%i",TS_Octant[1],TS_Octant[1],pedMinus[1],TS_Octant[1]), Rand_MD_2,"");
   cMD_RAND->cd(5);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_Rand_%i",TS_Octant[1],TS_Octant[1],MD_ADC_PED[TS_Octant[1]-1],TS_Octant[1]), Rand_MD_2 && Good_TS_2 ,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Charge_Rand_%i",TS_Octant[1],TS_Octant[1],pedMinus[1],TS_Octant[1]), Rand_MD_2 && Good_TS_2 ,"");
   cMD_RAND->cd(6);
-  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_Rand_%i",TS_Octant[1],TS_Octant[1],MD_ADC_PED[TS_Octant[1]-1],TS_Octant[1]), Rand_MD_2 && !Good_TS_2 ,"");
+  fChain->Draw(Form("(maindet.md%im_adc+maindet.md%ip_adc)/2.0-%f >> hMD_ADC_Neutral_Rand_%i",TS_Octant[1],TS_Octant[1],pedMinus[1],TS_Octant[1]), Rand_MD_2 && !Good_TS_2 ,"");
 
   //Fill the Corrected histograms
-  Double_t Random_Scale_Factor = 17.0/1583.0;
+  Double_t Random_Scale_Factor = 18.0/383.0;
   for(Int_t i=1; i<=nBins; i++) {
     hMD_ADC_Good_Correct[0]->SetBinContent(i, hMD_ADC_Good[0]->GetBinContent(i) - Random_Scale_Factor*hMD_ADC_Good_Rand[0]->GetBinContent(i));
     hMD_ADC_Good_Correct[1]->SetBinContent(i, hMD_ADC_Good[1]->GetBinContent(i) - Random_Scale_Factor*hMD_ADC_Good_Rand[1]->GetBinContent(i));
@@ -238,6 +269,60 @@ void Neutral_Fraction::Loop(Int_t cleanData)
   Double_t f_n[2];
   Double_t df_n[2];
 
+  // Corrected Rakitha Method (Average ADC times number of hits minus pedestal and random hits)
+  Double_t nNeut[2];
+  Double_t nNeut_Rand[2];
+  Double_t nTot[2];
+  Double_t nTot_Rand[2];
+  Double_t adcMeanNeut[2];
+  Double_t adcRMSNeut[2];
+  Double_t adcMeanTot[2];
+  Double_t adcRMSTot[2];
+  Double_t adcMeanPed[2];
+  Double_t adcRMSPed[2];
+  
+  nNeut[0] = hMD_ADC_Neutral_Raw[0]->GetEntries();
+  nNeut[1] = hMD_ADC_Neutral_Raw[1]->GetEntries();
+  nNeut_Rand[0] = Random_Scale_Factor*hMD_ADC_Neutral_Rand[0]->GetEntries();
+  nNeut_Rand[1] = Random_Scale_Factor*hMD_ADC_Neutral_Rand[1]->GetEntries();
+  nTot[0] = hMD_ADC_Good_Raw[0]->GetEntries();
+  nTot[1] = hMD_ADC_Good_Raw[1]->GetEntries();
+  nTot_Rand[0] = Random_Scale_Factor*hMD_ADC_Good_Rand[0]->GetEntries();
+  nTot_Rand[1] = Random_Scale_Factor*hMD_ADC_Good_Rand[1]->GetEntries(); 
+  adcMeanNeut[0] = hMD_ADC_Neutral_Raw[0]->GetMean();
+  adcMeanNeut[1] = hMD_ADC_Neutral_Raw[1]->GetMean();
+  adcRMSNeut[0] = hMD_ADC_Neutral_Raw[0]->GetRMS();
+  adcRMSNeut[1] = hMD_ADC_Neutral_Raw[1]->GetRMS();
+  adcMeanTot[0] = hMD_ADC_Good_Raw[0]->GetMean();
+  adcMeanTot[1] = hMD_ADC_Good_Raw[1]->GetMean();
+  adcRMSTot[0] = hMD_ADC_Good_Raw[0]->GetRMS(); 
+  adcRMSTot[1] = hMD_ADC_Good_Raw[1]->GetRMS();
+  adcMeanPed[0] = MD_ADC_PED[TS_Octant[0]-1];
+  adcMeanPed[1] = MD_ADC_PED[TS_Octant[1]-1];
+  adcRMSPed[0] = MD_ADC_PED_RMS[TS_Octant[0]-1];
+  adcRMSPed[1] = MD_ADC_PED_RMS[TS_Octant[1]-1];
+
+  f_n[0] = ((nNeut[0]-nNeut_Rand[0])*(adcMeanNeut[0]-adcMeanPed[0]))/((nTot[0]-nTot_Rand[0])*(adcMeanTot[0]-adcMeanPed[0]));
+  f_n[1] = ((nNeut[1]-nNeut_Rand[1])*(adcMeanNeut[1]-adcMeanPed[1]))/((nTot[1]-nTot_Rand[1])*(adcMeanTot[1]-adcMeanPed[1]));
+
+  // std::cout << nNeut[0] << " " << nNeut_Rand[0] << " " << adcMeanNeut[0] << " " << adcMeanPed[0] << " " << nTot[0] << " " << nTot_Rand[0] << " " << adcMeanTot[0] << std::endl;
+
+  df_n[0] += (nNeut[0]+nNeut_Rand[0])/((nNeut[0]-nNeut_Rand[0])*(nNeut[0]-nNeut_Rand[0]));
+  df_n[0] += (nTot[0]+nTot_Rand[0])/((nTot[0]-nTot_Rand[0])*(nTot[0]-nTot_Rand[0]));
+  df_n[0] += (adcRMSNeut[0]*adcRMSNeut[0] + adcRMSPed[0]*adcRMSPed[0])/((adcRMSNeut[0]-adcRMSPed[0])*(adcRMSNeut[0]-adcRMSPed[0]));
+  df_n[0] += (adcRMSTot[0]*adcRMSTot[0] + adcRMSPed[0]*adcRMSPed[0])/((adcRMSTot[0]-adcRMSPed[0])*(adcRMSTot[0]-adcRMSPed[0]));
+  df_n[0] = TMath::Sqrt(df_n[0]);
+  df_n[0] = f_n[0]*df_n[0];
+
+  df_n[1] += (nNeut[1]+nNeut_Rand[1])/((nNeut[1]-nNeut_Rand[1])*(nNeut[1]-nNeut_Rand[1]));
+  df_n[1] += (nTot[1]+nTot_Rand[1])/((nTot[1]-nTot_Rand[1])*(nTot[1]-nTot_Rand[1]));
+  df_n[1] += (adcRMSNeut[1]*adcRMSNeut[1] + adcRMSPed[1]*adcRMSPed[1])/((adcRMSNeut[1]-adcRMSPed[1])*(adcRMSNeut[1]-adcRMSPed[1]));
+  df_n[1] += (adcRMSTot[1]*adcRMSTot[1] + adcRMSPed[1]*adcRMSPed[1])/((adcRMSTot[1]-adcRMSPed[1])*(adcRMSTot[1]-adcRMSPed[1]));
+  df_n[1] = TMath::Sqrt(df_n[1]);
+  df_n[1] = f_n[1]*df_n[1];
+
+  std::cout << run << " " << TS_Octant[0] << " " << f_n[0] << " " << df_n[0] << " " << run << " " << TS_Octant[1] << " " << f_n[1] << " " << df_n[1] << std::endl;
+
   // Mack Method (calculate fraction for each bin and light weight)
   Double_t Sum_fL[2];			// Sum of f_i*L_i (fraction for a bin x light at bin center)
   Double_t Sum_L[2];			// Sum of L_i (light at bin center)
@@ -253,7 +338,7 @@ void Neutral_Fraction::Loop(Int_t cleanData)
     // Detector behind TS 1;
     Sum_L[0] += L_i;
     dL_i = hMD_ADC_Good_Correct[0]->GetBinWidth(i)*hMD_ADC_Good_Correct[0]->GetBinWidth(i)/12.0;
-    dL_i += MD_ADC_PED_RMS[TS_Octant[0]]*MD_ADC_PED_RMS[TS_Octant[0]]; 	// now its actually dL_i^2
+    dL_i += MD_ADC_PED_RMS[TS_Octant[0]-1]*MD_ADC_PED_RMS[TS_Octant[0]-1]; 	// now its actually dL_i^2
     Error_Sum_L[0] += dL_i;					        // Sum of squares
     if (hMD_ADC_Good_Correct[0]->GetBinContent(i) == 0 || hMD_ADC_Neutral_Correct[0]->GetBinContent(i) == 0) {
       Sum_fL[0] += 0;
@@ -268,7 +353,7 @@ void Neutral_Fraction::Loop(Int_t cleanData)
     // Detector behind TS 2;
     Sum_L[1] += L_i;
     dL_i = hMD_ADC_Good_Correct[1]->GetBinWidth(i)*hMD_ADC_Good_Correct[1]->GetBinWidth(i)/12.0;
-    dL_i += MD_ADC_PED_RMS[TS_Octant[1]]*MD_ADC_PED_RMS[TS_Octant[1]]; 	// now its actually dL_i^2
+    dL_i += MD_ADC_PED_RMS[TS_Octant[1]-1]*MD_ADC_PED_RMS[TS_Octant[1]-1]; 	// now its actually dL_i^2
     Error_Sum_L[1] += dL_i;							// Sum of squares
     if (hMD_ADC_Good_Correct[1]->GetBinContent(i) == 0 || hMD_ADC_Neutral_Correct[1]->GetBinContent(i) == 0) {
       Sum_fL[1] += 0;
@@ -284,15 +369,16 @@ void Neutral_Fraction::Loop(Int_t cleanData)
  
   // Calculate the total dilution (Mack Method)
   f_n[0] = Sum_fL[0]/Sum_L[0];
-  df_n[0] = f_n[0]*f_n[0]*(Error_Sum_fL[0]/(Sum_fL[0]*Sum_fL[0]) + Error_Sum_L[0]/(Sum_L[0]*Sum_L[0]));
+  df_n[0] = f_n[0]*f_n[0]*( Error_Sum_fL[0]/(Sum_fL[0]*Sum_fL[0]) + Error_Sum_L[0]/(Sum_L[0]*Sum_L[0]) );
   df_n[0] = TMath::Sqrt(df_n[0]);
   f_n[1] = Sum_fL[1]/Sum_L[1];
-  df_n[1] = f_n[1]*f_n[1]*(Error_Sum_fL[1]/(Sum_fL[1]*Sum_fL[1]) + Error_Sum_L[1]/(Sum_L[1]*Sum_L[1]));
+  df_n[1] = f_n[1]*f_n[1]*( Error_Sum_fL[1]/(Sum_fL[1]*Sum_fL[1]) + Error_Sum_L[1]/(Sum_L[1]*Sum_L[1]) );
   df_n[1] = TMath::Sqrt(df_n[1]);
 
-  std::cout << TS_Octant[0] << " " << f_n[0] << " " << df_n[0] << " " << TS_Octant[1] << " " << f_n[1] << " " << df_n[1] << std::endl;
+  //std::cout << Sum_fL[0] << " " << Sum_L[0] << std::endl;
+  //std::cout << Sum_fL[1] << " " << Sum_L[1] << std::endl;
 
-  std::cout << Error_Sum_fL[0] << " " << (Sum_fL[0]*Sum_fL[0]) << " " << Error_Sum_L[0] << " " << (Sum_L[0]*Sum_L[0]) << std::endl; 
+  std::cout << run << " " << TS_Octant[0] << " " << f_n[0] << " " << df_n[0] << " " << run << " " << TS_Octant[1] << " " << f_n[1] << " " << df_n[1] << std::endl;
 
   // Dalton Method (light-weighted neutrals over light-weighted total)
   Double_t Sum_NL_neut[2];
@@ -308,7 +394,7 @@ void Neutral_Fraction::Loop(Int_t cleanData)
 
     // TS 1 Octant 
     dL_i = hMD_ADC_Good_Correct[0]->GetBinWidth(i)*hMD_ADC_Good_Correct[0]->GetBinWidth(i)/12.0;
-    dL_i += MD_ADC_PED_RMS[TS_Octant[0]]*MD_ADC_PED_RMS[TS_Octant[0]]; 	// now its actually dL_i^2
+    dL_i += MD_ADC_PED_RMS[TS_Octant[0]-1]*MD_ADC_PED_RMS[TS_Octant[0]-1]; 	// now its actually dL_i^2
     N_neut_i = hMD_ADC_Neutral_Correct[0]->GetBinContent(i);
     Sum_NL_neut[0] += N_neut_i*L_i; 
     N_tot_i = hMD_ADC_Good_Correct[0]->GetBinContent(i);
@@ -318,7 +404,7 @@ void Neutral_Fraction::Loop(Int_t cleanData)
     
     // TS 2 Octant 
     dL_i = hMD_ADC_Good_Correct[1]->GetBinWidth(i)*hMD_ADC_Good_Correct[1]->GetBinWidth(i)/12.0;
-    dL_i += MD_ADC_PED_RMS[TS_Octant[1]]*MD_ADC_PED_RMS[TS_Octant[1]]; 	// now its actually dL_i^2
+    dL_i += MD_ADC_PED_RMS[TS_Octant[1]-1]*MD_ADC_PED_RMS[TS_Octant[1]-1]; 	// now its actually dL_i^2
     N_neut_i = hMD_ADC_Neutral_Correct[1]->GetBinContent(i);
     Sum_NL_neut[1] += N_neut_i*L_i; 
     N_tot_i = hMD_ADC_Good_Correct[1]->GetBinContent(i);
@@ -336,12 +422,52 @@ void Neutral_Fraction::Loop(Int_t cleanData)
   df_n[1] = f_n[1]*f_n[1]*( Error_Sum_NL_neut[1]/(Sum_NL_neut[1]*Sum_NL_neut[1]) + Error_Sum_NL_tot[1]/(Sum_NL_tot[1]*Sum_NL_tot[1]) );
   df_n[1] = TMath::Sqrt(df_n[1]);
 
-  std::cout << TS_Octant[0] << " " << f_n[0] << " " << df_n[0] << " " << TS_Octant[1] << " " << f_n[1] << " " << df_n[1] << std::endl;
+  std::cout << run << " " << TS_Octant[0] << " " << f_n[0] << " " << df_n[0] << " " << run << " " << TS_Octant[1] << " " << f_n[1] << " " << df_n[1] << std::endl;
   
   /////////////////
   // DIAGNOSTICS //
   /////////////////
+
+  gStyle->SetOptStat(0);
   
+  // Nice Pictures of Mean Time
+  TCanvas* cMeanTime = new TCanvas("cMeanTime","cMeanTime",800,800);
+  fChain->Draw(Form("(maindet.md%im_f1+maindet.md%ip_f1)/2.0 >> hMD_MT_Good",TS_Octant[0],TS_Octant[0]),Good_MD_1,"");
+  hMD_MT_Good->SetLineColor(36);
+  hMD_MT_Good->SetFillColor(36);
+  fChain->Draw(Form("(maindet.md%im_f1+maindet.md%ip_f1)/2.0 >> hMD_MT_Rand",TS_Octant[0],TS_Octant[0]),Rand_MD_1,"SAME");
+  hMD_MT_Rand->SetLineColor(46);
+  hMD_MT_Rand->SetFillColor(46);
+  //hMD_MT_Good->Draw();
+  //hMD_MT_Rand->Draw("SAME");
+  
+  //Nice Pictures of Rakitha method
+  TCanvas* cRakithaPlots = new TCanvas("cRakithaPlots","cRakithaPlots",800,800);
+  hMD_ADC_Good_Raw[0]->SetLineColor(36);
+  hMD_ADC_Good_Raw[0]->SetFillColor(36);
+  hMD_ADC_Neutral_Raw[0]->SetLineColor(42);
+  hMD_ADC_Neutral_Raw[0]->SetFillColor(42);  
+  hMD_ADC_Good_Raw[0]->Draw();
+  hMD_ADC_Neutral_Raw[0]->Draw("SAME");
+ 
+  //Nice Pictures of Randoms
+  TCanvas* cRandomPlots = new TCanvas("cRandomPlots","cRandomPlots",800,800);
+  hMD_ADC_Good_Rand[0]->SetLineColor(46);
+  hMD_ADC_Good_Rand[0]->SetFillColor(46);
+  hMD_ADC_Neutral_Rand[0]->SetLineColor(26);
+  hMD_ADC_Neutral_Rand[0]->SetFillColor(26);
+  hMD_ADC_Good_Rand[0]->Draw();
+  hMD_ADC_Neutral_Rand[0]->Draw("SAME");
+  
+  //Nice Pictures of Corrected
+  TCanvas* cCorrectPlots = new TCanvas("cCorrectPlots","cCorrectPlots",800,800);
+  hMD_ADC_Good_Correct[0]->SetLineColor(36);
+  hMD_ADC_Good_Correct[0]->SetFillColor(36);
+  hMD_ADC_Neutral_Correct[0]->SetLineColor(42);
+  hMD_ADC_Neutral_Correct[0]->SetFillColor(42);
+  hMD_ADC_Good_Correct[0]->Draw();
+  hMD_ADC_Neutral_Correct[0]->Draw("SAME");
+
   /*/ Raw ADC Avgs.
   TCanvas* cRAW = new TCanvas("cRAW","cRAW",800,800);
   cRAW->Divide(2,2);
