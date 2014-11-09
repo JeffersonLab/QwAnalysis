@@ -522,14 +522,19 @@ void QwPartialTrack::RotateCoordinates(){
 
 }
 void QwPartialTrack::RotateRotator(const QwDetectorInfo* detector){
-	double z1=0,z2=-250;
+
+	double z1=476.7,z2=500.0;
 	double x1=0,y1=0,x2=0,y2=0;
 	double pitch=0,yaw=0,roll=0;
+	double rotatorZpos = 476.7;
+
 	x1=fOffsetX+fSlopeX*z1;
 	y1=fOffsetY+fSlopeY*z1;
 	x2=fOffsetX+fSlopeX*z2;
 	y2=fOffsetY+fSlopeY*z2;
 
+	z1 = z1 - rotatorZpos;
+	z2 = z2 - rotatorZpos;
 
 	TVector3 v1(x1,y1,z1);
 	TVector3 v2(x2,y2,z2);
@@ -554,6 +559,8 @@ void QwPartialTrack::RotateRotator(const QwDetectorInfo* detector){
 	v1.Rotate(roll,zaxis);
 	v2.Rotate(roll,zaxis);
 
+	v1.SetZ( v1.Z() + rotatorZpos );
+	v2.SetZ( v2.Z() + rotatorZpos );
 
 	fSlopeX = (v2.X()-v1.X())/(v2.Z()-v1.Z());
 	fSlopeY = (v2.Y()-v1.Y())/(v2.Z()-v1.Z());
