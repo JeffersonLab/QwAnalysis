@@ -2013,8 +2013,8 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   if (direction == kDirectionU) { angleU = -angle; angleV = angle; }
   if (direction == kDirectionV) { angleU = angle; angleV = -angle; }
   
-  // Ensure correct handedness
-  if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
+  // Ensure correct handedness 
+ // if (fmod(angleV,2.0*Qw::pi) - fmod(angleU,2.0*Qw::pi) < 0.0) angleV += Qw::pi;
   Uv2xy uv2xy (angleU, angleV);
   
   // Make the necessary transformations for the wires
