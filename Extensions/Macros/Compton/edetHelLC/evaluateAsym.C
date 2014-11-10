@@ -3,7 +3,7 @@
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
-Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0)
+Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0, Int_t nHelLCB1L1, Int_t nHelLCB1L0)
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug =0;
@@ -15,17 +15,24 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
   Double_t erBCqNormSumLCSq=0.0;
   Double_t newCntsB1H1L1,newCntsB1H1L0,newCntsB1H0L1,newCntsB1H0L0;
 
+  ///// Modification due to explicit (electronic) noise subtraction /////      
   for (Int_t s =startStrip; s <endStrip; s++) {	  
     newCntsB1H1L1 = countsLCB1H1L1[s] * c2B1H1L1[s]; 
     newCntsB1H1L0 = countsLCB1H1L0[s] * c2B1H1L0[s];
     newCntsB1H0L1 = countsLCB1H0L1[s] * c2B1H0L1[s];
     newCntsB1H0L0 = countsLCB1H0L0[s] * c2B1H0L0[s];
+    if(kNoiseSub) {
+      newCntsB1H1L1 = newCntsB1H1L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
+      newCntsB1H1L0 = newCntsB1H1L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
+      newCntsB1H0L1 = newCntsB1H0L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
+      newCntsB1H0L0 = newCntsB1H0L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
+    }
     qNormCountsLCB1H1L1 = newCntsB1H1L1/qAvgLCH1L1;
     qNormCountsLCB1H1L0 = newCntsB1H1L0/qAvgLCH1L0;
     qNormCountsLCB1H0L1 = newCntsB1H0L1/qAvgLCH0L1;
     qNormCountsLCB1H0L0 = newCntsB1H0L0/qAvgLCH0L0;
-    BCqNormLCB1H1L1= qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
-    BCqNormLCB1H0L1= qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
+    BCqNormLCB1H1L1 = qNormCountsLCB1H1L1 - qNormCountsLCB1H1L0;
+    BCqNormLCB1H0L1 = qNormCountsLCB1H0L1 - qNormCountsLCB1H0L0;
     BCqNormDiffLC = (BCqNormLCB1H1L1 - BCqNormLCB1H0L1);
     BCqNormSumLC  = (BCqNormLCB1H1L1 + BCqNormLCB1H0L1);
 
@@ -46,9 +53,21 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
       asymErSqrLC[s] = (errB1H1L1 + errB1H0L1 + errB1H1L0 + errB1H0L0);
 
       if (asymErSqrLC[s] >0.0) {///eqn 4.17(Bevington)
+        if(s==myStr) {
+          printf("%sraw counts: %9d\t%9d\t%9d\t%9d\n", blue, (int)countsLCB1H1L1[s], (int)countsLCB1H1L0[s], (int)countsLCB1H0L1[s], (int)countsLCB1H0L0[s]);
+          printf("corrected : %9d\t%9d\t%9d\t%9d\n", (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0);
+          if(debug) printf("corrDT : %f\t%f\t%f\t%f\n", c2B1H1L1[s], c2B1H1L0[s], c2B1H0L1[s], c2B1H0L0[s]);
+          cout<<"expAsym[s"<<s+1<<"]: "<<qNormAsymLC[s]<<"+/-"<<TMath::Sqrt(asymErSqrLC[s])<<normal<<endl;
+          ///checking the data if the HWP may have changed between the run
+          if(checkAsym == 0.0) checkAsym = qNormAsymLC[s];/// if checkAsym is 0, this is 1st laser cycle
+          else if((checkAsym/qNormAsymLC[s] < 0.0) && qNormAsymLC[s]>TMath::Sqrt(asymErSqrLC[s])) {
+            cout<<red<<"evaluateAsym concludes that sign of asym changed for strip "<<s+1<<normal<<endl;
+            return -3;
+          }
+        }
         wmNrAsym[s] += qNormAsymLC[s]/asymErSqrLC[s]; ///Numerator 
         wmDrAsym[s] += 1.0/asymErSqrLC[s]; ///Denominator
-        if (debug) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/asymErSqrLC[s],wmDrAsym[s]);
+        //if (debug) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/asymErSqrLC[s],wmDrAsym[s]);
       } else if(std::find(skipStrip.begin(),skipStrip.end(),s+1)!=skipStrip.end()) continue;///to skip mask strips
       else if(s<nStrips/2) {
         cout<<"for a non masked strip "<<s+1<<"! Asym Er shouldn't be non-positive"<<endl;
@@ -75,24 +94,17 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
         cout<<"exiting evaluateAsym.C and won't use this nCycle for asym eval"<<endl;
         return -2;
       } else {//the counts should never be negative 
-      cout<<red<<"Reporting a strip with lasOff counts >= lasOn counts."<<normal<<endl;
-      cout<<"Most possibly, a post CE strip, is affected by noise fluctuation due to low statistics"<<endl;
-      cout<<"strip\tnewCntsB1H1L1\t...H1L0\t...H0L1\t...H0L0\n"<<
-        s+1<<"\t"<<newCntsB1H1L1<<"\t\t"<<newCntsB1H1L0<<"\t"<<newCntsB1H0L1<<"\t"<<newCntsB1H0L0<<endl;
+        cout<<red<<"Reporting a strip with lasOff counts >= lasOn counts."<<normal<<endl;
+        cout<<"Most possibly, a post CE strip, is affected by noise fluctuation due to low statistics"<<endl;
+        cout<<"strip\tnewCntsB1H1L1\t...H1L0\t...H0L1\t...H0L0\n"<<
+          s+1<<"\t"<<newCntsB1H1L1<<"\t\t"<<newCntsB1H1L0<<"\t"<<newCntsB1H0L1<<"\t"<<newCntsB1H0L0<<endl;
         cout<<blue<<"check if it needs further attention"<<normal<<endl;
         continue;//break;//continue;
         ///the above can often happen for post-CE strips, hence 'break' instead of 'continue' is a better solution
         ///... eg.run 23300, in nCycle 29
       }
     }
-  }//for (Int_t s =startStrip; s <endStrip; s++) {	
-  cout<<"this nCycle e.g: expAsym[s38]: "<<qNormAsymLC[37]<<"+/-"<<TMath::Sqrt(asymErSqrLC[37])<<endl;
-  ///checking the data if the HWP may have changed between the run
-  if(checkAsym == 0.0) checkAsym = qNormAsymLC[37];/// if checkAsym is 0, this is 1st laser cycle
-  else if(checkAsym/qNormAsymLC[37] < 0.0) {
-    cout<<red<<"evaluateAsym concludes that sign of asym changed for strip 38"<<normal<<endl;
-    return -3;
-  }
+  }//for (Int_t s =startStrip; s <endStrip; s++) {
 
   return 1;
 }

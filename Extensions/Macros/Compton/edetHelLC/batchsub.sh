@@ -4,7 +4,7 @@ macro=/w/hallc/compton/users/narayan/svn/Compton/edetHelLC
 QWSCRATCH=/w/hallc/compton/users/narayan/my_scratch
 WWW=/w/hallc/compton/users/narayan/my_scratch/www
 QW_ROOTFILES=/w/hallc/compton/users/narayan/my_scratch/rootfiles
-dataType=AcVer002
+dataType=ver005Sc
 found=yes
 #for i in `seq 24252 24252`;
 #for i in `seq 22659 25546`;
@@ -13,8 +13,7 @@ found=yes
 #for i in `seq 24250 24450`;
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/runsMCM.txt);
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol.txt);
-for i in $(cat testSub2.temp);
-#for i in $(cat testSub.temp);
+for i in $(cat testSub.temp);
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol_23000.txt);
 
 do
@@ -34,7 +33,8 @@ do
   echo '<Input src="'$macro'/corrDeadtime.C" dest="corrDeadtime.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/read3Cfile.C" dest="read3Cfile.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/write3CfileArray.C" dest="write3CfileArray.C"/>' >> batch_submit_$i.xml
-#  echo '<Input src="'$macro'/.C" dest=".C"/>' >> batch_submit_$i.xml
+  echo '<Input src="'$macro'/tNormVariables.C" dest="tNormVariables.C"/>' >> batch_submit_$i.xml
+# echo '<Input src="'$macro'/.C" dest=".C"/>' >> batch_submit_$i.xml
 
   echo '<Input src="'$macro'/determineNoise.C" dest="determineNoise.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/stripMask.C" dest="stripMask.C"/>' >> batch_submit_$i.xml
@@ -45,7 +45,7 @@ do
   echo '<Input src="'$macro'/evalBgdAsym.C" dest="evalBgdAsym.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/asymFit.C" dest="asymFit.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/infoDAQ.C" dest="infoDAQ.C"/>' >> batch_submit_$i.xml
-  echo '<Input src="'$macro'/writeToFile.C" dest="writeToFile.C"/>' >> batch_submit_$i.xml
+  echo '<Input src="'$macro'/writeFortOut.C" dest="writeFortOut.C"/>' >> batch_submit_$i.xml
 # echo '<Input src="'$macro'/fileReadDraw.C" dest="fileReadDraw.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/edetLC.C" dest="edetLC.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/qNormVariables.C" dest="qNormVariables.C"/>' >> batch_submit_$i.xml

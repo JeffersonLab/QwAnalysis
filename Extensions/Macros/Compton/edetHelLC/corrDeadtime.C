@@ -43,7 +43,7 @@ Int_t corrDeadtime(Int_t runnum) {
         if(inRateCor0.eof()) {
           cout<<red<<"exiting the rate file because encountered the end of file"<<normal<<endl;///shouldn't happen
           inRateCor0.close();
-          break;
+          return -1;
         } else if(runDum == runnum) {
           cout<<blue<<"found the p0 correction factors for run "<<runnum<<" hence exiting"<<normal<<endl; 
           cout<<"correction factors:"<<corrB1H1L1_0<<"\t"<<corrB1H1L0_0<<"\t"<<corrB1H0L1_0<<"\t"<<corrB1H0L0_0<<"\n"<<endl;
@@ -59,7 +59,7 @@ Int_t corrDeadtime(Int_t runnum) {
             if(inRateCor1.eof()) {
               cout<<red<<"exiting the rate file because encountered the end of file"<<normal<<endl;///shouldn't happen
               inRateCor1.close();
-              break;
+              return -1;
             } else if(runDum == runnum) {
               cout<<blue<<"found the p1 correction factors for run "<<runnum<<" hence exiting"<<normal<<endl;
               cout<<"correction factors:"<<corrB1H1L1_1<<"\t"<<corrB1H1L0_1<<"\t"<<corrB1H0L1_1<<"\t"<<corrB1H0L0_1<<"\n"<<endl;

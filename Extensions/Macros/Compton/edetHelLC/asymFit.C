@@ -193,6 +193,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   if(polSign) { //positive
     polFit->SetParameters(tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
     polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
+    //polFit->SetParLimits(0,55.0,55.0);///fix the CE parameter
     polFit->SetParLimits(1,0.68,0.94);///allowing polarization to be 50% to 93%
   } else {     //negative
     polFit->SetParameters(tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
@@ -219,7 +220,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     polEr = polFit->GetParError(1);
     chiSq = polFit->GetChisquare();
     NDF = polFit->GetNDF();
-    cout<<green<<"pol%: "<<pol*100<<"+/-"<<polEr*100<<"\t CE: "<<cEdge<<"+/-"<<cEdgeEr<<normal<<endl;
+    //cout<<green<<"pol%: "<<pol*100<<"+/-"<<polEr*100<<"\t CE: "<<cEdge<<"+/-"<<cEdgeEr<<normal<<endl;
     //polFit->SetParameters(cEdge,pol);
     //polFit->SetParLimits(0, cEdge-2, cEdge+2);///allowing CE to change by +/- 1 strip
     //polFit->SetParLimits(1, pol-0.02, pol+0.02);///allowing pol% to change by +/- 2%
@@ -274,7 +275,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
   polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath, txt,filePre.Data()));
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tgoodCyc"<<endl;
-  polList<< Form("%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
+  polList<< Form("%5.0f\t%2.3f\t%.3f\t%.3f\t%d\t%2.3f\t%.3f\t%d\t%d\t%d",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
   if(debug) {
     cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\tplane\tfitStatus\tgoodCyc");
     cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;

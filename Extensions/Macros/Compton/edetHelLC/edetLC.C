@@ -6,7 +6,7 @@
 #include "stripMask.C"
 //#include "fileReadDraw.C"
 
-Int_t edetLC(Int_t runnum, TString dataType="Ac")
+Int_t edetLC(Int_t runnum, TString dataType="Sc")
 {
   cerr<<"starting into edetLC.C**************"<<endl;
   time_t tStart = time(0), tEnd; 

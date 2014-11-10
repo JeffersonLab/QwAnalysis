@@ -24,7 +24,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   const Bool_t debug = 0;
   chain->ResetBranchAddresses();
   Int_t nEntries = chain->GetEntries();
-  Double_t laser = 0.0, bcm = 0.0;//, patNum=0.0;
+  Double_t laser = 0.0, bcm = 0.0, patNum=0.0;
 
   TH1D *hBeam = new TH1D("hBeam","dummy",100,0,200);//typical value of maximum beam current
   TH1D *hLaser = new TH1D("hLaser","dummy",1000,0,250000);//typical value of maximum laser power
@@ -59,8 +59,8 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
   chain->SetBranchStatus("*",0);//turn off all branches
   chain->SetBranchStatus("yield_sca_laser_PowT",1);//turn on cavity pow branch
   chain->SetBranchStatus("yield_sca_bcm6",1);//turn on bcm branch
-  //  chain->SetBranchStatus("pattern_number",1);
-  //  chain->SetBranchAddress("pattern_number",&patNum);
+  chain->SetBranchStatus("pattern_number",1);
+  chain->SetBranchAddress("pattern_number",&patNum);
 
   chain->SetAutoDelete(kTRUE);
   printf("Ebeam considered On if above %f.\n", beamFrac*beamMax);
@@ -84,16 +84,15 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
 
     if (n==minEntries) { ///laser has been off for minEntries/240 seconds continuously, hence consider it a valid laseroff
       cutL.push_back(index-minEntries+1);//!the +1 is needed to take care of the fact that C++ counts "index" from 0, while 'minEntries' is compared only when 'n' goes all the way from 1 to minEntries.
-      printf("cutL[%d]=%d\n",m,cutL.back()); ///print begin of laser off entry
-      printf("laserPow here:%d, index:%d\n",(Int_t)laser,index);
+      printf("cutL[%d]=%d, laserPow falls to %d @index:%d & pat#:%d\n",m,cutL.back(),(Int_t)laser, index-minEntries+1, (int)patNum-minEntries);//print begin of lasOff entry
+      if(debug) printf("laserPow here:%d, index:%d\n",(Int_t)laser,index);
       flipperIsUp = kTRUE; ///laserOff state begins
       m++; ///cutLas array's even number index (corresponding to a laserOff)
     }
     if(flipperIsUp){ ///if the laser is known to be off check ...
       if(n == 0 || index == nEntries-1) { ///if laser On has just begun OR the end of run has been reached
         cutL.push_back(index); ///record this as the end of laserOn cycle
-        printf("cutL[%d]=%d, laserPow rises:%d, index:%d\n",m,cutL.back(),(Int_t)laser,index);
-        printf("cutL[%d]=%d\n",m,cutL.back());///print end of laser off entry
+        printf("cutL[%d]=%d, laserPow rises to %d @index:%d & pat#:%d\n",m,cutL.back(),(Int_t)laser,index, (int)patNum);
         m++; ///cutLas array's odd number index (corresponding to a laserOn)
         flipperIsUp = kFALSE; ///laserOff state ends
       }
@@ -114,7 +113,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
         o++; ///cutE array's even number index (corresponding to a beamTrip)
         if (index >= (PREV_N_ENTRIES+avoidDAQEr)) { //to protect the beamTrip that may have occured in the first 2s of the run
           cutE.push_back(index-(PREV_N_ENTRIES+avoidDAQEr)); ///register the entry# ~ 2s before this instance as a beam-trip
-          printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",red,cutE.back(),bcm,index,normal);
+          printf("%scutE[%d]=%i,   bcm:%3.2f   index:%d\n%s",red, (o)/2, cutE.back(),bcm,index,normal);
           //printf("ch1 bcm:%3.2f, index:%d\n",bcm,index);
         }
         else {
@@ -132,7 +131,7 @@ Int_t getEBeamLasCuts(std::vector<Int_t> &cutL, std::vector<Int_t> &cutE, TChain
         o++; ///cutE array's odd number index (corresponding to a beam recovery)
         p = 0; 
         cutE.push_back(index); ///register that the trip is recovered. 
-        printf("%scutE[]=%i,   bcm:%3.2f   index:%d\n%s",green,cutE.back(),bcm,index,normal);
+        printf("%scutE[%d]=%i,   bcm:%3.2f   index:%d\n%s",green, (o+1)/2, cutE.back(), bcm, index,normal);
         //printf("ch3 bcm:%3.2f, o:%d  index:%d\n",bcm,o,index);
         prevTripDone = kTRUE; 
       }

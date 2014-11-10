@@ -7,7 +7,7 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 0;
+const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kOnlyGoodLasCyc = 1;
@@ -51,7 +51,7 @@ const Int_t nModules = 2;//number of slave boards
 const Double_t stripWidth = 2.0E-4;//(m) SI unit
 const Double_t whereInTheStrip = 0;//1.0E-4;//0;//1.0E-4;
 const Double_t lmag = 1.25; ///length of each magnet(m) //1.704;
-const Int_t minEntries = 2400; //Laser must be off for at least this many consecutive entries to be considered (off)
+const Int_t minEntries = 3120; //Laser must be off for at least this many consecutive quartets to be considered (off)
 ///4000/helRate ~<20 second; we never ran with a laser cycle such that lasOff <20s, so this is good
 const Double_t th_det = 11.78;//based on elog495;//detector inclination towards the beam (deg)
 ///survey provided longitudinal distance of det-bottom from magnetic exit of 3rd dipole
@@ -87,7 +87,7 @@ const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !!
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
-Int_t daqflag=0, retInfoDAQ=0, retNoise=0;
+Int_t daqflag=0, retInfoDAQ=0, retNoise=0, retCorrDT=0;
 Int_t asymflag=0;
 Double_t Cedge = 50;
 Double_t tempCedge=50;//!should I initiate it like this !
@@ -152,6 +152,7 @@ Double_t tNormYieldB1H0L1[nStrips]={0.0},tNormYieldB1H0L1Er[nStrips]={0.0};
 Double_t tNormYieldB1H0L0[nStrips]={0.0},tNormYieldB1H0L0Er[nStrips]={0.0};
 Double_t timeB0,rateB0[nStrips]={0.0};
 Double_t checkAsym=0.0;///use to check if sign of asymmetry changed during run
+const Int_t myStr = 38;///a sample strip number to check for various quantities;
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64
