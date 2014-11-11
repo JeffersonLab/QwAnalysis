@@ -76,7 +76,11 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
   Double_t md_zpos[9] = {0.0, 576.665,  576.705, 577.020, 577.425, 577.515,  577.955, 577.885, 577.060};
 
-  TString outputPrefix(Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/md_image_%d_",runnum,runnum));
+  //TString outputPrefix(Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/md_image_%d_",runnum,runnum));
+
+  TString outputPrefix = Form(
+      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+      runnum, runnum);
 
 // Create and load the chain
   TChain *event_tree = new TChain("event_tree");

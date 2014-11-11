@@ -53,7 +53,10 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	TString Prefix = Form("$QWSCRATCH/tracking/www/run_%d/trk_fit_drift_distance_and_time_%d_",runnum, runnum);
+	//TString Prefix = Form("$QWSCRATCH/tracking/www/run_%d/trk_fit_drift_distance_and_time_%d_",runnum, runnum);
+	TString Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_trk_fit_drift_distance_and_time_",
+	      runnum, runnum);
 
 	//Set up style options (ie should print out fit information)
 	gStyle->SetOptFit(1110);

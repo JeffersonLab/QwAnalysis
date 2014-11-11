@@ -41,7 +41,11 @@ void dslumi(int runnum, bool is100k)
 	Mps_Tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	///deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/dslumi_%d_",runnum, runnum);
+	//Prefix = Form("$QWSCRATCH/tracking/www/run_%d/dslumi_%d_",runnum, runnum);
+
+	Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_dslumi_",
+	      runnum, runnum);
 
 	//create a vector of 2-D histograms of size 9 and define it
         std::vector<TH2D*> h;

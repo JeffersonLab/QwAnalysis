@@ -29,7 +29,11 @@ void QtorCurrent(int runnum, bool is100k)
 	chain->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/QTOR_%d_",runnum, runnum);
+	//Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/QTOR_%d_",runnum, runnum);
+
+        Prefix = Form(
+             TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_QTOR_",
+             runnum, runnum);
 
 	//Create a canvas and histogram
 	TCanvas c1( "c1", "QTOR current vs. Time (as Event Number)", 1000, 700);
@@ -111,7 +115,7 @@ void QtorCurrent(int runnum, bool is100k)
 	// open file with outputPrefix+q2.txt which will store the output of the vlaues
 	//to a file in a easy way that should be able to be read back into a program if
 	//needed
-	fout.open(Prefix+"QTOR.txt");
+	fout.open(Prefix+"current.txt");
 	if (!fout.is_open()) cout << "File not opened" << endl;
 	//Prefix will inculed run number which we need.
 	fout << h1->GetMean(2) << endl;

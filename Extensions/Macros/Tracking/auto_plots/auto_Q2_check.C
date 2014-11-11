@@ -105,7 +105,11 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
 
   // changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the environment properly 
-   TString outputPrefix(Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum));
+//   TString outputPrefix(Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum));
+
+   TString outputPrefix = Form(
+       TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+       runnum, runnum);
 
    // Create and load the chain
    TChain *event_tree = new TChain("event_tree");

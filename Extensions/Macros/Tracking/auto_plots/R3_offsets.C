@@ -123,7 +123,11 @@ void R3_offsets (int runnum, bool is100k)
 
   //changed the output PREFIX so that it is compatible with both Root
   //and writing to a file by setting the environment properly
-  PREFIX = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+  //PREFIX = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+
+  PREFIX = Form(
+         TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+         runnum, runnum);
 
   // Create and load the chain
   TChain* event_tree = new TChain("event_tree");

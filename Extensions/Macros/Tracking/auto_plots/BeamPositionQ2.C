@@ -51,11 +51,15 @@ int getOctNumber(TChain* event_tree)
 void BeamPositionQ2(int runnum, bool is100k)
 {
       // Define the preliminary variables
-      int bin_size = 300;
+      int bin_size = 100;
       int min_Q2 = 0;
       int max_Q2 = 60;
 
-      TString Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/BeamPositionQ2_%d_",runnum,runnum);
+      //TString Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/BeamPositionQ2_%d_",runnum,runnum);
+
+      TString Prefix = Form(
+          TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+          runnum, runnum);
 
       TChain* event_tree = new TChain ("event_tree");
 

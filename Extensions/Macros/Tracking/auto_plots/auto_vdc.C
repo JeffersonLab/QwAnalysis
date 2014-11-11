@@ -507,7 +507,11 @@ void plot_hitnumber()
 
 void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
 {
-  outputPrefix = Form("$QWSCRATCH/tracking/www/run_%d/auto_vdc_%d_",runnum,runnum);
+  //outputPrefix = Form("$QWSCRATCH/tracking/www/run_%d/auto_vdc_%d_",runnum,runnum);
+
+  outputPrefix = Form(
+      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_auto_vdc_",
+      runnum, runnum);
 
   // Create and load the chain
   TChain *chain = new TChain("event_tree");

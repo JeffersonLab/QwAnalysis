@@ -585,7 +585,11 @@ diff->SaveAs(PREFIX+Form("adcdiff_center_pkg%d.png",package));
 void R3_lightattenuation (int runnum, bool is100k)
 {
   // Output prefix
-  PREFIX = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+  //PREFIX = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+
+  PREFIX = Form(
+         TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+         runnum, runnum);
 
   // Create and load the chain
   TChain *event_tree = new TChain("event_tree");

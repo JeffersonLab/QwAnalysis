@@ -54,7 +54,11 @@ void Chi(int runnum, bool is100k)
 
 	// changed the outputPrefix so that it is compatble with both Root and writing to a file by setting the enviromnet properly
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+	//Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+
+	Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+	      runnum, runnum);
 
 	// groups root files for a run together
 	TChain* event_tree = new TChain ("event_tree");
@@ -299,7 +303,7 @@ void Chi(int runnum, bool is100k)
 //	h[1][3]->Draw();
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-//	c3.SaveAs(Prefix+"_chi_vs_time.png");
+//	c3.SaveAs(Prefix+"chi_vs_time.png");
 
 	//write the stats about chi to a file
 

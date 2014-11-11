@@ -16,7 +16,13 @@
 #include "TList.h"
 
 void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
-	// groups root files for a run together
+
+  //set prefex where the files will be written too
+  PREFIX = Form(
+      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+      runnum, runnum);
+
+        // groups root files for a run together
 	TChain* event_tree = new TChain ("event_tree");
 
 	//add the root files to the chain the event_tree branches
@@ -686,12 +692,12 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 		H2->Draw();
 
 		//Save the plots
-		c1->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/trk_hit_patterns_%d.png",runnum,runnum));
-		c2->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/trk_drift_times_%d.png",runnum,runnum));
-		c3->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/full_hit_patterns_%d.png",runnum,runnum));
-		c4->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/full_drift_times_%d.png",runnum,runnum));
-		cplane->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/hdc_hits_plane_%d.png",runnum,runnum));
-		chits->SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/hits_per_track_%d.png",runnum,runnum));
+		c1->SaveAs(PREFIX+"trk_hit_patterns.png");
+		c2->SaveAs(PREFIX+"trk_drift_times.png");
+		c3->SaveAs(PREFIX+"full_hit_patterns.png");
+		c4->SaveAs(PREFIX+"full_drift_times.png");
+		cplane->SaveAs(PREFIX+"hdc_hits_plane.png");
+		chits->SaveAs(PREFIX+"hits_per_track.png");
 
 		return;  
 	}

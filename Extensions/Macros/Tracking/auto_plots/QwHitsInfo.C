@@ -35,7 +35,11 @@ void QwHitsInfo (int runnum, bool is100k)
 	chain->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/QwHitsInfo_%d_",runnum, runnum);
+	//Prefix = Form("$QWSCRATCH/tracking/www/run_%d/QwHitsInfo_%d_",runnum, runnum);
+
+        Prefix = Form(
+             TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_QwHitsInfo_",
+             runnum, runnum);
 
 	QwHits_Region (chain);
 

@@ -32,7 +32,11 @@ void NumTracks(Int_t runnum, bool is100k)
 	chain->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/%d_",runnum, runnum);
+	//Prefix = Form("$QWSCRATCH/tracking/www/run_%d/%d_",runnum, runnum);
+
+	Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+	      runnum, runnum);
 
 	//define the arrays that will store the infomation - (enrty num = region - 1)
 	//entry 0 will be for both regions

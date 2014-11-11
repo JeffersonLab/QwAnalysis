@@ -43,7 +43,11 @@ void OctantDetermination(int runnum, bool is100k)
 	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/OctantDetermination_%d_",runnum, runnum);
+	//Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/OctantDetermination_%d_",runnum, runnum);
+
+	 Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_OctantDetermination_",
+	      runnum, runnum);
 
 	//define all of the needed histograms for this scripts
         //create a vectors of TH1D histogram pointer

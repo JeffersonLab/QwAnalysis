@@ -75,7 +75,11 @@ void LightWeighting (int runnum, bool is100k)
 {
   //changed the outputPrefix so that it is compatble with both Root 
   //and writing to a file by setting the enviromnet properly 
-  Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+  //Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+
+  Prefix = Form(
+      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+      runnum, runnum);
 
   // Create and load the chain
   TChain *event_tree = new TChain("event_tree");
