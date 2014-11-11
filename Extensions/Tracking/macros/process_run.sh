@@ -13,30 +13,29 @@ umask 002
 ## SQLITE3 for database management (assume in path)
 SQLITE=sqlite3
 
+#setting QWSCRATCH to a saved variable
+QWSCRATCH_SAVED=${QWSCRATCH}
+
 ## SQLITE3 database
-DBFILE=${QWSCRATCH}/www/tracking_summaryruns.db
+DBFILE=${QWSCRATCH_SAVED}/www/tracking_summaryruns.db
+
+## QW_ROOTFILES is passed as an environment variable
+## If it exists, store it and override the automatic variable later
+QW_ROOTFILES_SAVED=${QW_ROOTFILES}
+echo "Saved QW_ROOTFILES which was pointing to ${QW_ROOTFILES}."
 
 ## Path to the directory for log files
-LOGDIR=${QWSCRATCH}/tracking/log
+LOGDIR=${QWSCRATCH_SAVED}/tracking/log
 
 ## Path to website directory
-WEBDIR=${QWSCRATCH}/tracking/www
+WEBDIR_SAVED=${QWSCRATCH}/tracking/www
+WEBDIR=${WEBDIR_SAVED}
+echo "WEBDIR_SAVED is ${WEBDIR_SAVED}"
+echo "WEBDIR is pointing to ${WEBDIR}"
 
-## Path to macros directory
-MACROSDIR=${QWANALYSIS}/Extensions/Macros/Tracking
-
-## Path to base directory
-BASEDIR=${QWANALYSIS}/Extensions/Tracking/macros
-
-## Path to configuration files for the macros
-CONFIGDIR=${BASEDIR}/config.d
-
-## Path to templates
-TEMPLATES=${BASEDIR}/templates
-
-## The macro that runs other macros
-RUNMACRO=${BASEDIR}/utils/run_macro.C
-
+## Path to all extensions
+QWEXTENSIONS=${QWANALYSIS}/Extensions
+echo -e "QWEXTENSIONS is ${QWEXTENSIONS} \n\n"
 ## The default should be analyze the full run and not the first 100K
 FIRST100K=kFALSE
 
@@ -118,13 +117,46 @@ then
   fi
 fi
 
-## Check to make sure QWROOT got defined, if not defined it now
-if [ x$QWROOT == "x" ]
+
+## Source environment for QwAnalysis
+source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash
+echo -e "\n\nQW_ROOTFILES is pointing to ${QW_ROOTFILES}."
+echo "WEBDIR_SAVED is still ${WEBDIR_SAVED}"
+echo "WEBDIR is now pointing to ${WEBDIR}"
+echo -e "QWEXTENSIONS is ${QWEXTENSIONS} \n\n"
+
+export WEBDIR
+
+## Path to QwRoot to use
+QWROOT=${QWANALYSIS}/bin/qwroot
+
+## Set QW_ROOTFILES back to the saved value if there was one
+if [ x${QW_ROOTFILES_SAVED} !=  "x" ]
 then
-  QWROOT=$QWANALYSIS/bin/qwroot
+   QW_ROOTFILES=${QW_ROOTFILES_SAVED}
+   echo -e "Restored QW_ROOTFILES to ${QW_ROOTFILES_SAVED}. \n\n"
 fi
 
+
 ################################################################################
+
+## Path to macros directory
+MACROSDIR=${QWEXTENSIONS}/Macros/Tracking
+echo "MACROSDIR is ${MACROSDIR}"
+
+## Path to base directory
+BASEDIR=${QWEXTENSIONS}/Tracking/macros
+
+## Path to configuration files for the macros
+CONFIGDIR=${BASEDIR}/config.d
+
+## Path to templates
+TEMPLATES=${BASEDIR}/templates
+
+## The macro that runs other macros
+RUNMACRO=${BASEDIR}/utils/run_macro.C
+echo -e "RUNMACRO is ${RUNMACRO} \n\n"
+
 ################################################################################
 ################################################################################
 ## Process Defines
@@ -136,6 +168,7 @@ cd ${BASEDIR}
 ## Create the log directory
 mkdir -p ${LOGDIR}
 
+echo "WEBDIR is now pointing to $WEBDIR"
 ## Create the web directory
 mkdir -p ${WEBDIR}/run_$RUNNUM
 
@@ -151,6 +184,7 @@ TIME=`date +%H%M%S`
 ANALYSISDATE=$(date +"%Y-%m-%d %H:%M")
 ## First create the web page 
 RUNPAGE="${WEBDIR}/run_$RUNNUM/run_$RUNNUM.html"
+echo "RUNPAGE is $RUNPAGE"
 # The body of the page
 cat ${TEMPLATES}/run_page > $RUNPAGE
 # End this run's page
@@ -230,9 +264,12 @@ then
                 COMPILE=`awk -F= ' /compile/ {print $2}' ${config}`
 
                 ## Now after the configuration file has been read, and the script is enabled, process the script
-                echo "Running ${MACRO}"
-                echo "${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log"
-                nice  ${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log
+                echo -e "\n\nMACROSDIR is ${MACROSDIR}"
+                echo "WEBDIR is ${WEBDIR}"
+                echo -e "Running ${MACRO} \n\n"
+
+                echo "${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACROSDIR}/${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log"
+                nice  ${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACROSDIR}/${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log
             else
                 echo "Macro ${MACROSDIR}/${MACRO} not found"
             fi

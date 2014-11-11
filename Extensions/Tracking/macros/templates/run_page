@@ -91,8 +91,8 @@ is the Q^2. <br> The rows from top to bottom are both packages, package 1, and t
 The mean values and the error are given in the text file below the plot.  
 </p></center>
 
-<p><center><img src="%%RUNNUM%%_q2.png"></center></p>
-<p><center><a href="%%RUNNUM%%_q2.txt">Q2 Values</a></center></p>
+<p><center><img src="%%RUNNUM%%_q2.png" style="width: 800px; margin-right:50px"></center></p>
+<p><center><a href="%%RUNNUM%%_q2.txt" style="width: 800px; margin-right:50px">Q2 Values</a></center></p>
 
 
 <!-- New Topic -->
@@ -109,10 +109,10 @@ figured in each of them. The slope, error, and chi square are given in the text 
 the plots. 
 </p></center>
 
-<p><center><img src="BeamPositionQ2_%%RUNNUM%%_Q2_vs_beamxposition.png"></center></p>
-<p><center><img src="BeamPositionQ2_%%RUNNUM%%_Q2_vs_beamyposition.png"></center></p>
-<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BeamPositionQ2_X.txt">Beam X Position Values</a></center></p>
-<p><center><a href="BeamPositionQ2_%%RUNNUM%%_BeamPositionQ2_Y.txt">Beam Y Position Values</a></center></p>
+<p><center><img src="%%RUNNUM%%_Q2_vs_beamxposition.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Q2_vs_beamyposition.png"></center></p>
+<p><center><a href="%%RUNNUM%%_BeamPositionQ2_X.txt">Beam X Position Values</a></center></p>
+<p><center><a href="%%RUNNUM%%_BeamPositionQ2_Y.txt">Beam Y Position Values</a></center></p>
 
 
 
@@ -131,16 +131,21 @@ Below these plots is a text file that has the mean Chi value for all of these an
 In the file the direction is referenced by: 0 == total package, 1 == X plane, 3 == U plane, and 4 == V plane.  <br>
 </p></center>
 
-<p><center><img src="%%RUNNUM%%_LogChi.png"></center></p>
-<p><center><a href="%%RUNNUM%%_LogChi.txt">Chi Values</a></center></p>
+<p><center><img src="%%RUNNUM%%_LogChi.png" style="width: 800px; margin-right:50px" ></center></p>
+<p><center><a href="%%RUNNUM%%_LogChi.txt" >Log Chi Values</a></center></p>
 
-<p><center><img src="Chi_%%RUNNUM%%__chi.png" style="width: 900px;"></center></p>
-<p><center><a href="Chi_%%RUNNUM%%_Chi.txt">Chi Values</a></center></p>
+<!-- This never existed...
+<p><center><img src="%%RUNNUM%%_chi.png" ></center></p>
+-->
+<p><center><a href="%%RUNNUM%%_Chi.txt" >Chi Values</a></center></p>
+
+<!-- This never existed...
 
 <center><p> The third plot log(Chi) values vs time in in region 2 for package 1 (across the top and package 2 across the bottom.
 From left to right the order is total package, X plane, U plane, V plane.</p></center>
-<p><center><img src="%%RUNNUM%%__chi_vs_time.png"></center></p>
 
+<p><center><img src="%%RUNNUM%%_chi_vs_time.png"></center></p>
+-->
 
 
 <!-- New Topic -->
@@ -157,10 +162,12 @@ where 0 is all planes and 1-12 is the number of the plane. <br>
 Note: the residual is calulated by:fQwTreeLines.fQwHits,fDriftPosition-fQwTreeLines.fQwHits.fTrackPosition; the residual in the Root tree is the absolute value of that.
 </p></center>
 
-<p><center><img src="Residual_%%RUNNUM%%_Residual_Package_1.png" style="width:900px;"></center></p>
-<p><center><img src="Residual_%%RUNNUM%%_Residual_Package_2.png" style="width:900px;"></center></p>
-<p><center><img src="Residual_%%RUNNUM%%_Residual_Both_Packages.png" style="width:600px;"></center></p>
-<p><center><a href="Residual_%%RUNNUM%%_Residual.txt">Residual Values</a></center></p>
+<p><center><img src="%%RUNNUM%%_Residual_Package_1.png" style="width: 800px; margin-right:50px"></center></p>
+<p><center><img src="%%RUNNUM%%_Residual_Package_2.png" style="width: 800px; margin-right:50px"></center></p>
+<!-- This never existed...
+<p><center><img src="%%RUNNUM%%_Residual_Both_Packages.png" style="width: 400px; margin-right:50px"></center></p> 
+-->
+<p><center><a href="%%RUNNUM%%_Residual.txt">Residual Values</a></center></p>
 
 <center><p>
 These last plots are the Mean Residual vs. Plane number in Region 2 for 
@@ -175,8 +182,8 @@ RMS/sqrt(N).
 </p></center>
 
 <p><center>
-<img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_1.png" style="width:300px;">
-<img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_2.png" style="width:300px;">
+<img src="%%RUNNUM%%_Residual_By_Plane_Package_1.png" style="width:300px;">
+<img src="%%RUNNUM%%_Residual_By_Plane_Package_2.png" style="width:300px;">
 </center></p>
 
 
@@ -196,20 +203,22 @@ Again plane X is red, plane U is blue and plane V is green.
 </p></center>
 
 <div style="width: 1200px; margin: 0 auto;">
-<img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png" style="width: 600px;" alt="" /><img src="drift_distance_and_time_%%RUNNUM%%_Package_2.png" style="width: 600px;" alt="" /></div>
+<img src="%%RUNNUM%%_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
 
+<!-- This never existed...
 
 <center><p>
 These plots graph the drift time distribution for all HDC hits (no requirement that the hits be part of valid tracks) for each of the 4 chambers, first on linear and then on log scales. 
 
 </p></center>
-<p><center><img src="test_drift_times_%%RUNNUM%%.png"> 
+<p><center><img src="%%RUNNUM%%_test_drift_times.png"> 
 </p></center>
 
 These plots graph the wire hit patterns for each plane of each HDC chamber for all HDC hits (no requirement that the hits be part of valid tracks)
-<p><center><img src="test_hit_patterns_%%RUNNUM%%.png"></center></p>
+<p><center><img src="%%RUNNUM%%_test_hit_patterns.png"></center></p>
 </p></center>
 
+-->
 
 <!-- New Topic -->
 
@@ -225,19 +234,18 @@ The third plot is the QwHits in each direction: 1 == Direction X,
 2 == Direction Y, 3 == Direction U, 4 == Direction V.
 </p></center>
 
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Region.png"> <img src="QwHitsInfo_%%RUNNUM%%_Package.png"></center></p>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Direction.png"></center></p>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Region.png"> <img src="%%RUNNUM%%_QwHitsInfo_Package.png"></center></p>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Direction.png"></center></p>
 <center><p>
 These  plots are the "elements" for the QwHits in each region, where element is the wire # for R2 & R3 and the PMT# for others.
 </p></center>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_2.png"> <img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_3.png"></center></p>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_4.png"> <img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_5.png"></center></p>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_2.png"> <img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_3.png"></center></p>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_4.png"> <img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_5.png"></center></p>
 
 <center><p>
 This is a plot of the log of the number of bridged tracks per event.
 </p></center>
 <p><center><img src="QwHitsInfo_%%RUNNUM%%_fNQwTracks.png">
-
 
 <!-- New Topic -->
 
@@ -255,8 +263,8 @@ shows the octant that was selected as the one the package was located in.
 
 <p><center>
 <div style="width: 1250px; margin: 0 auto;">
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_vs_Trigger_Scint_Package_1.png" style="width: 600px; margin-right:50px;" alt="" />
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_vs_Trigger_Scint_Package_2.png" style="width: 600px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_vs_Trigger_Scint_Package_1.png" style="width: 400px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_vs_Trigger_Scint_Package_2.png" style="width: 400px; margin-right:50px;" alt="" />
 </div>
 
 
@@ -270,12 +278,12 @@ analyzer graphed in the center.
 
 <p><center>
 <div style="width: 1250px; margin: 0 auto;">
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_2_Package_1.png" style="width: 600px; margin-right:50px;" alt="" />
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_2_Package_2.png" style="width: 600px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_2_Package_1.png" style="width: 400px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_2_Package_2.png" style="width: 400px; margin-right:50px;" alt="" />
 </div>
 <div style="width: 1250px; margin: 0 auto;">
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_3_Package_1.png" style="width: 600px; margin-right:50px;" alt="" />
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_3_Package_2.png" style="width: 600px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_3_Package_1.png" style="width: 400px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_3_Package_2.png" style="width: 400px; margin-right:50px;" alt="" />
 </div>
 </p></center>
 
@@ -294,7 +302,7 @@ V planes are in the first column and the second are the U planes. <br>
 Vader is red, Yoda is appropriately green, Leia is blue and Han is purple. 
 </p></center> 
 
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_package1.png"> <img src="auto_vdc_%%RUNNUM%%_wires_package2.png"></center></p>
+<p><center><img src="%%RUNNUM%%_auto_vdc_wires_package1.png"> <img src="%%RUNNUM%%_auto_vdc_wires_package2.png"></center></p>
 
 <center><p>
 The following two plots are the number of ambiguous hits vs. wire number.
@@ -303,7 +311,7 @@ The planes are in columns;
 V planes are in the first column and the second are the U planes. <br>
 Vader and Yoda are green, Leia and  Han are purple.
 </p></center>
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_ambig_package1.png"> <img src="auto_vdc_%%RUNNUM%%_wires_ambig_package2.png"></center></p>
+<p><center><img src="%%RUNNUM%%_auto_vdc_wires_ambig_package1.png"> <img src="auto_vdc_wires_ambig_package2.png"></center></p>
 
 
 <center><p>
@@ -311,23 +319,23 @@ The following two plots are the number of hits vs. plane on the left
 and number of ambiguous hits vs. plane on the right.
 Package 1 is on the top in blue and Package 2 is on the bottom in green for both of these.
 </p></center>
-<p><center><img src="auto_vdc_%%RUNNUM%%_planes_hits.png"> <img src="auto_vdc_%%RUNNUM%%_planes_hit_ambigious.png"></center></p>
+<p><center><img src="%%RUNNUM%%_auto_vdc_planes_hits.png"> <img src="%%RUNNUM%%_auto_vdc_planes_hit_ambigious.png"></center></p>
 
 
 <center><p>
 This plot graphs the hit multiplicity (number of hits on a wire in given event) for Vader, Leia, Yoda and Han.  <br>
 Vader is red, Yoda is green, Leia is blue and Han is purple.
 </p></center>
-<p><center><img src="auto_vdc_%%RUNNUM%%_hit_number.png"></center></p>
+<p><center><img src="%%RUNNUM%%_auto_vdc_hit_number.png"></center></p>
 
 
 This plot shows the drift time distributions for the VDCs (all hits).
 </p></center> 
-<p><center><img src="auto_vdc_%%RUNNUM%%_drifttimes.png"> 
+<p><center><img src="%%RUNNUM%%_auto_vdc_drifttimes.png"> 
 
 <p>This plot shows the hit distributions across the MUX delay lines for the VDCs.
 </p></center> 
-<p><center><img src="auto_vdc_%%RUNNUM%%_delaylines_hit.png"> 
+<p><center><img src="%%RUNNUM%%_auto_vdc_delaylines_hit.png"> 
 
 <!-- New Topic -->
 
@@ -495,7 +503,7 @@ of the Theta (top) and Phi (bottom) angles.  The plots from left to right are pa
 <center><p>
 Graphs the two trigger scintillator scaler values vs time (event number).
 </p></center>
-<p><center><img src="trigger_scint_scalers_vs_time_%%RUNNUM%%.png"></center></p>
+<p><center><img src="%%RUNNUM%%_trigger_scint_scalers_vs_time.png"></center></p>
 
 
 <!-- New Topic -->
@@ -506,16 +514,16 @@ Graphs the two trigger scintillator scaler values vs time (event number).
 <center><p>
 Graph of all 8 dslumi rates vs. time (mps counter)
 </p></center>
-<p><center><img src="dslumi_%%RUNNUM%%_vs_time.png"></center></p>
+<p><center><img src="%%RUNNUM%%_dslumi_vs_time.png"></center></p>
 <center><p>
 Graph of the sum of all the dslumi rates vs. time (mps counter)
 </p></center>
-<p><center><img src="dslumi_%%RUNNUM%%_sum_vs_time.png"></center></p>
+<p><center><img src="%%RUNNUM%%_dslumi_sum_vs_time.png"></center></p>
 <center><p>
 Graphs all 4 dslumi rates ratios vs. time on one canvas 
 - the ratios are, 1/5, 2/6, 3/7, 4/8 (from top to bottom), octants that are across from each other.
 </p></center>
-<p><center><img src="dslumi_%%RUNNUM%%_ratios_vs_time.png"></center></p>
+<p><center><img src="%%RUNNUM%%_dslumi_ratios_vs_time.png"></center></p>
 
 
 <!-- New Topic -->
@@ -526,8 +534,8 @@ Graphs all 4 dslumi rates ratios vs. time on one canvas
 <center><p>
 Graphs the QTOR current vs event number.
 </p></center>
-<p><center><img src="QTOR_%%RUNNUM%%_current_vs_time.png"></center></p>
-<p><center><a href="QTOR_%%RUNNUM%%_QTOR.txt">QTOR current</a></center></p>
+<p><center><img src="%%RUNNUM%%_QTOR_current_vs_time.png"></center></p>
+<p><center><a href="%%RUNNUM%%_QTOR_current.txt">QTOR current</a></center></p>
 
 
 <!-- New Topic -->

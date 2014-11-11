@@ -16,7 +16,8 @@ void run_macro(const char* macroName, const char* functionName,
       const char* localIncludes, Int_t runNumber, Bool_t isFirst100k, Bool_t compile)
 {
    // Base directory for macros
-   TString macroDir = TString(getenv("QWANALYSIS")) + "/Extensions/Macros/Tracking";
+//   TString macroDir = TString(getenv("QWANALYSIS")) + "/Extensions/Macros/Tracking";
+   TString macroDir = TString(getenv("MACRODIR"));
 
    // First include the default directory
    gROOT->ProcessLine(".include " + macroDir + "/shared");
