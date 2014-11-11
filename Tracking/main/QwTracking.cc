@@ -100,7 +100,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
 
     ///  Clear options to pick up run number specific config files
-    gQwOptions.Clear();
+    gQwOptions.Parse(true);
 
     ///  Create an EPICS event
     QwEPICSEvent epics;

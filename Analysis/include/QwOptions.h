@@ -219,8 +219,8 @@ class QwOptions {
 
 
     /// \brief Parse all sources of options
-    void Parse() {
-      if (! fParsed) {
+    void Parse(bool force = false) {
+      if (! fParsed || force) {
         ParseCommandLine();
         ParseEnvironment();
         ParseConfigFile();
