@@ -91,8 +91,8 @@ while ( my $runnum = <ALLRUNS> )
   #runnum and pass
   #this is read only - I don't want to delete all of it
   #by accedent. 
-  my $QweakText = $QweakDir . "/run_" . $runnum . "/" . $script 
-      . "_" . $runnum . "_" . $script . ".txt";
+  my $QweakText = $QweakDir . "/run_" . $runnum . "/" . 
+      $runnum . "_" . $script . ".txt";
   open( QTORDATA, "<$QweakText" );
 #    || die "Couldn't open file $QweakText, $!";
 #die hard aborts the script, we just want it to skip the
