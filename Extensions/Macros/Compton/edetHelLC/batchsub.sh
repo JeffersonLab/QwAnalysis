@@ -12,8 +12,8 @@ found=yes
 #for i in `seq 23220 23530`;
 #for i in `seq 24250 24450`;
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/runsMCM.txt);
-#for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol.txt);
-for i in $(cat testSub.temp);
+for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol.txt);
+#for i in $(cat testSub.temp);
 #for i in $(cat /w/hallc/compton/users/narayan/my_scratch/data/goodList_longPol_23000.txt);
 
 do

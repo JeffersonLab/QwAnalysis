@@ -214,9 +214,9 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     helChain->SetBranchAddress(Form("diff_p%dRawEv",plane),&bDiff);
     helChain->SetBranchAddress(Form("asym_p%dRawEv",plane),&bAsym);
   } else if (dataType == "Sc") {
-    helChain->SetBranchStatus("yield_p*RawV1495Scaler*",1);
-    helChain->SetBranchStatus("diff_p*RawV1495Scaler*",1);
-    helChain->SetBranchStatus("asym_p*RawV1495Scaler*",1);
+    helChain->SetBranchStatus(Form("yield_p%dRawV1495Scaler*",plane),1);
+    helChain->SetBranchStatus(Form("diff_p%dRawV1495Scaler*",plane),1);
+    helChain->SetBranchStatus(Form("asym_p%dRawV1495Scaler*",plane),1);
     helChain->SetBranchAddress(Form("yield_p%dRawV1495Scaler",plane),&bYield);
     helChain->SetBranchAddress(Form("diff_p%dRawV1495Scaler",plane),&bDiff);
     helChain->SetBranchAddress(Form("asym_p%dRawV1495Scaler",plane),&bAsym);

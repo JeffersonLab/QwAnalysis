@@ -116,26 +116,38 @@ Int_t infoDAQ(Int_t runnum)
   Double_t minHwien = slowChain->GetMinimum("HWienAngle");
   cout<<"hwien max/min: "<<maxHwien<<"\t"<<minHwien<<endl;
   if(maxHwien == minHwien) hWien=maxHwien;
-  else erBeamVar += "\thWien";
+  else {
+    erBeamVar += "\thWien";
+    hWien = 1234.0;
+  }
 
   Double_t maxVwien = slowChain->GetMaximum("VWienAngle");
   Double_t minVwien = slowChain->GetMinimum("VWienAngle");
   cout<<"vwien max, min: "<<maxVwien<<"\t"<<minVwien<<endl;
   if(maxVwien == minVwien) vWien = maxVwien;
   //else vWien = errFlag;
-  else erBeamVar += "\tvWien";
+  else {
+    erBeamVar += "\tvWien";
+    vWien = 1234.0;
+  }
 
   Double_t maxIhwp1Set = slowChain->GetMaximum("IGL1I00OD16_16");
   Double_t minIhwp1Set = slowChain->GetMinimum("IGL1I00OD16_16");
   cout<<"IHWP1Set max is: "<<  maxIhwp1Set<<", min is: "<<minIhwp1Set<<endl;
   if(maxIhwp1Set == minIhwp1Set) ihwp1set = maxIhwp1Set;
-  else erBeamVar += "\tihwp1set";
+  else {
+    erBeamVar += "\tihwp1set";
+    ihwp1set = 1234.0;
+  }
 
   Double_t maxIhwp1 = slowChain->GetMaximum("IGL1I00DI24_24M");
   Double_t minIhwp1 = slowChain->GetMinimum("IGL1I00DI24_24M");
   cout<<"ihwp1 max, min: "<<maxIhwp1<<"\t"<<minIhwp1<<endl;
   if(maxIhwp1 == minIhwp1) ihwp1read = maxIhwp1;
-  else erBeamVar += "\tihwp1read";
+  else {
+    erBeamVar += "\tihwp1read";
+    ihwp1read = 1234.0;
+  }
 
   if((ihwp1set!=ihwp1read) && (erBeamVar!="ihwp1set" || erBeamVar != "hwp1read")) {
     cout<<red<<"\nAlert****: The IHWP set and read back not same\n"<<normal<<endl;
@@ -146,19 +158,28 @@ Int_t infoDAQ(Int_t runnum)
   Double_t minRhwp = slowChain->GetMinimum("psub_pl_pos");
   cout<<"RHWP max, min : "<<maxRhwp<<"\t"<<minRhwp<<endl;
   if(maxRhwp == minRhwp) rhwp = maxRhwp;
-  else erBeamVar += "\trhwp";
+  else {
+    erBeamVar += "\trhwp";
+    rhwp = 1234.0;
+  }
 
   Double_t maxIhwp2 = slowChain->GetMaximum("IGL1I00DIOFLRD");
   Double_t minIhwp2 = slowChain->GetMinimum("IGL1I00DIOFLRD");
   cout<<"Ihwp2 max, min: "<<maxIhwp2<<"\t"<<minIhwp2<<endl;
   if(maxIhwp2 == minIhwp2) ihwp2read = maxIhwp2;
-  else erBeamVar += "\tihwp2read";
+  else {
+    erBeamVar += "\tihwp2read";
+    ihwp2read = 1234.0;
+  }
 
   Double_t maxPos = slowChain->GetMaximum("HCCEDPOS");
   Double_t minPos =  slowChain->GetMinimum("HCCEDPOS");
   cout<<"edet Pos max is: "<<  maxPos<<", min is: "<<minPos<<endl;
   if(maxPos == minPos) hccedpos = maxPos;
-  else erBeamVar += "\thccedpos";
+  else {
+    erBeamVar += "\thccedpos";
+    hccedpos = 1234.0;
+  }
 
   //hCheck->SetBit(TH1::kCanRebin);
   //slowChain->Draw("HALLC_p>>hCheck","","goff");
@@ -205,7 +226,7 @@ Int_t infoDAQ(Int_t runnum)
   fBeamProp.open(Form("%s/%s/%sbeamProp.txt",pPath, txt,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {
     fBeamProp<<"run\tHWien\tVWien\t\tIHWP1set\tIHWP1read\tRHWP\tIHWP2read\tedetPos\tmeanE\tmeanE_RMS"<<endl;
-    fBeamProp<<Form("%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.2f\t%.2f\n",runnum, hWien, vWien, ihwp1set, ihwp1read, rhwp, ihwp2read, hccedpos,newEmean,rms_eEnergy);
+    fBeamProp<<Form("%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.5f\t%.5f\n",runnum, hWien, vWien, ihwp1set, ihwp1read, rhwp, ihwp2read, hccedpos,eEnergy,rms_eEnergy);
     fBeamProp.close();
     cout<<"wrote beamProperties info to "<<Form("%s/%s/%sbeamProp.txt",pPath, txt,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
