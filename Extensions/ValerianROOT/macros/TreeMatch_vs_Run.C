@@ -6,7 +6,7 @@
 
  Entry Conditions:none
  Date: 07-08-2014
- Modified: 10-09-2014
+ Modified: 11-12-2014
  Assisted By:
  ***********************************************************/
 //ROOT includes
@@ -22,6 +22,7 @@
 #include <TStyle.h>
 #include <TAxis.h>
 #include <TLatex.h>
+#include <TString.h>
 
 //standard includes
 #include <fstream>
@@ -50,8 +51,8 @@ void Make_graphs();
 void Plot();
 
 //define TGraphErrors
-std::vector<std::vector<TGraphErrors*> > g_TREEPLANE_SLOPE_VS_RUN;  //[treeplane][package]
-std::vector<std::vector<TGraphErrors*> > g_TREEPLANE_CHI2_VS_RUN;  //[treeplane][package]
+std::vector<std::vector<std::vector<TGraphErrors*> > > g_TREEPLANE_SLOPE_VS_RUN;  //[track type][treeplane][package]
+std::vector<std::vector<std::vector<TGraphErrors*> > > g_TREEPLANE_CHI2_VS_RUN;  //[track type][treeplane][package]
 std::vector<std::vector<std::vector<TGraphErrors*> > > g_COMPLANE_SLOPE_VS_RUN;  //[track type][UU or VV][package]
 std::vector<std::vector<std::vector<TGraphErrors*> > > g_COMPLANE_CHI2_VS_RUN;  //[track type][UU or VV][package]
 
@@ -66,10 +67,10 @@ std::vector<TLegend*> LEGEND_TREE;  //[pkg]
 std::vector<TLegend*> LEGEND_TRACKS;  //[pkg]
 
 //define vectors to store information for GraphError
-std::vector<std::vector<std::vector<Double_t> > > TREEPLANE_SLOPE_VAL;  //[treeplane][package][run index num]
-std::vector<std::vector<std::vector<Double_t> > > TREEPLANE_SLOPE_ERROR;  //[treeplane][package][run index num]
-std::vector<std::vector<std::vector<Double_t> > > TREEPLANE_CHI2_VAL;  //[treeplane]{package][run index num]
-std::vector<std::vector<std::vector<Double_t> > > TREEPLANE_CHI2_ERROR;  //[treeplane][package][run index num]
+std::vector<std::vector<std::vector<std::vector<Double_t> > > > TREEPLANE_SLOPE_VAL;  //[[track type]treeplane][package][run index num]
+std::vector<std::vector<std::vector<std::vector<Double_t> > > > TREEPLANE_SLOPE_ERROR;  //[track type][treeplane][package][run index num]
+std::vector<std::vector<std::vector<std::vector<Double_t> > > > TREEPLANE_CHI2_VAL;  //[track type][treeplane]{package][run index num]
+std::vector<std::vector<std::vector<std::vector<Double_t> > > > TREEPLANE_CHI2_ERROR;  //[track type][treeplane][package][run index num]
 
 std::vector<std::vector<std::vector<std::vector<Double_t> > > > COMPLANE_SLOPE_VAL;  //[track type][UU or VV][package][run index num]
 std::vector<std::vector<std::vector<std::vector<Double_t> > > > COMPLANE_SLOPE_ERROR;  //[track type][UU or VV][package][run index num]
@@ -122,9 +123,14 @@ void TreeMatch_vs_Run(std::string pass, std::string filename)
 
   //Create TChain and give it a file
   TChain* Track_It = new TChain("TrackThat");
+  /*  Track_It->Add(
+   Form("/group/qweak/www/html/tracking/pass%s/Pass%s_TrackingRuns.root",
+   PASS.c_str(), PASS.c_str()));*/
+
   Track_It->Add(
-      TString("/group/qweak/www/html/tracking/pass%s/Pass%s_TrackingRuns.root",
-          PASS.c_str(),  PASS.c_str()));
+      Form(
+          "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_TrackingRuns.root",
+          PASS.c_str()));
 
   //run the functions on interest
   Read_In_Run_Numbers(filename);
@@ -169,7 +175,7 @@ void TreeMatch_vs_Run(std::string pass, std::string filename)
  Exit Conditions: none
  Called By: Q2_vs_Run
  Date: 07-09-2014
- Modified: 10-14-2014
+ Modified: 11-12-2014
  *********************************************************/
 void Loop_Through_Tree(TChain* track_that)
 {
@@ -234,34 +240,44 @@ void Loop_Through_Tree(TChain* track_that)
    *********************/
   RUN_VAL.resize(RUNNUMLIST.size(), 0);
   RUN_ERROR.resize(RUNNUMLIST.size(), 0);
-  TREEPLANE_SLOPE_VAL.resize(NUMTREEPLANE);  //[treeplane]
-  TREEPLANE_SLOPE_ERROR.resize(NUMTREEPLANE);
-  TREEPLANE_CHI2_VAL.resize(NUMTREEPLANE);
-  TREEPLANE_CHI2_ERROR.resize(NUMTREEPLANE);
+  TREEPLANE_SLOPE_VAL.resize(NUMTRACKTYPE);  //[track type]
+  TREEPLANE_SLOPE_ERROR.resize(NUMTRACKTYPE);
+  TREEPLANE_CHI2_VAL.resize(NUMTRACKTYPE);
+  TREEPLANE_CHI2_ERROR.resize(NUMTRACKTYPE);
 
   COMPLANE_SLOPE_VAL.resize(NUMTRACKTYPE);  //[track type]
   COMPLANE_SLOPE_ERROR.resize(NUMTRACKTYPE);
   COMPLANE_CHI2_VAL.resize(NUMTRACKTYPE);
   COMPLANE_CHI2_ERROR.resize(NUMTRACKTYPE);
 
-  for (int i_treeplane = 0; i_treeplane < NUMTREEPLANE; i_treeplane++)
-  {
-    TREEPLANE_SLOPE_VAL[i_treeplane].resize(NUMPACKAGE);  //[treeplane][pkg]
-    TREEPLANE_SLOPE_ERROR[i_treeplane].resize(NUMPACKAGE);
-    TREEPLANE_CHI2_VAL[i_treeplane].resize(NUMPACKAGE);
-    TREEPLANE_CHI2_ERROR[i_treeplane].resize(NUMPACKAGE);
-
-    for (int i_pkg = 0; i_pkg < NUMPACKAGE; i_pkg++)
-    {
-      TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].resize(RUNNUMLIST.size(), 0);
-      TREEPLANE_SLOPE_ERROR[i_treeplane][i_pkg].resize(RUNNUMLIST.size(), 0);
-      TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].resize(RUNNUMLIST.size(), 0);
-      TREEPLANE_CHI2_ERROR[i_treeplane][i_pkg].resize(RUNNUMLIST.size(), 0);
-    }
-  }
-
   for (int i_tracktype = 0; i_tracktype < NUMTRACKTYPE; i_tracktype++)
   {
+
+    TREEPLANE_SLOPE_VAL[i_tracktype].resize(NUMTREEPLANE);  //[track type][treeplane]
+    TREEPLANE_SLOPE_ERROR[i_tracktype].resize(NUMTREEPLANE);
+    TREEPLANE_CHI2_VAL[i_tracktype].resize(NUMTREEPLANE);
+    TREEPLANE_CHI2_ERROR[i_tracktype].resize(NUMTREEPLANE);
+
+    for (int i_treeplane = 0; i_treeplane < NUMTREEPLANE; i_treeplane++)
+    {
+      TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane].resize(NUMPACKAGE);  //[track type][treeplane][pkg]
+      TREEPLANE_SLOPE_ERROR[i_tracktype][i_treeplane].resize(NUMPACKAGE);
+      TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane].resize(NUMPACKAGE);
+      TREEPLANE_CHI2_ERROR[i_tracktype][i_treeplane].resize(NUMPACKAGE);
+
+      for (int i_pkg = 0; i_pkg < NUMPACKAGE; i_pkg++)
+      {
+        TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].resize(
+            RUNNUMLIST.size(), 0);  //[track type][treeplane][pkg]
+        TREEPLANE_SLOPE_ERROR[i_tracktype][i_treeplane][i_pkg].resize(
+            RUNNUMLIST.size(), 0);
+        TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].resize(
+            RUNNUMLIST.size(), 0);
+        TREEPLANE_CHI2_ERROR[i_tracktype][i_treeplane][i_pkg].resize(
+            RUNNUMLIST.size(), 0);
+      }
+    }
+
     COMPLANE_SLOPE_VAL[i_tracktype].resize(NUMCOMPLANE);  //[track type] [UU or VV]
     COMPLANE_SLOPE_ERROR[i_tracktype].resize(NUMCOMPLANE);
     COMPLANE_CHI2_VAL[i_tracktype].resize(NUMCOMPLANE);
@@ -404,40 +420,38 @@ void Loop_Through_Tree(TChain* track_that)
                                                                             (*MyTreelineSlope)[i].plane)
                                                                         == 0)  //Front U plane
             {
-              TREEPLANE_SLOPE_VAL[0][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_VAL[0][0][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
-              TREEPLANE_SLOPE_ERROR[0][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_ERROR[0][0][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Error;
             } else if (std::strcmp("Front", (*MyTreelineSlope)[i].VDC) == 0
                 && std::strcmp("V", (*MyTreelineSlope)[i].plane) == 0)  //Front V plane
             {
-              TREEPLANE_SLOPE_VAL[1][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_VAL[0][1][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
-              TREEPLANE_SLOPE_ERROR[1][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_ERROR[0][1][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Error;
             } else if (std::strcmp("Back", (*MyTreelineSlope)[i].VDC) == 0
                 && std::strcmp("U", (*MyTreelineSlope)[i].plane) == 0)  //Back U plane
             {
-              TREEPLANE_SLOPE_VAL[2][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_VAL[0][2][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
-              TREEPLANE_SLOPE_ERROR[2][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_ERROR[0][2][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Error;
             } else if (std::strcmp("Back", (*MyTreelineSlope)[i].VDC) == 0
                 && std::strcmp("V", (*MyTreelineSlope)[i].plane) == 0)  //Back V plane
             {
-              TREEPLANE_SLOPE_VAL[3][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_VAL[0][3][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
-              TREEPLANE_SLOPE_ERROR[3][(*MyTreelineSlope)[i].R3package][run_index] =
+              TREEPLANE_SLOPE_ERROR[0][3][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Error;
-            } else if (std::strcmp("Both", (*MyTreelineSlope)[i].VDC) == 0
-                && std::strcmp("UU", (*MyTreelineSlope)[i].plane) == 0)  //coplane UU again meaninless
+            } else if (std::strcmp("UU", (*MyTreelineSlope)[i].plane) == 0)  //coplane UU again meaninless
             {
               COMPLANE_SLOPE_VAL[0][0][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
               COMPLANE_SLOPE_ERROR[0][0][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
-            } else if (std::strcmp("Both", (*MyTreelineSlope)[i].VDC) == 0
-                && std::strcmp("VV", (*MyTreelineSlope)[i].plane) == 0)  //coplane VV again meaninless
+            } else if (std::strcmp("VV", (*MyTreelineSlope)[i].plane) == 0)  //coplane VV again meaninless
             {
               COMPLANE_SLOPE_VAL[0][1][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
@@ -457,7 +471,7 @@ void Loop_Through_Tree(TChain* track_that)
        * the entries in the vector (*MyTreelineChi2)
        *
        * (*MyTreelineChi) fill fill the following vectors
-       * TREEPLANE_*_*[Front/Back U/V][pkg][run_index]
+       * TREEPLANE_*_*[treeplane][Front/Back U/V][pkg][run_index]
        * COMPLANE_*_*[treeline][UU/VV][pkg][run_index]
        * NOTE: the COMPLANE info is worthless and will not be used
        ******************/
@@ -518,40 +532,38 @@ void Loop_Through_Tree(TChain* track_that)
                                                                            (*MyTreelineChi2)[i].plane)
                                                                        == 0)  //Front U plane
             {
-              TREEPLANE_CHI2_VAL[0][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_VAL[0][0][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].Val;
-              TREEPLANE_CHI2_ERROR[0][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_ERROR[0][0][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].RMS;
             } else if (std::strcmp("Front", (*MyTreelineChi2)[i].VDC) == 0
                 && std::strcmp("V", (*MyTreelineChi2)[i].plane) == 0)  //Front V plane
             {
-              TREEPLANE_CHI2_VAL[1][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_VAL[0][1][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].Val;
-              TREEPLANE_CHI2_ERROR[1][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_ERROR[0][1][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].RMS;
             } else if (std::strcmp("Back", (*MyTreelineChi2)[i].VDC) == 0
                 && std::strcmp("U", (*MyTreelineChi2)[i].plane) == 0)  //Back U plane
             {
-              TREEPLANE_CHI2_VAL[2][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_VAL[0][2][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].Val;
-              TREEPLANE_CHI2_ERROR[2][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_ERROR[0][2][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].RMS;
             } else if (std::strcmp("Back", (*MyTreelineChi2)[i].VDC) == 0
                 && std::strcmp("V", (*MyTreelineChi2)[i].plane) == 0)  //Back V plane
             {
-              TREEPLANE_CHI2_VAL[3][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_VAL[0][3][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].Val;
-              TREEPLANE_CHI2_ERROR[3][(*MyTreelineChi2)[i].R3package][run_index] =
+              TREEPLANE_CHI2_ERROR[0][3][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].RMS;
-            } else if (std::strcmp("Both", (*MyTreelineChi2)[i].VDC) == 0
-                && std::strcmp("UU", (*MyTreelineChi2)[i].plane) == 0)  //coplane UU again meaninless
+            } else if (std::strcmp("UU", (*MyTreelineChi2)[i].plane) == 0)  //coplane UU again meaninless
             {
               COMPLANE_CHI2_VAL[0][0][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].Val;
               COMPLANE_CHI2_ERROR[0][0][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].RMS;
-            } else if (std::strcmp("Both", (*MyTreelineChi2)[i].VDC) == 0
-                && std::strcmp("VV", (*MyTreelineChi2)[i].plane) == 0)  //coplane VV again meaninless
+            } else if (std::strcmp("VV", (*MyTreelineChi2)[i].plane) == 0)  //coplane VV again meaninless
             {
               COMPLANE_CHI2_VAL[0][1][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].Val;
@@ -571,6 +583,7 @@ void Loop_Through_Tree(TChain* track_that)
        * the entries in the vector (*MyPartialTrackSlope)
        *
        * (*MyPartialTrackSlope) fill fill the following vectors
+       * TREEPLANE_*_*[treeplane][Front/Back U/V][pkg][run_index]
        * COMPLANE_*_*[Paritial tracks][UU/VV][pkg][run_index]
        ******************/
       for (UInt_t i = 0; i < MyPartialTrackSlope->size(); i++)
@@ -619,11 +632,48 @@ void Loop_Through_Tree(TChain* track_that)
              * Now we have to find what partial track it is in, and then store to
              * the corresponding vector
              *
+             *  For the combintation planes
              *  0 = UU
              *  1 = VV
+             *
+             * the treelines
+             *  0 = Front U
+             *  1 = Front V
+             *  2 = Back U
+             *  3 = Back V
              *****************/
 
-            if (std::strcmp("UU", (*MyPartialTrackSlope)[i].plane) == 0)  //UU plane
+            if (std::strcmp("Front", (*MyPartialTrackSlope)[i].VDC) == 0 && std::strcmp(
+                                                                                "U",
+                                                                                (*MyPartialTrackSlope)[i].plane)
+                                                                            == 0)  //Front U plane
+            {
+              TREEPLANE_SLOPE_VAL[1][0][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[1][0][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Error;
+            } else if (std::strcmp("Front", (*MyPartialTrackSlope)[i].VDC) == 0
+                && std::strcmp("V", (*MyPartialTrackSlope)[i].plane) == 0)  //Front V plane
+            {
+              TREEPLANE_SLOPE_VAL[1][1][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[1][1][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Error;
+            } else if (std::strcmp("Back", (*MyPartialTrackSlope)[i].VDC) == 0
+                && std::strcmp("U", (*MyPartialTrackSlope)[i].plane) == 0)  //Back U plane
+            {
+              TREEPLANE_SLOPE_VAL[1][2][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[1][2][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Error;
+            } else if (std::strcmp("Back", (*MyPartialTrackSlope)[i].VDC) == 0
+                && std::strcmp("V", (*MyPartialTrackSlope)[i].plane) == 0)  //Back V plane
+            {
+              TREEPLANE_SLOPE_VAL[1][3][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[1][3][(*MyPartialTrackSlope)[i].R3package][run_index] =
+                  (*MyPartialTrackSlope)[i].Error;
+            } else if (std::strcmp("UU", (*MyPartialTrackSlope)[i].plane) == 0)  //UU plane
             {
               COMPLANE_SLOPE_VAL[1][0][(*MyPartialTrackSlope)[i].R3package][run_index] =
                   (*MyPartialTrackSlope)[i].Val;
@@ -701,13 +751,43 @@ void Loop_Through_Tree(TChain* track_that)
              *  1 = VV
              *****************/
 
-            if (std::strcmp("UU", (*MyPartialTrackChi2)[i].plane) == 0)  //UU plane
+            if (std::strcmp("Front", (*MyPartialTrackChi2)[i].VDC) == 0 && std::strcmp(
+                                                                               "U",
+                                                                               (*MyPartialTrackChi2)[i].plane)
+                                                                           == 0)  //Front U plane
+            {
+              TREEPLANE_CHI2_VAL[1][0][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[1][0][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].RMS;
+            } else if (std::strcmp("Front", (*MyPartialTrackChi2)[i].VDC) == 0
+                && std::strcmp("V", (*MyPartialTrackChi2)[i].plane) == 0)  //Front V plane
+            {
+              TREEPLANE_CHI2_VAL[1][1][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[1][1][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].RMS;
+            } else if (std::strcmp("Back", (*MyPartialTrackChi2)[i].VDC) == 0
+                && std::strcmp("U", (*MyPartialTrackChi2)[i].plane) == 0)  //Back U plane
+            {
+              TREEPLANE_CHI2_VAL[1][2][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[1][2][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].RMS;
+            } else if (std::strcmp("Back", (*MyPartialTrackChi2)[i].VDC) == 0
+                && std::strcmp("V", (*MyPartialTrackChi2)[i].plane) == 0)  //Back V plane
+            {
+              TREEPLANE_CHI2_VAL[1][3][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[1][3][(*MyPartialTrackChi2)[i].R3package][run_index] =
+                  (*MyPartialTrackChi2)[i].RMS;
+            } else if (std::strcmp("UU", (*MyPartialTrackChi2)[i].plane) == 0)  //UU plane
             {
               COMPLANE_CHI2_VAL[1][0][(*MyPartialTrackChi2)[i].R3package][run_index] =
                   (*MyPartialTrackChi2)[i].Val;
               COMPLANE_CHI2_ERROR[1][0][(*MyPartialTrackChi2)[i].R3package][run_index] =
                   (*MyPartialTrackChi2)[i].RMS;
-            } else if (std::strcmp("VV", (*MyPartialTrackSlope)[i].plane) == 0)  //VV plane
+            } else if (std::strcmp("VV", (*MyPartialTrackChi2)[i].plane) == 0)  //VV plane
             {
               COMPLANE_CHI2_VAL[1][1][(*MyPartialTrackChi2)[i].R3package][run_index] =
                   (*MyPartialTrackChi2)[i].Val;
@@ -769,14 +849,44 @@ void Loop_Through_Tree(TChain* track_that)
              */
 
             /*****************
-             * Now we have to find what partial track it is in, and then store to
+             * Now we have to find what-------------------------------------------------------------------------- track it is in, and then store to
              * the corresponding vector
              *
              *  0 = UU
              *  1 = VV
              *****************/
 
-            if (std::strcmp("UU", (*MyTrackSlope)[i].plane) == 0)  //UU plane
+            if (std::strcmp("Front", (*MyTrackSlope)[i].VDC) == 0 && std::strcmp(
+                                                                         "U",
+                                                                         (*MyTrackSlope)[i].plane)
+                                                                     == 0)  //Front U plane
+            {
+              TREEPLANE_SLOPE_VAL[2][0][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[2][0][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Error;
+            } else if (std::strcmp("Front", (*MyTrackSlope)[i].VDC) == 0
+                && std::strcmp("V", (*MyTrackSlope)[i].plane) == 0)  //Front V plane
+            {
+              TREEPLANE_SLOPE_VAL[2][1][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[2][1][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Error;
+            } else if (std::strcmp("Back", (*MyTrackSlope)[i].VDC) == 0
+                && std::strcmp("U", (*MyTrackSlope)[i].plane) == 0)  //Back U plane
+            {
+              TREEPLANE_SLOPE_VAL[2][2][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[2][2][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Error;
+            } else if (std::strcmp("Back", (*MyTrackSlope)[i].VDC) == 0
+                && std::strcmp("V", (*MyTrackSlope)[i].plane) == 0)  //Back V plane
+            {
+              TREEPLANE_SLOPE_VAL[2][3][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Val;
+              TREEPLANE_SLOPE_ERROR[2][3][(*MyTrackSlope)[i].R3package][run_index] =
+                  (*MyTrackSlope)[i].Error;
+            } else if (std::strcmp("UU", (*MyTrackSlope)[i].plane) == 0)  //UU plane
             {
               COMPLANE_SLOPE_VAL[2][0][(*MyTrackSlope)[i].R3package][run_index] =
                   (*MyTrackSlope)[i].Val;
@@ -851,7 +961,37 @@ void Loop_Through_Tree(TChain* track_that)
              *  1 = VV
              *****************/
 
-            if (std::strcmp("UU", (*MyTrackChi2)[i].plane) == 0)  //UU plane
+            if (std::strcmp("Front", (*MyTrackChi2)[i].VDC) == 0 && std::strcmp(
+                                                                        "U",
+                                                                        (*MyTrackChi2)[i].plane)
+                                                                    == 0)  //Front U plane
+            {
+              TREEPLANE_CHI2_VAL[2][0][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[2][0][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].RMS;
+            } else if (std::strcmp("Front", (*MyTrackChi2)[i].VDC) == 0
+                && std::strcmp("V", (*MyTrackChi2)[i].plane) == 0)  //Front V plane
+            {
+              TREEPLANE_CHI2_VAL[2][1][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[2][1][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].RMS;
+            } else if (std::strcmp("Back", (*MyTrackChi2)[i].VDC) == 0
+                && std::strcmp("U", (*MyTrackChi2)[i].plane) == 0)  //Back U plane
+            {
+              TREEPLANE_CHI2_VAL[2][2][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[2][2][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].RMS;
+            } else if (std::strcmp("Back", (*MyTrackChi2)[i].VDC) == 0
+                && std::strcmp("V", (*MyTrackChi2)[i].plane) == 0)  //Back V plane
+            {
+              TREEPLANE_CHI2_VAL[2][3][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].Val;
+              TREEPLANE_CHI2_ERROR[2][3][(*MyTrackChi2)[i].R3package][run_index] =
+                  (*MyTrackChi2)[i].RMS;
+            } else if (std::strcmp("UU", (*MyTrackChi2)[i].plane) == 0)  //UU plane
             {
               COMPLANE_CHI2_VAL[2][0][(*MyTrackChi2)[i].R3package][run_index] =
                   (*MyTrackChi2)[i].Val;
@@ -931,7 +1071,7 @@ void Loop_Through_Tree(TChain* track_that)
  Exit Conditions: none
  Called By: TreeMatch_vs_Run
  Date: 07-11-2014
- Modified:
+ Modified: 11-12-2014
  *********************************************************/
 void Make_graphs()
 {
@@ -968,7 +1108,7 @@ void Make_graphs()
                 "Partial Track and Track level Chi^{2} vs run number for %s Package",
                 INDEXTOPKG[i_pkg].c_str()));
 
-    LEGEND_TREE[i_pkg] = new TLegend(0.85, 0.40, 0.99, 0.60);
+    LEGEND_TREE[i_pkg] = new TLegend(0.80, 0.20, 0.99, 0.80);
     LEGEND_TREE[i_pkg]->SetHeader("Treeline");
     LEGEND_TRACKS[i_pkg] = new TLegend(0.80, 0.40, 0.99, 0.60);
     LEGEND_TRACKS[i_pkg]->SetHeader("Track");
@@ -986,262 +1126,692 @@ void Make_graphs()
 
 //resize the vector of the to the number of treelines and pkgs
 //and fill them
-  g_TREEPLANE_SLOPE_VS_RUN.resize(NUMTREEPLANE);
-  g_TREEPLANE_CHI2_VS_RUN.resize(NUMTREEPLANE);
+  g_TREEPLANE_SLOPE_VS_RUN.resize(NUMTRACKTYPE);
+  g_TREEPLANE_CHI2_VS_RUN.resize(NUMTRACKTYPE);
 
-  for (UInt_t i_treeplane = 0; i_treeplane < NUMTREEPLANE; i_treeplane++)
+  for (UInt_t i_tracktype = 0; i_tracktype < NUMTRACKTYPE; i_tracktype++)
   {
-    g_TREEPLANE_SLOPE_VS_RUN[i_treeplane].resize(NUMPACKAGE);
-    g_TREEPLANE_CHI2_VS_RUN[i_treeplane].resize(NUMPACKAGE);
+    g_TREEPLANE_SLOPE_VS_RUN[i_tracktype].resize(NUMTREEPLANE);
+    g_TREEPLANE_CHI2_VS_RUN[i_tracktype].resize(NUMTREEPLANE);
 
-    //fill the graphs
-    for (UInt_t i_pkg = 0; i_pkg < NUMPACKAGE; i_pkg++)
+    for (UInt_t i_treeplane = 0; i_treeplane < NUMTREEPLANE; i_treeplane++)
     {
-      //take the vectors and turn them into arrays so that TGraphErrors will play nice
-      //with them by &(vector[0]) :)
-      g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg] = new TGraphErrors(
-          RUNNUMLIST.size(), &(RUN_VAL[0]),
-          &(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg][0]), &(RUN_ERROR[0]),
-          &(TREEPLANE_SLOPE_ERROR[i_treeplane][i_pkg][0]));
+      g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane].resize(NUMPACKAGE);
+      g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane].resize(NUMPACKAGE);
 
-      g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg] = new TGraphErrors(
-          RUNNUMLIST.size(), &(RUN_VAL[0]),
-          &(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg][0]), &(RUN_ERROR[0]),
-          &(TREEPLANE_CHI2_ERROR[i_treeplane][i_pkg][0]));
-
-      /*******************************
-       * Set the attributes of the plot
-       * Black filled circle - Back U plane
-       * Red filled triangle point up - Back V plane
-       * Blue filled triangle point down - Front U plane
-       * Purple filled square - Front V plane
-       *******************************/
-      switch (i_treeplane)
+      //fill the graphs
+      for (UInt_t i_pkg = 0; i_pkg < NUMPACKAGE; i_pkg++)
       {
-        case 0 :  // Front U - Blue filled triangle point down
-          //set it so the errors print
-          gStyle->SetOptFit(1110);
+        //take the vectors and turn them into arrays so that TGraphErrors will play nice
+        //with them by &(vector[0]) :)
+        g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg] =
+            new TGraphErrors(RUNNUMLIST.size(), &(RUN_VAL[0]),
+                &(TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg][0]),
+                &(RUN_ERROR[0]),
+                &(TREEPLANE_SLOPE_ERROR[i_tracktype][i_treeplane][i_pkg][0]));
 
-          //SLOPE
-          //set markercolor && error bar color - Blue
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(kBlue);
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetLineColor(kBlue);
-          //set Marker size
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled triangle pint up
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(23);
+        g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg] =
+            new TGraphErrors(RUNNUMLIST.size(), &(RUN_VAL[0]),
+                &(TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg][0]),
+                &(RUN_ERROR[0]),
+                &(TREEPLANE_CHI2_ERROR[i_tracktype][i_treeplane][i_pkg][0]));
 
-          //CHI2
-          //set markercolor && error bar color - Blue
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(kBlue);
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetLineColor(kBlue);
-          //set Marker size
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled triangle pint up
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(23);
-          break;
+        /*******************************
+         * Set the attributes of the plot
+         *
+         * Treelines
+         * Black filled circle - Back U plane
+         * Red filled triangle point up - Back V plane
+         * Blue filled triangle point down - Front U plane
+         * Purple filled square - Front V plane
+         *
+         * Partial Tracks
+         * green filled star - Back U plane
+         * magenta filled diamond - Back V plane
+         * Gray filled hospital sign - Front U plane
+         * cyan hallow circle - Front V plane
+         *
+         * Tracks
+         * Orange hallow square - Back U plane
+         * yellow triangle point up - Back V plane
+         * pink hallow dimond - Front U plane
+         * teal triangle point down - Front V plane
+         *******************************/
+        switch (i_tracktype)
+        {
+          case 0 :
 
-        case 1 :  //Front V - Purple filled square
-          //set it so the errors print
-          gStyle->SetOptFit(1110);
+/*            //debugging
+            cout << "Track type: 0, " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+            << endl;
+            */
 
-          //SLOPE
-          //set markercolor && error bar color - Violet
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(
-              kViolet - 1);
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetLineColor(
-              kViolet - 1);
-          //set Marker size
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled square
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(21);
+            switch (i_treeplane)
+            {
+              case 0 :  // Front U - Blue filled triangle point down
 
-          //CHI2
-          //set markercolor && error bar color - Violet
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(
-              kViolet - 1);
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetLineColor(
-              kViolet - 1);
-          //set Marker size
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled square
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(21);
-          break;
+/*                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+                */
 
-        case 2 :  //Back U - Black filled circle
-          //set it so the errors print
-          gStyle->SetOptFit(1110);
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
 
-          //SLOPE
-          //set markercolor && error bar color - Black
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(kBlack);
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetLineColor(kBlack);
-          //set Marker size
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled circle
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(8);
+                //SLOPE
+                //set markercolor && error bar color - Blue
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kBlue);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kBlue);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1);
+                //set marker style - filled triangle pint up
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    23);
 
-          //CHI2
-          //set markercolor && error bar color - Black
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(kBlack);
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetLineColor(kBlack);
-          //set Marker size
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled circle
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(8);
-          break;
+                //CHI2
+                //set markercolor && error bar color - Blue
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kBlue);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kBlue);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1);
+                //set marker style - filled triangle pint up
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    23);
+                break;
 
-        case 3 :  //Back V - Red filled triangle point up
-          //set it so the errors print
-          gStyle->SetOptFit(1110);
+              case 1 :  //Front V - Purple filled square
 
-          //SLOPE
-          //set markercolor && error bar color - Red
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(kRed);
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetLineColor(kRed);
-          //set Marker size
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled triangle pint up
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(22);
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
 
-          //CHI2
-          //set markercolor && error bar color - Red
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerColor(kRed);
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetLineColor(kRed);
-          //set Marker size
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerSize(1);
-          //set marker style - filled triangle pint up
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]->SetMarkerStyle(22);
-          break;
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
 
-        default :
-          break;
-      }
+                //SLOPE
+                //set markercolor && error bar color - Violet
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kViolet - 6);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kViolet - 6);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1);
+                //set marker style - filled square
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    21);
 
-      //add the wanted graphs to the multigraphs
-      mg_TREEPLANE_SLOPE_VS_RUN[i_pkg]->Add(
-          g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg]);
-      //add the wanted graphs to the multigraphs
-      mg_TREEPLANE_CHI2_VS_RUN[i_pkg]->Add(
-          g_TREEPLANE_CHI2_VS_RUN[i_treeplane][i_pkg]);
+                //CHI2
+                //set markercolor && error bar color - Violet
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kViolet - 6);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kViolet - 6);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1);
+                //set marker style - filled square
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    21);
+                break;
 
-      //add to the Legend
-      LEGEND_TREE[i_pkg]->AddEntry(g_TREEPLANE_SLOPE_VS_RUN[i_treeplane][i_pkg],
-          Form("%s", INDEXTOTREEPLANE[i_treeplane].c_str()), "ep");
+              case 2 :  //Back U - Black filled circle
 
-      if (i_pkg != 0)
-      {
-        /*
-         //debugging
-         std::cout << "TREEPLANE SLOPE \n Entry \t Run \t Value \t PKG: " << i_pkg << std::endl;
-         for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
-         {
-         std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
-         << TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg][i_run] << std::endl;
-         }
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
 
-         std::cout << "Max: "
-         << *std::max_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end())
-         << std::endl;
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
 
-         std::cout << "Min: "
-         << *std::min_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
-         less_than_but_non_zero)
-         << std::endl;
+                //SLOPE
+                //set markercolor && error bar color - Black
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kBlack);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kBlack);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1);
+                //set marker style - filled circle
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    8);
 
-         std::cout << "Total Max: "
-         << std::max(TREEPLANE_SLOPE_MAX[i_pkg],
-         *std::max_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end()))
-         << std::endl;
+                //CHI2
+                //set markercolor && error bar color - Black
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kBlack);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kBlack);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1);
+                //set marker style - filled circle
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    8);
+                break;
 
-         std::cout << "Total Min: "
-         << std::min(TREEPLANE_SLOPE_MIN[i_pkg],
-         *std::min_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
-         less_than_but_non_zero))
-         << std::endl << std::endl;
-         */
+              case 3 :  //Back V - Red filled triangle point up
 
-        //get the min and max Treeline slope and Chi2 values
-        TREEPLANE_SLOPE_MAX[i_pkg] = std::max(TREEPLANE_SLOPE_MAX[i_pkg],
-            *std::max_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end()));
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
 
-        TREEPLANE_SLOPE_MIN[i_pkg] = std::min(TREEPLANE_SLOPE_MIN[i_pkg],
-            *std::min_element(TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_SLOPE_VAL[i_treeplane][i_pkg].end(),
-                less_than_but_non_zero));
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
 
-        /*
-         //debugging
-         std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
-         std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
-         */
+                //SLOPE
+                //set markercolor && error bar color - Red
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kRed);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kRed);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - filled triangle pint up
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    22);
 
-        /*       //debugging
-         std::cout << "TREEPLANE CHI \n Entry \t Run \t Value" << std::endl;
-         for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
-         {
-         std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
-         << TREEPLANE_CHI2_VAL[i_treeplane][i_pkg][i_run] << std::endl;
-         }
+                //CHI2
+                //set markercolor && error bar color - Red
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kRed);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kRed);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - filled triangle pint up
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    22);
+                break;
 
-         std::cout << "Max: "
-         << *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end())
-         << std::endl;
+              default :
+                break;
+            }
+            break;
 
-         std::cout << "Min: "
-         << *std::min_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
-         less_than_but_non_zero)
-         << std::endl;
+          case 1 :  //Partial Tracks
 
-         std::cout << "Total Max: "
-         << std::max(TREEPLANE_CHI2_MAX[i_pkg],
-         *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end()))        //debugging
-         std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
-         std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
+/*
+            //debugging
+            cout << "Track type: 1, " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+            << endl;
+*/
 
-         << std::endl;
+            switch (i_treeplane)
+            {
+              case 0 :  // Front U - green filled star
 
-         std::cout << "Total Min: "
-         << std::min(TREEPLANE_CHI2_MIN[i_pkg],
-         *std::min_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-         TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
-         less_than_but_non_zero))
-         << std::endl << std::endl;
-         */
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
 
-        TREEPLANE_CHI2_MAX[i_pkg] = std::max(TREEPLANE_CHI2_MAX[i_pkg],
-            *std::max_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end()));
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
 
-        TREEPLANE_CHI2_MIN[i_pkg] = std::min(TREEPLANE_CHI2_MIN[i_pkg],
-            *std::min_element(TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].begin(),
-                TREEPLANE_CHI2_VAL[i_treeplane][i_pkg].end(),
-                less_than_but_non_zero));
+                //SLOPE
+                //set markercolor && error bar color - green
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kGreen + 3);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kGreen + 3);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.7);
+                //set marker style - filled star
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    29);
 
-        /*
-         //debugging
-         std::cout << "TREEPLANE_CHI2_MAX: " << TREEPLANE_CHI2_MAX[i_pkg] << std::endl;
-         std::cout << "TREEPLANE_CHI2_MIN: " << TREEPLANE_CHI2_MIN[i_pkg] << std::endl << std::endl;
-         */
+                //CHI2
+                //set markercolor && error bar color - green
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kGreen + 3);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kGreen + 3);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.7);
+                //set marker style - filled star
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    29);
+                break;
+
+              case 1 :  //Front V - magenta filled diamond
+
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
+
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
+
+                //SLOPE
+                //set markercolor && error bar color - magenta
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kMagenta);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kMagenta);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - filled dimond
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    33);
+
+                //CHI2
+                //set markercolor && error bar color - magenta
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kMagenta);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kMagenta);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - filled star
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    33);
+                break;
+
+              case 2 :  //Back U - Gray filled hospital sign
+
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
+
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
+
+                //SLOPE
+                //set markercolor && error bar color - Gray
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kGray + 2);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kGray + 2);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - filled hospital sign
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    34);
+
+                //CHI2
+                //set markercolor && error bar color - Gray
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kGray + 2);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kGray + 2);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - filled hospital sign
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    34);
+                break;
+
+              case 3 :  //Back V - cyan hallow circle
+
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
+
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
+
+                //SLOPE
+                //set markercolor && error bar color - cyan
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kCyan + 2);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kCyan + 2);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow circle
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    24);
+
+                //CHI2
+                //set markercolor && error bar color - Cyan
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kCyan + 2);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kCyan + 2);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow circle
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    24);
+                break;
+
+              default :
+                break;
+            }
+            break;
+
+          case 2 :  //tracks
+
+/*
+            //debugging
+            cout << "Track type: 2, " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+            << endl;
+*/
+
+            switch (i_treeplane)
+            {
+              case 0 :  // Front U - Orange hallow square
+
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
+
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
+
+                //SLOPE
+                //set markercolor && error bar color - Orange
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kOrange - 3);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kOrange - 3);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow square
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    25);
+
+                //CHI2
+                //set markercolor && error bar color - Orange
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kOrange + 3);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kOrange + 3);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow square
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    25);
+                break;
+
+              case 1 :  //Front V - yellow triangle point up
+
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
+
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
+
+                //SLOPE
+                //set markercolor && error bar color - yellow
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kYellow - 6);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kYellow - 6);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow triangle up
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    26);
+
+                //CHI2
+                //set markercolor && error bar color - yellow
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kYellow - 6);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kYellow - 6);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow triangle up
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    26);
+                break;
+
+              case 2 :  //Back U - pink hallow dimond
+
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
+
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
+
+                //SLOPE
+                //set markercolor && error bar color - pink
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kPink - 9);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kPink - 9);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow dimond
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    27);
+
+                //CHI2
+                //set markercolor && error bar color - pink
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kPink - 9);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kPink - 9);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow dimond
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    27);
+                break;
+
+              case 3 :  //Back V - teal triangle point down
+
+/*
+                //debugging
+                cout << "Track type: " << INDEXTOTRACKTYPE[i_tracktype].c_str()
+                << " Plane: " << INDEXTOTREEPLANE[i_treeplane].c_str() << endl;
+*/
+
+                //set it so the errors print
+                gStyle->SetOptFit(1110);
+
+                //SLOPE
+                //set markercolor && error bar color - Teal
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kTeal - 6);
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kTeal - 6);
+                //set Marker size
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - hallow triangle pint down
+                g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    32);
+
+                //CHI2
+                //set markercolor && error bar color - Teal
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerColor(
+                    kTeal - 6);
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetLineColor(
+                    kTeal - 6);
+                //set Marker size
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerSize(
+                    1.5);
+                //set marker style - Hallow triangle pint down
+                g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]->SetMarkerStyle(
+                    32);
+                break;
+
+              default :
+                break;
+            }
+            break;
+
+          default :
+            break;
+        }
+        //add the wanted graphs to the multigraphs
+        mg_TREEPLANE_SLOPE_VS_RUN[i_pkg]->Add(
+            g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg]);
+        //add the wanted graphs to the multigraphs
+        mg_TREEPLANE_CHI2_VS_RUN[i_pkg]->Add(
+            g_TREEPLANE_CHI2_VS_RUN[i_tracktype][i_treeplane][i_pkg]);
+
+        //add to the Legend
+        LEGEND_TREE[i_pkg]->AddEntry(
+            g_TREEPLANE_SLOPE_VS_RUN[i_tracktype][i_treeplane][i_pkg],
+            Form("%s - %s", INDEXTOTREEPLANE[i_treeplane].c_str(),
+                INDEXTOTRACKTYPE[i_tracktype].c_str()), "ep");
+
+        if (i_pkg != 0)
+        {
+          /*
+           //debugging
+           std::cout << "TREEPLANE SLOPE \n Entry \t Run \t Value \t PKG: " << i_pkg << std::endl;
+           for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
+           {
+           std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
+           << TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg][i_run] << std::endl;
+           }
+
+           std::cout << "Max: "
+           << *std::max_element(TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].end())
+           << std::endl;
+
+           std::cout << "Min: "
+           << *std::min_element(TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].end(),
+           less_than_but_non_zero)
+           << std::endl;
+
+           std::cout << "Total Max: "
+           << std::max(TREEPLANE_SLOPE_MAX[i_pkg],
+           *std::max_element(TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].end()))
+           << std::endl;
+
+           std::cout << "Total Min: "
+           << std::min(TREEPLANE_SLOPE_MIN[i_pkg],
+           *std::min_element(TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].end(),
+           less_than_but_non_zero))
+           << std::endl << std::endl;
+           */
+
+          //get the min and max Treeline slope and Chi2 values
+          TREEPLANE_SLOPE_MAX[i_pkg] = std::max(TREEPLANE_SLOPE_MAX[i_pkg],
+              *std::max_element(
+                  TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+                  TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].end()));
+
+          TREEPLANE_SLOPE_MIN[i_pkg] = std::min(TREEPLANE_SLOPE_MIN[i_pkg],
+              *std::min_element(
+                  TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+                  TREEPLANE_SLOPE_VAL[i_tracktype][i_treeplane][i_pkg].end(),
+                  less_than_but_non_zero));
+
+          /*
+           //debugging
+           std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
+           std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
+           */
+
+          /*       //debugging
+           std::cout << "TREEPLANE CHI \n Entry \t Run \t Value" << std::endl;
+           for (UInt_t i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
+           {
+           std::cout << i_run << " \t " << RUNNUMLIST[i_run] << " \t "
+           << TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg][i_run] << std::endl;
+           }
+
+           std::cout << "Max: "
+           << *std::max_element(TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].end())
+           << std::endl;
+
+           std::cout << "Min: "
+           << *std::min_element(TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].end(),
+           less_than_but_non_zero)
+           << std::endl;
+
+           std::cout << "Total Max: "
+           << std::max(TREEPLANE_CHI2_MAX[i_pkg],
+           *std::max_element(TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].end()))        //debugging
+           std::cout << "TREEPLANE_SLOPE_MAX: " << TREEPLANE_SLOPE_MAX[i_pkg] << std::endl;
+           std::cout << "TREEPLANE_SLOPE_MIN: " << TREEPLANE_SLOPE_MIN[i_pkg] << std::endl << std::endl;
+
+           << std::endl;
+
+           std::cout << "Total Min: "
+           << std::min(TREEPLANE_CHI2_MIN[i_pkg],
+           *std::min_element(TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+           TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].end(),
+           less_than_but_non_zero))
+           << std::endl << std::endl;
+           */
+
+          TREEPLANE_CHI2_MAX[i_pkg] = std::max(TREEPLANE_CHI2_MAX[i_pkg],
+              *std::max_element(
+                  TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+                  TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].end()));
+
+          TREEPLANE_CHI2_MIN[i_pkg] = std::min(TREEPLANE_CHI2_MIN[i_pkg],
+              *std::min_element(
+                  TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].begin(),
+                  TREEPLANE_CHI2_VAL[i_tracktype][i_treeplane][i_pkg].end(),
+                  less_than_but_non_zero));
+
+          /*
+           //debugging
+           std::cout << "TREEPLANE_CHI2_MAX: " << TREEPLANE_CHI2_MAX[i_pkg] << std::endl;
+           std::cout << "TREEPLANE_CHI2_MIN: " << TREEPLANE_CHI2_MIN[i_pkg] << std::endl << std::endl;
+           */
+        }
 
       }
     }
 
   }
 
-  //resize the coplane vectors and fill them
+//resize the coplane vectors and fill them
   g_COMPLANE_SLOPE_VS_RUN.resize(NUMTRACKTYPE);
   g_COMPLANE_CHI2_VS_RUN.resize(NUMTRACKTYPE);
 
-  //i_tracktype starts from 1 because we don't have treeline information here
+//i_tracktype starts from 1 because we don't have treeline information here
   for (UInt_t i_tracktype = 1; i_tracktype < NUMTRACKTYPE; i_tracktype++)
   {
     g_COMPLANE_SLOPE_VS_RUN[i_tracktype].resize(NUMCOMPLANE);
@@ -1527,7 +2097,7 @@ void Make_graphs()
  Exit Conditions: none
  Called By: TreeMatch_vs_Run
  Date: 10-15-2014
- Modified:
+ Modified: 11-12-2014
  *********************************************************/
 void Plot()
 {
@@ -1536,7 +2106,7 @@ void Plot()
    std::cout << "made it in the make plotting function" << std::endl;
    */
 
-  //define Canvases
+//define Canvases
   std::vector<TCanvas*> c_slope_tree;  //[pkg]
   std::vector<TCanvas*> c_chi2_tree;  //[pkg]
   std::vector<TCanvas*> c_slope_track;  //[pkg]
@@ -1546,7 +2116,7 @@ void Plot()
   c_slope_track.resize(NUMPACKAGE);
   c_chi2_track.resize(NUMPACKAGE);
 
-  //get the run range
+//get the run range
   Double_t RunRange = Double_t(RUNNUMLIST.back() - RUNNUMLIST.front());
 
   for (int i_pkg = 1; i_pkg < NUMPACKAGE; i_pkg++)
@@ -1556,7 +2126,7 @@ void Plot()
             INDEXTOPKG[i_pkg].c_str()));
 
     c_chi2_tree[i_pkg] = new TCanvas(Form("c_chi2_tree[%d]", i_pkg),
-        Form("#Chi^{2} of treelines vs run number for %s package",
+        Form("#chi^{2} of treelines vs run number for %s package",
             INDEXTOPKG[i_pkg].c_str()));
 
     c_slope_track[i_pkg] =
@@ -1568,7 +2138,7 @@ void Plot()
     c_chi2_track[i_pkg] =
         new TCanvas(Form("c_chi2_track[%d]", i_pkg),
             Form(
-                "#Chi^{2} of treelines in the partial tracks and tracks vs run number for %s package",
+                "#chi^{2} of treelines in the partial tracks and tracks vs run number for %s package",
                 INDEXTOPKG[i_pkg].c_str()));
 
     //set title and axis lables (happens on the mulitgraphs)
@@ -1579,20 +2149,18 @@ void Plot()
 
     mg_TREEPLANE_CHI2_VS_RUN[i_pkg]->SetTitle(
         Form(
-            "#Chi^{2} of treelines vs run number for %s package; Run number; #Chi^{2} (unitless)",
+            "#chi^{2} of treelines vs run number for %s package; Run number; #chi^{2} (unitless)",
             INDEXTOPKG[i_pkg].c_str()));
 
     mg_COMPLANE_SLOPE_VS_RUN[i_pkg]->SetTitle(
         Form(
             "Slope of treelines in the partial tracks and tracks vs run number for %s package;"
-            "Run number; slope (unitless)",
-            INDEXTOPKG[i_pkg].c_str()));
+                "Run number; slope (unitless)", INDEXTOPKG[i_pkg].c_str()));
 
     mg_COMPLANE_CHI2_VS_RUN[i_pkg]->SetTitle(
         Form(
-            "#Chi^{2} of treelines in the partial tracks and tracks vs run number for %s package;"
-            "Run number; #Chi^{2} (unitless)",
-            INDEXTOPKG[i_pkg].c_str()));
+            "#chi^{2} of treelines in the partial tracks and tracks vs run number for %s package;"
+                "Run number; #chi^{2} (unitless)", INDEXTOPKG[i_pkg].c_str()));
 
     //Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
     /**************
@@ -1620,6 +2188,7 @@ void Plot()
         Double_t(RUNNUMLIST.back()) + RunRange * FUDGEFACTOR_RUN[1]);
 
     //draw the legend
+    LEGEND_TREE[i_pkg]->SetTextSize(0.025);
     LEGEND_TREE[i_pkg]->Draw();
 
     //move the axis label so can read everything
@@ -1630,8 +2199,8 @@ void Plot()
 
     c_slope_tree[i_pkg]->SaveAs(
         Form(
-            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass_%s_Treeline_Slope_vs_run_%s_pkg.png",
-            PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
+            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Plots/Pass_%s_Treeline_Slope_vs_run_%s_pkg.png",
+            PASS.c_str(), PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
 
     /**************
      * Tree Chi2
@@ -1667,8 +2236,8 @@ void Plot()
 
     c_chi2_tree[i_pkg]->SaveAs(
         Form(
-            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass_%s_Treeline_Chi2_vs_run_%s_pkg.png",
-            PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
+            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Plots/Pass_%s_Treeline_Chi2_vs_run_%s_pkg.png",
+            PASS.c_str(), PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
 
     /**************
      * coplane Slope
@@ -1705,8 +2274,8 @@ void Plot()
 
     c_slope_track[i_pkg]->SaveAs(
         Form(
-            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass_%s_Coplane_Slope_vs_run_%s_pkg.png",
-            PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
+            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Plots/Pass_%s_Coplane_Slope_vs_run_%s_pkg.png",
+            PASS.c_str(), PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
 
     /**************
      * coplane chi2
@@ -1743,8 +2312,8 @@ void Plot()
 
     c_chi2_track[i_pkg]->SaveAs(
         Form(
-            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass_%s_Coplane_Chi2_vs_run_%s_pkg.png",
-            PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
+            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Plots/Pass_%s_Coplane_Chi2_vs_run_%s_pkg.png",
+            PASS.c_str(), PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
 
   }
 
