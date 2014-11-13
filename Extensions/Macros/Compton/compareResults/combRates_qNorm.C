@@ -141,7 +141,8 @@ Int_t combRates_qNorm(Int_t run1=runBegin, Int_t run2=runEnd)
   std::vector<Double_t>finalList;
   ofstream fOut;
   //fOut.open("combqNormRates_01Oct14.info");
-  file = "combRates_ver001_29Oct14.info";
+  //file = "combRates_ver001_29Oct14.info";
+  file = "combRates_ver001_02Nov14.info";
   fOut.open(file);
   if (fOut.is_open()) {
     //fOut<<"run\tpolAcCleanNoDT  Er\tpolAcClean2parDT  Er\tpolScCleanNoDT  Er\tacTrig\tp4On\tp1ScH1BgdSub\tbeamMean\tbeamRMS"<<endl;
