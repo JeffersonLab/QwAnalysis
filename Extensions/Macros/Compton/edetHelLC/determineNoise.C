@@ -9,36 +9,40 @@ Int_t determineNoise(Int_t runnum, Double_t strip[], TString dataType = "Ac") {
   Double_t rateB0H1L1[nStrips], rateB0H1L0[nStrips], rateB0H0L1[nStrips], rateB0H0L0[nStrips];
   ifstream fIn;
   TString file;
-  
-  if(dataType =="Ac") file = Form("%s/data/noisecorr_run.dat", pPath) ; 
-  else if(dataType =="Sc") file = Form("%s/data/sing_noisecorr_run.dat", pPath);
-  else {
-    cout<<red<<"dataType not known hence exiting determineNoise.C"<<normal<<endl;
-    return -1;
-  }
   Float_t runDum, tDum, noiseDum, runletDum;
-  fIn.open(file);
-  if (fIn.is_open()) {
-    while(1) {
-      fIn >>runDum >>tDum >>noiseDum >>runletDum;
-      //cout<< runDum <<"   "<<tDum<<"   " <<noiseDum<<"   " <<runletDum<<endl;
-      if(fIn.eof()) {
-        cout<<red<<"\n\nexiting the rate file because encountered the end of file\n\n"<<normal<<endl;///shouldn't happen
-        fIn.close();
-        return -1;
-      } else if(runDum == runnum) {
-        if(dataType =="Ac") cout<<blue<<"Use noise from beamoff_"<<runDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
-        else cout<<blue<<"Use noise from singles_boff_"<<runDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
-        fIn.close();
-        break;
-      }
-    }
-    fIn.close();
-  } else {
-    cout<<red<<"couldn't open the "<<file<<normal<<endl;
-    return -1;
-  }
-
+  
+  //if(dataType =="Ac") file = Form("%s/data/noisecorr_run.dat", pPath) ; 
+  //else if(dataType =="Sc") file = Form("%s/data/sing_noisecorr_run.dat", pPath);
+  //else {
+  //  cout<<red<<"dataType not known hence exiting determineNoise.C"<<normal<<endl;
+  //  return -1;
+  //}
+  //fIn.open(file);
+  //if (fIn.is_open()) {
+  //  while(1) {
+  //    fIn >>runDum >>tDum >>noiseDum >>runletDum;
+  //    //cout<< runDum <<"   "<<tDum<<"   " <<noiseDum<<"   " <<runletDum<<endl;
+  //    if(fIn.eof()) {
+  //      cout<<red<<"\n\nexiting the rate file because encountered the end of file\n\n"<<normal<<endl;///shouldn't happen
+  //      fIn.close();
+  //      return -1;
+  //    } else if(runDum == runnum) {
+  //      if(dataType =="Ac") cout<<blue<<"Use noise from beamoff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
+  //      else cout<<blue<<"Use noise from singles_boff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
+  //      fIn.close();
+  //      break;
+  //    }
+  //  }
+  //  fIn.close();
+  //} else {
+  //  cout<<red<<"couldn't open the "<<file<<normal<<endl;
+  //  return -1;
+  //}
+  cout<<red<<"temporarily using run 25286 for noise correction to ALL runs"<<normal<<endl;
+  if(dataType =="Ac") cout<<blue<<"Use beamoff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
+  else cout<<blue<<"Use singles_boff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
+  noiseDum = 25286;
+  runletDum = 0;
   if(dataType =="Ac") file = Form("%s/data/beamOffRates/beamoff_%d.%d.dat", pPath, (Int_t)noiseDum, (Int_t)runletDum);
   else file = Form("%s/data/beamOffRates/singles_boff_%d.%d.dat", pPath, (Int_t)noiseDum, (Int_t)runletDum);
   fIn.open(file);

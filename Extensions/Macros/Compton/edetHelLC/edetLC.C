@@ -25,16 +25,16 @@ Int_t edetLC(Int_t runnum, TString dataType="Ac")
 
   analFlags.open(Form("%s/%s/%sanalysisFlags.txt",pPath, txt,filePre.Data()));
   if (analFlags.is_open()) {
-    analFlags<<";runnum\tkRadCor\tkDeadTime\tk2parDT\tkRejectBMod\tkNoiseSub\tkOnlyGoodLasCyc"<<endl;
-    analFlags<<runnum<<"\t"<<kRadCor<<"\t"<< kDeadTime<<"\t"<< k2parDT<<"\t"<< kRejectBMod<<"\t"<< kNoiseSub<<"\t"<<kOnlyGoodLasCyc<<endl;
+    analFlags<<";runnum\tkRadCor\tkDeadTime\tk2parDT\tkRejectBMod\tkNoiseSub\tkOnlyGoodLasCyc\tkBeamStable"<<endl;
+    analFlags<<runnum<<"\t"<<kRadCor<<"\t"<< kDeadTime<<"\t"<< k2parDT<<"\t"<< kRejectBMod<<"\t"<< kNoiseSub<<"\t"<<kOnlyGoodLasCyc<<"\t"<<kBeamStable<<endl;
     analFlags.close();
   }
 
   if(retInfoDAQ<0 || asymflag <0 || asymSuc<0) {
     analFlags.open(Form("%s/%s/%sWhyNotExecuted.txt",pPath, txt,filePre.Data()));
     if (analFlags.is_open()) {
-      analFlags<<";runnum\tinfoDAQ\texpAsym\tasymFit"<<endl;
-      analFlags<<runnum<<"\t"<< retInfoDAQ<<"\t"<< asymflag<<"\t"<<asymSuc<<endl;
+      analFlags<<";runnum\tinfoDAQ\texpAsym\tasymFit\tevalBgdAsym"<<endl;
+      analFlags<<runnum<<"\t"<< retInfoDAQ<<"\t"<< asymflag<<"\t"<<asymSuc<<"\t"<<retEvalBgdAsym<<endl;
       analFlags.close();
     }
   }

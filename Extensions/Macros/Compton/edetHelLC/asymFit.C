@@ -157,7 +157,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TCanvas *cAsym;
   TGraphErrors *grAsym;
 
-  cAsym = new TCanvas("cAsym","Asymmetry and Strip number",10,10,900,300);
+  cAsym = new TCanvas("cAsym", Form("Asymmetry in run %d",runnum), 10,10,900,300);
 
   xCedge = rhoToX(runnum); ///this function should be called after determining the Cedge
 
@@ -319,7 +319,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   //!This is not meant to be able to deal with different planes, the need wasn't felt
   if(kBgdAsym) {
     TGraphErrors *grBgd; 
-    TCanvas *cBgd = new TCanvas("cBgd","Bgd Asymmetry",10,650,900,300);
+    TCanvas *cBgd = new TCanvas("cBgd", Form("Bgd Asymmetry run %d",runnum), 10,650,900,300);
     TPaveText *ptBgd;
 
     std::vector <Double_t> bgdAsym, bgdAsymEr;
@@ -370,7 +370,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   if(kResidual) {
     TCanvas *cResidual;
     TGraphErrors *grResiduals; 
-    cResidual = new TCanvas("cResidual","residual (Asymmetry - Fit)",10,500,900,300);
+    cResidual = new TCanvas("cResidual",Form("fit residual run %d", runnum), 10,500,900,300);
     std::vector<Double_t> residueEr; 
 
     std::vector<Double_t> fitResidue;
@@ -427,7 +427,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     TCanvas *cYield;
     TGraphErrors *grYield,*grB1L0;
     TMultiGraph *grAsymDrAll;
-    cYield = new TCanvas("cYield","detector yield",300,200,900,300);
+    cYield = new TCanvas("cYield", Form("detector yield run %d",runnum), 300,200,900,300);
 
     cYield->cd();
     cYield->SetGridx(1);

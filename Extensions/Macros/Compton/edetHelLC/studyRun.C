@@ -45,7 +45,7 @@ Int_t studyRun(Int_t runnum = 24519) {
   h1->SetBit(TH1::kCanRebin);
 
   if(bBeam) {
-    TCanvas *cBeam = new TCanvas("cBeam","test canvas ",0,0,900,500);///x,y cordinates of left top point; width, height
+    TCanvas *cBeam = new TCanvas("cBeam",Form("beam for run %d",runnum), 0,0,900,500);///x,y cordinates of left top point; width, height
     TPad *pad = new TPad("pad","",0,0,1,1);
     //pad->SetGrid();
     pad->Draw();
@@ -128,7 +128,7 @@ Int_t studyRun(Int_t runnum = 24519) {
     //helChain->SetBranchAddress("diff_sca_bpm_3p03aX",&bpm_3p03aX);
     //helChain->SetBranchAddress("diff_sca_bpm_3p03aY",&bpm_3p03aY);
 
-    TCanvas *cStability = new TCanvas("cStability","stability parameters",0,0,1200,900);
+    TCanvas *cStability = new TCanvas("cStability",Form("stability parameters for run %d",runnum),0,0,1200,900);
     cStability->Divide(3,2);// # of col,# of row
     //cStability->cd(1);
     //helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aY)<0.00120");
@@ -143,17 +143,17 @@ Int_t studyRun(Int_t runnum = 24519) {
     //cStability->cd(6);
     //helChain->Draw("diff_sca_bpm_3p03aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aX)<0.050");
     cStability->cd(1);
-    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aY)<0.00120");
+    helChain->Draw("diff_sca_bpm_3p02aY:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aY)<0.06");
     cStability->cd(2);
-    helChain->Draw("diff_sca_bpm_3p02bY:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bY)<0.050");
+    helChain->Draw("diff_sca_bpm_3p02bY:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bY)<0.060");
     cStability->cd(3);
-    helChain->Draw("diff_sca_bpm_3p03aY:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aY)<0.050");
+    helChain->Draw("diff_sca_bpm_3p03aY:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aY)<0.060");
     cStability->cd(4);
-    helChain->Draw("diff_sca_bpm_3p02aX:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aX)<0.00120");
+    helChain->Draw("diff_sca_bpm_3p02aX:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02aX)<0.06");
     cStability->cd(5);
-    helChain->Draw("diff_sca_bpm_3p02bX:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bX)<0.050");
+    helChain->Draw("diff_sca_bpm_3p02bX:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p02bX)<0.060");
     cStability->cd(6);
-    helChain->Draw("diff_sca_bpm_3p03aX:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aX)<0.050");
+    helChain->Draw("diff_sca_bpm_3p03aX:pattern_number/240","yield_sca_bmod_ramp<100 && TMath::Abs(diff_sca_bpm_3p03aX)<0.060");
 
     cStability->Update();
     cStability->SaveAs(Form("%s/%s/%sBeamStability.png",pPath,www,filePre.Data()));
@@ -164,7 +164,7 @@ Int_t studyRun(Int_t runnum = 24519) {
     //helChain->SetBranchStatus("diff_sca_bpm_3c20X*",1);
     helChain->SetBranchStatus("diff_sca_bmod_ramp*",1);
     ////helChain->SetBranchAddress("diff_sca_bpm_3c20X",&bpm_3c20X);
-    TCanvas *cEn = new TCanvas("cEn","energy parameters",0,0,800,500);
+    TCanvas *cEn = new TCanvas("cEn",Form("energy parameters for run %d",runnum),0,0,800,500);
     cEn->Divide(2,1);// # of col,# of row
     cEn->cd(1);
     //helChain->Draw("diff_sca_bpm_3c20Y:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
@@ -176,21 +176,22 @@ Int_t studyRun(Int_t runnum = 24519) {
   }
 
   if(bLaser) {
-    TCanvas *cPow = new TCanvas("cPow","test canvas ",0,0,1000,500);///x,y cordinates of left top point; width, height of canvas
+    TCanvas *cPow = new TCanvas("cPow",Form("laser power for run %d",runnum),0,0,1000,500);///x,y cordinates of left top point; width, height of canvas
     cPow->Divide(2,1);
     cPow->cd(1);
-    TH1D *h1 = new TH1D("h1","h1",100,0,1);
-    h1->SetBit(TH1::kCanRebin);
+    TH1D *hLaser = new TH1D("hLaser","hLaser",100,0,1);
+    hLaser->SetBit(TH1::kCanRebin);
 
-    helChain->Draw("yield_sca_laser_PowT>>h1","yield_sca_laser_PowT>112000","goff");    
-    //helChain->Draw("yield_sca_laser_PowT/1000>>h1","","goff");    
+    helChain->Draw("yield_sca_laser_PowT>>hLaser","yield_sca_laser_PowT>112000","goff");    
+    //helChain->Draw("yield_sca_laser_PowT/1000>>hLaser","","goff");    
     //cPow->GetPad(1)->SetLogx();
     cPow->GetPad(1)->SetLogy();
-    h1->Draw();
-    h1->GetXaxis()->SetTitle("laser on power");
+    hLaser->Draw();
+    hLaser->GetXaxis()->SetTitle("laser on power");
     cPow->GetPad(1)->Update();///forces the generation of 'stats' box
-    TPaveStats *ps1 = (TPaveStats*)h1->GetListOfFunctions()->FindObject("stats");
+    TPaveStats *ps1 = (TPaveStats*)hLaser->GetListOfFunctions()->FindObject("stats");
     ps1->SetX1NDC(0.20); ps1->SetX2NDC(0.45);
+    ps1->SetFillStyle(0);
     ps1->SetTextColor(kBlue);
     cPow->GetPad(1)->Modified();
 
@@ -208,6 +209,7 @@ Int_t studyRun(Int_t runnum = 24519) {
     TPaveStats *ps2 = (TPaveStats*)h2->GetListOfFunctions()->FindObject("stats");
     ps2->SetX1NDC(0.2); ps2->SetX2NDC(0.45);
     ps2->SetTextColor(kBlack);
+    ps2->SetFillStyle(0);
     cPow->GetPad(2)->Modified();
 
     cPow->SaveAs(Form("%s/%s/%slasPower.png",pPath,www,filePre.Data()));
