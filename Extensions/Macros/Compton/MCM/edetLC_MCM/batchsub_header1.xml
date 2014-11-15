@@ -1,0 +1,9 @@
+ <Request>
+  <Email email="narayan@jlab.org" request="false" job="false"/>
+  <Project name="qweak"/>
+  <Track name="analysis"/>
+  <TimeLimit unit="minutes" time="8"/>
+  <DiskSpace space="515" unit="MB"/>
+  <Memory space="824" unit="MB"/>
+  <OS name="centos62"/>
+
