@@ -3,7 +3,7 @@
 #include "../shared/cluster.C"
 #include "../shared/simpleAvg.C"
 #include "../shared/readFortOut.C"
-const Int_t runBegin = 25285, runEnd = 25298;///MCM runs
+const Int_t runBegin = 25285, runEnd = 25299;///MCM runs
 
 Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
   gROOT->SetStyle("publication");
@@ -53,7 +53,8 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
     cout<<blue<<"no.of runs in the aggregate Sc list: "<<ratesSc1.size()<<normal<<endl;
   }
 
-  file = Form("%s/data/polAcMCM_09Oct14.info",pPath);
+  //file = Form("%s/data/polAcMCM_09Oct14.info",pPath);
+  file = "polAcMCM_15Nov14.info";
   fIn.open(file.Data());
   Int_t fitStatus=100;
   //const Float_t loLimit=0.05;
