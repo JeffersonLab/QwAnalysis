@@ -3,9 +3,9 @@
 #include "vectorMinMax.C"
 
 Int_t studyRun(Int_t runnum = 24519) {
-  const Bool_t bBeam = 1;
-  const Bool_t bBPM = 1;
-  const Bool_t bEnergy = 1;
+  const Bool_t bBeam = 0;
+  const Bool_t bBPM = 0;
+  const Bool_t bEnergy = 0;
   const Bool_t bLaser = 1;
   gStyle->SetTextFont(132);
   gStyle->SetTextSize(0.08);
@@ -182,6 +182,7 @@ Int_t studyRun(Int_t runnum = 24519) {
     TH1D *hLaser = new TH1D("hLaser","hLaser",100,0,1);
     hLaser->SetBit(TH1::kCanRebin);
 
+    //Double_t lasOnCut = 112000.0;///cannot use a variable inside the cut below
     helChain->Draw("yield_sca_laser_PowT>>hLaser","yield_sca_laser_PowT>112000","goff");    
     //helChain->Draw("yield_sca_laser_PowT/1000>>hLaser","","goff");    
     //cPow->GetPad(1)->SetLogx();
@@ -198,7 +199,7 @@ Int_t studyRun(Int_t runnum = 24519) {
     cPow->cd(2);
     TH1D *h2 = new TH1D("h2","h2",100,0,1);
     h2->SetBit(TH1::kCanRebin);
-    helChain->Draw("yield_sca_laser_PowT>>h2","yield_sca_laser_PowT<3000","goff");    
+    helChain->Draw("yield_sca_laser_PowT>>h2","yield_sca_laser_PowT<112000","goff");    
     //helChain->Draw("yield_sca_laser_PowT>>h2","","goff");
     cPow->SetLogx();
     cPow->GetPad(2)->SetLogy();
