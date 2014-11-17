@@ -10,7 +10,7 @@ const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets du
 const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
-const Bool_t kBeamStable=0;
+const Bool_t kBeamStable=1;
 const Bool_t kOnlyGoodLasCyc = 1;
 const Int_t maxIterations =4;
 
@@ -85,7 +85,7 @@ const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> 
 const Float_t beamMaxEver = 200.0, beamOnLimit=2.0;
 Float_t beamTripLimit;
 const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
-const Float_t bpmDiff = 0.01;
+const Float_t bpmDiff = 0.05;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
@@ -154,7 +154,7 @@ Double_t tNormYieldB1H0L1[nStrips]={0.0},tNormYieldB1H0L1Er[nStrips]={0.0};
 Double_t tNormYieldB1H0L0[nStrips]={0.0},tNormYieldB1H0L0Er[nStrips]={0.0};
 Double_t timeB0, rateB0[nStrips]={0.0};
 Double_t checkAsym=0.0;///use to check if sign of asymmetry changed during run
-const Int_t myStr = 35;///a sample strip number to check for various quantities;
+const Int_t myStr = 59;///a sample strip number to check for various quantities;
 ///skip p1:s02,s06,s20 //as of Feb2,2012
 ///skip p2:s12
 ///skip p3:s39,s53,s64

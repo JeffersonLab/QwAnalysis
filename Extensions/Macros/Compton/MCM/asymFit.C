@@ -274,10 +274,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
   polList.open(Form("%s/%s/%s"+dataType+"Pol.txt",pPath, txt,filePre.Data()));
-  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tgoodCyc"<<endl;
+  polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tusedTime"<<endl;
   polList<< Form("%5.0f\t%2.3f\t%.3f\t%.3f\t%d\t%2.3f\t%.3f\t%d\t%d\t%d",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
   if(debug) {
-    cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\tplane\tfitStatus\tgoodCyc");
+    cout<<Form("runnum\tpol.\tpolEr\tchiSq\tNDF\tCedge\tCedgeEr\tplane\tfitStatus\tusedTime");
     cout<<Form("\n%5.0f\t%2.2f\t%.2f\t%.2f\t%d\t%2.2f\t%.2f\t%d\t%d\t%d\n",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
   }
   leg = new TLegend(0.101,0.73,0.30,0.9);
@@ -422,6 +422,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
   fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
   fitInfo.close();
+  cout<<blue<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
+  cout<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n%s",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF,normal);
 
   if (kYield) { ///determine yield
     TCanvas *cYield;

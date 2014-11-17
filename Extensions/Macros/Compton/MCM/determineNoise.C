@@ -9,7 +9,8 @@ Int_t determineNoise(Int_t runnum, Double_t strip[], TString dataType = "Ac") {
   Double_t rateB0H1L1[nStrips], rateB0H1L0[nStrips], rateB0H0L1[nStrips], rateB0H0L0[nStrips];
   ifstream fIn;
   TString file;
-  Float_t runDum, tDum, noiseDum, runletDum;
+  //Float_t runDum, tDum;
+  Float_t noiseDum, runletDum;
   
   //if(dataType =="Ac") file = Form("%s/data/noisecorr_run.dat", pPath) ; 
   //else if(dataType =="Sc") file = Form("%s/data/sing_noisecorr_run.dat", pPath);

@@ -1,44 +1,49 @@
 #include "../shared/rootClass.h"
-#include "/w/hallc/compton/users/narayan/svn/Compton/edetHelLC/comptonRunConstants.h"
 #include "../shared/cluster.C"
 #include "../shared/simpleAvg.C"
 #include "../shared/readFortOut.C"
-const Int_t runBegin = 25285, runEnd = 25299;///MCM runs
+const Int_t runBegin = 25284, runEnd = 25299;///MCM runs
 
 Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
   gROOT->SetStyle("publication");
   Bool_t debug=1,debug1=0;
-  Bool_t kPrintV1=0; 
-  Bool_t bAbsPol =0, bPolPlot =1, bPolErCompare =0;
-  Bool_t bRates = 0;
-  Bool_t bBgdFitInfo = 1;
-  Bool_t bChiSqrHist=0;
+  Bool_t bAbsPol    =0;
+  Bool_t bPolPlot   =0;
+  Bool_t bPolEr     =0;
+  Bool_t bRates     =0;
+  Bool_t bBgdFitInfo=1;
+  Bool_t bChiSqr    =0;
+  Bool_t bCE        =0;
+  Bool_t bCycles    =0;
+  Bool_t bPolCE     =0;///correlation plot between polEr and edgeEr
+  Bool_t bBPM       =0;
+  Bool_t bDiff      =0;
   ifstream fIn;
   TString file;
   //const char *myDir="/w/hallc/compton/users/narayan/my_scratch/www";///newest results
   const TString destDir="/w/hallc/compton/users/narayan/svn/Compton/MCM/";
   TString ver1 = "MCM";//"cleanLC";///run from a folder named cleanOnlyLC
 
-  TString dum1,dum2,dum3,dum4,dum5,dum6,dum7,dum8,dum9,dum10,dum11;
   Int_t runRange = run2-run1+1;
-  TH1D *hPolV1 = new TH1D("polV1", ver1, runRange, 80, 95);
-  TH1D *hPolErV1 = new TH1D("polEr "+ver1,"pol error "+ver1,runRange,0,0.1);
-  TH1D *hChiSqV1 = new TH1D("chiSqr "+ver1, "chi sqr "+ver1, runRange, 0, 0.1);
+  TH1D *hPol = new TH1D("pol", ver1, runRange, 80, 95);
+  TH1D *hPolEr = new TH1D("polEr "+ver1,"pol error "+ver1,runRange,0,0.1);
+  TH1D *hChiSq = new TH1D("chiSqr "+ver1, "chi sqr "+ver1, runRange, 0, 0.1);
+  TH1D *hCE = new TH1D("CE", ver1, runRange, 0.1, 0.2);
   TF1 *lFit = new TF1("lFit", "pol0",run1,run2);
 
-  hPolV1->SetBit(TH1::kCanRebin);
-  hPolErV1->SetBit(TH1::kCanRebin);
-  hChiSqV1->SetBit(TH1::kCanRebin);
+  hPol->SetBit(TH1::kCanRebin);
+  hCE->SetBit(TH1::kCanRebin);
+  hPolEr->SetBit(TH1::kCanRebin);
+  hChiSq->SetBit(TH1::kCanRebin);
 
-  std::vector< Double_t> runListV1,polV1,polErV1,comptEdgeV1,chiSqV1,edgeErV1;
-  std::vector<Int_t> goodCycV1;
+  std::vector< Double_t> rList,pol,polEr,CE,chiSq,edgeEr,goodCyc;
   std::vector<Int_t> fitStat;
   std::vector<Double_t> eBeam,eBeamEr;
   ///write the lasCyc based polarization into one central file
   ///some temporary variables, which will be repeatedly used and overwritten
   Double_t tRun,tPol,tPolEr,tChiSq,tCE,tCEEr;
   Double_t tBgd, tBgdEr, tRes, tResEr, tChiSq2;
-  Int_t tNDF,pl,goodCyc, tNDF2;
+  Int_t tNDF,pl,nCyc, tNDF2;
 
   std::vector<Double_t> ratesSc1, ratesSc2, ratesSc3, ratesSc4, runScR;
   std::vector<Double_t> ratesAc1, ratesAc2, ratesAc3, ratesAc4, runAcR;
@@ -54,43 +59,45 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
   }
 
   //file = Form("%s/data/polAcMCM_09Oct14.info",pPath);
-  file = "polAcMCM_15Nov14.info";
-  fIn.open(file.Data());
+  //file = "polAcMCM_15Nov14.info";
+  //file = "polAcMCM_16Nov14.info";
+  //file = "polAcMCM_01.info";
+  file = "polAcMCM_02.info";
+  fIn.open(file);
   Int_t fitStatus=100;
-  //const Float_t loLimit=0.05;
-  //const Float_t hiLimit=4.5;
   if (fIn.is_open()) { 
-    //while(fIn>>tRun>>tPol>>tPolEr>>chiSq>>NDF>>tCE>>tCEEr>>effStrip>>effStripEr>>pl>>goodCyc && fIn.good()) {
-    while(fIn >>tRun >>tPol >>tPolEr >>tChiSq >>tNDF >>tCE >>tCEEr >>fitStatus >>pl >>goodCyc && fIn.good()) {
-      if(debug1) cout<<tRun<<"\t"<<tPol<<"\t"<<tPolEr<<"\t"<<tChiSq/tNDF<<"\t"<<tCE<<"\t"<<tCEEr<<"\t"<<goodCyc<<endl;
-      kPrintV1 = (tRun >= run1 && tRun <= run2 && tPolEr<4.0 && tCEEr>0.1 && tPolEr>0.1 );// && chiSq/NDF<5.0);
-      if (kPrintV1) {
-        runListV1.push_back((Double_t)tRun);
-        polV1.push_back(fabs(tPol));
-        polErV1.push_back(tPolEr);
-        comptEdgeV1.push_back(tCE);
-        edgeErV1.push_back(tCEEr);
-        chiSqV1.push_back(tChiSq/tNDF);
-        goodCycV1.push_back(goodCyc);
+    //while(fIn>>tRun>>tPol>>tPolEr>>chiSq>>NDF>>tCE>>tCEEr>>effStrip>>effStripEr>>pl>>nCyc && fIn.good()) {
+    while(fIn >>tRun >>tPol >>tPolEr >>tChiSq >>tNDF >>tCE >>tCEEr >>fitStatus >>pl >>nCyc && fIn.good()) {
+      if(debug1) cout<<tRun<<"\t"<<tPol<<"\t"<<tPolEr<<"\t"<<tChiSq/tNDF<<"\t"<<tCE<<"\t"<<tCEEr<<"\t"<<nCyc<<endl;
+      if (tRun < run1 || tRun > run2 || tPolEr>10 || tCEEr>6.0 || tCEEr<0.1 || tPolEr<0.1) {
+        cout<<"for runnum:"<<tRun<<", tPol:"<<tPol<<" +/- "<<tPolEr<<", CE:"<<tCE<<" +/- "<<tCEEr<<endl;
+      } else {
+        rList.push_back((Double_t)tRun);
+        pol.push_back(fabs(tPol));
+        polEr.push_back(tPolEr);
+        CE.push_back(tCE);
+        edgeEr.push_back(tCEEr);
+        chiSq.push_back(tChiSq/tNDF);
+        goodCyc.push_back(nCyc);
         fitStat.push_back(fitStatus);
-        //chiSqV1.push_back(chiSq);
 
-        hPolV1->Fill(fabs(tPol),tPolEr);
-        hChiSqV1->Fill(tChiSq/tNDF);
-      } else if(debug) cout<<"for runnum:"<<tRun<<", tPol:"<<tPol<<" +/- "<<tPolEr<<", CE:"<<tCE<<" +/- "<<tCEEr<<endl;
+        hPol->Fill(fabs(tPol),tPolEr);
+        //hPol->Fill(fabs(tPol));
+        hPolEr->Fill(tPolEr);
+        hCE->Fill(tCE);
+        hChiSq->Fill(tChiSq/tNDF);
+      }
     }
     fIn.close();
   } else cout<<red<<"*** Could not open "<<file<<normal<<endl; 
-  if(debug)cout<<red<<"found valid "<<runListV1.size()<<" analyzed runs in "+ver1<<normal<<endl;
-
-  //Int_t group = 1;
-  //std::vector<Double_t> wmRuns, wmPol, wmPolEr;
+  if(debug)cout<<blue<<"found valid "<<rList.size()<<" analyzed runs in "+ver1<<normal<<endl;
 
   if(bAbsPol) {
     if(debug) cout<<blue<<"Histogramming Absolute polarization"<<normal<<endl; 
-    TCanvas *cAbsPol = new TCanvas("cAbsPol", "absolute polarization",100,400,450,450);
-    hPolV1->Draw("H");
-    //hPolV1->Fit("gaus");
+    TCanvas *cAbsPol = new TCanvas("cAbsPol", "absolute polarization",100,400,500,500);
+    hPol->GetXaxis()->SetTitle("pol MCM");
+    hPol->Draw("H");
+    //hPol->Fit("gaus");
     cAbsPol->SaveAs(destDir+Form("absPolMCM.png"));
   }
 
@@ -98,61 +105,94 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
     if(debug) cout<<blue<<"Polarization for this range"<<normal<<endl; 
     //coordinates in TCanvas are in order :x,y of left top corner;x,y of right bottom corner
     TCanvas *polAvgP1 = new TCanvas("polAvgP1","Polarization trend",0,0,800,400);
-    TGraphErrors *grPolV1;
-    TLegend *leg = new TLegend(0.15,0.82,0.35,0.95);
+    polAvgP1->SetGridx();
+    TGraphErrors *grPol;
 
-    grPolV1 = new TGraphErrors((Int_t)polV1.size(),runListV1.data(),polV1.data(),0,polErV1.data());
+    grPol = new TGraphErrors((Int_t)pol.size(),rList.data(),pol.data(),0,polEr.data());
 
-    grPolV1->SetMarkerStyle(kOpenCircle);
-    grPolV1->SetMarkerColor(kBlue);
-    grPolV1->SetLineColor(kBlue);
-    grPolV1->GetXaxis()->SetTitle("Run number");
-    grPolV1->GetYaxis()->SetTitle("polarization (%)");
-    //grPolV1->GetXaxis()->SetLimits(run1-5,run2+5); 
-    //grPolV1->SetMaximum(1.5);
-    //grPolV1->SetMinimum(-2.0);
-    grPolV1->Draw("AP");
+    grPol->SetMarkerStyle(kOpenCircle);
+    grPol->SetMarkerColor(kBlue);
+    grPol->SetLineColor(kBlue);
+    grPol->GetXaxis()->SetTitle("Run number");
+    grPol->GetYaxis()->SetTitle("polarization (%)");
+    //grPol->SetMaximum(1.5);
+    //grPol->SetMinimum(-2.0);
+    grPol->Draw("AP");
     lFit->SetLineColor(kBlue);
-    grPolV1->Fit(lFit,"EMR");
+    grPol->Fit(lFit,"EM");
 
     //polAvgP1->Update();///forces the generation of 'stats' box
-    //TPaveStats *ps2 = (TPaveStats*)grPolV1->GetListOfFunctions()->FindObject("stats");
+    //TPaveStats *ps2 = (TPaveStats*)grPol->GetListOfFunctions()->FindObject("stats");
     //ps2->SetX1NDC(0.65); ps2->SetX2NDC(0.85);
     //ps2->SetTextColor(kBlue);
     //polAvgP1->Modified();
 
-    leg->AddEntry(grPolV1,ver1,"lpe");
-    leg->AddEntry(lFit,"linear fit","l");
-    leg->SetFillColor(0);
-    leg->Draw();
+    //TLegend *leg = new TLegend(0.15,0.82,0.35,0.95);
+    //leg->AddEntry(grPol,ver1,"lpe");
+    //leg->AddEntry(lFit,"linear fit","l");
+    //leg->SetFillColor(0);
+    //leg->Draw();
 
     polAvgP1->SaveAs(destDir+Form("polAvg_%d_%d.png",run1,run2));
   }//if(bPolPlot)
 
-  if(bPolErCompare) {
-    if(debug) cout<<blue<<"Comparing Pol-error from the two methods"<<normal<<endl; 
-    TCanvas *cPolErr = new TCanvas("cPolErr","polarization error",10,10,1000,600);
+  if(bDiff) {
+    TCanvas *cDiff = new TCanvas("cDiff","diff runlet", 0,0,800,400);
+    cDiff->SetGridx();
+    TGraphErrors *grLC = new TGraphErrors("lasCycMCM01.info","%lg %lg %lg");
+    grLC->SetMarkerColor(kBlue);
+    TGraphErrors *grRL = new TGraphErrors("runletMCM.dat","%lg %lg %lg");
+    grRL->SetMarkerColor(kRed);
+    TMultiGraph *gr = new TMultiGraph();
+    gr->Add(grLC);
+    gr->Add(grRL);
+    gr->Draw("AP");
+    gr->GetXaxis()->SetTitle("run number");
+    gr->GetYaxis()->SetTitle("polarization (%)");
+    TLegend *leg = new TLegend(0.75,0.81,0.90,0.94);
+    leg->AddEntry(grRL,"runlet","lpe");
+    leg->AddEntry(grLC,"lasCyc","lpe");
+    leg->SetFillStyle(0);
+    leg->Draw();
+    cDiff->SaveAs("RL_LC_MCM.png");
+  }
 
-    hPolErV1->SetLineColor(kBlue);
-    //hPolErV1->SetTitle(Form("error on Polarization for Qweak phase-1 data"));
-    //hPolErV1->GetYaxis()->SetTitle("polarization error (statistical)");
-    hPolErV1->Draw("H");
-    hPolErV1->Fit("gaus");
+  if(bPolEr) {
+    TCanvas *cPolErr = new TCanvas("cPolErr","polarization error",10,10,500,500);
+    hPolEr->SetLineColor(kBlue);
+    //hPolEr->SetTitle(Form("error on Polarization for Qweak phase-1 data"));
+    hPolEr->GetXaxis()->SetTitle("polarization error (statistical)");
+    hPolEr->Draw("H");
+    //hPolEr->Fit("gaus");
 
     cPolErr->SaveAs(Form(destDir + "polEr_%d_%d.png",run1,run2));
-  }//if(bPolErCompare) 
+  }//if(bPolEr) 
 
-  if(bChiSqrHist) {
-    if(debug) cout<<blue<<"Histogramming ChiSqr per Degree of freedom of V2 & V1"<<normal<<endl; 
-    TCanvas *cChiSqr = new TCanvas("cChiSqrHist","chi-Sqr/ndf",10,10,1000,600);
-
-    hChiSqV1->SetLineColor(kBlue);
-    hChiSqV1->Draw("H");
-    hChiSqV1->Fit("gaus");
+  if(bChiSqr) {
+    if(debug) cout<<blue<<"Histogramming ChiSqr"<<normal<<endl; 
+    TCanvas *cChiSqr = new TCanvas("cChiSqrHist","chi-Sqr/ndf",10,10,500,500);
+    hChiSq->SetLineColor(kBlue);
+    hChiSq->GetXaxis()->SetTitle("ChiSq/ndf");
+    hChiSq->Draw("H");
+    //hChiSq->Fit("gaus");
     cChiSqr->SaveAs(Form(destDir + "chiSqrHist_%d_%d.png",run1,run2));   
+
+    ///accross run2
+    TCanvas *cChiSq2 = new TCanvas("cCqRun2","chi sq Vs run", 0,0,800,400);
+    cChiSq2->SetGridx();
+    TGraph *gr1 = new TGraph((Int_t)rList.size(), rList.data(), chiSq.data());
+    gr1->SetMarkerStyle(kFullCircle);
+    //gr1->SetMarkerSize(0.5);
+    gr1->SetMarkerColor(kMagenta);
+    gr1->GetYaxis()->SetTitle("chi Sq");
+    gr1->GetXaxis()->SetTitle("run number");
+    gr1->Draw("AP");
+    cChiSq2->SaveAs(Form(ver1+"_chiSq.png"));
   }//if(bChiSqrHist)
 
   if(bBgdFitInfo) {
+    Bool_t bRes=1;
+    Bool_t bBgd=1;
     cout<<blue<<"Background and residual fit for run2 "<<normal<<endl;
     TH1D *hBgd = new TH1D("bgd ", "bgd asym", runRange, 0, 0.1);
     TH1D *hChi = new TH1D("chiSqBgd ", "bgd fit ChiSq", runRange, 0, 0.1);
@@ -163,13 +203,18 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
     std::vector<Double_t> bgdRuns, bgdFit, bgdFitEr, residueFit, residueFitEr;
     std::vector<Double_t> chiSqFitBgd, chiSqFitRes; 
 
-    file = Form("%s/data/bgdMCM_10Oct14.info",pPath);
+    //file = Form("%s/data/bgdMCM_10Oct14.info",pPath);
+    //file = Form("bgdMCM_15Nov14.info");
+    //file = Form("bgdMCM_16Nov14.info");
+    //file = Form("bgdMCM_01.info");
+    file = Form("bgdMCM_02.info");
     fIn.open(file);
     if (fIn.is_open()) {
       while(fIn >>tRun >>tRes >>tResEr >>tChiSq2 >>tNDF2 >>tBgd >>tBgdEr >>tChiSq >>tNDF && fIn.good()) {
+        if(tRun==25284 || tRun==25292) continue;
         bgdRuns.push_back(tRun);
-        bgdFit.push_back(tBgd), bgdFitEr.push_back(tBgdEr), chiSqFitBgd.push_back(tChiSq/tNDF);
         residueFit.push_back(tRes), residueFitEr.push_back(tResEr), chiSqFitRes.push_back(tChiSq2/tNDF2);
+        bgdFit.push_back(tBgd), bgdFitEr.push_back(tBgdEr),  chiSqFitBgd.push_back(tChiSq/tNDF);
         //cout<<bgdRuns.back()<<"\t"<<bgdFit.back()<<"\t"<<bgdFitEr.back()<<endl;
         hBgd->Fill(tBgd,tBgdEr);
         hChi->Fill(tChiSq);
@@ -178,13 +223,15 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
       fIn.close();
     } else cout<<"couldn't open "<<file<<endl;
 
+    if(bBgd) {
     //TCanvas *cBgd = new TCanvas("cBgd","background fit for run2",200,400,1000,600);
     //cBgd->Divide(2,1);
     //cBgd->cd(1);
     //hBgd->Draw();
     //cBgd->cd(2);
     //hChi->Draw();
-    TCanvas *cBgd2 = new TCanvas("cBgd2","background fit for run2",200,400,800,450);
+    TCanvas *cBgd2 = new TCanvas("cBgd2","background fit for run2",200,400,800,400);
+    cBgd2->SetGridx();
     cBgd2->cd();
     TGraphErrors *grB = new TGraphErrors((Int_t)bgdRuns.size(), bgdRuns.data(), bgdFit.data(), 0, bgdFitEr.data());
     grB->SetMarkerStyle(kOpenSquare);
@@ -192,7 +239,180 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
     grB->SetLineColor(kRed);
     grB->Draw("AP");
     lFit->SetLineColor(kRed);
-    grB->Fit(lFit,"EMR");
+    grB->Fit(lFit,"EM");
+    cBgd2->SaveAs("bgdFitMCM_"+ver1+".png");
+    }
+    if(bRes) {
+    TCanvas *cRes = new TCanvas("cRes","fit residue",200,400,800,400);
+    cRes->SetGridx();
+    cRes->cd();
+    TGraphErrors *grB = new TGraphErrors((Int_t)bgdRuns.size(), bgdRuns.data(), residueFit.data(), 0, residueFitEr.data());
+    grB->SetMarkerStyle(kOpenSquare);
+    grB->SetMarkerColor(kRed);
+    grB->SetLineColor(kRed);
+    grB->Draw("AP");
+    lFit->SetLineColor(kRed);
+    grB->Fit(lFit,"EM");
+    cRes->SaveAs("resFitMCM_"+ver1+".png");
+          
+    }
   }
+
+if(bCE) {
+    //if(debug) cout<<blue<<"Compton edge analysis"<<normal<<endl; 
+    TCanvas *c1 = new TCanvas("c1","Compton edge",100,100,800,400);
+    c1->SetGridx();
+    TGraphErrors *gr1 = new TGraphErrors((Int_t)rList.size(), rList.data(), CE.data(), 0, edgeEr.data());
+    gr1->SetMarkerStyle(kFullSquare);
+    gr1->SetMarkerSize(0.5);
+    gr1->SetMarkerColor(kRed);
+    gr1->GetXaxis()->SetTitle("Run number"); 
+    gr1->GetYaxis()->SetTitle("Compton edge");
+    gr1->GetYaxis()->SetDecimals(0);
+    gr1->Draw("AP");
+    c1->SaveAs(Form(ver1+"_edgeEr.png"));
+    //TGraphErrors *gr2 = new TGraphErrors((Int_t)rList.size(), rList.data(), roundedCE.data(), 0, edgeEr.data());
+    //TGraphErrors *gr2 = new TGraphErrors((Int_t)rList.size(), rList.data(), diffCE.data(), 0, edgeEr.data());
+    //TGraph *gr2 = new TGraph((Int_t)rList.size(), rList.data(), diffCE.data());
+    //TGraph *gr2 = new TGraph((Int_t)rList.size(), edgeEr.data(), diffCE.data());
+
+    ///correlation plot
+    if(bPolCE) {
+    TCanvas *c2 = new TCanvas("c2","correlation edgeEr polEr",100,100,500,500);
+    c2->SetGrid();
+    TGraph *gr2 = new TGraph((Int_t)rList.size(), edgeEr.data(), polEr.data());
+    gr2->SetMarkerStyle(kFullSquare);
+    gr2->SetMarkerColor(kBlue);
+    gr2->GetXaxis()->SetTitle("edge error"); 
+    gr2->GetYaxis()->SetTitle("pol error");
+    gr2->Draw("AP");
+    c2->SaveAs(Form("correlation_polEr_edgeEr.png"));
+    }
+}
+  if(bCycles) {
+    //TCanvas *cCyc1 = new TCanvas("cCyc1","hist Cycles",10,10,500,500);
+    //hCycles->GetXaxis()->SetTitle("Cycles");
+    //hCycles->Draw("H");
+    //cCyc1->SaveAs(Form("histCycles_%d_%d.png",run1,run2));
+
+    TCanvas *cCyc = new TCanvas("cCycle2","Cycles Vs run", 0,0,800,400);
+    cCyc->SetGridx();
+    TGraph *gr1 = new TGraph((Int_t)rList.size(), rList.data(), goodCyc.data());
+    gr1->SetMarkerStyle(kFullCircle);
+    //gr1->SetMarkerSize(0.5);
+    gr1->SetMarkerColor(kGreen);
+    gr1->GetXaxis()->SetTitle("Run number");
+    gr1->GetYaxis()->SetTitle("used time (s)");
+    gr1->Draw("AP");
+    cCyc->SaveAs(Form(ver1+"_usedTime.png"));
+    ///correlation plot
+    TCanvas *cCycle3 = new TCanvas("cCycle3","cCycle3 correlation",10,10,500,500);
+    cCycle3->cd();
+    cCycle3->SetGrid();
+    //TGraphErrors *gPC = new TGraphErrors((Int_t)absPol.size(), goodCyc.data(), absPol.data(), 0, polEr.data());
+    TGraph *gPC = new TGraph((Int_t)goodCyc.size(), goodCyc.data(), polEr.data());
+    gPC->SetMarkerStyle(kOpenCircle);
+    gPC->SetMarkerSize(0.5);
+    gPC->SetMarkerColor(kBlue);
+    gPC->SetLineColor(kBlue);
+    gPC->GetXaxis()->SetTitle("used time (s)");
+    gPC->GetYaxis()->SetTitle("polarization error(%)");
+    gPC->GetXaxis()->SetNdivisions(5);
+    gPC->Draw("AP");
+    cCycle3->SaveAs(Form("correlation_time_polEr.png"));
+  }
+
+if(bBPM) {
+  Bool_t bDiffX=1, bDiffY=1;
+    file = "diffBPMYMCM_16Nov14.info";
+    fIn.open(file);
+    Double_t d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12;
+    std::vector<Double_t> rListBpm, rms3p02aY, rms3p02bY, rms3p03aY, rms3c20Y;
+    std::vector<Double_t> rms3p02aX, rms3p02bX, rms3p03aX, rms3c20X;
+    if (fIn.is_open()) { 
+        while(fIn >>d0 >>d1 >>d2 >>d3 >>d4 >>d5 >>d6 >>d7 >>d8 >>d9 >>d10 >>d11 >>d12 && fIn.good()) {
+            if(d0<run1 || d1>run2) continue; ///the list needs only results between these runs
+            //cout<<d0<<"  "<<d3<<"  "<<d6<<"  "<<d9<<"  "<<d12<<endl;
+            rListBpm.push_back(d0);
+            rms3p02aX.push_back(d3);
+            rms3p02bX.push_back(d6);
+            rms3p03aX.push_back(d9);
+            rms3c20X.push_back(d12);
+            rms3p02aY.push_back(d3);
+            rms3p02bY.push_back(d6);
+            rms3p03aY.push_back(d9);
+            rms3c20Y.push_back(d12);
+        }
+        fIn.close();
+    } else {
+        cout<<red<<file<<" failed to open"<<normal<<endl;
+        return -1;
+    }
+    cout<<blue<<rms3p02aY.size()<<" runs finally processed for this analysis from "<<file<<normal<<endl;
+
+    ///accross run2
+    if(bDiffX) {
+    TCanvas *cBPMX = new TCanvas("cBPMX","BPMX Vs run", 0,0,800,400);
+    cBPMX->SetGridx();
+    TGraph *gr1 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3p02aX.data());
+    //gr1->SetMarkerStyle(kFullCircle);
+    gr1->SetMarkerColor(kRed);
+    TGraph *gr2 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3p02bX.data());
+    gr2->SetMarkerColor(kRed-8);
+    TGraph *gr3 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3p03aX.data());
+    gr3->SetMarkerColor(kRed-14);
+    //TGraph *gr4 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3c20X.data());
+    //gr4->SetMarkerColor(kRed+4);
+
+    TMultiGraph *grX = new TMultiGraph();
+    grX->Add(gr1);
+    grX->Add(gr2);
+    grX->Add(gr3);
+    //grX->Add(gr4);
+    grX->Draw("AP");
+    grX->GetXaxis()->SetTitle("run number");
+    grX->GetXaxis()->SetTitle("RMS BPM pos diffX");
+    
+    TLegend *legX = new TLegend(0.8,0.80,0.90,0.94);
+    legX->AddEntry(gr1,"3p02aX","lpe");
+    legX->AddEntry(gr2,"3p02bX","lpe");
+    legX->AddEntry(gr3,"3p03aX","lpe");
+    //legX->AddEntry(gr4,"3c20X","lpe");
+    legX->SetFillStyle(0);//transparent
+    legX->Draw();
+    cBPMX->SaveAs(Form(ver1+"bpmDiffX.png"));
+    }
+    if(bDiffY) {
+    TCanvas *cBPMY = new TCanvas("cBPMY","BPMY Vs run", 0,0,800,400);
+    cBPMY->SetGridx();
+    TGraph *gr1 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3p02aY.data());
+    //gr1->SetMarkerStyle(kFullCircle);
+    gr1->SetMarkerColor(kRed);
+    TGraph *gr2 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3p02bY.data());
+    gr2->SetMarkerColor(kRed-8);
+    TGraph *gr3 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3p03aY.data());
+    gr3->SetMarkerColor(kRed-14);
+    //TGraph *gr4 = new TGraph((Int_t)rListBpm.size(), rListBpm.data(), rms3c20Y.data());
+    //gr4->SetMarkerColor(kRed+4);
+
+    TMultiGraph *grY = new TMultiGraph();
+    grY->Add(gr1);
+    grY->Add(gr2);
+    grY->Add(gr3);
+    //grY->Add(gr4);
+    grY->Draw("AP");
+    grY->GetXaxis()->SetTitle("run number");
+    grY->GetYaxis()->SetTitle("RMS BPM pos diffY");
+    
+    TLegend *legY = new TLegend(0.8,0.80,0.90,0.94);
+    legY->AddEntry(gr1,"3p02aY","lpe");
+    legY->AddEntry(gr2,"3p02bY","lpe");
+    legY->AddEntry(gr3,"3p03aY","lpe");
+    //legY->AddEntry(gr4,"3c20Y","lpe");
+    legY->SetFillStyle(0);//transparent
+    legY->Draw();
+    cBPMY->SaveAs(Form(ver1+"bpmDiffY.png"));
+    }
+}
   return 1;
   }
