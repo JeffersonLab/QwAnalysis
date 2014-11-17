@@ -9,8 +9,8 @@ Int_t determineNoise(Int_t runnum, Double_t strip[], TString dataType = "Ac") {
   Double_t rateB0H1L1[nStrips], rateB0H1L0[nStrips], rateB0H0L1[nStrips], rateB0H0L0[nStrips];
   ifstream fIn;
   TString file;
-  Float_t runDum, tDum, noiseDum, runletDum;
   
+  //Float_t runDum, tDum;
   //if(dataType =="Ac") file = Form("%s/data/noisecorr_run.dat", pPath) ; 
   //else if(dataType =="Sc") file = Form("%s/data/sing_noisecorr_run.dat", pPath);
   //else {
@@ -38,11 +38,12 @@ Int_t determineNoise(Int_t runnum, Double_t strip[], TString dataType = "Ac") {
   //  cout<<red<<"couldn't open the "<<file<<normal<<endl;
   //  return -1;
   //}
+  Float_t noiseDum, runletDum;
   cout<<red<<"temporarily using run 25286 for noise correction to ALL runs"<<normal<<endl;
-  if(dataType =="Ac") cout<<blue<<"Use beamoff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
-  else cout<<blue<<"Use singles_boff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
   noiseDum = 25286;
   runletDum = 0;
+  if(dataType =="Ac") cout<<blue<<"Use beamoff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
+  else cout<<blue<<"Use singles_boff_"<<noiseDum<<"."<<runletDum<<".dat for noise correction of run "<<runnum<<normal<<endl; 
   if(dataType =="Ac") file = Form("%s/data/beamOffRates/beamoff_%d.%d.dat", pPath, (Int_t)noiseDum, (Int_t)runletDum);
   else file = Form("%s/data/beamOffRates/singles_boff_%d.%d.dat", pPath, (Int_t)noiseDum, (Int_t)runletDum);
   fIn.open(file);

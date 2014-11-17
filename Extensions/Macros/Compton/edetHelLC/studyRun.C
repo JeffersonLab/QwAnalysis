@@ -3,8 +3,9 @@
 #include "vectorMinMax.C"
 
 Int_t studyRun(Int_t runnum = 24519) {
-  const Bool_t bBeam = 0;
-  const Bool_t bBPM = 0;
+  const Bool_t bBeam = 1;
+  const Bool_t bYieldBPM = 1;
+  const Bool_t bDiffBPM = 1;
   const Bool_t bEnergy = 0;
   const Bool_t bLaser = 1;
   gStyle->SetTextFont(132);
@@ -110,8 +111,36 @@ Int_t studyRun(Int_t runnum = 24519) {
     cBeam->SaveAs(Form("%s/%s/%sBeamLas.png",pPath,www,filePre.Data()));
   }
 
+  if(bYieldBPM) {
+    //Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2],bpm_3c20X[2];
+    helChain->SetBranchStatus("yield_sca_bpm_3p02aY*",1); 
+    helChain->SetBranchStatus("yield_sca_bpm_3p02aX*",1); 
+    helChain->SetBranchStatus("yield_sca_bpm_3p02bY*",1); 
+    helChain->SetBranchStatus("yield_sca_bpm_3p02bX*",1); 
+    helChain->SetBranchStatus("yield_sca_bpm_3p03aY*",1); 
+    helChain->SetBranchStatus("yield_sca_bpm_3p03aX*",1);
+    helChain->SetBranchStatus("yield_sca_bmod_ramp*",1);
 
-  if(bBPM) {
+    TCanvas *cYieldBPM = new TCanvas("cYieldBPM",Form("bpm yield for run %d",runnum),0,0,1200,900);
+    cYieldBPM->Divide(3,2);// # of col,# of row
+    cYieldBPM->cd(1);
+    helChain->Draw("yield_sca_bpm_3p02aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    cYieldBPM->cd(2);
+    helChain->Draw("yield_sca_bpm_3p02bY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    cYieldBPM->cd(3);
+    helChain->Draw("yield_sca_bpm_3p03aY:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    cYieldBPM->cd(4);
+    helChain->Draw("yield_sca_bpm_3p02aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    cYieldBPM->cd(5);
+    helChain->Draw("yield_sca_bpm_3p02bX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+    cYieldBPM->cd(6);
+    helChain->Draw("yield_sca_bpm_3p03aX:pattern_number/240","yield_sca_bcm6>20 && yield_sca_bmod_ramp<100");
+
+    cYieldBPM->Update();
+    cYieldBPM->SaveAs(Form("%s/%s/%sBeamYieldBPM.png",pPath,www,filePre.Data()));
+  }
+
+  if(bDiffBPM) {
     //Double_t bpm_3p02aX[2],bpm_3p02aY[2],bpm_3p02bX[2],bpm_3p02bY[2],bpm_3p03aX[2],bpm_3p03aY[2],bpm_3c20X[2];
     helChain->SetBranchStatus("yield_sca_4mhz*",1);
     helChain->SetBranchStatus("diff_sca_bpm_3p02aY*",1); 

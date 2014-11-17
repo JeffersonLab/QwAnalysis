@@ -33,13 +33,17 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   Int_t nHelLCB1L1=0, nHelLCB1L0=0;
   Int_t totalMissedQuartets=0;
   Int_t entry=0; ///integer assitant in reading entry from a file
-  Int_t missedLasEntries=0, missedDueToStability=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
+  Int_t missedLasEntries=0;
+  Int_t missedDueToStability=0; ///number of missed entries due to unclear laser-state(neither fully-on,nor fully-off)
   Int_t missedDueToBeamCut=0;
+  //Int_t missedDueToPosCut=0;
   Double_t yieldB1L1[nStrips], yieldB1L0[nStrips];
   Double_t diffB1L1[nStrips], diffB1L0[nStrips];
   Double_t bYield[nStrips],bDiff[nStrips],bAsym[nStrips];
   Double_t qLCH1L1 =0.0, qLCH1L0 =0.0, qLCH0L1 =0.0, qLCH0L0 =0.0;
   Double_t lasPow[3],y_bcm[3],d_bcm[3],bModRamp[3];//declaring 3 element array to accomodate: value, deviceErrorCode, raw
+  Double_t y_3p02aY[2], y_3p02bY[2], y_3p03aY[2], y_3c20Y[2];
+  Double_t y_3p02aX[2], y_3p02bX[2], y_3p03aX[2], y_3c20X[2];
   Double_t d_3p02aY[2], d_3p02bY[2], d_3p03aY[2], d_3c20Y[2];
   Double_t d_3p02aX[2], d_3p02bX[2], d_3p03aX[2], d_3c20X[2];
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
@@ -48,6 +52,23 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   Double_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
   Double_t stripArray[nStrips];
   Double_t lasPowLCB1L0 =0.0, lasPowLCB1L1 =0.0;
+
+  TH1D *hy3p02aX = new TH1D("hy3p02aX","hy3p02aX",100,-0.00001,0.00001);
+  hy3p02aX->SetBit(TH1::kCanRebin);
+  TH1D *hy3p02bX = new TH1D("hy3p02bX","hy3p02bX",100,-0.00001,0.00001);
+  hy3p02bX->SetBit(TH1::kCanRebin);
+  TH1D *hy3p03aX = new TH1D("hy3p03aX","hy3p03aX",100,-0.00001,0.00001);
+  hy3p03aX->SetBit(TH1::kCanRebin);
+  TH1D *hy3c20X = new TH1D("hy3c20X","hy3c20X",100,-0.00001,0.00001);
+  hy3c20X->SetBit(TH1::kCanRebin);
+  TH1D *hy3p02aY = new TH1D("hy3p02aY","hy3p02aY",100,-0.00001,0.00001);
+  hy3p02aY->SetBit(TH1::kCanRebin);
+  TH1D *hy3p02bY = new TH1D("hy3p02bY","hy3p02bY",100,-0.00001,0.00001);
+  hy3p02bY->SetBit(TH1::kCanRebin);
+  TH1D *hy3p03aY = new TH1D("hy3p03aY","hy3p03aY",100,-0.00001,0.00001);
+  hy3p03aY->SetBit(TH1::kCanRebin);
+  TH1D *hy3c20Y = new TH1D("hy3c20Y","hy3c20Y",100,-0.00001,0.00001);
+  hy3c20Y->SetBit(TH1::kCanRebin);
 
   TH1D *h3p02aX = new TH1D("h3p02aX","h3p02aX",100,-0.00001,0.00001);
   h3p02aX->SetBit(TH1::kCanRebin);
@@ -211,11 +232,19 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   helChain->SetBranchStatus("yield_sca_bcm6*",1);
   helChain->SetBranchStatus("diff_sca_bcm6*",1);
   helChain->SetBranchStatus("yield_sca_bmod_ramp*",1);
+  helChain->SetBranchStatus("yield_sca_bpm_3p02aX*", 1);
+  helChain->SetBranchStatus("yield_sca_bpm_3p02bX*", 1);
+  helChain->SetBranchStatus("yield_sca_bpm_3p03aX*", 1);
+  helChain->SetBranchStatus("yield_sca_bpm_3c20X*", 1);
+  helChain->SetBranchStatus("yield_sca_bpm_3p02aY*", 1);
+  helChain->SetBranchStatus("yield_sca_bpm_3p02bY*", 1);
+  helChain->SetBranchStatus("yield_sca_bpm_3p03aY*", 1);
+  helChain->SetBranchStatus("yield_sca_bpm_3c20Y*", 1);
+
   helChain->SetBranchStatus("diff_sca_bpm_3p02aX*", 1);
   helChain->SetBranchStatus("diff_sca_bpm_3p02bX*", 1);
   helChain->SetBranchStatus("diff_sca_bpm_3p03aX*", 1);
   helChain->SetBranchStatus("diff_sca_bpm_3c20X*", 1);
-
   helChain->SetBranchStatus("diff_sca_bpm_3p02aY*", 1);
   helChain->SetBranchStatus("diff_sca_bpm_3p02bY*", 1);
   helChain->SetBranchStatus("diff_sca_bpm_3p03aY*", 1);
@@ -227,6 +256,15 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   helChain->SetBranchAddress("yield_sca_bcm6",&y_bcm);
   helChain->SetBranchAddress("diff_sca_bcm6",&d_bcm);
   helChain->SetBranchAddress("yield_sca_bmod_ramp",&bModRamp);
+  helChain->SetBranchAddress("yield_sca_bpm_3p02aX", &y_3p02aX);
+  helChain->SetBranchAddress("yield_sca_bpm_3p02bX", &y_3p02bX);
+  helChain->SetBranchAddress("yield_sca_bpm_3p03aX", &y_3p03aX);
+  helChain->SetBranchAddress("yield_sca_bpm_3c20X", &y_3c20X);
+  helChain->SetBranchAddress("yield_sca_bpm_3p02aY", &y_3p02aY);
+  helChain->SetBranchAddress("yield_sca_bpm_3p02bY", &y_3p02bY);
+  helChain->SetBranchAddress("yield_sca_bpm_3p03aY", &y_3p03aY);
+  helChain->SetBranchAddress("yield_sca_bpm_3c20Y", &y_3c20Y);
+
   helChain->SetBranchAddress("diff_sca_bpm_3p02aX", &d_3p02aX);
   helChain->SetBranchAddress("diff_sca_bpm_3p02bX", &d_3p02bX);
   helChain->SetBranchAddress("diff_sca_bpm_3p03aX", &d_3p03aX);
@@ -398,6 +436,10 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           continue;
         }///if ((y_bcm[0]) > beamOnLimit)///NOT populating beam off counts currently
 
+        //if (kBeamPos && y_3p02bY[0]>0.85) {//!temp this cut will not work across runs
+        //  missedDueToPosCut++;
+        //  continue;
+        //}
         ///Filling these histograms only for the quartets used in good cycle
         h3p02aX->Fill(d_3p02aX[0]);
         h3p02bX->Fill(d_3p02bX[0]);
@@ -407,6 +449,15 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
         h3p02bY->Fill(d_3p02bY[0]);
         h3p03aY->Fill(d_3p03aY[0]);
         h3c20Y->Fill(d_3c20Y[0]);
+
+        hy3p02aX->Fill(y_3p02aX[0]);
+        hy3p02bX->Fill(y_3p02bX[0]);
+        hy3p03aX->Fill(y_3p03aX[0]);
+        hy3c20X->Fill(y_3c20X[0]);
+        hy3p02aY->Fill(y_3p02aY[0]);
+        hy3p02bY->Fill(y_3p02bY[0]);
+        hy3p03aY->Fill(y_3p03aY[0]);
+        hy3c20Y->Fill(y_3c20Y[0]);
 
         if (lasOn==0) {//using the H=0 configuration for now
           nHelLCB1L0++;
@@ -540,11 +591,89 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     file = Form("%s/%s/%sFortOutP%d.txt",pPath, txt, filePre.Data(),plane);
     writeFortOut(file, nCycle, countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , lasPowLCB1L1, lasPowLCB1L0, nHelLCB1L1, nHelLCB1L0);
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-
+  //cout<<blue<<missedDueToPosCut<<" quartets rejected due to beam position cut"<<normal<<endl;
   cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
 
   //TCanvas *cBPM = new TCanvas("cBPM",Form("stability parameters for run %d",runnum),0,0,1200,900);
   //cBPM->Divide(3,2);// # of col,# of row
+  ///absolute beam position in Compton interaction region in X for BPM
+  Double_t mean_y3p02aX, meanEr_y3p02aX, rms_y3p02aX;
+  Double_t mean_y3p02bX, meanEr_y3p02bX, rms_y3p02bX;
+  Double_t mean_y3p03aX, meanEr_y3p03aX, rms_y3p03aX;
+  Double_t mean_y3c20X, meanEr_y3c20X, rms_y3c20X;
+
+  mean_y3p02aX = hy3p02aX->GetMean();
+  meanEr_y3p02aX = hy3p02aX->GetMeanError();
+  rms_y3p02aX = hy3p02aX->GetRMS();
+  mean_y3p02bX = hy3p02bX->GetMean();
+  meanEr_y3p02bX = hy3p02bX->GetMeanError();
+  rms_y3p02bX = hy3p02bX->GetRMS();
+  mean_y3p03aX = hy3p03aX->GetMean();
+  meanEr_y3p03aX = hy3p03aX->GetMeanError();
+  rms_y3p03aX = hy3p03aX->GetRMS();
+  mean_y3c20X = hy3c20X->GetMean();
+  meanEr_y3c20X = hy3c20X->GetMeanError();
+  rms_y3c20X = hy3c20X->GetRMS();
+
+  file = Form("%s/%s/%sBPM_yieldX.txt",pPath, txt,filePre.Data());
+  fOut.open(file);
+  fOut<<"run\tmeany3p02a\tmeanEry3p02a\trmsy3p02a\tmeany3p02b\tmeanEry3p02b\trmsy3p02b\tmeany3p03a\tmeanEry3p03a\trmsy3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
+  fOut<<runnum<<"\t"<<
+    mean_y3p02aX<<"\t"<<meanEr_y3p02aX<<"\t"<<rms_y3p02aX<<"\t"<<
+    mean_y3p02bX<<"\t"<<meanEr_y3p02bX<<"\t"<<rms_y3p02bX<<"\t"<<
+    mean_y3p03aX<<"\t"<<meanEr_y3p03aX<<"\t"<<rms_y3p03aX<<"\t"<<
+    mean_y3c20X<<"\t"<<meanEr_y3c20X<<"\t"<<rms_y3c20X<<endl;
+  fOut.close();
+
+  ///absolute beam position of BPMs in Compton region
+  Double_t mean_y3p02aY, meanEr_y3p02aY, rms_y3p02aY;
+  Double_t mean_y3p02bY, meanEr_y3p02bY, rms_y3p02bY;
+  Double_t mean_y3p03aY, meanEr_y3p03aY, rms_y3p03aY;
+  Double_t mean_y3c20Y, meanEr_y3c20Y, rms_y3c20Y;
+
+  mean_y3p02aY = hy3p02aY->GetMean();
+  meanEr_y3p02aY = hy3p02aY->GetMeanError();
+  rms_y3p02aY = hy3p02aY->GetRMS();
+  mean_y3p02bY = hy3p02bY->GetMean();
+  meanEr_y3p02bY = hy3p02bY->GetMeanError();
+  rms_y3p02bY = hy3p02bY->GetRMS();
+  mean_y3p03aY = hy3p03aY->GetMean();
+  meanEr_y3p03aY = hy3p03aY->GetMeanError();
+  rms_y3p03aY = hy3p03aY->GetRMS();
+  mean_y3c20Y = hy3c20Y->GetMean();
+  meanEr_y3c20Y = hy3c20Y->GetMeanError();
+  rms_y3c20Y = hy3c20Y->GetRMS();
+
+  TCanvas *cYieldBPM = new TCanvas("cYieldBPM", Form("YieldBPM run %d",runnum), 0,0,1400,400);
+  cYieldBPM->Divide(4,1);//nCol,nRow
+  cYieldBPM->cd(1);
+  //TCanvas *cy3p02aY = new TCanvas("cy3p02aY",Form("r%d",runnum));
+  hy3p02aY->Draw("H");
+  //cy3p02aY->SaveAs(Form("%s/%s/%sYield3p02aY.png",pPath,www,filePre.Data()));
+  //TCanvas *cy3p02bY = new TCanvas("cy3p02bY",Form("r%d",runnum));
+  cYieldBPM->cd(2);
+  hy3p02bY->Draw("H");
+  //cy3p02bY->SaveAs(Form("%s/%s/%sYield3p02bY.png",pPath,www,filePre.Data()));
+  //TCanvas *cy3p03aY = new TCanvas("cy3p03aY",Form("r%d",runnum));
+  cYieldBPM->cd(3);
+  hy3p03aY->Draw("H");
+  //cy3p03aY->SaveAs(Form("%s/%s/%sYield3p03aY.png",pPath,www,filePre.Data()));
+  //TCanvas *cy3c20Y = new TCanvas("cy3c20Y",Form("r%d",runnum));
+  cYieldBPM->cd(4);
+  hy3c20Y->Draw("H");
+  //cy3c20Y->SaveAs(Form("%s/%s/%sYield3c20Y.png",pPath,www,filePre.Data()));
+  cYieldBPM->SaveAs(Form("%s/%s/%sYieldBPM.png",pPath,www,filePre.Data()));
+
+  file = Form("%s/%s/%sBPM_yieldY.txt",pPath, txt,filePre.Data());
+  fOut.open(file);
+  fOut<<"run\tmeany3p02a\tmeanEry3p02a\trmsy3p02a\tmeany3p02b\tmeanEry3p02b\trmsy3p02b\tmeany3p03a\tmeanEry3p03a\trmsy3p03a\tmeany3c20\tmeanEry3c20\trmsy3c20"<<endl;
+  fOut<<runnum<<"\t"<<
+    mean_y3p02aY<<"\t"<<meanEr_y3p02aY<<"\t"<<rms_y3p02aY<<"\t"<<
+    mean_y3p02bY<<"\t"<<meanEr_y3p02bY<<"\t"<<rms_y3p02bY<<"\t"<<
+    mean_y3p03aY<<"\t"<<meanEr_y3p03aY<<"\t"<<rms_y3p03aY<<"\t"<<
+    mean_y3c20Y<<"\t"<<meanEr_y3c20Y<<"\t"<<rms_y3c20Y<<endl;
+  fOut.close();
+
   ///helicity correlated beam position difference in X for BPM in Compton region
   Double_t mean_3p02aX, meanEr_3p02aX, rms_3p02aX;
   Double_t mean_3p02bX, meanEr_3p02bX, rms_3p02bX;
@@ -593,7 +722,6 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   meanEr_3c20Y = h3c20Y->GetMeanError();
   rms_3c20Y = h3c20Y->GetRMS();
 
-  filePre = Form(filePrefix+"%s",runnum,runnum,dataType.Data());
   file = Form("%s/%s/%sBPM_diffY.txt",pPath, txt,filePre.Data());
   fOut.open(file);
   fOut<<"run\tmean3p02a\tmeanEr3p02a\trms3p02a\tmean3p02b\tmeanEr3p02b\trms3p02b\tmean3p03a\tmeanEr3p03a\trms3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
