@@ -53,21 +53,21 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   Double_t stripArray[nStrips];
   Double_t lasPowLCB1L0 =0.0, lasPowLCB1L1 =0.0;
 
-  TH1D *hy3p02aX = new TH1D("hy3p02aX","hy3p02aX",100,-0.00001,0.00001);
+  TH1D *hy3p02aX = new TH1D("hy3p02aX","hy3p02aX",100,0,0.00001);
   hy3p02aX->SetBit(TH1::kCanRebin);
-  TH1D *hy3p02bX = new TH1D("hy3p02bX","hy3p02bX",100,-0.00001,0.00001);
+  TH1D *hy3p02bX = new TH1D("hy3p02bX","hy3p02bX",100,0,0.00001);
   hy3p02bX->SetBit(TH1::kCanRebin);
-  TH1D *hy3p03aX = new TH1D("hy3p03aX","hy3p03aX",100,-0.00001,0.00001);
+  TH1D *hy3p03aX = new TH1D("hy3p03aX","hy3p03aX",100,0,0.00001);
   hy3p03aX->SetBit(TH1::kCanRebin);
-  TH1D *hy3c20X = new TH1D("hy3c20X","hy3c20X",100,-0.00001,0.00001);
+  TH1D *hy3c20X = new TH1D("hy3c20X","hy3c20X",100,0,0.00001);
   hy3c20X->SetBit(TH1::kCanRebin);
-  TH1D *hy3p02aY = new TH1D("hy3p02aY","hy3p02aY",100,-0.00001,0.00001);
+  TH1D *hy3p02aY = new TH1D("hy3p02aY","hy3p02aY",100,0,0.00001);
   hy3p02aY->SetBit(TH1::kCanRebin);
-  TH1D *hy3p02bY = new TH1D("hy3p02bY","hy3p02bY",100,-0.00001,0.00001);
+  TH1D *hy3p02bY = new TH1D("hy3p02bY","hy3p02bY",100,0,0.00001);
   hy3p02bY->SetBit(TH1::kCanRebin);
-  TH1D *hy3p03aY = new TH1D("hy3p03aY","hy3p03aY",100,-0.00001,0.00001);
+  TH1D *hy3p03aY = new TH1D("hy3p03aY","hy3p03aY",100,0,0.00001);
   hy3p03aY->SetBit(TH1::kCanRebin);
-  TH1D *hy3c20Y = new TH1D("hy3c20Y","hy3c20Y",100,-0.00001,0.00001);
+  TH1D *hy3c20Y = new TH1D("hy3c20Y","hy3c20Y",100,0,0.00001);
   hy3c20Y->SetBit(TH1::kCanRebin);
 
   TH1D *h3p02aX = new TH1D("h3p02aX","h3p02aX",100,-0.00001,0.00001);
@@ -436,7 +436,9 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           continue;
         }///if ((y_bcm[0]) > beamOnLimit)///NOT populating beam off counts currently
 
-        //if (kBeamPos && y_3p02bY[0]>0.85) {//!temp this cut will not work across runs
+        //if (kBeamPos && y_3p02bY[0]<0.85) {//!temp this cut will not work across runs
+        //if (y_bcm[0]>173) {//!temp this cut will not work across runs
+        //if (y_bcm[0]<173) {//!temp this cut will not work across runs
         //  missedDueToPosCut++;
         //  continue;
         //}
@@ -647,21 +649,13 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   TCanvas *cYieldBPM = new TCanvas("cYieldBPM", Form("YieldBPM run %d",runnum), 0,0,1400,400);
   cYieldBPM->Divide(4,1);//nCol,nRow
   cYieldBPM->cd(1);
-  //TCanvas *cy3p02aY = new TCanvas("cy3p02aY",Form("r%d",runnum));
   hy3p02aY->Draw("H");
-  //cy3p02aY->SaveAs(Form("%s/%s/%sYield3p02aY.png",pPath,www,filePre.Data()));
-  //TCanvas *cy3p02bY = new TCanvas("cy3p02bY",Form("r%d",runnum));
   cYieldBPM->cd(2);
   hy3p02bY->Draw("H");
-  //cy3p02bY->SaveAs(Form("%s/%s/%sYield3p02bY.png",pPath,www,filePre.Data()));
-  //TCanvas *cy3p03aY = new TCanvas("cy3p03aY",Form("r%d",runnum));
   cYieldBPM->cd(3);
   hy3p03aY->Draw("H");
-  //cy3p03aY->SaveAs(Form("%s/%s/%sYield3p03aY.png",pPath,www,filePre.Data()));
-  //TCanvas *cy3c20Y = new TCanvas("cy3c20Y",Form("r%d",runnum));
   cYieldBPM->cd(4);
   hy3c20Y->Draw("H");
-  //cy3c20Y->SaveAs(Form("%s/%s/%sYield3c20Y.png",pPath,www,filePre.Data()));
   cYieldBPM->SaveAs(Form("%s/%s/%sYieldBPM.png",pPath,www,filePre.Data()));
 
   file = Form("%s/%s/%sBPM_yieldY.txt",pPath, txt,filePre.Data());

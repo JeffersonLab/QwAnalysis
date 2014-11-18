@@ -163,9 +163,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath, txt,filePre.Data(),plane));
   cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
-  paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
+  paramfile>>param[0]>>param[1]>>param[2]>>param[3];
   paramfile.close();
-  if(debug) printf("%g\t%g\t%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3],param[4],param[5]);
+  if(debug) printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
 
   cAsym->cd();  
   //cAsym->GetPad(1)->SetGridx(1);

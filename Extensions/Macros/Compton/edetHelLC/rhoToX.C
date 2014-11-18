@@ -101,7 +101,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   grtheory->SetLineColor(2);
   grtheory->SetMarkerColor(2);
   
-  TF1 *fn0 = new TF1("fn0","pol5");
+  TF1 *fn0 = new TF1("fn0","pol3");
   grtheory->Fit("fn0","0 Q");//,"0","goff");
   fn0->GetParameters(param);
   // if(debug) {
@@ -113,7 +113,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   checkfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath, txt,filePre.Data(),plane));
    if(checkfile.is_open()) {
      if(debug) cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane<<endl;
-     checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<"\t"<<param[4]<<"\t"<<param[5]<<endl;
+     checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
    } else cout<<"**Alert: couldn't open file to write QED fit parameters**\n"<<endl;
   checkfile.close();
   return xCedge;
