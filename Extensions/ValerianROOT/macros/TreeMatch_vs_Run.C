@@ -181,19 +181,19 @@ void Loop_Through_Tree(TChain* track_that)
 {
   /*******************************
    * define the pointer to the vector of the object we want from the tree
-   * This allows us to use the stucts that ValerianROOT was made on
+   * This allows us to use the structs that ValerianROOT was made on
    * This is done by:
    *******************************/
   //creates memory address to store the address of a vector (we set to 0 at moment)
-  std::vector<MyTreelineSlope_t>* MyTreelineSlope = 0;
-  std::vector<MyTreelineChi2_t>* MyTreelineChi2 = 0;
-  std::vector < MyPartialTrackSlope_t > *MyPartialTrackSlope = 0;
-  std::vector<MyPartialTrackChi2_t>* MyPartialTrackChi2 = 0;
-  std::vector < MyTrackSlope_t > *MyTrackSlope = 0;
-  std::vector < MyTrackChi2_t > *MyTrackChi2 = 0;
+  std::vector <MyTreelineSlope_t>*      MyTreelineSlope = 0;
+  std::vector <MyTreelineChi2_t>*       MyTreelineChi2 = 0;
+  std::vector <MyPartialTrackSlope_t>*  MyPartialTrackSlope = 0;
+  std::vector <MyPartialTrackChi2_t>*   MyPartialTrackChi2 = 0;
+  std::vector <MyTrackSlope_t>*         MyTrackSlope = 0;
+  std::vector <MyTrackChi2_t>*          MyTrackChi2 = 0;
 
-  //create and interger for the run number - as this is not a
-  //stucture it does not need a pointer
+  //create an integer for the run number - as this is not a
+  //structure it does not need a pointer
   Int_t run;
 
   /*******************************
@@ -415,10 +415,8 @@ void Loop_Through_Tree(TChain* track_that)
              *  or coplane
              *****************/
 
-            if (std::strcmp("Front", (*MyTreelineSlope)[i].VDC) == 0 && std::strcmp(
-                                                                            "U",
-                                                                            (*MyTreelineSlope)[i].plane)
-                                                                        == 0)  //Front U plane
+            if (std::strcmp("Front", (*MyTreelineSlope)[i].VDC) == 0 &&
+                std::strcmp("U", (*MyTreelineSlope)[i].plane) == 0)  //Front U plane
             {
               TREEPLANE_SLOPE_VAL[0][0][(*MyTreelineSlope)[i].R3package][run_index] =
                   (*MyTreelineSlope)[i].Val;
@@ -527,10 +525,8 @@ void Loop_Through_Tree(TChain* track_that)
              *  or coplane
              *****************/
 
-            if (std::strcmp("Front", (*MyTreelineChi2)[i].VDC) == 0 && std::strcmp(
-                                                                           "U",
-                                                                           (*MyTreelineChi2)[i].plane)
-                                                                       == 0)  //Front U plane
+            if (std::strcmp("Front", (*MyTreelineChi2)[i].VDC) == 0 &&
+                std::strcmp("U", (*MyTreelineChi2)[i].plane) == 0)  //Front U plane
             {
               TREEPLANE_CHI2_VAL[0][0][(*MyTreelineChi2)[i].R3package][run_index] =
                   (*MyTreelineChi2)[i].Val;
@@ -643,10 +639,8 @@ void Loop_Through_Tree(TChain* track_that)
              *  3 = Back V
              *****************/
 
-            if (std::strcmp("Front", (*MyPartialTrackSlope)[i].VDC) == 0 && std::strcmp(
-                                                                                "U",
-                                                                                (*MyPartialTrackSlope)[i].plane)
-                                                                            == 0)  //Front U plane
+            if (std::strcmp("Front", (*MyPartialTrackSlope)[i].VDC) == 0 &&
+                std::strcmp("U", (*MyPartialTrackSlope)[i].plane) == 0)  //Front U plane
             {
               TREEPLANE_SLOPE_VAL[1][0][(*MyPartialTrackSlope)[i].R3package][run_index] =
                   (*MyPartialTrackSlope)[i].Val;
@@ -751,10 +745,8 @@ void Loop_Through_Tree(TChain* track_that)
              *  1 = VV
              *****************/
 
-            if (std::strcmp("Front", (*MyPartialTrackChi2)[i].VDC) == 0 && std::strcmp(
-                                                                               "U",
-                                                                               (*MyPartialTrackChi2)[i].plane)
-                                                                           == 0)  //Front U plane
+            if (std::strcmp("Front", (*MyPartialTrackChi2)[i].VDC) == 0 &&
+                std::strcmp("U", (*MyPartialTrackChi2)[i].plane) == 0)  //Front U plane
             {
               TREEPLANE_CHI2_VAL[1][0][(*MyPartialTrackChi2)[i].R3package][run_index] =
                   (*MyPartialTrackChi2)[i].Val;
@@ -856,10 +848,8 @@ void Loop_Through_Tree(TChain* track_that)
              *  1 = VV
              *****************/
 
-            if (std::strcmp("Front", (*MyTrackSlope)[i].VDC) == 0 && std::strcmp(
-                                                                         "U",
-                                                                         (*MyTrackSlope)[i].plane)
-                                                                     == 0)  //Front U plane
+            if (std::strcmp("Front", (*MyTrackSlope)[i].VDC) == 0 &&
+                std::strcmp("U", (*MyTrackSlope)[i].plane) == 0)  //Front U plane
             {
               TREEPLANE_SLOPE_VAL[2][0][(*MyTrackSlope)[i].R3package][run_index] =
                   (*MyTrackSlope)[i].Val;
@@ -961,10 +951,8 @@ void Loop_Through_Tree(TChain* track_that)
              *  1 = VV
              *****************/
 
-            if (std::strcmp("Front", (*MyTrackChi2)[i].VDC) == 0 && std::strcmp(
-                                                                        "U",
-                                                                        (*MyTrackChi2)[i].plane)
-                                                                    == 0)  //Front U plane
+            if (std::strcmp("Front", (*MyTrackChi2)[i].VDC) == 0 &&
+                std::strcmp("U", (*MyTrackChi2)[i].plane) == 0)  //Front U plane
             {
               TREEPLANE_CHI2_VAL[2][0][(*MyTrackChi2)[i].R3package][run_index] =
                   (*MyTrackChi2)[i].Val;
