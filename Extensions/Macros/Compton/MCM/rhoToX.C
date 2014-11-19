@@ -60,8 +60,8 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   x1_new = R_bend*(1-cos(thetabend)) + (zdrift)*tan(thetabend);
 
   QEDasym.open(Form("%s/%s/%sQEDasymP%d.txt",pPath, txt,filePre.Data(),plane));
-  for (Int_t i = 1; i <= nPoints; i++) {
-    rho[i] = (Double_t)i/nPoints;
+  for (Int_t i = 0; i < nPoints; i++) {
+    rho[i] = (Double_t)i/(nPoints-1);
     kDummy = rho[i]*kprimemax;
     r_dummy = (eEnergy-kDummy+eLaser)/(light*B_dipole); 
     th_dummy = asin(light*B_dipole*lmag/(eEnergy+eLaser-kDummy));
@@ -101,7 +101,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   grtheory->SetLineColor(2);
   grtheory->SetMarkerColor(2);
   
-  TF1 *fn0 = new TF1("fn0","pol5");
+  TF1 *fn0 = new TF1("fn0","pol3");
   grtheory->Fit("fn0","0 Q");//,"0","goff");
   fn0->GetParameters(param);
   // if(debug) {
@@ -113,7 +113,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   checkfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath, txt,filePre.Data(),plane));
    if(checkfile.is_open()) {
      if(debug) cout<<"\nwriting into file the parameters for rho to X fitting for plane "<<plane<<endl;
-     checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<"\t"<<param[4]<<"\t"<<param[5]<<endl;
+     checkfile<<param[0]<<"\t"<<param[1]<<"\t"<<param[2]<<"\t"<<param[3]<<endl;
    } else cout<<"**Alert: couldn't open file to write QED fit parameters**\n"<<endl;
   checkfile.close();
   return xCedge;

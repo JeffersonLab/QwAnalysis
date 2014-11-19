@@ -36,7 +36,7 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   //xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //2nd parameter as position inside CE strip
   //xStrip = xCedge + par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//G's method of fitting!!didn't work
   xStrip = xCedge - (par[0] -(*thisStrip))*stripWidth*effStripWidth; //for 2nd parameter as Cedge itself
-  rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3]+ xStrip*xStrip*xStrip*xStrip*param[4]+ xStrip*xStrip*xStrip*xStrip*xStrip*param[5];
+  rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3];
   if(kRadCor) {
     eGamma = rhoStrip* kprimemax;
     betaBar=TMath::Sqrt(1.0 - (me/eEnergy)*(me/eEnergy)) ;
@@ -163,9 +163,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath, txt,filePre.Data(),plane));
   cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
-  paramfile>>param[0]>>param[1]>>param[2]>>param[3]>>param[4]>>param[5];
+  paramfile>>param[0]>>param[1]>>param[2]>>param[3];
   paramfile.close();
-  if(debug) printf("%g\t%g\t%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3],param[4],param[5]);
+  if(debug) printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
 
   cAsym->cd();  
   //cAsym->GetPad(1)->SetGridx(1);
@@ -204,7 +204,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   polFit->SetParNames("comptonEdge","polarization");
   polFit->SetLineColor(kBlue);
-  cout<<red<<"the maxdist used:"<<xCedge<<normal<<endl;
+  cout<<blue<<"the maxdist used:"<<xCedge<<normal<<endl;
   TVirtualFitter::SetMaxIterations(10000);
 
   Int_t numbIterations = 0;
@@ -235,7 +235,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       status = 0;
       //fitr = grAsym->Fit("polFit","RES 0");
       //status = int (fitr);
-      //After failing once, an attempt to refit even without MINOS fails, hence leaving the parameters
+      ///!The residual calculation uses the fit function, hence its necessary to get back the correct fit function
+      //But After failing once, an attempt to refit even without MINOS fails, hence leaving the parameters
       //.. untouched instead and setting back the fit status =0, so that subsequent attempt is avoided
     } else {
       cout<<magenta<<"updated the fit parameters with the MINOS fit results"<<normal<<endl;
@@ -422,8 +423,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
   fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
   fitInfo.close();
-  cout<<blue<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
-  cout<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n%s",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF,normal);
+  cout<<blue<<"run\tresFit\terRes\tchiSqRes/NDF\tbgdAsym\terBgdAsym\tchiSqBgd/NDF"<<endl;
+  cout<<Form("%5.0f\t%.5f\t%.5f\t%.2f\t%.5f\t%.5f\t%.2f\n%s",(Double_t)runnum,resFit,resFitEr,chiSqResidue/resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym/bgdAsymFitNDF,normal);
 
   if (kYield) { ///determine yield
     TCanvas *cYield;

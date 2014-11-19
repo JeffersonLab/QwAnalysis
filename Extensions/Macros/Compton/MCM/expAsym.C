@@ -476,7 +476,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       }///for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++)
       if(debug) cout<<"nHelLCB1L1:"<<nHelLCB1L1<<", nHelLCB1L0:"<< nHelLCB1L0<<blue<<",\nqLCH1L1:"<<qLCH1L1<<", qLCH1L0:"<<qLCH1L0<<", qLCH0L1:"<<qLCH0L1<<", qLCH0L0:"<<qLCH0L0<<normal<<endl;
 
-      cout<<blue<<"\% of quartets ignored due to bad laser: "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<normal<<endl;
+      cout<<"\% of quartets ignored due to bad laser: "<<((Double_t)missedLasEntries/(cutLas.at(2*nCycle+2) - cutLas.at(2*nCycle)))*100.0<<" % entries in this lasCycle"<<endl;
       if(kRejectBMod) cout<<"# of quartets missed due to BMod ramp this cycle: "<<missedDueToBMod<<endl;
       if(kBeamStable) cout<<"# of quartets missed due to beam fluctuations/stability : "<<missedDueToStability<<normal<<endl;
 

@@ -7,7 +7,7 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 1;
+const Bool_t kNoiseSub = 0;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kBeamStable=1;
@@ -36,7 +36,7 @@ Double_t eEnergy = 1157.53, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in fro
 const Double_t lambda = 532E-9; //photon wavelength (nm)      
 //const Double_t lambda = 1064E-9;//infra red
 Double_t xCedge=0.0;
-Double_t param[6];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
+Double_t param[4];//= {0.0};//{-1.1403e-05, 58.9828, -139.527, 291.23};///param values used till Oct 17
 Double_t a_const = 0.96033; // eqn.15 of Hall A CDR//!for our setup this will not change
 const Int_t nPoints = 10000;///for now arbitrarily chosen the number of points I want to generate the theoretical asymmetry curve
 Bool_t noiseRun = 0;//kFALSE;
@@ -84,7 +84,7 @@ const Int_t endPlane = 1;
 const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
 const Float_t beamMaxEver = 200.0, beamOnLimit=2.0;
 Float_t beamTripLimit;
-const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
+const Float_t effStripWidth = 1.00; 
 const Float_t bpmDiff = 0.05;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros

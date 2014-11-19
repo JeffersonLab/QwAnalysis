@@ -22,9 +22,11 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
     newCntsB1H0L1 = countsLCB1H0L1[s] * c2B1H0L1[s];
     newCntsB1H0L0 = countsLCB1H0L0[s] * c2B1H0L0[s];
     if(s==myStr) {
-      printf("%sraw  counts: %9d\t%9d\t%9d\t%9d\n", blue, (int)countsLCB1H1L1[s], (int)countsLCB1H1L0[s], (int)countsLCB1H0L1[s], (int)countsLCB1H0L0[s]);
-      printf("post corrDT: %9d\t%9d\t%9d\t%9d\n", (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0);
-      if(debug) printf("corrDT : %f\t%f\t%f\t%f\n", c2B1H1L1[s], c2B1H1L0[s], c2B1H0L1[s], c2B1H0L0[s]);
+      cout<<blue<<"for strip: "<<myStr+1<<endl;
+      printf("raw  counts: %9d\t%9d\t%9d\t%9d\n", (int)countsLCB1H1L1[s], (int)countsLCB1H1L0[s], (int)countsLCB1H0L1[s], (int)countsLCB1H0L0[s]);
+      printf("post corrDT: %9d\t%9d\t%9d\t%9d\n%s", (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0,normal);
+      printf("%.0f\t%.0f\t%.0f\t%.0f\n",(nHelLCB1L1/2.0)/helRate,(nHelLCB1L0/2.0)/helRate, (nHelLCB1L1/2.0)/helRate,(nHelLCB1L0/2.0)/helRate);
+      if(debug) printf("corrDT : %f\t%f\t%f\t%f\n%s", c2B1H1L1[s], c2B1H1L0[s], c2B1H0L1[s], c2B1H0L0[s], normal);
     }
     if(kNoiseSub) {
       newCntsB1H1L1 = newCntsB1H1L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
@@ -59,7 +61,7 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
 
       if (asymErSqrLC[s] >0.0) {///eqn 4.17(Bevington)
         if(s==myStr) {
-          printf("post corrNs: %9d\t%9d\t%9d\t%9d\t%7d\n", (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0, (int)(rateB0[s]));
+          printf("%spost corrNs: %9d\t%9d\t%9d\t%9d\t%7d\n", blue,(int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0, (int)(rateB0[s]));
           cout<<"expAsym[s"<<s+1<<"]: "<<qNormAsymLC[s]<<"+/-"<<TMath::Sqrt(asymErSqrLC[s])<<normal<<endl;
           ///checking the data if the HWP may have changed between the run
           if(checkAsym == 0.0) checkAsym = qNormAsymLC[s];/// if checkAsym is 0, this is 1st laser cycle

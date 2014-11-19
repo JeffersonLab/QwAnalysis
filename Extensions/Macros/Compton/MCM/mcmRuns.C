@@ -2,16 +2,16 @@
 #include "../shared/cluster.C"
 #include "../shared/simpleAvg.C"
 #include "../shared/readFortOut.C"
-const Int_t runBegin = 25284, runEnd = 25299;///MCM runs
+const Int_t runBegin = 25285, runEnd = 25299;///MCM runs
 
 Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
   gROOT->SetStyle("publication");
   Bool_t debug=1,debug1=0;
-  Bool_t bAbsPol    =0;
-  Bool_t bPolPlot   =0;
+  Bool_t bPolHist    =0;
+  Bool_t bPolPlot   =1;
   Bool_t bPolEr     =0;
   Bool_t bRates     =0;
-  Bool_t bBgdFitInfo=1;
+  Bool_t bBgdFitInfo=0;
   Bool_t bChiSqr    =0;
   Bool_t bCE        =0;
   Bool_t bCycles    =0;
@@ -92,22 +92,28 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
   } else cout<<red<<"*** Could not open "<<file<<normal<<endl; 
   if(debug)cout<<blue<<"found valid "<<rList.size()<<" analyzed runs in "+ver1<<normal<<endl;
 
-  if(bAbsPol) {
+  if(bPolHist) {
     if(debug) cout<<blue<<"Histogramming Absolute polarization"<<normal<<endl; 
-    TCanvas *cAbsPol = new TCanvas("cAbsPol", "absolute polarization",100,400,500,500);
+    TCanvas *cPolHist = new TCanvas("cPolHist", "absolute polarization",100,400,500,500);
     hPol->GetXaxis()->SetTitle("pol MCM");
     hPol->Draw("H");
     //hPol->Fit("gaus");
-    cAbsPol->SaveAs(destDir+Form("absPolMCM.png"));
+    cPolHist->SaveAs(destDir+Form("absPolMCM.png"));
   }
 
   if(bPolPlot) {
+    Double_t polM = 87.17;
+    Double_t polMStatEr = 0.14;
+    Double_t polMSystEr = 0.70;
+    TLine *moller = new TLine(run1, polM, run2, polM);
+    moller->SetLineColor(kRed-14);
+    moller->SetLineWidth(2);
+
     if(debug) cout<<blue<<"Polarization for this range"<<normal<<endl; 
     //coordinates in TCanvas are in order :x,y of left top corner;x,y of right bottom corner
     TCanvas *polAvgP1 = new TCanvas("polAvgP1","Polarization trend",0,0,800,400);
     polAvgP1->SetGridx();
     TGraphErrors *grPol;
-
     grPol = new TGraphErrors((Int_t)pol.size(),rList.data(),pol.data(),0,polEr.data());
 
     grPol->SetMarkerStyle(kOpenCircle);
@@ -120,7 +126,7 @@ Int_t mcmRuns(Int_t run1 = runBegin, Int_t run2 = runEnd) {
     grPol->Draw("AP");
     lFit->SetLineColor(kBlue);
     grPol->Fit(lFit,"EM");
-
+    moller->Draw();
     //polAvgP1->Update();///forces the generation of 'stats' box
     //TPaveStats *ps2 = (TPaveStats*)grPol->GetListOfFunctions()->FindObject("stats");
     //ps2->SetX1NDC(0.65); ps2->SetX2NDC(0.85);
