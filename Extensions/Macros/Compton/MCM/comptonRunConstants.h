@@ -7,11 +7,11 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 0;
+const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kBeamStable=1;
-const Bool_t kOnlyGoodLasCyc = 1;
+const Bool_t kOnlyGoodLasCyc = 1;///1: use only laser cycles with no beam trip; 0: use all cycles throwing only quartets with trip
 const Int_t maxIterations =4;
 
 //Directory paths
@@ -28,7 +28,7 @@ const Double_t hbarc=0.19732858E-15;/// GeV.m
 const Double_t alpha=0.00729927; ///=1.0/137.0;
 const Double_t me=0.00051099006;///GeV
 const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
-const Double_t B_dipole = 0.544;///T
+const Double_t B_dipole = 0.544;//0.55186;//0.544;///T
 const Double_t eEnergyRun2 = 1157.53;///current run2 histogrammed mean
 Double_t eEnergy = 1157.53, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in from infoDAQ
 
@@ -91,8 +91,6 @@ Int_t plane=1;///the plane that will be analyzed and will be set in the top most
 Bool_t polSign=0;
 Int_t daqflag=0, retInfoDAQ=0, retNoise=0, retCorrDT=0, retEvalBgdAsym=0;
 Int_t asymflag=0;
-Double_t Cedge = 50;
-Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;
 Double_t eLaser;
 Double_t gamma_my;
@@ -123,7 +121,6 @@ Double_t bkgdAsym[nStrips]={0.0},bkgdAsymEr[nStrips]={0.0};
 Double_t beamMax=0.0, laserMax=0.0;
 Double_t beamMean = -1.0, beamRMS = -1.0, beamMeanEr = -1.0;
 Double_t pol=0.0,polEr=0.0,chiSq=0.0;
-Double_t cEdge=0.0,cEdgeEr=0.0;
 Int_t NDF=0,resFitNDF=0, bgdAsymFitNDF=0;
 Double_t resFit=0.0,resFitEr=0.0, chiSqResidue=0.0;
 Double_t bgdAsymFit =0.0, bgdAsymFitEr = 0.0, chiSqBgdAsym=0.0;

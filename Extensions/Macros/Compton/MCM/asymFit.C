@@ -10,7 +10,7 @@
 #include "read3Cfile.C"
 
 Double_t theoCrossSec(Double_t *thisStrip, Double_t *parCx)//3 parameter fit for cross section
-{///parCx[1]: to be found Cedge
+{///parCx[1]: to be found cEdge
   itStrip = find(skipStrip.begin(),skipStrip.end(),*thisStrip);
   if(itStrip != skipStrip.end()) {
     TF1::RejectPoint();
@@ -32,10 +32,10 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
     TF1::RejectPoint();
     return 0;
   }
-  //xStrip = xCedge - (tempCedge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as Cedge offset
-  //xStrip = xCedge + par[1] - (tempCedge -(*thisStrip))*stripWidth*par[0]; //2nd parameter as position inside CE strip
+  //xStrip = xCedge - (cEdge + par[1] - (*thisStrip))*stripWidth*par[0];//for 2nd parameter as cEdge offset
+  //xStrip = xCedge + par[1] - (cEdge -(*thisStrip))*stripWidth*par[0]; //2nd parameter as position inside CE strip
   //xStrip = xCedge + par[1]*stripWidth - (*thisStrip)*stripWidth*par[0];//G's method of fitting!!didn't work
-  xStrip = xCedge - (par[0] -(*thisStrip))*stripWidth*effStripWidth; //for 2nd parameter as Cedge itself
+  xStrip = xCedge - (par[0] -(*thisStrip))*stripWidth*effStripWidth; //for 2nd parameter as cEdge itself
   rhoStrip = param[0]+ xStrip*param[1]+ xStrip*xStrip*param[2]+ xStrip*xStrip*xStrip*param[3];
   if(kRadCor) {
     eGamma = rhoStrip* kprimemax;
@@ -88,7 +88,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   filePre = Form(filePrefix,runnum,runnum);
 
   Bool_t debug=1,debug1=0;
-  Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
+  Bool_t kYieldFit=0,kYield=0,kResidual=0, kBgdAsym=0;
   Bool_t kFoundCE=0;
   Int_t status=1;///1: fit not converged; 0: converged
   TPaveText *pt, *ptRes;
@@ -96,6 +96,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TLine *myline = new TLine(1,0,65,0);
   TF1 *polFit;
   TString file;
+  Double_t initCE = 0.0, initCEEr=0.0;///the initial value of CE
+  Double_t cEdge=0.0,cEdgeEr=0.0;///final used value of CE after at least one iteration of rhoToX
 
   if(daqflag == 0) {///stripMask not called yet 
     daqflag = stripMask();
@@ -140,8 +142,8 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     if( (yieldL1.at(s)-yieldL0.at(s) < 100.0*yieldL0Er.at(s) ) && s>25) {
       ///there are cases when strip-1 has beamOff counts higher than bgd sub counts due to halo eg.run23246
       ///hence the above condition of s>25 is applied to ensure that trueStrip.at(s-1) does not access strip-1
-      Cedge = trueStrip.at(s-1); ///since the above condition is fulfiled after crossing Cedge
-      cout<<"probable Cedge : "<<Cedge<<endl;
+      initCE = trueStrip.at(s-1); ///since the above condition is fulfiled after crossing initCE
+      cout<<"probable initial CE : "<<initCE<<endl;
       polSign = asym.at(s-1) > 0 ? 1 : 0;
       kFoundCE = 1;
       break;
@@ -149,26 +151,20 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   }
 
   if(kFoundCE) {
-    cout<<"\nCompton edge for plane "<<plane<<" auto-determined to strip "<<Cedge<<endl;
+    cout<<"\nCompton edge for plane "<<plane<<" auto-determined to strip "<<initCE<<endl;
     if(polSign) cout<<"sign of polarization is positive\n"<<endl;
     else cout<<"sign of polarization is negative\n"<<endl;
-  } else cout<<red<<"**** Alert: Did not find Cedge for plane "<<plane<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
+  } else cout<<red<<"**** Alert: Did not find initCE for plane "<<plane<<" in run # "<<runnum<<" till the last strip"<<normal<<endl;
 
   TCanvas *cAsym;
   TGraphErrors *grAsym;
 
   cAsym = new TCanvas("cAsym", Form("Asymmetry in run %d",runnum), 10,10,900,300);
 
-  xCedge = rhoToX(runnum); ///this function should be called after determining the Cedge
-
-  paramfile.open(Form("%s/%s/%scheckfileP%d.txt",pPath, txt,filePre.Data(),plane));
-  cout<<"reading in the rho to X fitting parameters for plane "<<plane<<", they were:" <<endl;
-  paramfile>>param[0]>>param[1]>>param[2]>>param[3];
-  paramfile.close();
+  xCedge = rhoToX(runnum,initCE); ///this function should be called after determining the initCE
   if(debug) printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
 
   cAsym->cd();  
-  //cAsym->GetPad(1)->SetGridx(1);
   cAsym->SetGridx(1);
 
   grAsym=new TGraphErrors((Int_t)trueStrip.size(),trueStrip.data(),asym.data(),0,asymEr.data()); 
@@ -185,20 +181,19 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   //grAsym->GetXaxis()->SetNdivisions(416, kFALSE);
 
   grAsym->Draw("AP");
-  tempCedge = Cedge;//-0.5;///this should be equated before the declaration of TF1
 
   ///2 parameter fit
-  polFit = new TF1("polFit",theoreticalAsym,startStrip+1,tempCedge+1,2);
-  //TF1 *polFit = new TF1("polFit",theoreticalAsym,startStrip+10,Cedge,3);//use strips after the first 10 strips
+  polFit = new TF1("polFit",theoreticalAsym,startStrip+1,initCE+1,2);
+  //polFit = new TF1("polFit",theoreticalAsym,startStrip+1,endStrip,2);
   if(polSign) { //positive
-    polFit->SetParameters(tempCedge,0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-    polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
+    polFit->SetParameters(initCE,0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+    polFit->SetParLimits(0,56.0,62.0);///run2: allow the CE to vary between these strip
     //polFit->SetParLimits(0,55.0,55.0);///fix the CE parameter
-    polFit->SetParLimits(1,0.68,0.94);///allowing polarization to be 50% to 93%
+    polFit->SetParLimits(1,0.82,0.93);///allowing polarization to be 50% to 93%
   } else {     //negative
-    polFit->SetParameters(tempCedge,-0.89);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-    polFit->SetParLimits(0,40.0,62.0);///run2: allow the CE to vary between these strip
-    polFit->SetParLimits(1,-0.94,-0.68);
+    polFit->SetParameters(initCE,-0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
+    polFit->SetParLimits(0,56.0,62.0);///run2: allow the CE to vary between these strip
+    polFit->SetParLimits(1,-0.93,-0.82);
   }
   cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
 
@@ -213,20 +208,21 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   cout<<green<<"the polarization fit status "<<status<<normal<<endl;
 
   if(status==0) { ///if not converged, reuse results of previous fit to refit
-    cout<<blue<<"fit converged, hence applying MINOS for better errors"<<normal<<endl;
-    cEdge = polFit->GetParameter(0);
-    cEdgeEr = polFit->GetParError(0);
+    initCE = polFit->GetParameter(0);
+    initCEEr = polFit->GetParError(0);
     pol = polFit->GetParameter(1);
     polEr = polFit->GetParError(1);
     chiSq = polFit->GetChisquare();
     NDF = polFit->GetNDF();
-    //cout<<green<<"pol%: "<<pol*100<<"+/-"<<polEr*100<<"\t CE: "<<cEdge<<"+/-"<<cEdgeEr<<normal<<endl;
-    //polFit->SetParameters(cEdge,pol);
-    //polFit->SetParLimits(0, cEdge-2, cEdge+2);///allowing CE to change by +/- 1 strip
+    cout<<blue<<"pol%: "<<pol*100<<"+/-"<<polEr*100<<"\t CE: "<<initCE<<"+/-"<<initCEEr<<normal<<endl;
+    cout<<blue<<"fit converged, hence applying MINOS for better errors"<<normal<<endl;
+    //polFit->SetParameters(initCE,pol);
+    //polFit->SetParLimits(0, initCE-2, initCE+2);///allowing CE to change by +/- 1 strip
     //polFit->SetParLimits(1, pol-0.02, pol+0.02);///allowing pol% to change by +/- 2%
-    //polFit->SetParLimits(0, cEdge-cEdgeEr, cEdge+cEdgeEr);
+    //polFit->SetParLimits(0, initCE-initCEEr, initCE+initCEEr);
     //polFit->SetParLimits(1, pol-polEr, pol+polEr);
-    fitr = grAsym->Fit("polFit","MRES 0");///2nd attempt
+    fitr = grAsym->Fit("polFit","MES 0");///2nd attempt
+    polFit = grAsym->GetFunction("polFit");
     status = int (fitr);
     numbIterations++;
     if (status!=0) { ///fit failed after attempting to apply MINOS on a successful fit
@@ -240,8 +236,9 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
       //.. untouched instead and setting back the fit status =0, so that subsequent attempt is avoided
     } else {
       cout<<magenta<<"updated the fit parameters with the MINOS fit results"<<normal<<endl;
-      cEdge = polFit->GetParameter(0);
-      cEdgeEr = polFit->GetParError(0);
+      polFit->Update();
+      initCE = polFit->GetParameter(0);
+      initCEEr = polFit->GetParError(0);
       pol = polFit->GetParameter(1);
       polEr = polFit->GetParError(1);
       chiSq = polFit->GetChisquare();
@@ -250,25 +247,50 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   } 
   ///sometimes (eg.22773) the fit fails after I try to apply MINOS, though it succeeded earlier
   //..so the following while loop should operate independent of the preceeding 'if' loop
-  //
+
+
   while (status!=0) {
     numbIterations++;
     cout<<blue<<"repeating attempt to fit without MINOS, attempt# "<<numbIterations<<normal<<endl;
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Simplex");///failed r22987
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Minimize");//failed r22987
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Scan");
-    fitr = grAsym->Fit("polFit","RES 0");
+    fitr = grAsym->Fit("polFit","ES 0");
+    polFit = grAsym->GetFunction("polFit");///update the function pointer
     status = int (fitr);
-    if(numbIterations>maxIterations) {
-      cout<<magenta<<"maximum no.of iterations ("<<maxIterations<<") attempted, hence exiting"<<normal<<endl;
-      break;
-    }
-    cEdge = polFit->GetParameter(0);
-    cEdgeEr = polFit->GetParError(0);
+    initCE = polFit->GetParameter(0);
+    initCEEr = polFit->GetParError(0);
     pol = polFit->GetParameter(1);
     polEr = polFit->GetParError(1);
     chiSq = polFit->GetChisquare();
     NDF = polFit->GetNDF();
+    if(numbIterations>maxIterations) {
+      cout<<magenta<<"maximum no.of iterations ("<<maxIterations<<") attempted, hence exiting"<<normal<<endl;
+      break;
+    }
+  }
+
+  ///recalling rho to X converstion for the most current/corrected CE value  
+  Int_t maxRepeat = 0;///maximum no.of repetitions of the loop to re run rhoToX for the new Cedge
+  if((fabs(cEdge - initCE) > 0.1) && (maxRepeat<maxIterations)) {//this will certainly be true first time
+    if(cEdge!=0.0) initCE = cEdge;//re-run rhoToX with newly found CE
+    xCedge = rhoToX(runnum,initCE); ///this function should be called after determining the cEdge
+    if(debug) printf("xCedge: %f\t%g\t%g\t%g\t%g\n",xCedge,param[0],param[1],param[2],param[3]);
+    fitr = grAsym->Fit("polFit","ES");///re attempt
+    status = int (fitr);
+    cout<<green<<"refitting # "<<maxRepeat<<", the polarization fit status is: "<<status<<normal<<endl;
+    if(status==0) { ///since it converged, using the final fit
+      cout<<blue<<"updating the function parameters"<<normal<<endl;
+      maxRepeat++;
+      polFit = grAsym->GetFunction("polFit");///update the function pointer
+      cEdge = polFit->GetParameter(0);
+      cEdgeEr = polFit->GetParError(0);
+      pol = polFit->GetParameter(1);
+      polEr = polFit->GetParError(1);
+      chiSq = polFit->GetChisquare();
+      NDF = polFit->GetNDF();
+    }
+    cout<<blue<<"pol%: "<<pol*100<<"+/-"<<polEr*100<<", CE: "<<cEdge<<"+/-"<<cEdgeEr<<", chiSq/ndf: "<<chiSq/NDF<<normal<<endl;
   }
 
   polFit->DrawCopy("same");
@@ -303,12 +325,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   myline->Draw();
   polList.close();
   cAsym->SaveAs(Form("%s/%s/%s"+dataType+"AsymFit.png",pPath,www,filePre.Data()));
-  //delete myline;
-  //delete cAsym;
-  //delete pt;
-  //delete leg;
-  //delete grAsym;
-  //delete polFit;
 
   for (Int_t s = startStrip; s < (Int_t)trueStrip.size(); s++) {///trueStrip will be the no.of used strips including post CE
     if (trueStrip.at(s) < cEdge) usedStrips++;  ///cEdge determined in preceeding section 
@@ -418,13 +434,15 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     //delete grResiduals;
     //delete ptRes;
   }
-  //delete linearFit;
-  fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath, txt,filePre.Data()));
-  fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
-  fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
-  fitInfo.close();
-  cout<<blue<<"run\tresFit\terRes\tchiSqRes/NDF\tbgdAsym\terBgdAsym\tchiSqBgd/NDF"<<endl;
-  cout<<Form("%5.0f\t%.5f\t%.5f\t%.2f\t%.5f\t%.5f\t%.2f\n%s",(Double_t)runnum,resFit,resFitEr,chiSqResidue/resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym/bgdAsymFitNDF,normal);
+
+  if(kBgdAsym || kResidual) {
+    fitInfo.open(Form("%s/%s/%s"+dataType+"FitInfo.txt",pPath, txt,filePre.Data()));
+    fitInfo<<";run\tresFit\tresFitEr\tchiSqRes\tresNDF\tbgdAsymFit\tbgdAsymFitEr\tchiSqBgd\tbgdNDF"<<endl;
+    fitInfo<<Form("%5.0f\t%.6f\t%.6f\t%.2f\t%d\t%.6f\t%.6f\t%.2f\t%d\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue,resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym,bgdAsymFitNDF);
+    fitInfo.close();
+    cout<<"run\tresFit\terRes\tchiSqRes/NDF\tbgdAsym\terBgdAsym\tchiSqBgd/NDF"<<endl;
+    cout<<Form("%5.0f\t%.5f\t%.5f\t%.2f\t%.5f\t%.5f\t%.2f\n",(Double_t)runnum,resFit,resFitEr,chiSqResidue/resFitNDF,bgdAsymFit,bgdAsymFitEr,chiSqBgdAsym/bgdAsymFitNDF);
+  }
 
   if (kYield) { ///determine yield
     TCanvas *cYield;
@@ -441,10 +459,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
     ///3 parameter fit for cross section
     if(kYieldFit) {
-      TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,Cedge-1,3);///three parameter fit
-      crossSecFit->SetParameters(1,Cedge,20.0);//begin the fitting from the generic Cedge
+      TF1 *crossSecFit = new TF1("crossSecFit",theoCrossSec,startStrip+1,cEdge-1,3);///three parameter fit
+      crossSecFit->SetParameters(1,cEdge,20.0);//begin the fitting from the generic cEdge
       crossSecFit->SetParLimits(0,0.2,2.0);
-      crossSecFit->SetParLimits(1,Cedge,Cedge); //effectively fixing the Compton edge    
+      crossSecFit->SetParLimits(1,cEdge,cEdge); //effectively fixing the Compton edge    
       crossSecFit->SetLineColor(kRed);
       grYield->Fit("crossSecFit","0 R M E q");
     }

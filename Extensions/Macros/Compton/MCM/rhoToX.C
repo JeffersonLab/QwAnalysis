@@ -4,9 +4,9 @@
 #include "comptonRunConstants.h"
 #include "infoDAQ.C"
 ///This function ought to be called after auto-determination of compton edge was successful
-Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
+Double_t rhoToX(Int_t runnum, Double_t Cedge)//now plane is a variable set in the constants file
 {
-  cout<<"\nStarting into rhoToX.C **************\n"<<endl;
+  cout<<"\nStarting into rhoToX.C with Cedge "<<Cedge<<"\n"<<endl;
   filePre = Form(filePrefix,runnum,runnum);
   Bool_t debug =0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 

@@ -6,7 +6,11 @@
 Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0, Int_t nHelLCB1L1, Int_t nHelLCB1L0)
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
-  const Bool_t debug =0;
+  const Bool_t debug =1;
+  ofstream fOut;
+  TString file;
+  file = "FortOut.txt";
+  fOut.open(file);
   Double_t qNormCountsLCB1H1L1=0.0,qNormCountsLCB1H1L0=0.0,qNormCountsLCB1H0L1=0.0,qNormCountsLCB1H0L0=0.0;
   Double_t BCqNormLCB1H1L1=0.0,BCqNormLCB1H0L1=0.0;
   Double_t BCqNormDiffLC=0.0,BCqNormSumLC=0.0;
@@ -16,18 +20,14 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
   Double_t newCntsB1H1L1,newCntsB1H1L0,newCntsB1H0L1,newCntsB1H0L0;
 
   ///// Modification due to explicit (electronic) noise subtraction /////      
+  fOut<< Form("%.0f\t%.0f\t%.0f\t%.0f\n",(nHelLCB1L1/2.0)/helRate,(nHelLCB1L0/2.0)/helRate, (nHelLCB1L1/2.0)/helRate,(nHelLCB1L0/2.0)/helRate);
+  //if(debug) printf("corrDT : %f\t%f\t%f\t%f\n%s", c2B1H1L1[s], c2B1H1L0[s], c2B1H0L1[s], c2B1H0L0[s], normal);
+  if(debug)cout<<blue<<"strip\trawH1L1\trawH1L0\trawH0L1\trawH0L0\tfinalH1L1\tfinalH1L0\tfinalH0L1\tfinalH0L0\n"<<normal<<endl;
   for (Int_t s =startStrip; s <endStrip; s++) {	  
     newCntsB1H1L1 = countsLCB1H1L1[s] * c2B1H1L1[s]; 
     newCntsB1H1L0 = countsLCB1H1L0[s] * c2B1H1L0[s];
     newCntsB1H0L1 = countsLCB1H0L1[s] * c2B1H0L1[s];
     newCntsB1H0L0 = countsLCB1H0L0[s] * c2B1H0L0[s];
-    if(s==myStr) {
-      cout<<blue<<"for strip: "<<myStr+1<<endl;
-      printf("raw  counts: %9d\t%9d\t%9d\t%9d\n", (int)countsLCB1H1L1[s], (int)countsLCB1H1L0[s], (int)countsLCB1H0L1[s], (int)countsLCB1H0L0[s]);
-      printf("post corrDT: %9d\t%9d\t%9d\t%9d\n%s", (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0,normal);
-      printf("%.0f\t%.0f\t%.0f\t%.0f\n",(nHelLCB1L1/2.0)/helRate,(nHelLCB1L0/2.0)/helRate, (nHelLCB1L1/2.0)/helRate,(nHelLCB1L0/2.0)/helRate);
-      if(debug) printf("corrDT : %f\t%f\t%f\t%f\n%s", c2B1H1L1[s], c2B1H1L0[s], c2B1H0L1[s], c2B1H0L0[s], normal);
-    }
     if(kNoiseSub) {
       newCntsB1H1L1 = newCntsB1H1L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
       newCntsB1H1L0 = newCntsB1H1L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
@@ -60,16 +60,15 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
       asymErSqrLC[s] = (errB1H1L1 + errB1H0L1 + errB1H1L0 + errB1H0L0);
 
       if (asymErSqrLC[s] >0.0) {///eqn 4.17(Bevington)
-        if(s==myStr) {
-          printf("%spost corrNs: %9d\t%9d\t%9d\t%9d\t%7d\n", blue,(int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0, (int)(rateB0[s]));
-          cout<<"expAsym[s"<<s+1<<"]: "<<qNormAsymLC[s]<<"+/-"<<TMath::Sqrt(asymErSqrLC[s])<<normal<<endl;
+        fOut<< Form("%2d\t%6d\t%6d\t%6d\t%6d\t%6d\t%6d\t%6d\t%6d\n",s+1, (int)countsLCB1H1L1[s], (int)countsLCB1H1L0[s], (int)countsLCB1H0L1[s], (int)countsLCB1H0L0[s], (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0);
+    if(debug) printf("%2d\t%6d\t%6d\t%6d\t%6d\t%6d\t%6d\t%6d\t%6d\n",s+1, (int)countsLCB1H1L1[s], (int)countsLCB1H1L0[s], (int)countsLCB1H0L1[s], (int)countsLCB1H0L0[s], (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0);
+          //cout<<"expAsym[s"<<s+1<<"]: "<<qNormAsymLC[s]<<"+/-"<<TMath::Sqrt(asymErSqrLC[s])<<normal<<endl;
           ///checking the data if the HWP may have changed between the run
           if(checkAsym == 0.0) checkAsym = qNormAsymLC[s];/// if checkAsym is 0, this is 1st laser cycle
           else if((checkAsym/qNormAsymLC[s] < 0.0) && qNormAsymLC[s]>TMath::Sqrt(asymErSqrLC[s])) {
             cout<<red<<"evaluateAsym concludes that sign of asym changed for strip "<<s+1<<normal<<endl;
             //return -3;
           }
-        }
         wmNrAsym[s] += qNormAsymLC[s]/asymErSqrLC[s]; ///Numerator 
         wmDrAsym[s] += 1.0/asymErSqrLC[s]; ///Denominator
         //if (debug) printf("*****adding %g(1/asymSq) to wmDrAsym making it: %f\n",1.0/asymErSqrLC[s],wmDrAsym[s]);
@@ -110,6 +109,7 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
       }
     }
   }//for (Int_t s =startStrip; s <endStrip; s++) {
+  fOut.close();
 
   return 1;
 }
