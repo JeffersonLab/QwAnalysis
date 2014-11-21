@@ -117,9 +117,22 @@ then
   fi
 fi
 
+echo -e "\njust finished soucring the config file, where the following were definded"
+echo -e "QWANALYSIS is pointing to ${QWANALYSIS}."
+echo -e "QW_ROOTFILES is now pointing to ${QW_ROOTFILES}"
+echo -e "WEBDIR is now pointing to ${WEBDIR} \n"
+echo -e "Well... \n \n"
 
 ## Source environment for QwAnalysis
-source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash
+#source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash
+
+#here is where the variables are no longer right
+#echo -e "\n\njust ran the SET_ME_UP file"
+#echo -e "QWANALYSIS is pointing to ${QWANALYSIS}."
+#echo -e "QW_ROOTFILES is now pointing to ${QW_ROOTFILES}"
+#echo -e "WEBDIR is now pointing to ${WEBDIR} \n"
+#echo -e "Well... \n \n"
+
 echo -e "\n\nQW_ROOTFILES is pointing to ${QW_ROOTFILES}."
 echo "WEBDIR_SAVED is still ${WEBDIR_SAVED}"
 echo "WEBDIR is now pointing to ${WEBDIR}"
@@ -131,11 +144,13 @@ export WEBDIR
 QWROOT=${QWANALYSIS}/bin/qwroot
 
 ## Set QW_ROOTFILES back to the saved value if there was one
-if [ x${QW_ROOTFILES_SAVED} !=  "x" ]
-then
-   QW_ROOTFILES=${QW_ROOTFILES_SAVED}
-   echo -e "Restored QW_ROOTFILES to ${QW_ROOTFILES_SAVED}. \n\n"
-fi
+## this means iff you are testing a macro and want it to land
+## in a specific directory of yours please uncomment.
+#if [ x${QW_ROOTFILES_SAVED} !=  "x" ]
+#then
+#   QW_ROOTFILES=${QW_ROOTFILES_SAVED}
+#   echo -e "Restored QW_ROOTFILES to ${QW_ROOTFILES_SAVED}. \n\n"
+#fi
 
 
 ################################################################################
