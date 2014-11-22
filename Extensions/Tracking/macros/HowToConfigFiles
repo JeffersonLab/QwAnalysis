@@ -47,6 +47,10 @@ A: Great question!  Here is how.
   to just regenerate the front page, it will be
     ./process_run.sh --run=<runnum> --index --configfile=<configfileofpass>
 
+For the people who are in charge of submitting the whole pass or just a run the form
+to do this is:
+  ./submit_run.sh --run=<runnum> --configfile=<configfileofpass> --pass=<pass>
+
 
 *Please note:*
   Using this with autoplots scripts pre-r5979 this will not work,
