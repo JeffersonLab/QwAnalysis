@@ -130,9 +130,11 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fEndPositionActual = that.fEndPositionActual;
   fEndDirectionActual = that.fEndDirectionActual;
 
+  fIterationsRK4 = that.fIterationsRK4;
   fEndPositionActualRK4 = that.fEndPositionActualRK4;
   fEndDirectionActualRK4 = that.fEndDirectionActualRK4;
 
+  fIterationsRKF45 = that.fIterationsRKF45;
   fEndPositionActualRKF45 = that.fEndPositionActualRKF45;
   fEndDirectionActualRKF45 = that.fEndDirectionActualRKF45;
 
