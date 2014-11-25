@@ -2,6 +2,7 @@
 #define __INFODAQ_F
 #include "rootClass.h"
 #include "comptonRunConstants.h"
+#include "ValueLookup.C"
 
 Int_t infoDAQ(Int_t runnum)
 {
@@ -83,24 +84,26 @@ Int_t infoDAQ(Int_t runnum)
   //}
   //cout<<red<<maxSetDipoleI<<"\t"<<minSetDipoleI<<normal<<endl;
 
+  ///These operations are now shifted into ValueLookup.C
   Double_t dipoleI, dipoleIRMS, dipoleIEr, maxDipoleI, minDipoleI;
-  hCheck->SetBit(TH1::kCanRebin);
-  slowChain->Draw("MCP3P01M>>hCheck","","goff");
-  dipoleI = hCheck->GetMean();
-  dipoleIRMS = hCheck->GetRMS();
-  dipoleIEr = hCheck->GetMeanError();
-  hCheck->Reset();
+  //hCheck->SetBit(TH1::kCanRebin);
+  //slowChain->Draw("MCP3P01M>>hCheck","","goff");
+  //dipoleI = hCheck->GetMean();
+  //dipoleIRMS = hCheck->GetRMS();
+  //dipoleIEr = hCheck->GetMeanError();
+  //hCheck->Reset();
   maxDipoleI = slowChain->GetMaximum("MCP3P01M");
   minDipoleI = slowChain->GetMinimum("MCP3P01M");
   if((maxDipoleI - minDipoleI)>1000000.0) {
     erBeamVar += "\tdipoleIValue";
-    cout<<red<<"the dipole readback current changed during the run:"<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;
+    cout<<"the dipole readback current changed during the run:"<<maxDipoleI<<"\t"<<minDipoleI<<normal<<endl;///false alarm
   }
+  ValueLookup(runnum, dipoleI, dipoleIEr, dipoleIRMS);
 
-  if((setDipoleI - dipoleI) > 1000000) {
-    erBeamVar += "\tSetReadDipoleDisagree";
-    cout<<red<<"set and read back dipole current disagree"<<normal<<endl;
-  }
+  //if((setDipoleI - dipoleI) > 1000000) {///this often gives a false alarm
+  //  erBeamVar += "\tSetReadDipoleDisagree";
+  //  cout<<red<<"set and read back dipole current disagree"<<normal<<endl;
+  //}
 
   Double_t maxEnergyLockFB = slowChain->GetMaximum("FB_C_FB_on");
   Double_t minEnergyLockFB = slowChain->GetMinimum("FB_C_FB_on");
@@ -231,13 +234,13 @@ Int_t infoDAQ(Int_t runnum)
     cout<<"wrote beamProperties info to "<<Form("%s/%s/%sbeamProp.txt",pPath, txt,filePre.Data())<<endl;
   } else cout<<red<<"could not open file to write the beam properties"<<normal<<endl;
   
-  fBeamProp.open(Form("%s/%s/%sdipole.txt",pPath, txt,filePre.Data()));//,std::fstream::app);
-  if(fBeamProp.is_open()) {
-    fBeamProp<<"runnum\tsetdipoleI\tsetdipoleIEr\tsetdipoleIRMS\tdipoleI\tdipoleIEr\tdipoleIRMS\tPosLockMax\tposLockMin\tenergyLockMax\tEnergyLockMin"<<endl;
-    fBeamProp<<runnum<<"\t"<<setDipoleI<<"\t"<<setDipoleIEr<<"\t"<<setDipoleIRMS<<"\t"<<dipoleI<<"\t"<<dipoleIEr<<"\t"<<dipoleIRMS<<"\t"<<maxPosLockFB<<"\t"<<minPosLockFB<<"\t"<<maxEnergyLockFB<<"\t"<<minEnergyLockFB<<endl;
-    fBeamProp.close();
-    cout<<"wrote dipole info to "<<Form("%s/%s/%sdipole.txt",pPath, txt,filePre.Data())<<endl;
-  } else cout<<red<<"could not open file to write the dipole info"<<normal<<endl;
+  //fBeamProp.open(Form("%s/%s/%sdipole.txt",pPath, txt,filePre.Data()));//,std::fstream::app);
+  //if(fBeamProp.is_open()) {
+  //  fBeamProp<<"runnum\tsetdipoleI\tsetdipoleIEr\tsetdipoleIRMS\tdipoleI\tdipoleIEr\tdipoleIRMS\tPosLockMax\tposLockMin\tenergyLockMax\tEnergyLockMin"<<endl;
+  //  fBeamProp<<runnum<<"\t"<<setDipoleI<<"\t"<<setDipoleIEr<<"\t"<<setDipoleIRMS<<"\t"<<dipoleI<<"\t"<<dipoleIEr<<"\t"<<dipoleIRMS<<"\t"<<maxPosLockFB<<"\t"<<minPosLockFB<<"\t"<<maxEnergyLockFB<<"\t"<<minEnergyLockFB<<endl;
+  //  fBeamProp.close();
+  //  cout<<"wrote dipole info to "<<Form("%s/%s/%sdipole.txt",pPath, txt,filePre.Data())<<endl;
+  //} else cout<<red<<"could not open file to write the dipole info"<<normal<<endl;
 
   fBeamProp.open(Form("%s/%s/%sscintRateNorm.txt",pPath, txt,filePre.Data()));//,std::fstream::app);
   if(fBeamProp.is_open()) {

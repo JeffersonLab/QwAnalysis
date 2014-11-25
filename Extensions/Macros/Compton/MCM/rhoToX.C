@@ -19,7 +19,6 @@ Double_t rhoToX(Int_t runnum, Double_t Cedge)//now plane is a variable set in th
     cout<<red<<"\nreturned error from infoDAQ.C hence exiting\n"<<normal<<endl;
     return -2;
   }
-
   Double_t kk,x1,CedgeToDetBot,zdrift;
   Double_t thetabend = asin(light*B_dipole*lmag/eEnergy);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)
@@ -27,8 +26,10 @@ Double_t rhoToX(Int_t runnum, Double_t Cedge)//now plane is a variable set in th
   CedgeToDetBot = (Cedge + 4)*stripWidth + 0.5*stripWidth;///elog 399
   zdrift = ldet[plane-1] - CedgeToDetBot*sin(det_angle);
   if(debug) {
-    cout<<blue<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge,stripWidth,stripWidth);
+    cout<<blue<<"using the following parameters for rhoToX conversion"<<endl;
+    cout<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge,stripWidth,stripWidth);
     cout<<"beam energy: "<<eEnergy<<" +/- "<<eEnergyEr<<endl;
+    cout<<"field:    "<<B_dipole<<endl;
     cout<<Form("zdrift:%f = %f - %f * %f",zdrift,ldet[plane-1],CedgeToDetBot,sin(det_angle))<<normal<<endl;
   }
   re = alpha*hbarc/me;
@@ -83,7 +84,7 @@ Double_t rhoToX(Int_t runnum, Double_t Cedge)//now plane is a variable set in th
   xCedge = xPrime[nPoints-1]; ///'xCedge' is used in determining QED asym, hence this should be evaluated before calling the function to fit theoretical asym
 
   if(debug) {
-    cout<<red<<"\nfor plane: "<<plane<<", CedgeToDetBot: "<<CedgeToDetBot<<", zdrift: "<<zdrift<<", xCedge:"<<xCedge<<"\n"<<endl;
+    cout<<"xCedge:"<<xCedge<<"\n"<<endl;
     printf("\nR_bend:%f, thetabend:%f degree\n",R_bend,thetabend*180/pi);
     cout<<"th_prime: "<<th_prime*180/pi<<endl;
     cout<<"r_max: "<<r_max<<"dx1: "<<x1_new<<endl;

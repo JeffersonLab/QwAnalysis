@@ -561,16 +561,35 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
     ///writing out the counts in the fortran format as asked by G, this is a variation of the previous kLasCycPrint functionality
     file = Form("%s/%s/%sFortOutP%d.txt",pPath, txt, filePre.Data(),plane);
-    writeFortOut(file, nCycle, countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , lasPowLCB1L1, lasPowLCB1L0, nHelLCB1L1, nHelLCB1L0);
+    writeFortOut(file, nCycle, countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0, lasPowLCB1L1, lasPowLCB1L0, nHelLCB1L1, nHelLCB1L0);
   }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
+
+
+  file = "/w/hallc/compton/users/narayan/my_scratch/data/bgplusrates.dat";
+  Double_t attenuate = 0.023;
+  Double_t attenFactor[nStrips];
+  fIn.open(file);
+  Double_t d1, d2;
+  if(fIn.is_open()) {
+    for(int s=0; s<nStrips; s++) {
+      fIn >>d1 >>d2;
+      //cout<<s+1<<"\t"<<d1<<"\t"<<d2<<endl;
+      if(s+1==d1) attenFactor[s] = d2*attenuate;//assuming each line with be a new strip without any jump
+      else cout<<red<<"strip mismatch in "<<file<<endl;
+    }
+    fIn.close();
+  }
+  cout<<"populated the attenuation factor from "<<file<<endl;
+
 
   cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
   Int_t totHelB1L1 = totHelB1H1L1 + totHelB1H0L1;
   Int_t totHelB1L0 = totHelB1H1L0 + totHelB1H0L0;
   usedQuartets = totHelB1L1 + totHelB1L0;
   usedTime = usedQuartets/helRate;
+  //file = Form("%s/%s/%sdiagnosticsP%d.txt",pPath, txt, filePre.Data(),plane);//!!temp remove
   ///calling the function to evaluate asymmetry for counts at the end of all laser cycles
-  Int_t evaluated = evaluateAsym(totyieldB1H1L1, totyieldB1H1L0, totyieldB1H0L1, totyieldB1H0L0, qAllH1L1, qAllH1L0, qAllH0L1, qAllH0L0 , totHelB1L1, totHelB1L0);
+  Int_t evaluated = evaluateAsym(totyieldB1H1L1, totyieldB1H1L0, totyieldB1H0L1, totyieldB1H0L0, qAllH1L1, qAllH1L0, qAllH0L1, qAllH0L0 , totHelB1L1, totHelB1L0, attenFactor);
   if(evaluated==-3) {
     cout<<red<<"\nevaluateAsym detected change of HWP in the middle of a run\n"<<normal<<endl;
     file = Form("%s/%s/%sEXITP%d.txt",pPath, txt,filePre.Data(),plane);
@@ -583,7 +602,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     return -1;///exit the expAsym.C macro
     //  continue;//break;
   } else {
-    retEvalBgdAsym = evalBgdAsym(totyieldB1H1L0, totyieldB1H0L0, qAllH1L0, qAllH0L0, totHelB1L0);
+    retEvalBgdAsym = evalBgdAsym(totyieldB1H1L0, totyieldB1H0L0, qAllH1L0, qAllH0L0, totHelB1L0, attenFactor);
     if (retEvalBgdAsym < 0) return -1; ///temp!
   }
   //TCanvas *cBPM = new TCanvas("cBPM",Form("stability parameters for run %d",runnum),0,0,1200,900);

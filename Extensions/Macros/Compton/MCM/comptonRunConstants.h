@@ -10,10 +10,9 @@ const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets du
 const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
-const Bool_t kBeamStable=1;
+const Bool_t kBeamStable=0;
 const Bool_t kOnlyGoodLasCyc = 1;///1: use only laser cycles with no beam trip; 0: use all cycles throwing only quartets with trip
 const Int_t maxIterations =4;
-
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
 const char *www = "www";///to store all image files
@@ -28,7 +27,8 @@ const Double_t hbarc=0.19732858E-15;/// GeV.m
 const Double_t alpha=0.00729927; ///=1.0/137.0;
 const Double_t me=0.00051099006;///GeV
 const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
-const Double_t B_dipole = 0.544;//0.55186;//0.544;///T
+const Double_t B_dipoleDefault = 0.544;//0.55186;//0.544;///T
+Double_t B_dipole = 0.544;//0.55186;//0.544;///T
 const Double_t eEnergyRun2 = 1157.53;///current run2 histogrammed mean
 Double_t eEnergy = 1157.53, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in from infoDAQ
 

@@ -88,7 +88,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   filePre = Form(filePrefix,runnum,runnum);
 
   Bool_t debug=1,debug1=0;
-  Bool_t kYieldFit=0,kYield=0,kResidual=0, kBgdAsym=0;
+  Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
   Bool_t kFoundCE=0;
   Int_t status=1;///1: fit not converged; 0: converged
   TPaveText *pt, *ptRes;
@@ -126,14 +126,18 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
 
   ///Read in all files that are needed
   Int_t fOpen;
+  //cout<<red<<"temporarily using runlet asym"<<normal<<endl;
+  //file = "mcm_asym_25291.dat";///asymmetry from runlet analysis
   file = Form("%s/%s/%s"+dataType+"ExpAsymP%d.txt",pPath, txt,filePre.Data(),plane);
   fOpen = read3Cfile(file, trueStrip, asym, asymEr);
 
-  file = Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath, txt,filePre.Data(),dataType.Data(),plane);
-  fOpen = read3Cfile(file, dummy, yieldL0, yieldL0Er); 
-
-  file = Form("%s/%s/%s%sYieldP%d.txt",pPath, txt,filePre.Data(),dataType.Data(),plane);
+  //file = Form("%s/%s/%s%sYieldP%d.txt",pPath, txt,filePre.Data(),dataType.Data(),plane);
+  file = Form("%s/%s/%sAcYieldP%d.txt",pPath, txt,filePre.Data(),plane);///Sc data not able to predit initial CE duly
   fOpen = read3Cfile(file, dummy, yieldL1, yieldL1Er);
+
+  //file = Form("%s/%s/%s%sLasOffBkgdP%d.txt",pPath, txt,filePre.Data(),dataType.Data(),plane);
+  file = Form("%s/%s/%sAcLasOffBkgdP%d.txt",pPath, txt,filePre.Data(),plane);///Sc data not able to predit initial CE duly
+  fOpen = read3Cfile(file, dummy, yieldL0, yieldL0Er); 
 
   ///Estimate the compton edge location
   for(Int_t s=0; s<=(Int_t)trueStrip.size(); s++) {
@@ -183,18 +187,19 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   grAsym->Draw("AP");
 
   ///2 parameter fit
-  polFit = new TF1("polFit",theoreticalAsym,startStrip+1,initCE+1,2);
+  polFit = new TF1("polFit",theoreticalAsym,startStrip+1,initCE+2,2);
   //polFit = new TF1("polFit",theoreticalAsym,startStrip+1,endStrip,2);
   if(polSign) { //positive
     polFit->SetParameters(initCE,0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-    polFit->SetParLimits(0,56.0,62.0);///run2: allow the CE to vary between these strip
+    polFit->SetParLimits(0,54.0,62.0);///run2: allow the CE to vary between these strip
     //polFit->SetParLimits(0,55.0,55.0);///fix the CE parameter
-    polFit->SetParLimits(1,0.82,0.93);///allowing polarization to be 50% to 93%
+    //polFit->SetParLimits(1,0.82,0.93);///allowing polarization to be 50% to 93%
   } else {     //negative
     polFit->SetParameters(initCE,-0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-    polFit->SetParLimits(0,56.0,62.0);///run2: allow the CE to vary between these strip
-    polFit->SetParLimits(1,-0.93,-0.82);
+    polFit->SetParLimits(0,54.0,62.0);///run2: allow the CE to vary between these strip
+    //polFit->SetParLimits(1,-0.93,-0.82);
   }
+  ///Note about TMinuit: its best to not put any limits on the parameters. It becomes difficult for the error matrix
   cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
 
   polFit->SetParNames("comptonEdge","polarization");
@@ -203,7 +208,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TVirtualFitter::SetMaxIterations(10000);
 
   Int_t numbIterations = 0;
-  TFitResultPtr fitr = grAsym->Fit("polFit","RES 0");///1st attempt
+  TFitResultPtr fitr = grAsym->Fit(polFit,"RS 0");///1st attempt
   status = int (fitr);
   cout<<green<<"the polarization fit status "<<status<<normal<<endl;
 
@@ -221,18 +226,15 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     //polFit->SetParLimits(1, pol-0.02, pol+0.02);///allowing pol% to change by +/- 2%
     //polFit->SetParLimits(0, initCE-initCEEr, initCE+initCEEr);
     //polFit->SetParLimits(1, pol-polEr, pol+polEr);
-    fitr = grAsym->Fit("polFit","MES 0");///2nd attempt
+    fitr = grAsym->Fit(polFit,"RES 0");///2nd attempt///not using 'M' option, that caues the fit to fail
     polFit = grAsym->GetFunction("polFit");
     status = int (fitr);
     numbIterations++;
     if (status!=0) { ///fit failed after attempting to apply MINOS on a successful fit
       cout<<magenta<<"failed MINOS though the initial fit was successful"<<endl;
       cout<<"do not update the preceeding fit parameters"<<normal<<endl;
-      status = 0;
-      //fitr = grAsym->Fit("polFit","RES 0");
-      //status = int (fitr);
       ///!The residual calculation uses the fit function, hence its necessary to get back the correct fit function
-      //But After failing once, an attempt to refit even without MINOS fails, hence leaving the parameters
+      //But After failing once, an attempt to refit even without 'M' fails, hence leaving the parameters
       //.. untouched instead and setting back the fit status =0, so that subsequent attempt is avoided
     } else {
       cout<<magenta<<"updated the fit parameters with the MINOS fit results"<<normal<<endl;
@@ -255,7 +257,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Simplex");///failed r22987
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Minimize");//failed r22987
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Scan");
-    fitr = grAsym->Fit("polFit","ES 0");
+    fitr = grAsym->Fit(polFit,"RS 0");
     polFit = grAsym->GetFunction("polFit");///update the function pointer
     status = int (fitr);
     initCE = polFit->GetParameter(0);
@@ -276,7 +278,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     if(cEdge!=0.0) initCE = cEdge;//re-run rhoToX with newly found CE
     xCedge = rhoToX(runnum,initCE); ///this function should be called after determining the cEdge
     if(debug) printf("xCedge: %f\t%g\t%g\t%g\t%g\n",xCedge,param[0],param[1],param[2],param[3]);
-    fitr = grAsym->Fit("polFit","ES");///re attempt
+    fitr = grAsym->Fit("polFit","ESR 0");///re attempt
     status = int (fitr);
     cout<<green<<"refitting # "<<maxRepeat<<", the polarization fit status is: "<<status<<normal<<endl;
     if(status==0) { ///since it converged, using the final fit
