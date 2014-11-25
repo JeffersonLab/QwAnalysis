@@ -110,10 +110,11 @@ fi
 # Source any configuration file for environmental variables
 if [ x${CONFIGFILE} != "x" ]
 then
-  if [ -e ${CONFIGFILE} ]
+  echo -e "\nLooking for config file ${CONFIGFILE} in `dirname $0`\n"
+  if [ -e `dirname $0`/${CONFIGFILE} ]
   then
-    echo "Sourcing file ${CONFIGFILE}"
-    source ${CONFIGFILE}
+    echo -e "\nSourcing file ${CONFIGFILE} in `dirname $0`\n"
+    source `dirname $0`/${CONFIGFILE}
   fi
 fi
 
