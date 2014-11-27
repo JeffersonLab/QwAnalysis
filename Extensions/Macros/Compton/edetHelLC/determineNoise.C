@@ -7,7 +7,7 @@ Int_t determineNoise(Int_t runnum, Double_t strip[], TString dataType = "Ac") {
 
   Double_t tB0H1L1, tB0H1L0, tB0H0L1, tB0H0L0, tBeamOff;
   Double_t lasPowB0H1L1, lasPowB0H1L0, lasPowB0H0L1, lasPowB0H0L0, tBeamOn;
-  Double_t rateB0H1L1[nStrips], rateB0H1L0[nStrips], rateB0H0L1[nStrips], rateB0H0L0[nStrips];
+  Double_t cntsB0H1L1[nStrips], cntsB0H1L0[nStrips], cntsB0H0L1[nStrips], cntsB0H0L0[nStrips];
   ifstream fIn;
   TString file;
   
@@ -54,9 +54,10 @@ Int_t determineNoise(Int_t runnum, Double_t strip[], TString dataType = "Ac") {
     fIn >>lasPowB0H1L1 >>lasPowB0H1L0 >>lasPowB0H0L1 >>lasPowB0H0L0 >>tBeamOn;
     timeB0 = tB0H1L1+tB0H1L0+tB0H0L1+tB0H0L0;
     for(Int_t s=0; s<endStrip; s++) {
-      fIn>>rateB0H1L1[s]>>rateB0H1L0[s]>>rateB0H0L1[s]>>rateB0H0L0[s]>>strip[s];
-      rateB0[s]= (rateB0H1L1[s]+rateB0H1L0[s]+rateB0H0L1[s]+rateB0H0L0[s])*4.0/timeB0;
-      //printf("%f\t%f\t%f\t%f\t%f\n",rateB0H1L1[s],rateB0H1L0[s],rateB0H0L1[s],rateB0H0L0[s],strip[s]);
+      fIn>>cntsB0H1L1[s]>>cntsB0H1L0[s]>>cntsB0H0L1[s]>>cntsB0H0L0[s]>>strip[s];
+      rateB0[s]= (cntsB0H1L1[s]+cntsB0H1L0[s]+cntsB0H0L1[s]+cntsB0H0L0[s])*4.0/timeB0;
+      rateB0Er[s] = (TMath::Sqrt((cntsB0H1L1[s]+cntsB0H1L0[s]+cntsB0H0L1[s]+cntsB0H0L0[s])*4.0))/timeB0;
+      //printf("%f\t%f\t%f\t%f\t%f\n",cntsB0H1L1[s],cntsB0H1L0[s],cntsB0H0L1[s],cntsB0H0L0[s],strip[s]);
       //printf("%f\t%f\n",strip[s],rateB0[s]);
     }
     fIn.close();

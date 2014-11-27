@@ -4,7 +4,7 @@
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
-Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L0, Double_t qAvgLCH0L0, Int_t nHelLCB1L0) 
+Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L0, Double_t qAvgLCH0L0, Int_t nHelLCB1L0, Double_t attenFactor[]) 
 {
   cout<<"starting into evalBgdAsym.C**************"<<endl;
   const Bool_t debug =0;
@@ -13,14 +13,18 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
   Double_t newCntsB1H1L0[nStrips], newCntsB1H0L0[nStrips];
   Double_t NplusOff_SqQplusOff =0.0, NminusOff_SqQminusOff =0.0;
   Double_t erqNormB1L0LasCycSq=0.0;
-  if(debug) cout<<"not using noisesubtraction in bgd because it results in negative counts in time:"<<nHelLCB1L0/helRate<<endl;
+
+  for(int s=0; s<nStrips; s++) {
+    if(rateB0[s] > 200.0) rateB0[s] = 0.0;
+  }///to avoid using wrong noise correction; The file still records 
+
   for (Int_t s =startStrip; s <endStrip; s++) {	  
     newCntsB1H1L0[s]=countsLCB1H1L0[s] * c2B1H1L0[s];
     newCntsB1H0L0[s]=countsLCB1H0L0[s] * c2B1H0L0[s];
-    //if(kNoiseSub) {///commenting out because it gives negative !temp
-    //  newCntsB1H1L0[s] = newCntsB1H1L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
-    //  newCntsB1H0L0[s] = newCntsB1H0L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
-    //}
+    if(kNoiseSub) {///commenting out because it gives negative !temp
+      newCntsB1H1L0[s] = newCntsB1H1L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
+      newCntsB1H0L0[s] = newCntsB1H0L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
+    }
     qNormCntsLCB1H1L0[s]= newCntsB1H1L0[s]/qAvgLCH1L0;
     qNormCntsLCB1H0L0[s]= newCntsB1H0L0[s]/qAvgLCH0L0;
   }

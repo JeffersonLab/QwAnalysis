@@ -221,8 +221,25 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
   ///////////// Implementing noise subtraction //////
   ///Reading in the noise file
+  Double_t attenFactor[nStrips];///to be passed into evaluateAsym and evalBgdAsym macro
   if(kNoiseSub) {
     retNoise = determineNoise(runnum, stripArray, dataType);
+
+    file = "/w/hallc/compton/users/narayan/my_scratch/data/bgplusrates.dat";
+    Double_t attenuate = 0.023;
+    fIn.open(file);
+    Double_t d1, d2;
+    if(fIn.is_open()) {
+      for(int s=0; s<nStrips; s++) {
+        fIn >>d1 >>d2;
+        //cout<<s+1<<"\t"<<d1<<"\t"<<d2<<endl;
+        if(s+1==d1) attenFactor[s] = d2*attenuate;//assuming each line with be a new strip without any jump
+        else cout<<red<<"strip mismatch in "<<file<<endl;
+      }
+      fIn.close();
+    }
+    cout<<"populated the attenuation factor from "<<file<<endl;
+
     if (retNoise<0) cout<<red<<"\n Noise subtraction failed, check its reasons\n \n"<<normal<<endl;
   } 
   ///////////////////////////////////////////////////
@@ -527,7 +544,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
         }
 
         ///calling the function to evaluate asymmetry for counts in this laser cycle
-        Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , nHelLCB1L1, nHelLCB1L0);
+        Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , nHelLCB1L1, nHelLCB1L0, attenFactor);
         if(evaluated==-3) {
           cout<<red<<"\nevaluateAsym detected change of HWP in the middle of a run\n"<<normal<<endl;
           file = Form("%s/%s/%sEXITP%d.txt",pPath, txt,filePre.Data(),plane);
@@ -546,7 +563,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           //  cout<<red<<"skipping this laser cycle, nCycle "<<nCycle+1<<normal<<endl;
           //  continue;//break;
       } else {
-        retEvalBgdAsym = evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qLCH1L0, qLCH0L0, nHelLCB1L0);
+        retEvalBgdAsym = evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qLCH1L0, qLCH0L0, nHelLCB1L0, attenFactor);
         //if (retEvalBgdAsym < 0) return -1; ///temp!
         goodCycles++;///
       }

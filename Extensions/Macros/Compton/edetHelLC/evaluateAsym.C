@@ -3,7 +3,7 @@
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
-Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0, Int_t nHelLCB1L1, Int_t nHelLCB1L0)
+Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0, Int_t nHelLCB1L1, Int_t nHelLCB1L0, Double_t attenFactor[])
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug =0;
@@ -15,7 +15,10 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
   Double_t erBCqNormSumLCSq=0.0;
   Double_t newCntsB1H1L1,newCntsB1H1L0,newCntsB1H0L1,newCntsB1H0L0;
 
-  ///// Modification due to explicit (electronic) noise subtraction /////      
+  for(int s=0; s<nStrips; s++) {
+    if(rateB0[s] > 200.0) rateB0[s] = 0.0;
+  }///to avoid using wrong noise correction; The file still records 
+
   for (Int_t s =startStrip; s <endStrip; s++) {	  
     newCntsB1H1L1 = countsLCB1H1L1[s] * c2B1H1L1[s]; 
     newCntsB1H1L0 = countsLCB1H1L0[s] * c2B1H1L0[s];
@@ -26,11 +29,12 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
       printf("post corrDT: %9d\t%9d\t%9d\t%9d\n", (int)newCntsB1H1L1, (int)newCntsB1H1L0, (int)newCntsB1H0L1, (int)newCntsB1H0L0);
       if(debug) printf("corrDT : %f\t%f\t%f\t%f\n", c2B1H1L1[s], c2B1H1L0[s], c2B1H0L1[s], c2B1H0L0[s]);
     }
+  ///// Modification due to explicit (electronic) noise subtraction /////      
     if(kNoiseSub) {
-      newCntsB1H1L1 = newCntsB1H1L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
-      newCntsB1H1L0 = newCntsB1H1L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
-      newCntsB1H0L1 = newCntsB1H0L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate;
-      newCntsB1H0L0 = newCntsB1H0L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate;
+      newCntsB1H1L1 = newCntsB1H1L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate/(attenFactor[s]);
+      newCntsB1H1L0 = newCntsB1H1L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
+      newCntsB1H0L1 = newCntsB1H0L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate/(attenFactor[s]);
+      newCntsB1H0L0 = newCntsB1H0L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
     }
     qNormCountsLCB1H1L1 = newCntsB1H1L1/qAvgLCH1L1;
     qNormCountsLCB1H1L0 = newCntsB1H1L0/qAvgLCH1L0;

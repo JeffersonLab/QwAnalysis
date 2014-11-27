@@ -293,9 +293,11 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   }
 
   polFit->DrawCopy("same");
-
-  if(debug) cout<<"\nwriting the polarization relevant values to file "<<endl;
-  polList.open(Form("%s/%s/%sPol.txt",pPath, txt,filePre.Data()));
+  ///the filePre is reset to dataType neutral in rhoToX, hence need to set it again
+  filePre = Form(filePrefix+"%s",runnum,runnum,dataType.Data());///this string in infoDAQ is without dataType
+  file =Form("%s/%s/%sPol.txt",pPath, txt,filePre.Data());
+  if(debug) cout<<"\nwriting the polarization relevant values to "<<file<<endl;
+  polList.open(file);
   polList<<";run\tpol\tpolEr\tchiSq\tNDF\tCE\tCE_Er\tplane\tfitStatus\tusedTime"<<endl;
   polList<< Form("%5.0f\t%2.3f\t%.3f\t%.3f\t%d\t%2.3f\t%.3f\t%d\t%d\t%d",(Double_t)runnum,pol*100,polEr*100,chiSq,NDF,cEdge,cEdgeEr,plane,status,asymflag)<<endl;
   if(debug) {

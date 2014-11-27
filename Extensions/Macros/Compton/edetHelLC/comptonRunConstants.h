@@ -7,13 +7,13 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 0;
+const Bool_t kNoiseSub = 1;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
-const Bool_t kBeamStable=0;
+const Bool_t kBeamStable=1;
 const Bool_t kOnlyGoodLasCyc = 1;///1: use only laser cycles with no beam trip; 0: use all cycles throwing only quartets with trip
-const Bool_t kBPMYield = 0;
-const Bool_t kBPMDiff = 0;
+const Bool_t kBPMYield = 1;
+const Bool_t kBPMDiff = 1;
 const Int_t maxIterations =4;
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
@@ -62,7 +62,7 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t lasOffCut = 2500;//2000;//1261;//1100;///elog 319 
+const Double_t lasOffCut = 1800;//2000;//1261;//1100;///elog 319 
 const Float_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
       Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Float_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
