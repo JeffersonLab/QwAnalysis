@@ -65,6 +65,8 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
           if(checkAsym == 0.0) checkAsym = qNormAsymLC[s];/// if checkAsym is 0, this is 1st laser cycle
           else if((checkAsym/qNormAsymLC[s] < 0.0) && qNormAsymLC[s]>TMath::Sqrt(asymErSqrLC[s])) {
             cout<<red<<"evaluateAsym concludes that sign of asym changed for strip "<<s+1<<normal<<endl;
+            cout<<"will try to extract polarization from upto the counts of the previous laser cycle"<<endl;
+            cout<<"hence exiting the evaluateAsym.C macro"<<endl;
             return -3;
           }
         }

@@ -1,6 +1,5 @@
 #include "rootClass.h"
 #include "comptonRunConstants.h"
-#include "rhoToX.C"
 #include "stripMask.C"
 
 Int_t read3Cfile(TString file, std::vector<Double_t> &strip, std::vector<Double_t> &var, std::vector<Double_t> &varEr) {

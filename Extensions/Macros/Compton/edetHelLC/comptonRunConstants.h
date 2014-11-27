@@ -7,14 +7,14 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 1;
+const Bool_t kNoiseSub = 0;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kBeamStable=0;
-const Bool_t kBeamPos =1;
-const Bool_t kOnlyGoodLasCyc = 1;
+const Bool_t kOnlyGoodLasCyc = 1;///1: use only laser cycles with no beam trip; 0: use all cycles throwing only quartets with trip
+const Bool_t kBPMYield = 0;
+const Bool_t kBPMDiff = 0;
 const Int_t maxIterations =4;
-
 //Directory paths
 const char *pPath = getenv("QWSCRATCH");
 const char *www = "www";///to store all image files
@@ -29,7 +29,8 @@ const Double_t hbarc=0.19732858E-15;/// GeV.m
 const Double_t alpha=0.00729927; ///=1.0/137.0;
 const Double_t me=0.00051099006;///GeV
 const Double_t xmuB=5.788381749E-14; ///  Bohr magnetron GeV/T
-const Double_t B_dipole = 0.544;///T
+const Double_t B_dipoleDefault = 0.544;//0.55186;//0.544;///T
+Double_t B_dipole = 0.544;//0.55186;//0.544;///T
 const Double_t eEnergyRun2 = 1157.53;///current run2 histogrammed mean
 Double_t eEnergy = 1157.53, rms_eEnergy =0.0, eEnergyEr=0.0;///to be read in from infoDAQ
 
@@ -85,15 +86,13 @@ const Int_t endPlane = 1;
 const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> it has changed
 const Float_t beamMaxEver = 200.0, beamOnLimit=2.0;
 Float_t beamTripLimit;
-const Float_t effStripWidth = 1.0033; ///set to the value used by Vladas !! 
-const Float_t bpmDiff = 0.01;
+const Float_t effStripWidth = 1.00; 
+const Float_t bpmDiff = 0.05;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
 Int_t daqflag=0, retInfoDAQ=0, retNoise=0, retCorrDT=0, retEvalBgdAsym=0;
 Int_t asymflag=0;
-Double_t Cedge = 50;
-Double_t tempCedge=50;//!should I initiate it like this !
 Bool_t paramRead;
 Double_t eLaser;
 Double_t gamma_my;
@@ -124,7 +123,6 @@ Double_t bkgdAsym[nStrips]={0.0},bkgdAsymEr[nStrips]={0.0};
 Double_t beamMax=0.0, laserMax=0.0;
 Double_t beamMean = -1.0, beamRMS = -1.0, beamMeanEr = -1.0;
 Double_t pol=0.0,polEr=0.0,chiSq=0.0;
-Double_t cEdge=0.0,cEdgeEr=0.0;
 Int_t NDF=0,resFitNDF=0, bgdAsymFitNDF=0;
 Double_t resFit=0.0,resFitEr=0.0, chiSqResidue=0.0;
 Double_t bgdAsymFit =0.0, bgdAsymFitEr = 0.0, chiSqBgdAsym=0.0;
@@ -144,7 +142,6 @@ Double_t qNormCntsB1H0L1[nStrips]={0.0},qNormCntsB1H0L1Er[nStrips]={0.0};
 Double_t qNormCntsB1H0L0[nStrips]={0.0},qNormCntsB1H0L0Er[nStrips]={0.0};
 Double_t qNormBkgdSubAllB1L1[nStrips]={0.0},qNormAllB1L0[nStrips]={0.0},qNormAllB1L0Er[nStrips]={0.0}; 
 Double_t qAllH1L1=0.0,qAllH1L0=0.0,qAllH0L1=0.0,qAllH0L0=0.0;///total current
-Double_t qIgnoredH1L1=0.0,qIgnoredH1L0=0.0,qIgnoredH0L1=0.0,qIgnoredH0L0=0.0;///total current
 Double_t totHelB1H1L1=0,totHelB1H1L0=0;///total no.of helicities (hence time)
 Double_t totHelB1H0L1=0,totHelB1H0L0=0;///total no.of helicities (hence time)
 Double_t totyieldB1L1[nStrips]={0.0}, totyieldB1L0[nStrips]={0.0};
@@ -153,7 +150,7 @@ Double_t tNormYieldB1H1L1[nStrips]={0.0},tNormYieldB1H1L1Er[nStrips]={0.0};
 Double_t tNormYieldB1H1L0[nStrips]={0.0},tNormYieldB1H1L0Er[nStrips]={0.0};
 Double_t tNormYieldB1H0L1[nStrips]={0.0},tNormYieldB1H0L1Er[nStrips]={0.0};
 Double_t tNormYieldB1H0L0[nStrips]={0.0},tNormYieldB1H0L0Er[nStrips]={0.0};
-Double_t timeB0, rateB0[nStrips]={0.0};
+Double_t timeB0, rateB0[nStrips], rateB0Er[nStrips];
 Double_t checkAsym=0.0;///use to check if sign of asymmetry changed during run
 const Int_t myStr = 35;///a sample strip number to check for various quantities;
 ///skip p1:s02,s06,s20 //as of Feb2,2012

@@ -12,6 +12,7 @@
 #include "determineNoise.C"
 #include "corrDeadtime.C"
 #include "writeFortOut.C"
+#include "writeFortFile.C"
 //#include "lasCycOut.C"
 ///////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton electron detector run laser wise and plots the ...
@@ -41,6 +42,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   Double_t diffB1L1[nStrips], diffB1L0[nStrips];
   Double_t bYield[nStrips],bDiff[nStrips],bAsym[nStrips];
   Double_t qLCH1L1 =0.0, qLCH1L0 =0.0, qLCH0L1 =0.0, qLCH0L0 =0.0;
+  Double_t qIgnoredH1L1=0.0,qIgnoredH1L0=0.0,qIgnoredH0L1=0.0,qIgnoredH0L0=0.0;///total current
   Double_t lasPow[3],y_bcm[3],d_bcm[3],bModRamp[3];//declaring 3 element array to accomodate: value, deviceErrorCode, raw
   Double_t y_3p02aY[2], y_3p02bY[2], y_3p03aY[2], y_3c20Y[2];
   Double_t y_3p02aX[2], y_3p02bX[2], y_3p03aX[2], y_3c20X[2];
@@ -532,7 +534,9 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           fOut.open(file);
           fOut<<runnum<<"\t"<<nCycle+1<<"\t"<<countsLCB1H1L1<<"\t"<< countsLCB1H1L0<<"\t"<< countsLCB1H0L1<<"\t"<< countsLCB1H0L0<<endl;
           fOut.close();
-          return -3;
+          cout<<"attempting to use data up to the previous laser cycle to extract polarization"<<endl;
+          break;///just exiting the nCycle loop
+          //return -3;if you wanted to exit after detecting HWP change
         } else if(evaluated<0) {
           cout<<red<<"evaluateAsym reported background corrected yield to be negative in lasCycle "<<nCycle+1<<" hence skipping"<<normal<<endl;
           continue;///go to next nCycle
@@ -548,278 +552,282 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       }
       }///sanity check of being non-zero for filled laser cycle variables
       //    else cout<<"this LasCyc: "<<nCycle+1<<" had a beam trip(nthBeamTrip:"<<nthBeamTrip<<"), hence skipping"<<endl;
-    } else { ///if (beamOn); for kOnlyGoodCycles=1, the whole loop is avoided if the lasCyc had a beamTrip
-      for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
-        helChain->GetEntry(i);
+      } else { ///if (beamOn); for kOnlyGoodCycles=1, the whole loop is avoided if the lasCyc had a beamTrip
+        for(Int_t i =cutLas.at(2*nCycle); i <cutLas.at(2*nCycle+2); i++) { 
+          helChain->GetEntry(i);
 
-        if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<lasOffCut) lasOn= 0; ///laser off zone
-        else if((i > cutLas.at(2*nCycle+1)) && (lasPow[0]>acceptLasPow)) lasOn =1;///laser on zone
-        else {
-          lasOn = -1;
-          continue;
-        }
-
-        if(kBeamStable) {
-          if((fabs(d_3p02aY[0]) < bpmDiff) || (fabs(d_3p02bY[0]) < bpmDiff) || (fabs(d_3p03aY[0]) < bpmDiff)) beamStable = 1;
+          if((i < cutLas.at(2*nCycle+1)) && lasPow[0]<lasOffCut) lasOn= 0; ///laser off zone
+          else if((i > cutLas.at(2*nCycle+1)) && (lasPow[0]>acceptLasPow)) lasOn =1;///laser on zone
           else {
-            beamStable = 0;
+            lasOn = -1;
             continue;
           }
-        }
 
-        if ((y_bcm[0]+d_bcm[0]) > beamOnLimit) {
-          if (kRejectBMod && (bModRamp[0]>100.0)) {
-            continue;///ignore this entry if beam modulation is on
+          if(kBeamStable) {
+            if((fabs(d_3p02aY[0]) < bpmDiff) || (fabs(d_3p02bY[0]) < bpmDiff) || (fabs(d_3p03aY[0]) < bpmDiff)) beamStable = 1;
+            else {
+              beamStable = 0;
+              continue;
+            }
           }
-        } else continue; ///ignore this entry if  beam is < 20uA
-        //if(bYield[0][44]>0.0) cout<<blue<<i<<"\t"<<yieldB1L1[0][44]<<"\t"<<bYield[0][44]<<normal<<endl;    //temp
-        if(lasOn ==1) {
-          nHelLCB1L1++;
-          qLCH1L1 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
-          qLCH0L1 += (y_bcm[0]-d_bcm[0])/(2*helRate);
-        } else if(lasOn ==0) {
-          nHelLCB1L0++;
-          qLCH1L0 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
-          qLCH0L0 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+
+          if ((y_bcm[0]+d_bcm[0]) > beamOnLimit) {
+            if (kRejectBMod && (bModRamp[0]>100.0)) {
+              continue;///ignore this entry if beam modulation is on
+            }
+          } else continue; ///ignore this entry if  beam is < 20uA
+          //if(bYield[0][44]>0.0) cout<<blue<<i<<"\t"<<yieldB1L1[0][44]<<"\t"<<bYield[0][44]<<normal<<endl;    //temp
+          if(lasOn ==1) {
+            nHelLCB1L1++;
+            qLCH1L1 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
+            qLCH0L1 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+          } else if(lasOn ==0) {
+            nHelLCB1L0++;
+            qLCH1L0 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
+            qLCH0L0 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+          }
         }
+        qIgnoredH1L1 += qLCH1L1;///these are the charge for only clean laser cycles
+        qIgnoredH1L0 += qLCH1L0;
+        qIgnoredH0L1 += qLCH0L1;
+        qIgnoredH0L0 += qLCH0L0;
+      }///if (beamOn)
+
+      ///writing out the counts in the fortran format as asked by G, this is a variation of the previous kLasCycPrint functionality
+      file = Form("%s/%s/%sFortOutP%d.txt",pPath, txt, filePre.Data(),plane);
+      writeFortOut(file, nCycle, countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , lasPowLCB1L1, lasPowLCB1L0, nHelLCB1L1, nHelLCB1L0);
+      }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
+      //cout<<blue<<missedDueToPosCut<<" quartets rejected due to beam position cut"<<normal<<endl;
+      cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
+
+      if(kBPMYield) {
+        //TCanvas *cBPM = new TCanvas("cBPM",Form("stability parameters for run %d",runnum),0,0,1200,900);
+        //cBPM->Divide(3,2);// # of col,# of row
+        ///absolute beam position in Compton interaction region in X for BPM
+        Double_t mean_y3p02aX, meanEr_y3p02aX, rms_y3p02aX;
+        Double_t mean_y3p02bX, meanEr_y3p02bX, rms_y3p02bX;
+        Double_t mean_y3p03aX, meanEr_y3p03aX, rms_y3p03aX;
+        Double_t mean_y3c20X, meanEr_y3c20X, rms_y3c20X;
+
+        mean_y3p02aX = hy3p02aX->GetMean();
+        meanEr_y3p02aX = hy3p02aX->GetMeanError();
+        rms_y3p02aX = hy3p02aX->GetRMS();
+        mean_y3p02bX = hy3p02bX->GetMean();
+        meanEr_y3p02bX = hy3p02bX->GetMeanError();
+        rms_y3p02bX = hy3p02bX->GetRMS();
+        mean_y3p03aX = hy3p03aX->GetMean();
+        meanEr_y3p03aX = hy3p03aX->GetMeanError();
+        rms_y3p03aX = hy3p03aX->GetRMS();
+        mean_y3c20X = hy3c20X->GetMean();
+        meanEr_y3c20X = hy3c20X->GetMeanError();
+        rms_y3c20X = hy3c20X->GetRMS();
+
+        file = Form("%s/%s/%sBPM_yieldX.txt",pPath, txt,filePre.Data());
+        fOut.open(file);
+        fOut<<"run\tmeany3p02a\tmeanEry3p02a\trmsy3p02a\tmeany3p02b\tmeanEry3p02b\trmsy3p02b\tmeany3p03a\tmeanEry3p03a\trmsy3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
+        fOut<<runnum<<"\t"<<
+          mean_y3p02aX<<"\t"<<meanEr_y3p02aX<<"\t"<<rms_y3p02aX<<"\t"<<
+          mean_y3p02bX<<"\t"<<meanEr_y3p02bX<<"\t"<<rms_y3p02bX<<"\t"<<
+          mean_y3p03aX<<"\t"<<meanEr_y3p03aX<<"\t"<<rms_y3p03aX<<"\t"<<
+          mean_y3c20X<<"\t"<<meanEr_y3c20X<<"\t"<<rms_y3c20X<<endl;
+        fOut.close();
+
+        ///absolute beam position of BPMs in Compton region
+        Double_t mean_y3p02aY, meanEr_y3p02aY, rms_y3p02aY;
+        Double_t mean_y3p02bY, meanEr_y3p02bY, rms_y3p02bY;
+        Double_t mean_y3p03aY, meanEr_y3p03aY, rms_y3p03aY;
+        Double_t mean_y3c20Y, meanEr_y3c20Y, rms_y3c20Y;
+
+        mean_y3p02aY = hy3p02aY->GetMean();
+        meanEr_y3p02aY = hy3p02aY->GetMeanError();
+        rms_y3p02aY = hy3p02aY->GetRMS();
+        mean_y3p02bY = hy3p02bY->GetMean();
+        meanEr_y3p02bY = hy3p02bY->GetMeanError();
+        rms_y3p02bY = hy3p02bY->GetRMS();
+        mean_y3p03aY = hy3p03aY->GetMean();
+        meanEr_y3p03aY = hy3p03aY->GetMeanError();
+        rms_y3p03aY = hy3p03aY->GetRMS();
+        mean_y3c20Y = hy3c20Y->GetMean();
+        meanEr_y3c20Y = hy3c20Y->GetMeanError();
+        rms_y3c20Y = hy3c20Y->GetRMS();
+
+        TCanvas *cYieldBPM = new TCanvas("cYieldBPM", Form("YieldBPM run %d",runnum), 0,0,1400,400);
+        cYieldBPM->Divide(4,1);//nCol,nRow
+        cYieldBPM->cd(1);
+        hy3p02aY->Draw("H");
+        cYieldBPM->cd(2);
+        hy3p02bY->Draw("H");
+        cYieldBPM->cd(3);
+        hy3p03aY->Draw("H");
+        cYieldBPM->cd(4);
+        hy3c20Y->Draw("H");
+        cYieldBPM->SaveAs(Form("%s/%s/%sYieldBPM.png",pPath,www,filePre.Data()));
+
+        file = Form("%s/%s/%sBPM_yieldY.txt",pPath, txt,filePre.Data());
+        fOut.open(file);
+        fOut<<"run\tmeany3p02a\tmeanEry3p02a\trmsy3p02a\tmeany3p02b\tmeanEry3p02b\trmsy3p02b\tmeany3p03a\tmeanEry3p03a\trmsy3p03a\tmeany3c20\tmeanEry3c20\trmsy3c20"<<endl;
+        fOut<<runnum<<"\t"<<
+          mean_y3p02aY<<"\t"<<meanEr_y3p02aY<<"\t"<<rms_y3p02aY<<"\t"<<
+          mean_y3p02bY<<"\t"<<meanEr_y3p02bY<<"\t"<<rms_y3p02bY<<"\t"<<
+          mean_y3p03aY<<"\t"<<meanEr_y3p03aY<<"\t"<<rms_y3p03aY<<"\t"<<
+          mean_y3c20Y<<"\t"<<meanEr_y3c20Y<<"\t"<<rms_y3c20Y<<endl;
+        fOut.close();
       }
-      qIgnoredH1L1 += qLCH1L1;///these are the charge for only clean laser cycles
-      qIgnoredH1L0 += qLCH1L0;
-      qIgnoredH0L1 += qLCH0L1;
-      qIgnoredH0L0 += qLCH0L0;
-    }///if (beamOn)
 
-    ///writing out the counts in the fortran format as asked by G, this is a variation of the previous kLasCycPrint functionality
-    file = Form("%s/%s/%sFortOutP%d.txt",pPath, txt, filePre.Data(),plane);
-    writeFortOut(file, nCycle, countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , lasPowLCB1L1, lasPowLCB1L0, nHelLCB1L1, nHelLCB1L0);
-  }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
-  //cout<<blue<<missedDueToPosCut<<" quartets rejected due to beam position cut"<<normal<<endl;
-  cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
+      if(kBPMDiff) {
+        ///helicity correlated beam position difference in X for BPM in Compton region
+        Double_t mean_3p02aX, meanEr_3p02aX, rms_3p02aX;
+        Double_t mean_3p02bX, meanEr_3p02bX, rms_3p02bX;
+        Double_t mean_3p03aX, meanEr_3p03aX, rms_3p03aX;
+        Double_t mean_3c20X, meanEr_3c20X, rms_3c20X;
 
-  //TCanvas *cBPM = new TCanvas("cBPM",Form("stability parameters for run %d",runnum),0,0,1200,900);
-  //cBPM->Divide(3,2);// # of col,# of row
-  ///absolute beam position in Compton interaction region in X for BPM
-  Double_t mean_y3p02aX, meanEr_y3p02aX, rms_y3p02aX;
-  Double_t mean_y3p02bX, meanEr_y3p02bX, rms_y3p02bX;
-  Double_t mean_y3p03aX, meanEr_y3p03aX, rms_y3p03aX;
-  Double_t mean_y3c20X, meanEr_y3c20X, rms_y3c20X;
+        mean_3p02aX = h3p02aX->GetMean();
+        meanEr_3p02aX = h3p02aX->GetMeanError();
+        rms_3p02aX = h3p02aX->GetRMS();
+        mean_3p02bX = h3p02bX->GetMean();
+        meanEr_3p02bX = h3p02bX->GetMeanError();
+        rms_3p02bX = h3p02bX->GetRMS();
+        mean_3p03aX = h3p03aX->GetMean();
+        meanEr_3p03aX = h3p03aX->GetMeanError();
+        rms_3p03aX = h3p03aX->GetRMS();
+        mean_3c20X = h3c20X->GetMean();
+        meanEr_3c20X = h3c20X->GetMeanError();
+        rms_3c20X = h3c20X->GetRMS();
 
-  mean_y3p02aX = hy3p02aX->GetMean();
-  meanEr_y3p02aX = hy3p02aX->GetMeanError();
-  rms_y3p02aX = hy3p02aX->GetRMS();
-  mean_y3p02bX = hy3p02bX->GetMean();
-  meanEr_y3p02bX = hy3p02bX->GetMeanError();
-  rms_y3p02bX = hy3p02bX->GetRMS();
-  mean_y3p03aX = hy3p03aX->GetMean();
-  meanEr_y3p03aX = hy3p03aX->GetMeanError();
-  rms_y3p03aX = hy3p03aX->GetRMS();
-  mean_y3c20X = hy3c20X->GetMean();
-  meanEr_y3c20X = hy3c20X->GetMeanError();
-  rms_y3c20X = hy3c20X->GetRMS();
+        file = Form("%s/%s/%sBPM_diffX.txt",pPath, txt,filePre.Data());
+        fOut.open(file);
+        fOut<<"run\tmean3p02a\tmeanEr3p02a\trms3p02a\tmean3p02b\tmeanEr3p02b\trms3p02b\tmean3p03a\tmeanEr3p03a\trms3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
+        fOut<<runnum<<"\t"<<
+          mean_3p02aX<<"\t"<<meanEr_3p02aX<<"\t"<<rms_3p02aX<<"\t"<<
+          mean_3p02bX<<"\t"<<meanEr_3p02bX<<"\t"<<rms_3p02bX<<"\t"<<
+          mean_3p03aX<<"\t"<<meanEr_3p03aX<<"\t"<<rms_3p03aX<<"\t"<<
+          mean_3c20X<<"\t"<<meanEr_3c20X<<"\t"<<rms_3c20X<<endl;
+        fOut.close();
 
-  file = Form("%s/%s/%sBPM_yieldX.txt",pPath, txt,filePre.Data());
-  fOut.open(file);
-  fOut<<"run\tmeany3p02a\tmeanEry3p02a\trmsy3p02a\tmeany3p02b\tmeanEry3p02b\trmsy3p02b\tmeany3p03a\tmeanEry3p03a\trmsy3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
-  fOut<<runnum<<"\t"<<
-    mean_y3p02aX<<"\t"<<meanEr_y3p02aX<<"\t"<<rms_y3p02aX<<"\t"<<
-    mean_y3p02bX<<"\t"<<meanEr_y3p02bX<<"\t"<<rms_y3p02bX<<"\t"<<
-    mean_y3p03aX<<"\t"<<meanEr_y3p03aX<<"\t"<<rms_y3p03aX<<"\t"<<
-    mean_y3c20X<<"\t"<<meanEr_y3c20X<<"\t"<<rms_y3c20X<<endl;
-  fOut.close();
+        ///helicity correlated beam position difference in Y for BPM in Compton region
+        Double_t mean_3p02aY, meanEr_3p02aY, rms_3p02aY;
+        Double_t mean_3p02bY, meanEr_3p02bY, rms_3p02bY;
+        Double_t mean_3p03aY, meanEr_3p03aY, rms_3p03aY;
+        Double_t mean_3c20Y, meanEr_3c20Y, rms_3c20Y;
 
-  ///absolute beam position of BPMs in Compton region
-  Double_t mean_y3p02aY, meanEr_y3p02aY, rms_y3p02aY;
-  Double_t mean_y3p02bY, meanEr_y3p02bY, rms_y3p02bY;
-  Double_t mean_y3p03aY, meanEr_y3p03aY, rms_y3p03aY;
-  Double_t mean_y3c20Y, meanEr_y3c20Y, rms_y3c20Y;
+        mean_3p02aY = h3p02aY->GetMean();
+        meanEr_3p02aY = h3p02aY->GetMeanError();
+        rms_3p02aY = h3p02aY->GetRMS();
+        mean_3p02bY = h3p02bY->GetMean();
+        meanEr_3p02bY = h3p02bY->GetMeanError();
+        rms_3p02bY = h3p02bY->GetRMS();
+        mean_3p03aY = h3p03aY->GetMean();
+        meanEr_3p03aY = h3p03aY->GetMeanError();
+        rms_3p03aY = h3p03aY->GetRMS();
+        mean_3c20Y = h3c20Y->GetMean();
+        meanEr_3c20Y = h3c20Y->GetMeanError();
+        rms_3c20Y = h3c20Y->GetRMS();
 
-  mean_y3p02aY = hy3p02aY->GetMean();
-  meanEr_y3p02aY = hy3p02aY->GetMeanError();
-  rms_y3p02aY = hy3p02aY->GetRMS();
-  mean_y3p02bY = hy3p02bY->GetMean();
-  meanEr_y3p02bY = hy3p02bY->GetMeanError();
-  rms_y3p02bY = hy3p02bY->GetRMS();
-  mean_y3p03aY = hy3p03aY->GetMean();
-  meanEr_y3p03aY = hy3p03aY->GetMeanError();
-  rms_y3p03aY = hy3p03aY->GetRMS();
-  mean_y3c20Y = hy3c20Y->GetMean();
-  meanEr_y3c20Y = hy3c20Y->GetMeanError();
-  rms_y3c20Y = hy3c20Y->GetRMS();
+        file = Form("%s/%s/%sBPM_diffY.txt",pPath, txt,filePre.Data());
+        fOut.open(file);
+        fOut<<"run\tmean3p02a\tmeanEr3p02a\trms3p02a\tmean3p02b\tmeanEr3p02b\trms3p02b\tmean3p03a\tmeanEr3p03a\trms3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
+        fOut<<runnum<<"\t"<<
+          mean_3p02aY<<"\t"<<meanEr_3p02aY<<"\t"<<rms_3p02aY<<"\t"<<
+          mean_3p02bY<<"\t"<<meanEr_3p02bY<<"\t"<<rms_3p02bY<<"\t"<<
+          mean_3p03aY<<"\t"<<meanEr_3p03aY<<"\t"<<rms_3p03aY<<"\t"<<
+          mean_3c20Y<<"\t"<<meanEr_3c20Y<<"\t"<<rms_3c20Y<<endl;
+        fOut.close();
+      }
 
-  TCanvas *cYieldBPM = new TCanvas("cYieldBPM", Form("YieldBPM run %d",runnum), 0,0,1400,400);
-  cYieldBPM->Divide(4,1);//nCol,nRow
-  cYieldBPM->cd(1);
-  hy3p02aY->Draw("H");
-  cYieldBPM->cd(2);
-  hy3p02bY->Draw("H");
-  cYieldBPM->cd(3);
-  hy3p03aY->Draw("H");
-  cYieldBPM->cd(4);
-  hy3c20Y->Draw("H");
-  cYieldBPM->SaveAs(Form("%s/%s/%sYieldBPM.png",pPath,www,filePre.Data()));
+      if(goodCycles>0) {
+        Double_t wm_out = weightedMean();//wmNrAsym, wmDrAsym, wmNrBCqNormSum, wmDrBCqNormSum, wmNrBCqNormDiff, wmNrqNormB1L0, wmDrqNormB1L0, wmNrBkgdAsym, wmDrBkgdAsym);
+        if(wm_out<0) {
+          cout<<red<<"the weightedMean macro returned negative,check what's wrong"<<normal<<endl;
+          return -6;///exit the execution
+        }
 
-  file = Form("%s/%s/%sBPM_yieldY.txt",pPath, txt,filePre.Data());
-  fOut.open(file);
-  fOut<<"run\tmeany3p02a\tmeanEry3p02a\trmsy3p02a\tmeany3p02b\tmeanEry3p02b\trmsy3p02b\tmeany3p03a\tmeanEry3p03a\trmsy3p03a\tmeany3c20\tmeanEry3c20\trmsy3c20"<<endl;
-  fOut<<runnum<<"\t"<<
-    mean_y3p02aY<<"\t"<<meanEr_y3p02aY<<"\t"<<rms_y3p02aY<<"\t"<<
-    mean_y3p02bY<<"\t"<<meanEr_y3p02bY<<"\t"<<rms_y3p02bY<<"\t"<<
-    mean_y3p03aY<<"\t"<<meanEr_y3p03aY<<"\t"<<rms_y3p03aY<<"\t"<<
-    mean_y3c20Y<<"\t"<<meanEr_y3c20Y<<"\t"<<rms_y3c20Y<<endl;
-  fOut.close();
+        ///Note: All of the following variables are populated only for clean laser cycles
+        qNormVariables(totyieldB1H1L1, qAllH1L1, qNormCntsB1H1L1, qNormCntsB1H1L1Er);//background uncorrected yield
+        qNormVariables(totyieldB1H1L0, qAllH1L0, qNormCntsB1H1L0, qNormCntsB1H1L0Er);//background yield
+        qNormVariables(totyieldB1H0L1, qAllH0L1, qNormCntsB1H0L1, qNormCntsB1H0L1Er);//background uncorrected yield
+        qNormVariables(totyieldB1H0L0, qAllH0L0, qNormCntsB1H0L0, qNormCntsB1H0L0Er);//background yield
+        tNormVariables(totyieldB1H1L1, totHelB1H1L1, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
+        tNormVariables(totyieldB1H1L0, totHelB1H1L0, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
+        tNormVariables(totyieldB1H0L1, totHelB1H0L1, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
+        tNormVariables(totyieldB1H0L0, totHelB1H0L0, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
 
-  ///helicity correlated beam position difference in X for BPM in Compton region
-  Double_t mean_3p02aX, meanEr_3p02aX, rms_3p02aX;
-  Double_t mean_3p02bX, meanEr_3p02bX, rms_3p02bX;
-  Double_t mean_3p03aX, meanEr_3p03aX, rms_3p03aX;
-  Double_t mean_3c20X, meanEr_3c20X, rms_3c20X;
+        file = Form("%s/%s/%sExpAsymP%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, stripAsym, stripAsymEr);
 
-  mean_3p02aX = h3p02aX->GetMean();
-  meanEr_3p02aX = h3p02aX->GetMeanError();
-  rms_3p02aX = h3p02aX->GetRMS();
-  mean_3p02bX = h3p02bX->GetMean();
-  meanEr_3p02bX = h3p02bX->GetMeanError();
-  rms_3p02bX = h3p02bX->GetRMS();
-  mean_3p03aX = h3p03aX->GetMean();
-  meanEr_3p03aX = h3p03aX->GetMeanError();
-  rms_3p03aX = h3p03aX->GetRMS();
-  mean_3c20X = h3c20X->GetMean();
-  meanEr_3c20X = h3c20X->GetMeanError();
-  rms_3c20X = h3c20X->GetRMS();
+        file = Form("%s/%s/%sBkgdAsymP%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, bkgdAsym, bkgdAsymEr);
 
-  file = Form("%s/%s/%sBPM_diffX.txt",pPath, txt,filePre.Data());
-  fOut.open(file);
-  fOut<<"run\tmean3p02a\tmeanEr3p02a\trms3p02a\tmean3p02b\tmeanEr3p02b\trms3p02b\tmean3p03a\tmeanEr3p03a\trms3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
-  fOut<<runnum<<"\t"<<
-    mean_3p02aX<<"\t"<<meanEr_3p02aX<<"\t"<<rms_3p02aX<<"\t"<<
-    mean_3p02bX<<"\t"<<meanEr_3p02bX<<"\t"<<rms_3p02bX<<"\t"<<
-    mean_3p03aX<<"\t"<<meanEr_3p03aX<<"\t"<<rms_3p03aX<<"\t"<<
-    mean_3c20X<<"\t"<<meanEr_3c20X<<"\t"<<rms_3c20X<<endl;
-  fOut.close();
+        file = Form("%s/%s/%sYieldP%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, stripAsymDr, stripAsymDrEr);
 
-  ///helicity correlated beam position difference in Y for BPM in Compton region
-  Double_t mean_3p02aY, meanEr_3p02aY, rms_3p02aY;
-  Double_t mean_3p02bY, meanEr_3p02bY, rms_3p02bY;
-  Double_t mean_3p03aY, meanEr_3p03aY, rms_3p03aY;
-  Double_t mean_3c20Y, meanEr_3c20Y, rms_3c20Y;
+        file = Form("%s/%s/%sLasOffBkgdP%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, qNormB1L0, qNormB1L0Er);
 
-  mean_3p02aY = h3p02aY->GetMean();
-  meanEr_3p02aY = h3p02aY->GetMeanError();
-  rms_3p02aY = h3p02aY->GetRMS();
-  mean_3p02bY = h3p02bY->GetMean();
-  meanEr_3p02bY = h3p02bY->GetMeanError();
-  rms_3p02bY = h3p02bY->GetRMS();
-  mean_3p03aY = h3p03aY->GetMean();
-  meanEr_3p03aY = h3p03aY->GetMeanError();
-  rms_3p03aY = h3p03aY->GetRMS();
-  mean_3c20Y = h3c20Y->GetMean();
-  meanEr_3c20Y = h3c20Y->GetMeanError();
-  rms_3c20Y = h3c20Y->GetRMS();
+        file = Form("%s/%s/%sqNormCntsB1H1L1P%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, qNormCntsB1H1L1, qNormCntsB1H1L1Er);
 
-  file = Form("%s/%s/%sBPM_diffY.txt",pPath, txt,filePre.Data());
-  fOut.open(file);
-  fOut<<"run\tmean3p02a\tmeanEr3p02a\trms3p02a\tmean3p02b\tmeanEr3p02b\trms3p02b\tmean3p03a\tmeanEr3p03a\trms3p03a\tmean3c20\tmeanEr3c20\trms3c20"<<endl;
-  fOut<<runnum<<"\t"<<
-    mean_3p02aY<<"\t"<<meanEr_3p02aY<<"\t"<<rms_3p02aY<<"\t"<<
-    mean_3p02bY<<"\t"<<meanEr_3p02bY<<"\t"<<rms_3p02bY<<"\t"<<
-    mean_3p03aY<<"\t"<<meanEr_3p03aY<<"\t"<<rms_3p03aY<<"\t"<<
-    mean_3c20Y<<"\t"<<meanEr_3c20Y<<"\t"<<rms_3c20Y<<endl;
-  fOut.close();
+        file = Form("%s/%s/%sqNormCntsB1H1L0P%d.txt",pPath, txt,filePre.Data(),plane); 
+        write3CfileArray(file, stripArray, qNormCntsB1H1L0, qNormCntsB1H1L0Er);
 
-  if(goodCycles>0) {
-    Double_t wm_out = weightedMean();//wmNrAsym, wmDrAsym, wmNrBCqNormSum, wmDrBCqNormSum, wmNrBCqNormDiff, wmNrqNormB1L0, wmDrqNormB1L0, wmNrBkgdAsym, wmDrBkgdAsym);
-    if(wm_out<0) {
-      cout<<red<<"the weightedMean macro returned negative,check what's wrong"<<normal<<endl;
-      return -6;///exit the execution
+        file = Form("%s/%s/%sqNormCntsB1H0L1P%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, qNormCntsB1H0L1, qNormCntsB1H0L1Er);
+
+        file = Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath, txt,filePre.Data(),plane); 
+        write3CfileArray(file, stripArray, qNormCntsB1H0L0, qNormCntsB1H0L0Er);
+
+        Double_t qNormTot[nStrips], qNormTotEr[nStrips];///total yield without bgd subtraction
+        for(int s=0; s<nStrips; s++) {
+          qNormTot[s] = qNormCntsB1H1L1[s] + qNormCntsB1H1L0[s] + qNormCntsB1H0L1[s] + qNormCntsB1H0L0[s];
+          qNormTotEr[s] = TMath::Sqrt(pow(qNormCntsB1H1L1Er[s],2) + pow(qNormCntsB1H1L0Er[s],2) + pow(qNormCntsB1H0L1Er[s],2) + pow(qNormCntsB1H0L0Er[s],2));
+        }
+        file = Form("%s/%s/%stotYieldB1P%d.txt",pPath, txt,filePre.Data(),plane); 
+        write3CfileArray(file, stripArray, qNormTot, qNormTotEr);
+
+        file = Form("%s/%s/%stNormYieldB1H1L1P%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
+
+        file = Form("%s/%s/%stNormYieldB1H1L0P%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
+
+        file = Form("%s/%s/%stNormYieldB1H0L1P%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
+
+        file = Form("%s/%s/%stNormYieldB1H0L0P%d.txt",pPath, txt,filePre.Data(),plane);
+        write3CfileArray(file, stripArray, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
+
+        file = Form("%s/%s/%sFortranCheckP%d.txt",pPath, txt, filePre.Data(),plane);
+        //1st line of this file will have information about the last cycle
+        Int_t totHelB1L1 = totHelB1H1L1 + totHelB1H0L1;
+        Int_t totHelB1L0 = totHelB1H1L0 + totHelB1H0L0;
+        writeFortFile(file, nLasCycles, totyieldB1H1L1, totyieldB1H1L0, totyieldB1H0L1, totyieldB1H0L0, qAllH1L1, qAllH1L0, qAllH0L1, qAllH0L0, qIgnoredH1L1, qIgnoredH1L0, qIgnoredH0L1, qIgnoredH0L0, lasOffCut, acceptLasPow, totHelB1L1, totHelB1L0);
+      } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
+      tEnd = time(0);
+      div_output = div((Int_t)difftime(tEnd, tStart),60);
+      printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  
+      if(kRejectBMod) cout<<blue<<"total no.of quartets ignored due to Beam Mod : "<<totalMissedQuartets<<normal<<endl;
+      cout<<"total quartets missed due to beamCut EVEN within good laser cycles was "<<missedDueToBeamCut<<endl;
+      cout<<blue<<"We used "<<goodCycles<<", out of "<<nLasCycles<<" laser cycles in run "<<runnum<<normal<<endl;
+
+      delete helChain;
+      return goodCycles;//the function returns the number of used Laser cycles
     }
 
-    ///Note: All of the following variables are populated only for clean laser cycles
-    qNormVariables(totyieldB1H1L1, qAllH1L1, qNormCntsB1H1L1, qNormCntsB1H1L1Er);//background uncorrected yield
-    qNormVariables(totyieldB1H1L0, qAllH1L0, qNormCntsB1H1L0, qNormCntsB1H1L0Er);//background yield
-    qNormVariables(totyieldB1H0L1, qAllH0L1, qNormCntsB1H0L1, qNormCntsB1H0L1Er);//background uncorrected yield
-    qNormVariables(totyieldB1H0L0, qAllH0L0, qNormCntsB1H0L0, qNormCntsB1H0L0Er);//background yield
-    tNormVariables(totyieldB1H1L1, totHelB1H1L1, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
-    tNormVariables(totyieldB1H1L0, totHelB1H1L0, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
-    tNormVariables(totyieldB1H0L1, totHelB1H0L1, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
-    tNormVariables(totyieldB1H0L0, totHelB1H0L0, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
-
-    file = Form("%s/%s/%sExpAsymP%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, stripAsym, stripAsymEr);
-
-    file = Form("%s/%s/%sBkgdAsymP%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, bkgdAsym, bkgdAsymEr);
-
-    file = Form("%s/%s/%sYieldP%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, stripAsymDr, stripAsymDrEr);
-
-    file = Form("%s/%s/%sLasOffBkgdP%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, qNormB1L0, qNormB1L0Er);
-
-    file = Form("%s/%s/%sqNormCntsB1H1L1P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, qNormCntsB1H1L1, qNormCntsB1H1L1Er);
-
-    file = Form("%s/%s/%sqNormCntsB1H1L0P%d.txt",pPath, txt,filePre.Data(),plane); 
-    write3CfileArray(file, stripArray, qNormCntsB1H1L0, qNormCntsB1H1L0Er);
-
-    file = Form("%s/%s/%sqNormCntsB1H0L1P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, qNormCntsB1H0L1, qNormCntsB1H0L1Er);
-
-    file = Form("%s/%s/%sqNormCntsB1H0L0P%d.txt",pPath, txt,filePre.Data(),plane); 
-    write3CfileArray(file, stripArray, qNormCntsB1H0L0, qNormCntsB1H0L0Er);
-
-    Double_t qNormTot[nStrips], qNormTotEr[nStrips];///total yield without bgd subtraction
-    for(int s=0; s<nStrips; s++) {
-      qNormTot[s] = qNormCntsB1H1L1[s] + qNormCntsB1H1L0[s] + qNormCntsB1H0L1[s] + qNormCntsB1H0L0[s];
-      qNormTotEr[s] = TMath::Sqrt(pow(qNormCntsB1H1L1Er[s],2) + pow(qNormCntsB1H1L0Er[s],2) + pow(qNormCntsB1H0L1Er[s],2) + pow(qNormCntsB1H0L0Er[s],2));
-    }
-    file = Form("%s/%s/%stotYieldB1P%d.txt",pPath, txt,filePre.Data(),plane); 
-    write3CfileArray(file, stripArray, qNormTot, qNormTotEr);
-
-    file = Form("%s/%s/%stNormYieldB1H1L1P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, tNormYieldB1H1L1, tNormYieldB1H1L1Er);
-
-    file = Form("%s/%s/%stNormYieldB1H1L0P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, tNormYieldB1H1L0, tNormYieldB1H1L0Er);
-
-    file = Form("%s/%s/%stNormYieldB1H0L1P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, tNormYieldB1H0L1, tNormYieldB1H0L1Er);
-
-    file = Form("%s/%s/%stNormYieldB1H0L0P%d.txt",pPath, txt,filePre.Data(),plane);
-    write3CfileArray(file, stripArray, tNormYieldB1H0L0, tNormYieldB1H0L0Er);
-
-    file = Form("%s/%s/%sFortranCheckP%d.txt",pPath, txt, filePre.Data(),plane);
-    //1st line of this file will have information about the last cycle
-    Int_t totHelB1L1 = totHelB1H1L1 + totHelB1H0L1;
-    Int_t totHelB1L0 = totHelB1H1L0 + totHelB1H0L0;
-    writeFortOut(file, nLasCycles, totyieldB1H1L1, totyieldB1H1L0, totyieldB1H0L1, totyieldB1H0L0, qAllH1L1, qAllH1L0, qAllH0L1, qAllH0L0 , lasOffCut, acceptLasPow, totHelB1L1, totHelB1L0);
-  } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
-  tEnd = time(0);
-  div_output = div((Int_t)difftime(tEnd, tStart),60);
-  printf("\n it took %d minutes %d seconds to evaluate expAsym.\n",div_output.quot,div_output.rem );  
-  if(kRejectBMod) cout<<blue<<"total no.of quartets ignored due to Beam Mod : "<<totalMissedQuartets<<normal<<endl;
-  cout<<"total quartets missed due to beamCut EVEN within good laser cycles was "<<missedDueToBeamCut<<endl;
-  cout<<blue<<"We used "<<goodCycles<<", out of "<<nLasCycles<<" laser cycles in run "<<runnum<<normal<<endl;
-
-  delete helChain;
-  return goodCycles;//the function returns the number of used Laser cycles
-  }
-
-  /******************************************************
+    /******************************************************
 Comments:
-   * B1: beam on; H1: helicity plus; L1: laser on; and vice versa
-   * qNormXXX: charge normalized quantity; tNormXXX: time normalized quantity
-   * BC: Backgraound Corrected.
-   * wm: weightedMean, Ac: Accum, Sc: Scaler, Ev: Event
-   * each Laser cycle consitutes of one laser Off zone followed by one laser On period.
-   * ..it begins with a Laser Off period and ends with the (just)next laser On period.
-   * If we get too many missedEntries,check 'acceptLasPow' and 'lasOffCut' variables
-   * The first laser-on(if the run begins with that) is ignored.
-   * While checking if we want to consider a laser cycle as bad, we check till 
-   * ..the beginning of the next laser cycle on purpose to make sure that the 
-   * ..beam was indeed ON during both laser On as well as Off periods
-   * nCycle refers to the present/current/ongoing laser-cycle
-   * nthBeamTrip (on the contrary) refers to the upcoming beamTrip
-   * the code counts from '0' but at all human interface, I add '+1' hence human counting
-   * Notice that my beamOff's are not true beam-off, they include ramping data as well
-   * Careful: there are some h=-9999 that appears in beginning of every runlet
-   ******************************************************/
+     * B1: beam on; H1: helicity plus; L1: laser on; and vice versa
+     * qNormXXX: charge normalized quantity; tNormXXX: time normalized quantity
+     * BC: Backgraound Corrected.
+     * wm: weightedMean, Ac: Accum, Sc: Scaler, Ev: Event
+     * each Laser cycle consitutes of one laser Off zone followed by one laser On period.
+     * ..it begins with a Laser Off period and ends with the (just)next laser On period.
+     * If we get too many missedEntries,check 'acceptLasPow' and 'lasOffCut' variables
+     * The first laser-on(if the run begins with that) is ignored.
+     * While checking if we want to consider a laser cycle as bad, we check till 
+     * ..the beginning of the next laser cycle on purpose to make sure that the 
+     * ..beam was indeed ON during both laser On as well as Off periods
+     * nCycle refers to the present/current/ongoing laser-cycle
+     * nthBeamTrip (on the contrary) refers to the upcoming beamTrip
+     * the code counts from '0' but at all human interface, I add '+1' hence human counting
+     * Notice that my beamOff's are not true beam-off, they include ramping data as well
+     * Careful: there are some h=-9999 that appears in beginning of every runlet
+     ******************************************************/

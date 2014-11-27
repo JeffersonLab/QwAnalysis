@@ -4,9 +4,9 @@
 #include "comptonRunConstants.h"
 #include "infoDAQ.C"
 ///This function ought to be called after auto-determination of compton edge was successful
-Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
+Double_t rhoToX(Int_t runnum, Double_t Cedge)//now plane is a variable set in the constants file
 {
-  cout<<"\nStarting into rhoToX.C **************\n"<<endl;
+  cout<<"\nStarting into rhoToX.C with Cedge "<<Cedge<<"\n"<<endl;
   filePre = Form(filePrefix,runnum,runnum);
   Bool_t debug =0;
   Double_t xPrime[nPoints]={0.0},rho[nPoints]={0.0},dsdx[nPoints]={},asym[nPoints]={},dsdx_0[nPoints]={}; 
@@ -19,7 +19,6 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
     cout<<red<<"\nreturned error from infoDAQ.C hence exiting\n"<<normal<<endl;
     return -2;
   }
-
   Double_t kk,x1,CedgeToDetBot,zdrift;
   Double_t thetabend = asin(light*B_dipole*lmag/eEnergy);// 10.131*pi/180 ! bend angle in Compton chicane (radians)
   Double_t det_angle = th_det*pi/180;//(radians)
@@ -27,8 +26,10 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   CedgeToDetBot = (Cedge + 4)*stripWidth + 0.5*stripWidth;///elog 399
   zdrift = ldet[plane-1] - CedgeToDetBot*sin(det_angle);
   if(debug) {
-    cout<<blue<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge,stripWidth,stripWidth);
+    cout<<blue<<"using the following parameters for rhoToX conversion"<<endl;
+    cout<<Form("CedgeToDetBot: %f = (%f + 4)*%f + 0.5*%f\n",  CedgeToDetBot,Cedge,stripWidth,stripWidth);
     cout<<"beam energy: "<<eEnergy<<" +/- "<<eEnergyEr<<endl;
+    cout<<"field:    "<<B_dipole<<endl;
     cout<<Form("zdrift:%f = %f - %f * %f",zdrift,ldet[plane-1],CedgeToDetBot,sin(det_angle))<<normal<<endl;
   }
   re = alpha*hbarc/me;
@@ -60,8 +61,8 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   x1_new = R_bend*(1-cos(thetabend)) + (zdrift)*tan(thetabend);
 
   QEDasym.open(Form("%s/%s/%sQEDasymP%d.txt",pPath, txt,filePre.Data(),plane));
-  for (Int_t i = 1; i <= nPoints; i++) {
-    rho[i] = (Double_t)i/nPoints;
+  for (Int_t i = 0; i < nPoints; i++) {
+    rho[i] = (Double_t)i/(nPoints-1);
     kDummy = rho[i]*kprimemax;
     r_dummy = (eEnergy-kDummy+eLaser)/(light*B_dipole); 
     th_dummy = asin(light*B_dipole*lmag/(eEnergy+eLaser-kDummy));
@@ -83,7 +84,7 @@ Double_t rhoToX(Int_t runnum)//now plane is a variable set in the constants file
   xCedge = xPrime[nPoints-1]; ///'xCedge' is used in determining QED asym, hence this should be evaluated before calling the function to fit theoretical asym
 
   if(debug) {
-    cout<<red<<"\nfor plane: "<<plane<<", CedgeToDetBot: "<<CedgeToDetBot<<", zdrift: "<<zdrift<<", xCedge:"<<xCedge<<"\n"<<endl;
+    cout<<"xCedge:"<<xCedge<<"\n"<<endl;
     printf("\nR_bend:%f, thetabend:%f degree\n",R_bend,thetabend*180/pi);
     cout<<"th_prime: "<<th_prime*180/pi<<endl;
     cout<<"r_max: "<<r_max<<"dx1: "<<x1_new<<endl;

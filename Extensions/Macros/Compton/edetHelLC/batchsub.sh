@@ -34,6 +34,8 @@ do
   echo '<Input src="'$macro'/read3Cfile.C" dest="read3Cfile.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/write3CfileArray.C" dest="write3CfileArray.C"/>' >> batch_submit_$i.xml
   echo '<Input src="'$macro'/tNormVariables.C" dest="tNormVariables.C"/>' >> batch_submit_$i.xml
+  echo '<Input src="'$macro'/writeFortFile.C" dest="writeFortFile.C"/>' >> batch_submit_$i.xml
+  echo '<Input src="'$macro'/ValueLookup.C" dest="ValueLookup.C"/>' >> batch_submit_$i.xml
 # echo '<Input src="'$macro'/.C" dest=".C"/>' >> batch_submit_$i.xml
 
   echo '<Input src="'$macro'/determineNoise.C" dest="determineNoise.C"/>' >> batch_submit_$i.xml

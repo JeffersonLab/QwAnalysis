@@ -4,7 +4,8 @@ void rootlogon()
   TStyle *pubStyle= new TStyle("publication","publication quality plots style");
 
 //for TPaveText, TLegend etc
-  pubStyle->SetFillStyle(0);
+  //pubStyle->SetFillStyle(0);
+  //pubStyle->SetFillColor(0);
 // use plain black on white colors
   pubStyle->SetFrameBorderMode(0);
   pubStyle->SetCanvasBorderMode(0);
@@ -12,15 +13,13 @@ void rootlogon()
   pubStyle->SetPadColor(0);
   pubStyle->SetCanvasColor(0);
   pubStyle->SetStatColor(0);
-  pubStyle->SetFillColor(0);
-
   // set the paper & margin sizes
   pubStyle->SetPaperSize(20,26);
   pubStyle->SetPadTopMargin(0.06);//0.05);
   //pubStyle->SetPadRightMargin(0.09);//till 26Sep2014
-  pubStyle->SetPadRightMargin(0.089);//0.05);
+  pubStyle->SetPadRightMargin(0.08);//0.05);
   pubStyle->SetPadBottomMargin(0.15);
-  pubStyle->SetPadLeftMargin(0.15);
+  pubStyle->SetPadLeftMargin(0.14);
   //pubStyle->SetPadLeftMargin(0.12);//till 26Sep2014
 
   // use large Times-Roman fonts
@@ -28,7 +27,7 @@ void rootlogon()
   pubStyle->SetTextSize(0.08);
   pubStyle->SetLabelFont(132,"xyz");
   pubStyle->SetLabelSize(0.05,"xyz");
-  pubStyle->SetTitleSize(0.05,"xyz");
+  pubStyle->SetTitleSize(0.055,"xyz");
   pubStyle->SetTitleOffset(1.3,"xyz");
   //pubStyle->SetLabelFont(132,"y");
   //pubStyle->SetLabelFont(132,"z");
