@@ -226,7 +226,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     retNoise = determineNoise(runnum, stripArray, dataType);
 
     file = "/w/hallc/compton/users/narayan/my_scratch/data/bgplusrates.dat";
-    Double_t attenuate = 0.023;
+    Double_t attenuate = 0.03;//0.023;
     fIn.open(file);
     Double_t d1, d2;
     if(fIn.is_open()) {

@@ -86,7 +86,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   //gStyle->SetPadLeftMargin(0.12);
 
   Bool_t debug=1,debug1=0;
-  Bool_t kYieldFit=0,kYield=1,kResidual=0, kBgdAsym=0;
+  Bool_t kYieldFit=0,kYield=1,kResidual=1, kBgdAsym=1;
   Bool_t kFoundCE=0;
   Int_t status=1;///1: fit not converged; 0: converged
   TPaveText *pt, *ptRes;
@@ -254,7 +254,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Simplex");///failed r22987
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Minimize");//failed r22987
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Scan");
-    fitr = grAsym->Fit(polFit,"RS 0");
+    fitr = grAsym->Fit("polFit","RS 0");
     polFit = grAsym->GetFunction("polFit");///update the function pointer
     status = int (fitr);
     initCE = polFit->GetParameter(0);
