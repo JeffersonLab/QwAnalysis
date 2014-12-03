@@ -46,6 +46,9 @@ class DetectorMarriage {
     vector<double>* getDetectorMarriagePeak(void);
     vector<double>* getDetectorMarriageAccidentals(void);
     vector<double>* getFirstMarriage(void);
+    vector<double>* get_groom_hit_time_diff(void);
+    vector<double>* get_bride_hit_time_diff(void);
+    vector<double>* get_raw_grooms(void);
 
   private:
     TTree *tree;

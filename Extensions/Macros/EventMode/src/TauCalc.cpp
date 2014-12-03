@@ -227,7 +227,7 @@ void TauCalc::graphRelativeRates(void) {
   //from the fit, we extract the "true" relative
   TF1 *fit = relative_graph->GetFunction("expo");
   fit->SetLineColor(fit_color);
-  tau = fit->GetParameter(1);
+  tau = -1*fit->GetParameter(1);
   haveTau = true;
   if (debug) printf("Tau = %f ns...\n",tau*1000000);
   fit = NULL;
@@ -258,12 +258,12 @@ void TauCalc::calculateCorrectedRates(void) {
     printf("j \tyields[j] \ttrue_yield \tfinal\n");
     for(size_t j=0; j<true_rates.size(); j++) {
       printf("%lu \t\t%f \t%f \t%f \n",
-          j,yields[j],true_rates[j],yields[j]*std::exp(-true_rates[j]*tau));
+          j,yields[j],true_rates[j],yields[j]*std::exp(true_rates[j]*tau));
     }
 
   for(size_t j=0; j<true_rates.size(); j++) {
     if (true_rates[j]==0) continue;
-    yields_corrected.push_back( yields[j]*std::exp(-true_rates[j]*tau) );
+    yields_corrected.push_back( yields[j]*std::exp(true_rates[j]*tau) );
     yields_corrected_error.push_back( yields_error[j] );
   }
   if (debug) std::cout <<"Leaving calculateCorrectedRates...\n";

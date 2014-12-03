@@ -37,6 +37,7 @@ void MarryVecs::add_entry_groom(double entry) {
     printf("There are too many hits in this event...\n");
   }
   groom[num_entries_groom] = entry;
+  raw_grooms.push_back(entry);
   num_entries_groom++;
 }
 
@@ -74,20 +75,6 @@ void MarryVecs::add_differences_entry(double entry1, double entry2) {
   differences.push_back(entry1-entry2);
 }
 
-void MarryVecs:: calculate_channel_time_differences(void) {
-  for(int j=0; j<max_size-1; j++) {
-    /*Take groom channel as example. We want to calculate
-     *            groom[j+1] - groom[j]
-     * This gives us the time differences between pulses/signals.
-     */
-
-    if(groom[j]!=dummy_entry && groom[j+1]!=dummy_entry)
-      groom_hit_timediff[j].push_back( groom[j+1] - groom[j] );
-
-    if(bride[j]!=dummy_entry && bride[j+1]!=dummy_entry)
-      bride_hit_timediff[j].push_back( bride[j+1] - bride[j] );
-  }
-}
 
 //return vector-reference to vector of final matches
 vector<double> * MarryVecs::get_final_marriage_brides(void) {
@@ -111,6 +98,21 @@ vector<double> *MarryVecs::get_matched_peak(void) {
 //return vector-reference to vector of accidentals
 vector<double> *MarryVecs::get_accidentals(void) {
   return &matched_accidentals;
+}
+
+//return vector of raw groom data
+vector<double> *MarryVecs::get_raw_grooms(void) {
+  return &raw_grooms;
+}
+
+//return vector-reference to vector holding tube hit time differences
+vector<double> *MarryVecs::get_groom_hit_timediff(void) {
+  return &groom_hit_timediff;
+}
+
+//return vector-reference to vector holding tube hit time differences
+vector<double> *MarryVecs::get_bride_hit_timediff(void) {
+  return &bride_hit_timediff;
 }
 
 //clear all vectors but married ones
@@ -183,6 +185,64 @@ void MarryVecs::print_marriage_vectors(void) {
       }
   }
 }
+
+/* To determine time differences between hits in a single tube,
+ * one must be careful. We have 3 kinds of entries:
+ *    0:  dummy entries (ie, no hit recorded)
+ *    1:  accidentals (hit recorded, but not married)
+ *    2:  true hit (married with pulse from other tube)
+ *  These arrays then contain information for a given tube and hit.
+ *  Example:
+ *    groom_hit_matches[5] = { 1, 2, 2, 1, 0};
+ *  This says hits 0 and 3 are accidentals, hits 1 and 2
+ *  are true hits, and hit 5 was filled with a dummy entry
+ *  because no signal was present.
+ */
+void MarryVecs::determine_hit_type(double groom_entry, double bride_entry, int p) {
+      //if groom==dummy && bride==dummy, both empty hits
+      //if groom || bride ==dummy, one is an accidental, the other
+      //  an empty hit
+      //if neither groom nor bride are dummy_entry, they must be
+      //a proper marriage.
+      if (groom_entry==dummy_entry && bride_entry==dummy_entry) {
+        groom_hit_matches[p] = 0;
+        bride_hit_matches[p] = 0;
+      } else if (groom_entry!=dummy_entry && bride_entry==dummy_entry) {
+        groom_hit_matches[p] = 1;
+        bride_hit_matches[p] = 0;
+      } else if (groom_entry==dummy_entry && bride_entry!=dummy_entry) {
+        groom_hit_matches[p] = 0;
+        bride_hit_matches[p] = 1;
+      } else {
+        if (fabs(groom_entry-bride_entry)>max_difference) {
+          groom_hit_matches[p] = 1;
+          bride_hit_matches[p] = 1;
+        } else {
+          groom_hit_matches[p] = 2;
+          bride_hit_matches[p] = 2;
+        }
+      }
+  return;
+}
+
+void MarryVecs::calculate_hit_time_differences(void) {
+  for(int j=0; j<max_size-1; j++) {
+    /*Take groom channel as example. We want to calculate
+     *            groom[j+1] - groom[j]
+     * This gives us the time differences between pulses/signals.
+     */
+
+    //We don't want to calculate the time difference from dummy_entry
+    //if(groom[j]!=dummy_entry && groom[j+1]!=dummy_entry)
+    if(groom_hit_matches[j]!=0 && groom_hit_matches[j+1]!=0)
+      groom_hit_timediff.push_back( groom[j+1] - groom[j] );
+
+    if(bride_hit_matches[j]!=0 && bride_hit_matches[j+1]!=0)
+      if( bride[j+1] - bride[j] != 0 )
+      bride_hit_timediff.push_back( bride[j+1] - bride[j] );
+  }
+}
+
 
 void MarryVecs::marry_arrays(void) {
   /*This code essentially taken verbatim from QwSoftwareMeantime,
@@ -373,14 +433,19 @@ void MarryVecs::marry_arrays(void) {
 
 //  print_vectors();
   for(int p=0; p<max_size; p++) {
-    //if our match includes a dummy entry, we don't want to keep it
-    if (groom[p]==dummy_entry || bride[fiancee[p]]==dummy_entry)
-    { continue; }
+    //this is a temporary kludge to store hit times
+    determine_hit_type(groom[p],bride[fiancee[p]],p);
+
+    //if our match is two dummy entries, we don't want to keep it
+    //if however our match has ONE dummy entry, we still have a valid
+    //accidental to analyze
+    if (groom_hit_matches[p]==0 && bride_hit_matches[p]==0)
+      continue;
+
     if (fabs(groom[p]-bride[fiancee[p]])>max_difference)
     { continue; }
 
-    //if our match is GOOD (ie, doesn't have a dummy entry)
-    //we should add it to our matched vector
+    //if our match is GOOD (ie, doesn't have a dummy entry) //we should add it to our matched vector
 //    add_matched_entry(groom[p],bride[fiancee[p]]);
    // printf("Adding to matched: groom: %f \tbride: %f\n",groom[p],bride[fiancee[p]]);
     //if our entries are within the F1TDC bounds selected,
@@ -398,24 +463,11 @@ void MarryVecs::marry_arrays(void) {
       }
     }
   }
+  //now calculate the actual hit time differences for a given tube
+  calculate_hit_time_differences();
 }//end MarryVecs::marry_arrays
 
 bool MarryVecs::get_marriage_status(void) {
   return marriage_status;
-}
-
-
-void MarryVecs::find_channel_time_diffs(void) {
-  for(int p=0; p<max_size; p++) {
-    if (groom[p]!=dummy_entry)
-      groom_hit_matches[p] = true;
-    else
-      groom_hit_matches[p] = false;
-    if (bride[p]!=dummy_entry)
-      bride_hit_matches[p] = true;
-    else
-      bride_hit_matches[p] = false;
-  }
-  return;
 }
 

@@ -86,7 +86,7 @@ void DetectorMarriage::processEvents(void) {
     localEntry = tree->LoadTree(j);
     tree->GetEntry(localEntry);
 
-    if(j % 1000 == 0) {
+    if(j % 10000 == 0) {
       printf(" Total events %ld. events process so far: %ld\n", n_entries, j);
     }
 
@@ -162,7 +162,18 @@ vector<double>* DetectorMarriage::getFirstMarriage(void) {
   return &first_marriage;
 }
 
+vector<double>* DetectorMarriage::get_groom_hit_time_diff(void) {
+  return marriageVectors.get_groom_hit_timediff();
+}
 
+vector<double>* DetectorMarriage::get_bride_hit_time_diff(void) {
+  return marriageVectors.get_bride_hit_timediff();
+}
+
+//this will return all the groom data, both married and un-married
+vector<double>* DetectorMarriage::get_raw_grooms(void) {
+  return marriageVectors.get_raw_grooms();
+}
 
 
 

@@ -25,21 +25,17 @@
 #include <Riostream.h>
 #include <TFile.h>
 #include <TTree.h>
-#include <TChain.h>
 #include <TApplication.h>
-#include <TGraphErrors.h>
-#include <TGraph.h>
-#include <TH2F.h>
-#include <TMultiGraph.h>
+#include <TH1F.h>
+#include <THStack.h>
 #include <TCanvas.h>
 #include <TStyle.h>
 #include <TAxis.h>
+#include <TLegend.h>
 #include <TPaveStats.h>
-#include <TArrow.h>
 
 #include "MarryVecs.h"
 #include "DetectorMarriage.h"
-#include "PlotLib.h"
 
 using namespace std;
 
@@ -53,70 +49,67 @@ void generate_marriages( MarryVecs *);
  * Command line options to be implemented at a later date.
  */
 int main(int argc, char* argv[]) {
-  //define default values
-  long eventLow = 0;     //first event to process
-  long eventHigh= 4000000;   //last event to process
 
   //will allow planes to be selected in command line arguments later
-  int tsplane = 2;    //tsplane 2 = octant 1; plane 1 = octant 5
-  int mdplane = 1;    //mdplane 1 = octant 1; plane 5 = octant 5
+  /* Define default planes.
+   * TS planes are packages (1 and 2)
+   * MD planes are octants (1-8)
+   * Default values are octant 1, package 2
+   */
+  int mdplane = 1;
+  int tsplane = 2;
 
-  //debug is to debug overall program
-  bool debug=false;
+  //define default event range values
+  long eventLow = 0;        //default first event to process
+  long eventHigh= 4000000;  //default last event to process
+
+  //global_debug is to debug overall program
+  bool global_debug=false;
+
+  std::string filename;
 
   if (argc<=1) {
     helpscreen();
-    exit(0);
     return 0;
   }
-  /* else { //we have to process options
-    for (int j=1; j<argc; j++) {
-      if (j+1 != argc) {//check that we haven't finished parsing already
-        if (argv[j] == "-f") {
-          myFile = argv[j+1];
-          printf("Argument %i is %s\n",j+1,argv[j+1]);
-        } else if (argv[j] == "-e") {
-          myLow  = long(argv[j+1]);
-          myHigh = long(argv[j+2]);
-        } else if (argv[j] == "-ts") {
-          tsplane = int(argv[j+1]);
-        } else if (argv[j] == "-md") {
-          mdplane = int(argv[j+1]);
-        } else if (argv[j] == "--help") {
-          helpscreen();
-        } else if (argv[j] == "--debug") {
-          debug = 1;
-        }
+  //process comand line arguments
+  for (int j=1; j<argc; j++) {
+    if (j < argc) {//check that we haven't finished parsing already
+      if (0 == strcmp("-f",argv[j]))     filename = argv[j+1];         //ROOT file to process
+      if (0 == strcmp("--low",argv[j]))  eventLow = atol(argv[j+1]);   //first event to process
+      if (0 == strcmp("--high",argv[j])) eventHigh = atol(argv[j+1]);  //last event to process
+      if (0 == strcmp("--ts", argv[j]))  tsplane = atoi(argv[j+1]);    //get TS plane/package number
+      if (0 == strcmp("--md", argv[j]))  mdplane = atoi(argv[j+1]);    //get MD octant
+      if (0 == strcmp("--help", argv[j]))  helpscreen();               //show helpscreen
+      if (0 == strcmp("--debug", argv[j]))  global_debug = true;       //debug ON
       }
-    } //loop over options
   } //finish processing options
-*/
-  //handle command line arguments
-  TString myFile = argv[1];             //get file
-  eventLow  = argv[2] ? atol(argv[2]) : eventLow;   //2nd option defaults to event low
-  eventHigh = argv[3] ? atol(argv[3]) : eventHigh;  //3rd option defaults to event high
-
-  //double check parsing
-  std::cout <<"Event low is: " <<eventLow <<std::endl;
-  std::cout <<"Event high is: " <<eventHigh <<std::endl;
 
   //Open rootfile
-  TFile *rootfile1 = TFile::Open(myFile);
+  TFile *rootfile = TFile::Open(filename.data());
 
-  if ( !rootfile1->IsOpen() ) {
-    printf("Rootfile %s isn't open! Exiting!\n", myFile.Data());
-    exit(1);
+  if ( rootfile->IsOpen() ) {
+    printf("Rootfile %s is open...\n", filename.data());
+  } else {
+    printf("Rootfile %s isn't open! Exiting!\n", filename.data());
+    exit(EXIT_FAILURE);
   }
+
+  if (global_debug) std::cout <<"Global debugger on." <<std::endl;
+  //double check parsing
+  std::cout <<"You have selected to look at Octant " <<mdplane
+    <<" with Package " <<tsplane <<std::endl;
+  std::cout <<"Events to process: " <<eventLow <<" to " <<eventHigh <<std::endl;
 
   //grab the tree from the rootfile
   //TTree *tree = (TTree*) rootfile1->Get("tree");
-  TTree *tree = (TTree*) rootfile1->Get("event_tree");
+  TTree *tree = (TTree*) rootfile->Get("event_tree");
 
   //create DetectorMarriage object
   //initialize with TTree tree
-  if (debug) printf("Creating DetectorMarriage object...\n");
+  if (global_debug) printf("Creating DetectorMarriage object...\n");
   DetectorMarriage detMarriage(tree);
-  if (debug) printf("DetectorMarriage object created...\n");
+  if (global_debug) printf("DetectorMarriage object created...\n");
 
   detMarriage.setEventRange(eventLow,eventHigh);
   detMarriage.setTsPlane(tsplane);
@@ -138,28 +131,33 @@ int main(int argc, char* argv[]) {
   vector<double> *marrVec = detMarriage.getDetectorMarriage();
   vector<double> *peakVec = detMarriage.getDetectorMarriagePeak();
   vector<double> *accVec  = detMarriage.getDetectorMarriageAccidentals();
+  //vector<double> *groomVec = detMarriage.get_groom_hit_time_diff();
+  //vector<double> *brideVec = detMarriage.get_bride_hit_time_diff();
 
   //binning information
   int Nbins = 1800;
   int xmin  = -400;
   int xmax  = 1400;
 
-  TCanvas *canvas = new TCanvas("canvas","title");
-  canvas->cd();
+  //canvas1 will plot the coincidence spectra
+  TCanvas *canvas1 = new TCanvas("canvas","title");
+  canvas1->cd();
 
   TH1F* hCoincidence = new TH1F("hCoincidence","TS*MD Coincidence Spectra",Nbins,xmin,xmax);
-
   hCoincidence->FillN(marrVec->size(),marrVec->data(),NULL);
 
   hCoincidence->Draw();
-  canvas->SetLogy();
+  canvas1->SetLogy();
 
+  //canvas2 will plot just the peak window
   TCanvas *canvas2 = new TCanvas("canvas2","title");
+  canvas2->cd();
   TH1F *hPeak = new TH1F("hPeak","TS*MD Peak", Nbins,xmin,xmax);
   hPeak->FillN(peakVec->size(),peakVec->data(),NULL);
   hPeak->Draw();
   canvas2->SetLogy();
 
+  //canvas3 will plot the accidentals window
   TCanvas *canvas3 = new TCanvas("canvas3","title");
   canvas3->cd();
 
@@ -168,36 +166,32 @@ int main(int argc, char* argv[]) {
   hAccident->Draw();
   canvas3->SetLogy();
 
-
-  app->Run();
-  return 0;
+  app->Run(); //run the TApplication
+  return 0;   //exit gracefully
 }
 
 
 void helpscreen (void) {
-  std::cout <<"Welcome to the f1marriage program. Past Josh says \"you knew you should've filled this out!\"."
-    <<"\nUsage ./f1marriage Qweak_10709.root 30000 370000"
-    <<"\nHave a nice day!\n";
-/*  string helpstring = "Help for f1marriage.cpp program.\n";
+  string helpstring = "Help for f1marriage.cpp program.\n";
     helpstring += "Program to calculate a proper marriage of meantimes from the\n";
     helpstring += "Qweak main detector and trigger scintillator f1 multi-hit tdc's.\n";
     helpstring += "Usage: \n";
     helpstring += "\t./f1tdc_marriage [options]\n";
     helpstring += "Options: \n";
     helpstring += "\t-f  \t\tfilename\n";
-    helpstring += "\t-e  \t\tevents to look at (delimeter is ':')\n";
-    helpstring += "\t-ts \t\tdefines trigger scintillator plane (plane 1=octant 5\n";
+    helpstring += "\t--lowevent  \tfirst event to process\n";
+    helpstring += "\t--highevent \tfirst event to process\n";
+    helpstring += "\t--ts\t\tdefines trigger scintillator plane (plane 1=octant 5\n";
     helpstring += "\t    \t\tplane 2 = octant 1) Default is plane 2.\n";
-    helpstring += "\t-md \t\tdefines main detector plane (plane 1 = octant 1\n";
+    helpstring += "\t--md\t\tdefines main detector plane (plane 1 = octant 1\n";
     helpstring += "\t    \t\tplane 5 = octant 5) Default is plane 1.\n";
     helpstring += "\t--debug \tfor debugging code (not fully implemented)\n";
     helpstring += "\t--help  \tdisplays this helpful message.\n";
     helpstring += "Example: \n";
-    helpstring += "\t./f1marriage -f Qweak_10717.root -e 15e3:30e3\n";
+    helpstring += "\t./f1marriage -f Qweak_10709.root --low 30000 --high 370000\n";
 
   std::cout <<helpstring <<endl;
-*/
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 
 
@@ -248,6 +242,62 @@ void generate_marriage(MarryVecs *myMarriageVec) {
   return;
 }
 
+
+//Optional routines to plot time difference of successive meantimes.
+/*  TCanvas *canvas4 = new TCanvas("canvas4","title");
+  canvas4->cd();
+
+  TH1F* hGroomDiff = new TH1F("hGroomDiff","TS Meantime",Nbins,xmin+200,xmax+200);
+  hGroomDiff->FillN(groomVec->size(),groomVec->data(),NULL);
+
+  TH1F* hBrideDiff = new TH1F("hBrideDiff","MD Meantime",Nbins,xmin+200,xmax+200);
+  hBrideDiff->FillN(brideVec->size(),brideVec->data(),NULL);
+
+  blueHisto(hGroomDiff);
+  redHisto(hBrideDiff);
+  hGroomDiff->SetStats(true);
+  hBrideDiff->SetStats(true);
+*/
+
+  /* The following section deals with the plot configuration of the
+   * Time difference plots. No new physics here!
+   */
+/*
+  //THStack plots multiple histograms in the same plot
+  THStack *stack = new THStack("stack","title");
+  stack->Add(hGroomDiff,"sames");
+  stack->Add(hBrideDiff,"sames");
+
+  stack->Draw("nostack");
+  gPad->Modified();
+  gPad->Update();
+
+  placeAxis("Time Difference Between Married MD MT Hit Times",
+      "Time difference (ns)","",canvas4,stack);
+
+  TPaveStats *statG = (TPaveStats*) hGroomDiff->GetListOfFunctions()->FindObject("stats");
+  if (statG) {
+    statG->SetTextColor(kBlue+3);
+    setup_stats(statG,0.82,0.66,0.99,0.81);
+    statG->Draw("sames");
+  }
+
+  TPaveStats *statB = (TPaveStats*) hBrideDiff->GetListOfFunctions()->FindObject("stats");
+  if (statB) {
+    statB->SetTextColor(kRed+3);
+    setup_stats(statB,0.82,0.50,0.99,0.66);
+    statB->Draw("sames");
+  }
+
+  TLegend *leg = new TLegend(.82,.82,.99,.96);
+  leg->SetFillColor(0);
+  leg->AddEntry(hGroomDiff,"Trig Scint MT","f");
+  leg->AddEntry(hBrideDiff,"Main Det MT","f");
+  leg->Draw("sames");
+
+  gPad->Modified();
+  gPad->Update();
+*/
 
 
 
