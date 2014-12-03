@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
   std::string title, xaxis, yaxis;
   mycanvas->cd(1);
   mg_rates->Draw("ap");
-  title = "Run 2 MT LH2 (measured) vs. Current";
+  title = "Rates (measured) vs. Current";
   xaxis = "Current (#muA)";
   yaxis = "Rate (kHz)";
   placeAxis(title,xaxis,yaxis,mycanvas,mg_rates);
