@@ -30,19 +30,17 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
 
   int events_total    = 0;  //number of recorded events
   int events_recorded = 0;  //number of recorded events
+//  double eventType    = 1;    //CodaEventType (1=mps, 2=TS)
   double delta        = 0;      //delta is the number of triggers skipped if
                                 //not starting at event 0
   bool debug = false;
-  TString trigger1 = "sca_trig01";
-  TString trigger2 = "sca_trig02";
+  TString trigger = Form("sca_trig0%i",int(eventType));
 
   //grab the tree and set all the addresses we want
   TTree   *tree   = (TTree*) file->Get("Mps_Tree");
   tree->ResetBranchAddresses();
-  TBranch *sca_trig1 = (TBranch*) tree->GetBranch(trigger1.Data());
-  TBranch *sca_trig2 = (TBranch*) tree->GetBranch(trigger2.Data());
-  TLeaf *trig1 = sca_trig->GetLeaf("value");
-  TLeaf *trig2 = sca_trig->GetLeaf("value");
+  TBranch *sca_trig = (TBranch*) tree->GetBranch(trigger.Data());
+  TLeaf *trig = sca_trig->GetLeaf("value");
   TLeaf *type = tree->GetLeaf("CodaEventType");
 
   int n_entries  = (int) tree->GetEntries();  //get the number of entries
