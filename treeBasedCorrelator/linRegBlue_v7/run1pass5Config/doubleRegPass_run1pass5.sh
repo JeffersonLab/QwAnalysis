@@ -26,9 +26,12 @@ fi
 
 #BCM6 config run range is broader than the Al range and Al config files already use BCM6. So this comes first.
 confDir="run1pass5"
-if [ $run -ge 11002 ] ; then
-    confDir="run1pass5_11002"
-fi
+    # pre wien 0 running
+    if [ $run -ge 5000  -a  $run -le 7654 ] ; then
+	    confDir="run1pass5_pre_w0"
+    elif [ $run -ge 11002 ] ; then
+        confDir="run1pass5_11002"
+    fi
 
 #Al run range 9442 - 11701 is a close run range therefore this range should come after BCM6 config run range
 #pmtltg issue in 10804 - 10969 is a close run range
@@ -47,6 +50,7 @@ if [ $run -ge 9442  -a  $run -le 11701 ] ; then
 
 #pmtltg issue in the run range 10804 - 10969 for LH2. This range includes Al run 10821 and will require special attension if beam current is less than 40 uA
 
+    # pre wien 0 running
     if [ $run -ge 9442  -a  $run -le 9472 ] ; then
 	confDir="run1pass5_bcm-cut-15"
     elif [ $run -ge 9496  -a  $run -le 9589 ] ; then
