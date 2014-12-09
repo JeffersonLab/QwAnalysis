@@ -187,12 +187,11 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   if(polSign) { //positive
     polFit->SetParameters(initCE,0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
     polFit->SetParLimits(0,42.0,63.0);///run2: allow the CE to vary between these strip
-    //polFit->SetParLimits(0,55.0,55.0);///fix the CE parameter
-    //polFit->SetParLimits(1,0.82,0.93);///allowing polarization to be 50% to 93%
+    polFit->SetParLimits(1,0.82,0.93);///allowing polarization to be 50% to 93%
   } else {     //negative
     polFit->SetParameters(initCE,-0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
     polFit->SetParLimits(0,42.0,63.0);///run2: allow the CE to vary between these strip
-    //polFit->SetParLimits(1,-0.93,-0.82);
+    polFit->SetParLimits(1,-0.93,-0.82);
   }
   ///Note about TMinuit: its best to not put any limits on the parameters. It becomes difficult for the error matrix
   cout<<blue<<"using CE and pol as the two fit parameters"<<normal<<endl;
@@ -252,10 +251,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Simplex");///failed r22987
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Minimize");//failed r22987
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Scan");
-    polFit->ReleaseParameter(0);
-    polFit->ReleaseParameter(1);
-    cout<<blue<<"attempting with different initial values"<<normal<<endl;
-    polFit->SetParameters(initCE-0.5,pol);
     fitr = grAsym->Fit("polFit","RS 0");
     polFit = grAsym->GetFunction("polFit");///update the function pointer
     status = int (fitr);
@@ -277,7 +272,7 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     if(cEdge!=0.0) initCE = cEdge;//re-run rhoToX with newly found CE
     xCedge = rhoToX(runnum,initCE); ///this function should be called after determining the cEdge
     if(debug) printf("xCedge: %f\t%g\t%g\t%g\t%g\n",xCedge,param[0],param[1],param[2],param[3]);
-    fitr = grAsym->Fit("polFit","ESR 0");///re attempt
+    fitr = grAsym->Fit("polFit","SR 0");///re attempt
     status = int (fitr);
     cout<<green<<"refitting # "<<maxRepeat<<", the polarization fit status is: "<<status<<normal<<endl;
     if(status==0) { ///since it converged, using the final fit
