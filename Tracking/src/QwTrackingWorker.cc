@@ -267,6 +267,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddOptions("Tracking options")("QwTracking.R3.MaxMissedWires",
                           po::value<int>()->default_value(4),
                           "maximum number of missed wires");
+  options.AddOptions("Tracking options")("QwTracking.R3.RotatorTilt",
+			  po::value<bool>()->default_value(true),
+			  "apply region 3 rotator tilt correction");
 
   // Momentum reconstruction
   options.AddOptions("Tracking options")("QwTracking.disable-momentum",

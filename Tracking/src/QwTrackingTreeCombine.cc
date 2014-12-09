@@ -2146,7 +2146,9 @@ std::vector<QwPartialTrack*> QwTrackingTreeCombine::TlTreeCombine (
             pt->SetPackage(package);
             pt->SetOctant(wu->GetOctant());
             pt->RotateCoordinates();
-            pt->RotateRotator(wu->GetHit(0)->GetDetectorInfo());
+	    if(gQwOptions.GetValue<bool>("QwTracking.R3.RotatorTilt"))
+            	pt->RotateRotator(wu->GetHit(0)->GetDetectorInfo());
+
             // Set 2 plane 0 treelines only
             pt->SetAlone(nump0);
 
