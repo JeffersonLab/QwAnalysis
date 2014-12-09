@@ -4,7 +4,7 @@
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
-Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L0, Double_t qAvgLCH0L0, Int_t nHelLCB1L0, Double_t attenFactor[]) 
+Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L0, Double_t qAvgLCH0L0, Double_t tOff, Double_t attenFactor[]) 
 {
   cout<<"starting into evalBgdAsym.C**************"<<endl;
   const Bool_t debug =0;
@@ -21,9 +21,9 @@ Int_t evalBgdAsym(Double_t countsLCB1H1L0[], Double_t countsLCB1H0L0[], Double_t
   for (Int_t s =startStrip; s <endStrip; s++) {	  
     newCntsB1H1L0[s]=countsLCB1H1L0[s] * c2B1H1L0[s];
     newCntsB1H0L0[s]=countsLCB1H0L0[s] * c2B1H0L0[s];
-    if(kNoiseSub) {///commenting out because it gives negative !temp
-      newCntsB1H1L0[s] = newCntsB1H1L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
-      newCntsB1H0L0[s] = newCntsB1H0L0[s] - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
+    if(kNoiseSub) {///often gives negative 
+      newCntsB1H1L0[s] = newCntsB1H1L0[s] - (rateB0[s]*tOff)/(attenFactor[s]);
+      newCntsB1H0L0[s] = newCntsB1H0L0[s] - (rateB0[s]*tOff)/(attenFactor[s]);
     }
     qNormCntsLCB1H1L0[s]= newCntsB1H1L0[s]/qAvgLCH1L0;
     qNormCntsLCB1H0L0[s]= newCntsB1H0L0[s]/qAvgLCH0L0;

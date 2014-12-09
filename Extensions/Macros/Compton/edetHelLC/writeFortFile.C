@@ -14,7 +14,7 @@ Int_t writeFortFile(TString file, Int_t nCycle,
     //laser power
     Double_t lasPowB1L1, Double_t lasPowB1L0,
     //time
-    Int_t nHelB1L1, Int_t nHelB1L0)
+    Double_t tOn, Double_t tOff)
 {
   ofstream fOut;
   fOut.open(file);
@@ -25,7 +25,7 @@ Int_t writeFortFile(TString file, Int_t nCycle,
     fOut<<Form("%d\t%.2f\t%.2f\n", nCycle+1, lasPowB1L1, lasPowB1L0);
     fOut<<Form("%10.1f\t%10.1f\t%10.1f\t%10.1f\t%10.1f\n", qH1L1, qH1L0, qH0L1, qH0L0, qH1L1+qH1L0+qH0L1+qH0L0);
     fOut<<Form("%10.1f\t%10.1f\t%10.1f\t%10.1f\t%10.1f\n", qIgnoredH1L1, qIgnoredH1L0, qIgnoredH0L1, qIgnoredH0L0, qIgnoredH1L1+qIgnoredH1L0+qIgnoredH0L1+qIgnoredH0L0);
-    fOut<<Form("%10.1f\t%10.1f\t%10.1f\t%10.1f\t%10.1f\n", (nHelB1L1/2.0)/helRate, (nHelB1L0/2.0)/helRate, (nHelB1L1/2.0)/helRate, (nHelB1L0/2.0)/helRate, (nHelB1L1 + nHelB1L0) / helRate);
+    fOut<<Form("%10.1f\t%10.1f\t%10.1f\t%10.1f\t%10.1f\n", tOn/2, (tOff/2.0), (tOn/2.0), (tOff/2.0), (tOn + tOff));
     for (Int_t s =startStrip; s <endStrip;s++) { 
       fOut<<Form("%10.1f\t%10.1f\t%10.1f\t%10.1f\t%2d\n", cntsB1H1L1[s], cntsB1H1L0[s], cntsB1H0L1[s], cntsB1H0L0[s], s+1);
     }

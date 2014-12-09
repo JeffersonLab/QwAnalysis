@@ -49,11 +49,14 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   Double_t d_3p02aY[2], d_3p02bY[2], d_3p03aY[2], d_3c20Y[2];
   Double_t d_3p02aX[2], d_3p02bX[2], d_3p03aX[2], d_3c20X[2];
   //Double_t lasPow[2],y_bcm[2],d_bcm[2],bpm_3c20X[1],bModRamp[2];
+  Double_t clock4mhz[3];
   Double_t pattern_number, event_number;
   Double_t laserOnOffRatioH0;
   Double_t countsLCB1H1L1[nStrips],countsLCB1H1L0[nStrips],countsLCB1H0L1[nStrips],countsLCB1H0L0[nStrips];
   Double_t stripArray[nStrips];
   Double_t lasPowLCB1L0 =0.0, lasPowLCB1L1 =0.0;
+  Double_t tOn=0.0, tOff=0.0;
+  Double_t tTotOn = 0.0, tTotOff =0.0;
 
   TH1D *hy3p02aX = new TH1D("hy3p02aX","hy3p02aX",100,0,0.00001);
   hy3p02aX->SetBit(TH1::kCanRebin);
@@ -233,7 +236,8 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       for(int s=0; s<nStrips; s++) {
         fIn >>d1 >>d2;
         //cout<<s+1<<"\t"<<d1<<"\t"<<d2<<endl;
-        if(s+1==d1) attenFactor[s] = d2*attenuate;//assuming each line with be a new strip without any jump
+        //if(s+1==d1) attenFactor[s] = d2*attenuate;//assuming each line with be a new strip without any jump
+        if(s+1==d1) attenFactor[s] = 1.0;//assuming each line with be a new strip without any jump
         else cout<<red<<"strip mismatch in "<<file<<endl;
       }
       fIn.close();
@@ -247,6 +251,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   //helChain->ResetBranchAddresses();//!? should it be here?
   helChain->SetBranchStatus("*",0);  ////Turn off all unused branches, for efficient looping
   helChain->SetBranchStatus("pattern_number",1);
+  helChain->SetBranchStatus("yield_sca_4mhz",1);
   helChain->SetBranchStatus("yield_sca_laser_PowT*",1);
   helChain->SetBranchStatus("yield_sca_bcm6*",1);
   helChain->SetBranchStatus("diff_sca_bcm6*",1);
@@ -269,6 +274,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
   helChain->SetBranchStatus("diff_sca_bpm_3p03aY*", 1);
   helChain->SetBranchStatus("diff_sca_bpm_3c20Y*", 1);
 
+  helChain->SetBranchAddress("yield_sca_4mhz",&clock4mhz);
   helChain->SetBranchAddress("mps_counter",&event_number);
   helChain->SetBranchAddress("pattern_number",&pattern_number);
   helChain->SetBranchAddress("yield_sca_laser_PowT",&lasPow);
@@ -365,6 +371,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
     nHelLCB1L1= 0, nHelLCB1L0= 0, missedLasEntries=0,missedDueToBMod=0, missedDueToStability=0; 
     qLCH1L1= 0.0, qLCH1L0= 0.0, qLCH0L1= 0.0, qLCH0L0= 0.0;
     lasPowLCB1L0=0.0,lasPowLCB1L1= 0.0;
+    tOn=0.0, tOff=0.0;
     for(Int_t s = startStrip; s <endStrip; s++) {
       yieldB1L0[s] =0.0, yieldB1L1[s] =0.0;
       diffB1L0[s] =0.0, diffB1L1[s] =0.0;
@@ -482,8 +489,9 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
         if (lasOn==0) {//using the H=0 configuration for now
           nHelLCB1L0++;
-          qLCH1L0 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
-          qLCH0L0 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+          qLCH1L0 += (y_bcm[0]+d_bcm[0])/2*(4.0*clock4mhz[0]);
+          qLCH0L0 += (y_bcm[0]-d_bcm[0])/2*(4.0*clock4mhz[0]);
+          tOff += 4.0*clock4mhz[0];
           lasPowLCB1L0 += lasPow[0];
           for(Int_t s =startStrip; s <endStrip; s++) {
             yieldB1L0[s] += bYield[s];
@@ -491,8 +499,9 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           }
         } else if (lasOn==1) {////the elseif statement helps avoid overhead in each entry
           nHelLCB1L1++;
-          qLCH1L1 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
-          qLCH0L1 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+          qLCH1L1 += (y_bcm[0]+d_bcm[0])/2*(4.0*clock4mhz[0]);//page 21 of logbook (12 Oct 14)
+          qLCH0L1 += (y_bcm[0]-d_bcm[0])/2*(4.0*clock4mhz[0]);
+          tOn += 4.0*clock4mhz[0];
           lasPowLCB1L1 += lasPow[0];
           for(Int_t s =startStrip; s <endStrip; s++) {
             yieldB1L1[s] += bYield[s];
@@ -517,6 +526,8 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       totHelB1H1L0 += nHelLCB1L0/2.0;
       totHelB1H0L1 += nHelLCB1L1/2.0;
       totHelB1H0L0 += nHelLCB1L0/2.0;
+      tTotOn += tOn;
+      tTotOff += tOff;
 
       if (nHelLCB1L1 == 0||nHelLCB1L0 == 0) {
         cout<<blue<<"this laser cycle probably had laser off "<<nCycle+1<<normal<<endl;
@@ -544,7 +555,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
         }
 
         ///calling the function to evaluate asymmetry for counts in this laser cycle
-        Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , nHelLCB1L1, nHelLCB1L0, attenFactor);
+        Int_t evaluated = evaluateAsym(countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , tOn, tOff, attenFactor);
         if(evaluated==-3) {
           cout<<red<<"\nevaluateAsym detected change of HWP in the middle of a run\n"<<normal<<endl;
           file = Form("%s/%s/%sEXITP%d.txt",pPath, txt,filePre.Data(),plane);
@@ -563,7 +574,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           //  cout<<red<<"skipping this laser cycle, nCycle "<<nCycle+1<<normal<<endl;
           //  continue;//break;
       } else {
-        retEvalBgdAsym = evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qLCH1L0, qLCH0L0, nHelLCB1L0, attenFactor);
+        retEvalBgdAsym = evalBgdAsym(countsLCB1H1L0, countsLCB1H0L0, qLCH1L0, qLCH0L0, tOff, attenFactor);
         //if (retEvalBgdAsym < 0) return -1; ///temp!
         goodCycles++;///
       }
@@ -596,12 +607,14 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
           //if(bYield[0][44]>0.0) cout<<blue<<i<<"\t"<<yieldB1L1[0][44]<<"\t"<<bYield[0][44]<<normal<<endl;    //temp
           if(lasOn ==1) {
             nHelLCB1L1++;
-            qLCH1L1 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
-            qLCH0L1 += (y_bcm[0]-d_bcm[0])/(2*helRate);
-          } else if(lasOn ==0) {
-            nHelLCB1L0++;
-            qLCH1L0 += (y_bcm[0]+d_bcm[0])/(2*helRate);//described on page 21 of logbook (12 Oct 14)
-            qLCH0L0 += (y_bcm[0]-d_bcm[0])/(2*helRate);
+            qLCH1L1 += (y_bcm[0]+d_bcm[0])/2*(4.0*clock4mhz[0]);//described on page 21 of logbook (12 Oct 14)
+            qLCH0L1 += (y_bcm[0]-d_bcm[0])/2*(4.0*clock4mhz[0]);
+            tOn += 4*clock4mhz[0];            
+          } else if(lasOn ==0) {              
+            nHelLCB1L0++;                     
+            qLCH1L0 += (y_bcm[0]+d_bcm[0])/2*(4.0*clock4mhz[0]);//described on page 21 of logbook (12 Oct 14)
+            qLCH0L0 += (y_bcm[0]-d_bcm[0])/2*(4.0*clock4mhz[0]);
+            tOff += 4*clock4mhz[0];
           }
         }
         qIgnoredH1L1 += qLCH1L1;///these are the charge for only clean laser cycles
@@ -612,7 +625,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
       ///writing out the counts in the fortran format as asked by G, this is a variation of the previous kLasCycPrint functionality
       file = Form("%s/%s/%sFortOutP%d.txt",pPath, txt, filePre.Data(),plane);
-      writeFortOut(file, nCycle, countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , lasPowLCB1L1, lasPowLCB1L0, nHelLCB1L1, nHelLCB1L0);
+      writeFortOut(file, nCycle, countsLCB1H1L1, countsLCB1H1L0, countsLCB1H0L1, countsLCB1H0L0, qLCH1L1, qLCH1L0, qLCH0L1, qLCH0L0 , lasPowLCB1L1, lasPowLCB1L0, tOn, tOff);
       }///for(Int_t nCycle=0; nCycle<nLasCycles; nCycle++) { 
       //cout<<blue<<missedDueToPosCut<<" quartets rejected due to beam position cut"<<normal<<endl;
       cout<<blue<<"the dataType is set to :"<<dataType<<normal<<endl;
@@ -752,7 +765,12 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
       }
 
       if(goodCycles>0) {
-        Double_t wm_out = weightedMean();//wmNrAsym, wmDrAsym, wmNrBCqNormSum, wmDrBCqNormSum, wmNrBCqNormDiff, wmNrqNormB1L0, wmDrqNormB1L0, wmNrBkgdAsym, wmDrBkgdAsym);
+        Int_t wm_out=0;
+        wm_out = weightedMean(wmNrAsym,wmDrAsym,stripAsym,stripAsymEr);
+        wm_out = weightedMean(wmNrBCqNormDiff,wmDrBCqNormSum,stripAsymNr,stripAsymNrEr);
+        wm_out = weightedMean(wmNrBCqNormSum,wmDrBCqNormSum,stripAsymDr,stripAsymDrEr);
+        wm_out = weightedMean(wmNrqNormB1L0,wmDrqNormB1L0,qNormB1L0,qNormB1L0Er);
+        wm_out = weightedMean(wmNrBkgdAsym,wmDrBkgdAsym,bkgdAsym,bkgdAsymEr);
         if(wm_out<0) {
           cout<<red<<"the weightedMean macro returned negative,check what's wrong"<<normal<<endl;
           return -6;///exit the execution
@@ -814,9 +832,7 @@ Int_t expAsym(Int_t runnum = 25419, TString dataType="Ac")
 
         file = Form("%s/%s/%sFortranCheckP%d.txt",pPath, txt, filePre.Data(),plane);
         //1st line of this file will have information about the last cycle
-        Int_t totHelB1L1 = totHelB1H1L1 + totHelB1H0L1;
-        Int_t totHelB1L0 = totHelB1H1L0 + totHelB1H0L0;
-        writeFortFile(file, nLasCycles, totyieldB1H1L1, totyieldB1H1L0, totyieldB1H0L1, totyieldB1H0L0, qAllH1L1, qAllH1L0, qAllH0L1, qAllH0L0, qIgnoredH1L1, qIgnoredH1L0, qIgnoredH0L1, qIgnoredH0L0, lasOffCut, acceptLasPow, totHelB1L1, totHelB1L0);
+        writeFortFile(file, nLasCycles, totyieldB1H1L1, totyieldB1H1L0, totyieldB1H0L1, totyieldB1H0L0, qAllH1L1, qAllH1L0, qAllH0L1, qAllH0L0, qIgnoredH1L1, qIgnoredH1L0, qIgnoredH0L1, qIgnoredH0L0, lasOffCut, acceptLasPow, tTotOn, tTotOff);
       } else cout<<red<<"\nI didn't find even one laser cycler in this run hence NOT processing further"<<normal<<endl;
       tEnd = time(0);
       div_output = div((Int_t)difftime(tEnd, tStart),60);

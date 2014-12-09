@@ -57,7 +57,6 @@ Double_t theoreticalAsym(Double_t *thisStrip, Double_t *par)
   rhoMinus = 1.0-rhoStrip*(1.0 - a_const);//just a term in eqn 24
   dsdrho1 = rhoPlus/rhoMinus;//(1-rhoStrip*(1-a_const)); // 2nd term of eqn 22
   dsdrho =((rhoStrip*(1.0 - a_const)*rhoStrip*(1.0 - a_const)/rhoMinus)+1.0+dsdrho1*dsdrho1);//eqn.22,without factor 2*pi*(re^2)/a_const
-  //Double_t calcAsym=(par[0]*(-1*IHWP)*(rhoPlus*(1-1/(rhoMinus*rhoMinus)))/dsdrho);//eqn.24,without factor 2*pi*(re^2)/a
   return (radCor*(par[1]*(rhoPlus*(1.0-1.0/(rhoMinus*rhoMinus)))/dsdrho));//calcAsym;
 }
 
@@ -161,7 +160,6 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   TGraphErrors *grAsym;
 
   cAsym = new TCanvas("cAsym", Form("Asymmetry in run %d",runnum), 10,10,900,300);
-
   xCedge = rhoToX(runnum,initCE); ///this function should be called after determining the initCE
   if(debug) printf("%g\t%g\t%g\t%g\n",param[0],param[1],param[2],param[3]);
 
@@ -188,12 +186,12 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
   //polFit = new TF1("polFit",theoreticalAsym,startStrip+1,endStrip,2);
   if(polSign) { //positive
     polFit->SetParameters(initCE,0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-    polFit->SetParLimits(0,42.0,62.0);///run2: allow the CE to vary between these strip
+    polFit->SetParLimits(0,42.0,63.0);///run2: allow the CE to vary between these strip
     //polFit->SetParLimits(0,55.0,55.0);///fix the CE parameter
     //polFit->SetParLimits(1,0.82,0.93);///allowing polarization to be 50% to 93%
   } else {     //negative
     polFit->SetParameters(initCE,-0.86);//begin fitting with effStrWid=1, CE=auto-determined, polarization=89%
-    polFit->SetParLimits(0,42.0,62.0);///run2: allow the CE to vary between these strip
+    polFit->SetParLimits(0,42.0,63.0);///run2: allow the CE to vary between these strip
     //polFit->SetParLimits(1,-0.93,-0.82);
   }
   ///Note about TMinuit: its best to not put any limits on the parameters. It becomes difficult for the error matrix
@@ -254,6 +252,10 @@ Int_t asymFit(Int_t runnum=24519,TString dataType="Ac")
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Simplex");///failed r22987
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Minimize");//failed r22987
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit", "Scan");
+    polFit->ReleaseParameter(0);
+    polFit->ReleaseParameter(1);
+    cout<<blue<<"attempting with different initial values"<<normal<<endl;
+    polFit->SetParameters(initCE-0.5,pol);
     fitr = grAsym->Fit("polFit","RS 0");
     polFit = grAsym->GetFunction("polFit");///update the function pointer
     status = int (fitr);

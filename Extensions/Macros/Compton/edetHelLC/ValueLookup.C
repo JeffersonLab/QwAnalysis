@@ -109,8 +109,8 @@ void ValueLookup(Int_t runnum, Double_t &dipoleI, Double_t &dipoleIRMS, Double_t
   TString file = Form("%s/%s/%sdipoleI.txt",pPath, txt,filePre.Data());
   fBeamProp.open(file);
   if(fBeamProp.is_open()) {
-    fBeamProp<<"runnum\tdipoleI\tdipoleIEr\tdipoleIRMS"<<endl;
-    fBeamProp<<runnum<<"\t"<<dipoleI<<"\t"<<dipoleIEr<<"\t"<<dipoleIRMS<<endl;
+    fBeamProp<<"runnum\tdipoleI\tdipoleIEr\tdipoleIRMS\tB_dipole"<<endl;
+    fBeamProp<<runnum<<"\t"<<dipoleI<<"\t"<<dipoleIEr<<"\t"<<dipoleIRMS<<"\t"<<B_dipole<<endl;
     fBeamProp.close();
     cout<<"wrote dipole info to "<<file<<endl;
   } else cout<<red<<"could not open "<<file<<normal<<endl;

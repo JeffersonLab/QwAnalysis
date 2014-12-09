@@ -15,7 +15,8 @@ Int_t stripMask()
     skipStrip.push_back(10);
     skipStrip.push_back(20);
     skipStrip.push_back(39);
-    cout<<green<<"masked strips # 2,6,10,20,39 accross all planes"<<normal<<endl;//!update this with above list
+    skipStrip.push_back(60);
+    cout<<green<<"masked strips # 2,6,10,20,39,60 accross all planes"<<normal<<endl;//!update this with above list
   }
   return 1;
 }

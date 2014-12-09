@@ -87,6 +87,9 @@ Int_t studyRun(Int_t runnum = 24519) {
     Double_t ymin = 0;
     Double_t ymax = 0;//5;//190;
     vectorMinMax(bcm6, ymin, ymax);
+    cout<<blue<<"for run "<<runnum<<" min and max current are "<<ymin<<" and "<<ymax<<" respectively"<<normal<<endl;
+    if (ymax>200) ymax = 190.0;
+    if (ymin<0) ymin = 0.0;
     ymax = ymax + 0.1*ymax;
     //cout<<"the min is: "<<*min_element(bcm6.begin(), bcm6.end())<<endl;
     //cout<<"the max is: "<<*max_element(bcm6.begin(), bcm6.end())<<endl;
@@ -212,7 +215,8 @@ Int_t studyRun(Int_t runnum = 24519) {
     hLaser->SetBit(TH1::kCanRebin);
 
     //Double_t lasOnCut = 112000.0;///cannot use a variable inside the cut below
-    helChain->Draw("yield_sca_laser_PowT>>hLaser","yield_sca_laser_PowT>112000","goff");    
+    helChain->Draw("yield_sca_laser_PowT>>hLaser","yield_sca_laser_PowT>=112000","goff");    
+    //helChain->Draw("yield_sca_laser_PowT.raw>>hLaser","yield_sca_laser_PowT.raw>110.0","goff");    
     //helChain->Draw("yield_sca_laser_PowT/1000>>hLaser","","goff");    
     //cPow->GetPad(1)->SetLogx();
     cPow->GetPad(1)->SetLogy();
@@ -228,7 +232,8 @@ Int_t studyRun(Int_t runnum = 24519) {
     cPow->cd(2);
     TH1D *h2 = new TH1D("h2","h2",100,0,1);
     h2->SetBit(TH1::kCanRebin);
-    helChain->Draw("yield_sca_laser_PowT>>h2","yield_sca_laser_PowT<112000","goff");    
+    helChain->Draw("yield_sca_laser_PowT>>hLaser","yield_sca_laser_PowT<112000","goff");    
+    //helChain->Draw("yield_sca_laser_PowT.raw>>h2","yield_sca_laser_PowT.raw<2.1","goff");    
     //helChain->Draw("yield_sca_laser_PowT>>h2","","goff");
     cPow->SetLogx();
     cPow->GetPad(2)->SetLogy();

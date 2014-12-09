@@ -3,7 +3,7 @@
 ///LC: laser cycle
 ///BC: background corrected
 ///*B1H1L1: beam on, helicity plus, laser on; and so on for synonymous suffixs
-Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0, Int_t nHelLCB1L1, Int_t nHelLCB1L0, Double_t attenFactor[])
+Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_t countsLCB1H0L1[], Double_t countsLCB1H0L0[], Double_t qAvgLCH1L1, Double_t qAvgLCH1L0, Double_t qAvgLCH0L1, Double_t qAvgLCH0L0, Double_t tOn, Double_t tOff, Double_t attenFactor[])
 {
   cout<<"starting into evaluateAsym.C**************"<<endl;
   const Bool_t debug =0;
@@ -31,10 +31,10 @@ Int_t evaluateAsym(Double_t countsLCB1H1L1[], Double_t countsLCB1H1L0[], Double_
     }
   ///// Modification due to explicit (electronic) noise subtraction /////      
     if(kNoiseSub) {
-      newCntsB1H1L1 = newCntsB1H1L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate/(attenFactor[s]);
-      newCntsB1H1L0 = newCntsB1H1L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
-      newCntsB1H0L1 = newCntsB1H0L1 - rateB0[s]*(nHelLCB1L1/2.0)/helRate/(attenFactor[s]);
-      newCntsB1H0L0 = newCntsB1H0L0 - rateB0[s]*(nHelLCB1L0/2.0)/helRate/(attenFactor[s]);
+      newCntsB1H1L1 = newCntsB1H1L1 - (rateB0[s]*tOn )/(attenFactor[s]);
+      newCntsB1H1L0 = newCntsB1H1L0 - (rateB0[s]*tOff)/(attenFactor[s]);
+      newCntsB1H0L1 = newCntsB1H0L1 - (rateB0[s]*tOn )/(attenFactor[s]);
+      newCntsB1H0L0 = newCntsB1H0L0 - (rateB0[s]*tOff)/(attenFactor[s]);
     }
     qNormCountsLCB1H1L1 = newCntsB1H1L1/qAvgLCH1L1;
     qNormCountsLCB1H1L0 = newCntsB1H1L0/qAvgLCH1L0;

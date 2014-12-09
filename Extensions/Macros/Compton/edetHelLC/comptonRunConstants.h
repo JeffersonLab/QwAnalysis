@@ -7,7 +7,7 @@
 ///Boolean constants pertaining to analysis:
     Bool_t kBgdSub = 0; 
 const Bool_t kRejectBMod = 1; //1: yes please reject; 0:Don't reject quartets during bMod ramp
-const Bool_t kNoiseSub = 1;
+const Bool_t kNoiseSub = 0;
 const Bool_t kDeadTime = 1, k2parDT = 1;//0: 1-param DT corr; 1: 2-param DT corr
 const Bool_t kRadCor=1;
 const Bool_t kBeamStable=1;
@@ -62,7 +62,7 @@ const Double_t ldet[nPlanes] = {1.69159,1.70182,1.71205,1.72886};
 
 ///Run constants
 const Bool_t v2processed=0;
-const Double_t lasOffCut = 1800;//2000;//1261;//1100;///elog 319 
+const Double_t lasOffCut = 1182;//1261;//1800;//2000;//1261;//1100;///elog 319 
 const Float_t maxLasPow = 250000;//typical values of sca_laser_PowT ~ 160k when On
       Double_t acceptLasPow = 112000;//typical values of sca_laser_PowT ~ 160k when On
 const Float_t laserFrac = 0.5;//this was the limit for full current regluar running during run2.///typical 160E3. 
@@ -87,7 +87,7 @@ const Float_t rmsLimit = 0.01;///if a measured value has RMS higher than this=> 
 const Float_t beamMaxEver = 200.0, beamOnLimit=2.0;
 Float_t beamTripLimit;
 const Float_t effStripWidth = 1.00; 
-const Float_t bpmDiff = 0.05;
+const Float_t bpmDiff = 0.04;
 
 Int_t plane=1;///the plane that will be analyzed and will be set in the top most hierarchy of the macros
 Bool_t polSign=0;
