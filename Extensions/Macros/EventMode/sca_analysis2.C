@@ -16,8 +16,6 @@
 #include <TStyle.h>
 #include <TAxis.h>
 
-#include "PlotLib.h"
-
 using namespace std;
 using std::vector;
 
