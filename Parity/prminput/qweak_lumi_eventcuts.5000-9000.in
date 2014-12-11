@@ -1,0 +1,59 @@
+!This file contains LUMI  event cut properties last updated 11/15/2010 based on the run 6297
+
+!Global switch to turn ON and OFF eventcut check
+!Available settings
+!To turn OFF all checks
+!EVENTCUTS = 0 
+!To turn OFF event cuts and perform only HW checks
+!EVENTCUTS = 1
+!To turn do both event cuts and HW checks
+!EVENTCUTS = 2
+!To turn do both event cuts and HW checks and only flag event cut failed events
+EVENTCUTS = 3
+
+!IMPORTANT
+!---------
+!Make sure when puting tabs in the map file entries, always put ", " before inserting a tab. 
+!Otherwise the routine QwParameterFile::GetNextToken(", ") will extract the entry with the tab character.
+
+
+!device_type, device_name, lower limit, upper limit, local(l)/global(g), stability percentage
+
+integrationpmt qwk_uslumi1neg          -1000000  1000000  l  0
+integrationpmt qwk_uslumi1pos          -1000000  1000000  l  0
+integrationpmt qwk_uslumi3neg          -1000000  1000000  l  0
+integrationpmt qwk_uslumi3pos          -1000000  1000000  l  0
+integrationpmt qwk_uslumi5neg          -1000000  1000000  l  0
+integrationpmt qwk_uslumi5pos          -1000000  1000000  l  0
+integrationpmt qwk_uslumi7neg          -1000000  1000000  l  0
+integrationpmt qwk_uslumi7pos          -1000000  1000000  l  0
+integrationpmt qwk_dslumi1             -1000000  1000000  l  0
+integrationpmt qwk_dslumi2             -1000000  1000000  l  0
+integrationpmt qwk_dslumi3             -1000000  1000000  l  0
+integrationpmt qwk_dslumi4             -1000000  1000000  l  0
+integrationpmt qwk_dslumi5             -1000000  1000000  l  0
+integrationpmt qwk_dslumi6             -1000000  1000000  l  0
+integrationpmt qwk_dslumi7             -1000000  1000000  l  0
+integrationpmt qwk_dslumi8             -1000000  1000000  l  0
+
+combinationpmt uslumi1_sum             -1000000  1000000  l  0
+combinationpmt uslumi3_sum             -1000000  1000000  l  0
+combinationpmt uslumi5_sum             -1000000  1000000  l  0
+combinationpmt uslumi7_sum             -1000000  1000000  l  0
+combinationpmt uslumi1_uslumi5_sum     -1000000  1000000  l  0
+combinationpmt uslumi3_uslumi7_sum     -1000000  1000000  l  0
+combinationpmt uslumi_sum	       -1000000  1000000  l  0
+combinationpmt dslumi_odd	       -1000000  1000000  l  0
+combinationpmt dslumi_even	       -1000000  1000000  l  0
+combinationpmt dslumi_sum	       -1000000  1000000  l  0
+
+!  Some examples:
+!--------
+!integrationpmt, qwk_uslumi1neg, 0.002053, 1000000, l, 0.01
+!combinationpmt, uslumi3_sum,    0.007625, 1000000, l, 0.01 
+
+!Comments
+!--------
+!Devices that are not in the list are not subjected event cut checks
+!All devices  will be tested for HW checks.
+!
