@@ -110,7 +110,7 @@ void QwRayTracer::DefineOptions(QwOptions& options)
       "Runge-Kutta maximum step size (for adaptive step) [cm]");
   // Maximum step size of Runge-Kutta method for adaptive step
   options.AddOptions("Momentum reconstruction")("QwRayTracer.tolerance",
-      po::value<float>(0)->default_value(0.0000001),
+      po::value<float>(0)->default_value(1e-10),
       "Runge-Kutta adaptive step maximum allowable truncation error");
   // Step size of Newton's method in momentum
   options.AddOptions("Momentum reconstruction")("QwRayTracer.momentum_step",
