@@ -1,3 +1,5 @@
+# Data runs
+
 # Definition of the tracking detectors
 # this is the preamble
 
@@ -6,9 +8,9 @@
  map = qweak_helicity.map
 
 [QwSciFiDetector]
-name = R1
-map = qweak_R1.map
-geom = qweak_new.geo
+ name = R1
+ map = qweak_R1.map
+ geom = qweak_new.geo
 
 [QwDriftChamberHDC]
  name = R2
