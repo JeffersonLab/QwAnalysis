@@ -42,15 +42,21 @@ Int_t VQwSubsystemTracking::LoadGeometryDefinition(TString filename)
 
     // Construct "R2-octant" to request the requested octant
     std::stringstream octant_option;
-    octant_option << "R" << detector->GetRegion() << "-octant";
+    EQwRegionID region = detector->GetRegion();
+    if (region == kRegionIDTrig) region = kRegionID3;
+    octant_option << "R" << region << "-octant";
 
     // Obtain the current octant number from the command line options
-    detector->SetOctant(gQwOptions.GetValue<Int_t>(octant_option.str()));
-    // The octant specified on the command line is for package 2...
-    if (detector->GetPackage() == kPackage1)
-      detector->SetOctant((detector->GetOctant() + 3) % 8 + 1);
+    if (gQwOptions.HasValue(octant_option.str())) {
+      // The octant specified on the command line is for package 2...
+      detector->SetOctant(gQwOptions.GetValue<Int_t>(octant_option.str()));
+      // So if we want package 1 we need to change the octant number
+      if (detector->GetPackage() == kPackage1)
+        detector->SetOctant((detector->GetOctant() + 3) % 8 + 1);
+    } else // no octant explicitly specified
+      detector->SetOctant(0);
 
-    // Construct "R2-octant = 2" to construct the correct module header
+    // Construct "R-octant = " tag to construct the correct module header
     std::stringstream octant_match;
     octant_match << octant_option.str() << " = " << detector->GetOctant();
 
