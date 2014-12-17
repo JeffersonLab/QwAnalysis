@@ -37,6 +37,7 @@
 #include "TStyle.h"
 #include "TPaveStats.h"
 #include "TList.h"
+#include "TSystem.h"
 //define a prefix for all the output files - global don't need to pass
 //TString Prefix;
 

@@ -202,8 +202,8 @@ void Residual(int runnum, bool is100k)
 							const QwHit* hit = const_treeline->GetHit(j);
 							numhits++;
 							{
-								h2[hit->GetPackage() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition() );
-								h[hit->GetPackage() - 1][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTrackPosition());
+								h2[hit->GetPackage() - 1]->Fill(hit->GetDriftPosition() - hit->GetTreeLinePosition() );
+								h[hit->GetPackage() - 1][hit->GetPlane() - 1]->Fill(hit->GetDriftPosition() - hit->GetTreeLinePosition());
 								hplane[hit->GetPackage() - 1]->Fill(hit->GetPlane());
 							}
 						}

@@ -14,11 +14,12 @@
 #include "TStyle.h"
 #include "TPaveStats.h"
 #include "TList.h"
+#include "TSystem.h"
 
 void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 
   //set prefex where the files will be written too
-  PREFIX = Form(
+  TString PREFIX = Form(
       TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
       runnum, runnum);
 
