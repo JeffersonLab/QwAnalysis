@@ -7,7 +7,6 @@ Int_t main(Int_t argc, Char_t *argv[])
   Int_t minEvents = 10000;
   TString filename;
   TChain *mps_tree = new TChain("mps_slug");
-
   QwMpsOnly *mps_only = new QwMpsOnly(mps_tree);
   mps_only->SetOutput((char*)gSystem->Getenv("BMOD_OUT"));
 
@@ -17,15 +16,21 @@ Int_t main(Int_t argc, Char_t *argv[])
     exit(1);
   }
   mps_only->GetOptions(argc, argv);
-  std::cout<<"Beginning to process run "<<mps_only->run_number<<std::endl;
+  std::cout<<"Beginning to process run "<< mps_only->run_number<<std::endl;
+
+  std::cout<<"fRunNum: "<<mps_only->fRunNumberSet<<" "<< mps_only->run_number
+	   <<std::endl;
 
   if( !(mps_only->fRunNumberSet ) ){
-    std::cout<<"fRunNum: "<<mps_only->fRunNumberSet<<std::endl;
+    std::cout<<"fRunNum: "<<mps_only->fRunNumberSet<<" "<<
+      mps_only->run_number<<std::endl;
     mps_only->PrintError("Error Loading:  no run number specified");
     //   std::cout<<mps_only->fRunNumberSet<<std::endl;
     exit(1);
   }
 
+
+  std::cout<<mps_only->fOmitCoil.size()<<" coils omitted from analysis.\n";
   //load segments in chronological order
   int nFiles = 0;
   filename = Form("%s_%d_0:*.root", mps_only->fFileStem.Data(), 
@@ -68,7 +73,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     ++nFiles;
   }
 
-  filename = Form("%s_%d_full.root", mps_only->fFileStem.Data(), 
+  filename = Form("%s_%d_ful*.root", mps_only->fFileStem.Data(), 
 		  mps_only->run_number);
   std::cout<<"File: "<<filename.Data()<<std::endl;
   if(mps_only->LoadRootFile(filename, mps_tree, 0)){
@@ -78,13 +83,16 @@ Int_t main(Int_t argc, Char_t *argv[])
   std::cout<< mps_tree->GetNtrees()<<" files added to chain."<<std::endl;
 
 
-
-  std::cout << "Creating friend tree with new monitors and ramp_filled leaves.\n";
-  if(mps_only->MakeFriendTree(1)){
-    std::cout<<"Failed to make friend tree. Exiting.\n";
-     return -1;
+  if(mps_only->fMakeFriendTree){
+    std::cout << "Creating friend tree with new monitors and ramp_filled leaves."
+	      << std::endl;
+    if(mps_only->MakeFriendTree(1)){
+      std::cout<<"Failed to make friend tree. Exiting.\n";
+      return -1;
+    }
+    std::cout<<"Friend tree successfully created.\n";
   }
-  std::cout<<"Friend tree successfully created.\n";
+
   if(mps_only->AddFriendTree()){
     std::cout<<"Failed to add friend tree. Exiting.\n";
      return -1;

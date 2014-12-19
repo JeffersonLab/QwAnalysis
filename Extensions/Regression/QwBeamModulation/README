@@ -30,6 +30,8 @@ some environment variables.
     $BMOD_OUT: this must have the following directory structure: 
 
        output/slopes
+       output/macrocycle_slopes
+       output/coil_sensitivities
        output/regression
        output/diagnostics
        output/rootfiles
@@ -38,7 +40,20 @@ Build that structure and have $BMOD_OUT point to output/
 
 The following is an example of the command line options that might be used:
 
-runMpsOnly --run 12079 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config config/phase_set0.config --ramp-max-nonlin 3 --chi-square-min 1 --2Dfit 1 --transverse-data 0  --set-output $BMOD_OUT
+runMpsOnly --run 12079 --file-stem mps_only --set-stem set0 --ramp-pedestal 10 --phase-config config/phase_set0.config --ramp-max-nonlin 3 --chi-square-min 1 --2Dfit 1 --transverse-data 0  --set-output $BMOD_OUT --setup-config $BMOD_SRC/config/setup_mpsonly.config --use-data-tertile 0 --omit-coil -1 --set-low-ramp-bound 50
+
+In order to perform multiple analyses with different conditions, it is desireable 
+to specify the output directory so as not to overwrite existing data. I recommend 
+setting up a bmod_out directory with the subdirectories shown above for each 
+separate analysis. My convention is to append the same string to each component of
+the analysis process as follows:
+  1. choose an identifying name like "_10Coil"
+  2. append this name to the output directory i.e. "bmod_out_10Coil/" and to the
+     configuration file used in the analysis "config/setup_mpsonly_10Coil.config".
+     These can be specified using the flags shown above i.e. --set-output and
+     --setup-config. The default values for these are shown in the above example.
+  3. Append the same name to any further files associated with this analysis
+     such as database friend trees and beam modulation slopes trees.
 
 To run the mps only code and find residuals use the script findBModResiduals.sh.
 Be sure to set the variables properly for your given analysis job. 

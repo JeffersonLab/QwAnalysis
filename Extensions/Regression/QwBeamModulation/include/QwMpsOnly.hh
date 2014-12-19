@@ -21,7 +21,7 @@ class QwMpsOnly {
 
 private:
   static const Int_t kNMaxMon = 6;
-  static const Int_t kNMaxDet = 35;
+  static const Int_t kNMaxDet = 50;
   static const Int_t kNMod = 5;
   static const Int_t kNMaxCoil = 5;
   static const Int_t kBranchSize = 13;
@@ -34,8 +34,12 @@ private:
   static const Double_t kDegToRad = 1.74532925199432955e-02;
 
   char *fg[4];//used by FindRampPeriodAndOffset() and Write()
+  Bool_t fFullCycle;
+  Bool_t f2DFit;
+  Bool_t fNewEbpm;
   Int_t fMacroCycleNum;
   Int_t fCycleNum[kNMod];
+  Int_t fUseDataTertile;
   Int_t fDetectorRead;
   Int_t fMonitorRead;
   Int_t fXModulation;
@@ -52,10 +56,6 @@ private:
   Int_t fSensHumanReadable;
   Int_t fNModType;
   Int_t fPedestal;
-  Bool_t fFullCycle;
-  Bool_t f2DFit;
-  Bool_t fNewEbpm;
-
   Int_t fNModEvents;
   Int_t fCurrentCut;
   Int_t fLowerSegment;
@@ -65,6 +65,8 @@ private:
   Double_t fDegPerMPS;
   Double_t fPreviousRampValue;
   Double_t fMaxRampNonLinearity;
+  Double_t fLowRamp;//low bound on ramp for coefficient fits
+  Double_t fHighRamp;//high bound on ramp for coefficient fits
   Double_t fRampMax;
   Double_t fRampLength;
   Double_t fRampPeriod;
@@ -86,6 +88,7 @@ public :
   TString         fFileName;
 
   Bool_t fCutNonlinearRegions;
+  Bool_t fMakeFriendTree;
 
   Int_t           fCurrent;
   Int_t           fFirstEntry;
@@ -94,7 +97,7 @@ public :
   Int_t           fNMonitor;
   Int_t           run_number;
   Int_t           fNumberEvents;
-
+  Int_t           ramp_good;
   // Definitions for branches in the Mps_Tree
 
   Double_t        qwk_charge_hw_sum;
@@ -119,6 +122,7 @@ public :
   Double_t        ramp_block3;
   Double_t        ramp_Device_Error_Code;
   Double_t        ramp_filled;
+
 
   Double_t        newEbpm;
 
@@ -174,6 +178,7 @@ public :
   TBranch        *b_yield_qwk_mdallbars; 
   TBranch        *b_asym_qwk_charge; 
   TBranch        *b_ramp_filled; 
+  TBranch        *b_ramp_good;
   TBranch        *b_mx1;
   TBranch        *b_mx2;
   TBranch        *b_my1;
@@ -203,6 +208,8 @@ public :
   std::vector <TString> HDetectorList;
   std::vector <TString> HMonitorList;
   std::vector <TString> YMonitorList;
+
+  std::vector<Int_t> fOmitCoil;
 
   std::vector <Double_t> sens;
   std::vector <Double_t> phase;
@@ -254,7 +261,7 @@ public :
   void     BuildMonitorSlopeVector();
   void     BuildMonitorAvSlope();
   void     BuildNewEBPM();
-  void     Calculate2DSlope(Int_t, Int_t, Bool_t);
+  void     Calculate2DSlope(Int_t, Int_t);
   void     CalculateSlope(Int_t);
   Int_t    CalculateWeightedSlope(Int_t);
   void     CheckFlags(void);
@@ -306,8 +313,8 @@ public :
   void     SetOutput(char *);
   void     SetRampScaleAndOffset();
   void     SetupHelBranchAddress(void); 
-  void     SetupMpsBranchStatuses(Bool_t, Bool_t); 
-  void     SetupMpsBranchAddresses(Bool_t, Bool_t); 
+  void     SetupMpsBranchStatuses(Bool_t, Bool_t, Bool_t); 
+  void     SetupMpsBranchAddresses(Bool_t, Bool_t, Bool_t); 
   void     Show(Long64_t entry = -1);  
   void     Write(Bool_t);
 

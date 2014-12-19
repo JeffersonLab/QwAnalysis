@@ -44,7 +44,8 @@ void getErrorWeightedMean(Double_t *x, Double_t *xe, Double_t *mean, Int_t n){
 
 
 
-Int_t plotMonitorOrDetectorSlopes(Int_t slug_start = 139, Int_t slug_end = 225, Bool_t plotMon = 1){
+Int_t plotMonitorOrDetectorSlopes(TString stem = "", Int_t slug_start = 139, 
+				  Int_t slug_end = 225, Bool_t plotMon = 1){
   //  gStyle->SetOptFit(1111);
   char  x[255], xe[255], mon[255], monitr[255], det[255], detectr[255], slg[255];
   string line;
@@ -90,7 +91,8 @@ Int_t plotMonitorOrDetectorSlopes(Int_t slug_start = 139, Int_t slug_end = 225, 
  //
   //Get list of monitors and detectors from config file.
   //
-  ifstream file(Form("%s/config/setup_mpsonly.config",gSystem->Getenv("BMOD_SRC")));
+  ifstream file(Form("%s/config/setup_mpsonly%s.config",
+		     gSystem->Getenv("BMOD_SRC"), stem.Data()));
   for(int i=0;i<nMOD;i++){
     file>>mon>>monitr;
     getline(file, line);
@@ -169,14 +171,17 @@ Int_t plotMonitorOrDetectorSlopes(Int_t slug_start = 139, Int_t slug_end = 225, 
       }
     Bool_t atLeastOneGoodRun = 0;
     for(int r = 0; r<slug[sl][1];r++){
-      ifstream coeffFile(Form("%s/slopes/%s_coil_coeff_%i.dat",gSystem->Getenv("BMOD_OUT"),
-			      instr.Data(),slug[sl][r+2]));
+      TString filename = Form("%s%s/slopes/%s_coil_coeff_%i.dat",
+			gSystem->Getenv("BMOD_OUT"),stem.Data(),
+			instr.Data(),slug[sl][r+2]);
+      ifstream coeffFile(filename.Data());
       if(coeffFile.is_open())
 	cout<<"\nCoefficient file found for run "<<slug[sl][r+2]<<" in slug "<<
 	  slug[sl][0]<<".  "<<r<<"  "<<slug[sl][1]<<"\n";
 	else 
 	  cout<<"\nCoefficient file  NOT found for run "<<
 	    slug[sl][r+2]<<" in slug "<<slug[sl][0]<<".\n";
+      cout<<filename.Data()<<endl;
 
       if(coeffFile.good()){
 	atLeastOneGoodRun = 1;
