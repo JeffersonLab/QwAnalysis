@@ -203,22 +203,18 @@ Again plane X is red, plane U is blue and plane V is green.
 </p></center>
 
 <div style="width: 1200px; margin: 0 auto;">
-<img src="%%RUNNUM%%_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
-
-<!-- This never existed...
+<img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
 
 <center><p>
 These plots graph the drift time distribution for all HDC hits (no requirement that the hits be part of valid tracks) for each of the 4 chambers, first on linear and then on log scales. 
+</p></center>
 
-</p></center>
-<p><center><img src="%%RUNNUM%%_test_drift_times.png"> 
-</p></center>
+<p><center><img src="%%RUNNUM%%_trk_drift_times.png"> </p></center>
 
 These plots graph the wire hit patterns for each plane of each HDC chamber for all HDC hits (no requirement that the hits be part of valid tracks)
-<p><center><img src="%%RUNNUM%%_test_hit_patterns.png"></center></p>
+<p><center><img src="%%RUNNUM%%_trk_hit_patterns.png"></center></p>
 </p></center>
 
--->
 
 <!-- New Topic -->
 
@@ -245,7 +241,7 @@ These  plots are the "elements" for the QwHits in each region, where element is 
 <center><p>
 This is a plot of the log of the number of bridged tracks per event.
 </p></center>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_fNQwTracks.png">
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_fNQwTracks.png">
 
 <!-- New Topic -->
 
@@ -492,7 +488,7 @@ of the Theta (top) and Phi (bottom) angles.  The plots from left to right are pa
 </p></center>
 <p><center><img src="%%RUNNUM%%_Theta_offset.png"></center></p>
 <p><center><img src="%%RUNNUM%%_Phi_offset.png"></center></p>
-<p><center><a href="%%RUNNUM%%_R3_offsets.txt">Angle Momentum offsets</a></center></p>
+<p><center><a href="%%RUNNUM%%_R3_offsets_Theta.txt">Theta offsets</a> | <a href="%%RUNNUM%%_R3_offsets_Phi.txt">Phi offsets</a></center></p>
 
 
 <!-- New Topic -->
