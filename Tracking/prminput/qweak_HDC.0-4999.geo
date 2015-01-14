@@ -36,7 +36,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -342.305
   element_angle_cos = 1
   element_angle_sin = 0
 
@@ -46,7 +46,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -340.325
   element_angle_cos = 0.6
   element_angle_sin = -0.8
 
@@ -56,7 +56,7 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -338.345
   element_angle_cos = 0.6
   element_angle_sin = 0.8
   
@@ -66,7 +66,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -336.365
   element_angle_cos = 1
   element_angle_sin = 0
   
@@ -76,7 +76,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -334.385
   element_angle_cos = 0.6
   element_angle_sin = -0.8
 
@@ -86,7 +86,7 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -332.405
   element_angle_cos = 0.6
   element_angle_sin = 0.8
 
@@ -98,7 +98,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -342.305
   element_angle_cos = 1
   element_angle_sin = 0
 
@@ -108,7 +108,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -340.325
   element_angle_cos = 0.6
   element_angle_sin = -0.8
   
@@ -118,7 +118,7 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -338.345
   element_angle_cos = 0.6
   element_angle_sin = 0.8
   
@@ -128,7 +128,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -336.365
   element_angle_cos = 1
   element_angle_sin = 0
   
@@ -138,7 +138,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -334.385
   element_angle_cos = 0.6
   element_angle_sin = -0.8
   
@@ -148,7 +148,7 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.276
   detector_origin_y = 51.104
-  detector_origin_z = -337.355
+  detector_origin_z = -332.405
   element_angle_cos = 0.6
   element_angle_sin = 0.8
 
@@ -160,7 +160,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -299.627
   element_angle_cos = 1
   element_angle_sin = 0
 
@@ -170,7 +170,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -297.647
   element_angle_cos = 0.6
   element_angle_sin = -0.8
 
@@ -180,7 +180,7 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -295.667
   element_angle_cos = 0.6
   element_angle_sin = 0.8
   
@@ -190,7 +190,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -293.687
   element_angle_cos = 1
   element_angle_sin = 0
 
@@ -200,7 +200,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -291.707
   element_angle_cos = 0.6
   element_angle_sin = -0.8
   
@@ -210,7 +210,7 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -289.727
   element_angle_cos = 0.6
   element_angle_sin = 0.8
   
@@ -222,7 +222,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -299.627
   element_angle_cos = 1
   element_angle_sin = 0
 
@@ -232,7 +232,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -297.647
   element_angle_cos = 0.6
   element_angle_sin = -0.8
   
@@ -242,7 +242,7 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -295.667
   element_angle_cos = 0.6
   element_angle_sin = 0.8
   
@@ -253,7 +253,7 @@ detector_tilt = 0
   direction = x
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -293.687
   element_angle_cos = 1
   element_angle_sin = 0
 
@@ -263,7 +263,7 @@ detector_tilt = 0
   direction = u
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -291.707
   element_angle_cos = 0.6
   element_angle_sin = -0.8
 
@@ -273,6 +273,6 @@ detector_tilt = 0
   direction = v
   detector_origin_x = -0.141
   detector_origin_y = 54.872
-  detector_origin_z = -294.677
+  detector_origin_z = -289.727
   element_angle_cos = 0.6
   element_angle_sin = 0.8
