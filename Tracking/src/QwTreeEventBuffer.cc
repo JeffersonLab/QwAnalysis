@@ -1373,7 +1373,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
       double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
       double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
+      double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
@@ -1381,15 +1381,20 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
+      double originZ = detectorinfo->GetZPosition();
       int octant = detectorinfo->GetOctant();
       double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
       double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      //double z = zGlobalMC - originZ;
+      double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
       double cos_theta = detectorinfo->GetDetectorPitchCos();
       double sin_theta = detectorinfo->GetDetectorPitchSin();
+
+      double xx = cos_theta*x - sin_theta*z;
+      double yy = y; //no change in y
+      double zz = sin_theta*x + cos_theta*z;
+      x = xx; y = yy; z = zz;
 
       // x = x/cos_theta;
 //
@@ -1450,7 +1455,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
       double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
       double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
-      //double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
+      double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
       double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
       double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
       double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
@@ -1458,15 +1463,20 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
+      double originZ = detectorinfo->GetZPosition();
       int octant = detectorinfo->GetOctant();
       double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
       double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      //double z = zGlobalMC - originZ;
+      double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
       double cos_theta = detectorinfo->GetDetectorPitchCos();
       double sin_theta = detectorinfo->GetDetectorPitchSin();
+
+      double xx = cos_theta*x - sin_theta*z;
+      double yy = y; //no change in y
+      double zz = sin_theta*x + cos_theta*z;
+      x = xx; y = yy; z = zz;
 
       // x = x/cos_theta;
       
@@ -1529,7 +1539,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
       double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
       double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
-      //double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
+      double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
@@ -1537,15 +1547,20 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
+      double originZ = detectorinfo->GetZPosition();
       int octant = detectorinfo->GetOctant();
       double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
       double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      //double z = zGlobalMC - originZ;
+      double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
       double cos_theta = detectorinfo->GetDetectorPitchCos();
       double sin_theta = detectorinfo->GetDetectorPitchSin();
+
+      double xx = cos_theta*x - sin_theta*z;
+      double yy = y; //no change in y
+      double zz = sin_theta*x + cos_theta*z;
+      x = xx; y = yy; z = zz;
 
       // x = x/cos_theta;
       
@@ -1607,7 +1622,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       //double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
       double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
       double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
-      //double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
+      double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
       double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
       double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
       double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
@@ -1615,15 +1630,20 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       // Convert global x-y to local x-y
       double originX = detectorinfo->GetXPosition();
       double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
+      double originZ = detectorinfo->GetZPosition();
       int octant = detectorinfo->GetOctant();
       double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
       double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      //double z = zGlobalMC - originZ;
+      double z = zGlobalMC - originZ;
 
       // Detector rotation over theta around the x axis in the MC frame
       double cos_theta = detectorinfo->GetDetectorPitchCos();
       double sin_theta = detectorinfo->GetDetectorPitchSin();
+
+      double xx = cos_theta*x - sin_theta*z;
+      double yy = y; //no change in y
+      double zz = sin_theta*x + cos_theta*z;
+      x = xx; y = yy; z = zz;
 
       // x = x/cos_theta;
       
