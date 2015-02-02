@@ -42,6 +42,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fCurrentCut = 40; 
   fPreviousRampValue = -1.;
   fMaxRampNonLinearity = 10.;
+  fFractionalDetectorSlopes = true;
   fMakeFriendTree = false;
   fTransverseData = false;
   fFullCycle = false;
@@ -504,6 +505,10 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     
     mean = TMath::Abs(fctn->GetParameter(0));        
     meanError = (fctn->GetParError(0));
+    if(!fFractionalDetectorSlopes){
+      mean = 1.0;
+      meanError = 0;
+    }
     sinAmp = (fctn->GetParameter(1));
     sinAmpError = (fctn->GetParError(1));
     cosAmp = (fctn->GetParameter(2));
@@ -635,6 +640,9 @@ void QwMpsOnly::CalculateSlope(Int_t modType)
     //
     // Load Yields in to make Yield Correction a little easier in the end.
     //
+    if(!fFractionalDetectorSlopes){
+      d_mean = 1.0;
+    }
     if(fSensHumanReadable == 1){
       DetectorSlope[modType][det].push_back(1e6*slope
 					      /( TMath::Abs(d_mean) ));
@@ -1776,6 +1784,18 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
       fCurrentCut = atoi(options[i + 1]);
       std::cout << other << "Setting current-cut to:\t" 
 		<< fCurrentCut << normal << std::endl;
+    }
+    
+    if(flag.CompareTo("--fractional-detector-slopes", TString::kExact) == 0){
+      //      flag.Clear();
+      fFractionalDetectorSlopes = atoi(options[i + 1]);
+      if( fFractionalDetectorSlopes ){
+	std::cout << other << "Calculating fractional detector slopes" 
+		  << normal << std::endl;
+      }else{
+	std::cout << other << "Calculating absolute detector slopes" 
+		  << normal << std::endl;
+      }
     }
 
     

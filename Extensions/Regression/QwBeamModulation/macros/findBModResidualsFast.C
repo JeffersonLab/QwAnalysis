@@ -129,8 +129,9 @@ Int_t GetMonitorAndDetectorLists(TChain *ch, TString *monitorList,
 
 
 Int_t findBModResidualsFast(Int_t run = 13993,char *config = "",char *output = "",
-			Int_t chsq = 1, Int_t phase_set = 0, Bool_t run_average=0,
-			Bool_t nonlin_cut = 0,Bool_t isTransverseData = 0){
+			    Int_t chsq = 1, Int_t phase_set = 0, Bool_t run_average=0,
+			    Bool_t nonlin_cut = 0,Bool_t isTransverseData = 0,
+			    Bool_t fractionalDetectorSlopes = 1){
   gStyle->SetOptFit(1111);
   gStyle->SetStatW(0.25);
   gStyle->SetStatH(0.25);
@@ -374,8 +375,12 @@ Int_t findBModResidualsFast(Int_t run = 13993,char *config = "",char *output = "
       }
     for(int imod=0;imod<nMOD;imod++)
       for(int idet=0;idet<nDet;idet++){
-	meanDet[imod][idet] = TMath::Abs(meanDet[imod][idet]/nEntries[imod]);
-	printf("Mean Detector[%i][%i] = %f\n",imod,idet,meanDet[imod][idet]);
+	if( fractionalDetectorSlopes ){
+	  meanDet[imod][idet] = TMath::Abs(meanDet[imod][idet]/nEntries[imod]);
+	  printf("Mean Detector[%i][%i] = %f\n",imod,idet,meanDet[imod][idet]);
+	}else{
+	  meanDet[imod][idet] = 1.0;
+	}
       }
 
     
@@ -405,13 +410,18 @@ Int_t findBModResidualsFast(Int_t run = 13993,char *config = "",char *output = "
 	if(allGood){
 	  vector<double> y;
 	  for(int ient=0;ient<(int)x[imod].size();++ient){
-	    double val = vDet[imod][idet][ient]/meanDet[imod][idet] * 
-	      (1 - DetectorSlope[0][idet]*(vMon[imod][0][ient] - meanMon[imod][0])
-	         - DetectorSlope[1][idet]*(vMon[imod][1][ient] - meanMon[imod][1])
-	         - DetectorSlope[2][idet]*(vMon[imod][2][ient] - meanMon[imod][2])
-	         - DetectorSlope[3][idet]*(vMon[imod][3][ient] - meanMon[imod][3])
-	         - DetectorSlope[4][idet]*(vMon[imod][4][ient] - meanMon[imod][4])
-	       );
+	    double val = vDet[imod][idet][ient] / meanDet[imod][idet];
+	    double corr = 1.0;
+	    for(int imon=0;imon<nMON;++imon){
+	      corr -= DetectorSlope[imon][idet]*(vMon[imod][imon][ient] - meanMon[imod][imon]) / val;
+	    } 
+	    val *= corr;
+	    // double val = vDet[imod][idet][ient]/abs(meanDet[imod][idet]) *
+	    //   (1 - a * (  DetectorSlope[0][idet]*(vMon[imod][0][ient] - meanMon[imod][0])
+	    // 		+ DetectorSlope[1][idet]*(vMon[imod][1][ient] - meanMon[imod][1])
+	    // 		+ DetectorSlope[2][idet]*(vMon[imod][2][ient] - meanMon[imod][2])
+	    // 		+ DetectorSlope[3][idet]*(vMon[imod][3][ient] - meanMon[imod][3])
+	    // 		+ DetectorSlope[4][idet]*(vMon[imod][4][ient] - meanMon[imod][4]));
 	    y.push_back(val);
 	    //cout<<x[imod].size()<<" "<<ient<<" "<<x[imod][ient]<<" "<<val<<endl;
 	  }
@@ -439,10 +449,11 @@ Int_t findBModResidualsFast(Int_t run = 13993,char *config = "",char *output = "
 	    gr.GetXaxis()->SetTitleOffset(0.8);
 	    gPad->Update();
 	 } 
-	  CorrectedDetectorSin[imod][idet]= f->GetParameter(1);
-	  CorrectedDetectorSinError[imod][idet]= f->GetParError(1);
-	  CorrectedDetectorCos[imod][idet]= f->GetParameter(2);
-	  CorrectedDetectorCosError[imod][idet]= f->GetParError(2);
+	  double mn = f->GetParameter(0);
+	  CorrectedDetectorSin[imod][idet]= f->GetParameter(1) / mn;
+	  CorrectedDetectorSinError[imod][idet]= f->GetParError(1) / mn;
+	  CorrectedDetectorCos[imod][idet]= f->GetParameter(2) / mn;
+	  CorrectedDetectorCosError[imod][idet]= f->GetParError(2) / mn;
 	}else{
 	  CorrectedDetectorSin[imod][idet]= errorFlag;
 	  CorrectedDetectorSinError[imod][idet]=  errorFlag;

@@ -20,6 +20,7 @@ PHASESET=0
 RUNAVERAGE=0
 RAMP_MAX_NONLIN=10
 RAMP_PEDESTAL=10
+FRACTIONAL_DETECTOR_SLOPES=1
 CONFIG="$BMOD_SRC/config/setup_mpsonly.config"
 OUTPUT="$BMOD_OUT"
 FIELD=3
@@ -38,7 +39,7 @@ CONFIG="$BMOD_SRC/config/setup_mpsonly${POST}.config"
 OUTPUT="${BMOD_OUT}${POST}"
 n=0
 prev_run=0
-cd $MPS_ONLY_ROOTFILES/../pass5b_bmod_mpsslug
+cd $MPS_ONLY_ROOTFILES
 for i in $( ls mps_only_1*.root | cut -d'_' -f $FIELD );
 #for i in $( find ${OUTPUT}/macrocycle_slopes/coil_coeffs_${1}*_ChiSqMin.set0.dat -mtime +3 -mtime -90 -ls| cut -d'_' -f ${FIELD} );
   do
@@ -48,12 +49,12 @@ for i in $( ls mps_only_1*.root | cut -d'_' -f $FIELD );
   if [ "$i" -ne $prev_run ] && [ "$i" -ge $START_RUN ] && [ "$i" -le $LAST_RUN ];then
       echo "$n $i"
       SLOPESFILE="${OUTPUT}/slopes/slopes_${i}_ChiSqMin.set${PHASESET}.dat"
-      if [ -f $SLOPESFILE ] && [ $OVERWRITE_SLOPESFILES -eq 0 ]; then
-	  echo $SLOPESFILE  already exists. 
-      else
-	  ${BMOD_SRC}/runMpsOnly --ramp-max-nonlin $RAMP_MAX_NONLIN --file-stem mps_only --set-stem set0 --ramp-pedestal $RAMP_PEDESTAL --phase-config ${BMOD_SRC}/config/phase_set0.config --run ${i} --chi-square-min $CHISQUARE --2Dfit 1 --transverse-data $TRANSVERSE --set-output $OUTPUT --setup-config $CONFIG --set-low-ramp-fit-bound $LRAMP --set-high-ramp-fit-bound $HRAMP --make-friend-tree $MAKE_FRIEND_TREE --omit-coil 7
-      fi
-      nice root -b -q ${BMOD_SRC}/macros/findBModResidualsFast.C+\(${i},\"${CONFIG}\",\"${OUTPUT}\",${CHISQUARE},${PHASESET},${RUNAVERAGE},${NONLINCUT},${TRANSVERSE}\)
+#      if [ -f $SLOPESFILE ] && [ $OVERWRITE_SLOPESFILES -eq 0 ]; then
+#	  echo $SLOPESFILE  already exists. 
+#      else
+#	  ${BMOD_SRC}/runMpsOnly --ramp-max-nonlin $RAMP_MAX_NONLIN --file-stem mps_only --set-stem set0 --ramp-pedestal $RAMP_PEDESTAL --phase-config ${BMOD_SRC}/config/phase_set0.config --run ${i} --chi-square-min $CHISQUARE --2Dfit 1 --transverse-data $TRANSVERSE --set-output $OUTPUT --setup-config $CONFIG --set-low-ramp-fit-bound $LRAMP --set-high-ramp-fit-bound $HRAMP --make-friend-tree $MAKE_FRIEND_TREE --fractional-detector-slopes $FRACTIONAL_DETECTOR_SLOPES
+#      fi
+      nice root -b -q ${BMOD_SRC}/macros/findBModResidualsFast.C+\(${i},\"${CONFIG}\",\"${OUTPUT}\",${CHISQUARE},${PHASESET},${RUNAVERAGE},${NONLINCUT},${TRANSVERSE},${FRACTIONAL_DETECTOR_SLOPES}\)
       ((++n))
   fi
   prev_run=$i

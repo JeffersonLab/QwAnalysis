@@ -4,7 +4,7 @@
 #Input is stem eg. _no_charge_normalization
 
 stem=$1
-slopeListsDir="/net/data1/paschkedata1/bmod_out${stem}/slopelists/"
+slopeListsDir="${BMOD_OUT}${stem}/slopelists/"
 prefix="slopeList_asym_qwk_md1barsum."
 filename="${slopeListsDir}run_ranges.dat"
 

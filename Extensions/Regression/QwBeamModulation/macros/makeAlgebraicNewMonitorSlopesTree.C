@@ -227,7 +227,7 @@ void makeAlgebraicNewMonitorSlopesTree( TString stem = "", Int_t run_start = 993
 
   Double_t run = 0, slug = 0, nCycle = 0, nRuns = 0;
   vector<Double_t> temp;
-  TString output_dir = Form("/net/data1/paschkedata1/bmod_out%s",stem.Data());
+  TString output_dir = Form("%s%s",gSystem->Getenv("BMOD_OUT"),stem.Data());
   cout<<"Output directory:  "<<output_dir.Data()<<endl;
   //Read information for all runs in runlist.
   /////////////////////////////////////////////////////////
@@ -376,7 +376,7 @@ void makeAlgebraicNewMonitorSlopesTree( TString stem = "", Int_t run_start = 993
   //Find list of runs to exclude and use it to make a flag in the tree
   ////////////////////////////////////////////////////////////////////
   char * f_name = Form("%s/../temporarily_excluded_macrocycles%s."
-		       "dat", gSystem->Getenv("BMOD_OUT"), stem.Data());
+		       "dat", gSystem->Getenv("MPS_ONLY_ROOTFILES"), stem.Data());
   ifstream excludedCyclesFile(f_name);
   if(!excludedCyclesFile.is_open()){
     cout<<"Excluded macrocycles file \""<<f_name<<"\"not found. Exiting.\n";
@@ -400,8 +400,9 @@ void makeAlgebraicNewMonitorSlopesTree( TString stem = "", Int_t run_start = 993
 
   //Create a new file for tree
   ////////////////////////////
-  newfile =new TFile(Form("/net/data1/paschkedata1/MacrocycleSlopesTree%s%s_nm"
-			  ".root", name, stem.Data()),"recreate");
+  newfile =new TFile(Form("%s/../MacrocycleSlopesTree%s%s_nm"
+			  ".root", gSystem->Getenv("MPS_ONLY_ROOTFILES"),name, 
+			  stem.Data()),"recreate");
   ////////////////////////////
 
 

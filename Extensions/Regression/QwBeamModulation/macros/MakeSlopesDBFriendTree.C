@@ -1,6 +1,7 @@
 #include <TChain.h>
 #include <cstdio>
 #include <iostream>
+#include <string>
 #include <fstream>
 #include <vector>
 #include "TSystem.h"
@@ -10,6 +11,7 @@
 #include "TChain.h"
 #include "TBranch.h"
 #include "TLeaf.h"
+#include "TDirectory.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //Author: Don Jones
@@ -23,7 +25,7 @@
 //**********************************************************************
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef struct leaf_t{
+struct leaf_t{
   double value;
   double err;
   double rms;
@@ -100,8 +102,8 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
   string line, match = "asym_qwk_charge.";
   vector<vector<Int_t> >vRunRange;
   vRunRange.resize(2);
-  ifstream runRangeFile(Form("/net/data1/paschkedata1/bmod_out%s/slopelists/"
-			     "run_ranges.dat", stem.Data()));
+  ifstream runRangeFile(Form("%s%s/slopelists/run_ranges.dat", 
+			     gSystem->Getenv("BMOD_OUT"),stem.Data()));
   if(!(runRangeFile.is_open()&&runRangeFile.good())){
     cout<<"Run range file not found. Run the following command from slopeslists"
 	<<" directory then rerun program:\n";
@@ -110,8 +112,8 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
 	<<"|sed 's/-/  /g' |sed 's/.dat//g' > run_ranges.dat\n";
     return -1;
   }else{
-    printf("Run ranges file found: /net/data1/paschkedata1/bmod_out%s/slopelists/"
-	   "run_ranges.dat\n", stem.Data());
+    printf("Run ranges file found: %s%s/slopelists/"
+	   "run_ranges.dat\n", gSystem->Getenv("BMOD_OUT"), stem.Data());
   }
   while(!runRangeFile.eof()){
     int start_run, end_run;
@@ -145,8 +147,9 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
   //get the DB rootfile
   /////////////////////////////////////////////////////////
 
-  TFile *DBfile = TFile::Open(Form("/net/data2/paschkelab2/DB_rootfiles/run%i/"
-				   "HYDROGEN-CELL_off_tree.root", run_period));
+  TFile *DBfile = TFile::Open(Form("%s/run%i/HYDROGEN-CELL_off_tree.root", 
+				   gSystem->Getenv("DB_ROOTFILES"),
+				   run_period));
   if(DBfile==0){
     cout<<"DB rootfile not found. Exiting.\n";
     return -1;
@@ -170,9 +173,16 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
 
   //Create a new file for tree
   /////////////////////////////////////////////////////////
-  TFile *slopesFile = new TFile(Form("/net/data2/paschkelab2/DB_rootfiles/"
-			      "run%i/hydrogen_cell_bmod_slopes_tree%s.root",
-				     run_period, stem.Data()),"recreate");
+  TString slopesFileName = Form("%s/run%i/hydrogen_cell_bmod_slopes_tree"
+				"%s.root", gSystem->Getenv("DB_ROOTFILES"),
+				run_period, stem.Data());
+  TFile *slopesFile = new TFile(slopesFileName.Data(),"recreate");
+  if(!slopesFile){
+    cout<<"Slopes tree file failed to be created. Exiting.\n";
+    return -1;
+  }
+  gSystem->cd(Form("%s/run%i",gSystem->Getenv("DB_ROOTFILES"), run_period));
+  TTree *slopesTree = new TTree("slopes", "slopes"); 
   /////////////////////////////////////////////////////////
 
 
@@ -186,8 +196,6 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
     slopes[idet] = new Double_t [nMON];
     slopesErr[idet] = new Double_t [nMON];
   }
-
-  TTree *slopesTree = new TTree("slopes", "slopes"); 
   TBranch *brRunlet = slopesTree->Branch("run_number_decimal", 
 					 &run_num_dec, 
 					 "run_number_decimal/D");
@@ -248,8 +256,9 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
       lRun = vRunRange[0][irange];
       hRun = vRunRange[1][irange];
       for(int idet=0;idet<nDet;idet++){
-	char *file_name = (Form("/net/data1/paschkedata1/bmod_out%s/slopelists/"
-				"slopeList_asym_%s.%i-%i.dat", stem.Data(),
+	char *file_name = (Form("%s%s/slopelists/"
+				"slopeList_asym_%s.%i-%i.dat",
+				gSystem->Getenv("BMOD_OUT"), stem.Data(),
 			 DetectorListFull[idet].Data(), 
 			 vRunRange[0][irange], vRunRange[1][irange]));
 	ifstream sl_file(file_name);
@@ -257,13 +266,15 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
 	  cout<<"Slopes file "<<file_name<<" not found. Exiting.\n";
 	    return -1;
 	}
-	getline(sl_file, line);
+	string ln;
+	getline(sl_file, ln);
 	int num_monitors = 0;
 	for(int imon=0;imon<nMON;++imon){
 	  double slp, err;
 	  TString name;
 	  sl_file>>name>>slp>>err;
-	  getline(sl_file, line);
+	  getline(sl_file, ln);
+	  cout<<slp<<" "<<err<<endl;
 	  int idx;
 	  for(idx=0; idx<nMON; ++idx){
 	    if(MonitorList[idx].Contains(name.Data())){
@@ -287,8 +298,10 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
     slopesTree->Fill();
   }
   cout<<"Found "<<nFound<<" runlets. "<<nNotFound<<" runlets not found.\n";
-  slopesTree->Write("",TObject::kOverwrite);
+  slopesFile = slopesTree->GetCurrentFile();
+  slopesFile->Write("",TObject::kOverwrite);
+  cout<<slopesTree->GetEntries()<<" entries"<<endl;
+  cout<<"Writing "<<slopesFileName.Data()<<endl;
   slopesFile->Close();
-
   return 0;
 }

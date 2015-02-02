@@ -34,6 +34,7 @@ private:
   static const Double_t kDegToRad = 1.74532925199432955e-02;
 
   char *fg[4];//used by FindRampPeriodAndOffset() and Write()
+  Bool_t fFractionalDetectorSlopes;
   Bool_t fFullCycle;
   Bool_t f2DFit;
   Bool_t fNewEbpm;

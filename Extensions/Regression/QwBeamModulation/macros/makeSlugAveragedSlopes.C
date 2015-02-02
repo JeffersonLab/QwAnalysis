@@ -28,10 +28,8 @@ Int_t FindRunRanges(Int_t **ranges ){
   //ranges format is range[slug]={sluglo,slughi,runlo,runhi};
   int run, slug;
   TChain *ch = new TChain("tree");
-  ch->Add("/net/data2/paschkelab2/DB_rootfiles/run1/"
-	  "HYDROGEN-CELL_offoff_tree.root");
-  ch->Add("/net/data2/paschkelab2/DB_rootfiles/run2/"
-	  "HYDROGEN-CELL_offoff_tree.root");
+  ch->Add(Form("%s/run1/HYDROGEN-CELL_offoff_tree.root", gSystem->Getenv("DB_ROOTFILES")));
+  ch->Add(Form("%s/run2/HYDROGEN-CELL_offoff_tree.root", gSystem->Getenv("DB_ROOTFILES")));
   ch->SetBranchStatus("*",0);
   ch->SetBranchStatus("run_number",1);
   ch->SetBranchStatus("slug",1);
@@ -183,7 +181,7 @@ void makeSlugAveragedSlopes(char* stem ="", Bool_t chi_sq_min = 1, Bool_t writeS
 
   TChain *slopes = new TChain("slopes");
   slopes->Add(Form("%s/../MacrocycleSlopesTree%s.set0%s.root",
-		   gSystem->Getenv("BMOD_OUT"), (chi_sq_min ? "_ChiSqMin" : ""),
+		   gSystem->Getenv("MPS_ONLY_ROOTFILES"), (chi_sq_min ? "_ChiSqMin" : ""),
 		   stem));
   TString MonitorList[nMON], MonitorListFull[nMON];
   TString DetectorList[nDET], DetectorListFull[nDET];
@@ -253,7 +251,7 @@ void makeSlugAveragedSlopes(char* stem ="", Bool_t chi_sq_min = 1, Bool_t writeS
     //Run range is from lRun to hRun
 
     Int_t order[5] = {0,3,1,4,2};
-    TString output_dir = Form("/net/data1/paschkedata1/bmod_out%s", stem);
+    TString output_dir = Form("%s%s", gSystem->Getenv("BMOD_OUT"),stem);
     for(int idet=0;idet<nDet && writeSl;idet++){
 //       printf("::%s/slopelists/slopeList_asym_%s.%i-%i.dat\n",
 // 	     output_dir.Data(), DetectorListFull[idet].Data(), 
