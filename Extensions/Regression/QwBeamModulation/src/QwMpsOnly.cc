@@ -413,6 +413,8 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     slopeCos = cosAmp;
     slopeCosErr = cosAmpError;
 
+    MonitorMean[modType][mon] = mean;
+    MonitorMeanError[modType][mon] = meanError;
     MonitorSlope[modType][mon].push_back(slopeSin);
     MonitorSlopeError[modType][mon].push_back(slopeSinErr);
     MonitorSlope[modType+5][mon].push_back(slopeCos);
@@ -505,6 +507,8 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     
     mean = TMath::Abs(fctn->GetParameter(0));        
     meanError = (fctn->GetParError(0));
+    DetectorMean[modType][det] = mean;
+    DetectorMeanError[modType][det] = meanError;
     if(!fFractionalDetectorSlopes){
       mean = 1.0;
       meanError = 0;
@@ -2977,8 +2981,11 @@ void QwMpsOnly::Write(Bool_t run_avg){
 	macrocycle_coeffs << "mon " << MonitorList[imon].Data() << std::endl;
 	for(Int_t imod = 0; imod < nMod; imod++){
 	  Double_t sl = MonitorSlope[imod][imon].back();
-	  Double_t err = MonitorSlopeError[imod][imon].back();
-	  macrocycle_coeffs << Form("%+14.7e\t%12.5e\n",sl, err);
+	  Double_t slerr = MonitorSlopeError[imod][imon].back();
+	  Double_t mn = MonitorMean[imod%kNMod][imon];
+	  Double_t mnerr = MonitorMeanError[imod%kNMod][imon];
+	  macrocycle_coeffs << Form("%+14.7e\t%12.5e   %+14.7e\t%12.5e\n",
+				    sl, slerr, mn, mnerr);
 	}
       }
 
@@ -2986,8 +2993,11 @@ void QwMpsOnly::Write(Bool_t run_avg){
 	macrocycle_coeffs << "det " << DetectorList[idet].Data() << std::endl;
 	for(Int_t imod = 0; imod < nMod; imod++){
 	  Double_t sl = DetectorSlope[imod][idet].back();
-	  Double_t err = DetectorSlopeError[imod][idet].back();
-	  macrocycle_coeffs << Form("%+14.7e\t%12.5e\n",sl, err);
+	  Double_t slerr = DetectorSlopeError[imod][idet].back();
+	  Double_t mn = DetectorMean[imod%kNMod][idet];
+	  Double_t mnerr = DetectorMeanError[imod%kNMod][idet];
+	  macrocycle_coeffs << Form("%+14.7e\t%12.5e   %+14.7e\t%12.5e\n",
+				    sl, slerr, mn, mnerr);
 	}
       }
 

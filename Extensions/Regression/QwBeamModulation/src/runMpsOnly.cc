@@ -29,7 +29,6 @@ Int_t main(Int_t argc, Char_t *argv[])
     exit(1);
   }
 
-
   std::cout<<mps_only->fOmitCoil.size()<<" coils omitted from analysis.\n";
   //load segments in chronological order
   int nFiles = 0;

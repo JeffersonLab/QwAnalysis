@@ -141,8 +141,10 @@ public :
   Double_t        PositionDiffMean[kNMaxDet][kNMaxMon];
   Double_t        YieldSlope[kNMaxDet][kNMaxMon];
   Double_t        YieldSlopeError[kNMaxDet][kNMaxMon];
-  Double_t        MonitorMean[kNMaxMon];
-  Double_t        DetectorMean[kNMaxDet];
+  Double_t        MonitorMean[kNMod][kNMaxMon];
+  Double_t        DetectorMean[kNMod][kNMaxDet];
+  Double_t        MonitorMeanError[kNMod][kNMaxMon];
+  Double_t        DetectorMeanError[kNMod][kNMaxDet];
   Double_t        qwk_targetX_hw_sum;
 
   TBranch        *b_qwk_charge;    

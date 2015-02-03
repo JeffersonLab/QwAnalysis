@@ -49,12 +49,12 @@ for i in $( ls mps_only_1*.root | cut -d'_' -f $FIELD );
   if [ "$i" -ne $prev_run ] && [ "$i" -ge $START_RUN ] && [ "$i" -le $LAST_RUN ];then
       echo "$n $i"
       SLOPESFILE="${OUTPUT}/slopes/slopes_${i}_ChiSqMin.set${PHASESET}.dat"
-#      if [ -f $SLOPESFILE ] && [ $OVERWRITE_SLOPESFILES -eq 0 ]; then
-#	  echo $SLOPESFILE  already exists. 
-#      else
-#	  ${BMOD_SRC}/runMpsOnly --ramp-max-nonlin $RAMP_MAX_NONLIN --file-stem mps_only --set-stem set0 --ramp-pedestal $RAMP_PEDESTAL --phase-config ${BMOD_SRC}/config/phase_set0.config --run ${i} --chi-square-min $CHISQUARE --2Dfit 1 --transverse-data $TRANSVERSE --set-output $OUTPUT --setup-config $CONFIG --set-low-ramp-fit-bound $LRAMP --set-high-ramp-fit-bound $HRAMP --make-friend-tree $MAKE_FRIEND_TREE --fractional-detector-slopes $FRACTIONAL_DETECTOR_SLOPES
-#      fi
-      nice root -b -q ${BMOD_SRC}/macros/findBModResidualsFast.C+\(${i},\"${CONFIG}\",\"${OUTPUT}\",${CHISQUARE},${PHASESET},${RUNAVERAGE},${NONLINCUT},${TRANSVERSE},${FRACTIONAL_DETECTOR_SLOPES}\)
+      if [ -f $SLOPESFILE ] && [ $OVERWRITE_SLOPESFILES -eq 0 ]; then
+	  echo $SLOPESFILE  already exists. 
+      else
+	  ${BMOD_SRC}/runMpsOnly --ramp-max-nonlin $RAMP_MAX_NONLIN --file-stem mps_only --set-stem set0 --ramp-pedestal $RAMP_PEDESTAL --phase-config ${BMOD_SRC}/config/phase_set0.config --run ${i} --chi-square-min $CHISQUARE --2Dfit 1 --transverse-data $TRANSVERSE --set-output $OUTPUT --setup-config $CONFIG --set-low-ramp-fit-bound $LRAMP --set-high-ramp-fit-bound $HRAMP --make-friend-tree $MAKE_FRIEND_TREE --fractional-detector-slopes $FRACTIONAL_DETECTOR_SLOPES
+      fi
+#      nice root -b -q ${BMOD_SRC}/macros/findBModResidualsFast.C+\(${i},\"${CONFIG}\",\"${OUTPUT}\",${CHISQUARE},${PHASESET},${RUNAVERAGE},${NONLINCUT},${TRANSVERSE},${FRACTIONAL_DETECTOR_SLOPES}\)
       ((++n))
   fi
   prev_run=$i

@@ -449,7 +449,7 @@ Int_t findBModResidualsFast(Int_t run = 13993,char *config = "",char *output = "
 	    gr.GetXaxis()->SetTitleOffset(0.8);
 	    gPad->Update();
 	 } 
-	  double mn = f->GetParameter(0);
+	  double mn = (fractionalDetectorSlopes ? f->GetParameter(0) : 1.0);
 	  CorrectedDetectorSin[imod][idet]= f->GetParameter(1) / mn;
 	  CorrectedDetectorSinError[imod][idet]= f->GetParError(1) / mn;
 	  CorrectedDetectorCos[imod][idet]= f->GetParameter(2) / mn;
