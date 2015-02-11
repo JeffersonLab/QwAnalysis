@@ -251,9 +251,9 @@ void OctantDetermination(int runnum, bool is100k)
   //open file
   // open file with outputPrefix+q2.txt which will store the output of the vlaues
   //to a file in a easy way that should be able to be read back into a program if needeD
-  fout.open(Prefix+"OctantDetermination_R2_pkg1.txt");
+  fout.open(Prefix+"R2_pkg1.txt");
   if (!fout.is_open()) cout << "File not opened R2_1" << endl;
-  fout1.open(Prefix+"OctantDetermination_R2_pkg2.txt");
+  fout1.open(Prefix+"R2_pkg2.txt");
   if (!fout1.is_open()) cout << "File not opened R2_2" << endl;
 
   //what are we printing
@@ -263,9 +263,9 @@ void OctantDetermination(int runnum, bool is100k)
   fout.close();
   fout1.close();
 
-  fout2.open(Prefix+"OctantDetermination_R3_pkg1.txt");
+  fout2.open(Prefix+"R3_pkg1.txt");
   if (!fout2.is_open()) cout << "File not opened R3_1" << endl;
-  fout3.open(Prefix+"OctantDetermination_R3_pkg2.txt");
+  fout3.open(Prefix+"R3_pkg2.txt");
   if (!fout3.is_open()) cout << "File not opened R3_2" << endl;
 
   //what are we printing
