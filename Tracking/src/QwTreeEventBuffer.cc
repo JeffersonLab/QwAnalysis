@@ -2078,7 +2078,12 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
     }
 
     // Calculate the actual position of this wire
-    double x_wire = offset + (wire - 1) * spacing;
+    // NOTE: off-one-wire for pkg1 and pkg2, need check
+    double x_wire;
+    if (package==1)
+      x_wire = offset + (wire - 1) * spacing;
+    else
+      x_wire = offset + wire * spacing;
 
     // The drift distance is just the transverse (with respect to wire plane)
     // distance from the wire to the track, i.e. no angular dependence is

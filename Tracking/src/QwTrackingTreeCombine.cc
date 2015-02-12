@@ -1790,26 +1790,49 @@ QwPartialTrack* QwTrackingTreeCombine::r3_PartialTrackFit (
     double ztrans,ytrans,xtrans,costheta,sintheta,cosphi,sinphi;
   //get some detector information
   // NOTE: since the first plane is in v direction and hits[0] is in u, so here 1 should be changed to 2
-
-
-  if ( wu->GetHit(0)->GetDetectorInfo()->GetPlane() == 2 )
-  {
-    QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
-    costheta = wu->GetHit(0)->GetDetectorInfo()->GetDetectorPitchCos();
-    sintheta = wu->GetHit(0)->GetDetectorInfo()->GetDetectorPitchSin();
-    cosphi = wu->GetHit(0)->GetDetectorInfo()->GetDetectorRollCos();
-    sinphi = wu->GetHit(0)->GetDetectorInfo()->GetDetectorRollSin();
     
-    /// xtrans,ytrans,ztrans are first plane's information
-    xtrans = wu->GetHit(0)->GetDetectorInfo()->GetXPosition();
-    ytrans = wu->GetHit(0)->GetDetectorInfo()->GetYPosition();
-    ztrans = wu->GetHit(0)->GetDetectorInfo()->GetZPosition();
-
-  } else {
-    QwWarning << "Error : first hit is not in 1st plane" << QwLog::endl;
-    return 0;
+  //if ( wu->GetHit(0)->GetDetectorInfo()->GetPlane() == 2 )
+    
+  QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
+  costheta = wu->GetHit(0)->GetDetectorInfo()->GetDetectorPitchCos();
+  sintheta = wu->GetHit(0)->GetDetectorInfo()->GetDetectorPitchSin();
+  cosphi = wu->GetHit(0)->GetDetectorInfo()->GetDetectorRollCos();
+  sinphi = wu->GetHit(0)->GetDetectorInfo()->GetDetectorRollSin();
+    
+  /// xtrans,ytrans,ztrans are first plane's information
+  // Due to different handedness, package1's first plane is u, 
+  // package2's first plane is v
+  if(wu->GetHit(0)->GetDetectorInfo()->GetPackage()==1)
+  {
+    if( wu->GetHit(0)->GetDetectorInfo()->GetDirection()== kDirectionU )
+    {
+      xtrans = wu->GetHit(0)->GetDetectorInfo()->GetXPosition();
+      ytrans = wu->GetHit(0)->GetDetectorInfo()->GetYPosition();
+      ztrans = wu->GetHit(0)->GetDetectorInfo()->GetZPosition();
+    }
+    else
+    { 
+      QwWarning << "Error : first hit is not in 1st plane" << QwLog::endl;
+      return 0;
+    }
   }
-
+  else
+  {
+    if( wv->GetHit(0)->GetDetectorInfo()->GetDirection()== kDirectionV )
+    {
+      xtrans = wv->GetHit(0)->GetDetectorInfo()->GetXPosition();
+      ytrans = wv->GetHit(0)->GetDetectorInfo()->GetYPosition();
+      ztrans = wv->GetHit(0)->GetDetectorInfo()->GetZPosition();
+    }
+    else
+    {
+      QwWarning << "Error : first hit is not in 1st plane" << QwLog::endl;
+      return 0;
+    }
+  }
+    
+  //std::cout<<"(xtrans,ytrans,ztrans) = ("<<xtrans<<", "<<ytrans<<", "<<ztrans<<")"<<std::endl;
+    
 
   P1[2] = 69.9342699;
   P1[0] = fit[1] * P1[2] + fit[0];
