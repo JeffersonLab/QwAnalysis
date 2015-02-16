@@ -80,14 +80,17 @@ void bcm_plotter(int runNumber, int eventLow=0, int eventHigh=4e6) {
 
     //store bcm information into read out variable
     //also use bcm calibration
-    bcm_readout = ((bcm_leaf->GetValue()*1e-2)-250.33)/41.42;
+    //Run numbers >13000 are Run 2, everything else Run 1
+    if (runNumber>13000) {
+      bcm_readout = ((bcm_leaf->GetValue()*1e-2)-250.33)/41.42; //ELOG A+S 1126
+    } else {
+      bcm_readout = ((bcm_leaf->GetValue()*1e-2)-250.40)/44.91; //A+S 1127
+    }
     if(bcm_readout>0.002) {
       bcm_vector.push_back(bcm_readout);
       event_vector.push_back(j);
     }
 
-//      printf("%i \t%f \t%f \t%f \n",
-//          j,type->GetValue(),((bcm->GetValue()*1e-2)-250.4)/44.92,ibcm->GetValue());
   } //end loop over events
 
   //create histograms
