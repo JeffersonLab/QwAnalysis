@@ -41,7 +41,7 @@ void bcm_plotter(int runNumber, int eventLow=0, int eventHigh=4e6) {
 
   //open rootfile
   char filename[100];
-  sprintf(filename,"Qweak_%i.root",runNumber);
+  sprintf(filename,"QweakRun2_%i.root",runNumber);
   TFile *file = new TFile(filename);
   if ( file->IsOpen() ) {
     std::cout <<"Successfully opened ROOTFILE " <<file->GetName() <<std::endl;
@@ -80,7 +80,7 @@ void bcm_plotter(int runNumber, int eventLow=0, int eventHigh=4e6) {
 
     //store bcm information into read out variable
     //also use bcm calibration
-    bcm_readout = ((bcm_leaf->GetValue()*1e-2)-250.4)/41.03;
+    bcm_readout = ((bcm_leaf->GetValue()*1e-2)-250.33)/41.42;
     if(bcm_readout>0.002) {
       bcm_vector.push_back(bcm_readout);
       event_vector.push_back(j);
