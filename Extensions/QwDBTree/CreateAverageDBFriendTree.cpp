@@ -142,10 +142,10 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
 
     //Loop over tree filling vectors with MD weighted averages.
     //////////////////////////////////////////////////////////
-    const int nINTLEAVES = 6;
+    const int nINTLEAVES = 7;
     TString integerLeaves[nINTLEAVES] = {"ihwp_setting","phwp_setting",
 		"precession_reversal","wien_reversal",
-		"sign_correction", "run_number"};
+		"sign_correction", "run_number","wien_slug"};
     TObjArray *obj = average_tree->GetListOfBranches();
     TString mdallbars;
     for(int i=0;i<obj->GetSize();++i){

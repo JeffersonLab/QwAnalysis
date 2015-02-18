@@ -30,8 +30,8 @@ TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg, Bool_t sl
     query += ", precession_reversal\n";
     query += ", qtor_current\n";
     query += ", runlet_quality_id\n";
-    query += "FROM temp_table_unreg_offoff\n";
-    /* Group by run_number for run averaging */
+    query += ", raster_size\n";
+    query += "FROM temp_table_unreg_offoff\n"; /* Group by run_number for run averaging */
     if(runavg) {
         query += "GROUP BY run_number;";
     }
@@ -109,6 +109,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     query += ", slow_controls_settings.precession_reversal\n";
     query += ", slow_controls_settings.qtor_current\n";
     query += ", runlet.runlet_quality_id\n";
+    query += ", raster.value AS raster_size\n";
     query += "FROM analysis\n";
 
     /*
@@ -119,11 +120,14 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     query += "JOIN run ON runlet.run_id = run.run_id\n";
     query += "JOIN slow_controls_settings ON runlet.runlet_id = slow_controls_settings.runlet_id\n";
     query += "JOIN slow_controls_data ON runlet.runlet_id = slow_controls_data.runlet_id\n";
+    query += "JOIN slow_controls_data raster ON runlet.runlet_id = raster.runlet_id\n";
     query += "JOIN sc_detector ON sc_detector.sc_detector_id = slow_controls_data.sc_detector_id\n";
+    query += "JOIN sc_detector raster_detector ON raster_detector.sc_detector_id = raster.sc_detector_id\n";
 
     /* Runlet and analysis level cuts are done here. */
     query += "WHERE analysis.slope_correction = \"" + reg_type + "\"\n";
     query += "AND sc_detector.name = \"Q1HallP\"\n";
+    query += "AND raster_detector.name = \"EHCFR_LIXWidth\"\n";
 
     /* set target */
     if(target != "") query += "AND slow_controls_settings.target_position = \"" + target + "\"\n";
@@ -180,6 +184,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += ", slow_controls_settings.precession_reversal\n";
     query += ", slow_controls_settings.qtor_current\n";
     query += ", runlet.runlet_quality_id\n";
+    query += ", raster.value AS raster_size\n";
     query += "FROM analysis\n";
     /*
      * Join together the analysis table, runlet table and
@@ -189,7 +194,9 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += "JOIN run ON runlet.run_id = run.run_id\n";
     query += "JOIN slow_controls_settings ON runlet.runlet_id = slow_controls_settings.runlet_id\n";
     query += "JOIN slow_controls_data ON runlet.runlet_id = slow_controls_data.runlet_id\n";
+    query += "JOIN slow_controls_data raster ON runlet.runlet_id = raster.runlet_id\n";
     query += "JOIN sc_detector ON sc_detector.sc_detector_id = slow_controls_data.sc_detector_id\n";
+    query += "JOIN sc_detector raster_detector ON raster_detector.sc_detector_id = raster.sc_detector_id\n";
 
     /* Runlet and analysis level cuts are done here. The regression type is set
      * based on the mapfile.
@@ -198,6 +205,7 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
      */
     query += "WHERE analysis.slope_correction = \"off\"\n";
     query += "AND sc_detector.name = \"Q1HallP\"\n";
+    query += "AND raster_detector.name = \"EHCFR_LIXWidth\"\n";
 
     if(reg_type == "off") query += "AND analysis.slope_calculation = \"on\"\n";
     else if(reg_type == "offoff") query += "AND analysis.slope_calculation = \"off\"\n";
@@ -356,6 +364,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                 TString temp_precession_reversal = stmt->GetString(8);
                 Double_t temp_qtor_current = stmt->GetDouble(9);
                 Int_t temp_runlet_quality_id = stmt->GetInt(10);
+		Int_t temp_raster_size = stmt->GetInt(11);
                 /* FIXME: Add some sort of good for support... */
                 //string temp_good_for = stmt->GetString(7);
 
@@ -441,6 +450,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
 
                 /* Fill the run quality id. */
                 runlet_quality_id.push_back((Int_t)temp_runlet_quality_id);
+		raster_size.push_back(temp_raster_size);
             }
         }
     }
@@ -460,6 +470,7 @@ void QwRunlet::branch(TTree* tree, QwValues &values) {
     tree->Branch("sign_correction", &(values.runlet_properties[8]));
     tree->Branch("qtor_current", &(values.qtor_current));
     tree->Branch("runlet_quality_id", &(values.runlet_quality_id));
+    tree->Branch("raster_size", &(values.raster_size));
 }
 
 /* Method to return runlet id. */
@@ -481,4 +492,5 @@ void QwRunlet::get_data_for_runlet(Int_t j, QwValues &values) {
     values.qtor_current = qtor_current[j];
     values.run_number_decimal = run_number_decimal[j];
     values.runlet_quality_id = runlet_quality_id[j];
+    values.raster_size = raster_size[j];
 }

@@ -13,6 +13,7 @@ struct QwValues {
     Double_t qtor_current;
     Double_t run_number_decimal;
     Int_t runlet_quality_id;
+    Int_t raster_size;
 };
 
 /* QwRunlet class which is used to store and query runlets. */
@@ -46,6 +47,7 @@ class QwRunlet {
     vector<Int_t> sign_correction;
     vector<Double_t> qtor_current;
     vector<Int_t> runlet_quality_id;
+    vector<Int_t> raster_size;
 
     /* Query generating methods. */
     TString runlet_query(vector<TString>, Bool_t, Bool_t, Bool_t);
