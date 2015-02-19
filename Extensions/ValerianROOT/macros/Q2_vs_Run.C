@@ -19,7 +19,7 @@
 
  Entry Conditions:none
  Date: 05-13-2014
- Modified: 10-09-2014
+ Modified: 02-13-2014
  Assisted By: Wouter Deconinck
  *********************************************************/
 
@@ -58,6 +58,7 @@
 void Loop_Through_Tree(TChain * track_that);
 void Make_graphs();
 void Plot();
+void PrintToFile();
 
 //define TGraphErrors
 std::vector<std::vector<TGraphErrors*> > g_Q2_VS_RUN;  //[Q2 type][package]
@@ -101,14 +102,16 @@ void Q2_vs_Run(std::string pass, std::string filename)
   //Create TChain and give it a file
   TChain* Track_It = new TChain("TrackThat");
   Track_It->Add(
-      Form("/group/qweak/www/html/tracking/pass%s/Pass%s_TrackingRuns.root",
-          PASS.c_str(),PASS.c_str()));
+      Form(
+          "/group/qweak/www/html/tracking/ValerianROOTFiles/Pass%s_TrackingRuns.root",
+          PASS.c_str()));
 
   //run the functions on interest
   Read_In_Run_Numbers(filename);
   Loop_Through_Tree(Track_It);
   Make_graphs();
   Plot();
+  PrintToFile();
 
   RUNNUMLIST.clear();
 
@@ -153,7 +156,7 @@ void Loop_Through_Tree(TChain* track_that)
   //creates memory address to store the address of a vector (we set to 0 at moment)
   std::vector<MyQ2Cut_t>* myQ2Cut = 0;
   std::vector<MyQ2Loss_t>* myQ2Loss = 0;
-  std::vector < MyQ2NoLoss_t >* myQ2NoLoss = 0;
+  std::vector<MyQ2NoLoss_t>* myQ2NoLoss = 0;
   //create and interger for the run number - as this is not a
   //stucture it does not need a pointer
   Int_t run;
@@ -245,13 +248,13 @@ void Loop_Through_Tree(TChain* track_that)
     //check whether run number is in the run list
     if (std::count(RUNNUMLIST.begin(), RUNNUMLIST.end(), run) > 0)
     {
-/*
-      //debugging
-      std::cout << "our run is in out run list" << std::endl;
-      std::cout << "for run " << run << " the count is "
-      << std::count(RUNNUMLIST.begin(), RUNNUMLIST.end(), run)
-      << " and we have compared them..." << std::endl;
-*/
+      /*
+       //debugging
+       std::cout << "our run is in out run list" << std::endl;
+       std::cout << "for run " << run << " the count is "
+       << std::count(RUNNUMLIST.begin(), RUNNUMLIST.end(), run)
+       << " and we have compared them..." << std::endl;
+       */
 
       //fill the run value vector for the plots
       RUN_VAL[run_index] = run;
@@ -272,10 +275,10 @@ void Loop_Through_Tree(TChain* track_that)
 
       for (UInt_t i = 0; i < myQ2Cut->size(); i++)
       {
-/*
-        //debugging
-        std::cout << "In the Q2 Cut arena - we have data :-)" << std::cout;
-*/
+        /*
+         //debugging
+         std::cout << "In the Q2 Cut arena - we have data :-)" << std::cout;
+         */
 
         /*****************
          * If there is no data for this run, i_entry, then there is
@@ -292,43 +295,43 @@ void Loop_Through_Tree(TChain* track_that)
         //what pkg are we in?
         switch ((*myQ2Cut)[i].R3package)
         {
-          case 0 :  //both pkgs
+          case 0:  //both pkgs
             // not Q2 cut info for both pkgs move along :-)
-/*
-            //debugging
-            std::cout << "I am Q2_cut, both pkgs, beware!" << std::endl;
-*/
+            /*
+             //debugging
+             std::cout << "I am Q2_cut, both pkgs, beware!" << std::endl;
+             */
 
             break;
 
-          case 1 :  //pkg 1
-          case 2 :  //pkg 2
-/*
-            //debugging
-            std::cout << "I am Q2 cut hear me roar, this is run num: " << run
-            << std::endl << std::endl;
+          case 1:  //pkg 1
+          case 2:  //pkg 2
+            /*
+             //debugging
+             std::cout << "I am Q2 cut hear me roar, this is run num: " << run
+             << std::endl << std::endl;
 
-            // for the Q2 with no cuts fill the vectors for the plots
+             // for the Q2 with no cuts fill the vectors for the plots
 
-            std::cout << "Type: " << INDEXTOQ2[0] << std::endl;
-            std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
-            std::cout << "Q2 val: " << (*myQ2Cut)[i].q2Val << std::endl;
-            std::cout << "Q2 error: " << (*myQ2Cut)[i].q2Error << std::endl
-            << std::endl;
-*/
+             std::cout << "Type: " << INDEXTOQ2[0] << std::endl;
+             std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
+             std::cout << "Q2 val: " << (*myQ2Cut)[i].q2Val << std::endl;
+             std::cout << "Q2 error: " << (*myQ2Cut)[i].q2Error << std::endl
+             << std::endl;
+             */
 
             Q2_VAL[0][(*myQ2Cut)[i].R3package][run_index] = (*myQ2Cut)[i].q2Val;
             Q2_ERROR[0][(*myQ2Cut)[i].R3package][run_index] =
                 (*myQ2Cut)[i].q2Error;
             // for the Q2 with lightweighting fill the vectors for the plots
 
-/*
-            std::cout << "Type: " << INDEXTOQ2[1] << std::endl;
-            std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
-            std::cout << "Q2 val: " << (*myQ2Cut)[i].LWq2Val << std::endl;
-            std::cout << "Q2 error: " << (*myQ2Cut)[i].LWq2Error << std::endl
-            << std::endl;
-*/
+            /*
+             std::cout << "Type: " << INDEXTOQ2[1] << std::endl;
+             std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
+             std::cout << "Q2 val: " << (*myQ2Cut)[i].LWq2Val << std::endl;
+             std::cout << "Q2 error: " << (*myQ2Cut)[i].LWq2Error << std::endl
+             << std::endl;
+             */
 
             Q2_VAL[1][(*myQ2Cut)[i].R3package][run_index] =
                 (*myQ2Cut)[i].LWq2Val;
@@ -338,13 +341,13 @@ void Loop_Through_Tree(TChain* track_that)
             // for the Q2 with lightweighting and pedestal subtracted
             //fill the vectors for the plots
 
-/*
-            std::cout << "Type: " << INDEXTOQ2[2] << std::endl;
-            std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
-            std::cout << "Q2 val: " << (*myQ2Cut)[i].LWq2Val << std::endl;
-            std::cout << "Q2 error: " << (*myQ2Cut)[i].LWq2Error << std::endl
-            << std::endl;
-*/
+            /*
+             std::cout << "Type: " << INDEXTOQ2[2] << std::endl;
+             std::cout << "Pkg: " << (*myQ2Cut)[i].R3package << std::endl;
+             std::cout << "Q2 val: " << (*myQ2Cut)[i].LWq2Val << std::endl;
+             std::cout << "Q2 error: " << (*myQ2Cut)[i].LWq2Error << std::endl
+             << std::endl;
+             */
 
             Q2_VAL[2][(*myQ2Cut)[i].R3package][run_index] =
                 (*myQ2Cut)[i].LWq2Val;
@@ -366,7 +369,7 @@ void Loop_Through_Tree(TChain* track_that)
             break;
 
             //default case
-          default :
+          default:
             break;
         }
       }
@@ -380,10 +383,10 @@ void Loop_Through_Tree(TChain* track_that)
 
       for (UInt_t i = 0; i < myQ2Loss->size(); i++)
       {
-/*
-        //debugging
-        std::cout << "In the Q2Loss arena - we have data :-)" << std::cout;
-*/
+        /*
+         //debugging
+         std::cout << "In the Q2Loss arena - we have data :-)" << std::cout;
+         */
 
         /*****************
          * If there is no data for this run, i_entry, then there is
@@ -400,34 +403,34 @@ void Loop_Through_Tree(TChain* track_that)
         //what pkg are we in?
         switch ((*myQ2Loss)[i].R3package)
         {
-          case 0 :  //both pkgs
-          case 1 :  //pkg 1
-          case 2 :  //pkg 2
-/*
-            //debugging
-            std::cout << "I am Q2 Loss hear me roar, this is run num: " << run
-            << std::endl << std::endl;
+          case 0:  //both pkgs
+          case 1:  //pkg 1
+          case 2:  //pkg 2
+            /*
+             //debugging
+             std::cout << "I am Q2 Loss hear me roar, this is run num: " << run
+             << std::endl << std::endl;
 
-            // for the Q2 Loss fill the vectors for the plots
+             // for the Q2 Loss fill the vectors for the plots
 
-            std::cout << "Type: " << INDEXTOQ2[3] << std::endl;
-            std::cout << "Pkg: " << (*myQ2Loss)[i].R3package << std::endl;
-            std::cout << "Q2 val: " << (*myQ2Loss)[i].Val << std::endl;
-            std::cout << "Q2 error: " << (*myQ2Loss)[i].Error << std::endl
-            << std::endl;
-*/
+             std::cout << "Type: " << INDEXTOQ2[3] << std::endl;
+             std::cout << "Pkg: " << (*myQ2Loss)[i].R3package << std::endl;
+             std::cout << "Q2 val: " << (*myQ2Loss)[i].Val << std::endl;
+             std::cout << "Q2 error: " << (*myQ2Loss)[i].Error << std::endl
+             << std::endl;
+             */
 
             //the Q2 values and error is multiplied by 1000 so it is in
             //m(Gev)^2 rather then GeV^2
             Q2_VAL[3][(*myQ2Loss)[i].R3package][run_index] = 1000
                 * (*myQ2Loss)[i].Val;
-            Q2_ERROR[3][(*myQ2Loss)[i].R3package][run_index] =
-                1000 * (*myQ2Loss)[i].Error;
+            Q2_ERROR[3][(*myQ2Loss)[i].R3package][run_index] = 1000
+                * (*myQ2Loss)[i].Error;
 
             break;
 
             //default case
-          default :
+          default:
             break;
         }
       }
@@ -441,10 +444,10 @@ void Loop_Through_Tree(TChain* track_that)
 
       for (UInt_t i = 0; i < myQ2NoLoss->size(); i++)
       {
-/*
-        //debugging
-        std::cout << "In the Q2NoLoss arena - we have data :-)" << std::cout;
-*/
+        /*
+         //debugging
+         std::cout << "In the Q2NoLoss arena - we have data :-)" << std::cout;
+         */
 
         /*****************
          * If there is no data for this run, i_entry, then there is
@@ -461,34 +464,34 @@ void Loop_Through_Tree(TChain* track_that)
         //what pkg are we in?
         switch ((*myQ2NoLoss)[i].R3package)
         {
-          case 0 :  //both pkgs
-          case 1 :  //pkg 1
-          case 2 :  //pkg 2
-/*
-            //debugging
-            std::cout << "I am Q2 No Loss hear me roar, this is run num: "
-            << run << std::endl << std::endl;
+          case 0:  //both pkgs
+          case 1:  //pkg 1
+          case 2:  //pkg 2
+            /*
+             //debugging
+             std::cout << "I am Q2 No Loss hear me roar, this is run num: "
+             << run << std::endl << std::endl;
 
-            // for the Q2 No Loss fill the vectors for the plots
+             // for the Q2 No Loss fill the vectors for the plots
 
-            std::cout << "Type: " << INDEXTOQ2[4] << std::endl;
-            std::cout << "Pkg: " << (*myQ2NoLoss)[i].R3package << std::endl;
-            std::cout << "Q2 val: " << (*myQ2NoLoss)[i].Val << std::endl;
-            std::cout << "Q2 error: " << (*myQ2NoLoss)[i].Error << std::endl
-            << std::endl;
-*/
+             std::cout << "Type: " << INDEXTOQ2[4] << std::endl;
+             std::cout << "Pkg: " << (*myQ2NoLoss)[i].R3package << std::endl;
+             std::cout << "Q2 val: " << (*myQ2NoLoss)[i].Val << std::endl;
+             std::cout << "Q2 error: " << (*myQ2NoLoss)[i].Error << std::endl
+             << std::endl;
+             */
 
             //the Q2 values and error is multiplied by 1000 so it is in
             //m(Gev)^2 rather then GeV^2
             Q2_VAL[4][(*myQ2NoLoss)[i].R3package][run_index] = 1000
                 * (*myQ2NoLoss)[i].Val;
-            Q2_ERROR[4][(*myQ2NoLoss)[i].R3package][run_index] =
-                1000 * (*myQ2NoLoss)[i].Error;
+            Q2_ERROR[4][(*myQ2NoLoss)[i].R3package][run_index] = 1000
+                * (*myQ2NoLoss)[i].Error;
 
             break;
 
             //default case
-          default :
+          default:
             break;
         }
       }
@@ -590,7 +593,7 @@ void Make_graphs()
 //Q2NoLoss = blue, filled triangle point down
       switch (i_type)
       {
-        case 0 :  //Q2 no cuts
+        case 0:  //Q2 no cuts
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Black
@@ -604,7 +607,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(8);
           break;
 
-        case 1 :  //Q2 no cuts
+        case 1:  //Q2 no cuts
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Violet
@@ -618,7 +621,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(21);
           break;
 
-        case 2 :  //Q2 light weight and pedistal subtrackted
+        case 2:  //Q2 light weight and pedistal subtrackted
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Green
@@ -632,7 +635,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(34);
           break;
 
-        case 3 :
+        case 3:
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Red
@@ -646,7 +649,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(22);
           break;
 
-        case 4 :
+        case 4:
           //set it so the errors print
           gStyle->SetOptFit(1110);
           //set markercolor && error bar color - Blue
@@ -660,7 +663,7 @@ void Make_graphs()
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(23);
           break;
 
-        default :
+        default:
           break;
       }
       if (!((i_type == 0 || i_type == 1 || i_type == 2) && i_pkg == 0))
@@ -729,7 +732,8 @@ void Plot()
 
 //set title and axis lables
     mg_Q2_VS_RUN[i_pkg]->SetTitle(
-        Form("Q^{2} vs Run number for %s package; Run number; Q^{2} (m(GeV^{2}))",
+        Form(
+            "Q^{2} vs Run number for %s package; Run number; Q^{2} (m(GeV^{2}))",
             INDEXTOPKG[i_pkg].c_str()));
 
 //Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
@@ -761,9 +765,92 @@ void Plot()
 
     c_q2[i_pkg]->SaveAs(
         Form(
-            "~/QwAnalysis_trunk/Extensions/ValerianROOT/Pass_%s_Q2_vs_run_%s_pkg.png",
-            PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
+            "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/Pass_%s_Q2_vs_run_%s_pkg.png",
+            PASS.c_str(), PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
   }
 
   return;
+}
+
+/***********************************************************
+ Function: Print_To_File
+ Purpose:
+ To print out the values from the ValerianROOT used in this script.
+
+ Entry Conditions:
+ none
+
+ Global:
+
+ - NUMQ2TYPE - the number of different Q2 types
+ - NUMPACKAGES - the number of packages
+
+ - INDEXTOPKG - array to get what package that we are in
+ - INDEXTOTYPE - array to get what Q2 type that we are in
+
+ - Q2_VAL - vector of the Q2 values
+ - Q2_ERROR - vector of the Q2 errors
+ - RUN_VAL - vector of the run values
+ these of course are 0 since there are none.
+
+ - RUNNUMLIST - list of the run numbers - now sorted
+
+ Exit Conditions: none
+ Called By: Q2_vs_Run
+ Date: 02-10-2015
+ Modified: 02-13-2015
+ *********************************************************/
+void PrintToFile()
+{
+  //print to file
+  //this file and everything related to it is fout
+  std::ofstream fout;
+
+  //open a file
+//This won't work! why I have no idea
+  fout.open(
+      Form(
+          "/home/vmgray/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/Pass%s_Q2_vs_Run.txt",
+          PASS.c_str(), PASS.c_str()));
+
+  if (!fout.is_open())
+    cout << "File not opened" << endl;
+
+  fout << "Run \t pkg \t\t 0 Val & Error "
+      "\t\t\t 1 Val & Error "
+      "\t\t\t 2 Val & Error "
+      "\t\t\t 3 Val & Error "
+      "\t\t\t 4 Val & Error"<< std::endl;
+
+  for (int i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
+  {
+    for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+    {
+      fout << RUN_VAL[i_run] << " \t " << INDEXTOPKG[i_pkg].c_str() << " \t\t "
+      << Q2_VAL[0][i_pkg][i_run] << " +- " << Q2_ERROR[0][i_pkg][i_run]
+      << " \t\t\t " << Q2_VAL[1][i_pkg][i_run] << " +- "
+      << Q2_ERROR[1][i_pkg][i_run] << " \t\t\t " << Q2_VAL[2][i_pkg][i_run]
+      << " +- " << Q2_ERROR[2][i_pkg][i_run] << " \t\t\t "
+      << Q2_VAL[3][i_pkg][i_run] << " +- " << Q2_ERROR[3][i_pkg][i_run]
+      << " \t\t\t " << Q2_VAL[4][i_pkg][i_run] << " +- "
+      << Q2_ERROR[4][i_pkg][i_run] << std::endl;
+    }
+
+    fout << std::endl;
+
+  }
+
+  //Table to Q2 type number to what it is
+  fout << std::endl << std::endl;
+  fout << "# \t \t Q2 type" << std::endl;
+
+  for(int i_type = 0; i_type < NUMQ2TYPES; i_type++)
+  {
+    fout << i_type << " \t " << INDEXTOQ2[i_type].c_str() << std::endl;
+  }
+
+  fout.close();
+
+  return;
+
 }
