@@ -58,4 +58,4 @@
 [QwScaler]
  name = Trigger Livetime Scalers
  map = qweak_livetime.map
-
+ mask = 0xffff
