@@ -3,25 +3,25 @@
 #include <rootClass.h>
 #include "comptonRunConstants.h"
 
-void infoDAQ(Int_t runnum)
+Int_t infoDAQ(Int_t runnum)
 {
   cout<<blue<<"\nStarting into infoDAQ.C **************\n"<<normal<<endl;
   maskSet = 1; //to state that the masks have been set//this would be checked before calling the infoDAQ function
-  Bool_t debug=1,autoDebug=1;
-  Bool_t additionalStripMask=0;
+  Bool_t debug=1;
+  Bool_t additionalStripMask=1;
   Double_t bMask[nPlanes][nStrips];
   const Int_t errFlag=100;
   Int_t acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay;
 
   Double_t bAcTrigSlave[nModules],bEvTrigSlave[nModules],bMinWidthSlave[nModules],bFirmwareRevSlave[nModules],bPWTLSlave[nModules],bPWTL2Slave[nModules],bHoldOffSlave[nModules],bPipelineDelaySlave[nModules];
+  Int_t acTrigSlave[nModules],evTrigSlave[nModules],minWidthSlave[nModules],firmwareRevSlave[nModules],pwtlSlave[nModules],pwtl2Slave[nModules],holdOffSlave[nModules],pipelineDelaySlave[nModules];
   //several variables relevant to this function are declared in comptonRunConstants.h to allow usage in other files
-  ofstream infoDAQthisRun,debugInfoDAQ,infoStripMask;
-  //should put a check if the file was not opened successfully 
-  //TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_%i.000.root",runnum));//ensure to read in only the first runlet
-  TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%i.000.root",runnum));//ensure to read in only the first runlet
+  ofstream flagsfile,debugInfoDAQ,infoStripMask;
+
+  TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass2b_%d.000.root",runnum));//ensure to read in only the first runlet
   TTree *configTree = (TTree*)file->Get("Config_Tree");
   filePrefix = Form("run_%d/edetLasCyc_%d_",runnum,runnum);
-  configTree->ResetBranchAddresses();
+  //configTree->ResetBranchAddresses();
   configTree->SetBranchStatus("*",1); 
  
   for(Int_t p = 0; p <nPlanes; p++) {      
@@ -49,7 +49,7 @@ void infoDAQ(Int_t runnum)
   
   infoStripMask.open(Form("%s/%s/%sinfoStripMask.txt",pPath,webDirectory,filePrefix.Data()));
   infoStripMask<<";plane\tmaskedStrips:";
-  //for(Int_t p = startPlane; p <nPlanes-1; p++) {
+  //for(Int_t p = startPlane; p <nPlanes; p++) { //this works but didn't appear needful hence commented out
   for(Int_t p = startPlane; p <endPlane; p++) {
     infoStripMask<<"\n"<<p+1<<"\t";
     for(Int_t s =startStrip; s <endStrip; s++) {
@@ -58,18 +58,18 @@ void infoDAQ(Int_t runnum)
 	//skipStrip.insert(s+1); //idea of declaraing it as a 'set' did not work
 	skipStrip.push_back(s+1);//notice that the strip#s are pushed in as human count #s
 	if(debug) cout<<blue<<"masked strip "<<s+1<<normal<<endl;
-      }
-    }
-  }
+      }//check if strip is masked
+    }//for all strips
+  }//for all planes
   infoStripMask.close();
   ///list all those strips that you want in the list for in case it was not already a part of the above created vector
   if(additionalStripMask) {
     skipStrip.push_back(2);//notice that the strip number pushed is in human counts
-    skipStrip.push_back(10);//notice that the strip number pushed is in human counts
-    cout<<red<<"apart from strips masked in DAQ, am ignoring strip # 2 & 10 accross all planes"<<normal<<endl;//!update this with above list
+//    skipStrip.push_back(10);//notice that the strip number pushed is in human counts
+    cout<<red<<"apart from strips masked in DAQ, am ignoring strip # 2 accross all planes"<<normal<<endl;//!update this with above list
   }
   for(Int_t m = 0; m <nModules; m++) {
-    acTrigSlave[m]=(Int_t)bAcTrigSlave[m];  
+    acTrigSlave[m]        = (Int_t)bAcTrigSlave[m];  
     evTrigSlave[m]        = (Int_t)bEvTrigSlave[m];
     minWidthSlave[m]      = (Int_t)bMinWidthSlave[m];
     firmwareRevSlave[m]   = (Int_t)bFirmwareRevSlave[m];
@@ -89,9 +89,16 @@ void infoDAQ(Int_t runnum)
   holdOff = holdOffSlave[0]==holdOffSlave[1] ? holdOffSlave[1] : errFlag;
   pipelineDelay = pipelineDelaySlave[0]==pipelineDelaySlave[1] ? pipelineDelaySlave[1] : errFlag;
  
-  if ((acTrig==errFlag)||(evTrig==errFlag)||(minWidth==errFlag)||(firmwareRev==errFlag)||(pwtl1==errFlag)||(pwtl2==errFlag)||(holdOff==errFlag)||(pipelineDelay==errFlag)) autoDebug=1;
+  flagsfile.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
+  if(flagsfile.is_open()) {
+    flagsfile<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\thOff\tplDelay"<<endl;
+    flagsfile<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
+    flagsfile.close();
+    cout<<"wrote the flagsfile info to "<<Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data())<<endl;
+  } else cout<<"could not open file for writing flags file info"<<endl;
 
-  if(autoDebug) {
+  if ((acTrig==errFlag)||(evTrig==errFlag)||(minWidth==errFlag)||(firmwareRev==errFlag)||(pwtl1==errFlag)||(pwtl2==errFlag)||(holdOff==errFlag)||(pipelineDelay==errFlag)) {
+    cout<<"found a potential error in flags file as found in rootfile, printing debugInfoDAQ "<<endl;
     debugInfoDAQ.open(Form("%s/%s/%sdebugInfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
     debugInfoDAQ<<";module\tacTrig\tevTrig\tminWidth\tfirmwareRev\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
     for(Int_t m = 0; m <nModules; m++) {
@@ -100,15 +107,11 @@ void infoDAQ(Int_t runnum)
     debugInfoDAQ.close();
   }
 
-  infoDAQthisRun.open(Form("%s/%s/%sinfoDAQ.txt",pPath,webDirectory,filePrefix.Data()));
-  infoDAQthisRun<<";runnum\tacTrig\tevTrig\tminW\tfirmware\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
-  infoDAQthisRun<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOffSlave[0],pipelineDelaySlave[0]);
-  infoDAQthisRun.close();
-
   if(debug) {
-    cout<<";runnum\tacTrig\tevTrig\tminW\tfirmware\tpwtl1\tpwtl2\tholdOff\tpipelineDelay"<<endl;
+    cout<<";runnum\tacTrig\tevTrig\tminW\tfWare\tpwtl1\tpwtl2\tholdOff\tplDelay"<<endl;
     cout<<Form("%d\t%d\t%d\t%d\t%X\t%d\t%d\t%d\t%d\n",runnum,acTrig,evTrig,minWidth,firmwareRev,pwtl1,pwtl2,holdOff,pipelineDelay);
   }
+  return 1;
 }
 
 /***********************

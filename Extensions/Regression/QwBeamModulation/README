@@ -1,0 +1,26 @@
+"Makefile_full" is the original Makefile to compile QwModulation as well as 
+QwMpsOnly.
+
+Makefile_full includes database connection "stuff" that is not useful at UVA 
+where much of the development is going on so a new simple Makefile has replaced
+the larger more extensive one. The Makefile here only compiles the QwMpsOnly.cc
+class and the main program, qwmpsonly.cc
+
+In order to have a working version at either UVA or JLab, you will need to set 
+two environment variables. 
+
+    $QW_ROOTFILES:this should point to the mps_only file directory.
+    $BMOD_OUT: this must have the following directory structure: 
+
+       output/slopes
+       output/regression
+       output/diagnostics
+       output/rootfiles
+
+Build that structure and have $BMOD_OUT point to output/
+
+The sluglet directory is hard coded in the main executable.
+
+The following is an example of the command line options that might be used:
+
+qwmpsonly --run 12079 --file-stem mps_only --set-stem set4 --ramp-pedestal 10 --phase-config config/phase_set4.config --ramp-max-nonlin 50

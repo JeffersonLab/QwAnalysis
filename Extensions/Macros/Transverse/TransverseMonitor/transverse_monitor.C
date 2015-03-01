@@ -19,7 +19,7 @@ e.q. ./transevrse_monitor 9
 Inputs : slugs > Number of slugs to be analyzed. You can enter the last slug in the range at the prompt.
                  For typical monitorung, to be able to see a 3 sigma deviation from the zero , you need to have at least 3days worth of data ~ 9 slugs.
 
-         db >    qweak db to use. Default is qw_run1pass2
+         db >    qweak db to use. Default is qw_run1pass5
 
 Output : Plot of md bar asymmetry vs azimuthal angle for IHWP IN, OUT and IN+OUT
          Plot of md bar asymmetry vs azimuthal angle for IN-OUT and IN-OUT sum of opposite octants.
@@ -30,7 +30,10 @@ Output : Plot of md bar asymmetry vs azimuthal angle for IHWP IN, OUT and IN+OUT
 // 02-10-2012 Buddhini Changed the At to -4.723 ppm based on pass4 results
 // 07-23-2012 Buddhini Changed the At to -4.80 ppm based on the preliminary results from run1 and run2.
 //                     See Qweak-doc-1655-v2
+// 03-29-2013 Buddhini Changed default DB to qw_run1_pass5. Added option to input wien flip.
+//                     Left flip AVG(IN-OUT), Right flip AVG(OUT-IN)
 //
+
 using namespace std;
 
 #include <TString.h>
@@ -68,10 +71,11 @@ TString opposite_quartz_bar_sum[4]=
 
 /*Database connection*/
 TSQLServer *db;
-TString use_db="qw_run1_pass4b";
+TString use_db="qw_run1_pass5";
 
 /*Other variables*/
 Int_t slug_num = 0;
+Int_t wien_num = 0;
 Double_t barvaluesin[8];
 Double_t barerrorsin[8];
 Double_t barvaluesout[8];
@@ -84,7 +88,8 @@ Double_t opperrorsout[4];
 
 Int_t slug_first = 0;
 Int_t slug_range = 9;
-TString reg_set="on_5+1";
+//TString reg_set="on_5+1";
+TString reg_set="on";
 
 Bool_t usefit1 = false;
 
@@ -162,7 +167,7 @@ int main(Int_t argc,Char_t* argv[])
   }
   else{
     std::cout<<"Proper usage:"<<std::endl;
-    std::cout<<"./transverse_monitor <number of slugs> <database (default qw_run1_pass4b)>:"<<std::endl;
+    std::cout<<"./transverse_monitor <number of slugs> <database (default qw_run1_pass5)>:"<<std::endl;
     exit(1);
   }
 
@@ -177,7 +182,13 @@ int main(Int_t argc,Char_t* argv[])
   std::cout<<" Please enter the last finished slug number in your range:"<<std::endl;
   std::cin>>slug_num;
   slug_first =  Int_t((slug_num-slug_range)-1.0);
-  std::cout<<" Grabing data from slug"<<slug_first<<" to "<<slug_num<<std::endl;
+  /*Get Wien flip to correct for natural spin
+    left IN and Right OUT has the right spin sign 
+  */
+  std::cout<<" Please enter the wien flip direction 1. left 2. right"<<std::endl;
+  std::cin>>wien_num;
+
+  std::cout<<" Grabing data from slug"<<slug_first<<" to "<<slug_num<<" with Wien correction."<<std::endl;
 
   
   /*Create a canvas*/
@@ -455,11 +466,16 @@ void plot_n_fit_data(const size_t size, TString fit, Double_t valuesin[],Double_
   stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
 
 
-  /* Draw IN-OUT weighted average values */
+  /* Draw IN-OUT/OUT-IN weighted average values */
   pad2->cd(2);
 
   for(size_t i =0;i<size;i++){
-    valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1.0/pow(errorsin[i],2)) + (1.0/pow(errorsout[i],2)));
+
+    if(wien_num == 1) // left flip wien IHWP IN has the natuaral spin sign
+      valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1.0/pow(errorsin[i],2)) + (1.0/pow(errorsout[i],2)));
+    if(wien_num == 2) // right flip wien IHWP OUT has the natuaral spin sign
+      valuediff[i]=( (valuesout[i]/pow(errorsout[i],2))- (valuesin[i]/pow(errorsin[i],2))) /( (1.0/pow(errorsout[i],2)) + (1.0/pow(errorsin[i],2)) );
+
     errordiff[i]= sqrt(1.0/((1.0/(pow(errorsin[i],2)))+(1.0/pow(errorsout[i],2))));
   }
 
@@ -470,7 +486,9 @@ void plot_n_fit_data(const size_t size, TString fit, Double_t valuesin[],Double_
   grp_diff ->SetLineColor(kMagenta-2);
 
   grp_diff->Fit(usefit,"EM");
-  grp_diff->SetTitle("Graph of IN-OUT");
+  if(wien_num == 1)  grp_diff->SetTitle("Graph of AVG(IN-OUT)");
+  if(wien_num == 2)  grp_diff->SetTitle("Graph of AVG(OUT-IN)");
+
   TF1* fit4 = grp_diff->GetFunction(usefit);
   if(fit4 != NULL){
     fit4->DrawCopy("same");

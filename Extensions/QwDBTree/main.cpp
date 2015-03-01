@@ -25,9 +25,11 @@ int main(Int_t argc, Char_t* argv[]) {
     TString host = "127.0.0.1";         // database server defaults to 127.0.0.1 
     TString mapdir = "";                // mapdir defaults to current directory
     TString outdir = "";                // output directory defaults to current directory
-    TString db_name = "qw_run1_pass4b"; // database defaults to qw_run1_pass4b
+    TString db_name = "qw_run1_pass5"; // database defaults to qw_run1_pass4b
     TString runlist = "";               // no default (uses all runlets)
+    TString target = "HYDROGEN-CELL";   // defaults to LH2 target
     Bool_t runavg = kFALSE;             // disabled by default
+    Bool_t ignore_quality = kFALSE;     // disabled by default
     
     // Parse command line options.
     for(Int_t i = 1; i < argc; i++) {
@@ -36,7 +38,9 @@ int main(Int_t argc, Char_t* argv[]) {
         if(0 == strcmp("--mapdir", argv[i])) mapdir = argv[i+1];
         if(0 == strcmp("--outdir", argv[i])) outdir = argv[i+1];
         if(0 == strcmp("--runlist", argv[i])) runlist = argv[i+1];
+        if(0 == strcmp("--target", argv[i])) target = argv[i+1];
         if(0 == strcmp("--runavg", argv[i])) runavg = kTRUE;
+        if(0 == strcmp("--ignore-quality", argv[i])) ignore_quality = kTRUE;
     }
 
     /* print all settings */
@@ -45,8 +49,11 @@ int main(Int_t argc, Char_t* argv[]) {
     cout << "outdir = " << outdir << endl;
     cout << "db = " << db_name << endl;
     cout << "runlist = " << runlist << endl;
+    cout << "target = " << target << endl;
     if(runavg) cout << "runavg : enabled" << endl;
     else cout << "runavg : disabled" << endl;
+    if(ignore_quality) cout << "ignore data quality : enabled" << endl;
+    else cout << "ignore data quality: disabled" << endl;
 
     /* Open connection to specified database with qweak credentials. */
     TSQLServer *db;
@@ -67,12 +74,12 @@ int main(Int_t argc, Char_t* argv[]) {
      * ALL trees to use).
      */
     QwRunlet runlets(db);
-    runlets.fill(reg_types, runlist_str);
+    runlets.fill(reg_types, runlist_str, target, runavg, ignore_quality);
 
     /* Run tree_fill to grab the remaining data from the database. */
     const Int_t num_regs = reg_types.num_detectors();
     for(Int_t i = 0; i < num_regs; i++) {
-        tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, runavg);
+        tree_fill(reg_types.detector(i), db, runlets, mapdir, outdir, target, runavg);
     }
 
     /* close the database and die */

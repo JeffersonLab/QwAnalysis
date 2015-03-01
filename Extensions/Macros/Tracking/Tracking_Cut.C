@@ -87,7 +87,12 @@
 // Added in the track projection to collimator, to display the hits distribution in the 
 // downstream surface of collimator 2. Also added in the hit distribution in downstream 
 // target window and vertex (x,y,z) distribution in the target region.
- 
+//
+// jpan, Fri May 24 11:12:22 CDT 2013
+// Changed the the error calculation for scattering angle and Q2 to take into account
+// the case of using cross-section weight
+//
+
 #include <iostream>
 #include <iomanip>
 
@@ -1071,52 +1076,36 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
 
     cout << "\nscattering angle: " << endl;
     if(angle->GetEntries()) {
-      cout << "all : " << setprecision(5) << angle->GetMean() << " +/- " << setprecision(3) << angle->GetRMS()/sqrt(angle->GetEntries()) << " deg"<<endl; 
+      cout << "all : " << setprecision(5) << angle->GetMean() << " +/- " << setprecision(3) << angle->GetMeanError() << " deg"<<endl; 
     }
     if(angle_1->GetEntries()!=0) {
-      cout << "pkg1: " << setprecision(5) << angle_1->GetMean() << " +/- " << setprecision(3) << angle_1->GetRMS()/sqrt(angle_1->GetEntries()) << " deg"<< endl;
+      cout << "pkg1: " << setprecision(5) << angle_1->GetMean() << " +/- " << setprecision(3) << angle_1->GetMeanError() << " deg"<< endl;
     }
     if(angle_2->GetEntries()!=0) {
-      cout << "pkg2: " <<  setprecision(5) << angle_2->GetMean() << " +/- " <<  setprecision(3) << angle_2->GetRMS()/sqrt(angle_2->GetEntries()) << " deg"<<endl;
+      cout << "pkg2: " <<  setprecision(5) << angle_2->GetMean() << " +/- " <<  setprecision(3) << angle_2->GetMeanError() << " deg"<<endl;
     }
 
     cout << "\nQ2: " << endl;
     if(q2->GetEntries()) {
-      cout << "all : " <<  setprecision(5) << q2->GetMean() << " +/- " <<  setprecision(3) << q2->GetRMS()/sqrt(q2->GetEntries()) << " (GeV/c)^2"<<endl;
+      cout << "all : " <<  setprecision(5) << q2->GetMean() << " +/- " <<  setprecision(3) << q2->GetMeanError() << " (GeV/c)^2"<<endl;
     }
     if(q2_1->GetEntries()!=0) {
-      cout << "pkg1: " <<  setprecision(5) << q2_1->GetMean() << " +/- " <<  setprecision(3) << q2_1->GetRMS()/sqrt(q2_1->GetEntries()) << " (GeV/c)^2"<<endl;
+      cout << "pkg1: " <<  setprecision(5) << q2_1->GetMean() << " +/- " <<  setprecision(3) << q2_1->GetMeanError() << " (GeV/c)^2"<<endl;
     }
     if(q2_2->GetEntries()!=0) {
-      cout << "pkg2: " <<  setprecision(5) << q2_2->GetMean() << " +/- " <<  setprecision(3) << q2_2->GetRMS()/sqrt(q2_2->GetEntries()) << " (GeV/c)^2"<<endl<<endl;
+      cout << "pkg2: " <<  setprecision(5) << q2_2->GetMean() << " +/- " <<  setprecision(3) << q2_2->GetMeanError() << " (GeV/c)^2"<<endl<<endl;
     }
  
     cout << "\nLight-weighted Q2: " << endl;
     if(light_weighted_q2[0]->GetEntries()!=0) {
-      cout << "all : " <<  setprecision(5) << light_weighted_q2[0]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[0]->GetRMS()/sqrt(light_weighted_q2[0]->GetEntries()) << " (GeV/c)^2"<<endl;
+      cout << "all : " <<  setprecision(5) << light_weighted_q2[0]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[0]->GetMeanError() << " (GeV/c)^2"<<endl;
     }
     if(light_weighted_q2[1]->GetEntries()!=0) {
-      cout << "pkg1: " <<  setprecision(5) << light_weighted_q2[1]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[1]->GetRMS()/sqrt(light_weighted_q2[1]->GetEntries()) << " (GeV/c)^2"<<endl;
+      cout << "pkg1: " <<  setprecision(5) << light_weighted_q2[1]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[1]->GetMeanError() << " (GeV/c)^2"<<endl;
     }
     if(light_weighted_q2[2]->GetEntries()!=0) {
-      cout << "pkg2: " <<  setprecision(5) << light_weighted_q2[2]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[2]->GetRMS()/sqrt(light_weighted_q2[2]->GetEntries()) << " (GeV/c)^2"<<endl<<endl;
+      cout << "pkg2: " <<  setprecision(5) << light_weighted_q2[2]->GetMean() << " +/- " <<  setprecision(3) << light_weighted_q2[2]->GetMeanError() << " (GeV/c)^2"<<endl<<endl;
     }
-
-    // Save data to a text file
-    // Data format (columns, tab separated):
-    //
-    // (1) run number  (2) total events  (3) tdc_cut_min[0]  (4) tdc_cut_max[0]  (5) tdc_cut_min[1]
-    // (6) tdc_cut_max[1]  (7) num_pe_cut  (8) scattering_angle_cut_min  (9) scattering_angle_cut_max  
-    // (10) vertex_z_cut_min  (11) vertex_z_cut_max  (12) vertex_r_cut_min (13) vertex_r_cut_max
-    // (14) bending_angle_position_theta_cut_min  (15) bending_angle_position_theta_cut_max
-    // (16) bending_angle_position_phi_cut_min  (17) bending_angle_position_phi_cut_max
-    // (18) bending_angle_direction_theta_cut_min  (19) bending_angle_direction_theta_cut_max
-    // (20) bending_angle_direction_phi_cut_min  (21) bending_angle_direction_phi_cut_max
-    // (22) position_r_off_cut_min  (23) position_r_off_cut_max  (24) hit_position_x_cut_min
-    // (25) hit_position_x_cut_max (26) hit_position_y_cut_min  (27) hit_position_y_cut_max
-    // (28) 
-
-
 
     // Draw histograms
     gStyle->SetPalette(1);
@@ -1736,16 +1725,16 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
       summary_txt->AddText(Form("number of tracks: %d (all), %d (pkg1), %d (pkg2)", 
                            num_tracks, num_tracks1, num_tracks2));
       summary_txt->AddText(Form("scattering angle: %f +/- %f deg (all)", 
-                           angle->GetMean(), angle->GetRMS()/sqrt(angle->GetEntries())));
+                           angle->GetMean(), angle->GetMeanError()));
       if(num_tracks1!=0)
       {
         summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg1)", 
-                             angle_1->GetMean(), angle_1->GetRMS()/sqrt(angle_1->GetEntries())));
+                             angle_1->GetMean(), angle_1->GetMeanError()));
       }
       if(num_tracks2!=0)
       {
         summary_txt->AddText(Form("scattering angle: %f +/- %f deg (pkg2)", 
-                             angle_2->GetMean(), angle_2->GetRMS()/sqrt(angle_2->GetEntries())));
+                             angle_2->GetMean(), angle_2->GetMeanError));
       }
     }
 
@@ -1771,16 +1760,16 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     if(q2->GetEntries()) 
     {
       summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (all)",
-                           q2->GetMean(),q2->GetRMS()/sqrt(q2->GetEntries())));
+                           q2->GetMean(),q2->GetMeanError()));
       if(q2_1->GetEntries()!=0) 
       {
          summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg1)",
-                              q2_1->GetMean(),q2_1->GetRMS()/sqrt(q2_1->GetEntries())));
+                              q2_1->GetMean(),q2_1->GetMeanError()));
       }
       if(q2_2->GetEntries()!=0) 
       {
          summary_txt->AddText(Form("Q2: %f +/- %f (GeV/c)^2 (pkg2)",
-                              q2_2->GetMean(),q2_2->GetRMS()/sqrt(q2_2->GetEntries())));
+                              q2_2->GetMean(),q2_2->GetMeanError()));
       }
     }
 
@@ -1788,18 +1777,18 @@ void Tracking_Cut(int event_start=-1,int event_end=-1,int run=8658, TString stem
     {
       summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (all)",
                            light_weighted_q2[0]->GetMean(),
-                           light_weighted_q2[0]->GetRMS()/sqrt(light_weighted_q2[0]->GetEntries())));
+                           light_weighted_q2[0]->GetMeanError()));
       if(light_weighted_q2[1]->GetEntries()!=0) 
       {
          summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg1)",
                               light_weighted_q2[1]->GetMean(),
-                              light_weighted_q2[1]->GetRMS()/sqrt(light_weighted_q2[1]->GetEntries())));
+                              light_weighted_q2[1]->GetMeanError()));
       }
       if(light_weighted_q2[2]->GetEntries()!=0) 
       {
          summary_txt->AddText(Form("Light-weighted Q2: %f +/- %f (GeV/c)^2 (pkg2)",
                               light_weighted_q2[2]->GetMean(),
-                              light_weighted_q2[2]->GetRMS()/sqrt(light_weighted_q2[2]->GetEntries())));
+                              light_weighted_q2[2]->GetMeanError()));
       }
     }
 

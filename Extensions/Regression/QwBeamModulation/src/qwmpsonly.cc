@@ -1,17 +1,17 @@
 #include "headers.h"
-#include "QwModulation.hh"
 #include "QwMpsOnly.hh"
+#include <iostream>
 
 Int_t main(Int_t argc, Char_t *argv[])
 {
-
+  Int_t atUVA = 0;
   TString filename;
 
   TChain *mps_tree = new TChain("mps_slug");
 
   QwMpsOnly *mps_only = new QwMpsOnly(mps_tree);
-
   mps_only->output = gSystem->Getenv("BMOD_OUT");
+
   if(!gSystem->OpenDirectory(mps_only->output)){
     mps_only->PrintError("Cannot open output directory.\n");
     mps_only->PrintError("Directory needs to be set as env variable and contain:\n\t slopes/ \n\t regression/ \n\t diagnostics/ \n\t rootfiles/"); 
@@ -34,7 +34,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->LoadRootFile(filename, mps_tree);
   mps_only->SetFileName(filename);
   mps_only->SetupMpsBranchAddress();
-
+  std::cout<<"Entries: "<<mps_tree->GetEntries()<<std::endl;
   std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
 
   mps_only->ReadConfig("");
@@ -64,7 +64,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   mps_only->PilferData();
   mps_only->BuildDetectorAvSlope();
   mps_only->BuildMonitorAvSlope();
-  mps_only->CalculateWeightedSlope();
+  mps_only->CalculateWeightedSlope(1);
   mps_only->MatrixFill();
   
   std::cout << "Closing Mps_Tree" << std::endl;
@@ -73,13 +73,14 @@ Int_t main(Int_t argc, Char_t *argv[])
 
 
   // The second half isn't ready yet. So exit.
-  //  exit(1);
+  exit(1);
 
   std::cout << "Creating Slug(let) chain now." << std::endl;
   TChain *hel_tree = new TChain("slug");
   mps_only->Init(hel_tree);
 
-  gSystem->Setenv("QW_ROOTFILES", "/w/hallc/qweak/QwAnalysis/run1/pass5b_slugs/");
+  if(atUVA)
+    gSystem->Setenv("QW_ROOTFILES", "/net/data1/paschkedata2/pass5b_slugs/wien6");
 
   filename = Form("sluglet%d_*root", mps_only->run_number);
   mps_only->LoadRootFile(filename, hel_tree, true);

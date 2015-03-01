@@ -3,16 +3,29 @@
 // Author:   Peyton Rose
 // email :   pwrose@email.wm.edu
 // Date:    
-// Version:  0.0
+// Version:  1.0
 //
-// Plots the five wire effiency of each wire, in each plane, in each package for the Region 3 drift chambers
+// Plots the five-wire effiency of each wire, in each plane, in each package for the Region 3 drift chambers
+//
+//  Usage: 
+//     in qwroot:
+//         .L plotVDCeff.C
+//          plot_efficiency(1,10000,15125) 
+//              calculates and plots efficiencies for events 1 to 10000 for run 15125
+//
+//     The five-wire efficiency is calculated by looking at the adjacent two wires on each side of a given
+//   VDC wire. For a given wire, a "trigger" is an of event in which all 4 adjacent wires had first-hits
+//   in the appropriate time window (-10ns to 400 ns) and in which the time-ordering of the hits is appropriate
+//   for a straight track. A "fire" is defined as the number in which the tested wire has a first hit in the 
+//   -10ns to 400ns. The efficiency for that wire is then calculated as the fraction fire/trigger. For wires
+//   with no triggers, the efficiency is stored as -10%.
 //
 //  
 // Modifed November 2011 by D.S. Armstrong:
 //    - updated name of tree to event_tree
 //    - changed file input naming scheme
 //    - checked that wires are hit by using -10000 as time value if not hit at all (was 0, which
-//      is no loner appropriate
+//      is no longer appropriate)
 //    - added output of dead or very low efficiency wires to cout
 //
 // Modifed June 2012 by D.S. Armstrong
@@ -75,8 +88,8 @@ plot_efficiency_5(UInt_t event_start=-1,
 
   //check_libraries();
 
-  TCanvas *efficiency1_c = new TCanvas("Five Wire Efficiency: Package 1: Vader and Leia","Five Wire Efficiency: Package 1: Vader and Leia",100,0,800,400);
-  TCanvas *efficiency2_c = new TCanvas("Five Wire Efficiency: Package 2: Yoda and Han","Five Wire Efficiency: Package 2: Yoda and Han",100,0,800,400);
+  TCanvas *efficiency1_c = new TCanvas("Five Wire Efficiency: Package 1: Vader and Leia",Form("Five Wire Efficiency: Package 1: Vader and Leia: Run %d",run_number),100,0,800,400);
+  TCanvas *efficiency2_c = new TCanvas("Five Wire Efficiency: Package 2: Yoda and Han",Form("Five Wire Efficiency: Package 2: Yoda and Han: Run %d",run_number),100,0,800,400);
   TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES"), run_number));  
   if (file->IsZombie()) 
     {
@@ -177,7 +190,7 @@ for(ev_i=start; ev_i<end; ev_i++) //iterate through all desired events in the ro
 
 	for(hit_i=0; hit_i<nhit; hit_i++) // iterate through all hits in each event
 	{
-		//get information about this particluar hit
+		//get information about this particular hit
 	  //hit = (QwHit*) hitContainer->GetHit(hit_i);
 	    hit=fEvent->GetHit(hit_i);
 	    region    = (Short_t) hit->GetRegion(); 
@@ -431,7 +444,7 @@ for(wire_i=1; wire_i<280; wire_i++)
 	efficiency1_c -> cd(padnumber1);
 	TGraph *gr11 = new TGraphErrors(279,wirenum, eff1[0],xerr[0],err1[0]);
 	gr11 -> Draw("A*");
-	gr11 -> SetTitle("Vader V-Plane Efficiency");
+	gr11 -> SetTitle(Form("Vader V-Plane Efficiency   Run %d",run_number));
 	gr11 -> GetXaxis() -> SetTitle("Wire Number");
 	gr11 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
 	
@@ -440,7 +453,7 @@ for(wire_i=1; wire_i<280; wire_i++)
 	efficiency1_c -> cd(padnumber1);
 	TGraph *gr12 = new TGraphErrors(279,wirenum, eff1[1],xerr[1],err1[1]);
 	gr12 -> Draw("A*");
-	gr12 -> SetTitle("Vader U-Plane Efficiency");
+	gr12 -> SetTitle(Form("Vader U-Plane Efficiency   Run %d",run_number));
 	gr12 -> GetXaxis() -> SetTitle("Wire Number");
 	gr12 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
 	
@@ -449,7 +462,7 @@ for(wire_i=1; wire_i<280; wire_i++)
 	efficiency1_c -> cd(padnumber1);
 	TGraph *gr13 = new TGraphErrors(279,wirenum, eff1[2],xerr[2],err1[2]);
 	gr13 -> Draw("A*");
-	gr13 -> SetTitle("Leia V-Plane Efficiency");
+	gr13 -> SetTitle(Form("Leia V-Plane Efficiency   Run %d",run_number));
 	gr13 -> GetXaxis() -> SetTitle("Wire Number");
 	gr13 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
 	
@@ -458,7 +471,7 @@ for(wire_i=1; wire_i<280; wire_i++)
 	efficiency1_c -> cd(padnumber1);
 	TGraph *gr14 = new TGraphErrors(279,wirenum, eff1[3],xerr[3],err1[3]);
 	gr14 -> Draw("A*");
-	gr14 -> SetTitle("Leia U-Plane Efficiency");
+	gr14 -> SetTitle(Form("Leia U-Plane Efficiency   Run %d",run_number));
 	gr14 -> GetXaxis() -> SetTitle("Wire Number");
 	gr14 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
 	
@@ -471,6 +484,8 @@ for(wire_i=1; wire_i<280; wire_i++)
 	TGraph *gr21 = new TGraphErrors(279,wirenum, eff2[0],xerr[0],err2[0]);
 	gr21 -> Draw("A*");
 	gr21 -> SetTitle("Yoda V-Plane Efficiency");
+	gr21 -> SetTitle(Form("Yoda V-Plane Efficiency   Run %d",run_number));
+	gr21 -> SetTitle("Leia U-Plane Efficiency");
 	gr21 -> GetXaxis() -> SetTitle("Wire Number");
 	gr21 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
 	
@@ -479,7 +494,7 @@ for(wire_i=1; wire_i<280; wire_i++)
 	efficiency2_c -> cd(padnumber2);
 	TGraph *gr22 = new TGraphErrors(279,wirenum, eff2[1],xerr[1],err2[1]);
 	gr22 -> Draw("A*");
-	gr22 -> SetTitle("Yoda U-Plane Efficiency");
+	gr22 -> SetTitle(Form("Yoda U-Plane Efficiency   Run %d",run_number));
 	gr22 -> GetXaxis() -> SetTitle("Wire Number");
 	gr22 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
 	
@@ -488,7 +503,7 @@ for(wire_i=1; wire_i<280; wire_i++)
 	efficiency2_c -> cd(padnumber2);
 	TGraph *gr23 = new TGraphErrors(279,wirenum, eff2[2],xerr[2],err2[2]);
 	gr23 -> Draw("A*");
-	gr23 -> SetTitle("Han V-Plane Efficiency");
+	gr23 -> SetTitle(Form("Han V-Plane Efficiency   Run %d",run_number));
 	gr23 -> GetXaxis() -> SetTitle("Wire Number");
 	gr23 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
 	
@@ -497,7 +512,8 @@ for(wire_i=1; wire_i<280; wire_i++)
 	efficiency2_c -> cd(padnumber2);
 	TGraph *gr24 = new TGraphErrors(279,wirenum, eff2[3],xerr[3],err2[3]);
 	gr24 -> Draw("A*");
-	gr24 -> SetTitle("Han U-Plane Efficiency");
+	gr24 -> SetTitle(Form("Han U-Plane Efficiency   Run %d",run_number));
 	gr24 -> GetXaxis() -> SetTitle("Wire Number");
 	gr24 -> GetYaxis() -> SetTitle("Five Wire Efficiency");
-}//plot_efficiency
+}  
+//plot_efficiency_5

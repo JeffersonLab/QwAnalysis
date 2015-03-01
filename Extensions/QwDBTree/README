@@ -1,0 +1,18 @@
+How the script determines data quality:
+
+By default, all queries select production data only. Good data is selected by
+the following conditions:
+
+runlet.runlet_quality_id = 1
+FIND_IN_SET('1',runlet.good_for_id)
+FIND_IN_SET('3',runlet.good_for_id)
+
+Previously, I had cut on run.good_for_id and run.run_quality. There is an
+ongoing discussion about what we should consider good data. This section will
+be updated after an official opinion is formed.
+
+How the script determines target:
+
+Target defaults to LH2, but any target can be specified. 
+
+More information can be found here: https://qweak.jlab.org/elog/Analysis+%26+Simulation/667

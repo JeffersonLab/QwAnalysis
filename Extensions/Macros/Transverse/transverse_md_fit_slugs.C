@@ -44,7 +44,10 @@
 				  Added opposite bar difference in addition to sums.
   2012-07-08 B.Waidyawansa        Added PMT based fits. 
                                   Added image saving as.eps 
-  2012-08-08 B.Waidyawansa        Added	an option to draw B&W plots.			  
+  2012-08-08 B.Waidyawansa        Added	an option to draw B&W plots.
+  2013-06-04 B.Waidyawansa        Replaced barsums with pmtaverages which are now calculated in pass5.
+                                  Updated names of the plots.
+			  
 ******************************************************************************************************/
 
 using namespace std;
@@ -89,9 +92,14 @@ using namespace std;
 #include <TLatex.h>
 
 
-TString quartz_bar_SUM[8]=
-  {"qwk_md1barsum","qwk_md2barsum","qwk_md3barsum","qwk_md4barsum"
-   ,"qwk_md5barsum","qwk_md6barsum","qwk_md7barsum","qwk_md8barsum"};
+
+// TString quartz_bar_SUM[8]=
+//   {"qwk_md1barsum","qwk_md2barsum","qwk_md3barsum","qwk_md4barsum"
+//    ,"qwk_md5barsum","qwk_md6barsum","qwk_md7barsum","qwk_md8barsum"};
+
+//TString pmtavg[8]={"md1pmtavg","md2pmtavg","md3pmtavg","md4pmtavg","md5pmtavg","md6pmtavg","md7pmtavg","md8pmtavg"};
+
+TString pmt_avg[8]={"md1pmtavg","md2pmtavg","md3pmtavg","md4pmtavg","md5pmtavg","md6pmtavg","md7pmtavg","md8pmtavg"};
 
 TString negative_pmt[8]=
   {"qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg"
@@ -289,7 +297,8 @@ int main(Int_t argc,Char_t* argv[])
   if(int_opt == 1){
     good_for = "(md_data_view.good_for_id = '9' or md_data_view.good_for_id = '1,"+good+"')";
     interaction = "elastic";
-    qtor_current=" (slow_controls_settings.qtor_current>8800 && slow_controls_settings.qtor_current<9000) ";
+    //    qtor_current=" and (slow_controls_settings.qtor_current>8800 && slow_controls_settings.qtor_current<9000) ";
+    qtor_current=" ";
     qtor_stem = "8901";
   }
   else if(int_opt == 2){
@@ -298,7 +307,7 @@ int main(Int_t argc,Char_t* argv[])
   }
   else if(int_opt == 3){
     good_for = "(md_data_view.good_for_id = '1,3,21')";
-    qtor_current=" (slow_controls_settings.qtor_current>8990 && slow_controls_settings.qtor_current<9010) ";
+    qtor_current=" and  (slow_controls_settings.qtor_current>8990 && slow_controls_settings.qtor_current<9010) ";
     qtor_stem = "9000";
     interaction = "dis"; 
   }
@@ -309,15 +318,15 @@ int main(Int_t argc,Char_t* argv[])
 
   // Set QTOR current cut based on user input
   if(qtor_opt == 1){
-    qtor_current=" (slow_controls_settings.qtor_current>5900 && slow_controls_settings.qtor_current<6100) ";
+    qtor_current=" and  (slow_controls_settings.qtor_current>5900 && slow_controls_settings.qtor_current<6100) ";
     qtor_stem = "6000";
   }
   else if(qtor_opt == 2){
-    qtor_current=" (slow_controls_settings.qtor_current>6600 && slow_controls_settings.qtor_current<6800) ";
+    qtor_current=" and  (slow_controls_settings.qtor_current>6600 && slow_controls_settings.qtor_current<6800) ";
     qtor_stem = "6700";
   }
   else if(qtor_opt == 3){
-    qtor_current=" (slow_controls_settings.qtor_current>7200 && slow_controls_settings.qtor_current<7400) ";
+    qtor_current="  and (slow_controls_settings.qtor_current>7200 && slow_controls_settings.qtor_current<7400) ";
     qtor_stem = "7300";
   }
   
@@ -354,8 +363,8 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetOptStat(0);
   gStyle->SetStatY(0.99);
   gStyle->SetStatX(0.99);
-  gStyle->SetStatW(0.15);
-  gStyle->SetStatH(0.5);
+//   gStyle->SetStatW(1.0);
+//   gStyle->SetStatH(0.7);
   
   //Pad parameters
   gStyle->SetPadColor(0); 
@@ -370,12 +379,12 @@ int main(Int_t argc,Char_t* argv[])
   // histo parameters
   gStyle->SetTitleYOffset(1.6);
   gStyle->SetTitleXOffset(1.6);
-  gStyle->SetLabelSize(0.05,"x");
-  gStyle->SetLabelSize(0.05,"y");
-  gStyle->SetTitleSize(0.05,"x");
-  gStyle->SetTitleSize(0.05,"y");
+  gStyle->SetLabelSize(0.08,"x");
+  gStyle->SetLabelSize(0.08,"y");
+  gStyle->SetTitleSize(0.08,"x");
+  gStyle->SetTitleSize(0.08,"y");
   gStyle->SetTitleOffset(1.0,"x");
-  gStyle->SetTitleOffset(0.8,"y");
+  gStyle->SetTitleOffset(0.5,"y");
   gStyle->SetTitleX(0.1);
   gStyle->SetTitleW(0.6);
   gStyle->SetTitleBorderSize(0);
@@ -396,17 +405,16 @@ int main(Int_t argc,Char_t* argv[])
 
 
   //************************
-  // Draw barsum plots
+  // Draw detector plots
   //************************
-
 
  //Set canvas parameters
   TString title1;
   if(pol_opt==1) 
-    title1 = Form("%s (%s): Averages of regressd main detector asymmetries. FIT = A_{V}*cos(phi) - A_{H}*sin(#phi) + C",targ.Data(),polar.Data());
-  else if(pol_opt==2) title1= Form("%s (%s): Averages of regressed main detector asymmetries. FIT = A_{V}*cos(#phi + #phi_{0}) + C",targ.Data(),polar.Data());
+    title1 = Form("%s (%s): Averages of regressd pmtavg asymmetries. FIT = A_{V}*cos(phi) - A_{H}*sin(#phi) + C",targ.Data(),polar.Data());
+  else if(pol_opt==2) title1= Form("%s (%s): Averages of regressed pmtavg asymmetries. FIT = A_{V}*cos(#phi + #phi_{0}) + C",targ.Data(),polar.Data());
   else
-    title1= Form("%s (%s): Averages of regressed main detector asymmetries. FIT = A_{H}*sin(#phi + #phi_{0}) + C",targ.Data(),polar.Data());
+    title1= Form("%s (%s): Averages of regressed pmtavg asymmetries. FIT = A_{H}*sin(#phi + #phi_{0}) + C",targ.Data(),polar.Data());
 
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1500,800);
   Canvas1->Draw();
@@ -433,18 +441,17 @@ int main(Int_t argc,Char_t* argv[])
   Myfile << " ! Main detector error weighted averages "<<std::endl;
   Myfile << " !========================================"<<std::endl;
 
-  get_octant_data(quartz_bar_SUM,"in", valuein,  errin);
-  get_octant_data(quartz_bar_SUM,"out",  valueout, errout);
-  plot_octant(valuein,errin,valueout,errout,valuefalse,errorfalse,valuephys, errorphys,"Barsum");
+  get_octant_data(pmt_avg,"in", valuein,  errin);
+  get_octant_data(pmt_avg,"out",  valueout, errout);
+  plot_octant(valuein,errin,valueout,errout,valuefalse,errorfalse,valuephys, errorphys,"pmtavg");
   gPad->Update();
 
   if(!plot_colors) Canvas1->SetGrayscale();
   Canvas1->Modified();
   Canvas1->Update();
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".png");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".svg");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".C");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".eps");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_pmtavg_regressed_"+reg_set+"_in_p_out_plots_"+database+"_"+color+".png");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_pmtavg_regressed_"+reg_set+"_in_p_out_plots_"+database+"_"+color+".scg");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_pmtavg_regressed_"+reg_set+"_in_p_out_plots_"+database+"_"+color+".C");
 
   // Calculate sum of opposite octants
   
@@ -454,7 +461,7 @@ int main(Int_t argc,Char_t* argv[])
   get_opposite_octant_average(valuefalse,errorfalse,valuephys,errorphys);
   
   //************************
-  // Draw PMT plots 
+  // Draw individual PMT plots 
   //************************
 
   barsums = false;
@@ -512,7 +519,13 @@ TString get_query(TString detector, TString measurement, TString ihwp){
   // select only good runs (for now)
   TString run_quality =  Form("(%s.run_quality_id = '1') ",datatable.Data());
 
-  TString regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = '%s' ",
+  TString regression;
+
+  if(reg_set.Contains("off"))
+    regression = Form("%s.slope_calculation = 'on' and %s.slope_correction = '%s' ",
+			    datatable.Data(),datatable.Data(),reg_set.Data()); 
+  else
+    regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = '%s' ",
 			    datatable.Data(),datatable.Data(),reg_set.Data()); 
 
   /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
@@ -522,7 +535,7 @@ TString get_query(TString detector, TString measurement, TString ihwp){
     +datatable+".measurement_type = 'a' AND target_position = '"+target+"' AND "
     +regression+" AND "+run_quality+" AND "
     +" slow_helicity_plate= '"+ihwp+"' AND "+good_for+" AND "
-    +datatable+".error != 0 and "+qtor_current+"; ";
+    +datatable+".error != 0 "+qtor_current+"; ";
 
   if(ldebug) std::cout<<query<<std::endl;
 
@@ -746,7 +759,6 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],
   TPaveStats *stats1 = (TPaveStats*)(grp_in->GetListOfFunctions())->FindObject("stats");
   TPaveStats *stats2 = (TPaveStats*)(grp_out->GetListOfFunctions())->FindObject("stats");
   TPaveStats *stats3 = (TPaveStats*)(grp_sum->GetListOfFunctions())->FindObject("stats");
-  std::cout<<"eherere6\n";
 
   stats1->SetTextColor(kBlue);
   stats1->SetFillColor(kWhite); 
@@ -781,7 +793,7 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],
   else
     title = targ+"("+polar+"): IN-OUT of regressed MD asymmetries. FIT = A_{H}*sin(#phi + #phi_{0}) + C";
   
-  TCanvas * Canvas11 = new TCanvas("canvas11",title,0,0,1600,800);
+  TCanvas * Canvas11 = new TCanvas("canvas11",title,0,0,1000,480);
   Canvas11->Draw();
   Canvas11->SetFillColor(0);
   Canvas11->cd();
@@ -807,7 +819,7 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],
   pad22->SetTopMargin(0.05);
 
   TGraphErrors* grp_diff  = new TGraphErrors(k,x,valuediff,errx,errordiff);
-  grp_diff ->SetMarkerSize(1.0);
+  grp_diff ->SetMarkerSize(0.8);
   grp_diff ->SetMarkerStyle(21);
   grp_diff ->SetMarkerColor(kBlack-2);
   grp_diff->Fit("fit_in","B");
@@ -845,23 +857,25 @@ void plot_octant(Double_t valuesin[],Double_t errorsin[],
   TPaveStats *stats11 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
   stats11->SetTextColor(kBlack);
   stats11->SetFillColor(kWhite);
-  stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
+  stats11->SetFitFormat("4.3f");
+
+//   stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
   
-  if(pol_opt == 3){
+//   if(pol_opt == 3){
     stats11->SetX1NDC(0.1); 
-    stats11->SetX2NDC(0.29); 
-    stats11->SetY1NDC(0.7);
-    stats11->SetY2NDC(0.95);  
-  }
+    stats11->SetX2NDC(0.35); 
+    stats11->SetY1NDC(0.65);
+    stats11->SetY2NDC(0.98);  
+    //  }
   
   if(!plot_colors) Canvas11->SetGrayscale();
   Canvas11-> Modified();
   Canvas11-> Update();
   
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".png");
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".svg");
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".C");
-  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".epa");
+  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_avgpmt_regressed_"+reg_set+"_avg_in_out_plots_"+database+"_"+color+".png");
+  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_avgpmt_regressed_"+reg_set+"_avg_in_out_plots_"+database+"_"+color+".svg");
+  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_avgpmt_regressed_"+reg_set+"_avg_in_out_plots_"+database+"_"+color+".C");
+  Canvas11->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_avgpmt_regressed_"+reg_set+"_avg_in_out_plots_"+database+"_"+color+".eps");
   
   
 }
@@ -1047,14 +1061,9 @@ void get_opposite_octant_average( Double_t v_in_p_out[],Double_t e_in_p_out[],
   if(!plot_colors) Canvas1->SetGrayscale();
   Canvas1->Modified();
   Canvas1-> Update();
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
-		 +reg_set+"_"+database+"_"+color+".png");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
-		 +reg_set+"_"+database+"_"+color+".svg");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
-		 +reg_set+"_"+database+"_"+color+".C");
-  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_MD_regressed_opposite_octant_plots_"
-		 +reg_set+"_"+database+"_"+color+".eps");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_regressed_avgpmt_opposite_octant_plots_"+reg_set+"_"+database+"_"+color+".png");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_regressed_avgpmt_opposite_octant_plots_"+reg_set+"_"+database+"_"+color+".svg");
+  Canvas1->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_regressed_avgpmt_opposite_octant_plots_"+reg_set+"_"+database+"_"+color+".C");
   
 }
 
@@ -1469,11 +1478,10 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   if(!plot_colors) Canvas2->SetGrayscale();
   Canvas2->Modified();
   Canvas2->Update();
-  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".png");
-  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".svg");
-  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".C");
-  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_slug_summary_plots_"+database+"_"+color+".eps");
-  
+  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_compare_single_avgpmt_"+reg_set+"_in_p_out_plots_"+database+"_"+color+".png");
+  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_compare_single_avgpmt_"+reg_set+"_in_p_out_plots_"+database+"_"+color+".svg");
+  Canvas2->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_compare_single_avgpmt_"+reg_set+"_in_p_out_plots_"+database+"_"+color+".C");
+
 
   // New canvas for AVG(IN-OUT)
   TCanvas * Canvas21 = new TCanvas("canvas21", title1,0,0,1600,800);
@@ -1606,10 +1614,10 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   legend11->SetBorderSize(1);
   legend11->AddEntry(grp_pos_diff, "Positive PMT AVG(IN-OUT)", "p");
   legend11->AddEntry(grp_neg_diff, "Negative PMT AVG(IN-OUT)", "p");
-  legend11->AddEntry(grp_barsum, "Barsum AVG(IN-OUT)", "p");
+  legend11->AddEntry(grp_barsum, "PMT AVG(IN-OUT)", "p");
   legend11->AddEntry(fit7, "Positive PMT fit", "l");
   legend11->AddEntry(fit8, "Negative PMT fit", "l");
-  legend11->AddEntry(fit9, "Barsum fit", "l");
+  legend11->AddEntry(fit9, "PMT Average fit", "l");
 
   legend11->SetTextFont(132);
   legend11->SetFillColor(0);
@@ -1618,9 +1626,8 @@ void plot_pmt(Double_t posvaluesin[],Double_t poserrorsin[],
   if(!plot_colors) Canvas2->SetGrayscale();
   Canvas21->Modified();
   Canvas21->Update();
-  Canvas21->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".png");
-  Canvas21->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".svg");
-  Canvas21->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".C");
-  Canvas21->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_PMT_regressed_"+reg_set+"_in_out_plots_"+database+"_"+color+".eps");
+  Canvas21->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_compare_single_avgpmt_"+reg_set+"_avg_in_out_plots_"+database+"_"+color+".png");
+  Canvas21->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_compare_single_avgpmt_"+reg_set+"_avg_in_out_plots_"+database+"_"+color+".svg");
+  Canvas21->Print(interaction+"_"+qtor_stem+"_"+polar+"_"+target+"_compare_single_avgpmt_"+reg_set+"_avg_in_out_plots_"+database+"_"+color+".C");
  
 }

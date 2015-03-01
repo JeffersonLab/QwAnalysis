@@ -147,6 +147,8 @@ class QwTreeEventBuffer
     std::pair<int, int> fRunRange;	///< Requested run range
     std::pair<int, int> fEventRange;	///< Requested event range
 
+    double fDriftTimeDistance[131];
+    
     /// Get the number of entries in the loaded run
     void SetNumberOfEntries(const unsigned int n) {
       fNumberOfEntries = n;
@@ -204,6 +206,17 @@ class QwTreeEventBuffer
       const QwDetectorInfo* detectorinfo,
       const double x, const double y) const;
 
+    /// \brief Get drift distance from drift time or vice versa  
+      void   LoadDriftTimeDistance();
+      double GetR2DriftDistanceFromTime(double time) const;
+      double GetR2DriftTimeFromDistance(double dist) const;
+
+    /// \brief Get local coordinate from global coordinates and octant number
+      double xGlobalToLocal  (double x,  double y,  int octant) const;
+      double yGlobalToLocal  (double x,  double y,  int octant) const;
+      double pxGlobalToLocal (double px, double py, int octant) const;
+      double pyGlobalToLocal (double px, double py, int octant) const;
+      
     // @}
 
     /// \name Branch vectors

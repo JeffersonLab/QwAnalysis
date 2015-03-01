@@ -33,9 +33,9 @@
  * then reads in the detector mapfiles md, lumi, and beam; reg map file is read
  * in by main(). 
  */
-int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, Bool_t runavg) {
+int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, TString target, Bool_t runavg) {
     /* Open the output file and create the tree for outputting. */
-    TFile *f = new TFile(Form("%s%s_tree.root",outdir.Data(),reg_type.Data()),"RECREATE");
+    TFile *f = new TFile(Form("%s%s_%s_tree.root",outdir.Data(),target.Data(),reg_type.Data()),"RECREATE");
     TTree *tree = new TTree("tree","treelibrated tree");
 
     /*

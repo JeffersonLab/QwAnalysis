@@ -18,7 +18,7 @@ struct QwValues {
 class QwRunlet {
     public:
     QwRunlet(TSQLServer*);
-    void fill(QwParse&, QwParse&);
+    void fill(QwParse&, QwParse&, TString, Bool_t, Bool_t);
     void fill_run(void);
     void branch(TTree*, QwValues&);
     vector<Int_t> get_runlets(void);
@@ -40,10 +40,10 @@ class QwRunlet {
     vector<string> good_for;
 
     /* Query generating methods. */
-    TString runlet_query(vector<TString>);
+    TString runlet_query(vector<TString>, Bool_t runavg);
     TString run_query(void);
-    TString runlet_temp_table_create(TString, vector<TString>);
-    TString runlet_temp_table_unreg_create(TString, vector<TString>);
+    TString runlet_temp_table_create(TString, vector<TString>, TString, Bool_t);
+    TString runlet_temp_table_unreg_create(TString, vector<TString>, TString, Bool_t);
 };
 
 #endif
