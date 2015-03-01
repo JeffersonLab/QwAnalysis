@@ -2,12 +2,13 @@
 # Author: Rakitha Beminiwattha (rakithab@jlab.org) 
 # 08-07-2012
 # 01-25-2013 Buddhini : Added set11
+# 03-13-2013 Scott : pointed to pass5b
 
 slug_num=$1
 #this is the source of regressed root files
-SRC="/work/hallc/qweak/QwAnalysis/run2/pass5regression/lrb_rootfiles"
-DST="/work/hallc/qweak/QwAnalysis/run2/pass5slugs"
-DST_Dbug="/work/hallc/qweak/QwAnalysis/run2/pass5slugs/out_files"
+SRC="/work/hallc/qweak/QwAnalysis/run2/pass5bregression/lrb_rootfiles"
+DST="/work/hallc/qweak/QwAnalysis/run2/pass5bslugs"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run2/pass5bslugs/out_files"
 
 #DST_Dbug="/volatile/hallc/qweak/rakithab/run2pass5/out_files"
 

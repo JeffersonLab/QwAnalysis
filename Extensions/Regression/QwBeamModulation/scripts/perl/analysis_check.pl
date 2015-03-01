@@ -55,7 +55,7 @@ if(!$runs){
     die "Failure to pass correct input parameters: Try --help for usage";
 }
 if(!$directory){
-    $directory="/work/hallc/qweak/QwAnalysis/run1/pass5bregression/";
+    $directory="/w/hallc/qweak/QwAnalysis/run1/pass5bregression/";
 }
 
 if($regtype){
@@ -81,7 +81,7 @@ CheckFailedRegression();
 print "== Setting up database connection\n";
 
 if(!$dbname){
-    $dbname="qw_test_20130313";
+    $dbname="qw_run1_pass5b";
     print "- Default database set to: $dbname\n";
 }
 
@@ -109,6 +109,17 @@ $dbi->disconnect;
 
 print "\n=== Summary of Errors ===\n";
 print "\n\n -- Failure due to small number of events\:\n";
+
+# Sort the arrays
+@error_evnum = sort(@error_evnum);
+@error_chanmap = sort(@error_chanmap);
+@error_unid = sort(@error_unid);
+@error_bmod = sort(@error_bmod);
+@error_detector = sort(@error_detector);
+@error_mps = sort(@error_mps);
+@error_sluglet = sort(@error_sluglet);
+# Print arrays
+
 foreach my $index (@error_evnum){
     print $index, " ";
 }

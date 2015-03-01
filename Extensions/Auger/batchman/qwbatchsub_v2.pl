@@ -155,7 +155,7 @@ if (!defined($FarmOSName) || $FarmOSName eq "") {
     if (-f "$script_dir/.farm_os_name") {
 	chomp($FarmOSName = `cat $script_dir/.farm_os_name`);
     }
-    $FarmOSName = "centos62" if (!defined($FarmOSName) || $FarmOSName eq "");
+    $FarmOSName = "linux64" if (!defined($FarmOSName) || $FarmOSName eq "");
 }
 
 $BaseMSSDir = "/mss/hallc/qweak" if (!defined($BaseMSSDir) || $BaseMSSDir eq "");
@@ -206,7 +206,7 @@ if (defined($opt_E) && $opt_E ne ""){
 	    "Exiting");
     }
 } else {
-#    $executable = "$ENV{QW_BIN}/qwparity";
+    $executable = "$ENV{QW_BIN}/qwparity";
 }
 
 #  Let's validate the $OutputPath variable.
@@ -357,16 +357,16 @@ print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
 
 foreach $runnumber (@good_runs){
 
-    @input_files = get_files_for_one_run_from_mss("rootfiles/pass5",$runnumber);
+    @input_files = get_files_for_one_run_from_mss("raw",$runnumber);
 
     if ($#input_files>=0){
 	###  There is at least one data file.
 
 	#  Clear the old logfile if it exists.
-	if (-f "$ENV{QWSCRATCH}/work/bmod_$runnumber.log"){
+	if (-f "$ENV{QWSCRATCH}/work/run_$runnumber.log"){
 	    rename
-		"$ENV{QWSCRATCH}/work/bmod_$runnumber.log",
-		"$ENV{QWSCRATCH}/work/bmod_$runnumber.log_old";
+		"$ENV{QWSCRATCH}/work/run_$runnumber.log",
+		"$ENV{QWSCRATCH}/work/run_$runnumber.log_old";
 	}
 
 	# also need to cleanup all the old output files. otherwise 
@@ -541,7 +541,7 @@ sub good_segment_number($) {
 sub extract_segment($) {
     my ($filename) = @_;
     my $segment = undef;
-    if ($filename =~ m/.*\.([0-9]+)\./) {
+    if ($filename =~ m/.*\.([0-9]+)$/) {
 	$segment = $1;
     }
     return $segment;
@@ -554,8 +554,7 @@ sub get_files_for_one_run_from_mss ($$) {
 
     #  Get the file names from the MSS file listings,
     #  sorted by segment number
-    print "$BaseMSSDir/$cachedir/*_$runnumber.*trees.root\n";
-    @list = glob "$BaseMSSDir/$cachedir/*_$runnumber.*trees.root";
+    @list = glob "$BaseMSSDir/$cachedir/*_$runnumber.dat*";
     foreach $filename (@list){
 	my $segment = extract_segment($filename);
 	$segmentlist{$filename} = $segment;
@@ -620,7 +619,7 @@ sub create_old_jobfile($$$@) {
     }
 
     # Old job file format
-    $command_file = "$scratch_directory/work/bmod_$runnumber$suffix\_$timestamp.command";
+    $command_file = "$scratch_directory/work/run_$runnumber$suffix\_$timestamp.command";
     # remove the command file if it exists
     if (-f "$command_file") {
 	unlink $command_file or die "Can not remove the old $command_file: $!";
@@ -642,7 +641,7 @@ sub create_old_jobfile($$$@) {
 	"TOWORK\n",
 	####
 	"OUTPUT_DATA: run_$runnumber$suffix\_$timestamp.log\n",
-	"OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/bmod_$runnumber$suffix\_$timestamp.log\n";
+	"OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.log\n";
     #
     #"OUTPUT_DATA: tmp/* \n",
     #"OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
@@ -661,7 +660,7 @@ sub create_old_jobfile($$$@) {
     #"OUTPUT_TEMPLATE: $ENV{PEDESTAL_DIR}/.\n";
 
     print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
-    print JOBFILE  "OS: centos62\n";
+    print JOBFILE  "OS: $FarmOSName\n";
     close JOBFILE;
     return $command_file;
 }
@@ -678,7 +677,7 @@ sub create_xml_jobfile($$$@) {
     }
     
     # New job file format
-    $command_file = "$scratch_directory/work/bmod_$runnumber$suffix\_$timestamp.xml";
+    $command_file = "$scratch_directory/work/run_$runnumber$suffix\_$timestamp.xml";
     # remove the command file if it exists
     if (-f "$command_file") {
 	unlink $command_file or die "Can not remove the old $command_file: $!";
@@ -689,10 +688,10 @@ sub create_xml_jobfile($$$@) {
 	" <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"false\"/>\n",
 	" <Project name=\"qweak\"/>\n",
 	" <Track name=\"$BatchQueue\"/>\n",
-	" <Name name=\"QwBMod_$runnumber$suffix\"/>\n";
-    my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
+	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
+    my $timelimit = 400*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
-	" <OS name=\"centos62\"/>\n",
+	" <OS name=\"$FarmOSName\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
 	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
 	" <Memory space=\"$MaxMemoryPerJob\" unit=\"MB\"/>\n";
@@ -711,6 +710,9 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
 	"  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
 	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n";
+    print JOBFILE
+	"  setenv QWSTATUS \$QWSCRATCH/work/run_$runnumber$suffix\_$timestamp.stat\n",
+	"  echo \"QWSTATUS:   \" \$QWSTATUS\n";
     if ("$CacheOptionList" ne ""){
         $CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
     } else {
@@ -723,25 +725,37 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"QW_ROOTFILES: \" \$QW_ROOTFILES\n",
 	"  echo $script_dir/update_cache_links.pl $CacheOptionList\n",
 	"  $script_dir/update_cache_links.pl $CacheOptionList\n",
-	"  ls -al \$QW_DATA\n";
+	"  ls -al \$QW_DATA | tee -a \$QWSTATUS\n";
     print JOBFILE
-	"  echo \"------\"\n",
-	"  echo \"Started at `date`\"\n",
-	"  ls -al \$QW_ROOTFILES\n";
+	"  echo \"------\" | tee -a \$QWSTATUS\n",
+	"  echo \"Started at `date`\" | tee -a \$QWSTATUS\n",
+	"  echo $executable -r $runnumber $optionlist | tee -a \$QWSTATUS\n",
+	"  $executable -r $runnumber $optionlist\n",
+	"  if \(\$\? \!\= 0\) then\n",
+	"  echo \"**** qwparity failed. Terminating script... ****\"\n",
+	"  exit\n",
+	"  else\n",
+	"  echo \"** qwparity ran successfully. Continuing... **\"\n",
+	"  endif\n",
+	"  chmod g+w \$QW_ROOTFILES/*.root\n",
+	"  ls -al \$QW_ROOTFILES | tee -a \$QWSTATUS\n";
     my $postprocess;
+    my $segment_range = -1;
+    $segment_range = $segmentlist if (defined($segmentlist)
+				      && $segmentlist ne "");
     foreach $postprocess (@RunPostProcess){
 	if ($postprocess){
 	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start run based post-processor script $postprocess at `date`\"\n",
-		"  $postprocess $runnumber\n";
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start run based post-processor script $postprocess at `date`\" | tee -a \$QWSTATUS\n",
+		"  $postprocess $runnumber $segment_range\n";
 	}
     }
     foreach $postprocess (@RunletPostProcess){
 	if ($postprocess){
 	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start runlet based post-processor script $postprocess at `date`\"\n";
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start runlet based post-processor script $postprocess at `date`\" | tee -a \$QWSTATUS\n";
 	    foreach $input_file (@infiles) {
 		my $segment = undef;
 		if ($input_file =~ m/.*\.([0-9]+)$/) {
@@ -752,9 +766,35 @@ sub create_xml_jobfile($$$@) {
 	    }
 	}
     }
+    if ($OutputPath ne "null"){
+	my ($protocol, $path) = split /:/, $OutputPath, 2;
+	if ($protocol eq "mss"){
+	    print JOBFILE
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start copying output files to at `date`\" | tee -a \$QWSTATUS\n";
+	    print JOBFILE
+		"  /site/bin/jput \$QW_ROOTFILES/$RootfileStem*.root $path/\n";
+	} elsif ($protocol eq "file" ){
+	    print JOBFILE
+		"  echo \"------\" | tee -a \$QWSTATUS\n",
+		"  echo \"Start copying output files to at `date`\" | tee -a \$QWSTATUS\n";
+	    print JOBFILE
+		"  cp -v \$QW_ROOTFILES/$RootfileStem*.root $path/.\n";
+	}
+    }
+
+    foreach $postprocess (@EndOfJobProcess){
+        if ($postprocess){
+            print JOBFILE
+                "  echo \"------\" | tee -a \$QWSTATUS\n",
+                "  echo \"Start end-of-job post-processor script $postprocess at `date`\" | tee -a \$QWSTATUS\n",
+                "  $postprocess $runnumber $segment_range\n";
+        }
+    }
+
 
     print JOBFILE
-	"  echo \"Finished at `date`\"\n",
+	"  echo \"Finished at `date`\" | tee -a \$QWSTATUS\n",
 	"]]></Command>\n";
     print JOBFILE " <Job>\n";
     foreach $input_file (@infiles) {
@@ -768,8 +808,8 @@ sub create_xml_jobfile($$$@) {
     #	}
     #    }
     
-    print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/bmod_$runnumber$suffix\_$timestamp.out\"/>\n";
-    print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/bmod_$runnumber$suffix\_$timestamp.err\"/>\n";
+    print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.out\"/>\n";
+    print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.err\"/>\n";
     print JOBFILE " </Job>\n";
     print JOBFILE "</Request>\n";
     close JOBFILE;

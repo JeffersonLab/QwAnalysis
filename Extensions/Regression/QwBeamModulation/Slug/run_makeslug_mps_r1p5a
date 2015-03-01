@@ -1,0 +1,43 @@
+#!/bin/bash
+# Author: Joshua Hoskins (jhoskins@jlab.org) 
+# 08-07-2012
+
+run=$1
+runlet=$2
+
+scriptPath=`dirname $0`
+
+qwstem="QwPass5"
+
+if [ -z $run ]; then
+    echo "Must specify run number."
+    exit
+fi
+
+if [ -z $runlet ]; then
+    echo "Processing full run"
+    range="full"
+fi
+
+if [ $runlet == "-1" ]; then
+    echo "Runlet set to full."
+    range="full"
+else
+    range=$runlet
+fi
+
+
+#export QW_ROOTFILES=/volatile/hallc/qweak/QwAnalysis/run1/rootfiles
+
+DST="/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/r1p5a/mps_slug"
+#LIST="/group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5_bmod_regression/r1p5a/mps_slug/out_files"
+
+argument="${scriptPath}/MakeSlugMPS.C+(${run},\"${runlet}\",\"${scriptPath}/leaflist_run1pass5_unreg_mps.txt\",\"${DST}/mps_only_${run}_${range}.root\",\"${qwstem}\")"
+
+echo "root -n -q -b -l ${argument}"
+
+root -n -q -l -b ${argument} > ${DST_Dbug}/run_makeslug_mps_${run}_${range}.out
+
+
+

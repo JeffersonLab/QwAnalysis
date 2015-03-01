@@ -1,0 +1,28 @@
+#!/bin/bash
+umask 002
+
+#  File copied from official_run1pass5 on March 12, 2013 --smacewan
+#  Do a little gymnastics to figure out which installed
+#  analyzer version is being called.
+initialDir=`pwd`
+cd `dirname $0`
+scriptPath=`pwd`
+cd $initialDir
+
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=`echo $scriptPath | sed 's/Extensions\/Auger\/batchman//'`
+. $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
+
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --max-files-per-job 5 \
+    --job-maxmemory 3000  --job-reservespace 50000 \
+    --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/scripts/bash/bmod_r2p5_batch.bash  \
+    --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/Slug/run2_makeslug_mps \
+    --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run2pass5.sh \
+    --post-runlet $QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run2pass5/run_makesluglet \
+    --rootfile-stem QwPass5b_ \
+    --end-script $QWANALYSIS/Extensions/Auger/batchman/outputstage_r2p5b \
+    --rootfile-output null \
+    --options "--config official_run2pass5.conf --QwDatabase.dbname qw_run2_pass5b" $@ \
+    #--end-script $QWANALYSIS/Extensions/Auger/batchman/stagefromvolatile_r2p5b
+
+#    --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run2pass5_bmod.sh \

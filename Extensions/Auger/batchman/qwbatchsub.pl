@@ -163,7 +163,7 @@ $BaseMSSDir = "/mss/hallc/qweak" if (!defined($BaseMSSDir) || $BaseMSSDir eq "")
 $CacheOptionList = ""       if (!defined($CacheOptionList) 
 				  || $CacheOptionList eq "");
 $BatchQueue = "one_pass"      if (!defined($BatchQueue) || $BatchQueue eq "");
-$TimePerFile = 300            if (!defined($TimePerFile) || $TimePerFile eq 0);
+$TimePerFile = 400            if (!defined($TimePerFile) || $TimePerFile eq 0);
 $RootfileStem = "Qweak_"      if (!defined($RootfileStem) || $RootfileStem eq "");
 if (!defined($OutputPath) || $OutputPath eq ""){
     $OutputPath = "mss:$BaseMSSDir/rootfiles/pass0";
@@ -733,6 +733,12 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"Started at `date`\" | tee -a \$QWSTATUS\n",
 	"  echo $executable -r $runnumber $optionlist | tee -a \$QWSTATUS\n",
 	"  $executable -r $runnumber $optionlist\n",
+	"  if \(\$\? \!\= 0\) then\n",
+	"  echo \"**** qwparity failed. Terminating script... ****\"\n",
+	"  exit\n",
+	"  else\n",
+	"  echo \"** qwparity ran successfully. Continuing... **\"\n",
+	"  endif\n",
 	"  chmod g+w \$QW_ROOTFILES/*.root\n",
 	"  ls -al \$QW_ROOTFILES | tee -a \$QWSTATUS\n";
     my $postprocess;

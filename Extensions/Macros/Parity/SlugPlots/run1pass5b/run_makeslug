@@ -1,0 +1,53 @@
+#!/bin/bash
+# Author: Rakitha Beminiwattha (rakithab@jlab.org) 
+# 08-07-2012
+
+
+slug_num=$1
+#this is the source of regressed root files
+SRC="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
+DST="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files"
+
+
+################
+#
+# check that all runlets in the runlist have regression completed. If runlet mismacth occurs then we cannot compare 
+# different regression schemes with unregressed slug root file - Scott (smacewan@jlab.org) 11-13-2012
+#
+################
+
+ 
+argument="MakeSlug.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_sluglet.txt\",\"${DST}/slug${slug_num}.root\")"
+
+argument1="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_std.root\",\"std\")"
+argument2="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_5+1.root\",\"5+1\")"
+argument3="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set3.root\",\"set3\")"
+argument4="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set4.root\",\"set4\")"
+argument5="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set5.root\",\"set5\")"
+argument6="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set6.root\",\"set6\")"
+argument7="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set7.root\",\"set7\")"
+argument8="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set8.root\",\"set8\")"
+argument9="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set9.root\",\"set9\")"
+argument10="MakeSlug_lrb.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_lrb_reg.txt\",\"${DST}/slug${slug_num}_lrb_set10.root\",\"set10\")"
+
+ 
+
+
+
+root -n -q -b -l ${argument} >${DST_Dbug}/slug${slug_num}.out
+
+root -n -q -b -l ${argument1} >${DST_Dbug}/slug${slug_num}_lrb_std.out
+root -n -q -b -l ${argument2} >${DST_Dbug}/slug${slug_num}_lrb_5+1.out
+root -n -q -b -l ${argument3} >${DST_Dbug}/slug${slug_num}_lrb_set3.out
+root -n -q -b -l ${argument4} >${DST_Dbug}/slug${slug_num}_lrb_set4.out 
+root -n -q -b -l ${argument5} >${DST_Dbug}/slug${slug_num}_lrb_set5.out
+root -n -q -b -l ${argument6} >${DST_Dbug}/slug${slug_num}_lrb_set6.out
+root -n -q -b -l ${argument7} >${DST_Dbug}/slug${slug_num}_lrb_set7.out
+root -n -q -b -l ${argument8} >${DST_Dbug}/slug${slug_num}_lrb_set8.out
+root -n -q -b -l ${argument9} >${DST_Dbug}/slug${slug_num}_lrb_set9.out
+root -n -q -b -l ${argument10} >${DST_Dbug}/slug${slug_num}_lrb_set10.out
+
+
+
+

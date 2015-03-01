@@ -1,0 +1,130 @@
+#!/bin/bash
+
+
+# Author: Rakitha Beminiwattha (rakithab@jlab.org)
+# Edited by: Scott MacEwan (smacewan@jlab.org) 11-13-12 
+# 08-07-2012
+# This will check for missing raw/regression runlets for a given slug number
+
+SRC_LRB="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
+SRC="/work/hallc/qweak/QwAnalysis/run1/pass5slugs"
+
+
+slug_num=$1
+
+run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/runlists/slug${slug_num}_goodruns_list.txt | awk -v runnum="###" '{if ($1 != runnum) print $1}' `"
+#run_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt`"
+#runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.02/Extensions/Macros/Parity/SlugPlots/run1pass5/slug${slug_num}_goodruns_list.txt | awk '{print $2}'`"
+unreg_rootfile_status=0
+reg_rootfile_status=0
+run_num_done=0
+for run in ${run_list[@]}
+do
+	runlet_list="`cat /group/qweak/QwAnalysis/Linux/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/runlists/slug${slug_num}_goodruns_list.txt | awk -v runnum="$run"  '{  if ($1 == runnum) print $2;}' `"
+	#echo "Run number  $run"
+	if [ ${run_num_done} -eq  ${run} ]
+	    then
+	    continue
+	fi
+	for runlet in ${runlet_list[@]}
+	do
+	  run_num_done=$run
+	  #echo "Checking  ${run}.$runlet"
+	  #echo " `ls -l ${SRC}/QwPass5_$run.*$runlet.root`"
+	  #arg_rootfile=`ls -l ${SRC}/QwPass5_$run.*$runlet.root > /dev/null`
+#check the status of the last command #	  if [  $? == 0 ] 
+	  if [  `ls  ${SRC}/sluglet$run_*$runlet.root | wc -l ` -eq 0 ]
+	      then
+	      unreg_rootfile_status=1
+	      echo "${run}.$runlet:Unregressed root file  missing"
+	  fi
+	  #pass5 lrb_rootfiles now have .trees. suffix all lines below have .trees. added in as of 11-13-12 --smacewan
+	  #if [  `ls  ${SRC_LRB}/std_reg_QwPass5_$run.*$runlet.root | wc -l ` -eq 0 ] 
+
+	  if [  `ls  ${SRC_LRB}/std_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: std root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/5+1_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: 5+1 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set3_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set3 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set4_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set4 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set5_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set5 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set6_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set6 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set7_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set7 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set8_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set8 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set9_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set9 root file missing"
+	  fi
+	  if [  `ls  ${SRC_LRB}/set10_reg_QwPass5_$run.*$runlet.trees.root | wc -l ` -eq 0 ]
+	      then
+	      reg_rootfile_status=1
+	      echo "${run}.$runlet: set10 root file missing"
+	  fi
+
+
+	done
+
+done
+
+if [ ${unreg_rootfile_status} -eq 1  ]
+then
+    echo "Unregressed rootfiles for the slug ${slug_num} are not ready. Remove regression missing runlets from the slug${slug_num}_goodruns_list.txt"
+else
+    echo "Unregressed rootfiles for the slug ${slug_num} are ready "
+fi
+
+if [  ${reg_rootfile_status} -eq 1 ]
+then
+    echo "Regressed rootfiles for the slug ${slug_num} are not ready. Remove regression missing runlets from the slug${slug_num}_goodruns_list.txt"
+else
+    echo "Regressed rootfiles for the slug ${slug_num} are ready "
+fi
+
+
+#	  if [  `ls  ${SRC}/QwPass5_$run.*$runlet.root | wc -l ` -gt 0 ]
+#	      then
+#	      echo " unregressed root file exist:${SRC}/QwPass5_$run.*$runlet.root "
+#	  else
+#	      echo " root file:${SRC}/QwPass5_$run.*$runlet.root  does not exist "
+#	  fi
+
+#	  if [  `ls  ${SRC_LRB}/std_reg_QwPass5_$run.*$runlet.root | wc -l ` -gt 0 ]
+#	      then
+#	      echo " STD regressed root file exist:${SRC}/std_reg_QwPass5_$run.*$runlet.root "
+#	  else
+#	      echo " root file:${SRC}/std_reg_QwPass5_$run.*$runlet.root  does not exist "
+#	  fi
+
+
+

@@ -3,9 +3,7 @@
 # Author: Rakitha Beminiwattha (rakithab@jlab.org)
 #Test only in cdaq cluseter.
 #to run ./check_analysis_status slug_number
-#where slug_nuber is any run2 slug
-# Updated for run2pass5 buddhini
-# Updated for run2pass5b smacewan
+#where slug_nuber is any run1 slug
 
 slug_num=$1
 
@@ -19,7 +17,7 @@ rm -f analyzer_status_query.sql
 
 echo " ${sql_query} " > analyzer_status_query.sql
 
-mysql -u qweak -h qweakdb -p qw_run2_pass5b  < analyzer_status_query.sql
+mysql -u qweak -h qweakdb -p qw_run1_pass4b  < analyzer_status_query.sql
 
 rm -f analyzer_status_query.sql
 
@@ -32,7 +30,7 @@ sql_query="  select run.slug, runlet.run_number, runlet.segment_number, analysis
 
 echo " ${sql_query} " > analyzer_status_query.sql
 
-mysql -u qweak -h qweakdb -p qw_run2_pass5b  < analyzer_status_query.sql
+mysql -u qweak -h qweakdb -p qw_run1_pass4b  < analyzer_status_query.sql
 
 rm -f analyzer_status_query.sql
 

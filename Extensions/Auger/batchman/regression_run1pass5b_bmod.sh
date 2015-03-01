@@ -12,11 +12,12 @@ if [[ ! -n "$WORKDIR" || ! -d $WORKDIR ]]; then
     exit
 fi
 
-linRegBluePath=$QWANALYSIS/../linRegBlue_v7/run2pass5ModConfig
-outputPath=/work/hallc/qweak/QwAnalysis/run2/pass5b_bmod_regression/lrb_bmod
+linRegBluePath=$QWANALYSIS/../linRegBlue_v7/run1pass5ModConfig
+outputPath=/work/hallc/qweak/QwAnalysis/run1/pass5b_bmod_regression/lrb_bmod
 rootFileStem=QwPass5b_
 
-#dbName=qw_run2_pass5b
+#dbName=qw_test_20130313
+dbName=qw_run1_pass5b
 
 echo "Linking rootfiles to inPath: ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $outputPath/${rootFileStem}$run.$seg.trees.root "
 ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $outputPath/${rootFileStem}$run.$seg.trees.root 
